@@ -1,0 +1,1219 @@
+{
+  "date": "2026-09-27",
+  "policy": "Original excerpt bytes remain in OLD. Entries with target_body ranges still identify unchanged extraction bodies; audited replacements retain original source ranges/hashes and link their current verification. Reference .cpp excerpts remain outside aggregates and notebook discovery.",
+  "sources": {
+    "OLD/algorithms.cpp": {
+      "sha256": "5f8acadfa28705a86af343950db1e7073f62943ed536fff8e144e1a8f0372281",
+      "lines": 5052
+    },
+    "OLD/[1] algorithms.cpp": {
+      "sha256": "6b1980ad2606d54dc7fe72984ba5303018745a2b576ba0b2731ebe81d17cf380",
+      "lines": 861
+    }
+  },
+  "entries": [
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "start_line": 1,
+      "end_line": 30,
+      "target": "01-Core/97-Legacy/01-template.cpp",
+      "symbols": [
+        "template aliases and helpers"
+      ],
+      "status": "exact-duplicate",
+      "canonical_source": "OLD/algorithms.cpp",
+      "canonical_start_line": 1,
+      "canonical_end_line": 30,
+      "body_sha256": "f5672a0b4b5290b6835a3dde2737e777ee06352cfff3932a961e9c3eade56a74",
+      "note": "Identical source body represented by the canonical extraction; original monolith remains unchanged.",
+      "target_body_start_line": 4,
+      "target_body_end_line": 33
+    },
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "start_line": 31,
+      "end_line": 228,
+      "target": "01-Core/97-Legacy/02-debug.cpp",
+      "symbols": [
+        "Debug",
+        "debug",
+        "trace"
+      ],
+      "status": "legacy-reference",
+      "includes": [],
+      "note": "Older debug alternative; current Core debug remains canonical. Requires the old template context.",
+      "body_sha256": "69ba8e095ddf809dabd5062b022f797550b201b655021ee230c8e45af8ecd081",
+      "target_body_start_line": 4,
+      "target_body_end_line": 201
+    },
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "start_line": 230,
+      "end_line": 240,
+      "target": null,
+      "symbols": [],
+      "status": "archive-only",
+      "note": "TODO labels contain no implementations; feature inventories already include these topics.",
+      "body_sha256": "fa747f1e48077166952a4c9d15b1e5f234c9c16ee1eec03fca70e0240848ece2"
+    },
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "start_line": 243,
+      "end_line": 256,
+      "target": "06-Miscellaneous/08-sequence_algorithms.hpp",
+      "symbols": [
+        "kadane"
+      ],
+      "status": "exact-duplicate",
+      "canonical_source": "OLD/algorithms.cpp",
+      "canonical_start_line": 4428,
+      "canonical_end_line": 4441,
+      "body_sha256": "a803a00922b93b26a067e3067439912ff1490fe5e11ecf1a6ef4f13ae6ffa30a",
+      "note": "P014 preserves legacy kadane empty/nonempty behavior with a checked lng result-fit contract and exact lll accumulation; witness, bounded/circular/rectangle and other sequence features are accounted in verification.",
+      "relationship": "P014 audited replacement; original source excerpt preserved",
+      "historical_target_sha256": "700af8843b769f610d1fcf624161f3a89312167aba3b79ef8b2dea3778f7f752",
+      "verification": "06-Miscellaneous/96-p014.md",
+      "disposition": "exact-duplicate-mapped"
+    },
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "start_line": 261,
+      "end_line": 304,
+      "target": "04-Graphs/09-bridges_articulation.hpp",
+      "symbols": [
+        "BridgeAlgo"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp",
+        "04-Graphs/01-graph.hpp"
+      ],
+      "status": "exact-duplicate",
+      "issues": [
+        "P011 replaces recursive lowlink with edge-ID multigraph biconnectivity and strong orientation; BridgeAlgo/Tarjan compatibility adapters and source features are accounted in verification."
+      ],
+      "source_context": null,
+      "tier": null,
+      "body_sha256": "9a44730468870767cd50bbb3ce6d59ecc4d537950dc1ebc86cebe22f659f8d8d",
+      "duplicate_of": {
+        "source": "OLD/algorithms.cpp",
+        "start_line": 4443
+      },
+      "disposition": "exact-duplicate-mapped",
+      "relationship": "P011 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/93-lowlink.md"
+    },
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "start_line": 306,
+      "end_line": 344,
+      "target": "04-Graphs/05-shortest_path.hpp",
+      "symbols": [
+        "Dijkstra"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp",
+        "04-Graphs/01-graph.hpp",
+        "04-Graphs/02-traversal.hpp",
+        "04-Graphs/03-toposort.hpp"
+      ],
+      "status": "exact-duplicate",
+      "issues": [
+        "Original excerpt duplicates OLD/algorithms.cpp:4488-4526; current target is the P010 replacement with a compatibility adapter."
+      ],
+      "source_context": null,
+      "tier": null,
+      "body_sha256": "bd4211ed53d8f941b931f636dbd6301eb35e9029b9c64f9e79ee0cddc5d9cae6",
+      "duplicate_of": {
+        "source": "OLD/algorithms.cpp",
+        "start_line": 4488
+      },
+      "disposition": "exact-duplicate-mapped",
+      "relationship": "P010 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/90-foundations.md"
+    },
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "start_line": 348,
+      "end_line": 469,
+      "target": "04-Graphs/19-max_flow.hpp",
+      "symbols": [
+        "EdmondsKarp"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "status": "existing-unverified",
+      "issues": [
+        "Historical TESTED comment is preserved, not accepted as current verification.",
+        "Uses n + 1 dense capacity matrices and mutable residual state; edge identity, capacity bounds and source/sink contract require audit."
+      ],
+      "source_context": null,
+      "tier": "Advanced",
+      "body_sha256": "1627c744ba56bc7c1593d450ff954226cb1ad5d4fb1de52235568793481ce198",
+      "disposition": "extracted",
+      "target_body_start_line": 9,
+      "target_body_end_line": 130,
+      "target_sha256": "51c47e65e308243186a535325140440cd88ae0a3fb22bc222e7da5e190cb1d44"
+    },
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "start_line": 473,
+      "end_line": 541,
+      "target": "04-Graphs/97-Legacy/03-subtree_queries.cpp",
+      "symbols": [
+        "EulerTourTree"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp",
+        "obsolete SegTree interface (unresolved; reference remains commented)"
+      ],
+      "status": "legacy-reference",
+      "issues": [
+        "Entire struct is commented out in the source.",
+        "Static Euler subtree flattening plus range-query adapter, not a dynamic Euler-tour tree.",
+        "Refers to obsolete non-template SegTree and its incompatible constructor/method interface.",
+        "Historical TESTED comment is preserved, not accepted as current verification."
+      ],
+      "source_context": null,
+      "tier": "Advanced",
+      "body_sha256": "f2a981f6ae96f5aa53a5d7986249f6d2618e8a8be177d251831d21315d3a80ad",
+      "disposition": "extracted",
+      "target_body_start_line": 7,
+      "target_body_end_line": 75,
+      "target_sha256": "555f3566d9b3b364ce4d9a494ce9068c2614ef5ea783151b50498d6105335613"
+    },
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "start_line": 545,
+      "end_line": 578,
+      "target": "04-Graphs/12-all_pairs_shortest_path.hpp",
+      "symbols": [
+        "FloydWarshall"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "status": "exact-duplicate",
+      "issues": [
+        "Definition is byte-identical to the selected algorithms.cpp block; no duplicate public definition emitted.",
+        "Original monolith and historical TESTED comments remain preserved in OLD."
+      ],
+      "source_context": null,
+      "tier": null,
+      "body_sha256": "a6011a72a37ea9c4a95c83e788ae2f7e130292f9f1adbbd67a302548aac58f77",
+      "duplicate_of": {
+        "source": "OLD/algorithms.cpp",
+        "start_line": 4528
+      },
+      "disposition": "exact-duplicate-mapped",
+      "target_body_start_line": 10,
+      "target_body_end_line": 43
+    },
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "start_line": 583,
+      "end_line": 657,
+      "target": "04-Graphs/07-lca.hpp",
+      "symbols": [
+        "LCA"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp",
+        "04-Graphs/01-graph.hpp",
+        "02-Data Structures/01-dsu.hpp"
+      ],
+      "status": "exact-duplicate",
+      "issues": [
+        "P011 replaces recursive single-tree preprocessing with iterative forest binary lifting, linear Euler RMQ and offline Tarjan; legacy constructors and queries are accounted in verification."
+      ],
+      "source_context": null,
+      "tier": null,
+      "body_sha256": "e2a7cb7f4ad978efd7182e2af99c539c25e425d6a11c8b1070a1ee1c881ff61d",
+      "duplicate_of": {
+        "source": "OLD/algorithms.cpp",
+        "start_line": 4563
+      },
+      "disposition": "exact-duplicate-mapped",
+      "relationship": "P011 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/91-lca.md"
+    },
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "target": "02-Data Structures/97-Legacy/04-lichao_older.cpp",
+      "symbols": [
+        "LiChaoTree"
+      ],
+      "status": "legacy-reference",
+      "tier": "Advanced",
+      "issues": [
+        "TODO draft is a complex-vector hull skeleton without queries; distinct from the newer Li Chao implementation."
+      ],
+      "body_sha256": "0902112863e538076d570c9f674678e0fb966b6c5db1debb2450bfbb098b2705",
+      "body_bytes": 578,
+      "relationship": "unchanged reference extraction",
+      "duplicate_of": null,
+      "start_line": 661,
+      "end_line": 691,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 3,
+      "target_body_end_line": 33
+    },
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "target": "02-Data Structures/97-Legacy/05-mergesorttree_older.cpp",
+      "symbols": [
+        "MergeSortTree"
+      ],
+      "status": "legacy-reference",
+      "tier": "Advanced",
+      "issues": [
+        "Meaningfully distinct static fractional-cascading reference; pull reads exhausted merge sides before guards in some expressions. Original TESTED comment is historical, not current verification."
+      ],
+      "body_sha256": "2640e27546a7358649f37c3116f172171a21a73f9967934c9c2c89251232266a",
+      "body_bytes": 3300,
+      "relationship": "unchanged reference extraction",
+      "duplicate_of": null,
+      "start_line": 695,
+      "end_line": 799,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 3,
+      "target_body_end_line": 107
+    },
+    {
+      "source": "OLD/[1] algorithms.cpp",
+      "start_line": 803,
+      "end_line": 861,
+      "target": "05-Mathematics/97-Legacy/02-modfac.cpp",
+      "symbols": [
+        "ModFac (commented out)"
+      ],
+      "status": "legacy-reference",
+      "includes": [],
+      "note": "Original disabled block retained verbatim. Uses old mint .inv()/.pow() API, incompatible with current modint; active combinatorics remains canonical.",
+      "body_sha256": "b409c4615f6897f8f1505e6e9109a0645790ed2ac05c70fd8d676f24b8fe214a",
+      "target_body_start_line": 4,
+      "target_body_end_line": 62
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 1,
+      "end_line": 30,
+      "target": "01-Core/97-Legacy/01-template.cpp",
+      "symbols": [
+        "template aliases and helpers"
+      ],
+      "status": "legacy-reference",
+      "includes": [],
+      "note": "Active template already exists with different aliases/macros; keep old preamble for interpreting raw excerpts, not as a dependency.",
+      "body_sha256": "f5672a0b4b5290b6835a3dde2737e777ee06352cfff3932a961e9c3eade56a74",
+      "target_body_start_line": 4,
+      "target_body_end_line": 33
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 31,
+      "end_line": 574,
+      "target": "01-Core/12-bitmatrix.hpp",
+      "symbols": [
+        "BitMatrix"
+      ],
+      "status": "existing-unverified",
+      "includes": [
+        "01-template.hpp"
+      ],
+      "note": "Packed GF(2) matrix implementation; future full-Core completeness/performance audit remains.",
+      "body_sha256": "b25db7a279e1beef8dc6785b4addcf68aa5a8cca7f6d25409256863a5175ea4e",
+      "target_body_start_line": 6,
+      "target_body_end_line": 549
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 576,
+      "end_line": 854,
+      "target": "01-Core/14-sparsematrix.hpp",
+      "symbols": [
+        "SparseMatrix"
+      ],
+      "status": "existing-unverified",
+      "includes": [
+        "01-template.hpp"
+      ],
+      "note": "Sparse matrix and randomized linear algebra; numerical/probabilistic contracts remain unverified.",
+      "body_sha256": "0c28d49c2c829b194177de40d28441321400a1d038313788339113b304a501e9",
+      "target_body_start_line": 6,
+      "target_body_end_line": 284
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 856,
+      "end_line": 870,
+      "target": "06-Miscellaneous/97-Legacy/01-random.cpp",
+      "symbols": [
+        "Random",
+        "rng"
+      ],
+      "status": "legacy-reference",
+      "includes": [],
+      "note": "Different from active Random; retains old global rng and lacks current bounds asserts.",
+      "body_sha256": "3c67d4f8526aa02789693ff69b236502c35e09f807986d06c255d44f20065c66",
+      "target_body_start_line": 4,
+      "target_body_end_line": 18
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 872,
+      "end_line": 933,
+      "target": "06-Miscellaneous/97-Legacy/02-customhash.cpp",
+      "symbols": [
+        "CustomHash",
+        "safe_unordered_map",
+        "safe_unordered_set"
+      ],
+      "status": "legacy-reference",
+      "includes": [],
+      "note": "Different hash seeding and pair/tuple/string handling from active header; preserve without overwriting it.",
+      "body_sha256": "fc9fa245b6dae613b9af08436f89b0a62a7cb2da65db145eefe99b7bed0551ad",
+      "target_body_start_line": 4,
+      "target_body_end_line": 65
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/00-monoids.hpp",
+      "symbols": [
+        "MonAlg"
+      ],
+      "status": "existing-unverified",
+      "tier": "support",
+      "issues": [
+        "Affine aggregate helper; overflow/domain audit pending."
+      ],
+      "body_sha256": "83b13c276babbb2afd66972c08f48f0fafcd5767bfd04f3f4b255c1f332bd9a5",
+      "body_bytes": 2028,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 937,
+      "end_line": 1031,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 7,
+      "target_body_end_line": 101
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/00-monoids.hpp",
+      "symbols": [
+        "MonBin"
+      ],
+      "status": "existing-unverified",
+      "tier": "support",
+      "issues": [],
+      "body_sha256": "6d8754ce7b466479bad4186c8b247a15b49d8018d288bf97240549050a404dd8",
+      "body_bytes": 1585,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 1033,
+      "end_line": 1105,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 105,
+      "target_body_end_line": 177
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/00-monoids.hpp",
+      "symbols": [
+        "MonGcd"
+      ],
+      "status": "existing-unverified",
+      "tier": "support",
+      "issues": [
+        "LCM overflow/domain audit pending."
+      ],
+      "body_sha256": "9b9f933502b9f511e76860c37b0711650e9ad6702c09e3d70685881b8ef56be4",
+      "body_bytes": 1755,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 1107,
+      "end_line": 1191,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 181,
+      "target_body_end_line": 265
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/00-monoids.hpp",
+      "symbols": [
+        "MonSar"
+      ],
+      "status": "existing-unverified",
+      "tier": "support",
+      "issues": [],
+      "body_sha256": "32e60acc91903d7a796a5993783a53f1fe4a11a12d596234960a3e5dcfb71ae7",
+      "body_bytes": 1788,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 1193,
+      "end_line": 1258,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 269,
+      "target_body_end_line": 334
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/97-Legacy/01-monset.cpp",
+      "symbols": [
+        "MonSet"
+      ],
+      "status": "legacy-reference",
+      "tier": "Advanced",
+      "issues": [
+        "Incomplete customization scaffold: states, combine, and map are placeholders."
+      ],
+      "body_sha256": "530a5cea733643974bf23da9ab39ff48236dada16337a283f5a71588e9bf6b5d",
+      "body_bytes": 1052,
+      "relationship": "unchanged reference extraction",
+      "duplicate_of": null,
+      "start_line": 1260,
+      "end_line": 1316,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 3,
+      "target_body_end_line": 59
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/04-sparsetable.hpp",
+      "symbols": [
+        "SparseTable"
+      ],
+      "status": "verified",
+      "tier": "Basic",
+      "issues": [
+        "Historical queryFast requires idempotence; P006 documents that contract and preserves inclusive adapters while adding half-open queries."
+      ],
+      "body_sha256": "124a3d949f498e54fcd978ded728b01111f47faac69150a0a52fbbab7f8f76fb",
+      "body_bytes": 1852,
+      "relationship": "P006 audited replacement; original source excerpt preserved",
+      "duplicate_of": null,
+      "start_line": 1328,
+      "end_line": 1396,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "verification": "02-Data Structures/90-foundations.md"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/01-dsu.hpp",
+      "symbols": [
+        "DSU"
+      ],
+      "status": "verified",
+      "tier": "Basic",
+      "issues": [
+        "Historical source mixes weighted distances/parity and edge counts; getDis narrows lng to int. P006 replaces Basic connectivity and hands weighted/parity/component metadata to their Advanced owners; see verification."
+      ],
+      "body_sha256": "447aa73ef0321b6bfe7b7415a5db8b883baf0c3d9cbe804519cd89d4c1e6704b",
+      "body_bytes": 1529,
+      "relationship": "P006 audited replacement; original source excerpt preserved",
+      "duplicate_of": null,
+      "start_line": 1402,
+      "end_line": 1477,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "verification": "02-Data Structures/90-foundations.md"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/11-fenwick_tree_advanced.hpp",
+      "symbols": [
+        "FenTreeRangeAdd1D"
+      ],
+      "status": "existing-unverified",
+      "tier": "Advanced",
+      "issues": [],
+      "body_sha256": "1b4fd2da40a6a0ecfa43fe1a254f8ab3d02f08c30f2727a0c3a29a9ba9d6b454",
+      "body_bytes": 1945,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 1481,
+      "end_line": 1555,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 7,
+      "target_body_end_line": 81
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/11-fenwick_tree_advanced.hpp",
+      "symbols": [
+        "FenTree"
+      ],
+      "status": "existing-unverified",
+      "tier": "Advanced",
+      "issues": [
+        "Unchanged legacy struct combines 1D Basic and multidimensional Advanced operations; future split required."
+      ],
+      "body_sha256": "a797b0bb1b23b20107e00448bc8b421d7a23c9a2694356cc3f2a5fc2d6f6cf8d",
+      "body_bytes": 9679,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 1557,
+      "end_line": 1860,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 85,
+      "target_body_end_line": 388
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/97-Legacy/02-sqrtdecomp.cpp",
+      "symbols": [
+        "SqrtDecomp"
+      ],
+      "status": "legacy-reference",
+      "tier": "Basic",
+      "issues": [
+        "Invalid default arguments reference earlier constructor parameters N/a; left unchanged."
+      ],
+      "body_sha256": "f4103b0461a6bb965dceae2421cbaa0d26990710f3b5a0a00bfed05ab45acd04",
+      "body_bytes": 2798,
+      "relationship": "unchanged reference extraction",
+      "duplicate_of": null,
+      "start_line": 1864,
+      "end_line": 1966,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 3,
+      "target_body_end_line": 105
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/23-range_query_offline.hpp",
+      "symbols": [
+        "Mo"
+      ],
+      "status": "existing-unverified",
+      "tier": "Advanced",
+      "issues": [
+        "Hilbert-order default pow=20 constrains the intended coordinate range; domain audit pending."
+      ],
+      "body_sha256": "e5face746c2a2bc98bd0d175f3e518fa76eddc0596c35b535d855c9ea3912a02",
+      "body_bytes": 1900,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 1968,
+      "end_line": 2038,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 7,
+      "target_body_end_line": 77
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/12-lazysegmenttree.hpp",
+      "symbols": [
+        "SegTree"
+      ],
+      "status": "existing-unverified",
+      "tier": "Advanced",
+      "issues": [
+        "The legacy SegTree implements lazy actions, not the planned Basic iterative segment tree."
+      ],
+      "body_sha256": "2485e77109aa850658b5ffb0f4ad3702d69921d4b875e4cb2a96b64ddd8431ef",
+      "body_bytes": 4398,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 2042,
+      "end_line": 2213,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 7,
+      "target_body_end_line": 178
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/97-Legacy/03-dynsegtree.cpp",
+      "symbols": [
+        "DynSegTree"
+      ],
+      "status": "legacy-reference",
+      "tier": "Advanced",
+      "issues": [
+        "max(l, 0LL) conflicts with current Core lng=int64_t on LP64; source used lng=long long."
+      ],
+      "body_sha256": "6145c343da4ffba0ea4bacf729a780198cedeb12c8a5ca1c3783cc899d59c181",
+      "body_bytes": 5981,
+      "relationship": "unchanged reference extraction",
+      "duplicate_of": null,
+      "start_line": 2215,
+      "end_line": 2443,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 3,
+      "target_body_end_line": 231
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/18-persistentsegmenttree.hpp",
+      "symbols": [
+        "PerSegTree"
+      ],
+      "status": "existing-unverified",
+      "tier": "Advanced",
+      "issues": [
+        "Large fixed reserve and empty-size behavior remain unaudited."
+      ],
+      "body_sha256": "9b5b5aead6e6bed1454d7cd6d20edaf0253c10fa56f56dcb0cfcf2e9c65902e4",
+      "body_bytes": 7825,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 2445,
+      "end_line": 2725,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 7,
+      "target_body_end_line": 287
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/15-segment_tree_2d.hpp",
+      "symbols": [
+        "SegTree2D"
+      ],
+      "status": "existing-unverified",
+      "tier": "Advanced",
+      "issues": [],
+      "body_sha256": "d6c9d75b1fc61a5edfc32cb5fefe214ba96dda15b6a5251c8758428519fb058f",
+      "body_bytes": 4106,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 2727,
+      "end_line": 2856,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 7,
+      "target_body_end_line": 136
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/14-segtreebeats.hpp",
+      "symbols": [
+        "SegTreeBeats"
+      ],
+      "status": "existing-unverified",
+      "tier": "Advanced",
+      "issues": [
+        "Amortized bounds and adversarial correctness not verified in this mechanical transfer."
+      ],
+      "body_sha256": "9c35cf085b597aa077fc9b950608598c61ff4f658b1430fde22f4fadc8e8bab6",
+      "body_bytes": 9057,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 2858,
+      "end_line": 3183,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 7,
+      "target_body_end_line": 332
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/16-mergesorttree.hpp",
+      "symbols": [
+        "DynMergeSortTree"
+      ],
+      "status": "existing-unverified",
+      "tier": "Advanced",
+      "issues": [
+        "Uses Core indexed_set/PBDS; retains large fixed node reserve and original sentinel/overflow conventions."
+      ],
+      "body_sha256": "705c40bff60086ca821c35485734a5976508f17175a0afd54302e629b2527769",
+      "body_bytes": 6921,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 3185,
+      "end_line": 3459,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 7,
+      "target_body_end_line": 281
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/18-persistentsegmenttree.hpp",
+      "symbols": [
+        "KSPerSegTree"
+      ],
+      "status": "existing-unverified",
+      "tier": "Advanced",
+      "issues": [
+        "Retains optional storage and original sentinel/overflow conventions."
+      ],
+      "body_sha256": "670495bb73a9fd005a0d12c7760338cf9b8806011e36146694c5d4062760a7b1",
+      "body_bytes": 5175,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 3461,
+      "end_line": 3649,
+      "dependencies": [
+        "01-Core/01-template.hpp",
+        "PerSegTree (same file)"
+      ],
+      "target_body_start_line": 291,
+      "target_body_end_line": 479
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/17-waveletmatrix.hpp",
+      "symbols": [
+        "WaveletMatrix"
+      ],
+      "status": "existing-unverified",
+      "tier": "Advanced",
+      "issues": [
+        "Retains original sentinel/overflow conventions; internal BitVec stays inside the unchanged struct."
+      ],
+      "body_sha256": "f0bf8a0289f91fe41769060fea0066690ebcab29da6433b5b41447d097ca177a",
+      "body_bytes": 4321,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 3651,
+      "end_line": 3817,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 7,
+      "target_body_end_line": 173
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 3823,
+      "end_line": 3933,
+      "target": "05-Mathematics/97-Legacy/01-transform_algorithms.cpp",
+      "symbols": [
+        "FastConv"
+      ],
+      "status": "legacy-reference",
+      "includes": [],
+      "note": "Equivalent transform family already has an active migrated header; preserve original formatting/body and dependency context for future comparison.",
+      "body_sha256": "28c0eae930c708855dc9608f5fd43622eb3e99e520e611e6267e2845c015de49",
+      "target_body_start_line": 4,
+      "target_body_end_line": 114
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/21-lichao.hpp",
+      "symbols": [
+        "LiChaoTree"
+      ],
+      "status": "existing-unverified",
+      "tier": "Advanced",
+      "issues": [
+        "Integer line evaluation may overflow outside an unstated bounded domain; future audit required."
+      ],
+      "body_sha256": "9f71e2ffd7cbbc9dc3a6871ddcc95947c707abc1f15709843ef441d35bca6cc8",
+      "body_bytes": 4563,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 3935,
+      "end_line": 4116,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 7,
+      "target_body_end_line": 188
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4118,
+      "end_line": 4230,
+      "target": "04-Graphs/15-hld.hpp",
+      "symbols": [
+        "HLD"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "status": "existing-unverified",
+      "issues": [
+        "Recursive connected-tree build; inclusive callback ranges; callback path segments do not encode direction for noncommutative folds.",
+        "No algorithm verification performed."
+      ],
+      "source_context": null,
+      "tier": "Advanced",
+      "body_sha256": "203005c60e94dae176a3cc1e35d7ffb1443babbe46847eccbc01658b5a37778b",
+      "disposition": "extracted",
+      "target_body_start_line": 9,
+      "target_body_end_line": 121,
+      "target_sha256": "779ef5f14e078573ea3f800b9f9067d27c2f263d9b346498a152da81987de56f"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "target": "02-Data Structures/21-lichao.hpp",
+      "symbols": [
+        "PerLiChaoTree"
+      ],
+      "status": "existing-unverified",
+      "tier": "Advanced",
+      "issues": [
+        "Integer line evaluation and large fixed reserve require future domain/memory audit."
+      ],
+      "body_sha256": "74812950564e549ad5fb8e82a799942f9ffd5e38f649c4a2ada56458137a66a4",
+      "body_bytes": 4848,
+      "relationship": "canonical unchanged extraction",
+      "duplicate_of": null,
+      "start_line": 4232,
+      "end_line": 4423,
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "target_body_start_line": 192,
+      "target_body_end_line": 383
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4428,
+      "end_line": 4441,
+      "target": "06-Miscellaneous/08-sequence_algorithms.hpp",
+      "symbols": [
+        "kadane"
+      ],
+      "status": "verified",
+      "includes": [
+        "../01-Core/01-template.hpp"
+      ],
+      "note": "P014 preserves legacy kadane empty/nonempty behavior with a checked lng result-fit contract and exact lll accumulation; witness, bounded/circular/rectangle and other sequence features are accounted in verification.",
+      "body_sha256": "a803a00922b93b26a067e3067439912ff1490fe5e11ecf1a6ef4f13ae6ffa30a",
+      "relationship": "P014 audited replacement; original source excerpt preserved",
+      "historical_target_sha256": "700af8843b769f610d1fcf624161f3a89312167aba3b79ef8b2dea3778f7f752",
+      "verification": "06-Miscellaneous/96-p014.md",
+      "disposition": "audited-replacement"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4443,
+      "end_line": 4486,
+      "target": "04-Graphs/09-bridges_articulation.hpp",
+      "symbols": [
+        "BridgeAlgo"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp",
+        "04-Graphs/01-graph.hpp"
+      ],
+      "status": "verified",
+      "issues": [
+        "P011 replaces recursive lowlink with edge-ID multigraph biconnectivity and strong orientation; BridgeAlgo/Tarjan compatibility adapters and source features are accounted in verification."
+      ],
+      "source_context": "INFERIOR VERSIONS section",
+      "tier": "Basic",
+      "body_sha256": "9a44730468870767cd50bbb3ce6d59ecc4d537950dc1ebc86cebe22f659f8d8d",
+      "disposition": "audited-replacement",
+      "historical_target_sha256": "72b9178999cf60230881996b7fdc9c52589e41d3795fb046772bf976b95321cd",
+      "relationship": "P011 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/93-lowlink.md"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4488,
+      "end_line": 4526,
+      "target": "04-Graphs/05-shortest_path.hpp",
+      "symbols": [
+        "Dijkstra"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp",
+        "04-Graphs/01-graph.hpp",
+        "04-Graphs/02-traversal.hpp",
+        "04-Graphs/03-toposort.hpp"
+      ],
+      "status": "verified",
+      "issues": [
+        "P010 replaces legacy INF64 arithmetic with zero-based exact signed-integer paths; n+1 compatibility adapter retains its documented finite-distance bound. See verification for source accounting and completed tests."
+      ],
+      "source_context": "INFERIOR VERSIONS section",
+      "tier": "Basic",
+      "body_sha256": "bd4211ed53d8f941b931f636dbd6301eb35e9029b9c64f9e79ee0cddc5d9cae6",
+      "disposition": "audited-replacement",
+      "historical_target_sha256": "4f3d2f0af2422309d3ecc7a5592a0e7bf1913be343eda93e7039957ab591058c",
+      "relationship": "P010 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/90-foundations.md"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4528,
+      "end_line": 4561,
+      "target": "04-Graphs/12-all_pairs_shortest_path.hpp",
+      "symbols": [
+        "FloydWarshall"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "status": "existing-unverified",
+      "issues": [
+        "Legacy 1-based loops and n + 1 matrices; sentinel/overflow/negative-cycle propagation require audit.",
+        "No algorithm verification performed."
+      ],
+      "source_context": "INFERIOR VERSIONS section",
+      "tier": "Advanced",
+      "body_sha256": "a6011a72a37ea9c4a95c83e788ae2f7e130292f9f1adbbd67a302548aac58f77",
+      "disposition": "extracted",
+      "target_body_start_line": 10,
+      "target_body_end_line": 43,
+      "target_sha256": "c09f5fb8666f1c5ecc627ff8863a73651384cdb6041ee996c8ee5a6954e60f6f"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4563,
+      "end_line": 4637,
+      "target": "04-Graphs/07-lca.hpp",
+      "symbols": [
+        "LCA"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp",
+        "04-Graphs/01-graph.hpp",
+        "02-Data Structures/01-dsu.hpp"
+      ],
+      "status": "verified",
+      "issues": [
+        "P011 replaces recursive single-tree preprocessing with iterative forest binary lifting, linear Euler RMQ and offline Tarjan; legacy constructors and queries are accounted in verification."
+      ],
+      "source_context": "INFERIOR VERSIONS section",
+      "tier": "Basic",
+      "body_sha256": "e2a7cb7f4ad978efd7182e2af99c539c25e425d6a11c8b1070a1ee1c881ff61d",
+      "disposition": "audited-replacement",
+      "historical_target_sha256": "6343ab91298b9c7641c40e37e6118db7817ccad0c4694298aa8ebf2edcbe80c8",
+      "relationship": "P011 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/91-lca.md"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4641,
+      "end_line": 4700,
+      "target": "04-Graphs/18-twosat.hpp",
+      "symbols": [
+        "TwoSat"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "status": "existing-unverified",
+      "issues": [
+        "Literal-polarity/assignment semantics and repeated solve behavior require audit; DFS is recursive.",
+        "No algorithm verification performed."
+      ],
+      "source_context": "AI GENERATED FAST section",
+      "tier": "Advanced",
+      "body_sha256": "9983a8807d6782987dcb52b1c09d567a1e0bb7f5f9043baea040b38cb050d8e0",
+      "disposition": "extracted",
+      "target_body_start_line": 10,
+      "target_body_end_line": 69,
+      "target_sha256": "616a107e39c4cdcf48d3cf6d9e3aa6d021dc5fb858b3c4cf814318206192f9e3"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4702,
+      "end_line": 4722,
+      "target": "04-Graphs/97-Legacy/01-floydwarshall.cpp",
+      "symbols": [
+        "floydWarshall"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "status": "legacy-reference",
+      "issues": [
+        "Undefined sze(d) prevents standalone compilation; free function lacks inline for header linkage.",
+        "Kept unchanged as a reference; not an active header."
+      ],
+      "source_context": "AI GENERATED FAST section",
+      "tier": "Advanced",
+      "body_sha256": "6f231f25ecc414230c28b19a9e76378de731df7f12934eb93a05c3ac3990bc1e",
+      "disposition": "extracted",
+      "target_body_start_line": 8,
+      "target_body_end_line": 28,
+      "target_sha256": "1a30645662189e880f7f372820cc39aa00fea1b0a8ad7603601e92f46b28c85d"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4724,
+      "end_line": 4766,
+      "target": "04-Graphs/13-shortest_path_advanced.hpp",
+      "symbols": [
+        "SPFA"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "status": "existing-unverified",
+      "issues": [
+        "Queue-count negative-cycle detection, overflow domain, heuristic performance and witness support require audit.",
+        "No algorithm verification performed."
+      ],
+      "source_context": "AI GENERATED FAST section",
+      "tier": "Advanced",
+      "body_sha256": "88ca539cdfed6b73e4b8c392e101882b9c7948115d33cb5e002826fa473ff722",
+      "disposition": "extracted",
+      "target_body_start_line": 10,
+      "target_body_end_line": 52,
+      "target_sha256": "c423d1c7927a3feb56838d3516d333a1fcb65012ee2fb11786ca49c24da4dcda"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4768,
+      "end_line": 4795,
+      "target": "04-Graphs/97-Legacy/02-bipartite.cpp",
+      "symbols": [
+        "isBipartite"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "status": "legacy-reference",
+      "issues": [
+        "Free function lacks inline: unchanged inclusion from multiple translation units violates header linkage requirements.",
+        "Compiles as a source snippet; kept unchanged as a reference, not an active header."
+      ],
+      "source_context": "AI GENERATED FAST section",
+      "tier": "Basic",
+      "body_sha256": "78b7a968842ce8bd8dafb07df87063e91cfbfa83b184e94a7fae3576dc59d66d",
+      "disposition": "extracted",
+      "target_body_start_line": 8,
+      "target_body_end_line": 35,
+      "target_sha256": "5ee316954fb9aea58010b2a910cb01f9e820f136c3953e1bf5e4ce786a57dca7"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4797,
+      "end_line": 4862,
+      "target": "04-Graphs/23-assignment.hpp",
+      "symbols": [
+        "Hungarian"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "status": "existing-unverified",
+      "issues": [
+        "Rectangular domain, INF64 arithmetic, generic T constraints, forbidden edges and repeated solve behavior require audit.",
+        "No algorithm verification performed."
+      ],
+      "source_context": "AI GENERATED FAST section",
+      "tier": "Advanced",
+      "body_sha256": "445c1b5abce9dd839a5e228b716d029a9f0077a8297344dacafbeed0065ded38",
+      "disposition": "extracted",
+      "target_body_start_line": 10,
+      "target_body_end_line": 75,
+      "target_sha256": "6c056739a66192afbb7d0cced5bcdf94ff8fdc8939b47975f815c6bb9b4137a2"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4864,
+      "end_line": 4904,
+      "target": "04-Graphs/09-bridges_articulation.hpp",
+      "symbols": [
+        "Tarjan"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp",
+        "04-Graphs/01-graph.hpp"
+      ],
+      "status": "verified",
+      "issues": [
+        "P011 replaces recursive lowlink with edge-ID multigraph biconnectivity and strong orientation; BridgeAlgo/Tarjan compatibility adapters and source features are accounted in verification."
+      ],
+      "source_context": "AI GENERATED FAST section",
+      "tier": "Basic",
+      "body_sha256": "03937627848fa1f67a0cc85e2251ea08b6a018df2951d04f907b801e793d1568",
+      "disposition": "audited-replacement",
+      "historical_target_sha256": "72b9178999cf60230881996b7fdc9c52589e41d3795fb046772bf976b95321cd",
+      "relationship": "P011 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/93-lowlink.md"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 4906,
+      "end_line": 5003,
+      "target": "04-Graphs/26-dynamic_connectivity.hpp",
+      "symbols": [
+        "OnlineBridges"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "status": "existing-unverified",
+      "issues": [
+        "Insertion-only online bridge counter, not a complete dynamic-connectivity implementation.",
+        "No algorithm verification performed."
+      ],
+      "source_context": "AI GENERATED FAST section",
+      "tier": "Advanced",
+      "body_sha256": "70b6bba90ea3b87af01fe3806a411bb5c0fb14592d4c2c4e2636f1ce565e0c78",
+      "disposition": "extracted",
+      "target_body_start_line": 10,
+      "target_body_end_line": 107,
+      "target_sha256": "9a09460bb819cf716b332807cfc8d136b413b2f97e673e27e77d51b60824ead9"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 5005,
+      "end_line": 5044,
+      "target": "04-Graphs/16-centroiddecomposition.hpp",
+      "symbols": [
+        "CentroidDecomposition"
+      ],
+      "dependencies": [
+        "01-Core/01-template.hpp"
+      ],
+      "status": "existing-unverified",
+      "issues": [
+        "Constructor starts at vertex 0, assumes a nonempty connected tree, and is recursive; only decomposition parents are supplied.",
+        "No algorithm verification performed."
+      ],
+      "source_context": "AI GENERATED FAST section",
+      "tier": "Advanced",
+      "body_sha256": "1f28da11166e7d750e4a6de31f5358836d26fc7f8030c456959333856bf67d14",
+      "disposition": "extracted",
+      "target_body_start_line": 10,
+      "target_body_end_line": 49,
+      "target_sha256": "8d16a8bbf4b6ef5d63ca14c3fcb2827a6c540532efc1c024b9dee5d015bc3964"
+    },
+    {
+      "source": "OLD/algorithms.cpp",
+      "start_line": 5047,
+      "end_line": 5052,
+      "target": null,
+      "symbols": [
+        "main"
+      ],
+      "status": "archive-only",
+      "note": "Empty driver; not a library algorithm. Workspace has its own standalone template.",
+      "body_sha256": "46b35ccf1d2b2f6b895a00bbb647309f7ef7442e9ee89d49e114f0ef6d88b35b"
+    }
+  ]
+}

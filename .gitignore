@@ -1,0 +1,15 @@
+**/__pycache__/
+**/*.pyc
+**/*.exe
+**/.core_test_*/
+**/infint_test_*
+**/infintmini_test_*
+**/infintmini_debug_*
+97-Online Testing/expanded/
+97-Online Testing/02-expansion.json
+98-Team Notebook/04-notebook.tex
+98-Team Notebook/04-notebook.pdf
+98-Team Notebook/*.aux
+98-Team Notebook/*.log
+98-Team Notebook/*.out
+98-Team Notebook/*.toc

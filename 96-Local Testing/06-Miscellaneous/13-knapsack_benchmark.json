@@ -1,0 +1,892 @@
+{
+  "date_utc": "2026-09-27T17:37:48.409371+00:00",
+  "cpu": "11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz",
+  "platform": "Linux-7.2.7-arch1-1-x86_64-with-glibc2.44",
+  "compiler": "g++ (GCC) 16.2.1 20260810",
+  "flags": [
+    "-std=gnu++20",
+    "-O2",
+    "-DNDEBUG"
+  ],
+  "python": "3.14.7",
+  "seed": 20260928,
+  "warmups": 1,
+  "repetitions": 5,
+  "method_order": "rotated per repetition",
+  "workload": "capacities 16/512/4096, 12/48/48 item types; weights uniform 1..23 (1..3 for small-weight unbounded), signed values uniform -50..150; quantities one, uniform 1..32, or unlimited; complete exact table and one full-capacity at-most result, with/without trace",
+  "timed_scope": "construct DP including setup/allocation, materialize every exact answer, find at-most optimum, optionally restore its multiplicity vector, destroy internal DP; output storage retained for verification outside timing. Inputs and independent references are generated outside timing.",
+  "memory": "Library no-trace DP uses O(capacity + items) storage, optional trace O(items * capacity) ints; direct-quantity reference keeps two value/reachability rows and optional per-item take rows. Both retain O(capacity) output tables and O(items) optional witness. Small-case batching retains 64 output tables outside algorithm workspace.",
+  "verification": "Every exact reachable flag and reachable score compared with direct multiplicity recurrence for every warmup/repetition; at-most optimality and complete witness weight/value/count bounds checked. Checks survive NDEBUG.",
+  "comparison_limits": "Single-threaded warmed-cache shared-host observations. Direct multiplicity recurrence is an independent simple baseline, not a fastest known bounded-knapsack claim. Does not compare MI18 monotone queues, bitsets, value-specialized or modern fine-grained algorithms. Tiny-case overhead and regressions are retained; no timing gate or implicit dispatch cutoff.",
+  "sha256": {
+    "06-Miscellaneous/13-knapsack.hpp": "73c3be2d9d2e648f1f78c9f4d3efe28086bf0437c0fff83f8079b45fd3e00d54",
+    "96-Local Testing/06-Miscellaneous/13-knapsack_benchmark.cpp": "277db4e1a7916e6e2ffd5968edaee5fd94c58320135e6374441b1013756e418a",
+    "96-Local Testing/06-Miscellaneous/13-knapsack_benchmark.py": "482c2774972d2612bb5017bb9d1a0748632c9c0459f0007b3a00c9dbc7a895e7"
+  },
+  "results": [
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "01",
+      "trace": false,
+      "method": "library",
+      "batch": 64,
+      "checksum": 6449276648171593792,
+      "samples_ms": [
+        0.00016446875,
+        0.0001688125,
+        0.00018784375,
+        0.000169203125,
+        0.0001665
+      ],
+      "median_ms": 0.0001688125,
+      "median_fraction_of_direct": 0.28709608843537415
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "01",
+      "trace": false,
+      "method": "direct-quantities",
+      "batch": 64,
+      "checksum": 6449276648171593792,
+      "samples_ms": [
+        0.000588,
+        0.000585390625,
+        0.000602625,
+        0.000669546875,
+        0.000584984375
+      ],
+      "median_ms": 0.000588,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "01",
+      "trace": true,
+      "method": "library",
+      "batch": 64,
+      "checksum": 6449276648171593792,
+      "samples_ms": [
+        0.00031196875,
+        0.000321421875,
+        0.000321125,
+        0.0003198125,
+        0.00032184375
+      ],
+      "median_ms": 0.000321125,
+      "median_fraction_of_direct": 0.43902334821523936
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "01",
+      "trace": true,
+      "method": "direct-quantities",
+      "batch": 64,
+      "checksum": 6449276648171593792,
+      "samples_ms": [
+        0.000732171875,
+        0.000720796875,
+        0.000727,
+        0.00073596875,
+        0.000731453125
+      ],
+      "median_ms": 0.000731453125,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "bounded32",
+      "trace": false,
+      "method": "library",
+      "batch": 64,
+      "checksum": 11956562897971091840,
+      "samples_ms": [
+        0.000166515625,
+        0.00016053125,
+        0.0001653125,
+        0.00016271875,
+        0.00016196875
+      ],
+      "median_ms": 0.00016271875,
+      "median_fraction_of_direct": 0.24772824587278178
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "bounded32",
+      "trace": false,
+      "method": "direct-quantities",
+      "batch": 64,
+      "checksum": 11956562897971091840,
+      "samples_ms": [
+        0.0006686875,
+        0.00065684375,
+        0.000650546875,
+        0.000656859375,
+        0.00063640625
+      ],
+      "median_ms": 0.00065684375,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "bounded32",
+      "trace": true,
+      "method": "library",
+      "batch": 64,
+      "checksum": 11956562897971091840,
+      "samples_ms": [
+        0.00034325,
+        0.000303421875,
+        0.000307296875,
+        0.00030678125,
+        0.000306046875
+      ],
+      "median_ms": 0.00030678125,
+      "median_fraction_of_direct": 0.38205133194528224
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "bounded32",
+      "trace": true,
+      "method": "direct-quantities",
+      "batch": 64,
+      "checksum": 11956562897971091840,
+      "samples_ms": [
+        0.00085140625,
+        0.00085078125,
+        0.000797703125,
+        0.000797625,
+        0.000802984375
+      ],
+      "median_ms": 0.000802984375,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "unbounded",
+      "trace": false,
+      "method": "library",
+      "batch": 64,
+      "checksum": 5345349755393509184,
+      "samples_ms": [
+        0.000151125,
+        0.000155390625,
+        0.000153984375,
+        0.0001538125,
+        0.000158625
+      ],
+      "median_ms": 0.000153984375,
+      "median_fraction_of_direct": 0.2730748981684169
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "unbounded",
+      "trace": false,
+      "method": "direct-quantities",
+      "batch": 64,
+      "checksum": 5345349755393509184,
+      "samples_ms": [
+        0.00055884375,
+        0.00056434375,
+        0.0005620625,
+        0.000563890625,
+        0.0005755625
+      ],
+      "median_ms": 0.000563890625,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "unbounded",
+      "trace": true,
+      "method": "library",
+      "batch": 64,
+      "checksum": 5345349755393509184,
+      "samples_ms": [
+        0.00030484375,
+        0.000312765625,
+        0.0003128125,
+        0.000296015625,
+        0.00031225
+      ],
+      "median_ms": 0.00031225,
+      "median_fraction_of_direct": 0.4186270607704715
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "unbounded",
+      "trace": true,
+      "method": "direct-quantities",
+      "batch": 64,
+      "checksum": 5345349755393509184,
+      "samples_ms": [
+        0.000745890625,
+        0.00074525,
+        0.0007934375,
+        0.00076396875,
+        0.00069203125
+      ],
+      "median_ms": 0.000745890625,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "unbounded-small-weight",
+      "trace": false,
+      "method": "library",
+      "batch": 64,
+      "checksum": 10267706011298587648,
+      "samples_ms": [
+        0.000242484375,
+        0.00024109375,
+        0.000253625,
+        0.000257375,
+        0.00025703125
+      ],
+      "median_ms": 0.000253625,
+      "median_fraction_of_direct": 0.14764148369140093
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "unbounded-small-weight",
+      "trace": false,
+      "method": "direct-quantities",
+      "batch": 64,
+      "checksum": 10267706011298587648,
+      "samples_ms": [
+        0.001711203125,
+        0.00172178125,
+        0.00171784375,
+        0.001713234375,
+        0.001866734375
+      ],
+      "median_ms": 0.00171784375,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "unbounded-small-weight",
+      "trace": true,
+      "method": "library",
+      "batch": 64,
+      "checksum": 10267706011298587648,
+      "samples_ms": [
+        0.0004326875,
+        0.000444,
+        0.00044390625,
+        0.00045115625,
+        0.000447671875
+      ],
+      "median_ms": 0.000444,
+      "median_fraction_of_direct": 0.2240391059250207
+    },
+    {
+      "capacity": 16,
+      "items": 12,
+      "distribution": "unbounded-small-weight",
+      "trace": true,
+      "method": "direct-quantities",
+      "batch": 64,
+      "checksum": 10267706011298587648,
+      "samples_ms": [
+        0.001983953125,
+        0.00196671875,
+        0.001981796875,
+        0.001990078125,
+        0.00197321875
+      ],
+      "median_ms": 0.001981796875,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "01",
+      "trace": false,
+      "method": "library",
+      "batch": 1,
+      "checksum": 17939954961754580636,
+      "samples_ms": [
+        0.026597,
+        0.02561,
+        0.024862,
+        0.024576,
+        0.024157
+      ],
+      "median_ms": 0.024862,
+      "median_fraction_of_direct": 0.3528877407633457
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "01",
+      "trace": false,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 17939954961754580636,
+      "samples_ms": [
+        0.074108,
+        0.071591,
+        0.070453,
+        0.069538,
+        0.069259
+      ],
+      "median_ms": 0.070453,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "01",
+      "trace": true,
+      "method": "library",
+      "batch": 1,
+      "checksum": 17939954961754580636,
+      "samples_ms": [
+        0.031851,
+        0.032637,
+        0.030072,
+        0.027492,
+        0.027221
+      ],
+      "median_ms": 0.030072,
+      "median_fraction_of_direct": 0.4174811195024434
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "01",
+      "trace": true,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 17939954961754580636,
+      "samples_ms": [
+        0.08199,
+        0.076239,
+        0.072032,
+        0.069468,
+        0.069337
+      ],
+      "median_ms": 0.072032,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "bounded32",
+      "trace": false,
+      "method": "library",
+      "batch": 1,
+      "checksum": 4325006717426615662,
+      "samples_ms": [
+        0.072181,
+        0.077659,
+        0.074574,
+        0.082599,
+        0.075985
+      ],
+      "median_ms": 0.075985,
+      "median_fraction_of_direct": 0.14311625594238056
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "bounded32",
+      "trace": false,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 4325006717426615662,
+      "samples_ms": [
+        0.562833,
+        0.527427,
+        0.552934,
+        0.530932,
+        0.529306
+      ],
+      "median_ms": 0.530932,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "bounded32",
+      "trace": true,
+      "method": "library",
+      "batch": 1,
+      "checksum": 4325006717426615662,
+      "samples_ms": [
+        0.08374,
+        0.080567,
+        0.078595,
+        0.083746,
+        0.083804
+      ],
+      "median_ms": 0.08374,
+      "median_fraction_of_direct": 0.15405672908165705
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "bounded32",
+      "trace": true,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 4325006717426615662,
+      "samples_ms": [
+        0.566128,
+        0.543566,
+        0.538758,
+        0.53094,
+        0.556815
+      ],
+      "median_ms": 0.543566,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "unbounded",
+      "trace": false,
+      "method": "library",
+      "batch": 1,
+      "checksum": 5554194284972759040,
+      "samples_ms": [
+        0.023508,
+        0.024209,
+        0.023281,
+        0.023771,
+        0.023424
+      ],
+      "median_ms": 0.023508,
+      "median_fraction_of_direct": 0.014053546715129922
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "unbounded",
+      "trace": false,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 5554194284972759040,
+      "samples_ms": [
+        1.672745,
+        1.622246,
+        1.70053,
+        1.67104,
+        1.708237
+      ],
+      "median_ms": 1.672745,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "unbounded",
+      "trace": true,
+      "method": "library",
+      "batch": 1,
+      "checksum": 5554194284972759040,
+      "samples_ms": [
+        0.028718,
+        0.029811,
+        0.028919,
+        0.028367,
+        0.027993
+      ],
+      "median_ms": 0.028718,
+      "median_fraction_of_direct": 0.016417387407009775
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "unbounded",
+      "trace": true,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 5554194284972759040,
+      "samples_ms": [
+        1.736159,
+        1.781947,
+        1.749243,
+        1.743821,
+        1.829425
+      ],
+      "median_ms": 1.749243,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "unbounded-small-weight",
+      "trace": false,
+      "method": "library",
+      "batch": 1,
+      "checksum": 10986601043028773376,
+      "samples_ms": [
+        0.024342,
+        0.024957,
+        0.024305,
+        0.02522,
+        0.024916
+      ],
+      "median_ms": 0.024916,
+      "median_fraction_of_direct": 0.0035201770882472908
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "unbounded-small-weight",
+      "trace": false,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 10986601043028773376,
+      "samples_ms": [
+        7.048901,
+        7.0583,
+        7.134923,
+        7.25817,
+        7.078053
+      ],
+      "median_ms": 7.078053,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "unbounded-small-weight",
+      "trace": true,
+      "method": "library",
+      "batch": 1,
+      "checksum": 10986601043028773376,
+      "samples_ms": [
+        0.028053,
+        0.029124,
+        0.028918,
+        0.029353,
+        0.028458
+      ],
+      "median_ms": 0.028918,
+      "median_fraction_of_direct": 0.0040461347226582985
+    },
+    {
+      "capacity": 512,
+      "items": 48,
+      "distribution": "unbounded-small-weight",
+      "trace": true,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 10986601043028773376,
+      "samples_ms": [
+        7.083612,
+        7.108384,
+        7.189189,
+        7.147068,
+        7.155595
+      ],
+      "median_ms": 7.147068,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "01",
+      "trace": false,
+      "method": "library",
+      "batch": 1,
+      "checksum": 6043046579552167956,
+      "samples_ms": [
+        0.139038,
+        0.143244,
+        0.136703,
+        0.13775,
+        0.136347
+      ],
+      "median_ms": 0.13775,
+      "median_fraction_of_direct": 0.27006520775905674
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "01",
+      "trace": false,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 6043046579552167956,
+      "samples_ms": [
+        0.510196,
+        0.510062,
+        0.514252,
+        0.50508,
+        0.506744
+      ],
+      "median_ms": 0.510062,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "01",
+      "trace": true,
+      "method": "library",
+      "batch": 1,
+      "checksum": 6043046579552167956,
+      "samples_ms": [
+        0.299633,
+        0.299179,
+        0.292021,
+        0.317475,
+        0.305032
+      ],
+      "median_ms": 0.299633,
+      "median_fraction_of_direct": 0.4271805765447235
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "01",
+      "trace": true,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 6043046579552167956,
+      "samples_ms": [
+        0.70142,
+        0.70183,
+        0.693523,
+        0.740458,
+        0.685039
+      ],
+      "median_ms": 0.70142,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "bounded32",
+      "trace": false,
+      "method": "library",
+      "batch": 1,
+      "checksum": 3666484571205977105,
+      "samples_ms": [
+        0.737132,
+        0.760062,
+        0.742428,
+        0.771463,
+        0.763905
+      ],
+      "median_ms": 0.760062,
+      "median_fraction_of_direct": 0.12278595404496637
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "bounded32",
+      "trace": false,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 3666484571205977105,
+      "samples_ms": [
+        6.161824,
+        6.123919,
+        6.190138,
+        6.373461,
+        6.262029
+      ],
+      "median_ms": 6.190138,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "bounded32",
+      "trace": true,
+      "method": "library",
+      "batch": 1,
+      "checksum": 3666484571205977105,
+      "samples_ms": [
+        1.080702,
+        1.08135,
+        1.050591,
+        1.077581,
+        1.099278
+      ],
+      "median_ms": 1.080702,
+      "median_fraction_of_direct": 0.16538960681207418
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "bounded32",
+      "trace": true,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 3666484571205977105,
+      "samples_ms": [
+        6.456493,
+        6.53428,
+        6.546794,
+        6.518677,
+        6.619363
+      ],
+      "median_ms": 6.53428,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "unbounded",
+      "trace": false,
+      "method": "library",
+      "batch": 1,
+      "checksum": 5046615558632321024,
+      "samples_ms": [
+        0.195632,
+        0.204711,
+        0.195319,
+        0.212355,
+        0.196341
+      ],
+      "median_ms": 0.196341,
+      "median_fraction_of_direct": 0.0016164739276531732
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "unbounded",
+      "trace": false,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 5046615558632321024,
+      "samples_ms": [
+        120.996324,
+        121.131094,
+        121.462522,
+        121.51742,
+        130.497013
+      ],
+      "median_ms": 121.462522,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "unbounded",
+      "trace": true,
+      "method": "library",
+      "batch": 1,
+      "checksum": 5046615558632321024,
+      "samples_ms": [
+        0.362866,
+        0.3935,
+        0.368167,
+        0.403448,
+        0.388049
+      ],
+      "median_ms": 0.388049,
+      "median_fraction_of_direct": 0.0032009490638398
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "unbounded",
+      "trace": true,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 5046615558632321024,
+      "samples_ms": [
+        120.516773,
+        125.60266,
+        121.801381,
+        121.229358,
+        120.042297
+      ],
+      "median_ms": 121.229358,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "unbounded-small-weight",
+      "trace": false,
+      "method": "library",
+      "batch": 1,
+      "checksum": 10218644560352825344,
+      "samples_ms": [
+        0.236367,
+        0.241466,
+        0.227043,
+        0.225594,
+        0.197201
+      ],
+      "median_ms": 0.227043,
+      "median_fraction_of_direct": 0.0005119620549851075
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "unbounded-small-weight",
+      "trace": false,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 10218644560352825344,
+      "samples_ms": [
+        471.042797,
+        469.306842,
+        443.476226,
+        418.277941,
+        421.059899
+      ],
+      "median_ms": 443.476226,
+      "median_fraction_of_direct": 1.0
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "unbounded-small-weight",
+      "trace": true,
+      "method": "library",
+      "batch": 1,
+      "checksum": 10218644560352825344,
+      "samples_ms": [
+        0.476802,
+        0.387845,
+        0.376137,
+        0.408546,
+        0.444624
+      ],
+      "median_ms": 0.408546,
+      "median_fraction_of_direct": 0.0009403478174746186
+    },
+    {
+      "capacity": 4096,
+      "items": 48,
+      "distribution": "unbounded-small-weight",
+      "trace": true,
+      "method": "direct-quantities",
+      "batch": 1,
+      "checksum": 10218644560352825344,
+      "samples_ms": [
+        487.381588,
+        412.912293,
+        417.486514,
+        434.462645,
+        451.477896
+      ],
+      "median_ms": 434.462645,
+      "median_fraction_of_direct": 1.0
+    }
+  ]
+}

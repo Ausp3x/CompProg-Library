@@ -1,0 +1,1808 @@
+{
+  "date": "2026-09-27",
+  "purpose": "Feature-completeness research, not algorithm correctness/performance certification. Downloaded means retrieved only; specific read scopes are separately recorded. No external source code copied by this audit.",
+  "successful_fetches": 101,
+  "failed_fetches": 2,
+  "fetches": [
+    {
+      "id": "acl",
+      "url": "https://atcoder.github.io/ac-library/master/document_en/index.html",
+      "final_url": "https://atcoder.github.io/ac-library/master/document_en/index.html",
+      "retrieved": "2026-09-27",
+      "bytes": 4432,
+      "sha256": "f144d2eb276b8986b5e2e667983461dd736817b57248214e5f4f1f75cc1c6847",
+      "ok": true
+    },
+    {
+      "id": "cpalgorithms",
+      "url": "https://cp-algorithms.com/",
+      "final_url": "https://cp-algorithms.com/",
+      "retrieved": "2026-09-27",
+      "bytes": 138015,
+      "sha256": "1c56fb70fbbf08553299fa749d20394c955f182f7b1d9bc6180677214e628283",
+      "ok": true
+    },
+    {
+      "id": "cpalgorithms_nav",
+      "url": "https://raw.githubusercontent.com/cp-algorithms/cp-algorithms/master/mkdocs.yml",
+      "final_url": "https://raw.githubusercontent.com/cp-algorithms/cp-algorithms/master/mkdocs.yml",
+      "retrieved": "2026-09-27",
+      "bytes": 3137,
+      "sha256": "8cce9cae74f1cb486ba4d15f85302e755fc5e5eb47d174f42b7b14c796a4c208",
+      "ok": true
+    },
+    {
+      "id": "oiwiki_nav",
+      "url": "https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/mkdocs.yml",
+      "final_url": "https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/mkdocs.yml",
+      "retrieved": "2026-09-27",
+      "bytes": 25092,
+      "sha256": "15c7c17d5e6963ad5fff9ba7fd1643d813cc263d599161b3a7f85fa990d7377f",
+      "ok": true
+    },
+    {
+      "id": "oiwiki_geometry",
+      "url": "https://oi-wiki.org/geometry/",
+      "final_url": "https://oi-wiki.org/geometry/",
+      "retrieved": "2026-09-27",
+      "bytes": 114458,
+      "sha256": "172898724149ad3d96ee889b31df035262089f66ea23da0f9390c1f9e9220192",
+      "ok": true
+    },
+    {
+      "id": "oiwiki_string",
+      "url": "https://oi-wiki.org/string/",
+      "final_url": "https://oi-wiki.org/string/",
+      "retrieved": "2026-09-27",
+      "bytes": 114664,
+      "sha256": "a1c7a2f1af5ab3762b6745329917fbd54111e739cfaed573b89baaefbc3c1a25",
+      "ok": true
+    },
+    {
+      "id": "yosupo_tree",
+      "url": "https://api.github.com/repos/yosupo06/library-checker-problems/git/trees/master?recursive=1",
+      "final_url": "https://api.github.com/repos/yosupo06/library-checker-problems/git/trees/master?recursive=1",
+      "retrieved": "2026-09-27",
+      "bytes": 1330286,
+      "sha256": "b6758ea1994367916103824d83e1fb93f487b0aef9dbde75cf0bbfc6dfa0e1b8",
+      "ok": true
+    },
+    {
+      "id": "maspypy",
+      "url": "https://maspypy.github.io/library/",
+      "final_url": "https://maspypy.github.io/library/",
+      "retrieved": "2026-09-27",
+      "bytes": 583988,
+      "sha256": "f298726d0938deae417a03cc7b21b8f5534a6f5958b24170f64c2f0261a80e85",
+      "ok": true
+    },
+    {
+      "id": "nyaan",
+      "url": "https://nyaannyaan.github.io/library/",
+      "final_url": "https://nyaannyaan.github.io/library/",
+      "retrieved": "2026-09-27",
+      "bytes": 320917,
+      "sha256": "d8e7603c172f30565d67fb0f15fcaaab047183f30b3ae1b381df67ac72942020",
+      "ok": true
+    },
+    {
+      "id": "ei1333",
+      "url": "https://ei1333.github.io/library/",
+      "final_url": "https://ei1333.github.io/library/",
+      "retrieved": "2026-09-27",
+      "bytes": 180263,
+      "sha256": "58e26eaecb97bb858960a9fffdfa2c62aade5795721aafa89c97e606a6f6193b",
+      "ok": true
+    },
+    {
+      "id": "suisen",
+      "url": "https://suisen-cp.github.io/cp-library-cpp/",
+      "final_url": "https://suisen-cp.github.io/cp-library-cpp/",
+      "retrieved": "2026-09-27",
+      "bytes": 338737,
+      "sha256": "1f6053830193ddc591e600c79e3fb9c74933d16072daaec7c68ea46aaaee686d",
+      "ok": true
+    },
+    {
+      "id": "hitonanode",
+      "url": "https://hitonanode.github.io/cplib-cpp/",
+      "final_url": "https://hitonanode.github.io/cplib-cpp/",
+      "retrieved": "2026-09-27",
+      "bytes": 234241,
+      "sha256": "7d892be8783e505e6a203c8c245c6a7decdece1923cfc55ac845e3a285b37b43",
+      "ok": true
+    },
+    {
+      "id": "kactl_tree",
+      "url": "https://api.github.com/repos/kth-competitive-programming/kactl/git/trees/main?recursive=1",
+      "final_url": "https://api.github.com/repos/kth-competitive-programming/kactl/git/trees/main?recursive=1",
+      "retrieved": "2026-09-27",
+      "bytes": 98603,
+      "sha256": "757c61fb0ca830f381d06060ca7b5f0755ae92ffc120cd1c6d550d3801151d63",
+      "ok": true
+    },
+    {
+      "id": "kactl_geometry",
+      "url": "https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/chapter.tex",
+      "final_url": "https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/chapter.tex",
+      "retrieved": "2026-09-27",
+      "bytes": 1218,
+      "sha256": "359dfc71ea98693d90d6b52354a7b24ab473ebe5ff940c9607cd6fae41d0888c",
+      "ok": true
+    },
+    {
+      "id": "kactl_strings",
+      "url": "https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/strings/chapter.tex",
+      "final_url": "https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/strings/chapter.tex",
+      "retrieved": "2026-09-27",
+      "bytes": 221,
+      "sha256": "fbf067c058efd45f783cab60386166fb93efb11a6470e984a5c8a01469881a9b",
+      "ok": true
+    },
+    {
+      "id": "tko919",
+      "url": "https://tko919.github.io/library/",
+      "final_url": "https://tko919.github.io/library/",
+      "retrieved": "2026-09-27",
+      "bytes": 103507,
+      "sha256": "f3b9dad1df4a0ffc6519a46a9baa9ea385103a07198bc7049066ce4338c179ef",
+      "ok": true
+    },
+    {
+      "id": "cgal",
+      "url": "https://doc.cgal.org/latest/Manual/packages.html",
+      "final_url": "https://doc.cgal.org/latest/Manual/packages.html",
+      "retrieved": "2026-09-27",
+      "bytes": 182665,
+      "sha256": "96b5f0c8fc25b570cdb752449ee7dacc1b440ecba15f98134caf1d12eb8e5d2e",
+      "ok": true
+    },
+    {
+      "id": "stringology",
+      "url": "https://www-igm.univ-mlv.fr/~lecroq/string/",
+      "ok": false,
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'www-igm.univ-mlv.fr'. (_ssl.c:1082)>"
+    },
+    {
+      "id": "gmp",
+      "url": "https://gmplib.org/manual/Algorithms",
+      "final_url": "https://gmplib.org/manual/Algorithms",
+      "retrieved": "2026-09-27",
+      "bytes": 3169,
+      "sha256": "c3dc0319e1d0ea35ff7700f66548e3e71896e9ea9e6b4d3009600196bebf2b46",
+      "ok": true
+    },
+    {
+      "id": "flint",
+      "url": "https://flintlib.org/doc/",
+      "final_url": "https://flintlib.org/doc/",
+      "retrieved": "2026-09-27",
+      "bytes": 35868,
+      "sha256": "e6f6868bb4463113bff0e3e5b452fae78955dddbdac11dce9321c29e3c6ce256",
+      "ok": true
+    },
+    {
+      "id": "ntl",
+      "url": "https://libntl.org/doc/tour-modules.html",
+      "final_url": "https://libntl.org/doc/tour-modules.html",
+      "retrieved": "2026-09-27",
+      "bytes": 19081,
+      "sha256": "f5290e41554349f7159b08329f22748eddec5867fa3af3a71f5aa550f1103fe4",
+      "ok": true
+    },
+    {
+      "id": "robust",
+      "url": "https://www.cs.cmu.edu/~quake/robust.html",
+      "final_url": "https://www.cs.cmu.edu/~quake/robust.html",
+      "retrieved": "2026-09-27",
+      "bytes": 6595,
+      "sha256": "4827cc14a20b83b658127bd331ee560c3f10bb8b389c3374188d1e7b95d3e9ce",
+      "ok": true
+    },
+    {
+      "id": "algorithmica",
+      "url": "https://en.algorithmica.org/",
+      "final_url": "https://en.algorithmica.org/",
+      "retrieved": "2026-09-27",
+      "bytes": 7121,
+      "sha256": "9ef7e275a1e897111aa956ac6cc9cab658ff984d78213204483618528d935f1e",
+      "ok": true
+    },
+    {
+      "id": "cses",
+      "url": "https://cses.fi/problemset/",
+      "final_url": "https://cses.fi/problemset/",
+      "retrieved": "2026-09-27",
+      "bytes": 62292,
+      "sha256": "e54b0c82bbaa5baeb660e2d8b38d5ff007f9b45be501781ad500c0bd6d1d3a25",
+      "ok": true
+    },
+    {
+      "id": "pyrival_tree",
+      "url": "https://api.github.com/repos/cheran-senthil/PyRival/git/trees/master?recursive=1",
+      "final_url": "https://api.github.com/repos/cheran-senthil/PyRival/git/trees/master?recursive=1",
+      "retrieved": "2026-09-27",
+      "bytes": 58943,
+      "sha256": "a07168898d8cbfa9636352a544c06841da51aafb17f2913766634ca610fad341",
+      "ok": true
+    },
+    {
+      "id": "pypy_docs",
+      "url": "https://doc.pypy.org/en/latest/",
+      "final_url": "https://doc.pypy.org/",
+      "retrieved": "2026-09-27",
+      "bytes": 25522,
+      "sha256": "467f3b2579bd5b10ab3a7ad55d40421291a7a4dbef8fb566bac1b94e82f92111",
+      "ok": true
+    },
+    {
+      "id": "verngutz_tree",
+      "url": "https://api.github.com/repos/verngutz/cp-library/git/trees/master?recursive=1",
+      "final_url": "https://api.github.com/repos/verngutz/cp-library/git/trees/master?recursive=1",
+      "retrieved": "2026-09-27",
+      "bytes": 55839,
+      "sha256": "0d95ecc38229be2eb86ee778ebe97cc0f70d4973e505951136bee68fb7260334",
+      "ok": true
+    },
+    {
+      "id": "koosaga_tree",
+      "url": "https://api.github.com/repos/koosaga/DeobureoMinkyuParty/git/trees/master?recursive=1",
+      "final_url": "https://api.github.com/repos/koosaga/DeobureoMinkyuParty/git/trees/master?recursive=1",
+      "retrieved": "2026-09-27",
+      "bytes": 1604,
+      "sha256": "b1dc9661cfeeb95d17ace4e2833778865a2e79e087365c1791c22120e6023832",
+      "ok": true
+    },
+    {
+      "id": "flint_integer_matrix",
+      "url": "https://flintlib.org/doc/fmpz_mat.html",
+      "final_url": "https://flintlib.org/doc/fmpz_mat.html",
+      "retrieved": "2026-09-27",
+      "bytes": 330081,
+      "sha256": "7b4fb8b207b231ba9282901312e2ca6eab3e96c92dba1b37cdb2ee47fc9a61bb",
+      "ok": true
+    },
+    {
+      "id": "flint_mod_poly",
+      "url": "https://flintlib.org/doc/nmod_poly.html",
+      "final_url": "https://flintlib.org/doc/nmod_poly.html",
+      "retrieved": "2026-09-27",
+      "bytes": 735545,
+      "sha256": "50227e8fde1442190ab704c8fdcb34d52782ad5f45c69c2f797ee7e928c4aaea",
+      "ok": true
+    },
+    {
+      "id": "flint_poly_factor",
+      "url": "https://flintlib.org/doc/fmpz_poly_factor.html",
+      "final_url": "https://flintlib.org/doc/fmpz_poly_factor.html",
+      "retrieved": "2026-09-27",
+      "bytes": 37286,
+      "sha256": "de455a74ce2385ea78505b919f674ca7c0f3b4f8fa06aa4236674f019986b6f1",
+      "ok": true
+    },
+    {
+      "id": "gmp_multiplication",
+      "url": "https://gmplib.org/manual/Multiplication-Algorithms.html",
+      "final_url": "https://gmplib.org/manual/Multiplication-Algorithms",
+      "retrieved": "2026-09-27",
+      "bytes": 4148,
+      "sha256": "5c481f07b856ea37544401090e0d57ef371a61c5499ad102875b46cda6fa770e",
+      "ok": true
+    },
+    {
+      "id": "gmp_division",
+      "url": "https://gmplib.org/manual/Division-Algorithms.html",
+      "final_url": "https://gmplib.org/manual/Division-Algorithms",
+      "retrieved": "2026-09-27",
+      "bytes": 2913,
+      "sha256": "c4856d6630c8e965a54c43730060f8c5b68bfac4acbcb76666eb0a78e3758d5e",
+      "ok": true
+    },
+    {
+      "id": "ntl_gf2x",
+      "url": "https://libntl.org/doc/GF2X.cpp.html",
+      "final_url": "https://libntl.org/doc/GF2X.cpp.html",
+      "retrieved": "2026-09-27",
+      "bytes": 51130,
+      "sha256": "e1f68fc235c73fade5b954357cfd15c4f25a9530efbb94c0c05d163d7d12f29f",
+      "ok": true
+    },
+    {
+      "id": "ntl_lll",
+      "url": "https://libntl.org/doc/LLL.cpp.html",
+      "final_url": "https://libntl.org/doc/LLL.cpp.html",
+      "retrieved": "2026-09-27",
+      "bytes": 29026,
+      "sha256": "dd39195a189dbfc90ea9f8238b13a3a6c7e06cda211ef6a888e59fd0f9658efb",
+      "ok": true
+    },
+    {
+      "id": "oi_schreier",
+      "url": "https://oi-wiki.org/math/algebra/schreier-sims/",
+      "final_url": "https://oi-wiki.org/math/algebra/schreier-sims/",
+      "retrieved": "2026-09-27",
+      "bytes": 814108,
+      "sha256": "b897e6a5240ed60f191f68e0d5bcb48db31997b062eb762a91b5e409f1592d3d",
+      "ok": true
+    },
+    {
+      "id": "oi_young",
+      "url": "https://oi-wiki.org/math/young-tableau/",
+      "final_url": "https://oi-wiki.org/math/young-tableau/",
+      "retrieved": "2026-09-27",
+      "bytes": 262685,
+      "sha256": "18f8c7de75c9005e1a51180a86ebe9a46ec7bf4b14c53e9212a280533ca1c74c",
+      "ok": true
+    },
+    {
+      "id": "sage_reedsolomon",
+      "url": "https://doc.sagemath.org/html/en/reference/coding/sage/coding/reed_solomon_code.html",
+      "ok": false,
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "id": "stringology_current",
+      "url": "https://www-igm.univ-eiffel.fr/~lecroq/string/",
+      "final_url": "https://www-igm.univ-eiffel.fr/~lecroq/string/",
+      "retrieved": "2026-09-27",
+      "bytes": 4645,
+      "sha256": "76c7c47225853195c8fd5779ac4793fd273054c8c67d2d80a0ffb9e066d1b269",
+      "ok": true
+    },
+    {
+      "id": "runs_paper",
+      "url": "https://arxiv.org/abs/1406.0263",
+      "final_url": "https://arxiv.org/abs/1406.0263",
+      "retrieved": "2026-09-27",
+      "bytes": 45187,
+      "sha256": "f4c9df76372754b56d9ebc793a1eab64277300c7f903a8000564713d3b5d527d",
+      "ok": true
+    },
+    {
+      "id": "rindex_paper",
+      "url": "https://arxiv.org/abs/1705.10382",
+      "final_url": "https://arxiv.org/abs/1705.10382",
+      "retrieved": "2026-09-27",
+      "bytes": 44035,
+      "sha256": "f859c8d28227ffdc77c313f9f8f7b1cbc8302066525984589243bcdeac07816e",
+      "ok": true
+    },
+    {
+      "id": "dynamic_strings_paper",
+      "url": "https://arxiv.org/abs/1511.02612",
+      "final_url": "https://arxiv.org/abs/1511.02612",
+      "retrieved": "2026-09-27",
+      "bytes": 43654,
+      "sha256": "546b8ca5696bf394eab6d91ac796df036a07accd454216d1822f6a02ce72ac62",
+      "ok": true
+    },
+    {
+      "id": "semilocal_paper",
+      "url": "https://arxiv.org/abs/0707.3619",
+      "final_url": "https://arxiv.org/abs/0707.3619",
+      "retrieved": "2026-09-27",
+      "bytes": 45297,
+      "sha256": "29e008a15d7e66964425139a325c10857e0df9c357ef7502b052fcde148a416c",
+      "ok": true
+    },
+    {
+      "id": "maspy_dynamic_hull",
+      "url": "https://maspypy.github.io/library/geo/dynamic_upper_hull.hpp",
+      "final_url": "https://maspypy.github.io/library/geo/dynamic_upper_hull.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 111369,
+      "sha256": "3ebe5f0b268ee70ac4e58fc9db9bc55b5f1082fd555c2a3aa673faf6ae369c8b",
+      "ok": true
+    },
+    {
+      "id": "maspy_convex_layers",
+      "url": "https://maspypy.github.io/library/geo/convex_layers.hpp",
+      "final_url": "https://maspypy.github.io/library/geo/convex_layers.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 87206,
+      "sha256": "b0037b87ea54eddb01652ccd5e9cd9a8dec2e35c6b9a534654f673401f75ab4c",
+      "ok": true
+    },
+    {
+      "id": "maspy_triangle_count",
+      "url": "https://maspypy.github.io/library/geo/count_points_in_triangles.hpp",
+      "final_url": "https://maspypy.github.io/library/geo/count_points_in_triangles.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 232502,
+      "sha256": "45c46ff09b5345e580a74fabcfa1874f9b7dbb2c09229f792b784d243b09eba7",
+      "ok": true
+    },
+    {
+      "id": "maspy_fermat",
+      "url": "https://maspypy.github.io/library/geo/minimum_three_distance_sum.hpp",
+      "final_url": "https://maspypy.github.io/library/geo/minimum_three_distance_sum.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 91081,
+      "sha256": "d4e492ae83a2f62f25eeb2d41d2bc6877894bea31d49243478aaa0eec7771d9f",
+      "ok": true
+    },
+    {
+      "id": "maspy_inverse_manacher",
+      "url": "https://maspypy.github.io/library/string/inverse_manacher.hpp",
+      "final_url": "https://maspypy.github.io/library/string/inverse_manacher.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 34159,
+      "sha256": "7625f2edb02371e313c4b22e10910ed01c9f9aa74772f7006c36cd06d38c54d3",
+      "ok": true
+    },
+    {
+      "id": "maspy_online_z",
+      "url": "https://maspypy.github.io/library/string/online_z_algorithm.hpp",
+      "final_url": "https://maspypy.github.io/library/string/online_z_algorithm.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 21311,
+      "sha256": "3a85dd896720fe155011bdb121b56ff33ea0833a2f5c9ea5e927d10809b8b11d",
+      "ok": true
+    },
+    {
+      "id": "maspy_deque_palindrome",
+      "url": "https://maspypy.github.io/library/string/double_ended_palindromic_tree.hpp",
+      "final_url": "https://maspypy.github.io/library/string/double_ended_palindromic_tree.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 93589,
+      "sha256": "c494551a93cb880f1a4b92a1297dacd42cd215817249bb84e8a3df3827bcf6ec",
+      "ok": true
+    },
+    {
+      "id": "maspy_semilocal_lcs",
+      "url": "https://maspypy.github.io/library/string/prefix_substring_LCS.hpp",
+      "final_url": "https://maspypy.github.io/library/string/prefix_substring_LCS.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 147791,
+      "sha256": "1fd474d285326d572403e940b51629b34ae0a96e2c947fc9e7ef2cdad7060138",
+      "ok": true
+    },
+    {
+      "id": "oi_knapsack",
+      "url": "https://oi-wiki.org/dp/knapsack/",
+      "final_url": "https://oi-wiki.org/dp/knapsack/",
+      "retrieved": "2026-09-27",
+      "bytes": 398035,
+      "sha256": "4648e896f293fe082752fe8443a125898bc1b2f56b84de1fade68157bbbf117b",
+      "ok": true
+    },
+    {
+      "id": "oi_digitdp",
+      "url": "https://oi-wiki.org/dp/number/",
+      "final_url": "https://oi-wiki.org/dp/number/",
+      "retrieved": "2026-09-27",
+      "bytes": 310684,
+      "sha256": "93054649b15a11137f2222f63076b9cd21fc9d828523394b2d8301ec574ba4aa",
+      "ok": true
+    },
+    {
+      "id": "oi_plugdp",
+      "url": "https://oi-wiki.org/dp/plug/",
+      "final_url": "https://oi-wiki.org/dp/plug/",
+      "retrieved": "2026-09-27",
+      "bytes": 489992,
+      "sha256": "20a608e30746bd88f9993a5a026a6c3db284a491cd439b3841a94bf7b48933ef",
+      "ok": true
+    },
+    {
+      "id": "oi_idastar",
+      "url": "https://oi-wiki.org/search/idastar/",
+      "final_url": "https://oi-wiki.org/search/idastar/",
+      "retrieved": "2026-09-27",
+      "bytes": 299924,
+      "sha256": "555af0f2564b33addcc382ff4ca5196011ea7a9c9c4a94d5e2ece9bbc9cbfa6f",
+      "ok": true
+    },
+    {
+      "id": "oi_slope_trick",
+      "url": "https://oi-wiki.org/dp/opt/slope-trick/",
+      "final_url": "https://oi-wiki.org/dp/opt/slope-trick/",
+      "retrieved": "2026-09-27",
+      "bytes": 803942,
+      "sha256": "5e3a9348ebae4c669b6b798bbe1906952871ee97a6012f9d308c55042b7d31d8",
+      "ok": true
+    },
+    {
+      "id": "oi_alphabetic",
+      "url": "https://oi-wiki.org/misc/garsia-wachs/",
+      "final_url": "https://oi-wiki.org/misc/garsia-wachs/",
+      "retrieved": "2026-09-27",
+      "bytes": 184249,
+      "sha256": "4b82f1e7a43b185fff6e971225bed161ce904939b41e053d47e0e2087c6010db",
+      "ok": true
+    },
+    {
+      "id": "oi_annealing",
+      "url": "https://oi-wiki.org/misc/simulated-annealing/",
+      "final_url": "https://oi-wiki.org/misc/simulated-annealing/",
+      "retrieved": "2026-09-27",
+      "bytes": 161090,
+      "sha256": "6ba8549c936a4aac19e7c45841e091b4736da0e044297a043716cf3da6767d06",
+      "ok": true
+    },
+    {
+      "id": "py_ordered",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/SortedList.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/SortedList.py",
+      "retrieved": "2026-09-27",
+      "bytes": 3433,
+      "sha256": "bc7ce4f1d17c7f1853fb145be88433e1a759f1a0eec2ff3c8082891b832de085",
+      "ok": true
+    },
+    {
+      "id": "py_twosat",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/TwoSat.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/TwoSat.py",
+      "retrieved": "2026-09-27",
+      "bytes": 1449,
+      "sha256": "f32d38818652c9d67258115bf4037a7df178629efae82578bc0ce12ff9b1b58f",
+      "ok": true
+    },
+    {
+      "id": "py_sparsetable",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/RangeMinimumQuery.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/RangeMinimumQuery.py",
+      "retrieved": "2026-09-27",
+      "bytes": 1830,
+      "sha256": "c9e8876a5022fa0d38699b3bd20ce0aa90991a6c35a0a7ef61b8dc975840b442",
+      "ok": true
+    },
+    {
+      "id": "py_hull_trick",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/convex_hull_trick.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/convex_hull_trick.py",
+      "retrieved": "2026-09-27",
+      "bytes": 1787,
+      "sha256": "524bda052f84b944e9d9995d73888258d7e1ca1bce3e74a94f6972fc951b96c7",
+      "ok": true
+    },
+    {
+      "id": "py_xorbasis",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/linear_algebra/max_xor.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/linear_algebra/max_xor.py",
+      "retrieved": "2026-09-27",
+      "bytes": 998,
+      "sha256": "5d083b40773e6495b67209ba628f237661b3884743afcb870726b8501523ab33",
+      "ok": true
+    },
+    {
+      "id": "py_fst",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/algebra/fst.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/algebra/fst.py",
+      "retrieved": "2026-09-27",
+      "bytes": 838,
+      "sha256": "9e0b5226588598cc4666d0a6239088f96c50f0a3431bc690457944c6ca071552",
+      "ok": true
+    },
+    {
+      "id": "py_fraction_docs",
+      "url": "https://docs.python.org/3/library/fractions.html",
+      "final_url": "https://docs.python.org/3/library/fractions.html",
+      "retrieved": "2026-09-27",
+      "bytes": 51868,
+      "sha256": "8d75fe510fb79c09af62c52637c9fa115f05b5a539ecc51e53281adb16dc4f35",
+      "ok": true
+    },
+    {
+      "id": "py_bisect_docs",
+      "url": "https://docs.python.org/3/library/bisect.html",
+      "final_url": "https://docs.python.org/3/library/bisect.html",
+      "retrieved": "2026-09-27",
+      "bytes": 49902,
+      "sha256": "734409b272f070e6a17a27b526f64237f0a6a3399c8ee9bbb73decd32b012095",
+      "ok": true
+    },
+    {
+      "id": "koosaga_redirect",
+      "url": "https://raw.githubusercontent.com/koosaga/DeobureoMinkyuParty/master/README.md",
+      "final_url": "https://raw.githubusercontent.com/koosaga/DeobureoMinkyuParty/master/README.md",
+      "retrieved": "2026-09-27",
+      "bytes": 10232,
+      "sha256": "04dc7acf4670a0be9d75f6f41fb093730f742793c98209c7e367843edea1bac8",
+      "ok": true
+    },
+    {
+      "id": "hiton_costscaling",
+      "url": "https://hitonanode.github.io/cplib-cpp/flow/mcf_costscaling.hpp",
+      "final_url": "https://hitonanode.github.io/cplib-cpp/flow/mcf_costscaling.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 83078,
+      "sha256": "6d346a0b43d83168b8a9a3ab8ced9e54bbe4d910e2077f4317024453f15ba219",
+      "ok": true
+    },
+    {
+      "id": "hiton_networksimplex",
+      "url": "https://hitonanode.github.io/cplib-cpp/flow/networksimplex.hpp",
+      "final_url": "https://hitonanode.github.io/cplib-cpp/flow/networksimplex.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 439900,
+      "sha256": "0cf31b288f14c95d04cfe3cfc9c56c00b08404014ddc8c44e55adbe749bd49de",
+      "ok": true
+    },
+    {
+      "id": "tko_weighted_matching",
+      "url": "https://tko919.github.io/library/Graph/generalweightedmatching.hpp",
+      "final_url": "https://tko919.github.io/library/Graph/generalweightedmatching.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 110898,
+      "sha256": "2693cee79d7a7efb1aba712ace1f8d2788cf6695852bb97a893dd82615e5c2a4",
+      "ok": true
+    },
+    {
+      "id": "ei_k_shortest_path",
+      "url": "https://ei1333.github.io/library/graph/shortest-path/k-shortest-path.hpp",
+      "final_url": "https://ei1333.github.io/library/graph/shortest-path/k-shortest-path.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 18728,
+      "sha256": "348605ad2da31b6854a86571a3e616d1d32cd35f3b1d19955ad42817f3dcc042",
+      "ok": true
+    },
+    {
+      "id": "ei_k_shortest_walk",
+      "url": "https://ei1333.github.io/library/graph/shortest-path/k-shortest-walk.hpp",
+      "final_url": "https://ei1333.github.io/library/graph/shortest-path/k-shortest-walk.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 17085,
+      "sha256": "3fa87da3d40100090eb611b670826baea694ff2c99c979c6781587c8429b60ed",
+      "ok": true
+    },
+    {
+      "id": "maspy_bflow",
+      "url": "https://maspypy.github.io/library/flow/min_cost_b_flow.hpp",
+      "final_url": "https://maspypy.github.io/library/flow/min_cost_b_flow.hpp",
+      "retrieved": "2026-09-27",
+      "bytes": 102213,
+      "sha256": "10617eb02eda0c72b113e592e3b50b1f09b529ad3b1a2d4189275ef5fcd23a96",
+      "ok": true
+    },
+    {
+      "id": "dynamic_succinct",
+      "url": "https://raw.githubusercontent.com/xxsds/DYNAMIC/master/README.md",
+      "final_url": "https://raw.githubusercontent.com/xxsds/DYNAMIC/master/README.md",
+      "retrieved": "2026-09-27",
+      "bytes": 7051,
+      "sha256": "f97a33ca32c1093cc890080c39b74977c6af7e2e852f49b27f38e7d653d97b37",
+      "ok": true
+    },
+    {
+      "id": "networkx_planarity",
+      "url": "https://networkx.org/documentation/stable/reference/algorithms/planarity.html",
+      "final_url": "https://networkx.org/documentation/stable/reference/algorithms/planarity.html",
+      "retrieved": "2026-09-27",
+      "bytes": 30062,
+      "sha256": "b44da52226a16ce9ae7465f2e53ff8e3c0754be81fa35798fc7041517a6af727",
+      "ok": true
+    },
+    {
+      "id": "networkx_cycles",
+      "url": "https://networkx.org/documentation/stable/reference/algorithms/cycles.html",
+      "final_url": "https://networkx.org/documentation/stable/reference/algorithms/cycles.html",
+      "retrieved": "2026-09-27",
+      "bytes": 31556,
+      "sha256": "bd47bf91899a0848c61a13c893da2b38c75c3d0741a83d62ad8a05e00d0430c8",
+      "ok": true
+    },
+    {
+      "id": "ogdf_spqr",
+      "url": "https://ogdf.github.io/doc/ogdf/group__decomp.html",
+      "final_url": "https://ogdf.github.io/doc/ogdf/group__decomp.html",
+      "retrieved": "2026-09-27",
+      "bytes": 11738,
+      "sha256": "c518155d6b17d6f305dc085a6653bde763885a78cae5a6580e4af5a6c9a3237b",
+      "ok": true
+    },
+    {
+      "id": "hdt_dynamic",
+      "url": "https://raw.githubusercontent.com/tomtseng/dynamic-connectivity-hdt/master/README.md",
+      "final_url": "https://raw.githubusercontent.com/tomtseng/dynamic-connectivity-hdt/master/README.md",
+      "retrieved": "2026-09-27",
+      "bytes": 2055,
+      "sha256": "5a327afd2b0984d4e419fd36cd72ef3a1e897b403c7b68cecd2ad1142f1553ba",
+      "ok": true
+    },
+    {
+      "id": "networkx_postman",
+      "url": "https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.euler.eulerize.html",
+      "final_url": "https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.euler.eulerize.html",
+      "retrieved": "2026-09-27",
+      "bytes": 34350,
+      "sha256": "6bfb8e91075510d54425e612479ce2e91a5ee27a7a471aacc11fb553cbb0a1f8",
+      "ok": true
+    },
+    {
+      "id": "oi_pqtree",
+      "url": "https://oi-wiki.org/ds/pq-tree/",
+      "final_url": "https://oi-wiki.org/ds/pq-tree/",
+      "retrieved": "2026-09-27",
+      "bytes": 254429,
+      "sha256": "f6e2b38003452c8be93d30998d380d862979f78ed43408d591d77428b0351fdb",
+      "ok": true
+    },
+    {
+      "id": "oi_divide_combine",
+      "url": "https://oi-wiki.org/ds/divide-combine/",
+      "final_url": "https://oi-wiki.org/ds/divide-combine/",
+      "retrieved": "2026-09-27",
+      "bytes": 401781,
+      "sha256": "799f5ab8911d1d2e7af37fb7ab4cec4b6e1ea891a0dba0d87fdc033a97b1028c",
+      "ok": true
+    },
+    {
+      "id": "oi_fingertree",
+      "url": "https://oi-wiki.org/ds/finger-tree/",
+      "final_url": "https://oi-wiki.org/ds/finger-tree/",
+      "retrieved": "2026-09-27",
+      "bytes": 182339,
+      "sha256": "15c61d6765333e4caeb06370d167e8434b2cd1fd59a3d44840e128ec48ba8b90",
+      "ok": true
+    },
+    {
+      "id": "oi_planar",
+      "url": "https://oi-wiki.org/graph/planar/",
+      "final_url": "https://oi-wiki.org/graph/planar/",
+      "retrieved": "2026-09-27",
+      "bytes": 467293,
+      "sha256": "6ab86ca6a1c95340ebd65295d6996092511b3c3aaf7c5cb13fb688e771caa28e",
+      "ok": true
+    },
+    {
+      "id": "sage_coding_index",
+      "url": "https://doc.sagemath.org/html/en/reference/coding/index.html",
+      "final_url": "https://doc.sagemath.org/html/en/reference/coding/index.html",
+      "retrieved": "2026-09-27",
+      "bytes": 33613,
+      "sha256": "4fd5e9c8be0c0f142d5d3aa13185cc350b9a453a17453c12ea951ba1ebb6468d",
+      "ok": true
+    },
+    {
+      "id": "koosaga_current_tree",
+      "url": "https://api.github.com/repos/koosaga/olympiad/git/trees/master?recursive=1",
+      "final_url": "https://api.github.com/repos/koosaga/olympiad/git/trees/master?recursive=1",
+      "retrieved": "2026-09-27",
+      "bytes": 1554606,
+      "sha256": "93ddb4e5b4ba0b9eb904e69c6b63fd2111b539b17d5abc5d0412cf3c1a50d10f",
+      "ok": true
+    },
+    {
+      "id": "oi_scheduling",
+      "url": "https://oi-wiki.org/misc/job-order/",
+      "final_url": "https://oi-wiki.org/misc/job-order/",
+      "retrieved": "2026-09-27",
+      "bytes": 189459,
+      "sha256": "5c530ec635670614a8a68c727d2d36dc1ed343b69c784c1f4c86186d516843a9",
+      "ok": true
+    },
+    {
+      "id": "oi_expression",
+      "url": "https://oi-wiki.org/misc/expression/",
+      "final_url": "https://oi-wiki.org/misc/expression/",
+      "retrieved": "2026-09-27",
+      "bytes": 192830,
+      "sha256": "70b12d12d36cc6d1045980943ab36132d324082183349441cb964d7447f55a5f",
+      "ok": true
+    },
+    {
+      "id": "oi_subsetdp",
+      "url": "https://oi-wiki.org/dp/state/",
+      "final_url": "https://oi-wiki.org/dp/state/",
+      "retrieved": "2026-09-27",
+      "bytes": 194915,
+      "sha256": "dd6ea4b7d6dfa18b34aadb3cf7da8f2a63b1d70cb17073bc8ec6b9a82b82b448",
+      "ok": true
+    },
+    {
+      "id": "oi_dynamicdp",
+      "url": "https://oi-wiki.org/dp/dynamic/",
+      "final_url": "https://oi-wiki.org/dp/dynamic/",
+      "retrieved": "2026-09-27",
+      "bytes": 231150,
+      "sha256": "27d1ca10633d00486405e7036da92817ecb3e77c45cf9cdf3096ea4777bb21da",
+      "ok": true
+    },
+    {
+      "id": "oi_majority",
+      "url": "https://oi-wiki.org/misc/main-element/",
+      "final_url": "https://oi-wiki.org/misc/main-element/",
+      "retrieved": "2026-09-27",
+      "bytes": 143949,
+      "sha256": "d5235d4d7de0720c033d69a901914911c12d67756278aea9bdff3e193cd9b299",
+      "ok": true
+    },
+    {
+      "id": "oi_twopointer",
+      "url": "https://oi-wiki.org/misc/two-pointer/",
+      "final_url": "https://oi-wiki.org/misc/two-pointer/",
+      "retrieved": "2026-09-27",
+      "bytes": 222047,
+      "sha256": "a9068e9159d4fba2c67d437ebe6ca15110e0746b963166bdf1812ae099a2c979",
+      "ok": true
+    },
+    {
+      "id": "py_flow",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/graphs/dinic.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/graphs/dinic.py",
+      "retrieved": "2026-09-27",
+      "bytes": 1676,
+      "sha256": "118b4e9b885420b240d921515d2b90001ac2b6e39009840c225c3ff5eb5dc152",
+      "ok": true
+    },
+    {
+      "id": "py_mincostflow",
+      "url": "https://raw.githubusercontent.com/not522/ac-library-python/master/atcoder/mincostflow.py",
+      "final_url": "https://raw.githubusercontent.com/not522/ac-library-python/master/atcoder/mincostflow.py",
+      "retrieved": "2026-09-27",
+      "bytes": 4062,
+      "sha256": "64eabef15474aa7ea828646598028ddcc9a0da82383a76299a5f44ab36c5b9be",
+      "ok": true
+    },
+    {
+      "id": "py_acl_readme",
+      "url": "https://raw.githubusercontent.com/not522/ac-library-python/master/README.md",
+      "final_url": "https://raw.githubusercontent.com/not522/ac-library-python/master/README.md",
+      "retrieved": "2026-09-27",
+      "bytes": 2691,
+      "sha256": "54402bc07b37af22fa8d8be128837692cbab2af7fd2235e759877fb70c9e3ae8",
+      "ok": true
+    },
+    {
+      "id": "oi_search_meet",
+      "url": "https://oi-wiki.org/search/bidirectional/",
+      "final_url": "https://oi-wiki.org/search/bidirectional/",
+      "retrieved": "2026-09-27",
+      "bytes": 175967,
+      "sha256": "476ad6bcd15a52c4d0ee386fb0300a82b1ef8527306e4fcaaeab2ffbe8b5300d",
+      "ok": true
+    },
+    {
+      "id": "oi_alpha_beta",
+      "url": "https://oi-wiki.org/search/alpha-beta/",
+      "final_url": "https://oi-wiki.org/search/alpha-beta/",
+      "retrieved": "2026-09-27",
+      "bytes": 252301,
+      "sha256": "c67d31785ac8933089cb68b36f7cbd92536a73751ea8465bcd746b1ccb42d587",
+      "ok": true
+    },
+    {
+      "id": "lc_subsequences",
+      "url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/number_of_subsequences/task.md",
+      "final_url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/number_of_subsequences/task.md",
+      "retrieved": "2026-09-27",
+      "bytes": 580,
+      "sha256": "513b754d18301fce465440712b481f57049d4d2334fea6469b12dfeb65673b67",
+      "ok": true
+    },
+    {
+      "id": "lc_sharp_subset",
+      "url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/sharp_p_subset_sum/task.md",
+      "final_url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/sharp_p_subset_sum/task.md",
+      "retrieved": "2026-09-27",
+      "bytes": 927,
+      "sha256": "acc66d787d8a3fde825af66bccdbf5e6217d37238f959be97e066844ee8533a7",
+      "ok": true
+    },
+    {
+      "id": "lc_bounded_sequences",
+      "url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/number_of_increasing_sequences_between_two_sequences/task.md",
+      "final_url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/number_of_increasing_sequences_between_two_sequences/task.md",
+      "retrieved": "2026-09-27",
+      "bytes": 1196,
+      "sha256": "e0da0d9f654ee547483bc75ade640303d7c561af39f368d2196164aa1085aeab",
+      "ok": true
+    },
+    {
+      "id": "sage_grs",
+      "url": "https://doc.sagemath.org/html/en/reference/coding/sage/coding/grs_code.html",
+      "final_url": "https://doc.sagemath.org/html/en/reference/coding/sage/coding/grs_code.html",
+      "retrieved": "2026-09-27",
+      "bytes": 278495,
+      "sha256": "d622db737371d2ec98a074b2147c6ee2358cf20eac2e3e50a6f1bb869955de2d",
+      "ok": true
+    },
+    {
+      "id": "koosaga_skew_flow",
+      "url": "https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/combinatorial_optimization/skew_symmetric_flow.cpp",
+      "final_url": "https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/combinatorial_optimization/skew_symmetric_flow.cpp",
+      "retrieved": "2026-09-27",
+      "bytes": 16137,
+      "sha256": "12bd3b5d084f6b1a97e1981accef2ef01766bfbf9cb4f1f699b63e586727e8ca",
+      "ok": true
+    },
+    {
+      "id": "koosaga_extreme_sets",
+      "url": "https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/extreme_vertex_sets.cpp",
+      "final_url": "https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/extreme_vertex_sets.cpp",
+      "retrieved": "2026-09-27",
+      "bytes": 1830,
+      "sha256": "76b7ff2fa49894ffacbb1785d946e439477497dd66525fdb454f4d88e043884a",
+      "ok": true
+    },
+    {
+      "id": "koosaga_tree_packing",
+      "url": "https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/disjoint_spantree.cpp",
+      "final_url": "https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/disjoint_spantree.cpp",
+      "retrieved": "2026-09-27",
+      "bytes": 1768,
+      "sha256": "b4d0bcf4e17ba2a9978c382c40fb91d631a70b4d337ed991cbbc732ff10b59db",
+      "ok": true
+    }
+  ],
+  "read_scopes": [
+    {
+      "id": "gmp",
+      "url": "https://gmplib.org/manual/Algorithms",
+      "final_url": "https://gmplib.org/manual/Algorithms",
+      "retrieved": "2026-09-27",
+      "read_scope": "Algorithm index",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "c3dc0319e1d0ea35ff7700f66548e3e71896e9ea9e6b4d3009600196bebf2b46",
+      "review_area": "coremath"
+    },
+    {
+      "id": "gmp_multiplication",
+      "url": "https://gmplib.org/manual/Multiplication-Algorithms.html",
+      "final_url": "https://gmplib.org/manual/Multiplication-Algorithms",
+      "retrieved": "2026-09-27",
+      "read_scope": "Complete dispatch/threshold page including squaring and unbalanced sizes",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "5c481f07b856ea37544401090e0d57ef371a61c5499ad102875b46cda6fa770e",
+      "review_area": "coremath"
+    },
+    {
+      "id": "gmp_division",
+      "url": "https://gmplib.org/manual/Division-Algorithms.html",
+      "final_url": "https://gmplib.org/manual/Division-Algorithms",
+      "retrieved": "2026-09-27",
+      "read_scope": "Complete division-algorithm index",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "c4856d6630c8e965a54c43730060f8c5b68bfac4acbcb76666eb0a78e3758d5e",
+      "review_area": "coremath"
+    },
+    {
+      "id": "flint",
+      "url": "https://flintlib.org/doc/",
+      "final_url": "https://flintlib.org/doc/",
+      "retrieved": "2026-09-27",
+      "read_scope": "Core algebra/type catalog including integer/rational/modular polynomials, polynomial matrices, Gaussian/algebraic numbers, Arb and finite fields",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "e6f6868bb4463113bff0e3e5b452fae78955dddbdac11dce9321c29e3c6ce256",
+      "review_area": "coremath"
+    },
+    {
+      "id": "flint_integer_matrix",
+      "url": "https://flintlib.org/doc/fmpz_mat.html",
+      "final_url": "https://flintlib.org/doc/fmpz_mat.html",
+      "retrieved": "2026-09-27",
+      "read_scope": "Selected API sections: determinant certification/CRT, output-sensitive Dixon solving, HNF/SNF and unimodular transforms; relevant catalog headings",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "7b4fb8b207b231ba9282901312e2ca6eab3e96c92dba1b37cdb2ee47fc9a61bb",
+      "review_area": "coremath"
+    },
+    {
+      "id": "flint_mod_poly",
+      "url": "https://flintlib.org/doc/nmod_poly.html",
+      "final_url": "https://flintlib.org/doc/nmod_poly.html",
+      "retrieved": "2026-09-27",
+      "read_scope": "Representation and modulus/aliasing preconditions, selected operation headings for interpolation/composition/FPS/gcd",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "50227e8fde1442190ab704c8fdcb34d52782ad5f45c69c2f797ee7e928c4aaea",
+      "review_area": "coremath"
+    },
+    {
+      "id": "flint_poly_factor",
+      "url": "https://flintlib.org/doc/fmpz_poly_factor.html",
+      "final_url": "https://flintlib.org/doc/fmpz_poly_factor.html",
+      "retrieved": "2026-09-27",
+      "read_scope": "Square-free content, Zassenhaus/Hensel/van Hoeij algorithm contracts and complexity section",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "de455a74ce2385ea78505b919f674ca7c0f3b4f8fa06aa4236674f019986b6f1",
+      "review_area": "coremath"
+    },
+    {
+      "id": "ntl",
+      "url": "https://libntl.org/doc/tour-modules.html",
+      "final_url": "https://libntl.org/doc/tour-modules.html",
+      "retrieved": "2026-09-27",
+      "read_scope": "Module summaries for integer/poly/finite-field/ring/lattice types",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "f5290e41554349f7159b08329f22748eddec5867fa3af3a71f5aa550f1103fe4",
+      "review_area": "coremath"
+    },
+    {
+      "id": "ntl_gf2x",
+      "url": "https://libntl.org/doc/GF2X.cpp.html",
+      "final_url": "https://libntl.org/doc/GF2X.cpp.html",
+      "retrieved": "2026-09-27",
+      "read_scope": "GF(2) polynomial degree/gcd/modular arithmetic/preconditioning and Brent–Kung modular-composition documentation excerpts",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "e1f68fc235c73fade5b954357cfd15c4f25a9530efbb94c0c05d163d7d12f29f",
+      "review_area": "coremath"
+    },
+    {
+      "id": "ntl_lll",
+      "url": "https://libntl.org/doc/LLL.cpp.html",
+      "final_url": "https://libntl.org/doc/LLL.cpp.html",
+      "retrieved": "2026-09-27",
+      "read_scope": "Exact versus floating LLL intro, reduction parameter/witness/kernel contract and BKZ variant catalog",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "dd39195a189dbfc90ea9f8238b13a3a6c7e06cda211ef6a888e59fd0f9658efb",
+      "review_area": "coremath"
+    },
+    {
+      "id": "yosupo_tree",
+      "url": "https://api.github.com/repos/yosupo06/library-checker-problems/git/trees/master?recursive=1",
+      "final_url": "https://api.github.com/repos/yosupo06/library-checker-problems/git/trees/master?recursive=1",
+      "retrieved": "2026-09-27",
+      "read_scope": "All problem-directory info.toml paths in big_integer, convolution, enumerative_combinatorics, linear_algebra, number_theory, polynomial, set_power_series",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "b6758ea1994367916103824d83e1fb93f487b0aef9dbde75cf0bbfc6dfa0e1b8",
+      "review_area": "coremath"
+    },
+    {
+      "id": "maspypy",
+      "url": "https://maspypy.github.io/library/",
+      "final_url": "https://maspypy.github.io/library/",
+      "retrieved": "2026-09-27",
+      "read_scope": "Math/number theory/modular arithmetic/polynomial/matrix/convex/game/sequence/set-function catalog and related test names; not source correctness review",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "f298726d0938deae417a03cc7b21b8f5534a6f5958b24170f64c2f0261a80e85",
+      "review_area": "coremath"
+    },
+    {
+      "id": "nyaan",
+      "url": "https://nyaannyaan.github.io/library/",
+      "final_url": "https://nyaannyaan.github.io/library/",
+      "retrieved": "2026-09-27",
+      "read_scope": "Math/FPS/matrix/NTT/multiplicative-function/set-function catalogs and related verification target names",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "d8e7603c172f30565d67fb0f15fcaaab047183f30b3ae1b381df67ac72942020",
+      "review_area": "coremath"
+    },
+    {
+      "id": "hitonanode",
+      "url": "https://hitonanode.github.io/cplib-cpp/",
+      "final_url": "https://hitonanode.github.io/cplib-cpp/",
+      "retrieved": "2026-09-27",
+      "read_scope": "Number/linear-algebra/convolution/FPS/optimization catalog excerpts",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "7d892be8783e505e6a203c8c245c6a7decdece1923cfc55ac845e3a285b37b43",
+      "review_area": "coremath"
+    },
+    {
+      "id": "oiwiki_nav",
+      "url": "https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/mkdocs.yml",
+      "final_url": "https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/mkdocs.yml",
+      "retrieved": "2026-09-27",
+      "read_scope": "Mathematics navigation: number theory, polynomials, combinatorics, linear algebra, groups, probability, games and Young tableaux",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "15c7c17d5e6963ad5fff9ba7fd1643d813cc263d599161b3a7f85fa990d7377f",
+      "review_area": "coremath"
+    },
+    {
+      "id": "oi_schreier",
+      "url": "https://oi-wiki.org/math/algebra/schreier-sims/",
+      "final_url": "https://oi-wiki.org/math/algebra/schreier-sims/",
+      "retrieved": "2026-09-27",
+      "read_scope": "Stabilizer/generator/complexity and implementation-reference section excerpts; not a full proof/code audit",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "b897e6a5240ed60f191f68e0d5bcb48db31997b062eb762a91b5e409f1592d3d",
+      "review_area": "coremath"
+    },
+    {
+      "id": "lc_subsequences",
+      "url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/number_of_subsequences/task.md",
+      "final_url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/number_of_subsequences/task.md",
+      "retrieved": "2026-09-27",
+      "read_scope": "Complete statement including Japanese nonempty-subsequence condition; maps to Strings subsequence automaton",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "513b754d18301fce465440712b481f57049d4d2334fea6469b12dfeb65673b67",
+      "review_area": "coremath"
+    },
+    {
+      "id": "lc_sharp_subset",
+      "url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/sharp_p_subset_sum/task.md",
+      "final_url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/sharp_p_subset_sum/task.md",
+      "retrieved": "2026-09-27",
+      "read_scope": "Complete positive-weight all-target subset-count statement; maps to Misc knapsack with Math FPS bridge",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "acc66d787d8a3fde825af66bccdbf5e6217d37238f959be97e066844ee8533a7",
+      "review_area": "coremath"
+    },
+    {
+      "id": "lc_bounded_sequences",
+      "url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/number_of_increasing_sequences_between_two_sequences/task.md",
+      "final_url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/number_of_increasing_sequences_between_two_sequences/task.md",
+      "retrieved": "2026-09-27",
+      "read_scope": "Complete weakly increasing bounded-sequence counting statement; maps to advanced combinatorics",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "e0da0d9f654ee547483bc75ade640303d7c561af39f368d2196164aa1085aeab",
+      "review_area": "coremath"
+    },
+    {
+      "id": "sage_grs",
+      "url": "https://doc.sagemath.org/html/en/reference/coding/sage/coding/grs_code.html",
+      "final_url": "https://doc.sagemath.org/html/en/reference/coding/sage/coding/grs_code.html",
+      "retrieved": "2026-09-27",
+      "read_scope": "Definition of RS/GRS evaluation codes, encoder/decoder list, Berlekamp–Welch linear-system description and error/erasure decoder contract excerpts",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "d622db737371d2ec98a074b2147c6ee2358cf20eac2e3e50a6f1bb869955de2d",
+      "review_area": "coremath"
+    },
+    {
+      "id": "sage_coding_index",
+      "url": "https://doc.sagemath.org/html/en/reference/coding/index.html",
+      "final_url": "https://doc.sagemath.org/html/en/reference/coding/index.html",
+      "retrieved": "2026-09-27",
+      "read_scope": "Official coding-theory module catalog: linear/cyclic/BCH/GRS codes and Guruswami–Sudan decoder links; no decoder implementation/proof audit",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "4fd5e9c8be0c0f142d5d3aa13185cc350b9a453a17453c12ea951ba1ebb6468d",
+      "review_area": "coremath"
+    },
+    {
+      "id": "oi_young",
+      "url": "https://oi-wiki.org/math/young-tableau/",
+      "final_url": "https://oi-wiki.org/math/young-tableau/",
+      "retrieved": "2026-09-27",
+      "read_scope": "Definitions, RSK relation and hook-length application section headings/excerpts; not a full proof/code audit",
+      "review_kind": "documentation/catalog audit; no code adopted",
+      "sha256": "18f8c7de75c9005e1a51180a86ebe9a46ec7bf4b14c53e9212a280533ca1c74c",
+      "review_area": "coremath"
+    },
+    {
+      "id": "mca_saved",
+      "url": "https://members.loria.fr/PZimmermann/mca/mca-cup-0.5.9.pdf",
+      "retrieved": "2026-09-27 (existing saved copy inspected)",
+      "read_scope": "PDF contents pages4–7, preface/notation8–14; integer/modular arithmetic operation and backend inventory, not all algorithm proofs",
+      "review_kind": "book contents audit",
+      "review_area": "coremath"
+    },
+    {
+      "url": "https://github.com/yosupo06/library-checker-problems",
+      "scope": "Graph/data_structure/tree problem-directory catalog, used to identify independently testable operations",
+      "source_key": "YC",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://cp-algorithms.com/",
+      "scope": "Data Structures/Graphs navigation entries for sqrt-tree, RMQ and bounded flow; implementation-time article review still required",
+      "source_key": "CPA",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://oi-wiki.org/",
+      "scope": "Data-structure and graph navigation/catalog; uncommon graph decomposition and optimization families",
+      "source_key": "OI",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://maspypy.github.io/library/",
+      "scope": "ds, graph, flow, tree catalog paths",
+      "source_key": "MAS",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://nyaannyaan.github.io/library/",
+      "scope": "data-structure, graph and tree catalog paths",
+      "source_key": "NYA",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://ei1333.github.io/library/",
+      "scope": "structure and graph catalog paths",
+      "source_key": "EI",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://suisen-cp.github.io/cp-library-cpp/",
+      "scope": "data structure dynamic/persistent/sequence catalog paths",
+      "source_key": "SUI",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://hitonanode.github.io/cplib-cpp/",
+      "scope": "data_structure and graph catalog paths",
+      "source_key": "HIT",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://github.com/kth-competitive-programming/kactl",
+      "scope": "Saved notebook Data Structures/Graphs contents and declarations; repository graph catalog",
+      "source_key": "KACTL",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://cses.fi/problemset/",
+      "scope": "Graph/tree problem titles including functional graphs and Hamiltonian flights",
+      "source_key": "CSES",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://opendatastructures.org/ods-cpp.pdf",
+      "scope": "Saved PDF table of contents, chapters 4/8/9/10/13 (skip lists, balancing, heaps and integer predecessor choices)",
+      "source_key": "ODS",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://tko919.github.io/library/",
+      "scope": "Range LIS and general weighted matching catalog; weighted-matching source documentation inspected",
+      "source_key": "TKO",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://github.com/xxsds/DYNAMIC",
+      "scope": "README data-structure features and TODO; dynamic bitvector/wavelet tree supported, dynamic wavelet matrix explicitly TODO",
+      "source_key": "DYNAMIC",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://github.com/tomtseng/dynamic-connectivity-hdt",
+      "scope": "README algorithm scope and Holm/de Lichtenberg/Thorup 2001 citation; implementation covers connectivity only",
+      "source_key": "HDT",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://ogdf.github.io/doc/ogdf/group__decomp.html",
+      "scope": "Graph-decomposition API catalog, static/dynamic SPQR classes",
+      "source_key": "OGDF",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://github.com/koosaga/olympiad/tree/master/Library/codes",
+      "scope": "Current Library/codes catalog; focused skew-symmetric flow special-case comments, extreme-set function and tree-packing augmentation code. The former repository is archived",
+      "source_key": "KOO",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://networkx.org/documentation/stable/reference/algorithms/",
+      "scope": "Planarity/cycles/eulerize API documentation; Eulerize is unweighted, Edmonds–Johnson reference motivates weighted T-join research",
+      "source_key": "NX",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://github.com/jaehyunp/stanfordacm",
+      "scope": "Saved 2015–16 team notebook contents and graph/data-structure declarations",
+      "source_key": "STANFORD",
+      "review_area": "dsgraphs"
+    },
+    {
+      "url": "https://github.com/kth-competitive-programming/kactl",
+      "read_scope": "Geometry/Strings chapter lists and local 26-page notebook geometry/string sections; feature names and key comments, not a correctness audit.",
+      "inspected": "2026-09-27",
+      "source_key": "KACTL",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://github.com/jaehyunp/stanfordacm",
+      "read_scope": "Local notebook Geometry/3D sections and geometry code comments; legacy source comparison only.",
+      "inspected": "2026-09-27",
+      "source_key": "STANFORD",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://cp-algorithms.com/",
+      "read_scope": "Full Geometry/String Processing navigation compared; individual article proofs not all read.",
+      "inspected": "2026-09-27",
+      "source_key": "CPALG",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://oi-wiki.org/geometry/",
+      "read_scope": "Geometry navigation/topics including triangulation, inversion and 3D; catalog scope only.",
+      "inspected": "2026-09-27",
+      "source_key": "OI-GEO",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://oi-wiki.org/string/",
+      "read_scope": "String navigation including suffix-balanced tree, in-place suffix sorting, subsequence automaton and Main–Lorentz; catalog scope only.",
+      "inspected": "2026-09-27",
+      "source_key": "OI-STR",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://doc.cgal.org/latest/Manual/packages.html",
+      "read_scope": "Relevant package descriptions for kernels, polygon operations/partition, offsets, visibility, arrangements/point location, hulls, triangulations, weighted/site Voronoi, alpha shapes, spatial search and bounding volumes; CAD/mesh engineering packages not adopted wholesale.",
+      "inspected": "2026-09-27",
+      "source_key": "CGAL",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://www.cs.cmu.edu/~quake/robust.html",
+      "read_scope": "Author description, orientation/incircle robustness, adaptive arithmetic and floating-environment caveats; paper proofs/code not audited.",
+      "inspected": "2026-09-27",
+      "source_key": "SHEWCHUK",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://maspypy.github.io/library/",
+      "read_scope": "Geometry/String inventory plus eight targeted API/comments pages listed below; reference verification badges are not this library verification.",
+      "inspected": "2026-09-27",
+      "source_key": "MASPYPY",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://nyaannyaan.github.io/library/",
+      "read_scope": "Geometry/String catalog including wildcard, RLE and 2D hash families.",
+      "inspected": "2026-09-27",
+      "source_key": "NYAAN",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://ei1333.github.io/library/",
+      "read_scope": "Geometry/String catalog including convex layers and circle-polygon common area.",
+      "inspected": "2026-09-27",
+      "source_key": "EI1333",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://suisen-cp.github.io/cp-library-cpp/",
+      "read_scope": "Geometry/integral-geometry/String catalog including dynamic hull, lattice counting, substring sets and dynamic hash.",
+      "inspected": "2026-09-27",
+      "source_key": "SUISEN",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://hitonanode.github.io/cplib-cpp/",
+      "read_scope": "Geometry/String catalog including triangles, Apollonius, 2D hash and incremental matching.",
+      "inspected": "2026-09-27",
+      "source_key": "HITONANODE",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://atcoder.github.io/ac-library/master/document_en/index.html",
+      "read_scope": "Module catalog; the SA-IS implementation is not audited in this pass.",
+      "inspected": "2026-09-27",
+      "source_key": "ACL",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://github.com/yosupo06/library-checker-problems",
+      "read_scope": "Problem repository tree/catalog; task existence is a validation target, not evidence of acceptance.",
+      "inspected": "2026-09-27",
+      "source_key": "YOSUPO",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://cses.fi/problemset/",
+      "read_scope": "Problem catalog for practical geometry/string test coverage.",
+      "inspected": "2026-09-27",
+      "source_key": "CSES",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://www-igm.univ-eiffel.fr/~lecroq/string/",
+      "read_scope": "Exact String Matching Algorithms, Christian Charras and Thierry Lecroq: complete named contents inspected, not every algorithm page. Original univ-mlv hostname had a certificate mismatch; successor domain read successfully.",
+      "inspected": "2026-09-27",
+      "source_key": "LECROQ",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://arxiv.org/abs/1406.0263",
+      "read_scope": "Bannai et al., The Runs Theorem, v7 (2015), SIAM J. Comput. 2017: abstract and publication metadata; linear run count, Lyndon relation, run enumeration and 2-period query claims identified, proofs still to read.",
+      "inspected": "2026-09-27",
+      "source_key": "RUNS",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://arxiv.org/abs/1705.10382",
+      "read_scope": "Gagie/Navarro/Prezza, Optimal-Time Text Indexing in BWT-runs Bounded Space, v4 (2017): abstract and metadata; count/locate/space tradeoffs identified, not implementation verification.",
+      "inspected": "2026-09-27",
+      "source_key": "RINDEX",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://arxiv.org/abs/1511.02612",
+      "read_scope": "Gawrychowski et al., Optimal Dynamic Strings, v2 (2016): abstract and metadata; split/concat/compare/LCP, high-probability update time and edited-text histories; no deterministic runtime claim inferred.",
+      "inspected": "2026-09-27",
+      "source_key": "DYNAMICSTRINGS",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://arxiv.org/abs/0707.3619",
+      "read_scope": "Tiskin, Semi-local string comparison: algorithmic techniques and applications, v21 (2013): abstract and metadata; semi-local LCS query family and applications, proofs still to read.",
+      "inspected": "2026-09-27",
+      "source_key": "SEMILOCAL",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://maspypy.github.io/library/geo/dynamic_upper_hull.hpp",
+      "read_scope": "Dynamic_Upper_Hull API/comments: sorted known point universe and activation storage; do not copy its stated complexity without proof.",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://maspypy.github.io/library/geo/convex_layers.hpp",
+      "read_scope": "Convex layers code/API and CCW output convention.",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://maspypy.github.io/library/geo/count_points_in_triangles.hpp",
+      "read_scope": "Two sets A/B, query triangle vertices from A, count B points; O(N * M * log(M)) preprocessing and O(1) advertised query; source bounds remain unverified.",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://maspypy.github.io/library/geo/minimum_three_distance_sum.hpp",
+      "read_scope": "Fermat point or vertex and Codeforces 1662K link.",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://maspypy.github.io/library/string/inverse_manacher.hpp",
+      "read_scope": "Odd maximal-palindrome radii, lexicographically minimal witness or failure; does not establish combined odd/even support.",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://maspypy.github.io/library/string/online_z_algorithm.hpp",
+      "read_scope": "Append API emits finalized matching suffix indices; generic arbitrary-access Z is not assumed.",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://maspypy.github.io/library/string/double_ended_palindromic_tree.hpp",
+      "read_scope": "Deque palindrome API/state and linked arXiv:2210.02292; that linked paper is an additional unread candidate.",
+      "review_area": "geostrings"
+    },
+    {
+      "url": "https://maspypy.github.io/library/string/prefix_substring_LCS.hpp",
+      "read_scope": "Prefix-substring LCS API with wavelet matrix dependency and code comments; distinct from complete semi-local theorem implementation.",
+      "review_area": "geostrings"
+    },
+    {
+      "id": "pyrival_tree",
+      "url": "https://api.github.com/repos/cheran-senthil/PyRival/git/trees/master?recursive=1",
+      "final_url": "https://api.github.com/repos/cheran-senthil/PyRival/git/trees/master?recursive=1",
+      "retrieved": "2026-09-27",
+      "sha256": "a07168898d8cbfa9636352a544c06841da51aafb17f2913766634ca610fad341",
+      "read_scope": "All Python module paths in algebra/combinatorics/data_structures/graphs/geometry/linear_algebra; test names observed but no tests executed",
+      "review_kind": "inventory and source-contract inspection; no code copied or external correctness certification",
+      "review_area": "python"
+    },
+    {
+      "id": "py_sparsetable",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/RangeMinimumQuery.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/RangeMinimumQuery.py",
+      "retrieved": "2026-09-27",
+      "sha256": "c9e8876a5022fa0d38699b3bd20ce0aa90991a6c35a0a7ef61b8dc975840b442",
+      "read_scope": "Complete ordinary/block RMQ source, endpoint contract and source complexity claims; no correctness certification",
+      "review_kind": "inventory and source-contract inspection; no code copied or external correctness certification",
+      "review_area": "python"
+    },
+    {
+      "id": "py_ordered",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/SortedList.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/SortedList.py",
+      "retrieved": "2026-09-27",
+      "sha256": "bc7ce4f1d17c7f1853fb145be88433e1a759f1a0eec2ff3c8082891b832de085",
+      "read_scope": "Complete bucketed sorted-list/Fenwick source, duplicate/order/rank methods and source complexity claim; no independent proof yet",
+      "review_kind": "inventory and source-contract inspection; no code copied or external correctness certification",
+      "review_area": "python"
+    },
+    {
+      "id": "py_twosat",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/TwoSat.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/TwoSat.py",
+      "retrieved": "2026-09-27",
+      "sha256": "f32d38818652c9d67258115bf4037a7df178629efae82578bc0ce12ff9b1b58f",
+      "read_scope": "Complete iterative SCC and 2-SAT clause/assignment source",
+      "review_kind": "inventory and source-contract inspection; no code copied or external correctness certification",
+      "review_area": "python"
+    },
+    {
+      "id": "py_fst",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/algebra/fst.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/algebra/fst.py",
+      "retrieved": "2026-09-27",
+      "sha256": "9e0b5226588598cc4666d0a6239088f96c50f0a3431bc690457944c6ca071552",
+      "read_scope": "Complete FWT/convolution source; inverse XOR /= produces float, which must not be copied into an exact integer interface",
+      "review_kind": "inventory and source-contract inspection; no code copied or external correctness certification",
+      "review_area": "python"
+    },
+    {
+      "id": "py_hull_trick",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/convex_hull_trick.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/convex_hull_trick.py",
+      "retrieved": "2026-09-27",
+      "sha256": "524bda052f84b944e9d9995d73888258d7e1ca1bce3e74a94f6972fc951b96c7",
+      "read_scope": "Complete static CHT source, exact integer floor separators, equal slopes and binary-search queries",
+      "review_kind": "inventory and source-contract inspection; no code copied or external correctness certification",
+      "review_area": "python"
+    },
+    {
+      "id": "py_xorbasis",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/linear_algebra/max_xor.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/linear_algebra/max_xor.py",
+      "retrieved": "2026-09-27",
+      "sha256": "5d083b40773e6495b67209ba628f237661b3884743afcb870726b8501523ab33",
+      "read_scope": "Complete xor-basis source with arbitrary-size nonnegative ints and witness recovery",
+      "review_kind": "inventory and source-contract inspection; no code copied or external correctness certification",
+      "review_area": "python"
+    },
+    {
+      "id": "py_flow",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/graphs/dinic.py",
+      "final_url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/graphs/dinic.py",
+      "retrieved": "2026-09-27",
+      "sha256": "118b4e9b885420b240d921515d2b90001ac2b6e39009840c225c3ff5eb5dc152",
+      "read_scope": "Complete PyRival Dinic source including recursive augmentation and fixed capacity-scale loop; triggers domain/recursion/self-loop audit requirements, not a verified implementation",
+      "review_kind": "inventory and source-contract inspection; no code copied or external correctness certification",
+      "review_area": "python"
+    },
+    {
+      "id": "py_mincostflow",
+      "url": "https://raw.githubusercontent.com/not522/ac-library-python/master/atcoder/mincostflow.py",
+      "final_url": "https://raw.githubusercontent.com/not522/ac-library-python/master/atcoder/mincostflow.py",
+      "retrieved": "2026-09-27",
+      "sha256": "64eabef15474aa7ea828646598028ddcc9a0da82383a76299a5f44ab36c5b9be",
+      "read_scope": "Complete ac-library-python MCF source, zero-initialized dual potentials, edge/result API and slope routine; negative-cost domain cannot be inferred from edge acceptance",
+      "review_kind": "inventory and source-contract inspection; no code copied or external correctness certification",
+      "review_area": "python"
+    },
+    {
+      "id": "py_acl_readme",
+      "url": "https://raw.githubusercontent.com/not522/ac-library-python/master/README.md",
+      "final_url": "https://raw.githubusercontent.com/not522/ac-library-python/master/README.md",
+      "retrieved": "2026-09-27",
+      "sha256": "54402bc07b37af22fa8d8be128837692cbab2af7fd2235e759877fb70c9e3ae8",
+      "read_scope": "README including authors warning that ported features may have bugs and performance gaps; no external package installed",
+      "review_kind": "inventory and source-contract inspection; no code copied or external correctness certification",
+      "review_area": "python"
+    },
+    {
+      "id": "py_bisect_docs",
+      "url": "https://docs.python.org/3/library/bisect.html",
+      "final_url": "https://docs.python.org/3/library/bisect.html",
+      "retrieved": "2026-09-27",
+      "sha256": "734409b272f070e6a17a27b526f64237f0a6a3399c8ee9bbb73decd32b012095",
+      "read_scope": "Standard-library bisect insertion/search descriptions, linear insertion cost, key/version references; not the entire language reference",
+      "review_kind": "inventory and source-contract inspection; no code copied or external correctness certification",
+      "review_area": "python"
+    },
+    {
+      "id": "py_fraction_docs",
+      "url": "https://docs.python.org/3/library/fractions.html",
+      "final_url": "https://docs.python.org/3/library/fractions.html",
+      "retrieved": "2026-09-27",
+      "sha256": "8d75fe510fb79c09af62c52637c9fa115f05b5a539ecc51e53281adb16dc4f35",
+      "read_scope": "Fraction constructors/exact-float meaning/normalization and version-change notes; current3.14 API is not substituted for required3.10 baseline",
+      "review_kind": "inventory and source-contract inspection; no code copied or external correctness certification",
+      "review_area": "python"
+    },
+    {
+      "id": "oiwiki_nav",
+      "url": "https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/mkdocs.yml",
+      "read_scope": "Compared complete navigation, concentrating on DP/search/miscellaneous missing families; catalog scope, not all articles.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "pyrival_tree",
+      "url": "https://api.github.com/repos/cheran-senthil/PyRival/git/trees/master?recursive=1",
+      "read_scope": "Compared Python module catalog to deliberate Python subset.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "cpalgorithms",
+      "url": "https://cp-algorithms.com/",
+      "read_scope": "Compared topic navigation across mathematical, graph, string and DP families; selected headings only.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "acl",
+      "url": "https://atcoder.github.io/ac-library/master/document_en/index.html",
+      "read_scope": "Official module list and contract links; catalog comparison.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "cses",
+      "url": "https://cses.fi/problemset/",
+      "read_scope": "Problemset category/title catalog; no submissions or complete problem-statement audit.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "yosupo_tree",
+      "url": "https://api.github.com/repos/yosupo06/library-checker-problems/git/trees/master?recursive=1",
+      "read_scope": "Enumerated every non-sample/test info.toml problem family; target ownership checked, not accepted implementations.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "algorithmica",
+      "url": "https://en.algorithmica.org/",
+      "read_scope": "Performance/algorithm chapter catalog; candidate optimization reading, not measurements of this library.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "verngutz_tree",
+      "url": "https://api.github.com/repos/verngutz/cp-library/git/trees/master?recursive=1",
+      "read_scope": "Contest-template/library path catalog; no new source adopted.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "koosaga_redirect",
+      "url": "https://raw.githubusercontent.com/koosaga/DeobureoMinkyuParty/master/README.md",
+      "read_scope": "Archived notebook README points to maintained olympiad/Library/codes; updated canonical source link.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "koosaga_current_tree",
+      "url": "https://api.github.com/repos/koosaga/olympiad/git/trees/master?recursive=1",
+      "read_scope": "Maintained library source path catalog; selected advanced graph files inspected by graph auditor.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_knapsack",
+      "url": "https://oi-wiki.org/dp/knapsack/",
+      "read_scope": "Read DP variants, memory/witness considerations and counting distinctions.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_digitdp",
+      "url": "https://oi-wiki.org/dp/number/",
+      "read_scope": "Read state/tight/leading-zero recurrence examples and interval handling.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_plugdp",
+      "url": "https://oi-wiki.org/dp/plug/",
+      "read_scope": "Read frontier/connectivity-state formulation and boundary invariants.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_idastar",
+      "url": "https://oi-wiki.org/search/idastar/",
+      "read_scope": "Read iterative-deepening/admissible-estimate search conditions.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_slope_trick",
+      "url": "https://oi-wiki.org/dp/opt/slope-trick/",
+      "read_scope": "Read convex piecewise-linear heap operations and scope.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_alphabetic",
+      "url": "https://oi-wiki.org/misc/garsia-wachs/",
+      "read_scope": "Read Garsia-Wachs outline; page has conflicting linear versus nlogn wording, requires independent complexity proof.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_annealing",
+      "url": "https://oi-wiki.org/misc/simulated-annealing/",
+      "read_scope": "Read heuristic algorithm/stopping/seed discussion; no optimality guarantee inferred.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_scheduling",
+      "url": "https://oi-wiki.org/misc/job-order/",
+      "read_scope": "Read exchange-rule job-order conditions and ratio ordering examples.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_expression",
+      "url": "https://oi-wiki.org/misc/expression/",
+      "read_scope": "Read operators, precedence, unary cases and parsing/evaluation outline.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_subsetdp",
+      "url": "https://oi-wiki.org/dp/state/",
+      "read_scope": "Read subset-state examples and O(3^n) submask transitions.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_dynamicdp",
+      "url": "https://oi-wiki.org/dp/dynamic/",
+      "read_scope": "Read dynamic tree DP reduction to HLD and transfer matrices.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_majority",
+      "url": "https://oi-wiki.org/misc/main-element/",
+      "read_scope": "Read candidate cancellation; exact frequency must be verified.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_twopointer",
+      "url": "https://oi-wiki.org/misc/two-pointer/",
+      "read_scope": "Read monotone windows and cycle-finding uses.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_search_meet",
+      "url": "https://oi-wiki.org/search/bidirectional/",
+      "read_scope": "Read meet-in-the-middle/bidirectional state search outline.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "oi_alpha_beta",
+      "url": "https://oi-wiki.org/search/alpha-beta/",
+      "read_scope": "Read minimax/alpha-beta semantics and pruning.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "py_ordered",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/SortedList.py",
+      "read_scope": "Read blocked sorted multiset plus Fenwick implementation; no blanket logarithmic guarantee.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "py_twosat",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/TwoSat.py",
+      "read_scope": "Read Python 2-SAT helper and iterative SCC dependency.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "py_sparsetable",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/RangeMinimumQuery.py",
+      "read_scope": "Read ordinary sparse RMQ and block-mask variant APIs.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "py_hull_trick",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/convex_hull_trick.py",
+      "read_scope": "Read hull construction/intersection/query policies, exact/float distinction.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "py_xorbasis",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/linear_algebra/max_xor.py",
+      "read_scope": "Read xor basis and witness indices.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "py_fst",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/algebra/fst.py",
+      "read_scope": "Read FWT modes/inverse; /= in integer inverse can lose exactness and is not to be copied.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "py_flow",
+      "url": "https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/graphs/dinic.py",
+      "read_scope": "Read pure-Python Dinic API and iterative/recursive implementation considerations.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "py_mincostflow",
+      "url": "https://raw.githubusercontent.com/not522/ac-library-python/master/atcoder/mincostflow.py",
+      "read_scope": "Read potentials, heap shortest paths and slope API; initial zero potentials need a valid nonnegative-cost contract or different initialization.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "py_acl_readme",
+      "url": "https://raw.githubusercontent.com/not522/ac-library-python/master/README.md",
+      "read_scope": "Read project scope/installation and attribution; third-party Python adaptation, not official ACL.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "py_fraction_docs",
+      "url": "https://docs.python.org/3/library/fractions.html",
+      "read_scope": "Read Fraction API/semantics; current-doc version additions require baseline checking.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "py_bisect_docs",
+      "url": "https://docs.python.org/3/library/bisect.html",
+      "read_scope": "Read sorted-list search/insertion costs and key caveats.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "lc_subsequences",
+      "url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/number_of_subsequences/task.md",
+      "read_scope": "Read EN/JP task; distinct subsequences of integer array, nonempty convention explicit in JP.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "lc_sharp_subset",
+      "url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/sharp_p_subset_sum/task.md",
+      "read_scope": "Read count-by-positive-weight target sums task; Misc knapsack family plus Math FPS backend.",
+      "review_area": "cross-folder/Misc/Python"
+    },
+    {
+      "id": "lc_bounded_sequences",
+      "url": "https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/number_of_increasing_sequences_between_two_sequences/task.md",
+      "read_scope": "Read bounded nondecreasing sequences constraints; advanced combinatorics owner.",
+      "review_area": "cross-folder/Misc/Python"
+    }
+  ],
+  "limits": [
+    "Catalog presence is a lead, not proof of correctness or optimality.",
+    "Paper abstracts were used to identify advanced string variants; full proofs must be read before adopting claims.",
+    "Mutable URLs are recorded with retrieval date and fetched-content SHA256.",
+    "No online submissions or new algorithm verification occurred in this audit.",
+    "Two failed URLs were replaced by working Stringology and Sage GRS URLs; failures retained for honesty."
+  ]
+}

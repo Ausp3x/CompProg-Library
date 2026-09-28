@@ -1,0 +1,2283 @@
+{
+  "date_utc": "2026-09-27T16:50:50.970214+00:00",
+  "cpu": "11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz",
+  "platform": "Linux-7.2.7-arch1-1-x86_64-with-glibc2.44",
+  "compiler": "g++ (GCC) 16.2.1 20260810",
+  "flags": [
+    "-std=gnu++20",
+    "-O2",
+    "-DNDEBUG"
+  ],
+  "python": "3.14.7",
+  "seed": 20260928,
+  "warmups": 1,
+  "repetitions": 5,
+  "method_order": "rotated per repetition",
+  "batches": {
+    "32": 256,
+    "4096": 8,
+    "200000": 1
+  },
+  "workload": "signed64 values and 32-byte records with signed64 keys: random dense [0,255], sorted/reverse dense, random full-width bit patterns, sorted/reverse full-width, equal key 17; signed128 scalars: random/sorted/reverse full-width and equal",
+  "timed_scope": "allocate and copy fresh output vector from fixed input, sort including algorithm setup/workspace allocation and internal destruction; per-sort time averages a batch. Input generation, reference sorting, vector-of-vector metadata, complete equality/stability verification, checksum, and retained output destruction are outside timing.",
+  "memory": "Each timed pipeline includes n*sizeof(T) output allocation/copy. Counting adds 256 int counters; stable counting adds n int cached keys, n records of reorder storage and 256 int counters; radix adds n records of reorder storage and 256 stack int counters, except all-equal keys return after the scan without reorder allocation. std::sort has O(log(n)) stack; std::stable_sort may allocate O(n*sizeof(T)) workspace. Batch outputs coexist for verification; input/reference fixtures are outside algorithm workspace.",
+  "verification": "Every warmup and timed output is compared element-by-element with a standard sorted reference; records include original IDs and two payload words, so exact equality verifies stability and record preservation. A position-dependent checksum is also retained.",
+  "comparison_limits": "Shared-host warmed-cache observations, single-threaded GNU C++20; batch repetition reuses the input and may improve cache/predictor state. Includes common inputs where adaptive standard sort or stable_sort can win. No arbitrary-key comparator, cold-cache, move-only payload, or universal dispatch-threshold claim. Header correctness uses its separate independent suite.",
+  "sha256": {
+    "06-Miscellaneous/11-sorting_selection.hpp": "a07ca53b27fe1158ac0fa166aff0d7ceaad10481c62f50fae8ab126f664e3cd6",
+    "96-Local Testing/06-Miscellaneous/11-sorting_selection_benchmark.cpp": "70ce4cfeb0280b3c8f97ac04fa631f6b93d4d6a4e970ae21a7c1ac69e913eea5",
+    "96-Local Testing/06-Miscellaneous/11-sorting_selection_benchmark.py": "2cdc3dcc3c847a4b19726f9154c459d05c8c834fad68645450f0918029405f87"
+  },
+  "results": [
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "dense256",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 10392719185127323648,
+      "samples_ms": [
+        0.0001557421875,
+        0.00015846875,
+        0.00017034375,
+        0.0001688359375,
+        0.00016983984375
+      ],
+      "median_ms": 0.0001688359375,
+      "median_fraction_of_standard": 2.075286887213713
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "dense256",
+      "method": "counting",
+      "batch": 256,
+      "checksum": 10392719185127323648,
+      "samples_ms": [
+        0.00016809765625,
+        0.000167546875,
+        0.00016752734375,
+        0.00016789453125,
+        0.00020378125
+      ],
+      "median_ms": 0.00016789453125,
+      "median_fraction_of_standard": 2.0637153694723196
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "dense256",
+      "method": "std-sort",
+      "batch": 256,
+      "checksum": 10392719185127323648,
+      "samples_ms": [
+        8.3546875e-05,
+        8.135546875e-05,
+        8.127734375e-05,
+        8.11484375e-05,
+        8.1828125e-05
+      ],
+      "median_ms": 8.135546875e-05,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "dense256",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 15653107374204207104,
+      "samples_ms": [
+        0.0002178515625,
+        0.00035711328125,
+        0.0003615703125,
+        0.00039915625,
+        0.000213625
+      ],
+      "median_ms": 0.00035711328125,
+      "median_fraction_of_standard": 1.8349156012283485
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "dense256",
+      "method": "stable-counting",
+      "batch": 256,
+      "checksum": 15653107374204207104,
+      "samples_ms": [
+        0.000218640625,
+        0.00022262109375,
+        0.00021629296875,
+        0.000231109375,
+        0.00021242578125
+      ],
+      "median_ms": 0.000218640625,
+      "median_fraction_of_standard": 1.1234168958111717
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "dense256",
+      "method": "std-stable-sort",
+      "batch": 256,
+      "checksum": 15653107374204207104,
+      "samples_ms": [
+        0.00018789453125,
+        0.00020640625,
+        0.00019462109375,
+        0.00019623046875,
+        0.0001881015625
+      ],
+      "median_ms": 0.00019462109375,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "sorted-dense256",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 17805418115404607488,
+      "samples_ms": [
+        0.00016274609375,
+        0.0001653046875,
+        0.0001577265625,
+        0.00017515234375,
+        0.00015985546875
+      ],
+      "median_ms": 0.00016274609375,
+      "median_fraction_of_standard": 3.4460711331679073
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "sorted-dense256",
+      "method": "counting",
+      "batch": 256,
+      "checksum": 17805418115404607488,
+      "samples_ms": [
+        0.0001679921875,
+        0.00016840625,
+        0.00021601171875,
+        0.00019276953125,
+        0.00016794921875
+      ],
+      "median_ms": 0.00016840625,
+      "median_fraction_of_standard": 3.5659222497932173
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "sorted-dense256",
+      "method": "std-sort",
+      "batch": 256,
+      "checksum": 17805418115404607488,
+      "samples_ms": [
+        4.72265625e-05,
+        4.651953125e-05,
+        7.6953125e-05,
+        5.6171875e-05,
+        4.653515625e-05
+      ],
+      "median_ms": 4.72265625e-05,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "sorted-dense256",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 1403405845931329536,
+      "samples_ms": [
+        0.00023028125,
+        0.00022009375,
+        0.00023547265625,
+        0.00023029296875,
+        0.0002247421875
+      ],
+      "median_ms": 0.00023028125,
+      "median_fraction_of_standard": 1.6256790668174173
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "sorted-dense256",
+      "method": "stable-counting",
+      "batch": 256,
+      "checksum": 1403405845931329536,
+      "samples_ms": [
+        0.000215796875,
+        0.00030953125,
+        0.0002946171875,
+        0.000215703125,
+        0.00021468359375
+      ],
+      "median_ms": 0.000215796875,
+      "median_fraction_of_standard": 1.5234260816810525
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "sorted-dense256",
+      "method": "std-stable-sort",
+      "batch": 256,
+      "checksum": 1403405845931329536,
+      "samples_ms": [
+        0.00014231640625,
+        0.0001402109375,
+        0.00016868359375,
+        0.00014165234375,
+        0.00014040234375
+      ],
+      "median_ms": 0.00014165234375,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "reverse-dense256",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 12165691064014475264,
+      "samples_ms": [
+        0.000159859375,
+        0.00018872265625,
+        0.000171359375,
+        0.00026452734375,
+        0.000177734375
+      ],
+      "median_ms": 0.000177734375,
+      "median_fraction_of_standard": 3.7304255144707716
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "reverse-dense256",
+      "method": "counting",
+      "batch": 256,
+      "checksum": 12165691064014475264,
+      "samples_ms": [
+        0.00016755859375,
+        0.00024217578125,
+        0.00024217578125,
+        0.00016996875,
+        0.000179015625
+      ],
+      "median_ms": 0.000179015625,
+      "median_fraction_of_standard": 3.757317373124539
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "reverse-dense256",
+      "method": "std-sort",
+      "batch": 256,
+      "checksum": 12165691064014475264,
+      "samples_ms": [
+        4.562890625e-05,
+        0.000115421875,
+        4.764453125e-05,
+        5.146484375e-05,
+        4.530078125e-05
+      ],
+      "median_ms": 4.764453125e-05,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "reverse-dense256",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 47723507310873600,
+      "samples_ms": [
+        0.00024787890625,
+        0.00026319921875,
+        0.0002433046875,
+        0.0002287890625,
+        0.00023669140625
+      ],
+      "median_ms": 0.0002433046875,
+      "median_fraction_of_standard": 1.1471563282746429
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "reverse-dense256",
+      "method": "stable-counting",
+      "batch": 256,
+      "checksum": 47723507310873600,
+      "samples_ms": [
+        0.0002587890625,
+        0.0002174140625,
+        0.0002209375,
+        0.0002334375,
+        0.000226921875
+      ],
+      "median_ms": 0.000226921875,
+      "median_fraction_of_standard": 1.0699130691026963
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "reverse-dense256",
+      "method": "std-stable-sort",
+      "batch": 256,
+      "checksum": 47723507310873600,
+      "samples_ms": [
+        0.0002206171875,
+        0.0002139453125,
+        0.00021209375,
+        0.00020675390625,
+        0.0002073125
+      ],
+      "median_ms": 0.00021209375,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "full-width",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 13437625662308306944,
+      "samples_ms": [
+        0.001078140625,
+        0.001097078125,
+        0.0011339296875,
+        0.0010015859375,
+        0.00108935546875
+      ],
+      "median_ms": 0.00108935546875,
+      "median_fraction_of_standard": 11.67476032988655
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "full-width",
+      "method": "std-sort",
+      "batch": 256,
+      "checksum": 13437625662308306944,
+      "samples_ms": [
+        9.344921875e-05,
+        9.330859375e-05,
+        0.0001340859375,
+        8.885546875e-05,
+        8.824609375e-05
+      ],
+      "median_ms": 9.330859375e-05,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "full-width",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 10213296680127482880,
+      "samples_ms": [
+        0.00112493359375,
+        0.00110266015625,
+        0.00111555859375,
+        0.00109359375,
+        0.00106311328125
+      ],
+      "median_ms": 0.00110266015625,
+      "median_fraction_of_standard": 6.954618246322895
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "full-width",
+      "method": "std-stable-sort",
+      "batch": 256,
+      "checksum": 10213296680127482880,
+      "samples_ms": [
+        0.0001594296875,
+        0.00015855078125,
+        0.00015398046875,
+        0.00021034375,
+        0.00015651171875
+      ],
+      "median_ms": 0.00015855078125,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "sorted-full-width",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 16974123635111493632,
+      "samples_ms": [
+        0.001013609375,
+        0.00113506640625,
+        0.0010700625,
+        0.00099908203125,
+        0.00108201953125
+      ],
+      "median_ms": 0.0010700625,
+      "median_fraction_of_standard": 22.173870811073336
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "sorted-full-width",
+      "method": "std-sort",
+      "batch": 256,
+      "checksum": 16974123635111493632,
+      "samples_ms": [
+        4.821875e-05,
+        4.78671875e-05,
+        5.01171875e-05,
+        4.82578125e-05,
+        5.385546875e-05
+      ],
+      "median_ms": 4.82578125e-05,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "sorted-full-width",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 13178934358497015808,
+      "samples_ms": [
+        0.00116065234375,
+        0.00113132421875,
+        0.00113066796875,
+        0.0011002890625,
+        0.001076390625
+      ],
+      "median_ms": 0.00113066796875,
+      "median_fraction_of_standard": 10.229396381113938
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "sorted-full-width",
+      "method": "std-stable-sort",
+      "batch": 256,
+      "checksum": 13178934358497015808,
+      "samples_ms": [
+        0.00012509765625,
+        0.0001199765625,
+        0.00011053125,
+        0.00011037109375,
+        0.0001100234375
+      ],
+      "median_ms": 0.00011053125,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "reverse-full-width",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 16553966050926767104,
+      "samples_ms": [
+        0.0009794296875,
+        0.0009794765625,
+        0.00100541015625,
+        0.00097434375,
+        0.0009543046875
+      ],
+      "median_ms": 0.0009794296875,
+      "median_fraction_of_standard": 21.686040477426054
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "reverse-full-width",
+      "method": "std-sort",
+      "batch": 256,
+      "checksum": 16553966050926767104,
+      "samples_ms": [
+        4.51640625e-05,
+        4.452734375e-05,
+        4.56953125e-05,
+        5.46484375e-05,
+        4.31953125e-05
+      ],
+      "median_ms": 4.51640625e-05,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "reverse-full-width",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 10529034848217096192,
+      "samples_ms": [
+        0.00117435546875,
+        0.0010918515625,
+        0.00106855078125,
+        0.0011292578125,
+        0.0011333984375
+      ],
+      "median_ms": 0.0011292578125,
+      "median_fraction_of_standard": 5.383125709923096
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "reverse-full-width",
+      "method": "std-stable-sort",
+      "batch": 256,
+      "checksum": 10529034848217096192,
+      "samples_ms": [
+        0.00019883984375,
+        0.000197078125,
+        0.00020977734375,
+        0.0002217265625,
+        0.00021066015625
+      ],
+      "median_ms": 0.00020977734375,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "equal",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 1325481142752854016,
+      "samples_ms": [
+        2.2390625e-05,
+        2.11640625e-05,
+        3.165234375e-05,
+        2.018359375e-05,
+        1.9640625e-05
+      ],
+      "median_ms": 2.11640625e-05,
+      "median_fraction_of_standard": 0.4575627058525462
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "equal",
+      "method": "counting",
+      "batch": 256,
+      "checksum": 1325481142752854016,
+      "samples_ms": [
+        0.00019098828125,
+        0.00019173046875,
+        0.00020058203125,
+        0.00019057421875,
+        0.00020096875
+      ],
+      "median_ms": 0.00019173046875,
+      "median_fraction_of_standard": 4.14517354953129
+    },
+    {
+      "n": 32,
+      "type": "signed64",
+      "distribution": "equal",
+      "method": "std-sort",
+      "batch": 256,
+      "checksum": 1325481142752854016,
+      "samples_ms": [
+        4.593359375e-05,
+        4.625390625e-05,
+        4.588671875e-05,
+        5.135546875e-05,
+        6.605859375e-05
+      ],
+      "median_ms": 4.625390625e-05,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "equal",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 11713951983624109056,
+      "samples_ms": [
+        4.628125e-05,
+        4.877734375e-05,
+        5.019140625e-05,
+        4.712109375e-05,
+        4.794140625e-05
+      ],
+      "median_ms": 4.794140625e-05,
+      "median_fraction_of_standard": 0.40206388206388205
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "equal",
+      "method": "stable-counting",
+      "batch": 256,
+      "checksum": 11713951983624109056,
+      "samples_ms": [
+        0.0002453046875,
+        0.0002580625,
+        0.00025067578125,
+        0.00026678515625,
+        0.0002483984375
+      ],
+      "median_ms": 0.00025067578125,
+      "median_fraction_of_standard": 2.1023095823095823
+    },
+    {
+      "n": 32,
+      "type": "record32",
+      "distribution": "equal",
+      "method": "std-stable-sort",
+      "batch": 256,
+      "checksum": 11713951983624109056,
+      "samples_ms": [
+        0.0001186875,
+        0.00011840234375,
+        0.00012119140625,
+        0.00011997265625,
+        0.00011923828125
+      ],
+      "median_ms": 0.00011923828125,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "signed128",
+      "distribution": "full-width",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 13737199465942641664,
+      "samples_ms": [
+        0.00260999609375,
+        0.0025392734375,
+        0.0025156015625,
+        0.00251443359375,
+        0.0025639140625
+      ],
+      "median_ms": 0.0025392734375,
+      "median_fraction_of_standard": 20.300865057306144
+    },
+    {
+      "n": 32,
+      "type": "signed128",
+      "distribution": "full-width",
+      "method": "std-sort",
+      "batch": 256,
+      "checksum": 13737199465942641664,
+      "samples_ms": [
+        0.00012508203125,
+        0.0001234609375,
+        0.000126078125,
+        0.0001222578125,
+        0.00012734765625
+      ],
+      "median_ms": 0.00012508203125,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "signed128",
+      "distribution": "sorted-full-width",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 17951132788434086912,
+      "samples_ms": [
+        0.0025776875,
+        0.0025751015625,
+        0.00255305078125,
+        0.00258755078125,
+        0.00268352734375
+      ],
+      "median_ms": 0.0025776875,
+      "median_fraction_of_standard": 32.43011598191468
+    },
+    {
+      "n": 32,
+      "type": "signed128",
+      "distribution": "sorted-full-width",
+      "method": "std-sort",
+      "batch": 256,
+      "checksum": 17951132788434086912,
+      "samples_ms": [
+        7.60625e-05,
+        7.680859375e-05,
+        8.116015625e-05,
+        7.9484375e-05,
+        8.519921875e-05
+      ],
+      "median_ms": 7.9484375e-05,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "signed128",
+      "distribution": "reverse-full-width",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 4809964643251453952,
+      "samples_ms": [
+        0.0026918046875,
+        0.00261356640625,
+        0.0026556015625,
+        0.0026991953125,
+        0.00272989453125
+      ],
+      "median_ms": 0.0026918046875,
+      "median_fraction_of_standard": 25.4
+    },
+    {
+      "n": 32,
+      "type": "signed128",
+      "distribution": "reverse-full-width",
+      "method": "std-sort",
+      "batch": 256,
+      "checksum": 4809964643251453952,
+      "samples_ms": [
+        0.000104828125,
+        0.000109796875,
+        0.0001059765625,
+        0.000101328125,
+        0.00010823828125
+      ],
+      "median_ms": 0.0001059765625,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 32,
+      "type": "signed128",
+      "distribution": "equal",
+      "method": "radix",
+      "batch": 256,
+      "checksum": 1325481142752854016,
+      "samples_ms": [
+        3.39765625e-05,
+        3.44609375e-05,
+        3.371875e-05,
+        5.076171875e-05,
+        3.3359375e-05
+      ],
+      "median_ms": 3.39765625e-05,
+      "median_fraction_of_standard": 0.37505929024190415
+    },
+    {
+      "n": 32,
+      "type": "signed128",
+      "distribution": "equal",
+      "method": "std-sort",
+      "batch": 256,
+      "checksum": 1325481142752854016,
+      "samples_ms": [
+        9.1734375e-05,
+        8.740625e-05,
+        8.91953125e-05,
+        9.058984375e-05,
+        9.094921875e-05
+      ],
+      "median_ms": 9.058984375e-05,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "dense256",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 12363365354395116864,
+      "samples_ms": [
+        0.01669425,
+        0.0148235,
+        0.013140625,
+        0.013842,
+        0.015406625
+      ],
+      "median_ms": 0.0148235,
+      "median_fraction_of_standard": 0.1265635272320552
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "dense256",
+      "method": "counting",
+      "batch": 8,
+      "checksum": 12363365354395116864,
+      "samples_ms": [
+        0.010183625,
+        0.0114135,
+        0.0077785,
+        0.007793875,
+        0.01020375
+      ],
+      "median_ms": 0.010183625,
+      "median_fraction_of_standard": 0.08694812291351826
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "dense256",
+      "method": "std-sort",
+      "batch": 8,
+      "checksum": 12363365354395116864,
+      "samples_ms": [
+        0.122178625,
+        0.1191385,
+        0.11133375,
+        0.117123,
+        0.108500375
+      ],
+      "median_ms": 0.117123,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "dense256",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 2759779173406858976,
+      "samples_ms": [
+        0.048669875,
+        0.046296125,
+        0.050707375,
+        0.054406125,
+        0.047448
+      ],
+      "median_ms": 0.048669875,
+      "median_fraction_of_standard": 0.27857720348866327
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "dense256",
+      "method": "stable-counting",
+      "batch": 8,
+      "checksum": 2759779173406858976,
+      "samples_ms": [
+        0.044716875,
+        0.04363325,
+        0.0473145,
+        0.044468625,
+        0.045611125
+      ],
+      "median_ms": 0.044716875,
+      "median_fraction_of_standard": 0.255950975552169
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "dense256",
+      "method": "std-stable-sort",
+      "batch": 8,
+      "checksum": 2759779173406858976,
+      "samples_ms": [
+        0.174769875,
+        0.168847875,
+        0.173717625,
+        0.181422625,
+        0.17470875
+      ],
+      "median_ms": 0.17470875,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "sorted-dense256",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 12505181337600210432,
+      "samples_ms": [
+        0.016503875,
+        0.017986,
+        0.018148,
+        0.018496375,
+        0.016935625
+      ],
+      "median_ms": 0.017986,
+      "median_fraction_of_standard": 0.7495845423714685
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "sorted-dense256",
+      "method": "counting",
+      "batch": 8,
+      "checksum": 12505181337600210432,
+      "samples_ms": [
+        0.009058125,
+        0.009021625,
+        0.009013875,
+        0.010527625,
+        0.0090765
+      ],
+      "median_ms": 0.009058125,
+      "median_fraction_of_standard": 0.3775064207088046
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "sorted-dense256",
+      "method": "std-sort",
+      "batch": 8,
+      "checksum": 12505181337600210432,
+      "samples_ms": [
+        0.026388125,
+        0.024787375,
+        0.023994625,
+        0.022220875,
+        0.022078
+      ],
+      "median_ms": 0.023994625,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "sorted-dense256",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 14925628907146610976,
+      "samples_ms": [
+        0.048714875,
+        0.0497965,
+        0.05040425,
+        0.0496975,
+        0.053928
+      ],
+      "median_ms": 0.0497965,
+      "median_fraction_of_standard": 0.7210509549528678
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "sorted-dense256",
+      "method": "stable-counting",
+      "batch": 8,
+      "checksum": 14925628907146610976,
+      "samples_ms": [
+        0.04359775,
+        0.049599375,
+        0.0448075,
+        0.043792,
+        0.04761675
+      ],
+      "median_ms": 0.0448075,
+      "median_fraction_of_standard": 0.6488104719016522
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "sorted-dense256",
+      "method": "std-stable-sort",
+      "batch": 8,
+      "checksum": 14925628907146610976,
+      "samples_ms": [
+        0.068948375,
+        0.069061,
+        0.069678625,
+        0.066148625,
+        0.077328875
+      ],
+      "median_ms": 0.069061,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "reverse-dense256",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 4630153109653738336,
+      "samples_ms": [
+        0.016701625,
+        0.016317875,
+        0.0163435,
+        0.0160735,
+        0.019546
+      ],
+      "median_ms": 0.0163435,
+      "median_fraction_of_standard": 0.6894391596886799
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "reverse-dense256",
+      "method": "counting",
+      "batch": 8,
+      "checksum": 4630153109653738336,
+      "samples_ms": [
+        0.008987125,
+        0.01017975,
+        0.009291875,
+        0.008904875,
+        0.00931625
+      ],
+      "median_ms": 0.009291875,
+      "median_fraction_of_standard": 0.39197127248950664
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "reverse-dense256",
+      "method": "std-sort",
+      "batch": 8,
+      "checksum": 4630153109653738336,
+      "samples_ms": [
+        0.0237055,
+        0.02399925,
+        0.023319,
+        0.02294825,
+        0.0263625
+      ],
+      "median_ms": 0.0237055,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "reverse-dense256",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 16558425638958552224,
+      "samples_ms": [
+        0.04699475,
+        0.04969425,
+        0.048552875,
+        0.047873125,
+        0.0490815
+      ],
+      "median_ms": 0.048552875,
+      "median_fraction_of_standard": 0.6687689285351488
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "reverse-dense256",
+      "method": "stable-counting",
+      "batch": 8,
+      "checksum": 16558425638958552224,
+      "samples_ms": [
+        0.043808875,
+        0.045916,
+        0.044999875,
+        0.044481,
+        0.046215875
+      ],
+      "median_ms": 0.044999875,
+      "median_fraction_of_standard": 0.6198297873805749
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "reverse-dense256",
+      "method": "std-stable-sort",
+      "batch": 8,
+      "checksum": 16558425638958552224,
+      "samples_ms": [
+        0.072600375,
+        0.0714765,
+        0.072768875,
+        0.0715395,
+        0.07440075
+      ],
+      "median_ms": 0.072600375,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "full-width",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 794927124110017408,
+      "samples_ms": [
+        0.0670695,
+        0.06740075,
+        0.065172125,
+        0.06716025,
+        0.066197875
+      ],
+      "median_ms": 0.0670695,
+      "median_fraction_of_standard": 0.4842506360484941
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "full-width",
+      "method": "std-sort",
+      "batch": 8,
+      "checksum": 794927124110017408,
+      "samples_ms": [
+        0.142907375,
+        0.134226125,
+        0.1402155,
+        0.138501625,
+        0.135531125
+      ],
+      "median_ms": 0.138501625,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "full-width",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 17827214663606643776,
+      "samples_ms": [
+        0.1383935,
+        0.142530125,
+        0.14138825,
+        0.143673625,
+        0.1500365
+      ],
+      "median_ms": 0.142530125,
+      "median_fraction_of_standard": 0.7226003806158423
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "full-width",
+      "method": "std-stable-sort",
+      "batch": 8,
+      "checksum": 17827214663606643776,
+      "samples_ms": [
+        0.20028825,
+        0.194864875,
+        0.207303875,
+        0.194695875,
+        0.197246125
+      ],
+      "median_ms": 0.197246125,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "sorted-full-width",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 6928233354112813600,
+      "samples_ms": [
+        0.064349125,
+        0.065142375,
+        0.07780175,
+        0.063989,
+        0.065556875
+      ],
+      "median_ms": 0.065142375,
+      "median_fraction_of_standard": 2.63954719274698
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "sorted-full-width",
+      "method": "std-sort",
+      "batch": 8,
+      "checksum": 6928233354112813600,
+      "samples_ms": [
+        0.025403875,
+        0.024449125,
+        0.0262005,
+        0.024679375,
+        0.024272625
+      ],
+      "median_ms": 0.024679375,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "sorted-full-width",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 2212984077911366592,
+      "samples_ms": [
+        0.143614375,
+        0.143818375,
+        0.14741275,
+        0.141938125,
+        0.144762375
+      ],
+      "median_ms": 0.143818375,
+      "median_fraction_of_standard": 2.0483628899163415
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "sorted-full-width",
+      "method": "std-stable-sort",
+      "batch": 8,
+      "checksum": 2212984077911366592,
+      "samples_ms": [
+        0.07626925,
+        0.06978275,
+        0.070182,
+        0.07133375,
+        0.070211375
+      ],
+      "median_ms": 0.070211375,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "reverse-full-width",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 2168432456123372352,
+      "samples_ms": [
+        0.067968,
+        0.067478625,
+        0.06845775,
+        0.067760875,
+        0.06679325
+      ],
+      "median_ms": 0.067760875,
+      "median_fraction_of_standard": 3.537318594696179
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "reverse-full-width",
+      "method": "std-sort",
+      "batch": 8,
+      "checksum": 2168432456123372352,
+      "samples_ms": [
+        0.019047,
+        0.019438125,
+        0.019156,
+        0.019135625,
+        0.01925575
+      ],
+      "median_ms": 0.019156,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "reverse-full-width",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 15573397965079620256,
+      "samples_ms": [
+        0.146481,
+        0.139466625,
+        0.139334625,
+        0.145963375,
+        0.145024875
+      ],
+      "median_ms": 0.145024875,
+      "median_fraction_of_standard": 1.643157493708211
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "reverse-full-width",
+      "method": "std-stable-sort",
+      "batch": 8,
+      "checksum": 15573397965079620256,
+      "samples_ms": [
+        0.088259875,
+        0.092467625,
+        0.088097375,
+        0.090626625,
+        0.083012875
+      ],
+      "median_ms": 0.088259875,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "equal",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 2801403756339331072,
+      "samples_ms": [
+        0.005503125,
+        0.005653875,
+        0.005509125,
+        0.005508875,
+        0.005475
+      ],
+      "median_ms": 0.005508875,
+      "median_fraction_of_standard": 0.3029476057577299
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "equal",
+      "method": "counting",
+      "batch": 8,
+      "checksum": 2801403756339331072,
+      "samples_ms": [
+        0.011302375,
+        0.01209525,
+        0.012264875,
+        0.01140225,
+        0.01159175
+      ],
+      "median_ms": 0.01159175,
+      "median_fraction_of_standard": 0.637460989592642
+    },
+    {
+      "n": 4096,
+      "type": "signed64",
+      "distribution": "equal",
+      "method": "std-sort",
+      "batch": 8,
+      "checksum": 2801403756339331072,
+      "samples_ms": [
+        0.01891225,
+        0.01818425,
+        0.01852975,
+        0.01813625,
+        0.018119625
+      ],
+      "median_ms": 0.01818425,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "equal",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 14333710940023925696,
+      "samples_ms": [
+        0.02930325,
+        0.029514,
+        0.029810125,
+        0.02977675,
+        0.029893
+      ],
+      "median_ms": 0.02977675,
+      "median_fraction_of_standard": 0.43650523152474663
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "equal",
+      "method": "stable-counting",
+      "batch": 8,
+      "checksum": 14333710940023925696,
+      "samples_ms": [
+        0.049839625,
+        0.04893225,
+        0.050603,
+        0.05054275,
+        0.048768625
+      ],
+      "median_ms": 0.049839625,
+      "median_fraction_of_standard": 0.7306122075018782
+    },
+    {
+      "n": 4096,
+      "type": "record32",
+      "distribution": "equal",
+      "method": "std-stable-sort",
+      "batch": 8,
+      "checksum": 14333710940023925696,
+      "samples_ms": [
+        0.06872825,
+        0.071613,
+        0.067858875,
+        0.06821625,
+        0.06819525
+      ],
+      "median_ms": 0.06821625,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "signed128",
+      "distribution": "full-width",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 6279316975665458816,
+      "samples_ms": [
+        0.197040375,
+        0.204338125,
+        0.214096375,
+        0.20472375,
+        0.20783
+      ],
+      "median_ms": 0.20472375,
+      "median_fraction_of_standard": 1.29579169732501
+    },
+    {
+      "n": 4096,
+      "type": "signed128",
+      "distribution": "full-width",
+      "method": "std-sort",
+      "batch": 8,
+      "checksum": 6279316975665458816,
+      "samples_ms": [
+        0.1580335,
+        0.156617375,
+        0.162539875,
+        0.15798875,
+        0.15799125
+      ],
+      "median_ms": 0.15799125,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "signed128",
+      "distribution": "sorted-full-width",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 7322606737277610464,
+      "samples_ms": [
+        0.212675625,
+        0.205888875,
+        0.204027125,
+        0.2080155,
+        0.2103175
+      ],
+      "median_ms": 0.2080155,
+      "median_fraction_of_standard": 4.50323104400065
+    },
+    {
+      "n": 4096,
+      "type": "signed128",
+      "distribution": "sorted-full-width",
+      "method": "std-sort",
+      "batch": 8,
+      "checksum": 7322606737277610464,
+      "samples_ms": [
+        0.045623,
+        0.045627125,
+        0.046748375,
+        0.0461925,
+        0.0475815
+      ],
+      "median_ms": 0.0461925,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "signed128",
+      "distribution": "reverse-full-width",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 11155109613123181568,
+      "samples_ms": [
+        0.209523125,
+        0.208510375,
+        0.21272525,
+        0.212905625,
+        0.228685875
+      ],
+      "median_ms": 0.21272525,
+      "median_fraction_of_standard": 5.320159560832567
+    },
+    {
+      "n": 4096,
+      "type": "signed128",
+      "distribution": "reverse-full-width",
+      "method": "std-sort",
+      "batch": 8,
+      "checksum": 11155109613123181568,
+      "samples_ms": [
+        0.0413075,
+        0.03900025,
+        0.03998475,
+        0.039837,
+        0.040445
+      ],
+      "median_ms": 0.03998475,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 4096,
+      "type": "signed128",
+      "distribution": "equal",
+      "method": "radix",
+      "batch": 8,
+      "checksum": 2801403756339331072,
+      "samples_ms": [
+        0.014891375,
+        0.016222,
+        0.014817125,
+        0.014858375,
+        0.014960125
+      ],
+      "median_ms": 0.014891375,
+      "median_fraction_of_standard": 0.3472235176160608
+    },
+    {
+      "n": 4096,
+      "type": "signed128",
+      "distribution": "equal",
+      "method": "std-sort",
+      "batch": 8,
+      "checksum": 2801403756339331072,
+      "samples_ms": [
+        0.044619375,
+        0.046273,
+        0.0415235,
+        0.04175375,
+        0.042887
+      ],
+      "median_ms": 0.042887,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "dense256",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 10150443906912725946,
+      "samples_ms": [
+        0.938397,
+        1.341843,
+        1.132039,
+        0.937765,
+        1.45237
+      ],
+      "median_ms": 1.132039,
+      "median_fraction_of_standard": 0.18135451455456011
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "dense256",
+      "method": "counting",
+      "batch": 1,
+      "checksum": 10150443906912725946,
+      "samples_ms": [
+        0.56874,
+        0.314166,
+        0.525058,
+        0.50925,
+        0.241773
+      ],
+      "median_ms": 0.50925,
+      "median_fraction_of_standard": 0.0815826897632588
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "dense256",
+      "method": "std-sort",
+      "batch": 1,
+      "checksum": 10150443906912725946,
+      "samples_ms": [
+        6.242133,
+        6.208635,
+        6.565444,
+        6.065659,
+        6.263887
+      ],
+      "median_ms": 6.242133,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "dense256",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 10811465306200511726,
+      "samples_ms": [
+        3.450396,
+        2.8493,
+        2.97365,
+        3.195241,
+        2.85443
+      ],
+      "median_ms": 2.97365,
+      "median_fraction_of_standard": 0.2318916459741009
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "dense256",
+      "method": "stable-counting",
+      "batch": 1,
+      "checksum": 10811465306200511726,
+      "samples_ms": [
+        3.681209,
+        3.514695,
+        3.638256,
+        3.437681,
+        3.140396
+      ],
+      "median_ms": 3.514695,
+      "median_fraction_of_standard": 0.2740835029835194
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "dense256",
+      "method": "std-stable-sort",
+      "batch": 1,
+      "checksum": 10811465306200511726,
+      "samples_ms": [
+        12.724262,
+        13.12636,
+        12.823446,
+        11.026586,
+        13.30456
+      ],
+      "median_ms": 12.823446,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "sorted-dense256",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 12193091891490469301,
+      "samples_ms": [
+        0.957608,
+        1.01788,
+        0.983722,
+        0.961571,
+        0.872369
+      ],
+      "median_ms": 0.961571,
+      "median_fraction_of_standard": 0.8026583014950963
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "sorted-dense256",
+      "method": "counting",
+      "batch": 1,
+      "checksum": 12193091891490469301,
+      "samples_ms": [
+        0.469465,
+        0.442345,
+        0.481832,
+        0.412862,
+        0.478594
+      ],
+      "median_ms": 0.469465,
+      "median_fraction_of_standard": 0.3918795174889794
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "sorted-dense256",
+      "method": "std-sort",
+      "batch": 1,
+      "checksum": 12193091891490469301,
+      "samples_ms": [
+        1.20719,
+        1.228409,
+        1.197983,
+        1.156665,
+        1.152189
+      ],
+      "median_ms": 1.197983,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "sorted-dense256",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 3754412382791391085,
+      "samples_ms": [
+        1.87139,
+        2.019724,
+        2.068841,
+        1.885927,
+        2.476979
+      ],
+      "median_ms": 2.019724,
+      "median_fraction_of_standard": 0.3927749863822639
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "sorted-dense256",
+      "method": "stable-counting",
+      "batch": 1,
+      "checksum": 3754412382791391085,
+      "samples_ms": [
+        1.597801,
+        1.900507,
+        1.946623,
+        1.698888,
+        1.797785
+      ],
+      "median_ms": 1.797785,
+      "median_fraction_of_standard": 0.3496145903565231
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "sorted-dense256",
+      "method": "std-stable-sort",
+      "batch": 1,
+      "checksum": 3754412382791391085,
+      "samples_ms": [
+        4.835473,
+        5.039106,
+        6.291856,
+        5.142191,
+        5.287375
+      ],
+      "median_ms": 5.142191,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "reverse-dense256",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 5343458355895490367,
+      "samples_ms": [
+        0.993872,
+        0.907375,
+        0.918741,
+        0.921343,
+        0.906594
+      ],
+      "median_ms": 0.918741,
+      "median_fraction_of_standard": 0.7513106666306852
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "reverse-dense256",
+      "method": "counting",
+      "batch": 1,
+      "checksum": 5343458355895490367,
+      "samples_ms": [
+        0.467561,
+        0.461016,
+        0.490457,
+        0.450051,
+        0.438751
+      ],
+      "median_ms": 0.461016,
+      "median_fraction_of_standard": 0.37700095923379057
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "reverse-dense256",
+      "method": "std-sort",
+      "batch": 1,
+      "checksum": 5343458355895490367,
+      "samples_ms": [
+        1.207328,
+        1.222851,
+        1.283028,
+        1.248795,
+        1.2227
+      ],
+      "median_ms": 1.222851,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "reverse-dense256",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 13316281094873993241,
+      "samples_ms": [
+        1.899017,
+        2.155419,
+        2.082225,
+        1.857136,
+        2.337706
+      ],
+      "median_ms": 2.082225,
+      "median_fraction_of_standard": 0.3795281454780882
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "reverse-dense256",
+      "method": "stable-counting",
+      "batch": 1,
+      "checksum": 13316281094873993241,
+      "samples_ms": [
+        1.796235,
+        2.237009,
+        1.735947,
+        1.811808,
+        1.902305
+      ],
+      "median_ms": 1.811808,
+      "median_fraction_of_standard": 0.33023910970349696
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "reverse-dense256",
+      "method": "std-stable-sort",
+      "batch": 1,
+      "checksum": 13316281094873993241,
+      "samples_ms": [
+        5.486352,
+        5.222019,
+        5.568284,
+        6.10625,
+        5.457039
+      ],
+      "median_ms": 5.486352,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "full-width",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 958874972317595246,
+      "samples_ms": [
+        3.671115,
+        3.6918,
+        3.789107,
+        3.663454,
+        3.496499
+      ],
+      "median_ms": 3.671115,
+      "median_fraction_of_standard": 0.3231473939916537
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "full-width",
+      "method": "std-sort",
+      "batch": 1,
+      "checksum": 958874972317595246,
+      "samples_ms": [
+        11.350444,
+        11.157274,
+        11.368734,
+        11.360497,
+        11.551242
+      ],
+      "median_ms": 11.360497,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "full-width",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 16213103805628507464,
+      "samples_ms": [
+        8.507216,
+        9.251594,
+        9.227373,
+        9.12678,
+        8.487795
+      ],
+      "median_ms": 9.12678,
+      "median_fraction_of_standard": 0.5800175299542075
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "full-width",
+      "method": "std-stable-sort",
+      "batch": 1,
+      "checksum": 16213103805628507464,
+      "samples_ms": [
+        15.735352,
+        16.664262,
+        15.299082,
+        16.325109,
+        15.099529
+      ],
+      "median_ms": 15.735352,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "sorted-full-width",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 16561607904951265113,
+      "samples_ms": [
+        3.434429,
+        4.421369,
+        5.225986,
+        3.992909,
+        4.29514
+      ],
+      "median_ms": 4.29514,
+      "median_fraction_of_standard": 2.4459502477476067
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "sorted-full-width",
+      "method": "std-sort",
+      "batch": 1,
+      "checksum": 16561607904951265113,
+      "samples_ms": [
+        1.626635,
+        1.778176,
+        1.756021,
+        1.746491,
+        1.803598
+      ],
+      "median_ms": 1.756021,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "sorted-full-width",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 1727244061028392269,
+      "samples_ms": [
+        14.579953,
+        10.829201,
+        7.78607,
+        6.819392,
+        8.089944
+      ],
+      "median_ms": 8.089944,
+      "median_fraction_of_standard": 1.7735076892722865
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "sorted-full-width",
+      "method": "std-stable-sort",
+      "batch": 1,
+      "checksum": 1727244061028392269,
+      "samples_ms": [
+        6.121322,
+        6.24382,
+        4.56155,
+        4.221214,
+        4.305391
+      ],
+      "median_ms": 4.56155,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "reverse-full-width",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 3788346969950275121,
+      "samples_ms": [
+        3.018025,
+        3.056599,
+        2.913267,
+        2.947444,
+        2.932832
+      ],
+      "median_ms": 2.947444,
+      "median_fraction_of_standard": 2.8656915514210595
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "reverse-full-width",
+      "method": "std-sort",
+      "batch": 1,
+      "checksum": 3788346969950275121,
+      "samples_ms": [
+        1.103778,
+        1.033311,
+        1.007915,
+        0.996998,
+        1.028528
+      ],
+      "median_ms": 1.028528,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "reverse-full-width",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 10175643767491034608,
+      "samples_ms": [
+        6.892526,
+        8.556619,
+        6.606512,
+        7.645658,
+        7.527955
+      ],
+      "median_ms": 7.527955,
+      "median_fraction_of_standard": 1.4038497938875851
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "reverse-full-width",
+      "method": "std-stable-sort",
+      "batch": 1,
+      "checksum": 10175643767491034608,
+      "samples_ms": [
+        5.002883,
+        5.141591,
+        5.362365,
+        5.445374,
+        5.460891
+      ],
+      "median_ms": 5.362365,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "equal",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 4927788144172832896,
+      "samples_ms": [
+        0.135234,
+        0.146556,
+        0.140207,
+        0.1697,
+        0.172892
+      ],
+      "median_ms": 0.146556,
+      "median_fraction_of_standard": 0.13433746977416097
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "equal",
+      "method": "counting",
+      "batch": 1,
+      "checksum": 4927788144172832896,
+      "samples_ms": [
+        0.452797,
+        0.37734,
+        0.512873,
+        0.453663,
+        0.436835
+      ],
+      "median_ms": 0.452797,
+      "median_fraction_of_standard": 0.4150468305721415
+    },
+    {
+      "n": 200000,
+      "type": "signed64",
+      "distribution": "equal",
+      "method": "std-sort",
+      "batch": 1,
+      "checksum": 4927788144172832896,
+      "samples_ms": [
+        1.04645,
+        1.058615,
+        1.090954,
+        1.094191,
+        1.14757
+      ],
+      "median_ms": 1.090954,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "equal",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 10955301721816738657,
+      "samples_ms": [
+        0.721942,
+        0.830248,
+        0.777248,
+        0.690828,
+        0.851589
+      ],
+      "median_ms": 0.777248,
+      "median_fraction_of_standard": 0.15220477680426522
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "equal",
+      "method": "stable-counting",
+      "batch": 1,
+      "checksum": 10955301721816738657,
+      "samples_ms": [
+        1.625428,
+        1.741893,
+        1.786858,
+        1.535468,
+        1.86774
+      ],
+      "median_ms": 1.741893,
+      "median_fraction_of_standard": 0.3411066162690826
+    },
+    {
+      "n": 200000,
+      "type": "record32",
+      "distribution": "equal",
+      "method": "std-stable-sort",
+      "batch": 1,
+      "checksum": 10955301721816738657,
+      "samples_ms": [
+        4.775041,
+        5.312984,
+        5.218255,
+        4.352137,
+        5.106594
+      ],
+      "median_ms": 5.106594,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "signed128",
+      "distribution": "full-width",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 9520076373651629277,
+      "samples_ms": [
+        9.294567,
+        9.415931,
+        9.057508,
+        9.241331,
+        8.965103
+      ],
+      "median_ms": 9.241331,
+      "median_fraction_of_standard": 0.8214352157401297
+    },
+    {
+      "n": 200000,
+      "type": "signed128",
+      "distribution": "full-width",
+      "method": "std-sort",
+      "batch": 1,
+      "checksum": 9520076373651629277,
+      "samples_ms": [
+        11.250225,
+        11.373684,
+        11.28412,
+        11.109182,
+        11.177039
+      ],
+      "median_ms": 11.250225,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "signed128",
+      "distribution": "sorted-full-width",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 6010356504191871562,
+      "samples_ms": [
+        9.23844,
+        9.298039,
+        9.14524,
+        9.035402,
+        9.313753
+      ],
+      "median_ms": 9.23844,
+      "median_fraction_of_standard": 3.6756290504891522
+    },
+    {
+      "n": 200000,
+      "type": "signed128",
+      "distribution": "sorted-full-width",
+      "method": "std-sort",
+      "batch": 1,
+      "checksum": 6010356504191871562,
+      "samples_ms": [
+        2.529572,
+        2.354696,
+        2.605341,
+        2.477351,
+        2.513431
+      ],
+      "median_ms": 2.513431,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "signed128",
+      "distribution": "reverse-full-width",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 4828265835534264933,
+      "samples_ms": [
+        9.315887,
+        9.406864,
+        9.284055,
+        9.403013,
+        9.332133
+      ],
+      "median_ms": 9.332133,
+      "median_fraction_of_standard": 4.573882191373953
+    },
+    {
+      "n": 200000,
+      "type": "signed128",
+      "distribution": "reverse-full-width",
+      "method": "std-sort",
+      "batch": 1,
+      "checksum": 4828265835534264933,
+      "samples_ms": [
+        2.040309,
+        2.071273,
+        2.094204,
+        1.898162,
+        1.934125
+      ],
+      "median_ms": 2.040309,
+      "median_fraction_of_standard": 1.0
+    },
+    {
+      "n": 200000,
+      "type": "signed128",
+      "distribution": "equal",
+      "method": "radix",
+      "batch": 1,
+      "checksum": 4927788144172832896,
+      "samples_ms": [
+        0.244889,
+        0.280129,
+        0.254243,
+        0.482557,
+        0.42587
+      ],
+      "median_ms": 0.280129,
+      "median_fraction_of_standard": 0.12750198447376854
+    },
+    {
+      "n": 200000,
+      "type": "signed128",
+      "distribution": "equal",
+      "method": "std-sort",
+      "batch": 1,
+      "checksum": 4927788144172832896,
+      "samples_ms": [
+        2.215322,
+        2.315002,
+        2.185383,
+        2.197056,
+        2.154197
+      ],
+      "median_ms": 2.197056,
+      "median_fraction_of_standard": 1.0
+    }
+  ],
+  "post_run_source_notes": {
+    "06-Miscellaneous/11-sorting_selection.hpp": {
+      "current_sha256": "69a66da7b23efa13d574b6bac259ece776d13bbe1caf5c04c18c02e5a0040f7a",
+      "change": "Only comments and closing-brace whitespace changed after timing: value-based projection/predicate contract, vector-reference invalidation and repository compressed layout. Removing line comments and whitespace yields identical measured/current algorithm text; the measured-header hash is preserved above."
+    }
+  }
+}

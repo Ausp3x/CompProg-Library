@@ -1,0 +1,411 @@
+{
+  "seed": 20260927,
+  "cpu": "11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz",
+  "platform": "Linux-7.2.7-arch1-1-x86_64-with-glibc2.44",
+  "compiler": "g++ (GCC) 16.2.1 20260810",
+  "flags": [
+    "-std=gnu++20",
+    "-O2",
+    "-DNDEBUG"
+  ],
+  "python": "3.14.7",
+  "warmups": 1,
+  "repetitions": 5,
+  "units": "microseconds",
+  "statistic": "median",
+  "setup": "input copy and output allocation included; input generation excluded",
+  "memory": "Both use O(n) auxiliary/returned point storage; no measured peak RSS claim.",
+  "validation": "Exact canonical hull equality before and after each timed call; checksum consumed.",
+  "checksum": "checksum=14123524838413672160",
+  "hashes": {
+    "03-Geometry/01-point.hpp": "70819ac1ae6bb7f8e9d9c05ebe1fd6bc000289497522e71c51b15920ac3f5cdc",
+    "03-Geometry/04-convexhull.hpp": "5f9ff6b51a4a02e7dfbc35c380922d4792537dffe55b14f3d07c8e116b1212ee",
+    "96-Local Testing/03-Geometry/90-foundations_benchmark.cpp": "9dc429f10f1927a27ebe0ea6c0f33533c54bcad04a5b7e4b194e3f16c2cc88be"
+  },
+  "rows": [
+    {
+      "n": 32,
+      "distribution": "random",
+      "keep_collinear": false,
+      "algorithm": "monotone",
+      "hull_size": 10,
+      "median_us": 0.73
+    },
+    {
+      "n": 32,
+      "distribution": "random",
+      "keep_collinear": false,
+      "algorithm": "graham",
+      "hull_size": 10,
+      "median_us": 1.212
+    },
+    {
+      "n": 32,
+      "distribution": "random",
+      "keep_collinear": true,
+      "algorithm": "monotone",
+      "hull_size": 10,
+      "median_us": 0.779
+    },
+    {
+      "n": 32,
+      "distribution": "random",
+      "keep_collinear": true,
+      "algorithm": "graham",
+      "hull_size": 10,
+      "median_us": 1.162
+    },
+    {
+      "n": 32,
+      "distribution": "grid",
+      "keep_collinear": false,
+      "algorithm": "monotone",
+      "hull_size": 11,
+      "median_us": 0.768
+    },
+    {
+      "n": 32,
+      "distribution": "grid",
+      "keep_collinear": false,
+      "algorithm": "graham",
+      "hull_size": 11,
+      "median_us": 1.298
+    },
+    {
+      "n": 32,
+      "distribution": "grid",
+      "keep_collinear": true,
+      "algorithm": "monotone",
+      "hull_size": 11,
+      "median_us": 0.744
+    },
+    {
+      "n": 32,
+      "distribution": "grid",
+      "keep_collinear": true,
+      "algorithm": "graham",
+      "hull_size": 11,
+      "median_us": 1.277
+    },
+    {
+      "n": 32,
+      "distribution": "collinear",
+      "keep_collinear": false,
+      "algorithm": "monotone",
+      "hull_size": 2,
+      "median_us": 0.288
+    },
+    {
+      "n": 32,
+      "distribution": "collinear",
+      "keep_collinear": false,
+      "algorithm": "graham",
+      "hull_size": 2,
+      "median_us": 0.319
+    },
+    {
+      "n": 32,
+      "distribution": "collinear",
+      "keep_collinear": true,
+      "algorithm": "monotone",
+      "hull_size": 32,
+      "median_us": 0.316
+    },
+    {
+      "n": 32,
+      "distribution": "collinear",
+      "keep_collinear": true,
+      "algorithm": "graham",
+      "hull_size": 32,
+      "median_us": 0.315
+    },
+    {
+      "n": 32,
+      "distribution": "parabola",
+      "keep_collinear": false,
+      "algorithm": "monotone",
+      "hull_size": 32,
+      "median_us": 0.606
+    },
+    {
+      "n": 32,
+      "distribution": "parabola",
+      "keep_collinear": false,
+      "algorithm": "graham",
+      "hull_size": 32,
+      "median_us": 0.824
+    },
+    {
+      "n": 32,
+      "distribution": "parabola",
+      "keep_collinear": true,
+      "algorithm": "monotone",
+      "hull_size": 32,
+      "median_us": 0.615
+    },
+    {
+      "n": 32,
+      "distribution": "parabola",
+      "keep_collinear": true,
+      "algorithm": "graham",
+      "hull_size": 32,
+      "median_us": 0.824
+    },
+    {
+      "n": 2048,
+      "distribution": "random",
+      "keep_collinear": false,
+      "algorithm": "monotone",
+      "hull_size": 18,
+      "median_us": 145.548
+    },
+    {
+      "n": 2048,
+      "distribution": "random",
+      "keep_collinear": false,
+      "algorithm": "graham",
+      "hull_size": 18,
+      "median_us": 313.894
+    },
+    {
+      "n": 2048,
+      "distribution": "random",
+      "keep_collinear": true,
+      "algorithm": "monotone",
+      "hull_size": 18,
+      "median_us": 139.98
+    },
+    {
+      "n": 2048,
+      "distribution": "random",
+      "keep_collinear": true,
+      "algorithm": "graham",
+      "hull_size": 18,
+      "median_us": 310.971
+    },
+    {
+      "n": 2048,
+      "distribution": "grid",
+      "keep_collinear": false,
+      "algorithm": "monotone",
+      "hull_size": 10,
+      "median_us": 151.546
+    },
+    {
+      "n": 2048,
+      "distribution": "grid",
+      "keep_collinear": false,
+      "algorithm": "graham",
+      "hull_size": 10,
+      "median_us": 318.361
+    },
+    {
+      "n": 2048,
+      "distribution": "grid",
+      "keep_collinear": true,
+      "algorithm": "monotone",
+      "hull_size": 63,
+      "median_us": 138.958
+    },
+    {
+      "n": 2048,
+      "distribution": "grid",
+      "keep_collinear": true,
+      "algorithm": "graham",
+      "hull_size": 63,
+      "median_us": 317.79
+    },
+    {
+      "n": 2048,
+      "distribution": "collinear",
+      "keep_collinear": false,
+      "algorithm": "monotone",
+      "hull_size": 2,
+      "median_us": 84.46
+    },
+    {
+      "n": 2048,
+      "distribution": "collinear",
+      "keep_collinear": false,
+      "algorithm": "graham",
+      "hull_size": 2,
+      "median_us": 77.767
+    },
+    {
+      "n": 2048,
+      "distribution": "collinear",
+      "keep_collinear": true,
+      "algorithm": "monotone",
+      "hull_size": 2048,
+      "median_us": 71.07
+    },
+    {
+      "n": 2048,
+      "distribution": "collinear",
+      "keep_collinear": true,
+      "algorithm": "graham",
+      "hull_size": 2048,
+      "median_us": 69.004
+    },
+    {
+      "n": 2048,
+      "distribution": "parabola",
+      "keep_collinear": false,
+      "algorithm": "monotone",
+      "hull_size": 2048,
+      "median_us": 99.136
+    },
+    {
+      "n": 2048,
+      "distribution": "parabola",
+      "keep_collinear": false,
+      "algorithm": "graham",
+      "hull_size": 2048,
+      "median_us": 173.074
+    },
+    {
+      "n": 2048,
+      "distribution": "parabola",
+      "keep_collinear": true,
+      "algorithm": "monotone",
+      "hull_size": 2048,
+      "median_us": 91.374
+    },
+    {
+      "n": 2048,
+      "distribution": "parabola",
+      "keep_collinear": true,
+      "algorithm": "graham",
+      "hull_size": 2048,
+      "median_us": 175.498
+    },
+    {
+      "n": 32768,
+      "distribution": "random",
+      "keep_collinear": false,
+      "algorithm": "monotone",
+      "hull_size": 30,
+      "median_us": 3515.83
+    },
+    {
+      "n": 32768,
+      "distribution": "random",
+      "keep_collinear": false,
+      "algorithm": "graham",
+      "hull_size": 30,
+      "median_us": 7766.17
+    },
+    {
+      "n": 32768,
+      "distribution": "random",
+      "keep_collinear": true,
+      "algorithm": "monotone",
+      "hull_size": 30,
+      "median_us": 3313.59
+    },
+    {
+      "n": 32768,
+      "distribution": "random",
+      "keep_collinear": true,
+      "algorithm": "graham",
+      "hull_size": 30,
+      "median_us": 7563.76
+    },
+    {
+      "n": 32768,
+      "distribution": "grid",
+      "keep_collinear": false,
+      "algorithm": "monotone",
+      "hull_size": 4,
+      "median_us": 2828.25
+    },
+    {
+      "n": 32768,
+      "distribution": "grid",
+      "keep_collinear": false,
+      "algorithm": "graham",
+      "hull_size": 4,
+      "median_us": 4507.59
+    },
+    {
+      "n": 32768,
+      "distribution": "grid",
+      "keep_collinear": true,
+      "algorithm": "monotone",
+      "hull_size": 443,
+      "median_us": 2720.59
+    },
+    {
+      "n": 32768,
+      "distribution": "grid",
+      "keep_collinear": true,
+      "algorithm": "graham",
+      "hull_size": 443,
+      "median_us": 4529.05
+    },
+    {
+      "n": 32768,
+      "distribution": "collinear",
+      "keep_collinear": false,
+      "algorithm": "monotone",
+      "hull_size": 2,
+      "median_us": 2147.41
+    },
+    {
+      "n": 32768,
+      "distribution": "collinear",
+      "keep_collinear": false,
+      "algorithm": "graham",
+      "hull_size": 2,
+      "median_us": 2098.55
+    },
+    {
+      "n": 32768,
+      "distribution": "collinear",
+      "keep_collinear": true,
+      "algorithm": "monotone",
+      "hull_size": 32768,
+      "median_us": 2112.1
+    },
+    {
+      "n": 32768,
+      "distribution": "collinear",
+      "keep_collinear": true,
+      "algorithm": "graham",
+      "hull_size": 32768,
+      "median_us": 2108.77
+    },
+    {
+      "n": 32768,
+      "distribution": "parabola",
+      "keep_collinear": false,
+      "algorithm": "monotone",
+      "hull_size": 32768,
+      "median_us": 2433.69
+    },
+    {
+      "n": 32768,
+      "distribution": "parabola",
+      "keep_collinear": false,
+      "algorithm": "graham",
+      "hull_size": 32768,
+      "median_us": 4443.96
+    },
+    {
+      "n": 32768,
+      "distribution": "parabola",
+      "keep_collinear": true,
+      "algorithm": "monotone",
+      "hull_size": 32768,
+      "median_us": 2437.6
+    },
+    {
+      "n": 32768,
+      "distribution": "parabola",
+      "keep_collinear": true,
+      "algorithm": "graham",
+      "hull_size": 32768,
+      "median_us": 4404.32
+    }
+  ]
+}

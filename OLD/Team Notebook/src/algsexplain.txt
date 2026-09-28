@@ -1,0 +1,172 @@
+\section{Untouchables (Template \& Base)}
+
+\subsection{Debug \& ModInt}
+% Highly robust custom debug namespace (handles all STL containers, tuple, ranges, aggregates up to 8 members).
+% ModInt handles automatic modulo arithmetic. Guaranteed to prevent overflow bugs.
+
+\subsection{Segment Trees}
+% S: O(N log N) or O(N), U: O(log N), Q: O(log N), M: O(N)
+% Note: Includes standard, dynamic (implicit), persistent, 2D, Beats (chmax/chmin), and persistent K-th min.
+% Ensure to configure the specific Monoid struct (MonAlg, MonBin, MonGcd, MonSar) accordingly.
+
+\section{Data Structures}
+
+\subsection{Sparse Table}
+% S: O(N log N), Q: O(1) [idempotent] or O(log N) [general], M: O(N log N)
+% Note: Provide a lambda or functor. e.g., [](int a, int b){ return min(a, b); }
+
+\subsection{Disjoint Set Union (DSU)}
+% S: O(N), U: O(alpha N), Q: O(alpha N), M: O(N)
+% Note: Maintains bipartite potentials. Passing weight W updates Potential distances: dis[v] = dis[u] - dis[v] - w
+
+\subsection{Fenwick Trees (Binary Indexed Tree)}
+% 1D Range Add/Query - S: O(N), U: O(log N), Q: O(log N), M: O(N)
+% 3D Point Add/Range Query - S: O(NML), U: O(log N log M log L), Q: O(log N log M log L)
+
+\subsection{Li-Chao Tree}
+% S: O(1) init, U: O(log N), Q: O(log N), M: O(N)
+% Note: Implicitly dynamically allocated. Evaluates y = mx + b. Capable of both Max and Min queries. 
+
+\subsection{Dynamic MEX}
+% S: O(N log N), U: O(log N), Q: O(log N), M: O(N)
+% Note: Tracks MEX with Point Updates using Map and Set. 
+
+\subsection{Treap (Cartesian Tree Array)}
+% S: O(N log N), U: O(log N), Q: O(log N), M: O(N)
+% Note: Implicit key formulation. Supports split, merge, and reverse in O(log N).
+
+\subsection{Lowest Common Ancestor (LCA)}
+% LcaO1: S: O(N), Q: O(1), M: O(N). Farach-Colton and Bender algorithm. Optimal for static RMQ queries.
+% LcaLog: S: O(N log N), Q: O(log N), M: O(N log N). Binary Lifting.
+% HLD: S: O(N), U: O(log^2 N), Q: O(log^2 N), M: O(N). Use Segment Tree on flattened `pos` array.
+
+\subsection{Cartesian Tree Builder}
+% S: O(N), M: O(N)
+% Note: Linear time construction using monotonic stack. 
+
+\section{Geometry}
+
+\subsection{Primitives and Polygon Area}
+% T: O(N), M: O(1)
+% Note: Oriented area uses Surveyor's/Shoelace formula. 
+
+\subsection{Intersections (Segments, Lines, Circles)}
+% T: O(1)
+% Note: Handles 1D projection, 2D pseudo-scalar overlap, and Circle-Circle reduction to Circle-Line. 
+
+\subsection{Minimum Enclosing Circle}
+% S: O(N) expected, Q: O(1), M: O(N)
+% Note: Welzl's Algorithm. Randomized, operates on complex<double>. 
+
+\subsection{Half-Plane Intersection}
+% S: O(N log N), M: O(N)
+% Note: Returns the vertices of the convex polygon representing the intersection. Uses Deque.
+
+\subsection{Sweep Line Algorithms}
+% Segments Intersect Check: O(N log N) - Checks if *any* two segments intersect in a set.
+% Length of Segment Unions: O(N log N) - 1D Sweep over segment boundaries.
+
+\subsection{Manhattan Minimum Spanning Tree}
+% T: O(N log N), M: O(N)
+% Note: Extrapolates O(N) critical edges by sweeping over 4 rotations, then standard Kruskal.
+
+\subsection{Minkowski Sum of Convex Polygons}
+% T: O(N + M), M: O(N + M)
+% Note: Polygons must be ordered counter-clockwise.
+
+\subsection{Nearest Pair of Points}
+% T: O(N log N), M: O(N)
+% Note: Divide and Conquer.
+
+\section{Graphs}
+
+\subsection{Traversals and Connectivity}
+% BFS: O(V + E)
+% Connected Components: O(V + E) - Stack based to prevent recursion depth limit errors.
+% Topological Sort: O(V + E) - Returns reversed post-order DFS.
+% isBipartite: O(V + E) - Also returns array representing partitioned side (0 or 1).
+
+\subsection{Shortest Paths}
+% Dijkstra: O((V + E) log V). Use for positive weights. 
+% SPFA: O(V * E). Better average case Bellman Ford for negative weights.
+% D'Esopo-Pape: O(V * E) average. Extremely fast on average, exponential worst case. Use deque. 
+% Floyd-Warshall: O(V^3). All-Pairs shortest path. Detects negative cycles (d[k][k] < 0).
+
+\subsection{Graph Properties}
+% Tarjan Bridges/Cutpoints: O(V + E). Single pass.
+% Online Bridges: O(V). Uses 2-Edge-CC DSU and Connected-Comp DSU to maintain bridges dynamically.
+% Tarjan SCC: O(V + E). Condenses directed graphs. Returns Reverse-Topological order of SCCs.
+% Strong Orientation: O(V + E). Orients undirected graph edges to form SCC (if bridgeless).
+
+\subsection{Cycles and Paths}
+% Euler Path: O(E). Hierholzer's algorithm. Undirected multigraphs with loops.
+% Directed Cycle: O(V + E). 3-color DFS.
+% Negative Cycle: O(V * E). Bellman-Ford variant tracking parents.
+% Min-Plus Matrix Exponentiation: O(V^3 log K). Shortest path of EXACTLY K edges.
+
+\subsection{Flows and Matchings}
+% Dinic Max Flow: O(V^2 * E).
+% Flow with Demands: O(V^2 * E). Wraps Dinic to enforce minimum edge flow constraints via super source/sink.
+% Push-Relabel: O(V^3). Faster than Dinic on dense graphs. Uses Highest-Label selection.
+% Min-Cost Max-Flow: O(F * V * E). Successive shortest path using SPFA. 
+% Kuhn Bipartite Matching: O(V * E). Max Cardinality Matching. Includes greedy heuristic optimization.
+
+\subsection{Spanning Trees}
+% Kruskal: O(E log V). Sparse graphs.
+% Prim Dense: O(V^2). Dense graphs without priority queue. 
+% Matrix Tree Theorem: O(V^3). Determinant of Laplacian (D - A) minor. 
+
+\subsection{Tree Algorithms}
+% Centroid Decomposition: O(N log N)
+% Tree Edge Painting: O(N log N). Euler tour flattening with 2 SegTrees to query directed path properties.
+
+\section{Math}
+
+\subsection{Prime Sieves}
+% SieveOfErath: O(N log log N)
+% LinearSieve: O(N). Computes Mu, Phi, Num Divisors, and Sum of Divisors.
+
+\subsection{Factorization}
+% isPrimeMR: O(log N). Miller-Rabin deterministic up to 2^64.
+% getPrimeFacFast/BPR: O(N^(1/4)). Pollard's Rho variant.
+% getAllFac: Generates all divisors in O(N^(1/4) + D). 
+
+\subsection{Modular Arithmetic}
+% getInvE: O(log N). Extended Euclidean.
+% getInvP: O(log N). Pierce Expansion (recursive modulo prime).
+% exChiRemThm: O(N log(LCM)). Handles non-coprime moduli. Returns -1 if no solution.
+% modLog (Baby-Step Giant-Step): O(sqrt(MOD)).
+% modRoot / getPrimRoot: O(MOD^(1/4) * log MOD).
+
+\subsection{Combinatorics \& Transforms}
+% ModFac: O(N). Precomputes Factorials and Inverses for nCr, nWr, nPr. 
+% FastConv: O(N log N). FWHT (Or, And, Xor) and Fast Dirichlet (Gcd, Lcm).
+% Matrix: O(N^3). Stripped down (Multiplication, Exp, Det, solveLin). Gaussian elimination built-in.
+% Hungarian Algorithm: O(N^3). Minimum weight perfect bipartite matching / assignment problem.
+
+\section{Strings \& Hashing}
+
+\subsection{Custom Hash}
+% O(1). SplitMix64 based. Use `safe_unordered_map<T, V>` to prevent anti-hash collision attacks.
+
+\subsection{Advanced String Trie}
+% O(Length). Tracks `pass_cnt` and `end_cnt` for string frequency, prefix-counting, and safe deletion. 
+
+\subsection{Bitwise Trie}
+% O(BITS). Finds Maximum XOR pair queries. 
+
+\section{Miscellaneous / DP}
+
+\subsection{Dynamic Programming Optimizations}
+% Divide & Conquer DP: O(N * M * log N). Applies when cost splitting point is monotonic. 
+% Knuth Optimization: O(N^2). Applies to Range DP when transitions satisfy quadrangle inequality.
+
+\subsection{Classic DP}
+% Knapsacks: O(N * W). 0/1, Complete, and Multiple (using binary grouping).
+% LIS: O(N log N). std::upper_bound on DP array.
+% Broken Profile DP: O(N * M * 2^M). Parquet problem / Grid tiling with bitmask profile state.
+% Max Zero Submatrix: O(N * M). Monotonic stack heights on 2D grid.
+
+\subsection{Misc}
+% Kadane: O(N). Max Subarray Sum.
+% K-th Order Statistic: O(N) average. Quickselect. (Use std::nth_element preferentially). 

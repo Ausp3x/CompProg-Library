@@ -1,0 +1,190 @@
+# Decision log and handoff
+
+**Recorded:** 2026-09-27
+
+**Purpose:** preserve the settled design and the reasoning needed to continue the library work without relying on the original discussion.
+
+**Reading policy:** on demand for decisions, rationale, or a disputed interpretation. For ordinary changes, use [00-index.md](00-index.md), the applicable focused guide, the relevant inventory, and [11-migration.md](11-migration.md).
+
+This log records agreements and their rationale. It is not a report that all planned algorithms, tests, benchmarks, or tools have been completed. Current implementation and verification state belongs in the migration notes and per-folder inventories.
+
+## Agreed repository shape
+
+The approved top-level order is:
+
+| Path | Role |
+|---|---|
+| `00-Guidelines` | Focused policy, decisions, and migration handoff |
+| `01-Core` | Foundational C++ types; full and mini profiles |
+| `02-Data Structures` | Contest data structures |
+| `03-Geometry` | Exact and approximate geometry |
+| `04-Graphs` | Graph and tree algorithms |
+| `05-Mathematics` | Contest mathematics, including scalar FFT/NTT/FPS |
+| `06-Miscellaneous` | General contest utilities and techniques |
+| `07-Strings` | String algorithms |
+| `08-Python` | Deliberate Python subset |
+| `09-Contest Testing` | Small batch, interactive, and scored problem-testing tools |
+| `96-Local Testing` | Maintained regression and library test suites |
+| `97-Online Testing` | Judge sources and generated submission bundles |
+| `98-Team Notebook` | Curated, configurable notebook from canonical sources |
+| `99-Workspace` | Permanent `template.cpp` and temporary contest work |
+| `OLD` | Archived legacy material; excluded from active discovery |
+
+The root index and focused guides are the current entry points. Keep the index concise and let each focused guide own its detail. `10-decisions.md` is historical context. The focused guides govern normal work; later explicit user instructions take precedence.
+
+## Principles and implementation profiles
+
+Four requirements apply together:
+
+1. **Correctness:** state the input domain and handle every input in it, including boundaries, without undefined behavior. A precondition and a valid input for which no answer exists are different cases.
+2. **Optimality:** use the best appropriate asymptotic and practical implementation for the supported domain and workload. State material setup, preprocessing, memory, or cache costs. Do not claim a universal fastest implementation.
+3. **Completeness:** keep an explicit feature inventory for each family, including meaningful advanced and research variants. Show omissions and unfinished work rather than implying it is done. Mini and Python are explicit scope reductions, not silently weakened shared contracts.
+4. **Elegance:** write direct, compressed, nonredundant code in every profile. Short code must not obscure invariants, repeat expensive work, or weaken correctness, optimality, or scope.
+
+The phrase “extreme optimization” is reserved for **full, non-mini Core implementations**. It includes applicable SIMD/AVX2/FMA/BMI or other specialized approaches, compile-time selection, correct scalar fallbacks, and measured thresholds. Compilation time is not a constraint. Scalar fallback must compile and run without special ISA flags. Do not add runtime CPU dispatch by default.
+
+An early proposal to demand extreme optimization for every C++ algorithm was rejected. Files in `02`–`07` are contest implementations: optimize algorithmic and practical performance, with more room for brevity, but do not require handwritten SIMD, assembly, or ISA-specific code. Such algorithms may depend on accelerated full Core types. Keep ISA-specific specialization in Core, and make the dependency's fallback usable on ordinary baseline builds. Python has no ISA-specific implementations.
+
+Core mini types are a separate profile. Minimize printed lines by first removing rare operations, then by restricting and documenting their domain, before accepting slower implementations. There is no fixed line cap. A mini must stand alone and match the full type's semantics on the shared domain. Preserve the full implementation's correctness argument and explain reduced preconditions.
+
+For Barrett or Montgomery arithmetic used outside Core, require at least a **20% end-to-end runtime reduction** on representative workloads, with no meaningful regression in common cases and recorded conditions/results. A smaller gain needs a concrete documented exception, such as making a judge limit. A microbenchmark of isolated arithmetic is not enough. Retain a compact alternative where the optimized implementation materially increases code size. Within Core, use these methods wherever applicable and beneficial.
+
+No folder is promised to contain every theoretical idea. Inventories are living research roadmaps, and “complete” must be scoped to the stated family/domain. A popular source, old implementation, passing legacy test, or single judge acceptance is not evidence by itself that an implementation is correct or maximal.
+
+These profiles resolve the tension between a reusable high-performance numeric foundation and code that must remain practical in contests. Costly specialization is concentrated where its reuse justifies it; dependent algorithms keep clear contracts and rely on the portable fallback. The mini profile serves print/copy constraints without forcing every user to inherit a restricted interface.
+
+## Organization, names, and inventories
+
+Use numbered, two-digit prefixes for human-sorted files and folders. Basic, Advanced, and Esoteric are inventory sections, **not** directory tiers or filename tags. Sort first by importance/rarity and then by dependency. One file must not mix tiers; split it if its content crosses tiers. A file may not combine an unrelated mini/full distinction with a tier distinction.
+
+The approved leading underscore in Python module names is intentional: importable names such as `_01_dijkstra.py` and `_04_graphs` are valid Python identifiers where numeric-leading names are not. This is the specific exception to the ordinary two-digit hyphen naming style; scripts intended to execute directly may use names such as `01-name.py`. `08-Python` itself is an import root, not a Python package name.
+
+Keep one main algorithm under its established lowercase name or abbreviation, without underscores. Use a lowercase general-use-case stem with underscores for a file containing multiple related algorithms. Number prefixes are separate from the stem. Update imports, includes, tests, notebook selections, online sources, aggregates, and inventory links together when ordering changes. Use numbered topic subfolders before exhausting the main sequence; avoid unnecessary nesting.
+
+The Core order is fixed:
+
+`01-template`, `02-debug`, `03-barrett`, `04-montgomery`, `05-modint`, `06-modint64`, `07-dynmodint`, `08-dynmodint64`, `09-infint`, `10-infintmini`, `11-rational`, `12-matrix`, `13-matrixmini`, `14-bitmatrix`, `15-bitmatrixmini`, `16-sparsematrix`, `17-sparsematrixmini`, `18-poly`, `19-polymini`.
+
+Core is organized around foundational headers, not Basic/Advanced tiers or one mandatory giant implementation. Add a Core type only for a demonstrated general need. Core Poly owns the comprehensively optimized polynomial/FPS family; intentional duplication of scalar FFT/NTT/FPS functionality in Mathematics is allowed. Avoid circular dependencies. Foundational headers must not depend on topic aggregates.
+
+In `01`–`07`, `98-Basic.hpp` and `99-All.hpp` are include-only convenience aggregates. Basic includes all Basic inventory entries and selects minis where appropriate in Core alongside necessary full types. All includes every implemented full and mini header exactly once transitively, excluding aggregates, tests, and planned files. Algorithm files include direct dependencies, never convenience aggregates. Full and mini aliases coexist without collisions (`iint` and `iintmini`, for example). Python uses explicit re-export modules `_98_basic.py` and `_99_all.py`; no wildcard collision or import-time work.
+
+Every algorithm folder owns a `00-index.md` feature inventory. Label entries accurately as planned, existing-unverified, partial, verified (with evidence), or legacy-reference. For each family record proposed/current filenames, public coverage and variants, domains, tier or Core Basic eligibility, references, and meaningful omissions. The inventory is explicit but does not claim every paper has been surveyed. Add newly found variants as research proceeds. Put longer proofs and detailed references in companion documents rather than repeating them in compressed source headers.
+
+Preserve superseded implementations, original monoliths, and notebook copies in `OLD` so their features and behavior remain available for comparison. Exclude OLD from active aggregates, default discovery, and notebook selection. Legacy active code can have migration gaps; do not call it compliant or verified before audit.
+
+This archive decision avoids losing hard-to-reconstruct edge behavior while letting the active layout have one canonical implementation per selected algorithm. Archiving is not deletion or endorsement: original bytes are retained, but new code must be checked against current contracts and independent references.
+
+## Language, compiler, and API decisions
+
+The C++ baseline is **GCC 14 or newer, GNU++20 (`-std=gnu++20`), Linux x86-64**. GNU facilities such as `bits/stdc++.h`, PBDS, and `__int128` are permitted. Clang/MSVC portability is not a goal. This baseline promises the library's tested C++20 feature subset, not every feature in the standard. Do not silently introduce modules or a newer language standard. The source/rationale recorded in `09-sources.md` is GCC's C++20 status page, inspected 2026-09-27.
+
+Each header uses `#pragma once`, includes its direct dependencies (including `01-template.hpp` when relying on its aliases/imports), compiles on its own, coexists with other headers, and has safe multi-translation-unit linkage. Use inline definitions/variables or templates as appropriate. Do not create public alias collisions between full and mini versions.
+
+C++ APIs default to zero-based indexing and half-open ranges `[l, r)`. Document necessary exceptions. State input domains, width limits, exactness, result meaning, mutation, setup/reset requirements, and ownership/aliasing assumptions. A `64` suffix describes storage intent; it does not promise every 64-bit modulus. Support all representable inputs when doing so is straightforward; otherwise choose practical explicit limits rather than many needless branches. Do not allow silent overflow except for explicitly modular unsigned arithmetic.
+
+Use assertions for violated programmer preconditions. A valid no-answer result must have an unambiguous representation: a noncolliding sentinel, small status/result, or status plus output parameter. Use `std::optional` when those are infeasible or more cumbersome. Do not confuse absence with a valid zero or empty result. Preconditions must remain documented because assertions may be disabled.
+
+Exact and approximate APIs have distinct names/types and guarantees, even if they share implementation. Document tolerances, error models, and integer-coordinate bounds. Randomized algorithms state assumptions and risk: Monte Carlo answer error differs from Las Vegas runtime randomness. Make seeds reproducible. Document cache memory/reset behavior and dynamic-modulus changes that invalidate existing values.
+
+An early suggestion to ban namespaces and private implementation was refined: do not add `private` sections; this is a contest library with visible implementation state/helpers where reasonable. Keep state and helpers within their struct where practical, use friend operators/functions naturally, and allow small shared implementation namespaces. Public APIs remain clearly identifiable. Stateless algorithms may be free functions. Avoid excessive namespace layers and generic frameworks. This is not a prohibition on ordinary public API boundaries or on sparing namespaces.
+
+Compressed C++ style is deliberate: four spaces, direct flow, short meaningful names, braces on control statements, and no mandatory line limit. Structs/classes use `CamelCase`; functions/methods `camelCase`; fields/locals short lowercase or `snake_case`; compile-time value constants `ALL_CAPS`. Preserve conventional protocol/operator spellings, short aliases and mathematical template parameters. Follow the exact cast, pointer/reference spacing, lambda, qualification, and brace-layout rules in `03-cpp.md`; do not copy those mechanical details into every index.
+
+The template's `using namespace std` is a convenience, not permission to use unqualified names indiscriminately. Qualify standard-library names except the explicit shared convenience list in `03-cpp.md`; do not expand that list locally. This keeps files consistent and makes less common standard facilities explicit.
+
+Put concise worst-case complexity comments immediately above algorithms, except template/debug code. Use the guide's `T`, `S`, `U`, `Q`, and `M` notation, define relevant symbols, explicitly write multiplication and function arguments, and label expected/amortized bounds. For structs, `M` is stored data; for standalone functions it is auxiliary space excluding caller-owned input. Call out larger workspace, shared cache, returned storage, output sensitivity, and bit complexity where unit-cost arithmetic would mislead. Per-method comments are needed for materially different bounds, not repeated boilerplate.
+
+Python uses **Python 3.10 syntax and standard-library APIs**, targeting CPython/PyPy 3.10 or newer. Report an unavailable implementation as a coverage gap. It is an intentional important/practical subset of `01`–`07`, not a second maximally complete Core. Its inventory records inclusions and omissions. Use Python's arbitrary-precision integers and suitable builtins such as `fractions.Fraction`; document differences from C++ such as floor division, mutability, recursion limits, and performance.
+
+Python algorithm imports use relative imports within packages and no machine-specific path edits. Aggregates explicitly import and re-export symbols, with no input/output, benchmark, seed, recursion-limit, or test side effects on import. Keep canonical implementation in one module. Any copy/paste guidance must make dependencies explicit; an expansion tool must preserve Python import semantics before claiming Python bundling support.
+
+## Verification and performance evidence
+
+The verification rules were designed to make confidence inspectable by a future maintainer: a test should identify the contract it covers and an independent reason its expected result is trustworthy. A green test is evidence about that coverage, not a substitute for a correctness argument or a statement about untested variants.
+
+`96-Local Testing` verifies reusable library files. `09-Contest Testing` is a small, editable toolkit for comparing problem submissions. They serve different purposes; judge acceptance does not establish complete library feature coverage.
+
+Local tests mirror canonical paths and have one runnable Python entry per header/module, with shared support allowed. Tests include the real header and work from any current directory. Build outputs go to temporary or build locations, never canonical algorithm folders or Workspace. Expose quick/full/stress modes only where implemented and document their real coverage; a partial run is not called full. Report missing optional interpreters or hardware explicitly. Failures must exit nonzero and survive `-DNDEBUG`; use independent oracles, bounded exhaustive domains, algebraic/metamorphic checks, deterministic random stress, and saved regressions as applicable. C++ coverage includes optimized and checked builds, sanitizers, header-alone/aggregate/mixed full-mini/multiple-TU configurations, plus ISA paths where available. Python coverage includes both CPython and PyPy when installed.
+
+Coverage maps features to tests, including type/domain combinations, setup/reset and lifetime changes, valid no-answer behavior, boundary values, aliasing/copying where applicable, degeneracy, adversarial cases, and dispatch/alignment thresholds. Independent brute-force/reference implementations must themselves be checked. Agreement between two related implementations is not sufficient as the only oracle. Approximate tests use justified error bounds; exact large integers are not converted to float. Report seed, smallest reproducer, operation/input, expected/actual, configuration, command, and timeout/crash details.
+
+No finite suite proves correctness for all inputs. Completion means specified features and known edge classes have justified coverage, limitations are visible, and the algorithm has a correctness argument. Verification should match the change; broaden checks for unresolved concerns or new failures, not by rote.
+
+Benchmarks are separate from correctness tests. Record machine/CPU, compiler or interpreter and flags/version, workload sizes/distributions/seeds, warmups/repetitions, setup and memory costs, and compared implementations. Verify outputs and preserve the work being timed. Cover common, small, large, adversarial, and dispatch-boundary workloads where relevant. Use repeated measurements/medians and describe noisy shared-host observations honestly. Do not impose universal timing gates across machines. Compilation time does not determine algorithm quality.
+
+## Online, workspace, notebook, and contest tools
+
+These tools keep three activities separate: canonical source editing, reproducible submission generation, and temporary contest use. Generated outputs are disposable derivatives with explicit ownership; user workspace files are not disposable. The clean-on-success rule also prevents a failed expansion from leaving the user with a half-updated submission set.
+
+`97-Online Testing` keeps canonical judge sources under `src/<judge>/` and generated submissions under `expanded/<judge>/`. Sources identify judge/problem and exercised features. Use `oj-bundle` for C++ expansion, run it from any directory, recurse only through source trees, preserve relative paths, and never consume generated outputs or edit canonical sources. Output replacement is atomic on success; expansion failure leaves the previous output intact. Cleanup is on by default, limited to manifest-owned generated files with missing sources, and must not run after discovery/bundling failure. `--noclean` retains obsolete outputs; `--clean` explicitly selects the default. Keep generated artifacts ignored. Do not auto-submit or claim acceptance without evidence. Python bundling is a separate future capability and must preserve imports.
+
+`99-Workspace` has one permanent file, `template.cpp`: a standalone generated snapshot of Core template plus debug support, followed by single-case `solve()` and `main()` with fast I/O. Include a commented multi-case alternative. Keep generation tooling elsewhere. Regeneration is explicit, never a build/test/expansion side effect. Treat temporary contest files as user work; do not automatically clean them or add permanent helpers/configuration there.
+
+`98-Team Notebook` builds from canonical files using a reproducible selection manifest and retains LaTeX, with LuaLaTeX for fonts. Use JetBrains Mono for code, Inter for body text, and restrained cyan navigation/section accents, thin rules, readable aligned columns, and a minimalist technical layout. Provide monochrome print mode. The local browser UI supports selection, ordering, page budget, paper size, columns, and font sizes; CLI generation/build remains available. Report actual page count and budget excess without dropping selected content or silently shrinking below settings. Keep generated files ignored/separate. Selection is not a verification claim. Active sources exclude OLD and the local `ProgVar.pdf`/`frankenstein.pdf`; those two PDFs were explicitly excluded from references.
+
+`09-Contest Testing` uses Python 3.10 standard-library orchestration and GNU++20 compilation, no elevated privileges, and no parallel case execution. Batch tools compare candidate and optional brute on the same generated input. Default comparison is token exact (whitespace ignored); byte-exact and custom checker modes are explicit. Keep integer answers exact. Continue until failure/interruption unless a count is supplied; support start seed, timeouts, compiler/interpreter choices, Python/C++/existing executables. Separate stderr from answers, apply timeouts to all subprocess roles, and distinguish a candidate failure from generator/reference/checker infrastructure failure.
+
+Preserve unique failure bundles with input, both outputs, stderr, seed, commands/flags, comparison/configuration, and exit or timeout details. Replay saved input, not only a seed. Interactive mode must manage bidirectional pipes, hidden input, idle/total timeouts, process cleanup, transcript, and distinct interactor-error/rejected-answer outcomes. Scored mode validates output and finite scores under a declared objective; quality differences alone are not wrong answers. Shrinking is a separate optional helper, off by default, bounded, problem-specific, and retains only the same failure class/signature with a strictly decreasing size metric. Do not claim arbitrary text deletion is generally valid.
+
+## Source policy and research handoff
+
+Research scope is deliberately explicit because inventories will evolve. Record the source actually consulted and the adopted claim; candidate lists are there to guide future work, not to imply that all repositories, papers, or languages have already been reviewed.
+
+`09-sources.md` is a candidate search plan, not proof of research already performed. Useful starting points include cp-algorithms, AtCoder Library/tasks, Codeforces, Yosupo Library Checker, CSES, Luogu, OI Wiki, KACTL, Nyaan, ei1333, suisen, maspypy, hitonanode, verngutz/cp-library, team notebooks, papers/preprints, and Chinese/Japanese/Korean articles and editorials. Original `algorithms.cpp` copies and OLD are behavioral/feature references, not authoritative specifications.
+
+For an adopted claim, record precise title/URL and relevant version/revision where available, what result it supports, and whether the code was adapted or independently implemented. Preserve required licenses and attribution. Keep provenance and proofs in companion documentation; retain only necessary notices in code. Do not invent citations, paper inspection, live source review, or online acceptance.
+
+The phrase “Ateneo/ProgVar notebooks” appeared in the initial research discussion, but the final reference decision excludes the local `ProgVar.pdf` and `frankenstein.pdf`. Do not re-add those files as active sources. No versioning or semver requirement was agreed. Do not introduce one as settled policy.
+
+## Refinements and superseded proposals
+
+- Extreme optimization applies to full Core only. The broader early proposal for every C++ folder was narrowed; ordinary `02`–`07` code has no handwritten ISA requirement.
+- Prohibiting namespaces/private code was clarified. Public APIs remain; avoid `private` sections, while small shared namespaces remain allowed when useful.
+- The online expander cleanup default was settled as **clean by default**. An earlier clean-opt-in suggestion was reversed; `--noclean` is the retention option.
+- Python prefixing must produce importable identifiers. Thus `_01_name.py` is the importable form, while `01-name.py` remains acceptable for an executable script.
+- The original demand to prove every possible edge case was replaced with a practical evidence standard: justified correctness arguments, mapped feature/edge coverage, independent oracles and transparent limits. Finite tests never prove all inputs.
+- An earlier prompt that focused on keeping only snippets was dropped. The project scope is now the organized library and its future inventories, tests, online tools, notebook, and workspace workflow.
+- No user instruction authorized claiming that future algorithm inventories are fully researched or implemented. Continue populating them as future work and mark status honestly.
+
+## Handoff for the next agent
+
+For a routine feature change, do not load this entire history by default. Read the root routing note, shared principles, the affected folder inventory, and the one or two applicable focused guides. Return here when a policy choice is ambiguous or when a later instruction appears to conflict with an earlier rationale.
+
+The user authorized guideline construction, repository organization, inventories for future algorithm work, and the associated tooling. Treat the guides and inventories as the standing design. Work from the relevant folder inventory; make planned/existing/partial/verified status explicit as features are researched and migrated. When editing existing library code or tools, inspect [11-migration.md](11-migration.md) for actual state, report verification done in that task, and update inventory evidence as applicable. Do not infer completion from this decision log: it captures what the project should become, not proof that it already has.
+
+## Working preferences recorded
+
+The user explicitly authorized autonomous construction after the final clarifications, requested appropriate task delegation (simpler agents for simple work), and asked for careful verification rather than speed. Do not reopen settled choices without concrete conflicting evidence. This detailed Markdown log fulfills the requested logs.txt-equivalent handoff; normal tasks should load only focused guides.
+
+## Resource collection added 2026-09-27
+
+The user added `95-Resources` and authorized finding and downloading additional useful competitive-programming references. The follow-up explicitly said the folder probably did not need guidelines, but permitted short ones if useful. The chosen implementation is a short `95-Resources/00-index.md` with reference descriptions, source links and a few maintenance rules, plus `99-sources.json` for exact download URLs, dates, editions, sizes, page counts and SHA-256. There is no separate resource guideline or feature inventory requirement. Existing user-provided filenames and files are preserved.
+
+The additions complement Laaksonen's handbook and the NOI.PH lectures: Erickson's Algorithms, Morin's Open Data Structures (C++), MIT Mathematics for Computer Science, Brent/Zimmermann Modern Computer Arithmetic, KACTL, the Stanford 2015–16 team notebook, three Agner Fog manuals, and six Erickson advanced lecture notes (FFT, faster DP, matroids, min-cost flow, LP and LP algorithms). Algorithmica's hardware algorithms text and Shewchuk's robust-predicate page are linked as further online reading. These are references rather than canonical library code; full Core's optimization policy is unchanged. The excluded ProgVar/frankenstein PDFs were not reintroduced.
+
+Downloads were checked for PDF format, readable page counts, opening-page text and identifying information, and hashed; this is not exhaustive content review or proof of the algorithms. Preserve original attribution and edition-specific reuse terms. In particular, the Agner manuals are retained for local study and their notices prohibit public mirrors. Any later publication of the resource collection must respect those terms. The broader source guide remains the place for research/adaptation rules; ordinary agents need only open the relevant reference.
+
+## Implementation prompts and unchanged extraction — 2026-09-27
+
+The user requested an actual prompts.txt-equivalent that divides future work according to size and dependency, rather than assigning one entire folder per session or equal file counts. The chosen entry point is root `01-prompts.md`, with one reusable execution prompt, short batch-ID examples and a resume prompt. `00-Guidelines/13-Work Batches/` contains separate on-demand tables for 01–08 plus support passes; agents should read only the selected table/rows and relevant guides. The initial map assigns all 274 numbered inventory targets to 163 batches, with exact paths recorded in JSON. Sizes are relative effort, not time promises. Full InfInt, dense Matrix, SparseMatrix and Poly have separate large batches and internal checkpoints. Selecting several IDs authorizes sequential work; parallel sessions require disjoint ownership/stable dependencies and one shared integration owner. Tests, source research, applicable benchmarks and honest status updates belong to the implementing batch. Conditional research entries remain visibly deferred until justified; the plan neither silently reduces completeness nor requests implementation of the whole backlog now.
+
+The second task explicitly requested transferring existing algorithms from both legacy monoliths without modifying their algorithms, because actual improvement is future work. Bodies were therefore extracted unchanged with only header guards/includes/provenance wrappers. Twenty-six new active headers contain syntactically integrated but unverified code; fourteen meaningful older/incomplete/integration-blocked excerpts are local `97-Legacy/*.cpp` references. Exact duplicate bodies are mapped instead of creating colliding public definitions, and no existing active implementation was overwritten. Both originals remain intact in OLD. Missing features, old APIs and defects are documented rather than repaired in this task. Local reference folders are excluded from aggregates and notebook discovery. The detailed transfer record and source-range/hash map are `14-monolith-transfer.md` and `15-monolith-map.json`; they include the corrected placements of lazy SegTree, multidimensional FenTree and lowlink Tarjan. Structural compilation/linkage and preservation checks do not establish algorithm correctness or maximality.
+
+## Final inventory research and assignment checklist — 2026-09-27
+
+The user requested a concrete checklist at the bottom of 01-prompts.md so a fresh session can be assigned preselected groups, then requested a final deep audit of inventories, sources and the archive before implementation. The resulting plan has 226 ordered packages, covering 334 stable algorithm batches, 430 numbered targets and five support passes. Existing batch IDs remain usable. Oversized old groups were split with explicit new owners; large Core and research jobs have individual checkpoints. A normal request is: “Complete package Pxxx from 01-prompts.md.” A range authorizes sequential packages, each with independent completion evidence. Resume the same ID with a durable handoff when unfinished.
+
+The researched scope grew from 274 to 430 targets: Core 19→20, Data Structures 38→60, Geometry 32→53, Graphs 41→84, Mathematics 43→66, Miscellaneous 30→48, Strings 35→49 and Python 36→50. Core keeps its original 01–19 ordering and appends 20-bitset; other folders retain tier ordering and receive necessary prefix changes. Python remains a practical subset. All new features stay planned, and existing-unverified status is preserved. No implementation completion follows from catalog coverage.
+
+The audit compared 101 successfully fetched pages, catalogs, trees and reference documents, supplemented by saved books/notebooks and archived code. All 250 non-sample/test Library Checker families have explicit inventory owners. This is coverage against a recorded snapshot, not online acceptance or a claim that the entire field has been exhausted. The source ledger records read scope, hashes, retrieval date and two failed URLs with working alternatives. Archive review also recovered the histogram/maximum-zero-submatrix family as an explicit data-structure obligation.
+
+Domain and ownership corrections include nonconvex Minkowski semantics, probable versus certified primality, exact integer transform inversion, randomized dynamic-string guarantees, Carmichael lambda composition, finite nimber widths, numerical rounding, A* reopening, and distinct owners for tree DP, weighted matching, bounded circulation and text indexing. The inventories state those contracts; implementations must still prove and test them.
+
+Current evidence and limits are in 16-inventory-audit.md, source ledger 17, prefix map 18, archive map 19 and Library Checker coverage 20. These are optional lookup files, not extra instructions every routine agent must read. Routine sessions open the shared workflow, selected checklist line/table rows and relevant guides. Eight existing Graph headers were renamed with aggregate/provenance references updated; original algorithm bodies and archived source bytes remain preserved. Standalone/aggregate/multiple-translation-unit integration passed after renaming. Behavioral correctness, full feature completion, performance and genuine judge acceptance remain the responsibility of the implementing batch.
+
+## 2026-09-27 modular-family layout revision
+
+The user approved cohesive namespace/header ownership and four independent copyable modular minis. The current fixed order and style rules are in `02-structure.md` and `03-cpp.md`; the original order above is historical. Full static/dynamic 32/64-bit types now share `01-Core/05-modint.hpp`, with `modint_detail` in the same file. Four independent structs live in `06-modintmini.hpp`, requiring no sibling/full/detail/reduction-header dependencies. Existing aliases and public namespace names remain stable. Later Core prefixes shift down two, ending at `18-bitset.hpp`; `08-infintmini.hpp` is the revised mini integer path.
+
+P005 owns C03 and new C16; P001–P226 and C01–C15 remain stable. Current counts are 428 targets and 335 algorithm batches, plus five support passes. See [the migration record](22-core-migration.md) for exact paths, preservation and verification. Earlier counts/order/test hashes in this log describe their recorded historical stages.

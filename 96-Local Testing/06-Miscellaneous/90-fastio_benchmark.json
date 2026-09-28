@@ -1,0 +1,314 @@
+{
+  "date_utc": "2026-09-27T15:55:10.181437+00:00",
+  "cpu": "11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz",
+  "platform": "Linux-7.2.7-arch1-1-x86_64-with-glibc2.44",
+  "compiler": "g++ (GCC) 16.2.1 20260810",
+  "flags": [
+    "-std=gnu++20",
+    "-O2",
+    "-DNDEBUG"
+  ],
+  "python": "3.14.7",
+  "seed": 20260927,
+  "warmups": 1,
+  "repetitions": 5,
+  "method_order": "rotated per repetition",
+  "workload": "read signed 64-bit decimal tokens, xor unsigned bits with fixed constant, write unsigned decimal lines; 32/20000/500000 values; uniform [-1000,1000] or random full 64-bit patterns with min/max every 101 values and mixed whitespace",
+  "timed_scope": "construct buffers, parse complete regular-file input, transform, format complete output, explicit FILE flush and writer destruction; file open/close, fixture generation, rewind, independent to_chars output comparison excluded; warm file page cache, no fsync",
+  "memory": "FastInput/Output<N>: two N-byte arrays plus constant fields; libc FILE buffers additional and implementation dependent. fscanf/fprintf uses libc buffers. O(1) conversion workspace for each. Fixture strings excluded from timed methods.",
+  "comparison_limits": "Shared-host observations for valid ASCII decimal data on warmed regular files; not interactive, cold disk, malformed-input, floating-point, or network throughput; fscanf/fprintf has broader locale/format support; no universal timing gates.",
+  "sha256": {
+    "06-Miscellaneous/03-fastio.hpp": "ad925d610ffb8218735cd1ed4086d090c46cddefa5fa268480c41ce52a2297f0",
+    "96-Local Testing/06-Miscellaneous/90-fastio_benchmark.cpp": "de903672f40a5a3d38f75d9e8bc106f4c45c079e56276838a7471a49ceae69b8"
+  },
+  "results": [
+    {
+      "n": 32,
+      "distribution": "small-integers",
+      "method": "fast-4096",
+      "input_bytes": 143,
+      "output_bytes": 654,
+      "checksum": 9737372943835861323,
+      "samples_ms": [
+        0.00296,
+        0.002872,
+        0.002859,
+        0.002753,
+        0.002832
+      ],
+      "median_ms": 0.002859
+    },
+    {
+      "n": 32,
+      "distribution": "small-integers",
+      "method": "fast-65536",
+      "input_bytes": 143,
+      "output_bytes": 654,
+      "checksum": 9737372943835861323,
+      "samples_ms": [
+        0.003116,
+        0.002762,
+        0.002813,
+        0.002703,
+        0.002807
+      ],
+      "median_ms": 0.002807
+    },
+    {
+      "n": 32,
+      "distribution": "small-integers",
+      "method": "fscanf-fprintf",
+      "input_bytes": 143,
+      "output_bytes": 654,
+      "checksum": 9737372943835861323,
+      "samples_ms": [
+        0.005373,
+        0.004999,
+        0.004917,
+        0.00497,
+        0.004968
+      ],
+      "median_ms": 0.00497
+    },
+    {
+      "n": 32,
+      "distribution": "wide-whitespace",
+      "method": "fast-4096",
+      "input_bytes": 751,
+      "output_bytes": 651,
+      "checksum": 3237989746593354280,
+      "samples_ms": [
+        0.003955,
+        0.003998,
+        0.00391,
+        0.003806,
+        0.003853
+      ],
+      "median_ms": 0.00391
+    },
+    {
+      "n": 32,
+      "distribution": "wide-whitespace",
+      "method": "fast-65536",
+      "input_bytes": 751,
+      "output_bytes": 651,
+      "checksum": 3237989746593354280,
+      "samples_ms": [
+        0.003909,
+        0.003996,
+        0.003971,
+        0.0038,
+        0.003755
+      ],
+      "median_ms": 0.003909
+    },
+    {
+      "n": 32,
+      "distribution": "wide-whitespace",
+      "method": "fscanf-fprintf",
+      "input_bytes": 751,
+      "output_bytes": 651,
+      "checksum": 3237989746593354280,
+      "samples_ms": [
+        0.006488,
+        0.006418,
+        0.006204,
+        0.006336,
+        0.006456
+      ],
+      "median_ms": 0.006418
+    },
+    {
+      "n": 20000,
+      "distribution": "small-integers",
+      "method": "fast-4096",
+      "input_bytes": 87854,
+      "output_bytes": 410074,
+      "checksum": 8652082552264203658,
+      "samples_ms": [
+        0.843062,
+        1.025617,
+        0.984453,
+        1.035866,
+        1.041743
+      ],
+      "median_ms": 1.025617
+    },
+    {
+      "n": 20000,
+      "distribution": "small-integers",
+      "method": "fast-65536",
+      "input_bytes": 87854,
+      "output_bytes": 410074,
+      "checksum": 8652082552264203658,
+      "samples_ms": [
+        0.856265,
+        0.890866,
+        0.96889,
+        0.997847,
+        1.031766
+      ],
+      "median_ms": 0.96889
+    },
+    {
+      "n": 20000,
+      "distribution": "small-integers",
+      "method": "fscanf-fprintf",
+      "input_bytes": 87854,
+      "output_bytes": 410074,
+      "checksum": 8652082552264203658,
+      "samples_ms": [
+        2.047161,
+        2.188341,
+        2.265752,
+        2.321023,
+        2.410974
+      ],
+      "median_ms": 2.265752
+    },
+    {
+      "n": 20000,
+      "distribution": "wide-whitespace",
+      "method": "fast-4096",
+      "input_bytes": 467565,
+      "output_bytes": 407948,
+      "checksum": 17890070693991021604,
+      "samples_ms": [
+        1.961254,
+        1.965318,
+        1.941359,
+        1.948882,
+        1.908995
+      ],
+      "median_ms": 1.948882
+    },
+    {
+      "n": 20000,
+      "distribution": "wide-whitespace",
+      "method": "fast-65536",
+      "input_bytes": 467565,
+      "output_bytes": 407948,
+      "checksum": 17890070693991021604,
+      "samples_ms": [
+        1.895252,
+        1.919929,
+        1.89212,
+        1.92958,
+        1.840283
+      ],
+      "median_ms": 1.895252
+    },
+    {
+      "n": 20000,
+      "distribution": "wide-whitespace",
+      "method": "fscanf-fprintf",
+      "input_bytes": 467565,
+      "output_bytes": 407948,
+      "checksum": 17890070693991021604,
+      "samples_ms": [
+        3.980445,
+        3.961877,
+        3.940517,
+        3.924769,
+        3.853084
+      ],
+      "median_ms": 3.940517
+    },
+    {
+      "n": 500000,
+      "distribution": "small-integers",
+      "method": "fast-4096",
+      "input_bytes": 2195940,
+      "output_bytes": 10250257,
+      "checksum": 12349545766196171364,
+      "samples_ms": [
+        25.536221,
+        25.893281,
+        26.218753,
+        26.059252,
+        26.099779
+      ],
+      "median_ms": 26.059252
+    },
+    {
+      "n": 500000,
+      "distribution": "small-integers",
+      "method": "fast-65536",
+      "input_bytes": 2195940,
+      "output_bytes": 10250257,
+      "checksum": 12349545766196171364,
+      "samples_ms": [
+        25.240319,
+        25.110481,
+        25.624368,
+        25.280215,
+        25.404142
+      ],
+      "median_ms": 25.280215
+    },
+    {
+      "n": 500000,
+      "distribution": "small-integers",
+      "method": "fscanf-fprintf",
+      "input_bytes": 2195940,
+      "output_bytes": 10250257,
+      "checksum": 12349545766196171364,
+      "samples_ms": [
+        61.330113,
+        60.572582,
+        61.141123,
+        61.776634,
+        61.388248
+      ],
+      "median_ms": 61.330113
+    },
+    {
+      "n": 500000,
+      "distribution": "wide-whitespace",
+      "method": "fast-4096",
+      "input_bytes": 11691384,
+      "output_bytes": 10198824,
+      "checksum": 12528537972542787461,
+      "samples_ms": [
+        47.610124,
+        47.895394,
+        47.519294,
+        47.561962,
+        47.737097
+      ],
+      "median_ms": 47.610124
+    },
+    {
+      "n": 500000,
+      "distribution": "wide-whitespace",
+      "method": "fast-65536",
+      "input_bytes": 11691384,
+      "output_bytes": 10198824,
+      "checksum": 12528537972542787461,
+      "samples_ms": [
+        47.356224,
+        46.519284,
+        46.111622,
+        46.128454,
+        46.135094
+      ],
+      "median_ms": 46.135094
+    },
+    {
+      "n": 500000,
+      "distribution": "wide-whitespace",
+      "method": "fscanf-fprintf",
+      "input_bytes": 11691384,
+      "output_bytes": 10198824,
+      "checksum": 12528537972542787461,
+      "samples_ms": [
+        93.845769,
+        94.252465,
+        94.233517,
+        95.894525,
+        94.096173
+      ],
+      "median_ms": 94.233517
+    }
+  ]
+}

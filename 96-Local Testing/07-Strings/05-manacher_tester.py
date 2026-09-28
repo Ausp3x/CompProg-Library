@@ -1,0 +1,18 @@
+"""Manacher: direct palindrome interval oracle, exhaustive and large shapes.
+
+Every mode covers odd/even radii, all reconstruction methods and smaller radii,
+empty/gap endpoints, integer alphabets, bytes/NUL, copy/move and repeated builds.
+Quick/full/stress enumerate ternary strings through lengths 6/8/9, then run
+300/2000/15000 random cases and unary/alternating lengths 5000/300000/1000000.
+Full/stress add ASan/UBSan to optimized NDEBUG and checked builds; checked builds
+execute ten center/radius precondition probes. Oracles remain active with NDEBUG.
+"""
+from _00_runner import main
+
+
+if __name__ == '__main__':
+    raise SystemExit(main('05-manacher', [
+        'odd-negative-center', 'odd-end-center', 'odd-empty',
+        'even-negative-center', 'even-large-center', 'odd-zero-radius',
+        'odd-negative-radius', 'odd-large-radius', 'even-negative-radius',
+        'even-large-radius']))

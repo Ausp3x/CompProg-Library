@@ -1,0 +1,10 @@
+#pragma once
+#include "01-prefixfunction.hpp"
+#include "02-z.hpp"
+#include "03-stringhash.hpp"
+#include "04-trie.hpp"
+#include "05-manacher.hpp"
+#include "06-aho.hpp"
+#include "07-suffixarray.hpp"
+#include "08-palindrome_queries.hpp"
+#include "09-runlength.hpp"

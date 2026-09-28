@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "title": "Team Notebook",
+  "selected": [
+    "01-Core/01-template.hpp",
+    "01-Core/02-debug.hpp"
+  ],
+  "include_notes": true,
+  "max_pages": 25,
+  "paper": "a4",
+  "columns": 2,
+  "body_size": 8.5,
+  "code_size": 6.8,
+  "body_font": "Inter",
+  "code_font": "JetBrains Mono",
+  "print_mode": false
+}

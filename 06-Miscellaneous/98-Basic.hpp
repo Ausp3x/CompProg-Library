@@ -1,0 +1,16 @@
+#pragma once
+// Existing implementations only; planned coverage is listed in 00-index.md.
+#include "01-random.hpp"
+#include "02-customhash.hpp"
+#include "03-fastio.hpp"
+#include "04-compression.hpp"
+#include "05-binarysearch.hpp"
+#include "06-bit_operations.hpp"
+#include "07-permutation.hpp"
+#include "08-sequence_algorithms.hpp"
+#include "09-interval_algorithms.hpp"
+#include "10-offline_queries.hpp"
+#include "11-sorting_selection.hpp"
+#include "12-enumeration.hpp"
+#include "13-knapsack.hpp"
+#include "14-cyclefinding.hpp"

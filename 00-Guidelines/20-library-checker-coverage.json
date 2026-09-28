@@ -1,0 +1,2860 @@
+{
+  "date": "2026-09-27",
+  "source": {
+    "id": "yosupo_tree",
+    "url": "https://api.github.com/repos/yosupo06/library-checker-problems/git/trees/master?recursive=1",
+    "final_url": "https://api.github.com/repos/yosupo06/library-checker-problems/git/trees/master?recursive=1",
+    "retrieved": "2026-09-27",
+    "bytes": 1330286,
+    "sha256": "b6758ea1994367916103824d83e1fb93f487b0aef9dbde75cf0bbfc6dfa0e1b8",
+    "ok": true
+  },
+  "excluded_categories": [
+    "sample",
+    "test"
+  ],
+  "problem_families": 250,
+  "unmapped_families": 0,
+  "limits": "This is a complete mapping of problem family directories at the fetched Library Checker tree snapshot, not a claim of complete coverage of all competitive programming, algorithm correctness, or accepted submissions. Most mappings used names/catalogs, with selected statements read for ambiguous contracts.",
+  "records": [
+    {
+      "problem": "big_integer/addition_of_big_integers",
+      "judge_url": "https://judge.yosupo.jp/problem/addition_of_big_integers",
+      "targets": [
+        "01-Core/07-infint.hpp",
+        "01-Core/08-infintmini.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "big_integer/addition_of_hex_big_integers",
+      "judge_url": "https://judge.yosupo.jp/problem/addition_of_hex_big_integers",
+      "targets": [
+        "01-Core/07-infint.hpp",
+        "01-Core/08-infintmini.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "big_integer/division_of_big_integers",
+      "judge_url": "https://judge.yosupo.jp/problem/division_of_big_integers",
+      "targets": [
+        "01-Core/07-infint.hpp",
+        "01-Core/08-infintmini.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "big_integer/division_of_hex_big_integers",
+      "judge_url": "https://judge.yosupo.jp/problem/division_of_hex_big_integers",
+      "targets": [
+        "01-Core/07-infint.hpp",
+        "01-Core/08-infintmini.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "big_integer/multiplication_of_big_integers",
+      "judge_url": "https://judge.yosupo.jp/problem/multiplication_of_big_integers",
+      "targets": [
+        "01-Core/07-infint.hpp",
+        "01-Core/08-infintmini.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "big_integer/multiplication_of_hex_big_integers",
+      "judge_url": "https://judge.yosupo.jp/problem/multiplication_of_hex_big_integers",
+      "targets": [
+        "01-Core/07-infint.hpp",
+        "01-Core/08-infintmini.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/bitwise_and_convolution",
+      "judge_url": "https://judge.yosupo.jp/problem/bitwise_and_convolution",
+      "targets": [
+        "05-Mathematics/24-transform_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/bitwise_xor_convolution",
+      "judge_url": "https://judge.yosupo.jp/problem/bitwise_xor_convolution",
+      "targets": [
+        "05-Mathematics/24-transform_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/convolution_F_2_64",
+      "judge_url": "https://judge.yosupo.jp/problem/convolution_F_2_64",
+      "targets": [
+        "05-Mathematics/42-finite_fields.hpp",
+        "05-Mathematics/65-convolution_specialized.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/convolution_mod",
+      "judge_url": "https://judge.yosupo.jp/problem/convolution_mod",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/13-convolution.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/convolution_mod_1000000007",
+      "judge_url": "https://judge.yosupo.jp/problem/convolution_mod_1000000007",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/13-convolution.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/convolution_mod_2_64",
+      "judge_url": "https://judge.yosupo.jp/problem/convolution_mod_2_64",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/65-convolution_specialized.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/convolution_mod_large",
+      "judge_url": "https://judge.yosupo.jp/problem/convolution_mod_large",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/13-convolution.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/gcd_convolution",
+      "judge_url": "https://judge.yosupo.jp/problem/gcd_convolution",
+      "targets": [
+        "05-Mathematics/24-transform_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/lcm_convolution",
+      "judge_url": "https://judge.yosupo.jp/problem/lcm_convolution",
+      "targets": [
+        "05-Mathematics/24-transform_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/min_plus_convolution_concave_arbitrary",
+      "judge_url": "https://judge.yosupo.jp/problem/min_plus_convolution_concave_arbitrary",
+      "targets": [
+        "05-Mathematics/53-semiring_convolution.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/min_plus_convolution_convex_arbitrary",
+      "judge_url": "https://judge.yosupo.jp/problem/min_plus_convolution_convex_arbitrary",
+      "targets": [
+        "05-Mathematics/53-semiring_convolution.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/min_plus_convolution_convex_convex",
+      "judge_url": "https://judge.yosupo.jp/problem/min_plus_convolution_convex_convex",
+      "targets": [
+        "05-Mathematics/53-semiring_convolution.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/mul_mod2n_convolution",
+      "judge_url": "https://judge.yosupo.jp/problem/mul_mod2n_convolution",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/65-convolution_specialized.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/mul_modp_convolution",
+      "judge_url": "https://judge.yosupo.jp/problem/mul_modp_convolution",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/65-convolution_specialized.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/multivariate_convolution",
+      "judge_url": "https://judge.yosupo.jp/problem/multivariate_convolution",
+      "targets": [
+        "05-Mathematics/13-convolution.hpp",
+        "05-Mathematics/50-multivariate_polynomial.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "convolution/multivariate_convolution_cyclic",
+      "judge_url": "https://judge.yosupo.jp/problem/multivariate_convolution_cyclic",
+      "targets": [
+        "05-Mathematics/13-convolution.hpp",
+        "05-Mathematics/50-multivariate_polynomial.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/area_of_union_of_rectangles",
+      "judge_url": "https://judge.yosupo.jp/problem/area_of_union_of_rectangles",
+      "targets": [
+        "03-Geometry/13-segment_union.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited.",
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/associative_array",
+      "judge_url": "https://judge.yosupo.jp/problem/associative_array",
+      "targets": [
+        "06-Miscellaneous/19-hash_families.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/deque",
+      "judge_url": "https://judge.yosupo.jp/problem/deque",
+      "targets": [
+        "02-Data Structures/25-heap_deque.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/deque_operate_all_composite",
+      "judge_url": "https://judge.yosupo.jp/problem/deque_operate_all_composite",
+      "targets": [
+        "02-Data Structures/30-aggregation_queue.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/double_ended_priority_queue",
+      "judge_url": "https://judge.yosupo.jp/problem/double_ended_priority_queue",
+      "targets": [
+        "02-Data Structures/25-heap_deque.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/dynamic_point_set_rectangle_affine_rectangle_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/dynamic_point_set_rectangle_affine_rectangle_sum",
+      "targets": [
+        "02-Data Structures/15-segment_tree_2d.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/dynamic_sequence_range_affine_range_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum",
+      "targets": [
+        "02-Data Structures/19-treap.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/line_add_get_min",
+      "judge_url": "https://judge.yosupo.jp/problem/line_add_get_min",
+      "targets": [
+        "02-Data Structures/21-lichao.hpp",
+        "02-Data Structures/22-convexhulltrick.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/majority_voting",
+      "judge_url": "https://judge.yosupo.jp/problem/majority_voting",
+      "targets": [
+        "02-Data Structures/32-static_range_queries.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/ordered_set",
+      "judge_url": "https://judge.yosupo.jp/problem/ordered_set",
+      "targets": [
+        "02-Data Structures/07-ordered_set.hpp",
+        "02-Data Structures/20-balanced_bst.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/persistent_queue",
+      "judge_url": "https://judge.yosupo.jp/problem/persistent_queue",
+      "targets": [
+        "02-Data Structures/47-persistentqueue.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/persistent_range_affine_range_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/persistent_range_affine_range_sum",
+      "targets": [
+        "02-Data Structures/18-persistentsegmenttree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/persistent_unionfind",
+      "judge_url": "https://judge.yosupo.jp/problem/persistent_unionfind",
+      "targets": [
+        "02-Data Structures/10-persistentdsu.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/point_add_range_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/point_add_range_sum",
+      "targets": [
+        "02-Data Structures/02-fenwick.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/point_add_rectangle_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/point_add_rectangle_sum",
+      "targets": [
+        "02-Data Structures/11-fenwick_tree_advanced.hpp",
+        "02-Data Structures/33-offline_rectangle_queries.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/point_set_range_composite",
+      "judge_url": "https://judge.yosupo.jp/problem/point_set_range_composite",
+      "targets": [
+        "02-Data Structures/03-segmenttree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/point_set_range_composite_large_array",
+      "judge_url": "https://judge.yosupo.jp/problem/point_set_range_composite_large_array",
+      "targets": [
+        "02-Data Structures/13-dynamicsegmenttree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/point_set_range_frequency",
+      "judge_url": "https://judge.yosupo.jp/problem/point_set_range_frequency",
+      "targets": [
+        "02-Data Structures/16-mergesorttree.hpp",
+        "02-Data Structures/32-static_range_queries.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/point_set_range_sort_range_composite",
+      "judge_url": "https://judge.yosupo.jp/problem/point_set_range_sort_range_composite",
+      "targets": [
+        "02-Data Structures/51-sortablesegmenttree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/predecessor_problem",
+      "judge_url": "https://judge.yosupo.jp/problem/predecessor_problem",
+      "targets": [
+        "02-Data Structures/36-fastset.hpp",
+        "02-Data Structures/42-vanemdeboas.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/queue_operate_all_composite",
+      "judge_url": "https://judge.yosupo.jp/problem/queue_operate_all_composite",
+      "targets": [
+        "02-Data Structures/30-aggregation_queue.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/range_add_range_min",
+      "judge_url": "https://judge.yosupo.jp/problem/range_add_range_min",
+      "targets": [
+        "02-Data Structures/12-lazysegmenttree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/range_affine_point_get",
+      "judge_url": "https://judge.yosupo.jp/problem/range_affine_point_get",
+      "targets": [
+        "02-Data Structures/12-lazysegmenttree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/range_affine_range_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/range_affine_range_sum",
+      "targets": [
+        "02-Data Structures/12-lazysegmenttree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/range_affine_range_sum_large_array",
+      "judge_url": "https://judge.yosupo.jp/problem/range_affine_range_sum_large_array",
+      "targets": [
+        "02-Data Structures/13-dynamicsegmenttree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/range_chmin_chmax_add_range_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/range_chmin_chmax_add_range_sum",
+      "targets": [
+        "02-Data Structures/14-segtreebeats.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/range_kth_smallest",
+      "judge_url": "https://judge.yosupo.jp/problem/range_kth_smallest",
+      "targets": [
+        "02-Data Structures/17-waveletmatrix.hpp",
+        "02-Data Structures/18-persistentsegmenttree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/range_linear_add_range_min",
+      "judge_url": "https://judge.yosupo.jp/problem/range_linear_add_range_min",
+      "targets": [
+        "02-Data Structures/45-kineticheap.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/range_parallel_unionfind",
+      "judge_url": "https://judge.yosupo.jp/problem/range_parallel_unionfind",
+      "targets": [
+        "02-Data Structures/52-rangeparallelunionfind.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/range_reverse_range_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/range_reverse_range_sum",
+      "targets": [
+        "02-Data Structures/19-treap.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/range_set_range_composite",
+      "judge_url": "https://judge.yosupo.jp/problem/range_set_range_composite",
+      "targets": [
+        "02-Data Structures/12-lazysegmenttree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/rectangle_add_point_get",
+      "judge_url": "https://judge.yosupo.jp/problem/rectangle_add_point_get",
+      "targets": [
+        "02-Data Structures/33-offline_rectangle_queries.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/rectangle_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/rectangle_sum",
+      "targets": [
+        "02-Data Structures/17-waveletmatrix.hpp",
+        "02-Data Structures/33-offline_rectangle_queries.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/segment_add_get_min",
+      "judge_url": "https://judge.yosupo.jp/problem/segment_add_get_min",
+      "targets": [
+        "02-Data Structures/21-lichao.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/set_xor_min",
+      "judge_url": "https://judge.yosupo.jp/problem/set_xor_min",
+      "targets": [
+        "02-Data Structures/26-trie.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/static_range_count_distinct",
+      "judge_url": "https://judge.yosupo.jp/problem/static_range_count_distinct",
+      "targets": [
+        "02-Data Structures/32-static_range_queries.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/static_range_frequency",
+      "judge_url": "https://judge.yosupo.jp/problem/static_range_frequency",
+      "targets": [
+        "02-Data Structures/32-static_range_queries.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/static_range_inversions_query",
+      "judge_url": "https://judge.yosupo.jp/problem/static_range_inversions_query",
+      "targets": [
+        "02-Data Structures/59-range_sequence_queries.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/static_range_lis_query",
+      "judge_url": "https://judge.yosupo.jp/problem/static_range_lis_query",
+      "targets": [
+        "02-Data Structures/59-range_sequence_queries.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/static_range_mode_query",
+      "judge_url": "https://judge.yosupo.jp/problem/static_range_mode_query",
+      "targets": [
+        "02-Data Structures/53-rangemode.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/static_range_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/static_range_sum",
+      "targets": [
+        "02-Data Structures/05-prefix_sum.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/static_range_sum_with_upper_bound",
+      "judge_url": "https://judge.yosupo.jp/problem/static_range_sum_with_upper_bound",
+      "targets": [
+        "02-Data Structures/17-waveletmatrix.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/static_rectangle_add_rectangle_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/static_rectangle_add_rectangle_sum",
+      "targets": [
+        "02-Data Structures/33-offline_rectangle_queries.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/staticrmq",
+      "judge_url": "https://judge.yosupo.jp/problem/staticrmq",
+      "targets": [
+        "02-Data Structures/04-sparsetable.hpp",
+        "02-Data Structures/54-linearrmq.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/unionfind",
+      "judge_url": "https://judge.yosupo.jp/problem/unionfind",
+      "targets": [
+        "02-Data Structures/01-dsu.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/unionfind_with_potential",
+      "judge_url": "https://judge.yosupo.jp/problem/unionfind_with_potential",
+      "targets": [
+        "02-Data Structures/29-weighteddsu.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "data_structure/unionfind_with_potential_non_commutative_group",
+      "judge_url": "https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group",
+      "targets": [
+        "02-Data Structures/29-weighteddsu.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/bell_number",
+      "judge_url": "https://judge.yosupo.jp/problem/bell_number",
+      "targets": [
+        "05-Mathematics/12-combinatorics_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/binomial_coefficient",
+      "judge_url": "https://judge.yosupo.jp/problem/binomial_coefficient",
+      "targets": [
+        "05-Mathematics/12-combinatorics_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/binomial_coefficient_prime_mod",
+      "judge_url": "https://judge.yosupo.jp/problem/binomial_coefficient_prime_mod",
+      "targets": [
+        "05-Mathematics/12-combinatorics_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/factorial",
+      "judge_url": "https://judge.yosupo.jp/problem/factorial",
+      "targets": [
+        "05-Mathematics/37-fastfactorial.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/many_factorials",
+      "judge_url": "https://judge.yosupo.jp/problem/many_factorials",
+      "targets": [
+        "05-Mathematics/37-fastfactorial.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/montmort_number_mod",
+      "judge_url": "https://judge.yosupo.jp/problem/montmort_number_mod",
+      "targets": [
+        "05-Mathematics/05-combinatorics.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/number_of_increasing_sequences_between_two_sequences",
+      "judge_url": "https://judge.yosupo.jp/problem/number_of_increasing_sequences_between_two_sequences",
+      "targets": [
+        "05-Mathematics/12-combinatorics_advanced.hpp"
+      ],
+      "read_scopes": [
+        "Complete statement read; parameters remain template symbols, no implementation/acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/number_of_subsequences",
+      "judge_url": "https://judge.yosupo.jp/problem/number_of_subsequences",
+      "targets": [
+        "07-Strings/20-subsequence_automaton.hpp"
+      ],
+      "read_scopes": [
+        "Complete statement read; parameters remain template symbols, no implementation/acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/partition_function",
+      "judge_url": "https://judge.yosupo.jp/problem/partition_function",
+      "targets": [
+        "05-Mathematics/12-combinatorics_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/q_binomial_coefficient_prime_mod",
+      "judge_url": "https://judge.yosupo.jp/problem/q_binomial_coefficient_prime_mod",
+      "targets": [
+        "05-Mathematics/12-combinatorics_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/sharp_p_subset_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/sharp_p_subset_sum",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp",
+        "06-Miscellaneous/29-knapsack_advanced.hpp"
+      ],
+      "read_scopes": [
+        "Complete statement read; parameters remain template symbols, no implementation/acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/stirling_number_of_the_first_kind",
+      "judge_url": "https://judge.yosupo.jp/problem/stirling_number_of_the_first_kind",
+      "targets": [
+        "05-Mathematics/12-combinatorics_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/stirling_number_of_the_first_kind_fixed_k",
+      "judge_url": "https://judge.yosupo.jp/problem/stirling_number_of_the_first_kind_fixed_k",
+      "targets": [
+        "05-Mathematics/12-combinatorics_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/stirling_number_of_the_first_kind_small_p_large_n",
+      "judge_url": "https://judge.yosupo.jp/problem/stirling_number_of_the_first_kind_small_p_large_n",
+      "targets": [
+        "05-Mathematics/12-combinatorics_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/stirling_number_of_the_second_kind",
+      "judge_url": "https://judge.yosupo.jp/problem/stirling_number_of_the_second_kind",
+      "targets": [
+        "05-Mathematics/12-combinatorics_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/stirling_number_of_the_second_kind_fixed_k",
+      "judge_url": "https://judge.yosupo.jp/problem/stirling_number_of_the_second_kind_fixed_k",
+      "targets": [
+        "05-Mathematics/12-combinatorics_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "enumerative_combinatorics/stirling_number_of_the_second_kind_small_p_large_n",
+      "judge_url": "https://judge.yosupo.jp/problem/stirling_number_of_the_second_kind_small_p_large_n",
+      "targets": [
+        "05-Mathematics/12-combinatorics_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "geo/all_furthest_neighbors",
+      "judge_url": "https://judge.yosupo.jp/problem/all_furthest_neighbors",
+      "targets": [
+        "03-Geometry/29-point_set_queries.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "geo/closest_pair",
+      "judge_url": "https://judge.yosupo.jp/problem/closest_pair",
+      "targets": [
+        "03-Geometry/05-closestpair.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "geo/convex_layers",
+      "judge_url": "https://judge.yosupo.jp/problem/convex_layers",
+      "targets": [
+        "03-Geometry/20-convex_hull_updates.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "geo/count_points_in_triangle",
+      "judge_url": "https://judge.yosupo.jp/problem/count_points_in_triangle",
+      "targets": [
+        "03-Geometry/29-point_set_queries.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "geo/euclidean_mst",
+      "judge_url": "https://judge.yosupo.jp/problem/euclidean_mst",
+      "targets": [
+        "03-Geometry/22-geometricmst.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "geo/furthest_pair",
+      "judge_url": "https://judge.yosupo.jp/problem/furthest_pair",
+      "targets": [
+        "03-Geometry/07-rotatingcalipers.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "geo/manhattanmst",
+      "judge_url": "https://judge.yosupo.jp/problem/manhattanmst",
+      "targets": [
+        "03-Geometry/21-manhattan_geometry.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "geo/minimum_enclosing_circle",
+      "judge_url": "https://judge.yosupo.jp/problem/minimum_enclosing_circle",
+      "targets": [
+        "03-Geometry/14-minimumenclosingcircle.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "geo/sort_points_by_argument",
+      "judge_url": "https://judge.yosupo.jp/problem/sort_points_by_argument",
+      "targets": [
+        "03-Geometry/01-point.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "geo/static_convex_hull",
+      "judge_url": "https://judge.yosupo.jp/problem/static_convex_hull",
+      "targets": [
+        "03-Geometry/04-convexhull.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/assignment",
+      "judge_url": "https://judge.yosupo.jp/problem/assignment",
+      "targets": [
+        "04-Graphs/23-assignment.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/biconnected_components",
+      "judge_url": "https://judge.yosupo.jp/problem/biconnected_components",
+      "targets": [
+        "04-Graphs/09-bridges_articulation.hpp",
+        "04-Graphs/27-blockcuttree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/bipartite_edge_coloring",
+      "judge_url": "https://judge.yosupo.jp/problem/bipartite_edge_coloring",
+      "targets": [
+        "04-Graphs/34-edge_coloring.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/bipartitematching",
+      "judge_url": "https://judge.yosupo.jp/problem/bipartitematching",
+      "targets": [
+        "04-Graphs/21-matching_bipartite.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/chordal_graph_recognition",
+      "judge_url": "https://judge.yosupo.jp/problem/chordal_graph_recognition",
+      "targets": [
+        "04-Graphs/33-chordalgraph.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/chromatic_number",
+      "judge_url": "https://judge.yosupo.jp/problem/chromatic_number",
+      "targets": [
+        "04-Graphs/67-coloring_exact.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/chromatic_polynomial",
+      "judge_url": "https://judge.yosupo.jp/problem/chromatic_polynomial",
+      "targets": [
+        "04-Graphs/67-coloring_exact.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/connected_components_of_complement_graph",
+      "judge_url": "https://judge.yosupo.jp/problem/connected_components_of_complement_graph",
+      "targets": [
+        "04-Graphs/43-implicit_graph.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/counting_c4",
+      "judge_url": "https://judge.yosupo.jp/problem/counting_c4",
+      "targets": [
+        "04-Graphs/35-subgraph_enumeration.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/counting_eulerian_circuits",
+      "judge_url": "https://judge.yosupo.jp/problem/counting_eulerian_circuits",
+      "targets": [
+        "04-Graphs/53-graph_counting.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/counting_spanning_tree_directed",
+      "judge_url": "https://judge.yosupo.jp/problem/counting_spanning_tree_directed",
+      "targets": [
+        "04-Graphs/53-graph_counting.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/counting_spanning_tree_undirected",
+      "judge_url": "https://judge.yosupo.jp/problem/counting_spanning_tree_undirected",
+      "targets": [
+        "04-Graphs/53-graph_counting.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/cycle_detection",
+      "judge_url": "https://judge.yosupo.jp/problem/cycle_detection",
+      "targets": [
+        "04-Graphs/02-traversal.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/cycle_detection_undirected",
+      "judge_url": "https://judge.yosupo.jp/problem/cycle_detection_undirected",
+      "targets": [
+        "04-Graphs/02-traversal.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/directedmst",
+      "judge_url": "https://judge.yosupo.jp/problem/directedmst",
+      "targets": [
+        "04-Graphs/25-directedmst.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/dominatortree",
+      "judge_url": "https://judge.yosupo.jp/problem/dominatortree",
+      "targets": [
+        "04-Graphs/24-dominatortree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/dynamic_graph_vertex_add_component_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum",
+      "targets": [
+        "04-Graphs/26-dynamic_connectivity.hpp",
+        "04-Graphs/63-fully_dynamic_connectivity.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/enumerate_cliques",
+      "judge_url": "https://judge.yosupo.jp/problem/enumerate_cliques",
+      "targets": [
+        "04-Graphs/49-maximumclique.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/enumerate_triangles",
+      "judge_url": "https://judge.yosupo.jp/problem/enumerate_triangles",
+      "targets": [
+        "04-Graphs/35-subgraph_enumeration.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/eulerian_trail_directed",
+      "judge_url": "https://judge.yosupo.jp/problem/eulerian_trail_directed",
+      "targets": [
+        "04-Graphs/10-euleriantrail.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/eulerian_trail_undirected",
+      "judge_url": "https://judge.yosupo.jp/problem/eulerian_trail_undirected",
+      "targets": [
+        "04-Graphs/10-euleriantrail.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/general_matching",
+      "judge_url": "https://judge.yosupo.jp/problem/general_matching",
+      "targets": [
+        "04-Graphs/22-matching_general.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/general_weighted_matching",
+      "judge_url": "https://judge.yosupo.jp/problem/general_weighted_matching",
+      "targets": [
+        "04-Graphs/64-weightedblossom.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/global_minimum_cut_of_dynamic_star_augmented_graph",
+      "judge_url": "https://judge.yosupo.jp/problem/global_minimum_cut_of_dynamic_star_augmented_graph",
+      "targets": [
+        "04-Graphs/76-dynamicstarmincut.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/incremental_minimum_spanning_forest",
+      "judge_url": "https://judge.yosupo.jp/problem/incremental_minimum_spanning_forest",
+      "targets": [
+        "04-Graphs/71-dynamicmst.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/incremental_scc",
+      "judge_url": "https://judge.yosupo.jp/problem/incremental_scc",
+      "targets": [
+        "04-Graphs/70-incrementalscc.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/k_shortest_walk",
+      "judge_url": "https://judge.yosupo.jp/problem/k_shortest_walk",
+      "targets": [
+        "04-Graphs/32-kshortestwalks.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/maximum_independent_set",
+      "judge_url": "https://judge.yosupo.jp/problem/maximum_independent_set",
+      "targets": [
+        "04-Graphs/49-maximumclique.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/min_cost_b_flow",
+      "judge_url": "https://judge.yosupo.jp/problem/min_cost_b_flow",
+      "targets": [
+        "04-Graphs/30-flow_with_demands.hpp",
+        "04-Graphs/65-costscalingflow.hpp",
+        "04-Graphs/66-networksimplex.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/minimum_diameter_spanning_tree",
+      "judge_url": "https://judge.yosupo.jp/problem/minimum_diameter_spanning_tree",
+      "targets": [
+        "04-Graphs/75-minimumdiameterspanningtree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/minimum_spanning_tree",
+      "judge_url": "https://judge.yosupo.jp/problem/minimum_spanning_tree",
+      "targets": [
+        "04-Graphs/06-mst.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/minimum_steiner_tree",
+      "judge_url": "https://judge.yosupo.jp/problem/minimum_steiner_tree",
+      "targets": [
+        "04-Graphs/36-steiner_tree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/scc",
+      "judge_url": "https://judge.yosupo.jp/problem/scc",
+      "targets": [
+        "04-Graphs/08-scc.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/shortest_path",
+      "judge_url": "https://judge.yosupo.jp/problem/shortest_path",
+      "targets": [
+        "04-Graphs/05-shortest_path.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/st_numbering",
+      "judge_url": "https://judge.yosupo.jp/problem/st_numbering",
+      "targets": [
+        "04-Graphs/60-stnumbering.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/three_edge_connected_components",
+      "judge_url": "https://judge.yosupo.jp/problem/three_edge_connected_components",
+      "targets": [
+        "04-Graphs/74-threeedgecomponents.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/tree_decomposition_width_2",
+      "judge_url": "https://judge.yosupo.jp/problem/tree_decomposition_width_2",
+      "targets": [
+        "04-Graphs/50-treedecomposition.hpp",
+        "04-Graphs/77-structured_graph.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "graph/two_edge_connected_components",
+      "judge_url": "https://judge.yosupo.jp/problem/two_edge_connected_components",
+      "targets": [
+        "04-Graphs/09-bridges_articulation.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/adjugate_matrix",
+      "judge_url": "https://judge.yosupo.jp/problem/adjugate_matrix",
+      "targets": [
+        "01-Core/10-matrix.hpp",
+        "05-Mathematics/44-determinant_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/characteristic_polynomial",
+      "judge_url": "https://judge.yosupo.jp/problem/characteristic_polynomial",
+      "targets": [
+        "01-Core/10-matrix.hpp",
+        "05-Mathematics/44-determinant_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/hafnian_of_matrix",
+      "judge_url": "https://judge.yosupo.jp/problem/hafnian_of_matrix",
+      "targets": [
+        "05-Mathematics/48-combinatorial_linear_algebra.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/intersection_of_f2_vector_spaces",
+      "judge_url": "https://judge.yosupo.jp/problem/intersection_of_f2_vector_spaces",
+      "targets": [
+        "01-Core/12-bitmatrix.hpp",
+        "01-Core/13-bitmatrixmini.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/inverse_matrix",
+      "judge_url": "https://judge.yosupo.jp/problem/inverse_matrix",
+      "targets": [
+        "01-Core/10-matrix.hpp",
+        "01-Core/11-matrixmini.hpp",
+        "05-Mathematics/16-linear_algebra.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/inverse_matrix_mod_2",
+      "judge_url": "https://judge.yosupo.jp/problem/inverse_matrix_mod_2",
+      "targets": [
+        "01-Core/12-bitmatrix.hpp",
+        "01-Core/13-bitmatrixmini.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/matrix_det",
+      "judge_url": "https://judge.yosupo.jp/problem/matrix_det",
+      "targets": [
+        "01-Core/10-matrix.hpp",
+        "01-Core/11-matrixmini.hpp",
+        "05-Mathematics/16-linear_algebra.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/matrix_det_arbitrary_mod",
+      "judge_url": "https://judge.yosupo.jp/problem/matrix_det_arbitrary_mod",
+      "targets": [
+        "01-Core/10-matrix.hpp",
+        "05-Mathematics/44-determinant_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/matrix_det_mod_2",
+      "judge_url": "https://judge.yosupo.jp/problem/matrix_det_mod_2",
+      "targets": [
+        "01-Core/12-bitmatrix.hpp",
+        "01-Core/13-bitmatrixmini.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/matrix_product",
+      "judge_url": "https://judge.yosupo.jp/problem/matrix_product",
+      "targets": [
+        "01-Core/10-matrix.hpp",
+        "01-Core/11-matrixmini.hpp",
+        "05-Mathematics/16-linear_algebra.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/matrix_product_mod_2",
+      "judge_url": "https://judge.yosupo.jp/problem/matrix_product_mod_2",
+      "targets": [
+        "01-Core/12-bitmatrix.hpp",
+        "01-Core/13-bitmatrixmini.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/matrix_rank",
+      "judge_url": "https://judge.yosupo.jp/problem/matrix_rank",
+      "targets": [
+        "01-Core/10-matrix.hpp",
+        "01-Core/11-matrixmini.hpp",
+        "05-Mathematics/16-linear_algebra.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/matrix_rank_mod_2",
+      "judge_url": "https://judge.yosupo.jp/problem/matrix_rank_mod_2",
+      "targets": [
+        "01-Core/12-bitmatrix.hpp",
+        "01-Core/13-bitmatrixmini.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/pfaffian_of_matrix",
+      "judge_url": "https://judge.yosupo.jp/problem/pfaffian_of_matrix",
+      "targets": [
+        "05-Mathematics/48-combinatorial_linear_algebra.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/pow_of_matrix",
+      "judge_url": "https://judge.yosupo.jp/problem/pow_of_matrix",
+      "targets": [
+        "01-Core/10-matrix.hpp",
+        "01-Core/11-matrixmini.hpp",
+        "05-Mathematics/16-linear_algebra.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/sparse_matrix_det",
+      "judge_url": "https://judge.yosupo.jp/problem/sparse_matrix_det",
+      "targets": [
+        "01-Core/14-sparsematrix.hpp",
+        "05-Mathematics/44-determinant_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/system_of_linear_equations",
+      "judge_url": "https://judge.yosupo.jp/problem/system_of_linear_equations",
+      "targets": [
+        "01-Core/10-matrix.hpp",
+        "01-Core/11-matrixmini.hpp",
+        "05-Mathematics/16-linear_algebra.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "linear_algebra/system_of_linear_equations_mod_2",
+      "judge_url": "https://judge.yosupo.jp/problem/system_of_linear_equations_mod_2",
+      "targets": [
+        "01-Core/12-bitmatrix.hpp",
+        "01-Core/13-bitmatrixmini.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/bernoulli_number",
+      "judge_url": "https://judge.yosupo.jp/problem/bernoulli_number",
+      "targets": [
+        "05-Mathematics/38-bernoulli.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/counting_primes",
+      "judge_url": "https://judge.yosupo.jp/problem/counting_primes",
+      "targets": [
+        "05-Mathematics/31-summatory_functions.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/counting_squarefrees",
+      "judge_url": "https://judge.yosupo.jp/problem/counting_squarefrees",
+      "targets": [
+        "05-Mathematics/31-summatory_functions.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/dirichlet_convolution_and_prefix_sums",
+      "judge_url": "https://judge.yosupo.jp/problem/dirichlet_convolution_and_prefix_sums",
+      "targets": [
+        "05-Mathematics/32-dirichlet_series.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/dirichlet_inverse_and_prefix_sums",
+      "judge_url": "https://judge.yosupo.jp/problem/dirichlet_inverse_and_prefix_sums",
+      "targets": [
+        "05-Mathematics/32-dirichlet_series.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/discrete_logarithm_fixed_mod",
+      "judge_url": "https://judge.yosupo.jp/problem/discrete_logarithm_fixed_mod",
+      "targets": [
+        "05-Mathematics/11-discrete_log_root.hpp",
+        "05-Mathematics/54-discrete_log_advanced.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/discrete_logarithm_mod",
+      "judge_url": "https://judge.yosupo.jp/problem/discrete_logarithm_mod",
+      "targets": [
+        "05-Mathematics/11-discrete_log_root.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/enumerate_primes",
+      "judge_url": "https://judge.yosupo.jp/problem/enumerate_primes",
+      "targets": [
+        "05-Mathematics/04-sieve_algorithms.hpp",
+        "05-Mathematics/06-segmentedsieve.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/enumerate_quotients",
+      "judge_url": "https://judge.yosupo.jp/problem/enumerate_quotients",
+      "targets": [
+        "05-Mathematics/18-floorsum.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/factorize",
+      "judge_url": "https://judge.yosupo.jp/problem/factorize",
+      "targets": [
+        "05-Mathematics/07-primality_factorization.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/gcd_of_gaussian_integers",
+      "judge_url": "https://judge.yosupo.jp/problem/gcd_of_gaussian_integers",
+      "targets": [
+        "05-Mathematics/57-quadratic_integer.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/kth_root_integer",
+      "judge_url": "https://judge.yosupo.jp/problem/kth_root_integer",
+      "targets": [
+        "05-Mathematics/21-integer_roots.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/kth_root_mod",
+      "judge_url": "https://judge.yosupo.jp/problem/kth_root_mod",
+      "targets": [
+        "05-Mathematics/11-discrete_log_root.hpp",
+        "05-Mathematics/33-modular_square_roots.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/min_of_mod_of_linear",
+      "judge_url": "https://judge.yosupo.jp/problem/min_of_mod_of_linear",
+      "targets": [
+        "05-Mathematics/18-floorsum.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/nim_product_64",
+      "judge_url": "https://judge.yosupo.jp/problem/nim_product_64",
+      "targets": [
+        "05-Mathematics/47-nimber.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/primality_test",
+      "judge_url": "https://judge.yosupo.jp/problem/primality_test",
+      "targets": [
+        "05-Mathematics/07-primality_factorization.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/primitive_root",
+      "judge_url": "https://judge.yosupo.jp/problem/primitive_root",
+      "targets": [
+        "05-Mathematics/11-discrete_log_root.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/rational_approximation",
+      "judge_url": "https://judge.yosupo.jp/problem/rational_approximation",
+      "targets": [
+        "05-Mathematics/20-continued_fraction.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/sqrt_mod",
+      "judge_url": "https://judge.yosupo.jp/problem/sqrt_mod",
+      "targets": [
+        "05-Mathematics/11-discrete_log_root.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/stern_brocot_tree",
+      "judge_url": "https://judge.yosupo.jp/problem/stern_brocot_tree",
+      "targets": [
+        "05-Mathematics/20-continued_fraction.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/sum_of_floor_of_linear",
+      "judge_url": "https://judge.yosupo.jp/problem/sum_of_floor_of_linear",
+      "targets": [
+        "05-Mathematics/18-floorsum.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/sum_of_multiplicative_function",
+      "judge_url": "https://judge.yosupo.jp/problem/sum_of_multiplicative_function",
+      "targets": [
+        "05-Mathematics/31-summatory_functions.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/sum_of_multiplicative_function_large",
+      "judge_url": "https://judge.yosupo.jp/problem/sum_of_multiplicative_function_large",
+      "targets": [
+        "05-Mathematics/31-summatory_functions.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/sum_of_totient_function",
+      "judge_url": "https://judge.yosupo.jp/problem/sum_of_totient_function",
+      "targets": [
+        "05-Mathematics/31-summatory_functions.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/tetration_mod",
+      "judge_url": "https://judge.yosupo.jp/problem/tetration_mod",
+      "targets": [
+        "05-Mathematics/30-modular_power_towers.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "number_theory/two_square_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/two_square_sum",
+      "targets": [
+        "05-Mathematics/34-quadratic_congruence.hpp",
+        "05-Mathematics/57-quadratic_integer.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "other/consecutive_terms_of_linear_recurrent_sequence",
+      "judge_url": "https://judge.yosupo.jp/problem/consecutive_terms_of_linear_recurrent_sequence",
+      "targets": [
+        "05-Mathematics/15-linear_recurrence.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "other/find_linear_recurrence",
+      "judge_url": "https://judge.yosupo.jp/problem/find_linear_recurrence",
+      "targets": [
+        "05-Mathematics/15-linear_recurrence.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "other/kth_term_of_linearly_recurrent_sequence",
+      "judge_url": "https://judge.yosupo.jp/problem/kth_term_of_linearly_recurrent_sequence",
+      "targets": [
+        "05-Mathematics/15-linear_recurrence.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "other/longest_increasing_subsequence",
+      "judge_url": "https://judge.yosupo.jp/problem/longest_increasing_subsequence",
+      "targets": [
+        "06-Miscellaneous/08-sequence_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "Catalog name/path; statement and acceptance not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "other/sum_of_exponential_times_polynomial",
+      "judge_url": "https://judge.yosupo.jp/problem/sum_of_exponential_times_polynomial",
+      "targets": [
+        "05-Mathematics/38-bernoulli.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "other/sum_of_exponential_times_polynomial_limit",
+      "judge_url": "https://judge.yosupo.jp/problem/sum_of_exponential_times_polynomial_limit",
+      "targets": [
+        "05-Mathematics/38-bernoulli.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "other/two_sat",
+      "judge_url": "https://judge.yosupo.jp/problem/two_sat",
+      "targets": [
+        "04-Graphs/18-twosat.hpp"
+      ],
+      "read_scopes": [
+        "Catalog name/path; statement and acceptance not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/composition_of_formal_power_series",
+      "judge_url": "https://judge.yosupo.jp/problem/composition_of_formal_power_series",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/52-relaxed_convolution.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/composition_of_formal_power_series_large",
+      "judge_url": "https://judge.yosupo.jp/problem/composition_of_formal_power_series_large",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/52-relaxed_convolution.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/compositional_inverse_of_formal_power_series",
+      "judge_url": "https://judge.yosupo.jp/problem/compositional_inverse_of_formal_power_series",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/52-relaxed_convolution.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/compositional_inverse_of_formal_power_series_large",
+      "judge_url": "https://judge.yosupo.jp/problem/compositional_inverse_of_formal_power_series_large",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/52-relaxed_convolution.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/conversion_from_monomial_basis_to_newton_basis",
+      "judge_url": "https://judge.yosupo.jp/problem/conversion_from_monomial_basis_to_newton_basis",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/22-interpolation.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/division_of_polynomials",
+      "judge_url": "https://judge.yosupo.jp/problem/division_of_polynomials",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/exp_of_formal_power_series",
+      "judge_url": "https://judge.yosupo.jp/problem/exp_of_formal_power_series",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/exp_of_formal_power_series_sparse",
+      "judge_url": "https://judge.yosupo.jp/problem/exp_of_formal_power_series_sparse",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/factorization_of_polynomials",
+      "judge_url": "https://judge.yosupo.jp/problem/factorization_of_polynomials",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/46-polynomial_factorization.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/inv_of_formal_power_series",
+      "judge_url": "https://judge.yosupo.jp/problem/inv_of_formal_power_series",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/inv_of_formal_power_series_2d",
+      "judge_url": "https://judge.yosupo.jp/problem/inv_of_formal_power_series_2d",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/50-multivariate_polynomial.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/inv_of_formal_power_series_sparse",
+      "judge_url": "https://judge.yosupo.jp/problem/inv_of_formal_power_series_sparse",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/inv_of_polynomials",
+      "judge_url": "https://judge.yosupo.jp/problem/inv_of_polynomials",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/log_of_formal_power_series",
+      "judge_url": "https://judge.yosupo.jp/problem/log_of_formal_power_series",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/log_of_formal_power_series_sparse",
+      "judge_url": "https://judge.yosupo.jp/problem/log_of_formal_power_series_sparse",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/multipoint_evaluation",
+      "judge_url": "https://judge.yosupo.jp/problem/multipoint_evaluation",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/22-interpolation.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/multipoint_evaluation_on_geometric_sequence",
+      "judge_url": "https://judge.yosupo.jp/problem/multipoint_evaluation_on_geometric_sequence",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/22-interpolation.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/polynomial_interpolation",
+      "judge_url": "https://judge.yosupo.jp/problem/polynomial_interpolation",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/22-interpolation.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/polynomial_interpolation_on_geometric_sequence",
+      "judge_url": "https://judge.yosupo.jp/problem/polynomial_interpolation_on_geometric_sequence",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/22-interpolation.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/polynomial_root_finding",
+      "judge_url": "https://judge.yosupo.jp/problem/polynomial_root_finding",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/46-polynomial_factorization.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/polynomial_taylor_shift",
+      "judge_url": "https://judge.yosupo.jp/problem/polynomial_taylor_shift",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/pow_of_formal_power_series",
+      "judge_url": "https://judge.yosupo.jp/problem/pow_of_formal_power_series",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/pow_of_formal_power_series_sparse",
+      "judge_url": "https://judge.yosupo.jp/problem/pow_of_formal_power_series_sparse",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/prefix_sum_of_polynomial",
+      "judge_url": "https://judge.yosupo.jp/problem/prefix_sum_of_polynomial",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/38-bernoulli.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/product_of_polynomial_sequence",
+      "judge_url": "https://judge.yosupo.jp/problem/product_of_polynomial_sequence",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/37-fastfactorial.hpp",
+        "05-Mathematics/51-polynomial_matrix.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/shift_of_sampling_points_of_polynomial",
+      "judge_url": "https://judge.yosupo.jp/problem/shift_of_sampling_points_of_polynomial",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/22-interpolation.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/sqrt_of_formal_power_series",
+      "judge_url": "https://judge.yosupo.jp/problem/sqrt_of_formal_power_series",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "polynomial/sqrt_of_formal_power_series_sparse",
+      "judge_url": "https://judge.yosupo.jp/problem/sqrt_of_formal_power_series_sparse",
+      "targets": [
+        "01-Core/16-poly.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "set_power_series/exp_of_set_power_series",
+      "judge_url": "https://judge.yosupo.jp/problem/exp_of_set_power_series",
+      "targets": [
+        "05-Mathematics/66-set_power_series.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "set_power_series/log_of_set_power_series",
+      "judge_url": "https://judge.yosupo.jp/problem/log_of_set_power_series",
+      "targets": [
+        "05-Mathematics/66-set_power_series.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "set_power_series/polynomial_composite_set_power_series",
+      "judge_url": "https://judge.yosupo.jp/problem/polynomial_composite_set_power_series",
+      "targets": [
+        "05-Mathematics/66-set_power_series.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "set_power_series/power_projection_of_set_power_series",
+      "judge_url": "https://judge.yosupo.jp/problem/power_projection_of_set_power_series",
+      "targets": [
+        "05-Mathematics/66-set_power_series.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "set_power_series/subset_convolution",
+      "judge_url": "https://judge.yosupo.jp/problem/subset_convolution",
+      "targets": [
+        "05-Mathematics/24-transform_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "catalog path/name; target mapping is not problem-statement or acceptance verification"
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "string/aho_corasick",
+      "judge_url": "https://judge.yosupo.jp/problem/aho_corasick",
+      "targets": [
+        "07-Strings/06-aho.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "string/eertree",
+      "judge_url": "https://judge.yosupo.jp/problem/eertree",
+      "targets": [
+        "07-Strings/13-palindromictree.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "string/enumerate_palindromes",
+      "judge_url": "https://judge.yosupo.jp/problem/enumerate_palindromes",
+      "targets": [
+        "07-Strings/05-manacher.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "string/longest_common_substring",
+      "judge_url": "https://judge.yosupo.jp/problem/longest_common_substring",
+      "targets": [
+        "07-Strings/28-multiple_string.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "string/lyndon_factorization",
+      "judge_url": "https://judge.yosupo.jp/problem/lyndon_factorization",
+      "targets": [
+        "07-Strings/14-lyndon.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "string/number_of_substrings",
+      "judge_url": "https://judge.yosupo.jp/problem/number_of_substrings",
+      "targets": [
+        "07-Strings/10-suffixautomaton.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "string/palindromes_in_deque",
+      "judge_url": "https://judge.yosupo.jp/problem/palindromes_in_deque",
+      "targets": [
+        "07-Strings/45-dynamicpalindrome.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "string/prefix_substring_lcs",
+      "judge_url": "https://judge.yosupo.jp/problem/prefix_substring_lcs",
+      "targets": [
+        "07-Strings/48-semilocallcs.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "string/runenumerate",
+      "judge_url": "https://judge.yosupo.jp/problem/runenumerate",
+      "targets": [
+        "07-Strings/26-runs.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "string/suffixarray",
+      "judge_url": "https://judge.yosupo.jp/problem/suffixarray",
+      "targets": [
+        "07-Strings/12-sais.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "string/wildcard_pattern_matching",
+      "judge_url": "https://judge.yosupo.jp/problem/wildcard_pattern_matching",
+      "targets": [
+        "07-Strings/21-wildcardmatching.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "string/zalgorithm",
+      "judge_url": "https://judge.yosupo.jp/problem/zalgorithm",
+      "targets": [
+        "07-Strings/02-z.hpp"
+      ],
+      "read_scopes": [
+        "Problem family path in repository tree; statement/generator not audited and no submission run."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/cartesian_tree",
+      "judge_url": "https://judge.yosupo.jp/problem/cartesian_tree",
+      "targets": [
+        "02-Data Structures/27-cartesiantree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/common_interval_decomposition_tree",
+      "judge_url": "https://judge.yosupo.jp/problem/common_interval_decomposition_tree",
+      "targets": [
+        "02-Data Structures/55-commonintervaltree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/dynamic_tree_subtree_add_subtree_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/dynamic_tree_subtree_add_subtree_sum",
+      "targets": [
+        "02-Data Structures/37-lct.hpp",
+        "02-Data Structures/39-toptree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/dynamic_tree_vertex_add_path_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/dynamic_tree_vertex_add_path_sum",
+      "targets": [
+        "02-Data Structures/37-lct.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/dynamic_tree_vertex_add_subtree_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/dynamic_tree_vertex_add_subtree_sum",
+      "targets": [
+        "02-Data Structures/37-lct.hpp",
+        "02-Data Structures/38-eulertourtree.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/dynamic_tree_vertex_set_path_composite",
+      "judge_url": "https://judge.yosupo.jp/problem/dynamic_tree_vertex_set_path_composite",
+      "targets": [
+        "02-Data Structures/37-lct.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/frequency_table_of_tree_distance",
+      "judge_url": "https://judge.yosupo.jp/problem/frequency_table_of_tree_distance",
+      "targets": [
+        "04-Graphs/16-centroiddecomposition.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/jump_on_tree",
+      "judge_url": "https://judge.yosupo.jp/problem/jump_on_tree",
+      "targets": [
+        "04-Graphs/07-lca.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/lca",
+      "judge_url": "https://judge.yosupo.jp/problem/lca",
+      "targets": [
+        "04-Graphs/07-lca.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/point_set_tree_path_composite_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/point_set_tree_path_composite_sum",
+      "targets": [
+        "04-Graphs/84-dynamictreedp.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/point_set_tree_path_composite_sum_fixed_root",
+      "judge_url": "https://judge.yosupo.jp/problem/point_set_tree_path_composite_sum_fixed_root",
+      "targets": [
+        "04-Graphs/84-dynamictreedp.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/rooted_tree_isomorphism_classification",
+      "judge_url": "https://judge.yosupo.jp/problem/rooted_tree_isomorphism_classification",
+      "targets": [
+        "04-Graphs/17-treeisomorphism.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/rooted_tree_topological_order_with_minimum_inversions",
+      "judge_url": "https://judge.yosupo.jp/problem/rooted_tree_topological_order_with_minimum_inversions",
+      "targets": [
+        "04-Graphs/79-tree_ordering.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/tree_diameter",
+      "judge_url": "https://judge.yosupo.jp/problem/tree_diameter",
+      "targets": [
+        "04-Graphs/14-tree_algorithms.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/tree_path_composite_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/tree_path_composite_sum",
+      "targets": [
+        "04-Graphs/14-tree_algorithms.hpp",
+        "04-Graphs/84-dynamictreedp.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/vertex_add_path_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/vertex_add_path_sum",
+      "targets": [
+        "04-Graphs/15-hld.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/vertex_add_range_contour_sum_on_tree",
+      "judge_url": "https://judge.yosupo.jp/problem/vertex_add_range_contour_sum_on_tree",
+      "targets": [
+        "04-Graphs/16-centroiddecomposition.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/vertex_add_subtree_sum",
+      "judge_url": "https://judge.yosupo.jp/problem/vertex_add_subtree_sum",
+      "targets": [
+        "04-Graphs/15-hld.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/vertex_get_range_contour_add_on_tree",
+      "judge_url": "https://judge.yosupo.jp/problem/vertex_get_range_contour_add_on_tree",
+      "targets": [
+        "04-Graphs/16-centroiddecomposition.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    },
+    {
+      "problem": "tree/vertex_set_path_composite",
+      "judge_url": "https://judge.yosupo.jp/problem/vertex_set_path_composite",
+      "targets": [
+        "04-Graphs/15-hld.hpp"
+      ],
+      "read_scopes": [
+        "Problem catalog name/path compared; full statement/generators not audited."
+      ],
+      "status": "inventoried; not an accepted-solution or implementation claim"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+You are an expert in C++20, particularly competitive programming.
+They are maximal algorithm templates I plan to use in contests like Codeforces.
+Please check IN ORDER if they 
+(1) PRIORITY: are maximially optimized with no bottlenecks, 
+(2) PRIORITY: have a complete featureset comparable to or exceeding Cpalgorithms/AtCoder/Codeforces/Grandmaster level (find appropriate links to confirm),
+(3) PRIORITY: are correct with no hidden bugs (intentional narrowing warnings do not need to be corrected) and, if possible, test every subfunction if it's 
+a large function or struct to ensure correctness
+(4) are concise without redundancy (note that the non-standard compressed formatting is on purpose).
+
+When you're done with those tasks. Do this fifth:
+(5) Help me make complete or update the stringent tests for EVERY feature of each algorithm (ideally 1 .py file to run per .hpp file, but more is ok).
+What I mean by this is I should only need to run the .py file and all the tests should run.
+You should use .cpp connected to the .py files if needed. Whatever makes the tests work better.
+Add the tests to the Z-Tests Local folder. You can look at the other tests in said folder if you need references understanding the task at hand.
+PRIORITY: Make the tests correct, comprehensive, and catch edge cases (it can be a suboptimal to accomodate this).
+The tests should be seamless, i.e. the tests already #include the specific algorithm so that the tests can be run as is.
+The tests should have appropriate named tests, progress bars (should edit in place and not in newline \r), etc. (clear progress indicators).
+The tests should print to the terminal PASS (green text) or FAIL (red text) with the appropriate and complete information.
+The tests should be named <folder name of algo>_<algo name>_<tester>.cpp or .py. For example, 1-Core_01-template_tester.cpp.
+
+Finally, do this sixth task.
+(6) Please check if they follow the styleguide with the correct time complexity comments.
+STYLE GUIDE
+[1] Always use {} if applicable to avoid bugs (excluding ternary statements). Never do the example below:
+EX: if (...)
+        something;
+[2] For inline if, for, while and similar statements, {} should have a space before and after its contents.
+    Otherwise, for non-inline statements, closing } should stick to the end of contents;
+EX: if (...) { for (...) { while (...) { ... } } }
+EX: if (...) {
+        something;}
+    else {
+        something;}
+[3] Nested lambda functions with a variable name should always use the auto = [](...) -> datatype format, 
+    where -> datatype is only included if ambiguous. Recursive nested lambda functions should have their 
+    names placed at the start of the arguments as auto &&name.
+EX: auto foo = [&](auto &&foo, ...) -> int {
+        foo(foo, ...);
+        return;    
+    };
+[4] Add std:: prefix to all applicable except for:
+    - common datatypes, istream, ostream, cerr
+    - pair, tuple, array, bitset, vector, deque, priority_queue, queue, stack, maps, sets
+    - abs, max, min, gcd, lcm, reverse, sort.
+[5] Pointers (*) and references (&) should always be attached to the variable and function names. 
+[6] Always use std::midpoint(l, r) over (l + r) / 2 if applicable.
+[7] Ignore narrowing warnings in comparisons like in i < arr.size() to save space and unnecessary verbosity.
+[8] Time complexity comments should be added on a line right before the algorithm (excluding template and debug).
+    Time complexity comments should either be of the form 
+    - // T: O(x), M: O(x) (time, memory for functions and simpler structs) OR
+    - // S: O(x), U: O(x), Q: O(x), M: O(x) (setup, update, query, memory for more complicated structs).
+    NA can be used if inapplicable, like S: NA if there is no setup.
+    If there are individual functions in the algorithm whose complexities do not align with the global one, 
+    a comment should be added in the line above said function with the correct complexity. For example:
+EX: // T: O(1) or O(n) (ambiguity is intentional here for conciseness), // M: O(1)
+    struct A {
+        ...
+        // T: O(log(n))
+        friend constexpr A pow(A a, int b) { ... }
+        ...
+    }
+    Finally, the only variables that should be used for the complexity comments are:
+    - n for non-graph algrithms OR
+    - V, E (vertices, edges) for graph algorithms.
+    Memory complexity should only be above the overall struct/function and not inside the helper functions.
+    If the time complexity is already stated above the struct/function, then functions inside said struct that fall into those time complexities
+    do NOT need to be labeled with said complexities. 
+    Also, no need to add time/memory complexity to AVX2/SIMD optimizations in namespaces.
+[9] Put constant factors before the variables in multiplications and divisions (e.g. 32 * a).
+[10] Make value-width conversions explicit and consistent.
+
+Think carefully; respond correctly, completely, and exactly; do not guess or be pedantic; and note the compressed coding style.
+If there's something to improve, compile a full list and provide the necessary code snippets to corrent (DO NOT send the whole code again to save tokens).
+Make sure you catch ALL possible issues to fix in the codes I sent you. I want a complete answer to not waste tokens.
+IMPORTANT: If there's nothing of significance to improve upon the code say "Nothing needs to be changed." and then terminate your response to save tokens.

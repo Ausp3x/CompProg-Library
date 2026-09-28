@@ -1,0 +1,405 @@
+\documentclass[a4paper, 8pt, landscape, oneside]{extarticle}
+\usepackage{amsfonts, amsmath, amssymb, amsthm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage[a4paper, top=1.2cm, bottom=0.8cm, left=0.5cm, right=0.5cm, headheight=15pt]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{lastpage}
+\usepackage{minted}
+\usepackage{multicol}
+\usepackage[document]{ragged2e}
+\usepackage[most]{tcolorbox}
+\usepackage[compact]{titlesec}
+\usepackage{xcolor}
+
+\DeclareMathOperator{\lcm}{lcm}
+\DeclareRobustCommand{\stirling}{\genfrac\{\}{0pt}{}}
+\DeclareUnicodeCharacter{2208}{in }
+\DeclareUnicodeCharacter{2261}{= }
+\newcommand*\BitAnd{\mathrel{\&}}
+\newcommand*\BitNeg{\ensuremath{\mathord{\sim}}}
+\newcommand*\BitOr{\mathrel{|}}
+\newcommand*\ShiftLeft{\ll}
+\newcommand*\ShiftRight{\gg}
+\newcommand{\custommintedsize}{\fontsize{7.5pt}{7.5pt}\selectfont}
+
+\setminted{breaklines=true, breaksymbolleft=, tabsize=2, fontsize=\custommintedsize}
+\setlength{\columnsep}{0.15in}
+\pagenumbering{arabic}
+
+\newcommand{\schoolname}{Ateneo de Manila University}
+\newcommand{\teamname}{The 100 Last Minute Bugs That Really, Really, Really, Really, Really Love You}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\lhead{\footnotesize \textbf{\schoolname} \ $\vert$ \ \teamname}
+\rhead{\footnotesize Page \thepage\ of \pageref{LastPage}}
+
+\begin{document}
+\title{\textbf{Team Notebook}}
+\author{\textbf{\schoolname} \\\\ \teamname}
+
+\begin{multicols*}{2}
+    \maketitle
+    \tableofcontents
+    \clearpage
+\end{multicols*}
+
+\begin{multicols*}{3}
+	\section{Boilerplate}
+		\subsection{Template}
+		\inputminted{cpp}{src/boilerplate/01-template.hpp}
+		\subsection{Debug}
+		\inputminted{cpp}{src/boilerplate/02-debug.hpp}
+		\subsection{Generator-Checker}
+		\inputminted{cpp}{src/boilerplate/gene-checker.py}
+	\section{Data Structures}
+		\subsection{Sparse Table}
+		\inputminted{cpp}{src/ds/sparsetable.cpp}
+		\subsection{Square Root Decomposition}
+		\inputminted{cpp}{src/ds/sqrtdecomp.cpp}
+		\subsection{Segment Tree Monoids}
+		\inputminted{cpp}{src/ds/monoids.cpp}
+		\subsection{Segment Tree}
+		\inputminted{cpp}{src/ds/segtree.cpp}
+		\subsection{2D Segment Tree}
+		\inputminted{cpp}{src/ds/segtree2d.cpp}
+		\subsection{Dynamic Segment Tree}
+		\inputminted{cpp}{src/ds/dynsegtree.cpp}
+		\subsection{Persistent Segment Tree}
+		\inputminted{cpp}{src/ds/persegtree.cpp}
+		\subsection{Kth Smallest Persistent Segment Tree}
+		\inputminted{cpp}{src/ds/kspersegtree.cpp}
+		\subsection{Segment Tree Beats}
+		\inputminted{cpp}{src/ds/segtreebeats.cpp}
+	\section{Geometry}
+		\subsection{Point}
+		\inputminted{cpp}{src/geometry/point.cpp}
+		\subsection{Area of a Polygon}
+		\inputminted{cpp}{src/geometry/polyarea.cpp}
+		\subsection{Intersection}
+		\inputminted{cpp}{src/geometry/intersection.cpp}
+		\subsection{Get Length of Segment Union}
+		\inputminted{cpp}{src/geometry/getlensegunion.cpp}
+		\subsection{Get Intersecting Segments}
+		\inputminted{cpp}{src/geometry/getintersectingsegs.cpp}
+		\subsection{Get Minimum Enclosing Circle}
+		\inputminted{cpp}{src/geometry/welzlmec.cpp}
+		\subsection{Get Nearest Pair of Points}
+		\inputminted{cpp}{src/geometry/getnearestpair.cpp}
+		\subsection{Li-Chao Tree}
+		\inputminted{cpp}{src/geometry/lichaotree.cpp}
+    \section{Graphs}
+    	\subsection{Topological Sort}
+    	\inputminted{cpp}{src/graph/old_topo.cpp}
+    	\subsection{Cycle Find DFS}
+    	\inputminted{cpp}{src/graph/old_cycle-find-dfs.cpp}
+    	\subsection{Disjoint Set Union/UnionFind}
+    	\inputminted{cpp}{src/graph/dsu.cpp}
+    	\subsection{Shortest Paths}
+    		\subsubsection{Dijkstra}
+    		\inputminted{cpp}{src/graph/old_dijkstra.cpp}
+    		\subsubsection{Bellman-Ford}
+    		\inputminted{cpp}{src/graph/old_bellman-ford.cpp}
+    		\subsubsection{Floyd-Warshall}
+    		\inputminted{cpp}{src/graph/old_floyd-warshall.cpp}
+   		\subsection{Trees}
+    		\subsubsection{Lowest Common Ancestor}
+    		\inputminted{cpp}{src/graph/lca.cpp}
+    		\subsubsection{Heavy Light Decomposition}
+    		\inputminted{cpp}{src/graph/hld.cpp}
+    		\subsubsection{Centroid Decomposition}
+    		\inputminted{cpp}{src/graph/old_centroid-decomposition.cpp}
+    	\subsection{Connectivity and Components}
+    		\subsubsection{Bridge-Finding Algorithm}
+    		\inputminted{cpp}{src/graph/old_bridgealgo.cpp}
+    		\subsubsection{Block-Cut Tree}
+    		\inputminted{cpp}{src/graph/old_block-cut-tree.cpp}
+    		\subsubsection{Cutpoints-Bridges}
+    		\inputminted{cpp}{src/graph/old_cutpoints-bridges.cpp}
+    		\subsubsection{Kosaraju}
+    		\inputminted{cpp}{src/graph/old_kosaraju.cpp}
+    		\subsubsection{2SAT}
+    		\inputminted{cpp}{src/graph/old_2SAT.cpp}
+    	\subsubsection{Flows and Bipartite Matching}
+    		\subsubsection{Dinic}
+    		\inputminted{cpp}{src/graph/old_dinic.cpp}
+    		\subsubsection{Ford-Fulkerson Directed}
+    		\inputminted{cpp}{src/graph/old_ford-fulkerson-d.cpp}
+    		\subsubsection{Ford-Fulkerson Undirected}
+    		\inputminted{cpp}{src/graph/old_ford-fulkerson-u.cpp}
+    		\subsubsection{Kuhn}
+    		\inputminted{cpp}{src/graph/old_kuhn.cpp}
+    		\subsubsection{Min Cost Max Flow}
+    		\inputminted{cpp}{src/graph/old_mcmf.cpp}
+    \section{Math}
+	    \subsection{Binary and Ternary Search}
+	    \inputminted{cpp}{src/math/search.hpp}
+	    \subsection{Modulo Integer}
+	    \inputminted{cpp}{src/math/00-modint.hpp}
+	    \inputminted{cpp}{src/math/00-dynmodint.hpp}
+	    \subsection{Matrix}
+	    \inputminted{cpp}{src/math/00-matrix.hpp}
+    	\subsection{Modulo Pow}
+    	\inputminted{cpp}{src/math/01-modpow.hpp}
+    	\subsection{Modulo Combinatorics}
+    	\inputminted{cpp}{src/math/old_modfac.cpp}
+    	\subsection{Dynamic MEX}
+    	\inputminted{cpp}{src/math/dynmex.cpp}
+    	\subsection{Extended Euclidean GCD}
+    	\inputminted{cpp}{src/math/02-exgcd.hpp}
+    	\subsection{Sieve of Eratosthenes}
+    	\inputminted{cpp}{src/math/03-sieveoferath.hpp}
+    	\subsection{Linear Sieve}
+    	\inputminted{cpp}{src/math/04-linearsieve.hpp}
+    	\subsection{Segmented Sieve}
+    	\inputminted{cpp}{src/math/segmentedsieve.hpp}
+    	\subsection{Is Prime Miller-Rabin}
+    	\inputminted{cpp}{src/math/05-isprimemr.hpp}
+    	\subsection{Get One Factor Brent's Pollard-Rho}
+    	\inputminted{cpp}{src/math/07-getonefacbpr.hpp}
+    	\subsection{Get Prime Factors}
+    	\inputminted{cpp}{src/math/06-getprimefacslow.hpp}
+    	\inputminted{cpp}{src/math/08-getprimefacfast.hpp}
+    	\subsection{Get All Factors}
+    	\inputminted{cpp}{src/math/09-getallfac.hpp}
+    	\subsection{Euler's Totient Function}
+    	\inputminted{cpp}{src/math/10-getphi.hpp}
+    	\subsection{Number of Divisors}
+    	\inputminted{cpp}{src/math/11-getnumdiv.hpp}
+    	\subsection{Sum of Divisors}
+    	\inputminted{cpp}{src/math/12-getsumdiv.hpp}
+    	\subsection{Inverse Modulo}
+    	\inputminted{cpp}{src/math/13-getinv.hpp}
+    	\subsection{Chinese Remainder Theorem}
+    	\inputminted{cpp}{src/math/14-chiremthm.hpp}
+    	\subsection{Garner}
+    	\inputminted{cpp}{src/math/15-garner.hpp}
+    	\subsection{Modulo Log}
+    	\inputminted{cpp}{src/math/16-modlog.hpp}
+    	\subsection{Primitive Root}
+    	\inputminted{cpp}{src/math/17-getprimroot.hpp}
+    	\subsection{Modulo Root}
+    	\inputminted{cpp}{src/math/18-modroot.hpp}
+    	\subsection{Floor Sum}
+    	\inputminted{cpp}{src/math/19-getfloorsum.hpp}
+    	\subsection{Montgomery Multiplication}
+    	\inputminted{cpp}{src/math/20-montgomery.hpp}
+    	\subsection{Poly FFT}
+    	\inputminted{cpp}{src/math/21-poly.hpp}
+    	\subsection{Moly NTT}
+    	\inputminted{cpp}{src/math/22-moly.hpp}
+    	\subsection{Fast Is Square}
+    	\inputminted{cpp}{src/math/issquare.hpp}
+    	\subsection{Josephus Problem}
+    	\inputminted{cpp}{src/math/josephus.hpp}
+    	\subsection{Simpson Integration}
+    	\inputminted{cpp}{src/math/simpsoninteg.hpp}
+    	\subsection{Solve Diophantine Equation}
+    	\inputminted{cpp}{src/math/solvedioeq.hpp}
+    	\subsection{Solve Modulo Equation}
+    	\inputminted{cpp}{src/math/solvemodeq.hpp}
+    \section{Misc}
+	    \subsection{Custom Hash}
+	    \inputminted{cpp}{src/misc/old_customhash.cpp}
+	    \subsection{Fast Convolutions}
+	    \inputminted{cpp}{src/misc/old_fastconv.cpp}
+	    \subsection{Kadane's Algorithm}
+	    \inputminted{cpp}{src/misc/old_kadane.cpp}
+	    \subsection{Longest Common Subsequence}
+	    \inputminted{cpp}{src/misc/old_lcs.py}
+	    \subsection{Longest Common Substring}
+	    \inputminted{cpp}{src/misc/old_lcssubstr.py}
+	    \subsection{Longest Increasing Subsequence}
+	    \inputminted{cpp}{src/misc/old_lis.cpp}
+	    \subsection{Random}
+	    \inputminted{cpp}{src/misc/old_random.cpp}
+	    \subsection{Z-Algorithm}
+	    \inputminted{cpp}{src/misc/old_zalgo.cpp}       
+        \section{Formulas}
+
+        % \item Number of permutations of length $n$ that have no fixed
+        %     points (derangements): $D_0 = 1, D_1 = 0, D_n = (n - 1)(D_{n-1}
+        %     + D_{n-2})$
+        % \item Number of permutations of length $n$ that have exactly $k$
+        %     fixed points: $\binom{n}{k} D_{n-k}$
+      
+      
+        \begin{itemize}[leftmargin=*]
+          \item \textbf{Legendre symbol:} $\left(\frac{a}{b}\right) = a^{(b-1)/2} \pmod{b}$, $b$ odd prime.
+          \item \textbf{Heron's formula:} A triangle with side lengths
+            $a,b,c$ has area $\sqrt{s(s-a)(s-b)(s-c)}$ where $s =
+            \frac{a+b+c}{2}$.
+          \item \textbf{Pick's theorem:} A polygon on an integer grid
+            strictly containing $i$ lattice points and having $b$ lattice
+            points on the boundary has area $i + \frac{b}{2} - 1$. (Nothing
+            similar in higher dimensions)
+          \item \textbf{Euler's totient:} The number of integers less than
+            $n$ that are coprime to $n$ are $n\prod_{p|n}\left(1 - \frac{1}{p}\right)$
+            where each $p$ is a distinct prime factor of $n$.
+          \item \textbf{König's theorem:} In any bipartite graph $G=(L\cup R,E)$, the number
+            of edges in a maximum matching is equal to the number of
+            vertices in a minimum vertex cover. Let $U$ be the set of
+            unmatched vertices in $L$, and $Z$ be the set of vertices that
+            are either in $U$ or are connected to $U$ by an alternating
+            path. Then $K=(L\setminus Z)\cup(R\cap Z)$ is the minimum
+            vertex cover.
+          \item A minumum Steiner tree for $n$ vertices requires at most $n-2$ additional Steiner vertices.
+          \item The number of vertices of a graph is equal to its minimum
+            vertex cover number plus the size of a maximum independent set.
+          \item \textbf{Lagrange polynomial} through points $(x_0,y_0),\ldots,(x_k,y_k)$ is $L(x) = \sum_{j=0}^k y_j \prod_{\shortstack{$\scriptscriptstyle 0\leq m \leq k$ \\ $\scriptscriptstyle m\neq j$}} \frac{x-x_m}{x_j - x_m}$
+          \item \textbf{Hook length formula:} If $\lambda$ is a Young diagram and $h_{\lambda}(i,j)$ is the hook-length of cell $(i,j)$, then then the number of Young tableux $d_{\lambda} = n!/\prod h_{\lambda}(i,j)$.
+          \item \textbf{Möbius inversion formula:} If $f(n) = \sum_{d|n} g(d)$, then $g(n) = \sum_{d|n} \mu(d) f(n/d)$. If $f(n) = \sum_{m=1}^n g(\lfloor n/m\rfloor)$, then $g(n) = \sum_{m=1}^n \mu(m)f(\lfloor\frac{n}{m}\rfloor)$.
+          \item \#primitive pythagorean triples with hypotenuse $<n$ approx $n/(2\pi)$.
+          \item \textbf{Frobenius Number:} largest number which can't be
+            expressed as a linear combination of numbers $a_1,\ldots,a_n$
+            with non-negative coefficients. $g(a_1,a_2) = a_1a_2-a_1-a_2$,
+            $N(a_1,a_2)=(a_1-1)(a_2-1)/2$. $g(d\cdot a_1,d\cdot a_2,a_3) =
+            d\cdot g(a_1,a_2,a_3) + a_3(d-1)$. An integer $x>\left(\max_i
+            a_i\right)^2$ can be expressed in such a way iff.\ $x\ |\
+            \mathrm{gcd}(a_1,\ldots,a_n)$.
+        \end{itemize}
+      
+        \subsection{Physics}
+          \begin{itemize}
+            \item \textbf{Snell's law:} $\frac{\sin\theta_1}{v_1} = \frac{\sin\theta_2}{v_2}$
+          \end{itemize}
+      
+        \subsection{Markov Chains}
+          A Markov Chain can be represented as a weighted directed graph of
+          states, where the weight of an edge represents the probability of
+          transitioning over that edge in one timestep. Let $P^{(m)} = (p^{(m)}_{ij})$
+          be the probability matrix of transitioning from state $i$ to state $j$
+          in $m$ timesteps, and note that $P^{(1)}$ is the adjacency matrix of
+          the graph. \textbf{Chapman-Kolmogorov:} $p^{(m+n)}_{ij} = \sum_{k}
+          p^{(m)}_{ik} p^{(n)}_{kj}$. It follows that $P^{(m+n)} =
+          P^{(m)}P^{(n)}$ and $P^{(m)} = P^m$. If $p^{(0)}$ is the initial
+          probability distribution (a vector), then $p^{(0)}P^{(m)}$ is the
+          probability distribution after $m$ timesteps.
+      
+          The return times of a state $i$ is $R_i = \{m\ |\ p^{(m)}_{ii} > 0 \}$,
+          and $i$ is \textit{aperiodic} if $\gcd(R_i) = 1$. A MC is aperiodic if
+          any of its vertices is aperiodic. A MC is \textit{irreducible} if the
+          corresponding graph is strongly connected.
+      
+          A distribution $\pi$ is stationary if $\pi P = \pi$. If MC is
+          irreducible then $\pi_i = 1/\mathbb{E}[T_i]$, where $T_i$ is the
+          expected time between two visits at $i$. $\pi_j/\pi_i$ is the expected
+          number of visits at $j$ in between two consecutive visits at $i$. A MC
+          is \textit{ergodic} if $\lim_{m\to\infty} p^{(0)} P^{m} = \pi$. A MC is
+          ergodic iff.\ it is irreducible and aperiodic.
+      
+          A MC for a random walk in an undirected weighted graph (unweighted
+          graph can be made weighted by adding $1$-weights) has $p_{uv} =
+          w_{uv}/\sum_{x} w_{ux}$. If the graph is connected, then $\pi_u =
+          \sum_{x} w_{ux} / \sum_{v}\sum_{x} w_{vx}$. Such a random walk is
+          aperiodic iff.\ the graph is not bipartite.
+      
+          An \textit{absorbing} MC is of the form $P = \left(\begin{matrix} Q & R
+          \\ 0 & I_r \end{matrix}\right)$. Let $N = \sum_{m=0}^\infty Q^m = (I_t
+          - Q)^{-1}$. Then, if starting in state $i$, the expected number of
+          steps till absorption is the $i$-th entry in $N1$. If starting in state
+          $i$, the probability of being absorbed in state $j$ is the $(i,j)$-th
+          entry of $NR$.
+      
+          Many problems on MC can be formulated in terms of a system of
+          recurrence relations, and then solved using Gaussian elimination.
+      
+        \subsection{Burnside's Lemma}
+          Let $G$ be a finite group that acts on a set $X$. For each $g$ in $G$
+          let $X^g$ denote the set of elements in $X$ that are fixed by $g$. Then
+          the number of orbits \[ |X/G| = \frac{1}{|G|} \sum_{g\in G} |X^g| \]
+      
+          \[
+              Z(S_n) = \frac{1}{n} \sum_{l=1}^n a_l Z(S_{n-l})
+          \]
+      
+        \subsection{Bézout's identity}
+          If $(x,y)$ is any solution to $ax+by=d$ (e.g.\ found by the Extended
+          Euclidean Algorithm), then all solutions are given by \[
+          \left(x+k\frac{b}{\gcd(a,b)}, y-k\frac{a}{\gcd(a,b)}\right) \]
+      
+        \subsection{Misc}
+          \subsubsection{Determinants and PM}
+            \begin{align*}
+              det(A) &= \sum_{\sigma \in S_n}\text{sgn}(\sigma)\prod_{i = 1}^n a_{i,\sigma(i)}\\
+              perm(A) &= \sum_{\sigma \in S_n} \prod_{i = 1}^n a_{i,\sigma(i)}\\
+              pf(A) &= \frac{1}{2^nn!}\sum_{\sigma \in S_{2n}} \text{sgn}(\sigma)\prod_{i = 1}^n a_{\sigma(2i-1),\sigma(2i)}\\ &= \sum_{M \in \text{PM}(n)} \text{sgn}(M) \prod_{(i,j) \in M} a_{i,j}
+            \end{align*}
+      
+          \subsubsection{BEST Theorem}
+            Count directed Eulerian cycles. Number of OST given by
+            Kirchoff's Theorem (remove r/c with root) $\#\textsc{OST}(G,r)
+            \cdot \prod_{v}(d_v-1)!$
+      
+          \subsubsection{Primitive Roots}
+            Only exists when $n$ is $2, 4, p^k, 2p^k$, where $p$ odd prime. Assume
+            $n$ prime. Number of primitive roots $\phi(\phi(n))$
+            Let $g$ be primitive root. All primitive roots are of the form $g^k$
+            where $k,\phi(p)$ are coprime.\\ $k$-roots:
+            $g^{i \cdot \phi(n) / k}$ for $0 \leq i < k$
+      
+          \subsubsection{Sum of primes} For any multiplicative $f$:
+            \[
+                S(n,p) = S(n, p-1) - f(p) \cdot (S(n/p,p-1) - S(p-1,p-1))
+            \]
+      
+          \subsubsection{Floor}
+            \begin{align*}
+                &\left\lfloor \left\lfloor x/y \right\rfloor / z \right\rfloor = \left\lfloor x / (yz) \right\rfloor \\
+                &x \% y = x - y \left\lfloor x / y \right\rfloor
+            \end{align*}
+            
+          \subsubsection{Large Primes}
+            100894373, 103893941, 999999937, 1000000007, 16208191877
+        \newpage
+        \subsection{Other Combinatorics Stuff}
+            \begin{tabular}{@{}l|l|l@{}}
+            \toprule
+            Catalan	&	$C_0=1$, $C_n=\frac{1}{n+1}\binom{2n}{n} = \sum_{i=0}^{n-1}C_iC_{n-i-1} = \frac{4n-2}{n+1}C_{n-1}$  & \\
+            Stirling 1st kind & $\left[{0\atop 0}\right]=1$, $\left[{n\atop 0}\right]=\left[{0\atop n}\right]=0$, $\left[{n\atop k}\right]=(n-1)\left[{n-1\atop k}\right]+\left[{n-1\atop k-1}\right]$ & \#perms of $n$ objs with exactly $k$ cycles\\
+            Stirling 2nd kind & $\left\{{n\atop 1}\right\}=\left\{{n\atop n}\right\}=1$, $\left\{{n\atop k}\right\} = k \left\{{ n-1 \atop k }\right\} + \left\{{n-1\atop k-1}\right\}$ & \#ways to partition $n$ objs into $k$ nonempty sets\\
+            Euler	& $\left \langle {n\atop 0} \right \rangle = \left \langle {n\atop n-1} \right \rangle = 1 $, $\left \langle {n\atop k} \right \rangle = (k+1) \left \langle {n-1\atop {k}} \right \rangle + (n-k)\left \langle {{n-1}\atop {k-1}} \right \rangle$ & \#perms of $n$ objs with exactly $k$ ascents \\
+            Euler 2nd Order &  $\left \langle \!\!\left \langle {n\atop k} \right \rangle \!\! \right \rangle = (k+1) \left \langle \!\! \left \langle {{n-1}\atop {k}} \right \rangle \!\! \right \rangle +(2n-k-1)\left \langle \!\! \left \langle {{n-1}\atop {k-1}} \right \rangle  \!\! \right \rangle$ & \#perms of ${1,1,2,2,...,n,n}$ with exactly $k$ ascents \\
+            Bell & $B_1 = 1$, $B_n = \sum_{k=0}^{n-1} B_k \binom{n-1}{k} = \sum_{k=0}^n\left\{{n\atop k}\right\}$ & \#partitions of $1..n$ (Stirling 2nd, no limit on k)\\
+            \bottomrule
+            \end{tabular}
+
+            \vspace{10pt}
+            \begin{tabular}{ll}
+                \#labeled rooted trees & $n^{n-1}$ \\
+                \#labeled unrooted trees & $n^{n-2}$ \\
+                \#forests of $k$ rooted trees & $\frac{k}{n}\binom{n}{k}n^{n-k}$ \\
+                % Kirchoff's theorem
+                $\sum_{i=1}^n i^2 = n(n+1)(2n+1)/6$ & $\sum_{i=1}^n i^3 = n^2(n+1)^2/4$ \\
+                $!n = n\times!(n-1)+(-1)^n$ & $!n = (n-1)(!(n-1)+!(n-2))$ \\
+                $\sum_{i=1}^n \binom{n}{i} F_i = F_{2n}$ & $\sum_{i} \binom{n-i}{i} = F_{n+1}$ \\
+                $\sum_{k=0}^n \binom{k}{m} = \binom{n+1}{m+1}$ & $x^k = \sum_{i=0}^k i!\stirling{k}{i}\binom{x}{i} = \sum_{i=0}^k \left\langle {k \atop i} \right\rangle\binom{x+i}{k}$ \\
+
+                $a\equiv b\pmod{x,y} \Rightarrow a\equiv b\pmod{\lcm(x,y)}$ & $\sum_{d|n} \phi(d) = n$ \\
+                $ac\equiv bc\pmod{m} \Rightarrow a\equiv b\pmod{\frac{m}{\gcd(c,m)}}$ & $(\sum_{d|n} \sigma_0(d))^2 = \sum_{d|n} \sigma_0(d)^3$ \\
+                $p$ prime $\Leftrightarrow (p-1)!\equiv -1\pmod{p}$ & $\gcd(n^a-1,n^b-1) = n^{\gcd(a,b)}-1$ \\
+                $\sigma_x(n) = \prod_{i=0}^{r} \frac{p_i^{(a_i + 1)x} - 1}{p_i^x - 1}$ & $\sigma_0(n) = \prod_{i=0}^r (a_i + 1)$ \\
+                $\sum_{k=0}^m (-1)^k \binom{n}{k} = (-1)^m \binom{n-1}{m}$ & \\
+                $2^{\omega(n)} = O(\sqrt{n})$ & $\sum_{i=1}^n 2^{\omega(i)} = O(n \log n)$ \\
+                % Kinematic equations
+                $d = v_i t + \frac{1}{2}at^2$ & $v_f^2 = v_i^2 + 2ad$ \\
+                $v_f = v_i + at$ & $d = \frac{v_i + v_f}{2}t$ \\
+            \end{tabular}
+            \subsection{The Twelvefold Way}
+                Putting $n$ balls into $k$ boxes.\\
+            \begin{tabular}{@{}c|c|c|c|c|l@{}}
+            Balls & same & distinct & same & distinct & \\
+            Boxes & same & same & distinct & distinct & Remarks\\
+            \hline
+                - & $\mathrm{p}_k(n)$ & $\sum_{i=0}^k \stirling{n}{i}$ & $\binom{n+k-1}{k-1}$ & $k^n$ & $\mathrm{p}_k(n)$: \#partitions of $n$ into $\le k$ positive parts \\
+                $\mathrm{size}\ge 1$ & $\mathrm{p}(n,k)$ & $\stirling{n}{k}$ & $\binom{n-1}{k-1}$ & $k!\stirling{n}{k}$ & $\mathrm{p}(n,k)$: \#partitions of $n$ into $k$ positive parts \\
+                $\mathrm{size}\le 1$ & $[n \le k]$ & $[n \le k]$ & $\binom{k}{n}$ & $n!\binom{k}{n}$ & $[cond]$: $1$ if $cond=true$, else $0$\\
+            \bottomrule
+            \end{tabular}
+            % \clearpage
+\end{multicols*}
+
+\end{document}

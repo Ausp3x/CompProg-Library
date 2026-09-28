@@ -1,0 +1,293 @@
+{
+  "seed": 20260927,
+  "cpu": "11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz",
+  "platform": "Linux-7.2.7-arch1-1-x86_64-with-glibc2.44",
+  "compiler": "g++ (GCC) 16.2.1 20260810",
+  "flags": [
+    "-std=gnu++20",
+    "-O2",
+    "-DNDEBUG"
+  ],
+  "python": "3.14.7",
+  "warmups": 1,
+  "repetitions": 5,
+  "units": "microseconds",
+  "statistic": "median",
+  "setup": "algorithm allocations and sorting included; input generation and result checking excluded",
+  "memory": "closestPair: O(n) auxiliary, 2 * n int arrays generally and n int indices for duplicate/axis-collinear early returns, plus sorting/recursion stack; legacy: 2 * n int arrays plus sorting/recursion stack; brute: O(1)",
+  "validation": "Brute-force exact pair/distance comparison for n<=2048; every timed output checked; large cases use tested implementation and legacy distance agreement; checksum consumed",
+  "limits": "Legacy uses 64-bit distance, finite INF64 and unspecified pair ties; benchmarks use safe bounded coordinates and compare its distance only. Shared-host timing is descriptive.",
+  "checksum": "checksum=92608331376",
+  "hashes": {
+    "03-Geometry/05-closestpair.hpp": "bc4ae779604ec51b33b962983f7f41eb3d5577ae9cfe5726b753d3a752352710",
+    "03-Geometry/01-point.hpp": "70819ac1ae6bb7f8e9d9c05ebe1fd6bc000289497522e71c51b15920ac3f5cdc",
+    "OLD/Team Notebook/src/geometry/getnearestpair.cpp": "d648087b52405bd8457c42555eb2a2e3b243099d007b1326316091a53bc136f8",
+    "96-Local Testing/03-Geometry/05-closestpair_benchmark.cpp": "cee54c58e46786bc7a9aef283981ac7795ca10b8dd09f9365f6a7e2910b244d6"
+  },
+  "rows": [
+    {
+      "n": 32,
+      "shape": "random",
+      "method": "closestPair",
+      "median_us": 1.189
+    },
+    {
+      "n": 32,
+      "shape": "random",
+      "method": "legacy",
+      "median_us": 0.779
+    },
+    {
+      "n": 32,
+      "shape": "random",
+      "method": "brute",
+      "median_us": 1.288
+    },
+    {
+      "n": 32,
+      "shape": "grid",
+      "method": "closestPair",
+      "median_us": 0.305
+    },
+    {
+      "n": 32,
+      "shape": "grid",
+      "method": "legacy",
+      "median_us": 0.563
+    },
+    {
+      "n": 32,
+      "shape": "grid",
+      "method": "brute",
+      "median_us": 1.272
+    },
+    {
+      "n": 32,
+      "shape": "vertical",
+      "method": "closestPair",
+      "median_us": 0.323
+    },
+    {
+      "n": 32,
+      "shape": "vertical",
+      "method": "legacy",
+      "median_us": 0.742
+    },
+    {
+      "n": 32,
+      "shape": "vertical",
+      "method": "brute",
+      "median_us": 1.279
+    },
+    {
+      "n": 32,
+      "shape": "duplicates",
+      "method": "closestPair",
+      "median_us": 0.306
+    },
+    {
+      "n": 32,
+      "shape": "duplicates",
+      "method": "legacy",
+      "median_us": 0.53
+    },
+    {
+      "n": 32,
+      "shape": "duplicates",
+      "method": "brute",
+      "median_us": 1.262
+    },
+    {
+      "n": 512,
+      "shape": "random",
+      "method": "closestPair",
+      "median_us": 34.043
+    },
+    {
+      "n": 512,
+      "shape": "random",
+      "method": "legacy",
+      "median_us": 25.824
+    },
+    {
+      "n": 512,
+      "shape": "random",
+      "method": "brute",
+      "median_us": 293.52
+    },
+    {
+      "n": 512,
+      "shape": "grid",
+      "method": "closestPair",
+      "median_us": 35.845
+    },
+    {
+      "n": 512,
+      "shape": "grid",
+      "method": "legacy",
+      "median_us": 17.434
+    },
+    {
+      "n": 512,
+      "shape": "grid",
+      "method": "brute",
+      "median_us": 308.007
+    },
+    {
+      "n": 512,
+      "shape": "vertical",
+      "method": "closestPair",
+      "median_us": 6.973
+    },
+    {
+      "n": 512,
+      "shape": "vertical",
+      "method": "legacy",
+      "median_us": 19
+    },
+    {
+      "n": 512,
+      "shape": "vertical",
+      "method": "brute",
+      "median_us": 317.424
+    },
+    {
+      "n": 512,
+      "shape": "duplicates",
+      "method": "closestPair",
+      "median_us": 7.075
+    },
+    {
+      "n": 512,
+      "shape": "duplicates",
+      "method": "legacy",
+      "median_us": 12.272
+    },
+    {
+      "n": 512,
+      "shape": "duplicates",
+      "method": "brute",
+      "median_us": 317.326
+    },
+    {
+      "n": 2048,
+      "shape": "random",
+      "method": "closestPair",
+      "median_us": 311.602
+    },
+    {
+      "n": 2048,
+      "shape": "random",
+      "method": "legacy",
+      "median_us": 264.505
+    },
+    {
+      "n": 2048,
+      "shape": "random",
+      "method": "brute",
+      "median_us": 5399.35
+    },
+    {
+      "n": 2048,
+      "shape": "grid",
+      "method": "closestPair",
+      "median_us": 260.175
+    },
+    {
+      "n": 2048,
+      "shape": "grid",
+      "method": "legacy",
+      "median_us": 128.649
+    },
+    {
+      "n": 2048,
+      "shape": "grid",
+      "method": "brute",
+      "median_us": 5192.54
+    },
+    {
+      "n": 2048,
+      "shape": "vertical",
+      "method": "closestPair",
+      "median_us": 31.315
+    },
+    {
+      "n": 2048,
+      "shape": "vertical",
+      "method": "legacy",
+      "median_us": 89.568
+    },
+    {
+      "n": 2048,
+      "shape": "vertical",
+      "method": "brute",
+      "median_us": 5145.2
+    },
+    {
+      "n": 2048,
+      "shape": "duplicates",
+      "method": "closestPair",
+      "median_us": 32.199
+    },
+    {
+      "n": 2048,
+      "shape": "duplicates",
+      "method": "legacy",
+      "median_us": 58.109
+    },
+    {
+      "n": 2048,
+      "shape": "duplicates",
+      "method": "brute",
+      "median_us": 5080.98
+    },
+    {
+      "n": 200000,
+      "shape": "random",
+      "method": "closestPair",
+      "median_us": 59301.3
+    },
+    {
+      "n": 200000,
+      "shape": "random",
+      "method": "legacy",
+      "median_us": 51541.8
+    },
+    {
+      "n": 200000,
+      "shape": "grid",
+      "method": "closestPair",
+      "median_us": 59894.7
+    },
+    {
+      "n": 200000,
+      "shape": "grid",
+      "method": "legacy",
+      "median_us": 29458
+    },
+    {
+      "n": 200000,
+      "shape": "vertical",
+      "method": "closestPair",
+      "median_us": 4752.14
+    },
+    {
+      "n": 200000,
+      "shape": "vertical",
+      "method": "legacy",
+      "median_us": 16119.4
+    },
+    {
+      "n": 200000,
+      "shape": "duplicates",
+      "method": "closestPair",
+      "median_us": 5967.43
+    },
+    {
+      "n": 200000,
+      "shape": "duplicates",
+      "method": "legacy",
+      "median_us": 10868.3
+    }
+  ]
+}
