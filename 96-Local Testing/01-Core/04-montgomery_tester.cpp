@@ -18,7 +18,7 @@ void checkEqual(ulll got, ulll expected, string_view operation) {
              << " smallest-known-reproducer: m=" << decimal(ctx_m) << " a=" << decimal(ctx_a)
              << " b=" << decimal(ctx_b) << " x=" << decimal(ctx_x)
              << " expected=" << decimal(expected) << " actual=" << decimal(got) << '\n';
-        std::exit(1); }}
+        std::exit(1);}}
 
 template<typename M>
 struct Oracle {
@@ -26,19 +26,21 @@ struct Oracle {
     using W = typename M::Wide;
     T mod, rinv, r;
 
-    Oracle(T m) : mod(m), rinv(1 % m), r((W(1) << M::BITS) % m) {
+    Oracle(T m) : mod(m), rinv(1 % m), r(T((W(1) << M::BITS) % m)) {
         // Repeated exact division by two in Z/mZ, independent of REDC/inv.
         for (int i = 0; i < M::BITS; i++) {
-            rinv = T((W(rinv) + (rinv & 1 ? mod : 0)) / 2); }}
+            rinv = T((W(rinv) + (rinv & 1 ? mod : 0)) / 2);}}
 
     T red(W x) const { return T((x % mod) * rinv % mod); }
     T init(T a) const { return T(W(a) * r % mod); }
     T mul(T a, T b) const { return T(W(a) * b % mod); }
+    T add(T a, T b) const { return T((W(a) + b) % mod); }
+    T sub(T a, T b) const { return T((W(a) + mod - b % mod) % mod); }
     T pow(T a, ulng e) const {
         T out = 1 % mod;
         for (; e; e >>= 1) {
             if (e & 1) { out = mul(out, a); }
-            a = mul(a, a); }
+            a = mul(a, a);}
         return out;}
 };
 
@@ -50,17 +52,47 @@ void pairCase(const M &m, const Oracle<M> &o, decltype(M().mod) a, decltype(M().
     checkEqual(x, o.init(a), "init"); checkEqual(m.get(x), a % m.mod, "get/init");
     checkEqual(m.mul(x, y), o.init(o.mul(a, b)), "mul");
     checkEqual(m.get(m.mul(x, y)), o.mul(a, b), "decoded product");
+    checkEqual(m.add(x, y), o.add(x, y), "add"); checkEqual(m.get(m.add(x, y)), o.add(a, b), "decoded sum");
+    checkEqual(m.sub(x, y), o.sub(x, y), "sub"); checkEqual(m.get(m.sub(x, y)), o.sub(a, b), "decoded difference");
     if (powers) {
         for (ulng e : {ulng(0), ulng(1), ulng(2), ulng(63), ~ulng(0)}) {
             ctx_b = e;
             checkEqual(m.pow(a, e), o.pow(a, e), "pow");
-            checkEqual(m.get(m.powMont(x, e)), o.pow(a, e), "powMont"); }}
+            checkEqual(m.get(m.powMont(x, e)), o.pow(a, e), "powMont");}}
     if (m.mod < (T(1) << (M::BITS - 2))) {
-        T lx = x + m.mod, ly = y + m.mod, z = m.mulLazy(lx, ly);
+        T lx = x + m.mod, ly = y + m.mod, z = m.mulLazy(lx, ly), s = m.addLazy(lx, ly), d = m.subLazy(lx, ly);
         ctx_a = lx; ctx_b = ly;
         checkEqual(z < 2 * m.mod, true, "lazy output bound");
         checkEqual(m.normalize(z), o.red(W(lx) * ly), "mulLazy");
-        checkEqual(m.normalize(m.mulLazy(z, lx)), o.red(W(z) * lx), "lazy chain"); }}
+        checkEqual(m.normalize(m.mulLazy(z, lx)), o.red(W(z) * lx), "lazy chain");
+        checkEqual(s < 2 * m.mod, true, "addLazy bound"); checkEqual(m.normalize(s), o.add(lx, ly), "addLazy");
+        checkEqual(d < 2 * m.mod, true, "subLazy bound"); checkEqual(m.normalize(d), o.sub(lx, ly), "subLazy");
+        checkEqual(m.normalize(m.subLazy(s, d)), o.sub(s, d), "lazy add/sub chain");}}
+
+// Guard over n words: scalar notes, and for Montgomery32 under AVX2 also whole
+// 8-lane notes, with every single position raised to mod or to the word maximum.
+template<typename M>
+void guardCases(const M &m, int n) {
+    using T = decltype(M().mod);
+    vector<T> a(n + 8);
+    auto verdict = [&](T bound) -> bool {
+        typename M::Guard g{bound}; int i = 0;
+#ifdef __AVX2__
+        if constexpr (M::BITS == 32) { for (; n - i >= 8; i += 8) { g.note(M::load(a.data() + i)); }}
+#endif
+        for (; i < n; i++) { g.note(a[i]); }
+        return g.ok();};
+    for (int i = 0; i < n; i++) { a[i] = T(rng() % m.mod); }
+    checkEqual(verdict(m.mod), true, "guard all canonical");
+    if (m.mod < (T(1) << (M::BITS - 2))) {
+        for (int i = 0; i < n; i++) { a[i] = T(rng() % (2 * m.mod)); }
+        checkEqual(verdict(T(2 * m.mod)), true, "guard all lazy");
+        for (int i = 0; i < n; i++) { a[i] = T(rng() % m.mod); }}
+    for (int i = 0; i < n; i++) {
+        T saved = a[i]; a[i] = m.mod; ctx_a = i;
+        checkEqual(verdict(m.mod), false, "guard one at modulus");
+        a[i] = ~T(0); checkEqual(verdict(m.mod), false, "guard one at maximum");
+        a[i] = saved;}}
 
 template<typename M>
 void modulusCase(decltype(M().mod) mod, bool bulk) {
@@ -79,13 +111,17 @@ void modulusCase(decltype(M().mod) mod, bool bulk) {
     if (mod > 1) { dividends.push_back(R); }
     for (W x : dividends) {
         ctx_x = x; checkEqual(m.red(x), o.red(x), "red boundary");
+        checkEqual(m.redc(x, false), o.red(x), "redc canonical boundary");
         if (mod < (T(1) << (M::BITS - 1))) {
-            T lazy = m.redLazy(x);
+            T lazy = m.redLazy(x), core = m.redc(x, true);
             checkEqual(lazy < 2 * mod, true, "redLazy bound");
-            checkEqual(m.normalize(lazy), o.red(x), "redLazy boundary"); }}
+            checkEqual(m.normalize(lazy), o.red(x), "redLazy boundary");
+            checkEqual(core < 2 * mod, true, "redc lazy bound"); checkEqual(m.normalize(core), o.red(x), "redc lazy boundary");}}
     if (!bulk) { return; }
     string saved_phase = phase;
     for (int n : {0, 1, 2, 7, 8, 9, 15, 16, 17, 31, 32, 33, 63, 65, 257}) {
+        phase = saved_phase + " guard n=" + std::to_string(n);
+        guardCases(m, n);
         for (int offset = 0; offset < 8; offset++) {
             phase = saved_phase + " bulk n=" + std::to_string(n) + " offset=" + std::to_string(offset);
             vector<T> raw(n + 16), av(n + 16), bv(n + 16), out(n + 16, TOP), expected(n);
@@ -94,7 +130,7 @@ void modulusCase(decltype(M().mod) mod, bool bulk) {
             m.init(raw.data() + offset, a, n);
             for (int i = 0; i < n; i++) {
                 ctx_a = raw[i + offset]; ctx_b = i;
-                checkEqual(a[i], o.init(raw[i + offset]), "bulk init"); expected[i] = o.red(W(a[i]) * b[i]); }
+                checkEqual(a[i], o.init(raw[i + offset]), "bulk init"); expected[i] = o.red(W(a[i]) * b[i]);}
             m.mul(a, b, c, n);
             for (int i = 0; i < n; i++) { ctx_b = i; checkEqual(c[i], expected[i], "bulk mul"); }
             checkEqual(out[offset + n], TOP, "bulk tail guard");
@@ -121,7 +157,7 @@ void modulusCase(decltype(M().mod) mod, bool bulk) {
                 m.mulLazy(a, b, c, n);
                 for (int i = 0; i < n; i++) {
                     checkEqual(c[i] < 2 * mod, true, "bulk lazy bound");
-                    checkEqual(m.normalize(c[i]), expected[i], "bulk lazy"); }
+                    checkEqual(m.normalize(c[i]), expected[i], "bulk lazy");}
                 checkEqual(out[offset + n], TOP, "bulk lazy tail guard");
                 m.mulLazy(a, b, a, n);
                 for (int i = 0; i < n; i++) { checkEqual(m.normalize(a[i]), expected[i], "bulk lazy left alias"); }
@@ -133,6 +169,7 @@ void modulusCase(decltype(M().mod) mod, bool bulk) {
                 for (int i = 0; i < n; i++) { checkEqual(m.normalize(a[i]), expected[i], "bulk lazy all alias"); }}}}
     phase = saved_phase;
     m.init(nullptr, nullptr, 0); m.get(nullptr, nullptr, 0); m.mul(nullptr, nullptr, nullptr, 0);
+    checkEqual(typename M::Guard{mod}.ok(), true, "guard empty");
     if (mod < (T(1) << (M::BITS - 2))) { m.mulLazy(nullptr, nullptr, nullptr, 0); }}
 
 template<typename M>
@@ -143,29 +180,37 @@ void run(string mode) {
     checkEqual(M().mod, 1, "default modulus");
     vector<T> mods = {1, 3, 5, 7, 17, 998244353, 1000000007, TOP, T(TOP - 2)};
     for (int i = 2; i < M::BITS; i++) {
-        mods.push_back(T((T(1) << i) - 1)); mods.push_back(T((T(1) << i) + 1)); }
+        mods.push_back(T((T(1) << i) - 1)); mods.push_back(T((T(1) << i) + 1));}
     sort(mods.begin(), mods.end()); mods.erase(unique(mods.begin(), mods.end()), mods.end());
-    for (T mod : mods) { modulusCase<M>(mod, mod == 1 || mod == 3 || mod == 998244353 || mod >= TOP - 2
-                                               || mod == (T(1) << (M::BITS - 2)) - 1
-                                               || mod == (T(1) << (M::BITS - 1)) - 1); }
+    for (T mod : mods) {
+        bool bulk = mod == 1 || mod == 3 || mod == 998244353 || mod >= TOP - 2
+                    || mod == (T(1) << (M::BITS - 2)) - 1 || mod == (T(1) << (M::BITS - 1)) - 1;
+        modulusCase<M>(mod, bulk);}
     M regression(TOP);
     ctx_m = TOP; ctx_a = ctx_b = TOP - 1; ctx_x = W(TOP - 1) * (TOP - 1);
     checkEqual(regression.mul(TOP - 1, TOP - 1), 1, "carry beyond double word");
     checkEqual(regression.red((W(TOP) << M::BITS) - 1), TOP - 1, "max REDC dividend");
-    cout << "PASS " << phase << " conversion/power/carry/bulk aliases and offsets\n";
+    checkEqual(regression.add(TOP - 1, TOP - 2), TOP - 3, "add carry past the word");
+    checkEqual(regression.sub(0, TOP - 1), 1, "sub borrow past zero");
+    cout << "PASS " << phase << " conversion/power/carry/add/sub/bulk aliases and offsets\n";
     phase = std::to_string(M::BITS) + "-exhaustive";
     int bound = mode == "quick" ? 17 : mode == "full" ? 65 : 129;
     for (int mod = 1; mod <= bound; mod += 2) {
-        M m(mod); Oracle<M> o(mod); ctx_m = mod;
+        M m{T(mod)}; Oracle<M> o{T(mod)}; ctx_m = T(mod);
         for (int a = 0; a < 2 * mod; a++) {
-            ctx_a = a; checkEqual(m.normalize(a), a % mod, "normalize exhaustive");
+            ctx_a = T(a); checkEqual(m.normalize(T(a)), T(a % mod), "normalize exhaustive");
             for (int b = 0; b < 2 * mod; b++) {
-                ctx_b = b;
-                T x = m.mulLazy(a, b);
+                ctx_b = T(b);
+                T x = m.mulLazy(T(a), T(b)), s = m.addLazy(T(a), T(b)), d = m.subLazy(T(a), T(b));
                 checkEqual(x < T(2 * mod), true, "lazy exhaustive bound");
-                checkEqual(m.normalize(x), o.red(W(a) * b), "lazy exhaustive");
-                if (a < mod && b < mod) { checkEqual(m.mul(a, b), o.red(W(a) * b), "canonical exhaustive"); }}}
-        for (int x = 0; x < 16 * mod; x++) { ctx_x = x; checkEqual(m.red(x), o.red(x), "red exhaustive"); }}
+                checkEqual(m.normalize(x), o.red(W(a) * W(b)), "lazy exhaustive");
+                checkEqual(s < T(2 * mod), true, "addLazy exhaustive bound"); checkEqual(m.normalize(s), o.add(T(a), T(b)), "addLazy exhaustive");
+                checkEqual(d < T(2 * mod), true, "subLazy exhaustive bound"); checkEqual(m.normalize(d), o.sub(T(a), T(b)), "subLazy exhaustive");
+                if (a < mod && b < mod) {
+                    checkEqual(m.mul(T(a), T(b)), o.red(W(a) * W(b)), "canonical exhaustive");
+                    checkEqual(m.add(T(a), T(b)), o.add(T(a), T(b)), "add exhaustive");
+                    checkEqual(m.sub(T(a), T(b)), o.sub(T(a), T(b)), "sub exhaustive");}}}
+        for (int x = 0; x < 16 * mod; x++) { ctx_x = T(x); checkEqual(m.red(W(x)), o.red(W(x)), "red exhaustive"); }}
     cout << "PASS " << phase << " odd moduli <=" << bound << "\n";
     phase = std::to_string(M::BITS) + "-random";
     int count = mode == "quick" ? 500 : mode == "full" ? 10000 : 100000;
@@ -178,19 +223,23 @@ void run(string mode) {
         if (mod < (T(1) << (M::BITS - 1))) {
             T lazy = m.redLazy(x);
             checkEqual(lazy < 2 * mod, true, "redLazy random bound");
-            checkEqual(m.normalize(lazy), o.red(x), "redLazy random"); }}
+            checkEqual(m.normalize(lazy), o.red(x), "redLazy random");}}
     cout << "PASS " << phase << " cases=" << count << '\n';}
 
 template<typename M>
 void death(const string &name) {
     using T = decltype(M().mod); using W = typename M::Wide;
     M m(17);
-    T a[8]{}, b[8]{}, c[8]{};
+    T a[16]{}, b[16]{}, c[16]{};
     if (name == "zero") { M invalid(0); }
     else if (name == "even") { M invalid(2); }
     else if (name == "red") { m.red(W(m.mod) << M::BITS); }
     else if (name == "mul-a") { m.mul(17, 0); }
     else if (name == "mul-b") { m.mul(0, 17); }
+    else if (name == "add-a") { m.add(17, 0); }
+    else if (name == "add-b") { m.add(0, 17); }
+    else if (name == "sub-a") { m.sub(17, 0); }
+    else if (name == "sub-b") { m.sub(0, 17); }
     else if (name == "get") { m.get(17); }
     else if (name == "powMont") { m.powMont(17, 0); }
     else if (name == "lazy-mod") { M((T(1) << (M::BITS - 1)) + 1).redLazy(0); }
@@ -200,12 +249,21 @@ void death(const string &name) {
     else if (name == "lazy-mul-mod") { M((T(1) << (M::BITS - 2)) + 1).mulLazy(0, 0); }
     else if (name == "lazy-mul-a") { m.mulLazy(34, 0); }
     else if (name == "lazy-mul-b") { m.mulLazy(0, 34); }
+    else if (name == "lazy-add-mod") { M((T(1) << (M::BITS - 2)) + 1).addLazy(0, 0); }
+    else if (name == "lazy-add-a") { m.addLazy(34, 0); }
+    else if (name == "lazy-add-b") { m.addLazy(0, 34); }
+    else if (name == "lazy-sub-mod") { M((T(1) << (M::BITS - 2)) + 1).subLazy(0, 0); }
+    else if (name == "lazy-sub-a") { m.subLazy(34, 0); }
+    else if (name == "lazy-sub-b") { m.subLazy(0, 34); }
     else if (name == "bulk-mul-n") { m.mul(a, b, c, -1); }
     else if (name == "bulk-mul-null-a") { m.mul(nullptr, b, c, 1); }
     else if (name == "bulk-mul-null-b") { m.mul(a, nullptr, c, 1); }
     else if (name == "bulk-mul-null-c") { m.mul(a, b, nullptr, 1); }
     else if (name == "bulk-mul-a") { a[7] = 17; m.mul(a, b, c, 8); }
     else if (name == "bulk-mul-b") { b[7] = 17; m.mul(a, b, c, 8); }
+    else if (name == "bulk-mul-vector-a") { a[0] = 17; m.mul(a, b, c, 16); }
+    else if (name == "bulk-mul-tail-a") { a[2] = 17; m.mul(a, b, c, 3); }
+    else if (name == "bulk-mul-tail-b") { b[10] = ~T(0); m.mul(a, b, c, 11); }
     else if (name == "bulk-init-n") { m.init(a, c, -1); }
     else if (name == "bulk-init-null-a") { m.init(nullptr, c, 1); }
     else if (name == "bulk-init-null-c") { m.init(a, nullptr, 1); }
@@ -213,6 +271,7 @@ void death(const string &name) {
     else if (name == "bulk-get-null-a") { m.get(nullptr, c, 1); }
     else if (name == "bulk-get-null-c") { m.get(a, nullptr, 1); }
     else if (name == "bulk-get-a") { a[7] = 17; m.get(a, c, 8); }
+    else if (name == "bulk-get-tail") { a[9] = 17; m.get(a, c, 10); }
     else if (name == "bulk-lazy-n") { m.mulLazy(a, b, c, -1); }
     else if (name == "bulk-lazy-null-a") { m.mulLazy(nullptr, b, c, 1); }
     else if (name == "bulk-lazy-null-b") { m.mulLazy(a, nullptr, c, 1); }
@@ -220,6 +279,8 @@ void death(const string &name) {
     else if (name == "bulk-lazy-mod") { M((T(1) << (M::BITS - 2)) + 1).mulLazy(a, b, c, 0); }
     else if (name == "bulk-lazy-a") { a[7] = 34; m.mulLazy(a, b, c, 8); }
     else if (name == "bulk-lazy-b") { b[7] = 34; m.mulLazy(a, b, c, 8); }
+    else if (name == "bulk-lazy-tail-a") { a[8] = 34; m.mulLazy(a, b, c, 9); }
+    else if (name == "bulk-lazy-tail-b") { b[8] = ~T(0); m.mulLazy(a, b, c, 9); }
     else { cerr << "Unknown death case " << name << '\n'; std::exit(2); }
     cerr << "Precondition was not rejected: " << name << '\n'; std::exit(1);}
 

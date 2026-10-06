@@ -4,6 +4,7 @@
 All modes execute optimized scalar, checked scalar and available AVX2/POPCNT
 builds. Full and stress also execute ASan/UBSan scalar and AVX2 builds. The
 C++ oracle models each bit independently and retains checks under -DNDEBUG.
+Every build uses -Werror, so a new warning in the header or tester is a failure.
 --counts-only restricts any mode to the named count and value-operator regressions.
 """
 from __future__ import annotations
@@ -28,7 +29,8 @@ DEATH_CASES = ("test", "const-index", "proxy-index", "set", "reset", "flip",
                "next", "prev", "pop-empty", "string", "words-short", "words-long",
                "and-size", "or-size", "xor-size", "difference-size", "intersects-size",
                "subset-size", "count-and-size", "count-or-size", "count-xor-size",
-               "assign-size", "shift-size")
+               "assign-size", "shift-size", "combine-range-order", "combine-range-end",
+               "combine-range-source", "combine-range-offset", "slice-order", "slice-end")
 
 
 class Failure(RuntimeError):
@@ -90,7 +92,7 @@ def main() -> int:
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1",
                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion"]
+    flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
     scalar = ["-march=x86-64", "-mno-avx", "-mno-avx2", "-mno-popcnt"]
     vector = ["-march=x86-64", "-mavx2", "-mpopcnt"]
     variants = [("optimized-scalar", ["-O3", "-DNDEBUG", *scalar]),
@@ -126,7 +128,7 @@ def main() -> int:
                     command.append("--counts-only")
                 progress(label)
                 output = execute(command,
-                                 label, 300 if args.mode == "stress" else 180, env)
+                                 label, 1200 if args.mode == "stress" else 600, env)
                 if sys.stdout.isatty():
                     print("\r\033[K", end="")
                 for line in output.splitlines():

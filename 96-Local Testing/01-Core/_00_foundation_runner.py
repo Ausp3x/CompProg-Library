@@ -47,8 +47,8 @@ def run_suite(name, sources, compile_check=None):
         if terminal:
             print(f"\r[{done}/{total}] {label}\033[K", end="", flush=True)
         result = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, timeout=180)
-        if (expected == 0 and result.returncode != 0) or (expected != 0 and result.returncode != expected):
-            raise RuntimeError(f"{label}: exit={result.returncode}, expected={expected}\n{result.stdout}{result.stderr}")
+        if (expected == 0 and result.returncode != 0) or (expected != 0 and (result.returncode != expected or "assert" not in result.stderr.lower())):
+            raise RuntimeError(f"{label}: exit={result.returncode}, expected={expected} (assertion message required for aborts)\n{result.stdout}{result.stderr}")
         done += 1
         line = status(f"PASS {name}: [{done}/{total}] {label}")
         print(("\r" if terminal else "") + line + ("\033[K" if terminal else ""), end="" if terminal else "\n", flush=True)
@@ -59,7 +59,7 @@ def run_suite(name, sources, compile_check=None):
             for config, flags in configs:
                 for source in sources:
                     binary = Path(temp) / f"{Path(source).stem}-{config}"
-                    execute([compiler, "-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", *flags, HERE / source, "-o", binary], f"{config} compile {source}")
+                    execute([compiler, "-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror", *flags, HERE / source, "-o", binary], f"{config} compile {source}")
                     execute([binary], f"{config} run {source}")
                     if source == "02-debug_tester.cpp" and config == "checked":
                         for case in ("negative-start", "inverted-range", "tracer-depth"):

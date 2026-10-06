@@ -17,7 +17,7 @@ def main():
     parser.add_argument("--repetitions", type=int, default=5)
     parser.add_argument("--milliseconds", type=float, default=1)
     parser.add_argument("--config", choices=("all", "scalar", "avx2"), default="all")
-    parser.add_argument("--suite", choices=("all", "candidates", "actual", "inverses"), default="all")
+    parser.add_argument("--suite", choices=("all", "candidates", "actual", "construction", "inverses"), default="all")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     if not 0 <= args.seed < 2**64 or args.repetitions < 1 or args.milliseconds <= 0:
@@ -38,7 +38,7 @@ def main():
           "seed": args.seed, "repetitions": args.repetitions, "target_ms": args.milliseconds, "suite": args.suite,
           "warmup": "double iterations until target duration; then median of repetitions",
           "reference": "unsigned double-width multiplication/remainder; fixed=true exposes compile-time modulus, fixed=false hides it from propagation",
-          "setup": "contexts excluded except montgomery-setup; fixed setup allows constant folding; dynamic setup hides modulus from propagation; ordinary Montgomery candidates include conversions; actual type setMod(prm=0) excluded, per-power local setup included",
+          "setup": "contexts excluded except montgomery-setup; fixed setup allows constant folding; dynamic setup hides modulus from propagation; ordinary Montgomery candidates include conversions; actual type setMod(prm=0) excluded, per-power local setup included; construction compares the type's constructor from int/lng with the former 128-bit signed remainder on the same inputs",
           "memory": "O(1) contexts; candidate bulk owns six n-word arrays, including two Montgomery scratch; actual bulk owns four n-word arrays; inverse workload three n-word arrays plus batch temporary; only batchInv's own allocation is timed",
           "barrier": "compiler memory clobber per iteration, escaped outputs and volatile checksum prevent elision",
           "scope": "backend candidates for canonical-residue modular types; isolated timings do not establish the outside-Core end-to-end rule"})

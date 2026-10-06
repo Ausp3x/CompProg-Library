@@ -25,17 +25,25 @@ namespace modint_detail {
             if (i == s) { return false; }}
         return true;}
 
-    // T: O(1 + log(e + 1)), M: O(1); odd modulus, ordinary input/output.
     // GCC's constant-modulus specialization regresses this full-width REDC loop;
     // retain the measured generic kernel, including setup. See 24-modint.md.
+    // T: O(1 + log(e + 1)), M: O(1); odd modulus, ordinary input/output.
     [[gnu::noinline, gnu::noipa]] inline ulng powerMontgomery(ulng a, ulng m, ulll e) {
         Montgomery64 c(m); ulng x = c.init(a), r = c.init(1);
         while (e) {
             if (e & 1) { r = c.mul(r, x); }
             e >>= 1; if (e) { x = c.mul(x, x); }}
-        return c.get(r); }
+        return c.get(r);}
+
+    inline constexpr ulng MERSENNE61 = (ulng(1) << 61) - 1;
+    // One fold of x = h * 2^61 + l to h + l < 2 * MERSENNE61; needs x < 2^61 * MERSENNE61.
+    // T: O(1), M: O(1).
+    constexpr ulng fold61(ulll x) {
+        ulng r = ulng(x >> 61) + (ulng(x) & MERSENNE61);
+        return r >= MERSENNE61 ? r - MERSENNE61 : r;}
 
     // Contexts are shared per exact type; callers must not modify their fields.
+    // red accepts every double-width dividend; mul takes canonical factors.
     // S: O(log(M)), Q: O(1), M: O(1); static primality is compile-time.
     template<typename T, T M, int ID, bool STATIC = (M != 0)>
     struct Context {
@@ -46,7 +54,12 @@ namespace modint_detail {
         static constexpr bool is_prime = modint_detail::isPrime(M);
 
         static constexpr bool isPrime() { return is_prime; }
-        static constexpr T red(Wide x) { return T(x % M); }
+        static constexpr T red(Wide x) {
+            if constexpr (M == MERSENNE61) { return fold61((x & M) + (x >> 61)); } // < 2^67 + 2^61
+            else { return T(x % M); }}
+        static constexpr T mul(T a, T b) {
+            if constexpr (M == MERSENNE61) { return fold61(Wide(a) * b); }
+            else { return red(Wide(a) * b); }}
     };
 
     // All old values/caches become stale on every setMod, even with the same m.
@@ -71,8 +84,12 @@ namespace modint_detail {
             is_prime = prm == -1 ? isPrime() : bool(prm);}
         static T red(Wide x) {
             if constexpr (std::is_same_v<T, ulng>) {
-                if (!std::has_single_bit(MOD) && MOD != 2305843009213693951ULL) { return T(x % MOD); }}
-            return reduction().reduce(x); }
+                if (!std::has_single_bit(MOD) && MOD != MERSENNE61) { return T(x % MOD); }}
+            return reduction().reduce(x);}
+        static T mul(T a, T b) {
+            if constexpr (std::is_same_v<T, ulng>) {
+                if (MOD == MERSENNE61) { return fold61(Wide(a) * b); }}
+            return red(Wide(a) * b);}
     };
 
     // Canonical n in [0,mod). Do not mutate n except to another canonical value.
@@ -90,10 +107,17 @@ namespace modint_detail {
         Word n;
 
         static constexpr Word mod() { return C::MOD; }
+        // Native widths reduce their magnitude in their own word; only 128-bit inputs divide wide.
         template<modint_detail::Integer T> static constexpr Word norm(T a) {
-            if constexpr (std::is_signed_v<T> || std::is_same_v<T, lll>) {
-                lll r = lll(a) % lll(mod()); return Word(r < 0 ? r + mod() : r); }
-            else { return Word(ulll(a) % mod()); }}
+            if constexpr (std::is_same_v<T, lll>) { lll r = a % lll(mod()); return Word(r < 0 ? r + mod() : r); }
+            else if constexpr (std::is_same_v<T, ulll>) { return Word(a % mod()); }
+            else {
+                using U = std::conditional_t<sizeof(T) <= 4, uint, ulng>;
+                bool neg = false; if constexpr (std::is_signed_v<T>) { neg = a < 0; }
+                U u = neg ? U(0) - U(a) : U(a); Word r;
+                if constexpr (std::is_same_v<Word, uint>) { r = C::red(u); }
+                else { r = Word(u % mod()); }
+                return neg && r ? mod() - r : r;}}
 
         template<modint_detail::Integer T = int> constexpr Value(T a = 0) : n(norm(a)) {}
         template<modint_detail::Integer T> constexpr Value &operator=(T a) { n = norm(a); return *this; }
@@ -102,7 +126,7 @@ namespace modint_detail {
 
         constexpr Word val() const { return n; }
         template<modint_detail::Integer T> explicit constexpr operator T() const {
-            assert(ulll(n) <= ulll(std::numeric_limits<T>::max())); return T(n); }
+            assert(ulll(n) <= ulll(std::numeric_limits<T>::max())); return T(n);}
         explicit constexpr operator bool() const { return n != 0; }
         constexpr bool operator!() const { return n == 0; }
 
@@ -112,7 +136,7 @@ namespace modint_detail {
         constexpr Value operator--(int) { Value a = *this; --*this; return a; }
         constexpr Value &operator+=(Value a) { n = n >= mod() - a.n ? n - (mod() - a.n) : n + a.n; return *this; }
         constexpr Value &operator-=(Value a) { n = n < a.n ? mod() - (a.n - n) : n - a.n; return *this; }
-        constexpr Value &operator*=(Value a) { n = C::red(Wide(n) * a.n); return *this; }
+        constexpr Value &operator*=(Value a) { n = C::mul(n, a.n); return *this; }
         constexpr Value &operator/=(Value a) { return *this *= inv(a); }
 
         constexpr Value operator+() const { return *this; }
@@ -142,10 +166,9 @@ namespace modint_detail {
             if constexpr (std::is_signed_v<T> || std::is_same_v<T, lll>) {
                 if (e < 0) { a = inv(a); b = -b; }}
             if constexpr (std::is_same_v<Word, ulng>) {
-                if (!std::is_constant_evaluated() && (mod() & 1) && b >= 512 &&
-                    (mod() != 2305843009213693951ULL || b >= 65536)) {
-                    return init(modint_detail::powerMontgomery(a.n, mod(), b)); }}
-            Value r = 1;
+                if (!std::is_constant_evaluated() && (mod() & 1) && mod() != modint_detail::MERSENNE61 && b >= 512) {
+                    return init(modint_detail::powerMontgomery(a.n, mod(), b));}}
+            Value r = init(mod() != 1);
             for (; b > 1; b >>= 1, a *= a) { if (b & 1) { r *= a; } }
             return b ? r * a : r;}
 
@@ -157,7 +180,7 @@ namespace modint_detail {
             if (a.n < 2 || mod() == 2) { out = a; return true; }
             Value x;
             if (mod() % 4 == 3) {
-                x = pow(a, mod() / 4 + 1); if (x * x != a) { return false; } }
+                x = pow(a, mod() / 4 + 1); if (x * x != a) { return false; }}
             else {
                 if (pow(a, (mod() - 1) / 2) != 1) { return false; }
                 int s = std::countr_zero(Word(mod() - 1)); Word q = (mod() - 1) >> s;
@@ -169,7 +192,7 @@ namespace modint_detail {
                     while (u != 1) { u *= u; ++i; }
                     Value b = c;
                     for (int j = 0; j < s - i - 1; ++j) { b *= b; }
-                    x *= b; c = b * b; t *= c; s = i; }}
+                    x *= b; c = b * b; t *= c; s = i;}}
             out = init(min(x.n, Word(mod() - x.n))); return true;}
         friend constexpr Value sqrt(Value a) { Value r; return trySqrt(a, r) ? r : init(mod() - 1); }
 
@@ -222,4 +245,13 @@ template<int ID = 0> using DynModInt = modint_detail::Value<modint_detail::Conte
 // pow/inv/root/batch/stream bounds and failure contracts in 05-modint.hpp.
 template<int ID = 0> using DynModInt64 = modint_detail::Value<modint_detail::Context<ulng, 0, ID>>;
 
+// Prime 2^61-1 for hashing: products fold instead of dividing; same API as ModInt64.
+// S: O(1), Q: O(1), M: O(1); pow/inv/root/batch/stream bounds in 05-modint.hpp.
+using ModInt61 = ModInt64<modint_detail::MERSENNE61>;
+
 using mint = ModInt<998244353>;
+
+// Residue types of this family, full or mini, for generic code; a static one has a constant mod().
+template<typename T> concept ModularInt = requires(T a) {
+    typename T::Word; { T::mod() } -> std::same_as<typename T::Word>; { a.val() } -> std::same_as<typename T::Word>; a.n;};
+template<typename T> concept StaticModularInt = ModularInt<T> && requires { std::integral_constant<typename T::Word, T::mod()>{}; };

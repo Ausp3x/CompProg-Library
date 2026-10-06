@@ -20,7 +20,7 @@ struct ModIntMini {
     template<typename T = int> requires (std::is_integral_v<T> || std::is_same_v<T, lll> || std::is_same_v<T, ulll>)
     constexpr ModIntMini(T a = 0) {
         if constexpr (std::is_signed_v<T> || std::is_same_v<T, lll>) {
-            lll r = lll(a) % lll(mod()); n = Word(r < 0 ? r + mod() : r); }
+            lll r = lll(a) % lll(mod()); n = Word(r < 0 ? r + mod() : r);}
         else { n = Word(ulll(a) % mod()); }}
     static constexpr ModIntMini raw(Word a) { assert(a < mod()); ModIntMini r; r.n = a; return r; }
     constexpr Word val() const { return n; }
@@ -73,7 +73,7 @@ struct ModInt64Mini {
     template<typename T = int> requires (std::is_integral_v<T> || std::is_same_v<T, lll> || std::is_same_v<T, ulll>)
     constexpr ModInt64Mini(T a = 0) {
         if constexpr (std::is_signed_v<T> || std::is_same_v<T, lll>) {
-            lll r = lll(a) % lll(mod()); n = Word(r < 0 ? r + mod() : r); }
+            lll r = lll(a) % lll(mod()); n = Word(r < 0 ? r + mod() : r);}
         else { n = Word(ulll(a) % mod()); }}
     static constexpr ModInt64Mini raw(Word a) { assert(a < mod()); ModInt64Mini r; r.n = a; return r; }
     constexpr Word val() const { return n; }
@@ -104,15 +104,15 @@ struct ModInt64Mini {
 
     // Full-width REDC; keep modulus generic to avoid costly constant specializations.
     // Internal odd-modulus power, ordinary residues; setup/conversion included.
+    // T: O(1 + log(e + 1)), M: O(1); odd m, canonical a.
     [[gnu::noinline, gnu::noipa]] static Word powerMontgomery(Word a, Word m, ulll e) {
         Word v = m;
         for (int i = 3; i < 64; i *= 2) { v *= 2 - m * v; }
         v = -v;
-        auto red = [m, v] (ulll x) -> Word {
+        auto red = [m, v](ulll x) -> Word {
             Word h = Word(x >> 64), p = Word(ulll(Word(x) * v) * m >> 64);
             Word r = h + p + (Word(x) != 0);
-            return r - ((r < h || r >= m) ? m : 0);
-        };
+            return r - ((r < h || r >= m) ? m : 0);};
         Word rsq = Word(-ulll(m) % m), r = red(rsq);
         a = red(ulll(a) * rsq);
         while (e) {
@@ -129,7 +129,7 @@ struct ModInt64Mini {
             if (e < 0) { a = inv(a); b = -b; }}
         if (!std::is_constant_evaluated() && (mod() & 1) && b >= 512 &&
             (mod() != 2305843009213693951ULL || b >= 65536)) {
-            return raw(powerMontgomery(a.n, mod(), b)); }
+            return raw(powerMontgomery(a.n, mod(), b));}
         ModInt64Mini r = raw(1);
         for (; b > 1; b >>= 1, a *= a) { if (b & 1) { r *= a; } }
         return b ? r * a : r;}
@@ -159,7 +159,7 @@ struct DynModIntMini {
     template<typename T = int> requires (std::is_integral_v<T> || std::is_same_v<T, lll> || std::is_same_v<T, ulll>)
     DynModIntMini(T a = 0) {
         if constexpr (std::is_signed_v<T> || std::is_same_v<T, lll>) {
-            lll r = lll(a) % lll(mod()); n = Word(r < 0 ? r + mod() : r); }
+            lll r = lll(a) % lll(mod()); n = Word(r < 0 ? r + mod() : r);}
         else { n = Word(ulll(a) % mod()); }}
     static DynModIntMini raw(Word a) { assert(a < mod()); DynModIntMini r; r.n = a; return r; }
     Word val() const { return n; }
@@ -216,14 +216,14 @@ struct DynModInt64Mini {
     static Word red(ulll x) {
         if (std::has_single_bit(modulus)) { return Word(x) & (modulus - 1); }
         if (modulus == 2305843009213693951ULL) {
-            Word r = Word(x >> 61) + (Word(x) & modulus); return r >= modulus ? r - modulus : r; }
+            Word r = Word(x >> 61) + (Word(x) & modulus); return r >= modulus ? r - modulus : r;}
         return Word(x % modulus);}
     static Word mod() { return modulus; }
 
     template<typename T = int> requires (std::is_integral_v<T> || std::is_same_v<T, lll> || std::is_same_v<T, ulll>)
     DynModInt64Mini(T a = 0) {
         if constexpr (std::is_signed_v<T> || std::is_same_v<T, lll>) {
-            lll r = lll(a) % lll(mod()); n = Word(r < 0 ? r + mod() : r); }
+            lll r = lll(a) % lll(mod()); n = Word(r < 0 ? r + mod() : r);}
         else { n = Word(ulll(a) % mod()); }}
     static DynModInt64Mini raw(Word a) { assert(a < mod()); DynModInt64Mini r; r.n = a; return r; }
     Word val() const { return n; }
@@ -254,15 +254,15 @@ struct DynModInt64Mini {
 
     // Full-width REDC; keep modulus generic to avoid costly constant specializations.
     // Internal odd-modulus power, ordinary residues; setup/conversion included.
+    // T: O(1 + log(e + 1)), M: O(1); odd m, canonical a.
     [[gnu::noinline, gnu::noipa]] static Word powerMontgomery(Word a, Word m, ulll e) {
         Word v = m;
         for (int i = 3; i < 64; i *= 2) { v *= 2 - m * v; }
         v = -v;
-        auto red = [m, v] (ulll x) -> Word {
+        auto red = [m, v](ulll x) -> Word {
             Word h = Word(x >> 64), p = Word(ulll(Word(x) * v) * m >> 64);
             Word r = h + p + (Word(x) != 0);
-            return r - ((r < h || r >= m) ? m : 0);
-        };
+            return r - ((r < h || r >= m) ? m : 0);};
         Word rsq = Word(-ulll(m) % m), r = red(rsq);
         a = red(ulll(a) * rsq);
         while (e) {
@@ -278,7 +278,7 @@ struct DynModInt64Mini {
         if constexpr (std::is_signed_v<T> || std::is_same_v<T, lll>) {
             if (e < 0) { a = inv(a); b = -b; }}
         if ((mod() & 1) && mod() != 2305843009213693951ULL && b >= 512) {
-            return raw(powerMontgomery(a.n, mod(), b)); }
+            return raw(powerMontgomery(a.n, mod(), b));}
         DynModInt64Mini r = raw(1);
         for (; b > 1; b >>= 1, a *= a) { if (b & 1) { r *= a; } }
         return b ? r * a : r;}

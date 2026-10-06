@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 import re
+import sys
 from pathlib import Path
 from urllib.parse import unquote
 
@@ -21,6 +22,107 @@ def read_json(name):
 
 def cells(line):
     return [x.strip() for x in re.split(r'(?<!\\)\|', line.strip())[1:-1]]
+
+def strip_cpp(text):
+    """Blank comments, string/character literals and preprocessor lines; keep every newline and column."""
+    out, i, n, line_start = [], 0, len(text), True
+    while i < n:
+        c = text[i]
+        if c == '\n':
+            out.append(c); i += 1; line_start = True
+            continue
+        if line_start and c not in ' \t':
+            line_start = False
+            if c == '#':
+                while i < n and text[i] != '\n':
+                    if text[i] == '\\' and i + 1 < n and text[i + 1] == '\n':
+                        out.append(' \n'); i += 2
+                    else:
+                        out.append(' '); i += 1
+                continue
+        if text.startswith('//', i):
+            j = text.find('\n', i); j = n if j < 0 else j
+            out.append(' ' * (j - i)); i = j
+            continue
+        if text.startswith('/*', i):
+            j = text.find('*/', i + 2); j = n if j < 0 else j + 2
+            out.append(''.join('\n' if ch == '\n' else ' ' for ch in text[i:j])); i = j
+            continue
+        if c == '"' and i > 0 and text[i - 1] == 'R':
+            j = text.find('(', i); delim = text[i + 1:j]
+            k = text.find(')' + delim + '"', j); k = n if k < 0 else k + len(delim) + 2
+            out.append(''.join('\n' if ch == '\n' else ' ' for ch in text[i:k])); i = k
+            continue
+        k = i
+        while k > 0 and (text[k - 1].isalnum() or text[k - 1] == '_'):
+            k -= 1
+        separator = c == "'" and k < i and text[k].isdigit() and i + 1 < n and text[i + 1].isalnum()
+        if c in '"\'' and not separator:
+            j = i + 1
+            while j < n and text[j] != c and text[j] != '\n':
+                j += 2 if text[j] == '\\' else 1
+            j = min(j + 1, n)
+            out.append(c + ' ' * (j - i - 2) + c if j - i >= 2 else ' ' * (j - i)); i = j
+            continue
+        out.append(c); i += 1
+    return ''.join(out)
+
+def brace_violations(path):
+    """03-cpp.md closing-brace rule: a multi-line function, control or lambda block closes as ';}' on its
+    last statement's line and nests as '}}'; struct/class/union/enum bodies close with '};' alone and
+    namespaces with '} // namespace name' alone; 'else' starts a new line. Initializer braces (after '=',
+    '(', ',', '[', '{', 'return', a range-for ':' or directly attached to a type name) are not blocks.
+    Limits: braces inside preprocessor conditionals must balance per branch; raw strings need a plain delimiter."""
+    rel = str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+    original = path.read_text().split('\n')
+    lines = strip_cpp('\n'.join(original)).split('\n')
+    stack, out, stmt = [], [], ''  # stmt: text since the last ';', '{' or '}', across lines
+    for i, line in enumerate(lines):
+        stmt += ' '  # a line break separates tokens: ')\nstruct' is not ')struct'
+        for j, ch in enumerate(line):
+            if ch in ';{}':
+                stmt, head = '', stmt
+            else:
+                stmt += ch
+            if ch == '{':
+                before = line[:j]
+                prev = before.rstrip()
+                adjacent = len(prev) == len(before) and bool(prev) and (prev[-1].isalnum() or prev[-1] in '_>]')
+                kind = 'block'
+                if re.search(r'\bnamespace\b', head):
+                    kind = 'namespace'
+                elif re.search(r'(?:^|[>\s])(?:struct|class|union|enum)\s+[^(){}=;]*$', head):
+                    kind = 'type'
+                elif adjacent or not prev or prev[-1] in '=(,[{' or re.search(r'\breturn$', prev) \
+                        or (prev[-1] == ':' and not re.search(r'\b(?:case|default)\b', head)):
+                    kind = 'init'
+                stack.append((i, kind))
+            elif ch == '}':
+                if not stack:
+                    out.append(f'Closing brace: {rel}:{i + 1}: unmatched closing brace')
+                    continue
+                opened, kind = stack.pop()
+                if opened == i or kind == 'init':
+                    continue
+                after = line[j + 1:]
+                if kind == 'namespace':
+                    if not re.fullmatch(r'\s*} // namespace( \S+)?', original[i].rstrip()):
+                        out.append(f'Closing brace: {rel}:{i + 1}: namespace must close as "}} // namespace name" on its own line')
+                elif kind == 'type':
+                    if line.strip() != '};':
+                        out.append(f'Closing brace: {rel}:{i + 1}: struct/class/union/enum body must close as "}};" on its own line')
+                elif not line[:j].strip() or line[j - 1] in ' \t':
+                    out.append(f'Closing brace: {rel}:{i + 1}: multi-line block must close as ";}}" on its last statement line')
+                elif re.match(r'\s*else\b', after):
+                    out.append(f'Closing brace: {rel}:{i + 1}: "else" starts a new line after ";}}"')
+    if stack:
+        out.append(f'Closing brace: {rel}:{stack[-1][0] + 1}: unclosed brace')
+    return out
+
+if len(sys.argv) > 1 and sys.argv[1] == '--braces':
+    found = [v for arg in sys.argv[2:] for v in brace_violations(Path(arg).resolve())]
+    print('\n'.join(found) if found else 'no closing-brace violations')
+    raise SystemExit(bool(found))
 
 inventories = {}
 for folder in sorted(ROOT.iterdir()):
@@ -60,6 +162,17 @@ support_targets = [t for b in batches.values() for t in b.get('support_targets',
 require(len(support_targets) == len(set(support_targets)), 'Helper ownership mismatch')
 for t in support_targets:
     require((ROOT / t).is_file(), 'Missing shared helper: ' + t)
+
+# Closing-brace rule for headers whose inventory row and owning package are both verified, and their C++ testers.
+owner = {t: p['id'] for p in package_map['packages'] for b in p['batches'] for t in batches.get(b, {}).get('targets', [])}
+package_status = {p['id']: p['status'] for p in package_map['packages']}
+brace_checked = 0
+for target, parts in inventories.items():
+    if not target.endswith('.hpp') or not parts[-1].startswith('verified') or package_status.get(owner.get(target)) != 'verified':
+        continue
+    for f in [ROOT / target, *(ROOT / t for t in plan.tests_for(ROOT, target) if t.endswith(('.cpp', '.hpp')))]:
+        errors.extend(brace_violations(f))
+        brace_checked += 1
 
 coverage = read_json('00-Guidelines/20-library-checker-coverage.json')
 require(len(coverage['records']) == coverage['problem_families'], 'Judge family count')
@@ -190,7 +303,6 @@ if expansion.exists():
         require(p.is_file() and hashlib.sha256(p.read_bytes()).hexdigest() == record['sha256'], 'Expanded output missing/modified: ' + str(p))
 
 # Validate missing-workspace reporting without touching the real generated snapshot.
-import sys
 import tempfile
 spec = importlib.util.spec_from_file_location('library_integration_check', ROOT / '96-Local Testing/02-integration.py')
 integration = importlib.util.module_from_spec(spec)
@@ -209,5 +321,5 @@ with tempfile.TemporaryDirectory(prefix='cp-consistency-') as name:
     finally:
         sys.argv = argv
 
-print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'errors': errors}, indent=2))
+print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'errors': errors}, indent=2))
 raise SystemExit(bool(errors))

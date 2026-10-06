@@ -8,19 +8,21 @@ Let `w` be 32 or 64 and `R = 2^w`. A context's fields are public for contest use
 
 | API | Domain and result |
 |---|---|
-| `Barrett32(m)`, `Barrett64(m)`; `Barrett` aliases the latter | Every nonzero unsigned word modulus, including one and even moduli. |
-| `reduce(x)` | Every unsigned double-width dividend, including its maximum; returns `x % m` in `[0,m)`. |
+| `Barrett32(m)`, `Barrett64(m)`; `Barrett` aliases the latter | Every nonzero unsigned word modulus, including one and even moduli; the default modulus is one. |
+| `divMod(x)`, `div(x)`, `reduce(x)` | Every unsigned double-width dividend, including its maximum; `divMod` returns the exact quotient (double width) and `x % m` in `[0,m)`, `div`/`reduce` return one of them. The mask, Mersenne61 and reciprocal paths all derive the quotient from the same folds. |
 | `mul(a,b)`, `pow(a,e)` | Arbitrary unsigned word inputs and unsigned 64-bit exponent. Ordinary residues in/out; `0^0 = 1 % m`. |
 | `multiplier(b)` | Precompute a fixed multiplier using a Shoup reciprocal; owns its modulus and canonicalized multiplier independently of the original context. Its `mul(a)` accepts any word. |
 | `Montgomery32(m)`, `Montgomery64(m)`; `Montgomery` aliases the latter | Every **odd** nonzero unsigned word modulus, including one. Existing default construction remains modulus one. |
 | `red(x)` | `0 <= x < m * R`; returns `x * R^-1 mod m` canonically. This is a bounded REDC operation, distinct from Barrett's arbitrary-dividend reduction. |
 | `init(a)`, `get(a)` | `init` accepts any ordinary word and returns its canonical Montgomery representation `a * R mod m`; `get` accepts a canonical Montgomery residue and returns its ordinary value. |
-| `mul(a,b)`, `powMont(a,e)` | Canonical Montgomery operands `<m`; results remain canonical Montgomery residues. |
+| `redc(x, lazy)` | Unchecked REDC core shared by every scalar operation and the bulk loops; same domain as `red` (`lazy=false`) or `redLazy` (`lazy=true`). |
+| `mul(a,b)`, `add(a,b)`, `sub(a,b)`, `powMont(a,e)` | Canonical Montgomery operands `<m`; results remain canonical Montgomery residues. `add`/`sub` handle the carry and borrow past the word for `m > R/2`. |
 | `pow(a,e)` | Ordinary word base and ordinary canonical result, with conversion included; preserves the old API. |
 | `redLazy(x)`, `normalize(a)` | `m < R/2`; REDC retains `x < m * R` and returns `<2m`. Normalization accepts `<2m` and subtracts `m` if needed. |
-| `mulLazy(a,b)` | `m < R/4`, operands `<2m`; result `<2m` can be chained without canonicalization. |
+| `mulLazy(a,b)`, `addLazy(a,b)`, `subLazy(a,b)` | `m < R/4`, operands `<2m`; results `<2m` can be chained without canonicalization. |
+| `Guard` (`note`, `ok`) | Deferred operand check used by the bulk products and `get`: notes the running maximum of words or 32-bit lanes inside the kernel loop; one assertion after the loop reads `ok`. Dead code under `NDEBUG`. |
 
-All bulk APIs use pointer/count overloads with an `int n >= 0`; pointers address `n` words, with no alignment requirement. Empty calls permit null pointers. Buffers must be disjoint or have exactly the same start; partial overlap is outside the contract. Products support output aliasing either/both inputs. Conversion and fixed-multiplier arrays support exact in-place operation. Modulus zero and other domain violations are asserted in checked builds and remain preconditions under `NDEBUG`.
+All bulk APIs use pointer/count overloads with an `int n >= 0`; pointers address `n` words, with no alignment requirement. Bulk operand ranges are asserted once after the loop through `Guard`; count and pointer preconditions are asserted at entry. Empty calls permit null pointers. Buffers must be disjoint or have exactly the same start; partial overlap is outside the contract. Products support output aliasing either/both inputs. Conversion and fixed-multiplier arrays support exact in-place operation. Modulus zero and other domain violations are asserted in checked builds and remain preconditions under `NDEBUG`.
 
 For even moduli use Barrett directly. For an odd modulus with many chained products, convert once and use Montgomery, then convert the result back. For ordinary independent products or arbitrary wide dividends, Barrett avoids representation conversion. For a repeated multiplier use `multiplier(b)`. Modulus one returns zero throughout, including exponent zero. No primality assumption or inverse-of-an-arbitrary-residue operation belongs to these reducers.
 
@@ -31,6 +33,12 @@ For even moduli use Barrett directly. For an odd modulus with many chained produ
 **Fixed multiplier.** With `b < m`, precompute `c = floor(b*R/m)`. For any word `a`, `floor(a*c/R)` underestimates `floor(a*b/m)` by at most one. The widened residual is `<2m`, so one subtraction suffices, including full-width moduli. This replaces the general double-width reciprocal product for repeated scalar factors.
 
 **Montgomery.** For odd `m`, Newton lifting computes `inv = -m^-1 mod R`: each update doubles the number of correct low bits. With `q = low(x)*inv mod R`, `x+q*m` is divisible by `R`. The bound `x<m*R` gives `u=(x+q*m)/R<2m`. Full-width moduli require an extra carry beyond the double-width sum; the implementation retains it when deciding whether to subtract `m`. `R^2 mod m` permits conversion through one REDC. The inverse and carries intentionally use unsigned wraparound.
+
+**Quotients (2026-10-07).** On the mask path `x >> countr_zero(m)` is the exact quotient (shift zero for `m=1`). On the reciprocal path `q` is the true quotient or one less, so `q*m <= x` and `q + [r >= m]` is exact. For `m = 2^61-1` write `x = (x>>61)*2^61 + (x & m) = (x>>61)*m + y` with `y = (x>>61) + (x & m) <= 2^67 + 2^61 - 2`, then `y = (y>>61)*m + z` with `z = (y>>61) + (y & m) <= m + 64 < 2m`; hence `x = ((x>>61) + (y>>61))*m + z` and the quotient is `(x>>61) + (y>>61) + [z >= m]`, the remainder `z - [z >= m]*m`.
+
+**Sums (2026-10-07).** For canonical `a, b < m` the true sum is `< 2m`; it exceeds the word exactly when the wrapped `s = a + b` satisfies `s < a`, and then `s - m` (mod `R`) equals the true sum minus `m`, which lies in `[0, m)`; without wrap one conditional subtraction suffices. For `a < b`, `a - b + m` wraps back into `[0, m)`. For `m < R/4` and operands `< 2m`, `addLazy` forms `s < 4m < R` and `subLazy` forms `d = a - b + 2m` in `(0, 4m)`; one conditional subtraction of `2m` returns both to `[0, 2m)`.
+
+**Guard (2026-10-07).** The running maximum of words is below `top` iff every word is. For 32-bit lanes with `t = top - 1 >= 0`, `max_epu32(acc, t) xor t` is zero in a lane iff that lane is `<= t`, so `testz` of the vector is true iff every noted lane was below `top`; `top` is `m >= 1` or `2m >= 2`.
 
 **Lazy ranges.** Omitting the canonical subtraction requires `2m<R` for a word result. Multiplying arbitrary representatives `<2m` requires `4m^2<m*R`, hence `m<R/4`. These narrower lazy contracts do not reduce the full-width canonical domain. Compare lazy values only after normalization. These bounds also govern SIMD; signed vector comparisons require a separate proven nonnegative range or unsigned comparison emulation.
 
@@ -145,12 +153,12 @@ python3 '96-Local Testing/03-consistency.py'
 
 Full suites used already-approved execution outside the sandbox to retain LeakSanitizer despite the previously established ptrace limitation. Leak checking was not disabled. Historical stress runs and performance medians above remain historical evidence; this maintenance introduces no new performance claim and does not relabel old measurements as measurements of the edited source.
 
-| Historical artifact, unchanged | SHA256 |
+| Historical artifact, unchanged at the 2026-09-27 maintenance (the benchmark ledger was re-recorded on 2026-10-07; see the re-audit) | SHA256 |
 |---|---|
 | `96-Local Testing/01-Core/03-reduction_benchmark.jsonl` | `39fef7f0b713d4971258ad24fd2598d1961a4e0065d0e26ad743348b8ef212c1` |
 | `96-Local Testing/01-Core/03-reduction_candidates.jsonl` | `6e522c4051383062a6a871e10e375ab6e9632f72d08aea1b910b276688d07959` |
 
-| Maintained source | SHA256 |
+| Maintained source at the 2026-09-27 maintenance (superseded by the re-audit hashes below) | SHA256 |
 |---|---|
 | `01-Core/03-barrett.hpp` | `3368c40cbb74242616a964dee0a1f8a3841838f07cbf5b34627ced26e9bcee85` |
 | `01-Core/04-montgomery.hpp` | `52bc741783aa6309f6ed16ec7700c048e20dbd46c5148ea03fd8bc2b91f1d075` |
@@ -159,3 +167,90 @@ Full suites used already-approved execution outside the sandbox to retain LeakSa
 | `96-Local Testing/01-Core/03-reduction_benchmark.cpp` | `9ccd866740eb2e4f80befd4d77a78035e4f086ef80a637076711b7e27bf42437` |
 
 No owned maintenance gaps remain. P004 stays complete; no package ownership, scheduling or legacy source was changed.
+
+## Re-audit — 2026-10-07
+
+Package P004 re-audit under the current rules; the previous verification was treated as existing-unverified. Every operation in both inventory rows was compared with the code and the testers before any edit (the only row gap was `Barrett64::highProduct`), the unchanged full suites were rerun (Barrett 5 configurations in 28.91 s, Montgomery 6 configurations in 36.11 s, seed 20260927, both passing), and the headers were then brought to the current style, extended from the catalog sweep and re-tested.
+
+### Confirmed findings and their disposition
+
+| # | Finding | Disposition |
+|---|---|---|
+| 1 | `Barrett64::highProduct` missing from the inventory row | Fixed: the row names it, the new `MERSENNE61` constant, the `Multiplier` fields and the AVX2 `load`/`store` helpers; the brief reads the row. |
+| 2 | Bulk fixed-multiplier tests used only `multiplier(MAX)`, which is 0 or 1 for most batch moduli | Fixed: `batches()` builds multipliers for `MAX`, `m-1` and a seeded random factor for every modulus, checks the separate and in-place bulk products against `Wide(a)*f % m` with leading/trailing guards, and the Barrett32 modulus list gains `2^32-5` and `3*2^30+1`, so the AVX2 Shoup kernel now runs with residuals near `2^33` through its signed correction. |
+| 3 | Complexity comment used the undefined symbol `e` | Fixed in both headers (`powers O(log(e+1)) for exponent e`; Barrett's four comments likewise). |
+| 4 | Per-element assertions inside the bulk SIMD and scalar loops | Fixed: the loops call the unchecked core `redc`, and operand ranges are checked by `Guard`, a running maximum of words (`cmp`/`cmov`) or 32-bit lanes (one `vpmaxud`) that one assertion reads after the loop. Under `-DNDEBUG` the generated code contains none of the Guard instructions (checked on the `-O2 -mavx2` assembly of both widths). The benchmark gained `-O2` assertion-enabled configurations (the Codeforces build); results below. |
+
+### Changes beyond the findings
+
+- Catalog sweep ([81-sources.md](81-sources.md), left-out items in [80-notes.md](80-notes.md)): Barrett `divMod`/`div` (maspypy `floor`/`divmod`, Nyaan and suisen `quo`/`quorem`, Lemire `fastdiv`) and a default modulus of one (maspypy, suisen); Montgomery `add`/`sub` on canonical residues (suisen, cp-algorithms) and `addLazy`/`subLazy` on `[0, 2m)` (Nyaan vectorize-modint/simd-montgomery). `divMod` is now the Barrett core: the quotient comes from the same folds on every path (`x >> countr_zero(m)` for powers of two, `(x>>61) + (y>>61) + [z >= m]` for `2^61-1`, `q + [r >= m]` for the reciprocal), and `reduce` reads its remainder, so the remainder path is unchanged after inlining (benchmark unchanged within noise).
+- Montgomery: `redc(x, lazy)` replaces the duplicated `red`/`redLazy` bodies; `red8` factors the even/odd lane packing shared by `mul8` and the bulk `get`; the constructor parameter is `m` (vocabulary); `rsq` narrowing is explicit (`-Wconversion` clean, previously untested for this header).
+- Both headers, both testers and the benchmark follow the closing-brace rule (`03-consistency.py --braces` reports nothing); the headers compile with `-Wall -Wextra -Wshadow -Wconversion -Werror` on scalar and AVX2 builds.
+- Testers: Barrett adds a checked AVX2 build (precondition deaths run in both checked builds), field checks for `mod`/`mu`/`mask` and the `Multiplier` fields against an independent bitwise restoring division, `divMod`/`div` against native `/` and `%` on every boundary, random and exhaustive corpus, and the default constructor. Montgomery adds `-Wconversion -Werror`, a standalone/multiple-TU build in full and stress, direct `redc`/`Guard` coverage, exhaustive `add`/`sub`/`addLazy`/`subLazy`, full-width carry/borrow regressions for `add`/`sub` at `m = R-1`, and 16 new precondition deaths (50 per width: canonical and lazy sums/differences, a bad lane at position 0 of 16 for the vector path, bad tail positions for every bulk operation).
+
+### Feature-to-test additions
+
+| Feature | Independent coverage |
+|---|---|
+| `divMod`, `div` (both widths) | Native `/` and `%` on the boundary dividend list (0, 1, m-1, m, m+1, 2m-1, MAX, MAX+1, MAX², TOP, TOP-1, m·MAX, m·MAX-1) for ~250 moduli per width including every power of two and its neighbours, `2^61-1`, `2^64-1`; 60,000 (full) / 600,000 (stress) random full-width dividends per width; exhaustive `m <= 128, x < 16384` (full) / `m <= 256, x < 65536` (stress); default constructor. |
+| `mod`, `mu`, `mask`, `Multiplier::{mod, value, mu, mask}`, `MERSENNE61` | Bitwise restoring division `floor((2^(2w)-1)/m)` and `floor((b % m)·2^w / m)`; zero on the mask and Mersenne paths; constant equals `2305843009213693951`. |
+| Bulk fixed products (finding 2) | Factors `MAX`, `m-1`, random for 16 (32-bit) / 17 (64-bit) batch moduli, sizes 0–65, 127–129, 255–257, 4095–4097, eight offsets, separate and in-place, guards. |
+| `redc` | Canonical and lazy core against the oracle on every boundary dividend of every boundary modulus; every other operation routes through it. |
+| `add`, `sub` | Oracle `(a+b) % m`, `(a-b) mod m` on all boundary pairs and random pairs per width, decoded through `get`; exhaustive odd `m <= 65/129`; carry past the word (`m = R-1`, `a = R-2, b = R-3`) and borrow (`0 - (R-2)`). |
+| `addLazy`, `subLazy` | Output bound `< 2m` and normalized value against the oracle on boundary pairs shifted by `m`, exhaustive `a, b < 2m` for odd `m <= 65/129`, chained `subLazy(addLazy(..), subLazy(..))`. |
+| `Guard` | Direct: all-canonical and all-lazy arrays accepted; every single position raised to `m` or to the word maximum rejected, for `n` in {0, 1, 2, 7, 8, 9, 15, 16, 17, 31, 32, 33, 63, 65, 257}, with 8-lane notes under AVX2 for Montgomery32; indirect: 32 bulk precondition deaths per width across vector, tail and `n = 8` positions. |
+| `red8`, `load`, `store` | Through every bulk operation in the optimized and checked AVX2 builds (sizes/offsets/aliases above). |
+
+### Commands and results
+
+```bash
+python3 '96-Local Testing/01-Core/03-barrett_tester.py' --mode full --seed 20261007
+python3 '96-Local Testing/01-Core/04-montgomery_tester.py' --mode full --seed 20261007
+python3 '96-Local Testing/01-Core/03-barrett_tester.py' --mode stress --seed 1
+python3 '96-Local Testing/01-Core/04-montgomery_tester.py' --mode stress --seed 1
+python3 '96-Local Testing/01-Core/03-reduction_benchmark.py' --seed 20261007 --repetitions 5 --milliseconds 2 --output '96-Local Testing/01-Core/03-reduction_benchmark.jsonl'
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
+```
+
+All passed on GCC 16.2.1, GNU++20, Linux x86-64 (Intel Core i9-11900H), every build with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full (seed 20261007): Barrett **53,657,153 non-removable checks in each of six configurations** (optimized and checked scalar, optimized and checked AVX2, scalar and AVX2 ASan/UBSan with leak detection; 16 precondition deaths in both checked builds; standalone/multiple-TU build) in 41.72 s; Montgomery **3,699,028 checks in each of six configurations** (same set; 100 precondition deaths in each checked build; standalone/multiple-TU build) in 47.28 s. Stress (seed 1, one round): Barrett **146,158,229 checks in each of six configurations** in 61.53 s; Montgomery **23,203,772 checks in each of six configurations** in 50.75 s, with the same deaths and multiple-TU builds. `python3 '96-Local Testing/02-integration.py' --sanitizers` passed: 102 standalone/aggregate headers, scalar and available AVX2 multiple-translation-unit linkage, the Workspace snapshot and the sanitizer self-tests. `python3 '96-Local Testing/03-consistency.py'` reports no errors (eight brace-checked files).
+
+### Benchmark — 2026-10-07
+
+The [ledger](<../96-Local Testing/01-Core/03-reduction_benchmark.jsonl>) now holds this run (8,912 verified measurements; SHA256 in the table below; the 2026-09-27 figures above remain the historical record). Same host (Intel i9-11900H), GCC 16.2.1, GNU++20, seed 20261007, five repetitions, 2 ms adaptive warmup, four configurations: `scalar`/`avx2` with `-O3 -DNDEBUG` as before, and `scalar-asserts`/`avx2-asserts` with `-O2` and assertions enabled (Codeforces). Nanoseconds per complete workload, medians.
+
+| Workload (`-O3 -DNDEBUG`, AVX2 build) | Reference | Selected backend |
+|---|---|---|
+| 256 ordinary products, `m=998244353` | Native `%`: 584 | Barrett: 247 |
+| 256 encoded products, `m=998244353` | Scalar Montgomery: 281 | AVX2 Montgomery: 111; lazy: 92 |
+| 256 fixed-factor products, `m=998244353` | Scalar Shoup: 246 | AVX2 Shoup: 75 |
+| 256 full-width reductions, `m=2^61-1` | Generic reciprocal: 770; native: 1,214 | Two-fold reduction: 417 |
+| 256 fixed-factor products, `m=2^64-59` | General Barrett: 871 | Shoup: 291 |
+| 256 quotient+remainder, 64-bit dividends, `m=998244353` | Native `/` and `%`: 608 | `divMod`: 269 |
+| 256 quotient+remainder, 128-bit dividends, `m=2^61-1` | Native: 1,311 | `divMod`: 684 |
+| 256 quotient+remainder, 128-bit dividends, `m=2^63` | Native: 968 | `divMod`: 261 |
+| Eight powers including setup/conversions, `m=998244353` | Native `%`: 2,721 | Barrett: 1,572; Montgomery: 1,374 |
+| Eight powers including setup/conversions, `m=2^64-59` | Native `%`: 3,388 | Montgomery: 1,420 |
+
+Finding 4 re-measured, `Montgomery32`, `m=998244353`, 256 products: AVX2 bulk 110.5 ns (`-O3 -DNDEBUG`) versus 112.3 ns with assertions (`-O2`), so the deferred Guard costs about 2% where the per-element assertions cost 49%; a scalar loop of checked `mul` calls in the same assertion build takes 446 ns. Scalar builds with assertions: bulk 451.6 ns against 432.0 ns for the per-element-assert loop (+4.5%); `Montgomery64`, `m=2^64-59`: 443.5 against 421.7 (+5%). An earlier candidate, a separate O(n) entry pass, cost +27% (AVX2) and +91% (scalar) in the assertion builds and was replaced by the in-loop maximum; a branch-free `bad |= x >= top` accumulator cost +10–20% in scalar builds against the maximum's +5%.
+
+Threshold neighbours (median AVX2 bulk/scalar ratios over `998244353`, `2^31-1`, `2^32-5`): at 7 elements 1.24 (canonical), 1.28 (lazy), 1.30 (Shoup); at 8 elements 0.53, 0.57, 0.47; at 9 elements 0.62, 0.66, 0.55; at 256 elements 0.39, 0.37, 0.31. With assertions enabled the ratios at 8 elements are 0.57, 0.48, 0.53. Both conversion kernels improve from 8 elements in both configurations (0.39/0.51 and 0.52/0.74). The eight-element dispatch stands. General 64-bit Barrett remains slower than native remainder for full-width moduli (`m=2^64-59`: 1,120 vs 860 ns for 256 reductions; `divMod` 1,107 vs 717), as documented above; `divMod` wins for every other measured modulus.
+
+Source hashes after the re-audit (SHA256):
+
+| File | SHA256 |
+|---|---|
+| `01-Core/03-barrett.hpp` | `ce620ceca3aa0ed76625c82dc2a60f4a9edb9b744e82b69951dad8e0474f9650` |
+| `01-Core/04-montgomery.hpp` | `6f5c204baf5d256483aabb0320a4a289769f4d841fc334ba66c20bc8a0acf62f` |
+| `96-Local Testing/01-Core/03-barrett_tester.cpp` | `7dca45c36bcdb3bf2c604c68be95681b926494fc1c226571fb5d78f6b1f82314` |
+| `96-Local Testing/01-Core/03-barrett_tester.py` | `9290f5fdfc4f6306c0026ef913be5ca91dab871808dcccaca2545a1be78f3b44` |
+| `96-Local Testing/01-Core/04-montgomery_tester.cpp` | `a7e4a8c1e6b868af61a1837dcdcb097c33ca8178ca6542903e54998b87de39f1` |
+| `96-Local Testing/01-Core/04-montgomery_tester.py` | `1aa0b46eaae9e7e906d9337d2e356e63520e65f7fe899ad0857fdada6c95e56d` |
+| `96-Local Testing/01-Core/03-reduction_benchmark.cpp` | `ff478e83a113dabd82ef198a31cd31e2949f38f97aabd0242a5b197cc48b06f7` |
+| `96-Local Testing/01-Core/03-reduction_benchmark.py` | `f976b06c13d0ac0989fb83e9a1e851b656dc7b6ee6d62e95c6b0fb7b8e70d9e5` |
+| `96-Local Testing/01-Core/03-reduction_benchmark.jsonl` | `dfbccd03d8d90ebd3eefc271e53e9828d58b1a2ef883689206985c627765f9ad` |
+| `96-Local Testing/01-Core/03-reduction_candidates.jsonl` (unchanged) | `6e522c4051383062a6a871e10e375ab6e9632f72d08aea1b910b276688d07959` |
+
+Independent review (`@reviewer`, 2026-10-07) found no correctness defect: it re-derived every argument above, ran its own 8.13-million-case differential against native `%`, `/` and `ulll` arithmetic under ASan/UBSan on scalar and AVX2 builds (quotients at maximal values near `k*m +- 1`, `2^61-1` and neighbours, `2^63 +- 1`, `2^64-59`; bulk Shoup with factors `m-1` and `MAX` at `2^32-1`, `2^32-5`, `3*2^30+1`; sums, differences, lazy forms at `2m-1`/`2m-2`; every 8-lane Guard verdict for seven `top` values), and 15 header mutants (dropped quotient corrections, single Mersenne fold, off-by-one Shoup correction, missing `add` wrap, wrong `sub` borrow, unreduced lazy forms, Guard bound/sign/term deletions) that the testers all caught in `-DNDEBUG` builds or by death tests. It confirmed the four findings fixed, instruction counts unchanged for the remainder paths (`Barrett32::reduce` 16/16, `Barrett64::reduce` 104/104 at `-O2`), and raised three low findings, all fixed: `Wide`, `BITS` and the Guard fields added to the row; a complexity line on `Guard`; the quotient, sum and Guard arguments added to the justification section. Its suggestions were also applied: `Guard::ok` evaluates the lane test only for `BITS == 32` (no narrowing of a 64-bit `top`, no spare `vptest`), the header comment names `red4`/`red8` for the AVX2 loops, and the Montgomery Python entry no longer uses a backslash inside an f-string replacement field (a SyntaxError before Python 3.12; the floor is 3.10).
+
+Known limits and handoff: GCC 14 and Windows were not executed; the AVX2 kernels are 32-bit only (no 64x64 vector multiply in AVX2); the Barrett `Multiplier` has no quotient; signed-dividend reduction and residue inverses stay with `05-modint.hpp`, whose `powerMontgomery` repeats `powMont` for 128-bit exponents (a P005 decision whether to widen the backend exponent). No P004-owned gap remains.

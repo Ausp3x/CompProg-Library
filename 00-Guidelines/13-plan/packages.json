@@ -20,7 +20,7 @@
       "phase": "Foundations re-audit",
       "size": "S",
       "model": "opus",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "09-Contest Testing/10-verification.md"
       ],
@@ -36,7 +36,7 @@
       "phase": "Foundations re-audit",
       "size": "M+L",
       "model": "fable",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "01-Core/21-c01-verification.md",
         "01-Core/22-bitset.md"
@@ -52,7 +52,7 @@
       "phase": "Foundations re-audit",
       "size": "S",
       "model": "opus",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "97-Online Testing/04-workspace-verification.md"
       ],
@@ -67,7 +67,7 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "fable",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "01-Core/23-reduction.md"
       ],
@@ -83,7 +83,7 @@
       "phase": "Foundations re-audit",
       "size": "L+L",
       "model": "fable",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "01-Core/24-modint.md",
         "01-Core/25-modintmini.md"
@@ -104,7 +104,7 @@
       "evidence": [
         "02-Data Structures/90-foundations.md"
       ],
-      "note": ""
+      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P006.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
     {
       "id": "P007",
@@ -119,7 +119,7 @@
       "evidence": [
         "03-Geometry/90-foundations.md"
       ],
-      "note": ""
+      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P007.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
     {
       "id": "P008",
@@ -134,7 +134,7 @@
       "evidence": [
         "03-Geometry/91-ge02.md"
       ],
-      "note": ""
+      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P008.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
     {
       "id": "P009",
@@ -149,7 +149,7 @@
       "evidence": [
         "03-Geometry/92-triangle.md"
       ],
-      "note": ""
+      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P009.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
     {
       "id": "P010",
@@ -165,7 +165,7 @@
       "evidence": [
         "04-Graphs/90-foundations.md"
       ],
-      "note": ""
+      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P010.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
     {
       "id": "P011",
@@ -181,7 +181,7 @@
       "evidence": [
         "04-Graphs/95-p011.md"
       ],
-      "note": ""
+      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P011.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
     {
       "id": "P012",
@@ -197,7 +197,7 @@
       "evidence": [
         "05-Mathematics/96-p012.md"
       ],
-      "note": ""
+      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P012.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
     {
       "id": "P013",
@@ -213,7 +213,7 @@
       "evidence": [
         "06-Miscellaneous/95-p013.md"
       ],
-      "note": ""
+      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P013.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
     {
       "id": "P229",
@@ -242,7 +242,7 @@
       "evidence": [
         "06-Miscellaneous/96-p014.md"
       ],
-      "note": ""
+      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P014.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
     {
       "id": "P015",
@@ -259,7 +259,7 @@
       "evidence": [
         "06-Miscellaneous/89-p015.md"
       ],
-      "note": ""
+      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P015.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
     {
       "id": "P016",
@@ -276,7 +276,7 @@
       "evidence": [
         "07-Strings/94-p016.md"
       ],
-      "note": ""
+      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P016.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
     {
       "id": "P017",
@@ -291,7 +291,7 @@
       "evidence": [
         "07-Strings/89-p017.md"
       ],
-      "note": ""
+      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P017.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
     {
       "id": "P025",

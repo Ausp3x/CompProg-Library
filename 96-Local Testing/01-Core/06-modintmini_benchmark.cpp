@@ -11,8 +11,7 @@ template<typename F> double measure(F f) {
     auto run = [&] (int count) -> double {
         auto start = Clock::now();
         for (int i = 0; i < count; ++i) { f(); asm volatile("" : : : "memory"); }
-        return std::chrono::duration<double, std::nano>(Clock::now() - start).count();
-    };
+        return std::chrono::duration<double, std::nano>(Clock::now() - start).count();};
     int count = 1;
     while (run(count) < target_ms * 1e6 && count < (1 << 22)) { count *= 2; }
     vector<double> samples;
@@ -48,21 +47,20 @@ template<typename Mini, typename Full, typename W, typename D, W FIXED = 0>
     constexpr int BITS = 8 * sizeof(W);
     W mod = FIXED;
     if constexpr (!STATIC) {
-        mod = input; asm volatile("" : "+r"(mod)); Mini::setMod(mod); Full::setMod(mod, 0); }
+        mod = input; asm volatile("" : "+r"(mod)); Mini::setMod(mod); Full::setMod(mod, 0);}
     for (const char *distribution : {"uniform", "near-modulus"}) {
         for (int n : {1, 8, 256, 4096}) {
             vector<W> a(n), b(n), out(n), expected(n);
             for (int i = 0; i < n; ++i) {
                 a[i] = distribution[0] == 'u' ? W(rng() % mod) : W(mod - 1 - min<ulng>(mod - 1, rng() % 4));
                 b[i] = distribution[0] == 'u' ? W(rng() % mod) : W(mod - 1 - min<ulng>(mod - 1, rng() % 4));
-                expected[i] = W(D(a[i]) * b[i] % mod); }
+                expected[i] = W(D(a[i]) * b[i] % mod);}
             auto report = [&] (const char *method, auto f) -> void {
                 f();
                 if (out != expected) {
-                    cerr << "FAIL product " << BITS << ' ' << mod << ' ' << n << ' ' << method << '\n'; std::exit(1); }
+                    cerr << "FAIL product " << BITS << ' ' << mod << ' ' << n << ' ' << method << '\n'; std::exit(1);}
                 emit(BITS, STATIC, mod, "ordinary-products", distribution, n, 0, method,
-                     measure([&]() { f(); asm volatile("" : : "g"(out.data()) : "memory"); }));
-            };
+                     measure([&]() { f(); asm volatile("" : : "g"(out.data()) : "memory"); }));};
             report("native", [&]() { for (int i = 0; i < n; ++i) { out[i] = nativeProduct<W, D, FIXED>(a[i], b[i], mod); } });
             report("mini", [&]() { for (int i = 0; i < n; ++i) { out[i] = (Mini::raw(a[i]) * Mini::raw(b[i])).val(); } });
             report("full", [&]() { for (int i = 0; i < n; ++i) { out[i] = (Full::raw(a[i]) * Full::raw(b[i])).val(); } });}}
@@ -73,8 +71,7 @@ template<typename Mini, typename Full, typename W, typename D, W FIXED = 0>
         for (W a : factors) { expected = W(D(expected) * a % mod); }
         auto report = [&] (const char *method, auto f) -> void {
             if (f() != expected) { cerr << "FAIL chain " << BITS << ' ' << mod << ' ' << method << '\n'; std::exit(1); }
-            emit(BITS, STATIC, mod, "dependent-products", "unit-factors", n, 0, method, measure([&]() { sink = f(); }));
-        };
+            emit(BITS, STATIC, mod, "dependent-products", "unit-factors", n, 0, method, measure([&]() { sink = f(); }));};
         report("native", [&]() { W r = W(mod != 1); for (W a : factors) { r = nativeProduct<W, D, FIXED>(r, a, mod); } return r; });
         report("mini", [&]() { Mini r = 1; for (W a : factors) { r *= Mini::raw(a); } return r.val(); });
         report("full", [&]() { Full r = 1; for (W a : factors) { r *= Full::raw(a); } return r.val(); });}
@@ -84,15 +81,14 @@ template<typename Mini, typename Full, typename W, typename D, W FIXED = 0>
         auto report = [&] (const char *method, auto f) -> void {
             for (W a : bases) {
                 if (f(a) != nativePower<W, D>(a, exponent, mod)) {
-                    cerr << "FAIL power " << BITS << ' ' << mod << ' ' << decimal(exponent) << ' ' << method << '\n'; std::exit(1); }}
+                    cerr << "FAIL power " << BITS << ' ' << mod << ' ' << decimal(exponent) << ' ' << method << '\n'; std::exit(1);}}
             emit(BITS, STATIC, mod, "powers", "uniform-canonical", 8, exponent, method,
-                 measure([&]() { ulng r = 0; for (W a : bases) { r ^= f(a); } sink = r; }));
-        };
+                 measure([&]() { ulng r = 0; for (W a : bases) { r ^= f(a); } sink = r; }));};
         report("native", [&](W a) { return nativePower<W, D, FIXED>(a, exponent, mod); });
         report("mini-multiply-power", [&](W a) {
             Mini r = Mini::raw(W(mod != 1)), x = Mini::raw(a); ulll e = exponent;
             for (; e > 1; e >>= 1, x *= x) { if (e & 1) { r *= x; } }
-            return (e ? r * x : r).val(); });
+            return (e ? r * x : r).val();});
         report("mini", [&](W a) { return pow(Mini::raw(a), exponent).val(); });
         report("full", [&](W a) { return pow(Full::raw(a), exponent).val(); });}}
 
@@ -106,8 +102,8 @@ int main(int argc, char **argv) {
     fixed64<1>(); fixed64<998244353>(); fixed64<2305843009213693951ULL>(); fixed64<1ULL << 63>();
     fixed64<18446744073709551557ULL>(); fixed64<18446744073709551614ULL>(); fixed64<18446744073709551615ULL>();
     for (uint mod : {1U, 1024U, 998244353U, 4294967291U, 4294967295U}) {
-        bench<DynModIntMini<891>, DynModInt<891>, uint, ulng>(mod); }
+        bench<DynModIntMini<891>, DynModInt<891>, uint, ulng>(mod);}
     for (ulng mod : {1ULL, 998244353ULL, 2305843009213693951ULL, 1ULL << 63,
                      18446744073709551557ULL, 18446744073709551614ULL, 18446744073709551615ULL}) {
-        bench<DynModInt64Mini<892>, DynModInt64<892>, ulng, ulll>(mod); }
+        bench<DynModInt64Mini<892>, DynModInt64<892>, ulng, ulll>(mod);}
     cerr << "PASS all mini/full/native benchmark outputs\n";}

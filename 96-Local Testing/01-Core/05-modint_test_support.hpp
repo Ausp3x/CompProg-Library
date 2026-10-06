@@ -86,6 +86,7 @@ template<class M> void pairCase(ulng a, ulng b) {
     context = "mod=" + std::to_string(m) + " a=" + std::to_string(a) + " b=" + std::to_string(b);
     ulng add = ulng((ulll(a) + b) % m), sub = ulng((ulll(a) + m - b) % m), mul = ulng(ulll(a) * b % m);
     EQUAL((x + y).val(), add); EQUAL((x - y).val(), sub); EQUAL((x * y).val(), mul);
+    EQUAL(M::mul(typename M::Word(a), typename M::Word(b)), mul);
     M z = x; REQUIRE(&(z += y) == &z); EQUAL(z.val(), add);
     z = x; REQUIRE(&(z -= y) == &z); EQUAL(z.val(), sub);
     z = x; REQUIRE(&(z *= y) == &z); EQUAL(z.val(), mul);
@@ -122,14 +123,14 @@ template<class M> void batches() {
         vector<M> a(n); std::mt19937_64 rng(test_seed + ulng(n));
         for (int i = 0; i < n; i++) {
             ulng x; do { x = rng() % m; } while (std::gcd(x, m) != 1);
-            a[i] = x; }
+            a[i] = x;}
         REQUIRE(batchInv(a, out)); EQUAL(out.size(), a.size());
         for (int i = 0; i < n; i++) { EQUAL(ulng(ulll(a[i].val()) * out[i].val() % m), 1 % m); }
         auto alias = a; REQUIRE(batchInv(alias, alias)); REQUIRE(alias == out);
         if (m > 1) {
             for (int bad : {0, n / 2, n - 1}) {
                 auto b = a; b[bad] = 0; auto saved = out; REQUIRE(!batchInv(b, out)); REQUIRE(saved == out);
-                saved = b; REQUIRE(!batchInv(b, b)); REQUIRE(saved == b); }}}
+                saved = b; REQUIRE(!batchInv(b, b)); REQUIRE(saved == b);}}}
     for (ulng d : {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}) {
         if (m > d && m % d == 0) { vector<M> a{M(1), M(d), M(1)}, saved = out; REQUIRE(!batchInv(a, out)); REQUIRE(out == saved); }}}
 
@@ -142,7 +143,7 @@ template<class M> void streams() {
         std::istringstream in(" \t\n" + token + " 123"); M a = 4; REQUIRE(&(in >> a) == &in); REQUIRE(!in.fail()); EQUAL(a.val(), r);
         int next; in >> next; EQUAL(next, 123); std::ostringstream os; REQUIRE(&(os << a) == &os); EQUAL(os.str() == std::to_string(r), true);}
     for (const string &token : vector<string>{"", " ", "+", "-", "x", "1x", "++1", "--1", "+-1", "0xFF", "1.0"}) {
-        M a = 7; auto saved = a; std::istringstream in(token); in >> a; REQUIRE(in.fail()); REQUIRE(a == saved); }}
+        M a = 7; auto saved = a; std::istringstream in(token); in >> a; REQUIRE(in.fail()); REQUIRE(a == saved);}}
 
 template<class M> void roots() {
     if (!M::is_prime) { return; }
@@ -160,14 +161,14 @@ template<class M> void roots() {
         for (int i = 0; i < count; i++) {
             ulng x = rng() % m, a = ulng(ulll(x) * x % m); M r;
             context = "sqrt mod=" + std::to_string(m) + " square-of=" + std::to_string(x);
-            REQUIRE(trySqrt(M(a), r)); EQUAL(r.val(), std::min(x, x ? m - x : 0)); EQUAL(sqrt(M(a)).val(), r.val()); }}}
+            REQUIRE(trySqrt(M(a), r)); EQUAL(r.val(), std::min(x, x ? m - x : 0)); EQUAL(sqrt(M(a)).val(), r.val());}}}
 
 template<class M> void verifyMod() {
     context = "construction mod=" + std::to_string(M::mod()); traits<M>(); constructors<M>(); streams<M>(); batches<M>();
     ulng m = M::mod();
     using Wide = typename M::Wide;
     for (Wide a : {Wide(0), Wide(1), Wide(m - 1), Wide(m), Wide(m) + 1, ~Wide(0)}) {
-        EQUAL(M::red(a), ulng(a % m)); }
+        EQUAL(M::red(a), ulng(a % m));}
     EQUAL(M::isPrime(), M::is_prime);
     if (m <= 97) {
         for (ulng a = 0; a < m; a++) { for (ulng b = 0; b < m; b++) { pairCase<M>(a, b); } }}
@@ -182,11 +183,11 @@ template<class M> void verifyMod() {
     cout << "PASS arithmetic/constructors/batch/stream/root mod=" << m << '\n';}
 
 // Dispatch is deliberately bounded to the declared Python corpus moduli.
-template<class F> void dispatch(ulng m, F &&f) {
 #if TEST_DYNAMIC
-    using M = TEST_TYPE<731>; M::setMod(decltype(M::mod())(m)); f.template operator()<M>();
+template<class F> void dispatch(ulng m, F &&f) { using M = TEST_TYPE<731>; M::setMod(decltype(M::mod())(m)); f.template operator()<M>(); }
 #else
 #define MOD_CASE(P) case P: f.template operator()<TEST_TYPE<P>>(); break
+template<class F> void dispatch(ulng m, F &&f) {
     switch (m) {
     MOD_CASE(1); MOD_CASE(2); MOD_CASE(4); MOD_CASE(7); MOD_CASE(17); MOD_CASE(97);
     MOD_CASE(998244353); MOD_CASE(2147483647); MOD_CASE(2147483648); MOD_CASE(4294967291); MOD_CASE(4294967295);
@@ -194,20 +195,11 @@ template<class F> void dispatch(ulng m, F &&f) {
     MOD_CASE(4294967296ULL); MOD_CASE(2305843009213693951ULL); MOD_CASE(9223372036854775808ULL);
     MOD_CASE(18446744069414584321ULL); MOD_CASE(18446744073709551557ULL); MOD_CASE(18446744073709551615ULL);
 #endif
-    default: fail("supported modulus dispatch", __LINE__); }
+    default: fail("supported modulus dispatch", __LINE__);}}
 #undef MOD_CASE
 #endif
-}
 
 inline void compileTime() {
-    static_assert(std::is_same_v<mint, ModInt<998244353>>);
-    static_assert(std::is_same_v<decltype(ModInt<7>::mod()), uint>);
-    static_assert(std::is_same_v<decltype(ModInt64<7>::mod()), ulng>);
-    static_assert(std::is_same_v<decltype(DynModInt<>::mod()), uint>);
-    static_assert(std::is_same_v<decltype(DynModInt64<>::mod()), ulng>);
-    static_assert(std::is_same_v<DynModInt<>, DynModInt<0>> && std::is_same_v<DynModInt64<>, DynModInt64<0>>);
-    static_assert(!std::is_same_v<ModInt<7>, ModInt64<7>> && !std::is_same_v<DynModInt<>, DynModInt64<>>);
-    static_assert(!std::is_same_v<DynModInt<0>, DynModInt<1>> && !std::is_same_v<DynModInt64<0>, DynModInt64<1>>);
 #if !TEST_DYNAMIC
     using M = TEST_TYPE<7>;
     static_assert(!TEST_TYPE<1>::is_prime && TEST_TYPE<2>::is_prime && !TEST_TYPE<4>::is_prime);
@@ -229,10 +221,26 @@ inline void compileTime() {
     static_assert(!TEST_TYPE<341550071728321ULL>::is_prime && !TEST_TYPE<3825123056546413051ULL>::is_prime);
 #endif
 #endif
-}
+    static_assert(std::is_same_v<mint, ModInt<998244353>>);
+    static_assert(std::is_same_v<decltype(ModInt<7>::mod()), uint>);
+    static_assert(std::is_same_v<decltype(ModInt64<7>::mod()), ulng>);
+    static_assert(std::is_same_v<decltype(DynModInt<>::mod()), uint>);
+    static_assert(std::is_same_v<decltype(DynModInt64<>::mod()), ulng>);
+    static_assert(std::is_same_v<DynModInt<>, DynModInt<0>> && std::is_same_v<DynModInt64<>, DynModInt64<0>>);
+    static_assert(!std::is_same_v<ModInt<7>, ModInt64<7>> && !std::is_same_v<DynModInt<>, DynModInt64<>>);
+    static_assert(!std::is_same_v<DynModInt<0>, DynModInt<1>> && !std::is_same_v<DynModInt64<0>, DynModInt64<1>>);
+    static_assert(modint_detail::MERSENNE61 == 2305843009213693951ULL && std::is_same_v<ModInt61, ModInt64<2305843009213693951ULL>>);
+    static_assert(ModInt61::is_prime && ModInt61::mod() == 2305843009213693951ULL);
+    static_assert(modint_detail::fold61(0) == 0 && modint_detail::fold61(modint_detail::MERSENNE61) == 0);
+    static_assert(modint_detail::fold61((ulll(modint_detail::MERSENNE61) << 61) - 1) == ((ulll(modint_detail::MERSENNE61) << 61) - 1) % modint_detail::MERSENNE61);
+    static_assert(modint_detail::fold61(ulll(modint_detail::MERSENNE61 - 1) * (modint_detail::MERSENNE61 - 1)) == 1);
+    static_assert(ModInt61::red(~ulll(0)) == ~ulll(0) % modint_detail::MERSENNE61 && ModInt61::mul(2, modint_detail::MERSENNE61 - 1) == modint_detail::MERSENNE61 - 2);
+    static_assert(ModularInt<TEST_TYPE<731>> && ModularInt<mint> && ModularInt<ModInt61> && !ModularInt<int> && !ModularInt<ulng>);
+    static_assert(StaticModularInt<mint> && StaticModularInt<ModInt61> && !StaticModularInt<DynModInt<>> && !StaticModularInt<DynModInt64<>>);
+    static_assert(StaticModularInt<TEST_TYPE<731>> == !TEST_DYNAMIC);}
 
-inline void contexts() {
 #if TEST_DYNAMIC
+inline void contexts() {
     EQUAL(global_default_product.val(), 757402647); EQUAL(global_custom_product.val(), 13);
     EQUAL(TEST_TYPE<811>::mod(), 17);
     using A = TEST_TYPE<1>; using B = TEST_TYPE<2>;
@@ -241,6 +249,9 @@ inline void contexts() {
     B::setMod(12); REQUIRE(!B::is_prime); EQUAL(old.val(), 11);
     A::setMod(17, 0); REQUIRE(!A::is_prime && A::isPrime()); old = 13; EQUAL(old.val(), 13);
     A::setMod(97, 1); REQUIRE(A::is_prime); old = 96; EQUAL((old * old).val(), 1);
+    EQUAL(A::reduction().mod, 97); EQUAL(A::reduction().reduce(typename A::Wide(96) * 96), 1); EQUAL(A::mul(96, 96), 1);
+    A::setMod(2305843009213693951ULL > std::numeric_limits<decltype(A::mod())>::max() ? 17 : decltype(A::mod())(2305843009213693951ULL));
+    EQUAL(A::reduction().mod, A::mod()); EQUAL(A::mul(A::mod() - 1, A::mod() - 1), 1); EQUAL(A::red(typename A::Wide(A::mod() - 1) * (A::mod() - 1)), 1);
     int count = test_mode == "quick" ? 100 : test_mode == "full" ? 2000 : 10000;
     for (int m = 1; m <= count; m++) { A::setMod(m); context = "primality mod=" + std::to_string(m); EQUAL(A::is_prime, primeOracle(m)); }
     for (auto [m, prime] : vector<pair<ulng, bool>>{{561, false}, {2047, false}, {1373653, false}, {25326001, false}, {998244353, true}, {4294967291ULL, true}, {4294967295ULL, false}
@@ -249,10 +260,11 @@ inline void contexts() {
 #endif
     }) { A::setMod(decltype(A::mod())(m)); EQUAL(A::is_prime, prime); }
     for (ulng m : vector<ulng>{1, 2, 4, 17, 97, 4294967295ULL, 17, 1}) {
-        A::setMod(decltype(A::mod())(m)); old = -1; EQUAL(old.val(), m - 1); EQUAL((old * old).val(), 1 % m); EQUAL(B::mod(), 12); }
-    cout << "PASS context defaults/IDs/reset/primality\n";
+        A::setMod(decltype(A::mod())(m)); old = -1; EQUAL(old.val(), m - 1); EQUAL((old * old).val(), 1 % m); EQUAL(B::mod(), 12);}
+    cout << "PASS context defaults/IDs/reset/primality\n";}
+#else
+inline void contexts() {}
 #endif
-}
 
 inline void protocol() {
     char op; ulng m;
@@ -260,8 +272,16 @@ inline void protocol() {
         dispatch(m, [&]<class M>() {
             if (op == 'N') {
                 char sign; string s; cin >> sign >> s; M a, b;
-                if (sign == 's') { lll x = parseSigned(s); a = M(x); b = x; }
-                else { ulll x = parseWide(s); a = M(x); b = x; }
+                if (sign == 's') {
+                    lll x = parseSigned(s); a = M(x);
+                    if (x >= INT_MIN && x <= INT_MAX) { b = int(x); }
+                    else if (x >= LLONG_MIN && x <= LLONG_MAX) { b = lng(x); }
+                    else { b = x; }}
+                else {
+                    ulll x = parseWide(s); a = M(x);
+                    if (x <= UINT_MAX) { b = uint(x); }
+                    else if (x <= ULLONG_MAX) { b = ulng(x); }
+                    else { b = x; }}
                 cout << a.val() << ' ' << b.val() << '\n';}
             else if (op == 'A') {
                 ulng a, b; cin >> a >> b; M x = a, y = b, out = M(m - 1); bool ok = tryInv(y, out);
@@ -275,8 +295,7 @@ inline void protocol() {
                 ulng a; cin >> a; M out = M(m - 1); bool ok = trySqrt(M(a), out);
                 cout << ok << ' ' << out.val() << ' ' << sqrt(M(a)).val() << '\n';}
             else if (op == 'S') { string s; cin >> s; std::istringstream in(s); M a = 7; in >> a; cout << in.fail() << ' ' << a.val() << '\n'; }
-            else { fail("protocol operation", __LINE__); }
-        });}}
+            else { fail("protocol operation", __LINE__); }});}}
 
 inline int death(const string &what) {
     if (what == "raw") { dispatch(17, []<class M>() { (void)M::raw(17); }); }

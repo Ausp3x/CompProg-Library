@@ -14,8 +14,9 @@ from pathlib import Path
 
 LIBRARY = Path(__file__).resolve().parent.parent
 TARGET = LIBRARY / "99-Workspace" / "template.cpp"
-LOCAL_INCLUDE = re.compile(r'^\s*#\s*include\s*"([^"]+)"\s*$')
-PRAGMA_ONCE = re.compile(r"^\s*#\s*pragma\s+once\s*$")
+TAIL = r"\s*(?://.*|/\*.*\*/\s*)?"
+LOCAL_INCLUDE = re.compile(r'^\s*#\s*include\s*"([^"]+)"' + TAIL + "$")
+PRAGMA_ONCE = re.compile(r"^\s*#\s*pragma\s+once" + TAIL + "$")
 MOTTO = "// 知彼知己，百战不殆"
 DRIVER = """\
 void solve(int t) {
@@ -83,6 +84,9 @@ def main() -> int:
         try:
             with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as file:
                 file.write(expected)
+            umask = os.umask(0)
+            os.umask(umask)
+            os.chmod(temp, 0o666 & ~umask)
             os.replace(temp, TARGET)
         finally:
             if os.path.exists(temp):

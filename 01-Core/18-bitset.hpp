@@ -12,10 +12,10 @@
 // Proxies/spans invalidate on resize, clear, push/pop, move, assignment and swap.
 // Other mutations preserve proxies; scans have no persistent iterators. Not thread-safe.
 // All mutating operations support self-aliasing; moved-from objects are empty.
-// T: O(ceil(n / 64)) bulk operations/scans, O(1) bit access; M: O(ceil(n / 64)).
 // Resize: worst-case O(old words + new words) on growth, O(1) on shrink.
 // pushBack: amortized O(1); popBack/clear/swap/size/empty/blocks are O(1).
 // Rotation/copy/nonmutating operators use O(ceil(n / 64)) extra result/workspace.
+// T: O(ceil(n / 64)) bulk operations/scans, O(1) bit access; M: O(ceil(n / 64)).
 struct Bitset {
     enum class Op { Assign, And, Or, Xor, AndNot };
     size_t n = 0;
@@ -66,6 +66,8 @@ struct Bitset {
     struct Reference {
         ulng *word; ulng mask;
 
+        Reference(ulng *w, ulng m) : word(w), mask(m) {}
+        Reference(const Reference &) = default;
         operator bool() const { return (*word & mask) != 0; }
         Reference &operator=(bool value) { if (value) { *word |= mask; } else { *word &= ~mask; } return *this; }
         Reference &operator=(const Reference &b) { return *this = bool(b); }
@@ -115,7 +117,7 @@ struct Bitset {
         else {
             a[first] = apply<OP>(a[first], ~lowMask(l % 64));
             for (size_t i = first + 1; i < last; ++i) { a[i] = apply<OP>(a[i], ~ulng(0)); }
-            a[last] = apply<OP>(a[last], lowMask((r - 1) % 64 + 1)); }
+            a[last] = apply<OP>(a[last], lowMask((r - 1) % 64 + 1));}
         return *this;}
     Bitset &setRange(size_t l, size_t r, bool value = true) { return value ? range<Op::Or>(l, r) : range<Op::AndNot>(l, r); }
     Bitset &resetRange(size_t l, size_t r) { return range<Op::AndNot>(l, r); }
@@ -134,7 +136,7 @@ struct Bitset {
             __m256i sum = _mm256_setzero_si256();
             for (; i + 4 <= words; i += 4) { sum = _mm256_add_epi64(sum, popcounts(applyVector<OP>(load(x + i), load(y + i)))); }
             ulng lanes[4]; store(lanes, sum);
-            res = lanes[0] + lanes[1] + lanes[2] + lanes[3]; }
+            res = lanes[0] + lanes[1] + lanes[2] + lanes[3];}
 #endif
         for (; i < words; ++i) { res += std::popcount(apply<OP>(x[i], y[i])); }
         return res;}
@@ -186,17 +188,30 @@ struct Bitset {
         return 64 * i + 63 - std::countl_zero(x);}
     size_t findLast() const { return findPrev(n); }
 
-    ulng shiftedWord(size_t i, size_t d, size_t s, bool left) const {
-        assert(i < a.size() && s < 64);
+    // dst[i] OP= word i of x shifted by s < 64 bits, for i in [0, words): left reads x[i], x[i - 1] descending,
+    // right reads x[i], x[i + 1] ascending; the outer neighbour (x[-1] or x[words]) is read only when s != 0.
+    // Each group loads its sources before storing, so dst may overlap x in the direction of travel.
+    template<Op OP> static void shiftWords(ulng *dst, const ulng *x, size_t words, int s, bool left) {
+        size_t i = left ? words : 0;
+#ifdef __AVX2__
+        if (words >= SIMD_WORDS) {
+            __m128i shift = _mm_cvtsi64_si128(s), back = _mm_cvtsi64_si128(64 - s);
+            if (left) {
+                while (i >= 4) {
+                    i -= 4;
+                    __m256i y = _mm256_sll_epi64(load(x + i), shift);
+                    if (s) { y = _mm256_or_si256(y, _mm256_srl_epi64(load(x + i - 1), back)); }
+                    store(dst + i, applyVector<OP>(load(dst + i), y));}}
+            else {
+                for (; i + 4 <= words; i += 4) {
+                    __m256i y = _mm256_srl_epi64(load(x + i), shift);
+                    if (s) { y = _mm256_or_si256(y, _mm256_sll_epi64(load(x + i + 1), back)); }
+                    store(dst + i, applyVector<OP>(load(dst + i), y));}}}
+#endif
         if (left) {
-            if (i < d) { return 0; }
-            ulng x = a[i - d] << s;
-            if (s && i > d) { x |= a[i - d - 1] >> (64 - s); }
-            return x;}
-        if (d >= a.size() - i) { return 0; }
-        ulng x = a[i + d] >> s;
-        if (s && i + d + 1 < a.size()) { x |= a[i + d + 1] << (64 - s); }
-        return x;}
+            while (i > 0) { --i; dst[i] = apply<OP>(dst[i], x[i] << s | (s ? x[i - 1] >> (64 - s) : 0)); }}
+        else {
+            for (; i < words; ++i) { dst[i] = apply<OP>(dst[i], x[i] >> s | (s ? x[i + 1] << (64 - s) : 0)); }}}
     // this OP= (b shifted k); b may alias this, with original-value semantics.
     // T: O(ceil(n / 64)), workspace O(1), including self-aliasing.
     template<Op OP> Bitset &combineShift(const Bitset &b, size_t k, bool left = true) {
@@ -205,31 +220,42 @@ struct Bitset {
             if constexpr (OP == Op::Assign || OP == Op::And) { reset(); }
             return *this;}
         if (!k) { return combine<OP>(b); }
-        size_t d = k / 64, i = left ? a.size() : 0;
+        size_t d = k / 64, m = a.size() - d - 1;
         int s = int(k % 64);
-#ifdef __AVX2__
-        if (a.size() >= SIMD_WORDS) {
-            __m128i shift = _mm_cvtsi64_si128(s), back = _mm_cvtsi64_si128(64 - s);
-            if (left) {
-                while (i >= 4 && i - 4 >= d + (s != 0)) {
-                    i -= 4;
-                    __m256i x = _mm256_sll_epi64(load(b.a.data() + i - d), shift);
-                    if (s) { x = _mm256_or_si256(x, _mm256_srl_epi64(load(b.a.data() + i - d - 1), back)); }
-                    store(a.data() + i, applyVector<OP>(load(a.data() + i), x)); }}
-            else {
-                while (i + 4 <= a.size() && d + (s != 0) <= a.size() - i - 4) {
-                    __m256i x = _mm256_srl_epi64(load(b.a.data() + i + d), shift);
-                    if (s) { x = _mm256_or_si256(x, _mm256_sll_epi64(load(b.a.data() + i + d + 1), back)); }
-                    store(a.data() + i, applyVector<OP>(load(a.data() + i), x));
-                    i += 4; }}}
-#endif
         if (left) {
-            while (i > d) { --i; a[i] = apply<OP>(a[i], b.shiftedWord(i, d, s, true)); }
-            if constexpr (OP == Op::Assign || OP == Op::And) { std::fill(a.begin(), a.begin() + ptrdiff_t(i), 0); }}
+            shiftWords<OP>(a.data() + d + 1, b.a.data() + 1, m, s, true);
+            a[d] = apply<OP>(a[d], b.a[0] << s);
+            if constexpr (OP == Op::Assign || OP == Op::And) { std::fill(a.begin(), a.begin() + ptrdiff_t(d), 0); }}
         else {
-            for (; i < a.size() - d; ++i) { a[i] = apply<OP>(a[i], b.shiftedWord(i, d, s, false)); }
-            if constexpr (OP == Op::Assign || OP == Op::And) { std::fill(a.begin() + ptrdiff_t(i), a.end(), 0); }}
+            shiftWords<OP>(a.data(), b.a.data() + d, m, s, false);
+            a[m] = apply<OP>(a[m], b.a.back() >> s);
+            if constexpr (OP == Op::Assign || OP == Op::And) { std::fill(a.begin() + ptrdiff_t(m + 1), a.end(), 0); }}
         trim(); return *this;}
+    // this[l, r) OP= b[p, p + (r - l)); sizes may differ and b may alias this (its source range is copied first).
+    // T: O(1 + (r - l) / 64), workspace O(1), or O(1 + (r - l) / 64) when b aliases this.
+    template<Op OP> Bitset &combineRange(size_t l, size_t r, const Bitset &b, size_t p = 0) {
+        assert(l <= r && r <= n && p <= b.n && r - l <= b.n - p);
+        if (l == r) { return *this; }
+        if (this == &b) { return combineRange<OP>(l, r, b.slice(p, p + (r - l))); }
+        bool left = p < l;
+        size_t k = left ? l - p : p - l, d = k / 64, first = l / 64, last = (r - 1) / 64;
+        int s = int(k % 64);
+        auto at = [&](size_t i) { return i < b.a.size() ? b.a[i] : 0; };
+        auto src = [&](size_t i) {
+            if (left) { return (i < d ? 0 : at(i - d) << s) | (s && i > d ? at(i - d - 1) >> (64 - s) : 0); }
+            return at(i + d) >> s | (s ? at(i + d + 1) << (64 - s) : 0);};
+        auto edge = [&](size_t i, ulng m) { a[i] = (a[i] & ~m) | (apply<OP>(a[i], src(i)) & m); };
+        if (first == last) { edge(first, lowMask((r - 1) % 64 + 1) & ~lowMask(l % 64)); return *this; }
+        edge(first, ~lowMask(l % 64));
+        if (last > first + 1) { shiftWords<OP>(a.data() + first + 1, b.a.data() + (left ? first + 1 - d : first + 1 + d), last - first - 1, s, left); }
+        edge(last, lowMask((r - 1) % 64 + 1));
+        return *this;}
+    // Copy of bits [l, r) as a new (r - l)-bit set. T: O(1 + (r - l) / 64), M: O(1 + (r - l) / 64).
+    Bitset slice(size_t l, size_t r) const {
+        assert(l <= r && r <= n);
+        Bitset res(r - l);
+        res.combineRange<Op::Assign>(0, r - l, *this, l);
+        return res;}
 
     Bitset &operator<<=(size_t k) { return combineShift<Op::Assign>(*this, k); }
     Bitset &operator>>=(size_t k) { return combineShift<Op::Assign>(*this, k, false); }
@@ -237,12 +263,12 @@ struct Bitset {
     Bitset &rotateLeft(size_t k) {
         if (n && (k %= n)) {
             Bitset b(*this);
-            *this <<= k; combineShift<Op::Or>(b, n - k, false); }
+            *this <<= k; combineShift<Op::Or>(b, n - k, false);}
         return *this;}
     Bitset &rotateRight(size_t k) {
         if (n && (k %= n)) {
             Bitset b(*this);
-            *this >>= k; combineShift<Op::Or>(b, n - k); }
+            *this >>= k; combineShift<Op::Or>(b, n - k);}
         return *this;}
 
     Bitset &operator&=(const Bitset &b) { return combine<Op::And>(b); }

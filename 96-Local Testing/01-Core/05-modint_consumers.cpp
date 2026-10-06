@@ -1,6 +1,10 @@
 #include "../../01-Core/99-All.hpp"
 #include "../../05-Mathematics/05-combinatorics.hpp"
 
+// The residue concepts accept the four minis in a mixed full/mini translation unit.
+static_assert(ModularInt<mintmini> && ModularInt<ModInt64Mini<7>> && ModularInt<DynModIntMini<>> && ModularInt<DynModInt64Mini<>>);
+static_assert(StaticModularInt<mintmini> && StaticModularInt<ModInt64Mini<7>> && !StaticModularInt<DynModIntMini<>> && !StaticModularInt<DynModInt64Mini<>>);
+
 // Compatibility smoke for existing mint consumers, not a Matrix/ModFac audit.
 int main() {
     ModFac f(20);

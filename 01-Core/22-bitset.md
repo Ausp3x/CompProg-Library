@@ -2,32 +2,33 @@
 
 The later [Core migration](../00-Guidelines/22-core-migration.md) moved the header and companion files from prefix 20 to 18. Commands and links below use current paths for reproduction; earlier results/hashes retain their historical meaning. The header bytes and raw benchmark JSONL are unchanged, while tester/benchmark includes now use the current header path. The post-migration review at the end records current source hashes and fresh checks.
 
-`18-bitset.hpp` provides `Bitset`, a runtime-length array of bits backed by contiguous 64-bit words. C15 follows [C01](21-c01-verification.md) in P002. The implementation is independent of BitMatrix and has no runtime CPU dispatch. All arithmetic and indexing use the GNU C++20 Linux x86-64 contract.
+`18-bitset.hpp` provides `Bitset`, a runtime-length array of bits backed by contiguous 64-bit words. C15 follows [C01](21-c01-verification.md) in P002. The implementation is independent of BitMatrix and has no runtime CPU dispatch. All arithmetic and indexing use the GNU C++20 x86-64 contract (Linux and Windows/MinGW, see [C01](21-c01-verification.md)).
 
 ## Supported API and domain
 
 - `Bitset(n, value)` initializes exactly `n` bits. `Bitset(string_view)` reads a binary string most significant bit first; the empty string is an empty set. `fromWords(n, words)` requires exactly `n / 64 + (n % 64 != 0)` words in least significant word order and discards high padding bits. `toString()` and `blocks()` export these respective layouts; the `debugString` ADL hook exposes the binary string to C01 debug formatting.
 - `size`, `empty`, `clear`, `resize`, `pushBack`, `popBack`, copy/move and `swap` manage storage. Growth preserves existing bits and fills new bits with the supplied value. Shrink discards removed bits permanently. Move leaves the source empty; self-move preserves it. Allocation failure propagates the standard allocation exception; lengths must be feasible for `vector<uint64_t>` on the host.
-- `test(i)` and const indexing return a bit. Mutable indexing returns an assignable Boolean proxy with `flip`; `set(i, value)`, `reset(i)`, `flip(i)` return the set itself. No-argument `set/reset/flip` act on the whole set. Indexing requires `i < size`.
+- `test(i)` and const indexing return a bit. Mutable indexing returns an assignable, copyable Boolean proxy with `flip`; copies alias the same bit and proxy-to-proxy assignment copies the bit value. `set(i, value = true)`, `reset(i)`, `flip(i)` return the set itself. No-argument `set/reset/flip` act on the whole set. Indexing requires `i < size`.
 - `setRange(l,r,value)`, `resetRange`, `flipRange`, `rangeMask(n,l,r)` and `count(l,r)` use half-open ranges, requiring `0 <= l <= r <= n`. Empty ranges are valid. Count, `any`, `none`, and `all` consider exactly the logical bits; `all()` of the empty set is true.
 - `findFirst`, `findLast`, `findNext(p)`, `findPrev(p)` return `size()` when no set bit exists. Next and previous are strict; `p <= size()` is required. `findNext(size())` is absent and `findPrev(size())` finds the last set bit. Mutation between repeated scans has ordinary current-value semantics.
 - `&`, `|`, `^`, `-` (set difference), their compound assignments, `~`, `intersects`, `isSubsetOf`, `countAnd`, `countOr`, and `countXor` operate on packed words. Binary operations require equal lengths. Equality is defined even for unequal lengths and returns false in that case; C++20 supplies `!=`.
 - `<<`, `>>` and compound shifts keep the length fixed, shift toward higher/lower bit indices, and zero vacated positions. Every `size_t` shift amount is supported, including `SIZE_MAX`; shifts at least the length produce zero. Mutating `rotateLeft/rotateRight` reduce modulo a nonzero length; empty rotations do nothing.
 - `combine<Op>(b)` and `combineShift<Op>(b,k,left)` provide assignment, AND, OR, XOR and AND-NOT (`Op::Assign/And/Or/Xor/AndNot`) without a temporary shifted allocation. The latter is exactly `old_this OP shifted(old_b)` with equal lengths, including self-aliasing. `left` defaults to true. For example, subset-sum uses `bits.combineShift<Bitset::Op::Or>(bits, weight)`.
+- `combineRange<Op>(l, r, b, p = 0)` applies `this[l + j] OP= b[p + j]` for `j` in `[0, r - l)`; it requires `l <= r <= size()` and `p + (r - l) <= b.size()`, lengths may differ, bits outside `[l, r)` are untouched, and `b` may alias the receiver (its source range `[p, p + r - l)` is then copied first through `slice`, so original-value semantics hold at O(1 + (r - l) / 64) cost). `xorSuffix(i, b)` of other libraries is `combineRange<Op::Xor>(i, n, b, i)`. `slice(l, r)` returns a new `(r - l)`-bit set holding bits `[l, r)`.
 
-The fields and kernel helpers remain public to follow the contest-library convention; they are representation details rather than extra supported operations. External code must not mutate `n` or `a`, call unlisted kernels, or retain a mutable raw alias to storage. All API operations maintain `a.size() == ceil(n / 64)` and zero unused high bits. Bit proxies and block spans invalidate on resize, clear, push/pop, assignment, move and swap. Other bit mutations preserve them. There are no owning iterators or hidden caches, and concurrent mutation is outside the contract.
+The fields and kernel helpers (`apply`, `applyVector`, `popcounts`, `countWords`, `shiftWords`, `range`, `countWith`) remain public to follow the contest-library convention; they are representation details rather than extra supported operations. External code must not mutate `n` or `a`, call unlisted kernels, or retain a mutable raw alias to storage. All API operations maintain `a.size() == ceil(n / 64)` and zero unused high bits. Bit proxies and block spans invalidate on resize, clear, push/pop, assignment, move and swap. Other bit mutations preserve them. There are no owning iterators or hidden caches, and concurrent mutation is outside the contract.
 
 ## Complexity and correctness argument
 
 Let `W = ceil(n / 64)`. Bulk operations and scans take worst-case `O(W)` time; scans and Boolean predicates stop early when possible. Single-bit access, size, clear, swap and span access take constant time. Range work takes `O(1 + (r-l)/64)`. Growing resize takes worst-case `O(old W + new W)` if allocation moves existing words; pushBack is amortized constant time. Shrink/pop are constant time. Text import/export take `O(n)` time. Stored memory is `O(W)`; text export uses `O(n)` returned memory, copying/nonmutating operators and rotation use `O(W)` result/workspace, and fused mutations use constant workspace.
 
-Bit position `i` is word `i/64`, offset `i%64`. Splitting each shift into whole-word displacement and a residual in `[0,63]` gives the two contributing words. A separate residual-zero branch avoids scalar shifts by 64. Left shifts process destination words from high to low; right shifts process low to high. Each SIMD group loads all contributing source words before writing its four destinations, so the same proof applies to self-aliasing. Vacated words are cleared for assignment/AND, and skipped for OR/XOR/AND-NOT. Range count masks its two endpoint words and passes the complete interior words to the same scalar/AVX2 count kernel. All paths mask the last word after shifts, rotations and length-changing operations. Whole-word Boolean operations preserve zero padding. These invariants justify scans, count, equality and subset checks without inspecting storage past its end.
+Bit position `i` is word `i/64`, offset `i%64`. Splitting each shift into whole-word displacement `d` and a residual `s` in `[0,63]` gives the two contributing words. The shared kernel `shiftWords<Op>(dst, x, words, s, left)` applies `dst[i] OP= x[i] << s | x[i-1] >> (64-s)` (left, descending) or `dst[i] OP= x[i] >> s | x[i+1] << (64-s)` (right, ascending) and reads the outer neighbour `x[-1]`/`x[words]` only when `s != 0`; a residual-zero branch avoids scalar shifts by 64. `combineShift` passes the interior words so that both neighbours exist and finishes the single boundary word (`a[d]` for left, `a[size-d-1]` for right) after the kernel, which preserves the descending/ascending order that self-aliasing needs. Each SIMD group loads all contributing source words before writing its four destinations, so the same proof applies to self-aliasing. `combineRange` masks its two edge words with guarded source reads (missing source words read as zero, which only affects masked-out bits because every in-range destination bit maps into `[p, p + r - l)`) and hands the fully-covered interior words to `shiftWords`; for interior words both source neighbours are in bounds because the lowest interior bit maps to a source position `>= p >= 0` and the highest to a position `< p + (r - l) <= b.n`. Aliased calls copy the source range first, so no read sees a modified word. Vacated words are cleared for assignment/AND, and skipped for OR/XOR/AND-NOT. Range count masks its two endpoint words and passes the complete interior words to the same scalar/AVX2 count kernel. All paths mask the last word after shifts, rotations and length-changing operations. Whole-word Boolean operations preserve zero padding. These invariants justify scans, count, equality and subset checks without inspecting storage past its end.
 
 Word counts use division plus a remainder test, without overflowing `n + 63`. Shift amounts are compared against `n` before displacement arithmetic. Range masks handle 0 and 64 explicitly. Scan sentinels never collide with valid indices. The AVX2 popcount uses duplicated nibble tables, byte counts at most eight, and 64-bit SAD reductions, so there is no byte accumulator overflow.
 
 ## Optimization scope and provenance
 
-The baseline uses ordinary word arithmetic and `std::popcount`, with no required ISA flags. `__AVX2__` selects unaligned four-word directional fused shift and nibble-table population-count kernels, including fused Boolean counts; scalar tails handle every alignment and length. These kernels start at 16 words (logical lengths from 961 bits). Plain Boolean loops rely on compiler vectorization: the initial explicit AVX2 loop was measurably slower and was removed. Benchmark evidence below records the final selection. FMA and floating-point flags are irrelevant to exact bit operations. BMI-specific scan instructions can be emitted by the compiler when the caller enables them; the implementation requires neither BMI nor POPCNT.
+The baseline uses ordinary word arithmetic and `std::popcount`, with no required ISA flags. `__AVX2__` selects unaligned four-word directional fused shift and nibble-table population-count kernels, including fused Boolean counts; scalar tails handle every alignment and length. These kernels start at 16 words of kernel work (whole counts from 961 bits; for fused shifts the count excludes the boundary word, so from 1,025 bits with `k < 64`). Plain Boolean loops rely on compiler vectorization: the initial explicit AVX2 loop was measurably slower and was removed. Benchmark evidence below records the final selection. FMA and floating-point flags are irrelevant to exact bit operations. BMI-specific scan instructions can be emitted by the compiler when the caller enables them; the implementation requires neither BMI nor POPCNT.
 
 The scope review added word/string conversion, subset/intersection queries and counts, last-bit scans, proxy assignment, and explicit move semantics to the starting inventory. Fixed-size `std::bitset` remains the compact alternative. Growable word append, formatted stream extraction, hashing/ordering, unset-bit scans and proxy compound assignment are convenience extensions rather than promised C15 features; they can be composed from the supported API. Succinct rank/select, compressed/Roaring bitmaps and sparse set representations belong to Data Structures. AVX512 VPOPCNTDQ and Harley–Seal carry-save population count are alternative backend research, not implemented or claimed verified here; this package does not promise every ISA or every published popcount backend.
 
@@ -159,3 +160,75 @@ Current source hashes (SHA256):
 | `96-Local Testing/01-Core/18-bitset_benchmark.cpp` | `c8aa468a0d219dc02752080b3cb34b8ceb348333fc93a1e0a663b185ee753f07` |
 
 The raw benchmark JSONL still has SHA256 `ad8aeabd36afb166e678e601959bf5e5f8b37d40058d6d5da3311270def5cd21`. Its historical paths and measured header hash were preserved. Shared inventories/checklists, Workspace, other implementations and legacy originals were not edited.
+
+## Re-audit — 2026-10-06
+
+Package P002 re-audit under the current rules; the previous verification was treated as existing-unverified. Operations in the inventory row were compared with the code and the tester before any edit, the full suite was rerun unchanged (five configurations, 139.40 s, passing), and the header was then brought to the current style, extended and re-tested.
+
+### Confirmed findings and their disposition
+
+| # | Finding | Disposition |
+|---|---|---|
+| 6 | T/M line not directly above `struct Bitset` | Fixed: the bound line is the last comment line above the struct. |
+| 7 | `Reference` declared copy assignment without a copy constructor (`-Wdeprecated-copy`) | Fixed: explicit `Reference(ulng *, ulng)` and `Reference(const Reference &) = default`. The tester copies named proxies, stores proxies in a `vector<Bitset::Reference>` and compiles with `-Werror`; removing the defaulted constructor fails the build (mutation check). |
+| 8 | Per-word `assert` inside the fused-shift inner loop | Fixed: `shiftedWord` is gone; the shared `shiftWords` kernel has no assertion and `combineShift`/`combineRange` check their preconditions once at entry. |
+| — | `; }` closers of multi-line blocks (lines 118, 137, 218, 224, 240, 245 of the previous header) | Fixed; the tester and benchmark were normalized mechanically, and `03-consistency.py --braces` reports nothing for the three files. |
+
+### Changes beyond the findings
+
+- New operations from the catalog sweep ([81-sources.md](81-sources.md), [80-notes.md](80-notes.md)): `slice(l, r)` and `combineRange<Op>(l, r, b, p)` (maspypy `slice`, `or_to_range`/`xor_to_range`/`xor_suffix`; hitonanode `join`). `combineRange` reuses the five `Op` kernels and `shiftWords`, so the AVX2 path serves offset ranges as well; aliasing copies only the source range (the review found the first version copied the whole set, an O(ceil(n / 64)) cost per call, confirmed with 20,000 aliased 64-bit XORs on a 2^24-bit set taking 2.7 s against under 1 ms through `slice`).
+- `combineShift` now delegates to `shiftWords` and handles one boundary word explicitly; the result bits are unchanged (the existing exhaustive/boundary/history oracles passed before and after). The AVX2 dispatch counts kernel words rather than total words, which moves the fused-shift crossover from 961 to 1,025 logical bits for `k < 64`; the benchmark below re-measures both sides.
+- The tester includes the LOCAL debug header to check `Debug::to_string(Bitset::Reference)` and the `debugString` hook end to end, uses `-Werror`, and adds six precondition deaths (`combine-range-order/end/source/offset`, `slice-order/end`, 34 in total).
+
+### Feature-to-test additions
+
+| Feature | Independent coverage |
+|---|---|
+| `slice` | Exhaustive all `(l, r)` for every pattern through length 4 (5 in stress); word-boundary `(l, r)` pairs (0/1/63/64/65/127/128/129/1023/1025 and random) on every boundary length and pattern; `a = a.slice(l, r)` in mutation histories; byte sub-vector oracle. |
+| `combineRange<Op>` | Exhaustive receiver/source lengths through 4 (5 in stress) with every mask pair, every `(l, r, p)` and all five ops, plus every aliased `(l, r, p)`; boundary lengths with same-size, exact-length, longer (random or maximal offset) and aliased sources; histories ops 15 (foreign source) and 17 (aliased). Oracle: per-bit `bitOp` on byte vectors. Mutations that drop the last edge word, the AVX2 carry word or the aliasing copy all fail the quick suite. |
+| `Reference` copy | Copy-constructed proxy flips the shared bit; `vector<Bitset::Reference>` element assignment copies bit values; `-Werror` build. |
+| Debug integration | `Debug::to_string(a[0])` spells `true`/`false`; `Debug::to_string(a)` equals the binary string for every lifecycle length. |
+
+### Commands and results
+
+```bash
+python3 '96-Local Testing/01-Core/18-bitset_tester.py' --mode full --seed 20261006
+python3 '96-Local Testing/01-Core/18-bitset_tester.py' --mode stress --seed 1
+python3 '96-Local Testing/01-Core/18-bitset_benchmark.py' --seed 20261006 --milliseconds 3 --repetitions 5 --output '96-Local Testing/01-Core/18-bitset_benchmark.jsonl'
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
+```
+
+All passed on GCC 16.2.1, GNU++20, Linux x86-64 (Intel Core i9-11900H), every build with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Before the edits the unchanged suite passed full mode (seed 20260927, five configurations, 139.40 s). After the edits, full (seed 20261006) ran **435,609,414 non-removable checks per configuration** in all five configurations (optimized scalar without POPCNT/AVX, checked scalar with 34 precondition deaths, AVX2+POPCNT optimized, scalar and AVX2 ASan/UBSan with leak detection), 216.32 s total for the final source (246.59 s for the pre-review source); stress (seed 1) ran **1,412,889,926 checks per configuration**, five configurations, 731.21 s. The sanitizer subprocess limits were raised to 600 s (full) and 1,200 s (stress) because the sanitized stress run of the enlarged corpus takes about five minutes; the limits still catch hangs. Range tests enumerate every boundary-point pair through 513 bits and sample twelve pairs plus the whole range above that, keeping the O(n) byte oracle within budget.
+
+`python3 '96-Local Testing/02-integration.py' --sanitizers` passed: 102 standalone/aggregate headers, scalar and available AVX2 multiple-translation-unit linkage, the regenerated Workspace snapshot and the sanitizer self-tests. `python3 '96-Local Testing/03-consistency.py'` reports no errors.
+
+Independent review (`@reviewer`, 2026-10-06) confirmed every finding fixed, re-derived the kernel bounds, ran its own brute-force oracle (sizes to 3,000, differing source sizes, all ops, both directions, aliasing, ASan/UBSan scalar and AVX2) and the full suites, and raised: the whole-set copy on aliased `combineRange` (fixed as above), missing public helpers in the row (added), and brace-checker edge cases (fixed; see [21-c01-verification.md](21-c01-verification.md#re-audit--2026-10-06)).
+
+### Benchmark — 2026-10-06
+
+Rerun of the benchmark on the maintained source before the review fix of the aliased `combineRange` branch, which no benchmark workload exercises (the [JSONL record](<../96-Local Testing/01-Core/18-bitset_benchmark.jsonl>) now holds this run, SHA256 `0425f73f87432704365c7b799fcb43ed8bdb4ebfd61f0337f9503141ea36c98d`; the previous record's figures stay in the historical table above). Same host, GCC 16.2.1, `-O3 -DNDEBUG`, seed 20261006, five repetitions, 3 ms adaptive warmup, 142 checked measurements per configuration in baseline, POPCNT-only and AVX2 configurations; all verification checks passed. The run overlapped with the sanitized stress suite on another core, so absolute times are slightly pessimistic while the interleaved reference/library ratios below are unaffected in kind. Ratios are reference time over library time in the same AVX2 build.
+
+| Operation / reference | 1,024 bits | 65,536 bits | 1,048,576 bits |
+|---|---|---|---|
+| Count / scalar POPCNT loop | 1.30× | 2.62× | 2.05× |
+| Intersection count / fused scalar loop | 1.56× | 2.52× | 2.05× |
+| Intersection count / materialized intersection | 2.62× | 1.95× | 2.27× |
+| XOR / compiler-vectorized generic loop | 0.97× | 1.03× | 0.84× |
+| Fused left-shift XOR / generic word loop | 2.46× | 5.50× | 2.99× |
+| Range XOR `[13, n-11)` / materialized shift plus mask | 1.66× | 1.83× | 1.97× |
+| Subset sum / temporary-producing shifts | 2.28× | 1.99× | 2.43× |
+
+Threshold neighbours: whole count 0.93×/0.94× at 15 words (959/960 bits) and 1.28×/1.33× at 16 words (961/1,023 bits); range count `[13, n-11)` 0.88×–0.95× with 15 or fewer interior words (961–1,088 bits) and 1.25× at 16 interior words (1,152 bits); fused left shift 2.35×/1.80×/2.46× with 14–15 kernel words (960/961/1,024 bits, scalar path) and 2.84×/4.25×/4.48× with 16–18 kernel words (1,025/1,088/1,152 bits, AVX2 path). These confirm the retained 16-word dispatch for counts and for the shared shift kernel. Sparse one-bit-per-word data gives 2.29×/2.65× for count/intersection count at 65,536 bits. The 0.84× XOR figure at 1,048,576 bits compares two plain word loops that GCC vectorizes identically; it is memory-bound timing variation on a loaded host, not a kernel difference. Benchmarks remain shared-host observations, not timing gates.
+
+Source hashes after the re-audit (SHA256):
+
+| File | SHA256 |
+|---|---|
+| `01-Core/18-bitset.hpp` | `79a8680ebc3629c5a1e58d028b0c62ce941be6af53de720a84211e4481ac7924` |
+| `96-Local Testing/01-Core/18-bitset_tester.cpp` | `61649ba856eeacdeaf897b649d7dbf7218e4e218e3867e0dec56e0cabb39b58c` |
+| `96-Local Testing/01-Core/18-bitset_tester.py` | `905dbbecd5daf5c5ab0a128e67017bbc3d73f2437839bb5b4a1f7bc9075d5a82` |
+| `96-Local Testing/01-Core/18-bitset_benchmark.cpp` | `a9b076aaf73ab3dabbed74c8f2421fe5e73ed30bac79c93c15f7dbfbeaa757e1` |
+| `96-Local Testing/01-Core/18-bitset_benchmark.jsonl` | `0425f73f87432704365c7b799fcb43ed8bdb4ebfd61f0337f9503141ea36c98d` |
+
+Known limits and handoff: `combineRange` has no dedicated AVX2 edge handling (two masked scalar edge words plus the shared kernel); self-aliased `combineRange` allocates a copy of the source range. GCC 14 and Windows were not executed. BitMatrix (`12-bitmatrix.hpp`) may adopt `combineRange<Op::Xor>` for row elimination when its package runs; no P002-owned gap remains.

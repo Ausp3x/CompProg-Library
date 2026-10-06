@@ -4,10 +4,12 @@
 #include <immintrin.h>
 #endif
 
-// Nonzero moduli: [1, 2^32) / [1, 2^64). Do not modify reducer fields.
-// reduce accepts every 64/128-bit dividend; mul/pow accept arbitrary words.
-// Results are canonical [0, mod); mod=1 returns zero even for exponent=0.
-// For all other moduli a^0=1, including a=0.
+// Nonzero moduli: [1, 2^32) / [1, 2^64); the default is one. Do not modify
+// reducer fields: mod, mu (reciprocal; zero on special paths) and the mask flag
+// (power-of-two modulus). divMod/div/reduce accept every 64/128-bit dividend
+// and return the exact quotient (same width as the dividend) and remainder;
+// mul/pow accept arbitrary words. Results are canonical [0, mod); mod=1 returns
+// zero even for exponent=0. For all other moduli a^0=1, including a=0.
 // Generic reduction uses mu=floor(2^(2w)/mod), equal to
 // floor((2^(2w)-1)/mod) for non-powers of two. Special paths leave mu=0.
 // q=high(x*mu) is the true quotient or one less, so the
@@ -16,37 +18,40 @@
 // exactly equal starts (in-place is supported); no alignment requirement.
 // Null pointers are allowed only for n=0. Stored fields are immutable state;
 // copies/moves are independent. No allocation, caches or global state.
-// S: O(1), Q: O(1), M: O(1); pow O(1 + log(e + 1)), pointer mul O(n).
+// S: O(1), Q: O(1), M: O(1); pow O(1 + log(e + 1)) for exponent e, pointer mul O(n).
 struct Barrett32 {
     uint mod;
     ulng mu;
     bool mask;
 
-    explicit Barrett32(uint m) : mod(m), mu(0), mask((m & (m - 1)) == 0) {
+    explicit Barrett32(uint m = 1) : mod(m), mu(0), mask((m & (m - 1)) == 0) {
         assert(m);
         if (!mask) { mu = ~ulng(0) / m; }}
 
-    uint reduce(ulng x) const {
-        if (mask) { return uint(x) & (mod - 1); }
+    pair<ulng, uint> divMod(ulng x) const {
+        if (mask) { return {x >> std::countr_zero(mod), uint(x) & (mod - 1)}; }
         ulng q = ulng(ulll(x) * mu >> 64), r = x - q * mod;
-        return uint(r >= mod ? r - mod : r);}
+        bool over = r >= mod;
+        return {q + over, uint(over ? r - mod : r)};}
+    ulng div(ulng x) const { return divMod(x).first; }
+    uint reduce(ulng x) const { return divMod(x).second; }
     uint mul(uint a, uint b) const { return reduce(ulng(a) * b); }
     uint pow(uint a, ulng e) const {
         uint r = uint(mod != 1); a = reduce(a);
         for (; e > 1; e >>= 1, a = mul(a, a)) { if (e & 1) { r = mul(r, a); } }
         return e ? mul(r, a) : r;}
 
+#ifdef __AVX2__
+    static __m256i load(const uint *p) { return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(p)); }
+    static void store(uint *p, __m256i x) { _mm256_storeu_si256(reinterpret_cast<__m256i *>(p), x); }
+#endif
     void mul(const uint *a, const uint *b, uint *out, int n) const {
         assert(n >= 0 && (!n || (a && b && out)));
         int i = 0;
 #ifdef __AVX2__
         if (mask) {
             __m256i m = _mm256_set1_epi32(int(mod - 1));
-            for (; n - i >= 8; i += 8) {
-                __m256i x = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(a + i));
-                __m256i y = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(b + i));
-                _mm256_storeu_si256(reinterpret_cast<__m256i *>(out + i),
-                                   _mm256_and_si256(_mm256_mullo_epi32(x, y), m)); }}
+            for (; n - i >= 8; i += 8) { store(out + i, _mm256_and_si256(_mm256_mullo_epi32(load(a + i), load(b + i)), m)); }}
 #endif
         for (; i < n; ++i) { out[i] = mul(a[i], b[i]); }}
 
@@ -73,10 +78,7 @@ struct Barrett32 {
 #ifdef __AVX2__
             if (mask) {
                 __m256i b = _mm256_set1_epi32(int(value)), m = _mm256_set1_epi32(int(mod - 1));
-                for (; n - i >= 8; i += 8) {
-                    __m256i x = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(a + i));
-                    _mm256_storeu_si256(reinterpret_cast<__m256i *>(out + i),
-                                       _mm256_and_si256(_mm256_mullo_epi32(x, b), m)); }}
+                for (; n - i >= 8; i += 8) { store(out + i, _mm256_and_si256(_mm256_mullo_epi32(load(a + i), b), m)); }}
             else if (n >= 8) {
                 __m256i b = _mm256_set1_epi64x(value), c = _mm256_set1_epi64x(mu);
                 __m256i m = _mm256_set1_epi64x(mod), mm = _mm256_set1_epi64x(ulng(mod) - 1);
@@ -86,22 +88,23 @@ struct Barrett32 {
                     __m256i r = _mm256_sub_epi64(_mm256_mul_epu32(x, b), _mm256_mul_epu32(q, m));
                     r = _mm256_sub_epi64(r, _mm256_and_si256(m, _mm256_cmpgt_epi64(r, mm)));
                     r = _mm256_permutevar8x32_epi32(r, _mm256_setr_epi32(0, 2, 4, 6, 0, 0, 0, 0));
-                    _mm_storeu_si128(reinterpret_cast<__m128i *>(out + i), _mm256_castsi256_si128(r)); }}
+                    _mm_storeu_si128(reinterpret_cast<__m128i *>(out + i), _mm256_castsi256_si128(r));}}
 #endif
             for (; i < n; ++i) { out[i] = mul(a[i]); }}
     };
     Multiplier multiplier(uint b) const { return Multiplier(*this, b); }
 };
 
-// S: O(1), Q: O(1), M: O(1); pow O(1 + log(e + 1)), pointer mul O(n).
+// S: O(1), Q: O(1), M: O(1); pow O(1 + log(e + 1)) for exponent e, pointer mul O(n).
 struct Barrett64 {
+    static constexpr ulng MERSENNE61 = (ulng(1) << 61) - 1;
     ulng mod;
     ulll mu;
     bool mask;
 
-    explicit Barrett64(ulng m) : mod(m), mu(0), mask((m & (m - 1)) == 0) {
+    explicit Barrett64(ulng m = 1) : mod(m), mu(0), mask((m & (m - 1)) == 0) {
         assert(m);
-        if (!mask && m != 2305843009213693951ULL) { mu = ~ulll(0) / m; }}
+        if (!mask && m != MERSENNE61) { mu = ~ulll(0) / m; }}
 
     // Exact high half of a 128 x 128 product: middle needs at most 66 bits.
     static ulll highProduct(ulll x, ulll y) {
@@ -109,13 +112,17 @@ struct Barrett64 {
         ulll c = ulll(ulng(x >> 64)) * ulng(y), d = (x >> 64) * (y >> 64);
         ulll t = (a >> 64) + ulng(b) + ulll(ulng(c));
         return d + (b >> 64) + (c >> 64) + (t >> 64);}
-    ulng reduce(ulll x) const {
-        if (mask) { return ulng(x) & (mod - 1); }
-        if (mod == 2305843009213693951ULL) { // Two folds give r<=mod+64.
-            ulll r = (x & mod) + (x >> 61); r = (r & mod) + (r >> 61);
-            return ulng(r >= mod ? r - mod : r);}
+    pair<ulll, ulng> divMod(ulll x) const {
+        if (mask) { return {x >> std::countr_zero(mod), ulng(x) & (mod - 1)}; }
+        if (mod == MERSENNE61) { // 2^61 = mod + 1: two folds give z <= mod + 64.
+            ulll y = (x & mod) + (x >> 61), z = (y & mod) + (y >> 61);
+            bool over = z >= mod;
+            return {(x >> 61) + (y >> 61) + over, ulng(over ? z - mod : z)};}
         ulll q = highProduct(x, mu), r = x - q * mod;
-        return ulng(r >= mod ? r - mod : r);}
+        bool over = r >= mod;
+        return {q + over, ulng(over ? r - mod : r)};}
+    ulll div(ulll x) const { return divMod(x).first; }
+    ulng reduce(ulll x) const { return divMod(x).second; }
     ulng mul(ulng a, ulng b) const { return reduce(ulll(a) * b); }
     ulng pow(ulng a, ulng e) const {
         ulng r = mod != 1; a = reduce(a);

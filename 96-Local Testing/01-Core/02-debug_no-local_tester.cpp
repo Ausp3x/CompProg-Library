@@ -8,23 +8,18 @@ int sideEffects = 0;
 
 int bump() {
     sideEffects++;
-    return sideEffects;
-}
+    return sideEffects;}
 
 void fail(const string &expr, int line) {
     std::clog << RED << "FAIL: 02-debug_no-local_tester.cpp:" << line << ": " << expr << RESET << '\n';
-    std::abort();
-}
+    std::abort();}
 
 void require(bool ok, const string &expr, int line) {
     if (!ok) {
-        fail(expr, line);
-    }
-}
+        fail(expr, line);}}
 
 void pass() {
-    std::clog << GREEN << "PASS: 1-Core_02-debug_no-local_tester" << RESET << '\n';
-}
+    std::clog << GREEN << "PASS: 1-Core_02-debug_no-local_tester" << RESET << '\n';}
 
 #define REQUIRE(expr) require((expr), #expr, __LINE__)
 
@@ -42,17 +37,14 @@ int main() {
     REQUIRE(sideEffects == 0);
 
     if (true) {
-        debug(++x);
-    }
+        debug(++x);}
     else {
-        x = 100;
-    }
+        x = 100;}
     REQUIRE(x == 0);
 
     for (int i = 0; i < 5; i++) {
         debug(++x, bump());
-        trace((++x, "loop"));
-    }
+        trace((++x, "loop"));}
     REQUIRE(x == 0);
     REQUIRE(sideEffects == 0);
 
@@ -63,5 +55,4 @@ int main() {
 
     cerr.rdbuf(old);
     REQUIRE(oss.str().empty());
-    pass();
-}
+    pass();}

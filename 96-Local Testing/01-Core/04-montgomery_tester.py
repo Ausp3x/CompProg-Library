@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Montgomery32/64 verification, independent exact modular-arithmetic oracle.
 
-quick: all APIs, boundary moduli, bulk sizes/offsets/aliases, tiny exhaustive and
-500 random cases per width; optimized, checked and available AVX2 builds.
-full: exhaustive odd moduli <=65, 10000 random cases/width, plus ASan/UBSan.
+quick: all APIs (REDC core, conversions, canonical/lazy products, sums and
+differences, powers, bulk kernels, the below precondition pass), boundary moduli,
+bulk sizes/offsets/aliases, tiny exhaustive and 500 random cases per width;
+optimized, checked and available AVX2 builds. full: exhaustive odd moduli <=65,
+10000 random cases/width, ASan/UBSan and the standalone/multiple-TU build.
 stress: exhaustive odd moduli <=129 and 100000 random cases/width, same builds.
 Every mode checks all declared runtime preconditions in checked scalar/AVX2.
+All builds use -Wall -Wextra -Wshadow -Wconversion -Werror.
 """
 from __future__ import annotations
 
@@ -23,14 +26,18 @@ import time
 
 
 SOURCE = Path(__file__).resolve().with_suffix(".cpp")
-DEATH_CASES = ("zero", "even", "red", "mul-a", "mul-b", "get", "powMont",
-               "lazy-mod", "lazy-red", "normalize-mod", "normalize", "lazy-mul-mod",
-               "lazy-mul-a", "lazy-mul-b", "bulk-mul-n", "bulk-mul-null-a",
-               "bulk-mul-null-b", "bulk-mul-null-c", "bulk-mul-a", "bulk-mul-b",
+ROOT = SOURCE.parents[2]
+DEATH_CASES = ("zero", "even", "red", "mul-a", "mul-b", "add-a", "add-b", "sub-a", "sub-b",
+               "get", "powMont", "lazy-mod", "lazy-red", "normalize-mod", "normalize",
+               "lazy-mul-mod", "lazy-mul-a", "lazy-mul-b", "lazy-add-mod", "lazy-add-a",
+               "lazy-add-b", "lazy-sub-mod", "lazy-sub-a", "lazy-sub-b", "bulk-mul-n",
+               "bulk-mul-null-a", "bulk-mul-null-b", "bulk-mul-null-c", "bulk-mul-a",
+               "bulk-mul-b", "bulk-mul-vector-a", "bulk-mul-tail-a", "bulk-mul-tail-b",
                "bulk-init-n", "bulk-init-null-a", "bulk-init-null-c", "bulk-get-n",
-               "bulk-get-null-a", "bulk-get-null-c", "bulk-get-a", "bulk-lazy-n",
-               "bulk-lazy-null-a", "bulk-lazy-null-b", "bulk-lazy-null-c",
-               "bulk-lazy-mod", "bulk-lazy-a", "bulk-lazy-b")
+               "bulk-get-null-a", "bulk-get-null-c", "bulk-get-a", "bulk-get-tail",
+               "bulk-lazy-n", "bulk-lazy-null-a", "bulk-lazy-null-b", "bulk-lazy-null-c",
+               "bulk-lazy-mod", "bulk-lazy-a", "bulk-lazy-b", "bulk-lazy-tail-a",
+               "bulk-lazy-tail-b")
 
 
 class Failure(RuntimeError):
@@ -43,7 +50,8 @@ def report(kind: str, message: str) -> None:
         color = ""
     if sys.stdout.isatty():
         print("\r\033[K", end="")
-    print(f"{color}{kind}{'\033[0m' if color else ''} {message}", flush=True)
+    end = "\033[0m" if color else ""
+    print(f"{color}{kind}{end} {message}", flush=True)
 
 
 def progress(message: str) -> None:
@@ -85,7 +93,7 @@ def main() -> int:
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1",
                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow"]
+    flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
     scalar = ["-march=x86-64", "-mno-avx", "-mno-avx2"]
     vector = ["-march=x86-64", "-mavx2"]
     variants = [("optimized-scalar", ["-O3", "-DNDEBUG", *scalar]),
@@ -131,6 +139,16 @@ def main() -> int:
                             execute([executable, f"--death{width}", case],
                                     f"{label} precondition {width}/{case}", 10, env, True)
                     report("PASS", f"{name} preconditions ({2 * len(DEATH_CASES)} cases)")
+            if args.mode != "quick":
+                include = '#include "01-Core/04-montgomery.hpp"\n'
+                a, b = Path(directory) / "a.cpp", Path(directory) / "b.cpp"
+                a.write_text(include + "ulng other(); int main(){return Montgomery(17).pow(123,456)!=other();}\n")
+                b.write_text(include + "ulng other(){return Montgomery64(17).pow(123,456);}\n")
+                executable = str(Path(directory) / "multiple-tu")
+                execute([*compiler, *flags, "-O2", "-I", str(ROOT), str(a), str(b), "-o", executable],
+                        "standalone header and multiple-TU compile", 180, env)
+                execute([executable], "multiple-TU execute", 60, env)
+                report("PASS", "standalone/multiple-TU compile and execute")
     except (Failure, OSError) as error:
         report("FAIL", f"Montgomery mode={args.mode} seed={args.seed}: {error}")
         return 1

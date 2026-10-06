@@ -1,3 +1,5 @@
+#define LOCAL
+#include "../../01-Core/02-debug.hpp"
 #include "../../01-Core/18-bitset.hpp"
 #include <cstdlib>
 #include <iostream>
@@ -14,27 +16,23 @@ static lng checks = 0;
 
 [[noreturn]] static void fail(const std::string &message) {
     std::cerr << "FAIL seed=" << seed << " context=" << context << '\n' << message << '\n';
-    std::exit(1);
-}
+    std::exit(1);}
 
 static void require(bool ok, const std::string &message) {
     ++checks;
-    if (!ok) { fail(message); }
-}
+    if (!ok) { fail(message); }}
 
 template<class A, class B> static void expect(const A &actual, const B &expected, const std::string &operation) {
     ++checks;
     if (actual != expected) {
         std::ostringstream out;
         out << operation << " expected=" << expected << " actual=" << actual;
-        fail(out.str()); }
-}
+        fail(out.str());}}
 
 static std::string binary(const Bits &v) {
     std::string result(v.size(), '0');
     for (size_t i = 0; i < v.size(); ++i) { result[v.size() - 1 - i] = char('0' + v[i]); }
-    return result;
-}
+    return result;}
 
 static Bitset packed(const Bits &v) { return Bitset(binary(v)); }
 
@@ -43,34 +41,38 @@ static Bits pattern(size_t n, int kind, std::mt19937_64 &rng) {
     for (size_t i = 0; i < n; ++i) {
         v[i] = static_cast<unsigned char>(kind == 1 || (kind == 2 && i % 2 == 0) ||
             (kind == 3 && (i == 0 || i + 1 == n || i % 64 == 63)) ||
-            (kind == 4 && rng() % 2) || (kind == 5 && rng() % 97 == 0)); }
-    return v;
-}
+            (kind == 4 && rng() % 2) || (kind == 5 && rng() % 97 == 0));}
+    return v;}
 
 static Bits shifted(const Bits &v, size_t k, bool left) {
     Bits result(v.size());
     if (k < v.size()) {
         for (size_t i = 0; i < v.size() - k; ++i) {
-            result[left ? i + k : i] = v[left ? i : i + k]; }}
-    return result;
-}
+            result[left ? i + k : i] = v[left ? i : i + k];}}
+    return result;}
 
 static Bits rotated(const Bits &v, size_t k, bool left) {
     if (v.empty()) { return v; }
     k %= v.size();
     Bits result(v.size());
     for (size_t i = 0; i < v.size(); ++i) {
-        result[left ? (i + k) % v.size() : (i + v.size() - k) % v.size()] = v[i]; }
-    return result;
-}
+        result[left ? (i + k) % v.size() : (i + v.size() - k) % v.size()] = v[i];}
+    return result;}
+
+static unsigned char bitOp(int op, unsigned char x, unsigned char y) {
+    return static_cast<unsigned char>(op == 0 ? y : op == 1 ? (x && y) : op == 2 ? (x || y) : op == 3 ? (x != y) : (x && !y));}
 
 static Bits combined(const Bits &a, const Bits &b, int op) {
     Bits result(a.size());
-    for (size_t i = 0; i < a.size(); ++i) {
-        result[i] = static_cast<unsigned char>(op == 0 ? b[i] : op == 1 ? (a[i] && b[i]) :
-            op == 2 ? (a[i] || b[i]) : op == 3 ? (a[i] != b[i]) : (a[i] && !b[i])); }
-    return result;
-}
+    for (size_t i = 0; i < a.size(); ++i) { result[i] = bitOp(op, a[i], b[i]); }
+    return result;}
+
+static Bits combinedRange(const Bits &a, size_t l, size_t r, const Bits &b, size_t p, int op) {
+    Bits result = a;
+    for (size_t i = l; i < r; ++i) { result[i] = bitOp(op, a[i], b[p + i - l]); }
+    return result;}
+
+static Bits sub(const Bits &v, size_t l, size_t r) { return Bits(v.begin() + ptrdiff_t(l), v.begin() + ptrdiff_t(r)); }
 
 static void combine(Bitset &a, const Bitset &b, int op) {
     Bitset *result = nullptr;
@@ -79,8 +81,7 @@ static void combine(Bitset &a, const Bitset &b, int op) {
     if (op == 2) { result = &a.combine<Bitset::Op::Or>(b); }
     if (op == 3) { result = &a.combine<Bitset::Op::Xor>(b); }
     if (op == 4) { result = &a.combine<Bitset::Op::AndNot>(b); }
-    require(result == &a, "combine must return receiver reference");
-}
+    require(result == &a, "combine must return receiver reference");}
 
 static void combineShift(Bitset &a, const Bitset &b, int op, size_t k, bool left) {
     Bitset *result = nullptr;
@@ -89,8 +90,16 @@ static void combineShift(Bitset &a, const Bitset &b, int op, size_t k, bool left
     if (op == 2) { result = &a.combineShift<Bitset::Op::Or>(b, k, left); }
     if (op == 3) { result = &a.combineShift<Bitset::Op::Xor>(b, k, left); }
     if (op == 4) { result = &a.combineShift<Bitset::Op::AndNot>(b, k, left); }
-    require(result == &a, "combineShift must return receiver reference");
-}
+    require(result == &a, "combineShift must return receiver reference");}
+
+static void combineRange(Bitset &a, size_t l, size_t r, const Bitset &b, size_t p, int op) {
+    Bitset *result = nullptr;
+    if (op == 0) { result = &a.combineRange<Bitset::Op::Assign>(l, r, b, p); }
+    if (op == 1) { result = &a.combineRange<Bitset::Op::And>(l, r, b, p); }
+    if (op == 2) { result = &a.combineRange<Bitset::Op::Or>(l, r, b, p); }
+    if (op == 3) { result = &a.combineRange<Bitset::Op::Xor>(l, r, b, p); }
+    if (op == 4) { result = &a.combineRange<Bitset::Op::AndNot>(l, r, b, p); }
+    require(result == &a, "combineRange must return receiver reference");}
 
 static void verify(const Bitset &a, const Bits &v, bool scan = true) {
     const size_t n = v.size();
@@ -102,11 +111,11 @@ static void verify(const Bitset &a, const Bits &v, bool scan = true) {
     size_t count = 0, first = n, last = n;
     for (size_t i = 0; i < n; ++i) {
         if (a.test(i) != bool(v[i]) || a[i] != bool(v[i])) {
-            fail("bit=" + std::to_string(i) + " expected=" + binary(v) + " actual=" + a.toString()); }
+            fail("bit=" + std::to_string(i) + " expected=" + binary(v) + " actual=" + a.toString());}
         ++checks;
         if (v[i]) {
             ++count; last = i;
-            if (first == n) { first = i; } }}
+            if (first == n) { first = i;}}}
     expect(a.count(), count, "whole count"); expect(a.count(0, n), count, "whole-range count");
     expect(a.any(), bool(count), "any"); expect(a.none(), !count, "none"); expect(a.all(), count == n, "all");
     expect(a.findFirst(), first, "first"); expect(a.findLast(), last, "last");
@@ -122,16 +131,14 @@ static void verify(const Bitset &a, const Bits &v, bool scan = true) {
         size_t next = n;
         for (size_t i = n; i > 0; --i) {
             expect(a.findNext(i - 1), next, "next position=" + std::to_string(i - 1));
-            if (v[i - 1]) { next = i - 1; }}}
-}
+            if (v[i - 1]) { next = i - 1; }}}}
 
 static std::vector<size_t> shifts(size_t n) {
     std::vector<size_t> result{0, 1, 2, 31, 32, 63, 64, 65, 127, 128, 129,
         n ? n - 1 : 0, n, n + 1, std::numeric_limits<size_t>::max()};
     std::sort(result.begin(), result.end());
     result.erase(std::unique(result.begin(), result.end()), result.end());
-    return result;
-}
+    return result;}
 
 static void unary(const Bits &v, bool exhaustive_ranges) {
     const std::string base = context;
@@ -159,7 +166,8 @@ static void unary(const Bits &v, bool exhaustive_ranges) {
     b = a;
     b = b;
     verify(b, v);
-    b = std::move(b);
+    Bitset &self = b;
+    b = std::move(self);
     verify(b, v);
     Bitset c(std::move(b));
     verify(c, v); verify(b, {});
@@ -203,7 +211,7 @@ static void unary(const Bits &v, bool exhaustive_ranges) {
             verify(b, reset, false);
             b = a;
             b.flipRange(l, r);
-            verify(b, flip, false); }}
+            verify(b, flip, false);}}
 
     for (size_t k : shifts(n)) {
         context = base + " shifts/rotates k=" + std::to_string(k);
@@ -223,10 +231,9 @@ static void unary(const Bits &v, bool exhaustive_ranges) {
         verify(b, rotated(v, k, false), false);
         b = a;
         b.rotateLeft(k).rotateRight(k);
-        verify(b, v, false); }
+        verify(b, v, false);}
     verify(a, v);
-    context = base;
-}
+    context = base;}
 
 static void binaryTests(const Bits &v, const Bits &w, bool fused) {
     const std::string base = context;
@@ -286,10 +293,9 @@ static void binaryTests(const Bits &v, const Bits &w, bool fused) {
                 verify(c, combined(v, shifted(w, k, left), op), false);
                 c = a;
                 combineShift(c, c, op, k, left);
-                verify(c, combined(v, shifted(v, k, left), op), false); }}}
+                verify(c, combined(v, shifted(v, k, left), op), false);}}}
     verify(a, v, false); verify(b, w, false);
-    context = base;
-}
+    context = base;}
 
 static void lifecycle(size_t n) {
     context = "lifecycle n=" + std::to_string(n);
@@ -317,7 +323,7 @@ static void lifecycle(size_t n) {
         for (size_t i = 0; i < alternation.size(); ++i) { alternation[i] = static_cast<unsigned char>(i % 2); }
         verify(a, alternation);
         for (size_t i = 0; i < n + 2; ++i) { a.popBack(); }
-        verify(a, {}); }
+        verify(a, {});}
     if (n) {
         Bitset a(n);
         Bits v(n);
@@ -332,8 +338,87 @@ static void lifecycle(size_t n) {
         first = last; v[0] = v[n - 1];
         verify(a, v);
         first = first;
-        verify(a, v); }
-}
+        verify(a, v);
+        Bitset::Reference copy = first;
+        copy.flip(); v[0] ^= 1;
+        verify(a, v);
+        std::vector<Bitset::Reference> refs{a[0], a[n - 1]};
+        refs[1] = refs[0]; v[n - 1] = v[0];
+        refs.push_back(copy);
+        refs.back() = !refs.back(); v[0] ^= 1;
+        verify(a, v);
+        expect(Debug::to_string(a[0]), std::string(v[0] ? "true" : "false"), "debug bit proxy");
+        expect(Debug::to_string(a), binary(v), "debug Bitset hook");}}
+
+static void rangeTests(const Bits &v, const Bits &w, std::mt19937_64 &rng) {
+    const std::string base = context;
+    const size_t n = v.size();
+    const Bitset a = packed(v);
+    std::vector<size_t> points{0, n / 2, n, rng() % (n + 1), rng() % (n + 1)};
+    for (size_t p : {size_t(1), size_t(63), size_t(64), size_t(65), size_t(127), size_t(128), size_t(129), size_t(1023), size_t(1025)}) {
+        if (p <= n) { points.push_back(p); points.push_back(n - p); }}
+    std::sort(points.begin(), points.end());
+    points.erase(std::unique(points.begin(), points.end()), points.end());
+    // Every pair of boundary points through 513 bits; longer sets sample 12 pairs so the O(n) oracle stays fast.
+    std::vector<std::pair<size_t, size_t>> pairs;
+    for (size_t l : points) { for (size_t r : points) { if (l <= r) { pairs.emplace_back(l, r); } } }
+    if (n > 513) {
+        std::shuffle(pairs.begin(), pairs.end(), rng);
+        pairs.resize(std::min<size_t>(pairs.size(), 12));
+        pairs.emplace_back(0, n);}
+    for (auto [l, r] : pairs) {
+        {
+            const size_t len = r - l;
+            context = base + " slice l=" + std::to_string(l) + " r=" + std::to_string(r);
+            verify(a.slice(l, r), sub(v, l, r), false);
+            for (int kind = 0; kind < 4; ++kind) {
+                // Same-size source, exact-length source, longer source with a random offset, and the receiver itself.
+                Bits src = kind == 0 ? w : kind == 3 ? v : pattern(len + (kind == 2 ? rng() % 200 : 0), 4, rng);
+                size_t p = rng() % (src.size() - len + 1);
+                if (kind == 2 && rng() % 2) { p = src.size() - len; }
+                const Bitset s = packed(src);
+                for (int op = 0; op < 5; ++op) {
+                    context = base + " combineRange kind=" + std::to_string(kind) + " op=" + std::to_string(op) +
+                        " l=" + std::to_string(l) + " r=" + std::to_string(r) + " p=" + std::to_string(p);
+                    Bitset c = a;
+                    combineRange(c, l, r, kind == 3 ? c : s, p, op);
+                    verify(c, combinedRange(v, l, r, src, p, op), false);}}}}
+    verify(a, v, false);
+    context = base;}
+
+static void rangeCombos(int limit) {
+    for (int na = 0; na <= limit; ++na) {
+        for (uint ma = 0; ma < (uint(1) << na); ++ma) {
+            Bits v(na);
+            for (int i = 0; i < na; ++i) { v[i] = static_cast<unsigned char>((ma >> i) & 1); }
+            const Bitset a = packed(v);
+            for (size_t l = 0; l <= v.size(); ++l) {
+                for (size_t r = l; r <= v.size(); ++r) {
+                    context = "exhaustive slice na=" + std::to_string(na) + " a=" + std::to_string(ma) + " l=" + std::to_string(l) + " r=" + std::to_string(r);
+                    verify(a.slice(l, r), sub(v, l, r), false);
+                    for (size_t p = 0; p + (r - l) <= v.size(); ++p) {
+                        for (int op = 0; op < 5; ++op) {
+                            context = "exhaustive aliased combineRange na=" + std::to_string(na) + " a=" + std::to_string(ma) +
+                                " l=" + std::to_string(l) + " r=" + std::to_string(r) + " p=" + std::to_string(p) + " op=" + std::to_string(op);
+                            Bitset c = a;
+                            combineRange(c, l, r, c, p, op);
+                            verify(c, combinedRange(v, l, r, v, p, op), false);}}}}
+            for (int nb = 0; nb <= limit; ++nb) {
+                for (uint mb = 0; mb < (uint(1) << nb); ++mb) {
+                    Bits w(nb);
+                    for (int i = 0; i < nb; ++i) { w[i] = static_cast<unsigned char>((mb >> i) & 1); }
+                    const Bitset b = packed(w);
+                    for (size_t l = 0; l <= v.size(); ++l) {
+                        for (size_t r = l; r <= v.size(); ++r) {
+                            for (size_t p = 0; p + (r - l) <= w.size(); ++p) {
+                                for (int op = 0; op < 5; ++op) {
+                                    context = "exhaustive combineRange na=" + std::to_string(na) + " nb=" + std::to_string(nb) +
+                                        " a=" + std::to_string(ma) + " b=" + std::to_string(mb) + " l=" + std::to_string(l) +
+                                        " r=" + std::to_string(r) + " p=" + std::to_string(p) + " op=" + std::to_string(op);
+                                    Bitset c = a;
+                                    combineRange(c, l, r, b, p, op);
+                                    verify(c, combinedRange(v, l, r, w, p, op), false);}}}}}}}}
+    std::cout << "PASS exhaustive slice and combineRange through length " << limit << " (all offsets, ops and aliasing)\n";}
 
 static void exhaustive(bool quick) {
     for (int n = 0; n <= (quick ? 3 : 6); ++n) {
@@ -346,9 +431,8 @@ static void exhaustive(bool quick) {
                 Bits b(n);
                 for (int i = 0; i < n; ++i) { b[i] = static_cast<unsigned char>((other >> i) & 1); }
                 context = "exhaustive binary n=" + std::to_string(n) + " a=" + std::to_string(mask) + " b=" + std::to_string(other);
-                binaryTests(a, b, n <= (quick ? 2 : 4)); }}}
-    std::cout << "PASS exhaustive small bitsets, range masks, set algebra and fused aliasing\n";
-}
+                binaryTests(a, b, n <= (quick ? 2 : 4));}}}
+    std::cout << "PASS exhaustive small bitsets, range masks, set algebra and fused aliasing\n";}
 
 static void boundaries(bool quick, bool stress) {
     std::mt19937_64 rng(seed ^ 0xD6E8FEB86659FD93ULL);
@@ -363,9 +447,8 @@ static void boundaries(bool quick, bool stress) {
         for (int kind = 0; kind < (quick ? 4 : 6); ++kind) {
             context = "boundaries n=" + std::to_string(n) + " pattern=" + std::to_string(kind);
             Bits a = pattern(n, kind, rng), b = pattern(n, (kind + 2) % 6, rng);
-            unary(a, false); binaryTests(a, b, true); }}
-    std::cout << "PASS word/vector/dispatch boundaries, tails, scan sentinels, huge shifts and rotations\n";
-}
+            unary(a, false); binaryTests(a, b, true); rangeTests(a, b, rng);}}
+    std::cout << "PASS word/vector/dispatch boundaries, tails, scan sentinels, huge shifts and rotations\n";}
 
 static void histories(bool quick, bool stress) {
     std::mt19937_64 rng(seed ^ 0x9E3779B97F4A7C15ULL);
@@ -377,7 +460,7 @@ static void histories(bool quick, bool stress) {
         Bits v = pattern(sizes[rng() % sizes.size()], 4, rng);
         Bitset a = packed(v);
         for (int step = 0; step < steps; ++step) {
-            int op = int(rng() % 15);
+            int op = int(rng() % 18);
             // Listed lengths are at most 4097; at most 500 pushes occur per history.
             int n = int(v.size()), i = n ? int(rng() % n) : 0;
             bool value = rng() % 2;
@@ -385,7 +468,7 @@ static void histories(bool quick, bool stress) {
                 " op=" + std::to_string(op) + " n=" + std::to_string(n) + " i=" + std::to_string(i);
             if (op == 0) {
                 int m = sizes[rng() % sizes.size()];
-                a.resize(m, value); v.resize(m, static_cast<unsigned char>(value)); }
+                a.resize(m, value); v.resize(m, static_cast<unsigned char>(value));}
             else if (op == 1) { a.pushBack(value); v.push_back(static_cast<unsigned char>(value)); }
             else if (op == 2 && n) { a.popBack(); v.pop_back(); }
             else if (op == 3 && n) { a.set(i, value); v[i] = static_cast<unsigned char>(value); }
@@ -393,12 +476,12 @@ static void histories(bool quick, bool stress) {
             else if (op == 5 && n) { a.flip(i); v[i] ^= 1; }
             else if (op == 6 && n) {
                 a[i] = value; v[i] = static_cast<unsigned char>(value);
-                require(bool(a[i]) == value, "mutable proxy conversion"); }
+                require(bool(a[i]) == value, "mutable proxy conversion");}
             else if (op == 7 && n) {
                 int j = int(rng() % n);
                 a[i] = a[j]; v[i] = v[j];
                 a[i].flip(); v[i] ^= 1;
-                a[i] = a[i]; }
+                a[i] = a[i];}
             else if (op == 8) {
                 int l = int(rng() % (n + 1)), r = int(rng() % (n + 1));
                 if (r < l) { std::swap(l, r); }
@@ -412,24 +495,41 @@ static void histories(bool quick, bool stress) {
             else if (op == 10) {
                 size_t k = rng() % (2 * n + 2);
                 if (value) { a <<= k; } else { a >>= k; }
-                v = shifted(v, k, value); }
+                v = shifted(v, k, value);}
             else if (op == 11) {
                 size_t k = rng();
                 if (value) { a.rotateLeft(k); } else { a.rotateRight(k); }
-                v = rotated(v, k, value); }
+                v = rotated(v, k, value);}
             else if (op == 12) {
                 int type = int(rng() % 5);
                 size_t k = rng() % (n + 70);
-                combineShift(a, a, type, k, value); v = combined(v, shifted(v, k, value), type); }
+                combineShift(a, a, type, k, value); v = combined(v, shifted(v, k, value), type);}
             else if (op == 13) {
                 Bits w = pattern(n, 4, rng);
                 Bitset b = packed(w);
                 int type = int(rng() % 5);
-                combine(a, b, type); v = combined(v, w, type); }
+                combine(a, b, type); v = combined(v, w, type);}
             else if (op == 14) { a.clear(); v.clear(); }
-            verify(a, v); }}
-    std::cout << "PASS seeded mutation/resize/proxy/copy/alias histories rounds=" << rounds << " steps=" << steps << '\n';
-}
+            else if (op == 15) {
+                int l = int(rng() % (n + 1)), r = int(rng() % (n + 1));
+                if (r < l) { std::swap(l, r); }
+                int m = r - l + int(rng() % 70), type = int(rng() % 5);
+                Bits w = pattern(m, 4, rng);
+                Bitset b = packed(w);
+                size_t p = rng() % (m - (r - l) + 1);
+                combineRange(a, l, r, b, p, type); v = combinedRange(v, l, r, w, p, type);}
+            else if (op == 16) {
+                int l = int(rng() % (n + 1)), r = int(rng() % (n + 1));
+                if (r < l) { std::swap(l, r); }
+                a = a.slice(l, r); v = sub(v, l, r);}
+            else if (op == 17) {
+                int l = int(rng() % (n + 1)), r = int(rng() % (n + 1));
+                if (r < l) { std::swap(l, r); }
+                size_t p = rng() % (n - (r - l) + 1);
+                int type = int(rng() % 5);
+                combineRange(a, l, r, a, p, type); v = combinedRange(v, l, r, v, p, type);}
+            verify(a, v);}}
+    std::cout << "PASS seeded mutation/resize/proxy/copy/alias histories rounds=" << rounds << " steps=" << steps << '\n';}
 
 static void countMatrix() {
     std::mt19937_64 rng(seed ^ 0x94D049BB133111EBULL);
@@ -445,16 +545,16 @@ static void countMatrix() {
                 prefix[i + 1] = prefix[i] + v[i];
                 meet[i + 1] = meet[i] + (v[i] && w[i]);
                 join[i + 1] = join[i] + (v[i] || w[i]);
-                diff[i + 1] = diff[i] + (v[i] != w[i]); }
+                diff[i + 1] = diff[i] + (v[i] != w[i]);}
             context = "count-matrix n=" + std::to_string(n) + " pattern=" + std::to_string(kind);
             const std::string base = context;
-            expect(a.count(), prefix[n], "count");
-            expect(a.countAnd(b), meet[n], "countAnd");
-            expect(a.countOr(b), join[n], "countOr");
-            expect(a.countXor(b), diff[n], "countXor");
-            expect(a.countAnd(a), prefix[n], "countAnd self");
-            expect(a.countOr(a), prefix[n], "countOr self");
-            expect(a.countXor(a), 0, "countXor self");
+            expect(a.count(), size_t(prefix[n]), "count");
+            expect(a.countAnd(b), size_t(meet[n]), "countAnd");
+            expect(a.countOr(b), size_t(join[n]), "countOr");
+            expect(a.countXor(b), size_t(diff[n]), "countXor");
+            expect(a.countAnd(a), size_t(prefix[n]), "countAnd self");
+            expect(a.countOr(a), size_t(prefix[n]), "countOr self");
+            expect(a.countXor(a), size_t(0), "countXor self");
             std::vector<int> points{0, n / 2, n};
             for (int p : {1, 2, 7, 8, 11, 13,
                     31, 32, 63, 64, 65, 66,
@@ -467,11 +567,10 @@ static void countMatrix() {
                 for (int r : points) {
                     if (r < l) { continue; }
                     context = base + " l=" + std::to_string(l) + " r=" + std::to_string(r);
-                    expect(a.count(l, r), prefix[r] - prefix[l], "range count"); }}
+                    expect(a.count(l, r), size_t(prefix[r] - prefix[l]), "range count");}}
             context = base;
-            verify(a, v, false); verify(b, w, false); }}
-    std::cout << "PASS focused whole/fused/range count matrix (15/16/17 interior words, unaligned boundaries)\n";
-}
+            verify(a, v, false); verify(b, w, false);}}
+    std::cout << "PASS focused whole/fused/range count matrix (15/16/17 interior words, unaligned boundaries)\n";}
 
 static void valueOperatorSmoke() {
     std::mt19937_64 rng(seed ^ 0xBF58476D1CE4E5B9ULL);
@@ -505,10 +604,9 @@ static void valueOperatorSmoke() {
                 moved = a;
                 verify(std::move(moved) << k, shifted(v, k, true), false); verify(moved, {});
                 moved = a;
-                verify(std::move(moved) >> k, shifted(v, k, false), false); verify(moved, {}); }
-            verify(a, v, false); verify(b, w, false); }}
-    std::cout << "PASS focused nonmutating Boolean/complement/shift value operators (lvalue and rvalue operands)\n";
-}
+                verify(std::move(moved) >> k, shifted(v, k, false), false); verify(moved, {});}
+            verify(a, v, false); verify(b, w, false);}}
+    std::cout << "PASS focused nonmutating Boolean/complement/shift value operators (lvalue and rvalue operands)\n";}
 
 static int death(const std::string &name) {
     Bitset a(65), b(64);
@@ -540,10 +638,15 @@ static int death(const std::string &name) {
     else if (name == "count-xor-size") { (void)a.countXor(b); }
     else if (name == "assign-size") { a.combine<Bitset::Op::Assign>(b); }
     else if (name == "shift-size") { a.combineShift<Bitset::Op::Or>(b, 1000); }
+    else if (name == "combine-range-order") { a.combineRange<Bitset::Op::Or>(2, 1, b); }
+    else if (name == "combine-range-end") { a.combineRange<Bitset::Op::Or>(60, 66, b); }
+    else if (name == "combine-range-source") { a.combineRange<Bitset::Op::Xor>(0, 65, b); }
+    else if (name == "combine-range-offset") { a.combineRange<Bitset::Op::Xor>(0, 1, b, 65); }
+    else if (name == "slice-order") { (void)a.slice(2, 1); }
+    else if (name == "slice-end") { (void)a.slice(0, 66); }
     else { std::cerr << "Unknown death case: " << name << '\n'; return 2; }
     std::cerr << "Precondition was not rejected: " << name << '\n';
-    return 0;
-}
+    return 0;}
 
 int main(int argc, char **argv) {
     std::string mode = "full";
@@ -560,7 +663,7 @@ int main(int argc, char **argv) {
     valueOperatorSmoke();
     if (!counts_only) {
         exhaustive(mode == "quick");
+        rangeCombos(mode == "quick" ? 3 : mode == "stress" ? 5 : 4);
         boundaries(mode == "quick", mode == "stress");
-        histories(mode == "quick", mode == "stress"); }
-    std::cout << "PASS non-removable checks=" << checks << '\n';
-}
+        histories(mode == "quick", mode == "stress");}
+    std::cout << "PASS non-removable checks=" << checks << '\n';}

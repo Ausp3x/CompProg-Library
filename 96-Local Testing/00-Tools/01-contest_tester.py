@@ -7,7 +7,8 @@ stress: full plus seeded token/byte comparisons and shrink proposal histories.
 Modes/seeds accept --mode/--seed or the library runner's CP_TEST_MODE/CP_TEST_SEED.
 
 Feature map: 01-stress -> batch*, checker*, mismatch*, scored*, interactive*,
-configuration*, process*, cpp*; 02/03-gen -> generator_templates; 04-checker ->
+configuration*, process*, cpp*,
+input_validator_and_expected*; 02/03-gen -> generator_templates; 04-checker ->
 checker_template; 05-interactor -> interactive*; 06/07 -> scored_templates;
 08-shrink -> shrink*; 09-quick -> quick*, configuration*, process*.
 Unittest checks remain active with python -O. Failed fixtures remain in /tmp.
@@ -272,6 +273,57 @@ class ContestTools(unittest.TestCase):
         self.run_tool(STRESS, self.gen, self.good, "--mode", "scored",
                       "--validator", TOOLS / "06-validator.py", "--scorer", TOOLS / "07-scorer.py",
                       "--checker", TOOLS / "04-checker.py", code=2)
+        self.run_tool(STRESS, self.gen, self.good, self.good, "--exact",
+                      "--checker", TOOLS / "04-checker.py", code=2)
+
+    def test_input_validator_and_expected_answer_replay(self):
+        validator = self.file("input validator.py", "import sys\nfrom pathlib import Path\n"
+                              "x = int(Path(sys.argv[1]).read_bytes())\n"
+                              "sys.exit(2 if x == 7 else 0 if x % 3 else 1)\n")
+        self.run_tool(STRESS, self.gen, self.bad, self.good, "--count", 2, "--input-validator", validator, code=1)
+        folder, meta = self.failure("wrong_answer")
+        self.assertEqual(meta["statuses"]["input_validator"], "ok")
+        self.assertTrue((folder / "input_validator.err").exists())
+        self.run_tool(STRESS, self.gen, self.good, self.good, "--count", 2, "--input-validator", validator)
+        self.run_tool(STRESS, "unused", self.good, self.good, "--replay", self.file("valid.in", "5\n"),
+                      "--input-validator", validator)
+        broken = self.file("broken gen.py", "import sys\nsys.exit(3)\n")
+        self.run_tool(STRESS, broken, self.good, self.good, "--count", 1, "--input-validator", validator, code=1)
+        _, meta = self.failure("generator_error")
+        self.assertNotIn("input_validator", meta["statuses"])
+        self.assertEqual(meta["commands"]["input_validator"], [sys.executable, str(validator)])
+        scored = ("--mode", "scored", "--validator", TOOLS / "06-validator.py", "--scorer", TOOLS / "07-scorer.py")
+        for mode in ((), scored):
+            for seed, kind in ((3, "invalid_input"), (7, "input_validator_error")):
+                with self.subTest(mode=mode, seed=seed):
+                    self.run_tool(STRESS, self.gen, self.good, self.good, *mode, "--seed", seed, "--count", 1,
+                                  "--input-validator", validator, code=1)
+                    folder, meta = self.failure(kind)
+                    self.assertEqual(set(meta["statuses"]), {"generator", "input_validator"})
+                    self.assertEqual(Path(meta["commands"]["input_validator"][-1]).name, "input.txt")
+                    self.assertFalse((folder / "candidate.out").exists())
+        hidden = self.file("hidden.in", "6\n")
+        self.run_tool(STRESS, "unused", self.good, "--mode", "interactive", "--interactor",
+                      TOOLS / "05-interactor.py", "--replay", hidden, "--input-validator", validator, code=1)
+        folder, meta = self.failure("invalid_input")
+        self.assertEqual(set(meta["statuses"]), {"input_validator"})
+        self.assertFalse((folder / "transcript.jsonl").exists())
+        saved, answer = self.file("saved.in", "5\n"), self.file("saved.ans", "5\n")
+        self.run_tool(STRESS, "unused", self.good, "--replay", saved, "--expected", answer)
+        self.run_tool(STRESS, "unused", self.good, "--replay", saved, "--expected", answer, "--exact")
+        self.run_tool(STRESS, "unused", self.good, "--replay", saved, "--expected", answer,
+                      "--checker", TOOLS / "04-checker.py")
+        answer.write_text("6\n")
+        self.run_tool(STRESS, "unused", self.good, "--replay", saved, "--expected", answer, code=1)
+        folder, meta = self.failure("wrong_answer")
+        self.assertEqual((folder / "reference.out").read_bytes(), b"6\n")
+        self.assertEqual(meta["config"]["expected"], str(answer))
+        for args in ((self.gen, self.good, "--expected", answer),
+                     ("unused", self.good, self.good, "--replay", saved, "--expected", answer),
+                     ("unused", self.good, *scored, "--replay", saved, "--expected", answer),
+                     ("unused", self.good, "--replay", saved, "--expected", self.dir / "missing.ans")):
+            with self.subTest(args=args):
+                self.run_tool(STRESS, *args, code=2)
 
     def test_cpp_compile_once_flags_executables_and_failures(self):
         compiler = shutil.which("g++")

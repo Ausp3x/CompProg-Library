@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Barrett32/64 verification, independent native-remainder and bitwise 256-bit oracles.
+"""Barrett32/64 verification, independent native-remainder/quotient, bitwise
+restoring-division and bitwise 256-bit product oracles.
 
-quick: boundaries, 2,000 random words/backend, small exhaustive domains and all
-batch sizes/alias shapes; full: 60,000 random words/backend, exhaustive mod<=128
-and x<16384, 8 offsets, sanitizers; stress: 600,000 words/backend, mod<=256 and
-x<65536. Every mode runs scalar checked/NDEBUG and available AVX2; full/stress
-also run scalar and AVX2 ASan/UBSan. Full/stress check standalone/multiple-TU
-linkage; this package's integration runner separately covers aggregate headers.
-Requires GNU C++20 GCC 14+.
+quick: boundaries, fields, divMod/div, 2,000 random words/backend, small exhaustive
+domains and all batch sizes/alias shapes with fixed factors MAX, m-1 and random;
+full: 60,000 random words/backend, exhaustive mod<=128 and x<16384, 8 offsets,
+sanitizers; stress: 600,000 words/backend, mod<=256 and x<65536. Every mode runs
+scalar optimized/checked and, where the CPU has it, AVX2 optimized/checked, with
+precondition deaths in both checked builds; full/stress add scalar and AVX2
+ASan/UBSan and the standalone/multiple-TU build. All builds use
+-Wall -Wextra -Wshadow -Wconversion -Werror. Requires GNU C++20 GCC 14+.
 """
 from __future__ import annotations
 
@@ -71,7 +73,7 @@ def main() -> int:
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1",
                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion"]
+    flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
     scalar = ["-march=x86-64", "-mno-avx", "-mno-avx2"]
     vector = ["-march=x86-64", "-mavx2"]
     variants = [("optimized-scalar", ["-O3", "-DNDEBUG", *scalar]),
@@ -80,7 +82,8 @@ def main() -> int:
     has_avx2 = cpu.exists() and "avx2" in cpu.read_text().split()
     accelerated = has_avx2 and not args.scalar_only
     if accelerated:
-        variants.append(("optimized-avx2", ["-O3", "-DNDEBUG", *vector]))
+        variants += [("optimized-avx2", ["-O3", "-DNDEBUG", *vector]),
+                     ("checked-avx2", ["-O1", "-g", "-D_GLIBCXX_ASSERTIONS", *vector])]
     else:
         report("SKIP", "AVX2 requested off" if args.scalar_only else "AVX2 unavailable on this CPU")
     if args.mode != "quick":
@@ -106,10 +109,10 @@ def main() -> int:
                 for line in output.splitlines():
                     print(f"  [{name}] {line}", flush=True)
                 report("PASS", label)
-                if name == "checked-scalar":
+                if name.startswith("checked"):
                     for case in DEATH_CASES:
-                        execute([binary, "--death", case], f"precondition {case}", env, True)
-                    report("PASS", f"{len(DEATH_CASES)} checked preconditions")
+                        execute([binary, "--death", case], f"{name} precondition {case}", env, True)
+                    report("PASS", f"{name}: {len(DEATH_CASES)} checked preconditions")
             if args.mode != "quick":
                 include = '#include "01-Core/03-barrett.hpp"\n'
                 a, b = temp / "a.cpp", temp / "b.cpp"

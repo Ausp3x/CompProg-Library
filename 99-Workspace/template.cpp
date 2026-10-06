@@ -13,6 +13,8 @@ using lng = int64_t;    using ulng = uint64_t;
 using lll = __int128_t; using ulll = __uint128_t;
 template<typename T>
 using indexed_set = tree<T, null_type, std::less<T>, rb_tree_tag, tree_order_statistics_node_update>;
+template<typename K, typename V>
+using indexed_map = tree<K, V, std::less<K>, rb_tree_tag, tree_order_statistics_node_update>;
 
 constexpr int INF32 = 0x3f3f3f3f;
 constexpr lng INF64 = 0x3f3f3f3f3f3f3f3f;
@@ -30,29 +32,35 @@ namespace Debug {
     template<typename ...T> inline constexpr bool IS_VARIANT<std::variant<T...>> = true;
     template<typename T> inline constexpr bool IS_BITSET = false;
     template<size_t N> inline constexpr bool IS_BITSET<bitset<N>> = true;
+    template<typename T> inline constexpr bool IS_BIT_PROXY = std::is_class_v<T> && std::is_convertible_v<const T &, bool> && requires(T r) { r.flip(); };
+    template<typename T> inline constexpr bool IS_UNSCOPED_ENUM = false;
+    template<typename T> requires std::is_enum_v<T> inline constexpr bool IS_UNSCOPED_ENUM<T> = std::is_convertible_v<T, std::underlying_type_t<T>>;
 
     template<typename T, typename C>
     const C &container(const queue<T, C> &x) {
         struct Accessor : queue<T, C> {
-            static const C &get(const queue<T, C> &q) { return q.*&Accessor::c; }};
+            static const C &get(const queue<T, C> &q) { return q.*&Accessor::c; }
+        };
         return Accessor::get(x);}
     template<typename T, typename C>
     const C &container(const stack<T, C> &x) {
         struct Accessor : stack<T, C> {
-            static const C &get(const stack<T, C> &q) { return q.*&Accessor::c; }};
+            static const C &get(const stack<T, C> &q) { return q.*&Accessor::c; }
+        };
         return Accessor::get(x);}
     template<typename T, typename C, typename Comp>
     const C &container(const priority_queue<T, C, Comp> &x) {
         struct Accessor : priority_queue<T, C, Comp> {
-            static const C &get(const priority_queue<T, C, Comp> &q) { return q.*&Accessor::c; }};
+            static const C &get(const priority_queue<T, C, Comp> &q) { return q.*&Accessor::c; }
+        };
         return Accessor::get(x);}
 
     struct Any { template<typename T> operator T() const; };
     template<typename T, size_t N>
-    constexpr bool aggSizGeq = []<size_t ...I>(std::index_sequence<I...>) {
+    constexpr bool AGG_SIZE_GEQ = []<size_t ...I>(std::index_sequence<I...>) {
         return requires { T{(void(I), Any{})...}; };}(std::make_index_sequence<N>{});
     template<typename T, size_t N>
-    constexpr bool aggSizExact = aggSizGeq<T, N> && !aggSizGeq<T, N + 1>;
+    constexpr bool AGG_SIZE_EXACT = AGG_SIZE_GEQ<T, N> && !AGG_SIZE_GEQ<T, N + 1>;
 
     template<typename T> void write(string &res, const T &x);
     template<size_t I, typename T>
@@ -71,7 +79,7 @@ namespace Debug {
     void write(string &res, const T &x) {
         if constexpr (requires { { debugString(x) } -> std::convertible_to<string>; }) {
             res += debugString(x);}
-        else if constexpr (std::is_same_v<T, bool>) { res += x ? "true" : "false"; }
+        else if constexpr (std::is_same_v<T, bool> || IS_BIT_PROXY<T>) { res += bool(x) ? "true" : "false"; }
         else if constexpr (std::is_same_v<T, char>) { res += '\''; res += x; res += '\''; }
         else if constexpr (std::is_same_v<T, lll> || std::is_same_v<T, ulll>) {
             ulll v = ulll(x);
@@ -79,6 +87,11 @@ namespace Debug {
             char buf[40]; char *end = buf + sizeof(buf), *p = end;
             do { *--p = char('0' + v % 10); v /= 10; } while (v);
             res.append(p, end);}
+        else if constexpr (std::is_floating_point_v<T>) {
+            char buf[64];
+            auto [end, ec] = std::to_chars(buf, buf + sizeof(buf), x);
+            assert(ec == std::errc());
+            res.append(buf, end);}
         else if constexpr (std::is_arithmetic_v<T>) { res += std::to_string(x); }
         else if constexpr (std::is_same_v<T, std::nullptr_t>) { res += "nullptr"; }
         else if constexpr (std::is_same_v<T, char*> || std::is_same_v<T, const char*>) {
@@ -95,7 +108,7 @@ namespace Debug {
             else {
                 res += "variant[" + std::to_string(x.index()) + "](";
                 std::visit([&](const auto &v) { Debug::write(res, v); }, x);
-                res += ')'; }}
+                res += ')';}}
         else if constexpr (std::is_same_v<T, std::monostate>) { res += "monostate"; }
         else if constexpr (requires { Debug::container(x); }) { Debug::write(res, Debug::container(x)); }
         else if constexpr (std::ranges::range<const T>) { Debug::writeRange(res, x); }
@@ -105,31 +118,35 @@ namespace Debug {
         else if constexpr (requires { std::tuple_size<T>::value; }) {
             res += '(';
             [&]<size_t ...I>(std::index_sequence<I...>) {
-                ((res += (I ? ", " : ""), Debug::write(res, Debug::element<I>(x))), ...);
-            }(std::make_index_sequence<std::tuple_size_v<T>>{});
+                ((res += (I ? ", " : ""), Debug::write(res, Debug::element<I>(x))), ...);}(std::make_index_sequence<std::tuple_size_v<T>>{});
             res += ')';}
+        else if constexpr (IS_UNSCOPED_ENUM<T>) {
+            std::ostringstream out;
+            out << x;
+            if (out.str() == string(1, char(x))) { Debug::write(res, +std::underlying_type_t<T>(x)); } else { res += out.str(); }}
         else if constexpr (requires (ostream &os) { os << x; }) {
             std::ostringstream out;
             out << x;
             res += out.str();}
+        else if constexpr (std::is_enum_v<T>) { Debug::write(res, +std::underlying_type_t<T>(x)); }
         else if constexpr (std::is_aggregate_v<T>) {
-            if constexpr (aggSizExact<T, 8>) {
+            if constexpr (AGG_SIZE_EXACT<T, 8>) {
                 auto &[a, b, c, d, e, f, g, h] = x; Debug::write(res, std::tie(a, b, c, d, e, f, g, h));}
-            else if constexpr (aggSizExact<T, 7>) {
+            else if constexpr (AGG_SIZE_EXACT<T, 7>) {
                 auto &[a, b, c, d, e, f, g] = x; Debug::write(res, std::tie(a, b, c, d, e, f, g));}
-            else if constexpr (aggSizExact<T, 6>) {
+            else if constexpr (AGG_SIZE_EXACT<T, 6>) {
                 auto &[a, b, c, d, e, f] = x; Debug::write(res, std::tie(a, b, c, d, e, f));}
-            else if constexpr (aggSizExact<T, 5>) {
+            else if constexpr (AGG_SIZE_EXACT<T, 5>) {
                 auto &[a, b, c, d, e] = x; Debug::write(res, std::tie(a, b, c, d, e));}
-            else if constexpr (aggSizExact<T, 4>) {
+            else if constexpr (AGG_SIZE_EXACT<T, 4>) {
                 auto &[a, b, c, d] = x; Debug::write(res, std::tie(a, b, c, d));}
-            else if constexpr (aggSizExact<T, 3>) {
+            else if constexpr (AGG_SIZE_EXACT<T, 3>) {
                 auto &[a, b, c] = x; Debug::write(res, std::tie(a, b, c));}
-            else if constexpr (aggSizExact<T, 2>) {
+            else if constexpr (AGG_SIZE_EXACT<T, 2>) {
                 auto &[a, b] = x; Debug::write(res, std::tie(a, b));}
-            else if constexpr (aggSizExact<T, 1>) {
+            else if constexpr (AGG_SIZE_EXACT<T, 1>) {
                 auto &[a] = x; Debug::write(res, std::tie(a));}
-            else if constexpr (aggSizExact<T, 0>) { res += "{}"; }
+            else if constexpr (AGG_SIZE_EXACT<T, 0>) { res += "{}"; }
             else { res += "<aggregate: provide debugString>"; }}
         else { static_assert(sizeof(T) == 0, "Debug: provide debugString(const T&) or operator<<"); }}
 
@@ -168,7 +185,8 @@ namespace Debug {
             dep++;}
         ~Tracer() {
             dep--;
-            cerr << indent() << "<< " << v << '\n'; }};
+            cerr << indent() << "<< " << v << '\n';}
+    };
 } // namespace Debug
 
 #define debug(...) (cerr << Debug::indent() << "\033[1;31m[L" << __LINE__ << "] [" << #__VA_ARGS__ << "]:\033[0m", Debug::debugO(__VA_ARGS__))

@@ -16,10 +16,22 @@ struct Agg7 { int a; int b; int c; int d; int e; int f; int g; };
 struct Agg8 { int a; lng b; string c; vector<int> d; pair<int, int> e; tuple<int, string, bool> f; array<int, 2> g; bool h; };
 struct Agg9 { int a; int b; int c; int d; int e; int f; int g; int h; int i; };
 struct Streamable { int x; };
+struct Flag { bool v; operator bool() const { return v; } void flip() { v = !v; } };
+enum class Color : uint8_t { Red = 2 };
+enum class Wide : lng { Low = -5 };
+enum Old { Three = 3 };
+enum ByteOld : uint8_t { SixtyFive = 65 };
+enum CharOld : char { LowerA = 'a' };
+enum class Streamed { X };
+enum class Cell : char { Wall = '#' };
+enum ByteNamed : uint8_t { Zero = 0 };
+
+ostream &operator<<(ostream &os, Streamed) { return os << "streamed"; }
+ostream &operator<<(ostream &os, Cell c) { return os << char(c); }
+ostream &operator<<(ostream &os, ByteNamed) { return os << "zero"; }
 
 ostream &operator<<(ostream &os, const Streamable &s) {
-    return os << "S(" << s.x << ")";
-}
+    return os << "S(" << s.x << ")";}
 
 namespace Custom {
     struct Hook { int x; };
@@ -68,60 +80,46 @@ void fail(const string &label, const string &actual = "", const string &expected
     std::clog << RED << "FAIL: " << label << RESET << '\n';
     if (!expected.empty() || !actual.empty()) {
         std::clog << "expected: [" << expected << "]\n";
-        std::clog << "actual:   [" << actual << "]\n";
-    }
-    std::abort();
-}
+        std::clog << "actual:   [" << actual << "]\n";}
+    std::abort();}
 
 void pass() {
-    std::clog << GREEN << "PASS: 1-Core_02-debug_tester" << RESET << '\n';
-}
+    std::clog << GREEN << "PASS: 1-Core_02-debug_tester" << RESET << '\n';}
 
 void require(bool ok, const string &label) {
     if (!ok) {
-        fail(label);
-    }
-}
+        fail(label);}}
 
 void expectEq(const string &actual, const string &expected, const string &label) {
     if (actual != expected) {
-        fail(label, actual, expected);
-    }
-}
+        fail(label, actual, expected);}}
 
 string captureCerr(const std::function<void()> &fn) {
     std::ostringstream oss;
     auto *old = cerr.rdbuf(oss.rdbuf());
     fn();
     cerr.rdbuf(old);
-    return oss.str();
-}
+    return oss.str();}
 
 vector<int> parseIntList(const string &s) {
     require(s.size() >= 2 && s.front() == '{' && s.back() == '}', "braced integer list");
     vector<int> res;
     for (int i = 1; i + 1 < int(s.size());) {
         while (i + 1 < int(s.size()) && (s[i] == ' ' || s[i] == ',')) {
-            i++;
-        }
+            i++;}
         if (i + 1 >= int(s.size())) {
-            break;
-        }
+            break;}
         int sign = 1;
         if (s[i] == '-') {
             sign = -1;
-            i++;
-        }
+            i++;}
         require(i + 1 < int(s.size()) && std::isdigit(static_cast<unsigned char>(s[i])), "integer token");
         int x = 0;
         while (i + 1 < int(s.size()) && std::isdigit(static_cast<unsigned char>(s[i]))) {
             x = 10 * x + (s[i] - '0');
-            i++;
-        }
-        res.pb(sign * x);
-    }
-    return res;
-}
+            i++;}
+        res.pb(sign * x);}
+    return res;}
 
 void testScalarsAndStrings() {
     expectEq(Debug::to_string(true), "true", "bool true");
@@ -155,8 +153,54 @@ void testScalarsAndStrings() {
     expectEq(Debug::to_string(bitset<5>(string("10101"))), "10101", "bitset");
     expectEq(Debug::to_string(Streamable{7}), "S(7)", "ostreamable object");
     expectEq(Debug::to_string(nullptr), "nullptr", "nullptr");
-    expectEq(Debug::to_string(1.25), "1.250000", "double");
-}
+    expectEq(Debug::to_string(1.25), "1.25", "double");
+    expectEq(Debug::to_string(1e-9), "1e-09", "double tiny magnitude keeps its digits");
+    expectEq(Debug::to_string(0.1), "0.1", "double shortest round trip");
+    expectEq(Debug::to_string(0.1f), "0.1", "float shortest round trip");
+    expectEq(Debug::to_string(-0.0), "-0", "negative zero");
+    expectEq(Debug::to_string(100.0), "100", "integral double");
+    expectEq(Debug::to_string(123456789.0), "123456789", "nine digit double");
+    expectEq(Debug::to_string(1e16), "1e+16", "large double switches to exponent");
+    expectEq(Debug::to_string(std::numeric_limits<double>::infinity()), "inf", "infinity");
+    expectEq(Debug::to_string(-std::numeric_limits<double>::infinity()), "-inf", "negative infinity");
+    expectEq(Debug::to_string(std::numeric_limits<double>::quiet_NaN()), "nan", "nan");
+    expectEq(Debug::to_string(std::numeric_limits<double>::max()), "1.7976931348623157e+308", "double max");
+    expectEq(Debug::to_string(std::numeric_limits<double>::denorm_min()), "5e-324", "double denormal min");
+    expectEq(Debug::to_string(1.0L / 3), "0.33333333333333333334", "long double shortest round trip");
+
+    expectEq(Debug::to_string(Color::Red), "2", "scoped enum with uint8 underlying type");
+    expectEq(Debug::to_string(Wide::Low), "-5", "scoped enum with lng underlying type");
+    expectEq(Debug::to_string(Three), "3", "unscoped enum through stream promotion");
+    expectEq(Debug::to_string(SixtyFive), "65", "unscoped uint8 enum prints the number, not the raw byte");
+    expectEq(Debug::to_string(LowerA), "97", "unscoped char enum prints the number, not the character");
+    expectEq(Debug::to_string(Cell::Wall), "#", "scoped char enum with user operator<< streams");
+    expectEq(Debug::to_string(Zero), "zero", "unscoped byte enum with user operator<< streams");
+    expectEq(Debug::to_string(Streamed::X), "streamed", "streamable enum keeps its operator<<");
+    expectEq(Debug::to_string(vector<Color>{Color::Red, Color::Red}), "{2, 2}", "enum range");}
+
+void testFloatingRoundTrip() {
+    uint seed = std::getenv("CP_TEST_SEED") ? uint(std::stoul(std::getenv("CP_TEST_SEED"))) : 335597;
+    int rounds = std::getenv("CP_TEST_ITERATIONS") ? std::stoi(std::getenv("CP_TEST_ITERATIONS")) : 5000;
+    std::mt19937_64 rng(seed);
+    for (int rep = 0; rep < rounds; rep++) {
+        double x = std::bit_cast<double>(rng());
+        if (std::isnan(x)) { continue; }
+        string s = Debug::to_string(x);
+        char *end = nullptr;
+        double back = std::strtod(s.c_str(), &end);
+        string label = " seed=" + std::to_string(seed) + " case=" + std::to_string(rep) + " text=" + s;
+        require(end == s.c_str() + s.size() && back == x && std::signbit(back) == std::signbit(x), "double text round trips exactly" + label);
+        int digits = 0;
+        for (char c : s) {
+            if (c == 'e') { break; }
+            if (std::isdigit(static_cast<unsigned char>(c)) && (digits || c != '0')) { digits++; }}
+        bool exact_integer = s.find('.') == string::npos && s.find('e') == string::npos && x == std::trunc(x);
+        require(digits <= 17 || exact_integer, "double text uses at most 17 significant digits unless it is an exact integer" + label);
+        float f = std::bit_cast<float>(uint(rng()));
+        if (std::isnan(f)) { continue; }
+        string t = Debug::to_string(f);
+        float fback = std::strtof(t.c_str(), &end);
+        require(end == t.c_str() + t.size() && fback == f && std::signbit(fback) == std::signbit(f), "float text round trips exactly" + label);}}
 
 void testTuplesRangesAndAggregates() {
     expectEq(Debug::to_string(pair<int, string>{2, "x"}), "(2, \"x\")", "pair");
@@ -179,11 +223,11 @@ void testTuplesRangesAndAggregates() {
     std::span<int> sp(a);
     expectEq(Debug::to_string(sp), "{8, 9}", "span");
 
-    static_assert(Debug::aggSizExact<Agg0, 0>);
-    static_assert(Debug::aggSizExact<Agg1, 1>);
-    static_assert(Debug::aggSizExact<Agg8, 8>);
-    static_assert(!Debug::aggSizExact<Agg9, 8>);
-    static_assert(Debug::aggSizGeq<Agg9, 9>);
+    static_assert(Debug::AGG_SIZE_EXACT<Agg0, 0>);
+    static_assert(Debug::AGG_SIZE_EXACT<Agg1, 1>);
+    static_assert(Debug::AGG_SIZE_EXACT<Agg8, 8>);
+    static_assert(!Debug::AGG_SIZE_EXACT<Agg9, 8>);
+    static_assert(Debug::AGG_SIZE_GEQ<Agg9, 9>);
     expectEq(Debug::to_string(Agg0{}), "{}", "empty aggregate");
     expectEq(Debug::to_string(Agg1{4}), "(4)", "aggregate size 1");
     expectEq(Debug::to_string(Agg2{4, "q"}), "(4, \"q\")", "aggregate size 2");
@@ -193,8 +237,7 @@ void testTuplesRangesAndAggregates() {
     expectEq(Debug::to_string(Agg6{1, 2, 3, 4, 5, 6}), "(1, 2, 3, 4, 5, 6)", "aggregate size 6");
     expectEq(Debug::to_string(Agg7{1, 2, 3, 4, 5, 6, 7}), "(1, 2, 3, 4, 5, 6, 7)", "aggregate size 7");
     expectEq(Debug::to_string(Agg8{1, 2, "c", {3, 4}, {5, 6}, {7, "d", true}, {8, 9}, false}), "(1, 2, \"c\", {3, 4}, (5, 6), (7, \"d\", true), {8, 9}, false)", "aggregate size 8");
-    expectEq(Debug::to_string(Agg9{1, 2, 3, 4, 5, 6, 7, 8, 9}), "<aggregate: provide debugString>", "aggregate over supported size");
-}
+    expectEq(Debug::to_string(Agg9{1, 2, 3, 4, 5, 6, 7, 8, 9}), "<aggregate: provide debugString>", "aggregate over supported size");}
 
 void testContainerAdaptors() {
     queue<int> q;
@@ -214,8 +257,7 @@ void testContainerAdaptors() {
     priority_queue<int> pq;
     expectEq(Debug::to_string(pq), "{}", "empty priority_queue");
     for (int x : vector<int>{5, 1, 4, 3}) {
-        pq.push(x);
-    }
+        pq.push(x);}
     vector<int> vals = parseIntList(Debug::to_string(pq));
     sort(vals.begin(), vals.end());
     require((vals == vector<int>{1, 3, 4, 5}), "priority_queue contents");
@@ -223,13 +265,11 @@ void testContainerAdaptors() {
 
     priority_queue<int, vector<int>, std::greater<int>> minpq;
     for (int x : vector<int>{5, 1, 4}) {
-        minpq.push(x);
-    }
+        minpq.push(x);}
     vector<int> min_vals = parseIntList(Debug::to_string(minpq));
     sort(min_vals.begin(), min_vals.end());
     require((min_vals == vector<int>{1, 4, 5}), "min priority_queue contents");
-    require(minpq.size() == 3 && minpq.top() == 1, "min priority_queue unchanged");
-}
+    require(minpq.size() == 3 && minpq.top() == 1, "min priority_queue unchanged");}
 
 void testIndentSliceAndOutput() {
     Debug::dep = 0;
@@ -267,25 +307,20 @@ void testIndentSliceAndOutput() {
     expectEq(Debug::to_string(Debug::slice(cube, 0, 1, 0, 0, 1, 1)), "{{{2}}, {{6}}}", "slice 3D");
 
     expectEq(captureCerr([]() {
-        Debug::debugO(1, string("x"), vector<int>{2, 3});
-    }), " 1 \"x\" {2, 3}\n", "debugO output");
+        Debug::debugO(1, string("x"), vector<int>{2, 3});}), " 1 \"x\" {2, 3}\n", "debugO output");
     expectEq(captureCerr([]() {
-        Debug::debugO();
-    }), "\n", "debugO empty output");
+        Debug::debugO();}), "\n", "debugO empty output");
 
     int x = 7;
     string out = captureCerr([&]() {
-        debug(x, string("bee"), vector<int>{1, 2});
-    });
+        debug(x, string("bee"), vector<int>{1, 2});});
     require(out.find("\033[1;31m[L") == 0, "debug macro color and line prefix");
     require(out.find("[x, string(\"bee\"), vector<int>{1, 2}]:\033[0m") != string::npos, "debug macro argument names");
     require(out.ends_with(" 7 \"bee\" {1, 2}\n"), "debug macro values");
     string empty_out = captureCerr([]() {
-        debug();
-    });
+        debug();});
     require(empty_out.find("[]:\033[0m") != string::npos, "debug macro no args names");
-    require(empty_out.ends_with("\n"), "debug macro no args newline");
-}
+    require(empty_out.ends_with("\n"), "debug macro no args newline");}
 
 void testTracer() {
     Debug::dep = 0;
@@ -295,30 +330,25 @@ void testTracer() {
             require(Debug::dep == 1, "tracer increments depth");
             expectEq(string(Debug::indent()), "  ", "tracer indent inside");
         }
-        require(Debug::dep == 0, "tracer decrements depth");
-    });
+        require(Debug::dep == 0, "tracer decrements depth");});
     expectEq(direct, ">> scope\n<< scope\n", "direct tracer output");
 
     string nested = captureCerr([]() {
         Debug::Tracer outer("outer");
         {
             Debug::Tracer inner("inner");
-        }
-    });
+        }});
     expectEq(nested, ">> outer\n  >> inner\n  << inner\n<< outer\n", "nested tracer output");
 
     string macro = captureCerr([]() {
-        trace("macro");
-    });
-    expectEq(macro, ">> macro\n<< macro\n", "trace macro output");
-}
+        trace("macro");});
+    expectEq(macro, ">> macro\n<< macro\n", "trace macro output");}
 
 void testTracerOwnership() {
     require(!std::is_copy_constructible_v<Debug::Tracer>, "Tracer must not be copy constructible");
     require(!std::is_copy_assignable_v<Debug::Tracer>, "Tracer must not be copy assignable");
     require(!std::is_move_constructible_v<Debug::Tracer>, "Tracer must not be move constructible");
-    require(!std::is_move_assignable_v<Debug::Tracer>, "Tracer must not be move assignable");
-}
+    require(!std::is_move_assignable_v<Debug::Tracer>, "Tracer must not be move assignable");}
 
 void testOptionalVariantHooksAndWidths() {
     expectEq(Debug::to_string(std::optional<int>{}), "nullopt", "optional absent");
@@ -348,14 +378,11 @@ void testOptionalVariantHooksAndWidths() {
     expectEq(Debug::to_string(std::numeric_limits<ulll>::max()), "340282366920938463463374607431768211455", "unsigned 128 max");
     for (int i = -128; i <= 255; i++) {
         expectEq(Debug::to_string(lll(i)), std::to_string(i), "bounded exhaustive signed 128");
-        if (i >= 0) { expectEq(Debug::to_string(ulll(i)), std::to_string(i), "bounded exhaustive unsigned 128"); }
-    }
+        if (i >= 0) { expectEq(Debug::to_string(ulll(i)), std::to_string(i), "bounded exhaustive unsigned 128"); }}
     expectEq(Debug::to_string(static_cast<signed char>(-128)), "-128", "signed byte numeric");
     expectEq(Debug::to_string(static_cast<unsigned char>(255)), "255", "unsigned byte numeric");
     for (int i = 0; i < 256; i++) {
-        expectEq(Debug::to_string(char(i)), string({'\'', char(i), '\''}), "all raw character bytes");
-    }
-}
+        expectEq(Debug::to_string(char(i)), string({'\'', char(i), '\''}), "all raw character bytes");}}
 
 void testViewsAndRandomNesting() {
     vector<int> v{1, 2, 3, 4};
@@ -365,6 +392,18 @@ void testViewsAndRandomNesting() {
     expectEq(Debug::to_string(Debug::slice(rows, 0, 2, 1, 1)), "{{2}, {3}, {4}}", "nested slice owns prvalue subranges");
     expectEq(Debug::to_string(std::views::iota(2, 5)), "{2, 3, 4}", "iota view");
     expectEq(Debug::to_string(vector<bool>{true, false, true}), "{true, false, true}", "packed bool range");
+    vector<bool> packed{true, false};
+    expectEq(Debug::to_string(Debug::slice(packed, 0, 1)), "{true, false}", "packed bool slice proxies");
+    expectEq(Debug::to_string(std::views::all(packed)), "{true, false}", "packed bool view proxies");
+    expectEq(Debug::to_string(packed[0]), "true", "vector<bool> reference");
+    expectEq(Debug::to_string(packed[1]), "false", "vector<bool> reference false");
+    vector<vector<bool>> grid{{true, false}};
+    expectEq(Debug::to_string(Debug::slice(grid, 0, 0, 0, 1)), "{{true, false}}", "nested packed bool slice");
+    bitset<4> bs(5);
+    expectEq(Debug::to_string(bs[0]) + Debug::to_string(bs[1]), "truefalse", "bitset reference proxies");
+    expectEq(Debug::to_string(Flag{true}), "true", "bool-convertible class with flip is a bit proxy");
+    static_assert(Debug::IS_BIT_PROXY<vector<bool>::reference> && Debug::IS_BIT_PROXY<bitset<4>::reference> && Debug::IS_BIT_PROXY<Flag>);
+    static_assert(!Debug::IS_BIT_PROXY<bool> && !Debug::IS_BIT_PROXY<bitset<4>> && !Debug::IS_BIT_PROXY<vector<bool>> && !Debug::IS_BIT_PROXY<Streamable>);
     expectEq(Debug::to_string(std::unordered_set<int>{}), "{}", "empty unordered range");
     auto values = parseIntList(Debug::to_string(std::unordered_set<int>{3, 1, 2}));
     sort(values.begin(), values.end());
@@ -385,13 +424,10 @@ void testViewsAndRandomNesting() {
             for (int j = 0; j < m; j++) {
                 a[i][j] = int(rng() % 2001) - 1000;
                 if (j) { expected << ", "; }
-                expected << a[i][j];
-            }
-            expected << '}';
-        }
+                expected << a[i][j];}
+            expected << '}';}
         expected << '}';
-        expectEq(Debug::to_string(a), expected.str(), "nested range independent stream oracle seed=" + std::to_string(seed) + " case=" + std::to_string(rep));
-    }
+        expectEq(Debug::to_string(a), expected.str(), "nested range independent stream oracle seed=" + std::to_string(seed) + " case=" + std::to_string(rep));}
     int evaluations = 0;
     captureCerr([&]() {
         int answer = true ? (debug(++evaluations), 7) : 0;
@@ -399,9 +435,7 @@ void testViewsAndRandomNesting() {
         bool skipped = false && (debug(++evaluations), true);
         require(!skipped && evaluations == 1, "debug short-circuit context");
         if (true) debug(++evaluations); else evaluations = 99;
-        require(evaluations == 2, "debug dangling else context");
-    });
-}
+        require(evaluations == 2, "debug dangling else context");});}
 
 int main(int argc, char **argv) {
     if (argc > 1) {
@@ -409,15 +443,14 @@ int main(int argc, char **argv) {
         if (which == "negative-start") { Debug::slice(vector<int>{}, -1, 0); }
         if (which == "inverted-range") { Debug::slice(vector<int>{}, 2, 0); }
         if (which == "tracer-depth") { Debug::dep = std::numeric_limits<int>::max(); Debug::Tracer t("invalid"); }
-        return 0;
-    }
+        return 0;}
     testOptionalVariantHooksAndWidths();
     testViewsAndRandomNesting();
     testScalarsAndStrings();
+    testFloatingRoundTrip();
     testTuplesRangesAndAggregates();
     testContainerAdaptors();
     testIndentSliceAndOutput();
     testTracer();
     testTracerOwnership();
-    pass();
-}
+    pass();}

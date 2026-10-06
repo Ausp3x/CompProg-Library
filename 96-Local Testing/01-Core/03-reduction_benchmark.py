@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""C02 reduction benchmarks. Medians, checked outputs, no universal timing gates."""
+"""C02 reduction benchmarks. Medians, checked outputs, no universal timing gates.
+
+Configurations: scalar and avx2 use -O3 -DNDEBUG; scalar-asserts and avx2-asserts use
+-O2 with assertions enabled, the Codeforces configuration.
+"""
 import argparse
 import json
 import os
@@ -15,7 +19,7 @@ def main():
     parser.add_argument("--seed", type=int, default=20260927)
     parser.add_argument("--repetitions", type=int, default=5)
     parser.add_argument("--milliseconds", type=float, default=1)
-    parser.add_argument("--config", choices=("all", "scalar", "avx2"), default="all")
+    parser.add_argument("--config", choices=("all", "scalar", "avx2", "scalar-asserts", "avx2-asserts"), default="all")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     if not 0 <= args.seed < 2**64 or args.repetitions < 1 or args.milliseconds <= 0:
@@ -40,14 +44,16 @@ def main():
           "memory": "contexts O(1); bulk arrays O(n) words, no kernel allocation or scratch; inputs precomputed",
           "barrier": "compiler memory barrier per iteration and volatile sink prevent dead-code elimination/hoisting"})
     with tempfile.TemporaryDirectory(prefix="p004-reduction-bench-") as temp:
-        for config, isa in {"scalar": ["-mno-avx2", "-mno-bmi2"], "avx2": ["-mavx2", "-mbmi2", "-mno-avx512f"]}.items():
+        isa_flags = {"scalar": ["-mno-avx2", "-mno-bmi2"], "avx2": ["-mavx2", "-mbmi2", "-mno-avx512f"]}
+        for config in ("scalar", "avx2", "scalar-asserts", "avx2-asserts"):
             if args.config not in ("all", config):
                 continue
-            if config == "avx2" and not all(flag in flags for flag in ("avx2", "bmi2")):
+            isa, asserts = config.split("-")[0], config.endswith("-asserts")
+            if isa == "avx2" and not all(flag in flags for flag in ("avx2", "bmi2")):
                 emit({"type": "skip", "config": config, "reason": "AVX2/BMI2 unavailable"})
                 continue
             binary = Path(temp) / config
-            options = ["-std=gnu++20", "-O3", "-DNDEBUG", "-Wall", "-Wextra", *isa]
+            options = ["-std=gnu++20", *(["-O2"] if asserts else ["-O3", "-DNDEBUG"]), "-Wall", "-Wextra", *isa_flags[isa]]
             command = cxx + options + [str(source), "-o", str(binary)]
             subprocess.run(command, check=True, timeout=180)
             run = [str(binary), str(args.seed), str(args.repetitions), str(args.milliseconds)]

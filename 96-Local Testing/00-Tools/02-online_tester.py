@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -131,18 +132,35 @@ def test_workspace(temp: Path) -> None:
     contents = target.read_text(encoding="utf-8")
     require("#pragma once" not in contents and '#include "' not in contents,
             "snapshot contains duplicate local directives")
-    require(contents.count("void solve()") == 1 and contents.count("int main()") == 1,
+    require(contents.startswith("// 知彼知己，百战不殆\n"), "snapshot does not open with the motto line")
+    require(contents.count("void solve(int t)") == 1 and contents.count("int main()") == 1,
             "snapshot has duplicate solve/main")
-    require("std::ios::sync_with_stdio(false);" in contents and "cin.tie(nullptr);" in contents
-            and "// while (t--) { solve(); }" in contents, "workspace main is incomplete")
+    require(all(part in contents for part in ("ios::sync_with_stdio(false);", "cin.tie(nullptr);",
+                                              "int t = 1;", "cin >> t;", "solve(i);")),
+            "workspace main is incomplete")
     require(run(script, "--check", cwd=temp).returncode == 0, "fresh snapshot failed --check")
+    comments = [line for line in contents.splitlines() if line.strip().startswith("//")]
+    require(comments == ["// 知彼知己，百战不殆", "    // trace(to_string(t));"],
+            f"snapshot keeps Core comment lines: {comments[:4]}")
+    umask = os.umask(0)
+    os.umask(umask)
+    require(target.stat().st_mode & 0o777 == 0o666 & ~umask, "generated snapshot mode ignores the umask")
+    debug = core / "02-debug.hpp"
+    original = debug.read_text(encoding="utf-8")
+    debug.write_text(original.replace('#include "01-template.hpp"', '#include "01-template.hpp" // aliases'), encoding="utf-8")
+    require(run(script, "--check", cwd=temp).returncode == 0, "trailing comment on the template include was not stripped")
+    debug.write_text(original + '\n#include "missing.hpp" // fixture\n', encoding="utf-8")
+    result = run(script, cwd=temp)
+    require(result.returncode != 0 and "unexpanded local include" in result.stderr
+            and target.read_text(encoding="utf-8") == contents, "unexpanded include did not fail atomically")
+    debug.write_text(original, encoding="utf-8")
     with (core / "01-template.hpp").open("a", encoding="utf-8") as file:
-        file.write("\n// fixture change\n")
+        file.write("\nconstexpr int FIXTURE_CHANGE = 0;\n")
     result = run(script, "--check", cwd=temp)
-    require(result.returncode != 0 and "fixture change" in result.stdout,
+    require(result.returncode != 0 and "FIXTURE_CHANGE" in result.stdout,
             "stale snapshot did not produce a diff")
     require(target.read_text(encoding="utf-8") == contents, "--check modified the snapshot")
-    require(run(script, cwd=temp).returncode == 0 and "fixture change" in target.read_text(),
+    require(run(script, cwd=temp).returncode == 0 and "FIXTURE_CHANGE" in target.read_text(encoding="utf-8"),
             "explicit regeneration did not update snapshot")
     print("PASS online: script-relative workspace generation and check")
 

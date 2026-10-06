@@ -10,7 +10,9 @@ python3 01-stress.py 02-gen.py optim.cpp brute.py --checker 04-checker.py
 python3 01-stress.py 02-gen.py optim.cpp brute.py --replay /tmp/contest-stress-artifacts/CASE/input.txt
 ```
 
-Batch mode compares whitespace-separated byte tokens by default; `--exact` compares all output bytes. A checker receives three paths: `input candidate_output reference_output`. Exit 0 accepts, 1 reports a wrong answer, and any other exit or timeout is a checker error. With `--checker`, the reference is optional; its output file is empty when omitted. If supplied, the reference must finish successfully before the candidate is judged.
+Batch mode compares whitespace-separated byte tokens by default; `--exact` compares all output bytes. A checker receives three paths: `input candidate_output reference_output`. Exit 0 accepts, 1 reports a wrong answer, and any other exit or timeout is a checker error. With `--checker`, the reference is optional; its output file is empty when omitted. If supplied, the reference must finish successfully before the candidate is judged. With `--replay saved.in --expected saved.ans` and no reference program, the saved answer file is the reference output, so sample tests need no brute; it works with token, `--exact` or checker comparison. `--exact` and `--checker` are mutually exclusive.
+
+`--input-validator` (every mode, including replay) receives the input path before any program runs: exit 0 means valid, 1 reports `invalid_input`, and anything else or a timeout reports `input_validator_error`. Both are inconclusive generator/infrastructure failures, never contestant verdicts.
 
 ```bash
 python3 01-stress.py unused solution.cpp --mode interactive --interactor 05-interactor.py --replay hidden.in
@@ -43,7 +45,7 @@ The [integer and style maintenance record](10-verification.md#integer-and-style-
 
 | Files | Owned features | Status and evidence |
 |---|---|---|
-| `01-stress.py`, `09-quick.py` | Sequential seeds, Python/C++/executables, token/byte/custom comparison, error classes, unique bundles, replay, child cleanup, reduced quick CLI | **Verified**, 2026-09-27; [P001 evidence](10-verification.md) |
+| `01-stress.py`, `09-quick.py` | Sequential seeds, Python/C++/executables, token/byte/custom comparison, input validator, expected-answer replay, error classes, unique bundles, replay, child cleanup, reduced quick CLI | **Verified**, 2026-10-06 re-audit; [P001 evidence](10-verification.md) |
 | `01-stress.py`, `05-interactor.py` | Hidden input, bidirectional relay/transcript, EOF/backpressure, total/idle limits, bounded query example | **Verified**; same evidence |
 | `01-stress.py`, `06-validator.py`, `07-scorer.py` | Validity versus tool errors, finite Decimal scores, both objectives, optional reference, permutation example | **Verified**; same evidence |
 | `08-shrink.py` | Valid baseline, shorter valid proposals, exact signatures, skip/errors/timeouts, bounded attempts, preserved progress | **Verified**; same evidence |
@@ -53,7 +55,7 @@ Both generators emit `1 <= n <= 20` and `n` integers in `[-100,100]`. Python acc
 
 Planned problem-specific additions, made only when a task needs them:
 
-- Seeded generators for valid graph/tree/multigraph instances, integer/field/geometry boundary cases, strings and stateful operation histories; combine exhaustive tiny cases, degenerate shapes and randomized distributions. A generator must enforce its domain; batch mode currently has no separate input-validator option.
+- Seeded generators for valid graph/tree/multigraph instances, integer/field/geometry boundary cases, strings and stateful operation histories; combine exhaustive tiny cases, degenerate shapes and randomized distributions. A generator must enforce its domain; `--input-validator` checks it independently.
 - Checkers for nonunique paths, cuts, matchings, decompositions and constructive outputs; numerical checkers with an explicit absolute/relative/error-bound policy. Exact integer tokens must stay exact.
 - Additional problem-specific interactor protocols and scoring policies as their problems require; the supplied bounded guessing/permutation examples cover the common lifecycle.
 - Shrink hooks that preserve graph/tree structure, algebraic domains and legal rollback/persistence histories. The current helper's progress metric is strictly decreasing **input byte length**, with bounded attempts and per-hook timeouts; arbitrary semantic metrics, a separate total-time limit and generic interactive/scored reducers are not implemented.

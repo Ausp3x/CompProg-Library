@@ -101,9 +101,19 @@ def judged_status(result, role):
     return None if result[0] == "ok" else f"{role}_{'timeout' if result[0] == 'timeout' else 'crash'}"
 
 
+def validate_input(args, data, cmds, case_dir, runs):
+    case_dir.mkdir(parents=True, exist_ok=True)
+    path = case_dir / "input.txt"
+    path.write_bytes(data)
+    runs["input_validator"] = status = invoke(cmds["input_validator"] + [str(path)], b"", args.timeout)
+    return None if status[0] == "ok" else "invalid_input" if status[0] == "exit 1" else "input_validator_error"
+
+
 def check_batch(args, data, cmds, case_dir):
     runs = {}
-    if "reference" in cmds:
+    if args.expected:
+        runs["reference"] = ("ok", args.expected_bytes, b"")
+    elif "reference" in cmds:
         runs["reference"] = invoke(cmds["reference"], data, args.timeout)
         if runs["reference"][0] != "ok":
             return "reference_error", runs, {}
@@ -327,6 +337,8 @@ def main(argv=None):
     p.add_argument("--cxx", default="g++")
     p.add_argument("--cxxflags", default="-O2 -std=gnu++20")
     p.add_argument("--exact", action="store_true", help="compare exact bytes instead of whitespace tokens")
+    p.add_argument("--expected", type=Path, help="batch replay: saved answer file used as the reference output")
+    p.add_argument("--input-validator", help="any mode: input path; 0 valid, 1 invalid input, judged before programs run")
     p.add_argument("--checker", help="batch hook: input candidate_output reference_output; 0 accepted, 1 wrong")
     p.add_argument("--interactor", help="interactive program receives hidden input file as first argument")
     p.add_argument("--validator", help="scored hook: input output; 0 valid, 1 invalid")
@@ -337,8 +349,10 @@ def main(argv=None):
     if args.count < 0 or any(not math.isfinite(t) or t <= 0
                              for t in (args.timeout, args.whole_timeout, args.idle_timeout)):
         p.error("count must be nonnegative and timeouts finite and positive")
-    if args.mode == "batch" and not args.reference and not args.checker:
-        p.error("batch mode needs a reference program or --checker")
+    if args.mode == "batch" and not args.reference and not args.checker and not args.expected:
+        p.error("batch mode needs a reference program, --expected or --checker")
+    if args.expected and (args.mode != "batch" or not args.replay or args.reference):
+        p.error("--expected needs batch mode, --replay and no reference program")
     if args.mode == "scored" and (not args.validator or not args.scorer):
         p.error("scored mode needs --validator and --scorer")
     if args.mode == "interactive" and not args.interactor:
@@ -347,6 +361,8 @@ def main(argv=None):
         p.error("interactive mode does not use a reference program")
     if args.mode != "batch" and (args.checker or args.exact):
         p.error("--checker and --exact need batch mode")
+    if args.checker and args.exact:
+        p.error("--exact compares against the reference; a --checker judges instead")
     if args.mode != "scored" and (args.validator or args.scorer):
         p.error("--validator and --scorer need scored mode")
     if args.mode != "interactive" and args.interactor:
@@ -359,13 +375,14 @@ def main(argv=None):
                 sources["generator"] = args.generator
             if args.reference:
                 sources["reference"] = args.reference
-            for key in ("checker", "validator", "scorer", "interactor"):
+            for key in ("input_validator", "checker", "validator", "scorer", "interactor"):
                 value = getattr(args, key)
                 if value:
                     sources[key] = value
             sources = {key: str(Path(value).resolve()) for key, value in sources.items()}
             cmds = {key: command(value, args.python, args.cxx, args.cxxflags, build)
                     for key, value in sources.items()}
+            args.expected_bytes = args.expected.read_bytes() if args.expected else None
         except (ValueError, OSError) as e:
             p.exit(2, str(e) + "\n")
         except KeyboardInterrupt:
@@ -386,6 +403,8 @@ def main(argv=None):
                 case_dir = build / "case"
                 if "generator" in runs and runs["generator"][0] != "ok":
                     kind, more, extra = "generator_error", {}, {}
+                elif args.input_validator and (kind := validate_input(args, data, cmds, case_dir, runs)):
+                    more, extra = {}, {}
                 elif args.mode == "batch":
                     kind, more, extra = check_batch(args, data, cmds, case_dir)
                 elif args.mode == "scored":
@@ -403,10 +422,13 @@ def main(argv=None):
                               "idle_timeout": args.idle_timeout, "objective": args.objective,
                               "python": args.python, "cxx": args.cxx, "cxxflags": args.cxxflags,
                               "cwd": str(Path.cwd()), "count": args.count,
-                              "replay": str(args.replay.resolve()) if args.replay else None}
+                              "replay": str(args.replay.resolve()) if args.replay else None,
+                              "expected": str(args.expected.resolve()) if args.expected else None}
                     executed = dict(cmds)
                     if "generator" in executed:
                         executed["generator"] = executed["generator"] + [str(seed)]
+                    if "input_validator" in runs:
+                        executed["input_validator"] = cmds["input_validator"] + [str(case_dir / "input.txt")]
                     if "checker" in runs:
                         executed["checker"] = cmds["checker"] + [str(case_dir / name) for name in
                                                                   ("input.txt", "candidate.txt", "reference.txt")]

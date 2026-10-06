@@ -33,7 +33,7 @@ Work through every step. The brief above is the whole scope; do not open other p
 
 ## Re-audit (status `audit`)
 
-The package was verified under the previous system. Treat its code as existing-unverified and run steps 2 to 11 with these additions: compare every operation in the current row against the code and the tests and list gaps before changing anything; bring the code to the current `03-cpp.md` rules (closing-brace rule, naming vocabulary, `std::` list, complexity comments, judge portability) without changing public names or behavior unless a bug is found; reconcile the existing evidence document rather than writing a new one; rerun its full suite before and after.
+The package was verified under the previous system. Treat its code as existing-unverified and run steps 2 to 11 with these additions: compare every operation in the current row against the code and the tests and list gaps before changing anything; bring the code to the current `03-cpp.md` rules (closing-brace rule, naming vocabulary, `std::` list, complexity comments, judge portability) without changing public names or behavior unless a bug is found; reconcile the existing evidence document rather than writing a new one; rerun its full suite before and after. If the brief's note names a file under `00-Guidelines/23-reaudit-findings/`, read it in step 2 and treat every finding as a confirmed defect: fix it, or record in the evidence why it is rejected; in step 10 delete that file, remove its row from that folder's `00-index.md` and clear the note in the same `plan.py set` call (`--note ''`). The note may also add owned work (for example the P002 closing-brace checker); that work is in scope.
 
 ## Batch argument
 

@@ -3,17 +3,17 @@
 
 // Checks intentionally survive -DNDEBUG; Python supplies the independent oracle.
 [[noreturn]] void fail(string_view message) {
-    cerr << "FAIL " << message << '\n'; std::exit(1); }
+    cerr << "FAIL " << message << '\n'; std::exit(1);}
 void check(bool okay, string_view message) { if (!okay) { fail(message); } }
 
 ulll readUnsigned(const string &s) {
     ulll x = 0;
     for (char c : s) { x = 10 * x + (c - '0'); }
-    return x; }
+    return x;}
 lll readSigned(const string &s) {
     if (s[0] != '-') { return lll(readUnsigned(s)); }
     ulll x = readUnsigned(s.substr(1));
-    return x ? -lll(x - 1) - 1 : 0; }
+    return x ? -lll(x - 1) - 1 : 0;}
 
 template<typename T, typename F>
 void oracle(char operation) {
@@ -23,14 +23,14 @@ void oracle(char operation) {
         if (sign == 's') { lll x = readSigned(s); a = T(x); b = x; f = x; }
         else { ulll x = readUnsigned(s); a = T(x); b = x; f = x; }
         check(a.val() == f.val() && b == a, "normalization/full agreement and assignment");
-        cout << a.val() << ' ' << b.val() << '\n'; return; }
+        cout << a.val() << ' ' << b.val() << '\n'; return;}
     if (operation == 'P') {
         ulng a; char sign; string s; cin >> a >> sign >> s;
         T r; F f;
         if (sign == 's') { lll e = readSigned(s); r = pow(T(a), e); f = pow(F(a), e); }
         else { ulll e = readUnsigned(s); r = pow(T(a), e); f = pow(F(a), e); }
         check(r.val() == f.val(), "power/full agreement");
-        cout << r.val() << '\n'; return; }
+        cout << r.val() << '\n'; return;}
     if (operation != 'A') { fail("unknown oracle operation"); }
     ulng av, bv; cin >> av >> bv;
     T a = T::raw(typename T::Word(av)), b = T::raw(typename T::Word(bv));
@@ -58,9 +58,9 @@ void oracle(char operation) {
         check(inv(b) == inverse && b * inverse == T(1), "unit inverse");
         quotient = a / b; x = a;
         check(&(x /= b) == &x && x == quotient && quotient.val() == (af / bf).val(), "division/reference");
-        x = b; x /= x; check(x == T(1), "self division"); }
+        x = b; x /= x; check(x == T(1), "self division");}
     cout << sum.val() << ' ' << diff.val() << ' ' << product.val() << ' ' << (a == b) << ' '
-         << negative.val() << ' ' << unit << ' ' << inverse.val() << ' ' << quotient.val() << '\n'; }
+         << negative.val() << ' ' << unit << ' ' << inverse.val() << ' ' << quotient.val() << '\n';}
 
 template<bool WIDE>
 void staticOracle(ulng m, char operation) {
@@ -82,11 +82,10 @@ void staticOracle(ulng m, char operation) {
                     WIDE_CASE(9223372036854775807ULL); WIDE_CASE(9223372036854775808ULL);
                     WIDE_CASE(18446744069414584321ULL); WIDE_CASE(18446744073709551557ULL);
                     WIDE_CASE(18446744073709551615ULL);
-                    default: fail("unsupported static wide oracle modulus"); } }
-            else { fail("unsupported static oracle modulus"); } }
+                    default: fail("unsupported static wide oracle modulus");}}
+            else { fail("unsupported static oracle modulus"); }}}
 #undef STATIC_CASE
 #undef WIDE_CASE
-}
 
 template<typename T>
 constexpr bool constantFixture() {
@@ -96,7 +95,7 @@ constexpr bool constantFixture() {
     if (pow(T(3), -3).val() != 12 || inv(T(3)).val() != 6) { return false; }
     if (!tryInv(T(3), out) || out.val() != 6 || (a / 3).val() != 5) { return false; }
     a = -1; a += 3; a *= 4; a -= 1; a /= 7;
-    return a == T(1) && -a == T(16) && +a == a && a != T(0); }
+    return a == T(1) && -a == T(16) && +a == a && a != T(0);}
 static_assert(constantFixture<ModIntMini<17>>());
 static_assert(constantFixture<ModInt64Mini<17>>());
 static_assert(std::is_same_v<mintmini, ModIntMini<998244353>>);
@@ -120,7 +119,7 @@ constexpr bool typeContract() {
            !requires(T a) { sqrt(a); } && !requires(T a) { trySqrt(a, a); } &&
            !requires(vector<T> a) { batchInv(a, a); } &&
            !requires(T a, istream &in) { in >> a; } &&
-           !requires(T a, ostream &out) { out << a; }; }
+           !requires(T a, ostream &out) { out << a; };}
 static_assert(typeContract<ModIntMini<17>, ModInt<17>, uint>());
 static_assert(typeContract<ModInt64Mini<17>, ModInt64<17>, ulng>());
 static_assert(typeContract<DynModIntMini<71>, DynModInt<71>, uint>());
@@ -148,7 +147,7 @@ void nativeFixture() {
     check((2 + a).val() == 10 && (2 - a).val() == 11 && (2 * a).val() == 16 &&
           (2 / a).val() == 13, "left integer operands");
     check((a + 2).val() == 10 && (a - 2).val() == 6 && (a * 2).val() == 16 &&
-          (a / 2).val() == 4, "right integer operands"); }
+          (a / 2).val() == 4, "right integer operands");}
 
 void fixtures() {
     check(DynModIntMini<70>::mod() == 998244353 && DynModInt64Mini<70>::mod() == 998244353,
@@ -169,8 +168,8 @@ void fixtures() {
         old_a = -1; old_b = -1;
         check(old_a.val() == m - 1 && old_b.val() == m - 1, "reset/overwrite");
         check((old_a * old_a).val() == 1 % m && (old_b * old_b).val() == 1 % m,
-              "reset/reduction refresh"); }
-    cout << "PASS native constructors/exponents, constexpr, IDs, widths, reset and mixed inclusion\n"; }
+              "reset/reduction refresh");}
+    cout << "PASS native constructors/exponents, constexpr, IDs, widths, reset and mixed inclusion\n";}
 
 template<typename T>
 void death(const string &name) {
@@ -178,7 +177,7 @@ void death(const string &name) {
     else if (name == "inverse") { (void)inv(T(6)); }
     else if (name == "division") { T x(1); x /= T(6); }
     else if (name == "negative-power") { (void)pow(T(6), -1); }
-    else { fail("unknown precondition fixture"); } }
+    else { fail("unknown precondition fixture"); }}
 
 int main(int argc, char **argv) {
     std::ios::sync_with_stdio(false); cin.tie(nullptr);
@@ -189,22 +188,22 @@ int main(int argc, char **argv) {
             else if (kind == 1) { staticOracle<true>(m, operation); }
             else if (kind == 2) {
                 DynModIntMini<74>::setMod(uint(m)); DynModInt<74>::setMod(uint(m), 0);
-                oracle<DynModIntMini<74>, DynModInt<74>>(operation); }
+                oracle<DynModIntMini<74>, DynModInt<74>>(operation);}
             else if (kind == 3) {
                 DynModInt64Mini<74>::setMod(m); DynModInt64<74>::setMod(m, 0);
-                oracle<DynModInt64Mini<74>, DynModInt64<74>>(operation); }
-            else { fail("unknown oracle type"); } }
-        return cin.eof() ? 0 : 2; }
+                oracle<DynModInt64Mini<74>, DynModInt64<74>>(operation);}
+            else { fail("unknown oracle type"); }}
+        return cin.eof() ? 0 : 2;}
     if (argc == 4 && string(argv[1]) == "--death") {
         int kind = std::stoi(argv[2]); string name(argv[3]);
         if (name == "zero-modulus") {
             if (kind == 2) { DynModIntMini<75>::setMod(0); }
             else if (kind == 3) { DynModInt64Mini<75>::setMod(0); }
-            else { fail("zero-modulus runtime fixture is dynamic only"); } }
+            else { fail("zero-modulus runtime fixture is dynamic only"); }}
         else if (kind == 0) { death<ModIntMini<12>>(name); }
         else if (kind == 1) { death<ModInt64Mini<12>>(name); }
         else if (kind == 2) { DynModIntMini<75>::setMod(12); death<DynModIntMini<75>>(name); }
         else if (kind == 3) { DynModInt64Mini<75>::setMod(12); death<DynModInt64Mini<75>>(name); }
         else { fail("unknown precondition type"); }
-        fail("precondition unexpectedly returned"); }
-    fixtures(); }
+        fail("precondition unexpectedly returned");}
+    fixtures();}

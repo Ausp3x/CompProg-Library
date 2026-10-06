@@ -6,18 +6,14 @@ constexpr const char *RESET = "\033[0m";
 
 void fail(const string &expr, int line) {
     std::clog << RED << "FAIL: 01-template_tester.cpp:" << line << ": " << expr << RESET << '\n';
-    std::abort();
-}
+    std::abort();}
 
 void require(bool ok, const string &expr, int line) {
     if (!ok) {
-        fail(expr, line);
-    }
-}
+        fail(expr, line);}}
 
 void pass() {
-    std::clog << GREEN << "PASS: 1-Core_01-template_tester" << RESET << '\n';
-}
+    std::clog << GREEN << "PASS: 1-Core_01-template_tester" << RESET << '\n';}
 
 #define REQUIRE(expr) require((expr), #expr, __LINE__)
 
@@ -33,8 +29,7 @@ void testAliases() {
     lll big = (lll(1) << 100) + 123;
     ulll ubig = (ulll(1) << 127) + 456;
     REQUIRE(big > (lll(1) << 100));
-    REQUIRE(ubig > (ulll(1) << 127));
-}
+    REQUIRE(ubig > (ulll(1) << 127));}
 
 void testMacrosAndConstants() {
     static_assert(INF32 == 1061109567);
@@ -50,14 +45,12 @@ void testMacrosAndConstants() {
     vector<int> v;
     v.pb(4);
     v.pb(7);
-    REQUIRE((v == vector<int>{4, 7}));
-}
+    REQUIRE((v == vector<int>{4, 7}));}
 
 void testIndexedSet() {
     indexed_set<int> s;
     for (int x : vector<int>{5, 1, 3, 3, -2, 10}) {
-        s.insert(x);
-    }
+        s.insert(x);}
     REQUIRE(s.size() == 5);
     REQUIRE(*s.find_by_order(0) == -2);
     REQUIRE(*s.find_by_order(1) == 1);
@@ -84,22 +77,40 @@ void testIndexedSet() {
     REQUIRE(ms.order_of_key({4, 2}) == 3);
     REQUIRE((*ms.find_by_order(1) == pair<int, int>{4, 0}));
 
+    indexed_map<int, string> im;
+    im[5] = "five"; im[1] = "one"; im[3] = "three";
+    REQUIRE(im.size() == 3);
+    REQUIRE(im.find_by_order(0)->first == 1 && im.find_by_order(0)->second == "one");
+    REQUIRE(im.find_by_order(2)->first == 5 && im.find_by_order(2)->second == "five");
+    REQUIRE(im.find_by_order(3) == im.end());
+    REQUIRE(im.order_of_key(0) == 0 && im.order_of_key(3) == 1 && im.order_of_key(4) == 2 && im.order_of_key(100) == 3);
+    im.erase(3);
+    REQUIRE(im.size() == 2 && im.order_of_key(5) == 1 && im.find_by_order(1)->second == "five");
+    im[1] = "uno";
+    REQUIRE(im.size() == 2 && im.find_by_order(0)->second == "uno");
+
     std::mt19937 rng(std::getenv("CP_TEST_SEED") ? uint(std::stoul(std::getenv("CP_TEST_SEED"))) : 0x51cedu);
     int rounds = std::getenv("CP_TEST_ITERATIONS") ? std::stoi(std::getenv("CP_TEST_ITERATIONS")) : 5000;
     indexed_set<int> got;
     set<int> want;
+    indexed_map<int, int> gotMap;
+    map<int, int> wantMap;
     for (int step = 0; step < rounds; step++) {
         int x = int(rng() % 401) - 200;
-        if (rng() & 1) { got.insert(x); want.insert(x); }
-        else { got.erase(x); want.erase(x); }
-        REQUIRE(got.size() == want.size());
+        if (rng() & 1) { got.insert(x); want.insert(x); gotMap[x] = step; wantMap[x] = step; }
+        else { got.erase(x); want.erase(x); gotMap.erase(x); wantMap.erase(x); }
+        REQUIRE(got.size() == want.size() && gotMap.size() == wantMap.size());
         int k = 0;
         for (int y : want) { REQUIRE(*got.find_by_order(k++) == y); }
         REQUIRE(got.find_by_order(k) == got.end());
+        k = 0;
+        for (auto [key, value] : wantMap) {
+            auto it = gotMap.find_by_order(k++);
+            REQUIRE(it->first == key && it->second == value);}
+        REQUIRE(gotMap.find_by_order(k) == gotMap.end());
         int q = int(rng() % 501) - 250;
         REQUIRE(got.order_of_key(q) == size_t(std::distance(want.begin(), want.lower_bound(q))));
-    }
-}
+        REQUIRE(gotMap.order_of_key(q) == size_t(std::distance(wantMap.begin(), wantMap.lower_bound(q))));}}
 
 struct Counted {
     int value;
@@ -117,8 +128,7 @@ void testChminChmax() {
         bool b = chmax(x, 7);
         bool c = chmin(x, 2);
         bool d = chmin(x, 2);
-        return a && !b && c && !d && x == 2;
-    }());
+        return a && !b && c && !d && x == 2;}());
     static_assert(std::is_same_v<decltype(chmax(std::declval<int&>(), std::declval<const int&>())), bool>);
     static_assert(std::is_same_v<decltype(chmin(std::declval<int&>(), std::declval<const int&>())), bool>);
 
@@ -146,13 +156,11 @@ void testChminChmax() {
     string s = "abc";
     REQUIRE(chmax(s, string("abd")) && s == "abd");
     REQUIRE(!chmax(s, string("abb")) && s == "abd");
-    REQUIRE(chmin(s, string("aaa")) && s == "aaa");
-}
+    REQUIRE(chmin(s, string("aaa")) && s == "aaa");}
 
 int main() {
     testAliases();
     testMacrosAndConstants();
     testIndexedSet();
     testChminChmax();
-    pass();
-}
+    pass();}

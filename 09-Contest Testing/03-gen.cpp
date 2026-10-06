@@ -12,8 +12,7 @@ int main(int argc, char **argv) {
     if (error != std::errc() || end != s.data() + s.size()) { return 2; }
 
     std::mt19937_64 rng(seed);
-    int n = 1 + rng() % 20;
+    int n = 1 + int(rng() % 20);
     cout << n << '\n';
     for (int i = 0; i < n; ++i) {
-        cout << int(rng() % 201) - 100 << " \n"[i == n - 1];}
-}
+        cout << int(rng() % 201) - 100 << " \n"[i == n - 1];}}
