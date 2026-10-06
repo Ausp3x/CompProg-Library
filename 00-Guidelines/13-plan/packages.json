@@ -36,12 +36,12 @@
       "phase": "Foundations re-audit",
       "size": "M+L",
       "model": "fable",
-      "status": "verified",
+      "status": "audit",
       "evidence": [
         "01-Core/21-c01-verification.md",
         "01-Core/22-bitset.md"
       ],
-      "note": ""
+      "note": "Restyle pending: apply the 03-cpp.md comment cap with /restyle (contest-session); tests unchanged, no re-audit needed."
     },
     {
       "id": "P003",
@@ -67,11 +67,11 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "fable",
-      "status": "verified",
+      "status": "audit",
       "evidence": [
         "01-Core/23-reduction.md"
       ],
-      "note": ""
+      "note": "Restyle pending: apply the 03-cpp.md comment cap with /restyle (contest-session); tests unchanged, no re-audit needed."
     },
     {
       "id": "P005",
@@ -83,12 +83,12 @@
       "phase": "Foundations re-audit",
       "size": "L+L",
       "model": "fable",
-      "status": "verified",
+      "status": "audit",
       "evidence": [
         "01-Core/24-modint.md",
         "01-Core/25-modintmini.md"
       ],
-      "note": ""
+      "note": "Restyle pending: apply the 03-cpp.md comment cap with /restyle (contest-session); tests unchanged, no re-audit needed."
     },
     {
       "id": "P006",

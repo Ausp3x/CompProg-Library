@@ -39,7 +39,7 @@ paths:
 ## API contracts
 
 - Zero-based indices and half-open ranges `[l, r)`; document any exception in the comment above the operation.
-- Document in the comment above each struct or free function: domain and width limits, exactness, result meaning, mutation, setup or reset requirements, aliasing and ownership, cache lifetime and what invalidates it. A `64` suffix describes storage, not support for every 64-bit modulus; state the real range.
+- Every struct and free function has a documented contract: domain and width limits, exactness, result meaning, mutation, setup or reset requirements, aliasing and ownership, cache lifetime and what invalidates it. The full text lives in the header's evidence document under `## Contracts`; the code carries only the two lines allowed in Comments below. A `64` suffix describes storage, not support for every 64-bit modulus; state the real range.
 - Preconditions: `assert`. Valid no-answer results: a non-colliding sentinel, a `bool` status plus out-parameter, or a small status enum. Use `std::optional` only when those are more cumbersome. Absence is never the same value as a legitimate empty or zero result.
 - Exact and approximate variants have distinct names and contracts even when they share code. State tolerances and coordinate bounds.
 - Randomized algorithms expose a reproducible seed and state whether failure is Monte Carlo (wrong answer with probability p) or Las Vegas (runtime only).
@@ -60,6 +60,14 @@ paths:
 - Named lambdas: `auto f = [&](args) -> T { ... };` with the return type only when deduction is ambiguous. Recursive lambdas take `auto &&f` first and call `f(f, ...)`.
 - Prefer `std::midpoint(l, r)` where its rounding fits. Constant factors first: `2 * n`, `32 * k`.
 - Qualify standard names with `std::` except this closed list: `int8_t uint8_t int16_t uint16_t int32_t uint32_t int64_t uint64_t size_t ptrdiff_t string string_view istream ostream cin cout cerr pair tuple array bitset vector deque priority_queue queue stack map multimap unordered_map unordered_multimap set multiset unordered_set unordered_multiset abs max min gcd lcm reverse sort swap lower_bound upper_bound binary_search unique fill iota accumulate next prev`. Everything else, including `move`, `forward`, `exchange`, `midpoint`, traits and concepts, is qualified.
+
+## Comments
+
+- A struct or free function carries at most two comment lines directly above it: the complexity line, and one line naming the domain and the no-answer representation, for example `// mod in [1, 2^32); inv asserts a unit; sqrt returns -1 when no root.`
+- Inside a body, a comment is one line and appears only where the code's trick or invariant is not evident from the code itself. No restated contracts, no history, no references to other documents.
+- A file may open with one comment line. No block comments.
+- Everything else (full contracts, staleness and invalidation rules, sentinel policies, proofs, provenance) goes to the header's evidence document under `## Contracts`, one subsection per struct or free function, linked from the inventory row.
+- The validator rejects a verified header with more than two consecutive comment-only lines or with comment-only lines above 8% of its non-blank lines.
 
 ## Complexity comments
 

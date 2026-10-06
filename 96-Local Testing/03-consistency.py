@@ -119,9 +119,29 @@ def brace_violations(path):
         out.append(f'Closing brace: {rel}:{stack[-1][0] + 1}: unclosed brace')
     return out
 
+def comment_violations(path):
+    """03-cpp.md comment cap for verified headers: at most two consecutive comment-only lines and at most 8% comment-only lines."""
+    rel = str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+    lines = path.read_text().splitlines()
+    out, run, start = [], 0, 0
+    for i, line in enumerate(lines + ['']):
+        if re.match(r'\s*//', line):
+            run += 1
+            start = i if run == 1 else start
+        else:
+            if run > 2:
+                out.append(f'Comment cap: {rel}:{start + 1}: {run} consecutive comment lines (max 2); move the contract to the evidence document')
+            run = 0
+    comment = sum(bool(re.match(r'\s*//', l)) for l in lines)
+    nonblank = sum(bool(l.strip()) for l in lines)
+    if nonblank and comment > 0.08 * nonblank:
+        out.append(f'Comment cap: {rel}: {comment} comment-only lines of {nonblank} ({100 * comment // nonblank}%, max 8%)')
+    return out
+
+
 if len(sys.argv) > 1 and sys.argv[1] == '--braces':
-    found = [v for arg in sys.argv[2:] for v in brace_violations(Path(arg).resolve())]
-    print('\n'.join(found) if found else 'no closing-brace violations')
+    found = [v for arg in sys.argv[2:] for f in (Path(arg).resolve(),) for v in brace_violations(f) + comment_violations(f)]
+    print('\n'.join(found) if found else 'no closing-brace or comment-cap violations')
     raise SystemExit(bool(found))
 
 inventories = {}
@@ -170,6 +190,7 @@ brace_checked = 0
 for target, parts in inventories.items():
     if not target.endswith('.hpp') or not parts[-1].startswith('verified') or package_status.get(owner.get(target)) != 'verified':
         continue
+    errors.extend(comment_violations(ROOT / target))
     for f in [ROOT / target, *(ROOT / t for t in plan.tests_for(ROOT, target) if t.endswith(('.cpp', '.hpp')))]:
         errors.extend(brace_violations(f))
         brace_checked += 1
