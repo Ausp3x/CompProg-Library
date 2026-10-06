@@ -1,3 +1,8 @@
+---
+paths:
+  - "09-Contest Testing/**"
+---
+
 # In-contest problem testing
 
 09-Contest Testing is a short editable toolkit, not the maintained library test framework in 96. Use Python3.10 standard-library orchestration, GNU++20 compilation, ordinary temporary files and no required privilege changes. Keep generators/checkers/interactors/scorers as small separate templates. No parallel case execution.

@@ -23,7 +23,6 @@ def cells(line):
     return [x.strip() for x in re.split(r'(?<!\\)\|', line.strip())[1:-1]]
 
 inventories = {}
-tiers = {}
 for folder in sorted(ROOT.iterdir()):
     if not re.match(r'0[1-8]-', folder.name) or not folder.is_dir():
         continue
@@ -42,79 +41,25 @@ for folder in sorted(ROOT.iterdir()):
         target = folder.name + '/' + name
         require(target not in inventories, 'Repeated inventory target: ' + target)
         inventories[target] = parts
-        tiers[target] = tier
         rows.append((int(re.search(r'\d{2}', name)[0]), tier))
-    require([n for n, _ in rows] == list(range(1, len(rows) + 1)), 'Nonconsecutive target prefixes: ' + folder.name)
+    # Prefixes are stable IDs: unique within a folder; new rows take the next free number.
+    require(len({n for n, _ in rows}) == len(rows), 'Repeated target prefix: ' + folder.name)
     if folder.name != '01-Core':
         order = {'Basic': 0, 'Advanced': 1, 'Esoteric': 2}
         require([order[t] for _, t in rows] == sorted(order[t] for _, t in rows), 'Tier order: ' + folder.name)
     counts[folder.name] = len(rows)
 
-batch_map = read_json('00-Guidelines/13-Work Batches/99-batches.json')
-plan = read_json('00-Guidelines/13-Work Batches/98-session-plan.json')
+plan_spec = importlib.util.spec_from_file_location('library_plan', ROOT / '00-Guidelines/13-plan/plan.py')
+plan = importlib.util.module_from_spec(plan_spec)
+plan_spec.loader.exec_module(plan)
+errors.extend(plan.check(ROOT))
+batch_map, package_map = plan.load(ROOT)
 batches = {b['id']: b for b in batch_map['batches']}
-require(len(batches) == len(batch_map['batches']) == batch_map['algorithm_batches'] == plan['algorithm_batches'], 'Batch count mismatch')
-ownership = collections.Counter(t for b in batches.values() for t in b['targets'])
-require(set(ownership) == set(inventories), 'Inventory/batch targets disagree: ' + str(set(ownership) ^ set(inventories)))
-require(all(n == 1 for n in ownership.values()), 'Nonunique target ownership')
-require(len(inventories) == batch_map['numbered_targets'] == plan['numbered_targets'], 'Numbered target count mismatch')
-all_table_ids = []
-for table in sorted({b['table'] for b in batches.values()}):
-    for line in (ROOT / table).read_text().splitlines():
-        if not line.startswith('|'):
-            continue
-        row = cells(line)
-        if not re.fullmatch(r'(?:C|DS|GE|GR|MA|MI|ST|PY)\d{2}', row[0]):
-            continue
-        require(len(row) == 5, 'Batch table width: ' + table)
-        ident, names, size, prereqs, focus = row
-        all_table_ids.append(ident)
-        b = batches[ident]
-        paths = [b['folder'] + '/' + n for n in re.findall(r'`([^`]+)`', names)]
-        require(paths == b['targets'], 'Batch target mismatch: ' + ident)
-        require(size == b['size'] and focus == b['focus'], 'Batch scope/size mismatch: ' + ident)
-        require(re.findall(r'\b(?:C|DS|GE|GR|MA|MI|ST|PY)\d{2}\b', prereqs) == b['prerequisites'], 'Batch dependency mismatch: ' + ident)
-        require(set(b['tiers']) == {tiers[t] for t in b['targets']}, 'Batch tier mismatch: ' + ident)
-        require(b['table'] == table, 'Batch table pointer: ' + ident)
-        for dep in b['prerequisites']:
-            require(dep in batches and dep != ident, 'Unknown/self prerequisite: ' + ident + ' -> ' + dep)
-require(collections.Counter(all_table_ids) == collections.Counter(batches.keys()), 'Missing or repeated table IDs')
-support = set(batch_map['support_passes'])
+support = {b for b, v in batches.items() if v['folder'] == 'support'}
 support_targets = [t for b in batches.values() for t in b.get('support_targets', [])]
-require(len(support_targets) == len(set(support_targets)) == batch_map['additional_support_targets'], 'Helper ownership mismatch')
+require(len(support_targets) == len(set(support_targets)), 'Helper ownership mismatch')
 for t in support_targets:
     require((ROOT / t).is_file(), 'Missing shared helper: ' + t)
-
-sessions = plan['sessions']
-ids = [s['id'] for s in sessions]
-require(ids == [f'P{i:03}' for i in range(1, len(sessions) + 1)], 'Package numbering/order mismatch')
-require(len(sessions) == plan['packages'], 'Package count mismatch')
-scheduled = collections.Counter(b for s in sessions for b in s['batches'])
-require(scheduled == collections.Counter(batches.keys() | support), 'Missing/duplicate scheduled batches')
-owner = {b: s['id'] for s in sessions for b in s['batches']}
-package_order = {p: i for i, p in enumerate(ids)}
-for s in sessions:
-    bs = [batches[b] for b in s['batches'] if b in batches]
-    require(s['targets'] == [t for b in bs for t in b['targets']], 'Package target mismatch: ' + s['id'])
-    expected_tables = sorted({b['table'] for b in bs} | ({'00-Guidelines/13-Work Batches/09-support.md'} if support & set(s['batches']) else set()))
-    require(s['tables'] == expected_tables, 'Package table pointer mismatch: ' + s['id'])
-    deps = {owner[d] for b in bs for d in b['prerequisites']} - {s['id']}
-    if 'SUP05' in s['batches']:
-        deps.add(owner['C01'])
-    require(set(s['prerequisite_packages']) == deps, 'Package dependency mismatch: ' + s['id'])
-    for dep in s['prerequisite_packages']:
-        require(package_order[dep] < package_order[s['id']], 'Prerequisite scheduled late: ' + s['id'] + ' -> ' + dep)
-    local_order = {b: i for i, b in enumerate(s['batches'])}
-    for b in bs:
-        for dep in b['prerequisites']:
-            if dep in local_order:
-                require(local_order[dep] < local_order[b['id']], 'Within-package dependency order: ' + s['id'])
-
-prompt = (ROOT / '01-prompts.md').read_text()
-checklist = re.findall(r'^- \[([ xX])\] \*\*(P\d{3}) — ([^*]+)\*\*:', prompt, re.M)
-require([p for _, p, _ in checklist] == ids, 'Checklist/package IDs disagree')
-for (_, p, bs), s in zip(checklist, sessions):
-    require(bs.split(', ') == s['batches'], 'Checklist batch ownership: ' + p)
 
 coverage = read_json('00-Guidelines/20-library-checker-coverage.json')
 require(len(coverage['records']) == coverage['problem_families'], 'Judge family count')
@@ -264,5 +209,5 @@ with tempfile.TemporaryDirectory(prefix='cp-consistency-') as name:
     finally:
         sys.argv = argv
 
-print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches), 'packages': len(sessions), 'support_passes': len(support), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'errors': errors}, indent=2))
+print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'errors': errors}, indent=2))
 raise SystemExit(bool(errors))

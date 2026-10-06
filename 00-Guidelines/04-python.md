@@ -1,15 +1,15 @@
-# Python algorithms
+---
+paths:
+  - "08-Python/**/*.py"
+---
 
-Use Python **3.10** syntax and standard-library API baseline, compatible with CPython/PyPy implementations of 3.10 or newer. Verify supported interpreter families where available; a missing interpreter is a reported coverage gap, not a pass. Algorithm modules use the standard library; external packages belong in explicitly optional tooling/test environments. Python's int, fractions.Fraction and other suitable builtins replace custom C++ numeric types.
+# Python
 
-This is a deliberate important/practical subset of 01–07, not an automatic port or a second maximal Core. Its inventory states included families and intentional omissions. Preserve API semantics where equivalent; use idiomatic Python where differences matter. State Python/C++ differences (unbounded integers, floor division versus truncation, mutability, recursion limits, performance limits). No ISA-specific implementations in Python modules.
-
-Importable modules/packages use `_01_name.py`/`_04_graphs` inside 08-Python, with ordinary `__init__.py` where packages need it. Use relative imports within packages and no machine-specific sys.path edits inside algorithm modules. Numbering/import updates happen together. `_98_basic.py`/`_99_all.py` only import/re-export explicit public symbols; no stdout, input reads, benchmarks, seed changes, recursion-limit changes or test execution during import. Avoid wildcard-export collisions.
-
-Modules are importable and easy to copy into contest submissions. Put implementation in the canonical module once. Copy/paste usage must identify dependencies; bundled Python submissions may use an explicit entry/selection manifest, not an unsafe general concatenator that changes import semantics. Do not claim automatic Python expansion until that tool exists and is tested.
-
-Four spaces, conventional indentation, short meaningful names, concise direct code. Do not mimic C++ brace/semicolon compression where Python becomes awkward. Classes use CamelCase; retain library camelCase operation names for cross-language consistency, snake_case fields/locals, ALL_CAPS value constants. Python protocols such as __len__, __iter__, __getitem__ keep required spelling. Keep helpers/state in the class where reasonable, public by convention; no private-name mangling or getter/setter boilerplate. Stateless functions remain functions. Lightweight public annotations are encouraged when they clarify contracts; avoid annotation frameworks and noisy repetition.
-
-Use explicit valid-input contracts and distinct no-solution results (None is idiomatic when unambiguous). Assertions check programmer preconditions; user-visible valid no-answer behavior cannot disappear under -O. Exact and approximate variants have distinct guarantees. Random seeds and cache lifetimes must be controllable. Minimize temporary allocations when beneficial, but do not obscure invariants for shorter names or fewer lines.
-
-Use the C++ guide's mathematical complexity notation with `#` comments, including explicit `*`, `log(n)`, qualified expected/amortized bounds and locally defined symbols. Count big-integer and output costs honestly. Concise contracts/complexity live in code; proofs, examples, research inventories and benchmark evidence live in companion docs.
+- Baseline: Python 3.10 syntax and standard library; must run on CPython 3.10+ and PyPy 3.10+. PyPy is the primary performance target: avoid per-element Python-object churn, prefer lists of ints over tuples, pack pairs into one int when it is hot, use iterative traversal or the generator-trampoline pattern instead of deep recursion. Report a missing interpreter as a coverage gap, never as a pass.
+- Algorithm modules import only the standard library. Python `int` and `fractions.Fraction` replace custom numeric types.
+- `08-Python` is a deliberate subset of `01`–`07`: practical algorithms a PyPy contestant uses, plus PyPy performance idioms. The inventory lists inclusions and omissions explicitly.
+- Keep C++ semantics where they transfer; use idiomatic Python where they do not, and state the difference in the docstring (floor division, unbounded ints, mutability, recursion limits).
+- Modules are `_NN_name.py` under `08-Python`, importable and copy-pasteable. Relative imports inside packages; no `sys.path` edits in modules. `_98_basic.py` and `_99_all.py` re-export explicit names and do nothing at import time.
+- Style: four spaces; classes `CamelCase`; operations keep the library's `camelCase` names for cross-language consistency; fields and locals `snake_case`; constants `ALL_CAPS`; dunder protocols as required. Helpers and state live in the class, public by convention; no name mangling or property boilerplate. Stateless algorithms are functions. Light annotations where they clarify a contract.
+- Contracts: explicit valid-input domain; `None` or a documented sentinel for a valid no-answer; `assert` for programmer preconditions only, since `-O` removes it. Exact and approximate variants are distinct functions. Seeds and cache lifetimes are controllable.
+- Complexity comments use the C++ notation with `#`: `# T: O(n * log(n)), M: O(n)`, with big-integer and output costs counted.

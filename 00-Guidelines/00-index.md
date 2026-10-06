@@ -1,23 +1,20 @@
-# Focused guidelines
+# Guidelines
 
-Read [principles](01-principles.md), the affected folder inventory, and only the applicable guide. Shared rules live in principles; detailed rules have one authoritative owner.
+Rules `01`–`08` are loaded by Claude Code automatically through `.claude/rules/` symlinks: `01-principles.md` in every session, the others when a matching file is opened. Other agents read them by hand following `AGENTS.md`.
 
-| File | Read when |
-|---|---|
-| [02-structure](02-structure.md) | Classifying, naming, moving, adding files or aggregates |
-| [03-cpp](03-cpp.md) | Editing C++ algorithms, types, contracts, complexity comments |
-| [04-python](04-python.md) | Editing Python algorithms and importable packages |
-| [05-testing](05-testing.md) | Adding tests, validating changes, measuring optimizations |
-| [06-online](06-online.md) | Editing online solutions, expander, workspace generation |
-| [07-notebook](07-notebook.md) | Editing notebook selection, rendering, notes |
-| [08-contest-tools](08-contest-tools.md) | Editing in-contest differential/interactive/scored tools |
-| [09-sources](09-sources.md) | Researching completeness, citing or adapting material |
-| [10-decisions](10-decisions.md) | Recovering agreed decisions and their rationale |
-| [11-migration](11-migration.md) | Understanding actual migration/verification status |
-| [13-Work Batches](13-Work%20Batches/00-index.md) | Choosing a scoped implementation job; start with [the reusable prompt](../01-prompts.md) |
-| [14-monolith-transfer](14-monolith-transfer.md) | Understanding unchanged extracts, reference-only blocks and their integration checks |
-| [16-inventory-audit](16-inventory-audit.md) | Reviewing researched coverage, archive/source mappings and the current session plan (on demand) |
+| File | Loads for | Content |
+|---|---|---|
+| [01-principles](01-principles.md) | always | Four requirements, profiles, evidence, scope discipline |
+| [02-structure](02-structure.md) | inventories, aggregates, plan | Layout, naming, stable prefixes, tiers, aggregates, inventory row format |
+| [03-cpp](03-cpp.md) | `.hpp`, `.cpp`, C++ test scripts | Toolchain and judges, headers, types, contracts, style, complexity comments |
+| [04-python](04-python.md) | `08-Python` | Baseline, PyPy idioms, style, contracts |
+| [05-testing](05-testing.md) | `96-Local Testing` | Suites, modes, oracles, case classes, builds, benchmarks |
+| [06-online](06-online.md) | `97-Online Testing`, `99-Workspace` | Judge sources, expander, generated workspace template |
+| [07-notebook](07-notebook.md) | `98-Team Notebook` | Notebook selection, rendering, notes |
+| [08-contest-tools](08-contest-tools.md) | `09-Contest Testing` | Stress, interactive, scored and shrinking tools |
+| [09-sources](09-sources.md) | on request | Completeness sweep catalogs, provenance rules |
+| [10-decisions](10-decisions.md) | on request | Decision log and rationale |
+| [11-migration](11-migration.md), [14-monolith-transfer](14-monolith-transfer.md), [16-inventory-audit](16-inventory-audit.md), [22-core-migration](22-core-migration.md) | on request | Historical migration and audit records |
+| [13-plan](13-plan/00-index.md) | via `plan.py` | Work manifest: batches, packages, statuses, models |
 
-The [Core family migration](22-core-migration.md) records the current modular layout, numbering and verification; [21-core-path-updates.json](21-core-path-updates.json) maps retired paths.
-
-The decision log is historical context; these focused guides govern normal work. Later explicit user instructions take precedence. Do not treat legacy `prompts.txt` or old notebook copies as current instructions.
+Machine-readable ledgers (never read whole; query with `rg` or Python): `12-path-map.json`, `15-monolith-map.json`, `17-research-sources.json`, `18-path-updates.json`, `19-archive-map.json`, `20-library-checker-coverage.json`, `21-core-path-updates.json`. The consistency validator checks them.

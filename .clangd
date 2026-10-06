@@ -1,0 +1,6 @@
+CompileFlags:
+  Add: [-std=gnu++20, -O2, -Wall, -Wextra, -Wconversion, -DLOCAL]
+  Compiler: g++
+Diagnostics:
+  UnusedIncludes: None
+  Suppress: [pp_including_mainfile_in_preamble]

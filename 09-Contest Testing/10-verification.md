@@ -105,7 +105,7 @@ claimed by this support package.
 ## Integer and style maintenance (2026-09-27)
 
 Applied the revised [integer and style defaults](../00-Guidelines/03-cpp.md)
-using the [completed-package maintenance workflow](../01-prompts.md#updating-a-completed-package-after-a-rule-change).
+using the re-audit workflow (`/package P001`, see [the checklist](../01-prompts.md)).
 This section records fresh maintenance checks; the stress/sanitizer results above
 remain the original completion evidence, not new runs for this change.
 
@@ -145,7 +145,7 @@ generator fixture.
 ## Post-migration defaults review (2026-09-27)
 
 Reread the current [C++ guidelines](../00-Guidelines/03-cpp.md),
-[maintenance workflow](../01-prompts.md#updating-a-completed-package-after-a-rule-change),
+re-audit workflow (`/package P001`, see [the checklist](../01-prompts.md)),
 SUP01 row, inventories and [Core migration record](../00-Guidelines/22-core-migration.md).
 The generator and all three C++ support snippets already comply; independent
 review found no remaining discrepancy requiring a source edit.

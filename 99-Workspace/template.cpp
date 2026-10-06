@@ -1,10 +1,3 @@
-// Generated explicitly by 97-Online Testing/03-workspace.py.
-// GNU C++20 / GCC 14+, Linux x86-64. No global ISA/FP flags or I/O setup.
-// Width aliases are exact; INF32/INF64 are finite sentinels, not overflow guards.
-// indexed_set stores unique keys; use (key, id) pairs for repeated values.
-// chmin/chmax compare once, assign only on improvement, return whether assigned;
-// T supplies ordinary comparison/copy-assignment semantics (NaN never improves).
-// Each helper is O(1) comparisons/assignments, plus the costs of T.
 // 知彼知己，百战不殆
 #include <bits/stdc++.h>
 #include <ext/pb_ds/assoc_container.hpp>
@@ -29,12 +22,6 @@ constexpr inline bool chmax(T &a, const T &b) { return a < b ? a = b, 1 : 0; }
 template<typename T>
 constexpr inline bool chmin(T &a, const T &b) { return a > b ? a = b, 1 : 0; }
 
-// LOCAL-only formatting; debug/trace otherwise discard even ill-formed arguments.
-// debugString(const T&) -> string, found by ADL, overrides all built-in formatting.
-// Finite ranges preserve iteration order; adaptors expose their backing-container
-// order (stack bottom first, priority_queue heap order), without copying elements.
-// Strings/chars preserve raw bytes between quotes; char arrays/pointers must be
-// NUL-terminated (or null pointers). Recursive structures must be acyclic. See 21-c01-verification.md.
 #ifdef LOCAL
 namespace Debug {
     template<typename T> inline constexpr bool IS_OPTIONAL = false;
@@ -60,9 +47,6 @@ namespace Debug {
             static const C &get(const priority_queue<T, C, Comp> &q) { return q.*&Accessor::c; }};
         return Accessor::get(x);}
 
-    // Legacy convenience: flat aggregates with <= 8 non-array, non-reference,
-    // non-bit-field data members, no base classes or anonymous unions. Other
-    // aggregates need debugString/streaming; >8 members get an explicit marker.
     struct Any { template<typename T> operator T() const; };
     template<typename T, size_t N>
     constexpr bool aggSizGeq = []<size_t ...I>(std::index_sequence<I...>) {
@@ -157,9 +141,6 @@ namespace Debug {
         static constexpr auto SPACES = []() { array<char, 128> v{}; v.fill(' '); return v; }();
         return string_view(SPACES.data(), size_t(2 * std::clamp(dep, 0, 64)));}
 
-    // Legacy inclusive [l, r], unlike ordinary library ranges. l >= 0, r >= l-1;
-    // endpoints beyond the range clip naturally. Lvalue views borrow the source,
-    // rvalue views own it when permitted by views::all. Nested indices are paired.
     template<std::ranges::viewable_range R, typename ...Args>
     auto slice(R &&ran, int l, int r, Args ...args) {
         static_assert(sizeof...(args) % 2 == 0, "slice needs (l, r) pairs");
@@ -199,16 +180,21 @@ namespace Debug {
 #define trace(x) void(0)
 #endif
 
-void solve() {
+void solve(int t) {
+    // trace(to_string(t));
+
+    return;
 }
 
 int main() {
-    std::ios::sync_with_stdio(false);
+    ios::sync_with_stdio(false);
     cin.tie(nullptr);
 
-    // Multi-case: replace solve() below with these two lines.
-    // int t; cin >> t;
-    // while (t--) { solve(); }
-    solve();
+    int t = 1;
+    cin >> t;
+    for (int i = 1; i <= t; i++) {
+        solve(i);
+    }
+
     return 0;
 }

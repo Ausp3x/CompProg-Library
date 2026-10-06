@@ -12,7 +12,7 @@ The 2026-09-27 migration implements the approved namespace/co-location rules and
 
 Core 01–04 and aggregate names 98/99 are unchanged. Both aggregates expose full and mini modular families without alias collisions; Basic retains full types needed by current consumers. Four full-type C++ suites now run through one `05-modint_tester.py` entry. The mini family has one `06-modintmini_tester.py` entry. Later Core tester and benchmark filenames follow their header numbers.
 
-The [exact path map](21-core-path-updates.json) records retired headers, moved artifacts and archived originals. The canonical [structure guide](02-structure.md), [Core inventory](../01-Core/00-index.md), [Core batch table](<13-Work Batches/01-core.md>), both machine scheduling maps, checklist, dependent includes, source/archive maps, judge-family map and generated outputs use the current layout. Detailed modular contracts and evidence remain in [full-family evidence](../01-Core/24-modint.md) and [mini evidence](../01-Core/25-modintmini.md).
+The [exact path map](21-core-path-updates.json) records retired headers, moved artifacts and archived originals. The canonical [structure guide](02-structure.md), [Core inventory](../01-Core/00-index.md), [batch manifest](13-plan/batches.json), both machine scheduling maps, checklist, dependent includes, source/archive maps, judge-family map and generated outputs use the current layout. Detailed modular contracts and evidence remain in [full-family evidence](../01-Core/24-modint.md) and [mini evidence](../01-Core/25-modintmini.md).
 
 ## Style and preservation
 
@@ -59,10 +59,10 @@ Current hashes for files whose earlier evidence refers to an older name or gener
 |---|---|
 | `01-Core/02-debug.hpp` | `2efc4730a89f75b079e5c394b9701cafb5dc38f7528fcd6f24df0a3795e8e08a` |
 | `01-Core/18-bitset.hpp` | `01150bfcbf3638f8407bb3e19ad6c421c3e47b61c32ee37df3b610c39b640bd4` |
-| `99-Workspace/template.cpp` | `11f9be9e307b483e7b1ee2bb2d47ddcf2a3a78356e84f7aa9726698128a29104` |
+| `99-Workspace/template.cpp` | `dd51486bf075e4c3dd792dfc7fa380eef3dfd3f97a90f6f44e1806f219f3b068` |
 
 The permanent [consistency validator](<../96-Local Testing/03-consistency.py>) audits exact Markdown/machine ownership, target numbering, package prerequisites, local links/formatting, current map destinations/includes, Core aggregate coverage, quick-suite discovery, archived hashes, monolith provenance, expansion manifests and missing-workspace reporting. It is read-only except for temporary fixtures. The integration runner now fails clearly for a missing required Workspace snapshot; generation remains explicit.
 
 ## Maintenance in existing sessions
 
-Use the scoped maintenance prompt and package-specific notes in [01-prompts.md](../01-prompts.md#updating-a-completed-package-after-a-rule-change). Read current guides and files again. P001–P004 retain their original scope; P002 uses `18-bitset.hpp`. P005 reviews both C03 and C16 and their reduced/full contracts. Do not restore retired paths, redo completed global renumbering, or concurrently edit shared inventories/maps from several sessions.
+Re-audit a completed package with `/package Pxxx` (the package status `audit` selects the re-audit workflow in `.claude/skills/package/SKILL.md`). Read current guides and files again. P001–P004 retain their original scope; P002 uses `18-bitset.hpp`. P005 reviews both C03 and C16 and their reduced/full contracts. Do not restore retired paths, redo completed global renumbering, or concurrently edit shared inventories/maps from several sessions.

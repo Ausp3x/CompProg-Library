@@ -1,3 +1,9 @@
+---
+paths:
+  - "97-Online Testing/**"
+  - "99-Workspace/**"
+---
+
 # Online testing, expansion, workspace
 
 97-Online Testing owns judge-specific source solutions under src/<judge>/ and generated outputs under expanded/<judge>/. Judge/topic directories may be numbered for sorting. Each source records judge/problem URL or ID and which features/variants it exercises. Add CSES, Yosupo, AtCoder, Codeforces, AOJ, SPOJ, Kattis or other suitable judges as needed. Do not auto-submit or claim acceptance without evidence. Distinguish local compilation/sample checks from accepted online runs.
@@ -8,4 +14,4 @@ Cleanup is ON by default. `--noclean` retains obsolete generated outputs; `--cle
 
 Python online programs follow the same source/output separation if a Python bundler is introduced. Preserve import/dependency semantics and test expansion; current C++ bundling must not pretend to support Python. Native standalone Python submissions may remain under src.
 
-99-Workspace has one permanent file: template.cpp. It is a standalone generated snapshot of Core template.hpp + debug.hpp, with duplicate local includes/pragma-once removed, followed by single-case solve() and main(): std::ios::sync_with_stdio(false); cin.tie(nullptr). Include a short commented multi-case alternative. Keep generation tooling elsewhere; regeneration is an explicit command, never a side effect of tests/builds/expansion. Temporary contest files are user work, not automatic cleanup targets. No extra permanent helper/config files belong in Workspace.
+99-Workspace has one permanent file: template.cpp. It is a standalone generated snapshot of Core template.hpp + debug.hpp, opening with the motto line, with local includes, pragma-once and doc-comment lines removed, followed by a multi-case driver: solve(int t) and main() with ios::sync_with_stdio(false); cin.tie(nullptr); int t = 1; cin >> t; and solve(i) for i = 1..t. Keep generation tooling elsewhere; regeneration is an explicit command, never a side effect of tests/builds/expansion. Temporary contest files are user work, not automatic cleanup targets. No extra permanent helper/config files belong in Workspace.

@@ -1,3 +1,8 @@
+---
+paths:
+  - "98-Team Notebook/**"
+---
+
 # Team notebook
 
 98-Team Notebook owns a curated manifest, generator/selector and separate contest notes. Canonical algorithm files remain in 01–08; include listings from those paths instead of maintaining divergent implementation copies. Full types, minis and Python are all selectable. OLD, topic-local 97-Legacy excerpts, and generated expanded solutions are excluded from default discovery. User selection does not imply an algorithm has been verified; show inventory status where practical.

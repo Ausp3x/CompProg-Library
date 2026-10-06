@@ -13,3 +13,5 @@
 98-Team Notebook/*.log
 98-Team Notebook/*.out
 98-Team Notebook/*.toc
+
+.claude/settings.local.json

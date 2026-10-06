@@ -1,84 +1,70 @@
-# C++ algorithms
+---
+paths:
+  - "0[1-7]-*/**/*.hpp"
+  - "**/*.cpp"
+  - "96-Local Testing/**/*.py"
+---
 
-Requires principles; read structure for file/API migrations and testing for verification.
+# C++
 
-## Baseline and dependencies
+## Toolchain and judges
 
-GNU C++20, GCC **14+**, `-std=gnu++20`, Linux x86-64 baseline. GNU headers/extensions (`bits/stdc++.h`, PBDS, `__int128`) are allowed; Clang/MSVC portability is not required. GCC still describes C++20 as almost fully implemented; this floor promises the library's tested feature subset, not every C++20 feature. Do not use modules or a newer standard implicitly.
+- Language: GNU C++20, `-std=gnu++20`, compiled with `-O2`. GNU extensions are allowed: `bits/stdc++.h`, PBDS, `__int128`, `__builtin_*`. Clang and MSVC are not targets. C++23 features are not allowed.
+- Compiler floor: GCC 14.2. Target judges: Codeforces (GCC 14.2 MSYS2, Windows x86-64, `-static -Wl,--stack=268435456`, no `NDEBUG`), AtCoder (GCC 15.2 Linux, `-march=native`), Library Checker (GCC 15.2 Linux). Local development uses whatever newer GCC is installed; passing locally does not prove the floor.
+- Windows consequences: `long` is 32-bit, so never use `long`, `unsigned long` or `%ld`; use the aliases below. Do not rely on `/dev/urandom`, `getrandom`, `mmap`, `sys/resource.h` or POSIX-only headers in library code. `std::random_device` and `std::chrono::steady_clock` are available everywhere.
+- ISA kernels are compile-time guarded on `__AVX2__`, `__FMA__`, `__BMI2__`; the scalar path is the default. On judges without `-march=native` the user enables kernels with `#pragma GCC target("avx2,bmi2,fma")` before includes; the header never adds global pragmas or floating-point flags. No runtime dispatch.
+- Judges run with assertions enabled. An assertion must not change an operation's asymptotic cost and must stay out of hot inner loops; check preconditions once at the entry of an operation.
 
-Every header has `#pragma once` and includes its direct dependencies, including `01-template.hpp` when it uses its aliases/imports. It must compile alone, coexist with all other headers, and link safely across multiple translation units. Use inline definitions/variables or appropriate templates for header linkage. No circular dependencies. No public alias collisions between full/mini alternatives.
+## Headers
 
-For Core full implementations, ISA choices are compile-time guarded with correct scalar fallback; do not use runtime CPU dispatch by default. FMA and any other specialization must preserve the stated numerical contract. No global unsafe floating-point flags as an incidental optimization. Domain/alignment/size assumptions of kernels must be enforced. Follow the profile and Barrett/Montgomery policies in principles.
+- `#pragma once`; include direct dependencies with relative paths, including `../01-Core/01-template.hpp` when aliases from it are used; compile alone, with every other header, and across multiple translation units (inline functions and variables or templates; no non-inline definitions in headers).
+- No circular dependencies. No public name collisions between a full and a mini type.
+- Full modular integers live in `05-modint.hpp` (`modint_detail`, `ModInt`, `ModInt64`, `DynModInt`, `DynModInt64`, alias `mint`). The four minis live in `06-modintmini.hpp`, each an independent struct containing its own helpers.
 
-## Integer types and aliases
+## Types
 
-Prefer `int` for algorithm indices, sizes and counters whose bounds fit, and `lng` when they require signed 64-bit range. This applies to maintained C++ algorithms and C++ examples/test support; Python integer conventions are unchanged. Select widths for intermediate arithmetic as well as stored values. Use unsigned types for packed words, masks and arithmetic that intentionally relies on unsigned semantics.
+| Alias | Underlying | Use |
+|---|---|---|
+| `int` | | indices, sizes, counters that fit 31 bits |
+| `uint` | `uint32_t` | packed words, masks, intentional wraparound |
+| `lng` | `int64_t` | signed 64-bit values |
+| `ulng` | `uint64_t` | unsigned 64-bit words and modular arithmetic |
+| `lll` / `ulll` | `__int128_t` / `__uint128_t` | wide intermediates |
 
-Use `size_t` only when an interface/template requires it or the supported size domain justifies it. Standard template matching such as `std::index_sequence`/`std::bitset`, and APIs intentionally supporting the full `size_t` range, are valid reasons. Retain `ptrdiff_t` or an iterator's difference type where pointer/iterator differences require that role. A container's `.size()` returning an unsigned type does not by itself require an unsigned loop variable; establish that its value fits before converting. Do not add casts merely to silence warnings, or substitute `ulng` just to disguise size semantics.
-
-Prefer the shared aliases from `01-Core/01-template.hpp` over their underlying spellings:
-
-| Preferred spelling | Underlying type |
-|---|---|
-| `uint` | `uint32_t` |
-| `lng` | `int64_t` |
-| `ulng` | `uint64_t` |
-| `lll` | `__int128_t` |
-| `ulll` | `__uint128_t` |
-
-Use `int` for ordinary signed 32-bit values on the supported platform. Keep underlying types in alias definitions, independent type-identity checks, and interfaces where their particular type is required; retain `int8_t`, `uint8_t`, `int16_t` and `uint16_t` where needed because they have no project aliases. Aliases preserve exact type identity; do not assume every spelling of a same-width integer is the same C++ type. Standalone contest examples may define only the needed aliases locally using these exact underlying types; do not add a Core dependency solely for spelling convenience.
-
-Changing signedness or width is a semantic edit: review negative-input preconditions, overflow, comparisons, sentinels, template deduction and narrowing, and update affected tests/contracts together. Preserve existing supported domains unless a domain change is explicitly part of the task. An exact alias substitution is a spelling change. Apply these defaults within the assigned scope; preserved `OLD`/`97-Legacy` references keep their original bytes.
+- Prefer `int` for indices; use `lng` only when 31 bits do not suffice. Pick intermediate widths as deliberately as stored widths: no silent overflow outside explicitly modular unsigned arithmetic.
+- Use `size_t` only where a standard interface requires it (`std::bitset`, `index_sequence`, allocators). A container's `size()` being unsigned does not require unsigned loop variables.
+- `int8_t`, `uint8_t`, `int16_t`, `uint16_t` have no aliases; use them as spelled. Aliases are exact type identities.
+- Changing a signedness or width is a semantic change: review preconditions, overflow, comparisons, sentinels and deduction, and update tests.
 
 ## API contracts
 
-Zero-based indexing and half-open `[l, r)` ranges by default; document a necessary exception. State domains, widths, exactness, result semantics, mutation, setup/reset requirements, and any ownership/aliasing assumptions. Suffix 64 describes storage intent, not automatically support for every unsigned 64-bit modulus; specify the actual supported range. Extend to every representable input when easy, otherwise prefer practical explicit bounds over many unnecessary branches. No silent overflow outside an explicitly modular unsigned computation.
+- Zero-based indices and half-open ranges `[l, r)`; document any exception in the comment above the operation.
+- Document in the comment above each struct or free function: domain and width limits, exactness, result meaning, mutation, setup or reset requirements, aliasing and ownership, cache lifetime and what invalidates it. A `64` suffix describes storage, not support for every 64-bit modulus; state the real range.
+- Preconditions: `assert`. Valid no-answer results: a non-colliding sentinel, a `bool` status plus out-parameter, or a small status enum. Use `std::optional` only when those are more cumbersome. Absence is never the same value as a legitimate empty or zero result.
+- Exact and approximate variants have distinct names and contracts even when they share code. State tolerances and coordinate bounds.
+- Randomized algorithms expose a reproducible seed and state whether failure is Monte Carlo (wrong answer with probability p) or Las Vegas (runtime only).
+- No `private`. State and helpers stay inside their struct; friend operators are encouraged; stateless algorithms are free functions.
+- Shared helpers for one family go in one `<family>_detail` namespace in the same header, indented four spaces, closed with `} // namespace <family>_detail`, never re-exported with `using namespace`. No nested detail namespaces, no anonymous namespaces in headers, no `internal` or `utils` namespaces.
 
-Prefer `assert` for violated preconditions. Valid no-solution inputs need a noncolliding sentinel or simple status/result or status/out-parameter representation. Use `std::optional` only when those choices are infeasible or more cumbersome. Never conflate absence with a valid empty/zero result. Preconditions remain documented when assertions are disabled.
+## Style
 
-Exact and approximate APIs have distinct names/types/contracts; share implementation where useful. Record tolerances/error models and integer-coordinate bounds. Randomized algorithms are allowed: distinguish Monte Carlo answer risk from Las Vegas runtime randomness, describe assumptions/error bounds and expose reproducible seeds. State dynamic-modulus changes that invalidate existing values. Caches must have reset/invalidation and memory behavior documented.
-
-Keep algorithm state/helpers inside its struct as reasonably possible, but **do not add private implementation sections**. This is a contest library. Friend operators/functions are encouraged where natural. Stateless algorithms can remain free functions.
-
-## Namespaces and cohesive headers
-
-Keep a helper used by one type inside that type. When several related public types need shared implementation, use one shallow, descriptively named `<family>_detail` namespace and put it in the same header as those types. Namespace size alone is not a reason for another file. Avoid nested detail layers, anonymous namespaces in headers, generic `internal`/`utils` namespaces, and public alias-only wrapper headers for a single cohesive family. Independently reusable algorithms such as Barrett and Montgomery retain their own headers and direct dependencies.
-
-Indent namespace contents by four spaces. Group shared helpers before the public types, separate logical groups by one blank line, qualify shared names explicitly, and do not export a detail namespace with `using namespace`. Close a namespace on its own line with `} // namespace name`; this is an explicit exception to compressed control-block closing braces. Existing public namespace names remain stable during routine maintenance.
-
-Full modular integers share `05-modint.hpp`: `modint_detail`, `ModInt`, `ModInt64`, `DynModInt`, and `DynModInt64`. The corresponding four mini types share `06-modintmini.hpp` for discovery, but each is one independently copyable struct. A mini may use standard headers and the documented template aliases; it must not depend on a sibling struct, full type, shared detail namespace, base class, or external reduction header. Put any required compact helpers/state inside that struct. Duplication needed for independent copying is intentional. Keep distinct full/mini names and preserve existing aliases such as `mint`.
-
-## Compressed style
-
-- Four spaces; no mandatory line limit. Preserve direct short code and intentional compressed braces.
-- Group related functions/methods visually: use one blank line between logical groups such as construction, access, mutation, queries and operators; keep closely related tiny methods and overloads together. These are useful groups, not mandatory sections or a rigid ordering. Preserve data-member declaration order and declaration/lookup dependencies when arranging methods; formatting must not alter initialization or layout.
-- Compress one logical step at a time. A short coherent method or tightly coupled statements may share a line; split lines that combine unrelated setup, mutation or branching. Keep ordinary loop control and concise braced conditionals compact. This does not impose one statement per line or replace the closing-brace style below.
-- Always brace `if`, `else`, loops and similar control statements (ternary expressions excepted). Inline blocks have spaces inside: `if (ok) { work(); }`.
-- Multiline closing braces attach to the final content where applicable:
-  ```cpp
-  if (ok) {
-      work();}
-  else {
-      recover();}
-  ```
-  Struct/class and named lambda declarations keep their terminating `};` correctly. Do not change parsing to satisfy layout.
-- Structs/classes: `CamelCase`. Methods/free functions/helpers: `camelCase`. Fields/locals: short lowercase or `snake_case`. Compile-time value constants: `ALL_CAPS`; runtime `const` values retain ordinary variable names. `constexpr` functions stay camelCase. Conventional protocol names/operators, short type aliases (`mint`, `iint`), mathematical template parameters (`T`, `MOD`) and constructor parameters (`N`, `M`) are exceptions.
-- Use consistent vocabulary: prefer short mathematical locals such as `n`, `m`, `l`, `r`, `i` and `j` when their roles are clear, and recognizable domain names for public operations. Use the same term for the same concept across implementations; distinguish operations with different semantics. Routine style maintenance preserves existing public API/protocol names. Rename locals/helpers only when clearer and update affected uses; public API renaming requires an explicitly scoped migration.
-- Attach `*`/`&` to names: `T *p`, `T &x`, `T &operator+=(...)`. Use concise functional numeric casts `T(x)` when unambiguous; use an appropriate explicit cast otherwise. Do not hide unsafe width conversions.
-- Named nested lambdas use `auto f = [...] (...) -> T { ... };`; specify return type when deduction is ambiguous. Recursive lambdas take `auto &&f` first and call `f(f, ...)`.
-- Prefer `std::midpoint(l, r)` when its rounding semantics fit; put constant factors before variable factors (`32 * n`). Avoid redundant temporary variables without obscuring invariants or repeating expensive work.
-- Intentional signed/unsigned comparisons and safe conversions may retain warnings when bounds justify them. Signed/unsigned comparison is not synonymous with narrowing. Never dismiss all narrowing diagnostics wholesale.
-
-## std:: qualification
-
-The template may provide `using namespace std` and GNU PBDS imports. Nevertheless qualify standard names except this explicit convenience list:
-
-`int8_t uint8_t int16_t uint16_t int32_t uint32_t int64_t uint64_t size_t ptrdiff_t string string_view istream ostream cin cout cerr pair tuple array bitset vector deque priority_queue queue stack map multimap unordered_map unordered_multimap set multiset unordered_set unordered_multiset abs max min gcd lcm reverse sort swap lower_bound upper_bound binary_search unique fill iota accumulate next prev`.
-
-Built-in language types and library-defined aliases need no qualification. The list permits qualification omissions; it does not override the preferred integer spellings above. Explicit `std::` is always allowed to disambiguate. Other names, including `move`, `forward`, `exchange`, `midpoint`, traits/concepts and numeric utilities, remain qualified. Do not expand this list casually in individual headers.
+- Four-space indentation; no line-length limit.
+- Names: structs `CamelCase`; functions and methods `camelCase`; fields and locals short lowercase or `snake_case`; compile-time constants `ALL_CAPS`; `constexpr` functions stay `camelCase`. Protocol names, operators, aliases such as `mint` and `iint`, template parameters such as `T` and `MOD`, and constructor size parameters such as `N` and `M` are exceptions.
+- Use the same name for the same concept everywhere: `n` size, `m` second size or edge count, `l`/`r` range bounds, `i`/`j`/`k` indices, `u`/`v` vertices, `w` weight, `x`/`y` coordinates, `res` result.
+- Braces on every `if`, `else`, loop and similar statement; ternaries excepted. Single-line blocks have spaces inside: `if (ok) { work(); }`.
+- Closing braces: a multi-line block ends on the line of its last statement, `return res;}`. This applies to control blocks, function bodies and lambda bodies, and nests: `}}`. `else` starts a new line after `;}`. Exceptions: struct, class, union and enum bodies end with `};` on its own line; namespaces end with `} // namespace name` on its own line.
+- One logical step per line: a short method may be one line; tightly coupled statements may share a line (`u = find(u); v = find(v);`); unrelated setup, mutation and branching are split. Keep loop headers and short braced conditionals compact.
+- Group methods: construction, access, mutation, queries, operators; one blank line between groups; keep tiny overloads together. Never reorder data members to satisfy layout.
+- Attach `*` and `&` to the name: `T *p`, `T &x`, `T &operator+=(const T &o)`.
+- Casts: functional `T(x)` when unambiguous; `static_cast` otherwise; never hide a narrowing with a cast. Comparing a signed index with an unsigned size is acceptable when the bound is justified.
+- Named lambdas: `auto f = [&](args) -> T { ... };` with the return type only when deduction is ambiguous. Recursive lambdas take `auto &&f` first and call `f(f, ...)`.
+- Prefer `std::midpoint(l, r)` where its rounding fits. Constant factors first: `2 * n`, `32 * k`.
+- Qualify standard names with `std::` except this closed list: `int8_t uint8_t int16_t uint16_t int32_t uint32_t int64_t uint64_t size_t ptrdiff_t string string_view istream ostream cin cout cerr pair tuple array bitset vector deque priority_queue queue stack map multimap unordered_map unordered_multimap set multiset unordered_set unordered_multiset abs max min gcd lcm reverse sort swap lower_bound upper_bound binary_search unique fill iota accumulate next prev`. Everything else, including `move`, `forward`, `exchange`, `midpoint`, traits and concepts, is qualified.
 
 ## Complexity comments
 
-Place immediately above algorithms, except template/debug. Use `// T: O(...), M: O(...)` or `// S: O(...), U: O(...), Q: O(...), M: O(...)`; use `NA` only for an inapplicable operation. Define needed symbols briefly: `n`, `m`, `k`, `V`, `E`, word width `w`, bit length `b`, output size, modulus, etc. Multiplication is explicit (`n * m`); functions use parentheses (`log(n)`, `ceil(n / w)`). State worst-case by default and label expected/amortized bounds. Explain conditions for alternate algorithms instead of ambiguous `O(x) or O(y)`.
-
-For a struct, M is stored data; for a standalone function it is auxiliary space excluding caller-owned inputs. Identify returned storage if material. Add larger transient/shared costs explicitly, e.g. `M: O(n^2) (workspace: O(n^3), cache: O(n^3))`. Document output-sensitive bounds where needed. Per-method time comments are required only for bounds differing from the enclosing summary; add method memory notes only for a larger exceptional workspace/output/cache bound. Internal ISA kernels need not repeat public complexity comments, but public dispatch bounds must account for them. For big integers/stateful generic arithmetic, distinguish arithmetic-operation counts from bit complexity when unit-cost arithmetic would mislead.
+- One comment line directly above every struct and free function except template and debug code: `// T: O(...), M: O(...)` for functions and simple structs, or `// S: O(...), U: O(...), Q: O(...), M: O(...)` for structures with setup, update and query. `NA` marks an inapplicable component.
+- Symbols: `n`, `m`, `k`, `q` sizes and counts; `V`, `E` vertices and edges; `w` word width; `b` bit length; `L` string length; `S` alphabet size; `out` output size. Define any other symbol in the same comment. Write multiplication explicitly (`n * m`) and functions with parentheses (`log(n)`, `sqrt(n)`).
+- State the worst case. Label `amortized` or `expected` bounds. Give conditions instead of `O(a) or O(b)`.
+- `M` is stored data for a struct and auxiliary space for a function, excluding caller-owned inputs. Add workspace, cache or output terms when they exceed the stored bound: `M: O(n) (workspace O(n^2))`.
+- A method gets its own comment only when its bound differs from the struct comment. ISA kernels need no comment; the public dispatcher's bound covers them. For big integers distinguish operation counts from bit complexity.

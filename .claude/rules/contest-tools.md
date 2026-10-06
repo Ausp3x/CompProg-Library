@@ -1,0 +1,1 @@
+../../00-Guidelines/08-contest-tools.md

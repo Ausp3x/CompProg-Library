@@ -1,36 +1,58 @@
+---
+paths:
+  - "**/00-index.md"
+  - "00-Guidelines/13-plan/**"
+  - "**/98-Basic.hpp"
+  - "**/99-All.hpp"
+  - "08-Python/_98_basic.py"
+  - "08-Python/_99_all.py"
+---
+
 # Structure, naming, inventories
 
-The root layout is defined in `../00-index.md`. Algorithm folders are 01–08; 09 contains contest tools; 95 contains reference resources; 96–99 contain verification/notebook/workspace material. `95-Resources` needs only a short collection index and download metadata, not algorithm feature inventories or a separate guideline file. Existing user-provided resource filenames may be retained. Do not invent additional top-level categories without a concrete need.
+## Layout
 
-## Names and ordering
+Algorithm folders are `01-Core` … `07-Strings` and `08-Python`; `09-Contest Testing` holds contest tools; `95-Resources` holds reference PDFs; `96`–`99` hold tests, judge solutions, the notebook and the workspace; `OLD` is the archive. Do not add top-level folders.
 
-- Use two-digit numeric prefixes and a hyphen for human-sorted files/folders: `01-template.hpp`, `05-Mathematics`. Keep the approved major-folder names.
-- Importable Python modules/packages use a leading underscore and underscores: `_01_dijkstra.py`, `_04_graphs`. Neither `01-name` nor `01_name` is an ordinary Python identifier. The outer `08-Python` directory is an import root, not a package name.
-- `AGENTS.md`, `__init__.py`, conventional tool/config names, `OLD`, `src`, `expanded`, build/artifact paths, and the requested `99-Workspace/template.cpp` are explicit naming exceptions. Executable Python scripts may use `01-name.py`.
-- One main algorithm: lowercase established name/abbreviation without underscores, e.g. `01-dsu.hpp`. Multiple related algorithms: lowercase general use-case name with underscores, e.g. `05-prime_algorithms.hpp`. Numeric prefixes are separate from this stem rule.
-- Basic, Advanced, Esoteric are sections in each folder inventory, **not** filename labels or tier directories. Sort by importance/rarity first, dependencies second. A header/module cannot mix tiers; split it when necessary. Mini/full is separate from tier.
-- Numeric prefixes change when ordering changes. Update includes, imports, tests, online sources, notebook selection, and indexes in the same change. Use numbered topic subfolders before exhausting 01–97. Each topic may have its own aggregates. Avoid deep unnecessary nesting.
+## Names
 
-## Core fixed order
+- Files and folders sort by a two-digit prefix and hyphen: `05-modint.hpp`, `04-Graphs`.
+- Python modules use `_05_name.py` (importable identifier); executable scripts may use `05-name.py`.
+- One main algorithm: lowercase established name without underscores (`01-dsu.hpp`). Several related algorithms: lowercase use-case stem with underscores (`05-prime_algorithms.hpp`).
+- Explicit exceptions: `CLAUDE.md`, `AGENTS.md`, `__init__.py`, `OLD`, `src`, `expanded`, `template.cpp`, tool and config names.
+- A prefix is a stable identifier. It is assigned once and never reused; a new row takes the next free number in its folder. Sections list rows in importance order, not numeric order. Rename or renumber an existing file only as an explicitly scoped task that updates includes, imports, tests, judge sources, notebook selection, maps and inventory together.
+- Companion documents inside an algorithm folder use `80`–`97` prefixes and `.md`: `80-notes.md` (contracts, cross-folder ownership), `81-sources.md` (source ledger), `90`+ (package evidence). `97-Legacy/` holds unchanged `.cpp` excerpts with an index; `98-Basic` and `99-All` are aggregates.
 
-01 template; 02 debug; 03 barrett; 04 montgomery; 05 modint (all full static/dynamic 32/64-bit types); 06 modintmini (four independent mini structs); 07 infint; 08 infintmini; 09 rational; 10 matrix; 11 matrixmini; 12 bitmatrix; 13 bitmatrixmini; 14 sparsematrix; 15 sparsematrixmini; 16 poly; 17 polymini; 18 bitset.
+## Tiers and Core order
 
-Core does not use tier ordering. It contains separate foundational headers, not one giant required implementation. Add types only for a demonstrated general need. Core Poly covers polynomials, formal power series and their comprehensive extensions with extreme optimization. Intentional duplication of scalar FFT/NTT/FPS functionality in Mathematics is permitted. No circular dependencies; foundational Core headers must not depend on topic aggregates.
+- Basic, Advanced and Esoteric are sections of each inventory outside Core, never directories or filename labels. Basic is what a strong contestant uses in most contests; Advanced is used in harder rounds; Esoteric is research-level or rarely needed. A header belongs to exactly one tier.
+- Core keeps its fixed order 01 template, 02 debug, 03 barrett, 04 montgomery, 05 modint, 06 modintmini, 07 infint, 08 infintmini, 09 rational, 10 matrix, 11 matrixmini, 12 bitmatrix, 13 bitmatrixmini, 14 sparsematrix, 15 sparsematrixmini, 16 poly, 17 polymini, 18 bitset. Add a Core type only for a demonstrated shared need.
+- Core Poly owns the accelerated polynomial/FPS engine; Mathematics may intentionally duplicate scalar FFT/NTT/FPS. No circular dependencies; Core never includes a topic aggregate.
 
 ## Aggregates
 
-`98-Basic.hpp` and `99-All.hpp` are include-only convenience headers in 01–07 and relevant topic folders. Basic includes all Basic entries; Core chooses minis where available/appropriate plus necessary full types. All includes every existing implementation header, full and mini, once transitively; exclude aggregates themselves, tests and planned nonexistent files. Algorithms include direct dependencies, never an aggregate. Full/mini names and aliases must coexist; use `iint` and `iintmini`, not two conflicting `iint` definitions. Aggregates advertise only current implemented coverage.
-
-Python uses `_98_basic.py` and `_99_all.py` import/re-export modules and explicit public exports. No work, I/O, benchmarks or testing on import. Until algorithms exist, aggregates may be empty with an honest inventory status.
+- `98-Basic.hpp` includes every Basic header of its folder; Core Basic includes minis where they exist plus full types that Basic consumers need.
+- `99-All.hpp` includes every implemented header of its folder once, full and mini, transitively; never aggregates, tests or planned files.
+- Algorithms include their direct dependencies, never an aggregate. Full and mini names coexist (`iint`, `iintmini`).
+- Python `_98_basic.py` and `_99_all.py` re-export explicit public names only; importing them performs no work.
 
 ## Inventory contract
 
-Each folder has `00-index.md`. Keep rows concise but cover public operations, variants, domains and outstanding research. Distinguish **planned**, **existing-unverified**, **partial**, **verified** (with evidence), and **legacy-reference**. List proposed filenames, tier or Core Basic eligibility, features, references and meaningful omissions. An inventory is not a claim that every known paper has been surveyed. Add newly discovered relevant variants as future research identifies them. Detailed API proofs/references belong in numbered companion documentation, not repeated across every guide.
+Each algorithm folder has `00-index.md` with this exact shape:
 
-Use the same table columns in all Basic, Advanced and Esoteric sections: `Proposed header | Feature checklist | Status and references` (`Proposed module` for Python). Core keeps its separate Basic-eligibility column and fixed order. Put filenames in code spans; keep implementation status separate from planned features, including when a whole section is planned. Support and resource indexes may use columns appropriate to their purpose. Use one document title, sequential heading levels, blank lines around headings/lists/tables/fences, and `|---|` table separators; preserve numeric alignment where useful. Notebook notes may retain the multiple `#`/`##` print sections supported by their renderer. Wrap local Markdown link destinations containing spaces in angle brackets or encode the spaces.
+1. Title line `# NN Folder — inventory`.
+2. One `Scope` paragraph of at most four sentences: what the folder owns and what neighbouring folders own instead.
+3. Sections `## Basic`, `## Advanced`, `## Esoteric` (Core: one untitled table in Core order), each a table with columns `Header | Operations | Status` (Core: `Header | Basic | Operations | Status`; Python: `Module | Operations | Status`).
+4. Optional `## Notes` of at most ten lines for cross-folder ownership rules. Contracts, proofs, source ledgers and audit narrative live in companion documents, not in the index.
 
-Topic-local `97-Legacy/` folders may hold unchanged `.cpp` reference excerpts with an index and source-range/hash provenance. They are excluded from aggregates and notebook discovery; they are not active implementations or a new algorithm tier. Preserve their original bugs/APIs until a specifically scoped implementation task audits them.
+Row rules:
 
-Archive superseded implementation/notebook copies and original monoliths in OLD. OLD is excluded from active aggregates, discovery and notebook selection. Keep original source bytes in the archive so behavior and lost features can be compared. Existing active legacy code can carry a migration gap; do not call it guideline-compliant until audited.
+- `Header`: the filename in a code span.
+- `Operations`: every public struct, function, operator and named variant the row must provide, as short identifier-like names separated by `;`, grouped by struct where several exist (`DSU: find, unite, same, size, count, groups`). Give a domain qualifier in parentheses only when it changes the algorithm (`kth (persistent)`). Name variants explicitly instead of writing "and extensions", "where meaningful" or "research". A planned research item lists the concrete operations it would provide or does not appear.
+- `Status`: exactly one of `planned`, `partial`, `existing-unverified`, `legacy-reference`, `verified`, followed by evidence links for verified/partial rows and by `legacy:` paths or short source keys otherwise. `verified` means every operation in the row has evidence. `partial` lists the missing operations after `missing:`.
 
-All-solution APIs return compact parameterizations, generators or explicitly bounded enumeration for infinite/huge answer sets. Charge explicit enumeration by output size; do not imply that an exponential-size witness list is generated within a polynomial bound.
+All-solution and enumeration APIs return compact parameterizations or explicitly bounded enumerations and are charged by output size.
+
+## Archive
+
+`OLD` keeps original bytes of superseded code and notebooks and is excluded from aggregates, discovery and notebook selection. Delete from `OLD` or `97-Legacy` only after an audited implementation accounts for every feature the file contained.

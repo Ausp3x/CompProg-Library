@@ -44,7 +44,7 @@ The [source guide](09-sources.md) offers more choices for implementation researc
 
 The bottom of [01-prompts.md](../01-prompts.md) contains **226 assignable packages** for **334 stable algorithm batches** plus five support passes. Related manageable units run sequentially inside a package; 94 large Core/research jobs remain isolated with checkpoints. The research expansion adds substantial work, so collapsing it into a few giant folder assignments would make the requested sizing misleading. The practical foundations are scheduled first; support tests and evidence remain part of every implementation job.
 
-Use `Complete package Pxxx from 01-prompts.md` in a new session. Read the shared workflow and selected checklist line/table rows, not every inventory or source ledger. Package prerequisites and exact targets are also in [98-session-plan.json](13-Work%20Batches/98-session-plan.json); target ownership is in [99-batches.json](13-Work%20Batches/99-batches.json). All checkboxes begin unchecked.
+Use `Complete package Pxxx from 01-prompts.md` in a new session. Read the shared workflow and selected checklist line/table rows, not every inventory or source ledger. Package prerequisites and exact targets are also in [packages.json](13-plan/packages.json); target ownership is in [batches.json](13-plan/batches.json). All checkboxes begin unchecked.
 
 Existing batch IDs were retained; oversized groups were split with ownership transfers recorded in the batch map. [18-path-updates.json](18-path-updates.json) maps every original target to its current prefix, including planned targets. Eight existing Graph headers were renamed and their aggregate/provenance references updated; algorithm bodies were preserved. Historical decisions retain historical counts and point here for the current plan.
 
@@ -82,3 +82,7 @@ The resulting roadmap is ready for package implementation with no known unassign
 - `python3 "96-Local Testing/02-integration.py"` passed: 57 standalone/aggregate headers, scalar and available AVX2 multiple-translation-unit linkage, and LOCAL/non-LOCAL workspace syntax. This checks integration after path changes; it is not a new behavioral or performance certification.
 
 Remaining limits: GCC14/interpreter matrix and the expanded per-family behavioral/benchmark suites are future implementation work. No online submissions or notebook PDF rendering were performed by this inventory audit. The specialist backlog remains planned until independently implemented and verified.
+
+## Function-level rewrite — 2026-10-06
+
+Every algorithm inventory was rewritten to the `Header | Operations | Status` contract with a live catalog sweep per folder (Library Checker problem trees, cp-algorithms, ACL, KACTL, OI Wiki, Nyaan, maspypy, ei1333, suisen, hitonanode, tko919, noshi91, PyRival, GMP/FLINT/NTL, CGAL and domain papers; each folder's `81-sources.md` lists the pages fetched). Contract prose moved to each folder's `80-notes.md`. Counts are now **459 targets, 359 batches, 230 packages**: 31 new rows (DS 6, GE 2, GR 3, MA 1, MI 7, ST 1, PY 11), roughly 1,900 named operations, and 24 previously verified headers downgraded to `partial` with explicit `missing:` lists for operations the catalogs showed. The plan manifest in `13-plan/` owns every target once; `plan.py check` and the consistency validator pass.

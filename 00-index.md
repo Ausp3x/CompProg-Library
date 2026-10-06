@@ -1,6 +1,6 @@
 # Ultra competitive programming library
 
-Start with [agent routing](AGENTS.md) or the [guideline index](00-Guidelines/00-index.md). The [decision log](00-Guidelines/10-decisions.md) records the agreed design and rationale; it is not required reading for routine work. Use [implementation prompts and batch plans](01-prompts.md) to assign a focused task to a new session.
+Start with [CLAUDE.md](CLAUDE.md) (Claude Code) or [AGENTS.md](AGENTS.md) (other agents), then the [guideline index](00-Guidelines/00-index.md). Work is scheduled in the [session checklist](01-prompts.md), rendered from the plan manifest in `00-Guidelines/13-plan/`. The [decision log](00-Guidelines/10-decisions.md) is on demand only.
 
 | Folder | Purpose |
 |---|---|
@@ -21,6 +21,4 @@ Start with [agent routing](AGENTS.md) or the [guideline index](00-Guidelines/00-
 | [99-Workspace](99-Workspace/) | Standalone `template.cpp` and temporary contest work |
 | [OLD](OLD/00-index.md) | Preserved legacy sources/materials; not active library dependencies |
 
-Each algorithm folder has a `00-index.md` feature inventory. Planned entries are not implementations or claims of verification. Use [migration notes](00-Guidelines/11-migration.md) for the status of existing code and tools.
-
-The [2026-09-27 research audit and follow-up review](00-Guidelines/16-inventory-audit.md) established the expanded scope; the [Core family migration](00-Guidelines/22-core-migration.md) now tracks **428 algorithm targets** and map all **250** Library Checker families in the recorded snapshot. The follow-up fills operation-level gaps, reconciles ownership/dependencies and standardizes the inventories without changing the **226 package IDs**. Start future implementation from a package checkbox at the bottom of [01-prompts.md](01-prompts.md); researched scope remains distinct from verified code.
+Each algorithm folder has a `00-index.md` inventory whose rows name every public operation and carry one status word. Planned rows are not implementations. Start work with `/package Pxxx`; [migration notes](00-Guidelines/11-migration.md) record the history of existing code.

@@ -1,0 +1,3175 @@
+{
+  "date": "2026-10-06",
+  "statuses": [
+    "planned",
+    "in-progress",
+    "audit",
+    "verified"
+  ],
+  "models": {
+    "fable": "claude-fable-5-1",
+    "opus": "claude-opus-5-5"
+  },
+  "packages": [
+    {
+      "id": "P001",
+      "label": "Contest testing pipeline and reusable generators/checkers",
+      "batches": [
+        "SUP01"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "S",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "09-Contest Testing/10-verification.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P002",
+      "label": "01-Core — template, debug, bitset",
+      "batches": [
+        "C01",
+        "C15"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "M+L",
+      "model": "fable",
+      "status": "audit",
+      "evidence": [
+        "01-Core/21-c01-verification.md",
+        "01-Core/22-bitset.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P003",
+      "label": "Refresh and check the standalone contest template",
+      "batches": [
+        "SUP05"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "S",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "97-Online Testing/04-workspace-verification.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P004",
+      "label": "01-Core — barrett, montgomery",
+      "batches": [
+        "C02"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "L",
+      "model": "fable",
+      "status": "audit",
+      "evidence": [
+        "01-Core/23-reduction.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P005",
+      "label": "01-Core — full and mini modular-integer families",
+      "batches": [
+        "C03",
+        "C16"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "L+L",
+      "model": "fable",
+      "status": "audit",
+      "evidence": [
+        "01-Core/24-modint.md",
+        "01-Core/25-modintmini.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P006",
+      "label": "02-Data Structures — dsu, fenwick, segmenttree, sparsetable, prefix sum, sqrt decomposition, ordered set, monotone stack",
+      "batches": [
+        "DS01",
+        "DS02"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "M+M",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "02-Data Structures/90-foundations.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P007",
+      "label": "03-Geometry — point, line segment, polygon, convexhull",
+      "batches": [
+        "GE01"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "L",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "03-Geometry/90-foundations.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P008",
+      "label": "03-Geometry — closestpair, circle, rotatingcalipers, coordinate transform",
+      "batches": [
+        "GE02"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "L",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "03-Geometry/91-ge02.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P009",
+      "label": "03-Geometry — triangle",
+      "batches": [
+        "GE23"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "M",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "03-Geometry/92-triangle.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P010",
+      "label": "04-Graphs — graph, traversal, toposort, dsu, shortest path, mst",
+      "batches": [
+        "GR01",
+        "GR02"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "M+L",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "04-Graphs/90-foundations.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P011",
+      "label": "04-Graphs — lca, scc, bridges articulation, euleriantrail, functionalgraph",
+      "batches": [
+        "GR03",
+        "GR26"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "L+M",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "04-Graphs/95-p011.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P012",
+      "label": "05-Mathematics — mod arithmetic, search algorithms, equation solvers, sieve algorithms, combinatorics, segmentedsieve",
+      "batches": [
+        "MA01",
+        "MA02"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "M+M",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "05-Mathematics/96-p012.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P013",
+      "label": "06-Miscellaneous — random, customhash, fastio, compression, binarysearch, bit operations, permutation",
+      "batches": [
+        "MI01",
+        "MI02"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "M+M",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "06-Miscellaneous/95-p013.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P229",
+      "label": "06-Miscellaneous — timer, interactive, grid utilities",
+      "batches": [
+        "MI32"
+      ],
+      "phase": "Contest core",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "contest utilities"
+    },
+    {
+      "id": "P014",
+      "label": "06-Miscellaneous — sequence algorithms, interval algorithms, offline queries, sorting selection",
+      "batches": [
+        "MI03",
+        "MI14"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "M+M",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "06-Miscellaneous/96-p014.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P015",
+      "label": "06-Miscellaneous — enumeration, knapsack, cyclefinding",
+      "batches": [
+        "MI15",
+        "MI16",
+        "MI17"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "M+M+S",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "06-Miscellaneous/89-p015.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P016",
+      "label": "07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength",
+      "batches": [
+        "ST01",
+        "ST02",
+        "ST19"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "S+M+S",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "07-Strings/94-p016.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P017",
+      "label": "07-Strings — aho, suffixarray, palindrome queries",
+      "batches": [
+        "ST03"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "L",
+      "model": "opus",
+      "status": "audit",
+      "evidence": [
+        "07-Strings/89-p017.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P025",
+      "label": "01-Core — poly",
+      "batches": [
+        "C11"
+      ],
+      "phase": "Core full types",
+      "size": "XL",
+      "model": "fable",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P026",
+      "label": "01-Core — polymini",
+      "batches": [
+        "C12"
+      ],
+      "phase": "Core full types",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P018",
+      "label": "01-Core — infint",
+      "batches": [
+        "C04"
+      ],
+      "phase": "Core full types",
+      "size": "XL",
+      "model": "fable",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P019",
+      "label": "01-Core — infintmini, rational",
+      "batches": [
+        "C05",
+        "C06"
+      ],
+      "phase": "Core full types",
+      "size": "M+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P020",
+      "label": "01-Core — matrix",
+      "batches": [
+        "C07"
+      ],
+      "phase": "Core full types",
+      "size": "XL",
+      "model": "fable",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P021",
+      "label": "01-Core — matrixmini",
+      "batches": [
+        "C08"
+      ],
+      "phase": "Core full types",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P022",
+      "label": "01-Core — bitmatrix, bitmatrixmini",
+      "batches": [
+        "C09",
+        "C10"
+      ],
+      "phase": "Core full types",
+      "size": "L+M",
+      "model": "fable",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P023",
+      "label": "01-Core — sparsematrix",
+      "batches": [
+        "C13"
+      ],
+      "phase": "Core full types",
+      "size": "XL",
+      "model": "fable",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P024",
+      "label": "01-Core — sparsematrixmini",
+      "batches": [
+        "C14"
+      ],
+      "phase": "Core full types",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P027",
+      "label": "02-Data Structures — fenwick tree advanced, lazysegmenttree, dynamicsegmenttree, interval set",
+      "batches": [
+        "DS04",
+        "DS05",
+        "DS06",
+        "DS47"
+      ],
+      "phase": "Contest core",
+      "size": "M+L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P227",
+      "label": "02-Data Structures — hashmap, sortedlist",
+      "batches": [
+        "DS49"
+      ],
+      "phase": "Contest core",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "hash map and sorted list containers"
+    },
+    {
+      "id": "P052",
+      "label": "05-Mathematics — primality factorization, multiplicative functions, modinverse, crt",
+      "batches": [
+        "MA03",
+        "MA04"
+      ],
+      "phase": "Contest core",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P081",
+      "label": "07-Strings — suffixautomaton, sais, editdistance",
+      "batches": [
+        "ST04",
+        "ST06",
+        "ST33"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P043",
+      "label": "04-Graphs — twosat, matching bipartite, assignment, dominatortree",
+      "batches": [
+        "GR07",
+        "GR10",
+        "GR11"
+      ],
+      "phase": "Contest core",
+      "size": "M+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P055",
+      "label": "05-Mathematics — convolution, transform algorithms",
+      "batches": [
+        "MA06",
+        "MA12"
+      ],
+      "phase": "Contest core",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P083",
+      "label": "07-Strings — palindromictree, lyndon, minrotation, lcs",
+      "batches": [
+        "ST07",
+        "ST34"
+      ],
+      "phase": "Contest core",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P028",
+      "label": "02-Data Structures — segtreebeats, segment tree 2d, mergesorttree, aggregation queue",
+      "batches": [
+        "DS07",
+        "DS08",
+        "DS26"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P044",
+      "label": "04-Graphs — max flow",
+      "batches": [
+        "GR08"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P057",
+      "label": "05-Mathematics — polynomial algorithms, linear recurrence",
+      "batches": [
+        "MA07"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P084",
+      "label": "07-Strings — string matching, bitap, subsequence automaton, bwt",
+      "batches": [
+        "ST08",
+        "ST20",
+        "ST23"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P036",
+      "label": "03-Geometry — halfplaneintersection, minkowskisum, circle polygon, polygon distance",
+      "batches": [
+        "GE03",
+        "GE24",
+        "GE25"
+      ],
+      "phase": "Contest core",
+      "size": "L+M+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P029",
+      "label": "02-Data Structures — waveletmatrix, treap, heap deque",
+      "batches": [
+        "DS09",
+        "DS10",
+        "DS48"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P045",
+      "label": "04-Graphs — min cost flow",
+      "batches": [
+        "GR09"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P075",
+      "label": "06-Miscellaneous — slope trick",
+      "batches": [
+        "MI23"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P033",
+      "label": "02-Data Structures — trie, cartesiantree, disjointsparsetable, offline rectangle queries",
+      "batches": [
+        "DS13",
+        "DS29"
+      ],
+      "phase": "Contest core",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P056",
+      "label": "04-Graphs — centroiddecomposition, treeisomorphism",
+      "batches": [
+        "GR06"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P053",
+      "label": "05-Mathematics — discrete log root",
+      "batches": [
+        "MA05"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P178",
+      "label": "05-Mathematics — modular square roots, quadratic congruence",
+      "batches": [
+        "MA17"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P085",
+      "label": "07-Strings — wildcardmatching, lexicographic queries, dynamicstringhash",
+      "batches": [
+        "ST21",
+        "ST09"
+      ],
+      "phase": "Contest core",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P060",
+      "label": "05-Mathematics — floorsum, josephus, continued fraction",
+      "batches": [
+        "MA10"
+      ],
+      "phase": "Contest core",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P054",
+      "label": "05-Mathematics — combinatorics advanced, modular power towers, lattice paths",
+      "batches": [
+        "MA26",
+        "MA41",
+        "MA52"
+      ],
+      "phase": "Contest core",
+      "size": "L+M+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P037",
+      "label": "03-Geometry — segment union, minimumenclosingcircle, convex polygon query, lattice geometry, fixed radius queries",
+      "batches": [
+        "GE05",
+        "GE27",
+        "GE44"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P034",
+      "label": "02-Data Structures — sqrttree, persistentarray, rollbackdsu, persistentdsu, offline deletion",
+      "batches": [
+        "DS30",
+        "DS31",
+        "DS03",
+        "DS51"
+      ],
+      "phase": "Contest core",
+      "size": "L+M+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P047",
+      "label": "04-Graphs — directedmst, dynamic connectivity, blockcuttree, path cover",
+      "batches": [
+        "GR69",
+        "GR12",
+        "GR28"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P082",
+      "label": "07-Strings — suffixtree",
+      "batches": [
+        "ST05"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P072",
+      "label": "06-Miscellaneous — knapsack advanced, kbest enumeration, fractional programming",
+      "batches": [
+        "MI18",
+        "MI34"
+      ],
+      "phase": "Contest core",
+      "size": "L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P035",
+      "label": "02-Data Structures — weighteddsu, fastset, dsu extensions",
+      "batches": [
+        "DS25",
+        "DS32",
+        "DS52"
+      ],
+      "phase": "Contest core",
+      "size": "M+M+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P046",
+      "label": "04-Graphs — matching general",
+      "batches": [
+        "GR25"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P058",
+      "label": "05-Mathematics — linear algebra",
+      "batches": [
+        "MA08"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P088",
+      "label": "07-Strings — string periodicity, multiple string, string reconstruction",
+      "batches": [
+        "ST11",
+        "ST25"
+      ],
+      "phase": "Contest core",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P068",
+      "label": "06-Miscellaneous — bitset optimization, contestallocator, memoization",
+      "batches": [
+        "MI07"
+      ],
+      "phase": "Contest core",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P050",
+      "label": "04-Graphs — stablematching, graphicalsequence, reachability, cactusgraph",
+      "batches": [
+        "GR35",
+        "GR36",
+        "GR37",
+        "GR38"
+      ],
+      "phase": "Contest core",
+      "size": "M+M+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P061",
+      "label": "05-Mathematics — interpolation, matrixtree",
+      "batches": [
+        "MA11"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P086",
+      "label": "07-Strings — regular language, radixtrie, onlinez",
+      "batches": [
+        "ST35",
+        "ST22",
+        "ST24"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P069",
+      "label": "06-Miscellaneous — exactcover",
+      "batches": [
+        "MI08"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P030",
+      "label": "02-Data Structures — persistentsegmenttree",
+      "batches": [
+        "DS23"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P032",
+      "label": "02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis",
+      "batches": [
+        "DS11",
+        "DS27",
+        "DS28",
+        "DS50"
+      ],
+      "phase": "Contest core",
+      "size": "L+M+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P042",
+      "label": "04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor",
+      "batches": [
+        "GR04",
+        "GR05",
+        "GR70"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+S",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P066",
+      "label": "06-Miscellaneous — smalltolarge, hilbertorder, fast io advanced, randomized algorithms, hash families, parallelbinarysearch, cdq",
+      "batches": [
+        "MI04",
+        "MI05",
+        "MI06"
+      ],
+      "phase": "Contest core",
+      "size": "M+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P067",
+      "label": "02-Data Structures — range query offline",
+      "batches": [
+        "DS12"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P048",
+      "label": "04-Graphs — cycle basis, planar graph, flow with demands, subgraph enumeration",
+      "batches": [
+        "GR13",
+        "GR27",
+        "GR32"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P062",
+      "label": "05-Mathematics — game theory, probability",
+      "batches": [
+        "MA13"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P077",
+      "label": "06-Miscellaneous — expression parser",
+      "batches": [
+        "MI26"
+      ],
+      "phase": "Contest core",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P031",
+      "label": "02-Data Structures — balanced bst",
+      "batches": [
+        "DS24"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P049",
+      "label": "04-Graphs — chordalgraph, edge coloring, graph closure",
+      "batches": [
+        "GR30",
+        "GR31",
+        "GR34"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P059",
+      "label": "05-Mathematics — numerical methods, integer roots",
+      "batches": [
+        "MA09"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P076",
+      "label": "06-Miscellaneous — state space search, game search",
+      "batches": [
+        "MI24",
+        "MI25"
+      ],
+      "phase": "Contest core",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P051",
+      "label": "04-Graphs — graph decomposition, implicit graph, differenceconstraints, graph connectivity",
+      "batches": [
+        "GR39",
+        "GR58",
+        "GR60",
+        "GR65"
+      ],
+      "phase": "Contest core",
+      "size": "M+L+M+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P063",
+      "label": "05-Mathematics — optimization",
+      "batches": [
+        "MA14"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P073",
+      "label": "06-Miscellaneous — meetinthemiddle, digitdp, subset dp, profile dp, interval dp, bracket sequences",
+      "batches": [
+        "MI19",
+        "MI20",
+        "MI21",
+        "MI22",
+        "MI33"
+      ],
+      "phase": "Contest core",
+      "size": "M+M+L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P087",
+      "label": "07-Strings — runs",
+      "batches": [
+        "ST10"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P039",
+      "label": "03-Geometry — circleunion, geometric median, spherical geometry",
+      "batches": [
+        "GE10",
+        "GE30",
+        "GE18"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P080",
+      "label": "06-Miscellaneous — dynamic dp",
+      "batches": [
+        "MI30"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P074",
+      "label": "04-Graphs — steiner tree",
+      "batches": [
+        "GR33"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P064",
+      "label": "05-Mathematics — simplex",
+      "batches": [
+        "MA27"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P089",
+      "label": "07-Strings — multidimensional matching",
+      "batches": [
+        "ST26"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P079",
+      "label": "06-Miscellaneous — scheduling, optimal merge",
+      "batches": [
+        "MI28",
+        "MI29"
+      ],
+      "phase": "Contest core",
+      "size": "M+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P065",
+      "label": "05-Mathematics — polynomial roots",
+      "batches": [
+        "MA29"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P071",
+      "label": "06-Miscellaneous — calendar time, encoding",
+      "batches": [
+        "MI10"
+      ],
+      "phase": "Contest core",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P040",
+      "label": "03-Geometry — spatial index",
+      "batches": [
+        "GE17"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P078",
+      "label": "06-Miscellaneous — heuristic optimization",
+      "batches": [
+        "MI27"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P038",
+      "label": "03-Geometry — convex hull updates",
+      "batches": [
+        "GE28"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P070",
+      "label": "06-Miscellaneous — satsolver",
+      "batches": [
+        "MI09"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P041",
+      "label": "03-Geometry — point set queries",
+      "batches": [
+        "GE32"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P128",
+      "label": "03-Geometry — exact predicates",
+      "batches": [
+        "GE11"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P129",
+      "label": "03-Geometry — segmentintersection",
+      "batches": [
+        "GE04"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P130",
+      "label": "03-Geometry — polygontriangulation",
+      "batches": [
+        "GE26"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P131",
+      "label": "03-Geometry — circle constructions, linearrangement, visibilitypolygon",
+      "batches": [
+        "GE29",
+        "GE16",
+        "GE34"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P133",
+      "label": "03-Geometry — polygon boolean",
+      "batches": [
+        "GE06"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P134",
+      "label": "03-Geometry — delaunay",
+      "batches": [
+        "GE07"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P135",
+      "label": "03-Geometry — manhattan geometry, geometricmst, voronoi",
+      "batches": [
+        "GE09",
+        "GE08"
+      ],
+      "phase": "Contest core",
+      "size": "M+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P136",
+      "label": "03-Geometry — pointlocation",
+      "batches": [
+        "GE33"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P132",
+      "label": "03-Geometry — geometry3d",
+      "batches": [
+        "GE31"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P137",
+      "label": "03-Geometry — convexhull3d",
+      "batches": [
+        "GE12"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P090",
+      "label": "08-Python — io, search, number theory, combinatorics, sequences, pypy idioms",
+      "batches": [
+        "PY01",
+        "PY40"
+      ],
+      "phase": "Python contest layer",
+      "size": "M+S",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P091",
+      "label": "08-Python — dsu, fenwick, segmenttree, sparsetable, heaps",
+      "batches": [
+        "PY02",
+        "PY20",
+        "PY41"
+      ],
+      "phase": "Python contest layer",
+      "size": "M+S+S",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P092",
+      "label": "08-Python — graph",
+      "batches": [
+        "PY03"
+      ],
+      "phase": "Python contest layer",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P093",
+      "label": "08-Python — strings",
+      "batches": [
+        "PY17"
+      ],
+      "phase": "Python contest layer",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P095",
+      "label": "08-Python — dp",
+      "batches": [
+        "PY19"
+      ],
+      "phase": "Python contest layer",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P096",
+      "label": "08-Python — prime factor",
+      "batches": [
+        "PY04"
+      ],
+      "phase": "Python contest layer",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P097",
+      "label": "08-Python — flow, matching",
+      "batches": [
+        "PY34",
+        "PY35"
+      ],
+      "phase": "Python contest layer",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P098",
+      "label": "08-Python — tree, rollback, persistent, bitset, wavelet matrix",
+      "batches": [
+        "PY05",
+        "PY36",
+        "PY38",
+        "PY44"
+      ],
+      "phase": "Python contest layer",
+      "size": "L+L+M+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P099",
+      "label": "08-Python — polynomial, matrix",
+      "batches": [
+        "PY06",
+        "PY37"
+      ],
+      "phase": "Python contest layer",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P100",
+      "label": "08-Python — trie, aho, suffix, eertree, lyndon",
+      "batches": [
+        "PY07",
+        "PY42"
+      ],
+      "phase": "Python contest layer",
+      "size": "L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P101",
+      "label": "08-Python — offline, randomized, io advanced",
+      "batches": [
+        "PY08",
+        "PY11"
+      ],
+      "phase": "Python contest layer",
+      "size": "M+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P102",
+      "label": "08-Python — lazysegmenttree, ordered multiset, sqrt decomposition, interval map",
+      "batches": [
+        "PY12",
+        "PY21",
+        "PY48"
+      ],
+      "phase": "Python contest layer",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P094",
+      "label": "08-Python — geometry, geometry advanced",
+      "batches": [
+        "PY18",
+        "PY43"
+      ],
+      "phase": "Python contest layer",
+      "size": "M+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P103",
+      "label": "08-Python — line envelope, dp optimization",
+      "batches": [
+        "PY22",
+        "PY39"
+      ],
+      "phase": "Python contest layer",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P104",
+      "label": "08-Python — twosat, lowlink, eulertrail",
+      "batches": [
+        "PY23",
+        "PY24",
+        "PY25"
+      ],
+      "phase": "Python contest layer",
+      "size": "M+L+S",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P105",
+      "label": "08-Python — shortest paths, mincostflow",
+      "batches": [
+        "PY26",
+        "PY27"
+      ],
+      "phase": "Python contest layer",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P106",
+      "label": "08-Python — number theory advanced, rational",
+      "batches": [
+        "PY28",
+        "PY45"
+      ],
+      "phase": "Python contest layer",
+      "size": "L+S",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P107",
+      "label": "08-Python — transform algorithms",
+      "batches": [
+        "PY29"
+      ],
+      "phase": "Python contest layer",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P108",
+      "label": "08-Python — state search, functionalgraph",
+      "batches": [
+        "PY30",
+        "PY32"
+      ],
+      "phase": "Python contest layer",
+      "size": "L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P109",
+      "label": "08-Python — geometry float",
+      "batches": [
+        "PY31"
+      ],
+      "phase": "Python contest layer",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P110",
+      "label": "08-Python — dp advanced, game theory",
+      "batches": [
+        "PY33",
+        "PY46"
+      ],
+      "phase": "Python contest layer",
+      "size": "L+S",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P230",
+      "label": "08-Python — graph advanced",
+      "batches": [
+        "PY47"
+      ],
+      "phase": "Python contest layer",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "08-Python — graph advanced"
+    },
+    {
+      "id": "P111",
+      "label": "02-Data Structures — lct",
+      "batches": [
+        "DS14"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P112",
+      "label": "02-Data Structures — eulertourtree",
+      "batches": [
+        "DS15"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P113",
+      "label": "02-Data Structures — toptree",
+      "batches": [
+        "DS16"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P114",
+      "label": "02-Data Structures — succinctbitvector, succincttree, vanemdeboas, matroid oracle",
+      "batches": [
+        "DS17",
+        "DS18",
+        "DS21"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P115",
+      "label": "02-Data Structures — rangetree, kineticheap, persistentqueue, ordermaintenance",
+      "batches": [
+        "DS22",
+        "DS20",
+        "DS33",
+        "DS53"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P116",
+      "label": "02-Data Structures — retroactivequeue",
+      "batches": [
+        "DS19"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P117",
+      "label": "02-Data Structures — persistentheap, rangeparallelunionfind, rangemode",
+      "batches": [
+        "DS34",
+        "DS38",
+        "DS39"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P118",
+      "label": "04-Graphs — kshortestwalks",
+      "batches": [
+        "GR29"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P119",
+      "label": "02-Data Structures — dynamicbitvector",
+      "batches": [
+        "DS35"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P120",
+      "label": "02-Data Structures — dynamic wavelet",
+      "batches": [
+        "DS36"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P121",
+      "label": "02-Data Structures — sortablesegmenttree",
+      "batches": [
+        "DS37"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P122",
+      "label": "02-Data Structures — linearrmq, commonintervaltree",
+      "batches": [
+        "DS40",
+        "DS41"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P123",
+      "label": "02-Data Structures — pqtree",
+      "batches": [
+        "DS42"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P124",
+      "label": "02-Data Structures — fingertree",
+      "batches": [
+        "DS43"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P125",
+      "label": "02-Data Structures — persistent bst",
+      "batches": [
+        "DS44"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P126",
+      "label": "02-Data Structures — range sequence queries",
+      "batches": [
+        "DS45"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P127",
+      "label": "02-Data Structures — succinct sequence",
+      "batches": [
+        "DS46"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P138",
+      "label": "03-Geometry — halfspaceintersection3d",
+      "batches": [
+        "GE13"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P139",
+      "label": "03-Geometry — visibilitygraph, kinetic geometry, geometric duality",
+      "batches": [
+        "GE14",
+        "GE19",
+        "GE20"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P140",
+      "label": "03-Geometry — randomizedlp",
+      "batches": [
+        "GE15"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P141",
+      "label": "03-Geometry — algebraic geometry",
+      "batches": [
+        "GE22"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P142",
+      "label": "03-Geometry — constraineddelaunay",
+      "batches": [
+        "GE35"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P143",
+      "label": "03-Geometry — weighted voronoi",
+      "batches": [
+        "GE36"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P144",
+      "label": "03-Geometry — minimumwidthannulus",
+      "batches": [
+        "GE21"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P145",
+      "label": "03-Geometry — delaunay3d",
+      "batches": [
+        "GE37"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P146",
+      "label": "03-Geometry — polygonoffset",
+      "batches": [
+        "GE38"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P147",
+      "label": "03-Geometry — minimumenclosingellipse",
+      "batches": [
+        "GE39"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P148",
+      "label": "03-Geometry — alphashape",
+      "batches": [
+        "GE40"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P149",
+      "label": "03-Geometry — polyhedron boolean",
+      "batches": [
+        "GE41"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P150",
+      "label": "03-Geometry — curve distance",
+      "batches": [
+        "GE42"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P151",
+      "label": "03-Geometry — dynamicconvexhull",
+      "batches": [
+        "GE43"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P152",
+      "label": "04-Graphs — gomoryhutree, stoerwagner, maximumclique, minimummeancycle",
+      "batches": [
+        "GR14",
+        "GR16",
+        "GR23"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P153",
+      "label": "04-Graphs — matroidintersection",
+      "batches": [
+        "GR15"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P154",
+      "label": "04-Graphs — treedecomposition",
+      "batches": [
+        "GR17"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P155",
+      "label": "04-Graphs — lct, sensitivity analysis, temporal graph, maximumdensitysubgraph",
+      "batches": [
+        "GR18",
+        "GR21",
+        "GR24"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P156",
+      "label": "04-Graphs — graph isomorphism",
+      "batches": [
+        "GR20"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P157",
+      "label": "04-Graphs — kshortestsimplepaths",
+      "batches": [
+        "GR40"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P158",
+      "label": "04-Graphs — stnumbering, coloring exact, cycle enumeration, feedback set",
+      "batches": [
+        "GR41",
+        "GR48",
+        "GR49",
+        "GR71"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P159",
+      "label": "04-Graphs — triconnectivity",
+      "batches": [
+        "GR42"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P160",
+      "label": "04-Graphs — planarity",
+      "batches": [
+        "GR43"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P161",
+      "label": "04-Graphs — fully dynamic connectivity",
+      "batches": [
+        "GR44"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P162",
+      "label": "04-Graphs — weightedblossom",
+      "batches": [
+        "GR45"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P163",
+      "label": "04-Graphs — gabowmatching",
+      "batches": [
+        "GR22"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P164",
+      "label": "04-Graphs — costscalingflow",
+      "batches": [
+        "GR46"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P165",
+      "label": "04-Graphs — networksimplex",
+      "batches": [
+        "GR47"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P166",
+      "label": "04-Graphs — tjoin, minimumcyclebasis, hamiltonian",
+      "batches": [
+        "GR50",
+        "GR53",
+        "GR54"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P167",
+      "label": "04-Graphs — incrementalscc",
+      "batches": [
+        "GR51"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P168",
+      "label": "04-Graphs — dynamicmst",
+      "batches": [
+        "GR52"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P169",
+      "label": "04-Graphs — threeedgecomponents, minimumdiameterspanningtree, tree ordering",
+      "batches": [
+        "GR55",
+        "GR56",
+        "GR62"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P170",
+      "label": "04-Graphs — dynamicstarmincut",
+      "batches": [
+        "GR57"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P171",
+      "label": "04-Graphs — structured graph, graph class recognition",
+      "batches": [
+        "GR59",
+        "GR72"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P172",
+      "label": "04-Graphs — grouplabeledshortestpath",
+      "batches": [
+        "GR61"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P173",
+      "label": "04-Graphs — rankedmatching, stableroommates, extremevertexsets",
+      "batches": [
+        "GR63",
+        "GR64",
+        "GR67"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P174",
+      "label": "04-Graphs — skew symmetric flow",
+      "batches": [
+        "GR66"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P175",
+      "label": "04-Graphs — dynamictreedp",
+      "batches": [
+        "GR68"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P176",
+      "label": "05-Mathematics — summatory functions",
+      "batches": [
+        "MA15"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P177",
+      "label": "05-Mathematics — dirichlet series",
+      "batches": [
+        "MA16"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P179",
+      "label": "05-Mathematics — lattice reduction",
+      "batches": [
+        "MA24"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P180",
+      "label": "05-Mathematics — integer factor advanced",
+      "batches": [
+        "MA18"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P181",
+      "label": "05-Mathematics — fastfactorial, bernoulli",
+      "batches": [
+        "MA19"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P182",
+      "label": "05-Mathematics — special functions",
+      "batches": [
+        "MA25"
+      ],
+      "phase": "Specialist and research families",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P183",
+      "label": "05-Mathematics — generating functions",
+      "batches": [
+        "MA28"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P184",
+      "label": "05-Mathematics — padic arithmetic, rationalreconstruction",
+      "batches": [
+        "MA20"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P185",
+      "label": "05-Mathematics — finite fields",
+      "batches": [
+        "MA21"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P186",
+      "label": "05-Mathematics — determinant advanced",
+      "batches": [
+        "MA22"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P187",
+      "label": "05-Mathematics — contourintegral",
+      "batches": [
+        "MA23"
+      ],
+      "phase": "Specialist and research families",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P188",
+      "label": "05-Mathematics — polynomial factorization",
+      "batches": [
+        "MA30"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P189",
+      "label": "05-Mathematics — nimber",
+      "batches": [
+        "MA31"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P190",
+      "label": "05-Mathematics — combinatorial linear algebra",
+      "batches": [
+        "MA32"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P191",
+      "label": "04-Graphs — graph counting",
+      "batches": [
+        "GR19"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P192",
+      "label": "05-Mathematics — integer linear algebra",
+      "batches": [
+        "MA33"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P193",
+      "label": "05-Mathematics — multivariate polynomial",
+      "batches": [
+        "MA34"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P194",
+      "label": "05-Mathematics — polynomial matrix",
+      "batches": [
+        "MA35"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P195",
+      "label": "05-Mathematics — relaxed convolution, semiring convolution",
+      "batches": [
+        "MA36",
+        "MA37"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P196",
+      "label": "05-Mathematics — discrete log advanced, quadratic integer, zero sum",
+      "batches": [
+        "MA38",
+        "MA42",
+        "MA44"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P197",
+      "label": "05-Mathematics — floor sum polynomial",
+      "batches": [
+        "MA39"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P198",
+      "label": "05-Mathematics — coding theory",
+      "batches": [
+        "MA40"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P199",
+      "label": "05-Mathematics — partizan games",
+      "batches": [
+        "MA43"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P200",
+      "label": "05-Mathematics — tableau algorithms, convolution specialized, set power series",
+      "batches": [
+        "MA45",
+        "MA50",
+        "MA51"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P201",
+      "label": "05-Mathematics — algebraic numbers",
+      "batches": [
+        "MA46"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P202",
+      "label": "05-Mathematics — multiprecision float",
+      "batches": [
+        "MA48"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P203",
+      "label": "05-Mathematics — ball arithmetic",
+      "batches": [
+        "MA47"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P204",
+      "label": "05-Mathematics — group algorithms",
+      "batches": [
+        "MA49"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P205",
+      "label": "06-Miscellaneous — rollback framework, persistentallocator, external memory",
+      "batches": [
+        "MI11",
+        "MI13"
+      ],
+      "phase": "Specialist and research families",
+      "size": "M+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P206",
+      "label": "06-Miscellaneous — probabilistic sketches, streaming algorithms, derandomization",
+      "batches": [
+        "MI12"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P207",
+      "label": "06-Miscellaneous — alphabetic tree",
+      "batches": [
+        "MI31"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P208",
+      "label": "07-Strings — onlinesuffixtree",
+      "batches": [
+        "ST12"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P209",
+      "label": "07-Strings — dynamicaho, approximate matching, palindrome advanced",
+      "batches": [
+        "ST13",
+        "ST37",
+        "ST16"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P210",
+      "label": "07-Strings — dynamicsuffixarray",
+      "batches": [
+        "ST36"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P211",
+      "label": "07-Strings — compressed text index",
+      "batches": [
+        "ST14"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P212",
+      "label": "07-Strings — grammar compression",
+      "batches": [
+        "ST15"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P213",
+      "label": "07-Strings — stringisomorphism, debruijn, zivlempel, linear string algorithms, combinatorial words",
+      "batches": [
+        "ST17",
+        "ST18",
+        "ST38",
+        "ST39"
+      ],
+      "phase": "Specialist and research families",
+      "size": "M+L+L+S",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P214",
+      "label": "07-Strings — dynamic suffix automaton",
+      "batches": [
+        "ST27"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P215",
+      "label": "07-Strings — dynamicpalindrome",
+      "batches": [
+        "ST28"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P216",
+      "label": "07-Strings — rindex",
+      "batches": [
+        "ST29"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P217",
+      "label": "07-Strings — dynamiclce",
+      "batches": [
+        "ST30"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P218",
+      "label": "07-Strings — semilocallcs",
+      "batches": [
+        "ST31"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P219",
+      "label": "07-Strings — historical string matching",
+      "batches": [
+        "ST32"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P220",
+      "label": "08-Python — exact geometry",
+      "batches": [
+        "PY09"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P221",
+      "label": "08-Python — succinct, fmindex",
+      "batches": [
+        "PY13",
+        "PY14"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P222",
+      "label": "08-Python — algebraic, combinatorial species",
+      "batches": [
+        "PY10"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P223",
+      "label": "08-Python — sat, approximation",
+      "batches": [
+        "PY15",
+        "PY16"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P228",
+      "label": "03-Geometry — ham sandwich",
+      "batches": [
+        "GE45"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "geometric partition theorems"
+    },
+    {
+      "id": "P224",
+      "label": "Whole-library test-runner, aggregate and build integration audit",
+      "batches": [
+        "SUP02"
+      ],
+      "phase": "Final support integration",
+      "size": "S",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P225",
+      "label": "Online solution coverage and expansion audit",
+      "batches": [
+        "SUP03"
+      ],
+      "phase": "Final support integration",
+      "size": "S",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P226",
+      "label": "Curated notebook, contest notes and printable-build audit",
+      "batches": [
+        "SUP04"
+      ],
+      "phase": "Final support integration",
+      "size": "S",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    }
+  ]
+}

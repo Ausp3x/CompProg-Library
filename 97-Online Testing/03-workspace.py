@@ -16,6 +16,27 @@ LIBRARY = Path(__file__).resolve().parent.parent
 TARGET = LIBRARY / "99-Workspace" / "template.cpp"
 LOCAL_INCLUDE = re.compile(r'^\s*#\s*include\s*"([^"]+)"\s*$')
 PRAGMA_ONCE = re.compile(r"^\s*#\s*pragma\s+once\s*$")
+MOTTO = "// 知彼知己，百战不殆"
+DRIVER = """\
+void solve(int t) {
+    // trace(to_string(t));
+
+    return;
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int t = 1;
+    cin >> t;
+    for (int i = 1; i <= t; i++) {
+        solve(i);
+    }
+
+    return 0;
+}
+"""
 
 
 def header(name: str) -> str:
@@ -29,27 +50,17 @@ def header(name: str) -> str:
             if name == "02-debug.hpp" and match.group(1) in ("01-template.hpp", "../01-Core/01-template.hpp"):
                 continue
             raise ValueError(f"unexpanded local include in {path}: {line}")
+        if line.strip().startswith("//") and line.strip() != MOTTO:
+            continue
         lines.append(line)
     return "\n".join(lines).strip() + "\n"
 
 
 def generate() -> str:
-    return (
-        "// Generated explicitly by 97-Online Testing/03-workspace.py.\n"
-        + header("01-template.hpp") + "\n"
-        + header("02-debug.hpp") + "\n"
-        + "void solve() {\n"
-        + "}\n\n"
-        + "int main() {\n"
-        + "    std::ios::sync_with_stdio(false);\n"
-        + "    cin.tie(nullptr);\n\n"
-        + "    // Multi-case: replace solve() below with these two lines.\n"
-        + "    // int t; cin >> t;\n"
-        + "    // while (t--) { solve(); }\n"
-        + "    solve();\n"
-        + "    return 0;\n"
-        + "}\n"
-    )
+    text = header("01-template.hpp") + "\n" + header("02-debug.hpp") + "\n" + DRIVER
+    if not text.startswith(MOTTO + "\n"):
+        raise ValueError("01-template.hpp must start with the motto line")
+    return text
 
 
 def main() -> int:

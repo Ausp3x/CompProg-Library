@@ -1,26 +1,34 @@
-# Shared principles
+# Principles
 
-## Four requirements
+Every implementation satisfies all four requirements. None is optional and none trades against another.
 
-- **Correctness:** correct for every input in the stated domain, including boundaries; no undefined behavior. Preconditions and legitimate no-answer outcomes are different. Correctness is unconditional.
-- **Optimality:** best appropriate asymptotic and practical implementation, avoiding general bottlenecks and needless work. Select algorithms/thresholds for actual domains and workloads; a universal fastest implementation is not a meaningful claim. Compilation time is not a constraint. State material memory and preprocessing costs.
-- **Completeness:** a complete, explicit feature inventory for each problem family, including relevant advanced and research-level variants. Inventory omissions and unfinished entries remain visible. Mini/Python scopes are explicitly reduced; do not silently weaken shared semantics.
-- **Elegance:** clean compressed algorithm code, direct control flow, short meaningful names, few necessary variables, no redundancy or gratuitous abstractions. This remains a requirement in every profile, not an optional priority to discard. Compression must not hide invariants, duplicate expensive computation, or weaken another requirement.
+| Requirement | Meaning |
+|---|---|
+| Correctness | Right answer for every input in the stated domain, including boundaries, with no undefined behavior. A violated precondition (assert) and a valid input with no answer (sentinel/status) are different cases. |
+| Optimality | Best asymptotic bound for the domain and the best practical constant that the profile allows. Choose thresholds for real workloads and record them. Compilation time never matters. |
+| Completeness | Every public operation of the family is named in the folder inventory and either implemented or marked planned. Mini and Python are documented reductions, never silent ones. |
+| Elegance | Direct control flow, short meaningful names, few variables, no duplication or gratuitous abstraction. Compression never hides an invariant or repeats expensive work. |
 
 ## Profiles
 
-| Profile | Required behavior |
-|---|---|
-| Core full: non-mini algorithms in 01-Core | Extreme practical optimization, including applicable SIMD/AVX2/FMA/BMI or other specialized techniques, compile-time selection, scalar fallback, measured thresholds |
-| Core mini | Minimize printed lines: omit rare operations, then restrict documented domains, before choosing slower implementations; identical semantics on the shared domain; no fixed line cap; independently copyable from full and sibling implementations |
-| Contest: 02–07 and Python | Optimal complexity and direct efficient implementation with more brevity leeway; no handwritten SIMD/assembly/ISA-specific requirements; ordinary compiler optimization is allowed |
+| Profile | Scope | Required behavior |
+|---|---|---|
+| Core full | Non-mini headers in `01-Core` | Extreme optimization: AVX2/FMA/BMI2 or other specialized kernels behind compile-time guards, scalar fallback with identical results, measured crossover thresholds, Barrett/Montgomery wherever beneficial. |
+| Core mini | `*mini.hpp` in `01-Core` | Fewest source lines: drop rare operations first, then narrow and document the domain, and only then accept a slower algorithm. Identical results to the full type on the shared domain. Independently copyable: no dependency on a sibling, full type, detail namespace or reduction header. |
+| Contest | `02`–`07` and `08-Python` | Optimal complexity and an efficient direct implementation. No handwritten SIMD, assembly or ISA-specific code; ordinary compiler optimization only. May depend on Core full types, whose scalar fallback must work without special flags. |
 
-Contest algorithms may depend on accelerated full Core types, whose fallback must work without special flags. Keep specialization implemented in Core. Large tables or similarly bulky optimizations require a compact alternative in the same header/module. Single-threaded contest semantics are the baseline; static caches and dynamic-modulus state are allowed with documented validity/lifetime rules.
+Barrett or Montgomery reduction outside Core needs a recorded end-to-end benchmark showing at least 20% lower runtime on a representative workload and no meaningful common-case regression. A smaller gain needs a written reason such as a judge limit. If the optimized code is much longer, keep a compact alternative.
 
-Barrett/Montgomery use outside Core requires at least **20% lower end-to-end runtime** on representative relevant workloads, no meaningful common-case regression, and recorded evidence. A smaller gain needs a specific documented justification such as meeting a judge limit. A tiny isolated arithmetic benchmark is insufficient. Keep a simpler alternative when code growth is substantial. Inside Core, use them wherever applicable and beneficial.
+Single-threaded contest execution is the baseline. Static caches and dynamic-modulus state are allowed when their lifetime and invalidation rules are documented.
 
-## Evidence and scope
+## Evidence
 
-Record supported domains, missing features, source provenance, test commands/results, and benchmark conditions honestly. Existing source, old test success, or one accepted judge problem does not establish maximality or complete correctness. Finite tests cannot prove all inputs; combine justified algorithms with systematic verification. Do not claim an online acceptance or external source review that did not happen.
+- A status claim is backed by evidence: verified means every operation in the inventory row has a test with an independent oracle and the recorded commands pass. Existing code, old tests or one accepted judge submission prove nothing on their own.
+- Record domains, omissions, provenance, test commands with results, and benchmark conditions. Never state that a source was read, a test was run or a submission was accepted when it was not.
+- Finite tests prove nothing about untested inputs. Pair them with a correctness argument.
 
-The current inventory is a living roadmap, not an instruction to build everything in every task. Update the relevant entry and verification evidence when changing an implementation. Preserve legacy files in OLD; remove them only after their intended features have been migrated and accounted for.
+## Scope discipline
+
+- Do the assigned package only. Update its inventory rows, tests, aggregates, evidence and dependent paths in the same change.
+- Legacy material in `OLD` and `97-Legacy` stays until every feature it contains is accounted for in the inventory.
+- Never submit to an online judge automatically.
