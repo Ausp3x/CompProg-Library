@@ -1,6 +1,6 @@
 # 07-rotatingcalipers.hpp — evidence
 
-Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `05-closestpair.hpp`, `06-circle.hpp` and `08-coordinate_transform.hpp`); see [00-notes.md](00-notes.md#p008--ge02-package-record) for the package record and the folder numeric policy. The 2026-10-07 re-audit implemented `farthestPair`, which the row had left `missing`; `degenerateBox` is listed in the row because the contest struct exposes it. Every operation in the row has a test with an independent oracle.
+Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `05-closestpair.hpp`, `06-circle.hpp` and `08-coordinate_transform.hpp`); see [00-notes.md](00-notes.md#p008--ge02-package-record) for the package record and the folder numeric policy. `degenerateBox` is listed in the row because the contest struct exposes it. Every operation in the row has a test with an independent oracle.
 
 ## Contracts
 
@@ -60,25 +60,17 @@ Correctness:
 
 ## Commands and results
 
-### 2026-09-27 (original P008)
+2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 is not installed; no GCC 14 run is claimed.
 
-The full suite passed optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan with leak checking, at seed `20260927`, with 626,364 checks per configuration. The row was incomplete then (`farthestPair` missing, degenerate witnesses untested).
-
-### 2026-10-07 re-audit
-
-Environment: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 is not installed, so no GCC 14 run is claimed. No online submission was made. The baseline full run before any edit reproduced the 2026-09-27 count exactly.
-
-| Entry | Full, seed `20260927` (optimized, checked, ASan/UBSan) | Stress, seed `42`, optimized |
-|---|---|---|
-| `07-rotatingcalipers_tester.py` | PASS, 631,872 checks per configuration; 3,296 Python cases; 6 assertion probes | PASS, 31,047,696 checks; 21,296 Python cases |
-
-Also run:
-
-- Mutation checks (each applied temporarily, the optimized full suite run, the header restored). Caught: `farthestPair`'s index sorting and initial pair, and the singleton width witness.
-- A warning sweep under `-Wall -Wextra -Wconversion`, instantiating every exact operation for `int8_t`, `int16_t`, `int` and `lng` plus every approximate operation, found no header warnings. The tester has one `-Wconversion` warning; the sweep covers the header only.
-- A two-translation-unit program mixing all four GE02 headers passed optimized and ASan/UBSan, and the header compiles alone.
-- The sanitized integration (102 standalone and aggregate headers, scalar and AVX2 multi-TU builds, workspace) passed. The geometry quick run and the repository consistency check passed, and `03-consistency.py --braces` is clean on the header, tester and benchmark.
-- Independent review (`@reviewer`) reproduced the full count and probes; its own 300k `farthestPair` clouds against an all-pairs oracle found no mismatch.
+| Command | Result |
+|---|---|
+| `07-rotatingcalipers_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 631,872 checks per configuration; 3,296 Python cases; 6 assertion probes |
+| `07-rotatingcalipers_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 31,047,696 checks; 21,296 Python cases |
+| Mutation checks, optimized full suite per mutant | Caught: `farthestPair`'s index sorting and initial pair, the singleton width witness |
+| Warning sweep, every exact operation for `int8_t`, `int16_t`, `int`, `lng` plus every approximate operation, `-Wall -Wextra -Wconversion` | No header warnings (the tester has one `-Wconversion` warning) |
+| Two-translation-unit program mixing all four GE02 headers (optimized, ASan/UBSan); standalone header | PASS |
+| `02-integration.py --sanitizers`, geometry quick run, `03-consistency.py` (with `--braces`) | PASS, no errors |
+| `@reviewer`: 300k `farthestPair` clouds against an all-pairs oracle | No mismatch |
 
 ```bash
 python3 '96-Local Testing/03-Geometry/07-rotatingcalipers_tester.py' --mode full --seed 20260927
@@ -89,17 +81,6 @@ python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/0[5-8]*.hpp '9
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-### Re-audit findings and their disposition (2026-10-07)
-
-| # | Finding | Disposition |
-|---|---|---|
-| 5 | `farthestPair` absent; evidence claimed no missing feature | Implemented as a hull wrapper with original-index ties, checked against an all-pairs oracle; text rewritten |
-| 6 | Degenerate width/box witnesses undocumented and untested | Documented in the header comments and Contracts; the tester asserts width `opposite`, box `edges` and the vertex layout for `n < 3` |
-| 11, 12 | Bare closing braces in the calipers constructor and `ratioLess` | Normalized |
-| 13 | Tester function bodies closed on their own line | Tester and benchmark normalized |
-
-Other changes: the contract comment blocks moved from the header into `## Contracts`; the header meets the two-line and 8% comment caps, and grouped functions share one complexity line, as in the P007 restyle. `07-rotatingcalipers.hpp` now includes `04-convexhull.hpp` for `farthestPair`. No public name or documented behavior changed, apart from the addition.
-
 ## Benchmarks
 
 ```sh
@@ -107,7 +88,7 @@ g++ -std=gnu++20 -O2 -DNDEBUG '96-Local Testing/03-Geometry/07-rotatingcalipers_
 /tmp/p008-calipers-benchmark
 ```
 
-The input is a strictly convex integer parabola (every point a hull vertex). Setup is timed separately, and a warmup precedes seven measurements; the table gives medians. The brute force checks every edge pair with the same exact comparator, and its objective is checked against the polar result. The checksum is `2.00271e+12`. Rerun on 2026-10-07 (i9-11900H, GCC 16.2.1):
+The input is a strictly convex integer parabola (every point a hull vertex). Setup is timed separately, and a warmup precedes seven measurements; the table gives medians. The brute force checks every edge pair with the same exact comparator, and its objective is checked against the polar result. The checksum is `2.00271e+12`. 2026-10-07, i9-11900H, GCC 16.2.1:
 
 | n | setup µs | polar µs | all edge pairs µs | brute / polar |
 |---:|---:|---:|---:|---:|
@@ -129,4 +110,9 @@ Inspected on 2026-09-27:
 
 ## Limits and handoffs
 
-No failing reproducer and no unfinished owned operation. Other packages own convex polygon queries (GE05), two-polygon calipers problems (rows 04, 11, 17 and 25) and polygon distance (GE25).
+Other packages own convex polygon queries (GE05), two-polygon calipers problems (rows 04, 11, 17 and 25) and polygon distance (GE25).
+
+## History
+
+- 2026-09-27: original P008, full suite (seed 20260927, 626,364 checks) passed on g++ 16; `farthestPair` missing, degenerate witnesses untested.
+- 2026-10-07: re-audit, implemented `farthestPair`; 4 findings fixed (degenerate witnesses documented and tested, bare closing braces in header, tester and benchmark); full suite, stress and benchmark passed on g++ 16.

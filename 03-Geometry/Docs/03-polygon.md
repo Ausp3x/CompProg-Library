@@ -1,6 +1,6 @@
 # 03-polygon.hpp — evidence
 
-Owned by package P007 / GE01 (geometry foundations, together with `01-point.hpp`, `02-line_segment.hpp` and `04-convexhull.hpp`); see [00-notes.md](00-notes.md#p007--ge01-package-record) for the package record and the folder numeric policy. The 2026-10-07 re-audit added `polygonCutApprox` from the completeness sweep. Every operation in the row has a test.
+Owned by package P007 / GE01 (geometry foundations, together with `01-point.hpp`, `02-line_segment.hpp` and `04-convexhull.hpp`); see [00-notes.md](00-notes.md#p007--ge01-package-record) for the package record and the folder numeric policy. Every operation in the row has a test.
 
 ## Contracts
 
@@ -58,7 +58,7 @@ Correctness: the cut replaces each excursion into the open right half-plane with
 
 ## Feature-to-test map
 
-`96-Local Testing/03-Geometry/03-polygon_tester.py` provides quick, full and stress modes, deterministic seeds, oracles that survive `-DNDEBUG`, and assertion-failure subprocesses. Full mode builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and AddressSanitizer/UndefinedBehaviorSanitizer configurations. Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them. The entry resolves paths from its own location.
+`96-Local Testing/03-Geometry/03-polygon_tester.py` provides quick, full and stress modes, deterministic seeds, oracles that survive `-DNDEBUG`, and assertion-failure subprocesses. Full mode builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and AddressSanitizer/UndefinedBehaviorSanitizer configurations. Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
 
 The base oracle is unions of unit grid cells, which supply area, first moments, occupancy, perimeter and enumerated lattice points. Reversal, triangle barycenters, floating dyadic and wide-coordinate regressions supplement it.
 
@@ -77,24 +77,16 @@ Finite tests supplement the arguments above; they do not prove correctness for a
 
 ## Commands and results
 
-### 2026-09-27 (original P007)
+2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 was unavailable; no GCC 14 run is claimed.
 
-Environment: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 (`20260810`), Python 3.14.7, GNU++20. GCC 14 was unavailable. Full mode with seed `20260927` passed every configuration with 289,431 checks. The 2026-10-07 baseline rerun before the re-audit edits reproduced exactly this check count.
-
-### 2026-10-07 re-audit
-
-Environment: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 was unavailable, so these are GCC 16 runs; no GCC 14 run is claimed. No online submission was made.
-
-| Entry | Full, seed `20260927` (optimized, checked, ASan/UBSan) | Stress, seed `42`, optimized |
-|---|---|---|
-| `03-polygon_tester.py` | PASS, 389,280 checks per configuration, 6 assertion probes | PASS, 2,439,453 checks |
-
-The stress round ran before the review fixes (unqualified `abs` and a `lng` cast in five polygon size asserts), which did not change behavior; the full run was repeated after them. Also run (package-wide):
-
-- The sanitized integration (102 standalone and aggregate headers, scalar and AVX2 multi-TU builds, workspace) passed.
-- A two-translation-unit smoke that mixes all four GE01 headers passed.
-- A warning sweep instantiated every operation for `int8_t`, `int16_t`, `int`, `lng`, `lll`, `float`, `double` and `long double` under `-Wall -Wextra -Wconversion`. The header produced no warnings.
-- The brace and comment-cap check and repository consistency report no errors.
+| Command | Result |
+|---|---|
+| `03-polygon_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 389,280 checks per configuration, 6 assertion probes |
+| `03-polygon_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 2,439,453 checks |
+| `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU builds, workspace) | PASS |
+| Two-translation-unit smoke mixing all four GE01 headers | PASS |
+| Warning sweep, every operation for all eight `T`, `-Wall -Wextra -Wconversion` | No warnings |
+| `03-consistency.py --braces ...` and `03-consistency.py` | No errors |
 
 ```bash
 python3 '96-Local Testing/03-Geometry/03-polygon_tester.py' --mode full --seed 20260927
@@ -105,25 +97,9 @@ python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/0[1-4]*.hpp '9
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-### Re-audit findings and their disposition (2026-10-07)
-
-The re-audit compared every operation in the row against the code and tests before making changes.
-
-| # | Finding | Disposition |
-|---|---|---|
-| 3, 4 | Evidence claimed no gaps while rows were partial | Superseded: every operation is implemented and mapped above; status and handoff text rewritten |
-| 7 | Free functions lack complexity comments | Every function sits under a complexity line, one per group of functions with the same bound (the restyle convention). Contracts moved to `## Contracts` |
-| 10 | `; }` closings | Header and C++ tester normalized; `03-consistency.py --braces` is clean |
-| 11 | Undefined `r` in polygon comments | Every grouped polygon comment defines `n total vertices, r rings` |
-| 12 | `polygonContains`/`WindingResult` lack comments | Both covered: `WindingResult` has its own line, and `polygonContains` sits in the winding group |
-
-Other changes: the multi-line contract comment blocks moved out of the header into `## Contracts`, and the header meets the comment cap. No public name or documented behavior changed.
-
-Independent review (`@reviewer`, 2026-10-07) confirmed one defect in this header, now fixed: `-Wsign-compare` fired on `p.size() <= INT_MAX - n` in five polygon asserts; these warnings predated the re-audit.
-
 ## Sources
 
-The implementation was written independently from the geometric identities. Notebook implementations were reviewed as comparison evidence and not copied as correctness guarantees. The 2026-10-07 completeness sweep sources are in [00-sources.md](00-sources.md#p007-completeness-sweep-fetched-2026-10-07); candidates not adopted are in [00-notes.md](00-notes.md#p007-completeness-decisions-2026-10-07).
+The implementation was written independently from the geometric identities. Notebook implementations were reviewed as comparison evidence and not copied as correctness guarantees. The completeness sweep sources are in [00-sources.md](00-sources.md#p007-completeness-sweep-fetched-2026-10-07); candidates not adopted are in [00-notes.md](00-notes.md#p007-completeness-decisions-2026-10-07).
 
 - [KACTL team notebook PDF](https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/kactl.pdf), saved November 24, 2024 edition: printed pp. 16–18 (polygon area/centroid/containment). The relevant snippets were read for operations, overflow warnings and degeneracy conventions.
 - [Stanford ICPC notebook, 2015–16 PDF](https://raw.githubusercontent.com/jaehyunp/stanfordacm/master/notebook.pdf), miscellaneous geometry section 2.2, pp. 6–7. Its approximate EPS predicates are not adopted for exact integer topology or sorting.
@@ -133,4 +109,9 @@ The implementation was written independently from the geometric identities. Note
 
 ## Limits and handoffs
 
-No failing reproducer and no unfinished owned operation. Other planned packages own simple-polygon validation and intersection sweeps (P129 / GE04), general rational-lattice counts (P037 / GE27) and adaptive and exact floating predicates (P128 / GE11).
+Other planned packages own simple-polygon validation and intersection sweeps (P129 / GE04), general rational-lattice counts (P037 / GE27) and adaptive and exact floating predicates (P128 / GE11).
+
+## History
+
+- 2026-09-27: original P007, full suite (seed 20260927, 289,431 checks) passed on g++ 16.
+- 2026-10-07: re-audit, added `polygonCutApprox`; 5 findings fixed (complexity comments, braces, `r` definition, missing comments, `-Wsign-compare` in size asserts); full suite and stress passed on g++ 16.

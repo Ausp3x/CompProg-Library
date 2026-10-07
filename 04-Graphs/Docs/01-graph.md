@@ -1,6 +1,6 @@
 # 01-graph.hpp — evidence
 
-Owned by package P010 / GR01 (graph foundations, with `02-traversal.hpp` through `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract). First verified on 2026-09-27. The 2026-10-06 inventory rewrite reopened the row as partial for the line graph, induced subgraph, contraction and simplification; the 2026-10-07 re-audit implemented them and closed the row.
+Owned by package P010 / GR01 (graph foundations, with `02-traversal.hpp` through `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract).
 
 ## Contracts
 
@@ -57,52 +57,32 @@ Correctness: these are direct constructions. `lineGraph` enumerates, per vertex,
 | `simplify` | Every graph and every contraction | Ordered pair map of `(w, id)` minima |
 | Preconditions | 27 assertion probes, including `induced-negative`, `induced-end`, `induced-duplicate`, `contract-size`, `contract-count`, `contract-negative`, `contract-end` | Expected assertion failure |
 
-Mutation checks (planted in a temporary copy, full mode) killed: line-graph loop double count and self-pairs, simplify keeping the maximum, reversed induced orientation and maximum-view tie order. The independent reviewer's surviving mutant here (simplify tie on an equal ID) is equivalent.
+Mutation checks (planted in a temporary copy, full mode) killed: line-graph loop double count and self-pairs, simplify keeping the maximum, reversed induced orientation and maximum-view tie order. A surviving mutant (simplify tie on an equal ID) is equivalent.
 
 ## Commands and results
 
-### 2026-09-27 (original P010)
-
-Fresh runs used GCC 16.2.1 (20260810), GNU++20 and CPython 3.14.7 on Linux x86-64. Full mode with seed 20260927 passed all three builds. The sanitizer run encountered the environment's ptrace/LeakSanitizer restriction and passed after an approved execution outside the sandbox with leak detection enabled; this is a completed retry, not a skipped configuration. The shared quick runner passed all six P010 entries with seed 42 from `/tmp`, validating discovery and caller-directory independence. Integration passed 79 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage/execution, and LOCAL/non-LOCAL workspace compilation; graph ASan/UBSan coverage comes from the six dedicated full suites, and unrelated Core sanitizer suites were not rerun. Repository consistency passed with no errors. All 61 checked precondition probes of the package passed. Extended stress modes were implemented but not run in that pass. Independent review found no remaining correctness, domain, complexity or meaningful coverage gap.
-
-### 2026-10-07 re-audit
-
-Before any edit, the unchanged suite passed full mode with seed 20260927 in all three builds. After the changes every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner, because the P011 header `07-lca.hpp` still had an unused parameter under `NDEBUG`).
+2026-10-07, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
 | Run | Result |
 |---|---|
-| Full, seed 20260927, before any edit | PASS, all three builds |
+| Full, seed 20261007, g++ | PASS, all three builds, 19,639,546 checks per build, 27 probes |
+| Full, seed 20261007, `CXX=g++-14` | PASS, all three builds, same counts |
+| Full, seed 20260927 | PASS, 19,364,200 checks per build, 27 probes |
 | Stress, seed 7 | PASS, all three builds, 157,165,740 checks per build |
-| Full, seed 20261007, after the review fixes, GCC 16.2.1 | PASS, all three builds, 19,639,546 checks per build, 27 probes |
-| Full, seed 20261007, GCC 14.4.1 20260915 (`CXX=g++-14`) | PASS, all three builds, same counts |
-
-The current feature map's full result with seed 20260927 is 19,364,200 checks per build and 27 assertion probes. The shared quick runner passed all eleven graph entries from `/tmp`. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage, the workspace build and the sanitizer self-tests. `03-consistency.py` reports no errors, and `--braces` reports nothing for the package headers, testers and benchmarks. All runs used CPython 3.14 on Linux x86-64. GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available. No online submission was made.
+| Quick runner, all eleven graph entries, from `/tmp` | PASS |
+| `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU linkage, workspace, sanitizer self-tests) | PASS |
+| `03-consistency.py`, with `--braces` on package headers, testers and benchmarks | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode full --seed 20260927        # before any edit
-python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode stress --seed 7
-python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode full --seed 20261007        # after the review fixes
+python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode full --seed 20261007
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode full --seed 20261007
+python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode stress --seed 7
 python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
 ```
 
 `--configuration optimized|checked|ASan-UBSan` selects one build for a targeted retry.
-
-### Re-audit findings and their disposition (2026-10-07)
-
-Before any edit the row lacked `lineGraph`, `inducedSubgraph`, `contract` and `simplify`, and `GraphLabels::value` existed but was not listed. The findings are recorded in `00-Guidelines/23-Reaudit Findings/p010.md`.
-
-| # | Finding | Disposition |
-|---|---|---|
-| 2 | `lineGraph`, `inducedSubgraph`, `contract`, `simplify` absent | Implemented with the contracts above and tested against the four independent oracles the finding names. |
-| 4 | Evidence claimed GR01 complete while the row was partial | Intro rewritten; the reopened row is closed by this re-audit. |
-| 6 | `GraphEdge`/`GraphArc` without a complexity line; method bounds without T/M | The two adjacent one-line aggregates share one `T:/M:` line, the form P006 accepted for adjacent pairs; the `reverse`/`read` bounds moved into the struct line. The reviewer noted the shared line; it is resolved by the shared-line form under the 8% cap. |
-| 7, 12, 14 | Closing-brace rule (`}} }`, `; }}}`, `; }`) | Fixed in all six P010 headers, testers and both benchmarks; `03-consistency.py --braces` reports nothing for the package. |
-| 8 | T/M lines not directly above | Every declaration now has its complexity line directly above it; contract prose moved to Contracts. |
-
-Independent review (`@reviewer`, 2026-10-07) found no correctness defect. Its items for this header were resolved: the feature-to-test map, probe count and GCC 14 statement were rewritten, and `contract`'s bound now includes the O(n) label checks (`T: O(n + k + m)`).
 
 ## Benchmarks
 
@@ -129,8 +109,14 @@ Retrieved and inspected on 2026-09-27; no source code was copied. A source revie
 | [OI Wiki, 图的存储](https://oi-wiki.org/graph/save/) (page revision 2026-09-12) | Matrix/list/forward-star tradeoffs and paired reverse arcs; used to assess storage coverage. |
 | [Boost 1.89, Compressed Sparse Row Graph](https://www.boost.org/doc/libs/1_89_0/libs/graph/doc/compressed_sparse_row.html) | Source-group offsets, O(n+m) storage and immutable CSR use. |
 
-The 2026-10-07 completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p010-re-audit); omitted candidates are in [00-notes.md](00-notes.md#p010-re-audit-omissions).
+The completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p010-re-audit); omitted candidates are in [00-notes.md](00-notes.md#p010-re-audit-omissions).
 
 ## Limits and handoffs
 
-No owned implementation or verification gap remains. Exact GCC 14.2 runtime is not claimed. Dynamic graphs are owned by their separate inventory rows.
+GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available. Dynamic graphs are owned by their separate inventory rows.
+
+## History
+
+- 2026-09-27: original P010, full suite (seed 20260927) passed on g++ 16 with integration and 61 package probes; stress not run.
+- 2026-10-06: inventory rewrite reopened the row as partial (line graph, induced subgraph, contraction, simplification).
+- 2026-10-07: re-audit, implemented `lineGraph`, `inducedSubgraph`, `contract`, `simplify`; 5 findings fixed (missing operations, evidence claim, complexity lines, brace rule, T/M placement); full suite passed on g++ and g++-14, stress passed.

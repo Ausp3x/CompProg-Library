@@ -1,4 +1,6 @@
-# Lowlink and strong orientation — P011 / GR03
+# 09-bridges_articulation.hpp — evidence
+
+Owned by package P011 / GR03 (lowlink and strong orientation); see [00-notes.md](00-notes.md#p011-package-record) for the package record.
 
 ## Contracts
 
@@ -12,7 +14,7 @@
 | `tin`, `low`, `parent_arc`, `roots` | DFS discovery permutation, lowest ancestor discovery reachable by a descendant's back edge, entering arc (`-1` at roots), and original connected-component roots in increasing minimum-vertex order. |
 | `bridges`, `is_bridge` | Original logical edge IDs whose deletion increases the number of connected components, in DFS finish order; parallel edges remain distinct. |
 | `is_art` | Vertex deletion increases the number of connected components. Neither an isolated vertex nor a loop makes a vertex an articulation point. |
-| `cut_components` | `cut_components[u]` is the number of connected components of the graph with `u` and its incident edges deleted (re-audit addition). With `c` original components and `k(u)` DFS children `x` of `u` with `low[x] >= tin[u]`, it equals `c - 1 + k(u)` at a DFS root and `c + k(u)` elsewhere; `is_art[u]` is `k(u) > (u is a root)`. The count after deleting edge `e` is the component count plus `is_bridge[e]`, so it needs no field. |
+| `cut_components` | `cut_components[u]` is the number of connected components of the graph with `u` and its incident edges deleted. With `c` original components and `k(u)` DFS children `x` of `u` with `low[x] >= tin[u]`, it equals `c - 1 + k(u)` at a DFS root and `c + k(u)` elsewhere; `is_art[u]` is `k(u) > (u is a root)`. The count after deleting edge `e` is the component count plus `is_bridge[e]`, so it needs no field. |
 | `component`, `components` | Vertex partition after deleting every bridge, including singleton components. Component IDs follow increasing minimum vertex. The partition is also called two-edge-connected / edge-biconnected components. |
 | `block_edges`, `block_vertices`, `edge_block` | Vertex-biconnected blocks with edge membership and unique vertex lists; every original edge occurs exactly once. Nonloop maximal blocks use the convention that a bridge is a two-vertex, one-edge block. Each self-loop is its own one-vertex block. A vertex with no incident edges receives an empty-edge singleton block. Blocks follow DFS emission order. |
 | `orientation` | One original arc ID for each logical edge: DFS tree edges point away from the root; other nonloop edges point toward an ancestor. Loops choose their first encountered arc. |
@@ -33,7 +35,7 @@ Original `BridgeAlgo` and `Tarjan` bytes remain in `OLD/algorithms.cpp` and corr
 
 The old Team Notebook cutpoint/bridge code's vertex-block feature is covered by `block_vertices`; isolated vertices, exact parallel-edge parent skipping and stable bridge IDs repair gaps in that reference. The old bridge-only algorithm is covered by `BridgeAlgo` and the canonical `bridges`/`is_bridge` results. Block-cut forest / bridge-tree query wrappers remain assigned to GR12. Dynamic bridge maintenance (GR12), directed dominators, st-numbering/open-ear decomposition, triconnectivity/SPQR and three-edge components are distinct inventory families; none is implied by static lowlink completion.
 
-## Correctness argument
+### Correctness
 
 The explicit DFS stack retains the next adjacency position of each active vertex and exactly simulates recursive discovery and return events. Skipping only the reverse arc of the tree edge preserves a second parallel edge as a back edge. An undirected DFS has no cross edges between distinct finished subtrees. On return from child `u` of `v`, `low[u]` is the minimum discovery index reachable from `u`'s subtree using tree edges and at most one upward non-tree edge. Thus `(v,u)` is a bridge exactly when `low[u] > tin[v]`, and a nonroot `v` is an articulation point exactly when some child has `low[u] >= tin[v]`. A DFS root is an articulation point exactly when it has at least two children. Loops affect none of these conditions.
 
@@ -43,17 +45,7 @@ Deleting all bridges and traversing the remaining graph gives the two-edge-conne
 
 Each vertex/arc is scanned a constant number of times, each edge is pushed/popped once, and every block's vertex list is bounded by twice its edge list except isolated singletons. All bounds are worst-case, including output. The implementation uses ordinary contest-profile containers; no new arithmetic acceleration or performance-comparison claim is involved.
 
-## Sources inspected
-
-The implementation is independent code from the stated invariants; no external source body was copied. These references were retrieved and read on 2026-09-27, including differences in degenerate-input conventions:
-
-- [cp-algorithms, “Strong Orientation”](https://cp-algorithms.com/graph/strong-orientation.html), last update 2024-06-24: Robbins' theorem, DFS orientation, and the extension minimizing SCC count to original components plus bridges.
-- [KACTL, “BiconnectedComponents.h”](https://github.com/kth-competitive-programming/kactl/blob/main/content/graph/BiconnectedComponents.h), Simon Lindholm, dated 2017-04-17, CC0: edge-ID parent exclusion and linear edge-stack decomposition. Its convention omits bridges from callback blocks; this API explicitly includes bridge dyads and accounts for loops and isolates.
-- [OI Wiki, “双连通分量”](https://oi-wiki.org/graph/bcc/), page reports update 2026-08-17: edge- versus vertex-biconnectivity, bridge deletion decomposition, lowlink vertex blocks, singleton convention, and the alternative difference/tree-edge coverage formulation. Its sample code drops loops; this API preserves loop edge ownership explicitly.
-
-These sources establish the relevant static decomposition/orientation scope. Resource-limited streaming bridge extraction and higher/dynamic connectivity require separate representations and algorithms; they are not alternate implementations required for this in-memory Graph/CSR contract. No online solution was submitted or acceptance claimed.
-
-## Feature-to-test map and evidence
+## Feature-to-test map
 
 `96-Local Testing/04-Graphs/09-bridges_articulation_tester.py` uses the shared graph runner and includes the actual header. Assertions are not test oracles; all correctness checks throw/report failures in `-DNDEBUG` builds as well. The command reports seed, mode, configuration, graph edge list, failing operation and expected/actual success, plus subprocess command and timeout/crash details. Exhaustive cases run in increasing graph size, followed by reproducible random cases and named large shapes.
 
@@ -65,7 +57,7 @@ These sources establish the relevant static decomposition/orientation scope. Res
 | Edge components | Independent traversal after removing deletion-oracle bridges; verify labels, complete groups and minimum-vertex order. |
 | DFS diagnostics | Discovery permutation, exact root set, acyclic input parent arcs, and independently enumerate descendant/back-edge pairs to check every lowlink value. |
 | Orientation / Robbins / witnesses | Validate every selected original arc ID; transitive closure verifies the exact SCC equivalence relation. Check obstruction edges/vertices against independent deletion/component oracles and the minimum-component lower bound. |
-| Legacy adapters / reset | Compare normalized bridge pairs and articulation flags to deletion oracles; `build` and `dfs` complete recomputation, including clearing prior bridges. Re-audit: `t_in`/`low` of both `Tarjan` and `BridgeAlgo` are checked independently on the original multigraph: `t_in` must be a permutation, the DFS forest is reconstructed from `t_in` alone (each vertex's parent is its neighbor with the largest earlier discovery time, a property of every undirected DFS), every nonloop edge must join an ancestor and a descendant, and each `low[u]` must equal the minimum discovery time over `u`'s subtree and the back edges (including extra parallel copies of tree edges) leaving it. |
+| Legacy adapters / reset | Compare normalized bridge pairs and articulation flags to deletion oracles; `build` and `dfs` complete recomputation, including clearing prior bridges. `t_in`/`low` of both `Tarjan` and `BridgeAlgo` are checked independently on the original multigraph: `t_in` must be a permutation, the DFS forest is reconstructed from `t_in` alone (each vertex's parent is its neighbor with the largest earlier discovery time, a property of every undirected DFS), every nonloop edge must join an ancestor and a descendant, and each `low[u]` must equal the minimum discovery time over `u`'s subtree and the back edges (including extra parallel copies of tree edges) leaving it. |
 | `cut_components` | Deletion oracle: BFS component count of the graph without each vertex, for every enumerated and random case (Graph and CSR), plus the 200,000-vertex chain, cycle and parallel star. |
 | Boundaries / lifetime | Empty graphs, singleton loops, dyads, parallel parent edges, multiple cycles meeting at a cutpoint, disconnected isolated vertices, full-range ignored weights, copied/moved owning results, graph mutation and repeated calls. |
 | Scale / stack safety | Long chain, closed chain and parallel-edge star (plus root loop), with exact known block/bridge/articulation expectations. |
@@ -73,51 +65,46 @@ These sources establish the relevant static decomposition/orientation scope. Res
 
 Quick covers all looped simple graphs through three vertices, all multiplicity-at-most-two looped graphs through two vertices, 100 random multigraphs through seven vertices and 20,000-vertex shapes. Full extends exhaustive bounds to four and three vertices respectively, uses 1,500 random multigraphs through eight vertices, and 200,000-vertex shapes. Stress adds all loopless simple graphs through six vertices, 12,000 random trials and 500,000-vertex shapes. Random trials periodically duplicate an existing edge as a separate metamorphic fixture.
 
-Final verification on 2026-09-27 used GCC 16.2.1, `-std=gnu++20`, and seed `20260927`:
-
-```text
-python3 '96-Local Testing/04-Graphs/09-bridges_articulation_tester.py' --mode full --seed 20260927
-PASS optimized -O2 -DNDEBUG: 3,643 cases, 1,450,632 checks
-PASS checked -O0 -g -D_GLIBCXX_DEBUG: same cases/checks, nine assertion probes
-PASS ASan/UBSan -O1 -g -D_GLIBCXX_ASSERTIONS: same cases/checks
-```
-
-The sanitizer configuration also enables leak detection, `-fno-sanitize-recover=all`, frame pointers and non-PIE linking. An initial sandbox run completed optimized/checked coverage but LeakSanitizer could not run under the sandbox's ptrace restriction. The final complete command above ran outside that restriction and all three configurations passed. Standalone header compilation is inherent in this suite; repository aggregate/multiple-translation-unit/consistency checks are recorded by the P011 integration owner. No timing benchmark or stress-mode execution is claimed. All features owned by this header are complete; there is no lowlink handoff gap.
+The sanitizer configuration (`-O1 -g -D_GLIBCXX_ASSERTIONS`) also enables leak detection, `-fno-sanitize-recover=all`, frame pointers and non-PIE linking. Swapping `t_in` and `low` in the legacy adapters fails with "Tarjan t_in permutation"; hand mutations of `cut_components` fail the quick suites.
 
 ## Commands and results
 
-The original 2026-09-27 run is recorded at the end of the feature-to-test map above. Package records are in [00-notes.md](00-notes.md#p011-package-record). Package integration (P011, 2026-09-27): final integration passed 82 standalone/aggregate headers, scalar/available-AVX2 multiple-translation-unit linkage and LOCAL/non-LOCAL workspace syntax; repository consistency passed with no errors.
-
-```bash
-python3 '96-Local Testing/04-Graphs/09-bridges_articulation_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
-
-### 2026-10-07 re-audit (GCC 16.2.1, GNU++20)
-
-The code was treated as existing-unverified. The header and tester were brought to the closing-brace rule and the two-line comment cap; the removed contract text is in Contracts above. Public names and behavior are unchanged apart from the addition below. Baseline before any change: the full suite passed in all three configurations (seed 1).
-
-| # | Finding | Disposition |
-|---|---|---|
-| 1 | Legacy `Tarjan`/`BridgeAlgo` `t_in`/`low` had no independent oracle | Fixed: `legacyDfs` in the bridges tester checks both adapters on the original multigraph (permutation, DFS forest reconstructed from `t_in`, ancestor–descendant nontree edges, recomputed `low`). The finding's mutation (swapping `t_in` and `low`) now fails with "Tarjan t_in permutation". |
-| 6 | `block` lambda (and tester `connected` lambda) lone closing brace | Fixed; `block` now uses a `for` loop with sentinel `-1`. |
-| 7 | `lowlink_detail::graph` without a complexity line | Fixed. |
-
-| Addition (completeness sweep) | Bound |
-|---|---|
-| `LowlinkResult::cut_components` — components after deleting each vertex; `is_art` derived from the same count | O(n) extra |
-
-Sources for the addition are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p011-re-audit); rejected candidates are in [00-notes.md](00-notes.md#p011-re-audit-omissions). Hand mutations of the new and changed P011 code were run against the quick suites and failed as required. `@reviewer` confirmed the findings fixed and wrote its own brute-force check for `cut_components` (20k multigraphs), passing under ASan/UBSan/`_GLIBCXX_DEBUG`.
+2026-10-07, GCC 16.2.1, GNU++20.
 
 | Command | Result |
 |---|---|
 | `09-bridges_articulation_tester.py --mode full --seed 20260927` | PASS 3 configurations, 3,643 cases, 1,709,661 checks, 9 probes |
 | `09-bridges_articulation_tester.py --mode stress --seed 1` | PASS 3 configurations, 49,955 cases |
 | `02-integration.py` and `02-integration.py --sanitizers` | PASS: 102 standalone/aggregate headers, scalar/available-AVX2 multi-TU, workspace, sanitizer self-tests |
-| `03-consistency.py` | no errors |
+| `03-consistency.py` | No errors |
+| `@reviewer`: own brute-force `cut_components` check, 20k multigraphs, ASan/UBSan/`_GLIBCXX_DEBUG` | PASS |
+
+```bash
+python3 '96-Local Testing/04-Graphs/09-bridges_articulation_tester.py' --mode full --seed 20260927
+python3 '96-Local Testing/04-Graphs/09-bridges_articulation_tester.py' --mode stress --seed 1
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
+```
+
+No timing benchmark is claimed.
+
+## Sources
+
+The implementation is independent code from the stated invariants; no external source body was copied. These references were retrieved and read on 2026-09-27, including differences in degenerate-input conventions:
+
+- [cp-algorithms, “Strong Orientation”](https://cp-algorithms.com/graph/strong-orientation.html), last update 2024-06-24: Robbins' theorem, DFS orientation, and the extension minimizing SCC count to original components plus bridges.
+- [KACTL, “BiconnectedComponents.h”](https://github.com/kth-competitive-programming/kactl/blob/main/content/graph/BiconnectedComponents.h), Simon Lindholm, dated 2017-04-17, CC0: edge-ID parent exclusion and linear edge-stack decomposition. Its convention omits bridges from callback blocks; this API explicitly includes bridge dyads and accounts for loops and isolates.
+- [OI Wiki, “双连通分量”](https://oi-wiki.org/graph/bcc/), page reports update 2026-08-17: edge- versus vertex-biconnectivity, bridge deletion decomposition, lowlink vertex blocks, singleton convention, and the alternative difference/tree-edge coverage formulation. Its sample code drops loops; this API preserves loop edge ownership explicitly.
+
+These sources establish the relevant static decomposition/orientation scope. Resource-limited streaming bridge extraction and higher/dynamic connectivity require separate representations and algorithms; they are not alternate implementations required for this in-memory Graph/CSR contract. No online solution was submitted or acceptance claimed.
+
+Sources for `cut_components` (fetched 2026-10-07) are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p011-re-audit); rejected candidates are in [00-notes.md](00-notes.md#p011-re-audit-omissions).
 
 ## Limits and handoffs
 
-No owned feature or verification gap. Dynamic connectivity/bridge maintenance and block-cut/bridge-tree query wrappers remain with their separate batch owners (row 27 for block-cut and bridge trees and two-edge-connectivity augmentation).
+Dynamic connectivity/bridge maintenance and block-cut/bridge-tree query wrappers remain with their separate batch owners (row 27 for block-cut and bridge trees and two-edge-connectivity augmentation). No `CXX=g++-14` floor run is recorded for this header.
 
+## History
+
+- 2026-09-27: original P011, full suite (seed 20260927, 3,643 cases, 1,450,632 checks, 9 probes) and integration passed on g++ 16; stress not run.
+- 2026-10-07: re-audit, added `LowlinkResult::cut_components`; 3 findings fixed (independent oracle for legacy `t_in`/`low`, lone closing braces, `lowlink_detail::graph` complexity line); full suite, stress and integration passed on g++ 16.

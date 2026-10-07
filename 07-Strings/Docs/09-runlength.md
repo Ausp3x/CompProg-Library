@@ -1,8 +1,10 @@
 # 09-runlength.hpp — evidence
 
+`09-runlength.hpp` (batch ST19, package P016) implements run-length encoding over byte and integer sequences. Symbols retain their exact type and value; strings include embedded NUL and all byte values. The encoder accepts an iterable sequence with integral `value_type` and `size()`, including strings, string views and vectors. Source length and encoded run count are at most `INT_MAX`. Counts and decoded witness positions use `lng` because externally supplied encodings can describe up to `INT64_MAX` symbols without expansion.
+
 ## Contracts
 
-`09-runlength.hpp` independently implements run-length encoding over byte and integer sequences. Symbols retain their exact type and value; strings include embedded NUL and all byte values. The encoder accepts an iterable sequence with integral `value_type` and `size()`, including strings, string views and vectors. Source length and encoded run count are at most `INT_MAX`. Counts and decoded witness positions use `lng` because externally supplied encodings can describe up to `INT64_MAX` symbols without expansion.
+### runLengthEncode, runLengthSize, runLengthDecode, runLengthSpans
 
 | Operation | Contract and cost |
 |---|---|
@@ -13,15 +15,11 @@
 
 All caps must be nonnegative; negative caps and source/run counts above the declared domain are precondition violations. Zero or negative encoded counts are handled invalid data, not precondition violations. All operations distinguish successful empty data from failure by their boolean return. Decoding and spans deliberately accept adjacent equal runs, while re-encoding produces maximal runs. Allocation exhaustion retains ordinary C++ allocation exceptions; a caller should choose a practical decode cap for its memory budget.
 
-Generic prefix coding/Huffman is owned by Miscellaneous. Lempel–Ziv and run-length BWT belong to their separate Strings batches. Streaming merge state is unnecessary for these owned static contracts. There is no online submission or acceptance claim.
-
-## Correctness and optimality
-
-The encoder starts a run precisely at the first symbol or an adjacent-symbol change. Its count therefore equals the length of that maximal constant interval, and the concatenated intervals partition the source. Counts are tested against their cap before incrementing.
+Correctness and optimality: the encoder starts a run precisely at the first symbol or an adjacent-symbol change. Its count therefore equals the length of that maximal constant interval, and the concatenated intervals partition the source. Counts are tested against their cap before incrementing.
 
 Size validation maintains a nonnegative partial sum `n <= max_size`. A positive count is accepted only if `count <= max_size-n`, so both the subtraction and subsequent addition are representable. Any rejected count or sum is detected before expansion. Decoding appends the validated number of copies of each symbol, and spans accumulate the same validated lengths. The span temporary preserves unread input under aliasing. These arguments depend only on symbol equality and copying, not the magnitude or signedness of symbols.
 
-Encoding must inspect all source symbols, size validation must inspect all runs, and decoding must write every output symbol. The respective linear input/output bounds are optimal for these explicit representations. No hardware specialization, reduction backend, dispatch threshold or comparative speed claim is introduced. Large unary and alternating cases exercise both extreme output sizes; separate benchmark comparisons are not needed for this direct scan.
+Encoding must inspect all source symbols, size validation must inspect all runs, and decoding must write every output symbol. The respective linear input/output bounds are optimal for these explicit representations.
 
 ## Feature-to-test map
 
@@ -38,53 +36,29 @@ The entry point is `96-Local Testing/07-Strings/09-runlength_tester.py`, using t
 | Alphabet and size domains | Empty/singleton, full byte alphabet with embedded NUL/high bytes, string-view source, signed/unsigned integer extremes through 64 bits, `vector<bool>`, and 200,000-symbol unary/alternating inputs. Larger GNU integral symbol types follow the same copy/equality-only algorithm but are not separate executed fixtures. |
 | Preconditions | Five checked-build assertion probes: oversized source, negative encode cap, negative size cap, negative decode cap and negative span cap. |
 
-Quick/full/stress enumerate ternary strings through lengths 5/8/10, run 300/4,000/20,000 random source cases, enumerate external run lists through 2/3/4 entries, and exercise large inputs of 10,000/200,000/1,000,000 symbols. Every mode covers all public operations; full and stress add sanitizers. Only the full mode is needed for this batch's completion.
+Quick/full/stress enumerate ternary strings through lengths 5/8/10, run 300/4,000/20,000 random source cases, enumerate external run lists through 2/3/4 entries, and exercise large inputs of 10,000/200,000/1,000,000 symbols. Every mode covers all public operations; full and stress add sanitizers.
 
 ## Commands and results
 
-On 2026-09-28, `python3 '96-Local Testing/07-Strings/09-runlength_tester.py' --mode full --seed 20260928` passed all three GNU++20 configurations using GCC 16.2.1: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1` AddressSanitizer/UndefinedBehaviorSanitizer with checked library assertions. Each configuration passed **363,502 checks**; the checked build also passed all **five assertion probes**. The final local transcript is `/tmp/p016-runlength-final-full.log`.
+P016 verification run, 2026-09-28: Linux x86-64 (i9-11900H), GCC 16.2.1 (20260810),
+GNU++20, CPython 3.14.7, seed 20260928. The shared runner builds optimized
+`-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan (leak checking on)
+configurations; test oracles stay active under NDEBUG. LeakSanitizer cannot run
+under the sandbox process tracer, so sanitizer configurations ran outside it.
 
-The initial sandboxed full run passed optimized and checked configurations, then LeakSanitizer reported its known ptrace environment restriction; the same full suite was rerun outside that restriction after adding the four container-capacity checks. This is an environment retry, not an ignored sanitizer failure. Root package integration separately covers standalone headers, Basic/All aggregates, multiple translation units and shared test discovery.
+| Command from repository root | Result |
+|---|---|
+| `python3 '96-Local Testing/07-Strings/09-runlength_tester.py' --mode full --seed 20260928` | PASS, all three configurations, 363,502 checks each; 5 assertion probes |
+| `python3 '96-Local Testing/02-integration.py'` | PASS: 99 standalone/aggregate headers, multi-TU scalar/AVX2 aggregates, Workspace LOCAL and non-LOCAL |
+| `python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration` (from `/tmp`) | PASS, all six P016 Strings suites |
+| `python3 '96-Local Testing/03-consistency.py'` | no errors |
 
-All ST19 inventory contracts are implemented and verified. There are no owned gaps or continuation handoff.
-
-Batch ST19, package P016: byte/integer run-length encoding, validated encoded-size queries, bounded decoding, half-open witness spans, malformed/overflow rejection and output alias rules.
-
-P016 package verification (batches ST01 → ST02 → ST19, completed in that order on 2026-09-28; the C01/P002 prerequisite was already verified). Seed **20260928**, GCC **16.2.1 (20260810)**, GNU++20; Python test orchestration used **CPython 3.14.7**. Test oracles remain active under NDEBUG.
-
-| Header | Executed feature mode | Checks per optimized / checked / ASan-UBSan configuration | Checked assertion probes |
-|---|---|---|---|
-| Run length | Full | 363,502 | 5 |
-
-All **43** assertion probes passed. Optimized builds use `-O2 -DNDEBUG`; checked builds use `_GLIBCXX_DEBUG`; sanitizer builds use ASan/UBSan with leak detection enabled. The sandbox's process tracer prevented LeakSanitizer from running, so the affected configurations were rerun with approved execution outside that tracer and passed. Per-header records distinguish those retries and final source coverage. Full was completed for all owned APIs; hash/trie/Manacher/run-length stress modes are available but were not executed. No other compiler/interpreter version is claimed as tested.
-
-Final package integration passed:
-
-- **99** current standalone/aggregate headers compiled.
-- All aggregates linked and ran across multiple translation units in scalar and available AVX2 configurations.
-- The existing standalone Workspace compiled in LOCAL and non-LOCAL configurations.
-- The shared runner discovered and passed all **six** Strings suites in quick mode from `/tmp`, including their checked preconditions and hash Python oracle.
-- Repository consistency passed with no errors, preserving the existing 428 targets, 335 batches and 226 packages.
-
-Commands run from the repository root unless otherwise stated:
-
-```bash
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
-
-Shared discovery was run with working directory `/tmp`:
-
-```bash
-python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration
-```
-
-
-The `--no-integration` option avoids repeating the separately completed integration/consistency checks. Strings Basic/All aggregates and shared quick discovery now include the six implementations. The six inventory rows and the test coverage index link current evidence.
+No other compiler, including the `g++-14` floor, is recorded as tested. Stress mode exists but was not run.
 
 ## Benchmarks
 
-No benchmark: P016's selected algorithms use their justified direct linear/output-sensitive constructions without a competing specialization requiring a timing comparison.
+No benchmark: a direct linear scan with no specialization, dispatch threshold or
+speed claim. Large unary and alternating cases exercise both extreme output sizes.
 
 ## Sources
 
@@ -93,8 +67,12 @@ Read on 2026-09-28; both sources were inspected in full and used for algorithm/c
 - [maspypy, `string/run_length.hpp`](https://github.com/maspypy/library/blob/main/string/run_length.hpp): generic sequence encoding with signed 64-bit counts and empty-input handling. No decoder or overflow checks are provided by that reference.
 - [Nyaan, `string/run-length-encoding.hpp`](https://github.com/NyaanNyaan/library/blob/master/string/run-length-encoding.hpp): maximal adjacent runs, explicit empty case, generic sequence element type and `int` counts. The maintained implementation adds explicit count/size contracts and independently designed decoding/span checks.
 
-Targeted path/symbol searches in `OLD/algorithms.cpp`, `OLD/[1] algorithms.cpp`, and Team Notebook `src/algs.cpp`/`src/algsbetter.cpp` found no run-length implementation to migrate. Archived originals remain unchanged.
+Targeted path/symbol searches in `OLD/algorithms.cpp`, `OLD/[1] algorithms.cpp`, and Team Notebook `src/algs.cpp`/`src/algsbetter.cpp` found no run-length implementation to migrate.
 
 ## Limits and handoffs
 
-Miscellaneous retains Huffman coding. Lempel–Ziv and run-length BWT remain their existing separate owners. Finite tests supplement the mathematical arguments; they do not allocate every maximum-size domain. No online submission or acceptance is claimed.
+- Open `/reaudit-review` findings for P016 ([p016.md](<../../00-Guidelines/23-Reaudit Findings/p016.md>)), not yet resolved:
+  - 15: function bodies close on their own line (closing-brace rule).
+  - 16: complexity symbol `r` is used without a definition in three function comments.
+
+Miscellaneous retains generic prefix coding/Huffman. Lempel–Ziv and run-length BWT remain separate Strings owners; streaming merge state is not part of these static contracts. Finite tests supplement the correctness arguments; no maximum-size domain is allocated.

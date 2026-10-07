@@ -1,6 +1,6 @@
 # 03-fastio.hpp — evidence
 
-`03-fastio.hpp` implements `FastInput<N>` and `FastOutput<N>` over a borrowed `FILE*` with 64 KiB default buffers: bytes, tokens, lines, decimal integers through 128 bits, exactly rounded doubles, fixed-precision double output, variadic `read`/`print`, EOF and explicit flush/error handling. First verified 2026-09-27; re-audited 2026-10-07, when `readLine`, `readDouble`, `writeDouble`, `read`, `print`, `writeValue`, the `end` argument of `write` and the `precision` field were added (they were inventory gaps in the earlier record, `/reaudit-review` finding 1) and the header contracts moved here. Memory mapping, descriptor backends and SIMD parsing belong to `17-fast_io_advanced.hpp`.
+`03-fastio.hpp` implements `FastInput<N>` and `FastOutput<N>` over a borrowed `FILE*` with 64 KiB default buffers: bytes, tokens, lines, decimal integers through 128 bits, exactly rounded doubles, fixed-precision double output, variadic `read`/`print`, EOF and explicit flush/error handling. Batch MI01, package P013; dependency P002 (template). Memory mapping, descriptor backends and SIMD parsing belong to `17-fast_io_advanced.hpp`.
 
 ## Contracts
 
@@ -21,6 +21,8 @@
 - Failure contract for all reads: the destination is unchanged, a bad token is consumed whole, and later reads continue after it. A complete token or line ending at EOF succeeds. A malformed one at EOF reports its failure, and the next read reports `Eof`. Bytes already returned by a partial `fread` stay readable, and the error is reported when they run out. Recovering from a file error requires a new reader.
 - Interactive use: bulk `fread` may wait to fill the buffer on a live pipe. Use `FastInput<1>` for interactive protocols and flush prompts explicitly.
 
+Correctness: the reader keeps the unread interval `[pos, len)` and refills only when it is empty; byte-element `fread` makes partial reads return complete bytes. `readInt` accumulates an unsigned magnitude and compares against `limit / 10` and `limit % 10` before each digit, so it never overflows; signed negatives build `-(v - 1) - 1`, keeping the minimum representable. After a syntax or overflow failure the parser advances to the token boundary without assigning. `readLine` appends `[pos, newline)` chunks found by `memchr`, consuming and refilling whole buffers until a newline (consumed) or EOF/error from `peek`; status is checked before assigning. `readDouble` delegates to `from_chars` over the exact token bytes (correct rounding is the standard's requirement; libstdc++ uses fast_float with an exact fallback), and `ptr == end` rejects trailing garbage.
+
 ### FastOutput
 
 - Ownership mirrors `FastInput` (default `stdout`). Memory `N` bytes. `put`, `write` and `writeInt` return whether the bytes were buffered or transferred without a detected error. The view passed to `write` must not overlap the writer's buffer.
@@ -32,28 +34,14 @@
 - `drain()` moves the buffer into the C stream (which may still buffer it). `flush()` drains and calls `fflush`; call it to observe deferred errors and before every interactive read. The destructor best-effort flushes pending output, including bytes drained earlier, but cannot report failure.
 - Errors are sticky: after a short or failed `fwrite` or a failed `fflush`, all later writes and flushes fail without retry; bytes already transferred cannot be rolled back. Recovering requires a new writer.
 
+Correctness: `writeInt` takes the magnitude by unsigned subtraction (defined for the signed minimum) and emits digits in reverse. `writeDouble` uses `to_chars` with explicit precision, specified as equivalent to `%.*f` in the "C" locale and implemented exactly by libstdc++ with Ryu printf. Buffer transfers keep byte order, a short transfer is never reported as success, and `flush` includes errors the C stream defers.
+
 ```cpp
 FastInput<> in; FastOutput<> out;
 int n; in.read(n); vector<lng> a(n); in.read(a);
 out.print(n, a); out.writeDouble(3.14159, 3, '\n');
 bool ok = out.flush();
 ```
-
-## Correctness argument
-
-The reader keeps the unread interval `[pos, len)` of its buffer and refills only when it is empty. `fread` uses byte elements, so a partial read returns complete bytes. `readInt` accumulates an unsigned magnitude and compares against `limit / 10` and `limit % 10` before each digit, so it never overflows. Signed negatives admit one more magnitude, and building `-(v - 1) - 1` keeps every intermediate representable, including the minimum. After a syntax or overflow failure the parser still advances to the token boundary without assigning. `readLine` appends `[pos, newline)` chunks found by `memchr`. If a chunk has no newline it consumes the whole buffer and refills. The loop ends either on a newline, which is consumed, or on EOF/error as reported by `peek`. Status is checked before assigning. `readDouble` delegates the conversion to `from_chars` over the exact token bytes. Correct rounding is the standard's requirement for `from_chars`, and libstdc++ implements it with fast_float and an exact fallback. Requiring `ptr == end` rejects trailing garbage.
-
-`writeInt` takes the magnitude by unsigned subtraction (defined for the signed minimum) and emits base-10 digits in reverse. `writeDouble` relies on `to_chars` with an explicit precision, which the standard specifies as equivalent to `printf` with `%.*f` in the "C" locale. libstdc++ implements it exactly with Ryu printf. Buffer transfers keep byte order. A short transfer is never reported as success. `flush` includes the errors that the C stream defers.
-
-## Re-audit findings (P013, 2026-10-07)
-
-| Header | Gap or finding | Resolution |
-|---|---|---|
-| `03` | `readLine`, `readDouble`, `writeDouble` missing; the fastio evidence contradicted the row (finding 1) | Implemented; oracles: independent splitter and Python `bytes.split`, `strtod` and Python `float()`, glibc `printf` and Python `format` |
-| all | Contracts in multi-line header comments over the 8% cap | Moved to `## Contracts` sections; headers pass the cap |
-| all | `; }` closing braces in headers, testers, benchmark (finding 7) | Normalized; `03-consistency.py --braces` reports none |
-
-The completeness sweep added `read`/`print`/`writeValue`/`write` end byte/`precision`. The independent `@reviewer` pass (2026-10-08) found no correctness defects; its exhaustive or random probes confirmed the I/O behaviour.
 
 ## Feature-to-test map
 
@@ -71,17 +59,7 @@ The completeness sweep added `read`/`print`/`writeValue`/`write` end byte/`preci
 
 ## Commands and results
 
-GCC 16.2.1, GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H, 2026-10-07:
-
-```sh
-python3 '96-Local Testing/06-Miscellaneous/03-fastio_tester.py' --mode full --seed 20260927                                # PASS, 3 configurations, 4 probes
-python3 '96-Local Testing/06-Miscellaneous/03-fastio_tester.py' --mode stress --seed 20260928 --configuration optimized    # PASS
-python3 '96-Local Testing/06-Miscellaneous/03-fastio_benchmark.py'                                                         # PASS, record rewritten
-```
-
-Batch MI01, package P013; dependency P002 (template). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all`, leak detection on).
-
-P013 package runs, GCC 16.2.1, GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H, 2026-10-07. Baseline before the re-audit changes: all seven P013 suites (`01`–`07`) passed full mode with seed 20260927. After the changes:
+P013 package run, 2026-10-07, GCC 16.2.1, GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection. The fastio full run passed all 3 configurations and 4 assertion probes.
 
 ```sh
 python3 '96-Local Testing/01-run.py' --mode quick --filter 06-Miscellaneous --no-integration                            # PASS (all 14 suites)
@@ -90,15 +68,13 @@ for s in 01-random 02-customhash 03-fastio 04-compression 05-binarysearch 06-bit
   python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode stress --seed 20260928 --configuration optimized   # PASS x7
 done
 python3 '96-Local Testing/06-Miscellaneous/03-fastio_benchmark.py'                                                       # PASS, record rewritten
-python3 '96-Local Testing/02-integration.py'                                                                             # PASS
+python3 '96-Local Testing/02-integration.py'                                                                             # PASS (every header alone, Basic/All aggregates)
 python3 '96-Local Testing/03-consistency.py'                                                                             # no errors
 ```
 
-`02-integration.py` also builds every header alone and the Basic/All aggregates.
-
 ## Benchmarks
 
-`03-fastio_benchmark.{cpp,py,json}` times complete pipelines on a warmed regular file: construct buffers, parse all input, transform, format, flush. Every output byte is compared outside the timed region with independently generated expectations (`to_chars` for integers, `snprintf("%.9f")` for doubles). One warmup and five repetitions with rotated method order. Recorded 2026-10-07 on Intel Core i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2 -DNDEBUG`, seed 20260927. Medians in milliseconds:
+The [benchmark script](<../../96-Local Testing/06-Miscellaneous/03-fastio_benchmark.py>) with its `.cpp` and `.json` record times complete pipelines on a warmed regular file: construct buffers, parse all input, transform, format, flush. Every output byte is compared outside the timed region with independently generated expectations (`to_chars` for integers, `snprintf("%.9f")` for doubles). One warmup and five repetitions with rotated method order. Recorded 2026-10-07 on Intel Core i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2 -DNDEBUG`, seed 20260927. Medians in milliseconds:
 
 | Values / workload | Fast 4096 | Fast 65536 | fscanf/fprintf |
 |---|---:|---:|---:|
@@ -114,7 +90,7 @@ python3 '96-Local Testing/03-consistency.py'                                    
 
 These are shared-host observations, not timing gates. They support the scalar buffered design and the 64 KiB default. Doubles take `to_chars`/`from_chars` at about three times the speed of `fscanf`/`fprintf`. Cold disk, interactive, malformed-input and network throughput were not measured.
 
-Package summary: medians for 500,000 values with 64 KiB buffers: small integers 29.9 ms vs 70.4 ms (`fscanf`/`fprintf`), full-width integers 53.7 vs 107.0, doubles (`%.17g` in, `%.9f` out) 96.4 vs 291.3. The [benchmark script](<../../96-Local Testing/06-Miscellaneous/03-fastio_benchmark.py>) and `96-Local Testing/06-Miscellaneous/03-fastio_benchmark.json` hold the complete parse/transform/format/flush pipelines on warmed files, outputs verified byte for byte. No Barrett/Montgomery backend is involved.
+No Barrett/Montgomery backend is involved.
 
 ## Sources
 
@@ -128,5 +104,9 @@ Package summary: medians for 500,000 values with 64 KiB buffers: small integers 
 - `readDouble` reports total underflow as `Overflow`. Exact `long double` I/O is not owned. Locale-specific formats are not supported.
 - Floating `from_chars`/`to_chars` have been in libstdc++ since GCC 11; `double` parsing uses the portable fast_float path since GCC 12. The Codeforces MinGW GCC 14.2 floor was not built locally, so portability there rests on that library history, not on a test.
 - Advanced backends (`mmap`, raw `read`/`write`, SIMD digit parsing) remain with `17-fast_io_advanced.hpp`.
-
 - No online submission was made and no judge acceptance is claimed.
+
+## History
+
+- 2026-09-27: P013 first verification, full and stress suites and benchmark passed.
+- 2026-10-07: P013 re-audit, finding 1 (missing `readLine`, `readDouble`, `writeDouble`) fixed, `read`/`print`/`writeValue`/`end`/`precision` added, contracts moved out of code comments, brace style normalized; full, stress, benchmark and integration passed; `@reviewer` (2026-10-08) found no defects.

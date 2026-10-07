@@ -1,4 +1,6 @@
-# P011 / GR26 — functional graphs
+# 11-functionalgraph.hpp — evidence
+
+Owned by package P011 / GR26 (functional graphs); see [00-notes.md](00-notes.md#p011-package-record) for the package record.
 
 ## Contracts
 
@@ -12,7 +14,7 @@ Missing successors terminate the walk. They do not create a shared absorbing ver
 
 `jump(u,k)` accepts the entire unsigned 64-bit count range. `distance(u,v)` returns the shortest directed walk length, or `-1`; `reachable` is its Boolean form. Self-distance is zero. `firstMeeting(u,v)` returns the first integer time at which walkers moving one edge per tick occupy the same real vertex, or `-1`. This synchronous contract differs from arbitrary intersection of the two reachable sets.
 
-`jumpAll(k)` returns `jump(u, k)` for every vertex in O(n) time and memory for any full `ulng` k (re-audit addition): it visits vertices in reverse-forest preorder (`tin` order), keeps the current root path indexed by depth, answers `path[depth[u] - k]` when `k <= depth[u]`, and otherwise uses the O(1) cycle branch of `jump`. In preorder the last vertex seen at each smaller depth is the current vertex's ancestor there, which is the k-th successor.
+`jumpAll(k)` returns `jump(u, k)` for every vertex in O(n) time and memory for any full `ulng` k: it visits vertices in reverse-forest preorder (`tin` order), keeps the current root path indexed by depth, answers `path[depth[u] - k]` when `k <= depth[u]`, and otherwise uses the O(1) cycle branch of `jump`. In preorder the last vertex seen at each smaller depth is the current vertex's ancestor there, which is the k-th successor.
 
 ### cycleAggregates and cycleAggregate
 
@@ -22,13 +24,13 @@ Missing successors terminate the walk. They do not create a shared absorbing ver
 
 `FunctionalGraphFold<T,Op>` owns a graph and label snapshot and preprocesses ordered aggregate blocks. `op` must be a const-callable associative binary operation with the supplied two-sided identity. The caller must ensure that its arithmetic and storage support all intermediate aggregates. `fold(u,k)` folds up to k **visited vertices**, starting with u, and returns `{next,count,value}`. The terminal is included once, then `next=-1`; `count<k` explicitly reports early termination. A zero count returns u and the identity. Cyclic walks always consume the full requested count, including `UINT64_MAX`. Labels can also represent outgoing edges, with the terminal label chosen as identity if there is no edge to count. `cycleAggregate(u)` provides the rotated full-cycle result using the precomputed blocks. The helper `segment(u,k)` requires `0<=k<=n` and at least k real visited vertices; its result uses the same convention.
 
-`maxStep(u, pred, limit = ULLONG_MAX)` returns the largest `k <= limit` such that `pred(fold(u, k).value)` holds (re-audit addition), never more than the number of vertices actually available on a terminating walk. `pred` must hold for `identity` (asserted) and be monotone: once false for some `k` it stays false for every larger `k`. The smallest `k` at which a monotone predicate becomes true (`step_until` in other libraries) is `maxStep` of its negation plus one, when that is at most `limit`. The search descends the doubling table greedily through the tail (each level is taken only if the step count is available, within the bound and the predicate still holds), then counts whole laps by exponential search on powers of the rotated lap aggregate, squaring only while the predicate still accepts the next power, and finally descends the table through the last partial lap. Because squaring stops at the first rejected power, no fold longer than about twice the answer is ever formed, so a summing monoid whose answer fits does not overflow in the search. Cost: O(log(n + 1) + log(k + 1)) operations and predicate calls for answer k; O(log(k + 1)) temporary label values.
+`maxStep(u, pred, limit = ULLONG_MAX)` returns the largest `k <= limit` such that `pred(fold(u, k).value)` holds, never more than the number of vertices actually available on a terminating walk. `pred` must hold for `identity` (asserted) and be monotone: once false for some `k` it stays false for every larger `k`. The smallest `k` at which a monotone predicate becomes true (`step_until` in other libraries) is `maxStep` of its negation plus one, when that is at most `limit`. The search descends the doubling table greedily through the tail (each level is taken only if the step count is available, within the bound and the predicate still holds), then counts whole laps by exponential search on powers of the rotated lap aggregate, squaring only while the predicate still accepts the next power, and finally descends the table through the last partial lap. Because squaring stops at the first rejected power, no fold longer than about twice the answer is ever formed, so a summing monoid whose answer fits does not overflow in the search. Cost: O(log(n + 1) + log(k + 1)) operations and predicate calls for answer k; O(log(k + 1)) temporary label values.
 
 ### FunctionalOrbit and functionalOrbit
 
-`functionalOrbit(next,start)` is an independent Floyd alternative for one starting vertex. It uses constant auxiliary memory and returns `{entry,tail,cycle_length}`, with zero cycle length for termination. Only `next.size()` and `start` are asserted, once at entry; the successor domain (`next[u]` is `-1` or a vertex) is the caller's contract and is not checked per step (re-audit: the former per-step assertion sat in the hot loop and was removed, since checking the whole vector would cost O(n)). It deliberately avoids preprocessing the whole graph when only one orbit is needed.
+`functionalOrbit(next,start)` is an independent Floyd alternative for one starting vertex. It uses constant auxiliary memory and returns `{entry,tail,cycle_length}`, with zero cycle length for termination. Only `next.size()` and `start` are asserted, once at entry; the successor domain (`next[u]` is `-1` or a vertex) is the caller's contract and is not checked per step (checking the whole vector would cost O(n)). It deliberately avoids preprocessing the whole graph when only one orbit is needed.
 
-## Algorithms, bounds and correctness
+### Correctness and bounds
 
 Indegree-zero peeling removes every vertex outside cycles. In a terminating component every vertex eventually peels; in a cyclic component the cycle vertices retain one incoming cycle edge. Scanning the survivors discovers exactly the directed cycles. Reversing the peel order propagates the already known component, cycle entry and distance through each tail. A separate iterative traversal of the reverse trees supplies the subtree intervals. These steps take O(n) time and memory. Successor doubling raises the complete constructor and stored memory to O(n log(n+1)). All traversals are iterative.
 
@@ -42,19 +44,7 @@ Aggregate table entries join two consecutive blocks in order, so induction gives
 
 Floyd's two-speed pointers either encounter termination or meet on a cycle. Resetting one pointer to the start identifies the entry after exactly the tail length, then one lap measures cycle length. A terminating orbit is retraced to identify its last real vertex. The time is O(tail+cycle_length+1) and auxiliary memory is O(1).
 
-## Research and ownership
-
-The following material was inspected on 2026-09-27. The header was independently implemented; no external implementation was copied.
-
-| Source | Inspected scope and use |
-|---|---|
-| Antti Laaksonen, [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf), saved repository edition, sections 16.3–16.4 (printed pages 154–156) | Successor components, doubling recurrence, Floyd entry/cycle recovery and constant-memory single-orbit tradeoff. The new jump method reduces post-tail counts modulo cycle length, and explicitly handles missing successors. |
-| [USACO Guide, Functional Graphs](https://usaco.guide/silver/func-graphs), current article retrieved 2026-09-27 | Rooted-tree/cycle component model, single-orbit Floyd and all-vertex decomposition examples. Its single-orbit and whole-graph workloads are kept distinct. |
-| [maspypy, graph/functional_graph.hpp](https://maspypy.github.io/library/graph/functional_graph.hpp), current source retrieved 2026-09-27 | `dist`, `jump`, `collect_cycle`, `meet_time` and aggregate APIs. The reference uses a cut-cycle tree and group inverses for some folds; this implementation uses explicit cycles/reverse-tree intervals and monoid blocks, supports noncommutative operations without inverses, and adds termination semantics. |
-
-Static all-vertex queries, ordered cycle/walk aggregates and one-orbit constant-memory analysis are complete scope here. Successor updates and fully dynamic functional-graph maintenance require a separate dynamic-tree design; they are outside this static batch. Constant-query-time level-ancestor constructions and arbitrary-speed/collision schedules are distinct specialized extensions, not claimed by these APIs. No original Floyd paper was independently reviewed, and no judge acceptance or automatic submission is claimed. This was a planned header, so no active legacy implementation was removed.
-
-## Feature-to-test map and completed verification
+## Feature-to-test map
 
 [11-functionalgraph_tester.py](<../../96-Local Testing/04-Graphs/11-functionalgraph_tester.py>) runs the actual header through the shared graph driver, with [independent C++ oracles](<../../96-Local Testing/04-Graphs/11-functionalgraph_tester.cpp>). Failure reporting retains seed, mode, configuration, successor map, operation and expected/actual success, and the driver reports command, crash and timeout details. Oracles remain active under `-DNDEBUG`.
 
@@ -69,56 +59,50 @@ Static all-vertex queries, ordered cycle/walk aggregates and one-orbit constant-
 | Walk folds and bounded segments | Literal walks for every count through 2n+3, including terminal consumption once, zero counts, lengths beyond termination and all available segment lengths. |
 | Full-width ordered folds | A separate fixed-64-level reference stores actual truncated block lengths, without cycle decomposition or repeated-cycle powers. Exact 128-bit signed sums cover every exhaustive map; noncommutative matrix products cover 700 random maps/permutations. |
 | Boundaries and ownership | Default/explicit empty constructors, singleton terminal/self-loop, disconnected components, copies/moves, input mutation, snapshot/reassignment, labels/graph lifetime; 200,000-vertex terminal chains, cycles and long tails. |
-| `jumpAll` (re-audit) | Every vertex against the explicit orbit position for every count in the jump list plus every count through 2n+3, on every enumerated and random map; full-range counts on the 200,000-vertex terminal chain and cycle. |
-| `maxStep` (re-audit) | On every enumerated map through n=4 and every random map: step-by-step walk oracle for every vertex, limits {0, 1, 2, n, 2n+3, `UINT64_MAX`}, nonnegative-sum thresholds {0, 1, 2, 5, n, 3n} and ordered string-prefix predicates (targets are walk folds of length 0, 1, n, 2n+3), so order errors are visible; the oracle stops after a step cap past which a still-true predicate means every further lap adds nothing, and then answers the limit. Large chain and full-range cycle fixtures. A mutation that dropped the terminal-availability test was caught. |
-| Preconditions | 29 checked subprocess probes cover invalid successors/vertices, empty queries, directed/outdegree/parallel-arc adapter requirements, label count, Floyd start/size, segment length/availability, and `maxStep` vertex and identity-predicate requirements. The former `orbit-bad-next` probe was removed with the per-step assertion (re-audit finding 8). |
+| `jumpAll` | Every vertex against the explicit orbit position for every count in the jump list plus every count through 2n+3, on every enumerated and random map; full-range counts on the 200,000-vertex terminal chain and cycle. |
+| `maxStep` | On every enumerated map through n=4 and every random map: step-by-step walk oracle for every vertex, limits {0, 1, 2, n, 2n+3, `UINT64_MAX`}, nonnegative-sum thresholds {0, 1, 2, 5, n, 3n} and ordered string-prefix predicates (targets are walk folds of length 0, 1, n, 2n+3), so order errors are visible; the oracle stops after a step cap past which a still-true predicate means every further lap adds nothing, and then answers the limit. Large chain and full-range cycle fixtures. A mutation that dropped the terminal-availability test was caught. |
+| Preconditions | 29 checked subprocess probes cover invalid successors/vertices, empty queries, directed/outdegree/parallel-arc adapter requirements, label count, Floyd start/size, segment length/availability, and `maxStep` vertex and identity-predicate requirements. |
 
-The 2026-10-07 re-audit commands and results are under [Commands and results](#commands-and-results). Fresh full verification on 2026-09-27 used GNU++20, GCC 16.2.1, and seed 20260927:
-
-```text
-python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode full --seed 20260927
-PASS optimized -O2 -DNDEBUG: 9,178 cases, 8,243,815 checks
-PASS checked -O0 -g -D_GLIBCXX_DEBUG: same cases/checks, 28 assertion probes
-PASS ASan/UBSan -O1 -g -D_GLIBCXX_ASSERTIONS: same cases/checks
-```
-
-The sandbox's LeakSanitizer/ptrace restriction prevented the initial sanitizer execution. An approved outside-sandbox retry using `--configuration ASan-UBSan` passed the same full corpus with leak detection retained. Quick exhausts maps through n=3, adds 80 random cases and 20,000-vertex fixtures, and omits sanitizers. Full exhausts n=5, adds 700 random cases and 200,000-vertex fixtures. Stress exhausts n=6, adds 5,000 random cases and 500,000-vertex fixtures; it was implemented but not run. Exact GCC14 execution is not claimed.
-
-Independent implementation reviews of decomposition/jumps/distance/Floyd and of meeting/monoid-fold logic found no correctness or overflow issue; the empty-table-level comment was clarified. Final standalone/aggregate/multiple-translation-unit checks passed as recorded in [P011 integration](00-notes.md#p011-package-record). No owned feature or verification gap remains.
+Quick exhausts maps through n=3, adds 80 random cases and 20,000-vertex fixtures, and omits sanitizers. Full exhausts n=5, adds 700 random cases and 200,000-vertex fixtures. Stress exhausts n=6, adds 5,000 random cases and 500,000-vertex fixtures. Of ten hand mutations run against the quick suites, every non-equivalent one fails.
 
 ## Commands and results
 
-The original 2026-09-27 run is recorded at the end of the feature-to-test map above. Package integration (P011, 2026-09-27): final integration passed 82 standalone/aggregate headers, scalar/available-AVX2 multiple-translation-unit linkage and LOCAL/non-LOCAL workspace syntax; repository consistency passed with no errors.
-
-```bash
-python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
-
-### 2026-10-07 re-audit (GCC 16.2.1, GNU++20)
-
-The code was treated as existing-unverified. The header and tester were brought to the closing-brace rule and the two-line comment cap; the removed contract text is in Contracts above. Public names and behavior are unchanged apart from the additions below. Baseline before any change: the full suite passed in all three configurations (seed 1).
-
-| # | Finding | Disposition |
-|---|---|---|
-| 8 | `functionalOrbit` per-step assert in the hot loop | Fixed: only `next.size()` and `start` are asserted at entry; the `orbit-bad-next` probe was removed and the contract reworded. |
-
-| Addition (completeness sweep) | Bound |
-|---|---|
-| `FunctionalGraph::jumpAll(k)` | O(n) |
-| `FunctionalGraphFold::maxStep(u, pred, limit)` — largest step count with a monotone predicate | O(log(n + 1) + log(k + 1)) |
-
-Sources for the additions are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p011-re-audit); rejected candidates are in [00-notes.md](00-notes.md#p011-re-audit-omissions). A smoke test caught an overflow in the first `maxStep` draft (precomputing lap powers up to the limit overflowed a summing monoid and broke monotonicity); the lap search now squares only while the predicate accepts. Of the ten P011 hand mutations run against the quick suites, the `tail == limit` early return in `maxStep` was an equivalent mutant and that redundant condition was deleted. `@reviewer` confirmed the finding fixed and wrote its own brute-force checks (full-range `jumpAll`/`maxStep`), passing under ASan/UBSan/`_GLIBCXX_DEBUG`. One low style finding (a redundant method comment above `maxStep`) was fixed.
+2026-10-07, GCC 16.2.1, GNU++20.
 
 | Command | Result |
 |---|---|
 | `11-functionalgraph_tester.py --mode full --seed 20260927` | PASS 3 configurations, 9,178 cases, 12,336,203 checks, 29 probes |
-| `11-functionalgraph_tester.py --mode stress --seed 1 --configuration optimized` | PASS, 212,282,298 checks. The checked `-O0` stress build exceeds the runner's 180 s timeout with the pre-re-audit tester too. |
+| `11-functionalgraph_tester.py --mode stress --seed 1 --configuration optimized` | PASS, 212,282,298 checks |
 | `02-integration.py` and `02-integration.py --sanitizers` | PASS: 102 standalone/aggregate headers, scalar/available-AVX2 multi-TU, workspace, sanitizer self-tests |
-| `03-consistency.py` | no errors |
+| `03-consistency.py` | No errors |
+| `@reviewer`: own brute-force full-range `jumpAll`/`maxStep` checks, ASan/UBSan/`_GLIBCXX_DEBUG` | PASS |
+
+```bash
+python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode full --seed 20260927
+python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode stress --seed 1 --configuration optimized
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
+```
+
+## Sources
+
+The following material was inspected on 2026-09-27. The header was independently implemented; no external implementation was copied.
+
+| Source | Inspected scope and use |
+|---|---|
+| Antti Laaksonen, [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf), saved repository edition, sections 16.3–16.4 (printed pages 154–156) | Successor components, doubling recurrence, Floyd entry/cycle recovery and constant-memory single-orbit tradeoff. The new jump method reduces post-tail counts modulo cycle length, and explicitly handles missing successors. |
+| [USACO Guide, Functional Graphs](https://usaco.guide/silver/func-graphs), current article retrieved 2026-09-27 | Rooted-tree/cycle component model, single-orbit Floyd and all-vertex decomposition examples. Its single-orbit and whole-graph workloads are kept distinct. |
+| [maspypy, graph/functional_graph.hpp](https://maspypy.github.io/library/graph/functional_graph.hpp), current source retrieved 2026-09-27 | `dist`, `jump`, `collect_cycle`, `meet_time` and aggregate APIs. The reference uses a cut-cycle tree and group inverses for some folds; this implementation uses explicit cycles/reverse-tree intervals and monoid blocks, supports noncommutative operations without inverses, and adds termination semantics. |
+
+Sources for `jumpAll` and `maxStep` (fetched 2026-10-07) are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p011-re-audit); rejected candidates are in [00-notes.md](00-notes.md#p011-re-audit-omissions). This was a planned header with no active legacy implementation.
 
 ## Limits and handoffs
 
-No owned feature or verification gap. Functional successor updates and specialized collision schedules are outside GR26's static contracts; they remain with separate owners.
+Static all-vertex queries, ordered cycle/walk aggregates and one-orbit constant-memory analysis are complete scope here. Successor updates and fully dynamic functional-graph maintenance require a separate dynamic-tree design; they are outside this static batch. Constant-query-time level-ancestor constructions and arbitrary-speed/collision schedules are distinct specialized extensions, not claimed by these APIs. No original Floyd paper was independently reviewed, and no judge acceptance or automatic submission is claimed.
 
+The checked `-O0` stress build exceeds the runner's 180 s timeout, so stress is recorded for the optimized configuration only. No `CXX=g++-14` floor run is recorded for this header. Functional successor updates and specialized collision schedules are outside GR26's static contracts; they remain with separate owners.
+
+## History
+
+- 2026-09-27: original P011, full suite (seed 20260927, 9,178 cases, 8,243,815 checks, 28 probes) and integration passed on g++ 16; stress not run.
+- 2026-10-07: re-audit, added `jumpAll` and `maxStep`; 2 findings fixed (per-step `functionalOrbit` assert removed, redundant `maxStep` comment); full suite, optimized stress and integration passed on g++ 16.

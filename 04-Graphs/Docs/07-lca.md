@@ -1,6 +1,6 @@
-# Static forest LCA verification
+# 07-lca.hpp — evidence
 
-P011 / GR03, 2026-09-27. Owned implementation: [07-lca.hpp](../07-lca.hpp).
+Owned by package P011 / GR03 (static forest LCA); see [00-notes.md](00-notes.md#p011-package-record) for the package record. Implementation: [07-lca.hpp](../07-lca.hpp).
 
 ## Contracts
 
@@ -43,7 +43,7 @@ Offline Tarjan returns one answer per input query, retaining order and duplicate
 
 `pathIntersection(t, a, b, c, d)` accepts an `LCA`, `LCAFold` or `EulerLCA` and returns the endpoints `{x, y}` of the vertex intersection of the paths a–b and c–d, with `x` the endpoint nearest `c` and `y` nearest `d` (`x == y` for a single shared vertex), or `{-1, -1}` when the paths do not meet or any two of the four vertices lie in different components. All four vertices are asserted in range. With `meet(p, q, r) = lca(p, q) ^ lca(p, r) ^ lca(q, r)` (the median vertex of three: two of the three LCAs coincide), `x = meet(a, b, c)` and `y = meet(a, b, d)` are the projections of `c` and `d` onto path a–b. If they differ, the path c–d runs through both, so the intersection is the path x–y. If they coincide, the intersection is `{x}` exactly when `x` lies on path c–d, that is `meet(c, d, x) == x`, and empty otherwise. Cost: at most nine LCA queries, so O(log(n)) with `LCA` and O(1) with `EulerLCA`.
 
-## Correctness arguments
+### Correctness
 
 The shared DFS skips exactly the parent logical edge. Every other edge must discover a new vertex; encountering a visited endpoint identifies an invalid cycle, including a loop or parallel edge. Preorder timestamps increase only on discovery, so a completed subtree occupies exactly its inclusive timestamp interval. Parent/depth/component metadata follows the chosen root orientation. Accumulated weight adds each parent edge once.
 
@@ -54,19 +54,6 @@ An Euler walk visits a parent after every child subtree. The minimum depth betwe
 Tarjan processes the real DFS postorder. When a vertex finishes, each completed child subtree has already been united into it, and `ancestor[findSet(vertex)]` names the highest ancestor whose completed portion contains that set. Queries are answered only after both endpoints finish. The set containing the other endpoint then names their LCA. Immediately afterward, uniting the completed vertex into its parent restores the invariant for the next exit event. Components are never united; cross-component queries explicitly retain `-1`.
 
 A path from `u` to `v` climbs to `a=LCA(u,v)` and descends to `v`. Subtracting the two root-to-`a` prefixes gives its edge count and weight; a path jump chooses the appropriate upward segment. For rerooting, the deepest of `LCA(u,v)`, `LCA(u,r)` and `LCA(v,r)` is the unique intersection of the three pairwise paths, hence the common ancestor closest to `u` and `v` under root `r`.
-
-## Provenance and legacy accounting
-
-The algorithms were independently implemented from the invariants above; external source bodies were not copied. These pages were retrieved and inspected on 2026-09-27:
-
-- [cp-algorithms, Lowest Common Ancestor — Binary Lifting](https://cp-algorithms.com/graph/lca_binary_lifting.html): powers-of-two parent table and ancestor interval query invariant.
-- [cp-algorithms, Lowest Common Ancestor — Farach-Colton and Bender](https://cp-algorithms.com/graph/lca_farachcoltonbender.html): ±1 Euler reduction, half-logarithmic signature blocks, microtables, and macro sparse-table proof.
-- [cp-algorithms, Lowest Common Ancestor — Tarjan's off-line algorithm](https://cp-algorithms.com/graph/lca_tarjan.html): union/completed-subtree ancestor invariant. Its simplified linear-time claim is not adopted for an ordinary DSU implementation.
-- [OI Wiki, 最近公共祖先](https://oi-wiki.org/graph/lca/): independently reviewed binary lifting, Euler/RMQ and offline Tarjan sections. Its warning that ordinary union-find retains an inverse-Ackermann factor supports the stated offline bound. It identifies a separate specialized linear-time union-tree technique in Gabow–Tarjan (1983), [DOI 10.1145/800061.808753](https://doi.org/10.1145/800061.808753); the primary PDF request returned HTTP 403, so no primary-paper inspection is claimed. That specialized DSU variant is not claimed by this implementation.
-
-The archived `LCA` in `OLD/algorithms.cpp:4563-4637` and `OLD/[1] algorithms.cpp:583-657` supplied the previous public constructor/query names, binary table orientation and inclusive timestamp convention. Both archives remain unchanged. `LCA(n,root,adj)` accepts adjacency sizes `n` (zero-based) or `n+1` (legacy one-based) and validates symmetric simple adjacency; vertex `0` remains an ordinary isolated vertex when unused. The maintained `.n` metadata is the actual adjacency size. Legacy nonpositive `getKthAncestor` remains identity. Historical recursive `init` was a construction helper and is superseded by constructing/assigning a fresh object; direct metadata mutation is outside the maintained contract.
-
-`OLD/Team Notebook/src/algs.cpp:878` / `:931` and corresponding `algsbetter.cpp` sections contain `LcaO1` and `LcaLog`. Their linear-preprocessing constant-query Euler RMQ and logarithmic binary LCA capabilities are accounted for by `EulerLCA` and `LCA`; archived names/bodies remain preserved. The new versions add empty forests, stack safety, disconnected results, weighted sums, rerooting and offline queries.
 
 ## Feature-to-test map
 
@@ -89,67 +76,65 @@ Tester: [07-lca_tester.py](<../../96-Local Testing/04-Graphs/07-lca_tester.py>),
 | `pathIntersection` | All n^4 quadruples of every enumerated forest through n=5 (default root); 100 random quadruples for other default-root cases and 10 per explicit root (the answer does not depend on the rooting); binary and Euler variants, against the common vertices of the two BFS paths in c-to-d order; interval-overlap identity on the 200000-vertex chain |
 | Invalid preconditions | 23 assertion subprocesses: directed/cyclic/loop/parallel input, invalid roots/endpoints/offsets, malformed adjacency size/labels/symmetry/duplicates; binary/Euler/offline paths; `pathIntersection` endpoint, `LCAFold` label count and query endpoint |
 
+Hand mutations of `LCAFold`, `pathIntersection` and the unchecked `getLCA` loop fail the quick suites.
+
 ## Commands and results
 
-The 2026-10-07 re-audit is recorded under [2026-10-07 re-audit](#2026-10-07-re-audit-gcc-1621-gnu20) below; the paragraphs that follow are the original 2026-09-27 record. Package records are in [00-notes.md](00-notes.md#p011-package-record).
-
-`python3 '96-Local Testing/04-Graphs/07-lca_tester.py' --mode quick` passed optimized and checked builds with 500803 runtime checks per build and all 20 assertion probes.
-
-Full command: `python3 '96-Local Testing/04-Graphs/07-lca_tester.py' --mode full --seed 20260927`. Optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`) builds each passed 25537081 runtime checks, and all 20 assertion probes passed. The initial ASan/UBSan executable encountered the sandbox LeakSanitizer ptrace restriction. Retrying the complete sanitizer configuration outside the sandbox with `--configuration ASan-UBSan` passed the same 25537081 runtime checks, with leak detection still enabled. Compiler: GNU C++ 16.2.1, GNU++20. Logs: `/tmp/p011-lca-full.log` and `/tmp/p011-lca-sanitizer.log`. Full mode includes 22497 exhaustive forest/root cases, 350 random weighted forests and the 200000-vertex chain; stress expands random cases to 2500 and the chain to 500000 without truncating full coverage.
-
-The integration owner also compiles standalone/aggregate/multi-TU combinations. Shared benchmark artifacts are [00-decomposition_benchmark.py](<../../96-Local Testing/04-Graphs/00-decomposition_benchmark.py>) and its neighboring C++/JSON files. They compare complete binary/Euler setup and query batches across chain/star/random/disconnected shapes, with output verification outside timing, one warmup, five samples, recorded machine/compiler/flags and explicit memory bounds. On the recorded 100000-vertex, 400000-query workloads, binary/Euler setup medians were 6.88/4.35 ms for chains and 24.06/18.17 ms for random trees; query medians were 3.43/9.61 ms for chains and 42.76/13.36 ms for random trees. Both variants remain explicit choices: ancestor-heavy chains can favor binary lifting's interval fast path; RMQ provides worst-case constant queries and linear storage. No hardware dispatch or universal speed claim is made.
-
-Package integration (P011, 2026-09-27): final integration passed 82 standalone/aggregate headers, scalar/available-AVX2 multiple-translation-unit linkage and LOCAL/non-LOCAL workspace syntax. Repository consistency passed with no errors. Package-wide reproduction commands:
-
-```bash
-python3 '96-Local Testing/04-Graphs/07-lca_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/04-Graphs/00-decomposition_benchmark.py'
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
-
-### 2026-10-07 re-audit (GCC 16.2.1, GNU++20)
-
-The code was treated as existing-unverified. The header and tester were brought to the closing-brace rule and the two-line comment cap; the removed contract text is in Contracts above. Public names and behavior are unchanged apart from the additions below. Baseline before any change: the full suite passed in all three configurations (seed 1).
-
-| # | Finding | Disposition |
-|---|---|---|
-| 2 | Missing complexity lines on `Forest`, `fromAdjacency`; `offlineLCA` bound not directly above | Fixed. |
-| 3 | Asserts inside `getLCA`'s lifting loop | Fixed: the loop uses the unchecked `Forest::covers`; one global timer makes intervals of different components disjoint, so `covers` equals the ancestor relation. `isAncestor` keeps its checks. |
-| 4 | `offlineLCA` result named `result` | Fixed: `res`. |
-| 5 | `offlineLCA` lone closing brace | Fixed. |
-
-| Addition (completeness sweep) | Bound |
-|---|---|
-| `LCAFold<T, Op>::pathFold(u, v, edges)` — ordered noncommutative path fold, vertex or edge labels | S: O(n log n), Q: O(log n) |
-| `pathIntersection(t, a, b, c, d)` for `LCA`/`EulerLCA` | O(1) LCA queries |
-
-Sources for the additions are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p011-re-audit); rejected candidates are in [00-notes.md](00-notes.md#p011-re-audit-omissions). Hand mutations of the new and changed P011 code were run against the quick suites and failed as required. Path-intersection quadruples and string path folds were later thinned for explicit roots to keep the ASan configuration within the runner's 180 s timeout (coverage stated in the feature map). `@reviewer` confirmed the findings fixed and wrote its own brute-force checks (3000 forests for folds/intersections), all passing under ASan/UBSan/`_GLIBCXX_DEBUG`.
+2026-10-07, GCC 16.2.1, GNU++20, i9-11900H.
 
 | Command | Result |
 |---|---|
 | `07-lca_tester.py --mode full --seed 20260927 --configuration optimized` / `checked` | PASS, 26,991,617 checks, 23 probes |
-| `07-lca_tester.py --mode full --seed 20260927 --configuration ASan-UBSan` | PASS, 26,991,617 checks, 96 s through the runner on mains power (`performance` profile). An earlier attempt on battery in the `quiet` profile at about 1 GHz exceeded the runner's 180 s timeout; the unchanged pre-re-audit tester took 168 s in that state, so the limit is environmental. |
+| `07-lca_tester.py --mode full --seed 20260927 --configuration ASan-UBSan` | PASS, 26,991,617 checks, 96 s through the runner on mains power (`performance` profile); on battery at about 1 GHz the configuration can exceed the runner's 180 s timeout |
 | `07-lca_tester.py --mode stress --seed 1 --configuration optimized` | PASS, 41,424,312 checks |
 | `02-integration.py` and `02-integration.py --sanitizers` | PASS: 102 standalone/aggregate headers, scalar/available-AVX2 multi-TU, workspace, sanitizer self-tests |
-| `03-consistency.py` | no errors |
+| `03-consistency.py` | No errors |
+| `@reviewer`: own brute-force checks, 3000 forests for folds and intersections, ASan/UBSan/`_GLIBCXX_DEBUG` | PASS |
+
+Full mode includes 22,497 exhaustive forest/root cases, 350 random weighted forests and the 200,000-vertex chain; stress expands random cases to 2,500 and the chain to 500,000.
+
+```bash
+python3 '96-Local Testing/04-Graphs/07-lca_tester.py' --mode full --seed 20260927
+python3 '96-Local Testing/04-Graphs/07-lca_tester.py' --mode stress --seed 1 --configuration optimized
+python3 '96-Local Testing/04-Graphs/00-decomposition_benchmark.py'
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
+```
 
 ## Benchmarks
 
 [Benchmark driver](<../../96-Local Testing/04-Graphs/00-decomposition_benchmark.py>) and `96-Local Testing/04-Graphs/00-decomposition_benchmark.json` (shared with `08-scc.hpp`) contain CPU/compiler/flags, workload generation, seed, all five samples and medians. The C++ driver warms up both alternatives, includes allocation in construction time, separates LCA query time, excludes input generation and checks every result outside the timed region. Small/common/large cases use n=32, 2,000 and 100,000; LCA uses chains, stars, random recursive trees and disconnected chains. Memory is O(n log(n)) for binary LCA and O(n) for Euler LCA/Tarjan auxiliary results.
 
-Representative 2026-09-27 medians in milliseconds (100,000 vertices; 400,000 LCA queries):
+Recorded 2026-10-07 medians in milliseconds (flags `-O2 -DNDEBUG -mno-avx2`, i9-11900H, shared machine; 100,000 vertices, 400,000 LCA queries):
 
 | Workload | Binary LCA setup / queries | Euler LCA setup / queries |
 |---|---|---|
-| Chain | 6.875 / 3.434 | 4.346 / 9.614 |
-| Star | 5.342 / 34.801 | 3.003 / 10.218 |
-| Random tree | 24.060 / 42.760 | 18.171 / 13.364 |
+| Chain | 8.095 / 3.586 | 4.798 / 10.055 |
+| Star | 4.802 / 24.565 | 2.894 / 9.376 |
+| Random tree | 20.638 / 30.413 | 15.428 / 13.823 |
 
 Binary LCA retains its cheap ancestor shortcut and ancestor/path-jump operations; Euler RMQ is an explicit alternative for constant-time LCA queries and linear storage. These are shared-machine observations, especially noisy for microsecond-sized cases. There is no automatic dispatch threshold or universal speed claim. No Barrett/Montgomery or handwritten ISA specialization was introduced.
 
-Rerun 2026-10-07 before and after the `getLCA` change (flags `-O2 -DNDEBUG -mno-avx2`, five samples, i9-11900H, shared machine); the recorded JSON is the after run. Binary-lifting query medians before/after (100,000 vertices, 400,000 queries): chain 3.33/3.59 ms, star 27.4/24.6 ms, random 37.7/30.4 ms. Euler numbers moved within noise. With `-DNDEBUG` the assertion savings of finding 3 are not visible; the gain comes from dropping the redundant component comparison.
+## Sources
+
+The algorithms were independently implemented from the invariants above; external source bodies were not copied. These pages were retrieved and inspected on 2026-09-27:
+
+- [cp-algorithms, Lowest Common Ancestor — Binary Lifting](https://cp-algorithms.com/graph/lca_binary_lifting.html): powers-of-two parent table and ancestor interval query invariant.
+- [cp-algorithms, Lowest Common Ancestor — Farach-Colton and Bender](https://cp-algorithms.com/graph/lca_farachcoltonbender.html): ±1 Euler reduction, half-logarithmic signature blocks, microtables, and macro sparse-table proof.
+- [cp-algorithms, Lowest Common Ancestor — Tarjan's off-line algorithm](https://cp-algorithms.com/graph/lca_tarjan.html): union/completed-subtree ancestor invariant. Its simplified linear-time claim is not adopted for an ordinary DSU implementation.
+- [OI Wiki, 最近公共祖先](https://oi-wiki.org/graph/lca/): independently reviewed binary lifting, Euler/RMQ and offline Tarjan sections. Its warning that ordinary union-find retains an inverse-Ackermann factor supports the stated offline bound. It identifies a separate specialized linear-time union-tree technique in Gabow–Tarjan (1983), [DOI 10.1145/800061.808753](https://doi.org/10.1145/800061.808753); the primary PDF request returned HTTP 403, so no primary-paper inspection is claimed. That specialized DSU variant is not claimed by this implementation.
+
+The archived `LCA` in `OLD/algorithms.cpp:4563-4637` and `OLD/[1] algorithms.cpp:583-657` supplied the previous public constructor/query names, binary table orientation and inclusive timestamp convention. Both archives remain unchanged. `LCA(n,root,adj)` accepts adjacency sizes `n` (zero-based) or `n+1` (legacy one-based) and validates symmetric simple adjacency; vertex `0` remains an ordinary isolated vertex when unused. The maintained `.n` metadata is the actual adjacency size. Legacy nonpositive `getKthAncestor` remains identity. Historical recursive `init` was a construction helper and is superseded by constructing/assigning a fresh object; direct metadata mutation is outside the maintained contract.
+
+`OLD/Team Notebook/src/algs.cpp:878` / `:931` and corresponding `algsbetter.cpp` sections contain `LcaO1` and `LcaLog`. Their linear-preprocessing constant-query Euler RMQ and logarithmic binary LCA capabilities are accounted for by `EulerLCA` and `LCA`; archived names/bodies remain preserved. The new versions add empty forests, stack safety, disconnected results, weighted sums, rerooting and offline queries.
+
+Sources for `LCAFold` and `pathIntersection` (fetched 2026-10-07) are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p011-re-audit); rejected candidates are in [00-notes.md](00-notes.md#p011-re-audit-omissions).
 
 ## Limits and handoffs
 
-No unfinished owned feature or verification gap. Ancestor/path binary search by predicate belongs to row 15 (HLD); tree/HLD aggregates and dynamic-tree APIs remain with their separate owners (see [00-notes.md](00-notes.md#p011-package-record)).
+Ancestor/path binary search by predicate belongs to row 15 (HLD); tree/HLD aggregates and dynamic-tree APIs remain with their separate owners (see [00-notes.md](00-notes.md#p011-package-record)). No `CXX=g++-14` floor run is recorded for this header.
+
+## History
+
+- 2026-09-27: original P011, full suite (seed 20260927, 25,537,081 checks, 20 probes), integration and benchmark passed on g++ 16.
+- 2026-10-07: re-audit, added `LCAFold::pathFold` and `pathIntersection`; 4 findings fixed (complexity lines, unchecked `getLCA` loop, `offlineLCA` naming and brace); full suite, stress, integration and benchmark passed on g++ 16.

@@ -1,6 +1,6 @@
 # 04-trie.hpp — evidence
 
-`04-trie.hpp` (batch ST02, package P016) provides a full-byte multiset trie with prefix/lexicographic traversal and reclaimed nodes. It belongs to the P016 ST02 ownership slice (`04-trie.hpp`, `05-manacher.hpp` and their mirrored tests). String hashing has separate evidence in [03-stringhash.md](03-stringhash.md). Implementation began after ST01 feature verification; no ST03 palindrome-query implementation is included here.
+`04-trie.hpp` (batch ST02, package P016) provides a full-byte multiset trie with prefix/lexicographic traversal and reclaimed nodes. It belongs to the P016 ST02 ownership slice (`04-trie.hpp`, `05-manacher.hpp` and their mirrored tests).
 
 ## Contracts
 
@@ -12,11 +12,9 @@
 
 With maximum fanout `sigma <= 256`, a key of length `m` takes `O(m * log(sigma + 1))` lookup/update work; insertion and vector-stack/free-list growth use amortized allocation bounds. Enumeration takes `O(m * log(sigma + 1) + V)` excluding callback work, for `V` visited prefix-subtree nodes, and `O(m + h)` temporary space for maximum suffix depth `h`. Erase uses `O(m)` temporary space. Sparse edges and recycled slots take `O(P)` stored space where `P` is peak simultaneously live prefix nodes. Erase prunes dead paths and reuses their slots; `clear()` releases all edge allocations but retains vector capacities. Copying costs `O(P)` and creates independent state. Moves transfer state; clear or assign a moved-from trie before using its other operations. Public fields and allocation/traversal helpers expose contest implementation state, not additional independently mutable contracts.
 
-The algorithms use the contest profile, with no special ISA or modular-reduction dependency. Sparse trie transitions preserve deterministic bounds without a 256-integer row at every sparse node; Manacher avoids a transformed string and sentinels. No competing implementation or timing threshold is selected, so comparative benchmarking is not required. Large structural cases check practical allocation and linear traversal; they are correctness evidence, not a performance claim.
+The algorithms use the contest profile, with no special ISA or modular-reduction dependency. Sparse trie transitions preserve deterministic bounds without a 256-integer row at every sparse node.
 
-## Correctness arguments
-
-Every live trie edge appends exactly its byte to the root-to-node key. A node's `terminal` is that key's multiplicity; its `pass` equals `terminal` plus child `pass` values. Insertion changes precisely one root-to-terminal path. Checking the root total before incrementing prevents overflow of every subordinate count. Erase first checks the entire terminal multiplicity, then subtracts along exactly the same path. A zero-count suffix of that path has no live branch, so removing its edges and recycling its already emptied nodes preserves every other key. Iterative depth-first traversal visits terminal keys before increasing outgoing byte labels, which is lexicographic order. Reused slots are unreachable and have zero counters and no remaining children.
+Correctness: every live trie edge appends exactly its byte to the root-to-node key. A node's `terminal` is that key's multiplicity; its `pass` equals `terminal` plus child `pass` values. Insertion changes precisely one root-to-terminal path. Checking the root total before incrementing prevents overflow of every subordinate count. Erase first checks the entire terminal multiplicity, then subtracts along exactly the same path. A zero-count suffix of that path has no live branch, so removing its edges and recycling its already emptied nodes preserves every other key. Iterative depth-first traversal visits terminal keys before increasing outgoing byte labels, which is lexicographic order. Reused slots are unreachable and have zero counters and no remaining children.
 
 ## Feature-to-test map
 
@@ -32,60 +30,27 @@ Each mirrored Python entry runs from any working directory via the shared string
 
 ## Commands and results
 
-Full test command (seed `20260928`):
+P016 verification run, 2026-09-28: Linux x86-64 (i9-11900H), GCC 16.2.1 (20260810),
+GNU++20, CPython 3.14.7, seed 20260928. The shared runner builds optimized
+`-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan (leak checking on)
+configurations; test oracles stay active under NDEBUG. LeakSanitizer cannot run
+under the sandbox process tracer, so sanitizer configurations ran outside it.
 
-```text
-python3 '96-Local Testing/07-Strings/04-trie_tester.py' --mode full --seed 20260928
-```
+| Command from repository root | Result |
+|---|---|
+| `python3 '96-Local Testing/07-Strings/04-trie_tester.py' --mode full --seed 20260928` | PASS, all three configurations, 2,077,118 checks each (2187 exhaustive dictionaries, 7000 seeded operations, 100000-byte key); 5 assertion probes |
+| `python3 '96-Local Testing/02-integration.py'` | PASS: 99 standalone/aggregate headers, multi-TU scalar/AVX2 aggregates, Workspace LOCAL and non-LOCAL |
+| `python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration` (from `/tmp`) | PASS, all six P016 Strings suites |
+| `python3 '96-Local Testing/03-consistency.py'` | no errors |
 
-On 2026-09-28, the full suite passed with GCC 16.2.1 (20260810), GNU++20:
+No other compiler, including the `g++-14` floor, is recorded as tested.
 
-| Header | Per-configuration result | Checked precondition probes |
-|---|---|---|
-| Trie | 2,077,118 checks, 2187 exhaustive dictionaries, 7000 seeded operations, 100000-byte deep key | 5 passed |
-
-The configurations were optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie`. Leak detection remained enabled. The initial sandbox sanitizer processes encountered LeakSanitizer's fatal ptrace incompatibility at shutdown; the sanitizer configurations were rerun outside the sandbox, passed, and reported the same check counts:
-
-```text
-python3 '96-Local Testing/07-Strings/04-trie_tester.py' --mode full --seed 20260928 --configuration ASan-UBSan
-```
-
-Header-alone, aggregate/multiple-translation-unit and repository consistency verification are recorded by the P016 integration owner. No owned feature or algorithm-verification gap remains in these two headers; finite testing is supported by the correctness arguments above, not a claim of proof by enumeration.
-
-P016 package verification (batches ST01 → ST02 → ST19, completed in that order on 2026-09-28; the C01/P002 prerequisite was already verified). Seed **20260928**, GCC **16.2.1 (20260810)**, GNU++20; Python test orchestration used **CPython 3.14.7**. Test oracles remain active under NDEBUG.
-
-| Header | Executed feature mode | Checks per optimized / checked / ASan-UBSan configuration | Checked assertion probes |
-|---|---|---|---|
-| Trie | Full | 2,077,118 | 5 |
-
-All **43** assertion probes passed. Optimized builds use `-O2 -DNDEBUG`; checked builds use `_GLIBCXX_DEBUG`; sanitizer builds use ASan/UBSan with leak detection enabled. The sandbox's process tracer prevented LeakSanitizer from running, so the affected configurations were rerun with approved execution outside that tracer and passed. Per-header records distinguish those retries and final source coverage. Full was completed for all owned APIs; hash/trie/Manacher/run-length stress modes are available but were not executed. No other compiler/interpreter version is claimed as tested.
-
-Final package integration passed:
-
-- **99** current standalone/aggregate headers compiled.
-- All aggregates linked and ran across multiple translation units in scalar and available AVX2 configurations.
-- The existing standalone Workspace compiled in LOCAL and non-LOCAL configurations.
-- The shared runner discovered and passed all **six** Strings suites in quick mode from `/tmp`, including their checked preconditions and hash Python oracle.
-- Repository consistency passed with no errors, preserving the existing 428 targets, 335 batches and 226 packages.
-
-Commands run from the repository root unless otherwise stated:
-
-```bash
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
-
-Shared discovery was run with working directory `/tmp`:
-
-```bash
-python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration
-```
-
-The `--no-integration` option avoids repeating the separately completed integration/consistency checks. Strings Basic/All aggregates and shared quick discovery now include the six implementations. The six inventory rows and the test coverage index link current evidence.
+Stress mode exists but was not run.
 
 ## Benchmarks
 
-No benchmark: no competing implementation or timing threshold is selected (see the contracts). Other selected P016 algorithms use their justified direct linear/output-sensitive constructions without a competing specialization requiring a timing comparison.
+No competing implementation or timing threshold is selected, so no benchmark is
+recorded. Large structural cases are correctness evidence, not a performance claim.
 
 ## Sources
 
@@ -97,4 +62,9 @@ Inspected 2026-09-28; implementation is independent rather than a source-code po
 
 ## Limits and handoffs
 
-Compressed radix/persistent string dictionaries remain ST22 `25-radixtrie.hpp`; binary integer/XOR tries remain Data Structures. These are separate scheduled features, not missing functionality of this header. Finite tests supplement the mathematical arguments; they do not allocate every maximum-size domain. No online submission or acceptance is claimed.
+- Open `/reaudit-review` findings for P016 ([p016.md](<../../00-Guidelines/23-Reaudit Findings/p016.md>)), not yet resolved:
+  - 5: `Node`, `newNode` and `findNode` are inventory operations without feature-map rows or direct tests, while the header calls them internal.
+  - 11: complexity comment uses `m` and `sigma` instead of the standard `L` and `S`.
+  - 12: function bodies close on their own line (closing-brace rule).
+
+Compressed radix/persistent string dictionaries remain ST22 `25-radixtrie.hpp`; binary integer/XOR tries remain Data Structures. These are separate scheduled features, not missing functionality of this header. Finite tests supplement the correctness arguments; no maximum-size domain is allocated.

@@ -1,6 +1,6 @@
 # 07-permutation.hpp — evidence
 
-`07-permutation.hpp` provides lexicographic next/previous and k-th next steps, bijection algebra (inverse, composition, powers, cycles, sign, order), exact Lehmer digits, bounded scalar ranks, and exact multiset count/rank/unrank. It reuses `02-Data Structures/02-fenwick.hpp` for order statistics (P006 dependency). First verified 2026-09-28; re-audited 2026-10-07, when `kthNextPermutation`, `permutationCycles`, `permutationSign`, `permutationOrder` and `permutationOrderMod` were added. They had been inventory gaps (`/reaudit-review` finding 3), while the earlier record wrongly called the header complete. Header contracts moved here, and the `permutation_detail::Multiset` complexity line was added (finding 8).
+`07-permutation.hpp` provides lexicographic next/previous and k-th next steps, bijection algebra (inverse, composition, powers, cycles, sign, order), exact Lehmer digits, bounded scalar ranks, and exact multiset count/rank/unrank. It reuses `02-Data Structures/02-fenwick.hpp` for order statistics (P006 dependency). Batch MI02, package P013; dependencies P002 (template) and P006 (Fenwick), both verified.
 
 ## Contracts
 
@@ -59,78 +59,24 @@ scalar multiset ranks are not provided. Partial permutations, constrained
 generation and circular equivalence enumeration are separate enumeration
 problems rather than implicit variants of these full-permutation APIs.
 
+Correctness:
+
+- Algebra: inverse and composition follow their pointwise definitions. Every bijection partitions into disjoint cycles; on a cycle of length `m`, power `k` advances by `k % m` (a signed remainder, so the minimum exponent is never negated). Each vertex is visited a constant number of times, so mapping operations are linear, matching the output lower bound.
+- `kthNextPermutation`: the Lehmer digits of the last `m = min(n,21)` positions depend only on that suffix's relative order and are the low mixed-radix digits (radices 1..m) of the rank. Adding `k` digit by digit with carries in `{-1,0,1}` gives new low digits, a carry `c` and a leftover quotient `a`; since `21! > 2^63 > |k|`, `a = 0` and `|c| <= 1` when `n > 21`. For `c = +1`, sorting the suffix descending and calling `std::next_permutation` on the whole array increments the prefix rank and leaves an ascending suffix, returning false exactly on wrap; `c = -1` is symmetric. For `n <= 21` any nonzero `c` or `a` is a wrap and the same step resets to the first or last order. The suffix is then rebuilt by selecting the `d[i]`-th smallest remaining value, giving rank `(rank + k) mod n!`.
+- Cycles, sign, order: a `seen` array visits each vertex once; a cycle of length `L` contributes `L - 1` transpositions; the order of disjoint cycles is the lcm of their lengths. The checked version computes `res / gcd(res, L) * L` in `ulll` and stops at the first value above `ulng` (lcm is monotone). The modular version factors each distinct length by trial division (at most `sqrt(2n)` distinct lengths summing to `n`, so O(n^(3/4)) trial work), keeps the maximal prime power per prime and multiplies those in `T`.
+- Lehmer and scalar ranks: a Fenwick tree holding one per available label gives each digit as a prefix count; decoding selects the `(d[i]+1)`-th remaining label. These are inverse bijections between permutations and valid mixed-radix digit vectors, whose order matches lexicographic order. Scalar rank evaluates the digits in bases `n,...,1` and unrank divides in reverse; a nonzero leftover quotient is exactly an out-of-range rank. Every intermediate fits under `n <= 20`; no quadratic erase-from-vector step occurs.
+- Multiset count: `W = n! / product(c[i]!)` is built as successive binomial factors whose running product stays integral; intermediates are below `2^95` (count at most `2^64-1`, numerator at most `INT_MAX`), so `ulll` suffices, and monotone growth allows immediate rejection above `ulng`. All counts are validated before any early overflow return.
+- Multiset rank/unrank: with `r` positions left, arrangements beginning with a label of remaining multiplicity `c` form a contiguous block of exactly `W*c/r`. Ranking adds the blocks of smaller labels; unranking `k` selects the first cumulative multiplicity `s` with `W*s/r > k` (order-statistic target `floor(k*r/W)+1`) and recurses. Products fit `ulll`. Fenwick queries count remaining multiplicities, and an ordered frequency map groups labels from the const input in O(n log(m+1)) without copying or sorting it.
+
+The implementation uses standard lexicographic steps and the shared Fenwick engine, with no tuned threshold or claimed speedup, so no benchmark is required.
+
 ### permutation_detail
 
 `cycleLengths(p)` returns the distinct cycle lengths in increasing order (O(n) time and space; asserts a permutation). `Multiset` groups a value list into sorted distinct `keys` and their `count`s with an ordered map, then stores the exact multinomial `total`, which is 0 when it exceeds `ulng`. It takes O(n log(m+1)) time and O(m) space for `m` distinct labels. Neither is public API.
 
-## Correctness and optimality
-
-Inverse and composition follow their pointwise definitions. Every bijection
-partitions into disjoint cycles. On a cycle of length `m`, raising the mapping
-to `k` advances by the normalized remainder `k % m`; taking a signed remainder
-avoids negating the minimum signed exponent. Each vertex is visited a constant
-number of times. All mapping operations are linear, matching the returned
-output size lower bound.
-
-`kthNextPermutation` works on the factorial number system. The Lehmer digits of the last `m = min(n,21)` positions depend only on the relative order of those suffix elements, and they are the low `m` mixed-radix digits (radices 1..m) of the rank. Adding or subtracting `|k|` digit by digit with carries in `{-1,0,1}` yields the new low digits, a carry `c` and a leftover quotient `a`. Since `21! > 2^63 > |k|`, `a = 0` and `|c| <= 1` whenever `n > 21`. If `c = 0` and `a = 0`, the prefix is unchanged. If `c = +1`, the prefix rank must increase by one: sorting the suffix descending gives the maximal suffix, and one `std::next_permutation` on the whole array then increments the prefix rank and leaves an ascending suffix. It returns false exactly when the prefix was the last arrangement, so the result wraps modulo `n!`. `c = -1` is symmetric with ascending sort and `prev_permutation`. When `n <= 21`, any nonzero `c` or `a` is a wrap, and the same whole-array step resets to the first or last order. Finally the suffix is rebuilt from the new digits by selecting the `d[i]`-th smallest remaining suffix value. All three cases leave rank `(rank + k) mod n!`. Cost: O(n) validation and stepping, O(m^2) digit work.
-
-Cycles visit each vertex once with a `seen` array. Each cycle of length `L` contributes `L - 1` transpositions, so the sign is `(-1)^(n - cycles)`. The order of a product of disjoint cycles is the lcm of their lengths. The checked version multiplies `res / gcd(res, L) * L` in `ulll` and stops once the value exceeds `ulng`; lcm is monotone, so the first overflow is final. The modular version factors each distinct length by trial division. The distinct lengths sum to at most `n`, so there are at most `sqrt(2n)` of them and the total trial work is O(n^(3/4)). It keeps the maximal prime power per prime and multiplies those in `T`, which equals the lcm reduced in `T`.
-
-A Lehmer digit counts available elements less than the selected value. Initially
-the Fenwick tree contains one per label. Prefix counts produce the digit and
-removing the selected label maintains this invariant. Decoding selects digit
-`d[i]+1` by Fenwick order statistic and removes that element. Thus the operations
-are inverse bijections between permutations and valid mixed-radix digit
-vectors. Scalar rank evaluates these digits in bases `n,n-1,...,1`; scalar
-unrank divides in reverse order. A nonzero leftover quotient is exactly an
-out-of-range rank, including the empty case. Every scalar intermediate fits
-under the `n <= 20` contract. Fenwick setup is linear and each selection/update
-is logarithmic; there is no quadratic erase-from-vector bottleneck.
-
-For multiplicities `c`, the number of arrangements is
-`W = n! / product(c[i]!)`. Build this as successive binomial factors. During
-each factor's recurrence, the current exact product multiplied by its next
-numerator and divided by its next denominator remains an integer. Intermediate
-products are below `2^95` because the previously accepted count is at most
-`2^64-1` and the numerator at most `INT_MAX`; unsigned 128-bit arithmetic is
-sufficient. The count grows monotonically, so exceeding `ulng` can be rejected
-immediately. Zero multiplicities and a single all-equal group require no inner
-recurrence work. The implementation validates every count before any early
-overflow return.
-
-With `r` positions left, all arrangements beginning with a label of remaining
-multiplicity `c` form a contiguous block of exactly `W*c/r` arrangements. These
-block sizes are integers. Ranking adds the combined blocks for smaller labels,
-then restricts to the chosen block. For unranking rank `k`, select the first
-cumulative multiplicity `s` for which `W*s/r > k`; its order-statistic target is
-`floor(k*r/W)+1`. Subtract the earlier blocks and recurse. All products again
-fit unsigned 128 bits; accepted ranks and counts stay within `ulng`. Fenwick
-queries count remaining multiplicities without scanning every smaller label.
-An ordered frequency map groups labels directly from the const input in
-O(n log(m+1)) time and O(m) space for `m` distinct values. The subsequent queries
-have the same time bound and O(m) auxiliary space, including linear all-equal
-and one-rare-value cases. Input values are neither copied nor sorted during
-grouping; the O(n) returned sequence is constructed only for successful unrank.
-
-The implementation uses standard lexicographic steps and the shared Fenwick
-engine, without empirically tuned thresholds or a claimed constant-factor
-speedup. Large tests exercise the linear and logarithmic paths; their runtime
-is not presented as a portable benchmark.
-
-## Re-audit findings (P013, 2026-10-07)
-
-| Header | Gap or finding | Resolution |
-|---|---|---|
-| `07` | `kthNextPermutation`, `permutationCycles`, `permutationSign`, `permutationOrder` missing; evidence claimed completeness (finding 3) | Implemented, plus `permutationOrderMod`; enumeration, property, repeated-step and Python factorial-base/`lcm` oracles |
-| `07` | Finding 8: `permutation_detail::Multiset` lacks a complexity line | Added `// T: O(n * log(m + 1)), M: O(m), m distinct labels; ...` |
-| all | Contracts in multi-line header comments over the 8% cap | Moved to `## Contracts` sections; headers pass the cap |
-| all | `; }` closing braces in headers, testers, benchmark (finding 7) | Normalized; `03-consistency.py --braces` reports none |
-
-The completeness sweep added `permutationOrderMod`. The independent `@reviewer` pass (2026-10-08) found no correctness defects: an independent `lll` rank/unrank probe agreed with `kthNextPermutation` on 200,000 cases (n up to 33, extreme and random offsets, |k| >= n!), and exhaustive or random probes confirmed the order and sign behaviour. It confirmed that `kthNextPermutation`'s memory bound ignored the checked-build validation vector; the bound is now stated in the contracts above.
-
 ## Feature-to-test map
 
-`96-Local Testing/06-Miscellaneous/07-permutation_tester.py` runs from any working
+[`07-permutation_tester.py`](<../../96-Local Testing/06-Miscellaneous/07-permutation_tester.py>) runs from any working
 directory and uses non-removable checks in every configuration.
 
 | Feature | Independent evidence |
@@ -150,18 +96,7 @@ Quick exhausts distinct permutations through n=6, three-symbol multiplicities 0.
 
 ## Commands and results
 
-GCC 16.2.1, GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H, 2026-10-07:
-
-```sh
-python3 '96-Local Testing/06-Miscellaneous/07-permutation_tester.py' --mode full --seed 20260927                              # PASS, 3 configurations, 20 probes
-python3 '96-Local Testing/06-Miscellaneous/07-permutation_tester.py' --mode stress --seed 20260928 --configuration optimized   # PASS
-```
-
-Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan with leak detection. No benchmark is required; no threshold or speedup is claimed. No online submission was made.
-
-Batch MI02, package P013; dependencies P002 (template) and P006 (Fenwick), both verified.
-
-P013 package runs, GCC 16.2.1, GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H, 2026-10-07. Baseline before the re-audit changes: all seven P013 suites (`01`–`07`) passed full mode with seed 20260927. After the changes:
+P013 package run, 2026-10-07, GCC 16.2.1, GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection. The permutation full run passed all 3 configurations and 20 assertion probes.
 
 ```sh
 python3 '96-Local Testing/01-run.py' --mode quick --filter 06-Miscellaneous --no-integration                            # PASS (all 14 suites)
@@ -170,11 +105,9 @@ for s in 01-random 02-customhash 03-fastio 04-compression 05-binarysearch 06-bit
   python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode stress --seed 20260928 --configuration optimized   # PASS x7
 done
 python3 '96-Local Testing/06-Miscellaneous/03-fastio_benchmark.py'                                                       # PASS, record rewritten
-python3 '96-Local Testing/02-integration.py'                                                                             # PASS
+python3 '96-Local Testing/02-integration.py'                                                                             # PASS (every header alone, Basic/All aggregates)
 python3 '96-Local Testing/03-consistency.py'                                                                             # no errors
 ```
-
-`02-integration.py` also builds every header alone and the Basic/All aggregates.
 
 ## Sources
 
@@ -201,10 +134,7 @@ dependency. No external implementation was copied.
   “Permutations of multisets” and cycle/order sections: repeated-value semantics,
   multinomial count and cycle decomposition. Partial/circular variants were
   identified as separate enumeration scopes, not silently claimed here.
-
-The independent reviewer checked saved KACTL `IntPerm.h` and found its integer
-numbering explicitly not order-preserving, with narrower integer/bitmask bounds;
-it was not adopted as a lexicographic rank algorithm or correctness oracle.
+- Saved KACTL `IntPerm.h` (checked by the independent reviewer): its integer numbering is explicitly not order-preserving, with narrower bounds; not adopted as a rank algorithm or oracle.
 
 ## Limits and handoffs
 
@@ -212,3 +142,8 @@ Omitted candidates: `permute`/`inversePermute` on value arrays (one loop; `permu
 
 - Scalar distinct ranks need n ≤ 20; Lehmer digits and `kthNextPermutation` scale to any n; multiset ranks need the multinomial to fit `ulng`; `permutationOrder` reports overflow, `permutationOrderMod` reduces into the caller's type.
 - No online submission was made and no judge acceptance is claimed.
+
+## History
+
+- 2026-09-28: P013 first verification, full and stress suites passed.
+- 2026-10-07: P013 re-audit, finding 3 (missing `kthNextPermutation`, cycles, sign, order) and finding 8 (`Multiset` complexity line) fixed, `permutationOrderMod` added, contracts moved out of code comments; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects, and its `kthNextPermutation` memory-bound note is now in the contracts.

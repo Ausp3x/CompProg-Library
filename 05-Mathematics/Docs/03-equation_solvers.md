@@ -2,12 +2,6 @@
 
 `03-equation_solvers.hpp` covers two-variable linear Diophantine equations and one-variable linear congruences. It builds on `extendedGcd`, `floorDiv`, `ceilDiv` and `modNorm` from `01-mod_arithmetic.hpp`. Every operation is deterministic, logarithmic in the coefficient sizes, and returns constant-size results; there is no hidden enumeration, allocation, cache or preprocessing.
 
-The P012 re-audit (2026-10-07) made three changes:
-
-- Finding 1: `DioSolution.g` now holds `gcd(|a|, |b|)` on every result, including `dimension == -1`. It used to be 0 there, which contradicted the contract.
-- Finding 8: the closing brace of the `restrict` lambda was a style-only fix.
-- The in-code contracts moved into this document.
-
 ## Contracts
 
 ### DioSolution, solveDioEq
@@ -23,6 +17,8 @@ Evaluating an arbitrary parameter `t` must fit the caller's chosen arithmetic. E
 
 The legacy overload `solveDioEq(a, b, c, x, y, g)` keeps its name and signature. It requires pairwise-distinct output references (asserted). On success, the canonical `x`, `y` and `g` must fit `lng` (asserted); use the result overload otherwise. It returns false for a legitimate no-solution case and leaves the outputs unchanged.
 
+Correctness: for nonzero `(a, b)`, Bézout gives `a * u + b * v = g > 0`, so a solution exists exactly when `g` divides `c`, and scaling by `c / g` gives a particular solution. When `b != 0`, reducing `x` modulo `|b / g|` and recomputing `y = (c - a * x) / b` keeps it integral. Two solutions differ by a vector with `(a / g) * dx = -(b / g) * dy`; coprimality makes it a multiple of `(b / g, -a / g)`, so the line holds all solutions and only solutions. With one zero coefficient the same primitive vector covers the free coordinate; with both zero the equation is inconsistent or no constraint. Widths: the extended-gcd coefficients and `c / g` are at most `2^63` in magnitude, so products are at most `2^126`; the canonical `x` lies in `[0, 2^63)`, `c - a * x` fits 128 bits, and `|y| <= 2^63 / |b| + |a| / g <= 2^64` (the `b = 0` case also fits).
+
 ### DioBox, solveDioBox
 
 `solveDioBox(a, b, c, xl, xr, yl, yr)` counts and parameterizes the solutions in the half-open box `[xl, xr) * [yl, yr)`. The endpoints are `lng` with `xl <= xr` and `yl <= yr` (asserted). The returned `DioBox` has:
@@ -33,36 +29,15 @@ The legacy overload `solveDioEq(a, b, c, x, y, g)` keeps its name and signature.
 
 Each coordinate width is at most `2^64 - 1`, so the count fits even for `0 * x + 0 * y = 0` on the largest box, `(2^64 - 1)^2` points. The exclusive endpoints are `lng`, so a box cannot contain `INT64_MAX`; the unbounded result still represents such solutions. When converting a legacy inclusive range, check the upper endpoint before adding one. Enumerating a parameter range costs `O(count)` extra.
 
-To optimize a linear objective `p * x + q * y` over a nonempty line intersection, note that its slope in `t` is `p * dx + q * dy`. Pick `l` for a nonnegative slope and `r - 1` for a negative one. On the whole plane, pick each box endpoint by the sign of its coefficient. Integer systems and lattice normal forms belong to `49-integer_linear_algebra.hpp`.
+To optimize a linear objective `p * x + q * y` over a nonempty line intersection, note that its slope in `t` is `p * dx + q * dy`. Pick `l` for a nonnegative slope and `r - 1` for a negative one. On the whole plane, pick each box endpoint by the sign of its coefficient.
+
+Correctness: each nonconstant coordinate admits a closed interval of integer parameters, given exactly by ceiling and floor division with endpoints swapped for a negative step; making the upper end exclusive and intersecting the two intervals gives the range. A constant coordinate accepts or rejects the whole line. The plane case counts the Cartesian product directly. Endpoint differences, quotients and range widths fit signed 128 bits, and the unsigned box product fits because each width is at most `2^64 - 1`.
 
 ### solveModEq
 
 `solveModEq(a, b, m0)` solves `a * x = b (mod m0)` for any `lng` `a` and `b` and positive `m0` (asserted). It returns `{x, m}` with `0 <= x < m` and all solutions `x + k * m`, where `m = m0 / gcd(a, m0)` is the least positive period. It returns `{-1, -1}` exactly when there is no solution. `m0 == 1`, or `0 * x = 0`, gives `{0, 1}`. In `[0, m0)` there are `m0 / m` solutions, so enumerating them costs that much extra.
 
-## Correctness and width argument
-
-**Existence and parameterization.** For nonzero `(a, b)`, Bézout gives `a * u + b * v = g > 0`, so a solution exists exactly when `g` divides `c`. Multiplying the coefficients by `c / g` gives a particular solution. When `b != 0`, reducing `x` modulo `|b / g|` and recomputing `y = (c - a * x) / b` keeps the solution integral. Two solutions differ by a vector with `(a / g) * dx = -(b / g) * dy`; since `a / g` and `b / g` are coprime, that vector is an integer multiple of `(b / g, -a / g)`. So the line contains all solutions and only solutions. With one zero coefficient, the same primitive vector covers the free coordinate. With both zero, the equation is either inconsistent or no constraint.
-
-**Box.** Each nonconstant coordinate admits a closed interval of integer parameters. Ceiling and floor division give that interval exactly, with the inequality endpoints swapped for a negative step. Making the upper end exclusive and intersecting the two intervals proves `solveDioBox`. A constant coordinate either accepts the whole parameter line or rejects it. The plane case counts the Cartesian product directly.
-
-**Widths.**
-
-- The extended-gcd coefficients and `c / g` have magnitude at most `2^63`, so their products are at most `2^126`.
-- The canonical `x` lies in `[0, 2^63)`, and `c - a * x` fits 128 bits.
-- `|y| <= 2^63 / |b| + |a| / g <= 2^64`, and the `b = 0` case also fits.
-- Endpoint differences, ceiling and floor quotients, and range widths all fit signed 128 bits.
-- The unsigned box product fits because each width is at most `2^64 - 1`.
-
-**Congruence.** The congruence is the integer equation `a * x + m0 * y = b`. Dividing by the gcd is necessary and sufficient, and the Bézout coefficient of `a` is the inverse of `a / g` modulo `m0 / g`. Reducing `u * (b / g)` gives the least nonnegative representative. A positive modulus guarantees a positive period, so the sentinel `{-1, -1}` cannot collide with a valid answer.
-
-## Re-audit findings (P012, 2026-10-07)
-
-Confirmed `/reaudit-review` findings for this header:
-
-| # | Finding | Resolution |
-|---|---|---|
-| 1 | `DioSolution.g` was 0 on no solution | Fixed: `g = gcd(abs(a), abs(b))` on every result; both oracles check it |
-| 8 | Lambda closing brace `; };` | Fixed |
+Correctness: the congruence is the integer equation `a * x + m0 * y = b`. Dividing by the gcd is necessary and sufficient, and the Bézout coefficient of `a` is the inverse of `a / g` modulo `m0 / g`; reducing `u * (b / g)` gives the least nonnegative representative. A positive modulus guarantees a positive period, so the sentinel cannot collide with a valid answer.
 
 ## Feature-to-test map
 
@@ -77,11 +52,9 @@ Entry: [`03-equation_solvers_tester.py`](<../../96-Local Testing/05-Mathematics/
 | `solveModEq` | Every residue for signed `a`, `b` through magnitude 40 and moduli through 40: the sentinel, the least representative, the least period and every solution residue. A Python arbitrary-precision inverse oracle. |
 | Preconditions | Nine checked-build death probes: zero or negative modulus, reversed intervals, legacy gcd or point overflow, and the three output aliases. |
 
-Historical: on 2026-09-27, full mode with seed `20260927` passed 5,043,338 C++ checks per configuration and 5,729 Python cases. No specialized arithmetic or threshold exists, so no benchmark is needed.
-
 ## Commands and results
 
-Package-wide P012 runs (2026-10-07), recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1, GNU++20, Python 3.14, Linux x86-64 (i9-11900H). Every C++ build uses the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (quick runs the first two). Before any re-audit change, the full suite (`01-run.py --mode full --filter 05-Mathematics/0 --seed 1 --no-integration`) passed all six entries.
+Latest P012 re-audit runs (2026-10-07), recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1, GNU++20, Python 3.14, Linux x86-64 (i9-11900H). Every C++ build uses the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (quick runs the first two).
 
 ```bash
 python3 '96-Local Testing/01-run.py' --mode quick --filter 05-Mathematics/0 --no-integration                     # PASS, 6 suites, 2 configurations
@@ -91,13 +64,17 @@ python3 '96-Local Testing/02-integration.py'                                    
 python3 '96-Local Testing/03-consistency.py'                                                                     # no errors
 ```
 
-After the independent `@reviewer` pass, the full suite was rerun on all six headers, stress on combinatorics, and integration; all passed with the counts below.
+After the `@reviewer` pass, full (all six headers), stress (combinatorics) and integration were rerun and passed with these counts:
 
 | Mode | Count |
 |---|---|
 | Full (seed 1), per configuration | 5,050,043 C++ checks, 5,729 Python cases |
 | Stress (seed 1) | 7,011,138 C++ checks, 50,729 Python cases |
 | Assertion probes | 9 |
+
+## Benchmarks
+
+No specialized arithmetic or threshold exists, so no benchmark is needed.
 
 ## Sources
 
@@ -107,4 +84,13 @@ Inspected on 2026-09-27; implemented independently from the proofs, with no exte
 - [KACTL, `euclid.h`](https://github.com/kth-competitive-programming/kactl/blob/main/content/number-theory/euclid.h): independent comparison of the Bézout and inverse contract.
 - [OI Wiki, 线性同余方程](https://oi-wiki.org/math/number-theory/linear-equation/): the least nonnegative solution and the `n / gcd(a, n)` progression. It follows the same e-maxx lineage, so it serves as exposition only.
 
-The 2026-10-07 completeness sweep left out two candidates. `firstModInRange` (maspypy `first_mod_range_of_linear`) is handed to `18-floorsum.hpp`. A named linear-objective helper is not needed: the endpoint rule above is O(1). Both are recorded in [00-notes.md](00-notes.md). The previously active header exposed only a particular solution and one modular progression. Those names remain, with the signed-minimum and normalization overflows removed. `OLD` material is unchanged.
+## Limits and handoffs
+
+- Integer systems and lattice normal forms belong to `49-integer_linear_algebra.hpp`.
+- The 2026-10-07 completeness sweep left out two candidates, recorded in [00-notes.md](00-notes.md): `firstModInRange` (maspypy `first_mod_range_of_linear`) is handed to `18-floorsum.hpp`, and a named linear-objective helper is unnecessary because the endpoint rule above is O(1).
+- The previously active header exposed only a particular solution and one modular progression. Those names remain, with the signed-minimum and normalization overflows removed. `OLD` material is unchanged.
+
+## History
+
+- 2026-09-27: initial P012 evidence; full mode with seed `20260927` passed on all configurations.
+- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit fixed findings 1 (`DioSolution.g` on no-solution results) and 8 (lambda brace style).

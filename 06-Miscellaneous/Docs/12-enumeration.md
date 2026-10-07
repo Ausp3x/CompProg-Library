@@ -1,6 +1,6 @@
 # 12-enumeration.hpp — evidence
 
-`12-enumeration.hpp` (batch MI15) provides visitor-based traversals of combinations, multicombinations, subsets, mixed-radix products and Gray products, and of submasks, subset masks, fixed-popcount masks and Gray masks. Package P015 (order MI15, MI16, MI17). The verified C01 template prerequisite is supplied by P002. Implementations are independent contest-profile code. Archived originals remain unchanged. No online submissions are part of this work. Enumeration also reuses verified MI02 `BitOps`; this dependency on canonical MI02 bit stepping is reflected in the batch table, batch map and P015 prerequisite package map.
+`12-enumeration.hpp` (batch MI15, package P015, status audit) provides visitor-based traversals of combinations, multicombinations, subsets, mixed-radix products and Gray products, and of submasks, subset masks, fixed-popcount masks and Gray masks. It reuses verified MI02 `BitOps` and the C01 template (P002). Implementations are independent contest-profile code. No online submission was made.
 
 ## Contracts
 
@@ -22,11 +22,9 @@ Every traversal takes a visitor returning `true` to continue. A `false` visitor 
 
 Mask APIs support the unsigned 8–128-bit word domains of `BitOps`, with `0<=n<=word width` and nonnegative `k`. They test the last index before incrementing, so full-width enumeration requires no unrepresentable `2^width` counter or shift. Early stopping makes prefixes of otherwise enormous traversals practical. These APIs intentionally do not return a potentially overflowing total output count; ranking/unranking remains owned by permutation/combinatorics APIs.
 
-## Correctness and costs
+Correctness: lexicographic combinations increment the rightmost movable index and restore the smallest increasing suffix. The subset vector acts as a binary counter: trailing low selected indices are removed and the first absent index is appended. Product carries and Gray-direction reversals skip unit radices; for radices at least two, carries/reversals have geometrically decreasing frequencies, giving amortized constant overhead per output after linear setup. Gray masks toggle the trailing-zero bit of the new binary index, equivalent to `i ^ (i >> 1)`.
 
-Lexicographic combinations increment the rightmost movable index and restore the smallest increasing suffix. The subset vector acts as a binary counter: trailing low selected indices are removed and the first absent index is appended. Product carries and Gray-direction reversals skip unit radices. For active radices at least two, carries/reversals have geometrically decreasing frequencies, giving amortized constant overhead per output after linear setup. Gray masks toggle the trailing-zero bit of the new binary index, equivalent to `i ^ (i >> 1)`.
-
-Vector combinations use `O(k)` state and worst-case `O(k+1)` delay. Subsets use `O(n)` state with amortized constant delay. Products use `O(d)` state/setup and amortized constant delay, and masks use constant state/delay. Visitor work and retained output copies are additional. No recursion or precomputed exponential output list is used.
+Costs: vector combinations use `O(k)` state and worst-case `O(k+1)` delay; subsets `O(n)` state and amortized constant delay; products `O(d)` state/setup and amortized constant delay; masks constant state and delay. Visitor work and retained output copies are additional. No recursion or precomputed exponential output list is used.
 
 ## Feature-to-test map
 
@@ -43,33 +41,21 @@ The mirrored `12-enumeration_tester.py` entry uses independent recursive combina
 
 ## Commands and results
 
-```bash
-python3 '96-Local Testing/06-Miscellaneous/12-enumeration_tester.py' --mode full --seed 20260928
-python3 '96-Local Testing/06-Miscellaneous/12-enumeration_tester.py' --mode full --seed 20260928 --configuration ASan-UBSan
-```
-
-Stress mode is available but was not executed.
-
-Final environment: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 (20260810), CPython 3.14.7. Full configurations use GNU++20 optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie`. Leak checking remained enabled. The initial sanitizer failures came from LeakSanitizer's documented inability to run beneath the sandbox process tracer; approved runs outside that tracer passed. No algorithm failures remained.
-
-Package-wide P015 integration and consistency commands passed:
+Run 2026-09-28: Linux x86-64, i9-11900H, GCC 16.2.1 (20260810), CPython 3.14.7. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie` with leak checking enabled.
 
 ```bash
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
+python3 '96-Local Testing/06-Miscellaneous/12-enumeration_tester.py' --mode full --seed 20260928                               # PASS, optimized and checked
+python3 '96-Local Testing/06-Miscellaneous/12-enumeration_tester.py' --mode full --seed 20260928 --configuration ASan-UBSan    # PASS
+python3 '96-Local Testing/01-run.py' --mode quick --seed 20260928 --filter 12-enumeration --no-integration                    # PASS, also when run from /tmp
+python3 '96-Local Testing/02-integration.py'                                                                                   # PASS, 93 headers, scalar/AVX2 multi-TU, workspace
+python3 '96-Local Testing/03-consistency.py'                                                                                   # no errors
 ```
 
-Integration compiled all 93 present standalone/aggregate headers, linked combined scalar and available AVX2 aggregates across two translation units, and checked the standalone Workspace in LOCAL/non-LOCAL modes. Repository consistency reported no errors. Every saved benchmark source hash matched the final source bytes.
-
-The shared runner discovered and passed this suite from `/tmp`, confirming that tests resolve paths independently of the caller's directory:
-
-```bash
-python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --seed 20260928 --filter 12-enumeration --no-integration
-```
+Stress mode exists but was not run. No `CXX=g++-14` floor run is recorded.
 
 ## Benchmarks
 
-The canonical direct successors have no hardware dispatch, tuning cutoff or claimed speed superiority requiring a timing comparison. Bounds follow from the carry/successor arguments above.
+None: the direct successors have no dispatch, cutoff or speed claim; bounds follow from the carry/successor arguments above.
 
 ## Sources
 
@@ -85,6 +71,10 @@ Inspected on 2026-09-28; these are algorithm/proof references, and the implement
 
 ## Limits and handoffs
 
-No enumeration implementation was found in the targeted local legacy index/OLD search. Fixed-weight Gray/cool-lex orders, loopless worst-case-delay generators, combination ranking/sampling and restricted combinatorial objects are explicitly future extensions, not implied by ordinary traversal completion. Permutation ranking remains in MI02, and constrained search retains its separate owner.
-
-Specialist enumeration orders/ranking need their own scoped extension; they are not claimed implemented by P015. Extended stress mode and execution on other compiler/interpreter versions were not performed. No external online acceptance is claimed, and no online submission was made.
+- Open `/reaudit-review` findings for P015 ([p015.md](<../../00-Guidelines/23-Reaudit Findings/p015.md>)), not yet resolved:
+  - 1: the inventory row assigns `forEachIntegerPartition`, `forEachSetPartition`, `combinationRank` and `combinationUnrank` to this header; none is implemented, so the row stays partial.
+  - 2: the contract statement that ranking/unranking is owned by the permutation/combinatorics APIs, and the P015 completion claim in [00-notes.md](00-notes.md), contradict that row.
+  - 3: seven function bodies end with a lone `}` (closing-brace rule).
+  - 4: complexity comments use undefined symbols `outputs` and, in `forEachGrayProduct`, `d`.
+- No enumeration implementation was found in the legacy index or `OLD`. Fixed-weight Gray/cool-lex orders, loopless worst-case-delay generators, combination ranking/sampling and restricted combinatorial objects are future extensions. Permutation ranking remains in MI02; constrained search keeps its own owner.
+- Stress mode and other compiler/interpreter versions (including the GCC 14 floor) were not run.

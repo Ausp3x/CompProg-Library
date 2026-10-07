@@ -44,23 +44,15 @@ Correctness: the implementation follows multiplication of homogeneous 3x3 affine
 
 ## Commands and results
 
-### 2026-09-27 (original P008)
+2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 is not installed; no GCC 14 run is claimed.
 
-The full suite passed optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan with leak checking, at seed `20260927`, with 265,418 checks per configuration. Stress also passed at seed `42`.
-
-### 2026-10-07 re-audit
-
-Environment: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 is not installed, so no GCC 14 run is claimed. No online submission was made. The baseline full run before any edit reproduced the 2026-09-27 count exactly.
-
-| Entry | Full, seed `20260927` (optimized, checked, ASan/UBSan) | Stress, seed `42`, optimized |
-|---|---|---|
-| `08-coordinate_transform_tester.py` | PASS, 265,418 checks per configuration; 4 assertion probes | PASS, 2,042,850 checks |
-
-Also run:
-
-- A warning sweep under `-Wall -Wextra -Wconversion`, instantiating every approximate operation, found no header warnings.
-- A two-translation-unit program mixing all four GE02 headers passed optimized and ASan/UBSan, and the header compiles alone.
-- The sanitized integration (102 standalone and aggregate headers, scalar and AVX2 multi-TU builds, workspace) passed. The geometry quick run and the repository consistency check passed, and `03-consistency.py --braces` is clean on the header and tester.
+| Command | Result |
+|---|---|
+| `08-coordinate_transform_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 265,418 checks per configuration; 4 assertion probes |
+| `08-coordinate_transform_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 2,042,850 checks |
+| Warning sweep, every approximate operation, `-Wall -Wextra -Wconversion` | No header warnings |
+| Two-translation-unit program mixing all four GE02 headers (optimized, ASan/UBSan); standalone header | PASS |
+| `02-integration.py --sanitizers`, geometry quick run, `03-consistency.py` (with `--braces`) | PASS, no errors |
 
 ```bash
 python3 '96-Local Testing/03-Geometry/08-coordinate_transform_tester.py' --mode full --seed 20260927
@@ -71,18 +63,15 @@ python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/0[5-8]*.hpp '9
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-### Re-audit findings and their disposition (2026-10-07)
-
-| # | Finding | Disposition |
-|---|---|---|
-| 13 | Tester function bodies closed on their own line | Tester normalized |
-
-Other changes: the contract comment blocks moved from the header into `## Contracts`; the header meets the two-line and 8% comment caps, and grouped functions share one complexity line, as in the P007 restyle. No public name or documented behavior changed.
-
 ## Sources
 
 The implementation is independently derived. It was compared with KACTL `Point::rotate` and `linearTransformation.h` (printed pp. 17–18, 2024 edition) and Stanford's rotation and projection routines (section 2.2). The archived `point.cpp` and `intersection.cpp` contain no affine API. Candidates not adopted (line images, map equality, exact rational transforms) are in [00-notes.md](00-notes.md#p008-completeness-decisions-2026-10-07).
 
 ## Limits and handoffs
 
-No failing reproducer and no unfinished owned operation. 3D frames belong to GE31. No claim of universally certified floating geometry is made.
+3D frames belong to GE31. No claim of universally certified floating geometry is made.
+
+## History
+
+- 2026-09-27: original P008, full suite (seed 20260927, 265,418 checks) and stress passed on g++ 16.
+- 2026-10-07: re-audit, 1 finding fixed (tester brace closings), contract comments moved to this document; full suite and stress passed on g++ 16.

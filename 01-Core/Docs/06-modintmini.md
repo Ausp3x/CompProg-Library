@@ -1,8 +1,10 @@
-# C16: independent modular integer minis
+# 06-modintmini.hpp — evidence
 
 `06-modintmini.hpp` contains four independently copyable structs: `ModIntMini<MOD>`, `ModInt64Mini<MOD>`, `DynModIntMini<ID = 0>` and `DynModInt64Mini<ID = 0>`. They complement the four full types in `05-modint.hpp`; the distinct alias `mintmini = ModIntMini<998244353>` coexists with the full `mint`.
 
-## Domain and public contract
+## Contracts
+
+### ModIntMini, ModInt64Mini, DynModIntMini, DynModInt64Mini
 
 The 32-bit types support every modulus `1 <= m <= UINT32_MAX`; the 64-bit types support every modulus `1 <= m <= UINT64_MAX`. Values store one canonical residue `n` in `[0, m)`, with `Word` equal to `uint` or `ulng`. Do not mutate implementation state; direct writes to `n` must preserve its canonical representation. `red` and `powerMontgomery` are implementation-only helpers, not part of the shared public API: `red(x)` assumes a canonical-product dividend `x < mod()^2`, and does not promise arbitrary double-width reduction. Arithmetic has the same semantics as the full types on the shared API.
 
@@ -22,7 +24,7 @@ Every dynamic `setMod`, even with the previous modulus, invalidates existing val
 
 Omitted APIs are deliberate mini reductions: primality flags/detection, prime/composite roots, batch inversion, arbitrary-length decimal streams, integer casts, truthiness/`!`, ordering, increment/decrement and compatibility spellings such as `init`. Use `val()` to pass canonical residues to ordinary output or another exact type. These omissions do not reduce the arithmetic domain or silently change division semantics.
 
-## Independent copy and algorithms
+### Independent copy
 
 Each struct contains its own normalization, inverse and power helpers. There is no dependency on another mini, a full implementation, a shared detail namespace, Barrett/Montgomery headers or a common base. The installed header includes `01-template.hpp` for the standard headers and shared aliases. When copying one struct independently, supply these standard headers and exact aliases:
 
@@ -41,6 +43,8 @@ using ulll = __uint128_t;
 
 Unused headers/aliases may be removed per selected struct. GNU C++20 and the repository's GCC14+ baseline still apply; the GNU `noipa` attribute on the 64-bit power helper preserves the measured generic reduction kernel. Standard includes and width aliases are the only copy-paste prerequisites.
 
+### Algorithms and cost
+
 Construction, ordinary arithmetic, raw/access/equality and setup use constant space/time under fixed machine-word arithmetic. Inverse/division cost `O(log(m))`; powers cost `O(1 + log(|e| + 1))`, with an additional `O(log(m))` inverse for negative exponents. Each value stores four or eight bytes. Dynamic contexts have one modulus and, for 32 bits, one 64-bit reciprocal per exact ID; no heap allocation or growing cache exists. Powers use constant workspace, including Montgomery setup.
 
 - Static 32/64-bit products use exact double-width multiplication followed by constant-modulus remainder, allowing compiler specialization.
@@ -51,9 +55,9 @@ Construction, ordinary arithmetic, raw/access/equality and setup use constant sp
 
 The repeated code is intentional: each struct remains independently copyable. Mini scope removes uncommon operations before reducing arithmetic quality. These scalar kernels need no ISA-specific code; compiler-generated scalar/AVX2 differences are measured separately.
 
-## Verification and performance evidence
+## Feature-to-test map
 
-The [test entry](<../../96-Local Testing/01-Core/06-modintmini_tester.py>) owns all four structs. Full verification on 2026-09-27 passed **176,384 independent Python integer oracle cases per configuration**, plus the following API/integration fixtures, in optimized `-O3 -DNDEBUG`, checked `-O1 -D_GLIBCXX_ASSERTIONS`, and ASan/UBSan scalar builds. These structs have no ISA-specific branches; aggregate integration and the benchmark also exercise AVX2/BMI2 compilation.
+The [test entry](<../../96-Local Testing/01-Core/06-modintmini_tester.py>) owns all four structs and checks them against an independent Python integer oracle in optimized `-O3 -DNDEBUG`, checked `-O1 -D_GLIBCXX_ASSERTIONS`, and ASan/UBSan scalar builds. These structs have no ISA-specific branches; aggregate integration and the benchmark also exercise AVX2/BMI2 compilation.
 
 | Feature | Verification |
 |---|---|
@@ -63,16 +67,23 @@ The [test entry](<../../96-Local Testing/01-Core/06-modintmini_tester.py>) owns 
 | Powers and constexpr | Native signed/unsigned exponents through 128 bits including minima/maxima, zero, negative units, Montgomery/Mersenne threshold neighbors; static assertions and Python `pow` |
 | Dynamic lifecycle | Default setup, changed/same-modulus reset with stale values overwritten before use, IDs/widths/full-mini independence, default/custom globals in both translation-unit link orders |
 | Preconditions and standalone use | 18 checked assertion deaths, both zero static moduli rejected even under `NDEBUG`, each of four extracted structs compiled/run independently with only standard includes/aliases |
+| Reduced contract | Compile-time absence of floating-point constructors/exponents, implicit cross-family/width/ID conversions, integer casts, truthiness/`!`, ordering, increments/decrements, primality/roots, batch inversion, streams and `init`; exact word widths and `mintmini` identity |
 
-Quick retains every API fixture with dynamic rings through 24 and 64 random pairs per large modulus, using optimized and checked configurations. Stress extends dynamic rings through 96, random pairs to 4096 and arbitrary moduli to 3000 per width with the full configuration matrix; stress mode is available but no stress run is claimed. The full run used GCC 16.2.1 (20260810), CPython 3.14.7 and the Intel Core i9-11900H host. GCC14, Python3.10 and PyPy execution were unavailable; no run on those versions is claimed.
+Quick retains every API fixture with dynamic rings through 24 and 64 random pairs per large modulus, using optimized and checked configurations. Stress extends dynamic rings through 96, random pairs to 4096 and arbitrary moduli to 3000 per width with the full configuration matrix. Each extracted struct compiles without `using namespace std`, using exactly the five documented standard headers and aliases, with `-Wall -Wextra -Werror`.
+
+## Commands and results
+
+Re-audit, 2026-10-07 (GCC 16.2.1, CPython 3.14.7, Intel Core i9-11900H):
 
 ```bash
 python3 '96-Local Testing/01-Core/06-modintmini_tester.py' --mode full --seed 20260927
 ```
 
-The final full suite ran outside the process-traced sandbox after LeakSanitizer explicitly refused that environment; address, undefined-behavior and leak checks passed. An additional independent UBSan check passed 100,000 random 32/64-bit products and 128-bit exponent powers; the committed suite includes systematic versions of those boundary classes. The final persistent suite was rerun after tightening its extracted-struct preamble to exactly the five documented standard headers and aliases, without `using namespace std`; all three configurations passed in 76.78 seconds. Each documented minimal copy recipe was also separately compiled and run without `using namespace std` and with `-Wall -Wextra -Werror`. The migration snapshot mini-header SHA256 was `74c80da300e6fc5fca036bf5e1d250d11ed3330f3276e10e1aa48879b3e84985`; the later maintenance hash is recorded below.
+Full passed **176,384 exact oracle cases per configuration** in optimized, checked and ASan/UBSan scalar builds, all 18 assertion deaths, both zero-modulus rejections, all four extracted copies and both translation-unit link orders (85.61 s). `03-consistency.py --braces` reports no violation for the header, tester or benchmark source. The AVX2/BMI2 optimized benchmark build compiles. The stress round run with P005 (`--mode stress --seed 20260927`, recorded in [05-modint.md](05-modint.md)) passed 1,044,573 cases in each of the three configurations (77.4 s).
 
-The [benchmark entry](<../../96-Local Testing/01-Core/06-modintmini_benchmark.py>) compares actual mini/full public arithmetic with native double-width remainder and a mini multiplication-only power candidate. The historical `96-Local Testing/01-Core/06-modintmini_benchmark.jsonl` contains **3,552 checked measurements** from that migration snapshot in scalar and AVX2/BMI2 builds and captures source hashes, compiler commands, host, seed, workload and medians. All benchmark outputs passed their exact checks.
+## Benchmarks
+
+The [benchmark entry](<../../96-Local Testing/01-Core/06-modintmini_benchmark.py>) compares actual mini/full public arithmetic with native double-width remainder and a mini multiplication-only power candidate. `96-Local Testing/01-Core/06-modintmini_benchmark.jsonl` (2026-09-27; the header's generated code is unchanged since) contains **3,552 checked measurements** in scalar and AVX2/BMI2 builds with source hashes, compiler commands, host, seed, workload and medians.
 
 ```bash
 python3 '96-Local Testing/01-Core/06-modintmini_benchmark.py' --seed 20260927 --repetitions 5 --milliseconds 1 --output /tmp/modintmini-benchmark.jsonl
@@ -82,7 +93,7 @@ Each workload warms up by doubling its iteration count to at least 1 ms, then re
 
 Representative scalar medians are in microseconds; power rows cover all eight bases. `p64 = 18446744073709551557`.
 
-| Workload | Native remainder | Mini | Full |
+| Workload | Native remainder | Mini | Full (2026-09-27) |
 |---|---|---|---|
 | Dynamic 32-bit modulus 1024, 256-factor chain | 1.387 | 0.226 | 0.298 |
 | Dynamic 32-bit modulus 998244353, 256-factor chain | 2.068 | 1.543 | 1.597 |
@@ -93,27 +104,9 @@ Representative scalar medians are in microseconds; power rows cover all eight ba
 
 These measurements justify retaining the compact reciprocal/mask paths and Montgomery for long ordinary odd-modulus powers. They also distinguish the mini's cheaper single-fold dynamic Mersenne61 path from the full reducer: at exponent 65536 the multiplication-only candidate measured 0.268 µs versus the mini public call's 0.286 µs and the full Montgomery call's 0.394 µs. The AVX2/BMI2 build preserves that choice (0.230, 0.247 and 0.360 µs respectively). Ordinary products and short powers retain compact native reduction where setup would not pay. The zero-ring shortcut avoids unnecessary loops/setup; raw identity construction avoids normalization of a known canonical one.
 
-Other implementation/test compiler jobs were paused during the final measurements, but this shared host was not frequency-isolated. Individual mini/full rows can vary by several percent, and some full rows are faster. The evidence supports the selected compact backends, not a claim that every mini operation matches or beats the full type on every host. The separate C16 benchmark record does not rewrite historical C03 measurements.
+Individual mini/full rows can vary by several percent on this shared, not frequency-isolated host, and some full rows are faster; the evidence supports the selected compact backends, not a claim that every mini operation beats the full type.
 
-## Maintenance review — 2026-09-27
-
-The P005/C16 maintenance review checked the current co-located layout against the revised C++ guide and [Core migration record](../../00-Guidelines/History/2026-09-27-core-migration.md). All four structs remain independently copyable, with no sibling/full/base/detail/reduction-header dependency. Their full unsigned modulus domains, compact backends, arithmetic, public names, `mintmini`, and state/member ordering are unchanged. Header changes are whitespace only: logical setup/construction separators and named-lambda capture spacing. The benchmark support also received whitespace-only lambda/control-block formatting. Historical timings and their source hashes are preserved byte-for-byte; no performance rerun is claimed or required for these edits.
-
-Persistent tests now enforce the reduced contract: floating-point constructors/exponents, implicit cross-family/width/ID conversions, integer casts, truthiness/`!`, ordering, increments/decrements, primality/roots, batch inversion, streams and `init` remain absent. Exact word widths and `mintmini` identity are checked. Each extracted struct still compiles without `using namespace std`, using exactly the five documented standard headers and aliases; those isolated programs now additionally exercise signed-minimum and unsigned-maximum 128-bit construction and powers. Generated C++ fixture code follows the current bracing/spacing defaults. These checks supplement the independent Python oracle and full/mini agreement rather than substituting for them.
-
-Fresh verification used the full command above with seed 20260927 on GCC 16.2.1 and CPython 3.14.7: all three configurations passed **176,384 exact oracle cases each**, all 18 assertion deaths, both static zero-modulus rejections, all four isolated copies and cross-TU initialization in both link orders. The completed run took 78.57 seconds; ASan/UBSan and leak checking passed outside the known process-tracing restriction. The Python tester also parses under Python 3.10 grammar. Both scalar and AVX2/BMI2 optimized benchmark builds passed without running timings. No C16 verification gap remains.
-
-The maintained mini header SHA256 is `2c90b006ca8cd4c5680ac474ed05f28507df5bcad1ec9b728cf76a063e365009`. Existing numbering, ownership, aliases, aggregate membership and shared maps remain unchanged; one integration owner reviewed those records. The full-family maintenance result is recorded in [C03 evidence](05-modint.md).
-
-## Re-audit — 2026-10-07 (P005)
-
-The confirmed `/reaudit-review` findings for this header were all style: multi-line blocks closing `; }` instead of `;}` (constructor branches, Montgomery dispatch, Mersenne fold), the `red` lambda in both 64-bit `powerMontgomery` helpers closing on its own `};` line with a spaced capture list, and no `T:/M:` line above those helpers although their bound differs from the struct's `O(1)`. All three are fixed: every multi-line block now ends `;}`/`}}`, the lambda is `auto red = [m, v](ulll x) -> Word { ... ;};`, and `// T: O(1 + log(e + 1)), M: O(1); odd m, canonical a.` sits directly above each helper. No algorithm, public name, domain or result changed; the mini remains independent of the full header and of the new full-type `ModInt61` fast path, as documented in `80-notes.md`. The 2026-10-07 researcher sweep of minimal modints (KACTL, ACL, Nyaan, maspypy, ei1333, ecnerwala, Benq, cp-algorithms, OI Wiki) found no operation outside the documented reductions; `!=` comes from `==` in C++20 and mixed integer operands convert through the constructor.
-
-The tester and benchmark C++ sources were normalized to the same closing-brace rule (lambda closes joined to their last statement; the static oracle dispatch now ends `}}}` before its `#undef` lines). `03-consistency.py --braces` reports no violation for the header, tester or benchmark source, and the validator now enforces the rule on them because the row and package are verified. A validator defect found during this pass (a `template<...> requires (...)` clause on the line before `struct X {` made the checker treat the struct body as a block, since it joined lines without a separator) was fixed by inserting a space at each line break; that change is recorded in the C03 evidence.
-
-Full verification before and after the edits used the command above with seed 20260927 on GCC 16.2.1 and CPython 3.14.7: **176,384 exact oracle cases per configuration** in optimized, checked and ASan/UBSan scalar builds, all 18 assertion deaths, both zero-modulus rejections, all four extracted copies and both translation-unit link orders; 86.69 s before, 85.61 s after. The AVX2/BMI2 optimized benchmark build also compiles. No timing was repeated: the header's generated code is unchanged apart from comments and whitespace, and the historical JSONL record stays byte-for-byte as the mini's measurement evidence.
-
-## Research and provenance
+## Sources
 
 This implementation is independently written; no external source code or license-bearing text was copied. The compact arithmetic follows the algorithms already justified in C02 reduction evidence ([03-barrett.md](03-barrett.md), [04-montgomery.md](04-montgomery.md)) and [C03 full modular evidence](05-modint.md), rechecked for independent structs and full unsigned boundaries.
 
@@ -124,4 +117,14 @@ This implementation is independently written; no external source code or license
 | [cp-algorithms: Modular Multiplicative Inverse](https://cp-algorithms.com/algebra/module-inverse.html), extended-Euclidean and prime-only distinction, saved source inspected 2026-09-27 | Composite-modulus unit inverse and explicit rejection of prime-only inversion shortcuts. |
 | Current `03-barrett.hpp`, `04-montgomery.hpp`, and `05-modint.hpp` | Full-width carry argument, product domains, constant-time setup, power dispatch and matching semantics. These are reference implementations, not dependencies of a copied mini. |
 
-No online submission or acceptance is claimed. The source review establishes the stated algorithm choices; finite tests and benchmarks do not establish a universal fastest implementation.
+The 2026-10-07 sweep of minimal modints (KACTL, ACL, Nyaan, maspypy, ei1333, ecnerwala, Benq, cp-algorithms, OI Wiki) found no operation outside the documented reductions; see [00-sources.md](00-sources.md) and [00-notes.md](00-notes.md).
+
+## Limits and handoffs
+
+GCC 14, Python 3.10 (the tester parses under 3.10 grammar) and PyPy execution were not run. No online acceptance is claimed. The mini stays independent of the full type's `ModInt61` fold path.
+
+## History
+
+- 2026-09-27: original C16 verification, full suite passed (176,384 cases per configuration); benchmark record.
+- 2026-09-27: maintenance review, reduced-contract absence checks added, full suite passed.
+- 2026-10-07: re-audit, 3 style findings fixed (closers, lambda form, missing complexity line), full suite passed on g++.

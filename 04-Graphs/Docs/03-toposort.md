@@ -1,6 +1,6 @@
 # 03-toposort.hpp — evidence
 
-Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp`, `02-traversal.hpp` and `04-dsu.hpp` through `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract). First verified on 2026-09-27. The 2026-10-07 re-audit added `TopologicalResult::unique` from the completeness sweep.
+Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp`, `02-traversal.hpp` and `04-dsu.hpp` through `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract).
 
 ## Contracts
 
@@ -24,47 +24,30 @@ A topological order is unique exactly when every consecutive pair is joined by a
 | `TopologicalResult: unique` | Same corpus; a chain with skip arcs with and without one missing link | Fewer than two valid permutations |
 | Preconditions | Three assertion probes | Expected assertion failure |
 
-The initial 200,000-vertex all-ready topological fixture exceeded the checked-build timeout because libstdc++ validates the entire heap on each operation; the final fixture uses 2,000 all-ready vertices while retaining the 200,000-vertex deep cases, and passed all three builds. A planted `unique` off-by-one mutation (temporary copy, full mode) was killed.
+The all-ready heap fixture uses 2,000 vertices, because checked libstdc++ validates the entire heap on each operation; the 200,000-vertex deep cases remain. A planted `unique` off-by-one mutation (temporary copy, full mode) was killed.
 
 ## Commands and results
 
-### 2026-09-27 (original P010)
-
-Fresh runs used GCC 16.2.1 (20260810), GNU++20 and CPython 3.14.7 on Linux x86-64. Full mode with seed 20260927 passed all three builds. The sanitizer run encountered the environment's ptrace/LeakSanitizer restriction and passed after an approved execution outside the sandbox with leak detection enabled; this is a completed retry, not a skipped configuration. The shared quick runner passed all six P010 entries with seed 42 from `/tmp`. Integration passed 79 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage/execution, and LOCAL/non-LOCAL workspace compilation. Repository consistency passed with no errors. All 61 checked precondition probes of the package passed. Extended stress modes were implemented but not run in that pass. Independent review found no remaining correctness, domain, complexity or meaningful coverage gap.
-
-### 2026-10-07 re-audit
-
-Before any edit, the unchanged suite passed full mode with seed 20260927 in all three builds. After the changes every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
+2026-10-07, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
 | Run | Result |
 |---|---|
-| Full, seed 20260927, before any edit | PASS, all three builds |
+| Full, seed 20261007, g++ | PASS, all three builds, 13,478,426 checks per build, 3 probes |
+| Full, seed 20261007, `CXX=g++-14` | PASS, all three builds, same counts |
+| Full, seed 20260927 | PASS, 13,478,134 checks per build, 3 probes |
 | Stress, seed 7 | PASS, all three builds, 89,130 cases and 39,310,158 checks per build |
-| Full, seed 20261007, after the review fixes, GCC 16.2.1 | PASS, all three builds, 13,478,426 checks per build, 3 probes |
-| Full, seed 20261007, GCC 14.4.1 20260915 (`CXX=g++-14`) | PASS, all three builds, same counts |
-
-The current feature map's full result with seed 20260927 is 13,478,134 checks per build and three assertion probes. The shared quick runner passed all eleven graph entries from `/tmp`. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage, the workspace build and the sanitizer self-tests. `03-consistency.py` reports no errors, and `--braces` reports nothing for the package. All runs used CPython 3.14 on Linux x86-64. GCC 14.2 itself was not run; 14.4.1 is the closest available. No online submission was made.
+| Quick runner, all eleven graph entries, from `/tmp` | PASS |
+| `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU linkage, workspace, sanitizer self-tests) | PASS |
+| `03-consistency.py`, with `--braces` on the package | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode full --seed 20260927        # before any edit
-python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode stress --seed 7
-python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode full --seed 20261007        # after the review fixes
+python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode full --seed 20261007
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode full --seed 20261007
+python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode stress --seed 7
 python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
 ```
-
-### Re-audit findings and their disposition (2026-10-07)
-
-The findings are recorded in `00-Guidelines/23-Reaudit Findings/p010.md`.
-
-| # | Finding | Disposition |
-|---|---|---|
-| 7, 12, 14 | Closing-brace rule (`}} }`, `; }}}`, `; }`) | Fixed in all six P010 headers, testers and both benchmarks. |
-| 8 | T/M lines not directly above | Every declaration now has its complexity line directly above it; contract prose moved to Contracts. |
-
-Change beyond the findings: the completeness sweep added `TopologicalResult::unique` (Hamiltonian-path test in `toposort_detail::ordered`). Independent review (`@reviewer`, 2026-10-07) found no correctness defect.
 
 ## Sources
 
@@ -74,8 +57,13 @@ Retrieved and inspected on 2026-09-27; no source code was copied.
 |---|---|
 | [OI Wiki, 拓扑排序](https://oi-wiki.org/graph/topo/) (updated 2026-04-23) | Kahn, DFS and heap-based lexicographic ordering. |
 
-The 2026-10-07 completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p010-re-audit); omitted candidates (including the lexicographically largest order) are in [00-notes.md](00-notes.md#p010-re-audit-omissions). Legacy: the old Team Notebook `old_topo.cpp` was inspected; its recursive reverse postorder is replaced by the iterative implementation.
+The completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p010-re-audit); omitted candidates (including the lexicographically largest order) are in [00-notes.md](00-notes.md#p010-re-audit-omissions). Legacy: the old Team Notebook `old_topo.cpp` was inspected; its recursive reverse postorder is replaced by the iterative implementation.
 
 ## Limits and handoffs
 
-No owned implementation or verification gap remains.
+GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available.
+
+## History
+
+- 2026-09-27: original P010, full suite (seed 20260927) passed on g++ 16 with integration and 61 package probes; stress not run.
+- 2026-10-07: re-audit, added `TopologicalResult::unique`; 2 findings fixed (brace rule, complexity line placement); full suite passed on g++ and g++-14, stress passed.

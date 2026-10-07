@@ -1,6 +1,6 @@
 # 04-dsu.hpp — evidence
 
-Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp` through `03-toposort.hpp`, `05-shortest_path.hpp` and `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract). Prerequisite: the verified P006 canonical DSU. First verified on 2026-09-27 and re-audited on 2026-10-07.
+Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp` through `03-toposort.hpp`, `05-shortest_path.hpp` and `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract). Prerequisite: the verified P006 canonical DSU.
 
 ## Contracts
 
@@ -22,43 +22,26 @@ Correctness: the graph-facing adapter uses the canonical P006 `DSU`, treating a 
 
 ## Commands and results
 
-### 2026-09-27 (original P010)
-
-Fresh runs used GCC 16.2.1 (20260810), GNU++20 and CPython 3.14.7 on Linux x86-64. Full mode with seed 20260927 passed all three builds. The sanitizer run encountered the environment's ptrace/LeakSanitizer restriction and passed after an approved execution outside the sandbox with leak detection enabled; this is a completed retry, not a skipped configuration. The shared quick runner passed all six P010 entries with seed 42 from `/tmp`. Integration passed 79 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage/execution, and LOCAL/non-LOCAL workspace compilation. Repository consistency passed with no errors. All 61 checked precondition probes of the package passed. Extended stress modes were implemented but not run in that pass. Independent review found no remaining correctness, domain, complexity or meaningful coverage gap.
-
-### 2026-10-07 re-audit
-
-Before any edit, the unchanged suite passed full mode with seed 20260927 in all three builds. After the changes every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
+2026-10-07, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
 | Run | Result |
 |---|---|
-| Full, seed 20260927, before any edit | PASS, all three builds |
+| Full, seed 20261007, g++ | PASS, all three builds, 6,346,458 checks per build, 3 probes |
+| Full, seed 20261007, `CXX=g++-14` | PASS, all three builds, same counts |
+| Full, seed 20260927 | PASS, 6,355,359 checks per build, 3 probes |
 | Stress, seed 7 | PASS, all three builds, 9,925,404 checks per build |
-| Full, seed 20261007, after the review fixes, GCC 16.2.1 | PASS, all three builds, 6,346,458 checks per build, 3 probes |
-| Full, seed 20261007, GCC 14.4.1 20260915 (`CXX=g++-14`) | PASS, all three builds, same counts |
-
-The current feature map's full result with seed 20260927 is 6,355,359 checks per build and three assertion probes. The shared quick runner passed all eleven graph entries from `/tmp`. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage, the workspace build and the sanitizer self-tests. `03-consistency.py` reports no errors, and `--braces` reports nothing for the package. All runs used CPython 3.14 on Linux x86-64. GCC 14.2 itself was not run; 14.4.1 is the closest available. No online submission was made.
+| Quick runner, all eleven graph entries, from `/tmp` | PASS |
+| `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU linkage, workspace, sanitizer self-tests) | PASS |
+| `03-consistency.py`, with `--braces` on the package | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/04-dsu_tester.py' --mode full --seed 20260927        # before any edit
-python3 '96-Local Testing/04-Graphs/04-dsu_tester.py' --mode stress --seed 7
-python3 '96-Local Testing/04-Graphs/04-dsu_tester.py' --mode full --seed 20261007        # after the review fixes
+python3 '96-Local Testing/04-Graphs/04-dsu_tester.py' --mode full --seed 20261007
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/04-dsu_tester.py' --mode full --seed 20261007
+python3 '96-Local Testing/04-Graphs/04-dsu_tester.py' --mode stress --seed 7
 python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
 ```
-
-### Re-audit findings and their disposition (2026-10-07)
-
-The findings are recorded in `00-Guidelines/23-Reaudit Findings/p010.md`.
-
-| # | Finding | Disposition |
-|---|---|---|
-| 7, 12, 14 | Closing-brace rule (`}} }`, `; }}}`, `; }`) | Fixed in all six P010 headers, testers and both benchmarks. |
-| 8 | T/M lines not directly above | Every declaration now has its complexity line directly above it. |
-
-Comment cap: `04-dsu.hpp` has 9 non-blank lines, so its one required complexity line is 11%; the validator and `03-cpp.md` now always allow one comment line. Independent review (`@reviewer`, 2026-10-07) found no correctness defect.
 
 ## Sources
 
@@ -66,4 +49,9 @@ No external source beyond the canonical P006 DSU evidence. Canonical P006 DSU al
 
 ## Limits and handoffs
 
-No owned implementation or verification gap remains. Weighted, rollback and other DSU variants are owned by Data Structures (see [00-notes.md](00-notes.md#ownership-boundaries)).
+Weighted, rollback and other DSU variants are owned by Data Structures (see [00-notes.md](00-notes.md#ownership-boundaries)). GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available.
+
+## History
+
+- 2026-09-27: original P010, full suite (seed 20260927) passed on g++ 16 with integration and 61 package probes; stress not run.
+- 2026-10-07: re-audit, 2 findings fixed (brace rule, complexity line placement); full suite passed on g++ and g++-14, stress passed.

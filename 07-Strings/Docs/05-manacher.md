@@ -1,6 +1,6 @@
 # 05-manacher.hpp — evidence
 
-`05-manacher.hpp` (batch ST02, package P016) provides generic Manacher radii and maximal/nested interval reconstruction. It belongs to the P016 ST02 ownership slice (`04-trie.hpp`, `05-manacher.hpp` and their mirrored tests). String hashing has separate evidence in [03-stringhash.md](03-stringhash.md). Implementation began after ST01 feature verification; no ST03 palindrome-query implementation is included here.
+`05-manacher.hpp` (batch ST02, package P016) provides generic Manacher radii and maximal/nested interval reconstruction. It belongs to the P016 ST02 ownership slice (`04-trie.hpp`, `05-manacher.hpp` and their mirrored tests).
 
 ## Contracts
 
@@ -10,11 +10,9 @@
 
 `oddInterval(i,k=-1)` and `evenInterval(i,k=-1)` return half-open ranges. `oddInclusive` and `evenInclusive` return inclusive endpoints. Radius `-1` selects the maximum; an explicit radius must be between 1 and `odd[i]`, or between 0 and `even[i]`, respectively. Empty even intervals return `[i,i)` or inclusive `[i,i-1]`, including `[0,-1]` for the empty input. These endpoints are interval conventions, not absence sentinels. Construction takes `O(n)` time and stored space, with `O(1)` auxiliary state beyond the returned arrays; each reconstruction takes `O(1)`. Radius arrays are read-only after construction. Copy/move transfer array values; assign a moved-from object before invoking radius queries.
 
-The algorithms use the contest profile, with no special ISA or modular-reduction dependency. Sparse trie transitions preserve deterministic bounds without a 256-integer row at every sparse node; Manacher avoids a transformed string and sentinels. No competing implementation or timing threshold is selected, so comparative benchmarking is not required. Large structural cases check practical allocation and linear traversal; they are correctness evidence, not a performance claim.
+The algorithms use the contest profile, with no special ISA or modular-reduction dependency. Manacher avoids a transformed string and sentinels.
 
-## Correctness arguments
-
-For either parity, Manacher maintains the rightmost maximal palindrome already found. If the next center lies inside it, reflection provides an already known radius, clipped at the right boundary. A smaller reflected palindrome stops at a reflected mismatch; one reaching the boundary can be extended only by comparing new symmetric symbols. Every successful comparison beyond the current boundary advances that boundary, giving `O(n)` total extension work. Odd and even loops apply this invariant to character centers and gap centers separately. Boundary differences and `l + (r-i)` mirror indices avoid overflowing sums of two absolute indices, including the documented `INT_MAX` size domain. Reconstruction is exactly the radius definition, and smaller radii remain palindromes by symmetric deletion.
+Correctness: for either parity, Manacher maintains the rightmost maximal palindrome already found. If the next center lies inside it, reflection provides an already known radius, clipped at the right boundary. A smaller reflected palindrome stops at a reflected mismatch; one reaching the boundary can be extended only by comparing new symmetric symbols. Every successful comparison beyond the current boundary advances that boundary, giving `O(n)` total extension work. Odd and even loops apply this invariant to character centers and gap centers separately. Boundary differences and `l + (r-i)` mirror indices avoid overflowing sums of two absolute indices, including the documented `INT_MAX` size domain. Reconstruction is exactly the radius definition, and smaller radii remain palindromes by symmetric deletion.
 
 ## Feature-to-test map
 
@@ -28,60 +26,27 @@ Each mirrored Python entry runs from any working directory via the shared string
 
 ## Commands and results
 
-Full test command (seed `20260928`):
+P016 verification run, 2026-09-28: Linux x86-64 (i9-11900H), GCC 16.2.1 (20260810),
+GNU++20, CPython 3.14.7, seed 20260928. The shared runner builds optimized
+`-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan (leak checking on)
+configurations; test oracles stay active under NDEBUG. LeakSanitizer cannot run
+under the sandbox process tracer, so sanitizer configurations ran outside it.
 
-```text
-python3 '96-Local Testing/07-Strings/05-manacher_tester.py' --mode full --seed 20260928
-```
+| Command from repository root | Result |
+|---|---|
+| `python3 '96-Local Testing/07-Strings/05-manacher_tester.py' --mode full --seed 20260928` | PASS, all three configurations, 3,200,052 checks each (13,842 small cases, 300000-symbol unary/alternating cases); 10 assertion probes |
+| `python3 '96-Local Testing/02-integration.py'` | PASS: 99 standalone/aggregate headers, multi-TU scalar/AVX2 aggregates, Workspace LOCAL and non-LOCAL |
+| `python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration` (from `/tmp`) | PASS, all six P016 Strings suites |
+| `python3 '96-Local Testing/03-consistency.py'` | no errors |
 
-On 2026-09-28, the full suite passed with GCC 16.2.1 (20260810), GNU++20:
+No other compiler, including the `g++-14` floor, is recorded as tested.
 
-| Header | Per-configuration result | Checked precondition probes |
-|---|---|---|
-| Manacher | 3,200,052 checks, 13,842 independently verified small cases, 300000-symbol unary/alternating cases | 10 passed |
-
-The configurations were optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie`. Leak detection remained enabled. The initial sandbox sanitizer processes encountered LeakSanitizer's fatal ptrace incompatibility at shutdown; the sanitizer configurations were rerun outside the sandbox, passed, and reported the same check counts:
-
-```text
-python3 '96-Local Testing/07-Strings/05-manacher_tester.py' --mode full --seed 20260928 --configuration ASan-UBSan
-```
-
-Header-alone, aggregate/multiple-translation-unit and repository consistency verification are recorded by the P016 integration owner. No owned feature or algorithm-verification gap remains in these two headers; finite testing is supported by the correctness arguments above, not a claim of proof by enumeration.
-
-P016 package verification (batches ST01 → ST02 → ST19, completed in that order on 2026-09-28; the C01/P002 prerequisite was already verified). Seed **20260928**, GCC **16.2.1 (20260810)**, GNU++20; Python test orchestration used **CPython 3.14.7**. Test oracles remain active under NDEBUG.
-
-| Header | Executed feature mode | Checks per optimized / checked / ASan-UBSan configuration | Checked assertion probes |
-|---|---|---|---|
-| Manacher | Full | 3,200,052 | 10 |
-
-All **43** assertion probes passed. Optimized builds use `-O2 -DNDEBUG`; checked builds use `_GLIBCXX_DEBUG`; sanitizer builds use ASan/UBSan with leak detection enabled. The sandbox's process tracer prevented LeakSanitizer from running, so the affected configurations were rerun with approved execution outside that tracer and passed. Per-header records distinguish those retries and final source coverage. Full was completed for all owned APIs; hash/trie/Manacher/run-length stress modes are available but were not executed. No other compiler/interpreter version is claimed as tested.
-
-Final package integration passed:
-
-- **99** current standalone/aggregate headers compiled.
-- All aggregates linked and ran across multiple translation units in scalar and available AVX2 configurations.
-- The existing standalone Workspace compiled in LOCAL and non-LOCAL configurations.
-- The shared runner discovered and passed all **six** Strings suites in quick mode from `/tmp`, including their checked preconditions and hash Python oracle.
-- Repository consistency passed with no errors, preserving the existing 428 targets, 335 batches and 226 packages.
-
-Commands run from the repository root unless otherwise stated:
-
-```bash
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
-
-Shared discovery was run with working directory `/tmp`:
-
-```bash
-python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration
-```
-
-The `--no-integration` option avoids repeating the separately completed integration/consistency checks. Strings Basic/All aggregates and shared quick discovery now include the six implementations. The six inventory rows and the test coverage index link current evidence.
+Stress mode exists but was not run.
 
 ## Benchmarks
 
-No benchmark: no competing implementation or timing threshold is selected (see the contracts). Other selected P016 algorithms use their justified direct linear/output-sensitive constructions without a competing specialization requiring a timing comparison.
+No competing implementation or timing threshold is selected, so no benchmark is
+recorded. Large structural cases are correctness evidence, not a performance claim.
 
 ## Sources
 
@@ -93,4 +58,8 @@ Inspected 2026-09-28; implementation is independent rather than a source-code po
 
 ## Limits and handoffs
 
-ST02 does not own exact static substring-palindrome checks or longest-palindrome extraction: ST03 `08-palindrome_queries.hpp` can use these radii and conversions. Hash-based palindrome checks must remain explicitly probabilistic there. Finite tests supplement the mathematical arguments; they do not allocate every maximum-size domain. No online submission or acceptance is claimed.
+- Open `/reaudit-review` findings for P016 ([p016.md](<../../00-Guidelines/23-Reaudit Findings/p016.md>)), not yet resolved:
+  - 13: struct complexity comment omits the U component.
+  - 14: constructor and all four interval methods break the closing-brace rule.
+
+ST02 does not own exact static substring-palindrome checks or longest-palindrome extraction: ST03 `08-palindrome_queries.hpp` can use these radii and conversions. Hash-based palindrome checks must remain explicitly probabilistic there. Finite tests supplement the correctness arguments; no maximum-size domain is allocated.

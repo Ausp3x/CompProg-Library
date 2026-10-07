@@ -1,6 +1,6 @@
 # 06-bit_operations.hpp — evidence
 
-`06-bit_operations.hpp` provides `BitOps<U>` (default `ulng`) for unsigned scalar words. It delegates standard operations to C++20 `<bit>` and adds boundary contracts, individual-bit manipulation, Gray codes and constant-time mask steps. Dynamic storage is Core Bitset; general enumerators are `12-enumeration.hpp`. First verified 2026-09-28; re-audited 2026-10-07, when `parity`, `grayCode`, `grayDecode` and `nextSupermask` were added from the completeness sweep and the header contracts moved here.
+`06-bit_operations.hpp` provides `BitOps<U>` (default `ulng`) for unsigned scalar words. It delegates standard operations to C++20 `<bit>` and adds boundary contracts, individual-bit manipulation, Gray codes and constant-time mask steps. Dynamic storage is Core Bitset; general enumerators are `12-enumeration.hpp`. Batch MI02, package P013; dependency P002 (template).
 
 ## Contracts
 
@@ -48,53 +48,18 @@ Positions/count bounds and the subset condition are asserted preconditions.
 They remain caller obligations under NDEBUG. Overflow of a power-of-two ceiling
 and exhaustion of a mask sequence are valid results, reported by `false`.
 
-## Correctness and implementation choices
+Correctness: the standard count/scan/rotation operations have defined zero and modulo-width semantics; `ceil` guards the only domain where `std::bit_ceil` would overflow, and width-equal branches in masks/shifts avoid shifting by the type's width. Narrow operands promote to `int`: the largest 16-bit shifted intermediate is 65535×2^15, which fits, every shift count stays below the promoted width, and explicit conversions restore 8/16-bit wrap after addition and complement.
 
-`nextSupermask` treats the free bits `rest = full & ~mask` as a counter. Setting every non-free bit (`sup | ~rest`) and adding one carries exactly through the free positions, in increasing order. Masking with `rest` and restoring `mask` gives the next set. The only wrap happens when all free bits are set, which is the `sup == full` case checked first. `grayDecode` computes prefix xors from the top with shifts 1, 2, 4, ..., < W, the standard doubling argument. Narrow types promote to `int` in shifts, and every shift count is below the promoted width.
+- `prevSubmask`: for nonzero `sub`, subtracting one clears its lowest set bit and fills the positions below; intersecting with `mask` gives the largest smaller submask. Testing zero first prevents cycling back to `mask`.
+- `nextSupermask`: the free bits `rest = full & ~mask` form a counter. Adding one to `sup | ~rest` carries exactly through the free positions in increasing order; masking with `rest` and restoring `mask` gives the next set. The only wrap is all free bits set, the `sup == full` case checked first.
+- `nextCombination`: adding `low` (the lowest set bit) carries through the lowest run of ones, putting its top one in the next free higher position; wrapping to zero means no larger result. Otherwise `next ^ x` identifies the changed run, and removing two positions and the trailing-zero offset leaves the remaining ones packed at the bottom, preserving popcount with the smallest increase. Two separate right shifts implement the shift by `trailingZeros(low)+2`, each count valid even when the sum reaches W.
+- `grayDecode` computes prefix xors from the top with shifts 1, 2, 4, ..., < W (the doubling argument).
 
-The standard count/scan/rotation operations have defined zero and modulo-width
-semantics. `ceil` guards the only domain where `std::bit_ceil` would overflow.
-The width-equal branches in masks/shifts avoid evaluating a shift by the type's
-width. Narrow unsigned operands can promote to `int`; the largest offered
-16-bit shifted intermediate is 65535×2^15, which still fits `int`. Explicit
-conversions restore word wrap after addition and complement, particularly for
-8/16-bit words. Unsigned 32/64/128-bit arithmetic wraps by definition.
-
-For a nonzero submask, subtracting one clears its lowest set bit and fills the
-positions below it. Intersecting with `mask` gives exactly the largest admissible
-smaller submask. Testing zero before subtraction prevents cycling back to the
-original mask.
-
-For a fixed-popcount successor, let `low` be the lowest set bit. Adding it to
-`x` carries through the lowest consecutive run of ones, putting that run's top
-one in the next free higher position. If the word wraps to zero there is no
-larger result. Otherwise `next ^ x` identifies the changed run; removing two
-positions and the trailing-zero offset leaves exactly the remaining one bits
-packed at the bottom. Combining them with `next` preserves popcount and makes
-the smallest possible increase. Two separate right shifts implement the
-effective shift by `trailingZeros(low)+2`; their individual counts are valid
-even when their sum reaches or exceeds W. No division or scan of a zero word
-is needed. These arguments, plus the standard-library contracts, justify the
-algorithms beyond the finite tests.
-
-No performance comparison or universal speedup is claimed for these thin scalar
-operations. Standard compiler implementations and constant-time stepping avoid
-an unnecessary local bit-count/scan engine. General combination generation and
-dynamic bitsets have separate owners.
-
-## Re-audit findings (P013, 2026-10-07)
-
-| Header | Gap or finding | Resolution |
-|---|---|---|
-| `06` | No missing operation | Rules fixes only |
-| all | Contracts in multi-line header comments over the 8% cap | Moved to `## Contracts` sections; headers pass the cap |
-| all | `; }` closing braces in headers, testers, benchmark (finding 7) | Normalized; `03-consistency.py --braces` reports none |
-
-The completeness sweep added `parity`/`grayCode`/`grayDecode`/`nextSupermask`. The independent `@reviewer` pass (2026-10-08) found no correctness defects; its exhaustive or random probes confirmed the supermask and Gray code behaviour.
+No performance comparison or speedup is claimed for these thin scalar operations, so no benchmark is required.
 
 ## Feature-to-test map
 
-`96-Local Testing/06-Miscellaneous/06-bit_operations_tester.py` includes the
+[`06-bit_operations_tester.py`](<../../96-Local Testing/06-Miscellaneous/06-bit_operations_tester.py>) includes the
 actual header through its supporting C++ suite. Checks remain active under
 NDEBUG. It requires Python's standard library and GCC only.
 
@@ -117,18 +82,7 @@ low/floor/ceil, successor and rotations in 15,764 cases in full mode.
 
 ## Commands and results
 
-GCC 16.2.1, GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H, 2026-10-07:
-
-```sh
-python3 '96-Local Testing/06-Miscellaneous/06-bit_operations_tester.py' --mode full --seed 20260927                              # PASS, 3 configurations
-python3 '96-Local Testing/06-Miscellaneous/06-bit_operations_tester.py' --mode stress --seed 20260928 --configuration optimized   # PASS
-```
-
-Full: 9,243,635 C++ checks and 15,764 exact Python cases per configuration (optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan with leak detection), 16 assertion probes and six compile rejections. Stress optimized: 38,727,635 C++ checks and 150,764 Python cases. No benchmark is required for these thin scalar operations; no speedup is claimed.
-
-Batch MI02, package P013; dependency P002 (template).
-
-P013 package runs, GCC 16.2.1, GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H, 2026-10-07. Baseline before the re-audit changes: all seven P013 suites (`01`–`07`) passed full mode with seed 20260927. After the changes:
+P013 package run, 2026-10-07, GCC 16.2.1, GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection. Full: 9,243,635 C++ checks and 15,764 exact Python cases per configuration, 16 assertion probes and six compile rejections. Stress optimized: 38,727,635 C++ checks and 150,764 Python cases.
 
 ```sh
 python3 '96-Local Testing/01-run.py' --mode quick --filter 06-Miscellaneous --no-integration                            # PASS (all 14 suites)
@@ -137,11 +91,9 @@ for s in 01-random 02-customhash 03-fastio 04-compression 05-binarysearch 06-bit
   python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode stress --seed 20260928 --configuration optimized   # PASS x7
 done
 python3 '96-Local Testing/06-Miscellaneous/03-fastio_benchmark.py'                                                       # PASS, record rewritten
-python3 '96-Local Testing/02-integration.py'                                                                             # PASS
+python3 '96-Local Testing/02-integration.py'                                                                             # PASS (every header alone, Basic/All aggregates)
 python3 '96-Local Testing/03-consistency.py'                                                                             # no errors
 ```
-
-`02-integration.py` also builds every header alone and the Basic/All aggregates.
 
 ## Sources
 
@@ -167,6 +119,11 @@ external source code was copied.
 
 ## Limits and handoffs
 
-Omitted candidates: `countOnesUpTo(n)` (total popcount over `[0, n]`) needs more than `W` bits for full-range inputs and is digit-DP territory (`31-digit_dp.hpp`). `bitReverse` appeared in none of the swept catalogs. A `forEachSupermask` traversal belongs to `12-enumeration.hpp` (P015); `nextSupermask` is its step.
+Omitted candidates: `countOnesUpTo(n)` (total popcount over `[0, n]`) needs more than `W` bits for full-range inputs and is digit-DP territory (`31-digit_dp.hpp`). `bitReverse` appeared in none of the swept catalogs. General combination generation and dynamic bitsets have separate owners.
 
 Handoff to P015: `forEachSupermask` in `12-enumeration.hpp` can build on `BitOps::nextSupermask`. No online submission was made and no judge acceptance is claimed.
+
+## History
+
+- 2026-09-28: P013 first verification, full and stress suites passed.
+- 2026-10-07: P013 re-audit, `parity`, `grayCode`, `grayDecode` and `nextSupermask` added, contracts moved out of code comments, brace style normalized; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.

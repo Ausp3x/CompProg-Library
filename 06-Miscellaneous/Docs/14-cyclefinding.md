@@ -1,26 +1,18 @@
 # 14-cyclefinding.hpp — evidence
 
-`14-cyclefinding.hpp` (batch MI17) provides budgeted Floyd and Brent cycle detection on one successor orbit. Package P015 (order MI15, MI16, MI17). The verified C01 template prerequisite is supplied by P002. Implementations are independent contest-profile code. Archived originals remain unchanged. No online submissions are part of this work.
+`14-cyclefinding.hpp` (batch MI17, package P015, status audit) provides budgeted Floyd and Brent cycle detection on one successor orbit. Prerequisite: the C01 template (P002). Implementations are independent contest-profile code. No online submission was made.
 
 ## Contracts
 
 ### floydCycle, brentCycle
 
-`floydCycle(start,next,budget,equal)` and `brentCycle(start,next,budget,equal)` analyze one deterministic successor orbit. The budget is required and may be any unsigned 64-bit value, including zero and `ULLONG_MAX`. It limits **every successor invocation**, across cycle detection, entry recovery and cycle-length recovery. Equality checks and state copies are not budgeted. Instrumentation side effects are allowed, but they must not change successor results or the equality relation.
+`floydCycle(start,next,budget,equal)` and `brentCycle(start,next,budget,equal)` analyze one deterministic successor orbit. The budget is required and may be any unsigned 64-bit value, including zero and `ULLONG_MAX`. It limits **every successor invocation**, across cycle detection, entry recovery and cycle-length recovery. Equality checks and state copies are not budgeted. Instrumentation side effects are allowed, but they must not change successor results or the equality relation. Correctness: Floyd's runners compare `x_t` and `x_(2t)`; inside the cycle they meet when the step difference is a multiple of the least period. Resetting one runner to the start and advancing both equally locates the first cycle state, and walking the cycle gives the least period. Brent compares a moving runner against a stationary anchor in blocks of doubling capacity, finding the least period once an anchored block covers a full cycle; two runners separated by that period then recover the entry. Every transition checks `evaluations==budget` before calling the successor, so even `ULLONG_MAX` cannot wrap; tail increments need two successful calls and period counts never exceed completed transitions. Brent's block capacity saturates at the unsigned maximum, which cannot invalidate any success reachable within the finite budget. Costs: constant many states and `O(tail+length)` successor/equality calls on success, `O(budget+1)` on failure; state copies and callbacks are extra. A partial successor with an end marker must be adapted to a total transition. Functional-graph decomposition and multi-vertex queries stay with Graphs.
 
 ### CycleResult
 
 `CycleResult<T>` contains `found`, `entry`, `tail`, `length` and `evaluations`. On success, `tail` is the first cycle index, `length>0` is its least period, `entry` is the actual state `f^tail(start)`, and `evaluations<=budget`. On failure, `found=false`, `entry=start`, `tail=length=0` and `evaluations=budget`. Failure is **budget exhaustion**, not proof that the orbit is acyclic. No partial lengths are advertised.
 
 States support copy/move construction and assignment. The successor receives an immutable state and returns another state; it must be total and deterministic on the visited domain. Equality defaults to `std::equal_to<T>` but may be any equivalence relation preserved by the successor. In that case the cycle is defined on equivalence classes, while the returned entry remains the concrete state obtained from the start. No default constructor, hash, ordering or built-in equality is needed when the custom equality supplies the relation. Callback exceptions propagate, and all algorithm state is local to a call.
-
-## Correctness and costs
-
-Floyd's runners compare `x_t` and `x_(2t)` after one and two transitions per iteration. Once in the eventual cycle, they meet when the step difference is a multiple of the least period. Resetting one runner to the original start and advancing both equally locates the first cycle state; walking around that cycle finds the least period. Brent compares a moving runner against a stationary anchor in blocks whose capacity doubles, discovering the least period once an anchored block covers a complete cycle. Two runners separated by that period then recover the entry.
-
-Every transition checks `evaluations==budget` before invoking the successor and incrementing the count. Thus even `ULLONG_MAX` cannot wrap. Tail increments require two successful calls, and period counts never exceed already completed transitions. Brent's block capacity saturates at the unsigned maximum instead of doubling past it. Saturation cannot invalidate any success reachable within the finite call budget; a block that large cannot be exhausted after its preceding blocks without already exhausting that budget. Counter safety follows from these invariants rather than an infeasible test orbit of length `2^64`.
-
-Both algorithms use constant many states and `O(tail+length)` successor/equality invocations on success, or `O(budget+1)` work on failure. State-copy/assignment and callback costs are additional; expensive state transitions can make call counts more informative than asymptotic notation alone. A partial successor with an end marker must be adapted explicitly to a total state transition if this API is desired. Finite functional-graph decomposition and multi-vertex queries remain owned by Graphs.
 
 ## Feature-to-test map
 
@@ -34,42 +26,23 @@ Both algorithms use constant many states and `O(tail+length)` successor/equality
 
 ## Commands and results
 
-The mirrored `14-cyclefinding_tester.py` passed full optimized NDEBUG, checked and ASan/UBSan builds: 20,105 orbits, 436,497 algorithm runs and 69,782,885 non-removable checks per configuration. A visited-state table supplies the independent entry/tail/period oracle. Exact invocation counts also match independently derived formulas: Floyd uses `3*t+2*mu+lambda`, where `t` is the least positive multiple of `lambda` at least `mu`; Brent uses `P-1+2*lambda+2*mu`, where `P` is the least power of two greater than `mu` and at least `lambda`.
-
-Quick/full/stress modes exhaust maps through 3/5/6 states, use power-boundary exponents 8/14/17, add 100/3,000/20,000 random maps, and exercise live-state periods 1,000/100,000/500,000. Full/stress include ASan/UBSan. Final commands:
+Run 2026-09-28: Linux x86-64, i9-11900H, GCC 16.2.1 (20260810), CPython 3.14.7. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie` with leak checking enabled.
 
 ```bash
-python3 '96-Local Testing/06-Miscellaneous/14-cyclefinding_tester.py' --mode full --seed 20260928 --configuration optimized
-python3 '96-Local Testing/06-Miscellaneous/14-cyclefinding_tester.py' --mode full --seed 20260928 --configuration checked
-python3 '96-Local Testing/06-Miscellaneous/14-cyclefinding_tester.py' --mode full --seed 20260928 --configuration ASan-UBSan
+python3 '96-Local Testing/06-Miscellaneous/14-cyclefinding_tester.py' --mode full --seed 20260928 --configuration optimized    # PASS
+python3 '96-Local Testing/06-Miscellaneous/14-cyclefinding_tester.py' --mode full --seed 20260928 --configuration checked      # PASS
+python3 '96-Local Testing/06-Miscellaneous/14-cyclefinding_tester.py' --mode full --seed 20260928 --configuration ASan-UBSan   # PASS
+python3 '96-Local Testing/01-run.py' --mode quick --seed 20260928 --filter 14-cyclefinding --no-integration                  # PASS, also when run from /tmp
+python3 '96-Local Testing/06-Miscellaneous/14-cyclefinding_benchmark.py'                                                    # PASS, 80 comparisons
+python3 '96-Local Testing/02-integration.py'                                                                                 # PASS, 93 headers, scalar/AVX2 multi-TU, workspace
+python3 '96-Local Testing/03-consistency.py'                                                                                 # no errors
 ```
 
-The final sanitizer run passed with leak checking outside the sandbox; its process tracer blocked the initial LeakSanitizer run. Stress mode is available but was not executed.
-
-Final environment: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 (20260810), CPython 3.14.7. Full configurations use GNU++20 optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie`. Leak checking remained enabled. The initial sanitizer failures came from LeakSanitizer's documented inability to run beneath the sandbox process tracer; approved runs outside that tracer passed. No algorithm failures remained.
-
-Package-wide P015 integration and consistency commands passed:
-
-```bash
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
-
-Integration compiled all 93 present standalone/aggregate headers, linked combined scalar and available AVX2 aggregates across two translation units, and checked the standalone Workspace in LOCAL/non-LOCAL modes. Repository consistency reported no errors. Every saved benchmark source hash matched the final source bytes.
-
-The shared runner discovered and passed this suite from `/tmp`, confirming that tests resolve paths independently of the caller's directory:
-
-```bash
-python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --seed 20260928 --filter 14-cyclefinding --no-integration
-```
+Per configuration: 20,105 orbits, 436,497 algorithm runs and 69,782,885 non-removable checks. A visited-state table is the independent entry/tail/period oracle. Exact invocation counts match closed forms: Floyd `3*t+2*mu+lambda`, where `t` is the least positive multiple of `lambda` at least `mu`; Brent `P-1+2*lambda+2*mu`, where `P` is the least power of two greater than `mu` and at least `lambda`. Quick/full/stress exhaust maps through 3/5/6 states, use power-boundary exponents 8/14/17, add 100/3,000/20,000 random maps and live-state periods 1,000/100,000/500,000. Stress mode exists but was not run. No `CXX=g++-14` floor run is recorded.
 
 ## Benchmarks
 
-The [benchmark driver](<../../96-Local Testing/06-Miscellaneous/14-cyclefinding_benchmark.py>) and `96-Local Testing/06-Miscellaneous/14-cyclefinding_benchmark.json` passed 80 workload/method comparisons, using the same GCC 16/i9-11900H GNU++20 `-O2 -DNDEBUG` environment. Command:
-
-```bash
-python3 '96-Local Testing/06-Miscellaneous/14-cyclefinding_benchmark.py'
-```
+The [benchmark driver](<../../96-Local Testing/06-Miscellaneous/14-cyclefinding_benchmark.py>) and `96-Local Testing/06-Miscellaneous/14-cyclefinding_benchmark.json` (2026-09-28, GCC 16.2.1 GNU++20 `-O2 -DNDEBUG`, i9-11900H) passed 80 workload/method comparisons.
 
 Twenty explicit tail/period shapes include self-loops, pure cycles, long tails and lengths around powers of two, through 65,539 states. Each runs both algorithms with either table lookup or a synthetic successor performing 16 rounds of integer mixing. One warmup and five rotating-order repetitions include complete detection and recovery. Every result, independent closed-form call count, exact/one-short budget, and retained expensive-work checksum is verified; setup and verification occur outside timing.
 
@@ -86,6 +59,10 @@ Actually inspected on 2026-09-28; code is independently implemented, with no ext
 
 ## Limits and handoffs
 
-No general orbit-cycle implementation was found in the relevant local legacy index/targeted OLD search. Archived Pollard–rho factorization routines use a related technique but remain owned by Mathematics; they were not migrated or modified. Full-history hashing, ordered stack/multistack, Gosper and distinguished-point time-memory tradeoffs are explicitly future research alternatives, not implied by completion of the requested Floyd/Brent APIs.
-
-Graphs retains whole-functional-graph queries, and alternative cycle time-memory tradeoffs remain research; they are not claimed implemented by P015. Extended stress mode and execution on other compiler/interpreter versions were not performed. No external online acceptance is claimed, and no online submission was made.
+- Open `/reaudit-review` findings for P015 ([p015.md](<../../00-Guidelines/23-Reaudit Findings/p015.md>)), not yet resolved:
+  - 8: complexity comments use `mu` and `lambda` without defining them and separate `M` with `;` instead of `,`.
+  - 9: a multi-line `if` block in `brentCycle` closes with `; }` instead of `;}`.
+- No general orbit-cycle implementation exists in the legacy index or `OLD`. Archived Pollard–rho routines use a related technique and stay with Mathematics, unmodified.
+- Full-history hashing, ordered stack/multistack, Gosper and distinguished-point time-memory tradeoffs are future research alternatives.
+- Determinism and equivalence/congruence are semantic preconditions that cannot be checked in general.
+- Stress mode and other compiler/interpreter versions (including the GCC 14 floor) were not run.

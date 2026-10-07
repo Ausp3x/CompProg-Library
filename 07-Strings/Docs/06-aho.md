@@ -1,11 +1,13 @@
 # 06-aho.hpp — evidence
 
-`06-aho.hpp` implements the entire selected static multi-pattern inventory. The
-dictionary supports all bytes, including NUL and bytes 128–255, duplicate pattern
-IDs, and empty patterns. Dynamic dictionary changes after construction belong to
-the separately planned `34-dynamicaho.hpp`.
+`06-aho.hpp` implements the static multi-pattern inventory except `fromTrie`
+(open finding 3 below). The dictionary supports all bytes, including NUL and
+bytes 128–255, duplicate pattern IDs, and empty patterns. Dynamic dictionary
+changes after construction belong to the separately planned `34-dynamicaho.hpp`.
 
 ## Contracts
+
+### AhoCorasick
 
 `AhoCorasick ac(patterns, dense)` constructs a ready dictionary; `dense` defaults
 to false. Alternatively call `add(pattern)` on a fresh object, retaining its
@@ -54,9 +56,7 @@ allowed, including bytes absent from the pattern alphabet. A dense build gives
 constant-time arbitrary DP transitions. Enumeration tests independently check
 this application for every tested small binary dictionary and lengths 0–7.
 
-## Complexity and correctness
-
-Let `L` be total inserted pattern length, `k` number of IDs, `V` number of states,
+Complexity and correctness: let `L` be total inserted pattern length, `k` number of IDs, `V` number of states,
 `sigma <= 256` distinct pattern bytes, `n` text length and `z` reported matches.
 Sparse construction takes `O(k + L * log(sigma+2))` time and `O(V+k)` stored
 memory. Inserting uses ordered sparse maps; building follows failure links for
@@ -117,56 +117,24 @@ transition representations. Full/stress enable AddressSanitizer/UBSan.
 | Large output avoidance | Nested prefixes through length 100/1000/2500 and unary text length 10000/150000/600000; closed-form counts, then a final mismatch forcing a long sparse fallback. |
 | Preconditions | Seven checked-build death probes: unbuilt query/sink, insertion after build, negative/large states, invalid safe state and mismatched aggregate size. Allocation-boundary limits remain documented preconditions. |
 
-Verification on 2026-09-28:
-
-- `python3 '96-Local Testing/07-Strings/06-aho_tester.py' --mode full --seed 20260928`: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan builds all pass **2,267,528 checks per configuration**. Seven checked-build assertion probes pass. The initial sandboxed sanitizer execution hit LeakSanitizer's ptrace restriction; the complete rerun with approved execution outside the sandbox passes without disabling leak detection.
-- `python3 '96-Local Testing/07-Strings/06-aho_tester.py' --mode stress --seed 20260929 --configuration optimized`: passes 9,612,363 checks before the final dense-storage-release regression assertion was added; the final full run includes that regression.
-
 ## Commands and results
 
-Batch ST03, package P017: byte Aho-Corasick, failure/output links, duplicates and empty patterns, sparse/dense transitions, streaming and callback enumeration, per-pattern/position counts, suffix aggregation and forbidden-pattern adapters.
+P017 verification run, 2026-09-28: Linux x86-64 (i9-11900H), GCC 16.2.1 (20260810),
+GNU++20, CPython 3.14.7. The runner builds optimized `-O2 -DNDEBUG`, checked
+`-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan (leak checking on) configurations.
+LeakSanitizer cannot run under the sandbox process tracer, so sanitizer
+configurations ran outside it.
 
-P017 package verification (sole batch ST03, completed 2026-09-28; the C01/P002 and ST01–ST02/P016 prerequisites are verified). Seed **20260928**, GCC **16.2.1 (20260810)**, GNU++20, CPython **3.14.7**, Linux x86-64. All three completed full optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan configurations with leak checking enabled.
+| Command from repository root | Result |
+|---|---|
+| `python3 '96-Local Testing/07-Strings/06-aho_tester.py' --mode full --seed 20260928` | PASS, all three configurations, 2,267,528 checks each; 7 assertion probes; includes the dense-table release regression |
+| `python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings/06-aho --seed 20260928 --no-integration` (from `/tmp`) | PASS after the final dense-release correction |
+| `python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration` (from `/tmp`) | PASS, all nine Strings suites (before the final dense-release correction, which changed no declarations or dependencies) |
+| `python3 '96-Local Testing/02-integration.py'` | PASS: 102 standalone/aggregate headers, multi-TU scalar/AVX2 aggregates, Workspace LOCAL and non-LOCAL (same ordering note) |
+| `python3 '96-Local Testing/03-consistency.py'` | no errors |
 
-| Header | Checks in each full configuration | Checked precondition probes |
-|---|---|---|
-| Aho | 2,267,528 | 7 |
-
-All **23** precondition probes passed. The initial sandbox sanitizer processes encountered LeakSanitizer's fatal ptrace incompatibility; approved reruns outside that tracer passed without disabling leak detection. The linked per-header records distinguish those retries. Aho also passed an optimized stress run with seed `20260929`, 9,612,363 checks, before the final dense-table release regression was added; the final full run includes that regression. Other stress modes are available but unexecuted. No untested compiler/interpreter configuration is claimed.
-
-Independent review covered all three algorithms, boundary arithmetic, witness ties, test oracles and source/legacy claims. It confirmed the explicit empty-pattern/empty-suffix/empty-interval conventions. Review also led to Aho's empty-pattern construction cost being documented and a nested const-callback regression. Final Aho rebuilding from dense to sparse releases the completed transition table, with a capacity regression in the full suite.
-
-Integration passed:
-
-- **102** current standalone/aggregate headers compiled.
-- All aggregates linked and ran across multiple translation units in scalar and available AVX2 configurations.
-- The standalone Workspace compiled in LOCAL and non-LOCAL configurations.
-- All **nine** Strings suites passed shared quick discovery from `/tmp`.
-- Repository consistency passed with no errors: 428 targets, 335 batches and 226 packages. The checker found one preexisting trailing-whitespace issue on the P034 checklist line; only that whitespace was removed.
-
-Per-header full command:
-
-```bash
-python3 '96-Local Testing/07-Strings/06-aho_tester.py' --mode full --seed 20260928
-```
-
-Package integration commands:
-
-```bash
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
-
-Shared discovery, run with working directory `/tmp`:
-
-```bash
-python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration
-```
-
-
-The nine-suite discovery and aggregate integration preceded Aho's final memory-release correction; final Aho full verification covers the correction, and its shared quick entry passed again afterward with `--filter 07-Strings/06-aho`. The change does not alter declarations or dependencies. Strings Basic includes all nine current implementations and All includes Basic transitively.
-
-Aho also passed an optimized stress run with seed `20260929`, 9,612,363 checks, before the final dense-table release regression was added; the final full run includes that regression. Review led to Aho's empty-pattern construction cost being documented and a nested const-callback regression. Final Aho rebuilding from dense to sparse releases the completed transition table, with a capacity regression in the full suite.
+No stress run covers the final source, and no other compiler, including the
+`g++-14` floor, is recorded as tested.
 
 ## Benchmarks
 
@@ -193,8 +161,6 @@ storage improves these scans, but doubles construction time and adds about
 memory-expanding default. Table bytes are measured allocation sizes, not total
 RSS: both variants retain the sparse maps, nodes, terminal IDs and build order.
 
-The [Aho benchmark](<../../96-Local Testing/07-Strings/06-aho_benchmark.py>) and `96-Local Testing/07-Strings/06-aho_benchmark.jsonl` compare sparse/dense insertion, construction and complete count-only scans over five workloads. Each result is independently checked; conditions include CPU/compiler/flags, input sizes/alphabets, seed, one warmup/five repetitions, medians, setup cost and extra dense-table storage. Dense transitions improve the measured scans but require about **37.3 MiB** extra storage and roughly twice the construction time in the large full-byte example. Sparse remains the default; dense is an explicit choice. No timing gate or universal speed claim is introduced.
-
 ## Sources
 
 The implementation is independently written; no source code was copied.
@@ -203,14 +169,20 @@ The implementation is independently written; no source code was copied.
 - [cp-algorithms, “Aho-Corasick algorithm”](https://cp-algorithms.com/string/aho_corasick.html), also inspected its [Markdown source](https://github.com/cp-algorithms/cp-algorithms/blob/master/src/string/aho_corasick.md): read trie/automaton construction, sparse-map cost discussion, BFS/persistent-transition alternative, output links, aggregate counts and forbidden-word applications. The implemented dense table is alphabet-compressed; sparse maps are the compact alternative. Persistent transition arrays are unnecessary for this bounded-byte scope and no large-integer-alphabet bound is claimed.
 - [OI Wiki, “AC 自动机”](https://oi-wiki.org/string/ac-automaton/), inspected [source sections](https://github.com/OI-wiki/OI-wiki/blob/master/docs/string/ac-automaton.md) on failure pointers, BFS completion and “拓扑排序优化”: verified failure-tree occurrence propagation as the count-per-pattern method. The destructive mark-once query shown earlier on that page has different semantics and was not adopted.
 
-The retrieved source SHA-256 values are respectively
-`1543e0c7808f82cc564c13fccc9815b675c116eb72d8ca883d187af6bd078d9c`,
-`f3faff6e1d95169f4e55ea5e51299f3bf2d7263e61d37b704ca0dafd878de333`,
-`19413ac5a19f32c71808cf420ba8e4e5246bb40ef153c1e667feb12ae43297b2`.
-These identify inspected retrievals, not immutable upstream commits. Keyword
-searches of the preserved `OLD` C++ headers/monoliths found no Aho implementation
-to migrate. Legacy bytes were unchanged. No online submission was made.
+Keyword searches of the preserved `OLD` C++ headers/monoliths found no Aho
+implementation to migrate.
 
 ## Limits and handoffs
 
-ST13 owns dynamic Aho updates and can reuse stable state/failure/output interfaces, with state IDs invalidated by `clear`. ST11 owns generalized multiple-string indexes. These separate scheduled families are not advertised as implemented here. No online submission or acceptance is claimed.
+- Open `/reaudit-review` findings for P017 ([p017.md](<../../00-Guidelines/23-Reaudit Findings/p017.md>)), not yet resolved:
+  - 1: `sparseStep` is an inventory operation with no `checkState` and no direct test; before `build` it silently returns a wrong state.
+  - 3: inventory operation `fromTrie` is absent, so the row stays partial and completeness claims must not be made.
+  - 4: own-line function closes and `; }` block ends (closing-brace rule).
+  - 5: precondition assertions run once per text byte in every scan.
+  - 6: method complexity comments are not in `T:/M:` form, the struct line has no U, and `z` is undefined in the header.
+
+ST13 owns dynamic Aho updates and can reuse stable state/failure/output interfaces, with state IDs invalidated by `clear`. ST11 owns generalized multiple-string indexes. These separate scheduled families are not advertised as implemented here.
+
+## History
+
+- 2026-09-28: optimized stress run, seed 20260929, PASS 9,612,363 checks, before the dense-table release regression was added.

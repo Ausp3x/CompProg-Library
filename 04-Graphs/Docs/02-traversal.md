@@ -1,6 +1,6 @@
 # 02-traversal.hpp — evidence
 
-Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp` and `03-toposort.hpp` through `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract). First verified on 2026-09-27 and re-audited on 2026-10-07.
+Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp` and `03-toposort.hpp` through `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract).
 
 ## Contracts
 
@@ -37,50 +37,30 @@ Correctness: the bipartite algorithm returns an odd cycle when an edge joins equ
 | `BipartiteResult`, `bipartiteCheck` | Colorings and odd-cycle witnesses | Enumerated colorings; independently checked odd-cycle witnesses |
 | Preconditions | Eight assertion probes | Expected assertion failure |
 
-Mutation checks (planted in a temporary copy, full mode) killed reversed BFS adjacency and duplicate BFS sources (keep-duplicate-sources). The independent reviewer's surviving mutant here (`treeCycle` `>=` vs `>`) is equivalent or changes only runtime.
+Mutation checks (planted in a temporary copy, full mode) killed reversed BFS adjacency and duplicate BFS sources (keep-duplicate-sources). A surviving mutant (`treeCycle` `>=` vs `>`) is equivalent or changes only runtime.
 
 ## Commands and results
 
-### 2026-09-27 (original P010)
-
-Fresh runs used GCC 16.2.1 (20260810), GNU++20 and CPython 3.14.7 on Linux x86-64. Full mode with seed 20260927 passed all three builds. The sanitizer run encountered the environment's ptrace/LeakSanitizer restriction and passed after an approved execution outside the sandbox with leak detection enabled; this is a completed retry, not a skipped configuration. The shared quick runner passed all six P010 entries with seed 42 from `/tmp`. Integration passed 79 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage/execution, and LOCAL/non-LOCAL workspace compilation. Repository consistency passed with no errors. All 61 checked precondition probes of the package passed. Extended stress modes were implemented but not run in that pass. Independent review found no remaining correctness, domain, complexity or meaningful coverage gap.
-
-### 2026-10-07 re-audit
-
-Before any edit, the unchanged suite passed full mode with seed 20260927 in all three builds. After the changes every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
+2026-10-07, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
 | Run | Result |
 |---|---|
-| Full, seed 20260927, before any edit | PASS, all three builds |
+| Full, seed 20261007, g++ | PASS, all three builds, 6,541,575 checks per build, 8 probes |
+| Full, seed 20261007, `CXX=g++-14` | PASS, all three builds, same counts |
+| Full, seed 20260927 | PASS, 6,549,903 checks per build, 8 probes |
 | Stress, seed 7 | PASS, all three builds, 79,896 cases and 56,673,337 checks per build |
-| Full, seed 20261007, after the review fixes, GCC 16.2.1 | PASS, all three builds, 6,541,575 checks per build, 8 probes |
-| Full, seed 20261007, GCC 14.4.1 20260915 (`CXX=g++-14`) | PASS, all three builds, same counts |
-
-The current feature map's full result with seed 20260927 is 6,549,903 checks per build and eight assertion probes. The shared quick runner passed all eleven graph entries from `/tmp`. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage, the workspace build and the sanitizer self-tests. `03-consistency.py` reports no errors, and `--braces` reports nothing for the package. All runs used CPython 3.14 on Linux x86-64. GCC 14.2 itself was not run; 14.4.1 is the closest available. No online submission was made.
+| Quick runner, all eleven graph entries, from `/tmp` | PASS |
+| `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU linkage, workspace, sanitizer self-tests) | PASS |
+| `03-consistency.py`, with `--braces` on the package | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/02-traversal_tester.py' --mode full --seed 20260927        # before any edit
-python3 '96-Local Testing/04-Graphs/02-traversal_tester.py' --mode stress --seed 7
-python3 '96-Local Testing/04-Graphs/02-traversal_tester.py' --mode full --seed 20261007        # after the review fixes
+python3 '96-Local Testing/04-Graphs/02-traversal_tester.py' --mode full --seed 20261007
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/02-traversal_tester.py' --mode full --seed 20261007
+python3 '96-Local Testing/04-Graphs/02-traversal_tester.py' --mode stress --seed 7
 python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
 ```
-
-### Re-audit findings and their disposition (2026-10-07)
-
-Before any edit the row listed `TraversalResult: treeCycle`, an internal helper. The findings are recorded in `00-Guidelines/23-Reaudit Findings/p010.md`.
-
-| # | Finding | Disposition |
-|---|---|---|
-| 1 | Row lists `TraversalResult: treeCycle`, an internal helper | Removed from the row; documented under CycleWitness and TraversalResult as covered through `dfs`, `findCycle` and `bipartiteCheck`. |
-| 5 | BFS tie order had no oracle; reversed-adjacency mutant passed | A plain FIFO `std::queue` reference compares `order`, `parent`, `parent_arc` and `root` exactly; the reversed-adjacency and keep-duplicate-sources mutants now fail. |
-| 7, 12, 14 | Closing-brace rule (`}} }`, `; }}}`, `; }`) | Fixed in all six P010 headers, testers and both benchmarks. |
-| 8 | `treeCycle` without a complexity line; T/M lines not directly above | Every declaration now has its complexity line directly above it; contract prose moved to Contracts. |
-| 9 | Iterative DFS called the asserting `g[u]` twice per arc | The adjacency is fetched once per frame resume and the scan continues until a child is pushed; the skipped reverse parent arc is computed once per resume. This change is constant-factor only and was not benchmarked. |
-
-Independent review (`@reviewer`, 2026-10-07) found no correctness defect.
 
 ## Sources
 
@@ -96,4 +76,9 @@ Legacy: the old Team Notebook `old_cycle-find-dfs.cpp` was inspected; its recurs
 
 ## Limits and handoffs
 
-No owned implementation or verification gap remains. SCCs belong to `08-scc.hpp`; cycle enumeration and odd-cycle extensions belong to `68-cycle_enumeration.hpp` (see [00-notes.md](00-notes.md#p010-re-audit-omissions)).
+SCCs belong to `08-scc.hpp`; cycle enumeration and odd-cycle extensions belong to `68-cycle_enumeration.hpp` (see [00-notes.md](00-notes.md#p010-re-audit-omissions)). GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available.
+
+## History
+
+- 2026-09-27: original P010, full suite (seed 20260927) passed on g++ 16 with integration and 61 package probes; stress not run.
+- 2026-10-07: re-audit, 5 findings fixed (internal `treeCycle` removed from the row, BFS tie-order oracle, brace rule, complexity lines, one adjacency fetch per DFS resume); full suite passed on g++ and g++-14, stress passed.

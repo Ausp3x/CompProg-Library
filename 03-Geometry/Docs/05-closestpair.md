@@ -1,6 +1,6 @@
 # 05-closestpair.hpp — evidence
 
-Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `06-circle.hpp`, `07-rotatingcalipers.hpp` and `08-coordinate_transform.hpp`); see [00-notes.md](00-notes.md#p008--ge02-package-record) for the package record and the folder numeric policy. The 2026-10-07 re-audit implemented `closestPair3`, which the row had left `missing`. Every operation in the row has a test with an independent oracle.
+Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `06-circle.hpp`, `07-rotatingcalipers.hpp` and `08-coordinate_transform.hpp`); see [00-notes.md](00-notes.md#p008--ge02-package-record) for the package record and the folder numeric policy. Every operation in the row has a test with an independent oracle.
 
 ## Contracts
 
@@ -45,25 +45,17 @@ Correctness: the same recursion maintains two merged orders, by y and by z. At a
 
 ## Commands and results
 
-### 2026-09-27 (original P008)
+2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 is not installed; no GCC 14 run is claimed.
 
-The full suite passed optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan with leak checking, at seed `20260927`, with 55,373 checks per configuration. The row was incomplete then (`closestPair3` missing).
-
-### 2026-10-07 re-audit
-
-Environment: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 is not installed, so no GCC 14 run is claimed. No online submission was made. The baseline full run before any edit reproduced the 2026-09-27 count exactly.
-
-| Entry | Full, seed `20260927` (optimized, checked, ASan/UBSan) | Stress, seed `42`, optimized |
-|---|---|---|
-| `05-closestpair_tester.py` | PASS, 157,493 checks per configuration; 505 + 505 Python bigint cases (2D + 3D); 5 assertion probes | PASS, 1,633,673 checks; 4,005 + 4,005 Python cases |
-
-Also run:
-
-- Mutation checks (each applied temporarily, the optimized full suite run, the header restored). Caught: the 3D adjacent-row test and slab filter. Survived, and equivalent: truncating instead of flooring the row index (rows merge, which changes only the sparsity constant) and `<` for the cross-row `|dz| <= s` bound (such a pair is farther than `sqrt(d)`).
-- A warning sweep under `-Wall -Wextra -Wconversion`, instantiating every operation for `int8_t`, `int16_t`, `int` and `lng`, found no header warnings.
-- A two-translation-unit program mixing all four GE02 headers passed optimized and ASan/UBSan, and the header compiles alone.
-- The sanitized integration (102 standalone and aggregate headers, scalar and AVX2 multi-TU builds, workspace) passed. The geometry quick run and the repository consistency check passed, and `03-consistency.py --braces` is clean on the header, tester and benchmark.
-- Independent review (`@reviewer`) reproduced the full count and probes, and its own 400k random 3D clouds under ASan/UBSan found no mismatch.
+| Command | Result |
+|---|---|
+| `05-closestpair_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 157,493 checks per configuration; 505 + 505 Python bigint cases (2D + 3D); 5 assertion probes |
+| `05-closestpair_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 1,633,673 checks; 4,005 + 4,005 Python cases |
+| Mutation checks, optimized full suite per mutant | 3D adjacent-row test and slab filter caught; two equivalent mutants (truncated row index, `<` for the cross-row `\|dz\| <= s` bound) survive |
+| Warning sweep, every operation for `int8_t`, `int16_t`, `int`, `lng`, `-Wall -Wextra -Wconversion` | No warnings |
+| Two-translation-unit program mixing all four GE02 headers (optimized, ASan/UBSan); standalone header | PASS |
+| `02-integration.py --sanitizers`, geometry quick run, `03-consistency.py` (with `--braces`) | PASS, no errors |
+| `@reviewer`: 400k random 3D clouds under ASan/UBSan | No mismatch |
 
 ```bash
 python3 '96-Local Testing/03-Geometry/05-closestpair_tester.py' --mode full --seed 20260927
@@ -75,17 +67,6 @@ python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/0[5-8]*.hpp '9
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-### Re-audit findings and their disposition (2026-10-07)
-
-| # | Finding | Disposition |
-|---|---|---|
-| 3 | `closestPair3` absent; evidence claimed nothing owned remained | Implemented as a deterministic `O(n * log(n))` slab-row divide and conquer, tested against an O(n^2) oracle and Python bigints; text rewritten |
-| 8 | `ClosestPair` lacked a complexity comment | `// T: O(1), M: O(1).` line added |
-| 9 | `closestPair` lambdas closed on their own line | Normalized; `03-consistency.py --braces` is clean |
-| 13 | Tester function bodies closed on their own line | Tester and benchmark normalized |
-
-Other changes: the contract comment blocks moved from the header into `## Contracts`; the header meets the two-line and 8% comment caps, and grouped functions share one complexity line, as in the P007 restyle. `closestPair` shares `closest_detail::{fits, update, sorted}` with `closestPair3`; its behavior and test counts are unchanged. No public name or documented behavior changed, apart from the addition.
-
 ## Benchmarks
 
 `python3 '96-Local Testing/03-Geometry/05-closestpair_benchmark.py'` writes the record to `96-Local Testing/03-Geometry/05-closestpair_benchmark.json`. The record holds CPU, compiler, flags, seed, one warmup plus five repetitions, medians, dependency hashes and the output checksum. The benchmark covers sizes 32, 512, 2,048 and 200,000:
@@ -95,7 +76,7 @@ Other changes: the contract comment blocks moved from the header into `## Contra
 
 Every timed output is checked. Input generation and checking are excluded; allocation and sorting are included. Peak memory is not measured.
 
-Rerun 2026-10-07 (72 measurements, checksum `316767797226`), on an Intel Core i9-11900H with GCC 16.2.1, `-O2 -DNDEBUG`:
+2026-10-07 (72 measurements, checksum `316767797226`), on an Intel Core i9-11900H with GCC 16.2.1, `-O2 -DNDEBUG`:
 
 | n = 200,000 | median (ms) | compared |
 |---|---:|---|
@@ -117,4 +98,9 @@ At n = 2,048, 2D random takes 0.31 ms against 4.96 ms for brute force, and 3D ra
 
 ## Limits and handoffs
 
-No failing reproducer and no unfinished owned operation. Range-restricted closest pair belongs to row 29 (`29-point_set_queries.hpp`).
+Range-restricted closest pair belongs to row 29 (`29-point_set_queries.hpp`).
+
+## History
+
+- 2026-09-27: original P008, full suite (seed 20260927, 55,373 checks) passed on g++ 16; `closestPair3` missing.
+- 2026-10-07: re-audit, implemented `closestPair3`; 4 findings fixed (complexity comment, lambda and tester brace closings, comment cap); full suite, stress and benchmark passed on g++ 16.

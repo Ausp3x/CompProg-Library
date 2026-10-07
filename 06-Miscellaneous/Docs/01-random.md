@@ -1,6 +1,6 @@
 # 01-random.hpp — evidence
 
-`01-random.hpp` (batch MI01, package P013) provides `Random`, an MT19937-64 engine with explicit/clock seeds, a URBG interface, unbiased inclusive integer draws over full 64-bit domains, `randDouble` on `[0,1)` and `[l,r)`, Fisher–Yates `shuffle`, and the global `rng`. First verified 2026-09-27 for P013. Re-audited 2026-10-07: the URBG interface and `randDouble` were added and the header contracts moved here from code comments. Advanced random sampling remains owned by MI05 (`18`); it is not a claim of this header. Dependency: P002 (template).
+`01-random.hpp` (batch MI01, package P013) provides `Random`, an MT19937-64 engine with explicit/clock seeds, a URBG interface, unbiased inclusive integer draws over full 64-bit domains, `randDouble` on `[0,1)` and `[l,r)`, Fisher–Yates `shuffle`, and the global `rng`. Advanced random sampling is owned by MI05 (`18`). Dependency: P002 (template).
 
 ## Contracts
 
@@ -15,23 +15,7 @@
 - `inline Random rng`: the legacy global convenience object, one instance across translation units.
 - Failure model: bounded draws are Las Vegas (rejection loop with no finite worst-case bound under the ideal-word model); MT19937-64 is not cryptographic.
 
-## Correctness arguments
-
-Lemire's mapping: put `M = 2^64`, `t = M mod n`, `p = x * n`. Accept when `p mod M >= t` and return `floor(p / M)`. Every output in `[0, n)` has exactly `floor(M / n)` accepted preimages, so conditioning on acceptance adds no bias to uniform independent words. At least half the words are accepted, so expected work is below two draws. Unsigned subtraction computes the interval width modulo 2^64, and width zero denotes exactly the full domain. Signed offsets are added in `lll` and converted only after the result is known to fit; no signed overflow occurs.
-
-`randDouble()` uses the top 53 bits, each multiple of 2^-53 in `[0, 1)` has exactly 2^11 preimages, and the product with 2^-53 is exact. For `randDouble(l, r)`, `u >= 0` and round-to-nearest is monotone, so `l + (r - l) * u >= l`; the explicit `< r` test enforces the upper bound. A redraw happens only when rounding reaches `r`, which needs `u` within a few ulps of one unless the interval spans a single double.
-
-Fisher–Yates chooses each final position uniformly among the remaining elements; the choice sequences are in bijection with the `n!` labeled permutations.
-
-## Re-audit findings (P013, 2026-10-07)
-
-| Header | Gap or finding | Resolution |
-|---|---|---|
-| `01` | `randDouble` missing | Added both overloads; exact Python oracle replaying engine words |
-| all | Contracts in multi-line header comments over the 8% cap | Moved to `## Contracts` sections; headers pass the cap |
-| all | `; }` closing braces in headers, testers, benchmark (finding 7) | Normalized; `03-consistency.py --braces` reports none |
-
-The completeness sweep added the Random URBG interface. The independent `@reviewer` pass (2026-10-08) found no correctness defects; its exhaustive or random probes confirmed the `randDouble` behaviour.
+Correctness: Lemire's mapping puts `M = 2^64`, `t = M mod n`, `p = x * n`, accepts when `p mod M >= t` and returns `floor(p / M)`. Every output in `[0, n)` has exactly `floor(M / n)` accepted preimages, so acceptance adds no bias to uniform independent words; at least half the words are accepted, so expected work is below two draws. Unsigned subtraction computes the width modulo 2^64, width zero denoting the full domain; signed offsets are added in `lll` and converted only once the result fits. `randDouble()` uses the top 53 bits; each grid point has exactly 2^11 preimages and the product with 2^-53 is exact. For `randDouble(l, r)`, `u >= 0` and monotone rounding give `>= l`, the explicit `< r` test gives the upper bound, and a redraw needs `u` within a few ulps of one unless the interval spans a single double. Fisher–Yates choice sequences are in bijection with the `n!` permutations.
 
 ## Feature-to-test map
 
@@ -46,20 +30,11 @@ The completeness sweep added the Random URBG interface. The independent `@review
 | Invalid Random preconditions | Seven checked assertion probes: zero bound, reversed int/lng/ulng intervals, reversed shuffle range, empty and infinite-width `randDouble` intervals |
 | Header/linkage | Each tester includes only its header; optimized two-TU test in both link orders checks early hash values, the shared seed address and the global `Random` address. Package integration owns aggregates. |
 
-Modes: quick runs optimized and checked builds, 5,000 random draws, smaller hash dictionaries and reduced words through 8 bits. Full adds ASan/UBSan, 100,000 C++ draws and hash operations, 750 exact Random oracle cases, 200 `randDouble` cases and 25,682 hash oracle cases per configuration, and reduced words through 10 bits. Stress raises C++ workloads to 1,000,000 draws and 500,000 hash operations. Oracle checks survive `-DNDEBUG`. Fixed-seed frequency checks are regressions, not uniformity proofs.
+Modes: quick runs optimized and checked builds, 5,000 random draws and reduced words through 8 bits. Full adds ASan/UBSan, 100,000 C++ draws, 750 exact Random oracle cases and 200 `randDouble` cases per configuration, and reduced words through 10 bits. Stress raises C++ workloads to 1,000,000 draws. Oracle checks survive `-DNDEBUG`. Fixed-seed frequency checks are regressions, not uniformity proofs.
 
 ## Commands and results
 
-GCC 16.2.1, GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H, 2026-10-07:
-
-```sh
-python3 '96-Local Testing/06-Miscellaneous/01-random_tester.py' --mode full --seed 20260927        # PASS, 3 configurations
-python3 '96-Local Testing/06-Miscellaneous/01-random_tester.py' --mode stress --seed 20260928 --configuration optimized      # PASS
-```
-
-Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection. Seven checked assertion probes. No online submission was made.
-
-P013 package runs, GCC 16.2.1, GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H, 2026-10-07. Baseline before the re-audit changes: all seven P013 suites (`01`–`07`) passed full mode with seed 20260927. After the changes:
+P013 package run, 2026-10-07, GCC 16.2.1, GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection.
 
 ```sh
 python3 '96-Local Testing/01-run.py' --mode quick --filter 06-Miscellaneous --no-integration                            # PASS (all 14 suites)
@@ -68,15 +43,9 @@ for s in 01-random 02-customhash 03-fastio 04-compression 05-binarysearch 06-bit
   python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode stress --seed 20260928 --configuration optimized   # PASS x7
 done
 python3 '96-Local Testing/06-Miscellaneous/03-fastio_benchmark.py'                                                       # PASS, record rewritten
-python3 '96-Local Testing/02-integration.py'                                                                             # PASS
+python3 '96-Local Testing/02-integration.py'                                                                             # PASS (every header alone, Basic/All aggregates)
 python3 '96-Local Testing/03-consistency.py'                                                                             # no errors
 ```
-
-`02-integration.py` also builds every header alone and the Basic/All aggregates.
-
-## Benchmarks
-
-No benchmark is required: no reduction backend or tuned threshold exists.
 
 ## Sources
 
@@ -89,4 +58,9 @@ No benchmark is required: no reduction backend or tuned threshold exists.
 
 - Randomness is noncryptographic (MT19937-64). `randDouble(l, r)` replays bit-exactly only without FMA contraction.
 - Advanced random sampling belongs to `18`; `randomPermutation(n)` is `iota` plus `shuffle` (see [00-notes.md](00-notes.md)).
-- No online submission was made and no judge acceptance is claimed.
+- No benchmark: no reduction backend or tuned threshold exists. No online submission was made and no judge acceptance is claimed.
+
+## History
+
+- 2026-09-27: P013 first verification, full and stress suites passed.
+- 2026-10-07: P013 re-audit, URBG interface and `randDouble` added, contracts moved out of code comments, brace style normalized; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.

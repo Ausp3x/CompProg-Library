@@ -1,6 +1,6 @@
 # 06-mst.hpp — evidence
 
-Owned by package P010 / GR02 (graph foundations, with `01-graph.hpp` through `05-shortest_path.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract). First verified on 2026-09-27. The 2026-10-06 inventory rewrite reopened the row as partial for maximum-weight forests (negating full-range `lng` weights overflows); the 2026-10-07 re-audit implemented them, added `KruskalReconstruction::leafRange` from the completeness sweep, and closed the row.
+Owned by package P010 / GR02 (graph foundations, with `01-graph.hpp` through `05-shortest_path.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract).
 
 ## Contracts
 
@@ -40,47 +40,26 @@ Mutation checks (planted in a temporary copy, full mode) killed: `-w` instead of
 
 ## Commands and results
 
-### 2026-09-27 (original P010)
-
-Fresh runs used GCC 16.2.1 (20260810), GNU++20 and CPython 3.14.7 on Linux x86-64. Full mode with seed 20260927 passed all three builds. The sanitizer run encountered the environment's ptrace/LeakSanitizer restriction and passed after an approved execution outside the sandbox with leak detection enabled; this is a completed retry, not a skipped configuration. The shared quick runner passed all six P010 entries with seed 42 from `/tmp`. Integration passed 79 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage/execution, and LOCAL/non-LOCAL workspace compilation. Repository consistency passed with no errors. All 61 checked precondition probes of the package passed. Extended stress modes were implemented but not run in that pass. Independent review found no remaining correctness, domain, complexity or meaningful coverage gap.
-
-### 2026-10-07 re-audit
-
-Before any edit, the unchanged suite passed full mode with seed 20260927 in all three builds. After the changes every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
+2026-10-07, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
 | Run | Result |
 |---|---|
-| Full, seed 20260927, before any edit | PASS, all three builds |
+| Full, seed 20261007, g++ | PASS, all three builds, 872,516 checks per build, 14 probes |
+| Full, seed 20261007, `CXX=g++-14` | PASS, all three builds, same counts |
+| Full, seed 20260927 | PASS, 869,242 checks per build, 14 probes |
 | Stress, seed 7 | PASS, all three builds, 2,052,048 checks per build |
-| Full, seed 20261007, after the review fixes, GCC 16.2.1 | PASS, all three builds, 872,516 checks per build, 14 probes |
-| Full, seed 20261007, GCC 14.4.1 20260915 (`CXX=g++-14`) | PASS, all three builds, same counts |
-
-The current feature map's full result with seed 20260927 is 869,242 checks per build and 14 assertion probes. The shared quick runner passed all eleven graph entries from `/tmp`. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage, the workspace build and the sanitizer self-tests. `03-consistency.py` reports no errors, and `--braces` reports nothing for the package. All runs used CPython 3.14 on Linux x86-64. GCC 14.2 itself was not run; 14.4.1 is the closest available. No online submission was made.
+| Quick runner, all eleven graph entries, from `/tmp` | PASS |
+| `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU linkage, workspace, sanitizer self-tests) | PASS |
+| `03-consistency.py`, with `--braces` on the package | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20260927        # before any edit
-python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode stress --seed 7
-python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261007        # after the review fixes
+python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261007
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261007
+python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode stress --seed 7
 python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
 ```
-
-### Re-audit findings and their disposition (2026-10-07)
-
-Before any edit the row lacked the four maximum-weight engines. The findings are recorded in `00-Guidelines/23-Reaudit Findings/p010.md`.
-
-| # | Finding | Disposition |
-|---|---|---|
-| 3 | Maximum-weight `kruskal`, `primSparse`, `primDense`, `boruvka` absent | `bool maximum = false` on `kruskal`, `primSparse` and `boruvka`; `primDense` follows a new `DenseGraph(g, true)` maximum view, as the finding suggested. `primSparse` keys by `~w`, avoiding `-w` overflow. All checked against `oracle.maximum`. |
-| 4 | Evidence claimed the package complete while the row was partial | Intro rewritten; the reopened row is closed by this re-audit. |
-| 7, 12, 14 | Closing-brace rule (`}} }`, `; }}}`, `; }`) | Fixed in all six P010 headers, testers and both benchmarks. |
-| 8 | T/M lines not directly above | Every declaration now has its complexity line directly above it; contract prose moved to Contracts. |
-| 11 | Overloads without a complexity comment | `mst_detail::edgeOrder` shares the `edgeLess` line (the shared-line form under the 8% cap; see `05-shortest_path.md`). |
-| 13 | `SpanningForest`, `BottleneckResult` without complexity lines | Added. |
-
-Change beyond the findings: the completeness sweep added `KruskalReconstruction::leafRange` with the `start`/`leaves` layout. Independent review (`@reviewer`, 2026-10-07) found no correctness defect.
 
 ## Benchmarks
 
@@ -108,8 +87,14 @@ Retrieved and inspected on 2026-09-27; no source code was copied.
 | [OI Wiki, 最小生成树](https://oi-wiki.org/graph/mst/) | Kruskal/Prim/Borůvka cut choices, forest behavior, reconstruction trees and bottleneck LCA interpretation. |
 | [cp-algorithms, Prim](https://cp-algorithms.com/graph/mst_prim.html) | Dense quadratic and sparse priority-queue alternatives. |
 
-The 2026-10-07 completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p010-re-audit); omitted candidates are in [00-notes.md](00-notes.md#p010-re-audit-omissions). Legacy: the old notebook's Kruskal forest behavior and dense Prim are covered by the spanning-forest family without adopting its disconnected `-1` sentinel or empty-graph bug.
+The completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p010-re-audit); omitted candidates are in [00-notes.md](00-notes.md#p010-re-audit-omissions). Legacy: the old notebook's Kruskal forest behavior and dense Prim are covered by the spanning-forest family without adopting its disconnected `-1` sentinel or empty-graph bug.
 
 ## Limits and handoffs
 
-No owned implementation or verification gap remains. Fractional/custom-weight domains are not claimed. Directed MSTs, sensitivity/second-best MSTs, spanning-tree counting and fully dynamic MSTs belong to their separate inventory rows. Reconstruction-tree bottleneck queries belong here; general LCA and dynamic-tree APIs retain their separate owners.
+Fractional/custom-weight domains are not claimed. Directed MSTs, sensitivity/second-best MSTs, spanning-tree counting and fully dynamic MSTs belong to their separate inventory rows. Reconstruction-tree bottleneck queries belong here; general LCA and dynamic-tree APIs retain their separate owners. GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available.
+
+## History
+
+- 2026-09-27: original P010, full suite (seed 20260927) and benchmark passed on g++ 16 with integration and 61 package probes; stress not run.
+- 2026-10-06: inventory rewrite reopened the row as partial (maximum-weight forests).
+- 2026-10-07: re-audit, implemented maximum-weight `kruskal`, `primSparse`, `primDense`, `boruvka` and `KruskalReconstruction::leafRange`; 6 findings fixed (missing maximum engines, evidence claim, brace rule, complexity line placement and coverage); full suite passed on g++ and g++-14, stress passed.

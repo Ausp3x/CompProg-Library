@@ -31,43 +31,36 @@ Finite tests complement the algorithm arguments; they do not prove all inputs.
 
 ## Commands and results
 
-### 2026-09-27 (original P011)
-
-Fresh execution used GCC 16.2.1 (20260810), CPython 3.14.7, Linux x86-64, GNU++20. Full seed 20260927 is the completion corpus: 7,030 cases and 3,772,582 checks in each of all three configurations; four checked assertion probes passed. The first sandboxed sanitizer execution hit the environment's LeakSanitizer/ptrace restriction; an approved retry of the same full corpus using `--configuration ASan-UBSan` outside the sandbox passed with leak detection enabled. No sanitizer configuration was skipped. Stress mode was implemented but not run in this completion. GCC 14 itself was unavailable; exact-floor execution is not claimed.
-
-Package integration (P011): final integration passed 82 standalone/aggregate headers, scalar/available-AVX2 multiple-translation-unit linkage and LOCAL/non-LOCAL workspace syntax. Repository consistency passed with no errors, covering inventory/ownership records, source/archive hashes, dependent paths, documentation links and notebook selection. No unrelated algorithm suite or benchmark was rerun to claim new verification.
-
-```bash
-python3 '96-Local Testing/04-Graphs/08-scc_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/04-Graphs/00-decomposition_benchmark.py'
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
-
-### 2026-10-07 re-audit (GCC 16.2.1, GNU++20)
-
-The code was treated as existing-unverified. The header and tester were brought to the closing-brace rule and the two-line comment cap; the removed contract text is in Contracts above. Public names and behavior are unchanged. Baseline before any change: the full suite passed in all three configurations (seed 1). No re-audit finding concerned this header.
+2026-10-07, GCC 16.2.1, CPython 3.14, Linux x86-64, GNU++20.
 
 | Command | Result |
 |---|---|
 | `08-scc_tester.py --mode full --seed 20260927` | PASS 3 configurations, 7,030 cases, 3,772,582 checks, 4 probes |
 | `08-scc_tester.py --mode stress --seed 1` | PASS 3 configurations, 82,816 cases |
 | `02-integration.py` and `02-integration.py --sanitizers` | PASS: 102 standalone/aggregate headers, scalar/available-AVX2 multi-TU, workspace, sanitizer self-tests |
-| `03-consistency.py` | no errors |
+| `03-consistency.py` | No errors |
+
+```bash
+python3 '96-Local Testing/04-Graphs/08-scc_tester.py' --mode full --seed 20260927
+python3 '96-Local Testing/04-Graphs/08-scc_tester.py' --mode stress --seed 1
+python3 '96-Local Testing/04-Graphs/00-decomposition_benchmark.py'
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
+```
 
 ## Benchmarks
 
 [Benchmark driver](<../../96-Local Testing/04-Graphs/00-decomposition_benchmark.py>) and `96-Local Testing/04-Graphs/00-decomposition_benchmark.json` (shared with `07-lca.hpp`) contain CPU/compiler/flags, workload generation, seed, all five samples and medians. The C++ driver warms up both alternatives, includes allocation in construction time, excludes input generation and checks every result outside the timed region. Small/common/large cases use n=32, 2,000 and 100,000; SCC uses chains, cycles, random graphs and SCC blocks. Memory is O(n+m) for Kosaraju's transpose and results.
 
-Representative medians in milliseconds (100,000 vertices):
+Recorded 2026-10-07 medians in milliseconds (flags `-O2 -DNDEBUG -mno-avx2`, i9-11900H, shared machine; 100,000 vertices):
 
 | Workload | Tarjan SCC | Kosaraju SCC |
 |---|---|---|
-| Chain | 3.246 | 6.001 |
-| Cycle | 1.503 | 4.490 |
-| Chain plus 400,000 random arcs | 20.186 | 31.623 |
+| Chain | 3.237 | 5.812 |
+| Cycle | 1.462 | 4.271 |
+| Chain plus 400,000 random arcs | 17.258 | 28.300 |
 
-Tarjan avoided transpose construction and was faster in these samples; both SCC algorithms remain available. These are shared-machine observations, especially noisy for microsecond-sized cases. There is no automatic dispatch threshold or universal speed claim. No Barrett/Montgomery or handwritten ISA specialization was introduced. The 2026-10-07 rerun (before and after the `07-lca.hpp` `getLCA` change, flags `-O2 -DNDEBUG -mno-avx2`, five samples, i9-11900H, shared machine) moved the SCC numbers within noise.
+Tarjan avoids transpose construction and was faster in these samples; both SCC algorithms remain available. These are shared-machine observations, especially noisy for microsecond-sized cases. There is no automatic dispatch threshold or universal speed claim. No Barrett/Montgomery or handwritten ISA specialization was introduced.
 
 ## Sources
 
@@ -82,4 +75,9 @@ Legacy: `OLD/Team Notebook/src/graph/old_kosaraju.cpp` was inspected; its two DF
 
 ## Limits and handoffs
 
-No known owned feature or verification gap remains. Incremental SCC belongs to `70-incrementalscc.hpp`; SCC-based transitive closure/reduction belongs to `40-reachability.hpp`; dynamic SCC remains with its separate batch owner. These remain separately owned inventory work and are not claimed here.
+Incremental SCC belongs to `70-incrementalscc.hpp`; SCC-based transitive closure/reduction belongs to `40-reachability.hpp`; dynamic SCC remains with its separate batch owner. These are not claimed here. No `CXX=g++-14` floor run is recorded for this header.
+
+## History
+
+- 2026-09-27: original P011, full suite (seed 20260927, 3,772,582 checks), integration and benchmark passed on g++ 16; stress not run.
+- 2026-10-07: re-audit, no findings for this header; brace rule and comment cap applied; full suite, stress, integration and benchmark passed on g++ 16.

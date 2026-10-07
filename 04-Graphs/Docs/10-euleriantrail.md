@@ -1,6 +1,6 @@
 # 10-euleriantrail.hpp — evidence
 
-Owned by package P011 / GR03 (with `07-lca.hpp`, `08-scc.hpp` and `09-bridges_articulation.hpp`; GR26 `11-functionalgraph.hpp` completes P011); see [00-notes.md](00-notes.md#p011-package-record) for the package record. The header is complete within GR03's static Euler-trail scope. It uses the verified P010 `Graph`/`CsrGraph` representation, accepts loops and parallel edges, ignores weights across the full `lng` domain, leaves inputs unchanged and uses iterative traversals. The 2026-10-07 re-audit added the lexicographically smallest option from the completeness sweep.
+Owned by package P011 / GR03 (with `07-lca.hpp`, `08-scc.hpp` and `09-bridges_articulation.hpp`; GR26 `11-functionalgraph.hpp` completes P011); see [00-notes.md](00-notes.md#p011-package-record) for the package record. The header is complete within GR03's static Euler-trail scope. It uses the verified P010 `Graph`/`CsrGraph` representation, accepts loops and parallel edges, ignores weights across the full `lng` domain, leaves inputs unchanged and uses iterative traversals.
 
 ## Contracts
 
@@ -23,7 +23,7 @@ The undirected degree condition is zero or two odd vertices; in the latter case 
 | Operation | Test | Oracle |
 |---|---|---|
 | `EulerTrailResult`, `eulerianTrail`: existence, selectable start and all witnesses | Every start checked; all looped directed graphs through n=3 and undirected through n=4, two-vertex multiplicities 0..2; 1,500 random multigraph/generated-trail cases and reversal variants | Independent subset DP enumerates possible start vertices for trails using each logical edge once, without degree/connectivity tests |
-| `eulerianTrail(..., true)` lexicographic option (re-audit) | Every case with at most 8 edges, automatic start and every explicit start, Graph and CSR; 200,000-vertex reversed-insertion cycles (directed, and undirected with two parallel chords) | Memoized search over used-edge masks computes the smallest vertex sequence from every start; cross-checked against the subset DP's existence answer; hand-derived smallest sequence for the large cycles |
+| `eulerianTrail(..., true)` lexicographic option | Every case with at most 8 edges, automatic start and every explicit start, Graph and CSR; 200,000-vertex reversed-insertion cycles (directed, and undirected with two parallel chords) | Memoized search over used-edge masks computes the smallest vertex sequence from every start; cross-checked against the subset DP's existence answer; hand-derived smallest sequence for the large cycles |
 | Representations, lifecycle and boundaries | Graph/CSR in every small case, oriented arc/logical-ID validation, zero-edge and n=0 successes, wrong legal starts, degree failures, balanced disconnected graphs, loops and isolates, extreme ignored weights, result move/repeated calls, mutation/snapshot, 200,000-vertex directed/undirected chains and cycles | Same oracles |
 | Preconditions | Three checked assertion probes | Expected assertion failure |
 
@@ -31,30 +31,23 @@ Finite tests complement the algorithm arguments; they do not prove all inputs.
 
 ## Commands and results
 
-### 2026-09-27 (original P011)
-
-Fresh execution used GCC 16.2.1 (20260810), CPython 3.14.7, Linux x86-64, GNU++20. Full seed 20260927 is the completion corpus: 3,390 cases and 14,683,272 checks in each of all three configurations; three checked assertion probes passed. The first sandboxed sanitizer execution hit the environment's LeakSanitizer/ptrace restriction; an approved retry of the same full corpus using `--configuration ASan-UBSan` outside the sandbox passed with leak detection enabled. No sanitizer configuration was skipped. Stress mode was implemented but not run in this completion. GCC 14 itself was unavailable; exact-floor execution is not claimed.
-
-Package integration (P011): final integration passed 82 standalone/aggregate headers, scalar/available-AVX2 multiple-translation-unit linkage and LOCAL/non-LOCAL workspace syntax. Repository consistency passed with no errors. No unrelated algorithm suite or benchmark was rerun to claim new verification.
-
-```bash
-python3 '96-Local Testing/04-Graphs/10-euleriantrail_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
-
-### 2026-10-07 re-audit (GCC 16.2.1, GNU++20)
-
-The code was treated as existing-unverified. The header and tester were brought to the closing-brace rule and the two-line comment cap; the removed contract text is in Contracts above. Public names and behavior are unchanged apart from the lexicographic option (`eulerianTrail(g, start, true)`, O(n + m log(m + 1))). Baseline before any change: the full suite passed in all three configurations (seed 1). No confirmed re-audit finding concerned this header.
-
-Ten hand mutations of the new and changed P011 code were run against the quick suites; all non-equivalent ones failed as required. The independent reviewer (`@reviewer`) wrote its own brute-force check for the lexicographic option (200k Euler multigraphs with up to 11 edges), passing under ASan/UBSan/`_GLIBCXX_DEBUG`.
+2026-10-07, GCC 16.2.1, GNU++20.
 
 | Command | Result |
 |---|---|
 | `10-euleriantrail_tester.py --mode full --seed 20260927` | PASS 3 configurations, 3,390 cases, 16,171,778 checks, 3 probes |
 | `10-euleriantrail_tester.py --mode stress --seed 1` | PASS 3 configurations, 12,740 cases |
 | `02-integration.py` and `02-integration.py --sanitizers` | PASS: 102 standalone/aggregate headers, scalar/available-AVX2 multi-TU, workspace, sanitizer self-tests |
-| `03-consistency.py` | no errors |
+| `03-consistency.py` | No errors |
+| Ten hand mutations, quick suites | All non-equivalent mutants fail |
+| `@reviewer`: own brute-force lexicographic check, 200k Euler multigraphs with up to 11 edges, ASan/UBSan/`_GLIBCXX_DEBUG` | PASS |
+
+```bash
+python3 '96-Local Testing/04-Graphs/10-euleriantrail_tester.py' --mode full --seed 20260927
+python3 '96-Local Testing/04-Graphs/10-euleriantrail_tester.py' --mode stress --seed 1
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
+```
 
 ## Sources
 
@@ -71,4 +64,9 @@ Legacy: the `EulerPath` sections of `OLD/Team Notebook/src/algsbetter.cpp` (line
 
 ## Limits and handoffs
 
-No known owned feature or verification gap remains. Euler-tour counting belongs to `53-graph_counting.hpp`, and Chinese postman/route augmentation to `69-tjoin.hpp`; mixed directed/undirected Euler circuits need max flow and belong with rows 19/30/69. These remain separately owned inventory work and are not claimed here.
+Euler-tour counting belongs to `53-graph_counting.hpp`, and Chinese postman/route augmentation to `69-tjoin.hpp`; mixed directed/undirected Euler circuits need max flow and belong with rows 19/30/69. These are not claimed here. No `CXX=g++-14` floor run is recorded for this header.
+
+## History
+
+- 2026-09-27: original P011, full suite (seed 20260927, 3,390 cases, 14,683,272 checks, 3 probes) and integration passed on g++ 16; stress not run.
+- 2026-10-07: re-audit, added the lexicographic option; no findings for this header; full suite, stress and integration passed on g++ 16.

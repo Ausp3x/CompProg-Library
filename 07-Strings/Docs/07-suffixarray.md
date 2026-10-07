@@ -4,6 +4,8 @@
 
 ## Contracts
 
+### SuffixArray, longestCommonSubstring
+
 - `SuffixArray<T>` owns a `vector<T>` for integral `T`; the input's ordinary signed/unsigned order is preserved without narrowing symbols. `SuffixArray(string_view)` and deduction from `string`/C strings use `T=int` and unsigned byte order, including NUL and bytes 128–255. A C string follows its normal terminating-NUL convention; use an explicit `string_view` length for embedded NUL.
 - Input length `n < INT_MAX`. `sa` contains exactly the `n` nonempty suffix starts, `rank[sa[k]]=k`, and `lcp[k]=LCP(sa[k],sa[k+1])` has `max(0,n-1)` entries. Construction is sentinel-free; no input value is reserved. Empty construction is valid.
 - Byte initialization costs `O(n+256)`; sparse integer initialization sorts positions to compress symbols in `O(n * log(n+1))` time and `O(n)` workspace. Stable radix doubling takes `O(n * log(n+1))` time and `O(n)` workspace, stopping once all ranks differ. Kasai takes `O(n)` time.
@@ -14,11 +16,7 @@
 - `longestCommonSubstring(a,b)` returns `{start_in_a,start_in_b,length}`. No common symbol returns `{0,0,0}`. Ties choose the lexicographically smallest common substring, then its earliest start independently in each input. Both vectors must use the same integer type; byte overloads use unsigned byte order. It requires `n+m+1 < INT_MAX`, compresses the union alphabet to positive ranks and uses a fresh separator zero, independent of all original symbol values. Time is `O((n+m) * log(n+m+1))`, storage/workspace `O(n+m)`; this reduction omits RMQ. Rank initialization of the joined sequence uses the same tested constructor.
 - Fields are read-only after construction; replace the object to change its input. Copy and move destinations preserve their indexes. Assign a valid object to a moved-from object before querying it. The exposed `build(bytes,with_rmq)` construction helper operates on the owned text; its byte path requires all values in `[0,256)`.
 
-SA-IS belongs to ST06/`12-sais.hpp`; generalized indexes and common-substring queries across arbitrary numbers of inputs belong to ST11/`28-multiple_string.hpp`. Distinct-substring counting and kth/frequency applications retain ST04/`10-suffixautomaton.hpp` and ST09/`22-lexicographic_queries.hpp` ownership. Suffix trees and dynamic indexing also retain their separate inventory owners. No missing Basic suffix-array feature is deferred to those packages.
-
-## Correctness arguments
-
-At doubling width `k`, each current rank describes the first `k` symbols of its suffix. Suffixes shorter than or equal to `k` have a missing second rank, smaller than every real rank. Listing those starts first, then subtracting `k` from the current suffix order where possible, sorts all starts by second rank. Stable counting sort on first ranks therefore sorts the rank pairs. Consecutive unequal pairs receive consecutive ranks, preserving equality and lexicographic order for width `2k`. Eventually the width covers every suffix; unique ranks permit early termination. Missing ranks use the internal value `-1`, never a text symbol. Width and index calculations avoid overflowing signed sums.
+Correctness: at doubling width `k`, each current rank describes the first `k` symbols of its suffix. Suffixes shorter than or equal to `k` have a missing second rank, smaller than every real rank. Listing those starts first, then subtracting `k` from the current suffix order where possible, sorts all starts by second rank. Stable counting sort on first ranks therefore sorts the rank pairs. Consecutive unequal pairs receive consecutive ranks, preserving equality and lexicographic order for width `2k`. Eventually the width covers every suffix; unique ranks permit early termination. Missing ranks use the internal value `-1`, never a text symbol. Width and index calculations avoid overflowing signed sums.
 
 Kasai scans starts in text order. Removing a common leading symbol lowers the known adjacent-suffix LCP by at most one; the lexicographic neighbors of the shortened suffix share at least that remaining prefix. Consequently the carried lower bound is valid and the total extensions are linear. The LCP of any two suffixes equals the minimum adjacent LCP between their ranks: all suffixes sharing a prefix form a contiguous lexicographic interval. The sparse-table minimum therefore answers LCE exactly.
 
@@ -44,67 +42,26 @@ Runnable entry: [07-suffixarray_tester.py](<../../96-Local Testing/07-Strings/07
 
 ## Commands and results
 
-Environment: GNU g++ 16.2.1 20260810, GNU++20, Python 3.14.7, Linux x86-64. Seeds are explicit; binaries use temporary directories. Quick/full/stress use optimized `-O2 -DNDEBUG` and checked `-O0 -g -D_GLIBCXX_DEBUG`; full/stress also use `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie`, leak checking enabled.
+P017 verification run, 2026-09-28: Linux x86-64, GCC 16.2.1 (20260810), GNU++20,
+CPython 3.14.7, seed 20260928. Quick runs optimized `-O2 -DNDEBUG` and checked
+`-O0 -g -D_GLIBCXX_DEBUG`; full adds ASan/UBSan with leak checking on, run outside
+the sandbox because LeakSanitizer cannot run under its process tracer.
 
-Commands used:
+| Command from repository root | Result |
+|---|---|
+| `python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode quick --seed 20260928` | PASS, 592 indexed cases and 539,166 checks per configuration; 10 assertion probes |
+| `python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode full --seed 20260928` | PASS, all three configurations, 5,534 indexed cases and 3,915,321 checks each; 10 assertion probes |
+| `python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration` (from `/tmp`) | PASS, all nine Strings suites |
+| `python3 '96-Local Testing/02-integration.py'` | PASS: 102 standalone/aggregate headers, multi-TU scalar/AVX2 aggregates, Workspace LOCAL and non-LOCAL |
+| `python3 '96-Local Testing/03-consistency.py'` | no errors |
 
-```text
-python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode quick --seed 20260928
-python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode full --seed 20260928
-python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode full --seed 20260928 --configuration ASan-UBSan
-```
-
-Quick passed optimized and checked: 592 indexed cases and 539,166 checks per configuration, plus ten asserted-precondition probes. Full passed optimized, checked and ASan/UBSan: 5,534 indexed cases and 3,915,321 checks per configuration, plus ten asserted-precondition probes in the checked build. The first full sanitizer execution encountered LeakSanitizer's explicit `ptrace` environment restriction; the approved run outside the sandbox passed with leak checking still enabled. Logs were `/tmp/p017-suffixarray-full.log` and `/tmp/p017-suffixarray-asan.log` during the session.
-
-Package integration passed 102 standalone/aggregate compile checks and scalar/available AVX2 multiple-translation-unit links; the shared runner discovered and passed all nine Strings quick suites from `/tmp`. See the package evidence for the integration commands and shared consistency result. An independent read-only review of the header and test oracles found no defects.
-
-No timing optimization, dispatch threshold or superiority claim was introduced; the counting-sort doubling algorithm meets the requested asymptotic bound directly. Consequently there is no new benchmark gate. Sparse-table memory is explicit and optional. Stress mode is available; an unexecuted stress run, unavailable GCC14 runtime and all possible integral template instantiations are not claimed as tested. Finite checks supplement the correctness arguments rather than proving all inputs.
-
-Batch ST03, package P017: sentinel-free radix doubling, sparse integer compression, inverse ranks and Kasai LCP, optional RMQ/LCE, pattern ranges, longest repeated/common substring witnesses.
-
-P017 package verification (sole batch ST03, completed 2026-09-28; the C01/P002 and ST01–ST02/P016 prerequisites are verified). Seed **20260928**, GCC **16.2.1 (20260810)**, GNU++20, CPython **3.14.7**, Linux x86-64. All three completed full optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan configurations with leak checking enabled.
-
-| Header | Checks in each full configuration | Checked precondition probes |
-|---|---|---|
-| Suffix array | 3,915,321 | 10 |
-
-All **23** precondition probes passed. The initial sandbox sanitizer processes encountered LeakSanitizer's fatal ptrace incompatibility; approved reruns outside that tracer passed without disabling leak detection. The linked per-header records distinguish those retries. Aho also passed an optimized stress run with seed `20260929`, 9,612,363 checks, before the final dense-table release regression was added; the final full run includes that regression. Other stress modes are available but unexecuted. No untested compiler/interpreter configuration is claimed.
-
-Independent review covered all three algorithms, boundary arithmetic, witness ties, test oracles and source/legacy claims. It confirmed the explicit empty-pattern/empty-suffix/empty-interval conventions. Review also led to Aho's empty-pattern construction cost being documented and a nested const-callback regression. Final Aho rebuilding from dense to sparse releases the completed transition table, with a capacity regression in the full suite.
-
-Integration passed:
-
-- **102** current standalone/aggregate headers compiled.
-- All aggregates linked and ran across multiple translation units in scalar and available AVX2 configurations.
-- The standalone Workspace compiled in LOCAL and non-LOCAL configurations.
-- All **nine** Strings suites passed shared quick discovery from `/tmp`.
-- Repository consistency passed with no errors: 428 targets, 335 batches and 226 packages. The checker found one preexisting trailing-whitespace issue on the P034 checklist line; only that whitespace was removed.
-
-Per-header full command:
-
-```bash
-python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode full --seed 20260928
-```
-
-Package integration commands:
-
-```bash
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
-
-Shared discovery, run with working directory `/tmp`:
-
-```bash
-python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration
-```
-
-
-The nine-suite discovery and aggregate integration preceded Aho's final memory-release correction; final Aho full verification covers the correction, and its shared quick entry passed again afterward with `--filter 07-Strings/06-aho`. The change does not alter declarations or dependencies. Strings Basic includes all nine current implementations and All includes Basic transitively.
+Stress mode exists but was not run; no `g++-14` floor run and no instantiation
+beyond the tested integral types is claimed.
 
 ## Benchmarks
 
-No benchmark: radix doubling uses its direct justified algorithm without a new specialization or dispatch threshold requiring timing comparisons. Sparse-table storage is optional and explicit.
+No benchmark: radix doubling is the direct algorithm for the stated bound, with no
+specialization or dispatch threshold. Sparse-table storage is optional and explicit.
 
 ## Sources
 
@@ -117,8 +74,17 @@ Inspected live on 2026-09-28; implementations were independently written from th
 | [KACTL `SuffixArray.h`](https://github.com/kth-competitive-programming/kactl/blob/main/content/strings/SuffixArray.h), authors 罗穗骞/chilli, dated 2019-04-11 | Read source and comments: `n+1` suffix convention, preceding-neighbor LCP, no-NUL restriction and doubling approach. Compared domain/conventions only; its source reports unknown license. This header includes full bytes, omits the empty suffix and uses succeeding-neighbor LCP. |
 | [Preserved `old_lcssubstr.py`](<../../OLD/Team Notebook/src/misc/old_lcssubstr.py>) | Read all 30 lines: two-input longest common substring DP and printed witness, plus undefined trailing demo arguments. The new two-input API accounts for the length/witness behavior with explicit deterministic ties and no printing/import side effects. Its multi-document/Python archive ownership remains unchanged. |
 
-No local suffix-array implementation was found in the inspected original notebook monoliths or focused archive search, and `07-Strings/97-Legacy` does not exist. No legacy bytes were changed. No online submission or acceptance is claimed. Source hashes from this inspection are `a6bdc7d560e1c41cfe74351e78b2cd73564eef2e0fae784c6a64ecdfc730b034` (cp-algorithms), `e7ffe101a268208d63c17374e970f781a1a828feb6cc6010ead78c2a709cda86` (ACL), and `b265cb80ce7de98d6dca3c549f6e1b567d75dd32f7e66b29c143087c60878fe9` (KACTL).
+No local suffix-array implementation was found in the inspected original notebook monoliths or focused archive search, and `07-Strings/97-Legacy` does not exist.
 
 ## Limits and handoffs
 
-ST04/ST05/ST06 retain suffix automaton/tree/SA-IS ownership; ST11 owns generalized multiple-string indexes. ST09 owns broader lexicographic/frequency applications. These separate scheduled families are not advertised as implemented here. Finite tests support the stated proofs and domains; they do not allocate impractical maximum-size objects. No online submission or acceptance is claimed.
+- Open `/reaudit-review` findings for P017 ([p017.md](<../../00-Guidelines/23-Reaudit Findings/p017.md>)), not yet resolved:
+  - 2: a brace-list text or pattern starting with literal `0` is ambiguous between the `vector<T>` and `string_view` overloads and does not compile.
+  - 7: `T = bool` triggers `-Wbool-compare` from the byte-path assert.
+  - 8: function and lambda bodies close on their own line (closing-brace rule).
+  - 9: the byte LCS overload has no T/M comment and the struct line has no U component.
+
+SA-IS belongs to ST06/`12-sais.hpp`; generalized indexes and common-substring queries across arbitrary numbers of inputs belong to ST11/`28-multiple_string.hpp`. Distinct-substring counting and kth/frequency applications retain ST04/`10-suffixautomaton.hpp` and ST09/`22-lexicographic_queries.hpp` ownership. Suffix trees and dynamic indexing also retain their separate inventory owners. No missing Basic suffix-array feature is deferred to those packages.
+
+Finite tests support the stated proofs and domains; they do not allocate
+impractical maximum-size objects.

@@ -1,6 +1,6 @@
 # 02-search_algorithms.hpp — evidence
 
-`02-search_algorithms.hpp` covers the Basic search row. The four legacy names remain: `binSearch`, `binSearchReal`, `ternSearch` and `ternSearchReal`. The header adds endpoint-independent first/last-true searches, Fibonacci and exponential integer searches, golden-section minimization, and real bracket/result interfaces. Every function is stateless, and every caller predicate or objective must be deterministic. The P012 re-audit (2026-10-07) added `fibSearch` and `expSearch`, moved the in-code contracts here, and gave `RealSearchResult` its complexity line (finding 7).
+`02-search_algorithms.hpp` covers the Basic search row. The four legacy names remain: `binSearch`, `binSearchReal`, `ternSearch` and `ternSearchReal`. The header adds endpoint-independent first/last-true searches, Fibonacci and exponential integer searches, golden-section minimization, and real bracket/result interfaces. Every function is stateless, and every caller predicate or objective must be deterministic.
 
 ## Contracts
 
@@ -8,9 +8,13 @@
 
 `binSearch(ok, ng, f)` accepts any two `lng` endpoints, in either order. The caller knows `ok` is feasible and `ng` infeasible, with one monotone transition between them. Neither endpoint is evaluated, so they may stand for hypothetical boundary states. Equal endpoints mean the answer has already converged. The function returns the last feasible value next to the transition and makes at most 64 predicate calls.
 
+Correctness: `std::midpoint` rounds toward `ok`; when the midpoint equals `ok`, the endpoints are adjacent or equal. Every queried midpoint is strictly interior, and updating one endpoint keeps the transition bracketed. This avoids the archived `abs(ok - ng)` overflow even for `INT64_MIN` and `INT64_MAX`.
+
 ### firstTrue, lastTrue
 
 Both search half-open `[l, r)` with `l <= r` (asserted). `firstTrue` needs a false-then-true predicate and `lastTrue` a true-then-false one. Both return `{found, position}`, with `{false, r}` for absence, including empty ranges. Neither endpoint is a sentinel. `r = INT64_MAX` stays a valid excluded endpoint; to search through that last value, use `binSearch`.
+
+Correctness: each midpoint satisfies `l <= md < r`, so `md + 1` cannot overflow. `lastTrue` finds the first false position and decrements it only when it exceeds `l`.
 
 ### ternSearch, fibSearch
 
@@ -19,9 +23,15 @@ Both take the legacy **closed** interval `[l, r]` with `l <= r` (asserted), incl
 - `ternSearch` makes at most `2 * ceil(log2(n))` evaluations, 128 over the full domain.
 - `fibSearch` makes at most `log_phi(n + 1) + 1` evaluations, 92 over the full `lng` domain. That is about 1.44 log2 n against 2 log2 n, which matters when the objective is expensive. A singleton returns without evaluating.
 
+Correctness of `ternSearch`: it compares neighbours at `md` and `md + 1` (safe since `md < r`). A decrease puts the first minimum to the right; otherwise it is at or left of `md`. This halves the interval each step, where the archived ternary reduction kept two thirds.
+
+Correctness of `fibSearch`: it keeps an open window `(a, b)` with `b - a = y`, where `x < y` are consecutive terms of 2, 3, 5, 8, … and the leftmost minimum lies inside. It starts at `a = l - 1` with the least `y >= n + 1` (at least 3) and probes `c = a + y - x < d = a + x`. If `f(c) <= f(d)`, the leftmost minimum is in `(a, d)` (strict: `d` is on the increasing side; equal: both probes are on the flat minimum or on opposite sides of it). Otherwise `c` precedes the leftmost minimum, which is in `(c, b)`. The window shrinks to length `x` and the surviving probe is one of the two new probes, so each step costs one evaluation. Probes beyond `r` read `f(r)`, extending the function with a flat tail; both cases stay valid because the leftmost minimum is at most `r`, and a probe `c <= r < d` with `f(r) < f(c)` cannot have reached the minimum. At `y = 3` the window holds exactly `c` and `d`. With `F_k` the least term of 3, 5, 8, … with `F_k >= n + 1`, the search makes `k - 1` evaluations; minimality and Binet's formula give at most `log_phi(n + 1) + 1`, also checked numerically through `n = 2000` and at `2^64`. Positions are `lll`, so `n = 2^64` is representable.
+
 ### expSearch
 
 `expSearch(ok, f)` gallops upward from a known-true `ok`, which is never evaluated. `f` must be true then false on `[ok, INT64_MAX]`. The function returns the last true value, or `INT64_MAX` when `f` never becomes false. It makes at most about `2 * log2(answer - ok + 2) + 2` evaluations and needs no upper bound in advance. For a downward search, negate the argument inside `f`.
+
+Correctness: each round tests `ok + d` with `d = 1, 2, 4, …` and moves `ok` there while true. The step is clamped to `INT64_MAX` once the gap `INT64_MAX - ok`, computed in `ulng`, is at most `d`. The first false probe brackets the transition for `binSearch`. Because the gaps 1, 2, …, 2^63 sum past every distance, `ok` reaches `INT64_MAX` before `d` can wrap.
 
 ### RealSearchResult
 
@@ -48,45 +58,15 @@ Both take finite `l <= r` and the same strict-side, optional-flat-minimum shape 
 - Ternary search shrinks the width by `2/3` per reduction at two evaluations each, at most `2 * itr`.
 - Golden search shrinks it by `(sqrt(5) - 1) / 2` per reduction and caches one value. It makes zero evaluations when the bracket is already done or `itr = 0`, and at most `itr + 1` otherwise.
 
+Correctness of the real searches: `std::midpoint` and `std::lerp` avoid overflowing `r - l` in binary64. Every successful reduction keeps ordered interior probes, and golden search checks that order before reusing cached values. Ternary and golden interpolation may stall before the endpoints become adjacent; the result is then the remaining bracket with `converged == false`, unless the tolerance was met anyway. Reaching a positive absolute width `epsilon < W` in exact arithmetic takes `ceil(log(W / epsilon) / log(1 / q))` reductions, `q` being 1/2, 2/3 or `(sqrt(5) - 1) / 2`. Rounding limits the useful precision, so the actual bracket and status are reported rather than a fixed iteration count. A purely relative tolerance near zero may be unattainable within the cap.
+
 ### binSearchReal, ternSearchReal, goldenSearchReal
 
 These are the legacy point interfaces: they return `.x` of the matching bracket function and share its domain. The default iteration counts are 100 for binary, 200 for ternary (legacy) and 100 for golden. To maximize, minimize a reversed objective whose evaluation stays valid, such as a negated real objective. Negating `INT64_MIN` is not valid.
 
-## Correctness
-
-**binSearch.** `std::midpoint` rounds toward `ok`; when the midpoint equals `ok`, the endpoints are adjacent or equal. Every queried midpoint is strictly interior, and updating one endpoint keeps the transition bracketed. This avoids the archived `abs(ok - ng)` overflow even for `INT64_MIN` and `INT64_MAX`.
-
-**firstTrue, lastTrue.** Each midpoint satisfies `l <= md < r`, so `md + 1` cannot overflow. `lastTrue` finds the first false position and decrements it only when it exceeds `l`.
-
-**ternSearch.** It compares neighbours at `md` and `md + 1`. A decrease puts the first minimum to the right; otherwise it is at or left of `md`. Since `md < r`, `md + 1` is safe. This halves the interval each step, where the archived ternary reduction kept two thirds.
-
-**fibSearch.** The search keeps an open window `(a, b)` with `b - a = y`, where `x < y` are consecutive terms of 2, 3, 5, 8, … and the leftmost minimum lies inside. It starts at `a = l - 1` with the least `y >= n + 1` (at least 3), and probes `c = a + y - x < d = a + x`.
-
-- If `f(c) <= f(d)`, the leftmost minimum is in `(a, d)`. A strict `f(c) < f(d)` puts `d` on the increasing side. Equality means either both probes are on the flat minimum, or `c` and `d` sit on opposite sides of it.
-- Otherwise `c` lies before the leftmost minimum, which is then in `(c, b)`.
-
-Either way the window shrinks to length `x`, and the surviving probe is exactly one of the two new probes, so each step costs one evaluation. Probes beyond `r` read `f(r)`. This extends the function with a flat tail at `f(r)` and keeps both cases valid: the leftmost minimum is at most `r`, and a probe `c <= r < d` with `f(r) < f(c)` cannot have reached the minimum. At `y = 3` the window holds exactly `c` and `d`, and the comparison picks the answer.
-
-If `F_k` is the least term of 3, 5, 8, … with `F_k >= n + 1`, the search makes `k - 1` evaluations. The minimality of `F_k` and Binet's formula give at most `log_phi(n + 1) + 1`; this was also checked numerically through `n = 2000` and at `2^64`. Positions are `lll`, so the full domain with `n = 2^64` is representable.
-
-**expSearch.** Each round tests `ok + d` with `d = 1, 2, 4, …` and moves `ok` there while the test is true. The step is clamped to `INT64_MAX` once the remaining gap `INT64_MAX - ok`, computed in `ulng`, is at most `d`. The first false probe brackets the transition for `binSearch`. Because the gaps 1, 2, …, 2^63 sum past every possible distance, `ok` reaches `INT64_MAX` before `d` can wrap.
-
-**Real searches.** `std::midpoint` and `std::lerp` avoid overflowing `r - l` in binary64. Every successful reduction keeps ordered interior probes, and golden search checks that order before reusing cached values. Ternary and golden interpolation may stall before the endpoints become adjacent; the result is then the remaining bracket with `converged == false`, unless the tolerance was met anyway. To reach a positive absolute width `epsilon < W` in exact arithmetic takes `ceil(log(W / epsilon) / log(1 / q))` reductions, where `q` is 1/2, 2/3 or `(sqrt(5) - 1) / 2`. Rounding limits the useful precision, so the actual bracket and status are reported rather than a fixed iteration count. A purely relative tolerance near zero may be unattainable within the cap.
-
-Root finding beyond predicate bisection belongs to `17-numerical_methods.hpp`, and batched parallel binary search to Miscellaneous `20-parallelbinarysearch.hpp`.
-
-## Re-audit findings (P012, 2026-10-07)
-
-The research sweep added `fibSearch` and `expSearch`. Confirmed `/reaudit-review` findings for this header:
-
-| # | Finding | Resolution |
-|---|---|---|
-| 7 | `RealSearchResult` lacked a complexity line | Added |
-| 10 | Detail helpers lacked complexity lines | Added for the search detail helpers |
-
 ## Feature-to-test map
 
-Entry: [`02-search_algorithms_tester.py`](<../../96-Local Testing/05-Mathematics/02-search_algorithms_tester.py>), driving the C++ suite, which includes the header directly and keeps its checks under `-DNDEBUG`.
+Entry: [`02-search_algorithms_tester.py`](<../../96-Local Testing/05-Mathematics/02-search_algorithms_tester.py>), driving the C++ suite, which includes the header directly and keeps its checks under `-DNDEBUG`. Quick mode exhausts arrays through length 6 and runs 100 random cases; full exhausts through length 8 with 3000 random cases; stress reaches length 9 with 30000. The exhaustive shape filter accepts 282 arrays in quick mode and 452 in full.
 
 | Feature | Independent verification |
 |---|---|
@@ -99,13 +79,9 @@ Entry: [`02-search_algorithms_tester.py`](<../../96-Local Testing/05-Mathematics
 | `RealSearchResult`, precision and finite domain | Zero, low and high iteration limits; absolute and relative tolerances; opposite `DBL_MAX`; subnormal intervals; signed zeros; equal and adjacent endpoints; interpolation stagnation. `converged` is checked against an independent stopping predicate, and widths against exact contraction plus a rounding allowance. |
 | Preconditions | 16 checked-build death probes: reversed ranges (including `fib-order`), negative iteration budgets, infinite or NaN endpoints, negative, infinite or NaN tolerances. |
 
-Quick mode exhausts arrays through length 6 and runs 100 random cases. Full exhausts through length 8 with 3000 random cases, and stress reaches length 9 with 30000. The exhaustive shape filter accepts 282 arrays in quick mode and 452 in full. Evaluation-count bounds serve as the cost evidence; there is no timing gate.
-
-Historical: on 2026-09-27, before `fibSearch` and `expSearch` existed, full mode with seed `20260927` passed 1,944,079 checks per configuration and 15 probes.
-
 ## Commands and results
 
-Package-wide P012 runs (2026-10-07), recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1, GNU++20, Python 3.14, Linux x86-64 (i9-11900H). Every C++ build uses the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (quick runs the first two). Before any re-audit change, the full suite (`01-run.py --mode full --filter 05-Mathematics/0 --seed 1 --no-integration`) passed all six entries.
+Latest P012 re-audit runs (2026-10-07), recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1, GNU++20, Python 3.14, Linux x86-64 (i9-11900H). Every C++ build uses the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (quick runs the first two).
 
 ```bash
 python3 '96-Local Testing/01-run.py' --mode quick --filter 05-Mathematics/0 --no-integration                     # PASS, 6 suites, 2 configurations
@@ -115,7 +91,7 @@ python3 '96-Local Testing/02-integration.py'                                    
 python3 '96-Local Testing/03-consistency.py'                                                                     # no errors
 ```
 
-After the independent `@reviewer` pass, the full suite was rerun on all six headers, stress on combinatorics, and integration; all passed with the counts below.
+After the `@reviewer` pass, full (all six headers), stress (combinatorics) and integration were rerun and passed with these counts:
 
 | Mode | Count |
 |---|---|
@@ -127,7 +103,7 @@ The `@reviewer` pass independently probed `fibSearch` on 151,280 shapes.
 
 ## Benchmarks
 
-No timing benchmark. `fibSearch` makes at most `log_phi(n + 1) + 1` evaluations, against `2 * ceil(log2(n))` for `ternSearch`; that count is its cost evidence. No Barrett/Montgomery or ISA-specific code is used.
+No timing benchmark. `fibSearch` makes at most `log_phi(n + 1) + 1` evaluations, against `2 * ceil(log2(n))` for `ternSearch`; the evaluation-count bounds are the cost evidence. No Barrett/Montgomery or ISA-specific code is used.
 
 ## Sources
 
@@ -142,4 +118,13 @@ Inspected on 2026-09-27, plus the 2026-10-07 completeness sweep:
 | [maspypy, exp_search.hpp](https://github.com/maspypy/library/blob/main/other/exp_search.hpp) | Galloping from a known-true point without an upper bound. Adopted as `expSearch`, with `ulng` gap arithmetic for the full domain. |
 | [cppreference, std::midpoint](https://en.cppreference.com/w/cpp/numeric/midpoint.html) | No overflow, and integer rounding toward the first argument. |
 
-`OLD/5-Mathematics/02-search.hpp` and `OLD/Team Notebook/src/math/search.hpp` are unchanged. Their known-true endpoint result, closed integer minimization, real point interfaces and iteration arguments remain available. The researcher's log-scale real bisection candidate was not adopted; the reason is in [00-notes.md](00-notes.md).
+## Limits and handoffs
+
+- `OLD/5-Mathematics/02-search.hpp` and `OLD/Team Notebook/src/math/search.hpp` are unchanged. Their known-true endpoint result, closed integer minimization, real point interfaces and iteration arguments remain available.
+- Root finding beyond predicate bisection belongs to `17-numerical_methods.hpp`, and batched parallel binary search to Miscellaneous `20-parallelbinarysearch.hpp`.
+- The researcher's log-scale real bisection candidate was not adopted; the reason is in [00-notes.md](00-notes.md).
+
+## History
+
+- 2026-09-27: initial P012 evidence; full mode with seed `20260927` passed before `fibSearch` and `expSearch` existed.
+- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit then added `fibSearch` and `expSearch` and fixed findings 7 and 10.

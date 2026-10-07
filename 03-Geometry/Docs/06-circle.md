@@ -1,6 +1,6 @@
 # 06-circle.hpp — evidence
 
-Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `05-closestpair.hpp`, `07-rotatingcalipers.hpp` and `08-coordinate_transform.hpp`); see [00-notes.md](00-notes.md#p008--ge02-package-record) for the package record and the folder numeric policy. The 2026-10-07 re-audit implemented `circleSegmentIntersectionApprox`, `powerApprox` and `radicalAxisApprox`, which the row had left `missing`, and added `circleRelation` from the completeness sweep. Every operation in the row has a test with an independent oracle.
+Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `05-closestpair.hpp`, `07-rotatingcalipers.hpp` and `08-coordinate_transform.hpp`); see [00-notes.md](00-notes.md#p008--ge02-package-record) for the package record and the folder numeric policy. Every operation in the row has a test with an independent oracle.
 
 ## Contracts
 
@@ -61,7 +61,7 @@ This is the area of the intersection of the two filled disks. Disjoint or tangen
 
 | Operation | Test | Oracle |
 |---|---|---|
-| `circleLineIntersectionApprox` | Exhaustive integer discriminant counts with axis directions; Pythagorean directions `(3,4)`, `(4,3)`, `(-3,4)`, `(5,12)`, `(12,5)`, `(8,15)`, `(-15,8)` with `\|a\| <= 75` (full): every tangent and missing line and every fifth secant; boundary and line residuals; `a`-to-`b` order; the finding's regressions `(-7,-4)-(-3,-1)` and `(-53,-41)-(-49,-38)`; reversal | Exact integer discriminant; random algebraic quadratic oracle |
+| `circleLineIntersectionApprox` | Exhaustive integer discriminant counts with axis directions; Pythagorean directions `(3,4)`, `(4,3)`, `(-3,4)`, `(5,12)`, `(12,5)`, `(8,15)`, `(-15,8)` with `\|a\| <= 75` (full): every tangent and missing line and every fifth secant; boundary and line residuals; `a`-to-`b` order; regressions `(-7,-4)-(-3,-1)` and `(-53,-41)-(-49,-38)`; reversal | Exact integer discriminant; random algebraic quadratic oracle |
 | `circleSegmentIntersectionApprox` | Exhaustive integer segments (endpoints in `[-5,5]^2`, radii `0..5`, full) and all Pythagorean-direction segments; residuals, closed-segment membership, `a`-to-`b` order, reversal reverses the points; singleton, inside, outside-on-secant and chord-endpoint regressions | Exact root-placement oracle that squares `0 <= -B -+ sqrt(D) <= A` directly |
 | `CircleIntersectionApprox`, `circleIntersectionApprox` | Point-set symmetry; both radial residuals; empty, nested, concentric, coincident, zero-radius and tangent cases | Exhaustive integer squared-distance classification |
 | `circleRelation` | Exhaustive grid; regressions for every value, `10^18` coordinates and `int`; the `relation-bound` probe | Tangent-count formula `2[q > (r-s)^2] + [q = (r-s)^2 > 0] + 2[q > (r+s)^2] + [q = (r+s)^2]`; supporting check that it equals the outer plus inner `commonTangentsApprox` counts |
@@ -69,7 +69,7 @@ This is the area of the intersection of the two filled disks. Disjoint or tangen
 | `circleCentersApprox` | Diameter, impossible, repeated-point and zero-radius cases | Constructed 3-4-5 geometry |
 | `circumcircleApprox`, `incircleApprox` | Collinear/repeated inputs return false with `out` unchanged; 1,600 random triangles checked for equal distances, interior incenters and permutation invariance | 3-4-5 answers; geometric properties |
 | `CircleApprox`: `locate`, `onBoundary`, `contains` (point, disk), `area`, `perimeter`, `arcLength`, `sectorArea`, `segmentArea` | Inside/boundary/outside, tolerance band, internal tangency; zero/half/quarter/full sweeps, negative sweeps, repeated revolutions | Exhaustive disk containment against exact squared distances; closed forms |
-| `segmentArea` series switch | Relative error `<= 4e-18` on 1,436 geometric sweeps from `1e-6` to `1.6`, across the `0.5` switch; the old `0.01` switch fails it at `0.010037` | Direct alternating Taylor summation, accurate to `3.1e-19` against `__float128` |
+| `segmentArea` series switch | Relative error `<= 4e-18` on 1,436 geometric sweeps from `1e-6` to `1.6`, across the `0.5` switch | Direct alternating Taylor summation, accurate to `3.1e-19` against `__float128` |
 | `diskOverlapAreaApprox` | 75 lenses; containment, zero-radius, disjoint and touching cases; symmetry, rigid motion and scale covariance; small external-lens asymptotics | Independent midpoint integration of vertical slices; unit-lens closed form |
 | `powerApprox` | Exhaustive grid; random exterior points | Exact integer power; squared tangent length |
 | `radicalAxisApprox` | Exists iff the centers differ; concentric leaves `out` unchanged; the left side has smaller power to `a`; lens-chord regression | Intersection points lie on the axis (exhaustive); equal powers at four points along random axes |
@@ -78,25 +78,17 @@ This is the area of the intersection of the two filled disks. Disjoint or tangen
 
 ## Commands and results
 
-### 2026-09-27 (original P008)
+2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 is not installed; no GCC 14 run is claimed.
 
-The full suite passed optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan with leak checking, at seed `20260927`, with 146,311 checks per configuration. The row was incomplete then, and the tests missed the non-axis tangency defect (finding 2 below).
-
-### 2026-10-07 re-audit
-
-Environment: Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 is not installed, so no GCC 14 run is claimed. No online submission was made. The baseline full run before any edit reproduced the 2026-09-27 count exactly.
-
-| Entry | Full, seed `20260927` (optimized, checked, ASan/UBSan) | Stress, seed `42`, optimized |
-|---|---|---|
-| `06-circle_tester.py` | PASS, 7,256,308 checks per configuration; 13 assertion probes | PASS, 80,626,052 checks |
-
-Also run:
-
-- Mutation checks (each applied temporarily, the optimized full suite run, the header restored). Caught: the old line formula, the old series switch, two segment root conditions, the radical-axis sign and the relation's tangent case.
-- A warning sweep under `-Wall -Wextra -Wconversion`, instantiating every exact operation for `int8_t`, `int16_t`, `int` and `lng` plus every approximate operation, found no header warnings. The tester has pre-existing `-Wnarrowing` warnings from integer literals in braced `dpoint` initializers; the sweep covers the header only.
-- A two-translation-unit program mixing all four GE02 headers passed optimized and ASan/UBSan, and the header compiles alone.
-- The sanitized integration (102 standalone and aggregate headers, scalar and AVX2 multi-TU builds, workspace) passed. The geometry quick run and the repository consistency check passed, and `03-consistency.py --braces` is clean on the header and tester.
-- Independent review (`@reviewer`) reproduced the full count, the probes and the `angleMinusSin` measurement. Its own 6.7M integer segments in 11 directions against an exact root-placement oracle and 100k radical-axis side checks found no mismatch. It confirmed one defect, now fixed: `circleRelation` did not assert its `10^18` coordinate and radius domain, so out-of-range `lng` input overflowed `lll` silently, and `__int128` was accepted. The fix adds `sizeof(T) <= sizeof(lng)` and an O(1) bound assert, plus the `relation-bound` probe; the full suite passed again in all three configurations.
+| Command | Result |
+|---|---|
+| `06-circle_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 7,256,308 checks per configuration; 13 assertion probes |
+| `06-circle_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 80,626,052 checks |
+| Mutation checks, optimized full suite per mutant | Caught: the normalized line formula, the `0.01` series switch, two segment root conditions, the radical-axis sign, the relation's tangent case |
+| Warning sweep, every exact operation for `int8_t`, `int16_t`, `int`, `lng` plus every approximate operation, `-Wall -Wextra -Wconversion` | No header warnings (the tester has `-Wnarrowing` warnings from integer literals in braced `dpoint` initializers) |
+| Two-translation-unit program mixing all four GE02 headers (optimized, ASan/UBSan); standalone header | PASS |
+| `02-integration.py --sanitizers`, geometry quick run, `03-consistency.py` (with `--braces`) | PASS, no errors |
+| `@reviewer`: 6.7M integer segments in 11 directions against an exact root-placement oracle; 100k radical-axis side checks | No mismatch |
 
 ```bash
 python3 '96-Local Testing/03-Geometry/06-circle_tester.py' --mode full --seed 20260927
@@ -106,19 +98,6 @@ python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/0[5-8]*.hpp '96-Local Testing/03-Geometry/'0[5-8]-*.cpp
 python3 '96-Local Testing/03-consistency.py'
 ```
-
-### Re-audit findings and their disposition (2026-10-07)
-
-| # | Finding | Disposition |
-|---|---|---|
-| 1 | `angleMinusSin` switch at `.01` loses about 4.8 digits just above it | Switch raised to `0.5` with three more series factors (`y/156`, `y/210`, `y/272`). The worst relative error went from `2e-15` to `1.1e-18`. A new tester phase enforces `4e-18` against an independent series and fails on the old switch |
-| 2 | `circleLineIntersectionApprox` misclassifies exact non-axis integer tangencies | The line now uses `D = r^2 \|w\|^2 - cross^2` with no normalization; exact for integer inputs up to `2^14`. Both repros are regressions, and the old formula fails the new phase |
-| 4 | Segment, power and radical axis absent; evidence claimed the circle row was complete | All three implemented and mapped above, each with an independent oracle; text rewritten |
-| 7 | Exhaustive circle-line test produced only axis-aligned tangencies | New phase over seven Pythagorean directions plus the x axis (every tangency with `\|a\| <= 75` in full, `<= 192` in stress). The reviewer measured 2,244 misclassified of 9,818 tangencies under the old formula; that formula now fails this phase, and the new one passes it |
-| 10 | `CircleTangentsApprox` lacked its own complexity line | Each tangent struct has its own line |
-| 13 | Tester function bodies closed on their own line | Tester normalized |
-
-Other changes: the contract comment blocks moved from the header into `## Contracts`; the header meets the two-line and 8% comment caps, and grouped functions share one complexity line, as in the P007 restyle. `diskOverlapAreaApprox` moved next to the circle-circle group, sharing its comment line. Line and segment points are now ordered from `a` to `b`, a documented strengthening of the earlier "no order" contract. No public name or documented behavior changed, apart from the additions and the `a`-to-`b` ordering.
 
 ## Sources
 
@@ -133,4 +112,9 @@ The implementation is written from geometric identities (2026-09-27, extended 20
 
 ## Limits and handoffs
 
-No failing reproducer and no unfinished owned operation. No claim of universally certified floating geometry is made. Other packages own adaptive and exact floating predicates (GE11), algebraic circle constructions including the Apollonian circle (row 24 / GE29), minimum enclosing circles (GE05), and circle unions and circle-polygon operations (GE10 and GE24).
+No claim of universally certified floating geometry is made. Other packages own adaptive and exact floating predicates (GE11), algebraic circle constructions including the Apollonian circle (row 24 / GE29), minimum enclosing circles (GE05), and circle unions and circle-polygon operations (GE10 and GE24).
+
+## History
+
+- 2026-09-27: original P008, full suite (seed 20260927, 146,311 checks) passed on g++ 16; segment, power and radical axis missing.
+- 2026-10-07: re-audit, implemented `circleSegmentIntersectionApprox`, `powerApprox`, `radicalAxisApprox`, `circleRelation`; 7 findings fixed (series switch accuracy, non-axis tangency misclassification, non-axis tangency tests, tangent complexity line, tester braces, `circleRelation` domain assert); full suite and stress passed on g++ 16.
