@@ -39,16 +39,18 @@ Quick uses the optimized configuration and 500 random histories; full runs 5,000
 
 The entries resolve their headers relative to the script and run from any working directory; `CXX` selects the compiler, and they accept `--mode quick|full|stress` and `--seed` (or `CP_TEST_MODE`/`CP_TEST_SEED`). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_ASSERTIONS` (PBDS under `_GLIBCXX_DEBUG` is impractically slow), and `-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie` with leak detection, plus a standalone build.
 
-Re-audit, 2026-10-06:
+Restyle, 2026-10-08:
 
 ```bash
-python3 '96-Local Testing/01-Core/01-template_tester.py' --mode full
-python3 '96-Local Testing/01-Core/01-template_tester.py' --mode stress --seed 1
-python3 '96-Local Testing/03-consistency.py' --braces 01-Core/01-template.hpp 01-Core/02-debug.hpp '96-Local Testing/01-Core/01-template_tester.cpp' '96-Local Testing/01-Core/02-debug_tester.cpp' '96-Local Testing/01-Core/02-debug_no-local_tester.cpp'
+python3 '96-Local Testing/03-consistency.py' --braces 01-Core/01-template.hpp 01-Core/02-debug.hpp 01-Core/18-bitset.hpp
+python3 '96-Local Testing/01-Core/01-template_tester.py' --mode full --seed 20261008
+CXX=g++-14 python3 '96-Local Testing/01-Core/01-template_tester.py' --mode full --seed 20261008
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
 python3 '97-Online Testing/03-workspace.py' && python3 '97-Online Testing/03-workspace.py' --check
 ```
 
-All passed on GCC 16.2.1 (20260810), GNU++20, Linux x86-64, with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full (seed 335597, 5,000 histories per configuration): 6/6 steps. Stress (seed 1, 30,000 histories per configuration): all configurations. The closing-brace check reports no violations. `02-integration.py --sanitizers` is recorded in [18-bitset.md](18-bitset.md#commands-and-results).
+All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64, with `-Wall -Wextra -Wshadow -Wconversion -Werror`: full 6/6 steps on each compiler, no brace or comment-cap violations, integration over 102 standalone/aggregate headers, consistency without errors, Workspace regenerated unchanged.
 
 ## Sources
 
@@ -58,7 +60,7 @@ All passed on GCC 16.2.1 (20260810), GNU++20, Linux x86-64, with `-Wall -Wextra 
 
 ## Limits and handoffs
 
-GCC 14 itself and a Windows/MinGW build were not executed; the floor and the Windows contract rest on the correctness argument above. No concurrency safety or online judge acceptance is claimed. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug").
+GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed; exact GCC 14.2 and a Windows/MinGW build were not executed; the exact floor and the Windows contract rest on the correctness argument above. No concurrency safety or online judge acceptance is claimed. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug").
 
 ## History
 
@@ -66,3 +68,4 @@ GCC 14 itself and a Windows/MinGW build were not executed; the floor and the Win
 - 2026-09-27: integer/style maintenance, header unchanged, full suite passed.
 - 2026-09-27: post-migration namespace review, header unchanged, quick suite, consistency and workspace check passed.
 - 2026-10-06: re-audit, 2 findings fixed (Windows contract, tester braces), `indexed_map` added, full and stress passed on g++.
+- 2026-10-06: re-audit, full (seed 335597) and stress (seed 1) passed on g++, closing-brace check and workspace check passed.

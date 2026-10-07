@@ -238,7 +238,7 @@ struct Bitset {
         if (last > first + 1) { shiftWords<OP>(a.data() + first + 1, b.a.data() + (left ? first + 1 - d : first + 1 + d), last - first - 1, s, left); }
         edge(last, lowMask((r - 1) % 64 + 1));
         return *this;}
-    // Copy of bits [l, r) as a new (r - l)-bit set. T: O(1 + (r - l) / 64), M: O(1 + (r - l) / 64).
+    // T: O(1 + (r - l) / 64), M: O(1 + (r - l) / 64).
     Bitset slice(size_t l, size_t r) const {
         assert(l <= r && r <= n);
         Bitset res(r - l);

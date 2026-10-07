@@ -73,16 +73,18 @@ Full checked debug execution also requires SIGABRT for the three documented inva
 
 The entries resolve their headers relative to the script and run from any working directory; `CXX` selects the compiler, and they accept `--mode quick|full|stress` and `--seed` (or `CP_TEST_MODE`/`CP_TEST_SEED`). The runner compiles with `-Werror`, and its precondition-abort cases require an assertion message on stderr.
 
-Re-audit, 2026-10-06:
+Restyle, 2026-10-08 (slice comment reworded; behavior unchanged):
 
 ```bash
-python3 '96-Local Testing/01-Core/02-debug_tester.py' --mode full
-python3 '96-Local Testing/01-Core/02-debug_tester.py' --mode stress --seed 1
-python3 '96-Local Testing/03-consistency.py' --braces 01-Core/01-template.hpp 01-Core/02-debug.hpp '96-Local Testing/01-Core/01-template_tester.cpp' '96-Local Testing/01-Core/02-debug_tester.cpp' '96-Local Testing/01-Core/02-debug_no-local_tester.cpp'
+python3 '96-Local Testing/03-consistency.py' --braces 01-Core/01-template.hpp 01-Core/02-debug.hpp 01-Core/18-bitset.hpp
+python3 '96-Local Testing/01-Core/02-debug_tester.py' --mode full --seed 20261008
+CXX=g++-14 python3 '96-Local Testing/01-Core/02-debug_tester.py' --mode full --seed 20261008
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
 python3 '97-Online Testing/03-workspace.py' && python3 '97-Online Testing/03-workspace.py' --check
 ```
 
-All passed on GCC 16.2.1 (20260810), GNU++20, Linux x86-64, with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full (seed 335597, 5,000 histories per configuration): 16/16 steps (optimized NDEBUG, checked `_GLIBCXX_ASSERTIONS`, ASan/UBSan with leak detection, three expected precondition aborts, LOCAL and non-LOCAL, standalone inclusion, macro syntax, same/mixed-LOCAL multiple translation units). Stress (seed 1, 30,000 histories per configuration): all configurations. The closing-brace check reports no violations. The Workspace snapshot was regenerated and `--check` passes. `02-integration.py --sanitizers` is recorded in [18-bitset.md](18-bitset.md#commands-and-results).
+All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64, with `-Wall -Wextra -Wshadow -Wconversion -Werror`: full 16/16 steps on each compiler (optimized NDEBUG, checked `_GLIBCXX_ASSERTIONS`, ASan/UBSan with leak detection, three expected precondition aborts, LOCAL and non-LOCAL, standalone inclusion, macro syntax, same/mixed-LOCAL multiple translation units), no brace or comment-cap violations, integration over 102 headers, consistency without errors, Workspace regenerated unchanged.
 
 ## Sources
 
@@ -95,7 +97,7 @@ All passed on GCC 16.2.1 (20260810), GNU++20, Linux x86-64, with `-Wall -Wextra 
 
 ## Limits and handoffs
 
-Wide/UTF string types, arbitrary reflection, pointer-pointee traversal and format customization beyond hooks/streaming are outside this convenience layer; callers use hooks where needed. The bit-proxy rule treats any class convertible to bool with a `flip()` member as a proxy (a `debugString` hook overrides it); long double output is the 80-bit x87 shortest text on x86-64; `__float128` has no `to_chars` and is outside the domain; a user `operator<<` for a byte-wide unscoped enum that prints exactly the raw byte is indistinguishable from promotion and yields the number. GCC 14 itself and a Windows/MinGW build were not executed. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug"). Workspace regeneration stays coordinated with SUP05/P003.
+Wide/UTF string types, arbitrary reflection, pointer-pointee traversal and format customization beyond hooks/streaming are outside this convenience layer; callers use hooks where needed. The bit-proxy rule treats any class convertible to bool with a `flip()` member as a proxy (a `debugString` hook overrides it); long double output is the 80-bit x87 shortest text on x86-64; `__float128` has no `to_chars` and is outside the domain; a user `operator<<` for a byte-wide unscoped enum that prints exactly the raw byte is indistinguishable from promotion and yields the number. GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed; exact GCC 14.2 and a Windows/MinGW build were not executed. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug"). Workspace regeneration stays coordinated with SUP05/P003.
 
 ## History
 
@@ -103,3 +105,4 @@ Wide/UTF string types, arbitrary reflection, pointer-pointee traversal and forma
 - 2026-09-27: integer/style maintenance, full suite passed 16/16; Workspace refresh handed to SUP05/P003.
 - 2026-09-27: post-migration namespace review, full suite, consistency and workspace check passed.
 - 2026-10-06: re-audit, 6 findings fixed (bit proxies, row names, ALL_CAPS predicates, closers, tester braces), shortest floating and enum formatting added, full and stress passed on g++.
+- 2026-10-06 (run): full (seed 335597) and stress (seed 1) passed on g++, Workspace regenerated.

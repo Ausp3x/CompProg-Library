@@ -72,17 +72,17 @@ Optimized scalar uses `-O3 -DNDEBUG -march=x86-64 -mno-avx -mno-avx2 -mno-popcnt
 
 ## Commands and results
 
-Re-audit, 2026-10-06:
+Restyle, 2026-10-08 (`slice` comment reduced to its complexity line; behavior unchanged):
 
 ```bash
-python3 '96-Local Testing/01-Core/18-bitset_tester.py' --mode full --seed 20261006
-python3 '96-Local Testing/01-Core/18-bitset_tester.py' --mode stress --seed 1
-python3 '96-Local Testing/01-Core/18-bitset_benchmark.py' --seed 20261006 --milliseconds 3 --repetitions 5 --output '96-Local Testing/01-Core/18-bitset_benchmark.jsonl'
-python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py' --braces 01-Core/18-bitset.hpp
+python3 '96-Local Testing/01-Core/18-bitset_tester.py' --mode full --seed 20261008
+CXX=g++-14 python3 '96-Local Testing/01-Core/18-bitset_tester.py' --mode full --seed 20261008
+python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-All passed on GCC 16.2.1, GNU++20, Linux x86-64 (Intel Core i9-11900H), every build with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full (seed 20261006) ran **435,609,414 non-removable checks per configuration** in all five configurations (optimized scalar without POPCNT/AVX, checked scalar with 34 precondition deaths, AVX2+POPCNT optimized, scalar and AVX2 ASan/UBSan with leak detection), 216.32 s total; stress (seed 1) ran **1,412,889,926 checks per configuration**, five configurations, 731.21 s. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, scalar and available AVX2 multiple-translation-unit linkage, the regenerated Workspace snapshot and the sanitizer self-tests. `03-consistency.py` reports no errors. Independent review (`@reviewer`, 2026-10-06) ran its own brute-force oracle (sizes to 3,000, differing source sizes, all ops, both directions, aliasing, ASan/UBSan scalar and AVX2) with no remaining defect.
+All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64 (Intel Core i9-11900H), every build with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full (seed 20261008) ran **435,459,684 non-removable checks per configuration** in all five configurations (optimized scalar without POPCNT/AVX, checked scalar with precondition deaths, AVX2+POPCNT optimized, scalar and AVX2 ASan/UBSan with leak detection): 210.93 s on g++, 135.13 s on g++-14. `02-integration.py` passed 102 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage and the Workspace snapshot; `03-consistency.py` reports no errors. The benchmark below is from the 2026-10-06 re-audit; this restyle changed no code.
 
 ## Benchmarks
 
@@ -115,7 +115,7 @@ The 2026-10-06 catalog sweep ([00-sources.md](00-sources.md), [00-notes.md](00-n
 
 ## Limits and handoffs
 
-`combineRange` has no dedicated AVX2 edge handling (two masked scalar edge words plus the shared kernel); self-aliased `combineRange` allocates a copy of the source range. GCC 14 and Windows were not executed. BitMatrix (`12-bitmatrix.hpp`) may adopt `combineRange<Op::Xor>` for row elimination when its package runs.
+`combineRange` has no dedicated AVX2 edge handling (two masked scalar edge words plus the shared kernel); self-aliased `combineRange` allocates a copy of the source range. GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed; exact GCC 14.2 and a Windows/MinGW build were not executed. BitMatrix (`12-bitmatrix.hpp`) may adopt `combineRange<Op::Xor>` for row elimination when its package runs.
 
 ## History
 
@@ -123,3 +123,4 @@ The 2026-10-06 catalog sweep ([00-sources.md](00-sources.md), [00-notes.md](00-n
 - 2026-09-27: integer/style maintenance, full suite (282,326,372 checks per configuration) and integration passed.
 - 2026-09-27: post-migration namespace review (renumbered 20 to 18), quick suite, consistency and workspace check passed.
 - 2026-10-06: re-audit, 4 findings fixed (T/M line, `Reference` copy constructor, per-word assertion, closers), `slice` and `combineRange` added, `combineShift` moved onto `shiftWords`, full and stress passed on g++; benchmark rerun.
+- 2026-10-06 (run): full (seed 20261006, 435,609,414 checks per configuration) and stress (seed 1, 1,412,889,926 checks) passed, `02-integration.py --sanitizers` passed, independent `@reviewer` oracle found no defect.

@@ -137,7 +137,7 @@ namespace Debug {
         static constexpr auto SPACES = []() { array<char, 128> v{}; v.fill(' '); return v; }();
         return string_view(SPACES.data(), size_t(2 * std::clamp(dep, 0, 64)));}
 
-    // Legacy inclusive [l, r]: l >= 0, r >= l - 1, endpoints past the end clip.
+    // Inclusive [l, r]: l >= 0, r >= l - 1, endpoints past the end clip.
     template<std::ranges::viewable_range R, typename ...Args>
     auto slice(R &&ran, int l, int r, Args ...args) {
         static_assert(sizeof...(args) % 2 == 0, "slice needs (l, r) pairs");
