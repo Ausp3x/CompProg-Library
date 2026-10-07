@@ -10,27 +10,59 @@ void require(bool ok, const char *what) {
     ++checks; if (ok) { return; }
     std::cerr << "FAIL seed=" << seed << " phase=" << phase << " operation=" << what << " input=";
     for (auto p : input) { std::cerr << '(' << p.x << ',' << p.y << ')'; }
-    std::cerr << " expected=true actual=false\n"; std::exit(1); }
+    std::cerr << " expected=true actual=false\n"; std::exit(1);}
 bool near(long double a, long double b) { return std::abs(a - b) <= 1e-12L * max(1.L, std::abs(b)); }
 using Cells = std::set<pair<int, int>>;
 PolygonLocation cellLocation(const Cells &c, int x2, int y2) {
     int count = 0;
     for (int dx : {-1, 1}) { for (int dy : {-1, 1}) {
         int x = int(std::floor((4.L * x2 + dx) / 8)), y = int(std::floor((4.L * y2 + dy) / 8));
-        count += c.count({x, y}); }}
-    return count == 4 ? PolygonLocation::Inside : count ? PolygonLocation::Boundary : PolygonLocation::Outside; }
+        count += c.count({x, y});}}
+    return count == 4 ? PolygonLocation::Inside : count ? PolygonLocation::Boundary : PolygonLocation::Outside;}
 vector<point> histogram(const vector<int> &h) {
     int n = int(h.size()); vector<point> p{{0, 0}, {n, 0}, {n, h.back()}};
     for (int i = n - 1; i >= 0; --i) {
         p.push_back({i, h[i]});
         if (i && h[i - 1] != h[i]) { p.push_back({i, h[i - 1]}); }}
-    return p; }
+    return p;}
+// Area of a unit cell left of a -> b by exact piecewise-linear integration of column heights.
+long double cellCut(int x, int y, point a, point b) {
+    long double ux = (long double)(b.x - a.x), uy = (long double)(b.y - a.y);
+    long double f0 = ux * ((long double)y - a.y) - uy * ((long double)x - a.x), beta = -uy, gamma = ux;
+    auto height = [&](long double s) {
+        long double v = f0 + beta * s;
+        if (gamma == 0) { return v >= 0 ? 1.L : 0.L; }
+        return std::clamp(gamma > 0 ? 1 + v / gamma : -v / gamma, 0.L, 1.L);};
+    vector<long double> cuts{0, 1};
+    if (beta != 0) {
+        for (long double t : {0.L, 1.L}) {
+            long double s = gamma == 0 ? -f0 / beta : (-gamma * t - f0) / beta;
+            if (0 < s && s < 1) { cuts.push_back(s); }}}
+    sort(cuts.begin(), cuts.end());
+    long double area = 0;
+    for (int i = 0; i + 1 < int(cuts.size()); ++i) {
+        long double l = cuts[i], r = cuts[i + 1], m = (l + r) / 2;
+        area += gamma == 0 ? (r - l) * height(m) : (r - l) * (height(l) + height(r)) / 2;}
+    return area;}
+void verifyCut(const vector<point> &p, const Cells &cells, point a, point b) {
+    auto q = polygonCutApprox(p, a, b);
+    require(q.size() <= 2 * p.size(), "cut output size bound");
+    long double want = 0, got = 0, scale = 1;
+    for (auto [x, y] : cells) {
+        want += cellCut(x, y, a, b);
+        require(std::abs(cellCut(x, y, a, b) + cellCut(x, y, b, a) - 1) <= 1e-15L, "oracle complementary half-planes cover a cell");}
+    for (int i = 0; i < int(q.size()); ++i) {
+        got += cross(q[i], q[i + 1 == int(q.size()) ? 0 : i + 1]) / 2;
+        scale = max({scale, std::abs(q[i].x), std::abs(q[i].y)});
+        dpoint d = q[i] - a.cast<long double>(), u = (b - a).cast<long double>();
+        require(cross(u, d) >= -1e-12L * normApprox(u) * scale, "cut vertex in closed left half-plane");}
+    require(std::abs(got - want) <= 1e-12L * max(1.L, want), "cut area equals cell-integrated half-plane area");}
 template<typename Polygon> void verifyCells(const Polygon &p, const Cells &cells, int bound) {
     lll sx = 0, sy = 0; lng perimeter = 0, boundary = 0, interior = 0;
     for (auto [x, y] : cells) {
         sx += 2 * x + 1; sy += 2 * y + 1;
         for (auto [dx, dy] : vector<pair<int, int>>{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
-            perimeter += !cells.count({x + dx, y + dy}); }}
+            perimeter += !cells.count({x + dx, y + dy});}}
     auto m = polygonMoments(p); lll area = cells.size();
     require(m.area2 == 2 * area && m.x6 == 3 * sx && m.y6 == 3 * sy, "cell moments expected sums of rectangle integrals");
     require(signedArea2(p) == 2 * area && near(signedAreaApprox(p), (long double)area), "signed area");
@@ -48,9 +80,15 @@ template<typename Polygon> void verifyCells(const Polygon &p, const Cells &cells
         require(w.boundary == (expected == PolygonLocation::Boundary), "winding boundary");
         if (!w.boundary) { require(w.winding == (expected == PolygonLocation::Inside), "winding number"); }
         if (x % 2 == 0 && y % 2 == 0) {
-            boundary += expected == PolygonLocation::Boundary; interior += expected == PolygonLocation::Inside; }}}
+            boundary += expected == PolygonLocation::Boundary; interior += expected == PolygonLocation::Inside;}}}
     require(latticeBoundary(p) == boundary, "enumerated lattice boundary");
-    require(latticeInterior(p) == interior, "enumerated Pick interior"); }
+    require(latticeInterior(p) == interior, "enumerated Pick interior");
+    if constexpr (std::is_same_v<Polygon, vector<point>>) {
+        std::mt19937_64 rng(seed ^ ulng(p.size()));
+        for (int t = 0; t < 6; ++t) {
+            point a{lng(rng() % (bound + 5)) - 2, lng(rng() % (bound + 5)) - 2}, b{lng(rng() % (bound + 5)) - 2, lng(rng() % (bound + 5)) - 2};
+            if (a != b) { verifyCut(p, cells, a, b); verifyCut(p, cells, b, a); }}
+        verifyCut(p, cells, {0, 1}, {1, 1}); verifyCut(p, cells, {1, 0}, {1, 1});}}
 void basic() {
     phase = "degenerate"; vector<point> p;
     require(signedArea2(p) == 0 && polygonPerimeter(p) == 0 && latticeBoundary(p) == 0, "empty scalar outputs");
@@ -88,14 +126,26 @@ void basic() {
     require(latticeInterior(p) == lll(2 * c - 1) * (2 * c - 1), "wide Pick");
     vector<Point2<int>> pi{{0, 0}, {3, 0}, {0, 3}};
     require(centroidExact(pi, exact) && exact == RationalPoint2(1, 1) && latticeInterior(pi) == 1, "int coordinates");
-}
+    phase = "cut regressions";
+    require(polygonCutApprox(vector<point>{}, point{0, 0}, point{1, 0}).empty(), "empty cut");
+    vector<point> square = p;
+    auto half = polygonCutApprox(square, point{-c, -c}, point{c, c});
+    require(std::abs(signedAreaApprox(half) - 2.L * c * c) <= 1e-15L * c * c && half.size() == 3, "wide diagonal cut keeps upper-left triangle");
+    require(polygonCutApprox(square, point{-c, 0}, point{-c, 1}).size() == 2, "cut on an edge line keeps a zero-area edge");
+    require(std::abs(signedAreaApprox(polygonCutApprox(square, point{c, 0}, point{c, 1}))) == 4.L * c * c, "whole polygon kept");
+    vector<point> notch{{0, 0}, {4, 0}, {4, 4}, {3, 4}, {3, 1}, {1, 1}, {1, 4}, {0, 4}};
+    auto u = polygonCutApprox(notch, point{0, 2}, point{4, 2});
+    require(std::abs(signedAreaApprox(u) - 4) <= 1e-15L && u.size() == 8, "nonconvex cut keeps zero-width bridge and exact area");
+    vector<Point2<double>> fp{{0, 0}, {2, 0}, {2, 2}, {0, 2}};
+    require(std::abs(signedAreaApprox(polygonCutApprox(fp, Point2<double>{0, 0.5}, Point2<double>{1, 0.5})) - 3) <= 1e-15L, "floating cut");}
 void invalid(const string &name) {
     if (name == "pick-empty") { (void)latticeInterior(vector<point>{}); }
     if (name == "pick-collinear") { (void)latticeInterior(vector<point>{{0, 0}, {1, 0}, {2, 0}}); }
     if (name == "holes-empty") { (void)latticeInterior(vector<vector<point>>{}); }
     if (name == "holes-orientation") { (void)latticeInterior(vector<vector<point>>{{{0, 0}, {0, 4}, {4, 4}, {4, 0}}}); }
+    if (name == "cut-singleton") { (void)polygonCutApprox(vector<point>{{0, 0}, {1, 0}, {0, 1}}, point{}, point{}); }
     if (name == "lattice-bound") { (void)latticeBoundary(vector<point>{{1000000001, 0}}); }
-    std::exit(2); }
+    std::exit(2);}
 int main(int argc, char **argv) {
     string mode = "full";
     for (int i = 1; i < argc; ++i) {
@@ -110,7 +160,7 @@ int main(int argc, char **argv) {
         for (int x = 0; x < n; ++x) { h[x] = 1 + int(rng() % 8); for (int y = 0; y < h[x]; ++y) { cells.insert({x, y}); }}
         input = histogram(h); verifyCells(input, cells, 8);
         RationalPoint2 a, b; (void)centroidExact(input, a); reverse(input.begin(), input.end()); (void)centroidExact(input, b);
-        require(a == b && polygonWinding(input, point{1, -1}).winding == 0, "orientation invariant centroid"); }
+        require(a == b && polygonWinding(input, point{1, -1}).winding == 0, "orientation invariant centroid");}
     phase = "exhaustive small histograms";
     int limit = mode == "quick" ? 2 : 4;
     for (int n = 1, count = 3; n <= limit; ++n, count *= 3) {
@@ -119,7 +169,7 @@ int main(int argc, char **argv) {
             for (int x = 0; x < n; ++x) {
                 h[x] = code % 3 + 1; code /= 3;
                 for (int y = 0; y < h[x]; ++y) { small.insert({x, y}); }}
-            input = histogram(h); verifyCells(input, small, 4); }}
+            input = histogram(h); verifyCells(input, small, 4);}}
     phase = "long wide walk";
     vector<point> walk; int copies = mode == "quick" ? 20 : mode == "full" ? 10000 : 100000;
     const lng c = 1000000000;
@@ -140,5 +190,5 @@ int main(int argc, char **argv) {
         for (int k = 0; k < 3; ++k) { tri.push_back({lng(rng() % 2000000001) - 1000000000, lng(rng() % 2000000001) - 1000000000}); }
         input = tri; RationalPoint2 c;
         if (!centroidExact(tri, c)) { continue; }
-        require(c == RationalPoint2(lll(tri[0].x) + tri[1].x + tri[2].x, lll(tri[0].y) + tri[1].y + tri[2].y, 3), "triangle vertex mean"); }
-    std::cout << "PASS polygon seed=" << seed << " mode=" << mode << " checks=" << checks << '\n'; }
+        require(c == RationalPoint2(lll(tri[0].x) + tri[1].x + tri[2].x, lll(tri[0].y) + tri[1].y + tri[2].y, 3), "triangle vertex mean");}
+    std::cout << "PASS polygon seed=" << seed << " mode=" << mode << " checks=" << checks << '\n';}

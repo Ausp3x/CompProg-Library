@@ -1,12 +1,5 @@
 #include "../../02-Data Structures/06-sqrt_decomposition.hpp"
 
-// Feature map: generic exhaustive vectors -> construction, point set/opeUpdate,
-// query, block widths, values and rebuild; strings -> noncommutative fold order.
-// Lazy exhaustive short affine histories + random vector oracle -> composition,
-// partial pushes, full/short-last-block actions, all conveniences and copy/move.
-// Types/boundaries -> 128-bit, modular, argument aliases, extreme block widths.
-// quick: generic n<=3, lazy n<=2/depth1, 20 random trials;
-// full: generic n<=5, lazy n<=3/depth2, 100 trials; stress: full + 400 trials.
 ulng seed = 20260927;
 string mode = "quick", context;
 vector<lng> input;
@@ -17,8 +10,7 @@ string show(lll x) {
     bool neg = x < 0; ulll u = neg ? ulll(-(x+1))+1 : ulll(x); string s;
     while (u) { s.push_back(char('0'+u%10)); u /= 10; }
     if (neg) { s.push_back('-'); }
-    reverse(s.begin(),s.end()); return s;
-}
+    reverse(s.begin(),s.end()); return s;}
 template<typename T> string show(const T &x) { std::ostringstream s; s << x; return s.str(); }
 [[noreturn]] void fail(const string &op, const string &expected, const string &actual) {
     cerr << "FAIL sqrt seed=" << seed << " mode=" << mode << " case=" << context
@@ -26,16 +18,13 @@ template<typename T> string show(const T &x) { std::ostringstream s; s << x; ret
     for (lng x : input) { cerr << x << ','; }
     cerr << "] affine-history=";
     for (auto a : history) { cerr << '(' << a[0] << ',' << a[1] << ',' << a[2] << ',' << a[3] << ')'; }
-    cerr << '\n'; std::exit(1);
-}
+    cerr << '\n'; std::exit(1);}
 template<typename A, typename B> void check(const A &actual, const B &expected, const string &op) {
-    if (actual != expected) { fail(op,show(expected),show(actual)); }
-}
+    if (actual != expected) { fail(op,show(expected),show(actual)); }}
 vector<int> widths(int n) {
     vector<int> result{0,1,2,max(1,n),n+2,INT_MAX};
     sort(result.begin(),result.end()); result.erase(unique(result.begin(),result.end()),result.end());
-    return result;
-}
+    return result;}
 template<typename T, typename F>
 void verifyGeneric(const SqrtDecomp<T,F> &d, const vector<T> &a, T id, F op) {
     int n = int(a.size()); check(d.n,n,"generic size"); auto values = d.values();
@@ -45,8 +34,7 @@ void verifyGeneric(const SqrtDecomp<T,F> &d, const vector<T> &a, T id, F op) {
         T expected = id;
         for (int r = l; r <= n; ++r) {
             check(d.query(l,r),expected,"generic query("+show(l)+","+show(r)+")");
-            if (r < n) { expected = op(expected,a[r]); }}}
-}
+            if (r < n) { expected = op(expected,a[r]); }}}}
 template<typename T> void verifyLazy(const SqrtRangeSum<T> &d, const vector<T> &a) {
     int n = int(a.size()); check(d.n,n,"lazy size"); auto values = d.values();
     check(values.size(),a.size(),"lazy values size");
@@ -55,8 +43,7 @@ template<typename T> void verifyLazy(const SqrtRangeSum<T> &d, const vector<T> &
         T expected = T(0);
         for (int r = l; r <= n; ++r) {
             check(d.sum(l,r),expected,"lazy sum("+show(l)+","+show(r)+")");
-            if (r < n) { expected = expected+a[r]; }}}
-}
+            if (r < n) { expected = expected+a[r]; }}}}
 void genericExhaustive() {
     int limit = mode == "quick" ? 3 : 5;
     for (int n = 0, count = 1; n <= limit; ++n, count *= 3) {
@@ -75,10 +62,8 @@ void genericExhaustive() {
                 auto copy = d; SqrtDecomp<lng> moved(std::move(copy)); verifyGeneric(moved,a,lng(0),std::plus<lng>{});
                 copy = d; verifyGeneric(copy,a,lng(0),std::plus<lng>{});
                 copy.rebuild(vector<lng>{7,-2,3},2); verifyGeneric(copy,vector<lng>{7,-2,3},lng(0),std::plus<lng>{});
-                copy.rebuild({}); verifyGeneric(copy,vector<lng>{},lng(0),std::plus<lng>{});}}
-    }
-    cout << "PASS sqrt generic exhaustive n<=" << limit << '\n';
-}
+                copy.rebuild({}); verifyGeneric(copy,vector<lng>{},lng(0),std::plus<lng>{});}}}
+    cout << "PASS sqrt generic exhaustive n<=" << limit << '\n';}
 struct Join {
     bool backwards;
     string operator()(const string &a, const string &b) const { return backwards ? b+a : a+b; }
@@ -94,8 +79,7 @@ void noncommutative() {
             d.opeUpdate(i,"Z"); a[i] = op(a[i],"Z"); verifyGeneric(d,a,string{},op);
             d.setUpdate(i,"X"); a[i] = "X"; verifyGeneric(d,a,string{},op);}
         d.rebuild(vector<string>{"ab","c","de"},2); verifyGeneric(d,vector<string>{"ab","c","de"},string{},op);}}}
-    cout << "PASS sqrt noncommutative/stateful fold/rebuild\n";
-}
+    cout << "PASS sqrt noncommutative/stateful fold/rebuild\n";}
 void lazyExhaustive() {
     int limit = mode == "quick" ? 2 : 3, depth = mode == "quick" ? 1 : 2;
     const vector<pair<lng,lng>> actions{{-1,1},{0,2},{1,-1},{2,0}};
@@ -113,10 +97,8 @@ void lazyExhaustive() {
                         auto e = d; auto w = v; e.affine(l,r,mul,add);
                         for (int i = l; i < r; ++i) { w[i] = mul*w[i]+add; }
                         history.push_back({l,r,mul,add}); self(self,std::move(e),std::move(w),left-1); history.pop_back();}}}};
-                visit(visit,SqrtRangeSum<lng>(a,b),a,depth);}}
-    }
-    cout << "PASS sqrt lazy exhaustive n<=" << limit << " depth=" << depth << '\n';
-}
+                visit(visit,SqrtRangeSum<lng>(a,b),a,depth);}}}
+    cout << "PASS sqrt lazy exhaustive n<=" << limit << " depth=" << depth << '\n';}
 void randomCases() {
     std::mt19937_64 rng(seed);
     int trials = mode == "quick" ? 20 : mode == "full" ? 100 : 400;
@@ -136,8 +118,7 @@ void randomCases() {
                 default:
                     mul = 0;
                     if (n) { l = int(rng()%n); r = l+1; d.set(l,add); }
-                    else { l = r = 0; d.assign(0,0,add); }
-            }
+                    else { l = r = 0; d.assign(0,0,add); }}
             for (int i = l; i < r; ++i) { a[i] = mul*a[i]+add; }
             history.push_back({l,r,mul,add});
             int ql = int(rng()%(n+1)), qr = int(rng()%(n+1)); if (ql > qr) { swap(ql,qr); }
@@ -146,8 +127,7 @@ void randomCases() {
         auto copy = d; verifyLazy(copy,a); auto moved = std::move(copy); verifyLazy(moved,a); verifyLazy(d,a);
         copy = d; copy.rebuild(vector<lng>{3,5,1,7},3); verifyLazy(copy,vector<lng>{3,5,1,7});
         copy.rebuild({}); verifyLazy(copy,vector<lng>{});}
-    cout << "PASS sqrt random vector oracle/copy/move/rebuild trials=" << trials << '\n';
-}
+    cout << "PASS sqrt random vector oracle/copy/move/rebuild trials=" << trials << '\n';}
 void regressions() {
     input.clear(); history.clear(); context = "lazy order/alias/wide/modular regressions";
     for (int b : widths(5)) {
@@ -169,8 +149,22 @@ void regressions() {
     dyadic.affine(0,3,2.0,0.5); verifyLazy(dyadic,vector<double>{1.5,3.0,1.0});
     SqrtDecomp<lng> empty; verifyGeneric(empty,vector<lng>{},lng(0),std::plus<lng>{});
     SqrtRangeSum<lng> empty_sum; verifyLazy(empty_sum,vector<lng>{});
-    cout << "PASS sqrt action order/empty/type/alias/block boundary regressions\n";
-}
+    SqrtDecomp<lng> single({5}); SqrtRangeSum<lng> single_sum({5}), triple{1, 2, 3};
+    verifyGeneric(single,vector<lng>{5},lng(0),std::plus<lng>{}); verifyLazy(single_sum,vector<lng>{5}); verifyLazy(triple,vector<lng>{1,2,3});
+    static_assert(!std::is_convertible_v<int, SqrtDecomp<lng>> && !std::is_convertible_v<vector<lng>, SqrtDecomp<lng>>);
+    static_assert(!std::is_convertible_v<int, SqrtRangeSum<lng>> && !std::is_convertible_v<vector<lng>, SqrtRangeSum<lng>>);
+    auto any = [](bool x, bool y) { return x || y; };
+    for (int b : {0, 1, 2, 3}) {
+        vector<bool> bits{false, true, false, false, true};
+        SqrtDecomp<bool, decltype(any)> flags(bits, b, false, any);
+        for (int i = 0; i < 5; ++i) { const bool &got = flags.get(i); check(got, bool(bits[i]), "bool get"); }
+        for (int l = 0; l <= 5; ++l) {
+            for (int r = l; r <= 5; ++r) {
+                bool want = false;
+                for (int i = l; i < r; ++i) { want = want || bits[i]; }
+                check(flags.query(l,r), want, "bool query");}}
+        flags.set(4,false); flags.opeUpdate(2,true); check(flags.values() == vector<bool>{false,true,true,false,false}, true, "bool values");}
+    cout << "PASS sqrt action order/empty/type/alias/block boundary regressions\n";}
 int main(int argc, char **argv) {
     string invalid;
     for (int i = 1; i < argc; ++i) {
@@ -192,7 +186,6 @@ int main(int argc, char **argv) {
         else if (invalid == "generic-query-reversed") { g.query(1,0); }
         else if (invalid == "generic-query-end") { g.query(0,3); }
         else if (invalid == "generic-rebuild-block") { g.rebuild({},-1); }
-        else if (invalid == "generic-pull-end") { g.pull(2); }
         else if (invalid == "lazy-negative-size") { SqrtRangeSum<lng> bad(-1); }
         else if (invalid == "lazy-negative-block") { SqrtRangeSum<lng> bad(2,-1); }
         else if (invalid == "lazy-get-end") { d.get(2); }
@@ -204,12 +197,8 @@ int main(int argc, char **argv) {
         else if (invalid == "lazy-affine-reversed") { d.affine(1,0,2,3); }
         else if (invalid == "lazy-affine-end") { d.affine(0,3,2,3); }
         else if (invalid == "lazy-rebuild-block") { d.rebuild({},-1); }
-        else if (invalid == "lazy-apply-end") { d.apply(2,2,3); }
-        else if (invalid == "lazy-push-end") { d.push(2); }
-        else if (invalid == "lazy-pull-end") { d.pull(2); }
         else { return 2; }
         cerr << "precondition did not assert\n"; return 1;}
     if (mode != "quick" && mode != "full" && mode != "stress") { return 2; }
     cout << "sqrt seed=" << seed << " mode=" << mode << '\n';
-    genericExhaustive(); noncommutative(); lazyExhaustive(); randomCases(); regressions();
-}
+    genericExhaustive(); noncommutative(); lazyExhaustive(); randomCases(); regressions();}

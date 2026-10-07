@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reproducible closest-pair/legacy/brute timings; no timing pass/fail gates."""
+"""Reproducible 2D closest-pair/legacy/brute and 3D closestPair3/brute timings; no timing gates."""
 import argparse
 import hashlib
 import json
@@ -43,8 +43,8 @@ def main():
                   flags=flags, python=platform.python_version(), warmups=1, repetitions=5,
                   units='microseconds', statistic='median',
                   setup='algorithm allocations and sorting included; input generation and result checking excluded',
-                  memory='closestPair: O(n) auxiliary, 2 * n int arrays generally and n int indices for duplicate/axis-collinear early returns, plus sorting/recursion stack; legacy: 2 * n int arrays plus sorting/recursion stack; brute: O(1)',
-                  validation='Brute-force exact pair/distance comparison for n<=2048; every timed output checked; large cases use tested implementation and legacy distance agreement; checksum consumed',
+                  memory='closestPair: O(n) auxiliary, 2 * n int arrays generally and n int indices for duplicate/axis-collinear early returns, plus sorting/recursion stack; closestPair3: O(n) auxiliary, 6 * n int arrays and n lll row keys plus sorting/recursion stack; legacy: 2 * n int arrays plus sorting/recursion stack; brute: O(1)',
+                  validation='Brute-force exact pair/distance comparison for n<=2048 in 2D and 3D; every timed output checked; large cases use tested implementation and legacy distance agreement; checksum consumed',
                   limits='Legacy uses 64-bit distance, finite INF64 and unspecified pair ties; benchmarks use safe bounded coordinates and compare its distance only. Shared-host timing is descriptive.',
                   checksum=result.stderr.strip(),
                   hashes={p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},

@@ -5,8 +5,15 @@ ClosestPair brute(const vector<point> &p) {
     ClosestPair a;
     for (int i = 0; i < int(p.size()); ++i) { for (int j = i + 1; j < int(p.size()); ++j) {
         lll x = lll(p[i].x) - p[j].x, y = lll(p[i].y) - p[j].y, d = x * x + y * y;
-        if (a.ids.first < 0 || d < a.distance2) { a = {{i, j}, d}; } }}
-    return a; }
+        if (a.ids.first < 0 || d < a.distance2) { a = {{i, j}, d}; }}}
+    return a;}
+ClosestPair brute3(const vector<Point3<lng>> &p) {
+    ClosestPair a;
+    for (int i = 0; i < int(p.size()); ++i) {
+        for (int j = i + 1; j < int(p.size()); ++j) {
+            lll d = dist2(p[i], p[j]);
+            if (a.ids.first < 0 || d < a.distance2) { a = {{i, j}, d}; }}}
+    return a;}
 int main(int argc, char **argv) {
     ulng seed = argc > 1 ? std::stoull(argv[1]) : 20260927, checksum = 0;
     std::mt19937_64 rng(seed);
@@ -36,5 +43,29 @@ int main(int argc, char **argv) {
                 checksum += ulng(a.distance2) + ulng(a.ids.first + 1);
                 if (rep >= 0) { times.push_back(std::chrono::duration<double, std::micro>(end - start).count()); }}
             sort(times.begin(), times.end());
-            cout << "{\"n\":" << n << ",\"shape\":\"" << shape << "\",\"method\":\"" << method << "\",\"median_us\":" << times[2] << "}\n"; }} }
-    std::cerr << "checksum=" << checksum << '\n'; }
+            cout << "{\"n\":" << n << ",\"shape\":\"" << shape << "\",\"method\":\"" << method << "\",\"median_us\":" << times[2] << "}\n";}}}
+    for (int n : {32, 512, 2048, 200000}) {
+        for (string shape : {"random3", "lattice3", "plane3", "duplicates3"}) {
+            vector<Point3<lng>> p;
+            for (int i = 0; i < n; ++i) {
+                if (shape == "random3") { p.push_back({lng(rng() % 2000001) - 1000000, lng(rng() % 2000001) - 1000000, lng(rng() % 2000001) - 1000000}); }
+                if (shape == "lattice3") { p.push_back({i % 60, i / 60 % 60, i / 3600}); }
+                if (shape == "plane3") { p.push_back({0, i % 450, i / 450}); }
+                if (shape == "duplicates3") { p.push_back({7, 11, 13}); }}
+            auto expected = closestPair3(p); auto before = p;
+            if (n <= 2048) {
+                auto b = brute3(p);
+                if (b.ids != expected.ids || b.distance2 != expected.distance2) { std::cerr << "brute3 mismatch\n"; return 1; }}
+            for (string method : {"closestPair3", "brute3"}) {
+                if (method == "brute3" && n > 2048) { continue; }
+                vector<double> times;
+                for (int rep = -1; rep < 5; ++rep) {
+                    auto start = std::chrono::steady_clock::now();
+                    ClosestPair a = method == "brute3" ? brute3(p) : closestPair3(p);
+                    auto end = std::chrono::steady_clock::now();
+                    if (a.distance2 != expected.distance2 || a.ids != expected.ids || p != before) { std::cerr << "result mismatch " << method << '\n'; return 1; }
+                    checksum += ulng(a.distance2) + ulng(a.ids.first + 1);
+                    if (rep >= 0) { times.push_back(std::chrono::duration<double, std::micro>(end - start).count()); }}
+                sort(times.begin(), times.end());
+                cout << "{\"n\":" << n << ",\"shape\":\"" << shape << "\",\"method\":\"" << method << "\",\"median_us\":" << times[2] << "}\n";}}}
+    std::cerr << "checksum=" << checksum << '\n';}

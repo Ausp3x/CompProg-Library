@@ -7,12 +7,12 @@ namespace test {
     void require(bool ok, const string &op) {
         ++checks;
         if (!ok) { cerr << "FAIL seed=" << seed << " mode=" << mode << " op=" << op
-                       << " input=" << context << '\n'; std::exit(1); }}
+                       << " input=" << context << '\n'; std::exit(1);}}
     void close(long double got, long double want, const string &op, long double tol = 2e-15L, long double scale = 1) {
         std::ostringstream s; s << std::setprecision(22) << op << " expected=" << want << " actual=" << got;
-        require(std::isfinite(got) && abs(got - want) <= tol * max({scale, abs(got), abs(want)}), s.str()); }
+        require(std::isfinite(got) && abs(got - want) <= tol * max({scale, abs(got), abs(want)}), s.str());}
     void close(dpoint got, dpoint want, const string &op, long double tol = 2e-15L) {
-        close(got.x, want.x, op + " x", tol, point_scale); close(got.y, want.y, op + " y", tol, point_scale); }
+        close(got.x, want.x, op + " x", tol, point_scale); close(got.y, want.y, op + " y", tol, point_scale);}
     void readMap(std::istream &in, Affine2Approx &f) { in >> f.a >> f.b >> f.c >> f.d >> f.t.x >> f.t.y; }
     dpoint readPoint(std::istream &in) { dpoint p; in >> p.x >> p.y; return p; }
 
@@ -50,13 +50,13 @@ namespace test {
                 auto alias = f; require(alias.inverse(alias), "inverse alias exists");
                 got_inverse = alias.applyPoint(p);
                 close(got_inverse.x, inverse_want.x, "inverse alias x", 2e-14L, sx);
-                close(got_inverse.y, inverse_want.y, "inverse alias y", 2e-14L, sy); }
+                close(got_inverse.y, inverse_want.y, "inverse alias y", 2e-14L, sy);}
             else {
                 require(inv.a == saved.a && inv.b == saved.b && inv.c == saved.c && inv.d == saved.d && inv.t == saved.t,
-                        "singular output unchanged"); }
+                        "singular output unchanged");}
             dpoint result{123, 456}; require(cartesianApprox(h, result) == (h.z != 0), "Cartesian existence");
-            close(result, h.z ? cartesian : dpoint{123, 456}, "Cartesian Fraction or unchanged output"); }
-        require(count > 0, "nonempty fixtures"); cout << "PASS Fraction records=" << count << '\n'; }
+            close(result, h.z ? cartesian : dpoint{123, 456}, "Cartesian Fraction or unchanged output");}
+        require(count > 0, "nonempty fixtures"); cout << "PASS Fraction records=" << count << '\n';}
 
     void geometry() {
         std::mt19937_64 rng(seed); int rounds = mode == "quick" ? 100 : mode == "full" ? 5000 : 40000;
@@ -106,12 +106,12 @@ namespace test {
             close(Affine2Approx::similarity(center, center + v, p, p).applyPoint(v), p, "constant similarity");
             dpoint finite; auto h = rotation.applyHomogeneous({p.x * -3, p.y * -3, -3});
             require(cartesianApprox(h, finite), "homogeneous finite conversion");
-            close(finite, rotation.applyPoint(p), "homogeneous scale invariance", 2e-12L); }
+            close(finite, rotation.applyPoint(p), "homogeneous scale invariance", 2e-12L);}
         context = "axis projection singular and near-singular map";
         auto f = Affine2Approx::projection({1, 2}, {1, 9}); require(f.orientation() == 0 && !f.inverse(f), "rank one inverse");
         Affine2Approx tiny{1, 0, 0, 1e-30L}, inverse;
         require(tiny.inverse(inverse), "nonzero small determinant not suppressed"); close(inverse.d, 1e30L, "small inverse");
-        cout << "PASS geometric cases=" << rounds << '\n'; }
+        cout << "PASS geometric cases=" << rounds << '\n';}
 } // namespace test
 
 int main(int argc, char **argv) {
@@ -125,5 +125,5 @@ int main(int argc, char **argv) {
             if (probe == "projection-point") { Affine2Approx::projection({1, 2}, {1, 2}); }
             if (probe == "reflection-point") { Affine2Approx::reflection({1, 2}, {1, 2}); }
             if (probe == "similarity-point") { Affine2Approx::similarity({1, 2}, {1, 2}, {}, {3, 4}); }
-            cerr << "FAIL assertion probe returned: " << probe << '\n'; return 1; }}
-    test::fractions(); test::geometry(); cout << "PASS checks=" << test::checks << " seed=" << test::seed << '\n'; }
+            cerr << "FAIL assertion probe returned: " << probe << '\n'; return 1;}}
+    test::fractions(); test::geometry(); cout << "PASS checks=" << test::checks << " seed=" << test::seed << '\n';}

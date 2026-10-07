@@ -1,7 +1,6 @@
 #include "../../02-Data Structures/02-fenwick.hpp"
 
 // Separate construction measurements: both methods build the same Fenwick tree.
-// The emitted checksum is independently checked against the source vector.
 int main(int argc, char **argv) {
     ulng seed = argc > 1 ? std::stoull(argv[1]) : 20260927;
     std::mt19937_64 rng(seed);
@@ -32,5 +31,4 @@ int main(int argc, char **argv) {
                  << (kind == 0 ? "linear" : "point_adds") << "\",\"n\":" << n
                  << ",\"repeats\":" << repeats << ",\"seconds\":" << std::setprecision(10)
                  << elapsed << ",\"checksum\":" << checksum << "}\n";}}
-    return sink < 0;
-}
+    return sink < 0;}

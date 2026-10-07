@@ -2,32 +2,24 @@
 #include "../01-Core/01-template.hpp"
 #include "01-graph.hpp"
 
-// Graph/CsrGraph inputs; graph weights are ignored. Witness arc indices refer to
-// the unchanged input graph. A present cycle is simple except its repeated end:
-// vertices.size() == arcs.size() + 1, vertices.front() == vertices.back().
-// Self-loops have one arc; two distinct parallel undirected edges may form a cycle.
-// T: O(1), M: O(n) for a witness on n vertices; empty arcs means no cycle.
+// T: O(1), M: O(n); closed walk vertices[0..k] along arcs[0..k), both empty when absent.
 struct CycleWitness {
     vector<int> vertices, arcs;
 };
 
-// T: O(n), M: O(n). Unreached parent/parent_arc/depth/root entries are -1.
-// Roots have depth 0, parent/parent_arc -1 and root equal to their own vertex.
-// order is discovery order; DFS also supplies postorder and its first cycle.
-// BFS leaves postorder/cycle empty. Returned arrays remain valid after graph
-// mutation, but their arc references require unchanged arc numbering/content.
+// T: O(n), M: O(n); unreached parent, parent_arc, depth and root entries are -1.
 struct TraversalResult {
     vector<int> order, parent, parent_arc, depth, root, postorder;
     CycleWitness cycle;
+
     explicit TraversalResult(int n) {
         assert(n >= 0);
         parent.assign(n, -1); parent_arc.assign(n, -1);
-        depth.assign(n, -1); root.assign(n, -1); }
+        depth.assign(n, -1); root.assign(n, -1);}
 };
 
 namespace traversal_detail {
-    // Tree path from the LCA to a.from, then a, then back to the LCA. In a
-    // directed DFS the destination is an ancestor, so no reversed arc is used.
+    // T: O(n), M: O(n); tree path from the LCA of arc a's ends to a.from, then a, then back.
     template<class G>
     CycleWitness treeCycle(const G &g, const vector<int> &parent_arc,
                            const vector<int> &depth, int a) {
@@ -35,27 +27,25 @@ namespace traversal_detail {
         vector<int> left, right;
         while (u != v) {
             if (depth[u] >= depth[v]) {
-                int b = parent_arc[u]; left.push_back(b); u = g.arcs[b].from; }
+                int b = parent_arc[u]; left.push_back(b); u = g.arcs[b].from;}
             else {
-                int b = parent_arc[v]; right.push_back(g.arcs[b].rev); v = g.arcs[b].from; }}
+                int b = parent_arc[v]; right.push_back(g.arcs[b].rev); v = g.arcs[b].from;}}
         reverse(left.begin(), left.end()); left.push_back(a);
         left.insert(left.end(), right.begin(), right.end());
         CycleWitness out; out.arcs = std::move(left);
         out.vertices.push_back(g.arcs[out.arcs[0]].from);
         for (int b : out.arcs) { out.vertices.push_back(g.arcs[b].to); }
-        return out; }
+        return out;}
 } // namespace traversal_detail
 
-// T: O(n + m + k), M: O(n), including output; m is arc count, k source count.
-// Multi-source unweighted shortest distances. All sources in [0,n) are seeded
-// before traversal; duplicate sources are ignored. Ties follow source/arc order.
+// T: O(n + m + k), M: O(n); k sources seeded first in order, ties follow source then arc order.
 template<class G>
 TraversalResult bfs(const G &g, const vector<int> &sources) {
     TraversalResult out(g.n);
     for (int s : sources) {
         assert(0 <= s && s < g.n);
         if (out.depth[s] != -1) { continue; }
-        out.depth[s] = 0; out.root[s] = s; out.order.push_back(s); }
+        out.depth[s] = 0; out.root[s] = s; out.order.push_back(s);}
     for (int i = 0; i < int(out.order.size()); ++i) {
         int u = out.order[i];
         for (int a : g[u]) {
@@ -63,17 +53,12 @@ TraversalResult bfs(const G &g, const vector<int> &sources) {
             if (out.depth[v] != -1) { continue; }
             out.parent[v] = u; out.parent_arc[v] = a;
             out.depth[v] = out.depth[u] + 1; out.root[v] = out.root[u];
-            out.order.push_back(v); }}
-    return out; }
-
-// T: O(n + m), M: O(n), including output; s must be in [0,n).
+            out.order.push_back(v);}}
+    return out;}
 template<class G>
 TraversalResult bfs(const G &g, int s) { return bfs(g, vector<int>{s}); }
 
-// T: O(n + m + k), M: O(n), including output. Iterative recursive-order DFS;
-// sources in [0,n) are considered sequentially, skipping already reached ones.
-// Thus depth is tree depth, not shortest distance. Directed cycles use gray
-// ancestors; undirected DFS skips only the exact reverse of the parent arc.
+// T: O(n + m + k), M: O(n); iterative recursive-order DFS from each unreached source in turn.
 template<class G>
 TraversalResult dfs(const G &g, const vector<int> &sources) {
     TraversalResult out(g.n);
@@ -84,41 +69,40 @@ TraversalResult dfs(const G &g, const vector<int> &sources) {
         out.depth[s] = 0; out.root[s] = s;
         state[s] = 1; path.push_back(s); out.order.push_back(s);
         while (!path.empty()) {
-            int u = path.back();
-            if (pos[u] == int(g[u].size())) {
-                state[u] = 2; out.postorder.push_back(u); path.pop_back(); continue; }
-            int a = g[u][pos[u]++], v = g.arcs[a].to;
-            if (!g.directed && out.parent_arc[u] != -1 && a == g.arcs[out.parent_arc[u]].rev) { continue; }
-            if (!state[v]) {
-                out.parent[v] = u; out.parent_arc[v] = a;
-                out.depth[v] = out.depth[u] + 1; out.root[v] = out.root[u];
-                state[v] = 1; path.push_back(v); out.order.push_back(v); }
-            else if (state[v] == 1 && out.cycle.arcs.empty()) {
-                out.cycle = traversal_detail::treeCycle(g, out.parent_arc, out.depth, a); }}}
-    return out; }
-
-// T: O(n + m), M: O(n), including output; s must be in [0,n).
+            int u = path.back(), next = -1;
+            int skip = g.directed || out.parent_arc[u] == -1 ? -1 : g.arcs[out.parent_arc[u]].rev;
+            const auto &adj = g[u];
+            while (next == -1 && pos[u] < int(adj.size())) {
+                int a = adj[pos[u]++], v = g.arcs[a].to;
+                if (a == skip) { continue; }
+                if (!state[v]) {
+                    out.parent[v] = u; out.parent_arc[v] = a;
+                    out.depth[v] = out.depth[u] + 1; out.root[v] = out.root[u];
+                    state[v] = 1; path.push_back(v); out.order.push_back(v); next = v;}
+                else if (state[v] == 1 && out.cycle.arcs.empty()) {
+                    out.cycle = traversal_detail::treeCycle(g, out.parent_arc, out.depth, a);}}
+            if (next == -1) {
+                state[u] = 2; out.postorder.push_back(u); path.pop_back();}}}
+    return out;}
 template<class G>
 TraversalResult dfs(const G &g, int s) { return dfs(g, vector<int>{s}); }
 
-// T: O(n + m), M: O(n), including output. Roots considered in vertex order.
+// T: O(n + m), M: O(n); DFS from every vertex in order, and its first cycle.
 template<class G>
 TraversalResult dfsForest(const G &g) {
     vector<int> sources(g.n); iota(sources.begin(), sources.end(), 0);
-    return dfs(g, sources); }
-
-// T: O(n + m), M: O(n), including returned cycle; directed or undirected.
+    return dfs(g, sources);}
 template<class G>
 CycleWitness findCycle(const G &g) { return dfsForest(g).cycle; }
 
-// T: O(1), M: O(n). IDs follow increasing component minimum vertex.
+// T: O(1), M: O(n); components numbered by increasing minimum vertex.
 struct ComponentsResult {
     int count = 0;
     vector<int> id;
     vector<vector<int>> groups;
 };
 
-// T: O(n + m), M: O(n), including output. Requires an undirected graph.
+// T: O(n + m), M: O(n); undirected only.
 template<class G>
 ComponentsResult connectedComponents(const G &g) {
     assert(!g.directed);
@@ -131,17 +115,16 @@ ComponentsResult connectedComponents(const G &g) {
             for (int a : g[group[i]]) {
                 int v = g.arcs[a].to;
                 if (out.id[v] == -1) { out.id[v] = out.id[s]; group.push_back(v); }}}}
-    return out; }
+    return out;}
 
-// T: O(1), M: O(n). On success color is a complete 0/1 coloring; on failure
-// it is partial (-1 denotes unvisited) and cycle is an odd-cycle certificate.
+// T: O(1), M: O(n); on failure color is partial (-1 unvisited) and cycle is odd.
 struct BipartiteResult {
     bool ok = true;
     vector<int> color;
     CycleWitness cycle;
 };
 
-// T: O(n + m), M: O(n), including output. Requires an undirected graph.
+// T: O(n + m), M: O(n); undirected only.
 template<class G>
 BipartiteResult bipartiteCheck(const G &g) {
     assert(!g.directed);
@@ -156,8 +139,8 @@ BipartiteResult bipartiteCheck(const G &g) {
                 int v = g.arcs[a].to;
                 if (out.color[v] == -1) {
                     out.color[v] = out.color[u] ^ 1; parent_arc[v] = a;
-                    depth[v] = depth[u] + 1; queue.push_back(v); }
+                    depth[v] = depth[u] + 1; queue.push_back(v);}
                 else if (out.color[v] == out.color[u]) {
                     out.ok = false; out.cycle = traversal_detail::treeCycle(g, parent_arc, depth, a);
-                    return out; }}}}
-    return out; }
+                    return out;}}}}
+    return out;}

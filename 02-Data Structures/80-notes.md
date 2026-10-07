@@ -51,6 +51,23 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 - `OLD/Team Notebook/src/ds/impltreap.cpp` and `cartesiantree.cpp` are the legacy references for rows 19 and 27; `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` contain `DynamicMex` (row 24) and `LcaO1` (row 54 bridge).
 - The sparse-table public `v` storage changed from a flat padded array to valid rows; clients use query methods.
 
+## P006 re-audit omissions
+
+Candidates from the 2026-10-07 sweep ([81-sources.md](81-sources.md)) left out of rows 01–08:
+
+- SparseTable `maxRight`/`minLeft` (MAS): the table has no identity; a binary search over `query` gives the same O(log(n)) bound.
+- SegmentTree/SqrtDecomp/Fenwick `reset`/`build` (MAS, HIT): constructing a new object does the same.
+- Fenwick timestamp clearing (OI): a per-problem multi-test trick, not a structure operation.
+- Prefix product over a noncommutative or xor group (MAS `Static_Range_Product_Group`): a custom T with `+`/`-` covers commutative groups; noncommutative prefix products are rare.
+- 3D prefix sums and difference arrays (OI): rare; apply the 2D axis-by-axis method one more time.
+- Tree prefix sums and path differences (OI): need LCA, so they belong to Graphs tree algorithms.
+- SqrtDecomp range actions and block policies (NYA, CPA): the lazy segment tree (row 12) has a better bound for monoid actions.
+- SqrtDecomp `maxRight`/`minLeft` (CPA): the segment tree has the same predicate search with a better bound.
+- O(1)-update / O(sqrt(n))-query group block sums (MAS): a Mo value-domain tool, owned with Mo (row 23).
+- OrderedMultiSet `split`/`join` (OI pb_ds): rare; `OrderedSet` keeps the native PBDS API, including both.
+- CoordinateCompression distinct-by-position encoding and counting-sort mode (MAS, NYA): an argsort rank, not compression.
+- DSU grid adapters, delete/move element (HIT, OI): variants for row 65 if a motivating problem appears.
+
 ## Test matrix
 
 - Differential-test Fenwick/segment-tree variants against a vector; persistent versions against copied snapshots; dynamic-tree structures against small forests; sorted containers against a sorted vector; hash maps against `std::unordered_map` with adversarial key patterns.

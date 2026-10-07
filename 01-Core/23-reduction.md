@@ -26,6 +26,22 @@ All bulk APIs use pointer/count overloads with an `int n >= 0`; pointers address
 
 For even moduli use Barrett directly. For an odd modulus with many chained products, convert once and use Montgomery, then convert the result back. For ordinary independent products or arbitrary wide dividends, Barrett avoids representation conversion. For a repeated multiplier use `multiplier(b)`. Modulus one returns zero throughout, including exponent zero. No primality assumption or inverse-of-an-arbitrary-residue operation belongs to these reducers.
 
+### Barrett32, Barrett64
+
+The fields `mod`, `mu` and `mask` are immutable state. `mu = floor(2^(2w) / mod)` on the reciprocal path and zero on the power-of-two and Mersenne61 paths; `mask` flags a power-of-two modulus. `divMod` returns a quotient as wide as the dividend. With `mod = 1` every result is zero, even for exponent zero; for every other modulus `a^0 = 1`, including `a = 0`. Copies and moves are independent; there is no allocation, cache or global state.
+
+### Barrett32::Multiplier, Barrett64::Multiplier
+
+`value = b % mod` and `mu = floor(value * R / mod)`. The multiplier has the same input, output, state and pointer contracts as its parent reducer and does not depend on the parent's lifetime. Barrett64's 128-bit intermediates keep the 65th residual bit, which full-width moduli need.
+
+### MontgomeryBackend
+
+`mod`, `inv = -mod^-1 mod R` and `rsq = R^2 mod mod` are immutable after construction. `add` and `sub` use the same formulas for ordinary residues. Scalar bulk loops run the unchecked `redc` shared by every scalar operation; the AVX2 loops (Montgomery32 only) run `red4`/`red8`. Even moduli belong to Barrett32/Barrett64.
+
+### Guard
+
+`note` keeps the running maximum of words or 32-bit lanes branch-free; `ok`, read by one assertion after the loop, is true iff every noted value was below `top >= 1`. Checked builds keep the kernels' cost, and `NDEBUG` drops the check entirely. O(1) time per `note` and `ok`, O(1) memory.
+
 ## Arithmetic justification
 
 **Barrett.** Set `B = R^2` and `mu = floor(B/m)`. Non-power-of-two moduli do not divide `B`, so the representable expression `floor((B-1)/m)` computes the same value. For `x < B`, `q = floor(x*mu/B)` is the exact quotient or one less: the approximation error is nonnegative and strictly below one. Thus `x-q*m < 2m`; one subtraction makes it canonical. Keep the extra residual bit until correction. Power-of-two moduli, including one, use masking and need no reciprocal. The 128-bit high product splits into four 64-bit products; summing the three middle limbs at 128-bit width preserves both carries. For `m=2^61-1`, use `2^61 = 1 (mod m)`: two folds of the entire 128-bit dividend leave a value at most `m+64 < 2m`, followed by one subtraction.

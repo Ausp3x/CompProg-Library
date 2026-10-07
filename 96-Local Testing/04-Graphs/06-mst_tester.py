@@ -12,4 +12,4 @@ if __name__ == '__main__':
     raise SystemExit(main('06-mst', ['directed-kruskal', 'directed-prim-sparse',
         'directed-prim-dense', 'directed-boruvka', 'directed-reconstruction',
         'too-many-nodes', 'bottleneck-negative', 'bottleneck-end', 'lca-negative',
-        'lca-end', 'threshold-negative', 'threshold-end']))
+        'lca-end', 'threshold-negative', 'threshold-end', 'leaf-range-negative', 'leaf-range-end'], strict=True))

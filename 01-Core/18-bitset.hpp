@@ -4,18 +4,8 @@
 #include <immintrin.h>
 #endif
 
-// Runtime-length bits, bit 0 is least significant. Ranges are [l, r).
-// Equal sizes are required for Boolean operations/subset/intersection (not equality).
-// Shifts >= size yield zero; rotations reduce modulo size (empty is unchanged).
-// Scans return size() on absence; next/prev are strictly after/before p <= size().
-// Public n/a are representation, not mutation APIs: a.size() == ceil(n / 64), padding zero.
-// Proxies/spans invalidate on resize, clear, push/pop, move, assignment and swap.
-// Other mutations preserve proxies; scans have no persistent iterators. Not thread-safe.
-// All mutating operations support self-aliasing; moved-from objects are empty.
-// Resize: worst-case O(old words + new words) on growth, O(1) on shrink.
-// pushBack: amortized O(1); popBack/clear/swap/size/empty/blocks are O(1).
-// Rotation/copy/nonmutating operators use O(ceil(n / 64)) extra result/workspace.
 // T: O(ceil(n / 64)) bulk operations/scans, O(1) bit access; M: O(ceil(n / 64)).
+// Bits [0, n), bit 0 least significant; Boolean ops need equal sizes; scans return size() when absent.
 struct Bitset {
     enum class Op { Assign, And, Or, Xor, AndNot };
     size_t n = 0;
@@ -188,8 +178,6 @@ struct Bitset {
         return 64 * i + 63 - std::countl_zero(x);}
     size_t findLast() const { return findPrev(n); }
 
-    // dst[i] OP= word i of x shifted by s < 64 bits, for i in [0, words): left reads x[i], x[i - 1] descending,
-    // right reads x[i], x[i + 1] ascending; the outer neighbour (x[-1] or x[words]) is read only when s != 0.
     // Each group loads its sources before storing, so dst may overlap x in the direction of travel.
     template<Op OP> static void shiftWords(ulng *dst, const ulng *x, size_t words, int s, bool left) {
         size_t i = left ? words : 0;
@@ -212,8 +200,8 @@ struct Bitset {
             while (i > 0) { --i; dst[i] = apply<OP>(dst[i], x[i] << s | (s ? x[i - 1] >> (64 - s) : 0)); }}
         else {
             for (; i < words; ++i) { dst[i] = apply<OP>(dst[i], x[i] >> s | (s ? x[i + 1] << (64 - s) : 0)); }}}
-    // this OP= (b shifted k); b may alias this, with original-value semantics.
-    // T: O(ceil(n / 64)), workspace O(1), including self-aliasing.
+    // T: O(ceil(n / 64)), workspace O(1).
+    // Equal sizes; b may alias this with original-value semantics.
     template<Op OP> Bitset &combineShift(const Bitset &b, size_t k, bool left = true) {
         assert(n == b.n);
         if (k >= n) {
@@ -231,8 +219,8 @@ struct Bitset {
             a[m] = apply<OP>(a[m], b.a.back() >> s);
             if constexpr (OP == Op::Assign || OP == Op::And) { std::fill(a.begin() + ptrdiff_t(m + 1), a.end(), 0); }}
         trim(); return *this;}
-    // this[l, r) OP= b[p, p + (r - l)); sizes may differ and b may alias this (its source range is copied first).
     // T: O(1 + (r - l) / 64), workspace O(1), or O(1 + (r - l) / 64) when b aliases this.
+    // this[l, r) OP= b[p, p + r - l); sizes may differ; b may alias this.
     template<Op OP> Bitset &combineRange(size_t l, size_t r, const Bitset &b, size_t p = 0) {
         assert(l <= r && r <= n && p <= b.n && r - l <= b.n - p);
         if (l == r) { return *this; }

@@ -1,11 +1,5 @@
 #include "../../02-Data Structures/02-fenwick.hpp"
 
-// Feature map: exhaustive signed vectors -> both constructors/add/prefix/range and
-// one-based adapters; exhaustive frequency vectors -> both lowerBound sentinels;
-// random vector oracle -> signed updates, nonnegative-frequency removals, copy/move;
-// boundaries/type cases -> powers of two, wide integers, modular addition and aliasing.
-// quick: signed/frequency n<=4, 35 random trials, boundary n<=1025;
-// full: signed n<=6/frequency n<=7, 150 trials, n<=65537; stress: 600 trials/n<=262145.
 ulng seed = 20260927;
 string mode = "quick", context;
 vector<lng> input;
@@ -18,21 +12,21 @@ string number(lll x) {
     string s;
     while (u) { s.push_back(char('0'+u%10)); u /= 10; }
     if (neg) { s.push_back('-'); }
-    reverse(s.begin(),s.end()); return s;
-}
+    reverse(s.begin(),s.end()); return s;}
 [[noreturn]] void fail(const string &op, const string &expected, const string &actual) {
     cerr << "FAIL Fenwick seed=" << seed << " mode=" << mode << " case=" << context
          << " operation=" << op << " expected=" << expected << " actual=" << actual << " input=[";
     for (lng x : input) { cerr << x << ','; }
     cerr << "] updates=";
     for (auto [i,x] : history) { cerr << '(' << i << ',' << x << ')'; }
-    cerr << '\n'; std::exit(1);
-}
+    cerr << '\n'; std::exit(1);}
 template<typename A, typename B> void check(A actual, B expected, const string &op) {
-    if (actual != expected) { fail(op,number(lll(expected)),number(lll(actual))); }
-}
+    if (actual != expected) { fail(op,number(lll(expected)),number(lll(actual))); }}
 void verify(const Fenwick<lng> &f, const vector<lng> &a) {
     int n = int(a.size()); check(f.n,n,"n");
+    vector<lng> values = f.values(); check(int(values.size()),n,"values size");
+    for (int i = 0; i < n; ++i) {
+        check(f.get(i),a[i],"get("+std::to_string(i)+")"); check(values[i],a[i],"values["+std::to_string(i)+"]");}
     vector<lng> p(n+1);
     for (int i = 0; i < n; ++i) { p[i+1] = p[i]+a[i]; }
     for (int r = 0; r <= n; ++r) {
@@ -40,20 +34,34 @@ void verify(const Fenwick<lng> &f, const vector<lng> &a) {
         check(f.prefixSum1(r),p[r],"prefixSum1");
         for (int l = 0; l <= r; ++l) {
             string op = "sum("+std::to_string(l)+","+std::to_string(r)+")";
-            check(f.sum(l,r),p[r]-p[l],op); check(f.sum1(l+1,r),p[r]-p[l],op+" one-based");}}
-}
+            check(f.sum(l,r),p[r]-p[l],op); check(f.sum1(l+1,r),p[r]-p[l],op+" one-based");}}}
 int search(const vector<lng> &a, lng target) {
     if (target <= 0) { return 0; }
     lng sum = 0;
     for (int i = 0; i < int(a.size()); ++i) { sum += a[i]; if (sum >= target) { return i; }}
-    return int(a.size());
-}
+    return int(a.size());}
 void verifySearch(const Fenwick<lng> &f, const vector<lng> &a, lng target) {
     int expected = search(a,target);
     string op = "lowerBound("+std::to_string(target)+")";
     check(f.lowerBound(target),expected,op);
     check(f.lowerBound1(target),expected == int(a.size()) ? 0 : expected+1,op+" one-based");
-}
+    int n = int(a.size()), upper = 0;
+    for (lng sum = 0; upper < n && sum + a[upper] <= target; ++upper) { sum += a[upper]; }
+    check(f.upperBound(target),target < 0 ? 0 : upper,"upperBound("+std::to_string(target)+")");}
+void verifyPredicates(const Fenwick<lng> &f, const vector<lng> &a, lng cap) {
+    int n = int(a.size());
+    for (int kind = 0; kind < 3; ++kind) {
+        auto pred = [cap,kind](lng s) { return kind == 0 ? s <= cap : kind == 1 ? s < cap : 0 <= s && s <= cap; };
+        if (!pred(0)) { continue; }
+        string tag = (kind == 0 ? " cap<=" : kind == 1 ? " cap<" : " 0<=s<=cap") + std::to_string(cap);
+        for (int l = 0; l <= n; ++l) {
+            int r = l; lng sum = 0;
+            while (r < n && pred(sum + a[r])) { sum += a[r++]; }
+            check(f.maxRight(l,pred),r,"maxRight("+std::to_string(l)+")"+tag);}
+        for (int r = 0; r <= n; ++r) {
+            int l = r; lng sum = 0;
+            while (l > 0 && pred(sum + a[l-1])) { sum += a[--l]; }
+            check(f.minLeft(r,pred),l,"minLeft("+std::to_string(r)+")"+tag);}}}
 void exhaustive() {
     int limit = mode == "quick" ? 4 : 6;
     for (int n = 0, count = 1; n <= limit; ++n, count *= 3) {
@@ -66,8 +74,8 @@ void exhaustive() {
             verify(f,a); verify(g,a);
             for (int i = 0; i < n; ++i) { for (lng delta : {-2,0,2}) {
                 auto b = a; auto h = f; b[i] += delta; history = {{i,delta}};
-                h.add(i,delta); verify(h,b); h = f; h.add1(i+1,delta); verify(h,b);}}
-        }}
+                h.add(i,delta); verify(h,b); h = f; h.add1(i+1,delta); verify(h,b);
+                b[i] = delta; h = f; h.set(i,delta); verify(h,b);}}}}
     cout << "PASS Fenwick exhaustive signed vectors n<=" << limit << '\n';
     limit = mode == "quick" ? 4 : 7;
     for (int n = 0, count = 1; n <= limit; ++n, count *= 4) {
@@ -76,9 +84,8 @@ void exhaustive() {
             for (lng &x : a) { x = code%4; total += x; code /= 4; }
             context = "frequencies n="+std::to_string(n)+" quaternary="+std::to_string(mask); input = a; history.clear();
             Fenwick<lng> f(a);
-            for (lng x = -1; x <= total+1; ++x) { verifySearch(f,a,x); }}}
-    cout << "PASS Fenwick exhaustive nonnegative frequency search n<=" << limit << '\n';
-}
+            for (lng x = -1; x <= total+1; ++x) { verifySearch(f,a,x); verifyPredicates(f,a,x); }}}
+    cout << "PASS Fenwick exhaustive nonnegative frequency search n<=" << limit << '\n';}
 void randomCases() {
     std::mt19937_64 rng(seed);
     int trials = mode == "quick" ? 35 : mode == "full" ? 150 : 600;
@@ -105,10 +112,10 @@ void randomCases() {
                 history.push_back({i,delta}); freq[i] = value; g.add(i,delta);}
             lng total = accumulate(freq.begin(),freq.end(),lng(0));
             verifySearch(g,freq,lng(rng()%ulng(total+3))-1);
-            verifySearch(g,freq,total+1);}
+            verifySearch(g,freq,total+1);
+            if (op%25 == 0) { verifyPredicates(g,freq,lng(rng()%ulng(total+3))-1); }}
         verify(g,freq);}
-    cout << "PASS Fenwick random vector oracle/copy/move trials=" << trials << '\n';
-}
+    cout << "PASS Fenwick random vector oracle/copy/move trials=" << trials << '\n';}
 struct Counted {
     static inline int additions = 0;
     lng x;
@@ -134,8 +141,7 @@ void boundaries() {
     if (Counted::additions > int(a.size())) { fail("build additions","<=n",std::to_string(Counted::additions)); }
     check(f.sum(0,10000).x,10000,"unordered additive type");
     f.add(9999,Counted(-1)); check(f.sum(9999,10000).x,0,"generic update");
-    cout << "PASS Fenwick power boundaries and linear build operations\n";
-}
+    cout << "PASS Fenwick power boundaries and linear build operations\n";}
 void typeCases() {
     context = "type/alias regressions"; input.clear(); history.clear();
     Fenwick<int> small(vector<int>{INT_MIN,INT_MAX});
@@ -155,9 +161,26 @@ void typeCases() {
     Fenwick<lng> alias(vector<lng>{2,3,4,5});
     alias.add(0,alias.v[0]); verify(alias,vector<lng>{4,3,4,5});
     alias.add1(2,alias.v[1]); verify(alias,vector<lng>{4,10,4,5});
-    Fenwick<lng> empty; check(empty.n,0,"default empty"); verify(empty,{}); verifySearch(empty,{},1);
-    cout << "PASS Fenwick types/extrema/argument aliasing\n";
-}
+    Fenwick<lng> empty; check(empty.n,0,"default empty"); verify(empty,{}); verifySearch(empty,{},1); verifyPredicates(empty,{},0);
+    vector<lng> skip(17); skip[0] = skip[1] = skip[16] = 1; Fenwick<lng> sf(skip);
+    check(sf.maxRight(17,[](lng s) { return s == 0; }),17,"maxRight skips cells before l");
+    verifyPredicates(sf,skip,0); verifyPredicates(sf,skip,1);
+    vector<uint> wrap{3,0,5,1,0,2,7,1}; Fenwick<uint> uf(wrap);
+    for (uint cap : {0u,1u,3u,6u,20u}) {
+        auto pred = [cap](uint s) { return s <= cap; };
+        for (int l = 0; l <= 8; ++l) {
+            int r = l; uint sum = 0;
+            while (r < 8 && pred(sum + wrap[r])) { sum += wrap[r++]; }
+            check(uf.maxRight(l,pred),r,"wrapping uint maxRight("+std::to_string(l)+")");}
+        for (int r = 0; r <= 8; ++r) {
+            int l = r; uint sum = 0;
+            while (l > 0 && pred(sum + wrap[l-1])) { sum += wrap[--l]; }
+            check(uf.minLeft(r,pred),l,"wrapping uint minLeft("+std::to_string(r)+")");}}
+    Fenwick<lng> single({7}), triple{1,2,3}, sized(lng(3));
+    verify(single,vector<lng>{7}); verify(triple,vector<lng>{1,2,3}); verify(sized,vector<lng>(3));
+    check(huge.upperBound(big),2,"128-bit upperBound"); check(wide.upperBound(LLONG_MAX),3,"LLONG_MAX upperBound");
+    huge.set(1,big); check(huge.sum(0,3),3*big,"128-bit set");
+    cout << "PASS Fenwick types/extrema/argument aliasing\n";}
 int main(int argc, char **argv) {
     string invalid;
     for (int i = 1; i < argc; ++i) {
@@ -181,9 +204,14 @@ int main(int argc, char **argv) {
         else if (invalid == "sum1-zero") { f.sum1(0,1); }
         else if (invalid == "sum1-reversed") { f.sum1(2,0); }
         else if (invalid == "sum1-end") { f.sum1(1,3); }
+        else if (invalid == "get-end") { f.get(2); }
+        else if (invalid == "set-end") { f.set(2,1); }
+        else if (invalid == "max-right-end") { f.maxRight(3,[](lng) { return true; }); }
+        else if (invalid == "max-right-false") { f.maxRight(0,[](lng) { return false; }); }
+        else if (invalid == "min-left-end") { f.minLeft(3,[](lng) { return true; }); }
+        else if (invalid == "min-left-false") { f.minLeft(0,[](lng) { return false; }); }
         else { return 2; }
         cerr << "precondition did not assert\n"; return 1;}
     if (mode != "quick" && mode != "full" && mode != "stress") { return 2; }
     cout << "Fenwick seed=" << seed << " mode=" << mode << '\n';
-    exhaustive(); randomCases(); boundaries(); typeCases();
-}
+    exhaustive(); randomCases(); boundaries(); typeCases();}

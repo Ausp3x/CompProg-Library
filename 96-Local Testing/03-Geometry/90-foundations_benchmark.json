@@ -18,9 +18,9 @@
   "validation": "Exact canonical hull equality before and after each timed call; checksum consumed.",
   "checksum": "checksum=14123524838413672160",
   "hashes": {
-    "03-Geometry/01-point.hpp": "70819ac1ae6bb7f8e9d9c05ebe1fd6bc000289497522e71c51b15920ac3f5cdc",
-    "03-Geometry/04-convexhull.hpp": "5f9ff6b51a4a02e7dfbc35c380922d4792537dffe55b14f3d07c8e116b1212ee",
-    "96-Local Testing/03-Geometry/90-foundations_benchmark.cpp": "9dc429f10f1927a27ebe0ea6c0f33533c54bcad04a5b7e4b194e3f16c2cc88be"
+    "03-Geometry/01-point.hpp": "582cafdb097b2dd3f173852e12fafb59f93b9f579f8f0e502114a473acdb24a8",
+    "03-Geometry/04-convexhull.hpp": "956a7c7df7318a138b8a468bbb2ca6d8f24b5e7ceb167705fdc97f3ec91977aa",
+    "96-Local Testing/03-Geometry/90-foundations_benchmark.cpp": "388523088d22515740a433f1b4fdc3fe7f1b06ca5f702b01df50d94e79fea207"
   },
   "rows": [
     {
@@ -29,7 +29,7 @@
       "keep_collinear": false,
       "algorithm": "monotone",
       "hull_size": 10,
-      "median_us": 0.73
+      "median_us": 0.86
     },
     {
       "n": 32,
@@ -37,7 +37,7 @@
       "keep_collinear": false,
       "algorithm": "graham",
       "hull_size": 10,
-      "median_us": 1.212
+      "median_us": 1.25
     },
     {
       "n": 32,
@@ -45,7 +45,7 @@
       "keep_collinear": true,
       "algorithm": "monotone",
       "hull_size": 10,
-      "median_us": 0.779
+      "median_us": 0.834
     },
     {
       "n": 32,
@@ -53,7 +53,7 @@
       "keep_collinear": true,
       "algorithm": "graham",
       "hull_size": 10,
-      "median_us": 1.162
+      "median_us": 1.246
     },
     {
       "n": 32,
@@ -61,7 +61,7 @@
       "keep_collinear": false,
       "algorithm": "monotone",
       "hull_size": 11,
-      "median_us": 0.768
+      "median_us": 0.842
     },
     {
       "n": 32,
@@ -69,7 +69,7 @@
       "keep_collinear": false,
       "algorithm": "graham",
       "hull_size": 11,
-      "median_us": 1.298
+      "median_us": 1.375
     },
     {
       "n": 32,
@@ -77,7 +77,7 @@
       "keep_collinear": true,
       "algorithm": "monotone",
       "hull_size": 11,
-      "median_us": 0.744
+      "median_us": 0.848
     },
     {
       "n": 32,
@@ -85,7 +85,7 @@
       "keep_collinear": true,
       "algorithm": "graham",
       "hull_size": 11,
-      "median_us": 1.277
+      "median_us": 1.362
     },
     {
       "n": 32,
@@ -93,7 +93,7 @@
       "keep_collinear": false,
       "algorithm": "monotone",
       "hull_size": 2,
-      "median_us": 0.288
+      "median_us": 0.339
     },
     {
       "n": 32,
@@ -101,7 +101,7 @@
       "keep_collinear": false,
       "algorithm": "graham",
       "hull_size": 2,
-      "median_us": 0.319
+      "median_us": 0.337
     },
     {
       "n": 32,
@@ -109,7 +109,7 @@
       "keep_collinear": true,
       "algorithm": "monotone",
       "hull_size": 32,
-      "median_us": 0.316
+      "median_us": 0.334
     },
     {
       "n": 32,
@@ -117,7 +117,7 @@
       "keep_collinear": true,
       "algorithm": "graham",
       "hull_size": 32,
-      "median_us": 0.315
+      "median_us": 0.336
     },
     {
       "n": 32,
@@ -125,7 +125,7 @@
       "keep_collinear": false,
       "algorithm": "monotone",
       "hull_size": 32,
-      "median_us": 0.606
+      "median_us": 0.624
     },
     {
       "n": 32,
@@ -133,7 +133,7 @@
       "keep_collinear": false,
       "algorithm": "graham",
       "hull_size": 32,
-      "median_us": 0.824
+      "median_us": 0.866
     },
     {
       "n": 32,
@@ -141,7 +141,7 @@
       "keep_collinear": true,
       "algorithm": "monotone",
       "hull_size": 32,
-      "median_us": 0.615
+      "median_us": 0.646
     },
     {
       "n": 32,
@@ -149,7 +149,7 @@
       "keep_collinear": true,
       "algorithm": "graham",
       "hull_size": 32,
-      "median_us": 0.824
+      "median_us": 0.867
     },
     {
       "n": 2048,
@@ -157,7 +157,7 @@
       "keep_collinear": false,
       "algorithm": "monotone",
       "hull_size": 18,
-      "median_us": 145.548
+      "median_us": 153.492
     },
     {
       "n": 2048,
@@ -165,7 +165,7 @@
       "keep_collinear": false,
       "algorithm": "graham",
       "hull_size": 18,
-      "median_us": 313.894
+      "median_us": 329.066
     },
     {
       "n": 2048,
@@ -173,7 +173,7 @@
       "keep_collinear": true,
       "algorithm": "monotone",
       "hull_size": 18,
-      "median_us": 139.98
+      "median_us": 153.396
     },
     {
       "n": 2048,
@@ -181,7 +181,7 @@
       "keep_collinear": true,
       "algorithm": "graham",
       "hull_size": 18,
-      "median_us": 310.971
+      "median_us": 317.091
     },
     {
       "n": 2048,
@@ -189,7 +189,7 @@
       "keep_collinear": false,
       "algorithm": "monotone",
       "hull_size": 10,
-      "median_us": 151.546
+      "median_us": 151.503
     },
     {
       "n": 2048,
@@ -197,7 +197,7 @@
       "keep_collinear": false,
       "algorithm": "graham",
       "hull_size": 10,
-      "median_us": 318.361
+      "median_us": 330.524
     },
     {
       "n": 2048,
@@ -205,7 +205,7 @@
       "keep_collinear": true,
       "algorithm": "monotone",
       "hull_size": 63,
-      "median_us": 138.958
+      "median_us": 153.105
     },
     {
       "n": 2048,
@@ -213,7 +213,7 @@
       "keep_collinear": true,
       "algorithm": "graham",
       "hull_size": 63,
-      "median_us": 317.79
+      "median_us": 350.152
     },
     {
       "n": 2048,
@@ -221,7 +221,7 @@
       "keep_collinear": false,
       "algorithm": "monotone",
       "hull_size": 2,
-      "median_us": 84.46
+      "median_us": 93.016
     },
     {
       "n": 2048,
@@ -229,7 +229,7 @@
       "keep_collinear": false,
       "algorithm": "graham",
       "hull_size": 2,
-      "median_us": 77.767
+      "median_us": 87.957
     },
     {
       "n": 2048,
@@ -237,7 +237,7 @@
       "keep_collinear": true,
       "algorithm": "monotone",
       "hull_size": 2048,
-      "median_us": 71.07
+      "median_us": 76.857
     },
     {
       "n": 2048,
@@ -245,7 +245,7 @@
       "keep_collinear": true,
       "algorithm": "graham",
       "hull_size": 2048,
-      "median_us": 69.004
+      "median_us": 75.339
     },
     {
       "n": 2048,
@@ -253,7 +253,7 @@
       "keep_collinear": false,
       "algorithm": "monotone",
       "hull_size": 2048,
-      "median_us": 99.136
+      "median_us": 112.459
     },
     {
       "n": 2048,
@@ -261,7 +261,7 @@
       "keep_collinear": false,
       "algorithm": "graham",
       "hull_size": 2048,
-      "median_us": 173.074
+      "median_us": 197.17
     },
     {
       "n": 2048,
@@ -269,7 +269,7 @@
       "keep_collinear": true,
       "algorithm": "monotone",
       "hull_size": 2048,
-      "median_us": 91.374
+      "median_us": 103.023
     },
     {
       "n": 2048,
@@ -277,7 +277,7 @@
       "keep_collinear": true,
       "algorithm": "graham",
       "hull_size": 2048,
-      "median_us": 175.498
+      "median_us": 188.948
     },
     {
       "n": 32768,
@@ -285,7 +285,7 @@
       "keep_collinear": false,
       "algorithm": "monotone",
       "hull_size": 30,
-      "median_us": 3515.83
+      "median_us": 3678.14
     },
     {
       "n": 32768,
@@ -293,7 +293,7 @@
       "keep_collinear": false,
       "algorithm": "graham",
       "hull_size": 30,
-      "median_us": 7766.17
+      "median_us": 8054.14
     },
     {
       "n": 32768,
@@ -301,7 +301,7 @@
       "keep_collinear": true,
       "algorithm": "monotone",
       "hull_size": 30,
-      "median_us": 3313.59
+      "median_us": 3473.72
     },
     {
       "n": 32768,
@@ -309,7 +309,7 @@
       "keep_collinear": true,
       "algorithm": "graham",
       "hull_size": 30,
-      "median_us": 7563.76
+      "median_us": 7588.72
     },
     {
       "n": 32768,
@@ -317,7 +317,7 @@
       "keep_collinear": false,
       "algorithm": "monotone",
       "hull_size": 4,
-      "median_us": 2828.25
+      "median_us": 2951.42
     },
     {
       "n": 32768,
@@ -325,7 +325,7 @@
       "keep_collinear": false,
       "algorithm": "graham",
       "hull_size": 4,
-      "median_us": 4507.59
+      "median_us": 4630.01
     },
     {
       "n": 32768,
@@ -333,7 +333,7 @@
       "keep_collinear": true,
       "algorithm": "monotone",
       "hull_size": 443,
-      "median_us": 2720.59
+      "median_us": 2997.24
     },
     {
       "n": 32768,
@@ -341,7 +341,7 @@
       "keep_collinear": true,
       "algorithm": "graham",
       "hull_size": 443,
-      "median_us": 4529.05
+      "median_us": 4752.38
     },
     {
       "n": 32768,
@@ -349,7 +349,7 @@
       "keep_collinear": false,
       "algorithm": "monotone",
       "hull_size": 2,
-      "median_us": 2147.41
+      "median_us": 2207.39
     },
     {
       "n": 32768,
@@ -357,7 +357,7 @@
       "keep_collinear": false,
       "algorithm": "graham",
       "hull_size": 2,
-      "median_us": 2098.55
+      "median_us": 2214.99
     },
     {
       "n": 32768,
@@ -365,7 +365,7 @@
       "keep_collinear": true,
       "algorithm": "monotone",
       "hull_size": 32768,
-      "median_us": 2112.1
+      "median_us": 2216.37
     },
     {
       "n": 32768,
@@ -373,7 +373,7 @@
       "keep_collinear": true,
       "algorithm": "graham",
       "hull_size": 32768,
-      "median_us": 2108.77
+      "median_us": 2232.53
     },
     {
       "n": 32768,
@@ -381,7 +381,7 @@
       "keep_collinear": false,
       "algorithm": "monotone",
       "hull_size": 32768,
-      "median_us": 2433.69
+      "median_us": 2609.36
     },
     {
       "n": 32768,
@@ -389,7 +389,7 @@
       "keep_collinear": false,
       "algorithm": "graham",
       "hull_size": 32768,
-      "median_us": 4443.96
+      "median_us": 4763.34
     },
     {
       "n": 32768,
@@ -397,7 +397,7 @@
       "keep_collinear": true,
       "algorithm": "monotone",
       "hull_size": 32768,
-      "median_us": 2437.6
+      "median_us": 2608.13
     },
     {
       "n": 32768,
@@ -405,7 +405,7 @@
       "keep_collinear": true,
       "algorithm": "graham",
       "hull_size": 32768,
-      "median_us": 4404.32
+      "median_us": 4534.07
     }
   ]
 }

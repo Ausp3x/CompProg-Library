@@ -1,3 +1,4 @@
+#pragma GCC diagnostic error "-Wnarrowing"
 #include "../../03-Geometry/01-point.hpp"
 
 namespace {
@@ -10,32 +11,32 @@ namespace {
         bool negative = x < 0; ulll value = negative ? ulll(0) - ulll(x) : ulll(x); string out;
         while (value) { out += char('0' + value % 10); value /= 10; }
         if (negative) { out += '-'; }
-        std::reverse(out.begin(), out.end()); return out; }
+        std::reverse(out.begin(), out.end()); return out;}
     string show(ulll x) {
         if (!x) { return "0"; }
         string out;
         while (x) { out += char('0' + x % 10); x /= 10; }
-        std::reverse(out.begin(), out.end()); return out; }
+        std::reverse(out.begin(), out.end()); return out;}
     template<typename T> string show(const T &x) {
-        std::ostringstream out; out << std::setprecision(24) << x; return out.str(); }
+        std::ostringstream out; out << std::setprecision(24) << x; return out.str();}
     template<typename T> string show(Point2<T> p) { return "(" + show(p.x) + "," + show(p.y) + ")"; }
     template<typename T> string show(Point3<T> p) { return "(" + show(p.x) + "," + show(p.y) + "," + show(p.z) + ")"; }
     template<typename T, typename U> void checkEqual(const T &got, const U &want, const string &operation) {
         ++checks;
         if (got != want) {
-            throw std::runtime_error(context + " operation=" + operation + " expected=" + show(want) + " actual=" + show(got)); }}
+            throw std::runtime_error(context + " operation=" + operation + " expected=" + show(want) + " actual=" + show(got));}}
     void close(long double got, long double want, const string &operation) {
         ++checks;
         long double tolerance = 128 * std::numeric_limits<long double>::epsilon() * std::max(1.L, std::abs(want));
         if (!std::isfinite(got) || std::abs(got - want) > tolerance) {
             throw std::runtime_error(context + " operation=" + operation + " expected=" + show(want) + " actual=" + show(got)
-                                     + " absolute-tolerance=" + show(tolerance)); }}
+                                     + " absolute-tolerance=" + show(tolerance));}}
     void closeRelative(long double got, long double want, const string &operation) {
         ++checks;
         long double tolerance = 128 * std::numeric_limits<long double>::epsilon() * std::abs(want);
         if (!std::isfinite(got) || std::abs(got - want) > tolerance) {
             throw std::runtime_error(context + " operation=" + operation + " expected=" + show(want) + " actual=" + show(got)
-                                     + " relative-tolerance=" + show(128 * std::numeric_limits<long double>::epsilon())); }}
+                                     + " relative-tolerance=" + show(128 * std::numeric_limits<long double>::epsilon()));}}
 
     // Leibniz determinant of homogeneous coordinates: independent of vector subtraction/cross.
     template<int N> lll determinant(const array<array<lll, N>, N> &a) {
@@ -45,14 +46,13 @@ namespace {
             for (int i = 0; i < N; ++i) {
                 term *= a[i][p[i]];
                 for (int j = 0; j < i; ++j) { inversions += p[j] > p[i]; }}
-            if (inversions & 1) { answer -= term; } else { answer += term; }
-        } while (std::next_permutation(p.begin(), p.end()));
-        return answer; }
+            answer += inversions & 1 ? -term : term;} while (std::next_permutation(p.begin(), p.end()));
+        return answer;}
     template<typename T> lll area(Point2<T> a, Point2<T> b, Point2<T> c) {
-        return determinant<3>({{{1, lll(a.x), lll(a.y)}, {1, lll(b.x), lll(b.y)}, {1, lll(c.x), lll(c.y)}}}); }
+        return determinant<3>({{{1, lll(a.x), lll(a.y)}, {1, lll(b.x), lll(b.y)}, {1, lll(c.x), lll(c.y)}}});}
     template<typename T> lll volume(Point3<T> a, Point3<T> b, Point3<T> c, Point3<T> d) {
         return determinant<4>({{{1, lll(a.x), lll(a.y), lll(a.z)}, {1, lll(b.x), lll(b.y), lll(b.z)},
-                               {1, lll(c.x), lll(c.y), lll(c.z)}, {1, lll(d.x), lll(d.y), lll(d.z)}}}); }
+                               {1, lll(c.x), lll(c.y), lll(c.z)}, {1, lll(d.x), lll(d.y), lll(d.z)}}});}
     template<typename T> lll referenceNorm(Point2<T> p) { return lll(p.x) * p.x + lll(p.y) * p.y; }
     template<typename T> lll referenceNorm(Point3<T> p) { return lll(p.x) * p.x + lll(p.y) * p.y + lll(p.z) * p.z; }
     template<typename T> void pair2(Point2<T> a, Point2<T> b) {
@@ -67,13 +67,13 @@ namespace {
         checkEqual(ulll(dot(a, b)) * ulll(dot(a, b)) + ulll(cross(a, b)) * ulll(cross(a, b)),
               ulll(referenceNorm(a)) * ulll(referenceNorm(b)), "2D Lagrange identity modulo 2^128");
         close(normApprox(a), std::hypot((long double)a.x, (long double)a.y), "2D normApprox");
-        close(distanceApprox(a, b), std::hypot((long double)x, (long double)y), "2D distanceApprox"); }
+        close(distanceApprox(a, b), std::hypot((long double)x, (long double)y), "2D distanceApprox");}
     template<typename T> void orient2(Point2<T> a, Point2<T> b, Point2<T> c) {
         context = "a=" + show(a) + " b=" + show(b) + " c=" + show(c);
         lll answer = area(a, b, c); int sign = (answer > 0) - (answer < 0);
         checkEqual(orient(a, b, c), sign, "homogeneous determinant orientation");
         checkEqual(orient(b, a, c), -sign, "orientation antisymmetry");
-        checkEqual(orient(b, c, a), sign, "orientation cyclic permutation"); }
+        checkEqual(orient(b, c, a), sign, "orientation cyclic permutation");}
     template<typename T> void pair3(Point3<T> a, Point3<T> b) {
         context = "a=" + show(a) + " b=" + show(b);
         lll x = lll(a.x) - b.x, y = lll(a.y) - b.y, z = lll(a.z) - b.z;
@@ -91,7 +91,7 @@ namespace {
         checkEqual(ulll(dot(a, b)) * ulll(dot(a, b)) + ulll(referenceNorm(c)), ulll(referenceNorm(a)) * ulll(referenceNorm(b)), "3D Lagrange identity modulo 2^128");
         close(normApprox(a), std::hypot((long double)a.x, (long double)a.y, (long double)a.z), "3D normApprox");
         close(distanceApprox(a, b), std::hypot((long double)x, (long double)y,
-                                              (long double)z), "3D distanceApprox"); }
+                                              (long double)z), "3D distanceApprox");}
     template<typename T> void triple3(Point3<T> a, Point3<T> b, Point3<T> c, Point3<T> d) {
         context = "a=" + show(a) + " b=" + show(b) + " c=" + show(c) + " d=" + show(d);
         lll expected = volume(Point3<T>{}, a, b, c), tetra = volume(a, b, c, d);
@@ -99,7 +99,7 @@ namespace {
         checkEqual(lll(triple(b, a, c)), lll(-expected), "scalar triple antisymmetry");
         checkEqual(lll(triple(b, c, a)), expected, "scalar triple cyclic permutation");
         checkEqual(lll(tetraVolume6(a, b, c, d)), tetra, "oriented tetrahedron homogeneous determinant");
-        checkEqual(lll(tetraVolume6(b, a, c, d)), lll(-tetra), "tetrahedron vertex transposition"); }
+        checkEqual(lll(tetraVolume6(b, a, c, d)), lll(-tetra), "tetrahedron vertex transposition");}
 
     template<typename T> void operators() {
         context = "coordinate type bytes=" + show(sizeof(T));
@@ -134,7 +134,7 @@ namespace {
         q += q; checkEqual(q, T(2) * c, "3D += self"); q -= q; checkEqual(q, Point3<T>{}, "3D -= self");
         checkEqual(c.template cast<long double>(), Point3<long double>{6, -9, 12}, "3D cast");
         auto copied = a; auto moved = std::move(copied); checkEqual(moved, a, "2D copy and move");
-        auto copied3 = c; auto moved3 = std::move(copied3); checkEqual(moved3, c, "3D copy and move"); }
+        auto copied3 = c; auto moved3 = std::move(copied3); checkEqual(moved3, c, "3D copy and move");}
 
     void polar() {
         int bound = mode == "quick" ? 2 : mode == "full" ? 3 : 4;
@@ -144,10 +144,10 @@ namespace {
         auto angle = [](Point2<lng> a) {
             if (a == Point2<lng>{}) { return -1.L; }
             long double v = std::atan2((long double)a.y, (long double)a.x);
-            return v < 0 ? v + 2 * std::acos(-1.L) : v; };
+            return v < 0 ? v + 2 * std::acos(-1.L) : v;};
         auto reference = [&](Point2<lng> a, Point2<lng> b) {
             long double x = angle(a), y = angle(b);
-            return x != y ? x < y : referenceNorm(a) < referenceNorm(b); };
+            return x != y ? x < y : referenceNorm(a) < referenceNorm(b);};
         for (auto a : p) {
             context = "polar a=" + show(a); checkEqual(polarLess(a, a), false, "polar irreflexivity");
             for (auto b : p) {
@@ -157,7 +157,7 @@ namespace {
                 for (auto c : p) {
                     if (polarLess(a, b) && polarLess(b, c)) {
                         context = "polar a=" + show(a) + " b=" + show(b) + " c=" + show(c);
-                        checkEqual(polarLess(a, c), true, "polar transitivity"); }}}}
+                        checkEqual(polarLess(a, c), true, "polar transitivity");}}}}
         std::mt19937_64 rng(seed); std::shuffle(p.begin(), p.end(), rng);
         vector<Point2<lng>> want = p;
         std::sort(p.begin(), p.end(), [](auto a, auto b) { return polarLess(a, b); });
@@ -169,7 +169,7 @@ namespace {
         checkEqual(polarLess(a, b), false, "large nearly parallel reversed order");
         checkEqual(polarLess(Point2<lng>{}, a), true, "zero before nonzero");
         checkEqual(polarLess(Point2<lng>{1, 0}, Point2<lng>{2, 0}), true, "same angle shorter first");
-        std::cout << "PASS polar zero/cut/radius policy, independent small-angle order and exhaustive strict ordering\n"; }
+        std::cout << "PASS polar zero/cut/radius policy, independent small-angle order and exhaustive strict ordering\n";}
 
     void exhaustive() {
         vector<Point2<int>> p;
@@ -181,14 +181,14 @@ namespace {
         vector<Point3<int>> corners;
         for (int x : {-1, 1}) { for (int y : {-1, 1}) { for (int z : {-1, 1}) { corners.emplace_back(x, y, z); }}}
         for (auto a : corners) { for (auto b : corners) { for (auto c : corners) { for (auto d : corners) { triple3(a, b, c, d); }}}}
-        std::cout << "PASS exhaustive 2D small lattice/orientations and 3D cube determinant/degeneracy corpus\n"; }
+        std::cout << "PASS exhaustive 2D small lattice/orientations and 3D cube determinant/degeneracy corpus\n";}
 
     void boundaries() {
         vector<lng> values{-1000000000, -999999999, -1, 0, 1, 999999999, 1000000000};
         for (lng x : values) { for (lng y : values) {
             pair2(Point2<lng>{x, y}, Point2<lng>{-y, -x});
             pair3(Point3<lng>{x, y, x}, Point3<lng>{-y, -x, -y});
-            triple3(Point3<lng>{x, y, x}, Point3<lng>{-x, x, y}, Point3<lng>{y, -x, -y}, Point3<lng>{-y, -y, -x}); }}
+            triple3(Point3<lng>{x, y, x}, Point3<lng>{-x, x, y}, Point3<lng>{y, -x, -y}, Point3<lng>{-y, -y, -x});}}
         Point2<int> a{INT_MIN, INT_MIN}, b{INT_MAX, INT_MAX}, c{INT_MIN, INT_MAX};
         pair2(a, b); orient2(a, b, c);
         Point3<int> d{INT_MIN, INT_MIN, INT_MIN}, e{INT_MAX, INT_MIN, INT_MIN}, f{INT_MIN, INT_MAX, INT_MIN}, g{INT_MIN, INT_MIN, INT_MAX};
@@ -206,7 +206,7 @@ namespace {
         checkEqual(Point3<int>{-7, 7, -1} / 2, Point3<int>{-3, 3, 0}, "3D integer division truncates toward zero");
         checkEqual(Point2<double>{2.75, -3.5}.cast<int>(), Point2<int>{2, -3}, "explicit floating to integral cast");
         checkEqual(Point3<double>{2.75, -3.5, 0.5}.cast<int>(), Point3<int>{2, -3, 0}, "explicit 3D floating to integral cast");
-        std::cout << "PASS guaranteed coordinate bounds, int32/int64/lll promotion regressions and division/cast semantics\n"; }
+        std::cout << "PASS guaranteed coordinate bounds, int32/int64/lll promotion regressions and division/cast semantics\n";}
 
     template<typename T> void floating() {
         Point2<T> a{T(0.5), T(-0.25)}, b{T(1.25), T(2)};
@@ -240,7 +240,7 @@ namespace {
             closeRelative(distanceApprox(p, q), std::hypot((long double)p.x - q.x, (long double)p.y - q.y), "scale-varying 2D distance");
             Point3<T> r{p.x, p.y, q.x}, s{q.x, q.y, p.x};
             closeRelative(normApprox(r), std::hypot((long double)r.x, (long double)r.y, (long double)r.z), "scale-varying 3D norm");
-            closeRelative(distanceApprox(r, s), std::hypot((long double)r.x - s.x, (long double)r.y - s.y, (long double)r.z - s.z), "scale-varying 3D distance"); }}
+            closeRelative(distanceApprox(r, s), std::hypot((long double)r.x - s.x, (long double)r.y - s.y, (long double)r.z - s.z), "scale-varying 3D distance");}}
 
     void randomCases() {
         std::mt19937_64 rng(seed); std::uniform_int_distribution<lng> dist(-1000000000, 1000000000);
@@ -253,8 +253,8 @@ namespace {
             auto translation = point2();
             checkEqual(orient(a + translation, b + translation, c + translation), orient(a, b, c), "translation invariant orientation");
             auto translation3 = point3();
-            checkEqual(tetraVolume6(d + translation3, e + translation3, f + translation3, g + translation3), tetraVolume6(d, e, f, g), "translation invariant volume"); }
-        std::cout << "PASS " << count << " seeded exact primitive/volume and translation-invariance cases\n"; }
+            checkEqual(tetraVolume6(d + translation3, e + translation3, f + translation3, g + translation3), tetraVolume6(d, e, f, g), "translation invariant volume");}
+        std::cout << "PASS " << count << " seeded exact primitive/volume and translation-invariance cases\n";}
 
     void pythonOracle() {
         const char *path = std::getenv("CP_POINT_ORACLE");
@@ -266,7 +266,7 @@ namespace {
             if (text.empty()) { throw std::runtime_error("truncated Python oracle"); }
             bool negative = text[0] == '-'; ulll value = 0;
             for (int i = negative; i < int(text.size()); ++i) { value = 10 * value + text[i] - '0'; }
-            return negative ? -lll(value) : lll(value); };
+            return negative ? -lll(value) : lll(value);};
         int dimension, count = 0;
         while (input >> dimension) {
             ++count;
@@ -275,7 +275,7 @@ namespace {
                 context = "Python exact record=" + show(count) + " a=" + show(a) + " b=" + show(b) + " c=" + show(c);
                 checkEqual(dot(a, b), expected(), "Python exact 2D dot"); checkEqual(cross(a, b), expected(), "Python exact 2D cross");
                 checkEqual(norm2(a), expected(), "Python exact 2D norm2"); checkEqual(dist2(a, b), expected(), "Python exact 2D dist2");
-                checkEqual(orient(a, b, c), expected(), "Python exact orientation"); }
+                checkEqual(orient(a, b, c), expected(), "Python exact orientation");}
             else if (dimension == 3) {
                 Point3<lng> a, b, c, d;
                 input >> a.x >> a.y >> a.z >> b.x >> b.y >> b.z >> c.x >> c.y >> c.z >> d.x >> d.y >> d.z;
@@ -284,12 +284,118 @@ namespace {
                 checkEqual(normal.x, expected(), "Python exact 3D cross x"); checkEqual(normal.y, expected(), "Python exact 3D cross y");
                 checkEqual(normal.z, expected(), "Python exact 3D cross z"); checkEqual(norm2(a), expected(), "Python exact 3D norm2");
                 checkEqual(dist2(a, b), expected(), "Python exact 3D dist2"); checkEqual(triple(a, b, c), expected(), "Python exact scalar triple");
-                checkEqual(tetraVolume6(a, b, c, d), expected(), "Python exact tetrahedron"); }
+                checkEqual(tetraVolume6(a, b, c, d), expected(), "Python exact tetrahedron");}
             else { throw std::runtime_error("unknown Python oracle dimension=" + show(dimension)); }}
         checkEqual(count > 0, true, "nonempty Python exact corpus");
-        std::cout << "PASS " << count << " independent arbitrary-precision Python primitive/orientation/volume records\n"; }
-}
+        std::cout << "PASS " << count << " independent arbitrary-precision Python primitive/orientation/volume records\n";}
 
+    // Key oracle: brute-force primitive divisor search, independent of gcd.
+    template<typename T> void canonicalCase(Point2<T> a) {
+        context = "canonicalDirection a=" + show(a);
+        auto k = canonicalDirection(a);
+        if (a == Point2<T>{}) { checkEqual(k, a, "zero direction key"); return; }
+        checkEqual(k.y > 0 || (k.y == 0 && k.x > 0), true, "key sign rule");
+        checkEqual(lll(gcd(lll(k.x), lll(k.y))), lll(1), "key primitive");
+        checkEqual(lll(cross(a, k)), lll(0), "key parallel to input");
+        lll g = k.x ? lll(a.x) / k.x : lll(a.y) / k.y;
+        checkEqual(lll(a.x) == g * k.x && lll(a.y) == g * k.y, true, "input is an integral multiple of key");
+        checkEqual(canonicalDirection(-a), k, "opposite directions share key");
+        checkEqual(canonicalDirection(k), k, "key idempotent");}
+    void directions() {
+        int bound = mode == "quick" ? 4 : mode == "full" ? 8 : 12;
+        vector<Point2<lng>> p;
+        for (lng x = -bound; x <= bound; ++x) { for (lng y = -bound; y <= bound; ++y) { p.emplace_back(x, y); }}
+        for (auto a : p) {
+            canonicalCase(a);
+            auto k = canonicalDirection(a);
+            bool primitive = true;
+            for (lng d = 2; d <= bound; ++d) { primitive &= k.x % d != 0 || k.y % d != 0; }
+            checkEqual(primitive || a == Point2<lng>{}, true, "key primitive by divisor search");
+            for (auto b : p) {
+                context = "canonicalDirection a=" + show(a) + " b=" + show(b);
+                bool same = (a == Point2<lng>{}) == (b == Point2<lng>{}) && cross(a, b) == 0;
+                checkEqual(canonicalDirection(a) == canonicalDirection(b), same, "equal keys iff parallel");}}
+        std::mt19937_64 rng(seed ^ 0x5eed); std::uniform_int_distribution<lng> big(-1000000000000000000, 1000000000000000000), small(-1000, 1000);
+        int count = mode == "quick" ? 200 : mode == "full" ? 5000 : 30000;
+        for (int i = 0; i < count; ++i) {
+            lng m = small(rng), x = small(rng), y = small(rng);
+            canonicalCase(Point2<lng>{big(rng), big(rng)});
+            if (m && (x || y) && std::gcd(x, y) == 1) {
+                Point2<lng> a{m * x, m * y}, k = y > 0 || (y == 0 && x > 0) ? Point2<lng>{x, y} : Point2<lng>{-x, -y};
+                context = "canonicalDirection scaled primitive a=" + show(a);
+                checkEqual(canonicalDirection(a), k, "scaled primitive recovers key");}}
+        canonicalCase(Point2<int>{INT_MAX, -INT_MAX}); canonicalCase(Point2<int>{INT_MIN + 2, 0});
+        canonicalCase(Point2<lng>{std::numeric_limits<lng>::max(), std::numeric_limits<lng>::max() - 1});
+        canonicalCase(Point2<lll>{lll(6) << 100, -(lll(4) << 100)});
+        canonicalCase(Point2<int8_t>{-128 + 2, 42}); canonicalCase(Point2<int16_t>{0, -32767});
+        context = "canonicalDirection fixed values";
+        checkEqual(canonicalDirection(Point2<lll>{lll(6) << 100, -(lll(4) << 100)}), Point2<lll>{-3, 2}, "lll key");
+        checkEqual(canonicalDirection(Point2<int>{0, -7}), Point2<int>{0, 1}, "vertical key");
+        checkEqual(canonicalDirection(Point2<int>{-7, 0}), Point2<int>{1, 0}, "horizontal key");
+        std::cout << "PASS canonicalDirection exhaustive parallel-class oracle, scaled primitives and width boundaries\n";}
+
+    // Angle oracles are trigonometric identities and the exact polar order, not atan2 comparisons.
+    template<typename T> void angleCase(Point2<T> a, Point2<T> b) {
+        context = "angles a=" + show(a) + " b=" + show(b);
+        long double pi = std::acos(-1.L), na = normApprox(a), c = static_cast<long double>(cross(a, b)), d = static_cast<long double>(dot(a, b));
+        long double t = argApprox(a), u = angleApprox(a, b), v = signedAngleApprox(a, b), w = std::hypot(c, d);
+        checkEqual(t > -pi && t <= pi, true, "arg range (-pi, pi]");
+        close(std::cos(t), static_cast<long double>(a.x) / na, "arg cosine identity");
+        close(std::sin(t), static_cast<long double>(a.y) / na, "arg sine identity");
+        checkEqual(u >= 0 && u <= pi, true, "angle range [0, pi]");
+        checkEqual(v > -pi && v <= pi, true, "signed angle range (-pi, pi]");
+        close(std::cos(u), d / w, "angle cosine identity"); close(std::sin(u), std::abs(c) / w, "angle sine identity");
+        close(std::cos(v), d / w, "signed angle cosine identity"); close(std::sin(v), c / w, "signed angle sine identity");
+        checkEqual(geometry_detail::sign(v), c == 0 ? (d < 0 ? 1 : 0) : geometry_detail::sign(c), "signed angle exact sign");
+        checkEqual(angleApprox(a, b), angleApprox(b, a), "angle symmetry");
+        close(std::abs(v), u, "signed angle magnitude");
+        auto e = unitApprox(a);
+        close(norm2(e), 1, "unit length"); close(e.x, static_cast<long double>(a.x) / na, "unit x"); close(e.y, static_cast<long double>(a.y) / na, "unit y");
+        Point3<T> a3{a.x, a.y, T(0)}, b3{b.x, b.y, T(0)};
+        close(angleApprox(a3, b3), u, "3D angle of embedded plane vectors");
+        auto e3 = unitApprox(a3); close(e3.x, e.x, "3D unit x"); close(e3.y, e.y, "3D unit y"); close(e3.z, 0, "3D unit z");}
+    void angles() {
+        int bound = mode == "quick" ? 2 : 4;
+        vector<Point2<lng>> p;
+        for (lng x = -bound; x <= bound; ++x) { for (lng y = -bound; y <= bound; ++y) { if (x || y) { p.emplace_back(x, y); }}}
+        long double pi = std::acos(-1.L);
+        auto turn = [&](long double x) { return x < 0 ? x + 2 * pi : x; };
+        for (auto a : p) {
+            for (auto b : p) {
+                angleCase(a, b);
+                context = "arg order a=" + show(a) + " b=" + show(b);
+                bool parallel = cross(a, b) == 0 && dot(a, b) > 0;
+                if (!parallel) { checkEqual(turn(argApprox(a)) < turn(argApprox(b)), polarLess(a, b), "arg agrees with exact polar order"); }}}
+        std::mt19937_64 rng(seed ^ 0xa11); std::uniform_int_distribution<lng> dist(-1000000000, 1000000000);
+        int count = mode == "quick" ? 200 : mode == "full" ? 5000 : 30000;
+        for (int i = 0; i < count; ++i) {
+            Point2<lng> a{dist(rng), dist(rng)}, b{dist(rng), dist(rng)};
+            if (a != Point2<lng>{} && b != Point2<lng>{}) { angleCase(a, b); angleCase(a, a * 3); angleCase(a, -a); angleCase(a, perp(a)); }
+            Point3<lng> c{dist(rng), dist(rng), dist(rng)}, d{dist(rng), dist(rng), dist(rng)};
+            context = "3D angle c=" + show(c) + " d=" + show(d);
+            long double u = angleApprox(c, d), n = std::hypot(static_cast<long double>(dot(c, d)), normApprox(cross(c, d).template cast<long double>()));
+            close(std::cos(u), static_cast<long double>(dot(c, d)) / n, "3D angle cosine identity");
+            close(std::sin(u), normApprox(cross(c, d).template cast<long double>()) / n, "3D angle sine identity");
+            auto e = unitApprox(c); close(norm2(e), 1, "3D unit length");}
+        context = "angle fixed values";
+        close(angleApprox(Point2<int>{1, 0}, Point2<int>{-1, 0}), pi, "straight angle");
+        close(signedAngleApprox(Point2<int>{1, 0}, Point2<int>{-1, 0}), pi, "straight signed angle is +pi");
+        close(signedAngleApprox(Point2<int>{1, 0}, Point2<int>{0, -1}), -pi / 2, "clockwise quarter");
+        close(argApprox(Point2<int>{-1, 0}), pi, "arg of -x is +pi");
+        close(argApprox(Point2<double>{-1, -0.}), pi, "arg of -x with negative zero is +pi");
+        close(signedAngleApprox(Point2<double>{-1, 0}, Point2<double>{1, 0}), pi, "floating opposite vectors give +pi");
+        close(angleApprox(Point3<int>{1, 0, 0}, Point3<int>{0, 0, 5}), pi / 2, "3D right angle");
+        closeRelative(angleApprox(Point2<double>{1, 1e-300}, Point2<double>{1, 0}), static_cast<long double>(1e-300), "tiny floating angle");
+        closeRelative(angleApprox(Point2<lng>{1000000000, 999999999}, Point2<lng>{999999999, 999999998}), std::atan2(1.L, 1999999996000000002.L), "near-parallel cross -1");
+        angleCase(Point2<double>{0.5, -0.25}, Point2<double>{1.25, 2}); angleCase(Point2<float>{-3, 4}, Point2<float>{4, 3});
+        angleCase(Point2<double>{-1, 0}, Point2<double>{1, 0}); angleCase(Point2<long double>{-2, 0}, Point2<long double>{3, 0});
+        angleCase(Point2<double>{-1, -0.}, Point2<double>{2, 0}); angleCase(Point2<double>{-1, -0.}, Point2<double>{-1, 1});
+        std::cout << "PASS arg/angle/signed angle/unit identities, exact polar-order agreement and 3D embedding\n";}
+} // namespace
+
+static_assert(std::is_same_v<point, Point2<lng>> && std::is_same_v<dpoint, Point2<long double>>);
+static_assert(std::is_same_v<decltype(unitApprox(Point3<int>{})), Point3<long double>>);
+static_assert(canonicalDirection(Point2<int8_t>{-4, 6}) == Point2<int8_t>{2, -3} * int8_t(-1));
 static_assert(std::is_same_v<decltype(dot(Point2<int>{}, Point2<int>{})), lll>);
 static_assert(std::is_same_v<decltype(cross(Point2<lng>{}, Point2<lng>{})), lll>);
 static_assert(std::is_same_v<decltype(cross(Point3<int>{}, Point3<int>{})), Point3<lll>>);
@@ -316,18 +422,24 @@ int main(int argc, char **argv) {
                 string probe = argv[++i];
                 if (probe == "division-zero-2d") { Point2<lng> p{1, 2}; p /= 0; }
                 else if (probe == "division-zero-3d") { Point3<lng> p{1, 2, 3}; p /= 0; }
+                else if (probe == "unit-zero") { (void)unitApprox(Point2<lng>{}); }
+                else if (probe == "arg-zero") { (void)argApprox(Point2<lng>{}); }
+                else if (probe == "angle-zero") { (void)angleApprox(Point2<lng>{1, 0}, Point2<lng>{}); }
+                else if (probe == "signed-angle-zero") { (void)signedAngleApprox(Point2<lng>{}, Point2<lng>{1, 0}); }
+                else if (probe == "angle3-zero") { (void)angleApprox(Point3<lng>{}, Point3<lng>{1, 0, 0}); }
+                else if (probe == "canonical-minimum") { (void)canonicalDirection(Point2<int>{INT_MIN, 0}); }
                 else { throw std::runtime_error("unknown invalid probe=" + probe); }
-                throw std::runtime_error("assertion probe returned=" + probe); }
+                throw std::runtime_error("assertion probe returned=" + probe);}
             else { throw std::runtime_error("unknown argument=" + arg); }}
         if (mode != "quick" && mode != "full" && mode != "stress") { throw std::runtime_error("unknown mode=" + mode); }
         std::cout << "RUN point mode=" << mode << " seed=" << seed << '\n';
-        operators<int>(); operators<lng>(); operators<lll>(); operators<float>(); operators<double>(); operators<long double>();
+        operators<int8_t>(); operators<int16_t>(); operators<int>(); operators<lng>(); operators<lll>(); operators<float>(); operators<double>(); operators<long double>();
         std::cout << "PASS all point constructors, arithmetic/mutating operators, aliasing, casts and value semantics\n";
         exhaustive(); boundaries(); polar(); floating<float>(); floating<double>(); floating<long double>();
         std::cout << "PASS float/double/long-double primitives, approximate roots and exact lexicographic comparison\n";
-        randomCases(); pythonOracle();
+        directions(); angles(); randomCases(); pythonOracle();
         std::cout << "PASS point checks=" << checks << " mode=" << mode << " seed=" << seed << '\n';
-        return 0;
-    } catch (const std::exception &error) {
-        std::cerr << "FAIL point mode=" << mode << " seed=" << seed << " smallest-known-reproducer: " << error.what() << '\n'; return 1; }
-}
+        return 0;}
+    catch (const std::exception &error) {
+        std::cerr << "FAIL point mode=" << mode << " seed=" << seed << " smallest-known-reproducer: " << error.what() << '\n';
+        return 1;}}

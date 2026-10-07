@@ -4,21 +4,8 @@
 #include <immintrin.h>
 #endif
 
-// Nonzero moduli: [1, 2^32) / [1, 2^64); the default is one. Do not modify
-// reducer fields: mod, mu (reciprocal; zero on special paths) and the mask flag
-// (power-of-two modulus). divMod/div/reduce accept every 64/128-bit dividend
-// and return the exact quotient (same width as the dividend) and remainder;
-// mul/pow accept arbitrary words. Results are canonical [0, mod); mod=1 returns
-// zero even for exponent=0. For all other moduli a^0=1, including a=0.
-// Generic reduction uses mu=floor(2^(2w)/mod), equal to
-// floor((2^(2w)-1)/mod) for non-powers of two. Special paths leave mu=0.
-// q=high(x*mu) is the true quotient or one less, so the
-// unreduced remainder is <2mod and one subtraction suffices. Keep w+1 bits.
-// Pointer mul: n>=0; buffers contain n words, are pairwise disjoint or have
-// exactly equal starts (in-place is supported); no alignment requirement.
-// Null pointers are allowed only for n=0. Stored fields are immutable state;
-// copies/moves are independent. No allocation, caches or global state.
 // S: O(1), Q: O(1), M: O(1); pow O(1 + log(e + 1)) for exponent e, pointer mul O(n).
+// Modulus in [1, 2^32), default 1; any dividend or operand word; results canonical in [0, mod).
 struct Barrett32 {
     uint mod;
     ulng mu;
@@ -55,11 +42,8 @@ struct Barrett32 {
 #endif
         for (; i < n; ++i) { out[i] = mul(a[i], b[i]); }}
 
-    // Fixed ordinary multiplier (Shoup): value=b%mod, mu=floor(value*2^32/mod).
-    // a*mu/2^32 underestimates a*value/mod by <1: the floored quotient is
-    // at most one short and the residual is <2mod.
-    // Same input, output, state and pointer contracts as the parent reducer.
     // S: O(1), Q: O(1), M: O(1); pointer mul O(n).
+    // Shoup factor: value = b % mod, mu = floor(value * 2^32 / mod); the quotient is at most one short.
     struct Multiplier {
         uint mod, value, mu;
         bool mask;
@@ -96,6 +80,7 @@ struct Barrett32 {
 };
 
 // S: O(1), Q: O(1), M: O(1); pow O(1 + log(e + 1)) for exponent e, pointer mul O(n).
+// Modulus in [1, 2^64), default 1; any dividend or operand word; results canonical in [0, mod).
 struct Barrett64 {
     static constexpr ulng MERSENNE61 = (ulng(1) << 61) - 1;
     ulng mod;
@@ -133,9 +118,8 @@ struct Barrett64 {
         assert(n >= 0 && (!n || (a && b && out)));
         for (int i = 0; i < n; ++i) { out[i] = mul(a[i], b[i]); }}
 
-    // Fixed ordinary multiplier, with 128-bit intermediates retaining the
-    // 65th residual bit for full-width moduli. Independent of reducer lifetime.
     // S: O(1), Q: O(1), M: O(1); pointer mul O(n).
+    // 128-bit intermediates keep the 65th residual bit for full-width moduli.
     struct Multiplier {
         ulng mod, value, mu;
         bool mask;

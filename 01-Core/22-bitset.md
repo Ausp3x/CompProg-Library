@@ -18,6 +18,24 @@ The later [Core migration](../00-Guidelines/22-core-migration.md) moved the head
 
 The fields and kernel helpers (`apply`, `applyVector`, `popcounts`, `countWords`, `shiftWords`, `range`, `countWith`) remain public to follow the contest-library convention; they are representation details rather than extra supported operations. External code must not mutate `n` or `a`, call unlisted kernels, or retain a mutable raw alias to storage. All API operations maintain `a.size() == ceil(n / 64)` and zero unused high bits. Bit proxies and block spans invalidate on resize, clear, push/pop, assignment, move and swap. Other bit mutations preserve them. There are no owning iterators or hidden caches, and concurrent mutation is outside the contract.
 
+## Contracts
+
+### Bitset
+
+Runtime length `n`, bit 0 least significant, ranges half-open `[l, r)`. Boolean operations, `isSubsetOf` and `intersects` require equal sizes; equality does not. Shifts by at least `size()` yield zero; rotations reduce modulo `size()` and leave an empty set unchanged. Scans return `size()` on absence; `findNext`/`findPrev` are strictly after/before `p <= size()`. Public `n` and `a` are representation, not mutation APIs: `a.size() == ceil(n / 64)` with zero padding. Proxies and block spans invalidate on resize, clear, push/pop, move, assignment and swap; other mutations preserve them, and scans keep no persistent iterators. Not thread-safe. Every mutating operation supports self-aliasing; moved-from objects are empty. Resize costs worst-case O(old words + new words) on growth and O(1) on shrink; `pushBack` is amortized O(1); `popBack`, `clear`, `swap`, `size`, `empty` and `blocks` are O(1). Rotation, copies and nonmutating operators use O(ceil(n / 64)) extra result or workspace.
+
+### shiftWords
+
+`dst[i] OP= word i of x shifted by s < 64` for `i` in `[0, words)`. Left reads `x[i]`, `x[i - 1]` descending; right reads `x[i]`, `x[i + 1]` ascending. The outer neighbour (`x[-1]` or `x[words]`) is read only when `s != 0`. Each group loads its sources before storing, so `dst` may overlap `x` in the direction of travel.
+
+### combineShift
+
+`this OP= (b shifted k)` with equal sizes; `b` may alias `this` with original-value semantics, still in O(1) workspace.
+
+### combineRange
+
+`this[l, r) OP= b[p, p + (r - l))`; sizes may differ, and when `b` aliases `this` its source range is copied first, costing O(1 + (r - l) / 64) workspace.
+
 ## Complexity and correctness argument
 
 Let `W = ceil(n / 64)`. Bulk operations and scans take worst-case `O(W)` time; scans and Boolean predicates stop early when possible. Single-bit access, size, clear, swap and span access take constant time. Range work takes `O(1 + (r-l)/64)`. Growing resize takes worst-case `O(old W + new W)` if allocation moves existing words; pushBack is amortized constant time. Shrink/pop are constant time. Text import/export take `O(n)` time. Stored memory is `O(W)`; text export uses `O(n)` returned memory, copying/nonmutating operators and rotation use `O(W)` result/workspace, and fused mutations use constant workspace.

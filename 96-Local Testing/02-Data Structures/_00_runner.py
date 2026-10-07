@@ -57,7 +57,7 @@ def main(stem, invalid):
             for label, flags in variants:
                 binary = Path(name) / label
                 print(f'RUN {stem} configuration={label} mode={args.mode} seed={args.seed}', flush=True)
-                run([compiler, '-std=gnu++20', *flags, str(HERE / (stem + '_tester.cpp')), '-o', str(binary)])
+                run([compiler, '-std=gnu++20', '-Wall', '-Wextra', '-Wconversion', '-Werror', *flags, str(HERE / (stem + '_tester.cpp')), '-o', str(binary)])
                 run([str(binary), '--mode', args.mode, '--seed', str(args.seed)])
                 if label == 'checked':
                     for probe in invalid:

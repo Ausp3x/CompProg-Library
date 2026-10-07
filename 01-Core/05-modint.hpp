@@ -7,8 +7,7 @@ namespace modint_detail {
     template<typename T>
     concept Integer = std::is_integral_v<T> || std::is_same_v<T, lll> || std::is_same_v<T, ulll>;
 
-    // Deterministic Miller-Rabin on the entire unsigned 64-bit domain.
-    // T: O(log(m)), M: O(1), with seven fixed witnesses.
+    // T: O(log(m)), M: O(1); deterministic Miller-Rabin with seven witnesses over all of ulng.
     constexpr bool isPrime(ulng m) {
         if (m < 2) { return false; }
         for (uint p : {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}) {
@@ -25,9 +24,7 @@ namespace modint_detail {
             if (i == s) { return false; }}
         return true;}
 
-    // GCC's constant-modulus specialization regresses this full-width REDC loop;
-    // retain the measured generic kernel, including setup. See 24-modint.md.
-    // T: O(1 + log(e + 1)), M: O(1); odd modulus, ordinary input/output.
+    // T: O(1 + log(e + 1)), M: O(1); odd modulus, ordinary residues in and out.
     [[gnu::noinline, gnu::noipa]] inline ulng powerMontgomery(ulng a, ulng m, ulll e) {
         Montgomery64 c(m); ulng x = c.init(a), r = c.init(1);
         while (e) {
@@ -36,15 +33,12 @@ namespace modint_detail {
         return c.get(r);}
 
     inline constexpr ulng MERSENNE61 = (ulng(1) << 61) - 1;
-    // One fold of x = h * 2^61 + l to h + l < 2 * MERSENNE61; needs x < 2^61 * MERSENNE61.
-    // T: O(1), M: O(1).
+    // T: O(1), M: O(1); x < 2^61 * MERSENNE61 folds to h + l < 2 * MERSENNE61.
     constexpr ulng fold61(ulll x) {
         ulng r = ulng(x >> 61) + (ulng(x) & MERSENNE61);
         return r >= MERSENNE61 ? r - MERSENNE61 : r;}
 
-    // Contexts are shared per exact type; callers must not modify their fields.
-    // red accepts every double-width dividend; mul takes canonical factors.
-    // S: O(log(M)), Q: O(1), M: O(1); static primality is compile-time.
+    // S: O(log(M)), Q: O(1), M: O(1); red takes any double-width dividend, mul canonical factors.
     template<typename T, T M, int ID, bool STATIC = (M != 0)>
     struct Context {
         static_assert(M > 0);
@@ -62,11 +56,8 @@ namespace modint_detail {
             else { return red(Wide(a) * b); }}
     };
 
-    // All old values/caches become stale on every setMod, even with the same m.
-    // No generation tag: stale storage may be copied, discarded or overwritten;
-    // copies remain stale and cannot be read as live values or used in arithmetic.
-    // prm=-1 detects primality; 0 disables the prime flag; 1 promises a prime.
-    // S: O(log(m)) automatic/checked-prime, O(1) with prm=0; M: O(1) per ID/width.
+    // S: O(log(m)), O(1) with prm = 0; M: O(1) per ID and width.
+    // setMod stales every old value even for the same m; prm -1 detects, 0 clears, 1 promises a prime.
     template<typename T, T M, int ID>
     struct Context<T, M, ID, false> {
         using Word = T;
@@ -92,14 +83,8 @@ namespace modint_detail {
             return red(Wide(a) * b);}
     };
 
-    // Canonical n in [0,mod). Do not mutate n except to another canonical value.
-    // Arithmetic and raw/init require live values. Division/inv and negative pow
-    // require units; tryInv/batchInv report nonunits without changing output.
-    // Modulus one is the zero ring: its sole element is a unit, inverse=0, 0^0=0.
-    // Comparisons order canonical representatives. Integer casts require a fit.
-    // sqrt/trySqrt require a prime flag; sqrt returns -1 for no root, otherwise the
-    // smaller root (so its sentinel cannot collide). Prefer trySqrt's bool status.
-    // S: O(1), Q: O(1), M: O(1); pow/inv/root/batch/stream bounds below.
+    // S: O(1), Q: O(1), M: O(1); operation bounds below.
+    // Canonical n in [0, mod); inv needs a unit (tryInv returns false); sqrt returns -1 without a root.
     template<typename C>
     struct Value : C {
         using Word = typename C::Word;
@@ -107,7 +92,6 @@ namespace modint_detail {
         Word n;
 
         static constexpr Word mod() { return C::MOD; }
-        // Native widths reduce their magnitude in their own word; only 128-bit inputs divide wide.
         template<modint_detail::Integer T> static constexpr Word norm(T a) {
             if constexpr (std::is_same_v<T, lll>) { lll r = a % lll(mod()); return Word(r < 0 ? r + mod() : r); }
             else if constexpr (std::is_same_v<T, ulll>) { return Word(a % mod()); }
@@ -148,7 +132,7 @@ namespace modint_detail {
         friend constexpr bool operator==(Value a, Value b) { return a.n == b.n; }
         friend constexpr auto operator<=>(Value a, Value b) { return a.n <=> b.n; }
 
-        // T: O(log(mod())), M: O(1). Euclidean coefficients fit signed 128 bits.
+        // T: O(log(mod())), M: O(1).
         friend constexpr bool tryInv(Value a, Value &out) {
             Word r = a.n, s = mod(); lll x = 1, y = 0;
             while (s) {
@@ -159,8 +143,7 @@ namespace modint_detail {
         friend constexpr Value inv(Value a) {
             Value r; bool ok = tryInv(a, r); assert(ok); (void)ok; return r;}
 
-        // T: O(1 + log(|e| + 1)), plus O(log(mod())) for e<0; M: O(1).
-        // All native integer exponent widths, including signed minima.
+        // T: O(1 + log(|e| + 1)), plus O(log(mod())) for e < 0; M: O(1).
         template<modint_detail::Integer T> friend constexpr Value pow(Value a, T e) {
             ulll b = ulll(e);
             if constexpr (std::is_signed_v<T> || std::is_same_v<T, lll>) {
@@ -172,9 +155,7 @@ namespace modint_detail {
             for (; b > 1; b >>= 1, a *= a) { if (b & 1) { r *= a; } }
             return b ? r * a : r;}
 
-        // Tonelli-Shanks: T: O((z + log(p)) * log(p)), M: O(1), p=mod();
-        // z is the first quadratic nonresidue searched from 2 (only p%4==1).
-        // No probabilistic runtime claim: deterministic search, exact result.
+        // T: O((z + log(p)) * log(p)), M: O(1); p = mod(), z = first nonresidue from 2.
         friend constexpr bool trySqrt(Value a, Value &out) {
             assert(C::is_prime);
             if (a.n < 2 || mod() == 2) { out = a; return true; }
@@ -196,8 +177,7 @@ namespace modint_detail {
             out = init(min(x.n, Word(mod() - x.n))); return true;}
         friend constexpr Value sqrt(Value a) { Value r; return trySqrt(a, r) ? r : init(mod() - 1); }
 
-        // T: O(k + log(mod())), M: O(k) temporary/output; k=a.size() <= INT_MAX.
-        // One inverse; empty succeeds. Output unchanged on failure; a/out may alias.
+        // T: O(k + log(mod())), M: O(k); k = a.size() <= INT_MAX, output unchanged on failure.
         friend bool batchInv(const vector<Value> &a, vector<Value> &out) {
             assert(a.size() <= INT_MAX); int k = int(a.size());
             vector<Value> r(k); Value p = 1;
@@ -206,8 +186,7 @@ namespace modint_detail {
             for (int i = k; i-- > 0;) { Value v = a[i]; r[i] *= p; p *= v; }
             out = std::move(r); return true;}
 
-        // T: O(d), M: O(d) token buffer; arbitrary-length signed decimal only.
-        // Malformed token sets failbit and preserves the destination.
+        // T: O(d), M: O(d); one signed decimal token, failbit preserves the destination.
         friend istream &operator>>(istream &is, Value &a) {
             string s; if (!(is >> s)) { return is; }
             size_t i = (s[0] == '+' || s[0] == '-'); // string supports full size_t.
@@ -221,37 +200,20 @@ namespace modint_detail {
     };
 } // namespace modint_detail
 
-// Full nonzero uint modulus domain; arithmetic is constexpr, canonical storage.
-// S: O(1), Q: O(1), M: O(1); exceptional operation bounds on Value above.
+// S: O(1), Q: O(1), M: O(1); static modulus in [1, 2^32) or [1, 2^64).
 template<uint MOD> requires (MOD > 0)
 using ModInt = modint_detail::Value<modint_detail::Context<uint, MOD, 0>>;
-
-// Full nonzero ulng modulus domain; same operations/contracts as ModInt.
-// S: O(1), Q: O(1), M: O(1); pow/inv/root/batch/stream bounds in 05-modint.hpp.
 template<ulng MOD> requires (MOD > 0)
 using ModInt64 = modint_detail::Value<modint_detail::Context<ulng, MOD, 0>>;
 
-// Full nonzero uint modulus; independent per ID, default 998244353.
-// setMod invalidates all prior values/caches, even if the modulus is unchanged.
-// Fields of the shared context are read-only; use setMod. Single-threaded.
-// S: O(log(mod)) auto-primality, Q: O(1), M: O(1) per value and per ID.
-// pow/inv/root/batch/stream bounds and failure contracts in 05-modint.hpp.
+// Runtime modulus per ID and width, default 998244353; single-threaded.
 template<int ID = 0> using DynModInt = modint_detail::Value<modint_detail::Context<uint, 0, ID>>;
-
-// Full nonzero ulng modulus; independent per ID and from DynModInt's IDs.
-// Default 998244353; setMod invalidates all prior values/caches on every call.
-// Fields of the shared context are read-only; use setMod. Single-threaded.
-// S: O(log(mod)) auto-primality, Q: O(1), M: O(1) per value and per ID.
-// pow/inv/root/batch/stream bounds and failure contracts in 05-modint.hpp.
 template<int ID = 0> using DynModInt64 = modint_detail::Value<modint_detail::Context<ulng, 0, ID>>;
 
-// Prime 2^61-1 for hashing: products fold instead of dividing; same API as ModInt64.
-// S: O(1), Q: O(1), M: O(1); pow/inv/root/batch/stream bounds in 05-modint.hpp.
 using ModInt61 = ModInt64<modint_detail::MERSENNE61>;
 
 using mint = ModInt<998244353>;
 
-// Residue types of this family, full or mini, for generic code; a static one has a constant mod().
 template<typename T> concept ModularInt = requires(T a) {
     typename T::Word; { T::mod() } -> std::same_as<typename T::Word>; { a.val() } -> std::same_as<typename T::Word>; a.n;};
 template<typename T> concept StaticModularInt = ModularInt<T> && requires { std::integral_constant<typename T::Word, T::mod()>{}; };

@@ -30,6 +30,21 @@ Catalog inspection establishes operation names and testable families, never impl
 | NetworkX algorithm reference | https://networkx.org/documentation/stable/reference/algorithms/index.html | 2026-10-06 | 72 category headings: chains and ear decompositions (60), cores and greedy coloring (42), covering (21/22), dominance frontier (24), dominating sets (49), graphical degree sequences (39), isomorphism VF2/WL (54), simple paths (59), time dependent (55), tournament (77), walks (53), threshold graphs (87); centrality, communities, link analysis, planar drawing and similarity not adopted |
 | OGDF decomposition group | https://ogdf.github.io/doc/ogdf/group__decomp.html | 2026-10-06 | 9 classes: static/dynamic SPQR trees (61), DynamicBCTree (27 incremental block-cut tree); GraphReduction and planar SPQR variants not adopted |
 
+## Pages fetched on 2026-10-07 (P010 re-audit)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| maspypy graph base | https://maspypy.github.io/library/graph/base.hpp | 2026-10-07 | Degree arrays, endpoint edge lookup and `rearrange` with kept edge IDs (row 01; `inducedSubgraph` keeps an edge map, the rest omitted in 80-notes) |
+| maspypy find_cycle, find_odd_cycle | https://maspypy.github.io/library/graph/find_cycle.hpp | 2026-10-07 | Minimal cycle and directed odd cycle candidates, omitted for row 68 |
+| Nyaan graph template and utility | https://nyaannyaan.github.io/library/graph/graph-template.hpp | 2026-10-07 | Row 01 storage comparison; tree utilities belong to row 14 |
+| cp-algorithms, Depth-first search | https://cp-algorithms.com/graph/depth-first-search.html | 2026-10-07 | Entry/exit times and edge classification, derivable from `order`/`postorder` |
+| cp-algorithms, Breadth-first search | https://cp-algorithms.com/graph/breadth-first-search.html | 2026-10-07 | Shortest-path DAG vertices/edges (row 13) and BFS tie order |
+| OI Wiki, 拓扑排序 | https://oi-wiki.org/graph/topo/ | 2026-10-07 | Unique-order check (`TopologicalResult::unique`), lexicographic orders |
+| OI Wiki, 最小生成树 | https://oi-wiki.org/graph/mst/ | 2026-10-07 | Kruskal reconstruction tree DFS-order leaf intervals (`leafRange`), maximum spanning forests |
+| OI Wiki, 同余最短路 | https://oi-wiki.org/graph/mod-shortest-path/ | 2026-10-07 | Congruence shortest path, candidate for row 13 |
+| hitonanode shortest_path | https://hitonanode.github.io/cplib-cpp/graph/shortest_path.hpp | 2026-10-07 | 0/c-weight BFS, omitted as a scaling of `zeroOneBfs` |
+| maspypy minimum_spanning_tree | https://maspypy.github.io/library/graph/minimum_spanning_tree.hpp | 2026-10-07 | MST operation list; cycle data and second-best MST belong to row 52 |
+
 ## Source keys
 
 Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder.

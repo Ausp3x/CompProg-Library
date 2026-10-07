@@ -59,7 +59,13 @@ namespace {
         require(collinear(s,t) == bool(bits & 1) && collinear(t,s) == bool(bits & 1), "collinearity symmetric degeneracies"); bits >>= 1;
         for (point p : {s.a,s.b,t.a,t.b,point{}}) {
             require(contains(s,p) == bool(bits & 1), "contains " + show(p)); bits >>= 1;
-            require(onSegment(p,s.a,s.b) == bool(bits & 1), "onSegment " + show(p)); bits >>= 1;}}
+            require(onSegment(p,s.a,s.b) == bool(bits & 1), "onSegment " + show(p)); bits >>= 1;}
+        require(orthogonal(s,t) == bool(bits & 1) && orthogonal(t,s) == bool(bits & 1), "orthogonal including zero direction");
+        if (s.a != s.b && t.a != t.b) {
+            auto k = canonicalLine(s), l = canonicalLine(t);
+            require((k == l) == collinear(s,t), "canonical line keys equal iff same supporting line");
+            require(std::gcd(k[0],k[1]) == 1 && (k[1] > 0 || (k[1] == 0 && k[0] > 0)), "canonical line normalization");
+            for (point p : {s.a,s.b}) { require(lll(k[0]) * p.x + lll(k[1]) * p.y == k[2], "canonical line passes through endpoints"); }}}
     void metricFixture(istream &in) {
         point p,a,b,c; long double pd,sd,px,py,rx,ry,ld;
         in >> p.x >> p.y >> a.x >> a.y >> b.x >> b.y >> c.x >> c.y >> pd >> sd >> px >> py >> rx >> ry >> ld;
@@ -81,17 +87,52 @@ namespace {
         close(qq.x,px,"floating projection x",scale); close(qq.y,py,"floating projection y",scale);
         close(rr.x,rx,"floating reflection x",scale); close(rr.y,ry,"floating reflection y",scale);
         close(signedLineDistanceApprox(pp,aa,bb),ld,"floating signed line distance");}
+    void gridFixture(istream &in) {
+        point a,b; lng lattice,cells;
+        in >> a.x >> a.y >> b.x >> b.y >> lattice >> cells;
+        context = "a=" + show(a) + " b=" + show(b);
+        require(latticeOnSegment(a,b) == lattice && latticeOnSegment(b,a) == lattice, "lattice points on segment", std::to_string(lattice), std::to_string(latticeOnSegment(a,b)));
+        require(gridCellsCrossed(a,b) == cells && gridCellsCrossed(b,a) == cells, "grid cells crossed", std::to_string(cells), std::to_string(gridCellsCrossed(a,b)));}
+    void constructionFixture(istream &in) {
+        point p,a,b,c; long double ld,mx,my,nx,ny,wx,wy,rx,ry;
+        in >> p.x >> p.y >> a.x >> a.y >> b.x >> b.y >> c.x >> c.y >> ld >> mx >> my >> nx >> ny >> wx >> wy >> rx >> ry;
+        context = "p=" + show(p) + " a=" + show(a) + " b=" + show(b) + " c=" + show(c);
+        long double scale = 0;
+        for (point q : {p,a,b,c}) { scale = max({scale,std::abs(static_cast<long double>(q.x)),std::abs(static_cast<long double>(q.y))}); }
+        close(lineDistanceApprox(a,b,p,c),ld,"distance between lines",scale);
+        close(lineDistanceApprox(b,a,c,p),ld,"line distance endpoint reversal",scale);
+        auto m = perpendicularBisectorApprox(a,b);
+        close(m[0].x,mx,"perpendicular bisector midpoint x",scale); close(m[0].y,my,"perpendicular bisector midpoint y",scale);
+        close(m[1].x,nx,"perpendicular bisector through x",scale); close(m[1].y,ny,"perpendicular bisector through y",scale);
+        require(signedLineDistanceApprox(a.cast<long double>(),m[0],m[1]) > 0 && signedLineDistanceApprox(b.cast<long double>(),m[0],m[1]) < 0, "bisector keeps a on the left");
+        auto w = angleBisectorApprox(a,p,b);
+        close(w[0].x,static_cast<long double>(p.x),"angle bisector vertex x"); close(w[0].y,static_cast<long double>(p.y),"angle bisector vertex y");
+        // Two returned points carry direction error ~ulp(coordinate) / arm length.
+        long double arm = max(distanceApprox(a,p),distanceApprox(b,p)), conditioning = max(1.L,scale / arm);
+        require(distanceApprox(w[0],w[1]) >= std::sqrt(2.L) * arm * (1 - 1e-15L),"angle bisector second point at least the longer arm away");
+        dpoint e = unitApprox(w[1] - w[0]);
+        close(e.x,wx,"angle bisector unit direction x",conditioning); close(e.y,wy,"angle bisector unit direction y",conditioning);
+        dpoint r = reflectDirectionApprox(p,a,b);
+        close(r.x,rx,"reflected direction x",scale); close(r.y,ry,"reflected direction y",scale);
+        dpoint pp = p.cast<long double>(), aa = a.cast<long double>(), bb = b.cast<long double>(), cc = c.cast<long double>();
+        close(lineDistanceApprox(aa,bb,pp,cc),ld,"floating distance between lines",scale);
+        e = unitApprox(angleBisectorApprox(aa,pp,bb)[1] - pp);
+        close(e.x,wx,"floating angle bisector x",conditioning); close(e.y,wy,"floating angle bisector y",conditioning);
+        r = reflectDirectionApprox(pp,aa,bb); close(r.x,rx,"floating reflected direction x",scale); close(r.y,ry,"floating reflected direction y",scale);}
     void fixtures() {
         const char *path = std::getenv("CP_LINE_ORACLE");
         require(path,"Python oracle fixture supplied"); std::ifstream in(path); require(bool(in),"open Python oracle");
-        string tag; lng intersections = 0, metrics = 0;
+        string tag; lng intersections = 0, metrics = 0, grids = 0, constructions = 0;
         while (in >> tag) {
             if (tag == "I") { intersectionFixture(in); ++intersections; }
             else if (tag == "M") { metricFixture(in); ++metrics; }
+            else if (tag == "G") { gridFixture(in); ++grids; }
+            else if (tag == "X") { constructionFixture(in); ++constructions; }
             else { throw std::runtime_error("unknown fixture tag " + tag); }
             require(bool(in),"complete Python fixture");}
-        require(in.eof() && intersections && metrics,"nonempty complete oracle corpus");
-        std::cout << "PASS Python Fraction exact topology fixtures=" << intersections << ", 80-digit Decimal metric fixtures=" << metrics << '\n';}
+        require(in.eof() && intersections && metrics && grids && constructions,"nonempty complete oracle corpus");
+        std::cout << "PASS Python Fraction exact topology fixtures=" << intersections << ", 80-digit Decimal metric fixtures=" << metrics
+                  << ", enumerated lattice/cell fixtures=" << grids << ", Decimal construction fixtures=" << constructions << '\n';}
     void values() {
         context = "rational normalization";
         require(RationalPoint2{} == RationalPoint2(0,0,-5),"zero rational");
@@ -108,7 +149,7 @@ namespace {
         for (point b : {point{},point{2,3}}) {
             array<Linear2,3> made{Linear2::segment({},b),Linear2::ray({},b),Linear2::line({},b)};
             for (int i = 0; i < 3; ++i) {
-                require(made[i].kind == LinearKind(i) && made[i].a == point{} && made[i].b == b,"named object factory fields"); }}
+                require(made[i].kind == LinearKind(i) && made[i].a == point{} && made[i].b == b,"named object factory fields");}}
         dpoint p{.5L,1.25L}, x{-1.5L,.25L}, y{2.5L,.25L};
         close(projectLineApprox(p,x,y).x,.5L,"fractional projection"); close(reflectLineApprox(p,x,y).y,-.75L,"fractional reflection");
         close(signedLineDistanceApprox(p,x,y),1,"fractional signed distance"); close(pointSegmentDistanceApprox(p,x,y),1,"fractional segment distance");
@@ -120,6 +161,15 @@ namespace {
             close(signedLineDistanceApprox(p,a,b),std::sqrt(29.L),"alternate coordinate type line distance");
             close(pointSegmentDistanceApprox(p,a,b),std::sqrt(29.L),"alternate coordinate type segment distance");};
         metricType(int(0)); metricType(float(0));
+        context = "lattice extremes";
+        require(latticeOnSegment({-1000000000,-1000000000},{1000000000,1000000000}) == 2000000001,"diagonal lattice count");
+        require(gridCellsCrossed({-1000000000,-1000000000},{1000000000,1000000000}) == 2000000000,"diagonal cells");
+        require(latticeOnSegment({-1000000000,-1000000000},{1000000000,999999999}) == 2,"coprime lattice count");
+        require(gridCellsCrossed({-1000000000,-1000000000},{1000000000,999999999}) == 3999999998,"coprime cells");
+        require(canonicalLine(Linear2::ray({1000000000,-1000000000},{-1000000000,1000000000})) == array<lng,3>{1,1,0},"extreme canonical line");
+        require(canonicalLine(Linear2::segment({-1000000000,1000000000},{1000000000,999999999})) == array<lng,3>{1,2000000000,1999999999000000000},"extreme canonical constant");
+        require(lineDistanceApprox(point{0,0},point{2,0},point{5,3},point{5,3}) == 3,"point-to-line through singleton second line");
+        require(lineDistanceApprox(point{0,0},point{2,0},point{5,3},point{4,3}) == 3,"antiparallel lines");
         std::cout << "PASS rational normalization, value semantics and fractional floating inputs\n";}
     void invalid(const string &name) {
         point a{}, b{1,1};
@@ -137,10 +187,18 @@ namespace {
         else if (name == "metric-infinity") { (void)projectLineApprox(dpoint{std::numeric_limits<long double>::infinity(),0},dpoint{},dpoint{1,1}); }
         else if (name == "metric-nan") { (void)pointSegmentDistanceApprox(dpoint{0,std::numeric_limits<long double>::quiet_NaN()},dpoint{},dpoint{1,1}); }
         else if (name == "metric-overflow") { (void)pointSegmentDistanceApprox(dpoint{},dpoint{},dpoint{std::numeric_limits<long double>::max(),0}); }
+        else if (name == "canonical-singleton") { (void)canonicalLine(Linear2::line(a,a)); }
+        else if (name == "lattice-large") { (void)latticeOnSegment(a,{0,1000000001}); }
+        else if (name == "cells-large") { (void)gridCellsCrossed({-1000000001,0},a); }
+        else if (name == "line-distance-singleton") { (void)lineDistanceApprox(a,a,a,b); }
+        else if (name == "line-distance-large") { (void)lineDistanceApprox(a,b,a,point{0,1000000001}); }
+        else if (name == "bisector-singleton") { (void)perpendicularBisectorApprox(b,b); }
+        else if (name == "angle-bisector-singleton") { (void)angleBisectorApprox(a,a,b); }
+        else if (name == "reflect-direction-singleton") { (void)reflectDirectionApprox(b,a,a); }
         else if (name == "metric-underflow") { (void)pointSegmentDistanceApprox(dpoint{},dpoint{},dpoint{std::numeric_limits<long double>::min(),0}); }
         else { throw std::runtime_error("unknown probe " + name); }
         throw std::runtime_error("precondition survived " + name);}
-}
+} // namespace
 
 int main(int argc, char **argv) {
     try {
@@ -154,7 +212,7 @@ int main(int argc, char **argv) {
         if (mode != "quick" && mode != "full" && mode != "stress") { throw std::runtime_error("unknown mode " + mode); }
         std::cout << "line_segment seed=" << seed << " mode=" << mode << '\n';
         if (!probe.empty()) { invalid(probe); }
-        values(); fixtures(); std::cout << "PASS line_segment checks=" << checks << '\n'; return 0;
-    } catch (const std::exception &e) {
-        std::cerr << "FAIL line_segment seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1; }
-}
+        values(); fixtures(); std::cout << "PASS line_segment checks=" << checks << '\n'; return 0;}
+    catch (const std::exception &e) {
+        std::cerr << "FAIL line_segment seed=" << seed << " mode=" << mode << " " << e.what() << '\n';
+        return 1;}}

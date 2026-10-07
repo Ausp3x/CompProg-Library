@@ -14,280 +14,448 @@
   "units": "microseconds",
   "statistic": "median",
   "setup": "algorithm allocations and sorting included; input generation and result checking excluded",
-  "memory": "closestPair: O(n) auxiliary, 2 * n int arrays generally and n int indices for duplicate/axis-collinear early returns, plus sorting/recursion stack; legacy: 2 * n int arrays plus sorting/recursion stack; brute: O(1)",
-  "validation": "Brute-force exact pair/distance comparison for n<=2048; every timed output checked; large cases use tested implementation and legacy distance agreement; checksum consumed",
+  "memory": "closestPair: O(n) auxiliary, 2 * n int arrays generally and n int indices for duplicate/axis-collinear early returns, plus sorting/recursion stack; closestPair3: O(n) auxiliary, 6 * n int arrays and n lll row keys plus sorting/recursion stack; legacy: 2 * n int arrays plus sorting/recursion stack; brute: O(1)",
+  "validation": "Brute-force exact pair/distance comparison for n<=2048 in 2D and 3D; every timed output checked; large cases use tested implementation and legacy distance agreement; checksum consumed",
   "limits": "Legacy uses 64-bit distance, finite INF64 and unspecified pair ties; benchmarks use safe bounded coordinates and compare its distance only. Shared-host timing is descriptive.",
-  "checksum": "checksum=92608331376",
+  "checksum": "checksum=316767797226",
   "hashes": {
-    "03-Geometry/05-closestpair.hpp": "bc4ae779604ec51b33b962983f7f41eb3d5577ae9cfe5726b753d3a752352710",
-    "03-Geometry/01-point.hpp": "70819ac1ae6bb7f8e9d9c05ebe1fd6bc000289497522e71c51b15920ac3f5cdc",
+    "03-Geometry/05-closestpair.hpp": "efc814f7ba01bea0e21acad528a645c2fec9cc04e26a46cdcebb0c8e660ecd27",
+    "03-Geometry/01-point.hpp": "e16a6d80833709e6fa0b0489d950af549680dc8e477c74be87fc40bfa438aca3",
     "OLD/Team Notebook/src/geometry/getnearestpair.cpp": "d648087b52405bd8457c42555eb2a2e3b243099d007b1326316091a53bc136f8",
-    "96-Local Testing/03-Geometry/05-closestpair_benchmark.cpp": "cee54c58e46786bc7a9aef283981ac7795ca10b8dd09f9365f6a7e2910b244d6"
+    "96-Local Testing/03-Geometry/05-closestpair_benchmark.cpp": "83953d5d9a7f5641a0794a8d9a5e72fa6f8047da23ac8fc47d8cc700174e2bc2"
   },
   "rows": [
     {
       "n": 32,
       "shape": "random",
       "method": "closestPair",
-      "median_us": 1.189
+      "median_us": 1.025
     },
     {
       "n": 32,
       "shape": "random",
       "method": "legacy",
-      "median_us": 0.779
+      "median_us": 0.936
     },
     {
       "n": 32,
       "shape": "random",
-      "method": "brute",
-      "median_us": 1.288
-    },
-    {
-      "n": 32,
-      "shape": "grid",
-      "method": "closestPair",
-      "median_us": 0.305
-    },
-    {
-      "n": 32,
-      "shape": "grid",
-      "method": "legacy",
-      "median_us": 0.563
-    },
-    {
-      "n": 32,
-      "shape": "grid",
-      "method": "brute",
-      "median_us": 1.272
-    },
-    {
-      "n": 32,
-      "shape": "vertical",
-      "method": "closestPair",
-      "median_us": 0.323
-    },
-    {
-      "n": 32,
-      "shape": "vertical",
-      "method": "legacy",
-      "median_us": 0.742
-    },
-    {
-      "n": 32,
-      "shape": "vertical",
-      "method": "brute",
-      "median_us": 1.279
-    },
-    {
-      "n": 32,
-      "shape": "duplicates",
-      "method": "closestPair",
-      "median_us": 0.306
-    },
-    {
-      "n": 32,
-      "shape": "duplicates",
-      "method": "legacy",
-      "median_us": 0.53
-    },
-    {
-      "n": 32,
-      "shape": "duplicates",
       "method": "brute",
       "median_us": 1.262
     },
     {
+      "n": 32,
+      "shape": "grid",
+      "method": "closestPair",
+      "median_us": 0.326
+    },
+    {
+      "n": 32,
+      "shape": "grid",
+      "method": "legacy",
+      "median_us": 0.519
+    },
+    {
+      "n": 32,
+      "shape": "grid",
+      "method": "brute",
+      "median_us": 1.291
+    },
+    {
+      "n": 32,
+      "shape": "vertical",
+      "method": "closestPair",
+      "median_us": 0.391
+    },
+    {
+      "n": 32,
+      "shape": "vertical",
+      "method": "legacy",
+      "median_us": 0.767
+    },
+    {
+      "n": 32,
+      "shape": "vertical",
+      "method": "brute",
+      "median_us": 1.236
+    },
+    {
+      "n": 32,
+      "shape": "duplicates",
+      "method": "closestPair",
+      "median_us": 0.41
+    },
+    {
+      "n": 32,
+      "shape": "duplicates",
+      "method": "legacy",
+      "median_us": 0.534
+    },
+    {
+      "n": 32,
+      "shape": "duplicates",
+      "method": "brute",
+      "median_us": 1.249
+    },
+    {
       "n": 512,
       "shape": "random",
       "method": "closestPair",
-      "median_us": 34.043
+      "median_us": 38.968
     },
     {
       "n": 512,
       "shape": "random",
       "method": "legacy",
-      "median_us": 25.824
+      "median_us": 29.486
     },
     {
       "n": 512,
       "shape": "random",
       "method": "brute",
-      "median_us": 293.52
+      "median_us": 284.011
     },
     {
       "n": 512,
       "shape": "grid",
       "method": "closestPair",
-      "median_us": 35.845
+      "median_us": 34.435
     },
     {
       "n": 512,
       "shape": "grid",
       "method": "legacy",
-      "median_us": 17.434
+      "median_us": 17.149
     },
     {
       "n": 512,
       "shape": "grid",
       "method": "brute",
-      "median_us": 308.007
+      "median_us": 286.647
     },
     {
       "n": 512,
       "shape": "vertical",
       "method": "closestPair",
-      "median_us": 6.973
+      "median_us": 6.744
     },
     {
       "n": 512,
       "shape": "vertical",
       "method": "legacy",
-      "median_us": 19
+      "median_us": 17.236
     },
     {
       "n": 512,
       "shape": "vertical",
       "method": "brute",
-      "median_us": 317.424
+      "median_us": 293.768
     },
     {
       "n": 512,
       "shape": "duplicates",
       "method": "closestPair",
-      "median_us": 7.075
+      "median_us": 9.172
     },
     {
       "n": 512,
       "shape": "duplicates",
       "method": "legacy",
-      "median_us": 12.272
+      "median_us": 11.918
     },
     {
       "n": 512,
       "shape": "duplicates",
       "method": "brute",
-      "median_us": 317.326
+      "median_us": 301.373
     },
     {
       "n": 2048,
       "shape": "random",
       "method": "closestPair",
-      "median_us": 311.602
+      "median_us": 307.403
     },
     {
       "n": 2048,
       "shape": "random",
       "method": "legacy",
-      "median_us": 264.505
+      "median_us": 255.925
     },
     {
       "n": 2048,
       "shape": "random",
       "method": "brute",
-      "median_us": 5399.35
+      "median_us": 4964.11
     },
     {
       "n": 2048,
       "shape": "grid",
       "method": "closestPair",
-      "median_us": 260.175
+      "median_us": 247.321
     },
     {
       "n": 2048,
       "shape": "grid",
       "method": "legacy",
-      "median_us": 128.649
+      "median_us": 113.644
     },
     {
       "n": 2048,
       "shape": "grid",
       "method": "brute",
-      "median_us": 5192.54
+      "median_us": 4807.37
     },
     {
       "n": 2048,
       "shape": "vertical",
       "method": "closestPair",
-      "median_us": 31.315
+      "median_us": 30.641
     },
     {
       "n": 2048,
       "shape": "vertical",
       "method": "legacy",
-      "median_us": 89.568
+      "median_us": 85.47
     },
     {
       "n": 2048,
       "shape": "vertical",
       "method": "brute",
-      "median_us": 5145.2
+      "median_us": 4803.69
     },
     {
       "n": 2048,
       "shape": "duplicates",
       "method": "closestPair",
-      "median_us": 32.199
+      "median_us": 40.143
     },
     {
       "n": 2048,
       "shape": "duplicates",
       "method": "legacy",
-      "median_us": 58.109
+      "median_us": 56.675
     },
     {
       "n": 2048,
       "shape": "duplicates",
       "method": "brute",
-      "median_us": 5080.98
+      "median_us": 4805.56
     },
     {
       "n": 200000,
       "shape": "random",
       "method": "closestPair",
-      "median_us": 59301.3
+      "median_us": 50560.3
     },
     {
       "n": 200000,
       "shape": "random",
       "method": "legacy",
-      "median_us": 51541.8
+      "median_us": 35811.2
     },
     {
       "n": 200000,
       "shape": "grid",
       "method": "closestPair",
-      "median_us": 59894.7
+      "median_us": 53208.6
     },
     {
       "n": 200000,
       "shape": "grid",
       "method": "legacy",
-      "median_us": 29458
+      "median_us": 26181.9
     },
     {
       "n": 200000,
       "shape": "vertical",
       "method": "closestPair",
-      "median_us": 4752.14
+      "median_us": 4473.95
     },
     {
       "n": 200000,
       "shape": "vertical",
       "method": "legacy",
-      "median_us": 16119.4
+      "median_us": 13661.4
     },
     {
       "n": 200000,
       "shape": "duplicates",
       "method": "closestPair",
-      "median_us": 5967.43
+      "median_us": 5812.99
     },
     {
       "n": 200000,
       "shape": "duplicates",
       "method": "legacy",
-      "median_us": 10868.3
+      "median_us": 8974.19
+    },
+    {
+      "n": 32,
+      "shape": "random3",
+      "method": "closestPair3",
+      "median_us": 2.953
+    },
+    {
+      "n": 32,
+      "shape": "random3",
+      "method": "brute3",
+      "median_us": 2.097
+    },
+    {
+      "n": 32,
+      "shape": "lattice3",
+      "method": "closestPair3",
+      "median_us": 2.412
+    },
+    {
+      "n": 32,
+      "shape": "lattice3",
+      "method": "brute3",
+      "median_us": 2.092
+    },
+    {
+      "n": 32,
+      "shape": "plane3",
+      "method": "closestPair3",
+      "median_us": 4.129
+    },
+    {
+      "n": 32,
+      "shape": "plane3",
+      "method": "brute3",
+      "median_us": 2.104
+    },
+    {
+      "n": 32,
+      "shape": "duplicates3",
+      "method": "closestPair3",
+      "median_us": 0.438
+    },
+    {
+      "n": 32,
+      "shape": "duplicates3",
+      "method": "brute3",
+      "median_us": 2.099
+    },
+    {
+      "n": 512,
+      "shape": "random3",
+      "method": "closestPair3",
+      "median_us": 120.791
+    },
+    {
+      "n": 512,
+      "shape": "random3",
+      "method": "brute3",
+      "median_us": 497.658
+    },
+    {
+      "n": 512,
+      "shape": "lattice3",
+      "method": "closestPair3",
+      "median_us": 103.475
+    },
+    {
+      "n": 512,
+      "shape": "lattice3",
+      "method": "brute3",
+      "median_us": 499.738
+    },
+    {
+      "n": 512,
+      "shape": "plane3",
+      "method": "closestPair3",
+      "median_us": 123.884
+    },
+    {
+      "n": 512,
+      "shape": "plane3",
+      "method": "brute3",
+      "median_us": 499.987
+    },
+    {
+      "n": 512,
+      "shape": "duplicates3",
+      "method": "closestPair3",
+      "median_us": 9.201
+    },
+    {
+      "n": 512,
+      "shape": "duplicates3",
+      "method": "brute3",
+      "median_us": 497.983
+    },
+    {
+      "n": 2048,
+      "shape": "random3",
+      "method": "closestPair3",
+      "median_us": 625.423
+    },
+    {
+      "n": 2048,
+      "shape": "random3",
+      "method": "brute3",
+      "median_us": 7828.33
+    },
+    {
+      "n": 2048,
+      "shape": "lattice3",
+      "method": "closestPair3",
+      "median_us": 572.663
+    },
+    {
+      "n": 2048,
+      "shape": "lattice3",
+      "method": "brute3",
+      "median_us": 7806.44
+    },
+    {
+      "n": 2048,
+      "shape": "plane3",
+      "method": "closestPair3",
+      "median_us": 790.36
+    },
+    {
+      "n": 2048,
+      "shape": "plane3",
+      "method": "brute3",
+      "median_us": 7756.79
+    },
+    {
+      "n": 2048,
+      "shape": "duplicates3",
+      "method": "closestPair3",
+      "median_us": 41.331
+    },
+    {
+      "n": 2048,
+      "shape": "duplicates3",
+      "method": "brute3",
+      "median_us": 7604.33
+    },
+    {
+      "n": 200000,
+      "shape": "random3",
+      "method": "closestPair3",
+      "median_us": 92057.4
+    },
+    {
+      "n": 200000,
+      "shape": "lattice3",
+      "method": "closestPair3",
+      "median_us": 141812
+    },
+    {
+      "n": 200000,
+      "shape": "plane3",
+      "method": "closestPair3",
+      "median_us": 132111
+    },
+    {
+      "n": 200000,
+      "shape": "duplicates3",
+      "method": "closestPair3",
+      "median_us": 6132.86
     }
   ]
 }

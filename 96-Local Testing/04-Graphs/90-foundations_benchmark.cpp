@@ -13,8 +13,7 @@ lng traverse(const G &g) {
             for (int a : g[u]) {
                 int v = g.arcs[a].to;
                 if (dis[v] == -1) { dis[v] = dis[u] + 1; q.push_back(v); }}}}
-    return sum;
-}
+    return sum;}
 
 int main(int argc, char **argv) {
     ulng seed = argc > 1 ? std::stoull(argv[1]) : 20260927;
@@ -35,8 +34,7 @@ int main(int argc, char **argv) {
                 auto start = std::chrono::steady_clock::now();
                 for (int k = 0; k < repeats; ++k) {
                     if (f() != expected) { std::abort(); }}
-                return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count() / repeats;
-            };
+                return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count() / repeats;};
             for (int run = 0; run < 5; ++run) {
                 double list = measure([&] { return traverse(g); });
                 double compact = measure([&] { return traverse(csr); });
@@ -45,5 +43,4 @@ int main(int argc, char **argv) {
                 double setup = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
                 if (traverse(rebuilt) != expected) { return 2; }
                 std::cout << n << ' ' << edges.size() << ' ' << shape << ' ' << run << ' '
-                          << repeats << ' ' << list << ' ' << compact << ' ' << setup << ' ' << expected << '\n';}}}
-}
+                          << repeats << ' ' << list << ' ' << compact << ' ' << setup << ' ' << expected << '\n';}}}}

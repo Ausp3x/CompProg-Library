@@ -7,8 +7,8 @@ long double brute(const ConvexCalipers &h) {
     for (int i = 0; i < h.n; ++i) { for (int j = i + 1; j < h.n; ++j) {
         lll d = cross(h.e[i], h.e[j]); if (d < 0) { d = -d; } if (!d) { continue; }
         ulll u = ulll(h.width[i]) * h.width[j];
-        if (!found || ConvexCalipers::ratioLess(u, d, num, den)) { num = u; den = d; found = true; } } }
-    return static_cast<long double>(num) / static_cast<long double>(den); }
+        if (!found || ConvexCalipers::ratioLess(u, d, num, den)) { num = u; den = d; found = true; }}}
+    return static_cast<long double>(num) / static_cast<long double>(den);}
 
 int main() {
     using Clock = std::chrono::steady_clock;
@@ -27,7 +27,7 @@ int main() {
             for (int r = 0; r < repeats; ++r) { checksum += h.minimumAreaParallelogramApprox().area; }
             fast[k] = std::chrono::duration<double, std::micro>(Clock::now() - start).count() / repeats;
             start = Clock::now(); checksum += brute(h);
-            slow[k] = std::chrono::duration<double, std::micro>(Clock::now() - start).count(); }
+            slow[k] = std::chrono::duration<double, std::micro>(Clock::now() - start).count();}
         sort(fast.begin(), fast.end()); sort(slow.begin(), slow.end());
-        std::cout << n << ' ' << setup << ' ' << fast[3] << ' ' << slow[3] << ' ' << slow[3] / fast[3] << '\n'; }
-    std::cout << "checksum=" << checksum << '\n'; }
+        std::cout << n << ' ' << setup << ' ' << fast[3] << ' ' << slow[3] << ' ' << slow[3] / fast[3] << '\n';}
+    std::cout << "checksum=" << checksum << '\n';}

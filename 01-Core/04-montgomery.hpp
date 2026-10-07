@@ -4,24 +4,8 @@
 #include <immintrin.h>
 #endif
 
-// Odd modulus 1 <= mod < R=2^BITS, including the full unsigned word range.
-// mod/inv/rsq are immutable after construction. inv=-mod^-1 mod R; rsq=R^2 mod mod.
-// init accepts any ordinary word; get converts a canonical Montgomery residue.
-// red(x) requires x < mod*R and returns x/R modulo mod in [0,mod).
-// mul/add/sub/powMont operate on canonical Montgomery residues (add/sub are the
-// same formulas for ordinary residues); pow is ordinary in/out.
-// redLazy requires mod<R/2 and x<mod*R, returning [0,2*mod). normalize accepts
-// that interval. mulLazy/addLazy/subLazy accept [0,2*mod) operands with mod<R/4
-// and return [0,2*mod), so chains stay in the REDC domain. Canonical operations
-// support every odd modulus.
-// For even moduli use Barrett32/Barrett64 from 03-barrett.hpp instead.
-// Bulk pointers permit exact output/input aliasing, but no partial overlap;
-// n>=0, arrays have n words, and null pointers are permitted only for n=0.
-// Scalar bulk loops run the unchecked core redc that every scalar operation
-// shares; the AVX2 loops run red4/red8. A Guard accumulates operand ranges
-// branch-free and is asserted once after each loop, so checked builds keep the
-// kernels' cost and NDEBUG drops it entirely.
-// S: O(1), U: NA, Q: O(1), M: O(1); bulk O(n), powers O(log(e+1)) for exponent e.
+// S: O(1), U: NA, Q: O(1), M: O(1); bulk O(n), powers O(log(e + 1)) for exponent e.
+// Odd modulus in [1, 2^BITS), default 1; canonical ops in [0, mod); lazy ops need mod < R/4 (redLazy R/2), return [0, 2 * mod).
 template<typename T>
 struct MontgomeryBackend {
     static_assert(std::is_same_v<T, uint> || std::is_same_v<T, ulng>);
@@ -34,9 +18,7 @@ struct MontgomeryBackend {
         for (int i = 3; i < BITS; i *= 2) { inv *= 2 - mod * inv; }
         inv = -inv; rsq = T(-Wide(mod) % mod);}
 
-    // Unchecked REDC of x < mod*R: (x + q*mod)/R = h + p + carry with the carry
-    // set exactly when low(x) != 0. The sum wraps past R only when it is >= R,
-    // which r < h detects; canonical output then subtracts mod, as for r >= mod.
+    // The carry is set iff low(x) != 0; r < h detects the wrap past R.
     T redc(Wide x, bool lazy) const {
         T q = T(x) * inv, h = T(x >> BITS), p = T((Wide(q) * mod) >> BITS);
         T r = h + p + (T(x) != 0);
@@ -84,8 +66,7 @@ struct MontgomeryBackend {
     // Internal ISA kernels, used through the checked bulk APIs below.
     static __m256i load(const T *p) { return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(p)); }
     static void store(T *p, __m256i x) { _mm256_storeu_si256(reinterpret_cast<__m256i *>(p), x); }
-    // Four independent wide products. The conceptual 65-bit sum is represented
-    // by its 33-bit high part, so signed 64-bit comparisons are safe.
+    // The 65-bit sum is kept as its 33-bit high part, so signed 64-bit comparisons are safe.
     __m256i red4(__m256i x, bool lazy) const {
         static_assert(BITS == 32);
         __m256i m = _mm256_set1_epi64x(mod), v = _mm256_set1_epi64x(inv);
@@ -104,10 +85,8 @@ struct MontgomeryBackend {
         return red8(_mm256_mul_epu32(a, b), _mm256_mul_epu32(_mm256_srli_epi64(a, 32), _mm256_srli_epi64(b, 32)), lazy);}
 #endif
 
-    // Deferred operand check for bulk loops: note keeps the running maximum of
-    // words or 32-bit lanes; ok, read by one assertion after the loop, is true
-    // when every noted value was below top >= 1.
     // T: O(1) per note and ok, M: O(1).
+    // Deferred bulk operand check: ok is true iff every noted word or 32-bit lane was below top >= 1.
     struct Guard {
         T top, mx = 0;
         void note(T x) { mx = max(mx, x); }

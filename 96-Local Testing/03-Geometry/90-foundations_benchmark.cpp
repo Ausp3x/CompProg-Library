@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
                 if (distribution == "grid") { x = lng(rng() % 128); y = lng(rng() % 128); }
                 if (distribution == "collinear") { x = i - n / 2; y = 3 * x + 7; }
                 if (distribution == "parabola") { x = i - n / 2; y = x * x; }
-                p[i] = {x, y}; }
+                p[i] = {x, y};}
             std::shuffle(p.begin(), p.end(), rng);
             for (bool keep : {false, true}) {
                 auto expected = convexHull(p, keep);
@@ -32,7 +32,5 @@ int main(int argc, char **argv) {
                     cout << "{\"n\":" << n << ",\"distribution\":\"" << distribution
                          << "\",\"keep_collinear\":" << (keep ? "true" : "false")
                          << ",\"algorithm\":\"" << (graham ? "graham" : "monotone")
-                         << "\",\"hull_size\":" << expected.size() << ",\"median_us\":" << times[2] << "}\n"; }}}
-    }
-    cerr << "checksum=" << checksum << '\n';
-}
+                         << "\",\"hull_size\":" << expected.size() << ",\"median_us\":" << times[2] << "}\n";}}}}
+    cerr << "checksum=" << checksum << '\n';}

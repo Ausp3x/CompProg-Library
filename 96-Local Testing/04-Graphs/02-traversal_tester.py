@@ -11,4 +11,4 @@ from _00_runner import main
 if __name__ == '__main__':
     raise SystemExit(main('02-traversal', ['result-negative', 'bfs-negative',
         'bfs-large', 'bfs-empty-source', 'dfs-negative', 'dfs-large',
-        'components-directed', 'bipartite-directed']))
+        'components-directed', 'bipartite-directed'], strict=True))

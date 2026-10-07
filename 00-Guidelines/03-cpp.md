@@ -67,7 +67,7 @@ paths:
 - Inside a body, a comment is one line and appears only where the code's trick or invariant is not evident from the code itself. No restated contracts, no history, no references to other documents.
 - A file may open with one comment line. No block comments.
 - Everything else (full contracts, staleness and invalidation rules, sentinel policies, proofs, provenance) goes to the header's evidence document under `## Contracts`, one subsection per struct or free function, linked from the inventory row.
-- The validator rejects a verified header with more than two consecutive comment-only lines or with comment-only lines above 8% of its non-blank lines.
+- The validator rejects a verified header with more than two consecutive comment-only lines or with comment-only lines above 8% of its non-blank lines; one comment line is always allowed, so a one-function header keeps its complexity line.
 
 ## Complexity comments
 

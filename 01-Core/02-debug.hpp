@@ -1,16 +1,7 @@
 #pragma once
 #include "01-template.hpp"
 
-// LOCAL-only formatting; debug/trace otherwise discard even ill-formed arguments.
-// debugString(const T&) -> string, found by ADL, overrides all built-in formatting.
-// Finite ranges preserve iteration order; adaptors expose their backing-container
-// order (stack bottom first, priority_queue heap order), without copying elements.
-// Strings/chars preserve raw bytes between quotes; char arrays/pointers must be
-// NUL-terminated (or null pointers). bool and bit proxies (vector<bool>, bitset and
-// Bitset references) spell true/false; floating point prints the shortest round-trip
-// decimal; enums print their promoted underlying value, a user operator<< wins
-// (byte-wide unscoped enums only when it differs from the raw byte). Recursive
-// structures must be acyclic. See 21-c01-verification.md.
+// LOCAL-only formatting; without LOCAL, debug/trace discard their arguments unevaluated.
 #ifdef LOCAL
 namespace Debug {
     template<typename T> inline constexpr bool IS_OPTIONAL = false;
@@ -19,7 +10,6 @@ namespace Debug {
     template<typename ...T> inline constexpr bool IS_VARIANT<std::variant<T...>> = true;
     template<typename T> inline constexpr bool IS_BITSET = false;
     template<size_t N> inline constexpr bool IS_BITSET<bitset<N>> = true;
-    // Bit proxies: class types convertible to bool with flip(), such as vector<bool>::reference.
     template<typename T> inline constexpr bool IS_BIT_PROXY = std::is_class_v<T> && std::is_convertible_v<const T &, bool> && requires(T r) { r.flip(); };
     template<typename T> inline constexpr bool IS_UNSCOPED_ENUM = false;
     template<typename T> requires std::is_enum_v<T> inline constexpr bool IS_UNSCOPED_ENUM<T> = std::is_convertible_v<T, std::underlying_type_t<T>>;
@@ -43,9 +33,6 @@ namespace Debug {
         };
         return Accessor::get(x);}
 
-    // Legacy convenience: flat aggregates with <= 8 non-array, non-reference,
-    // non-bit-field data members, no base classes or anonymous unions. Other
-    // aggregates need debugString/streaming; >8 members get an explicit marker.
     struct Any { template<typename T> operator T() const; };
     template<typename T, size_t N>
     constexpr bool AGG_SIZE_GEQ = []<size_t ...I>(std::index_sequence<I...>) {
@@ -150,9 +137,7 @@ namespace Debug {
         static constexpr auto SPACES = []() { array<char, 128> v{}; v.fill(' '); return v; }();
         return string_view(SPACES.data(), size_t(2 * std::clamp(dep, 0, 64)));}
 
-    // Legacy inclusive [l, r], unlike ordinary library ranges. l >= 0, r >= l-1;
-    // endpoints beyond the range clip naturally. Lvalue views borrow the source,
-    // rvalue views own it when permitted by views::all. Nested indices are paired.
+    // Legacy inclusive [l, r]: l >= 0, r >= l - 1, endpoints past the end clip.
     template<std::ranges::viewable_range R, typename ...Args>
     auto slice(R &&ran, int l, int r, Args ...args) {
         static_assert(sizeof...(args) % 2 == 0, "slice needs (l, r) pairs");

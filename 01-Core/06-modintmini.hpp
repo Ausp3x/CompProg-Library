@@ -1,15 +1,10 @@
 #pragma once
 #include "01-template.hpp"
 
-// Four independent structs: copy one with standard headers and width aliases.
-// Canonical n in [0,mod()); reducer fields/helpers are implementation-only.
-// raw requires a canonical residue. inv/division and negative powers require
-// units; tryInv preserves out on failure and permits input/output aliasing.
-// Modulus one is the zero ring: inv(0)=0 and pow(0,0)=0. No prime-only APIs.
-// Constructors/powers accept native signed/unsigned integers, including 128 bits.
+// Four independently copyable structs; each needs only standard headers and the width aliases.
 
-// Full nonzero unsigned 32-bit static modulus; constexpr canonical arithmetic.
-// S: O(1), Q: O(1), M: O(1); exceptional operation bounds below.
+// S: O(1), Q: O(1), M: O(1); inv O(log(mod())), pow O(1 + log(|e| + 1)) plus inv for e < 0.
+// Static modulus in [1, 2^32), constexpr; inv and division need a unit, tryInv returns false otherwise.
 template<uint MOD> requires (MOD > 0)
 struct ModIntMini {
     using Word = uint;
@@ -38,7 +33,6 @@ struct ModIntMini {
     friend constexpr ModIntMini operator/(ModIntMini a, ModIntMini b) { return a /= b; }
     friend constexpr bool operator==(ModIntMini a, ModIntMini b) { return a.n == b.n; }
 
-    // T: O(log(mod())), M: O(1); Euclidean coefficients fit lng.
     friend constexpr bool tryInv(ModIntMini a, ModIntMini &out) {
         Word r = a.n, s = mod(); lng x = 1, y = 0;
         while (s) {
@@ -49,7 +43,6 @@ struct ModIntMini {
     friend constexpr ModIntMini inv(ModIntMini a) {
         ModIntMini r; bool ok = tryInv(a, r); assert(ok); (void)ok; return r;}
 
-    // T: O(1 + log(|e| + 1)), plus O(log(mod())) for e<0; M: O(1).
     template<typename T> requires (std::is_integral_v<T> || std::is_same_v<T, lll> || std::is_same_v<T, ulll>)
     friend constexpr ModIntMini pow(ModIntMini a, T e) {
         if (mod() == 1) { return raw(0); }
@@ -61,8 +54,8 @@ struct ModIntMini {
         return b ? r * a : r;}
 };
 
-// Full nonzero unsigned 64-bit static modulus; constexpr canonical arithmetic.
-// S: O(1), Q: O(1), M: O(1); exceptional operation bounds below.
+// S: O(1), Q: O(1), M: O(1); inv O(log(mod())), pow O(1 + log(|e| + 1)) plus inv for e < 0.
+// Static modulus in [1, 2^64), constexpr; inv and division need a unit, tryInv returns false otherwise.
 template<ulng MOD> requires (MOD > 0)
 struct ModInt64Mini {
     using Word = ulng;
@@ -91,7 +84,6 @@ struct ModInt64Mini {
     friend constexpr ModInt64Mini operator/(ModInt64Mini a, ModInt64Mini b) { return a /= b; }
     friend constexpr bool operator==(ModInt64Mini a, ModInt64Mini b) { return a.n == b.n; }
 
-    // T: O(log(mod())), M: O(1); Euclidean coefficients fit lll.
     friend constexpr bool tryInv(ModInt64Mini a, ModInt64Mini &out) {
         Word r = a.n, s = mod(); lll x = 1, y = 0;
         while (s) {
@@ -102,9 +94,7 @@ struct ModInt64Mini {
     friend constexpr ModInt64Mini inv(ModInt64Mini a) {
         ModInt64Mini r; bool ok = tryInv(a, r); assert(ok); (void)ok; return r;}
 
-    // Full-width REDC; keep modulus generic to avoid costly constant specializations.
-    // Internal odd-modulus power, ordinary residues; setup/conversion included.
-    // T: O(1 + log(e + 1)), M: O(1); odd m, canonical a.
+    // T: O(1 + log(e + 1)), M: O(1); odd m, canonical a; noipa keeps the measured generic REDC kernel.
     [[gnu::noinline, gnu::noipa]] static Word powerMontgomery(Word a, Word m, ulll e) {
         Word v = m;
         for (int i = 3; i < 64; i *= 2) { v *= 2 - m * v; }
@@ -120,7 +110,6 @@ struct ModInt64Mini {
             e >>= 1; if (e) { a = red(ulll(a) * a); }}
         return red(r);}
 
-    // T: O(1 + log(|e| + 1)), plus O(log(mod())) for e<0; M: O(1).
     template<typename T> requires (std::is_integral_v<T> || std::is_same_v<T, lll> || std::is_same_v<T, ulll>)
     friend constexpr ModInt64Mini pow(ModInt64Mini a, T e) {
         if (mod() == 1) { return raw(0); }
@@ -135,10 +124,8 @@ struct ModInt64Mini {
         return b ? r * a : r;}
 };
 
-// Full nonzero unsigned 32-bit modulus; independent ID/width state, default 998244353.
-// Every setMod invalidates all old values/caches, even for the same modulus;
-// discard or overwrite stale values. Single-threaded, no generation checks.
-// S: O(1), Q: O(1), M: O(1) per value and per ID; exceptional bounds below.
+// S: O(1), Q: O(1), M: O(1); inv O(log(mod())), pow O(1 + log(|e| + 1)) plus inv for e < 0.
+// Runtime modulus in [1, 2^32) per ID, default 998244353; setMod stales all values; tryInv returns false on nonunits.
 template<int ID = 0>
 struct DynModIntMini {
     using Word = uint;
@@ -177,7 +164,6 @@ struct DynModIntMini {
     friend DynModIntMini operator/(DynModIntMini a, DynModIntMini b) { return a /= b; }
     friend bool operator==(DynModIntMini a, DynModIntMini b) { return a.n == b.n; }
 
-    // T: O(log(mod())), M: O(1); Euclidean coefficients fit lng.
     friend bool tryInv(DynModIntMini a, DynModIntMini &out) {
         Word r = a.n, s = mod(); lng x = 1, y = 0;
         while (s) {
@@ -188,7 +174,6 @@ struct DynModIntMini {
     friend DynModIntMini inv(DynModIntMini a) {
         DynModIntMini r; bool ok = tryInv(a, r); assert(ok); (void)ok; return r;}
 
-    // T: O(1 + log(|e| + 1)), plus O(log(mod())) for e<0; M: O(1).
     template<typename T> requires (std::is_integral_v<T> || std::is_same_v<T, lll> || std::is_same_v<T, ulll>)
     friend DynModIntMini pow(DynModIntMini a, T e) {
         if (mod() == 1) { return raw(0); }
@@ -200,10 +185,8 @@ struct DynModIntMini {
         return b ? r * a : r;}
 };
 
-// Full nonzero unsigned 64-bit modulus; independent ID/width state, default 998244353.
-// Every setMod invalidates all old values/caches, even for the same modulus;
-// discard or overwrite stale values. Single-threaded, no generation checks.
-// S: O(1), Q: O(1), M: O(1) per value and per ID; exceptional bounds below.
+// S: O(1), Q: O(1), M: O(1); inv O(log(mod())), pow O(1 + log(|e| + 1)) plus inv for e < 0.
+// Runtime modulus in [1, 2^64) per ID, default 998244353; setMod stales all values; tryInv returns false on nonunits.
 template<int ID = 0>
 struct DynModInt64Mini {
     using Word = ulng;
@@ -241,7 +224,6 @@ struct DynModInt64Mini {
     friend DynModInt64Mini operator/(DynModInt64Mini a, DynModInt64Mini b) { return a /= b; }
     friend bool operator==(DynModInt64Mini a, DynModInt64Mini b) { return a.n == b.n; }
 
-    // T: O(log(mod())), M: O(1); Euclidean coefficients fit lll.
     friend bool tryInv(DynModInt64Mini a, DynModInt64Mini &out) {
         Word r = a.n, s = mod(); lll x = 1, y = 0;
         while (s) {
@@ -252,9 +234,7 @@ struct DynModInt64Mini {
     friend DynModInt64Mini inv(DynModInt64Mini a) {
         DynModInt64Mini r; bool ok = tryInv(a, r); assert(ok); (void)ok; return r;}
 
-    // Full-width REDC; keep modulus generic to avoid costly constant specializations.
-    // Internal odd-modulus power, ordinary residues; setup/conversion included.
-    // T: O(1 + log(e + 1)), M: O(1); odd m, canonical a.
+    // T: O(1 + log(e + 1)), M: O(1); odd m, canonical a; noipa keeps the measured generic REDC kernel.
     [[gnu::noinline, gnu::noipa]] static Word powerMontgomery(Word a, Word m, ulll e) {
         Word v = m;
         for (int i = 3; i < 64; i *= 2) { v *= 2 - m * v; }
@@ -270,7 +250,6 @@ struct DynModInt64Mini {
             e >>= 1; if (e) { a = red(ulll(a) * a); }}
         return red(r);}
 
-    // T: O(1 + log(|e| + 1)), plus O(log(mod())) for e<0; M: O(1).
     template<typename T> requires (std::is_integral_v<T> || std::is_same_v<T, lll> || std::is_same_v<T, ulll>)
     friend DynModInt64Mini pow(DynModInt64Mini a, T e) {
         if (mod() == 1) { return raw(0); }

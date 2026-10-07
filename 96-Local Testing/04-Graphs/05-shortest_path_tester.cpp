@@ -15,7 +15,7 @@ void require(bool ok, const string &message) {
     ++checks;
     if (!ok) {
         cerr << "FAIL shortest paths seed=" << seed << " case=" << cases << " " << message << '\n' << context << '\n';
-        std::exit(1); }}
+        std::exit(1);}}
 void describe(const Graph &g, const vector<int> &sources, const string &label) {
     ++cases; std::ostringstream out;
     out << label << " n=" << g.n << " directed=" << g.directed << " sources=";
@@ -45,7 +45,7 @@ struct FloydOracle {
             for (int s : sources) {
                 if (d[s][v] != INF) {
                     if (!out.reachable[v] || d[s][v] < out.dist[v]) { out.dist[v] = d[s][v]; }
-                    out.reachable[v] = true; }
+                    out.reachable[v] = true;}
                 for (int k = 0; k < n; ++k) {
                     if (d[s][k] != INF && d[k][k] < 0 && d[k][v] != INF) { out.negative[v] = true; }}}}
         return out;}
@@ -79,7 +79,7 @@ void validateCycle(const G &g, const CycleWitness &cycle, bool negative) {
         int u = cycle.vertices[i], v = cycle.vertices[i + 1], a = cycle.arcs[i];
         require(0 <= u && u < g.n && !used[u], "cycle vertices invalid/repeated"); used[u] = true;
         require(0 <= a && a < int(g.arcs.size()), "cycle arc index");
-        auto e = g.arcs[a]; require(e.from == u && e.to == v, "cycle arc orientation"); weight += e.w; }
+        auto e = g.arcs[a]; require(e.from == u && e.to == v, "cycle arc orientation"); weight += e.w;}
     if (negative) { require(weight < 0, "cycle expected negative, actual=" + decimal(weight)); }}
 template<class G>
 void validateResult(const G &g, const vector<int> &sources, const ShortestPathResult &out,
@@ -94,7 +94,7 @@ void validateResult(const G &g, const vector<int> &sources, const ShortestPathRe
         require(out.finite(v) == finite, "finite status"); has_negative |= expected.negative[v];
         if (finite) {
             require(out.dist[v] == expected.dist[v], "distance vertex=" + std::to_string(v)
-                    + " expected=" + decimal(expected.dist[v]) + " actual=" + decimal(out.dist[v])); }
+                    + " expected=" + decimal(expected.dist[v]) + " actual=" + decimal(out.dist[v]));}
         if (!out.reachable[v]) { require(out.parent[v] == -1 && out.parent_arc[v] == -1, "unreachable parents"); }
         auto path = out.path(g, v);
         require(path.exists == finite, "path existence");
@@ -109,8 +109,8 @@ void validateResult(const G &g, const vector<int> &sources, const ShortestPathRe
             int a = path.arcs[i], u = path.vertices[i], w = path.vertices[i + 1];
             require(0 <= a && a < int(g.arcs.size()), "path arc index");
             auto e = g.arcs[a]; require(e.from == u && e.to == w, "path orientation");
-            require(out.parent[w] == u && out.parent_arc[w] == a, "path parents"); weight += hops ? lll(1) : lll(e.w); }
-        require(weight == expected.dist[v], "path weight expected=" + decimal(expected.dist[v]) + " actual=" + decimal(weight)); }
+            require(out.parent[w] == u && out.parent_arc[w] == a, "path parents"); weight += hops ? lll(1) : lll(e.w);}
+        require(weight == expected.dist[v], "path weight expected=" + decimal(expected.dist[v]) + " actual=" + decimal(weight));}
     require(!out.negative_cycle.arcs.empty() == has_negative, "negative-cycle existence");
     if (has_negative) {
         validateCycle(g, out.negative_cycle, true);
@@ -125,7 +125,7 @@ void checkGraph(const Graph &g, const vector<int> &sources, bool variants = true
     for (auto e : g.arcs) { nonnegative &= e.w >= 0; binary &= e.w == 0 || e.w == 1; }
     if (nonnegative) {
         validateResult(g, sources, dijkstra(g, sources), expected);
-        validateResult(g, sources, dijkstraDense(DenseGraph(g), sources), expected); }
+        validateResult(g, sources, dijkstraDense(DenseGraph(g), sources), expected);}
     if (binary) { validateResult(g, sources, zeroOneBfs(g, sources), expected); }
     if (variants) {
         CsrGraph csr(g); validateResult(csr, sources, bellmanFord(csr, sources), expected);
@@ -141,7 +141,7 @@ void checkGraph(const Graph &g, const vector<int> &sources, bool variants = true
             validateResult(g, sources, bfsShortestPaths(g, s), hops.from(sources), true);
             if (nonnegative) {
                 validateResult(g, sources, dijkstra(g, s), expected);
-                validateResult(g, sources, dijkstraDense(DenseGraph(g), s), expected); }
+                validateResult(g, sources, dijkstraDense(DenseGraph(g), s), expected);}
             if (binary) { validateResult(g, sources, zeroOneBfs(g, s), expected); }}}
     if (g.directed) {
         bool acyclic = acyclicOracle(g);
@@ -156,7 +156,7 @@ void checkGraph(const Graph &g, const vector<int> &sources, bool variants = true
                 validateResult(csr, sources, dagShortestPaths(csr, sources, true).paths, high);
                 if (sources.size() == 1) {
                     validateResult(csr, sources, dagShortestPaths(csr, sources[0]).paths, expected);
-                    validateResult(csr, sources, dagLongestPaths(csr, sources[0]).paths, high); }}}
+                    validateResult(csr, sources, dagLongestPaths(csr, sources[0]).paths, high);}}}
         else {
             validateCycle(g, shortest.cycle, false); validateCycle(g, longest.cycle, false);
             for (int v = 0; v < g.n; ++v) { require(!shortest.paths.reachable[v] && !longest.paths.reachable[v], "failed DAG paths"); }}}}
@@ -165,7 +165,7 @@ void fixtures() {
     for (bool directed : {false, true}) {
         checkGraph(Graph(0, directed), {}); checkGraph(Graph(1, directed), {}); checkGraph(Graph(1, directed), {0, 0});
         for (lng w : {std::numeric_limits<lng>::min(), lng(-1), lng(0), lng(1), std::numeric_limits<lng>::max()}) {
-            Graph loop(1, directed); loop.addEdge(0, 0, w); checkGraph(loop, {0}); checkGraph(loop, {}); }}
+            Graph loop(1, directed); loop.addEdge(0, 0, w); checkGraph(loop, {0}); checkGraph(loop, {});}}
     Graph disconnected(7, true);
     disconnected.addEdge(0, 1, 5); disconnected.addEdge(1, 2, 0);
     disconnected.addEdge(3, 4, -2); disconnected.addEdge(4, 3, 1); disconnected.addEdge(4, 5, 4);
@@ -210,15 +210,15 @@ void exhaustive(const string &mode) {
         for (int mask = 0; mask < (1 << n); ++mask) {
             vector<int> sources;
             for (int u = 0; u < n; ++u) { if (mask >> u & 1) { sources.push_back(u); }}
-            checkGraph(g, sources, code % 97 == 0); }}
+            checkGraph(g, sources, code % 97 == 0);}}
     cout << "PASS exhaustive signed digraphs=" << graphs << " source_subsets=" << (1 << n) << '\n';
     if (mode == "stress") {
         for (int code = 0; code < 19683; ++code) {
             Graph g(3, true); int x = code;
             for (int u = 0; u < 3; ++u) {
                 for (int v = 0; v < 3; ++v) { int w = x % 3; x /= 3; if (w) { g.addEdge(u, v, 2 * w - 3); }}}
-            checkGraph(g, {code % 3}, code % 101 == 0); }
-        cout << "PASS stress exhaustive loops digraphs=19683\n"; }}
+            checkGraph(g, {code % 3}, code % 101 == 0);}
+        cout << "PASS stress exhaustive loops digraphs=19683\n";}}
 
 void randomTests(const string &mode) {
     int count = mode == "quick" ? 100 : mode == "full" ? 1000 : 5000;
@@ -229,15 +229,15 @@ void randomTests(const string &mode) {
             lng w = domain == 0 ? lng(rng() % 21) - 10 : domain == 1 ? lng(rng() % 100) : lng(rng() % 2);
             if (domain == 3) {
                 static const array<lng, 7> weights = {std::numeric_limits<lng>::min(), std::numeric_limits<lng>::max(), -1, 0, 1, INF64, -INF64};
-                w = weights[rng() % weights.size()]; }
-            g.addEdge(int(rng() % n), int(rng() % n), w); }
+                w = weights[rng() % weights.size()];}
+            g.addEdge(int(rng() % n), int(rng() % n), w);}
         vector<int> sources; int k = int(rng() % (n + 3));
         for (int j = 0; j < k; ++j) { sources.push_back(int(rng() % n)); }
         checkGraph(g, sources);
         Graph dag(n, true);
         for (int u = 0; u < n; ++u) {
             for (int v = u + 1; v < n; ++v) { if (rng() % 3 == 0) { dag.addEdge(u, v, lng(rng() % 41) - 20); }}}
-        checkGraph(dag, sources); }
+        checkGraph(dag, sources);}
     cout << "PASS random multigraphs=" << count << " signed DAGs=" << count << '\n';}
 
 void largeTests(const string &mode) {
@@ -288,6 +288,7 @@ void invalid(const string &which) {
     if (which == "zero-one") { (void)zeroOneBfs(g, 0); }
     if (which == "dijkstra") { g.addEdge(1, 1, -1); (void)dijkstra(g, 0); }
     if (which == "dense") { g.addEdge(1, 1, -1); (void)dijkstraDense(DenseGraph(g), 0); }
+    if (which == "dense-maximum") { (void)dijkstraDense(DenseGraph(g, true), 0); }
     if (which == "dag-undirected") { (void)dagShortestPaths(Graph(1), 0); }
     if (which == "path-index") { (void)dijkstra(g, 0).path(g, 2); }
     if (which == "legacy-size") { Dijkstra bad(INT_MAX); }

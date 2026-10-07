@@ -6,13 +6,13 @@ Scope: this folder owns sequence, set, tree and persistent data-structure engine
 
 | Header | Operations | Status |
 |---|---|---|
-| `01-dsu.hpp` | DSU: findSet, uniteSets, isSameSet, getSize, count, groups | verified; [evidence](90-foundations.md) |
-| `02-fenwick.hpp` | Fenwick: add, prefixSum, sum, lowerBound, add1, prefixSum1, sum1, lowerBound1; linear vector build | verified; [evidence](90-foundations.md) |
-| `03-segmenttree.hpp` | SegmentTree: get, set, query, allQuery, maxRight, minLeft; linear vector build | verified; [evidence](90-foundations.md) |
-| `04-sparsetable.hpp` | SparseTable: query (idempotent), fold (associative), queryFast, querySlow, operator<<; SparseTable2D: query (idempotent rectangle) | partial; [evidence](90-foundations.md); missing: SparseTable2D |
-| `05-prefix_sum.hpp` | PrefixSum: prefixSum, sum, rebuild; PrefixSum2D: prefixSum, sum, rebuild; DifferenceArray: add, values, clear, rebuild; DifferenceArray2D: add, values, clear, rebuild | verified; [evidence](90-foundations.md) |
-| `06-sqrt_decomposition.hpp` | SqrtDecomp: get, values, set, setUpdate, opeUpdate, query, rebuild, pull; SqrtRangeSum: get, values, sum, affine, add, assign, multiply, set, rebuild | verified; [evidence](90-foundations.md) |
-| `07-ordered_set.hpp` | SortedVector: rank, upperRank, count, index, findByOrder, rebuild, size, empty, begin, end; CoordinateCompression: encode, rebuild; OrderedSet (PBDS alias); OrderedMultiSet: insert, erase, eraseOne, lowerBound, upperBound, rank, upperRank, count, findByOrder, clear, rebuild, size, empty, begin, end | verified; [evidence](90-foundations.md) |
+| `01-dsu.hpp` | DSU: findSet, uniteSets, isSameSet, getSize, count, groups, makeSet | verified; [evidence](90-foundations.md) |
+| `02-fenwick.hpp` | Fenwick: get, values, add, set, prefixSum, sum, maxRight, minLeft, lowerBound, upperBound, add1, prefixSum1, sum1, lowerBound1; linear vector build; braced-list build | verified; [evidence](90-foundations.md) |
+| `03-segmenttree.hpp` | SegmentTree: get, allQuery, values, set, apply, query, maxRight, minLeft; linear vector build; braced-list build | verified; [evidence](90-foundations.md) |
+| `04-sparsetable.hpp` | SparseTable: query (idempotent), fold (associative), queryFast, querySlow, operator<<; SparseTable2D: query (idempotent commutative rectangle) | verified; [evidence](90-foundations.md) |
+| `05-prefix_sum.hpp` | PrefixSum: prefixSum, sum, rebuild; PrefixSum2D: prefixSum, sum, rebuild; DifferenceArray: add, values, clear, rebuild; DifferenceArray2D: add, values, clear, rebuild; braced-list build (1D) | verified; [evidence](90-foundations.md) |
+| `06-sqrt_decomposition.hpp` | SqrtDecomp: get, values, set, setUpdate, opeUpdate, query, rebuild; SqrtRangeSum: get, values, sum, affine, add, assign, multiply, set, rebuild; braced-list build | verified; [evidence](90-foundations.md) |
+| `07-ordered_set.hpp` | SortedVector: rank, upperRank, count, index, findByOrder, rebuild, size, empty, begin, end; CoordinateCompression (SortedVector queries plus): encode, decode, rebuild; OrderedSet (PBDS alias, native API); OrderedMap (PBDS mapped alias, native API); OrderedMultiSet: insert, erase, eraseOne, lowerBound, upperBound, prev, rank, upperRank, count, findByOrder, clear, rebuild, size, empty, begin, end | verified; [evidence](90-foundations.md) |
 | `08-monotone_stack.hpp` | previousSmaller; nextSmaller; previousGreater; nextGreater; slidingMinimum; slidingMaximum; largestHistogramRectangle; largestBinaryRectangle; maxZeroSubmatrix; HistogramRectangle; BinaryRectangle | verified; [evidence](90-foundations.md) |
 | `61-hashmap.hpp` | HashMap (open addressing, linear probing, power-of-two capacity, seeded SplitMix hash): insert, find, contains, operator[], at, erase, size, empty, clear, reserve, begin, end; HashSet: insert, contains, erase, size, clear, begin, end; HashMapFixed (static capacity, no rehash) | planned; YC, KACTL, MAS, NYA, HIT, TKO, OI |
 

@@ -1,11 +1,5 @@
 #pragma once
 
-// GNU C++20 / GCC 14+, Linux and Windows (MinGW) x86-64. No global ISA/FP flags or I/O setup.
-// Width aliases are exact; INF32/INF64 are finite sentinels, not overflow guards.
-// indexed_set/indexed_map store unique keys; use (key, id) pairs for repeated values.
-// chmin/chmax compare once, assign only on improvement, return whether assigned;
-// T supplies ordinary comparison/copy-assignment semantics (NaN never improves).
-// Each helper is O(1) comparisons/assignments, plus the costs of T.
 // 知彼知己，百战不殆
 #include <bits/stdc++.h>
 #include <ext/pb_ds/assoc_container.hpp>

@@ -12,7 +12,7 @@ namespace {
     template<typename T, typename U> void checkEqual(const T &got, const U &want, const string &op) {
         ++checks;
         if (got != want) {
-            throw std::runtime_error(context + " operation=" + op + " expected=" + show(want) + " actual=" + show(got)); }}
+            throw std::runtime_error(context + " operation=" + op + " expected=" + show(want) + " actual=" + show(got));}}
     struct Add { lng operator()(lng a, lng b) const { return a + b; } };
     struct Join { string operator()(const string &a, const string &b) const { return a + b; } };
     using Tree = SegmentTree<lng, Add>;
@@ -29,23 +29,27 @@ namespace {
                 if (r < n) { sum += a[r]; }}
             if (l < n) { checkEqual(t.get(l), a[l], "get(" + show(l) + ")"); total += a[l]; }}
         checkEqual(t.allQuery(), total, "allQuery");
+        checkEqual(show(t.values()), show(a), "values");
+        if (n) {
+            lng delta = a[n - 1] >= 0 ? -1 : 1; Tree u = t; u.apply(n - 1, delta);
+            checkEqual(u.get(n - 1), a[n - 1] + delta, "apply"); checkEqual(u.allQuery(), total + delta, "apply aggregate");}
         if (searches) {
             for (lng cap = 0; cap <= total + 1; ++cap) {
                 auto pred = [cap](lng x) { return x <= cap; };
                 for (int l = 0; l <= n; ++l) {
                     int r = l; lng sum = 0;
                     while (r < n && sum + a[r] <= cap) { sum += a[r++]; }
-                    checkEqual(t.maxRight(l, pred), r, "maxRight(" + show(l) + ",cap=" + show(cap) + ")"); }
+                    checkEqual(t.maxRight(l, pred), r, "maxRight(" + show(l) + ",cap=" + show(cap) + ")");}
                 for (int r = 0; r <= n; ++r) {
                     int l = r; lng sum = 0;
                     while (l && a[l - 1] + sum <= cap) { sum += a[--l]; }
-                    checkEqual(t.minLeft(r, pred), l, "minLeft(" + show(r) + ",cap=" + show(cap) + ")"); }}}
+                    checkEqual(t.minLeft(r, pred), l, "minLeft(" + show(r) + ",cap=" + show(cap) + ")");}}}
         Tree copy = t, moved = std::move(copy);
         checkEqual(moved.allQuery(), total, "move");
         if (n) {
             moved.set(0, -17); checkEqual(t.get(0), a[0], "copy independence");
             t.set(0, t.get(0)); checkEqual(t.get(0), a[0], "set/get alias");
-            lng before = t.allQuery(); t.set(0, t.allQuery()); checkEqual(t.get(0), before, "set/aggregate alias"); }}
+            lng before = t.allQuery(); t.set(0, t.allQuery()); checkEqual(t.get(0), before, "set/aggregate alias");}}
 
     void exhaustive() {
         int limit = mode == "quick" ? 4 : mode == "full" ? 6 : 8;
@@ -53,10 +57,55 @@ namespace {
             for (int code = 0; code < count; ++code) {
                 vector<lng> a(n); int x = code;
                 for (lng &v : a) { v = x % 3; x /= 3; }
-                numeric(a, true); }}
+                numeric(a, true);}}
         numeric({-10, 0, 7, -4, 8}, false);
         numeric({std::numeric_limits<lng>::min(), std::numeric_limits<lng>::max()}, false);
+        Tree single({7}, 0, Add{}), triple({1, 2, 3}, 0, Add{});
+        checkEqual(single.n, 1, "braced singleton size"); checkEqual(single.get(0), lng(7), "braced singleton value");
+        checkEqual(triple.query(0, 3), lng(6), "braced list");
         std::cout << "PASS bounded exhaustive range/point/search/copy tests\n";}
+
+    void booleans() {
+        auto orf = [](bool x, bool y) { return x || y; };
+        auto andf = [](bool x, bool y) { return x && y; };
+        int limit = mode == "quick" ? 5 : mode == "full" ? 8 : 10;
+        for (int n = 0; n <= limit; ++n) {
+            for (int mask = 0; mask < (1 << n); ++mask) {
+                vector<bool> a(n);
+                for (int i = 0; i < n; ++i) { a[i] = mask >> i & 1; }
+                context = "bool n=" + show(n) + " mask=" + show(mask);
+                SegmentTree<bool, decltype(orf)> o(a, false, orf);
+                SegmentTree<bool, decltype(andf)> c(a, true, andf);
+                bool any = false, all = true;
+                for (int i = 0; i < n; ++i) {
+                    const bool &got = o.get(i);
+                    checkEqual(got, bool(a[i]), "bool get(" + show(i) + ")"); any = any || a[i]; all = all && a[i];}
+                const bool &oa = o.allQuery(), &ca = c.allQuery();
+                checkEqual(oa, any, "or allQuery"); checkEqual(ca, all, "and allQuery");
+                checkEqual(o.values() == a, true, "bool values");
+                for (int l = 0; l <= n; ++l) {
+                    bool x = false, y = true;
+                    for (int r = l; r <= n; ++r) {
+                        checkEqual(o.query(l, r), x, "or query(" + show(l) + "," + show(r) + ")");
+                        checkEqual(c.query(l, r), y, "and query(" + show(l) + "," + show(r) + ")");
+                        if (r < n) { x = x || a[r]; y = y && a[r]; }}
+                    int r = l;
+                    while (r < n && !a[r]) { ++r; }
+                    checkEqual(o.maxRight(l, [](bool v) { return !v; }), r, "or maxRight(" + show(l) + ")");
+                    r = l;
+                    while (r < n && a[r]) { ++r; }
+                    checkEqual(c.maxRight(l, [](bool v) { return v; }), r, "and maxRight(" + show(l) + ")");}
+                for (int r = 0; r <= n; ++r) {
+                    int l = r;
+                    while (l > 0 && !a[l - 1]) { --l; }
+                    checkEqual(o.minLeft(r, [](bool v) { return !v; }), l, "or minLeft(" + show(r) + ")");
+                    l = r;
+                    while (l > 0 && a[l - 1]) { --l; }
+                    checkEqual(c.minLeft(r, [](bool v) { return v; }), l, "and minLeft(" + show(r) + ")");}
+                if (n) {
+                    o.apply(n - 1, true); checkEqual(bool(o.get(n - 1)), true, "or apply");
+                    c.apply(0, false); checkEqual(bool(c.allQuery()), false, "and apply");}}}
+        std::cout << "PASS bool payload get/allQuery/values/query/search/apply n<=" << limit << "\n";}
 
     void randomHistories(std::mt19937_64 &rng) {
         int rounds = mode == "quick" ? 10 : mode == "full" ? 100 : 500;
@@ -82,7 +131,7 @@ namespace {
                 sum = 0;
                 while (left && a[left - 1] + sum <= cap) { sum += a[--left]; }
                 checkEqual(t.minLeft(r, pred), left, "random minLeft(" + show(r) + ",cap=" + show(cap) + ")");
-                checkEqual(t.allQuery(), std::accumulate(a.begin(), a.end(), lng(0)), "random allQuery"); }}
+                checkEqual(t.allQuery(), std::accumulate(a.begin(), a.end(), lng(0)), "random allQuery");}}
         std::cout << "PASS seeded update/query/search histories\n";}
 
     struct Affine {
@@ -105,7 +154,7 @@ namespace {
             int n = int(rng() % 40);
             vector<string> a(n); vector<Affine> affine(n);
             for (int i = 0; i < n; ++i) {
-                a[i] = string(1, char('a' + rng() % 3)); affine[i] = {int(rng() % 97), int(rng() % 97)}; }
+                a[i] = string(1, char('a' + rng() % 3)); affine[i] = {int(rng() % 97), int(rng() % 97)};}
             SegmentTree s(a, string(), Join{});
             SegmentTree t(affine, Affine{1, 0}, Compose{});
             for (int step = 0; step < 3; ++step) {
@@ -117,7 +166,7 @@ namespace {
                         for (int x = 0; x < 3; ++x) {
                             int result = x;
                             for (int i = l; i < r; ++i) { result = affine[i].eval(result); }
-                            checkEqual(t.query(l, r).eval(x), result, "affine evaluation(" + show(l) + "," + show(r) + ",x=" + show(x) + ")"); }
+                            checkEqual(t.query(l, r).eval(x), result, "affine evaluation(" + show(l) + "," + show(r) + ",x=" + show(x) + ")");}
                         if (r < n) { joined += a[r]; }}
                     auto pred = [](const string &x) { return x.find("ab") == string::npos; };
                     int right = l, left = l; joined.clear();
@@ -125,10 +174,20 @@ namespace {
                     checkEqual(s.maxRight(l, pred), right, "ordered maxRight(" + show(l) + ")");
                     joined.clear();
                     while (left && pred(a[left - 1] + joined)) { joined = a[--left] + joined; }
-                    checkEqual(s.minLeft(l, pred), left, "ordered minLeft(" + show(l) + ")"); }
+                    checkEqual(s.minLeft(l, pred), left, "ordered minLeft(" + show(l) + ")");}
                 if (n) {
                     int p = int(rng() % n); a[p] = "abc"; affine[p] = {int(rng() % 97), int(rng() % 97)};
-                    s.set(p, a[p]); t.set(p, affine[p]); }}}
+                    s.set(p, a[p]); t.set(p, affine[p]);
+                    int q = int(rng() % n); string tail(1, char('a' + rng() % 3));
+                    Affine g{int(rng() % 97), int(rng() % 97)}, old = affine[q];
+                    s.apply(q, tail); a[q] += tail; t.apply(q, g);
+                    for (int x = 0; x < 97; ++x) { checkEqual(t.get(q).eval(x), g.eval(old.eval(x)), "affine apply order x=" + show(x)); }
+                    affine[q] = t.get(q);}}
+            for (int q = 0; q < n; ++q) {
+                auto u = s; u.apply(q, string("z"));
+                string all;
+                for (int i = 0; i < n; ++i) { all += i == q ? a[i] + "z" : a[i]; }
+                checkEqual(u.get(q), a[q] + "z", "string apply order p=" + show(q)); checkEqual(u.allQuery(), all, "string apply aggregate p=" + show(q));}}
         context = "non-default-constructible payload";
         SegmentTree b(vector<Box>{Box(4), Box(-3)}, Box(0), BoxAdd{});
         checkEqual(b.query(0, 2).x, 1, "Box fold"); b.set(1, Box(8)); checkEqual(b.allQuery().x, 12, "Box set");
@@ -142,6 +201,7 @@ namespace {
         else if (name == "get-negative") { (void)t.get(-1); }
         else if (name == "get-end") { (void)t.get(3); }
         else if (name == "set-end") { t.set(3, 1); }
+        else if (name == "apply-end") { t.apply(3, 1); }
         else if (name == "query-negative") { (void)t.query(-1, 2); }
         else if (name == "query-reversed") { (void)t.query(2, 1); }
         else if (name == "query-end") { (void)t.query(0, 4); }
@@ -151,7 +211,7 @@ namespace {
         else if (name == "min-left-identity") { (void)t.minLeft(3, [](lng) { return false; }); }
         else { throw std::runtime_error("unknown invalid probe " + name); }
         throw std::runtime_error("invalid precondition survived " + name);}
-}
+} // namespace
 
 int main(int argc, char **argv) {
     try {
@@ -166,8 +226,6 @@ int main(int argc, char **argv) {
         std::cout << "segmenttree seed=" << seed << " mode=" << mode << '\n';
         if (!probe.empty()) { invalid(probe); }
         std::mt19937_64 rng(seed);
-        exhaustive(); randomHistories(rng); noncommutative(rng);
-        std::cout << "PASS segmenttree checks=" << checks << '\n'; return 0;
-    } catch (const std::exception &e) {
-        std::cerr << "FAIL segmenttree seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1; }
-}
+        exhaustive(); booleans(); randomHistories(rng); noncommutative(rng);
+        std::cout << "PASS segmenttree checks=" << checks << '\n'; return 0;} catch (const std::exception &e) {
+        std::cerr << "FAIL segmenttree seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1;}}

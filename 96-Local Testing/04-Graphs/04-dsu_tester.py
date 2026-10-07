@@ -7,4 +7,4 @@ The canonical DSU's richer standalone suite remains owned by Data Structures.
 from _00_runner import main
 
 if __name__ == '__main__':
-    raise SystemExit(main('04-dsu', ['negative-size', 'negative-vertex', 'end-vertex']))
+    raise SystemExit(main('04-dsu', ['negative-size', 'negative-vertex', 'end-vertex'], strict=True))

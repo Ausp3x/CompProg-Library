@@ -36,12 +36,12 @@
       "phase": "Foundations re-audit",
       "size": "M+L",
       "model": "fable",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "01-Core/21-c01-verification.md",
         "01-Core/22-bitset.md"
       ],
-      "note": "Restyle pending: apply the 03-cpp.md comment cap with /restyle (contest-session); tests unchanged, no re-audit needed."
+      "note": ""
     },
     {
       "id": "P003",
@@ -67,11 +67,11 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "fable",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "01-Core/23-reduction.md"
       ],
-      "note": "Restyle pending: apply the 03-cpp.md comment cap with /restyle (contest-session); tests unchanged, no re-audit needed."
+      "note": ""
     },
     {
       "id": "P005",
@@ -83,12 +83,12 @@
       "phase": "Foundations re-audit",
       "size": "L+L",
       "model": "fable",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "01-Core/24-modint.md",
         "01-Core/25-modintmini.md"
       ],
-      "note": "Restyle pending: apply the 03-cpp.md comment cap with /restyle (contest-session); tests unchanged, no re-audit needed."
+      "note": ""
     },
     {
       "id": "P006",
@@ -100,11 +100,11 @@
       "phase": "Foundations re-audit",
       "size": "M+M",
       "model": "opus",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "02-Data Structures/90-foundations.md"
       ],
-      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P006.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
+      "note": ""
     },
     {
       "id": "P007",
@@ -115,11 +115,11 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "opus",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "03-Geometry/90-foundations.md"
       ],
-      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P007.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
+      "note": ""
     },
     {
       "id": "P008",
@@ -130,11 +130,11 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "opus",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "03-Geometry/91-ge02.md"
       ],
-      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P008.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
+      "note": ""
     },
     {
       "id": "P009",
@@ -145,11 +145,11 @@
       "phase": "Foundations re-audit",
       "size": "M",
       "model": "opus",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "03-Geometry/92-triangle.md"
       ],
-      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P009.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
+      "note": ""
     },
     {
       "id": "P010",
@@ -161,11 +161,11 @@
       "phase": "Foundations re-audit",
       "size": "M+L",
       "model": "opus",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "04-Graphs/90-foundations.md"
       ],
-      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P010.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
+      "note": ""
     },
     {
       "id": "P011",

@@ -68,4 +68,5 @@ if __name__ == '__main__':
         path = Path(folder) / 'exact.txt'
         fixtures(path, mode, seed)
         os.environ['CP_POINT_ORACLE'] = str(path)
-        raise SystemExit(main('01-point', ['division-zero-2d', 'division-zero-3d']))
+        raise SystemExit(main('01-point', ['division-zero-2d', 'division-zero-3d', 'unit-zero', 'arg-zero', 'angle-zero',
+                                        'signed-angle-zero', 'angle3-zero', 'canonical-minimum']))

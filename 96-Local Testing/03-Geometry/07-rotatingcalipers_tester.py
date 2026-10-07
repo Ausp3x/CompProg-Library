@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Calipers: exhaustive hulls, 256-bit objective oracles, ties and support witnesses.
 
-quick: regressions, 64 small sets, 50 random hulls and 100-vertex chain.
-full: all 512 3x3 sets, 1000 random hulls, 10000-vertex chain, all builds.
-stress: all 65536 4x4 sets, 8000 random hulls, 30000-vertex chain, all builds.
+farthestPair is checked against an all-pairs scan on clouds with duplicates,
+collinear points and ties (rounds as random hulls, each also shuffled).
+quick: regressions, 64 small sets, 50 random hulls/clouds and 100-vertex chain.
+full: all 512 3x3 sets, 1000 random hulls/clouds, 10000-vertex chain, all builds.
+stress: all 65536 4x4 sets, 8000 random hulls/clouds, 30000-vertex chain, all builds.
 """
 from _00_runner import main
 import random
@@ -34,4 +36,4 @@ def oracle(binary, args, env):
     print(f'PASS rotatingcalipers Python integer oracle: {len(cases)} full-width product/comparison cases', flush=True)
 
 if __name__ == '__main__':
-    raise SystemExit(main('07-rotatingcalipers', ['clockwise', 'collinear', 'duplicate', 'range', 'denominator'], oracle))
+    raise SystemExit(main('07-rotatingcalipers', ['clockwise', 'collinear', 'duplicate', 'range', 'denominator', 'farthest-bound'], oracle))

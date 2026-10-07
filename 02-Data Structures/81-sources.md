@@ -26,6 +26,21 @@ A source list is a search plan; only what was actually read is cited. Catalog in
 
 Not fetched today: CSES problem set, Koosaga/ecnerwala/verngutz indexes, PyRival (its sorted-list design is already cited by `08-Python`), Open Data Structures PDF. The Library Checker front page and `judge.yosupo.jp/problem/*` pages render client-side and returned no statements.
 
+## Fetched 2026-10-07 (P006 re-audit sweep)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| maspypy fenwicktree | https://raw.githubusercontent.com/maspypy/library/main/ds/fenwicktree/fenwicktree.hpp | 2026-10-07 | Fenwick `set`, `get_all` (`values`), `max_right`/`min_left` predicate descent. |
+| Nyaan binary indexed tree | https://raw.githubusercontent.com/NyaanNyaan/library/master/data-structure/binary-indexed-tree.hpp | 2026-10-07 | Fenwick point `get` (`operator[]`) and strict `upper_bound`. |
+| suisen fenwick tree | https://raw.githubusercontent.com/suisen-cp/cp-library-cpp/main/library/datastructure/fenwick_tree/fenwick_tree.hpp | 2026-10-07 | Fenwick point `get`. |
+| maspypy segtree | https://raw.githubusercontent.com/maspypy/library/main/ds/segtree/segtree.hpp | 2026-10-07 | SegmentTree `get_all` (`values`) and point `multiply` (`apply`). |
+| cp-algorithms, Disjoint Set Union | https://cp-algorithms.com/data_structures/disjoint_set_union.html | 2026-10-07 | DSU `make_set` (`makeSet`). |
+| hitonanode 2D sparse table | https://hitonanode.github.io/cplib-cpp/ | 2026-10-07 | SparseTable2D catalog entry (idempotent rectangle query); implementation written from the contract, not copied. |
+| Library Checker `ordered_set` statement | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/data_structure/ordered_set/task.md | 2026-10-07 | Query types 4/5: largest key `<= x` (`OrderedMultiSet::prev`) and smallest `>= x` (`lowerBound`). |
+| OI Wiki pb_ds tree | https://oi-wiki.org/lang/pb-ds/tree/ | 2026-10-07 | Mapped PBDS tree (`OrderedMap`); `join`/`split` considered. |
+| Nyaan compress; maspypy index_compression | https://nyaannyaan.github.io/library/misc/compress.hpp ; https://maspypy.github.io/library/ds/index_compression.hpp | 2026-10-07 | CoordinateCompression `operator[]` / `idx_to_val` (`decode`). |
+| OI Wiki prefix sums; OI Wiki sqrt decomposition; maspypy prefix_sum, point_set_range_sum_sqrt | https://oi-wiki.org/basic/prefix-sum/ ; https://oi-wiki.org/ds/decompose/ ; https://maspypy.github.io/library/ds/prefix_sum.hpp ; https://maspypy.github.io/library/ds/point_set_range_sum_sqrt.hpp | 2026-10-07 | Considered and not adopted; reasons in [80-notes.md](80-notes.md#p006-re-audit-omissions). |
+
 ## Source keys and prior audit (condensed)
 
 Keys used in `00-index.md` status cells: **YC** Library Checker problem directories (GitHub), **CPA** cp-algorithms, **ACL** AtCoder Library documents, **KACTL** KACTL data-structures, **OI** OI Wiki ds section, **MAS** maspypy, **NYA** Nyaan, **EI** ei1333, **SUI** suisen, **HIT** hitonanode, **TKO** tko919, **NOSHI** noshi91, **DYNAMIC** xxsds/DYNAMIC, **ODS** Open Data Structures (saved PDF, chapters 4/8/9/10/13, read 2026-09-27), **KOO** Koosaga Library/codes (read 2026-09-27), **PYRIVAL** PyRival sorted list (read 2026-09-27 for `08-Python`).

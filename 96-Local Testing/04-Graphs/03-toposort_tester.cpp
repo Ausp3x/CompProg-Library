@@ -10,20 +10,21 @@ namespace {
     string show(const Graph &g) {
         std::ostringstream out; out << "n=" << g.n << " edges=";
         for (auto e : g.edges) { out << '(' << e.u << ',' << e.v << ',' << e.w << ')'; }
-        return out.str(); }
+        return out.str();}
     template<class G>
-    void result(const G &g, const TopologicalResult &r, bool acyclic, const vector<int> &least, bool lexicographic) {
+    void result(const G &g, const TopologicalResult &r, bool acyclic, const vector<int> &least, bool lexicographic, bool unique) {
         check(r.acyclic == acyclic, "permutation existence oracle");
+        check(r.unique == unique, "unique order against valid permutation count");
         if (acyclic) {
             check(r.cycle.vertices.empty() && r.cycle.arcs.empty(), "DAG empty cycle");
             check(int(r.order.size()) == g.n, "DAG order length");
             vector<int> position(g.n, -1);
             for (int i = 0; i < g.n; ++i) {
                 int u = r.order[i]; check(0 <= u && u < g.n && position[u] == -1, "order permutation");
-                position[u] = i; }
+                position[u] = i;}
             for (auto e : g.edges) { check(position[e.u] < position[e.v], "topological edge inequality"); }
             if (lexicographic) { check(r.order == least, "lexicographically first valid permutation"); }
-            return; }
+            return;}
         check(r.order.empty(), "cyclic order sentinel");
         check(!r.cycle.arcs.empty(), "present cycle certificate");
         const auto &c = r.cycle;
@@ -32,26 +33,26 @@ namespace {
         for (int i = 0; i < int(c.arcs.size()); ++i) {
             int a = c.arcs[i]; check(0 <= a && a < int(g.arcs.size()), "cycle arc domain");
             check(g.arcs[a].from == c.vertices[i] && g.arcs[a].to == c.vertices[i + 1], "cycle arc orientation");
-            check(vertices.insert(c.vertices[i]).second && ids.insert(g.arcs[a].id).second, "simple cycle vertices/edge IDs"); }}
+            check(vertices.insert(c.vertices[i]).second && ids.insert(g.arcs[a].id).second, "simple cycle vertices/edge IDs");}}
     template<class G>
-    void graphCase(const G &g, bool acyclic, const vector<int> &least) {
-        result(g, topologicalSort(g), acyclic, least, false);
-        result(g, topologicalSort(g, false), acyclic, least, false);
-        result(g, topologicalSort(g, true), acyclic, least, true);
-        result(g, topologicalSortDfs(g), acyclic, least, false); }
+    void graphCase(const G &g, bool acyclic, const vector<int> &least, bool unique) {
+        result(g, topologicalSort(g), acyclic, least, false, unique);
+        result(g, topologicalSort(g, false), acyclic, least, false, unique);
+        result(g, topologicalSort(g, true), acyclic, least, true, unique);
+        result(g, topologicalSortDfs(g), acyclic, least, false, unique);}
     void runCase(const Graph &g) {
         ++cases; context = show(g);
         // Enumerating vertex permutations does not use indegrees or DFS states.
         vector<int> permutation(g.n), least; iota(permutation.begin(), permutation.end(), 0);
-        bool acyclic = false;
+        int valid_count = 0;
         do {
             vector<int> position(g.n);
             for (int i = 0; i < g.n; ++i) { position[permutation[i]] = i; }
             bool valid = true;
             for (auto e : g.edges) { if (position[e.u] >= position[e.v]) { valid = false; break; }}
-            if (valid) { acyclic = true; least = permutation; break; }
-        } while (std::next_permutation(permutation.begin(), permutation.end()));
-        graphCase(g, acyclic, least); graphCase(CsrGraph(g), acyclic, least); }
+            if (valid && !valid_count++) { least = permutation; }} while (valid_count < 2 && std::next_permutation(permutation.begin(), permutation.end()));
+        bool acyclic = valid_count > 0, unique = valid_count == 1;
+        graphCase(g, acyclic, least, unique); graphCase(CsrGraph(g), acyclic, least, unique);}
     void exhaustive() {
         for (bool loops : {false, true}) {
             int bound = loops ? (mode == "quick" ? 2 : mode == "full" ? 3 : 4) : (mode == "quick" ? 3 : 4);
@@ -63,8 +64,8 @@ namespace {
                     Graph g(n, true);
                     for (int i = 0; i < int(possible.size()); ++i) {
                         if ((mask >> i) & 1) { g.addEdge(possible[i].first, possible[i].second); }}
-                    runCase(g); }}}
-        cout << "PASS exhaustive directed graphs with permutation oracle cases=" << cases << '\n'; }
+                    runCase(g);}}}
+        cout << "PASS exhaustive directed graphs with permutation oracle cases=" << cases << '\n';}
     void randomCases() {
         std::mt19937_64 rng(seed);
         int rounds = mode == "quick" ? 100 : mode == "full" ? 1200 : 10000;
@@ -75,40 +76,49 @@ namespace {
             for (int i = 0; i < m; ++i) {
                 int u = int(rng() % n), v = int(rng() % n);
                 if (trial % 2 == 0) { if (u == v) { continue; } if (u > v) { swap(u, v); }}
-                g.addEdge(permutation[u], permutation[v], i % 2 ? std::numeric_limits<lng>::min() : std::numeric_limits<lng>::max()); }
+                g.addEdge(permutation[u], permutation[v], i % 2 ? std::numeric_limits<lng>::min() : std::numeric_limits<lng>::max());}
             runCase(g);
             if (!g.edges.empty()) {
                 auto e = g.edges[rng() % g.edges.size()]; g.addEdge(e.u, e.v, 0);
-                runCase(g); }}
-        cout << "PASS random relabeled DAGs/general digraphs, duplicate arcs, extreme ignored weights rounds=" << rounds << '\n'; }
+                runCase(g);}}
+        cout << "PASS random relabeled DAGs/general digraphs, duplicate arcs, extreme ignored weights rounds=" << rounds << '\n';}
     void boundaries() {
         int n = mode == "quick" ? 20000 : mode == "full" ? 200000 : 500000;
         Graph g(n, true); vector<int> least(n); iota(least.begin(), least.end(), 0);
         for (int i = 1; i < n; ++i) { g.addEdge(i - 1, i); }
         context = "chain n=" + std::to_string(n);
-        graphCase(g, true, least); graphCase(CsrGraph(g), true, least);
+        graphCase(g, true, least, true); graphCase(CsrGraph(g), true, least, true);
+        Graph gap(n, true);
+        for (int i = 1; i < n; ++i) {
+            if (i != n / 2) { gap.addEdge(i - 1, i); }
+            if (i >= 2) { gap.addEdge(i - 2, i); }}
+        context = "chain with skip arcs and one missing link n=" + std::to_string(n);
+        graphCase(gap, true, least, false);
+        for (int i = 1; i < n; ++i) { if (i == n / 2) { gap.addEdge(i - 1, i); }}
+        context = "chain with skip arcs n=" + std::to_string(n);
+        graphCase(gap, true, least, true);
         g.addEdge(n - 1, 0); context = "closed chain n=" + std::to_string(n);
-        graphCase(g, false, {}); graphCase(CsrGraph(g), false, {});
+        graphCase(g, false, {}, false); graphCase(CsrGraph(g), false, {}, false);
         // Checked libstdc++ validates the entire heap at every pop; bound this
         // all-ready fixture separately so that its debug cost stays practical.
         int width = mode == "quick" ? 500 : mode == "full" ? 2000 : 5000;
         Graph empty(width, true); least.resize(width);
         context = "edgeless width=" + std::to_string(width);
-        graphCase(empty, true, least);
+        graphCase(empty, true, least, false);
         Graph fixture(7, true); fixture.addEdge(5, 0); fixture.addEdge(3, 1); fixture.addEdge(3, 2);
         fixture.addEdge(3, 2); runCase(fixture);
         auto copied = topologicalSort(fixture, true); auto moved = std::move(copied);
         check(moved.order == topologicalSort(fixture, true).order, "result copy/move/repeated-call");
         fixture.addEdge(2, 3); runCase(fixture);
         cout << "PASS iterative chain/cycle n=" << n << " edgeless width=" << width
-             << ", FIFO-vs-heap and late disconnected cycle\n"; }
+             << ", FIFO-vs-heap and late disconnected cycle\n";}
     void invalid(const string &name) {
         Graph g(2);
         if (name == "kahn-undirected") { topologicalSort(g); }
         else if (name == "lexicographic-undirected") { topologicalSort(g, true); }
         else if (name == "dfs-undirected") { topologicalSortDfs(g); }
         else { throw std::runtime_error("unknown invalid probe " + name); }}
-}
+} // namespace
 
 int main(int argc, char **argv) {
     try {
@@ -118,6 +128,5 @@ int main(int argc, char **argv) {
             else if (arg == "--seed") { seed = std::stoull(argv[++i]); }
             else if (arg == "--invalid") { invalid(argv[++i]); return 2; }}
         exhaustive(); randomCases(); boundaries();
-        cout << "PASS topological seed=" << seed << " mode=" << mode << " cases=" << cases << " checks=" << checks << '\n';
-    } catch (const std::exception &e) {
-        cerr << "FAIL topological seed=" << seed << " mode=" << mode << ' ' << e.what() << '\n'; return 1; }}
+        cout << "PASS topological seed=" << seed << " mode=" << mode << " cases=" << cases << " checks=" << checks << '\n';} catch (const std::exception &e) {
+        cerr << "FAIL topological seed=" << seed << " mode=" << mode << ' ' << e.what() << '\n'; return 1;}}

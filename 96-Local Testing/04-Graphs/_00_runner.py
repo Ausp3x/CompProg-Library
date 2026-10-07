@@ -9,9 +9,10 @@ import sys
 import tempfile
 
 HERE = Path(__file__).resolve().parent
+WARNINGS = ['-Wall', '-Wextra', '-Wconversion', '-Werror']
 
 
-def main(stem, invalid, oracle=None):
+def main(stem, invalid, oracle=None, strict=False):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mode', choices=('quick', 'full', 'stress'),
                         default=os.environ.get('CP_TEST_MODE', 'full'))
@@ -54,7 +55,7 @@ def main(stem, invalid, oracle=None):
             for label, flags in variants:
                 binary = Path(name) / label
                 print(f'RUN {stem} configuration={label} mode={args.mode} seed={args.seed}', flush=True)
-                run([compiler, '-std=gnu++20', *flags, str(HERE / (stem + '_tester.cpp')), '-o', str(binary)])
+                run([compiler, '-std=gnu++20', *(WARNINGS if strict else []), *flags, str(HERE / (stem + '_tester.cpp')), '-o', str(binary)])
                 run([str(binary), '--mode', args.mode, '--seed', str(args.seed)])
                 if oracle is not None:
                     oracle(binary, args, env)

@@ -96,6 +96,8 @@ def write_intersection(out, s, t):
     booleans = [parallel, collinear]
     for p in (s[0], s[1], t[0], t[1], (0, 0)):
         booleans += [member(s, p), member((s[0], s[1], 0), p)]
+    us, ut = (s[1][0] - s[0][0], s[1][1] - s[0][1]), (t[1][0] - t[0][0], t[1][1] - t[0][1])
+    booleans.append(us[0] * ut[0] + us[1] * ut[1] == 0)
     bits = sum(int(value) << i for i, value in enumerate(booleans))
     values = (*s[0], *s[1], s[2], *t[0], *t[1], t[2], kind, *rational, *a, *b, bits)
     out.write('I ' + ' '.join(map(str, values)) + '\n')
@@ -135,6 +137,85 @@ def write_metric(out, p, a, b, c):
     out.write('M ' + ' '.join(map(str, values)) + '\n')
 
 
+def lattice_brute(a, b):
+    """Enumerate the bounding box; independent of gcd."""
+    return sum(1 for x in range(min(a[0], b[0]), max(a[0], b[0]) + 1)
+               for y in range(min(a[1], b[1]), max(a[1], b[1]) + 1)
+               if (b[0] - a[0]) * (y - a[1]) == (b[1] - a[1]) * (x - a[0]))
+
+
+def cells_brute(a, b):
+    """Cells whose open interior meets the closed segment, by exact parameter intervals."""
+    count = 0
+    for i in range(min(a[0], b[0]) - 1, max(a[0], b[0]) + 1):
+        for j in range(min(a[1], b[1]) - 1, max(a[1], b[1]) + 1):
+            lo, hi = F(0), F(1)
+            for c, p, q in ((i, a[0], b[0]), (j, a[1], b[1])):
+                if p == q:
+                    if not c < p < c + 1:
+                        lo, hi = F(1), F(0)
+                    continue
+                x, y = sorted((F(c - p, q - p), F(c + 1 - p, q - p)))
+                lo, hi = max(lo, x), min(hi, y)
+            count += lo < hi
+    return count
+
+
+def write_grid(out, a, b):
+    out.write('G ' + ' '.join(map(str, (*a, *b, lattice_brute(a, b), cells_brute(a, b)))) + '\n')
+
+
+def unit(v):
+    n = (Decimal(v[0]) ** 2 + Decimal(v[1]) ** 2).sqrt()
+    return Decimal(v[0]) / n, Decimal(v[1]) / n
+
+
+def write_construction(out, p, a, b, c):
+    """Lines ab and pc, bisectors of ab and of angle a-p-b, direction p reflected across ab."""
+    u, v = (b[0] - a[0], b[1] - a[1]), (c[0] - p[0], c[1] - p[1])
+    if u[0] * v[1] - u[1] * v[0]:
+        ld = Decimal(0)
+    else:
+        ld = abs(Decimal(u[0] * (p[1] - a[1]) - u[1] * (p[0] - a[0]))) / Decimal(u[0] ** 2 + u[1] ** 2).sqrt()
+    mx, my = Decimal(a[0] + b[0]) / 2, Decimal(a[1] + b[1]) / 2
+    x, y = (a[0] - p[0], a[1] - p[1]), (b[0] - p[0], b[1] - p[1])
+    ux, uy = unit(x)
+    vx, vy = unit(y)
+    if x[0] * y[1] == x[1] * y[0] and x[0] * y[0] + x[1] * y[1] < 0:
+        w = (-uy, ux)  # straight angle: counterclockwise normal of p->a
+    else:
+        w = unit((ux + vx, uy + vy)) if (ux + vx, uy + vy) != (0, 0) else (-uy, ux)
+    k = F(p[0] * u[0] + p[1] * u[1], u[0] ** 2 + u[1] ** 2)
+    rx, ry = decimal(2 * k * u[0] - p[0]), decimal(2 * k * u[1] - p[1])
+    values = (*p, *a, *b, *c, ld, mx, my, mx - u[1], my + u[0], w[0], w[1], rx, ry)
+    out.write('X ' + ' '.join(map(str, values)) + '\n')
+
+
+def constructions(out, rng, sites, rounds):
+    for p, a, b, c in itertools.product(sites, repeat=4):
+        if a != b and a != p and b != p:
+            write_construction(out, p, a, b, c)
+    for a, b in itertools.product(sites, repeat=2):
+        write_grid(out, a, b)
+    for _ in range(rounds):
+        a, b = [tuple(rng.randint(-12, 12) for _ in range(2)) for _ in range(2)]
+        write_grid(out, a, b)
+        p, a, b = [tuple(rng.randint(-10**9, 10**9) for _ in range(2)) for _ in range(3)]
+        if a == b or a == p or b == p:
+            continue
+        k = rng.randint(-3, 3)
+        c = (p[0] + k * (b[0] - a[0]), p[1] + k * (b[1] - a[1]))
+        if max(map(abs, c)) <= 10**9:
+            write_construction(out, p, a, b, c)
+        write_construction(out, p, a, b, tuple(rng.randint(-10**9, 10**9) for _ in range(2)))
+        o, s = tuple(rng.randint(-10**4, 10**4) for _ in range(2)), rng.randint(1, 10**4)
+        d = tuple(rng.randint(-10**4, 10**4) for _ in range(2))
+        if d != (0, 0):
+            near = (o[0] - s * d[0] + rng.randint(-1, 1), o[1] - s * d[1] + rng.randint(-1, 1))
+            if near != o:
+                write_construction(out, o, (o[0] + d[0], o[1] + d[1]), near, o)
+
+
 def fixtures(path, mode, seed):
     # Hand-worked oracle regressions, independent of generated C++ outputs.
     assert reference(((0, 0), (2, 2), 2), ((0, 1), (2, -1), 2)) == (1, (F(1, 2), F(1, 2)), (F(1, 2), F(1, 2)))
@@ -144,6 +225,10 @@ def fixtures(path, mode, seed):
     assert reference(((0, 0), (1, 0), 0), ((1, 0), (2, 0), 0)) == (1, (1, 0), (1, 0))
     assert squared_distance((3, 7), (-5, -2), (10, 4)) == 29
     assert squared_distance((2, 1), (0, 0), (1, 0)) == 2
+    assert (lattice_brute((0, 0), (4, 6)), cells_brute((0, 0), (4, 6))) == (3, 8)
+    assert (lattice_brute((0, 0), (0, 3)), cells_brute((0, 0), (0, 3))) == (4, 0)
+    assert (lattice_brute((1, 1), (1, 1)), cells_brute((1, 1), (1, 1))) == (1, 0)
+    assert cells_brute((0, 0), (1, 1)) == 1 and cells_brute((0, 0), (2, 1)) == 2
     rng = random.Random(seed)
     sites = [(0, 0), (-1, 0), (0, -1), (1, 0), (0, 1)]
     if mode != 'quick':
@@ -176,6 +261,11 @@ def fixtures(path, mode, seed):
                 write_intersection(out, (a, b, i), (c, d, j))
             write_metric(out, a, b, c, d)
         write_intersection(out, ((0, 0), (1000000000, 999999999), 2), ((0, 1), (999999999, 999999999), 2))
+        constructions(out, rng, sites, {'quick': 60, 'full': 600, 'stress': 4000}[mode])
+        corners = [(-10**9, -10**9), (10**9, 10**9), (10**9, -10**9), (999999999, 10**9)]
+        for p, a, b, c in itertools.product(corners, repeat=4):
+            if a != b and a != p and b != p:
+                write_construction(out, p, a, b, c)
         write_metric(out, (3, 7), (-5, -2), (10, 4), (8, 8))
 
 
@@ -194,4 +284,6 @@ if __name__ == '__main__':
             'large-coordinate', 'small-coordinate', 'invalid-kind', 'projection-singleton',
             'reflection-singleton', 'distance-singleton', 'metric-large-coordinate',
             'metric-infinity', 'metric-nan', 'metric-overflow', 'metric-underflow',
+            'canonical-singleton', 'lattice-large', 'cells-large', 'line-distance-singleton',
+            'line-distance-large', 'bisector-singleton', 'angle-bisector-singleton', 'reflect-direction-singleton',
         ]))
