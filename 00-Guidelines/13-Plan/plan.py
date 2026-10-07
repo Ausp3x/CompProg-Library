@@ -144,7 +144,7 @@ def legacy_for(root, target):
 def docs_for(root, target):
     folder, name = target.split('/')
     prefix = re.search(r'\d{2}', name)[0]
-    base = root / folder / 'docs'
+    base = root / folder / 'Docs'
     return sorted(str(p.relative_to(root)) for p in base.glob(f'{prefix}-*.md')) if base.is_dir() else []
 
 
