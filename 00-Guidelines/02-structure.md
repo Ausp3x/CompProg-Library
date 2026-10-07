@@ -21,7 +21,7 @@ Algorithm folders are `01-Core` … `07-Strings` and `08-Python`; `09-Contest Te
 - One main algorithm: lowercase established name without underscores (`01-dsu.hpp`). Several related algorithms: lowercase use-case stem with underscores (`05-prime_algorithms.hpp`).
 - Explicit exceptions: `CLAUDE.md`, `AGENTS.md`, `__init__.py`, `OLD`, `src`, `expanded`, `template.cpp`, tool and config names.
 - A prefix is a stable identifier. It is assigned once and never reused; a new row takes the next free number in its folder. Sections list rows in importance order, not numeric order. Rename or renumber an existing file only as an explicitly scoped task that updates includes, imports, tests, judge sources, notebook selection, maps and inventory together.
-- Companion documents inside an algorithm folder use `80`–`97` prefixes and `.md`: `80-notes.md` (contracts, cross-folder ownership), `81-sources.md` (source ledger), `90`+ (package evidence). `97-Legacy/` holds unchanged `.cpp` excerpts with an index; `98-Basic` and `99-All` are aggregates.
+- Companion documents live in the folder's `docs/` subdirectory: `docs/notes.md` (contracts and cross-folder ownership), `docs/sources.md` (source ledger), and one `docs/<NN-name>.md` per header with the same prefix and stem as the header (contracts, feature-to-test map, commands and results, benchmarks, provenance). Legacy multi-header package documents are named `docs/pNNN-*.md` and are split per header during re-audit. `97-Legacy/` holds unchanged `.cpp` excerpts with an index; `98-Basic` and `99-All` are aggregates.
 
 ## Tiers and Core order
 

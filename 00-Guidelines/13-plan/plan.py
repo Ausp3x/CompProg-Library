@@ -141,14 +141,23 @@ def legacy_for(root, target):
     return [' — '.join([re.sub(r'\[[^]]*\]\(<?([^)>]+)>?\)', rf'`{folder}/97-Legacy/\1`', r[0]), *r[1:]]) for r in rows]
 
 
+def docs_for(root, target):
+    folder, name = target.split('/')
+    prefix = re.search(r'\d{2}', name)[0]
+    base = root / folder / 'docs'
+    return sorted(str(p.relative_to(root)) for p in base.glob(f'{prefix}-*.md')) if base.is_dir() else []
+
+
 def batch_brief(root, b, inv):
     out = [f'### {b["id"]} ({b["size"]})', '', 'Focus: ' + b['focus'],
            'Batch prerequisites: ' + (', '.join(b['prerequisites']) or 'none')]
     for t in b['targets']:
         out += [f'- `{t}` [{"exists" if (root / t).exists() else "missing"}]', '  ' + ' — '.join(inv.get(t, (['(no inventory row)'],))[0])]
     tests = [x for t in b['targets'] for x in tests_for(root, t)]
+    docs = [x for t in b['targets'] for x in docs_for(root, t)]
     legacy = [x for t in b['targets'] for x in legacy_for(root, t)]
     out += ['Tests:' if tests else 'Tests: none'] + ['- `' + x + '`' for x in tests]
+    out += ['Docs:' if docs else 'Docs: none (create docs/<NN-name>.md)'] + ['- `' + x + '`' for x in docs]
     if legacy:
         out += ['Legacy:'] + ['- ' + x for x in dict.fromkeys(legacy)]
     return out + ['']
@@ -159,6 +168,11 @@ def show(root, ident):
     bmap = {b['id']: b for b in batches['batches']}
     pmap = {p['id']: p for p in packages['packages']}
     inv = inventories(root)
+    if ident == 'next':
+        p = ready(batches, packages)
+        if not p:
+            raise SystemExit('No package is ready')
+        ident = p['id']
     if ident in bmap:
         return '\n'.join(batch_brief(root, bmap[ident], inv))
     if ident not in pmap:

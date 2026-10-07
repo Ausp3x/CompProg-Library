@@ -4,7 +4,7 @@ Offline reading for the library. Open only the relevant reference or chapter; th
 
 Maintenance: prefer author/project downloads, avoid duplicate editions, keep original contents/notices, and record URL, retrieval date, edition and SHA-256 in [99-sources.json](99-sources.json). New filenames use `NN-descriptive_name`; existing user-provided names are retained. Check reuse terms before adapting or redistributing material. Agner Fog's PDFs permit local study but prohibit public mirrors. Library implementation rules remain in [the focused guides](../00-Guidelines/00-index.md), including Core-only ISA specialization.
 
-Already present: [Competitive Programmer's Handbook — Antti Laaksonen](<Competitive Programmer's Handbook by Antti Laaksonen.pdf>) and [NOI.PH lecture slides](NOI.PH/). Their contents and filenames are unchanged.
+Already present: [Competitive Programmer's Handbook — Antti Laaksonen](<Competitive Programmer's Handbook by Antti Laaksonen.pdf>) and [NOI.PH lecture slides](NOI.PH). Their contents and filenames are unchanged.
 
 Added on 2026-09-27 (15 PDFs, about 53 MB). Sources are linked beside each download; precise edition details and checksums are in the manifest.
 

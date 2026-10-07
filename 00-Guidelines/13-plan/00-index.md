@@ -10,7 +10,7 @@ The plan is one compact manifest plus a CLI. Batches are stable ownership units;
 
 Commands (`python3 '00-Guidelines/13-plan/plan.py' <command>`):
 
-- `show Pxxx` or `show <batch>`: compact brief with prerequisites, focus, inventory rows, tests, legacy references and evidence.
+- `show Pxxx`, `show next` or `show <batch>`: compact brief with prerequisites, focus, inventory rows, tests, legacy references and evidence.
 - `status`: counts per status and phase, plus the next ready package; `next` prints only its ID.
 - `set Pxxx STATUS [--evidence PATH ...] [--note TEXT]`: update a package (evidence is appended) and re-render the checklist.
 - `render`: rewrite the checklist between the `plan:begin`/`plan:end` markers in `01-prompts.md`.

@@ -38,8 +38,8 @@
       "model": "fable",
       "status": "verified",
       "evidence": [
-        "01-Core/21-c01-verification.md",
-        "01-Core/22-bitset.md"
+        "01-Core/docs/p002-c01-verification.md",
+        "01-Core/docs/18-bitset.md"
       ],
       "note": ""
     },
@@ -69,7 +69,7 @@
       "model": "fable",
       "status": "verified",
       "evidence": [
-        "01-Core/23-reduction.md"
+        "01-Core/docs/p004-reduction.md"
       ],
       "note": ""
     },
@@ -85,8 +85,8 @@
       "model": "fable",
       "status": "verified",
       "evidence": [
-        "01-Core/24-modint.md",
-        "01-Core/25-modintmini.md"
+        "01-Core/docs/05-modint.md",
+        "01-Core/docs/06-modintmini.md"
       ],
       "note": ""
     },
@@ -102,7 +102,7 @@
       "model": "opus",
       "status": "verified",
       "evidence": [
-        "02-Data Structures/90-foundations.md"
+        "02-Data Structures/docs/p006-foundations.md"
       ],
       "note": ""
     },
@@ -117,7 +117,7 @@
       "model": "opus",
       "status": "verified",
       "evidence": [
-        "03-Geometry/90-foundations.md"
+        "03-Geometry/docs/p007-foundations.md"
       ],
       "note": ""
     },
@@ -132,7 +132,7 @@
       "model": "opus",
       "status": "verified",
       "evidence": [
-        "03-Geometry/91-ge02.md"
+        "03-Geometry/docs/p008-ge02.md"
       ],
       "note": ""
     },
@@ -147,7 +147,7 @@
       "model": "opus",
       "status": "verified",
       "evidence": [
-        "03-Geometry/92-triangle.md"
+        "03-Geometry/docs/09-triangle.md"
       ],
       "note": ""
     },
@@ -163,7 +163,7 @@
       "model": "opus",
       "status": "verified",
       "evidence": [
-        "04-Graphs/90-foundations.md"
+        "04-Graphs/docs/p010-foundations.md"
       ],
       "note": ""
     },
@@ -179,8 +179,8 @@
       "model": "opus",
       "status": "verified",
       "evidence": [
-        "04-Graphs/95-p011.md",
-        "04-Graphs/94-functionalgraph.md"
+        "04-Graphs/docs/p011.md",
+        "04-Graphs/docs/11-functionalgraph.md"
       ],
       "note": ""
     },
@@ -196,7 +196,7 @@
       "model": "opus",
       "status": "verified",
       "evidence": [
-        "05-Mathematics/96-p012.md"
+        "05-Mathematics/docs/p012.md"
       ],
       "note": ""
     },
@@ -212,7 +212,7 @@
       "model": "opus",
       "status": "verified",
       "evidence": [
-        "06-Miscellaneous/95-p013.md"
+        "06-Miscellaneous/docs/p013.md"
       ],
       "note": ""
     },
@@ -241,7 +241,7 @@
       "model": "opus",
       "status": "verified",
       "evidence": [
-        "06-Miscellaneous/96-p014.md"
+        "06-Miscellaneous/docs/p014.md"
       ],
       "note": ""
     },
@@ -258,7 +258,7 @@
       "model": "opus",
       "status": "audit",
       "evidence": [
-        "06-Miscellaneous/89-p015.md"
+        "06-Miscellaneous/docs/p015.md"
       ],
       "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P015.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
@@ -275,7 +275,7 @@
       "model": "opus",
       "status": "audit",
       "evidence": [
-        "07-Strings/94-p016.md"
+        "07-Strings/docs/p016.md"
       ],
       "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P016.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },
@@ -290,7 +290,7 @@
       "model": "opus",
       "status": "audit",
       "evidence": [
-        "07-Strings/89-p017.md"
+        "07-Strings/docs/p017.md"
       ],
       "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-reaudit-findings/P017.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-reaudit-findings/00-index.md and clear this note."
     },

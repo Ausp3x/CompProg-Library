@@ -18,7 +18,7 @@ Start with [CLAUDE.md](CLAUDE.md) (Claude Code) or [AGENTS.md](AGENTS.md) (other
 | [96-Local Testing](<96-Local Testing/00-index.md>) | Maintained library regression suites |
 | [97-Online Testing](<97-Online Testing/00-index.md>) | Judge solutions and generated submission files |
 | [98-Team Notebook](<98-Team Notebook/00-index.md>) | Configurable canonical-source notebook and contest notes |
-| [99-Workspace](99-Workspace/) | Standalone `template.cpp` and temporary contest work |
+| [99-Workspace](99-Workspace) | Standalone `template.cpp` and temporary contest work |
 | [OLD](OLD/00-index.md) | Preserved legacy sources/materials; not active library dependencies |
 
 Each algorithm folder has a `00-index.md` inventory whose rows name every public operation and carry one status word. Planned rows are not implementations. Start work with `/package Pxxx`; [migration notes](00-Guidelines/11-migration.md) record the history of existing code.

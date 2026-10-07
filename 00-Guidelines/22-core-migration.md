@@ -12,7 +12,7 @@ The 2026-09-27 migration implements the approved namespace/co-location rules and
 
 Core 01–04 and aggregate names 98/99 are unchanged. Both aggregates expose full and mini modular families without alias collisions; Basic retains full types needed by current consumers. Four full-type C++ suites now run through one `05-modint_tester.py` entry. The mini family has one `06-modintmini_tester.py` entry. Later Core tester and benchmark filenames follow their header numbers.
 
-The [exact path map](21-core-path-updates.json) records retired headers, moved artifacts and archived originals. The canonical [structure guide](02-structure.md), [Core inventory](../01-Core/00-index.md), [batch manifest](13-plan/batches.json), both machine scheduling maps, checklist, dependent includes, source/archive maps, judge-family map and generated outputs use the current layout. Detailed modular contracts and evidence remain in [full-family evidence](../01-Core/24-modint.md) and [mini evidence](../01-Core/25-modintmini.md).
+The [exact path map](21-core-path-updates.json) records retired headers, moved artifacts and archived originals. The canonical [structure guide](02-structure.md), [Core inventory](../01-Core/00-index.md), [batch manifest](13-plan/batches.json), both machine scheduling maps, checklist, dependent includes, source/archive maps, judge-family map and generated outputs use the current layout. Detailed modular contracts and evidence remain in [full-family evidence](../01-Core/docs/05-modint.md) and [mini evidence](../01-Core/docs/06-modintmini.md).
 
 ## Style and preservation
 

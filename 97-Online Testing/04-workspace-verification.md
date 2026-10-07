@@ -2,7 +2,7 @@
 
 Re-audited 2026-10-06 under the retooled system. P003 owns the explicit refresh
 and verification of `99-Workspace/template.cpp`; its prerequisite P002 is
-verified ([C01 evidence](../01-Core/21-c01-verification.md)). The sections after
+verified ([C01 evidence](../01-Core/docs/p002-c01-verification.md)). The sections after
 "History" record the earlier single-case snapshot and are superseded where they
 disagree with the current contract below.
 

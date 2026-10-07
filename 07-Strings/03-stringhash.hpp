@@ -4,7 +4,7 @@
 // S: O(n), Q: O(1), M: O(n); three arrays of eight-byte entries, n < INT_MAX.
 // Monte Carlo fingerprints, never proof of equality. Fixed default bases; no global state.
 // Bytes encode unsigned+1; vector<uint> symbols encode x+1, with x<1000000006
-// for double primes, or any uint for WRAP64. See 91-stringhash.md for collision bounds.
+// for double primes, or any uint for WRAP64. See 03-stringhash.md for collision bounds.
 template<bool WRAP64 = false> struct StringHash {
     using Word = std::conditional_t<WRAP64, ulng, array<uint, 2>>;
     static constexpr array<uint, 2> MOD{1000000007, 1000000009};
