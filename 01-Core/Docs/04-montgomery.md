@@ -24,7 +24,7 @@ All bulk APIs use pointer/count overloads with an `int n >= 0`; pointers address
 
 ### MontgomeryBackend
 
-`MontgomeryBackend<T>` is a public class template (a detail alias would change template identity and specialization/CTAD behavior); `Montgomery32`, `Montgomery64` and `Montgomery` are its aliases (with `Wide` and `BITS`). `mod`, `inv = -mod^-1 mod R` and `rsq = R^2 mod mod` are immutable after construction. `add` and `sub` use the same formulas for ordinary residues. Scalar bulk loops run the unchecked `redc` shared by every scalar operation; the AVX2 loops (Montgomery32 only) run `red4`/`red8`, with `red8` factoring the even/odd lane packing shared by `mul8` and the bulk `get`, and `load`/`store` helpers. Even moduli belong to Barrett32/Barrett64. Compare lazy values only after normalization.
+`MontgomeryBackend<T>` is a public class template (a detail alias would change template identity and specialization/CTAD behavior); `Montgomery32`, `Montgomery64` and `Montgomery` are its aliases (with `Wide` and `BITS`). `mod`, `inv = -mod^-1 mod R` and `rsq = R^2 mod mod` are immutable after construction. `add` and `sub` use the same formulas for ordinary residues. Scalar bulk loops run the unchecked `redc` shared by every scalar operation; the AVX2 loops (Montgomery32 only) run `red4`/`red8`, with `red8` factoring the even/odd lane packing shared by `mul8` and the bulk `get`, and `load`/`store` helpers; these kernels are internal and reached only through the checked bulk APIs. Even moduli belong to Barrett32/Barrett64. Compare lazy values only after normalization.
 
 ### Guard
 
@@ -59,17 +59,17 @@ Quick mode covers every public operation with smaller exhaustive/random corpora.
 
 ## Commands and results
 
-Re-audit, 2026-10-07:
+Restyle, 2026-10-08 (comments only; behavior unchanged):
 
 ```bash
-python3 '96-Local Testing/01-Core/04-montgomery_tester.py' --mode full --seed 20261007
-python3 '96-Local Testing/01-Core/04-montgomery_tester.py' --mode stress --seed 1
-python3 '96-Local Testing/01-Core/03-reduction_benchmark.py' --seed 20261007 --repetitions 5 --milliseconds 2 --output '96-Local Testing/01-Core/03-reduction_benchmark.jsonl'
-python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py' --braces 01-Core/03-barrett.hpp 01-Core/04-montgomery.hpp
+python3 '96-Local Testing/01-Core/04-montgomery_tester.py' --mode full --seed 20261008
+CXX=g++-14 python3 '96-Local Testing/01-Core/04-montgomery_tester.py' --mode full --seed 20261008
+python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-All passed on GCC 16.2.1, GNU++20, Linux x86-64 (Intel Core i9-11900H), every build with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full (seed 20261007): **3,699,028 checks in each of six configurations** (optimized and checked scalar, optimized and checked AVX2, scalar and AVX2 ASan/UBSan with leak detection; 100 precondition deaths in each checked build; standalone/multiple-TU build) in 47.28 s. Stress (seed 1, one round): **23,203,772 checks in each of six configurations** in 50.75 s, with the same deaths and multiple-TU builds. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, scalar and available AVX2 multiple-translation-unit linkage, the Workspace snapshot and the sanitizer self-tests. `03-consistency.py` reports no errors. Independent review (`@reviewer`, 2026-10-07) found no correctness defect: an 8.13-million-case differential against native arithmetic under ASan/UBSan (sums, differences, lazy forms at `2m-1`/`2m-2`, every 8-lane Guard verdict for seven `top` values) passed, and every header mutant was caught.
+All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64 (Intel Core i9-11900H), every build with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full (seed 20261008): **3,698,814 checks in each of six configurations** (optimized and checked scalar, optimized and checked AVX2, scalar and AVX2 ASan/UBSan with leak detection; precondition deaths in each checked build; standalone/multiple-TU build), 42.74 s on g++ and 44.22 s on g++-14. `02-integration.py` passed 102 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage and the Workspace snapshot; `03-consistency.py` reports no errors and no brace or comment-cap violations. Benchmarks below are from the 2026-10-07 re-audit; this restyle changed no code.
 
 ## Benchmarks
 
@@ -100,10 +100,11 @@ Legacy accounting: the unchanged original is [OLD/5-Mathematics/09-montgomery.hp
 
 ## Limits and handoffs
 
-GCC 14 and Windows were not executed. The AVX2 kernels are 32-bit only (no 64x64 vector multiply in AVX2). Residue inverses stay with `05-modint.hpp`, whose `powerMontgomery` repeats `powMont` for 128-bit exponents (a P005 decision whether to widen the backend exponent). Left-out candidates (`neg`, `one`, lazy equality, `square`, 64-bit/AVX-512/IFMA/signed lanes) are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
+GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2 and a Windows/MinGW build were not executed. The AVX2 kernels are 32-bit only (no 64x64 vector multiply in AVX2). Residue inverses stay with `05-modint.hpp`, whose `powerMontgomery` repeats `powMont` for 128-bit exponents (a P005 decision whether to widen the backend exponent). Left-out candidates (`neg`, `one`, lazy equality, `square`, 64-bit/AVX-512/IFMA/signed lanes) are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
 
 ## History
 
 - 2026-09-27: original P004 completion, quick, full, stress (8,889,119 checks per configuration) and integration passed; first benchmarks.
 - 2026-09-27: maintenance review, full suite, integration and consistency passed.
 - 2026-10-07: re-audit, 2 findings fixed (complexity comment, per-element bulk assertions replaced by `Guard`), `add`/`sub`/`addLazy`/`subLazy` and shared `redc` added, full and stress passed on g++.
+- 2026-10-07 (run): full (seed 20261007, 3,699,028 checks per configuration) and stress (seed 1, 23,203,772) passed, `02-integration.py --sanitizers` passed, independent `@reviewer` differential (8.13 million cases, every 8-lane Guard verdict) and mutants found no defect.

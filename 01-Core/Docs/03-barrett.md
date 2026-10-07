@@ -51,17 +51,17 @@ Quick mode covers every public operation with smaller exhaustive/random corpora.
 
 ## Commands and results
 
-Re-audit, 2026-10-07:
+Restyle, 2026-10-08 (comments only; behavior unchanged):
 
 ```bash
-python3 '96-Local Testing/01-Core/03-barrett_tester.py' --mode full --seed 20261007
-python3 '96-Local Testing/01-Core/03-barrett_tester.py' --mode stress --seed 1
-python3 '96-Local Testing/01-Core/03-reduction_benchmark.py' --seed 20261007 --repetitions 5 --milliseconds 2 --output '96-Local Testing/01-Core/03-reduction_benchmark.jsonl'
-python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py' --braces 01-Core/03-barrett.hpp 01-Core/04-montgomery.hpp
+python3 '96-Local Testing/01-Core/03-barrett_tester.py' --mode full --seed 20261008
+CXX=g++-14 python3 '96-Local Testing/01-Core/03-barrett_tester.py' --mode full --seed 20261008
+python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-All passed on GCC 16.2.1, GNU++20, Linux x86-64 (Intel Core i9-11900H), every build with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full (seed 20261007): **53,657,153 non-removable checks in each of six configurations** (optimized and checked scalar, optimized and checked AVX2, scalar and AVX2 ASan/UBSan with leak detection; 16 precondition deaths in both checked builds; standalone/multiple-TU build) in 41.72 s. Stress (seed 1, one round): **146,158,229 checks in each of six configurations** in 61.53 s. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, scalar and available AVX2 multiple-translation-unit linkage, the Workspace snapshot and the sanitizer self-tests. `03-consistency.py` reports no errors. Independent review (`@reviewer`, 2026-10-07) found no correctness defect: an 8.13-million-case differential against native `%`, `/` and `ulll` arithmetic under ASan/UBSan on scalar and AVX2 builds passed, and every header mutant was caught.
+All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64 (Intel Core i9-11900H), every build with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full (seed 20261008): **53,657,153 non-removable checks in each of six configurations** (optimized and checked scalar, optimized and checked AVX2, scalar and AVX2 ASan/UBSan with leak detection; standalone/multiple-TU build), 37.64 s on g++ and 41.85 s on g++-14. `02-integration.py` passed 102 standalone/aggregate headers, scalar and AVX2 multiple-translation-unit linkage and the Workspace snapshot; `03-consistency.py` reports no errors and no brace or comment-cap violations. Benchmarks below are from the 2026-10-07 re-audit; this restyle changed no code.
 
 ## Benchmarks
 
@@ -98,10 +98,11 @@ The 2026-10-07 catalog sweep is in [00-sources.md](00-sources.md) ("Fetched 2026
 
 ## Limits and handoffs
 
-GCC 14 and Windows were not executed. The `Multiplier` has no quotient. Signed-dividend reduction and residue inverses stay with `05-modint.hpp`. Lazy Barrett outputs, a divisibility test and the other left-out candidates are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
+GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2 and a Windows/MinGW build were not executed. The `Multiplier` has no quotient. Signed-dividend reduction and residue inverses stay with `05-modint.hpp`. Lazy Barrett outputs, a divisibility test and the other left-out candidates are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
 
 ## History
 
 - 2026-09-27: original P004 completion, full and stress (91,538,696 checks per configuration) and integration passed; first benchmarks.
 - 2026-09-27: maintenance review, full suite, integration and consistency passed.
 - 2026-10-07: re-audit, 3 findings fixed (row gap `highProduct`, weak bulk fixed-multiplier tests, complexity comment), `divMod`/`div`, `MERSENNE61` and default modulus added, full and stress passed on g++.
+- 2026-10-07 (run): full (seed 20261007, 53,657,153 checks per configuration) and stress (seed 1, 146,158,229) passed, `02-integration.py --sanitizers` passed, independent `@reviewer` differential (8.13 million cases) and mutants found no defect.

@@ -43,7 +43,7 @@ struct Barrett32 {
         for (; i < n; ++i) { out[i] = mul(a[i], b[i]); }}
 
     // S: O(1), Q: O(1), M: O(1); pointer mul O(n).
-    // Shoup factor: value = b % mod, mu = floor(value * 2^32 / mod); the quotient is at most one short.
+    // Factor any word, reduced at setup; any operand word; results canonical in [0, mod).
     struct Multiplier {
         uint mod, value, mu;
         bool mask;
@@ -119,7 +119,7 @@ struct Barrett64 {
         for (int i = 0; i < n; ++i) { out[i] = mul(a[i], b[i]); }}
 
     // S: O(1), Q: O(1), M: O(1); pointer mul O(n).
-    // 128-bit intermediates keep the 65th residual bit for full-width moduli.
+    // Factor any word, reduced at setup; any operand word; results canonical in [0, mod).
     struct Multiplier {
         ulng mod, value, mu;
         bool mask;

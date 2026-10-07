@@ -63,7 +63,6 @@ struct MontgomeryBackend {
     T pow(T a, ulng e) const { return get(powMont(init(a), e)); }
 
 #ifdef __AVX2__
-    // Internal ISA kernels, used through the checked bulk APIs below.
     static __m256i load(const T *p) { return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(p)); }
     static void store(T *p, __m256i x) { _mm256_storeu_si256(reinterpret_cast<__m256i *>(p), x); }
     // The 65-bit sum is kept as its 33-bit high part, so signed 64-bit comparisons are safe.
@@ -78,7 +77,6 @@ struct MontgomeryBackend {
             __m256i ge = _mm256_cmpgt_epi64(r, _mm256_sub_epi64(m, _mm256_set1_epi64x(1)));
             r = _mm256_sub_epi64(r, _mm256_and_si256(ge, m));}
         return r;}
-    // Reduces the even- and odd-lane wide products and packs eight 32-bit results.
     __m256i red8(__m256i even, __m256i odd, bool lazy) const {
         return _mm256_or_si256(red4(even, lazy), _mm256_slli_epi64(red4(odd, lazy), 32));}
     __m256i mul8(__m256i a, __m256i b, bool lazy) const {
