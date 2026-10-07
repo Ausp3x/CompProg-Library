@@ -1,9 +1,9 @@
 ---
 paths:
   - "**/00-index.md"
-  - "00-Guidelines/13-plan/**"
-  - "**/98-Basic.hpp"
-  - "**/99-All.hpp"
+  - "00-Guidelines/13-Plan/**"
+  - "**/98-basic.hpp"
+  - "**/99-all.hpp"
   - "08-Python/_98_basic.py"
   - "08-Python/_99_all.py"
 ---
@@ -16,12 +16,13 @@ Algorithm folders are `01-Core` … `07-Strings` and `08-Python`; `09-Contest Te
 
 ## Names
 
-- Files and folders sort by a two-digit prefix and hyphen: `05-modint.hpp`, `04-Graphs`.
+- Files and folders sort by a two-digit prefix and hyphen: `05-modint.hpp`, `04-Graphs`. Folders are Title Case with spaces (`02-Data Structures`, `13-Plan`, `Docs`, `Ledgers`, `History`); files are lowercase (`98-basic.hpp`, `00-notes.md`, `p016.md`).
 - Python modules use `_05_name.py` (importable identifier); executable scripts may use `05-name.py`.
 - One main algorithm: lowercase established name without underscores (`01-dsu.hpp`). Several related algorithms: lowercase use-case stem with underscores (`05-prime_algorithms.hpp`).
-- Explicit exceptions: `CLAUDE.md`, `AGENTS.md`, `__init__.py`, `OLD`, `src`, `expanded`, `template.cpp`, tool and config names.
+- Folder-level files inside a folder take prefix `00` (`00-index.md`, `Docs/00-notes.md`, `00-foundations_benchmark.py`); header-level files take the header's prefix and stem (`Docs/05-modint.md`, `05-modint_tester.py`, `05-modint_benchmark.py`).
+- Explicit exceptions: `CLAUDE.md`, `AGENTS.md`, `__init__.py`, `OLD` and its contents, `95-Resources` user-provided filenames, `src` and `expanded` under `97-Online Testing`, `template.cpp`, `.claude`, tool and config names.
 - A prefix is a stable identifier. It is assigned once and never reused; a new row takes the next free number in its folder. Sections list rows in importance order, not numeric order. Rename or renumber an existing file only as an explicitly scoped task that updates includes, imports, tests, judge sources, notebook selection, maps and inventory together.
-- Companion documents live in the folder's `docs/` subdirectory: `docs/notes.md` (contracts and cross-folder ownership), `docs/sources.md` (source ledger), and one `docs/<NN-name>.md` per header with the same prefix and stem as the header (contracts, feature-to-test map, commands and results, benchmarks, provenance). Legacy multi-header package documents are named `docs/pNNN-*.md` and are split per header during re-audit. `97-Legacy/` holds unchanged `.cpp` excerpts with an index; `98-Basic` and `99-All` are aggregates.
+- Companion documents live in the folder's `Docs/` subdirectory: `Docs/00-notes.md` (contracts and cross-folder ownership), `Docs/00-sources.md` (source ledger), and one `Docs/<NN-name>.md` per header with the same prefix and stem as the header (contracts, feature-to-test map, commands and results, benchmarks, provenance). No other document shape exists: a package's evidence is the set of its headers' documents. `97-Legacy/` holds unchanged `.cpp` excerpts with an index until their rows are verified; `98-basic` and `99-all` are aggregates.
 
 ## Tiers and Core order
 
@@ -31,8 +32,8 @@ Algorithm folders are `01-Core` … `07-Strings` and `08-Python`; `09-Contest Te
 
 ## Aggregates
 
-- `98-Basic.hpp` includes every Basic header of its folder; Core Basic includes minis where they exist plus full types that Basic consumers need.
-- `99-All.hpp` includes every implemented header of its folder once, full and mini, transitively; never aggregates, tests or planned files.
+- `98-basic.hpp` includes every Basic header of its folder; Core Basic includes minis where they exist plus full types that Basic consumers need.
+- `99-all.hpp` includes every implemented header of its folder once, full and mini, transitively; never aggregates, tests or planned files.
 - Algorithms include their direct dependencies, never an aggregate. Full and mini names coexist (`iint`, `iintmini`).
 - Python `_98_basic.py` and `_99_all.py` re-export explicit public names only; importing them performs no work.
 
@@ -55,4 +56,4 @@ All-solution and enumeration APIs return compact parameterizations or explicitly
 
 ## Archive
 
-`OLD` keeps original bytes of superseded code and notebooks and is excluded from aggregates, discovery and notebook selection. Delete from `OLD` or `97-Legacy` only after an audited implementation accounts for every feature the file contained.
+`OLD` keeps original bytes of superseded code and notebooks and is excluded from aggregates, discovery and notebook selection; it is never deleted. A `97-Legacy/` excerpt is a working copy of an `OLD` range: delete it (`git rm`, drop its row from the legacy index, remove the folder when empty) as soon as the row it informs is `verified`, because its features are then accounted for and `OLD` still holds the bytes.

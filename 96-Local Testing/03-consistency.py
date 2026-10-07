@@ -171,7 +171,7 @@ for folder in sorted(ROOT.iterdir()):
         require([order[t] for _, t in rows] == sorted(order[t] for _, t in rows), 'Tier order: ' + folder.name)
     counts[folder.name] = len(rows)
 
-plan_spec = importlib.util.spec_from_file_location('library_plan', ROOT / '00-Guidelines/13-plan/plan.py')
+plan_spec = importlib.util.spec_from_file_location('library_plan', ROOT / '00-Guidelines/13-Plan/plan.py')
 plan = importlib.util.module_from_spec(plan_spec)
 plan_spec.loader.exec_module(plan)
 errors.extend(plan.check(ROOT))
@@ -195,13 +195,13 @@ for target, parts in inventories.items():
         errors.extend(brace_violations(f))
         brace_checked += 1
 
-coverage = read_json('00-Guidelines/20-library-checker-coverage.json')
+coverage = read_json('00-Guidelines/Ledgers/library-checker-coverage.json')
 require(len(coverage['records']) == coverage['problem_families'], 'Judge family count')
 require(len({r['problem'] for r in coverage['records']}) == len(coverage['records']), 'Duplicate judge family')
 for record in coverage['records']:
     require(bool(record['targets']) and set(record['targets']) <= inventories.keys(), 'Unmapped judge family: ' + record['problem'])
 
-archive = read_json('00-Guidelines/19-archive-map.json')
+archive = read_json('00-Guidelines/Ledgers/archive-map.json')
 actual_archive = {str(p.relative_to(ROOT)) for p in (ROOT / 'OLD').rglob('*') if p.is_file()}
 require(actual_archive == {r['path'] for r in archive['files']}, 'Archive manifest coverage mismatch')
 require(archive['summary']['files'] == archive['summary']['classified'] == len(archive['files']), 'Archive summary count mismatch')
@@ -211,7 +211,7 @@ for record in archive['files']:
     require(hashlib.sha256((ROOT / record['path']).read_bytes()).hexdigest() == record['sha256'], 'Archive hash mismatch: ' + record['path'])
     require(set(record['targets']) <= inventories.keys(), 'Archive target mismatch: ' + record['path'])
 
-monolith = read_json('00-Guidelines/15-monolith-map.json')
+monolith = read_json('00-Guidelines/Ledgers/monolith-map.json')
 for source, meta in monolith['sources'].items():
     require(hashlib.sha256((ROOT / source).read_bytes()).hexdigest() == meta['sha256'], 'Monolith source hash: ' + source)
 for entry in monolith['entries']:
@@ -220,7 +220,7 @@ for entry in monolith['entries']:
     source = (ROOT / entry['source']).read_bytes().splitlines(keepends=True)
     body = b''.join(source[entry['start_line'] - 1:entry['end_line']])
     require(hashlib.sha256(body).hexdigest() == entry['body_sha256'], 'Original excerpt hash: ' + entry['source'] + ':' + str(entry['start_line']))
-    if 'target_body_start_line' in entry:
+    if 'target_body_start_line' in entry and not ('97-Legacy' in entry['target'] and not (ROOT / entry['target']).exists()):
         target = (ROOT / entry['target']).read_bytes().splitlines(keepends=True)
         body = b''.join(target[entry['target_body_start_line'] - 1:entry['target_body_end_line']])
         require(hashlib.sha256(body).hexdigest() == entry['body_sha256'], 'Transferred excerpt hash: ' + entry['target'])
@@ -273,9 +273,9 @@ for folder in counts:
                 require((p.parent / inc).is_file(), 'Broken direct include: ' + target + ' -> ' + inc)
 
 # Current path maps preserve historical source keys while their destinations stay live.
-for name, key in [('12-path-map.json', 'headers'), ('18-path-updates.json', 'old_to_current'),
-                  ('18-path-updates.json', 'changed'), ('21-core-path-updates.json', 'old_to_current'),
-                  ('21-core-path-updates.json', 'moved_artifacts')]:
+for name, key in [('Ledgers/path-map.json', 'headers'), ('Ledgers/path-updates.json', 'old_to_current'),
+                  ('Ledgers/path-updates.json', 'changed'), ('Ledgers/core-path-updates.json', 'old_to_current'),
+                  ('Ledgers/core-path-updates.json', 'moved_artifacts')]:
     mapping = read_json('00-Guidelines/' + name)[key]
     for old, target in mapping.items():
         require(target in inventories or (ROOT / target).is_file(), 'Unresolved current map destination: ' + name + ': ' + target)
@@ -297,10 +297,10 @@ for folder in [*counts, '96-Local Testing', '97-Online Testing/src', '99-Workspa
             require((p.parent / inc).is_file(), 'Unresolved include: ' + str(p.relative_to(ROOT)) + ': ' + inc)
 
 core_headers = {p.name for p in (ROOT / '01-Core').glob('*.hpp') if p.name[:2].isdigit() and int(p.name[:2]) < 98}
-all_text = (ROOT / '01-Core/99-All.hpp').read_text()
+all_text = (ROOT / '01-Core/99-all.hpp').read_text()
 all_includes = re.findall(r'^#include "([^"\n]+)"', all_text, re.M)
 require(set(all_includes) == core_headers and len(all_includes) == len(set(all_includes)), 'Core All aggregate coverage/duplicates')
-for name in ('98-Basic.hpp', '99-All.hpp'):
+for name in ('98-basic.hpp', '99-all.hpp'):
     incs = re.findall(r'^#include "([^"\n]+)"', (ROOT / '01-Core' / name).read_text(), re.M)
     require({'05-modint.hpp', '06-modintmini.hpp'} <= set(incs), 'Missing modular family in Core aggregate: ' + name)
 

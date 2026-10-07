@@ -35,7 +35,7 @@ def main():
     if tool == 'Read':
         if rel.startswith('95-Resources/') and rel.endswith('.pdf'):
             return deny('Reference PDFs are not read whole; use the pages parameter for at most a few pages, or rely on the online catalogs in 00-Guidelines/09-sources.md.')
-        if re.fullmatch(r'00-Guidelines/\d{2}-[^/]+\.json', rel):
+        if rel.startswith('00-Guidelines/Ledgers/') and rel.endswith('.json'):
             return deny('Machine ledgers are not read whole; query them with rg or a short python3 snippet.')
         if path.is_file() and path.stat().st_size > BIG and not inp.get('limit'):
             return deny(f'{rel} is {path.stat().st_size // 1024} KB; read a slice with offset/limit or search it with rg.')

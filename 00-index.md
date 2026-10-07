@@ -1,6 +1,6 @@
 # Ultra competitive programming library
 
-Start with [CLAUDE.md](CLAUDE.md) (Claude Code) or [AGENTS.md](AGENTS.md) (other agents), then the [guideline index](00-Guidelines/00-index.md). Work is scheduled in the [session checklist](01-prompts.md), rendered from the plan manifest in `00-Guidelines/13-plan/`. The [decision log](00-Guidelines/10-decisions.md) is on demand only.
+Start with [CLAUDE.md](CLAUDE.md) (Claude Code) or [AGENTS.md](AGENTS.md) (other agents), then the [guideline index](00-Guidelines/00-index.md). Work is scheduled in the [session checklist](01-prompts.md), rendered from the plan manifest in `00-Guidelines/13-Plan/`. The [decision log](00-Guidelines/10-decisions.md) is on demand only.
 
 | Folder | Purpose |
 |---|---|
@@ -21,4 +21,4 @@ Start with [CLAUDE.md](CLAUDE.md) (Claude Code) or [AGENTS.md](AGENTS.md) (other
 | [99-Workspace](99-Workspace) | Standalone `template.cpp` and temporary contest work |
 | [OLD](OLD/00-index.md) | Preserved legacy sources/materials; not active library dependencies |
 
-Each algorithm folder has a `00-index.md` inventory whose rows name every public operation and carry one status word. Planned rows are not implementations. Start work with `/package Pxxx`; [migration notes](00-Guidelines/11-migration.md) record the history of existing code.
+Each algorithm folder has a `00-index.md` inventory whose rows name every public operation and carry one status word. Planned rows are not implementations. Start work with `/package Pxxx`; [migration notes](00-Guidelines/History/2026-09-27-migration.md) record the history of existing code.

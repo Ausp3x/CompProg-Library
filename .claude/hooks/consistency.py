@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PATTERNS = ('*/00-index.md', '00-Guidelines/13-plan/*', '01-prompts.md', '*.hpp', '08-Python/*.py')
+PATTERNS = ('*/00-index.md', '00-Guidelines/13-Plan/*', '01-prompts.md', '*.hpp', '08-Python/*.py')
 
 
 def failure(text):

@@ -30,7 +30,7 @@ def main():
         for header in headers:
             unit.write_text(f'#include "{header}"\nint main() {{}}\n')
             run([compiler, *flags, '-fsyntax-only', str(unit)])
-        includes = ''.join(f'#include "{p}"\n' for p in headers if p.name == '99-All.hpp')
+        includes = ''.join(f'#include "{p}"\n' for p in headers if p.name == '99-all.hpp')
         a,b = build/'a.cpp',build/'b.cpp'
         a.write_text(includes+'int other(); int main() { return other(); }\n')
         b.write_text(includes+'int other() { return 0; }\n')

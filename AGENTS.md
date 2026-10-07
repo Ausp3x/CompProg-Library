@@ -6,9 +6,9 @@ Maximal competitive-programming library. C++20 headers in `01-Core` … `07-Stri
 
 ## Start here
 
-- Package brief: `python3 '00-Guidelines/13-plan/plan.py' show Pxxx`, then follow the workflow in `.claude/skills/package/SKILL.md`. Next ready package: `plan.py next`. Progress: `plan.py status`.
+- Package brief: `python3 '00-Guidelines/13-Plan/plan.py' show Pxxx`, then follow the workflow in `.claude/skills/package/SKILL.md`. Next ready package: `plan.py next`. Progress: `plan.py status`.
 - Read `00-Guidelines/01-principles.md` always, then only the guides for the files you touch: `02-structure.md` (inventories, aggregates, plan), `03-cpp.md` (`.hpp`/`.cpp`), `04-python.md` (`08-Python`), `05-testing.md` (`96-Local Testing`), `06-online.md` (`97`, `99`), `07-notebook.md` (`98`), `08-contest-tools.md` (`09`), `09-sources.md` (research). The decision log `10-decisions.md` is on demand only.
-- Each algorithm folder has `00-index.md` (inventory rows: header, operations, status) and a `docs/` directory: `notes.md` (contracts), `sources.md` (source ledger) and one `<NN-name>.md` per header (evidence). Read only the rows and documents the package names.
+- Each algorithm folder has `00-index.md` (inventory rows: header, operations, status) and a `Docs/` directory: `notes.md` (contracts), `sources.md` (source ledger) and one `<NN-name>.md` per header (evidence). Read only the rows and documents the package names.
 
 ## Non-negotiables
 
@@ -21,8 +21,8 @@ Maximal competitive-programming library. C++20 headers in `01-Core` … `07-Stri
 ## Commands
 
 ```bash
-python3 '00-Guidelines/13-plan/plan.py' show P018
-python3 '00-Guidelines/13-plan/plan.py' set P018 verified --evidence '01-Core/26-infint.md'
+python3 '00-Guidelines/13-Plan/plan.py' show P018
+python3 '00-Guidelines/13-Plan/plan.py' set P018 verified --evidence '01-Core/26-infint.md'
 python3 '96-Local Testing/01-run.py' --mode quick
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'

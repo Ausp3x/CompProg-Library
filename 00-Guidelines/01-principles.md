@@ -30,5 +30,5 @@ Single-threaded contest execution is the baseline. Static caches and dynamic-mod
 ## Scope discipline
 
 - Do the assigned package only. Update its inventory rows, tests, aggregates, evidence and dependent paths in the same change.
-- Legacy material in `OLD` and `97-Legacy` stays until every feature it contains is accounted for in the inventory.
+- `OLD` is never deleted. A `97-Legacy` excerpt is deleted once the row it informs is verified; until then it stays untouched.
 - Never submit to an online judge automatically.

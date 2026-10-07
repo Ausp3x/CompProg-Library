@@ -15,3 +15,5 @@
 98-Team Notebook/*.toc
 
 .claude/settings.local.json
+96-Local Testing/**/*_benchmark.json
+96-Local Testing/**/*_benchmark.jsonl

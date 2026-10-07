@@ -1,0 +1,85 @@
+# 05-prefix_sum.hpp — evidence
+
+Common contracts for rows 01–08 (indices, preconditions, algebra, moved-from state, braced-list construction, `T = bool`) are in [00-notes.md](00-notes.md#foundations-rows-0108-p006). Package P006 (DS01 then DS02); C01/P002 supplies the verified template, integer aliases and PBDS imports.
+
+## Contracts
+
+### PrefixSum and PrefixSum2D
+
+Zero-based half-open ranges and rectangles `[x1, x2) x [y1, y2)` in (row, column) order; 2D arguments are `(row1, col1, row2, col2)`. Each dimension is in `[0, INT_MAX - 1]`. T is an additive commutative group with zero `T(0)`. Every stored prefix and intermediate must fit T, or T is modular. Input vectors are copied, so `rebuild` may take references to the object's own storage. An empty outer vector means 0 x 0; the dimension constructor also represents 0 x m and n x 0. Rows must have equal length (asserted). `rebuild` uses O(storage) workspace. The 1D types take a braced list (`std::initializer_list<T>`): `PrefixSum<lng> p({7})` and `PrefixSum<lng> p{7}` hold the single value 7, and `PrefixSum<lng> p(7)` holds seven zeros.
+
+### DifferenceArray and DifferenceArray2D
+
+Offline range or rectangle additions over the same domains; `add` on an empty range or rectangle is a no-op. `values()` reconstructs the array in O(n) or O(n * m) without changing the state. `clear` resets to zeros; `rebuild` replaces the initial values. Unused far-border subtractions are skipped, so a whole-array (singleton) update by `LLONG_MIN` never computes its unrepresentable negation. Intermediate sums and differences must still fit T. The 2D update delta is named `w` so that it does not clash with the coordinates `x1` and `x2`.
+
+### Correctness and cost
+
+Prefix accumulation and inclusion-exclusion cancel exactly the unwanted intervals. Difference endpoint/four-corner updates cancel outside the added region; axis-by-axis integration is their inverse. 1D build/storage/materialization O(n+1), 2D O((n+1) * (m+1)); queries/updates O(1). Rebuild and returned arrays use a further copy of the corresponding storage. `checkedSize` carries `// T: O(1), M: O(1)`.
+
+## Feature-to-test map
+
+The Python entry and C++ oracle suite share the stem under `96-Local Testing/02-Data Structures`; runner, configurations and failure reporting are described in [00-notes.md](00-notes.md#foundations-rows-0108-p006).
+
+| Operation | Test (`05-prefix_sum_tester.cpp` group) | Oracle |
+|---|---|---|
+| `PrefixSum`/`DifferenceArray`: `prefixSum`, `sum`, `add`, `values` | `arrays` | Ternary arrays through length 7, all range sums/updates and depth-3 histories |
+| `PrefixSum2D`/`DifferenceArray2D` | `matrices` | Every ternary matrix through 2x3 and every rectangle |
+| Rectangle update histories | `randomized` | 100 histories of 120 rectangle updates against literal cell loops |
+| `rebuild`, `clear`, construction, types | `boundaries` | Empty dimensions, rebuild/clear/copy/move/repeated reconstruction, argument/input aliases, int64/128-bit/modular/exact dyadic cases, braced singleton/list and non-convertibility from `int`; 16 probes |
+
+Quick: length 4, 2x2, depth 2, 15 cases. Stress: length 8, history depth 4, 400 cases. Per configuration: 681,510 checks (full, 2026-09-27), 681,515 (full, 2026-10-07).
+
+## Commands and results
+
+### Original P006 verification — 2026-09-27
+
+```bash
+python3 '96-Local Testing/01-run.py' --mode full --seed 20260927 --filter '02-Data Structures' --no-integration
+python3 '96-Local Testing/01-run.py' --mode quick --seed 42 --filter '02-Data Structures' --no-integration
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
+```
+
+All eight per-header entries passed `--mode full --seed 20260927` on 2026-09-27 (24 configuration runs, all 100 assertion probes of the package), invoked directly as `python3 '96-Local Testing/02-Data Structures/05-prefix_sum_tester.py' --mode full --seed 20260927`. Compiler GCC 16.2.1 20260810, GNU++20; CPython 3.14.7; Linux x86-64. Initial sandbox ASan/UBSan processes hit LeakSanitizer's explicit ptrace restriction; the successful full sanitizer runs used approved execution outside that sandbox with leak checking enabled. No sanitizer failure is counted as a pass. `02-integration.py` passed all **65** present standalone/aggregate headers, scalar and available AVX2 multiple-translation-unit linkage, and LOCAL/non-LOCAL Workspace compilation; `03-consistency.py` passed with zero errors. The quick run through shared discovery (seed 42, invoked by absolute path from `/tmp`) passed all eight suites and checks working-directory independence, option forwarding and discovery; it does not replace the full runs. The package stress command (`--mode stress --seed 42 --rounds 3`) was available but not run as completion evidence. Independent peer reviews covered every header, overflow arithmetic, algebra, aliases, tie policies and feature ownership.
+
+### Re-audit — 2026-10-07
+
+Package P006 was re-audited under the current rules, treating the previous verification as existing-unverified. The rows were compared with the code and the testers before any edit; the 24 confirmed findings in `00-Guidelines/23-Reaudit Findings/p006.md` were then fixed or resolved. Findings that concern this header:
+
+| # | Finding | Disposition |
+|---|---|---|
+| 3, 4 | A braced singleton picks the size constructor (`PrefixSum`, `DifferenceArray`) | Fixed: `std::initializer_list<T>` constructors make a braced list always mean values. The tester checks braced singletons and lists, and `static_assert` non-convertibility from `int`/`vector`. |
+| 10–12, 17, 19, 23, 24 | Closing-brace rule (DSU, Fenwick, segment do-while, sqrt, ordered lambda, monotone lambdas, testers) | Fixed in every header, tester and the benchmark; `03-consistency.py --braces` reports nothing for the package. The tester anonymous namespaces now close with `} // namespace`. |
+| 13 | prefix_sum_detail helpers without complexity lines | `checkSize` and `checkRows` were inlined as entry asserts. The remaining `checkedSize` carries `// T: O(1), M: O(1)`. |
+| 14 | Complexity lines split or not directly above the struct | Every struct and free function now has its single-line bound directly above it; contract prose moved to this document. |
+| 15 | `DifferenceArray2D::add` delta named `x` | Renamed to `w`. |
+| 20 | Methods not grouped | OrderedMultiSet and SortedVector are now grouped construction / access / mutation / queries with blank lines; the other headers were regrouped the same way. |
+
+Changes beyond the findings: Comment cap: every header keeps at most two comment lines per struct or function and at most 8% comment lines; the removed contract text is under Contracts. The shared runner compiles every configuration with `-Wall -Wextra -Wconversion -Werror`; no header or tester produces a warning.
+
+```bash
+python3 '96-Local Testing/01-run.py' --mode full --seed 20260927 --filter '02-Data Structures' --no-integration   # before any edit
+python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 2 --filter '02-Data Structures' --no-integration
+python3 '96-Local Testing/01-run.py' --mode full --seed 20261007 --filter '02-Data Structures' --no-integration
+python3 '96-Local Testing/02-Data Structures/02-fenwick_tester.py' --mode stress --seed 9
+python3 '96-Local Testing/02-Data Structures/03-segmenttree_tester.py' --mode stress --seed 9
+python3 '96-Local Testing/02-Data Structures/04-sparsetable_tester.py' --mode stress --seed 9
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
+```
+
+All runs used GCC 16.2.1, GNU++20 and CPython 3.14 on Linux x86-64 (Intel Core i9-11900H), and all passed. Every tester build used `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked and ASan/UBSan configurations with leak checking. The unchanged suites passed full mode with seed 20260927 before any edit. The final full run (seed 20261007, after the review fixes) took 4 min 10 s for the package and passed all 8 suites x 3 configurations and all 112 assertion probes. Stress over two rounds (seeds 7 and 8, 21 min) passed all 8 suites before the review fixes. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, multiple-translation-unit linkage, the Workspace build and the sanitizer self-tests. `03-consistency.py` reports no errors and checks the closing-brace rule on the package's headers and testers. GCC 14.2 itself was not run. No online submission was made. The prefix suite passed in every run above (681,515 checks per configuration in the final full run).
+
+## Sources
+
+| Source | Actual reading and use |
+|---|---|
+| [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf), saved repository edition, chapter 9 | pp84–85/93 independently support 1D/2D prefix inclusion-exclusion and endpoint differences. |
+| [KACTL](https://github.com/kth-competitive-programming/kactl), saved repository PDF | SubMatrix reference. Its empty-input constructor is not copied; empty matrices require an explicit contract here. |
+| [OI Wiki: 前缀和 & 差分](https://oi-wiki.org/basic/prefix-sum/) | Read 1D/2D prefix sums, four-corner difference signs and offline reconstruction; page update 2026-03-26. |
+
+References inspected on 2026-09-27.
+
+## Limits and handoffs
+
+Online range-update/query structures belong to later batches; difference arrays reconstruct offline. Left out of the 2026-10-07 sweep, with reasons in [00-notes.md](00-notes.md#p006-re-audit-omissions): 3D prefix sums and difference arrays, tree prefix sums and path differences (Graphs), noncommutative or xor-group prefix products. No P006-owned gap remains.

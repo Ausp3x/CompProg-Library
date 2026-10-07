@@ -39,13 +39,13 @@ python3 08-shrink.py failing.in --propose my_proposer.py --valid my_input_valida
 
 ## Coverage and extension inventory
 
-P001/SUP01 verification is recorded in [the package evidence](10-verification.md), with the feature-to-test map and scoped follow-up work. The examples remain small demonstrations, not a comprehensive generator/checker library for every algorithm family.
+P001/SUP01 verification is recorded in [the package evidence](Docs/00-verification.md), with the feature-to-test map and scoped follow-up work. The examples remain small demonstrations, not a comprehensive generator/checker library for every algorithm family.
 
-The [integer and style maintenance record](10-verification.md#integer-and-style-maintenance-2026-09-27) covers the standalone generator's exact local aliases, applicable C++ fixtures, and fresh full-suite/reproducibility checks.
+The [integer and style maintenance record](Docs/00-verification.md#integer-and-style-maintenance-2026-09-27) covers the standalone generator's exact local aliases, applicable C++ fixtures, and fresh full-suite/reproducibility checks.
 
 | Files | Owned features | Status and evidence |
 |---|---|---|
-| `01-stress.py`, `09-quick.py` | Sequential seeds, Python/C++/executables, token/byte/custom comparison, input validator, expected-answer replay, error classes, unique bundles, replay, child cleanup, reduced quick CLI | **Verified**, 2026-10-06 re-audit; [P001 evidence](10-verification.md) |
+| `01-stress.py`, `09-quick.py` | Sequential seeds, Python/C++/executables, token/byte/custom comparison, input validator, expected-answer replay, error classes, unique bundles, replay, child cleanup, reduced quick CLI | **Verified**, 2026-10-06 re-audit; [P001 evidence](Docs/00-verification.md) |
 | `01-stress.py`, `05-interactor.py` | Hidden input, bidirectional relay/transcript, EOF/backpressure, total/idle limits, bounded query example | **Verified**; same evidence |
 | `01-stress.py`, `06-validator.py`, `07-scorer.py` | Validity versus tool errors, finite Decimal scores, both objectives, optional reference, permutation example | **Verified**; same evidence |
 | `08-shrink.py` | Valid baseline, shorter valid proposals, exact signatures, skip/errors/timeouts, bounded attempts, preserved progress | **Verified**; same evidence |
@@ -60,4 +60,4 @@ Planned problem-specific additions, made only when a task needs them:
 - Additional problem-specific interactor protocols and scoring policies as their problems require; the supplied bounded guessing/permutation examples cover the common lifecycle.
 - Shrink hooks that preserve graph/tree structure, algebraic domains and legal rollback/persistence histories. The current helper's progress metric is strictly decreasing **input byte length**, with bounded attempts and per-hook timeouts; arbitrary semantic metrics, a separate total-time limit and generic interactive/scored reducers are not implemented.
 
-Keep these adapters short and separate. Algorithm regression suites and performance benchmarks remain in `96-Local Testing`; successful problem stress does not verify an entire library family. See [the completeness audit](../00-Guidelines/16-inventory-audit.md) for the expanded workload inventory.
+Keep these adapters short and separate. Algorithm regression suites and performance benchmarks remain in `96-Local Testing`; successful problem stress does not verify an entire library family. See [the completeness audit](../00-Guidelines/History/2026-09-27-inventory-audit.md) for the expanded workload inventory.

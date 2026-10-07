@@ -21,8 +21,8 @@ Saved PDFs are indexed in [95-Resources](../95-Resources/00-index.md). `OLD` and
 
 ## Provenance
 
-- For each adopted result record title or URL, version or date, the claim it supports, and whether code was adapted or written independently. Keep licenses and attribution; put detail in `81-sources.md` and only a one-line notice in code.
+- For each adopted result record title or URL, version or date, the claim it supports, and whether code was adapted or written independently. Keep licenses and attribution; put detail in `Docs/00-sources.md` and only a one-line notice in code.
 - Benchmarks, tests and judge acceptance are separate evidence types; never substitute one for another.
 - Never fabricate a citation, an inspection, a run or an acceptance.
 
-Machine-readable ledgers: [17-research-sources.json](17-research-sources.json) (read-scope records), [20-library-checker-coverage.json](20-library-checker-coverage.json) (Library Checker families mapped to owners), [19-archive-map.json](19-archive-map.json) (archive accounting).
+Machine-readable ledgers: [research-sources.json](Ledgers/research-sources.json) (read-scope records), [library-checker-coverage.json](Ledgers/library-checker-coverage.json) (Library Checker families mapped to owners), [archive-map.json](Ledgers/archive-map.json) (archive accounting).

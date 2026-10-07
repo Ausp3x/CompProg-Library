@@ -1,6 +1,6 @@
 # Online testing
 
-`src/` holds canonical judge solutions. The current set has **20 Yosupo C++ sources**: 11 linear algebra and 9 big integer programs. They were migrated from the earlier library layout; online acceptance has not been verified in this migration. Source comments identify their problems. The generated `expanded/` tree and `02-expansion.json` are ignored build artifacts.
+`src/` holds canonical judge solutions under `src/<Judge>/<Topic>/` (Title Case directories). Generated `expanded/` outputs and the `02-expansion.json` manifest are local artifacts regenerated with `python3 '97-Online Testing/01-expander.py'` (needs `oj-bundle`); they were cleared on 2026-10-08 after the source directories were renamed. The current set has **20 Yosupo C++ sources**: 11 linear algebra and 9 big integer programs. They were migrated from the earlier library layout; online acceptance has not been verified in this migration. Source comments identify their problems. The generated `expanded/` tree and `02-expansion.json` are ignored build artifacts.
 
 Run the C++ expander from any directory:
 
@@ -12,9 +12,9 @@ It recursively bundles unexpanded `src/**/*.cpp` with `oj-bundle` (files ending 
 
 `03-workspace.py` explicitly creates the standalone `99-Workspace/template.cpp` snapshot from `01-Core/01-template.hpp` and `02-debug.hpp`. Run it again only when you want to refresh the snapshot; `--check` displays a diff and exits nonzero if it is stale. Workspace generation does not run during expansion or tests.
 
-**P003 / SUP05 re-audited (2026-10-06):** the snapshot opens with the motto line, drops Core comment lines, and ends with the multi-case driver `solve(int t)` / `int t = 1; cin >> t;` / `solve(i)` for `i = 1..t`. `--check`, the workspace fixture, integration and an isolated LOCAL/non-LOCAL/sanitized compile/run matrix passed. See [feature coverage, commands, hashes and history](04-workspace-verification.md).
+**P003 / SUP05 re-audited (2026-10-06):** the snapshot opens with the motto line, drops Core comment lines, and ends with the multi-case driver `solve(int t)` / `int t = 1; cin >> t;` / `solve(i)` for `i = 1..t`. `--check`, the workspace fixture, integration and an isolated LOCAL/non-LOCAL/sanitized compile/run matrix passed. See [feature coverage, commands, hashes and history](Docs/00-workspace-verification.md).
 
-The [Core family migration](../00-Guidelines/22-core-migration.md) updates the current Core includes, re-expands all 20 sources and explicitly refreshes Workspace after the namespace comment change. That record distinguishes fresh local checks from the earlier P003 evidence.
+The [Core family migration](../00-Guidelines/History/2026-09-27-core-migration.md) updates the current Core includes, re-expands all 20 sources and explicitly refreshes Workspace after the namespace comment change. That record distinguishes fresh local checks from the earlier P003 evidence.
 
 ## Judge coverage backlog
 

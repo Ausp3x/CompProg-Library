@@ -27,7 +27,7 @@ phase('Scope')
 const ids = Array.isArray(args) && args.length ? args : null
 const scope = await agent(
   `List the library headers to review. ${ids ? `Packages: ${ids.join(', ')}.` : 'Use every package whose status is "audit".'} ` +
-  `Run python3 '00-Guidelines/13-plan/plan.py' status and show <id> for each package; return each target path that exists on disk with its package id. ` +
+  `Run python3 '00-Guidelines/13-Plan/plan.py' status and show <id> for each package; return each target path that exists on disk with its package id. ` +
   `Skip support packages with no targets.`,
   { schema: HEADERS, effort: 'low', label: 'scope' })
 const headers = scope ? scope.headers : []
@@ -37,7 +37,7 @@ const results = await pipeline(
   headers,
   h => agent(
     `Review ${h.path} (package ${h.package}) of the CompProg Library as an independent reviewer. ` +
-    `Run python3 '00-Guidelines/13-plan/plan.py' show ${h.package} for the inventory row and evidence. ` +
+    `Run python3 '00-Guidelines/13-Plan/plan.py' show ${h.package} for the inventory row and evidence. ` +
     `Read the header, its evidence document and its tester. Report only defects you can support: correctness bugs with a concrete failing input, ` +
     `operations named in the inventory row but absent, inventory operations with no test, violations of 00-Guidelines/03-cpp.md (closing-brace rule, std:: list, ` +
     `complexity comments, use of long, POSIX-only calls), and judge-portability problems. Do not edit files. Return an empty list if nothing is wrong.`,
