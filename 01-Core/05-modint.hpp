@@ -189,7 +189,7 @@ namespace modint_detail {
         // T: O(d), M: O(d); one signed decimal token, failbit preserves the destination.
         friend istream &operator>>(istream &is, Value &a) {
             string s; if (!(is >> s)) { return is; }
-            size_t i = (s[0] == '+' || s[0] == '-'); // string supports full size_t.
+            size_t i = (s[0] == '+' || s[0] == '-');
             if (i == s.size()) { is.setstate(std::ios::failbit); return is; }
             Value r = 0, ten = 10;
             for (; i < s.size(); ++i) {

@@ -95,19 +95,17 @@ Quick runs all API fixtures with smaller random corpora in optimized/checked sca
 
 ## Commands and results
 
-Re-audit, 2026-10-07 (GCC 16.2.1, CPython 3.14.7, Intel Core i9-11900H):
+Restyle, 2026-10-08 (one trailing comment removed; behavior unchanged; GCC 16.2.1 and GCC 14.4.1, CPython 3.14.7, Intel Core i9-11900H):
 
 ```bash
-python3 '96-Local Testing/01-Core/05-modint_tester.py' --mode quick --seed 20260927     # PASS, 4 types x 4 configurations
-python3 '96-Local Testing/01-Core/05-modint_tester.py' --mode full --seed 20260927      # PASS, 4 types x 6 configurations: 35,976 oracle cases per 32-bit configuration, 55,578 per 64-bit
-python3 '96-Local Testing/01-Core/05-modint_tester.py' --mode stress --seed 20260927    # PASS, see below
-python3 '96-Local Testing/01-Core/06-modintmini_tester.py' --mode full --seed 20260927  # PASS, 3 configurations, 176,384 cases each
-python3 '96-Local Testing/01-Core/05-modint_benchmark.py' --seed 20260927 --repetitions 5 --milliseconds 1 --output '96-Local Testing/01-Core/05-modint_benchmark.jsonl'  # PASS, 7,760 checked measurements
-python3 '96-Local Testing/02-integration.py'                                            # PASS, 102 headers, scalar/AVX2 multi-TU, workspace build
-python3 '96-Local Testing/03-consistency.py'                                            # no errors
+python3 '96-Local Testing/03-consistency.py' --braces 01-Core/05-modint.hpp 01-Core/06-modintmini.hpp   # no violations
+python3 '96-Local Testing/01-Core/05-modint_tester.py' --mode full --seed 20261008              # PASS, 4 types x 6 configurations
+CXX=g++-14 python3 '96-Local Testing/01-Core/05-modint_tester.py' --mode full --seed 20261008   # PASS, 4 types x 6 configurations
+python3 '96-Local Testing/02-integration.py'                                                    # PASS, 102 headers, scalar/AVX2 multi-TU, workspace build
+python3 '96-Local Testing/03-consistency.py'                                                    # no errors
 ```
 
-All death cases (8 static, 12 dynamic) abort under the checked builds; the Matrix/ModFac consumer smoke and both cross-translation-unit link orders pass; ASan/UBSan scalar and AVX2 configurations pass. One stress round passed for all four types in all six configurations: 288,532 exact Python oracle cases per 32-bit configuration and 446,488 per 64-bit configuration (modint32 152.9 s, modint64 246.4 s, dynmodint32 57.0 s, dynmodint64 65.3 s); it ran before the final `if constexpr` rewrite of `norm` and three extra corpus values, which the final full run covers. The independent review (2026-10-07) compared `norm` on 41,806 constructions over all 18 integral types and 23 moduli, `fold61`/`red`/`mul` on 400,000 dividends and pairs, and `ModInt61` `pow`/`inv`/`trySqrt`/`sqrt`/`batchInv`/streams against Python with zero mismatches.
+Each type runs optimized, checked and ASan/UBSan builds, scalar and AVX2, against the exact Python big-integer oracle (55,422 cases per 64-bit dynamic configuration at this seed), with death cases, the Matrix/ModFac consumer smoke and both cross-translation-unit link orders. The benchmarks below are from the 2026-10-07 re-audit; this restyle changed no code.
 
 ## Benchmarks
 
@@ -157,7 +155,7 @@ Legacy: originals remain unchanged in `OLD/1-Core/03-modint.hpp` and `OLD/1-Core
 
 ## Limits and handoffs
 
-Exact GCC 14, Python 3.10 execution (scripts parse under 3.10 grammar) and PyPy were not run; no online acceptance is claimed.
+GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2, a Windows/MinGW build, Python 3.10 execution (scripts parse under 3.10 grammar) and PyPy were not run; no online acceptance is claimed.
 
 ### Dependent-owner handoff
 
@@ -171,3 +169,4 @@ Catalog items for other owners, reported, not changed: double factorial and inve
 - 2026-09-27: consolidation of the four full types into one header and one test entry, full suite passed.
 - 2026-09-27: maintenance review, compile-time alias/width checks added, full suite and integration passed.
 - 2026-10-07: re-audit, 6 findings fixed (complexity line, closing braces, 128-bit construction division, three mini findings), `ModInt61` and the two concepts added, quick, full and stress passed on g++; benchmark record replaced.
+- 2026-10-07 (run): quick, full (seed 20260927) and one stress round (288,532/446,488 oracle cases per 32/64-bit configuration) passed, benchmark (7,760 measurements) recorded, independent review found zero mismatches.

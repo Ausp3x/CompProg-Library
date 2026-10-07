@@ -73,13 +73,17 @@ Quick retains every API fixture with dynamic rings through 24 and 64 random pair
 
 ## Commands and results
 
-Re-audit, 2026-10-07 (GCC 16.2.1, CPython 3.14.7, Intel Core i9-11900H):
+Restyle, 2026-10-08 (header unchanged; GCC 16.2.1 and GCC 14.4.1, CPython 3.14.7, Intel Core i9-11900H):
 
 ```bash
-python3 '96-Local Testing/01-Core/06-modintmini_tester.py' --mode full --seed 20260927
+python3 '96-Local Testing/03-consistency.py' --braces 01-Core/05-modint.hpp 01-Core/06-modintmini.hpp
+python3 '96-Local Testing/01-Core/06-modintmini_tester.py' --mode full --seed 20261008
+CXX=g++-14 python3 '96-Local Testing/01-Core/06-modintmini_tester.py' --mode full --seed 20261008
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
 ```
 
-Full passed **176,384 exact oracle cases per configuration** in optimized, checked and ASan/UBSan scalar builds, all 18 assertion deaths, both zero-modulus rejections, all four extracted copies and both translation-unit link orders (85.61 s). `03-consistency.py --braces` reports no violation for the header, tester or benchmark source. The AVX2/BMI2 optimized benchmark build compiles. The stress round run with P005 (`--mode stress --seed 20260927`, recorded in [05-modint.md](05-modint.md)) passed 1,044,573 cases in each of the three configurations (77.4 s).
+Full passed in optimized, checked and ASan/UBSan scalar builds on both compilers (70.51 s on g++, 74.71 s on g++-14), including the assertion deaths, both zero-modulus rejections under NDEBUG, all four individually copied structs and both translation-unit link orders. No brace or comment-cap violations; integration passed 102 headers; consistency reports no errors. The benchmarks below are from the 2026-10-07 re-audit.
 
 ## Benchmarks
 
@@ -121,10 +125,11 @@ The 2026-10-07 sweep of minimal modints (KACTL, ACL, Nyaan, maspypy, ei1333, ecn
 
 ## Limits and handoffs
 
-GCC 14, Python 3.10 (the tester parses under 3.10 grammar) and PyPy execution were not run. No online acceptance is claimed. The mini stays independent of the full type's `ModInt61` fold path.
+GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2, a Windows/MinGW build, Python 3.10 (the tester parses under 3.10 grammar) and PyPy execution were not run. No online acceptance is claimed. The mini stays independent of the full type's `ModInt61` fold path.
 
 ## History
 
 - 2026-09-27: original C16 verification, full suite passed (176,384 cases per configuration); benchmark record.
 - 2026-09-27: maintenance review, reduced-contract absence checks added, full suite passed.
 - 2026-10-07: re-audit, 3 style findings fixed (closers, lambda form, missing complexity line), full suite passed on g++.
+- 2026-10-07 (run): full (seed 20260927, 176,384 cases per configuration, 85.61 s) passed; P005 stress round passed 1,044,573 cases per configuration.
