@@ -2,16 +2,14 @@
 #include "../01-Core/01-template.hpp"
 #include "01-graph.hpp"
 
-// T: O(1), M: O(n). Owning partition; component[u] indexes groups.
-// IDs are source-to-sink: every intercomponent arc u->v has id[u] < id[v].
-// Incomparable component IDs and vertex order within groups are unspecified.
+// T: O(1), M: O(n); owning partition, IDs source-to-sink: every arc between components goes to a larger ID.
 struct SccResult {
     vector<int> component;
     vector<vector<int>> groups;
 };
 
-// T: O(n + m), M: O(n), including output. Directed Graph/CsrGraph only;
-// loops/multiedges allowed, weights ignored. Iterative Tarjan, no graph mutation.
+// Directed Graph/CsrGraph, loops and multiedges allowed; iterative Tarjan.
+// T: O(n + m), M: O(n) including output.
 template<class G>
 SccResult tarjanScc(const G &g) {
     assert(g.directed);
@@ -26,9 +24,9 @@ SccResult tarjanScc(const G &g) {
             if (next[u] < int(g[u].size())) {
                 int v = g.arcs[g[u][next[u]++]].to;
                 if (ord[v] == -1) {
-                    ord[v] = low[v] = timer++; path.push_back(v); active.push_back(v); }
+                    ord[v] = low[v] = timer++; path.push_back(v); active.push_back(v);}
                 else if (out.component[v] == -1) { low[u] = min(low[u], ord[v]); }
-                continue; }
+                continue;}
             path.pop_back();
             if (!path.empty()) { int p = path.back(); low[p] = min(low[p], low[u]); }
             if (low[u] == ord[u]) {
@@ -39,10 +37,9 @@ SccResult tarjanScc(const G &g) {
                     if (v == u) { break; }}}}}
     int k = int(out.groups.size());
     for (int &id : out.component) { id = k - 1 - id; }
-    reverse(out.groups.begin(), out.groups.end()); return out; }
+    reverse(out.groups.begin(), out.groups.end()); return out;}
 
-// T: O(n + m), M: O(n + m), including output and transpose adjacency.
-// Same contract as tarjanScc; iterative two-pass Kosaraju alternative.
+// T: O(n + m), M: O(n + m) including transpose; same contract as tarjanScc, iterative two-pass Kosaraju.
 template<class G>
 SccResult kosarajuScc(const G &g) {
     assert(g.directed);
@@ -69,12 +66,10 @@ SccResult kosarajuScc(const G &g) {
             int u = path.back(); path.pop_back(); out.groups.back().push_back(u);
             for (int v : rev[u]) {
                 if (out.component[v] == -1) { out.component[v] = id; path.push_back(v); }}}}
-    return out; }
+    return out;}
 
-// T: O(n + m), M: O(k + d), including returned k-vertex/d-edge Graph.
-// scc must be an unchanged valid SCC result for g. Produces a directed simple
-// DAG with unit weights; no original edge IDs/weights or multiplicity retained.
-// Component IDs are preserved; adjacency/edge order is unspecified.
+// scc is a valid SCC result for g; returns the simple unit-weight DAG on component IDs.
+// T: O(n + m), M: O(k + d) for k components and d returned edges.
 template<class G>
 Graph condensationDag(const G &g, const SccResult &scc) {
     assert(g.directed && scc.component.size() == size_t(g.n));
@@ -84,4 +79,4 @@ Graph condensationDag(const G &g, const SccResult &scc) {
             for (int a : g[u]) {
                 int d = scc.component[g.arcs[a].to];
                 if (d != c && seen[d] != c) { seen[d] = c; dag.addEdge(c, d); }}}}
-    return dag; }
+    return dag;}

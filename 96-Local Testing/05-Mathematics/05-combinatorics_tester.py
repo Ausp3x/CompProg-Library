@@ -158,6 +158,10 @@ def oracle(binary, args, env):
                         add('ms', (a,b,s), [stars(a,b,s) % p])
         for k in range(n//2+1):
             add('mt', (k,), [math.comb(2*k,k)//(k+1) % p])
+        for a in sorted({0,1,2,n,p-1,p,p+1,2*p+3,1<<63,LIMIT} | {rng.getrandbits(64) for _ in range(5)}):
+            if a > LIMIT: continue
+            for b in sorted(x for x in {-1,0,1,2,n//2,n} | {rng.randrange(n+1) for _ in range(3)} if x <= n):
+                add('ml', (a,b), [math.comb(a,b) % p if b >= 0 else 0])
         for _ in range(50):
             parts, remaining = [], n
             for _ in range(rng.randrange(7)):
@@ -173,6 +177,11 @@ def oracle(binary, args, env):
         for index in [0,1,2,92,1<<63,LIMIT]:
             a,b = fib_matrix(index,p)
             add('mg', (index,), [a,b,a,(2*b-a)%p])
+        add('rd', (30,), [derangement(k) % p for k in range(31)])
+        for n in (0, 1, 12):
+            add('rd', (n,), [derangement(k) % p for k in range(n+1)])
+            add('rb', (n,), [math.comb(i,j) % p for i in range(n+1) for j in range(i+1)])
+    add('ud', (40,), [derangement(k) % (1<<64) for k in range(41)])
     for n in range(101):
         f = math.factorial(n) if n <= 21 else LIMIT+1
         exact('ef', (n,), f)
@@ -241,4 +250,5 @@ if __name__ == '__main__':
         'negative-choice','negative-choice-rep','negative-permutation','negative-permutation-rep',
         'factorial-negative','factorial-bound','inverse-bound','derangement-bound','combination-bound',
         'replacement-bound','permutation-bound','stars-total','stars-parts','stars-bound','catalan-negative',
-        'catalan-bound','ballot-negative','ballot-bound','multinomial-negative','multinomial-bound'],oracle))
+        'catalan-bound','ballot-negative','ballot-bound','multinomial-negative','multinomial-bound',
+        'large-bound','table-negative','derangement-table-negative'],oracle))

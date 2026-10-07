@@ -10,7 +10,7 @@ namespace {
     string show(const Graph &g) {
         std::ostringstream out; out << "n=" << g.n << " edges=";
         for (auto e : g.edges) { out << '(' << e.u << ',' << e.v << ',' << e.w << ')'; }
-        return out.str(); }
+        return out.str();}
     vector<int> components(const Graph &g, int vertex = -1, int edge = -1, const vector<bool> &removed = {}) {
         vector<int> id(g.n, -1); int count = 0;
         for (int s = 0; s < g.n; ++s) {
@@ -23,7 +23,7 @@ namespace {
                     auto [a, b, w] = g.edges[e];
                     if (b == u) { swap(a, b); }
                     if (a == u && b != vertex && id[b] == -1) { id[b] = id[s]; queue.push_back(b); }}}}
-        return id; }
+        return id;}
     int count(const vector<int> &id) { return id.empty() ? 0 : *std::max_element(id.begin(), id.end()) + 1; }
     using Block = pair<vector<int>, vector<int>>;
     vector<Block> blocks(const Graph &g) {
@@ -34,10 +34,8 @@ namespace {
             int reached = mask & -mask, old;
             do {
                 old = reached;
-                for (int u = 0; u < g.n; ++u) { if ((reached >> u) & 1) { reached |= adj[u] & mask; }}
-            } while (old != reached);
-            return reached == mask;
-        };
+                for (int u = 0; u < g.n; ++u) { if ((reached >> u) & 1) { reached |= adj[u] & mask; }}} while (old != reached);
+            return reached == mask;};
         vector<int> valid;
         for (int mask = (1 << g.n) - 1; mask; --mask) {
             if (std::popcount(uint(mask)) < 2 || !connected(mask)) { continue; }
@@ -55,11 +53,11 @@ namespace {
             for (int e = 0; e < int(g.edges.size()); ++e) {
                 auto [u, v, w] = g.edges[e];
                 if (u != v && ((mask >> u) & 1) && ((mask >> v) & 1)) { b.first.push_back(e); }}
-            out.push_back(std::move(b)); }
+            out.push_back(std::move(b));}
         for (int e = 0; e < int(g.edges.size()); ++e) {
             auto [u, v, w] = g.edges[e]; if (u == v) { out.push_back({{e}, {u}}); }}
         for (int u = 0; u < g.n; ++u) { if (g[u].empty()) { out.push_back({{}, {u}}); }}
-        sort(out.begin(), out.end()); return out; }
+        sort(out.begin(), out.end()); return out;}
     void partition(const vector<int> &id, const vector<vector<int>> &groups, const vector<int> &expected, const string &name) {
         check(id == expected, name + " ID minimum vertex contract"); vector<int> seen(id.size());
         check(int(groups.size()) == count(expected), name + " count");
@@ -69,10 +67,11 @@ namespace {
         for (int x : seen) { check(x == 1, name + " vertex coverage"); }}
     template<class G>
     void result(const G &g, const LowlinkResult &out, const vector<int> &connected,
-                const vector<bool> &bridge, const vector<bool> &art, const vector<int> &component,
+                const vector<bool> &bridge, const vector<bool> &art, const vector<int> &cut, const vector<int> &component,
                 const vector<Block> &expected) {
         int n = g.n, m = int(g.edges.size());
         check(out.is_bridge == bridge, "edge deletion bridge oracle"); check(out.is_art == art, "vertex deletion articulation oracle");
+        check(out.cut_components == cut, "vertex deletion component count oracle");
         check(int(out.tin.size()) == n && int(out.low.size()) == n && int(out.parent_arc.size()) == n, "DFS array sizes");
         vector<int> sorted = out.tin; sort(sorted.begin(), sorted.end());
         for (int u = 0; u < n; ++u) { check(sorted[u] == u, "discovery permutation"); }
@@ -88,7 +87,7 @@ namespace {
             int v = u;
             for (int length = 0; v != -1; ++length) {
                 check(length < n, "acyclic parent forest"); descendant[v][u] = true;
-                int p = out.parent_arc[v]; v = p == -1 ? -1 : g.arcs[p].from; }}
+                int p = out.parent_arc[v]; v = p == -1 ? -1 : g.arcs[p].from;}}
         check(roots == minimum && out.roots == minimum, "component roots minimum vertex order");
         for (int u = 0; u < n; ++u) {
             int low = out.tin[u];
@@ -96,8 +95,8 @@ namespace {
                 auto e = g.arcs[a];
                 if (!descendant[u][e.from] || out.tin[e.to] >= out.tin[e.from]) { continue; }
                 if (out.parent_arc[e.from] != -1 && g.arcs[out.parent_arc[e.from]].id == e.id) { continue; }
-                low = min(low, out.tin[e.to]); }
-            check(out.low[u] == low, "lowlink subtree/backedge definition"); }
+                low = min(low, out.tin[e.to]);}
+            check(out.low[u] == low, "lowlink subtree/backedge definition");}
         partition(out.component, out.components, component, "edge components");
         check(out.edge_block.size() == size_t(m) && out.block_edges.size() == out.block_vertices.size(), "block array dimensions");
         vector<Block> actual; fill(present.begin(), present.end(), 0);
@@ -106,7 +105,7 @@ namespace {
             for (int e : es) { check(0 <= e && e < m && !present[e]++ && out.edge_block[e] == b, "block edge partition/index"); }
             sort(es.begin(), es.end()); sort(vs.begin(), vs.end());
             check(std::adjacent_find(vs.begin(), vs.end()) == vs.end(), "block unique vertices");
-            actual.push_back({es, vs}); }
+            actual.push_back({es, vs});}
         sort(actual.begin(), actual.end()); check(actual == expected, "maximal vertex-subset deletion oracle including loops/dyads/isolates");
         for (int seen : present) { check(seen == 1, "block edge coverage"); }
         auto orientation = strongOrientation(g);
@@ -125,20 +124,44 @@ namespace {
         for (int e = 0; e < m; ++e) {
             int a = orientation.arcs[e];
             check(0 <= a && a < int(g.arcs.size()) && g.arcs[a].id == e, "orientation input arc ID");
-            reach[g.arcs[a].from][g.arcs[a].to] = true; }
+            reach[g.arcs[a].from][g.arcs[a].to] = true;}
         for (int k = 0; k < n; ++k) { for (int i = 0; i < n; ++i) { for (int j = 0; j < n; ++j) {
-            reach[i][j] = reach[i][j] || (reach[i][k] && reach[k][j]); }}}
+            reach[i][j] = reach[i][j] || (reach[i][k] && reach[k][j]);}}}
         for (int i = 0; i < n; ++i) { for (int j = 0; j < n; ++j) {
-            check((reach[i][j] && reach[j][i]) == (component[i] == component[j]), "orientation closure SCC oracle"); }} }
+            check((reach[i][j] && reach[j][i]) == (component[i] == component[j]), "orientation closure SCC oracle");}}}
+    // A DFS order alone fixes the forest: a vertex's parent is its latest earlier-discovered neighbor.
+    void legacyDfs(const Graph &g, const vector<int> &tin, const vector<int> &low, const string &name) {
+        int n = g.n, m = int(g.edges.size());
+        check(int(tin.size()) == n && int(low.size()) == n, name + " diagnostic sizes");
+        vector<int> sorted = tin; sort(sorted.begin(), sorted.end());
+        for (int u = 0; u < n; ++u) { check(sorted[u] == u, name + " t_in permutation"); }
+        vector<int> parent(n, -1), tree(n, -1);
+        for (int e = 0; e < m; ++e) {
+            auto [u, v, w] = g.edges[e];
+            if (u == v) { continue; }
+            if (tin[u] > tin[v]) { swap(u, v); }
+            if (parent[v] == -1 || tin[u] > tin[parent[v]]) { parent[v] = u; tree[v] = e; }}
+        auto ancestor = [&](int a, int b) {
+            for (; b != -1; b = parent[b]) { if (b == a) { return true; }}
+            return false;};
+        for (int u = 0; u < n; ++u) {
+            int want = tin[u];
+            for (int e = 0; e < m; ++e) {
+                auto [x, y, w] = g.edges[e];
+                if (x == y) { continue; }
+                if (tin[x] < tin[y]) { swap(x, y); }
+                check(ancestor(y, x), name + " nontree edges join ancestor and descendant");
+                if (e != tree[x] && ancestor(u, x)) { want = min(want, tin[y]); }}
+            check(low[u] == want, name + " low against reconstructed DFS forest");}}
     void runCase(const Graph &g) {
         ++cases; context = show(g);
         auto connected = components(g); int base = count(connected);
-        vector<bool> bridge(g.edges.size()), art(g.n);
+        vector<bool> bridge(g.edges.size()), art(g.n); vector<int> cut(g.n);
         for (int e = 0; e < int(g.edges.size()); ++e) { bridge[e] = count(components(g, -1, e)) > base; }
-        for (int u = 0; u < g.n; ++u) { art[u] = count(components(g, u)) > base; }
+        for (int u = 0; u < g.n; ++u) { cut[u] = count(components(g, u)); art[u] = cut[u] > base; }
         auto component = components(g, -1, -1, bridge); auto expected = blocks(g);
-        result(g, lowlink(g), connected, bridge, art, component, expected);
-        CsrGraph csr(g); result(csr, lowlink(csr), connected, bridge, art, component, expected);
+        result(g, lowlink(g), connected, bridge, art, cut, component, expected);
+        CsrGraph csr(g); result(csr, lowlink(csr), connected, bridge, art, cut, component, expected);
         vector<vector<int>> adj(g.n); set<pair<int, int>> pairs;
         for (int e = 0; e < int(g.edges.size()); ++e) {
             auto [u, v, w] = g.edges[e]; adj[u].push_back(v); adj[v].push_back(u);
@@ -146,7 +169,8 @@ namespace {
         BridgeAlgo legacy(g.n, adj); Tarjan tarjan(g.n, adj);
         check(legacy.bridges == pairs && set<pair<int, int>>(tarjan.bridges.begin(), tarjan.bridges.end()) == pairs, "both legacy bridge results");
         check(tarjan.is_art == art && legacy.n == g.n && tarjan.n == g.n && legacy.timer == g.n && tarjan.timer == g.n, "legacy articulation/metadata");
-        check(legacy.low == tarjan.low && legacy.t_in == tarjan.t_in && legacy.vst == vector<bool>(g.n, true) && tarjan.vst == legacy.vst, "legacy traversal diagnostics"); }
+        check(legacy.vst == vector<bool>(g.n, true) && tarjan.vst == legacy.vst, "legacy visited flags");
+        legacyDfs(g, tarjan.t_in, tarjan.low, "Tarjan"); legacyDfs(g, legacy.t_in, legacy.low, "BridgeAlgo");}
     void exhaustive() {
         for (int n = 0; n <= (mode == "quick" ? 3 : 4); ++n) {
             vector<pair<int, int>> possible;
@@ -155,7 +179,7 @@ namespace {
                 Graph g(n);
                 for (int e = 0; e < int(possible.size()); ++e) {
                     if ((mask >> e) & 1) { g.addEdge(possible[e].first, possible[e].second); }}
-                runCase(g); }}
+                runCase(g);}}
         for (int n = 0; n <= (mode == "quick" ? 2 : 3); ++n) {
             vector<pair<int, int>> possible;
             for (int u = 0; u < n; ++u) { for (int v = u; v < n; ++v) { possible.emplace_back(u, v); }}
@@ -166,7 +190,7 @@ namespace {
                 for (auto [u, v] : possible) {
                     int c = value % 3; value /= 3;
                     for (int i = 0; i < c; ++i) { g.addEdge(u, v); }}
-                runCase(g); }}
+                runCase(g);}}
         if (mode == "stress") {
             for (int n : {5, 6}) {
                 vector<pair<int, int>> possible;
@@ -175,36 +199,37 @@ namespace {
                     Graph g(n);
                     for (int e = 0; e < int(possible.size()); ++e) {
                         if ((mask >> e) & 1) { g.addEdge(possible[e].first, possible[e].second); }}
-                    runCase(g); }}}
-        cout << "PASS exhaustive looped simple/multiplicity-two graphs cases=" << cases << '\n'; }
+                    runCase(g);}}}
+        cout << "PASS exhaustive looped simple/multiplicity-two graphs cases=" << cases << '\n';}
     void randomCases() {
         std::mt19937_64 rng(seed); int rounds = mode == "quick" ? 100 : mode == "full" ? 1500 : 12000;
         for (int trial = 0; trial < rounds; ++trial) {
             int n = 1 + int(rng() % (mode == "quick" ? 7 : 8)), m = int(rng() % 25); Graph g(n);
             for (int i = 0; i < m; ++i) {
-                g.addEdge(int(rng() % n), int(rng() % n), i % 2 ? std::numeric_limits<lng>::min() : std::numeric_limits<lng>::max()); }
+                g.addEdge(int(rng() % n), int(rng() % n), i % 2 ? std::numeric_limits<lng>::min() : std::numeric_limits<lng>::max());}
             runCase(g);
             if (trial % 5 == 0 && !g.edges.empty()) {
-                auto e = g.edges[rng() % g.edges.size()]; g.addEdge(e.u, e.v, 0); runCase(g); }}
-        cout << "PASS random multigraph deletion/subset/closure oracles rounds=" << rounds << '\n'; }
+                auto e = g.edges[rng() % g.edges.size()]; g.addEdge(e.u, e.v, 0); runCase(g);}}
+        cout << "PASS random multigraph deletion/subset/closure oracles rounds=" << rounds << '\n';}
     void boundaries() {
         int n = mode == "quick" ? 20000 : mode == "full" ? 200000 : 500000; Graph g(n);
         for (int u = 1; u < n; ++u) { g.addEdge(u - 1, u); }
         context = "chain n=" + std::to_string(n);
         auto out = lowlink(g);
         check(int(out.bridges.size()) == n - 1 && int(out.components.size()) == n && int(out.block_edges.size()) == n - 1, "large chain counts");
-        for (int u = 0; u < n; ++u) { check(out.is_art[u] == (0 < u && u + 1 < n) && out.low[u] == u, "large chain flags/low"); }
+        for (int u = 0; u < n; ++u) { check(out.is_art[u] == (0 < u && u + 1 < n) && out.low[u] == u && out.cut_components[u] == (0 < u && u + 1 < n ? 2 : 1), "large chain flags/low/cuts"); }
         auto orientation = strongOrientation(CsrGraph(g));
         check(!orientation.ok && orientation.count == n, "large chain orientation obstruction");
         g.addEdge(n - 1, 0); context = "cycle n=" + std::to_string(n); out = lowlink(CsrGraph(g));
         check(out.bridges.empty() && out.components.size() == 1 && out.block_edges.size() == 1, "large cycle block counts");
-        for (int u = 0; u < n; ++u) { check(!out.is_art[u] && out.low[u] == 0, "large cycle flags/low"); }
+        for (int u = 0; u < n; ++u) { check(!out.is_art[u] && out.low[u] == 0 && out.cut_components[u] == 1, "large cycle flags/low/cuts"); }
         orientation = strongOrientation(g); check(orientation.ok && orientation.count == 1, "large cycle Robbins");
         Graph star(n);
         for (int u = 1; u < n; ++u) { star.addEdge(0, u); star.addEdge(0, u); }
         star.addEdge(0, 0); context = "parallel star n=" + std::to_string(n); out = lowlink(star);
         check(out.bridges.empty() && out.is_art[0] && out.components.size() == 1 && int(out.block_edges.size()) == n, "large root and parallel-edge/loop blocks");
-        for (int u = 1; u < n; ++u) { check(!out.is_art[u], "large star leaves not articulation"); }
+        check(out.cut_components[0] == n - 1, "large star center cut count");
+        for (int u = 1; u < n; ++u) { check(!out.is_art[u] && out.cut_components[u] == 1, "large star leaves not articulation"); }
         Graph fixture(6); fixture.addEdge(0, 1); fixture.addEdge(1, 2); fixture.addEdge(2, 0);
         fixture.addEdge(2, 3); fixture.addEdge(3, 4); fixture.addEdge(4, 2); fixture.addEdge(2, 2); runCase(fixture);
         auto before = lowlink(fixture), copied = before; auto moved = std::move(copied);
@@ -217,7 +242,7 @@ namespace {
         adj[1].push_back(2); adj[2].push_back(1); legacy.build(adj);
         check(legacy.bridges == set<pair<int, int>>{{1, 2}}, "legacy build reset");
         legacy.dfs(0, -1, adj); check(legacy.bridges == set<pair<int, int>>{{1, 2}}, "legacy root parent sentinel");
-        cout << "PASS stack-safe chain/cycle/parallel-star n=" << n << ", root articulation, snapshots and legacy reset\n"; }
+        cout << "PASS stack-safe chain/cycle/parallel-star n=" << n << ", root articulation, snapshots and legacy reset\n";}
     void invalid(const string &name) {
         Graph g(2, true); vector<vector<int>> adj(2);
         if (name == "lowlink-directed") { lowlink(g); }
@@ -230,7 +255,7 @@ namespace {
         else if (name == "bridge-dfs-cur") { BridgeAlgo(2, adj).dfs(2, 0, adj); }
         else if (name == "bridge-dfs-prv") { BridgeAlgo(2, adj).dfs(0, -2, adj); }
         else { throw std::runtime_error("unknown invalid probe " + name); }}
-}
+} // namespace
 
 int main(int argc, char **argv) {
     try {
@@ -240,6 +265,5 @@ int main(int argc, char **argv) {
             else if (arg == "--seed") { seed = std::stoull(argv[++i]); }
             else if (arg == "--invalid") { invalid(argv[++i]); return 2; }}
         exhaustive(); randomCases(); boundaries();
-        cout << "PASS lowlink seed=" << seed << " mode=" << mode << " cases=" << cases << " checks=" << checks << '\n';
-    } catch (const std::exception &e) {
-        cerr << "FAIL lowlink seed=" << seed << " mode=" << mode << ' ' << e.what() << '\n'; return 1; }}
+        cout << "PASS lowlink seed=" << seed << " mode=" << mode << " cases=" << cases << " checks=" << checks << '\n';} catch (const std::exception &e) {
+        cerr << "FAIL lowlink seed=" << seed << " mode=" << mode << ' ' << e.what() << '\n'; return 1;}}

@@ -36,4 +36,5 @@ if __name__ == '__main__':
     raise SystemExit(main('11-sorting_selection', [
         'count-reverse', 'count-below', 'count-above', 'count-width', 'count-wide-width',
         'alphabet-negative', 'alphabet-zero', 'key-negative', 'key-past-end',
-        'key-wide', 'select-negative', 'select-past-end', 'select-empty'], compile_rejections))
+        'key-wide', 'select-negative', 'select-past-end', 'select-empty',
+        'median-negative', 'median-past-end', 'median-empty'], compile_rejections))

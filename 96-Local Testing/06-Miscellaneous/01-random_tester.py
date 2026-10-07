@@ -1,5 +1,6 @@
 """Seed replay, exact integer mapping and exhaustive reduced-word uniformity proof checks."""
 import itertools
+import math
 import random
 import subprocess
 from _00_runner import main
@@ -11,7 +12,7 @@ def oracle(binary, args, env):
     seeds = [0, 1, 5489, modulus - 1, args.seed]
     seeds += [rng.getrandbits(64) for _ in range({'quick': 2, 'full': 20, 'stress': 100}[args.mode])]
 
-    def run(rows):
+    def run(rows, parse=int):
         cmd = [str(binary), '--oracle']
         p = subprocess.run(cmd, input=''.join(' '.join(map(str, row)) + '\n' for row in rows),
                            capture_output=True, text=True, env=env, timeout=180)
@@ -20,7 +21,7 @@ def oracle(binary, args, env):
         lines = p.stdout.splitlines()
         if len(lines) != len(rows):
             raise RuntimeError(f'command={cmd} expected {len(rows)} lines actual={len(lines)}')
-        return [list(map(int, line.split())) for line in lines]
+        return [list(map(parse, line.split())) for line in lines]
 
     raw = dict(zip(seeds, run([('raw', seed, 8192) for seed in seeds])))
     cases, expected = [], []
@@ -72,6 +73,29 @@ def oracle(binary, args, env):
     if not rejected:
         raise RuntimeError('expected rejection-path coverage, actual=0')
     print(f'PASS exact Python bounded/shuffle oracle: {len(cases)} cases, rejected words={rejected}', flush=True)
+    drows, dexp, retries = [], [], 0
+    for seed in seeds:
+        def unit(it):
+            return (next(it) >> 11) * 2.0 ** -53
+        it = iter(raw[seed])
+        drows.append(('d', seed, 400))
+        dexp.append([unit(it) for _ in range(400)])
+        for lo, hi in [(0.0, 1.0), (-2.5, 7.5), (1.0, math.nextafter(1.0, 2.0)), (-8e307, 8e307),
+                       (1e-300, 3e-300), (-5.0, -4.999), (0.0, 5e-324)]:
+            it, vals = iter(raw[seed]), []
+            for _ in range(300):
+                while (x := lo + (hi - lo) * unit(it)) >= hi:
+                    retries += 1
+                vals.append(x)
+            drows.append(('dr', seed, lo.hex(), hi.hex(), 300))
+            dexp.append(vals)
+    for row, want, got in zip(drows, dexp, run(drows, float.fromhex)):
+        if want != got:
+            at = next(i for i, (a, b) in enumerate(zip(want, got)) if a != b) if len(want) == len(got) else -1
+            raise RuntimeError(f'randDouble reproducer={row} index={at} expected={want[at]!r} actual={got[at] if at >= 0 else got!r}')
+    if not retries:
+        raise RuntimeError('expected randDouble rejection coverage, actual=0')
+    print(f'PASS exact Python randDouble oracle: {len(drows)} cases, rejected draws={retries}', flush=True)
     for bits in range(1, 9 if args.mode == 'quick' else 11):
         m = 1 << bits
         for width in range(1, m):
@@ -89,7 +113,6 @@ def oracle(binary, args, env):
             for i, j in zip(range(n - 1, 0, -1), choices):
                 a[i], a[j] = a[j], a[i]
             outcomes.add(tuple(a))
-        import math
         if len(outcomes) != math.factorial(n):
             raise RuntimeError(f'Fisher-Yates choices n={n} actual outcomes={len(outcomes)}')
     print('PASS exhaustive reduced-word balanced preimages and Fisher-Yates choices through n=7', flush=True)
@@ -97,4 +120,4 @@ def oracle(binary, args, env):
 
 if __name__ == '__main__':
     raise SystemExit(main('01-random', ['below-zero', 'int-bounds', 'lng-bounds',
-                                     'ulng-bounds', 'shuffle-bounds'], oracle))
+                                     'ulng-bounds', 'shuffle-bounds', 'double-empty', 'double-infinite'], oracle))

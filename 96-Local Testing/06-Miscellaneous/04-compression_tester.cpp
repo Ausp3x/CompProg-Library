@@ -6,7 +6,7 @@ lng checks = 0;
 void check(bool ok, const string &what) {
     ++checks;
     if (!ok) { cerr << "FAIL seed=" << test_seed << " smallest known reproducer=" << context
-                    << " operation=" << what << " expected=true actual=false\n"; std::exit(1); }}
+                    << " operation=" << what << " expected=true actual=false\n"; std::exit(1);}}
 
 void checkVector(const vector<lng> &input) {
     context = "input="; for (lng x : input) { context += std::to_string(x) + ','; }
@@ -14,15 +14,15 @@ void checkVector(const vector<lng> &input) {
     set<lng> distinct(input.begin(), input.end()); vector<lng> expected(distinct.begin(), distinct.end());
     check(c.v == expected && c.size() == int(expected.size()), "sorted unique vs ordered set");
     for (int i = 0; i < c.size(); ++i) {
-        check(c.id(c.value(i)) == i && c.value(i) == expected[i], "inverse mapping"); }
+        check(c.id(c.value(i)) == i && c.value(i) == expected[i], "inverse mapping");}
     vector<int> encoded = c.encode(input);
     for (int i = 0; i < int(input.size()); ++i) {
-        check(c.value(encoded[i]) == input[i], "encode preserves original values"); }
+        check(c.value(encoded[i]) == input[i], "encode preserves original values");}
     for (lng x = -3; x <= 3; ++x) {
         int lo = 0, hi = 0;
         for (lng y : expected) { lo += y < x; hi += y <= x; }
         check(c.lowerBound(x) == lo && c.upperBound(x) == hi, "linear bound oracle x=" + std::to_string(x));
-        check(c.id(x) == (lo < hi ? lo : -1), "absent/present x=" + std::to_string(x)); }
+        check(c.id(x) == (lo < hi ? lo : -1), "absent/present x=" + std::to_string(x));}
     for (lng l = -3; l <= 3; ++l) { for (lng r = l; r <= 3; ++r) {
         for (bool lc : {false, true}) { for (bool rc : {false, true}) {
             auto [a, b] = c.pointRange(l, r, lc, rc); vector<lng> actual, want;
@@ -30,7 +30,17 @@ void checkVector(const vector<lng> &input) {
             for (int i = a; i < b; ++i) { actual.push_back(c.value(i)); }
             check(0 <= a && a <= b && b <= c.size() && actual == want,
                   "point interval l=" + std::to_string(l) + " r=" + std::to_string(r)
-                  + " left_closed=" + std::to_string(lc) + " right_closed=" + std::to_string(rc)); }}}}
+                  + " left_closed=" + std::to_string(lc) + " right_closed=" + std::to_string(rc));}}}}
+    vector<lng> probes{-3, -2, -1, 0, 1, 2, 3, 3, -3}; vector<int> ranks = c.ranks(probes);
+    for (int i = 0; i < int(probes.size()); ++i) {
+        int lo = 0; for (lng y : expected) { lo += y < probes[i]; }
+        check(ranks[i] == lo, "bulk ranks linear oracle x=" + std::to_string(probes[i]));}
+    check(c.ranks({}).empty(), "bulk ranks empty query");
+    vector<int> stable = stableRanks(input);
+    for (int i = 0; i < int(input.size()); ++i) {
+        int want = 0;
+        for (int j = 0; j < int(input.size()); ++j) { want += input[j] < input[i] || (input[j] == input[i] && j < i); }
+        check(stable[i] == want, "stableRanks counting oracle i=" + std::to_string(i));}
     auto snapshot = c; auto moved = std::move(snapshot);
     check(moved.v == c.v, "snapshot copy/move");
     c.assign({17, 17, -19}); check(c.size() == 2 && c.value(0) == -19 && c.id(17) == 1, "rebuild resets ranks");
@@ -41,7 +51,7 @@ void checkVector(const vector<lng> &input) {
         check(e.add(x) == id && e.id(x) == id && e.value(id) == x, "first-encounter linear oracle");
         for (int i = 0; i < int(seen.size()); ++i) { check(e.id(seen[i]) == i, "append preserves prior IDs"); }}
     check(e.values == seen, "first-encounter inverse");
-    e.clear(); check(e.size() == 0 && e.id(0) == -1 && e.add(42) == 0, "clear/reset"); }
+    e.clear(); check(e.size() == 0 && e.id(0) == -1 && e.add(42) == 0, "clear/reset");}
 
 struct LengthOrder { bool operator()(const string &a, const string &b) const { return a.size() < b.size(); } };
 struct Direction {
@@ -79,12 +89,15 @@ void customCases() {
           && endpoints.pointRange(INT64_MAX, INT64_MAX, true, true) == pair{3, 4}, "max endpoint closure");
     lll width = 0;
     for (int i = endpoints.id(INT64_MIN); i < endpoints.id(INT64_MAX); ++i) {
-        width += lll(endpoints.value(i + 1)) - endpoints.value(i); }
+        width += lll(endpoints.value(i + 1)) - endpoints.value(i);}
     check(width == (lll(1) << 64) - 1, "slab metric recovered without overflow");
     check(compressEndpoints(vector<pair<int, int>>{}).size() == 0, "empty endpoints");
+    check(stableRanks(vector<string>{"bb", "a", "cc", "", "d"}, LengthOrder{}) == vector<int>{3, 1, 4, 0, 2}, "stableRanks comparator equivalence by index");
+    check(stableRanks(vector<int>{1, 3, 2}, Direction{true}) == vector<int>{2, 0, 1} && stableRanks(vector<int>{}).empty(), "stableRanks stateful comparator and empty");
+    check(copy.ranks({"zz", "zzzz", ""}) == vector<int>{2, 4, 0} && lengths.ranks({"zz", "zzzzz"}) == vector<int>{1, 2}, "bulk ranks with comparator equivalence");
     auto down = compressEndpoints(vector<pair<int, int>>{{9, 2}, {5, 5}}, Direction{true});
     check(down.v == vector<int>{9, 5, 2}, "descending endpoints");
-    cout << "PASS custom comparators/equivalence, proxy/composite/128-bit types, offline endpoint slabs\n"; }
+    cout << "PASS custom comparators/equivalence, proxy/composite/128-bit types, offline endpoint slabs\n";}
 
 void oracle() {
     int n, q;
@@ -94,10 +107,12 @@ void oracle() {
         cout << c.size(); for (lng x : c.v) { cout << ' ' << x; } cout << '\n';
         for (int x : c.encode(input)) { cout << x << ' '; } cout << '\n';
         for (lng x : input) { cout << e.add(x) << ' '; } cout << '\n';
+        for (int x : stableRanks(input)) { cout << x << ' '; } cout << '\n';
+        vector<lng> ls;
         for (int i = 0; i < q; ++i) {
-            lng l, r; int lc, rc; cin >> l >> r >> lc >> rc; auto [a, b] = c.pointRange(l, r, lc, rc);
-            cout << c.id(l) << ' ' << c.lowerBound(l) << ' ' << c.upperBound(l) << ' ' << a << ' ' << b << '\n'; }}
-}
+            lng l, r; int lc, rc; cin >> l >> r >> lc >> rc; auto [a, b] = c.pointRange(l, r, lc, rc); ls.push_back(l);
+            cout << c.id(l) << ' ' << c.lowerBound(l) << ' ' << c.upperBound(l) << ' ' << a << ' ' << b << '\n';}
+        for (int x : c.ranks(ls)) { cout << x << ' '; } cout << '\n';}}
 
 int main(int argc, char **argv) {
     string mode = "full";
@@ -114,20 +129,19 @@ int main(int argc, char **argv) {
             if (p == "encounter-end") { e.value(1); }
             if (p == "range-order") { c.pointRange(2, 1); }
             if (p == "endpoint-order") { compressEndpoints(vector<pair<int, int>>{{2, 1}}); }
-            return 1; }}
+            return 1;}}
     int bound = mode == "quick" ? 4 : mode == "full" ? 6 : 7;
     int arrays = 0;
     for (int n = 0, total = 1; n <= bound; ++n, total *= 5) {
         for (int mask = 0; mask < total; ++mask) {
             vector<lng> input(n); int code = mask;
             for (auto &x : input) { x = code % 5 - 2; code /= 5; }
-            checkVector(input); ++arrays; }}
+            checkVector(input); ++arrays;}}
     cout << "PASS exhaustive arrays=" << arrays << " max_length=" << bound << '\n';
     customCases(); std::mt19937_64 gen(test_seed);
     int count = mode == "quick" ? 100 : mode == "full" ? 1000 : 10000;
     for (int i = 0; i < count; ++i) {
         int n = int(gen() % 101); vector<lng> input(n);
         for (auto &x : input) { x = i % 2 ? std::bit_cast<lng>(gen()) : lng(gen() % 11) - 5; }
-        checkVector(input); }
-    cout << "PASS random arrays=" << count << " total checks=" << checks << '\n';
-}
+        checkVector(input);}
+    cout << "PASS random arrays=" << count << " total checks=" << checks << '\n';}

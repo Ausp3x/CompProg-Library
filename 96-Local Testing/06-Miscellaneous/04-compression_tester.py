@@ -35,6 +35,11 @@ def oracle(binary, args, env):
             if x not in seen: seen.append(x)
             encounter.append(seen.index(x))
         expected.append(encounter)
+        order = sorted(range(len(a)), key=lambda i: (a[i], i))
+        stable = [0] * len(a)
+        for rank, i in enumerate(order):
+            stable[i] = rank
+        rows.append(('stableRanks', a)); expected.append(stable)
         for l, r, lc, rc in queries:
             payload.append(f'{l} {r} {lc} {rc}\n')
             lb, ub = bisect.bisect_left(coords, l), bisect.bisect_right(coords, l)
@@ -42,6 +47,8 @@ def oracle(binary, args, env):
             end = sum(x <= r if rc else x < r for x in coords)
             want = [coords.index(l) if l in coords else -1, lb, ub, start, max(start, end)]
             rows.append(('pointRange', a, l, r, lc, rc)); expected.append(want)
+        rows.append(('ranks', a, [q[0] for q in queries]))
+        expected.append([bisect.bisect_left(coords, q[0]) for q in queries])
     command = [str(binary), '--oracle']
     result = subprocess.run(command, input=''.join(payload), text=True, capture_output=True, env=env, timeout=180)
     if result.returncode:
@@ -70,8 +77,7 @@ int main() {
     if (existing.v != extended.v || extended.pointRange(2, 7) != pair{0, 1}) { return 6; }
     extended.rebuild({5, 5});
     if (extended.size() != 1 || extended.value(0) != 5) { return 7; }
-    return 0;
-}
+    return 0;}
 '''
         with tempfile.TemporaryDirectory(prefix='cp-compression-includes-') as name:
             directory = Path(name)

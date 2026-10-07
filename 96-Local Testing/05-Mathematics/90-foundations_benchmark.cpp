@@ -9,7 +9,7 @@ struct PackedSieve {
         is_prime[0] = false; if (n) { is_prime[1] = false; }
         for (int p = 2; lng(p) * p <= n; ++p) {
             if (is_prime[p]) { for (lng j = lng(p) * p; j <= n; j += p) { is_prime[j] = false; }}}
-        for (int p = 2; p <= n; ++p) { if (is_prime[p]) { prms.push_back(p); }} }
+        for (int p = 2; p <= n; ++p) { if (is_prime[p]) { prms.push_back(p); }}}
 };
 
 using Clock = std::chrono::steady_clock;
@@ -24,7 +24,7 @@ void measure(const string &name, int n, const vector<int> &expected) {
         if (rep >= 0) {
             cout << "dense " << name << ' ' << 0 << ' ' << n << ' ' << 0 << ' ' << rep << ' '
                  << std::chrono::duration<double, std::milli>(end - start).count() << ' '
-                 << sieve.prms.size() << ' ' << checksum << '\n'; }} }
+                 << sieve.prms.size() << ' ' << checksum << '\n';}}}
 
 void stream(lng l, int n, int block) {
     SegmentedSieveBase base(l + n - 1);
@@ -46,8 +46,7 @@ void stream(lng l, int n, int block) {
             if (rep >= 0) {
                 cout << "stream " << name << ' ' << l << ' ' << n << ' ' << block << ' ' << rep << ' '
                      << std::chrono::duration<double, std::milli>(end - start).count() << ' '
-                     << count << ' ' << checksum << '\n'; }} }
-}
+                     << count << ' ' << checksum << '\n';}}}}
 void baseSetup(lng top) {
     for (int rep = -1; rep < 5; ++rep) {
         auto start = Clock::now(); SegmentedSieveBase base(top); auto end = Clock::now();
@@ -58,16 +57,29 @@ void baseSetup(lng top) {
         if (rep >= 0) {
             cout << "setup base " << top << " 0 32768 " << rep << ' '
                  << std::chrono::duration<double, std::milli>(end - start).count() << ' '
-                 << count << ' ' << checksum << '\n'; }}
-}
+                 << count << ' ' << checksum << '\n';}}}
+void materialize(lng top, int objects) {
+    SegmentedSieveBase base(top);
+    for (int rep = -1; rep < 5; ++rep) {
+        ulng checksum = 0; int count = 0;
+        auto start = Clock::now();
+        for (int q = 0; q < objects; ++q) {
+            SegmentedSieve s(100 + q, 200 + q, base);
+            for (lng p : s.prms) { checksum = checksum * 31 + ulng(p); ++count; }}
+        auto end = Clock::now(); sink = checksum;
+        if (rep >= 0) {
+            cout << "materialize shared_base " << top << ' ' << objects << " 32768 " << rep << ' '
+                 << std::chrono::duration<double, std::milli>(end - start).count() << ' '
+                 << count << ' ' << checksum << '\n';}}}
 int main() {
     for (int n : {32, 50000, 2000000}) {
         auto expected = PackedSieve(n).prms;
         measure<PackedSieve>("packed_eratosthenes", n, expected);
         measure<SieveOfErath>("byte_eratosthenes", n, expected);
-        measure<LinearSieve>("linear_spf", n, expected); }
+        measure<LinearSieve>("linear_spf", n, expected);}
     for (lng top : {lng(2000000), lng(1000002000000)}) { baseSetup(top); }
     for (lng l : {lng(0), lng(1000000000000)}) {
         for (int n : {32, 50000, 2000000}) { stream(l, n, 32768); }}
     for (int block : {1024, 262144}) { stream(1000000000000, 2000000, block); }
-}
+    stream(10000000000000000 - 100000, 100000, 32768);
+    materialize(10000000000000000 - 1, 100);}

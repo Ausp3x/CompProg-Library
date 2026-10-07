@@ -2,7 +2,9 @@
 
 P011 / GR03, 2026-09-27. Owned implementation: [07-lca.hpp](07-lca.hpp).
 
-## Contracts and selection
+## Contracts
+
+### lca_detail::Forest, LCA and EulerLCA
 
 `LCA(g, root=-1)`, `EulerLCA(g, root=-1)` and `offlineLCA(g, queries, root=-1)` accept the canonical `Graph` or `CsrGraph`. Input must be an undirected forest: loops, parallel edges and cycles violate preconditions. All vertices, including isolated vertices, participate. Explicit roots orient their own component first; remaining components use their smallest vertex as root. The default roots every component at its smallest vertex. Empty forests are valid with `root=-1` and no queries.
 
@@ -25,7 +27,21 @@ Binary lifting takes O(n log(n)) preprocessing/storage. Its vertex-major `up[u][
 
 Euler LCA implements Farach-Colton–Bender ±1 RMQ in O(n) preprocessing/storage and O(1) query time. Its tour includes a virtual super-root, represented internally by `-1`, to preserve ±1 adjacent depths between disconnected components. Same-component queries cannot return this virtual root. Its signed-int Euler positions require `2*n+1 <= INT_MAX`; the binary/offline variants retain the Graph vertex-count domain. Component checks distinguish no answer before the RMQ.
 
+`lca_detail::Forest` is the shared iterative DFS: one global preorder timer runs across all components, so the inclusive intervals `[t_in, t_out]` of different components are disjoint and `covers(u, v)` (the unchecked interval test used inside `getLCA`'s lifting loop) is exactly the ancestor relation without a component comparison. `isAncestor` keeps the vertex-range assertions; `getLCA` validates its two arguments once at entry. `Forest` costs O(n) time and memory; `isAncestor` is O(1).
+
+`lca_detail::fromAdjacency(n, adj)` builds the legacy constructor's graph in O(n * log(n)) time (sorting and binary-searching the at most 2 * (n - 1) arcs of a valid forest) and O(n) memory. `n` is nonnegative, `adj` has `n` or `n + 1` lists, each listed neighbor is in range, no loops or duplicates, and the lists are symmetric; all of these are asserted. The `n + 1` form keeps one-based labels, with vertex 0 an isolated ordinary vertex.
+
+### offlineLCA
+
 Offline Tarjan returns one answer per input query, retaining order and duplicates. The query count fits `int`. Empty batches, self pairs and disconnected pairs are valid. It uses the canonical Data Structures `DSU`, with O((n+q) alpha(n)) amortized time, O(n+q) auxiliary storage and O(q) output. All forest traversals and union-find searches are iterative.
+
+### LCAFold
+
+`LCAFold<T, Op>(g, values, identity, op, root = -1)` is an `LCA` (same forest, root and query contracts, all `LCA` methods available) plus two vertex-major lifting tables: `rise[u][j]` folds the `2^j` vertices from `u` upward in walk order, `fall[u][j]` folds the same vertices in the reverse (downward) order. `op` is associative with two-sided `identity`; commutativity is not needed. `values.size() == n` is asserted. `pathFold(u, v)` returns `{true, fold of the vertex labels on the path u -> v in order, both endpoints included}`; `pathFold(u, v, true)` folds edge labels instead, where the caller stores each edge's label at its child vertex under the chosen rooting and the LCA's label is skipped. A self path folds `values[u]` (vertex mode) or nothing (edge mode). Disconnected pairs return `{false, identity}`. Setup O(n * log(n)) operations and storage; query O(log(n)) operations. Table entries above a root repeat the root's saturated jump and are never read by a query, which only climbs at most the depth difference. Caller-owned arithmetic must not overflow for any prefix the tables combine.
+
+### pathIntersection
+
+`pathIntersection(t, a, b, c, d)` accepts an `LCA`, `LCAFold` or `EulerLCA` and returns the endpoints `{x, y}` of the vertex intersection of the paths a–b and c–d, with `x` the endpoint nearest `c` and `y` nearest `d` (`x == y` for a single shared vertex), or `{-1, -1}` when the paths do not meet or any two of the four vertices lie in different components. All four vertices are asserted in range. With `meet(p, q, r) = lca(p, q) ^ lca(p, r) ^ lca(q, r)` (the median vertex of three: two of the three LCAs coincide), `x = meet(a, b, c)` and `y = meet(a, b, d)` are the projections of `c` and `d` onto path a–b. If they differ, the path c–d runs through both, so the intersection is the path x–y. If they coincide, the intersection is `{x}` exactly when `x` lies on path c–d, that is `meet(c, d, x) == x`, and empty otherwise. Cost: at most nine LCA queries, so O(log(n)) with `LCA` and O(1) with `EulerLCA`.
 
 ## Correctness arguments
 
@@ -69,9 +85,13 @@ Tester: [07-lca_tester.py](<../96-Local Testing/04-Graphs/07-lca_tester.py>), in
 | Query order, duplicates, repeated calls | Reverse/duplicate offline batches, empty batches and repeated queries on each fixture |
 | Construction, lifetime, copy/move/reset | Graph/CSR constructors, copied/moved/assigned preprocessors, mutated input graph with unchanged snapshots, rebuild by assignment |
 | Legacy API migration | Zero-/one-based constructors, actual adjacency size metadata, unused zero vertex, empty constructor and nonpositive historical ancestor rule |
-| Invalid preconditions | 20 assertion subprocesses: directed/cyclic/loop/parallel input, invalid roots/endpoints/offsets, malformed adjacency size/labels/symmetry/duplicates; binary/Euler/offline paths |
+| `LCAFold::pathFold` (vertex and edge modes) | Noncommutative string concatenation over every ordered pair of every enumerated forest through n=4 with every root, enumerated n=5..6 forests with roots -1, 0 and n-1, and every random forest, against the label sequence of the independent BFS path (edge labels keyed by endpoint pair at the BFS child); Graph and CSR builds; 2000 random sum folds on the 200000-vertex chain |
+| `pathIntersection` | All n^4 quadruples of every enumerated forest through n=5 (default root); 100 random quadruples for other default-root cases and 10 per explicit root (the answer does not depend on the rooting); binary and Euler variants, against the common vertices of the two BFS paths in c-to-d order; interval-overlap identity on the 200000-vertex chain |
+| Invalid preconditions | 23 assertion subprocesses: directed/cyclic/loop/parallel input, invalid roots/endpoints/offsets, malformed adjacency size/labels/symmetry/duplicates; binary/Euler/offline paths; `pathIntersection` endpoint, `LCAFold` label count and query endpoint |
 
 ## Recorded verification and performance
+
+The 2026-10-07 re-audit commands, results and benchmark rerun are in [95-p011.md](95-p011.md); the paragraphs below are the original 2026-09-27 record.
 
 `python3 '96-Local Testing/04-Graphs/07-lca_tester.py' --mode quick` passed optimized and checked builds with 500803 runtime checks per build and all 20 assertion probes.
 

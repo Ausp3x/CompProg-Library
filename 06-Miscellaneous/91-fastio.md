@@ -1,169 +1,101 @@
-# Basic buffered I/O — MI01 / P013
+# Basic buffered I/O — MI01 contracts and verification
 
-`03-fastio.hpp` independently implements `FastInput<N>` and `FastOutput<N>` with
-64 KiB buffers by default. Scope is byte input/output, decimal integers, tokens,
-EOF and explicit flush/error handling. Floating-point conversion, line parsing,
-memory mapping, descriptor backends and platform-specific optimizations are not
-implemented here; advanced backends remain with MI05 / `17-fast_io_advanced.hpp`.
+`03-fastio.hpp` implements `FastInput<N>` and `FastOutput<N>` over a borrowed `FILE*` with 64 KiB default buffers: bytes, tokens, lines, decimal integers through 128 bits, exactly rounded doubles, fixed-precision double output, variadic `read`/`print`, EOF and explicit flush/error handling. First verified 2026-09-27; re-audited 2026-10-07, when `readLine`, `readDouble`, `writeDouble`, `read`, `print`, `writeValue`, the `end` argument of `write` and the `precision` field were added (they were inventory gaps in the earlier record, `/reaudit-review` finding 1) and the header contracts moved here. Memory mapping, descriptor backends and SIMD parsing belong to `17-fast_io_advanced.hpp`.
 
-## Contract and use
+## Contracts
 
-Both objects borrow a nonnull, open, byte-oriented `FILE*` (default `stdin` or
-`stdout`). Its access mode must support the operation. Keep it alive through the
-object's destructor. Neither object closes it, changes global stream settings,
-or ties input to output. Copies and moves are deleted because duplicating a
-buffer would duplicate or lose stream state. Empty construction/destruction has
-no I/O side effects. Use one reader/writer per stream at a time; do not mix other
-readers/writers or seek while the object is active. After destruction the caller
-may rewind/reposition and reuse the `FILE*`. A reader does not return unused
-read-ahead bytes to the file; external continuation starts at the file's actual
-buffered position, so reposition explicitly when needed.
+### FastIoStatus
 
-`N` is a positive compile-time `int`. Stored memory is `N` bytes plus constant
-metadata per object, in addition to the C library's `FILE` buffering. Very large
-automatic objects can exceed the stack limit; allocate them appropriately.
-Time is linear in bytes consumed/written, including malformed tokens; integer
-conversion has constant storage for each fixed-width type. `readToken` stores
-its token temporarily, then moves it to the destination, using O(token length)
-additional storage.
+`Ok`, `Eof`, `Invalid`, `Overflow`, `Error`. Every read operation sets `FastInput::status`. Precedence when several apply to one token: `Error` (a `FILE` read error before the token boundary) over `Invalid` (syntax) over `Overflow` (out of range).
 
-| API | Semantics |
-|---|---|
-| `peek()`, `get()` | Next unsigned byte `0..255`, or `EOF`; only `get` consumes it. Embedded NUL and high bytes are data. |
-| `space(c)`, `skipSpace()` | Whitespace is exactly ASCII space, tab, LF, VT, FF, CR. `skipSpace` reports whether a nonspace byte remains. |
-| `readChar(char&)` | Skip whitespace and consume one byte; preserve the destination on failure. |
-| `readToken(string&)` | Skip whitespace and read a nonempty token, leaving the following delimiter unread; preserve the destination on failure. |
-| `readInt(T&)` | Parse a whole whitespace-delimited decimal token. All GNU integral types except `bool`, including signed/unsigned 128-bit integers, are supported over their entire representable ranges. Optional `+`, leading zeros and signed `-0` are accepted. Unsigned negative forms, including `-0`, are invalid. |
-| `put(char)`, `write(string_view)` | Append arbitrary bytes, including NUL. The view must not overlap the writer's internal buffer. Return whether the bytes have been buffered/transferred without a detected error. |
-| `writeInt(T, end='\0')` | Decimal integral formatting; optional nonzero trailing byte. Use `put('\0')` for an actual NUL terminator. |
-| `drain()` | Transfer the writer's buffer into the C stream; the C library may still buffer it. |
-| `flush()` | Drain and call `fflush`; use this to observe deferred errors and before reading an interactive reply. |
+### FastInput
 
-Read operations set public `status`: `Ok`, `Eof`, `Invalid`, `Overflow` or
-`Error`. Integer failures preserve the destination and consume the entire bad
-token. A malformed overflow-length token is `Invalid`; an actual read error
-before a complete token boundary takes precedence over both. A complete token
-ending at ordinary EOF succeeds; a malformed or out-of-range token ending at
-EOF reports its corresponding failure, and the next read reports `Eof`.
-Invalid/overflow tokens do not poison later reads. Raw bytes already available
-from a partial `fread` remain readable; its error is reported when those bytes
-are exhausted. File errors require caller recovery after destroying the reader.
+- Ownership: borrows a nonnull, open, byte-oriented `FILE*` (default `stdin`, asserted nonnull) that must outlive the object; never closes it, changes global stream settings or ties output. Copy and move are deleted. Construction and destruction do no I/O. Use one reader per stream; do not mix other readers or seek while it is active. Unused read-ahead is not returned to the stream: reposition explicitly before reusing the `FILE*`.
+- Memory: `N` bytes (`N > 0`, compile-time) plus constant fields, besides the C library's buffer. Very large automatic objects can exceed the stack; allocate them appropriately. Time is linear in bytes consumed, malformed tokens included.
+- `peek()`, `get()`: next unsigned byte `0..255` or `EOF`; only `get` consumes. NUL and high bytes are data. `space(c)` is exactly ASCII space, `\t`, `\n`, `\v`, `\f`, `\r`; `skipSpace()` returns whether a nonspace byte remains.
+- `readChar(char &)`: skip whitespace, consume one byte. `readToken(string &)`: skip whitespace, read a maximal nonspace token, leave the delimiter unread; O(L) temporary storage.
+- `readLine(string &)`: read bytes up to and excluding the next `\n`, consume the `\n`, and drop one trailing `\r` (CRLF input). Leading whitespace is kept and an empty line yields `""`. A final line without `\n` succeeds; at EOF with no bytes left it fails with `Eof`. After `readInt`/`readToken`, the rest of the current line, often empty, is the next line. Copies whole buffer chunks with `memchr`, O(L).
+- `readInt(T &)`: every GNU integral type except `bool` (including `char`, wide and UTF character types and 128-bit integers) over its full range. The whole whitespace-delimited token must be `[+|-]digits`; leading zeros are allowed, signed `-0` is zero, and unsigned negative forms (including `-0`) are `Invalid`.
+- `readDouble(double &)`: reads one token and parses it with `std::from_chars` (general format), which is correctly rounded (round to nearest) and locale independent. It accepts an optional leading `+` (but not `+-`), decimal and exponent forms such as `.5`, `5.`, `1E5` and `-.5e3`, and the spellings `inf`, `infinity` and `nan` in any case. Hexadecimal (`0x1p3`), a trailing `e` without digits, `,` decimal separators and any other trailing bytes are `Invalid`. Out-of-range magnitudes are `Overflow`, both above `DBL_MAX` and below half the smallest subnormal (for example `1e-400`), because that is libstdc++'s `result_out_of_range` behaviour. Only `double` is read: `float` callers convert, and exact `long double` parsing is not owned.
+- `read(x)` and `read(xs...)`: dispatch by type, with `char` to `readChar`, `string` to `readToken`, `double` to `readDouble`, other integral types (including `int8_t`/`uint8_t` as numbers) to `readInt`, and any other range element-wise into its existing elements (size the container first). It returns false at the first failure, leaving later destinations unchanged and earlier ones assigned. `bool` and `float` destinations do not compile.
+- Failure contract for all reads: the destination is unchanged, a bad token is consumed whole, and later reads continue after it. A complete token or line ending at EOF succeeds. A malformed one at EOF reports its failure, and the next read reports `Eof`. Bytes already returned by a partial `fread` stay readable, and the error is reported when they run out. Recovering from a file error requires a new reader.
+- Interactive use: bulk `fread` may wait to fill the buffer on a live pipe. Use `FastInput<1>` for interactive protocols and flush prompts explicitly.
 
-Output `error` is sticky after an observed short/failed `fwrite` or failed
-`fflush`; further writes and flushes fail without retry. Some bytes may already
-have reached the stream, and the unwritten remainder is discarded. The
-destructor best-effort flushes pending output, including C-stream bytes from an
-earlier `drain()`, but cannot report failure. Call `flush()` explicitly when
-success matters. Error recovery requires a fresh writer after the caller fixes
-the stream. Newline alone does not flush.
+### FastOutput
 
-Bulk `fread` can wait to fill its requested count on a live pipe. Default input
-is intended for batch input; `FastInput<1>` avoids bulk-fill waiting for ordinary
-interactive token protocols. Such tokens still need a delimiter before a reply
-can be processed. Always flush prompts explicitly. Nonblocking I/O, arbitrary
-OS interruptions and retry policies are not part of this FILE-based API.
+- Ownership mirrors `FastInput` (default `stdout`). Memory `N` bytes. `put`, `write` and `writeInt` return whether the bytes were buffered or transferred without a detected error. The view passed to `write` must not overlap the writer's buffer.
+- `write(string_view s, char end = '\0')`, `writeInt(T x, char end = '\0')`, `writeDouble(double x, int p, char end = '\0')`: a nonzero `end` byte is appended after the value. Use `put('\0')` for a real NUL.
+- `writeDouble`: `std::to_chars(..., chars_format::fixed, p)` with `0 <= p <= 200` (asserted). The output is the exact decimal expansion of the binary value, correctly rounded to `p` digits (ties to even on the exact value), identical to glibc `printf("%.*f")`. Negative zero and small negatives that round to zero print `-0.000`. Infinities print `inf` and `-inf`, NaNs `nan` and `-nan`. Every result fits a 512-byte stack buffer (309 integer digits, sign, point and 200 decimals). `float` and integer arguments convert to `double`. A `long double` argument is a compile error rather than a silent narrowing.
+- `writeValue(x)`: `char` to `put`, anything convertible to `string_view` to `write`, `float`/`double` to `writeDouble(x, precision)`, other integral types to `writeInt`, and ranges element-wise separated by single spaces (nested ranges flatten). `bool` does not compile.
+- `print(xs...)`: `writeValue` each argument, separated by single spaces, then `\n`. `print()` writes only `\n`. An empty range contributes nothing between its separators.
+- `precision` (public field, default 15): the decimals used by `writeValue`/`print` for floating values.
+- `drain()` moves the buffer into the C stream (which may still buffer it). `flush()` drains and calls `fflush`; call it to observe deferred errors and before every interactive read. The destructor best-effort flushes pending output, including bytes drained earlier, but cannot report failure.
+- Errors are sticky: after a short or failed `fwrite` or a failed `fflush`, all later writes and flushes fail without retry; bytes already transferred cannot be rolled back. Recovering requires a new writer.
 
 ```cpp
-FastInput<> in;
-FastOutput<> out;
-lng x;
-while (in.readInt(x)) { out.writeInt(x, '\n'); }
-bool ok = in.status == FastIoStatus::Eof && out.flush();
+FastInput<> in; FastOutput<> out;
+int n; in.read(n); vector<lng> a(n); in.read(a);
+out.print(n, a); out.writeDouble(3.14159, 3, '\n');
+bool ok = out.flush();
 ```
 
 ## Correctness argument
 
-The reader keeps the unread half-open byte interval `[pos,len)` inside its
-buffer, refilling only when empty. `fread` uses byte-sized elements, so returned
-bytes are complete even on a partial read. Conversion accumulates an unsigned
-magnitude `v`; before adding digit `d`, compare `v` against `limit / 10` and
-`d` against `limit % 10`. The update therefore cannot overflow and never
-exceeds the target's allowed magnitude. Signed negative values admit one more
-magnitude than positive values. Constructing `-(v-1)-1` for nonzero negatives
-keeps every signed intermediate representable, including the minimum integer.
-Once overflow or syntax failure occurs, the parser continues to the token
-boundary without assigning the destination.
+The reader keeps the unread interval `[pos, len)` of its buffer and refills only when it is empty. `fread` uses byte elements, so a partial read returns complete bytes. `readInt` accumulates an unsigned magnitude and compares against `limit / 10` and `limit % 10` before each digit, so it never overflows. Signed negatives admit one more magnitude, and building `-(v - 1) - 1` keeps every intermediate representable, including the minimum. After a syntax or overflow failure the parser still advances to the token boundary without assigning. `readLine` appends `[pos, newline)` chunks found by `memchr`. If a chunk has no newline it consumes the whole buffer and refills. The loop ends either on a newline, which is consumed, or on EOF/error as reported by `peek`. Status is checked before assigning. `readDouble` delegates the conversion to `from_chars` over the exact token bytes. Correct rounding is the standard's requirement for `from_chars`, and libstdc++ implements it with fast_float and an exact fallback. Requiring `ptr == end` rejects trailing garbage.
 
-Output obtains a negative input's magnitude through unsigned subtraction,
-which is defined even for the signed minimum. Repeated quotient/remainder by
-ten yields the exact decimal digits, and reversing them restores their order.
-The fixed temporary array accommodates the largest decimal representation and
-sign for every offered type. Buffer transfers preserve order; a short transfer
-cannot be represented as success, and explicit flush includes errors deferred
-by the C stream. These invariants explain correctness beyond finite testing.
+`writeInt` takes the magnitude by unsigned subtraction (defined for the signed minimum) and emits base-10 digits in reverse. `writeDouble` relies on `to_chars` with an explicit precision, which the standard specifies as equivalent to `printf` with `%.*f` in the "C" locale. libstdc++ implements it exactly with Ryu printf. Buffer transfers keep byte order. A short transfer is never reported as success. `flush` includes the errors that the C stream defers.
 
-## Source inspection
+## Feature-to-test map
 
-Read on 2026-09-27; code was independently implemented, with no copied source:
-
-- [OI Wiki, 输入输出优化](https://oi-wiki.org/contest/io/), also retrieved as
-  [the source page](https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/contest/io.md):
-  buffered `fread`/`fwrite`, integer minimum overflow, explicit interactive flush,
-  floating-point conversion as a separate family, and limits of mmap. Read the
-  article and embedded buffer sketch; the linked implementation files and
-  floating-point research papers were not used.
-- cppreference [fread](https://en.cppreference.com/w/c/io/fread.html),
-  [fwrite](https://en.cppreference.com/w/c/io/fwrite.html), and
-  [fflush](https://en.cppreference.com/w/c/io/fflush.html): byte counts, short
-  transfers, EOF versus `ferror`, and delayed output failure. Their cited C
-  standard sections are reference pointers, not a claim of independent ISO
-  standard review.
-
-## Feature-to-test map and results
-
-`96-Local Testing/06-Miscellaneous/03-fastio_tester.py` is runnable from any
-directory. Tests use the actual header and retain checks under `-DNDEBUG`.
-
-| Feature | Independent coverage |
+| Operation | Independent coverage |
 |---|---|
-| Decimal input/output and all boundaries | `std::to_chars` expected bytes; exhaustive signed/unsigned 8-bit domains in quick, 16-bit domains in full; deterministic random 32/64/128-bit values; full min/max and zero. Explicit `char`, wide/UTF character integer types, and `long long` type identities are instantiated. |
-| Independent 128-bit parsing/formatting | Python arbitrary-precision decimal fixtures: 103 pairs quick, 3003 full, 30003 stress, signed minimum and unsigned maximum included. |
-| Signs/syntax/overflow and recovery | Bare signs, repeated signs, punctuation, hex-like tokens, embedded NUL, byte 255, boundary ±1, 1000-digit tokens, malformed overflowing tokens, unsigned `-0`; both delimiter-terminated and EOF-terminated failures. |
-| EOF/whitespace/buffer boundaries | Sizes 1, 7, 65536, empty and whitespace-only input, all six ASCII spaces, exact EOF after final digits, repeated EOF, all 256 raw bytes, NUL tokens, delimiter preservation. |
-| Flush/lifetime/error behavior | `tmpfile` ownership reuse; underlying-descriptor observation of destructor flush after `drain`; GNU `fopencookie` short/failed reads and writes, error precedence and unchanged destinations, delayed `fflush` failure, sticky failure with no retries, empty lifetime without I/O; pipe tokens before writer closes using N=1. |
-| Large byte strings | 10 KB quick, 1 MiB full, 8 MiB stress, compared byte-for-byte. |
-| Preconditions | Checked-build null-input and null-output assertion probes; compile-time positive-buffer constraint and deleted copy/move operations. |
+| `readInt`/`writeInt`, all integer widths | `std::to_chars` expected bytes; exhaustive 8-bit (quick) and 16-bit (full) domains; random 32/64/128-bit; `char`, wide/UTF code-unit and `long long` identities; Python arbitrary-precision 128-bit round trip (3,003 pairs full, 30,003 stress) |
+| Integer syntax/overflow/recovery | Bare/repeated signs, punctuation, hex-like, embedded NUL, byte 255, boundary ±1, 1000-digit tokens, unsigned `-0`; delimiter- and EOF-terminated failures with destination preservation |
+| `peek`/`get`/`space`/`skipSpace`/`readChar`/`readToken` | All 256 bytes raw, buffers 1/7/65536, empty and whitespace-only input, NUL/high-byte tokens, delimiter preservation, EOF preservation; 10 KB/1 MiB/8 MiB binary round trips |
+| `readLine` | Independent C++ splitter over fixtures (empty, `\n`, `\n\n`, CRLF, lone `\r`, `\r\r\n`, NUL, leading/trailing spaces, 70,000-byte line, lines straddling 65,536) and random `ab\r\n \t` strings at buffers 1/7/65536; interleaving with `readInt`/`readToken`; Python `bytes.split` oracle over random bytes including NUL and 255 (60,005 bytes full, 600,005 stress); EOF and fault-injected `Error` preserve the destination |
+| `readDouble` | `strtod` bit-exact comparison for `%.17g`, `%.3e`, `%.25f` forms of random finite bit patterns plus fixed spellings (`-0`, `+0`, `.5`, `5.`, `1E5`, subnormals, `DBL_MAX`, 30-digit integers, `inf`, `nan`, `Infinity`); Python `float()` correctly-rounded oracle on 3,000 (full) / 30,000 (stress) random decimal tokens with exponents to 330 and signs, including overflow and total underflow (`Overflow`); invalid forms (`1.5e`, `0x10`, `+`, `+-1`, `--1`, `.`, `1,5`, `e5`, `1e400x`) at a delimiter and at EOF, with recovery; fault-injected `Error` preserves the destination |
+| `writeDouble` | glibc `printf("%.*f")` byte comparison for fixed values (zeros, halves, `DBL_MAX`, `DBL_MIN`, `5e-324`, infinities, `999.9995`) and random finite values at precisions 0–20 and 200, with and without `end`; NaN spelling; Python `format(x, '.{p}f')` exact oracle on 3,000 (full) / 30,000 (stress) random bit patterns |
+| `read`/`print`/`writeValue`/`write` end/`precision` | Mixed `int`, `string`, `char`, `double`, `uint8_t` read; range read stopping at EOF with partial assignment; `print` with string literal, `string`, `char`, `double` at precision 3, vectors, empty vector, nested vectors, `lll`, `int8_t`; `print()`; `write(s, '!')`; `float` through `writeValue`; compile-time checks that `writeDouble` rejects `long double` and accepts `double`, `float` and `int` |
+| Flush, lifetime, errors | `tmpfile` reuse; descriptor observation of destructor flush after `drain`; GNU `fopencookie` short/failed reads and writes, error precedence for tokens, integers, lines and doubles, delayed `fflush` failure, sticky failure without retries, empty lifetime without I/O; pipe tokens with `N = 1` before the writer closes |
+| Preconditions | Four checked assertion probes: null input, null output, precision -1, precision 201; deleted copy/move and positive `N` at compile time |
 
-Validation on GCC 16.2.1 / GNU++20, seed `20260927`: full optimized `-O2
--DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan configurations pass.
-Sanitizers were rerun outside the sandbox because its ptrace environment causes
-LeakSanitizer to fail before it can report results. Quick mode also passed
-optimized/checked. Stress optimized with seed `20260928` passes. The package
-integration owner records standalone-header, aggregate and multiple-translation
-unit checks separately.
+## Commands and results
+
+GCC 16.2.1, GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H, 2026-10-07:
 
 ```sh
-python3 '96-Local Testing/06-Miscellaneous/03-fastio_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/06-Miscellaneous/03-fastio_tester.py' --mode stress --seed 20260928 --configuration optimized
-python3 '96-Local Testing/06-Miscellaneous/90-fastio_benchmark.py'
+python3 '96-Local Testing/06-Miscellaneous/03-fastio_tester.py' --mode full --seed 20260927                                # PASS, 3 configurations, 4 probes
+python3 '96-Local Testing/06-Miscellaneous/03-fastio_tester.py' --mode stress --seed 20260928 --configuration optimized    # PASS
+python3 '96-Local Testing/06-Miscellaneous/90-fastio_benchmark.py'                                                         # PASS, record rewritten
 ```
 
-## Performance observations
+## Benchmark
 
-The reproducible `90-fastio_benchmark.{py,cpp,json}` compares a complete pipeline:
-read signed 64-bit integers from a warmed regular file, transform bits, format
-unsigned decimal lines, and flush the output. All output bytes are compared with
-independent `std::to_chars` expectations outside timing. It measures buffers of
-4096 and 65536 bytes against `fscanf`/`fprintf`, small/common/large input counts,
-small integer tokens and full-width random values with mixed whitespace. Setup
-file creation and fixture generation are excluded; each implementation includes
-its own buffer construction and full parse/format/flush work. There is one
-warmup and five repetitions with rotating method order.
+`90-fastio_benchmark.{cpp,py,json}` times complete pipelines on a warmed regular file: construct buffers, parse all input, transform, format, flush. Every output byte is compared outside the timed region with independently generated expectations (`to_chars` for integers, `snprintf("%.9f")` for doubles). One warmup and five repetitions with rotated method order. Recorded 2026-10-07 on Intel Core i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2 -DNDEBUG`, seed 20260927. Medians in milliseconds:
 
-Recorded on Intel Core i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2 -DNDEBUG`, seed
-20260927. Representative medians in milliseconds:
-
-| Values / distribution | Fast 4096 | Fast 65536 | fscanf/fprintf |
+| Values / workload | Fast 4096 | Fast 65536 | fscanf/fprintf |
 |---|---:|---:|---:|
-| 32 small integers | 0.00286 | 0.00281 | 0.00497 |
-| 32 full width, mixed whitespace | 0.00391 | 0.00391 | 0.00642 |
-| 20,000 small integers | 1.026 | 0.969 | 2.266 |
-| 20,000 full width, mixed whitespace | 1.949 | 1.895 | 3.941 |
-| 500,000 small integers | 26.059 | 25.280 | 61.330 |
-| 500,000 full width, mixed whitespace | 47.610 | 46.135 | 94.234 |
+| 32 small integers | 0.0036 | 0.0035 | 0.0062 |
+| 32 full-width integers, mixed whitespace | 0.0050 | 0.0049 | 0.0079 |
+| 32 doubles (`%.17g` in, `%.9f` out) | 0.0073 | 0.0075 | 0.0164 |
+| 20,000 small integers | 1.075 | 1.050 | 2.430 |
+| 20,000 full-width integers | 2.374 | 2.259 | 4.391 |
+| 20,000 doubles | 4.170 | 4.123 | 12.465 |
+| 500,000 small integers | 31.15 | 29.85 | 70.42 |
+| 500,000 full-width integers | 55.20 | 53.69 | 107.00 |
+| 500,000 doubles | 100.48 | 96.37 | 291.31 |
 
-These shared-host observations support the compact scalar buffered design and
-default buffer for tested batch workloads. They are not timing gates or claims
-about all devices/compilers. `fscanf`/`fprintf` also provide substantially broader
-locale/format capabilities. Cold disk, networking, interactive throughput,
-malformed-input throughput and floating-point conversion were not benchmarked.
+These are shared-host observations, not timing gates. They support the scalar buffered design and the 64 KiB default. Doubles take `to_chars`/`from_chars` at about three times the speed of `fscanf`/`fprintf`. Cold disk, interactive, malformed-input and network throughput were not measured.
+
+## Sources
+
+- [OI Wiki, 输入输出优化](https://oi-wiki.org/contest/io/): buffered `fread`/`fwrite`, signed-minimum handling, interactive flushing (read 2026-09-27).
+- cppreference [fread](https://en.cppreference.com/w/c/io/fread.html), [fwrite](https://en.cppreference.com/w/c/io/fwrite.html), [fflush](https://en.cppreference.com/w/c/io/fflush.html): short transfers, EOF versus `ferror`, delayed failure (2026-09-27).
+- Completeness sweep 2026-10-07 (`@researcher`): [KACTL FastInput.h](https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/various/FastInput.h), [Nyaan fastio](https://raw.githubusercontent.com/NyaanNyaan/library/master/misc/fastio.hpp), [maspypy io](https://raw.githubusercontent.com/maspypy/library/main/other/io.hpp), [yosupo fastio](https://raw.githubusercontent.com/yosupo06/yosupo-library/main/src/yosupo/fastio.hpp), [ei1333 scanner](https://ei1333.github.io/library/other/scanner.hpp) and [printer](https://ei1333.github.io/library/other/printer.hpp), [hitonanode reader](https://hitonanode.github.io/cplib-cpp/utilities/reader.hpp). Variadic `read`/`print`, range reads and writes, and `end` bytes come from these. Double conventions: maspypy and yosupo parse with `stod` (locale-dependent), maspypy prints with `%.15f`. This header uses `from_chars`/`to_chars` instead, which are exact and locale-free; the default `precision = 15` follows maspypy.
+- Standard: `std::from_chars` and `std::to_chars` for floating point ([charconv] in C++17/20), with correct-rounding and `printf`-equivalence requirements as summarized on [cppreference from_chars](https://en.cppreference.com/w/cpp/utility/from_chars) and [to_chars](https://en.cppreference.com/w/cpp/utility/to_chars).
+
+## Known limits and handoff
+
+- `readDouble` reports total underflow as `Overflow`. Exact `long double` I/O is not owned. Locale-specific formats are not supported.
+- Floating `from_chars`/`to_chars` have been in libstdc++ since GCC 11; `double` parsing uses the portable fast_float path since GCC 12. The Codeforces MinGW GCC 14.2 floor was not built locally, so portability there rests on that library history, not on a test.
+- Advanced backends (`mmap`, raw `read`/`write`, SIMD digit parsing) remain with `17-fast_io_advanced.hpp`.

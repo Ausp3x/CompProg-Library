@@ -52,11 +52,17 @@ def oracle(binary, args, env):
             r = shift % width
             left = int(bits[r:] + bits[:r], 2)
             right = int(bits[-r:] + bits[:-r], 2) if r else x
+            gray = int(''.join('1' if a != b else '0' for a, b in zip('0' + bits, bits)), 2)
+            decoded, acc = 0, 0
+            for ch in bits:
+                acc ^= ch == '1'
+                decoded = 2 * decoded + acc
             fixtures.append(f'{width} {x:x} {shift}')
             expected.append([str(x.bit_count()), str(x.bit_length()), str(first), str(last),
                              str(width - x.bit_length()), str(first if x else width),
                              f'{x & -x:x}', f'{floor:x}', str(int(fits)), f'{ceil:x}',
-                             str(int(more)), f'{next_value:x}', f'{left:x}', f'{right:x}'])
+                             str(int(more)), f'{next_value:x}', f'{left:x}', f'{right:x}',
+                             str(x.bit_count() % 2), f'{gray:x}', f'{decoded:x}'])
     command = [str(binary), '--oracle']
     result = subprocess.run(command, input='\n'.join(fixtures) + '\n', text=True,
                             capture_output=True, env=env, timeout=180)
@@ -91,4 +97,4 @@ if __name__ == '__main__':
     raise SystemExit(main('06-bit_operations', [
         'mask-negative', 'mask-large', 'test-negative', 'test-large', 'set-negative',
         'set-large', 'flip-negative', 'flip-large', 'left-negative', 'left-large',
-        'right-negative', 'right-large', 'not-submask'], oracle))
+        'right-negative', 'right-large', 'not-submask', 'not-supermask', 'outside-full', 'mask-outside-full'], oracle))

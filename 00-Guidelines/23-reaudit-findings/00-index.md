@@ -4,10 +4,6 @@ Confirmed defects from the read-only `/reaudit-review` of the Foundations re-aud
 
 | Package | Confirmed | Correctness | Optimality | Completeness | Test gaps | Portability | Style |
 |---|---|---|---|---|---|---|---|
-| [P011](P011.md) | 8 | 0 | 0 | 0 | 1 | 0 | 7 |
-| [P012](P012.md) | 13 | 1 | 2 | 2 | 1 | 0 | 7 |
-| [P013](P013.md) | 8 | 0 | 0 | 3 | 0 | 0 | 5 |
-| [P014](P014.md) | 17 | 0 | 0 | 4 | 1 | 0 | 12 |
 | [P015](P015.md) | 9 | 0 | 0 | 2 | 0 | 0 | 7 |
 | [P016](P016.md) | 17 | 3 | 0 | 1 | 2 | 0 | 11 |
 | [P017](P017.md) | 10 | 2 | 0 | 1 | 0 | 0 | 7 |

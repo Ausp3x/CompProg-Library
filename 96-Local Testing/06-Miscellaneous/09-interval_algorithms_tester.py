@@ -13,4 +13,5 @@ if __name__ == '__main__':
     raise SystemExit(main('09-interval_algorithms', [
         'bounds-reversed', 'merge-reversed', 'events-reversed',
         'counts-reversed', 'stabbing-reversed', 'schedule-reversed',
-        'weights-reversed', 'weights-size']))
+        'weights-reversed', 'weights-size', 'cover-reversed', 'cover-target-reversed',
+        'partition-reversed', 'nested-reversed', 'nested-counts-reversed']))

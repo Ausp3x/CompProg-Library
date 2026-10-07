@@ -14,6 +14,10 @@ string real(double x) { std::ostringstream out; out << std::setprecision(17) << 
 void rangeContext(lng l, lng r, lng p) {
     context = "l=" + std::to_string(l) + " r=" + std::to_string(r) + " p=" + std::to_string(p);}
 
+int fibBound(lll n) {
+    lll x = 1, y = 1; int k = 0;
+    while (y < n + 1) { y += x; x = y - x; ++k; }
+    return max(k, 1);}
 void boundaries(lng l, lng r, lng p) {
     rangeContext(l, r, p); int calls = 0;
     auto inc = [&](lng x) { require(l <= x && x < r, "firstTrue only queries range"); ++calls; return x >= p; };
@@ -28,12 +32,16 @@ void boundaries(lng l, lng r, lng p) {
         calls = 0;
         auto up = [&](lng x) { require(l < x && x < r, "binSearch skips endpoints"); ++calls; return x >= p; };
         if (l < p) { expect(binSearch(r, l, up), p, "binSearch true endpoint right"); }
-        require(calls <= 64, "binSearch evaluations ascending"); }
+        require(calls <= 64, "binSearch evaluations ascending");}
     if (l < r && l < p) {
         calls = 0;
         auto down = [&](lng x) { require(l < x && x < r, "binSearch skips reversed endpoints"); ++calls; return x < p; };
         expect(binSearch(l, r, down), p - 1, "binSearch true endpoint left");
-        require(calls <= 64, "binSearch evaluations descending"); }}
+        require(calls <= 64, "binSearch evaluations descending");
+        calls = 0;
+        auto gallop = [&](lng x) { require(x > l, "expSearch skips ok"); ++calls; return x < p; };
+        expect(expSearch(l, gallop), p - 1, "expSearch last true");
+        require(calls <= 2 * int(std::bit_width(ulng(lll(p) - l))) + 2, "expSearch evaluations");}}
 
 void integerBoundaries() {
     for (lng l = -6; l <= 6; ++l) {
@@ -45,7 +53,10 @@ void integerBoundaries() {
         rangeContext(x, x, x);
         auto never = [&](lng) { require(false, "singleton binSearch does not call f"); return false; };
         expect(binSearch(x, x, never), x, "singleton binSearch");
-        expect(ternSearch(x, x, never), x, "singleton ternSearch"); }
+        expect(ternSearch(x, x, never), x, "singleton ternSearch");
+        expect(fibSearch(x, x, never), x, "singleton fibSearch");
+        int calls = 0; auto always = [&](lng) { ++calls; return true; };
+        expect(expSearch(x, always), HI, "expSearch unbounded true"); require(calls <= 65, "expSearch unbounded evaluations");}
     std::cout << "PASS integer monotone endpoints, empty ranges and full signed domain\n";}
 
 void checkArray(const vector<int> &a, lng offset) {
@@ -54,7 +65,9 @@ void checkArray(const vector<int> &a, lng offset) {
     for (int x : a) { context += std::to_string(x) + ","; }
     auto f = [&](lng x) { lll i = lll(x) - offset; require(i >= 0 && i < n, "minimum stays in array"); ++calls; return a[int(i)]; };
     expect(ternSearch(offset, lng(lll(offset) + n - 1), f), lng(lll(offset) + best), "minimum against linear scan");
-    require(calls <= 2 * int(std::bit_width(uint(n - 1))), "minimum logarithmic evaluations");}
+    require(calls <= 2 * int(std::bit_width(uint(n - 1))), "minimum logarithmic evaluations"); calls = 0;
+    expect(fibSearch(offset, lng(lll(offset) + n - 1), f), lng(lll(offset) + best), "fibSearch against linear scan");
+    require(n == 1 ? calls == 0 : calls <= fibBound(n), "fibSearch evaluation bound");}
 
 void exhaustiveMinima(int bound) {
     lng arrays = 0;
@@ -75,7 +88,9 @@ void exhaustiveMinima(int bound) {
         rangeContext(LO, HI, p); int calls = 0;
         auto f = [&](lng x) -> lll { ++calls; return x < p ? lll(p) - x : x > q ? lll(x) - q : 0; };
         expect(ternSearch(LO, HI, f), p, "full-domain leftmost minimum plateau");
-        require(calls <= 128, "full-domain discrete minimum evaluation bound"); }}}
+        require(calls <= 128, "full-domain discrete minimum evaluation bound"); calls = 0;
+        expect(fibSearch(LO, HI, f), p, "full-domain fibSearch plateau");
+        require(calls <= 93, "full-domain fibSearch evaluation bound");}}}
     std::cout << "PASS exhaustive strictly unimodal arrays n<=" << bound << " accepted=" << arrays << '\n';}
 
 void checkResult(const RealSearchResult &res, double lo, double hi, int limit, double atol, double rtol) {
@@ -99,10 +114,10 @@ void realBinary(double l, double r, double center, int limit, double atol = 0, d
         expect(calls, res.iterations, "binary one evaluation per reduction");
         if (!atol && !rtol) {
             calls = 0; double x = binSearchReal(reverse ? r : l, reverse ? l : r, f, limit);
-            require(x == res.x, "legacy binary point"); }
+            require(x == res.x, "legacy binary point");}
         long double w = static_cast<long double>(r) - l, got = static_cast<long double>(res.r) - res.l;
         long double rounding = 8 * std::numeric_limits<double>::epsilon() * max(abs(l), abs(r)) + 8 * std::numeric_limits<double>::denorm_min();
-        require(got <= std::ldexp(w, -res.iterations) + rounding, "binary contraction plus rounding"); }}
+        require(got <= std::ldexp(w, -res.iterations) + rounding, "binary contraction plus rounding");}}
 
 void realMinimum(double l, double r, double p, double q, int limit, double atol = 0, double rtol = 0) {
     context = "minimum l=" + real(l) + " r=" + real(r) + " p=" + real(p) + " q=" + real(q) + " limit=" + std::to_string(limit);
@@ -110,7 +125,7 @@ void realMinimum(double l, double r, double p, double q, int limit, double atol 
         int calls = 0;
         auto f = [&](double x) -> long double {
             require(l < x && x < r, "minimum interior finite evaluations"); ++calls;
-            return x < p ? static_cast<long double>(p) - x : x > q ? static_cast<long double>(x) - q : 0; };
+            return x < p ? static_cast<long double>(p) - x : x > q ? static_cast<long double>(x) - q : 0;};
         auto res = golden ? goldenSearchRealBracket(l, r, f, limit, atol, rtol) : ternSearchRealBracket(l, r, f, limit, atol, rtol);
         checkResult(res, l, r, limit, atol, rtol);
         require(res.l <= q && p <= res.r, "minimum bracket intersects analytic minimizers", "intersection",
@@ -118,11 +133,11 @@ void realMinimum(double l, double r, double p, double q, int limit, double atol 
         require(calls <= (golden ? (res.iterations ? res.iterations + 1 : 0) : 2 * res.iterations), "minimum evaluation bound");
         if (!atol && !rtol) {
             calls = 0; double x = golden ? goldenSearchReal(l, r, f, limit) : ternSearchReal(l, r, f, limit);
-            require(x == res.x, "minimum point wrapper"); }
+            require(x == res.x, "minimum point wrapper");}
         long double w = static_cast<long double>(r) - l, got = static_cast<long double>(res.r) - res.l;
         long double ratio = golden ? (std::sqrt(5.0L) - 1) / 2 : 2.0L / 3;
         long double rounding = 32 * std::numeric_limits<double>::epsilon() * max(abs(l), abs(r)) + 32 * std::numeric_limits<double>::denorm_min();
-        require(got <= w * std::pow(ratio, res.iterations) + rounding, "minimum contraction plus rounding"); }}
+        require(got <= w * std::pow(ratio, res.iterations) + rounding, "minimum contraction plus rounding");}}
 
 void realBoundaries() {
     double huge = std::numeric_limits<double>::max(), tiny = std::numeric_limits<double>::denorm_min();
@@ -135,16 +150,16 @@ void realBoundaries() {
             realMinimum(l, r, c, c, limit);
             realMinimum(l, r, l, l, limit);
             realMinimum(l, r, r, r, limit);
-            realMinimum(l, r, l, r, limit); }
+            realMinimum(l, r, l, r, limit);}
         realBinary(l, r, c, 2200, tiny, 1e-12);
-        realMinimum(l, r, c, c, 2200, tiny, 1e-12); }
+        realMinimum(l, r, c, c, 2200, tiny, 1e-12);}
     auto predicate = [](double x) { return x < 1; };
     auto objective = [](double x) { return abs(x - 1); };
     require(binSearchReal(0, 2, predicate) <= 1, "binary default iteration argument");
     require(abs(ternSearchReal(0, 2, objective) - 1) <= 1e-14, "ternary default iteration argument");
     require(abs(goldenSearchReal(0, 2, objective) - 1) <= 1e-14, "golden default iteration argument");
     for (auto res : {binSearchRealBracket(0, 2, predicate), ternSearchRealBracket(0, 2, objective), goldenSearchRealBracket(0, 2, objective)}) {
-        require(abs(res.x - 1) <= 1e-14, "bracket default iteration argument"); }
+        require(abs(res.x - 1) <= 1e-14, "bracket default iteration argument");}
     std::cout << "PASS real limits, subnormals, adjacent points, caps, tolerance and call bounds\n";}
 
 void randomCases(int count) {
@@ -155,6 +170,7 @@ void randomCases(int count) {
         lng q = lng(lll(p) + lll(rng()) % (lll(r) - p + 1)); rangeContext(l, r, p);
         auto f = [&](lng x) -> lll { return x < p ? 3 * (lll(p) - x) : x > q ? 5 * (lll(x) - q) : 0; };
         expect(ternSearch(l, r, f), p, "random full-width discrete plateau");
+        expect(fibSearch(l, r, f), p, "random full-width fibSearch plateau");
         int n = 1 + int(rng() % 200), a = int(rng() % uint(n)), b = a + int(rng() % uint(n - a));
         vector<int> values(n);
         for (int i = a; i > 0; --i) { values[i - 1] = values[i] + 1 + int(rng() % 10); }
@@ -162,7 +178,7 @@ void randomCases(int count) {
         checkArray(values, -n / 2);
         double dl = double(int(rng() % 2001) - 1000), dr = dl + double(1 + rng() % 2000);
         double c = std::lerp(dl, dr, double(rng() % 1001) / 1000), d = std::lerp(c, dr, double(rng() % 1001) / 1000);
-        realBinary(dl, dr, c, 80, 1e-10, 1e-13); realMinimum(dl, dr, c, d, 160, 1e-10, 1e-13); }
+        realBinary(dl, dr, c, 80, 1e-10, 1e-13); realMinimum(dl, dr, c, d, 160, 1e-10, 1e-13);}
     std::cout << "PASS seeded full-width, brute-force and analytic random cases=" << count << '\n';}
 
 void invalid(const string &probe) {
@@ -171,6 +187,7 @@ void invalid(const string &probe) {
     if (probe == "first-order") { firstTrue(1, 0, f); }
     else if (probe == "last-order") { lastTrue(1, 0, f); }
     else if (probe == "integer-order") { ternSearch(1, 0, f); }
+    else if (probe == "fib-order") { fibSearch(1, 0, f); }
     else if (probe == "binary-iterations") { binSearchReal(0, 1, f, -1); }
     else if (probe == "ternary-iterations") { ternSearchReal(0, 1, f, -1); }
     else if (probe == "golden-iterations") { goldenSearchReal(0, 1, f, -1); }
@@ -196,6 +213,6 @@ int main(int argc, char **argv) {
             else { throw std::runtime_error("unknown argument=" + arg); }}
         integerBoundaries(); exhaustiveMinima(mode == "quick" ? 6 : mode == "stress" ? 9 : 8); realBoundaries();
         randomCases(mode == "quick" ? 100 : mode == "stress" ? 30000 : 3000);
-        std::cout << "PASS 02-search_algorithms mode=" << mode << " seed=" << seed << " checks=" << checks << '\n';
-    } catch (const std::exception &e) {
-        std::cerr << "FAIL 02-search_algorithms mode=" << mode << " seed=" << seed << " " << e.what() << '\n'; return 1; }}
+        std::cout << "PASS 02-search_algorithms mode=" << mode << " seed=" << seed << " checks=" << checks << '\n';}
+     catch (const std::exception &e) {
+        std::cerr << "FAIL 02-search_algorithms mode=" << mode << " seed=" << seed << " " << e.what() << '\n'; return 1;}}

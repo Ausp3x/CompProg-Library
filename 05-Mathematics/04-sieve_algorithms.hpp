@@ -1,10 +1,7 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
 
-// Inclusive tables [0,n], 0 <= n < INT_MAX; 0 and 1 are not prime.
-// Public vectors are query data, not mutable inputs. reset discards old results
-// but can keep capacity; peak_n is the largest n used by this object.
-// S: O(n * log(log(3 + n))), U: same (reset), Q: O(1), M: O(peak_n)
+// S: O(n * log(log(3 + n))), U: same (reset), Q: O(1), M: O(n); tables on [0, n], 0 <= n < INT_MAX, n the largest size used.
 struct SieveOfErath {
     int n;
     vector<char> is_prime;
@@ -22,17 +19,12 @@ struct SieveOfErath {
         for (lng i = 3; i <= n; i += 2) { if (is_prime[i]) { prms.pb(int(i)); } }}
 };
 
-// Inclusive tables [0,n], 0 <= n < INT_MAX. Constructor builds spf and prms;
-// optional tables are empty until their get...() call and cleared by reset.
-// spf[0,1] = lpf[0,1] = -1; other tables use f(0)=0, f(1)=1.
-// Public vectors are query data. Copying is independent; reset may keep capacity.
-// peak_n is the largest n used by this object (n for fresh construction).
-// S: O(n), U: O(n) per table/reset, Q: O(1) table lookup, M: O(peak_n)
+// S: O(n), U: O(n) per get table or reset, Q: O(1), M: O(n); [0, n] as above, spf/lpf -1 at 0 and 1, optional tables empty until built.
 struct LinearSieve {
     int n;
     vector<int> prms, spf, lpf, num_div, phi;
     vector<lng> sum_div;
-    vector<signed char> mu;
+    vector<int8_t> mu;
     LinearSieve(int N) { reset(N); }
     void reset(int N) {
         assert(0 <= N && N < std::numeric_limits<int>::max()); n = N;
@@ -48,7 +40,6 @@ struct LinearSieve {
     void getLpf() {
         lpf.assign(n + 1, -1);
         for (int i = 2; i <= n; ++i) { lpf[i] = max(spf[i], lpf[i / spf[i]]); }}
-    // O(n) transient integers for the smallest-prime exponent.
     void getNumDiv() {
         num_div.assign(n + 1, 0); vector<int> exponent(n + 1, 0);
         if (n >= 1) { num_div[1] = 1; }
@@ -58,7 +49,6 @@ struct LinearSieve {
                 exponent[i] = exponent[j] + 1;
                 num_div[i] = num_div[j] / (exponent[j] + 1) * (exponent[i] + 1);}
             else { exponent[i] = 1; num_div[i] = 2 * num_div[j]; }}}
-    // O(n) transient lng values for 1+p+...+p^e; sums fit signed 64 bits.
     void getSumDiv() {
         sum_div.assign(n + 1, 0); vector<lng> prime_sum(n + 1, 0);
         if (n >= 1) { sum_div[1] = prime_sum[1] = 1; }
@@ -73,13 +63,13 @@ struct LinearSieve {
         if (n >= 1) { phi[1] = 1; }
         for (int i = 2; i <= n; ++i) {
             int p = spf[i], j = i / p;
-            phi[i] = phi[j] * (j % p == 0 ? p : p - 1); }}
+            phi[i] = phi[j] * (j % p == 0 ? p : p - 1);}}
     void getMu() {
         mu.assign(n + 1, 0);
         if (n >= 1) { mu[1] = 1; }
         for (int i = 2; i <= n; ++i) {
             int p = spf[i], j = i / p;
-            mu[i] = j % p == 0 ? 0 : -mu[j]; }}
+            mu[i] = j % p == 0 ? 0 : -mu[j];}}
 
     // Q: O(log(a)), M: O(log(a)) returned; 1 <= a <= n, ascending prime powers.
     vector<pair<int, int>> getPrimeFac(int a) const {
@@ -88,9 +78,9 @@ struct LinearSieve {
         while (a > 1) {
             int p = spf[a], count = 0;
             do { ++count; a /= p; } while (a > 1 && spf[a] == p);
-            res.pb({p, count}); }
+            res.pb({p, count});}
         return res;}
-    // Q: O(log(a) + d(a)), M: O(d(a)) returned; unsorted positive divisors.
+    // Q: O(log(a) + out), M: O(out); 1 <= a <= n, unsorted positive divisors.
     vector<int> getAllFac(int a) const {
         auto factors = getPrimeFac(a);
         vector<int> res{1};

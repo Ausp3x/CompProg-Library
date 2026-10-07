@@ -11,7 +11,7 @@ vector<pair<int,int>> trial(int a) {
         if (a % p != 0) { continue; }
         int exponent = 0;
         do { a /= p; ++exponent; } while (a % p == 0);
-        factors.pb({p,exponent}); }
+        factors.pb({p,exponent});}
     if (a > 1) { factors.pb({a,1}); } return factors;}
 void load(LinearSieve &s, std::mt19937_64 &rng) {
     array<int,5> order{0,1,2,3,4}; std::shuffle(order.begin(),order.end(),rng);
@@ -20,7 +20,7 @@ void load(LinearSieve &s, std::mt19937_64 &rng) {
         if (op == 1) { s.getSumDiv(); }
         if (op == 2) { s.getPhi(); }
         if (op == 3) { s.getMu(); }
-        if (op == 4) { s.getLpf(); } }}
+        if (op == 4) { s.getLpf(); }}}
 void factorCheck(const LinearSieve &s, int a, bool check_phi) {
     context = "n=" + std::to_string(s.n) + " factor=" + std::to_string(a);
     auto factors = trial(a);
@@ -42,7 +42,7 @@ void factorCheck(const LinearSieve &s, int a, bool check_phi) {
     if (check_phi) {
         int phi = 0;
         for (int k = 1; k <= a; ++k) { phi += gcd(k,a) == 1; }
-        need(s.phi[a] == phi, "totient versus gcd enumeration"); }}
+        need(s.phi[a] == phi, "totient versus gcd enumeration");}}
 void compareTables(int n, std::mt19937_64 &rng) {
     context = "n=" + std::to_string(n);
     SieveOfErath e(n); LinearSieve s(n);
@@ -56,7 +56,7 @@ void compareTables(int n, std::mt19937_64 &rng) {
         context = "n=" + std::to_string(n) + " value=" + std::to_string(a);
         need(bool(e.is_prime[a]) == prime, "prime flag versus trial division");
         if (prime) { primes.pb(a); }
-        factorCheck(s,a,a <= 300); }
+        factorCheck(s,a,a <= 300);}
     need(s.prms == primes && e.prms == primes, "sorted complete prime lists");
     vector<int> count(n+1), phi(n+1), mu(n+1);
     vector<lng> sum(n+1);
@@ -80,7 +80,7 @@ void compareTables(int n, std::mt19937_64 &rng) {
     copy.reset(1); ecopy.reset(1); copy.getPhi();
     need(copy.phi == vector<int>({0,1}) && !ecopy.is_prime[1], "reset moved-from objects");
     s.reset(5); e.reset(5); load(s,rng);
-    need(s.prms == vector<int>({2,3,5}) && e.prms == s.prms && s.lpf[4] == 2 && s.phi[5] == 4, "grow or shrink reset"); }
+    need(s.prms == vector<int>({2,3,5}) && e.prms == s.prms && s.lpf[4] == 2 && s.phi[5] == 4, "grow or shrink reset");}
 int main(int argc,char **argv) {
     string mode = "full", invalid; ulng seed = 20260927;
     for (int i = 1; i < argc; ++i) {

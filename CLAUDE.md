@@ -18,6 +18,11 @@ Maximal competitive-programming library. C++20 headers in `01-Core` … `07-Stri
 - Never submit to an online judge. Never delete `OLD` or `97-Legacy` material before its features are accounted for.
 - Do not read whole inventories, the JSON maps under `00-Guidelines`, the decision log or PDFs in `95-Resources` unless the task needs them. Prefer `rg` for lookups.
 
+## Git
+
+- Single-branch workflow: when asked to commit, commit directly to local `master`. Do not create a branch unless asked.
+- Never push; the user pushes `master` to `origin` themselves.
+
 ## Models and delegation
 
 - Core full types (`01-Core` non-mini headers): Claude Fable 5.1 (`/model fable`), effort max.
@@ -38,4 +43,4 @@ python3 '97-Online Testing/03-workspace.py' --check      # workspace template is
 
 ## Toolchain
 
-Local: GCC 16.2, CPython 3.14. Floors: GCC 14.2 with `-std=gnu++20` (Codeforces MSYS2 Windows, AtCoder and Library Checker GCC 15.2 Linux), Python 3.10. PyPy, oj-bundle and lualatex are not installed; report SKIP, do not fake a pass.
+Local: GCC 16.2 (`g++`), GCC 14.4.1 (`g++-14`), CPython 3.14. Floors: GCC 14.2 with `-std=gnu++20` (Codeforces MSYS2 Windows, AtCoder and Library Checker GCC 15.2 Linux), Python 3.10. Every package also runs its suites in full mode with `CXX=g++-14` (the runners read `CXX`) as the floor check and records the result in its evidence; exact 14.2 and the Windows build stay unrun. PyPy, oj-bundle and lualatex are not installed; report SKIP, do not fake a pass.

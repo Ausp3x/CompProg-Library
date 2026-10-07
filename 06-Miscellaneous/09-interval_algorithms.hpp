@@ -1,162 +1,187 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
+#include "../02-Data Structures/02-fenwick.hpp"
 
 enum class IntervalDomain { Continuous, Integer };
 
-// T: O(1), M: O(1). Integral endpoints, l <= r; default [l,r).
-// Continuous means subsets of the real line; Integer means subsets of Z.
-// Exact query/witness coordinates are doubled: twice=3 represents 1.5.
+// T: O(1), M: O(1); lng endpoints with l <= r, default [l, r), point queries in doubled lll coordinates (3 is 1.5).
 struct Interval {
     lng l = 0, r = 0;
     bool left_closed = true, right_closed = false;
-    // Closed doubled bounds on the representative grid, NOT real endpoints:
-    // continuous (0,1) gives {1,1}. Every nonempty intersection with integral
-    // endpoints contains a grid point. Integer mode uses only even grid points.
     pair<lll, lll> bounds(IntervalDomain domain = IntervalDomain::Continuous) const {
         assert(l <= r);
         int step = domain == IntervalDomain::Integer ? 2 : 1;
-        return {2 * lll(l) + step * !left_closed, 2 * lll(r) - step * !right_closed}; }
+        return {2 * lll(l) + step * !left_closed, 2 * lll(r) - step * !right_closed};}
     bool empty(IntervalDomain domain = IntervalDomain::Continuous) const {
-        auto [a, b] = bounds(domain); return a > b; }
+        auto [a, b] = bounds(domain); return a > b;}
     bool contains(lll twice, IntervalDomain domain = IntervalDomain::Continuous) const {
         auto [a, b] = bounds(domain);
-        return a <= twice && twice <= b && (domain == IntervalDomain::Continuous || twice % 2 == 0); }
+        return a <= twice && twice <= b && (domain == IntervalDomain::Continuous || twice % 2 == 0);}
     bool operator==(const Interval &) const = default;
 };
 
+// T: NA, M: O(1) (IntervalStabbing and IntervalSchedule O(out)); result records, an empty witness is never an absence marker.
+struct IntervalEvent { lng x; int phase, id, delta; };
+struct IntervalOverlap { int count = 0; lll twice = 0; };
+struct IntervalStabbing { bool possible = true; vector<lll> twice; };
+struct IntervalSchedule { lll weight = 0; vector<int> ids; };
+
 namespace interval_detail {
+    // T: O(1) normalize, O(n) nonempty, M: O(n); closed grid bounds of nonempty sets in input order, empty ids appended to empty.
     inline bool normalize(Interval &a, IntervalDomain domain) {
         auto [l, r] = a.bounds(domain);
         if (l > r) { return false; }
         if (domain == IntervalDomain::Integer) { a = {lng(l / 2), lng(r / 2), true, true}; }
-        return true; }
-    inline vector<int> finishOrder(const vector<Interval> &a, IntervalDomain domain) {
-        assert(a.size() <= size_t(INT_MAX)); vector<int> ids;
-        for (int i = 0; i < int(a.size()); ++i) { if (!a[i].empty(domain)) { ids.push_back(i); } }
-        sort(ids.begin(), ids.end(), [&](int i, int j) -> bool {
-            auto x = a[i].bounds(domain), y = a[j].bounds(domain);
-            return tuple{x.second, x.first, i} < tuple{y.second, y.first, j}; });
-        return ids; }
+        return true;}
+    struct Bound { lll l, r; int id; };
+    inline vector<Bound> nonempty(const vector<Interval> &a, IntervalDomain domain, vector<int> &empty) {
+        assert(a.size() <= size_t(INT_MAX)); vector<Bound> res;
+        for (int i = 0; i < int(a.size()); ++i) {
+            auto [l, r] = a[i].bounds(domain);
+            if (l <= r) { res.push_back({l, r, i}); } else { empty.push_back(i); }}
+        return res;}
 } // namespace interval_detail
 
-// T: O(n * log(n + 1)), M: O(n) workspace and returned storage. Does not mutate a.
-// Drop empty sets; merge connected unions. In Integer mode adjacent integers
-// coalesce and results are closed. Continuous touching intervals coalesce iff
-// at least one includes the shared endpoint. No arithmetic in endpoint width.
+// T: O(n * log(n + 1)), M: O(n); sorted maximal union components without empties, Integer output closed; measure is exact length or cardinality.
 inline vector<Interval> mergeIntervals(const vector<Interval> &a, IntervalDomain domain = IntervalDomain::Continuous) {
-    assert(a.size() <= size_t(INT_MAX)); vector<Interval> b, out;
-    for (Interval x : a) { if (interval_detail::normalize(x, domain)) { b.push_back(x); } }
+    assert(a.size() <= size_t(INT_MAX)); vector<Interval> b, res;
+    for (Interval x : a) {
+        if (interval_detail::normalize(x, domain)) { b.push_back(x); }}
     sort(b.begin(), b.end(), [](Interval x, Interval y) -> bool {
-        return tuple{x.l, !x.left_closed, x.r, x.right_closed} < tuple{y.l, !y.left_closed, y.r, y.right_closed}; });
+        return tuple{x.l, !x.left_closed, x.r, x.right_closed} < tuple{y.l, !y.left_closed, y.r, y.right_closed};});
     for (Interval x : b) {
-        if (out.empty()) { out.push_back(x); continue; }
-        Interval &p = out.back();
-        bool join = domain == IntervalDomain::Integer ? lll(x.l) <= lll(p.r) + 1
-                    : x.l < p.r || (x.l == p.r && (x.left_closed || p.right_closed));
-        if (!join) { out.push_back(x); continue; }
+        if (res.empty()) { res.push_back(x); continue; }
+        Interval &p = res.back();
+        bool join = domain == IntervalDomain::Integer ? lll(x.l) <= lll(p.r) + 1 : x.l < p.r || (x.l == p.r && (x.left_closed || p.right_closed));
+        if (!join) { res.push_back(x); continue; }
         if (x.r > p.r) { p.r = x.r; p.right_closed = x.right_closed; }
-        else if (x.r == p.r) { p.right_closed |= x.right_closed; } }
-    return out; }
-
-// T: O(n * log(n + 1)), M: O(n). Continuous length / Integer cardinality, exact.
-// The entire lng integer domain has cardinality 2^64, represented in lll.
+        else if (x.r == p.r) { p.right_closed |= x.right_closed; }}
+    return res;}
 inline lll intervalUnionMeasure(const vector<Interval> &a, IntervalDomain domain = IntervalDomain::Continuous) {
-    lll total = 0;
-    for (Interval x : mergeIntervals(a, domain)) { total += lll(x.r) - x.l + (domain == IntervalDomain::Integer); }
-    return total; }
+    lll res = 0;
+    for (Interval x : mergeIntervals(a, domain)) { res += lll(x.r) - x.l + (domain == IntervalDomain::Integer); }
+    return res;}
 
-// phase 0: remove open right; 1: add closed left; 2: remove closed right;
-// 3: add open left. After phase 1 the active set is exactly at x; after phase 3
-// it is just to the right. Equal-phase events are ordered by original input id.
-struct IntervalEvent { lng x; int phase, id, delta; };
-// T: O(n * log(n + 1)), M: O(n) returned storage; at most 2*n events.
-// Empty sets omitted. Integer events use each set's closed integer hull;
-// inspect phase 1 at integer coordinates; between consecutive integers is void.
+// T: O(n * log(n + 1)), M: O(n); at most 2 * n events by (x, phase, id), phases 0 open right, 1 closed left, 2 closed right, 3 open left.
 inline vector<IntervalEvent> intervalEvents(const vector<Interval> &a, IntervalDomain domain = IntervalDomain::Continuous) {
-    assert(a.size() <= size_t(INT_MAX)); vector<IntervalEvent> out;
+    assert(a.size() <= size_t(INT_MAX)); vector<IntervalEvent> res;
     for (int i = 0; i < int(a.size()); ++i) {
-        Interval x = a[i]; if (!interval_detail::normalize(x, domain)) { continue; }
-        out.push_back({x.l, x.left_closed ? 1 : 3, i, 1});
-        out.push_back({x.r, x.right_closed ? 2 : 0, i, -1}); }
-    sort(out.begin(), out.end(), [](const IntervalEvent &x, const IntervalEvent &y) -> bool {
-        return tuple{x.x, x.phase, x.id} < tuple{y.x, y.phase, y.id}; });
-    return out; }
+        Interval x = a[i];
+        if (!interval_detail::normalize(x, domain)) { continue; }
+        res.push_back({x.l, x.left_closed ? 1 : 3, i, 1});
+        res.push_back({x.r, x.right_closed ? 2 : 0, i, -1});}
+    sort(res.begin(), res.end(), [](const IntervalEvent &x, const IntervalEvent &y) -> bool {
+        return tuple{x.x, x.phase, x.id} < tuple{y.x, y.phase, y.id};});
+    return res;}
 
-struct IntervalOverlap { int count = 0; lll twice = 0; };
-// T: O(n * log(n + 1)), M: O(n). Maximum coverage and one exact point attaining
-// it. count=0 has no witness. Integer witnesses are always even doubled values.
+// T: O(n * log(n + 1)), M: O(n); maximum coverage and one doubled witness point, count 0 has no witness.
 inline IntervalOverlap maximumIntervalOverlap(const vector<Interval> &a, IntervalDomain domain = IntervalDomain::Continuous) {
-    auto events = intervalEvents(a, domain); IntervalOverlap out; int active = 0;
+    auto events = intervalEvents(a, domain); IntervalOverlap res; int active = 0;
     auto it = events.begin();
     while (it != events.end()) {
         lng x = it->x;
         while (it != events.end() && it->x == x && it->phase <= 1) { active += it->delta; ++it; }
-        if (active > out.count) { out = {active, 2 * lll(x)}; }
+        if (active > res.count) { res = {active, 2 * lll(x)}; }
         while (it != events.end() && it->x == x) { active += it->delta; ++it; }
-        if (domain == IntervalDomain::Continuous && active > out.count) { out = {active, 2 * lll(x) + 1}; } }
-    return out; }
+        if (domain == IntervalDomain::Continuous && active > res.count) { res = {active, 2 * lll(x) + 1}; }}
+    return res;}
 
-// T: O(n * log(n + 1) + q * log(n + 1)), M: O(n) workspace, O(q) returned.
-// Query integer/half-integer points in input order; arbitrary lll doubled query
-// coordinates allowed. In Integer mode odd doubled coordinates have count zero.
-inline vector<int> intervalStabbingCounts(const vector<Interval> &a, const vector<lll> &twice,
-                                         IntervalDomain domain = IntervalDomain::Continuous) {
-    assert(a.size() <= size_t(INT_MAX)); vector<lll> starts, ends;
-    for (Interval x : a) {
-        auto [l, r] = x.bounds(domain);
-        if (l <= r) { starts.push_back(l); ends.push_back(r); } }
-    sort(starts.begin(), starts.end()); sort(ends.begin(), ends.end()); vector<int> out; out.reserve(twice.size());
+// T: O((n + q) * log(n + 1)), M: O(n + q); coverage of each doubled query point in query order, odd points count 0 in Integer mode.
+inline vector<int> intervalStabbingCounts(const vector<Interval> &a, const vector<lll> &twice, IntervalDomain domain = IntervalDomain::Continuous) {
+    vector<int> empty, res; vector<lll> starts, ends;
+    for (auto [l, r, i] : interval_detail::nonempty(a, domain, empty)) { starts.push_back(l); ends.push_back(r); }
+    sort(starts.begin(), starts.end()); sort(ends.begin(), ends.end()); res.reserve(twice.size());
     for (lll x : twice) {
-        if (domain == IntervalDomain::Integer && x % 2 != 0) { out.push_back(0); continue; }
-        out.push_back(int(upper_bound(starts.begin(), starts.end(), x) - starts.begin())
-                      - int(lower_bound(ends.begin(), ends.end(), x) - ends.begin())); }
-    return out; }
+        if (domain == IntervalDomain::Integer && x % 2 != 0) { res.push_back(0); continue; }
+        res.push_back(int(upper_bound(starts.begin(), starts.end(), x) - starts.begin()) - int(lower_bound(ends.begin(), ends.end(), x) - ends.begin()));}
+    return res;}
 
-struct IntervalStabbing { bool possible = true; vector<lll> twice; };
-// T: O(n * log(n + 1)), M: O(n) workspace and returned storage.
-// Minimum points hitting EVERY input set; an empty interval makes this impossible
-// and returns no points. Empty input succeeds with none. Points are increasing.
+// T: O(n * log(n + 1)), M: O(n); fewest increasing doubled points hitting every set, possible = false with no points when a set is empty.
 inline IntervalStabbing minimumIntervalStabbing(const vector<Interval> &a, IntervalDomain domain = IntervalDomain::Continuous) {
-    assert(a.size() <= size_t(INT_MAX));
-    for (Interval x : a) { if (x.empty(domain)) { return {false, {}}; } }
-    IntervalStabbing out;
-    for (int i : interval_detail::finishOrder(a, domain)) {
-        auto [l, r] = a[i].bounds(domain);
-        if (out.twice.empty() || out.twice.back() < l) { out.twice.push_back(r); } }
-    return out; }
+    vector<int> empty; auto b = interval_detail::nonempty(a, domain, empty); IntervalStabbing res;
+    if (!empty.empty()) { return {false, {}}; }
+    sort(b.begin(), b.end(), [](const auto &x, const auto &y) { return tuple{x.r, x.l, x.id} < tuple{y.r, y.l, y.id}; });
+    for (auto [l, r, i] : b) {
+        if (res.twice.empty() || res.twice.back() < l) { res.twice.push_back(r); }}
+    return res;}
 
-// T: O(n * log(n + 1)), M: O(n) workspace and returned storage.
-// Largest pairwise disjoint subset: empty sets first (input order), then nonempty
-// intervals in finishing order. Touching is compatible iff their intersection
-// is empty under the chosen domain. Empty intervals are mutually compatible.
+// T: O(n * log(n + 1)), M: O(n); largest pairwise disjoint subset, empty sets first in input order, then by finishing order.
 inline vector<int> maximumIntervalSchedule(const vector<Interval> &a, IntervalDomain domain = IntervalDomain::Continuous) {
-    auto ids = interval_detail::finishOrder(a, domain); vector<int> out;
-    for (int i = 0; i < int(a.size()); ++i) { if (a[i].empty(domain)) { out.push_back(i); } }
+    vector<int> res; auto b = interval_detail::nonempty(a, domain, res);
+    sort(b.begin(), b.end(), [](const auto &x, const auto &y) { return tuple{x.r, x.l, x.id} < tuple{y.r, y.l, y.id}; });
     bool have = false; lll end = 0;
-    for (int i : ids) {
-        auto [l, r] = a[i].bounds(domain);
-        if (!have || end < l) { out.push_back(i); end = r; have = true; } }
-    return out; }
+    for (auto [l, r, i] : b) {
+        if (!have || end < l) { res.push_back(i); end = r; have = true; }}
+    return res;}
 
-struct IntervalSchedule { lll weight = 0; vector<int> ids; };
-// T: O(n * log(n + 1)), M: O(n) workspace and returned storage. n <= INT_MAX;
-// weights are any lng, exact sum in lll. Empty schedule allowed. All positive-
-// weight empty sets are included first; nonempty witness is in finishing order.
-// Ties skip the later finish-order item. Zero-weight empty intervals are skipped.
-inline IntervalSchedule weightedIntervalSchedule(const vector<Interval> &a, const vector<lng> &weight,
-                                                 IntervalDomain domain = IntervalDomain::Continuous) {
-    assert(a.size() == weight.size()); auto ids = interval_detail::finishOrder(a, domain);
-    int n = int(ids.size()); vector<lll> ends; ends.reserve(n);
-    for (int i : ids) { ends.push_back(a[i].bounds(domain).second); }
-    vector<lll> dp(size_t(n) + 1); vector<int> from(n); vector<bool> take(n); IntervalSchedule out;
-    for (int i = 0; i < int(a.size()); ++i) {
-        if (a[i].empty(domain) && weight[i] > 0) { out.weight += weight[i]; out.ids.push_back(i); } }
+// T: O(n * log(n + 1)), M: O(n); maximum lng weight sum in lll, empty schedule allowed, positive empty sets first.
+inline IntervalSchedule weightedIntervalSchedule(const vector<Interval> &a, const vector<lng> &weight, IntervalDomain domain = IntervalDomain::Continuous) {
+    assert(a.size() == weight.size()); vector<int> empty; auto b = interval_detail::nonempty(a, domain, empty);
+    sort(b.begin(), b.end(), [](const auto &x, const auto &y) { return tuple{x.r, x.l, x.id} < tuple{y.r, y.l, y.id}; });
+    int n = int(b.size()); vector<lll> dp(size_t(n) + 1); vector<int> from(n); vector<bool> take(n); IntervalSchedule res;
+    for (int i : empty) {
+        if (weight[i] > 0) { res.weight += weight[i]; res.ids.push_back(i); }}
     for (int i = 0; i < n; ++i) {
-        from[i] = int(lower_bound(ends.begin(), ends.begin() + i, a[ids[i]].bounds(domain).first) - ends.begin());
-        lll candidate = dp[from[i]] + weight[ids[i]];
-        take[i] = candidate > dp[i]; dp[i + 1] = max(dp[i], candidate); }
-    out.weight += dp[n]; vector<int> chosen;
+        from[i] = int(lower_bound(b.begin(), b.begin() + i, b[i].l, [](const auto &x, lll v) { return x.r < v; }) - b.begin());
+        lll candidate = dp[from[i]] + weight[b[i].id];
+        take[i] = candidate > dp[i]; dp[i + 1] = max(dp[i], candidate);}
+    res.weight += dp[n]; vector<int> chosen;
     for (int i = n; i > 0;) {
-        if (take[i - 1]) { chosen.push_back(ids[i - 1]); i = from[i - 1]; }
-        else { --i; } }
-    out.ids.insert(out.ids.end(), chosen.rbegin(), chosen.rend()); return out; }
+        if (take[i - 1]) { chosen.push_back(b[i - 1].id); i = from[i - 1]; }
+        else { --i; }}
+    res.ids.insert(res.ids.end(), chosen.rbegin(), chosen.rend()); return res;}
+
+// T: O(n * log(n + 1)), M: O(n); fewest sets whose union contains target, ids by increasing start; false leaves ids unchanged.
+inline bool intervalCover(const vector<Interval> &a, Interval target, vector<int> &ids, IntervalDomain domain = IntervalDomain::Continuous) {
+    vector<int> empty, res; auto b = interval_detail::nonempty(a, domain, empty);
+    sort(b.begin(), b.end(), [](const auto &x, const auto &y) { return tuple{x.l, x.r, x.id} < tuple{y.l, y.r, y.id}; });
+    auto [cur, hi] = target.bounds(domain);
+    int step = domain == IntervalDomain::Integer ? 2 : 1, pick = -1, i = 0; lll reach = cur - step;
+    while (cur <= hi) {
+        for (; i < int(b.size()) && b[i].l <= cur; ++i) {
+            if (b[i].r > reach) { reach = b[i].r; pick = b[i].id; }}
+        if (reach < cur) { return false; }
+        res.push_back(pick); cur = reach + step;}
+    ids = std::move(res); return true;}
+
+// T: O(n * log(n + 1)), M: O(n); {machines, machine of each set}, sets sharing a machine are disjoint, empty sets use machine 0.
+inline pair<int, vector<int>> intervalPartitionAssignment(const vector<Interval> &a, IntervalDomain domain = IntervalDomain::Continuous) {
+    vector<int> empty, machine(a.size()); auto b = interval_detail::nonempty(a, domain, empty);
+    sort(b.begin(), b.end(), [](const auto &x, const auto &y) { return tuple{x.l, x.r, x.id} < tuple{y.l, y.r, y.id}; });
+    priority_queue<pair<lll, int>, vector<pair<lll, int>>, std::greater<>> busy; int machines = 0;
+    for (auto [l, r, i] : b) {
+        if (!busy.empty() && busy.top().first < l) { machine[i] = busy.top().second; busy.pop(); }
+        else { machine[i] = machines++; }
+        busy.push({r, machine[i]});}
+    return {max(machines, int(!a.empty())), machine};}
+
+// T: O(n * log(n + 1)), M: O(n); remove keeps sets inside no other set (first id of equal sets) by start, counts give {contained, containing} others.
+inline vector<int> removeNestedIntervals(const vector<Interval> &a, IntervalDomain domain = IntervalDomain::Continuous) {
+    vector<int> empty, res; auto b = interval_detail::nonempty(a, domain, empty);
+    if (b.empty()) { return empty.empty() ? res : vector<int>{empty[0]}; }
+    sort(b.begin(), b.end(), [](const auto &x, const auto &y) { return tuple{x.l, -x.r, x.id} < tuple{y.l, -y.r, y.id}; });
+    lll reach = b[0].r - 1;
+    for (auto [l, r, i] : b) {
+        if (r > reach) { res.push_back(i); reach = r; }}
+    return res;}
+inline vector<pair<int, int>> nestedIntervalCounts(const vector<Interval> &a, IntervalDomain domain = IntervalDomain::Continuous) {
+    vector<int> empty; auto b = interval_detail::nonempty(a, domain, empty);
+    int n = int(a.size()), m = int(b.size()), e = int(empty.size()); vector<pair<int, int>> res(n, {e, 0});
+    for (int i : empty) { res[i] = {e - 1, n - 1}; }
+    sort(b.begin(), b.end(), [](const auto &x, const auto &y) { return tuple{x.l, -x.r, x.id} < tuple{y.l, -y.r, y.id}; });
+    vector<lll> ends;
+    for (const auto &x : b) { ends.push_back(x.r); }
+    sort(ends.begin(), ends.end()); ends.erase(unique(ends.begin(), ends.end()), ends.end());
+    auto rank = [&](lll r) { return int(lower_bound(ends.begin(), ends.end(), r) - ends.begin()); };
+    Fenwick<int> before(int(ends.size())), after(int(ends.size()));
+    for (int i = 0, j = 0; i < m; i = j) {
+        while (j < m && b[j].l == b[i].l && b[j].r == b[i].r) { ++j; }
+        int r = rank(b[i].r), seen = before.sum(r, int(ends.size()));
+        for (int k = i; k < j; ++k) { res[b[k].id].second += seen + j - i - 1; }
+        before.add(r, j - i);}
+    for (int j = m, i = m; j > 0; j = i) {
+        while (i > 0 && b[i - 1].l == b[j - 1].l && b[i - 1].r == b[j - 1].r) { --i; }
+        int r = rank(b[i].r), seen = after.prefixSum(r + 1);
+        for (int k = i; k < j; ++k) { res[b[k].id].first += seen + j - i - 1; }
+        after.add(r, j - i);}
+    return res;}

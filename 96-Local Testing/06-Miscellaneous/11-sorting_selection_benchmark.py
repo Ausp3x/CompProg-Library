@@ -26,8 +26,14 @@ def main():
         result = subprocess.run([str(binary)], capture_output=True, text=True, timeout=180)
         if result.returncode:
             raise RuntimeError(f'command={binary} returncode={result.returncode}\n{result.stderr}')
-    groups = {}
+    groups, selection = {}, {}
     for line in result.stdout.splitlines():
+        if line.startswith('select '):
+            _, n, distribution, method, rep, batch, ms, value = line.split()
+            row = selection.setdefault((int(n), distribution, method), {'n': int(n), 'distribution': distribution, 'method': method, 'rank': int(n) // 2,
+                                                                        'batch': int(batch), 'value': int(value), 'samples_ms': []})
+            row['samples_ms'].append(float(ms))
+            continue
         n, data_type, distribution, method, rep, batch, ms, checksum = line.split()
         key = (int(n), data_type, distribution, method)
         row = groups.setdefault(key, {'n': int(n), 'type': data_type, 'distribution': distribution,
@@ -38,6 +44,14 @@ def main():
         row['samples_ms'].append(float(ms))
         row['repetitions'].append(int(rep))
     rows = list(groups.values())
+    selection_rows = list(selection.values())
+    if len(selection_rows) != 30 or any(len(row['samples_ms']) != 5 for row in selection_rows):
+        raise RuntimeError(f'expected 30 selection rows with 5 samples, got {len(selection_rows)}')
+    for row in selection_rows:
+        row['median_ms'] = statistics.median(row['samples_ms'])
+    for row in selection_rows:
+        ref = selection[row['n'], row['distribution'], 'std-nth-element']
+        row['median_fraction_of_standard'] = row['median_ms'] / ref['median_ms']
     if len(rows) != 132:
         raise RuntimeError(f'expected 132 workload/method rows, got {len(rows)}')
     for row in rows:
@@ -67,9 +81,14 @@ def main():
                    for p in (ROOT / '06-Miscellaneous/11-sorting_selection.hpp',
                              HERE / '11-sorting_selection_benchmark.cpp', HERE / '11-sorting_selection_benchmark.py')},
         'results': rows,
+        'selection_workload': 'signed64 rank n/2 selection over random dense [0,255], random/sorted/reverse full-width and equal keys; timed scope copies the input then selects; every output is checked for the exact value and the partition property',
+        'selection_results': selection_rows,
     }
     output = HERE / '11-sorting_selection_benchmark.json'
     output.write_text(json.dumps(report, indent=2) + '\n')
+    for row in selection_rows:
+        if row['method'] != 'std-nth-element':
+            print('select', row['n'], row['distribution'], f"{row['median_ms']:.6f} ms", f"{row['median_fraction_of_standard']:.3f} x nth_element")
     print(f'PASS {len(rows)} workload/method comparisons; all complete outputs verified; record={output}')
     for row in rows:
         if row['method'].startswith('std-'):

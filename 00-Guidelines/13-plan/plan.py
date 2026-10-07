@@ -192,12 +192,110 @@ def status_text(root):
     return '\n'.join(out + ['', f'Next: {p["id"]} — {p["label"]}' if p else 'Next: none ready (all verified or blocked).'])
 
 
+def ready_list(root=ROOT):
+    """Packages whose prerequisites are all verified or audit, in schedule order, with their folders."""
+    batches, packages = load(root)
+    bmap = {b['id']: b for b in batches['batches']}
+    status = {p['id']: p['status'] for p in packages['packages']}
+    deps = prereqs(batches, packages)
+    out = []
+    for p in packages['packages']:
+        if p['status'] == 'verified' or not all(status[d] in ('verified', 'audit') for d in deps[p['id']]):
+            continue
+        folders = sorted({bmap[b]['folder'] for b in p['batches']} | {t.split('/')[0] for b in p['batches'] for t in bmap[b]['targets']})
+        out.append((p, [f for f in folders if f != 'support'] or ['support']))
+    return out
+
+
+def ready_text(root, limit):
+    rows = ready_list(root)
+    out = ['Ready packages (prerequisites satisfied), schedule order:']
+    out += [f'- {p["id"]} [{p["status"]}, {p["model"]}, {p["size"]}] {", ".join(f)} — {p["label"]}' for p, f in rows]
+    chosen, used = [], set()
+    for p, f in rows:
+        if p['status'] != 'in-progress' and not (set(f) & used):
+            chosen.append(p); used |= set(f)
+        if len(chosen) == limit:
+            break
+    out += ['', f'Disjoint set for {limit} parallel sessions (one folder each; use `claude -w <name>` worktrees and merge after):']
+    out += [f'- {p["id"]} — {p["label"]}' for p in chosen]
+    out += ['', 'Shared files every session touches (expect small merges): 01-prompts.md, 00-Guidelines/13-plan/packages.json, '
+            '96-Local Testing/00-index.md, 96-Local Testing/01-run.py. Same-folder packages also share 00-index.md and the 98/99 aggregates; run those sequentially.']
+    return '\n'.join(out)
+
+
+def doctor(root=ROOT, fix=False):
+    """Cross-check plan, inventories, files and tests; --fix re-renders the checklist. Returns (todo lines, fixed lines)."""
+    import ast
+    batches, packages = load(root)
+    bmap = {b['id']: b for b in batches['batches']}
+    inv = inventories(root)
+    owner = {t: p['id'] for p in packages['packages'] for b in p['batches'] for t in bmap[b]['targets']}
+    pstatus = {p['id']: p['status'] for p in packages['packages']}
+    todo, fixed = collections.defaultdict(list), []
+    for e in check(root):
+        if 'out of sync' in e and fix:
+            (root / '01-prompts.md').write_text(rendered_file(root, packages)); fixed.append('Re-rendered 01-prompts.md')
+        else:
+            todo['plan'].append(e)
+    run = (root / '96-Local Testing/01-run.py').read_text()
+    tree = ast.parse(run)
+    quick = next((ast.literal_eval(n.value) for n in tree.body if isinstance(n, ast.Assign) and any(getattr(t, 'id', '') == 'QUICK' for t in n.targets)), set())
+    quick_folders = set(re.findall(r"'(0\d-[^']+)'", run.split('x.parent.name in', 1)[1].split(']', 1)[0])) if 'x.parent.name in' in run else set()
+    for t, (parts, _) in inv.items():
+        folder, name = t.split('/')
+        rstatus = parts[-1].split(';')[0].split(' ')[0].strip('*').lower()
+        exists = (root / t).exists()
+        pid = owner.get(t, '?'); ps = pstatus.get(pid)
+        key = f'{pid} ({folder})'
+        if rstatus == 'planned' and exists:
+            todo[key].append(f'{name}: file exists but row is planned; set existing-unverified or partial')
+        if rstatus in ('verified', 'partial', 'existing-unverified') and not exists:
+            todo[key].append(f'{name}: row is {rstatus} but the file is missing')
+        if rstatus == 'verified' and ps in ('planned', 'in-progress'):
+            todo[key].append(f'{name}: row verified but package {pid} is {ps}; finish the package or downgrade the row')
+        if ps == 'verified' and rstatus not in ('verified', 'partial'):
+            todo[key].append(f'{name}: package verified but row is {rstatus}')
+        if ps == 'verified' and rstatus == 'partial':
+            todo[key].append(f'{name}: partial row inside a verified package; operations still missing (see missing:)')
+        tests = tests_for(root, t)
+        if rstatus == 'verified' and not tests:
+            todo[key].append(f'{name}: verified without a tester under 96-Local Testing/{folder}/')
+        for x in tests:
+            tname = x.split('/')[-1]
+            if rstatus == 'verified' and tname.endswith('_tester.py') and '_compile_' not in tname and tname not in quick and folder not in quick_folders:
+                todo[key].append(f'{tname}: tester not registered for quick mode in 96-Local Testing/01-run.py')
+        if rstatus in ('verified', 'partial') and not re.search(r'\]\(', parts[-1]):
+            todo[key].append(f'{name}: {rstatus} row has no evidence link')
+    for p in packages['packages']:
+        for e in p['evidence']:
+            if not (root / e).exists():
+                todo[p['id']].append(f'evidence path missing: {e}')
+        if p['status'] == 'in-progress' and not p['note']:
+            todo[p['id']].append('in-progress without a handoff note; add one with plan.py set --note')
+    return todo, fixed
+
+
+def doctor_text(root, fix):
+    todo, fixed = doctor(root, fix)
+    out = [f'Fixed: {f}' for f in fixed]
+    if not todo:
+        return '\n'.join(out + ['doctor: no inconsistencies'])
+    for key in sorted(todo):
+        out += ['', f'## {key}'] + ['- ' + x for x in todo[key]]
+    cmd = {'audit': '/package', 'in-progress': '/package', 'planned': '/package'}
+    out += ['', 'Resolve with /package Pxxx (re-audit or continue), /restyle Pxxx for pure style, or edit the row/plan; then rerun doctor.']
+    return '\n'.join(out)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest='cmd', required=True)
     sub.add_parser('show').add_argument('id')
     for name in ('status', 'next', 'render', 'check'):
         sub.add_parser(name)
+    sub.add_parser('ready').add_argument('--max', type=int, default=3, help='size of the disjoint parallel set')
+    sub.add_parser('doctor').add_argument('--fix', action='store_true', help='re-render the checklist when out of sync')
     s = sub.add_parser('set')
     s.add_argument('id')
     s.add_argument('status')
@@ -213,6 +311,11 @@ def main():
         if not p:
             return 1
         print(p['id'])
+    elif a.cmd == 'ready':
+        print(ready_text(ROOT, a.max))
+    elif a.cmd == 'doctor':
+        print(doctor_text(ROOT, a.fix))
+        return bool(doctor(ROOT)[0])
     elif a.cmd == 'check':
         errors = check(ROOT)
         print('\n'.join(errors) or 'plan check: ok')

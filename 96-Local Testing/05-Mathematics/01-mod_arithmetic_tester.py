@@ -26,6 +26,7 @@ def oracle(binary, args, env):
             for m in (1, 2, 6, 97, hi):
                 add('m', a, b, m)
                 add('p', a, b, m)
+            add('P', a, b); add('c', a, b)
     for a in [-(1 << 127), -(1 << 127) + 1, -1, 0, 1, (1 << 127) - 1]:
         for b in [-(1 << 127), -hi, -1, 1, hi, (1 << 127) - 1]:
             if not (a == -(1 << 127) and b == -1): add('d', a, b)
@@ -35,6 +36,8 @@ def oracle(binary, args, env):
             for m in (1, 2, 97, 1 << 63, umax):
                 add('u', a, b, m)
                 add('q', a, b, m)
+    for a in [1, 3, 5, umax, umax - 2, (1 << 63) - 1, (1 << 63) + 1] + [2 * k + 1 for k in range(64)]:
+        add('v', a)
     for a in edges + list(range(-12, 13)):
         for b in list(range(66)) + [umax]: add('i', a, b)
     for e in range(2, 64):
@@ -51,7 +54,9 @@ def oracle(binary, args, env):
         add('g', a, b)
         if b: add('d', a, b)
         add('n', rng.randrange(-(1 << 127), 1 << 127), m)
-        add('m', a, b, m); add('p', a, b, m)
+        add('m', a, b, m); add('p', a, b, m); add('P', a, b); add('c', a, b)
+        add('c', rng.randint(-(1 << 32), 1 << 32), rng.randint(lo, hi) >> rng.randrange(64))
+        add('v', rng.getrandbits(64) | 1)
         a, b = rng.randrange(-(1 << 127), 1 << 127), rng.randrange(-(1 << 127), 1 << 127)
         if b and not (a == -(1 << 127) and b == -1): add('d', a, b)
         a, b, m = rng.getrandbits(64), rng.getrandbits(64), rng.randint(1, umax)
@@ -64,7 +69,7 @@ def oracle(binary, args, env):
     if len(lines) != len(rows): raise RuntimeError(f'expected {len(rows)} lines, got {len(lines)}')
     for (op, v), line in zip(rows, lines):
         got = list(map(int, line.split()))
-        a, b = v[:2]
+        a, b = (v + (0,))[:2]
         if op == 'g':
             g = math.gcd(a, b)
             expected = [g, math.lcm(a, b), g]
@@ -73,10 +78,16 @@ def oracle(binary, args, env):
         elif op == 'd': expected = [a // b, -(-a // b)]; ok = got == expected
         elif op == 'n': expected = [a % b]; ok = got == expected
         elif op in ('m', 'u'): expected = [a * b % v[2]]; ok = got == expected
-        elif op in ('p', 'q'):
-            try: expected = [pow(a, b, v[2])]
+        elif op in ('p', 'q', 'P'):
+            try: expected = [pow(a, b, v[2] if op != 'P' else 0x3f3f3f3f3f3f3f3f)]
             except ValueError: expected = [-1]
             ok = got == expected
+        elif op == 'c':
+            clamp = lambda x: min(max(x, lo), hi)
+            add_ok, mul_ok = lo <= a + b <= hi, lo <= a * b <= hi
+            expected = [int(add_ok), a + b if add_ok else 123, int(mul_ok), a * b if mul_ok else 123, clamp(a + b), clamp(a * b)]
+            ok = got == expected
+        elif op == 'v': expected = [pow(a, -1, 1 << 64)]; ok = got == expected
         else:
             if abs(a) > 1 and b > 64: expected = [0, 123]
             else:
@@ -90,4 +101,4 @@ def oracle(binary, args, env):
 if __name__ == '__main__':
     raise SystemExit(main('01-mod_arithmetic', ['gcd-width', 'alias', 'floor-zero', 'ceil-zero',
         'floor-overflow', 'ceil-overflow', 'norm-zero', 'norm-negative', 'mul-zero',
-        'mul64-zero', 'pow-zero', 'pow64-zero'], oracle))
+        'mul64-zero', 'pow-zero', 'pow64-zero', 'inv-even'], oracle))

@@ -11,7 +11,7 @@ void checkTable(int n) {
         need(f.factorial(a) == factorial && f.factorial(a) * f.inverseFactorial(a) == 1, "factorial/inverse n=" + std::to_string(a));
         for (int b = -1; b <= a + 1; ++b) {
             M expected = 0 <= b && b <= a ? row[b] : M(0);
-            need(f.combiNR(a,b) == expected, "Pascal n,k=" + std::to_string(a) + "," + std::to_string(b)); }
+            need(f.combiNR(a,b) == expected, "Pascal n,k=" + std::to_string(a) + "," + std::to_string(b));}
         for (int b = a + 1; b > 0 && b <= n; --b) { row[b] += row[b - 1]; }}
     auto copy = f; auto moved = std::move(copy);
     need(moved.factorial(n) == f.fac[n] && moved.inv_fac == f.inv_fac && moved.der == f.der, "copy/move table");
@@ -21,7 +21,7 @@ void checkTable(int n) {
         vector<int> p(k); iota(p.begin(), p.end(), 0); int count = 0;
         do { bool ok = true; for (int i = 0; i < k; ++i) { ok &= p[i] != i; } count += ok; }
         while (std::next_permutation(p.begin(), p.end()));
-        need(f.derangement(k) == M(count), "enumerated derangements n=" + std::to_string(k)); }}
+        need(f.derangement(k) == M(count), "enumerated derangements n=" + std::to_string(k));}}
 void smoke() {
     checkTable<ModInt<2>>(1); checkTable<ModInt<97>>(96); checkTable<mint>(250);
     checkTable<ModInt64<18446744073709551557ULL>>(80);
@@ -37,7 +37,7 @@ void smoke() {
     alias = 21; need(!factorialExact(alias,alias) && alias == 21, "aliased exact overflow preserves input/output");
     ulng out = 123; need(catalanExact(36,out) && out == 11959798385860453492ULL, "Catalan fits despite overflowing binomial");
     need(!catalanExact(37,out) && out == 11959798385860453492ULL, "Catalan overflow preserves output");
-    cout << "PASS static/dynamic tables, copy/move/reset, Pascal and enumerated derangements\n"; }
+    cout << "PASS static/dynamic tables, copy/move/reset, Pascal and enumerated derangements\n";}
 void invalid(const string &s) {
     using D = DynModInt64<1205>;
     if (s == "negative-n") { PrimeCombinatorics<D> f(-1); return; }
@@ -68,6 +68,9 @@ void invalid(const string &s) {
     else if (s == "ballot-bound") { f.ballot(INT_MAX,1); }
     else if (s == "multinomial-negative") { f.multinomial({1,-1}); }
     else if (s == "multinomial-bound") { f.multinomial({INT_MAX,INT_MAX}); }
+    else if (s == "large-bound") { f.combiLarge(100,21); }
+    else if (s == "table-negative") { binomialTable<D>(-1); }
+    else if (s == "derangement-table-negative") { derangementTable<D>(-1); }
     else { std::exit(2); }}
 void oracle() {
     using M = DynModInt64<1206>; PrimeCombinatorics<M> f;
@@ -78,8 +81,14 @@ void oracle() {
         if (op == "mf") { int k; cin >> k; cout << f.factorial(k) << ' ' << f.inverseFactorial(k) << ' ' << f.derangement(k); }
         else if (op == "mc" || op == "mr" || op == "mp" || op == "mq") {
             int a,b; cin >> a >> b;
-            cout << (op == "mc" ? f.combiNR(a,b) : op == "mr" ? f.combiWR(a,b) : op == "mp" ? f.permuNR(a,b) : f.permuWR(a,b)); }
+            cout << (op == "mc" ? f.combiNR(a,b) : op == "mr" ? f.combiWR(a,b) : op == "mp" ? f.permuNR(a,b) : f.permuWR(a,b));}
         else if (op == "ms" || op == "mb") { int a,b,s; cin >> a >> b >> s; cout << (op == "ms" ? f.starsBars(a,b,s) : f.ballot(a,b,s)); }
+        else if (op == "ml") { ulng a; int b; cin >> a >> b; cout << f.combiLarge(a,b); }
+        else if (op == "rd" || op == "ud") {
+            int n; cin >> n;
+            if (op == "rd") { for (M x : derangementTable<M>(n)) { cout << x << ' '; } }
+            else { for (ulng x : derangementTable<ulng>(n)) { cout << x << ' '; } }}
+        else if (op == "rb") { int n; cin >> n; for (auto &row : binomialTable<M>(n)) { for (M x : row) { cout << x << ' '; } } }
         else if (op == "mt") { int n; cin >> n; cout << f.catalan(n); }
         else if (op == "mm") { int n; cin >> n; vector<int> v(n); for (int &x : v) { cin >> x; } cout << f.multinomial(v); }
         else if (op == "mg") { ulng n; cin >> n; auto [a,b] = fibonacciPair<M>(n); cout << a << ' ' << b << ' ' << fibonacci<M>(n) << ' ' << lucas<M>(n); }
@@ -88,7 +97,7 @@ void oracle() {
         else if (op == "eg") {
             ulng n,a=123,b=123; pair<ulng,ulng> pair{123,456}; cin >> n;
             bool p = fibonacciPairExact(n,pair), x = fibonacciExact(n,a), y = lucasExact(n,b);
-            cout << p << ' ' << pair.first << ' ' << pair.second << ' ' << x << ' ' << a << ' ' << y << ' ' << b; }
+            cout << p << ' ' << pair.first << ' ' << pair.second << ' ' << x << ' ' << a << ' ' << y << ' ' << b;}
         else {
             ulng a=0,b=0,out=123; bool ok = false;
             if (op == "em") { int k; cin >> k; vector<ulng> v(k); for (ulng &x : v) { cin >> x; } ok = multinomialExact(v,out); }
@@ -100,9 +109,9 @@ void oracle() {
                 else if (op == "ep") { ok = permuExact(a,b,out); }
                 else if (op == "eq") { ok = permuRepExact(a,b,out); }
                 else { std::exit(2); }}
-            cout << ok << ' ' << out; }
-        cout << '\n'; }}
+            cout << ok << ' ' << out;}
+        cout << '\n';}}
 int main(int argc, char **argv) {
     if (argc > 2 && string(argv[1]) == "--invalid") { invalid(argv[2]); return 0; }
     if (argc > 1 && string(argv[1]) == "--oracle") { oracle(); return 0; }
-    smoke(); }
+    smoke();}

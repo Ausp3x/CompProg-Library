@@ -1,6 +1,8 @@
 # P011 / GR26 — functional graphs
 
-## Contracts and scope
+## Contracts
+
+### FunctionalGraph
 
 `11-functionalgraph.hpp` owns static partial successor functions. The canonical input is `vector<int>` with size at most `INT_MAX`; each entry is a vertex in `[0,n)` or `-1`. The `Graph`/`CsrGraph` adapter requires directed input with at most one outgoing arc per vertex. Two parallel arcs are invalid even when their targets agree. Edge weights are ignored; use a separate vertex-indexed label vector for aggregates. The construction owns its data, so later input edits do not invalidate queries. Public preprocessing arrays are read-only. Reassignment rebuilds the snapshot.
 
@@ -10,11 +12,21 @@ Missing successors terminate the walk. They do not create a shared absorbing ver
 
 `jump(u,k)` accepts the entire unsigned 64-bit count range. `distance(u,v)` returns the shortest directed walk length, or `-1`; `reachable` is its Boolean form. Self-distance is zero. `firstMeeting(u,v)` returns the first integer time at which walkers moving one edge per tick occupy the same real vertex, or `-1`. This synchronous contract differs from arbitrary intersection of the two reachable sets.
 
+`jumpAll(k)` returns `jump(u, k)` for every vertex in O(n) time and memory for any full `ulng` k (re-audit addition): it visits vertices in reverse-forest preorder (`tin` order), keeps the current root path indexed by depth, answers `path[depth[u] - k]` when `k <= depth[u]`, and otherwise uses the O(1) cycle branch of `jump`. In preorder the last vertex seen at each smaller depth is the current vertex's ancestor there, which is the k-th successor.
+
+### cycleAggregates and cycleAggregate
+
 `cycleAggregates(values,identity,op)` folds each canonical stored cycle in successor order. `cycleAggregate(u,values,identity,op)` rotates the fold to `entry[u]` and excludes all tail labels. Its result is `{false,identity}` for terminating components. Label count must equal n. These direct variants require no aggregate preprocessing and work with ordered, noncommutative monoids.
+
+### FunctionalFoldResult and FunctionalGraphFold
 
 `FunctionalGraphFold<T,Op>` owns a graph and label snapshot and preprocesses ordered aggregate blocks. `op` must be a const-callable associative binary operation with the supplied two-sided identity. The caller must ensure that its arithmetic and storage support all intermediate aggregates. `fold(u,k)` folds up to k **visited vertices**, starting with u, and returns `{next,count,value}`. The terminal is included once, then `next=-1`; `count<k` explicitly reports early termination. A zero count returns u and the identity. Cyclic walks always consume the full requested count, including `UINT64_MAX`. Labels can also represent outgoing edges, with the terminal label chosen as identity if there is no edge to count. `cycleAggregate(u)` provides the rotated full-cycle result using the precomputed blocks. The helper `segment(u,k)` requires `0<=k<=n` and at least k real visited vertices; its result uses the same convention.
 
-`functionalOrbit(next,start)` is an independent Floyd alternative for one starting vertex. It uses constant auxiliary memory and returns `{entry,tail,cycle_length}`, with zero cycle length for termination. Only reached endpoint preconditions are checked; the full vector's valid successor domain remains the caller's contract. It deliberately avoids preprocessing the whole graph when only one orbit is needed.
+`maxStep(u, pred, limit = ULLONG_MAX)` returns the largest `k <= limit` such that `pred(fold(u, k).value)` holds (re-audit addition), never more than the number of vertices actually available on a terminating walk. `pred` must hold for `identity` (asserted) and be monotone: once false for some `k` it stays false for every larger `k`. The smallest `k` at which a monotone predicate becomes true (`step_until` in other libraries) is `maxStep` of its negation plus one, when that is at most `limit`. The search descends the doubling table greedily through the tail (each level is taken only if the step count is available, within the bound and the predicate still holds), then counts whole laps by exponential search on powers of the rotated lap aggregate, squaring only while the predicate still accepts the next power, and finally descends the table through the last partial lap. Because squaring stops at the first rejected power, no fold longer than about twice the answer is ever formed, so a summing monoid whose answer fits does not overflow in the search. Cost: O(log(n + 1) + log(k + 1)) operations and predicate calls for answer k; O(log(k + 1)) temporary label values.
+
+### FunctionalOrbit and functionalOrbit
+
+`functionalOrbit(next,start)` is an independent Floyd alternative for one starting vertex. It uses constant auxiliary memory and returns `{entry,tail,cycle_length}`, with zero cycle length for termination. Only `next.size()` and `start` are asserted, once at entry; the successor domain (`next[u]` is `-1` or a vertex) is the caller's contract and is not checked per step (re-audit: the former per-step assertion sat in the hot loop and was removed, since checking the whole vector would cost O(n)). It deliberately avoids preprocessing the whole graph when only one orbit is needed.
 
 ## Algorithms, bounds and correctness
 
@@ -57,9 +69,11 @@ Static all-vertex queries, ordered cycle/walk aggregates and one-orbit constant-
 | Walk folds and bounded segments | Literal walks for every count through 2n+3, including terminal consumption once, zero counts, lengths beyond termination and all available segment lengths. |
 | Full-width ordered folds | A separate fixed-64-level reference stores actual truncated block lengths, without cycle decomposition or repeated-cycle powers. Exact 128-bit signed sums cover every exhaustive map; noncommutative matrix products cover 700 random maps/permutations. |
 | Boundaries and ownership | Default/explicit empty constructors, singleton terminal/self-loop, disconnected components, copies/moves, input mutation, snapshot/reassignment, labels/graph lifetime; 200,000-vertex terminal chains, cycles and long tails. |
-| Preconditions | 28 checked subprocess probes cover invalid successors/vertices, empty queries, directed/outdegree/parallel-arc adapter requirements, label count, Floyd reached endpoints, and segment length/availability. |
+| `jumpAll` (re-audit) | Every vertex against the explicit orbit position for every count in the jump list plus every count through 2n+3, on every enumerated and random map; full-range counts on the 200,000-vertex terminal chain and cycle. |
+| `maxStep` (re-audit) | On every enumerated map through n=4 and every random map: step-by-step walk oracle for every vertex, limits {0, 1, 2, n, 2n+3, `UINT64_MAX`}, nonnegative-sum thresholds {0, 1, 2, 5, n, 3n} and ordered string-prefix predicates (targets are walk folds of length 0, 1, n, 2n+3), so order errors are visible; the oracle stops after a step cap past which a still-true predicate means every further lap adds nothing, and then answers the limit. Large chain and full-range cycle fixtures. A mutation that dropped the terminal-availability test was caught. |
+| Preconditions | 29 checked subprocess probes cover invalid successors/vertices, empty queries, directed/outdegree/parallel-arc adapter requirements, label count, Floyd start/size, segment length/availability, and `maxStep` vertex and identity-predicate requirements. The former `orbit-bad-next` probe was removed with the per-step assertion (re-audit finding 8). |
 
-Fresh full verification on 2026-09-27 used GNU++20, GCC 16.2.1, and seed 20260927:
+The 2026-10-07 re-audit commands and results are in [95-p011.md](95-p011.md). Fresh full verification on 2026-09-27 used GNU++20, GCC 16.2.1, and seed 20260927:
 
 ```text
 python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode full --seed 20260927

@@ -17,10 +17,10 @@ void equation(lng a, lng b, lng c) {
     lll g = std::gcd(magnitude(a), magnitude(b));
     bool exists = g == 0 ? c == 0 : c % g == 0;
     need((s.dimension >= 0) == exists, "existence expected=" + std::to_string(exists) + " actual dimension=" + std::to_string(s.dimension));
+    need(s.g == g, "gcd expected=" + decimal(g) + " actual=" + decimal(s.g));
     if (!exists) {
         lng x = 11, y = 22, h = 33;
         need(!solveDioEq(a, b, c, x, y, h) && x == 11 && y == 22 && h == 33, "legacy no-solution preserves outputs"); return;}
-    need(s.g == g, "gcd expected=" + decimal(g) + " actual=" + decimal(s.g));
     if (g == 0) { need(s.dimension == 2, "whole plane"); }
     else {
         need(s.dimension == 1, "line dimension");
@@ -31,7 +31,7 @@ void equation(lng a, lng b, lng c) {
     constexpr lng LO = std::numeric_limits<lng>::min(), HI = std::numeric_limits<lng>::max();
     if (LO <= s.x && s.x <= HI && LO <= s.y && s.y <= HI && s.g <= HI) {
         lng x = 0, y = 0, h = 0;
-        need(solveDioEq(a, b, c, x, y, h) && x == s.x && y == s.y && h == s.g, "legacy agrees on its domain"); }}
+        need(solveDioEq(a, b, c, x, y, h) && x == s.x && y == s.y && h == s.g, "legacy agrees on its domain");}}
 void boxBrute(lng a, lng b, lng c, lng xl, lng xr, lng yl, lng yr) {
     context = std::to_string(a) + " " + std::to_string(b) + " " + std::to_string(c) + " box="
         + std::to_string(xl) + "," + std::to_string(xr) + "," + std::to_string(yl) + "," + std::to_string(yr);
@@ -46,13 +46,13 @@ void boxBrute(lng a, lng b, lng c, lng xl, lng xr, lng yl, lng yr) {
         lll step = s.dx != 0 ? s.dx : s.dy;
         need(step != 0 && delta % step == 0, "every point lies on primitive line");
         lll t = delta / step;
-        need(z.l <= t && t < z.r && s.x + t * s.dx == x && s.y + t * s.dy == y, "every point parameterized"); }}
+        need(z.l <= t && t < z.r && s.x + t * s.dx == x && s.y + t * s.dy == y, "every point parameterized");}}
     need(z.count == count, "box count expected=" + decimal(count) + " actual=" + decimal(z.count));
     if (s.dimension == 1 && z.count > 0) {
         need(z.r - z.l == lll(count), "parameter cardinality");
         for (lll t = z.l; t < z.r; ++t) {
             lll x = s.x + t * s.dx, y = s.y + t * s.dy;
-            need(xl <= x && x < xr && yl <= y && y < yr && lll(a) * x + lll(b) * y == c, "no extra parameter points"); }}}
+            need(xl <= x && x < xr && yl <= y && y < yr && lll(a) * x + lll(b) * y == c, "no extra parameter points");}}}
 void modBrute(lng a, lng b, lng m) {
     context = std::to_string(a) + " " + std::to_string(b) + " modulus=" + std::to_string(m);
     auto [x, period] = solveModEq(a, b, m);
@@ -76,8 +76,8 @@ int main(int argc, char **argv) {
                 auto [x, period] = solveModEq(a, c, m);
                 cout << s.dimension << ' ' << decimal(s.x) << ' ' << decimal(s.y) << ' ' << decimal(s.dx) << ' '
                     << decimal(s.dy) << ' ' << decimal(s.g) << ' ' << decimal(z.l) << ' ' << decimal(z.r) << ' '
-                    << decimal(z.count) << ' ' << x << ' ' << period << '\n'; }
-            return 0; }}
+                    << decimal(z.count) << ' ' << x << ' ' << period << '\n';}
+            return 0;}}
     constexpr lng LO = std::numeric_limits<lng>::min(), HI = std::numeric_limits<lng>::max();
     if (!invalid.empty()) {
         if (invalid == "mod-zero") { solveModEq(1, 2, 0); }
@@ -93,12 +93,12 @@ int main(int argc, char **argv) {
         return 0;}
     int n = mode == "quick" ? 3 : 6;
     for (int a = -n; a <= n; ++a) { for (int b = -n; b <= n; ++b) { for (int c = -2*n; c <= 2*n; ++c) {
-        equation(a, b, c); boxBrute(a, b, c, -8, 9, -8, 9); }}}
+        equation(a, b, c); boxBrute(a, b, c, -8, 9, -8, 9);}}}
     cout << "PASS signed exhaustive parameterization checks=" << checks << '\n';
     n = mode == "quick" ? 2 : 4;
     for (int a = -n; a <= n; ++a) { for (int b = -n; b <= n; ++b) { for (int c = -n; c <= n; ++c) {
         for (int xl = -2; xl <= 3; ++xl) { for (int xr = xl; xr <= 3; ++xr) {
-            for (int yl = -2; yl <= 3; ++yl) { for (int yr = yl; yr <= 3; ++yr) { boxBrute(a,b,c,xl,xr,yl,yr); }}}} }}}
+            for (int yl = -2; yl <= 3; ++yl) { for (int yr = yl; yr <= 3; ++yr) { boxBrute(a,b,c,xl,xr,yl,yr); }}}}}}}
     cout << "PASS exhaustive half-open boxes checks=" << checks << '\n';
     n = mode == "quick" ? 12 : 40;
     for (int a = -n; a <= n; ++a) { for (int b = -n; b <= n; ++b) { for (int m = 1; m <= n; ++m) { modBrute(a,b,m); }}}

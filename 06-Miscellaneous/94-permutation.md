@@ -1,19 +1,19 @@
-# Permutations — MI02 / P013
+# Permutations — MI02 contracts and verification
 
-`07-permutation.hpp` provides lexicographic next/previous steps, bijection
-algebra, exact Lehmer digits, bounded scalar ranks, and exact multiset
-count/rank/unrank. It directly reuses `02-Data Structures/02-fenwick.hpp` for
-order statistics; DS01 / P006 is therefore an actual dependency of MI02 in
-addition to the Core template prerequisite.
+`07-permutation.hpp` provides lexicographic next/previous and k-th next steps, bijection algebra (inverse, composition, powers, cycles, sign, order), exact Lehmer digits, bounded scalar ranks, and exact multiset count/rank/unrank. It reuses `02-Data Structures/02-fenwick.hpp` for order statistics (P006 dependency). First verified 2026-09-28; re-audited 2026-10-07, when `kthNextPermutation`, `permutationCycles`, `permutationSign`, `permutationOrder` and `permutationOrderMod` were added. They had been inventory gaps (`/reaudit-review` finding 3), while the earlier record wrongly called the header complete. Header contracts moved here, and the `permutation_detail::Multiset` complexity line was added (finding 8).
 
-## Domains and APIs
+## Contracts
+
+### Domains
 
 A mapping permutation is a `vector<int>` containing each integer in `[0,n)`
 exactly once, with `n <= INT_MAX`. `p[i]` is the image of `i`. This convention
 does not implicitly describe moving array values to/from indices; an application
 must choose that interpretation explicitly. The empty permutation is valid.
 `isPermutation` is a total validity predicate; the algebra and distinct-ranking
-operations assert the documented bijection/domain preconditions.
+operations assert the documented bijection/domain preconditions. Stated auxiliary-space bounds exclude that check's
+`n`-bit `vector<bool>`, which exists only while assertions are enabled (so
+`kthNextPermutation` uses O(min(n,21)) words under `NDEBUG` and O(n) bits otherwise).
 
 | API | Result and contract | Time / auxiliary space |
 |---|---|---|
@@ -22,6 +22,11 @@ operations assert the documented bijection/domain preconditions.
 | `permutationInverse(p)` | `q[p[i]] == i`. | O(n) / O(n), including checked validation; returned storage O(n) |
 | `permutationCompose(p,q)` | `r[i] = p[q[i]]`, so apply `q` first. Requires equal sizes. | O(n) / O(n), including checked validation; returned storage O(n) |
 | `permutationPower(p,k)` | `p` composed with itself `k` times; negative powers use its inverse, zero gives identity. Every signed 64-bit exponent is supported, including `LNG_MIN`. | O(n) / O(n), plus O(n) returned storage |
+| `kthNextPermutation(p,k)` | `p` a permutation of `[0,n)` (asserted), any `lng` offset including both extremes. Replaces `p` by the permutation of lexicographic rank `(rank(p) + k) mod n!`; returns true iff `0 <= rank(p) + k < n!` (no wrap). For `k = ±1` this matches `std::next_permutation`/`prev_permutation`, including the wrap. `n = 0`: true iff `k = 0`. | O(n + min(n,21)^2) / O(min(n,21)) |
+| `permutationCycles(p)` | Disjoint cycles ordered by smallest element, each starting at its smallest element and following `p` (`c[j+1] = p[c[j]]`); fixed points are singleton cycles; empty permutation gives no cycles. | O(n) / O(n), plus O(n) returned |
+| `permutationSign(p)` | `+1` or `-1`, `(-1)^(n - cycles)`, equal to `(-1)^(inversions)`. | O(n) / O(n) |
+| `permutationOrder(p,out)` | Smallest `t >= 1` with `p^t = id`, the lcm of the cycle lengths. False iff it exceeds `ulng`, leaving `out` unchanged. Empty gives 1. For example, cycles of the first 16 primes (n = 381) overflow. | O(n) / O(n) |
+| `permutationOrderMod<T>(p)` | The same lcm evaluated in `T` as a product of maximal prime powers `T(q^e)`. Exact for any `T` that represents it (`lll` for small `n`, a big integer), the residue for `mint`/`ModInt`. `T` needs `T(int)` and `*=`; wrapping types such as `ulng` give the order mod 2^64. | O(n) / O(n) |
 | `permutationLehmer(p)` | `d[i]` equals the number of smaller values to the right of `p[i]`. Exact for arbitrary supported `n`. | O(n log(n+1)) / O(n), plus O(n) returned storage |
 | `permutationFromLehmer(d)` | Decode digits satisfying `0 <= d[i] < n-i`; invalid digits violate a precondition. | O(n log(n+1)) / O(n), plus O(n) returned storage |
 | `permutationRank(p)` | Zero-based lexicographic `ulng` rank, requiring `n <= 20`. Empty rank is zero. | O(n log(n+1)) / O(n) |
@@ -54,6 +59,10 @@ scalar multiset ranks are not provided. Partial permutations, constrained
 generation and circular equivalence enumeration are separate enumeration
 problems rather than implicit variants of these full-permutation APIs.
 
+### permutation_detail
+
+`cycleLengths(p)` returns the distinct cycle lengths in increasing order (O(n) time and space; asserts a permutation). `Multiset` groups a value list into sorted distinct `keys` and their `count`s with an ordered map, then stores the exact multinomial `total`, which is 0 when it exceeds `ulng`. It takes O(n log(m+1)) time and O(m) space for `m` distinct labels. Neither is public API.
+
 ## Correctness and optimality
 
 Inverse and composition follow their pointwise definitions. Every bijection
@@ -62,6 +71,10 @@ to `k` advances by the normalized remainder `k % m`; taking a signed remainder
 avoids negating the minimum signed exponent. Each vertex is visited a constant
 number of times. All mapping operations are linear, matching the returned
 output size lower bound.
+
+`kthNextPermutation` works on the factorial number system. The Lehmer digits of the last `m = min(n,21)` positions depend only on the relative order of those suffix elements, and they are the low `m` mixed-radix digits (radices 1..m) of the rank. Adding or subtracting `|k|` digit by digit with carries in `{-1,0,1}` yields the new low digits, a carry `c` and a leftover quotient `a`. Since `21! > 2^63 > |k|`, `a = 0` and `|c| <= 1` whenever `n > 21`. If `c = 0` and `a = 0`, the prefix is unchanged. If `c = +1`, the prefix rank must increase by one: sorting the suffix descending gives the maximal suffix, and one `std::next_permutation` on the whole array then increments the prefix rank and leaves an ascending suffix. It returns false exactly when the prefix was the last arrangement, so the result wraps modulo `n!`. `c = -1` is symmetric with ascending sort and `prev_permutation`. When `n <= 21`, any nonzero `c` or `a` is a wrap, and the same whole-array step resets to the first or last order. Finally the suffix is rebuilt from the new digits by selecting the `d[i]`-th smallest remaining suffix value. All three cases leave rank `(rank + k) mod n!`. Cost: O(n) validation and stepping, O(m^2) digit work.
+
+Cycles visit each vertex once with a `seen` array. Each cycle of length `L` contributes `L - 1` transpositions, so the sign is `(-1)^(n - cycles)`. The order of a product of disjoint cycles is the lcm of their lengths. The checked version multiplies `res / gcd(res, L) * L` in `ulll` and stops once the value exceeds `ulng`; lcm is monotone, so the first overflow is final. The modular version factors each distinct length by trial division. The distinct lengths sum to at most `n`, so there are at most `sqrt(2n)` of them and the total trial work is O(n^(3/4)). It keeps the maximal prime power per prime and multiplies those in `T`, which equals the lcm reduced in `T`.
 
 A Lehmer digit counts available elements less than the selected value. Initially
 the Fenwick tree contains one per label. Prefix counts produce the digit and
@@ -104,7 +117,7 @@ engine, without empirically tuned thresholds or a claimed constant-factor
 speedup. Large tests exercise the linear and logarithmic paths; their runtime
 is not presented as a portable benchmark.
 
-## Sources inspected
+## Sources
 
 Inspected 2026-09-28 (Asia/Manila). Algorithms were independently implemented;
 next/previous directly call the standard library and Fenwick is a shared local
@@ -124,6 +137,7 @@ dependency. No external implementation was copied.
   version 1.2.8 released 2026-09-15: multinomial factorial formula and its product
   of binomial coefficients, including empty and one-group conventions. The
   cited Comtet/Abramowitz–Stegun texts were not separately reviewed.
+- Completeness sweep 2026-10-07 (`@researcher`): [maspypy kth_next_permutation](https://raw.githubusercontent.com/maspypy/library/main/seq/kth_next_permutation.hpp) and [factorial_digit_system](https://raw.githubusercontent.com/maspypy/library/main/seq/factorial_digit_system.hpp) (suffix factorial digits with carries; maspypy covers distinct values only and gives a short count on overflow, while this header wraps modulo `n!` like `std::next_permutation`), [suisen permutation](https://suisen-cp.github.io/cp-library-cpp/library/util/permutation.hpp), [maspypy cycle_decomposition](https://raw.githubusercontent.com/maspypy/library/main/seq/cycle_decomposition.hpp) (dynamic; Data Structures scope), [KACTL IntPerm.h](https://github.com/kth-competitive-programming/kactl/blob/main/content/combinatorial/IntPerm.h). The checked plus modular order contract follows the researcher's recommendation; no fetched source states one.
 - [Permutation](https://en.wikipedia.org/wiki/Permutation#Permutations_of_multisets),
   “Permutations of multisets” and cycle/order sections: repeated-value semantics,
   multinomial count and cycle decomposition. Partial/circular variants were
@@ -146,28 +160,24 @@ directory and uses non-removable checks in every configuration.
 | Lehmer and scalar ranks | Brute inversion counts, every permutation through n=8 in full, independent recursive enumeration ranks, Python exact factorial arithmetic through n=20, rank n! and maximum `ulng` rejection, empty rank0. |
 | Multiset count/rank/unrank | Independent recursive enumeration for all three-symbol counts 0..3 in full; Python factorial-based counts and candidate-block enumeration; negative/extreme integer labels, zero counts, alias-safe output, preserved output on failure. |
 | Width and long-duplicate boundaries | Exact `C(67,33)` and overflowing `C(68,34)`, overflowing `21!`, repeated-value n>20 fitting totals, `INT_MAX` multiplicity count fixtures, 100,000-element full inputs with all-equal and one-rare values. |
-| Preconditions | 15 checked-build assertion probes: malformed inverse/compose/power/Lehmer/rank inputs, invalid digit bounds, scalar rank size, negative/oversized unrank size, negative and excessive multiplicity sums. |
+| `kthNextPermutation` | For every permutation through n=8 (full), offsets 0, ±1, `-rank`, `-rank-1`, `n!-rank-1`, `n!-rank`, `-2n!-1`, `3n!+2`, `LNG_MIN`, `LNG_MAX` against the recursively enumerated list at `(rank+k) mod n!` with the wrap flag from `lll` arithmetic; random n<70 with offsets in [-1000,1000] against repeated `std::next/prev_permutation` (result and any-wrap flag), random full-width offsets inverted by `-k`; n=25 wrap through the prefix in both directions with extreme offsets; Python exact factorial-base oracle on n in {0,1,2,5,20,21,22,40,<60} with random and extreme offsets (300 full / 3,000 stress cases) |
+| `permutationCycles`, `permutationSign` | Property oracle on every enumerated and random permutation: cycles partition `[0,n)`, follow `p`, start at their minimum, ordered by start; sign equals brute inversion parity; empty permutation; Python cycle walk for sign and cycle count |
+| `permutationOrder`, `permutationOrderMod` | Smallest `t` with `p^t = id` by repeated composition for every permutation through n=8; `permutationPower(p, order) = id` and `OrderMod<ulng>` agreement on random n<70; product of the first 15 primes fits exactly, first 16 primes overflow with `out` preserved, and `OrderMod<mint>` matches that product times 53; `OrderMod<lll>`/`<mint>` agreement on enumerated permutations; Python `math.lcm` (exact and mod 998244353) on random conjugated cycle structures with up to 19 distinct lengths (n up to several hundred), on both sides of 2^64 |
+| Preconditions | 20 checked-build assertion probes: non-permutation inputs to kthNext, cycles, sign, order and orderMod, plus malformed inverse/compose/power/Lehmer/rank inputs, invalid digit bounds, scalar rank size, negative/oversized unrank size, negative and excessive multiplicity sums. |
 
-Quick exhausts distinct permutations through n=6, three-symbol multiplicities
-0..2, 100 random algebra cases and size-1000 long inputs. Full raises these to
-n=8, counts0..3, 3000 cases and size100000, with 602 Python exact-arithmetic
-queries. Stress uses n=9, counts0..4, 30000 algebra cases, size500000 and 3102
-Python queries. The exhaustive and random seeds are printed, and failures
-include configuration, operation/input, expected/actual values and command.
+Quick exhausts distinct permutations through n=6, three-symbol multiplicities 0..2, 100 random algebra cases and size-1000 long inputs. Full raises these to n=8, counts 0..3, 3000 cases and size 100,000, with 1,202 Python exact-arithmetic queries. Stress uses n=9, counts 0..4, 30,000 cases, size 500,000 and 9,102 Python queries. Failures include seed, operation, input, expected and actual values.
 
-On GCC 16.2.1 / GNU++20, full seed `20260927` passes optimized `-O2 -DNDEBUG`,
-checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan. Sanitizers run outside the
-sandbox because its ptrace environment prevents LeakSanitizer from running.
-Quick optimized/checked and stress optimized seed `20260928` also passed before
-the final ordered-frequency grouping change; full verification was rerun after
-that change, including 100,000-element duplicate/rare regressions. Package
-integration records the standalone-header, aggregates and multiple-translation
-unit checks separately.
+## Commands and results
+
+GCC 16.2.1, GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H, 2026-10-07:
 
 ```sh
-python3 '96-Local Testing/06-Miscellaneous/07-permutation_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/06-Miscellaneous/07-permutation_tester.py' --mode stress --seed 20260928 --configuration optimized
+python3 '96-Local Testing/06-Miscellaneous/07-permutation_tester.py' --mode full --seed 20260927                              # PASS, 3 configurations, 20 probes
+python3 '96-Local Testing/06-Miscellaneous/07-permutation_tester.py' --mode stress --seed 20260928 --configuration optimized   # PASS
 ```
 
-All owned MI02 permutation features are complete within these explicit domains.
-No online judge submissions were made.
+Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan with leak detection. No benchmark is required; no threshold or speedup is claimed. No online submission was made.
+
+## Omitted candidates
+
+`permute`/`inversePermute` on value arrays (one loop; `permutationCompose` covers integer labels), `argsort`/index sort (`11-sorting_selection.hpp` and `04-compression.hpp` `stableRanks`), `permutationFromCycles` and `cycleType` (direct one-pass transforms of `permutationCycles`), linear non-lexicographic ranking (KACTL `IntPerm`, suisen `PermutationHash`; the lexicographic rank covers the need), dynamic cycle decomposition under swaps (Data Structures), k-th roots of permutations and permutation groups (Mathematics `64`), inversion count (`08-sequence_algorithms.hpp`).

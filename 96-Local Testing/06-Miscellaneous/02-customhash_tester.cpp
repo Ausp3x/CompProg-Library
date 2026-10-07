@@ -3,7 +3,7 @@
 ulng test_seed = 0;
 void check(bool ok, const string &what) {
     if (!ok) { cerr << "FAIL seed=" << test_seed << " operation=" << what
-                    << " expected=true actual=false\n"; std::exit(1); }}
+                    << " expected=true actual=false\n"; std::exit(1);}}
 enum class Kind : ulng { ZERO, LARGE = UINT64_MAX };
 struct Convertible { ulng x; operator ulng() const { return x; } };
 void functionPointer() {}
@@ -15,8 +15,8 @@ void oracle() {
         if (op == "s") {
             string hex; cin >> hex; string s;
             if (hex != "-") { for (int i = 0; i < int(hex.size()); i += 2) {
-                s += char(std::stoi(hex.substr(i, 2), nullptr, 16)); }}
-            cout << h(s); }
+                s += char(std::stoi(hex.substr(i, 2), nullptr, 16));}}
+            cout << h(s);}
         else if (op == "v" || op == "t") {
             int n; cin >> n; vector<ulng> a(n); for (auto &v : a) { cin >> v; }
             if (op == "v") { cout << h(a); }
@@ -30,7 +30,7 @@ void oracle() {
             else if (op == "w") { cout << h((ulll(x) << 64) | y); }
             else if (op == "z") { cout << h(lll((ulll(x) << 64) | y)); }
             else { cout << h(pair{x, y}); }}
-        cout << '\n'; }}
+        cout << '\n';}}
 
 int main(int argc, char **argv) {
     string mode = "full";
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
     check(h(123) == copy(123), "copy seed"); auto moved = std::move(copy);
     check(moved(123) == h(123), "move seed");
     for (lng x : {INT64_MIN, lng(-1), lng(0), lng(1), INT64_MAX}) {
-        check(h(x) == h(ulng(x)), "signed conversion x=" + std::to_string(x)); }
+        check(h(x) == h(ulng(x)), "signed conversion x=" + std::to_string(x));}
     check(h(Kind::LARGE) == h(UINT64_MAX), "scoped enum adapter");
     check(h(Convertible{42}) == h(42) && h(true) == h(1), "legacy conversion adapter");
     check(h(0.0) == h(-0.0) && h(42.75) == h(42), "legacy defined floating conversion");
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
     check(h("a\0b") == h("a") && h(string_view("a\0b", 3)) != h("a"), "embedded NUL contract");
     for (int n = 0; n < 80; ++n) {
         string s(n, '\xff'); string padded = "x" + s;
-        check(h(s) == h(string_view(padded).substr(1)), "unaligned string length=" + std::to_string(n)); }
+        check(h(s) == h(string_view(padded).substr(1)), "unaligned string length=" + std::to_string(n));}
     cout << "PASS pointer/null/function addresses, C strings, binary/unaligned strings\n";
     vector<int> v{1, 2, 3}; std::list<int> linked(v.begin(), v.end()); array<int, 3> arr{1, 2, 3};
     std::forward_list<int> forward{1, 2, 3}; std::span<const int> view(arr);
@@ -86,11 +86,25 @@ int main(int argc, char **argv) {
     safe_unordered_set<ulng> hashes(0, h);
     for (int i = 0; i < count; ++i) {
         pair<lng, lng> k{lng(gen() % 501) - 250, lng(gen() % 501) - 250};
-        ++actual[k]; ++expected[k]; hashes.insert(h(ulng(i))); }
+        ++actual[k]; ++expected[k]; hashes.insert(h(ulng(i)));}
     check(actual.size() == expected.size(), "map unique keys");
     for (const auto &[k, value] : expected) { check(actual.at(k) == value, "map equals ordered reference"); }
     check(int(hashes.size()) == count, "64-bit scalar permutation has no collisions");
     safe_unordered_set<string> strings(0, h); strings.insert(""); strings.insert(string("\0\xff", 2));
     check(strings.size() == 2 && strings.contains(string("\0\xff", 2)), "unordered set alias");
-    cout << "PASS map/set/reference and distinct scalar hashes cases=" << count << '\n';
-}
+#ifdef _GLIBCXX_DEBUG
+    const int gpCount = 40;  // PB_DS_DEBUG revalidates every key after every operation: about n^4 total.
+#else
+    const int gpCount = count;
+#endif
+    safe_gp_hash_table<lng, int> gp(h); map<lng, int> gpExpected;
+    for (int i = 0; i < gpCount; ++i) {
+        lng k = lng(gen() % 2001) + (i % 7 == 0 ? INT64_MIN : -1000);
+        if (gen() % 3) { ++gp[k]; ++gpExpected[k]; }
+        else { check((gp.erase(k) != 0) == (gpExpected.erase(k) != 0), "gp_hash_table erase result"); }}
+    check(gp.size() == gpExpected.size() && gp.get_hash_fn().seed == test_seed, "gp_hash_table size and seed");
+    for (const auto &[k, value] : gpExpected) {
+        auto it = gp.find(k); check(it != gp.end() && it->second == value, "gp_hash_table equals ordered reference");}
+    safe_gp_hash_table<pair<int, int>, int> gpPairs; gpPairs[{1, 2}] = 3;
+    check(gpPairs.find({2, 1}) == gpPairs.end() && gpPairs[{1, 2}] == 3, "gp_hash_table default process seed and pair keys");
+    cout << "PASS map/set/gp_hash_table/reference and distinct scalar hashes cases=" << count << '\n';}

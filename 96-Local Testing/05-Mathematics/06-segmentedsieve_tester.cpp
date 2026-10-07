@@ -46,7 +46,7 @@ void checkInterval(lng l, lng r, const SegmentedSieveBase &base, int block, Segm
     SegmentedSieve s(l, r, base, block, mode); vector<lng> want, streamed;
     for (lng x = l; x < r; ++x) {
         bool p = prime(x); if (p) { want.push_back(x); }
-        expect(s.is_prime[size_t(x - l)], p, "prime flag x=" + show(x)); }
+        expect(s.is_prime[size_t(x - l)], p, "prime flag x=" + show(x));}
     require(s.prms == want, "stored primes against Miller-Rabin");
     base.forEachPrime(l, r, [&](lng x) { streamed.push_back(x); }, block, mode);
     require(streamed == want, "streamed sorted primes");
@@ -64,7 +64,7 @@ void checkInterval(lng l, lng r, const SegmentedSieveBase &base, int block, Segm
     s.getMu(); s.getPhi(); s.getNumDiv(); s.getSumDiv();
     require(s.num_div == tau && s.sum_div == sigma && s.phi == phi && s.mu == mu, "individual and combined table values");
     vector<vector<pair<lng, int>>> factors(s.is_prime.size());
-    s.forEachFactor([&](size_t i, lng p, int e) { factors[i].push_back({p, e}); });
+    s.forEachFactor([&](lng i, lng p, int e) { factors[i].push_back({p, e}); });
     for (lng x = l; x < r; ++x) { require(factors[size_t(x - l)] == trial(max(lng(1), x)), "streamed factors x=" + show(x)); }
     if (l >= 1 || l == r) { require(s.getPrimeFac() == factors, "whole positive interval factorization"); }}
 
@@ -79,7 +79,7 @@ void exhaustive(const string &mode) {
         SegmentedSieveBase b(n, 7); vector<lng> wanted;
         for (lng p = 2; p * p <= n; ++p) { if (prime(p)) { wanted.push_back(p); }}
         require(b.bprms == wanted, "base prime completeness n=" + show(n));
-        expect(b.limit, segmented_sieve_detail::root(n), "base limit metadata"); }
+        expect(b.limit, segmented_sieve_detail::root(n), "base limit metadata");}
     std::cout << "PASS exhaustive intervals " << lower << ".." << upper << ", all modes/block alignments and bases\n";}
 
 void stateAndBoundaries() {
@@ -95,18 +95,20 @@ void stateAndBoundaries() {
     closed.getTables(); expect(closed.num_div[8], 1, "one tau"); expect(closed.sum_div[8], 1, "one sigma");
     expect(closed.phi[8], 1, "one phi"); expect(closed.mu[8], 1, "one mu");
     for (int i = 0; i < 8; ++i) { require(!closed.num_div[i] && !closed.sum_div[i] && !closed.phi[i] && !closed.mu[i], "nonpositive table sentinel"); }
-    base.reset(10); require(closed.bprms == bases, "materialized object owns base snapshot");
+    vector<lng> needed;
+    for (lng p : bases) { if (p * p <= closed.r - 1) { needed.push_back(p); }}
+    base.reset(10); require(closed.bprms == needed, "materialized object owns the needed base prefix");
     require(base.bprms == vector<lng>{2,3}, "base reset truncates stale primes"); base.reset(0); require(base.bprms.empty(), "zero base domain");
     for (auto mode : MODES) {
         checkInterval(LO, LO + 8, base, 1, mode, true);
         checkInterval(HI, HI, base, 1, mode, true);
-        lng count = 0; base.forEachPrime(LO, 2, [&](lng) { ++count; }, 1, mode); expect(count, 0, "huge negative streaming range constant work"); }
+        lng count = 0; base.forEachPrime(LO, 2, [&](lng) { ++count; }, 1, mode); expect(count, 0, "huge negative streaming range constant work");}
     for (lng n : {lng(0),lng(1),lng(2),lng(3),lng(4),lng(8),lng(9),lng(10),HI - 1,HI}) {
         lng q = segmented_sieve_detail::root(n);
-        require(lll(q) * q <= n && lll(q + 1) * (q + 1) > n, "full-domain root correction"); }
+        require(lll(q) * q <= n && lll(q + 1) * (q + 1) > n, "full-domain root correction");}
     for (lng l : {lng(2),HI - 10,HI - 1,HI}) { for (lng p : {lng(2),lng(3),lng(3037000499)}) {
         lll m = segmented_sieve_detail::firstMultiple(l, p);
-        require(m >= l && m % p == 0 && m - p < l, "wide first-multiple arithmetic"); }}
+        require(m >= l && m % p == 0 && m - p < l, "wide first-multiple arithmetic");}}
     std::cout << "PASS reset/copy/lifetime, explicit closed migration, signed extremes and wide arithmetic\n";}
 
 void randomCases(int count) {
@@ -120,13 +122,13 @@ void highAndCounts(bool quick) {
     SegmentedSieveBase high(1000000001000LL); vector<pair<lng, lng>> intervals{{999999999980LL,1000000000010LL},
         {999966000250LL,999966000290LL}, {999999900LL,1000000020LL}};
     for (auto [l, r] : intervals) { for (auto mode : MODES) {
-        checkInterval(l, r, high, 7, mode, false); checkInterval(l, r, high, 31, mode, false); }}
+        checkInterval(l, r, high, 7, mode, false); checkInterval(l, r, high, 31, mode, false);}}
     // Trial and divisor-pair oracles for a short interval near 10^12.
     for (auto mode : MODES) { checkInterval(1000000000000LL,1000000000003LL,high,2,mode,true); }
     lng count = 0; SegmentedSieveBase base(quick ? 100000 : 1000000);
     for (auto mode : MODES) {
         count = 0; base.forEachPrime(0, quick ? 100001 : 1000001, [&](lng) { ++count; }, 32768, mode);
-        expect(count, quick ? 9592 : 78498, "known pi count"); }
+        expect(count, quick ? 9592 : 78498, "known pi count");}
     std::cout << "PASS high endpoints, prime-square boundaries, interval factorization and known prime counts\n";}
 
 void invalid(const string &probe) {
@@ -161,6 +163,6 @@ int main(int argc, char **argv) {
         // Validate the independent primality oracle against brute force first.
         for (int n = -3; n <= 10000; ++n) { auto f = trial(max(1,n)); require(prime(n) == (n > 1 && f == vector<pair<lng,int>>{{n,1}}), "Miller-Rabin oracle agrees with trial division"); }
         exhaustive(mode); stateAndBoundaries(); randomCases(mode == "quick" ? 50 : mode == "stress" ? 3000 : 500); highAndCounts(mode == "quick");
-        std::cout << "PASS 06-segmentedsieve mode=" << mode << " seed=" << seed << " checks=" << checks << '\n';
-    } catch (const std::exception &e) {
-        std::cerr << "FAIL 06-segmentedsieve mode=" << mode << " seed=" << seed << " " << e.what() << '\n'; return 1; }}
+        std::cout << "PASS 06-segmentedsieve mode=" << mode << " seed=" << seed << " checks=" << checks << '\n';}
+     catch (const std::exception &e) {
+        std::cerr << "FAIL 06-segmentedsieve mode=" << mode << " seed=" << seed << " " << e.what() << '\n'; return 1;}}

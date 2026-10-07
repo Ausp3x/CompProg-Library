@@ -1,12 +1,10 @@
-# Scalar word operations — MI02 / P013
+# Scalar word operations — MI02 contracts and verification
 
-`06-bit_operations.hpp` provides `BitOps<U>` (default `ulng`) for unsigned scalar
-words. It delegates standard operations to C++20 `<bit>` and adds safe boundary
-contracts, individual-bit manipulation and two constant-time mask steps. It
-does not implement dynamic storage or general enumerators; those remain in Core
-Bitset and MI15 enumeration respectively.
+`06-bit_operations.hpp` provides `BitOps<U>` (default `ulng`) for unsigned scalar words. It delegates standard operations to C++20 `<bit>` and adds boundary contracts, individual-bit manipulation, Gray codes and constant-time mask steps. Dynamic storage is Core Bitset; general enumerators are `12-enumeration.hpp`. First verified 2026-09-28; re-audited 2026-10-07, when `parity`, `grayCode`, `grayDecode` and `nextSupermask` were added from the completeness sweep and the header contracts moved here.
 
-## Domains and API
+## Contracts
+
+### BitOps
 
 `U` must be an unqualified unsigned type supported by `std::popcount`: unsigned
 char/short/int/long/long long and GNU unsigned 128-bit integers on this platform.
@@ -17,7 +15,7 @@ unsigned word gives its modulo-2^W representation; the API never performs an
 implicit signed shift. `W` is the type's bit width, at most 128.
 
 Every operation is `constexpr`, O(1) time and O(1) auxiliary memory for these
-fixed scalar widths. The compiler chooses ordinary scalar instructions; there
+fixed scalar widths (`grayDecode` takes O(log(w)) shift-xor steps, at most 7). The compiler chooses ordinary scalar instructions; there
 are no handwritten ISA kernels or target-specific flags.
 
 | Operation | Contract |
@@ -32,6 +30,9 @@ are no handwritten ISA kernels or target-specific flags.
 | `test(x,i)`, `set(x,i,on=true)`, `flip(x,i)` | Read/set/clear/flip bit i; require 0≤i<W. Mutation helpers return a word and do not change their input. |
 | `shiftLeft(x,k)`, `shiftRight(x,k)` | Logical shifts; require 0≤k≤W. A shift of W returns zero. Left shift discards bits leaving the word. |
 | `rotateLeft(x,k)`, `rotateRight(x,k)` | All `int` counts, including INT_MIN/MAX; counts reduce modulo W and negative counts reverse direction. |
+| `parity(x)` | Popcount modulo 2 as `bool`. |
+| `grayCode(x)`, `grayDecode(x)` | Reflected binary Gray code `x ^ (x >> 1)` and its inverse (bit i of the decode is the xor of bits ≥ i); mutual inverses over the whole word. |
+| `nextSupermask(sup,mask,full=~0)` | Require mask⊆full and mask⊆sup⊆full. Advance to the next larger set between mask and full, returning true; `sup == full` returns false unchanged. Start from `sup = mask` to visit all 2^popcount(full & ~mask) supersets in increasing order. |
 | `prevSubmask(sub,mask)` | Require sub⊆mask. Advance to the next smaller submask, returning true; zero has no predecessor, returns false and stays zero. |
 | `nextCombination(x)` | Advance to the smallest larger word with the same popcount. Zero and the last such word return false without mutation. |
 
@@ -48,6 +49,8 @@ They remain caller obligations under NDEBUG. Overflow of a power-of-two ceiling
 and exhaustion of a mask sequence are valid results, reported by `false`.
 
 ## Correctness and implementation choices
+
+`nextSupermask` treats the free bits `rest = full & ~mask` as a counter. Setting every non-free bit (`sup | ~rest`) and adding one carries exactly through the free positions, in increasing order. Masking with `rest` and restoring `mask` gives the next set. The only wrap happens when all free bits are set, which is the `sup == full` case checked first. `grayDecode` computes prefix xors from the top with shifts 1, 2, 4, ..., < W, the standard doubling argument. Narrow types promote to `int` in shifts, and every shift count is below the promoted width.
 
 The standard count/scan/rotation operations have defined zero and modulo-width
 semantics. `ceil` guards the only domain where `std::bit_ceil` would overflow.
@@ -79,7 +82,7 @@ operations. Standard compiler implementations and constant-time stepping avoid
 an unnecessary local bit-count/scan engine. General combination generation and
 dynamic bitsets have separate owners.
 
-## Inspected references
+## Sources
 
 Read during P013 on 2026-09-27/28; the implementation is independent and no
 external source code was copied.
@@ -91,6 +94,7 @@ external source code was copied.
   next fixed-popcount interpretation and scan/division alternatives, with the
   section's contribution dated 2009-11-28. The local carry-based derivation adds
   zero, final-word and narrow-width handling and uses separate safe shifts.
+- Completeness sweep 2026-10-07 (`@researcher`): [cp-algorithms Gray code](https://cp-algorithms.com/algebra/gray-code.html), [Nyaan gray-code](https://nyaannyaan.github.io/library/math/gray-code.hpp) and [enumerate-set](https://nyaannyaan.github.io/library/set-function/enumerate-set.hpp) (superset step `(s + 1) | m`), [suisen bit_utils](https://suisen-cp.github.io/cp-library-cpp/library/util/bit_utils.hpp) (parity), [OI Wiki bit](https://oi-wiki.org/math/bit/), [cp-algorithms bit manipulation](https://cp-algorithms.com/algebra/bit-manipulation.html). Adopted parity, Gray encode/decode and the supermask step, generalized here to a universe `full`.
 - Installed GCC 16 libstdc++ `<bit>`: count/scan zero handling, rotation counts,
   GNU 128-bit support and the explicitly invalid overflow domain of `bit_ceil`.
   This is inspection of the installed standard-library implementation, not an
@@ -113,7 +117,9 @@ NDEBUG. It requires Python's standard library and GCC only.
 | Shifts and rotations | Reconstruct every output bit by position; zero/width shifts; all-int extreme rotation counts; Python rotation of binary strings. |
 | Fixed-popcount successor | Independent set-position advancement; a descending exhaustive table of all 8-bit words (quick) and all 16-bit words (full/stress); zero/final mask preservation and high 128-bit transitions. |
 | Submask stepping | Every 8-bit mask/submask pair; all subsets of four positions spanning each width's bottom/top halves; zero appears once; terminal mutation and constexpr checks. |
-| Type/value preconditions | Six compile constraint rejections; 13 checked-build assertion probes covering both bounds of every position/count API and an invalid subset. |
+| Parity and Gray codes | Bit-by-bit references (adjacent-bit xor for the code, top-down running xor for the decode) on every exhaustive and random word of every width, both round trips; Python binary-string oracle for parity, code and decode on 15,764 (full) / 150,764 (stress) words; constexpr cases. |
+| Supermask stepping | Every 8-bit (full, mask) pair with mask⊆full (6,561 pairs) against ascending brute enumeration, terminal preservation; random 8–128-bit (mask, full, sup) with the free-bit counter oracle (compressed free bits increase by exactly one), including the default full word and `sup == full`; constexpr case. |
+| Type/value preconditions | Six compile constraint rejections; 16 checked-build assertion probes covering both bounds of every position/count API, an invalid submask, and supermask inputs that are not supersets, leave `full`, or have mask outside `full`. |
 
 Quick uses 100 random words per width and exhaustive 8-bit words. Full uses
 3000 random words per width and exhaustive 16-bit words. Stress raises random
@@ -121,17 +127,17 @@ coverage to 30000 per width; all modes include the same deterministic boundary
 classes. The Python fixture generator independently checks count/width/scans,
 low/floor/ceil, successor and rotations in 15,764 cases in full mode.
 
-Full verification on GCC 16.2.1 / GNU++20, seed `20260927`, passed optimized
-`-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan with leak
-checking: **8,694,112 C++ checks and 15,764 exact Python cases per configuration**,
-plus all 13 assertion probes and six compile rejections. The initial sanitizer
-attempt hit LeakSanitizer's sandbox ptrace limitation; the approved final run
-outside the sandbox passed all three configurations with the added high-bit
-submask and output-alias cases.
+## Commands and results
+
+GCC 16.2.1, GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H, 2026-10-07:
 
 ```sh
-python3 '96-Local Testing/06-Miscellaneous/06-bit_operations_tester.py' --mode full --seed 20260927
+python3 '96-Local Testing/06-Miscellaneous/06-bit_operations_tester.py' --mode full --seed 20260927                              # PASS, 3 configurations
+python3 '96-Local Testing/06-Miscellaneous/06-bit_operations_tester.py' --mode stress --seed 20260928 --configuration optimized   # PASS
 ```
 
-Stress mode is supplied; the full result does not claim a stress run. Package-wide standalone/aggregate/multiple-TU and consistency results are
-recorded in [P013 evidence](95-p013.md).
+Full: 9,243,635 C++ checks and 15,764 exact Python cases per configuration (optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan with leak detection), 16 assertion probes and six compile rejections. Stress optimized: 38,727,635 C++ checks and 150,764 Python cases. No benchmark is required for these thin scalar operations; no speedup is claimed.
+
+## Omitted candidates
+
+`countOnesUpTo(n)` (total popcount over `[0, n]`) needs more than `W` bits for full-range inputs and is digit-DP territory (`31-digit_dp.hpp`). `bitReverse` appeared in none of the swept catalogs. A `forEachSupermask` traversal belongs to `12-enumeration.hpp` (P015); `nextSupermask` is its step.

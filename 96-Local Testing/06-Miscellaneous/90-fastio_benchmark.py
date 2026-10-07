@@ -43,10 +43,10 @@ def main():
               'platform': platform.platform(), 'compiler': subprocess.check_output([compiler, '--version'], text=True).splitlines()[0],
               'flags': flags, 'python': platform.python_version(), 'seed': 20260927,
               'warmups': 1, 'repetitions': 5, 'method_order': 'rotated per repetition',
-              'workload': 'read signed 64-bit decimal tokens, xor unsigned bits with fixed constant, write unsigned decimal lines; 32/20000/500000 values; uniform [-1000,1000] or random full 64-bit patterns with min/max every 101 values and mixed whitespace',
+              'workload': 'integers: read signed 64-bit decimal tokens, xor unsigned bits with fixed constant, write unsigned decimal lines; uniform [-1000,1000] or random full 64-bit patterns with min/max every 101 values and mixed whitespace. doubles-fixed9: read %.17g tokens of k/1000 * 2^e (|k| <= 10^6, e in [-20,20]), write %.9f lines; 32/20000/500000 values',
               'timed_scope': 'construct buffers, parse complete regular-file input, transform, format complete output, explicit FILE flush and writer destruction; file open/close, fixture generation, rewind, independent to_chars output comparison excluded; warm file page cache, no fsync',
               'memory': 'FastInput/Output<N>: two N-byte arrays plus constant fields; libc FILE buffers additional and implementation dependent. fscanf/fprintf uses libc buffers. O(1) conversion workspace for each. Fixture strings excluded from timed methods.',
-              'comparison_limits': 'Shared-host observations for valid ASCII decimal data on warmed regular files; not interactive, cold disk, malformed-input, floating-point, or network throughput; fscanf/fprintf has broader locale/format support; no universal timing gates.',
+              'comparison_limits': 'Shared-host observations for valid ASCII decimal data on warmed regular files; not interactive, cold disk, malformed-input or network throughput; fscanf/fprintf has broader locale/format support; no universal timing gates.',
               'sha256': {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                          for p in (ROOT / '06-Miscellaneous/03-fastio.hpp', HERE / '90-fastio_benchmark.cpp')},
               'results': results}

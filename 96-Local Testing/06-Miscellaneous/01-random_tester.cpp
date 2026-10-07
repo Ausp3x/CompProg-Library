@@ -3,13 +3,19 @@
 ulng test_seed = 0;
 void check(bool ok, const string &what) {
     if (!ok) { cerr << "FAIL seed=" << test_seed << " operation=" << what
-                    << " expected=true actual=false\n"; std::exit(1); }}
+                    << " expected=true actual=false\n"; std::exit(1);}}
 
 void oracle() {
     string op;
     while (cin >> op) {
         ulng seed; cin >> seed; Random g(seed);
-        if (op == "h") {
+        if (op == "d" || op == "dr") {
+            string a = "0", b = "1"; int n;
+            if (op == "dr") { cin >> a >> b; }
+            cin >> n; double l = std::strtod(a.c_str(), nullptr), r = std::strtod(b.c_str(), nullptr);
+            for (int i = 0; i < n; ++i) { std::printf("%a ", op == "d" ? g.randDouble() : g.randDouble(l, r)); }
+            std::fflush(stdout);}
+        else if (op == "h") {
             int n; cin >> n; vector<int> a(n); iota(a.begin(), a.end(), 0);
             g.shuffle(a.begin(), a.end()); for (int x : a) { cout << x << ' '; }}
         else {
@@ -24,8 +30,8 @@ void oracle() {
                 else if (op == "u") { cout << g.randUlng(l, r); }
                 else if (op == "s") { cout << g.randLng(sl, sr); }
                 else { cout << g.randInt(int(sl), int(sr)); }
-                cout << ' '; }}
-        cout << '\n'; }}
+                cout << ' ';}}
+        cout << '\n';}}
 
 int main(int argc, char **argv) {
     string mode = "full";
@@ -41,16 +47,18 @@ int main(int argc, char **argv) {
             if (p == "lng-bounds") { g.randLng(2, 1); }
             if (p == "ulng-bounds") { g.randUlng(2, 1); }
             if (p == "shuffle-bounds") { g.shuffle(a.end(), a.begin()); }
-            return 1; }}
+            if (p == "double-empty") { g.randDouble(1.0, 1.0); }
+            if (p == "double-infinite") { g.randDouble(-DBL_MAX, DBL_MAX); }
+            return 1;}}
     Random a(5489);
     a.rng.discard(9999);
     check(a.rng() == 9981545732273789042ULL, "MT19937-64 standard 10000th word");
     for (ulng s : {0ULL, 1ULL, 5489ULL, ~0ULL}) {
         Random x(s), y(s); for (int i = 0; i < 2000; ++i) {
-            check(x.randLng(INT64_MIN, INT64_MAX) == y.randLng(INT64_MIN, INT64_MAX), "seed replay"); }
+            check(x.randLng(INT64_MIN, INT64_MAX) == y.randLng(INT64_MIN, INT64_MAX), "seed replay");}
         x.seed(s); y = Random(s); check(x.rng == y.rng, "seed reset");
         auto copy = x; auto moved = std::move(copy);
-        check(x.randBelow(ulng(1) << 63) == moved.randBelow(ulng(1) << 63), "copy/move state"); }
+        check(x.randBelow(ulng(1) << 63) == moved.randBelow(ulng(1) << 63), "copy/move state");}
     cout << "PASS standard engine, seed/reset, copy/move replay\n";
     Random g(test_seed);
     const int count = mode == "quick" ? 5000 : mode == "full" ? 100000 : 1000000;
@@ -62,7 +70,7 @@ int main(int argc, char **argv) {
         check(g.randUlng(UINT64_MAX, UINT64_MAX) == UINT64_MAX, "unsigned maximum singleton");
         check(g.randBelow(1) == 0, "unit bound");
         lng y = g.randLng(INT64_MIN, 0); check(y <= 0, "wide signed interval");
-        ulng z = g.randUlng(ulng(1) << 63, UINT64_MAX); check(z >> 63, "upper unsigned interval"); }
+        ulng z = g.randUlng(ulng(1) << 63, UINT64_MAX); check(z >> 63, "upper unsigned interval");}
     for (int f : freq) { check(count / 10 < f && f < count / 5, "fixed-seed seven-bin regression"); }
     cout << "PASS inclusive/singleton/full-width domains and bounded regression draws=" << count << '\n';
     for (int n = 0; n <= (mode == "quick" ? 30 : 200); ++n) {
@@ -81,7 +89,18 @@ int main(int argc, char **argv) {
     check(sum == 45, "move-only shuffle");
     vector<bool> bits{true, false, true}; g.shuffle(bits.begin(), bits.end());
     check(std::count(bits.begin(), bits.end(), true) == 2, "proxy iterator shuffle");
+    static_assert(std::uniform_random_bit_generator<Random> && Random::min() == 0 && Random::max() == UINT64_MAX);
+    Random u(test_seed), v(test_seed);
+    for (int i = 0; i < 1000; ++i) { check(u() == v.rng(), "URBG operator() is the engine word"); }
+    vector<int> sv(50); iota(sv.begin(), sv.end(), 0); std::shuffle(sv.begin(), sv.end(), u); sort(sv.begin(), sv.end());
+    check(sv[0] == 0 && sv[49] == 49 && std::uniform_int_distribution<int>(3, 3)(u) == 3, "standard algorithms accept Random");
+    double total = 0; int low = 0;
+    for (int i = 0; i < count; ++i) {
+        double x = g.randDouble(), y = g.randDouble(-2.5, 7.5), z = g.randDouble(1.0, std::nextafter(1.0, 2.0));
+        check(0 <= x && x < 1 && -2.5 <= y && y < 7.5 && z == 1.0, "randDouble half-open ranges");
+        total += x; low += y < 2.5;}
+    check(std::abs(total / count - 0.5) < 0.02 && std::abs(double(low) / count - 0.5) < 0.02, "randDouble fixed-seed mean regression");
+    cout << "PASS URBG interface and randDouble domains draws=" << count << '\n';
     rng.seed(test_seed); check(rng.rng() == Random(test_seed).rng(), "legacy global rng");
     Random automatic; check(automatic.randBelow(1) == 0, "default clock seed constructor");
-    cout << "PASS shuffle empty/duplicates/deque/proxy/move-only and legacy global\n";
-}
+    cout << "PASS shuffle empty/duplicates/deque/proxy/move-only and legacy global\n";}

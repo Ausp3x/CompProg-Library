@@ -16,6 +16,7 @@ if __name__ == '__main__':
         'parallel-successors', 'csr-undirected', 'csr-parallel', 'jump-negative',
         'jump-high', 'distance-negative', 'distance-high', 'reachable-high',
         'meeting-negative', 'meeting-high', 'empty-jump', 'orbit-negative',
-        'orbit-high', 'orbit-bad-next', 'aggregate-size', 'rotated-size',
+        'orbit-high', 'aggregate-size', 'rotated-size',
         'rotated-high', 'fold-size', 'fold-negative', 'fold-high', 'fold-cycle-high',
-        'segment-negative', 'segment-high', 'segment-unavailable']))
+        'segment-negative', 'segment-high', 'segment-unavailable',
+        'step-high', 'step-identity']))

@@ -8,7 +8,7 @@ Contracts and ownership rules moved out of the inventory on 2026-10-06. The inve
 - `partial` rows keep their evidence link; the `missing:` list is planned work, not a defect in the verified part. In `24-transform_algorithms.hpp` the present `FastConv` operations are migrated code that was never verified; the row is partial only because the planned additions are explicit.
 - `legacy-reference` rows have an archived implementation in `OLD/5-Mathematics` and no active header; names listed in the row are the intended active API, and legacy names (`exGcd`, `modLog` multiplier form, `superChiRemThm`) remain available under the new header.
 - `planned` rows name the API that would be implemented; nothing in them establishes compliance.
-- P012 verified the six MA01/MA02 foundation headers; see [package evidence](96-p012.md).
+- P012 verified the six MA01/MA02 foundation headers and re-audited them on 2026-10-07, completing the previously missing `01-mod_arithmetic.hpp` operations; see [package evidence](96-p012.md).
 
 ## Domains
 
@@ -46,3 +46,20 @@ Contracts and ownership rules moved out of the inventory on 2026-10-06. The inve
 - Tests on source libraries are inspiration, not copied evidence. Finite tests pair with a correctness argument.
 - Barrett or Montgomery outside Core needs a recorded end-to-end benchmark (see `01-principles.md`).
 - A selected implementation batch refines its own API/variant checklist before coding and records discovered gaps rather than declaring unsupported completeness.
+
+## P012 research decisions (2026-10-07)
+
+Adopted: `fibSearch` and `expSearch` (row 02), `combiLarge`, `binomialTable` and `derangementTable` (row 05). Left out, one line each:
+
+- `floorDivStrict`/`ceilDivStrict` (Nyaan `int_div`): the largest integer strictly below `a / b` is `ceilDiv(a, b) - 1` and the smallest strictly above is `floorDiv(a, b) + 1`; one-liners at the call site.
+- `divMod` (maspypy): `floorDiv` plus `a - b * q` at the call site; the compiler merges the two divisions.
+- `gcd128` (maspypy): GNU `std::gcd` accepts `__int128` directly; no wrapper needed.
+- Binary gcd (hitonanode, Nyaan): the installed libstdc++ `std::gcd` is already Stein's algorithm, and `gcd64` uses it.
+- `binSearchRealRelative` (maspypy): logarithmic-scale bisection is `binSearch` over the order-preserving bit pattern of nonnegative doubles (64 steps); not a separate API.
+- `firstModInRange` (maspypy `first_mod_range_of_linear`): belongs with `18-floorsum.hpp` beside `minOfModOfLinear`; handed off to that row's owner, not added here.
+- `dioMinLinear` (cp-algorithms "minimum x + y"): a linear objective over `DioBox` is evaluated at its two endpoint parameters `l` and `r - 1`; no extra API.
+- `primePi` table (hitonanode `bs_sieve`): `upper_bound(prms, x)` on the existing prime list.
+- Factorization above the sieve bound (hitonanode `Sieve::factorize`): owned by `07-primality_factorization.hpp` `factorize`.
+- `powTable`, the completely multiplicative i^K table (hitonanode `enumerate_kth_pows`): handed off to `08-multiplicative_functions.hpp` `multiplicativeTable`.
+- `lcmOfList` (maspypy `all_lcm`): caller-side maximum of `getPrimeFac` exponents.
+- `combiNegative` and `combiInverse` (maspypy `C_negative`, `C_inv`): `(-1)^k * combiWR(n, k)` and the product `inverseFactorial(a) * factorial(b) * factorial(a - b)` from the existing tables.

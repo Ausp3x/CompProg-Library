@@ -26,21 +26,38 @@ void benchmark(const vector<T> &input, const vector<T> &expected, const string &
                 if (out != expected) {
                     int first = 0; while (first < min(out.size(), expected.size()) && out[first] == expected[first]) { ++first; }
                     cerr << "FAIL seed=" << SEED << " n=" << n << " type=" << type << " distribution=" << distribution
-                         << " method=" << methods[method] << " rep=" << rep << " first_mismatch=" << first << '\n'; std::exit(1); }
-                for (const auto &x : out) { hash = (hash ^ checksum(x)) * 0x9e3779b97f4a7c15ULL; } }
+                         << " method=" << methods[method] << " rep=" << rep << " first_mismatch=" << first << '\n'; std::exit(1);}
+                for (const auto &x : out) { hash = (hash ^ checksum(x)) * 0x9e3779b97f4a7c15ULL; }}
             if (rep >= 0) {
                 cout << n << ' ' << type << ' ' << distribution << ' ' << methods[method] << ' ' << rep << ' '
-                     << batch << ' ' << std::setprecision(12) << ms << ' ' << hash << '\n'; } } } }
+                     << batch << ' ' << std::setprecision(12) << ms << ' ' << hash << '\n';}}}}
+void selection(const vector<lng> &input, lng expected, const string &distribution) {
+    int n = int(input.size()), k = n / 2, batch = n <= 32 ? 256 : n <= 4096 ? 8 : 1;
+    vector<string> methods{"std-nth-element", "median-of-medians"};
+    for (int rep = -1; rep < 5; ++rep) {
+        for (int j = 0; j < 2; ++j) {
+            int method = (j + rep + 1) % 2; vector<vector<lng>> outputs(batch); vector<lng> got(batch);
+            auto start = std::chrono::steady_clock::now();
+            for (int b = 0; b < batch; ++b) {
+                outputs[b] = input;
+                if (method == 0) { std::nth_element(outputs[b].begin(), outputs[b].begin() + k, outputs[b].end()); got[b] = outputs[b][k]; }
+                else { got[b] = medianOfMedians(outputs[b], k); }}
+            double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count() / batch;
+            for (int b = 0; b < batch; ++b) {
+                bool ok = got[b] == expected && outputs[b][k] == expected;
+                for (int i = 0; i < n; ++i) { ok &= i < k ? outputs[b][i] <= expected : outputs[b][i] >= expected; }
+                if (!ok) { cerr << "FAIL seed=" << SEED << " n=" << n << " selection distribution=" << distribution << " method=" << methods[method] << '\n'; std::exit(1); }}
+            if (rep >= 0) { cout << "select " << n << ' ' << distribution << ' ' << methods[method] << ' ' << rep << ' ' << batch << ' ' << std::setprecision(12) << ms << ' ' << ulng(expected) << '\n'; }}}}
 template<typename T> T randomWord(std::mt19937_64 &rng) {
     if constexpr (sizeof(T) == 16) { return std::bit_cast<T>((ulll(rng()) << 64) | rng()); }
-    else { return std::bit_cast<T>(rng()); } }
+    else { return std::bit_cast<T>(rng()); }}
 template<typename T>
 vector<T> generate(int n, int distribution, std::mt19937_64 &rng) {
     vector<T> out(n);
     for (T &x : out) { x = distribution == 6 ? 17 : distribution < 3 ? T(rng() % 256) : randomWord<T>(rng); }
     if (distribution == 1 || distribution == 2 || distribution == 4 || distribution == 5) { sort(out.begin(), out.end()); }
     if (distribution == 2 || distribution == 5) { reverse(out.begin(), out.end()); }
-    return out; }
+    return out;}
 int main() {
     std::mt19937_64 rng(SEED);
     vector<string> distributions{"dense256", "sorted-dense256", "reverse-dense256", "full-width", "sorted-full-width", "reverse-full-width", "equal"};
@@ -52,7 +69,7 @@ int main() {
             benchmark(input, expected, "signed64", distributions[d], methods, [&](vector<lng> &a, int method) -> void {
                 if (method == 0) { sort(a.begin(), a.end()); }
                 else if (method == 1) { radixSort(a); }
-                else { countingSort(a, lng(0), lng(255)); } });
+                else { countingSort(a, lng(0), lng(255)); }});
             vector<Record> records;
             for (int i = 0; i < n; ++i) { records.push_back({input[i], i, {rng(), rng()}}); }
             auto stable = records;
@@ -63,8 +80,11 @@ int main() {
                 auto key = [](const Record &x) -> lng { return x.key; };
                 if (method == 0) { std::stable_sort(a.begin(), a.end(), cmp); }
                 else if (method == 1) { radixSort(a, key); }
-                else { stableCountingSort(a, 256, key); } }); }
+                else { stableCountingSort(a, 256, key); }});}
         for (int d : {3, 4, 5, 6}) {
             auto input = generate<lll>(n, d, rng), expected = input; sort(expected.begin(), expected.end());
             benchmark(input, expected, "signed128", distributions[d], {"std-sort", "radix"}, [&](vector<lll> &a, int method) -> void {
-                if (method == 0) { sort(a.begin(), a.end()); } else { radixSort(a); } }); } } }
+                if (method == 0) { sort(a.begin(), a.end()); } else { radixSort(a); }});}
+        for (int d : {0, 3, 4, 5, 6}) {
+            auto input = generate<lng>(n, d, rng), sorted = input; sort(sorted.begin(), sorted.end());
+            selection(input, sorted[n / 2], distributions[d]);}}}

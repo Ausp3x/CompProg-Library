@@ -15,5 +15,7 @@ Commands (`python3 '00-Guidelines/13-plan/plan.py' <command>`):
 - `set Pxxx STATUS [--evidence PATH ...] [--note TEXT]`: update a package (evidence is appended) and re-render the checklist.
 - `render`: rewrite the checklist between the `plan:begin`/`plan:end` markers in `01-prompts.md`.
 - `check`: manifest, schedule, ownership, inventory and checklist-sync checks; `96-Local Testing/03-consistency.py` runs the same `check(root)`.
+- `ready [--max K]`: every package whose prerequisites are satisfied, plus a disjoint set of K packages from different folders for parallel worktree sessions.
+- `doctor [--fix]`: cross-checks plan, inventory rows, files on disk, testers and evidence, grouped by package with the command that resolves each item; `--fix` re-renders the checklist.
 
 Statuses: planned, in-progress, audit (verified under the previous system; re-audit required), verified. Mark `verified` only with recorded evidence.

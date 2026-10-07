@@ -4,70 +4,97 @@
 implementation uses ordinary contest arithmetic and the existing full Core modular
 integer types. It adds no Mathematics-specific reduction backend or ISA path.
 
-## Features and domains
+## Contracts
 
-`PrimeCombinatorics<M>` accepts a full Core modular integer type with a prime
-modulus and its prime flag enabled. `ModFac` remains an alias for
-`PrimeCombinatorics<mint>`: construction, `n`, `fac`, `inv_fac`, and all four legacy
-query names remain available. Construction/reset requires
-`0 <= n < min(M::mod(), INT_MAX)`.
+### PrimeCombinatorics and ModFac
+
+`PrimeCombinatorics<M>` accepts a full Core modular integer type whose modulus is
+prime and whose prime flag is set. `ModFac` remains an alias for
+`PrimeCombinatorics<mint>`; construction, `n`, `fac`, `inv_fac` and all four legacy
+query names are still available. Construction and `reset(n)` require
+`0 <= n < min(M::mod(), INT_MAX)`, so every factorial in the table is a unit.
+Factorial queries require an index `<= n`. Negative selection counts give 0.
+Counts of choices, parts and objects must be nonnegative (asserted).
 
 | API | Meaning and bounds |
 |---|---|
-| `reset(n)` | Build factorial, inverse-factorial, and derangement tables through `n`; `O(n + log(p))` time. |
-| `factorial(k)`, `inverseFactorial(k)`, `derangement(k)` | `O(1)` queries with `0 <= k <= n`; `D_0=1`, `D_1=0`. |
-| `combiNR(a,b)`, `permuNR(a,b)` | Choose/order `b` distinct objects from `a >= 0`; negative or excessive selections return zero, otherwise require `a <= n`. |
-| `combiWR(a,b)` | Choose an unordered multiset of size `b`; `b=0` gives one even for `a=0`; positive selections from zero choices give zero. Nontrivial queries require `a+b-1 <= n`. |
-| `permuWR(a,b)` | Ordered selections, `a^b`; `a >= 0`, negative `b` returns zero, `0^0=1`. Independent of table size; `O(log(2+b))` time. |
-| `starsBars(total,parts,positive)` | Ordered nonnegative parts by default, positive parts when requested. Zero parts have one empty solution exactly for total zero. Uses the appropriate combination-table bound. |
-| `catalan(k)` | Dyck paths/standard Catalan number, `k >= 0`, `2*k <= n`. |
-| `ballot(a,b,strict)` | A/B sequences with A never behind B, or strictly ahead at every nonempty prefix. Both conventions count the empty sequence once. Weak queries require `a+b <= n` when a solution is possible; strict queries remove their first A and require `a+b-1 <= n`. |
-| `multinomial(parts)` | Distinguishable arrangements of the supplied nonnegative multiplicities, sum at most `n`; empty list gives one. `O(parts.size())` time. |
+| `reset(n)` | Builds factorial, inverse-factorial and derangement tables through `n` in `O(n + log(p))` time. |
+| `check()` | Asserts that the current modulus equals the saved one and still has the prime flag. Every query calls it. |
+| `factorial(k)`, `inverseFactorial(k)`, `derangement(k)` | `O(1)` queries for `0 <= k <= n`; `D_0 = 1`, `D_1 = 0`. |
+| `combiNR(a,b)`, `permuNR(a,b)` | Choose or order `b` distinct objects from `a >= 0`. Negative or excessive selections return 0; otherwise they require `a <= n`. |
+| `combiWR(a,b)` | Unordered multisets of size `b`. `b = 0` gives 1 even when `a = 0`, and positive selections from zero choices give 0. Nontrivial queries require `a + b - 1 <= n`. |
+| `permuWR(a,b)` | Ordered selections with replacement, `a^b`, for `a >= 0`. Negative `b` returns 0 and `0^0 = 1`. It does not depend on the table size and costs `O(log(2 + b))`. |
+| `starsBars(total,parts,positive)` | Ordered parts summing to `total`: nonnegative parts by default, positive parts when `positive` is set. Zero parts give one empty solution exactly when `total = 0`. Uses the matching combination-table bound. |
+| `catalan(k)` | Catalan number for `k >= 0` and `2 * k <= n`. |
+| `ballot(a,b,strict)` | A/B sequences where every prefix has A >= B, or A > B for every nonempty prefix when `strict`. Both conventions count the empty sequence once. Strict mode removes the forced first A. Weak queries require `a + b <= n` when a solution is possible; strict queries require `a + b - 1 <= n`. |
+| `multinomial(parts)` | Arrangements of the given nonnegative multiplicities, with sum at most `n`. The empty list gives 1. Costs `O(parts.size())`. |
+| `combiLarge(a,b)` | `C(a, b) mod p` for any `ulng a` and `b <= n` (asserted). `b < 0` or `b > a` gives 0. Costs `O(b)` and uses only `inv_fac[b]`. |
 
-Three tables use approximately `3 * (n+1) * sizeof(M)` bytes. Vectors retain
-capacity after a smaller reset: stored memory is `O(peak n)`. Queries, fields, and
-Core modulus contexts are read-only except through their documented APIs.
+The three tables use about `3 * (n + 1) * sizeof(M)` bytes. `fac` and `inv_fac`
+keep their capacity after a smaller reset, so stored memory is `O(peak n)`; `der` is
+rebuilt by `derangementTable` (re-audit review: removes the duplicated recurrence) and
+holds exactly `n + 1` entries. All fields are
+read-only for callers; change them only through the documented APIs.
 
-Every dynamic `setMod` invalidates all prior table values, including a call that
-sets the same modulus again. Rebuild with `reset` before further queries or raw
-field reads. Query methods assert that the current modulus matches their saved
-modulus and still has the prime flag. Core deliberately has no generation tag;
-same-modulus resets and changes away and back cannot be detected. This is a
-caller precondition, not a promised runtime diagnostic. Copy/move preserve the
-live table and its modulus requirement; a moved-from table may be discarded or
-reset before reuse.
+Every dynamic `setMod` invalidates all earlier table values, even one that sets the
+same modulus again. Call `reset` before any further query or direct field read.
+`check()` catches a changed modulus by assertion. Core has no generation tag, so it
+cannot detect a same-modulus reset or a change away and back. Rebuilding is the
+caller's precondition, not a promised runtime check. Copy and move keep the live
+table and its modulus requirement. A moved-from table may be discarded or reset
+before reuse.
 
-`fibonacciPair<T>(n)`, `fibonacci<T>(n)`, and `lucas<T>(n)` use iterative fast doubling
-in `O(log(2+n))` ring operations and `O(1)` storage, with the full unsigned 64-bit
-index domain. They work in composite modular rings and the zero ring as well as
-prime fields. `L_0=2`, `L_1=1`. Unsigned builtins of width at least 32 compute in
-their natural wraparound ring; narrower builtin types are rejected because C++
-integer promotion can introduce signed overflow. Other builtin integer types
-require every intermediate to fit; named exact APIs provide checked unsigned
-64-bit results.
+### fibonacciPair, fibonacci, lucas
 
-All exact APIs accept nonnegative, full-width unsigned 64-bit counts. They
-return `true` and write the mathematical unsigned 64-bit result when it fits;
-`false` means actual output overflow and preserves the output argument. Zero and
-impossible counts are successful results. Inputs may alias the output because
-scalar inputs are copied before evaluation.
+`fibonacciPair<T>(n)` returns `(F_n, F_(n+1))`; `fibonacci<T>(n)` and `lucas<T>(n)`
+return `F_n` and `L_n`, with `L_0 = 2` and `L_1 = 1`. They use iterative fast
+doubling: `O(log(2 + n))` ring operations, `O(1)` storage, and the full unsigned
+64-bit index range. `T` only has to be a commutative ring (no division), so
+composite modular rings and the zero ring work as well as prime fields. Unsigned
+builtins of width at least 32 compute in their natural wraparound ring. Narrower
+builtin types are rejected by `static_assert`, because integer promotion could
+cause signed overflow. Signed builtin types require every intermediate to fit. Use
+the exact APIs for checked unsigned 64-bit results.
+
+### binomialTable and derangementTable
+
+`binomialTable<T>(n)` returns the Pascal rows `C(i, 0..i)` for `0 <= i <= n`.
+`derangementTable<T>(n)` returns `D_0..D_n` by
+`D_i = (i - 1) * (D_(i-1) + D_(i-2))`. Both assert `n >= 0` and use only addition
+and multiplication, so they work in any ring `T`, including composite moduli
+(`DynModInt64` with the prime flag off), modulus 1 and wrapping `ulng`. Signed
+builtin `T` needs every intermediate to fit. Costs are `O(n^2)` time and memory for
+the binomial table and `O(n)` for derangements. They were added because Library
+Checker `montmort_number_mod` allows any modulus up to `10^9`, while
+`PrimeCombinatorics` needs a prime.
+
+### Exact APIs
+
+Every exact API accepts all `ulng` inputs. It returns `true` and writes the exact
+count when the count fits in `ulng`. `false` means the count exceeds `UINT64_MAX`,
+and `out` is left unchanged. Impossible selections are successful zero results.
+Empty selections and arrangements count once, including `0^0`. Inputs may alias
+`out`, because scalar inputs are copied before evaluation. Every function finishes
+within a constant number of loop steps (at most 64) before it completes or detects
+overflow.
 
 | Exact API | Coverage and cost |
 |---|---|
-| `combiExact(a,b,out)` | Binomial with impossible selection equal to zero; at most 34 product/division steps before completion or overflow. |
-| `permuExact(a,b,out)`, `factorialExact(n,out)` | Falling product/factorial with checked multiplication; at most 21 steps, factorial fits through 20. |
-| `combiRepExact(a,b,out)`, `permuRepExact(a,b,out)` | Unordered/ordered selections with replacement; the same empty-selection semantics as the modular APIs; checked index sum or binary exponentiation. |
-| `starsBarsExact(total,parts,out,positive)` | Nonnegative/positive parts, including zero parts. |
-| `ballotExact(a,b,out,strict)`, `catalanExact(n,out)` | Full-width input domain and actual-result overflow detection, including fitting answers whose corresponding binomial exceeds 64 bits. At most 37 ballot recurrence steps, each with gcd cancellation. Catalan fits through 36. |
-| `multinomialExact(parts,out)` | Full-width multiplicities; `O(k * 34)` arithmetic steps for `k` parts until overflow. |
-| `derangementExact(n,out)` | Exact through 20; larger indices report overflow. |
-| `fibonacciPairExact(n,out)` | Both consecutive values fit through index 92; larger indices report overflow. |
+| `combiExact(a,b,out)` | Binomial, 0 for an impossible selection. At most 34 product/division steps before completion or overflow. |
+| `permuExact(a,b,out)`, `factorialExact(n,out)` | Falling product and factorial with checked multiplication. At most 21 steps; factorial fits through 20. |
+| `combiRepExact(a,b,out)`, `permuRepExact(a,b,out)` | Unordered and ordered selections with replacement, with the same empty-selection rules as the modular APIs. Uses a checked index sum or binary exponentiation (at most 64 steps). |
+| `starsBarsExact(total,parts,out,positive)` | Nonnegative or positive parts, including zero parts. |
+| `ballotExact(a,b,out,strict)`, `catalanExact(n,out)` | Same prefix and empty conventions as `PrimeCombinatorics::ballot`. The direct ballot recurrence avoids overflowing a binomial when the final ballot count still fits. At most 37 recurrence steps, each with gcd cancellation, costing `O(min(b, 37) * log(2 + a + b))`. Catalan fits through 36. |
+| `combinatorics_detail::ratioProduct` | Positive `r * a * b / (c * d)` with an integral result. Cancels each denominator against the numerators before multiplying; false above `UINT64_MAX`. `O(log(max(r, a, b, c, d)))`. Finding 10 of the re-audit: it now has its complexity line. |
+| `multinomialExact(parts,out)` | Full-width multiplicities, `O(k)` combination calls (each at most 34 steps) for `k` parts; the empty list gives 1. |
+| `derangementExact(n,out)` | Exact through `D_20`; larger indices report overflow. |
+| `fibonacciPairExact(n,out)` | Both values fit through index 92; larger indices report overflow. |
 | `fibonacciExact(n,out)`, `lucasExact(n,out)` | Exact Fibonacci through 93 and Lucas through 92; larger indices report overflow. |
 
-Negative combinatorial population/part counts, invalid table bounds, a composite
-factorial modulus, and stale tables are precondition errors. Negative selection
-counts in the four preserved modular APIs are legitimate zero results. Exact
-APIs express nonnegative counts with unsigned parameters.
+Negative population or part counts, invalid table bounds, a composite factorial
+modulus and stale tables are precondition errors. Negative selection counts in the
+four preserved modular APIs are legitimate zero results. Exact APIs take counts as
+unsigned parameters, so they cannot be negative.
 
 ## Correctness and overflow arguments
 
@@ -110,6 +137,14 @@ Catalan 36, whose intermediate central binomial exceeds 64 bits but final count
 `11959798385860453492` fits. Strict ballot uses the equivalent weak instance
 `(a-1,b)` after handling empty/impossible cases.
 
+`combiLarge(a, b)` computes `inv_fac[b] * a(a-1)...(a-b+1)` with each factor
+reduced mod `p`. The falling product divided by `b!` is the exact integer
+`C(a, b)`. Since `b <= n < p`, `b!` is a unit mod `p`, so reducing that identity
+mod `p` is exact for every `a`, including `a >= p`. This agrees with Lucas's
+theorem, which gives `C(a mod p, b)` for `b < p`. Pascal's rule
+`C(i, j) = C(i-1, j-1) + C(i-1, j)` and the derangement recurrence are polynomial
+identities over the integers, so they hold in every quotient ring.
+
 Fast doubling maintains `(F_k,F_(k+1))` and applies
 `F_(2k)=F_k*(2*F_(k+1)-F_k)` and
 `F_(2k+1)=F_k^2+F_(k+1)^2`. Lucas follows from
@@ -134,13 +169,19 @@ checks avoid signed overflow before indexing. Legacy method-based modular
 inverse/power syntax remains only in its preserved archive.
 
 Factorial inversion at `n >= p` is invalid. This header rejects such table sizes;
-it does not pretend that a zero factorial has an inverse. Lucas-theorem,
-prime-power, and composite-modulus binomial algorithms belong to the separately
+it does not pretend that a zero factorial has an inverse. Lucas-theorem (small
+prime, large index), prime-power and CRT composite-modulus binomial algorithms belong to the separately
 planned Advanced `12-combinatorics_advanced.hpp`, batch **MA26**. General
 rising/falling factorial families, Stirling/Bell/partition numbers, bounded
 partitions, q-binomial coefficients, and combinatorial transforms remain with
 that owner. Fibonacci's companion **Lucas sequence** here is distinct from
 **Lucas's binomial theorem**. No advanced package is claimed complete here.
+
+The 2026-10-07 completeness sweep proposed five operations. `combiLarge`,
+`binomialTable` and `derangementTable` were adopted. `combiNegative` and
+`combiInverse` were not: `C(-n, k) = (-1)^k * combiWR(n, k)` and
+`1 / C(a, b) = inv_fac[a] * fac[b] * fac[a-b]` are one-line identities over the
+existing API and tables. The reasons are also recorded in [80-notes.md](80-notes.md).
 
 ## References actually inspected
 
@@ -154,6 +195,15 @@ external code copied.
 - [OI Wiki: 排列组合](https://oi-wiki.org/math/combinatorics/combination/),
   selection with repetition, multinomial counting, and Pascal/binomial identities;
   independent Chinese-language comparison of counting conventions.
+- 2026-10-07 sweep, for the added operations:
+  [Nyaan binomial.hpp](https://nyaannyaan.github.io/library/modulo/binomial.hpp)
+  (large-index `C` with a small lower index),
+  [Nyaan binomial-table.hpp](https://nyaannyaan.github.io/library/modulo/binomial-table.hpp)
+  (Pascal table without inverses),
+  [ei1333 montmort.hpp](https://ei1333.github.io/library/math/combinatorics/montmort.hpp)
+  (derangement table for any modulus), and the cp-algorithms binomial page above
+  (Pascal triangle for arbitrary moduli). These were read for the operation lists
+  only; the code was written independently.
 - [cp-algorithms: Stars and bars](https://cp-algorithms.com/combinatorics/stars_and_bars.html),
   nonnegative and positive ordered parts and their shifted binomial indices.
 - [OI Wiki: 卡特兰数](https://oi-wiki.org/math/combinatorics/catalan/),
@@ -168,50 +218,28 @@ external code copied.
   matrix representation and the two fast-doubling identities. Lucas's companion
   identity is verified from its initial values and recurrence.
 
-## Verification evidence
+## Feature-to-test map
 
-Runner: `96-Local Testing/05-Mathematics/05-combinatorics_tester.py`, directly
-runnable from any working directory, using the shared mathematics driver.
+Runner: [`05-combinatorics_tester.py`](<../96-Local Testing/05-Mathematics/05-combinatorics_tester.py>) driving
+[`05-combinatorics_tester.cpp`](<../96-Local Testing/05-Mathematics/05-combinatorics_tester.cpp>). Oracles: exact
+Python integers, enumeration, inclusion-exclusion and matrix powers.
 
 | Feature | Independent coverage |
 |---|---|
-| Factorials/inverses/derangements | Python exact factorials and inverse; Pascal table; derangement inclusion-exclusion plus permutation enumeration through 8. |
-| Four counting operations | Exact Python combinations/permutations/powers; empty/impossible selections; zero choices; unsigned index-sum overflow; every binomial threshold around rows 60–80. |
-| Stars-and-bars/ballot/Catalan | Explicit small composition/path enumeration; independent exact closed forms; empty conventions; strict/weak branches; Catalan 36/37 boundary and overflowing-binomial regression. |
-| Multinomial | Independent Python factorial ratios, empty/zero groups, full-width groups, sum/product overflow. |
-| Fibonacci/Lucas | Independent modular matrix powers, arbitrary 64-bit indices, static/dynamic and prime/composite/one moduli, unsigned32/64 rings, exact 92/93/94 boundaries; safe signed32 regression and narrow-type compile rejection. |
-| Type/state/preconditions | Static/dynamic 32/64-bit Core types, modulus 2 and a prime near `2^64`, copy/move/reset, same-modulus rebuild, changed-modulus assertions, preserved aliased outputs, 27 assertion probes. |
+| Factorials, inverses, derangements | Python exact factorials and inverses; Pascal table; derangements by inclusion-exclusion plus permutation enumeration through 8. |
+| Four counting operations | Exact Python combinations, permutations and powers; empty and impossible selections; zero choices; unsigned index-sum overflow; every binomial threshold around rows 60–80. |
+| Stars-and-bars, ballot, Catalan | Explicit small composition and path enumeration; independent exact closed forms; empty conventions; strict and weak branches; the Catalan 36/37 boundary and the overflowing-binomial regression. |
+| Multinomial | Python factorial ratios, empty and zero groups, full-width groups, sum and product overflow. |
+| `combiLarge` | Op `ml` against `math.comb(a, b) % p` for `a` in {0, 1, 2, n, p-1, p, p+1, 2p+3, 2^63, 2^64-1, random words} and `b` in {-1, 0, 1, 2, n/2, n, random}, restricted to `b <= n`, for every prime setup (2, 3, 7, 97, 998244353 and a prime near `2^64`). Probe `large-bound`. |
+| `derangementTable`, `binomialTable` | Ops `rd` (n = 30) and `rb` (n = 12) over `DynModInt64` ring moduli 1, 2, 8, 1000, `2^63` and `2^64-1`, and op `ud` (wrapping `ulng`, n = 40), against Python exact values reduced mod the ring. Probes `table-negative` and `derangement-table-negative`. |
+| Fibonacci, Lucas | Modular matrix powers, arbitrary 64-bit indices, static and dynamic prime, composite and modulus-one rings, unsigned 32/64-bit rings, exact 92/93/94 boundaries; a safe signed 32-bit regression and narrow-type compile rejection. |
+| Types, state, preconditions | Static and dynamic 32/64-bit Core types, modulus 2 and a prime near `2^64`, copy/move/reset, same-modulus rebuild, changed-modulus assertions, preserved aliased outputs, and 30 assertion probes. |
 
-Quick mode uses 300 seeded random iterations plus all fixed small/exhaustive and
-boundary cases: 28,447 Python protocol cases per configuration. Full uses 5,000
-random iterations: 70,747 protocol cases per configuration and ASan/UBSan. Stress
-uses 40,000 random iterations; it is an explicitly larger workload and is not
-claimed run by this record. A compile-fail fixture checks rejection of narrow
-unsigned Fibonacci types in every invocation, separate from assertion probes.
+A compile-fail fixture checks, on every run, that narrow unsigned Fibonacci types
+are rejected. This is separate from the assertion probes.
 
-Final command (2026-09-27):
+## Verification
 
-```text
-python3 '96-Local Testing/05-Mathematics/05-combinatorics_tester.py' --mode full --seed 20260927
-```
-
-**PASS** for all three configurations: GNU++20 `-O2 -DNDEBUG`,
-`-O0 -g -D_GLIBCXX_DEBUG`, and
-`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined
--fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie`.
-Each ran 70,747 independent Python protocol cases plus the C++ fixtures;
-the checked build passed all 27 invalid-input assertion probes. Narrow-type
-compilation rejection passed. The final run used GCC 16.2.1 (20260810),
-CPython 3.14.7, Linux x86-64, Intel Core i9-11900H, and seed 20260927.
-Log: `/tmp/p012-combinatorics-final.log` (ephemeral local artifact).
-
-The initial sandboxed full run passed optimized/checked but LeakSanitizer could
-not initialize under ptrace. A permitted run outside the sandbox completed all
-configurations with leak detection enabled; no sanitizer option was disabled.
-Package-wide standalone-header, aggregate, multi-translation-unit and existing
-Core consumer checks are recorded by the integration owner in `96-p012.md`.
-
-No additional combinatorics performance claim is made. The standard factorial
-table and doubling algorithms have their stated preprocessing/query bounds;
-the third table's cost is explicit. Performance measurements in the package
-record concern sieve alternatives, not these counting algorithms.
+Commands, configurations and results for the P012 re-audit are recorded in
+[96-p012.md](96-p012.md). The standard factorial-table and doubling algorithms have
+their stated bounds; no combinatorics performance claim is made.

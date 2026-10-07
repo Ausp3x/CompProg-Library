@@ -6,20 +6,18 @@ string context;
 void check(bool ok, const string &what) {
     ++checks;
     if (!ok) { cerr << "FAIL seed=" << test_seed << " smallest known reproducer=" << context
-                    << " operation=" << what << " expected=true actual=false\n"; std::exit(1); }}
+                    << " operation=" << what << " expected=true actual=false\n"; std::exit(1);}}
 
 string indices(const vector<int> &a) {
     string result = "[";
     for (int x : a) { result += std::to_string(x) + ','; }
-    return result + ']';
-}
+    return result + ']';}
 void checkIndices(const vector<int> &actual, const vector<int> &expected, const string &what) {
     ++checks;
     if (actual != expected) {
         cerr << "FAIL seed=" << test_seed << " smallest known reproducer=" << context
              << " operation=" << what << " expected=" << indices(expected)
-             << " actual=" << indices(actual) << '\n'; std::exit(1); }
-}
+             << " actual=" << indices(actual) << '\n'; std::exit(1);}}
 
 template<typename K, typename Compare>
 void checkSweep(const vector<K> &a, const vector<OfflineThreshold<K>> &queries, Compare cmp) {
@@ -31,7 +29,7 @@ void checkSweep(const vector<K> &a, const vector<OfflineThreshold<K>> &queries, 
         int best = -1;
         for (int i = 0; i < n; ++i) {
             if (!used[i] && (best < 0 || cmp(a[i], a[best]))) { best = i; }}
-        used[best] = true; update_order.push_back(best); }
+        used[best] = true; update_order.push_back(best);}
     for (int k = 0; k < q; ++k) {
         int best = -1;
         for (int i = 0; i < q; ++i) {
@@ -39,24 +37,21 @@ void checkSweep(const vector<K> &a, const vector<OfflineThreshold<K>> &queries, 
             if (best < 0 || cmp(queries[i].key, queries[best].key)
                 || (!cmp(queries[best].key, queries[i].key) && !cmp(queries[i].key, queries[best].key)
                     && !queries[i].inclusive && queries[best].inclusive)) { best = i; }}
-        answered[best] = true; query_order.push_back(best); }
-    vector<int> state, actual_queries;
+        answered[best] = true; query_order.push_back(best);}
+    vector<int> state, actual_queries; int last = 0;
     offlineSweep(a, queries, [&](int i) {
         check(0 <= i && i < n, "apply index bounds");
         check(int(state.size()) < n && update_order[state.size()] == i, "stable update callback order");
-        state.push_back(i);
-    }, [&](int i) {
+        state.push_back(i);}, [&](int i) {
         check(0 <= i && i < q, "answer index bounds");
         vector<int> expected;
         for (int j : update_order) {
             bool equal = !cmp(a[j], queries[i].key) && !cmp(queries[i].key, a[j]);
             if (cmp(a[j], queries[i].key) || (queries[i].inclusive && equal)) { expected.push_back(j); }}
         checkIndices(state, expected, "noncommutative state at query=" + std::to_string(i));
-        actual_queries.push_back(i);
-    }, cmp);
+        actual_queries.push_back(i); last = int(state.size());}, cmp);
     checkIndices(actual_queries, query_order, "strict/inclusive/stable query callback order");
-    if (queries.empty()) { check(state.empty(), "no query means no update callback"); }
-}
+    check(int(state.size()) == last, "no update is applied after the last answer");}
 
 template<typename K, typename Compare>
 void checkRanges(const vector<K> &a, const vector<OfflineRangeThreshold<K>> &queries, Compare cmp) {
@@ -65,16 +60,15 @@ void checkRanges(const vector<K> &a, const vector<OfflineRangeThreshold<K>> &que
         int count = 0;
         for (int i = query.l; i < query.r; ++i) {
             bool equal = !cmp(a[i], query.key) && !cmp(query.key, a[i]);
-            count += cmp(a[i], query.key) || (query.inclusive && equal); }
-        expected.push_back(count); }
-    checkIndices(offlineRangeCount(a, queries, cmp), expected, "range counts vs direct scan");
-}
+            count += cmp(a[i], query.key) || (query.inclusive && equal);}
+        expected.push_back(count);}
+    checkIndices(offlineRangeCount(a, queries, cmp), expected, "range counts vs direct scan");}
 
 void checkIntegerArray(const vector<lng> &a, bool exhaustive) {
     context = "array=["; for (lng x : a) { context += std::to_string(x) + ','; } context += ']';
     vector<OfflineThreshold<lng>> queries;
     for (lng key : {lng(2), lng(-2), lng(0), lng(1), lng(-1), lng(0)}) {
-        queries.push_back({key}); queries.push_back({key, false}); queries.push_back({key}); }
+        queries.push_back({key}); queries.push_back({key, false}); queries.push_back({key});}
     auto original = a;
     checkSweep(a, queries, std::less<lng>{});
     checkSweep(a, queries, std::greater<lng>{});
@@ -82,7 +76,7 @@ void checkIntegerArray(const vector<lng> &a, bool exhaustive) {
     for (int l = 0; l <= n; ++l) { for (int r = l; r <= n; ++r) {
         if (!exhaustive && l != 0 && r != n && r != l && r != l + 1) { continue; }
         for (lng key : {lng(-2), lng(-1), lng(0), lng(1), lng(2)}) {
-            ranges.push_back({l, r, key}); ranges.push_back({l, r, key, false}); }}}
+            ranges.push_back({l, r, key}); ranges.push_back({l, r, key, false});}}}
     reverse(ranges.begin(), ranges.end());
     auto saved = ranges;
     checkRanges(a, ranges, std::less<lng>{});
@@ -90,8 +84,7 @@ void checkIntegerArray(const vector<lng> &a, bool exhaustive) {
     check(a == original, "update keys preserved");
     for (int i = 0; i < int(ranges.size()); ++i) {
         check(ranges[i].l == saved[i].l && ranges[i].r == saved[i].r && ranges[i].key == saved[i].key
-              && ranges[i].inclusive == saved[i].inclusive, "range query inputs preserved"); }
-}
+              && ranges[i].inclusive == saved[i].inclusive, "range query inputs preserved");}}
 
 struct Direction {
     bool down;
@@ -160,7 +153,7 @@ void customCases() {
     for (int run = 1; run <= 2; ++run) {
         offlineSweep(vector<int>{2, 1, 2}, vector<OfflineThreshold<int>>{{2}},
                      [&](int) { ++accumulated; }, [&](int i) {
-            check(i == 0 && accumulated == 3 * run, "state lifetime across invocations"); ++answers; }); }
+            check(i == 0 && accumulated == 3 * run, "state lifetime across invocations"); ++answers;});}
     check(answers == 2, "exactly one answer per invocation");
     checkIndices(offlineRangeCount(vector<int>{2, 1, 2}, vector<OfflineRangeThreshold<int>>{{0, 3, 2}, {0, 3, 2, false}}),
                  vector<int>{3, 1}, "default comparator and default inclusive aggregate");
@@ -168,18 +161,14 @@ void customCases() {
     accumulated = 0; bool caught = false;
     try {
         offlineSweep(vector<int>{3, 1, 2}, vector<OfflineThreshold<int>>{{3}}, [&](int) {
-            if (++accumulated == 2) { throw std::runtime_error("apply"); }
-        }, [&](int) { check(false, "answer cannot run after apply throws"); });
-    } catch (const std::runtime_error &e) { caught = string(e.what()) == "apply"; }
+            if (++accumulated == 2) { throw std::runtime_error("apply"); }}, [&](int) { check(false, "answer cannot run after apply throws"); });} catch (const std::runtime_error &e) { caught = string(e.what()) == "apply"; }
     check(caught && accumulated == 2, "apply exception propagated without rollback");
     caught = false; accumulated = 0;
     try {
         offlineSweep(vector<int>{1, 3, 2}, vector<OfflineThreshold<int>>{{2}},
-                     [&](int) { ++accumulated; }, [&](int) { throw std::runtime_error("answer"); });
-    } catch (const std::runtime_error &e) { caught = string(e.what()) == "answer"; }
+                     [&](int) { ++accumulated; }, [&](int) { throw std::runtime_error("answer"); });} catch (const std::runtime_error &e) { caught = string(e.what()) == "answer"; }
     check(caught && accumulated == 2, "answer exception propagated without rollback");
-    cout << "PASS empty/default/repeated/exception semantics; custom comparators, equivalence, bool/string/opaque/64/128-bit keys\n";
-}
+    cout << "PASS empty/default/repeated/exception semantics; custom comparators, equivalence, bool/string/opaque/64/128-bit keys\n";}
 
 void randomCases(const string &mode) {
     std::mt19937_64 gen(test_seed);
@@ -199,7 +188,7 @@ void randomCases(const string &mode) {
             bool inclusive = bool(gen() % 2);
             queries.push_back({key, inclusive}); ranges.push_back({l, r, key, inclusive});
             context += '(' + std::to_string(l) + ',' + std::to_string(r) + ',' + std::to_string(key)
-                     + ',' + std::to_string(inclusive) + "),"; }
+                     + ',' + std::to_string(inclusive) + "),";}
         context += ']';
         auto original = a; auto saved_queries = queries;
         checkSweep(a, queries, std::less<lng>{}); checkRanges(a, ranges, std::less<lng>{});
@@ -207,9 +196,8 @@ void randomCases(const string &mode) {
         check(a == original, "random input keys preserved");
         for (int i = 0; i < q; ++i) {
             check(queries[i].key == saved_queries[i].key && queries[i].inclusive == saved_queries[i].inclusive,
-                  "sweep query keys/flags preserved"); }}
-    cout << "PASS seeded random direct-scan/ordered-callback corpora rounds=" << rounds << '\n';
-}
+                  "sweep query keys/flags preserved");}}
+    cout << "PASS seeded random direct-scan/ordered-callback corpora rounds=" << rounds << '\n';}
 
 void largeCases(const string &mode) {
     int n = mode == "quick" ? 5000 : 200000;
@@ -219,7 +207,7 @@ void largeCases(const string &mode) {
     auto result = offlineRangeCount(a, queries);
     check(int(result.size()) == n, "large output size");
     for (int i = 0; i < n; ++i) {
-        check(result[i] == (i % 2 ? n - 2 * (i / 2) : 0), "large equal-key range count query=" + std::to_string(i)); }
+        check(result[i] == (i % 2 ? n - 2 * (i / 2) : 0), "large equal-key range count query=" + std::to_string(i));}
     context = "large reverse update order n=" + std::to_string(n);
     for (int i = 0; i < n; ++i) { a[i] = n - i; }
     vector<int> answers(4, -1); int applied = 0;
@@ -227,8 +215,7 @@ void largeCases(const string &mode) {
                  [&](int i) { check(i == n - 1 - applied, "large sorted update order"); ++applied; },
                  [&](int i) { answers[i] = applied; });
     checkIndices(answers, vector<int>{n, n / 2 - 1, 0, n / 2}, "large threshold counts");
-    cout << "PASS large equal-key range and reverse-order sweep n=" << n << '\n';
-}
+    cout << "PASS large equal-key range and reverse-order sweep n=" << n << '\n';}
 
 int main(int argc, char **argv) {
     string mode = "full";
@@ -243,15 +230,14 @@ int main(int argc, char **argv) {
             if (probe == "right-past-end") { offlineRangeCount(a, vector<OfflineRangeThreshold<int>>{{0, 3, 0}}); }
             if (probe == "empty-past-end") { offlineRangeCount(vector<int>{}, vector<OfflineRangeThreshold<int>>{{0, 1, 0}}); }
             if (probe == "left-past-end") { offlineRangeCount(a, vector<OfflineRangeThreshold<int>>{{3, 3, 0}}); }
-            return 1; }}
+            return 1;}}
     int bound = mode == "quick" ? 4 : mode == "full" ? 6 : 7, arrays = 0;
     for (int n = 0, count = 1; n <= bound; ++n, count *= 3) {
         for (int mask = 0; mask < count; ++mask) {
             vector<lng> a(n); int code = mask;
             for (lng &x : a) { x = code % 3 - 1; code /= 3; }
-            checkIntegerArray(a, true); ++arrays; }}
+            checkIntegerArray(a, true); ++arrays;}}
     cout << "PASS exhaustive ternary arrays=" << arrays << " max_length=" << bound
          << " all half-open ranges and strict/inclusive thresholds in both orders\n";
     customCases(); randomCases(mode); largeCases(mode);
-    cout << "PASS offline sweep/range total checks=" << checks << " seed=" << test_seed << '\n';
-}
+    cout << "PASS offline sweep/range total checks=" << checks << " seed=" << test_seed << '\n';}

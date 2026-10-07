@@ -45,6 +45,27 @@ Catalog inspection establishes operation names and testable families, never impl
 | hitonanode shortest_path | https://hitonanode.github.io/cplib-cpp/graph/shortest_path.hpp | 2026-10-07 | 0/c-weight BFS, omitted as a scaling of `zeroOneBfs` |
 | maspypy minimum_spanning_tree | https://maspypy.github.io/library/graph/minimum_spanning_tree.hpp | 2026-10-07 | MST operation list; cycle data and second-best MST belong to row 52 |
 
+## Pages fetched on 2026-10-07 (P011 re-audit)
+
+Fetched by the completeness sweeps for rows 07–11; Library Checker task lists were read from the GitHub problem repository because the judge site needs JavaScript.
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| hitonanode binary lifting | https://hitonanode.github.io/cplib-cpp/other_algorithms/binary_lifting.hpp | 2026-10-07 | Path monoid products on lifting tables (`LCAFold::pathFold`); ancestor predicate search left to row 15 |
+| maspypy tree | https://maspypy.github.io/library/graph/tree.hpp | 2026-10-07 | `path_intersection` and `meet` (`pathIntersection`; `meet` equals `rerootedLCA`) |
+| maspypy fast_lca, ei1333 doubling LCA, Nyaan tree-query, suisen LCA | https://maspypy.github.io/library/graph/fast_lca.hpp | 2026-10-07 | Row 07 operation comparison; nothing else missing |
+| OI Wiki, 最近公共祖先 | https://oi-wiki.org/graph/lca/ | 2026-10-07 | DFS-order LCA, recorded as a constant-factor alternative only |
+| OI Wiki, 欧拉图 | https://oi-wiki.org/graph/euler/ | 2026-10-07 | Lexicographically smallest Euler trail by greedy Hierholzer (`eulerianTrail(..., true)`) |
+| maspypy euler_walk, suisen directed_eulerian_graph | https://maspypy.github.io/library/graph/euler_walk.hpp | 2026-10-07 | Row 10 comparison; existence and start modes already covered |
+| cp-algorithms, SCC and Euler path; ACL scc; OI Wiki SCC | https://cp-algorithms.com/graph/strongly-connected-components.html | 2026-10-07 | Row 08 comparison; incremental, tournament and bitset SCC owned by rows 70, 77, 40 |
+| suisen low_link | https://suisen-cp.github.io/cp-library-cpp/library/graph/low_link.hpp | 2026-10-07 | `connected_component_num_if_removed` (`LowlinkResult::cut_components`) |
+| Library Checker two_edge_connected_components, biconnected_components | https://github.com/yosupo06/library-checker-problems/tree/master/graph | 2026-10-07 | Output formats already covered by `components` and `block_vertices` |
+| OI Wiki 割点和桥, 双连通分量; KACTL BiconnectedComponents; Nyaan, maspypy, ei1333, hitonanode lowlink | https://oi-wiki.org/graph/cut/ | 2026-10-07 | Row 09 comparison |
+| suisen functional_graph | https://suisen-cp.github.io/cp-library-cpp/library/graph/functional_graph.hpp | 2026-10-07 | `kth_iterate` for all vertices in O(n) (`FunctionalGraph::jumpAll`) |
+| maspypy functional_graph and doubling | https://maspypy.github.io/library/graph/functional_graph.hpp | 2026-10-07 | `jump_all`, `max_jump`/`max_step` (`FunctionalGraphFold::maxStep`) |
+| hitonanode doubling | https://hitonanode.github.io/cplib-cpp/other_algorithms/doubling.hpp | 2026-10-07 | First step at which a monotone condition holds, reduced to `maxStep` |
+| CSES problem set | https://cses.fi/problemset/ | 2026-10-07 | Planets Queries/Cycles operations, covered by `jump`, `depth` and cycle lengths |
+
 ## Source keys
 
 Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder.

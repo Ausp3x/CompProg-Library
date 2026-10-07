@@ -1,10 +1,7 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
 
-// All integer endpoints support the full lng range. Predicates are deterministic.
-// Known true ok / known false ng bracket one transition; endpoints are not queried.
-// Equal endpoints represent an already converged answer. At most 64 evaluations.
-// T: O(log(n)), M: O(1); n = mathematical |ok - ng| + 1.
+// T: O(log(n)), M: O(1); n = |ok - ng| + 1, full lng endpoints; known ok/ng are never queried.
 template<typename F>
 lng binSearch(lng ok, lng ng, F f) {
     for (;;) {
@@ -13,9 +10,7 @@ lng binSearch(lng ok, lng ng, F f) {
         if (f(md)) { ok = md; }
         else { ng = md; }}}
 
-// First true in half-open [l, r), false then true. Returns {found, position};
-// position is r when absent. Empty ranges are valid; neither endpoint is a sentinel.
-// T: O(log(n + 1)), M: O(1); n = mathematical r - l.
+// T: O(log(n + 1)), M: O(1); n = r - l; firstTrue false-then-true, lastTrue true-then-false on [l, r); absent gives {false, r}.
 template<typename F>
 pair<bool, lng> firstTrue(lng l, lng r, F f) {
     assert(l <= r); lng end = r;
@@ -24,18 +19,12 @@ pair<bool, lng> firstTrue(lng l, lng r, F f) {
         if (f(md)) { r = md; }
         else { l = md + 1; }}
     return {l != end, l};}
-
-// Last true in [l, r), true then false. Returns {false, r} when absent.
-// T: O(log(n + 1)), M: O(1); n = mathematical r - l.
 template<typename F>
 pair<bool, lng> lastTrue(lng l, lng r, F f) {
     lng p = firstTrue(l, r, [&](lng x) { return !f(x); }).second;
     return p == l ? pair<bool, lng>{false, r} : pair<bool, lng>{true, p - 1};}
 
-// Leftmost minimum in CLOSED [l, r], preserving the legacy interface. The function
-// strictly decreases, is optionally flat at its minimum, then strictly increases.
-// Adjacent-value bisection improves the legacy ternary reduction; values need only <.
-// T: O(log(n)), M: O(1); n = mathematical r - l + 1; at most 128 evaluations.
+// T: O(log(n)), M: O(1); n = r - l + 1, CLOSED [l, r], strict decrease, flat minimum, strict increase; leftmost minimum; fibSearch <= log_phi(n + 1) + 1 evaluations.
 template<typename F>
 lng ternSearch(lng l, lng r, F f) {
     assert(l <= r);
@@ -44,17 +33,38 @@ lng ternSearch(lng l, lng r, F f) {
         if (f(md + 1) < f(md)) { l = md + 1; }
         else { r = md; }}
     return l;}
+template<typename F>
+lng fibSearch(lng l, lng r, F f) {
+    assert(l <= r);
+    if (l == r) { return l; }
+    lll a = lll(l) - 1, x = 2, y = 3;
+    while (y <= lll(r) - a) { y += x; x = y - x; }
+    auto g = [&](lll p) { return f(lng(min(p, lll(r)))); };
+    lll c = a + y - x, d = a + x;
+    auto fc = g(c), fd = g(d);
+    while (y > 3) {
+        lll z = y - x; y = x; x = z;
+        if (fd < fc) { a = c; c = d; fc = fd; d = a + x; fd = g(d); }
+        else { d = c; fd = fc; c = a + y - x; fc = g(c); }}
+    return lng(fd < fc ? d : c);}
 
-// Closed sorted bracket [l, r], recommended point x, completed reductions.
-// converged means width <= abs_tol + rel_tol * max(|l|, |r|), or no representable
-// double lies strictly inside. False means iteration cap or interpolation stagnation.
-// Width/point guarantees assume reliable comparisons of f; this is not interval math.
+// T: O(log(2 + x - ok)), M: O(1); f true then false on [ok, INT64_MAX], f(ok) known true; returns the last true x.
+template<typename F>
+lng expSearch(lng ok, F f) {
+    for (ulng d = 1; ok < std::numeric_limits<lng>::max(); d *= 2) {
+        lng ng = ulng(std::numeric_limits<lng>::max()) - ulng(ok) > d ? lng(ulng(ok) + d) : std::numeric_limits<lng>::max();
+        if (!f(ng)) { return binSearch(ok, ng, f); }
+        ok = ng;}
+    return ok;}
+
+// T: O(1), M: O(1); sorted bracket [l, r], point x, reductions done; converged = tolerance met or adjacent doubles.
 struct RealSearchResult {
     double l, r, x;
     int iterations;
     bool converged;
 };
 
+// T: O(1), M: O(1); validate asserts finite inputs and nonnegative limits, done is the converged predicate.
 namespace search_detail {
     inline void validate(double l, double r, int itr, double abs_tol, double rel_tol) {
         assert(std::isfinite(l) && std::isfinite(r) && itr >= 0);
@@ -64,9 +74,7 @@ namespace search_detail {
             || std::nextafter(l, r) == r;}
 } // namespace search_detail
 
-// Finite true/false endpoints in either order, never evaluated; equal is converged.
-// x is the true endpoint. In exact arithmetic width is initial_width / 2^iterations.
-// T: O(itr), M: O(1); at most itr predicate evaluations.
+// T: O(itr), M: O(1); finite ok/ng in either order, never evaluated; x is the true endpoint.
 template<typename F>
 RealSearchResult binSearchRealBracket(double ok, double ng, F f, int itr = 100,
                                      double abs_tol = 0, double rel_tol = 0) {
@@ -80,10 +88,7 @@ RealSearchResult binSearchRealBracket(double ok, double ng, F f, int itr = 100,
     double l = min(ok, ng), r = max(ok, ng);
     return {l, r, ok, used, search_detail::done(l, r, abs_tol, rel_tol)};}
 
-// Minimum in CLOSED [l, r], finite l <= r; strictly decreasing then optional flat
-// minimum then strictly increasing. Comparisons must preserve this shape (no NaN).
-// In exact arithmetic width shrinks by 2/3 per reduction; x is the final midpoint.
-// T: O(itr), M: O(1); at most 2 * itr evaluations.
+// T: O(itr), M: O(1); finite l <= r, ternSearch shape, x is the bracket midpoint; at most 2 * itr (ternary) or itr + 1 (golden) evaluations.
 template<typename F>
 RealSearchResult ternSearchRealBracket(double l, double r, F f, int itr = 200,
                                       double abs_tol = 0, double rel_tol = 0) {
@@ -95,10 +100,6 @@ RealSearchResult ternSearchRealBracket(double l, double r, F f, int itr = 200,
         else { r = m2; }
         ++used;}
     return {l, r, std::midpoint(l, r), used, search_detail::done(l, r, abs_tol, rel_tol)};}
-
-// Same contract as ternSearchRealBracket; cached values suit expensive functions.
-// In exact arithmetic width shrinks by (sqrt(5) - 1) / 2 per reduction.
-// T: O(itr), M: O(1); zero evaluations if done/itr=0, otherwise <= itr + 1.
 template<typename F>
 RealSearchResult goldenSearchRealBracket(double l, double r, F f, int itr = 100,
                                         double abs_tol = 0, double rel_tol = 0) {
@@ -118,16 +119,13 @@ RealSearchResult goldenSearchRealBracket(double l, double r, F f, int itr = 100,
             else { f1 = f(m1); }}}
     return {l, r, std::midpoint(l, r), used, search_detail::done(l, r, abs_tol, rel_tol)};}
 
-// Legacy point interfaces: same domains as the corresponding bracket API.
-// T: O(itr), M: O(1).
+// T: O(itr), M: O(1); legacy point interfaces with the domains of the bracket functions.
 template<typename F>
 double binSearchReal(double ok, double ng, F f, int itr = 100) {
     return binSearchRealBracket(ok, ng, std::move(f), itr).x;}
-// T: O(itr), M: O(1).
 template<typename F>
 double ternSearchReal(double l, double r, F f, int itr = 200) {
     return ternSearchRealBracket(l, r, std::move(f), itr).x;}
-// T: O(itr), M: O(1).
 template<typename F>
 double goldenSearchReal(double l, double r, F f, int itr = 100) {
     return goldenSearchRealBracket(l, r, std::move(f), itr).x;}

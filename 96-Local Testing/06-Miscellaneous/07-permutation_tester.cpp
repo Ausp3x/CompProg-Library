@@ -1,22 +1,23 @@
 #include "../../06-Miscellaneous/07-permutation.hpp"
+#include "../../01-Core/05-modint.hpp"
 
 ulng seed = 20260927;
 string context;
 void check(bool ok, const string &s) {
-    if (!ok) { cerr << "FAIL seed=" << seed << " case=" << context << " operation=" << s << '\n'; std::exit(1); } }
+    if (!ok) { cerr << "FAIL seed=" << seed << " case=" << context << " operation=" << s << '\n'; std::exit(1); }}
 string show(const vector<int> &a) {
     string s = "[";
     for (int x : a) { s += std::to_string(x) + ','; }
-    return s + ']'; }
+    return s + ']';}
 void checkVector(const vector<int> &a, const vector<int> &b, const string &operation) {
-    check(a == b, operation + " expected=" + show(b) + " actual=" + show(a)); }
+    check(a == b, operation + " expected=" + show(b) + " actual=" + show(a));}
 vector<vector<int>> enumerate(vector<int> counts, vector<int> keys) {
     vector<vector<int>> all; vector<int> p; int n = accumulate(counts.begin(), counts.end(), 0);
     auto go = [&](auto &&go) -> void {
         if (int(p.size()) == n) { all.push_back(p); return; }
         for (int i = 0; i < int(counts.size()); ++i) {
-            if (counts[i]) { --counts[i]; p.push_back(keys[i]); go(go); p.pop_back(); ++counts[i]; }} };
-    go(go); return all; }
+            if (counts[i]) { --counts[i]; p.push_back(keys[i]); go(go); p.pop_back(); ++counts[i]; }}};
+    go(go); return all;}
 vector<int> powerOracle(const vector<int> &p, lng k) {
     int n = int(p.size()); vector<int> r(n), q = p;
     iota(r.begin(), r.end(), 0);
@@ -26,8 +27,28 @@ vector<int> powerOracle(const vector<int> &p, lng k) {
         if (e & 1) { for (int &x : r) { x = q[x]; } }
         vector<int> square(n);
         for (int i = 0; i < n; ++i) { square[i] = q[q[i]]; }
-        q = std::move(square); e >>= 1; }
-    return r; }
+        q = std::move(square); e >>= 1;}
+    return r;}
+void checkCycles(const vector<int> &p) {
+    int n = int(p.size()); auto cycles = permutationCycles(p); vector<int> seen(n);
+    int previous = -1, transpositions = 0;
+    for (const auto &c : cycles) {
+        check(!c.empty() && c[0] > previous && *min_element(c.begin(), c.end()) == c[0], "cycle starts at its minimum, ordered");
+        previous = c[0]; transpositions += int(c.size()) - 1;
+        for (int j = 0; j < int(c.size()); ++j) {
+            check(0 <= c[j] && c[j] < n && !seen[c[j]]++, "cycles partition [0, n)");
+            check(p[c[j]] == c[(j + 1) % c.size()], "cycle follows p");}}
+    int inversions = 0;
+    for (int i = 0; i < n; ++i) {
+        for (int j = i + 1; j < n; ++j) { inversions += p[j] < p[i]; }}
+    check(int(std::count(seen.begin(), seen.end(), 1)) == n && transpositions % 2 == inversions % 2, "cycle cover and parity");
+    check(permutationSign(p) == (inversions % 2 ? -1 : 1), "sign equals inversion parity");}
+ulng orderOracle(const vector<int> &p) {
+    int n = int(p.size()); vector<int> id(n), q = p; iota(id.begin(), id.end(), 0); ulng t = 1;
+    while (q != id) {
+        for (int &x : q) { x = p[x]; }
+        ++t;}
+    return t;}
 void distinct(int limit) {
     for (int n = 0; n <= limit; ++n) {
         vector<int> id(n); iota(id.begin(), id.end(), 0);
@@ -42,18 +63,30 @@ void distinct(int limit) {
             vector<int> digits(n), inv(n);
             for (int i = 0; i < n; ++i) {
                 inv[p[i]] = i;
-                for (int j = i + 1; j < n; ++j) { digits[i] += p[j] < p[i]; } }
+                for (int j = i + 1; j < n; ++j) { digits[i] += p[j] < p[i]; }}
             checkVector(permutationLehmer(p), digits, "Lehmer brute inversion counts");
             checkVector(permutationFromLehmer(digits), p, "Lehmer decoding");
             checkVector(permutationInverse(p), inv, "inverse");
             checkVector(permutationCompose(p, inv), id, "inverse composition identity");
             if (n <= 5 || rank % 101 == 0) {
-                for (lng k : {-3, -1, 0, 1, 2, 5}) { checkVector(permutationPower(p, k), powerOracle(p, k), "small power=" + std::to_string(k)); } }
+                for (lng k : {-3, -1, 0, 1, 2, 5}) { checkVector(permutationPower(p, k), powerOracle(p, k), "small power=" + std::to_string(k)); }}
+            checkCycles(p);
+            ulng order = 0; check(permutationOrder(p, order) && order == orderOracle(p), "order equals smallest identity power");
+            check(permutationOrderMod<lll>(p) == lll(order) && permutationOrderMod<mint>(p) == mint(order), "order reduced into T");
+            lll total = lll(all.size());
+            for (lng k : {lng(0), lng(1), lng(-1), lng(-rank), lng(-rank) - 1, lng(all.size() - rank) - 1, lng(all.size() - rank),
+                          lng(-2 * total - 1), lng(3 * total + 2), std::numeric_limits<lng>::min(), std::numeric_limits<lng>::max()}) {
+                vector<int> q = p; lll target = lll(rank) + k;
+                bool inside = 0 <= target && target < total;
+                bool ok = kthNextPermutation(q, k);
+                target %= total; if (target < 0) { target += total; }
+                check(ok == inside, "kthNext wrap flag k=" + std::to_string(k));
+                checkVector(q, all[size_t(target)], "kthNext lexicographic target k=" + std::to_string(k));}
             vector<int> previous = p; bool prev = previousPermutation(previous);
             check(prev == (rank != 0), "previous bool"); checkVector(previous, all[(rank + all.size() - 1) % all.size()], "previous wrap");
-            check(nextPermutation(p) == (rank + 1 < all.size()), "next bool"); }
+            check(nextPermutation(p) == (rank + 1 < all.size()), "next bool");}
         checkVector(p, id, "next final wrap"); vector<int> old{-42};
-        check(!permutationUnrank(n, all.size(), old) && old == vector<int>{-42}, "unrank absence preserves destination"); }
+        check(!permutationUnrank(n, all.size(), old) && old == vector<int>{-42}, "unrank absence preserves destination");}
     check(!isPermutation({0, 0}) && !isPermutation({-1}) && !isPermutation({1}), "invalid permutation predicate");
     vector<int> descending{2, 1, 1}, after{1, 2, 1};
     check(nextPermutation(descending, std::greater<int>{}), "custom comparator next"); checkVector(descending, after, "descending comparator order");
@@ -65,7 +98,7 @@ void distinct(int limit) {
     check(nextPermutation(records, cmp), "comparator equivalence classes");
     check(records[0].first == 1 && records[1].first == 2 && records[2].first == 1, "equivalent values need not be equal records");
     sort(records.begin(), records.end());
-    check(records == vector<pair<int, int>>{{1, 7}, {1, 9}, {2, 0}}, "records preserved"); }
+    check(records == vector<pair<int, int>>{{1, 7}, {1, 9}, {2, 0}}, "records preserved");}
 void multisetCases(int limit) {
     for (int a = 0; a <= limit; ++a) {
         for (int b = 0; b <= limit; ++b) {
@@ -80,9 +113,9 @@ void multisetCases(int limit) {
                     vector<int> out{-42}; check(multisetPermutationUnrank(all.back(), i, out), "multiset unrank exists"); checkVector(out, all[i], "multiset unrank order");
                     vector<int> previous = all[i]; check(previousPermutation(previous) == (i != 0), "multiset previous bool");
                     checkVector(previous, all[(i + all.size() - 1) % all.size()], "multiset previous order");
-                    check(nextPermutation(next) == (i + 1 < all.size()), "multiset next bool"); }
+                    check(nextPermutation(next) == (i + 1 < all.size()), "multiset next bool");}
                 vector<int> out{-42};
-                check(!multisetPermutationUnrank(all[0], total, out) && out == vector<int>{-42}, "multiset absent preserves destination"); } } }
+                check(!multisetPermutationUnrank(all[0], total, out) && out == vector<int>{-42}, "multiset absent preserves destination");}}}
     context = "multiset overflow boundaries"; ulng count = 42;
     check(multisetPermutationCount({INT_MAX}, count) && count == 1, "huge all-equal count");
     check(multisetPermutationCount({INT_MAX - 1, 1}, count) && count == ulng(INT_MAX), "huge one rare count");
@@ -94,7 +127,7 @@ void multisetCases(int limit) {
     check(!multisetPermutationRank(unique, count) && count == 42, "21! rank overflow preserves");
     check(!multisetPermutationUnrank(unique, 0, out) && out == vector<int>{-42}, "21! unrank rejects overflow even rank0");
     vector<int> duplicate{0, 0, 1, 1, 2}; check(multisetPermutationUnrank(duplicate, 7, duplicate), "alias-safe multiset unrank");
-    check(multisetPermutationRank(duplicate, count) && count == 7, "aliased result"); }
+    check(multisetPermutationRank(duplicate, count) && count == 7, "aliased result");}
 void randomized(std::mt19937_64 &rng, int rounds, int large) {
     for (int rep = 0; rep < rounds; ++rep) {
         int n = int(rng() % 70); vector<int> p(n), q(n), expected(n); iota(p.begin(), p.end(), 0); q = p;
@@ -103,8 +136,33 @@ void randomized(std::mt19937_64 &rng, int rounds, int large) {
         for (int i = 0; i < n; ++i) { expected[i] = p[q[i]]; }
         checkVector(permutationCompose(p, q), expected, "composition order");
         for (lng k : {std::numeric_limits<lng>::min(), std::numeric_limits<lng>::max(), std::bit_cast<lng>(rng())}) {
-            checkVector(permutationPower(p, k), powerOracle(p, k), "full exponent domain k=" + std::to_string(k)); }
-        checkVector(permutationFromLehmer(permutationLehmer(p)), p, "large factorial-independent digits"); }
+            checkVector(permutationPower(p, k), powerOracle(p, k), "full exponent domain k=" + std::to_string(k));}
+        checkVector(permutationFromLehmer(permutationLehmer(p)), p, "large factorial-independent digits");
+        checkCycles(p);
+        ulng order = 0; check(permutationOrder(p, order) && permutationOrderMod<ulng>(p) == order, "random order exact and reduced");
+        check(permutationPower(p, lng(order)) == permutationPower(p, 0), "order annihilates p");
+        lng k = rep % 3 ? lng(rng() % 2001) - 1000 : std::bit_cast<lng>(rng());
+        vector<int> moved = p, walk = p; bool ok = kthNextPermutation(moved, k), flag = true;
+        if (k >= -1000 && k <= 1000) {
+            for (lng i = 0; i < (k < 0 ? -k : k); ++i) { flag &= k > 0 ? nextPermutation(walk) : previousPermutation(walk); }
+            checkVector(moved, walk, "kthNext equals repeated std steps k=" + std::to_string(k)); check(ok == flag, "kthNext flag equals any std wrap");}
+        vector<int> back = moved; kthNextPermutation(back, k == std::numeric_limits<lng>::min() ? k + 1 : -k);
+        if (k != std::numeric_limits<lng>::min()) { checkVector(back, p, "kthNext inverse offset"); }}
+    {
+        context = "order overflow boundary";
+        vector<int> primes{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53}, cyc;
+        for (int c : primes) {
+            int start = int(cyc.size());
+            for (int j = 0; j < c; ++j) { cyc.push_back(start + (j + 1) % c); }
+            if (c == 47) {
+                ulng order = 0; check(permutationOrder(cyc, order) && order == 614889782588491410ULL, "product of first 15 primes fits");}}
+        ulng order = 42; check(!permutationOrder(cyc, order) && order == 42, "first 16 primes overflow preserves out");
+        check(permutationOrderMod<mint>(cyc) == mint(614889782588491410ULL) * 53, "reduced order past ulng");
+        ulng one = 0; check(permutationOrder({}, one) && one == 1 && permutationSign({}) == 1 && permutationCycles({}).empty(), "empty permutation");
+        vector<int> big(25); iota(big.begin(), big.end(), 0); vector<int> last(big.rbegin(), big.rend());
+        check(!kthNextPermutation(last, 1) && last == big, "n > 21 wraps through the prefix to identity");
+        check(kthNextPermutation(last, std::numeric_limits<lng>::max()) && !kthNextPermutation(last, std::numeric_limits<lng>::min()), "n > 21 extreme offsets");
+        check(last == vector<int>(big.rbegin(), big.rend()) && !kthNextPermutation(last, 1) && last == big, "n > 21 backward wrap to the last permutation");}
     context = "large linear and nlogn domains n=" + std::to_string(large);
     vector<int> p(large); iota(p.begin(), p.end(), 0); reverse(p.begin(), p.end());
     auto d = permutationLehmer(p);
@@ -118,24 +176,29 @@ void randomized(std::mt19937_64 &rng, int rounds, int large) {
     check(multisetPermutationUnrank(same, 0, out), "large all-equal unrank"); checkVector(out, same, "large all-equal result");
     same.back() = INT_MAX;
     check(multisetPermutationUnrank(same, ulng(large - 1), out), "large one rare unrank");
-    check(out.front() == INT_MAX && std::count(out.begin(), out.end(), INT_MIN) == large - 1, "large rare last permutation"); }
+    check(out.front() == INT_MAX && std::count(out.begin(), out.end(), INT_MIN) == large - 1, "large rare last permutation");}
 void oracle() {
     char mode;
     while (cin >> mode) {
         int n; cin >> n; vector<int> a(n); for (int &x : a) { cin >> x; } ulng requested; cin >> requested;
         ulng rank = 42, count = 42; vector<int> out{-42}; bool fits, ok;
+        if (mode == 'K' || mode == 'O') {
+            lng k = std::bit_cast<lng>(requested);
+            if (mode == 'K') { bool ok2 = kthNextPermutation(a, k); cout << ok2; for (int x : a) { cout << ' ' << x; } cout << '\n'; }
+            else { ulng order = 0; bool fit = permutationOrder(a, order); cout << fit << ' ' << (fit ? order : 0) << ' ' << permutationOrderMod<mint>(a).val() << ' ' << permutationSign(a) << ' ' << permutationCycles(a).size() << '\n'; }
+            continue;}
         if (mode == 'D') {
             rank = permutationRank(a); count = 1; for (int i = 2; i <= n; ++i) { count *= i; }
-            fits = true; ok = permutationUnrank(n, requested, out); }
+            fits = true; ok = permutationUnrank(n, requested, out);}
         else {
             map<int, int> freq; for (int x : a) { ++freq[x]; } vector<int> counts;
             for (auto [x, c] : freq) { counts.push_back(c); }
             fits = multisetPermutationCount(counts, count);
             check(multisetPermutationRank(a, rank) == fits, "Python rank/count status agreement");
-            ok = multisetPermutationUnrank(a, requested, out); }
+            ok = multisetPermutationUnrank(a, requested, out);}
         cout << fits << ' ' << count << ' ' << rank << ' ' << ok << ' ' << out.size();
-        for (int x : out) { cout << ' ' << x; } cout << '\n'; }
-    check(cin.eof(), "Python input protocol"); }
+        for (int x : out) { cout << ' ' << x; } cout << '\n';}
+    check(cin.eof(), "Python input protocol");}
 int main(int argc, char **argv) {
     string mode = "full";
     for (int i = 1; i < argc; ++i) {
@@ -160,7 +223,12 @@ int main(int argc, char **argv) {
             else if (p == "unrank-size") { permutationUnrank(21, 0, out); }
             else if (p == "count-negative") { multisetPermutationCount({2, -1}, x); }
             else if (p == "count-size") { multisetPermutationCount({INT_MAX, 1}, x); }
-            return 0; } }
+            else if (p == "kth-invalid") { vector<int> q{0, 0}; kthNextPermutation(q, 1); }
+            else if (p == "cycles-invalid") { permutationCycles({1, 1}); }
+            else if (p == "sign-invalid") { permutationSign({2}); }
+            else if (p == "order-invalid") { permutationOrder({0, 0}, x); }
+            else if (p == "order-mod-invalid") { permutationOrderMod<ulng>({-1}); }
+            return 0;}}
     std::mt19937_64 rng(seed);
     distinct(mode == "quick" ? 6 : mode == "full" ? 8 : 9);
     cout << "PASS independently enumerated distinct order/rank/digits/algebra\n";
@@ -168,4 +236,4 @@ int main(int argc, char **argv) {
     cout << "PASS independently enumerated multisets and exact count boundaries\n";
     randomized(rng, mode == "quick" ? 100 : mode == "full" ? 3000 : 30000,
                mode == "quick" ? 1000 : mode == "full" ? 100000 : 500000);
-    cout << "PASS full-domain exponent oracle, aliases and large inputs\n"; }
+    cout << "PASS full-domain exponent oracle, aliases and large inputs\n";}

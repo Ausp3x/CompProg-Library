@@ -10,7 +10,7 @@ from _00_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('02-search_algorithms', [
-        'first-order', 'last-order', 'integer-order', 'binary-iterations',
+        'first-order', 'last-order', 'integer-order', 'fib-order', 'binary-iterations',
         'ternary-iterations', 'golden-iterations', 'binary-infinite',
         'ternary-nan', 'golden-infinite', 'ternary-order', 'golden-order',
         'negative-absolute', 'negative-relative', 'infinite-tolerance', 'nan-tolerance']))

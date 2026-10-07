@@ -35,6 +35,19 @@
 | FLINT documentation index | https://flintlib.org/doc/ | 2026-10-06 | module families: ulong_extras, fmpz_lll, aprcl, ecpp, qsieve, arith, qfb, dirichlet, dlog, nf, qqbar, arb/acb, ca, fq, padic, perm, partitions |
 | NTL module tour | https://libntl.org/doc/tour-modules.html | 2026-10-06 | HNF, LLL, ZZXFactoring, GF2E/GF2EX, RR, quad_float, mat_poly characteristic polynomial |
 
+## P012 re-audit sweep (fetched 2026-10-07)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| maspypy `other/fibonacci_search.hpp` | https://github.com/maspypy/library/blob/main/other/fibonacci_search.hpp | 2026-10-07 | `fibSearch` (row 02); independently written |
+| maspypy `other/exp_search.hpp` | https://github.com/maspypy/library/blob/main/other/exp_search.hpp | 2026-10-07 | `expSearch` (row 02); independently written |
+| cp-algorithms, Binary search ("search with powers of 2") | https://cp-algorithms.com/num_methods/binary_search.html | 2026-10-07 | galloping argument for `expSearch` |
+| Nyaan `golden-section-search.hpp` | https://nyaannyaan.github.io/library/dp/golden-section-search.hpp | 2026-10-07 | cross-check of the integer golden-section idea |
+| Nyaan `modulo/binomial.hpp` | https://nyaannyaan.github.io/library/modulo/binomial.hpp | 2026-10-07 | `combiLarge` (large n, small r) |
+| Nyaan `modulo/binomial-table.hpp`, cp-algorithms binomial coefficients | https://nyaannyaan.github.io/library/modulo/binomial-table.hpp, https://cp-algorithms.com/combinatorics/binomial-coefficients.html | 2026-10-07 | `binomialTable` (Pascal, any modulus) |
+| ei1333 `montmort.hpp`; Library Checker `montmort_number_mod` statement | https://ei1333.github.io/library/math/combinatorics/montmort.hpp, https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/montmort_number_mod/task.md | 2026-10-07 | `derangementTable` (any modulus) |
+| Sources checked with nothing adopted | ACL `internal_math.hpp`, KACTL number-theory and numerical, Nyaan `misc/int_div.hpp`, maspypy `my_template.hpp`, hitonanode `binary_gcd.hpp`, `sieve.hpp`, `bs_sieve.hpp`, maspypy `nt/all_lcm.hpp`, `mod/modint_common.hpp`, `mod/first_mod_range_of_linear.hpp`, PyRival numerical and combinatorics, OI Wiki sieve | 2026-10-07 | reasons in [80-notes.md](80-notes.md) |
+
 ## Earlier source record (condensed from the previous index and evidence documents)
 
 - The 2026-09-27 audit compared external algorithm catalogs and the saved Modern Computer Arithmetic contents; read scope and URLs are in the [central audit](../00-Guidelines/16-inventory-audit.md). A follow-up scope pass compared the active arithmetic/search/equation/sieve/combinatorics/transform interfaces and the archived factorization/inverse/CRT/log/root/numerical helpers plus the saved [KACTL notebook](../95-Resources/05-kactl.pdf) `Tridiagonal.h` contract.

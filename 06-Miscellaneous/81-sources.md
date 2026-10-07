@@ -38,6 +38,34 @@
 
 Catalog presence is a feature lead only; algorithm proofs, current fastest variants and licensing are checked during implementation. Short keys used in `00-index.md` status cells: CPA cp-algorithms, OIW OI Wiki, KACTL, LC Library Checker, CSES, CF Codeforces practice, NYA Nyaan, MAS maspypy, EI ei1333, SUI suisen, HIT hitonanode, TKO tko919, NOS noshi91, ALG Algorithmica.
 
+## P013 re-audit sweep (2026-10-07)
+
+Fetched by `@researcher` for rows `01`–`07`; per-header use is recorded in the evidence documents.
+
+| Source | URL | Used for |
+|---|---|---|
+| Nyaan rng / fastio / gray-code / enumerate-set | https://nyaannyaan.github.io/library/misc/rng.hpp, https://raw.githubusercontent.com/NyaanNyaan/library/master/misc/fastio.hpp, https://nyaannyaan.github.io/library/math/gray-code.hpp, https://nyaannyaan.github.io/library/set-function/enumerate-set.hpp | `01` randDouble(l, r); `03` variadic read/print; `06` Gray code and superset step |
+| maspypy random_real / io / index_compression / kth_next_permutation / factorial_digit_system | https://raw.githubusercontent.com/maspypy/library/main/random/random_real.hpp, https://raw.githubusercontent.com/maspypy/library/main/other/io.hpp, https://maspypy.github.io/library/ds/index_compression.hpp, https://raw.githubusercontent.com/maspypy/library/main/seq/kth_next_permutation.hpp, https://raw.githubusercontent.com/maspypy/library/main/seq/factorial_digit_system.hpp | `01` real draws; `03` print precision default; `04` stableRanks; `07` kthNextPermutation |
+| hitonanode rand_nondeterministic / reader | https://hitonanode.github.io/cplib-cpp/random/rand_nondeterministic.hpp, https://hitonanode.github.io/cplib-cpp/utilities/reader.hpp | `01` URBG interface; `03` |
+| OI Wiki random / discretization / bit | https://oi-wiki.org/misc/random/, https://oi-wiki.org/misc/discrete/, https://oi-wiki.org/math/bit/ | `01` URBG; `04` stableRanks; `06` parity |
+| KACTL HashMap.h / FastInput.h | https://github.com/kth-competitive-programming/kactl/blob/main/content/data-structures/HashMap.h, https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/various/FastInput.h | `02` safe_gp_hash_table; `03` |
+| yosupo fastio, ei1333 scanner/printer/compress | https://raw.githubusercontent.com/yosupo06/yosupo-library/main/src/yosupo/fastio.hpp, https://ei1333.github.io/library/other/scanner.hpp, https://ei1333.github.io/library/other/printer.hpp, https://ei1333.github.io/library/other/compress.hpp | `03` range read/write and end bytes; `04` bulk ranks |
+| suisen coordinate_compressor / bit_utils / permutation | https://suisen-cp.github.io/cp-library-cpp/library/util/coordinate_compressor.hpp, https://suisen-cp.github.io/cp-library-cpp/library/util/bit_utils.hpp, https://suisen-cp.github.io/cp-library-cpp/library/util/permutation.hpp | `04`, `06` parity, `07` |
+| cp-algorithms Gray code / bit manipulation | https://cp-algorithms.com/algebra/gray-code.html, https://cp-algorithms.com/algebra/bit-manipulation.html | `06` |
+
+## P014 re-audit sweep (2026-10-08)
+
+Fetched by `@researcher` for rows `08`–`11`; adoption decisions are in [96-p014.md](96-p014.md) "Omitted candidates".
+
+| Source | URL | Used for |
+|---|---|---|
+| CSES problem set | https://cses.fi/problemset/ | `08` Increasing Subsequence II (`countIncreasingSubsequences`), Towers (dual cover of `increasingSubsequenceLengths`); `09` Nested Ranges Check/Count (`removeNestedIntervals`, `nestedIntervalCounts`); not adopted: Subarray Sums II, Sum of Three/Four Values, Movie Festival II/Queries |
+| cp-algorithms LIS | https://cp-algorithms.com/dynamic_programming/longest_increasing_subsequence.html | `08` per-index lengths and the minimum non-increasing cover |
+| maspypy `seq/inversion.hpp`, `seq/longest_increasing_subsequence.hpp` | https://github.com/maspypy/library/blob/main/seq/inversion.hpp, https://github.com/maspypy/library/blob/main/seq/longest_increasing_subsequence.hpp | `08` `adjacentSwapDistance` (inversion_between), LIS dp array; not adopted: inversion of every rotation, all-range inversion table |
+| KACTL `content/various` (IntervalCover.h, ConstantIntervals.h) | https://github.com/kth-competitive-programming/kactl/tree/main/content/various | `09` `intervalCover`; ConstantIntervals not adopted |
+| OI Wiki 快速排序 | https://oi-wiki.org/basic/quick-sort/ | `11` three-way partition and linear-time selection |
+| maspypy offline set intersection, ei1333 offline RMQ, hitonanode offline range kth / sum of linear | https://maspypy.github.io/library/ds/offline_query/offline_set_intersection.hpp, https://ei1333.github.io/library/other/offline-rmq.hpp, https://hitonanode.github.io/cplib-cpp/data_structure/range_kth_smallest_offline.hpp, https://hitonanode.github.io/cplib-cpp/utilities/offline_sum_of_linear.hpp | `10` candidates, none adopted (owners recorded) |
+
 ## Earlier audit (condensed from the previous index)
 
 The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, dynamic DP, slope trick, IDA*, alpha-beta, job ordering, expression parsing, majority candidates, Garsia–Wachs and annealing, and compared cp-algorithms, CSES, Library Checker, OI Wiki navigation and the Japanese library catalogs. The Garsia–Wachs page has conflicting complexity wording, so `48` requires independent verification rather than adopting its headline. Per-package source inspections with dates, page revisions and read scopes are recorded in [90-random_hash.md](90-random_hash.md), [91-fastio.md](91-fastio.md), [92-compression_search.md](92-compression_search.md), [93-bit_operations.md](93-bit_operations.md), [94-permutation.md](94-permutation.md), [96-p014.md](96-p014.md) and [89-p015.md](89-p015.md); machine-readable timestamps are in [17-research-sources.json](../00-Guidelines/17-research-sources.json). Code in every verified header was written independently from the mathematical recurrences; no external source text was adapted.

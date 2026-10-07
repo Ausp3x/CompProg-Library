@@ -25,7 +25,7 @@ def expected(row):
     if g == 0:
         s = (2 if c == 0 else -1, 0, 0, 0, 0, 0)
     elif c % g:
-        s = (-1, 0, 0, 0, 0, 0)
+        s = (-1, 0, 0, 0, 0, g)
     elif b:
         period = abs(b // g)
         x = (c // g * pow(a // g, -1, period)) % period

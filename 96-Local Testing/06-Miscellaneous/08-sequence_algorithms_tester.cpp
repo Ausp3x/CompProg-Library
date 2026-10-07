@@ -3,17 +3,17 @@
 ulng seed = 20260928;
 string context;
 void check(bool ok, const string &s) {
-    if (!ok) { cerr << "FAIL seed=" << seed << " smallest known reproducer=" << context << " operation=" << s << " expected=true actual=false" << '\n'; std::exit(1); } }
+    if (!ok) { cerr << "FAIL seed=" << seed << " smallest known reproducer=" << context << " operation=" << s << " expected=true actual=false" << '\n'; std::exit(1); }}
 string number(lll x) {
     if (x == 0) { return "0"; }
     bool neg = x < 0; if (neg) { x = -x; } string s;
     while (x) { s += char('0' + x % 10); x /= 10; }
-    if (neg) { s += '-'; } reverse(s.begin(), s.end()); return s; }
+    if (neg) { s += '-'; } reverse(s.begin(), s.end()); return s;}
 template<typename T>
 string show(const vector<T> &a) {
-    string s = "["; for (const auto &x : a) { s += number(lll(x)) + ','; } return s + ']'; }
+    string s = "["; for (const auto &x : a) { s += number(lll(x)) + ','; } return s + ']';}
 void checkEqual(lll actual, lll expected, const string &s) {
-    check(actual == expected, s + " expected=" + number(expected) + " actual=" + number(actual)); }
+    check(actual == expected, s + " expected=" + number(expected) + " actual=" + number(actual));}
 
 template<typename T>
 SubarraySum subarrayOracle(const vector<T> &a, int lo, int hi) {
@@ -22,8 +22,8 @@ SubarraySum subarrayOracle(const vector<T> &a, int lo, int hi) {
         lll sum = 0;
         for (int r = l; r <= n; ++r) {
             if (r > l) { sum += a[r - 1]; }
-            if (lo <= r - l && r - l <= hi && (!best.exists() || sum > best.sum)) { best = {sum, l, r}; } } }
-    return best; }
+            if (lo <= r - l && r - l <= hi && (!best.exists() || sum > best.sum)) { best = {sum, l, r}; }}}
+    return best;}
 template<typename T>
 void subarrayWitness(const vector<T> &a, SubarraySum got, SubarraySum want, int lo, int hi) {
     check(got.exists() == want.exists(), "subarray presence expected=" + std::to_string(want.exists()));
@@ -31,7 +31,7 @@ void subarrayWitness(const vector<T> &a, SubarraySum got, SubarraySum want, int 
     if (!got.exists()) { check(got.l == -1 && got.r == -1, "absent coordinates"); return; }
     int n = int(a.size()); check(0 <= got.l && got.l <= got.r && got.r <= n, "subarray bounds");
     check(lo <= got.r - got.l && got.r - got.l <= hi, "subarray length");
-    lll sum = 0; for (int i = got.l; i < got.r; ++i) { sum += a[i]; } checkEqual(sum, got.sum, "subarray witness"); }
+    lll sum = 0; for (int i = got.l; i < got.r; ++i) { sum += a[i]; } checkEqual(sum, got.sum, "subarray witness");}
 template<typename T>
 void sums(const vector<T> &a, bool all_bounds) {
     context = "sums a=" + show(a); int n = int(a.size());
@@ -42,22 +42,37 @@ void sums(const vector<T> &a, bool all_bounds) {
             lll sum = 0;
             for (int k = 1; k <= n; ++k) {
                 sum += a[(l + k - 1) % n];
-                if (!found || sum > best) { best = sum; found = true; } } }
+                if (!found || sum > best) { best = sum; found = true; }}}
         check(got.exists() == found, "circular presence"); checkEqual(got.sum, best, "circular optimum");
         if (got.exists()) {
             check(got.start >= 0 && got.start < max(1, n) && !empty <= got.length && got.length <= n, "circular bounds");
             lll sum = 0; for (int i = 0; i < got.length; ++i) { sum += a[(got.start + i) % n]; }
-            checkEqual(sum, got.sum, "circular witness"); }
-        else { check(got.start == -1 && got.length == 0, "circular absence"); } }
+            checkEqual(sum, got.sum, "circular witness");}
+        else { check(got.start == -1 && got.length == 0, "circular absence"); }}
     auto oracle = subarrayOracle(a, 1, n);
     if (std::numeric_limits<lng>::min() <= oracle.sum && oracle.sum <= std::numeric_limits<lng>::max()) {
-        checkEqual(kadane(a), oracle.sum, "legacy widened kadane"); }
+        checkEqual(kadane(a), oracle.sum, "legacy widened kadane");}
     if (all_bounds) {
         for (int lo = 0; lo <= n + 1; ++lo) {
             for (int hi = lo; hi <= n + 1; ++hi) {
                 context = "bounded a=" + show(a) + " lo=" + std::to_string(lo) + " hi=" + std::to_string(hi);
-                subarrayWitness(a, boundedMaximumSubarray(a, lo, hi), subarrayOracle(a, lo, hi), lo, hi); } } }
-    subarrayWitness(a, boundedMaximumSubarray(a, 0, INT_MAX), subarrayOracle(a, 0, n), 0, INT_MAX); }
+                subarrayWitness(a, boundedMaximumSubarray(a, lo, hi), subarrayOracle(a, lo, hi), lo, hi);}}}
+    subarrayWitness(a, boundedMaximumSubarray(a, 0, INT_MAX), subarrayOracle(a, 0, n), 0, INT_MAX);
+    for (int lo = 1; lo <= n + 1; ++lo) {
+        context = "average a=" + show(a) + " lo=" + std::to_string(lo);
+        bool found = false; lll best = 0; int len = 1;
+        for (int l = 0; l < n; ++l) {
+            lll sum = 0;
+            for (int r = l + 1; r <= n; ++r) {
+                sum += a[r - 1];
+                if (r - l >= lo && (!found || sum * len > best * (r - l))) { found = true; best = sum; len = r - l; }}}
+        auto got = maximumAverageSubarray(a, lo); check(got.exists() == found, "average presence");
+        if (!found) { check(got.l == -1 && got.r == -1 && got.sum == 0, "average absence"); continue; }
+        check(0 <= got.l && got.l + lo <= got.r && got.r <= n, "average bounds and minimum length");
+        lll sum = 0;
+        for (int i = got.l; i < got.r; ++i) { sum += a[i]; }
+        checkEqual(sum, got.sum, "average witness sum");
+        check(got.sum * len == best * (got.r - got.l), "exact maximum average expected=" + number(best) + "/" + std::to_string(len) + " actual=" + number(got.sum) + "/" + std::to_string(got.r - got.l));}}
 
 template<typename T>
 void rectangle(const vector<vector<T>> &a) {
@@ -69,13 +84,13 @@ void rectangle(const vector<vector<T>> &a) {
             for (int xx = x + 1; xx <= n; ++xx) { for (int yy = y + 1; yy <= m; ++yy) {
                 lll sum = 0;
                 for (int i = x; i < xx; ++i) { for (int j = y; j < yy; ++j) { sum += a[i][j]; } }
-                if (!found || sum > best) { found = true; best = sum; } } } } }
+                if (!found || sum > best) { found = true; best = sum; }}}}}
         auto got = maximumSubrectangle(a, empty); check(got.exists() == found, "rectangle presence"); checkEqual(got.sum, best, "rectangle optimum");
         if (!got.exists()) { check(got.top == -1 && got.left == -1 && got.bottom == -1 && got.right == -1, "rectangle absence"); continue; }
         check(0 <= got.top && got.top <= got.bottom && got.bottom <= n && 0 <= got.left && got.left <= got.right && got.right <= m, "rectangle bounds");
         check(empty || (got.top < got.bottom && got.left < got.right), "rectangle nonempty");
         lll sum = 0; for (int i = got.top; i < got.bottom; ++i) { for (int j = got.left; j < got.right; ++j) { sum += a[i][j]; } }
-        checkEqual(sum, got.sum, "rectangle witness"); } }
+        checkEqual(sum, got.sum, "rectangle witness");}}
 
 template<typename T, typename Compare>
 void sequenceWitness(const vector<T> &a, const vector<int> &idx, bool strict, Compare cmp) {
@@ -83,23 +98,30 @@ void sequenceWitness(const vector<T> &a, const vector<int> &idx, bool strict, Co
     for (int i : idx) {
         check(last < i && i < int(a.size()), "subsequence indices");
         if (last >= 0) { check(strict ? cmp(a[last], a[i]) : !cmp(a[i], a[last]), "subsequence order"); }
-        last = i; } }
+        last = i;}}
 template<typename T, typename W, typename Compare = std::less<T>>
 void subsequences(const vector<T> &a, const vector<W> &w, Compare cmp = {}) {
     int n = int(a.size()); context = "subsequences a=" + show(a) + " w=" + show(w);
     for (bool strict : {false, true}) {
-        int length = 0; ulng count = 0; lll best = 0; bool found = false;
+        int length = 0; ulng count = 0, chains = 0; lll best = 0; bool found = false; vector<int> ending(n);
         for (uint mask = 0; mask < (1U << n); ++mask) {
             int last = -1, len = 0; bool valid = true; lll sum = 0;
             for (int i = 0; i < n; ++i) {
                 if ((mask >> i) & 1) {
                     if (last >= 0 && !(strict ? cmp(a[last], a[i]) : !cmp(a[i], a[last]))) { valid = false; }
-                    last = i; ++len; sum += w[i]; } }
+                    last = i; ++len; sum += w[i];}}
             if (!valid) { continue; }
             if (len > length) { length = len; count = 0; }
             if (len == length) { ++count; }
-            if (mask && (!found || sum > best)) { best = sum; found = true; } }
+            if (mask) { ++chains; ending[last] = max(ending[last], len); }
+            if (mask && (!found || sum > best)) { best = sum; found = true; }}
         auto idx = longestIncreasingSubsequence(a, strict, cmp); sequenceWitness(a, idx, strict, cmp);
+        auto lengths = increasingSubsequenceLengths(a, strict, cmp);
+        check(lengths == ending, "chain length ending at each index");
+        for (int i = 0; i < n; ++i) {
+            for (int j = i + 1; j < n; ++j) {
+                if (lengths[i] == lengths[j]) { check(strict ? !cmp(a[i], a[j]) : cmp(a[j], a[i]), "equal lengths form a dual chain"); }}}
+        checkEqual(countIncreasingSubsequences<ulng>(a, strict, cmp), chains, "all index-distinct chains");
         checkEqual(idx.size(), length, "LIS length");
         auto got = countLongestIncreasingSubsequences<ulng>(a, strict, cmp);
         checkEqual(got.first, length, "LIS counted length"); checkEqual(got.second, count, "index-distinct LIS count");
@@ -107,11 +129,33 @@ void subsequences(const vector<T> &a, const vector<W> &w, Compare cmp = {}) {
             auto weighted = weightedIncreasingSubsequence(a, w, strict, empty, cmp);
             check(weighted.found == (found || empty), "weighted presence"); checkEqual(weighted.sum, empty ? max(lll(0), best) : best, "weighted optimum");
             sequenceWitness(a, weighted.indices, strict, cmp); check(!weighted.found || empty || !weighted.indices.empty(), "weighted nonempty");
-            lll sum = 0; for (int i : weighted.indices) { sum += w[i]; } checkEqual(sum, weighted.sum, "weighted witness"); } }
+            lll sum = 0; for (int i : weighted.indices) { sum += w[i]; } checkEqual(sum, weighted.sum, "weighted witness");}}
     lng inversions = 0;
     for (int i = 0; i < n; ++i) { for (int j = i + 1; j < n; ++j) { inversions += cmp(a[j], a[i]); } }
-    checkEqual(inversionCount(a, cmp), inversions, "pairwise inversion oracle"); }
+    checkEqual(inversionCount(a, cmp), inversions, "pairwise inversion oracle");}
 
+lng swapOracle(const vector<int> &a, const vector<int> &b) {
+    map<vector<int>, lng> dist{{a, 0}}; queue<vector<int>> q; q.push(a);
+    while (!q.empty()) {
+        auto x = q.front(); q.pop();
+        if (x == b) { return dist[x]; }
+        for (int i = 0; i + 1 < int(x.size()); ++i) {
+            auto y = x; swap(y[i], y[i + 1]);
+            if (dist.emplace(y, dist[x] + 1).second) { q.push(y); }}}
+    return -1;}
+void mexAndSwaps(const vector<int> &a) {
+    context = "mex/swaps a=" + show(a); int n = int(a.size()), want = 0;
+    set<int> values(a.begin(), a.end());
+    while (values.count(want)) { ++want; }
+    checkEqual(mex(a), want, "set-scan mex");
+    if (n > 5) { return; }
+    auto sorted = a, rotated = a, reversed = a; sort(sorted.begin(), sorted.end()); reverse(reversed.begin(), reversed.end());
+    if (n) { std::rotate(rotated.begin(), rotated.begin() + 1, rotated.end()); }
+    for (const auto &b : {a, sorted, rotated, reversed}) { checkEqual(adjacentSwapDistance(a, b), swapOracle(a, b), "BFS adjacent swap distance"); }
+    if (n) {
+        for (int d : {-1, 1}) {
+            auto other = a; other[0] += d; checkEqual(adjacentSwapDistance(a, other), swapOracle(a, other), "not a rearrangement");}}
+    auto longer = a; longer.push_back(0); checkEqual(adjacentSwapDistance(a, longer), -1, "size mismatch");}
 void frequency(const vector<int> &a) {
     context = "frequency a=" + show(a); map<int, int> counts;
     for (int x : a) { ++counts[x]; } int n = int(a.size());
@@ -122,24 +166,25 @@ void frequency(const vector<int> &a) {
     for (int k = 1; k <= n + 2; ++k) {
         vector<pair<int, int>> want;
         for (auto [x, c] : counts) { if (c > n / k) { want.emplace_back(x, c); } }
-        check(heavyHitters(a, k) == want, "verified Misra-Gries k=" + std::to_string(k)); }
-    check(heavyHitters(a, INT_MAX) == vector<pair<int, int>>(counts.begin(), counts.end()), "k beyond n"); }
+        check(heavyHitters(a, k) == want, "verified Misra-Gries k=" + std::to_string(k));}
+    check(heavyHitters(a, INT_MAX) == vector<pair<int, int>>(counts.begin(), counts.end()), "k beyond n");
+    mexAndSwaps(a);}
 
 void windows(const vector<int> &a) {
-    context = "windows a=" + show(a); int n = int(a.size());
+    mexAndSwaps(a); context = "windows a=" + show(a); int n = int(a.size());
     for (int limit = 0; limit <= 8; ++limit) {
         auto got = nonnegativeSumWindowEnds(a, limit);
         for (int l = 0; l < n; ++l) {
             int r = l; lng sum = 0;
             while (r < n && sum + a[r] <= limit) { sum += a[r++]; }
-            checkEqual(got[l], r, "nonnegative window end l=" + std::to_string(l) + " limit=" + std::to_string(limit)); } }
+            checkEqual(got[l], r, "nonnegative window end l=" + std::to_string(l) + " limit=" + std::to_string(limit));}}
     map<int, int> count; int adds = 0, removes = 0;
     auto ends = monotoneWindowEnds(n, [&](int r) { auto it = count.find(a[r]); return it == count.end() || it->second == 0; },
         [&](int r) { ++count[a[r]]; ++adds; }, [&](int l) { --count[a[l]]; ++removes; });
     check(adds == n && removes == n, "generic callbacks balance");
     for (int l = 0; l < n; ++l) {
         set<int> seen; int r = l; while (r < n && seen.insert(a[r]).second) { ++r; }
-        checkEqual(ends[l], r, "generic distinct window end"); }
+        checkEqual(ends[l], r, "generic distinct window end");}
     for (int k = 1; k <= n + 1; ++k) {
         auto mn = slidingMinimum(a, k), mx = slidingMaximum(a, k), right = slidingMinimum(a, k, true);
         checkEqual(mn.size(), max(0, n - k + 1), "shared window size");
@@ -148,15 +193,15 @@ void windows(const vector<int> &a) {
             for (int r = l; r < l + k; ++r) {
                 if (a[r] < a[low]) { low = r; }
                 if (a[r] > a[high]) { high = r; }
-                if (a[r] <= a[last]) { last = r; } }
-            checkEqual(mn[l], low, "shared leftmost minimum"); checkEqual(mx[l], high, "shared leftmost maximum"); checkEqual(right[l], last, "shared rightmost minimum"); } }
+                if (a[r] <= a[last]) { last = r; }}
+            checkEqual(mn[l], low, "shared leftmost minimum"); checkEqual(mx[l], high, "shared leftmost maximum"); checkEqual(right[l], last, "shared rightmost minimum");}}
     auto sorted = a; sort(sorted.begin(), sorted.end());
     for (int target = -1; target <= 10; ++target) {
         auto got = sortedPairSum(sorted, target); bool exists = false;
         for (int i = 0; i < n; ++i) { for (int j = i + 1; j < n; ++j) { exists |= sorted[i] + sorted[j] == target; } }
         check((got.first >= 0) == exists, "sorted two-pointer presence");
         if (exists) { check(0 <= got.first && got.first < got.second && got.second < n, "pair bounds"); checkEqual(sorted[got.first] + sorted[got.second], target, "pair sum"); }
-        else { check(got == pair{-1, -1}, "pair absence"); } } }
+        else { check(got == pair{-1, -1}, "pair absence"); }}}
 
 void extremesAndGeneric(int large) {
 #ifdef _GLIBCXX_DEBUG
@@ -200,12 +245,27 @@ void extremesAndGeneric(int large) {
     auto ends = nonnegativeSumWindowEnds(ones, 31);
     for (int i = 0; i < large; ++i) { checkEqual(ends[i], min(i + 31, large), "large window"); }
     auto hh = heavyHitters(a, 97); check(hh.empty(), "large cancellation blocks");
+    auto up = a; reverse(up.begin(), up.end());
+    checkEqual(adjacentSwapDistance(a, up), lng(large) * (large - 1) / 2, "large reverse swap distance");
+    vector<int> alternating(large), zeros(large);
+    for (int i = 0; i < large; ++i) { alternating[i] = zeros[i] = i % 2 ? 0 : 1; }
+    sort(zeros.begin(), zeros.end()); lng half = large / 2;
+    checkEqual(adjacentSwapDistance(alternating, zeros), half * (half + 1) / 2, "large duplicate-key swap distance");
+    checkEqual(mex(a), large, "large permutation mex"); up[large / 2] = -1; checkEqual(mex(up), large / 2, "large gap mex");
+    auto average = maximumAverageSubarray(up, large / 3); check(average.r == large && average.r - average.l == large / 3, "large increasing average is the last window");
+    auto flat = maximumAverageSubarray(ones, 7); check(flat.exists() && flat.r - flat.l >= 7 && flat.sum == flat.r - flat.l, "large constant average");
+    vector<int> pairs(doubled.begin(), doubled.begin() + 80); lll three = 1;
+    for (int i = 0; i < 40; ++i) { three *= 3; }
+    checkEqual(countIncreasingSubsequences<lll>(pairs), three - 1, "exact strict chain count 3^40 - 1");
+    checkEqual(countIncreasingSubsequences<lll>(pairs, false), (lll(1) << 80) - 1, "exact nonstrict chain count 2^80 - 1");
+    check(countIncreasingSubsequences<lll>(vector<int>(100, 7)) == 100 && countIncreasingSubsequences<lll>(vector<int>(100, 7), false) == (lll(1) << 100) - 1, "equal-key chain counts");
+    check(mex(vector<ulng>{std::numeric_limits<ulng>::max(), 0, 1}) == 2 && mex(vector<lng>{std::numeric_limits<lng>::min(), 1}) == 0, "full-width mex");
     PrefixSum<lll> prefix(vector<lll>{1, -2, 4}); checkEqual(prefix.sum(1, 3), 2, "shared PrefixSum");
     DifferenceArray<lll> difference(vector<lll>{1, -2, 4}); difference.add(0, 2, 3);
     check(difference.values() == vector<lll>{4, 1, 4}, "shared DifferenceArray");
     PrefixSum2D<lll> prefix2(vector<vector<lll>>{{1, 2}, {3, 4}}); checkEqual(prefix2.sum(0, 1, 2, 2), 6, "shared PrefixSum2D");
     DifferenceArray2D<lll> diff2(2, 2); diff2.add(0, 0, 2, 1, 4);
-    check(diff2.values() == vector<vector<lll>>{{4, 0}, {4, 0}}, "shared DifferenceArray2D"); }
+    check(diff2.values() == vector<vector<lll>>{{4, 0}, {4, 0}}, "shared DifferenceArray2D");}
 
 int main(int argc, char **argv) {
     string mode = "full";
@@ -223,8 +283,9 @@ int main(int argc, char **argv) {
             else if (p == "negative-limit") { nonnegativeSumWindowEnds(vector<int>{}, -1); }
             else if (p == "bad-k") { heavyHitters(vector<int>{}, 0); }
             else if (p == "unsorted") { sortedPairSum(vector<int>{2, 1}, 3); }
+            else if (p == "average-length") { maximumAverageSubarray(vector<int>{1}, 0); }
             else if (p == "legacy-overflow") { kadane(vector<ulng>{std::numeric_limits<ulng>::max()}); }
-            return 0; } }
+            return 0;}}
     std::mt19937_64 rng(seed); int limit = mode == "quick" ? 4 : mode == "full" ? 7 : 8;
     int arrays = 0;
     for (int n = 0; n <= limit; ++n) {
@@ -233,7 +294,7 @@ int main(int argc, char **argv) {
             int rest = code; vector<int> a(n), w(n);
             for (int i = 0; i < n; ++i) { a[i] = rest % 3 - 1; rest /= 3; w[i] = int(rng() % 9) - 4; }
             sums(a, true); subsequences(a, w); frequency(a);
-            for (int &x : a) { ++x; } windows(a); ++arrays; } }
+            for (int &x : a) { ++x; } windows(a); ++arrays;}}
     cout << "PASS exhaustive arrays=" << arrays << " ternary length<=" << limit << " sums/LIS/weighted/count/inversion/frequency/windows\n";
     int rounds = mode == "quick" ? 40 : mode == "full" ? 350 : 1800;
     for (int rep = 0; rep < rounds; ++rep) {
@@ -241,13 +302,12 @@ int main(int argc, char **argv) {
         for (int i = 0; i < n; ++i) { a[i] = int(rng() % 21) - 10; w[i] = int(rng() % 31) - 15; }
         sums(a, true); subsequences(a, w); subsequences(a, w, std::greater<int>{}); frequency(a);
         int r = int(rng() % 6), c = int(rng() % 7); vector<vector<int>> matrix(r, vector<int>(c));
-        for (auto &row : matrix) { for (int &x : row) { x = int(rng() % 21) - 10; } } rectangle(matrix); }
+        for (auto &row : matrix) { for (int &x : row) { x = int(rng() % 21) - 10; } } rectangle(matrix);}
     for (int r = 0; r <= 3; ++r) { for (int c = 0; c <= 3; ++c) {
         int cells = r * c;
         for (int mask = 0; mask < (1 << cells); ++mask) {
             vector<vector<int>> a(r, vector<int>(c));
-            for (int i = 0; i < r; ++i) { for (int j = 0; j < c; ++j) { a[i][j] = ((mask >> (i * c + j)) & 1) ? 1 : -1; } } rectangle(a); } } }
+            for (int i = 0; i < r; ++i) { for (int j = 0; j < c; ++j) { a[i][j] = ((mask >> (i * c + j)) & 1) ? 1 : -1; } } rectangle(a);}}}
     cout << "PASS random rounds=" << rounds << " and exhaustive <=3x3 signed rectangles, both orientations\n";
     extremesAndGeneric(mode == "quick" ? 1000 : mode == "full" ? 100000 : 500000);
-    cout << "PASS full-width sums, generic equivalence, wide/modular counts, shared engines and large adversarial seed=" << seed << '\n';
-}
+    cout << "PASS full-width sums, generic equivalence, wide/modular counts, shared engines and large adversarial seed=" << seed << '\n';}

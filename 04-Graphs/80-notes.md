@@ -65,3 +65,16 @@ The 2026-10-07 completeness sweep ([sources](81-sources.md#pages-fetched-on-2026
 - Congruence shortest path (OI Wiki 同余最短路): a reduction to Dijkstra over residues; candidate for `13-shortest_path_advanced.hpp`, not added to that row here.
 - 0/c-weight BFS (hitonanode `zero_one_bfs` with a constant): divide the weights by c and use `zeroOneBfs`.
 - Fibonacci-heap or skew-heap Dijkstra and Prim (ei1333, Nyaan): no practical gain over the binary heap in contest sizes.
+
+## P011 re-audit omissions
+
+The 2026-10-07 sweep ([sources](81-sources.md#pages-fetched-on-2026-10-07-p011-re-audit)) added `LCAFold: pathFold`, `pathIntersection`, the lexicographic `eulerianTrail` option, `LowlinkResult: cut_components`, `FunctionalGraph: jumpAll` and `FunctionalGraphFold: maxStep`. The other candidates stay out:
+
+- Ancestor or path binary search by predicate (hitonanode `max_length`, maspypy `max_path`): path search belongs to row 15 (HLD).
+- DFS-order LCA (OI Wiki): a constant-factor alternative to `EulerLCA` with the same contract.
+- Mixed directed/undirected Euler circuits: need max flow, so they belong with rows 19/30/69.
+- Two-edge-connectivity augmentation and extended block-cut trees: row 27 (block-cut and bridge trees).
+- Exporting the functional graph's reverse forest as a tree: `successor`, `depth` and `tin`/`tout` already describe it.
+- `stepUntil` (smallest step where a monotone predicate becomes true): `maxStep` of the negated predicate plus one.
+- Counting functional graphs (CSES Functional Graph Distribution): combinatorics, not a graph operation.
+
