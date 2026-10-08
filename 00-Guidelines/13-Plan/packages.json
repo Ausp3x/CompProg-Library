@@ -332,13 +332,13 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "opus",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "07-Strings/Docs/06-aho.md",
         "07-Strings/Docs/07-suffixarray.md",
         "07-Strings/Docs/08-palindrome_queries.md"
       ],
-      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-Reaudit Findings/p017.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-Reaudit Findings/00-index.md and clear this note."
+      "note": ""
     },
     {
       "id": "P025",

@@ -66,22 +66,12 @@ Future-owner handoff: ST03 reuses `KmpMatcher`, `prefixAutomaton`, `StringHash<K
 
 ## P017 package record (ST03)
 
-Package **complete** for the sole batch **ST03**, on 2026-09-28. All owned features and verification are complete. The C01/P002 and ST01–ST02/P016 prerequisites are verified. All implementations use the contest profile and GNU C++20; preserved originals remain unchanged.
+Verified 2026-09-28 under the previous system; re-audited 2026-10-08 (contest profile, GNU C++20). All three headers are verified with the operations in their inventory rows; evidence: [06-aho.md](06-aho.md), [07-suffixarray.md](07-suffixarray.md), [08-palindrome_queries.md](08-palindrome_queries.md). All ten `/reaudit-review` findings were fixed.
 
-| Header | Features | Contracts and evidence |
-|---|---|---|
-| `06-aho.hpp` | Byte Aho-Corasick, failure/output links, duplicates and empty patterns, sparse/dense transitions, streaming and callback enumeration, per-pattern/position counts, suffix aggregation and forbidden-pattern adapters. | [06-aho.md](06-aho.md) |
-| `07-suffixarray.hpp` | Sentinel-free radix doubling, sparse integer compression, inverse ranks and Kasai LCP, optional RMQ/LCE, pattern ranges, longest repeated/common substring witnesses. | [07-suffixarray.md](07-suffixarray.md) |
-| `08-palindrome_queries.hpp` | Exact Manacher interval queries, explicitly probabilistic hash queries, leftmost longest palindrome witness and radius/index conversions. | [08-palindrome_queries.md](08-palindrome_queries.md) |
+Re-audit research outcomes (sources in [00-sources.md](00-sources.md)); operations left out, one line each:
 
-Each companion document records domains, complexity, correctness arguments, inspected source scope, legacy accounting, a feature-to-test map and verification. Three mirrored Python entries expose quick/full/stress and use independent non-removable oracles. Package commands and integration results are repeated in each per-header `## Commands and results`.
+- `06`: a parent field (Library Checker `aho_corasick` output) is recoverable in `O(V)` from `nodes[u].next`; scans resuming from a given state (ei1333 `move`) are `step` plus `matchCount`; persistent-array transitions for `fromTrie` (maspypy) are replaced by the dense build over at most 256 bytes.
+- `07`: `22` `frequencyStatistics` must not duplicate `longestRepeated(k)` (at least `k` occurrences, now in `07`); substring comparison, kth substrings, all-pairs LCP and occurrence ranges by position stay in `22`; distinct-substring counting in `10`; cyclic shifts in `15`.
+- `08`: longest palindromic prefix/suffix is `05` `longestStarting()[0]`/`longestEnding()[n-1]`; inverse Manacher is `31`; "extend to palindrome" and double palindromes are problem-specific uses of those arrays.
 
-| Header | Checks in each full configuration | Checked precondition probes |
-|---|---|---|
-| Aho | 2,267,528 | 7 |
-| Suffix array | 3,915,321 | 10 |
-| Palindrome queries | 3,405,831 | 6 |
-
-Future-owner boundaries: No owned implementation or verification gap remains, and no P017 continuation handoff is required. The other **40** Strings headers retain planned status.
-
-ST04/ST05/ST06 retain suffix automaton/tree/SA-IS ownership; ST11 owns generalized multiple-string indexes. ST09 owns broader lexicographic/frequency applications. ST13 owns dynamic Aho updates and can reuse stable state/failure/output interfaces, with state IDs invalidated by `clear`. ST07/ST16/ST28 retain eertree/advanced static/dynamic palindrome ownership; longest-palindrome queries constrained to a substring are explicitly listed under ST16. These separate scheduled families are not advertised as implemented here. No online submission or acceptance is claimed.
+ST04/ST05/ST06 retain suffix automaton/tree/SA-IS ownership; ST11 owns generalized multiple-string indexes. ST13 owns dynamic Aho updates and can reuse stable state/failure/output interfaces, with state IDs invalidated by `clear`. ST07/ST16/ST28 retain eertree/advanced static/dynamic palindrome ownership; longest-palindrome queries constrained to a substring are listed under ST16.

@@ -22,9 +22,9 @@ Source keys used in `00-index.md` status cells are defined in the second section
 | Runs Theorem (arXiv 1406.0263) | https://arxiv.org/abs/1406.0263 | 2026-10-06 | Abstract: Lyndon-root characterization, `rho(n) < n`, sum of exponents `< 3n`, linear-time runs algorithm without LZ factorization; basis for `runs` in row `26` and Fibonacci/Thue–Morse worst-case generators in row `50` |
 | r-index (arXiv 1705.10382) | https://arxiv.org/abs/1705.10382 | 2026-10-06 | Abstract: count and locate in `O(r)` space, optimal `O(m + occ)` locate in `O(r log(n/r))` space, extraction bounds; basis for row `46` operations and the `36`/`46` ownership split |
 
-## P016 re-audit sweep (2026-10-08)
+## P016 and P017 re-audit sweeps (2026-10-08)
 
-Per-row research for `01`, `02`, `03`, `04`, `05`, `09`; pages fetched 2026-10-08. Adopted operations are cited in each evidence document; rejections are in [00-notes.md](00-notes.md).
+Per-row research for `01`–`09`; pages fetched 2026-10-08. Adopted operations are cited in each evidence document; rejections are in [00-notes.md](00-notes.md).
 
 | Row | Pages | Outcome |
 |---|---|---|
@@ -34,6 +34,9 @@ Per-row research for `01`, `02`, `03`, `04`, `05`, `09`; pages fetched 2026-10-0
 | `04` | https://oi-wiki.org/string/trie/, maspypy `string/trie.hpp` and `trie_map.hpp`, https://nyaannyaan.github.io/library/string/trie.hpp, suisen `trie_array`/`trie_map`, https://hitonanode.github.io/cplib-cpp/string/trie_light.hpp, https://tko919.github.io/library/String/trie.hpp, https://ei1333.github.io/library/structure/trie/trie.hpp, https://cses.fi/problemset/task/1731, KACTL and PyRival string directories | `TrieDense`, `step`, `forEachPrefixOf`, `longestPrefix` adopted |
 | `05` | https://cp-algorithms.com/string/manacher.html, KACTL `Manacher.h`, maspypy/Nyaan/ei1333/suisen/hitonanode `manacher.hpp`, https://oi-wiki.org/string/manacher/, Library Checker `enumerate_palindromes/task.md` | Predicate constructor, `longestEnding`/`longestStarting` (with `centerEnd`) adopted |
 | `09` | https://nyaannyaan.github.io/library/string/run-length-encoding.hpp, https://maspypy.github.io/library/string/run_length.hpp, https://suisen-cp.github.io/cp-library-cpp/library/util/run_length_encoder.hpp, https://hitonanode.github.io/cplib-cpp/utilities/run_length_encoding.hpp, ei1333/tko919 indexes, KACTL, PyRival | Nothing adopted |
+| `06` | https://github.com/maspypy/library/blob/main/string/aho_corasick_for_general_trie.hpp, https://cp-algorithms.com/string/aho_corasick.html, https://oi-wiki.org/string/ac-automaton/, KACTL `AhoCorasick.h`, ei1333/Nyaan/suisen (`aho_corasick`, `aho_corasick_array`)/hitonanode/tko919 Aho pages, Library Checker `aho_corasick/task.md` | `fromTrie` adopted (byte labels, IDs and output links added; dense build instead of persistent arrays) |
+| `07` | https://oi-wiki.org/string/sa/, https://cp-algorithms.com/string/suffix-array.html, ACL `string.md`, KACTL `SuffixArray.h`, ei1333 `suffix-array.hpp`/`lcp-array.hpp`, Nyaan/maspypy/hitonanode/tko919 suffix-array pages, Library Checker `string/` problems | `longestRepeated(k)` and `longestRepeatedDisjoint` adopted |
+| `08` | https://cp-algorithms.com/string/manacher.html, https://oi-wiki.org/string/manacher/, KACTL `Manacher.h`, Nyaan/maspypy/ei1333/suisen/hitonanode/tko919 `manacher.hpp`, PyRival `strings/` | `countPalindromes` adopted (listed by the Python row, derived from the radii) |
 
 ## Prior source keys and audit narrative (2026-09-27 and 2026-09-28, condensed)
 
