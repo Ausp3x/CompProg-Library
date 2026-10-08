@@ -11,6 +11,7 @@
 #include "08-monotone_stack.hpp"
 #include "11-fenwick_tree_advanced.hpp"
 #include "12-lazysegmenttree.hpp"
+#include "13-dynamicsegmenttree.hpp"
 #include "14-segtreebeats.hpp"
 #include "15-segment_tree_2d.hpp"
 #include "16-mergesorttree.hpp"
@@ -18,3 +19,4 @@
 #include "18-persistentsegmenttree.hpp"
 #include "21-lichao.hpp"
 #include "23-range_query_offline.hpp"
+#include "24-interval_set.hpp"

@@ -475,8 +475,13 @@
       "phase": "Contest core",
       "size": "M+L+L+M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "02-Data Structures/Docs/11-fenwick_tree_advanced.md",
+        "02-Data Structures/Docs/12-lazysegmenttree.md",
+        "02-Data Structures/Docs/13-dynamicsegmenttree.md",
+        "02-Data Structures/Docs/24-interval_set.md"
+      ],
       "note": ""
     },
     {

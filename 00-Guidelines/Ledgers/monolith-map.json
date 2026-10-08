@@ -386,22 +386,21 @@
       "symbols": [
         "MonAlg"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "support",
       "issues": [
         "Affine aggregate helper; overflow/domain audit pending."
       ],
       "body_sha256": "83b13c276babbb2afd66972c08f48f0fafcd5767bfd04f3f4b255c1f332bd9a5",
       "body_bytes": 2028,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P027 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 937,
       "end_line": 1031,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 7,
-      "target_body_end_line": 101
+      "verification": "02-Data Structures/Docs/12-lazysegmenttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -409,20 +408,19 @@
       "symbols": [
         "MonBin"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "support",
       "issues": [],
       "body_sha256": "6d8754ce7b466479bad4186c8b247a15b49d8018d288bf97240549050a404dd8",
       "body_bytes": 1585,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P027 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 1033,
       "end_line": 1105,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 105,
-      "target_body_end_line": 177
+      "verification": "02-Data Structures/Docs/12-lazysegmenttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -430,22 +428,21 @@
       "symbols": [
         "MonGcd"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "support",
       "issues": [
         "LCM overflow/domain audit pending."
       ],
       "body_sha256": "9b9f933502b9f511e76860c37b0711650e9ad6702c09e3d70685881b8ef56be4",
       "body_bytes": 1755,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P027 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 1107,
       "end_line": 1191,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 181,
-      "target_body_end_line": 265
+      "verification": "02-Data Structures/Docs/12-lazysegmenttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -453,20 +450,19 @@
       "symbols": [
         "MonSar"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "support",
       "issues": [],
       "body_sha256": "32e60acc91903d7a796a5993783a53f1fe4a11a12d596234960a3e5dcfb71ae7",
       "body_bytes": 1788,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P027 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 1193,
       "end_line": 1258,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 269,
-      "target_body_end_line": 334
+      "verification": "02-Data Structures/Docs/12-lazysegmenttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -541,20 +537,19 @@
       "symbols": [
         "FenTreeRangeAdd1D"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [],
       "body_sha256": "1b4fd2da40a6a0ecfa43fe1a254f8ab3d02f08c30f2727a0c3a29a9ba9d6b454",
       "body_bytes": 1945,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P027 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 1481,
       "end_line": 1555,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 7,
-      "target_body_end_line": 81
+      "verification": "02-Data Structures/Docs/11-fenwick_tree_advanced.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -562,22 +557,21 @@
       "symbols": [
         "FenTree"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [
         "Unchanged legacy struct combines 1D Basic and multidimensional Advanced operations; future split required."
       ],
       "body_sha256": "a797b0bb1b23b20107e00448bc8b421d7a23c9a2694356cc3f2a5fc2d6f6cf8d",
       "body_bytes": 9679,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P027 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 1557,
       "end_line": 1860,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 85,
-      "target_body_end_line": 388
+      "verification": "02-Data Structures/Docs/11-fenwick_tree_advanced.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -631,45 +625,43 @@
       "symbols": [
         "SegTree"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [
         "The legacy SegTree implements lazy actions, not the planned Basic iterative segment tree."
       ],
       "body_sha256": "2485e77109aa850658b5ffb0f4ad3702d69921d4b875e4cb2a96b64ddd8431ef",
       "body_bytes": 4398,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P027 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 2042,
       "end_line": 2213,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 7,
-      "target_body_end_line": 178
+      "verification": "02-Data Structures/Docs/12-lazysegmenttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/97-Legacy/03-dynsegtree.cpp",
+      "target": "02-Data Structures/13-dynamicsegmenttree.hpp",
       "symbols": [
         "DynSegTree"
       ],
-      "status": "legacy-reference",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [
         "max(l, 0LL) conflicts with current Core lng=int64_t on LP64; source used lng=long long."
       ],
       "body_sha256": "6145c343da4ffba0ea4bacf729a780198cedeb12c8a5ca1c3783cc899d59c181",
       "body_bytes": 5981,
-      "relationship": "unchanged reference extraction",
+      "relationship": "P027 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 2215,
       "end_line": 2443,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 3,
-      "target_body_end_line": 231
+      "verification": "02-Data Structures/Docs/13-dynamicsegmenttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
