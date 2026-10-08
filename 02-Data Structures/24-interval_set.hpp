@@ -2,7 +2,7 @@
 
 #include "../01-Core/01-template.hpp"
 
-// Disjoint half-open integer intervals that merge when they touch; find returns {x, x} when x is uncovered, next returns numeric max when nothing follows.
+// Disjoint half-open integer intervals that merge when they touch; every r - l and unionLength() fit T; find returns {x, x} when x is uncovered, next returns numeric max when nothing follows.
 // S: O(1), U: O(log(n)) amortized, Q: O(log(n)), M: O(n) for n stored intervals
 template<typename T = lng>
 struct IntervalSet {

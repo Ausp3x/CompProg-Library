@@ -6,7 +6,7 @@ Package P027 (batch DS47). New header; no legacy excerpt. Intervals are half-ope
 
 ### IntervalSet<T = lng>
 
-A set of integers stored as maximal disjoint half-open intervals `[l, r)`; touching intervals (`r == l'`) are merged, so the stored intervals are exactly the maximal runs of covered points. `T` is a signed integer type (`int`, `lng`); coordinates are unbounded except that `next` uses `numeric_limits<T>::max()` as its "nothing" sentinel, which no interval can cover because `r` is exclusive.
+A set of integers stored as maximal disjoint half-open intervals `[l, r)`; touching intervals (`r == l'`) are merged, so the stored intervals are exactly the maximal runs of covered points. `T` is a signed integer type (`int`, `lng`); coordinates may be any value of `T`, but every inserted or erased length `r - l` and `unionLength()` must fit `T` (the return values and the running total are kept in `T`; `IntervalSet<int>{}.insert(-2e9, 2e9)` overflows), and `next` uses `numeric_limits<T>::max()` as its "nothing" sentinel, which no interval can cover because `r` is exclusive.
 
 - `count()` number of intervals, `unionLength()` total covered points (maintained, O(1)), `intervals()` the sorted list (O(n)).
 - `find(x)` the interval containing `x` or `{x, x}` when uncovered; `contains(x)`; `covers(l, r)` true when one interval contains `[l, r)` (vacuously for `l == r`); `mex(x)` smallest uncovered point `>= x`; `next(x)` smallest covered point `>= x` or the sentinel.
@@ -31,6 +31,7 @@ Tester `96-Local Testing/02-Data Structures/24-interval_set_tester.cpp`, entry `
 | Operation | Group | Oracle |
 |---|---|---|
 | IntervalSet `insert`, `erase` (return values), `count`, `unionLength`, `intervals`, `find`, `contains`, `covers`, `mex`, `next`, copy independence | `setSmall<lng>`, `setSmall<int>` | Dense bitmap over `[-20, 60)` with maximal runs recomputed after every step; every point in `[-21, 60]`, every `covers` pair, empty and length-1 ranges, ranges reaching outside the bitmap |
+| Same at the numeric extremes of `int` and `lng` (intervals starting at `min`, ending at `max`, `max` never covered, `next(max)` sentinel, erase leaving one point at each end) | `setExtremes<int>`, `setExtremes<lng>` | Hand-computed lengths and pieces with `unionLength` at `max / 2 + 7` |
 | Same with 1e18 coordinates | `setLarge` | Sorted-merge union of the inserted intervals, clipped erase, `find`/`mex`/`next`/`covers` at random and boundary points |
 | IntervalMap `assign` (callback lengths and old values, neighbour merging on both sides), `apply` (piece chain covers `[l, r)`), `fold`, `merge` (no equal neighbours remain inside `[l, r]`; minimal piece count after a full merge), `split`, `get`, `enumerate`, `count`; `ChthollyTree` alias; empty universe | `mapTests` | Dense array over universes `[0,0)`, `[0,1)`, `[-5,7)`, `[0,40)`, `[-30,50)`; pieces must partition the universe and be uniform in the array |
 | Preconditions | `invalid` | 11 probes: reversed ranges on both structures, reversed universe, keys and ranges outside `[lo, hi)` for `get`, `assign`, `apply`, `enumerate`, `split`, `merge` |
@@ -47,7 +48,7 @@ python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-Final run 2026-10-08 (after the review fixes): full mode seed 20261008 passed on both compilers, 4,071,411 checks per configuration and 11 assertion probes; stress mode seed 7 passed all three configurations with 24,391,639 checks per configuration. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, with `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, on GCC 16.2.1 and again on the floor compiler GCC 14.4.1 (`CXX=g++-14`). `02-integration.py --sanitizers` passed 104 standalone/aggregate headers (including this one alone, in `99-all.hpp` and in the two-translation-unit build), the workspace build and the sanitizer self-tests; `03-consistency.py` reports no errors and checks the closing-brace rule and comment cap on this header and its tester. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
+Final run 2026-10-08 (re-audit pass, after its fixes): full mode seed 20261008 passed on both compilers, 4,071,443 checks per configuration and 11 assertion probes; stress mode seed 7 passed all three configurations with 24,391,671 checks per configuration. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, with `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, on GCC 16.2.1 and again on the floor compiler GCC 14.4.1 (`CXX=g++-14`). `02-integration.py --sanitizers` passed 108 standalone/aggregate headers (including this one alone, in `99-all.hpp` and in the two-translation-unit build), the workspace build and the sanitizer self-tests; `03-consistency.py` reports no errors and checks the closing-brace rule and comment cap on this header and its tester. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
 
 ## Sources
 
@@ -71,3 +72,4 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 
 - 2026-10-08: P027 first verification.
 - 2026-10-08: independent review (P027) — insert/erase counts, touching merges, split and neighbour merging confirmed; added the partial-`merge` effect check (finding 7) and corrected the split-order explanation (finding 9).
+- 2026-10-08: P027 re-audit pass (second session): the reviewer found the documented "unbounded coordinates" domain false for lengths (signed overflow in `insert`/`total`); the domain now requires every length and the union length to fit `T` (header domain line and contract), with a new numeric-extremes test.

@@ -286,6 +286,49 @@ namespace {
             checkEqual(t.nodeCount() <= 12 * 64 * q + 2, true, "node count bounded");}
         std::cout << "PASS DynamicLazySegmentTree on a 2^41 universe\n";}
 
+    void lazyCompositeWide(Rng &rng) {
+        using A = RangeSetRangeComposite<mint>;
+        using K = Composite::K;
+        auto power = [](K p, lng k) {
+            K res = Composite::e();
+            for (; k; k >>= 1) {
+                if (k & 1) { res = Composite::op(res, p); }
+                if (k > 1) { p = Composite::op(p, p); }}
+            return res;};
+        for (auto [lo, hi] : vector<pair<lng, lng>>{{0, lng(1) << 62}, {std::numeric_limits<lng>::min(), std::numeric_limits<lng>::min() + (lng(1) << 62)}}) {
+            context = "DynamicLazySegmentTree composite wide universe=[" + show(lo) + "," + show(hi) + ") seed=" + show(seed);
+            auto fill = [](lng l, lng r) { return A::S{mint(1), mint(0), r - l}; };
+            DynamicLazySegmentTree<A, decltype(fill)> t(lo, hi, fill);
+            map<lng, pair<lng, lng>> piece{{lo, {1, 0}}};
+            auto cut = [&](lng x) {
+                if (x == hi) { return; }
+                auto it = std::prev(piece.upper_bound(x));
+                if (it->first != x) { piece[x] = it->second; }};
+            auto expect = [&](lng l, lng r) {
+                K res = Composite::e();
+                for (auto it = std::prev(piece.upper_bound(l)); it != piece.end() && it->first < r; ++it) {
+                    lng b = std::next(it) == piece.end() ? hi : std::next(it)->first;
+                    res = Composite::op(res, power({it->second.first, it->second.second, 1}, min(r, b) - max(l, it->first)));}
+                return res;};
+            auto randomPoint = [&]() {
+                ulng span = ulng(hi) - ulng(lo);
+                return rng() % 4 ? lng(ulng(lo) + rng() % (span + 1)) : (rng() % 2 ? lo + rnd(rng, 0, 3) : hi - rnd(rng, 0, 3));};
+            int q = mode == "quick" ? 40 : steps() / 3;
+            for (int step = 0; step < q; ++step) {
+                lng l = step == 0 ? lo : randomPoint(), r = step == 0 ? hi : randomPoint();
+                if (l > r) { swap(l, r); }
+                string at = "step=" + show(step) + " l=" + show(l) + " r=" + show(r);
+                if (step == 0 || rng() % 2) {
+                    lng a = rnd(rng, 0, P - 1), b = rnd(rng, 0, P - 1);
+                    t.apply(l, r, {true, mint(a), mint(b)});
+                    if (l < r) {
+                        cut(l); cut(r);
+                        piece.erase(piece.lower_bound(l), piece.lower_bound(r));
+                        piece[l] = {a, b};}}
+                else { checkEqual(Composite::key(t.prod(l, r)), expect(l, r), at + " prod"); }
+                checkEqual(Composite::key(t.allProd()), expect(lo, hi), at + " allProd");}}
+        std::cout << "PASS DynamicLazySegmentTree composite preset on 2^62 universes\n";}
+
     void dual(Rng &rng) {
         using A = RangeAffineRangeSum<mint>;
         for (auto [lo, hi] : universes()) {
@@ -375,6 +418,7 @@ int main(int argc, char **argv) {
         persistent(rng);
         lazySmall(rng);
         lazyLarge(rng);
+        lazyCompositeWide(rng);
         dual(rng);
         std::cout << "PASS dynamicsegmenttree checks=" << checks << '\n'; return 0;} catch (const std::exception &e) {
         std::cerr << "FAIL dynamicsegmenttree seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1;}}

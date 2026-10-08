@@ -26,7 +26,7 @@ Dense `n x m` (`n x m x h`) tables, flat storage, `n * m (* h) <= INT_MAX` (the 
 
 ### CompressedFenwick2D<T>
 
-Construction takes the point universe `vector<pair<lng, lng>>` (duplicates allowed); `add(x, y, w)` asserts `(x, y)` is a registered point; `sum(x1, y1, x2, y2)` and `prefixSum(x, y)` accept any `lng` bounds. Each Fenwick node over the distinct `x` values holds the sorted distinct `y` values of the points it covers (built from the points sorted by `y`, so no per-node sort); storage is `O(n log n)`, operations `O(log^2 n)`. `T` is a commutative group.
+Construction takes the point universe `vector<pair<lng, lng>>` (duplicates allowed); `add(x, y, w)` asserts `(x, y)` is a registered point once at entry (registration in the first column implies every ancestor column); `sum(x1, y1, x2, y2)` and `prefixSum(x, y)` accept any `lng` bounds. Each Fenwick node over the distinct `x` values holds the sorted distinct `y` values of the points it covers (built from the points sorted by `y`, so no per-node sort); storage is `O(n log n)`, operations `O(log^2 n)`. `T` is a commutative group.
 
 ### FenwickPrefixMonoid<T, F>
 
@@ -34,7 +34,7 @@ Construction takes the point universe `vector<pair<lng, lng>>` (duplicates allow
 
 ### Fenwick01 (alias FenwickSet)
 
-A set of integers in `[0, n)`: one bit per element in 64-bit words plus a Fenwick array over word popcounts. `get`/`contains`, `size`, `add(i, ±1)` (asserts the bit changes), `insert`/`erase` returning whether the set changed, `rank(r)` = count below `r` for `r` in `[0, n]`, `sum(l, r)` count in `[l, r)`, `kth(k)` = k-th smallest (0-based) or `n` when `k >= size()`, `next(i)` = smallest element `>= i` or `n` (`i` in `[0, n]`), `prev(i)` = largest element `<= i` or `-1` (`i` in `[-1, n)`). The in-word select is a 6-step popcount binary search, so `kth` is `O(log(n / 64) + log 64)`. Vector<bool> constructor builds in O(n / 64 + n) (bit packing is O(n)).
+A set of integers in `[0, n)`: one bit per element in 64-bit words plus a Fenwick array over word popcounts. `get`/`contains`, `size`, `add(i, ±1)` (asserts the bit changes), `insert`/`erase` returning whether the set changed, `rank(r)` = count below `r` for `r` in `[0, n]`, `sum(l, r)` count in `[l, r)`, `kth(k)` = k-th smallest (0-based) or `n` when `k >= size()`, `next(i)` = smallest element `>= i` or `n` (`i` in `[0, n]`), `prev(i)` = largest element `<= i` or `-1` (`i` in `[-1, n)`). The in-word select is a 6-step popcount binary search, so `kth` is `O(log(n / 64) + log 64)`. The `vector<bool>` constructor builds in `O(n)` (bit packing) with its own complexity comment.
 
 ### Replaced legacy operations
 
@@ -65,7 +65,7 @@ python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-Final run 2026-10-08 (after the review fixes): full mode seed 20261008 passed on both compilers, 2,138,402 checks per configuration and 31 assertion probes; stress mode seed 7 passed all three configurations with 6,848,592 checks per configuration. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, with `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, on GCC 16.2.1 and again on the floor compiler GCC 14.4.1 (`CXX=g++-14`). `02-integration.py --sanitizers` passed 104 standalone/aggregate headers (including this one alone, in `99-all.hpp` and in the two-translation-unit build), the workspace build and the sanitizer self-tests; `03-consistency.py` reports no errors and checks the closing-brace rule and comment cap on this header and its tester. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
+Final run 2026-10-08 (re-audit pass, after its fixes): full mode seed 20261008 passed on both compilers, 2,138,402 checks per configuration and 31 assertion probes; stress mode seed 7 passed all three configurations with 6,848,592 checks per configuration. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, with `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, on GCC 16.2.1 and again on the floor compiler GCC 14.4.1 (`CXX=g++-14`). `02-integration.py --sanitizers` passed 108 standalone/aggregate headers (including this one alone, in `99-all.hpp` and in the two-translation-unit build), the workspace build and the sanitizer self-tests; `03-consistency.py` reports no errors and checks the closing-brace rule and comment cap on this header and its tester. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
 
 ## Sources
 
@@ -90,3 +90,4 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 
 - 2026-10-08: P027 first verification; legacy `FenTreeRangeAdd1D`/`FenTree` replaced.
 - 2026-10-08: independent review (P027) — fixed the overflowing 3D size check (finding 3, new `box-oversize` probe), restated the integral domains with their constant factors (finding 4) and added zero/negative inputs to the range-add suites (finding 6); the formulas, builds and compressed node lists were confirmed.
+- 2026-10-08: P027 re-audit pass (second session): formulas and builds reconfirmed; the `CompressedFenwick2D::add` registration assert moved out of the per-level loop and the `Fenwick01` `vector<bool>` constructor got its own `O(n)` comment (style findings only).

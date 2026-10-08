@@ -229,12 +229,10 @@ struct CompressedFenwick2D {
 
     void add(lng x, lng y, T w) {
         int n = int(xs.size()), i = int(lower_bound(xs.begin(), xs.end(), x) - xs.begin());
-        assert(i < n && xs[i] == x);
+        assert(i < n && xs[i] == x && binary_search(ys.begin() + start[i], ys.begin() + start[i + 1], y));
         for (; i < n; i |= i + 1) {
             auto b = ys.begin() + start[i], e = ys.begin() + start[i + 1];
-            int j = int(lower_bound(b, e, y) - b), len = int(e - b);
-            assert(j < len && b[j] == y);
-            for (; j < len; j |= j + 1) { v[start[i] + j] += w; }}}
+            for (int j = int(lower_bound(b, e, y) - b), len = int(e - b); j < len; j |= j + 1) { v[start[i] + j] += w; }}}
 
     T prefixSum(lng x, lng y) const {
         T res = T(0);
@@ -280,6 +278,7 @@ struct Fenwick01 {
     vector<int> c;
 
     explicit Fenwick01(int N = 0) : n(N), nw((N + 63) >> 6), cnt(0) { assert(n >= 0); bits.assign(nw, 0); c.assign(nw, 0); }
+    // T: O(n), M: O(n / w).
     explicit Fenwick01(const vector<bool> &a) : Fenwick01(int(a.size())) {
         for (int i = 0; i < n; ++i) { bits[i >> 6] |= ulng(a[i]) << (i & 63); }
         for (int i = 0; i < nw; ++i) {

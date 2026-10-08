@@ -104,8 +104,9 @@ struct RangeSetRangeComposite {
     static S mapping(const F &f, const S &x) {
         if (!f.set) { return x; }
         S res = e(), p{f.a, f.b, 1};
-        for (lng k = x.len; k; k >>= 1, p = op(p, p)) {
-            if (k & 1) { res = op(res, p); }}
+        for (lng k = x.len; k; k >>= 1) {
+            if (k & 1) { res = op(res, p); }
+            if (k > 1) { p = op(p, p); }}
         return res;}
     static F composition(const F &f, const F &g) { return f.set ? f : g; }
     static F id() { return {false, T(1), T(0)}; }

@@ -4,7 +4,7 @@
 #include "00-monoids.hpp"
 
 // Keys in [lo, hi) with hi - lo <= 2^62; roots are pool handles and 0 is the empty tree; unset keys hold M::e(); PERSISTENT copies update paths and forbids meld and split.
-// S: O(1), U: O(log(n)), Q: O(log(n)), M: O(k * log(n)) for n = hi - lo and k set keys; meld is O(nodes freed) with total work O(nodes ever allocated)
+// S: O(1), U: O(log(n)), Q: O(log(n)), M: O(k * log(n)) for n = hi - lo and k set keys, O(q * log(n)) for q updates when PERSISTENT; meld is O(nodes freed) with total work O(nodes ever allocated)
 template<typename M, bool PERSISTENT = false>
 struct DynamicSegmentTree {
     using S = typename M::S;

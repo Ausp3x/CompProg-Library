@@ -133,6 +133,29 @@ namespace {
             checkEqual(s.covers(x, x + 1), piece.first != piece.second, "covers step=" + show(step));}
         std::cout << "PASS IntervalSet with 1e18 coordinates against a sorted-merge oracle\n";}
 
+    template<typename T>
+    void setExtremes(const string &name) {
+        context = "IntervalSet extremes T=" + name;
+        T mn = std::numeric_limits<T>::min(), mx = std::numeric_limits<T>::max(), w = T(mx / 4);
+        IntervalSet<T> s;
+        checkEqual(s.insert(mn, T(mn + w)), w, "insert at min");
+        checkEqual(s.insert(T(mx - w), mx), w, "insert at max");
+        checkEqual(s.insert(T(-3), T(4)), T(7), "insert middle");
+        checkEqual(s.unionLength(), T(2 * w + 7), "unionLength");
+        checkEqual(s.find(mn), pair<T, T>{mn, T(mn + w)}, "find min");
+        checkEqual(s.find(T(mx - 1)), pair<T, T>{T(mx - w), mx}, "find max - 1");
+        checkEqual(s.contains(T(mx - 1)), true, "contains max - 1");
+        checkEqual(s.contains(mx), false, "max is never covered");
+        checkEqual(s.mex(T(mx - w)), mx, "mex reaches max");
+        checkEqual(s.next(T(mx - w - 1)), T(mx - w), "next before max piece");
+        checkEqual(s.next(mx), mx, "next at max is the sentinel");
+        checkEqual(s.covers(mn, T(mn + w)), true, "covers min piece");
+        checkEqual(s.covers(mn, T(mn + w + 1)), false, "covers past min piece");
+        checkEqual(s.erase(T(mn + 1), T(mx - 1)), T(w - 1 + 7 + w - 1), "erase almost everything");
+        checkEqual(show(s.intervals()), show(vector<pair<T, T>>{{mn, T(mn + 1)}, {T(mx - 1), mx}}), "remaining intervals");
+        checkEqual(s.unionLength(), T(2), "unionLength after erase");
+        std::cout << "PASS IntervalSet at the numeric extremes of " << name << '\n';}
+
     bool merged = false;
     void mapTests(Rng &rng) {
         for (auto [lo, hi] : vector<pair<lng, lng>>{{0, 0}, {0, 1}, {-5, 7}, {0, 40}, {-30, 50}}) {
@@ -251,6 +274,8 @@ int main(int argc, char **argv) {
         setSmall<lng>(rng, "lng");
         setSmall<int>(rng, "int");
         setLarge(rng);
+        setExtremes<int>("int");
+        setExtremes<lng>("lng");
         mapTests(rng);
         std::cout << "PASS interval_set checks=" << checks << '\n'; return 0;} catch (const std::exception &e) {
         std::cerr << "FAIL interval_set seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1;}}
