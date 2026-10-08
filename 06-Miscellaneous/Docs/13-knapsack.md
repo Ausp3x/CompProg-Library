@@ -1,6 +1,6 @@
 # 13-knapsack.hpp — evidence
 
-`13-knapsack.hpp` (batch MI16, package P015, status audit) provides capacity- and value-indexed knapsack DP with exact/at-most queries and witness restoration, Boolean feasibility and multiplicity-vector counts. Prerequisite: the C01 template (P002). Implementations are independent contest-profile code. No online submission was made.
+`13-knapsack.hpp` (batch MI16, package P015) provides capacity- and value-indexed knapsack DP with exact/at-most queries and witness restoration, Boolean feasibility and multiplicity-vector counts. Prerequisite: the C01 template (P002). Implementations are independent contest-profile code. No online submission was made.
 
 ## Contracts
 
@@ -23,7 +23,7 @@
 
 The empty choice is reachable with zero value/weight, even for an empty item list or axis zero. An unlimited zero-weight positive-value item makes every reachable capacity-DP state unbounded, without making an unreachable exact weight reachable. Unlimited zero-weight nonpositive values can be skipped for maximization; they still make selection counts infinite. A finite zero-weight item contributes all copies exactly when its value is positive, and contributes a factor `count+1` to counting regardless of value. Negative-valued positive-weight items can be necessary for an exact-weight optimum and are retained.
 
-Value-indexed DP deliberately has different semantics: zero-value items with nonnegative weights cannot lower a minimum weight. Unlimited positive-value zero-weight items can make many table values reachable at zero cost, but `bestWithin` still queries a **truncated finite value table**, not an assertion of a finite unrestricted maximum.
+At-most queries break ties toward the smaller weight; an unreachable or unbounded result carries `value=0`, and `target` is the requested axis point. Value-indexed DP deliberately has different semantics: zero-value items with nonnegative weights cannot lower a minimum weight. Unlimited positive-value zero-weight items can make many table values reachable at zero cost, but `bestWithin` still queries a **truncated finite value table**, not an assertion of a finite unrestricted maximum.
 
 Finite capacity scores fit signed 128 bits: at most `INT_MAX` item types each have at most `INT_MAX` selected copies, with signed 64-bit values; positive-weight unlimited copies are capped by the finite axis. Value-DP total weights also fit 128 bits. Count arithmetic is a caller-supplied domain: choose arbitrary precision for unbounded finite integer counts or a modular type for residues; a fixed-width exact type requires all intermediate sums/products to fit. Modular zero never establishes infeasibility.
 
@@ -47,28 +47,28 @@ The C++ oracle recursively enumerates original item multiplicities rather than r
 
 ## Commands and results
 
-Run 2026-09-28: Linux x86-64, i9-11900H, GCC 16.2.1 (20260810), CPython 3.14.7. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie` with leak checking enabled.
+Run 2026-10-08: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined` with leak checking. The re-audit changed only comments and closing braces; behavior and tests are unchanged.
 
 ```bash
-python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode full --seed 20260928                               # PASS, optimized and checked
-python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode full --seed 20260928 --configuration ASan-UBSan    # PASS
-python3 '96-Local Testing/01-run.py' --mode quick --seed 20260928 --filter 13-knapsack --no-integration                    # PASS, also when run from /tmp
-python3 '96-Local Testing/06-Miscellaneous/13-knapsack_benchmark.py'                                                       # PASS, 48 comparisons
-python3 '96-Local Testing/02-integration.py'                                                                                # PASS, 93 headers, scalar/AVX2 multi-TU, workspace
-python3 '96-Local Testing/03-consistency.py'                                                                                # no errors
+python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode full --seed 1                  # PASS before and after the restyle, 3 configurations
+python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode quick --seed 1                 # PASS, 2 configurations
+CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode full --seed 2       # PASS, 3 configurations
+python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode stress --seed 3                # PASS, 3 configurations
+python3 '96-Local Testing/06-Miscellaneous/13-knapsack_benchmark.py'                                    # PASS, 48 comparisons
+python3 '96-Local Testing/03-consistency.py'                                                             # no errors
 ```
 
-Each configuration ran 9,593 cases / 1,480,882 C++ checks and 207 Python fixtures / 2,323 exact-count rows; the checked build passed 37 assertion probes. Quick/full/stress use exhaustive item-alphabet sequences through 2/3/4 items, axes 4/6/8, 100/2,000/10,000 seeded cases and large fixtures of 1,000/100,000/500,000; every mode also exhausts singleton weight 0–4, value -3–3, counts -1/0/1/2/5 and axes 0–7. Stress mode exists but was not run. No `CXX=g++-14` floor run is recorded.
+Each full configuration ran 9,593 cases / 1,489,426 C++ checks and 207 Python fixtures / 2,286 exact-count rows; the checked build passed 37 assertion probes. Quick/full/stress use exhaustive item-alphabet sequences through 2/3/4 items, axes 4/6/8, 100/2,000/10,000 seeded cases and large fixtures of 1,000/100,000/500,000; every mode also exhausts singleton weight 0–4, value -3–3, counts -1/0/1/2/5 and axes 0–7. Integration is recorded in [14-cyclefinding.md](14-cyclefinding.md).
 
 ## Benchmarks
 
-The [driver](<../../96-Local Testing/06-Miscellaneous/13-knapsack_benchmark.py>) and `96-Local Testing/06-Miscellaneous/13-knapsack_benchmark.json` (2026-09-28): GCC 16.2.1 GNU++20 `-O2 -DNDEBUG`, i9-11900H, seed 20260928, one warmup and five rotating-order repetitions. Capacities 16/512/4096 with 12/48/48 item types, weights 1–23 (1–3 in a small-weight corpus), values -50–150, and 0/1, bounded 1–32 or unlimited multiplicities, both trace settings. Timing covers DP allocation, every exact query, one full-capacity at-most query, optional reconstruction and destruction; reference generation and full output/witness verification are untimed.
+The [driver](<../../96-Local Testing/06-Miscellaneous/13-knapsack_benchmark.py>) and its local, git-ignored `13-knapsack_benchmark.json` (2026-10-08): GCC 16.2.1 GNU++20 `-O2 -DNDEBUG`, i9-11900H, fixed seed, one warmup and five rotating-order repetitions. Capacities 16/512/4096 with 12/48/48 item types, weights 1–23 (1–3 in a small-weight corpus), values -50–150, and 0/1, bounded 1–32 or unlimited multiplicities, both trace settings. Timing covers DP allocation, every exact query, one full-capacity at-most query, optional reconstruction and destruction; reference generation and full output/witness verification are untimed.
 
 | Workload | Library time / direct reference time |
 |---|---|
-| 0/1 | 0.270–0.439 |
-| Bounded | 0.123–0.382 |
-| Unlimited (large) | larger gains; the reference keeps its direct quantity loop |
+| 0/1 | 0.272–0.432 |
+| Bounded | 0.122–0.373 |
+| Unlimited | 0.0005–0.0032 at capacity 4096; the reference keeps its direct quantity loop |
 
 The reference enumerates every legal quantity from the previous layer without binary splitting. These are warmed-cache shared-host observations against a simple recurrence, not a fastest-known result, a timing gate or a tuned threshold. MI18 monotone queues, bitsets and fine-grained subset-sum algorithms were not benchmarked.
 
@@ -85,10 +85,11 @@ The abstract/metadata of Karl Bringmann, [*A Near-Linear Pseudopolynomial Time A
 
 ## Limits and handoffs
 
-- Open `/reaudit-review` findings for P015 ([p015.md](<../../00-Guidelines/23-Reaudit Findings/p015.md>)), not yet resolved:
-  - 5: detail helpers `validate` and `Optimizer` have no complexity comment.
-  - 6: the `Optimizer` constructor body closes on its own line (closing-brace rule).
-  - 7: the `KnapsackCounts` constructor body closes on its own line (closing-brace rule).
 - Legacy `OLD/Team Notebook/src/algsbetter.cpp` lines 3567–3608 and `algs.cpp` lines 2486–2508 (`knapsack01`, `knapsackComplete`, binary-grouped `knapsackMultiple`) are covered; their `lng` overflow, unchecked domains and zero-weight unboundedness are corrected here. No active callers; archives preserved.
 - MI18 owns monotone-queue bounded optimization, meet-in-the-middle and bitset subset sum, specialized value/small-weight domains, generating-function counts and their witnesses. Counting optimal selections, k-best scores, grouped/precedence/multiple-resource constraints and fine-grained algorithms are research leads for that owner.
-- Stress mode and other compiler/interpreter versions (including the GCC 14 floor) were not run.
+- 2026-10-08 catalog sweep, not adopted here (reasons in [00-notes.md](00-notes.md)): Pisinger balanced `O(n * max(w))` subset sum and its witness (KACTL FastKnapsack, maspypy `subset_sum`) and the adaptive weight/value/meet-in-the-middle 0/1 dispatcher (Nyaan, maspypy) are leads for `29`; ordered pick sequences (CSES 1635) are compositions, `ways[w] = sum ways[w - w_i]`, not knapsack selections; fewest items for an exact weight is `KnapsackDP` with value `-1` per copy.
+- Exact GCC 14.2 and the Windows build were not run.
+
+## History
+
+- 2026-09-28: verified (P015, previous system). 2026-10-08 re-audit: comment cap and closing braces restyled, `/reaudit-review` findings 5–7 fixed, no behavior change. Tester and benchmark sources brace-normalized after review (whitespace only); full suites, g++-14 full and benchmarks rerun, PASS.

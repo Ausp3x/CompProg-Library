@@ -8,9 +8,8 @@ string context;
     for (int i = 0; i < 16; ++i) {
         hash = (hash ^ (hash >> 30)) * 0xbf58476d1ce4e5b9ULL;
         hash = (hash ^ (hash >> 27)) * 0x94d049bb133111ebULL;
-        hash ^= hash >> 31; }
-    return hash;
-}
+        hash ^= hash >> 31;}
+    return hash;}
 
 template<bool Heavy, bool Cached>
 struct Successor {
@@ -25,7 +24,7 @@ struct Successor {
         calls = calls + 1;
         if constexpr (Heavy) {
             ulng digest = Cached ? digests[x] : heavyDigest(x);
-            checksum = std::rotl(checksum, 7) + digest; }
+            checksum = std::rotl(checksum, 7) + digest;}
         return arc[x];}
 };
 
@@ -35,12 +34,10 @@ template<bool Heavy, bool Cached = false>
 Output run(const vector<int> &arc, const vector<ulng> &digests, int method, ulng budget) {
     Successor<Heavy, Cached> next{arc, digests};
     auto result = method ? brentCycle(0, next, budget) : floydCycle(0, next, budget);
-    return {result, next.calls, next.checksum};
-}
+    return {result, next.calls, next.checksum};}
 
 void require(bool ok, const string &details) {
-    if (!ok) { cerr << "FAIL benchmark seed=" << SEED << ' ' << context << ' ' << details << '\n'; std::exit(1); }
-}
+    if (!ok) { cerr << "FAIL benchmark seed=" << SEED << ' ' << context << ' ' << details << '\n'; std::exit(1); }}
 
 // Independent closed forms for this header's complete detection+entry+period
 // pipelines on a lollipop orbit. Floyd first meets at the least positive lambda
@@ -49,11 +46,10 @@ ulng expectedCalls(int mu, int lambda, int method) {
     ulng tail = ulng(mu), length = ulng(lambda);
     if (!method) {
         ulng meeting = max(length, (tail + length - 1) / length * length);
-        return 3 * meeting + 2 * tail + length; }
+        return 3 * meeting + 2 * tail + length;}
     ulng power = 1;
     while (power < max(tail + 1, length)) { power *= 2; }
-    return power - 1 + 2 * length + 2 * tail;
-}
+    return power - 1 + 2 * length + 2 * tail;}
 
 void verify(const Output &out, int mu, int lambda, ulng calls, ulng checksum) {
     require(out.result.found, "expected found=true");
@@ -64,8 +60,7 @@ void verify(const Output &out, int mu, int lambda, ulng calls, ulng checksum) {
             "expected calls=" + std::to_string(calls) + " actual callback/result=" + std::to_string(out.calls)
             + "/" + std::to_string(out.result.evaluations));
     require(out.checksum == checksum, "callback checksum expected=" + std::to_string(checksum)
-            + " actual=" + std::to_string(out.checksum));
-}
+            + " actual=" + std::to_string(out.checksum));}
 
 template<bool Heavy>
 void benchmark(int mu, int lambda) {
@@ -90,7 +85,7 @@ void benchmark(int mu, int lambda) {
                     "budget=" + std::to_string(budget) + " expected failure with reset result");
             require(stopped.calls == budget && stopped.result.evaluations == budget,
                     "budget=" + std::to_string(budget) + " expected exact invocation cap, actual="
-                    + std::to_string(stopped.calls) + "/" + std::to_string(stopped.result.evaluations)); }}
+                    + std::to_string(stopped.calls) + "/" + std::to_string(stopped.result.evaluations));}}
     for (int rep = -1; rep < 5; ++rep) {
         for (int j = 0; j < 2; ++j) {
             int method = (j + rep + 1) % 2;
@@ -102,13 +97,12 @@ void benchmark(int mu, int lambda) {
             for (auto &out : outputs) { out = run<Heavy>(arc, digests, method, ULLONG_MAX); }
             double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count() / batch;
             for (const auto &out : outputs) {
-                verify(out, mu, lambda, references[method].calls, references[method].checksum); }
+                verify(out, mu, lambda, references[method].calls, references[method].checksum);}
             if (rep >= 0) {
                 cout << mu << ' ' << lambda << ' ' << (Heavy ? "mix16" : "table") << ' '
                      << (method ? "brent" : "floyd") << ' ' << rep << ' ' << batch << ' '
                      << references[method].calls << ' ' << references[method].checksum << ' '
-                     << std::setprecision(12) << ms << '\n'; }}}
-}
+                     << std::setprecision(12) << ms << '\n';}}}}
 
 int main() {
     for (auto [mu, lambda] : vector<pair<int, int>>{
@@ -116,5 +110,4 @@ int main() {
             {31, 1}, {32, 1}, {33, 1}, {0, 31}, {0, 32}, {0, 33}, {63, 65},
             {4096, 1}, {1, 4096}, {4095, 4096}, {4096, 4097},
             {65536, 3}, {3, 65536}, {32768, 32769}}) {
-        benchmark<false>(mu, lambda); benchmark<true>(mu, lambda); }
-}
+        benchmark<false>(mu, lambda); benchmark<true>(mu, lambda);}}

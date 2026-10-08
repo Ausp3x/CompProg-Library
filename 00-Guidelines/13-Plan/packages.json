@@ -293,13 +293,13 @@
       "phase": "Foundations re-audit",
       "size": "M+M+S",
       "model": "opus",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "06-Miscellaneous/Docs/12-enumeration.md",
         "06-Miscellaneous/Docs/13-knapsack.md",
         "06-Miscellaneous/Docs/14-cyclefinding.md"
       ],
-      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-Reaudit Findings/p015.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-Reaudit Findings/00-index.md and clear this note."
+      "note": ""
     },
     {
       "id": "P016",

@@ -7,34 +7,43 @@ void check(bool ok, const string &what) {
     ++checks;
     if (!ok) {
         cerr << "FAIL seed=" << test_seed << " smallest known reproducer=" << context
-             << " operation=" << what << " expected=true actual=false\n"; std::exit(1); }
-}
+             << " operation=" << what << " expected=true actual=false\n"; std::exit(1);}}
 template<class T> void checkEqual(const T &actual, const T &expected, const string &what) {
     ++checks;
     if (actual != expected) {
         cerr << "FAIL seed=" << test_seed << " smallest known reproducer=" << context
-             << " operation=" << what << " expected=" << expected << " actual=" << actual << '\n'; std::exit(1); }
-}
+             << " operation=" << what << " expected=" << expected << " actual=" << actual << '\n'; std::exit(1);}}
 struct Reference { int entry; ulng tail, length; };
 Reference orbitOracle(const vector<int> &successor, int start) {
     vector<int> first(successor.size(), -1); int x = start, visited = 0;
     while (first[x] < 0) { first[x] = visited++; x = successor[x]; }
-    return {x, ulng(first[x]), ulng(visited - first[x])};
-}
+    return {x, ulng(first[x]), ulng(visited - first[x])};}
 string show(const vector<int> &successor, int start) {
     string text = "start=" + std::to_string(start) + " successor=[";
     for (int x : successor) { text += std::to_string(x) + ','; }
-    return text + ']';
-}
+    return text + ']';}
 template<class T, class F, class Equal = std::equal_to<T>>
 CycleResult<T> runCycle(bool brent, T start, F &&next, ulng budget, Equal equal = Equal{}) {
     ++runs;
     if (brent) { return brentCycle(std::move(start), std::forward<F>(next), budget, std::move(equal)); }
-    return floydCycle(std::move(start), std::forward<F>(next), budget, std::move(equal));
-}
+    return floydCycle(std::move(start), std::forward<F>(next), budget, std::move(equal));}
+// Independent term oracle: the first-visit path, wrapped by its own tail/period arithmetic.
+void checkTerms(const vector<int> &successor, int start, const Reference &expected, bool thorough, const string &fixture) {
+    vector<int> path{start};
+    while (path.size() < expected.tail + expected.length) { path.push_back(successor[path.back()]); }
+    auto oracle = [&](ulng k) { return path[k < path.size() ? k : expected.tail + (k - expected.tail) % expected.length]; };
+    ulng span = expected.tail + expected.length;
+    vector<ulng> ks{0, 1, span - 1, span, span + 1, 2 * span + 3, ulng(1) << 40, UINT64_MAX - 1, UINT64_MAX};
+    if (thorough) { for (ulng k = 0; k <= 2 * span + 2; ++k) { ks.push_back(k); } }
+    for (ulng k : ks) {
+        context = "orbitTerm " + fixture + " k=" + std::to_string(k); ulng calls = 0;
+        int got = orbitTerm(start, [&](const int &x) { ++calls; return successor[x]; }, k);
+        checkEqual(got, oracle(k), "k-th term against first-visit path");
+        check(calls <= 2 * k && calls <= 8 * span + 8, "orbitTerm calls O(min(k, tail + period))");}}
 void checkOrbit(const vector<int> &successor, int start, bool all_budgets, const string &label = "") {
     ++orbits; Reference expected = orbitOracle(successor, start);
     string fixture = label.empty() ? show(successor, start) : label + " start=" + std::to_string(start);
+    checkTerms(successor, start, expected, all_budgets, fixture);
     for (bool brent : {false, true}) {
         context = (brent ? "Brent " : "Floyd ") + fixture;
         ulng calls = 0, budget = UINT64_MAX;
@@ -42,8 +51,7 @@ void checkOrbit(const vector<int> &successor, int start, bool all_budgets, const
             static_assert(std::is_const_v<std::remove_reference_t<decltype(x)>>);
             check(calls < budget, "successor cannot be called beyond budget");
             check(0 <= x && x < int(successor.size()), "successor input within state domain");
-            ++calls; return successor[x];
-        };
+            ++calls; return successor[x];};
         auto full = runCycle(brent, start, next, budget);
         check(full.found, "finite map orbit found with full unsigned budget");
         checkEqual(full.entry, expected.entry, "cycle entry against first visits");
@@ -55,10 +63,10 @@ void checkOrbit(const vector<int> &successor, int start, bool all_budgets, const
         if (brent) {
             ulng power = 1;
             while (power <= expected.tail || power < expected.length) { power *= 2; }
-            predicted = power - 1 + 2 * expected.length + 2 * expected.tail; }
+            predicted = power - 1 + 2 * expected.length + 2 * expected.tail;}
         else {
             ulng meeting = max(ulng(1), (expected.tail + expected.length - 1) / expected.length) * expected.length;
-            predicted = 3 * meeting + 2 * expected.tail + expected.length; }
+            predicted = 3 * meeting + 2 * expected.tail + expected.length;}
         checkEqual(calls, predicted, "independent phase-length evaluation formula");
         ulng required = calls;
         vector<ulng> budgets{0, 1, required / 2, required - 1, required, required + 1, UINT64_MAX};
@@ -75,11 +83,10 @@ void checkOrbit(const vector<int> &successor, int start, bool all_budgets, const
                 checkEqual(result.entry, expected.entry, "budgeted entry");
                 checkEqual(result.tail, expected.tail, "budgeted tail");
                 checkEqual(result.length, expected.length, "budgeted cycle length");
-                checkEqual(calls, required, "larger budget does not change work"); }
+                checkEqual(calls, required, "larger budget does not change work");}
             else {
                 checkEqual(calls, b, "failure consumes exactly the budget");
-                check(result.entry == start && result.tail == 0 && result.length == 0, "failure returns untouched start and zero lengths"); }}}
-}
+                check(result.entry == start && result.tail == 0 && result.length == 0, "failure returns untouched start and zero lengths");}}}}
 
 void exhaustiveCases(const string &mode) {
     int bound = mode == "quick" ? 3 : mode == "full" ? 5 : 6, maps = 0;
@@ -88,35 +95,30 @@ void exhaustiveCases(const string &mode) {
         auto enumerate = [&](auto &&enumerate, int i) -> void {
             if (i == n) {
                 for (int start = 0; start < n; ++start) { checkOrbit(successor, start, true); }
-                ++maps; return; }
-            for (int j = 0; j < n; ++j) { successor[i] = j; enumerate(enumerate, i + 1); }
-        };
-        enumerate(enumerate, 0); }
+                ++maps; return;}
+            for (int j = 0; j < n; ++j) { successor[i] = j; enumerate(enumerate, i + 1); }};
+        enumerate(enumerate, 0);}
     cout << "PASS all finite maps n=1.." << bound << " maps=" << maps << " start_orbits=" << orbits
-         << " every budget through first success+1, both algorithms\n";
-}
+         << " every budget through first success+1, both algorithms\n";}
 void structuredCases(const string &mode) {
     int max_power = mode == "quick" ? 8 : mode == "full" ? 14 : 17, inputs = 0;
     auto fixture = [&](int tail, int length, bool thorough = false) {
         vector<int> successor(tail + length); iota(successor.begin(), successor.end(), 1); successor.back() = tail;
-        checkOrbit(successor, 0, thorough, "structured tail=" + std::to_string(tail) + " length=" + std::to_string(length)); ++inputs;
-    };
+        checkOrbit(successor, 0, thorough, "structured tail=" + std::to_string(tail) + " length=" + std::to_string(length)); ++inputs;};
     for (int tail = 0; tail <= 12; ++tail) { for (int period = 1; period <= 12; ++period) { fixture(tail, period, true); } }
     for (int power = 1; power <= max_power; ++power) {
         int n = 1 << power;
         for (int delta : {-1, 0, 1}) {
             fixture(0, n + delta); fixture(n + delta, 1); fixture(n + delta, n - delta);
-            fixture(1, n + delta); fixture(n + delta, 3); }}
-    cout << "PASS structured tails/periods and powers-of-two +/-1 max_power=" << max_power << " inputs=" << inputs << '\n';
-}
+            fixture(1, n + delta); fixture(n + delta, 3);}}
+    cout << "PASS structured tails/periods and powers-of-two +/-1 max_power=" << max_power << " inputs=" << inputs << '\n';}
 void randomCases(const string &mode) {
     std::mt19937_64 gen(test_seed); int rounds = mode == "quick" ? 100 : mode == "full" ? 3000 : 20000;
     for (int round = 0; round < rounds; ++round) {
         int n = 1 + int(gen() % 201); vector<int> successor(n);
         for (int &x : successor) { x = int(gen() % n); }
-        int start = int(gen() % n); checkOrbit(successor, start, round < 30); }
-    cout << "PASS seeded random finite maps rounds=" << rounds << " max_states=201\n";
-}
+        int start = int(gen() % n); checkOrbit(successor, start, round < 30);}
+    cout << "PASS seeded random finite maps rounds=" << rounds << " max_states=201\n";}
 
 struct Opaque {
     int id, payload;
@@ -152,10 +154,10 @@ void genericCases(const string &mode) {
             checkEqual(result.evaluations, calls, "opaque successor accounting");
             if (result.found) {
                 check(result.entry.id == 2 && result.tail == 2 && result.length == 3, "custom equivalence ignores increasing payload");
-                check(result.entry.payload == 93, "returned representative is actual f^tail(start)"); }
+                check(result.entry.payload == 93, "returned representative is actual f^tail(start)");}
             else {
                 check(result.entry.id == 0 && result.entry.payload == 91 && !result.tail && !result.length,
-                      "opaque failure preserves start object exactly"); checkEqual(calls, budget, "opaque exhaustion"); }}
+                      "opaque failure preserves start object exactly"); checkEqual(calls, budget, "opaque exhaustion");}}
         MoveOnlyNext move_only;
         auto moved = runCycle(brent, 0, move_only, UINT64_MAX);
         check(moved.found && moved.length == 5 && moved.evaluations == *move_only.calls, "move-only lvalue successor state retained");
@@ -168,8 +170,7 @@ void genericCases(const string &mode) {
             ++calls;
             auto inside = runCycle(!brent, 3, [](const int &) { return 3; }, 100);
             check(inside.found && inside.entry == 3 && inside.tail == 0 && inside.length == 1, "nested orbit independent");
-            return (x + 1) % 7;
-        }, 1000);
+            return (x + 1) % 7;}, 1000);
         check(nested.found && nested.length == 7 && nested.evaluations == calls, "outer orbit after nested callbacks");
         context = brent ? "Brent constant live-state storage" : "Floyd constant live-state storage";
         check(LiveState::live == 0, "no state leaked before lifetime test"); LiveState::peak = 0;
@@ -179,9 +180,8 @@ void genericCases(const string &mode) {
                                    UINT64_MAX, [](const LiveState &a, const LiveState &b) { return a.id == b.id; });
             check(result.found && result.length == ulng(period) && result.tail == 0, "non-default/non-equality state long orbit");
             check(LiveState::peak <= 32, "constant number of live states independent of orbit length"); }
-        check(LiveState::live == 0, "all local states released"); }
-    cout << "PASS strings, no-default opaque states, congruent custom equality, move-only callbacks, nesting, constant live-state storage\n";
-}
+        check(LiveState::live == 0, "all local states released");}
+    cout << "PASS strings, no-default opaque states, congruent custom equality, move-only callbacks, nesting, constant live-state storage\n";}
 
 void boundedAndThrowingCases(const string &mode) {
     for (bool brent : {false, true}) {
@@ -189,20 +189,17 @@ void boundedAndThrowingCases(const string &mode) {
             context = string(brent ? "Brent" : "Floyd") + " infinite integer orbit budget=" + std::to_string(budget);
             ulng calls = 0;
             auto result = runCycle(brent, ulng(0), [&](const ulng &x) {
-                check(calls < budget, "infinite-orbit strict budget"); ++calls; return x + 1;
-            }, budget);
+                check(calls < budget, "infinite-orbit strict budget"); ++calls; return x + 1;}, budget);
             check(!result.found && result.entry == 0 && result.tail == 0 && result.length == 0, "infinite-orbit exhausted result");
             checkEqual(result.evaluations, budget, "infinite-orbit exact budget metadata");
-            checkEqual(calls, budget, "infinite-orbit callback count"); }
+            checkEqual(calls, budget, "infinite-orbit callback count");}
         for (int fail_at : {1, 2, 3, 7, 20}) {
             context = string(brent ? "Brent" : "Floyd") + " successor throws call=" + std::to_string(fail_at);
             int calls = 0; bool caught = false;
             try {
                 runCycle(brent, 0, [&](const int &x) {
                     if (++calls == fail_at) { throw std::runtime_error("successor"); }
-                    return (x + 1) % 101;
-                }, 10000);
-            } catch (const std::runtime_error &error) { caught = string(error.what()) == "successor"; }
+                    return (x + 1) % 101;}, 10000);} catch (const std::runtime_error &error) { caught = string(error.what()) == "successor"; }
             check(caught && calls == fail_at, "successor exception immediately propagates");
             context = string(brent ? "Brent" : "Floyd") + " equality throws comparison=" + std::to_string(fail_at);
             int comparisons = 0; caught = false;
@@ -210,15 +207,20 @@ void boundedAndThrowingCases(const string &mode) {
                 runCycle(brent, 0, [](const int &x) { return (x + 1) % 101; }, 10000,
                          [&](const int &a, const int &b) {
                     if (++comparisons == fail_at) { throw std::runtime_error("equal"); }
-                    return a == b;
-                });
-            } catch (const std::runtime_error &error) { caught = string(error.what()) == "equal"; }
-            check(caught && comparisons == fail_at, "equality exception immediately propagates"); }
+                    return a == b;});} catch (const std::runtime_error &error) { caught = string(error.what()) == "equal"; }
+            check(caught && comparisons == fail_at, "equality exception immediately propagates");}
+        context = "orbitTerm infinite orbit and custom equivalence";
+        for (ulng k : {ulng(0), ulng(1), ulng(17), ulng(mode == "quick" ? 10000 : 1000000)}) {
+            ulng calls = 0;
+            checkEqual(orbitTerm(ulng(0), [&](const ulng &x) { ++calls; return x + 1; }, k), k, "nonrepeating orbit walks k terms");
+            check(calls <= 2 * k, "nonrepeating orbit at most 2k calls");}
+        const vector<int> successor{1, 2, 3, 4, 2};
+        auto term = orbitTerm(Opaque(0, 0), [&](const Opaque &x) { return Opaque(successor[x.id], x.payload + 1); }, 1000003, OpaqueEqual{});
+        check(term.id == successor[successor[2]] && term.payload < 10, "equivalent term via reduced exponent");
         context = brent ? "Brent zero budget never evaluates successor" : "Floyd zero budget never evaluates successor";
         auto result = runCycle(brent, 42, [](const int &) -> int { throw std::runtime_error("not called"); }, 0);
-        check(!result.found && !result.evaluations && result.entry == 42, "zero-budget callback untouched"); }
-    cout << "PASS bounded nonrepeating prefixes, zero budget, successor/equality exceptions\n";
-}
+        check(!result.found && !result.evaluations && result.entry == 42, "zero-budget callback untouched");}
+    cout << "PASS bounded nonrepeating prefixes, zero budget, successor/equality exceptions\n";}
 
 int main(int argc, char **argv) {
     string mode = "full";
@@ -227,5 +229,4 @@ int main(int argc, char **argv) {
         if (arg == "--mode") { mode = argv[++i]; }
         if (arg == "--seed") { test_seed = std::stoull(argv[++i]); }}
     exhaustiveCases(mode); structuredCases(mode); randomCases(mode); genericCases(mode); boundedAndThrowingCases(mode);
-    cout << "PASS cyclefinding orbits=" << orbits << " runs=" << runs << " checks=" << checks << " seed=" << test_seed << '\n';
-}
+    cout << "PASS cyclefinding orbits=" << orbits << " runs=" << runs << " checks=" << checks << " seed=" << test_seed << '\n';}

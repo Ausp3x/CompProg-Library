@@ -1,4 +1,9 @@
-"""Floyd/Brent checked against independent first-visit-map orbit references.
+"""Floyd/Brent/orbitTerm checked against independent first-visit-map orbit references.
+
+orbitTerm is checked on every orbit against the first-visit path wrapped by the
+oracle tail/period (k through 2*(tail+period)+2 on exhaustive fixtures, plus 2^40
+and UINT64_MAX), with a min(k, tail+period) call bound, nonrepeating orbits and
+a congruent custom equivalence.
 
 All modes exhaust every deterministic map and start through n=3/5/6 for
 quick/full/stress, trying every budget through the first successful budget+1.
