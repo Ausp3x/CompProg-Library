@@ -42,7 +42,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 
 ### Contest core
 
-- [ ] **P229 — MI32** (opus, M): 06-Miscellaneous — timer, interactive, grid utilities. Status: planned. Note: contest utilities
+- [x] **P229 — MI32** (opus, M): 06-Miscellaneous — timer, interactive, grid utilities. Status: verified. [evidence](06-Miscellaneous/Docs/49-timer.md) [evidence](06-Miscellaneous/Docs/50-interactive.md) [evidence](06-Miscellaneous/Docs/51-grid_utilities.md)
 - [ ] **P027 — DS04, DS05, DS06, DS47** (opus, M+L+L+M): 02-Data Structures — fenwick tree advanced, lazysegmenttree, dynamicsegmenttree, interval set. Status: planned.
 - [ ] **P227 — DS49** (opus, M): 02-Data Structures — hashmap, sortedlist. Status: planned. Note: hash map and sorted list containers
 - [ ] **P052 — MA03, MA04** (opus, L+L): 05-Mathematics — primality factorization, multiplicative functions, modinverse, crt. Status: planned.

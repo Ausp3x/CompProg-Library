@@ -20,9 +20,9 @@ Scope: reusable contest algorithms and utilities whose primary API is not owned 
 | `12-enumeration.hpp` | forEachCombination; forEachMulticombination; forEachSubset; forEachProduct; forEachGrayProduct; forEachSubmask; forEachSupermask; forEachSubsetMask; forEachCombinationMask; forEachGrayMask; forEachIntegerPartition (reverse lexicographic, max part); forEachSetPartition (restricted growth strings); combinationRank; combinationUnrank | verified; [evidence](Docs/12-enumeration.md) |
 | `13-knapsack.hpp` | KnapsackItem; KnapsackStatus; KnapsackResult; KnapsackCount; KnapsackDP: exact, atMost, restore; ValueKnapsackDP: minWeight, bestWithin, restore; knapsackFeasible; KnapsackCounts: exact, atMost | verified; [evidence](Docs/13-knapsack.md) |
 | `14-cyclefinding.hpp` | CycleResult; floydCycle (budget, custom equality); brentCycle (budget, custom equality); orbitTerm | verified; [evidence](Docs/14-cyclefinding.md) |
-| `49-timer.hpp` | Timer: reset, elapsedMs, elapsedUs, elapsedSec, expired (limit), remaining; ScopedTimer | planned; sources: NYA, EI, SUI, HIT, TKO, MAS |
-| `50-interactive.hpp` | Interactive: ask (write query, flush, read reply), answer (final report), used, remaining, budget; readReply (int, token, line); judgeErrorExit; flushNow | planned; sources: CSES, CF |
-| `51-grid_utilities.hpp` | Grid: dirs4, dirs8, inBounds, neighbors, index, rotate90, transpose, flipRows, flipCols, pad; Dice: roll (N, S, E, W), rotate, top, bottom, front, back, left, right; knightDistance (infinite board) | planned; sources: EI, MAS, SUI, HIT |
+| `49-timer.hpp` | Timer: reset, elapsed, elapsedUs, elapsedMs, elapsedSec, expired (limit), remaining, progress; ScopedTimer | verified; [evidence](Docs/49-timer.md) |
+| `50-interactive.hpp` | Interactive: ask (write query, flush, read reply), answer (final report, flushed, not counted), writeLine (ranges expanded), used, remaining, budget, reset; readReply (int, token), readLine; error sentinel; judgeErrorExit; flushNow | verified; [evidence](Docs/50-interactive.md) |
+| `51-grid_utilities.hpp` | Grid: DIRS4, DIRS8, dirIndex, inBounds, neighbors (4/8), index, rotate90 (k clockwise quarter turns), transpose, flipRows, flipCols, pad; Dice: roll (N, S, E, W), rotate (k clockwise spins), top, bottom, front, back, left, right, orientations, canonical; knightDistance (infinite board) | verified; [evidence](Docs/51-grid_utilities.md) |
 
 ## Advanced
 

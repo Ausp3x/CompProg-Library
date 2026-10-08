@@ -14,3 +14,6 @@
 #include "12-enumeration.hpp"
 #include "13-knapsack.hpp"
 #include "14-cyclefinding.hpp"
+#include "49-timer.hpp"
+#include "50-interactive.hpp"
+#include "51-grid_utilities.hpp"

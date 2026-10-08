@@ -259,9 +259,13 @@
       "phase": "Contest core",
       "size": "M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": "contest utilities"
+      "status": "verified",
+      "evidence": [
+        "06-Miscellaneous/Docs/49-timer.md",
+        "06-Miscellaneous/Docs/50-interactive.md",
+        "06-Miscellaneous/Docs/51-grid_utilities.md"
+      ],
+      "note": ""
     },
     {
       "id": "P014",
