@@ -6,54 +6,75 @@ string context;
 void check(bool ok, const string &op) {
     ++checks; if (ok) { return; }
     cerr << "FAIL seed=" << test_seed << " smallest known reproducer=" << context
-         << " operation=" << op << " expected=true actual=false\n"; std::exit(1);
-}
+         << " operation=" << op << " expected=true actual=false\n"; std::exit(1);}
 void expectEqual(int actual, int expected, const string &op) {
     ++checks; if (actual == expected) { return; }
     cerr << "FAIL seed=" << test_seed << " smallest known reproducer=" << context
-         << " operation=" << op << " expected=" << expected << " actual=" << actual << '\n'; std::exit(1);
-}
+         << " operation=" << op << " expected=" << expected << " actual=" << actual << '\n'; std::exit(1);}
 template<class S> bool palindrome(const S &s, int l, int r) {
     while (l < r) { if (!(s[l++] == s[--r])) { return false; } }
-    return true;
-}
-template<class S> void verify(const S &s) {
-    ++cases; int n = int(s.size()); Manacher radii(s);
-    expectEqual(radii.size(), n, "size"); expectEqual(int(radii.even.size()), n + 1, "all even gaps");
-    vector<int> odd(n), even(n + 1);
-    // Enumerate all intervals and test each directly; no mirrored-radius recurrence.
-    for (int l = 0; l <= n; ++l) { for (int r = l; r <= n; ++r) {
-        if (!palindrome(s, l, r)) { continue; }
-        int len = r - l, i = l + len / 2;
-        if (len % 2) { odd[i] = max(odd[i], len / 2 + 1); }
-        else { even[i] = max(even[i], len / 2); }
-    } }
+    return true;}
+template<class S> bool palindromeUnder(const S &s, int l, int r, bool flip) {
+    for (--r; l < r; ++l, --r) {
+        if (!(flip ? lng(s[r]) == (lng(s[l]) ^ 1) : s[l] == s[r])) { return false; }}
+    return true;}
+// Direct interval enumeration (no mirrored-radius recurrence); a complement involution checks only even radii.
+template<class S> void expectRadii(const S &s, const Manacher &radii, bool flip) {
+    int n = int(s.size());
+    vector<int> odd(n), even(n + 1), ending(n), starting(n);
+    for (int l = 0; l <= n; ++l) {
+        for (int r = l; r <= n; ++r) {
+            if (!palindromeUnder(s, l, r, flip)) { continue; }
+            int len = r - l, i = l + len / 2;
+            if (len % 2) { odd[i] = max(odd[i], len / 2 + 1); }
+            else { even[i] = max(even[i], len / 2); }
+            if (len) { ending[r - 1] = max(ending[r - 1], len); starting[l] = max(starting[l], len); }}}
+    string tag = flip ? "complement " : "";
+    expectEqual(radii.size(), n, tag + "size"); expectEqual(int(radii.even.size()), n + 1, tag + "all even gaps");
+    for (int i = 0; i <= n; ++i) { expectEqual(radii.even[i], even[i], tag + "even radius gap=" + std::to_string(i)); }
+    if (flip) { return; }
+    for (int i = 0; i < n; ++i) { expectEqual(radii.odd[i], odd[i], tag + "odd radius center=" + std::to_string(i)); }
+    for (int c = 0; c <= 2 * n - 2; ++c) {
+        int e = radii.centerEnd(c), l = c - e;
+        check(l <= e + 1 && l >= 0 && e < n && palindromeUnder(s, l, e + 1, false), tag + "centerEnd palindrome c=" + std::to_string(c));
+        check(l == 0 || e + 1 == n || !palindromeUnder(s, l - 1, e + 2, false), tag + "centerEnd maximal c=" + std::to_string(c));}
+    auto e = radii.longestEnding(), b = radii.longestStarting();
     for (int i = 0; i < n; ++i) {
-        expectEqual(radii.odd[i], odd[i], "odd radius center=" + std::to_string(i));
+        expectEqual(e[i], ending[i], tag + "longestEnding r=" + std::to_string(i));
+        expectEqual(b[i], starting[i], tag + "longestStarting l=" + std::to_string(i));}
+    check(int(e.size()) == n && int(b.size()) == n, tag + "per-position sizes");}
+template<class S> void verify(const S &s) {
+    ++cases;
+    int n = int(s.size());
+    Manacher radii(s);
+    expectRadii(s, radii, false);
+    Manacher predicate(n, [&](int i, int j) { return s[i] == s[j]; });
+    check(predicate.odd == radii.odd && predicate.even == radii.even, "predicate equality constructor");
+    if constexpr (std::is_integral_v<std::decay_t<decltype(s[0])>>) {
+        expectRadii(s, Manacher(n, [&](int i, int j) { return lng(s[j]) == (lng(s[i]) ^ 1); }), true);}
+    vector<int> odd(radii.odd), even(radii.even);
+    for (int i = 0; i < n; ++i) {
         check(radii.oddInterval(i) == pair<int, int>{i - odd[i] + 1, i + odd[i]}, "maximum odd interval");
         check(radii.oddInclusive(i) == pair<int, int>{i - odd[i] + 1, i + odd[i] - 1}, "maximum odd inclusive");
         for (int k = 1; k <= odd[i]; ++k) {
             auto [l, r] = radii.oddInterval(i, k);
             check(l == i - k + 1 && r == i + k && palindrome(s, l, r), "nested odd interval");
-            check(radii.oddInclusive(i, k) == pair<int, int>{l, r - 1}, "nested odd inclusive"); } }
+            check(radii.oddInclusive(i, k) == pair<int, int>{l, r - 1}, "nested odd inclusive");}}
     for (int i = 0; i <= n; ++i) {
-        expectEqual(radii.even[i], even[i], "even radius gap=" + std::to_string(i));
         check(radii.evenInterval(i) == pair<int, int>{i - even[i], i + even[i]}, "maximum even interval");
         check(radii.evenInclusive(i) == pair<int, int>{i - even[i], i + even[i] - 1}, "maximum even inclusive");
         for (int k = 0; k <= even[i]; ++k) {
             auto [l, r] = radii.evenInterval(i, k);
             check(l == i - k && r == i + k && palindrome(s, l, r), "nested even interval");
-            check(radii.evenInclusive(i, k) == pair<int, int>{l, r - 1}, "nested even inclusive"); } }
-}
+            check(radii.evenInclusive(i, k) == pair<int, int>{l, r - 1}, "nested even inclusive");}}}
 void exhaustive(const string &mode) {
     int bound = mode == "quick" ? 6 : mode == "full" ? 8 : 9, count = 1;
     for (int n = 0; n <= bound; ++n, count *= 3) {
         for (int code = 0; code < count; ++code) {
             string s(n, '\0'); int x = code;
             for (char &c : s) { c = char(x % 3); x /= 3; }
-            context = "ternary n=" + std::to_string(n) + " code=" + std::to_string(code); verify(s); } }
-    cout << "PASS exhaustive direct interval oracle ternary lengths=0.." << bound << '\n';
-}
+            context = "ternary n=" + std::to_string(n) + " code=" + std::to_string(code); verify(s);}}
+    cout << "PASS exhaustive direct interval oracle ternary lengths=0.." << bound << '\n';}
 void randomCases(const string &mode) {
     std::mt19937_64 rng(test_seed); int count = mode == "quick" ? 300 : mode == "full" ? 2000 : 15000;
     for (int rep = 0; rep < count; ++rep) {
@@ -65,11 +86,10 @@ void randomCases(const string &mode) {
         verify(string_view(s));
         vector<lng> ints;
         for (unsigned char c : s) { ints.push_back(c % 2 ? std::numeric_limits<lng>::min() + c : std::numeric_limits<lng>::max() - c); }
-        verify(ints); }
+        verify(ints);}
     string bytes; for (int c = 0; c < 256; ++c) { bytes += char(c); }
     context = "all 256 bytes"; verify(bytes);
-    cout << "PASS seeded byte/integer extreme alphabets cases=" << count << '\n';
-}
+    cout << "PASS seeded byte/integer extreme alphabets cases=" << count << '\n';}
 void large(const string &mode) {
     int n = mode == "quick" ? 5000 : mode == "full" ? 300000 : 1000000;
     string s(n, char(255)); context = "large unary n=" + std::to_string(n); Manacher unary(s);
@@ -84,15 +104,19 @@ void large(const string &mode) {
     copy = Manacher(); check(copy.odd.empty() && copy.even == vector<int>{0}, "reset moved-from");
     check(copy.evenInterval(0) == pair<int, int>{0, 0} && copy.evenInclusive(0) == pair<int, int>{0, -1}, "default empty intervals");
     copy = alternating; check(copy.odd == alternating.odd && copy.even == alternating.even, "assignment rebuild");
-    cout << "PASS large unary/alternating and copy/move/reset n=" << n << '\n';
-}
+    auto e = unary.longestEnding(), b = unary.longestStarting();
+    for (int i = 0; i < n; ++i) { expectEqual(e[i], i + 1, "unary longestEnding"); expectEqual(b[i], n - i, "unary longestStarting"); }
+    e = alternating.longestEnding();
+    for (int i = 0; i < n; ++i) { expectEqual(e[i], i % 2 ? i : i + 1, "alternating longestEnding"); }
+    check(Manacher().longestEnding().empty() && Manacher().longestStarting().empty(), "empty per-position");
+    cout << "PASS large unary/alternating and copy/move/reset n=" << n << '\n';}
 int main(int argc, char **argv) {
     string mode = "full", invalid;
     for (int i = 1; i < argc; i += 2) {
         string arg = argv[i];
         if (arg == "--mode") { mode = argv[i + 1]; }
         else if (arg == "--seed") { test_seed = std::stoull(argv[i + 1]); }
-        else if (arg == "--invalid") { invalid = argv[i + 1]; } }
+        else if (arg == "--invalid") { invalid = argv[i + 1]; }}
     if (!invalid.empty()) {
         Manacher m(string_view("aba"));
         if (invalid == "odd-negative-center") { m.oddInterval(-1); }
@@ -105,8 +129,8 @@ int main(int argc, char **argv) {
         if (invalid == "odd-large-radius") { m.oddInterval(1, 3); }
         if (invalid == "even-negative-radius") { m.evenInterval(1, -2); }
         if (invalid == "even-large-radius") { m.evenInterval(1, 1); }
-        return 0;
-    }
+        if (invalid == "center-end-negative") { m.centerEnd(-1); }
+        if (invalid == "center-end-high") { m.centerEnd(5); }
+        return 0;}
     exhaustive(mode); randomCases(mode); large(mode);
-    cout << "PASS manacher seed=" << test_seed << " cases=" << cases << " checks=" << checks << '\n';
-}
+    cout << "PASS manacher seed=" << test_seed << " cases=" << cases << " checks=" << checks << '\n';}

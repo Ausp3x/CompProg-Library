@@ -1,6 +1,6 @@
 # 09-runlength.hpp — evidence
 
-`09-runlength.hpp` (batch ST19, package P016) implements run-length encoding over byte and integer sequences. Symbols retain their exact type and value; strings include embedded NUL and all byte values. The encoder accepts an iterable sequence with integral `value_type` and `size()`, including strings, string views and vectors. Source length and encoded run count are at most `INT_MAX`. Counts and decoded witness positions use `lng` because externally supplied encodings can describe up to `INT64_MAX` symbols without expansion.
+`09-runlength.hpp` (batch ST19, package P016) implements run-length encoding over byte and integer sequences. Symbols retain their exact type and value; strings include embedded NUL and all byte values. The encoder accepts an iterable sequence with integral `value_type` and `size()`, including strings, string views and vectors. Source length and encoded run count are at most `INT_MAX`. Complexity symbols: `r` is the run count (`runs.size()`, or the number of maximal runs produced) and `n` the source or decoded length. Counts and decoded witness positions use `lng` because externally supplied encodings can describe up to `INT64_MAX` symbols without expansion.
 
 ## Contracts
 
@@ -40,20 +40,19 @@ Quick/full/stress enumerate ternary strings through lengths 5/8/10, run 300/4,00
 
 ## Commands and results
 
-P016 verification run, 2026-09-28: Linux x86-64 (i9-11900H), GCC 16.2.1 (20260810),
-GNU++20, CPython 3.14.7, seed 20260928. The shared runner builds optimized
-`-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan (leak checking on)
-configurations; test oracles stay active under NDEBUG. LeakSanitizer cannot run
-under the sandbox process tracer, so sanitizer configurations ran outside it.
+Run 2026-10-08 with the configurations listed in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
 
-| Command from repository root | Result |
-|---|---|
-| `python3 '96-Local Testing/07-Strings/09-runlength_tester.py' --mode full --seed 20260928` | PASS, all three configurations, 363,502 checks each; 5 assertion probes |
-| `python3 '96-Local Testing/02-integration.py'` | PASS: 99 standalone/aggregate headers, multi-TU scalar/AVX2 aggregates, Workspace LOCAL and non-LOCAL |
-| `python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration` (from `/tmp`) | PASS, all six P016 Strings suites |
-| `python3 '96-Local Testing/03-consistency.py'` | no errors |
+```bash
+python3 '96-Local Testing/07-Strings/09-runlength_tester.py' --mode quick --seed 1  # PASS, 2 configurations
+python3 '96-Local Testing/07-Strings/09-runlength_tester.py' --mode full --seed 1  # PASS, 3 configurations, 363,468 checks each, 5 assertion probes
+CXX=g++-14 python3 '96-Local Testing/07-Strings/09-runlength_tester.py' --mode full --seed 2  # PASS, 3 configurations, 363,430 checks each (`CXX=g++-14`)
+python3 '96-Local Testing/07-Strings/09-runlength_tester.py' --mode stress --seed 3  # PASS, 3 configurations, 3,057,370 checks each
+python3 '96-Local Testing/02-integration.py' --sanitizers  # PASS, 102 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace, sanitizers
+python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 9 suites
+python3 '96-Local Testing/03-consistency.py'  # no errors
+```
 
-No other compiler, including the `g++-14` floor, is recorded as tested. Stress mode exists but was not run.
+The suite was also run in full mode before any change (seed 1, all three configurations PASS) as the re-audit baseline.
 
 ## Benchmarks
 
@@ -67,12 +66,16 @@ Read on 2026-09-28; both sources were inspected in full and used for algorithm/c
 - [maspypy, `string/run_length.hpp`](https://github.com/maspypy/library/blob/main/string/run_length.hpp): generic sequence encoding with signed 64-bit counts and empty-input handling. No decoder or overflow checks are provided by that reference.
 - [Nyaan, `string/run-length-encoding.hpp`](https://github.com/NyaanNyaan/library/blob/master/string/run-length-encoding.hpp): maximal adjacent runs, explicit empty case, generic sequence element type and `int` counts. The maintained implementation adds explicit count/size contracts and independently designed decoding/span checks.
 
+Catalog sweep 2026-10-08 (Nyaan, maspypy, suisen `util/run_length_encoder.hpp`, hitonanode, ei1333, tko919, KACTL, PyRival) in [00-sources.md](00-sources.md): no further adopted operation.
+
 Targeted path/symbol searches in `OLD/algorithms.cpp`, `OLD/[1] algorithms.cpp`, and Team Notebook `src/algs.cpp`/`src/algsbetter.cpp` found no run-length implementation to migrate.
 
 ## Limits and handoffs
 
-- Open `/reaudit-review` findings for P016 ([p016.md](<../../00-Guidelines/23-Reaudit Findings/p016.md>)), not yet resolved:
-  - 15: function bodies close on their own line (closing-brace rule).
-  - 16: complexity symbol `r` is used without a definition in three function comments.
+- Not adopted (reason in [00-notes.md](00-notes.md)): suisen-style `pushBack`/`popBack` on an encoding (single unverified source; two-line caller idioms on the run vector).
+- Miscellaneous retains Huffman coding; Lempel–Ziv (`42`) and run-length BWT (`46`) remain separate Strings owners; streaming merge state is not part of these static contracts.
+- Exact GCC 14.2 and the Windows build were not run.
 
-Miscellaneous retains generic prefix coding/Huffman. Lempel–Ziv and run-length BWT remain separate Strings owners; streaming merge state is not part of these static contracts. Finite tests supplement the correctness arguments; no maximum-size domain is allocated.
+## History
+
+- 2026-09-28: verified under the previous system (P016). 2026-10-08 re-audit: `/reaudit-review` findings 15 (closing braces) and 16 (undefined complexity symbols) fixed; `runLengthSize` and `runLengthSpans` share one complexity line; contracts moved out of the header. Behavior unchanged.

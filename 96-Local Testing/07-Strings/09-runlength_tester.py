@@ -9,4 +9,4 @@ cover exact values, full byte/integer alphabets and signed-64-bit count overflow
 from _00_runner import main
 
 if __name__ == '__main__':
-    raise SystemExit(main('09-runlength', ['source-size', 'count-cap', 'size-cap', 'decode-cap', 'span-cap']))
+    raise SystemExit(main('09-runlength', ['source-size', 'count-cap', 'size-cap', 'decode-cap', 'span-cap'], strict=True))

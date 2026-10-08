@@ -11,7 +11,7 @@ import tempfile
 HERE = Path(__file__).resolve().parent
 
 
-def main(stem, invalid, oracle=None):
+def main(stem, invalid, oracle=None, strict=False):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mode', choices=('quick', 'full', 'stress'),
                         default=os.environ.get('CP_TEST_MODE', 'full'))
@@ -20,6 +20,7 @@ def main(stem, invalid, oracle=None):
                         default='all', help='select a build when retrying an environment failure')
     args = parser.parse_args()
     compiler = os.environ.get('CXX', 'g++')
+    warnings = ['-Wall', '-Wextra', '-Wshadow', '-Wconversion', '-Werror'] if strict else []
     checked = '-D_GLIBCXX_DEBUG'
     variants = [('optimized', ['-O2', '-DNDEBUG']), ('checked', ['-O0', '-g', checked])]
     if args.mode != 'quick':
@@ -60,7 +61,7 @@ def main(stem, invalid, oracle=None):
             for label, flags in variants:
                 binary = Path(name) / label
                 progress(f'BUILD {stem} configuration={label} mode={args.mode} seed={args.seed}')
-                run([compiler, '-std=gnu++20', *flags, str(HERE / (stem + '_tester.cpp')), '-o', str(binary)])
+                run([compiler, '-std=gnu++20', *warnings, *flags, str(HERE / (stem + '_tester.cpp')), '-o', str(binary)])
                 progress(f'RUN {stem} configuration={label} mode={args.mode} seed={args.seed}')
                 if sys.stdout.isatty():
                     print(flush=True)

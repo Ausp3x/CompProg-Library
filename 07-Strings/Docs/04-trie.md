@@ -1,70 +1,90 @@
 # 04-trie.hpp — evidence
 
-`04-trie.hpp` (batch ST02, package P016) provides a full-byte multiset trie with prefix/lexicographic traversal and reclaimed nodes. It belongs to the P016 ST02 ownership slice (`04-trie.hpp`, `05-manacher.hpp` and their mirrored tests).
+`04-trie.hpp` (batch ST02, package P016) provides a multiset string trie in two transition layouts from one template: `Trie` (ordered sparse map over all 256 bytes) and `TrieDense<S, BASE>` (fixed-alphabet array rows). Both support counts, prefix counts, all-or-nothing erase with node reclamation, lexicographic enumeration, a node cursor, and stored-prefix queries. Contest profile, GNU C++20, no ISA code.
 
 ## Contracts
 
-### Trie
+### BasicTrie, Trie, TrieDense
 
-`Trie` stores a multiset of byte strings, including the empty key, embedded NUL and all 256 byte values. Its ordered sparse edges compare bytes as unsigned values; lexicographic enumeration places a key before its extensions. `insert(s,k=1)` inserts a positive signed 64-bit multiplicity, `count(s)` returns terminal multiplicity, `search(s)` tests membership, and `countPrefix(s)` sums multiplicities of keys beginning with `s`. The empty prefix counts the complete dictionary. `erase(s,k=1)` removes exactly `k` copies or returns false without mutation when the key has too few copies. `size()` includes multiplicities; `empty()` and `clear()` have their ordinary container meanings. The supported total is at most `INT64_MAX`, every supplied key/prefix length is below `INT_MAX`, and peak live prefix nodes including the root must fit `INT_MAX`.
+`BasicTrie<S = 0, BASE = 0>` is the implementation; `Trie = BasicTrie<>` keeps sparse `map<unsigned char, int>` transitions; `TrieDense<S = 26, BASE = 'a'> = BasicTrie<S, BASE>` keeps `array<int, S>` rows for keys whose bytes lie in `[BASE, BASE + S)`; the template static-asserts `BASE + S <= 256` and `BASE = 0` when `S = 0`, and `S = 0` selects the map (so `TrieDense<0, 0>` is `Trie`). Keys are byte strings (`string_view`) of length below `INT_MAX`, including the empty key, embedded NUL and, for `Trie` or `TrieDense<256, 0>`, every byte. Multiplicities are positive `lng`; the total is at most `INT64_MAX` (asserted before mutation); peak live nodes including the root fit `int`. Order is unsigned-byte lexicographic, a key before its extensions.
 
-`forEach(prefix, callback)` invokes `callback(string_view word, lng multiplicity)` once per distinct matching key, in unsigned-byte lexicographic order. The overload without a prefix visits the whole dictionary. Return true from a callback to continue, false to stop; the outer result is false on cancellation even at the final key. A missing prefix completes true without visits. A word view is borrowed only during its callback. Callbacks may perform nested reads/enumerations and propagate exceptions; they must not mutate the trie. The implementation uses an explicit stack, so long keys do not consume recursive call-stack space.
+Complexity with key or query length `L`, map fanout `A <= 256` and dense row width `S`: map lookups and updates are O(L * log(A + 1)), dense ones O(L); insertion and the free list use amortized allocation bounds. Storage is O(P) for the map and O(P * S) for dense rows, P being peak live nodes. `clear()` is O(P), releases edge allocations and keeps vector capacities.
 
-With maximum fanout `sigma <= 256`, a key of length `m` takes `O(m * log(sigma + 1))` lookup/update work; insertion and vector-stack/free-list growth use amortized allocation bounds. Enumeration takes `O(m * log(sigma + 1) + V)` excluding callback work, for `V` visited prefix-subtree nodes, and `O(m + h)` temporary space for maximum suffix depth `h`. Erase uses `O(m)` temporary space. Sparse edges and recycled slots take `O(P)` stored space where `P` is peak simultaneously live prefix nodes. Erase prunes dead paths and reuses their slots; `clear()` releases all edge allocations but retains vector capacities. Copying costs `O(P)` and creates independent state. Moves transfer state; clear or assign a moved-from trie before using its other operations. Public fields and allocation/traversal helpers expose contest implementation state, not additional independently mutable contracts.
+Operations:
 
-The algorithms use the contest profile, with no special ISA or modular-reduction dependency. Sparse trie transitions preserve deterministic bounds without a 256-integer row at every sparse node.
+- `insert(s, k = 1)` adds k copies. For `TrieDense`, every byte of `s` must be in range (asserted once at entry).
+- `count(s)`, `countPrefix(s)`, `search(s)`, `size()`, `empty()`: terminal multiplicity, multiplicity of keys starting with `s` (the empty prefix counts everything), membership, total multiplicity, emptiness. Queries never assert the dense alphabet: a byte outside it simply has no edge.
+- `erase(s, k = 1)` removes exactly k copies and returns true, or returns false without mutation when the key is absent or has fewer copies; O(L) workspace. Nodes whose pass count reaches zero are unlinked and pushed on the free list.
+- Node cursor: `Node` has `next`, `terminal` (multiplicity of its key) and `pass` (multiplicity of keys through it); the root is node 0. `step(u, c)` returns the child of `u` along byte `c` or `-1`; `findNode(s)` walks from the root and returns the node of `s` or `-1`; the root exists even when the trie is empty. A node exists exactly when its pass count is positive (or it is the root). `newNode()` returns the most recently freed slot, otherwise appends a slot; a node obtained directly is detached and cleared. Node ids and references are invalidated by `insert`, `erase` and `clear`.
+- `forEach(prefix, visit)` and `forEach(visit)` call `visit(string_view word, lng multiplicity)` once per distinct key with the prefix, in lexicographic order; returning false cancels and makes the result false (even at the last key); a missing prefix returns true with no calls. Cost O(L * log(A + 1) + V) for the map and O(L + V * S) dense, V visited nodes, workspace O(L + h) for their depth h. The word view lives only during its call. Callbacks may read (including nested enumeration) and may throw; they must not mutate the trie. An explicit stack avoids recursion on long keys.
+- `forEachPrefixOf(q, visit)` calls `visit(int length, lng multiplicity)` for every stored key that is a prefix of `q`, shortest first, with the same cancellation rule; `longestPrefix(q)` returns the length of the longest stored key that is a prefix of `q`, or `-1` when none is (the stored empty key gives 0). Both O(L * log(A + 1)) map, O(L) dense.
 
-Correctness: every live trie edge appends exactly its byte to the root-to-node key. A node's `terminal` is that key's multiplicity; its `pass` equals `terminal` plus child `pass` values. Insertion changes precisely one root-to-terminal path. Checking the root total before incrementing prevents overflow of every subordinate count. Erase first checks the entire terminal multiplicity, then subtracts along exactly the same path. A zero-count suffix of that path has no live branch, so removing its edges and recycling its already emptied nodes preserves every other key. Iterative depth-first traversal visits terminal keys before increasing outgoing byte labels, which is lexicographic order. Reused slots are unreachable and have zero counters and no remaining children.
+Copies are independent; moves transfer state; clear or assign a moved-from trie before other use.
+
+Correctness: every live edge appends its byte to the root-to-node key; `terminal` is that key's multiplicity and `pass` equals `terminal` plus the children's `pass`. Insert changes exactly one root path, and the root-total check before incrementing prevents every subordinate overflow. Erase checks the whole terminal multiplicity first, then subtracts along the same path; a zero-pass suffix of the path has no live branch (a child's pass never exceeds its parent's), so unlinking it bottom-up and recycling its emptied nodes preserves all other keys, and recycled slots have no children and zero counters, which `newNode` relies on. Depth-first traversal emits a node's key before its children in increasing byte order, which is lexicographic order. `forEachPrefixOf` visits exactly the nodes on the root path of `q`, so every reported length is a stored prefix and none is skipped.
 
 ## Feature-to-test map
 
-| Header / feature | Independent coverage |
-|---|---|
-| Trie insert, terminal/prefix counts, search, size, empty, all-or-nothing erase | Every multiset over all binary keys of length at most 2 with multiplicities 0..2 (2187 states); independent ordered-map oracle, absent/insufficient erase and partial/final removals; seeded operation streams. |
-| Trie unsigned alphabet and enumeration | Empty key, all 256 one-byte keys and complementary two-byte keys, NUL, prefix filtering, independently sorted expected records, one callback per terminal multiplicity. |
-| Trie callback lifetime/state and cancellation | Stops at first/second/middle/last record, nested enumeration/lookup, propagated callback exception followed by rechecking contents. |
-| Trie mutation lifecycle and storage | Copy independence, move destination, reset moved-from state, clear, root/child/subtree/free-slot invariants, 100000-byte keys, repeated erase/reinsert without slot growth. |
-| Trie count domain | Maximum `INT64_MAX` total/terminal counts and whole-count removal; five checked assertion probes cover nonpositive insert/erase and total overflow. |
+Runner: [`04-trie_tester.py`](<../../96-Local Testing/07-Strings/04-trie_tester.py>). One generic suite runs on `Trie`, `TrieDense<26, 'a'>`, `TrieDense<2, 'a'>`, `TrieDense<256, 0>` and `TrieDense<4, 'a'>` against an ordered-map multiset oracle; all checks survive `-DNDEBUG`.
 
-Each mirrored Python entry runs from any working directory via the shared string runner. Quick/full/stress scope is recorded in each entry; optimized `-DNDEBUG`, checked `_GLIBCXX_DEBUG` and ASan/UBSan configurations retain independent non-assertion test oracles. Invalid preconditions remain caller requirements in release builds. Tests do not allocate impractical `INT_MAX`-length strings or node pools; overflow safety at those indexing limits is established by the arithmetic argument above rather than an allocation claim.
+| Operation | Coverage |
+|---|---|
+| insert, count, countPrefix, search, size, empty, erase | Every multiset of binary keys of length at most 2 with multiplicities 0..2 (2187 states) per alphabet variant, with absent/insufficient erase and partial/final removals; 1000/7000/40000 seeded operations per variant. |
+| Node, findNode, step | Every audit: `findNode` is `-1` exactly when no key has the prefix (root excepted), node `terminal`/`pass` equal the oracle's count and prefix count, a `step` walk reaches the same node; structural invariant walk (subtree sums, unique live children, cleared free slots, every slot accounted for). |
+| newNode | Returns the last freed slot after a deep erase, appends `nodes.size()` on a fresh trie. |
+| forEachPrefixOf, longestPrefix | Every audit compares against all stored prefixes of the query, including cancellation after the first call; deep-key longest prefix. |
+| forEach (prefix, all) | Ordered enumeration against the oracle on every audit; all 256 one-byte keys plus two-byte complements; cancellation at first/second/middle/last; nested reads; propagated exception. |
+| TrieDense alphabet | Queries and erases with out-of-alphabet bytes on `TrieDense<4, 'a'>` return absence; three checked probes reject out-of-range inserts below and above the alphabet and dense total overflow. |
+| clear, copy, move, counts | Copy independence, move destination, moved-from clear, `INT64_MAX` totals and terminal counts, 100,000-byte keys (10,000 for 256-way dense rows) with erase and slot reuse. |
+
+Checked builds run eight assertion probes (nonpositive insert/erase counts, total overflow for both layouts, dense symbols outside the alphabet).
 
 ## Commands and results
 
-P016 verification run, 2026-09-28: Linux x86-64 (i9-11900H), GCC 16.2.1 (20260810),
-GNU++20, CPython 3.14.7, seed 20260928. The shared runner builds optimized
-`-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan (leak checking on)
-configurations; test oracles stay active under NDEBUG. LeakSanitizer cannot run
-under the sandbox process tracer, so sanitizer configurations ran outside it.
+Run 2026-10-08 with the configurations listed in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
 
-| Command from repository root | Result |
-|---|---|
-| `python3 '96-Local Testing/07-Strings/04-trie_tester.py' --mode full --seed 20260928` | PASS, all three configurations, 2,077,118 checks each (2187 exhaustive dictionaries, 7000 seeded operations, 100000-byte key); 5 assertion probes |
-| `python3 '96-Local Testing/02-integration.py'` | PASS: 99 standalone/aggregate headers, multi-TU scalar/AVX2 aggregates, Workspace LOCAL and non-LOCAL |
-| `python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration` (from `/tmp`) | PASS, all six P016 Strings suites |
-| `python3 '96-Local Testing/03-consistency.py'` | no errors |
+```bash
+python3 '96-Local Testing/07-Strings/04-trie_tester.py' --mode quick --seed 1  # PASS, 2 configurations
+python3 '96-Local Testing/07-Strings/04-trie_tester.py' --mode full --seed 1  # PASS, 3 configurations, 6,839,561 checks each, 8 assertion probes
+CXX=g++-14 python3 '96-Local Testing/07-Strings/04-trie_tester.py' --mode full --seed 2  # PASS, 3 configurations, 7,168,862 checks each (`CXX=g++-14`)
+python3 '96-Local Testing/07-Strings/04-trie_tester.py' --mode stress --seed 3  # PASS, 3 configurations, 27,456,095 checks each
+python3 '96-Local Testing/02-integration.py' --sanitizers  # PASS, 102 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace, sanitizers
+python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 9 suites
+python3 '96-Local Testing/03-consistency.py'  # no errors
+```
 
-No other compiler, including the `g++-14` floor, is recorded as tested.
-
-Stress mode exists but was not run.
+The suite was also run in full mode before any change (seed 1, all three configurations PASS) as the re-audit baseline.
 
 ## Benchmarks
 
-No competing implementation or timing threshold is selected, so no benchmark is
-recorded. Large structural cases are correctness evidence, not a performance claim.
+[`04-trie_benchmark.py`](<../../96-Local Testing/07-Strings/04-trie_benchmark.py>) times a full insert, query (`count + 3 * countPrefix + longestPrefix` over stored keys and stored prefixes) and erase pipeline for `Trie` and `TrieDense<26, 'a'>`; checksums must agree. Run 2026-10-08, i9-11900H, GCC 16.2.1, `-O2 -DNDEBUG`, seed 20261008, one warmup and five rotating repetitions; local log `04-trie_benchmark.json` (git-ignored).
+
+| Keys | Map build / query / erase / total ms | Dense build / query / erase / total ms |
+|---|---|---|
+| 1000, length 1..8, 26 letters | 0.437 / 0.453 / 0.607 / 1.518 | 0.276 / 0.041 / 0.165 / 0.496 |
+| 200,000, length 1..8, 26 letters | 152.7 / 254.7 / 251.8 / 655.8 | 44.2 / 32.3 / 53.3 / 130.5 |
+| 200,000, length 1..20, 4 letters | 230.8 / 345.6 / 333.5 / 910.7 | 106.2 / 90.4 / 119.9 / 318.7 |
+| 20,000, length 1..200, 2 letters | 171.9 / 102.2 / 166.6 / 444.1 | 157.9 / 83.8 / 102.5 / 347.2 |
+
+Dense rows are 1.3–5 times faster here at the cost of `4 * S` bytes per node; the map remains the default for byte keys and sparse alphabets. These are shared-host observations, not gates.
 
 ## Sources
 
-Inspected 2026-09-28; implementation is independent rather than a source-code port.
+Code is independently implemented.
 
-- [OI Wiki, 字典树 (Trie)](https://oi-wiki.org/string/trie/): definition, byte/character transition model, basic insertion/search implementation and retrieval applications. Binary integer/XOR and persistent-trie sections are separate ownership; they were not adopted into this dictionary.
-- [cp-algorithms, Aho-Corasick — Construction of the trie](https://cp-algorithms.com/string/aho_corasick.html#construction-of-the-trie): root/prefix/terminal invariant and dense-array versus map-transition time/space analysis. Only trie construction is used; no Aho automaton claim is made.
-- Preserved `OLD/Team Notebook/src/algs.cpp` lines 2374–2397 and `algsbetter.cpp` lines 3332–3402: existing lowercase-26 trie insertion, search, terminal/pass counters and erase-one-if-present behavior. Those features are covered here with a full byte alphabet, explicit bulk multiplicities/erase status, enumeration and storage reuse. No original bytes were changed. The two root monoliths contain no active trie implementation (`OLD/[1] algorithms.cpp` has a TODO).
+- [OI Wiki, 字典树 (Trie)](https://oi-wiki.org/string/trie/): definition and transition model.
+- [cp-algorithms, Aho–Corasick, construction of the trie](https://cp-algorithms.com/string/aho_corasick.html#construction-of-the-trie): dense-array versus map transition trade-off.
+- [suisen `trie_array` / `trie_map`](https://suisen-cp.github.io/cp-library-cpp/) and [Nyaan `string/trie.hpp`](https://nyaannyaan.github.io/library/string/trie.hpp) (fetched 2026-10-08): fixed-alphabet arrays and a node cursor (`move`/`find`).
+- [ei1333 `structure/trie/trie.hpp`](https://ei1333.github.io/library/structure/trie/trie.hpp) (fetched 2026-10-08): `query(str, f)` visiting stored prefixes of a query, the basis of `forEachPrefixOf`; parity with the planned Python `longestPrefix`.
+- Preserved `OLD/Team Notebook/src/algs.cpp` lines 2374–2397 and `algsbetter.cpp` lines 3332–3402 (lowercase-26 trie with terminal/pass counters and erase-one) are accounted for by `TrieDense<26, 'a'>`; original bytes unchanged.
+- Catalog sweep 2026-10-08 in [00-sources.md](00-sources.md).
 
 ## Limits and handoffs
 
-- Open `/reaudit-review` findings for P016 ([p016.md](<../../00-Guidelines/23-Reaudit Findings/p016.md>)), not yet resolved:
-  - 5: `Node`, `newNode` and `findNode` are inventory operations without feature-map rows or direct tests, while the header calls them internal.
-  - 11: complexity comment uses `m` and `sigma` instead of the standard `L` and `S`.
-  - 12: function bodies close on their own line (closing-brace rule).
+- Not adopted (reasons in [00-notes.md](00-notes.md)): kth key and rank by multiplicity (no catalog source; Data Structures binary trie and row `24` own ranking), per-key id lists (Aho–Corasick `06` owns pattern ids), parent links.
+- Radix/compressed and persistent tries remain row `25`; binary integer/XOR tries remain Data Structures; `06` `fromTrie` may consume this node cursor.
+- Exact GCC 14.2 and the Windows build were not run.
 
-Compressed radix/persistent string dictionaries remain ST22 `25-radixtrie.hpp`; binary integer/XOR tries remain Data Structures. These are separate scheduled features, not missing functionality of this header. Finite tests supplement the correctness arguments; no maximum-size domain is allocated.
+## History
+
+- 2026-09-28: map `Trie` verified under the previous system (P016). 2026-10-08 re-audit: one `BasicTrie` template now provides `Trie` and `TrieDense`; `step`, `forEachPrefixOf` and `longestPrefix` added; `/reaudit-review` findings 5 (Node/newNode/findNode tests), 11 (`L`, `S` and fanout `A` symbols, clarified after review) and 12 (closing braces) fixed; contracts moved out of the header.

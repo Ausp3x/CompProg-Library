@@ -59,7 +59,8 @@ def main():
         'seed': args.seed, 'warmup_per_workload_method': args.warmup,
         'measured_repetitions': args.reps, 'clock': 'std::chrono::steady_clock',
         'method_order': 'rotate by repetition; identical queries and input per method',
-        'bases': {'double-prime': [911382323, 972663749], 'wrap64': 11400714819323198485},
+        'bases': {'double-prime': [911382323, 972663749], 'wrap64': 11400714819323198485,
+                  'mersenne61': 2054820241022868036},
         'input_distribution': 'uniform 256-byte random; period-11 abracadabra; unary a; empty',
         'query_distribution': 'uniform suffix starts; 1/8 identical starts; remaining even periodic '
                               'queries align phases; odd queries independently cap both ends',

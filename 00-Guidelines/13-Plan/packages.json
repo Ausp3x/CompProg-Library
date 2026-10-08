@@ -312,7 +312,7 @@
       "phase": "Foundations re-audit",
       "size": "S+M+S",
       "model": "opus",
-      "status": "audit",
+      "status": "verified",
       "evidence": [
         "07-Strings/Docs/01-prefixfunction.md",
         "07-Strings/Docs/02-z.md",
@@ -321,7 +321,7 @@
         "07-Strings/Docs/05-manacher.md",
         "07-Strings/Docs/09-runlength.md"
       ],
-      "note": "Confirmed /reaudit-review findings: 00-Guidelines/23-Reaudit Findings/p016.md. Fix each one in this re-audit (or record why it is rejected in the evidence), then delete that file, remove its row from 00-Guidelines/23-Reaudit Findings/00-index.md and clear this note."
+      "note": ""
     },
     {
       "id": "P017",

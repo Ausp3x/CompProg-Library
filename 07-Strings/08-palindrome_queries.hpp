@@ -13,7 +13,7 @@ inline bool isPalindrome(const Manacher &m, int l, int r) {
 
 // T: O(1), M: O(1); Monte Carlo [l,r) query, false is exact, true may collide.
 // Inherits StringHash's alphabet/base/collision contract; empty intervals are true.
-template<bool WRAP64> bool maybePalindrome(const StringHash<WRAP64> &h, int l, int r) {
+template<int KIND> bool maybePalindrome(const StringHash<KIND> &h, int l, int r) {
     return h.get(l, r) == h.reverseGet(l, r);
 }
 

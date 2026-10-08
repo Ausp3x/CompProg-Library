@@ -1,142 +1,99 @@
 # 01-prefixfunction.hpp — evidence
 
-`01-prefixfunction.hpp` (batch ST01, package P016) provides the prefix function, streaming/overlapping/empty-pattern KMP, prefix counts, borders/periods and the dense alphabet automaton, plus exact prefix-function validation. With `02-z.hpp` it implements all ST01 inventory features. They use exact symbol
-equality, accept empty sequences, and reserve no separator value. `string` and
-`string_view` include embedded NUL and every byte; integer vectors may use the
-full range of their element type. String positions count bytes, not Unicode
-code points. Generic sequence equality must be a consistent equivalence
-relation with constant-time indexing/comparison. Every sequence/array length
-is strictly less than `INT_MAX`; returned indices and lengths are `int`.
+`01-prefixfunction.hpp` (batch ST01, package P016) provides the prefix function, Knuth's strong failure table, streaming KMP with overlapping matches, prefix counts, borders and periods, the dense prefix automaton and exact prefix-function validation. Contest profile, GNU C++20, no ISA code.
 
 ## Contracts
 
-### prefixFunction, KmpMatcher, kmpOccurrences, prefixOccurrences, prefixBorders, prefixPeriod, prefixPeriods, prefixAutomaton, validPrefixFunction
+Common domain: sequences have random access and equality and length below `INT_MAX`; returned indices and lengths are `int`. `string` and `string_view` include embedded NUL and every byte; integer vectors may use the full range of their element type; positions count bytes, not code points. No separator value is reserved. Generic equality must be a consistent equivalence with constant-time indexing. Static functions need only `.size()` and `operator[]` on the text; the matcher constructor (and so `kmpOccurrences`/`prefixOccurrences` patterns) needs an iterable pattern. Raw C arrays and string literals should be wrapped in `string_view`, `string` or a vector before matcher deduction.
 
-| API | Result and cost |
-|---|---|
-| `prefixFunction(s)` | Longest proper border length for every prefix; O(n) time and returned storage. Empty returns `[]`. |
-| `KmpMatcher<T>(pattern)` | Owns an O(m) copy and its prefix array. `step(symbol)` returns whether a match ends after that symbol; `state` retains the longest matching suffix length, including accepting state m. O(m) setup; O(1) amortized per step, O(m) worst case for one step. |
-| `matched()`, `reset()` | O(1) current acceptance and reset of `state`/`processed`, retaining the owned pattern. `processed` is an exact `lng` count, limited to `INT64_MAX` between resets. |
-| `kmpOccurrences(pattern,text)` | All overlapping start positions in ascending order; O(n+m) time, O(m+k) space for k answers. |
-| `prefixOccurrences(pi)` | Exact `lng` counts of every original-string prefix, including `answer[0]=n+1`; O(n) time/space. |
-| `prefixOccurrences(pattern,text)` | Exact `lng` counts of every pattern prefix in text, including `answer[0]=n+1`; O(n+m) time, O(m) space. |
-| `prefixBorders(pi,len=-1,include_full=false)` | Ascending positive borders of prefix length `len`; -1 selects the whole string. Proper borders by default, optional full length. O(k) time/output space. |
-| `prefixPeriod(pi,whole=false)` | Smallest positive shift period in O(1); `whole=true` returns the primitive-root length that divides n. Empty returns 0. |
-| `prefixPeriods(pi)` | All positive shift periods, including n, ascending in O(k) time/output space. Empty returns `[]`. |
-| `prefixAutomaton(pattern,sigma)` | Encoded symbols in `[0,sigma)` and sigma>=0. Rows 0..m include acceptance; `aut[q][c]` is the next suffix-match state. O(m+(m+1)*sigma) construction, O((m+1)*(sigma+1)) stored space, including row metadata even for sigma=0. Lookup O(1). |
-| `validPrefixFunction(pi)`, `validZFunction(z)` | Exact feasibility over an unrestricted integer alphabet; O(n) time/space. Empty arrays are valid. These impose no fixed-alphabet or minimum-alphabet guarantee. |
+### prefixFunction
 
-Prefix/Z border, count and period helpers assume valid representations; call the
-validators first for untrusted arrays. They do not spend O(n) revalidating each
-output-sensitive border query. The dense automaton asserts every encoded
-symbol's range; empty pattern with zero alphabet is valid and yields one empty
-row. To encode bytes, convert through `unsigned char` before using 0..255.
+`pi[i]` is the longest proper border of `s[0..i]`. Empty input returns `[]`. O(n) time and returned storage.
 
-An empty pattern matches all n+1 text boundaries. A new empty matcher already
-has `matched()==true` at boundary zero; each `step` reports the next boundary.
-When streaming chunks, emit the initial boundary once and retain the matcher
-between chunks. Static occurrence helpers emit all n+1 boundaries directly.
-The stream never stores text and can process more than `INT_MAX` symbols,
-subject to the `lng` counter limit. The template `step` compares the original
-symbol type directly, so a wider text symbol is not narrowed to the pattern
-type. Constructors require iterable sequences; static prefix/Z functions only
-require `.size()` and indexing. Matcher template argument deduction uses the
-sequence's `value_type`; raw C arrays/string literals should be wrapped in a
-`string_view`, `string` or vector.
+### validPrefixFunction
 
-Copies retain independent pattern and matching state. A moved-to matcher
-retains that state; reassign a moved-from matcher before using it. Public
-pattern/pi/state fields are contest-style implementation state and must not be
-modified independently. There are no global caches or shared alphabet state.
+`validPrefixFunction(pi)` decides exact feasibility over an unrestricted integer alphabet in O(n). The overload `validPrefixFunction(pi, s)` also returns a witness: on success `s` is a sequence whose prefix function is `pi`; on failure `s` is cleared. Empty arrays are valid. No fixed-alphabet, minimum-alphabet or lexicographically minimum guarantee is made (ST25 owns those). `02-z.hpp` uses the witness overload for its conversions.
 
-Correctness: The prefix failure chain enumerates every shorter candidate border in decreasing
-length. Failed comparisons descend that chain; successful comparisons increase
-the length by at most one. This proves the selected longest border and the
-linear total comparison count. Streaming KMP uses the same invariant for the
-already consumed text suffix; acceptance falls back at the beginning of the
-next step, preserving overlapping matches. Each prefix is a node whose parent
-is its longest proper border. Descending propagation of ending counts along
-these edges gives every prefix count exactly once per occurrence. The
-automaton reuses previously constructed parent rows, including after acceptance.
+Correctness: a positive entry forces `s[i] = s[pi[i]-1]`; a zero entry receives the fresh symbol `i`. Every equality required by a feasible array is generated by these endpoint equalities (induct along the border's positions), and splitting otherwise unconstrained classes cannot destroy a required border. Recomputing the prefix function therefore accepts exactly the feasible arrays.
 
-Validation: for prefix validation, a positive entry forces the endpoint equality
-`s[i]=s[pi[i]-1]`; a zero entry receives a fresh integer symbol. Every equality
-required by a feasible prefix array is generated by these endpoint equalities
-(induct along the border's positions). Splitting otherwise unconstrained
-classes cannot destroy a required border. Recomputing the prefix function
-therefore accepts exactly feasible arrays and detects contradictory extra
-or missing borders. This internal witness is not a fixed/minimum-alphabet or
-lexicographically minimum reconstruction interface; ST25 owns those contracts.
+### kmpNext
+
+`kmpNext(p)` and `kmpNext(p, pi)` (with `pi = prefixFunction(p)`) return `m + 1` entries: `next[0] = -1`; for `0 < i < m`, `next[i]` is the longest border `b` of `p[0, i)` with `p[b] != p[i]`, or `-1` when none exists; `next[m] = pi[m-1]`. O(m) time and returned storage. The recurrence `next[i] = p[i] == p[b] ? next[b] : b` with `b = pi[i-1]` is correct because a border whose next symbol equals `p[i]` fails exactly when `p[i]` fails, and `next[b]` already skips those.
+
+### KmpMatcher
+
+Owns a copy of the pattern, its `pi` and `next`. `state` is the length of the longest pattern prefix that ends the consumed stream, including the accepting state `m`; `matched()` tests `state == m`; `step(c)` consumes one symbol and returns whether a match ends there; `reset()` clears `state` and `processed`, keeping the pattern. Setup O(m); a step is O(1) amortized and O(log(m)) worst case, because consecutive strong-failure jumps shrink the state at least by Fibonacci ratios (Knuth–Morris–Pratt 1977). From the accepting state the next step first falls back to `next[m] = pi[m-1]`, which preserves overlapping matches. An empty pattern matches the initial boundary (a new matcher already has `matched() == true`) and every step. `processed` is an exact `lng` count, at most `INT64_MAX` steps between resets (asserted). The stream never stores text and can exceed `INT_MAX` symbols.
+
+Symbols are compared by `KmpMatcher<>::same(a, b)`: when the two types differ and both are integral (including character types, `bool` and the 128-bit types), the signs are compared first and then the values as `unsigned __int128`, so values compare exactly and an unsigned `UINT_MAX` or `~ulll(0)` never equals a signed `-1`; otherwise `a == b`. Deduction uses the sequence's `value_type`. Copies are independent; reassign a moved-from matcher before use. Public fields are implementation state and must not be edited independently.
+
+### kmpOccurrences
+
+All overlapping start positions in ascending order; an empty pattern gives `0..n`. O(n + m) time, O(m + out) space. The text is accessed by index only.
+
+### prefixOccurrences
+
+`prefixOccurrences(pi)` returns exact `lng` counts of every prefix length of the original string inside itself, with `res[0] = n + 1`; `pi` must be valid. `prefixOccurrences(pattern, text)` counts every pattern prefix inside the text, `res[0] = n + 1`, in O(n + m) time and O(m) space; the text is accessed by index only. Correctness: each prefix is a node whose parent is its longest proper border; propagating end counts from long to short adds each occurrence exactly once.
+
+### prefixBorders, prefixPeriod, prefixPeriods
+
+Valid `pi` required (call `validPrefixFunction` first for untrusted arrays; these helpers do not revalidate). `prefixBorders(pi, len = -1, include_full = false)` lists the positive borders of prefix length `len` (`-1` means n) ascending, proper unless `include_full`; O(out). `prefixPeriod(pi, whole = false)` is the smallest positive period in O(1); `whole = true` returns the smallest period that divides n (the primitive root length); empty gives 0. `prefixPeriods(pi)` lists every positive period ascending, including n; empty gives `[]`.
+
+### prefixAutomaton
+
+Encoded pattern symbols in `[0, sigma)`, `sigma >= 0` (asserted once at entry). Rows `0..m`, columns `0..sigma-1`; `aut[q][c]` is the longest pattern prefix that is a suffix after reading `c` in state `q`, with row `m` handling overlaps. O((m + 1) * sigma) time and returned storage; an empty pattern with `sigma = 0` yields one empty row. Encode bytes through `unsigned char` to use `0..255`. Each row reuses the already built row of its border.
 
 ## Feature-to-test map
 
-Both mirrored tester entries import the Strings shared runner and execute the
-actual headers. Oracles use direct substring comparisons/LCP scans and all
-restricted-growth alphabet partitions, independent of failure chains and Z
-boxes. Checks call explicit failure reporting that remains active with
-`-DNDEBUG`.
+Runner: [`01-prefixfunction_tester.py`](<../../96-Local Testing/07-Strings/01-prefixfunction_tester.py>) with shared oracles in `01-prefix_z_test_support.hpp`. Oracles are direct substring and suffix scans and restricted-growth alphabet partitions, independent of failure chains; all checks survive `-DNDEBUG`.
 
-| Feature | Coverage |
+| Operation | Coverage |
 |---|---|
-| Prefix/Z arrays, borders and periods | Exhaustive binary strings, direct definitions, every prefix border query, proper/full borders, divisor-restricted roots, empty/singleton/unary/periodic/random data. |
-| KMP streaming/static matching and prefix counts | All bounded pattern/text pairs against naive occurrences; accepting state, overlaps, initial empty boundary, reset/replay, copied/moved state and exact processed count. |
-| Dense automaton | Every state/symbol transition checked against a direct suffix scan, including acceptance, absent symbols and zero alphabet. |
-| Validation/conversion | Enumerate every alphabet equality partition to derive the full feasible array set, then every locally range-valid candidate; successful and rejected conversions, invalid extreme entries, aliasing/clearing and empty success. |
-| Domain and asymptotic edges | Embedded NUL/full bytes, high bits, signed 64-bit symbols, mixed-type non-narrowing, large unary and near-unary strings, million-symbol stress. Checked subprocess probes cover explicit preconditions. |
+| prefixFunction | Exhaustive binary strings, random 6-symbol strings, full byte alphabet, signed 64-bit extremes, index-only sequences, million-symbol unary/near-unary. |
+| validPrefixFunction (both overloads) | Every range-valid array through length 5/8/9 against the partition-derived feasible set; witness recomputation on every tested string; invalid extremes clear the witness. |
+| kmpNext (both overloads), KmpMatcher::next | Direct strong-border scan on every exhaustive and random string. |
+| KmpMatcher: step, matched, reset, state, processed, same | All bounded pattern/text pairs: state against the naive longest suffix after every symbol, match flags, processed count, copy/move mid-stream, reset and replay; Fibonacci-word stream (987-symbol pattern) and 1000-symbol unary overlaps; `same` on uint/int, ulng/lng, char/int, int/lng, bool/int, ulll/int, ulll/lll (`2^127` versus `-2^127`), ulll/lng, lll/int and double pairs. |
+| kmpOccurrences, prefixOccurrences (pattern in text) | Naive occurrences and counts on all bounded pairs and random pairs; mixed-signedness differential (ulng pattern, lng text with values 0, ±1, `UINT_MAX`, `2^32`, `LLONG_MIN`) against an exact-value id oracle; finding-1 regressions (`uint`/`ulng`/`char32_t`/`ulll` against `int -1`); index-only text type (finding 2). |
+| prefixOccurrences (from pi) | Naive self-counts on every tested string. |
+| prefixBorders, prefixPeriod, prefixPeriods | Every prefix length, proper and full borders, divisor-restricted roots, empty/singleton/periodic inputs. |
+| prefixAutomaton | Every state/symbol transition against a direct suffix scan, including absent symbols and zero alphabet; three range probes. |
 
-Quick/full/stress respectively cover binary strings through 5/8/9, all binary
-pattern/text pairs through 3/5/6, 100/1200/8000 random pairs, every range-valid
-array through 5/8/9, and 10000/200000/1000000-symbol adversaries. Full prefix
-validation includes 46,234 locally bounded arrays over lengths 0..8; stress
-adds the 362,880 length-9 candidates. The independent
-partition oracle includes arbitrary-alphabet witnesses, not just binary ones.
+Checked builds run seven assertion probes: oversized sequence, negative and too-large border length, negative alphabet, symbol below and above range, and matcher step-count overflow.
 
 ## Commands and results
 
-P016 verification run, 2026-09-28: Linux x86-64 (i9-11900H), GCC 16.2.1 (20260810),
-GNU++20, CPython 3.14.7, seed 20260928. The shared runner builds optimized
-`-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan (leak checking on)
-configurations; test oracles stay active under NDEBUG. LeakSanitizer cannot run
-under the sandbox process tracer, so sanitizer configurations ran outside it.
+Run 2026-10-08: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined` with leak checking; every build adds `-Wall -Wextra -Wshadow -Wconversion -Werror`.
 
-| Command from repository root | Result |
-|---|---|
-| `python3 '96-Local Testing/07-Strings/01-prefixfunction_tester.py' --mode full --seed 20260928` | PASS, all three configurations, 528,876 checks each |
-| `python3 '96-Local Testing/07-Strings/01-prefixfunction_tester.py' --mode stress --seed 20260928` | PASS, all three configurations, 3,315,194 checks each; 7 assertion probes |
-| `python3 '96-Local Testing/02-integration.py'` | PASS: 99 standalone/aggregate headers, multi-TU scalar/AVX2 aggregates, Workspace LOCAL and non-LOCAL |
-| `python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20260928 --no-integration` (from `/tmp`) | PASS, all six P016 Strings suites |
-| `python3 '96-Local Testing/03-consistency.py'` | no errors |
+```bash
+python3 '96-Local Testing/07-Strings/01-prefixfunction_tester.py' --mode quick --seed 1  # PASS, 2 configurations
+python3 '96-Local Testing/07-Strings/01-prefixfunction_tester.py' --mode full --seed 1  # PASS, 3 configurations, 546,639 checks each, 7 assertion probes
+CXX=g++-14 python3 '96-Local Testing/07-Strings/01-prefixfunction_tester.py' --mode full --seed 2  # PASS, 3 configurations, 545,843 checks each (`CXX=g++-14`)
+python3 '96-Local Testing/07-Strings/01-prefixfunction_tester.py' --mode stress --seed 3  # PASS, 3 configurations, 3,427,413 checks each
+python3 '96-Local Testing/02-integration.py' --sanitizers  # PASS, 102 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace, sanitizers
+python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 9 suites
+python3 '96-Local Testing/03-consistency.py'  # no errors
+```
 
-No other compiler, including the `g++-14` floor, is recorded as tested.
+The suite was also run in full mode before any change (seed 1, all three configurations PASS) as the re-audit baseline.
 
 ## Benchmarks
 
-Standard linear algorithms with no optional backend or dispatch threshold; large
-adversaries check scalability. No speed claim is made.
+Linear algorithms with no backend choice or dispatch threshold; no benchmark is required by the contest profile and no speed claim is made. Large adversaries check scalability.
 
 ## Sources
 
-Inspected 2026-09-28; the code is independently implemented from the algorithmic
-invariants, with no copied source text.
+Code is independently implemented from the algorithmic invariants.
 
-- [cp-algorithms, “Prefix function. Knuth–Morris–Pratt algorithm”](https://cp-algorithms.com/string/prefix-function.html), page update 2023-08-20: failure-chain proof, streaming storage, both prefix-count applications, periods and O(m*sigma) automaton DP. Our API uses a separate accepting row without appending a sentinel.
-- Targeted prefix/KMP/Z searches in `OLD/algorithms.cpp`, `OLD/[1] algorithms.cpp`, and Team Notebook `algs.cpp`/`algsbetter.cpp` found no additional owned implementation; unrelated Knuth-DP/Berlekamp–Massey symbols were excluded.
-- Exact conversion/validation follows the witness and interval arguments above, reviewed independently and checked against exhaustive alphabet-partition feasibility. No claim is made that the two tutorial sources describe these helpers.
+- [cp-algorithms, Prefix function. Knuth–Morris–Pratt algorithm](https://cp-algorithms.com/string/prefix-function.html): failure-chain proof, streaming storage, both prefix-count applications, periods and the O(m * sigma) automaton.
+- [Lecroq, Knuth-Morris-Pratt algorithm](https://www-igm.univ-eiffel.fr/~lecroq/string/node8.html) (fetched 2026-10-08): the strong failure table `kmpNext` and the logarithmic per-symbol delay bound.
+- Catalog sweep 2026-10-08 (cp-algorithms, OI Wiki, KACTL, maspypy `kmp`/`periods`, suisen `morris_pratt`, hitonanode `mp_algorithm`, Nyaan, ei1333, ACL, Library Checker) in [00-sources.md](00-sources.md): only `kmpNext` was missing.
+- Targeted searches of `OLD/algorithms.cpp`, `OLD/[1] algorithms.cpp` and Team Notebook `algs.cpp`/`algsbetter.cpp` found no additional prefix/KMP feature.
 
 ## Limits and handoffs
 
-- Open `/reaudit-review` findings for P016 ([p016.md](<../../00-Guidelines/23-Reaudit Findings/p016.md>)), not yet resolved:
-  - 1: `KmpMatcher::step` compares mixed-signedness symbols with `==`, so `uint`/`ulng` against `int -1` report false matches (`kmpOccurrences`, `prefixOccurrences`, the streaming matcher).
-  - 2: `prefixOccurrences(pattern, text)` iterates `text` with range-for, contradicting the index-only text contract.
-  - 7: own-line function closes and `; }` / `} }` block ends (closing-brace rule).
+- Validity of `pi` for the border, period and count helpers is a caller precondition; it is not rechecked.
+- Online append-only Z, minimum-alphabet reconstruction, substring period indexing and runs remain with their own rows (`30`, `31`, `27`, `26`). Distinct-substring counting belongs to suffix structures; the quadratic prefix-function reduction is not duplicated. Gray-string DP over `prefixAutomaton` is problem-specific and not added.
+- Exact GCC 14.2 and the Windows build were not run.
 
-Basic prefix/Z applications are complete here. Online append-only Z, richer
-string reconstruction/minimum alphabet, substring period indexing and advanced
-periodicity remain under their separately assigned ST24/ST25/ST11 headers.
-Distinct-substring counting belongs to suffix indexes/ST04; the tutorials'
-quadratic prefix/Z reduction is not added as a duplicate counting engine.
+## History
 
-ST03 can reuse `KmpMatcher` and `prefixAutomaton`. ST25 owns constrained or
-minimum-alphabet reconstruction beyond exact feasibility and prefix/Z conversion.
-Finite tests supplement the correctness arguments; no maximum-size domain is
-allocated.
+- 2026-09-28: verified under the previous system (P016). 2026-10-08 re-audit: `/reaudit-review` findings 1 (mixed-signedness symbol comparison, fixed with `KmpMatcher::same`; the review's `unsigned __int128` residue fixed by sign-then-bits comparison), 2 (index-only text in `prefixOccurrences`) and 7 (closing braces) fixed; `kmpNext` added and the matcher switched to strong failure links; witness overload of `validPrefixFunction` replaces `prefix_detail::witness`; contracts moved out of the header.

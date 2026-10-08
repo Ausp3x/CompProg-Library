@@ -1,6 +1,6 @@
 # 07 Strings — notes
 
-Contracts moved out of the inventory on 2026-10-06. The inventory lists operations; this file holds the rules every row must respect. Package evidence (`89`–`97`) records what was verified and remains authoritative for the nine Basic headers.
+Contracts moved out of the inventory on 2026-10-06. The inventory lists operations; this file holds the rules every row must respect. Per-header evidence documents (`01`–`09`) record what was verified and are authoritative for the nine Basic headers.
 
 ## Representation
 
@@ -19,7 +19,7 @@ Contracts moved out of the inventory on 2026-10-06. The inventory lists operatio
 
 - Hashes are Monte Carlo fingerprints and never proof of equality. A hash-based API says so in its name or documentation (`maybePalindrome`, `StringHash::lcp`). Exact equality or LCE uses deterministic verification or an exact index. Fingerprints are never reported as proof.
 - Randomized runtime and randomized correctness are separate classifications: Las Vegas (exact answer, probabilistic time), Monte Carlo (probabilistic answer), high-probability bounds (`47` Optimal Dynamic Strings) are each named explicitly.
-- Static fingerprint contexts own their bases; digests from different contexts are comparable only under identical base and encoding. Double-prime is the default; unsigned-word wrap has demonstrated structured collisions; the Mersenne `2^61 - 1` field variant is a speed option with a single large modulus. Collision bounds are in `91-stringhash.md`.
+- Static fingerprint contexts own their bases; digests from different contexts are comparable only under identical base and encoding. Double-prime is the default; unsigned-word wrap has demonstrated structured collisions; the Mersenne `2^61 - 1` field variant is a speed option with a single large modulus. Collision bounds are in [03-stringhash.md](03-stringhash.md).
 - Dynamic hashes (`23`) inherit the static collision model; randomized base lifecycle must be documented per structure.
 
 ## Ownership inside the folder
@@ -46,36 +46,23 @@ Contracts moved out of the inventory on 2026-10-06. The inventory lists operatio
 
 ## Legacy obligations
 
-- `OLD/Team Notebook/src/algs.cpp`, `algsbetter.cpp` and `OLD/Team Notebook/src/misc/old_zalgo.cpp` contain legacy trie, KMP and Z routines. The Z routine is accounted for in `02`; the prefix/KMP and trie routines are accounted for in `01` and `04` (see `90-prefix_z.md`, `92-trie_manacher.md`). Use `00-Guidelines/Ledgers/archive-map.json` to find any remaining string excerpt before deleting from `OLD`.
+- `OLD/Team Notebook/src/algs.cpp`, `algsbetter.cpp` and `OLD/Team Notebook/src/misc/old_zalgo.cpp` contain legacy trie, KMP and Z routines. The Z routine is accounted for in `02`; the prefix/KMP and trie routines are accounted for in `01` and `04` (see [01-prefixfunction.md](01-prefixfunction.md), [04-trie.md](04-trie.md)). Use `00-Guidelines/Ledgers/archive-map.json` to find any remaining string excerpt before deleting from `OLD`.
 - This folder has no `97-Legacy/` directory; no row carries `legacy-reference` status.
 
 ## P016 package record (ST01, ST02, ST19)
 
-Package **complete**, in the requested order **ST01 → ST02 → ST19**, on 2026-09-28. The C01/P002 prerequisite was already verified. All six selected headers are implemented and verified; no owned feature or verification gaps remain. Archived originals are preserved. Implementations use the contest profile and GNU C++20.
+Verified 2026-09-28 under the previous system; re-audited 2026-10-08 (contest profile, GNU C++20). All six headers are verified with the operations in their inventory rows; evidence: [01-prefixfunction.md](01-prefixfunction.md), [02-z.md](02-z.md), [03-stringhash.md](03-stringhash.md), [04-trie.md](04-trie.md), [05-manacher.md](05-manacher.md), [09-runlength.md](09-runlength.md).
 
-| Batch | Headers and features | Contracts, proofs and evidence |
-|---|---|---|
-| ST01 | Prefix function, streaming/overlapping/empty-pattern KMP, prefix counts, borders/periods, dense alphabet automaton; Z and extended KMP, exact prefix/Z validation and conversion. | [01-prefixfunction.md](01-prefixfunction.md), [02-z.md](02-z.md) |
-| ST02 | Length/base-tagged double-prime and unsigned-word fingerprints, extraction/reversal/concatenation, substring LCP/LCS; full-byte multiset trie with prefix/lexicographic traversal and reclaimed nodes; generic Manacher radii and maximal/nested interval reconstruction. | [03-stringhash.md](03-stringhash.md), [04-trie.md](04-trie.md), [05-manacher.md](05-manacher.md) |
-| ST19 | Byte/integer run-length encoding, validated encoded-size queries, bounded decoding, half-open witness spans, malformed/overflow rejection and output alias rules. | [09-runlength.md](09-runlength.md) |
+Re-audit research outcomes (sources in [00-sources.md](00-sources.md)); operations left out, one line each:
 
-Each linked document records the exact domains, complexity, independent correctness argument, per-feature test map, inspected source scope and disposition of relevant legacy features. New routines are independent implementations. Independent review found and fixed mixed-alphabet narrowing in streaming KMP before completion. Original legacy bytes remain unchanged. Package commands and integration results are repeated in each per-header `## Commands and results`.
+- `01`: Gray-string DP over `prefixAutomaton` is problem-specific; distinct-substring counting by prefix function is quadratic and owned by `10`/`22`; suisen `min_period` returning the root string is `27` `primitiveRoot`.
+- `02`: incremental Z is `30`; `is_substring` is `16` (or `!zOccurrences(...).empty()`); inverse Z is `31`.
+- `03`: appending to a built hash breaks O(1) reversed prefixes and is owned by `23` (DequeHash, PointUpdateHash); `StringHashField<F>` adds a policy layer for modint types without a new guarantee; several Mersenne bases are unnecessary at `(L-1)/2^61` per comparison; `std::hash` for digests is left to callers (ordering covers `set`/`map`); lexicographic substring comparison is `22` `compareSubstrings` and needs the text; Rabin–Karp windows are `16`.
+- `04`: kth key and rank by multiplicity have no catalog source and belong to the Data Structures binary trie and `24` ranking; per-key id lists belong to `06` pattern ids; parent links are unnecessary for the cursor (`fromTrie` in `06` can rebuild them by BFS).
+- `05`: the Library Checker `2n - 1` combined length array is a radius conversion owned by `08`; `enumeratePalindromes` is a loop over `oddInterval`/`evenInterval`; an odd-only switch saves one linear pass only.
+- `09`: suisen `RunLengthEncoder` push/pop has one unverified source and is a two-line idiom on `vector<pair<T, lng>>`.
 
-| Header | Executed feature mode | Checks per optimized / checked / ASan-UBSan configuration | Checked assertion probes |
-|---|---|---|---|
-| Prefix/KMP | Full, then final stress | 3,315,194 in stress | 7 |
-| Z / conversions | Stress; final full checked probes | 1,410,995 in stress | 3 |
-| String hash | Full | 833,559 C++ plus 5,504 Python exact interval checks | 13 |
-| Trie | Full | 2,077,118 | 5 |
-| Manacher | Full | 3,200,052 | 10 |
-| Run length | Full | 363,502 | 5 |
-
-Future-owner handoff: There are no P016 continuation tasks. The remaining 43 Strings headers retain planned status. Future owners can reuse the following stable foundations:
-
-- ST03 owns Aho, suffix arrays and palindrome-query adapters. `KmpMatcher`, `prefixAutomaton`, `StringHash` and `Manacher` radii are available; hash-based answers must retain their Monte Carlo classification. Exact substring-palindrome predicates and longest-palindrome extraction remain ST03.
-- ST09 owns dynamic hashing and lexicographic integration; ST11 owns broader periodicity. Static fingerprint contexts own their actual bases and may be shared only under matching base/encoding contracts.
-- ST25 owns constrained/minimum-alphabet reconstruction beyond ST01's exact feasibility and prefix/Z representation conversion.
-- ST22 owns compressed/persistent string dictionaries. Data Structures retains binary integer/XOR tries; Miscellaneous retains Huffman coding. Lempel–Ziv and run-length BWT remain their existing separate owners.
+Future-owner handoff: ST03 reuses `KmpMatcher`, `prefixAutomaton`, `StringHash<KIND>` (now with the `2^61 - 1` field) and `Manacher`; `08` `maybePalindrome` takes `StringHash<KIND>`. `06` `fromTrie` can consume the `BasicTrie` node cursor (`step`, `findNode`, `Node::terminal`). ST09 owns dynamic hashing, ST25 minimum-alphabet reconstruction, ST22 compressed dictionaries.
 
 ## P017 package record (ST03)
 
