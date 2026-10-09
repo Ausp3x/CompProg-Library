@@ -15,6 +15,7 @@ python3 '96-Local Testing/<folder>/<NN-name>_tester.py' --mode full --seed 1
 python3 '96-Local Testing/02-integration.py' --sanitizers         # header-alone, aggregates, two translation units, scalar/AVX2, workspace
 python3 '96-Local Testing/03-consistency.py'                      # records, links, plan, brace and comment rules
 python3 '96-Local Testing/03-consistency.py' --braces <files>     # brace rule and comment cap for arbitrary files
+python3 '96-Local Testing/_00_memory_cap.py' [--mb N] -- <cmd>    # run any other program memory-capped
 python3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/02-online_tester.py'
 python3 '96-Local Testing/00-Tools/03-notebook_tester.py'
@@ -33,6 +34,7 @@ python3 '96-Local Testing/00-Tools/03-notebook_tester.py'
 | Path | Contents |
 |---|---|
 | `_00_cpp_test_runner.py` | Shared compile-and-run infrastructure, progress output, PASS/FAIL/SKIP reporting |
+| `_00_memory_cap.py` | Memory-capped execution: every tester, benchmark and integration entry calls `ensure()` (systemd scope, 4096 MB default cap, quick pre-flight before full/stress, `MEMORY peak` report); CLI `-- <command>` for ad-hoc programs. Evidence: [00-memory-safety.md](00-memory-safety.md) |
 | `01-run.py` | Suite discovery, modes, `QUICK` registration set |
 | `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds |
 | `03-consistency.py` | Repository record and style validator; imports `plan.py check` |

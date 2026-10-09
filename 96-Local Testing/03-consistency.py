@@ -195,6 +195,38 @@ for target, parts in inventories.items():
         errors.extend(brace_violations(f))
         brace_checked += 1
 
+# Memory safety: every test entry point runs memory-capped, directly or through a shared runner (05-testing.md).
+tests_root = ROOT / '96-Local Testing'
+capped_runners = {p.stem for p in tests_root.rglob('_*runner*.py') if '_00_memory_cap.ensure(' in p.read_text()}
+for p in [*tests_root.glob('*/*_tester.py'), *tests_root.glob('*/*_benchmark.py'), tests_root / '02-integration.py']:
+    text = p.read_text()
+    via = set(re.findall(r'^from (\w+) import', text, re.M))
+    require('_00_memory_cap.ensure(' in text or bool(via & capped_runners),
+            'Uncapped test entry point (call _00_memory_cap.ensure()): ' + str(p.relative_to(ROOT)))
+
+# Compact twins: a contest header that uses Core Barrett/Montgomery defines *Compact versions (03-cpp.md, Headers).
+compact_pending = []
+for target, parts in inventories.items():
+    path = ROOT / target
+    if target.startswith('01-Core/') or not target.endswith('.hpp') or not path.is_file():
+        continue
+    raw = path.read_text()
+    code = strip_cpp(raw)
+    if not (re.search(r'^#include "[^"]*0[34]-(barrett|montgomery)\.hpp"', raw, re.M) or re.search(r'\b(Montgomery|Barrett)\w*', code)):
+        continue
+    twins = list(re.finditer(r'\b(?:inline|struct)\b[^;{]*?\b(\w+Compact)\b[^;{]*\{', code))
+    for m in twins:
+        depth, i = 1, m.end()
+        while depth and i < len(code):
+            depth += {'{': 1, '}': -1}.get(code[i], 0); i += 1
+        require(not re.search(r'\b(Montgomery\w*|Barrett\w*|mont\w+)\b', code[m.end():i]),
+                'Compact twin uses a Core reduction: ' + target + ': ' + m.group(1))
+    if twins:
+        continue
+    compact_pending.append(target)
+    require(not (parts[-1].startswith('verified') and package_status.get(owner.get(target)) == 'verified'),
+            'Verified contest header uses Barrett/Montgomery without Compact twins: ' + target)
+
 coverage = read_json('00-Guidelines/Ledgers/library-checker-coverage.json')
 require(len(coverage['records']) == coverage['problem_families'], 'Judge family count')
 require(len({r['problem'] for r in coverage['records']}) == len(coverage['records']), 'Duplicate judge family')
@@ -308,7 +340,7 @@ for name in ('98-basic.hpp', '99-all.hpp'):
 import ast
 runner = ast.parse((ROOT / '96-Local Testing/01-run.py').read_text())
 quick = next(ast.literal_eval(n.value) for n in runner.body if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'QUICK' for t in n.targets))
-expected = {'01-template_tester.py', '02-debug_tester.py', '03-barrett_tester.py', '04-montgomery_tester.py', '05-modint_tester.py', '06-modintmini_tester.py', '18-bitset_tester.py'}
+expected = {'01-template_tester.py', '02-debug_tester.py', '03-barrett_tester.py', '04-montgomery_tester.py', '05-modint_tester.py', '06-modintmini_tester.py', '16-poly_tester.py', '18-bitset_tester.py'}
 require(expected <= quick, 'Renamed/new verified suites missing from quick discovery')
 for entry in quick:
     require((ROOT / '96-Local Testing/01-Core' / entry).is_file(), 'Quick entry missing: ' + entry)
@@ -342,5 +374,5 @@ with tempfile.TemporaryDirectory(prefix='cp-consistency-') as name:
     finally:
         sys.argv = argv
 
-print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'errors': errors}, indent=2))
+print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'compact_pending': compact_pending, 'errors': errors}, indent=2))
 raise SystemExit(bool(errors))

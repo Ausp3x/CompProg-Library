@@ -9,6 +9,11 @@ import platform
 import shlex
 import subprocess
 import tempfile
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import _00_memory_cap
+
+_00_memory_cap.ensure()
 
 
 def main():

@@ -6051,6 +6051,16 @@
       "tiers": []
     },
     {
+      "id": "SUP06",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "S",
+      "focus": "Memory-safe test execution (every tester, benchmark and integration run self-caps in a systemd scope and pre-flights quick before full/stress; NDEBUG precondition violations never loop or allocate without bound) and the Compact-alternative rule (contest headers using Core Montgomery/Barrett keep dependency-free `*Compact` twins; 03-consistency.py flags missing twins); see [testing](../05-testing.md) and [C++](../03-cpp.md).",
+      "prerequisites": [],
+      "tiers": []
+    },
+    {
       "id": "DS49",
       "folder": "02-Data Structures",
       "targets": [

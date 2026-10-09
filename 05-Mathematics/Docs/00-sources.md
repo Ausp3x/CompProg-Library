@@ -48,6 +48,23 @@
 | ei1333 `montmort.hpp`; Library Checker `montmort_number_mod` statement | https://ei1333.github.io/library/math/combinatorics/montmort.hpp, https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/montmort_number_mod/task.md | 2026-10-07 | `derangementTable` (any modulus) |
 | Sources checked with nothing adopted | ACL `internal_math.hpp`, KACTL number-theory and numerical, Nyaan `misc/int_div.hpp`, maspypy `my_template.hpp`, hitonanode `binary_gcd.hpp`, `sieve.hpp`, `bs_sieve.hpp`, maspypy `nt/all_lcm.hpp`, `mod/modint_common.hpp`, `mod/first_mod_range_of_linear.hpp`, PyRival numerical and combinatorics, OI Wiki sieve | 2026-10-07 | reasons in [00-notes.md](00-notes.md) |
 
+## P052 sweep (fetched 2026-10-09)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| maspypy `nt/divisors.hpp` | https://maspypy.github.io/library/nt/divisors.hpp | 2026-10-09 | `divisors` from a factorization (row 07) |
+| OI Wiki, 素数 (反素数) | https://oi-wiki.org/math/number-theory/prime/ | 2026-10-09 | `maxDivisorCount` exponent-nonincreasing search (row 07) |
+| cp-algorithms, Integer factorization; OI Wiki, Pollard-Rho | https://cp-algorithms.com/algebra/factorization.html, https://oi-wiki.org/math/number-theory/pollard-rho/ | 2026-10-09 | Brent cycle detection with batched gcd and backtracking (row 07) |
+| Nyaan `prime/fast-factorize.hpp`, hitonanode `number/factorize.hpp` | https://nyaannyaan.github.io/library/prime/fast-factorize.hpp, https://hitonanode.github.io/cplib-cpp/number/factorize.hpp | 2026-10-09 | comparison of Montgomery Miller-Rabin/rho; both stop at 2^62, row 07 covers all of u64 |
+| maspypy `nt/array_on_divisors.hpp`, hitonanode `number/sieve.hpp` | https://maspypy.github.io/library/nt/array_on_divisors.hpp, https://hitonanode.github.io/cplib-cpp/number/sieve.hpp | 2026-10-09 | `DivisorArray` multiplicative fill and multiple-direction transforms (row 08) |
+| OI Wiki, 数论基础 | https://oi-wiki.org/math/number-theory/basic/ | 2026-10-09 | `omega`, `bigOmega` (row 08) |
+| maspypy `nt/crt.hpp` | https://maspypy.github.io/library/nt/crt.hpp | 2026-10-09 | `crtMod` (non-coprime moduli via coprime base and Garner, row 10) |
+| maspypy `mod/power_table.hpp` | https://maspypy.github.io/library/mod/power_table.hpp | 2026-10-09 | `powerTable` as i^k with one exponentiation per prime (row 09) |
+| cp-algorithms modular inverse and CRT; ACL `inv_mod`, `crt`; KACTL `ModInverse.h`, `CRT.h` | https://cp-algorithms.com/algebra/module-inverse.html, https://cp-algorithms.com/algebra/chinese-remainder-theorem.html | 2026-10-09 | contracts of rows 09 and 10; nothing new adopted |
+| Sources checked with nothing adopted | Nyaan `math-fast/inv-o1.hpp`, maspypy `mod/O1_inverse.hpp`, `mod/crt3.hpp`, `nt/count_by_factor_type.hpp`, Nyaan `math/bigint-garner.hpp`, CSES Divisor Analysis | 2026-10-09 | reasons in [00-notes.md](00-notes.md) |
+
+Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 1795265022} (Jim Sinclair, verified against Feitsma's list of base-2 pseudoprimes below 2^64) and {2, 7, 61} below 4759123141 (Jaeschke) are listed at https://miller-rabin.appspot.com/; that page and the paper below are cited from memory and were not fetched in this session. The full-range claim rests on that published verification; the tests cover every n below 10^7, every divisor of every base and named pseudoprimes. Bernstein, "Factoring into coprimes in essentially linear time" (J. Algorithms 54, 2005) defines the natural coprime base used in row 07's contract.
+
 ## Earlier source record (condensed from the previous index and evidence documents)
 
 - The 2026-09-27 audit compared external algorithm catalogs and the saved Modern Computer Arithmetic contents; read scope and URLs are in the [central audit](../../00-Guidelines/History/2026-09-27-inventory-audit.md). A follow-up scope pass compared the active arithmetic/search/equation/sieve/combinatorics/transform interfaces and the archived factorization/inverse/CRT/log/root/numerical helpers plus the saved [KACTL notebook](../../95-Resources/05-kactl.pdf) `Tridiagonal.h` contract.

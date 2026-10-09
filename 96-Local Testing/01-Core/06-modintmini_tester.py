@@ -27,6 +27,10 @@ import subprocess
 import sys
 import tempfile
 import time
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import _00_memory_cap
+
+_00_memory_cap.ensure()
 
 
 class Failure(RuntimeError):

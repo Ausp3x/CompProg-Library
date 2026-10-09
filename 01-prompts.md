@@ -30,7 +30,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 
 ### Core full types
 
-- [ ] **P025 — C11** (fable, XL): 01-Core — poly. Status: planned.
+- [ ] **P025 — C11** (fable, XL): 01-Core — poly. Status: in-progress. Note: 16-poly.hpp complete draft (~2350 lines): all row operations implemented incl. researched additions (tanh/asinh/atanh, trySqrtExact, divSeries, divRoot, mulHigh, PolyModulus, powersMod, convolutionLarge, sliceRationalFps, composeBrentKung). Scratch tests /tmp/p025/t3-t7.cpp pass (t7 rerunning after powerProjection packing fix). Formal tester written: 96-Local Testing/01-Core/16-poly_tester.{py,cpp} + 16-poly_tester_tu.cpp (not yet compiled/run); benchmark 16-poly_benchmark.{py,cpp} written (not run). Remaining: run tester quick/full/g++-14/stress, benchmark + thresholds (SCHOOLBOOK, HGCD_BASE, compose BK vs KL, fftMod vs 3-prime for 1e9+7), evidence doc 01-Core/Docs/16-poly.md, index row (rename famousSeries to bernoulliNumbers/partitionNumbers/stirling1Row/stirling2Row/eulerianRow; add researched ops), notes/sources, 99-all, 01-run.py QUICK + 03-consistency expected set, reviewer, lng ring resultant overflow documented as limit.
 - [ ] **P026 — C12** (opus, M): 01-Core — polymini. Status: planned.
 - [ ] **P018 — C04** (fable, XL): 01-Core — infint. Status: planned.
 - [ ] **P019 — C05, C06** (opus, M+M): 01-Core — infintmini, rational. Status: planned.
@@ -45,7 +45,8 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P229 — MI32** (opus, M): 06-Miscellaneous — timer, interactive, grid utilities. Status: verified. [evidence](06-Miscellaneous/Docs/49-timer.md) [evidence](06-Miscellaneous/Docs/50-interactive.md) [evidence](06-Miscellaneous/Docs/51-grid_utilities.md)
 - [x] **P027 — DS04, DS05, DS06, DS47** (opus, M+L+L+M): 02-Data Structures — fenwick tree advanced, lazysegmenttree, dynamicsegmenttree, interval set. Status: verified. [evidence](<02-Data Structures/Docs/11-fenwick_tree_advanced.md>) [evidence](<02-Data Structures/Docs/12-lazysegmenttree.md>) [evidence](<02-Data Structures/Docs/13-dynamicsegmenttree.md>) [evidence](<02-Data Structures/Docs/24-interval_set.md>)
 - [ ] **P227 — DS49** (opus, M): 02-Data Structures — hashmap, sortedlist. Status: planned. Note: hash map and sorted list containers
-- [ ] **P052 — MA03, MA04** (opus, L+L): 05-Mathematics — primality factorization, multiplicative functions, modinverse, crt. Status: planned.
+- [x] **P052 — MA03, MA04** (opus, L+L): 05-Mathematics — primality factorization, multiplicative functions, modinverse, crt. Status: verified. [evidence](05-Mathematics/Docs/07-primality_factorization.md) [evidence](05-Mathematics/Docs/08-multiplicative_functions.md) [evidence](05-Mathematics/Docs/09-modinverse.md) [evidence](05-Mathematics/Docs/10-crt.md)
+- [x] **P231 — SUP06** (opus, S): Memory-capped test execution and Compact-alternative rule. Status: verified. [evidence](<96-Local Testing/00-memory-safety.md>)
 - [ ] **P081 — ST04, ST06, ST33** (opus, L+L+L): 07-Strings — suffixautomaton, sais, editdistance. Status: planned.
 - [ ] **P043 — GR07, GR10, GR11** (opus, M+L+L): 04-Graphs — twosat, matching bipartite, assignment, dominatortree. Status: planned.
 - [ ] **P055 — MA06, MA12** (opus, L+L): 05-Mathematics — convolution, transform algorithms. Status: planned.

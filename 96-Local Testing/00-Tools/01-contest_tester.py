@@ -27,6 +27,10 @@ import sys
 import tempfile
 import time
 import unittest
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import _00_memory_cap
+
+_00_memory_cap.ensure()
 
 ROOT = Path(__file__).resolve().parents[2]
 TOOLS = ROOT / "09-Contest Testing"

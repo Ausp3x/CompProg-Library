@@ -14,11 +14,13 @@ paths:
 - Windows consequences: `long` is 32-bit, so never use `long`, `unsigned long` or `%ld`; use the aliases below. Do not rely on `/dev/urandom`, `getrandom`, `mmap`, `sys/resource.h` or POSIX-only headers in library code. `std::random_device` and `std::chrono::steady_clock` are available everywhere.
 - ISA kernels are compile-time guarded on `__AVX2__`, `__FMA__`, `__BMI2__`; the scalar path is the default. On judges without `-march=native` the user enables kernels with `#pragma GCC target("avx2,bmi2,fma")` before includes; the header never adds global pragmas or floating-point flags. No runtime dispatch.
 - Judges run with assertions enabled. An assertion must not change an operation's asymptotic cost and must stay out of hot inner loops; check preconditions once at the entry of an operation.
+- A violated precondition must stay bounded when `NDEBUG` removes the assertion: no infinite loop and no unbounded allocation (for example `while (n > 1 && n % p == 0)` instead of relying on `assert(n >= 1)`). The result may be meaningless; the process must still terminate within the operation's normal bounds.
 
 ## Headers
 
 - `#pragma once`; include direct dependencies with relative paths, including `../01-Core/01-template.hpp` when aliases from it are used; compile alone, with every other header, and across multiple translation units (inline functions and variables or templates; no non-inline definitions in headers).
 - No circular dependencies. No public name collisions between a full and a mini type.
+- Compact twins: a contest header (`02`–`08`) that uses Core `Barrett*` or `Montgomery*` also defines, in the same header, a dependency-free twin of every public function or struct that performs the reduced arithmetic itself. The twin is named `<name>Compact` (struct `<Name>Compact`). It uses only plain `__int128`/`%` arithmetic and nothing from Core beyond `01-template.hpp` (its helpers sit in the family's detail namespace without Core types), keeps the same complexity class, and gives identical results on the shared domain. Functions built on top of the fast versions get no twin. Headers that are generic over a modint type `M` need none either, because a caller can plug in a mini type. The inventory row lists each twin; `03-consistency.py` reports a header that uses Barrett or Montgomery without a `Compact` definition.
 - Full modular integers live in `05-modint.hpp` (`modint_detail`, `ModInt`, `ModInt64`, `DynModInt`, `DynModInt64`, alias `mint`). The four minis live in `06-modintmini.hpp`, each an independent struct containing its own helpers.
 
 ## Types

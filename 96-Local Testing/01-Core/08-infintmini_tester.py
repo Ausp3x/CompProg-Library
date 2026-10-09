@@ -7,6 +7,10 @@ import subprocess
 import sys
 import threading
 import time
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import _00_memory_cap
+
+_00_memory_cap.ensure()
 
 GREEN = "\033[1;32m"
 RED = "\033[1;31m"

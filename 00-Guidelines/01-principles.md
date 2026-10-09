@@ -17,7 +17,7 @@ Every implementation satisfies all four requirements. None is optional and none 
 | Core mini | `*mini.hpp` in `01-Core` | Fewest source lines: drop rare operations first, then narrow and document the domain, and only then accept a slower algorithm. Identical results to the full type on the shared domain. Independently copyable: no dependency on a sibling, full type, detail namespace or reduction header. |
 | Contest | `02`–`07` and `08-Python` | Optimal complexity and an efficient direct implementation. No handwritten SIMD, assembly or ISA-specific code; ordinary compiler optimization only. May depend on Core full types, whose scalar fallback must work without special flags. |
 
-Barrett or Montgomery reduction outside Core needs a recorded end-to-end benchmark showing at least 20% lower runtime on a representative workload and no meaningful common-case regression. A smaller gain needs a written reason such as a judge limit. If the optimized code is much longer, keep a compact alternative.
+Barrett or Montgomery reduction outside Core needs a recorded end-to-end benchmark showing at least 20% lower runtime on a representative workload and no meaningful common-case regression. A smaller gain needs a written reason such as a judge limit. Every contest header that uses Core Barrett or Montgomery also keeps dependency-free `Compact` twins of the functions that use it, so a contest copy never needs the Core reduction headers (rule in `03-cpp.md`, Headers).
 
 Single-threaded contest execution is the baseline. Static caches and dynamic-modulus state are allowed when their lifetime and invalidation rules are documented.
 

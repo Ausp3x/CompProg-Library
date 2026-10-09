@@ -35,7 +35,7 @@ Contracts and ownership rules moved out of the inventory on 2026-10-06. The inve
 
 ## Legacy obligations
 
-- `OLD/5-Mathematics/05-primesandfactors.hpp`, `06-phiandinverse.hpp`, `07-chiremthmandgarner.hpp`, `08-modlogandmodroot.hpp`, `13-numericalmethods.hpp` and `14-miscellaneous.hpp` stay in `OLD` until the active headers `07`–`11`, `17`–`19` account for every feature, including `superChiRemThm` and the `modLog` multiplier parameter.
+- `OLD/5-Mathematics/05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp`, `13-numericalmethods.hpp` and `14-miscellaneous.hpp` stay pending until `11`, `17`–`19` account for every feature, including the `modLog` multiplier parameter. All originals stay in `OLD`.
 - `OLD/5-Mathematics/09-montgomery.hpp` is a Core reference; `10-poly.hpp` and `11-moly.hpp` are references for Core Poly.
 - [Local legacy excerpts](../97-Legacy/00-index.md) and the [transfer record](../../00-Guidelines/History/2026-09-27-monolith-transfer.md) preserve unchanged bodies with source-range/hash provenance; compilation does not verify behavior.
 - The archived closed segmented-sieve interval migrated to half-open `[l, r)` with an explicit `fromClosed` adapter.
@@ -100,3 +100,35 @@ Confirmed findings from `/reaudit-review` (each header's document repeats its ow
 The `@reviewer` pass found no correctness defect in the code; its per-header notes and independent probes are recorded in the per-header `## Commands and results`. The oracles across the package are Python unbounded integers and built-in modular powers and inverses, matrix powers, enumerated arrangements and paths, trial factors and divisors, divisor-inversion identities, analytic monotone and minimum positions, linear scans, and direct enumeration of bounded equations. Finite tests are paired with the correctness arguments in each per-header document. No Barrett/Montgomery or ISA-specific code is used.
 
 Legacy originals remain untouched in `OLD` and `97-Legacy`. Handoffs from the research sweep (not P012 work): `firstModInRange` to `18-floorsum.hpp`, the completely multiplicative power table to `08-multiplicative_functions.hpp`. There is no unfinished owned P012 feature or verification gap. Separate planned inventory families remain planned. No online submission or online-acceptance claim was made.
+
+## P052 research decisions (2026-10-09)
+
+Adopted: `factorizeTrial` (legacy `getPrimeFacSlow`), `divisors` from a factorization and `maxDivisorCount` (row 07); `omega`, `bigOmega`, `DivisorArray` `setMultiplicative`/`multipleZeta`/`multipleMobius`/`size`/`operator[]` (row 08); `crtMod` and the `CrtResult.overflow` flag (row 10). Renamed: `divisorCountFn`/`divisorSumFn` became `divisorCountTable`/`divisorSumTable` (point values already in row 07); `powerTable` is fixed as `i^k`. Left out, one line each:
+
+- `factorizeSpf`/`divisorsSpf` hybrids (maspypy): `LinearSieve::getPrimeFac` below the table, `factorize` above; `isPrimeSpf` is the only hybrid worth a name.
+- `findPrimeFactor` (maspypy): `factorize(n)[0].fi`.
+- `fermatFactor` (cp-algorithms): only fast for close factors; rho dominates.
+- `fermatProbablePrime` (OI Wiki): Monte Carlo and strictly weaker than deterministic Miller–Rabin.
+- `countByFactorType` (maspypy): needs prime counting; belongs with the Lucy/Meissel row.
+- `DivisorArray` with a user semigroup (product-form Möbius): `T` with `+`/`-` covers the transforms; product form is `exp`/`log` of a modint table at the call site.
+- `divisorProduct` (CSES): `n^(d(n)/2)` from `divisorCount` and `modPow` with the square-root case; problem-specific.
+- `coprimePairCount` (OI Wiki Möbius): a floor-sum over `prefixMobiusTable`; belongs to the Möbius-sum row `31`.
+- `inverseO1` (Nyaan, maspypy): `O(p^(2/3))` precomputation for `O(1)` queries with `p <= 2^30`; a niche constant-factor trick beside `inverseTable`/`inverseBatch`.
+- `inverseEuler`: `a^(phi(m) - 1)` needs a factorization and is dominated by `inverseXgcd`.
+- `crtFixedPrimes` (maspypy `crt3`): owned by the arbitrary-modulus convolution in Core and row `13`.
+- `garnerBigint` (Nyaan): evaluate `garnerDigits` by Horner in Core `InfInt`.
+- `coprimeBasis` exponents (maspypy): divide each input by the base elements at the call site.
+
+## P052 package record (MA03 and MA04)
+
+| Batch | Header | Evidence and scope |
+|---|---|---|
+| MA03 | `07-primality_factorization.hpp` | [07-primality_factorization.md](07-primality_factorization.md): deterministic u64 Miller–Rabin and Brent rho on Core `Montgomery64` (benchmark: factorization 33–36% faster than `__int128 %`), factorizations, divisors, prime powers, coarsest coprime base, highly composite search. |
+| MA04 | `08-multiplicative_functions.hpp` | [08-multiplicative_functions.md](08-multiplicative_functions.md): point functions, the linear-sieve multiplicative hook and its tables, Dirichlet tables, divisor arrays. |
+| MA04 | `09-modinverse.hpp` | [09-modinverse.md](09-modinverse.md): extended Euclid, Fermat and Pierce inverses, linear table, batch and zero-tolerant inverses, `i^k` table. |
+| MA04 | `10-crt.hpp` | [10-crt.md](10-crt.md): status CRT with overflow detection, scaled congruences, Garner digits and target reduction, non-coprime CRT modulo a target, incremental form, legacy `superChiRemThm`. |
+
+Compact rerun (2026-10-09, after P231): `07` now has dependency-free `millerRabin64Compact`, `isPrimeCompact`, `pollardRhoBrentCompact` and `factorizeCompact`. Its algorithms are templates over a product functor, so they are written once. Headers `08`–`10` use no Barrett or Montgomery directly (`09` is generic over the modint type), so they need no twins.
+
+Incident: a first oracle row sent `n = 0` to the optimized (`-DNDEBUG`) `factorize`, whose stripped precondition left an infinite `push_back` loop. Memory growth killed the user's editor. The loops in `factorize`, `factorizeTrial` and `coprimeBase` now terminate on 0, the oracle sends only valid inputs, and every later run used `systemd-run --user --scope -p MemoryMax=... -p MemorySwapMax=0`.
+

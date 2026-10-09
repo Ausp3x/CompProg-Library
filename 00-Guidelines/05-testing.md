@@ -15,6 +15,14 @@ paths:
 - `03-consistency.py` also enforces the `03-cpp.md` closing-brace rule on every header whose inventory row and owning package are both `verified`, and on that header's C++ testers and benchmarks under `96-Local Testing`. It ignores comments, literals and preprocessor lines and exempts initializer braces; `python3 '96-Local Testing/03-consistency.py' --braces <files>` checks arbitrary files for both the brace rule and the comment cap while editing. A re-audit normalizes the package's files before its package is marked verified.
 - Output: named tests, in-place progress on a terminal, plain lines when redirected, green PASS and red FAIL, nonzero exit on failure, explicit SKIP for missing hardware or interpreters. A failure prints seed, smallest known reproducer, operation and input, expected and actual values, configuration, command, and timeout or crash details. Failures must survive `-DNDEBUG`; never use a removable `assert` as the only oracle. Never ignore a subprocess failure.
 
+## Memory safety
+
+- Every tester, benchmark driver and `02-integration.py` calls `_00_memory_cap.ensure()` on start; the shared folder runners do it on import, and `03-consistency.py` rejects an entry point that does not. The entry point then runs inside a transient systemd user scope: `MemoryMax` is the cap (default 4096 MB, `CP_TEST_MEMORY_MB` overrides), swap is disabled, and `OOMPolicy=continue` kills only the runaway process, which the runner reports as a FAIL. A suite that legitimately needs more memory passes `ensure(mb=...)` and records the reason and its measured peak in its evidence.
+- Full and stress runs first rerun the same entry point in quick mode under a 2048 MB pre-flight cap (`CP_TEST_PREFLIGHT_MB`). The long run starts only when quick passes; `CP_TEST_PREFLIGHT=0` disables the pre-flight for a deliberate rerun.
+- Each capped run ends with `MEMORY peak=... cap=... oom_kills=...`. Evidence records the peak of the full and stress runs.
+- Ad-hoc probes, scratch binaries and one-off benchmarks also run capped: `python3 '96-Local Testing/_00_memory_cap.py' [--mb N] -- <command>`. Never run a compiled test program uncapped.
+- Oracle, stdin and random inputs given to an optimized (`-DNDEBUG`) build stay inside every documented domain. Precondition violations are exercised only by the checked build's `--invalid` probes.
+
 ## Coverage
 
 - Keep a feature-to-test map in the evidence document: every operation in the inventory row maps to at least one test.

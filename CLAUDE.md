@@ -35,6 +35,7 @@ Maximal competitive-programming library. C++20 headers in `01-Core` … `07-Stri
 python3 '00-Guidelines/13-Plan/plan.py' show P018       # package brief
 python3 '00-Guidelines/13-Plan/plan.py' set P018 verified --evidence '01-Core/26-infint.md'
 python3 '96-Local Testing/01-run.py' --mode quick        # all suites, quick
+python3 '96-Local Testing/_00_memory_cap.py' -- <cmd>    # run any ad-hoc binary, probe or benchmark memory-capped (testers cap themselves)
 python3 '96-Local Testing/<folder>/<NN-name>_tester.py' --mode full --seed 1
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'             # runs automatically after edits to indexes, plan, headers

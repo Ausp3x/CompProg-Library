@@ -6,6 +6,10 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
+import _00_memory_cap
+
+_00_memory_cap.ensure()
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent

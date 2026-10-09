@@ -9,6 +9,11 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import _00_memory_cap
+
+_00_memory_cap.ensure()
 
 ROOT = Path(__file__).resolve().parents[2]
 TOOL = ROOT / "98-Team Notebook" / "01-notebook.py"
