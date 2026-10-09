@@ -44,7 +44,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 
 - [x] **P229 — MI32** (opus, M): 06-Miscellaneous — timer, interactive, grid utilities. Status: verified. [evidence](06-Miscellaneous/Docs/49-timer.md) [evidence](06-Miscellaneous/Docs/50-interactive.md) [evidence](06-Miscellaneous/Docs/51-grid_utilities.md)
 - [x] **P027 — DS04, DS05, DS06, DS47** (opus, M+L+L+M): 02-Data Structures — fenwick tree advanced, lazysegmenttree, dynamicsegmenttree, interval set. Status: verified. [evidence](<02-Data Structures/Docs/11-fenwick_tree_advanced.md>) [evidence](<02-Data Structures/Docs/12-lazysegmenttree.md>) [evidence](<02-Data Structures/Docs/13-dynamicsegmenttree.md>) [evidence](<02-Data Structures/Docs/24-interval_set.md>)
-- [ ] **P227 — DS49** (opus, M): 02-Data Structures — hashmap, sortedlist. Status: planned. Note: hash map and sorted list containers
+- [x] **P227 — DS49** (opus, M): 02-Data Structures — hashmap, sortedlist. Status: verified. Note: hash map and sorted list containers [evidence](<02-Data Structures/Docs/61-hashmap.md>) [evidence](<02-Data Structures/Docs/64-sortedlist.md>)
 - [x] **P052 — MA03, MA04** (opus, L+L): 05-Mathematics — primality factorization, multiplicative functions, modinverse, crt. Status: verified. [evidence](05-Mathematics/Docs/07-primality_factorization.md) [evidence](05-Mathematics/Docs/08-multiplicative_functions.md) [evidence](05-Mathematics/Docs/09-modinverse.md) [evidence](05-Mathematics/Docs/10-crt.md)
 - [x] **P231 — SUP06** (opus, S): Memory-capped test execution and Compact-alternative rule. Status: verified. [evidence](<96-Local Testing/00-memory-safety.md>)
 - [ ] **P081 — ST04, ST06, ST33** (opus, L+L+L): 07-Strings — suffixautomaton, sais, editdistance. Status: planned.

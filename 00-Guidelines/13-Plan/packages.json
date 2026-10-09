@@ -493,8 +493,11 @@
       "phase": "Contest core",
       "size": "M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "02-Data Structures/Docs/61-hashmap.md",
+        "02-Data Structures/Docs/64-sortedlist.md"
+      ],
       "note": "hash map and sorted list containers"
     },
     {

@@ -8,3 +8,4 @@
 #include "06-sqrt_decomposition.hpp"
 #include "07-ordered_set.hpp"
 #include "08-monotone_stack.hpp"
+#include "61-hashmap.hpp"

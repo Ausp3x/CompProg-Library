@@ -61,6 +61,20 @@ Four `@researcher` sweeps for rows 11, 12, 13 and 24; the adopted operations are
 
 Library Checker problem lists came from the local coverage ledger because `judge.yosupo.jp` renders client-side; Luogu P5494 returned HTTP 522.
 
+## Fetched 2026-10-09 (P227 sweep)
+
+Two `@researcher` sweeps for rows 61 and 64; the adopted operations are in those rows and the rejected ones in [00-notes.md](00-notes.md#p227-omissions).
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| maspypy hashmap | https://raw.githubusercontent.com/maspypy/library/main/ds/hashmap.hpp | 2026-10-09 | `get` with default; load 1/2, no erase. |
+| Nyaan hashmap family | https://raw.githubusercontent.com/NyaanNyaan/library/master/hashmap/hashmap-base.hpp ; .../hashmap/hashset.hpp ; .../hashmap/hashmap-unerasable.hpp ; .../data-structure/hash-map-variable-length.hpp | 2026-10-09 | Tombstone erase with shrink (not adopted), fixed-size option, `get`. |
+| yosupo-library hash, hashmap, hashset | https://raw.githubusercontent.com/yosupo06/yosupo-library/main/src/yosupo/hash.hpp ; .../container/hashmap.hpp ; .../container/hashset.hpp | 2026-10-09 | HashSet `find`; seeded hasher over composite keys (covered by CustomHash). |
+| hitonanode fast_hash_map, custom_hash | https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/data_structure/fast_hash_map.hpp ; .../random/custom_hash.hpp | 2026-10-09 | Version-stamp O(1) `clear` for fixed tables. |
+| KACTL HashMap; tko919 hashmap; OI Wiki hash | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/data-structures/HashMap.h ; https://raw.githubusercontent.com/tko919/library/main/DataStructure/hashmap.hpp ; https://oi-wiki.org/ds/hash/ | 2026-10-09 | Baselines (`gp_hash_table`, fixed `operator[]`, textbook open addressing); none uses backward-shift deletion. |
+| tatyam SortedMultiset; PyRival SortedList; sortedcontainers; OI Wiki block list | https://raw.githubusercontent.com/tatyam-prime/SortedSet/main/SortedMultiset.py ; https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/data_structures/SortedList.py ; https://grantjenks.com/docs/sortedcontainers/sortedlist.html ; https://oi-wiki.org/ds/block-list/ | 2026-10-09 | `pop(k)` (`eraseKth`), `contains`, `clear`, range construction, reverse iteration; split/merge bucket policies (sortedcontainers load with split above 2x and merge below 1/2). |
+| maspypy my_multiset | https://maspypy.github.io/library/ds/my_multiset.hpp | 2026-10-09 | Checked for the MAS tag: a dynamic segment tree over values, not a bucket list. |
+
 ## Source keys and prior audit (condensed)
 
 Keys used in `00-index.md` status cells: **YC** Library Checker problem directories (GitHub), **CPA** cp-algorithms, **ACL** AtCoder Library documents, **KACTL** KACTL data-structures, **OI** OI Wiki ds section, **MAS** maspypy, **NYA** Nyaan, **EI** ei1333, **SUI** suisen, **HIT** hitonanode, **TKO** tko919, **NOSHI** noshi91, **DYNAMIC** xxsds/DYNAMIC, **ODS** Open Data Structures (saved PDF, chapters 4/8/9/10/13, read 2026-09-27), **KOO** Koosaga Library/codes (read 2026-09-27), **PYRIVAL** PyRival sorted list (read 2026-09-27 for `08-Python`).

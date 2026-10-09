@@ -119,6 +119,20 @@ Candidates from the 2026-10-08 sweep ([00-sources.md](00-sources.md)) left out o
 - `IntervalsFast` over a fastset, splay-backed `PiecewiseConstant` with slides (MAS): row 36 owns the fastset; the sliding structure is an Esoteric candidate without a current owner.
 - `IntervalMap::toArray` (MAS): `enumerate` over `[lo, hi)`.
 
+## P227 omissions
+
+Candidates from the 2026-10-09 sweep ([00-sources.md](00-sources.md)) left out of rows 61 and 64:
+
+- HashMap `count` (MAS, NYA, YC): `contains` gives the same answer.
+- HashMap `forEach`/`enumerate` (MAS, NYA): range-for over `begin`/`end` does it.
+- HashMap `erase(iterator)` returning the next element (NYA): backward-shift erase moves later cluster members into the hole, so erase while iterating needs a different contract; rare.
+- `emplace`/`try_emplace`, default-value parameter, `build(n)`, `cbegin`/`cend`, `dump` (NYA, MAS, YC): covered by `insert`, `get(k, def)`, `clear` plus `reserve`, const `begin`, and range-for.
+- Shrinking on erase (NYA): capacity stays at the peak; assign a new table to release it.
+- SortedList `countRange`, slice erase, `irange`/`islice`, bulk `update`, `operator==` (sortedcontainers, tatyam): `rank(r) - rank(l)`, iterators, repeated `insert` or `rebuild`, and comparing iteration.
+- SortedList negative `kth` indices (tatyam, PyRival): Python convention; C++ uses `kth(n - 1 - k)`.
+- Fenwick over bucket sizes (PyRival) or a positional index tree (sortedcontainers): `rank`/`kth` would gain O(log(n)) bucket lookup, but `insert` stays O(sqrt(n)) and every split or merge rebuilds the index; the RATIO sweep in [64-sortedlist.md](64-sortedlist.md) favours smaller buckets (shorter shifts) over fewer buckets, so the linear bucket scan is not the bottleneck at n <= 1e6.
+- Ownership overlap: `06-Miscellaneous/00-index.md` row `19-hash_families.hpp` still lists HashMap/HashSet; row 61 here owns them, and that row should drop them when its package runs.
+
 ## Test matrix
 
 - Differential-test Fenwick/segment-tree variants against a vector; persistent versions against copied snapshots; dynamic-tree structures against small forests; sorted containers against a sorted vector; hash maps against `std::unordered_map` with adversarial key patterns.

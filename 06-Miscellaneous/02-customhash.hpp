@@ -5,8 +5,9 @@
 // Seeded SplitMix64, not cryptographic; pointers hash addresses, strings hash bytes; keep the seed fixed while keys exist.
 struct CustomHash {
     using ulng = ::ulng;
-    static inline const ulng rnd = ulng(std::chrono::steady_clock::now().time_since_epoch().count())
-                                ^ ulng(reinterpret_cast<std::uintptr_t>(&rnd));
+    static inline const ulng rnd = [] {
+        static const char anchor = 0;
+        return ulng(std::chrono::steady_clock::now().time_since_epoch().count()) ^ ulng(reinterpret_cast<std::uintptr_t>(&anchor));}();
     ulng seed;
     CustomHash() : seed(rnd) {}
     explicit CustomHash(ulng seed) : seed(seed) {}
