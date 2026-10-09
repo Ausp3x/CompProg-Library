@@ -41,11 +41,18 @@ paths:
 ## API contracts
 
 - Zero-based indices and half-open ranges `[l, r)`; document any exception in the comment above the operation.
-- Every struct and free function has a documented contract: domain and width limits, exactness, result meaning, mutation, setup or reset requirements, aliasing and ownership, cache lifetime and what invalidates it. The full text lives in the header's evidence document under `## Contracts`; the code carries only the two lines allowed in Comments below. A `64` suffix describes storage, not support for every 64-bit modulus; state the real range.
+- Every struct and free function has a documented contract (a type's `friend` algorithms and `static` builders are part of the type's contract): domain and width limits, exactness, result meaning, mutation, setup or reset requirements, aliasing and ownership, cache lifetime and what invalidates it. The full text lives in the header's evidence document under `## Contracts`; the code carries only the two lines allowed in Comments below. A `64` suffix describes storage, not support for every 64-bit modulus; state the real range.
 - Preconditions: `assert`. Valid no-answer results: a non-colliding sentinel, a `bool` status plus out-parameter, or a small status enum. Use `std::optional` only when those are more cumbersome. Absence is never the same value as a legitimate empty or zero result.
 - Exact and approximate variants have distinct names and contracts even when they share code. State tolerances and coordinate bounds.
 - Randomized algorithms expose a reproducible seed and state whether failure is Monte Carlo (wrong answer with probability p) or Las Vegas (runtime only).
-- No `private`. State and helpers stay inside their struct; friend operators are encouraged; stateless algorithms are free functions.
+- No `private`. State and helpers stay inside their struct.
+- Type headers have no public free functions. A type header is every `01-Core` header except `01-template.hpp` and `02-debug.hpp` (full and mini), and every `02-Data Structures` header whose inventory row starts with a struct (structs and their operations, as opposed to rows of standalone functions such as `08-monotone_stack.hpp`). Every public operation of the type sits with the type:
+  - An operation that takes at least one value of the type is a `friend` defined inside the struct, operators included (`exp(f, n)`, `gcd(a, b)`, `a * b`). It is found only through ADL, so it never collides with a `std::` or Mathematics function of the same name.
+  - An operation that builds a value of the type from other data is a `static` member (`Poly<T>::interpolate(xs, ys)`, `Poly<T>::cyclotomic(n)`).
+  - An operation of the family that does not depend on the type's template parameters is a `static` member of one non-template companion struct named `<Type>Companion`, declared directly after the type (`PolyCompanion::convolutionLng(a, b)`). Companion functions keep the family word in their names. A header has at most one companion; a non-template type puts these in the type itself.
+  - Kernels, caches and helpers shared by these stay in `<family>_detail` and are not public API.
+  - A mini (`*mini.hpp`) keeps all of this inside its own struct: no companion and no `_detail`, so each mini stays independently copyable.
+- Every other `02`–`07` header keeps free functions, including algorithm headers that define result or helper structs (suffix array, suffix automaton, dominator tree, compression and similar builders) and the geometry primitives and graph representations whose operations are free (`03-Geometry/01-point.hpp`, `02-line_segment.hpp`, `06-circle.hpp`, `04-Graphs/01-graph.hpp`); never wrap an algorithm in a struct only to hold it.
 - Shared helpers for one family go in one `<family>_detail` namespace in the same header, indented four spaces, closed with `} // namespace <family>_detail`, never re-exported with `using namespace`. No nested detail namespaces, no anonymous namespaces in headers, no `internal` or `utils` namespaces.
 
 ## Style
@@ -56,7 +63,7 @@ paths:
 - Braces on every `if`, `else`, loop and similar statement; ternaries excepted. Single-line blocks have spaces inside: `if (ok) { work(); }`.
 - Closing braces: a multi-line block ends on the line of its last statement, `return res;}`. This applies to control blocks, function bodies and lambda bodies, and nests: `}}`. `else` starts a new line after `;}`. Exceptions: struct, class, union and enum bodies end with `};` on its own line; namespaces end with `} // namespace name` on its own line.
 - One logical step per line: a short method may be one line; tightly coupled statements may share a line (`u = find(u); v = find(v);`); unrelated setup, mutation and branching are split. Keep loop headers and short braced conditionals compact.
-- Group methods: construction, access, mutation, queries, operators; one blank line between groups; keep tiny overloads together. Never reorder data members to satisfy layout.
+- Group methods: construction (including `static` builders), access, mutation, queries, `friend` operators, then `friend` algorithms grouped by family; one blank line between groups; keep tiny overloads together. Never reorder data members to satisfy layout.
 - Attach `*` and `&` to the name: `T *p`, `T &x`, `T &operator+=(const T &o)`.
 - Casts: functional `T(x)` when unambiguous; `static_cast` otherwise; never hide a narrowing with a cast. Comparing a signed index with an unsigned size is acceptable when the bound is justified.
 - Named lambdas: `auto f = [&](args) -> T { ... };` with the return type only when deduction is ambiguous. Recursive lambdas take `auto &&f` first and call `f(f, ...)`.
@@ -65,10 +72,10 @@ paths:
 
 ## Comments
 
-- A struct or free function carries at most two comment lines directly above it: the complexity line, and one line naming the domain and the no-answer representation, for example `// mod in [1, 2^32); inv asserts a unit; sqrt returns -1 when no root.`
+- A struct, free function, `friend` algorithm or `static` builder carries at most two comment lines directly above it: the complexity line, and one line naming the domain and the no-answer representation, for example `// mod in [1, 2^32); inv asserts a unit; sqrt returns -1 when no root.`
 - Inside a body, a comment is one line and appears only where the code's trick or invariant is not evident from the code itself. No restated contracts, no history, no references to other documents.
 - A file may open with one comment line. No block comments.
-- Everything else (full contracts, staleness and invalidation rules, sentinel policies, proofs, provenance) goes to the header's evidence document under `## Contracts`, one subsection per struct or free function, linked from the inventory row.
+- Everything else (full contracts, staleness and invalidation rules, sentinel policies, proofs, provenance) goes to the header's evidence document under `## Contracts`, one subsection per struct or free function (a type's `friend` algorithms and `static` builders go under the type's subsection or in their own subsections), linked from the inventory row.
 - The validator rejects a verified header with more than two consecutive comment-only lines or with comment-only lines above 8% of its non-blank lines; one comment line is always allowed, so a one-function header keeps its complexity line.
 
 ## Complexity comments
@@ -77,4 +84,4 @@ paths:
 - Symbols: `n`, `m`, `k`, `q` sizes and counts; `V`, `E` vertices and edges; `w` word width; `b` bit length; `L` string length; `S` alphabet size; `out` output size. Define any other symbol in the same comment. Write multiplication explicitly (`n * m`) and functions with parentheses (`log(n)`, `sqrt(n)`).
 - State the worst case. Label `amortized` or `expected` bounds. Give conditions instead of `O(a) or O(b)`.
 - `M` is stored data for a struct and auxiliary space for a function, excluding caller-owned inputs. Add workspace, cache or output terms when they exceed the stored bound: `M: O(n) (workspace O(n^2))`.
-- A method gets its own comment only when its bound differs from the struct comment. ISA kernels need no comment; the public dispatcher's bound covers them. For big integers distinguish operation counts from bit complexity.
+- A method, `friend` algorithm or `static` builder gets its own comment only when its bound differs from the struct comment. ISA kernels need no comment; the public dispatcher's bound covers them. For big integers distinguish operation counts from bit complexity.

@@ -61,7 +61,8 @@
       "focus": "Full InfInt in multiplication, division/gcd, conversion/bitwise and sentinel stages; retain one header owner and separate checkpoints.",
       "prerequisites": [
         "C01",
-        "C03"
+        "C03",
+        "C11"
       ],
       "tiers": [
         "Core"

@@ -139,9 +139,82 @@ def comment_violations(path):
     return out
 
 
+def free_function_violations(path):
+    """03-cpp.md type-header rule (01-Core headers except template and debug; 02-Data Structures rows that start with a struct): no public function outside a struct, its <Type>Companion or <family>_detail."""
+    if path.name in ('01-template.hpp', '02-debug.hpp'):
+        return []
+    rel = str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+    text = strip_cpp(path.read_text())
+    out, stack, head, line, start = [], [], [], 1, 1
+
+    def balanced(s, i, opening, closing):
+        depth = 0
+        for j in range(i, len(s)):
+            depth += (s[j] == opening) - (s[j] == closing)
+            if depth == 0:
+                return j + 1
+        return len(s)
+
+    def signature(decl):
+        """Drop template parameter lists and requires-clauses, which may contain parentheses."""
+        out = ''
+        i = 0
+        while i < len(decl):
+            m = re.match(r'template\s*<', decl[i:])
+            r = re.match(r'requires\s*\(', decl[i:])
+            if m and (i == 0 or not (decl[i - 1].isalnum() or decl[i - 1] == '_')):
+                i = balanced(decl, i + m.end() - 1, '<', '>')
+            elif r and (i == 0 or not (decl[i - 1].isalnum() or decl[i - 1] == '_')):
+                i = balanced(decl, i + r.end() - 1, '(', ')')
+            else:
+                out += decl[i]
+                i += 1
+        return out.strip()
+
+    for c in text:
+        if c == '\n':
+            line += 1
+        if any(k != 'ns' for k in stack):
+            if c == '{':
+                stack.append('in')
+            elif c == '}':
+                stack.pop()
+            continue
+        if c in '{;':
+            decl = signature(re.sub(r'\s+', ' ', ''.join(head)).strip())
+            before = decl.split('(')[0]
+            kind = 'in'
+            namespace = re.match(r'namespace\s+(\w+)', decl)
+            if c == '{' and namespace:
+                kind = 'detail' if namespace.group(1).endswith('_detail') else 'ns'
+            elif '(' in decl and '=' not in before and not re.match(r'(static_assert|using|typedef)\b', decl) and not re.match(r'\w+\s*\(.*\)\s*->', decl) and not re.search(r'\b(struct|class|union|enum|concept)\b', before):
+                out.append(f'Free function: {rel}:{start}: {decl[:80]}; make it a friend, a static member, a <Type>Companion member or move it to <family>_detail')
+            if c == '{':
+                stack.append(kind)
+            head = []
+            continue
+        if c == '}':
+            stack.pop()
+            head = []
+            continue
+        if not c.isspace() and not ''.join(head).strip():
+            start = line
+        head.append(c)
+    return out
+
+def type_header(path):
+    """03-cpp.md type header: a 01-Core header, or a 02-Data Structures header whose inventory row starts with a struct."""
+    if path.suffix != '.hpp' or path.parent.name not in ('01-Core', '02-Data Structures'):
+        return False
+    if path.parent.name == '01-Core':
+        return True
+    index = path.parent / '00-index.md'
+    row = next((cells(l) for l in index.read_text().splitlines() if l.startswith(f'| `{path.name}`')), None) if index.exists() else None
+    return bool(row) and bool(re.match(r'[A-Z]', row[-2]))
+
 if len(sys.argv) > 1 and sys.argv[1] == '--braces':
-    found = [v for arg in sys.argv[2:] for f in (Path(arg).resolve(),) for v in brace_violations(f) + comment_violations(f)]
-    print('\n'.join(found) if found else 'no closing-brace or comment-cap violations')
+    found = [v for arg in sys.argv[2:] for f in (Path(arg).resolve(),) for v in brace_violations(f) + comment_violations(f) + (free_function_violations(f) if type_header(f) else [])]
+    print('\n'.join(found) if found else 'no closing-brace, comment-cap or free-function violations')
     raise SystemExit(bool(found))
 
 inventories = {}
@@ -191,6 +264,8 @@ for target, parts in inventories.items():
     if not target.endswith('.hpp') or not parts[-1].startswith('verified') or package_status.get(owner.get(target)) != 'verified':
         continue
     errors.extend(comment_violations(ROOT / target))
+    if type_header(ROOT / target):
+        errors.extend(free_function_violations(ROOT / target))
     for f in [ROOT / target, *(ROOT / t for t in plan.tests_for(ROOT, target) if t.endswith(('.cpp', '.hpp')))]:
         errors.extend(brace_violations(f))
         brace_checked += 1
