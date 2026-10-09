@@ -545,8 +545,12 @@
       "phase": "Contest core",
       "size": "L+L+L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "07-Strings/Docs/10-suffixautomaton.md",
+        "07-Strings/Docs/12-sais.md",
+        "07-Strings/Docs/18-editdistance.md"
+      ],
       "note": ""
     },
     {

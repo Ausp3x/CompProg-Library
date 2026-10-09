@@ -47,7 +47,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P227 — DS49** (opus, M): 02-Data Structures — hashmap, sortedlist. Status: verified. Note: hash map and sorted list containers [evidence](<02-Data Structures/Docs/61-hashmap.md>) [evidence](<02-Data Structures/Docs/64-sortedlist.md>)
 - [x] **P052 — MA03, MA04** (opus, L+L): 05-Mathematics — primality factorization, multiplicative functions, modinverse, crt. Status: verified. [evidence](05-Mathematics/Docs/07-primality_factorization.md) [evidence](05-Mathematics/Docs/08-multiplicative_functions.md) [evidence](05-Mathematics/Docs/09-modinverse.md) [evidence](05-Mathematics/Docs/10-crt.md)
 - [x] **P231 — SUP06** (opus, S): Memory-capped test execution and Compact-alternative rule. Status: verified. [evidence](<96-Local Testing/00-memory-safety.md>)
-- [ ] **P081 — ST04, ST06, ST33** (opus, L+L+L): 07-Strings — suffixautomaton, sais, editdistance. Status: planned.
+- [x] **P081 — ST04, ST06, ST33** (opus, L+L+L): 07-Strings — suffixautomaton, sais, editdistance. Status: verified. [evidence](07-Strings/Docs/10-suffixautomaton.md) [evidence](07-Strings/Docs/12-sais.md) [evidence](07-Strings/Docs/18-editdistance.md)
 - [ ] **P043 — GR07, GR10, GR11** (opus, M+L+L): 04-Graphs — twosat, matching bipartite, assignment, dominatortree. Status: planned.
 - [ ] **P055 — MA06, MA12** (opus, L+L): 05-Mathematics — convolution, transform algorithms. Status: planned.
 - [ ] **P083 — ST07, ST34** (opus, L+L): 07-Strings — palindromictree, lyndon, minrotation, lcs. Status: planned.
