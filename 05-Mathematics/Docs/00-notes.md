@@ -5,7 +5,7 @@ Contracts and ownership rules moved out of the inventory on 2026-10-06. The inve
 ## Status semantics
 
 - `verified` rows are backed by the linked per-header evidence documents (`Docs/01-mod_arithmetic.md` … `Docs/06-segmentedsieve.md`); every operation in the row has a test with an independent oracle and recorded commands.
-- `partial` rows keep their evidence link; the `missing:` list is planned work, not a defect in the verified part. In `24-transform_algorithms.hpp` the present `FastConv` operations are migrated code that was never verified; the row is partial only because the planned additions are explicit.
+- `partial` rows keep their evidence link; the `missing:` list is planned work, not a defect in the verified part.
 - `legacy-reference` rows have an archived implementation in `OLD/5-Mathematics` and no active header; names listed in the row are the intended active API, and legacy names (`exGcd`, `modLog` multiplier form, `superChiRemThm`) remain available under the new header.
 - `planned` rows name the API that would be implemented; nothing in them establishes compliance.
 - P012 verified the six MA01/MA02 foundation headers and re-audited them on 2026-10-07, completing the previously missing `01-mod_arithmetic.hpp` operations; see the per-header documents [01](01-mod_arithmetic.md)–[06](06-segmentedsieve.md) and the package record below.
@@ -37,7 +37,7 @@ Contracts and ownership rules moved out of the inventory on 2026-10-06. The inve
 
 - `OLD/5-Mathematics/05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp`, `13-numericalmethods.hpp` and `14-miscellaneous.hpp` stay pending until `11`, `17`–`19` account for every feature, including the `modLog` multiplier parameter. All originals stay in `OLD`.
 - `OLD/5-Mathematics/09-montgomery.hpp` is a Core reference; `10-poly.hpp` and `11-moly.hpp` are references for Core Poly.
-- [Local legacy excerpts](../97-Legacy/00-index.md) and the [transfer record](../../00-Guidelines/History/2026-09-27-monolith-transfer.md) preserve unchanged bodies with source-range/hash provenance; compilation does not verify behavior.
+- The [transfer record](../../00-Guidelines/History/2026-09-27-monolith-transfer.md) preserves source-range/hash provenance for the former local excerpts. The last one (`FastConv`) was removed when P055 verified row 24; the original stays in `OLD/algorithms.cpp`.
 - The archived closed segmented-sieve interval migrated to half-open `[l, r)` with an explicit `fromClosed` adapter.
 
 ## Evidence rules
@@ -132,3 +132,25 @@ Compact rerun (2026-10-09, after P231): `07` now has dependency-free `millerRabi
 
 Incident: a first oracle row sent `n = 0` to the optimized (`-DNDEBUG`) `factorize`, whose stripped precondition left an infinite `push_back` loop. Memory growth killed the user's editor. The loops in `factorize`, `factorizeTrial` and `coprimeBase` now terminate on 0, the oracle sends only valid inputs, and every later run used `systemd-run --user --scope -p MemoryMax=... -p MemorySwapMax=0`.
 
+
+## P055 research decisions (2026-10-09)
+
+Adopted: `convolution` (dispatcher), `nttDoubling` and `convolutionU128` (row 13); `kroneckerPowerTransform` widened from a 2 x 2 to any D x D kernel, and `disjointUnionConvolution` defined as the q-operand ranked product (row 24). Changed: `convolutionLong` uses three-prime CRT lifted to signed 64 bits instead of a split FFT (exact with no floating-point error analysis); `ntt`/`fft` produce bit-reversed spectra (ACL convention), which is what makes `transposedNtt` and `nttDoubling` distinct operations. Left out, one line each:
+
+- `convolutionSquare` (Nyaan, maspypy): `convolutionNtt(a, a)` detects the aliasing and does one forward transform.
+- `convolutionLeq` (maspypy, sum over i <= j): problem-specific divide and conquer on top of `convolution`.
+- Transposed `nttDoubling`, 64-bit-prime NTT products, `convolution_all`: owned by Core Poly, row 65 and row 14 `productTree`.
+- Split-FFT arbitrary modulus (KACTL `convMod`) and the real two-for-one trick: implementation alternatives of `convolutionArbitraryMod` and `convolutionFft`; the latter is used inside `convolutionFft`.
+- Many-operand pointwise product (suisen) and 2-D stencil translation (hitonanode): implementation detail and problem-specific.
+- Online subset zeta / online OR convolution (maspypy): an online set-function family; handed to row 66 (set power series) or row 52 (relaxed).
+- `transformPolynomialEval` (suisen): transform, pointwise `f`, inverse at the call site.
+- Sparse divisor Mobius on a divisor-closed key set (hitonanode): row 08 `DivisorArray` covers the divisors of one n; a general sparse key set is niche.
+- Zeta with a custom semigroup (max/min over subsets): a two-line loop at the call site or `kroneckerPowerTransform` over a semiring type with `+` and `*` redefined.
+- XNOR convolution: `xorConvolution` with complemented indices; `xor_submask_lower_bound` is a bit trick for Miscellaneous.
+
+## P055 package record (MA06 and MA12)
+
+| Batch | Header | Evidence and scope |
+|---|---|---|
+| MA06 | `13-convolution.hpp` | [13-convolution.md](13-convolution.md): naive, Karatsuba, complex FFT, NTT over any static NTT prime (bit-reversed spectra, transposed, doubling, root tables), three-prime CRT products (signed 64-bit, unsigned 128-bit, any modulus), block products beyond the transform limit, the dispatcher and the cyclic/negacyclic/truncated/middle/correlation/tensor/2-D wrappers. |
+| MA12 | `24-transform_algorithms.hpp` | [24-transform_algorithms.md](24-transform_algorithms.md): subset/superset zeta and Mobius, Walsh-Hadamard with exact inverse, bitwise and gcd/lcm convolutions, divisor/multiple transforms, ranked transforms, subset and q-operand disjoint-union convolution, D x D Kronecker powers, and the legacy `FastConv` names as thin wrappers. |

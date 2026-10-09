@@ -10,4 +10,5 @@
 #include "08-multiplicative_functions.hpp"
 #include "09-modinverse.hpp"
 #include "10-crt.hpp"
+#include "13-convolution.hpp"
 #include "24-transform_algorithms.hpp"

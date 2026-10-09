@@ -583,8 +583,11 @@
       "phase": "Contest core",
       "size": "L+L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "05-Mathematics/Docs/13-convolution.md",
+        "05-Mathematics/Docs/24-transform_algorithms.md"
+      ],
       "note": ""
     },
     {
