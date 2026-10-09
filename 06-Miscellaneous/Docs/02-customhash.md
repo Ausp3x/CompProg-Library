@@ -6,7 +6,7 @@
 
 ### CustomHash, safe_unordered_map, safe_unordered_set, safe_gp_hash_table
 
-- Seed: `CustomHash()` copies the inline process seed `CustomHash::rnd`, formed from clock ticks xor the address of `rnd`; this is variation, not secret entropy. `CustomHash(ulng)` gives a reproducible seed. Hash values replay on x86-64 Linux; string chunks use the platform's little-endian representation. Keep the seed fixed while a container holds keys; copies and rehashes retain it.
+- Seed: `CustomHash()` copies the inline process seed `CustomHash::rnd`, formed from clock ticks xor the address of a function-local static in its initializing lambda (GCC 14 rejects taking `&rnd` inside its own initializer); this is variation, not secret entropy. `CustomHash(ulng)` gives a reproducible seed. Hash values replay on x86-64 Linux; string chunks use the platform's little-endian representation. Keep the seed fixed while a container holds keys; copies and rehashes retain it.
 - Scalars: `splitMix64` (Vigna's increment and finalizer) is a bijection of 64-bit words, so distinct 64-bit values never collide for a fixed seed. 128-bit keys mix both words. Enums and values convertible to `ulng` hash their conversion; the conversion must be defined and equal values must convert equally (no NaN or out-of-range floating conversions; fractional values collide after truncation).
 - Text: `string`, `string_view` and NUL-terminated character arrays hash their bytes, including embedded NUL in explicit-length views; chunks are read with `memcpy`, so unaligned buffers are valid, and the tail is zero-padded before the length is mixed. Pointer variables (including `char *` and function pointers) hash their address without dereferencing; `nullptr` is supported.
 - Composites: `pair`, `tuple` and const-iterable input ranges mix child hashes in order; tuples and ranges also mix their length. Equality must respect the visited order, so never use an unordered container as a key.
@@ -60,3 +60,4 @@ python3 '96-Local Testing/03-consistency.py'                                    
 
 - 2026-09-27: P013 first verification, full and stress suites passed.
 - 2026-10-07: P013 re-audit, `safe_gp_hash_table` added, findings 5–7 (`std::uintptr_t`, string-length symbol, braces) fixed, contracts moved out of code comments; full, stress and integration passed.
+- 2026-10-09: P227 fixed the process seed initializer, which never compiled on GCC 14 (`&rnd` inside its own initializer), by anchoring on a function-local static; full suite passed on g++ 16.2.1 and g++-14 14.4.1.

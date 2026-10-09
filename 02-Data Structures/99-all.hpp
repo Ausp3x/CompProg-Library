@@ -20,3 +20,5 @@
 #include "21-lichao.hpp"
 #include "23-range_query_offline.hpp"
 #include "24-interval_set.hpp"
+#include "61-hashmap.hpp"
+#include "64-sortedlist.hpp"
