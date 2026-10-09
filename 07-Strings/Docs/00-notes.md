@@ -75,3 +75,15 @@ Re-audit research outcomes (sources in [00-sources.md](00-sources.md)); operatio
 - `08`: longest palindromic prefix/suffix is `05` `longestStarting()[0]`/`longestEnding()[n-1]`; inverse Manacher is `31`; "extend to palindrome" and double palindromes are problem-specific uses of those arrays.
 
 ST04/ST05/ST06 retain suffix automaton/tree/SA-IS ownership; ST11 owns generalized multiple-string indexes. ST13 owns dynamic Aho updates and can reuse stable state/failure/output interfaces, with state IDs invalidated by `clear`. ST07/ST16/ST28 retain eertree/advanced static/dynamic palindrome ownership; longest-palindrome queries constrained to a substring are listed under ST16.
+
+## P081 package record (ST04, ST06, ST33)
+
+Implemented and verified 2026-10-09 (contest profile, GNU C++20): [10-suffixautomaton.md](10-suffixautomaton.md), [12-sais.md](12-sais.md), [18-editdistance.md](18-editdistance.md).
+
+Research outcomes (sources in [00-sources.md](00-sources.md)); operations left out, one line each:
+
+- `10`: `locate(L, R)` and `prefixState` (maspypy) are substring loci, owned by `11` `weightedAncestor`; `lengthRange` is `{minimalLength(v), nodes[v].len}`; the SAM smallest cyclic shift belongs to `15`; many-string LCS is `28`; longest repeated substring is `07`. `kthSubstringDistinct`/`kthSubstring` are the automaton variants; `22` keeps the suffix-array versions. `lexicographicWalk` is defined here as the ordered enumeration of distinct substrings with early stop; `cyclicShiftOccurrences` counts equal rotations once (Codeforces 235C convention).
+- `12`: `saisSentinelFree` is not a separate function: `sais` itself is sentinel-free (ACL convention, `n` entries); callers wanting the empty suffix prepend `n`. The inverse suffix array is one loop over `sa` (`07` owns `rank`); prefix doubling stays in `07`, so there is no doubling fallback threshold here (the naive threshold is measured).
+- `18`: Hyyrö banded and transposition bit-vectors, Masek–Paterson Four Russians, concave gap penalties and Levenshtein automata (Schulz–Mihov) are not adopted (niche or theoretical; an automaton would belong to `17`/`24`); Ukkonen band doubling is subsumed by `diagonalEditDistance`; LCE-accelerated Landau–Vishkin `O(n + d^2)` is `38`. Scored alignments other than `hirschberg` return scores only; `hirschberg(a, b, score, gap)` is the Needleman–Wunsch witness. Hamming distance is `38`; LCS and indel distance are `19`.
+
+Handoffs: `22` may reuse `distinctSubstringsOnline` for `distinctSubstringsPerPrefix`; `28` generalizes `BasicSuffixAutomaton`; `29` can build a BWT from `sais`.
