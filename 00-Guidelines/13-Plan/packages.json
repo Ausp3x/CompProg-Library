@@ -557,8 +557,13 @@
       "phase": "Contest core",
       "size": "M+L+L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "04-Graphs/Docs/18-twosat.md",
+        "04-Graphs/Docs/21-matching_bipartite.md",
+        "04-Graphs/Docs/23-assignment.md",
+        "04-Graphs/Docs/24-dominatortree.md"
+      ],
       "note": ""
     },
     {

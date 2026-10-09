@@ -38,8 +38,8 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 
 ## Legacy migration obligations
 
-- Existing-unverified headers (`12`, `13`, `15`, `16`, `18`, `19`, `23`, `26`) contain unchanged monolith excerpts; see `97-Legacy/00-index.md` and `00-Guidelines/History/2026-09-27-monolith-transfer.md`. Compilation does not verify semantics, completeness, performance, indexing or complexity claims. The source-range/hash map `00-Guidelines/Ledgers/monolith-map.json` is authoritative for provenance.
-- Legacy-reference rows (`20`, `21`, `27`) point at Team Notebook sources `OLD/Team Notebook/src/graph/old_mcmf.cpp`, `old_kuhn.cpp` and `old_block-cut-tree.cpp`; `old_bellman-ford.cpp` is superseded by `05-shortest_path.hpp`.
+- Existing-unverified headers (`12`, `13`, `15`, `16`, `19`, `26`) contain unchanged monolith excerpts; see `97-Legacy/00-index.md` and `00-Guidelines/History/2026-09-27-monolith-transfer.md`. Compilation does not verify semantics, completeness, performance, indexing or complexity claims. The source-range/hash map `00-Guidelines/Ledgers/monolith-map.json` is authoritative for provenance.
+- Legacy-reference rows (`20`, `27`) point at Team Notebook sources `OLD/Team Notebook/src/graph/old_mcmf.cpp` and `old_block-cut-tree.cpp` (`old_kuhn.cpp` is accounted for by the verified row `21`); `old_bellman-ford.cpp` is superseded by `05-shortest_path.hpp`.
 - Unchanged archive leads in `OLD/Team Notebook/src/algs.cpp`, `algsbetter.cpp` and `test.cpp`: `LcaO1`, `LcaLog`, `DEsopoPape`, `TarjanSCC`, `StrongOrientation`, `EulerPath`, `Kruskal`, `PrimDense`, `TreeEdgePainting`, `Dinic`, `FlowWithDemands`, `PushRelabel`, `Kuhn` (symbols vary by file). They are behavioral references, never specifications. `OLD/[1] algorithms.cpp` TODO comments motivated rows `14` and `17`.
 - Delete from `OLD` or `97-Legacy` only after an audited implementation accounts for every feature the file contained.
 
@@ -97,4 +97,25 @@ The 2026-10-07 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-07-p011-r
 - Exporting the functional graph's reverse forest as a tree: `successor`, `depth` and `tin`/`tout` already describe it.
 - `stepUntil` (smallest step where a monotone predicate becomes true): `maxStep` of the negated predicate plus one.
 - Counting functional graphs (CSES Functional Graph Distribution): combinatorics, not a graph operation.
+
+## P043 package record
+
+- Scope: GR07 (`18-twosat.hpp`), GR10 (`21-matching_bipartite.hpp`, `23-assignment.hpp`) and GR11 (`24-dominatortree.hpp`); evidence in [18-twosat.md](18-twosat.md), [21-matching_bipartite.md](21-matching_bipartite.md), [23-assignment.md](23-assignment.md) and [24-dominatortree.md](24-dominatortree.md). Prerequisites P002, P010 and P011 were verified. The unchanged `TwoSat` and `Hungarian` monolith excerpts were replaced, and their legacy interfaces kept as adapters; the monolith map records both as P043 audited replacements. Row 24 was new. Row 21's `old_kuhn.cpp` is defective and served only as a feature list.
+- 2026-10-09 verification: the completeness sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-09-p043)) added `addVar`, `setValue`, `addEquivalent` and the O(k) form of `addAtMostOne` to row 18; dynamic `addEdge`/`eraseEdge`/`augment` to row 21; and `kBestAssignments` and the unrestricted-size option with cost curve to row 23. Row 18's `addExactlyOneOfTwo` is the same constraint as `addXor` and was merged into it. Row 21's `hopcroftKarp` and `kuhn` became methods of `BipartiteMatching`, so they can grow any current matching. Row 24's simple algorithm is vertex deletion with a provable O(V·(V + E)) bound instead of Cooper–Harvey–Kennedy iteration.
+- All four suites use independent exhaustive or enumerative oracles plus certificate checks (LP duals, König covers, Hall sets, refutation walks). They pass quick, full (GCC 16 and GCC 14.4) and stress in optimized, `_GLIBCXX_DEBUG` and ASan/UBSan builds. Development defects found and fixed: the dominance-frontier stamp grouping and Lengauer–Tarjan `eval` at virtual roots (both caught by the suite), and the `augment` path walk (caught in self-review before the first run). Benchmarking then replaced truncated Hopcroft–Karp phases on edge-ID adjacency with relaxed phases on a CSR snapshot (proof in the evidence), about 6× faster on sparse random graphs. Planted mutants: 26 of 27 killed; the survivor (the balancing swap in `link`) affects only the α bound.
+- Independent review (`@reviewer`, 2026-10-09) found no wrong answers and re-verified each algorithm with its own probes: Cooper–Harvey–Kennedy, remove/contract matching-number, Bellman–Ford min-cost-flow and brute-force 2-SAT oracles, plus overflow probes at the stated domain bounds. It confirmed the following, all fixed and covered by new tests: an uninitialised `AssignmentResult` read when copying an unsolved `Hungarian`; untested `mate` and warm-started `hopcroftKarp`/`kuhn`; an unchecked `DominatorTree` constructor range; a wasted BFS under `NDEBUG` in `minimumEdgeCover`; `TwoSat` literals unbounded under `NDEBUG`; the `get`/uppercase-local style; four complexity comments; and evidence wording. The P043 monolith-map entries were set to `verified`.
+
+## P043 omissions
+
+- Lexicographically smallest 2-SAT assignment: needs O(n·m) incremental propagation; no catalog provides it. Incremental 2-SAT, solution counting (#P-hard) and Horn-SAT (suisen) are different problems.
+- `addNand` (ei1333): it is `addClause(~a, ~b)`.
+- Lexicographically extremal maximum matching and lexicographically smallest vertex cover (ei1333): rare; greedy fixing of allowed edges from `essentialEdges` gives the matching in O(V·(V + E)).
+- Rank-maximal matching (maspypy): rare, unweighted-lexicographic; candidate for a future row.
+- Automatic bipartition overloads (hitonanode, maspypy): run `bipartiteCheck` (row 02) and map the sides.
+- Maximum antichain, DAG path and chain covers: row 31. Bipartite edge colouring: row 34.
+- Incremental row addition and dynamic Hungarian cost updates (hitonanode `augment`, OI Wiki): the internal single-row `search` exists, but a public stateful solver with update semantics is not part of any contest catalog interface fetched; rerun `hungarian` or use `kBestAssignments`.
+- Bottleneck assignment and the auction algorithm: in no fetched catalog; bottleneck assignment is a binary search over `hopcroftKarp` or `bipartiteMatchingDense`.
+- DAG dominator tree by LCA (OI Wiki): Lengauer–Tarjan covers DAGs with a better bound; online vertex appending is not part of this row.
+- Dominated counts (OI Wiki P5180): `tout[v] − tin[v]` of `DominatorTree`.
+- Post-dominators, multiple roots and edge dominators: reverse graph, super-source and edge subdivision. Exposed semidominators (internal in Koosaga) and iterated dominance frontiers (SSA construction) are outside contest use.
 

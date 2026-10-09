@@ -1014,18 +1014,16 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "issues": [
-        "Literal-polarity/assignment semantics and repeated solve behavior require audit; DFS is recursive.",
-        "No algorithm verification performed."
+        "P043 replaces the recursive Kosaraju solver with an iterative Tarjan implication-graph solver, literal API, O(k) at-most-one, forced literals and an unsatisfiability witness; addClause(a, na, b, nb) and solve() keep the legacy semantics."
       ],
       "source_context": "AI GENERATED FAST section",
       "tier": "Advanced",
       "body_sha256": "9983a8807d6782987dcb52b1c09d567a1e0bb7f5f9043baea040b38cb050d8e0",
       "disposition": "extracted",
-      "target_body_start_line": 10,
-      "target_body_end_line": 69,
-      "target_sha256": "616a107e39c4cdcf48d3cf6d9e3aa6d021dc5fb858b3c4cf814318206192f9e3"
+      "relationship": "P043 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/Docs/18-twosat.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -1110,18 +1108,16 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "issues": [
-        "Rectangular domain, INF64 arithmetic, generic T constraints, forbidden edges and repeated solve behavior require audit.",
-        "No algorithm verification performed."
+        "P043 replaces the 1-based Hungarian excerpt with rectangular min/max Hungarian with forbidden pairs and potentials, k-best assignments and sparse successive shortest paths; Hungarian addEdge/solve/getAssignment remain as a legacy adapter."
       ],
       "source_context": "AI GENERATED FAST section",
       "tier": "Advanced",
       "body_sha256": "445c1b5abce9dd839a5e228b716d029a9f0077a8297344dacafbeed0065ded38",
       "disposition": "extracted",
-      "target_body_start_line": 10,
-      "target_body_end_line": 75,
-      "target_sha256": "6c056739a66192afbb7d0cced5bcdf94ff8fdc8939b47975f815c6bb9b4137a2"
+      "relationship": "P043 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/Docs/23-assignment.md"
     },
     {
       "source": "OLD/algorithms.cpp",

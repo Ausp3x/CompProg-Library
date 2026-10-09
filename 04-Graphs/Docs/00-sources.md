@@ -66,6 +66,27 @@ Fetched by the completeness sweeps for rows 07–11; Library Checker task lists 
 | hitonanode doubling | https://hitonanode.github.io/cplib-cpp/other_algorithms/doubling.hpp | 2026-10-07 | First step at which a monotone condition holds, reduced to `maxStep` |
 | CSES problem set | https://cses.fi/problemset/ | 2026-10-07 | Planets Queries/Cycles operations, covered by `jump`, `depth` and cycle lengths |
 
+## Pages fetched on 2026-10-09 (P043)
+
+Fetched by the completeness sweeps for rows 18, 21, 23 and 24. The judge site rendered only titles, so Library Checker statements came from the GitHub problem repository where available (`two_sat` task.md returned 404).
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| KACTL 2sat.h | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/graph/2sat.h | 2026-10-09 | `addVar`, `setValue`, O(k) at-most-one with prefix variables |
+| ACL twosat; cp-algorithms 2-SAT; OI Wiki 2-SAT | https://raw.githubusercontent.com/atcoder/ac-library/master/atcoder/twosat.hpp | 2026-10-09 | Row 18 comparison; `satisfiable`/`answer` |
+| ei1333 two-satisfiability, Nyaan two-sat, maspypy twosat, suisen two_sat, Koosaga twosat, hitonanode 2sat test | https://ei1333.github.io/library/graph/others/two-satisfiability.hpp | 2026-10-09 | `set_true`/`set_val`/`set` (`setValue`), `add_nand` (an `addClause` form), Horn-SAT (not adopted) |
+| maspypy bipartite_matching, bipartite_matching_dense, rank_maximal_bipartite_matching | https://maspypy.github.io/library/flow/bipartite_matching_dense.hpp | 2026-10-09 | Dense bitset Kuhn with cover (`bipartiteMatchingDense`); rank-maximal matching (omitted) |
+| ei1333 bipartite-flow | https://ei1333.github.io/library/graph/flow/bipartite-flow.hpp | 2026-10-09 | Edge erase with re-augmentation (`eraseEdge` + `augment`); lexicographic matching and cover (omitted) |
+| suisen bipartite_matching; hitonanode bipartite_matching; Nyaan flow-on-bipartite-graph | https://suisen-cp.github.io/cp-library-cpp/library/graph/bipartite_matching.hpp | 2026-10-09 | Incremental solve (`addEdge` + `augment`); automatic bipartition (omitted); capacity edges (`bMatching`) |
+| cp-algorithms Kuhn; OI Wiki 二分图最大匹配; Koosaga matching_bipartite | https://cp-algorithms.com/graph/kuhn_maximum_bipartite_matching.html | 2026-10-09 | Row 21 comparison; greedy initialisation recorded as a heuristic |
+| hitonanode linear_sum_assignment | https://hitonanode.github.io/cplib-cpp/combinatorial_opt/linear_sum_assignment.hpp | 2026-10-09 | k-best assignments by Murty partitioning with warm duals (`kBestAssignments`); row augmentation (omitted as public API) |
+| OI Wiki 二分图最大权匹配 | https://oi-wiki.org/graph/graph-matching/bigraph-weight-match/ | 2026-10-09 | Non-perfect maximum-weight matching (`linearSumAssignment(..., maxCardinality = false)`); dynamic Hungarian (omitted) |
+| cp-algorithms Hungarian; SciPy linear_sum_assignment; KACTL WeightedMatching; maspypy and ei1333 hungarian; Library Checker assignment | https://cp-algorithms.com/graph/hungarian-algorithm.html | 2026-10-09 | Row 23 comparison; rectangular and maximize semantics |
+| OI Wiki 支配树 | https://oi-wiki.org/graph/dominator-tree/ | 2026-10-09 | Lengauer–Tarjan; DAG LCA method and dominated counts (omitted / documented) |
+| Library Checker dominatortree task | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/graph/dominatortree/task.md | 2026-10-09 | Root and unreachable output convention |
+| NetworkX dominance, dominance_frontiers | https://networkx.org/documentation/stable/reference/algorithms/dominance.html | 2026-10-09 | `dominanceFrontier` definition |
+| maspypy dominator_tree, ei1333 dominator-tree, Koosaga dominator | https://maspypy.github.io/library/graph/dominator_tree.hpp | 2026-10-09 | Row 24 comparison; all compression-only |
+
 ## Source keys
 
 Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder.

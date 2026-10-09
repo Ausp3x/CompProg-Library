@@ -17,5 +17,7 @@
 #include "16-centroiddecomposition.hpp"
 #include "18-twosat.hpp"
 #include "19-max_flow.hpp"
+#include "21-matching_bipartite.hpp"
 #include "23-assignment.hpp"
+#include "24-dominatortree.hpp"
 #include "26-dynamic_connectivity.hpp"
