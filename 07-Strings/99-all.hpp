@@ -2,4 +2,8 @@
 #include "98-basic.hpp"
 #include "10-suffixautomaton.hpp"
 #include "12-sais.hpp"
+#include "13-palindromictree.hpp"
+#include "14-lyndon.hpp"
+#include "15-minrotation.hpp"
 #include "18-editdistance.hpp"
+#include "19-lcs.hpp"

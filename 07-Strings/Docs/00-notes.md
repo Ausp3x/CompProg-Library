@@ -87,3 +87,16 @@ Research outcomes (sources in [00-sources.md](00-sources.md)); operations left o
 - `18`: Hyyrö banded and transposition bit-vectors, Masek–Paterson Four Russians, concave gap penalties and Levenshtein automata (Schulz–Mihov) are not adopted (niche or theoretical; an automaton would belong to `17`/`24`); Ukkonen band doubling is subsumed by `diagonalEditDistance`; LCE-accelerated Landau–Vishkin `O(n + d^2)` is `38`. Scored alignments other than `hirschberg` return scores only; `hirschberg(a, b, score, gap)` is the Needleman–Wunsch witness. Hamming distance is `38`; LCS and indel distance are `19`.
 
 Handoffs: `22` may reuse `distinctSubstringsOnline` for `distinctSubstringsPerPrefix`; `28` generalizes `BasicSuffixAutomaton`; `29` can build a BWT from `sais`.
+
+## P083 package record (ST07, ST34)
+
+Implemented 2026-10-10 (contest profile, GNU C++20): `13`, `14`, `15`, `19` are verified with the operations in their rows; evidence: [13-palindromictree.md](13-palindromictree.md), [14-lyndon.md](14-lyndon.md), [15-minrotation.md](15-minrotation.md), [19-lcs.md](19-lcs.md).
+
+Research outcomes (sources in [00-sources.md](00-sources.md)); adopted: eertree `parent`, `pos`/`palindrome`, joint trees (`newString`), `substringSuffixPalindrome`, the generic series-link fold; `IncrementalLyndon`, `suffixFactorization`, `nextLyndonWord`; `minRotationIndices`, `rotationOffset`; `shortestCommonSupersequence`, `lcs3`. Left out, one line each:
+
+- `13`: `seriesLink` is the `Node::series` field; a raw per-node count field is recomputed by `occurrenceCounts` from `suffix`; k-factorization (Rubinchik–Shur) is rare and bounded by parity plus `minPalindromePartition`; per-symbol DP callbacks are subsumed by `palindromicFactorization`; rich-string enumeration is research-only and persistence is `45`; listing the end positions of one palindrome has no catalog source (walk the link tree).
+- `14`: Lyndon-word rank/unrank/k-th word (arXiv 1510.02637) need big integers and appear in no competitive-programming catalog.
+- `15`: `minCyclicShift` was merged into `minRotation` (every catalog treats them as one operation); minimal rotation of every prefix has no catalog source (`22` owns per-prefix minimal suffixes); the rotation period is `minRotationIndices().second` (or `27` `primitiveRoot`); cyclic comparison is `rotationEquivalent`/`canonicalRotation`; the row's "Booth" became the two-pointer minimum expression with the same bound.
+- `19`: longest common increasing subsequence has no fetched catalog source and no standard linear-memory witness (LIS lives in Miscellaneous `08`); a full LCS table is internal (semi-local queries are `48`); counting LCS strings and the lexicographically smallest LCS have no catalog source; range distinct-subsequence counting is a segment-tree application.
+
+Handoffs: `39` should reuse `13` `palindromicLength`; `22` `lexMinSuffixPerPrefix` is `IncrementalLyndon::minSuffix`; `26` runs can consume `lyndonArray`/`lyndonTree`; `41` de Bruijn can consume `nextLyndonWord`; `lyndonArray` becomes linear once `12` SA-IS exists.

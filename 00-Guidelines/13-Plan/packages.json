@@ -602,8 +602,13 @@
       "phase": "Contest core",
       "size": "L+L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "07-Strings/Docs/13-palindromictree.md",
+        "07-Strings/Docs/14-lyndon.md",
+        "07-Strings/Docs/15-minrotation.md",
+        "07-Strings/Docs/19-lcs.md"
+      ],
       "note": ""
     },
     {

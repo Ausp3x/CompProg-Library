@@ -22,6 +22,17 @@ Source keys used in `00-index.md` status cells are defined in the second section
 | Runs Theorem (arXiv 1406.0263) | https://arxiv.org/abs/1406.0263 | 2026-10-06 | Abstract: Lyndon-root characterization, `rho(n) < n`, sum of exponents `< 3n`, linear-time runs algorithm without LZ factorization; basis for `runs` in row `26` and Fibonacci/Thue–Morse worst-case generators in row `50` |
 | r-index (arXiv 1705.10382) | https://arxiv.org/abs/1705.10382 | 2026-10-06 | Abstract: count and locate in `O(r)` space, optimal `O(m + occ)` locate in `O(r log(n/r))` space, extraction bounds; basis for row `46` operations and the `36`/`46` ownership split |
 
+## P083 sweeps (2026-10-10)
+
+Per-row research for `13`, `14`, `15`, `19`; pages fetched 2026-10-10. Adopted operations are cited in each evidence document; rejections are in [00-notes.md](00-notes.md).
+
+| Row | Pages | Outcome |
+|---|---|---|
+| `13` | https://oi-wiki.org/string/pam/, https://maspypy.github.io/library/string/palindromic_tree.hpp, https://maspypy.github.io/library/string/palindrome_decomposition_dp.hpp, https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/string/eertree/task.md, https://ei1333.github.io/library/string/palindromic-tree.hpp, https://hitonanode.github.io/cplib-cpp/string/palindromic_tree.hpp, https://tko919.github.io/library/String/palindromictree.hpp, https://arxiv.org/abs/1506.04862 (pages 1–2); Nyaan and cp-algorithms have no eertree; adamant's blog returned 403/404 | `parent`, `pos`/`palindrome`, `newString` (joint tree), `substringSuffixPalindrome`, generic `palindromicFactorization` adopted |
+| `14` | https://cp-algorithms.com/string/lyndon_factorization.html, https://oi-wiki.org/string/lyndon/, https://maspypy.github.io/library/string/lyndon.hpp, https://maspypy.github.io/library/string/lex_min_suffix_for_all_prefix.hpp, https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/string/lyndon_factorization/task.md, https://hitonanode.github.io/cplib-cpp/string/lyndon.hpp, https://arxiv.org/abs/1510.02637 (abstract); Nyaan, suisen, ei1333, KACTL have no Lyndon file | `IncrementalLyndon`, `suffixFactorization`, `nextLyndonWord`, exact-length enumeration adopted |
+| `15` | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/strings/MinRotation.h, https://oi-wiki.org/string/minimal-string/, https://cp-algorithms.com/string/lyndon_factorization.html, https://cp-algorithms.com/string/suffix-array.html, https://maspypy.github.io/library/string/minimum_cyclic_shift.hpp, PyRival `strings/min_rotation.py`; Nyaan, ei1333, hitonanode have no rotation files | `minRotationIndices`, `rotationOffset` adopted; `minCyclicShift` merged into `minRotation` |
+| `19` | https://maspypy.github.io/library/string/longest_common_subsequence.hpp, https://maspypy.github.io/library/string/count_subsequence.hpp, https://suisen-cp.github.io/cp-library-cpp/library/dp/number_of_subsequences.hpp, https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/strings/lcs.py, https://oi-wiki.org/dp/basic/, https://atcoder.jp/contests/dp/tasks/dp_f, https://cses.fi/problemset/; Library Checker, KACTL, cp-algorithms, Nyaan, ei1333, hitonanode have no LCS page | `shortestCommonSupersequence`, `lcs3` adopted |
+
 ## P016 and P017 re-audit sweeps (2026-10-08)
 
 Per-row research for `01`–`09`; pages fetched 2026-10-08. Adopted operations are cited in each evidence document; rejections are in [00-notes.md](00-notes.md).
