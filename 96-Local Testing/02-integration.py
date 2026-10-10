@@ -52,9 +52,11 @@ def main():
             sources = sorted([*core.glob('*_tester.cpp'), *core.glob('05-*_cases.cpp')])
             for source in sources:
                 output=build/source.stem
+                second=source.with_name(source.stem+'_tu.cpp')
+                units=[str(source)]+([str(second)] if second.is_file() else [])
                 run([compiler,*flags,'-O1','-g','-fno-omit-frame-pointer','-fno-pie','-no-pie',
-                     '-fsanitize=address,undefined','-fno-sanitize-recover=all',str(source),'-o',str(output)])
-                run([str(output)],300)
+                     '-fsanitize=address,undefined','-fno-sanitize-recover=all',*units,'-o',str(output)])
+                run([str(output),'--mode','quick'],300)
         print(f'PASS: {len(headers)} standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace'+(', sanitizer self-tests' if args.sanitizers else ''))
     return 0
 
