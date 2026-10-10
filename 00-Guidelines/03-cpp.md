@@ -41,7 +41,7 @@ paths:
 ## API contracts
 
 - Zero-based indices and half-open ranges `[l, r)`; document any exception in the comment above the operation.
-- Every struct and free function has a documented contract (a type's `friend` algorithms and `static` builders are part of the type's contract): domain and width limits, exactness, result meaning, mutation, setup or reset requirements, aliasing and ownership, cache lifetime and what invalidates it. The full text lives in the header's evidence document under `## Contracts`; the code carries only the two lines allowed in Comments below. A `64` suffix describes storage, not support for every 64-bit modulus; state the real range.
+- Every struct and free function has a documented contract (a type's `friend` algorithms and `static` builders are part of the type's contract): domain and width limits, exactness, result meaning, mutation, setup or reset requirements, aliasing and ownership, cache lifetime and what invalidates it. A `64` suffix describes storage, not support for every 64-bit modulus; state the real range.
 - Preconditions: `assert`. Valid no-answer results: a non-colliding sentinel, a `bool` status plus out-parameter, or a small status enum. Use `std::optional` only when those are more cumbersome. Absence is never the same value as a legitimate empty or zero result.
 - Exact and approximate variants have distinct names and contracts even when they share code. State tolerances and coordinate bounds.
 - Randomized algorithms expose a reproducible seed and state whether failure is Monte Carlo (wrong answer with probability p) or Las Vegas (runtime only).

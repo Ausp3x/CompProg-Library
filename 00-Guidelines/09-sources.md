@@ -4,7 +4,7 @@ Read for completeness research, provenance questions or adapting external code. 
 
 ## Completeness sweep
 
-For a family, compare the inventory row against each catalog below, add every public operation found there that fits the family, and record each source consulted in the folder's `81-sources.md` with a precise URL and the date.
+For a family, compare the inventory row against each catalog below, add every public operation found there that fits the family, and record each source consulted in the folder's `Docs/00-sources.md` with a precise URL and the date.
 
 | Area | Catalogs |
 |---|---|
