@@ -368,8 +368,10 @@
       "phase": "Core full types",
       "size": "M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "01-Core/Docs/17-polymini.md"
+      ],
       "note": ""
     },
     {

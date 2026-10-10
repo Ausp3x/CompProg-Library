@@ -66,6 +66,19 @@ Not fetched in this sweep: Codeforces blog entries 62393, 125435, 106195 and 913
 | cp-algorithms polynomial article, KACTL `numerical/Polynomial.h` | https://cp-algorithms.com/algebra/polynomial.html, https://github.com/kth-competitive-programming/kactl/blob/main/content/numerical/Polynomial.h | yes | Baseline operation vocabulary; KACTL `divroot` |
 | von zur Gathen, Gerhard, Modern Computer Algebra, chapter 11; Cohen, A Course in Computational Algebraic Number Theory, Algorithm 3.3.7; Kinoshita, Li, Power Series Composition in Near-Linear Time (arXiv 2404.05177); Bostan, Lecerf, Schost, Tellegen's principle into practice | textbook and paper references (not fetched in this session; algorithms implemented from memory of the published descriptions and verified by the tester) | no | Fast Euclidean algorithm, subresultant resultant, bivariate Bostan–Mori composition, transposed evaluation |
 
+## Fetched 2026-10-10 (P026 PolyMini sweep)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| KACTL numerical chapter (`Polynomial.h`, `PolyInterpolate.h`, `PolyRoots.h`, `NumberTheoreticTransform.h`, `BerlekampMassey.h`, `LinearRecurrence.h`, `FastFourierTransformMod.h`) | https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical | yes | Compact-kit baseline: NTT, BM, linear recurrence, interpolation; real roots and arbitrary-mod FFT stay with Mathematics and full Poly |
+| Benq cp-notebook polynomial folder (`PolyInv.h`, `PolyConv.h`, `Poly.h`) | https://github.com/bqi343/cp-notebook/tree/master/Implementations/content/numerical/Polynomials | yes | Compact inv/log/exp/sqrt and shifts; sqrt left out of the mini |
+| cp-algorithms operations on polynomials and series | https://cp-algorithms.com/algebra/polynomial.html | yes | Newton inverse, division, multipoint evaluation and interpolation by subproduct tree, `bpow` modulo a polynomial |
+| OI Wiki polynomial pages | https://oi-wiki.org/math/poly/intro/ | yes | Elementary series functions, chirp-z; frequency in compact kits |
+| ei1333 and Nyaan FPS headers | https://ei1333.github.io/library/math/fps/formal-power-series.hpp, https://nyaannyaan.github.io/library/ | yes | Compact FPS operation set (`pow`, `sqrt`, `mod_pow`, Lagrange point evaluation) for the reduction decision |
+| Library Checker polynomial tree | https://github.com/yosupo06/library-checker-problems/tree/master/polynomial | yes | Problem coverage of the row (inv, log, exp, pow, multipoint evaluation, interpolation, Taylor shift, kth term) |
+
+The ACL convolution document returned HTTP 503 on 2026-10-10 and maspypy was not fetched in this sweep; the 2026-10-06 entries above cover both.
+
 ## Previous source keys and audit narrative
 
 - Keys retained from the 2026-09-27 inventory: ACL (AtCoder Library), KACTL, CPA (cp-algorithms), OI (OI Wiki), NYA (Nyaan), MAS (maspypy), EI (ei1333), SUI (suisen), HIT (hitonanode), TKO (tko919), GMP, FLINT, NTL, MCA (saved *Modern Computer Arithmetic*), YC (Library Checker).
