@@ -687,8 +687,13 @@
       "phase": "Contest core",
       "size": "L+M+L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "03-Geometry/Docs/10-halfplaneintersection.md",
+        "03-Geometry/Docs/11-minkowskisum.md",
+        "03-Geometry/Docs/16-circle_polygon.md",
+        "03-Geometry/Docs/17-polygon_distance.md"
+      ],
       "note": ""
     },
     {

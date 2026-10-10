@@ -9,3 +9,7 @@
 #include "07-rotatingcalipers.hpp"
 #include "08-coordinate_transform.hpp"
 #include "09-triangle.hpp"
+#include "10-halfplaneintersection.hpp"
+#include "11-minkowskisum.hpp"
+#include "16-circle_polygon.hpp"
+#include "17-polygon_distance.hpp"

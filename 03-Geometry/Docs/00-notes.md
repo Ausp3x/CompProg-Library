@@ -1,6 +1,6 @@
 # 03 Geometry — notes
 
-Contracts and ownership rules moved out of the inventory. Evidence is one document per header: [01-point.md](01-point.md), [02-line_segment.md](02-line_segment.md), [03-polygon.md](03-polygon.md), [04-convexhull.md](04-convexhull.md), [05-closestpair.md](05-closestpair.md), [06-circle.md](06-circle.md), [07-rotatingcalipers.md](07-rotatingcalipers.md), [08-coordinate_transform.md](08-coordinate_transform.md) and [09-triangle.md](09-triangle.md).
+Contracts and ownership rules moved out of the inventory. Evidence is one document per header: [01-point.md](01-point.md), [02-line_segment.md](02-line_segment.md), [03-polygon.md](03-polygon.md), [04-convexhull.md](04-convexhull.md), [05-closestpair.md](05-closestpair.md), [06-circle.md](06-circle.md), [07-rotatingcalipers.md](07-rotatingcalipers.md), [08-coordinate_transform.md](08-coordinate_transform.md), [09-triangle.md](09-triangle.md), [10-halfplaneintersection.md](10-halfplaneintersection.md), [11-minkowskisum.md](11-minkowskisum.md), [16-circle_polygon.md](16-circle_polygon.md) and [17-polygon_distance.md](17-polygon_distance.md).
 
 ## Numeric policy
 
@@ -33,7 +33,8 @@ Contracts and ownership rules moved out of the inventory. Evidence is one docume
 ## Legacy obligations
 
 - Superseded and accounted for by GE01/GE02 (bytes preserved, no active dependency): `OLD/Team Notebook/src/geometry/point.cpp`, `intersection.cpp`, `polyarea.cpp`, `getnearestpair.cpp`, plus their counterparts in `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp`. Historical names (`Point`, `PointD`, `sgn`, `polyArea`, `isIntscLinSeg`) are not compatibility APIs. Consumers of the old coefficient-form line intersection migrate to endpoint-defined `Linear2`.
-- Pending until their rows are implemented: `halfplane.cpp` (row 10), `getminkowskisum.cpp` (11), `getintersectingsegs.cpp` (12), `getlensegunion.cpp` (13), `welzlmec.cpp` (14), `getmanhattammstedges.cpp` (21). Legacy epsilon predicates (`1e-9`) are not adopted; each successor states its own exact/approximate policy.
+- Superseded and accounted for by P036 (bytes preserved, no active dependency): `halfplane.cpp` (row 10; its `±2 * 10^9` box and `1e-9` predicates are not adopted) and `getminkowskisum.cpp` (row 11).
+- Pending until their rows are implemented: `getintersectingsegs.cpp` (12), `getlensegunion.cpp` (13), `welzlmec.cpp` (14), `getmanhattammstedges.cpp` (21). Legacy epsilon predicates (`1e-9`) are not adopted; each successor states its own exact/approximate policy.
 - `lichaotree.cpp` in the same directory belongs to Data Structures `21-lichao.hpp`.
 - `OLD/Team Notebook/main.tex` lines 232–234 (Heron) are covered by `heronAreaApprox`.
 - No correctness claim in any legacy snippet is adopted.
@@ -57,6 +58,32 @@ Contracts and ownership rules moved out of the inventory. Evidence is one docume
 
 - Added: `Triangle2::angleKind` (exact acute/right/obtuse classification by the smallest vertex dot product; CGAL `angle`).
 - Not adopted for `09-triangle.hpp`: an approximate angle kind (a right angle is not decidable from rounded coordinates; use the exact type); vertex angles (`angleApprox` in `01-point.hpp`); altitude and median lengths and feet (one projection or `area2 / side`); orientation, bounded side and transforms of a triangle (rows 02, 03 and 08); Fermat point (row 25).
+
+## P036 completeness decisions (2026-10-10)
+
+- **Added to `10-halfplaneintersection.hpp`:**
+  - kinds `Ray` and `Line`, and `HalfplaneResult::planes`, so that every degenerate and unbounded result is described without a bounding box;
+  - `contains` on rational points;
+  - `polygonKernelLinear` (Lee–Preparata, `O(n)`) next to `polygonKernel`; the two versions are a deliberate exception to "no duplication", decided by the user on 2026-10-10;
+  - `chebyshevCenter` renamed `chebyshevCenterApprox` by the naming policy.
+- **Added to `11-minkowskisum.hpp`:** a family overload of `minkowskiSum` (`k` convex polygons in `O(n * log(k))`; maspypy cites CF 87E). `minkowskiDifference` is the CP `P + (−Q)`. "Canonical start" is the lexicographic minimum.
+- **Added to `16-circle_polygon.hpp`:** `circleBoundaryArcsInPolygon` renamed `circleArcsInPolygonApprox` by the naming policy. `diskRingsAreaApprox` takes polygon rings (outer ring and holes), not annuli.
+- **Added to `17-polygon_distance.hpp`:** `convexPolygonMaxDistance` (exact farthest pair between two convex polygons, rotating-calipers catalogue), `PolygonDistanceApprox` witnesses, and the separating-axis witness of `convexSeparated`. `polygonsIntersect` uses closed semantics.
+- **Not adopted for `10-halfplaneintersection.hpp`:**
+  - halfplanes from coefficients `A x + B y + C <= 0` (integral endpoints need not exist inside the domain; same reason as the P007 line decision);
+  - a bounding-box helper (four `Halfplane` values; unbounded results are exact here).
+- **Not adopted for `11-minkowskisum.hpp`:** exact sums of nonconvex polygons by decomposition or reduced convolution (CGAL; needs rows 18 and 30, Esoteric) and optimal convex decomposition (row 18).
+- **Not adopted for `16-circle_polygon.hpp`:**
+  - circle boundary length inside a polygon (sum of the returned arcs times `r`);
+  - polygon perimeter inside a disk and intersection point listing (`06-circle` per edge);
+  - region-valued disk ∩ polygon (row 30).
+- **Not adopted for `17-polygon_distance.hpp`:**
+  - widest separating strip (it is the closest pair's bisector strip, from the witnesses);
+  - inner and outer common tangents of two convex polygons, and Grenander distance (rare calipers applications);
+  - exact rational squared distance (exceeds 128 bits);
+  - distance between hulls of point sets (`convexHull` composition);
+  - polygons with holes and ranges of polygons in `polygonsIntersect` (CGAL breadth).
+- **General `polygonsIntersect` and `polygonDistanceApprox` stay `O(n * m)`** by decision on 2026-10-10. Rows 12 and 45/46 own the optimal sweeps; see the handoff in [17-polygon_distance.md](17-polygon_distance.md).
 
 ## GE01 numeric policy (P007)
 
