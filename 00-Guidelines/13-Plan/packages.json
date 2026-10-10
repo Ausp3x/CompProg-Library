@@ -672,8 +672,13 @@
       "phase": "Contest core",
       "size": "L+L+M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "07-Strings/Docs/16-string_matching.md",
+        "07-Strings/Docs/17-bitap.md",
+        "07-Strings/Docs/20-subsequence_automaton.md",
+        "07-Strings/Docs/29-bwt.md"
+      ],
       "note": ""
     },
     {

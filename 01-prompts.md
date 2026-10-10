@@ -54,7 +54,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P028 — DS07, DS08, DS26** (opus, L+L+M): 02-Data Structures — segtreebeats, segment tree 2d, mergesorttree, aggregation queue. Status: verified. [evidence](<02-Data Structures/Docs/14-segtreebeats.md>) [evidence](<02-Data Structures/Docs/15-segment_tree_2d.md>) [evidence](<02-Data Structures/Docs/16-mergesorttree.md>) [evidence](<02-Data Structures/Docs/30-aggregation_queue.md>)
 - [x] **P044 — GR08** (opus, XL): 04-Graphs — max flow. Status: verified. [evidence](04-Graphs/Docs/19-max_flow.md)
 - [ ] **P057 — MA07** (opus, L): 05-Mathematics — polynomial algorithms, linear recurrence. Status: planned.
-- [ ] **P084 — ST08, ST20, ST23** (opus, L+L+M): 07-Strings — string matching, bitap, subsequence automaton, bwt. Status: planned.
+- [x] **P084 — ST08, ST20, ST23** (opus, L+L+M): 07-Strings — string matching, bitap, subsequence automaton, bwt. Status: verified. [evidence](07-Strings/Docs/16-string_matching.md) [evidence](07-Strings/Docs/17-bitap.md) [evidence](07-Strings/Docs/20-subsequence_automaton.md) [evidence](07-Strings/Docs/29-bwt.md)
 - [x] **P036 — GE03, GE24, GE25** (opus, L+M+L): 03-Geometry — halfplaneintersection, minkowskisum, circle polygon, polygon distance. Status: verified. [evidence](03-Geometry/Docs/10-halfplaneintersection.md) [evidence](03-Geometry/Docs/11-minkowskisum.md) [evidence](03-Geometry/Docs/16-circle_polygon.md) [evidence](03-Geometry/Docs/17-polygon_distance.md)
 - [ ] **P029 — DS09, DS10, DS48** (opus, L+L+L): 02-Data Structures — waveletmatrix, treap, heap deque. Status: planned.
 - [ ] **P045 — GR09** (opus, XL): 04-Graphs — min cost flow. Status: planned.

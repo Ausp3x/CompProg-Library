@@ -100,3 +100,16 @@ Research outcomes (sources in [00-sources.md](00-sources.md)); adopted: eertree 
 - `19`: longest common increasing subsequence has no fetched catalog source and no standard linear-memory witness (LIS lives in Miscellaneous `08`); a full LCS table is internal (semi-local queries are `48`); counting LCS strings and the lexicographically smallest LCS have no catalog source; range distinct-subsequence counting is a segment-tree application.
 
 Handoffs: `39` should reuse `13` `palindromicLength`; `22` `lexMinSuffixPerPrefix` is `IncrementalLyndon::minSuffix`; `26` runs can consume `lyndonArray`/`lyndonTree`; `41` de Bruijn can consume `nextLyndonWord`; `lyndonArray` becomes linear once `12` SA-IS exists.
+
+## P084 package record (ST08, ST20, ST23)
+
+Implemented 2026-10-10 (contest profile, GNU C++20): `16`, `17`, `20`, `29` are verified with the operations in their rows; evidence: [16-string_matching.md](16-string_matching.md), [17-bitap.md](17-bitap.md), [20-subsequence_automaton.md](20-subsequence_automaton.md), [29-bwt.md](29-bwt.md).
+
+Research outcomes (sources in [00-sources.md](00-sources.md)); left out, one line each:
+
+- `16`: bad-character-only Boyer–Moore is subsumed by `horspool`; the b5s/BMHBNFS hybrid (CPython) combines the `horspool` and `sunday` shifts and keeps their `O(n * m)` worst case, while the dispatcher needs a linear worst case (`boyerMoore` with Galil); Turbo-BM stays in `49` and Breslauer's two-way in `43`; last occurrence is `allOccurrences(...).back()` and a range search is a search on `text.substr`/`string_view`, neither listed by any catalog; multi-pattern Rabin–Karp has no fetched catalog source and multi-pattern matching is `06`.
+- `17`: multi-pattern Shift-And overlaps Aho–Corasick (`06`); optional/repeatable symbols, bounded gaps and Glushkov regex simulation are regular-expression features (`24`); BNDM is owned by `49`.
+- `20`: distinct common subsequences and the shortest uncommon subsequence of two texts are product-automaton DPs over `next` of two automata (one blog source, `O(n * m * S)` state pairs), left to problem code; the lexicographically smallest length-k subsequence is the `O(n)` monotone-stack greedy (Miscellaneous `08`); lexicographic rank of a subsequence has no catalog source (it is the inverse walk of `kthDistinctSubsequence`); a persistent-segment-tree transition table adds no query the sparse variant lacks.
+- `29`: the extended BWT of a string collection and its inverse are research constructions with no contest catalog; the sort transform of order k is niche; the run count `r` is a one-line loop owned by `46`; dynamic BWT updates have no stated bound and no contest use; move-to-front is a separate pipeline stage (Wikipedia, Princeton COS226) and belongs with Huffman coding in Miscellaneous.
+
+Handoffs: `36` FM-index builds on `bwt`/`lfMapping`; `46` counts runs of `bwt`/`bwtPrimary`; `38` Hamming matching can compare with `bitapHamming` for small `k`; `24` may reuse `PatternMasks` for character classes.
