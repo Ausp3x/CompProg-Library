@@ -51,7 +51,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P043 — GR07, GR10, GR11** (opus, M+L+L): 04-Graphs — twosat, matching bipartite, assignment, dominatortree. Status: verified. [evidence](04-Graphs/Docs/18-twosat.md) [evidence](04-Graphs/Docs/21-matching_bipartite.md) [evidence](04-Graphs/Docs/23-assignment.md) [evidence](04-Graphs/Docs/24-dominatortree.md)
 - [x] **P055 — MA06, MA12** (opus, L+L): 05-Mathematics — convolution, transform algorithms. Status: verified. [evidence](05-Mathematics/Docs/13-convolution.md) [evidence](05-Mathematics/Docs/24-transform_algorithms.md)
 - [x] **P083 — ST07, ST34** (opus, L+L): 07-Strings — palindromictree, lyndon, minrotation, lcs. Status: verified. [evidence](07-Strings/Docs/13-palindromictree.md) [evidence](07-Strings/Docs/14-lyndon.md) [evidence](07-Strings/Docs/15-minrotation.md) [evidence](07-Strings/Docs/19-lcs.md)
-- [ ] **P028 — DS07, DS08, DS26** (opus, L+L+M): 02-Data Structures — segtreebeats, segment tree 2d, mergesorttree, aggregation queue. Status: planned.
+- [x] **P028 — DS07, DS08, DS26** (opus, L+L+M): 02-Data Structures — segtreebeats, segment tree 2d, mergesorttree, aggregation queue. Status: verified. [evidence](<02-Data Structures/Docs/14-segtreebeats.md>) [evidence](<02-Data Structures/Docs/15-segment_tree_2d.md>) [evidence](<02-Data Structures/Docs/16-mergesorttree.md>) [evidence](<02-Data Structures/Docs/30-aggregation_queue.md>)
 - [ ] **P044 — GR08** (opus, XL): 04-Graphs — max flow. Status: planned.
 - [ ] **P057 — MA07** (opus, L): 05-Mathematics — polynomial algorithms, linear recurrence. Status: planned.
 - [ ] **P084 — ST08, ST20, ST23** (opus, L+L+M): 07-Strings — string matching, bitap, subsequence automaton, bwt. Status: planned.

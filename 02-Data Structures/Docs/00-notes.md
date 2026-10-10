@@ -25,9 +25,9 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 - Fenwick variants require an additive commutative group; prefix-monoid Fenwick requires monotone updates (max/min) and has no range subtraction.
 - Segment-tree searches need a deterministic predicate true on the identity whose truth forms a prefix as the interval grows.
 - Sparse-table O(1) queries need idempotence; `fold` and disjoint sparse tables need only associativity.
-- Lazy actions compose new-after-old; an acted monoid in `00-monoids.hpp` defines `S`, `F`, `op`, `e`, `mapping`, `composition`, `id`, maps `e()` to `e()`, and exposes `leaf` builders for index- or length-aware states. Rows 12 and 13 consume it (row 13 also needs only the monoid part, or only the action part, for its plain and dual trees); rows 15 and 18 still use the legacy `Mon` contract until their audits. `RangeGcdLcm<T, LCM>` switches the lcm field on.
+- Lazy actions compose new-after-old; an acted monoid in `00-monoids.hpp` defines `S`, `F`, `op`, `e`, `mapping`, `composition`, `id`, maps `e()` to `e()`, and exposes `leaf` builders for index- or length-aware states. Rows 12, 13, 14 (`LazySegmentTreeBeats` adds `fail`) and 15 consume it (row 13 also needs only the monoid part, or only the action part, for its plain and dual trees; row 15's 2D trees need a commutative `op` or `composition`); row 18 still uses the legacy `Mon` contract until its audit. `RangeGcdLcm<T, LCM>` switches the lcm field on.
 - Li Chao and convex hull trick must state an overflow-safe evaluation/intersection policy (128-bit products or bounded domains) and tie rules for equal lines.
-- Segment-tree beats variants beyond chmin/chmax/add/assign need their own amortized proof and value-domain statement (division, sqrt, modulo).
+- Segment-tree beats variants beyond chmin/chmax/add/assign need their own amortized proof and value-domain statement; row 14's evidence proves division, square root and modulo bounds per update mix (modulo has none together with add or chmax).
 - ODT/Chtholly workloads must state adversarial worst-case degeneration: `IntervalMap::assign` is amortised O(log(n)) because every assignment creates at most three pieces, but `apply`/`enumerate`/`fold`/`merge` cost O((k + 1) log(n)) for the k pieces met with no amortisation, so without assignments an adversary pays O(n) per call; the expected O(n log(n)) ODT bound needs uniformly random assignment ranges. Kinetic structures must distinguish adversarial event counts from ordinary update bounds.
 - Hash maps use a process-seeded SplitMix hash; Miscellaneous `02-customhash.hpp` owns the hash functions and seeding policy.
 
@@ -46,8 +46,8 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 ## Migration obligations
 
 - `OLD/algorithms.cpp:1402–1477` DSU mixed connectivity, weighted distances, parity and edge counts, and narrowed `lng` to `int`. Basic `DSU` keeps `n/ncon/par/siz`; weighted unions, `dis`, `esz`, `is_bip`, `getDis`, `getEsiz`, `isBipartite` belong to `29-weighteddsu.hpp` (potential/parity) and `09-rollbackdsu.hpp`/Graphs (component metadata).
-- Unchanged extractions (`14`–`18`, `21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies (`SegTree2D` with lazy monoid, `DynMergeSortTree` 1D/2D) are split during audit (P027 split `FenTree` into `Fenwick2D`/`Fenwick3D` and replaced `FenTreeRangeAdd1D`, `SegTree` and the `Mon*` presets; see the row 11–13 evidence); the Basic `Fenwick` and `SegmentTree` names were chosen to avoid collisions with `FenTree` and lazy `SegTree`.
-- `97-Legacy/02-sqrtdecomp.cpp` (invalid defaults, clamped inclusive ranges, unused lazy array) is superseded by `06-sqrt_decomposition.hpp`; only its diagnostic printer remains unported. `97-Legacy/04-lichao_older.cpp` is a query-less hull skeleton, `97-Legacy/05-mergesorttree_older.cpp` is the static fractional-cascading reference, `97-Legacy/01-monset.cpp` is a placeholder scaffold. Delete a legacy file only after its owning row accounts for every feature.
+- Unchanged extractions (`17`, `18`, `21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit (P027 split `FenTree` into `Fenwick2D`/`Fenwick3D` and replaced `FenTreeRangeAdd1D`, `SegTree` and the `Mon*` presets; P028 replaced `SegTreeBeats`, `SegTree2D` and `DynMergeSortTree`; see the row 11–16 evidence); the Basic `Fenwick` and `SegmentTree` names were chosen to avoid collisions with `FenTree` and lazy `SegTree`.
+- `97-Legacy/02-sqrtdecomp.cpp` (invalid defaults, clamped inclusive ranges, unused lazy array) is superseded by `06-sqrt_decomposition.hpp`; only its diagnostic printer remains unported. `97-Legacy/04-lichao_older.cpp` is a query-less hull skeleton, `97-Legacy/01-monset.cpp` is a placeholder scaffold. Delete a legacy file only after its owning row accounts for every feature.
 - `OLD/Team Notebook/src/ds/impltreap.cpp` and `cartesiantree.cpp` are the legacy references for rows 19 and 27; `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` contain `DynamicMex` (row 24) and `LcaO1` (row 54 bridge).
 - The sparse-table public `v` storage changed from a flat padded array to valid rows; clients use query methods.
 
@@ -132,6 +132,23 @@ Candidates from the 2026-10-09 sweep ([00-sources.md](00-sources.md)) left out o
 - SortedList negative `kth` indices (tatyam, PyRival): Python convention; C++ uses `kth(n - 1 - k)`.
 - Fenwick over bucket sizes (PyRival) or a positional index tree (sortedcontainers): `rank`/`kth` would gain O(log(n)) bucket lookup, but `insert` stays O(sqrt(n)) and every split or merge rebuilds the index; the RATIO sweep in [64-sortedlist.md](64-sortedlist.md) favours smaller buckets (shorter shifts) over fewer buckets, so the linear bucket scan is not the bottleneck at n <= 1e6.
 - Ownership overlap: `06-Miscellaneous/00-index.md` row `19-hash_families.hpp` still lists HashMap/HashSet; row 61 here owns them, and that row should drop them when its package runs.
+
+## P028 omissions
+
+Candidates from the 2026-10-10 sweep ([00-sources.md](00-sources.md#fetched-2026-10-10-p028-sweep)) left out of rows 14, 15, 16 and 30:
+
+- Historic values under assignment (CPU monitor), under chmin with add (Luogu P6242) or chmax (UOJ 169), and the historic-max sum (OI, tjkendev): each needs four or more interacting tags; `HistoricSegTree` covers range add, and `LazySegmentTreeBeats` hosts the chmin variants as a user BeatsMonoid.
+- Range gcd-with plus max/sum (yukicoder 880, HIT), chmin with a change callback (MAS), change counters and two-array `max(A_i + B_i)` (OI), max-plus tags (UOJ 164), historic sums of squares: rare; the first is a ten-line BeatsMonoid failing unless every element divides the operand.
+- `LazySegmentTreeBeats` `maxRight`/`minLeft` and `values` (SUI, MAS): rare on beats trees; `prod` per prefix or row 12 when no failures are needed.
+- Kinetic segment tree beats (MAS): row 45 owns it.
+- `FenwickOfSegmentTrees` (former row 15 entry): `SegmentTree2DSparse::prod` answers prefix-x range-y queries at the same bound; row 11 `CompressedFenwick2D` is the group-valued variant.
+- Sparse 2D `maxUp`/`minDown` searches, k-dimensional compressed trees (SUI), pluggable range trees (NYA, HIT): rare; row 43 owns range trees.
+- Online rectangle-apply/point-get on registered points (MAS `Dual_FenwickTree_2D`): row 33 sweeps offline, `Fenwick2DRangeAdd` (row 11) is the dense case and `LazyKdTree` the O(sqrt(k)) online case.
+- Fully online 2D trees on unknown points (NYA hash-map Fenwick, OI seg-in-seg): memory O(q log^2 U); register points offline instead.
+- Merge sort tree `sumLeq`/`countSumLeq` (YC `static_range_sum_with_upper_bound`): row 17 `sumLess`; `countGreater`, `countGeq`, `countLeq` (HIT): `r - l - countLess` or `countLess` of the next value.
+- Fenwick of value segment trees for O(log^2) dynamic kth (OI seg-in-bit): needs values known offline and O(n log^2 n) memory; `DynamicMergeSortTree` answers kth online in O(log n log^2 m) without either.
+- Online `lng` x coordinates in `DynamicMergeSortTree` (legacy `insert2D`): compress x to slots; huge online universes belong to row 13.
+- SWAG `operator[]`, separate front/back folds, pop returning the value, iterator constructors, separate value and product types (SUI, MAS, HIT): rare conveniences; `front`/`back`/`top` and `fold` cover the uses.
 
 ## Test matrix
 

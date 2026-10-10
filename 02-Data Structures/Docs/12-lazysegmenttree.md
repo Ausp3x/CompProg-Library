@@ -77,7 +77,7 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 
 ## Limits and handoffs
 
-- Rows 15 (`SegTree2D`) and 18 (`PerSegTree`) still consume the legacy `Mon` contract (`idS/idF/defR/init/ope/map/cmp`); their packages adopt the acted-monoid contract above, using `leaf` builders and a fill functor in place of `init`/`defR`.
+- Row 18 (`PerSegTree`) still consumes the legacy `Mon` contract (`idS/idF/defR/init/ope/map/cmp`); its package adopts the acted-monoid contract above, using `leaf` builders and a fill functor in place of `init`/`defR`. Rows 14 and 15 adopted it in P028.
 - Left out with reasons in [00-notes.md](00-notes.md#p027-omissions): rollback lazy tree, xor-index range apply, run-based range-assignment tree, power-sum assignment preset, flip/inversion preset, chmin/chmax-only presets.
 - `RangeSetRangeComposite` costs `O(log^2 n)` per assignment (power by squaring inside `mapping`).
 

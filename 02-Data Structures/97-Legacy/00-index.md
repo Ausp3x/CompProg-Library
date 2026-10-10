@@ -6,4 +6,3 @@ Unchanged excerpts for future migration/audit. These `.cpp` files are reference 
 |---|---|---|
 | [01-monset.cpp](01-monset.cpp) | MonSet | Incomplete customization scaffold: states, combine, and map are placeholders. |
 | [04-lichao_older.cpp](04-lichao_older.cpp) | LiChaoTree | TODO draft is a complex-vector hull skeleton without queries; distinct from the newer Li Chao implementation. |
-| [05-mergesorttree_older.cpp](05-mergesorttree_older.cpp) | MergeSortTree | Meaningfully distinct static fractional-cascading reference; pull reads exhausted merge sides before guards in some expressions. Original TESTED comment is historical, not current verification. |

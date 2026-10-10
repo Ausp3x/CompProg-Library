@@ -622,8 +622,13 @@
       "phase": "Contest core",
       "size": "L+L+M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "02-Data Structures/Docs/14-segtreebeats.md",
+        "02-Data Structures/Docs/15-segment_tree_2d.md",
+        "02-Data Structures/Docs/16-mergesorttree.md",
+        "02-Data Structures/Docs/30-aggregation_queue.md"
+      ],
       "note": ""
     },
     {

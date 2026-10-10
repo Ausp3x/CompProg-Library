@@ -25,9 +25,10 @@ def main(stem, invalid):
     args = parser.parse_args()
     compiler = os.environ.get('CXX', 'g++')
     # GCC PBDS debug_map_base default-constructs its diagnostic comparator, which
-    # disagrees with valid stateful comparators. Keep their actual full oracle
-    # corpus and assertions; use debug iterators for the other seven headers.
-    checked = '-D_GLIBCXX_ASSERTIONS' if stem == '07-ordered_set' else '-D_GLIBCXX_DEBUG'
+    # disagrees with valid stateful comparators, and validates whole trees on
+    # every operation (the 16-mergesorttree full corpus exceeds the timeout).
+    # Keep their full oracle corpus and assertions; use debug iterators elsewhere.
+    checked = '-D_GLIBCXX_ASSERTIONS' if stem in ('07-ordered_set', '16-mergesorttree') else '-D_GLIBCXX_DEBUG'
     variants = [('optimized', ['-O2', '-DNDEBUG']), ('checked', ['-O0', '-g', checked])]
     if args.mode != 'quick':
         variants.append(('ASan-UBSan', ['-O1', '-g', '-D_GLIBCXX_ASSERTIONS',

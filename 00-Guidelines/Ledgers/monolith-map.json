@@ -262,26 +262,25 @@
     },
     {
       "source": "OLD/[1] algorithms.cpp",
-      "target": "02-Data Structures/97-Legacy/05-mergesorttree_older.cpp",
+      "target": "02-Data Structures/16-mergesorttree.hpp",
       "symbols": [
         "MergeSortTree"
       ],
-      "status": "legacy-reference",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [
         "Meaningfully distinct static fractional-cascading reference; pull reads exhausted merge sides before guards in some expressions. Original TESTED comment is historical, not current verification."
       ],
       "body_sha256": "2640e27546a7358649f37c3116f172171a21a73f9967934c9c2c89251232266a",
       "body_bytes": 3300,
-      "relationship": "unchanged reference extraction",
+      "relationship": "P028 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 695,
       "end_line": 799,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 3,
-      "target_body_end_line": 107
+      "verification": "02-Data Structures/Docs/16-mergesorttree.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
@@ -692,20 +691,19 @@
       "symbols": [
         "SegTree2D"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [],
       "body_sha256": "d6c9d75b1fc61a5edfc32cb5fefe214ba96dda15b6a5251c8758428519fb058f",
       "body_bytes": 4106,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P028 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 2727,
       "end_line": 2856,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 7,
-      "target_body_end_line": 136
+      "verification": "02-Data Structures/Docs/15-segment_tree_2d.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -713,22 +711,21 @@
       "symbols": [
         "SegTreeBeats"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [
-        "Amortized bounds and adversarial correctness not verified in this mechanical transfer."
+        "Mechanical transfer had no amortized proof; P028 proved the bounds per update mix and tested adversarial patterns (see verification)."
       ],
       "body_sha256": "9c35cf085b597aa077fc9b950608598c61ff4f658b1430fde22f4fadc8e8bab6",
       "body_bytes": 9057,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P028 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 2858,
       "end_line": 3183,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 7,
-      "target_body_end_line": 332
+      "verification": "02-Data Structures/Docs/14-segtreebeats.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -736,22 +733,21 @@
       "symbols": [
         "DynMergeSortTree"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [
         "Uses Core indexed_set/PBDS; retains large fixed node reserve and original sentinel/overflow conventions."
       ],
       "body_sha256": "705c40bff60086ca821c35485734a5976508f17175a0afd54302e629b2527769",
       "body_bytes": 6921,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P028 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 3185,
       "end_line": 3459,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 7,
-      "target_body_end_line": 281
+      "verification": "02-Data Structures/Docs/16-mergesorttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
