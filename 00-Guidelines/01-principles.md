@@ -6,7 +6,7 @@ Every implementation satisfies all four requirements. None is optional and none 
 |---|---|
 | Correctness | Right answer for every input in the stated domain, including boundaries, with no undefined behavior. A violated precondition (assert) and a valid input with no answer (sentinel/status) are different cases. |
 | Optimality | Best asymptotic bound for the domain and the best practical constant that the profile allows. Choose thresholds for real workloads and record them. Compilation time never matters. |
-| Completeness | Every public operation of the family is named in the folder inventory and either implemented or marked planned. Mini and Python are documented reductions, never silent ones. |
+| Completeness | Every public operation of the family is named in the folder inventory and either implemented or marked planned. Mini and Python are documented reductions, never silent ones. Wrappers and second implementations are not separate operations (`03-cpp.md`, One API per operation). |
 | Elegance | Direct control flow, short meaningful names, few variables, no duplication or gratuitous abstraction. Compression never hides an invariant or repeats expensive work. |
 
 ## Profiles
@@ -32,3 +32,4 @@ Single-threaded contest execution is the baseline. Static caches and dynamic-mod
 - Do the assigned package only. Update its inventory rows, tests, aggregates, evidence and dependent paths in the same change.
 - `OLD` is never deleted. A `97-Legacy` excerpt is deleted once the row it informs is verified; until then it stays untouched.
 - Never submit to an online judge automatically.
+- Guideline, skill and document edits state each rule once, in its owning file, as briefly as unambiguity allows; other files link it.

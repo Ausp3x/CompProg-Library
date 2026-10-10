@@ -55,6 +55,13 @@ paths:
 - Every other `02`–`07` header keeps free functions, including algorithm headers that define result or helper structs (suffix array, suffix automaton, dominator tree, compression and similar builders) and the geometry primitives and graph representations whose operations are free (`03-Geometry/01-point.hpp`, `02-line_segment.hpp`, `06-circle.hpp`, `04-Graphs/01-graph.hpp`); never wrap an algorithm in a struct only to hold it.
 - Shared helpers for one family go in one `<family>_detail` namespace in the same header, indented four spaces, closed with `} // namespace <family>_detail`, never re-exported with `using namespace`. No nested detail namespaces, no anonymous namespaces in headers, no `internal` or `utils` namespaces.
 
+## One API per operation
+
+- A wrapper is a public operation or header whose result is other public operations' result in another form, possibly after a builder converts its input. The forms are another function name, an index base or range convention, an argument or result shape (out-parameters, a pair with a sentinel, a flag choosing between operations, a projected field), a legacy default argument (`modPow`'s `INF64` modulus), a narrowing, a clamp of arguments the other operation rejects, a legacy input format and a second include path. A second implementation of an existing operation's algorithm is a duplicate too. Neither is added; the owning package removes existing ones (`/prune`), and its evidence document maps each removed name to its replacement.
+- Kept despite overlap: a different algorithm, even a slower one (Edmonds–Karp beside Dinic, Kuhn beside Hopcroft–Karp); a named special case or batch form of another operation (`Fenwick::get`, `lastTrue`, `TwoSat::setValue`, `phiTable`, `Compression::ranks`); type aliases and the template macros; an operation's only form, even closed-range or sentinel-based (`Debug::slice`, `solveModEq`); a larger or different domain of meaningful inputs, or reuse of a caller's precomputation (`maxZeroSubmatrix`, `LiChaoTree`, `fctGcd`); a `tryX`/`X` pair; intended duplication (Compact twins, minis, `08-Python`, exact and approximate variants, the Mathematics duplicates `02-structure.md` allows); public data members, and helpers public only because the library has no `private`.
+- A pinned unchanged extraction (`03-consistency.py` checks its `OLD` hash) keeps its body until its package rewrites it; only its inventory row drops the duplicates now.
+- Decisions and the confirmed list: `00-Guidelines/23-Reaudit Findings/duplicates.md`.
+
 ## Style
 
 - Four-space indentation; no line-length limit.

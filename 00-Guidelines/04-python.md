@@ -12,4 +12,5 @@ paths:
 - Modules are `_NN_name.py` under `08-Python`, importable and copy-pasteable. Relative imports inside packages; no `sys.path` edits in modules. `_98_basic.py` and `_99_all.py` re-export explicit names and do nothing at import time.
 - Style: four spaces; classes `CamelCase`; operations keep the library's `camelCase` names for cross-language consistency; fields and locals `snake_case`; constants `ALL_CAPS`; dunder protocols as required. Helpers and state live in the class, public by convention; no name mangling or property boilerplate. Stateless algorithms are functions. Light annotations where they clarify a contract.
 - Contracts: explicit valid-input domain; `None` or a documented sentinel for a valid no-answer; `assert` for programmer preconditions only, since `-O` removes it. Exact and approximate variants are distinct functions. Seeds and cache lifetimes are controllable.
+- `03-cpp.md`, One API per operation, applies; standard-library functions count as existing operations (`bisect` with `key=`).
 - Complexity comments use the C++ notation with `#`: `# T: O(n * log(n)), M: O(n)`, with big-integer and output costs counted.

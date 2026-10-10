@@ -15,6 +15,7 @@ Report in Markdown, grouped by row:
 
 - `row`: header name and current operations.
 - `missing`: each operation absent from the row, with the usual algorithm name, one line on why it belongs here, and the source URL where it was found.
+- `aliases`: as `@researcher` step 5 defines; never added.
 - `misplaced`: operations that another folder's inventory already owns, with the owner.
 - `vague`: wording in the row that does not name a concrete operation.
 - `sources`: every catalog page actually fetched, with the date.

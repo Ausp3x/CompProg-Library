@@ -28,7 +28,7 @@ Algorithm folders are `01-Core` … `07-Strings` and `08-Python`; `09-Contest Te
 
 - Basic, Advanced and Esoteric are sections of each inventory outside Core, never directories or filename labels. Basic is what a strong contestant uses in most contests; Advanced is used in harder rounds; Esoteric is research-level or rarely needed. A header belongs to exactly one tier.
 - Core keeps its fixed order 01 template, 02 debug, 03 barrett, 04 montgomery, 05 modint, 06 modintmini, 07 infint, 08 infintmini, 09 rational, 10 matrix, 11 matrixmini, 12 bitmatrix, 13 bitmatrixmini, 14 sparsematrix, 15 sparsematrixmini, 16 poly, 17 polymini, 18 bitset. Add a Core type only for a demonstrated shared need.
-- Core Poly owns the accelerated polynomial/FPS engine; Mathematics may intentionally duplicate scalar FFT/NTT/FPS. No circular dependencies; Core never includes a topic aggregate.
+- Core Poly owns the accelerated polynomial/FPS engine; Mathematics may intentionally duplicate scalar FFT/NTT/FPS, Matrix and linear-recurrence functionality. No circular dependencies; Core never includes a topic aggregate.
 
 ## Aggregates
 
@@ -56,4 +56,4 @@ All-solution and enumeration APIs return compact parameterizations or explicitly
 
 ## Archive
 
-`OLD` keeps original bytes of superseded code and notebooks and is excluded from aggregates, discovery and notebook selection; it is never deleted. A `97-Legacy/` excerpt is a working copy of an `OLD` range: delete it (`git rm`, drop its row from the legacy index, remove the folder when empty) as soon as the row it informs is `verified`, because its features are then accounted for and `OLD` still holds the bytes.
+`OLD` keeps original bytes of superseded code and notebooks and is excluded from aggregates, discovery and notebook selection; it is never deleted. A `97-Legacy/` excerpt is a working copy of an `OLD` range: delete it (`git rm`, drop its row from the legacy index, remove the folder when empty) as soon as the row it informs is `verified`, because its features are then accounted for and `OLD` still holds the bytes. Accounted for means each archived feature maps to a kept operation or is recorded as not adopted, never that an old name, signature or convention survives (`03-cpp.md`, One API per operation).

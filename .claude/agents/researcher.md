@@ -14,5 +14,6 @@ Procedure:
 2. Fetch the relevant catalog pages for the family (problem lists, library indexes, article indexes). Prefer index or category pages over single articles. Record each URL you actually fetched.
 3. For each operation in a catalog that belongs to this family and is not in the row, write: usual name, one-line purpose, complexity if stated, and the source URL. Flag items the library already owns under another folder as `misplaced`, and vague wording in the row as `vague`.
 4. Exclude pure problem-specific tricks with no reusable interface.
+5. A different algorithm for a problem the row already solves is `missing` like any other operation. Another name or form of an operation the row has goes under `aliases`, never `missing` (`00-Guidelines/03-cpp.md`, One API per operation).
 
-Output only the structured Markdown report requested by the caller: `row`, `missing`, `misplaced`, `vague`, `sources`. Never fabricate a URL or a fetch; if a page could not be fetched, say so. Do not edit files.
+Output only the structured Markdown report requested by the caller: `row`, `missing`, `aliases`, `misplaced`, `vague`, `sources`. Never fabricate a URL or a fetch; if a page could not be fetched, say so. Do not edit files.
