@@ -154,3 +154,26 @@ Adopted: `convolution` (dispatcher), `nttDoubling` and `convolutionU128` (row 13
 |---|---|---|
 | MA06 | `13-convolution.hpp` | [13-convolution.md](13-convolution.md): naive, Karatsuba, complex FFT, NTT over any static NTT prime (bit-reversed spectra, transposed, doubling, root tables), three-prime CRT products (signed 64-bit, unsigned 128-bit, any modulus), block products beyond the transform limit, the dispatcher and the cyclic/negacyclic/truncated/middle/correlation/tensor/2-D wrappers. |
 | MA12 | `24-transform_algorithms.hpp` | [24-transform_algorithms.md](24-transform_algorithms.md): subset/superset zeta and Mobius, Walsh-Hadamard with exact inverse, bitwise and gcd/lcm convolutions, divisor/multiple transforms, ranked transforms, subset and q-operand disjoint-union convolution, D x D Kronecker powers, and the legacy `FastConv` names as thin wrappers. |
+
+## P057 research decisions (2026-10-10)
+
+Adopted: `fpsDiv`, `polyDivLinear`, `polyFromPowerSums`, `polyComposeMod` (Brent–Kung block Horner sharing the `fpsComposition` kernel) and `prefixSumOfPolynomial` (row 14); `findLinearRecurrenceHalfGcd` (row 15). Changed: row 14's `Poly: ...` operations are `poly*` free functions over `vector<M>`, because Core `16-poly.hpp` owns the `Poly` struct name and Mathematics keeps free functions; `polyXgcd` returns a `PolyXgcd {g, x, y}` result struct; `kitamasa` is the modint instance of `linearRecurrenceSemiring`; `matrixPowerVector` uses the Krylov annihilator of `v` (deterministic, divides the characteristic polynomial) instead of a full characteristic polynomial, so it needs no row 44 code. Left out, one line each:
+
+- FPS trigonometric and hyperbolic functions (Nyaan `fps-circular`, OI Wiki): owned by Core Poly (`sin` … `atanh`).
+- `fpsComposeExp` (f(e^{cx}), Nyaan/suisen/maspypy): generating-function transform for row 40; the `e^x - 1` case is row 12 `stirlingTransform`.
+- Pseudo-division, polynomial lcm, `tryDivide`, reversal, inflate/deflate: integer-ring or trivial wrappers (Core Poly owns `pseudoDiv`; row 46 owns content and primitive parts).
+- Polynomial power without a modulus: `fpsPow(a, k, k deg a + 1)`, stated in the contract.
+- Graeffe step, power projection: internal to `bostanMori`; `powerProjection` is row 52.
+- Products of `(1 - x^{a_i})` / `(1 + x^{a_i})`: rows 12 and 40; shift of sampling points: row 22 `samplePointShift`.
+- Rational `fpsPow` with a non-unit lowest coefficient: needs a `q`-th root from row 11 (`kthRootModPrime`); the contract asserts constant 1.
+- Recurrences with a polynomial inhomogeneous term and weighted prefix sums `sum a_i w^i`: call-site reductions documented in `15-linear_recurrence.md` (multiply `Q` by `(1 - x)^(deg + 1)`; substitute `c_j w^j`, `a_i w^i`).
+- Reeds–Sloane and P-recursive interpolation (maspypy `interpolate_p_recursive`): row 51; Wiedemann and sparse determinants: row 44; `interpolate_poly_exp_sum`: row 38.
+- Multiple k-th term queries for one recurrence: no catalog interface beats one `bostanMori` per query.
+- Overlaps recorded rather than moved: row 46 keeps integer (subresultant) resultants and discriminants, row 14 the field Euclidean ones; row 22 `subproductTree` keeps the multipoint tree, row 14 `productTree` only the product; row 40 `coefficientExtraction` should call row 15 `bostanMori`.
+
+## P057 package record (MA07)
+
+| Batch | Header | Evidence and scope |
+|---|---|---|
+| MA07 | `14-polynomial_algorithms.hpp` | [14-polynomial_algorithms.md](14-polynomial_algorithms.md): polynomial arithmetic and division, half-GCD Euclid (gcd, extended gcd, resultant, discriminant), modular power/inverse/composition, dense and sparse inverse/log/exp/pow/sqrt with measured cutoffs per modulus class, scalar composition and inversion, Taylor shift, product trees, EGF product, cyclotomic polynomials, power sums and prefix sums. |
+| MA07 | `15-linear_recurrence.hpp` | [15-linear_recurrence.md](15-linear_recurrence.md): Berlekamp–Massey (status form for composite moduli) and its half-GCD form, semiring Kitamasa, Fiduccia, Bostan–Mori, slices and consecutive terms, prefix sums, generating functions, recurrent/periodic/poly-exp interpolation and Krylov `A^k v`. |

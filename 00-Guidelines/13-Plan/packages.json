@@ -657,8 +657,11 @@
       "phase": "Contest core",
       "size": "L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "05-Mathematics/Docs/14-polynomial_algorithms.md",
+        "05-Mathematics/Docs/15-linear_recurrence.md"
+      ],
       "note": ""
     },
     {

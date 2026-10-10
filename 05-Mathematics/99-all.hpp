@@ -11,4 +11,6 @@
 #include "09-modinverse.hpp"
 #include "10-crt.hpp"
 #include "13-convolution.hpp"
+#include "14-polynomial_algorithms.hpp"
+#include "15-linear_recurrence.hpp"
 #include "24-transform_algorithms.hpp"

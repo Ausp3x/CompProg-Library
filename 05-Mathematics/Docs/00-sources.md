@@ -79,6 +79,20 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | suisen `transform/kronecker_power.hpp`, `transform/subset.hpp`, `convolution/polynomial_eval.hpp` | https://suisen-cp.github.io/cp-library-cpp/library/transform/kronecker_power.hpp | 2026-10-09 | `kroneckerPowerTransform` with a D x D kernel; custom-operator zeta and polynomial eval not adopted (row 24) |
 | maspypy `setfunc/ranked_zeta.hpp`, `setfunc/online/*`, `nt/zeta.hpp`; hitonanode `zeta_moebius_transform.hpp`, `subset_convolution.hpp`; noshi91 index; OI Wiki FWT | https://maspypy.github.io/library/setfunc/ranked_zeta.hpp, https://oi-wiki.org/math/poly/fwt/ | 2026-10-09 | ranked layout, subset convolution, divisor/multiple transforms; online and sparse variants not adopted (row 24) |
 
+## P057 sweep (fetched 2026-10-10, `@researcher`)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| Library Checker `polynomial` and `other` directories | https://github.com/yosupo06/library-checker-problems/tree/master/polynomial | 2026-10-10 | inv/log/exp/pow/sqrt of FPS, division, polynomial taylor shift, product of polynomial sequence, composition and compositional inverse, prefix sum of polynomial, find_linear_recurrence, kth term and consecutive terms (rows 14, 15) |
+| cp-algorithms "Operations on polynomials and series", half-GCD | https://cp-algorithms.com/algebra/polynomial.html | 2026-10-10 | reversal division, Newton inverse/log/exp, half-GCD recursion, Euclidean resultant (row 14) |
+| OI Wiki polynomial pages, linear recurrence | https://oi-wiki.org/math/poly/intro/, https://oi-wiki.org/math/poly/elementary-func/, https://oi-wiki.org/math/poly/linear-recurrence/ | 2026-10-10 | Newton sqrt, pow with valuation, slice coefficients (rows 14, 15) |
+| Nyaan `fps/` (`fps-utility`, `nth-term`, sparse FPS) | https://nyaannyaan.github.io/library/ | 2026-10-10 | sparse recurrences, Taylor shift, nth term (rows 14, 15) |
+| maspypy `poly/`, `seq/find_linear_rec.hpp`, `seq/p_recursive.hpp` | https://maspypy.github.io/library/ | 2026-10-10 | fps division, prefix sum of polynomial, half-GCD recurrence finder; P-recursive left to row 51 (rows 14, 15) |
+| hitonanode `formal_power_series/linear_recurrence.hpp`, `coeff_of_rational_function.hpp` | https://hitonanode.github.io/cplib-cpp/ | 2026-10-10 | Kitamasa complexity, rational coefficient extraction (row 15) |
+| ei1333, suisen indexes | https://ei1333.github.io/library/, https://suisen-cp.github.io/cp-library-cpp/ | 2026-10-10 | completeness cross-check (rows 14, 15) |
+| KACTL `numerical/` (`BerlekampMassey.h`, `LinearRecurrence.h`, `PolyRoots.h`) | https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical | 2026-10-10 | Berlekamp–Massey layout, O(d^2 log k) Kitamasa (row 15) |
+| FLINT `nmod_poly` | https://flintlib.org/doc/nmod_poly.html | 2026-10-10 | power sums to polynomial, `compose_mod_brent_kung` (row 14) |
+
 ## Earlier source record (condensed from the previous index and evidence documents)
 
 - The 2026-09-27 audit compared external algorithm catalogs and the saved Modern Computer Arithmetic contents; read scope and URLs are in the [central audit](../../00-Guidelines/History/2026-09-27-inventory-audit.md). A follow-up scope pass compared the active arithmetic/search/equation/sieve/combinatorics/transform interfaces and the archived factorization/inverse/CRT/log/root/numerical helpers plus the saved [KACTL notebook](../../95-Resources/05-kactl.pdf) `Tridiagonal.h` contract.
