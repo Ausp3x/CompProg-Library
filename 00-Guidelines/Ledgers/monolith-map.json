@@ -142,18 +142,17 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "issues": [
-        "Historical TESTED comment is preserved, not accepted as current verification.",
-        "Uses n + 1 dense capacity matrices and mutable residual state; edge identity, capacity bounds and source/sink contract require audit."
+        "P044 replaces the dense Edmonds-Karp with MaxFlow (Dinic, scaling, push-relabel) and keeps EdmondsKarp as a legacy adapter; source features are accounted in verification."
       ],
       "source_context": null,
       "tier": "Advanced",
       "body_sha256": "1627c744ba56bc7c1593d450ff954226cb1ad5d4fb1de52235568793481ce198",
       "disposition": "extracted",
-      "target_body_start_line": 9,
-      "target_body_end_line": 130,
-      "target_sha256": "51c47e65e308243186a535325140440cd88ae0a3fb22bc222e7da5e190cb1d44"
+      "historical_target_sha256": "51c47e65e308243186a535325140440cd88ae0a3fb22bc222e7da5e190cb1d44",
+      "relationship": "P044 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/Docs/19-max_flow.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",

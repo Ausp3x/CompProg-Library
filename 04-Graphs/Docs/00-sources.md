@@ -87,6 +87,21 @@ Fetched by the completeness sweeps for rows 18, 21, 23 and 24. The judge site re
 | NetworkX dominance, dominance_frontiers | https://networkx.org/documentation/stable/reference/algorithms/dominance.html | 2026-10-09 | `dominanceFrontier` definition |
 | maspypy dominator_tree, ei1333 dominator-tree, Koosaga dominator | https://maspypy.github.io/library/graph/dominator_tree.hpp | 2026-10-09 | Row 24 comparison; all compression-only |
 
+## Pages fetched on 2026-10-10 (P044 max flow)
+
+Fetched by the row 19 completeness sweep. Code was written from the algorithms; no implementation was copied.
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| ACL maxflow document | https://github.com/atcoder/ac-library/blob/master/document_en/maxflow.md | 2026-10-10 | `MaxFlow` API shape: `addEdge`, `flow(s, t, limit)` resumable, `minCut`, `getEdge`, `edges`, `changeEdge`; multi-push blocking DFS from t |
+| KACTL Dinic, PushRelabel, MinCut, EdmondsKarp | https://github.com/kth-competitive-programming/kactl/tree/master/content/graph | 2026-10-10 | Reverse capacity on `addEdge` (`rev_cap`), scaling inside Dinic, highest-label push-relabel with gap; unit-capacity bound |
+| cp-algorithms Edmonds–Karp, Dinic, MPM, push-relabel (faster) | https://cp-algorithms.com/graph/dinic.html | 2026-10-10 | Dinic phase/blocking-flow bounds, highest-label O(V^2 sqrt(E)) |
+| OI Wiki 最大流, 最小割 | https://oi-wiki.org/graph/flow/max-flow/ | 2026-10-10 | HLPP with BFS initial labels, gap and global relabel; fewest-edge min cut reduction (notes) |
+| hitonanode maxflow, maxflow_pushrelabel | https://hitonanode.github.io/cplib-cpp/flow/maxflow_pushrelabel.hpp | 2026-10-10 | Global relabel frequency proportional to m; second phase returning excess so edge flows are a valid flow |
+| maspypy maxflow, incremental_maxflow | https://maspypy.github.io/library/flow/maxflow.hpp | 2026-10-10 | `pathDecomposition`, `changeCapacity` with push-back on decrease, edge insertion after flow |
+| ei1333 dinic, ford-fulkerson | https://ei1333.github.io/library/graph/flow/dinic.hpp | 2026-10-10 | Row 19 comparison; nothing else missing |
+| CSES Police Chase | https://cses.fi/problemset/ | 2026-10-10 | Min cut edge list (`minCutEdges`) |
+
 ## Source keys
 
 Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder.

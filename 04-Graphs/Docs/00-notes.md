@@ -119,3 +119,16 @@ The 2026-10-07 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-07-p011-r
 - Dominated counts (OI Wiki P5180): `tout[v] − tin[v]` of `DominatorTree`.
 - Post-dominators, multiple roots and edge dominators: reverse graph, super-source and edge subdivision. Exposed semidominators (internal in Koosaga) and iterated dominance frontiers (SSA construction) are outside contest use.
 
+## P044 max flow omissions
+
+The 2026-10-10 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-10-p044-max-flow)) added the reverse capacity of `addEdge`, `MaxFlow(Graph)`, `changeCapacity` (increase and decrease with repair), `minCutEdges` and `pathDecomposition` to row 19. The other candidates stay out:
+
+- Residual-graph export: `g` is public and `edges()`/`getEdge` give every arc pair; a copied adjacency adds nothing.
+- Fewest-edge minimum cut: a reduction, not an engine. Scale capacities to `c * (m + 1) + 1` (with `lll` if needed); the cut value is `res / (m + 1)` and its edge count `res % (m + 1)`.
+- Super source/sink and vertex capacities: modelling reductions (one extra vertex with arcs; split v into v_in -> v_out carrying the vertex capacity). Row 45 owns vertex-disjoint path extraction.
+- MPM, ISAP and plain Ford–Fulkerson: no better bound than Dinic or push-relabel; `flow(s, t, limit)` already costs O(F * (n + m)) for a small flow value F.
+- Floating-point capacities: `MaxFlow` requires a signed integer `Cap`; scale to integers.
+- `limit` for push-relabel: use `flow(s, t, limit)`.
+- Mixed directed/undirected Euler circuits (flow application): row 69 with row 10, using this header.
+- ei1333 bipartite flow with edge erasure and lexicographic matching: row 21; lower bounds: row 30; Gomory–Hu, global min cut, dynamic star min cut: rows 46, 47, 76.
+
