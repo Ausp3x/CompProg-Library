@@ -55,6 +55,17 @@ Not fetched in this sweep: Codeforces blog entries 62393, 125435, 106195 and 913
 | Nyaan `montgomery-modint.hpp`, `arbitrary-montgomery-modint.hpp`, ei1333 `montgomery-mod-int.hpp`, maspypy `montgomery_modint.hpp`, noshi91 `montgomery_modint.cpp` | https://nyaannyaan.github.io/library/modint/montgomery-modint.hpp and the sibling pages | yes | Confirmed modulus caps (2^30/2^62, 2^31) against this header's full odd range; `inverse`/`neg`/`==` belong to `05-modint.hpp` |
 | cp-algorithms Montgomery multiplication | https://cp-algorithms.com/algebra/montgomery_multiplication.html | yes | add/sub in Montgomery form, `__uint128_t` for 64-bit moduli |
 
+## Fetched 2026-10-08 (P025 Poly sweep)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| Library Checker polynomial and convolution problem trees | https://github.com/yosupo06/library-checker-problems/tree/master/polynomial, https://github.com/yosupo06/library-checker-problems/tree/master/convolution | yes | Every problem maps to a row operation; `convolution_mod_large` added as `convolutionLarge` |
+| FLINT `nmod_poly` and `fmpz_poly` documentation | https://flintlib.org/doc/nmod_poly.html, https://flintlib.org/doc/fmpz_poly.html | yes | `tanh/asinh/atanh` series, exact polynomial sqrt (`trySqrtExact`), `div_series` (`divSeries`), `div_root` (`divRoot`), `mulhigh` (`mulHigh`), preconditioned modulus (`PolyModulus`), `powers_mod` (`powersMod`), inflate/deflate and orthogonal polynomials (not adopted) |
+| NTL `ZZ_pX` documentation | https://libntl.org/doc/ZZ_pX.cpp.html | yes | `ZZ_pXModulus` precomputation, `PowerXMod` as `powMod` with base `x`, `MinPolyMod`/`TraceMod` (not adopted) |
+| Nyaan, maspypy, suisen, hitonanode, ei1333, tko919 library indexes | https://nyaannyaan.github.io/library/, https://github.com/maspypy/library/tree/main/poly, https://suisen-cp.github.io/cp-library-cpp/, https://hitonanode.github.io/cplib-cpp/, https://ei1333.github.io/library/, https://tko919.github.io/library/ | yes | `slice_rational_fps` (`sliceRationalFps`), `pow-enumerate` (`polynomialPowerEnumerate`), `composition_large` and `compose_exp` (covered by `compose`), online FPS and composed sum/product (owned by Mathematics) |
+| cp-algorithms polynomial article, KACTL `numerical/Polynomial.h` | https://cp-algorithms.com/algebra/polynomial.html, https://github.com/kth-competitive-programming/kactl/blob/main/content/numerical/Polynomial.h | yes | Baseline operation vocabulary; KACTL `divroot` |
+| von zur Gathen, Gerhard, Modern Computer Algebra, chapter 11; Cohen, A Course in Computational Algebraic Number Theory, Algorithm 3.3.7; Kinoshita, Li, Power Series Composition in Near-Linear Time (arXiv 2404.05177); Bostan, Lecerf, Schost, Tellegen's principle into practice | textbook and paper references (not fetched in this session; algorithms implemented from memory of the published descriptions and verified by the tester) | no | Fast Euclidean algorithm, subresultant resultant, bivariate Bostan–Mori composition, transposed evaluation |
+
 ## Previous source keys and audit narrative
 
 - Keys retained from the 2026-09-27 inventory: ACL (AtCoder Library), KACTL, CPA (cp-algorithms), OI (OI Wiki), NYA (Nyaan), MAS (maspypy), EI (ei1333), SUI (suisen), HIT (hitonanode), TKO (tko919), GMP, FLINT, NTL, MCA (saved *Modern Computer Arithmetic*), YC (Library Checker).

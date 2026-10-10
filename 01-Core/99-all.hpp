@@ -11,4 +11,5 @@
 #include "10-matrix.hpp"
 #include "12-bitmatrix.hpp"
 #include "14-sparsematrix.hpp"
+#include "16-poly.hpp"
 #include "18-bitset.hpp"

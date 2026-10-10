@@ -30,7 +30,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 
 ### Core full types
 
-- [ ] **P025 — C11** (fable, XL): 01-Core — poly. Status: in-progress. Note: 16-poly.hpp complete draft (~2350 lines): all row operations implemented incl. researched additions (tanh/asinh/atanh, trySqrtExact, divSeries, divRoot, mulHigh, PolyModulus, powersMod, convolutionLarge, sliceRationalFps, composeBrentKung). Scratch tests /tmp/p025/t3-t7.cpp pass (t7 rerunning after powerProjection packing fix). Formal tester written: 96-Local Testing/01-Core/16-poly_tester.{py,cpp} + 16-poly_tester_tu.cpp (not yet compiled/run); benchmark 16-poly_benchmark.{py,cpp} written (not run). Remaining: run tester quick/full/g++-14/stress, benchmark + thresholds (SCHOOLBOOK, HGCD_BASE, compose BK vs KL, fftMod vs 3-prime for 1e9+7), evidence doc 01-Core/Docs/16-poly.md, index row (rename famousSeries to bernoulliNumbers/partitionNumbers/stirling1Row/stirling2Row/eulerianRow; add researched ops), notes/sources, 99-all, 01-run.py QUICK + 03-consistency expected set, reviewer, lng ring resultant overflow documented as limit.
+- [x] **P025 — C11** (fable, XL): 01-Core — poly. Status: verified. [evidence](01-Core/Docs/16-poly.md)
 - [ ] **P026 — C12** (opus, M): 01-Core — polymini. Status: planned.
 - [ ] **P018 — C04** (fable, XL): 01-Core — infint. Status: planned.
 - [ ] **P019 — C05, C06** (opus, M+M): 01-Core — infintmini, rational. Status: planned.

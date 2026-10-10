@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 HERE = Path(__file__).resolve().parent
-QUICK = {'01-template_tester.py', '02-debug_tester.py', '03-barrett_tester.py', '04-montgomery_tester.py', '05-modint_tester.py', '06-modintmini_tester.py', '18-bitset_tester.py'}
+QUICK = {'01-template_tester.py', '02-debug_tester.py', '03-barrett_tester.py', '04-montgomery_tester.py', '05-modint_tester.py', '06-modintmini_tester.py', '16-poly_tester.py', '18-bitset_tester.py'}
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
