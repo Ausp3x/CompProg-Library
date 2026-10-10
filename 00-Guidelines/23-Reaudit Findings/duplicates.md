@@ -16,6 +16,7 @@ Decided by the user on 2026-10-10 and 2026-10-11; binding, and only the user cha
 - **P030** row 18 (pinned): `PerSegTree` is a second persistent segment tree beside `PersistentSegmentTree`; its entries leave the row and `PersistentSegmentTree` gains `maxRight`/`minLeft` (from `maxR`/`minL`). `KSPerSegTree::kthMin` leaves the row (`rangeKth`); its `cntEql`, `cntRan`, `kthSum`, `maxLeq`, `minGeq` stay as the only persistent forms.
 - **P047** row 26 (pinned): `OnlineBridges` leaves the row; `IncrementalBridgeConnectivity` gains `connected` (from `findCC`).
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
+- **P012** `05-Mathematics/Docs/02-search_algorithms.md`: correct the claim that `binSearch` evaluates no endpoint and reaches `INT64_MAX` where `firstTrue`/`lastTrue` cannot; its keep reason is the one in Keeps.
 - **P053** row 11: the `modLog` multiplier form `k * a^x = b (mod m)` becomes a multiplier parameter of `discreteLogEx`, not a second function.
 
 ### Keeps
@@ -32,6 +33,7 @@ Items a reader could mistake for duplicates.
 | P011 | `lca_detail::Forest` inclusive `t_in`/`t_out` | Only form |
 | P011, P043 | `kosarajuScc`, `kuhn` | Different algorithms from `tarjanScc`, `hopcroftKarp` |
 | P012 | `ternSearch`, `ternSearchRealBracket` | Different algorithms from `fibSearch`, `goldenSearchRealBracket` |
+| P012 | `binSearch(ok, ng, f)` | Decided 2026-10-11: one orientation-free call for the common ok/ng idiom; the replacement needs `lastTrue` or `firstTrue` by orientation plus a result mapping |
 | P012 | `LinearSieve::getPhi`, `getMu`, `getNumDiv`, `getSumDiv` | Reuse the sieve's `spf` table |
 | P012 | `PrimeCombinatorics` fields `fac`, `inv_fac` | Data, direct indexing |
 | P012, P052 | `solveModEq` `{-1, -1}`, `garner` and `crtMod` returning -1 | Only form |
@@ -85,4 +87,4 @@ Not yet written: run `/duplicate-sweep`.
 
 ## Open questions
 
-- **P012 `binSearch(ok, ng, f)`**: kept on 2026-10-10 for capabilities `firstTrue`/`lastTrue` were said to lack, but the 2026-10-11 review showed it equals `lastTrue(ok + 1, ng, f)` or `firstTrue(ng + 1, ok, f)` with the result mapped back to `ok` when no point qualifies (884 cases including the `INT64_MIN`/`INT64_MAX` endpoints, no mismatch), so the rule removes it as an orientation and convention form. The same claim appears in `05-Mathematics/Docs/02-search_algorithms.md`. Keep it anyway, or remove it?
+None.
