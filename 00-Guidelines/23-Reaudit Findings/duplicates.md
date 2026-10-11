@@ -4,7 +4,7 @@ Wrappers and second implementations under `00-Guidelines/03-cpp.md`, One API per
 
 ## Recorded decisions
 
-Decided by the user on 2026-10-10 and 2026-10-11; binding, and only the user changes them.
+Decided by the user from 2026-10-10 to 2026-10-12; binding, and only the user changes them.
 
 ### Changes
 
@@ -63,6 +63,7 @@ Items a reader could mistake for duplicates.
 | P042 | `HLD::reorderArray` | Only producer of the segment-tree base array |
 | P043 | `TwoSat::ans` | Data behind `answer()` |
 | P043 | `addImplication`, `addEquivalent` | Named special cases |
+| P043 | `hallViolator` | Named certificate (Hall violator) |
 | P051 | row 45 pair `edgeConnectivity`, `edgeDisjointPaths`, edge `mengerCut` | Graph connectivity operations |
 | P083 | `countDistinctSubsequences` (`19-lcs.hpp`) | Different domain from P084's member |
 | P057 | `polynomial_detail::inverses`, `factorials` | Internal helpers |
@@ -86,6 +87,8 @@ Decided by the user on 2026-10-11 for the sweep's policy questions.
 ## Sweep scope
 
 Swept 2026-10-11 over every header of `01`–`07`, `02-Data Structures/00-monoids.hpp` (no owning package; P027's preset header) and every inventory row of `01`–`08`; every `remove` was refuted by an independent reviewer. Every `remove` row was re-checked on 2026-10-11 against the clarified rule (`03-cpp.md`, commit 9062881): another name, an index or range convention, an argument or result shape (a projected field included), a legacy default or input format, a narrowing, a second include path or the same algorithm still goes; a derived formula, unit or scale, batch or one-shot form, clamp, larger domain, non-legacy builder or mirror (ruling 3) keeps the item. Locations are relative to the package's folder, tests to `96-Local Testing/<folder>/`; "row NN" is the `00-index.md` row of header `NN-`. `remove (row only)` items have no code to change, or their code is a pinned extraction whose body stays until the package rewrites it.
+
+Prune order for verified packages with removals: P010 first, then P011 and P044; P004 before P005, P005 before P025, P025 before P026; P007 before P036; P013 before P012 and P014; the rest (P006, P009, P016, P017, P027, P227, P229, P052, P043, P055, P057, P083, P084) in any order. P004, P005 and P025 run on Fable at max effort. P002, P008, P028 and P081 have nothing left to remove.
 
 ## P002 — 01-Core — template, debug, bitset (verified)
 
@@ -188,7 +191,7 @@ Runs after P010 (`Graph::fromAdjacency`).
 |---|---|---|---|---|---|---|
 | `LCA(n, root, adj)`, `lca_detail::fromAdjacency` | `07-lca.hpp:69`, `:43-54` | `LCA(Graph::fromAdjacency(adj), root)` | remove | legacy format; unsorted lists may change `t_in`/`order`, never a query answer | `07-lca_tester.cpp:171-178`; probes `legacy-*` (:236-239) | row 07; ledger notes |
 | `getKthAncestor(u, k)` | `07-lca.hpp:76` | `kthAncestor(u, k)` | keep | accepts k < 0, which `kthAncestor` rejects (decided 2026-10-11) | `07-lca_tester.cpp:108-109,175-176` | none |
-| `Tarjan`, `BridgeAlgo` (`build`, `dfs`), `lowlink_detail::graph` | `09-bridges_articulation.hpp:89-128` | `lowlink(Graph::fromAdjacency(adj))`; bridges as sorted `minmax` pairs of `low.bridges` | ask | legacy format, but they accept a loop listed once and extra adjacency lists, which `fromAdjacency` rejects | `09-…_tester.cpp:133-155` (reuse the `legacyDfs` oracle), `:165-173,238-244`; probes :252-256 | row 09; ledger notes |
+| `Tarjan`, `BridgeAlgo` (`build`, `dfs`), `lowlink_detail::graph` | `09-bridges_articulation.hpp:89-128` | `lowlink(Graph::fromAdjacency(adj))`; bridges as sorted `minmax` pairs of `low.bridges` | remove | legacy input format; the inputs `fromAdjacency` rejects (a loop listed once, extra lists) change no answer (decided 2026-10-12) | `09-…_tester.cpp:133-155` (reuse the `legacyDfs` oracle), `:165-173,238-244`; probes :252-256 | row 09; ledger notes |
 | `StrongOrientationResult`, `strongOrientation` | `09-bridges_articulation.hpp:70-87` | `lowlink(g)`: `orientation`, `component`, `components`, `bridges`, `roots` | keep | derived `ok` flag and Robbins obstruction witness (clarified rule) | `09-…_tester.cpp:111-131,221-226`; probes :250-251 | none |
 | `FunctionalGraph(const G &g)` | `11-functionalgraph.hpp:79-80` | `FunctionalGraph(FunctionalGraph::successors(g))` | keep | builds from a `Graph`, not a legacy format (clarified rule) | `11-…_tester.cpp:194`; probes :287-292 | none |
 | `FunctionalGraph::reachable` | `11-functionalgraph.hpp:100` | `distance(u, v) != -1` | keep | named special case (ruling 1) | `11-…_tester.cpp:126`; probe `reachable-high` | none |
@@ -420,7 +423,7 @@ Runs after P010 (`Graph::fromAdjacency`).
 |---|---|---|---|---|---|---|
 | `addClause(a, na, b, nb)`, `solve()` | `18-twosat.hpp:26,73` | `addClause(na ? ~a : a, nb ? ~b : b)`, `satisfiable()` | remove | legacy format; another name | `18-twosat_tester.cpp:32,60,160-169` | ledger note `monolith-map.json:1014` |
 | `Hungarian` (`addEdge`, `solve`, `getAssignment`) | `23-assignment.hpp:205-218` | `hungarian(a)` on a filled matrix (unset = 0): `.cost`, `.row` | remove | legacy format | `23-assignment_tester.cpp:167-184,248`; probe `legacy-range` | ledger note `monolith-map.json:1108` |
-| `hallViolator()` | `21-matching_bipartite.hpp:169` | `maximumIndependentSet().left` | ask | the same set as `maximumIndependentSet().left`, named as a Hall certificate | `21-matching_bipartite_tester.cpp:86-92` | none |
+| `hallViolator()` | `21-matching_bipartite.hpp:169` | `maximumIndependentSet().left` | keep | named Hall certificate; same set as `maximumIndependentSet().left` (decided 2026-10-12) | `21-matching_bipartite_tester.cpp:86-92` | none |
 | Dinic inside `bMatching` | `21-matching_bipartite.hpp:251-266` | `MaxFlow<int>` (middle edges first; record the O((V+E)√E) argument) | remove | second implementation (body) | `21-…_tester.cpp:150-164,263`; probes `bmatching-*` | adds an include of `19-max_flow.hpp` |
 | Tarjan inside `satisfiable` | `18-twosat.hpp:48-67` | `tarjanScc` on a `Graph(2n, true)` | keep | constant-factor variant (ruling 4) | — | `forcedLiterals`, `unsatWitness` |
 | `maximumIndependentSet()` | `21-matching_bipartite.hpp:149` | complement of `konigVertexCover()` | keep | separate operation (ruling 2) | `21-…_tester.cpp:61-66` | `hallViolator`'s replacement |
@@ -1328,12 +1331,11 @@ Not a duplicate: row 46 `resultant (… and field)` contradicts `Docs/00-notes.m
 
 ## Open questions
 
-Every remaining `ask` above, with the fact the user decides. `/prune` leaves `ask` rows untouched, so decide a package's questions before its `/prune`.
+Every remaining `ask` above, with the fact the user decides. `/package` and `/prune` put a package's `ask` rows to the user before changing anything.
 
 ### Verified packages
 
-- **P011** `Tarjan`, `BridgeAlgo`: they accept a loop listed once and extra adjacency lists, which `Graph::fromAdjacency` rejects; keep them, or remove them and drop those inputs?
-- **P043** `hallViolator()`: it returns exactly `maximumIndependentSet().left`; is the Hall-certificate name a separate purpose?
+All decided.
 
 ### Planned packages
 
