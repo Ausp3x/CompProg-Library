@@ -11,9 +11,7 @@ argument-hint: "Pxxx"
 
 ## Items
 
-!`awk -v id="$ARGUMENTS" '/^## /{p = (index($0, "## " id " ") == 1)} p' "${CLAUDE_PROJECT_DIR}/00-Guidelines/23-Reaudit Findings/duplicates.md"`
-
-Recorded changes and keeps that name this package are in the same file's "Recorded decisions" section.
+!`python3 "${CLAUDE_PROJECT_DIR}/.claude/skills/prune/items.py" $ARGUMENTS`
 
 ## Procedure
 
