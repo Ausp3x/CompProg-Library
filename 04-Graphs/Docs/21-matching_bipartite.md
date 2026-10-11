@@ -87,7 +87,7 @@ python3 '96-Local Testing/04-Graphs/21-matching_bipartite_benchmark.py'
 | Dense random, 1,250,000 uniform draws (distinct-pair density about 0.049) | 5,000 | 1,250,000 | 12.0 | 9.5 | 477.2 |
 | Reversed path (long augmenting chains in bit order) | 8,000 | 15,999 | 0.4 | 0.3 | 3,180.4 |
 
-`hopcroftKarp` is the default. `kuhn` matches it on dense random graphs but is O(V·(V + E)) and 14× slower on large sparse ones. The dense variant lost on every measured workload. Its O(n³/64) bound beats O(E·√V) only on near-complete graphs with n below about 4,096, and the reversed path shows its worst case. It stays for catalog parity and for callers holding adjacency bitsets. No automatic dispatch.
+`hopcroftKarp` is the default. `kuhn` matches it on dense random graphs but is O(V·(V + E)) and 14× slower on large sparse ones. The dense variant lost on every measured workload. Its O(n³/64) bound beats O(E·√V) only on near-complete graphs with n below about 4,096, and the reversed path shows its worst case. It takes the same edge list as the others and stays because it is a different algorithm (word-parallel Kuhn, O(n³/64)) beside Hopcroft–Karp, which the keep clause of One API per operation (`03-cpp.md`) covers. No automatic dispatch.
 
 ## Sources
 

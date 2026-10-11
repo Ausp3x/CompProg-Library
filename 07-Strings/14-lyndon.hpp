@@ -1,6 +1,6 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
-#include "07-suffixarray.hpp"
+#include "12-sais.hpp"
 
 namespace lyndon_detail {
     template<class S> auto at(const S &s, int i) {
@@ -33,18 +33,24 @@ template<class S> int standardFactorization(const S &s) {
     auto c = lyndon_detail::cuts(s, 1);
     return c[c.size() - 2];}
 
-// T: O(n * log(n + 1)), M: O(n); res[i] is the length of the longest Lyndon prefix of s[i, n).
+// T: O(n) for 1-byte integral symbols, else O(n * log(n + 1)), M: O(n); res[i] is the length of the longest Lyndon prefix of s[i, n).
 template<class S> vector<int> lyndonArray(const S &s) {
     assert(s.size() < INT_MAX);
-    int n = int(s.size());
-    vector<int> id(n), res(n), st;
-    iota(id.begin(), id.end(), 0);
-    sort(id.begin(), id.end(), [&](int i, int j) { return lyndon_detail::at(s, i) < lyndon_detail::at(s, j); });
-    vector<int> code(n);
-    for (int t = 1; t < n; ++t) { code[id[t]] = code[id[t - 1]] + (lyndon_detail::at(s, id[t - 1]) < lyndon_detail::at(s, id[t])); }
-    SuffixArray<int> sa(std::move(code), false);
+    using C = decltype(lyndon_detail::at(s, 0));
+    int n = int(s.size()), upper = 255;
+    vector<int> code(n), res(n), st;
+    if constexpr (std::is_integral_v<C> && sizeof(C) == 1) {
+        for (int i = 0; i < n; ++i) { code[i] = int(lyndon_detail::at(s, i)) - std::numeric_limits<C>::min(); }}
+    else {
+        vector<int> id(n);
+        iota(id.begin(), id.end(), 0);
+        sort(id.begin(), id.end(), [&](int i, int j) { return lyndon_detail::at(s, i) < lyndon_detail::at(s, j); });
+        for (int t = 1; t < n; ++t) { code[id[t]] = code[id[t - 1]] + (lyndon_detail::at(s, id[t - 1]) < lyndon_detail::at(s, id[t])); }
+        upper = n ? code[id[n - 1]] : 0;}
+    // code becomes the inverse suffix array.
+    for (int r = 0; int i : sais(code, upper)) { code[i] = r++; }
     for (int i = n - 1; i >= 0; --i) {
-        while (!st.empty() && sa.rank[st.back()] > sa.rank[i]) { st.pop_back(); }
+        while (!st.empty() && code[st.back()] > code[i]) { st.pop_back(); }
         res[i] = (st.empty() ? n : st.back()) - i;
         st.push_back(i);}
     return res;}

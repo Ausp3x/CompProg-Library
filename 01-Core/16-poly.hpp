@@ -1098,16 +1098,13 @@ struct Poly {
         for (int i = 0; i < c.size(); ++i) { if ((i / n) & 1) { r.v[i % n] -= c.v[i]; } else { r.v[i % n] += c.v[i]; } }
         return r;}
 
-    // T: O(M(n)), M: O(n); a * a with one forward transform.
-    friend Poly square(const Poly &a) {
-        if constexpr (ModularInt<T>) {
-            if (a.size() > poly_detail::SCHOOLBOOK && poly_detail::Ntt<T>::usable(poly_detail::ceilPow2(2 * a.size() - 1))) { return Poly(poly_detail::Ntt<T>::convolve(a.v, a.v)); }}
-        return a * a;}
+    // T: O(M(n)), M: O(n); a * a, one forward transform through the dispatcher's alias check.
+    friend Poly square(const Poly &a) { return a * a; }
 
-    // T: O(M(n)), M: O(n); (a * b) mod x^n from the inputs truncated to n terms.
+    // T: O(M(n)), M: O(n); (a * b) mod x^n from the inputs truncated to n terms, always n terms.
     friend Poly truncatedMul(const Poly &a, const Poly &b, int n) {
         Poly x = a, y = b;
-        return (x.truncate(n) * y.truncate(n)).truncate(n).resize(min(n, x.size() && y.size() ? n : 0));}
+        return (x.truncate(n) * y.truncate(n)).resize(n);}
 
     // T: O(M(n + m)), M: O(n + m); coefficients of x^k, k >= n, of a * b.
     friend Poly mulHigh(const Poly &a, const Poly &b, int n) { return (a * b) >> n; }

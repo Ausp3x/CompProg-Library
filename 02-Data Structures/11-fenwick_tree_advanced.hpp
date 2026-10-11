@@ -22,6 +22,7 @@ struct FenwickRangeAdd {
         return res;}
 
     void update(int i, T x) {
+        assert(0 <= i && i <= n);
         T y = x * T(i);
         for (; i < n; i |= i + 1) { b[i] += x; c[i] += y; }}
     void add(int l, int r, T x) { assert(0 <= l && l <= r && r <= n); update(l, x); update(r, -x); }
@@ -53,7 +54,9 @@ struct DualFenwick {
         for (++i; i > 0; i &= i - 1) { res += v[i - 1]; }
         return res;}
 
-    void update(int i, T x) { for (; i < n; i |= i + 1) { v[i] += x; }}
+    void update(int i, T x) {
+        assert(0 <= i && i <= n);
+        for (; i < n; i |= i + 1) { v[i] += x; }}
     void add(int l, int r, T x) { assert(0 <= l && l <= r && r <= n); update(l, x); update(r, -x); }
 };
 
@@ -75,6 +78,7 @@ struct FenwickRangeArithmeticAdd {
     T get(int i) const { assert(0 <= i && i < n); return sum(i, i + 1); }
 
     void update(int i, T a, T b, T c) {
+        assert(0 <= i && i <= n);
         for (; i < n; i |= i + 1) { v[i].a += a; v[i].b += b; v[i].c += c; }}
     void addProgression(int l, int r, T a, T d) {
         assert(0 <= l && l <= r && r <= n);

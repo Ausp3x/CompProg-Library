@@ -99,7 +99,7 @@ Research outcomes (sources in [00-sources.md](00-sources.md)); adopted: eertree 
 - `15`: `minCyclicShift` was merged into `minRotation` (every catalog treats them as one operation); minimal rotation of every prefix has no catalog source (`22` owns per-prefix minimal suffixes); the rotation period is `minRotationIndices().second` (or `27` `primitiveRoot`); cyclic comparison is `rotationEquivalent`/`canonicalRotation`; the row's "Booth" became the two-pointer minimum expression with the same bound.
 - `19`: longest common increasing subsequence has no fetched catalog source and no standard linear-memory witness (LIS lives in Miscellaneous `08`); a full LCS table is internal (semi-local queries are `48`); counting LCS strings and the lexicographically smallest LCS have no catalog source; range distinct-subsequence counting is a segment-tree application.
 
-Handoffs: `39` should reuse `13` `palindromicLength`; `22` `lexMinSuffixPerPrefix` is `IncrementalLyndon::minSuffix`; `26` runs can consume `lyndonArray`/`lyndonTree`; `41` de Bruijn can consume `nextLyndonWord`; `lyndonArray` becomes linear once `12` SA-IS exists.
+Handoffs: `39` should reuse `13` `palindromicLength`; `22` `lexMinSuffixPerPrefix` is `IncrementalLyndon::minSuffix`; `26` runs can consume `lyndonArray`/`lyndonTree`; `41` de Bruijn can consume `nextLyndonWord`; `lyndonArray` is linear on bytes through `12` SA-IS (done 2026-10-12).
 
 ## P084 package record (ST08, ST20, ST23)
 

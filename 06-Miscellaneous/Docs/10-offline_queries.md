@@ -25,7 +25,7 @@ Every oracle is independent of the implementation and uses non-removable checks.
 
 ## Commands and results
 
-GCC 16.2.1 20260810, Python 3.14.7, Linux x86-64, i9-11900H, 2026-10-08. The commands, floor run and integration are shared with the other P014 suites and recorded in [08-sequence_algorithms.md](08-sequence_algorithms.md).
+GCC 16.2.1 20260810, Python 3.14.7, Linux x86-64, i9-11900H, 2026-10-08. The P014 integration and consistency checks of that date also passed: `python3 '96-Local Testing/02-integration.py'` (102 standalone and aggregate headers, multi-TU builds, workspace) and `python3 '96-Local Testing/03-consistency.py'` with `--braces` on the four P014 headers and testers.
 
 - Full: `python3 '96-Local Testing/06-Miscellaneous/10-offline_queries_tester.py' --mode full --seed 20261008`: PASS (table below); with `CXX=g++-14` (GCC 14.4.1): PASS in all three configurations.
 - Stress, one round: `python3 '96-Local Testing/06-Miscellaneous/10-offline_queries_tester.py' --mode stress --seed 7`: PASS.

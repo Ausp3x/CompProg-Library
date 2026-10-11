@@ -68,7 +68,7 @@ Scope: this folder owns sequence, set, tree and persistent data-structure engine
 | `45-kineticheap.hpp` | KineticSegmentTree (range linear add, range min): applyLinear (range), min (range), set, eventCount; KineticHeap: push, pop, advanceTime, min (time); ParametricHeap | planned; YC, MAS, EI, TKO, NOSHI, OI |
 | `46-matroid_oracle.hpp` | GraphicMatroid, PartitionMatroid, TransversalMatroid, LinearMatroid (GF(2), mod p), UniformMatroid: independent, rank, span, circuit; exchangeGraph; MatroidOracle concept | planned; see [00-notes.md](Docs/00-notes.md) |
 | `47-persistentqueue.hpp` | PersistentQueue: push (version), pop (version), front, size; PersistentDeque: pushFront, pushBack, popFront, popBack, concat; PersistentStack: push, pop, top; PersistentList (skew-binary random access): cons, head, tail, lookup, update | planned; YC, NYA, SUI, HIT, NOSHI, OI |
-| `48-persistentheap.hpp` | PersistentLeftistHeap: push, pop, top, meld (version), applyAdd (lazy offset); PersistentSkewHeap: push, pop, top, meld | planned; EI, OI |
+| `48-persistentheap.hpp` | PersistentLeftistHeap: push, pop, top, meld (version), applyAdd (lazy offset) | planned; EI, OI |
 | `49-dynamicbitvector.hpp` | DynamicBitVector: access, insert, erase, set, rank0, rank1, select0, select1, size | planned; DYNAMIC |
 | `50-dynamic_wavelet.hpp` | DynamicWaveletTree: access, insert, erase, set, rank, select, quantile, rangeFreq, rangeSum (weighted); DynamicWaveletMatrix: access, insert, erase, rank, select, quantile | planned; DYNAMIC |
 | `51-sortablesegmenttree.hpp` | SortableSegmentTree: set, get, sortAscending (range), sortDescending (range), prod (range) | planned; YC, MAS, SUI, TKO |

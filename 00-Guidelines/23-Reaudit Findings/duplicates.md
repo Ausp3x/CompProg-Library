@@ -16,7 +16,7 @@ Decided by the user from 2026-10-10 to 2026-10-12; binding, and only the user ch
 - **P030** row 18 (pinned): `PerSegTree` is a second persistent segment tree beside `PersistentSegmentTree`; its entries leave the row and `PersistentSegmentTree` gains `maxRight`/`minLeft` (from `maxR`/`minL`). `KSPerSegTree::kthMin` leaves the row (`rangeKth`); its `cntEql`, `cntRan`, `kthSum`, `maxLeq`, `minGeq` stay as the only persistent forms.
 - **P047** row 26 (pinned): `OnlineBridges` leaves the row; `IncrementalBridgeConnectivity` gains `connected` (from `findCC`).
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
-- **P012** `05-Mathematics/Docs/02-search_algorithms.md`: correct the claim that `binSearch` evaluates no endpoint and reaches `INT64_MAX` where `firstTrue`/`lastTrue` cannot; its keep reason is the one in Keeps.
+- **P012** `05-Mathematics/Docs/02-search_algorithms.md`: correct the claim that `binSearch` evaluates no endpoint and reaches `INT64_MAX` where `firstTrue`/`lastTrue` cannot; its keep reason is the one in Keeps. Done 2026-10-12.
 - **P053** row 11: the `modLog` multiplier form `k * a^x = b (mod m)` becomes a multiplier parameter of `discreteLogEx`, not a second function.
 - **P013** `06-Miscellaneous/04-compression.hpp`: `Compression` is removed (decided 2026-10-11). `ranks` and `pointRange` move into `CoordinateCompression` (`02-Data Structures/07-ordered_set.hpp`), `compressEndpoints` returns `CoordinateCompression`, `08-sequence_algorithms.hpp` switches to it, and the `Compression::ranks` example in `00-Guidelines/03-cpp.md` becomes `CoordinateCompression::ranks`.
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
@@ -86,7 +86,7 @@ Decided by the user on 2026-10-11 for the sweep's policy questions.
 
 ## Sweep scope
 
-Swept 2026-10-11 over every header of `01`–`07`, `02-Data Structures/00-monoids.hpp` (no owning package; P027's preset header) and every inventory row of `01`–`08`; every `remove` was refuted by an independent reviewer. Every `remove` row was re-checked on 2026-10-11 against the clarified rule (`03-cpp.md`, commit 9062881): another name, an index or range convention, an argument or result shape (a projected field included), a legacy default or input format, a narrowing, a second include path or the same algorithm still goes; a derived formula, unit or scale, batch or one-shot form, clamp, larger domain, non-legacy builder or mirror (ruling 3) keeps the item. Locations are relative to the package's folder, tests to `96-Local Testing/<folder>/`; "row NN" is the `00-index.md` row of header `NN-`. `remove (row only)` items have no code to change, or their code is a pinned extraction whose body stays until the package rewrites it.
+Swept 2026-10-11 over every header of `01`–`07`, `02-Data Structures/00-monoids.hpp` (P027's support header, batch DS05) and every inventory row of `01`–`08`; every `remove` was refuted by an independent reviewer. Every `remove` row was re-checked on 2026-10-11 against the clarified rule (`03-cpp.md`, commit 9062881): another name, an index or range convention, an argument or result shape (a projected field included), a legacy default or input format, a narrowing, a second include path or the same algorithm still goes; a derived formula, unit or scale, batch or one-shot form, clamp, larger domain, non-legacy builder or mirror (ruling 3) keeps the item. Locations are relative to the package's folder, tests to `96-Local Testing/<folder>/`; "row NN" is the `00-index.md` row of header `NN-`. `remove (row only)` items have no code to change, or their code is a pinned extraction whose body stays until the package rewrites it.
 
 Prune order for verified packages with removals: P010 first, then P011 and P044; P004 before P005, P005 before P025, P025 before P026; P007 before P036; P013 before P012 and P014; the rest (P006, P009, P016, P017, P027, P227, P229, P052, P043, P055, P057, P083, P084) in any order. P004, P005 and P025 run on Fable at max effort. P002, P008, P028 and P081 have nothing left to remove.
 
@@ -108,7 +108,7 @@ Prune order for verified packages with removals: P010 first, then P011 and P044;
 |---|---|---|---|---|---|---|
 | `div(x)` | `03-barrett.hpp:23,109` | `divMod(x).first` | remove | projected field, same cost | `03-barrett_tester.cpp:40,64,87,99` | none |
 | `multiplier(b)` | `03-barrett.hpp:79,140` | `Barrett32::Multiplier(r, b)`, `Barrett64::Multiplier(r, b)` | remove | another name | `03-barrett_tester.cpp:68,77,89,101,121,185-190`; `03-reduction_benchmark.cpp:122` | none |
-| `reduce(x)` | `03-barrett.hpp:24,110` | `divMod(x).second` | keep | named special case: the reducer's defining operation (decided 2026-10-11) | — | `03-barrett.hpp:25,27,51,127`; `05-modint.hpp:79`; `16-poly.hpp:2421-2422` |
+| `reduce(x)` | `03-barrett.hpp:24,110` | `divMod(x).second` | keep | named special case: the reducer's defining operation (decided 2026-10-11) | — | `03-barrett.hpp:25,27,51,127`; `05-modint.hpp:79`; `16-poly.hpp:2418-2419` |
 | `redc(x, lazy)` | `04-montgomery.hpp:22` | `red`, `redLazy` | keep | unchecked kernel public only because there is no `private` | — | `05-Mathematics/07-primality_factorization.hpp:15` |
 
 ## P005 — 01-Core — full and mini modular-integer families (verified)
@@ -117,7 +117,7 @@ Prune order for verified packages with removals: P010 first, then P011 and P044;
 |---|---|---|---|---|---|---|
 | `operator!` | `05-modint.hpp:115` | `!a` through `explicit operator bool` | remove | another form | `05-modint_test_support.hpp:99` | none |
 | template `operator=(T)` | `05-modint.hpp:107` | implicit constructor plus assignment | remove | another form | `05-modint_test_support.hpp:67` | none |
-| `init(a)` | `05-modint.hpp:108` | `raw(a)` (the minis' name) | remove | same operation, two names | `05-modint_test_support.hpp:49,211,301` | `16-poly.hpp:181,260,1062,1091,1519` |
+| `init(a)` | `05-modint.hpp:108` | `raw(a)` (the minis' name) | remove | same operation, two names | `05-modint_test_support.hpp:49,211,301` | `16-poly.hpp:181,260,1062,1091,1516` |
 | `modint_detail::MERSENNE61` | `05-modint.hpp:35` | `Barrett64::MERSENNE61` | remove | duplicate constant (body-level) | `05-modint_test_support.hpp:232-236`; `05-modint_benchmark.cpp:86-252` | `05-modint.hpp:52,78,82,152,213`; row 11 |
 | explicit integral cast | `05-modint.hpp:112-113` | `T(a.val())` | keep | checked `T(x)` conversion (decided 2026-10-11) | `05-modint_test_support.hpp:59-60` | functional casts, not searchable |
 | `modint_detail::powerMontgomery` | `05-modint.hpp:28-33` | `Montgomery64(m).pow(a, e)` with a 128-bit exponent, called from a `noinline` one-liner (Changes) | remove | second implementation of `MontgomeryBackend::pow` (decided 2026-10-11) | `04-montgomery_tester.cpp:60-61`; modint 511/512/513 cases | — |
@@ -280,21 +280,21 @@ Runs after P010 (`Graph::fromAdjacency`).
 |---|---|---|---|---|---|---|
 | friend `convolution(a, b)` | `16-poly.hpp:1046` | `a * b` (body moves into `operator*`) | remove | another name | none by name | `16-poly.hpp:563,937,946` |
 | friend `ntt(Poly&)`, `intt(Poly&)` | `16-poly.hpp:1018,1020` | `Poly<T>::ntt(a.v)`, `Poly<T>::intt(a.v)` | remove | argument shape | `16-poly_tester.cpp:218` | `Docs/16-poly.md:11,27`; `00-Guidelines/10-decisions.md:212` |
-| `mulHigh` | `16-poly.hpp:1113` | `(a * b) >> n` | keep | derived: product then shift (clarified rule) | `16-poly_tester.cpp:186` | none |
-| `monicDiv` | `16-poly.hpp:1192` | `a / b` | remove | narrowing (`/` already divides over rings by a monic divisor) | `16-poly_tester.cpp:261,265`; probe `monicdiv` (:392, `.py`) | none |
-| `pseudoRem` | `16-poly.hpp:1219` | `pseudoDiv(a, b).second` | remove | projected field | `16-poly_tester.cpp:264` | `16-poly.hpp:1842` |
-| `rader` | `16-poly.hpp:1537` | `Poly<T>::mixedRadix(a, w, inverse)` | remove | identical body | `16-poly_tester.cpp:222,224` | none |
-| `bluestein` | `16-poly.hpp:1540` | `evalMultiGeometric(Poly<T>(a), T(1), w, m)` | remove | builder plus another name | `16-poly_tester.cpp:222,224` | none |
-| `mulMod(a, b, m)` | `16-poly.hpp:1938` | `a * b % m` or `PolyModulus<T>(m).mul(a, b)` | keep | composition: product then remainder (clarified rule) | `16-poly_tester.cpp:146,329` | none |
-| `polynomialPowerEnumerate` | `16-poly.hpp:2344` | `powerProjection(Poly<T>(g).resize(n).reverse(), f, n)` | remove | builder | `16-poly_tester.cpp:356` | none |
+| `mulHigh` | `16-poly.hpp:1110` | `(a * b) >> n` | keep | derived: product then shift (clarified rule) | `16-poly_tester.cpp:186` | none |
+| `monicDiv` | `16-poly.hpp:1189` | `a / b` | remove | narrowing (`/` already divides over rings by a monic divisor) | `16-poly_tester.cpp:261,265`; probe `monicdiv` (:392, `.py`) | none |
+| `pseudoRem` | `16-poly.hpp:1216` | `pseudoDiv(a, b).second` | remove | projected field | `16-poly_tester.cpp:264` | `16-poly.hpp:1839` |
+| `rader` | `16-poly.hpp:1534` | `Poly<T>::mixedRadix(a, w, inverse)` | remove | identical body | `16-poly_tester.cpp:222,224` | none |
+| `bluestein` | `16-poly.hpp:1537` | `evalMultiGeometric(Poly<T>(a), T(1), w, m)` | remove | builder plus another name | `16-poly_tester.cpp:222,224` | none |
+| `mulMod(a, b, m)` | `16-poly.hpp:1935` | `a * b % m` or `PolyModulus<T>(m).mul(a, b)` | keep | composition: product then remainder (clarified rule) | `16-poly_tester.cpp:146,329` | none |
+| `polynomialPowerEnumerate` | `16-poly.hpp:2341` | `powerProjection(Poly<T>(g).resize(n).reverse(), f, n)` | remove | builder | `16-poly_tester.cpp:356` | none |
 | `reverse(n)` parameter | `16-poly.hpp:923` | `resize(n).reverse()` | keep | the length-n reversal, a derived formula (clarified rule) | `16-poly_tester.cpp:125` | none |
 | `integ(a, c)` parameter | `16-poly.hpp:970` | `integ(a) + Poly<T>{c}` | keep | a general constant; `integ(a)` is its special case (clarified rule) | `16-poly_tester.cpp:131` | none |
-| `convolution2d` body | `16-poly.hpp:1131` | `poly_detail::mul2d` | remove | body-level repeated packing; API unchanged | — | — |
-| `truncatedMul` | `16-poly.hpp:1108` | `(trunc(a) * trunc(b)).resize(n)` | keep | cheaper projection (ruling 4); separate defect: empty input returns 0 terms instead of n | `16-poly_tester.cpp:186` | 28 internal calls |
-| `square` | `16-poly.hpp:1102` | `a * a` | keep | named special case; its NTT branch repeats `*`'s alias check, so its body becomes `return a * a;` | — | — |
-| `relaxedMul`, `semiRelaxedMul` | `16-poly.hpp:2274,2280` | `RelaxedMul::push` loop | keep | batch forms of an online algorithm | — | — |
-| `PolyCompanion::convolutionLng`, `convolution2p64`, `convolutionArbitraryMod` | `16-poly.hpp:2434,2436,2416` | `*`; friend `convolutionArbitraryMod` (:1028) | keep | only forms of their algorithms; different domain (raw `ulng`, runtime modulus) | — | — |
-| `poly_detail::Mont`, `Mont8`; `composeBrentKung` | `16-poly.hpp:45-83,2100` | `04-montgomery.hpp`; `composeMod` | keep | different REDC variant without per-call asserts; larger domain (rings) | — | — |
+| `convolution2d` body | `16-poly.hpp:1128` | `poly_detail::mul2d` | remove | body-level repeated packing; API unchanged | — | — |
+| `truncatedMul` | `16-poly.hpp:1105` | `(trunc(a) * trunc(b)).resize(n)` | keep | cheaper projection (ruling 4); its empty-input defect was fixed 2026-10-12 | `16-poly_tester.cpp:186` | 28 internal calls |
+| `square` | `16-poly.hpp:1102` | `a * a` | keep | named special case; its body became `return a * a;` (2026-10-12) | — | — |
+| `relaxedMul`, `semiRelaxedMul` | `16-poly.hpp:2271,2277` | `RelaxedMul::push` loop | keep | batch forms of an online algorithm | — | — |
+| `PolyCompanion::convolutionLng`, `convolution2p64`, `convolutionArbitraryMod` | `16-poly.hpp:2431,2433,2413` | `*`; friend `convolutionArbitraryMod` (:1028) | keep | only forms of their algorithms; different domain (raw `ulng`, runtime modulus) | — | — |
+| `poly_detail::Mont`, `Mont8`; `composeBrentKung` | `16-poly.hpp:45-83,2097` | `04-montgomery.hpp`; `composeMod` | keep | different REDC variant without per-call asserts; larger domain (rings) | — | — |
 
 ## P026 — 01-Core — polymini (verified)
 
@@ -801,7 +801,7 @@ Runs after P010 (`Graph::fromAdjacency`).
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `intervalPartitionMachines` | row 39 | `intervalPartitionAssignment` | remove (row only) | projection; `Docs/00-notes.md:24` says "must forward" | — | `Docs/09-interval_algorithms.md:94` |
+| `intervalPartitionMachines` | row 39 | `intervalPartitionAssignment` | remove (row only) | projected `.first` (`Docs/00-notes.md:24`) | — | `Docs/09-interval_algorithms.md:94` |
 | `optimalMergePattern` | row 40 | `huffmanTree` (internal nodes in merge order) | remove (row only) | same algorithm | — | — |
 | `huffmanCost` | row 40 | the tree's cost | ask | projection | — | — |
 
@@ -1088,7 +1088,7 @@ Stdlib functions are existing operations (`04-python.md:15`).
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `DynamicForest` (`link`, `cut`, `connected`, `lca`, `pathFold`, `pathApply`, `evert`) | row 51 | DS row 37 `LinkCutTree` | ask | same-name subset plus edge-ID keys; `Docs/00-notes.md:49` ("stays") predates the rule | — | — |
+| `DynamicForest` (`link`, `cut`, `connected`, `lca`, `pathFold`, `pathApply`, `evert`) | row 51 | DS row 37 `LinkCutTree` | ask | same-name subset plus edge-ID keys | — | — |
 | `secondBestMst`, `mstForcedEdge`, `mstForbiddenEdge`, `isMstUnique` | row 52 | formulas over `mstEdgeSensitivity` | ask | projections | — | — |
 
 ## P158 — 04-Graphs — stnumbering, coloring exact, cycle enumeration, feedback set (planned)
@@ -1188,8 +1188,6 @@ Stdlib functions are existing operations (`04-python.md:15`).
 | `hankelSolve`, `vandermondeSolve` | row 44 | `toeplitzSolve` on reversed rows; row 22 interpolation | ask | builders unless the pivot conditions differ | — | — |
 
 ## P188 — 05-Mathematics — polynomial factorization (planned)
-
-Not a duplicate: row 46 `resultant (… and field)` contradicts `Docs/00-notes.md:172`, which gives the field case to row 14.
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
@@ -1376,7 +1374,7 @@ All decided.
 - **P115** `PersistentDeque`: a finger tree? `RangeTree::count`, `fold`: the merge-sort tree and 2D sparse segment tree after a point-set builder, or a separate structure? **P122** `PlusMinusOneRMQ`: expose it for `EulerLCA`, or drop it?
 - **P138** `feasiblePoint3`, `removeRedundant3`; **P140** `lp2d`, `lp3d`, `minimumEnclosingBall` (d = 2); **P148** `alphaShape2`, `criticalAlphas`; **P149** `convexPolyhedronIntersection`, `bspBoolean`'s operation flag; **P150** `continuousFrechet`; **P139** `lowerEnvelope` beside DS row 22, `geodesicPath` beside `funnel`: own algorithms or views?
 - **P153** `matroidUnion`, `matroidPartition`, `forestDecomposition`: one algorithm?
-- **P155** `DynamicForest`: keep it as the edge-ID adapter (`04-Graphs/Docs/00-notes.md:49`) or use `LinkCutTree`? MST sensitivity formulas over `mstEdgeSensitivity`?
+- **P155** `DynamicForest`: keep it as an edge-ID adapter or use `LinkCutTree`? MST sensitivity formulas over `mstEdgeSensitivity`?
 - **P158** `earDecomposition`, `minimumCostCycle`; **P162** perfect-matching pair, dense and sparse forms, Gabow (P163); **P166** `eulerize`; **P168** `mstWeightChange`; **P175** `dynamicDiameter`; **P191** `countWalks`: own algorithms or wrappers?
 - **P181** `factorialPrimePowerValuation`, `wilsonBlock`, `faulhaber`, `bernoulliNumber`; **P182** the `std::` special functions; **P183** `labelledSet`, `labelledCycle`, `logarithmicTransform`; **P185** `carrylessMultiply` (one owner with row 65); **P186** `hankelSolve`, `vandermondeSolve`; **P198** `locatorBerlekampMassey`; **P200** `SetPowerSeries::mul`, `spsComposition`: distinct, or reuse?
 - **P211** and **P216** `count` beside `FmIndex::count`, `RlFmIndex::count`; **P213** `injectiveRenamingMatch`; **P218** `prefixSubstringLcs`: the same queries?

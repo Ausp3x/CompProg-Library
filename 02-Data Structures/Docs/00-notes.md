@@ -48,7 +48,7 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 - `OLD/algorithms.cpp:1402–1477` DSU mixed connectivity, weighted distances, parity and edge counts, and narrowed `lng` to `int`. Basic `DSU` keeps `n/ncon/par/siz`; weighted unions, `dis`, `esz`, `is_bip`, `getDis`, `getEsiz`, `isBipartite` belong to `29-weighteddsu.hpp` (potential/parity) and `09-rollbackdsu.hpp`/Graphs (component metadata).
 - Unchanged extractions (`17`, `18`, `21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit (P027 split `FenTree` into `Fenwick2D`/`Fenwick3D` and replaced `FenTreeRangeAdd1D`, `SegTree` and the `Mon*` presets; P028 replaced `SegTreeBeats`, `SegTree2D` and `DynMergeSortTree`; see the row 11–16 evidence); the Basic `Fenwick` and `SegmentTree` names were chosen to avoid collisions with `FenTree` and lazy `SegTree`.
 - `97-Legacy/02-sqrtdecomp.cpp` (invalid defaults, clamped inclusive ranges, unused lazy array) is superseded by `06-sqrt_decomposition.hpp`; only its diagnostic printer remains unported. `97-Legacy/04-lichao_older.cpp` is a query-less hull skeleton, `97-Legacy/01-monset.cpp` is a placeholder scaffold. Delete a legacy file only after its owning row accounts for every feature.
-- `OLD/Team Notebook/src/ds/impltreap.cpp` and `cartesiantree.cpp` are the legacy references for rows 19 and 27; `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` contain `DynamicMex` (row 24) and `LcaO1` (row 54 bridge).
+- `OLD/Team Notebook/src/ds/impltreap.cpp` and `cartesiantree.cpp` are the legacy references for rows 19 and 27; `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` contain `DynamicMex` (row 24) and `LcaO1` (covered by Graphs `07-lca.hpp` `EulerLCA`; row 54 `LinearRMQ` is the array form).
 - The sparse-table public `v` storage changed from a flat padded array to valid rows; clients use query methods.
 
 ## P006 re-audit omissions
@@ -149,6 +149,10 @@ Candidates from the 2026-10-10 sweep ([00-sources.md](00-sources.md#fetched-2026
 - Fenwick of value segment trees for O(log^2) dynamic kth (OI seg-in-bit): needs values known offline and O(n log^2 n) memory; `DynamicMergeSortTree` answers kth online in O(log n log^2 m) without either.
 - Online `lng` x coordinates in `DynamicMergeSortTree` (legacy `insert2D`): compress x to slots; huge online universes belong to row 13.
 - SWAG `operator[]`, separate front/back folds, pop returning the value, iterator constructors, separate value and product types (SUI, MAS, HIT): rare conveniences; `front`/`back`/`top` and `fold` cover the uses.
+
+## Planned-row omissions
+
+- Row 48 `PersistentSkewHeap`: skew-heap melds are only amortized, and persistence lets an expensive version be reused, so no bound holds; `PersistentLeftistHeap` gives persistent melds in O(log n).
 
 ## Test matrix
 

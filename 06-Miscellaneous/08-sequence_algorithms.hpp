@@ -2,8 +2,6 @@
 #include "../01-Core/01-template.hpp"
 #include "../02-Data Structures/02-fenwick.hpp"
 #include "../02-Data Structures/03-segmenttree.hpp"
-#include "../02-Data Structures/05-prefix_sum.hpp"
-#include "../02-Data Structures/08-monotone_stack.hpp"
 #include "04-compression.hpp"
 
 // T: NA, M: O(1) (WeightedSubsequence O(out)); [l, r) witnesses, exists() and found are false for an absent optimum.

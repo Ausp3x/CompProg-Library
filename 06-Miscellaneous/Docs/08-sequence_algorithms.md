@@ -1,6 +1,6 @@
 # 08-sequence_algorithms.hpp — evidence
 
-`08-sequence_algorithms.hpp` (batch MI03, package P014) covers maximum subarray, bounded, circular, rectangle and average variants, increasing-subsequence lengths, counts and weights, inversions and adjacent-swap distance, `mex`, monotone windows, sorted pair sums and majority/heavy hitters. It reuses DS02 prefix/difference sums, sliding extrema, Fenwick and SegmentTree, plus MI02 compression. Every operation in the row has an independent-oracle test (map below). Prerequisites P002, P006 and P013 are verified. No online submission was made.
+`08-sequence_algorithms.hpp` (batch MI03, package P014) covers maximum subarray, bounded, circular, rectangle and average variants, increasing-subsequence lengths, counts and weights, inversions and adjacent-swap distance, `mex`, monotone windows, sorted pair sums and majority/heavy hitters. It uses the DS02 Fenwick and SegmentTree and MI02 `Compression`; it includes no prefix-sum or monotone-stack header. Every operation in the row has an independent-oracle test (map below). Prerequisites P002, P006 and P013 are verified. No online submission was made.
 
 ## Contracts
 
@@ -66,7 +66,7 @@ The input must be ascending (asserted). The result is any `i < j` with `a[i] + a
 
 Both are verified. `majorityElement` returns Boyer–Moore `{representative index, exact frequency}` of a class with frequency above `n / 2`, or `{-1, 0}`. `heavyHitters` uses Misra–Gries with `k >= 1` (asserted). It returns representatives and exact frequencies of classes above `floor(n / k)`, sorted by `cmp`. `k = 1` returns none, and `k > n` returns every class. A mandatory second pass verifies every candidate in both functions.
 
-Prefix and difference sums and sliding extrema come from their Data Structures headers, whose contracts apply. Correctness: Boyer–Moore cancels pairs of different classes and Misra–Gries groups of `k` distinct classes. At most `floor(n / k)` groups can be cancelled, so any class above the threshold survives, and the second pass makes both answers exact. Across decrement scans every counter unit visited was created earlier, giving linear total work.
+Correctness: Boyer–Moore cancels pairs of different classes and Misra–Gries groups of `k` distinct classes. At most `floor(n / k)` groups can be cancelled, so any class above the threshold survives, and the second pass makes both answers exact. Across decrement scans every counter unit visited was created earlier, giving linear total work.
 
 ## Feature-to-test map
 
@@ -92,19 +92,18 @@ Mutation probes (2026-10-08, quick mode) detected changes to the hull pop, lengt
 
 ## Commands and results
 
-GCC 16.2.1 20260810, Python 3.14.7, Linux x86-64, i9-11900H, 2026-10-08. Commands are shared by the P014 suites `08`–`11`.
+GCC 16.2.1 20260810, GCC 14.4.1 20260915, Python 3.14.7, Linux x86-64, i9-11900H, 2026-10-12, after removing the unused prefix-sum and monotone-stack includes and the tester's checks of those Data Structures headers (their own suites `02-Data Structures/05` and `08` test them).
 
-- Full: `python3 '96-Local Testing/06-Miscellaneous/<NN>_tester.py' --mode full --seed 20261008`: PASS (table below).
-- Stress, one round: `python3 '96-Local Testing/06-Miscellaneous/<NN>_tester.py' --mode stress --seed 7`: PASS (table below).
-- Floor: `CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/<NN>_tester.py' --mode full --seed 20261008` with GCC 14.4.1 20260915: PASS for `08`–`11` in all three configurations, with every assertion probe and the six compile rejections.
-- Quick after the final review fixes: `python3 '96-Local Testing/01-run.py' --mode quick --seed 3 --no-integration --filter '06-Miscellaneous/<NN>'` for `08` and `11`: PASS.
-- `python3 '96-Local Testing/02-integration.py'`: PASS, 102 standalone and aggregate headers, scalar and available AVX2 multi-TU builds, workspace.
-- `python3 '96-Local Testing/03-consistency.py'`: no errors; `--braces` on the four P014 headers, the four C++ testers and the benchmark: no violations.
-- `g++ -std=gnu++20 -O2 -Wall -Wextra -Wconversion` and the same with `g++-14`: headers and testers emit no warnings (except a GCC 16-only false positive in the sorting tester).
+- Quick: `python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode quick --seed 1`: PASS, 2 configurations, 10 probes.
+- Full: `python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode full --seed 1`: PASS (table below).
+- Floor: `CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode full --seed 1`: PASS in all three configurations with every assertion probe.
+- `python3 '96-Local Testing/02-integration.py'`: PASS, 136 standalone and aggregate headers, scalar and available AVX2 multi-TU builds, workspace; with `--sanitizers`: PASS, sanitizer self-tests included.
+- `python3 '96-Local Testing/03-consistency.py'`: no errors; `--braces` on the header and its C++ tester: no violations.
+- `g++ -std=gnu++20 -Wall -Wextra -Wconversion -fsyntax-only` and the same with `g++-14` on the tester: no warnings.
 
-| Suite | Full, seed 20261008 (optimized, checked, ASan/UBSan) | Stress, seed 7, one round (same three) | Probes |
+| Suite | Full, seed 1 (optimized, checked, ASan/UBSan) | Stress, seed 3, one round (same three) | Probes |
 |---|---|---|---|
-| `08-sequence_algorithms` | PASS: 3280 exhaustive ternary arrays (length ≤ 7), 350 random rounds, rectangles ≤ 3x3, large n = 100000 | PASS in 75 s: 9841 arrays (length ≤ 8), 1800 rounds, n = 500000 | 10 |
+| `08-sequence_algorithms` | PASS in 85 s (g++) and 86 s (g++-14): 3280 exhaustive ternary arrays (length ≤ 7), 350 random rounds, rectangles ≤ 3x3, large n = 100000 | PASS (peak 714 MB): 9841 arrays (length ≤ 8), 1800 rounds, n = 500000 | 10 |
 
 ## Benchmarks
 
@@ -127,3 +126,4 @@ The code was written independently from the recurrences and proofs in the packag
 
 - 2026-09-28: first implementation and audit (MI03, P014); full suite passed.
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes; re-audit then added `maximumAverageSubarray`, `mex`, `increasingSubsequenceLengths`, `countIncreasingSubsequences` and `adjacentSwapDistance` (`/reaudit-review` findings 2, 3, 6–8, 10–12, 15, 17 fixed).
+- 2026-10-08: re-audit additions verified: full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.

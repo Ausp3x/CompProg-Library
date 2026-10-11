@@ -33,7 +33,7 @@ Tester `96-Local Testing/02-Data Structures/24-interval_set_tester.cpp`, entry `
 | IntervalSet `insert`, `erase` (return values), `count`, `unionLength`, `intervals`, `find`, `contains`, `covers`, `mex`, `next`, copy independence | `setSmall<lng>`, `setSmall<int>` | Dense bitmap over `[-20, 60)` with maximal runs recomputed after every step; every point in `[-21, 60]`, every `covers` pair, empty and length-1 ranges, ranges reaching outside the bitmap |
 | Same at the numeric extremes of `int` and `lng` (intervals starting at `min`, ending at `max`, `max` never covered, `next(max)` sentinel, erase leaving one point at each end) | `setExtremes<int>`, `setExtremes<lng>` | Hand-computed lengths and pieces with `unionLength` at `max / 2 + 7` |
 | Same with 1e18 coordinates | `setLarge` | Sorted-merge union of the inserted intervals, clipped erase, `find`/`mex`/`next`/`covers` at random and boundary points |
-| IntervalMap `assign` (callback lengths and old values, neighbour merging on both sides), `apply` (piece chain covers `[l, r)`), `fold`, `merge` (no equal neighbours remain inside `[l, r]`; minimal piece count after a full merge), `split`, `get`, `enumerate`, `count`; `ChthollyTree` alias; empty universe | `mapTests` | Dense array over universes `[0,0)`, `[0,1)`, `[-5,7)`, `[0,40)`, `[-30,50)`; pieces must partition the universe and be uniform in the array |
+| IntervalMap `assign` with callback (lengths and old values) and without (3-argument form, half of the random assigns), neighbour merging on both sides for both forms, `apply` (piece chain covers `[l, r)`), `fold`, `merge` (no equal neighbours remain inside `[l, r]`; minimal piece count after a full merge), `split`, `get`, `enumerate`, `count`; `ChthollyTree` alias; empty universe | `mapTests` | Dense array over universes `[0,0)`, `[0,1)`, `[-5,7)`, `[0,40)`, `[-30,50)`; pieces must partition the universe and be uniform in the array |
 | Preconditions | `invalid` | 11 probes: reversed ranges on both structures, reversed universe, keys and ranges outside `[lo, hi)` for `get`, `assign`, `apply`, `enumerate`, `split`, `merge` |
 
 Mutation check (2026-10-08, quick mode, temporary copies): 6 of 9 injected faults detected (insert predecessor test, touching-interval loop bound, missing neighbour merges on both sides of `assign`, unclipped `enumerate`, `find` boundary); the three survivors are equivalent (an extra zero-length pass in `erase`, a redundant `break`, `emplace_hint` on an existing key).
@@ -41,14 +41,16 @@ Mutation check (2026-10-08, quick mode, temporary copies): 6 of 9 injected fault
 ## Commands and results
 
 ```bash
-python3 '96-Local Testing/02-Data Structures/24-interval_set_tester.py' --mode full --seed 20261008
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/24-interval_set_tester.py' --mode full --seed 20261008
+python3 '96-Local Testing/02-Data Structures/24-interval_set_tester.py' --mode quick --seed 1
+python3 '96-Local Testing/02-Data Structures/24-interval_set_tester.py' --mode full --seed 1
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/24-interval_set_tester.py' --mode full --seed 1
+python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/24-interval_set.hpp' '96-Local Testing/02-Data Structures/24-interval_set_tester.cpp'
+python3 '96-Local Testing/03-consistency.py'
 python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/24' --no-integration
 python3 '96-Local Testing/02-integration.py' --sanitizers
-python3 '96-Local Testing/03-consistency.py'
 ```
 
-Final run 2026-10-08 (re-audit pass, after its fixes): full mode seed 20261008 passed on both compilers, 4,071,443 checks per configuration and 11 assertion probes; stress mode seed 7 passed all three configurations with 24,391,671 checks per configuration. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, with `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, on GCC 16.2.1 and again on the floor compiler GCC 14.4.1 (`CXX=g++-14`). `02-integration.py --sanitizers` passed 108 standalone/aggregate headers (including this one alone, in `99-all.hpp` and in the two-translation-unit build), the workspace build and the sanitizer self-tests; `03-consistency.py` reports no errors and checks the closing-brace rule and comment cap on this header and its tester. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
+Latest run 2026-10-12 (after adding oracle tests of the 3-argument `assign`): quick mode seed 1 passed (2 configurations, 413,592 checks, 11 assertion probes); full mode seed 1 passed on GCC 16.2 and GCC 14.4.1 (`CXX=g++-14`) with 4,071,016 checks per configuration and 11 assertion probes, MEMORY peak 512 MB and 520 MB; `--braces` and `03-consistency.py` reported no errors. The header is unchanged. Stress (`--mode stress --seed 3`) passed with 24,395,425 checks per configuration, peak 567 MB, and `python3 '96-Local Testing/02-integration.py' --sanitizers` passed (136 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, sanitizer self-tests, peak 2677 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, with `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
 
 ## Sources
 
@@ -73,3 +75,4 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 - 2026-10-08: P027 first verification.
 - 2026-10-08: independent review (P027) — insert/erase counts, touching merges, split and neighbour merging confirmed; added the partial-`merge` effect check (finding 7) and corrected the split-order explanation (finding 9).
 - 2026-10-08: P027 re-audit pass (second session): the reviewer found the documented "unbounded coordinates" domain false for lengths (signed overflow in `insert`/`total`); the domain now requires every length and the union length to fit `T` (header domain line and contract), with a new numeric-extremes test.
+- 2026-10-12: re-audit fix: the random map test now checks the 3-argument `assign` against the dense array; full suite passed on g++ and g++-14.

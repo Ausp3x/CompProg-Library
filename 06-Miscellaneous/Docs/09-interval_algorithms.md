@@ -69,7 +69,7 @@ Mutation probes (2026-10-08, quick mode): 9 of 9 changed headers were detected (
 
 ## Commands and results
 
-GCC 16.2.1 20260810, Python 3.14.7, Linux x86-64, i9-11900H, 2026-10-08. The commands, floor run and integration are shared with the other P014 suites and recorded in [08-sequence_algorithms.md](08-sequence_algorithms.md).
+GCC 16.2.1 20260810, Python 3.14.7, Linux x86-64, i9-11900H, 2026-10-08. The P014 integration and consistency checks of that date also passed: `python3 '96-Local Testing/02-integration.py'` (102 standalone and aggregate headers, multi-TU builds, workspace) and `python3 '96-Local Testing/03-consistency.py'` with `--braces` on the four P014 headers and testers.
 
 - Full: `python3 '96-Local Testing/06-Miscellaneous/09-interval_algorithms_tester.py' --mode full --seed 20261008`: PASS (table below); with `CXX=g++-14` (GCC 14.4.1): PASS in all three configurations.
 - Stress, one round: `python3 '96-Local Testing/06-Miscellaneous/09-interval_algorithms_tester.py' --mode stress --seed 7`: PASS.
@@ -91,7 +91,7 @@ The code was written independently from the recurrences and proofs in the packag
 - Finite corpora support the proofs above; they are not proofs themselves. Vector sizes beyond `INT_MAX` are reviewed, not allocated.
 - Comparator, callback and window-validity obligations are the caller's responsibility and are not asserted.
 - Checked builds cap the large interval fixtures (and the sequence fixtures) at 2000, because debug-STL partition checks make repeated `lower_bound` calls linear.
-- `39-scheduling.hpp` must forward `intervalPartitionMachines` to `intervalPartitionAssignment`. Geometry `13`'s `segmentUnionLength` should reuse `intervalUnionMeasure` or record why not.
+- `39-scheduling.hpp`'s planned `intervalPartitionMachines` is to be removed as the projected `.first` of `intervalPartitionAssignment` (P079); whether Geometry `13`'s `segmentUnionLength` is a separate operation is open (P037). Both are in [duplicates.md](<../../00-Guidelines/23-Reaudit Findings/duplicates.md>).
 - GCC 14.2 exactly and Codeforces' Windows MSYS2 build were not run; the code uses no Windows-sensitive types or POSIX calls.
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): k-machine schedules; interval jump queries; circular arc cover; ConstantIntervals.
 

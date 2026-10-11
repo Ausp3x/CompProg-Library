@@ -1,6 +1,6 @@
 # 03 Geometry — inventory
 
-Scope: planar and solid geometry with exact integral predicates and explicitly approximate long-double constructions: points, lines, polygons, circles, hulls, sweeps, triangulations, Voronoi/arrangement structures and their query APIs. Mathematics owns floor sums, polynomial root isolation and general LP; Data Structures owns range-tree, Fenwick and convex-hull-trick engines that geometry wrappers reuse; Graphs owns combinatorial planar embeddings and duals. Contracts, ownership rules and legacy obligations are in [00-notes.md](Docs/00-notes.md); the source ledger is in [00-sources.md](Docs/00-sources.md).
+Scope: planar and solid geometry with exact integral predicates and explicitly approximate long-double constructions: points, lines, polygons, circles, hulls, sweeps, triangulations, Voronoi/arrangement structures and their query APIs. Mathematics owns floor sums, polynomial root isolation and general LP; Data Structures owns range-tree, Fenwick and convex-hull-trick engines that geometry reuses; Graphs owns combinatorial planar embeddings and duals. Contracts, ownership rules and legacy obligations are in [00-notes.md](Docs/00-notes.md); the source ledger is in [00-sources.md](Docs/00-sources.md).
 
 ## Basic
 

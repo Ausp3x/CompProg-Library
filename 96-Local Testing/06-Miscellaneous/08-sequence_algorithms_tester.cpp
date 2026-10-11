@@ -185,16 +185,6 @@ void windows(const vector<int> &a) {
     for (int l = 0; l < n; ++l) {
         set<int> seen; int r = l; while (r < n && seen.insert(a[r]).second) { ++r; }
         checkEqual(ends[l], r, "generic distinct window end");}
-    for (int k = 1; k <= n + 1; ++k) {
-        auto mn = slidingMinimum(a, k), mx = slidingMaximum(a, k), right = slidingMinimum(a, k, true);
-        checkEqual(mn.size(), max(0, n - k + 1), "shared window size");
-        for (int l = 0; l + k <= n; ++l) {
-            int low = l, high = l, last = l;
-            for (int r = l; r < l + k; ++r) {
-                if (a[r] < a[low]) { low = r; }
-                if (a[r] > a[high]) { high = r; }
-                if (a[r] <= a[last]) { last = r; }}
-            checkEqual(mn[l], low, "shared leftmost minimum"); checkEqual(mx[l], high, "shared leftmost maximum"); checkEqual(right[l], last, "shared rightmost minimum");}}
     auto sorted = a; sort(sorted.begin(), sorted.end());
     for (int target = -1; target <= 10; ++target) {
         auto got = sortedPairSum(sorted, target); bool exists = false;
@@ -259,13 +249,7 @@ void extremesAndGeneric(int large) {
     checkEqual(countIncreasingSubsequences<lll>(pairs), three - 1, "exact strict chain count 3^40 - 1");
     checkEqual(countIncreasingSubsequences<lll>(pairs, false), (lll(1) << 80) - 1, "exact nonstrict chain count 2^80 - 1");
     check(countIncreasingSubsequences<lll>(vector<int>(100, 7)) == 100 && countIncreasingSubsequences<lll>(vector<int>(100, 7), false) == (lll(1) << 100) - 1, "equal-key chain counts");
-    check(mex(vector<ulng>{std::numeric_limits<ulng>::max(), 0, 1}) == 2 && mex(vector<lng>{std::numeric_limits<lng>::min(), 1}) == 0, "full-width mex");
-    PrefixSum<lll> prefix(vector<lll>{1, -2, 4}); checkEqual(prefix.sum(1, 3), 2, "shared PrefixSum");
-    DifferenceArray<lll> difference(vector<lll>{1, -2, 4}); difference.add(0, 2, 3);
-    check(difference.values() == vector<lll>{4, 1, 4}, "shared DifferenceArray");
-    PrefixSum2D<lll> prefix2(vector<vector<lll>>{{1, 2}, {3, 4}}); checkEqual(prefix2.sum(0, 1, 2, 2), 6, "shared PrefixSum2D");
-    DifferenceArray2D<lll> diff2(2, 2); diff2.add(0, 0, 2, 1, 4);
-    check(diff2.values() == vector<vector<lll>>{{4, 0}, {4, 0}}, "shared DifferenceArray2D");}
+    check(mex(vector<ulng>{std::numeric_limits<ulng>::max(), 0, 1}) == 2 && mex(vector<lng>{std::numeric_limits<lng>::min(), 1}) == 0, "full-width mex");}
 
 int main(int argc, char **argv) {
     string mode = "full";
@@ -310,4 +294,4 @@ int main(int argc, char **argv) {
             for (int i = 0; i < r; ++i) { for (int j = 0; j < c; ++j) { a[i][j] = ((mask >> (i * c + j)) & 1) ? 1 : -1; } } rectangle(a);}}}
     cout << "PASS random rounds=" << rounds << " and exhaustive <=3x3 signed rectangles, both orientations\n";
     extremesAndGeneric(mode == "quick" ? 1000 : mode == "full" ? 100000 : 500000);
-    cout << "PASS full-width sums, generic equivalence, wide/modular counts, shared engines and large adversarial seed=" << seed << '\n';}
+    cout << "PASS full-width sums, generic equivalence, wide/modular counts and large adversarial seed=" << seed << '\n';}

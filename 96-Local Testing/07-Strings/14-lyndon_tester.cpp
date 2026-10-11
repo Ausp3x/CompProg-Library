@@ -1,4 +1,5 @@
 #include "../../07-Strings/14-lyndon.hpp"
+#include "../../07-Strings/07-suffixarray.hpp"
 
 ulng test_seed = 0;
 lng checks = 0, cases = 0;
@@ -19,6 +20,7 @@ template<class S> Key keys(const S &s) {
     Key res;
     for (auto c : s) {
         if constexpr (std::is_same_v<decltype(c), char>) { res.push_back(uint8_t(c)); }
+        else if constexpr (std::is_same_v<decltype(c), string>) { res.push_back(256 * uint8_t(c.at(0)) + uint8_t(c.at(1))); }
         else { res.push_back(lng(c)); }}
     return res;}
 bool bruteLyndon(const Key &s, int l, int r) {
@@ -91,6 +93,42 @@ void exhaustive(const string &mode) {
             context = "ternary " + s;
             verify(s);}}
     cout << "PASS exhaustive ternary brute Lyndon lengths=0.." << bound << '\n';}
+// Embedded NUL and high bytes: unsigned for char, unsigned char, char8_t; signed for signed char.
+void byteOrder(const string &mode) {
+    int bound = mode == "quick" ? 5 : 7, count = 1;
+    const char sym[4] = {'\0', '\x7f', '\x80', '\xff'};
+    for (int n = 0; n <= bound; ++n, count *= 4) {
+        for (int code = 0; code < count; ++code) {
+            string s(n, '\0');
+            for (int x = code, i = 0; i < n; ++i, x /= 4) { s[i] = sym[x % 4]; }
+            context = "bytes {00,7f,80,ff} code=" + std::to_string(code) + " n=" + std::to_string(n);
+            verify(s);
+            if (n <= 6) {
+                verify(vector<char>(s.begin(), s.end()));
+                verify(vector<signed char>(s.begin(), s.end()));}
+            if (n <= 5) {
+                verify(vector<unsigned char>(s.begin(), s.end()));
+                verify(std::u8string(s.begin(), s.end()));}}}
+    cout << "PASS NUL/high-byte orders string/vector<char>/signed/unsigned/char8_t lengths=0.." << bound << '\n';}
+// Non-byte symbols take the comparison-ranking path; keys() maps two-byte strings in std::string (unsigned) order.
+void nonByte(const string &mode) {
+    std::mt19937_64 rng(test_seed + 5);
+    int count = mode == "quick" ? 200 : mode == "full" ? 1000 : 2000;
+    for (int rep = 0; rep < count; ++rep) {
+        int n = int(rng() % 21), sigma = int(rng() % 4) + 1;
+        vector<string> syms(n);
+        std::deque<int16_t> shorts(n);
+        vector<uint16_t> wide(n);
+        for (int i = 0; i < n; ++i) {
+            int x = int(rng() % sigma);
+            syms[i] = {char('a' + x / 2), char(x % 2 ? '\xff' : '\0')};
+            shorts[i] = int16_t(x % 2 ? -30000 + x : 30000 - x);
+            wide[i] = uint16_t(x * 20000);}
+        context = "non-byte case=" + std::to_string(rep) + " n=" + std::to_string(n);
+        verify(syms);
+        verify(shorts);
+        verify(wide);}
+    cout << "PASS non-byte symbols vector<string>/deque<int16_t>/vector<uint16_t> cases=" << count << '\n';}
 void words(const string &mode) {
     int bound = mode == "quick" ? 6 : mode == "full" ? 9 : 11;
     for (int k = 0; k <= 4; ++k) {
@@ -159,6 +197,28 @@ void large(const string &mode) {
         expectEqual(int(t.l.size()), 2 * n - (int(cuts.size()) - 1), "tree size");
         for (int i = 0; i + 1 < int(t.roots.size()); ++i) { expectEqual(t.r[t.roots[i]], t.l[t.roots[i + 1]], "roots contiguous"); }}
     cout << "PASS large unary/random/periodic/Thue-Morse cross-checks n=" << n << '\n';}
+// lambda[i] = nss(i) - i against the independent prefix-doubling suffix array: rank[i + lambda[i]] < rank[i] and every rank strictly inside is larger (sparse-table minimum).
+void largeBytes(const string &mode) {
+    int n = mode == "quick" ? 20000 : 1000000;
+    std::mt19937_64 rng(test_seed + 23);
+    for (int pass = 0; pass < 3; ++pass) {
+        string s(n, '\0');
+        for (int i = 0; i < n; ++i) { s[i] = pass == 0 ? char(rng() % 256) : pass == 1 ? char(rng() % 2 ? '\xff' : '\0') : char(i % 5 == 4 ? '\x80' : '\x7f'); }
+        context = string("large bytes ") + (pass == 0 ? "random 256" : pass == 1 ? "random {00,ff}" : "(7f^4 80)^*") + " n=" + std::to_string(n);
+        vector<int> lambda = lyndonArray(s), rank = SuffixArray<int>(string_view(s), false).rank;
+        check(lyndonArray(vector<char>(s.begin(), s.end())) == lambda, "vector<char> equals string");
+        vector<vector<int>> mn{rank};
+        for (int h = 1; 2 * h <= n; h *= 2) {
+            vector<int> b(n - 2 * h + 1);
+            for (int i = 0; i + 2 * h <= n; ++i) { b[i] = min(mn.back()[i], mn.back()[i + h]); }
+            mn.push_back(std::move(b));}
+        int bad = -1;
+        for (int i = n - 1; i >= 0; --i) {
+            int j = i + lambda[i], l = i + 1, h = std::bit_width(uint(max(j - l, 1))) - 1;
+            bool end = lambda[i] >= 1 && j <= n && (j == n || rank[j] < rank[i]);
+            if (!end || (j - l >= 1 && min(mn[h][l], mn[h][j - (1 << h)]) < rank[i])) { bad = i; }}
+        check(bad < 0, "lyndonArray i=" + std::to_string(bad) + " is the next smaller suffix");}
+    cout << "PASS large NUL/high-byte strings versus doubling suffix array n=" << n << '\n';}
 int main(int argc, char **argv) {
     string mode = "full", invalid;
     for (int i = 1; i + 1 < argc; i += 2) {
@@ -187,7 +247,10 @@ int main(int argc, char **argv) {
         if (invalid == "words-negative") { lyndonWords(-1, 2, [](const vector<int> &) {}); }
         return 0;}
     exhaustive(mode);
+    byteOrder(mode);
+    nonByte(mode);
     words(mode);
     randomCases(mode);
     large(mode);
+    largeBytes(mode);
     cout << "PASS lyndon seed=" << test_seed << " cases=" << cases << " checks=" << checks << '\n';}

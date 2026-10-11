@@ -6,13 +6,13 @@
 
 ### binSearch
 
-`binSearch(ok, ng, f)` accepts any two `lng` endpoints, in either order. The caller knows `ok` is feasible and `ng` infeasible, with one monotone transition between them. Neither endpoint is evaluated, so they may stand for hypothetical boundary states. Equal endpoints mean the answer has already converged. The function returns the last feasible value next to the transition and makes at most 64 predicate calls.
+`binSearch(ok, ng, f)` accepts any two `lng` endpoints, in either order. The caller knows `ok` is feasible and `ng` infeasible, with one monotone transition between them. Neither endpoint is evaluated, so they may stand for hypothetical boundary states. Equal endpoints mean the answer has already converged. The function returns the last feasible value next to the transition and makes at most 64 predicate calls. It equals `lastTrue(ok + 1, ng, f)` when `ok < ng` and `firstTrue(ng + 1, ok, f)` when `ok > ng`, mapped to `ok` when nothing qualifies; it stays as the one orientation-free call for the ok/ng idiom (`00-Guidelines/23-Reaudit Findings/duplicates.md`, Keeps).
 
 Correctness: `std::midpoint` rounds toward `ok`; when the midpoint equals `ok`, the endpoints are adjacent or equal. Every queried midpoint is strictly interior, and updating one endpoint keeps the transition bracketed. This avoids the archived `abs(ok - ng)` overflow even for `INT64_MIN` and `INT64_MAX`.
 
 ### firstTrue, lastTrue
 
-Both search half-open `[l, r)` with `l <= r` (asserted). `firstTrue` needs a false-then-true predicate and `lastTrue` a true-then-false one. Both return `{found, position}`, with `{false, r}` for absence, including empty ranges. Neither endpoint is a sentinel. `r = INT64_MAX` stays a valid excluded endpoint; to search through that last value, use `binSearch`.
+Both search half-open `[l, r)` with `l <= r` (asserted). `firstTrue` needs a false-then-true predicate and `lastTrue` a true-then-false one. Both return `{found, position}`, with `{false, r}` for absence, including empty ranges. Neither endpoint is a sentinel. `r = INT64_MAX` stays a valid excluded endpoint. No search here tests `INT64_MAX` itself as a candidate, since an excluded bound cannot pass it; `binSearch` excludes `ng` the same way.
 
 Correctness: each midpoint satisfies `l <= md < r`, so `md + 1` cannot overflow. `lastTrue` finds the first false position and decrements it only when it exceeds `l`.
 

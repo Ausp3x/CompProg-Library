@@ -36,7 +36,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P019 — C05, C06** (opus, M+M): 01-Core — infintmini, rational. Status: planned.
 - [ ] **P020 — C07** (fable, XL): 01-Core — matrix. Status: planned.
 - [ ] **P021 — C08** (opus, M): 01-Core — matrixmini. Status: planned.
-- [ ] **P022 — C09, C10** (fable, L+M): 01-Core — bitmatrix, bitmatrixmini. Status: planned.
+- [ ] **P022 — C09, C10** (fable, L+M): 01-Core — bitmatrix, bitmatrixmini. Status: planned. Note: Defects in the pinned 12-bitmatrix.hpp body, fix in the rewrite: operator*=(int) zeroes only for 0 (GF(2) needs o & 1, so a * 2 returns a); BitMatrix(string, axis) leaves fields uninitialised for an axis other than 0 or 1.
 - [ ] **P023 — C13** (fable, XL): 01-Core — sparsematrix. Status: planned.
 - [ ] **P024 — C14** (opus, M): 01-Core — sparsematrixmini. Status: planned.
 
@@ -56,7 +56,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P057 — MA07** (opus, L): 05-Mathematics — polynomial algorithms, linear recurrence. Status: verified. [evidence](05-Mathematics/Docs/14-polynomial_algorithms.md) [evidence](05-Mathematics/Docs/15-linear_recurrence.md)
 - [x] **P084 — ST08, ST20, ST23** (opus, L+L+M): 07-Strings — string matching, bitap, subsequence automaton, bwt. Status: verified. [evidence](07-Strings/Docs/16-string_matching.md) [evidence](07-Strings/Docs/17-bitap.md) [evidence](07-Strings/Docs/20-subsequence_automaton.md) [evidence](07-Strings/Docs/29-bwt.md)
 - [x] **P036 — GE03, GE24, GE25** (opus, L+M+L): 03-Geometry — halfplaneintersection, minkowskisum, circle polygon, polygon distance. Status: verified. [evidence](03-Geometry/Docs/10-halfplaneintersection.md) [evidence](03-Geometry/Docs/11-minkowskisum.md) [evidence](03-Geometry/Docs/16-circle_polygon.md) [evidence](03-Geometry/Docs/17-polygon_distance.md)
-- [ ] **P029 — DS09, DS10, DS48** (opus, L+L+L): 02-Data Structures — waveletmatrix, treap, heap deque. Status: planned.
+- [ ] **P029 — DS09, DS10, DS48** (opus, L+L+L): 02-Data Structures — waveletmatrix, treap, heap deque. Status: planned. Note: Defect in the pinned 17-waveletmatrix.hpp body, fix in the rewrite: cntEql, cntRan, maxLeq and minGeq compute x - 1 and overflow at x = INT64_MIN.
 - [ ] **P045 — GR09** (opus, XL): 04-Graphs — min cost flow. Status: planned.
 - [ ] **P075 — MI23** (opus, L): 06-Miscellaneous — slope trick. Status: planned.
 - [ ] **P033 — DS13, DS29** (opus, L+L): 02-Data Structures — trie, cartesiantree, disjointsparsetable, offline rectangle queries. Status: planned.

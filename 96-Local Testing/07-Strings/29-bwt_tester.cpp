@@ -1,3 +1,4 @@
+#include "../../07-Strings/07-suffixarray.hpp"
 #include "../../07-Strings/29-bwt.hpp"
 
 ulng test_seed = 0;

@@ -6,15 +6,15 @@ Package P027 (batch DS04). Replaces the unchanged extractions `FenTreeRangeAdd1D
 
 ### FenwickRangeAdd<T>
 
-`T` is a commutative ring (`+`, `-`, `*`, `T(int)`): `lng`, `mint`, `double`. Two Fenwick arrays store the difference sequence `d` and `d * index`, so `prefixSum(r) = r * sum(d[0..r)) - sum(d[j] * j)`; the intermediate `r * sum(d)` equals `r * a[r - 1]`, and `sum(d[j] * j)` is bounded by `2 * n * max|a_i|`, so for integral `T` the domain is `2 * n * max|a_i| < 2^63` over the whole history (modular `T` has no bound). `add(l, r, x)` adds `x` to `[l, r)`; `sum(l, r)`, `prefixSum(r)` and `get(i)` read; `update(i, x)` is the point helper. Constructors: size (zeros) and `vector<T>` with an O(n) build from first differences.
+`T` is a commutative ring (`+`, `-`, `*`, `T(int)`): `lng`, `mint`, `double`. Two Fenwick arrays store the difference sequence `d` and `d * index`, so `prefixSum(r) = r * sum(d[0..r)) - sum(d[j] * j)`; the intermediate `r * sum(d)` equals `r * a[r - 1]`, and `sum(d[j] * j)` is bounded by `2 * n * max|a_i|`, so for integral `T` the domain is `2 * n * max|a_i| < 2^63` over the whole history (modular `T` has no bound). `add(l, r, x)` adds `x` to `[l, r)`; `sum(l, r)`, `prefixSum(r)` and `get(i)` read; `update(i, x)` adds `x` to every `a[j]` with `j >= i` (one difference point); it asserts `0 <= i <= n`, and `i == n` is a no-op that `add(l, n, x)` relies on. Constructors: size (zeros) and `vector<T>` with an O(n) build from first differences.
 
 ### DualFenwick<T>
 
-`T` is a commutative group. One Fenwick array over first differences: `add(l, r, x)` in O(log(n)), `get(i)` = prefix of differences. No range sum (use `FenwickRangeAdd`). Size and vector constructors.
+`T` is a commutative group. One Fenwick array over first differences: `add(l, r, x)` in O(log(n)), `get(i)` = prefix of differences. `update(i, x)` adds `x` to every `a[j]` with `j >= i` (one difference point); it asserts `0 <= i <= n`, and `i == n` is a no-op that `add(l, n, x)` relies on. No range sum (use `FenwickRangeAdd`). Size and vector constructors.
 
 ### FenwickRangeArithmeticAdd<T>
 
-`addProgression(l, r, a, d)` adds `a + d * (i - l)` to `a[i]` for `i` in `[l, r)`; `add(l, r, x)` is the constant case. Three coefficient arrays `(A, B, C)` make `prefixSum(r) = A(r) + B(r) * r + C(r) * r(r-1)/2`, where the triangular number is computed exactly in `lng` before conversion to `T`, so `mint` works. Integral domain: `2 * n^2 * max(|a_i|, |a|, |d|)` over the history fits `T` (the coefficient sums carry `n * a` and `n^2 * d / 2` terms). `sum`, `prefixSum`, `get`; size and vector constructors.
+`addProgression(l, r, a, d)` adds `a + d * (i - l)` to `a[i]` for `i` in `[l, r)`; `add(l, r, x)` is the constant case. `update(i, a, b, c)` adds `a + b * r + c * r(r-1)/2` to `prefixSum(r)` for every `r > i`; it asserts `0 <= i <= n`, and `i == n` is a no-op that `addProgression(l, n, a, d)` relies on. Three coefficient arrays `(A, B, C)` make `prefixSum(r) = A(r) + B(r) * r + C(r) * r(r-1)/2`, where the triangular number is computed exactly in `lng` before conversion to `T`, so `mint` works. Integral domain: `2 * n^2 * max(|a_i|, |a|, |d|)` over the history fits `T` (the coefficient sums carry `n * a` and `n^2 * d / 2` terms). `sum`, `prefixSum`, `get`; size and vector constructors.
 
 ### Fenwick2D<T>, Fenwick3D<T>
 
@@ -42,30 +42,32 @@ A set of integers in `[0, n)`: one bit per element in 64-bit words plus a Fenwic
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.cpp`, entry `11-fenwick_tree_advanced_tester.py` (driver `_00_runner.py`: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan; `-Wall -Wextra -Wconversion -Werror`; 31 assertion probes under the checked build).
+Tester `96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.cpp`, entry `11-fenwick_tree_advanced_tester.py` (driver `_00_runner.py`: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan; `-Wall -Wextra -Wconversion -Werror`; 37 assertion probes under the checked build).
 
 | Operation | Group | Oracle |
 |---|---|---|
-| FenwickRangeAdd `add`, `sum`, `prefixSum`, `get`, vector build; DualFenwick `add`, `get`, vector build; FenwickRangeArithmeticAdd `addProgression`, `add`, `sum`, `prefixSum`, `get`, vector build | `rangeAdd<lng>`, `rangeAdd<mint>` | Plain vectors updated element by element (`a[i] += x + s * (i - l)`) with zero, negative and positive values, adds and differences (shifted only for `mint`), every prefix and point re-read for `n <= 17` and every 50 steps; sizes 0–100 (513 in stress) |
+| FenwickRangeAdd `add`, `update` (suffix add, `i` in `[0, n]`), `sum`, `prefixSum`, `get`, vector build; DualFenwick `add`, `update` (suffix add, `i` in `[0, n]`), `get`, vector build; FenwickRangeArithmeticAdd `addProgression`, `add`, `update` (raw coefficients, `i` in `[0, n]`), `sum`, `prefixSum`, `get`, vector build | `rangeAdd<lng>`, `rangeAdd<mint>` | Plain vectors updated element by element (`a[i] += x + s * (i - l)`; `update(i, x)` adds `x` to `a[i..n)` and `b[i..n)`; the arithmetic `update(i, a, b, c)` adds `P(j + 1) - P(j)` to `c[j]` with `P(r) = a + b * r + c * r(r-1)/2` for `r > i`, else 0) with zero, negative and positive values, adds and differences (shifted only for `mint`), every prefix and point re-read for `n <= 17` and every 50 steps; sizes 0–100 (513 in stress) |
 | Fenwick2D `add`, `sum`, `prefixSum`, `get`, matrix build; Fenwick2DRangeAdd `add`, `sum`, `prefixSum`; Fenwick3D `add`, `sum`, `prefixSum`, `get`, box build | `grids` | Dense matrices/boxes with brute rectangle and box sums; dimensions include `0 x 3`, `3 x 0`, `1 x 1`, `32 x 33`, `16 x 3 x 17` |
 | CompressedFenwick2D `add`, `sum`, `prefixSum` | `compressed` | `map<point, weight>` scanned per query; coordinate spans 4, 1000 and 1e18 with negative values, duplicate registered points, unregistered query bounds |
 | FenwickPrefixMonoid `apply`, `prefix`, vector build | `prefixMonoid` | Max (identity `INT64_MIN`) and gcd folds recomputed by scanning |
 | Fenwick01 `get`, `contains`, `size`, `add`, `insert`, `erase`, `rank`, `sum`, `kth`, `next`, `prev`, vector<bool> build; alias `FenwickSet` | `bitset01` | Sorted element vector with `lower_bound`/`upper_bound`; `n` in {0, 1, 2, 63, 64, 65, 127, 128, 129, 200, 1000, 4096, 20000 (stress)}, densities empty/sparse/half/full |
-| Preconditions | `invalid` probes | 31 probes: negative sizes, oversize grid and box, reversed or out-of-range ranges, ragged matrix rows, unregistered compressed points, double insert/remove, `kth(-1)` |
+| Preconditions | `invalid` probes | 37 probes: negative sizes, `update` at `-1` and `n + 1` on `FenwickRangeAdd`, `DualFenwick` and `FenwickRangeArithmeticAdd`, oversize grid and box, reversed or out-of-range ranges, ragged matrix rows, unregistered compressed points, double insert/remove, `kth(-1)` |
 
 Quick: 6 sizes, 150 steps, no sanitizer build. Full: 14 sizes, 1500 steps, three builds. Stress: sizes up to 513/20000, 4000 steps (sized so the `-O0` debug-iterator build stays inside the runner's 180 s limit). Mutation check (2026-10-08, quick mode, temporary copies): 7 of 8 injected faults detected (fused 3D build pass, select comparison, triangular number, 2D range-add prefix formula, `prev` sentinel, difference index weight, 3D inclusion–exclusion sign); the survivor (keeping duplicate `y` values per compressed node) is functionally equivalent.
 
 ## Commands and results
 
 ```bash
-python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode full --seed 20261008
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode full --seed 20261008
+python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode quick --seed 1
+python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode full --seed 1
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode full --seed 1
+python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/11-fenwick_tree_advanced.hpp' '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.cpp'
+python3 '96-Local Testing/03-consistency.py'
 python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/1' --no-integration
 python3 '96-Local Testing/02-integration.py' --sanitizers
-python3 '96-Local Testing/03-consistency.py'
 ```
 
-Final run 2026-10-08 (re-audit pass, after its fixes): full mode seed 20261008 passed on both compilers, 2,138,402 checks per configuration and 31 assertion probes; stress mode seed 7 passed all three configurations with 6,848,592 checks per configuration. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, with `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, on GCC 16.2.1 and again on the floor compiler GCC 14.4.1 (`CXX=g++-14`). `02-integration.py --sanitizers` passed 108 standalone/aggregate headers (including this one alone, in `99-all.hpp` and in the two-translation-unit build), the workspace build and the sanitizer self-tests; `03-consistency.py` reports no errors and checks the closing-brace rule and comment cap on this header and its tester. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
+Latest run 2026-10-12 (after the `update` bound fixes on all three one-dimensional range-add types): quick mode seed 1 passed (2 configurations, 121,045 checks, 37 assertion probes); full mode seed 1 passed on GCC 16.2 and GCC 14.4.1 (`CXX=g++-14`) with 2,134,536 checks per configuration and 37 assertion probes, MEMORY peak 548 MB and 543 MB; `--braces` and `03-consistency.py` reported no errors. Stress (`--mode stress --seed 3`) passed with 6,837,277 checks per configuration, peak 549 MB, and `python3 '96-Local Testing/02-integration.py' --sanitizers` passed (136 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, sanitizer self-tests, peak 2677 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, with `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
 
 ## Sources
 
@@ -91,3 +93,4 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 - 2026-10-08: P027 first verification; legacy `FenTreeRangeAdd1D`/`FenTree` replaced.
 - 2026-10-08: independent review (P027) — fixed the overflowing 3D size check (finding 3, new `box-oversize` probe), restated the integral domains with their constant factors (finding 4) and added zero/negative inputs to the range-add suites (finding 6); the formulas, builds and compressed node lists were confirmed.
 - 2026-10-08: P027 re-audit pass (second session): formulas and builds reconfirmed; the `CompressedFenwick2D::add` registration assert moved out of the per-level loop and the `Fenwick01` `vector<bool>` constructor got its own `O(n)` comment (style findings only).
+- 2026-10-12: re-audit fix: `update` on `FenwickRangeAdd`, `DualFenwick` and `FenwickRangeArithmeticAdd` asserts `0 <= i <= n`, with direct oracle tests and 6 new probes; full suite passed on g++ and g++-14.

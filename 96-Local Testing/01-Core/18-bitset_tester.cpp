@@ -131,7 +131,11 @@ static void verify(const Bitset &a, const Bits &v, bool scan = true) {
         size_t next = n;
         for (size_t i = n; i > 0; --i) {
             expect(a.findNext(i - 1), next, "next position=" + std::to_string(i - 1));
-            if (v[i - 1]) { next = i - 1; }}}}
+            if (v[i - 1]) { next = i - 1; }}
+        size_t from = n;
+        for (size_t i = n + 1; i > 0; --i) {
+            if (i - 1 < n && v[i - 1]) { from = i - 1; }
+            expect(a.findFrom(i - 1), from, "from position=" + std::to_string(i - 1));}}}
 
 static std::vector<size_t> shifts(size_t n) {
     std::vector<size_t> result{0, 1, 2, 31, 32, 63, 64, 65, 127, 128, 129,
@@ -434,6 +438,20 @@ static void exhaustive(bool quick) {
                 binaryTests(a, b, n <= (quick ? 2 : 4));}}}
     std::cout << "PASS exhaustive small bitsets, range masks, set algebra and fused aliasing\n";}
 
+static void findFromCases() {
+    context = "findFrom";
+    expect(Bitset().findFrom(0), size_t(0), "empty bitset");
+    for (size_t n : {size_t(1), size_t(63), size_t(64), size_t(65), size_t(130), size_t(200)}) {
+        Bitset zero(n), ones(n, true);
+        for (size_t p = 0; p <= n; ++p) {
+            expect(zero.findFrom(p), n, "all zero n=" + std::to_string(n) + " p=" + std::to_string(p));
+            expect(ones.findFrom(p), p, "all one n=" + std::to_string(n) + " p=" + std::to_string(p));}
+        for (size_t q : {size_t(0), size_t(7), size_t(62), size_t(63), size_t(64), size_t(65), size_t(100), size_t(127), size_t(128), size_t(129), n - 1}) {
+            if (q >= n) { continue; }
+            Bitset single(n); single.set(q);
+            for (size_t p = 0; p <= n; ++p) { expect(single.findFrom(p), p <= q ? q : n, "single bit q=" + std::to_string(q) + " n=" + std::to_string(n) + " p=" + std::to_string(p)); }}}
+    std::cout << "PASS findFrom on empty, all-zero, all-one and single-bit sets at every position\n";}
+
 static void boundaries(bool quick, bool stress) {
     std::mt19937_64 rng(seed ^ 0xD6E8FEB86659FD93ULL);
     std::vector<int> sizes{0, 1, 2, 7, 8, 31, 32, 33, 63, 64, 65, 127, 128, 129, 191,
@@ -622,6 +640,7 @@ static int death(const std::string &name) {
     else if (name == "count-range") { (void)a.count(2, 1); }
     else if (name == "mask-range") { (void)Bitset::rangeMask(65, 0, 66); }
     else if (name == "next") { (void)a.findNext(66); }
+    else if (name == "from") { (void)a.findFrom(66); }
     else if (name == "prev") { (void)a.findPrev(66); }
     else if (name == "pop-empty") { Bitset().popBack(); }
     else if (name == "string") { (void)Bitset("010x"); }
@@ -662,6 +681,7 @@ int main(int argc, char **argv) {
     countMatrix();
     valueOperatorSmoke();
     if (!counts_only) {
+        findFromCases();
         exhaustive(mode == "quick");
         rangeCombos(mode == "quick" ? 3 : mode == "stress" ? 5 : 4);
         boundaries(mode == "quick", mode == "stress");

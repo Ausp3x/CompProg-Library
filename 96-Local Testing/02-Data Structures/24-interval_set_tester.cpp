@@ -188,21 +188,24 @@ namespace {
                 if (l > r) { swap(l, r); }
                 string at = "step=" + show(step) + " [" + show(l) + "," + show(r) + ")";
                 merged = false;
-                switch (rng() % 6) {
+                int op = int(rng() % 6);
+                switch (op) {
                     case 0: case 1: {
                         int v = int(rnd(rng, 0, 3));
-                        lng removedLen = 0;
-                        bool exact = true;
-                        t.assign(l, r, v, [&](lng x, lng y, const int &old) {
-                            removedLen += y - x;
-                            for (lng i = x; i < y; ++i) { exact = exact && a[i - lo] == old; }});
-                        checkEqual(removedLen, r - l, at + " removed length");
-                        checkEqual(exact, true, at + " removed values");
+                        if (op == 0) {
+                            lng removedLen = 0;
+                            bool exact = true;
+                            t.assign(l, r, v, [&](lng x, lng y, const int &old) {
+                                removedLen += y - x;
+                                for (lng i = x; i < y; ++i) { exact = exact && a[i - lo] == old; }});
+                            checkEqual(removedLen, r - l, at + " removed length");
+                            checkEqual(exact, true, at + " removed values");}
+                        else { t.assign(l, r, v); }
                         for (lng i = l; i < r; ++i) { a[i - lo] = v; }
                         if (l < r) {
                             auto [pl, pr, pv] = t.get(l);
-                            checkEqual(pl == l, l == lo || a[l - 1 - lo] != v, at + " assign merges left neighbour");
-                            checkEqual(pr == r, r == hi || a[r - lo] != v, at + " assign merges right neighbour");}
+                            checkEqual(pl == l, l == lo || a[l - 1 - lo] != v, at + " assign" + (op ? "" : " callback") + " merges left neighbour");
+                            checkEqual(pr == r, r == hi || a[r - lo] != v, at + " assign" + (op ? "" : " callback") + " merges right neighbour");}
                         break;}
                     case 2: {
                         lng pos = l;

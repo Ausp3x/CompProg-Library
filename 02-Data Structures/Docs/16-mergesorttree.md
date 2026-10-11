@@ -4,7 +4,7 @@ Package P028 (batch DS08). Replaces the unchanged extraction `DynMergeSortTree` 
 
 ## Contracts
 
-All three structures need only `T`'s `operator<` (a strict weak order whose equivalence is equality); equal values are counted with multiplicity. `maxLeq(l, r, x, res)` and `minGeq(l, r, x, res)` return `false` and leave `res` untouched when no value qualifies; `countRange` with `!(lo < hi)` returns 0.
+All three structures need only `T`'s `operator<` (a strict weak order whose equivalence is equality); equal values are counted with multiplicity. `maxLeq(l, r, x, res)` and `minGeq(l, r, x, res)` return `false` and leave `res` untouched when no value qualifies; `countRange` with `!(lo < hi)` returns 0 after its index-range assert, so an invalid `[l, r)` fails even then.
 
 ### MergeSortTree<T> (static, fractional cascading)
 
@@ -41,7 +41,7 @@ The legacy dynamic tree reserved 2.5 million nodes up front, searched `kth` over
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp`, entry `16-mergesorttree_tester.py` (driver `_00_runner.py`; three builds; 16 assertion probes; the checked build uses `-D_GLIBCXX_ASSERTIONS` because GCC's PBDS debug mode validates whole trees on every operation and the full corpus exceeded the runner's 180 s limit, while `-O0` with assertions finishes in about 1 s).
+Tester `96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp`, entry `16-mergesorttree_tester.py` (driver `_00_runner.py`; three builds; 18 assertion probes; the checked build uses `-D_GLIBCXX_ASSERTIONS` because GCC's PBDS debug mode validates whole trees on every operation and the full corpus exceeded the runner's 180 s limit, while `-O0` with assertions finishes in about 1 s).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -50,21 +50,23 @@ Tester `96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp`, entry 
 | DynamicMergeSortTree `insert`, `erase` (present and absent values), `set`, `size` and every query, single-valued and multiset slots, `lng` and `string` | `dynamicRun` + `compare` | Vector of per-slot multisets |
 | PointSetRangeFrequency `set`, `get`, `count` for `lng` and `string` | `frequencyRun` | `std::count` over the window |
 | Empty structures, untouched `res`, extreme values, duplicates in one slot, erase of one copy, copy independence, erasing emptied position sets | `edges` | Direct values |
-| Preconditions | `invalid` | Reversed and out-of-range windows, `kth` with `k` out of range or an empty window, negative size, slot out of range, `set` on a multi-valued or empty slot |
+| Preconditions | `invalid` | Reversed and out-of-range windows (including `countRange` with `lo >= hi` on both trees: `static-countrange-end`, `dynamic-countrange-reversed`), `kth` with `k` out of range or an empty window, negative size, slot out of range, `set` on a multi-valued or empty slot |
 
 Sizes 0–129 (plus 513 and 1000 in stress) with value spans 0, 3 and 10^12. Mutation check (2026-10-10, quick mode, temporary copies): 9 of 9 injected faults detected (cascade at a full node, cascade counter, `kth` bound, `maxLeq` rank bound, erase of a different value, `countEqual` bound, frequency window end, `minGeq` bound, dynamic `kth` bound).
 
 ## Commands and results
 
 ```bash
-python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode full --seed 20261010
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode full --seed 20261010
+python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode quick --seed 1
+python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode full --seed 1
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode full --seed 1
+python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/16-mergesorttree.hpp' '96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp'
+python3 '96-Local Testing/03-consistency.py'
 python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/16' --no-integration
 python3 '96-Local Testing/02-integration.py' --sanitizers
-python3 '96-Local Testing/03-consistency.py'
 ```
 
-Final run 2026-10-10 (after the review fixes): full mode seed 20261010 passed on GCC 16.2 and GCC 14.4.1 (`CXX=g++-14`) with 960,745 checks per configuration and 16 assertion probes, MEMORY peak 631 MB and 595 MB; stress mode seed 7 (one round) passed all three configurations with 4,683,181 checks per configuration, MEMORY peak 642 MB. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20 with `-Wall -Wextra -Wconversion -Werror`, CPython 3.14, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_ASSERTIONS`) and ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined`) builds. MEMORY peaks are dominated by compilation. `02-integration.py --sanitizers` passed (112 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 2693 MB), and a separate two-unit probe instantiating `SegTreeBeats`, `HistoricSegTree`, `SegmentTree2DDense`, `SWAGQueue`, `SWAGDeque` and `MergeSortTree` in both units linked and ran. `03-consistency.py` cannot run inside this worktree (seven gitignored binaries under `OLD/` and one benchmark log exist only in the main checkout); on a copy with those files restored after rebasing onto master (97ed2db) it reported no errors, and the four suites passed quick mode again. GCC 14.2 exactly, the Windows build and PyPy were not run.
+Latest run 2026-10-12 (after the `countRange` assert fix): quick mode seed 1 passed (2 configurations, 55,529 checks, 18 assertion probes); full mode seed 1 passed on GCC 16.2 and GCC 14.4.1 (`CXX=g++-14`) with 960,253 checks per configuration and 18 assertion probes, MEMORY peak 632 MB and 596 MB; `--braces` and `03-consistency.py` reported no errors. Stress (`--mode stress --seed 3`) passed with 4,683,876 checks per configuration, peak 645 MB, and `python3 '96-Local Testing/02-integration.py' --sanitizers` passed (136 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, sanitizer self-tests, peak 2677 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20 with `-Wall -Wextra -Wconversion -Werror`, CPython 3.14, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_ASSERTIONS`) and ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined`) builds; MEMORY peaks are dominated by compilation. GCC 14.2 exactly, the Windows build and PyPy were not run.
 
 ## Sources
 
@@ -85,3 +87,4 @@ Fetched 2026-10-10 by the completeness sweep ([00-sources.md](00-sources.md)); t
 
 - 2026-10-10: P028 first verification; `DynMergeSortTree` split into `MergeSortTree` (static) and `DynamicMergeSortTree`, `PointSetRangeFrequency` added, `97-Legacy/05-mergesorttree_older.cpp` retired.
 - 2026-10-10: independent review (P028): no wrong answers; guarded `set` on an empty slot under `NDEBUG` and corrected the memory term of the complexity line.
+- 2026-10-12: re-audit fix: `countRange` asserts its index range before the `lo < hi` shortcut in both trees (2 new probes); full suite passed on g++ and g++-14.

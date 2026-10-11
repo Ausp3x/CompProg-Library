@@ -439,7 +439,7 @@
       "model": "fable",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Defects in the pinned 12-bitmatrix.hpp body, fix in the rewrite: operator*=(int) zeroes only for 0 (GF(2) needs o & 1, so a * 2 returns a); BitMatrix(string, axis) leaves fields uninitialised for an axis other than 0 or 1."
     },
     {
       "id": "P023",
@@ -717,7 +717,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Defect in the pinned 17-waveletmatrix.hpp body, fix in the rewrite: cntEql, cntRan, maxLeq and minGeq compute x - 1 and overflow at x = INT64_MIN."
     },
     {
       "id": "P045",

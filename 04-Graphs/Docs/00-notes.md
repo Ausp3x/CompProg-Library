@@ -19,10 +19,10 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 
 ## Ownership boundaries
 
-- Data Structures owns DSU (01, 09 rollback, 29 weighted), link-cut trees (37), Euler-tour trees (38), top trees (39), radix heaps (31), persistent/skew heaps (48), PQ-trees (56) and matroid oracles (46). `04-dsu.hpp` and `51-lct.hpp` are adapters keyed by graph vertices and edge IDs. The legacy `97-Legacy/03-subtree_queries.cpp` is a static Euler-tour flattening, not an Euler-tour tree; its features belong to `14-tree_algorithms.hpp`.
+- Data Structures owns DSU (01, 09 rollback, 29 weighted), link-cut trees (37), Euler-tour trees (38), top trees (39), radix heaps (31), persistent leftist heaps (48), PQ-trees (56) and matroid oracles (46). `04-dsu.hpp` and `51-lct.hpp` are adapters keyed by graph vertices and edge IDs. The legacy `97-Legacy/03-subtree_queries.cpp` is a static Euler-tour flattening, not an Euler-tour tree; its features belong to `14-tree_algorithms.hpp`.
 - Mathematics owns determinants and matrix-tree (23), permanent/Pfaffian/hafnian (48), convolution (13), polynomial and generating-function kernels (14, 40) and linear algebra (16). `53-graph_counting.hpp` adapts graphs to them; `16-centroiddecomposition.hpp` uses Mathematics convolution for the all-distance histogram. Labeled graph-class counts by vertex count (connected, biconnected, DAG, Eulerian, forest, strong digraph, tree, unicyclic) are Mathematics generating-function work, not graph rows.
 - Miscellaneous owns small-to-large/DSU-on-tree merging (15), generic Floyd/Brent cycle finding (14), exchange-rule scheduling (39), Mo-style offline queries (10) and subset DP scaffolding (32). `14-tree_algorithms.hpp` supplies Euler-tour layouts to Miscellaneous 15 and does not duplicate its container merging.
-- Geometry owns Manhattan MST (22) and geometric graph construction. Geometric arrangements stay in Geometry; `29-planar_graph.hpp` works on a given combinatorial embedding only.
+- Geometry owns Manhattan MST (21) and geometric graph construction (22). Geometric arrangements stay in Geometry; `29-planar_graph.hpp` works on a given combinatorial embedding only.
 - Walks versus simple paths (`32` vs `59`), cardinality versus weighted general matching (`22` vs `64`), given planar embedding versus recognition (`29` vs `62`), offline versus online fully dynamic connectivity (`26` vs `63`), fundamental versus minimum cycle basis (`28` vs `72`), and edge connectivity versus vertex triconnectivity (`74` vs `61`) are separate rows.
 
 ## Bounded-flow ownership
@@ -46,7 +46,7 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 ## Placement decisions recorded
 
 - `04-dsu.hpp` stays: it is a verified adapter with a real operation (`graphComponents`), not a bare re-export.
-- `51-lct.hpp` stays as a thin adapter row with concrete operations; merging it into Data Structures 37 or `84-dynamictreedp.hpp` is a candidate scoped rename task, not part of this rewrite.
+- `51-lct.hpp` `DynamicForest` repeats Data Structures 37 `LinkCutTree` operations with edge-ID keys; whether it stays is an open question in `00-Guidelines/23-Reaudit Findings/duplicates.md` (P155).
 - Shortest-path counting, shortest-path DAG, widest/minimax paths and Goldberg negative-weight scaling were placed in `13-shortest_path_advanced.hpp` rather than reopening the verified `05-shortest_path.hpp`.
 - `lineGraph`, `inducedSubgraph`, `contract` and `simplify` reopened `01-graph.hpp` as partial because they are representation utilities; maximum-weight spanning forests reopened `06-mst.hpp` because negating full-range `lng` weights overflows.
 

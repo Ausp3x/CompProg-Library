@@ -41,7 +41,7 @@ struct MergeSortTree {
     int upperRank(const T &x) const { return int(upper_bound(vals.begin(), vals.end(), x) - vals.begin()); }
 
     int countLess(int l, int r, const T &x) const { assert(0 <= l && l <= r && r <= n); return countRank(l, r, lowerRank(x)); }
-    int countRange(int l, int r, const T &lo, const T &hi) const { return lo < hi ? countLess(l, r, hi) - countLess(l, r, lo) : 0; }
+    int countRange(int l, int r, const T &lo, const T &hi) const { assert(0 <= l && l <= r && r <= n); return lo < hi ? countLess(l, r, hi) - countLess(l, r, lo) : 0; }
     int countEqual(int l, int r, const T &x) const { assert(0 <= l && l <= r && r <= n); return countRank(l, r, upperRank(x)) - countRank(l, r, lowerRank(x)); }
     const T &kth(int l, int r, int k) const {
         assert(0 <= l && l <= r && r <= n && 0 <= k && k < r - l);
@@ -105,7 +105,7 @@ struct DynamicMergeSortTree {
         insert(i, x);}
 
     int countLess(int l, int r, const T &x) const { int res = 0; visit(l, r, [&](auto &s) { res += int(s.order_of_key(Key(x, LO))); }); return res; }
-    int countRange(int l, int r, const T &lo, const T &hi) const { return lo < hi ? countLess(l, r, hi) - countLess(l, r, lo) : 0; }
+    int countRange(int l, int r, const T &lo, const T &hi) const { assert(0 <= l && l <= r && r <= n); return lo < hi ? countLess(l, r, hi) - countLess(l, r, lo) : 0; }
     int countEqual(int l, int r, const T &x) const {
         int res = 0;
         visit(l, r, [&](auto &s) { res += int(s.order_of_key(Key(x, HI)) - s.order_of_key(Key(x, LO))); });

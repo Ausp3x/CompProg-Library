@@ -37,7 +37,7 @@ namespace {
                 if (l > r) { swap(l, r); }
                 T x = T(rnd(rng, -50, 50)), s = T(rnd(rng, -7, 7));
                 string at = "step=" + show(step) + " l=" + show(l) + " r=" + show(r);
-                switch (rng() % 4) {
+                switch (rng() % 5) {
                     case 0:
                         f.add(l, r, x); d.add(l, r, x);
                         for (int i = l; i < r; ++i) { a[i] += x; b[i] += x; }
@@ -50,6 +50,12 @@ namespace {
                         g.add(l, r, x);
                         for (int i = l; i < r; ++i) { c[i] += x; }
                         break;
+                    case 3: {
+                        T u = T(rnd(rng, -3, 3));
+                        auto delta = [&](int p) { return p <= l ? T(0) : x + s * T(p) + u * T(lng(p) * (p - 1) / 2); };
+                        f.update(l, x); d.update(l, x); g.update(l, x, s, u);
+                        for (int i = l; i < n; ++i) { a[i] += x; b[i] += x; c[i] += delta(i + 1) - delta(i); }
+                        break;}
                     default: {
                         T sa = T(0), sc = T(0);
                         for (int i = l; i < r; ++i) { sa += a[i]; sc += c[i]; }
@@ -231,10 +237,16 @@ namespace {
         if (name == "range-add-negative-size") { FenwickRangeAdd<lng> x(-1); }
         else if (name == "range-add-reversed") { f.add(2, 1, 1); }
         else if (name == "range-add-sum-end") { (void)f.sum(0, 4); }
+        else if (name == "range-add-update-negative") { f.update(-1, 1); }
+        else if (name == "range-add-update-end") { f.update(4, 1); }
         else if (name == "range-add-get-end") { (void)f.get(3); }
         else if (name == "dual-add-end") { d.add(0, 4, 1); }
+        else if (name == "dual-update-negative") { d.update(-1, 1); }
+        else if (name == "dual-update-end") { d.update(4, 1); }
         else if (name == "dual-get-negative") { (void)d.get(-1); }
         else if (name == "arith-reversed") { g.addProgression(2, 1, 1, 1); }
+        else if (name == "arith-update-negative") { g.update(-1, 1, 1, 1); }
+        else if (name == "arith-update-end") { g.update(4, 1, 1, 1); }
         else if (name == "arith-prefix-end") { (void)g.prefixSum(4); }
         else if (name == "grid-oversize") { Fenwick2D<lng> x(1 << 16, 1 << 16); }
         else if (name == "box-oversize") { Fenwick3D<lng> x(1 << 21, 1 << 21, 1 << 22); }

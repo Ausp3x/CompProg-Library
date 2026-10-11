@@ -14,7 +14,7 @@ Correctness: Duval keeps `s[i, j) = u^t u'` with `u` Lyndon of length `j - k` an
 
 ### lyndonArray
 
-`lyndonArray(s)` returns `res[i]` = length of the longest Lyndon prefix of `s[i, n)`. Implementation: compress symbols to ranks, build `SuffixArray<int>` (`07`, prefix doubling) and take next-smaller-suffix by a stack: `res[i] = nss(i) - i`, where `nss(i)` is the first `j > i` with suffix `j` smaller than suffix `i` (the empty suffix `n` is smaller than all). O(n log n) time, O(n) space; it becomes O(n) once a linear suffix array (`12` SA-IS) is available. Proof of the identity (Hohlweg–Reutenauer): let `j = nss(i)`. For `i < t < j`, if `s[t, j)` were a prefix of `s[i, n)` then comparing `s[t, n)` with `s[i, n)` reduces to suffix `j` against suffix `i + j - t`, and `suffix j < suffix i < suffix i + j - t` would give `suffix t < suffix i`, a contradiction; so `s[t, j)` differs from `s[i, j)` at a position where it is larger, and `s[i, j)` is Lyndon. For `j' > j`, either `s[j, j')` differs from `s[i, n)` within its length, where it is smaller, or it is a proper prefix of `s[i, j')`; both make `s[j, j') < s[i, j')`, so `s[i, j')` is not Lyndon.
+`lyndonArray(s)` returns `res[i]` = length of the longest Lyndon prefix of `s[i, n)`. Implementation: map symbols to codes, build the suffix array with `12` `sais(code, upper)`, invert it in place to ranks and take next-smaller-suffix by a stack: `res[i] = nss(i) - i`, where `nss(i)` is the first `j > i` with suffix `j` smaller than suffix `i` (the empty suffix `n` is smaller than all). One-byte integral symbols (`char` as unsigned through `lyndon_detail::at`, `unsigned char`, `signed char` as signed, `char8_t`, `bool`) map directly to `at(s, i) - numeric_limits<C>::min()` in `[0, 255]`, an order-preserving shift of exactly the order `at` compares, so `string`, `string_view` and `vector<char>` all sort bytes unsigned with embedded NUL allowed; this path is O(n) time. Other symbol types are ranked by a comparison sort on `at` (dense codes, O(n log n), unavoidable for comparison-only symbols) and then cost O(n). O(n) space. `12` `sais(const vector<T> &)` is not used because its `compressAlphabet` compares `char` signed. Proof of the identity (Hohlweg–Reutenauer): let `j = nss(i)`. For `i < t < j`, if `s[t, j)` were a prefix of `s[i, n)` then comparing `s[t, n)` with `s[i, n)` reduces to suffix `j` against suffix `i + j - t`, and `suffix j < suffix i < suffix i + j - t` would give `suffix t < suffix i`, a contradiction; so `s[t, j)` differs from `s[i, j)` at a position where it is larger, and `s[i, j)` is Lyndon. For `j' > j`, either `s[j, j')` differs from `s[i, n)` within its length, where it is smaller, or it is a proper prefix of `s[i, j')`; both make `s[j, j') < s[i, j')`, so `s[i, j')` is not Lyndon.
 
 ### LyndonTree, lyndonTree, suffixFactorization
 
@@ -40,7 +40,7 @@ Runner: [`14-lyndon_tester.py`](<../../96-Local Testing/07-Strings/14-lyndon_tes
 |---|---|
 | duval, longestLyndonPrefix, isLyndon | Exhaustive ternary strings through length 6/8/9 (quick/full/stress), 200/1500/10000 random byte strings (some periodic, a third over 256 bytes) also as extreme-`lng` vectors, 256 bytes ascending and descending; brute factors checked non-increasing. |
 | standardFactorization | Every Lyndon case of length at least 2 against the longest proper Lyndon suffix; the left part checked Lyndon. |
-| lyndonArray, suffixFactorization | Every position of every case against brute longest Lyndon prefixes and brute suffix factorizations; large unary closed form. |
+| lyndonArray, suffixFactorization | Every position of every case against brute longest Lyndon prefixes and brute suffix factorizations; large unary closed form. Byte order: every string over `{00, 7f, 80, ff}` through length 5/7/7 (quick/full/stress) as `string`, through 5/6/6 as `vector<char>` and `vector<signed char>` (signed order), and through 5 as `vector<unsigned char>` and `u8string`, all against the brute force. Non-byte path: 200/1000/2000 random `vector<string>`, `deque<int16_t>`, `vector<uint16_t>` cases of length at most 20 against the brute force. Large: random 256-byte, random `{00, ff}` and `(7f^4 80)^*` strings of length 20000/1000000/1000000, every position checked against the independent `07` prefix-doubling suffix array (suffix `i + res[i]` smaller, every suffix strictly inside larger by sparse-table minimum) and `vector<char>` equal to `string`. A signed-byte mutation of the code map fails the byte-order cases. |
 | LyndonTree, lyndonTree | Node count `2n - factors`, roots equal to the factors, every node Lyndon, leaves, child partition, right child equal to the brute longest proper Lyndon suffix; large trees checked for size and contiguous roots. |
 | IncrementalLyndon: add, size, minSuffix, factorize | After every add, `factorize(p)` and `minSuffix(p)` for every prefix `p` against brute factorization and the brute minimal suffix. |
 | nextLyndonWord, lyndonWords | All words of length up to `n` over `k <= 4` letters enumerated, filtered by the brute test and sorted, compared with both enumeration modes for `n <= 6/9/11`; successor of every word and clearing after the last. |
@@ -50,22 +50,34 @@ Checked builds run twelve precondition probes: `standardFactorization` on a sing
 
 ## Commands and results
 
-Run 2026-10-10 on the final code with the configurations listed in [13-palindromictree.md](13-palindromictree.md#commands-and-results).
+Run 2026-10-12 on the final code (SA-IS `lyndonArray`, unused `07` include dropped; quick and full rerun after the drop); configurations as in [13-palindromictree.md](13-palindromictree.md#commands-and-results).
 
 ```bash
-python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode quick --seed 1  # PASS, 2 configurations, 12 assertion probes
-python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode full --seed 1  # PASS, 3 configurations, 3,091,893 checks each, MEMORY peak 590 MB
-CXX=g++-14 python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode full --seed 2  # PASS, 3 configurations, 3,004,712 checks each, MEMORY peak 618 MB
-python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode stress --seed 3  # PASS, 3 configurations, 15,299,109 checks (optimized, ASan/UBSan), 3,012,698 (checked), MEMORY peak 953 MB
-python3 '96-Local Testing/02-integration.py' --sanitizers  # PASS, 115 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace, sanitizer self-tests
-python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 13 suites
+python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode quick --seed 1  # PASS, 2 configurations, 1,125,301 checks, 12 assertion probes
+python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode full --seed 1  # PASS, 3 configurations, 7,768,991 checks each, MEMORY peak 760 MB
+CXX=g++-14 python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode full --seed 1  # PASS, 3 configurations, 7,768,991 checks each, MEMORY peak 738 MB
+python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode stress --seed 3  # PASS, 3 configurations, 20,745,777 checks (optimized, ASan/UBSan), 7,725,613 (checked), MEMORY peak 960 MB
+python3 '96-Local Testing/07-Strings/29-bwt_tester.py' --mode quick --seed 1  # PASS, 2 configurations, 5 assertion probes
+python3 '96-Local Testing/02-integration.py' --sanitizers  # PASS, 136 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace, sanitizer self-tests
+python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 20 suites
+python3 '96-Local Testing/03-consistency.py' --braces '07-Strings/14-lyndon.hpp' '96-Local Testing/07-Strings/14-lyndon_tester.cpp'  # no violations
+python3 '96-Local Testing/03-consistency.py'  # errors: []
 ```
-
-The consistency validator result is recorded in [13-palindromictree.md](13-palindromictree.md#commands-and-results).
 
 ## Benchmarks
 
-Duval is linear; `lyndonArray` reuses the `07` suffix array. No speed claim is made and no benchmark is required.
+Duval is linear and needs no benchmark. `lyndonArray`, SA-IS against the former prefix-doubling `07` suffix array (identical outputs checked), ad-hoc driver under `_00_memory_cap.py` (peak 180 MB), i9-11900H, `g++` 16.2 `-std=gnu++20 -O2`, seed 1, median of 7 runs after one warm-up check run:
+
+| n | input | old ms | new ms | speedup |
+|---|---|---|---|---|
+| 10^6 | random 256 bytes | 208.6 | 86.0 | 2.4x |
+| 10^6 | unary | 176.0 | 19.4 | 9.1x |
+| 10^6 | random binary | 154.6 | 79.7 | 1.9x |
+| 10^6 | random `int` in [0, 10^9) | 286.0 | 216.1 | 1.3x |
+| 4·10^6 | random 256 bytes | 1208.1 | 432.3 | 2.8x |
+| 4·10^6 | unary | 925.0 | 87.2 | 10.6x |
+| 4·10^6 | random binary | 1016.6 | 401.3 | 2.5x |
+| 4·10^6 | random `int` in [0, 10^9) | 1604.9 | 1134.9 | 1.4x |
 
 ## Sources
 
@@ -81,10 +93,10 @@ Code is independently implemented from the invariants above.
 ## Limits and handoffs
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): Lyndon-word rank/unrank and k-th word (exponential counts need big integers; no competitive-programming catalog has them).
-- `lyndonArray` is O(n log n) through the doubling suffix array; switch to `12` SA-IS when that row exists.
 - Runs (`26`) can consume `lyndonArray`/`lyndonTree` under both orders; de Bruijn sequences (`41`) can consume `nextLyndonWord`; per-prefix lexicographically minimal suffixes (`22`) are `IncrementalLyndon::minSuffix`.
 - Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 
+- 2026-10-12: `lyndonArray` moved from prefix doubling to `12` SA-IS (O(n) on bytes), byte-order, non-byte and large suffix-array checks added; full suite passed on g++ and g++-14; the unused `07-suffixarray.hpp` include was dropped and `29-bwt_tester.cpp` now includes `07` itself.
 - 2026-10-10: implemented and verified (P083); independent review findings fixed: bounded suffixFactorization walk (new probe), NDEBUG bounds of nextLyndonWord/lyndonWords, LyndonTree complexity line, standardFactorization memory bound.

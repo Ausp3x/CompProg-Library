@@ -30,7 +30,7 @@ SOURCE = Path(__file__).resolve().with_suffix(".cpp")
 ROOT = SOURCE.parents[2]
 DEATH_CASES = ("test", "const-index", "proxy-index", "set", "reset", "flip",
                "range-order", "range-end", "range-flip", "count-range", "mask-range",
-               "next", "prev", "pop-empty", "string", "words-short", "words-long",
+               "next", "from", "prev", "pop-empty", "string", "words-short", "words-long",
                "and-size", "or-size", "xor-size", "difference-size", "intersects-size",
                "subset-size", "count-and-size", "count-or-size", "count-xor-size",
                "assign-size", "shift-size", "combine-range-order", "combine-range-end",

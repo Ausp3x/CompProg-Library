@@ -128,6 +128,7 @@ namespace {
         lng out = 0;
         if (name == "static-count-reversed") { (void)t.countLess(2, 1, 0); }
         else if (name == "static-count-end") { (void)t.countEqual(0, 4, 0); }
+        else if (name == "static-countrange-end") { (void)t.countRange(0, 4, 2, 1); }
         else if (name == "static-kth-k") { (void)t.kth(0, 3, 3); }
         else if (name == "static-kth-empty") { (void)t.kth(1, 1, 0); }
         else if (name == "static-maxleq-end") { (void)t.maxLeq(0, 4, 1, out); }
@@ -139,6 +140,7 @@ namespace {
         else if (name == "dynamic-set-empty") { DynamicMergeSortTree<lng> x(2); x.set(1, 4); }
         else if (name == "dynamic-kth-k") { (void)d.kth(0, 3, 3); }
         else if (name == "dynamic-count-reversed") { (void)d.countLess(2, 1, 0); }
+        else if (name == "dynamic-countrange-reversed") { (void)d.countRange(2, 1, 1, 1); }
         else if (name == "frequency-get-end") { (void)f.get(3); }
         else if (name == "frequency-set-negative") { f.set(-1, 0); }
         else if (name == "frequency-count-reversed") { (void)f.count(2, 1, 0); }
