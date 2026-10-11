@@ -3,6 +3,7 @@ name: restyle
 description: Mechanical restyle of a verified package to the current 03-cpp.md comment cap and closing-brace rule. Moves contract comments into the evidence document; no behavior, API or test changes.
 disable-model-invocation: true
 argument-hint: "Pxxx"
+effort: high
 ---
 
 ## Package brief

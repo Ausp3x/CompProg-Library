@@ -2,6 +2,7 @@
 name: worktree-done
 description: Check whether this package worktree is finished (clean, merged into master, package verified) and can be removed.
 disable-model-invocation: true
+effort: low
 ---
 
 !`python3 "${CLAUDE_PROJECT_DIR}/00-Guidelines/13-Plan/worktree.py"`

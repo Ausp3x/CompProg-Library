@@ -3,9 +3,11 @@ name: duplicate-sweep
 description: Read-only line-by-line sweep for wrappers and second implementations (03-cpp.md, One API per operation) with adversarial refutation. Writes the confirmed per-package list to 00-Guidelines/23-Reaudit Findings/duplicates.md for /prune.
 disable-model-invocation: true
 argument-hint: "[folder prefixes, e.g. 02 04] (default: 01 to 08)"
+model: claude-opus-5-5
+effort: xhigh
 ---
 
-Scope: the folders whose two-digit prefixes are in `$ARGUMENTS`; empty means `01-Core` through `08-Python`. Run on Opus at high effort. Sub-agents edit nothing; this session writes only `00-Guidelines/23-Reaudit Findings/duplicates.md`.
+Scope: the folders whose two-digit prefixes are in `$ARGUMENTS`; empty means `01-Core` through `08-Python`. Sub-agents edit nothing; this session writes only `00-Guidelines/23-Reaudit Findings/duplicates.md`.
 
 1. **Rule and decisions.** Read `00-Guidelines/03-cpp.md`, One API per operation, and all of `duplicates.md`, whose recorded decisions bind this sweep. Revalidate every "Seed list" item against the current code: still a wrapper or second implementation, `remove`; a keep reason found, `ask`.
 2. **Files.** List every header and `_NN_*.py` module in scope with its owning package, its status and whether the file exists yet, and every unowned file:
