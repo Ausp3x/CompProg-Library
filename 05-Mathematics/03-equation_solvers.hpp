@@ -17,13 +17,6 @@ inline DioSolution solveDioEq(lng a, lng b, lng c) {
         x %= m; if (x < 0) { x += m; }
         y = (c - lll(a) * x) / b;}
     return {1, x, y, b / g, -lll(a) / g, g};}
-inline bool solveDioEq(lng a, lng b, lng c, lng &x, lng &y, lng &g) {
-    assert(&x != &y && &x != &g && &y != &g);
-    auto s = solveDioEq(a, b, c);
-    if (s.dimension < 0) { return false; }
-    constexpr lng LO = std::numeric_limits<lng>::min(), HI = std::numeric_limits<lng>::max();
-    assert(LO <= s.x && s.x <= HI && LO <= s.y && s.y <= HI && s.g <= HI);
-    x = lng(s.x); y = lng(s.y); g = lng(s.g); return true;}
 
 // T: O(log(2 + max(|a|, |b|))), M: O(1); half-open lng box [xl, xr) * [yl, yr); count points, t in [l, r) for dimension 1.
 struct DioBox {

@@ -34,7 +34,7 @@ Kernel arithmetic: block ends are formed in 128 bits. Each base prime's start co
 
 A materialized object **copies** only the base primes it can read: those with `p <= floor(sqrt(r - 1))`. That is all that `forEachFactor` (which stops at `p * p >= r`) and `getPrimeFac(x)` (`x < r`) use. So the object stays valid after the source base is reset or destroyed, and its memory is `O(n + pi(sqrt(r)))`. For many queries whose results need not persist, use streaming instead.
 
-The archived constructor used **closed `[L, R]`**. Migrate such calls to `SegmentedSieve::fromClosed(L, R, ...)`, which exists with and without a reusable base. It checks `L <= R` and `R < INT64_MAX` **before** forming `R + 1`. So a closed right endpoint at `INT64_MAX` is rejected, because the excluded endpoint is not representable. No implicit signed overflow or silent wraparound occurs. Empty half-open intervals at either signed extreme stay valid without building huge bases.
+The archived constructor used **closed `[L, R]`**; such calls become `SegmentedSieve(L, R + 1, ...)` (Legacy mapping). Empty half-open intervals at either signed extreme stay valid without building huge bases.
 
 `reset(L, R, base, block, mode)` replaces the interval and clears the old optional tables and workspace. Logical contents are reset, but vector capacity may stay allocated. Copying creates an independent snapshot, and moving follows vector semantics. Public metadata and vectors are algorithm state and must not be edited outside the APIs. Construction costs base setup plus one streamed query plus `O(n)`. Optional tables add `O(n)` storage, and returned factor lists add `O(n * log(R))`.
 
@@ -51,6 +51,12 @@ The following number-theory operations concern **positive integers**, not absolu
 
 Correctness: the interval factor engine initializes residuals once, divides multiples of each base prime (found with `firstMultiple`, checking the distance to the end before adding `p`) by its full prime power, and reports each remaining factor greater than one as prime. A composite residual would have had a factor at most its square root, hence at most `sqrt(r-1)`, already removed; this includes prime squares at interval boundaries. Individual and combined table traversals have a conservative bound `O((r-l)*log(max(2,r)) + pi(sqrt(max(2,r))))`, with `O(r-l)` residual/table storage. Returned factor lists add output-sized storage. Single-value factorization stops as its shrinking residual becomes smaller than `p*p`. These details remove the archive's `L + p - 1`, `R + 1`, signed iteration, and divisor-sum overflows.
 
+### Legacy mapping
+
+| Removed (prune, 2026-10-12) | Replacement |
+|---|---|
+| `SegmentedSieve::fromClosed(L, R[, base], block, mode)` | `SegmentedSieve(L, R + 1[, base], block, mode)`; the caller checks `R < INT64_MAX` before adding one, since a closed interval ending at `INT64_MAX` has no representable exclusive end |
+
 ## Feature-to-test map
 
 Runnable entry: [`06-segmentedsieve_tester.py`](<../../96-Local Testing/05-Mathematics/06-segmentedsieve_tester.py>). It includes the actual production header, uses non-removable checks, and runs from any working directory through the shared runner. Quick uses endpoints `[-4,24]`, three block sizes and 50 random intervals. Full uses the bounds below. Stress extends exhaustive endpoints to `[-8,96]` and uses 3000 random intervals. High and boundary regressions run in every mode.
@@ -59,33 +65,21 @@ Runnable entry: [`06-segmentedsieve_tester.py`](<../../96-Local Testing/05-Mathe
 |---|---|
 | Base generation and reuse | Exhaust base limits through 4096; independently enumerate trial/Miller–Rabin primes through each square-root boundary. Repeated queries, base reset/shrink, materialized snapshot lifetime (exactly the needed base prefix `p * p <= r - 1` after the source base is reset), copy and move. |
 | All three modes and arbitrary block boundaries | Exhaust all half-open endpoint pairs in `[-6,64]` with block spans `1,2,7,30,31,64`; compare each flag, stored list and streamed list with independent primality. |
-| Signed/empty/singleton and closed migration | Negative-only intervals near `INT64_MIN`, huge negative streaming ranges, empty `INT64_MAX`, zero/one, closed prime singleton, explicit maximum closed-endpoint death tests and materialized width overflow checks. |
+| Signed/empty/singleton intervals | Negative-only intervals near `INT64_MIN`, huge negative streaming ranges, empty `INT64_MAX`, zero/one, prime singleton `[97, 98)`, `[0, 98)` on a shared base equal to its own-base twin and including `r - 1 = 97`, and the materialized width overflow probe. |
 | Factor lists and multiplicative tables | Independent trial factorization and direct divisor-pair count/sum; individual/combined parity and repeated calls. Full positive interval factor output, callback output (`lng` offset), one and nonpositive table sentinels. |
 | High endpoints and arithmetic | Short intervals near `10^9`, `10^12`, and a large prime square; independent deterministic 64-bit Miller–Rabin, validated first against trial division for every integer through 10000. Independent divisor/factor checks around `10^12`. Exact square inequalities and first-multiple invariants at `INT64_MAX`. |
 | Broad/adversarial inputs | 500 seeded intervals in the full suite; known prime counts `pi(10^5)=9592`, `pi(10^6)=78498`; tiny blocks and all wheel alignment residues. |
-| Preconditions | 16 assertion subprocess probes for negative base limits, invalid blocks/modes/order, insufficient bases, closed maximum endpoints, oversized materialization and invalid factorization domains. |
+| Preconditions | 13 assertion subprocess probes for negative base limits, invalid blocks/modes/order, insufficient bases, oversized materialization and invalid factorization domains. |
 
 ## Commands and results
 
-Latest P012 re-audit runs (2026-10-07), recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1, GNU++20, Python 3.14, Linux x86-64 (i9-11900H). Every C++ build uses the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (quick runs the first two).
+P012 prune run, 2026-10-12, recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Every suite runs the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations; counts are per configuration and equal on both compilers.
 
-```bash
-python3 '96-Local Testing/01-run.py' --mode quick --filter 05-Mathematics/0 --no-integration                     # PASS, 6 suites, 2 configurations
-python3 '96-Local Testing/01-run.py' --mode full --filter 05-Mathematics/0 --seed 1 --no-integration              # PASS, 6 suites, 3 configurations
-python3 '96-Local Testing/01-run.py' --mode stress --filter 05-Mathematics/0 --seed 1 --rounds 1 --no-integration # PASS, 6 suites, 3 configurations
-python3 '96-Local Testing/02-integration.py'                                                                     # PASS, 102 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace
-python3 '96-Local Testing/03-consistency.py'                                                                     # no errors
-```
-
-After the `@reviewer` pass, full (all six headers), stress (combinatorics) and integration were rerun and passed with these counts:
-
-| Mode | Count |
+| Command | Result |
 |---|---|
-| Full (seed 1), per configuration | 2,390,564 C++ checks |
-| Stress (seed 1) | 7,768,677 |
-| Assertion probes | 16 |
-
-The `@reviewer` pass independently probed the segmented sieve at `[INT64_MAX - 3000, INT64_MAX)` against Miller–Rabin. No online submissions or acceptance claims were made.
+| `06-segmentedsieve_tester.py --mode full --seed 1` | PASS, 2,390,564 C++ checks, 13 assertion probes, `MEMORY peak=463MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=478MB` |
+| Other P012 suites, `02-integration.py` and `03-consistency.py` | PASS; details and commands in [01-mod_arithmetic.md](01-mod_arithmetic.md) |
 
 ## Benchmarks
 
@@ -113,7 +107,7 @@ Inspected 2026-09-27:
 
 ## Limits and handoffs
 
-- The constructor consistently means half-open `[L, R)`; `SegmentedSieve::fromClosed` serves old closed intervals and rejects an unrepresentable exclusive maximum endpoint. Divisor sums use `lll`. There were no active dependent call sites to migrate.
+- The constructor consistently means half-open `[L, R)`; old closed intervals map as in Legacy mapping. Divisor sums use `lll`. There were no active dependent call sites to migrate.
 - Enormous segmented queries still require square-root base-prime storage; the contracts above report that cost and the tested high-endpoint limits.
 - The `SegmentedSieve` excerpt in `OLD/5-Mathematics/04-sieves.hpp` and the mechanical-split statement in `00-Guidelines/History/2026-09-27-migration.md` were reviewed. Prime flags/lists, exposed base primes, residual workspace and all four table methods are accounted for; the archive remains preserved.
 - The 2026-10-07 completeness sweep found no missing operation: cp-algorithms range sieve, KACTL FastEratosthenes, maspypy `factor_interval`/`prime_table` and Library Checker `enumerate_primes` are covered by `prms`, `forEachPrime` and `forEachFactor`.
@@ -121,4 +115,5 @@ Inspected 2026-09-27:
 ## History
 
 - 2026-09-27: initial P012 evidence.
-- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit fixed findings 2 (branch-free Odd/Wheel30 start offsets, up to 5x faster at high endpoints), 3 (prefix-only base copy; materialize 1087 ms to 0.02 ms), 10–12 (complexity lines, braces, `lng` offsets, `int8_t` Möbius), and the reviewer's Wheel30 offset-bound evidence error.
+- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit fixed findings 2 (branch-free Odd/Wheel30 start offsets, up to 5x faster at high endpoints), 3 (prefix-only base copy; materialize 1087 ms to 0.02 ms), 10–12 (complexity lines, braces, `lng` offsets, `int8_t` Möbius), and the reviewer's Wheel30 offset-bound evidence error; after `@reviewer` (which probed `[INT64_MAX - 3000, INT64_MAX)` against Miller–Rabin), full and stress (seed 1) and integration passed.
+- 2026-10-12: prune, removed both `fromClosed` overloads (cases moved to the half-open constructors); full suite passed on g++ and g++-14.

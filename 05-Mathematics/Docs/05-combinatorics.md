@@ -30,9 +30,9 @@ Correctness: Factorials below a prime modulus are units. Inverting `n!` once and
 
 `combiLarge(a, b)` computes `inv_fac[b] * a(a-1)...(a-b+1)` with each factor reduced mod `p`. The falling product divided by `b!` is the exact integer `C(a, b)`. Since `b <= n < p`, `b!` is a unit mod `p`, so reducing that identity mod `p` is exact for every `a`, including `a >= p`. This agrees with Lucas's theorem, which gives `C(a mod p, b)` for `b < p`. Pascal's rule `C(i, j) = C(i-1, j-1) + C(i-1, j)` and the derangement recurrence are polynomial identities over the integers, so they hold in every quotient ring.
 
-### fibonacciPair, fibonacci, lucas
+### fibonacciPair, lucas
 
-`fibonacciPair<T>(n)` returns `(F_n, F_(n+1))`; `fibonacci<T>(n)` and `lucas<T>(n)` return `F_n` and `L_n`, with `L_0 = 2` and `L_1 = 1`. They use iterative fast doubling: `O(log(2 + n))` ring operations, `O(1)` storage, and the full unsigned 64-bit index range. `T` only has to be a commutative ring (no division), so composite modular rings and the zero ring work as well as prime fields. Unsigned builtins of width at least 32 compute in their natural wraparound ring. Narrower builtin types are rejected by `static_assert`, because integer promotion could cause signed overflow. Signed builtin types require every intermediate to fit. Use the exact APIs for checked unsigned 64-bit results.
+`fibonacciPair<T>(n)` returns `(F_n, F_(n+1))`; `lucas<T>(n)` returns `L_n`, with `L_0 = 2` and `L_1 = 1`. They use iterative fast doubling: `O(log(2 + n))` ring operations, `O(1)` storage, and the full unsigned 64-bit index range. `T` only has to be a commutative ring (no division), so composite modular rings and the zero ring work as well as prime fields. Unsigned builtins of width at least 32 compute in their natural wraparound ring. Narrower builtin types are rejected by `static_assert`, because integer promotion could cause signed overflow. Signed builtin types require every intermediate to fit. Use the exact APIs for checked unsigned 64-bit results.
 
 Correctness: Fast doubling maintains `(F_k,F_(k+1))` and applies `F_(2k)=F_k*(2*F_(k+1)-F_k)` and `F_(2k+1)=F_k^2+F_(k+1)^2`. Lucas follows from `L_k=2*F_(k+1)-F_k`. These are polynomial identities and need no inverses. Exact wrappers use unsigned 128-bit intermediates within their explicitly checked fitting-index range; independent matrix exponentiation verifies the full-width modular index domain.
 
@@ -65,6 +65,12 @@ For exact ballot counts fix `d=a-b >= 0` and build `B_i = (d+1)/(d+i+1) * C(d+2*
 
 Negative population or part counts, invalid table bounds, a composite factorial modulus and stale tables are precondition errors. Negative selection counts in the four preserved modular APIs are legitimate zero results. Exact APIs take counts as unsigned parameters, so they cannot be negative.
 
+### Legacy mapping
+
+| Removed (prune, 2026-10-12) | Replacement |
+|---|---|
+| `fibonacci<T>(n)` | `fibonacciPair<T>(n).first` |
+
 ## Feature-to-test map
 
 Runner: [`05-combinatorics_tester.py`](<../../96-Local Testing/05-Mathematics/05-combinatorics_tester.py>) driving [`05-combinatorics_tester.cpp`](<../../96-Local Testing/05-Mathematics/05-combinatorics_tester.cpp>). Oracles: exact Python integers, enumeration, inclusion-exclusion and matrix powers.
@@ -84,23 +90,13 @@ A compile-fail fixture checks, on every run, that narrow unsigned Fibonacci type
 
 ## Commands and results
 
-Latest P012 re-audit runs (2026-10-07), recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1, GNU++20, Python 3.14, Linux x86-64 (i9-11900H). Every C++ build uses the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (quick runs the first two).
+P012 prune run, 2026-10-12, recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Every suite runs the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations; counts are per configuration and equal on both compilers.
 
-```bash
-python3 '96-Local Testing/01-run.py' --mode quick --filter 05-Mathematics/0 --no-integration                     # PASS, 6 suites, 2 configurations
-python3 '96-Local Testing/01-run.py' --mode full --filter 05-Mathematics/0 --seed 1 --no-integration              # PASS, 6 suites, 3 configurations
-python3 '96-Local Testing/01-run.py' --mode stress --filter 05-Mathematics/0 --seed 1 --rounds 1 --no-integration # PASS, 6 suites, 3 configurations
-python3 '96-Local Testing/02-integration.py'                                                                     # PASS, 102 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace
-python3 '96-Local Testing/03-consistency.py'                                                                     # no errors
-```
-
-After the `@reviewer` pass, full (all six headers), stress (combinatorics) and integration were rerun and passed with these counts:
-
-| Mode | Count |
+| Command | Result |
 |---|---|
-| Full (seed 1), per configuration | 71,352 Python cases plus C++ table/state checks and the narrow-ring compile rejection |
-| Stress (seed 1) | 386,352 |
-| Assertion probes | 30 |
+| `05-combinatorics_tester.py --mode full --seed 1` | PASS, 71,352 Python cases plus C++ table/state checks and the narrow-ring compile rejection, 30 assertion probes, `MEMORY peak=524MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=536MB` |
+| Other P012 suites, `02-integration.py` and `03-consistency.py` | PASS; details and commands in [01-mod_arithmetic.md](01-mod_arithmetic.md) |
 
 ## Benchmarks
 
@@ -129,4 +125,5 @@ All pages below were retrieved and their cited sections read on 2026-09-27. Code
 ## History
 
 - 2026-09-27: initial P012 implementation and evidence.
-- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit added `combiLarge`, `binomialTable` and `derangementTable`, fixed finding 10 (`ratioProduct` complexity line), and applied the reviewer's notes (constructor shadowing, shared derangement recurrence, `n = 0, 1` table tests).
+- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit added `combiLarge`, `binomialTable` and `derangementTable`, fixed finding 10 (`ratioProduct` complexity line), and applied the reviewer's notes (constructor shadowing, shared derangement recurrence, `n = 0, 1` table tests); after `@reviewer`, full and stress (seed 1) and integration passed.
+- 2026-10-12: prune, removed `fibonacci<T>` (`fibonacciExact` and the tests use `fibonacciPair<T>(n).first`); full suite passed on g++ and g++-14.

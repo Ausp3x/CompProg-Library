@@ -4,11 +4,10 @@
 
 ## Contracts
 
-### ExtendedGcd, gcd64, lcmWide, extendedGcd, exGcd
+### ExtendedGcd, gcd64, lcmWide, extendedGcd
 
 - `gcd64(a, b)` returns the nonnegative gcd as `ulng` (so `gcd(MIN, 0) = 2^63` fits); `gcd(0, 0) = 0`. `lcmWide` returns the nonnegative lcm in `lll` (at most `2^126`) and 0 when either input is 0.
 - `extendedGcd(a, b)` returns `ExtendedGcd {g, x, y}` with `a * x + b * y = g >= 0`, all in `lll`; `(0, 0)` gives `(0, 1, 0)`.
-- `exGcd(a, b, x, y)` is the legacy `lng` adapter. It asserts that `g` fits `lng` (it does not for `gcd(MIN, 0)` or `gcd(MIN, MIN)`; use `extendedGcd` there) and that `x` and `y` are distinct objects. Inputs are copied, so they may alias the outputs: `exGcd(a, b, a, b)` is valid.
 
 Correctness: Euclid preserves two linear combinations of the original inputs while replacing `(u, v)` with `(v, u - q * v)`; the final value is the gcd up to sign, and negating all three outputs preserves the identity. Coefficients for signed 64-bit inputs fit the 128-bit workspace. Lcm divides by the gcd before multiplying the absolute values. Euclid and lcm take O(log) word operations.
 
@@ -34,48 +33,58 @@ Correctness: GCC overflow builtins on a temporary. Signed addition overflows onl
 ### intPow, modPow, modPow64
 
 - `intPow(a, e, out)` takes a signed base and any unsigned exponent, with `0^0 = 1`. It returns false on signed 64-bit overflow without changing `out`.
-- `modPow(a, b, mod = INF64)` keeps the legacy name and default modulus `INF64 = 0x3f3f3f3f3f3f3f3f`. It requires `mod > 0` and accepts every signed exponent, including the minimum. A negative power uses the Bézout unit inverse and returns `-1` when `a` is not a unit. Modulus 1 is the zero ring and returns 0, including for negative powers.
+- `modPow(a, b, mod)` requires `mod > 0` and accepts every signed exponent, including the minimum. A negative power uses the Bézout unit inverse and returns `-1` when `a` is not a unit. Modulus 1 is the zero ring and returns 0, including for negative powers.
 - `modPow64(a, e, m)` accepts a full unsigned base, exponent and nonzero modulus; `0^0 = 1 % m`.
 
 Correctness: binary exponentiation preserves `result * base^remaining = original^exponent` and stops squaring once no exponent bits remain. In checked exponentiation an overflowing square that is still needed means the final absolute value cannot fit; the exceptions 0 and units never overflow, so false never rejects a representable result. O(log e) multiplications, O(1) memory.
 
+### Legacy mapping
+
+| Removed (prune, 2026-10-12) | Replacement |
+|---|---|
+| `exGcd(a, b, x, y)` | `auto [g, x, y] = extendedGcd(a, b)`: `lll` fields, also for `gcd(MIN, 0) = gcd(MIN, MIN) = 2^63` |
+| `modPow(a, b)`, default modulus `INF64` | `modPow(a, b, INF64)` |
+
 ## Feature-to-test map
 
-Tester: [`01-mod_arithmetic_tester.cpp`](<../../96-Local Testing/05-Mathematics/01-mod_arithmetic_tester.cpp>) driven by [`01-mod_arithmetic_tester.py`](<../../96-Local Testing/05-Mathematics/01-mod_arithmetic_tester.py>). Oracle: exact Python integers. Quick mode uses 200 random rounds, full 5,000, stress 30,000; each adds the exhaustive and boundary corpus. 13 assertion probes run in the checked build.
+Tester: [`01-mod_arithmetic_tester.cpp`](<../../96-Local Testing/05-Mathematics/01-mod_arithmetic_tester.cpp>) driven by [`01-mod_arithmetic_tester.py`](<../../96-Local Testing/05-Mathematics/01-mod_arithmetic_tester.py>). Oracle: exact Python integers. Quick mode uses 200 random rounds, full 5,000, stress 30,000; each adds the exhaustive and boundary corpus. 11 assertion probes run in the checked build.
 
 | API | Independent coverage |
 |---|---|
 | `gcd64`, `lcmWide` | `math.gcd`/`math.lcm`, exhaustive `[-24,24]^2`, signed boundary matrix, random pairs (op `g`) |
-| `extendedGcd`, `exGcd` | Python gcd plus the exact Bézout identity (op `g`). Death probes for gcd width and output aliasing. Regression `exGcd(a, b, a, b)` with `a = 6`, `b = 4` checks `g = 2` and Bézout against the saved inputs |
+| `extendedGcd` | Python gcd plus the exact Bézout identity (op `g`), including `gcd(MIN, 0)` and `gcd(MIN, MIN)`. Boundary regression `extendedGcd(MIN, 0)`: `g = 2^63` and Bézout |
 | `floorDiv`, `ceilDiv` | Python floor arithmetic on every small sign pair, `lll` minima and maxima, random signed-128 pairs (op `d`); probes for a zero divisor and `MIN / -1` |
 | `modNorm`, `modMul`, `modMul64` | Python `%` on exact products, including minimum 128-bit inputs and `(2^64 - 1)^2` (ops `n`, `m`, `u`); zero and negative modulus probes |
 | `checkedAdd`, `checkedMul`, `saturatingAdd`, `saturatingMul` | Op `c` against exact sums and products with range checks and clamping: signed boundary matrix, random pairs, and random small-times-shifted pairs near the product threshold. Untouched outputs are checked through the sentinel 123 |
 | `invMod2p64` | Op `v` against `pow(a, -1, 2^64)` for 1, 3, 5, `2^64 - 1`, `2^64 - 3`, `2^63 ± 1`, the 64 smallest odd words and random odd words; probe `inv-even` |
 | `intPow` | Exact powers for bounded exponents, zero and unit huge exponents, the kth-root overflow thresholds for every exponent 2–63, and the boundary regression `(-2)^63` (op `i`) |
-| `modPow` | Three-argument `pow` with explicit moduli (op `p`). The two-argument default `INF64` overload against `pow(a, b, 0x3f3f3f3f3f3f3f3f)` (op `P`). Nonunits, signed-minimum exponent, modulus one, and the zero-modulus probe |
+| `modPow` | Three-argument `pow` (op `p`) with moduli 1, 2, 6, 97, `INT64_MAX`, `INF64 = 0x3f3f3f3f3f3f3f3f` and random. Nonunits, signed-minimum exponent, modulus one, and the zero-modulus probe |
 | `modPow64` | Full-width boundaries and random inputs (op `q`); zero-modulus probe |
 
 ## Commands and results
 
-Latest P012 re-audit runs (2026-10-07), recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1, GNU++20, Python 3.14, Linux x86-64 (i9-11900H). Every C++ build uses the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (quick runs the first two).
+P012 prune run, 2026-10-12, recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Every suite runs the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations; counts are per configuration and equal on both compilers.
+
+| Suite (`--mode full --seed 1`) | Result (MB peak g++/g++-14) |
+|---|---|
+| `01-mod_arithmetic` | PASS, 70,022 exact Python cases, 11 assertion probes (374/385) |
+| `02-search_algorithms` | PASS, 2,340,101 C++ checks, 16 assertion probes (390/408) |
+| `03-equation_solvers` | PASS, 5,019,506 C++ checks and 5,729 Python cases, 4 assertion probes (411/412) |
+| `04-sieve_algorithms` | PASS, 545,142 C++ checks, 14 assertion probes (420/434) |
+| `05-combinatorics` | PASS, 71,352 Python cases plus C++ table/state checks and the narrow-ring compile rejection, 30 assertion probes (524/536) |
+| `06-segmentedsieve` | PASS, 2,390,564 C++ checks, 13 assertion probes (463/478) |
+| `02-integration.py` | PASS, 135 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace |
+| `03-consistency.py` | no errors |
 
 ```bash
-python3 '96-Local Testing/01-run.py' --mode quick --filter 05-Mathematics/0 --no-integration                     # PASS, 6 suites, 2 configurations
-python3 '96-Local Testing/01-run.py' --mode full --filter 05-Mathematics/0 --seed 1 --no-integration              # PASS, 6 suites, 3 configurations
-python3 '96-Local Testing/01-run.py' --mode stress --filter 05-Mathematics/0 --seed 1 --rounds 1 --no-integration # PASS, 6 suites, 3 configurations
-python3 '96-Local Testing/02-integration.py'                                                                     # PASS, 102 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace
-python3 '96-Local Testing/03-consistency.py'                                                                     # no errors
+for c in g++ g++-14; do
+  for s in 01-mod_arithmetic 02-search_algorithms 03-equation_solvers 04-sieve_algorithms 05-combinatorics 06-segmentedsieve; do
+    CXX=$c python3 "96-Local Testing/05-Mathematics/${s}_tester.py" --mode full --seed 1
+  done
+done
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
 ```
-
-After the `@reviewer` pass, full (all six headers), stress (combinatorics) and integration were rerun and passed with these counts:
-
-| Mode | Count |
-|---|---|
-| Full (seed 1), per configuration | 70,022 exact Python cases |
-| Stress (seed 1) | 370,022 |
-| Assertion probes | 13 |
-
-The `@reviewer` pass independently probed every odd `a < 2 * 10^6` for `invMod2p64`. No online submission was made.
 
 ## Benchmarks
 
@@ -91,8 +100,9 @@ Inspected on 2026-09-27, plus the 2026-10-07 completeness sweep in [00-sources.m
 
 ## Limits and handoffs
 
-`OLD/5-Mathematics/01-exgcdandmodpow.hpp` is unchanged. Both legacy public names and the negative-power behavior remain, now with explicit representability rules. Researcher candidates that were left out are listed with reasons in [00-notes.md](00-notes.md).
+`OLD/5-Mathematics/01-exgcdandmodpow.hpp` is unchanged. `modPow` keeps its legacy name and negative-power behavior; `exGcd` and the default modulus map as in Legacy mapping. Researcher candidates that were left out are listed with reasons in [00-notes.md](00-notes.md).
 
 ## History
 
-- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit then added `checkedAdd`, `checkedMul`, `saturatingAdd`, `saturatingMul` and `invMod2p64` and fixed findings 4–6.
+- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit then added `checkedAdd`, `checkedMul`, `saturatingAdd`, `saturatingMul` and `invMod2p64` and fixed findings 4–6; after `@reviewer` (which probed every odd `a < 2 * 10^6` for `invMod2p64`), full and stress (seed 1) and integration passed.
+- 2026-10-12: prune, removed `exGcd` and the `modPow` default modulus (cases moved to `extendedGcd` and op `p` with modulus `INF64`); full suite passed on g++ and g++-14.

@@ -118,14 +118,3 @@ RealSearchResult goldenSearchRealBracket(double l, double r, F f, int itr = 100,
             if (right) { f2 = f(m2); }
             else { f1 = f(m1); }}}
     return {l, r, std::midpoint(l, r), used, search_detail::done(l, r, abs_tol, rel_tol)};}
-
-// T: O(itr), M: O(1); legacy point interfaces with the domains of the bracket functions.
-template<typename F>
-double binSearchReal(double ok, double ng, F f, int itr = 100) {
-    return binSearchRealBracket(ok, ng, std::move(f), itr).x;}
-template<typename F>
-double ternSearchReal(double l, double r, F f, int itr = 200) {
-    return ternSearchRealBracket(l, r, std::move(f), itr).x;}
-template<typename F>
-double goldenSearchReal(double l, double r, F f, int itr = 100) {
-    return goldenSearchRealBracket(l, r, std::move(f), itr).x;}

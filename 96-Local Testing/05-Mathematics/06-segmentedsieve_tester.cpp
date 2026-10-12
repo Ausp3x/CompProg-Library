@@ -85,19 +85,19 @@ void exhaustive(const string &mode) {
 void stateAndBoundaries() {
     context = "state and endpoint boundaries";
     SegmentedSieveBase base(10000, 31); auto bases = base.bprms;
-    SegmentedSieve closed = SegmentedSieve::fromClosed(0, 97, base), fresh(0, 98);
-    require(closed.prms == fresh.prms && closed.is_prime == fresh.is_prime, "closed adapter includes right prime");
-    require(SegmentedSieve::fromClosed(97, 97).prms == vector<lng>{97}, "closed singleton adapter");
-    closed.getTables(); auto copy = closed; SegmentedSieve moved = std::move(copy);
-    require(moved.prms == closed.prms && moved.sum_div == closed.sum_div, "copy and move populated tables");
-    closed.reset(-7, 9, base, 2, SegmentedSieveMode::Wheel30);
-    require(closed.num_div.empty() && closed.sum_div.empty() && closed.phi.empty() && closed.mu.empty() && closed.rem.empty(), "reset clears optional state");
-    closed.getTables(); expect(closed.num_div[8], 1, "one tau"); expect(closed.sum_div[8], 1, "one sigma");
-    expect(closed.phi[8], 1, "one phi"); expect(closed.mu[8], 1, "one mu");
-    for (int i = 0; i < 8; ++i) { require(!closed.num_div[i] && !closed.sum_div[i] && !closed.phi[i] && !closed.mu[i], "nonpositive table sentinel"); }
+    SegmentedSieve shared(0, 98, base), fresh(0, 98);
+    require(shared.prms == fresh.prms && shared.is_prime == fresh.is_prime && shared.prms.back() == 97, "shared base matches own base, includes r - 1");
+    require(SegmentedSieve(97, 98).prms == vector<lng>{97}, "singleton prime interval");
+    shared.getTables(); auto copy = shared; SegmentedSieve moved = std::move(copy);
+    require(moved.prms == shared.prms && moved.sum_div == shared.sum_div, "copy and move populated tables");
+    shared.reset(-7, 9, base, 2, SegmentedSieveMode::Wheel30);
+    require(shared.num_div.empty() && shared.sum_div.empty() && shared.phi.empty() && shared.mu.empty() && shared.rem.empty(), "reset clears optional state");
+    shared.getTables(); expect(shared.num_div[8], 1, "one tau"); expect(shared.sum_div[8], 1, "one sigma");
+    expect(shared.phi[8], 1, "one phi"); expect(shared.mu[8], 1, "one mu");
+    for (int i = 0; i < 8; ++i) { require(!shared.num_div[i] && !shared.sum_div[i] && !shared.phi[i] && !shared.mu[i], "nonpositive table sentinel"); }
     vector<lng> needed;
-    for (lng p : bases) { if (p * p <= closed.r - 1) { needed.push_back(p); }}
-    base.reset(10); require(closed.bprms == needed, "materialized object owns the needed base prefix");
+    for (lng p : bases) { if (p * p <= shared.r - 1) { needed.push_back(p); }}
+    base.reset(10); require(shared.bprms == needed, "materialized object owns the needed base prefix");
     require(base.bprms == vector<lng>{2,3}, "base reset truncates stale primes"); base.reset(0); require(base.bprms.empty(), "zero base domain");
     for (auto mode : MODES) {
         checkInterval(LO, LO + 8, base, 1, mode, true);
@@ -109,7 +109,7 @@ void stateAndBoundaries() {
     for (lng l : {lng(2),HI - 10,HI - 1,HI}) { for (lng p : {lng(2),lng(3),lng(3037000499)}) {
         lll m = segmented_sieve_detail::firstMultiple(l, p);
         require(m >= l && m % p == 0 && m - p < l, "wide first-multiple arithmetic");}}
-    std::cout << "PASS reset/copy/lifetime, explicit closed migration, signed extremes and wide arithmetic\n";}
+    std::cout << "PASS reset/copy/lifetime, shared and own bases, signed extremes and wide arithmetic\n";}
 
 void randomCases(int count) {
     std::mt19937_64 rng(seed); SegmentedSieveBase base(2000000);
@@ -140,9 +140,6 @@ void invalid(const string &probe) {
     else if (probe == "stream-mode") { base.forEachPrime(0,10,f,1,SegmentedSieveMode(99)); }
     else if (probe == "base-short") { base.forEachPrime(0,12,f); }
     else if (probe == "constructor-order") { SegmentedSieve s(1,0); }
-    else if (probe == "closed-order") { auto s = SegmentedSieve::fromClosed(1,0); }
-    else if (probe == "closed-maximum") { auto s = SegmentedSieve::fromClosed(HI,HI); }
-    else if (probe == "closed-base-maximum") { auto s = SegmentedSieve::fromClosed(HI,HI,base); }
     else if (probe == "material-size") { SegmentedSieve s(LO,HI,base); }
     else if (probe == "factor-zero") { SegmentedSieve s(0,3); s.getPrimeFac(0); }
     else if (probe == "factor-left") { SegmentedSieve s(5,8); s.getPrimeFac(4); }

@@ -91,9 +91,9 @@ void oracle() {
         else if (op == "rb") { int n; cin >> n; for (auto &row : binomialTable<M>(n)) { for (M x : row) { cout << x << ' '; } } }
         else if (op == "mt") { int n; cin >> n; cout << f.catalan(n); }
         else if (op == "mm") { int n; cin >> n; vector<int> v(n); for (int &x : v) { cin >> x; } cout << f.multinomial(v); }
-        else if (op == "mg") { ulng n; cin >> n; auto [a,b] = fibonacciPair<M>(n); cout << a << ' ' << b << ' ' << fibonacci<M>(n) << ' ' << lucas<M>(n); }
-        else if (op == "rg") { ulng n; cin >> n; auto [a,b] = fibonacciPair<ulng>(n); cout << a << ' ' << b << ' ' << fibonacci<ulng>(n) << ' ' << lucas<ulng>(n); }
-        else if (op == "rg32") { ulng n; cin >> n; auto [a,b] = fibonacciPair<uint>(n); cout << a << ' ' << b << ' ' << fibonacci<uint>(n) << ' ' << lucas<uint>(n); }
+        else if (op == "mg") { ulng n; cin >> n; auto [a,b] = fibonacciPair<M>(n); cout << a << ' ' << b << ' ' << lucas<M>(n); }
+        else if (op == "rg") { ulng n; cin >> n; auto [a,b] = fibonacciPair<ulng>(n); cout << a << ' ' << b << ' ' << lucas<ulng>(n); }
+        else if (op == "rg32") { ulng n; cin >> n; auto [a,b] = fibonacciPair<uint>(n); cout << a << ' ' << b << ' ' << lucas<uint>(n); }
         else if (op == "eg") {
             ulng n,a=123,b=123; pair<ulng,ulng> pair{123,456}; cin >> n;
             bool p = fibonacciPairExact(n,pair), x = fibonacciExact(n,a), y = lucasExact(n,b);

@@ -89,5 +89,4 @@ def oracle(binary, args, env):
 
 
 if __name__ == '__main__':
-    raise SystemExit(main('03-equation_solvers', ['mod-zero','mod-negative','box-x','box-y',
-                         'legacy-gcd','legacy-point','legacy-xy','legacy-xg','legacy-yg'], oracle))
+    raise SystemExit(main('03-equation_solvers', ['mod-zero','mod-negative','box-x','box-y'], oracle))

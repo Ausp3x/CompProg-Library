@@ -86,8 +86,6 @@ pair<T, T> fibonacciPair(ulng n) {
         else { a = c; b = d; }}
     return {a, b};}
 template<typename T>
-T fibonacci(ulng n) { return fibonacciPair<T>(n).first; }
-template<typename T>
 T lucas(ulng n) { auto [a, b] = fibonacciPair<T>(n); return T(2) * b - a; }
 
 // T: O(n^2), M: O(n^2); rows C(i, 0..i) for 0 <= i <= n in any ring T, no inverses.
@@ -178,7 +176,7 @@ inline bool fibonacciPairExact(ulng n, pair<ulng, ulng> &out) {
     auto [a, b] = fibonacciPair<ulll>(n); out = {ulng(a), ulng(b)}; return true;}
 inline bool fibonacciExact(ulng n, ulng &out) {
     if (n > 93) { return false; }
-    out = ulng(fibonacci<ulll>(n)); return true;}
+    out = ulng(fibonacciPair<ulll>(n).first); return true;}
 inline bool lucasExact(ulng n, ulng &out) {
     if (n > 92) { return false; }
     out = ulng(lucas<ulll>(n)); return true;}

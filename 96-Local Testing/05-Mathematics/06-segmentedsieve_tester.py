@@ -11,6 +11,5 @@ from _00_runner import main
 if __name__ == '__main__':
     raise SystemExit(main('06-segmentedsieve', [
         'base-negative', 'base-block', 'stream-order', 'stream-block', 'stream-mode',
-        'base-short', 'constructor-order', 'closed-order', 'closed-maximum',
-        'closed-base-maximum', 'material-size', 'factor-zero', 'factor-left',
+        'base-short', 'constructor-order', 'material-size', 'factor-zero', 'factor-left',
         'factor-right', 'factor-interval-negative', 'reset-order']))

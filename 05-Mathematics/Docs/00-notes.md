@@ -6,14 +6,14 @@ Contracts and ownership rules moved out of the inventory on 2026-10-06. The inve
 
 - `verified` rows are backed by the linked per-header evidence documents (`Docs/01-mod_arithmetic.md` … `Docs/06-segmentedsieve.md`); every operation in the row has a test with an independent oracle and recorded commands.
 - `partial` rows keep their evidence link; the `missing:` list is planned work, not a defect in the verified part.
-- `legacy-reference` rows have an archived implementation in `OLD/5-Mathematics` and no active header; names listed in the row are the intended active API, and legacy names (`exGcd`, `modLog` multiplier form, `superChiRemThm`) remain available under the new header.
+- `legacy-reference` rows have an archived implementation in `OLD/5-Mathematics` and no active header; names listed in the row are the intended active API, and legacy names (`modLog` multiplier form, `superChiRemThm`) remain available under the new header.
 - `planned` rows name the API that would be implemented; nothing in them establishes compliance.
 - P012 verified the six MA01/MA02 foundation headers and re-audited them on 2026-10-07, completing the previously missing `01-mod_arithmetic.hpp` operations; see the per-header documents [01](01-mod_arithmetic.md)–[06](06-segmentedsieve.md) and the package record below.
 
 ## Domains
 
 - Domains are part of the contract: finite fields, composite residue rings, integers/rationals and approximate reals are not interchangeable. Every operation states integer widths and overflow, modulus prime/unit assumptions, characteristic, coefficient bounds, empty/zero/singular cases and legitimate failure.
-- Signed 64-bit inputs include the minimum; wide (128-bit) results prevent narrowing the magnitude 2^63. Legacy narrow adapters assert representability.
+- Signed 64-bit inputs include the minimum; wide (128-bit) results prevent narrowing the magnitude 2^63.
 - Factorial tables in `05` require `n < mod` and a prime modulus; large-index and composite-modulus binomials belong to `12` and `37`.
 - Randomized operations distinguish expected time, Monte Carlo error and verifiable Las Vegas retry, with seeds and budgets as parameters.
 - Approximate methods state tolerance, error and conditioning and never silently replace exact variants; exact and approximate pivoting APIs are separately named in `16`.
@@ -38,7 +38,7 @@ Contracts and ownership rules moved out of the inventory on 2026-10-06. The inve
 - `OLD/5-Mathematics/05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp`, `13-numericalmethods.hpp` and `14-miscellaneous.hpp` stay pending until `11`, `17`–`19` account for every feature, including the `modLog` multiplier parameter. All originals stay in `OLD`.
 - `OLD/5-Mathematics/09-montgomery.hpp` is a Core reference; `10-poly.hpp` and `11-moly.hpp` are references for Core Poly.
 - The [transfer record](../../00-Guidelines/History/2026-09-27-monolith-transfer.md) preserves source-range/hash provenance for the former local excerpts. The last one (`FastConv`) was removed when P055 verified row 24; the original stays in `OLD/algorithms.cpp`.
-- The archived closed segmented-sieve interval migrated to half-open `[l, r)` with an explicit `fromClosed` adapter.
+- The archived closed segmented-sieve interval migrated to half-open `[l, r)`; closed callers map as in the Legacy mapping of [06-segmentedsieve.md](06-segmentedsieve.md).
 
 ## Evidence rules
 
@@ -88,7 +88,7 @@ Confirmed findings from `/reaudit-review` (each header's document repeats its ow
 | 3 | 06 | Shared-base materialization copied every base prime | Fixed: copies only `p <= floor(sqrt(r - 1))`; 100 objects from a `10^16` base went from 1087 ms to 0.02 ms |
 | 4 | 01 | `invMod2p64` listed but absent | Implemented and tested against `pow(a, -1, 2^64)` |
 | 5 | 01 | Notes/evidence claimed MA01 complete while the row was partial | All five operations implemented; row verified; these notes and [01-mod_arithmetic.md](01-mod_arithmetic.md) rewritten |
-| 6 | 01 | `modPow` default modulus and `exGcd` input/output aliasing untested | Op `P` checks the two-argument overload against `pow(a, b, INF64)`; boundary regression runs `exGcd(a, b, a, b)` |
+| 6 | 01 | `modPow` default modulus and `exGcd` input/output aliasing untested | Tested; both removed by the 2026-10-12 prune (One API per operation) |
 | 7 | 02 | `RealSearchResult` lacked a complexity line | Added |
 | 8 | 03 | Lambda closing brace `; };` | Fixed |
 | 9 | 04 | `getAllFac` comment used undefined `d(a)` and `a` | Now `Q: O(log(a) + out), M: O(out); 1 <= a <= n` |
@@ -97,7 +97,7 @@ Confirmed findings from `/reaudit-review` (each header's document repeats its ow
 | 12 | 04, 06 | `size_t` loops and callback index; detail helpers without complexity lines; `signed char` | Loops and the `forEachFactor` callback index are `lng`; helpers commented; `int8_t` |
 | 13 | all testers | Tester `main` closed with a lone brace | Fixed |
 
-The `@reviewer` pass found no correctness defect in the code; its per-header notes and independent probes are recorded in the per-header `## Commands and results`. The oracles across the package are Python unbounded integers and built-in modular powers and inverses, matrix powers, enumerated arrangements and paths, trial factors and divisors, divisor-inversion identities, analytic monotone and minimum positions, linear scans, and direct enumeration of bounded equations. Finite tests are paired with the correctness arguments in each per-header document. No Barrett/Montgomery or ISA-specific code is used.
+The `@reviewer` pass found no correctness defect in the code; its independent probes are recorded in the per-header `## History`. The oracles across the package are Python unbounded integers and built-in modular powers and inverses, matrix powers, enumerated arrangements and paths, trial factors and divisors, divisor-inversion identities, analytic monotone and minimum positions, linear scans, and direct enumeration of bounded equations. Finite tests are paired with the correctness arguments in each per-header document. No Barrett/Montgomery or ISA-specific code is used.
 
 Legacy originals remain untouched in `OLD` and `97-Legacy`. Handoffs from the research sweep (not P012 work): `firstModInRange` to `18-floorsum.hpp`, the completely multiplicative power table to `08-multiplicative_functions.hpp`. There is no unfinished owned P012 feature or verification gap. Separate planned inventory families remain planned. No online submission or online-acceptance claim was made.
 

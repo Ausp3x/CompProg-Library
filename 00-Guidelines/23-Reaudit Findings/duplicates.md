@@ -191,15 +191,11 @@ Pruned 2026-10-12.
 
 ## P012 — 05-Mathematics — mod arithmetic, search algorithms, equation solvers, sieve algorithms, combinatorics, segmentedsieve (verified)
 
+Pruned 2026-10-12.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `exGcd(a, b, x, y)` | `01-mod_arithmetic.hpp:22` | `auto [g, x, y] = extendedGcd(a, b)` | remove | out-parameters, narrowing | `01-mod_arithmetic_tester.cpp:14-15,31,39` | `Docs/00-notes.md:9` |
-| `modPow` default `mod = INF64` | `01-mod_arithmetic.hpp:65` | `modPow(a, b, INF64)` (`intPow` differs) | remove | legacy default argument | `01-…_tester.cpp:45`; `.py:29,57,82` | none |
-| `binSearchReal`, `ternSearchReal`, `goldenSearchReal` | `02-search_algorithms.hpp:124,127,130` | `.x` of the `*RealBracket` forms | remove | projected field | `02-…_tester.cpp:116,135,158-160`; probes :191-198 move to the bracket forms | `06-Miscellaneous/05-binarysearch.hpp`; `06-Miscellaneous/00-index.md:13` |
-| `solveDioEq(a, b, c, x, y, g)` | `03-equation_solvers.hpp:20` | `solveDioEq(a, b, c)` | remove | out-parameters, narrowing | `03-…_tester.cpp:23,34`; probes `legacy-*` (:87-91) | none |
-| `fromClosed` (both overloads) | `06-segmentedsieve.hpp:91,94` | `SegmentedSieve(L, R + 1[, base])` | remove | range convention (asserts `R < INT64_MAX`) | `06-…_tester.cpp:88,90,91,95`; probes `closed-*` (:143-145) | `Docs/00-notes.md:41` |
 | `starsBars`, `starsBarsExact` | `05-combinatorics.hpp:49,130` | `combiWR(p, pos ? t - p : t)`; `t < p ? 0 : combiRepExact(p, t - p)` | keep | the positive variant is a derived formula with a guard (clarified rule) | `05-…_tester.cpp:62-64,85,106` | none |
-| `fibonacci<T>` | `05-combinatorics.hpp:89` | `fibonacciPair<T>(n).first` | remove | projected field | `05-…_tester.cpp:94-96` | `05-combinatorics.hpp:179` (`fibonacciExact`) |
 | `permuWR(a, b)` | `05-combinatorics.hpp:47` | `b < 0 ? 0 : pow(M(a), b)` | keep | named count with the family's 0-for-negative rule (decided 2026-10-11) | `05-…_tester.cpp:18,54,84` | `96-Local Testing/01-Core/05-modint_consumers.cpp:11` |
 | `ballot` and `ballotExact` `strict` flag | `05-combinatorics.hpp:57,152` | `ballot(a - 1, b)` | keep | variant inside one operation (decided 2026-10-11) | `05-…_tester.cpp:85,106` | none |
 | `SegmentedSieve::getPrimeFac()`, `getTables()`, constructor without a base | `06-segmentedsieve.hpp:123,154,86` | `forEachFactor`; the four getters; the base overload | keep | named table; batch form (ruling 4); one-call form beside the base-reuse form (decided 2026-10-11) | `06-…_tester.cpp:57,69,88,91,95,142,147-151` | none |

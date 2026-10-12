@@ -88,12 +88,6 @@ struct SegmentedSieve {
         SegmentedSieveBase base(L == R || R <= 2 ? 1 : R - 1, block); reset(L, R, base, block, mode);}
     SegmentedSieve(lng L, lng R, const SegmentedSieveBase &base, int block = 32768,
                    SegmentedSieveMode mode = SegmentedSieveMode::Odd) { reset(L, R, base, block, mode); }
-    static SegmentedSieve fromClosed(lng L, lng R, int block = 32768,
-                                     SegmentedSieveMode mode = SegmentedSieveMode::Odd) {
-        assert(L <= R && R < std::numeric_limits<lng>::max()); return SegmentedSieve(L, R + 1, block, mode);}
-    static SegmentedSieve fromClosed(lng L, lng R, const SegmentedSieveBase &base, int block = 32768,
-                                     SegmentedSieveMode mode = SegmentedSieveMode::Odd) {
-        assert(L <= R && R < std::numeric_limits<lng>::max()); return SegmentedSieve(L, R + 1, base, block, mode);}
     void reset(lng L, lng R, const SegmentedSieveBase &base, int block = 32768,
                SegmentedSieveMode mode = SegmentedSieveMode::Odd) {
         segmented_sieve_detail::validate(L, R, block, mode);

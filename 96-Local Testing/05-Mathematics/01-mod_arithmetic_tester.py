@@ -4,6 +4,8 @@ import random
 import subprocess
 from _00_runner import main
 
+INF64 = 0x3f3f3f3f3f3f3f3f  # 01-template.hpp INF64
+
 
 def oracle(binary, args, env):
     rng = random.Random(args.seed)
@@ -26,7 +28,7 @@ def oracle(binary, args, env):
             for m in (1, 2, 6, 97, hi):
                 add('m', a, b, m)
                 add('p', a, b, m)
-            add('P', a, b); add('c', a, b)
+            add('p', a, b, INF64); add('c', a, b)
     for a in [-(1 << 127), -(1 << 127) + 1, -1, 0, 1, (1 << 127) - 1]:
         for b in [-(1 << 127), -hi, -1, 1, hi, (1 << 127) - 1]:
             if not (a == -(1 << 127) and b == -1): add('d', a, b)
@@ -54,7 +56,7 @@ def oracle(binary, args, env):
         add('g', a, b)
         if b: add('d', a, b)
         add('n', rng.randrange(-(1 << 127), 1 << 127), m)
-        add('m', a, b, m); add('p', a, b, m); add('P', a, b); add('c', a, b)
+        add('m', a, b, m); add('p', a, b, m); add('p', a, b, INF64); add('c', a, b)
         add('c', rng.randint(-(1 << 32), 1 << 32), rng.randint(lo, hi) >> rng.randrange(64))
         add('v', rng.getrandbits(64) | 1)
         a, b = rng.randrange(-(1 << 127), 1 << 127), rng.randrange(-(1 << 127), 1 << 127)
@@ -74,12 +76,11 @@ def oracle(binary, args, env):
             g = math.gcd(a, b)
             expected = [g, math.lcm(a, b), g]
             ok = got[:3] == expected and a * got[3] + b * got[4] == g
-            if g <= hi: ok &= got[5] == g and a * got[6] + b * got[7] == g
         elif op == 'd': expected = [a // b, -(-a // b)]; ok = got == expected
         elif op == 'n': expected = [a % b]; ok = got == expected
         elif op in ('m', 'u'): expected = [a * b % v[2]]; ok = got == expected
-        elif op in ('p', 'q', 'P'):
-            try: expected = [pow(a, b, v[2] if op != 'P' else 0x3f3f3f3f3f3f3f3f)]
+        elif op in ('p', 'q'):
+            try: expected = [pow(a, b, v[2])]
             except ValueError: expected = [-1]
             ok = got == expected
         elif op == 'c':
@@ -99,6 +100,6 @@ def oracle(binary, args, env):
 
 
 if __name__ == '__main__':
-    raise SystemExit(main('01-mod_arithmetic', ['gcd-width', 'alias', 'floor-zero', 'ceil-zero',
+    raise SystemExit(main('01-mod_arithmetic', ['floor-zero', 'ceil-zero',
         'floor-overflow', 'ceil-overflow', 'norm-zero', 'norm-negative', 'mul-zero',
         'mul64-zero', 'pow-zero', 'pow64-zero', 'inv-even'], oracle))

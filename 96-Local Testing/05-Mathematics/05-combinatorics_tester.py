@@ -170,13 +170,13 @@ def oracle(binary, args, env):
             add('mm', (len(parts), *parts), [multinomial(parts) % p])
         for index in [0,1,2,3,92,93,94,1<<63,LIMIT] + [rng.getrandbits(64) for _ in range(10)]:
             a,b = fib_matrix(index,p)
-            add('mg', (index,), [a,b,a,(2*b-a)%p])
+            add('mg', (index,), [a,b,(2*b-a)%p])
     # Fibonacci only needs a ring, including composite and modulus-one contexts.
     for p in [1,2,8,1000,1<<63,LIMIT]:
         add('ring', (p,), [1])
         for index in [0,1,2,92,1<<63,LIMIT]:
             a,b = fib_matrix(index,p)
-            add('mg', (index,), [a,b,a,(2*b-a)%p])
+            add('mg', (index,), [a,b,(2*b-a)%p])
         add('rd', (30,), [derangement(k) % p for k in range(31)])
         for n in (0, 1, 12):
             add('rd', (n,), [derangement(k) % p for k in range(n+1)])
@@ -197,7 +197,7 @@ def oracle(binary, args, env):
     for p,op in [(1<<32,'rg32'),(1<<64,'rg')]:
         for n in [0,1,2,47,48,93,94,1<<63,LIMIT]:
             a,b = fib_matrix(n,p)
-            add(op,(n,),[a,b,a,(2*b-a)%p])
+            add(op,(n,),[a,b,(2*b-a)%p])
     edges = list(range(71)) + [100,1<<32,(1<<63)-1,1<<63,LIMIT-1,LIMIT]
     for a in edges:
         for b in list(range(5)) + [a,a+1 if a < LIMIT else a]:

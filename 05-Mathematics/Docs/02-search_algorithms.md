@@ -1,6 +1,6 @@
 # 02-search_algorithms.hpp — evidence
 
-`02-search_algorithms.hpp` covers the Basic search row. The four legacy names remain: `binSearch`, `binSearchReal`, `ternSearch` and `ternSearchReal`. The header adds endpoint-independent first/last-true searches, Fibonacci and exponential integer searches, golden-section minimization, and real bracket/result interfaces. Every function is stateless, and every caller predicate or objective must be deterministic.
+`02-search_algorithms.hpp` covers the Basic search row. The legacy names `binSearch` and `ternSearch` remain; the legacy real point searches map to the bracket forms (Legacy mapping). The header adds endpoint-independent first/last-true searches, Fibonacci and exponential integer searches, golden-section minimization, and real bracket/result interfaces. Every function is stateless, and every caller predicate or objective must be deterministic.
 
 ## Contracts
 
@@ -49,7 +49,7 @@ or no binary64 value lies strictly inside `[l, r]`. False means the iteration ca
 
 ### binSearchRealBracket
 
-Finite true and false endpoints come in either order and are never evaluated; equal endpoints are already converged. `x` is the true endpoint. In exact arithmetic the width after `k` reductions is `initial_width / 2^k`. Each reduction makes one predicate evaluation, at most `itr` in total.
+Finite true and false endpoints come in either order and are never evaluated; equal endpoints are already converged. `x` is the true endpoint. In exact arithmetic the width after `k` reductions is `initial_width / 2^k`. Each reduction makes one predicate evaluation, at most `itr` in total. `itr` defaults to 100.
 
 ### ternSearchRealBracket, goldenSearchRealBracket
 
@@ -60,9 +60,15 @@ Both take finite `l <= r` and the same strict-side, optional-flat-minimum shape 
 
 Correctness of the real searches: `std::midpoint` and `std::lerp` avoid overflowing `r - l` in binary64. Every successful reduction keeps ordered interior probes, and golden search checks that order before reusing cached values. Ternary and golden interpolation may stall before the endpoints become adjacent; the result is then the remaining bracket with `converged == false`, unless the tolerance was met anyway. Reaching a positive absolute width `epsilon < W` in exact arithmetic takes `ceil(log(W / epsilon) / log(1 / q))` reductions, `q` being 1/2, 2/3 or `(sqrt(5) - 1) / 2`. Rounding limits the useful precision, so the actual bracket and status are reported rather than a fixed iteration count. A purely relative tolerance near zero may be unattainable within the cap.
 
-### binSearchReal, ternSearchReal, goldenSearchReal
+`itr` defaults to 200 for ternary (legacy) and 100 for golden. To maximize, minimize a reversed objective whose evaluation stays valid, such as a negated real objective. Negating `INT64_MIN` is not valid.
 
-These are the legacy point interfaces: they return `.x` of the matching bracket function and share its domain. The default iteration counts are 100 for binary, 200 for ternary (legacy) and 100 for golden. To maximize, minimize a reversed objective whose evaluation stays valid, such as a negated real objective. Negating `INT64_MIN` is not valid.
+### Legacy mapping
+
+| Removed (prune, 2026-10-12) | Replacement |
+|---|---|
+| `binSearchReal(ok, ng, f, itr)` | `binSearchRealBracket(ok, ng, f, itr).x` |
+| `ternSearchReal(l, r, f, itr)` | `ternSearchRealBracket(l, r, f, itr).x` |
+| `goldenSearchReal(l, r, f, itr)` | `goldenSearchRealBracket(l, r, f, itr).x` |
 
 ## Feature-to-test map
 
@@ -74,32 +80,20 @@ Entry: [`02-search_algorithms_tester.py`](<../../96-Local Testing/05-Mathematics
 | `expSearch` | In every `boundaries()` triple (exhaustive small, signed-extreme matrix, random full-width), the result must equal `p - 1`, with `ok` never queried and at most `2 * bit_width(p - l) + 2` calls. An always-true predicate from every edge value must return `INT64_MAX` within 65 calls. |
 | `ternSearch` | Every four-valued array through length 8, filtered to exactly the declared shape, compared with a linear scan at offsets near both signed extremes. Random variable-slope arrays. Full-domain asymmetric V and flat-minimum functions with analytic answers, within the 128-call bound. |
 | `fibSearch` | The same exhaustive and random arrays against the linear scan, with an evaluation bound `fibBound(n)` computed independently. The full-domain plateau matrix within 93 calls. Random full-width plateaus. Singletons make no call. Death probe `fib-order`. |
-| `binSearchRealBracket`, `binSearchReal` | Analytic thresholds in both orientations: the final feasible endpoint, enclosure of the threshold, wrapper parity, default arguments and one call per reduction. |
-| `ternSearchRealBracket`, `goldenSearchRealBracket` and wrappers | Analytic V functions, minimum plateaus, endpoint minima and constant functions. Checks that the bracket meets the minimizer set, wrapper parity, default arguments, and two (ternary) or one cached (golden) evaluation per reduction. |
+| `binSearchRealBracket` | Analytic thresholds in both orientations: the final feasible endpoint, enclosure of the threshold, default arguments and one call per reduction. |
+| `ternSearchRealBracket`, `goldenSearchRealBracket` | Analytic V functions, minimum plateaus, endpoint minima and constant functions. Checks that the bracket meets the minimizer set, default arguments, and two (ternary) or one cached (golden) evaluation per reduction. |
 | `RealSearchResult`, precision and finite domain | Zero, low and high iteration limits; absolute and relative tolerances; opposite `DBL_MAX`; subnormal intervals; signed zeros; equal and adjacent endpoints; interpolation stagnation. `converged` is checked against an independent stopping predicate, and widths against exact contraction plus a rounding allowance. |
 | Preconditions | 16 checked-build death probes: reversed ranges (including `fib-order`), negative iteration budgets, infinite or NaN endpoints, negative, infinite or NaN tolerances. |
 
 ## Commands and results
 
-Latest P012 re-audit runs (2026-10-07), recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1, GNU++20, Python 3.14, Linux x86-64 (i9-11900H). Every C++ build uses the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (quick runs the first two).
+P012 prune run, 2026-10-12, recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Every suite runs the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations; counts are per configuration and equal on both compilers.
 
-```bash
-python3 '96-Local Testing/01-run.py' --mode quick --filter 05-Mathematics/0 --no-integration                     # PASS, 6 suites, 2 configurations
-python3 '96-Local Testing/01-run.py' --mode full --filter 05-Mathematics/0 --seed 1 --no-integration              # PASS, 6 suites, 3 configurations
-python3 '96-Local Testing/01-run.py' --mode stress --filter 05-Mathematics/0 --seed 1 --rounds 1 --no-integration # PASS, 6 suites, 3 configurations
-python3 '96-Local Testing/02-integration.py'                                                                     # PASS, 102 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace
-python3 '96-Local Testing/03-consistency.py'                                                                     # no errors
-```
-
-After the `@reviewer` pass, full (all six headers), stress (combinatorics) and integration were rerun and passed with these counts:
-
-| Mode | Count |
+| Command | Result |
 |---|---|
-| Full (seed 1), per configuration | 2,376,661 C++ checks |
-| Stress (seed 1) | 22,083,875 |
-| Assertion probes | 16 |
-
-The `@reviewer` pass independently probed `fibSearch` on 151,280 shapes.
+| `02-search_algorithms_tester.py --mode full --seed 1` | PASS, 2,340,101 C++ checks, 16 assertion probes, `MEMORY peak=390MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=408MB` |
+| Other P012 suites, `02-integration.py` and `03-consistency.py` | PASS; details and commands in [01-mod_arithmetic.md](01-mod_arithmetic.md) |
 
 ## Benchmarks
 
@@ -120,11 +114,12 @@ Inspected on 2026-09-27, plus the 2026-10-07 completeness sweep:
 
 ## Limits and handoffs
 
-- `OLD/5-Mathematics/02-search.hpp` and `OLD/Team Notebook/src/math/search.hpp` are unchanged. Their known-true endpoint result, closed integer minimization, real point interfaces and iteration arguments remain available.
+- `OLD/5-Mathematics/02-search.hpp` and `OLD/Team Notebook/src/math/search.hpp` are unchanged. Their known-true endpoint result, closed integer minimization and iteration arguments remain available; real point interfaces are `.x` of the bracket forms.
 - Root finding beyond predicate bisection belongs to `17-numerical_methods.hpp`, and batched parallel binary search to Miscellaneous `20-parallelbinarysearch.hpp`.
 - The researcher's log-scale real bisection candidate was not adopted; the reason is in [00-notes.md](00-notes.md).
 
 ## History
 
 - 2026-09-27: initial P012 evidence; full mode with seed `20260927` passed before `fibSearch` and `expSearch` existed.
-- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit then added `fibSearch` and `expSearch` and fixed findings 7 and 10.
+- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit then added `fibSearch` and `expSearch` and fixed findings 7 and 10; after `@reviewer` (which probed `fibSearch` on 151,280 shapes), full and stress (seed 1) and integration passed.
+- 2026-10-12: prune, removed `binSearchReal`, `ternSearchReal` and `goldenSearchReal` (probes and the binary default-argument case moved to the bracket forms); full suite passed on g++ and g++-14.

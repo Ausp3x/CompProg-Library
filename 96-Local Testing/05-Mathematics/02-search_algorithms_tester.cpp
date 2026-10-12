@@ -112,9 +112,6 @@ void realBinary(double l, double r, double center, int limit, double atol = 0, d
         require(res.l <= center && center <= res.r, "binary brackets exact threshold");
         require(reverse ? res.x >= center : res.x <= center, "binary feasible returned endpoint");
         expect(calls, res.iterations, "binary one evaluation per reduction");
-        if (!atol && !rtol) {
-            calls = 0; double x = binSearchReal(reverse ? r : l, reverse ? l : r, f, limit);
-            require(x == res.x, "legacy binary point");}
         long double w = static_cast<long double>(r) - l, got = static_cast<long double>(res.r) - res.l;
         long double rounding = 8 * std::numeric_limits<double>::epsilon() * max(abs(l), abs(r)) + 8 * std::numeric_limits<double>::denorm_min();
         require(got <= std::ldexp(w, -res.iterations) + rounding, "binary contraction plus rounding");}}
@@ -131,9 +128,6 @@ void realMinimum(double l, double r, double p, double q, int limit, double atol 
         require(res.l <= q && p <= res.r, "minimum bracket intersects analytic minimizers", "intersection",
             "[" + real(res.l) + "," + real(res.r) + "]");
         require(calls <= (golden ? (res.iterations ? res.iterations + 1 : 0) : 2 * res.iterations), "minimum evaluation bound");
-        if (!atol && !rtol) {
-            calls = 0; double x = golden ? goldenSearchReal(l, r, f, limit) : ternSearchReal(l, r, f, limit);
-            require(x == res.x, "minimum point wrapper");}
         long double w = static_cast<long double>(r) - l, got = static_cast<long double>(res.r) - res.l;
         long double ratio = golden ? (std::sqrt(5.0L) - 1) / 2 : 2.0L / 3;
         long double rounding = 32 * std::numeric_limits<double>::epsilon() * max(abs(l), abs(r)) + 32 * std::numeric_limits<double>::denorm_min();
@@ -155,9 +149,7 @@ void realBoundaries() {
         realMinimum(l, r, c, c, 2200, tiny, 1e-12);}
     auto predicate = [](double x) { return x < 1; };
     auto objective = [](double x) { return abs(x - 1); };
-    require(binSearchReal(0, 2, predicate) <= 1, "binary default iteration argument");
-    require(abs(ternSearchReal(0, 2, objective) - 1) <= 1e-14, "ternary default iteration argument");
-    require(abs(goldenSearchReal(0, 2, objective) - 1) <= 1e-14, "golden default iteration argument");
+    require(binSearchRealBracket(0, 2, predicate).x <= 1, "binary default iteration argument");
     for (auto res : {binSearchRealBracket(0, 2, predicate), ternSearchRealBracket(0, 2, objective), goldenSearchRealBracket(0, 2, objective)}) {
         require(abs(res.x - 1) <= 1e-14, "bracket default iteration argument");}
     std::cout << "PASS real limits, subnormals, adjacent points, caps, tolerance and call bounds\n";}
@@ -188,14 +180,14 @@ void invalid(const string &probe) {
     else if (probe == "last-order") { lastTrue(1, 0, f); }
     else if (probe == "integer-order") { ternSearch(1, 0, f); }
     else if (probe == "fib-order") { fibSearch(1, 0, f); }
-    else if (probe == "binary-iterations") { binSearchReal(0, 1, f, -1); }
-    else if (probe == "ternary-iterations") { ternSearchReal(0, 1, f, -1); }
-    else if (probe == "golden-iterations") { goldenSearchReal(0, 1, f, -1); }
-    else if (probe == "binary-infinite") { binSearchReal(0, inf, f); }
-    else if (probe == "ternary-nan") { ternSearchReal(nan, 1, f); }
-    else if (probe == "golden-infinite") { goldenSearchReal(-inf, 1, f); }
-    else if (probe == "ternary-order") { ternSearchReal(1, 0, f); }
-    else if (probe == "golden-order") { goldenSearchReal(1, 0, f); }
+    else if (probe == "binary-iterations") { binSearchRealBracket(0, 1, f, -1); }
+    else if (probe == "ternary-iterations") { ternSearchRealBracket(0, 1, f, -1); }
+    else if (probe == "golden-iterations") { goldenSearchRealBracket(0, 1, f, -1); }
+    else if (probe == "binary-infinite") { binSearchRealBracket(0, inf, f); }
+    else if (probe == "ternary-nan") { ternSearchRealBracket(nan, 1, f); }
+    else if (probe == "golden-infinite") { goldenSearchRealBracket(-inf, 1, f); }
+    else if (probe == "ternary-order") { ternSearchRealBracket(1, 0, f); }
+    else if (probe == "golden-order") { goldenSearchRealBracket(1, 0, f); }
     else if (probe == "negative-absolute") { binSearchRealBracket(0, 1, f, 10, -1); }
     else if (probe == "negative-relative") { ternSearchRealBracket(0, 1, f, 10, 0, -1); }
     else if (probe == "infinite-tolerance") { goldenSearchRealBracket(0, 1, f, 10, inf); }

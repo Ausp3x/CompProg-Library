@@ -15,8 +15,6 @@
 
 Evaluating an arbitrary parameter `t` must fit the caller's chosen arithmetic. Every bounded parameter returned by `solveDioBox` evaluates safely in 128 bits.
 
-The legacy overload `solveDioEq(a, b, c, x, y, g)` keeps its name and signature. It requires pairwise-distinct output references (asserted). On success, the canonical `x`, `y` and `g` must fit `lng` (asserted); use the result overload otherwise. It returns false for a legitimate no-solution case and leaves the outputs unchanged.
-
 Correctness: for nonzero `(a, b)`, Bézout gives `a * u + b * v = g > 0`, so a solution exists exactly when `g` divides `c`, and scaling by `c / g` gives a particular solution. When `b != 0`, reducing `x` modulo `|b / g|` and recomputing `y = (c - a * x) / b` keeps it integral. Two solutions differ by a vector with `(a / g) * dx = -(b / g) * dy`; coprimality makes it a multiple of `(b / g, -a / g)`, so the line holds all solutions and only solutions. With one zero coefficient the same primitive vector covers the free coordinate; with both zero the equation is inconsistent or no constraint. Widths: the extended-gcd coefficients and `c / g` are at most `2^63` in magnitude, so products are at most `2^126`; the canonical `x` lies in `[0, 2^63)`, `c - a * x` fits 128 bits, and `|y| <= 2^63 / |b| + |a| / g <= 2^64` (the `b = 0` case also fits).
 
 ### DioBox, solveDioBox
@@ -39,38 +37,34 @@ Correctness: each nonconstant coordinate admits a closed interval of integer par
 
 Correctness: the congruence is the integer equation `a * x + m0 * y = b`. Dividing by the gcd is necessary and sufficient, and the Bézout coefficient of `a` is the inverse of `a / g` modulo `m0 / g`; reducing `u * (b / g)` gives the least nonnegative representative. A positive modulus guarantees a positive period, so the sentinel cannot collide with a valid answer.
 
+### Legacy mapping
+
+| Removed (prune, 2026-10-12) | Replacement |
+|---|---|
+| `solveDioEq(a, b, c, x, y, g)` returning `bool` | `auto s = solveDioEq(a, b, c)`: `s.dimension >= 0` for success, `lll` fields `s.x`, `s.y`, `s.g` (`g = 2^63` for `(MIN, 0, 0)`, `y = 2^63` for `(0, -1, MIN)`) |
+
 ## Feature-to-test map
 
 Entry: [`03-equation_solvers_tester.py`](<../../96-Local Testing/05-Mathematics/03-equation_solvers_tester.py>).
 
 | Feature | Independent evidence |
 |---|---|
-| Solvability, canonical point, primitive direction, `g`, legacy overload | Exhaustive small signed coefficients with point substitution and unsigned `std::gcd`. Every boundary coefficient/RHS triple and seeded full-width cases. The Python built-in modular inverse with arbitrary-precision substitution. `s.g` is checked before the no-solution branch, and the Python oracle expects `g` on no-solution results. |
+| Solvability, canonical point, primitive direction, `g` | Exhaustive small signed coefficients with point substitution and unsigned `std::gcd`. Every boundary coefficient/RHS triple and seeded full-width cases, with explicit `g = 2^63` for `(MIN, 0, 0)` and `y = 2^63` for `(0, -1, MIN)`. The Python built-in modular inverse with arbitrary-precision substitution. `s.g` is checked before the no-solution branch, and the Python oracle expects `g` on no-solution results. |
 | Complete parameterization | Every solution in a brute-force `[-8, 9)^2` grid maps to an integral parameter, and every bounded parameter maps back to a solution. |
 | Half-open boxes, signs and zeros | Every box with endpoints in `[-2, 3]` against direct enumeration. Independently computed Python parameter bounds over arbitrary signed 64-bit ranges. |
 | Wide arithmetic and count | Signed minima and maxima with their neighbours, `-1`, zero, impossible-gcd cases, the full-length diagonal `2^64 - 1`, and the exact count `(2^64 - 1)^2`. |
 | `solveModEq` | Every residue for signed `a`, `b` through magnitude 40 and moduli through 40: the sentinel, the least representative, the least period and every solution residue. A Python arbitrary-precision inverse oracle. |
-| Preconditions | Nine checked-build death probes: zero or negative modulus, reversed intervals, legacy gcd or point overflow, and the three output aliases. |
+| Preconditions | Four checked-build death probes: zero or negative modulus and reversed intervals. |
 
 ## Commands and results
 
-Latest P012 re-audit runs (2026-10-07), recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1, GNU++20, Python 3.14, Linux x86-64 (i9-11900H). Every C++ build uses the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (quick runs the first two).
+P012 prune run, 2026-10-12, recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Every suite runs the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations; counts are per configuration and equal on both compilers.
 
-```bash
-python3 '96-Local Testing/01-run.py' --mode quick --filter 05-Mathematics/0 --no-integration                     # PASS, 6 suites, 2 configurations
-python3 '96-Local Testing/01-run.py' --mode full --filter 05-Mathematics/0 --seed 1 --no-integration              # PASS, 6 suites, 3 configurations
-python3 '96-Local Testing/01-run.py' --mode stress --filter 05-Mathematics/0 --seed 1 --rounds 1 --no-integration # PASS, 6 suites, 3 configurations
-python3 '96-Local Testing/02-integration.py'                                                                     # PASS, 102 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace
-python3 '96-Local Testing/03-consistency.py'                                                                     # no errors
-```
-
-After the `@reviewer` pass, full (all six headers), stress (combinatorics) and integration were rerun and passed with these counts:
-
-| Mode | Count |
+| Command | Result |
 |---|---|
-| Full (seed 1), per configuration | 5,050,043 C++ checks, 5,729 Python cases |
-| Stress (seed 1) | 7,011,138 C++ checks, 50,729 Python cases |
-| Assertion probes | 9 |
+| `03-equation_solvers_tester.py --mode full --seed 1` | PASS, 5,019,506 C++ checks and 5,729 Python cases, 4 assertion probes, `MEMORY peak=411MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=412MB` |
+| Other P012 suites, `02-integration.py` and `03-consistency.py` | PASS; details and commands in [01-mod_arithmetic.md](01-mod_arithmetic.md) |
 
 ## Benchmarks
 
@@ -88,9 +82,10 @@ Inspected on 2026-09-27; implemented independently from the proofs, with no exte
 
 - Integer systems and lattice normal forms belong to `49-integer_linear_algebra.hpp`.
 - The 2026-10-07 completeness sweep left out two candidates, recorded in [00-notes.md](00-notes.md): `firstModInRange` (maspypy `first_mod_range_of_linear`) is handed to `18-floorsum.hpp`, and a named linear-objective helper is unnecessary because the endpoint rule above is O(1).
-- The previously active header exposed only a particular solution and one modular progression. Those names remain, with the signed-minimum and normalization overflows removed. `OLD` material is unchanged.
+- The previously active header exposed only a particular solution and one modular progression. `solveDioEq` and `solveModEq` keep their names, with the signed-minimum and normalization overflows removed; the reference-output overload maps as in Legacy mapping. `OLD` material is unchanged.
 
 ## History
 
 - 2026-09-27: initial P012 evidence; full mode with seed `20260927` passed on all configurations.
-- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit fixed findings 1 (`DioSolution.g` on no-solution results) and 8 (lambda brace style).
+- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit fixed findings 1 (`DioSolution.g` on no-solution results) and 8 (lambda brace style); after `@reviewer`, full and stress (seed 1) and integration passed.
+- 2026-10-12: prune, removed the reference-output `solveDioEq` overload (its `g` and `y` overflow inputs now checked on the result overload); full suite passed on g++ and g++-14.

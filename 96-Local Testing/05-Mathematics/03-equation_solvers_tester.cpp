@@ -18,20 +18,14 @@ void equation(lng a, lng b, lng c) {
     bool exists = g == 0 ? c == 0 : c % g == 0;
     need((s.dimension >= 0) == exists, "existence expected=" + std::to_string(exists) + " actual dimension=" + std::to_string(s.dimension));
     need(s.g == g, "gcd expected=" + decimal(g) + " actual=" + decimal(s.g));
-    if (!exists) {
-        lng x = 11, y = 22, h = 33;
-        need(!solveDioEq(a, b, c, x, y, h) && x == 11 && y == 22 && h == 33, "legacy no-solution preserves outputs"); return;}
+    if (!exists) { return; }
     if (g == 0) { need(s.dimension == 2, "whole plane"); }
     else {
         need(s.dimension == 1, "line dimension");
         need(lll(a) * s.x + lll(b) * s.y == c, "particular residual");
         need(lll(a) * s.dx + lll(b) * s.dy == 0, "homogeneous residual");
         need(s.dx == b / g && s.dy == -lll(a) / g, "primitive direction");
-        if (b != 0) { need(0 <= s.x && s.x < lll(magnitude(b)) / g, "canonical x"); }}
-    constexpr lng LO = std::numeric_limits<lng>::min(), HI = std::numeric_limits<lng>::max();
-    if (LO <= s.x && s.x <= HI && LO <= s.y && s.y <= HI && s.g <= HI) {
-        lng x = 0, y = 0, h = 0;
-        need(solveDioEq(a, b, c, x, y, h) && x == s.x && y == s.y && h == s.g, "legacy agrees on its domain");}}
+        if (b != 0) { need(0 <= s.x && s.x < lll(magnitude(b)) / g, "canonical x"); }}}
 void boxBrute(lng a, lng b, lng c, lng xl, lng xr, lng yl, lng yr) {
     context = std::to_string(a) + " " + std::to_string(b) + " " + std::to_string(c) + " box="
         + std::to_string(xl) + "," + std::to_string(xr) + "," + std::to_string(yl) + "," + std::to_string(yr);
@@ -84,11 +78,6 @@ int main(int argc, char **argv) {
         else if (invalid == "mod-negative") { solveModEq(1, 2, -1); }
         else if (invalid == "box-x") { solveDioBox(1, 2, 3, 1, 0, 0, 1); }
         else if (invalid == "box-y") { solveDioBox(1, 2, 3, 0, 1, 1, 0); }
-        else if (invalid == "legacy-gcd") { lng x, y, g; solveDioEq(LO, 0, 0, x, y, g); }
-        else if (invalid == "legacy-point") { lng x, y, g; solveDioEq(0, -1, LO, x, y, g); }
-        else if (invalid == "legacy-xy") { lng x, g; solveDioEq(1, 2, 3, x, x, g); }
-        else if (invalid == "legacy-xg") { lng x, y; solveDioEq(1, 2, 3, x, y, x); }
-        else if (invalid == "legacy-yg") { lng x, y; solveDioEq(1, 2, 3, x, y, y); }
         else { return 2; }
         return 0;}
     int n = mode == "quick" ? 3 : 6;
@@ -105,6 +94,8 @@ int main(int argc, char **argv) {
     cout << "PASS exhaustive linear congruences checks=" << checks << '\n';
     vector<lng> edges{LO, LO+1, LO+2, -2, -1, 0, 1, 2, HI-2, HI-1, HI};
     for (lng a : edges) { for (lng b : edges) { for (lng c : edges) { equation(a,b,c); }}}
+    context = "LO 0 0 and 0 -1 LO";
+    need(solveDioEq(LO,0,0).g == lll(1)<<63 && solveDioEq(0,-1,LO).y == -lll(LO), "g and y beyond lng");
     auto huge = solveDioBox(0,0,0,LO,HI,LO,HI);
     ulll width = (ulll(1)<<64)-1;
     need(huge.count == width*width && huge.count > (ulll(1)<<127), "unsigned128 plane count");

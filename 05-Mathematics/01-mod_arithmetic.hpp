@@ -19,10 +19,6 @@ inline ExtendedGcd extendedGcd(lng a, lng b) {
         u = std::exchange(v, u % v);}
     if (u < 0) { u = -u; x = -x; y = -y; }
     return {u, x, y};}
-inline lng exGcd(lng a, lng b, lng &x, lng &y) {
-    assert(&x != &y); auto r = extendedGcd(a, b);
-    assert(r.g <= std::numeric_limits<lng>::max());
-    x = lng(r.x); y = lng(r.y); return lng(r.g);}
 
 // T: O(1), M: O(1); b != 0 and quotient fits lll, m > 0; checked false leaves out unchanged.
 inline lll floorDiv(lll a, lll b) {
@@ -62,7 +58,7 @@ inline bool intPow(lng a, ulng e, lng &out) {
         e >>= 1;
         if (e && __builtin_mul_overflow(a, a, &a)) { return false; }}
     out = r; return true;}
-inline lng modPow(lng a, lng b, lng mod = INF64) {
+inline lng modPow(lng a, lng b, lng mod) {
     a = modNorm(a, mod); ulng e = b < 0 ? -ulng(b) : ulng(b);
     if (b < 0) {
         auto r = extendedGcd(a, mod);

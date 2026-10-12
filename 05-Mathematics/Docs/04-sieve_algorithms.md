@@ -49,23 +49,13 @@ Entry: [`04-sieve_algorithms_tester.py`](<../../96-Local Testing/05-Mathematics/
 
 ## Commands and results
 
-Latest P012 re-audit runs (2026-10-07), recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1, GNU++20, Python 3.14, Linux x86-64 (i9-11900H). Every C++ build uses the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (quick runs the first two).
+P012 prune run, 2026-10-12, recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Every suite runs the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations; counts are per configuration and equal on both compilers.
 
-```bash
-python3 '96-Local Testing/01-run.py' --mode quick --filter 05-Mathematics/0 --no-integration                     # PASS, 6 suites, 2 configurations
-python3 '96-Local Testing/01-run.py' --mode full --filter 05-Mathematics/0 --seed 1 --no-integration              # PASS, 6 suites, 3 configurations
-python3 '96-Local Testing/01-run.py' --mode stress --filter 05-Mathematics/0 --seed 1 --rounds 1 --no-integration # PASS, 6 suites, 3 configurations
-python3 '96-Local Testing/02-integration.py'                                                                     # PASS, 102 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace
-python3 '96-Local Testing/03-consistency.py'                                                                     # no errors
-```
-
-After the `@reviewer` pass, full (all six headers), stress (combinatorics) and integration were rerun and passed with these counts:
-
-| Mode | Count |
+| Command | Result |
 |---|---|
-| Full (seed 1), per configuration | 545,142 C++ checks |
-| Stress (seed 1) | 2,376,642 |
-| Assertion probes | 14 |
+| `04-sieve_algorithms_tester.py --mode full --seed 1` | PASS, 545,142 C++ checks, 14 assertion probes, `MEMORY peak=420MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=434MB` |
+| Other P012 suites, `02-integration.py` and `03-consistency.py` | PASS; details and commands in [01-mod_arithmetic.md](01-mod_arithmetic.md) |
 
 ## Benchmarks
 
@@ -88,4 +78,5 @@ Inspected on 2026-09-27; written independently with no code copied.
 ## History
 
 - 2026-09-27: initial P012 evidence; full mode with seed `20260927` passed on all configurations.
-- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit fixed findings 9 (`getAllFac` complexity line) and 12 (`int8_t` Möbius) plus three brace-style fixes.
+- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit fixed findings 9 (`getAllFac` complexity line) and 12 (`int8_t` Möbius) plus three brace-style fixes; after `@reviewer`, full and stress (seed 1) and integration passed.
+- 2026-10-12: P012 prune rerun, header unchanged; full suite passed on g++ and g++-14.
