@@ -223,11 +223,10 @@ Pruned 2026-10-12.
 
 ## P016 — 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `oddInclusive`, `evenInclusive` | `05-manacher.hpp:37-38` | `oddInterval`, `evenInterval` with `r - 1` | remove | range convention | `05-manacher_tester.cpp:58,62,65,69,105` | `Docs/05-manacher.md` |
-| `validPrefixFunction(pi)` | `01-prefixfunction.hpp:26` | `validPrefixFunction(pi, s)` | remove | witness dropped, same cost | `01-prefixfunction_tester.cpp:19,74,78` | none |
-| `validZFunction(z)` | `02-z.hpp:84` | `zToPrefix(z, pi)` | remove | output dropped, same cost | `02-z_tester.cpp:11,32` | none |
 | `kmpNext(p)` | `01-prefixfunction.hpp:37-38` | `kmpNext(p, prefixFunction(p))` | keep | builds the prefix function itself (clarified rule) | `01-prefixfunction_tester.cpp:24` | none |
 | `common(…, suffix)` | `03-stringhash.hpp:118-129` | `lcp`, `lcs` | keep | helper; dropped from the row 2026-10-12 (flag form) | — | — |
 | `prefixToZ` | `02-z.hpp:66-70` | `validPrefixFunction(pi, s)` then `zFunction(s)` | keep | named conversion paired with `zToPrefix` (decided 2026-10-11) | `02-z_tester.cpp:16,18,42` | none |

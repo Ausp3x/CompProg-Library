@@ -13,17 +13,17 @@ vector<int> prefixFunction(const S &s) {
         pi[i] = j;}
     return pi;}
 
-// T: O(n), M: O(n); exact over an unrestricted alphabet; s receives a witness or is cleared.
+// T: O(n), M: O(n); exact over an unrestricted alphabet; s receives a witness or is cleared, and may alias pi.
 inline bool validPrefixFunction(const vector<int> &pi, vector<int> &s) {
     assert(pi.size() < INT_MAX);
     int n = int(pi.size());
-    s.resize(n);
+    vector<int> t(n);
     for (int i = 0; i < n; ++i) {
         if (pi[i] < 0 || pi[i] > i) { s.clear(); return false; }
-        s[i] = pi[i] ? s[pi[i] - 1] : i;}
-    if (prefixFunction(s) == pi) { return true; }
-    s.clear(); return false;}
-inline bool validPrefixFunction(const vector<int> &pi) { vector<int> s; return validPrefixFunction(pi, s); }
+        t[i] = pi[i] ? t[pi[i] - 1] : i;}
+    if (prefixFunction(t) != pi) { s.clear(); return false; }
+    s = std::move(t);
+    return true;}
 
 // T: O(m), M: O(m) returned; m + 1 entries, next[i] = -1 when no border of p[0, i) fits.
 template<class P>

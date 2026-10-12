@@ -55,18 +55,14 @@ template<class S> void verify(const S &s) {
     vector<int> odd(radii.odd), even(radii.even);
     for (int i = 0; i < n; ++i) {
         check(radii.oddInterval(i) == pair<int, int>{i - odd[i] + 1, i + odd[i]}, "maximum odd interval");
-        check(radii.oddInclusive(i) == pair<int, int>{i - odd[i] + 1, i + odd[i] - 1}, "maximum odd inclusive");
         for (int k = 1; k <= odd[i]; ++k) {
             auto [l, r] = radii.oddInterval(i, k);
-            check(l == i - k + 1 && r == i + k && palindrome(s, l, r), "nested odd interval");
-            check(radii.oddInclusive(i, k) == pair<int, int>{l, r - 1}, "nested odd inclusive");}}
+            check(l == i - k + 1 && r == i + k && palindrome(s, l, r), "nested odd interval");}}
     for (int i = 0; i <= n; ++i) {
         check(radii.evenInterval(i) == pair<int, int>{i - even[i], i + even[i]}, "maximum even interval");
-        check(radii.evenInclusive(i) == pair<int, int>{i - even[i], i + even[i] - 1}, "maximum even inclusive");
         for (int k = 0; k <= even[i]; ++k) {
             auto [l, r] = radii.evenInterval(i, k);
-            check(l == i - k && r == i + k && palindrome(s, l, r), "nested even interval");
-            check(radii.evenInclusive(i, k) == pair<int, int>{l, r - 1}, "nested even inclusive");}}}
+            check(l == i - k && r == i + k && palindrome(s, l, r), "nested even interval");}}}
 void exhaustive(const string &mode) {
     int bound = mode == "quick" ? 6 : mode == "full" ? 8 : 9, count = 1;
     for (int n = 0; n <= bound; ++n, count *= 3) {
@@ -102,7 +98,7 @@ void large(const string &mode) {
     Manacher copy = unary, moved = std::move(copy);
     check(moved.odd == unary.odd && moved.even == unary.even, "copy/move destination");
     copy = Manacher(); check(copy.odd.empty() && copy.even == vector<int>{0}, "reset moved-from");
-    check(copy.evenInterval(0) == pair<int, int>{0, 0} && copy.evenInclusive(0) == pair<int, int>{0, -1}, "default empty intervals");
+    check(copy.evenInterval(0) == pair<int, int>{0, 0}, "default empty interval");
     copy = alternating; check(copy.odd == alternating.odd && copy.even == alternating.even, "assignment rebuild");
     auto e = unary.longestEnding(), b = unary.longestStarting();
     for (int i = 0; i < n; ++i) { expectEqual(e[i], i + 1, "unary longestEnding"); expectEqual(b[i], n - i, "unary longestStarting"); }

@@ -34,8 +34,6 @@ struct Manacher {
         if (k == -1) { k = even[i]; }
         assert(0 <= k && k <= even[i]);
         return {i - k, i + k};}
-    pair<int, int> oddInclusive(int i, int k = -1) const { auto [l, r] = oddInterval(i, k); return {l, r - 1}; }
-    pair<int, int> evenInclusive(int i, int k = -1) const { auto [l, r] = evenInterval(i, k); return {l, r - 1}; }
 
     int centerEnd(int c) const {
         assert(0 <= c && c <= 2 * size() - 2);

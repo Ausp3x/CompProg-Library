@@ -81,4 +81,3 @@ inline bool zToPrefix(const vector<int> &z, vector<int> &pi) {
     if (!validPrefixFunction(p, s) || zFunction(s) != z) { pi.clear(); return false; }
     pi = std::move(p);
     return true;}
-inline bool validZFunction(const vector<int> &z) { vector<int> pi; return zToPrefix(z, pi); }

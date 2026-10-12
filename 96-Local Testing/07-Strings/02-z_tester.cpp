@@ -8,7 +8,7 @@ struct OversizedSequence {
 
 void testString(const vector<int> &s) {
     context = "s=" + show(s); auto z = naiveLcp(s, s), pi = naivePi(s), periods = naivePeriods(s);
-    check(zFunction(s), z, "zFunction"); check(validZFunction(z), true, "validZFunction");
+    check(zFunction(s), z, "zFunction");
     check(zBorders(z), naiveBorders(s), "zBorders"); check(zBorders(z, true), naiveBorders(s, true), "zBorders-full");
     check(zPeriods(z), periods, "zPeriods"); check(zPeriod(z), periods.empty() ? 0 : periods[0], "zPeriod");
     int whole = 0; for (int p : periods) { if (int(s.size()) % p == 0) { whole = p; break; } }
@@ -29,7 +29,6 @@ void validation() {
         auto go = [&](auto &&self, int i) -> void {
             if (i == n) {
                 context = "z=" + show(z); bool ok = valid.contains(z); vector<int> out{99};
-                check(validZFunction(z), ok, "exhaustive-z-validation");
                 check(zToPrefix(z, out), ok, "exhaustive-z-conversion-status");
                 check(out, ok ? valid[z] : vector<int>{}, "exhaustive-z-conversion"); return;}
             for (z[i] = 0; z[i] <= n - i; ++z[i]) { self(self, i + 1); }};

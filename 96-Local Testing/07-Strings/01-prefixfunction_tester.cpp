@@ -16,10 +16,12 @@ vector<int> naiveNext(const vector<int> &p) {
 void testString(const vector<int> &s) {
     context = "s=" + show(s); auto pi = naivePi(s), periods = naivePeriods(s);
     check(prefixFunction(s), pi, "prefixFunction");
-    check(validPrefixFunction(pi), true, "validPrefixFunction");
     vector<int> witness{99};
     check(validPrefixFunction(pi, witness), true, "validPrefixFunction-witness-status");
     check(naivePi(witness), pi, "validPrefixFunction-witness");
+    auto alias = pi;
+    check(validPrefixFunction(alias, alias), true, "validPrefixFunction-alias-status");
+    check(naivePi(alias), pi, "validPrefixFunction-alias-witness");
     auto next = naiveNext(s);
     check(kmpNext(s), next, "kmpNext");
     check(kmpNext(s, pi), next, "kmpNext-with-pi");
@@ -71,14 +73,18 @@ void validation() {
         partitions(n, [&](const auto &s) { valid.insert(naivePi(s)); });
         vector<int> p(n);
         auto go = [&](auto &&self, int i) -> void {
-            if (i == n) { context = "pi=" + show(p); check(validPrefixFunction(p), valid.contains(p), "exhaustive-feasibility"); return; }
+            if (i == n) {
+                context = "pi=" + show(p); bool ok = valid.contains(p); vector<int> witness{99};
+                check(validPrefixFunction(p, witness), ok, "exhaustive-feasibility");
+                check(ok ? naivePi(witness) : witness, ok ? p : vector<int>{}, "exhaustive-witness"); return;}
             for (p[i] = 0; p[i] <= i; ++p[i]) { self(self, i + 1); }};
         go(go, 0);}
     for (auto p : vector<vector<int>>{{-1}, {1}, {0, 0, 2}, {0, 1, 1}, {0, INT_MAX}, {0, INT_MIN}}) {
-        context = "pi=" + show(p); check(validPrefixFunction(p), false, "invalid-regression");
-        vector<int> witness{7};
+        context = "pi=" + show(p); vector<int> witness{7};
         check(validPrefixFunction(p, witness), false, "invalid-witness-status");
-        check(witness.empty(), true, "invalid-witness-cleared");}}
+        check(witness.empty(), true, "invalid-witness-cleared");
+        check(validPrefixFunction(p, p), false, "invalid-alias-status");
+        check(p.empty(), true, "invalid-alias-cleared");}}
 int main(int argc, char **argv) {
     configure(argc, argv);
     if (argc > 2 && string(argv[1]) == "--invalid") {

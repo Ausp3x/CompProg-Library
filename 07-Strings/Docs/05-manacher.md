@@ -10,13 +10,20 @@
 
 `odd[i]` includes its center and denotes `[i-odd[i]+1, i+odd[i])`; `even[g]` denotes `[g-even[g], g+even[g])` around gap `g`, with `n + 1` gap entries including zero radii at both ends. A singleton has `odd = {1}, even = {0, 0}`; empty input has `odd = {}, even = {0}`. Fields are read-only after construction; assign a moved-from object before querying it.
 
-`oddInterval(i, k = -1)` and `evenInterval(g, k = -1)` return half-open ranges and `oddInclusive`/`evenInclusive` inclusive endpoints; `k = -1` selects the maximum, an explicit radius must lie in `[1, odd[i]]` or `[0, even[g]]` (asserted). Empty even intervals are `[g, g)` or inclusive `[g, g-1]`, including `[0, -1]` for empty input; these are interval conventions, not absence sentinels. Each costs O(1).
+`oddInterval(i, k = -1)` and `evenInterval(g, k = -1)` return half-open ranges; `k = -1` selects the maximum, an explicit radius must lie in `[1, odd[i]]` or `[0, even[g]]` (asserted). Empty even intervals are `[g, g)`, including `[0, 0)` for empty input; this is the interval convention, not an absence sentinel. Each costs O(1).
 
 `centerEnd(c)` for a doubled center `c` in `[0, 2n-2]` (asserted) (even `c` is character `c/2`, odd `c` is gap `(c+1)/2`) returns the inclusive right end of its maximal palindrome; an empty even palindrome gives `c/2`, below its own start. `longestEnding()[r]` and `longestStarting()[l]` are the lengths of the longest palindromes ending at `r` and starting at `l`, O(n) time and returned storage; empty input gives `[]`.
 
 Construction takes O(n) time and stored space.
 
 Correctness: for each parity the loop keeps the rightmost maximal palindrome found so far; a center inside it starts from its reflected radius clipped at the boundary, and every further successful comparison advances the boundary, so total extension work is O(n). Mirror indices `l + (r - i)` avoid overflowing sums of absolute indices. For `longestEnding`, an end `r` is covered by doubled center `c` iff `c <= 2r` and `centerEnd(c) >= r`, with start `c - r`; the smallest such `c` gives the longest palindrome. Sweeping `c` upward with a pointer at the first unassigned end assigns each end once: every end `e < c/2` was already covered by its own character center `2e`, so the pointer never lags behind the current center. `longestStarting` is the mirrored sweep with `c` downward. Both are O(n).
+
+### Legacy mapping
+
+| Removed (prune, 2026-10-13) | Replacement |
+|---|---|
+| `oddInclusive(i, k)` over inclusive `[l, r]` | `oddInterval(i, k)`, `r - 1` |
+| `evenInclusive(g, k)` over inclusive `[l, r]` | `evenInterval(g, k)`, `r - 1` |
 
 ## Feature-to-test map
 
@@ -26,26 +33,25 @@ Runner: [`05-manacher_tester.py`](<../../96-Local Testing/07-Strings/05-manacher
 |---|---|
 | Manacher(s): odd, even, size | Exhaustive ternary strings through length 6/8/9, 300/2000/15000 random byte and extreme-`lng` cases (some forced palindromic), all 256 bytes, unary and alternating lengths 5000/300000/1000000, copy/move/reset/assignment. |
 | Manacher(n, match) | Equality predicate compared array-for-array with the sequence constructor on every case; complement involution `s[j] == (s[i] ^ 1)` checked on even radii against the direct anti-palindrome enumeration. |
-| oddInterval, evenInterval, oddInclusive, evenInclusive | Maximal and every nested radius on every case, empty and endpoint gaps, default empty object. |
+| oddInterval, evenInterval | Maximal and every nested radius on every case, empty and endpoint gaps, default empty object. |
 | centerEnd, longestEnding, longestStarting | Every doubled center: `[c - e, e]` is a palindrome and one step wider is not or leaves the string (direct check, not the index formula); per-position maxima of the enumerated palindromes on every case; closed forms on the large unary and alternating strings; empty object. |
 
 Checked builds run twelve precondition probes: ten center/radius probes on the interval methods and `centerEnd` below and above its range.
 
 ## Commands and results
 
-Run 2026-10-08 with the configurations listed in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
+P016 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations as in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
 
 ```bash
-python3 '96-Local Testing/07-Strings/05-manacher_tester.py' --mode quick --seed 1  # PASS, 2 configurations
-python3 '96-Local Testing/07-Strings/05-manacher_tester.py' --mode full --seed 1  # PASS, 3 configurations, 5,344,613 checks each, 12 assertion probes
-CXX=g++-14 python3 '96-Local Testing/07-Strings/05-manacher_tester.py' --mode full --seed 2  # PASS, 3 configurations, 5,360,299 checks each (`CXX=g++-14`)
-python3 '96-Local Testing/07-Strings/05-manacher_tester.py' --mode stress --seed 3  # PASS, 3 configurations, 25,712,584 checks each
-python3 '96-Local Testing/02-integration.py' --sanitizers  # PASS, 102 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace, sanitizers
-python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 9 suites
-python3 '96-Local Testing/03-consistency.py'  # no errors
+python3 '96-Local Testing/07-Strings/05-manacher_tester.py' --mode full --seed 20261013
+CXX=g++-14 python3 '96-Local Testing/07-Strings/05-manacher_tester.py' --mode full --seed 20261013
+python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20261013 --no-integration
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
+python3 '96-Local Testing/03-consistency.py' --braces '07-Strings/05-manacher.hpp' '96-Local Testing/07-Strings/05-manacher_tester.cpp'
 ```
 
-The suite was also run in full mode before any change (seed 1, all three configurations PASS) as the re-audit baseline.
+Full, seed 20261013: PASS in all three configurations with all 12 assertion probes, 13,842 cases and 4,604,043 checks per configuration; 40 s and peak 387 MB on g++, 42 s and peak 412 MB on g++-14. The P016 prune runs overlapped, so times are indicative. The quick 07-Strings run passed all 20 suites. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
 
 ## Benchmarks
 
@@ -65,9 +71,10 @@ Code is independently implemented.
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): the Library Checker `2n - 1` combined length array (a radius/index conversion owned by `08-palindrome_queries.hpp`), a bulk `enumeratePalindromes` (a loop over the interval methods), the odd-only switch.
 - Exact substring palindrome checks and longest-palindrome extraction stay in `08`; eertree in `13`; inverse Manacher in `31`.
-- The size domain is now `n < INT_MAX` (previously `n <= INT_MAX`), matching the folder convention and the predicate constructor's `int n`.
 - Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 
-- 2026-09-28: verified under the previous system (P016). 2026-10-08 re-audit: `/reaudit-review` findings 13 (`U: NA`) and 14 (closing braces) fixed; predicate constructor, `centerEnd` (range asserted after review), `longestEnding` and `longestStarting` added; contracts moved out of the header.
+- 2026-09-28: verified under the previous system (P016).
+- 2026-10-08: re-audit, `/reaudit-review` findings 13 (`U: NA`) and 14 (closing braces) fixed; predicate constructor, `centerEnd` (range asserted after review), `longestEnding` and `longestStarting` added; contracts moved out of the header; quick, full and stress passed on g++, full on g++-14.
+- 2026-10-13: prune, removed `oddInclusive` and `evenInclusive` (cases covered by the half-open interval checks); full suite passed on g++ and g++-14.
