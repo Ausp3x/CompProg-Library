@@ -227,12 +227,12 @@ Pruned 2026-10-13.
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `kmpNext(p)` | `01-prefixfunction.hpp:37-38` | `kmpNext(p, prefixFunction(p))` | keep | builds the prefix function itself (clarified rule) | `01-prefixfunction_tester.cpp:24` | none |
+| `kmpNext(p)` | `01-prefixfunction.hpp:37-38` | `kmpNext(p, prefixFunction(p))` | keep | builds the prefix function itself (clarified rule) | `01-prefixfunction_tester.cpp:26` | none |
 | `common(…, suffix)` | `03-stringhash.hpp:118-129` | `lcp`, `lcs` | keep | helper; dropped from the row 2026-10-12 (flag form) | — | — |
-| `prefixToZ` | `02-z.hpp:66-70` | `validPrefixFunction(pi, s)` then `zFunction(s)` | keep | named conversion paired with `zToPrefix` (decided 2026-10-11) | `02-z_tester.cpp:16,18,42` | none |
-| `centerEnd(c)` | `05-manacher.hpp:40-42` | `oddInterval`, `evenInterval` | keep | kept as a listed operation (decided 2026-10-11) | `05-manacher_tester.cpp:38-40`; probes :132-133 | `05-manacher.hpp` |
+| `prefixToZ` | `02-z.hpp:66-70` | `validPrefixFunction(pi, s)` then `zFunction(s)` | keep | named conversion paired with `zToPrefix` (decided 2026-10-11) | `02-z_tester.cpp:16,18,41` | none |
+| `centerEnd(c)` | `05-manacher.hpp:38-40` | `oddInterval`, `evenInterval` | keep | kept as a listed operation (decided 2026-10-11) | `05-manacher_tester.cpp:38-40`; probes :128-129 | `05-manacher.hpp` |
 | `Trie::search`, `Trie::empty` | `04-trie.hpp:43,19` | `count(s) != 0`, `!size()` | keep | named special case (ruling 1) | `04-trie_tester.cpp:47,52` | none |
-| `prefixPeriods`, `zPeriods` | `01-prefixfunction.hpp:123-130`; `02-z.hpp:48-55` | `n - b` over `prefixBorders`, `zBorders` | keep | named special case, mirrored convention (decided 2026-10-11) | `01-…_tester.cpp:28-37`; `02-z_tester.cpp:12-15` | — |
+| `prefixPeriods`, `zPeriods` | `01-prefixfunction.hpp:123-130`; `02-z.hpp:48-55` | `n - b` over `prefixBorders`, `zBorders` | keep | named special case, mirrored convention (decided 2026-10-11) | `01-…_tester.cpp:30-39`; `02-z_tester.cpp:12-15` | — |
 | `StringHash` field arithmetic (KIND 0, KIND 2) | `03-stringhash.hpp:46-68` | Core `ModInt`, `ModInt61` | keep | self-contained fixed-modulus hashing arithmetic (decided 2026-10-11) | `03-stringhash_tester.cpp:102-111` | `16-string_matching.hpp:43-48` |
 
 ## P017 — 07-Strings — aho, suffixarray, palindrome queries (verified)

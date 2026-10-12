@@ -36,17 +36,19 @@ struct Manacher {
         return {i - k, i + k};}
 
     int centerEnd(int c) const {
-        assert(0 <= c && c <= 2 * size() - 2);
+        assert(size() < 1 << 30 && 0 <= c && c <= 2 * size() - 2);
         return c % 2 ? (c + 1) / 2 + even[(c + 1) / 2] - 1 : c / 2 + odd[c / 2] - 1;}
-    // T: O(n), M: O(n) returned; res[r] (res[l]) is the longest palindrome length ending at r (starting at l).
+    // T: O(n), M: O(n) returned; n < 2^30; res[r] (res[l]) is the longest palindrome length ending at r (starting at l).
     vector<int> longestEnding() const {
         int n = size();
+        assert(n < 1 << 30);
         vector<int> res(n);
         for (int c = 0, r = 0; c <= 2 * n - 2; ++c) {
             for (int e = centerEnd(c); r <= e; ++r) { res[r] = 2 * r - c + 1; }}
         return res;}
     vector<int> longestStarting() const {
         int n = size();
+        assert(n < 1 << 30);
         vector<int> res(n);
         for (int c = 2 * n - 2, l = n - 1; c >= 0; --c) {
             for (int b = c - centerEnd(c); l >= b; --l) { res[l] = c - 2 * l + 1; }}
