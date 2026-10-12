@@ -8,7 +8,7 @@ Owned by package P043 / GR10 (with `23-assignment.hpp`); see [00-notes.md](00-no
 
 `BipartiteMatching(nl, nr, edges = {})`: left vertices `[0, nl)`, right vertices `[0, nr)`, `nl, nr >= 0` (asserted before allocation). Each edge `(u, v)` gets ID equal to its insertion index; multiedges are allowed. Fields: `edges` (endpoints by ID, kept after erasure), `adj[u]` (pairs `(right vertex, edge ID)` of the alive edges at `u`, order unspecified after erasures), `left[u]` / `right[v]` (matched edge ID or −1), `size`. The constructor reserves each adjacency list once. The matching may be grown by any engine and kept across updates. Inputs are copied; results never alias caller storage.
 
-- `addEdge(u, v)` appends an edge, returns its ID; O(1) amortized; does not change the matching. `eraseEdge(id)` asserts that `id` is alive (present in `adj[u]`), removes it in O(deg u) and unmatches it if matched. IDs are never reused.
+- `addEdge(u, v)` appends an edge, returns its ID; O(1) amortized; does not change the matching. `eraseEdge(id)` asserts that `id` is alive (present in `adj[u]`), removes it in O(deg u) and unmatches it if matched. IDs are never reused. Under `NDEBUG` the structure stays in bounds, as `TwoSat` does: `addEdge` drops an out-of-range edge and returns −1, so later IDs no longer equal insertion indices, and `eraseEdge` ignores an out-of-range or already erased ID.
 - `hopcroftKarp()` and `kuhn()` grow the current matching to a maximum one, starting from whatever matching is present. Both run on a CSR snapshot of `adj`, with mates stored as adjacency slots, and write edge IDs back at the end (O(V + E) extra memory).
   - `hopcroftKarp()` alternates two steps. A full BFS layers left vertices from all free left vertices. An iterative layered DFS with current-arc pointers then accepts a free right vertex at any depth, and retires exhausted vertices and vertices on found paths.
   - The relaxed acceptance keeps the O(√V) phase bound. Every augmented arc goes up one layer, so residual distances never decrease and created arcs point down. A remaining augmenting path of the old shortest length would therefore lie wholly in the old layer graph. But its free root's DFS exhausted every vertex it could reach there, and path vertices from other roots are only entered through new downward arcs. So the shortest length strictly increases each phase, and after √V phases at most √V augmentations remain. Total O((V + E)·√V).
@@ -30,11 +30,11 @@ Owned by package P043 / GR10 (with `23-assignment.hpp`); see [00-notes.md](00-no
 
 ### bipartiteMatchingDense
 
-Same input; returns a `BipartiteMatching` whose matching is maximum, so every query works on it. Each left vertex's neighbourhood is a row of `⌈nr/64⌉` words, and one pass of single-root Kuhn runs over left vertices. The unvisited-right mask persists across failed roots (a failed root's reachable set cannot lead to a free vertex until the matching changes) and resets only after an augmentation. Berge's lemma (no augmenting path from u stays true after other augmentations) makes one pass sufficient. Matched pairs are mapped back to edge IDs through one scan of the edge list. Time O(min(nl, nr) · nl · nr / 64 + E), memory nl·⌈nr/64⌉ words plus O(V + E).
+Same input; returns a `BipartiteMatching` whose matching is maximum, so every query works on it. Each left vertex's neighbourhood is a row of `⌈nr/64⌉` words, and one pass of single-root Kuhn runs over left vertices. The unvisited-right mask persists across failed roots (a failed root's reachable set cannot lead to a free vertex until the matching changes) and resets only after an augmentation. Berge's lemma (no augmenting path from u stays true after other augmentations) makes one pass sufficient. Matched pairs are mapped back to edge IDs through one scan of the edge list. Under `NDEBUG`, if the constructor dropped an invalid edge, the structure is returned unmatched instead of filling the bitset. Time O(min(nl, nr) · nl · nr / 64 + E), memory nl·⌈nr/64⌉ words plus O(V + E).
 
 ### bMatching
 
-`bMatching(nl, nr, edges, bl, br)` requires `bl.size() == nl`, `br.size() == nr` and nonnegative capacities. It returns, in ascending order, the IDs of a maximum-size edge set using each edge at most once, left vertex `u` at most `bl[u]` times and right vertex `v` at most `br[v]` times. It builds a `MaxFlow<int>` network with the middle arcs `u → v (1)` added first, so arc ID `e` is edge `e`, then `s → u (bl[u])` and `v → t (br[v])`, runs `flow(s, t)` (Dinic) and returns the edges with flow 1. Per-edge capacities greater than one are expressed as parallel edges. The flow value is at most `edges.size()` and each residual pair sums to its `int` capacity, so nothing overflows.
+`bMatching(nl, nr, edges, bl, br)` requires `bl.size() == nl`, `br.size() == nr` and nonnegative capacities. It returns, in ascending order, the IDs of a maximum-size edge set using each edge at most once, left vertex `u` at most `bl[u]` times and right vertex `v` at most `br[v]` times. It builds a `MaxFlow<int>` network with the middle arcs `u → v (1)` added first, so arc ID `e` is edge `e`, then `s → u (bl[u])` and `v → t (br[v])`, runs `flow(s, t)` (Dinic) and returns the edges with flow 1. Per-edge capacities greater than one are expressed as parallel edges. Under `NDEBUG`, mismatched capacity sizes or an out-of-range endpoint return an empty list, and a negative capacity acts as 0 (`MaxFlow` never uses an arc whose residual is below 1). The flow value is at most `edges.size()` and each residual pair sums to its `int` capacity, so nothing overflows.
 
 Complexity O((V + E)·√E) time, O(V + E) memory, for the Dinic of `19-max_flow.hpp` on this network:
 
@@ -67,12 +67,13 @@ P043 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-1
 | Command | Result |
 |---|---|
 | `21-matching_bipartite_tester.py --mode quick` | PASS 2 configurations, 1,877 cases, 342,589 checks, 7 probes |
-| `21-matching_bipartite_tester.py --mode full --seed 20261013` | PASS 3 configurations, 18,689 cases, 3,885,922 checks each, 7 probes; 76 s; MEMORY peak 825 MB |
-| `CXX=g++-14 21-matching_bipartite_tester.py --mode full --seed 20261013` | PASS 3 configurations, 18,689 cases, 3,885,922 checks each, 7 probes; 79 s; MEMORY peak 866 MB |
-| `21-matching_bipartite_tester.py --mode stress --seed 3` | PASS 3 configurations, 120,689 cases, 9,790,445 checks each, 7 probes; 153 s; MEMORY peak 974 MB |
-| `02-integration.py` | PASS 135 standalone/aggregate headers, scalar and available AVX2 multi-TU, workspace; MEMORY peak 650 MB |
+| `21-matching_bipartite_tester.py --mode full --seed 20261013` | PASS 3 configurations, 18,689 cases, 3,885,922 checks each, 7 probes; 73 s; MEMORY peak 818 MB |
+| `CXX=g++-14 21-matching_bipartite_tester.py --mode full --seed 20261013` | PASS 3 configurations, 18,689 cases, 3,885,922 checks each, 7 probes; 81 s; MEMORY peak 870 MB |
+| `21-matching_bipartite_tester.py --mode stress --seed 3` | PASS 3 configurations, 120,689 cases, 9,790,445 checks each, 7 probes; 128 s; MEMORY peak 1,016 MB |
+| `02-integration.py` | PASS 135 standalone/aggregate headers, scalar and available AVX2 multi-TU, workspace; MEMORY peak 649 MB |
 | `03-consistency.py` | No errors |
 | `03-consistency.py --braces` on the three P043 headers and testers | No closing-brace, comment-cap or free-function violations |
+| Ad-hoc `-DNDEBUG` probe, `-O1` with ASan, UBSan and `_GLIBCXX_ASSERTIONS` (not kept), five processes: invalid constructor edges followed by every engine and query; out-of-range `addEdge`; out-of-range and repeated `eraseEdge`; `bipartiteMatchingDense` with invalid edges; seven invalid `bMatching` calls | PASS, all in bounds and terminating; the header before the guards failed all five with an out-of-range `operator[]` |
 
 ```bash
 python3 '96-Local Testing/04-Graphs/21-matching_bipartite_tester.py' --mode full --seed 20261013
@@ -129,4 +130,4 @@ Weighted assignment is row 23; general matching is rows 22/64; maximum antichain
 ## History
 
 - 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; engine benchmark recorded.
-- 2026-10-13: prune, `bMatching` runs on `MaxFlow<int>` instead of its own Dinic (complexity argument and old-versus-new timing above); min-cut and doubled-graph Hopcroft–Karp oracles added; full passed on g++ and g++-14, stress on g++.
+- 2026-10-13: prune, `bMatching` runs on `MaxFlow<int>` instead of its own Dinic (complexity argument and old-versus-new timing above); min-cut and doubled-graph Hopcroft–Karp oracles added. Follow-up the same day: `addEdge`, `eraseEdge`, `bipartiteMatchingDense` and `bMatching` stay in bounds under `NDEBUG`, checked by the ad-hoc probe. Full passed on g++ and g++-14, stress on g++.

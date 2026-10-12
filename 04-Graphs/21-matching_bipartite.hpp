@@ -30,10 +30,14 @@ struct BipartiteMatching {
     int mate(int u) const { return left[u] == -1 ? -1 : edges[left[u]].second; }
 
     int addEdge(int u, int v) {
-        assert(0 <= u && u < nl && 0 <= v && v < nr && edges.size() < size_t(INT_MAX));
+        bool ok = 0 <= u && u < nl && 0 <= v && v < nr && edges.size() < size_t(INT_MAX);
+        assert(ok);
+        if (!ok) { return -1; }
         edges.emplace_back(u, v); adj[u].emplace_back(v, int(edges.size()) - 1); return int(edges.size()) - 1;}
     void eraseEdge(int id) {
-        assert(0 <= id && id < int(edges.size()));
+        bool ok = 0 <= id && id < int(edges.size());
+        assert(ok);
+        if (!ok) { return; }
         auto [u, v] = edges[id];
         auto it = std::find(adj[u].begin(), adj[u].end(), pair(v, id));
         assert(it != adj[u].end());
@@ -211,6 +215,8 @@ struct BipartiteMatching {
 // T: O(min(nl, nr) * nl * nr / w + E), M: O(nl * nr / w + V + E); bitset Kuhn, persistent marks until each augmentation.
 inline BipartiteMatching bipartiteMatchingDense(int nl, int nr, const vector<pair<int, int>> &edges) {
     BipartiteMatching res(nl, nr, edges);
+    // Fewer stored edges means addEdge dropped an invalid one (NDEBUG only); the bitset below needs valid endpoints.
+    if (res.edges.size() != edges.size()) { return res; }
     int words = (nr + 63) / 64;
     vector<ulng> g(size_t(nl) * words), unseen(words);
     for (auto [u, v] : edges) { g[size_t(u) * words + v / 64] |= 1ULL << (v % 64); }
@@ -238,10 +244,13 @@ inline BipartiteMatching bipartiteMatchingDense(int nl, int nr, const vector<pai
 
 // T: O((V + E) * sqrt(E)), M: O(V + E); each edge used at most once, vertex u (v) in at most bl[u] (br[v]) chosen edges; ascending IDs.
 inline vector<int> bMatching(int nl, int nr, const vector<pair<int, int>> &edges, const vector<int> &bl, const vector<int> &br) {
-    assert(int(bl.size()) == nl && int(br.size()) == nr);
+    bool ok = int(bl.size()) == nl && int(br.size()) == nr;
+    for (auto [u, v] : edges) { ok = ok && 0 <= u && u < nl && 0 <= v && v < nr; }
+    assert(ok);
+    if (!ok) { return {}; }
     int s = nl + nr, t = s + 1, m = int(edges.size());
     MaxFlow<int> g(nl + nr + 2);
-    for (auto [u, v] : edges) { assert(0 <= u && u < nl && 0 <= v && v < nr); g.addEdge(u, nl + v, 1); }
+    for (auto [u, v] : edges) { g.addEdge(u, nl + v, 1); }
     for (int u = 0; u < nl; ++u) { g.addEdge(s, u, bl[u]); }
     for (int v = 0; v < nr; ++v) { g.addEdge(nl + v, t, br[v]); }
     g.flow(s, t);

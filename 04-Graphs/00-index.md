@@ -98,7 +98,7 @@ Scope: combinatorial graph and tree algorithms over the canonical `Graph`/`CsrGr
 | `79-tree_ordering.hpp` | rootedTreeMinimumInversionOrder; optimalProductOnTree (mergeable-component scheduling); optimalTopologicalOrder (tree precedence) | planned; sources: YC, MAS, TKO |
 | `80-rankedmatching.hpp` | rankMaximalMatching (matching plus rank signature) | planned; sources: MAS |
 | `81-stableroommates.hpp` | stableRoommates (Irving, rotation elimination, nonexistence) | planned; sources: MAS, KOO |
-| `82-skew_symmetric_flow.hpp` | skewSymmetricMaxFlow (bidirected network); fFactor (capacitated); bMatching (undirected, capacities); SkewFlowResult: ok, flow, certificate | planned; sources: KOO |
+| `82-skew_symmetric_flow.hpp` | skewSymmetricMaxFlow (bidirected network); fFactor (capacitated); generalBMatching (undirected, capacities); SkewFlowResult: ok, flow, certificate | planned; sources: KOO |
 | `83-extremevertexsets.hpp` | extremeVertexSets (laminar family, tree representation); globalMinCutFromExtremeSets | planned; sources: EI, KOO |
 | `84-dynamictreedp.hpp` | StaticTopTree (DS 39): build, pointUpdate, query; pathCompositeSum (fixed/any root); dynamicRerootingDp; dynamicDiameter (edge weight updates) | planned; sources: YC, OI, MAS, NYA, EI, SUI, TKO |
 | `86-feedback_set.hpp` | minimumFeedbackArcSet (subset DP, O(2^n n)); minimumFeedbackVertexSet (subset DP); FeedbackSetResult: size, removed | planned; sources: AUDIT |
