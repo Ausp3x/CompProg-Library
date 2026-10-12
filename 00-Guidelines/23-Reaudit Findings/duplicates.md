@@ -8,7 +8,7 @@ Decided by the user from 2026-10-10 to 2026-10-12; binding, and only the user ch
 
 ### Changes
 
-- **P010** `04-Graphs/01-graph.hpp` gains two static builders, used by the P010, P011 and P044 removals (run P010 first):
+- **P010** `04-Graphs/01-graph.hpp` gains two static builders, used by the P010, P011 and P044 removals (run P010 first). Done 2026-10-12.
   - `Graph::fromAdjacency(adj, directed = false)` for `vector<vector<int>>` and for weighted `vector<vector<pair<int, lng>>>` (unweighted entries get weight 1). It has `adj.size()` vertices. Directed: one arc `u -> v` per entry `v` of `adj[u]`. Undirected: the lists must be symmetric as multisets, with equal weights on mirrored entries and a loop listed twice in its own list; each mirrored pair becomes one edge, so parallel edges keep their multiplicity. The symmetry check stays within the O(n + m) build.
   - `Graph::fromMatrix(w, directed = true)` for a square `vector<vector<lng>>`: one arc `u -> v` of weight `w[u][v]` per nonzero entry; undirected requires a symmetric matrix and adds one edge per nonzero entry with `u <= v`.
 - **P044** `04-Graphs/19-max_flow.hpp`: `EdmondsKarp` is removed (its `getMaxFlow` ran Dinic; `augmentFlow` found one BFS path without pushing it). `MaxFlow`, the flow network shared by its algorithms, gains `edmondsKarp(s, t, limit = MAX)` (shortest augmenting paths, O(V * E^2), same limit and resumability contract as `flow`) and `augmentPath(s, t)` (pushes one shortest augmenting path and returns the amount, 0 when `t` is unreachable, O(V + E)). Its row reads `MaxFlow (flow network, signed integer Cap): ... flow (Dinic; limit, resumable), edmondsKarp (limit), augmentPath, capacityScalingDinic (limit), pushRelabel ...`.
@@ -170,17 +170,12 @@ Prune order for verified packages with removals: P010 first, then P011 and P044;
 
 ## P010 — 04-Graphs — graph, traversal, toposort, dsu, shortest path, mst (verified)
 
-Adds `Graph::fromAdjacency` and `Graph::fromMatrix` first (Changes); P011 and P044 depend on them.
+Pruned 2026-10-12.
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `Dijkstra` (`runGraph`, `runDijkstra`) | `05-shortest_path.hpp:180-205` | `dijkstra(Graph::fromAdjacency(adj, true), sources)`; `dis[u] = reachable[u] ? dist[u] : INF64` | remove | legacy format, sentinel, narrowing; lists past `n + 1` become vertices (resize `adj`) | `05-shortest_path_tester.cpp:262-283` (keep the `relax` checks :279-281); probes `legacy-*` (:294-298) | row 05; `Docs/05-shortest_path.md:37-41,55,111`; `Docs/00-notes.md:18`; ledger notes |
-| `GraphLabels` | `01-graph.hpp:84-99` | `CoordinateCompression<T>`: `index`, `decode`, `v` | remove | second implementation; `index` returns -1 where `GraphLabels` asserts | `01-graph_tester.cpp:182-195,212,220-223`; probes `label-*` | row 01; `Docs/01-graph.md:27-29,53` |
-| `findCycle` | `02-traversal.hpp:95-96` | `dfsForest(g).cycle` | remove | projected field | `02-traversal_tester.cpp:89,176` | `03-toposort.hpp:55`; row 02 |
-| `dagLongestPaths` (both overloads) | `05-shortest_path.hpp:137-141` | `dagShortestPaths(g, sources, true)` | remove | another name for the flag form | `05-shortest_path_tester.cpp:148-159,251-252` | row 05 |
-| `findNegativeCycle` | `05-shortest_path.hpp:174-178` | `bellmanFord(g, all vertices).negative_cycle` | keep | named special case: all-vertex seeding, as `dfsForest` (decided 2026-10-11) | `05-shortest_path_tester.cpp:137` | row 05 |
-| `bfsShortestPaths` | `05-shortest_path.hpp:56-64` | `bfs(g, sources)` | keep | BFS form of `ShortestPathResult` with `path`, `finite` (decided 2026-10-11) | `05-shortest_path_tester.cpp:123,132,141` | none |
-| nine single-source `int s` overloads | `02-traversal.hpp:58-59,87-88`; `05-shortest_path.hpp:63-64,81-82,98-99,116,133-135,140-141,171-172` | `f(g, {s})` | remove | argument shape (ruling 5) | `02-traversal_tester.cpp:86-87,162,189`; `05-…_tester.cpp:140-145,196,248-259,287-293`; `00-path_mst_benchmark.cpp:20,31,39,40,45` | — |
+| `findNegativeCycle` | `05-shortest_path.hpp:156-160` | `bellmanFord(g, all vertices).negative_cycle` | keep | named special case: all-vertex seeding, as `dfsForest` (decided 2026-10-11) | `05-shortest_path_tester.cpp:137` | row 05 |
+| `bfsShortestPaths` | `05-shortest_path.hpp:56-62` | `bfs(g, sources)` | keep | BFS form of `ShortestPathResult` with `path`, `finite` (decided 2026-10-11) | `05-shortest_path_tester.cpp:123,132` | none |
 | `Graph::read` flags, `CsrGraph::reverse`, `maximum` flags, `dfsForest`, `KruskalReconstruction::bottleneck` | `01`, `02`, `06` | — | keep | only forms, named special cases | — | — |
 
 ## P011 — 04-Graphs — lca, scc, bridges articulation, euleriantrail, functionalgraph (verified)

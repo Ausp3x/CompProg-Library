@@ -82,11 +82,8 @@ namespace {
             auto b = bfs(g, sources), d = dfs(g, sources);
             traversal(g, b, sources, distance, true); traversal(g, d, sources, distance, false);
             if (!d.cycle.arcs.empty()) { witness(g, d.cycle, true); }}
-        if (g.n) {
-            check(bfs(g, 0).order == bfs(g, vector<int>{0}).order, "BFS single-source overload");
-            check(dfs(g, 0).order == dfs(g, vector<int>{0}).order, "DFS single-source overload");}
         auto forest = dfsForest(g); traversal(g, forest, all, distance, false);
-        witness(g, forest.cycle, cyclic); witness(g, findCycle(g), cyclic);
+        witness(g, forest.cycle, cyclic);
         if (g.directed) { return; }
         auto components = connectedComponents(g); vector<int> seen(g.n); int previous_min = -1;
         check(components.count == int(components.groups.size()) && int(components.id.size()) == g.n, "component dimensions");
@@ -159,7 +156,7 @@ namespace {
     template<class G>
     void longGraph(const G &g) {
         vector<int> all(g.n); iota(all.begin(), all.end(), 0);
-        auto b = bfs(g, 0), d = dfsForest(g);
+        auto b = bfs(g, {0}), d = dfsForest(g);
         check(d.order == all && b.order == all, "long chain preorder/BFS");
         reverse(all.begin(), all.end()); check(d.postorder == all, "long chain postorder");
         for (int i = 0; i < g.n; ++i) { check(b.depth[i] == i && d.depth[i] == i, "long chain depth"); }
@@ -173,7 +170,8 @@ namespace {
             for (int i = 1; i < n; ++i) { g.addEdge(i - 1, i); }
             context = "long chain n=" + std::to_string(n) + " directed=" + std::to_string(directed);
             longGraph(g); longGraph(CsrGraph(g));
-            g.addEdge(n - 1, 0); witness(g, findCycle(g), true); witness(CsrGraph(g), findCycle(CsrGraph(g)), true);}
+            g.addEdge(n - 1, 0); CsrGraph csr(g);
+            witness(g, dfsForest(g).cycle, true); witness(csr, dfsForest(csr).cycle, true);}
         Graph g(7); g.addEdge(5, 2); g.addEdge(2, 3); g.addEdge(3, 5);
         runCase(g);
         auto copied = dfsForest(g); auto moved = std::move(copied);
@@ -182,11 +180,11 @@ namespace {
     void invalid(const string &name) {
         Graph g(2), directed(2, true);
         if (name == "result-negative") { TraversalResult r(-1); }
-        else if (name == "bfs-negative") { bfs(g, -1); }
+        else if (name == "bfs-negative") { bfs(g, {-1}); }
         else if (name == "bfs-large") { bfs(g, vector<int>{0, 2}); }
-        else if (name == "bfs-empty-source") { bfs(Graph(0), 0); }
+        else if (name == "bfs-empty-source") { bfs(Graph(0), {0}); }
         else if (name == "dfs-negative") { dfs(g, vector<int>{0, -1}); }
-        else if (name == "dfs-large") { dfs(g, 2); }
+        else if (name == "dfs-large") { dfs(g, {2}); }
         else if (name == "components-directed") { connectedComponents(directed); }
         else if (name == "bipartite-directed") { bipartiteCheck(directed); }
         else { throw std::runtime_error("unknown invalid probe " + name); }}

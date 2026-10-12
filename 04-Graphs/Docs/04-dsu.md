@@ -22,24 +22,23 @@ Correctness: the graph-facing adapter uses the canonical P006 `DSU`, treating a 
 
 ## Commands and results
 
-2026-10-07, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
+2026-10-12, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
 | Run | Result |
 |---|---|
-| Full, seed 20261007, g++ | PASS, all three builds, 6,346,458 checks per build, 3 probes |
-| Full, seed 20261007, `CXX=g++-14` | PASS, all three builds, same counts |
-| Full, seed 20260927 | PASS, 6,355,359 checks per build, 3 probes |
-| Stress, seed 7 | PASS, all three builds, 9,925,404 checks per build |
-| Quick runner, all eleven graph entries, from `/tmp` | PASS |
-| `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU linkage, workspace, sanitizer self-tests) | PASS |
-| `03-consistency.py`, with `--braces` on the package | No errors |
+| Full, seed 20261012, g++ | PASS, all three builds, 6,349,002 checks per build, 3 probes, peak 520 MB |
+| Full, seed 20261012, `CXX=g++-14` | PASS, all three builds, same counts, peak 527 MB |
+| Stress, seed 7 | PASS, all three builds, 9,925,404 checks per build, peak 634 MB |
+| Quick runner, all sixteen graph entries, from `/tmp` | PASS |
+| `02-integration.py` (136 standalone/aggregate headers, scalar and AVX2 multi-TU linkage, workspace) | PASS, peak 647 MB |
+| `03-consistency.py` | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/04-dsu_tester.py' --mode full --seed 20261007
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/04-dsu_tester.py' --mode full --seed 20261007
+python3 '96-Local Testing/04-Graphs/04-dsu_tester.py' --mode full --seed 20261012
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/04-dsu_tester.py' --mode full --seed 20261012
 python3 '96-Local Testing/04-Graphs/04-dsu_tester.py' --mode stress --seed 7
 python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
-python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
 
@@ -55,3 +54,4 @@ Weighted, rollback and other DSU variants are owned by Data Structures (see [00-
 
 - 2026-09-27: original P010, full suite (seed 20260927) passed on g++ 16 with integration and 61 package probes; stress not run.
 - 2026-10-07: re-audit, 2 findings fixed (brace rule, complexity line placement); full suite passed on g++ and g++-14, stress passed.
+- 2026-10-12: P010 prune rerun, header and tests unchanged; full suite passed on g++ and g++-14, stress passed.

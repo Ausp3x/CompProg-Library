@@ -40,24 +40,23 @@ Mutation checks (planted in a temporary copy, full mode) killed: `-w` instead of
 
 ## Commands and results
 
-2026-10-07, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
+2026-10-12, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
 | Run | Result |
 |---|---|
-| Full, seed 20261007, g++ | PASS, all three builds, 872,516 checks per build, 14 probes |
-| Full, seed 20261007, `CXX=g++-14` | PASS, all three builds, same counts |
-| Full, seed 20260927 | PASS, 869,242 checks per build, 14 probes |
-| Stress, seed 7 | PASS, all three builds, 2,052,048 checks per build |
-| Quick runner, all eleven graph entries, from `/tmp` | PASS |
-| `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU linkage, workspace, sanitizer self-tests) | PASS |
-| `03-consistency.py`, with `--braces` on the package | No errors |
+| Full, seed 20261012, g++ | PASS, all three builds, 866,962 checks per build, 14 probes, peak 553 MB |
+| Full, seed 20261012, `CXX=g++-14` | PASS, all three builds, same counts, peak 571 MB |
+| Stress, seed 7 | PASS, all three builds, 2,052,048 checks per build, peak 849 MB |
+| Quick runner, all sixteen graph entries, from `/tmp` | PASS |
+| `02-integration.py` (136 standalone/aggregate headers, scalar and AVX2 multi-TU linkage, workspace) | PASS, peak 647 MB |
+| `03-consistency.py` | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261007
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261007
+python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261012
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261012
 python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode stress --seed 7
 python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
-python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
 
@@ -98,3 +97,4 @@ Fractional/custom-weight domains are not claimed. Directed MSTs, sensitivity/sec
 - 2026-09-27: original P010, full suite (seed 20260927) and benchmark passed on g++ 16 with integration and 61 package probes; stress not run.
 - 2026-10-06: inventory rewrite reopened the row as partial (maximum-weight forests).
 - 2026-10-07: re-audit, implemented maximum-weight `kruskal`, `primSparse`, `primDense`, `boruvka` and `KruskalReconstruction::leafRange`; 6 findings fixed (missing maximum engines, evidence claim, brace rule, complexity line placement and coverage); full suite passed on g++ and g++-14, stress passed.
+- 2026-10-12: P010 prune rerun, header and tests unchanged; full suite passed on g++ and g++-14, stress passed.

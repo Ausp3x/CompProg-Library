@@ -16,13 +16,13 @@ Correctness: `ShortestPathResult` stores `dist`, `reachable`, `negative`, `paren
 
 ### bfsShortestPaths, zeroOneBfs, dijkstra and dijkstraDense
 
-`bfsShortestPaths` ignores weights, counts arcs, and has the `bfs` tie order. `zeroOneBfs` requires every weight in {0, 1}; its deque holds stale entries, so workspace is O(n + m). `dijkstra` is a lazy binary heap and requires every arc weight nonnegative, including arcs outside the reached component. `dijkstraDense` is the O(n^2) array scan over a minimum `DenseGraph` view and requires every source-graph weight nonnegative, even for discarded parallel arcs; it excludes the O(n^2 + m) view construction. Each has a single-source overload.
+`bfsShortestPaths` ignores weights, counts arcs, and has the `bfs` tie order. `zeroOneBfs` requires every weight in {0, 1}; its deque holds stale entries, so workspace is O(n + m). `dijkstra` is a lazy binary heap and requires every arc weight nonnegative, including arcs outside the reached component. `dijkstraDense` is the O(n^2) array scan over a minimum `DenseGraph` view and requires every source-graph weight nonnegative, even for discarded parallel arcs; it excludes the O(n^2 + m) view construction. One source is the list `{s}`.
 
 Correctness and cost: `zeroOneBfs` deque ordering processes nondecreasing distances and stale entries avoid rescanning improved candidates. Dense construction selects the best parallel edge while retaining its original arc ID. For general multigraphs, sparse heap time is O(k+(n+m) log(n+m+1)) and workspace O(n+m), where m is the arc count and k is the source count. Dense time is O(n²+m+k) beyond dense-view construction. BFS/0-1 BFS are linear in n+m+k.
 
-### DagPathResult, dagShortestPaths and dagLongestPaths
+### DagPathResult and dagShortestPaths
 
-Directed graphs with arbitrary signed weights. `longest = true`, or `dagLongestPaths`, maximizes instead of minimizing. A cyclic graph returns `acyclic = false`, a result that reaches nothing, and a directed cycle witness. Signed paths may improve a source through another source.
+Directed graphs with arbitrary signed weights. `longest = true` maximizes instead of minimizing. A cyclic graph returns `acyclic = false`, a result that reaches nothing, and a directed cycle witness. Signed paths may improve a source through another source.
 
 Correctness: relaxation follows topological order; a cyclic graph is a valid failure result with an oriented witness and no reachable path result. Topological induction establishes the minimum/maximum over all source paths.
 
@@ -34,11 +34,11 @@ Correctness: an improvement in pass n is reachable from a negative cycle. The al
 
 Every Bellman–Ford intermediate represents a walk with at most n·m edge additions. Since n,m≤INT_MAX and |w|≤2^63, its magnitude is less than 2^125; exact `lll` arithmetic needs no saturating sentinels. Finite optimal paths and DAG paths have smaller bounds. Strict relaxations preserve finite parent chains and do not form spurious zero-weight parent cycles.
 
-### Dijkstra (legacy adapter): runGraph, runDijkstra
+### Legacy mapping
 
-Compatibility with the extracted one-based API: vertices `[0, n]` with `n < INT_MAX`, and adjacency with at least `n + 1` lists. Nonnegative weights and every reachable shortest distance below `INF64` are preconditions; the new APIs have no `INF64` bound. Each `runGraph`/`runDijkstra` resets `dis` and `is_proc`, and `unproc` is empty after a completed run. The unweighted overload ignores weights by construction. Run workspace is O(n + m).
-
-The historical `Dijkstra(n)` adapter retains vertices [0,n], `dis`, `is_proc`, `unproc` and repeated `runDijkstra` resets. Weighted and notebook-style unweighted adjacency overloads are supported. The new result API supports larger exact distances and explicit absence.
+- `Dijkstra(n).runDijkstra(sources, adj)` (vertices `[0, n]`) → `dijkstra(Graph::fromAdjacency(adj, true), sources)` and `dis[u] = reachable[u] ? dist[u] : INF64`. `adj` must hold exactly `n + 1` lists, because lists past `n + 1` become vertices: resize it first. `is_proc` is `reachable`; every call returns a fresh result, so nothing needs a reset; distances have no `INF64` bound. `runGraph(sources, g)` → `dijkstra(g, sources)`.
+- `dagLongestPaths(g, sources)` → `dagShortestPaths(g, sources, true)`; `dagLongestPaths(g, s)` → `dagShortestPaths(g, {s}, true)`.
+- The single-source overloads `bfsShortestPaths(g, s)`, `zeroOneBfs(g, s)`, `dijkstra(g, s)`, `dijkstraDense(g, s)`, `dagShortestPaths(g, s, longest)` and `bellmanFord(g, s)` → the same call with `{s}`.
 
 ## Feature-to-test map
 
@@ -48,35 +48,35 @@ The historical `Dijkstra(n)` adapter retains vertices [0,n], `dis`, `is_proc`, `
 |---|---|---|
 | `PathWitness`, `ShortestPathResult: finite, path` | Oriented path witnesses on every case | Exact Floyd reachability/distances |
 | `ShortestPathResult: relax` | Helper tests; its three probes | Expected values and assertion failures |
-| `bfsShortestPaths` (single/multi-source), `zeroOneBfs`, `dijkstra`, `dijkstraDense` | All overloads, Graph and CSR; 100,000-vertex chains | Exact Floyd distances |
-| `DagPathResult`, `dagShortestPaths`, `dagLongestPaths` | 1,000 signed DAGs; cyclic inputs | Floyd distances; independent simple-path maxima |
+| `bfsShortestPaths`, `zeroOneBfs`, `dijkstra`, `dijkstraDense` | Every source subset, Graph and CSR; 100,000-vertex chains | Exact Floyd distances |
+| `DagPathResult`, `dagShortestPaths` (shortest and `longest`) | 1,000 signed DAGs; cyclic inputs; a 100,000-vertex `lng` maximum chain | Floyd distances; independent simple-path maxima |
 | `bellmanFord` (negative reachability marks, exact `lll` totals) | Signed digraphs, full-range sums | Floyd reachability/distances and negative-cycle closure |
 | `findNegativeCycle` | Oriented negative-cycle witnesses | Negative-cycle closure |
-| `Dijkstra` (legacy adapter): `runGraph`, `runDijkstra` | Legacy reset tests | Floyd distances |
-| Preconditions | 16 assertion probes, including `dense-maximum` | Expected assertion failure |
+| `dijkstra` on `Graph::fromAdjacency` lists (the removed `Dijkstra` cases) | Weighted and unweighted lists, repeated and empty source lists, one vertex, distances beyond `INF64` | Floyd distances; expected values |
+| Preconditions | 11 assertion probes, including `dense-maximum` | Expected assertion failure |
 
 Surviving mutants (an n−1-step Bellman–Ford walk, zero-one BFS `push_front` on weight 1, longest-path tie parent) are equivalent or change only runtime.
 
 ## Commands and results
 
-2026-10-07, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
+2026-10-12, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
 | Run | Result |
 |---|---|
-| Full, seed 20261007, g++ | PASS, all three builds, 4,793,422 checks per build, 16 probes |
-| Full, seed 20261007, `CXX=g++-14` | PASS, all three builds, same counts |
-| Full, seed 20260927 | PASS, 34,808 cases and 4,790,366 checks per build, 16 probes |
-| Stress, seed 7 | PASS, all three builds, 62,491 cases and 9,967,673 checks per build |
-| Quick runner, all eleven graph entries, from `/tmp` | PASS |
-| `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU linkage, workspace, sanitizer self-tests) | PASS |
-| `03-consistency.py`, with `--braces` on the package | No errors |
+| Full, seed 20261012, g++ | PASS, all three builds, 34,808 cases and 4,707,279 checks per build, 11 probes, peak 615 MB |
+| Full, seed 20261012, `CXX=g++-14` | PASS, all three builds, same counts, peak 617 MB |
+| Stress, seed 7 | PASS, all three builds, 62,491 cases and 9,698,614 checks per build, peak 749 MB |
+| `00-path_mst_benchmark.cpp` after the call-site change | Compiles under `-Werror`; one capped run (seed 20260927) passed its internal result checks; the table below was not re-measured |
+| Quick runner, all sixteen graph entries, from `/tmp` | PASS |
+| `02-integration.py` (136 standalone/aggregate headers, scalar and AVX2 multi-TU linkage, workspace) | PASS, peak 647 MB |
+| `03-consistency.py`, with `--braces` on the touched headers, testers and benchmark | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/05-shortest_path_tester.py' --mode full --seed 20261007
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/05-shortest_path_tester.py' --mode full --seed 20261007
+python3 '96-Local Testing/04-Graphs/05-shortest_path_tester.py' --mode full --seed 20261012
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/05-shortest_path_tester.py' --mode full --seed 20261012
 python3 '96-Local Testing/04-Graphs/05-shortest_path_tester.py' --mode stress --seed 7
 python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
-python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
 
@@ -108,7 +108,7 @@ Retrieved and inspected on 2026-09-27; no source code was copied.
 | [Princeton Algorithms, §4.4 Shortest Paths](https://algs4.cs.princeton.edu/44sp/) | Nonnegative Dijkstra and signed DAG shortest/longest topological relaxation. |
 | [cp-algorithms, 0-1 BFS](https://cp-algorithms.com/graph/01_bfs.html) | Deque ordering and zero/one front/back insertion. |
 
-Legacy: the original `Dijkstra` in `OLD/algorithms.cpp:4488–4526` and its duplicate in `OLD/[1] algorithms.cpp` are preserved. Its n+1 indexing, multisource runs and reset behavior require the explicit compatibility adapter; the new graph APIs are zero-based. The notebook's global negative-cycle detector is covered by all-vertex Bellman–Ford initialization (`findNegativeCycle`). The old Team Notebook `old_bellman-ford.cpp` is superseded by this header.
+Legacy: the original `Dijkstra` in `OLD/algorithms.cpp:4488–4526` and its duplicate in `OLD/[1] algorithms.cpp` are preserved. Its n+1 indexing, multisource runs and reset behavior map to `dijkstra` on `Graph::fromAdjacency` input (Legacy mapping); the graph APIs are zero-based. The notebook's global negative-cycle detector is covered by all-vertex Bellman–Ford initialization (`findNegativeCycle`). The old Team Notebook `old_bellman-ford.cpp` is superseded by this header.
 
 ## Limits and handoffs
 
@@ -118,3 +118,4 @@ Fractional/custom-weight domains are not claimed. All-pairs, advanced, implicit,
 
 - 2026-09-27: original P010, full suite (seed 20260927) and benchmark passed on g++ 16 with integration and 61 package probes; stress not run.
 - 2026-10-07: re-audit, 4 findings fixed (brace rule, complexity line placement, unchecked inner-loop `relax`, overload complexity lines) and `[[maybe_unused]]` on `path`; full suite passed on g++ and g++-14, stress passed.
+- 2026-10-12: prune, removed the legacy `Dijkstra` adapter, `dagLongestPaths` and six single-source overloads (cases moved to `dijkstra` on `Graph::fromAdjacency` input, `dagShortestPaths(g, sources, true)` and `{s}`); full suite passed on g++ and g++-14, stress passed.

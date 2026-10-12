@@ -60,8 +60,6 @@ ShortestPathResult bfsShortestPaths(const G &g, const vector<int> &sources) {
     out.parent = std::move(walk.parent); out.parent_arc = std::move(walk.parent_arc);
     for (int v : walk.order) { out.reachable[v] = true; out.dist[v] = walk.depth[v]; }
     return out;}
-template<class G>
-ShortestPathResult bfsShortestPaths(const G &g, int source) { return bfsShortestPaths(g, vector<int>{source}); }
 
 // T: O(n + m + k), M: O(n + m); every weight must be 0 or 1.
 template<class G>
@@ -78,8 +76,6 @@ ShortestPathResult zeroOneBfs(const G &g, const vector<int> &sources) {
                 if (e.w == 0) { ready.push_front({out.dist[e.to], e.to}); }
                 else { ready.push_back({out.dist[e.to], e.to}); }}}}
     return out;}
-template<class G>
-ShortestPathResult zeroOneBfs(const G &g, int source) { return zeroOneBfs(g, vector<int>{source}); }
 
 // T: O(k + (n + m) * log(n + m + 1)), M: O(n + m); every weight must be nonnegative.
 template<class G>
@@ -95,8 +91,6 @@ ShortestPathResult dijkstra(const G &g, const vector<int> &sources) {
             const auto &e = g.arcs[a];
             if (shortest_path_detail::relax(out, e, a)) { ready.push({out.dist[e.to], e.to}); }}}
     return out;}
-template<class G>
-ShortestPathResult dijkstra(const G &g, int source) { return dijkstra(g, vector<int>{source}); }
 
 // T: O(n^2 + m + k), M: O(n); minimum view, every weight of the source graph nonnegative.
 inline ShortestPathResult dijkstraDense(const DenseGraph &dense, const vector<int> &sources) {
@@ -113,7 +107,6 @@ inline ShortestPathResult dijkstraDense(const DenseGraph &dense, const vector<in
             int a = dense.best[u][v];
             if (a != -1) { shortest_path_detail::relax(out, g.arcs[a], a); }}}
     return out;}
-inline ShortestPathResult dijkstraDense(const DenseGraph &g, int source) { return dijkstraDense(g, vector<int>{source}); }
 
 // T: O(1), M: O(n); if acyclic is false, paths reaches nothing and cycle is a witness.
 struct DagPathResult {
@@ -130,15 +123,6 @@ DagPathResult dagShortestPaths(const G &g, const vector<int> &sources, bool long
     for (int u : topo.order) {
         if (out.reachable[u]) { for (int a : g[u]) { shortest_path_detail::relax(out, g.arcs[a], a, longest); }}}
     return {true, std::move(out), {}};}
-template<class G>
-DagPathResult dagShortestPaths(const G &g, int source, bool longest = false) {
-    return dagShortestPaths(g, vector<int>{source}, longest);}
-
-// T: O(n + m + k), M: O(n); maximum weight paths of a directed graph with signed weights.
-template<class G>
-DagPathResult dagLongestPaths(const G &g, const vector<int> &sources) { return dagShortestPaths(g, sources, true); }
-template<class G>
-DagPathResult dagLongestPaths(const G &g, int source) { return dagShortestPaths(g, source, true); }
 
 // T: O(n * m + n + k), M: O(n); signed weights, negative marks vertices reachable from a negative cycle.
 template<class G>
@@ -168,38 +152,9 @@ ShortestPathResult bellmanFord(const G &g, const vector<int> &sources) {
             int v = g.arcs[a].to;
             if (!out.negative[v]) { out.negative[v] = true; ready.push_back(v); }}}
     return out;}
-template<class G>
-ShortestPathResult bellmanFord(const G &g, int source) { return bellmanFord(g, vector<int>{source}); }
 
 // T: O(n * m + n), M: O(n); a negative directed arc-cycle anywhere in g, empty if none.
 template<class G>
 CycleWitness findNegativeCycle(const G &g) {
     vector<int> sources(g.n); iota(sources.begin(), sources.end(), 0);
     return bellmanFord(g, sources).negative_cycle;}
-
-// S: O(n), U: O(k + (n + m) * log(n + m + 1)) run, Q: O(1), M: O(n); legacy vertices [0, n].
-// Nonnegative weights and reachable distances below INF64 required; each run resets dis and is_proc.
-struct Dijkstra {
-    int n;
-    vector<bool> is_proc;
-    vector<lng> dis;
-    priority_queue<pair<lng, int>, vector<pair<lng, int>>, std::greater<pair<lng, int>>> unproc;
-
-    explicit Dijkstra(int N) : n(N) {
-        assert(0 <= n && n < INT_MAX); is_proc.resize(n + 1); dis.assign(n + 1, INF64);}
-
-    void runGraph(const vector<int> &sources, const Graph &g) {
-        assert(g.n == n + 1); auto out = dijkstra(g, sources);
-        unproc = {}; fill(dis.begin(), dis.end(), INF64); fill(is_proc.begin(), is_proc.end(), false);
-        for (int u = 0; u <= n; ++u) {
-            if (out.reachable[u]) {
-                assert(out.dist[u] < INF64); dis[u] = lng(out.dist[u]); is_proc[u] = true;}}}
-    void runDijkstra(const vector<int> &sources, const vector<vector<pair<int, lng>>> &adjl) {
-        assert(adjl.size() >= size_t(n) + 1); Graph g(n + 1, true);
-        for (int u = 0; u <= n; ++u) { for (auto [v, w] : adjl[u]) { g.addEdge(u, v, w); }}
-        runGraph(sources, g);}
-    void runDijkstra(const vector<int> &sources, const vector<vector<int>> &adjl) {
-        assert(adjl.size() >= size_t(n) + 1); Graph g(n + 1, true);
-        for (int u = 0; u <= n; ++u) { for (int v : adjl[u]) { g.addEdge(u, v); }}
-        runGraph(sources, g);}
-};

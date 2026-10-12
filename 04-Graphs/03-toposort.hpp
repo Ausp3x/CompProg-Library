@@ -52,5 +52,5 @@ TopologicalResult topologicalSort(const G &g, bool lexicographic = false) {
             if (--degree[v] == 0) {
                 ready.push_back(v);
                 if (lexicographic) { std::push_heap(ready.begin(), ready.end(), std::greater<int>{}); }}}}
-    if (int(order.size()) != g.n) { return {false, {}, findCycle(g)}; }
+    if (int(order.size()) != g.n) { return {false, {}, dfsForest(g).cycle}; }
     return toposort_detail::ordered(g, std::move(order));}

@@ -135,17 +135,10 @@ void checkGraph(const Graph &g, const vector<int> &sources, bool variants = true
         vector<int> all(g.n); iota(all.begin(), all.end(), 0); auto global = oracle.from(all);
         bool negative = std::find(global.negative.begin(), global.negative.end(), char(true)) != global.negative.end();
         auto cycle = findNegativeCycle(csr); require(!cycle.arcs.empty() == negative, "global cycle existence");
-        if (negative) { validateCycle(csr, cycle, true); }
-        if (sources.size() == 1) {
-            int s = sources[0]; validateResult(g, sources, bellmanFord(g, s), expected);
-            validateResult(g, sources, bfsShortestPaths(g, s), hops.from(sources), true);
-            if (nonnegative) {
-                validateResult(g, sources, dijkstra(g, s), expected);
-                validateResult(g, sources, dijkstraDense(DenseGraph(g), s), expected);}
-            if (binary) { validateResult(g, sources, zeroOneBfs(g, s), expected); }}}
+        if (negative) { validateCycle(csr, cycle, true); }}
     if (g.directed) {
         bool acyclic = acyclicOracle(g);
-        auto shortest = dagShortestPaths(g, sources), longest = dagLongestPaths(g, sources);
+        auto shortest = dagShortestPaths(g, sources), longest = dagShortestPaths(g, sources, true);
         require(shortest.acyclic == acyclic && longest.acyclic == acyclic, "DAG acyclic status");
         if (acyclic) {
             require(shortest.cycle.arcs.empty() && longest.cycle.arcs.empty(), "DAG cycle should be absent");
@@ -153,10 +146,7 @@ void checkGraph(const Graph &g, const vector<int> &sources, bool variants = true
             auto high = longestOracle(g, sources); validateResult(g, sources, longest.paths, high);
             if (variants) {
                 CsrGraph csr(g); validateResult(csr, sources, dagShortestPaths(csr, sources).paths, expected);
-                validateResult(csr, sources, dagShortestPaths(csr, sources, true).paths, high);
-                if (sources.size() == 1) {
-                    validateResult(csr, sources, dagShortestPaths(csr, sources[0]).paths, expected);
-                    validateResult(csr, sources, dagLongestPaths(csr, sources[0]).paths, high);}}}
+                validateResult(csr, sources, dagShortestPaths(csr, sources, true).paths, high);}}
         else {
             validateCycle(g, shortest.cycle, false); validateCycle(g, longest.cycle, false);
             for (int v = 0; v < g.n; ++v) { require(!shortest.paths.reachable[v] && !longest.paths.reachable[v], "failed DAG paths"); }}}}
@@ -193,7 +183,7 @@ void fixtures() {
     Graph parallel(3, false);
     for (int w = 20; w >= 0; --w) { parallel.addEdge(0, 1, w); }
     parallel.addEdge(1, 2, 0); checkGraph(parallel, {0});
-    auto original = dijkstra(parallel, 0); auto copied = original; auto moved = std::move(copied);
+    auto original = dijkstra(parallel, {0}); auto copied = original; auto moved = std::move(copied);
     validateResult(parallel, {0}, moved, FloydOracle(parallel).from({0}));
     require(original.dist == moved.dist && original.parent == moved.parent, "copy/move result");
     cout << "PASS fixtures: extremes, unreachable/reachable cycles, loops, parallel arcs, stale queues, copy/move\n";}
@@ -245,57 +235,53 @@ void largeTests(const string &mode) {
     Graph path(n, true);
     for (int u = 1; u < n; ++u) { path.addEdge(u - 1, u, std::numeric_limits<lng>::max()); }
     ++cases; context = "large exact path n=" + std::to_string(n);
-    auto out = dijkstra(path, 0);
+    auto out = dijkstra(path, {0});
     require(out.dist.back() == lll(n - 1) * std::numeric_limits<lng>::max(), "large path distance");
     require(int(out.path(path, n - 1).arcs.size()) == n - 1, "large iterative recovery");
-    auto longest = dagLongestPaths(path, 0);
+    auto longest = dagShortestPaths(path, {0}, true);
     require(longest.acyclic && longest.paths.dist.back() == out.dist.back(), "large DAG longest");
-    auto bf = bellmanFord(path, 0); require(bf.dist.back() == out.dist.back(), "large BF early exit");
+    auto bf = bellmanFord(path, {0}); require(bf.dist.back() == out.dist.back(), "large BF early exit");
     Graph binary(n, true);
     for (int u = 1; u < n; ++u) { binary.addEdge(u - 1, u, u % 2); }
-    auto zo = zeroOneBfs(binary, 0); require(zo.dist.back() == n / 2, "large 01 chain");
+    auto zo = zeroOneBfs(binary, {0}); require(zo.dist.back() == n / 2, "large 01 chain");
     Graph reverse_path(400, true);
     for (int u = 399; u > 0; --u) { reverse_path.addEdge(u - 1, u, -1); }
-    auto signed_path = bellmanFord(reverse_path, 0); require(signed_path.dist.back() == -399, "adversarial BF pass count");
+    auto signed_path = bellmanFord(reverse_path, {0}); require(signed_path.dist.back() == -399, "adversarial BF pass count");
     cout << "PASS large exact/deep paths n=" << n << " reverse-relaxation path=400\n";}
 
-void legacy() {
-    context = "legacy Dijkstra n+1 and repeated runs"; ++cases;
-    Dijkstra solver(3); vector<vector<pair<int, lng>>> adj(4);
+// Adjacency lists through Graph::fromAdjacency, then dijkstra.
+void adjacencyInputs() {
+    context = "adjacency-list inputs, repeated runs"; ++cases;
+    vector<vector<pair<int, lng>>> adj(4);
     adj[0] = {{1, 3}, {2, 9}}; adj[1] = {{2, 2}}; adj[2] = {{3, 1}};
-    solver.runDijkstra({0, 0}, adj); require(solver.dis == vector<lng>({0, 3, 5, 6}), "legacy weighted");
-    require(solver.is_proc == vector<bool>(4, true) && solver.unproc.empty(), "legacy processed/heap");
-    solver.unproc.push({1, 0}); solver.runDijkstra({3}, adj);
-    require(solver.dis == vector<lng>({INF64, INF64, INF64, 0}), "legacy reset");
-    require(solver.is_proc == vector<bool>({false, false, false, true}) && solver.unproc.empty(), "legacy reset flags");
-    solver.runDijkstra({}, adj); require(solver.dis == vector<lng>(4, INF64), "legacy empty sources");
-    adj[0] = {{1, INF64 - 1}}; adj[1].clear(); adj[2].clear(); solver.runDijkstra({0}, adj);
-    require(solver.dis[1] == INF64 - 1, "legacy finite boundary");
+    auto g = Graph::fromAdjacency(adj, true); FloydOracle oracle(g);
+    for (const vector<int> &sources : vector<vector<int>>{{0, 0}, {3}, {}}) {
+        validateResult(g, sources, dijkstra(g, sources), oracle.from(sources));}
+    require(dijkstra(g, {0, 0}).dist == vector<lll>({0, 3, 5, 6}), "weighted adjacency distances");
+    auto late = dijkstra(g, {3});
+    require(late.reachable == vector<char>({false, false, false, true}), "fresh result per run");
+    adj[0] = {{1, INF64 - 1}}; adj[1] = {{2, INF64}}; adj[2].clear();
+    auto large = dijkstra(Graph::fromAdjacency(adj, true), {0});
+    require(large.dist[1] == INF64 - 1 && large.dist[2] == lll(INF64) * 2 - 1 && large.finite(2), "no INF64 distance bound");
     vector<vector<int>> unweighted = {{1, 2}, {2}, {3}, {}};
-    solver.runDijkstra({0}, unweighted); require(solver.dis == vector<lng>({0, 1, 1, 2}), "legacy unweighted overload");
-    Dijkstra zero(0); zero.runDijkstra({0}, vector<vector<int>>(1)); require(zero.dis == vector<lng>{0}, "legacy max-label zero");
-    Graph direct(4, true); direct.addEdge(1, 2, 7); solver.runGraph({1}, direct);
-    require(solver.dis == vector<lng>({INF64, 0, 7, INF64}), "legacy runGraph");
+    require(dijkstra(Graph::fromAdjacency(unweighted, true), {0}).dist == vector<lll>({0, 1, 1, 2}), "unweighted adjacency");
+    require(dijkstra(Graph::fromAdjacency(vector<vector<int>>(1), true), {0}).dist == vector<lll>{0}, "one-vertex adjacency");
+    Graph direct(4, true); direct.addEdge(1, 2, 7); auto run = dijkstra(direct, {1});
+    require(run.reachable == vector<char>({false, true, true, false}) && run.dist[2] == 7, "graph input");
     ShortestPathResult helper(2, {0}); GraphArc edge{0, 1, 0, -1, 3};
     require(helper.relax(edge, 0) && helper.dist[1] == 3 && !helper.relax(edge, 0), "relax helper minimum");
     edge.w = 5; require(helper.relax(edge, 0, true) && helper.dist[1] == 5, "relax helper maximum");
-    auto copied = solver; auto moved = std::move(copied); require(moved.dis == solver.dis, "legacy copy/move");
-    cout << "PASS legacy wrapper: both overloads, zero label, reset, finite boundary, copy/move\n";}
+    cout << "PASS adjacency inputs: weighted and unweighted lists, one vertex, repeated runs, beyond INF64, relax helper\n";}
 
 void invalid(const string &which) {
     Graph g(2, true); g.addEdge(0, 1, 2);
-    if (which == "source") { (void)bellmanFord(g, 2); }
-    if (which == "zero-one") { (void)zeroOneBfs(g, 0); }
-    if (which == "dijkstra") { g.addEdge(1, 1, -1); (void)dijkstra(g, 0); }
-    if (which == "dense") { g.addEdge(1, 1, -1); (void)dijkstraDense(DenseGraph(g), 0); }
-    if (which == "dense-maximum") { (void)dijkstraDense(DenseGraph(g, true), 0); }
-    if (which == "dag-undirected") { (void)dagShortestPaths(Graph(1), 0); }
-    if (which == "path-index") { (void)dijkstra(g, 0).path(g, 2); }
-    if (which == "legacy-size") { Dijkstra bad(INT_MAX); }
-    if (which == "legacy-limit") { Dijkstra bad(1); vector<vector<pair<int, lng>>> adj(2); adj[0] = {{1, INF64}}; bad.runDijkstra({0}, adj); }
-    if (which == "legacy-source") { Dijkstra bad(1); bad.runDijkstra({2}, vector<vector<int>>(2)); }
-    if (which == "legacy-adjacency") { Dijkstra bad(1); bad.runDijkstra({0}, vector<vector<int>>(1)); }
-    if (which == "legacy-negative") { Dijkstra bad(1); vector<vector<pair<int, lng>>> adj(2); adj[1] = {{1, -1}}; bad.runDijkstra({0}, adj); }
+    if (which == "source") { (void)bellmanFord(g, {2}); }
+    if (which == "zero-one") { (void)zeroOneBfs(g, {0}); }
+    if (which == "dijkstra") { g.addEdge(1, 1, -1); (void)dijkstra(g, {0}); }
+    if (which == "dense") { g.addEdge(1, 1, -1); (void)dijkstraDense(DenseGraph(g), {0}); }
+    if (which == "dense-maximum") { (void)dijkstraDense(DenseGraph(g, true), {0}); }
+    if (which == "dag-undirected") { (void)dagShortestPaths(Graph(1), {0}); }
+    if (which == "path-index") { (void)dijkstra(g, {0}).path(g, 2); }
     if (which == "result-size") { ShortestPathResult bad(-1); }
     if (which == "relax-range") { ShortestPathResult bad(2, {0}); bad.relax({0, 2, 0, -1, 0}, 0); }
     if (which == "relax-unreached") { ShortestPathResult bad(2); bad.relax({0, 1, 0, -1, 0}, 0); }
@@ -310,5 +296,5 @@ int main(int argc, char **argv) {
         if (arg == "--mode") { mode = argv[++i]; }
         if (arg == "--seed") { seed = std::stoull(argv[++i]); }}
     rng.seed(seed);
-    fixtures(); exhaustive(mode); randomTests(mode); largeTests(mode); legacy();
+    fixtures(); exhaustive(mode); randomTests(mode); largeTests(mode); adjacencyInputs();
     cout << "PASS shortest paths mode=" << mode << " seed=" << seed << " cases=" << cases << " checks=" << checks << '\n';}

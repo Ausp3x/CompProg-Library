@@ -118,7 +118,7 @@
       ],
       "status": "exact-duplicate",
       "issues": [
-        "Original excerpt duplicates OLD/algorithms.cpp:4488-4526; current target is the P010 replacement with a compatibility adapter."
+        "Original excerpt duplicates OLD/algorithms.cpp:4488-4526; current target is the P010 replacement; the legacy Dijkstra maps to dijkstra on Graph::fromAdjacency input (adapter removed 2026-10-12)."
       ],
       "source_context": null,
       "tier": null,
@@ -939,7 +939,7 @@
       ],
       "status": "verified",
       "issues": [
-        "P010 replaces legacy INF64 arithmetic with zero-based exact signed-integer paths; n+1 compatibility adapter retains its documented finite-distance bound. See verification for source accounting and completed tests."
+        "P010 replaces legacy INF64 arithmetic with zero-based exact signed-integer paths; the n+1 adapter was removed on 2026-10-12 (One API per operation) and its runs map to dijkstra on Graph::fromAdjacency input. See verification for source accounting and completed tests."
       ],
       "source_context": "INFERIOR VERSIONS section",
       "tier": "Basic",

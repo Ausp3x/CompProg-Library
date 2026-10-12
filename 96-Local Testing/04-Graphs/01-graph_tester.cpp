@@ -1,4 +1,5 @@
 #include "../../04-Graphs/01-graph.hpp"
+#include "../../02-Data Structures/07-ordered_set.hpp"
 
 static ulng seed = 20260927;
 static lng checks = 0;
@@ -109,6 +110,24 @@ void utilities(const G &g, int n, bool directed, const Edges &edges, std::mt1993
         for (auto [u, v, w] : edges) { want.emplace_back(label[u], label[v], w); }
         require(c.n == k, "contract vertex count"); storage(c, k, directed, want);
         simplifyOracle(c, k, directed, want);}}
+// Builders: shuffled lists; directed keeps list order, undirected must equal the sorted (min, max, w) edge multiset.
+void builders(int n, bool directed, const Edges &edges, std::mt19937_64 &rng) {
+    vector<vector<pair<int, lng>>> adj(n);
+    for (auto [u, v, w] : edges) {
+        adj[u].push_back({v, w});
+        if (!directed) { adj[v].push_back({u, w}); }}
+    for (auto &list : adj) { std::shuffle(list.begin(), list.end(), rng); }
+    vector<vector<int>> unit(n); Edges want, ones;
+    for (int u = 0; u < n; ++u) {
+        for (auto [v, w] : adj[u]) {
+            unit[u].push_back(v);
+            if (directed) { want.emplace_back(u, v, w); }}}
+    if (!directed) {
+        for (auto [u, v, w] : edges) { want.emplace_back(min(u, v), max(u, v), w); }
+        sort(want.begin(), want.end());}
+    for (auto [u, v, w] : want) { ones.emplace_back(u, v, 1); }
+    storage(Graph::fromAdjacency(adj, directed), n, directed, want);
+    storage(Graph::fromAdjacency(unit, directed), n, directed, ones);}
 template<class G, class H>
 void identical(const G &g, const H &h) {
     require(g.n == h.n && g.directed == h.directed && g.arcs.size() == h.arcs.size(), "snapshot shape");
@@ -145,6 +164,7 @@ void verify(int n, bool directed, const Edges &edges) {
             require(heavy.best[u][v] == high, "dense maximum/earliest tie/absent diagonal", std::to_string(high),
                 std::to_string(heavy.best[u][v]));}}
     static std::mt19937_64 pick(seed); utilities(g, n, directed, edges, pick); utilities(csr, n, directed, edges, pick);
+    builders(n, directed, edges, pick);
     Graph copy = g, moved = std::move(copy); storage(moved, n, directed, edges);
     CsrGraph csr_copy = csr, csr_moved = std::move(csr_copy); identical(g, csr_moved);
     if (n) {
@@ -179,24 +199,38 @@ void adapters() {
         require(tail == 12345, "input adapter consumes exactly m records");}}}
     std::istringstream empty; auto g = Graph::read(empty, 0, 0); storage(g, 0, false, {});
     Graph default_graph; storage(default_graph, 0, false, {});
-    GraphLabels<lng> labels({7, -3, 7, std::numeric_limits<lng>::min(), std::numeric_limits<lng>::max(), 0});
+    // Vertex labels on CoordinateCompression; absent labels give -1.
+    CoordinateCompression<lng> labels({7, -3, 7, std::numeric_limits<lng>::min(), std::numeric_limits<lng>::max(), 0});
     vector<lng> expected{std::numeric_limits<lng>::min(), -3, 0, 7, std::numeric_limits<lng>::max()};
-    require(labels.labels == expected, "sorted deduplicated integer labels");
+    require(labels.v == expected, "sorted deduplicated integer labels");
     for (int i = 0; i < int(expected.size()); ++i) {
-        require(labels.index(expected[i]) == i && labels.value(i) == expected[i], "integer label roundtrip");}
-    GraphLabels<string> names({"z", "", "a", "a"});
-    require(names.labels == vector<string>({"", "a", "z"}) && names.index("z") == 2 && names.value(0).empty(),
+        require(labels.index(expected[i]) == i && labels.decode(i) == expected[i], "integer label roundtrip");}
+    require(labels.index(-4) == -1 && labels.index(8) == -1, "absent integer label");
+    CoordinateCompression<string> names({"z", "", "a", "a"});
+    require(names.v == vector<string>({"", "a", "z"}) && names.index("z") == 2 && names.decode(0).empty(),
         "string labels including empty label");
-    GraphLabels<OrderedLabel> order({{9}, {3}, {9}, {-1}});
-    require(order.labels.size() == 3 && order.index({3}) == 1 && order.value(2).key == 9,
+    CoordinateCompression<OrderedLabel> order({{9}, {3}, {9}, {-1}});
+    require(order.v.size() == 3 && order.index({3}) == 1 && order.decode(2).key == 9 && order.index({4}) == -1,
         "strict ordering only, no equality operator required");
-    GraphLabels<int> zero({}); require(zero.labels.empty(), "empty label set");
+    CoordinateCompression<int> zero(vector<int>{}); require(zero.v.empty() && zero.index(0) == -1, "empty label set");
     auto copied = names; auto moved = std::move(copied);
-    require(moved.labels == names.labels && moved.index("a") == 1, "label copy/move");
+    require(moved.v == names.v && moved.index("a") == 1, "label copy/move");
+    // Builder fixtures: defaults, a loop listed twice, parallel edges listed in different orders, empty inputs.
+    vector<vector<pair<int, lng>>> lists{{{1, 7}, {0, -2}, {1, 5}, {0, -2}, {2, 0}}, {{0, 5}, {0, 7}}, {{0, 0}}};
+    storage(Graph::fromAdjacency(lists), 3, false, {{0, 0, -2}, {0, 1, 5}, {0, 1, 7}, {0, 2, 0}});
+    storage(Graph::fromAdjacency(lists, true), 3, true, {{0, 1, 7}, {0, 0, -2}, {0, 1, 5}, {0, 0, -2}, {0, 2, 0},
+        {1, 0, 5}, {1, 0, 7}, {2, 0, 0}});
+    storage(Graph::fromAdjacency(vector<vector<int>>{{1, 1}, {0, 0, 1, 1}}), 2, false, {{0, 1, 1}, {0, 1, 1}, {1, 1, 1}});
+    storage(Graph::fromAdjacency(vector<vector<int>>{}), 0, false, {});
+    vector<vector<lng>> matrix{{0, 4, 0}, {4, -1, std::numeric_limits<lng>::min()}, {0, std::numeric_limits<lng>::min(), 0}};
+    storage(Graph::fromMatrix(matrix), 3, true, {{0, 1, 4}, {1, 0, 4}, {1, 1, -1}, {1, 2, std::numeric_limits<lng>::min()},
+        {2, 1, std::numeric_limits<lng>::min()}});
+    storage(Graph::fromMatrix(matrix, false), 3, false, {{0, 1, 4}, {1, 1, -1}, {1, 2, std::numeric_limits<lng>::min()}});
+    storage(Graph::fromMatrix(vector<vector<lng>>{}), 0, true, {});
     verify(3, false, {{0, 0, -5}, {0, 0, -5}, {0, 1, 3}, {0, 1, 3}, {1, 0, -9},
         {1, 2, std::numeric_limits<lng>::min()}, {2, 2, std::numeric_limits<lng>::max()}});
     verify(3, true, weighted);
-    std::cout << "PASS defaults/copy/move/input/labels/extreme weights/multiedges/loops\n";}
+    std::cout << "PASS defaults/copy/move/input/labels/builders/extreme weights/multiedges/loops\n";}
 void randomCases(const string &mode) {
     std::mt19937_64 rng(seed); int count = mode == "quick" ? 70 : mode == "full" ? 500 : 4000;
     for (int test = 0; test < count; ++test) {
@@ -208,8 +242,33 @@ void randomCases(const string &mode) {
             edges.emplace_back(int(rng() % n), int(rng() % n), w);}
         verify(n, bool(rng() & 1), edges);}
     std::cout << "PASS deterministic multigraph storage cases=" << count << '\n';}
+void builderCases(const string &mode) {
+    std::mt19937_64 rng(seed + 1); int count = mode == "quick" ? 100 : mode == "full" ? 1000 : 8000;
+    for (int test = 0; test < count; ++test) {
+        // Full-range weights that differ in one random byte exercise every radix pass and its skip.
+        lng x = lng(rng()); int b = int(rng() % 8);
+        vector<lng> pool{x, lng(ulng(x) ^ (rng() % 255 + 1) << (8 * b)), std::numeric_limits<lng>::min(),
+            std::numeric_limits<lng>::max(), 0};
+        int n = 1 + int(rng() % 8), m = int(rng() % 40); bool directed = bool(rng() & 1); Edges edges;
+        for (int i = 0; i < m; ++i) { edges.emplace_back(int(rng() % n), int(rng() % n), pool[rng() % pool.size()]); }
+        describe(n, directed, edges); builders(n, directed, edges, rng);
+        vector<vector<lng>> w(n, vector<lng>(n));
+        for (int u = 0; u < n; ++u) {
+            for (int v = directed ? 0 : u; v < n; ++v) {
+                w[u][v] = rng() % 3 ? 0 : pool[rng() % pool.size()];
+                if (!directed) { w[v][u] = w[u][v]; }}}
+        Edges want; vector<vector<pair<int, lng>>> adj(n);
+        for (int u = 0; u < n; ++u) {
+            for (int v = directed ? 0 : u; v < n; ++v) {
+                if (!w[u][v]) { continue; }
+                want.emplace_back(u, v, w[u][v]); adj[u].push_back({v, w[u][v]});
+                if (!directed) { adj[v].push_back({u, w[u][v]}); }}}
+        auto g = Graph::fromMatrix(w, directed); storage(g, n, directed, want);
+        identical(g, Graph::fromAdjacency(adj, directed));}
+    std::cout << "PASS builders: shuffled full-range adjacency lists and matrices cases=" << count << '\n';}
 void invalid(const string &probe) {
-    Graph g(2); CsrGraph csr(g); GraphLabels<int> labels({1, 3});
+    Graph g(2); CsrGraph csr(g);
+    using Lists = vector<vector<int>>; using Weighted = vector<vector<pair<int, lng>>>;
     if (probe == "negative-size") { Graph bad(-1); }
     if (probe == "add-negative") { g.addEdge(-1, 0); }
     if (probe == "add-end") { g.addEdge(0, 2); }
@@ -217,10 +276,15 @@ void invalid(const string &probe) {
     if (probe == "row-end") { (void)g[2]; }
     if (probe == "csr-row-negative") { (void)csr[-1]; }
     if (probe == "csr-row-end") { (void)csr[2]; }
-    if (probe == "label-missing-low") { (void)labels.index(0); }
-    if (probe == "label-missing-high") { (void)labels.index(4); }
-    if (probe == "label-negative") { (void)labels.value(-1); }
-    if (probe == "label-end") { (void)labels.value(2); }
+    if (probe == "adjacency-negative") { (void)Graph::fromAdjacency(Lists{{-1}}, true); }
+    if (probe == "adjacency-end") { (void)Graph::fromAdjacency(Lists{{1}}, true); }
+    if (probe == "adjacency-asymmetric") { (void)Graph::fromAdjacency(Lists{{1}, {}}); }
+    if (probe == "adjacency-multiplicity") { (void)Graph::fromAdjacency(Lists{{1, 1}, {0}}); }
+    if (probe == "adjacency-loop-once") { (void)Graph::fromAdjacency(Lists{{0}}); }
+    if (probe == "adjacency-weight") { (void)Graph::fromAdjacency(Weighted{{{1, 2}}, {{0, 3}}}); }
+    if (probe == "adjacency-loop-weight") { (void)Graph::fromAdjacency(Weighted{{{0, 5}, {0, 7}}}); }
+    if (probe == "matrix-ragged") { (void)Graph::fromMatrix({{0, 1}, {0}}); }
+    if (probe == "matrix-asymmetric") { (void)Graph::fromMatrix({{0, 1}, {0, 0}}, false); }
     if (probe == "induced-negative") { (void)inducedSubgraph(g, {-1}); }
     if (probe == "induced-end") { (void)inducedSubgraph(csr, {2}); }
     if (probe == "induced-duplicate") { (void)inducedSubgraph(g, {1, 0, 1}); }
@@ -246,6 +310,6 @@ int main(int argc, char **argv) {
             if (arg == "--mode") { mode = argv[++i]; }
             else if (arg == "--seed") { seed = std::stoull(argv[++i]); }
             else if (arg == "--invalid") { invalid(argv[++i]); }}
-        adapters(); exhaustive(mode); randomCases(mode);
+        adapters(); exhaustive(mode); randomCases(mode); builderCases(mode);
         std::cout << "PASS graph checks=" << checks << " seed=" << seed << '\n'; return 0;} catch (const std::exception &error) {
         std::cerr << "FAIL graph seed=" << seed << " mode=" << mode << ' ' << error.what() << '\n'; return 1;}}

@@ -12,7 +12,11 @@ Owned by package P010 / GR01 (graph foundations, with `02-traversal.hpp` through
 
 `Graph(n, directed)` with `n >= 0`. `addEdge(u, v, w = 1)` returns the new logical edge ID; it invalidates references and iterators into the storage, and IDs are stable until assignment or destruction. `operator[](u)` returns the arc indices out of `u` in insertion order. `reverse()` is O(n + m): directed arcs swap endpoints, undirected edges keep their orientation, and logical edge IDs are preserved. `read(in, n, m, directed, weighted, base)` consumes exactly `m` records `u v [w]` with `base` 0 or 1; omitted weights become 1. Well-formed input, including successful extraction and in-range endpoints, is a precondition.
 
+`fromAdjacency(adj, directed = false)` builds `adj.size()` vertices from `vector<vector<int>>` lists (weight 1) or `vector<vector<pair<int, lng>>>` lists; every entry must be in `[0, n)`. Directed: one arc `u -> v` per entry `v` of `adj[u]`, in vertex then list order. Undirected: the lists must be symmetric as multisets of (neighbour, weight), so every unordered pair `{u, v}` has the same weight multiset in `adj[u]` and `adj[v]` and every loop is listed twice in its own list with equal weights. Each mirrored pair becomes one edge, so parallel edges keep their multiplicity; the edges come in increasing `(u, v, w)` order with `u <= v`, independent of list order. An asymmetric input is an asserted precondition. `fromMatrix(w, directed = true)` takes a square `vector<vector<lng>>` and adds one arc `u -> v` of weight `w[u][v]` per nonzero entry in row-major order; undirected requires a symmetric matrix and adds one edge per nonzero entry with `u <= v`, a nonzero diagonal entry being a loop. A zero entry means no edge, so zero-weight edges need `addEdge`. Costs: O(n + m) with m the total list length, and O(n^2).
+
 Correctness: `Graph` owns zero-based vertices, insertion-ordered logical edges and oriented arcs. All counts fit `int`; weights use the full `lng` domain. An undirected edge has two reciprocal arcs even for a self-loop. A directed arc has `rev == -1`; its reverse graph is a separate object. Reversal preserves logical edge IDs. Algorithms return arc indices so orientation and parallel edges remain distinguishable; `g.arcs[a].id` recovers the logical ID. Public storage is inspectable but must not be edited directly. `Graph::read` accepts exactly the requested number of weighted/unweighted records and base 0 or 1; malformed input is a precondition violation.
+
+Correctness of `fromAdjacency`: undirected entries become records `(u, v, w)` of the listing vertex `u`. Least-significant-digit radix sort by weight (eight 8-bit passes on the sign-flipped value, each skipped when its byte is constant), then stable counting sorts by `max(u, v)` and by `min(u, v)`, order them by `(min(u, v), max(u, v), w)` in O(n + m) with word-size constants. A group of equal keys holds exactly the entries of the edges with that key: for `u < v` the forward entries (listed at `u`) and the backward ones must be equally many, and a loop group, all forward, must be even. Symmetry as multisets is exactly this group-wise condition, so the assertion accepts every valid input and rejects every other, and a valid group yields one edge per mirrored pair (`forward` edges, `forward / 2` for a loop). Under `NDEBUG` an asymmetric input with in-range entries still terminates, with at most one edge per forward entry; an out-of-range entry is undefined there, as in `addEdge`. Directed lists and matrices are direct scans; the unweighted overload skips the weight passes. `fromMatrix` checks row sizes and symmetry in one entry pass, so with assertions enabled an undirected matrix costs one extra O(n^2) pass with strided reads.
 
 ### CsrGraph
 
@@ -23,10 +27,6 @@ An immutable owning snapshot of a `Graph` with contiguous adjacency, keeping arc
 Owns a copy of the full multigraph in `graph` plus `best[u][v]`: the arc index of the lightest `u -> v` arc, or the heaviest when constructed with `maximum = true`, `-1` when there is none. Equal weights choose the earliest arc. There are no implicit diagonal entries; loops are stored like any other arc. `dijkstraDense` requires the minimum view; `primDense` builds a minimum or maximum forest according to `maximum`.
 
 Correctness: the O(n²) matrix selects the best arc per ordered pair with earliest-arc ties and `-1` for absence, while the full graph is kept, so a dense projection does not lose parallel-edge provenance.
-
-### GraphLabels
-
-Sorted label compression under a strict weak ordering; labels equivalent under `!(a < b) && !(b < a)` merge. `index(x)` asserts that `x` is present and runs in O(log(k)); `value(i)` returns a reference into this object's storage in O(1). The labels must include every endpoint the caller compresses.
 
 ### Subgraph, lineGraph, inducedSubgraph, contract and simplify
 
@@ -39,9 +39,13 @@ Sorted label compression under a strict weak ordering; labels equivalent under `
 
 Correctness: these are direct constructions. `lineGraph` enumerates, per vertex, the pairs of incident edges (undirected) or the arcs leaving each edge's head (directed), so it emits each line-graph edge exactly once in O(n + m + out). `inducedSubgraph` scans only the chosen vertices' adjacency and keeps an undirected edge from its first arc, which has the smaller index, so each edge is taken once with its stored orientation. `contract` relabels endpoints edge by edge. `simplify` scans each vertex's adjacency with a stamp array keyed by the scanning vertex, keeps the smallest `(w, id)` per neighbour (an undirected pair only from its smaller endpoint), then emits the kept IDs in increasing order; every arc is touched twice, so it is O(n + m) without sorting.
 
+### Legacy mapping
+
+- `GraphLabels<T>(labels)` → `CoordinateCompression<T>(labels)` (`02-Data Structures/07-ordered_set.hpp`, under the same strict ordering): `index(x)` returns -1 for an absent label where `GraphLabels` asserted, `value(i)` is `decode(i)` and `labels` is `v`.
+
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/01-graph_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. Oracles use non-removable checks. Checked builds also run invalid-precondition subprocesses. Test outputs are temporary; seeds and failed inputs/operations are printed. The corpus is 606 exhaustive small graphs and 500 random multigraphs; quick uses exhaustive graphs through two vertices and 70 random cases, full extends to three vertices/500 random cases, stress to 4,000 random cases. Exact mode coverage is also stated in the runnable entry.
+`96-Local Testing/04-Graphs/01-graph_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. Oracles use non-removable checks. Checked builds also run invalid-precondition subprocesses. Test outputs are temporary; seeds and failed inputs/operations are printed. The corpus is 606 exhaustive small graphs, 500 random multigraphs and 1,000 builder cases; quick uses exhaustive graphs through two vertices, 70 random cases and 100 builder cases, full extends to three vertices, 500 random and 1,000 builder cases, stress to 4,000 random and 8,000 builder cases. Exact mode coverage is also stated in the runnable entry.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -50,35 +54,37 @@ Correctness: these are direct constructions. `lineGraph` enumerates, per vertex,
 | `CsrGraph: operator[]` | CSR equivalence; snapshots/copy/move | Adjacency of the source `Graph` |
 | `DenseGraph: best` (minimum or maximum view) | Dense minima and maxima with earliest ties | Independent dense minima and maxima |
 | `Graph: read` (base/weighted/directed adapters) | Input adapters | Expected edge lists |
-| `GraphLabels: index, value` | Label adapters | Sorted distinct labels |
+| `Graph: fromAdjacency, fromMatrix` | Every exhaustive and random graph as shuffled weighted and unit lists; builder cases with full-range weights differing in one random byte, loops and parallel edges, and random directed or symmetric matrices; fixtures for defaults, mirrored parallel edges listed in different orders, loops and empty inputs | Directed: the list scan. Undirected: the source edge multiset normalized to `(min, max, w)` and sorted with `std::sort`. Matrices: the row-major nonzero scan, and identity with `fromAdjacency` of the same lists |
+| `CoordinateCompression` (replaces `GraphLabels`; Data Structures row 07) | Label adapters: integer extremes, strings with the empty label, keys with only `operator<`, empty set, copy/move, absent labels | Sorted distinct labels; -1 for an absent label |
 | `lineGraph`, `Subgraph` | Each graph and its CSR snapshot | Brute-force incidence counting |
 | `inducedSubgraph` | Empty, full and three shuffled random subsets | Filtered edge list with relabelled endpoints |
 | `contract` | Identity, all-merged and random labels (two spare labels) | Relabelled edges |
 | `simplify` | Every graph and every contraction | Ordered pair map of `(w, id)` minima |
-| Preconditions | 27 assertion probes, including `induced-negative`, `induced-end`, `induced-duplicate`, `contract-size`, `contract-count`, `contract-negative`, `contract-end` | Expected assertion failure |
+| Preconditions | 32 assertion probes, including `induced-negative`, `induced-end`, `induced-duplicate`, `contract-size`, `contract-count`, `contract-negative`, `contract-end`, `adjacency-negative`, `adjacency-end`, `adjacency-asymmetric`, `adjacency-multiplicity`, `adjacency-loop-once`, `adjacency-weight`, `adjacency-loop-weight`, `matrix-ragged`, `matrix-asymmetric` | Expected assertion failure |
 
 Mutation checks (planted in a temporary copy, full mode) killed: line-graph loop double count and self-pairs, simplify keeping the maximum, reversed induced orientation and maximum-view tie order. A surviving mutant (simplify tie on an equal ID) is equivalent.
 
+Builder mutants (2026-10-12, same method; the two assertion mutants against the checked probes) were all killed except one equivalent: no sign flip, seven weight passes, an unstable counting scatter, grouping without the weight, loops not halved, full matrix rows, and dropped list and matrix symmetry assertions. The survivor removes the directed early return, which only skips sorting an empty buffer.
+
 ## Commands and results
 
-2026-10-07, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
+2026-10-12, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
 | Run | Result |
 |---|---|
-| Full, seed 20261007, g++ | PASS, all three builds, 19,639,546 checks per build, 27 probes |
-| Full, seed 20261007, `CXX=g++-14` | PASS, all three builds, same counts |
-| Full, seed 20260927 | PASS, 19,364,200 checks per build, 27 probes |
-| Stress, seed 7 | PASS, all three builds, 157,165,740 checks per build |
-| Quick runner, all eleven graph entries, from `/tmp` | PASS |
-| `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU linkage, workspace, sanitizer self-tests) | PASS |
-| `03-consistency.py`, with `--braces` on package headers, testers and benchmarks | No errors |
+| Full, seed 20261012, g++ | PASS, all three builds, 22,721,198 checks per build, 32 probes, peak 619 MB |
+| Full, seed 20261012, `CXX=g++-14` | PASS, all three builds, same counts, peak 595 MB |
+| Stress, seed 7 | PASS, all three builds, 167,097,978 checks per build, peak 642 MB |
+| Quick runner, all sixteen graph entries, from `/tmp` | PASS |
+| `02-integration.py` (136 standalone/aggregate headers, scalar and AVX2 multi-TU linkage, workspace) | PASS, peak 647 MB |
+| `03-consistency.py`, with `--braces` on the touched headers, testers and benchmark | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode full --seed 20261007
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode full --seed 20261007
+python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode full --seed 20261012
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode full --seed 20261012
 python3 '96-Local Testing/04-Graphs/01-graph_tester.py' --mode stress --seed 7
 python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
-python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
 
@@ -120,3 +126,4 @@ GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available. 
 - 2026-09-27: original P010, full suite (seed 20260927) passed on g++ 16 with integration and 61 package probes; stress not run.
 - 2026-10-06: inventory rewrite reopened the row as partial (line graph, induced subgraph, contraction, simplification).
 - 2026-10-07: re-audit, implemented `lineGraph`, `inducedSubgraph`, `contract`, `simplify`; 5 findings fixed (missing operations, evidence claim, complexity lines, brace rule, T/M placement); full suite passed on g++ and g++-14, stress passed.
+- 2026-10-12: prune, added `Graph::fromAdjacency` and `fromMatrix`, removed `GraphLabels` (cases moved to `CoordinateCompression`); full suite passed on g++ and g++-14, stress passed.

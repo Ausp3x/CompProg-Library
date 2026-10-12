@@ -28,24 +28,23 @@ The all-ready heap fixture uses 2,000 vertices, because checked libstdc++ valida
 
 ## Commands and results
 
-2026-10-07, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
+2026-10-12, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
 | Run | Result |
 |---|---|
-| Full, seed 20261007, g++ | PASS, all three builds, 13,478,426 checks per build, 3 probes |
-| Full, seed 20261007, `CXX=g++-14` | PASS, all three builds, same counts |
-| Full, seed 20260927 | PASS, 13,478,134 checks per build, 3 probes |
-| Stress, seed 7 | PASS, all three builds, 89,130 cases and 39,310,158 checks per build |
-| Quick runner, all eleven graph entries, from `/tmp` | PASS |
-| `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU linkage, workspace, sanitizer self-tests) | PASS |
-| `03-consistency.py`, with `--braces` on the package | No errors |
+| Full, seed 20261012, g++ | PASS, all three builds, 6,966 cases and 13,480,396 checks per build, 3 probes, peak 701 MB |
+| Full, seed 20261012, `CXX=g++-14` | PASS, all three builds, same counts, peak 701 MB |
+| Stress, seed 7 | PASS, all three builds, 89,130 cases and 39,310,158 checks per build, peak 954 MB |
+| Quick runner, all sixteen graph entries, from `/tmp` | PASS |
+| `02-integration.py` (136 standalone/aggregate headers, scalar and AVX2 multi-TU linkage, workspace) | PASS, peak 647 MB |
+| `03-consistency.py`, with `--braces` on the touched headers, testers and benchmark | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode full --seed 20261007
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode full --seed 20261007
+python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode full --seed 20261012
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode full --seed 20261012
 python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode stress --seed 7
 python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
-python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
 
@@ -67,3 +66,4 @@ GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available.
 
 - 2026-09-27: original P010, full suite (seed 20260927) passed on g++ 16 with integration and 61 package probes; stress not run.
 - 2026-10-07: re-audit, added `TopologicalResult::unique`; 2 findings fixed (brace rule, complexity line placement); full suite passed on g++ and g++-14, stress passed.
+- 2026-10-12: P010 prune, the cyclic result takes its witness from `dfsForest(g).cycle` (`findCycle` removed); full suite passed on g++ and g++-14, stress passed.

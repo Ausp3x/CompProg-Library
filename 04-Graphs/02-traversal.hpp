@@ -55,8 +55,6 @@ TraversalResult bfs(const G &g, const vector<int> &sources) {
             out.depth[v] = out.depth[u] + 1; out.root[v] = out.root[u];
             out.order.push_back(v);}}
     return out;}
-template<class G>
-TraversalResult bfs(const G &g, int s) { return bfs(g, vector<int>{s}); }
 
 // T: O(n + m + k), M: O(n); iterative recursive-order DFS from each unreached source in turn.
 template<class G>
@@ -84,16 +82,12 @@ TraversalResult dfs(const G &g, const vector<int> &sources) {
             if (next == -1) {
                 state[u] = 2; out.postorder.push_back(u); path.pop_back();}}}
     return out;}
-template<class G>
-TraversalResult dfs(const G &g, int s) { return dfs(g, vector<int>{s}); }
 
 // T: O(n + m), M: O(n); DFS from every vertex in order, and its first cycle.
 template<class G>
 TraversalResult dfsForest(const G &g) {
     vector<int> sources(g.n); iota(sources.begin(), sources.end(), 0);
     return dfs(g, sources);}
-template<class G>
-CycleWitness findCycle(const G &g) { return dfsForest(g).cycle; }
 
 // T: O(1), M: O(n); components numbered by increasing minimum vertex.
 struct ComponentsResult {
