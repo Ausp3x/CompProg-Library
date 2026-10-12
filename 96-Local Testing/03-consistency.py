@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 from urllib.parse import unquote
@@ -19,6 +20,15 @@ def require(condition, message):
 
 def read_json(name):
     return json.loads((ROOT / name).read_text())
+
+def ignored(paths):
+    """Recorded paths that are absent and git-ignored: archive binaries, caches and benchmark logs a fresh worktree lacks."""
+    missing = [p for p in paths if not (ROOT / p).exists()]
+    dirs = subprocess.run(['git', 'rev-parse', '--git-dir', '--git-common-dir'], cwd=ROOT, capture_output=True, text=True).stdout.splitlines()
+    if not missing or len(dirs) != 2 or (ROOT / dirs[0]).resolve() == (ROOT / dirs[1]).resolve():
+        return set()
+    out = subprocess.run(['git', 'check-ignore', '-z', '--stdin'], cwd=ROOT, input='\0'.join(missing), capture_output=True, text=True).stdout
+    return set(out.split('\0')) - {''}
 
 def cells(line):
     return [x.strip() for x in re.split(r'(?<!\\)\|', line.strip())[1:-1]]
@@ -204,7 +214,7 @@ def free_function_violations(path):
 
 def type_header(path):
     """03-cpp.md type header: a 01-Core header, or a 02-Data Structures header whose inventory row starts with a struct."""
-    if path.suffix != '.hpp' or path.parent.name not in ('01-Core', '02-Data Structures'):
+    if path.suffix != '.hpp' or path.resolve().parent.parent != ROOT or path.parent.name not in ('01-Core', '02-Data Structures'):
         return False
     if path.parent.name == '01-Core':
         return True
@@ -310,12 +320,14 @@ for record in coverage['records']:
 
 archive = read_json('00-Guidelines/Ledgers/archive-map.json')
 actual_archive = {str(p.relative_to(ROOT)) for p in (ROOT / 'OLD').rglob('*') if p.is_file()}
-require(actual_archive == {r['path'] for r in archive['files']}, 'Archive manifest coverage mismatch')
+recorded_archive = {r['path'] for r in archive['files']}
+absent_archive = ignored(recorded_archive - actual_archive)
+require(actual_archive | absent_archive == recorded_archive, 'Archive manifest coverage mismatch')
 require(archive['summary']['files'] == archive['summary']['classified'] == len(archive['files']), 'Archive summary count mismatch')
 require(archive['summary']['classifications'] == dict(collections.Counter(r['classification'] for r in archive['files'])), 'Archive classification totals mismatch')
 require(archive['summary']['canonical_inventory_targets_referenced'] == len({t for r in archive['files'] for t in r['targets']}), 'Archive referenced-target count mismatch')
 for record in archive['files']:
-    require(hashlib.sha256((ROOT / record['path']).read_bytes()).hexdigest() == record['sha256'], 'Archive hash mismatch: ' + record['path'])
+    require(record['path'] in absent_archive or hashlib.sha256((ROOT / record['path']).read_bytes()).hexdigest() == record['sha256'], 'Archive hash mismatch: ' + record['path'])
     require(set(record['targets']) <= inventories.keys(), 'Archive target mismatch: ' + record['path'])
 
 monolith = read_json('00-Guidelines/Ledgers/monolith-map.json')
@@ -384,8 +396,9 @@ for name, key in [('Ledgers/path-map.json', 'headers'), ('Ledgers/path-updates.j
                   ('Ledgers/path-updates.json', 'changed'), ('Ledgers/core-path-updates.json', 'old_to_current'),
                   ('Ledgers/core-path-updates.json', 'moved_artifacts')]:
     mapping = read_json('00-Guidelines/' + name)[key]
+    absent = ignored(mapping.values())
     for old, target in mapping.items():
-        require(target in inventories or (ROOT / target).is_file(), 'Unresolved current map destination: ' + name + ': ' + target)
+        require(target in inventories or (ROOT / target).is_file() or target in absent, 'Unresolved current map destination: ' + name + ': ' + target)
 
 notebook_spec = importlib.util.spec_from_file_location('library_notebook_check', ROOT / '98-Team Notebook/01-notebook.py')
 notebook = importlib.util.module_from_spec(notebook_spec)
@@ -449,5 +462,5 @@ with tempfile.TemporaryDirectory(prefix='cp-consistency-') as name:
     finally:
         sys.argv = argv
 
-print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'compact_pending': compact_pending, 'errors': errors}, indent=2))
+print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'absent_ignored_archive': len(absent_archive), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'compact_pending': compact_pending, 'errors': errors}, indent=2))
 raise SystemExit(bool(errors))
