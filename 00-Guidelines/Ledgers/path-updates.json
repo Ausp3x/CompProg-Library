@@ -179,7 +179,7 @@
     "06-Miscellaneous/02-customhash.hpp": "06-Miscellaneous/02-customhash.hpp",
     "06-Miscellaneous/03-fastio.hpp": "06-Miscellaneous/03-fastio.hpp",
     "06-Miscellaneous/04-compression.hpp": "06-Miscellaneous/04-compression.hpp",
-    "06-Miscellaneous/05-binarysearch.hpp": "06-Miscellaneous/05-binarysearch.hpp",
+    "06-Miscellaneous/05-binarysearch.hpp": "05-Mathematics/02-search_algorithms.hpp",
     "06-Miscellaneous/06-bit_operations.hpp": "06-Miscellaneous/06-bit_operations.hpp",
     "06-Miscellaneous/07-permutation.hpp": "06-Miscellaneous/07-permutation.hpp",
     "06-Miscellaneous/08-sequence_algorithms.hpp": "06-Miscellaneous/08-sequence_algorithms.hpp",

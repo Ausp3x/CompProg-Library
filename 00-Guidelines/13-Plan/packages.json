@@ -230,7 +230,7 @@
     },
     {
       "id": "P013",
-      "label": "06-Miscellaneous — random, customhash, fastio, compression, binarysearch, bit operations, permutation",
+      "label": "06-Miscellaneous — random, customhash, fastio, compression, bit operations, permutation",
       "batches": [
         "MI01",
         "MI02"
@@ -244,7 +244,6 @@
         "06-Miscellaneous/Docs/02-customhash.md",
         "06-Miscellaneous/Docs/03-fastio.md",
         "06-Miscellaneous/Docs/04-compression.md",
-        "06-Miscellaneous/Docs/05-binarysearch.md",
         "06-Miscellaneous/Docs/06-bit_operations.md",
         "06-Miscellaneous/Docs/07-permutation.md"
       ],

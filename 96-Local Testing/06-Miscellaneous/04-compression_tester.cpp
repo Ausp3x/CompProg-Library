@@ -10,40 +10,17 @@ void check(bool ok, const string &what) {
 
 void checkVector(const vector<lng> &input) {
     context = "input="; for (lng x : input) { context += std::to_string(x) + ','; }
-    Compression<lng> c(input);
-    set<lng> distinct(input.begin(), input.end()); vector<lng> expected(distinct.begin(), distinct.end());
-    check(c.v == expected && c.size() == int(expected.size()), "sorted unique vs ordered set");
-    for (int i = 0; i < c.size(); ++i) {
-        check(c.id(c.value(i)) == i && c.value(i) == expected[i], "inverse mapping");}
-    vector<int> encoded = c.encode(input);
-    for (int i = 0; i < int(input.size()); ++i) {
-        check(c.value(encoded[i]) == input[i], "encode preserves original values");}
-    for (lng x = -3; x <= 3; ++x) {
-        int lo = 0, hi = 0;
-        for (lng y : expected) { lo += y < x; hi += y <= x; }
-        check(c.lowerBound(x) == lo && c.upperBound(x) == hi, "linear bound oracle x=" + std::to_string(x));
-        check(c.id(x) == (lo < hi ? lo : -1), "absent/present x=" + std::to_string(x));}
-    for (lng l = -3; l <= 3; ++l) { for (lng r = l; r <= 3; ++r) {
-        for (bool lc : {false, true}) { for (bool rc : {false, true}) {
-            auto [a, b] = c.pointRange(l, r, lc, rc); vector<lng> actual, want;
-            for (lng x : expected) { if ((lc ? x >= l : x > l) && (rc ? x <= r : x < r)) { want.push_back(x); }}
-            for (int i = a; i < b; ++i) { actual.push_back(c.value(i)); }
-            check(0 <= a && a <= b && b <= c.size() && actual == want,
-                  "point interval l=" + std::to_string(l) + " r=" + std::to_string(r)
-                  + " left_closed=" + std::to_string(lc) + " right_closed=" + std::to_string(rc));}}}}
-    vector<lng> probes{-3, -2, -1, 0, 1, 2, 3, 3, -3}; vector<int> ranks = c.ranks(probes);
-    for (int i = 0; i < int(probes.size()); ++i) {
-        int lo = 0; for (lng y : expected) { lo += y < probes[i]; }
-        check(ranks[i] == lo, "bulk ranks linear oracle x=" + std::to_string(probes[i]));}
-    check(c.ranks({}).empty(), "bulk ranks empty query");
+    vector<pair<lng, lng>> intervals; set<lng> ends;
+    for (int i = 0; i + 1 < int(input.size()); ++i) {
+        lng l = min(input[i], input[i + 1]), r = max(input[i], input[i + 1]);
+        intervals.push_back({l, r}); ends.insert(l); ends.insert(r);}
+    auto endpoints = compressEndpoints(intervals);
+    check(endpoints.v == vector<lng>(ends.begin(), ends.end()), "compressEndpoints vs ordered endpoint set");
     vector<int> stable = stableRanks(input);
     for (int i = 0; i < int(input.size()); ++i) {
         int want = 0;
         for (int j = 0; j < int(input.size()); ++j) { want += input[j] < input[i] || (input[j] == input[i] && j < i); }
         check(stable[i] == want, "stableRanks counting oracle i=" + std::to_string(i));}
-    auto snapshot = c; auto moved = std::move(snapshot);
-    check(moved.v == c.v, "snapshot copy/move");
-    c.assign({17, 17, -19}); check(c.size() == 2 && c.value(0) == -19 && c.id(17) == 1, "rebuild resets ranks");
     EncounterCompression<lng> e; vector<lng> seen;
     for (lng x : input) {
         auto it = std::find(seen.begin(), seen.end(), x);
@@ -61,58 +38,41 @@ struct Direction {
 
 void customCases() {
     context = "custom comparator / types";
-    Compression<int, Direction> c({3, 1, 2, 3}, Direction{true});
-    check(c.v == vector<int>{3, 2, 1}, "descending stateful comparator");
-    check(c.pointRange(3, 1) == pair{0, 2} && c.pointRange(3, 1, true, true) == pair{0, 3}, "descending ranges");
-    check(c.lowerBound(2) == 1 && c.upperBound(2) == 2 && c.id(4) == -1, "descending bounds");
-    check(c.encode({4, 2, 0, 3}) == vector<int>{-1, 1, -1, 0}, "encode absent and present values");
-    Compression<string, LengthOrder> lengths({"aaa", "b", "cc", "ddd", "", "e"});
-    check(lengths.size() == 4 && lengths.id("zz") == 2 && lengths.value(2).size() == 2, "equivalence classes");
-    auto copy = lengths; lengths.assign({"wwww", "x"});
-    check(copy.id("aaa") == 3 && lengths.id("aaa") == -1, "copy independent of rebuild");
     EncounterCompression<string, LengthOrder> encounter;
     check(encounter.add("bb") == 0 && encounter.add("cc") == 0 && encounter.add("a") == 1,
           "encounter comparator equality");
     check(encounter.value(0) == "bb", "first representative retained");
     check(encounter.add(encounter.value(0)) == 0, "alias existing representative");
     auto moved = std::move(encounter); check(moved.id("dd") == 0, "encounter move");
-    Compression<bool> bits({true, false, true});
     EncounterCompression<bool> bit_ids;
-    check(!bits.value(0) && bits.value(1) && bit_ids.add(true) == 0 && bit_ids.value(0), "bool proxy storage");
-    Compression<pair<int, int>> pairs({{1, 2}, {1, 1}, {1, 2}});
-    check(pairs.size() == 2 && pairs.id({1, 2}) == 1, "composite keys");
-    Compression<lll> wide({lll(INT64_MAX) + 1, lll(INT64_MIN) - 1, 0});
-    check(wide.size() == 3 && wide.id(0) == 1, "128-bit coordinates");
+    check(bit_ids.add(true) == 0 && bit_ids.value(0) && bit_ids.add(false) == 1 && !bit_ids.value(1), "bool proxy storage");
     auto endpoints = compressEndpoints(vector<pair<lng, lng>>{{INT64_MIN, INT64_MAX}, {INT64_MAX, INT64_MAX}, {-4, 7}});
     check(endpoints.v == vector<lng>{INT64_MIN, -4, 7, INT64_MAX}, "full-width offline endpoints");
     check(endpoints.pointRange(INT64_MAX, INT64_MAX) == pair{3, 3}
           && endpoints.pointRange(INT64_MAX, INT64_MAX, true, true) == pair{3, 4}, "max endpoint closure");
     lll width = 0;
-    for (int i = endpoints.id(INT64_MIN); i < endpoints.id(INT64_MAX); ++i) {
-        width += lll(endpoints.value(i + 1)) - endpoints.value(i);}
+    for (int i = endpoints.index(INT64_MIN); i < endpoints.index(INT64_MAX); ++i) {
+        width += lll(endpoints.decode(i + 1)) - endpoints.decode(i);}
     check(width == (lll(1) << 64) - 1, "slab metric recovered without overflow");
     check(compressEndpoints(vector<pair<int, int>>{}).size() == 0, "empty endpoints");
     check(stableRanks(vector<string>{"bb", "a", "cc", "", "d"}, LengthOrder{}) == vector<int>{3, 1, 4, 0, 2}, "stableRanks comparator equivalence by index");
     check(stableRanks(vector<int>{1, 3, 2}, Direction{true}) == vector<int>{2, 0, 1} && stableRanks(vector<int>{}).empty(), "stableRanks stateful comparator and empty");
-    check(copy.ranks({"zz", "zzzz", ""}) == vector<int>{2, 4, 0} && lengths.ranks({"zz", "zzzzz"}) == vector<int>{1, 2}, "bulk ranks with comparator equivalence");
     auto down = compressEndpoints(vector<pair<int, int>>{{9, 2}, {5, 5}}, Direction{true});
     check(down.v == vector<int>{9, 5, 2}, "descending endpoints");
-    cout << "PASS custom comparators/equivalence, proxy/composite/128-bit types, offline endpoint slabs\n";}
+    auto lengths = compressEndpoints(vector<pair<string, string>>{{"b", "ccc"}, {"dd", "ee"}}, LengthOrder{});
+    check(lengths.size() == 3 && lengths.decode(0) == "b" && lengths.decode(1).size() == 2 && lengths.decode(2) == "ccc", "endpoint comparator equivalence");
+    cout << "PASS custom comparators/equivalence, proxy storage, offline endpoint slabs\n";}
 
 void oracle() {
     int n, q;
     while (cin >> n >> q) {
         vector<lng> input(n); for (auto &x : input) { cin >> x; }
-        Compression<lng> c(input); EncounterCompression<lng> e;
-        cout << c.size(); for (lng x : c.v) { cout << ' ' << x; } cout << '\n';
-        for (int x : c.encode(input)) { cout << x << ' '; } cout << '\n';
+        vector<pair<lng, lng>> intervals(q); for (auto &[l, r] : intervals) { cin >> l >> r; }
+        EncounterCompression<lng> e;
         for (lng x : input) { cout << e.add(x) << ' '; } cout << '\n';
         for (int x : stableRanks(input)) { cout << x << ' '; } cout << '\n';
-        vector<lng> ls;
-        for (int i = 0; i < q; ++i) {
-            lng l, r; int lc, rc; cin >> l >> r >> lc >> rc; auto [a, b] = c.pointRange(l, r, lc, rc); ls.push_back(l);
-            cout << c.id(l) << ' ' << c.lowerBound(l) << ' ' << c.upperBound(l) << ' ' << a << ' ' << b << '\n';}
-        for (int x : c.ranks(ls)) { cout << x << ' '; } cout << '\n';}}
+        auto c = compressEndpoints(intervals);
+        cout << c.size(); for (lng x : c.v) { cout << ' ' << x; } cout << '\n';}}
 
 int main(int argc, char **argv) {
     string mode = "full";
@@ -122,12 +82,9 @@ int main(int argc, char **argv) {
         if (arg == "--mode") { mode = argv[++i]; }
         if (arg == "--seed") { test_seed = std::stoull(argv[++i]); }
         if (arg == "--invalid") {
-            string p = argv[++i]; Compression<int> c({1, 2}); EncounterCompression<int> e; e.add(1);
-            if (p == "snapshot-negative") { c.value(-1); }
-            if (p == "snapshot-end") { c.value(2); }
+            string p = argv[++i]; EncounterCompression<int> e; e.add(1);
             if (p == "encounter-negative") { e.value(-1); }
             if (p == "encounter-end") { e.value(1); }
-            if (p == "range-order") { c.pointRange(2, 1); }
             if (p == "endpoint-order") { compressEndpoints(vector<pair<int, int>>{{2, 1}}); }
             return 1;}}
     int bound = mode == "quick" ? 4 : mode == "full" ? 6 : 7;

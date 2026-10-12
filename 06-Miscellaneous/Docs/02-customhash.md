@@ -31,17 +31,23 @@ Modes: quick runs optimized and checked builds with smaller hash dictionaries. F
 
 ## Commands and results
 
-P013 package run, 2026-10-07, GCC 16.2.1, GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection.
+P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection.
 
-```sh
-python3 '96-Local Testing/01-run.py' --mode quick --filter 06-Miscellaneous --no-integration                            # PASS (all 14 suites)
-for s in 01-random 02-customhash 03-fastio 04-compression 05-binarysearch 06-bit_operations 07-permutation; do
-  python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode full --seed 20260927                                # PASS x7, 3 configurations each
-  python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode stress --seed 20260928 --configuration optimized   # PASS x7
+| Command | Result |
+|---|---|
+| `02-customhash_tester.py --mode full --seed 20260927` | PASS, 3 configurations, 25,682 exact Python hash cases, 100,000 map/set cases, both two-TU link orders, `MEMORY peak=517MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=545MB` |
+| Other P013 suites, the call-site suites (`07-ordered_set`, `08-sequence_algorithms`, `12-enumeration`), `02-integration.py` and `03-consistency.py` | PASS; details in [04-compression.md](04-compression.md) |
+
+```bash
+for c in g++ g++-14; do
+  for s in 01-random 02-customhash 03-fastio 04-compression 06-bit_operations 07-permutation 08-sequence_algorithms 12-enumeration; do
+    CXX=$c python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode full --seed 20260927
+  done
+  CXX=$c python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20260927
 done
-python3 '96-Local Testing/06-Miscellaneous/03-fastio_benchmark.py'                                                       # PASS, record rewritten
-python3 '96-Local Testing/02-integration.py'                                                                             # PASS (every header alone, Basic/All aggregates, two-TU links)
-python3 '96-Local Testing/03-consistency.py'                                                                             # no errors
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
 ```
 
 ## Sources
@@ -61,3 +67,4 @@ python3 '96-Local Testing/03-consistency.py'                                    
 - 2026-09-27: P013 first verification, full and stress suites passed.
 - 2026-10-07: P013 re-audit, `safe_gp_hash_table` added, findings 5–7 (`std::uintptr_t`, string-length symbol, braces) fixed, contracts moved out of code comments; full, stress and integration passed.
 - 2026-10-09: P227 fixed the process seed initializer, which never compiled on GCC 14 (`&rnd` inside its own initializer), by anchoring on a function-local static; full suite passed on g++ 16.2.1 and g++-14 14.4.1.
+- 2026-10-12: P013 prune run (header unchanged), full suite passed on g++ and g++-14.

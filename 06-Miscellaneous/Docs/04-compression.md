@@ -1,28 +1,12 @@
 # 04-compression.hpp — evidence
 
-`04-compression.hpp` (batch MI02, package P013) provides sorted snapshot ids with bounds, bulk ranks and open/closed point ranges, endpoint collection, stable distinct ranks and first-encounter ids. Dependencies: P002 (template) and P006 (`CoordinateCompression`), both verified.
+`04-compression.hpp` (batch MI02, package P013) provides endpoint collection into `CoordinateCompression`, stable distinct ranks and first-encounter ids. Sorted snapshot ids with bounds, bulk ranks and open/closed point ranges are `CoordinateCompression` operations, with contracts and tests in [07-ordered_set.md](<../../02-Data Structures/Docs/07-ordered_set.md>). Dependencies: P002 (template) and P006 (`CoordinateCompression`), both verified.
 
 ## Contracts
 
-### Compression
-
-`Compression<T,Compare>` extends the existing verified `CoordinateCompression<T,Compare>` from `02-Data Structures/07-ordered_set.hpp`. It inherits construction, sorted unique storage `v`, comparator `cmp`, `size`, `encode`, `rebuild`, and the rank/select APIs. The new type adds interval/endpoint-facing adapters without a second sorting engine or duplicate storage. The preexisting global `CoordinateCompression` API remains unchanged. Construction/`assign(vector<T>)` sorts values, then removes comparator-equivalent duplicates, where equivalence means neither value is ordered before the other. `T` supports the ordinary copy/move/swap operations used by its containers, and `Compare` is a deterministic strict weak ordering. Default floating-point comparison therefore requires no NaNs. Stateful and descending comparators are supported. Public stored values/comparators must retain these invariants.
-
-`size()` reports the number of distinct equivalence classes. `value(i)` gives an original representative at sorted rank `i`; the representative within a comparator-equivalent class is unspecified. For `vector<bool>` storage it returns a value, as required by that container, rather than a dangling reference. `lowerBound(x)` and `upperBound(x)` return insertion positions in `[0,size()]`. `id(x)` returns the matching rank or `-1`; `encode(vector<T>)` applies that rule to every input, preserving repetitions and mapping unknown values to `-1`.
-
-Sorted rank IDs remain stable throughout a snapshot. `assign` (or inherited `rebuild`) replaces the snapshot and invalidates its IDs/references; ranks can change when another coordinate is inserted. Copies are independent snapshots. Snapshot input lengths are at most `INT_MAX`, so every stored rank and the excluded endpoint `size()` fit `int`. The inherited constructor checks this before converting an iterator difference to `int`; the inherited `encode` supports its vector input size without changing the ID width.
-
-`ranks(a)` returns `lowerBound(x)` for every query `x` in order: the insertion rank in `[0,size()]`, so absent values get the rank of the first stored class after them (unlike `encode`, which returns `-1`). It takes O(k log(n+1)) for `k` queries and returns O(k) storage.
-
-`pointRange(l,r,left_closed=true,right_closed=false)` returns a half-open interval of **stored point ranks** satisfying the selected original-coordinate interval. Bounds follow `Compare`, so descending comparators use descending endpoint order. The precondition is `!cmp(r,l)`. Endpoints need not be stored. For equal/equivalent endpoints, all choices are empty except closed/closed, which contains that equivalence class if present. There is no absent-value sentinel disguised as rank zero.
-
-Correctness: sorting places each strict-weak-order equivalence class contiguously; removing adjacent equivalents leaves one representative per class in strict order. A lower bound finds the first class not before the query, and testing that the query is not before it distinguishes equality from absence. Upper/lower bounds select the first allowed and first excluded point for any endpoint closure; if both endpoints exclude the same class, normalizing the right rank to at least the left gives a valid empty range.
-
-Costs: with `n` input values and `k` classes, construction/rebuild uses O(n log(n+1)) comparisons, O(n) stored capacity and O(log(n+1)) sort stack. Bounds/IDs/point ranges take O(log(k+1)), size/inverse access O(1), encoding `q` values O(q log(k+1)) with O(q) output. These are optimal comparison-based bounds for general coordinates; no radix assumption is imposed. Operation counts assume unit-cost `T` comparisons/copies.
-
 ### compressEndpoints
 
-`compressEndpoints(vector<pair<T,T>>, comp)` collects each ordered interval's two endpoints, including duplicates and equal/empty intervals. It supports at most `INT_MAX/2` input intervals and performs no endpoint arithmetic, so signed minima/maxima are valid. For a known original half-open interval `[l,r)`, elementary slab indices are `[id(l),id(r))`; slab `i` lies between `value(i)` and `value(i+1)`. Compression preserves ordering and equality, **not distance, adjacency or unit spacing**. Recover numeric lengths from original values with sufficiently wide arithmetic: the span from `INT64_MIN` to `INT64_MAX` requires 65 signed bits. The point-range closure helper does not manufacture an `r+1` endpoint or implement sweep-event tie rules; interval sweeps belong to `09-interval_algorithms.hpp`. Sorting the endpoints of valid intervals needs no fabricated sentinel; collection takes O(m log(m+1)) time and O(m) storage.
+`compressEndpoints(vector<pair<T,T>>, comp)` returns the `CoordinateCompression<T,Compare>` of every ordered interval's two endpoints, including duplicates and equal/empty intervals; `Compare` is a strict weak order and each interval satisfies `!comp(r,l)` (asserted). It supports at most `INT_MAX/2` input intervals and performs no endpoint arithmetic, so signed minima/maxima are valid. For a known original half-open interval `[l,r)`, elementary slab indices are `[index(l),index(r))`; slab `i` lies between `decode(i)` and `decode(i+1)`. Compression preserves ordering and equality, **not distance, adjacency or unit spacing**. Recover numeric lengths from original values with sufficiently wide arithmetic: the span from `INT64_MIN` to `INT64_MAX` requires 65 signed bits. `pointRange` does not manufacture an `r+1` endpoint or implement sweep-event tie rules; interval sweeps belong to `09-interval_algorithms.hpp`. Sorting the endpoints of valid intervals needs no fabricated sentinel; collection takes O(m log(m+1)) time and O(m) storage.
 
 ### stableRanks
 
@@ -34,36 +18,55 @@ Costs: with `n` input values and `k` classes, construction/rebuild uses O(n log(
 
 Correctness: the map stores the ID assigned at each class's first appearance; lookups cannot change it and a new ID equals the current class count, so IDs are consecutive and the inverse vector stays aligned. Clearing both structures restores the empty invariant. Lookup is O(log(k+1)); insertion amortized O(log(k+1)) with O(k) worst case on reallocation; `clear` O(k); memory O(peak distinct count).
 
+### Legacy mapping
+
+| Removed (prune, 2026-10-12) | Replacement |
+|---|---|
+| `Compression<T,Compare>` | `CoordinateCompression<T,Compare>` (`02-Data Structures/07-ordered_set.hpp`); `compressEndpoints` returns it |
+| `assign(a)` | `rebuild(a)` |
+| `lowerBound(x)`, `upperBound(x)` | `rank(x)`, `upperRank(x)` |
+| `id(x)`, `value(i)` | `index(x)`, `decode(i)` |
+| `ranks(a)`, `pointRange(l,r,left_closed,right_closed)` | the same members, moved into `CoordinateCompression` |
+
 ## Feature-to-test map
 
 | Feature | Verification |
 |---|---|
-| Sort/unique/rank/inverse/encode | All 19,531 arrays of lengths 0–6 over five values; ordered-set and linear-reference oracles; missing-ID encode fixture; Python exact-integer oracle |
-| Bounds and every endpoint closure | Exhaustive small endpoint pairs with all four closure choices; empty/equal/absent endpoints and full signed-width Python cases |
-| `ranks` (bulk) | C++ linear count oracle over probes -3..3 with repeats on every exhaustive and random array, empty query; Python `bisect_left` over every point-range query left endpoint (full-width signed values) |
+| `compressEndpoints` | Every consecutive pair of every exhaustive and random array as an interval, against a `std::set` of the endpoints; Python sorted endpoint set over full-width signed intervals (extremes, equal endpoints, random and array-derived intervals); empty/repeated/equal intervals, descending and length-equivalence comparators, signed extrema, closed maximum point through `pointRange`, original-distance slab sum through `index`/`decode` in signed 128-bit arithmetic |
 | `stableRanks` | C++ counting oracle (`a[j] < a[i]` or equal with `j < i`) on every exhaustive and random array; Python `sorted(range(n), key=(a[i], i))` inverse; equivalence by string length, stateful descending comparator, empty input |
-| Snapshot lifetime | Copy/move and independent rebuild; empty/default construction and replacing all previous values |
-| Encounter IDs | Independent first-appearance linear scan, every prior ID checked after each append, repeated/equivalent keys, first representative, move/reset and alias of stored value |
-| Generic domains | Stateful descending comparator, equivalence by string length, bool proxy storage, pairs, 128-bit coordinates |
-| Offline endpoints | Empty/repeated/equal intervals, descending endpoints, signed extrema, closed maximum point, original-distance slab sum evaluated in signed 128-bit arithmetic |
-| Invalid compression inputs | Six assertion probes: negative/excluded inverse index in both types, reversed point interval and reversed collected interval. Huge-size guards are inspected structurally rather than allocating over `INT_MAX` test elements. Invalid comparators remain caller preconditions. |
-| Compression/backend coexistence | Existing `CoordinateCompression` and new `Compression` instantiated together; both include orders compiled and run; inherited and adapter queries checked against expected values |
+| Encounter IDs | Independent first-appearance linear scan, every prior ID checked after each append, repeated/equivalent keys, first representative, move/reset, alias of stored value, `bool` proxy storage; Python first-appearance scan |
+| Invalid inputs | Three assertion probes: negative and excluded `EncounterCompression::value` index, reversed collected interval. Huge-size guards are inspected structurally rather than allocating over `INT_MAX` test elements. Invalid comparators remain caller preconditions. |
+| Include orders | `07-ordered_set.hpp` and `04-compression.hpp` included in both orders, compiled and run: `compressEndpoints` equals a direct `CoordinateCompression`, plus `pointRange`, `stableRanks` and encounter IDs |
 
-The per-header Python entries run from any working directory and expose quick/full/stress modes plus seed/configuration selection. Compression quick uses length 0–4 exhaustive arrays, 100 random C++ cases and 105 Python arrays; full uses length 0–6, 1,000 random C++ cases and 1,505 Python arrays; stress uses length 0–7, 10,000 and 15,005. Full compression makes 4,868,825 C++ checks and 58,695 Python checks per configuration (stress: 32,073,827 and 585,195). Random arrays include broad 64-bit values and high duplication. Failures carry seed, operation and input context; oracles survive `-DNDEBUG`.
+The removed `Compression` cases now run against `CoordinateCompression` in `07-ordered_set_tester.cpp`: descending and width-equivalence stateful comparators, strings, packed `bool`, composite pairs, 128-bit and int64-extreme keys, full-width random arrays, every probe pair and closure of `pointRange`, bulk `ranks`, rebuild replacement and copy independence, the `range-order` probe, and `decode-end`/`decode-negative` for the inverse-index probes.
+
+The per-header Python entries run from any working directory and expose quick/full/stress modes plus seed/configuration selection. Compression quick uses length 0–4 exhaustive arrays over five values, 100 random C++ cases and 105 Python arrays; full uses length 0–6 (19,531 arrays), 1,000 random C++ cases and 1,505 Python arrays; stress uses length 0–7, 10,000 and 15,005. Full makes 1,771,696 C++ checks and 4,515 Python rows per configuration. Random arrays include broad 64-bit values and high duplication. Failures carry seed, operation and input context; oracles survive `-DNDEBUG`.
 
 ## Commands and results
 
-P013 package run, 2026-10-07, GCC 16.2.1, GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection. The compression full run passed all 3 configurations and 6 assertion probes.
+P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection.
 
-```sh
-python3 '96-Local Testing/01-run.py' --mode quick --filter 06-Miscellaneous --no-integration                            # PASS (all 14 suites)
-for s in 01-random 02-customhash 03-fastio 04-compression 05-binarysearch 06-bit_operations 07-permutation; do
-  python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode full --seed 20260927                                # PASS x7, 3 configurations each
-  python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode stress --seed 20260928 --configuration optimized   # PASS x7
+| Command | Result |
+|---|---|
+| `04-compression_tester.py --mode full --seed 20260927` | PASS, 3 configurations, 1,771,696 checks per configuration, 3 assertion probes, both include orders, `MEMORY peak=546MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=571MB` |
+| Other P013 suites (`01`–`03`, `06`, `07`), full, g++ and g++-14 | PASS, 3 configurations each; counts in each evidence document |
+| Call-site suites `07-ordered_set` (5 probes, 715,602 checks), `08-sequence_algorithms` (10 probes), `12-enumeration` (28 probes), full, g++ and g++-14 | PASS, 3 configurations each |
+| Touched headers and the 98/99 aggregates alone, plus one TU instantiating every changed template, `-Wall -Wextra -Wconversion -Werror`, g++ and g++-14 | No warnings |
+| `02-integration.py` | PASS, 135 standalone/aggregate headers, scalar and AVX2 multi-TU builds, workspace, `MEMORY peak=646MB` |
+| `03-consistency.py --braces` on the touched headers and testers, and `03-consistency.py` | No errors |
+
+```bash
+for c in g++ g++-14; do
+  for s in 01-random 02-customhash 03-fastio 04-compression 06-bit_operations 07-permutation 08-sequence_algorithms 12-enumeration; do
+    CXX=$c python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode full --seed 20260927
+  done
+  CXX=$c python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20260927
 done
-python3 '96-Local Testing/06-Miscellaneous/03-fastio_benchmark.py'                                                       # PASS, record rewritten
-python3 '96-Local Testing/02-integration.py'                                                                             # PASS (every header alone, Basic/All aggregates)
-python3 '96-Local Testing/03-consistency.py'                                                                             # no errors
+for c in g++ g++-14; do for h in '02-Data Structures/07-ordered_set' 06-Miscellaneous/01-random 06-Miscellaneous/04-compression 06-Miscellaneous/06-bit_operations 06-Miscellaneous/07-permutation 06-Miscellaneous/08-sequence_algorithms 06-Miscellaneous/12-enumeration 06-Miscellaneous/98-basic 06-Miscellaneous/99-all; do echo "#include \"$h.hpp\"" | $c -std=gnu++20 -Wall -Wextra -Wconversion -Werror -fsyntax-only -I. -x c++ -; done; done
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/07-ordered_set.hpp' 06-Miscellaneous/0[1467]-*.hpp 06-Miscellaneous/08-sequence_algorithms.hpp 06-Miscellaneous/12-enumeration.hpp '96-Local Testing/02-Data Structures/07-ordered_set_tester.cpp' '96-Local Testing/06-Miscellaneous/'0[1467]-*_tester.cpp
+python3 '96-Local Testing/03-consistency.py'
 ```
 
 ## Sources
@@ -71,13 +74,13 @@ python3 '96-Local Testing/03-consistency.py'                                    
 Inspected during the 2026-09-27/28 session; code written locally, with no external implementation copied:
 
 - [USACO Guide, *Custom Comparators and Coordinate Compression*](https://usaco.guide/silver/sorting-custom): read coordinate compression, retained inverse coordinates, sort/remove-duplicates/binary-search explanation, and offline range-query endpoint collection in Example 2. Generalized to comparator equivalence, explicit absence, all endpoint closures and a separate first-encounter dictionary.
-- [cppreference, `std::lower_bound`](https://en.cppreference.com/w/cpp/algorithm/lower_bound.html): read partitioning requirements, comparator behavior and comparison/iterator complexity. Snapshot vector iterators give logarithmic lookup; encounter dictionaries use their map member search rather than linear-iterator generic lower bound.
-- Local [Data Structures ordered-set header](<../../02-Data Structures/07-ordered_set.hpp>): inspected the existing verified `SortedVector` / `CoordinateCompression` API and reused its ordering, unique-class, lookup and encode engine. The new `Compression` name avoids a global declaration conflict.
-- Completeness sweep 2026-10-07 (`@researcher`): [OI Wiki discretization](https://oi-wiki.org/misc/discrete/), [maspypy index_compression](https://maspypy.github.io/library/ds/index_compression.hpp) and [to_small_key](https://maspypy.github.io/library/ds/to_small_key.hpp), [ei1333 compress](https://ei1333.github.io/library/other/compress.hpp), [suisen coordinate_compressor](https://suisen-cp.github.io/cp-library-cpp/library/util/coordinate_compressor.hpp), [Nyaan compress](https://nyaannyaan.github.io/library/misc/compress.hpp), [hitonanode bisect](https://hitonanode.github.io/cplib-cpp/other_algorithms/bisect.hpp). Bulk `ranks` (ei1333 `get(vector)`) and `stableRanks` were adopted.
+- [cppreference, `std::lower_bound`](https://en.cppreference.com/w/cpp/algorithm/lower_bound.html): read partitioning requirements, comparator behavior and comparison/iterator complexity. Encounter dictionaries use their map member search rather than linear-iterator generic lower bound.
+- Local [Data Structures ordered-set header](<../../02-Data Structures/07-ordered_set.hpp>): the verified `CoordinateCompression` supplies ordering, unique classes, lookup and encoding; `compressEndpoints` builds one.
+- Completeness sweep 2026-10-07 (`@researcher`): [OI Wiki discretization](https://oi-wiki.org/misc/discrete/), [maspypy index_compression](https://maspypy.github.io/library/ds/index_compression.hpp) and [to_small_key](https://maspypy.github.io/library/ds/to_small_key.hpp), [ei1333 compress](https://ei1333.github.io/library/other/compress.hpp), [suisen coordinate_compressor](https://suisen-cp.github.io/cp-library-cpp/library/util/coordinate_compressor.hpp), [Nyaan compress](https://nyaannyaan.github.io/library/misc/compress.hpp), [hitonanode bisect](https://hitonanode.github.io/cplib-cpp/other_algorithms/bisect.hpp). Bulk `ranks` (ei1333 `get(vector)`, now a `CoordinateCompression` member) and `stableRanks` were adopted.
 
 ## Limits and handoffs
 
-From the 2026-10-07 sweep; reasons are recorded in [00-notes.md](00-notes.md): incremental `add`/`build` builders (collect then `assign`), neighbour queries `minGeq`/`maxLeq` (one `lowerBound`/`upperBound` plus `value`), a counting-sort build (`11-sorting_selection.hpp` owns `countingSort`), hashed first-encounter ids (the ordered map keeps comparator equivalence and worst-case bounds; use `safe_unordered_map` directly for expected O(1)), exact IEEE-754 bisection (Mathematics `02` owns real search), branchless lower bound (constant factor only), 2D compression (compress each axis).
+From the 2026-10-07 sweep; reasons are recorded in [00-notes.md](00-notes.md): incremental `add`/`build` builders (collect then `rebuild`), neighbour queries `minGeq`/`maxLeq` (one `rank`/`upperRank` plus `decode`), a counting-sort build (`11-sorting_selection.hpp` owns `countingSort`), hashed first-encounter ids (the ordered map keeps comparator equivalence and worst-case bounds; use `safe_unordered_map` directly for expected O(1)), exact IEEE-754 bisection (Mathematics `02` owns real search), branchless lower bound (constant factor only), 2D compression (compress each axis).
 
 Interval sweeps belong to `09-interval_algorithms.hpp`. No benchmark: no tuned threshold or reduction backend. No online submission was made and no judge acceptance is claimed.
 
@@ -85,3 +88,4 @@ Interval sweeps belong to `09-interval_algorithms.hpp`. No benchmark: no tuned t
 
 - 2026-09-28: P013 first verification, full and stress suites passed.
 - 2026-10-07: P013 re-audit, finding 2 (missing bulk `ranks`) and finding 7 (braces, including the tester's embedded C++) fixed, `stableRanks` added, contracts moved out of code comments; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.
+- 2026-10-12: prune, removed `Compression` (`ranks` and `pointRange` moved into `CoordinateCompression`, its cases to `07-ordered_set_tester.cpp`; `compressEndpoints` returns `CoordinateCompression`; `08-sequence_algorithms.hpp` migrated); full suite passed on g++ and g++-14.

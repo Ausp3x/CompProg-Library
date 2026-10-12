@@ -1,12 +1,7 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
 #include "../02-Data Structures/02-fenwick.hpp"
-
-// T: O(n), M: O(1); strict weak comparator, equivalent values are duplicates; false wraps to the first/last order.
-template<typename T, typename Compare = std::less<T>>
-bool nextPermutation(vector<T> &a, Compare cmp = {}) { return std::next_permutation(a.begin(), a.end(), cmp); }
-template<typename T, typename Compare = std::less<T>>
-bool previousPermutation(vector<T> &a, Compare cmp = {}) { return std::prev_permutation(a.begin(), a.end(), cmp); }
+#include "../05-Mathematics/05-combinatorics.hpp"
 
 // T: O(n), M: O(n); a permutation is a bijection of [0, n), compose(p, q)[i] = p[q[i]]; inverse/compose assert it.
 inline bool isPermutation(const vector<int> &p) {
@@ -101,19 +96,6 @@ inline bool permutationUnrank(int n, ulng rank, vector<int> &out) {
     if (rank) { return false; }
     out = permutationFromLehmer(d); return true;}
 
-// T: O(n + m), M: O(1); m = count.size(), n = sum(count) <= INT_MAX, exact n! / prod(count[i]!), false on ulng overflow.
-inline bool multisetPermutationCount(const vector<int> &count, ulng &out) {
-    int n = 0;
-    for (int c : count) { assert(c >= 0 && c <= INT_MAX - n); n += c; }
-    ulll ways = 1; int prefix = 0;
-    for (int c : count) {
-        int k = min(prefix, c), total = prefix + c;
-        for (int j = 1; j <= k; ++j) {
-            ways = ways * ulll(total - k + j) / ulll(j);
-            if (ways > std::numeric_limits<ulng>::max()) { return false; }}
-        prefix = total;}
-    out = ulng(ways); return true;}
-
 namespace permutation_detail {
     // T: O(n), M: O(n); distinct cycle lengths in increasing order.
     inline vector<int> cycleLengths(const vector<int> &p) {
@@ -136,7 +118,7 @@ namespace permutation_detail {
             for (int x : a) { ++freq[x]; }
             keys.reserve(freq.size()); count.reserve(freq.size());
             for (auto [x, c] : freq) { keys.push_back(x); count.push_back(c); }
-            multisetPermutationCount(count, total);}
+            multinomialExact(vector<ulng>(count.begin(), count.end()), total);}
     };
 } // namespace permutation_detail
 

@@ -82,22 +82,24 @@ void distinct(int limit) {
                 target %= total; if (target < 0) { target += total; }
                 check(ok == inside, "kthNext wrap flag k=" + std::to_string(k));
                 checkVector(q, all[size_t(target)], "kthNext lexicographic target k=" + std::to_string(k));}
-            vector<int> previous = p; bool prev = previousPermutation(previous);
+            vector<int> previous = p; bool prev = std::prev_permutation(previous.begin(), previous.end());
             check(prev == (rank != 0), "previous bool"); checkVector(previous, all[(rank + all.size() - 1) % all.size()], "previous wrap");
-            check(nextPermutation(p) == (rank + 1 < all.size()), "next bool");}
+            check(std::next_permutation(p.begin(), p.end()) == (rank + 1 < all.size()), "next bool");}
         checkVector(p, id, "next final wrap"); vector<int> old{-42};
         check(!permutationUnrank(n, all.size(), old) && old == vector<int>{-42}, "unrank absence preserves destination");}
     check(!isPermutation({0, 0}) && !isPermutation({-1}) && !isPermutation({1}), "invalid permutation predicate");
     vector<int> descending{2, 1, 1}, after{1, 2, 1};
-    check(nextPermutation(descending, std::greater<int>{}), "custom comparator next"); checkVector(descending, after, "descending comparator order");
-    check(previousPermutation(descending, std::greater<int>{}), "custom comparator previous"); checkVector(descending, {2, 1, 1}, "descending comparator reverse");
-    vector<string> words{"a", "a", "b"}; check(nextPermutation(words), "generic strings");
+    check(std::next_permutation(descending.begin(), descending.end(), std::greater<int>{}), "custom comparator next"); checkVector(descending, after, "descending comparator order");
+    check(std::prev_permutation(descending.begin(), descending.end(), std::greater<int>{}), "custom comparator previous"); checkVector(descending, {2, 1, 1}, "descending comparator reverse");
+    vector<string> words{"a", "a", "b"}; check(std::next_permutation(words.begin(), words.end()), "generic strings");
     check(words == vector<string>{"a", "b", "a"}, "generic duplicate sequence");
     vector<pair<int, int>> records{{1, 9}, {1, 7}, {2, 0}};
     auto cmp = [](auto a, auto b) -> bool { return a.first < b.first; };
-    check(nextPermutation(records, cmp), "comparator equivalence classes");
+    check(std::next_permutation(records.begin(), records.end(), cmp), "comparator equivalence classes");
     check(records[0].first == 1 && records[1].first == 2 && records[2].first == 1, "equivalent values need not be equal records");
     sort(records.begin(), records.end());
+    vector<bool> bits{true, false, true};
+    check(std::next_permutation(bits.begin(), bits.end()) && bits == vector<bool>{true, true, false}, "packed bool sequence");
     check(records == vector<pair<int, int>>{{1, 7}, {1, 9}, {2, 0}}, "records preserved");}
 void multisetCases(int limit) {
     for (int a = 0; a <= limit; ++a) {
@@ -105,24 +107,24 @@ void multisetCases(int limit) {
             for (int c = 0; c <= limit; ++c) {
                 vector<int> counts{a, b, c}; auto all = enumerate(counts, {INT_MIN, 0, INT_MAX});
                 context = "multiset counts=" + show(counts); ulng total = 42;
-                check(multisetPermutationCount(counts, total) && total == all.size(), "multinomial independent enumeration");
+                check(multinomialExact({ulng(a), ulng(b), ulng(c)}, total) && total == all.size(), "multinomial independent enumeration");
                 vector<int> next = all.front();
                 for (ulng i = 0; i < all.size(); ++i) {
                     checkVector(next, all[i], "multiset next order"); ulng rank = 42;
                     check(multisetPermutationRank(all[i], rank) && rank == i, "multiset rank expected=" + std::to_string(i));
                     vector<int> out{-42}; check(multisetPermutationUnrank(all.back(), i, out), "multiset unrank exists"); checkVector(out, all[i], "multiset unrank order");
-                    vector<int> previous = all[i]; check(previousPermutation(previous) == (i != 0), "multiset previous bool");
+                    vector<int> previous = all[i]; check(std::prev_permutation(previous.begin(), previous.end()) == (i != 0), "multiset previous bool");
                     checkVector(previous, all[(i + all.size() - 1) % all.size()], "multiset previous order");
-                    check(nextPermutation(next) == (i + 1 < all.size()), "multiset next bool");}
+                    check(std::next_permutation(next.begin(), next.end()) == (i + 1 < all.size()), "multiset next bool");}
                 vector<int> out{-42};
                 check(!multisetPermutationUnrank(all[0], total, out) && out == vector<int>{-42}, "multiset absent preserves destination");}}}
     context = "multiset overflow boundaries"; ulng count = 42;
-    check(multisetPermutationCount({INT_MAX}, count) && count == 1, "huge all-equal count");
-    check(multisetPermutationCount({INT_MAX - 1, 1}, count) && count == ulng(INT_MAX), "huge one rare count");
-    check(multisetPermutationCount({INT_MAX - 2, 2}, count) && count == ulng(INT_MAX) * (INT_MAX - 1) / 2, "huge two rare count");
-    count = 42; check(!multisetPermutationCount({INT_MAX - 3, 3}, count) && count == 42, "huge count overflow preserves");
-    check(multisetPermutationCount({34, 33}, count) && count == 14226520737620288370ULL, "C(67,33) fits");
-    count = 42; check(!multisetPermutationCount({34, 34}, count) && count == 42, "C(68,34) overflow");
+    check(multinomialExact({INT_MAX}, count) && count == 1, "huge all-equal count");
+    check(multinomialExact({INT_MAX - 1, 1}, count) && count == ulng(INT_MAX), "huge one rare count");
+    check(multinomialExact({INT_MAX - 2, 2}, count) && count == ulng(INT_MAX) * (INT_MAX - 1) / 2, "huge two rare count");
+    count = 42; check(!multinomialExact({INT_MAX - 3, 3}, count) && count == 42, "huge count overflow preserves");
+    check(multinomialExact({34, 33}, count) && count == 14226520737620288370ULL, "C(67,33) fits");
+    count = 42; check(!multinomialExact({34, 34}, count) && count == 42, "C(68,34) overflow");
     vector<int> unique(21); iota(unique.begin(), unique.end(), 0); vector<int> out{-42};
     check(!multisetPermutationRank(unique, count) && count == 42, "21! rank overflow preserves");
     check(!multisetPermutationUnrank(unique, 0, out) && out == vector<int>{-42}, "21! unrank rejects overflow even rank0");
@@ -144,7 +146,7 @@ void randomized(std::mt19937_64 &rng, int rounds, int large) {
         lng k = rep % 3 ? lng(rng() % 2001) - 1000 : std::bit_cast<lng>(rng());
         vector<int> moved = p, walk = p; bool ok = kthNextPermutation(moved, k), flag = true;
         if (k >= -1000 && k <= 1000) {
-            for (lng i = 0; i < (k < 0 ? -k : k); ++i) { flag &= k > 0 ? nextPermutation(walk) : previousPermutation(walk); }
+            for (lng i = 0; i < (k < 0 ? -k : k); ++i) { flag &= k > 0 ? std::next_permutation(walk.begin(), walk.end()) : std::prev_permutation(walk.begin(), walk.end()); }
             checkVector(moved, walk, "kthNext equals repeated std steps k=" + std::to_string(k)); check(ok == flag, "kthNext flag equals any std wrap");}
         vector<int> back = moved; kthNextPermutation(back, k == std::numeric_limits<lng>::min() ? k + 1 : -k);
         if (k != std::numeric_limits<lng>::min()) { checkVector(back, p, "kthNext inverse offset"); }}
@@ -191,9 +193,9 @@ void oracle() {
             rank = permutationRank(a); count = 1; for (int i = 2; i <= n; ++i) { count *= i; }
             fits = true; ok = permutationUnrank(n, requested, out);}
         else {
-            map<int, int> freq; for (int x : a) { ++freq[x]; } vector<int> counts;
-            for (auto [x, c] : freq) { counts.push_back(c); }
-            fits = multisetPermutationCount(counts, count);
+            map<int, int> freq; for (int x : a) { ++freq[x]; } vector<ulng> counts;
+            for (auto [x, c] : freq) { counts.push_back(ulng(c)); }
+            fits = multinomialExact(counts, count);
             check(multisetPermutationRank(a, rank) == fits, "Python rank/count status agreement");
             ok = multisetPermutationUnrank(a, requested, out);}
         cout << fits << ' ' << count << ' ' << rank << ' ' << ok << ' ' << out.size();
@@ -221,8 +223,6 @@ int main(int argc, char **argv) {
             else if (p == "rank-invalid") { permutationRank({0, 0}); }
             else if (p == "unrank-negative") { permutationUnrank(-1, 0, out); }
             else if (p == "unrank-size") { permutationUnrank(21, 0, out); }
-            else if (p == "count-negative") { multisetPermutationCount({2, -1}, x); }
-            else if (p == "count-size") { multisetPermutationCount({INT_MAX, 1}, x); }
             else if (p == "kth-invalid") { vector<int> q{0, 0}; kthNextPermutation(q, 1); }
             else if (p == "cycles-invalid") { permutationCycles({1, 1}); }
             else if (p == "sign-invalid") { permutationSign({2}); }

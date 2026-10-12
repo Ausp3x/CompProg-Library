@@ -27,7 +27,8 @@ struct SortedVector {
     Iterator findByOrder(int k) const { return 0 <= k && k < size() ? v.begin() + k : v.end(); }
 };
 
-// S: O(n * log(n + 1)), U: rebuild O(n * log(n + 1)), Q: O(log(n + 1)) per encoded key, M: O(n)
+// S: O(n * log(n + 1)), U: rebuild O(n * log(n + 1)), Q: O(log(n + 1)) per key, M: O(n)
+// encode gives -1 for an absent key, ranks its insertion rank; pointRange asserts !cmp(r, l) and returns [a, b) ranks.
 template<typename T, typename C = std::less<T>>
 struct CoordinateCompression : SortedVector<T, C> {
     explicit CoordinateCompression(vector<T> a = {}, C cmp = C()) : SortedVector<T, C>({}, std::move(cmp)) { rebuild(std::move(a)); }
@@ -43,6 +44,15 @@ struct CoordinateCompression : SortedVector<T, C> {
         vector<int> res; res.reserve(a.size());
         for (const T &x : a) { res.push_back(this->index(x)); }
         return res;}
+    vector<int> ranks(const vector<T> &a) const {
+        vector<int> res; res.reserve(a.size());
+        for (const T &x : a) { res.push_back(this->rank(x)); }
+        return res;}
+    pair<int, int> pointRange(const T &l, const T &r, bool left_closed = true, bool right_closed = false) const {
+        assert(!this->cmp(r, l));
+        int a = left_closed ? this->rank(l) : this->upperRank(l);
+        int b = right_closed ? this->upperRank(r) : this->rank(r);
+        return {a, max(a, b)};}
 };
 
 // S: O(1), U: O(log(n + 1)), Q: O(log(n + 1)), M: O(n); GNU PBDS set and map with unique keys, never less_equal as C.

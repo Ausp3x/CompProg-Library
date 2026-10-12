@@ -159,5 +159,5 @@ if __name__ == '__main__':
         'inverse-duplicate', 'inverse-negative', 'inverse-range', 'compose-size',
         'compose-invalid', 'power-invalid', 'lehmer-invalid', 'digits-negative',
         'digits-range', 'rank-size', 'rank-invalid', 'unrank-negative', 'unrank-size',
-        'count-negative', 'count-size', 'kth-invalid', 'cycles-invalid', 'sign-invalid',
+        'kth-invalid', 'cycles-invalid', 'sign-invalid',
         'order-invalid', 'order-mod-invalid'], oracle))

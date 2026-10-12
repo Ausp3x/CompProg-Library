@@ -2068,18 +2068,17 @@
       "folder": "06-Miscellaneous",
       "targets": [
         "06-Miscellaneous/04-compression.hpp",
-        "06-Miscellaneous/05-binarysearch.hpp",
         "06-Miscellaneous/06-bit_operations.hpp",
         "06-Miscellaneous/07-permutation.hpp"
       ],
       "support_targets": [],
       "size": "M",
-      "focus": "Compression, binary search, bits, permutations.",
+      "focus": "Compression, bits, permutations.",
       "prerequisites": [
         "C01",
         "DS01",
         "DS02",
-        "MA01"
+        "MA02"
       ],
       "tiers": [
         "Basic"

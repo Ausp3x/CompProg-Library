@@ -45,10 +45,10 @@ void checkWord(U x, int rotation) {
         require(B::set(x, i) == U(bit ? x : x + place), "set");
         require(B::set(x, i, false) == U(bit ? x - place : x), "clear");
         require(B::flip(x, i) == U(bit ? x - place : x + place), "flip");}
-    require(B::count(x) == count && B::width(x) == last + 1, "count/width");
+    require(std::popcount(x) == count && std::bit_width(x) == last + 1, "popcount/bit_width replacements");
     require(B::first(x) == first && B::last(x) == last, "bit positions");
-    require(B::leadingZeros(x) == W - last - 1 && B::trailingZeros(x) == (first < 0 ? W : first), "zero counts");
-    require(B::single(x) == (count == 1) && B::floor(x) == floor, "single/floor");
+    require(std::countl_zero(x) == W - last - 1 && std::countr_zero(x) == (first < 0 ? W : first), "countl_zero/countr_zero replacements");
+    require(std::has_single_bit(x) == (count == 1) && std::bit_floor(x) == floor, "has_single_bit/bit_floor replacements");
     require(B::lowBit(x) == (first < 0 ? U(0) : U(U(1) << first)), "lowBit");
     require(B::parity(x) == (count % 2 == 1), "parity");
     U gray = 0, decoded = 0; bool above = false;
@@ -73,7 +73,7 @@ void checkWord(U x, int rotation) {
     for (int i = 0; i < W; ++i) { if ((x >> i) & 1) {
         left = U(left | (U(1) << ((i + r) % W)));
         right = U(right | (U(1) << ((i + W - r) % W)));}}
-    require(B::rotateLeft(x, rotation) == left && B::rotateRight(x, rotation) == right, "rotation bit positions");
+    require(std::rotl(x, rotation) == left && std::rotr(x, rotation) == right, "rotl/rotr replacements bit positions");
     for (int k : {0, 1, W / 2, W - 1, W}) {
         U l = 0, rword = 0;
         for (int i = 0; i < W; ++i) { if ((x >> i) & 1) {
@@ -161,17 +161,17 @@ template<typename U>
 void oracle(U x, int shift) {
     using B = BitOps<U>;
     U next = x, ceil = 93; bool more = B::nextCombination(next), fits = B::ceil(x, ceil);
-    cout << B::count(x) << ' ' << B::width(x) << ' ' << B::first(x) << ' ' << B::last(x) << ' '
-         << B::leadingZeros(x) << ' ' << B::trailingZeros(x) << ' '
-         << hexWord(B::lowBit(x)) << ' ' << hexWord(B::floor(x)) << ' '
+    cout << std::popcount(x) << ' ' << std::bit_width(x) << ' ' << B::first(x) << ' ' << B::last(x) << ' '
+         << std::countl_zero(x) << ' ' << std::countr_zero(x) << ' '
+         << hexWord(B::lowBit(x)) << ' ' << hexWord(std::bit_floor(x)) << ' '
          << fits << ' ' << hexWord(ceil) << ' ' << more << ' ' << hexWord(next) << ' '
-         << hexWord(B::rotateLeft(x, shift)) << ' ' << hexWord(B::rotateRight(x, shift)) << ' '
+         << hexWord(std::rotl(x, shift)) << ' ' << hexWord(std::rotr(x, shift)) << ' '
          << B::parity(x) << ' ' << hexWord(B::grayCode(x)) << ' ' << hexWord(B::grayDecode(x)) << '\n';}
 
 constexpr bool constantCases() {
     using B = BitOps<ulll>;
     ulll x = 3, ceil = 0;
-    return B::count(~ulll(0)) == 128 && B::first(0) == -1 && B::lowMask(128) == ~ulll(0)
+    return std::popcount(~ulll(0)) == 128 && B::first(0) == -1 && B::lowMask(128) == ~ulll(0)
         && B::shiftLeft(1, 128) == 0 && B::ceil(3, ceil) && ceil == 4
         && B::nextCombination(x) && x == 5 && B::prevSubmask(x, 7) && x == 4
         && B::parity(7) && B::grayCode(2) == 3 && B::grayDecode(3) == 2 && B::nextSupermask(x, 4, 6) && x == 6;}

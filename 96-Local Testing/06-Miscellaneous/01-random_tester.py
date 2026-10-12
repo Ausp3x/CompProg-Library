@@ -60,10 +60,9 @@ def oracle(binary, args, env):
         for lo, hi in [(0, modulus - 1), (0, 0), (modulus - 1, modulus - 1), (17, (1 << 63) + 29)]:
             add(('u', seed, lo, hi, 300))
         for lo, hi in [(-(1 << 63), (1 << 63) - 1), (-(1 << 63), 0), (-7, 9), (-1, -1),
-                       (-(1 << 63), -(1 << 63)), ((1 << 63) - 1, (1 << 63) - 1)]:
+                       (-(1 << 63), -(1 << 63)), ((1 << 63) - 1, (1 << 63) - 1),
+                       (-(1 << 31), (1 << 31) - 1), (0, 0)]:
             add(('s', seed, lo, hi, 300))
-        for lo, hi in [(-(1 << 31), (1 << 31) - 1), (-7, 9), (0, 0)]:
-            add(('i', seed, lo, hi, 300))
         for n in [0, 1, 2, 3, 10, 31, 256]:
             add(('h', seed, n))
     for row, want, got in zip(cases, expected, run(cases)):
@@ -119,5 +118,5 @@ def oracle(binary, args, env):
 
 
 if __name__ == '__main__':
-    raise SystemExit(main('01-random', ['below-zero', 'int-bounds', 'lng-bounds',
+    raise SystemExit(main('01-random', ['below-zero', 'lng-bounds',
                                      'ulng-bounds', 'shuffle-bounds', 'double-empty', 'double-infinite'], oracle))

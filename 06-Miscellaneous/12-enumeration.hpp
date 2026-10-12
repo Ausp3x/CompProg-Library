@@ -130,7 +130,7 @@ bool forEachGrayMask(int n, F &&visit) {
     while (true) {
         if (!visit(U(x), changed)) { return false; }
         if (i == last) { return true; }
-        changed = BitOps<U>::trailingZeros(++i); x = BitOps<U>::flip(x, changed);}}
+        changed = std::countr_zero(++i); x = BitOps<U>::flip(x, changed);}}
 
 // T: O(n + out) amortized, M: O(n); parts <= max_part, nonincreasing, reverse lexicographic.
 template<class F>

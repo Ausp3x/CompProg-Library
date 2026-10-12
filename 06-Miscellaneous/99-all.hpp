@@ -4,7 +4,6 @@
 #include "02-customhash.hpp"
 #include "03-fastio.hpp"
 #include "04-compression.hpp"
-#include "05-binarysearch.hpp"
 #include "06-bit_operations.hpp"
 #include "07-permutation.hpp"
 #include "08-sequence_algorithms.hpp"

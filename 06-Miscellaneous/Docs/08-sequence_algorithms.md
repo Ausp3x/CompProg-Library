@@ -1,6 +1,6 @@
 # 08-sequence_algorithms.hpp — evidence
 
-`08-sequence_algorithms.hpp` (batch MI03, package P014) covers maximum subarray, bounded, circular, rectangle and average variants, increasing-subsequence lengths, counts and weights, inversions and adjacent-swap distance, `mex`, monotone windows, sorted pair sums and majority/heavy hitters. It uses the DS02 Fenwick and SegmentTree and MI02 `Compression`; it includes no prefix-sum or monotone-stack header. Every operation in the row has an independent-oracle test (map below). Prerequisites P002, P006 and P013 are verified. No online submission was made.
+`08-sequence_algorithms.hpp` (batch MI03, package P014) covers maximum subarray, bounded, circular, rectangle and average variants, increasing-subsequence lengths, counts and weights, inversions and adjacent-swap distance, `mex`, monotone windows, sorted pair sums and majority/heavy hitters. It uses the DS02 Fenwick, SegmentTree and `CoordinateCompression`; it includes no prefix-sum or monotone-stack header. Every operation in the row has an independent-oracle test (map below). Prerequisites P002, P006 and P013 are verified. No online submission was made.
 
 ## Contracts
 

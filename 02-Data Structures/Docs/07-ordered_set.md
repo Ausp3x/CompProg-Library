@@ -6,7 +6,7 @@ Common contracts for rows 01–08 (indices, preconditions, algebra, moved-from s
 
 ### SortedVector and CoordinateCompression
 
-Immutable sorted sequence. The comparator is a stable strict weak order (custom/stateful comparators, strings, comparator-equivalent unequal objects and `vector<bool>` are supported), `n <= INT_MAX`. SortedVector keeps duplicates in unspecified order inside an equivalence class. `rank(x)` counts elements before x and `upperRank(x)` counts those not after x. `count` is their difference. `index(x)` is the first equivalent rank, or -1 if absent; no `operator==` is needed. `findByOrder(k)` returns an iterator, or `end()` for any out-of-range k. `begin`/`end` iterate the sorted values; iterators and ranks last until `rebuild`. CoordinateCompression deduplicates by comparator equivalence into ranks `[0, size())`. The representative of a class is unspecified, and distances are not preserved. `encode` maps each key to its rank, or -1 if unknown, in O(k * log(n + 1)). `decode(i)` returns the representative of rank i (through `vector<T>::const_reference`) and asserts the range. `size`/`empty` are O(1).
+Immutable sorted sequence. The comparator is a stable strict weak order (custom/stateful comparators, strings, comparator-equivalent unequal objects and `vector<bool>` are supported), `n <= INT_MAX`. SortedVector keeps duplicates in unspecified order inside an equivalence class. `rank(x)` counts elements before x and `upperRank(x)` counts those not after x. `count` is their difference. `index(x)` is the first equivalent rank, or -1 if absent; no `operator==` is needed. `findByOrder(k)` returns an iterator, or `end()` for any out-of-range k. `begin`/`end` iterate the sorted values; iterators and ranks last until `rebuild`. CoordinateCompression deduplicates by comparator equivalence into ranks `[0, size())`. The representative of a class is unspecified, and distances are not preserved. `encode` maps each key to its rank, or -1 if unknown, in O(k * log(n + 1)). `decode(i)` returns the representative of rank i (through `vector<T>::const_reference`) and asserts the range. `ranks(a)` returns `rank(x)` for every query in order: the insertion rank in `[0, size()]`, so an absent value gets the rank of the first stored class after it (unlike `encode`, which returns -1), in O(k * log(n + 1)) with O(k) output. `pointRange(l, r, left_closed = true, right_closed = false)` returns the half-open rank interval `[a, b)` of the stored classes inside the original-coordinate interval with the chosen closures, in O(log(n + 1)). Bounds follow `C`, so descending comparators take descending endpoints; the precondition `!cmp(r, l)` is asserted, and endpoints need not be stored. For equivalent endpoints every closure choice is empty except closed/closed, which holds that class when present; an empty result has `a == b`, never an absent sentinel. `size`/`empty` are O(1).
 
 ### OrderedSet and OrderedMap
 
@@ -18,7 +18,7 @@ GNU PBDS tree over `(key, insertion ID)` pairs, so equivalent keys stay in inser
 
 ### Correctness and cost
 
-Sort and binary search preserve order classes; compression preserves order, not coordinate distances. Static build O(n log(n+1)), selection O(1), ranks O(log(n+1)). Strict (key, unique-ID) PBDS ordering gives O(log(n+1)) dynamic operations. IDs stay strictly between rank sentinels; they are never recycled after clear/rebuild, so old tokens cannot erase new occurrences. All storage O(n).
+Sort and binary search preserve order classes; compression preserves order, not coordinate distances. `pointRange` takes the first allowed class (`rank` of a closed left end, `upperRank` of an open one) and the first excluded class (`upperRank` of a closed right end, `rank` of an open one); when both ends exclude the same class, raising the right rank to the left one gives a valid empty range. Static build O(n log(n+1)), selection O(1), ranks O(log(n+1)). Strict (key, unique-ID) PBDS ordering gives O(log(n+1)) dynamic operations. IDs stay strictly between rank sentinels; they are never recycled after clear/rebuild, so old tokens cannot erase new occurrences. All storage O(n).
 
 ## Feature-to-test map
 
@@ -27,24 +27,29 @@ The Python entry and C++ oracle suite share the stem under `96-Local Testing/02-
 | Operation | Test (`07-ordered_set_tester.cpp` group) | Oracle |
 |---|---|---|
 | SortedVector `rank`, `upperRank`, `count`, `index`, `findByOrder`, `size`, `empty`, `rebuild`, `begin`..`end` | static group | `std::multiset` oracle; static 3-symbol vectors through length 6 and stateful/descending/string/bool/int64-extreme keys |
-| CoordinateCompression `encode`, `decode`, `rebuild`, iteration | static group | `std::set` oracle; 2 probes |
+| CoordinateCompression `encode`, `decode`, `rebuild`, iteration | static group | `std::set` oracle; rebuild replacement against a `std::set` of the new values; 2 probes |
+| CoordinateCompression `ranks`, `pointRange` | static group | Linear counts over the `std::set` classes: bulk ranks against the per-probe less-than count; for every ordered probe pair and all four closures, `a` equals the classes excluded on the left, `b` equals `max(a, classes admitted on the right)` and `b - a` the classes inside. Exhaustive arrays, stateful descending/width-equivalence comparators, strings, packed `bool`, composite pairs, 128-bit and int64-extreme keys, full-width random arrays, empty query; `range-order` probe |
 | OrderedMultiSet `insert`, `erase`, `eraseOne`, `clear`, `rebuild`, `size`, `empty`, `begin`, `end`, `lowerBound`, `upperBound`, `prev`, `rank`, `upperRank`, `count`, `findByOrder` | dynamic-history and random groups | Five-action histories through depth 5 and 12 random histories of 180 operations against a sorted token vector; stale/exact tokens, copy/move, ID exhaustion; `prev` at every rank probe |
 | OrderedSet, OrderedMap | PBDS adapter group | `std::set`/`std::map` with a stateful comparator |
 
-4 assertion probes in the post-re-audit map (the re-audit added CoordinateCompression `decode` and iteration checks with 2 probes). Per configuration: 495,927 checks (full, 2026-09-27), 564,250 (full, 2026-10-07). Checked builds of this suite use `_GLIBCXX_ASSERTIONS` instead of `_GLIBCXX_DEBUG`: GCC16 PBDS `debug_map_base` default-constructs its diagnostic comparator, which can disagree with a valid supplied stateful comparator. A reproduced equivalence-width example aborts only in that debug layer; all comparator oracle cases remain in the checked suite. This is an instrumentation limitation, not a skipped algorithm feature.
+5 assertion probes: `id-exhaustion`, `rebuild-id-exhaustion`, `decode-end`, `decode-negative` and `range-order`. Per configuration: 715,602 checks (full, 2026-10-12). Checked builds of this suite use `_GLIBCXX_ASSERTIONS` instead of `_GLIBCXX_DEBUG`: GCC16 PBDS `debug_map_base` default-constructs its diagnostic comparator, which can disagree with a valid supplied stateful comparator. A reproduced equivalence-width example aborts only in that debug layer; all comparator oracle cases remain in the checked suite. This is an instrumentation limitation, not a skipped algorithm feature.
 
 ## Commands and results
 
-Re-audit, 2026-10-07:
+P013 prune run, 2026-10-12 (`ranks` and `pointRange` moved in from Miscellaneous `Compression`), GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64 (Intel Core i9-11900H). Every tester build used `-Wall -Wextra -Wconversion -Werror` in the optimized (`-O2 -DNDEBUG`), checked and ASan/UBSan configurations with leak checking.
+
+| Command | Result |
+|---|---|
+| `07-ordered_set_tester.py --mode full --seed 20260927` | PASS, 3 configurations, 715,602 checks per configuration, 5 assertion probes, `MEMORY peak=727MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=726MB` |
+| Mutation check: `pointRange` right closure swapped, empty-range normalization dropped, `ranks` returning `upperRank` | each FAIL in quick mode, header restored |
 
 ```bash
-python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 2 --filter '02-Data Structures' --no-integration
-python3 '96-Local Testing/01-run.py' --mode full --seed 20261007 --filter '02-Data Structures' --no-integration
-python3 '96-Local Testing/02-integration.py' --sanitizers
-python3 '96-Local Testing/03-consistency.py'
+python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20260927
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20260927
 ```
 
-All runs used GCC 16.2.1, GNU++20 and CPython 3.14 on Linux x86-64 (Intel Core i9-11900H), and all passed. Every tester build used `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked and ASan/UBSan configurations with leak checking. The final full run (seed 20261007, after the review fixes) took 4 min 10 s for the package and passed all 8 suites x 3 configurations and all 112 assertion probes. Stress over two rounds (seeds 7 and 8, 21 min) passed all 8 suites before the review fixes. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, multiple-translation-unit linkage, the Workspace build and the sanitizer self-tests. `03-consistency.py` reports no errors and checks the closing-brace rule on the package's headers and testers. The ordered suite passed in every run above (564,250 checks per configuration in the final full run).
+Integration, consistency and the Miscellaneous call-site suites of the same change are recorded in [04-compression.md](../../06-Miscellaneous/Docs/04-compression.md).
 
 ## Sources
 
@@ -64,3 +69,4 @@ Dynamic balanced/persistent ordered trees are future variants, not gaps of this 
 
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
 - 2026-10-07: P006 re-audit, findings 2, 8, 10–12, 14, 17, 19, 20, 23, 24 (of 24 package findings) addressed in this header, added CoordinateCompression `decode`, OrderedMultiSet `prev` and the `OrderedMap` alias, full and stress passed on g++.
+- 2026-10-12: P013 prune moved `ranks` and `pointRange` into CoordinateCompression with linear-count oracles, the moved `Compression` cases and the `range-order` probe; full suite passed on g++ and g++-14.

@@ -1,5 +1,4 @@
-"""Exact coordinate/encounter IDs and endpoint closure against independent Python scans."""
-import bisect
+"""Exact first-encounter ids, stable ranks and endpoint collection against independent Python scans."""
 import os
 from pathlib import Path
 import random
@@ -18,37 +17,24 @@ def oracle(binary, args, env):
                        for _ in range(rng.randrange(101))])
     payload, rows, expected = [], [], []
     for a in arrays:
-        coords = sorted(set(a))
-        queries = [(lo, hi, lc, rc) for lc in [0, 1] for rc in [0, 1]]
-        for x in [lo, -1, 0, 1, hi]:
-            queries += [(x, x, lc, rc) for lc in [0, 1] for rc in [0, 1]]
-        for _ in range(10):
-            l, r = sorted([rng.randint(lo, hi), rng.randint(lo, hi)])
-            queries.append((l, r, rng.randrange(2), rng.randrange(2)))
-        payload.append(f'{len(a)} {len(queries)}\n' + ' '.join(map(str, a)) + '\n')
-        rows += [('values', a), ('encode', a), ('encounter', a)]
-        expected.append([len(coords), *coords])
-        expected.append([coords.index(x) for x in a])
+        intervals = [(lo, hi)] + [(x, x) for x in [lo, -1, 0, 1, hi]]
+        intervals += [tuple(sorted([rng.randint(lo, hi), rng.randint(lo, hi)])) for _ in range(10)]
+        intervals += [tuple(sorted(a[i:i + 2])) for i in range(0, len(a) - 1, 2)]
+        payload.append(f'{len(a)} {len(intervals)}\n' + ' '.join(map(str, a)) + '\n'
+                       + ''.join(f'{l} {r}\n' for l, r in intervals))
         seen = []
         encounter = []
         for x in a:
             if x not in seen: seen.append(x)
             encounter.append(seen.index(x))
-        expected.append(encounter)
+        rows.append(('encounter', a)); expected.append(encounter)
         order = sorted(range(len(a)), key=lambda i: (a[i], i))
         stable = [0] * len(a)
         for rank, i in enumerate(order):
             stable[i] = rank
         rows.append(('stableRanks', a)); expected.append(stable)
-        for l, r, lc, rc in queries:
-            payload.append(f'{l} {r} {lc} {rc}\n')
-            lb, ub = bisect.bisect_left(coords, l), bisect.bisect_right(coords, l)
-            start = sum(x < l if lc else x <= l for x in coords)
-            end = sum(x <= r if rc else x < r for x in coords)
-            want = [coords.index(l) if l in coords else -1, lb, ub, start, max(start, end)]
-            rows.append(('pointRange', a, l, r, lc, rc)); expected.append(want)
-        rows.append(('ranks', a, [q[0] for q in queries]))
-        expected.append([bisect.bisect_left(coords, q[0]) for q in queries])
+        ends = sorted({x for interval in intervals for x in interval})
+        rows.append(('compressEndpoints', intervals)); expected.append([len(ends), *ends])
     command = [str(binary), '--oracle']
     result = subprocess.run(command, input=''.join(payload), text=True, capture_output=True, env=env, timeout=180)
     if result.returncode:
@@ -59,24 +45,18 @@ def oracle(binary, args, env):
     for row, want, got in zip(rows, expected, actual):
         if want != got:
             raise RuntimeError(f'smallest known reproducer={row} expected={want} actual={got}')
-    print(f'PASS Python coordinate/encounter/interval oracle arrays={len(arrays)} checks={len(rows)}', flush=True)
+    print(f'PASS Python encounter/stable-rank/endpoint oracle arrays={len(arrays)} checks={len(rows)}', flush=True)
     if binary.name == 'optimized':
         root = Path(__file__).resolve().parents[2]
         headers = [root / '02-Data Structures/07-ordered_set.hpp', root / '06-Miscellaneous/04-compression.hpp']
         body = '''
 int main() {
-    CoordinateCompression<int> existing({3, 1, 3});
-    Compression<int> extended({3, 1, 3});
-    Compression<int> empty;
-    if (!empty.empty() || existing.index(3) != 1 || extended.id(3) != 1) { return 1; }
-    if (existing.v != extended.v || extended.rank(3) != extended.lowerBound(3)) { return 2; }
-    if (extended.upperRank(3) != extended.upperBound(3) || extended.count(3) != 1) { return 3; }
-    if (*extended.findByOrder(0) != 1 || extended.findByOrder(2) != extended.end()) { return 4; }
-    if (extended.encode({0, 1, 3}) != vector<int>{-1, 0, 1}) { return 5; }
-    existing.rebuild({7, 2, 7}); extended.assign({7, 2, 7});
-    if (existing.v != extended.v || extended.pointRange(2, 7) != pair{0, 1}) { return 6; }
-    extended.rebuild({5, 5});
-    if (extended.size() != 1 || extended.value(0) != 5) { return 7; }
+    CoordinateCompression<int> direct({5, 1, 3, 3});
+    auto endpoints = compressEndpoints(vector<pair<int, int>>{{3, 5}, {1, 3}});
+    if (endpoints.v != direct.v || endpoints.pointRange(1, 3) != pair{0, 1}) { return 1; }
+    if (stableRanks(vector<int>{3, 1, 3}) != vector<int>{1, 0, 2}) { return 2; }
+    EncounterCompression<int> e;
+    if (e.add(7) != 0 || e.add(2) != 1 || e.id(7) != 0) { return 3; }
     return 0;}
 '''
         with tempfile.TemporaryDirectory(prefix='cp-compression-includes-') as name:
@@ -90,9 +70,8 @@ int main() {
                     p = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=180)
                     if p.returncode:
                         raise RuntimeError(f'command={cmd} returncode={p.returncode}\n{p.stdout}\n{p.stderr}')
-        print('PASS existing CoordinateCompression/new Compression: both header orders and inherited APIs', flush=True)
+        print('PASS compressEndpoints returns CoordinateCompression: both header orders', flush=True)
 
 
 if __name__ == '__main__':
-    raise SystemExit(main('04-compression', ['snapshot-negative', 'snapshot-end',
-        'encounter-negative', 'encounter-end', 'range-order', 'endpoint-order'], oracle))
+    raise SystemExit(main('04-compression', ['encounter-negative', 'encounter-end', 'endpoint-order'], oracle))

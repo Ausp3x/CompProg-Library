@@ -59,17 +59,24 @@ bool ok = out.flush();
 
 ## Commands and results
 
-P013 package run, 2026-10-07, GCC 16.2.1, GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection. The fastio full run passed all 3 configurations and 4 assertion probes.
+P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection.
 
-```sh
-python3 '96-Local Testing/01-run.py' --mode quick --filter 06-Miscellaneous --no-integration                            # PASS (all 14 suites)
-for s in 01-random 02-customhash 03-fastio 04-compression 05-binarysearch 06-bit_operations 07-permutation; do
-  python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode full --seed 20260927                                # PASS x7, 3 configurations each
-  python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode stress --seed 20260928 --configuration optimized   # PASS x7
+| Command | Result |
+|---|---|
+| `03-fastio_tester.py --mode full --seed 20260927` | PASS, 3 configurations, 3,003 Python 128-bit decimal pairs, `readLine`/`readDouble`/`writeDouble` oracles over 60,005 bytes, 4 assertion probes, `MEMORY peak=732MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=748MB` |
+| `03-fastio_benchmark.py` | not rerun (header unchanged); the table below is the 2026-10-07 record |
+| Other P013 suites, the call-site suites (`07-ordered_set`, `08-sequence_algorithms`, `12-enumeration`), `02-integration.py` and `03-consistency.py` | PASS; details in [04-compression.md](04-compression.md) |
+
+```bash
+for c in g++ g++-14; do
+  for s in 01-random 02-customhash 03-fastio 04-compression 06-bit_operations 07-permutation 08-sequence_algorithms 12-enumeration; do
+    CXX=$c python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode full --seed 20260927
+  done
+  CXX=$c python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20260927
 done
-python3 '96-Local Testing/06-Miscellaneous/03-fastio_benchmark.py'                                                       # PASS, record rewritten
-python3 '96-Local Testing/02-integration.py'                                                                             # PASS (every header alone, Basic/All aggregates)
-python3 '96-Local Testing/03-consistency.py'                                                                             # no errors
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
 ```
 
 ## Benchmarks
@@ -110,3 +117,4 @@ No Barrett/Montgomery backend is involved.
 
 - 2026-09-27: P013 first verification, full and stress suites and benchmark passed.
 - 2026-10-07: P013 re-audit, finding 1 (missing `readLine`, `readDouble`, `writeDouble`) fixed, `read`/`print`/`writeValue`/`end`/`precision` added, contracts moved out of code comments, brace style normalized; full, stress, benchmark and integration passed; `@reviewer` (2026-10-08) found no defects.
+- 2026-10-12: P013 prune run (header unchanged), full suite passed on g++ and g++-14.

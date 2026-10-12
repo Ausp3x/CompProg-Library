@@ -26,7 +26,8 @@ namespace {
         auto same = [&](const T &x, const T &y) { return !cmp(x, y) && !cmp(y, x); };
         check(v.size() == int(a.size()) && c.size() == int(distinct.size()), "static size");
         check(v.empty() == a.empty() && c.empty() == a.empty(), "static empty");
-        vector<int> encoded = c.encode(probes);
+        vector<int> encoded = c.encode(probes), ranked = c.ranks(probes);
+        check(int(ranked.size()) == int(probes.size()) && c.ranks({}).empty(), "bulk ranks size");
         for (int j = 0; j < int(probes.size()); ++j) {
             const T &x = probes[j];
             int less = 0, eq = 0, unique_less = 0, unique_eq = 0;
@@ -36,7 +37,18 @@ namespace {
             check(v.index(x) == (eq ? less : -1), "sorted exact index");
             check(c.rank(x) == unique_less && c.upperRank(x) == unique_less + unique_eq, "compressed rank");
             check(c.count(x) == unique_eq && c.index(x) == (unique_eq ? unique_less : -1), "compressed count/index");
-            check(encoded[j] == c.index(x), "batch encoding");}
+            check(encoded[j] == c.index(x), "batch encoding");
+            check(ranked[j] == unique_less, "bulk ranks linear oracle");}
+        for (const T &l : probes) {
+            for (const T &r : probes) {
+                if (cmp(r, l)) { continue; }
+                for (bool lc : {false, true}) { for (bool rc : {false, true}) {
+                    int start = 0, end = 0, inside = 0;
+                    for (const T &y : distinct) {
+                        bool after = lc ? !cmp(y, l) : cmp(l, y), before = rc ? !cmp(r, y) : cmp(y, r);
+                        start += !after; end += before; inside += after && before;}
+                    auto [lo, hi] = c.pointRange(l, r, lc, rc);
+                    check(lo == start && hi == max(start, end) && hi - lo == inside, "pointRange linear oracle closed=" + std::to_string(lc) + std::to_string(rc));}}}}
         int i = 0;
         for (const T &x : all) { check(same(*v.findByOrder(i++), x), "sorted select"); }
         i = 0;
@@ -49,6 +61,8 @@ namespace {
         moved.rebuild({}); check(moved.empty() && v.size() == int(a.size()), "sorted copy/move/rebuild");
         auto cc = c; auto cm = std::move(cc);
         cm.rebuild(probes); check(c.size() == int(distinct.size()), "compression copy independence");
+        std::set<T, C> replaced(probes.begin(), probes.end(), cmp);
+        check(std::equal(cm.begin(), cm.end(), replaced.begin(), replaced.end(), same), "compression rebuild replaces values");
         cm.rebuild({}); check(cm.empty(), "compression empty rebuild");
         v.rebuild(v.v); check(v.size() == int(a.size()), "sorted alias rebuild");
         c.rebuild(c.v); check(c.size() == int(distinct.size()), "compressed alias rebuild");}
@@ -71,6 +85,11 @@ namespace {
         staticCase(vector<string>{"z","","aa","aa","a"}, vector<string>{"","a","aa","b","z","zz"}, std::less<string>{});
         context = "packed bool keys";
         staticCase(vector<bool>{true,false,true,false,true}, vector<bool>{false,true}, std::less<bool>{});
+        context = "composite keys";
+        staticCase(vector<pair<int,int>>{{1,2},{1,1},{1,2},{0,9}}, vector<pair<int,int>>{{0,0},{1,1},{1,2},{1,3},{2,0}}, std::less<pair<int,int>>{});
+        context = "128-bit keys";
+        lll big = lll(LLONG_MAX) + 1, small = lll(LLONG_MIN) - 1;
+        staticCase(vector<lll>{big,small,0,0}, vector<lll>{small-1,small,0,big-1,big,big+1}, std::less<lll>{});
         int rounds = mode == "quick" ? 8 : mode == "full" ? 60 : 250;
         for (int trial = 0; trial < rounds; ++trial) {
             vector<lng> a(rng() % 80), probes(20);
@@ -78,6 +97,12 @@ namespace {
             for (lng &x : probes) { x = lng(rng() % 121) - 60; }
             context = "static random trial=" + std::to_string(trial) + " input=" + repr(a);
             staticCase(a, probes, Order{bool(rng() % 2), lng(1 + rng() % 7)});}
+        for (int trial = 0; trial < rounds; ++trial) {
+            vector<lng> a(rng() % 101), probes{LLONG_MIN, LLONG_MAX};
+            for (lng &x : a) { x = std::bit_cast<lng>(rng()); }
+            for (int j = 0; j < 10; ++j) { probes.push_back(j % 2 && !a.empty() ? a[rng() % a.size()] : std::bit_cast<lng>(rng())); }
+            context = "static full-width trial=" + std::to_string(trial) + " input=" + repr(a);
+            staticCase(a, probes, std::less<lng>{});}
         std::cout << "PASS compression/sorted-vector exhaustive, comparator, rebuild and domain tests\n";}
 
     using Multi = OrderedMultiSet<lng, Order>;
@@ -209,6 +234,7 @@ namespace {
         if (name == "id-exhaustion") { s.next_id = LLONG_MAX; s.insert(1); }
         else if (name == "decode-end") { CoordinateCompression<int> c(vector<int>{4, 4, 2}); (void)c.decode(2); }
         else if (name == "decode-negative") { CoordinateCompression<int> c(vector<int>{4}); (void)c.decode(-1); }
+        else if (name == "range-order") { CoordinateCompression<int> c(vector<int>{1, 2}); (void)c.pointRange(2, 1); }
         else if (name == "rebuild-id-exhaustion") { s.next_id = LLONG_MAX-1; s.rebuild(vector<int>{1,2}); }
         else { throw std::runtime_error("unknown invalid probe " + name); }
         throw std::runtime_error("invalid precondition survived " + name);}

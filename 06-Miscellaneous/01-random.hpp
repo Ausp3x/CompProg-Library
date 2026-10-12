@@ -8,7 +8,6 @@ struct Random {
     std::mt19937_64 rng;
     Random() : Random(ulng(std::chrono::steady_clock::now().time_since_epoch().count())) {}
     explicit Random(ulng seed) : rng(seed) {}
-    void seed(ulng x) { rng.seed(x); }
     static constexpr ulng min() { return 0; }
     static constexpr ulng max() { return ~0ULL; }
     ulng operator()() { return rng(); }
@@ -28,7 +27,6 @@ struct Random {
         assert(l <= r);
         ulng n = ulng(r) - ulng(l) + 1;
         return lng(lll(l) + (n ? randBelow(n) : rng()));}
-    int randInt(int l, int r) { return int(randLng(l, r)); }
     double randDouble() { return double(rng() >> 11) * 0x1p-53; }
     double randDouble(double l, double r) {
         assert(l < r && std::isfinite(r - l));

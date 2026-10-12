@@ -2,7 +2,7 @@
 #include "../01-Core/01-template.hpp"
 #include "../02-Data Structures/02-fenwick.hpp"
 #include "../02-Data Structures/03-segmenttree.hpp"
-#include "04-compression.hpp"
+#include "../02-Data Structures/07-ordered_set.hpp"
 
 // T: NA, M: O(1) (WeightedSubsequence O(out)); [l, r) witnesses, exists() and found are false for an absent optimum.
 struct SubarraySum { lll sum = 0; int l = -1, r = -1; bool exists() const { return l >= 0; } };
@@ -136,14 +136,14 @@ vector<int> longestIncreasingSubsequence(const vector<T> &a, bool strict = true,
 // T: O(n * log(n + 1)), M: O(n) in Count operations; {length, count} of index-distinct longest chains, {0, 1} for n = 0; Count additions must fit or wrap intentionally.
 template<typename Count, typename T, typename Compare = std::less<T>>
 pair<int, Count> countLongestIncreasingSubsequences(const vector<T> &a, bool strict = true, Compare cmp = {}) {
-    sequence_detail::checkedSize(a.size()); Compression<T, Compare> c(a, cmp);
+    sequence_detail::checkedSize(a.size()); CoordinateCompression<T, Compare> c(a, cmp);
     using State = pair<int, Count>;
     auto merge = [](const State &x, const State &y) -> State {
         if (x.first != y.first) { return x.first > y.first ? x : y; }
         return {x.first, Count(x.second + y.second)};};
     SegmentTree tree(c.size(), State{0, Count(0)}, merge);
     for (const auto &x : a) {
-        int r = c.id(x); auto cur = tree.query(0, r + !strict);
+        int r = c.index(x); auto cur = tree.query(0, r + !strict);
         if (!cur.first) { cur.second = Count(1); }
         ++cur.first; tree.set(r, merge(tree.get(r), cur));}
     auto res = tree.allQuery();
@@ -152,10 +152,10 @@ pair<int, Count> countLongestIncreasingSubsequences(const vector<T> &a, bool str
 // T: O(n * log(n + 1)), M: O(n) in Count operations; number of nonempty index-distinct chains of any length.
 template<typename Count, typename T, typename Compare = std::less<T>>
 Count countIncreasingSubsequences(const vector<T> &a, bool strict = true, Compare cmp = {}) {
-    sequence_detail::checkedSize(a.size()); Compression<T, Compare> c(a, cmp);
+    sequence_detail::checkedSize(a.size()); CoordinateCompression<T, Compare> c(a, cmp);
     Fenwick<Count> tree(c.size()); Count res(0);
     for (const auto &x : a) {
-        int r = c.id(x); Count cur = tree.prefixSum(r + !strict); cur += Count(1);
+        int r = c.index(x); Count cur = tree.prefixSum(r + !strict); cur += Count(1);
         tree.add(r, cur); res += cur;}
     return res;}
 
@@ -163,7 +163,7 @@ Count countIncreasingSubsequences(const vector<T> &a, bool strict = true, Compar
 template<typename T, typename W, typename Compare = std::less<T>>
 WeightedSubsequence weightedIncreasingSubsequence(const vector<T> &a, const vector<W> &w, bool strict = true, bool allow_empty = false, Compare cmp = {}) {
     sequence_detail::checkInteger<W>(); int n = sequence_detail::checkedSize(a.size());
-    assert(a.size() == w.size()); Compression<T, Compare> c(a, cmp);
+    assert(a.size() == w.size()); CoordinateCompression<T, Compare> c(a, cmp);
     using State = pair<lll, int>;
     auto merge = [](State x, State y) -> State {
         if (x.second == -1) { return y; }
@@ -171,7 +171,7 @@ WeightedSubsequence weightedIncreasingSubsequence(const vector<T> &a, const vect
         return x.first >= y.first ? x : y;};
     SegmentTree tree(c.size(), State{0, -1}, merge); vector<int> p(n, -1);
     for (int i = 0; i < n; ++i) {
-        int r = c.id(a[i]); auto old = tree.query(0, r + !strict); lll value = w[i];
+        int r = c.index(a[i]); auto old = tree.query(0, r + !strict); lll value = w[i];
         if (old.second >= 0 && old.first > 0) { value += old.first; p[i] = old.second; }
         tree.set(r, merge(tree.get(r), State{value, i}));}
     auto best = tree.allQuery();
@@ -181,10 +181,10 @@ WeightedSubsequence weightedIncreasingSubsequence(const vector<T> &a, const vect
 // T: O(n * log(n + 1)), M: O(n); pairs i < j with cmp(a[j], a[i]), equivalent keys excluded.
 template<typename T, typename Compare = std::less<T>>
 lng inversionCount(const vector<T> &a, Compare cmp = {}) {
-    sequence_detail::checkedSize(a.size()); Compression<T, Compare> c(a, cmp);
+    sequence_detail::checkedSize(a.size()); CoordinateCompression<T, Compare> c(a, cmp);
     Fenwick<lng> f(c.size()); lng res = 0, seen = 0;
     for (const auto &x : a) {
-        int r = c.id(x); res += seen - f.prefixSum(r + 1);
+        int r = c.index(x); res += seen - f.prefixSum(r + 1);
         f.add(r, 1); ++seen;}
     return res;}
 // T: O(n * log(n + 1)), M: O(n); fewest adjacent swaps turning a into b, -1 when b is not a rearrangement of a under cmp.
