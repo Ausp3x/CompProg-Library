@@ -99,7 +99,7 @@ Prune order for verified packages with removals: P010 first, then P011 and P044;
 | `none()` | `18-bitset.hpp:150` | `!any()` | keep | named special case (ruling 1) | `18-bitset_tester.cpp:113,120` | none |
 | const `operator[]`, `flip(p)` | `18-bitset.hpp:55,70` | `test(p)`, `[p].flip()` | keep | named element access, `std::bitset` spellings (decided 2026-10-11) | `18-bitset_tester.cpp:113,120` | none |
 | `debugString(b)` | `18-bitset.hpp:281` | `b.toString()` | keep | Debug's extension point; Bitset has no `operator<<` (decided 2026-10-11) | `18-bitset_tester.cpp:124` | Debug |
-| `combine<Op>` | `18-bitset.hpp:117` | the compound bit operators | keep | helper of `combineShift`; drop it from the row | — | — |
+| `combine<Op>` | `18-bitset.hpp:117` | the compound bit operators | keep | helper of `combineShift`; dropped from the row 2026-10-12 | — | — |
 | `setRange(l, r, false)` | `18-bitset.hpp:112` | `resetRange` | keep | the flag is the value written, as in `set(p, v)` | — | — |
 
 ## P004 — 01-Core — barrett, montgomery (verified)
@@ -155,7 +155,7 @@ Prune order for verified packages with removals: P010 first, then P011 and P044;
 |---|---|---|---|---|---|---|
 | `Affine2Approx::orientation()` | `08-coordinate_transform.hpp:16` | `sign(determinant())` | keep | derived formula: sign of `determinant()` (clarified rule) | `08-coordinate_transform_tester.cpp:38,99,111` | none |
 | `CircleApprox::onBoundary`, `contains(dpoint)` | `06-circle.hpp:28-29` | `locate(p, tol) == 0`, `<= 0` | keep | named special case (ruling 1) | `06-circle_tester.cpp:71-74` | none |
-| `rectangleApprox(bool perimeter)` | `07-rotatingcalipers.hpp:93` | `minimumAreaRectangleApprox()`, `minimumPerimeterRectangleApprox()` | keep | shared helper; drop it from the row (flag between two operations) | `07-…_tester.cpp:91,95,193` (indirect) | `Docs/07-rotatingcalipers.md:32,53` |
+| `rectangleApprox(bool perimeter)` | `07-rotatingcalipers.hpp:93` | `minimumAreaRectangleApprox()`, `minimumPerimeterRectangleApprox()` | keep | shared helper; dropped from the row 2026-10-12 (flag between two operations) | `07-…_tester.cpp:91,95,193` (indirect) | `Docs/07-rotatingcalipers.md:32,53` |
 | `circleCentersApprox`, `pointTangentsApprox` | `06-circle.hpp:93,134` | `circleIntersectionApprox`, `commonTangentsApprox` | keep | named special cases | — | — |
 | `farthestPair` | `07-rotatingcalipers.hpp:158` | `diameter()` | keep | larger domain (any cloud, index ties) | — | — |
 
@@ -190,7 +190,7 @@ Pruned 2026-10-12.
 | `FunctionalGraph::reachable` | `11-functionalgraph.hpp:100` | `distance(u, v) != -1` | keep | named special case (ruling 1) | `11-…_tester.cpp:126`; probe `reachable-high` | none |
 | `functionalOrbit` | `11-functionalgraph.hpp:10-24` | `06-Miscellaneous/14-cyclefinding.hpp:14` `floydCycle` | keep | different domain: walks that stop (decided 2026-10-11) | `11-…_tester.cpp:122-123,241,259`; probes :301-302 | `06-Miscellaneous/Docs/14-cyclefinding.md:69` |
 | `condensationDag` | `08-scc.hpp:73-82` | `simplify(contract(g, comp, k)).graph` | keep | the replacement differs in weights, edge order and memory (decided 2026-10-11) | `08-scc_tester.cpp:39,95` | none |
-| `FunctionalGraphFold::segment` | `11-functionalgraph.hpp:163-169` | `fold(u, k)` | keep | helper of `fold`, `cycleAggregate`, `maxStep`; drop it from the row | — | — |
+| `FunctionalGraphFold::segment` | `11-functionalgraph.hpp:163-169` | `fold(u, k)` | keep | helper of `fold`, `cycleAggregate`, `maxStep`; dropped from the row 2026-10-12 | — | — |
 
 ## P012 — 05-Mathematics — mod arithmetic, search algorithms, equation solvers, sieve algorithms, combinatorics, segmentedsieve (verified)
 
@@ -222,7 +222,7 @@ Pruned 2026-10-12.
 | `multisetPermutationCount` | `07-permutation.hpp:105` | `05-Mathematics/05-combinatorics.hpp:163` `multinomialExact` | remove | second implementation (narrowed to `int` counts) | `07-permutation_tester.cpp:108,120-125` | `07-permutation.hpp:139` (`Multiset` then includes `05-combinatorics.hpp`) |
 | `randInt(l, r)` | `01-random.hpp:31` | `int(randLng(l, r))` | remove | narrowing, same words consumed | `01-random_tester.cpp:32,46,67` | none |
 | `seed(x)` | `01-random.hpp:11` | `g = Random(x)` | remove | another form | `01-random_tester.cpp:59,104` | none |
-| `randBelow(n)` | `01-random.hpp:16` | `randUlng(0, n - 1)` | keep | helper of `randUlng`, `randLng`, `shuffle`; drop it from the row | — | — |
+| `randBelow(n)` | `01-random.hpp:16` | `randUlng(0, n - 1)` | keep | helper of `randUlng`, `randLng`, `shuffle`; dropped from the row 2026-10-12 | — | — |
 | `permutationRank`, `permutationUnrank` | `07-permutation.hpp:93,98` | multiset forms | keep | named special case | — | — |
 
 ## P229 — 06-Miscellaneous — timer, interactive, grid utilities (verified)
@@ -251,7 +251,7 @@ Pruned 2026-10-12.
 | `validPrefixFunction(pi)` | `01-prefixfunction.hpp:26` | `validPrefixFunction(pi, s)` | remove | witness dropped, same cost | `01-prefixfunction_tester.cpp:19,74,78` | none |
 | `validZFunction(z)` | `02-z.hpp:84` | `zToPrefix(z, pi)` | remove | output dropped, same cost | `02-z_tester.cpp:11,32` | none |
 | `kmpNext(p)` | `01-prefixfunction.hpp:37-38` | `kmpNext(p, prefixFunction(p))` | keep | builds the prefix function itself (clarified rule) | `01-prefixfunction_tester.cpp:24` | none |
-| `common(…, suffix)` | `03-stringhash.hpp:118-129` | `lcp`, `lcs` | keep | helper; drop it from the row (flag form) | — | — |
+| `common(…, suffix)` | `03-stringhash.hpp:118-129` | `lcp`, `lcs` | keep | helper; dropped from the row 2026-10-12 (flag form) | — | — |
 | `prefixToZ` | `02-z.hpp:66-70` | `validPrefixFunction(pi, s)` then `zFunction(s)` | keep | named conversion paired with `zToPrefix` (decided 2026-10-11) | `02-z_tester.cpp:16,18,42` | none |
 | `centerEnd(c)` | `05-manacher.hpp:40-42` | `oddInterval`, `evenInterval` | keep | kept as a listed operation (decided 2026-10-11) | `05-manacher_tester.cpp:38-40`; probes :132-133 | `05-manacher.hpp` |
 | `Trie::search`, `Trie::empty` | `04-trie.hpp:43,19` | `count(s) != 0`, `!size()` | keep | named special case (ruling 1) | `04-trie_tester.cpp:47,52` | none |

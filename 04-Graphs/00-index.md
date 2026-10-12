@@ -16,7 +16,7 @@ Scope: combinatorial graph and tree algorithms over the canonical `Graph`/`CsrGr
 | `08-scc.hpp` | SccResult; tarjanScc (iterative); kosarajuScc; condensationDag (duplicate-free) | verified; [contracts and tests](Docs/08-scc.md) |
 | `09-bridges_articulation.hpp` | LowlinkResult (tin, low, parent_arc, roots, bridges, is_bridge, is_art, cut_components, 2-edge components, biconnected block edges/vertices, edge_block, orientation); lowlink (iterative, edge-ID); StrongOrientationResult; strongOrientation (minimum-SCC, Robbins obstruction witness) | verified; [contracts and tests](Docs/09-bridges_articulation.md) |
 | `10-euleriantrail.hpp` | EulerTrailResult; eulerianTrail (directed/undirected Hierholzer, start selection, arc/edge witnesses, lexicographically smallest option) | verified; [contracts and tests](Docs/10-euleriantrail.md) |
-| `11-functionalgraph.hpp` | FunctionalOrbit; functionalOrbit (constant-memory Floyd); FunctionalGraph (fields component, cycle, entry, depth, position, tin, tout, cycles): successors, jump (64-bit), jumpAll, distance, reachable, firstMeeting, cycleAggregates, cycleAggregate; FunctionalFoldResult; FunctionalGraphFold: segment, fold, cycleAggregate, maxStep | verified; [contracts and tests](Docs/11-functionalgraph.md) |
+| `11-functionalgraph.hpp` | FunctionalOrbit; functionalOrbit (constant-memory Floyd); FunctionalGraph (fields component, cycle, entry, depth, position, tin, tout, cycles): successors, jump (64-bit), jumpAll, distance, reachable, firstMeeting, cycleAggregates, cycleAggregate; FunctionalFoldResult; FunctionalGraphFold: fold, cycleAggregate, maxStep | verified; [contracts and tests](Docs/11-functionalgraph.md) |
 
 ## Advanced
 

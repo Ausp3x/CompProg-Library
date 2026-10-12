@@ -6,7 +6,7 @@ Scope: reusable contest algorithms and utilities whose primary API is not owned 
 
 | Header | Operations | Status |
 |---|---|---|
-| `01-random.hpp` | Random: seed, URBG interface (result_type, min, max, operator()), randBelow, randUlng, randLng, randInt, randDouble ([0, 1) and [l, r)), shuffle; rng (global instance) | verified; [evidence](Docs/01-random.md) |
+| `01-random.hpp` | Random: seed, URBG interface (result_type, min, max, operator()), randUlng, randLng, randInt, randDouble ([0, 1) and [l, r)), shuffle; rng (global instance) | verified; [evidence](Docs/01-random.md) |
 | `02-customhash.hpp` | CustomHash: splitMix64, combine, operator() (pointer, nullptr, 64/128-bit integer, enum/convertible, string_view, pair, tuple, ordered range); safe_unordered_map; safe_unordered_set; safe_gp_hash_table | verified; [evidence](Docs/02-customhash.md) |
 | `03-fastio.hpp` | FastIoStatus; FastInput: peek, get, skipSpace, readChar, readToken, readLine, readInt (8–128-bit), readDouble, read (variadic, ranges), status; FastOutput: put, write (end byte), writeInt (8–128-bit), writeDouble (fixed precision), writeValue, print (variadic line), precision, drain, flush, error | verified; [evidence](Docs/03-fastio.md) |
 | `04-compression.hpp` | Compression: assign, lowerBound, upperBound, id, value, size, pointRange (open/closed), ranks (bulk); compressEndpoints; stableRanks; EncounterCompression: add, id, value, size, clear | verified; [evidence](Docs/04-compression.md) |

@@ -14,7 +14,7 @@ Bases: `defaultBase()` is fixed (`{911382323, 972663749}`, `11400714819323198485
 
 `Digest` holds value, length and base; it has defaulted three-way comparison, so equality is exact on all three members and ordering (value, then length, then base) makes digests usable as `set`/`map` keys. Unequal lengths or bases never compare equal; equal digests are fingerprints, not proof. `get(l, r)` and `reverseGet(l, r)` take half-open ranges, the latter hashing the reversal of exactly that interval; empty intervals have value zero. `hashOf(s)` (bytes or `vector<uint>`) returns the digest of an outside sequence under this object's base in O(L) time and O(1) space, equal to `get` of the same content. `power(k)` uses the table when `k <= size()` and binary powering otherwise, without growing hidden state. `concat(a, b)` requires this object's base on both inputs and a total length that fits `int`.
 
-`common(other, l, r, a, b, suffix)`, `lcp` and `lcs` binary-search the common prefix or suffix length of two ranges under equal bases in O(log(k + 1)) for the shorter length k; answers are Monte Carlo. No lexicographic comparison is offered (row `22` owns `compareSubstrings`).
+`lcp` and `lcs`, through the helper `common(other, l, r, a, b, suffix)`, binary-search the common prefix or suffix length of two ranges under equal bases in O(log(k + 1)) for the shorter length k; answers are Monte Carlo. No lexicographic comparison is offered (row `22` owns `compareSubstrings`).
 
 Costs: construction O(n) time and three arrays of n + 1 eight-byte words; `get`, `reverseGet` O(1). Copies are independent; assign a moved-from object before querying it.
 
