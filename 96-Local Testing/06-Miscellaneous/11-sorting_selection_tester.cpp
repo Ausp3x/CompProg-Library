@@ -57,8 +57,8 @@ void selectChecks(const vector<T> &a, const vector<int> &ranks, Compare cmp) {
     auto original = a; sort(original.begin(), original.end()); int n = int(a.size());
     for (int k : ranks) {
         for (int which = 0; which < 2; ++which) {
-            string name = string(which ? "median-of-medians" : "quickselect") + " k=" + std::to_string(k);
-            auto copy = a; T got = which ? medianOfMedians(copy, k, cmp) : quickSelect(copy, k, cmp);
+            string name = string(which ? "median-of-medians" : "nth_element") + " k=" + std::to_string(k);
+            auto copy = a; T got = which ? medianOfMedians(copy, k, cmp) : (std::nth_element(copy.begin(), copy.begin() + k, copy.end(), cmp), copy[k]);
             check(!cmp(got, reference[k]) && !cmp(reference[k], got), "selection order statistic " + name);
             check(got == copy[k], "selection returns value at partition index " + name);
             for (int i = 0; i < k; ++i) { check(!cmp(got, copy[i]), "selection left partition " + name); }
@@ -77,7 +77,7 @@ void partitionChecks(const vector<T> &a, Pred pred) {
     for (const T &x : a) { if (pred(x)) { expected.push_back(x); } }
     int cut = int(expected.size());
     for (const T &x : a) { if (!pred(x)) { expected.push_back(x); } }
-    auto copy = a; int got = stablePartition(copy, pred);
+    auto copy = a; int got = int(std::stable_partition(copy.begin(), copy.end(), pred) - copy.begin());
     check(got == cut && copy == expected, "stable partition cut/order/exact permutation");}
 
 void smallArray(const vector<int> &a) {
@@ -160,8 +160,9 @@ void customCases() {
     context = "empty/singleton domains, default and stateful callbacks";
     vector<int> empty;
     countingSort(empty, INT_MIN, INT_MIN); stableCountingSort(empty, 0, std::identity{}); radixSort(empty);
-    check(empty.empty() && stablePartition(empty, [](int) { return true; }) == 0, "empty sorts/partition");
-    vector<int> singleton{17}; check(quickSelect(singleton, 0) == 17, "default comparator singleton selection");
+    check(empty.empty() && std::stable_partition(empty.begin(), empty.end(), [](int) { return true; }) == empty.begin(), "empty sorts/partition");
+    vector<int> singleton{17}; std::nth_element(singleton.begin(), singleton.begin(), singleton.end());
+    check(singleton[0] == 17 && medianOfMedians(singleton, 0) == 17, "default comparator singleton selection");
     vector<int> a{3, 2, 1, 3, 0, 2};
     selectChecks(a, {0, 1, 3, 5}, Direction{true});
     partitionChecks(a, [](int) { return false; }); partitionChecks(a, [](int) { return true; });
@@ -169,7 +170,8 @@ void customCases() {
     selectChecks(words, {0, 1, 3, 5, 6}, LengthOrder{});
     partitionChecks(words, [](const string &s) { return s.size() < 2; });
     partitionChecks(vector<bool>{true, false, true, false}, [](bool x) { return x; });
-    vector<bool> bits{true, false, true}; check(!quickSelect(bits, 0) && quickSelect(bits, 2), "bool standard selection wrapper");
+    vector<bool> bits{true, false, true}; std::nth_element(bits.begin(), bits.begin(), bits.end()); bool low = bits[0];
+    std::nth_element(bits.begin(), bits.begin() + 2, bits.end()); check(!low && bits[2], "bool standard selection");
     bits = {true, false, true, true, false, false, true}; check(!medianOfMedians(bits, 2) && medianOfMedians(bits, 3) && threeWayPartition(bits, false) == pair{0, 3}, "bool median of medians and three-way partition");
     auto original = records(a), stable = original;
     stableCountingSort(stable, 6, OffsetKey{2}); checkRecordOrder(stable, original, "stateful counting key");
@@ -189,11 +191,11 @@ void customCases() {
     radixSort(singleton, [&](int x) { ++projected; return x; });
     check(projected == 0, "radix skips projection for zero/one input");
     int predicates = 0; auto partitioned = a;
-    stablePartition(partitioned, [&](int x) { ++predicates; return x < 2; });
+    std::stable_partition(partitioned.begin(), partitioned.end(), [&](int x) { ++predicates; return x < 2; });
     check(predicates == int(a.size()), "partition calls predicate exactly once per input");
     auto selected_records = original;
-    auto selected = quickSelect(selected_records, 2, [](const Record<int> &x, const Record<int> &y) { return x.key < y.key; });
-    check(selected.key == 2 && selected == selected_records[2], "record selection with comparator only");
+    std::nth_element(selected_records.begin(), selected_records.begin() + 2, selected_records.end(), [](const Record<int> &x, const Record<int> &y) { return x.key < y.key; });
+    auto selected = selected_records[2]; check(selected.key == 2, "record selection with comparator only");
     vector<int> ids;
     for (const auto &x : selected_records) { ids.push_back(x.id); }
     sort(ids.begin(), ids.end()); check(ids == vector<int>{0, 1, 2, 3, 4, 5}, "record selection permutation");
@@ -215,12 +217,12 @@ void customCases() {
         try {
             if (which == 0) { stableCountingSort(values, 4, [](int) -> int { throw std::runtime_error("callback"); }); }
             if (which == 1) { radixSort(values, [](int) -> int { throw std::runtime_error("callback"); }); }
-            if (which == 2) { stablePartition(values, [](int) -> bool { throw std::runtime_error("callback"); }); }
-            if (which == 3) { quickSelect(values, 2, [](int, int) -> bool { throw std::runtime_error("callback"); }); }
+            if (which == 2) { std::stable_partition(values.begin(), values.end(), [](int) -> bool { throw std::runtime_error("callback"); }); }
+            if (which == 3) { std::nth_element(values.begin(), values.begin() + 2, values.end(), [](int, int) -> bool { throw std::runtime_error("callback"); }); }
             if (which == 4) { medianOfMedians(values, 2, [](int, int) -> bool { throw std::runtime_error("callback"); }); }
             if (which == 5) { threeWayPartition(values, 2, [](int, int) -> bool { throw std::runtime_error("callback"); }); }} catch (const std::runtime_error &e) { caught = string(e.what()) == "callback"; }
         check(caught, "callback exception propagated API=" + std::to_string(which));}
-    cout << "PASS default/stateful/equivalence/string/bool wrappers, stable record construction domain, callback exceptions\n";}
+    cout << "PASS default/stateful/equivalence/string/bool cases, stable record construction domain, callback exceptions\n";}
 
 void largeCases(const string &mode) {
     int n = mode == "quick" ? 3000 : 200000;
@@ -269,9 +271,6 @@ int main(int argc, char **argv) {
             if (p == "key-negative") { stableCountingSort(a, 3, [](int) { return -1; }); }
             if (p == "key-past-end") { stableCountingSort(a, 2, std::identity{}); }
             if (p == "key-wide") { stableCountingSort(a, 2, [](int) -> ulll { return ulll(1) << 100; }); }
-            if (p == "select-negative") { quickSelect(a, -1); }
-            if (p == "select-past-end") { quickSelect(a, 2); }
-            if (p == "select-empty") { vector<int> b; quickSelect(b, 0); }
             if (p == "median-negative") { medianOfMedians(a, -1); }
             if (p == "median-past-end") { medianOfMedians(a, 2); }
             if (p == "median-empty") { vector<int> b; medianOfMedians(b, 0); }

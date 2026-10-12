@@ -31,16 +31,11 @@ namespace sequence_detail {
         reverse(res.begin(), res.end()); return res;}
 } // namespace sequence_detail
 
-// T: O(n), M: O(1); nonempty optimum, absent for n = 0 unless allow_empty adds [0, 0); kadane returns 0 for n = 0 and asserts a lng fit.
+// T: O(n), M: O(1); nonempty optimum, absent for n = 0 unless allow_empty adds [0, 0).
 template<typename T>
 SubarraySum maximumSubarray(const vector<T> &a, bool allow_empty = false) {
     sequence_detail::checkInteger<T>();
     return sequence_detail::maximum(sequence_detail::checkedSize(a.size()), [&](int i) -> lll { return a[i]; }, allow_empty);}
-template<typename T>
-lng kadane(const vector<T> &a) {
-    lll res = maximumSubarray(a).sum;
-    assert(std::numeric_limits<lng>::min() <= res && res <= std::numeric_limits<lng>::max());
-    return lng(res);}
 
 // T: O(n), M: O(min(n, hi - lo) + 1); 0 <= lo <= hi bounds the length, absent when lo > n.
 template<typename T>

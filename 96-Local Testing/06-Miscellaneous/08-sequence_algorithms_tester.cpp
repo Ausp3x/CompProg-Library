@@ -49,9 +49,6 @@ void sums(const vector<T> &a, bool all_bounds) {
             lll sum = 0; for (int i = 0; i < got.length; ++i) { sum += a[(got.start + i) % n]; }
             checkEqual(sum, got.sum, "circular witness");}
         else { check(got.start == -1 && got.length == 0, "circular absence"); }}
-    auto oracle = subarrayOracle(a, 1, n);
-    if (std::numeric_limits<lng>::min() <= oracle.sum && oracle.sum <= std::numeric_limits<lng>::max()) {
-        checkEqual(kadane(a), oracle.sum, "legacy widened kadane");}
     if (all_bounds) {
         for (int lo = 0; lo <= n + 1; ++lo) {
             for (int hi = lo; hi <= n + 1; ++hi) {
@@ -201,6 +198,9 @@ void extremesAndGeneric(int large) {
     vector<ulng> unsigned_values{0, std::numeric_limits<ulng>::max(), 1};
     for (lng x : signed_values) { for (lng y : signed_values) { for (lng z : signed_values) { sums(vector<lng>{x, y, z}, true); subsequences(vector<lng>{x, y, z}, vector<lng>{z, y, x}); } } }
     for (ulng x : unsigned_values) { for (ulng y : unsigned_values) { for (ulng z : unsigned_values) { sums(vector<ulng>{x, y, z}, true); subsequences(vector<ulng>{x, y, z}, vector<ulng>{z, y, x}); } } }
+    context = "legacy kadane cases";
+    checkEqual(maximumSubarray(vector<int>{}).sum, 0, "legacy kadane empty result is the absent sum");
+    checkEqual(maximumSubarray(vector<ulng>{std::numeric_limits<ulng>::max()}).sum, lll(std::numeric_limits<ulng>::max()), "legacy kadane overflow is exact");
     rectangle(vector<vector<ulng>>(3, vector<ulng>(4, std::numeric_limits<ulng>::max())));
     rectangle(vector<vector<lng>>(4, vector<lng>(3, std::numeric_limits<lng>::min())));
     context = "generic comparator equivalence";
@@ -268,7 +268,6 @@ int main(int argc, char **argv) {
             else if (p == "bad-k") { heavyHitters(vector<int>{}, 0); }
             else if (p == "unsorted") { sortedPairSum(vector<int>{2, 1}, 3); }
             else if (p == "average-length") { maximumAverageSubarray(vector<int>{1}, 0); }
-            else if (p == "legacy-overflow") { kadane(vector<ulng>{std::numeric_limits<ulng>::max()}); }
             return 0;}}
     std::mt19937_64 rng(seed); int limit = mode == "quick" ? 4 : mode == "full" ? 7 : 8;
     int arrays = 0;

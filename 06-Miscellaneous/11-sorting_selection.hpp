@@ -95,23 +95,13 @@ void radixSort(vector<T> &a, Key key = {}) {
             out[counts[id]++] = std::move(a[i]);}
         a.swap(out);}}
 
-// T: O(n * log(n + 1)) moves worst case (O(n) with a full buffer), M: O(n); n predicate calls, returns the first false index.
-template<typename T, typename Pred>
-int stablePartition(vector<T> &a, Pred pred) {
-    assert(a.size() <= size_t(INT_MAX));
-    return int(std::stable_partition(a.begin(), a.end(), pred) - a.begin());}
 // T: O(n), M: O(1); returns {lt, gt}: [0, lt) before pivot, [lt, gt) equivalent, [gt, n) after, order within groups unspecified.
 template<typename T, typename Compare = std::less<T>>
 pair<int, int> threeWayPartition(vector<T> &a, T pivot, Compare cmp = {}) {
     assert(a.size() <= size_t(INT_MAX));
     return sorting_detail::partition(a, 0, int(a.size()), pivot, cmp);}
 
-// T: O(n * log(n + 1)) worst case (O(n) on average), M: O(1); 0 <= k < n, returns a copy of rank k, a partitioned around k.
-template<typename T, typename Compare = std::less<T>>
-T quickSelect(vector<T> &a, int k, Compare cmp = {}) {
-    assert(a.size() <= size_t(INT_MAX) && 0 <= k && size_t(k) < a.size());
-    std::nth_element(a.begin(), a.begin() + k, a.end(), cmp); return a[k];}
-// T: O(n) worst case, M: O(log(n + 1)); same contract as quickSelect with groups of five and a three-way split.
+// T: O(n) worst case, M: O(log(n + 1)); 0 <= k < n, returns a copy of rank k, a partitioned around k; groups of five, three-way split.
 template<typename T, typename Compare = std::less<T>>
 T medianOfMedians(vector<T> &a, int k, Compare cmp = {}) {
     assert(a.size() <= size_t(INT_MAX) && 0 <= k && size_t(k) < a.size());

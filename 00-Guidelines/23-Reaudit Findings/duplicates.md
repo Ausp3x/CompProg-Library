@@ -222,14 +222,6 @@ Pruned 2026-10-12.
 | `answer(a…)` | `50-interactive.hpp:35-38` | `writeLine` plus flush | keep | named special case, unbudgeted | — | — |
 | `Dice::top()` … `bottom()` | `51-grid_utilities.hpp:59-64` | `d.f[Dice::TOP]` … | keep | accessors of a public data member (as `size()`, `val()`) | — | — |
 
-## P014 — 06-Miscellaneous — sequence algorithms, interval algorithms, offline queries, sorting selection (verified)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `kadane` | `08-sequence_algorithms.hpp:41-45` | `maximumSubarray(a).sum` | remove | another name, projection, narrowing | `08-…_tester.cpp:52-54,287`; probe `legacy-overflow` | `Docs/08-sequence_algorithms.md:17,19,77,123`; `Docs/00-notes.md:61,115,126`; ledgers |
-| `stablePartition` | `11-sorting_selection.hpp:99-102` | `std::stable_partition(…) - a.begin()` | remove | one `std::` call under another name | `11-…_tester.cpp:80,163,192,218` | none |
-| `quickSelect` | `11-sorting_selection.hpp:109-113` | `std::nth_element(…)` then `a[k]` | remove | one `std::` call under another name | `11-…_tester.cpp:61,164,172,195,219`; probes `select-*` (:272-274) | none |
-
 ## P016 — 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength (verified)
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |

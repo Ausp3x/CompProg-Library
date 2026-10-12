@@ -14,9 +14,9 @@ These are plain aggregates. `exists()` is false exactly for an absent optimum (`
 
 `checkedSize` asserts `n < INT_MAX`. `checkInteger` rejects non-integral or wider-than-64-bit sum and weight types at compile time. `maximum(n, get, empty)` returns the best nonempty `[l, r)` by prefix difference. With `empty`, it starts from `[0, 0)` and only a strictly larger sum replaces it. `restore` follows a predecessor array.
 
-### `maximumSubarray(a, allow_empty = false)` and `kadane(a)`
+### `maximumSubarray(a, allow_empty = false)`
 
-This returns the best nonempty `[l, r)`. `n = 0` is absent unless `allow_empty` adds `[0, 0)`, which applies to every `n`. An all-negative nonempty optimum is a valid negative answer. Sums are exact in `lll`: the inputs are at most 64-bit values, `n < 2^31`, so `|sum| < 2^95`. `kadane` is the legacy API. It returns `0` for `n = 0` and otherwise the nonempty optimum, and asserts that the optimum fits `lng`. Correctness: the best nonempty subarray ending at `r` is `prefix[r]` minus the smallest earlier prefix.
+This returns the best nonempty `[l, r)`. `n = 0` is absent unless `allow_empty` adds `[0, 0)`, which applies to every `n`. An all-negative nonempty optimum is a valid negative answer. Sums are exact in `lll`: the inputs are at most 64-bit values, `n < 2^31`, so `|sum| < 2^95`. Correctness: the best nonempty subarray ending at `r` is `prefix[r]` minus the smallest earlier prefix.
 
 ### `boundedMaximumSubarray(a, lo, hi)`
 
@@ -68,13 +68,19 @@ Both are verified. `majorityElement` returns Boyer–Moore `{representative inde
 
 Correctness: Boyer–Moore cancels pairs of different classes and Misra–Gries groups of `k` distinct classes. At most `floor(n / k)` groups can be cancelled, so any class above the threshold survives, and the second pass makes both answers exact. Across decrement scans every counter unit visited was created earlier, giving linear total work.
 
+### Legacy mapping
+
+| Removed (prune, 2026-10-13) | Replacement |
+|---|---|
+| `kadane(a)` | `maximumSubarray(a).sum`, an exact `lll`: `0` for `n = 0` (the absent sum), with no `lng` fit assert |
+
 ## Feature-to-test map
 
 Every oracle is independent of the implementation and uses non-removable checks. Tests run in the optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (the last only in full and stress). Assertion probes run as SIGABRT subprocesses in the checked build.
 
 | Operation | Oracle and cases |
 |---|---|
-| `maximumSubarray`, `kadane`, `boundedMaximumSubarray`, `circularMaximumSubarray` | Every subinterval and circular window enumerated for all ternary arrays of length ≤ 7 (full) and 350 random arrays; every `(lo, hi)` up to `n + 1` and `hi = INT_MAX`; signed/unsigned 64-bit extremes; witnesses re-summed; legacy fit assert |
+| `maximumSubarray`, `boundedMaximumSubarray`, `circularMaximumSubarray` | Every subinterval and circular window enumerated for all ternary arrays of length ≤ 7 (full) and 350 random arrays; every `(lo, hi)` up to `n + 1` and `hi = INT_MAX`; signed/unsigned 64-bit extremes; witnesses re-summed; the removed `kadane` cases: sum 0 for empty input and the exact `2^64 - 1` it rejected |
 | `maximumSubrectangle` | Every rectangle of all `±1` matrices with dimensions up to 3x3 and random matrices up to 5x6, both orientations; full-width magnitudes; ragged assert |
 | `maximumAverageSubarray` | Every window of length ≥ `lo` for each `lo` in `[1, n + 1]`, compared as exact fractions; witness re-summed; absence for `lo > n`; full-width 64-bit triples; large: increasing array's last window, constant array; `lo = 0` assert |
 | `increasingSubsequenceLengths` | Subset-mask enumeration gives the longest chain ending at each index; equal-length pairs checked as dual chains; strict and non-strict, reversed and equivalence comparators, strings |
@@ -92,18 +98,18 @@ Mutation probes (2026-10-08, quick mode) detected changes to the hull pop, lengt
 
 ## Commands and results
 
-GCC 16.2.1 20260810, GCC 14.4.1 20260915, Python 3.14.7, Linux x86-64, i9-11900H, 2026-10-12, after removing the unused prefix-sum and monotone-stack includes and the tester's checks of those Data Structures headers (their own suites `02-Data Structures/05` and `08` test them).
+P014 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H.
 
-- Quick: `python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode quick --seed 1`: PASS, 2 configurations, 10 probes.
+- Quick: `python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode quick --seed 1`: PASS, 2 configurations, 9 probes.
 - Full: `python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode full --seed 1`: PASS (table below).
 - Floor: `CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode full --seed 1`: PASS in all three configurations with every assertion probe.
-- `python3 '96-Local Testing/02-integration.py'`: PASS, 136 standalone and aggregate headers, scalar and available AVX2 multi-TU builds, workspace; with `--sanitizers`: PASS, sanitizer self-tests included.
+- `python3 '96-Local Testing/02-integration.py'`: PASS, 135 standalone and aggregate headers, scalar and available AVX2 multi-TU builds, workspace.
 - `python3 '96-Local Testing/03-consistency.py'`: no errors; `--braces` on the header and its C++ tester: no violations.
 - `g++ -std=gnu++20 -Wall -Wextra -Wconversion -fsyntax-only` and the same with `g++-14` on the tester: no warnings.
 
-| Suite | Full, seed 1 (optimized, checked, ASan/UBSan) | Stress, seed 3, one round (same three) | Probes |
-|---|---|---|---|
-| `08-sequence_algorithms` | PASS in 85 s (g++) and 86 s (g++-14): 3280 exhaustive ternary arrays (length ≤ 7), 350 random rounds, rectangles ≤ 3x3, large n = 100000 | PASS (peak 714 MB): 9841 arrays (length ≤ 8), 1800 rounds, n = 500000 | 10 |
+| Suite | Full, seed 1 (optimized, checked, ASan/UBSan) | Probes |
+|---|---|---|
+| `08-sequence_algorithms` | PASS in 54 s (g++, peak 712 MB) and 55 s (g++-14, peak 719 MB): 3280 exhaustive ternary arrays (length ≤ 7), 350 random rounds, rectangles ≤ 3x3, large n = 100000 | 9 |
 
 ## Benchmarks
 
@@ -119,7 +125,7 @@ The code was written independently from the recurrences and proofs in the packag
 - Comparator, callback and window-validity obligations are the caller's responsibility and are not asserted.
 - Checked builds cap the large sequence fixtures (and the interval fixtures) at 2000, because debug-STL partition checks make repeated `lower_bound` calls linear.
 - GCC 14.2 exactly and Codeforces' Windows MSYS2 build were not run; the code uses no Windows-sensitive types or POSIX calls.
-- Legacy `OLD/Team Notebook/src/misc/old_kadane.cpp` is accounted for by `kadane`.
+- Legacy `OLD/Team Notebook/src/misc/old_kadane.cpp` is accounted for by `maximumSubarray(a).sum` (Legacy mapping).
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): rotation and all-range inversions; subarray-sum counting; three- and four-sum. Value-distinct LIS counts, all-LIS enumeration and subcubic rectangle methods remain unowned research items.
 
 ## History
@@ -127,3 +133,5 @@ The code was written independently from the recurrences and proofs in the packag
 - 2026-09-28: first implementation and audit (MI03, P014); full suite passed.
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes; re-audit then added `maximumAverageSubarray`, `mex`, `increasingSubsequenceLengths`, `countIncreasingSubsequences` and `adjacentSwapDistance` (`/reaudit-review` findings 2, 3, 6–8, 10–12, 15, 17 fixed).
 - 2026-10-08: re-audit additions verified: full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.
+- 2026-10-12: unused prefix-sum and monotone-stack includes removed (and their tester checks); full suite seed 1 passed on g++ and g++-14, stress seed 3 passed.
+- 2026-10-13: prune, removed `kadane` (cases moved to `maximumSubarray`); full suite passed on g++ and g++-14.
