@@ -31,13 +31,10 @@ namespace {
                 string range = "(" + show(l) + "," + show(r) + ")";
                 checkEqual(t.query(l, r), low, "query" + range);
                 checkEqual(t.fold(l, r), low, "fold" + range);
-                checkEqual(t.queryFast(l, r - 1), low, "inclusive queryFast" + range);
-                checkEqual(t.querySlow(l, r - 1), low, "inclusive querySlow" + range);
                 checkEqual(mx.query(l, r), high, "maximum query" + range);
                 if (sums) {
                     total += a[r - 1];
-                    checkEqual(sum.fold(l, r), total, "associative sum fold" + range);
-                    checkEqual(sum.querySlow(l, r - 1), total, "inclusive sum querySlow" + range);}}}
+                    checkEqual(sum.fold(l, r), total, "associative sum fold" + range);}}}
         Table copied = t, moved = std::move(copied);
         if (n) { checkEqual(moved.query(0, n), *std::min_element(a.begin(), a.end()), "copy/move"); }
         else {
@@ -122,7 +119,6 @@ namespace {
                 for (int r = l + 1; r <= n; ++r) {
                     joined += a[r - 1]; string range = "(" + show(l) + "," + show(r) + ")";
                     checkEqual(text.fold(l, r), joined, "ordered concatenation" + range);
-                    checkEqual(text.querySlow(l, r - 1), joined, "inclusive concatenation" + range);
                     for (int x = 0; x < 3; ++x) {
                         int result = x;
                         for (int i = l; i < r; ++i) { result = affine[i].eval(result); }
@@ -213,10 +209,7 @@ namespace {
         else if (name == "fold-empty") { (void)t.fold(0, 0); }
         else if (name == "fold-negative") { (void)t.fold(-1, 2); }
         else if (name == "fold-end") { (void)t.fold(0, 4); }
-        else if (name == "fast-reversed") { (void)t.queryFast(2, 1); }
-        else if (name == "fast-end") { (void)t.queryFast(0, 3); }
-        else if (name == "slow-reversed") { (void)t.querySlow(2, 1); }
-        else if (name == "slow-end") { (void)t.querySlow(0, 3); }
+        else if (name == "fold-reversed") { (void)t.fold(2, 1); }
         else if (name == "empty-table") { Table e(vector<lng>{}, Minimum{}); (void)e.query(0, 1); }
         else if (name == "grid-empty-rows") { SparseTable2D g(vector<vector<lng>>{{1, 2}, {3, 4}}, Minimum{}); (void)g.query(1, 0, 1, 2); }
         else if (name == "grid-empty-columns") { SparseTable2D g(vector<vector<lng>>{{1, 2}, {3, 4}}, Minimum{}); (void)g.query(0, 1, 2, 1); }

@@ -4,7 +4,7 @@ Wrappers and second implementations under `00-Guidelines/03-cpp.md`, One API per
 
 ## Recorded decisions
 
-Decided by the user from 2026-10-10 to 2026-10-12; binding, and only the user changes them.
+Decided by the user from 2026-10-10 to 2026-10-13; binding, and only the user changes them.
 
 ### Changes
 
@@ -37,6 +37,7 @@ Items a reader could mistake for duplicates.
 | P007 | 2D `angleApprox` | Named special case (unsigned angle; one name for 2D and 3D) |
 | P006 | `maxZeroSubmatrix` | Larger domain: any nonzero cell blocks; `largestBinaryRectangle` asserts 0/1 |
 | P006 | `SqrtDecomp::opeUpdate`, `SparseTable::operator<<` | Only form |
+| P006 | `SqrtDecomp::rebuild` | Decided 2026-10-13: larger domain; resets in place with the stored `id` and `f`, while assigning a new object needs an assignable `F`, which a capturing lambda is not |
 | P010 | `findNegativeCycle`, `bfsShortestPaths` | Named special case (all-vertex seeding); BFS form of `ShortestPathResult` |
 | P011 | `lca_detail::Forest` inclusive `t_in`/`t_out` | Only form |
 | P011 | `functionalOrbit`, `condensationDag` | Different domain (walks that stop); replacement differs in weights, order and memory |
@@ -121,16 +122,14 @@ Pruned 2026-10-12.
 
 ## P006 — 02-Data Structures — dsu, fenwick, segmenttree, sparsetable, prefix sum, sqrt decomposition, ordered set, monotone stack (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `add1`, `prefixSum1`, `sum1`, `lowerBound1` | `02-fenwick.hpp:72-75` | `add(i - 1, x)`, `prefixSum(r)`, `sum(l - 1, r)`, `lowerBound(x)` (n when absent) | remove | index base | `02-fenwick_tester.cpp:34,37,47,77,101,163`; probes `add1-*`, `sum1-*` (:202-206) | row 02; `Docs/00-notes.md:15`; `Docs/02-fenwick.md` |
-| `queryFast`, `querySlow` | `04-sparsetable.hpp:29,39` | `query(l, r + 1)`, `fold(l, r + 1)` | remove | closed range | `04-sparsetable_tester.cpp:34,35,40,125`; probes `fast-*`, `slow-*` (:216-219) | row 04; `Docs/00-notes.md:15`; `Docs/04-sparsetable.md` |
-| `setUpdate` | `06-sqrt_decomposition.hpp:29` | `set(i, x)` | remove | another name | `06-sqrt_decomposition_tester.cpp:60,80`; probe `generic-setupdate-end` (:183) | row 06; `Docs/06-sqrt_decomposition.md` |
-| `rebuild` of `PrefixSum`, `PrefixSum2D`, `DifferenceArray`, `DifferenceArray2D`, `SqrtRangeSum` | `05-prefix_sum.hpp:23,46,67,100`; `06-sqrt_decomposition.hpp:58` | `x = Type(a)`; the `SqrtRangeSum` body moves into its constructor | remove | reconstruction under another name (`Docs/00-notes.md:59`) | `05-prefix_sum_tester.cpp:40,43,77,80` | none |
 | Fenwick `lowerBound`, `upperBound`, `descend` | `02-fenwick.hpp:63-70` | `maxRight(0, pred)` | keep | named special case; larger domain (`x <= 0`); 11% faster (`Docs/02-fenwick.md`) | — | `06-Miscellaneous/07-permutation.hpp:89,181` |
 | `SegmentTree::apply` | `03-segmenttree.hpp:35` | `set(i, op(get(i), x))` | keep | as the recorded keep `SqrtDecomp::opeUpdate` | — | — |
-| `DifferenceArray(2D)::clear` | `05-prefix_sum.hpp:68,101` | reconstruction | keep | named special case, in place | — | — |
-| braced-list constructors | `02:18`, `03:23`, `05:21,65`, `06:17,57` | vector constructors | keep | without them `Fenwick<lng> f{7}` picks the size constructor (`Docs/00-notes.md:79`) | — | — |
+| `DifferenceArray(2D)::clear` | `05-prefix_sum.hpp:63,95` | reconstruction | keep | named special case, in place | — | — |
+| braced-list constructors | `02:18`, `03:23`, `05:21,61`, `06:17,61` | vector constructors | keep | without them `Fenwick<lng> f{7}` picks the size constructor (`Docs/00-notes.md:79`) | — | — |
 | `CoordinateCompression::decode` | `07-ordered_set.hpp:41` | `*findByOrder(i)` | keep | named inverse of `encode`; replaces P013's `value` | — | — |
 | `previousGreater`, `nextGreater`, `slidingMaximum` | `08-monotone_stack.hpp:27-31,47-48` | the smaller/minimum forms with `std::greater` | keep | named special cases | — | — |
 

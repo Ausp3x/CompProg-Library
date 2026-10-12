@@ -57,7 +57,6 @@ void genericExhaustive() {
                 verifyGeneric(zero,vector<lng>(n),lng(0),std::plus<lng>{});
                 for (int i = 0; i < n; ++i) { for (lng x : {-2,0,2}) {
                     auto e = d; auto v = a; v[i] = x; e.set(i,x); verifyGeneric(e,v,lng(0),std::plus<lng>{});
-                    e = d; e.setUpdate(i,x); verifyGeneric(e,v,lng(0),std::plus<lng>{});
                     e = d; v = a; v[i] += x; e.opeUpdate(i,x); verifyGeneric(e,v,lng(0),std::plus<lng>{});}}
                 auto copy = d; SqrtDecomp<lng> moved(std::move(copy)); verifyGeneric(moved,a,lng(0),std::plus<lng>{});
                 copy = d; verifyGeneric(copy,a,lng(0),std::plus<lng>{});
@@ -77,7 +76,7 @@ void noncommutative() {
         Join op{reverse_order}; SqrtDecomp<string,Join> d(a,b,"",op); verifyGeneric(d,a,string{},op);
         for (int i = 0; i < n; ++i) {
             d.opeUpdate(i,"Z"); a[i] = op(a[i],"Z"); verifyGeneric(d,a,string{},op);
-            d.setUpdate(i,"X"); a[i] = "X"; verifyGeneric(d,a,string{},op);}
+            d.set(i,"X"); a[i] = "X"; verifyGeneric(d,a,string{},op);}
         d.rebuild(vector<string>{"ab","c","de"},2); verifyGeneric(d,vector<string>{"ab","c","de"},string{},op);}}}
     cout << "PASS sqrt noncommutative/stateful fold/rebuild\n";}
 void lazyExhaustive() {
@@ -125,16 +124,16 @@ void randomCases() {
             check(d.sum(ql,qr),accumulate(a.begin()+ql,a.begin()+qr,lng(0)),"random sum("+show(ql)+","+show(qr)+")");
             if (operation%19 == 0) { verifyLazy(d,a); }}
         auto copy = d; verifyLazy(copy,a); auto moved = std::move(copy); verifyLazy(moved,a); verifyLazy(d,a);
-        copy = d; copy.rebuild(vector<lng>{3,5,1,7},3); verifyLazy(copy,vector<lng>{3,5,1,7});
-        copy.rebuild({}); verifyLazy(copy,vector<lng>{});}
-    cout << "PASS sqrt random vector oracle/copy/move/rebuild trials=" << trials << '\n';}
+        copy = d; verifyLazy(copy,a); copy = SqrtRangeSum<lng>(vector<lng>{3,5,1,7},3); verifyLazy(copy,vector<lng>{3,5,1,7});
+        copy = SqrtRangeSum<lng>(vector<lng>{}); verifyLazy(copy,vector<lng>{});}
+    cout << "PASS sqrt random vector oracle/copy/move/reconstruction trials=" << trials << '\n';}
 void regressions() {
     input.clear(); history.clear(); context = "lazy order/alias/wide/modular regressions";
     for (int b : widths(5)) {
         SqrtRangeSum<lng> d(vector<lng>{1,2,3,4,5},b);
         d.assign(0,5,3); d.multiply(0,5,2); d.add(1,4,1); verifyLazy(d,vector<lng>{6,7,7,7,6});
         d.affine(0,5,-1,2); d.set(1,100); verifyLazy(d,vector<lng>{-4,100,-5,-5,-4});
-        d.rebuild(d.values(),b); verifyLazy(d,vector<lng>{-4,100,-5,-5,-4});
+        d = SqrtRangeSum<lng>(d.values(),b); verifyLazy(d,vector<lng>{-4,100,-5,-5,-4});
         d.assign(0,5,d.get(1)); verifyLazy(d,vector<lng>(5,100));}
     SqrtRangeSum<lng> zero(7,3); verifyLazy(zero,vector<lng>(7));
     zero.affine(0,7,2,3); zero.affine(0,7,zero.lazy_mul[0],zero.lazy_add[0]); verifyLazy(zero,vector<lng>(7,9));
@@ -180,7 +179,6 @@ int main(int argc, char **argv) {
         else if (invalid == "generic-get-negative") { g.get(-1); }
         else if (invalid == "generic-get-end") { g.get(2); }
         else if (invalid == "generic-set-end") { g.set(2,1); }
-        else if (invalid == "generic-setupdate-end") { g.setUpdate(2,1); }
         else if (invalid == "generic-ope-end") { g.opeUpdate(2,1); }
         else if (invalid == "generic-query-negative") { g.query(-1,1); }
         else if (invalid == "generic-query-reversed") { g.query(1,0); }
@@ -196,7 +194,7 @@ int main(int argc, char **argv) {
         else if (invalid == "lazy-affine-negative") { d.affine(-1,1,2,3); }
         else if (invalid == "lazy-affine-reversed") { d.affine(1,0,2,3); }
         else if (invalid == "lazy-affine-end") { d.affine(0,3,2,3); }
-        else if (invalid == "lazy-rebuild-block") { d.rebuild({},-1); }
+        else if (invalid == "lazy-vector-negative-block") { SqrtRangeSum<lng> bad(vector<lng>{},-1); }
         else { return 2; }
         cerr << "precondition did not assert\n"; return 1;}
     if (mode != "quick" && mode != "full" && mode != "stress") { return 2; }

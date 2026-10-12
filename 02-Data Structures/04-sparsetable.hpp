@@ -26,8 +26,7 @@ struct SparseTable {
         assert(0 <= l && l < r && r <= n);
         int i = std::bit_width(uint(r - l)) - 1;
         return f(v[i][l], v[i][r - (1 << i)]);}
-    T queryFast(int l, int r) const { assert(0 <= l && l <= r && r < n); return query(l, r + 1); }
-    // Q: O(log(n + 1)); fold needs only associativity, querySlow is its inclusive [l, r] form.
+    // Q: O(log(n + 1)); fold needs only associativity.
     T fold(int l, int r) const {
         assert(0 <= l && l < r && r <= n);
         int i = std::bit_width(uint(r - l)) - 1;
@@ -36,7 +35,6 @@ struct SparseTable {
             i = std::bit_width(uint(r - l)) - 1;
             acc = f(acc, v[i][l]); l += 1 << i;}
         return acc;}
-    T querySlow(int l, int r) const { assert(0 <= l && l <= r && r < n); return fold(l, r + 1); }
 
     // T: O(n * log(n + 1)); legacy diagnostic format with inclusive blocks.
     friend ostream &operator<<(ostream &os, const SparseTable &a) {

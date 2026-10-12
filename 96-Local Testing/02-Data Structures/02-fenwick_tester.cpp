@@ -31,10 +31,9 @@ void verify(const Fenwick<lng> &f, const vector<lng> &a) {
     for (int i = 0; i < n; ++i) { p[i+1] = p[i]+a[i]; }
     for (int r = 0; r <= n; ++r) {
         check(f.prefixSum(r),p[r],"prefixSum("+std::to_string(r)+")");
-        check(f.prefixSum1(r),p[r],"prefixSum1");
         for (int l = 0; l <= r; ++l) {
             string op = "sum("+std::to_string(l)+","+std::to_string(r)+")";
-            check(f.sum(l,r),p[r]-p[l],op); check(f.sum1(l+1,r),p[r]-p[l],op+" one-based");}}}
+            check(f.sum(l,r),p[r]-p[l],op);}}}
 int search(const vector<lng> &a, lng target) {
     if (target <= 0) { return 0; }
     lng sum = 0;
@@ -44,7 +43,6 @@ void verifySearch(const Fenwick<lng> &f, const vector<lng> &a, lng target) {
     int expected = search(a,target);
     string op = "lowerBound("+std::to_string(target)+")";
     check(f.lowerBound(target),expected,op);
-    check(f.lowerBound1(target),expected == int(a.size()) ? 0 : expected+1,op+" one-based");
     int n = int(a.size()), upper = 0;
     for (lng sum = 0; upper < n && sum + a[upper] <= target; ++upper) { sum += a[upper]; }
     check(f.upperBound(target),target < 0 ? 0 : upper,"upperBound("+std::to_string(target)+")");}
@@ -74,7 +72,7 @@ void exhaustive() {
             verify(f,a); verify(g,a);
             for (int i = 0; i < n; ++i) { for (lng delta : {-2,0,2}) {
                 auto b = a; auto h = f; b[i] += delta; history = {{i,delta}};
-                h.add(i,delta); verify(h,b); h = f; h.add1(i+1,delta); verify(h,b);
+                h.add(i,delta); verify(h,b);
                 b[i] = delta; h = f; h.set(i,delta); verify(h,b);}}}}
     cout << "PASS Fenwick exhaustive signed vectors n<=" << limit << '\n';
     limit = mode == "quick" ? 4 : 7;
@@ -98,7 +96,7 @@ void randomCases() {
         for (int op = 0; op < 300 && n; ++op) {
             int i = int(rng()%n); lng delta = lng(rng()%2001)-1000;
             history.push_back({i,delta}); a[i] += delta;
-            if (op&1) { f.add1(i+1,delta); } else { f.add(i,delta); }
+            f.add(i,delta);
             int l = int(rng()%(n+1)), r = int(rng()%(n+1)); if (l > r) { swap(l,r); }
             lng sum = accumulate(a.begin()+l,a.begin()+r,lng(0));
             check(f.sum(l,r),sum,"random sum("+std::to_string(l)+","+std::to_string(r)+")");}
@@ -160,7 +158,7 @@ void typeCases() {
     if (dyadic.sum(1,3) != 1.5 || dyadic.lowerBound(1.5) != 1) { fail("dyadic exact sums/search","1.5,1","wrong"); }
     Fenwick<lng> alias(vector<lng>{2,3,4,5});
     alias.add(0,alias.v[0]); verify(alias,vector<lng>{4,3,4,5});
-    alias.add1(2,alias.v[1]); verify(alias,vector<lng>{4,10,4,5});
+    alias.add(1,alias.v[1]); verify(alias,vector<lng>{4,10,4,5});
     Fenwick<lng> empty; check(empty.n,0,"default empty"); verify(empty,{}); verifySearch(empty,{},1); verifyPredicates(empty,{},0);
     vector<lng> skip(17); skip[0] = skip[1] = skip[16] = 1; Fenwick<lng> sf(skip);
     check(sf.maxRight(17,[](lng s) { return s == 0; }),17,"maxRight skips cells before l");
@@ -199,11 +197,6 @@ int main(int argc, char **argv) {
         else if (invalid == "sum-negative") { f.sum(-1,1); }
         else if (invalid == "sum-reversed") { f.sum(1,0); }
         else if (invalid == "sum-end") { f.sum(0,3); }
-        else if (invalid == "add1-zero") { f.add1(0,1); }
-        else if (invalid == "add1-end") { f.add1(3,1); }
-        else if (invalid == "sum1-zero") { f.sum1(0,1); }
-        else if (invalid == "sum1-reversed") { f.sum1(2,0); }
-        else if (invalid == "sum1-end") { f.sum1(1,3); }
         else if (invalid == "get-end") { f.get(2); }
         else if (invalid == "set-end") { f.set(2,1); }
         else if (invalid == "max-right-end") { f.maxRight(3,[](lng) { return true; }); }

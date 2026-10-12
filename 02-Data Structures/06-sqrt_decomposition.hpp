@@ -26,7 +26,6 @@ struct SqrtDecomp {
     vector<T> values() const { return v; }
 
     void set(int i, T x) { assert(0 <= i && i < n); v[i] = std::move(x); pull(i / m); }
-    void setUpdate(int i, T x) { set(i, std::move(x)); }
     void opeUpdate(int i, T x) { assert(0 <= i && i < n); v[i] = f(v[i], x); pull(i / m); }
 
     T query(int l, int r) const {
@@ -52,15 +51,14 @@ struct SqrtRangeSum {
     int n = 0, m = 1;
     vector<T> v, blks, lazy_mul, lazy_add;
 
-    explicit SqrtRangeSum(int N = 0, int B = 0) { assert(N >= 0); rebuild(vector<T>(N, T(0)), B); }
-    explicit SqrtRangeSum(vector<T> a, int B = 0) { rebuild(std::move(a), B); }
-    SqrtRangeSum(std::initializer_list<T> a, int B = 0) : SqrtRangeSum(vector<T>(a), B) {}
-    void rebuild(vector<T> a, int B = 0) {
+    explicit SqrtRangeSum(int N = 0, int B = 0) : SqrtRangeSum(vector<T>(max(N, 0), T(0)), B) { assert(N >= 0); }
+    explicit SqrtRangeSum(vector<T> a, int B = 0) {
         assert(a.size() <= size_t(INT_MAX) && B >= 0);
         n = int(a.size()); m = B ? B : max(1, int(std::sqrt(n))); v = std::move(a);
         int count = n / m + (n % m != 0);
         blks.assign(count, T(0)); lazy_mul.assign(count, T(1)); lazy_add.assign(count, T(0));
         for (int bi = 0; bi < count; ++bi) { pull(bi); }}
+    SqrtRangeSum(std::initializer_list<T> a, int B = 0) : SqrtRangeSum(vector<T>(a), B) {}
 
     // Q: O(1) for get, O(n) for values.
     T get(int i) const { assert(0 <= i && i < n); return lazy_mul[i / m] * v[i] + lazy_add[i / m]; }

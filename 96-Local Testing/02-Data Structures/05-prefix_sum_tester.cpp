@@ -37,10 +37,10 @@ void check1D(const vector<lng> &a) {
             checkEqual(copy.values(), b, "range add(" + show(l) + ',' + show(r) + ',' + show(x) + ')');}}}
     auto copy = p; auto moved = std::move(copy);
     checkEqual(moved.sum(0, n), sum(a, 0, n), "prefix copy/move");
-    p.rebuild({4, -3}); checkEqual(p.sum(0, 2), lng(1), "prefix rebuild");
+    p = PrefixSum<lng>({4, -3}); checkEqual(p.sum(0, 2), lng(1), "prefix reconstruction");
     checkEqual(moved.sum(0, n), sum(a, 0, n), "copy independence");
     auto dm = std::move(d); checkEqual(dm.values(), a, "difference move");
-    d.rebuild({1, -2}); d.clear(); checkEqual(d.values(), vector<lng>({0, 0}), "difference clear/rebuild");}
+    d = DifferenceArray<lng>({1, -2}); d.clear(); checkEqual(d.values(), vector<lng>({0, 0}), "difference clear/reconstruction");}
 void arrays() {
     int limit = mode == "quick" ? 4 : mode == "full" ? 7 : 8;
     for (int n = 0, count = 1; n <= limit; ++n, count *= 3) {
@@ -74,10 +74,10 @@ void check2D(const vector<vector<lng>> &a, bool updates) {
                     for (int i = x1; i < x2; ++i) { for (int j = y1; j < y2; ++j) { b[i][j] += value; }}
                     checkEqual(copy.values(), b, "rectangle add" + rect + " delta=" + show(value));}}}}}}
     auto copy = p; auto moved = std::move(copy);
-    p.rebuild({{1, 2}, {-4, 5}}); checkEqual(p.sum(0, 0, 2, 2), lng(4), "2D rebuild");
+    p = PrefixSum2D<lng>(vector<vector<lng>>{{1, 2}, {-4, 5}}); checkEqual(p.sum(0, 0, 2, 2), lng(4), "2D reconstruction");
     checkEqual(moved.sum(0, 0, n, m), sum(a, 0, 0, n, m), "2D copy independence/move");
     auto dm = std::move(d); checkEqual(dm.values(), a, "2D move");
-    d.rebuild({{3}, {-2}}); d.clear(); checkEqual(d.values(), vector<vector<lng>>({{0}, {0}}), "2D clear/rebuild");}
+    d = DifferenceArray2D<lng>(vector<vector<lng>>{{3}, {-2}}); d.clear(); checkEqual(d.values(), vector<vector<lng>>({{0}, {0}}), "2D clear/reconstruction");}
 void matrices() {
     for (int n = 0; n <= 2; ++n) { for (int m = 0; m <= (mode == "quick" ? 2 : 3); ++m) {
         int count = 1; for (int i = 0; i < n * m; ++i) { count *= 3; }
@@ -106,9 +106,9 @@ void randomized() {
             PrefixSum2D<lng> p(a);
             if (!n) { p = PrefixSum2D<lng>(n, m); }
             checkEqual(p.sum(x1, y1, x2, y2), sum(a, x1, y1, x2, y2), "random rectangle");
-            if (op % 17 == 0 && n) { d.rebuild(a); }
+            if (op % 17 == 0 && n) { d = DifferenceArray2D<lng>(a); }
             if (op % 31 == 0) { auto copy = d; copy.clear(); checkEqual(d.values(), a, "copy independence"); }}}
-    cout << "PASS seeded rectangle histories/rebuild/materialization trials=" << trials << '\n';}
+    cout << "PASS seeded rectangle histories/reconstruction/materialization trials=" << trials << '\n';}
 void boundaries() {
     context = "types/empty dimensions/aliasing"; history.clear();
     PrefixSum<lng> p(vector<lng>{LLONG_MIN, 0, LLONG_MAX});
@@ -133,12 +133,12 @@ void boundaries() {
         checkEqual(zd.values(), vector<vector<lng>>(n, vector<lng>(m)), "empty 2D output");}
     DifferenceArray<lng> alias(vector<lng>{2, 3, 4}); alias.add(0, 2, alias.d[0]);
     checkEqual(alias.values(), vector<lng>({4, 5, 4}), "delta alias");
-    alias.rebuild(alias.d); checkEqual(alias.values(), vector<lng>({4, 1, -1}), "rebuild input alias");
+    alias = DifferenceArray<lng>(alias.d); checkEqual(alias.values(), vector<lng>({4, 1, -1}), "reconstruction from own storage");
     DifferenceArray2D<lng> ad(vector<vector<lng>>{{2, 3}, {4, 6}});
     ad.add(0, 0, 2, 2, ad.d[0][0]); checkEqual(ad.values(), vector<vector<lng>>({{4, 5}, {6, 8}}), "2D delta alias");
-    auto before = ad.d; ad.rebuild(ad.d); checkEqual(ad.values(), before, "2D rebuild input alias");
-    PrefixSum<lng> ap(vector<lng>{1, 2}); auto old = ap.p; ap.rebuild(ap.p);
-    checkEqual(ap.sum(0, 3), sum(old, 0, 3), "prefix rebuild input alias");
+    auto before = ad.d; ad = DifferenceArray2D<lng>(ad.d); checkEqual(ad.values(), before, "2D reconstruction from own storage");
+    PrefixSum<lng> ap(vector<lng>{1, 2}); auto old = ap.p; ap = PrefixSum<lng>(ap.p);
+    checkEqual(ap.sum(0, 3), sum(old, 0, 3), "prefix reconstruction from own storage");
     PrefixSum<lng> single({7}), pair{7, 8}; DifferenceArray<lng> dsingle({7}), dpair{7, 8};
     checkEqual(single.n, 1, "braced singleton prefix size"); checkEqual(single.sum(0, 1), lng(7), "braced singleton prefix");
     checkEqual(pair.sum(0, 2), lng(15), "braced prefix list");

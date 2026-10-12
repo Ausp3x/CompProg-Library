@@ -494,7 +494,7 @@
       "status": "verified",
       "tier": "Basic",
       "issues": [
-        "Historical queryFast requires idempotence; P006 documents that contract and preserves inclusive adapters while adding half-open queries."
+        "Historical queryFast requires idempotence; P006 documents that contract with half-open queries. The inclusive adapters queryFast/querySlow were removed on 2026-10-13 (One API per operation): query(l, r + 1) and fold(l, r + 1)."
       ],
       "body_sha256": "124a3d949f498e54fcd978ded728b01111f47faac69150a0a52fbbab7f8f76fb",
       "body_bytes": 1852,

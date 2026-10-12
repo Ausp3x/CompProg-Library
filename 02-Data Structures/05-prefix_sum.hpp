@@ -20,8 +20,6 @@ struct PrefixSum {
         for (int i = 0; i < n; ++i) { p[i + 1] = p[i] + a[i]; }}
     PrefixSum(std::initializer_list<T> a) : PrefixSum(vector<T>(a)) {}
 
-    void rebuild(const vector<T> &a) { *this = PrefixSum(a); }
-
     T prefixSum(int r) const { assert(0 <= r && r <= n); return p[r]; }
     T sum(int l, int r) const { assert(0 <= l && l <= r && r <= n); return p[r] - p[l]; }
 };
@@ -43,8 +41,6 @@ struct PrefixSum2D {
             T row = T(0);
             for (int j = 0; j < m; ++j) { row += a[i][j]; p[i + 1][j + 1] = p[i][j + 1] + row; }}}
 
-    void rebuild(const vector<vector<T>> &a) { *this = PrefixSum2D(a); }
-
     T prefixSum(int x, int y) const { assert(0 <= x && x <= n && 0 <= y && y <= m); return p[x][y]; }
     T sum(int x1, int y1, int x2, int y2) const {
         assert(0 <= x1 && x1 <= x2 && x2 <= n && 0 <= y1 && y1 <= y2 && y2 <= m);
@@ -64,7 +60,6 @@ struct DifferenceArray {
         for (int i = 1; i < n; ++i) { d[i] = a[i] - a[i - 1]; }}
     DifferenceArray(std::initializer_list<T> a) : DifferenceArray(vector<T>(a)) {}
 
-    void rebuild(const vector<T> &a) { *this = DifferenceArray(a); }
     void clear() { fill(d.begin(), d.end(), T(0)); }
     void add(int l, int r, T x) {
         assert(0 <= l && l <= r && r <= n);
@@ -97,7 +92,6 @@ struct DifferenceArray2D {
                 if (j) { d[i][j] -= a[i][j - 1]; }
                 if (i && j) { d[i][j] += a[i - 1][j - 1]; }}}}
 
-    void rebuild(const vector<vector<T>> &a) { *this = DifferenceArray2D(a); }
     void clear() { for (auto &row : d) { fill(row.begin(), row.end(), T(0)); }}
     void add(int x1, int y1, int x2, int y2, T w) {
         assert(0 <= x1 && x1 <= x2 && x2 <= n && 0 <= y1 && y1 <= y2 && y2 <= m);

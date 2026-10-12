@@ -68,9 +68,4 @@ struct Fenwick {
         for (int d = int(std::bit_floor(uint(n))); d > 0; d >>= 1) {
             if (d <= n - i && below(v[i + d - 1], x)) { x -= v[i + d - 1]; i += d; }}
         return i;}
-
-    void add1(int i, T x) { assert(1 <= i && i <= n); add(i - 1, x); }
-    T prefixSum1(int r) const { return prefixSum(r); }
-    T sum1(int l, int r) const { assert(1 <= l && l - 1 <= r && r <= n); return sum(l - 1, r); }
-    int lowerBound1(T x) const { int i = lowerBound(x); return i == n ? 0 : i + 1; }
 };

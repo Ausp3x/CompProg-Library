@@ -12,7 +12,7 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 
 ## Common contracts
 
-- Canonical indices are zero-based and ranges are half-open; empty ranges return the identity. Legacy inclusive adapters keep their names where they exist (`sum1`, `queryFast`, `querySlow`).
+- Canonical indices are zero-based and ranges are half-open; empty ranges return the identity.
 - State indexing, boundary inclusivity, empty-range identity, key duplicates, signed coordinates, overflow policy and the operation algebra (associativity, identity, action homomorphism, commutativity) for every structure.
 - State static versus online/offline, update/query memory, amortized versus worst-case bounds, and whether balancing is randomized or deterministic. Amortized bounds must be re-proved under persistence and rollback; ephemeral amortization does not transfer.
 - Generic arithmetic must keep every stored value and intermediate representable or be explicitly modular; `lng` is a convenient sum type, not an overflow check.
@@ -91,6 +91,8 @@ Quick modes reduce enumeration lengths/history depths/random counts and run opti
 2026-09-27 (original P006): all eight entries passed `--mode full --seed 20260927` (24 configuration runs, all 100 assertion probes). DS01 completed its full runs and Basic/All multiple-TU check before DS02 implementation began. The per-header full suites supplied the P006 sanitizer checks; unrelated Core sanitizer corpora were not repeated. Integration passed 65 standalone/aggregate headers; consistency passed inventory/batch/package paths, aggregates, source/archive hashes and Markdown links with zero errors. Original archived bytes remain unchanged. Stress mode was available but not run as completion evidence. GCC14 itself, other standard-library versions and other platforms were not executed. No online submissions or acceptance claims were made.
 
 2026-10-07 (re-audit): the 24 confirmed findings in `00-Guidelines/23-Reaudit Findings/p006.md` were fixed or resolved; each per-header document lists the findings that concern it. The feature-map comments at the top of four testers and one benchmark comment line moved to the feature-to-test maps. 112 assertion probes remain, up from 100. `@reviewer` confirmed findings 2–24 fixed and accepted the contract-based resolution of finding 1 after a wording correction; it raised five findings (`SegmentTree::apply` operand order, the Fenwick `maxRight` skip guard, SparseTable2D ragged rows with an empty first row, restated contract comments in the Fenwick and SegmentTree bodies, the Fenwick domain line), all fixed and recorded per header, and accepted one shared complexity line per adjacent function pair. Final full run (seed 20261007): 8 suites x 3 configurations, 4 min 10 s; stress seeds 7 and 8 over two rounds (21 min) before the review fixes; stress seed 9 for the three suites changed by the review. Commands and per-header results are in each per-header document.
+
+2026-10-13 (prune): `add1`, `prefixSum1`, `sum1`, `lowerBound1`, `queryFast`, `querySlow`, `SqrtDecomp::setUpdate` and the `rebuild` methods of `PrefixSum`, `PrefixSum2D`, `DifferenceArray`, `DifferenceArray2D` and `SqrtRangeSum` were removed (`03-cpp.md`, One API per operation); their cases moved to the kept operations and each per-header document maps the removed names. All eight suites passed `--mode full --seed 20261013` on g++ and g++-14 (3 configurations each, 104 assertion probes).
 
 ### Provenance and ownership
 
