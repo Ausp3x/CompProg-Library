@@ -11,7 +11,7 @@ Decided by the user from 2026-10-10 to 2026-10-12; binding, and only the user ch
 - **P010** `04-Graphs/01-graph.hpp` gains two static builders, used by the P010, P011 and P044 removals (run P010 first). Done 2026-10-12.
   - `Graph::fromAdjacency(adj, directed = false)` for `vector<vector<int>>` and for weighted `vector<vector<pair<int, lng>>>` (unweighted entries get weight 1). It has `adj.size()` vertices. Directed: one arc `u -> v` per entry `v` of `adj[u]`. Undirected: the lists must be symmetric as multisets, with equal weights on mirrored entries and a loop listed twice in its own list; each mirrored pair becomes one edge, so parallel edges keep their multiplicity. The symmetry check stays within the O(n + m) build.
   - `Graph::fromMatrix(w, directed = true)` for a square `vector<vector<lng>>`: one arc `u -> v` of weight `w[u][v]` per nonzero entry; undirected requires a symmetric matrix and adds one edge per nonzero entry with `u <= v`.
-- **P044** `04-Graphs/19-max_flow.hpp`: `EdmondsKarp` is removed (its `getMaxFlow` ran Dinic; `augmentFlow` found one BFS path without pushing it). `MaxFlow`, the flow network shared by its algorithms, gains `edmondsKarp(s, t, limit = MAX)` (shortest augmenting paths, O(V * E^2), same limit and resumability contract as `flow`) and `augmentPath(s, t)` (pushes one shortest augmenting path and returns the amount, 0 when `t` is unreachable, O(V + E)). Its row reads `MaxFlow (flow network, signed integer Cap): ... flow (Dinic; limit, resumable), edmondsKarp (limit), augmentPath, capacityScalingDinic (limit), pushRelabel ...`.
+- **P044** `04-Graphs/19-max_flow.hpp`: `EdmondsKarp` is removed (its `getMaxFlow` ran Dinic; `augmentFlow` found one BFS path without pushing it). `MaxFlow`, the flow network shared by its algorithms, gains `edmondsKarp(s, t, limit = MAX)` (shortest augmenting paths, O(V * E^2), same limit and resumability contract as `flow`) and `augmentPath(s, t)` (pushes one shortest augmenting path and returns the amount, 0 when `t` is unreachable, O(V + E)). Its row reads `MaxFlow (flow network, signed integer Cap): ... flow (Dinic; limit, resumable), edmondsKarp (limit), augmentPath, capacityScalingDinic (limit), pushRelabel ...`. Done 2026-10-12.
 - **P013** `06-Miscellaneous/05-binarysearch.hpp` is deleted with its row, tester, evidence document, aggregate includes and plan target; `05-Mathematics/02-search_algorithms.hpp` is the only search header.
 - **P030** row 18 (pinned): `PerSegTree` is a second persistent segment tree beside `PersistentSegmentTree`; its entries leave the row and `PersistentSegmentTree` gains `maxRight`/`minLeft` (from `maxR`/`minL`). `KSPerSegTree::kthMin` leaves the row (`rangeKth`); its `cntEql`, `cntRan`, `kthSum`, `maxLeq`, `minGeq` stay as the only persistent forms.
 - **P047** row 26 (pinned): `OnlineBridges` leaves the row; `IncrementalBridgeConnectivity` gains `connected` (from `findCC`).
@@ -447,12 +447,6 @@ Pruned 2026-10-12.
 | `SWAGStack` | `30-aggregation_queue.hpp:70` | `SWAGDeque` back-only: `pushBack`, `popBack`, `back`, `fold` | keep | constant-factor variant: one array, no extra `op(e(), ·)` per fold (ruling 4) | `30-…_tester.cpp:63-73,103-118,121,129-130,152`; probes `stack-*` | none |
 | 2D point `apply` | `15-segment_tree_2d.hpp:39,153` | `set(i, j, op(get(i, j), x))` | keep | as `SegmentTree::apply` and the recorded `opeUpdate` | — | — |
 | `LazySegmentTreeBeats`; merge-sort-tree `countLess`, `countRange`, `countEqual`, `maxLeq`, `minGeq`, `set` | `14-segtreebeats.hpp:166`; `16-mergesorttree.hpp` | `LazySegmentTree`; one another | keep | larger domain (`fail`); named special cases, cheaper cascades | — | — |
-
-## P044 — 04-Graphs — max flow (verified)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `EdmondsKarp` | `19-max_flow.hpp:229-284` | Changes: `MaxFlow(Graph::fromMatrix(cap))`, `flow`, `minCut`, `minCutEdges`; adds `edmondsKarp`, `augmentPath` | remove | runs Dinic; legacy format; `s == t` clamp | `19-max_flow_tester.cpp:162-206,228`; probes `legacy-*` (:321-325) | ledger note `monolith-map.json:147` |
 
 ## P057 — 05-Mathematics — polynomial algorithms, linear recurrence (verified)
 

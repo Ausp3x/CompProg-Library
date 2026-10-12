@@ -144,7 +144,7 @@
       ],
       "status": "verified",
       "issues": [
-        "P044 replaces the dense Edmonds-Karp with MaxFlow (Dinic, scaling, push-relabel) and keeps EdmondsKarp as a legacy adapter; source features are accounted in verification."
+        "P044 replaces the dense Edmonds-Karp with MaxFlow (Dinic, Edmonds-Karp, scaling, push-relabel); the EdmondsKarp legacy adapter was removed on 2026-10-12 (One API per operation) and maps to MaxFlow(Graph::fromMatrix(cap)) with flow or edmondsKarp, augmentPath, minCut and minCutEdges. Source features are accounted in verification."
       ],
       "source_context": null,
       "tier": "Advanced",

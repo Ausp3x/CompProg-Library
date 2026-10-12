@@ -103,26 +103,30 @@ namespace {
     void engines(const Net &net, lll best) {
         lll cap = std::numeric_limits<Cap>::max(), supply = 0, want = min(best, cap);
         for (auto e : net.es) { supply += (e.u == net.s ? e.cap : 0) + (e.v == net.s ? e.rcap : 0); }
-        for (int engine = 0; engine < 5; ++engine) {
+        const string names[] = {"flow", "capacityScalingDinic", "edmondsKarp"};
+        for (int engine = 0; engine < 7; ++engine) {
             if (engine == 2 && supply > cap) { continue; }
             auto mf = build<Cap>(net);
+            auto run = [&](int k, Cap limit) -> lll { return k == 0 ? mf.flow(net.s, net.t, limit) : k == 1 ? mf.capacityScalingDinic(net.s, net.t, limit) : mf.edmondsKarp(net.s, net.t, limit); };
             if (engine == 0) { equal(want, mf.flow(net.s, net.t), "flow"); }
             if (engine == 1) { equal(want, mf.capacityScalingDinic(net.s, net.t), "capacityScalingDinic"); }
             if (engine == 2) { equal(best, mf.pushRelabel(net.s, net.t), "pushRelabel"); }
-            if (engine >= 3) {
+            if (engine == 3) { equal(want, mf.edmondsKarp(net.s, net.t), "edmondsKarp"); }
+            if (engine >= 4) {
                 Cap limit = Cap(rand(0, min(best + 2, cap)));
-                lll first = engine == 3 ? mf.flow(net.s, net.t, limit) : mf.capacityScalingDinic(net.s, net.t, limit);
-                equal(min(best, lll(limit)), first, "flow limit");
+                lll first = run(engine - 4, limit);
+                equal(min(best, lll(limit)), first, names[engine - 4] + " limit");
                 certify(mf, net, first, false);
-                lll rest = supply <= cap && rng() % 2 ? mf.pushRelabel(net.s, net.t) : engine == 3 ? mf.flow(net.s, net.t, Cap(cap - first)) : mf.capacityScalingDinic(net.s, net.t, Cap(cap - first));
-                equal(want, first + rest, "resume after limit");}
+                lll rest = supply <= cap && rng() % 2 ? mf.pushRelabel(net.s, net.t) : run(engine - 4, Cap(cap - first));
+                equal(want, first + rest, names[engine - 4] + " resume after limit");}
             certify(mf, net, want, want == best);
             if (want == best) { equal(0, mf.flow(net.s, net.t), "flow after maximum adds nothing"); }}}
     void dynamicCase(Net net) {
         auto mf = build<lng>(net);
-        lll value = 0, start = rng() % 4, limit = rand(0, 8);
+        lll value = 0, start = rng() % 6, limit = rand(0, 8);
         value += start == 0 ? mf.flow(net.s, net.t) : start == 1 ? mf.pushRelabel(net.s, net.t)
-            : start == 2 ? mf.flow(net.s, net.t, lng(limit)) : mf.capacityScalingDinic(net.s, net.t, lng(limit));
+            : start == 2 ? mf.flow(net.s, net.t, lng(limit)) : start == 3 ? mf.capacityScalingDinic(net.s, net.t, lng(limit))
+            : start == 4 ? mf.edmondsKarp(net.s, net.t, lng(limit)) : mf.augmentPath(net.s, net.t);
         if (rng() % 3 == 0) { value += mf.pushRelabel(net.s, net.t); }
         int rounds = 1 + int(rng() % 6);
         for (int r = 0; r < rounds; ++r) {
@@ -159,51 +163,66 @@ namespace {
         auto mf = build<lng>(net); ++cases; context = show(net) + " arbitrary flow";
         for (int i = 0; i < int(net.es.size()); ++i) { mf.changeEdge(i, lng(net.es[i].cap), lng(flows[i])); }
         certify(mf, net, value, false); decomposition(mf, net, value);}
-    void legacyCase(const Net &net) {
-        int n = net.n - 1;
-        vector<vector<int>> adj(net.n);
-        vector<vector<lng>> cap(net.n, vector<lng>(net.n));
-        Net simple{net.n, net.s, net.t, {}};
-        for (auto e : net.es) {
-            adj[e.u].push_back(e.v); cap[e.u][e.v] = lng(e.cap);
-            if (rng() % 3 == 0) { adj[e.u].push_back(e.v); }}
-        for (int u = 0; u < net.n; ++u) {
-            for (int v = 0; v < net.n; ++v) {
-                if (std::find(adj[u].begin(), adj[u].end(), v) != adj[u].end()) { simple.es.push_back({u, v, cap[u][v], 0}); }}}
-        lll best = brute(simple);
-        if (best > std::numeric_limits<lng>::max()) { return; }
-        EdmondsKarp ek(n, adj, cap);
-        lng b = ek.augmentFlow(net.s, net.t);
-        vector<int> dist(net.n, -1); vector<int> q{net.s}; dist[net.s] = 0;
+    // One augmentPath call against a BFS over the residual network rebuilt from the edge flows: shortest length, exact bottleneck.
+    template<class Cap>
+    lll augmentStep(MaxFlow<Cap> &mf, const Net &net) {
+        int m = int(net.es.size());
+        vector<lll> before(m);
+        for (int i = 0; i < m; ++i) { before[i] = mf.getEdge(i).flow; }
+        auto residual = [&](int i, bool forward) { return forward ? net.es[i].cap - before[i] : net.es[i].rcap + before[i]; };
+        vector<int> dist(net.n, -1), q{net.s};
+        dist[net.s] = 0;
         for (int i = 0; i < int(q.size()); ++i) {
-            for (auto e : simple.es) {
-                if (e.u == q[i] && e.cap > 0 && dist[e.v] < 0) { dist[e.v] = dist[e.u] + 1; q.push_back(e.v); }}}
-        if (dist[net.t] < 0) { equal(0, b, "augmentFlow no path"); }
-        else {
-            lng low = std::numeric_limits<lng>::max(); int len = 0;
-            for (int v = net.t; v != net.s; v = ek.par[v], ++len) {
-                check(ek.par[v] >= 0 && ek.ocap[ek.par[v]][v] > 0, "augmentFlow parent arc"); low = min(low, ek.ocap[ek.par[v]][v]);}
-            equal(dist[net.t], len, "augmentFlow shortest path");
-            equal(low, b, "augmentFlow bottleneck");}
-        ek.getMinCut(net.s, net.t);
-        equal(best, ek.max_flow, "EdmondsKarp getMaxFlow");
-        equal(0, ek.add_flow, "no augmenting path after getMaxFlow");
-        check(ek.in_S[net.s] && !ek.in_S[net.t], "getMinCut sides");
-        lll cut = 0; vector<pair<int, int>> expected;
-        for (auto e : simple.es) {
-            if (ek.in_S[e.u] && !ek.in_S[e.v]) { cut += e.cap; expected.emplace_back(e.u, e.v); }}
-        equal(best, cut, "cut_set capacity");
-        check(ek.cut_set == expected, "cut_set exact ordered pairs");
-        vector<lll> bal(net.n);
+            for (int j = 0; j < m; ++j) {
+                auto e = net.es[j];
+                if (e.u == q[i] && residual(j, true) > 0 && dist[e.v] < 0) { dist[e.v] = dist[e.u] + 1; q.push_back(e.v); }
+                if (e.v == q[i] && residual(j, false) > 0 && dist[e.u] < 0) { dist[e.u] = dist[e.v] + 1; q.push_back(e.u); }}}
+        lll f = mf.augmentPath(net.s, net.t), low = -1;
+        vector<int> next(net.n, -1);
+        int len = 0;
+        for (int i = 0; i < m; ++i) {
+            lll d = lll(mf.getEdge(i).flow) - before[i];
+            if (d == 0) { continue; }
+            check(d == f || d == -f, "augmentPath moves each path edge by the amount");
+            int x = d > 0 ? net.es[i].u : net.es[i].v, y = d > 0 ? net.es[i].v : net.es[i].u;
+            check(next[x] < 0, "augmentPath leaves each vertex at most once");
+            next[x] = y; ++len;
+            low = low < 0 ? residual(i, d > 0) : min(low, residual(i, d > 0));}
+        if (dist[net.t] < 0) {
+            equal(0, f, "augmentPath without path"); equal(0, len, "augmentPath without path changes no edge");
+            return 0;}
+        vector<char> seen(net.n);
+        int v = net.s;
+        for (int k = 0; k < len && v >= 0 && !seen[v]; ++k) { seen[v] = true; v = next[v]; }
+        check(v == net.t && !seen[v], "augmentPath edges form a simple s-t path");
+        equal(dist[net.t], len, "augmentPath shortest path");
+        equal(low, f, "augmentPath bottleneck");
+        return f;}
+    // Repeated augmentPath, optionally after a limited flow, ends at the maximum flow, also above Cap max.
+    template<class Cap>
+    void augmentCase(const Net &net, lll best) {
+        auto mf = build<Cap>(net);
+        lll value = rng() % 2 ? lll(mf.flow(net.s, net.t, Cap(rand(0, min(best, lll(std::numeric_limits<Cap>::max())))))) : 0;
+        for (lll f = 1; f > 0; value += f) {
+            f = augmentStep(mf, net);
+            certify(mf, net, value + f, false);}
+        equal(best, value, "augmentPath until 0 reaches the maximum flow");
+        certify(mf, net, best, true);}
+    // Dense capacity matrices through Graph::fromMatrix; repeated pairs collapse to one entry, and edge IDs follow row-major order.
+    void matrixCase(const Net &net) {
+        vector<vector<lng>> cap(net.n, vector<lng>(net.n));
+        for (auto e : net.es) { cap[e.u][e.v] = lng(e.cap); }
+        Net simple{net.n, net.s, net.t, {}};
         for (int u = 0; u < net.n; ++u) {
             for (int v = 0; v < net.n; ++v) {
-                equal(lll(ek.ocap[u][v]) + ek.ocap[v][u], lll(ek.ncap[u][v]) + ek.ncap[v][u], "residual pair sum");
-                check(ek.ncap[u][v] >= 0, "residual nonnegative");
-                bal[v] += ek.ocap[u][v] - ek.ncap[u][v];}}
-        for (int v = 0; v < net.n; ++v) {
-            if (v != net.s && v != net.t) { equal(0, bal[v], "legacy residual conservation"); }}
-        equal(best, ek.getMaxFlow(net.s, net.t), "repeated getMaxFlow");
-        equal(0, EdmondsKarp(n, adj, cap).getMaxFlow(net.s, net.s), "legacy s == t");}
+                if (cap[u][v] != 0) { simple.es.push_back({u, v, cap[u][v], 0}); }}}
+        context = show(simple) + " matrix";
+        lll best = brute(simple), top = std::numeric_limits<lng>::max();
+        MaxFlow<lng> mf(Graph::fromMatrix(cap));
+        lll first = augmentStep(mf, simple), rest = rng() % 2 ? mf.flow(net.s, net.t) : mf.edmondsKarp(net.s, net.t);
+        equal(min(best - first, top), rest, "fromMatrix flow after augmentPath");
+        certify(mf, simple, first + rest, first + rest == best);
+        if (first + rest == best) { equal(0, augmentStep(mf, simple), "augmentPath after maximum"); }}
     void graphCase(int n, int m, bool directed) {
         Graph g(n, directed);
         for (int i = 0; i < m; ++i) { g.addEdge(int(rng() % n), int(rng() % n), lng(rng() % 5)); }
@@ -224,11 +243,12 @@ namespace {
             Net net = randomNet(n, m, hi, r % 3 != 0); ++cases;
             context = show(net); lll best = brute(net);
             engines<lng>(net, best); engines<lll>(net, best);
-            if (hi <= 6) { engines<int>(net, best); dynamicCase(net); }
-            if (r % 3 == 0) { context = show(net) + " legacy"; legacyCase(net); }
+            if (hi <= 6) { engines<int>(net, best); dynamicCase(net); augmentCase<int>(net, best); }
+            augmentCase<lng>(net, best);
+            if (r % 3 == 0) { matrixCase(net); }
             if (r % 5 == 0) { graphCase(n, m, r % 2); }
             randomFlowCase();}
-        cout << "PASS random small networks against brute min cut: Dinic, scaling, push-relabel, limits, dynamic, legacy, Graph rounds=" << rounds << '\n';
+        cout << "PASS random small networks against brute min cut: Dinic, scaling, push-relabel, Edmonds-Karp, augmentPath, limits, dynamic, matrix, Graph rounds=" << rounds << '\n';
         int top = mode == "quick" ? 2 : 3, pairs = top * top, total = 1;
         for (int i = 0; i < pairs; ++i) { total *= 3; }
         for (int mask = 0; mask < total; ++mask) {
@@ -258,19 +278,19 @@ namespace {
             Net net = randomNet(n, m, r % 3 == 0 ? 1 : r % 3 == 1 ? 20 : 1000000000, r % 2); ++cases;
             context = "medium round=" + std::to_string(r) + " " + show(net);
             lll value = -1;
-            for (int engine = 0; engine < 4; ++engine) {
+            for (int engine = 0; engine < 5; ++engine) {
                 auto mf = build<lng>(net);
-                lll v = engine == 0 ? mf.flow(net.s, net.t) : engine == 1 ? mf.capacityScalingDinic(net.s, net.t) : mf.pushRelabel(net.s, net.t);
+                lll v = engine == 0 ? mf.flow(net.s, net.t) : engine == 1 ? mf.capacityScalingDinic(net.s, net.t) : engine == 4 ? mf.edmondsKarp(net.s, net.t) : mf.pushRelabel(net.s, net.t);
                 if (engine == 3) { v += mf.pushRelabel(net.s, net.t); }
                 certify(mf, net, v, true);
                 if (value >= 0) { equal(value, v, "engines agree"); }
                 value = v;}}
         cout << "PASS medium certified networks n in [20, 200) rounds=" << rounds << '\n';}
     template<class F>
-    void largeEngines(const Net &net, lll expected, F extra) {
-        for (int engine = 0; engine < 3; ++engine) {
+    void largeEngines(const Net &net, lll expected, F extra, bool ek = true) {
+        for (int engine = 0; engine < 3 + ek; ++engine) {
             auto mf = build<lng>(net);
-            lll v = engine == 0 ? mf.flow(net.s, net.t) : engine == 1 ? mf.capacityScalingDinic(net.s, net.t) : mf.pushRelabel(net.s, net.t);
+            lll v = engine == 0 ? mf.flow(net.s, net.t) : engine == 1 ? mf.capacityScalingDinic(net.s, net.t) : engine == 2 ? mf.pushRelabel(net.s, net.t) : mf.edmondsKarp(net.s, net.t);
             if (expected >= 0) { equal(expected, v, "large engine value"); }
             certify(mf, net, v, true); extra(mf, v);}}
     void largeCases() {
@@ -290,7 +310,7 @@ namespace {
         for (int i = 0; i < k; ++i) { bip.es.push_back({2 * k, i, 1, 0}); bip.es.push_back({k + i, 2 * k + 1, 1, 0}); }
         for (int i = 0; i < 3 * k; ++i) { bip.es.push_back({int(rng() % k), k + int(rng() % k), 1, 0}); }
         context = "unit bipartite k=" + std::to_string(k);
-        largeEngines(bip, -1, [](MaxFlow<lng> &, lll) {});
+        largeEngines(bip, -1, [](MaxFlow<lng> &, lll) {}, false);
         int d = n / 4; Net dead{d + 3, 0, d + 2, {{0, d + 1, 1000000000000LL, 0}, {d + 1, d + 2, 1, 0}}};
         for (int i = 1; i <= d; ++i) { dead.es.push_back({0, i, 1000000, 0}); dead.es.push_back({i, i % d + 1, 999999, 0}); }
         context = "dead-end excess return n=" + std::to_string(dead.n);
@@ -299,7 +319,6 @@ namespace {
 
     void invalid(const string &name) {
         MaxFlow<lng> mf(3); mf.addEdge(0, 1, 5);
-        vector<vector<int>> adj(3); vector<vector<lng>> cap(3, vector<lng>(3));
         if (name == "negative-size") { MaxFlow<lng> bad(-1); }
         else if (name == "addEdge-range") { mf.addEdge(0, 3, 1); }
         else if (name == "addEdge-negative") { mf.addEdge(0, 1, -1); }
@@ -307,6 +326,10 @@ namespace {
         else if (name == "flow-same") { mf.flow(1, 1); }
         else if (name == "flow-range") { mf.flow(0, 3); }
         else if (name == "flow-limit") { mf.flow(0, 1, -1); }
+        else if (name == "edmondskarp-same") { mf.edmondsKarp(1, 1); }
+        else if (name == "edmondskarp-limit") { mf.edmondsKarp(0, 1, -1); }
+        else if (name == "augmentpath-same") { mf.augmentPath(2, 2); }
+        else if (name == "augmentpath-range") { mf.augmentPath(3, 0); }
         else if (name == "scaling-same") { mf.capacityScalingDinic(2, 2); }
         else if (name == "pushrelabel-same") { mf.pushRelabel(0, 0); }
         else if (name == "pushrelabel-supply") { mf.addEdge(0, 2, std::numeric_limits<lng>::max()); mf.pushRelabel(0, 2); }
@@ -318,11 +341,7 @@ namespace {
         else if (name == "minCut-range") { mf.minCut(3); }
         else if (name == "decomposition-same") { mf.pathDecomposition(1, 1); }
         else if (name == "graph-negative") { Graph g(2, true); g.addEdge(0, 1, -1); MaxFlow<lng> bad(g); }
-        else if (name == "legacy-size") { EdmondsKarp(3, adj, cap); }
-        else if (name == "legacy-negative") { adj[0].push_back(1); cap[0][1] = -1; EdmondsKarp(2, adj, cap); }
-        else if (name == "legacy-pair-overflow") {
-            adj[0].push_back(1); adj[1].push_back(0); cap[0][1] = cap[1][0] = std::numeric_limits<lng>::max(); EdmondsKarp(2, adj, cap);}
-        else if (name == "legacy-range") { EdmondsKarp(2, adj, cap).getMaxFlow(0, 3); }
+        else if (name == "graph-undirected-overflow") { Graph g(2, false); g.addEdge(0, 1, std::numeric_limits<lng>::max()); MaxFlow<lng> bad(g); }
         else { throw std::runtime_error("unknown invalid probe " + name); }}
 } // namespace
 

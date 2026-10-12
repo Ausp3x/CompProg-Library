@@ -47,6 +47,16 @@ struct MaxFlow {
     Cap flow(int s, int t, Cap limit = MAX) {
         assert(0 <= s && s < n && 0 <= t && t < n && s != t && limit >= 0);
         return dinic(s, t, limit, 1);}
+    // T: O(n * m * (n + m)), M: O(n); Edmonds-Karp shortest augmenting paths, same contract and result as flow.
+    Cap edmondsKarp(int s, int t, Cap limit = MAX) {
+        assert(0 <= s && s < n && 0 <= t && t < n && s != t && limit >= 0);
+        Cap res = 0, f;
+        while (res < limit && (f = augment(s, t, limit - res)) > 0) { res += f; }
+        return res;}
+    // T: O(n + m), M: O(n); pushes one shortest augmenting path and returns its bottleneck, 0 when t is unreachable.
+    Cap augmentPath(int s, int t) {
+        assert(0 <= s && s < n && 0 <= t && t < n && s != t);
+        return augment(s, t, MAX);}
     // T: O(n * m * log(U)), M: O(n); U is the largest residual capacity; same result as flow.
     Cap capacityScalingDinic(int s, int t, Cap limit = MAX) {
         assert(0 <= s && s < n && 0 <= t && t < n && s != t && limit >= 0);
@@ -224,61 +234,14 @@ struct MaxFlow {
             if (ret == 0) { return res; }
             res += ret;}
         return res;}
-};
-
-// Legacy adapter: vertices 0..n, cap[u][v] read once per listed pair; getMaxFlow runs Dinic.
-// S: O(n^2 + m), Q: O(n^2 * (m + 1)) getMaxFlow/getMinCut, O(n + m) augmentFlow, M: O(n^2); exact when the max flow fits lng.
-struct EdmondsKarp {
-    int n;
-    vector<vector<bool>> adjm;
-    vector<vector<int>> adjl;
-    vector<vector<lng>> ocap, ncap;
-    lng max_flow = 0, add_flow = 0;
-    vector<int> par;
-    vector<bool> in_S;
-    vector<pair<int, int>> cut_set;
-
-    EdmondsKarp(int N, const vector<vector<int>> &adj, const vector<vector<lng>> &cap) : n(N) {
-        assert(n >= 0 && int(adj.size()) == n + 1 && int(cap.size()) == n + 1);
-        adjm.assign(n + 1, vector<bool>(n + 1)); ocap.assign(n + 1, vector<lng>(n + 1)); adjl.resize(n + 1);
-        for (int u = 0; u <= n; ++u) {
-            assert(int(cap[u].size()) == n + 1);
-            for (int v : adj[u]) {
-                assert(0 <= v && v <= n && cap[u][v] >= 0);
-                adjm[u][v] = true; ocap[u][v] = cap[u][v];}}
-        for (int u = 0; u <= n; ++u) {
-            for (int v = 0; v <= n; ++v) {
-                if (adjm[u][v] || adjm[v][u]) {
-                    assert(ocap[u][v] <= std::numeric_limits<lng>::max() - ocap[v][u]); adjl[u].push_back(v);}}}
-        ncap = ocap; par.assign(n + 1, -1); in_S.assign(n + 1, false);}
-
-    lng augmentFlow(int s, int t) {
-        assert(0 <= s && s <= n && 0 <= t && t <= n);
-        fill(par.begin(), par.end(), -1); par[s] = s;
-        vector<pair<int, lng>> q{{s, std::numeric_limits<lng>::max()}};
-        for (int i = 0; i < int(q.size()); ++i) {
-            auto [u, f] = q[i];
-            for (int v : adjl[u]) {
-                if (par[v] == -1 && ncap[u][v] > 0) {
-                    par[v] = u;
-                    if (v == t) { return min(f, ncap[u][v]); }
-                    q.emplace_back(v, min(f, ncap[u][v]));}}}
-        return 0;}
-    lng getMaxFlow(int s, int t) {
-        assert(0 <= s && s <= n && 0 <= t && t <= n);
-        MaxFlow<lng> mf(n + 1);
-        for (int u = 0; u <= n; ++u) {
-            for (int v : adjl[u]) {
-                if (adjm[u][v]) { mf.addEdge(u, v, ocap[u][v]); }}}
-        max_flow = s == t ? 0 : mf.flow(s, t);
-        ncap = ocap;
-        for (auto e : mf.edges()) { ncap[e.from][e.to] -= e.flow; ncap[e.to][e.from] += e.flow; }
-        add_flow = augmentFlow(s, t);
-        return max_flow;}
-    void getMinCut(int s, int t) {
-        getMaxFlow(s, t); cut_set.clear();
-        for (int u = 0; u <= n; ++u) { in_S[u] = par[u] != -1; }
-        for (int u = 0; u <= n; ++u) {
-            for (int v : adjl[u]) {
-                if (in_S[u] && adjm[u][v] && !in_S[v]) { cut_set.emplace_back(u, v); }}}}
+    // T: O(n + m), M: O(n); pushes min(limit, bottleneck) along a BFS path, 0 when t is unreachable; it[v] is v's arc to its BFS parent.
+    Cap augment(int s, int t, Cap limit) {
+        it.assign(n, -1); it[s] = 0; que.assign(1, s);
+        for (int i = 0; i < int(que.size()) && it[t] < 0; ++i) {
+            for (auto &a : g[que[i]]) {
+                if (a.cap > 0 && it[a.to] < 0) { it[a.to] = a.rev; que.push_back(a.to); }}}
+        if (it[t] < 0) { return 0; }
+        for (int v = t; v != s; v = g[v][it[v]].to) { auto &b = g[v][it[v]]; limit = min(limit, g[b.to][b.rev].cap); }
+        for (int v = t; v != s; v = g[v][it[v]].to) { auto &b = g[v][it[v]]; b.cap += limit; g[b.to][b.rev].cap -= limit; }
+        return limit;}
 };
