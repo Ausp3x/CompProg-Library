@@ -57,7 +57,7 @@ P014 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-1
 - Quick: `python3 '96-Local Testing/06-Miscellaneous/11-sorting_selection_tester.py' --mode quick --seed 1`: PASS, 2 configurations, 13 probes.
 - Full: `python3 '96-Local Testing/06-Miscellaneous/11-sorting_selection_tester.py' --mode full --seed 1`: PASS (table below); with `CXX=g++-14`: PASS in all three configurations with the six compile rejections.
 - `python3 '96-Local Testing/03-consistency.py' --braces` on the header and its C++ tester: no violations.
-- `g++ -std=gnu++20 -O2 -Wall -Wextra -Wconversion`: no warnings in the header; the tester's `vector<signed char>` and `vector<char>` construction triggers a GCC 16-only `-Warray-bounds` false positive (absent under `g++-14`). The unchanged benchmark (it times `std::nth_element` directly) compiles against the pruned header with both compilers.
+- `g++ -std=gnu++20 -O2 -Wall -Wextra -Wconversion`: no warnings in the header; the tester's `vector<signed char>` and `vector<char>` construction triggers a GCC 16-only `-Warray-bounds` false positive (absent under `g++-14`). The benchmark (it times `std::nth_element` directly) builds with `-O2 -DNDEBUG -Wall -Wextra -Wconversion` and no warnings on both compilers since its mismatch index became `size_t`, and its binary ran with every output verified; the recorded timings stand, as that index is read only on a failure.
 
 | Suite | Full, seed 1 (optimized, checked, ASan/UBSan) | Probes |
 |---|---|---|

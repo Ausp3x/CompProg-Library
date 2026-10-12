@@ -24,7 +24,7 @@ void benchmark(const vector<T> &input, const vector<T> &expected, const string &
             ulng hash = 0;
             for (const auto &out : outputs) {
                 if (out != expected) {
-                    int first = 0; while (first < min(out.size(), expected.size()) && out[first] == expected[first]) { ++first; }
+                    size_t first = 0; while (first < min(out.size(), expected.size()) && out[first] == expected[first]) { ++first; }
                     cerr << "FAIL seed=" << SEED << " n=" << n << " type=" << type << " distribution=" << distribution
                          << " method=" << methods[method] << " rep=" << rep << " first_mismatch=" << first << '\n'; std::exit(1);}
                 for (const auto &x : out) { hash = (hash ^ checksum(x)) * 0x9e3779b97f4a7c15ULL; }}
