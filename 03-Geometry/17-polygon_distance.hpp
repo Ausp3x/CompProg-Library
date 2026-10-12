@@ -86,9 +86,6 @@ template<typename T> bool convexSeparated(const vector<Point2<T>> &p, const vect
     if (dot(u, a) < 0) { u = -u; }
     axis = u / gcd(abs(u.x), abs(u.y));
     return true;}
-template<typename T> bool convexSeparated(const vector<Point2<T>> &p, const vector<Point2<T>> &q) {
-    point axis;
-    return convexSeparated(p, q, axis);}
 
 // T: O(n + m), M: O(n + m). Same domain; exact farthest pair (first in p, second in q, input indices), lexicographically smallest.
 template<typename T> ConvexDiameter convexPolygonMaxDistance(const vector<Point2<T>> &p, const vector<Point2<T>> &q) {

@@ -471,11 +471,12 @@ Pruned 2026-10-12.
 
 ## P036 — 03-Geometry — halfplaneintersection, minkowskisum, circle polygon, polygon distance (verified)
 
+Pruned 2026-10-12.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `minkowskiDifference` | `11-minkowskisum.hpp:35-37` | negate `q`, then `minkowskiSum(p, q)` | keep | derived: negation then sum (clarified rule) | `11-minkowskisum_tester.cpp:45,69` | none |
 | `minkowskiSumHull` | `11-minkowskisum.hpp:49-50` | `minkowskiSum(convexHull(p), convexHull(q))` | keep | larger domain: any point sets (clarified rule) | `11-…_tester.cpp:64,118` | none |
-| `convexSeparated(p, q)` | `17-polygon_distance.hpp:89-91` | `convexSeparated(p, q, axis)` | remove | out-parameter dropped | `17-…_tester.cpp:71`; probe `clockwise` (:164) | none |
 | `polygon_distance_detail::touch`, `nearest` | `17-polygon_distance.hpp:40-49` | the test inside `segmentDistanceApprox` (`02-line_segment.hpp:160-163`); `pointSegmentDistanceApprox` | keep | internal helpers (decided 2026-10-11) | — | — |
 | `halfplane_detail::vertex`; `polygonKernel` | `10-halfplaneintersection.hpp:40-42,151` | `intersect(…).p`; `polygonKernelLinear` | keep | detail helper; different algorithm, user decision 2026-10-10 (`Docs/00-notes.md:67`) | — | — |
 

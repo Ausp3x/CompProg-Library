@@ -68,7 +68,7 @@ void convexCase(vector<point> p, vector<point> q, std::mt19937_64 &rng) {
     bool meet = intersectOracle(p, q); long double want = distanceOracle(p, q);
     witness(p, q, convexPolygonDistanceApprox(p, q), want, "convex distance equals all-pairs distance");
     point axis{7, 7}; bool sep = convexSeparated(p, q, axis);
-    require(sep == !meet && convexSeparated(p, q) == sep, "separated iff no common point");
+    require(sep == !meet, "separated iff no common point");
     if (sep) {
         lll lo = dot(axis, p[0]), hi = dot(axis, q[0]);
         for (auto v : p) { lo = min(lo, dot(axis, v)); }
@@ -161,7 +161,7 @@ void fixed(std::mt19937_64 &rng) {
     require(convexPolygonDistanceApprox(ip, iq).distance == 3 && !polygonsIntersect(ip, iq), "int coordinates");}
 void invalid(const string &name) {
     if (name == "empty") { (void)convexPolygonDistanceApprox(vector<point>{}, vector<point>{{0, 0}}); }
-    if (name == "clockwise") { (void)convexSeparated(vector<point>{{0, 0}, {0, 1}, {1, 0}}, vector<point>{{5, 5}}); }
+    if (name == "clockwise") { point axis; (void)convexSeparated(vector<point>{{0, 0}, {0, 1}, {1, 0}}, vector<point>{{5, 5}}, axis); }
     if (name == "coordinate-bound") { (void)convexPolygonMaxDistance(vector<point>{{2000000000, 0}}, vector<point>{{0, 0}}); }
     if (name == "point-empty") { (void)pointPolygonDistanceApprox(vector<point>{}, point{}); }
     if (name == "intersect-empty") { (void)polygonsIntersect(vector<point>{}, vector<point>{{0, 0}}); }

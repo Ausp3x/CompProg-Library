@@ -18,7 +18,7 @@ Input: two nonempty strictly convex CCW rings, any start, a point or two points 
 
 ### convexSeparated
 
-Same domain. Returns true iff the closed polygons are disjoint (touching counts as meeting). The overload with `point &axis` sets, only when it returns true, a primitive integral `axis` with `min over P of dot(axis, x) > max over Q of dot(axis, y)`. For a polygonal `D` this is the left normal of an edge of `D` with the origin strictly to its right. For a segment `D` it is the normal oriented away from the origin, or `D_0` when `D` is collinear with the origin. For a single-point `D` it is that point. `O(n + m)`.
+Same domain. Returns true iff the closed polygons are disjoint (touching counts as meeting). Only when it returns true, it sets `axis` to a primitive integral vector with `min over P of dot(axis, x) > max over Q of dot(axis, y)`. For a polygonal `D` this is the left normal of an edge of `D` with the origin strictly to its right. For a segment `D` it is the normal oriented away from the origin, or `D_0` when `D` is collinear with the origin. For a single-point `D` it is that point. `O(n + m)`.
 
 ### convexPolygonMaxDistance
 
@@ -36,6 +36,12 @@ Input: two simple rings (either orientation, a point or a segment allowed). Retu
 
 Same domain. Returns 0, with a common witness from the first touching edge pair or the contained vertex, or else the minimum over vertex-to-edge distances in both directions with their nearest points. The minimum distance between non-crossing segments is attained at an endpoint of one of them. `O(n * m)`.
 
+### Legacy mapping
+
+| Removed (prune, 2026-10-12) | Replacement |
+|---|---|
+| `convexSeparated(p, q)` | `point axis; convexSeparated(p, q, axis)` |
+
 ## Feature-to-test map
 
 `96-Local Testing/03-Geometry/17-polygon_distance_tester.py` provides quick, full and stress modes and five assertion probes: an empty polygon, a clockwise ring, the coordinate bound, an empty point polygon and an empty intersect input. It builds the optimized, checked and ASan/UBSan configurations.
@@ -45,7 +51,7 @@ Same domain. Returns 0, with a common witness from the first touching edge pair 
 | Operation | Test | Oracle |
 |---|---|---|
 | `convexPolygonDistanceApprox` | All pairs of a square, a triangle, a point, a segment and a far point; touching, contained and identical polygons; ±`10^9` slabs and a triangle; random hulls at scales 6 and `10^9` with random shifts and rotations; 200,000-vertex disjoint circles (distance `2 * 10^8`) | All-pairs distance, meeting oracle, witness checks |
-| `convexSeparated` (both overloads) | The same corpus | Meeting oracle; exact projection test of the axis; axis untouched when the polygons meet |
+| `convexSeparated` | The same corpus; the `clockwise` probe | Meeting oracle; exact projection test of the axis; axis untouched when the polygons meet |
 | `convexPolygonMaxDistance` | The same corpus; wide slabs (exact `8 * 10^18`) | Exact all-pairs maximum with smallest indices |
 | `pointPolygonDistanceApprox` (ring, rings) | Points inside, on the boundary, in a notch and in a hole; random simple polygons at scales 5 and `10^9` | Exact rational minimum |
 | `polygonsIntersect` | U-shaped polygons with points and triangles in the slot, outside and enclosing; random 2-opt simple polygons against simple polygons, points and segments, in both argument orders; every convex case | Candidate-point oracle |
@@ -53,22 +59,27 @@ Same domain. Returns 0, with a common witness from the first touching edge pair 
 
 ## Commands and results
 
-2026-10-11, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.7, GNU++20.
+2026-10-12, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), Python 3.14.7, GNU++20.
 
 | Command | Result |
 |---|---|
-| `17-polygon_distance_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan, 5 probes) | PASS, 127,536 checks per configuration, 5 probes, `MEMORY peak=463MB` |
-| same with `CXX=g++-14` | PASS, 127,536 checks per configuration, 5 probes, `MEMORY peak=472MB` |
-| `17-polygon_distance_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 952,932 checks, `MEMORY peak=335MB` |
-| `02-integration.py --sanitizers` | Stops at its first failure, outside P036: `96-Local Testing/01-Core/16-poly_tester.cpp` (P025) needs its second unit `16-poly_tester_tu.cpp`, which the script does not link. For this package the same checks were run directly: header alone for `10`, `11`, `16`, `17`, `98-basic` and `99-all`, and a two-translation-unit program using every operation, with `g++` and `g++-14` under `-Wall -Wextra -Wconversion` and with ASan/UBSan. All pass with no warnings |
-| `03-consistency.py --braces` on the four headers, testers and benchmark; `03-consistency.py` | No violations; no errors |
+| `17-polygon_distance_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan, 5 probes) | PASS, 127,536 checks per configuration, 5 probes, `MEMORY peak=466MB` |
+| same with `CXX=g++-14` | PASS, 127,536 checks per configuration, 5 probes, `MEMORY peak=473MB` |
+| `17-polygon_distance_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 952,932 checks, `MEMORY peak=339MB` |
+| `02-integration.py` (136 headers, scalar and AVX2 multi-TU builds, workspace) | PASS, `MEMORY peak=648MB` |
+| `17-polygon_distance.hpp` alone, `-Wall -Wextra -Wconversion`, g++ and g++-14 | No warnings |
+| `03-consistency.py --braces` on the header and tester; `03-consistency.py` | No violations; no errors |
 
-Mutation check (2026-10-11): `orient < 0` changed to `<= 0` in the containment test, and the separating axis left unflipped. Both are caught.
+Mutation check (2026-10-12, quick mode on a scratch copy): `orient < 0` changed to `<= 0` in the containment test, and the separating axis left unflipped. Both are caught.
 
 ```bash
 python3 '96-Local Testing/03-Geometry/17-polygon_distance_tester.py' --mode full --seed 20260927
 CXX=g++-14 python3 '96-Local Testing/03-Geometry/17-polygon_distance_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/03-Geometry/17-polygon_distance_tester.py' --mode stress --seed 42
+python3 '96-Local Testing/03-Geometry/17-polygon_distance_tester.py' --mode stress --seed 42 --configuration optimized
+python3 '96-Local Testing/02-integration.py'
+for c in g++ g++-14; do echo '#include "03-Geometry/17-polygon_distance.hpp"' | $c -std=gnu++20 -Wall -Wextra -Wconversion -fsyntax-only -I. -x c++ -; done
+python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/17-polygon_distance.hpp '96-Local Testing/03-Geometry/17-polygon_distance_tester.cpp'
+python3 '96-Local Testing/03-consistency.py'
 ```
 
 ## Benchmarks
@@ -91,4 +102,5 @@ Written independently. Sources of the completeness sweep are in [00-sources.md](
 
 ## History
 
-- 2026-10-11: first implementation (P036). Independent review: one finding (ring overload memory) fixed.
+- 2026-10-11: first implementation (P036). Independent review: one finding (ring overload memory) fixed; full suite passed on g++ and g++-14, stress passed; `02-integration.py --sanitizers` stopped at an unrelated P025 failure, so the header-alone, aggregate and two-translation-unit checks ran directly and passed.
+- 2026-10-12: prune, removed the `convexSeparated(p, q)` wrapper (its cases and the `clockwise` probe moved to the `axis` form); full suite passed on g++ and g++-14, stress passed.
