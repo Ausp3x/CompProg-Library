@@ -183,6 +183,8 @@ void run(string mode) {
     constexpr T TOP = ~T(0);
     phase = std::to_string(M::BITS) + "-boundary";
     checkEqual(M().mod, 1, "default modulus");
+    static_assert(M().inv == TOP && M().rsq == 0 && M(998244353).mod == 998244353 && T(M(998244353).mod * M(998244353).inv) == TOP);
+    static_assert(M(998244353).rsq == T((W(1) << M::BITS) % 998244353 * ((W(1) << M::BITS) % 998244353) % 998244353));
     vector<T> mods = {1, 3, 5, 7, 17, 998244353, 1000000007, TOP, T(TOP - 2)};
     for (int i = 2; i < M::BITS; i++) {
         mods.push_back(T((T(1) << i) - 1)); mods.push_back(T((T(1) << i) + 1));}

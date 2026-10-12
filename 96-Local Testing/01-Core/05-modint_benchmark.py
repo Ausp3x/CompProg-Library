@@ -42,8 +42,9 @@ def main():
           "compiler": subprocess.run(cxx + ["--version"], capture_output=True, text=True, check=True).stdout.splitlines()[0],
           "seed": args.seed, "repetitions": args.repetitions, "target_ms": args.milliseconds, "suite": args.suite,
           "warmup": "double iterations until target duration; then median of repetitions",
+          "bases": "power workloads run 4096 distinct random bases per pass, so branch predictors cannot learn the REDC correction pattern",
           "reference": "unsigned double-width multiplication/remainder; fixed=true exposes compile-time modulus, fixed=false hides it from propagation",
-          "setup": "contexts excluded except montgomery-setup; fixed setup allows constant folding; dynamic setup hides modulus from propagation; ordinary Montgomery candidates include conversions; actual type setMod(prm=0) excluded, per-power local setup included; construction compares the type's constructor from int/lng with the former 128-bit signed remainder on the same inputs",
+          "setup": "contexts excluded except montgomery-setup; fixed setup allows constant folding; dynamic setup hides modulus from propagation; ordinary Montgomery candidates include conversions; actual type setMod(prm=0) excluded, powers run the type's own dispatch on 4096 distinct bases; construction compares the type's constructor from int/lng with the former 128-bit signed remainder on the same inputs",
           "memory": "O(1) contexts; candidate bulk owns six n-word arrays, including two Montgomery scratch; actual bulk owns four n-word arrays; inverse workload three n-word arrays plus batch temporary; only batchInv's own allocation is timed",
           "barrier": "compiler memory clobber per iteration, escaped outputs and volatile checksum prevent elision",
           "scope": "backend candidates for canonical-residue modular types; isolated timings do not establish the outside-Core end-to-end rule"})

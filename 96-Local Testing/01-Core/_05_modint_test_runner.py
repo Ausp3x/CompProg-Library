@@ -102,8 +102,8 @@ def corpus(mode: str, seed: int, wide: bool) -> tuple[list[str], list[str]]:
                 add(f"N {m} s {x}", x % m, x % m)
             else:
                 add(f"N {m} u {x}", x % m, x % m)
-        exponents = [-(1 << 127), -(1 << 127) + 1, -(1 << 64), -(1 << 63), -65537, -65536, -65535, -1000, -513, -512, -511, -2, -1,
-                     0, 1, 2, 63, 64, 65, 511, 512, 513, 65535, 65536, 65537, (1 << 64), (1 << 127) - 1]
+        exponents = [-(1 << 127), -(1 << 127) + 1, -(1 << 64), -(1 << 63), -65537, -65536, -65535, -1000, -513, -512, -511, -8, -3, -2, -1,
+                     0, 1, 2, 3, 4, 5, 6, 7, 8, 63, 64, 65, 511, 512, 513, 65535, 65536, 65537, (1 << 64), (1 << 127) - 1]
         for i in range(12 if mode == "quick" else 40 if mode == "full" else 200):
             a = rng.randrange(m)
             for e in exponents:
@@ -201,7 +201,7 @@ def run_suite(entry: Path, args: argparse.Namespace, *, kind: str, wide: bool, d
             for name, options in variants:
                 binary = str(temp / name)
                 config = f"{label}/{name} mode={args.mode} seed={args.seed}"
-                execute([*compiler, *flags, *options, str(fixture), "-o", binary], "compile " + config, env)
+                execute([*compiler, *flags, "-Wconversion", "-Werror", *options, str(fixture), "-o", binary], "compile " + config, env)
                 report("PASS", f"{name} compilation")
                 output = execute([binary, "--mode", args.mode, "--seed", str(args.seed)], config, env)
                 for line in output.splitlines():

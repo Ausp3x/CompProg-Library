@@ -48,7 +48,8 @@ template<class W, class D, W FIXED = 0> W nativePow(W a, ulll e, W m) {
 // The modular types' Mersenne-61 product: one Barrett64 fold and the conditional subtraction.
 ulng fold(ulll x) { return ModInt61::canon(Barrett64::fold61(x)); }
 
-const vector<ulll> exponents = {0, 1, 7, 31, 32, 63, 64, 127, 128, 255, 256, 511, 512, 513, 1023, 1024, 1025,
+constexpr int BASES = 4096; // distinct bases per pass: repeated bases let branch predictors learn the REDC corrections
+const vector<ulll> exponents = {0, 1, 2, 3, 4, 5, 6, 7, 31, 32, 63, 64, 127, 128, 255, 256, 511, 512, 513, 1023, 1024, 1025,
                                65535, 65536, 65537,
                                0xffffffff, ulll(~ulng(0)), ulll(1) << 127, ~ulll(0)};
 
@@ -109,7 +110,7 @@ template<class W, class D, class B, class M, W FIXED = 0>
                 W r = mont.init(1);
                 for (W a : factors) { r = mont.mul(r, mont.init(a)); }
                 return mont.get(r);});}}
-    array<W, 8> bases;
+    vector<W> bases(BASES);
     for (W &a : bases) { a = W(rng() % mod); }
     for (ulll exponent : exponents) {
         auto report = [&] (const char *method, auto f) -> void {
@@ -117,7 +118,7 @@ template<class W, class D, class B, class M, W FIXED = 0>
                 if (f(a) != nativePow<W, D>(a, exponent, mod)) {
                     cerr << "FAIL power " << BITS << ' ' << mod << ' ' << a << ' ' << decimal(exponent) << ' ' << method << '\n';
                     std::exit(1);}}
-            emit(BITS, STATIC, mod, "ordinary-powers", "uniform-canonical", 8, exponent, method,
+            emit(BITS, STATIC, mod, "ordinary-powers", "uniform-canonical", BASES, exponent, method,
                  measure([&]() { ulng r = 0; for (W a : bases) { r ^= f(a); } sink = r; }));};
         report("native-percent", [&](W a) { return nativePow<W, D, FIXED>(a, exponent, mod); });
         report("barrett", [&](W a) {
@@ -131,7 +132,6 @@ template<class W, class D, class B, class M, W FIXED = 0>
                     while (e) { if (e & 1) { p = W(fold(D(p) * a)); } e >>= 1; if (e) { a = W(fold(D(a) * a)); } }
                     return p;});}}
         if (mod & 1) {
-            if constexpr (BITS == 64) { report("montgomery-noinline", [&](W a) { return modint_detail::powerMontgomery(a, mod, exponent); }); }
             report("montgomery-cached", [&](W a) { return mont.pow(a, exponent); });
             report("montgomery-setup", [&](W a) {
                 if constexpr (STATIC) { return M(FIXED).pow(a, exponent); }
@@ -161,15 +161,15 @@ template<class W, class D, class T, W FIXED = 0> [[gnu::noinline]] void benchTyp
         emit(BITS, STATIC, mod, "actual-dependent-product", "unit-factors", n, 0, "modular-type", measure([&]() { sink = chain(); }));
         emit(BITS, STATIC, mod, "actual-dependent-product", "unit-factors", n, 0, "native-percent", measure([&]() {
             W r = W(mod != 1); for (T x : a) { r = nativeProduct<W, D, FIXED>(r, x.n, mod); } sink = r;}));}
-    array<T, 8> bases;
+    vector<T> bases(BASES);
     for (T &a : bases) { a = rng(); }
     for (ulll exponent : exponents) {
         for (T a : bases) {
             if (pow(a, exponent).n != nativePow<W, D>(a.n, exponent, mod)) {
                 cerr << "FAIL actual power " << BITS << ' ' << mod << ' ' << a.n << ' ' << decimal(exponent) << '\n'; std::exit(1);}}
         auto powers = [&] () { ulng r = 0; for (T a : bases) { r ^= pow(a, exponent).n; } return r; };
-        emit(BITS, STATIC, mod, "actual-powers", "uniform-canonical", 8, exponent, "modular-type", measure([&]() { sink = powers(); }));
-        emit(BITS, STATIC, mod, "actual-powers", "uniform-canonical", 8, exponent, "native-percent", measure([&]() {
+        emit(BITS, STATIC, mod, "actual-powers", "uniform-canonical", BASES, exponent, "modular-type", measure([&]() { sink = powers(); }));
+        emit(BITS, STATIC, mod, "actual-powers", "uniform-canonical", BASES, exponent, "native-percent", measure([&]() {
             ulng r = 0; for (T a : bases) { r ^= nativePow<W, D, FIXED>(a.n, exponent, mod); } sink = r;}));}}
 
 // Signed native inputs: the type's word-width normalization against a 128-bit remainder.
@@ -229,23 +229,31 @@ int main(int argc, char **argv) {
     if (suite == "all" || suite == "candidates") {
         for (uint m : {1U, 65536U, 998244353U, 4294967291U, 4294967295U}) {
             bench<uint, ulng, Barrett32, Montgomery32>(m);}
-        for (ulng m : {ulng(998244353), ulng(4294967311), (ulng(1) << 61) - 1, ulng(1) << 63, ~ulng(0) - 58, ~ulng(0)}) {
+        for (ulng m : {ulng(998244353), ulng(4294967311), (ulng(1) << 61) - 1, ulng(4611686018427387847ULL), ulng(1) << 63, ulng(9223372036854775783ULL),
+                       ulng(18446744069414584321ULL), ~ulng(0) - 58, ~ulng(0)}) {
             bench<ulng, ulll, Barrett64, Montgomery64>(m);}
         bench<uint, ulng, Barrett32, Montgomery32, 998244353U>(0);
         bench<uint, ulng, Barrett32, Montgomery32, 4294967291U>(0);
         bench<ulng, ulll, Barrett64, Montgomery64, 998244353ULL>(0);
         bench<ulng, ulll, Barrett64, Montgomery64, 4294967311ULL>(0);
         bench<ulng, ulll, Barrett64, Montgomery64, Barrett64::MERSENNE61>(0);
+        bench<ulng, ulll, Barrett64, Montgomery64, 4611686018427387847ULL>(0);
+        bench<ulng, ulll, Barrett64, Montgomery64, 9223372036854775783ULL>(0);
+        bench<ulng, ulll, Barrett64, Montgomery64, 18446744069414584321ULL>(0);
         bench<ulng, ulll, Barrett64, Montgomery64, 18446744073709551557ULL>(0);}
     if (suite == "all" || suite == "actual") {
         for (uint m : {1U, 65536U, 998244353U, 4294967291U, 4294967295U}) { benchType<uint, ulng, DynModInt<91>>(m); }
-        for (ulng m : {ulng(998244353), ulng(4294967311), (ulng(1) << 61) - 1, ulng(1) << 63, ~ulng(0) - 58, ~ulng(0)}) {
+        for (ulng m : {ulng(998244353), ulng(4294967311), (ulng(1) << 61) - 1, ulng(4611686018427387847ULL), ulng(1) << 63, ulng(9223372036854775783ULL),
+                       ulng(18446744069414584321ULL), ~ulng(0) - 58, ~ulng(0)}) {
             benchType<ulng, ulll, DynModInt64<91>>(m);}
         benchType<uint, ulng, ModInt<998244353>, 998244353U>(0);
         benchType<uint, ulng, ModInt<4294967291>, 4294967291U>(0);
         benchType<ulng, ulll, ModInt64<998244353ULL>, 998244353ULL>(0);
         benchType<ulng, ulll, ModInt64<4294967311ULL>, 4294967311ULL>(0);
         benchType<ulng, ulll, ModInt61, Barrett64::MERSENNE61>(0);
+        benchType<ulng, ulll, ModInt64<4611686018427387847ULL>, 4611686018427387847ULL>(0);
+        benchType<ulng, ulll, ModInt64<9223372036854775783ULL>, 9223372036854775783ULL>(0);
+        benchType<ulng, ulll, ModInt64<18446744069414584321ULL>, 18446744069414584321ULL>(0);
         benchType<ulng, ulll, ModInt64<18446744073709551557ULL>, 18446744073709551557ULL>(0);}
     if (suite == "all" || suite == "construction") {
         for (uint m : {1U, 65536U, 998244353U, 4294967295U}) { benchConstruct<uint, ulng, DynModInt<93>>(m); }

@@ -13,7 +13,7 @@ struct MontgomeryBackend {
     static constexpr int BITS = 8 * sizeof(T);
     T mod, inv, rsq;
 
-    MontgomeryBackend(T m = 1) : mod(m), inv(m) {
+    constexpr MontgomeryBackend(T m = 1) : mod(m), inv(m) {
         assert(m & 1);
         for (int i = 3; i < BITS; i *= 2) { inv *= 2 - mod * inv; }
         inv = -inv; rsq = T(-Wide(mod) % mod);}
@@ -55,10 +55,10 @@ struct MontgomeryBackend {
     T powMont(T a, ulll e) const {
         assert(a < mod);
         T r = init(1);
-        for (; e >> 64; e >>= 1, a = mul(a, a)) { if (e & 1) { r = mul(r, a); } } // Only exponents past 2^64 pay for 128-bit shifts.
+        for (; e >> 64; e >>= 1, a = redc(Wide(a) * a, false)) { if (e & 1) { r = redc(Wide(r) * a, false); } } // Only exponents past 2^64 pay for 128-bit shifts.
         ulng f = ulng(e);
-        for (; f > 1; f >>= 1, a = mul(a, a)) { if (f & 1) { r = mul(r, a); } }
-        return f ? mul(r, a) : r;}
+        for (; f > 1; f >>= 1, a = redc(Wide(a) * a, false)) { if (f & 1) { r = redc(Wide(r) * a, false); } }
+        return f ? redc(Wide(r) * a, false) : r;}
     T pow(T a, ulll e) const { return get(powMont(init(a), e)); }
 
 #ifdef __AVX2__

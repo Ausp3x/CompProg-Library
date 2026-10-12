@@ -20,7 +20,7 @@ Decided by the user from 2026-10-10 to 2026-10-12; binding, and only the user ch
 - **P053** row 11: the `modLog` multiplier form `k * a^x = b (mod m)` becomes a multiplier parameter of `discreteLogEx`, not a second function.
 - **P013** `06-Miscellaneous/04-compression.hpp`: `Compression` is removed (decided 2026-10-11). `ranks` and `pointRange` move into `CoordinateCompression` (`02-Data Structures/07-ordered_set.hpp`), `compressEndpoints` returns `CoordinateCompression`, `08-sequence_algorithms.hpp` switches to it, and the `Compression::ranks` example in `00-Guidelines/03-cpp.md` becomes `CoordinateCompression::ranks`. Done 2026-10-12.
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
-- **P004, P005** (decided 2026-10-11; run P004 first): Montgomery `powMont` and `pow` take a 128-bit (`ulll`) exponent, and Barrett64's Mersenne-61 fold becomes one constexpr static helper (P004). `modint_detail::powerMontgomery` becomes a `noinline` one-line call to `Montgomery64(m).pow(a, e)` with the 512 threshold re-measured, and `fold61`/`Context::red` call the Barrett64 fold (P005). Done 2026-10-12.
+- **P004, P005** (decided 2026-10-11; run P004 first): Montgomery `powMont` and `pow` take a 128-bit (`ulll`) exponent, and Barrett64's Mersenne-61 fold becomes one constexpr static helper (P004). `modint_detail::powerMontgomery` becomes a `noinline` one-line call to `Montgomery64(m).pow(a, e)` with the 512 threshold re-measured, and `fold61`/`Context::red` call the Barrett64 fold (P005). Done 2026-10-12; the one-liner was superseded the same day by cached contexts (`10-decisions.md`).
 
 ### Keeps
 

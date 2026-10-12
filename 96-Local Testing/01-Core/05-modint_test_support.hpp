@@ -17,7 +17,10 @@ inline string test_mode = "quick";
          << " input={" << context << "} operation=" << expr << ' ' << detail << '\n';
     std::exit(1);}
 #define REQUIRE(x) do { if (!(x)) { fail(#x, __LINE__, "expected=true actual=false"); } } while (0)
-#define EQUAL(a, b) do { auto actual_ = (a); auto expected_ = (b); if (actual_ != expected_) { \
+template<class A, class B> bool differ(A a, B b) {
+    if constexpr (std::is_integral_v<A> && std::is_integral_v<B> && !std::is_same_v<A, bool> && !std::is_same_v<B, bool>) { return std::cmp_not_equal(a, b); }
+    else { return a != b; }}
+#define EQUAL(a, b) do { auto actual_ = (a); auto expected_ = (b); if (differ(actual_, expected_)) { \
     fail(#a, __LINE__, "expected=" + std::to_string(expected_) + " actual=" + std::to_string(actual_)); } } while (0)
 
 inline bool primeOracle(ulng m) {
@@ -178,8 +181,8 @@ template<class M> void verifyMod() {
         std::mt19937_64 rng(test_seed ^ m); int count = test_mode == "quick" ? 100 : test_mode == "full" ? 3000 : 30000;
         for (int i = 0; i < count; i++) { pairCase<M>(rng() % m, rng() % m); }}
     roots<M>();
-    EQUAL(pow(M(0), 0).val(), 1 % m); EQUAL(pow(M(0), 1).val(), 0);
-    if (m == 1) { EQUAL(pow(M(0), std::numeric_limits<lll>::min()).val(), 0); }
+    EQUAL(pow(M(0), 0).val(), 1 % m); EQUAL(pow(M(0), 1).val(), 0U);
+    if (m == 1) { EQUAL(pow(M(0), std::numeric_limits<lll>::min()).val(), 0U); }
     cout << "PASS arithmetic/constructors/batch/stream/root mod=" << m << '\n';}
 
 // Dispatch is deliberately bounded to the declared Python corpus moduli.
@@ -209,6 +212,9 @@ inline void compileTime() {
     static_assert(M(-1).val() == 6 && (M(3) + M(5)).val() == 1 && (M(3) * M(5)).val() == 1);
     static_assert(pow(M(3), -2).val() == 4 && inv(M(3)).val() == 5 && sqrt(M(2)).val() == 3);
     static_assert(M::raw(6).val() == 6);
+    static_assert(M::montgomery.mod == 7 && ulng(M::montgomery.mod * M::montgomery.inv) == ~ulng(0));
+    static_assert(TEST_TYPE<4294967291>::canon(ulng(1) << 32) == (ulng(1) << 32) - 4294967291 && TEST_TYPE<4294967291>::canon(2 * ulng(4294967291) - 1) == 4294967290);
+    static_assert(TEST_TYPE<2147483648>::canon(2 * ulng(2147483648) - 1) == 2147483647 && TEST_TYPE<2147483648>::canon(2147483648) == 0);
     static_assert([] { M r(4); return tryInv(M(3), r) && r.val() == 5; }());
     static_assert([] { M r(4); return trySqrt(M(2), r) && r.val() == 3; }());
 #if TEST_WIDE
@@ -216,6 +222,9 @@ inline void compileTime() {
     static_assert(pow(G(1), 511).val() == 1 && pow(G(1), 512).val() == 1);
     static_assert(pow(G(1), 65536).val() == 1 && pow(G(1), std::numeric_limits<lll>::min()).val() == 1);
     static_assert(pow(G(1), ~ulll(0)).val() == 1);
+    static_assert(G::montgomery.mod == 18446744069414584321ULL && TEST_TYPE<9223372036854775808ULL>::montgomery.mod == 9223372036854775809ULL);
+    using P = TEST_TYPE<18446744073709551557ULL>;
+    static_assert(P::canon(ulll(1) << 64) == 59 && P::canon(2 * ulll(18446744073709551557ULL) - 1) == 18446744073709551556ULL && P::canon(18446744073709551557ULL) == 0);
     static_assert(TEST_TYPE<18446744069414584321ULL>::is_prime && TEST_TYPE<18446744073709551557ULL>::is_prime);
     static_assert(!TEST_TYPE<18446744073709551615ULL>::is_prime);
     static_assert(!TEST_TYPE<341550071728321ULL>::is_prime && !TEST_TYPE<3825123056546413051ULL>::is_prime);
@@ -245,13 +254,14 @@ inline void contexts() {
     EQUAL(global_default_product.val(), 757402647); EQUAL(global_custom_product.val(), 13);
     EQUAL(TEST_TYPE<811>::mod(), 17);
     using A = TEST_TYPE<1>; using B = TEST_TYPE<2>;
-    EQUAL(A::mod(), 998244353); EQUAL(B::mod(), 998244353); REQUIRE(A::is_prime && B::is_prime);
+    EQUAL(A::mod(), 998244353); EQUAL(B::mod(), 998244353); REQUIRE(A::is_prime && B::is_prime); EQUAL(A::montgomery.mod, 998244353);
     A::setMod(17); REQUIRE(A::is_prime); EQUAL(B::mod(), 998244353); A old = 11;
-    B::setMod(12); REQUIRE(!B::is_prime); EQUAL(old.val(), 11);
+    B::setMod(12); REQUIRE(!B::is_prime); EQUAL(old.val(), 11); EQUAL(B::montgomery.mod, sizeof(typename B::Word) == 8 ? 13 : 998244353);
     A::setMod(17, 0); REQUIRE(!A::is_prime && A::isPrime()); old = 13; EQUAL(old.val(), 13);
     A::setMod(97, 1); REQUIRE(A::is_prime); old = 96; EQUAL((old * old).val(), 1);
     EQUAL(A::reduction().mod, 97); EQUAL(A::reduction().reduce(typename A::Wide(96) * 96), 1); EQUAL(A::mul(96, 96), 1);
-    A::setMod(2305843009213693951ULL > std::numeric_limits<decltype(A::mod())>::max() ? 17 : decltype(A::mod())(2305843009213693951ULL));
+    EQUAL(A::montgomery.mod, sizeof(typename A::Word) == 8 ? 97 : 998244353); EQUAL(A::montgomery.mod * A::montgomery.inv, ~ulng(0));
+    A::setMod(decltype(A::mod())(sizeof(decltype(A::mod())) == 8 ? 2305843009213693951ULL : 17));
     EQUAL(A::reduction().mod, A::mod()); EQUAL(A::mul(A::mod() - 1, A::mod() - 1), 1); EQUAL(A::red(typename A::Wide(A::mod() - 1) * (A::mod() - 1)), 1);
     int count = test_mode == "quick" ? 100 : test_mode == "full" ? 2000 : 10000;
     for (int m = 1; m <= count; m++) { A::setMod(m); context = "primality mod=" + std::to_string(m); EQUAL(A::is_prime, primeOracle(m)); }

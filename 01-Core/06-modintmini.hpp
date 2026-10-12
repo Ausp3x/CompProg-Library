@@ -94,31 +94,12 @@ struct ModInt64Mini {
     friend constexpr ModInt64Mini inv(ModInt64Mini a) {
         ModInt64Mini r; bool ok = tryInv(a, r); assert(ok); (void)ok; return r;}
 
-    // T: O(1 + log(e + 1)), M: O(1); odd m, canonical a; noipa keeps the measured generic REDC kernel.
-    [[gnu::noinline, gnu::noipa]] static Word powerMontgomery(Word a, Word m, ulll e) {
-        Word v = m;
-        for (int i = 3; i < 64; i *= 2) { v *= 2 - m * v; }
-        v = -v;
-        auto red = [m, v](ulll x) -> Word {
-            Word h = Word(x >> 64), p = Word(ulll(Word(x) * v) * m >> 64);
-            Word r = h + p + (Word(x) != 0);
-            return r - ((r < h || r >= m) ? m : 0);};
-        Word rsq = Word(-ulll(m) % m), r = red(rsq);
-        a = red(ulll(a) * rsq);
-        while (e) {
-            if (e & 1) { r = red(ulll(r) * a); }
-            e >>= 1; if (e) { a = red(ulll(a) * a); }}
-        return red(r);}
-
     template<typename T> requires (std::is_integral_v<T> || std::is_same_v<T, lll> || std::is_same_v<T, ulll>)
     friend constexpr ModInt64Mini pow(ModInt64Mini a, T e) {
         if (mod() == 1) { return raw(0); }
         ulll b = ulll(e);
         if constexpr (std::is_signed_v<T> || std::is_same_v<T, lll>) {
             if (e < 0) { a = inv(a); b = -b; }}
-        if (!std::is_constant_evaluated() && (mod() & 1) && b >= 512 &&
-            (mod() != 2305843009213693951ULL || b >= 65536)) {
-            return raw(powerMontgomery(a.n, mod(), b));}
         ModInt64Mini r = raw(1);
         for (; b > 1; b >>= 1, a *= a) { if (b & 1) { r *= a; } }
         return b ? r * a : r;}
@@ -234,30 +215,12 @@ struct DynModInt64Mini {
     friend DynModInt64Mini inv(DynModInt64Mini a) {
         DynModInt64Mini r; bool ok = tryInv(a, r); assert(ok); (void)ok; return r;}
 
-    // T: O(1 + log(e + 1)), M: O(1); odd m, canonical a; noipa keeps the measured generic REDC kernel.
-    [[gnu::noinline, gnu::noipa]] static Word powerMontgomery(Word a, Word m, ulll e) {
-        Word v = m;
-        for (int i = 3; i < 64; i *= 2) { v *= 2 - m * v; }
-        v = -v;
-        auto red = [m, v](ulll x) -> Word {
-            Word h = Word(x >> 64), p = Word(ulll(Word(x) * v) * m >> 64);
-            Word r = h + p + (Word(x) != 0);
-            return r - ((r < h || r >= m) ? m : 0);};
-        Word rsq = Word(-ulll(m) % m), r = red(rsq);
-        a = red(ulll(a) * rsq);
-        while (e) {
-            if (e & 1) { r = red(ulll(r) * a); }
-            e >>= 1; if (e) { a = red(ulll(a) * a); }}
-        return red(r);}
-
     template<typename T> requires (std::is_integral_v<T> || std::is_same_v<T, lll> || std::is_same_v<T, ulll>)
     friend DynModInt64Mini pow(DynModInt64Mini a, T e) {
         if (mod() == 1) { return raw(0); }
         ulll b = ulll(e);
         if constexpr (std::is_signed_v<T> || std::is_same_v<T, lll>) {
             if (e < 0) { a = inv(a); b = -b; }}
-        if ((mod() & 1) && mod() != 2305843009213693951ULL && b >= 512) {
-            return raw(powerMontgomery(a.n, mod(), b));}
         DynModInt64Mini r = raw(1);
         for (; b > 1; b >>= 1, a *= a) { if (b & 1) { r *= a; } }
         return b ? r * a : r;}

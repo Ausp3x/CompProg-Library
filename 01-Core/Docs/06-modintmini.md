@@ -6,7 +6,7 @@
 
 ### ModIntMini, ModInt64Mini, DynModIntMini, DynModInt64Mini
 
-The 32-bit types support every modulus `1 <= m <= UINT32_MAX`; the 64-bit types support every modulus `1 <= m <= UINT64_MAX`. Values store one canonical residue `n` in `[0, m)`, with `Word` equal to `uint` or `ulng`. Do not mutate implementation state; direct writes to `n` must preserve its canonical representation. `red` and `powerMontgomery` are implementation-only helpers, not part of the shared public API: `red(x)` assumes a canonical-product dividend `x < mod()^2`, and does not promise arbitrary double-width reduction. Arithmetic has the same semantics as the full types on the shared API.
+The 32-bit types support every modulus `1 <= m <= UINT32_MAX`; the 64-bit types support every modulus `1 <= m <= UINT64_MAX`. Values store one canonical residue `n` in `[0, m)`, with `Word` equal to `uint` or `ulng`. Do not mutate implementation state; direct writes to `n` must preserve its canonical representation. `red` is an implementation-only helper, not part of the shared public API: `red(x)` assumes a canonical-product dividend `x < mod()^2`, and does not promise arbitrary double-width reduction. Arithmetic has the same semantics as the full types on the shared API.
 
 | Operation | Contract |
 |---|---|
@@ -50,7 +50,7 @@ Construction, ordinary arithmetic, raw/access/equality and setup use constant sp
 - Static 32/64-bit products use exact double-width multiplication followed by constant-modulus remainder, allowing compiler specialization.
 - Dynamic 32-bit products use a mask for powers of two and a compact reciprocal reduction otherwise. For `R = 2^64`, the stored reciprocal is `ceil(R/m)`, with intentional unsigned wrap to zero for `m = 1`. For canonical `a,b`, `x = a*b < m^2 < R`; the high product gives a quotient equal to `floor(x/m)` or one greater. Its product with `m` fits 64 bits, and one correction produces the canonical remainder. The zero ring has only `x = 0`.
 - Dynamic 64-bit products use a mask for powers of two, one Mersenne fold for `m = 2^61 - 1`, and exact unsigned 128-bit remainder otherwise. For the Mersenne path, canonical products are below `m^2`, so the folded sum is below `2*m` and one subtraction suffices.
-- Both 64-bit structs contain a compact full-width Montgomery power helper. It supports every odd modulus without requiring `m < 2^63`: it retains the high carry when adding the conceptual 128-bit REDC terms and makes one conditional subtraction. Canonical products and conversion products satisfy `x < m*2^64`. Five Newton updates from the odd modulus yield its inverse modulo `2^64`; unsigned negation and wrap are intentional. Odd powers dispatch at magnitude `512`, or `65536` for static Mersenne61. Dynamic Mersenne61 retains its cheaper single-fold product at every exponent length. Small/even/constexpr powers use ordinary multiplication; the zero ring returns immediately. Per-power setup and conversion are included in measurements.
+- Powers use the struct's own multiplication at every exponent; the zero ring returns immediately. The former per-call Montgomery helper of the 64-bit structs was removed on 2026-10-12: measured on 4096 distinct bases, its per-call setup and REDC correction branch made it slower than the native remainder for every modulus from about `2^63` upward (1.7x at `2^64-59`) and roughly even below, while the full type's cached contexts (`05-modint.md`) keep that gain where it exists. This is a documented reduction: for odd moduli below `2^62` the full type's `pow` is up to 2x faster at long exponents.
 - Addition/subtraction compare against the modulus before arithmetic, avoiding full-word overflow. The Euclidean remainder/cofactor invariant bounds coefficients by the modulus; signed 64-bit cofactors suffice for 32-bit moduli and signed 128-bit cofactors suffice for 64-bit moduli. A failed inverse does not assign to the output.
 
 The repeated code is intentional: each struct remains independently copyable. Mini scope removes uncommon operations before reducing arithmetic quality. These scalar kernels need no ISA-specific code; compiler-generated scalar/AVX2 differences are measured separately.
@@ -64,7 +64,7 @@ The [test entry](<../../96-Local Testing/01-Core/06-modintmini_tester.py>) owns 
 | Construction, assignment, raw/access, equality | All native signed minima, unsigned maxima, 128-bit normalization, booleans, default/copy/move/self assignment, both integer operand orders; independent Python remainder |
 | Arithmetic and unit inverse/division | Exhaustive static rings 1–16, dynamic rings 1–48, boundary/common moduli, 512 random pairs per large modulus, 300 arbitrary dynamic moduli per width; exact Python arithmetic/inverse plus full-type agreement |
 | Aliasing and failure behavior | Compound operations return the same reference, self-arithmetic, aliased inverse output, unchanged nonunit outputs, zero-ring conventions |
-| Powers and constexpr | Native signed/unsigned exponents through 128 bits including minima/maxima, zero, negative units, Montgomery/Mersenne threshold neighbors; static assertions and Python `pow` |
+| Powers and constexpr | Native signed/unsigned exponents through 128 bits including minima/maxima, zero, negative units, the former dispatch neighbors 511/512/513 and 65535/65536/65537; static assertions and Python `pow` |
 | Dynamic lifecycle | Default setup, changed/same-modulus reset with stale values overwritten before use, IDs/widths/full-mini independence, default/custom globals in both translation-unit link orders |
 | Preconditions and standalone use | 18 checked assertion deaths, both zero static moduli rejected even under `NDEBUG`, each of four extracted structs compiled/run independently with only standard includes/aliases |
 | Reduced contract | Compile-time absence of floating-point constructors/exponents, implicit cross-family/width/ID conversions, integer casts, truthiness/`!`, ordering, increments/decrements, primality/roots, batch inversion and streams; exact word widths and `mintmini` identity |
@@ -73,42 +73,42 @@ Quick retains every API fixture with dynamic rings through 24 and 64 random pair
 
 ## Commands and results
 
-Restyle, 2026-10-08 (header unchanged; GCC 16.2.1 and GCC 14.4.1, CPython 3.14.7, Intel Core i9-11900H):
+Montgomery helper removed, 2026-10-12 (the 64-bit structs' per-call Montgomery power helper dropped; GCC 16.2.1 and GCC 14.4.1, CPython 3.14.7, Intel Core i9-11900H):
 
 ```bash
-python3 '96-Local Testing/03-consistency.py' --braces 01-Core/05-modint.hpp 01-Core/06-modintmini.hpp
-python3 '96-Local Testing/01-Core/06-modintmini_tester.py' --mode full --seed 20261008
-CXX=g++-14 python3 '96-Local Testing/01-Core/06-modintmini_tester.py' --mode full --seed 20261008
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
+python3 '96-Local Testing/03-consistency.py' --braces 01-Core/06-modintmini.hpp '96-Local Testing/01-Core/06-modintmini_benchmark.cpp'   # no violations
+python3 '96-Local Testing/01-Core/06-modintmini_tester.py' --mode full --seed 20261012                 # PASS, 3 configurations, 78 s, peak 723 MB
+CXX=g++-14 python3 '96-Local Testing/01-Core/06-modintmini_tester.py' --mode full --seed 20261012      # PASS, 3 configurations, 85 s, peak 756 MB
+python3 '96-Local Testing/02-integration.py'                                                           # PASS, 136 headers, scalar/AVX2 multi-TU, workspace
+python3 '96-Local Testing/03-consistency.py'                                                           # no errors
+python3 '96-Local Testing/01-Core/06-modintmini_benchmark.py' --seed 20261012 --repetitions 5 --milliseconds 2 --output '96-Local Testing/01-Core/06-modintmini_benchmark.jsonl'   # 3,552 measurements, all verified
 ```
 
-Full passed in optimized, checked and ASan/UBSan scalar builds on both compilers (70.51 s on g++, 74.71 s on g++-14), including the assertion deaths, both zero-modulus rejections under NDEBUG, all four individually copied structs and both translation-unit link orders. No brace or comment-cap violations; integration passed 102 headers; consistency reports no errors. The benchmarks below are from the 2026-10-07 re-audit.
+Full passed in optimized, checked and ASan/UBSan scalar builds on both compilers (176,644 exact-oracle and full/mini-agreement cases per configuration), including the assertion deaths, both zero-modulus rejections under NDEBUG, all four individually copied structs and both translation-unit link orders; the durations ran beside the modint suites and include the quick pre-flight. No brace or comment-cap violations; integration and consistency passed.
 
 ## Benchmarks
 
-The [benchmark entry](<../../96-Local Testing/01-Core/06-modintmini_benchmark.py>) compares actual mini/full public arithmetic with native double-width remainder and a mini multiplication-only power candidate. `96-Local Testing/01-Core/06-modintmini_benchmark.jsonl` (2026-09-27; the header's generated code is unchanged since) contains **3,552 checked measurements** in scalar and AVX2/BMI2 builds with source hashes, compiler commands, host, seed, workload and medians.
+The [benchmark entry](<../../96-Local Testing/01-Core/06-modintmini_benchmark.py>) compares actual mini/full public arithmetic with native double-width remainder and a mini multiplication-only power candidate. `96-Local Testing/01-Core/06-modintmini_benchmark.jsonl` (2026-10-12, seed 20261012) contains **3,552 checked measurements** in scalar and AVX2/BMI2 builds with source hashes, compiler commands, host, seed, workload and medians.
 
 ```bash
-python3 '96-Local Testing/01-Core/06-modintmini_benchmark.py' --seed 20260927 --repetitions 5 --milliseconds 1 --output /tmp/modintmini-benchmark.jsonl
+python3 '96-Local Testing/01-Core/06-modintmini_benchmark.py' --seed 20261012 --repetitions 5 --milliseconds 2 --output '96-Local Testing/01-Core/06-modintmini_benchmark.jsonl'
 ```
 
-Each workload warms up by doubling its iteration count to at least 1 ms, then records the median of five repetitions. Both scalar `-mno-avx2 -mno-bmi2` and AVX2/BMI2 `-mavx2 -mbmi2 -mno-avx512f` builds use GNU++20, `-O3 -DNDEBUG`. Ordinary independent products use uniform and near-modulus inputs at lengths 1, 8, 256 and 4096; dependent chains use unit factors at lengths 8 and 256. Eight-base powers cover zero, one, short exponents, 511/512/513, 65535/65536/65537, and sparse/dense 128-bit exponents. Static/dynamic domains include one, powers of two, a common prime, full-word prime/composite boundaries and Mersenne61. Input allocation and dynamic setup are excluded from timing; local Montgomery setup/conversions are included per power. Every result is checked against exact remainder arithmetic before timing.
+Each workload warms up by doubling its iteration count to at least 2 ms, then records the median of five repetitions. Both scalar `-mno-avx2 -mno-bmi2` and AVX2/BMI2 `-mavx2 -mbmi2 -mno-avx512f` builds use GNU++20, `-O3 -DNDEBUG`. Ordinary independent products use uniform and near-modulus inputs at lengths 1, 8, 256 and 4096; dependent chains use unit factors at lengths 8 and 256. Powers run 4096 distinct random bases per pass (the 2026-09-27 run timed eight repeated bases, which let the branch predictor learn the former Montgomery helper's correction branch) over zero, one, short exponents, 511/512/513, 65535/65536/65537 and sparse/dense 128-bit exponents. Static/dynamic domains include one, powers of two, a common prime, full-word prime/composite boundaries and Mersenne61. Input allocation and dynamic setup are excluded from timing. Every result is checked against exact remainder arithmetic before timing.
 
-Representative scalar medians are in microseconds; power rows cover all eight bases. `p64 = 18446744073709551557`.
+Representative scalar medians; chains in microseconds, powers in nanoseconds per power. `p64 = 18446744073709551557`.
 
-| Workload | Native remainder | Mini | Full (2026-09-27) |
+| Workload | Native remainder | Mini | Full |
 |---|---|---|---|
-| Dynamic 32-bit modulus 1024, 256-factor chain | 1.387 | 0.226 | 0.298 |
-| Dynamic 32-bit modulus 998244353, 256-factor chain | 2.068 | 1.543 | 1.597 |
-| Static p64, exponent 512 | 0.289 | 0.252 | 0.255 |
-| Static p64, exponent `2^128 - 1` | 5.795 | 3.226 | 3.304 |
-| Dynamic Mersenne61, exponent 65536 | 0.519 | 0.286 | 0.394 |
-| Dynamic Mersenne61, exponent `2^128 - 1` | 5.621 | 3.051 | 3.129 |
+| Dynamic 32-bit modulus 1024, 256-factor chain | 1.544 | 0.267 | 0.291 |
+| Dynamic 32-bit modulus 998244353, 256-factor chain | 1.422 | 0.933 | 0.872 |
+| Dynamic Mersenne61, 256-factor chain | 1.437 | 0.635 | 0.562 |
+| Static `ModInt64Mini<998244353>`, exponent 512 / 2^128-1 | 34.2 / 767 | 33.7 / 791 | 20.9 / 407 |
+| Static p64, exponent 512 / 2^128-1 | 34.7 / 821 | 34.3 / 812 | 34.4 / 790 |
+| Dynamic Mersenne61, exponent 512 / 65536 | 33.4 / 64.9 | 16.9 / 33.0 | 19.9 / 31.4 |
+| Dynamic p64, exponent 512 / 2^128-1 | 35.5 / 765 | 37.4 / 998 | 37.3 / 758 |
 
-These measurements justify retaining the compact reciprocal/mask paths and Montgomery for long ordinary odd-modulus powers. They also distinguish the mini's cheaper single-fold dynamic Mersenne61 path from the full reducer: at exponent 65536 the multiplication-only candidate measured 0.268 µs versus the mini public call's 0.286 µs and the full Montgomery call's 0.394 µs. The AVX2/BMI2 build preserves that choice (0.230, 0.247 and 0.360 µs respectively). Ordinary products and short powers retain compact native reduction where setup would not pay. The zero-ring shortcut avoids unnecessary loops/setup; raw identity construction avoids normalization of a known canonical one.
-
-Individual mini/full rows can vary by several percent on this shared, not frequency-isolated host, and some full rows are faster; the evidence supports the selected compact backends, not a claim that every mini operation beats the full type.
+These measurements justify the compact reciprocal/mask paths and the dynamic single-fold Mersenne61 product, which match the full type within noise. The minis' powers are the native remainder: the former per-call Montgomery helper measured 1.7x slower than the remainder at `2^64-59` and even for 998244353 on distinct bases, so dropping it cost nothing a mini keeps; where the full type's cached Montgomery context wins (odd moduli below `2^62`, here 998244353 from exponent 5: 20.9 vs 33.7 ns at 512), that gain is the full type's, a documented reduction. Individual mini/full rows vary by several percent on this shared, not frequency-isolated host, and some full rows are faster; the evidence supports the selected compact backends, not a claim that every mini operation beats the full type.
 
 ## Sources
 
@@ -133,3 +133,5 @@ GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2, a Windows/Min
 - 2026-09-27: maintenance review, reduced-contract absence checks added, full suite passed.
 - 2026-10-07: re-audit, 3 style findings fixed (closers, lambda form, missing complexity line), full suite passed on g++.
 - 2026-10-07 (run): full (seed 20260927, 176,384 cases per configuration, 85.61 s) passed; P005 stress round passed 1,044,573 cases per configuration.
+- 2026-10-08: restyle (header unchanged), full suite passed on g++ and g++-14, integration and consistency passed.
+- 2026-10-12: the 64-bit structs' per-call Montgomery power helper removed (slower than the native remainder from about `2^63` upward on distinct bases, even below), the benchmark moved to 4096 distinct bases; full suites passed on g++ and g++-14.

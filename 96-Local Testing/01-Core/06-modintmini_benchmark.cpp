@@ -75,14 +75,14 @@ template<typename Mini, typename Full, typename W, typename D, W FIXED = 0>
         report("native", [&]() { W r = W(mod != 1); for (W a : factors) { r = nativeProduct<W, D, FIXED>(r, a, mod); } return r; });
         report("mini", [&]() { Mini r = 1; for (W a : factors) { r *= Mini::raw(a); } return r.val(); });
         report("full", [&]() { Full r = 1; for (W a : factors) { r *= Full::raw(a); } return r.val(); });}
-    array<W, 8> bases;
+    vector<W> bases(4096); // distinct bases per pass: repeated bases let branch predictors learn the correction branches
     for (W &a : bases) { a = W(rng() % mod); }
     for (ulll exponent : {ulll(0), ulll(1), ulll(7), ulll(511), ulll(512), ulll(513), ulll(65535), ulll(65536), ulll(65537), ulll(1) << 127, ~ulll(0)}) {
         auto report = [&] (const char *method, auto f) -> void {
             for (W a : bases) {
                 if (f(a) != nativePower<W, D>(a, exponent, mod)) {
                     cerr << "FAIL power " << BITS << ' ' << mod << ' ' << decimal(exponent) << ' ' << method << '\n'; std::exit(1);}}
-            emit(BITS, STATIC, mod, "powers", "uniform-canonical", 8, exponent, method,
+            emit(BITS, STATIC, mod, "powers", "uniform-canonical", 4096, exponent, method,
                  measure([&]() { ulng r = 0; for (W a : bases) { r ^= f(a); } sink = r; }));};
         report("native", [&](W a) { return nativePower<W, D, FIXED>(a, exponent, mod); });
         report("mini-multiply-power", [&](W a) {

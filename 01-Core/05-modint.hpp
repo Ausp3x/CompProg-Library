@@ -24,8 +24,8 @@ namespace modint_detail {
             if (i == s) { return false; }}
         return true;}
 
-    // T: O(1 + log(e + 1)), M: O(1); odd m, ordinary residues in and out; out of line so every modulus shares one REDC loop.
-    [[gnu::noinline, gnu::noipa]] inline ulng powerMontgomery(ulng a, ulng m, ulll e) { return Montgomery64(m).pow(a, e); }
+    // T: O(1 + log(e + 1)), M: O(1); kept out of line: inlined under a constant modulus, GCC turns the REDC correction into a slower chain.
+    [[gnu::noinline, gnu::noipa]] inline ulng power(const Montgomery64 &c, ulng a, ulll e) { return c.pow(a, e); }
 
     // S: O(log(M)), Q: O(1), M: O(1); red takes any double-width dividend, mul canonical factors.
     template<typename T, T M, int ID, bool STATIC = (M != 0)>
@@ -35,9 +35,12 @@ namespace modint_detail {
         using Wide = std::conditional_t<std::is_same_v<T, uint>, ulng, ulll>;
         static constexpr T MOD = M;
         static constexpr bool is_prime = modint_detail::isPrime(M);
+        static constexpr Montgomery64 montgomery{M | 1};
 
         static constexpr bool isPrime() { return is_prime; }
-        static constexpr T canon(Wide y) { return T(y >= M ? y - M : y); } // y < 2 * M
+        static constexpr T canon(Wide y) { // y < 2 * M; branch-free: the difference wraps unless y >= M
+            if constexpr (M <= std::numeric_limits<T>::max() / 2) { return min(T(y), T(T(y) - M)); }
+            else { return T(min(y, Wide(y - M))); }}
         static constexpr T red(Wide x) {
             if constexpr (M == Barrett64::MERSENNE61) { return canon(Barrett64::fold61(Barrett64::fold61(x))); } // <= M + 64
             else { return T(x % M); }}
@@ -55,6 +58,7 @@ namespace modint_detail {
         using Reducer = std::conditional_t<std::is_same_v<T, uint>, Barrett32, Barrett64>;
         static inline constinit T MOD = 998244353;
         static inline constinit bool is_prime = true;
+        static inline constinit Montgomery64 montgomery{998244353};
 
         static Reducer &reduction() { static Reducer r(MOD); return r; }
         static bool isPrime() { return modint_detail::isPrime(MOD); }
@@ -62,6 +66,7 @@ namespace modint_detail {
             assert(m && -1 <= prm && prm <= 1);
             assert(prm != 1 || modint_detail::isPrime(m));
             reduction() = Reducer(m); MOD = m;
+            if constexpr (std::is_same_v<T, ulng>) { montgomery = Montgomery64(m | 1); }
             is_prime = prm == -1 ? isPrime() : bool(prm);}
         static T red(Wide x) {
             if constexpr (std::is_same_v<T, ulng>) {
@@ -136,8 +141,8 @@ namespace modint_detail {
             if constexpr (std::is_signed_v<T> || std::is_same_v<T, lll>) {
                 if (e < 0) { a = inv(a); b = -b; }}
             if constexpr (std::is_same_v<Word, ulng>) {
-                if (!std::is_constant_evaluated() && (mod() & 1) && mod() != Barrett64::MERSENNE61 && b >= 512) {
-                    return raw(modint_detail::powerMontgomery(a.n, mod(), b));}}
+                if (!std::is_constant_evaluated() && (mod() & 1) && mod() < (ulng(1) << 62) && mod() != Barrett64::MERSENNE61 && b >= 5) {
+                    return raw(modint_detail::power(C::montgomery, a.n, b));}}
             Value r = raw(mod() != 1);
             for (; b > 1; b >>= 1, a *= a) { if (b & 1) { r *= a; } }
             return b ? r * a : r;}
