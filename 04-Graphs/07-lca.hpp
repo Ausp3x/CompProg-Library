@@ -38,20 +38,6 @@ namespace lca_detail {
         bool covers(int u, int v) const { return t_in[u] <= t_in[v] && t_out[v] <= t_out[u]; }
         bool isAncestor(int u, int v) const { check(u); check(v); return covers(u, v); }
     };
-
-    // T: O(n * log(n)), M: O(n); legacy simple symmetric forest adjacency sized n or n + 1.
-    inline Graph fromAdjacency(int n, const vector<vector<int>> &adj) {
-        assert(n >= 0 && adj.size() <= size_t(INT_MAX));
-        assert(adj.size() == size_t(n) || adj.size() == size_t(n) + 1);
-        Graph g(int(adj.size())); vector<pair<int, int>> arcs;
-        for (int u = 0; u < g.n; ++u) { for (int v : adj[u]) {
-            assert(0 <= v && v < g.n && u != v); arcs.push_back({u, v});}}
-        sort(arcs.begin(), arcs.end());
-        assert(std::adjacent_find(arcs.begin(), arcs.end()) == arcs.end());
-        for (auto [u, v] : arcs) {
-            assert(binary_search(arcs.begin(), arcs.end(), pair{v, u}));
-            if (u < v) { g.addEdge(u, v); }}
-        return g;}
 } // namespace lca_detail
 
 // Undirected simple forest, lng weights; root=-1 roots each component at its minimum; no answer is -1.
@@ -66,7 +52,6 @@ struct LCA : lca_detail::Forest {
         for (int u : order) {
             up[u][0] = parent[u] == -1 ? u : parent[u];
             for (int j = 1; j <= l; ++j) { up[u][j] = up[up[u][j - 1]][j - 1]; }}}
-    LCA(int n, int root, const vector<vector<int>> &adj) : LCA(lca_detail::fromAdjacency(n, adj), root) {}
 
     int kthAncestor(int u, lng k) const {
         check(u); assert(k >= 0);

@@ -168,20 +168,20 @@ void exhaustive(const string &mode) {
             if (!forest) { continue; }
             for (int root = -1; root < n; ++root) { verify(g, root); ++cases; }}}
     std::cout << "PASS exhaustive labeled forests through n=" << bound << " root-cases=" << cases << '\n';}
-void legacy() {
-    context = "legacy adjacency constructors";
-    vector<vector<int>> zero{{1}, {0, 2}, {1}}, one{{}, {2}, {1, 3}, {2}};
-    LCA a(3, 0, zero), b(3, 1, one), empty(0, -1, {});
-    expect(a.getLCA(0, 2), 0, "zero-based constructor"); expect(a.getKthAncestor(2, 2), 0, "zero-based kth ancestor");
-    expect(b.getLCA(2, 3), 2, "one-based constructor"); expect(b.getKthAncestor(3, 2), 1, "one-based kth ancestor");
-    expect(b.getLCA(0, 3), -1, "one-based unused vertex 0 isolated"); expect(b.n, 4, "legacy actual adjacency size");
-    expect(empty.n, 0, "empty legacy constructor");
+void adjacency() {
+    context = "unsorted adjacency lists through Graph::fromAdjacency";
+    vector<vector<int>> zero{{1}, {2, 0}, {1}}, one{{}, {2}, {3, 1}, {2}};
+    LCA a(Graph::fromAdjacency(zero), 0), b(Graph::fromAdjacency(one), 1), empty(Graph::fromAdjacency(vector<vector<int>>{}));
+    expect(a.getLCA(0, 2), 0, "zero-based lists"); expect(a.getKthAncestor(2, 2), 0, "zero-based kth ancestor");
+    expect(b.getLCA(2, 3), 2, "one-based lists"); expect(b.getKthAncestor(3, 2), 1, "one-based kth ancestor");
+    expect(b.getLCA(0, 3), -1, "one-based unused vertex 0 isolated"); expect(b.n, 4, "vertex count is the list count");
+    expect(empty.n, 0, "empty lists");
     Graph g(3); g.addEdge(0, 1); LCA snapshot(g); EulerLCA esnapshot(g); g.addEdge(1, 2);
     expect(snapshot.getLCA(0, 2), -1, "binary owning snapshot after input mutation");
     expect(esnapshot.getLCA(0, 2), -1, "Euler owning snapshot after input mutation");
     snapshot = LCA(g); esnapshot = EulerLCA(g);
     expect(snapshot.getLCA(0, 2), 0, "binary rebuild by assignment"); expect(esnapshot.getLCA(0, 2), 0, "Euler rebuild by assignment");
-    std::cout << "PASS legacy labels, snapshot lifetime and rebuild\n";}
+    std::cout << "PASS adjacency lists, snapshot lifetime and rebuild\n";}
 void randomized(const string &mode) {
     std::mt19937_64 rng(seed); int count = mode == "quick" ? 40 : mode == "full" ? 350 : 2500;
     array<lng, 7> weights{std::numeric_limits<lng>::min(), std::numeric_limits<lng>::max(), -100, -1, 0, 1, 100};
@@ -233,10 +233,7 @@ void invalid(const string &probe) {
     else if (probe == "root-negative") { LCA x(g, -2); }
     else if (probe == "root-end") { EulerLCA x(g, 3); }
     else if (probe == "empty-root") { LCA x(Graph(0), 0); }
-    else if (probe == "legacy-size") { LCA x(4, 0, {{1}, {0}}); }
-    else if (probe == "legacy-label") { LCA x(2, 0, {{2}, {0}}); }
-    else if (probe == "legacy-asymmetric") { LCA x(2, 0, {{1}, {}}); }
-    else if (probe == "legacy-duplicate") { LCA x(2, 0, {{1, 1}, {0, 0}}); }
+    else if (probe == "adjacency-label") { LCA x(Graph::fromAdjacency(vector<vector<int>>{{2}, {0}}), 0); }
     else if (probe == "cycle" || probe == "euler-cycle" || probe == "offline-cycle") {
         g.addEdge(2, 0);
         if (probe == "cycle") { LCA x(g); }
@@ -267,6 +264,6 @@ int main(int argc, char **argv) {
             else if (arg == "--seed") { seed = std::stoull(argv[++i]); }
             else if (arg == "--invalid") { invalid(argv[++i]); return 1; }
             else { throw std::runtime_error("unknown argument " + arg); }}
-        exhaustive(mode); legacy(); randomized(mode); shapes(mode);
+        exhaustive(mode); adjacency(); randomized(mode); shapes(mode);
         std::cout << "PASS 07-lca mode=" << mode << " seed=" << seed << " checks=" << checks << '\n';} catch (const std::exception &e) {
         std::cerr << "FAIL 07-lca seed=" << seed << " " << e.what() << '\n'; return 1;}}

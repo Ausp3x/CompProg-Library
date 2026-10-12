@@ -14,8 +14,7 @@ from _00_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('07-lca', ['directed', 'cycle', 'loop', 'parallel',
-        'root-negative', 'root-end', 'empty-root', 'legacy-size', 'legacy-label',
-        'legacy-asymmetric', 'legacy-duplicate', 'query-negative', 'query-end',
+        'root-negative', 'root-end', 'empty-root', 'adjacency-label', 'query-negative', 'query-end',
         'ancestor-negative', 'jump-negative', 'reroot-end', 'euler-query-end',
         'offline-query-end', 'euler-cycle', 'offline-cycle', 'intersection-end',
         'fold-size', 'fold-query-end']))

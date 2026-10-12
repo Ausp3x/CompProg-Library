@@ -25,15 +25,7 @@ Vertex blocks overlap at articulation vertices, so they are not a vertex partiti
 
 The result is a static snapshot. Reinvoke either free function after changing the graph; there is no incremental state, shared cache or borrowed adjacency. ID values and member order are deterministic for the same input adjacency order, but no sorted block/bridge order is promised.
 
-### Tarjan, BridgeAlgo and lowlink_detail::graph
-
-Original `BridgeAlgo` and `Tarjan` bytes remain in `OLD/algorithms.cpp` and corresponding older references; they are not correctness evidence. The maintained names retain their constructor signatures and public result fields: `n`, `timer`, `vst`, `t_in`, `low`, normalized endpoint bridge pairs, and `Tarjan::is_art`. `Tarjan` remains the historical undirected lowlink adapter; it is not an SCC algorithm. The new canonical APIs carry original edge IDs, unlike the legacy normalized pairs.
-
-`lowlink_detail::graph(n, adj)` converts the legacy adjacency in O(n + m) time and memory, adding one edge per listed pair `u < v` and dropping loops. Adapters accept zero-based symmetric adjacency with at least `n` lists and in-range endpoints; nonloop multiplicities must match in both directions. Size, nonnegative `n` and endpoints are assertion-checked. Symmetry is an explicit unchecked input representation precondition. Loops may be listed once or twice and are ignored by the bridge/articulation-only adapters. Reconstructing edge IDs can change DFS adjacency/discovery order, so `t_in`, `low`, and bridge-vector order may differ while retaining their stated meanings. The original traversals also exposed implementation diagnostics rather than a canonical traversal numbering.
-
-`BridgeAlgo::build(adj)` recomputes every field and clears the previous bridge set. The historical public `dfs(cur,prv,adj)` helper keeps its signature and now invokes this complete recomputation: `cur` is an in-range vertex and `prv` is an in-range vertex or the root sentinel `-1`. Manually mutating DFS arrays and resuming a partial recursive traversal is not supported. This explicit migration removes the old helper's unsafe dependence on partially edited traversal state. `BridgeAlgo` keeps an ordered `set`, so constructing its `b` bridge pairs costs `O(n + m + b * log(b + 1))`; `Tarjan` remains `O(n + m)`. Both store `O(n)` results and use `O(n + m)` transient space.
-
-The old Team Notebook cutpoint/bridge code's vertex-block feature is covered by `block_vertices`; isolated vertices, exact parallel-edge parent skipping and stable bridge IDs repair gaps in that reference. The old bridge-only algorithm is covered by `BridgeAlgo` and the canonical `bridges`/`is_bridge` results. Block-cut forest / bridge-tree query wrappers remain assigned to GR12. Dynamic bridge maintenance (GR12), directed dominators, st-numbering/open-ear decomposition, triconnectivity/SPQR and three-edge components are distinct inventory families; none is implied by static lowlink completion.
+The old Team Notebook cutpoint/bridge code's vertex-block feature is covered by `block_vertices`; isolated vertices, exact parallel-edge parent skipping and stable bridge IDs repair gaps in that reference. The old bridge-only algorithm is covered by the canonical `bridges`/`is_bridge` results. Block-cut forest / bridge-tree query wrappers remain assigned to GR12. Dynamic bridge maintenance (GR12), directed dominators, st-numbering/open-ear decomposition, triconnectivity/SPQR and three-edge components are distinct inventory families; none is implied by static lowlink completion.
 
 ### Correctness
 
@@ -44,6 +36,14 @@ Each nonloop edge enters the edge stack once: on tree discovery or from the desc
 Deleting all bridges and traversing the remaining graph gives the two-edge-connected vertex partition. In the reported orientation, the root of each such component reaches all its vertices by downward tree edges. Every nonroot vertex can reach an ancestor across its entering tree edge because that edge has a back-edge escape; repeatedly taking escapes reaches the component root. Each component is therefore strongly connected. No bridge can belong to a directed cycle, regardless of its orientation, and disconnected original components cannot communicate. Every orientation consequently has at least one SCC per bridge-deleted component; this construction attains that lower bound. This also proves Robbins' connected-and-bridgeless criterion and the obstruction witnesses.
 
 Each vertex/arc is scanned a constant number of times, each edge is pushed/popped once, and every block's vertex list is bounded by twice its edge list except isolated singletons. All bounds are worst-case, including output. The implementation uses ordinary contest-profile containers; no new arithmetic acceleration or performance-comparison claim is involved.
+
+### Legacy mapping
+
+The originals of the removed adapters (bridge/articulation lowlink, not SCC) stay in `OLD/algorithms.cpp`, `OLD/[1] algorithms.cpp` and the Team Notebook sources under `OLD`.
+
+- `Tarjan(n, adj)` → `auto low = lowlink(g)` with `g = Graph::fromAdjacency(adj)`: `is_art`, `low` and `tin` (was `t_in`); the bridge pairs are `minmax(g.edges[e].u, g.edges[e].v)` over `e` in `low.bridges`. `adj` must hold exactly `n` lists, because lists past `n` become vertices, and be symmetric as multisets with a loop listed twice; a loop changes no bridge or articulation answer, so dropping it is equally valid. `tin` and `low` keep their meanings, but the DFS may number vertices differently. `vst` (all true) and `timer` (`n`) have no counterpart.
+- `BridgeAlgo(n, adj)`, `build(adj)` and `dfs(cur, prv, adj)` → the same call, with the bridge pairs collected in a `set`. Each call returns a fresh result, so nothing needs a reset.
+- `lowlink_detail::graph(n, adj)` → `Graph::fromAdjacency(adj)` under the list conditions of the `Tarjan` line; it keeps loops and adds the edges in increasing `(min, max)` order, where the old builder dropped loops and kept list order.
 
 ## Feature-to-test map
 
@@ -57,32 +57,33 @@ Each vertex/arc is scanned a constant number of times, each edge is pushed/poppe
 | Edge components | Independent traversal after removing deletion-oracle bridges; verify labels, complete groups and minimum-vertex order. |
 | DFS diagnostics | Discovery permutation, exact root set, acyclic input parent arcs, and independently enumerate descendant/back-edge pairs to check every lowlink value. |
 | Orientation / Robbins / witnesses | Validate every selected original arc ID; transitive closure verifies the exact SCC equivalence relation. Check obstruction edges/vertices against independent deletion/component oracles and the minimum-component lower bound. |
-| Legacy adapters / reset | Compare normalized bridge pairs and articulation flags to deletion oracles; `build` and `dfs` complete recomputation, including clearing prior bridges. `t_in`/`low` of both `Tarjan` and `BridgeAlgo` are checked independently on the original multigraph: `t_in` must be a permutation, the DFS forest is reconstructed from `t_in` alone (each vertex's parent is its neighbor with the largest earlier discovery time, a property of every undirected DFS), every nonloop edge must join an ancestor and a descendant, and each `low[u]` must equal the minimum discovery time over `u`'s subtree and the back edges (including extra parallel copies of tree edges) leaving it. |
+| `lowlink` on `Graph::fromAdjacency` lists (the removed `Tarjan`/`BridgeAlgo` cases) | Every enumerated and random case is rebuilt from its symmetric lists (loops listed twice): sorted bridge endpoint pairs and articulation flags against the deletion oracles. Repeated calls after adding a parallel edge and then a new edge return fresh bridges. `tin`/`low` are checked independently on the original multigraph: `tin` must be a permutation, the DFS forest is reconstructed from `tin` alone (each vertex's parent is its neighbor with the largest earlier discovery time, a property of every undirected DFS), every nonloop edge must join an ancestor and a descendant, and each `low[u]` must equal the minimum discovery time over `u`'s subtree and the back edges (including extra parallel copies of tree edges) leaving it. |
 | `cut_components` | Deletion oracle: BFS component count of the graph without each vertex, for every enumerated and random case (Graph and CSR), plus the 200,000-vertex chain, cycle and parallel star. |
 | Boundaries / lifetime | Empty graphs, singleton loops, dyads, parallel parent edges, multiple cycles meeting at a cutpoint, disconnected isolated vertices, full-range ignored weights, copied/moved owning results, graph mutation and repeated calls. |
 | Scale / stack safety | Long chain, closed chain and parallel-edge star (plus root loop), with exact known block/bridge/articulation expectations. |
-| Checked preconditions | Nine death probes: directed Graph/CSR passed to each free function; invalid legacy size/sign/endpoint; invalid legacy DFS arguments. The representation's unchecked symmetry and infeasible-to-allocate `INT_MAX` block-count boundary are documented limits rather than claimed runtime fixtures. |
+| Checked preconditions | Five death probes: directed Graph/CSR passed to each free function, and an out-of-range entry in undirected lists through `Graph::fromAdjacency` (`adjacency-endpoint`). Unmirrored lists and a loop listed once are `01-graph_tester` probes. The infeasible-to-allocate `INT_MAX` block-count boundary is a documented limit rather than a claimed runtime fixture. |
 
 Quick covers all looped simple graphs through three vertices, all multiplicity-at-most-two looped graphs through two vertices, 100 random multigraphs through seven vertices and 20,000-vertex shapes. Full extends exhaustive bounds to four and three vertices respectively, uses 1,500 random multigraphs through eight vertices, and 200,000-vertex shapes. Stress adds all loopless simple graphs through six vertices, 12,000 random trials and 500,000-vertex shapes. Random trials periodically duplicate an existing edge as a separate metamorphic fixture.
 
-The sanitizer configuration (`-O1 -g -D_GLIBCXX_ASSERTIONS`) also enables leak detection, `-fno-sanitize-recover=all`, frame pointers and non-PIE linking. Swapping `t_in` and `low` in the legacy adapters fails with "Tarjan t_in permutation"; hand mutations of `cut_components` fail the quick suites.
+The sanitizer configuration (`-O1 -g -D_GLIBCXX_ASSERTIONS`) also enables leak detection, `-fno-sanitize-recover=all`, frame pointers and non-PIE linking. Hand mutations of `cut_components` fail the quick suites.
 
 ## Commands and results
 
-2026-10-07, GCC 16.2.1, GNU++20.
+2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20.
 
 | Command | Result |
 |---|---|
-| `09-bridges_articulation_tester.py --mode full --seed 20260927` | PASS 3 configurations, 3,643 cases, 1,709,661 checks, 9 probes |
-| `09-bridges_articulation_tester.py --mode stress --seed 1` | PASS 3 configurations, 49,955 cases |
-| `02-integration.py` and `02-integration.py --sanitizers` | PASS: 102 standalone/aggregate headers, scalar/available-AVX2 multi-TU, workspace, sanitizer self-tests |
-| `03-consistency.py` | No errors |
-| `@reviewer`: own brute-force `cut_components` check, 20k multigraphs, ASan/UBSan/`_GLIBCXX_DEBUG` | PASS |
+| `09-bridges_articulation_tester.py --mode full --seed 20261012` (optimized, checked, ASan-UBSan) | PASS, 3,652 cases and 1,595,926 checks per build, 5 probes, peak 652 MB |
+| `CXX=g++-14 09-bridges_articulation_tester.py --mode full --seed 20261012` | PASS, all three builds, same counts, peak 654 MB |
+| `09-bridges_articulation_tester.py --mode stress --seed 7` | PASS, all three builds, 49,952 cases and 18,821,363 checks per build, peak 1,046 MB |
+| `02-integration.py` (136 standalone/aggregate headers, scalar and AVX2 multi-TU linkage, workspace) | PASS, peak 649 MB |
+| `03-consistency.py`, with `--braces` on the touched headers and testers | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/09-bridges_articulation_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/04-Graphs/09-bridges_articulation_tester.py' --mode stress --seed 1
-python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/04-Graphs/09-bridges_articulation_tester.py' --mode full --seed 20261012
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/09-bridges_articulation_tester.py' --mode full --seed 20261012
+python3 '96-Local Testing/04-Graphs/09-bridges_articulation_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
 
@@ -102,9 +103,10 @@ Sources for `cut_components` (fetched 2026-10-07) are in [00-sources.md](00-sour
 
 ## Limits and handoffs
 
-Dynamic connectivity/bridge maintenance and block-cut/bridge-tree query wrappers remain with their separate batch owners (row 27 for block-cut and bridge trees and two-edge-connectivity augmentation). No `CXX=g++-14` floor run is recorded for this header.
+Dynamic connectivity/bridge maintenance and block-cut/bridge-tree query wrappers remain with their separate batch owners (row 27 for block-cut and bridge trees and two-edge-connectivity augmentation).
 
 ## History
 
 - 2026-09-27: original P011, full suite (seed 20260927, 3,643 cases, 1,450,632 checks, 9 probes) and integration passed on g++ 16; stress not run.
 - 2026-10-07: re-audit, added `LowlinkResult::cut_components`; 3 findings fixed (independent oracle for legacy `t_in`/`low`, lone closing braces, `lowlink_detail::graph` complexity line); full suite, stress and integration passed on g++ 16.
+- 2026-10-12: prune, removed `Tarjan`, `BridgeAlgo` and `lowlink_detail::graph` (cases moved to `lowlink` on `Graph::fromAdjacency` lists, five legacy probes replaced by `adjacency-endpoint`); full suite passed on g++ and g++-14, stress passed.

@@ -14,5 +14,4 @@ from _00_runner import main
 if __name__ == '__main__':
     raise SystemExit(main('09-bridges_articulation', ['lowlink-directed',
         'lowlink-csr-directed', 'orientation-directed', 'orientation-csr-directed',
-        'legacy-negative', 'legacy-short', 'legacy-endpoint', 'bridge-dfs-cur',
-        'bridge-dfs-prv']))
+        'adjacency-endpoint']))

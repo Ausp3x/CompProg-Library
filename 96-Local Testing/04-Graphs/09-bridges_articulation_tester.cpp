@@ -129,12 +129,17 @@ namespace {
             reach[i][j] = reach[i][j] || (reach[i][k] && reach[k][j]);}}}
         for (int i = 0; i < n; ++i) { for (int j = 0; j < n; ++j) {
             check((reach[i][j] && reach[j][i]) == (component[i] == component[j]), "orientation closure SCC oracle");}}}
+    // Bridge edge IDs as sorted endpoint pairs.
+    set<pair<int, int>> pairsOf(const Graph &g, const vector<int> &bridges) {
+        set<pair<int, int>> res;
+        for (int e : bridges) { res.insert(std::minmax(g.edges[e].u, g.edges[e].v)); }
+        return res;}
     // A DFS order alone fixes the forest: a vertex's parent is its latest earlier-discovered neighbor.
-    void legacyDfs(const Graph &g, const vector<int> &tin, const vector<int> &low, const string &name) {
+    void reconstructedDfs(const Graph &g, const vector<int> &tin, const vector<int> &low, const string &name) {
         int n = g.n, m = int(g.edges.size());
         check(int(tin.size()) == n && int(low.size()) == n, name + " diagnostic sizes");
         vector<int> sorted = tin; sort(sorted.begin(), sorted.end());
-        for (int u = 0; u < n; ++u) { check(sorted[u] == u, name + " t_in permutation"); }
+        for (int u = 0; u < n; ++u) { check(sorted[u] == u, name + " tin permutation"); }
         vector<int> parent(n, -1), tree(n, -1);
         for (int e = 0; e < m; ++e) {
             auto [u, v, w] = g.edges[e];
@@ -166,11 +171,9 @@ namespace {
         for (int e = 0; e < int(g.edges.size()); ++e) {
             auto [u, v, w] = g.edges[e]; adj[u].push_back(v); adj[v].push_back(u);
             if (bridge[e]) { pairs.emplace(min(u, v), max(u, v)); }}
-        BridgeAlgo legacy(g.n, adj); Tarjan tarjan(g.n, adj);
-        check(legacy.bridges == pairs && set<pair<int, int>>(tarjan.bridges.begin(), tarjan.bridges.end()) == pairs, "both legacy bridge results");
-        check(tarjan.is_art == art && legacy.n == g.n && tarjan.n == g.n && legacy.timer == g.n && tarjan.timer == g.n, "legacy articulation/metadata");
-        check(legacy.vst == vector<bool>(g.n, true) && tarjan.vst == legacy.vst, "legacy visited flags");
-        legacyDfs(g, tarjan.t_in, tarjan.low, "Tarjan"); legacyDfs(g, legacy.t_in, legacy.low, "BridgeAlgo");}
+        auto h = Graph::fromAdjacency(adj); auto low = lowlink(h);
+        check(pairsOf(h, low.bridges) == pairs && low.is_art == art, "adjacency-list bridge pairs and articulation");
+        reconstructedDfs(g, low.tin, low.low, "adjacency-list lowlink");}
     void exhaustive() {
         for (int n = 0; n <= (mode == "quick" ? 3 : 4); ++n) {
             vector<pair<int, int>> possible;
@@ -235,25 +238,21 @@ namespace {
         auto before = lowlink(fixture), copied = before; auto moved = std::move(copied);
         fixture.addEdge(4, 5); runCase(fixture);
         check(before.block_edges == moved.block_edges && before.component == moved.component, "owning copy/move graph mutation snapshots");
-        vector<vector<int>> adj{{1}, {0}, {}}; BridgeAlgo legacy(3, adj);
-        check(legacy.bridges == set<pair<int, int>>{{0, 1}}, "legacy initial bridge");
-        adj[0].push_back(1); adj[1].push_back(0); legacy.dfs(0, 0, adj);
-        check(legacy.bridges.empty() && legacy.timer == 3, "legacy dfs recomputation clears prior result");
-        adj[1].push_back(2); adj[2].push_back(1); legacy.build(adj);
-        check(legacy.bridges == set<pair<int, int>>{{1, 2}}, "legacy build reset");
-        legacy.dfs(0, -1, adj); check(legacy.bridges == set<pair<int, int>>{{1, 2}}, "legacy root parent sentinel");
-        cout << "PASS stack-safe chain/cycle/parallel-star n=" << n << ", root articulation, snapshots and legacy reset\n";}
+        vector<vector<int>> adj{{1}, {0}, {}};
+        auto fresh = [&] { auto h = Graph::fromAdjacency(adj); return pairsOf(h, lowlink(h).bridges); };
+        check(fresh() == set<pair<int, int>>{{0, 1}}, "adjacency-list bridge");
+        adj[0].push_back(1); adj[1].push_back(0);
+        check(fresh().empty(), "repeated call after a parallel edge");
+        adj[1].push_back(2); adj[2].push_back(1);
+        check(fresh() == set<pair<int, int>>{{1, 2}}, "repeated call after a new edge");
+        cout << "PASS stack-safe chain/cycle/parallel-star n=" << n << ", root articulation, snapshots and repeated adjacency-list calls\n";}
     void invalid(const string &name) {
-        Graph g(2, true); vector<vector<int>> adj(2);
+        Graph g(2, true);
         if (name == "lowlink-directed") { lowlink(g); }
         else if (name == "lowlink-csr-directed") { lowlink(CsrGraph(g)); }
         else if (name == "orientation-directed") { strongOrientation(g); }
         else if (name == "orientation-csr-directed") { strongOrientation(CsrGraph(g)); }
-        else if (name == "legacy-negative") { Tarjan(-1, adj); }
-        else if (name == "legacy-short") { BridgeAlgo(3, adj); }
-        else if (name == "legacy-endpoint") { adj[0].push_back(2); Tarjan(2, adj); }
-        else if (name == "bridge-dfs-cur") { BridgeAlgo(2, adj).dfs(2, 0, adj); }
-        else if (name == "bridge-dfs-prv") { BridgeAlgo(2, adj).dfs(0, -2, adj); }
+        else if (name == "adjacency-endpoint") { lowlink(Graph::fromAdjacency(vector<vector<int>>{{2}, {}})); }
         else { throw std::runtime_error("unknown invalid probe " + name); }}
 } // namespace
 

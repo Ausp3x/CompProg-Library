@@ -89,7 +89,7 @@
       ],
       "status": "exact-duplicate",
       "issues": [
-        "P011 replaces recursive lowlink with edge-ID multigraph biconnectivity and strong orientation; BridgeAlgo/Tarjan compatibility adapters and source features are accounted in verification."
+        "P011 replaces recursive lowlink with edge-ID multigraph biconnectivity and strong orientation; the BridgeAlgo/Tarjan adapters were removed on 2026-10-12 (One API per operation) and map to lowlink on Graph::fromAdjacency input. Source features are accounted in verification."
       ],
       "source_context": null,
       "tier": null,
@@ -223,7 +223,7 @@
       ],
       "status": "exact-duplicate",
       "issues": [
-        "P011 replaces recursive single-tree preprocessing with iterative forest binary lifting, linear Euler RMQ and offline Tarjan; legacy constructors and queries are accounted in verification."
+        "P011 replaces recursive single-tree preprocessing with iterative forest binary lifting, linear Euler RMQ and offline Tarjan; the legacy LCA(n, root, adj) constructor was removed on 2026-10-12 (One API per operation) and maps to LCA(Graph::fromAdjacency(adj), root). Legacy queries are accounted in verification."
       ],
       "source_context": null,
       "tier": null,
@@ -913,7 +913,7 @@
       ],
       "status": "verified",
       "issues": [
-        "P011 replaces recursive lowlink with edge-ID multigraph biconnectivity and strong orientation; BridgeAlgo/Tarjan compatibility adapters and source features are accounted in verification."
+        "P011 replaces recursive lowlink with edge-ID multigraph biconnectivity and strong orientation; the BridgeAlgo/Tarjan adapters were removed on 2026-10-12 (One API per operation) and map to lowlink on Graph::fromAdjacency input. Source features are accounted in verification."
       ],
       "source_context": "INFERIOR VERSIONS section",
       "tier": "Basic",
@@ -988,7 +988,7 @@
       ],
       "status": "verified",
       "issues": [
-        "P011 replaces recursive single-tree preprocessing with iterative forest binary lifting, linear Euler RMQ and offline Tarjan; legacy constructors and queries are accounted in verification."
+        "P011 replaces recursive single-tree preprocessing with iterative forest binary lifting, linear Euler RMQ and offline Tarjan; the legacy LCA(n, root, adj) constructor was removed on 2026-10-12 (One API per operation) and maps to LCA(Graph::fromAdjacency(adj), root). Legacy queries are accounted in verification."
       ],
       "source_context": "INFERIOR VERSIONS section",
       "tier": "Basic",
@@ -1128,7 +1128,7 @@
       ],
       "status": "verified",
       "issues": [
-        "P011 replaces recursive lowlink with edge-ID multigraph biconnectivity and strong orientation; BridgeAlgo/Tarjan compatibility adapters and source features are accounted in verification."
+        "P011 replaces recursive lowlink with edge-ID multigraph biconnectivity and strong orientation; the BridgeAlgo/Tarjan adapters were removed on 2026-10-12 (One API per operation) and map to lowlink on Graph::fromAdjacency input. Source features are accounted in verification."
       ],
       "source_context": "AI GENERATED FAST section",
       "tier": "Basic",

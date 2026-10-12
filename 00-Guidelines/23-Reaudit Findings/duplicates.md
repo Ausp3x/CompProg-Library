@@ -180,13 +180,11 @@ Pruned 2026-10-12.
 
 ## P011 — 04-Graphs — lca, scc, bridges articulation, euleriantrail, functionalgraph (verified)
 
-Runs after P010 (`Graph::fromAdjacency`).
+Pruned 2026-10-12.
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `LCA(n, root, adj)`, `lca_detail::fromAdjacency` | `07-lca.hpp:69`, `:43-54` | `LCA(Graph::fromAdjacency(adj), root)` | remove | legacy format; unsorted lists may change `t_in`/`order`, never a query answer | `07-lca_tester.cpp:171-178`; probes `legacy-*` (:236-239) | row 07; ledger notes |
 | `getKthAncestor(u, k)` | `07-lca.hpp:76` | `kthAncestor(u, k)` | keep | accepts k < 0, which `kthAncestor` rejects (decided 2026-10-11) | `07-lca_tester.cpp:108-109,175-176` | none |
-| `Tarjan`, `BridgeAlgo` (`build`, `dfs`), `lowlink_detail::graph` | `09-bridges_articulation.hpp:89-128` | `lowlink(Graph::fromAdjacency(adj))`; bridges as sorted `minmax` pairs of `low.bridges` | remove | legacy input format; the inputs `fromAdjacency` rejects (a loop listed once, extra lists) change no answer (decided 2026-10-12) | `09-…_tester.cpp:133-155` (reuse the `legacyDfs` oracle), `:165-173,238-244`; probes :252-256 | row 09; ledger notes |
 | `StrongOrientationResult`, `strongOrientation` | `09-bridges_articulation.hpp:70-87` | `lowlink(g)`: `orientation`, `component`, `components`, `bridges`, `roots` | keep | derived `ok` flag and Robbins obstruction witness (clarified rule) | `09-…_tester.cpp:111-131,221-226`; probes :250-251 | none |
 | `FunctionalGraph(const G &g)` | `11-functionalgraph.hpp:79-80` | `FunctionalGraph(FunctionalGraph::successors(g))` | keep | builds from a `Graph`, not a legacy format (clarified rule) | `11-…_tester.cpp:194`; probes :287-292 | none |
 | `FunctionalGraph::reachable` | `11-functionalgraph.hpp:100` | `distance(u, v) != -1` | keep | named special case (ruling 1) | `11-…_tester.cpp:126`; probe `reachable-high` | none |
