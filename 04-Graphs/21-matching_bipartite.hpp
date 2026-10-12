@@ -2,6 +2,7 @@
 #include "../01-Core/01-template.hpp"
 #include "01-graph.hpp"
 #include "08-scc.hpp"
+#include "19-max_flow.hpp"
 
 // T: O(1), M: O(out); ascending left and right vertex lists.
 struct BipartiteVertices { vector<int> left, right; };
@@ -238,33 +239,13 @@ inline BipartiteMatching bipartiteMatchingDense(int nl, int nr, const vector<pai
 // T: O((V + E) * sqrt(E)), M: O(V + E); each edge used at most once, vertex u (v) in at most bl[u] (br[v]) chosen edges; ascending IDs.
 inline vector<int> bMatching(int nl, int nr, const vector<pair<int, int>> &edges, const vector<int> &bl, const vector<int> &br) {
     assert(int(bl.size()) == nl && int(br.size()) == nr);
-    int n = nl + nr + 2, s = n - 2, t = n - 1, m = int(edges.size());
-    vector<int> to, cap;
-    vector<vector<int>> g(n);
-    auto arc = [&](int u, int v, int c) {
-        assert(c >= 0);
-        g[u].push_back(int(to.size())); to.push_back(v); cap.push_back(c);
-        g[v].push_back(int(to.size())); to.push_back(u); cap.push_back(0);};
-    for (auto [u, v] : edges) { assert(0 <= u && u < nl && 0 <= v && v < nr); arc(u, nl + v, 1); }
-    for (int u = 0; u < nl; ++u) { arc(s, u, bl[u]); }
-    for (int v = 0; v < nr; ++v) { arc(nl + v, t, br[v]); }
-    vector<int> level(n), it(n), queue, path;
-    while (true) {
-        fill(level.begin(), level.end(), -1); level[s] = 0; queue.assign(1, s);
-        for (int i = 0; i < int(queue.size()); ++i) {
-            for (int a : g[queue[i]]) {
-                if (cap[a] > 0 && level[to[a]] == -1) { level[to[a]] = level[queue[i]] + 1; queue.push_back(to[a]); }}}
-        if (level[t] == -1) { break; }
-        fill(it.begin(), it.end(), 0);
-        for (int x = s; true;) {
-            if (x == t) {
-                for (int a : path) { --cap[a]; ++cap[a ^ 1]; }
-                path.clear(); x = s; continue;}
-            while (it[x] < int(g[x].size()) && !(cap[g[x][it[x]]] > 0 && level[to[g[x][it[x]]]] == level[x] + 1)) { ++it[x]; }
-            if (it[x] < int(g[x].size())) { path.push_back(g[x][it[x]]); x = to[path.back()]; continue; }
-            if (x == s) { break; }
-            level[x] = -1; x = to[path.back() ^ 1]; path.pop_back(); ++it[x];}}
+    int s = nl + nr, t = s + 1, m = int(edges.size());
+    MaxFlow<int> g(nl + nr + 2);
+    for (auto [u, v] : edges) { assert(0 <= u && u < nl && 0 <= v && v < nr); g.addEdge(u, nl + v, 1); }
+    for (int u = 0; u < nl; ++u) { g.addEdge(s, u, bl[u]); }
+    for (int v = 0; v < nr; ++v) { g.addEdge(nl + v, t, br[v]); }
+    g.flow(s, t);
     vector<int> res;
     for (int e = 0; e < m; ++e) {
-        if (cap[2 * e] == 0) { res.push_back(e); }}
+        if (g.getEdge(e).flow) { res.push_back(e); }}
     return res;}

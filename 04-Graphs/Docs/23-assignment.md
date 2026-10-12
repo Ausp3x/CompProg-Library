@@ -1,6 +1,6 @@
 # 23-assignment.hpp — evidence
 
-Owned by package P043 / GR10 (with `21-matching_bipartite.hpp`); see [00-notes.md](00-notes.md#p043-package-record). Contest profile: dense shortest-augmenting-path Hungarian, Murty partitioning with warm-started single-row re-augmentation, and sparse successive shortest paths with a binary heap. It replaces the unchanged `OLD/algorithms.cpp:4797-4862` excerpt (1-based e-maxx with `INF64` sentinels and `n ≤ m` only). `Hungarian` remains as a legacy adapter.
+Owned by package P043 / GR10 (with `21-matching_bipartite.hpp`); see [00-notes.md](00-notes.md#p043-package-record). Contest profile: dense shortest-augmenting-path Hungarian, Murty partitioning with warm-started single-row re-augmentation, and sparse successive shortest paths with a binary heap. It replaces the unchanged `OLD/algorithms.cpp:4797-4862` excerpt (1-based e-maxx with `INF64` sentinels and `n ≤ m` only); its `Hungarian` interface maps to `hungarian` (Legacy mapping).
 
 ## Contracts
 
@@ -14,7 +14,7 @@ Value type `T` is a signed integral type (`int`, `lng`, `lll`; `static_assert`).
 
 ### AssignmentResult and hungarian
 
-A default-constructed `AssignmentResult` has `feasible = false` and `cost = 0` (so an unsolved `Hungarian` copies safely). `hungarian(a, maximize = false, allowed = {})` takes a rectangular matrix (ragged input asserted) and an optional mask of the same shape (nonzero = allowed). It assigns exactly `min(rows, cols)` pairs, i.e. every vertex of the smaller side, with minimum (or maximum) total cost. The result:
+A default-constructed `AssignmentResult` has `feasible = false`, `cost = 0` and empty vectors, so it copies safely. `hungarian(a, maximize = false, allowed = {})` takes a rectangular matrix (ragged input asserted) and an optional mask of the same shape (nonzero = allowed). It assigns exactly `min(rows, cols)` pairs, i.e. every vertex of the smaller side, with minimum (or maximum) total cost. The result:
 
 - `feasible` is false iff forbidden pairs leave no such assignment; then `cost = 0`, all partners are −1 and the potentials are 0.
 - `row[i]` and `col[j]` are partners or −1, and `cost` is the exact sum of original entries.
@@ -42,9 +42,13 @@ Result:
 
 Domain: `16·(min(nl, nr) + 1)·K ≤ max(T)`. Reached potentials are shortest distances, bounded by `(2n+1)K`. Unreached potentials telescope through the last augmenting-path cost, so `|h| ≤ 3(2n+1)K` and heap keys stay below `(16n + 9)K`.
 
-### Hungarian (legacy adapter)
+### Legacy mapping
 
-`Hungarian<T>(n, m)` stores an `n × m` matrix initialised to 0; `addEdge(i, j, w)` sets one entry (range asserted); `solve()` returns `hungarian(a).cost` (minimum, any shape) and stores the result in `res`; `getAssignment()` returns `res.row`. As in the legacy code, unset pairs cost 0, so it is the minimum over complete assignments of the smaller side.
+| Removed (prune, 2026-10-13) | Replacement |
+|---|---|
+| `Hungarian<T> h(n, m)`, `h.addEdge(i, j, w)` | `vector<vector<T>> a(n, vector<T>(m))` (unset pairs cost 0, as in the adapter), `a[i][j] = w` |
+| `h.solve()` | `auto res = hungarian(a);` then `res.cost` |
+| `h.getAssignment()` | `res.row` |
 
 ## Feature-to-test map
 
@@ -52,30 +56,30 @@ Domain: `16·(min(nl, nr) + 1)·K ≤ max(T)`. Reached potentials are shortest d
 
 | Operation | Test | Oracle |
 |---|---|---|
-| `hungarian`, `AssignmentResult` (rectangular, min/max, forbidden, infeasible) | Every forbidden pattern up to 3×3, each in both senses; random matrices with random masks (full): 3,000 `int` in [−9, 9] and 3,000 `lng` with ±`max/100` extremes up to 5×5, 750 `lll` with ±`max/100` extremes up to 4×4, 750 `int` in [−2, 2] (many ties) up to 6×6; 150×200 dense | Optimal cost and feasibility by enumeration; dual certificate (feasibility, slackness, sign and zero rule, objective) checked exactly; transpose invariance; equals sparse SSP on large inputs |
+| `hungarian`, `AssignmentResult` (rectangular, min/max, forbidden, infeasible, default-constructed) | Every forbidden pattern up to 3×3, each in both senses; hand-checked 2×3 before and after an entry update, zero-filled 2×3 and 3×2, each also in both senses; a result default-initialized over storage poisoned with volatile `0xff` stores, then copied; random matrices with random masks (full): 3,000 `int` in [−9, 9] and 3,000 `lng` with ±`max/100` extremes up to 5×5, 750 `lll` with ±`max/100` extremes up to 4×4, 750 `int` in [−2, 2] (many ties) up to 6×6; 150×200 dense | Optimal cost and feasibility by enumeration; hand-computed optima; dual certificate (feasibility, slackness, sign and zero rule, objective) checked exactly; transpose invariance; equals sparse SSP on large inputs; default result is infeasible with cost 0 |
 | `kBestAssignments` | Same small corpus with k up to 30 or 100, and k = 0; 8×8 with k = 400 (of 40,320) | Sorted enumeration: rank-by-rank costs, distinctness, validity and cost of each assignment, count when exhausted |
 | `linearSumAssignment`, `SparseAssignment` (both modes, min/max, multiedges) | 3,000 random sparse cases per type at the domain bound (full); 150×200 dense as edges; 2,000-vertex sparse | Best cost per cardinality by enumeration; curve equality; matching validity; convexity on large inputs |
-| `Hungarian` legacy: `addEdge`, `solve`, `getAssignment` | 2×3 with re-solve after an update, unset pairs, 3×2; copies of unsolved adapters (vector growth) | Hand-checked optimum; default result is infeasible with cost 0 |
-| Preconditions | 5 probes: ragged matrix, mask shape, negative k, sparse edge out of range, legacy index out of range | Expected assertion failure |
+| Preconditions | 4 probes: ragged matrix, mask shape, negative k, sparse edge out of range | Expected assertion failure |
 
-Planted mutants (quick suite): row potential off by one, missing ban of the parent column, fixed rows not blocked, missing virtual-row potential update, uncapped Johnson update, maximize potentials not negated, virtual row not relaxed — all 7 killed.
+Planted mutants (quick suite): row potential off by one, missing ban of the parent column, fixed rows not blocked, missing virtual-row potential update, uncapped Johnson update, maximize potentials not negated, virtual row not relaxed — all 7 killed. 2026-10-13: removing the `feasible` and `cost` member initializers of `AssignmentResult` fails the `-Werror` build (`maybe-uninitialized`). Without `-Werror` it fails the default-result check in the optimized and checked builds, and UBSan reports the invalid `bool` load.
 
 ## Commands and results
 
-2026-10-09, GCC 16.2.1 and GCC 14.4.1, CPython 3.14, Linux x86-64, GNU++20.
+P043 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H, GNU++20. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with the assertion probes, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` (full and stress); every build adds `-Wall -Wextra -Wconversion -Werror`. The suites ran one after another; times are indicative.
 
 | Command | Result |
 |---|---|
-| `23-assignment_tester.py --mode quick` | PASS 2 configurations, 2,723 cases, 80,834 checks, 5 probes |
-| `23-assignment_tester.py --mode full --seed 1` | PASS 3 configurations, 14,873 cases, 543,083 checks (optimized), 5 probes; MEMORY peak 684 MB |
-| `CXX=g++-14 23-assignment_tester.py --mode full --seed 2` | PASS 3 configurations, 14,873 cases, 536,487 checks (optimized), 5 probes; MEMORY peak 652 MB |
-| `23-assignment_tester.py --mode stress --seed 3` | PASS 3 configurations, 91,373 cases, 3,467,440 checks (optimized), 5 probes; MEMORY peak 808 MB |
-| `02-integration.py --sanitizers` | PASS 113 standalone/aggregate headers (header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 2,755 MB |
-| `03-consistency.py` | No P043 errors; one error predates P043 at `HEAD` (`16-poly_tester.py` missing from `QUICK` in the committed `01-run.py`) |
+| `23-assignment_tester.py --mode quick` | PASS 2 configurations, 2,731 cases, 73,692 checks, 4 probes |
+| `23-assignment_tester.py --mode full --seed 20261013` | PASS 3 configurations, 14,881 cases, 539,865 checks (optimized and ASan/UBSan; 480,309 checked), 4 probes; 55 s; MEMORY peak 671 MB |
+| `CXX=g++-14 23-assignment_tester.py --mode full --seed 20261013` | PASS 3 configurations, 14,881 cases, 539,865 checks (optimized and ASan/UBSan; 480,309 checked), 4 probes; 55 s; MEMORY peak 633 MB |
+| `23-assignment_tester.py --mode stress --seed 3` | PASS 3 configurations, 91,381 cases, 3,467,840 checks (optimized and ASan/UBSan; 3,035,615 checked), 4 probes; 113 s; MEMORY peak 842 MB |
+| `02-integration.py` | PASS 135 standalone/aggregate headers, scalar and available AVX2 multi-TU, workspace; MEMORY peak 650 MB |
+| `03-consistency.py` | No errors |
+| `03-consistency.py --braces` on the three P043 headers and testers | No closing-brace, comment-cap or free-function violations |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/23-assignment_tester.py' --mode full --seed 1
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/23-assignment_tester.py' --mode full --seed 2
+python3 '96-Local Testing/04-Graphs/23-assignment_tester.py' --mode full --seed 20261013
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/23-assignment_tester.py' --mode full --seed 20261013
 python3 '96-Local Testing/04-Graphs/23-assignment_tester.py' --mode stress --seed 3
 ```
 
@@ -94,8 +98,13 @@ None required: contest profile without dispatch thresholds or Barrett/Montgomery
 | [KACTL, WeightedMatching](https://github.com/kth-competitive-programming/kactl/tree/main/content/graph), [maspypy, hungarian](https://maspypy.github.io/library/), [ei1333, hungarian](https://ei1333.github.io/library/) | Catalog comparison |
 | [Library Checker, assignment](https://github.com/yosupo06/library-checker-problems/tree/master/graph) | Square minimum assignment with cost and permutation |
 
-Legacy: `OLD/algorithms.cpp:4797-4862` and `OLD/Team Notebook/src/algsbetter.cpp:3199` were inspected. Both are 1-based e-maxx with `addEdge`, `solve` (returns `−v[0]`), `getAssignment`, an `INF64` sentinel, `n ≤ m` only and zero-initialised pairs. The adapter keeps the interface and the zero default and lifts the `n ≤ m` restriction; the `INF64` sentinel (which overflowed for large costs) is gone.
+Legacy: `OLD/algorithms.cpp:4797-4862` and `OLD/Team Notebook/src/algsbetter.cpp:3199` were inspected. Both are 1-based e-maxx with `addEdge`, `solve` (returns `−v[0]`), `getAssignment`, an `INF64` sentinel, `n ≤ m` only and zero-initialised pairs. Their interface maps to `hungarian` on a zero-filled matrix (Legacy mapping); `hungarian` lifts the `n ≤ m` restriction, and the `INF64` sentinel (which overflowed for large costs) is gone.
 
 ## Limits and handoffs
 
 Min-cost flow is row 20 and general weighted matching row 64. Incremental row addition, dynamic cost updates, bottleneck assignment and the auction algorithm are omitted with reasons in [00-notes.md](00-notes.md#p043-omissions).
+
+## History
+
+- 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14.
+- 2026-10-13: prune, removed the `Hungarian` adapter (Legacy mapping); its hand-checked matrices moved to `hungarian` with the enumeration oracle, the `legacy-range` probe was deleted. The review found that the default-result check could not fail on value-initialized vector elements; it now default-initializes over volatile-poisoned storage. Full passed on g++ and g++-14, stress on g++.

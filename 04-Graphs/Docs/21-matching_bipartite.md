@@ -1,6 +1,6 @@
 # 21-matching_bipartite.hpp — evidence
 
-Owned by package P043 / GR10 (with `23-assignment.hpp`); see [00-notes.md](00-notes.md#p043-package-record). Contest profile: iterative augmenting searches, word-parallel dense Kuhn using plain 64-bit words (no ISA code), and SCCs through the verified `tarjanScc` of `08-scc.hpp`. The planned row had no implementation; the legacy reference `OLD/Team Notebook/src/graph/old_kuhn.cpp` is defective and was used only to identify features.
+Owned by package P043 / GR10 (with `23-assignment.hpp`); see [00-notes.md](00-notes.md#p043-package-record). Contest profile: iterative augmenting searches, word-parallel dense Kuhn using plain 64-bit words (no ISA code), SCCs through the verified `tarjanScc` of `08-scc.hpp` and b-matching flow through the verified `MaxFlow` of `19-max_flow.hpp`. The planned row had no implementation; the legacy reference `OLD/Team Notebook/src/graph/old_kuhn.cpp` is defective and was used only to identify features.
 
 ## Contracts
 
@@ -34,11 +34,17 @@ Same input; returns a `BipartiteMatching` whose matching is maximum, so every qu
 
 ### bMatching
 
-`bMatching(nl, nr, edges, bl, br)` requires `bl.size() == nl`, `br.size() == nr` and nonnegative capacities. It returns, in ascending order, the IDs of a maximum-size edge set using each edge at most once, left vertex `u` at most `bl[u]` times and right vertex `v` at most `br[v]` times. It runs Dinic on `s → u (bl[u])`, `u → v (1)` per edge and `v → t (br[v])`. Every augmenting path carries one unit and saturates its unit middle arcs, so path walks with restart from `s` cost O(V + E) per phase. Residual flow decomposes into middle-arc-disjoint paths of length ≥ phase index, so there are O(√E) phases and O((V + E)·√E) time, O(V + E) memory. Per-edge capacities greater than one are expressed as parallel edges.
+`bMatching(nl, nr, edges, bl, br)` requires `bl.size() == nl`, `br.size() == nr` and nonnegative capacities. It returns, in ascending order, the IDs of a maximum-size edge set using each edge at most once, left vertex `u` at most `bl[u]` times and right vertex `v` at most `br[v]` times. It builds a `MaxFlow<int>` network with the middle arcs `u → v (1)` added first, so arc ID `e` is edge `e`, then `s → u (bl[u])` and `v → t (br[v])`, runs `flow(s, t)` (Dinic) and returns the edges with flow 1. Per-edge capacities greater than one are expressed as parallel edges. The flow value is at most `edges.size()` and each residual pair sums to its `int` capacity, so nothing overflows.
+
+Complexity O((V + E)·√E) time, O(V + E) memory, for the Dinic of `19-max_flow.hpp` on this network:
+
+- Phase cost O(V + E). The blocking-flow search runs backwards from `t` with current-arc pointers. Into `t` come only arcs `v → t`, and into a right vertex only unit middle arcs, so every frame below a right vertex carries at most one unit. A unit that reaches `s` saturates every middle arc on its path, and a saturated arc cannot reopen within the phase (its reverse points against the levels). Successful walks therefore cost O(1) plus the arcs they saturate, and failed frames retire their vertex. Together with the BFS that is O(V + E).
+- Each phase is a blocking flow. The BFS stops once `t` is labelled, but by then every vertex below `t`'s level is labelled. With `limit = MAX` the root frame at `t` ends only when its arcs are exhausted (the flow stays below `MAX`), so after the phase no path of the level graph remains and the residual distance to `t` grows.
+- O(√E) phases. A simple residual `s`–`t` path has exactly two arcs at `s` or `t`; the rest are middle arcs. Each middle edge has residual capacity 1 in total over its two directions (1 − f forward plus f backward), so it carries at most one unit of a residual flow. After `d` phases every augmenting path has length above `d`, so the remaining flow is at most `E / (d − 1)`. After √E phases at most about √E units remain, and every later phase adds at least one.
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/21-matching_bipartite_tester.py` (shared graph runner with `-Werror` warnings, optimized, checked with probes, ASan/UBSan in full/stress). The oracle enumerates every matching of the alive edges (recursion over left vertices) and keeps all maximum ones. Edge covers and b-matchings use edge-subset enumeration. The DM oracle is rebuilt from Gallai–Edmonds sets (vertices exposed by some maximum matching, and their neighbours) and DSU components of allowed edges.
+`96-Local Testing/04-Graphs/21-matching_bipartite_tester.py` (shared graph runner with `-Werror` warnings, optimized, checked with probes, ASan/UBSan in full/stress). The oracle enumerates every matching of the alive edges (recursion over left vertices) and keeps all maximum ones. Edge covers and small b-matchings use edge-subset enumeration. Larger b-matchings are checked against the minimum cut, enumerated over left sets, and against `hopcroftKarp` on unit or doubled graphs. The DM oracle is rebuilt from Gallai–Edmonds sets (vertices exposed by some maximum matching, and their neighbours) and DSU components of allowed edges.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -49,31 +55,32 @@ Same input; returns a `BipartiteMatching` whose matching is maximum, so every qu
 | `hallViolator` | Same corpus | Empty iff left saturated; neighbourhood of S counted directly and smaller than S |
 | `essentialEdges` | Same corpus; unique perfect matching on the 200,000 path | Allowed/forced status over the set of all maximum matchings |
 | `dulmageMendelsohn`, `DulmageMendelsohn`, `BipartiteVertices` | Same corpus; path gives n singleton middle blocks | Surplus blocks equal Gallai–Edmonds sets; middle blocks equal allowed-edge components; order on every edge; block count |
-| `bMatching` | Graphs with ≤ 12 edges, capacities 0..3; unit capacities; 200,000-vertex sparse | Maximum by subset enumeration; equals matching size for unit capacities; capacity checks |
+| `bMatching` | Graphs with ≤ 12 edges, capacities 0..3; unit capacities; 2,000 random multigraphs with nl ≤ 8, nr ≤ 11, up to 60 edges, capacities 0..5 (full); 200,000-vertex sparse with unit capacities and with left capacity 2 | Maximum by subset enumeration; size equals the minimum `s`–`t` cut enumerated over left sets (max-flow min-cut); equals matching size for unit capacities; on the large graph equals `hopcroftKarp`, and with left capacity 2 equals `hopcroftKarp` on the graph with every left vertex doubled (right capacity 1 forbids reusing an edge); ascending distinct IDs and capacities |
 | Preconditions | 7 probes: edge out of range, negative size, double erase, erase out of range, cover on a non-maximum matching, capacity vector size, negative capacity | Expected assertion failure |
 
-Planted mutants (quick suite): wrong Z_R term in edge status, broken augment path walk, missing dense mask reset, swapped DM surplus blocks, b-matching capacity ignored, inverted cover, dropped pair-graph self-loop, Hopcroft–Karp path flip without the right mate, and skipped BFS layer — all 9 killed.
+Planted mutants (quick suite): wrong Z_R term in edge status, broken augment path walk, missing dense mask reset, swapped DM surplus blocks, inverted cover, dropped pair-graph self-loop, Hopcroft–Karp path flip without the right mate, and skipped BFS layer — all 8 killed. On the `MaxFlow` body of `bMatching` (2026-10-13): right capacity plus one, middle capacity 2, source arcs added before the middle arcs, and a flow limit of `max(1, m / 2)` — all 4 killed. The first, second and fourth are also killed with only the min-cut and large sections enabled.
 
 ## Commands and results
 
-2026-10-09, GCC 16.2.1 and GCC 14.4.1, CPython 3.14, Linux x86-64, GNU++20.
+P043 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H, GNU++20. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with the assertion probes, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` (full and stress); every build adds `-Wall -Wextra -Wconversion -Werror`. The suites ran one after another; times are indicative.
 
 | Command | Result |
 |---|---|
-| `21-matching_bipartite_tester.py --mode quick` | PASS 2 configurations, 1,677 cases, 240,261 checks, 7 probes |
-| `21-matching_bipartite_tester.py --mode full --seed 1` | PASS 3 configurations, 16,689 cases, 2,865,188 checks, 7 probes; MEMORY peak 805 MB |
-| `CXX=g++-14 21-matching_bipartite_tester.py --mode full --seed 2` | PASS 3 configurations, 16,689 cases, 2,860,073 checks, 7 probes; MEMORY peak 811 MB |
-| `21-matching_bipartite_tester.py --mode stress --seed 3` | PASS 3 configurations, 110,689 cases, 8,597,503 checks, 7 probes; MEMORY peak 978 MB |
-| `02-integration.py --sanitizers` | PASS 113 standalone/aggregate headers (header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 2,755 MB |
-| `03-consistency.py` | No P043 errors; one error predates P043 at `HEAD` (`16-poly_tester.py` missing from `QUICK` in the committed `01-run.py`) |
-| `21-matching_bipartite_benchmark.py` | PASS: all sizes agree; medians below |
+| `21-matching_bipartite_tester.py --mode quick` | PASS 2 configurations, 1,877 cases, 342,589 checks, 7 probes |
+| `21-matching_bipartite_tester.py --mode full --seed 20261013` | PASS 3 configurations, 18,689 cases, 3,885,922 checks each, 7 probes; 76 s; MEMORY peak 825 MB |
+| `CXX=g++-14 21-matching_bipartite_tester.py --mode full --seed 20261013` | PASS 3 configurations, 18,689 cases, 3,885,922 checks each, 7 probes; 79 s; MEMORY peak 866 MB |
+| `21-matching_bipartite_tester.py --mode stress --seed 3` | PASS 3 configurations, 120,689 cases, 9,790,445 checks each, 7 probes; 153 s; MEMORY peak 974 MB |
+| `02-integration.py` | PASS 135 standalone/aggregate headers, scalar and available AVX2 multi-TU, workspace; MEMORY peak 650 MB |
+| `03-consistency.py` | No errors |
+| `03-consistency.py --braces` on the three P043 headers and testers | No closing-brace, comment-cap or free-function violations |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/21-matching_bipartite_tester.py' --mode full --seed 1
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/21-matching_bipartite_tester.py' --mode full --seed 2
+python3 '96-Local Testing/04-Graphs/21-matching_bipartite_tester.py' --mode full --seed 20261013
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/21-matching_bipartite_tester.py' --mode full --seed 20261013
 python3 '96-Local Testing/04-Graphs/21-matching_bipartite_tester.py' --mode stress --seed 3
-python3 '96-Local Testing/04-Graphs/21-matching_bipartite_benchmark.py'
 ```
+
+The benchmark driver (`python3 '96-Local Testing/04-Graphs/21-matching_bipartite_benchmark.py'`) last ran on 2026-10-09; the engines it times are unchanged.
 
 ## Benchmarks
 
@@ -88,6 +95,17 @@ python3 '96-Local Testing/04-Graphs/21-matching_bipartite_benchmark.py'
 | Reversed path (long augmenting chains in bit order) | 8,000 | 15,999 | 0.4 | 0.3 | 3,180.4 |
 
 `hopcroftKarp` is the default. `kuhn` matches it on dense random graphs but is O(V·(V + E)) and 14× slower on large sparse ones. The dense variant lost on every measured workload. Its O(n³/64) bound beats O(E·√V) only on near-complete graphs with n below about 4,096, and the reversed path shows its worst case. It takes the same edge list as the others and stays because it is a different algorithm (word-parallel Kuhn, O(n³/64)) beside Hopcroft–Karp, which the keep clause of One API per operation (`03-cpp.md`) covers. No automatic dispatch.
+
+`bMatching` on `MaxFlow<int>` against the removed hand-written Dinic. Conditions: 2026-10-13, same machine and compiler flags, seed 20261013, `nl = nr = n`, uniform random endpoints and capacities in the stated range. An ad-hoc probe held the old body copied from `HEAD`; the probe was not kept. The first of six runs is discarded and the medians of the other five are shown; result sizes agreed on every workload. Memory is O(V + E) for both, with two arcs per network edge; the whole memory-capped probe peaked at 108 MB.
+
+| Workload | n | E | old ms | `MaxFlow` ms |
+|---|---|---|---|---|
+| Sparse, `bl = 2`, `br = 1` | 200,000 | 600,000 | 522.4 | 297.4 |
+| Sparse, capacities in [1, 5] | 100,000 | 1,000,000 | 597.0 | 365.5 |
+| Dense, capacities in [1, 3] | 2,000 | 1,000,000 | 25.1 | 36.6 |
+| Sparse, unit capacities | 200,000 | 600,000 | 5,717.5 | 1,176.5 |
+
+The shared Dinic, which pushes many units per search from `t`, is faster on the sparse workloads and 11.5 ms slower on the dense one. For unit capacities `hopcroftKarp` remains the faster choice.
 
 ## Sources
 
@@ -107,3 +125,8 @@ Legacy: `OLD/Team Notebook/src/graph/old_kuhn.cpp` was inspected. It returns aft
 ## Limits and handoffs
 
 Weighted assignment is row 23; general matching is rows 22/64; maximum antichain, DAG path and chain covers are row 31; bipartite edge colouring is row 34. Lexicographically extremal matchings or covers, rank-maximal matching and automatic bipartition are omitted with reasons in [00-notes.md](00-notes.md#p043-omissions).
+
+## History
+
+- 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; engine benchmark recorded.
+- 2026-10-13: prune, `bMatching` runs on `MaxFlow<int>` instead of its own Dinic (complexity argument and old-versus-new timing above); min-cut and doubled-graph Hopcroft–Karp oracles added; full passed on g++ and g++-14, stress on g++.

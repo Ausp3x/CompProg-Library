@@ -23,7 +23,6 @@ struct TwoSat {
         bool ok = -n <= a && a < n && -n <= b && b < n && clauses.size() < size_t(INT_MAX / 2);
         assert(ok);
         if (ok) { clauses.emplace_back(a, b); }}
-    void addClause(int a, bool na, int b, bool nb) { addClause(na ? ~a : a, nb ? ~b : b); }
     void setValue(int a) { addClause(a, a); }
     void addImplication(int a, int b) { addClause(~a, b); }
     void addXor(int a, int b) { addClause(a, b); addClause(~a, ~b); }
@@ -70,7 +69,6 @@ struct TwoSat {
             if (comp[2 * x] == comp[2 * x + 1]) { ans.clear(); return false; }
             ans[x] = comp[2 * x] < comp[2 * x + 1];}
         return true;}
-    bool solve() { return satisfiable(); }
     const vector<bool> &answer() const { return ans; }
 
     // T: O((n + m) * (1 + n / w)), M: O(n + m); asserts satisfiable; literals true in every solution, by variable.

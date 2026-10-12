@@ -1248,7 +1248,8 @@
       "focus": "Bipartite matching and Hungarian assignment.",
       "prerequisites": [
         "C01",
-        "GR01"
+        "GR01",
+        "GR08"
       ],
       "tiers": [
         "Advanced"

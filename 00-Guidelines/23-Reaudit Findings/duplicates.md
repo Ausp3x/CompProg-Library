@@ -389,15 +389,14 @@ Pruned 2026-10-13.
 
 ## P043 — 04-Graphs — twosat, matching bipartite, assignment, dominatortree (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `addClause(a, na, b, nb)`, `solve()` | `18-twosat.hpp:26,73` | `addClause(na ? ~a : a, nb ? ~b : b)`, `satisfiable()` | remove | legacy format; another name | `18-twosat_tester.cpp:32,60,160-169` | ledger note `monolith-map.json:1014` |
-| `Hungarian` (`addEdge`, `solve`, `getAssignment`) | `23-assignment.hpp:205-218` | `hungarian(a)` on a filled matrix (unset = 0): `.cost`, `.row` | remove | legacy format | `23-assignment_tester.cpp:167-184,248`; probe `legacy-range` | ledger note `monolith-map.json:1108` |
-| `hallViolator()` | `21-matching_bipartite.hpp:169` | `maximumIndependentSet().left` | keep | named Hall certificate; same set as `maximumIndependentSet().left` (decided 2026-10-12) | `21-matching_bipartite_tester.cpp:86-92` | none |
-| Dinic inside `bMatching` | `21-matching_bipartite.hpp:251-266` | `MaxFlow<int>` (middle edges first; record the O((V+E)√E) argument) | remove | second implementation (body) | `21-…_tester.cpp:150-164,263`; probes `bmatching-*` | adds an include of `19-max_flow.hpp` |
-| Tarjan inside `satisfiable` | `18-twosat.hpp:48-67` | `tarjanScc` on a `Graph(2n, true)` | keep | constant-factor variant (ruling 4) | — | `forcedLiterals`, `unsatWitness` |
-| `maximumIndependentSet()` | `21-matching_bipartite.hpp:149` | complement of `konigVertexCover()` | keep | separate operation (ruling 2) | `21-…_tester.cpp:61-66` | `hallViolator`'s replacement |
-| `addImplication`, `addEquivalent` | `18-twosat.hpp:28,30` | `addClause(~a, b)`, `addXor(a, ~b)` | keep | named special cases, as `setValue`; `addNand` stays omitted (decided 2026-10-11) | `18-twosat_tester.cpp:34,36,135-150` | none |
+| `hallViolator()` | `21-matching_bipartite.hpp:170` | `maximumIndependentSet().left` | keep | named Hall certificate; same set as `maximumIndependentSet().left` (decided 2026-10-12) | `21-matching_bipartite_tester.cpp:86-92` | none |
+| Tarjan inside `satisfiable` | `18-twosat.hpp:47-66` | `tarjanScc` on a `Graph(2n, true)` | keep | constant-factor variant (ruling 4) | — | `forcedLiterals`, `unsatWitness` |
+| `maximumIndependentSet()` | `21-matching_bipartite.hpp:150` | complement of `konigVertexCover()` | keep | separate operation (ruling 2) | `21-…_tester.cpp:61-66` | `hallViolator`'s replacement |
+| `addImplication`, `addEquivalent` | `18-twosat.hpp:27,29` | `addClause(~a, b)`, `addXor(a, ~b)` | keep | named special cases, as `setValue`; `addNand` stays omitted (decided 2026-10-11) | `18-twosat_tester.cpp:32,34,133-148` | none |
 
 ## P055 — 05-Mathematics — convolution, transform algorithms (verified)
 

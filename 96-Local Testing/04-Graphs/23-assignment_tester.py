@@ -12,4 +12,4 @@ from _00_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('23-assignment', ['ragged', 'mask-shape', 'k-negative',
-        'sparse-range', 'legacy-range'], strict=True))
+        'sparse-range'], strict=True))

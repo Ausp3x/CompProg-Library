@@ -201,18 +201,3 @@ SparseAssignment<T> linearSumAssignment(int nl, int nr, const vector<tuple<int, 
         if (ml[u] != -1) { res.edges.push_back(ml[u]); res.cost += std::get<2>(edges[ml[u]]); }}
     sort(res.edges.begin(), res.edges.end());
     return res;}
-
-// S: O(n * m), U: O(1) addEdge, Q: O(n^2 * m) solve, M: O(n * m); legacy adapter: unset pairs cost 0, getAssignment after solve.
-template<class T>
-struct Hungarian {
-    int n, m;
-    vector<vector<T>> a;
-    AssignmentResult<T> res;
-
-    Hungarian(int N, int M) : n(N), m(M) { assert(n >= 0 && m >= 0); a.assign(n, vector<T>(m)); }
-
-    void addEdge(int i, int j, T w) {
-        assert(0 <= i && i < n && 0 <= j && j < m); a[i][j] = w;}
-    T solve() { res = hungarian(a); return res.cost; }
-    vector<int> getAssignment() const { return res.row; }
-};

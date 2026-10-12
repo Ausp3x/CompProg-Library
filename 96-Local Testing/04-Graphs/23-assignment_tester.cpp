@@ -164,24 +164,27 @@ namespace {
                     for (int i = 0; i < cells; ++i) { a[i / C][i % C] = (i * 7 + mask) % 5 - 2; ok[i / C][i % C] = mask >> i & 1; }
                     for (bool maximize : {false, true}) { denseCase(a, ok, maximize, 100); }}}}
         cout << "PASS every forbidden pattern up to 3x3 cases=" << cases << '\n';}
-    void legacy() {
-        context = "legacy";
-        Hungarian<lng> h(2, 3);
-        h.addEdge(0, 0, 5); h.addEdge(0, 1, 1); h.addEdge(1, 0, 2); h.addEdge(1, 1, 7); h.addEdge(0, 2, 9); h.addEdge(1, 2, 9);
-        check(h.solve() == 3 && h.getAssignment() == vector<int>{1, 0}, "legacy 2x3 minimum");
-        h.addEdge(1, 0, 8);
-        check(h.solve() == 9 && h.getAssignment() == vector<int>{1, 0}, "legacy re-solve after update");
-        Hungarian<lng> unset(2, 3);
-        unset.addEdge(0, 0, 5); unset.addEdge(1, 1, 4);
-        check(unset.solve() == 0 && unset.getAssignment()[0] != 0 && unset.getAssignment()[1] != 1, "legacy unset pairs cost 0");
-        Hungarian<lng> tall(3, 2);
-        tall.addEdge(0, 0, 4); tall.addEdge(1, 1, -3); tall.addEdge(2, 0, 1);
-        check(tall.solve() == -2, "legacy rectangular rows > cols");
-        vector<Hungarian<lng>> grown;
-        for (int i = 0; i < 3; ++i) { grown.emplace_back(2, 2); }
-        auto copied = grown;
-        check(!copied[0].res.feasible && copied[0].res.cost == 0 && copied[2].solve() == 0, "copy before solve (initialised result)");
-        cout << "PASS legacy adapter\n";}
+    void handChecked() {
+        Matrix<lng> a{{5, 1, 9}, {2, 7, 9}}, b = a, zero{{5, 0, 0}, {0, 4, 0}}, tall{{4, 0}, {0, -3}, {1, 0}};
+        b[1][0] = 8;
+        context = "hand-checked";
+        auto res = hungarian(a);
+        check(res.cost == 3 && res.row == vector<int>{1, 0}, "2x3 minimum");
+        res = hungarian(b);
+        check(res.cost == 9 && res.row == vector<int>{1, 0}, "2x3 minimum after an entry update");
+        res = hungarian(zero);
+        check(res.cost == 0 && res.row[0] != 0 && res.row[1] != 1, "zero-filled pairs");
+        check(hungarian(tall).cost == -2, "rectangular rows > cols");
+        // Poison with volatile stores (lifetime DSE drops a memset), then default-initialize: only member initializers zero feasible and cost.
+        alignas(AssignmentResult<lng>) unsigned char raw[sizeof(AssignmentResult<lng>)];
+        for (volatile unsigned char &x : raw) { x = 0xff; }
+        auto *fresh = new (raw) AssignmentResult<lng>;
+        AssignmentResult<lng> copied = *fresh;
+        fresh->~AssignmentResult();
+        check(!copied.feasible && copied.cost == 0 && copied.row.empty() && copied.u.empty(), "default result is infeasible with cost 0");
+        for (auto *m : {&a, &b, &zero, &tall}) {
+            for (bool maximize : {false, true}) { denseCase(*m, {}, maximize, 10); }}
+        cout << "PASS hand-checked minima and default result\n";}
     void large() {
         std::mt19937_64 rng(seed ^ 0x1a);
         int n = mode == "quick" ? 60 : mode == "full" ? 150 : 400;
@@ -234,7 +237,6 @@ namespace {
         else if (name == "mask-shape") { hungarian(Matrix<lng>{{1, 2}}, false, Mask{{1}}); }
         else if (name == "k-negative") { kBestAssignments(Matrix<lng>{{1}}, -1); }
         else if (name == "sparse-range") { linearSumAssignment<lng>(1, 1, {{0, 1, 5}}); }
-        else if (name == "legacy-range") { Hungarian<lng> h(1, 1); h.addEdge(1, 0, 1); }
         else { throw std::runtime_error("unknown invalid probe " + name); }}
 } // namespace
 
@@ -245,7 +247,7 @@ int main(int argc, char **argv) {
             if (arg == "--mode") { mode = argv[++i]; }
             else if (arg == "--seed") { seed = std::stoull(argv[++i]); }
             else if (arg == "--invalid") { invalid(argv[++i]); return 2; }}
-        exhaustiveTiny(); smallCases(); legacy(); large();
+        exhaustiveTiny(); smallCases(); handChecked(); large();
         cout << "PASS assignment seed=" << seed << " mode=" << mode << " cases=" << cases << " checks=" << checks << '\n';}
     catch (const std::exception &e) {
         cerr << "FAIL assignment seed=" << seed << " mode=" << mode << ' ' << e.what() << '\n'; return 1;}}

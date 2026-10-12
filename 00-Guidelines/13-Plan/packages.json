@@ -557,6 +557,21 @@
       "note": ""
     },
     {
+      "id": "P044",
+      "label": "04-Graphs — max flow",
+      "batches": [
+        "GR08"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "verified",
+      "evidence": [
+        "04-Graphs/Docs/19-max_flow.md"
+      ],
+      "note": ""
+    },
+    {
       "id": "P043",
       "label": "04-Graphs — twosat, matching bipartite, assignment, dominatortree",
       "batches": [
@@ -629,21 +644,6 @@
         "02-Data Structures/Docs/15-segment_tree_2d.md",
         "02-Data Structures/Docs/16-mergesorttree.md",
         "02-Data Structures/Docs/30-aggregation_queue.md"
-      ],
-      "note": ""
-    },
-    {
-      "id": "P044",
-      "label": "04-Graphs — max flow",
-      "batches": [
-        "GR08"
-      ],
-      "phase": "Contest core",
-      "size": "XL",
-      "model": "opus",
-      "status": "verified",
-      "evidence": [
-        "04-Graphs/Docs/19-max_flow.md"
       ],
       "note": ""
     },

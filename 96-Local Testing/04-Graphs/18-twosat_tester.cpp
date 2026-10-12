@@ -27,10 +27,8 @@ namespace {
             for (int l : c.lits) { out << ',' << l; }
             out << ')';}
         return out.str();}
-    void apply(TwoSat &s, const Constraint &c, int style) {
-        if (c.kind == 0) {
-            if (style) { s.addClause(c.a >= 0 ? c.a : ~c.a, c.a < 0, c.b >= 0 ? c.b : ~c.b, c.b < 0); }
-            else { s.addClause(c.a, c.b); }}
+    void apply(TwoSat &s, const Constraint &c) {
+        if (c.kind == 0) { s.addClause(c.a, c.b); }
         else if (c.kind == 1) { s.addImplication(c.a, c.b); }
         else if (c.kind == 2) { s.addXor(c.a, c.b); }
         else if (c.kind == 3) { s.addEquivalent(c.a, c.b); }
@@ -40,10 +38,10 @@ namespace {
         for (auto [a, b] : s.clauses) {
             if (!truth(a, mask) && !truth(b, mask)) { return false; }}
         return true;}
-    void verify(int n, const vector<Constraint> &cs, int style) {
-        ++cases; context = show(n, cs) + " style=" + std::to_string(style);
+    void verify(int n, const vector<Constraint> &cs) {
+        ++cases; context = show(n, cs);
         TwoSat s(n);
-        for (auto &c : cs) { apply(s, c, style); }
+        for (auto &c : cs) { apply(s, c); }
         check(int(s.clauses.size()) >= 0 && s.n >= n, "auxiliary variables only appended");
         vector<ulng> user;
         for (ulng mask = 0; mask < (1ULL << n); ++mask) {
@@ -57,9 +55,9 @@ namespace {
             check(projected == set<ulng>(user.begin(), user.end()), "encoding projects to the semantic solution set");}
         bool sat = s.satisfiable();
         check(sat == !user.empty(), "satisfiable versus brute force");
-        check(s.solve() == sat && s.satisfiable() == sat, "repeated solve and legacy solve");
+        check(s.satisfiable() == sat, "repeated satisfiable");
         if (sat) {
-            check(int(s.answer().size()) == total && s.ans == s.answer(), "answer size and legacy ans field");
+            check(int(s.answer().size()) == total && s.ans == s.answer(), "answer size and ans field");
             ulng mask = 0;
             for (int x = 0; x < total; ++x) { mask |= ulng(s.answer()[x]) << x; }
             check(clauseHolds(s, mask), "answer satisfies every clause");
@@ -104,8 +102,8 @@ namespace {
                 vector<Constraint> cs;
                 for (int i = 0; i < int(possible.size()); ++i) {
                     if (mask >> i & 1) { cs.push_back({0, possible[i].first, possible[i].second, {}}); }}
-                for (int style = 0; style < (n <= 2 ? 2 : 1); ++style) { verify(n, cs, n <= 2 ? style : int(mask % 2)); }}}
-        verify(0, {}, 0);
+                verify(n, cs);}}
+        verify(0, {});
         cout << "PASS exhaustive clause sets n<=" << bound << " cases=" << cases << '\n';}
     void randomCases() {
         std::mt19937_64 rng(seed);
@@ -114,7 +112,7 @@ namespace {
             int n = 1 + int(rng() % 8), m = int(rng() % (3 * n + 2));
             vector<Constraint> cs;
             for (int i = 0; i < m; ++i) { cs.push_back(randomConstraint(rng, n)); }
-            verify(n, cs, t % 2);}
+            verify(n, cs);}
         cout << "PASS random mixed constraints rounds=" << rounds << '\n';}
     void atMostOneCases() {
         std::mt19937_64 rng(seed ^ 0x5eed);
@@ -126,7 +124,7 @@ namespace {
                     for (int k = int(rng() % (n + 3)); k > 0; --k) { int x = int(rng() % n); c.lits.push_back(rng() % 2 ? x : ~x); }
                     cs.push_back(c);}
                 if (rng() % 2) { cs.push_back(randomConstraint(rng, n)); }
-                verify(n, cs, 0);}}
+                verify(n, cs);}}
         cout << "PASS at-most-one with repeated and complementary literals\n";}
     void large() {
         int n = mode == "quick" ? 20000 : mode == "full" ? 400000 : 1000000;
@@ -157,16 +155,16 @@ namespace {
         context = "at-most-one n=" + std::to_string(n);
         check(big.satisfiable() && big.n == 2 * n - 2 && big.ans[n - 1] && !big.ans[0] && !big.ans[n - 2], "large at-most-one");
         cout << "PASS large chains, witness, forced prefix and at-most-one n=" << n << '\n';}
-    void legacy() {
-        context = "legacy";
+    void resolveAndCopy() {
+        context = "re-solve";
         TwoSat s(2);
-        s.addClause(0, true, 1, false); s.addClause(0, false, 0, false);
-        check(s.solve() && s.ans[0] && s.ans[1], "legacy negation flags");
-        s.addClause(1, true, 1, true);
-        check(!s.solve() && s.ans.empty(), "legacy re-solve after adding clauses");
+        s.addClause(~0, 1); s.addClause(0, 0);
+        check(s.satisfiable() && s.ans[0] && s.ans[1], "implication and unit clause force both true");
+        s.addClause(~1, ~1);
+        check(!s.satisfiable() && s.ans.empty(), "re-solve after adding clauses");
         TwoSat copy = s; copy.clauses.pop_back();
-        check(copy.solve() && !s.solve(), "copies are independent");
-        cout << "PASS legacy adapter, re-solve and copy\n";}
+        check(copy.satisfiable() && !s.satisfiable(), "copies are independent");
+        cout << "PASS re-solve and copy\n";}
     void invalid(const string &name) {
         TwoSat s(2);
         if (name == "literal-high") { s.addClause(2, 0); }
@@ -184,7 +182,7 @@ int main(int argc, char **argv) {
             if (arg == "--mode") { mode = argv[++i]; }
             else if (arg == "--seed") { seed = std::stoull(argv[++i]); }
             else if (arg == "--invalid") { invalid(argv[++i]); return 2; }}
-        exhaustive(); randomCases(); atMostOneCases(); large(); legacy();
+        exhaustive(); randomCases(); atMostOneCases(); large(); resolveAndCopy();
         cout << "PASS TwoSat seed=" << seed << " mode=" << mode << " cases=" << cases << " checks=" << checks << '\n';}
     catch (const std::exception &e) {
         cerr << "FAIL TwoSat seed=" << seed << " mode=" << mode << ' ' << e.what() << '\n'; return 1;}}

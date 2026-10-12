@@ -143,16 +143,19 @@ namespace {
         else if (method == 1) { bm.kuhn(); }
         else { while (bm.augment()) {} }
         return bm;}
+    vector<int> bValid(int nl, int nr, const Edges &es, const vector<int> &bl, const vector<int> &br) {
+        auto res = bMatching(nl, nr, es, bl, br);
+        vector<int> dl(nl), dr(nr);
+        check(std::is_sorted(res.begin(), res.end()) && std::adjacent_find(res.begin(), res.end()) == res.end(), "b-matching ascending distinct");
+        for (int e : res) { check(0 <= e && e < int(es.size()), "b-matching edge ID"); ++dl[es[e].first]; ++dr[es[e].second]; }
+        for (int u = 0; u < nl; ++u) { check(dl[u] <= bl[u], "b-matching left capacity"); }
+        for (int v = 0; v < nr; ++v) { check(dr[v] <= br[v], "b-matching right capacity"); }
+        return res;}
     void bCheck(int nl, int nr, const Edges &es, std::mt19937_64 &rng) {
         vector<int> bl(nl), br(nr);
         for (int &b : bl) { b = int(rng() % 4); }
         for (int &b : br) { b = int(rng() % 4); }
-        auto res = bMatching(nl, nr, es, bl, br);
-        vector<int> dl(nl), dr(nr);
-        check(std::is_sorted(res.begin(), res.end()) && std::adjacent_find(res.begin(), res.end()) == res.end(), "b-matching ascending distinct");
-        for (int e : res) { ++dl[es[e].first]; ++dr[es[e].second]; }
-        for (int u = 0; u < nl; ++u) { check(dl[u] <= bl[u], "b-matching left capacity"); }
-        for (int v = 0; v < nr; ++v) { check(dr[v] <= br[v], "b-matching right capacity"); }
+        auto res = bValid(nl, nr, es, bl, br);
         int best = 0, m = int(es.size());
         for (int mask = 0; mask < (1 << m); ++mask) {
             vector<int> a(nl), b(nr); bool ok = true;
@@ -219,6 +222,29 @@ namespace {
                 validMatching(bm, alive);
                 if (step % 5 == 4) { queries(bm, alive, brute); }}}
         cout << "PASS dynamic add/erase/augment rounds=" << rounds << '\n';}
+    // Max-flow min-cut oracle: minimum over source-side left sets A of bl outside A plus, per right v, min(br[v], edges from A to v).
+    void bCutCases() {
+        std::mt19937_64 rng(seed ^ 0xb7);
+        int rounds = mode == "quick" ? 200 : mode == "full" ? 2000 : 10000;
+        for (int t = 0; t < rounds; ++t) {
+            int nl = int(rng() % 9), nr = int(rng() % 12);
+            Edges es = randomEdges(rng, nl, nr, int(rng() % 61));
+            vector<int> bl(nl), br(nr), alive(es.size());
+            for (int &b : bl) { b = int(rng() % 6); }
+            for (int &b : br) { b = int(rng() % 6); }
+            iota(alive.begin(), alive.end(), 0);
+            ++cases; context = show(nl, nr, es, alive) + " b-capacities";
+            auto res = bValid(nl, nr, es, bl, br);
+            int cut = INT_MAX;
+            for (int a = 0; a < (1 << nl); ++a) {
+                vector<int> into(nr);
+                int c = 0;
+                for (int u = 0; u < nl; ++u) { c += a >> u & 1 ? 0 : bl[u]; }
+                for (auto [u, v] : es) { into[v] += a >> u & 1; }
+                for (int v = 0; v < nr; ++v) { c += min(br[v], into[v]); }
+                cut = min(cut, c);}
+            check(int(res.size()) == cut, "b-matching size equals the minimum cut");}
+        cout << "PASS b-matching versus min-cut enumeration rounds=" << rounds << '\n';}
     void large() {
         std::mt19937_64 rng(seed ^ 0x1a);
         int n = mode == "quick" ? 20000 : mode == "full" ? 200000 : 500000;
@@ -259,11 +285,13 @@ namespace {
         auto cs = s1.konigVertexCover();
         context = "sparse random n=" + std::to_string(big);
         check(int(cs.left.size() + cs.right.size()) == s1.size, "sparse cover certificate");
-        vector<int> bl(big, 2), br(big, 1);
-        auto bm = bMatching(big, big, sparse, bl, br);
-        vector<int> dl(big), dr(big);
-        for (int e : bm) { check(++dl[sparse[e].first] <= 2 && ++dr[sparse[e].second] <= 1, "large b-matching capacities"); }
-        check(int(bm.size()) >= s1.size, "b-matching with larger left capacity at least matching size");
+        vector<int> ones(big, 1), twos(big, 2);
+        check(int(bValid(big, big, sparse, ones, ones).size()) == s1.size, "large unit b-matching equals Hopcroft-Karp");
+        // With br = 1 no edge can be chosen twice, so left capacity 2 is a matching with every left vertex doubled.
+        Edges doubled;
+        for (auto [u, v] : sparse) { doubled.emplace_back(2 * u, v); doubled.emplace_back(2 * u + 1, v); }
+        BipartiteMatching s2(2 * big, big, doubled); s2.hopcroftKarp();
+        check(int(bValid(big, big, sparse, twos, ones).size()) == s2.size, "large b-matching equals Hopcroft-Karp on doubled left vertices");
         cout << "PASS large paths, dense d=" << d << ", sparse n=" << big << '\n';}
     void invalid(const string &name) {
         if (name == "edge-range") { BipartiteMatching bm(2, 2, {{0, 2}}); }
@@ -283,7 +311,7 @@ int main(int argc, char **argv) {
             if (arg == "--mode") { mode = argv[++i]; }
             else if (arg == "--seed") { seed = std::stoull(argv[++i]); }
             else if (arg == "--invalid") { invalid(argv[++i]); return 2; }}
-        exhaustive(); randomCases(); dynamicCases(); large();
+        exhaustive(); randomCases(); dynamicCases(); bCutCases(); large();
         cout << "PASS matching seed=" << seed << " mode=" << mode << " cases=" << cases << " checks=" << checks << '\n';}
     catch (const std::exception &e) {
         cerr << "FAIL matching seed=" << seed << " mode=" << mode << ' ' << e.what() << '\n'; return 1;}}

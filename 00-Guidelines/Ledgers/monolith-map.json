@@ -1011,7 +1011,7 @@
       ],
       "status": "verified",
       "issues": [
-        "P043 replaces the recursive Kosaraju solver with an iterative Tarjan implication-graph solver, literal API, O(k) at-most-one, forced literals and an unsatisfiability witness; addClause(a, na, b, nb) and solve() keep the legacy semantics."
+        "P043 replaces the recursive Kosaraju solver with an iterative Tarjan implication-graph solver, literal API, O(k) at-most-one, forced literals and an unsatisfiability witness. The legacy addClause(a, na, b, nb) and solve() were removed on 2026-10-13 (One API per operation): addClause(na ? ~a : a, nb ? ~b : b) and satisfiable()."
       ],
       "source_context": "AI GENERATED FAST section",
       "tier": "Advanced",
@@ -1105,7 +1105,7 @@
       ],
       "status": "verified",
       "issues": [
-        "P043 replaces the 1-based Hungarian excerpt with rectangular min/max Hungarian with forbidden pairs and potentials, k-best assignments and sparse successive shortest paths; Hungarian addEdge/solve/getAssignment remain as a legacy adapter."
+        "P043 replaces the 1-based Hungarian excerpt with rectangular min/max Hungarian with forbidden pairs and potentials, k-best assignments and sparse successive shortest paths. The Hungarian legacy adapter was removed on 2026-10-13 (One API per operation) and maps to hungarian(a) on a zero-filled matrix: .cost and .row."
       ],
       "source_context": "AI GENERATED FAST section",
       "tier": "Advanced",

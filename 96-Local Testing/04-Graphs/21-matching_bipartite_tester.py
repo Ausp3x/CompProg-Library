@@ -2,11 +2,12 @@
 """Bipartite matching, covers, edge status, DM and b-matching versus enumeration.
 
 quick: simple graphs up to 2x3, 300 random multigraphs (nl, nr <= 6),
-60 dynamic add/erase sequences, 20000-vertex paths, dense 300x300.
-full: every simple graph up to 3x3, 4000 random multigraphs, 600 dynamic
-sequences, 200000-vertex paths and sparse graphs, dense 1500x1500, in
-optimized, checked and ASan/UBSan builds. stress: 30000 random multigraphs,
-4000 dynamic sequences, 500000-vertex paths.
+60 dynamic add/erase sequences, 200 b-matching min-cut cases, 20000-vertex
+paths, dense 300x300. full: every simple graph up to 3x3, 4000 random
+multigraphs, 600 dynamic sequences, 2000 b-matching min-cut cases,
+200000-vertex paths and sparse graphs, dense 1500x1500, in optimized, checked
+and ASan/UBSan builds. stress: 30000 random multigraphs, 4000 dynamic
+sequences, 10000 b-matching min-cut cases, 500000-vertex paths.
 """
 from _00_runner import main
 
