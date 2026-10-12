@@ -45,13 +45,8 @@ template<class W, class D, W FIXED = 0> W nativePow(W a, ulll e, W m) {
         if (e) { a = nativeProduct<W, D, FIXED>(a, a, m); }}
     return r;}
 
-template<class M, class W> W montPower(const M &m, W a, ulll e) {
-    W r = m.init(1); a = m.init(a);
-    while (e) {
-        if (e & 1) { r = m.mul(r, a); }
-        e >>= 1;
-        if (e) { a = m.mul(a, a); }}
-    return m.get(r);}
+// The modular types' Mersenne-61 product: one Barrett64 fold and the conditional subtraction.
+ulng fold(ulll x) { return ModInt61::canon(Barrett64::fold61(x)); }
 
 const vector<ulll> exponents = {0, 1, 7, 31, 32, 63, 64, 127, 128, 255, 256, 511, 512, 513, 1023, 1024, 1025,
                                65535, 65536, 65537,
@@ -83,8 +78,8 @@ template<class W, class D, class B, class M, W FIXED = 0>
             report("native-percent", [&]() { for (int i = 0; i < n; ++i) { out[i] = nativeProduct<W, D, FIXED>(a[i], b[i], mod); } });
             report("barrett", [&]() { bar.mul(a.data(), b.data(), out.data(), n); });
             if constexpr (BITS == 64) {
-                if (mod == modint_detail::MERSENNE61) {
-                    report("mersenne-fold", [&]() { for (int i = 0; i < n; ++i) { out[i] = W(modint_detail::fold61(D(a[i]) * b[i])); } });}}
+                if (mod == Barrett64::MERSENNE61) {
+                    report("mersenne-fold", [&]() { for (int i = 0; i < n; ++i) { out[i] = W(fold(D(a[i]) * b[i])); } });}}
             if (mod & 1) {
                 report("montgomery-convert-scalar", [&]() {
                     for (int i = 0; i < n; ++i) { out[i] = mont.get(mont.mul(mont.init(a[i]), mont.init(b[i]))); }});
@@ -103,8 +98,8 @@ template<class W, class D, class B, class M, W FIXED = 0>
         report("native-percent", [&]() { W r = W(mod != 1); for (W a : factors) { r = nativeProduct<W, D, FIXED>(r, a, mod); } return r; });
         report("barrett", [&]() { W r = W(mod != 1); for (W a : factors) { r = bar.mul(r, a); } return r; });
         if constexpr (BITS == 64) {
-            if (mod == modint_detail::MERSENNE61) {
-                report("mersenne-fold", [&]() { W r = 1; for (W a : factors) { r = W(modint_detail::fold61(D(r) * a)); } return r; });}}
+            if (mod == Barrett64::MERSENNE61) {
+                report("mersenne-fold", [&]() { W r = 1; for (W a : factors) { r = W(fold(D(r) * a)); } return r; });}}
         if (mod & 1) {
             report("montgomery-convert-each", [&]() {
                 W r = W(mod != 1);
@@ -130,16 +125,17 @@ template<class W, class D, class B, class M, W FIXED = 0>
             while (e) { if (e & 1) { p = bar.mul(p, a); } e >>= 1; if (e) { a = bar.mul(a, a); } }
             return p;});
         if constexpr (BITS == 64) {
-            if (mod == modint_detail::MERSENNE61) {
+            if (mod == Barrett64::MERSENNE61) {
                 report("mersenne-fold", [&](W a) {
                     W p = 1; ulll e = exponent;
-                    while (e) { if (e & 1) { p = W(modint_detail::fold61(D(p) * a)); } e >>= 1; if (e) { a = W(modint_detail::fold61(D(a) * a)); } }
+                    while (e) { if (e & 1) { p = W(fold(D(p) * a)); } e >>= 1; if (e) { a = W(fold(D(a) * a)); } }
                     return p;});}}
         if (mod & 1) {
-            report("montgomery-cached", [&](W a) { return montPower(mont, a, exponent); });
+            if constexpr (BITS == 64) { report("montgomery-noinline", [&](W a) { return modint_detail::powerMontgomery(a, mod, exponent); }); }
+            report("montgomery-cached", [&](W a) { return mont.pow(a, exponent); });
             report("montgomery-setup", [&](W a) {
-                if constexpr (STATIC) { M context(FIXED); return montPower(context, a, exponent); }
-                else { W m = mod; asm volatile("" : "+r"(m)); M context(m); return montPower(context, a, exponent); }});}}}
+                if constexpr (STATIC) { return M(FIXED).pow(a, exponent); }
+                else { W m = mod; asm volatile("" : "+r"(m)); return M(m).pow(a, exponent); }});}}}
 
 template<class W, class D, class T, W FIXED = 0> [[gnu::noinline]] void benchType(W input) {
     constexpr bool STATIC = FIXED != 0;
@@ -239,7 +235,7 @@ int main(int argc, char **argv) {
         bench<uint, ulng, Barrett32, Montgomery32, 4294967291U>(0);
         bench<ulng, ulll, Barrett64, Montgomery64, 998244353ULL>(0);
         bench<ulng, ulll, Barrett64, Montgomery64, 4294967311ULL>(0);
-        bench<ulng, ulll, Barrett64, Montgomery64, modint_detail::MERSENNE61>(0);
+        bench<ulng, ulll, Barrett64, Montgomery64, Barrett64::MERSENNE61>(0);
         bench<ulng, ulll, Barrett64, Montgomery64, 18446744073709551557ULL>(0);}
     if (suite == "all" || suite == "actual") {
         for (uint m : {1U, 65536U, 998244353U, 4294967291U, 4294967295U}) { benchType<uint, ulng, DynModInt<91>>(m); }
@@ -249,7 +245,7 @@ int main(int argc, char **argv) {
         benchType<uint, ulng, ModInt<4294967291>, 4294967291U>(0);
         benchType<ulng, ulll, ModInt64<998244353ULL>, 998244353ULL>(0);
         benchType<ulng, ulll, ModInt64<4294967311ULL>, 4294967311ULL>(0);
-        benchType<ulng, ulll, ModInt61, modint_detail::MERSENNE61>(0);
+        benchType<ulng, ulll, ModInt61, Barrett64::MERSENNE61>(0);
         benchType<ulng, ulll, ModInt64<18446744073709551557ULL>, 18446744073709551557ULL>(0);}
     if (suite == "all" || suite == "construction") {
         for (uint m : {1U, 65536U, 998244353U, 4294967295U}) { benchConstruct<uint, ulng, DynModInt<93>>(m); }

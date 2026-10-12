@@ -119,7 +119,7 @@ Legacy accounting: the unchanged original is [OLD/5-Mathematics/09-montgomery.hp
 
 ## Limits and handoffs
 
-GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2 and a Windows/MinGW build were not executed. The AVX2 kernels are 32-bit only (no 64x64 vector multiply in AVX2). Residue inverses stay with `05-modint.hpp`; its `powerMontgomery` still repeats the exponent loop, and the recorded P005 change (`00-Guidelines/23-Reaudit Findings/duplicates.md`) turns it into a call to `Montgomery64::pow`, whose exponent is 128-bit since the 2026-10-12 prune. Left-out candidates (`neg`, `one`, lazy equality, `square`, 64-bit/AVX-512/IFMA/signed lanes) are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
+GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2 and a Windows/MinGW build were not executed. The AVX2 kernels are 32-bit only (no 64x64 vector multiply in AVX2). Residue inverses stay with `05-modint.hpp`, whose `pow` reaches `Montgomery64::pow` through a `noinline` one-liner since the 2026-10-12 P005 prune. Left-out candidates (`neg`, `one`, lazy equality, `square`, 64-bit/AVX-512/IFMA/signed lanes) are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
 
 ## History
 

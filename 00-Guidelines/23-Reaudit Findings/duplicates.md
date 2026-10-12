@@ -20,7 +20,7 @@ Decided by the user from 2026-10-10 to 2026-10-12; binding, and only the user ch
 - **P053** row 11: the `modLog` multiplier form `k * a^x = b (mod m)` becomes a multiplier parameter of `discreteLogEx`, not a second function.
 - **P013** `06-Miscellaneous/04-compression.hpp`: `Compression` is removed (decided 2026-10-11). `ranks` and `pointRange` move into `CoordinateCompression` (`02-Data Structures/07-ordered_set.hpp`), `compressEndpoints` returns `CoordinateCompression`, `08-sequence_algorithms.hpp` switches to it, and the `Compression::ranks` example in `00-Guidelines/03-cpp.md` becomes `CoordinateCompression::ranks`.
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
-- **P004, P005** (decided 2026-10-11; run P004 first): Montgomery `powMont` and `pow` take a 128-bit (`ulll`) exponent, and Barrett64's Mersenne-61 fold becomes one constexpr static helper (P004). `modint_detail::powerMontgomery` becomes a `noinline` one-line call to `Montgomery64(m).pow(a, e)` with the 512 threshold re-measured, and `fold61`/`Context::red` call the Barrett64 fold (P005). P004 done 2026-10-12.
+- **P004, P005** (decided 2026-10-11; run P004 first): Montgomery `powMont` and `pow` take a 128-bit (`ulll`) exponent, and Barrett64's Mersenne-61 fold becomes one constexpr static helper (P004). `modint_detail::powerMontgomery` becomes a `noinline` one-line call to `Montgomery64(m).pow(a, e)` with the 512 threshold re-measured, and `fold61`/`Context::red` call the Barrett64 fold (P005). Done 2026-10-12.
 
 ### Keeps
 
@@ -113,15 +113,11 @@ Pruned 2026-10-12.
 
 ## P005 — 01-Core — full and mini modular-integer families (verified)
 
+Pruned 2026-10-12.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `operator!` | `05-modint.hpp:115` | `!a` through `explicit operator bool` | remove | another form | `05-modint_test_support.hpp:99` | none |
-| template `operator=(T)` | `05-modint.hpp:107` | implicit constructor plus assignment | remove | another form | `05-modint_test_support.hpp:67` | none |
-| `init(a)` | `05-modint.hpp:108` | `raw(a)` (the minis' name) | remove | same operation, two names | `05-modint_test_support.hpp:49,211,301` | `16-poly.hpp:181,260,1062,1091,1516` |
-| `modint_detail::MERSENNE61` | `05-modint.hpp:35` | `Barrett64::MERSENNE61` | remove | duplicate constant (body-level) | `05-modint_test_support.hpp:232-236`; `05-modint_benchmark.cpp:86-252` | `05-modint.hpp:52,78,82,152,213`; row 11 |
-| explicit integral cast | `05-modint.hpp:112-113` | `T(a.val())` | keep | checked `T(x)` conversion (decided 2026-10-11) | `05-modint_test_support.hpp:59-60` | functional casts, not searchable |
-| `modint_detail::powerMontgomery` | `05-modint.hpp:28-33` | `Montgomery64(m).pow(a, e)` with a 128-bit exponent, called from a `noinline` one-liner (Changes) | remove | second implementation of `MontgomeryBackend::pow` (decided 2026-10-11) | `04-montgomery_tester.cpp:60-61`; modint 511/512/513 cases | — |
-| `fold61`, static `Context::red` | `05-modint.hpp:52` | a constexpr static Mersenne-61 fold in Barrett64 (Changes) | remove | second implementation (decided 2026-10-11) | — | — |
+| explicit integral cast | `05-modint.hpp:100-101` | `T(a.val())` | keep | checked `T(x)` conversion (decided 2026-10-11) | `05-modint_test_support.hpp:53-60` | functional casts, not searchable |
 
 ## P006 — 02-Data Structures — dsu, fenwick, segmenttree, sparsetable, prefix sum, sqrt decomposition, ordered set, monotone stack (verified)
 

@@ -178,7 +178,7 @@ namespace poly_detail {
         // Lazy Montgomery DIT with inverse roots; scale is plain n^-1 when out != nullptr (canonical output) else Montgomery form (lazy in a).
         static void dit(W *a, T *out, int n, const W *w, W scale, const Mont<W> &m) {
             bool fuse = n >= 32; int len = 1;
-            auto emit = [&](W *p, W x, int i) { W y = m.mul(x, scale); if (out) { out[i] = T::init(m.canon(y)); } else { *p = y; } };
+            auto emit = [&](W *p, W x, int i) { W y = m.mul(x, scale); if (out) { out[i] = T::raw(m.canon(y)); } else { *p = y; } };
 #ifdef __AVX2__
             if constexpr (B == 32) {
                 if (n >= 8) {
@@ -257,7 +257,7 @@ namespace poly_detail {
             else {
                 dif(a.data(), b.data(), n, w, c.m);
                 W s = c.m.from(sc.val());
-                for (int i = 0; i < n; ++i) { a[i] = T::init(c.m.to(c.m.mul(b[i], s))); }}}
+                for (int i = 0; i < n; ++i) { a[i] = T::raw(c.m.to(c.m.mul(b[i], s))); }}}
 
         // T: O(n * log(n)), M: O(n); full product of a and b (b may alias a for squaring) of length |a| + |b| - 1.
         static vector<T> convolve(const vector<T> &a, const vector<T> &b) {
@@ -1059,7 +1059,7 @@ struct Poly {
                     for (int i = 0; i < m; ++i) { y[i] = b.v[i].val(); }
                     vector<uint> r = poly_detail::convolutionFftMod(x, y, T::mod());
                     Poly res(n + m - 1);
-                    for (int i = 0; i < n + m - 1; ++i) { res.v[i] = T::init(r[i]); }
+                    for (int i = 0; i < n + m - 1; ++i) { res.v[i] = T::raw(r[i]); }
                     return res;}}
 #endif
             return convolutionArbitraryMod(a, b);}
@@ -1088,7 +1088,7 @@ struct Poly {
             if (std::has_single_bit(uint(n)) && poly_detail::fastSpec<T>(2 * n) && min(a.size(), b.size()) > poly_detail::SCHOOLBOOK) {
                 poly_detail::Ntt<T>::ensure(2 * n);
                 const auto &c = poly_detail::Ntt<T>::cache();
-                T psi = c.mont ? T::init(c.m.to(c.w[n + 1])) : c.tw[n + 1], ipsi = T(1) / psi, p = 1, ip = 1;
+                T psi = c.mont ? T::raw(c.m.to(c.w[n + 1])) : c.tw[n + 1], ipsi = T(1) / psi, p = 1, ip = 1;
                 Poly x(n), y(n);
                 for (int i = 0; i < n; ++i, p *= psi) { x.v[i] = a.coef(i) * p; y.v[i] = b.coef(i) * p; }
                 Poly r = cyclic(x, y, n);
@@ -1513,7 +1513,7 @@ struct Poly {
         vector<T> b = a; intt(b);
         poly_detail::Ntt<T>::ensure(2 * n);
         const auto &c = poly_detail::Ntt<T>::cache();
-        T psi = n == 1 ? T(0) : c.mont ? T::init(c.m.to(c.w[n + 1])) : c.tw[n + 1], p = 1;
+        T psi = n == 1 ? T(0) : c.mont ? T::raw(c.m.to(c.w[n + 1])) : c.tw[n + 1], p = 1;
         for (int i = 0; i < n; ++i, p *= psi) { b[i] *= p; }
         ntt(b); a.insert(a.end(), b.begin(), b.end());}
 

@@ -46,8 +46,8 @@ template<class M> void traits() {
     static_assert(std::is_same_v<decltype(std::declval<M &>() /= M()), M &>);
     static_assert(std::is_same_v<decltype(std::declval<M &>()++), M>);
     static_assert(std::is_same_v<decltype(++std::declval<M &>()), M &>);
-    M x; EQUAL(x.val(), 0); EQUAL(M::init(0).val(), 0); EQUAL(M::raw(W(M::mod() - 1)).val(), M::mod() - 1);
-    M y = M::init(W(M::mod() - 1)); EQUAL(y.n, y.val());
+    M x; EQUAL(x.val(), 0); EQUAL(M::raw(0).val(), 0); EQUAL(M::raw(W(M::mod() - 1)).val(), M::mod() - 1);
+    M y = M::raw(W(M::mod() - 1)); EQUAL(y.n, y.val());
     M z(y); EQUAL(z.val(), y.val()); M w(std::move(z)); EQUAL(w.val(), y.val());
     z = w; z = std::move(w); z = z; EQUAL(z.val(), y.val());
     EQUAL(ulng(y), y.val()); EQUAL(ulll(y) == y.val(), true);
@@ -208,7 +208,7 @@ inline void compileTime() {
     static_assert(TEST_TYPE<4294967295>::mod() == 4294967295U);
     static_assert(M(-1).val() == 6 && (M(3) + M(5)).val() == 1 && (M(3) * M(5)).val() == 1);
     static_assert(pow(M(3), -2).val() == 4 && inv(M(3)).val() == 5 && sqrt(M(2)).val() == 3);
-    static_assert(M::init(6).val() == 6 && M::raw(6).val() == 6);
+    static_assert(M::raw(6).val() == 6);
     static_assert([] { M r(4); return tryInv(M(3), r) && r.val() == 5; }());
     static_assert([] { M r(4); return trySqrt(M(2), r) && r.val() == 3; }());
 #if TEST_WIDE
@@ -229,12 +229,13 @@ inline void compileTime() {
     static_assert(std::is_same_v<DynModInt<>, DynModInt<0>> && std::is_same_v<DynModInt64<>, DynModInt64<0>>);
     static_assert(!std::is_same_v<ModInt<7>, ModInt64<7>> && !std::is_same_v<DynModInt<>, DynModInt64<>>);
     static_assert(!std::is_same_v<DynModInt<0>, DynModInt<1>> && !std::is_same_v<DynModInt64<0>, DynModInt64<1>>);
-    static_assert(modint_detail::MERSENNE61 == 2305843009213693951ULL && std::is_same_v<ModInt61, ModInt64<2305843009213693951ULL>>);
+    static_assert(std::is_same_v<ModInt61, ModInt64<2305843009213693951ULL>>);
     static_assert(ModInt61::is_prime && ModInt61::mod() == 2305843009213693951ULL);
-    static_assert(modint_detail::fold61(0) == 0 && modint_detail::fold61(modint_detail::MERSENNE61) == 0);
-    static_assert(modint_detail::fold61((ulll(modint_detail::MERSENNE61) << 61) - 1) == ((ulll(modint_detail::MERSENNE61) << 61) - 1) % modint_detail::MERSENNE61);
-    static_assert(modint_detail::fold61(ulll(modint_detail::MERSENNE61 - 1) * (modint_detail::MERSENNE61 - 1)) == 1);
-    static_assert(ModInt61::red(~ulll(0)) == ~ulll(0) % modint_detail::MERSENNE61 && ModInt61::mul(2, modint_detail::MERSENNE61 - 1) == modint_detail::MERSENNE61 - 2);
+    constexpr ulll M61 = ModInt61::mod();
+    static_assert(ModInt61::red(0) == 0 && ModInt61::red(M61 - 1) == M61 - 1 && ModInt61::red(M61) == 0 && ModInt61::red(2 * M61) == 0);
+    static_assert(ModInt61::red((M61 << 61) - 1) == ((M61 << 61) - 1) % M61 && ModInt61::red(~ulll(0)) == ~ulll(0) % M61);
+    static_assert(ModInt61::mul(ulng(M61 - 1), ulng(M61 - 1)) == 1 && ModInt61::mul(2, ulng(M61 - 1)) == M61 - 2);
+    static_assert(ModInt61::canon(0) == 0 && ModInt61::canon(M61 - 1) == M61 - 1 && ModInt61::canon(M61) == 0 && ModInt61::canon(2 * M61 - 1) == M61 - 1);
     static_assert(ModularInt<TEST_TYPE<731>> && ModularInt<mint> && ModularInt<ModInt61> && !ModularInt<int> && !ModularInt<ulng>);
     static_assert(StaticModularInt<mint> && StaticModularInt<ModInt61> && !StaticModularInt<DynModInt<>> && !StaticModularInt<DynModInt64<>>);
     static_assert(StaticModularInt<TEST_TYPE<731>> == !TEST_DYNAMIC);}
@@ -299,7 +300,6 @@ inline void protocol() {
 
 inline int death(const string &what) {
     if (what == "raw") { dispatch(17, []<class M>() { (void)M::raw(17); }); }
-    else if (what == "init") { dispatch(17, []<class M>() { (void)M::init(17); }); }
     else if (what == "inverse") { dispatch(4, []<class M>() { (void)inv(M(2)); }); }
     else if (what == "division") { dispatch(4, []<class M>() { (void)(M(1) / M(2)); }); }
     else if (what == "negative-power") { dispatch(4, []<class M>() { (void)pow(M(2), -1); }); }

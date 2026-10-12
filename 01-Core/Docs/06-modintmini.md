@@ -22,7 +22,7 @@ Hidden friends are called through argument-dependent lookup: `inv(a)`, `tryInv(a
 
 Every dynamic `setMod`, even with the previous modulus, invalidates existing values and derived caches. Stale values may only be discarded or overwritten. There are no generation tags or runtime checks for stale use. Setup and arithmetic follow the library's single-threaded baseline; concurrently mutating a modulus is outside the contract. Inline `constinit` state is shared safely across translation units and initialized before dynamic global initialization; ordering between user-defined global setup calls still matters.
 
-Omitted APIs are deliberate mini reductions: primality flags/detection, prime/composite roots, batch inversion, arbitrary-length decimal streams, integer casts, truthiness/`!`, ordering, increment/decrement and compatibility spellings such as `init`. Use `val()` to pass canonical residues to ordinary output or another exact type. These omissions do not reduce the arithmetic domain or silently change division semantics.
+Omitted APIs are deliberate mini reductions: primality flags/detection, prime/composite roots, batch inversion, arbitrary-length decimal streams, integer casts, truthiness/`!`, ordering and increment/decrement. Use `val()` to pass canonical residues to ordinary output or another exact type. These omissions do not reduce the arithmetic domain or silently change division semantics.
 
 ### Independent copy
 
@@ -67,7 +67,7 @@ The [test entry](<../../96-Local Testing/01-Core/06-modintmini_tester.py>) owns 
 | Powers and constexpr | Native signed/unsigned exponents through 128 bits including minima/maxima, zero, negative units, Montgomery/Mersenne threshold neighbors; static assertions and Python `pow` |
 | Dynamic lifecycle | Default setup, changed/same-modulus reset with stale values overwritten before use, IDs/widths/full-mini independence, default/custom globals in both translation-unit link orders |
 | Preconditions and standalone use | 18 checked assertion deaths, both zero static moduli rejected even under `NDEBUG`, each of four extracted structs compiled/run independently with only standard includes/aliases |
-| Reduced contract | Compile-time absence of floating-point constructors/exponents, implicit cross-family/width/ID conversions, integer casts, truthiness/`!`, ordering, increments/decrements, primality/roots, batch inversion, streams and `init`; exact word widths and `mintmini` identity |
+| Reduced contract | Compile-time absence of floating-point constructors/exponents, implicit cross-family/width/ID conversions, integer casts, truthiness/`!`, ordering, increments/decrements, primality/roots, batch inversion and streams; exact word widths and `mintmini` identity |
 
 Quick retains every API fixture with dynamic rings through 24 and 64 random pairs per large modulus, using optimized and checked configurations. Stress extends dynamic rings through 96, random pairs to 4096 and arbitrary moduli to 3000 per width with the full configuration matrix. Each extracted struct compiles without `using namespace std`, using exactly the five documented standard headers and aliases, with `-Wall -Wextra -Werror`.
 

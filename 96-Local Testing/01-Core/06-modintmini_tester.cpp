@@ -114,7 +114,7 @@ constexpr bool typeContract() {
            !requires(T a) { bool(a); } && !requires(T a) { !a; } &&
            !requires(T a) { a < a; } && !requires(T a) { ++a; } &&
            !requires(T a) { a++; } && !requires(T a) { --a; } &&
-           !requires(T a) { a--; } && !requires { T::init(W(0)); } &&
+           !requires(T a) { a--; } &&
            !requires { T::isPrime(); } && !requires { T::is_prime; } &&
            !requires(T a) { sqrt(a); } && !requires(T a) { trySqrt(a, a); } &&
            !requires(vector<T> a) { batchInv(a, a); } &&

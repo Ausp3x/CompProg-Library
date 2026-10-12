@@ -182,7 +182,7 @@ def run_suite(entry: Path, args: argparse.Namespace, *, kind: str, wide: bool, d
         variants.append(("sanitized-scalar", [*sanitizer, *scalar]))
         if accelerated:
             variants.append(("sanitized-avx2", [*sanitizer, *vector]))
-    deaths = ["raw", "init", "inverse", "division", "negative-power", "root", "legacy-root", "narrow"]
+    deaths = ["raw", "inverse", "division", "negative-power", "root", "legacy-root", "narrow"]
     if dynamic:
         deaths += ["zero-modulus", "false-prime", "prime-flag", "unknown-root"]
     label = "05-" + kind

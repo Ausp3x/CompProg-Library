@@ -20,7 +20,7 @@ All bulk APIs use pointer/count overloads with an `int n >= 0`; pointers address
 
 ### Barrett32, Barrett64
 
-The fields `mod`, `mu` and `mask` are immutable state. `mu = floor(2^(2w) / mod)` on the reciprocal path and zero on the power-of-two and Mersenne61 paths (`MERSENNE61 = 2305843009213693951`); `mask` flags a power-of-two modulus. `divMod` returns a quotient as wide as the dividend. With `mod = 1` every result is zero, even for exponent zero; for every other modulus `a^0 = 1`, including `a = 0`. Copies and moves are independent; there is no allocation, cache or global state. `Barrett64::highProduct` is the exact high half of a 128 x 128-bit product. `Barrett64::fold61` is the one Mersenne-61 fold: `divMod` applies it twice to an arbitrary dividend, and the recorded P005 change will make the modular types' Mersenne paths call it instead of their own copy.
+The fields `mod`, `mu` and `mask` are immutable state. `mu = floor(2^(2w) / mod)` on the reciprocal path and zero on the power-of-two and Mersenne61 paths (`MERSENNE61 = 2305843009213693951`); `mask` flags a power-of-two modulus. `divMod` returns a quotient as wide as the dividend. With `mod = 1` every result is zero, even for exponent zero; for every other modulus `a^0 = 1`, including `a = 0`. Copies and moves are independent; there is no allocation, cache or global state. `Barrett64::highProduct` is the exact high half of a 128 x 128-bit product. `Barrett64::fold61` is the one Mersenne-61 fold: `divMod` applies it twice to an arbitrary dividend, and the modular types' Mersenne paths call it since the 2026-10-12 P005 prune.
 
 ### Barrett32::Multiplier, Barrett64::Multiplier
 
