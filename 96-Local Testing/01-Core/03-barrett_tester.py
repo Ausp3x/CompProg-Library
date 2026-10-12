@@ -2,8 +2,8 @@
 """Barrett32/64 verification, independent native-remainder/quotient, bitwise
 restoring-division and bitwise 256-bit product oracles.
 
-quick: boundaries, fields, divMod/div, 2,000 random words/backend, small exhaustive
-domains and all batch sizes/alias shapes with fixed factors MAX, m-1 and random;
+quick: boundaries, fields, divMod, the Mersenne-61 fold, 2,000 random words/backend,
+small exhaustive domains and all batch sizes/alias shapes with fixed factors MAX, m-1 and random;
 full: 60,000 random words/backend, exhaustive mod<=128 and x<16384, 8 offsets,
 sanitizers; stress: 600,000 words/backend, mod<=256 and x<65536. Every mode runs
 scalar optimized/checked and, where the CPU has it, AVX2 optimized/checked, with

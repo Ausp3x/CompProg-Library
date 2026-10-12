@@ -20,7 +20,7 @@ Decided by the user from 2026-10-10 to 2026-10-12; binding, and only the user ch
 - **P053** row 11: the `modLog` multiplier form `k * a^x = b (mod m)` becomes a multiplier parameter of `discreteLogEx`, not a second function.
 - **P013** `06-Miscellaneous/04-compression.hpp`: `Compression` is removed (decided 2026-10-11). `ranks` and `pointRange` move into `CoordinateCompression` (`02-Data Structures/07-ordered_set.hpp`), `compressEndpoints` returns `CoordinateCompression`, `08-sequence_algorithms.hpp` switches to it, and the `Compression::ranks` example in `00-Guidelines/03-cpp.md` becomes `CoordinateCompression::ranks`.
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
-- **P004, P005** (decided 2026-10-11; run P004 first): Montgomery `powMont` and `pow` take a 128-bit (`ulll`) exponent, and Barrett64's Mersenne-61 fold becomes one constexpr static helper (P004). `modint_detail::powerMontgomery` becomes a `noinline` one-line call to `Montgomery64(m).pow(a, e)` with the 512 threshold re-measured, and `fold61`/`Context::red` call the Barrett64 fold (P005).
+- **P004, P005** (decided 2026-10-11; run P004 first): Montgomery `powMont` and `pow` take a 128-bit (`ulll`) exponent, and Barrett64's Mersenne-61 fold becomes one constexpr static helper (P004). `modint_detail::powerMontgomery` becomes a `noinline` one-line call to `Montgomery64(m).pow(a, e)` with the 512 threshold re-measured, and `fold61`/`Context::red` call the Barrett64 fold (P005). P004 done 2026-10-12.
 
 ### Keeps
 
@@ -104,11 +104,11 @@ Prune order for verified packages with removals: P010 first, then P011 and P044;
 
 ## P004 — 01-Core — barrett, montgomery (verified)
 
+Pruned 2026-10-12.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `div(x)` | `03-barrett.hpp:23,109` | `divMod(x).first` | remove | projected field, same cost | `03-barrett_tester.cpp:40,64,87,99` | none |
-| `multiplier(b)` | `03-barrett.hpp:79,140` | `Barrett32::Multiplier(r, b)`, `Barrett64::Multiplier(r, b)` | remove | another name | `03-barrett_tester.cpp:68,77,89,101,121,185-190`; `03-reduction_benchmark.cpp:122` | none |
-| `reduce(x)` | `03-barrett.hpp:24,110` | `divMod(x).second` | keep | named special case: the reducer's defining operation (decided 2026-10-11) | — | `03-barrett.hpp:25,27,51,127`; `05-modint.hpp:79`; `16-poly.hpp:2418-2419` |
+| `reduce(x)` | `03-barrett.hpp:23,108` | `divMod(x).second` | keep | named special case: the reducer's defining operation (decided 2026-10-11) | — | `03-barrett.hpp:24,26,50,109,111,125`; `05-modint.hpp:79`; `16-poly.hpp:2418-2419` |
 | `redc(x, lazy)` | `04-montgomery.hpp:22` | `red`, `redLazy` | keep | unchecked kernel public only because there is no `private` | — | `05-Mathematics/07-primality_factorization.hpp:15` |
 
 ## P005 — 01-Core — full and mini modular-integer families (verified)

@@ -36,7 +36,7 @@ struct Oracle {
     T mul(T a, T b) const { return T(W(a) * b % mod); }
     T add(T a, T b) const { return T((W(a) + b) % mod); }
     T sub(T a, T b) const { return T((W(a) + mod - b % mod) % mod); }
-    T pow(T a, ulng e) const {
+    T pow(T a, ulll e) const {
         T out = 1 % mod;
         for (; e; e >>= 1) {
             if (e & 1) { out = mul(out, a); }
@@ -55,10 +55,15 @@ void pairCase(const M &m, const Oracle<M> &o, decltype(M().mod) a, decltype(M().
     checkEqual(m.add(x, y), o.add(x, y), "add"); checkEqual(m.get(m.add(x, y)), o.add(a, b), "decoded sum");
     checkEqual(m.sub(x, y), o.sub(x, y), "sub"); checkEqual(m.get(m.sub(x, y)), o.sub(a, b), "decoded difference");
     if (powers) {
-        for (ulng e : {ulng(0), ulng(1), ulng(2), ulng(63), ~ulng(0)}) {
+        for (ulll e : {ulll(0), ulll(1), ulll(2), ulll(63), ulll(~ulng(0)), ulll(1) << 64, (ulll(1) << 64) + 1, ulll(~ulng(0)) << 64, ~ulll(0)}) {
             ctx_b = e;
             checkEqual(m.pow(a, e), o.pow(a, e), "pow");
-            checkEqual(m.get(m.powMont(x, e)), o.pow(a, e), "powMont");}}
+            checkEqual(m.get(m.powMont(x, e)), o.pow(a, e), "powMont");}
+        // a^e = (a^(2^64))^(e >> 64) * a^(e mod 2^64) with a^(2^64) = a^(2^64-1) * a: the high exponent word against 64-bit powers.
+        ulll e = (ulll(rng()) << 64) | rng(); ctx_b = e;
+        T wide = m.mul(m.powMont(x, ~ulng(0)), x);
+        checkEqual(m.powMont(x, e), m.mul(m.powMont(wide, ulng(e >> 64)), m.powMont(x, ulng(e))), "powMont split");
+        checkEqual(m.pow(a, e), o.pow(a, e), "pow random 128-bit");}
     if (m.mod < (T(1) << (M::BITS - 2))) {
         T lx = x + m.mod, ly = y + m.mod, z = m.mulLazy(lx, ly), s = m.addLazy(lx, ly), d = m.subLazy(lx, ly);
         ctx_a = lx; ctx_b = ly;

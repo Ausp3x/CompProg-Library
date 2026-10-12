@@ -20,7 +20,6 @@ struct Barrett32 {
         ulng q = ulng(ulll(x) * mu >> 64), r = x - q * mod;
         bool over = r >= mod;
         return {q + over, uint(over ? r - mod : r)};}
-    ulng div(ulng x) const { return divMod(x).first; }
     uint reduce(ulng x) const { return divMod(x).second; }
     uint mul(uint a, uint b) const { return reduce(ulng(a) * b); }
     uint pow(uint a, ulng e) const {
@@ -76,7 +75,6 @@ struct Barrett32 {
 #endif
             for (; i < n; ++i) { out[i] = mul(a[i]); }}
     };
-    Multiplier multiplier(uint b) const { return Multiplier(*this, b); }
 };
 
 // S: O(1), Q: O(1), M: O(1); pow O(1 + log(e + 1)) for exponent e, pointer mul O(n).
@@ -91,22 +89,22 @@ struct Barrett64 {
         assert(m);
         if (!mask && m != MERSENNE61) { mu = ~ulll(0) / m; }}
 
-    // Exact high half of a 128 x 128 product: middle needs at most 66 bits.
     static ulll highProduct(ulll x, ulll y) {
         ulll a = ulll(ulng(x)) * ulng(y), b = ulll(ulng(x)) * ulng(y >> 64);
         ulll c = ulll(ulng(x >> 64)) * ulng(y), d = (x >> 64) * (y >> 64);
-        ulll t = (a >> 64) + ulng(b) + ulll(ulng(c));
+        ulll t = (a >> 64) + ulng(b) + ulll(ulng(c)); // Exact: the three middle limbs sum to at most 66 bits.
         return d + (b >> 64) + (c >> 64) + (t >> 64);}
+    // 2^61 = MERSENNE61 + 1, so the high part folds onto the low part without changing the residue.
+    static constexpr ulll fold61(ulll x) { return (x & MERSENNE61) + (x >> 61); }
     pair<ulll, ulng> divMod(ulll x) const {
         if (mask) { return {x >> std::countr_zero(mod), ulng(x) & (mod - 1)}; }
-        if (mod == MERSENNE61) { // 2^61 = mod + 1: two folds give z <= mod + 64.
-            ulll y = (x & mod) + (x >> 61), z = (y & mod) + (y >> 61);
+        if (mod == MERSENNE61) { // Two folds leave z <= mod + 64.
+            ulll y = fold61(x), z = fold61(y);
             bool over = z >= mod;
             return {(x >> 61) + (y >> 61) + over, ulng(over ? z - mod : z)};}
         ulll q = highProduct(x, mu), r = x - q * mod;
         bool over = r >= mod;
         return {q + over, ulng(over ? r - mod : r)};}
-    ulll div(ulll x) const { return divMod(x).first; }
     ulng reduce(ulll x) const { return divMod(x).second; }
     ulng mul(ulng a, ulng b) const { return reduce(ulll(a) * b); }
     ulng pow(ulng a, ulng e) const {
@@ -137,7 +135,6 @@ struct Barrett64 {
             assert(n >= 0 && (!n || (a && out)));
             for (int i = 0; i < n; ++i) { out[i] = mul(a[i]); }}
     };
-    Multiplier multiplier(ulng b) const { return Multiplier(*this, b); }
 };
 
 using Barrett = Barrett64;

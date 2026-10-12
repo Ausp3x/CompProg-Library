@@ -2,7 +2,7 @@
 """Montgomery32/64 verification, independent exact modular-arithmetic oracle.
 
 quick: all APIs (REDC core, conversions, canonical/lazy products, sums and
-differences, powers, bulk kernels, the below precondition pass), boundary moduli,
+differences, powers with 128-bit exponents, bulk kernels, the below precondition pass), boundary moduli,
 bulk sizes/offsets/aliases, tiny exhaustive and 500 random cases per width;
 optimized, checked and available AVX2 builds. full: exhaustive odd moduli <=65,
 10000 random cases/width, ASan/UBSan and the standalone/multiple-TU build.

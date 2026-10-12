@@ -25,7 +25,7 @@ void emit(const char *width, ulng mod, const char *workload, const char *distrib
          << "\",\"workload\":\"" << workload << "\",\"distribution\":\"" << distribution
          << "\",\"n\":" << n << ",\"method\":\"" << method << "\",\"ns\":" << ns << "}\n";}
 
-template<class W, class D> W nativePow(W a, ulng e, W m) {
+template<class W, class D, class E> W nativePow(W a, E e, W m) {
     W r = W(1 % m); a %= m;
     while (e) {
         if (e & 1) { r = W(D(r) * a % m); }
@@ -119,7 +119,7 @@ template<class W, class D, class B, class M> void bench(W mod) {
         divide(); asm volatile("" : : "g"(out.data()) : "memory");}));
 
     W constant = W(rng());
-    auto fixed = bar.multiplier(constant);
+    typename B::Multiplier fixed(bar, constant);
     for (int count : {1, 7, 8, 9, 16, 32, 256, 4096}) {
         vector<W> words(count);
         out.resize(count); expected.resize(count);
@@ -167,7 +167,25 @@ template<class W, class D, class B, class M> void bench(W mod) {
     powers("native-percent", native);
     powers("barrett", [&]() { ulng r = 0; for (int i = 0; i < 8; ++i) { B b(changing_mod); r ^= b.pow(bases[i], exponents[i]); } return r; });
     if (mod & 1) {
-        powers("montgomery", [&]() { ulng r = 0; for (int i = 0; i < 8; ++i) { M m(changing_mod); r ^= m.pow(bases[i], exponents[i]); } return r;});}}
+        powers("montgomery", [&]() { ulng r = 0; for (int i = 0; i < 8; ++i) { M m(changing_mod); r ^= m.pow(bases[i], exponents[i]); } return r;});}
+
+    // Dependent powers on one context: each base is the previous result, so the exponent loop's own latency shows.
+    array<ulll, 8> big;
+    for (int i = 0; i < 8; ++i) { big[i] = (ulll(exponents[i]) << 64) | exponents[7 - i]; }
+    auto dependent = [&](const char *distribution, const auto &exps, const char *method, auto f) -> void {
+        W want = bases[0], got = bases[0];
+        for (auto e : exps) { want = nativePow<W, D>(want, e, mod); got = f(got, e); }
+        if (got != want) { cerr << "FAIL dependent-pow " << method << '\n'; std::exit(1); }
+        emit(width, mod, "dependent-pow", distribution, 8, method, measure([&]() {
+            W x = bases[0];
+            for (auto e : exps) { x = f(x, e); }
+            sink = x;}));};
+    dependent("64-bit-exponent", exponents, "native-percent", [&](W x, ulng e) { return nativePow<W, D>(x, e, mod); });
+    dependent("64-bit-exponent", exponents, "barrett", [&](W x, ulng e) { return bar.pow(x, e); });
+    dependent("128-bit-exponent", big, "native-percent", [&](W x, ulll e) { return nativePow<W, D>(x, e, mod); });
+    if (mod & 1) {
+        dependent("64-bit-exponent", exponents, "montgomery", [&](W x, ulng e) { return mont.pow(x, e); });
+        dependent("128-bit-exponent", big, "montgomery", [&](W x, ulll e) { return mont.pow(x, e); });}}
 
 int main(int argc, char **argv) {
     if (argc != 4) { return 2; }

@@ -37,7 +37,7 @@ void features(std::mt19937_64 &rng) {
     constexpr Wide TOP = ~Wide(0);
     Reducer unit;
     check(unit.mod, 1, "default-modulus"); check(unit.reduce(TOP), 0, "default-reduce", 1, TOP);
-    check(unit.pow(0, 0), 0, "default-pow", 1); check(unit.div(TOP), TOP, "default-div", 1, TOP);
+    check(unit.pow(0, 0), 0, "default-pow", 1); check(unit.divMod(TOP).first, TOP, "default-quotient", 1, TOP);
     vector<Word> mods = {1, 2, 3, 4, 5, 7, 10, 127, 255, 257, 65521, 65535,
                          65537, Word(998244353), Word(1000000007), MAX, Word(MAX - 1), Word(MAX - 2)};
     for (int i = 1; i < W; ++i) {
@@ -60,12 +60,11 @@ void features(std::mt19937_64 &rng) {
             check(red.reduce(x), x % m, "wide-reduce", m, x);
             check(moved.reduce(x), x % m, "copy-move", m, x);
             auto [q, r] = red.divMod(x);
-            check(q, x / m, "divmod-quotient", m, x); check(r, x % m, "divmod-remainder", m, x);
-            check(red.div(x), x / m, "div", m, x);}
+            check(q, x / m, "divmod-quotient", m, x); check(r, x % m, "divmod-remainder", m, x);}
         vector<Word> words = {0, 1, Word(m - 1), m, Word(m + 1), Word(MAX / 2), MAX};
         for (Word a : words) { for (Word b : words) {
             check(red.mul(a, b), Wide(a) * b % m, "mul-boundary", m, a, b);
-            auto fixed = red.multiplier(b), copied = fixed; auto moved_fixed = std::move(copied);
+            typename Reducer::Multiplier fixed(red, b), copied = fixed, moved_fixed = std::move(copied);
             check(fixed.mod, m, "fixed-field-mod", m, a, b); check(fixed.mask, mask, "fixed-field-mask", m, a, b);
             check(fixed.value, b % m, "fixed-field-value", m, a, b);
             check(fixed.mu, mask ? Wide(0) : refQuotient(Wide(b % m) << W, m), "fixed-field-mu", m, a, b);
@@ -74,7 +73,7 @@ void features(std::mt19937_64 &rng) {
         for (ulng e : {ulng(0), ulng(1), ulng(2), ulng(63), ulng(64), ulng(65), ~ulng(0)}) {
             for (Word a : {Word(0), Word(1), Word(m - 1), MAX}) {
                 check(red.pow(a, e), refPow(a, e, m), "pow", m, a, e);}}
-        auto detached = Reducer(m).multiplier(MAX);
+        typename Reducer::Multiplier detached(Reducer(m), MAX);
         check(detached.mul(MAX), Wide(MAX) * MAX % m, "fixed-detached-lifetime", m, MAX, MAX);}
     passed(W == 32 ? "32-bit modulus/dividend boundaries, fields, divmod, pow, copy/move, fixed" :
                       "64-bit modulus/dividend boundaries, fields, divmod, pow, copy/move, fixed");
@@ -84,9 +83,9 @@ void features(std::mt19937_64 &rng) {
         Reducer red(m);
         Word a = Word(rng()), b = Word(rng()); Wide x = (Wide(a) << W) | b;
         check(red.reduce(x), x % m, "random-wide-reduce", m, x);
-        check(red.div(x), x / m, "random-div", m, x);
+        check(red.divMod(x).first, x / m, "random-quotient", m, x);
         check(red.mul(a, b), Wide(a) * b % m, "random-mul", m, a, b);
-        check(red.multiplier(b).mul(a), Wide(a) * b % m, "random-fixed", m, a, b);
+        check(typename Reducer::Multiplier(red, b).mul(a), Wide(a) * b % m, "random-fixed", m, a, b);
         if (i % 101 == 0) {
             ulng e = rng(); check(red.pow(a, e), refPow(a, e, m), "random-pow", m, a, e);}}
     passed(W == 32 ? "32-bit seeded random" : "64-bit seeded random");
@@ -96,9 +95,9 @@ void features(std::mt19937_64 &rng) {
         Reducer red{Word(m)};
         for (int x = 0; x < max_x; ++x) {
             check(red.reduce(Wide(x)), x % m, "exhaustive-small", m, x);
-            check(red.div(Wide(x)), x / m, "exhaustive-small-div", m, x);}
+            check(red.divMod(Wide(x)).first, x / m, "exhaustive-small-quotient", m, x);}
         for (int b = 0; b < max_mod; ++b) {
-            auto fixed = red.multiplier(Word(b));
+            typename Reducer::Multiplier fixed(red, Word(b));
             for (int a = 0; a < max_mod; ++a) {
                 check(fixed.mul(Word(a)), a * b % m, "exhaustive-small-fixed", m, a, b);}}}
     passed(W == 32 ? "32-bit exhaustive small dividends, quotients and fixed factors" :
@@ -118,7 +117,7 @@ void batches(std::mt19937_64 &rng) {
         Reducer red(m); red.mul(nullptr, nullptr, nullptr, 0);
         // Factors MAX, m-1 and a random word: MAX alone is 0 or 1 modulo most listed moduli.
         vector<Word> factors = {MAX, Word(m - 1), Word(rng())};
-        for (Word f : factors) { red.multiplier(f).mul(nullptr, nullptr, 0); }
+        for (Word f : factors) { typename Reducer::Multiplier(red, f).mul(nullptr, nullptr, 0); }
         for (int n : sizes) { for (int offset = 0; offset < (mode == "quick" ? 2 : 8); ++offset) {
             vector<Word> a(n + 20, MAX), b(n + 20, MAX), out(n + 20, MAX), expected(n);
             for (int i = 0; i < n; ++i) {
@@ -139,7 +138,7 @@ void batches(std::mt19937_64 &rng) {
                 check(right[offset + i], expected[i], "batch-alias-right", m, x, b[offset + i]);
                 check(both[offset + i], Wide(x) * x % m, "batch-alias-all", m, x, x);}
             for (Word f : factors) {
-                auto fixed = red.multiplier(f), detached = Reducer(m).multiplier(f);
+                typename Reducer::Multiplier fixed(red, f), detached(Reducer(m), f);
                 vector<Word> fixed_out(n + 20, MAX), fixed_inplace = a;
                 fixed.mul(a.data() + offset, fixed_out.data() + offset, n);
                 detached.mul(fixed_inplace.data() + offset, fixed_inplace.data() + offset, n);
@@ -167,6 +166,23 @@ void highProducts(std::mt19937_64 &rng) {
         test((ulll(rng()) << 64) | rng(), (ulll(rng()) << 64) | rng());}
     passed("exact high128 carries vs bitwise 256-bit product");}
 
+// fold61 against native 128-bit %: congruence for every input, the single-fold bound below 2^122 - 2^61 and the general bound.
+void folds(std::mt19937_64 &rng) {
+    constexpr ulng M = Barrett64::MERSENNE61;
+    constexpr ulll SINGLE = (ulll(1) << 122) - (ulll(1) << 61), WIDE = (ulll(1) << 67) + (ulll(1) << 61);
+    static_assert(Barrett64::fold61(0) == 0 && Barrett64::fold61(M) == M && Barrett64::fold61(ulll(1) << 61) == 1);
+    static_assert(Barrett64::fold61(SINGLE - 1) == 2 * ulll(M) - 1 && Barrett64::fold61(~ulll(0)) == WIDE - 2);
+    vector<ulll> values = {0, 1, M - 1, M, M + 1, ulll(1) << 61, (ulll(1) << 61) + 1, ulll(M - 1) * (M - 1), ulll(M) * M,
+                           ulll(M) << 61, (ulll(M) << 61) | M, SINGLE - 1, SINGLE, ulll(1) << 122, ulll(1) << 127, ~ulll(0) - 1, ~ulll(0)};
+    for (int i = 0; i < (mode == "quick" ? 200 : mode == "full" ? 10000 : 100000); ++i) {
+        values.push_back((ulll(rng()) << 64) | rng()); values.push_back(ulll(rng() % M) * (rng() % M));}
+    for (ulll x : values) {
+        ulll y = Barrett64::fold61(x);
+        check(y % M, x % M, "fold61-congruence", M, x);
+        check(y < WIDE, true, "fold61-wide-bound", M, x);
+        if (x < SINGLE) { check(y < 2 * ulll(M), true, "fold61-single-bound", M, x); }}
+    passed("Mersenne-61 fold: congruence and bounds vs native 128-bit %");}
+
 int main(int argc, char **argv) {
     seed = 20260927; mode = "quick";
     if (argc > 1 && string(argv[1]) == "--death") {
@@ -182,12 +198,12 @@ int main(int argc, char **argv) {
         else if (kind == "null64-a") { Barrett64(3).mul(nullptr, &b, &b, 1); }
         else if (kind == "null64-b") { Barrett64(3).mul(&b, nullptr, &b, 1); }
         else if (kind == "null64-out") { Barrett64(3).mul(&b, &b, nullptr, 1); }
-        else if (kind == "fixed32-n") { Barrett32(3).multiplier(2).mul(&a, &a, -1); }
-        else if (kind == "fixed64-n") { Barrett64(3).multiplier(2).mul(&b, &b, -1); }
-        else if (kind == "fixed32-null-a") { Barrett32(3).multiplier(2).mul(nullptr, &a, 1); }
-        else if (kind == "fixed32-null-out") { Barrett32(3).multiplier(2).mul(&a, nullptr, 1); }
-        else if (kind == "fixed64-null-a") { Barrett64(3).multiplier(2).mul(nullptr, &b, 1); }
-        else if (kind == "fixed64-null-out") { Barrett64(3).multiplier(2).mul(&b, nullptr, 1); }
+        else if (kind == "fixed32-n") { Barrett32::Multiplier(Barrett32(3), 2).mul(&a, &a, -1); }
+        else if (kind == "fixed64-n") { Barrett64::Multiplier(Barrett64(3), 2).mul(&b, &b, -1); }
+        else if (kind == "fixed32-null-a") { Barrett32::Multiplier(Barrett32(3), 2).mul(nullptr, &a, 1); }
+        else if (kind == "fixed32-null-out") { Barrett32::Multiplier(Barrett32(3), 2).mul(&a, nullptr, 1); }
+        else if (kind == "fixed64-null-a") { Barrett64::Multiplier(Barrett64(3), 2).mul(nullptr, &b, 1); }
+        else if (kind == "fixed64-null-out") { Barrett64::Multiplier(Barrett64(3), 2).mul(&b, nullptr, 1); }
         else { cerr << "unknown death case\n"; return 2; }
         return 3;}
     for (int i = 1; i + 1 < argc; i += 2) {
@@ -195,7 +211,7 @@ int main(int argc, char **argv) {
         else if (string(argv[i]) == "--seed") { seed = std::stoull(argv[i + 1]); }
         else { return 2; }}
     cout << "Barrett seed=" << seed << " mode=" << mode << '\n';
-    std::mt19937_64 rng(seed); highProducts(rng);
+    std::mt19937_64 rng(seed); highProducts(rng); folds(rng);
     features<Barrett32, uint, ulng>(rng); features<Barrett64, ulng, ulll>(rng);
     batches<Barrett32, uint, ulng>(rng); batches<Barrett64, ulng, ulll>(rng);
     check(Barrett(17).mul(123, 456), 123 * 456 % 17, "Barrett-alias");
