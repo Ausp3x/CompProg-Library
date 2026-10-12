@@ -72,7 +72,7 @@
       "note": "P014 maps legacy kadane to maximumSubarray(a).sum (exact lll accumulation; 0 for empty input); the kadane adapter with its lng result-fit assert was removed on 2026-10-13 (One API per operation). Witness, bounded/circular/rectangle and other sequence features are accounted in verification.",
       "relationship": "P014 audited replacement; original source excerpt preserved",
       "historical_target_sha256": "700af8843b769f610d1fcf624161f3a89312167aba3b79ef8b2dea3778f7f752",
-      "verification": "06-Miscellaneous/96-p014.md",
+      "verification": "06-Miscellaneous/Docs/08-sequence_algorithms.md",
       "disposition": "exact-duplicate-mapped"
     },
     {
@@ -100,7 +100,7 @@
       },
       "disposition": "exact-duplicate-mapped",
       "relationship": "P011 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/93-lowlink.md"
+      "verification": "04-Graphs/Docs/09-bridges_articulation.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
@@ -129,7 +129,7 @@
       },
       "disposition": "exact-duplicate-mapped",
       "relationship": "P010 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/90-foundations.md"
+      "verification": "04-Graphs/Docs/05-shortest_path.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
@@ -234,7 +234,7 @@
       },
       "disposition": "exact-duplicate-mapped",
       "relationship": "P011 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/91-lca.md"
+      "verification": "04-Graphs/Docs/07-lca.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
@@ -505,7 +505,7 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/90-foundations.md"
+      "verification": "02-Data Structures/Docs/04-sparsetable.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -527,7 +527,7 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/90-foundations.md"
+      "verification": "02-Data Structures/Docs/01-dsu.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -896,7 +896,7 @@
       "body_sha256": "a803a00922b93b26a067e3067439912ff1490fe5e11ecf1a6ef4f13ae6ffa30a",
       "relationship": "P014 audited replacement; original source excerpt preserved",
       "historical_target_sha256": "700af8843b769f610d1fcf624161f3a89312167aba3b79ef8b2dea3778f7f752",
-      "verification": "06-Miscellaneous/96-p014.md",
+      "verification": "06-Miscellaneous/Docs/08-sequence_algorithms.md",
       "disposition": "audited-replacement"
     },
     {
@@ -921,7 +921,7 @@
       "disposition": "audited-replacement",
       "historical_target_sha256": "72b9178999cf60230881996b7fdc9c52589e41d3795fb046772bf976b95321cd",
       "relationship": "P011 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/93-lowlink.md"
+      "verification": "04-Graphs/Docs/09-bridges_articulation.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -947,7 +947,7 @@
       "disposition": "audited-replacement",
       "historical_target_sha256": "4f3d2f0af2422309d3ecc7a5592a0e7bf1913be343eda93e7039957ab591058c",
       "relationship": "P010 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/90-foundations.md"
+      "verification": "04-Graphs/Docs/05-shortest_path.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -996,7 +996,7 @@
       "disposition": "audited-replacement",
       "historical_target_sha256": "6343ab91298b9c7641c40e37e6118db7817ccad0c4694298aa8ebf2edcbe80c8",
       "relationship": "P011 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/91-lca.md"
+      "verification": "04-Graphs/Docs/07-lca.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -1136,7 +1136,7 @@
       "disposition": "audited-replacement",
       "historical_target_sha256": "72b9178999cf60230881996b7fdc9c52589e41d3795fb046772bf976b95321cd",
       "relationship": "P011 audited replacement; original source excerpt preserved",
-      "verification": "04-Graphs/93-lowlink.md"
+      "verification": "04-Graphs/Docs/09-bridges_articulation.md"
     },
     {
       "source": "OLD/algorithms.cpp",

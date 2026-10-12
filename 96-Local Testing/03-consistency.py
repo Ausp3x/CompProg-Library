@@ -334,6 +334,8 @@ monolith = read_json('00-Guidelines/Ledgers/monolith-map.json')
 for source, meta in monolith['sources'].items():
     require(hashlib.sha256((ROOT / source).read_bytes()).hexdigest() == meta['sha256'], 'Monolith source hash: ' + source)
 for entry in monolith['entries']:
+    if 'verification' in entry:
+        require((ROOT / entry['verification']).is_file(), 'Monolith verification path missing: ' + entry['verification'])
     if 'body_sha256' not in entry:
         continue
     source = (ROOT / entry['source']).read_bytes().splitlines(keepends=True)
