@@ -292,7 +292,8 @@ bool simple(const vector<point> &p) {
             point s = j == i + 1 ? a : b, t = j == i + 1 ? d : c, m = j == i + 1 ? b : a;
             if (orient(s, m, t) == 0 && dot(s - m, t - m) > 0) { return false; }
             continue;}
-        if (properCross(a, b, c, d) || onSegment(c, a, b) || onSegment(d, a, b) || onSegment(a, c, d) || onSegment(b, c, d)) { return false; }}}
+        Linear2 s = Linear2::segment(a, b), t = Linear2::segment(c, d);
+        if (properCross(a, b, c, d) || contains(s, c) || contains(s, d) || contains(t, a) || contains(t, b)) { return false; }}}
     return signedArea2(p) != 0;}
 vector<point> randomSimple(std::mt19937_64 &rng, int c, int n) {
     for (;;) {
@@ -303,7 +304,7 @@ vector<point> randomSimple(std::mt19937_64 &rng, int c, int n) {
         for (int it = 0; it < 200 && !simple(p); ++it) {
             for (int i = 0; i < n; ++i) { for (int j = i + 2; j < n; ++j) {
                 if (i == 0 && j == n - 1) { continue; }
-                if (properCross(p[i], p[i + 1], p[j], p[(j + 1) % n]) || onSegment(p[j], p[i], p[i + 1]) || onSegment(p[i + 1], p[j], p[(j + 1) % n])) {
+                if (properCross(p[i], p[i + 1], p[j], p[(j + 1) % n]) || contains(Linear2::segment(p[i], p[i + 1]), p[j]) || contains(Linear2::segment(p[j], p[(j + 1) % n]), p[i + 1])) {
                     reverse(p.begin() + i + 1, p.begin() + j + 1);}}}}
         if (simple(p)) { return p; }}}
 vector<point> starShaped(std::mt19937_64 &rng, int c, int n) {

@@ -16,7 +16,7 @@ Normalized homogeneous coordinates `(x/d, y/d)` with `d > 0` and `gcd(|x|, |y|, 
 
 `Linear2` is a closed segment, a ray from `a` through `b`, or a full line. All endpoints are closed. For every kind, `a == b` is a singleton point. Integral endpoints must satisfy `|coordinate| <= 10^9`, and every linear operation asserts this and that the kind is valid. In `LinearIntersection2`, only the field matching `kind` has meaning: `p` for `Point`, `overlap` for `Segment`, `Ray` and `Line`. A segment overlap stores its endpoints in lexicographic order. An overlap reuses the original integral endpoints, so it is itself a valid `Linear2`.
 
-### contains, onSegment, parallel, orthogonal, collinear
+### contains, parallel, orthogonal, collinear
 
 Exact. Membership covers singleton degeneracies. A zero direction is both parallel and orthogonal to every direction. `collinear` asks whether all endpoints lie on one common line, so any two singletons are collinear.
 
@@ -66,6 +66,12 @@ Singleton segments are allowed. An interior distance uses the perpendicular heig
 
 Correctness: a disjoint segment pair attains its minimum distance at an endpoint projected onto the other segment, while an intersecting pair has distance zero. Fixed-size operations take constant time and storage.
 
+### Legacy mapping
+
+| Removed (prune, 2026-10-12) | Replacement |
+|---|---|
+| `onSegment(p, a, b)` | `contains(Linear2::segment(a, b), p)` |
+
 ## Feature-to-test map
 
 `96-Local Testing/03-Geometry/02-line_segment_tester.py` provides quick, full and stress modes, deterministic seeds, oracles that survive `-DNDEBUG`, and assertion-failure subprocesses. Full mode builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and AddressSanitizer/UndefinedBehaviorSanitizer configurations. Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
@@ -73,7 +79,7 @@ Correctness: a disjoint segment pair attains its minimum distance at an endpoint
 | Operation | Test | Oracle |
 |---|---|---|
 | `RationalPoint2`: normalization, equality, `approx` | `02-line_segment_tester` | Python Fraction |
-| `Linear2` factories, `contains`, `onSegment` | Membership including singleton degeneracies | Python Fraction topology via implicit line equations |
+| `Linear2` factories, `contains` | Membership including singleton degeneracies; every fixture also checks `contains(Linear2::segment(s.a, s.b), p)` whatever the kind of `s` | Python Fraction topology via implicit line equations |
 | `parallel`, `orthogonal`, `collinear` | `02-line_segment_tester` | Python Fraction topology; an orthogonality bit from exact dot products |
 | `intersect`, `IntersectionKind`, `LinearIntersection2` | Every line/segment/ray intersection pair with all five output kinds, reversed operands, and singleton degeneracies (54,256 Fraction topology fixtures) | Python Fraction topology via implicit line equations |
 | `canonicalLine` | Key equality against same-line bits, normalization, endpoint incidence and extreme constants | Python Fraction same-line bits |
@@ -87,23 +93,26 @@ Finite tests supplement the arguments above; they do not prove correctness for a
 
 ## Commands and results
 
-2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 was unavailable; no GCC 14 run is claimed.
+2026-10-12, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), Python 3.14.7, GNU++20.
 
 | Command | Result |
 |---|---|
-| `02-line_segment_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 1,497,841 checks per configuration, 23 assertion probes |
-| `02-line_segment_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 2,362,935 checks |
-| `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU builds, workspace) | PASS |
-| Two-translation-unit smoke mixing all four GE01 headers | PASS |
-| Warning sweep, every operation for all eight `T`, `-Wall -Wextra -Wconversion` | No warnings |
-| `03-consistency.py --braces ...` and `03-consistency.py` | No errors |
+| `02-line_segment_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 1,497,841 checks per configuration, 23 assertion probes, `MEMORY peak=438MB` |
+| same with `CXX=g++-14` | PASS, 1,497,841 checks per configuration, 23 assertion probes, `MEMORY peak=453MB` |
+| `02-line_segment_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 2,362,935 checks, `MEMORY peak=353MB` |
+| `10-halfplaneintersection`, `16-circle_polygon`, `17-polygon_distance` testers, `--mode full --seed 20260927` (migrated `onSegment` call sites) | PASS, 3 configurations each |
+| `02-integration.py` (136 headers, scalar and AVX2 multi-TU builds, workspace) | PASS |
+| `02-line_segment.hpp` and `17-polygon_distance.hpp` alone, `-Wall -Wextra -Wconversion`, g++ and g++-14 | No warnings |
+| `03-consistency.py --braces` on both headers, and `03-consistency.py` | No errors |
 
 ```bash
 python3 '96-Local Testing/03-Geometry/02-line_segment_tester.py' --mode full --seed 20260927
+CXX=g++-14 python3 '96-Local Testing/03-Geometry/02-line_segment_tester.py' --mode full --seed 20260927
 python3 '96-Local Testing/03-Geometry/02-line_segment_tester.py' --mode stress --seed 42 --configuration optimized
-python3 '96-Local Testing/01-run.py' --mode quick --filter 03-Geometry --seed 20260927 --no-integration
-python3 '96-Local Testing/02-integration.py' --sanitizers
-python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/0[1-4]*.hpp '96-Local Testing/03-Geometry/'0[1-4]-*.cpp
+for t in 10-halfplaneintersection 16-circle_polygon 17-polygon_distance; do python3 "96-Local Testing/03-Geometry/${t}_tester.py" --mode full --seed 20260927; done
+python3 '96-Local Testing/02-integration.py'
+for c in g++ g++-14; do for h in 02-line_segment 17-polygon_distance; do echo "#include \"03-Geometry/$h.hpp\"" | $c -std=gnu++20 -Wall -Wextra -Wconversion -fsyntax-only -I. -x c++ -; done; done
+python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/02-line_segment.hpp 03-Geometry/17-polygon_distance.hpp
 python3 '96-Local Testing/03-consistency.py'
 ```
 
@@ -122,4 +131,5 @@ Other planned packages own adaptive and exact floating predicates (P128 / GE11),
 ## History
 
 - 2026-09-27: original P007, full suite (seed 20260927, 1,152,578 checks) passed on g++ 16.
-- 2026-10-07: re-audit, implemented the seven missing line operations plus `canonicalLine`; 5 findings fixed (complexity comments, explicit `approx` casts, `LinearIntersection2` comment, braces, comment cap); full suite and stress passed on g++ 16.
+- 2026-10-07: re-audit, implemented the seven missing line operations plus `canonicalLine`; 5 findings fixed (complexity comments, explicit `approx` casts, `LinearIntersection2` comment, braces, comment cap); full suite and stress passed on g++ 16; two-translation-unit GE01 smoke and a `-Wall -Wextra -Wconversion` sweep over all eight `T` passed, `02-integration.py --sanitizers` passed.
+- 2026-10-12: prune, removed `onSegment` (cases moved to `contains` on `Linear2::segment`; call sites in `segmentDistanceApprox`, `17-polygon_distance.hpp` and the 10 and 16 testers migrated); full suite passed on g++ and g++-14, stress passed.

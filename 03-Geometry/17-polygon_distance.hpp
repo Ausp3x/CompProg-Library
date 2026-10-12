@@ -39,7 +39,8 @@ namespace polygon_distance_detail {
         return -1;}
     inline bool touch(point a, point b, point c, point e) {
         int x = orient(a, b, c), y = orient(a, b, e), z = orient(c, e, a), w = orient(c, e, b);
-        return (x * y < 0 && z * w < 0) || (!x && onSegment(c, a, b)) || (!y && onSegment(e, a, b)) || (!z && onSegment(a, c, e)) || (!w && onSegment(b, c, e));}
+        Linear2 s = Linear2::segment(a, b), t = Linear2::segment(c, e);
+        return (x * y < 0 && z * w < 0) || (!x && contains(s, c)) || (!y && contains(s, e)) || (!z && contains(t, a)) || (!w && contains(t, b));}
     // Closest point of segment a -> b to p as a parameter in [0, 1] and its rounded distance.
     inline pair<long double, long double> nearest(point p, point a, point b) {
         point e = b - a; lll n = dot(p - a, e), d = norm2(e);

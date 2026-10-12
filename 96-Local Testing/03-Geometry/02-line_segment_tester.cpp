@@ -59,7 +59,7 @@ namespace {
         require(collinear(s,t) == bool(bits & 1) && collinear(t,s) == bool(bits & 1), "collinearity symmetric degeneracies"); bits >>= 1;
         for (point p : {s.a,s.b,t.a,t.b,point{}}) {
             require(contains(s,p) == bool(bits & 1), "contains " + show(p)); bits >>= 1;
-            require(onSegment(p,s.a,s.b) == bool(bits & 1), "onSegment " + show(p)); bits >>= 1;}
+            require(contains(Linear2::segment(s.a,s.b),p) == bool(bits & 1), "segment builder contains " + show(p)); bits >>= 1;}
         require(orthogonal(s,t) == bool(bits & 1) && orthogonal(t,s) == bool(bits & 1), "orthogonal including zero direction");
         if (s.a != s.b && t.a != t.b) {
             auto k = canonicalLine(s), l = canonicalLine(t);

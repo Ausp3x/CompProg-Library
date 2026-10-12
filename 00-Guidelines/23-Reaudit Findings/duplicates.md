@@ -136,14 +136,15 @@ Pruned 2026-10-12.
 
 ## P007 — 03-Geometry — point, line segment, polygon, convexhull (verified)
 
+Pruned 2026-10-12.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `onSegment(p, a, b)` | `02-line_segment.hpp:60` | `contains(Linear2::segment(a, b), p)` | remove | another name after a builder (exact, `a == b` included) | `02-line_segment_tester.cpp:62` | `02-line_segment.hpp:162-163`; `17-polygon_distance.hpp:42`; `10-…_tester.cpp:295,306`; `16-…_tester.cpp:197` |
 | `signedAreaApprox` | `03-polygon.hpp:36` | `signedArea2(p) / 2.L` | keep | another scale: half the doubled area (clarified rule) | `03-polygon_tester.cpp:68,119,133,135,138,140` | none |
-| `polygonContains`, `PolygonLocation` | `03-polygon.hpp:78` | `polygonWinding` (`r.boundary`, `r.winding`) | keep | derived classification of the winding number (clarified rule) | `03-polygon_tester.cpp:78,95,99,104,117,121` | `17-polygon_distance.hpp:104,107,119,140`; `16-…_tester.cpp:71`; `17-…_tester.cpp:51` |
+| `polygonContains`, `PolygonLocation` | `03-polygon.hpp:78` | `polygonWinding` (`r.boundary`, `r.winding`) | keep | derived classification of the winding number (clarified rule) | `03-polygon_tester.cpp:78,95,99,104,117,121` | `17-polygon_distance.hpp:105,108,120,141`; `16-…_tester.cpp:71`; `17-…_tester.cpp:51` |
 | `convexHull` | `04-convexhull.hpp:33` | `convexHullIndices` mapped to points | keep | constant-factor variant (ruling 4) | `04-convexhull_tester.cpp:51,90,99,106,109` | `11-minkowskisum.hpp:50`; 11 and 17 testers |
 | 2D `angleApprox` | `01-point.hpp:95` | `abs(signedAngleApprox(a, b))` | keep | named special case: the unsigned angle, one name for 2D and 3D (decided 2026-10-11) | `01-point_tester.cpp:341-381` | none |
-| `projectLineApprox`, `reflectLineApprox`, `reflectDirectionApprox` | `02-line_segment.hpp:118-128` | `Affine2Approx::projection`, `reflection` | keep | different computation (one division, exact 0.5 where the factory gives 0.4999…) and domain (any `Point2<T>`) | — | — |
+| `projectLineApprox`, `reflectLineApprox`, `reflectDirectionApprox` | `02-line_segment.hpp:117-127` | `Affine2Approx::projection`, `reflection` | keep | different computation (one division, exact 0.5 where the factory gives 0.4999…) and domain (any `Point2<T>`) | — | — |
 
 ## P008 — 03-Geometry — closestpair, circle, rotatingcalipers, coordinate transform (verified)
 
@@ -474,8 +475,8 @@ Pruned 2026-10-12.
 |---|---|---|---|---|---|---|
 | `minkowskiDifference` | `11-minkowskisum.hpp:35-37` | negate `q`, then `minkowskiSum(p, q)` | keep | derived: negation then sum (clarified rule) | `11-minkowskisum_tester.cpp:45,69` | none |
 | `minkowskiSumHull` | `11-minkowskisum.hpp:49-50` | `minkowskiSum(convexHull(p), convexHull(q))` | keep | larger domain: any point sets (clarified rule) | `11-…_tester.cpp:64,118` | none |
-| `convexSeparated(p, q)` | `17-polygon_distance.hpp:88-90` | `convexSeparated(p, q, axis)` | remove | out-parameter dropped | `17-…_tester.cpp:71`; probe `clockwise` (:164) | none |
-| `polygon_distance_detail::touch`, `nearest` | `17-polygon_distance.hpp:40-48` | the test inside `segmentDistanceApprox` (`02-line_segment.hpp:161-163`); `pointSegmentDistanceApprox` | keep | internal helpers (decided 2026-10-11) | — | — |
+| `convexSeparated(p, q)` | `17-polygon_distance.hpp:89-91` | `convexSeparated(p, q, axis)` | remove | out-parameter dropped | `17-…_tester.cpp:71`; probe `clockwise` (:164) | none |
+| `polygon_distance_detail::touch`, `nearest` | `17-polygon_distance.hpp:40-49` | the test inside `segmentDistanceApprox` (`02-line_segment.hpp:160-163`); `pointSegmentDistanceApprox` | keep | internal helpers (decided 2026-10-11) | — | — |
 | `halfplane_detail::vertex`; `polygonKernel` | `10-halfplaneintersection.hpp:40-42,151` | `intersect(…).p`; `polygonKernelLinear` | keep | detail helper; different algorithm, user decision 2026-10-10 (`Docs/00-notes.md:67`) | — | — |
 
 ## P029 — 02-Data Structures — waveletmatrix, treap, heap deque (planned)

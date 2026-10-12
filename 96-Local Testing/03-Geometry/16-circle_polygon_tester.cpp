@@ -194,7 +194,7 @@ vector<point> randomSimple(std::mt19937_64 &rng, lng c, int n) {
         bool ok = signedArea2(p) != 0;
         for (int i = 0; i < n && ok; ++i) { for (int j = i + 2; j < n && ok; ++j) {
             if (i == 0 && j == n - 1) { continue; }
-            ok = !properCross(p[i], p[i + 1], p[j], p[(j + 1) % n]) && !onSegment(p[j], p[i], p[i + 1]) && !onSegment(p[i], p[j], p[(j + 1) % n]);}}
+            ok = !properCross(p[i], p[i + 1], p[j], p[(j + 1) % n]) && !contains(Linear2::segment(p[i], p[i + 1]), p[j]) && !contains(Linear2::segment(p[j], p[(j + 1) % n]), p[i]);}}
         for (int i = 0; i < n && ok; ++i) { ok = p[i] != p[(i + 1) % n] && !(orient(p[i], p[(i + 1) % n], p[(i + 2) % n]) == 0 && dot(p[(i + 1) % n] - p[i], p[(i + 2) % n] - p[(i + 1) % n]) < 0); }
         if (ok) { return p; }}}
 void invalid(const string &name) {

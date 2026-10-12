@@ -57,7 +57,6 @@ inline bool contains(Linear2 s, point p) {
     if (s.a == s.b) { return p == s.a; }
     if (orient(s.a, s.b, p)) { return false; }
     return linear_detail::parameter(s.kind, dot(p - s.a, s.b - s.a), norm2(s.b - s.a));}
-inline bool onSegment(point p, point a, point b) { return contains(Linear2::segment(a, b), p); }
 inline bool parallel(Linear2 s, Linear2 t) {
     linear_detail::check(s); linear_detail::check(t);
     return cross(s.b - s.a, t.b - t.a) == 0;}
@@ -159,7 +158,8 @@ template<typename T> long double pointSegmentDistanceApprox(Point2<T> p, Point2<
 inline long double segmentDistanceApprox(point a, point b, point c, point d) {
     for (point p : {a, b, c, d}) { linear_detail::check(p); }
     int x = orient(a, b, c), y = orient(a, b, d), z = orient(c, d, a), w = orient(c, d, b);
-    if ((x * y < 0 && z * w < 0) || (!x && onSegment(c, a, b)) || (!y && onSegment(d, a, b)) ||
-        (!z && onSegment(a, c, d)) || (!w && onSegment(b, c, d))) { return 0; }
+    Linear2 s = Linear2::segment(a, b), t = Linear2::segment(c, d);
+    if ((x * y < 0 && z * w < 0) || (!x && contains(s, c)) || (!y && contains(s, d)) ||
+        (!z && contains(t, a)) || (!w && contains(t, b))) { return 0; }
     return min({pointSegmentDistanceApprox(a, c, d), pointSegmentDistanceApprox(b, c, d),
                 pointSegmentDistanceApprox(c, a, b), pointSegmentDistanceApprox(d, a, b)});}
