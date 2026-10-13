@@ -103,8 +103,7 @@ struct AhoCorasick {
         built = true;}
 
     void checkState([[maybe_unused]] int u) const { assert(built && 0 <= u && u < size()); }
-    // T: O((h + 1) * log(S + 2)) sparseStep and sparse step, O(1) dense step, M: O(1); h = depth of u, a scan amortizes to the struct Q.
-    int sparseStep(int u, unsigned char c) const { checkState(u); return walk(u, c); }
+    // T: O((h + 1) * log(S + 2)) sparse step, O(1) dense step, M: O(1); h = depth of u, a scan amortizes to the struct Q.
     int step(int u, unsigned char c) const { checkState(u); return next(u, c); }
     int matchCount(int u) const { checkState(u); return nodes[u].count; }
     bool forbidden(int u) const { return matchCount(u) != 0; }

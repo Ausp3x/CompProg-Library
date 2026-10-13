@@ -36,6 +36,25 @@ template<class T> vector<int> naiveLcp(const vector<T> &s, const vector<int> &sa
         while (i + len < int(s.size()) && j + len < int(s.size()) && s[i + len] == s[j + len]) { ++len; }
         res.push_back(len);}
     return res;}
+// Exact LCP for long texts without Kasai: binary lifting over names of the blocks s[i, i + 2^b), equal exactly when the blocks are.
+vector<int> blockLcp(const vector<int> &s, const vector<int> &sa) {
+    int n = int(s.size());
+    vector<vector<int>> block{s};
+    for (int w = 1; 2 * w <= n; w *= 2) {
+        const vector<int> &c = block.back();
+        vector<int> id(n - 2 * w + 1);
+        unordered_map<ulng, int> name;
+        name.reserve(id.size());
+        for (int i = 0; i < int(id.size()); ++i) { id[i] = name.try_emplace(ulng(uint(c[i])) << 32 | uint(c[i + w]), int(name.size())).first->second; }
+        block.push_back(std::move(id));}
+    vector<int> res;
+    for (int k = 0; k + 1 < n; ++k) {
+        int i = sa[k], j = sa[k + 1], len = 0;
+        for (int b = int(block.size()) - 1; b >= 0; --b) {
+            int w = 1 << b;
+            if (len + w <= n - max(i, j) && block[b][i + len] == block[b][j + len]) { len += w; }}
+        res.push_back(len);}
+    return res;}
 void verifyInt(const vector<int> &s, int upper) {
     ++cases;
     context = show(s) + " upper=" + std::to_string(upper);
@@ -45,6 +64,7 @@ void verifyInt(const vector<int> &s, int upper) {
     check(sais<4>(s, upper) == expected, "sais NAIVE=4");
     check(sais(s) == expected, "sais generic vector<int> (compressed)");
     check(lcpArray(s, expected) == naiveLcp(s, expected), "lcpArray vector<int>");
+    check(blockLcp(s, expected) == naiveLcp(s, expected), "block-class LCP oracle");
     auto [codes, k] = compressAlphabet(s);
     set<int> distinct(s.begin(), s.end());
     check(k == int(distinct.size()), "compressAlphabet k");
@@ -151,9 +171,9 @@ void large(const string &mode) {
         SuffixArray<int> oracle(s, false);
         auto sa = sais(s, upper);
         check(sa == oracle.sa, "large sais versus prefix-doubling SuffixArray");
-        check(lcpArray(s, sa) == oracle.lcp, "large lcpArray versus SuffixArray");
+        check(lcpArray(s, sa) == blockLcp(s, sa), "large lcpArray versus block-class LCP");
         check(sais(s) == sa, "large generic sais");}
-    cout << "PASS large unary/period-3/Fibonacci/Thue-Morse/random/sparse n=" << n << " against SuffixArray\n";}
+    cout << "PASS large unary/period-3/Fibonacci/Thue-Morse/random/sparse n=" << n << " against SuffixArray and block-class LCP\n";}
 int invalid(const string &probe) {
     if (probe == "negative-upper") { sais(vector<int>{}, -1); }
     if (probe == "symbol-above") { sais(vector<int>{0, 3}, 2); }

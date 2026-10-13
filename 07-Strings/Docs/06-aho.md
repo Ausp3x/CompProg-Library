@@ -12,7 +12,7 @@ Symbols: `L` total inserted pattern length, `k` number of IDs, `V` number of sta
 - Domain: every pattern and text length, the number of IDs and the number of states are below `INT_MAX`. Per-boundary counts are `int` (at most `k`); per-pattern, per-state and total counts are `lng`, and `(n+1) * k` fits in signed 64 bits under these limits. Root is state 0 and recognizes the empty prefix; an empty pattern matches at all `n+1` boundaries. Duplicate patterns get separate IDs and each contributes to counts.
 - `fromTrie(parent, label, ends = {}, dense = false)` builds the automaton over an external trie with `N = parent.size()` nodes. Node 0 is the root and `parent[0]`, `label[0]` are ignored. Every other node `v` hangs below `parent[v]` by byte `label[v]`; node ids may be in any order. Preconditions (asserted): `label.size() == N`, parents in range, distinct labels among siblings, and every node reachable from the root (a cycle is detected because the BFS order then misses nodes). State `v` of the result is node `v`. `ends[i]` (repeats allowed) becomes pattern ID `i` with `length[i]` equal to the node depth; with no `ends` the automaton has no IDs and only links, transitions and `suffixAggregate` are meaningful. All queries then behave exactly as for an automaton built by `add` from the node strings.
 - Read-only fields: `nodes[u].next` (trie children), `nodes[u].ids` (IDs ending exactly at `u`), `nodes[u].link` (longest proper suffix that is a state; the root links to itself), `nodes[u].out` (nearest proper suffix state with an ID, `-1` if none), `nodes[u].count` (`matchCount`), `terminal[id]`, `length[id]`, and `order` (BFS order, a topological order of the failure tree). `go`, `code`, `sigma`, `built`, `dense` and the helpers `walk`, `next`, `outputs`, `checkState` are internal and unchecked.
-- `step(u, c)`: the longest state that is a suffix of `str(u) + c`; bytes absent from every pattern return the root in `O(1)`. Keep the state across text chunks for streaming. `sparseStep(u, c)` is the same transition computed by the failure walk, valid in both representations. Both assert `built` and `0 <= u < size()`. A single sparse transition costs `O((h+1) * log(S+2))`; a scan from the root amortizes to `O(log(S+2))` per byte. Dense transitions cost `O(1)`.
+- `step(u, c)`: the longest state that is a suffix of `str(u) + c`; bytes absent from every pattern return the root in `O(1)`. Keep the state across text chunks for streaming. It asserts `built` and `0 <= u < size()`. A single sparse transition costs `O((h+1) * log(S+2))`; a scan from the root amortizes to `O(log(S+2))` per byte. Dense transitions cost `O(1)`.
 - `matchCount(u)`: number of IDs ending at `u`, including every terminal suffix and empty IDs. `forbidden(u)` is `matchCount(u) != 0`. `safeStep(u, c)` returns `-1` (an absorbing rejecting sink) if `u` is already forbidden or the next state is; `safeStep(-1, c)` stays `-1`. `avoids(text)` reports whether no pattern occurs in `text`; empty patterns forbid every text.
 - Forbidden-language counting: start with `dp[0] = !ac.forbidden(0)`; for each position, state and allowed byte add `dp[u]` to the next layer at `ac.safeStep(u, c)` when it is nonnegative. Any byte subset is allowed, including bytes absent from the patterns. Dense builds make arbitrary DP transitions `O(1)`.
 - `suffixAggregate(value, combine)`: returns `value[u]` folded with every proper suffix state, nearest first, the root once. `combine` must be associative and may be noncommutative; the caller handles arithmetic safety and value copies. `O(V)` combine calls.
@@ -23,6 +23,12 @@ Complexity: sparse construction `O(k + L * log(S+2))` time and `O(V + k)` memory
 
 Correctness: the state invariant is the longest pattern prefix that is a suffix of the processed text. Failure links point to the longest proper such suffix; BFS processes every shallower state first, so the parent's failure state already has final transitions (dense) or links (sparse walk). Output links skip to the nearest terminal suffix, so following them enumerates each matching ID once, longest first, including the root's empty IDs. `count[u] = |ids[u]| + count[link[u]]` follows. The sparse build is bounded by telescoping: along each root-to-leaf path the failure depth rises by at most one per edge and every failed walk step lowers it, so the walk total is at most the summed leaf depths (`<= L` for added patterns). Per-state occurrence counts propagate in reverse BFS order along the failure tree, crediting each end boundary to every suffix state.
 
+### Legacy mapping
+
+| Removed (prune, 2026-10-13) | Replacement |
+|---|---|
+| `sparseStep(u, c)` | `step(u, c)` (same state and preconditions; a dense build reads its table instead of walking failure links) |
+
 ## Feature-to-test map
 
 Runnable entry: [06-aho_tester.py](<../../96-Local Testing/07-Strings/06-aho_tester.py>), suite [06-aho_tester.cpp](<../../96-Local Testing/07-Strings/06-aho_tester.cpp>), built with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Quick/full/stress enumerate every subset of binary patterns through length 1/2/2 against all binary texts through length 3/4/5, ordered duplicate dictionaries `[a, b, a]`, 100/1200/6000 seeded random dictionaries (alphabets 1, 3, 256) and 60/600/3000 random external tries. Every mode covers every query in both representations.
@@ -30,7 +36,7 @@ Runnable entry: [06-aho_tester.py](<../../96-Local Testing/07-Strings/06-aho_tes
 | Feature | Independent checks |
 |---|---|
 | Node, add, size, patterns, trie states | Insertion IDs; state count equals the number of distinct pattern prefixes; every state's string rebuilt from the trie; `terminal`/`length` per ID. |
-| build (sparse/dense), link, out, step, sparseStep | Direct longest-suffix search for every state and bytes 0, 97–99, 127, 128, 255, checking `step` and `sparseStep` in both representations; repeated sparse/dense rebuilds; dense release on `build(false)`. |
+| build (sparse/dense), link, out, step | Direct longest-suffix search for every state and bytes 0, 97–99, 127, 128, 255, checking `step` in both representations (the failure walk in sparse builds, the table in dense ones); repeated sparse/dense rebuilds; dense release on `build(false)`. |
 | fromTrie | Random labelled trees with shuffled node ids, alphabets 2–4 and 256, up to 40 nodes; node strings rebuilt from the parent chain; node ids preserved; sparse results release the table; every structural and text query compared with the direct oracles; single-node trie. Adversarial tries (spines `a^i`, `b a^i`, a `c` leaf below every `b a^i`) with `m = 3` (walk path) and `m = 20` (temporary dense path, `D > N * S`) under the full oracle, and `m = 500/5000/20000` with closed-form links and counts. Caterpillar trie (spine 2000/50000/200000 with a leaf at every spine node) with closed-form links, counts and depths, sparse and dense. |
 | matchCount, countPatterns, countPositions, countMatches, stateCounts | Direct matching of every pattern and state string at all `n+1` boundaries; empty and duplicate IDs. |
 | forEachOutput, forEachMatch | Sorted longest-first expected lists, exact callback spans, cancellation at first/middle/last match, nested const queries from callbacks. |
@@ -38,23 +44,21 @@ Runnable entry: [06-aho_tester.py](<../../96-Local Testing/07-Strings/06-aho_tes
 | forbidden, safeStep, avoids | Every arbitrary-state transition and the rejecting sink; naive substring search; binary-word enumeration versus automaton DP for lengths 0–7. |
 | clear, lifecycle, bytes | All 256 single-byte patterns, NUL/255 pairs, constructor versus incremental add, copy/move/clear/assignment and repeated queries. |
 | Large counts | Nested unary patterns depth 100/1000/2500 on unary text 10000/150000/600000, closed-form counts, then a final mismatch forcing long sparse fallbacks. |
-| Preconditions | 15 checked-build death probes: unbuilt `step`/`sparseStep`/sink, `fromTrie` duplicate sibling label, unreachable cycle, parent out of range, end out of range, label size, `add` after build, negative and past-end states for `step`/`matchCount`/`sparseStep`/`forEachOutput`, invalid safe state, aggregate size. |
+| Preconditions | 14 checked-build death probes: unbuilt `step`/sink, `fromTrie` duplicate sibling label, unreachable cycle, parent out of range, end out of range, label size, `add` after build, negative and past-end `step` states, past-end `matchCount` state, negative `forEachOutput` state, invalid safe state, aggregate size. |
 
-Mutation sanity (not a gate): dropping the terminal check in output links, a wrong `fromTrie` depth, an off-by-one failure walk in `sparseStep` and a corrupted link on the temporary dense path each fail the quick suite.
+Mutation sanity (not a gate): dropping the terminal check in output links, a wrong `fromTrie` depth, an off-by-one failure walk (rerun 2026-10-13: the sparse `step` check fails) and a corrupted link on the temporary dense path each fail the quick suite.
 
 ## Commands and results
 
-Run 2026-10-08 with the configurations listed in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
+P017 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations as in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
 
 ```bash
-python3 '96-Local Testing/07-Strings/06-aho_tester.py' --mode quick --seed 20261008  # PASS, 2 configurations, 281,056 checks each, 15 assertion probes
-python3 '96-Local Testing/07-Strings/06-aho_tester.py' --mode full --seed 20261008  # PASS, 3 configurations, 3,221,100 checks each
-CXX=g++-14 python3 '96-Local Testing/07-Strings/06-aho_tester.py' --mode full --seed 20261008  # PASS, 3 configurations, 3,221,100 checks each
-python3 '96-Local Testing/07-Strings/06-aho_tester.py' --mode stress --seed 20261009  # PASS, 3 configurations, 14,440,928 checks each
-python3 '96-Local Testing/07-Strings/06-aho_benchmark.py' --seed 20261008  # PASS, every workload verified against direct counts
+python3 '96-Local Testing/07-Strings/06-aho_tester.py' --mode full --seed 20261013
+CXX=g++-14 python3 '96-Local Testing/07-Strings/06-aho_tester.py' --mode full --seed 20261013
+python3 '96-Local Testing/03-consistency.py' --braces '07-Strings/06-aho.hpp' '96-Local Testing/07-Strings/06-aho_tester.cpp'
 ```
 
-The pre-change suite passed in full mode (seed 1, three configurations) as the re-audit baseline. Integration, the folder run and consistency are recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results).
+Full, seed 20261013: PASS in all three configurations with all 14 assertion probes, 2,829,972 checks per configuration; 52 s and peak 545 MB on g++, 53 s and peak 541 MB on g++-14. `--braces` reports no closing-brace, comment-cap or free-function violations. The benchmark was not rerun: no measured path changed (it never called `sparseStep`). Integration, the folder run and consistency are recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results).
 
 ## Benchmarks
 
@@ -83,16 +87,17 @@ Implementation independently written; no code copied.
 - [cp-algorithms, Aho-Corasick](https://cp-algorithms.com/string/aho_corasick.html): trie and automaton construction, sparse-map cost, BFS with persistent transitions, output links, counts and forbidden-word applications.
 - [OI Wiki, AC 自动机](https://oi-wiki.org/string/ac-automaton/): failure-tree topological propagation for per-pattern counts (adopted); its destructive mark-once query has different semantics and was not adopted.
 - [maspypy `aho_corasick_for_general_trie.hpp`](https://github.com/maspypy/library/blob/main/string/aho_corasick_for_general_trie.hpp) (read 2026-10-08): failure links over an arbitrary labelled tree (any vertex order, integer labels, root 0) via persistent arrays, `O(N * log(K))`. `fromTrie` adopts the input model with byte labels and adds output links and IDs; the dense build replaces the persistent arrays (see Contracts).
-- [ei1333 `aho-corasick.hpp`](https://ei1333.github.io/library/string/aho-corasick.hpp), [Nyaan](https://nyaannyaan.github.io/library/string/aho-corasick.hpp), [suisen](https://suisen-cp.github.io/cp-library-cpp/library/string/aho_corasick.hpp), [hitonanode](https://hitonanode.github.io/cplib-cpp/string/aho_corasick.hpp), [tko919](https://tko919.github.io/library/), [Library Checker `aho_corasick`](https://github.com/yosupo06/library-checker-problems/tree/master/string/aho_corasick) (read 2026-10-08): completeness sweep; their operations map to `step`/`sparseStep`, `matchCount`, `forEachOutput`, `forEachMatch` and `countPatterns`.
+- [ei1333 `aho-corasick.hpp`](https://ei1333.github.io/library/string/aho-corasick.hpp), [Nyaan](https://nyaannyaan.github.io/library/string/aho-corasick.hpp), [suisen](https://suisen-cp.github.io/cp-library-cpp/library/string/aho_corasick.hpp), [hitonanode](https://hitonanode.github.io/cplib-cpp/string/aho_corasick.hpp), [tko919](https://tko919.github.io/library/), [Library Checker `aho_corasick`](https://github.com/yosupo06/library-checker-problems/tree/master/string/aho_corasick) (read 2026-10-08): completeness sweep; their operations map to `step`, `matchCount`, `forEachOutput`, `forEachMatch` and `countPatterns`.
 
 The preserved `OLD` headers contain no Aho-Corasick implementation.
 
 ## Limits and handoffs
 
-- `/reaudit-review` findings ([p017](<../../00-Guidelines/23-Reaudit Findings/>), deleted after this run): 1 `sparseStep` now asserts `built` and the state range, and is tested directly against the oracle in both representations; 3 `fromTrie` implemented and tested; 4 closing braces normalized; 5 scans use the unchecked `next` and direct counts after one entry check; 6 complexity comments rewritten in `S/U/Q/M` and `T/M` form with `out`, and the contract text moved here.
+- `/reaudit-review` findings ([p017](<../../00-Guidelines/23-Reaudit Findings/>), deleted after this run): 1 (`sparseStep` checks) superseded by its removal in the 2026-10-13 prune; 3 `fromTrie` implemented and tested; 4 closing braces normalized; 5 scans use the unchecked `next` and direct counts after one entry check; 6 complexity comments rewritten in `S/U/Q/M` and `T/M` form with `out`, and the contract text moved here.
 - Not adopted: a parent field (Library Checker `aho_corasick` prints parents; recover them in `O(V)` from `nodes[u].next`) and scans resuming from a given state (ei1333 `move`; use `step` and `matchCount` directly).
 - ST13 (`34-dynamicaho.hpp`) owns dynamic updates; ST11 owns generalized multiple-string indexes.
 
 ## History
 
 - 2026-09-28: verified under the previous system (P017) without `fromTrie`; optimized stress seed 20260929 passed 9,612,363 checks. 2026-10-08 re-audit: `fromTrie` added, `/reaudit-review` findings 1 and 3–6 fixed.
+- 2026-10-13: prune, removed `sparseStep` (its transition checks were already made on `step` in both representations; its past-end probe moved to `step`, 14 probes); full suite passed on g++ and g++-14.

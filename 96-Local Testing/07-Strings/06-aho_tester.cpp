@@ -67,7 +67,6 @@ void testStructure(const AhoCorasick &ac, const vector<string> &p, const vector<
             unsigned char c = uint8_t(x);
             int v = expectedState(label, label[u] + char(c)), bad = 0;
             check(ac.step(u, c), v, "arbitrary-state-transition");
-            check(ac.sparseStep(u, c), v, "arbitrary-state-sparse-step");
             for (const auto &s : p) { bad += suffix(label[v], s); }
             check(ac.safeStep(u, c), count || bad ? -1 : v, "arbitrary-safe-transition");}}
     check(ac.suffixAggregate(values, std::plus<int>{}), expected, "suffix-add-fold");
@@ -189,7 +188,6 @@ int invalid(const string &probe) {
     ac.add("ab");
     ac.add("bc");
     if (probe == "unbuilt") { ac.step(0, 0); }
-    if (probe == "unbuilt-sparse") { ac.sparseStep(2, 'c'); }
     if (probe == "unbuilt-sink") { ac.safeStep(-1, 0); }
     if (probe == "trie-duplicate-label") { AhoCorasick::fromTrie({-1, 0, 0}, "xaa"); }
     if (probe == "trie-unreachable") { AhoCorasick::fromTrie({-1, 2, 1}, "xab"); }
@@ -200,7 +198,7 @@ int invalid(const string &probe) {
     if (probe == "add-built") { ac.add(""); }
     if (probe == "negative-state") { ac.step(-1, 0); }
     if (probe == "large-state") { ac.matchCount(ac.size()); }
-    if (probe == "large-sparse-state") { ac.sparseStep(ac.size(), 0); }
+    if (probe == "large-step-state") { ac.step(ac.size(), 0); }
     if (probe == "aggregate-size") { ac.suffixAggregate(vector<int>{}, std::plus<int>{}); }
     if (probe == "safe-state") { ac.safeStep(-2, 0); }
     if (probe == "output-state") { ac.forEachOutput(-1, [](int) { return true; }); }

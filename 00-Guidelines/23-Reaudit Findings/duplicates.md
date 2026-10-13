@@ -239,12 +239,12 @@ Pruned 2026-10-13.
 
 ## P017 — 07-Strings — aho, suffixarray, palindrome queries (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| Kasai loop in `SuffixArray::build` | `07-suffixarray.hpp:61-67` | `12-sais.hpp:79` `lcpArray(text, sa)` | remove | second implementation (body); 07 includes 12 or `lcpArray` moves into 07 | `07-suffixarray_tester.cpp:68`; `12-sais_tester.cpp:154` loses its independence | — |
 | `forbidden(u)` | `06-aho.hpp:110` | `matchCount(u) != 0` | keep | named special case (ruling 1) | `06-aho_tester.cpp:65,173` | none |
 | `countPatterns(text)` | `06-aho.hpp:158-163` | `stateCounts(text)[terminal[id]]` | keep | named per-pattern count (decided 2026-10-11) | `06-aho_tester.cpp:86,287,292,312` | none |
-| `sparseStep` | `06-aho.hpp:107` | `step` | remove | same transition, never faster (decided 2026-10-11) | `06-aho_tester.cpp:70`; probes :192,203 | none |
 
 ## P025 — 01-Core — poly (verified)
 

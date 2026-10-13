@@ -1,6 +1,6 @@
 # 07-suffixarray.hpp — evidence
 
-`07-suffixarray.hpp` implements the Basic suffix-array row. Construction uses stable counting-sort doubling, inverse ranks and Kasai LCP. Exact LCE and accelerated pattern search reuse the verified Data Structures `SparseTable`; callers may omit RMQ to retain linear memory. Two-input longest common substring, longest repeated substring (at least `k` overlapping occurrences) and longest disjoint repeat include deterministic witnesses.
+`07-suffixarray.hpp` implements the Basic suffix-array row. Construction uses stable counting-sort doubling and inverse ranks; the LCP array comes from `lcpArray` (Kasai) in `12-sais.hpp` ([12-sais.md](12-sais.md)), which this header includes. Exact LCE and accelerated pattern search reuse the verified Data Structures `SparseTable`; callers may omit RMQ to retain linear memory. Two-input longest common substring, longest repeated substring (at least `k` overlapping occurrences) and longest disjoint repeat include deterministic witnesses.
 
 ## Contracts
 
@@ -8,7 +8,7 @@
 
 - `SuffixArray<T>` owns a `vector<T>` for integral `T`; the input's ordinary signed/unsigned order is preserved without narrowing symbols. A brace list (`SuffixArray<int> x({0, 1})`, `x.patternRange({0})`) selects the `initializer_list<T>` overloads, so lists starting with a literal `0` are not ambiguous with `string_view`. `SuffixArray(string_view)` and deduction from `string`/C strings use `T=int` and unsigned byte order, including NUL and bytes 128–255. A C string follows its normal terminating-NUL convention; use an explicit `string_view` length for embedded NUL.
 - Input length `n < INT_MAX`. `sa` contains exactly the `n` nonempty suffix starts, `rank[sa[k]]=k`, and `lcp[k]=LCP(sa[k],sa[k+1])` has `max(0,n-1)` entries. Construction is sentinel-free; no input value is reserved. Empty construction is valid.
-- Byte initialization costs `O(n+256)`; sparse integer initialization sorts positions to compress symbols in `O(n * log(n+1))` time and `O(n)` workspace. Stable radix doubling takes `O(n * log(n+1))` time and `O(n)` workspace, stopping once all ranks differ. Kasai takes `O(n)` time.
+- Byte initialization costs `O(n+256)`; sparse integer initialization sorts positions to compress symbols in `O(n * log(n+1))` time and `O(n)` workspace. Stable radix doubling takes `O(n * log(n+1))` time and `O(n)` workspace, stopping once all ranks differ. `lcpArray` (Kasai) takes `O(n)` time and `O(n)` workspace, rebuilding the inverse ranks it needs.
 - Default construction builds RMQ in `O(n * log(n+1))` time and stored space. Pass `false` as the second constructor argument for `O(n)` storage, then call `buildRmq()` if LCE becomes necessary. Repeated `buildRmq()` calls are valid. No hidden lazy mutation occurs in queries.
 - `lce(i,j)` is exact and requires RMQ plus `0 <= i,j <= n`. It returns `n-i` when `i==j` and zero if exactly one argument is the empty suffix `n`. `substringLce(l,r,a,b)` accepts half-open intervals, including empty intervals, and caps the suffix answer at both interval lengths. Both queries cost `O(1)`.
 - `patternRange(pattern)` returns ranks `[l,r)` in `sa`. Results enumerate occurrences as `sa[l..r)` in suffix order; an absent pattern has `l==r`. An empty pattern returns `[0,n)`: boundary occurrence `n` is omitted because it has no `sa` entry. With RMQ the query costs `O(m+log(n+1))`; without RMQ it costs `O(m * log(n+1))`, where `m` is the pattern length. The byte overload uses `O(m)` conversion storage; the integer overload uses constant query workspace and requires the same symbol type as the index; the `initializer_list` overload copies the list (`O(m)`).
@@ -19,11 +19,17 @@
 
 Correctness: at doubling width `k`, each current rank describes the first `k` symbols of its suffix. Suffixes shorter than or equal to `k` have a missing second rank, smaller than every real rank. Listing those starts first, then subtracting `k` from the current suffix order where possible, sorts all starts by second rank. Stable counting sort on first ranks therefore sorts the rank pairs. Consecutive unequal pairs receive consecutive ranks, preserving equality and lexicographic order for width `2k`. Eventually the width covers every suffix; unique ranks permit early termination. Missing ranks use the internal value `-1`, never a text symbol. Width and index calculations avoid overflowing signed sums.
 
-Kasai scans starts in text order. Removing a common leading symbol lowers the known adjacent-suffix LCP by at most one; the lexicographic neighbors of the shortened suffix share at least that remaining prefix. Consequently the carried lower bound is valid and the total extensions are linear. The LCP of any two suffixes equals the minimum adjacent LCP between their ranks: all suffixes sharing a prefix form a contiguous lexicographic interval. The sparse-table minimum therefore answers LCE exactly.
+`lcpArray` (Kasai) scans starts in text order. Removing a common leading symbol lowers the known adjacent-suffix LCP by at most one; the lexicographic neighbors of the shortened suffix share at least that remaining prefix. Consequently the carried lower bound is valid and the total extensions are linear. The LCP of any two suffixes equals the minimum adjacent LCP between their ranks: all suffixes sharing a prefix form a contiguous lexicographic interval. The sparse-table minimum therefore answers LCE exactly.
 
 Pattern binary search retains an anchor suffix having the largest prefix match obtained so far. If the next suffix diverges from the anchor before that matched prefix ends, suffix-rank order determines its comparison with the pattern. Otherwise matching resumes at the known prefix length and every successful new comparison increases the best known match. Each bound search uses `O(log(n+1))` RMQs and at most `O(m)` successful new symbol comparisons, plus one terminating comparison per binary-search step.
 
 A substring with at least `k` occurrences is a common prefix of `k` consecutive suffixes in `sa`, whose LCP is the minimum of the `k-1` adjacent LCP entries between them, so the best window minimum is the maximum length; the first best window is the lexicographically smallest. Non-overlapping repetition of length `L` is monotone in `L` (shorten both occurrences) and holds exactly when some group of suffixes with pairwise LCP `>= L` has start spread `>= L`. For common substrings, all suffixes with a given prefix form a contiguous group; a group containing both inputs has an adjacent ownership change. The fresh separator occurs once and prevents a matching prefix between distinct starts from crossing the first input's boundary. Thus the largest adjacent LCP across an ownership change is the common-substring maximum. Scanning in suffix order selects the smallest maximal substring; scanning its complete LCP-connected group selects earliest witness positions.
+
+### Legacy mapping
+
+| Removed (prune, 2026-10-13) | Replacement |
+|---|---|
+| Kasai loop inside `SuffixArray::build` (second implementation) | `lcpArray(text, sa)` from `12-sais.hpp`; same `lcp` values |
 
 ## Feature-to-test map
 
@@ -31,7 +37,7 @@ Runnable entry: [07-suffixarray_tester.py](<../../96-Local Testing/07-Strings/07
 
 | Feature/domain | Independent verification |
 |---|---|
-| SA, inverse ranks and Kasai | Direct lexicographic suffix sorting and direct character-by-character LCP; all ternary texts through lengths 5/7/8 in quick/full/stress. |
+| SA, inverse ranks and LCP (`lcpArray`) | Direct lexicographic suffix sorting and direct character-by-character LCP; all ternary texts through lengths 5/7/8 in quick/full/stress. |
 | Exact LCE and substring caps | Every pair of suffix starts including `n`; every pair of half-open substrings for lengths through 5; seeded random interval pairs at larger sizes. |
 | Byte and sparse integer alphabets | Embedded NUL, full ascending/descending 256-byte alphabets, random bytes, signed and unsigned 64-bit extremes, signed char and `vector<bool>`; constructors deduced from strings, views and literals. |
 | Pattern interval and acceleration | Direct suffix/pattern scans for every substring of short inputs, empty/absent/extreme patterns, random patterns, with and without RMQ; unary patterns half the text length and longer than the entire text; brace-list texts and patterns starting with `0` for `int` and `lng` (compile-time ambiguity regression). |
@@ -44,24 +50,35 @@ Runnable entry: [07-suffixarray_tester.py](<../../96-Local Testing/07-Strings/07
 
 ## Commands and results
 
-Run 2026-10-08 with the configurations listed in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
+P017 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations as in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
 
 ```bash
-python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode quick --seed 20261008  # PASS, 2 configurations, 592 cases and 517,992 checks each, 12 assertion probes
-python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode full --seed 20261008  # PASS, 3 configurations, 5,534 cases and 3,609,024 checks each
-CXX=g++-14 python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode full --seed 20261008  # PASS, 3 configurations, same counts
-python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode stress --seed 20261009  # PASS, 3 configurations, 20,345 cases and 14,721,498 checks each
-python3 '96-Local Testing/02-integration.py' --sanitizers  # PASS, 102 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace, sanitizer self-tests
-python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20261008 --no-integration  # PASS, 9 suites
-python3 '96-Local Testing/03-consistency.py'  # no errors
+python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode full --seed 20261013
+CXX=g++-14 python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode full --seed 20261013
+python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20261013 --no-integration
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
+python3 '96-Local Testing/03-consistency.py' --braces '07-Strings/06-aho.hpp' '07-Strings/07-suffixarray.hpp' '96-Local Testing/07-Strings/06-aho_tester.cpp' '96-Local Testing/07-Strings/12-sais_tester.cpp'
 ```
 
-The pre-change suite passed in full mode (seed 1, three configurations) as the re-audit baseline; the integration, folder and consistency lines cover all three P017 headers.
+Full, seed 20261013: PASS in all three configurations with all 12 assertion probes, 5,534 cases and 3,652,608 checks per configuration; 125 s and peak 679 MB on g++, 129 s and peak 691 MB on g++-14. The SA-IS suite, whose large `lcpArray` oracle changed with this prune, is recorded in [12-sais.md](12-sais.md#commands-and-results). The quick 07-Strings run passed all 20 suites, including `15-minrotation` and `10-suffixautomaton`, which read `SuffixArray::lcp`. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace (peak 646 MB). `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
 
 ## Benchmarks
 
-No benchmark: radix doubling is the direct algorithm for the stated bound, with no
+No benchmark driver: radix doubling is the direct algorithm for the stated bound, with no
 specialization or dispatch threshold. Sparse-table storage is optional and explicit.
+Construction timings against SA-IS are in [12-sais.md](12-sais.md#benchmarks) (`doubling`).
+
+Prune measurement, 2026-10-13 (one-off, against the deleted inline Kasai loop): `SuffixArray<int>(s, false)` on `n = 10^6`, GCC 16.2.1 `-std=gnu++20 -O2 -DNDEBUG`, Intel Core i9-11900H pinned to one core (`taskset -c 5`, shared host, load average 2–4), seed 20261013, memory-capped. Each run takes the median of seven constructions after one warmup; the table gives the median of six runs per build, alternating builds; LCP sums are equal.
+
+| Text (`n = 10^6`) | Inline Kasai ms | `lcpArray` ms | Change |
+|---|---:|---:|---:|
+| random, 2 letters | 141.5 | 147.1 | +4% |
+| random, 26 letters | 149.5 | 158.7 | +6% |
+| Fibonacci prefix | 287.1 | 300.4 | +5% |
+| unary | 174.9 | 186.7 | +7% |
+
+`lcpArray` rebuilds the inverse ranks `build` already holds (peak 65 MB against 62 MB). The user confirmed the removal with this cost on 2026-10-13; queries are unaffected.
 
 ## Sources
 
@@ -90,3 +107,4 @@ impractical maximum-size objects.
 ## History
 
 - 2026-09-28: verified under the previous system (P017). 2026-10-08 re-audit: `/reaudit-review` findings 2 and 7–9 fixed; `longestRepeated(k)` and `longestRepeatedDisjoint` added.
+- 2026-10-13: prune, the inline Kasai loop replaced by `lcpArray` from `12-sais.hpp` (construction 4–7% slower at `n = 10^6`, accepted); full suite passed on g++ and g++-14.

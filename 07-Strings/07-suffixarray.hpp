@@ -1,6 +1,7 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
 #include "../02-Data Structures/04-sparsetable.hpp"
+#include "12-sais.hpp"
 
 // S: O(n * log(n + 1)), U: NA, Q: O(1) lce, O(m + log(n + 1)) patternRange (O(m * log(n + 1)) without RMQ), M: O(n * log(n + 1)) with RMQ, O(n) without.
 // Integral T, n < INT_MAX, sentinel-free (sa omits suffix n, lce accepts it); string input is T = int with unsigned byte order.
@@ -58,13 +59,7 @@ struct SuffixArray {
                 if (rank[a] != rank[b] || ra != rb) { ++classes; }
                 next_rank[b] = classes - 1;}
             rank.swap(next_rank);}
-        lcp.assign(max(0, n - 1), 0);
-        for (int i = 0, k = 0; i < n; ++i) {
-            if (rank[i] == n - 1) { k = 0; continue; }
-            int j = sa[rank[i] + 1];
-            while (k < n - i && k < n - j && text[i + k] == text[j + k]) { ++k; }
-            lcp[rank[i]] = k;
-            k -= k > 0;}
+        lcp = lcpArray(text, sa);
         indexed = false;
         rmq = SparseTable<int, Minimum>({}, {});
         if (with_rmq) { buildRmq(); }}
