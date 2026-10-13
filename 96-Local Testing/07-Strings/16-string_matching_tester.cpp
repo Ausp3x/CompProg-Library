@@ -42,7 +42,7 @@ template<class P, class S> void verify(const P &p, const S &t, int sigma, bool c
     expect(rabinKarp(p, t), expected, "rabinKarp");
     expect(rabinKarp(p, t, test_seed + ulng(cases)), expected, "rabinKarp seeded");
     expect(twoWay(p, t), expected, "twoWay");
-    expect(allOccurrences(p, t), expected, "allOccurrences");
+    if constexpr (std::is_same_v<P, string>) { expect(boyerMoore(p, t), expected, "boyerMoore default S"); }
     expect(firstOccurrence(p, t), expected.empty() ? -1 : expected[0], "firstOccurrence");
     expect(isSubstring(p, t), !expected.empty(), "isSubstring");
     expect(countOccurrences(p, t), lng(expected.size()), "countOccurrences overlapping");
@@ -131,7 +131,6 @@ void large(const string &mode) {
         expect(lng(kmp.size()), expected, "kmp count");
         expect(boyerMoore(p, t), kmp, "boyerMoore");
         expect(twoWay(p, t), kmp, "twoWay");
-        expect(allOccurrences(p, t), kmp, "allOccurrences");
         expect(dfaSearch(p, t), kmp, "dfaSearch");
         if (lng(kmp.size()) * lng(p.size()) <= 100000000) { expect(rabinKarp(p, t), kmp, "rabinKarp"); }
         expect(countOccurrences(p, t, false), expected ? lng(t.size()) / lng(max<size_t>(p.size(), 1)) : 0, "disjoint");

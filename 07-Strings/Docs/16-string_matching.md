@@ -1,6 +1,6 @@
 # 16-string_matching.hpp — evidence
 
-`16-string_matching.hpp` (batch ST08, package P084) collects the exact single-pattern matchers: the naive scan, Rabin–Karp with verified hits, Boyer–Moore (strong good suffix plus the Galil rule) with its two tables, Horspool, Sunday (Quick Search), Crochemore–Perrin two-way, the prefix-automaton DFA adapter, and the dispatching queries `allOccurrences`, `firstOccurrence`, `isSubstring` and `countOccurrences`. Contest profile, GNU C++20, no ISA code. KMP, Z, hashing and multi-pattern matching stay in `01`, `02`, `03` and `06`.
+`16-string_matching.hpp` (batch ST08, package P084) collects the exact single-pattern matchers: the naive scan, Rabin–Karp with verified hits, Boyer–Moore (strong good suffix plus the Galil rule) with its two tables, Horspool, Sunday (Quick Search), Crochemore–Perrin two-way, the prefix-automaton DFA adapter, and the dispatching queries `firstOccurrence`, `isSubstring` and `countOccurrences`. Contest profile, GNU C++20, no ISA code. KMP, Z, hashing and multi-pattern matching stay in `01`, `02`, `03` and `06`.
 
 ## Contracts
 
@@ -14,7 +14,7 @@ Window-by-window comparison, `O(n * m)` time, `O(out)` memory. Equality-comparab
 
 ### rabinKarp(pattern, text, seed = 20261010)
 
-Rolling polynomial hash modulo `2^61 - 1` with base drawn from `std::mt19937_64(seed)` in `[256, 2^61 - 257)`; symbols are integral or `char` (bytes unsigned), encoded as their value reduced modulo `2^61 - 1`. Every hash hit is verified symbol by symbol, so the output is exact (Las Vegas: only the running time is random). Time `O(n + m)` plus `O(m)` per hit; with a fixed seed an adversary can force collisions, and true occurrences always cost `O(m)` each, so the worst case is `O(n * m)` (for example `a^m` in `a^n`). Callers facing hacks pass a random seed. The verification path is tested with symbols that are equal modulo `2^61 - 1` (every window collides).
+Rolling polynomial hash modulo `2^61 - 1` (the `StringHash61` arithmetic of `03-stringhash.hpp`) with base drawn from `std::mt19937_64(seed)` in `[256, 2^61 - 257)`; symbols are integral or `char` (bytes unsigned), encoded as their value reduced modulo `2^61 - 1`. Every hash hit is verified symbol by symbol, so the output is exact (Las Vegas: only the running time is random). Time `O(n + m)` plus `O(m)` per hit; with a fixed seed an adversary can force collisions, and true occurrences always cost `O(m)` each, so the worst case is `O(n * m)` (for example `a^m` in `a^n`). Callers facing hacks pass a random seed. The verification path is tested with symbols that are equal modulo `2^61 - 1` (every window collides).
 
 ### badCharacterTable(pattern, S = 256, len = -1)
 
@@ -40,9 +40,15 @@ Crochemore–Perrin: the critical factorization is the later of the two maximal 
 
 The first overload runs `aut = prefixAutomaton(pattern, S)` (from `01`, `m + 1` rows of `S` transitions, asserted non-empty) over the text in `O(n)` and reports `i + 1 - m` when state `m` is reached; an empty pattern (one row) reports `0..n`. The second codes the pattern (bytes unsigned) and builds the automaton: `O((m + 1) * S + n)` time and memory.
 
-### allOccurrences, firstOccurrence, isSubstring, countOccurrences
+### firstOccurrence, isSubstring, countOccurrences
 
-The dispatcher uses `boyerMoore` when both pattern and text have `char` symbols and `twoWay` otherwise (which therefore requires ordered symbols); both are `O(n + m)` worst case. The choice is measured (Benchmarks). `firstOccurrence` returns the smallest start or `-1` and stops at the first hit; `isSubstring` is `firstOccurrence >= 0`. `countOccurrences(pattern, text, overlapping = true)` counts all occurrences as `lng`, or with `overlapping = false` the greedy leftmost set of pairwise disjoint occurrences (start at least the previous start plus `m`), which has maximum size; the empty pattern counts `n + 1` in both modes (Python `str.count` convention). Extra memory is the dispatched matcher's: `O(m + S)` for `char` (Boyer–Moore tables) and `O(1)` on the two-way path, plus `O(out)` for `allOccurrences`.
+The dispatcher uses `boyerMoore` when both pattern and text have `char` symbols and `twoWay` otherwise (which therefore requires ordered symbols); both are `O(n + m)` worst case. The choice is measured (Benchmarks). `firstOccurrence` returns the smallest start or `-1` and stops at the first hit; `isSubstring` is `firstOccurrence >= 0`. `countOccurrences(pattern, text, overlapping = true)` counts all occurrences as `lng`, or with `overlapping = false` the greedy leftmost set of pairwise disjoint occurrences (start at least the previous start plus `m`), which has maximum size; the empty pattern counts `n + 1` in both modes (Python `str.count` convention). Extra memory is the dispatched matcher's: `O(m + S)` for `char` (Boyer–Moore tables) and `O(1)` on the two-way path.
+
+### Legacy mapping
+
+| Removed (prune, 2026-10-13) | Replacement |
+|---|---|
+| `allOccurrences(pattern, text)` | `boyerMoore(pattern, text)` when both have `char` symbols, `twoWay(pattern, text)` otherwise (the dispatcher's choice; same results) |
 
 ## Feature-to-test map
 
@@ -50,28 +56,29 @@ Runner: [`16-string_matching_tester.py`](<../../96-Local Testing/07-Strings/16-s
 
 | Operation | Coverage |
 |---|---|
-| naiveSearch, rabinKarp, twoWay, allOccurrences, firstOccurrence, isSubstring, countOccurrences (both modes) | Every case: exhaustive binary patterns through length 4/5/6 against texts through 7/9/10 and ternary patterns through 3/3/4 against texts through 5/7/6 (quick/full/stress); 2000/8000/20000 random cases (a fifth over 256 bytes, a third periodic, most patterns substrings, some with a foreign last byte) each also as `int`, extreme-`lng` and 5-symbol vectors; `rabinKarp` with the default and a per-case seed; disjoint count against greedy selection over the brute list. |
+| naiveSearch, rabinKarp, twoWay, firstOccurrence, isSubstring, countOccurrences (both modes) | Every case: exhaustive binary patterns through length 4/5/6 against texts through 7/9/10 and ternary patterns through 3/3/4 against texts through 5/7/6 (quick/full/stress); 2000/8000/20000 random cases (a fifth over 256 bytes, a third periodic, most patterns substrings, some with a foreign last byte) each also as `int`, extreme-`lng` and 5-symbol vectors; `rabinKarp` with the default and a per-case seed; disjoint count against greedy selection over the brute list. |
 | rabinKarp verification | Symbols `5` and `5 + (2^61 - 1)` as `lng`: every window collides, only verification separates them. |
-| boyerMoore, horspool, sunday, dfaSearch (both overloads) | Every coded case (bytes with `S = 100` exhaustive and `S = 256` random, ints, 5-symbol vectors with `S = 5`); large unary hit/miss, period-3 and random binary texts (`n = 10^5/10^6/10^6`, `m = 2000/20000/20000`) against `kmpOccurrences` (verified `rabinKarp` there only when `hits * m <= 10^8`, its documented worst case). |
+| boyerMoore, horspool, sunday, dfaSearch (both overloads) | Every coded case (bytes with `S = 100` exhaustive and `S = 256` random, ints, 5-symbol vectors with `S = 5`), and `boyerMoore` at the default `S = 256` on every byte case; large unary hit/miss, period-3 and random binary texts (`n = 10^5/10^6/10^6`, `m = 2000/20000/20000`) against `kmpOccurrences` (verified `rabinKarp` there only when `hits * m <= 10^8`, its documented worst case). |
 | badCharacterTable | Every coded case at `len = m, m - 1, m / 2` and the default against a brute last-occurrence scan. |
 | goodSuffixTable | Every coded case against the brute strong good-suffix definition; `res[0]` against `prefixPeriod(prefixFunction(p))`. |
-| Linear worst case | Unary hit (`n - m + 1` occurrences) and unary miss with `m = 20000`, `n = 10^6` for boyerMoore, twoWay, dfaSearch and the dispatcher. |
+| Linear worst case | Unary hit (`n - m + 1` occurrences) and unary miss with `m = 20000`, `n = 10^6` for boyerMoore, twoWay, dfaSearch and the dispatcher (`countOccurrences`). |
 
 Checked builds run five precondition probes: a pattern symbol and a text symbol outside `[0, S)`, `badCharacterTable` with `len > m`, and a DFA text symbol and pattern symbol outside the alphabet.
 
 ## Commands and results
 
-Run 2026-10-11 on the final code. Every run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, precondition probes; stress runs at full sizes) binaries, and full/stress add ASan/UBSan (`-O1`); all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full and stress first pass the quick pre-flight under the 2048 MB cap.
+P084 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Full runs build optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, precondition probes) and ASan/UBSan (`-O1`) binaries after the quick pre-flight under the 2048 MB cap; quick runs build optimized and checked; all use `-Wall -Wextra -Wshadow -Wconversion -Werror`.
 
 ```bash
-python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 20 suites (this one: 2 configurations, 5 assertion probes)
-python3 '96-Local Testing/07-Strings/16-string_matching_tester.py' --mode full --seed 1  # PASS, 3 configurations, 4,467,578 checks each, MEMORY peak 562 MB
-CXX=g++-14 python3 '96-Local Testing/07-Strings/16-string_matching_tester.py' --mode full --seed 2  # PASS, 3 configurations, 4,467,560 checks each, MEMORY peak 585 MB
-python3 '96-Local Testing/07-Strings/16-string_matching_tester.py' --mode stress --seed 3  # PASS, 3 configurations, 9,238,464 checks (optimized, ASan/UBSan), 4,467,539 (checked), MEMORY peak 722 MB
-python3 '96-Local Testing/02-integration.py'  # PASS, 129 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace
-python3 '96-Local Testing/02-integration.py' --sanitizers  # FAIL outside this package: the Core 16-poly_tester.cpp self-test is linked alone and misses its second translation unit (otherUnitConvolution); all earlier stages passed
-python3 '96-Local Testing/03-consistency.py'  # PASS, errors: []
+python3 '96-Local Testing/07-Strings/16-string_matching_tester.py' --mode full --seed 20261013
+CXX=g++-14 python3 '96-Local Testing/07-Strings/16-string_matching_tester.py' --mode full --seed 20261013
+python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20261013 --no-integration
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
+python3 '96-Local Testing/03-consistency.py' --braces '07-Strings/16-string_matching.hpp' '96-Local Testing/07-Strings/16-string_matching_tester.cpp'
 ```
+
+Full, seed 20261013: PASS in all three configurations with all 5 assertion probes, 4,442,736 checks per configuration; 148 s and peak 642 MB on g++, 137 s and peak 677 MB on g++-14. The quick 07-Strings run passed all 20 suites. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
 
 Benchmark: `python3 '96-Local Testing/07-Strings/16-string_matching_benchmark.py' > '96-Local Testing/07-Strings/16-string_matching_benchmark.jsonl'` (every repetition's count verified; table below).
 
@@ -99,6 +106,8 @@ Driver: [`16-string_matching_benchmark.py`](<../../96-Local Testing/07-Strings/1
 
 The full grid (S in {2, 4, 26, 256}, m in {4, 32, 256}, adversarial at m in {4, 32, 256}) is in the JSONL. Dispatcher decision: among linear-worst-case matchers Boyer–Moore with Galil is fastest on every random byte workload (up to 20x faster than two-way at large alphabets) and stays within 25 ms on the adversarial ones, where Horspool, Sunday and verified Rabin–Karp degrade by 20–50x; two-way is faster on unary-miss and periodic texts but 2–20x slower on random text. For non-byte symbols Boyer–Moore needs a dense alphabet, so the dispatcher uses two-way, which beats KMP by 20–40%. `string::find` (memchr plus compare) wins at `m = 4` over large alphabets but is quadratic (43–45 ms on the unary workloads at `m = 256`, growing with `m`). No threshold is needed: Boyer–Moore is never more than about 1.3x slower than the best linear matcher on random byte text.
 
+The table was measured 2026-10-11. `rabinKarp` was re-timed 2026-10-13 after switching to the `StringHash61` arithmetic, with an ad-hoc A/B against the previous header (commit 6225705) on the same machine and flags: random S = 2/26/256 with m = 4/32/256, unary hit and period 2 at m = 256 (bytes), and random S = 4 and 10^9 at m = 64 (`vector<int>`), `n = 4 * 10^6`, data from seed 20261010 as in the driver. Each figure is the median over six interleaved runs; each run is the median of seven timed repetitions after one warmup, with every count checked against `kmpOccurrences`. The A/B driver is not committed. New-to-old ratios were 0.89–1.02, inside run-to-run noise, so the table stands.
+
 ## Sources
 
 Code is independently implemented from the cited descriptions.
@@ -113,9 +122,10 @@ Code is independently implemented from the cited descriptions.
 ## Limits and handoffs
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): simplified bad-character-only Boyer–Moore, the b5s/BMHBNFS hybrid, Turbo-BM and Breslauer's two-way variant (`49`/`43`), last occurrence and range-restricted searches, multi-pattern Rabin–Karp.
-- Coded algorithms need symbols in `[0, S)`; callers with sparse integer alphabets compress first or use `twoWay`/`allOccurrences`.
+- Coded algorithms need symbols in `[0, S)`; callers with sparse integer alphabets compress first or use `twoWay`.
 - Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 
-- 2026-10-11: implemented and verified (P084); independent review fixes: dispatcher memory stated as O(m + S) for char, complexity lines for firstOccurrence and countOccurrences.
+- 2026-10-11: implemented and verified (P084); independent review fixes: dispatcher memory stated as O(m + S) for char, complexity lines for firstOccurrence and countOccurrences; quick, full and stress passed on g++, full on g++-14.
+- 2026-10-13: prune, removed `allOccurrences` (its checks moved to `boyerMoore` at the default `S` and to `twoWay`) and the Rabin–Karp copies of the `StringHash61` arithmetic; full suite passed on g++ and g++-14.

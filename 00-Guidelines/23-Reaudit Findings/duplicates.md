@@ -438,12 +438,12 @@ Pruned 2026-10-13.
 
 ## P084 — 07-Strings — string matching, bitap, subsequence automaton, bwt (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `shiftOr`, `shiftAnd` | `17-bitap.hpp:91,79` | `shiftOrMultiword(masks, t)` | keep | single-word constant-factor variants (ruling 4) | `17-bitap_tester.cpp:79-83,155,228`; probes `shift-*-long` | none |
 | pattern overloads of `shiftAnd`, `shiftOr`, `shiftOrMultiword`, `bitapHamming`, `bitapEdit` | `17-bitap.hpp:89,103,122,126,129` | `f(patternMasks(p, S), …)` | keep | build the masks themselves (clarified rule) | `17-bitap_tester.cpp:82-100,155-158,228-232`; probes :248-253 | `Docs/17-bitap.md:7` |
-| `allOccurrences` | `16-string_matching.hpp:178` | `boyerMoore` or `twoWay` by symbol type | remove | another name (type dispatch) | `16-…_tester.cpp:45,134` | none |
-| `rabinKarp` lambdas `mul`, `add`, `enc` | `16-string_matching.hpp:43-48` | `StringHash61::multiply`, `add`, `encode` | remove | body-level second implementation | `16-…_tester.cpp:42-43` | adds an include of `03-stringhash.hpp` |
 | `isSubstring` | `16-string_matching.hpp:185` | `firstOccurrence(p, t) >= 0` | keep | named special case (ruling 1) | `16-…_tester.cpp:47` | none |
 | `bwt(s, sen)` | `29-bwt.hpp:58` | `bwtFromSuffixArray(s, sais(s), sen)` (`sais(string_view)` for `vector<char>`) | keep | the header's headline operation (decided 2026-10-11) | `29-bwt_tester.cpp:83,157`; probe `sentinel-in-text` | none |
 | `dfaSearch(p, t, S)` | `16-string_matching.hpp:171` | `dfaSearch(prefixAutomaton(codes, S), t)` | keep | only form taking a `char` pattern (decided 2026-10-11) | `16-…_tester.cpp:57,135`; probe `dfa-pattern-symbol` | none |

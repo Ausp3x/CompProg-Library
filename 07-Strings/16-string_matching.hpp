@@ -1,6 +1,7 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
 #include "02-z.hpp"
+#include "03-stringhash.hpp"
 
 namespace matching_detail {
     template<class C> auto key(C c) {
@@ -39,24 +40,19 @@ namespace matching_detail {
             for (int i = 0; i <= n - m; ++i) {
                 if (same(p, t, i, 0, m) && !f(i)) { return; }}});}
     template<class P, class S, class F> void rabinKarp(const P &p, const S &t, ulng seed, F f) {
-        constexpr ulng MOD = (1ULL << 61) - 1;
-        auto mul = [](ulng a, ulng b) {
-            ulll x = ulll(a) * b;
-            ulng y = (ulng(x) & MOD) + ulng(x >> 61);
-            return y >= MOD ? y - MOD : y;};
-        auto add = [](ulng a, ulng b) { a += b; return a >= MOD ? a - MOD : a; };
-        auto enc = [](auto c) { return ulng(key(c)) % MOD; };
-        ulng base = std::mt19937_64(seed)() % (MOD - 512) + 256;
+        using H = StringHash61;
+        auto enc = [](auto c) { return H::encode(ulng(key(c))); };
+        ulng base = std::mt19937_64(seed)() % (H::P61 - 512) + 256;
         run(p, t, f, [&](int m, int n) {
             ulng hp = 0, ht = 0, top = 1;
             for (int i = 0; i < m; ++i) {
-                hp = add(mul(hp, base), enc(p[i]));
-                ht = add(mul(ht, base), enc(t[i]));
-                if (i) { top = mul(top, base); }}
+                hp = H::add(H::multiply(hp, base), enc(p[i]));
+                ht = H::add(H::multiply(ht, base), enc(t[i]));
+                if (i) { top = H::multiply(top, base); }}
             for (int i = 0;; ++i) {
                 if (hp == ht && same(p, t, i, 0, m) && !f(i)) { return; }
                 if (i == n - m) { return; }
-                ht = add(mul(add(ht, MOD - mul(enc(t[i]), top)), base), enc(t[i + m]));}});}
+                ht = H::add(H::multiply(H::subtract(ht, H::multiply(enc(t[i]), top)), base), enc(t[i + m]));}});}
     template<class P, class S, class F> void boyerMoore(const P &p, const S &t, int sigma, F f) {
         run(p, t, f, [&](int m, int n) {
             auto bad = last(p, sigma, m);
@@ -174,16 +170,13 @@ template<class P, class S> vector<int> dfaSearch(const P &pattern, const S &text
     for (int i = 0; i < int(codes.size()); ++i) { codes[i] = matching_detail::code(pattern[i]); }
     return dfaSearch(prefixAutomaton(codes, sigma), text);}
 
-// T: O(n + m), M: O(m + S + out) for char (Boyer-Moore with Galil), O(out) otherwise (two-way, ordered symbols).
-template<class P, class S> vector<int> allOccurrences(const P &pattern, const S &text) {
-    return matching_detail::collect([&](auto f) { matching_detail::best(pattern, text, f); });}
-// T: O(n + m), M: O(m + S) for char, O(1) otherwise; smallest start, -1 when absent; isSubstring is firstOccurrence >= 0.
+// T: O(n + m), M: O(m + S) for char (Boyer-Moore with Galil), O(1) otherwise (two-way, ordered symbols); smallest start, -1 when absent; isSubstring is firstOccurrence >= 0.
 template<class P, class S> int firstOccurrence(const P &pattern, const S &text) {
     int res = -1;
     matching_detail::best(pattern, text, [&](int i) { res = i; return false; });
     return res;}
 template<class P, class S> bool isSubstring(const P &pattern, const S &text) { return firstOccurrence(pattern, text) >= 0; }
-// T: O(n + m), M: O(m + S) for char, O(1) otherwise; overlapping, or the greedy maximum of disjoint occurrences; empty pattern n + 1.
+// T: O(n + m), M: O(m + S) for char, O(1) otherwise (two-way, ordered symbols); overlapping, or the greedy maximum of disjoint occurrences; empty pattern n + 1.
 template<class P, class S> lng countOccurrences(const P &pattern, const S &text, bool overlapping = true) {
     lng res = 0;
     lng m = lng(pattern.size()), next = 0;

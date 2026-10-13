@@ -1,9 +1,10 @@
 """Exact single-pattern matching: brute-force window scan, brute tables.
 
 Every mode checks naiveSearch, rabinKarp (default and per-case seeds), twoWay,
-allOccurrences, firstOccurrence, isSubstring and countOccurrences (overlapping
-and greedy disjoint) on every case, and boyerMoore, horspool, sunday, both
-dfaSearch overloads, badCharacterTable (three prefix lengths) and
+firstOccurrence, isSubstring and countOccurrences (overlapping and greedy
+disjoint) on every case, boyerMoore at the default S = 256 on every byte case,
+and boyerMoore, horspool, sunday, both dfaSearch overloads,
+badCharacterTable (three prefix lengths) and
 goodSuffixTable (brute strong good-suffix definition and the period) on every
 coded case. Quick/full/stress enumerate binary patterns through length 4/5/6
 against texts through 7/9/10 and ternary patterns through 3/3/4 against
