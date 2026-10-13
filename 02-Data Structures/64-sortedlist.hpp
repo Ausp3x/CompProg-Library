@@ -126,7 +126,6 @@ struct SortedList {
     iterator prev(const T &x) const {
         iterator it = upperBound(x);
         return it == begin() ? end() : --it;}
-    iterator next(const T &x) const { return lowerBound(x); }
     bool contains(const T &x) const {
         iterator it = lowerBound(x);
         return it != end() && !cmp(x, *it);}
@@ -143,5 +142,4 @@ struct SortedList {
         while (b + 1 < int(a.size()) && k >= int(a[b].size())) { k -= int(a[b++].size()); }
         return {b, k};}
     const T &kth(int k) const { auto [b, i] = locateKth(k); return a[b][i]; }
-    const T &operator[](int k) const { return kth(k); }
 };

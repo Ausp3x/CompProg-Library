@@ -361,12 +361,12 @@ Pruned 2026-10-13.
 
 ## P227 — 02-Data Structures — hashmap, sortedlist (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `SortedList::next(x)` | `64-sortedlist.hpp:129` | `lowerBound(x)` | remove | another name | `64-sortedlist_tester.cpp:72` | `Docs/64-sortedlist.md:18` |
-| `SortedList::operator[](k)` | `64-sortedlist.hpp:146` | `kth(k)` | remove | another name | `64-sortedlist_tester.cpp:54` | none |
 | `HashTable::contains`, `HashMap::get(k, def)` | `61-hashmap.hpp:52,113` | `find(k) != end()`, find-or-default | keep | named special case (ruling 1) | `61-hashmap_tester.cpp:60,68-69,103,132,156,168-173,181,217,257` | none |
-| `SortedList::contains` | `64-sortedlist.hpp:130` | — | keep | needs the comparator test; `count` is O(√n) | — | — |
+| `SortedList::contains` | `64-sortedlist.hpp:129` | — | keep | needs the comparator test; `count` is O(√n) | — | — |
 
 ## P052 — 05-Mathematics — primality factorization, multiplicative functions, modinverse, crt (verified)
 

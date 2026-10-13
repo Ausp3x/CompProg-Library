@@ -50,8 +50,7 @@ namespace {
         // Every k on small lists; 65 evenly spaced k (both ends included) on large ones.
         int n = int(o.size()), stride = max(1, n / 64);
         for (int k = 0; k < n; k = k + stride < n || k == n - 1 ? k + stride : n - 1) {
-            checkEqual(s.kth(k), o[k], at + " kth(" + show(k) + ")");
-            checkEqual(s[k], o[k], at + " operator[](" + show(k) + ")");}
+            checkEqual(s.kth(k), o[k], at + " kth(" + show(k) + ")");}
         vector<int> before(s.a.size() + 1, 0);
         for (int b = 0; b < int(s.a.size()); ++b) { before[b + 1] = before[b] + int(s.a[b].size()); }
         // Iterator position from bucket prefix sums; the dereferenced value is checked against the oracle separately.
@@ -69,7 +68,6 @@ namespace {
             checkEqual(s.contains(x), hi > lo, at + " contains" + q);
             checkEqual(pos(s.lowerBound(x)), lo, at + " lowerBound" + q);
             checkEqual(pos(s.upperBound(x)), hi, at + " upperBound" + q);
-            checkEqual(pos(s.next(x)), lo, at + " next" + q);
             checkEqual(pos(s.prev(x)), hi ? hi - 1 : int(o.size()), at + " prev" + q);
             if (lo < int(o.size())) { checkEqual(*s.lowerBound(x), o[lo], at + " *lowerBound" + q); }
             if (hi) { checkEqual(*s.prev(x), o[hi - 1], at + " *prev" + q); }}}

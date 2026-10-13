@@ -10,13 +10,20 @@ A sorted multiset stored as a vector of nonempty sorted buckets. `C` is a strict
 
 - Construction `SortedList(v, cmp)` and `rebuild(v)`: O(n) when `v` is already sorted (checked with `is_sorted`), O(n log(n + 1)) otherwise. `rebuild()` re-chunks the current contents in O(n); `clear()` empties.
 - Bucket policy: the field `load` (written `B` below) is `max(BMIN, floor(sqrt(RATIO * built)))` with `BMIN = 32`, `RATIO = 4`, where `built` is the size at the last rebuild. A bucket above `2B` splits in halves; after removals a bucket below `B / 2` merges with a neighbour (and splits again if the merge exceeds `2B`); an emptied bucket is dropped. A rebuild runs when `n > 2 * built + BMIN` or `2 * n < built`. Invariant (checked by the tester after every operation): every bucket holds `[B / 2, 2B]` elements unless there is only one, `built / 2 <= n <= 2 * built + BMIN`.
-- Costs, with `n` the current size: the invariant gives O(n / B + 1) = O(sqrt(n)) buckets of O(B) = O(sqrt(n)) elements. `lowerBound`, `upperBound`, `prev`, `next`, `contains` are O(log(n)) (binary search over bucket maxima, then in the bucket). `rank`, `upperRank`, `count`, `kth`, `operator[]` are O(sqrt(n)) (scan of bucket sizes). `insert`, `eraseOne`, `eraseKth`, `popFront`, `popBack` are O(sqrt(n)) amortized; the amortization covers rebuilds, each O(n) and separated by at least `built / 2` operations. `erase(x)` removes all `k` equivalents in O(sqrt(n) + k) amortized. `front`, `back`, `size`, `empty` are O(1). `M` is O(n).
+- Costs, with `n` the current size: the invariant gives O(n / B + 1) = O(sqrt(n)) buckets of O(B) = O(sqrt(n)) elements. `lowerBound`, `upperBound`, `prev`, `contains` are O(log(n)) (binary search over bucket maxima, then in the bucket). `rank`, `upperRank`, `count`, `kth` are O(sqrt(n)) (scan of bucket sizes). `insert`, `eraseOne`, `eraseKth`, `popFront`, `popBack` are O(sqrt(n)) amortized; the amortization covers rebuilds, each O(n) and separated by at least `built / 2` operations. `erase(x)` removes all `k` equivalents in O(sqrt(n) + k) amortized. `front`, `back`, `size`, `empty` are O(1). `M` is O(n).
 - `insert(x)`; `erase(x)` returns the number removed; `eraseOne(x)` returns whether one was removed; `eraseKth(k)`, `popFront()`, `popBack()` return the removed element.
 - `rank(x)` counts elements `< x`, `upperRank(x)` elements `<= x`, `count(x)` equivalents, `contains(x)`; `position(it)` is the index of an iterator (`n` for `end()`), O(sqrt(n)).
 - Aliasing: arguments may refer to elements of the list. `erase` takes its value by copy because it keeps comparing after destroying a run that ends at a bucket boundary; `insert` relies on `vector::insert`, which handles an aliased value, and `eraseOne` does not read its argument after erasing.
-- `kth(k)` and `operator[](k)` need `k` in `[0, n)`; `eraseKth` too; `front`, `back`, `popFront`, `popBack` need `n > 0`.
-- Searches return const bidirectional iterators: `lowerBound(x)` first element `>= x`, `upperBound(x)` first `> x`, `prev(x)` last `<= x`, `next(x)` first `>= x` (the same as `lowerBound`; `prev`/`next` are the inclusive nearest neighbours, matching `OrderedMultiSet::prev` in row 07). Absent results are `end()`. `rbegin`/`rend` are `std::reverse_iterator`s.
+- `kth(k)` and `eraseKth(k)` need `k` in `[0, n)`; `front`, `back`, `popFront`, `popBack` need `n > 0`.
+- Searches return const bidirectional iterators: `lowerBound(x)` first element `>= x`, `upperBound(x)` first `> x`, `prev(x)` last `<= x` (the inclusive predecessor, matching `OrderedMultiSet::prev` in row 07; the inclusive successor is `lowerBound`). Absent results are `end()`. `rbegin`/`rend` are `std::reverse_iterator`s.
 - Invalidation: every mutation (including `insert`, which may split or rebuild) invalidates all iterators and element references. Copies are independent.
+
+### Legacy mapping
+
+| Removed (prune, 2026-10-13) | Replacement |
+|---|---|
+| `next(x)` | `lowerBound(x)` |
+| `operator[](k)` | `kth(k)` |
 
 ## Correctness and cost
 
@@ -29,7 +36,7 @@ Tester `96-Local Testing/02-Data Structures/64-sortedlist_tester.cpp`, entry `64
 | Operation | Group | Oracle |
 |---|---|---|
 | `insert`, `eraseOne`, `erase` (count), `eraseKth`, `popFront`, `popBack` (returned values), `rebuild()`, `rebuild(v)` sorted and unsorted, `clear`, vector construction, `size`, `empty` | `randomOps` on five workloads: values in [0, 8] up to 300 elements, [0, 1000] up to 3000, `std::greater` in [0, 50] up to 2000, stable pairs compared by first up to 400, full-range `lng` up to 20000; alternating growth and shrink phases cross every rebuild, split and merge threshold | Sorted vector, stable |
-| `kth`, `operator[]`, `position`, `rank`, `upperRank`, `count`, `contains`, `lowerBound`, `upperBound`, `prev`, `next` (positions and dereferenced values), `front`, `back`, `--end()`, forward and reverse iteration | `verify` (every step on the small workload, every 5–400 steps on larger ones, always at the end; every `k` up to 64 elements, 65 evenly spaced `k` otherwise; probes below, between, on and above the values) | `lower_bound`/`upper_bound` on the oracle |
+| `kth`, `position`, `rank`, `upperRank`, `count`, `contains`, `lowerBound`, `upperBound`, `prev` (positions and dereferenced values), `front`, `back`, `--end()`, forward and reverse iteration | `verify` (every step on the small workload, every 5–400 steps on larger ones, always at the end; every `k` up to 64 elements, 65 evenly spaced `k` otherwise; probes below, between, on and above the values) | `lower_bound`/`upper_bound` on the oracle |
 | Empty and singleton lists, last-bucket removal, 40000 ascending then descending inserts, 80000 equal values, `erase` of a run spanning many buckets, an equal run surrounded by other values, draining by `popFront`, `std::greater` construction, stability with `ByFirst`, string elements (moves out of buckets), arguments aliasing stored elements (`erase(front())` over a run ending at a bucket boundary, `insert(back())`, `eraseOne(kth(0))`; caught by ASan before the fix), `LLONG_MIN`/`LLONG_MAX`, copy independence | `edgeCases` | Sorted vectors built independently |
 | Bucket invariant `[B/2, 2B]`, global order, size bookkeeping, rebuild window, `B` formula | `structure` after every operation | Direct check of the stated invariant |
 | Preconditions | `invalid` | `kth(-1)`, `kth(n)`, `eraseKth(n)`, `front`, `back`, `popFront`, `popBack` on an empty list |
@@ -38,19 +45,17 @@ Mutation check (2026-10-09, quick mode, temporary copies of the pre-review heade
 
 ## Commands and results
 
+P227 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H.
+
 ```bash
-python3 '96-Local Testing/02-Data Structures/64-sortedlist_tester.py' --mode full --seed 20261009
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/64-sortedlist_tester.py' --mode full --seed 20261009
-python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/6' --no-integration
-python3 '96-Local Testing/02-Data Structures/64-sortedlist_benchmark.py' --runs 5
+python3 '96-Local Testing/02-Data Structures/64-sortedlist_tester.py' --mode full --seed 20261013
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/64-sortedlist_tester.py' --mode full --seed 20261013
 python3 '96-Local Testing/02-integration.py'
-CXX=g++-14 python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
+python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/64-sortedlist.hpp' '96-Local Testing/02-Data Structures/64-sortedlist_tester.cpp'
 ```
 
-Final run 2026-10-09: full mode seed 20261009 passed on both compilers, 16,640,685 checks per configuration and 7 assertion probes (MEMORY peak 814 MB on g++, 847 MB on g++-14, both dominated by the compiler); stress mode seed 7 passed all three configurations with 33,008,506 checks per configuration (peak at most 835 MB). The checked build takes about 71 s in full and 105 s in stress, inside the runner's 180 s limit. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, on GCC 16.2.1 and again on the floor compiler GCC 14.4.1 (`CXX=g++-14`). Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
-
-`02-integration.py` passed on GCC 16.2.1 and 14.4.1: 114 standalone/aggregate headers (this one alone, in `99-all.hpp`), the scalar and AVX2 two-translation-unit builds and the workspace. Its `--sanitizers` stage stopped at a link error in another session's uncommitted `01-Core/16-poly_tester.cpp`, unrelated to this header, whose own ASan/UBSan configuration passed above. `03-consistency.py` reports no errors and checks the closing-brace rule and comment cap on this header, its tester and its benchmark.
+Full, seed 20261013: PASS on both compilers in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the 7 assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, all with `-std=gnu++20 -Wall -Wextra -Wconversion -Werror`; 13,028,822 checks per configuration, MEMORY peak 778 MB on g++ and 781 MB on g++-14, both dominated by the compiler. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
 
 ## Benchmark
 
@@ -89,4 +94,5 @@ References inspected 2026-10-09 by the completeness sweep ([00-sources.md](00-so
 
 ## History
 
-- 2026-10-09: P227 first verification. Independent review: fixed `erase(x)` use-after-free when `x` aliases an element (now by value), renamed the runtime field `B` to `load`, merged the `rank`/`upperRank` prefix loops into `position`, corrected two evidence statements.
+- 2026-10-09: P227 first verification, full passed on g++ and g++-14, stress (seed 7) on g++, integration on both, `BMIN`/`RATIO` benchmark sweep. Independent review: fixed `erase(x)` use-after-free when `x` aliases an element (now by value), renamed the runtime field `B` to `load`, merged the `rank`/`upperRank` prefix loops into `position`, corrected two evidence statements.
+- 2026-10-13: prune, removed `next(x)` and `operator[](k)` (their checks already ran on `lowerBound` and `kth` against the same oracle); full suite passed on g++ and g++-14.
