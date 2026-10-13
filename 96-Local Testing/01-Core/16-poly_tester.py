@@ -34,7 +34,7 @@ SOURCE = Path(__file__).resolve().with_suffix(".cpp")
 SECOND = SOURCE.with_name("16-poly_tester_tu.cpp")
 ROOT = SOURCE.parents[2]
 INVALID_CASES = ("index", "resize", "truncate", "normalize", "shift-left", "shift-right",
-               "divmod-zero", "monicdiv", "pseudodiv", "inv-zero", "inv-negative", "log-constant",
+               "divmod-zero", "pseudodiv", "inv-zero", "inv-negative", "log-constant",
                "exp-constant", "pow-negative-valuation", "powrational", "sparsemul", "cyclic-size",
                "negacyclic-size", "middleproduct", "ntt-length", "ntt-doubling", "multivariate-shape",
                "multivariate-cyclic", "gf2k", "interpolate-duplicate", "interpolate-size",

@@ -248,25 +248,19 @@ Pruned 2026-10-13.
 
 ## P025 — 01-Core — poly (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| friend `convolution(a, b)` | `16-poly.hpp:1046` | `a * b` (body moves into `operator*`) | remove | another name | none by name | `16-poly.hpp:563,937,946` |
-| friend `ntt(Poly&)`, `intt(Poly&)` | `16-poly.hpp:1018,1020` | `Poly<T>::ntt(a.v)`, `Poly<T>::intt(a.v)` | remove | argument shape | `16-poly_tester.cpp:218` | `Docs/16-poly.md:11,27`; `00-Guidelines/10-decisions.md:212` |
-| `mulHigh` | `16-poly.hpp:1110` | `(a * b) >> n` | keep | derived: product then shift (clarified rule) | `16-poly_tester.cpp:186` | none |
-| `monicDiv` | `16-poly.hpp:1189` | `a / b` | remove | narrowing (`/` already divides over rings by a monic divisor) | `16-poly_tester.cpp:261,265`; probe `monicdiv` (:392, `.py`) | none |
-| `pseudoRem` | `16-poly.hpp:1216` | `pseudoDiv(a, b).second` | remove | projected field | `16-poly_tester.cpp:264` | `16-poly.hpp:1839` |
-| `rader` | `16-poly.hpp:1534` | `Poly<T>::mixedRadix(a, w, inverse)` | remove | identical body | `16-poly_tester.cpp:222,224` | none |
-| `bluestein` | `16-poly.hpp:1537` | `evalMultiGeometric(Poly<T>(a), T(1), w, m)` | remove | builder plus another name | `16-poly_tester.cpp:222,224` | none |
-| `mulMod(a, b, m)` | `16-poly.hpp:1935` | `a * b % m` or `PolyModulus<T>(m).mul(a, b)` | keep | composition: product then remainder (clarified rule) | `16-poly_tester.cpp:146,329` | none |
-| `polynomialPowerEnumerate` | `16-poly.hpp:2341` | `powerProjection(Poly<T>(g).resize(n).reverse(), f, n)` | remove | builder | `16-poly_tester.cpp:356` | none |
+| `mulHigh` | `16-poly.hpp:1104` | `(a * b) >> n` | keep | derived: product then shift (clarified rule) | `16-poly_tester.cpp:186` | none |
+| `mulMod(a, b, m)` | `16-poly.hpp:1903` | `a * b % m` or `PolyModulus<T>(m).mul(a, b)` | keep | composition: product then remainder (clarified rule) | `16-poly_tester.cpp:146,332` | none |
 | `reverse(n)` parameter | `16-poly.hpp:923` | `resize(n).reverse()` | keep | the length-n reversal, a derived formula (clarified rule) | `16-poly_tester.cpp:125` | none |
-| `integ(a, c)` parameter | `16-poly.hpp:970` | `integ(a) + Poly<T>{c}` | keep | a general constant; `integ(a)` is its special case (clarified rule) | `16-poly_tester.cpp:131` | none |
-| `convolution2d` body | `16-poly.hpp:1128` | `poly_detail::mul2d` | remove | body-level repeated packing; API unchanged | — | — |
-| `truncatedMul` | `16-poly.hpp:1105` | `(trunc(a) * trunc(b)).resize(n)` | keep | cheaper projection (ruling 4); its empty-input defect was fixed 2026-10-12 | `16-poly_tester.cpp:186` | 28 internal calls |
-| `square` | `16-poly.hpp:1102` | `a * a` | keep | named special case; its body became `return a * a;` (2026-10-12) | — | — |
-| `relaxedMul`, `semiRelaxedMul` | `16-poly.hpp:2271,2277` | `RelaxedMul::push` loop | keep | batch forms of an online algorithm | — | — |
-| `PolyCompanion::convolutionLng`, `convolution2p64`, `convolutionArbitraryMod` | `16-poly.hpp:2431,2433,2413` | `*`; friend `convolutionArbitraryMod` (:1028) | keep | only forms of their algorithms; different domain (raw `ulng`, runtime modulus) | — | — |
-| `poly_detail::Mont`, `Mont8`; `composeBrentKung` | `16-poly.hpp:45-83,2097` | `04-montgomery.hpp`; `composeMod` | keep | different REDC variant without per-call asserts; larger domain (rings) | — | — |
+| `integ(a, c)` parameter | `16-poly.hpp:997` | `integ(a) + Poly<T>{c}` | keep | a general constant; `integ(a)` is its special case (clarified rule) | `16-poly_tester.cpp:131` | none |
+| `truncatedMul` | `16-poly.hpp:1099` | `(trunc(a) * trunc(b)).resize(n)` | keep | cheaper projection (ruling 4); its empty-input defect was fixed 2026-10-12 | `16-poly_tester.cpp:186` | 28 internal calls |
+| `square` | `16-poly.hpp:1096` | `a * a` | keep | named special case; its body became `return a * a;` (2026-10-12) | — | — |
+| `relaxedMul`, `semiRelaxedMul` | `16-poly.hpp:2239,2245` | `RelaxedMul::push` loop | keep | batch forms of an online algorithm | — | — |
+| `PolyCompanion::convolutionLng`, `convolution2p64`, `convolutionArbitraryMod` | `16-poly.hpp:2393,2395,2375` | `*`; friend `convolutionArbitraryMod` (:1051) | keep | only forms of their algorithms; different domain (raw `ulng`, runtime modulus) | — | — |
+| `poly_detail::Mont`, `Mont8`; `composeBrentKung` | `16-poly.hpp:45-83,2065` | `04-montgomery.hpp`; `composeMod` | keep | different REDC variant without per-call asserts; larger domain (rings) | — | — |
 
 ## P026 — 01-Core — polymini (verified)
 

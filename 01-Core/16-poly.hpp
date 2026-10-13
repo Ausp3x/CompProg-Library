@@ -560,7 +560,7 @@ namespace poly_detail {
         return a;}
     template<typename T> void dot(vector<T> &a, const vector<T> &b, int n) {
         if (fastSpec<T>(n)) { for (int i = 0; i < n; ++i) { a[i] *= b[i]; } return; }
-        vector<T> c = convolution(Poly<T>(a), Poly<T>(b)).v;
+        vector<T> c = (Poly<T>(a) * Poly<T>(b)).v;
         a.assign(n, T(0));
         for (int i = 0; i < int(c.size()); ++i) { a[i % n] += c[i]; }}
     template<typename T> vector<T> slice(const vector<T> &a, int l, int r) {
@@ -934,7 +934,7 @@ struct Poly {
     Poly &operator/=(const T &c) {
         if constexpr (poly_detail::Field<T>) { return *this *= T(1) / c; }
         else { for (T &x : v) { x /= c; } return *this; }}
-    Poly &operator*=(const Poly &b) { return *this = convolution(*this, b); }
+    Poly &operator*=(const Poly &b) { return *this = *this * b; }
     Poly &operator/=(const Poly &b) { return *this = divMod(*this, b).first; }
     Poly &operator%=(const Poly &b) { return *this = divMod(*this, b).second; }
     Poly &operator<<=(int k) { assert(k >= 0); v.insert(v.begin(), size_t(k), T(0)); return *this; }
@@ -943,7 +943,34 @@ struct Poly {
     Poly operator-() const { Poly r = *this; for (T &x : r.v) { x = -x; } return r; }
     friend Poly operator+(Poly a, const Poly &b) { return a += b; }
     friend Poly operator-(Poly a, const Poly &b) { return a -= b; }
-    friend Poly operator*(const Poly &a, const Poly &b) { return convolution(a, b); }
+    // T: O(n * log(n)) over NTT primes within the transform limit (O(n * m / L + (n + m) * log(L)) in blocks of L = nttMaxLength / 2 beyond it) and doubles, O(n^1.585) otherwise; M: O(n); the product dispatcher.
+    friend Poly operator*(const Poly &a, const Poly &b) {
+        int n = a.size(), m = b.size();
+        if (!n || !m) { return {}; }
+        if (min(n, m) <= poly_detail::SCHOOLBOOK) { return schoolbook(a, b); }
+        if constexpr (ModularInt<T>) {
+            int len = poly_detail::ceilPow2(n + m - 1);
+            int cap = poly_detail::Ntt<T>::maxLength();
+            if (cap && len / poly_detail::LARGE_RATIO <= cap) { return Poly(poly_detail::Ntt<T>::convolve(a.v, b.v)); }
+#ifndef __AVX2__
+            if constexpr (sizeof(typename T::Word) == 4) {
+                if (T::mod() < (1u << 30) && n + m - 1 <= poly_detail::FFT_MOD_MAX) {
+                    vector<uint> x(n), y(m);
+                    for (int i = 0; i < n; ++i) { x[i] = a.v[i].val(); }
+                    for (int i = 0; i < m; ++i) { y[i] = b.v[i].val(); }
+                    vector<uint> r = poly_detail::convolutionFftMod(x, y, T::mod());
+                    Poly res(n + m - 1);
+                    for (int i = 0; i < n + m - 1; ++i) { res.v[i] = T::raw(r[i]); }
+                    return res;}}
+#endif
+            return convolutionArbitraryMod(a, b);}
+        else if constexpr (poly_detail::Fftable<T>) { return convolutionFft(a, b); }
+        else if constexpr (std::is_same_v<T, ulng>) { return Poly(poly_detail::convolution2p64(a.v, b.v)); }
+        else if constexpr (std::is_integral_v<T>) {
+            vector<lng> x(a.v.begin(), a.v.end()), y(b.v.begin(), b.v.end()), r = poly_detail::convolutionLng(x, y);
+            return Poly(vector<T>(r.begin(), r.end()));}
+        else if constexpr (poly_detail::BigInt<T>) { return Poly(poly_detail::kronecker(a.v, b.v)); }
+        else { return karatsuba(a, b); }}
     friend Poly operator*(Poly a, const T &c) { return a *= c; }
     friend Poly operator*(const T &c, Poly a) { return a *= c; }
     friend Poly operator/(Poly a, const T &c) { return a /= c; }
@@ -1015,10 +1042,6 @@ struct Poly {
 
     static void transposedIntt(vector<T> &a) requires ModularInt<T> { poly_detail::Ntt<T>::transform(a, true, true); }
 
-    friend void ntt(Poly &a) requires ModularInt<T> { ntt(a.v); }
-
-    friend void intt(Poly &a) requires ModularInt<T> { intt(a.v); }
-
     // T: O(n * log(n)), M: O(n); double or complex<double> coefficients, relative error about log(n) * 2^-53 of the coefficient magnitude sum.
     friend Poly convolutionFft(const Poly &a, const Poly &b) requires poly_detail::Fftable<T> {
         if (!a.size() || !b.size()) { return {}; }
@@ -1041,35 +1064,6 @@ struct Poly {
         if constexpr (sizeof(typename T::Word) == 4) { run.template operator()<3>(); }
         else { run.template operator()<6>(); }
         return res;}
-
-    // T: O(n * log(n)) over NTT primes within the transform limit (O(n * m / L + (n + m) * log(L)) in blocks of L = nttMaxLength / 2 beyond it) and doubles, O(n^1.585) otherwise; M: O(n); dispatcher behind operator*.
-    friend Poly convolution(const Poly &a, const Poly &b) {
-        int n = a.size(), m = b.size();
-        if (!n || !m) { return {}; }
-        if (min(n, m) <= poly_detail::SCHOOLBOOK) { return schoolbook(a, b); }
-        if constexpr (ModularInt<T>) {
-            int len = poly_detail::ceilPow2(n + m - 1);
-            int cap = poly_detail::Ntt<T>::maxLength();
-            if (cap && len / poly_detail::LARGE_RATIO <= cap) { return Poly(poly_detail::Ntt<T>::convolve(a.v, b.v)); }
-#ifndef __AVX2__
-            if constexpr (sizeof(typename T::Word) == 4) {
-                if (T::mod() < (1u << 30) && n + m - 1 <= poly_detail::FFT_MOD_MAX) {
-                    vector<uint> x(n), y(m);
-                    for (int i = 0; i < n; ++i) { x[i] = a.v[i].val(); }
-                    for (int i = 0; i < m; ++i) { y[i] = b.v[i].val(); }
-                    vector<uint> r = poly_detail::convolutionFftMod(x, y, T::mod());
-                    Poly res(n + m - 1);
-                    for (int i = 0; i < n + m - 1; ++i) { res.v[i] = T::raw(r[i]); }
-                    return res;}}
-#endif
-            return convolutionArbitraryMod(a, b);}
-        else if constexpr (poly_detail::Fftable<T>) { return convolutionFft(a, b); }
-        else if constexpr (std::is_same_v<T, ulng>) { return Poly(poly_detail::convolution2p64(a.v, b.v)); }
-        else if constexpr (std::is_integral_v<T>) {
-            vector<lng> x(a.v.begin(), a.v.end()), y(b.v.begin(), b.v.end()), r = poly_detail::convolutionLng(x, y);
-            return Poly(vector<T>(r.begin(), r.end()));}
-        else if constexpr (poly_detail::BigInt<T>) { return Poly(poly_detail::kronecker(a.v, b.v)); }
-        else { return karatsuba(a, b); }}
 
     // T: O(n * log(n)), M: O(n); a with |a| <= n and b with |b| <= n multiplied modulo x^n - 1 (NTT-friendly power of two n) or by folding.
     friend Poly cyclic(const Poly &a, const Poly &b, int n) {
@@ -1128,12 +1122,7 @@ struct Poly {
     static vector<T> convolution2d(const vector<T> &a, int r1, int c1, const vector<T> &b, int r2, int c2) {
         assert(int(a.size()) == r1 * c1 && int(b.size()) == r2 * c2);
         if (a.empty() || b.empty()) { return {}; }
-        int w = c1 + c2 - 1, rows = r1 + r2 - 1;
-        Poly x(r1 * w), y(r2 * w);
-        for (int i = 0; i < r1; ++i) { for (int j = 0; j < c1; ++j) { x.v[i * w + j] = a[i * c1 + j]; } }
-        for (int i = 0; i < r2; ++i) { for (int j = 0; j < c2; ++j) { y.v[i * w + j] = b[i * c2 + j]; } }
-        Poly z = x * y; z.resize(rows * w);
-        return z.v;}
+        return poly_detail::mul2d(a, r1, c1, b, r2, c2, c1 + c2 - 1, r1 + r2 - 1);}
 
     // T: O(k * M(N) + k^2 * N) for k variables and N = product of the shape (k^2 products without an NTT), M: O(k * N); product truncated to the shape.
     static vector<T> multivariate(const vector<T> &a, const vector<T> &b, const vector<int> &shape) {
@@ -1185,18 +1174,6 @@ struct Poly {
         r.resize(db); r.trim();
         return {q, r};}
 
-    // T: O(M(n)), M: O(n); b monic, so no coefficient division happens and every ring is allowed.
-    friend Poly monicDiv(const Poly &a, const Poly &b) {
-        int db = b.deg(), da = a.deg(); assert(db >= 0 && b.v[db] == T(1));
-        if (db < 0 || da < db) { return {}; }
-        int n = da - db + 1;
-        if constexpr (poly_detail::Field<T>) { return divMod(a, b).first; }
-        Poly r = a, q(n); r.trim();
-        for (int i = da; i >= db; --i) {
-            T c = r.v[i]; q.v[i - db] = c;
-            if (c != T(0)) { for (int j = 0; j <= db; ++j) { r.v[i - db + j] -= c * b.v[j]; } }}
-        return q;}
-
     // T: O(n * (n - m + 1)) for n = deg a, m = deg b, M: O(n); fraction-free: lead(b)^(n - m + 1) * a = q * b + r with deg r < m.
     friend pair<Poly, Poly> pseudoDiv(const Poly &a, const Poly &b) {
         int db = b.deg(), da = a.deg(); assert(db >= 0);
@@ -1211,9 +1188,6 @@ struct Poly {
             for (int j = 0; j <= db; ++j) { r.v[i - db + j] -= c * b.v[j]; }}
         r.resize(db); r.trim();
         return {q, r};}
-
-    // T: O(n * (n - m + 1)), M: O(n); the remainder of pseudoDiv.
-    friend Poly pseudoRem(const Poly &a, const Poly &b) { return pseudoDiv(a, b).second; }
 
     // T: O(M(n)), M: O(n); true with the exact quotient in q when b divides a (q unchanged otherwise).
     friend bool tryDivide(const Poly &a, const Poly &b, Poly &q) {
@@ -1530,12 +1504,6 @@ struct Poly {
         if (inverse) { T s = T(1) / T(n); for (T &x : r) { x *= s; } }
         return r;}
 
-    // T: O(M(n)), M: O(n); prime length n through mixedRadix.
-    static vector<T> rader(const vector<T> &a, const T &w, bool inverse = false) { return mixedRadix(a, w, inverse); }
-
-    // T: O(M(n + m)), M: O(n + m); a(w^k) for k in [0, m) for any w, through evalMultiGeometric.
-    static vector<T> bluestein(const vector<T> &a, const T &w, int m) { return evalMultiGeometric(Poly(a), T(1), w, m); }
-
     // T: O(N * sum(n_i) + k * N) for N = product of the shape, M: O(N); product in T[x_1..x_k] / (x_i^{n_i} - 1) with n_i | mod - 1, prime 32-bit modulus.
     static vector<T> multivariateCyclic(const vector<T> &a, const vector<T> &b, const vector<int> &shape) requires ModularInt<T> {
         static_assert(sizeof(typename T::Word) == 4);
@@ -1836,7 +1804,7 @@ struct Poly {
         T g = 1, h = 1;
         while (q.deg() > 0) {
             int d = p.deg() - q.deg();
-            Poly r = pseudoRem(p, q);
+            Poly r = pseudoDiv(p, q).second;
             if (p.deg() & q.deg() & 1) { s = -s; }
             T div = g * poly_detail::power(h, ulng(d));
             p = std::move(q); q = r;
@@ -2336,12 +2304,6 @@ struct Poly {
             auto [p2, q2] = self(self, mid, r);
             return {p1 * q2 + p2 * q1, q1 * q2};};
         return rec(rec, 0, int(f.size()));}
-
-    // T: O(M(n) * log(n)), M: O(n * log(n)); [x^(n-1)] g * f^k for k < n (powerProjection with the reversed weights).
-    friend vector<T> polynomialPowerEnumerate(const Poly &f, const Poly &g, int n) {
-        Poly w(n);
-        for (int i = 0; i < n; ++i) { w.v[i] = g.coef(n - 1 - i); }
-        return powerProjection(w, f, n);}
 
     // T: O(M(n)), M: O(n); B_0..B_{n-1} with B_1 = -1/2; fields with characteristic > n.
     static vector<T> bernoulliNumbers(int n) {
