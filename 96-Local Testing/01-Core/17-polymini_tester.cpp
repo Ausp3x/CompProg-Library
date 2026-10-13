@@ -191,7 +191,6 @@ template<typename T, typename F> struct Suite {
                 P a = rp(n), b = rp(m), c = a * b;
                 same(c, nmul<T>(a, b), context + " vs schoolbook");
                 same(c, (toFull<F>(a) * toFull<F>(b)).v, context + " vs Poly");
-                same(convolution(a, b), c, context + " convolution");
                 P sum = a + b, dif = a - b; V<T> es(max(n, m)), ed(max(n, m));
                 for (int i = 0; i < max(n, m); ++i) { es[i] = coef<T>(a, i) + coef<T>(b, i); ed[i] = coef<T>(a, i) - coef<T>(b, i); }
                 same(sum, es, at("+", n, m)); same(dif, ed, at("-", n, m));}
@@ -210,7 +209,6 @@ template<typename T, typename F> struct Suite {
         P a = rp(an), a0 = a, b = a * a;
         same(b, nmul<T>(a, a), context + " square vs schoolbook");
         a = a * a; same(a, b, context + " a = a * a");
-        a = a0; a = convolution(a, a); same(a, b, context + " a = convolution(a, a)");
         a = a0; a = a + a; same(a, a0 * T(2), context + " a = a + a");
         a = a0; a = a - a; same(a, V<T>(an), context + " a = a - a");
         a = a0; a = divMod(a, a).first; same(a, V<T>{T(1)}, context + " a = a / a");}

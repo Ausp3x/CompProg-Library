@@ -265,10 +265,11 @@ Pruned 2026-10-13.
 
 ## P026 — 01-Core — polymini (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `convolution(a, b)` | `17-polymini.hpp:40` | `a * b` (`:60`, body moves in) | remove | another name, as in P025 | `17-polymini_tester.cpp:194,213` | `17-polymini.hpp:60` |
-| `integ(a, c)` parameter | `17-polymini.hpp:71` | `integ(a) + c` | keep | a general constant; `integ(a)` is its special case (clarified rule) | `17-polymini_tester.cpp:231-232` | none |
+| `integ(a, c)` parameter | `17-polymini.hpp:70` | `integ(a) + c` | keep | a general constant; `integ(a)` is its special case (clarified rule) | `17-polymini_tester.cpp:229-230` | none |
 
 ## P018 — 01-Core — infint (planned)
 

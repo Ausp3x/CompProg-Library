@@ -37,7 +37,15 @@ struct PolyMini : vector<T> {
                     else { T u = x - y; x += y; y = u * w[len + j]; }}}}
         if (inverse) { T s = T(1) / T(n); for (T &x : a) { x *= s; } }}
 
-    friend PolyMini convolution(PolyMini a, PolyMini b) {
+    friend PolyMini operator+(PolyMini a, const PolyMini &b) {
+        if (a.size() < b.size()) { a.resize(b.size()); }
+        for (int i = 0; i < int(b.size()); ++i) { a[i] += b[i]; }
+        return a;}
+    friend PolyMini operator-(PolyMini a, const PolyMini &b) {
+        if (a.size() < b.size()) { a.resize(b.size()); }
+        for (int i = 0; i < int(b.size()); ++i) { a[i] -= b[i]; }
+        return a;}
+    friend PolyMini operator*(PolyMini a, PolyMini b) {
         int n = int(a.size()), m = int(b.size());
         if (!n || !m) { return {}; }
         if (min(n, m) <= 32) {
@@ -49,15 +57,6 @@ struct PolyMini : vector<T> {
         for (int i = 0; i < len; ++i) { a[i] *= b[i]; }
         ntt(a, true); a.resize(n + m - 1);
         return a;}
-    friend PolyMini operator+(PolyMini a, const PolyMini &b) {
-        if (a.size() < b.size()) { a.resize(b.size()); }
-        for (int i = 0; i < int(b.size()); ++i) { a[i] += b[i]; }
-        return a;}
-    friend PolyMini operator-(PolyMini a, const PolyMini &b) {
-        if (a.size() < b.size()) { a.resize(b.size()); }
-        for (int i = 0; i < int(b.size()); ++i) { a[i] -= b[i]; }
-        return a;}
-    friend PolyMini operator*(const PolyMini &a, const PolyMini &b) { return convolution(a, b); }
     friend PolyMini operator*(PolyMini a, const T &c) { for (T &x : a) { x *= c; } return a; }
 
     friend T eval(const PolyMini &a, const T &x) {
