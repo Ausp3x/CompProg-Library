@@ -172,7 +172,6 @@ void divSuite(const string &name, bool big) {
         auto a = rnd<M>(n), b = rndNz<M>(m);
         auto [q, r] = polyDivmod(a, b);
         check(q == trimmed(q) && r == trimmed(r) && int(r.size()) < m && badd(bmul(q, b), r) == trimmed(a), name + " divmod identity n=" + str(n) + " m=" + str(m));
-        check(polyMod(a, b) == r, name + " mod");
         if (lng(n) * m <= 4000000) { check(bdivmod(a, b) == pair{q, r}, name + " divmod brute"); }}
     if (big) {
         int n = quick ? 20000 : fast ? 400000 : 50000, m = n * 3 / 8;
@@ -183,7 +182,7 @@ void divSuite(const string &name, bool big) {
         check(trimmed(c) == trimmed(a) && int(r.size()) < m, name + " divmod large identity");}
     auto [q, r] = polyDivmod(vector<M>{1, 2, 0, 0}, vector<M>{3, 0});
     check(q == vector<M>{M(1) / M(3), M(2) / M(3)} && r.empty(), name + " divmod trailing zeros");
-    cout << "PASS " << name << ": polyDivmod, polyMod\n";}
+    cout << "PASS " << name << ": polyDivmod\n";}
 
 template<typename M>
 void fpsSuite(const string &name, int bigN) {
@@ -390,12 +389,12 @@ void gcdSuite(const string &name, bool big) {
         auto g = rndNz<M>(n / 3), a = polyMul(g, rndNz<M>(n)), b = polyMul(g, rndNz<M>(n - 7));
         auto x = polyXgcd(a, b);
         auto c = polyAdd(polyMul(x.x, a), polyMul(x.y, b));
-        check(c == x.g && polyMod(a, x.g).empty() && polyMod(b, x.g).empty() && x.g.size() >= g.size() && polyGcd(a, b) == x.g, name + " polyXgcd large identity n=" + str(n));
+        check(c == x.g && polyDivmod(a, x.g).second.empty() && polyDivmod(b, x.g).second.empty() && x.g.size() >= g.size() && polyGcd(a, b) == x.g, name + " polyXgcd large identity n=" + str(n));
         check(int(x.x.size()) <= dg(b) - dg(x.g) && int(x.y.size()) <= dg(a) - dg(x.g), name + " polyXgcd cofactor degrees");
         auto t = polyHalfGcd(a, b);
         auto r0 = polyAdd(polyMul(t[0], a), polyMul(t[1], b)), r1 = polyAdd(polyMul(t[2], a), polyMul(t[3], b));
         int h = (dg(a) + 1) / 2;
-        check(dg(r0) >= h && dg(r1) < h && polyMod(r0, x.g).empty() && polyMod(r1, x.g).empty(), name + " polyHalfGcd large degrees");
+        check(dg(r0) >= h && dg(r1) < h && polyDivmod(r0, x.g).second.empty() && polyDivmod(r1, x.g).second.empty(), name + " polyHalfGcd large degrees");
         check(polySub(polyMul(t[0], t[3]), polyMul(t[1], t[2])).size() == 1, name + " polyHalfGcd unimodular");}
     cout << "PASS " << name << ": polyGcd, polyXgcd, polyHalfGcd, polyResultant, polyDiscriminant\n";}
 

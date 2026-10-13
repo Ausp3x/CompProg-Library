@@ -119,14 +119,12 @@ Oracles:
 
 ## Commands and results
 
-P057 run (2026-10-11), GCC 16.2.1 and GCC 14.4.1. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`.
+P057 prune run, 2026-10-13: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`); this header is unchanged, and the run covers the `polyMod` removal in row 14, which it includes. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`.
 
 ```bash
-python3 '96-Local Testing/05-Mathematics/15-linear_recurrence_tester.py' --mode quick --seed 1            # PASS, 2 configurations, 13 probes: 25,769 / 25,578 checks; MEMORY peak=819MB
-python3 '96-Local Testing/05-Mathematics/15-linear_recurrence_tester.py' --mode full --seed 1             # PASS, 3 configurations, 13 probes: 137,461 / 135,838 / 135,838 checks; MEMORY peak=894MB
-CXX=g++-14 python3 '96-Local Testing/05-Mathematics/15-linear_recurrence_tester.py' --mode full --seed 2  # PASS, 3 configurations, 13 probes: 137,329 / 135,682 / 135,682 checks; MEMORY peak=886MB
-python3 '96-Local Testing/05-Mathematics/15-linear_recurrence_tester.py' --mode stress --seed 3           # PASS, 3 configurations, 13 probes: 303,218 / 135,729 / 135,729 checks; MEMORY peak=890MB
-python3 '96-Local Testing/02-integration.py'                                                                # PASS: every header alone, every 99-all.hpp, two translation units
+python3 '96-Local Testing/05-Mathematics/15-linear_recurrence_tester.py' --mode full --seed 20261013             # PASS, 3 configurations, 13 probes: 137,440 / 135,712 / 135,712 checks; MEMORY peak=891MB
+CXX=g++-14 python3 '96-Local Testing/05-Mathematics/15-linear_recurrence_tester.py' --mode full --seed 20261013  # PASS, 3 configurations, 13 probes: 137,440 / 135,712 / 135,712 checks; MEMORY peak=890MB
+python3 '96-Local Testing/02-integration.py'                                                                      # PASS: 135 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace
 ```
 
 - Mode coverage:
@@ -134,8 +132,6 @@ python3 '96-Local Testing/02-integration.py'                                    
   - Full adds the exhaustive GF(2) `n <= 10` and GF(3) `n <= 6` searches, orders up to 1500, and the `cut(BM)` neighbours (the 1e9+7 ones in the optimized build).
   - Stress repeats every random loop four times in the optimized build. The checked builds rerun the full sizes with a new seed and stay below the 180 s limit.
 - Test programs peak below 10 MB; the reported peaks are the compiler.
-
-`@reviewer` (2026-10-10): `interpolatePolyExp` failed at `n = mod` (it inverted `p!`). It now uses factorials up to `(p - 1)!`, with a regression case at `n = p = 7`. The `NDEBUG` bounds and the docstring fix are listed in [14-polynomial_algorithms.md](14-polynomial_algorithms.md#commands-and-results).
 
 ## Benchmarks
 
@@ -167,4 +163,6 @@ Headline timings, 998244353, with the same conditions as the 14 table:
 
 ## History
 
-- 2026-10-10: P057 initial implementation and verification.
+- 2026-10-10: P057 initial implementation and verification; `@reviewer` found that `interpolatePolyExp` inverted `p!` at `n = mod` (now factorials up to `(p - 1)!`, regression case `n = p = 7`); the row's `NDEBUG` bounds are in the 2026-10-10 line of [14-polynomial_algorithms.md](14-polynomial_algorithms.md#history).
+- 2026-10-11: verification run, quick, full and stress passed on g++, full on g++-14.
+- 2026-10-13: P057 prune rerun (row 14 `polyMod` removed), header and tests unchanged; full suite passed on g++ and g++-14.

@@ -440,7 +440,6 @@ pair<vector<M>, vector<M>> polyDivmod(vector<M> a, vector<M> b) {
         for (int i = 0; i + 1 < m; ++i) { a[i] -= bq[i]; }}
     a.resize(m - 1);
     return {q, trim(a)};}
-template<typename M> vector<M> polyMod(const vector<M> &a, const vector<M> &b) { return polyDivmod(a, b).second; }
 // T: O(n), M: O(n); a = (x - c) * q + r; returns (q trimmed, r = a(c)).
 template<typename M>
 pair<vector<M>, M> polyDivLinear(vector<M> a, M c) {
@@ -535,7 +534,7 @@ vector<M> polyPowMod(const vector<M> &a, ulng e, const vector<M> &m) {
 template<typename M>
 vector<M> polyInverseMod(const vector<M> &a, const vector<M> &m) {
     assert(polynomial_detail::deg(polyNormalize(m)) >= 1);
-    auto r = polyXgcd(polyMod(a, m), m);
+    auto r = polyXgcd(polyDivmod(a, m).second, m);
     return r.g == vector<M>{1} ? r.x : vector<M>();}
 // T: O(k * n + sqrt(k) * n * log(n)), M: O(sqrt(k) * n); k = |f|, n = deg h, h nonzero with a unit leading coefficient; f(g) mod h.
 template<typename M>

@@ -27,13 +27,12 @@ Common rules:
 - `polyTruncate(a, n)`: exactly `n >= 0` coefficients of `a mod x^n`.
 - `polyNormalize(a)`: trims trailing zeros.
 
-### polyDivmod, polyMod, polyDivLinear
+### polyDivmod, polyDivLinear
 
 - `polyDivmod(a, b)` returns `(q, r)` with `a = b q + r` and `deg r < deg b`, both trimmed.
   - `b` must be nonzero after trimming (asserted), with a unit leading coefficient. Any modint satisfies this when `lc(b)` is a unit.
   - Long division is used when `min(deg a - deg b + 1, |b|) <= cut(DIV)`. Otherwise Newton: the reversed quotient is `rev(a) / rev(b) mod x^(deg a - deg b + 1)`, and the remainder comes from the low `|b| - 1` coefficients.
   - When `deg a < deg b` it returns `({}, a)`.
-- `polyMod(a, b)` is `polyDivmod(a, b).second`.
 - `polyDivLinear(a, c)` is synthetic division by `x - c`. It returns `(q, a(c))` with `q` trimmed, and `({}, 0)` for the zero polynomial. Any modint, `O(n)`.
 
 ### polyGcd, PolyXgcd, polyXgcd, polyHalfGcd
@@ -152,6 +151,12 @@ These run the O(n k) recurrences over the `k` nonzero coefficients below `x^n`, 
 - **`prefixSumOfPolynomial(f)`** returns `g` with `g(x) = sum_{i < x} f(i)` for every `x`, `deg g = deg f + 1` and `g(0) = 0`. It requires `|f| < mod`, prime field.
   - Method: `D g = B(D) f`, with `B(z) = z / (e^z - 1)` from one series inverse, then one correlation with factorials and one integration.
 
+### Legacy mapping
+
+| Removed (prune, 2026-10-13) | Replacement |
+|---|---|
+| `polyMod(a, b)` | `polyDivmod(a, b).second` |
+
 ## Feature-to-test map
 
 Entry: [`14-polynomial_algorithms_tester.py`](<../../96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py>), with C++ cases in `14-polynomial_algorithms_tester.cpp`.
@@ -171,7 +176,7 @@ Moduli: 998244353, 1e9+7, dynamic 1000003, the 64-bit NTT prime `29 * 2^57 + 1`,
 | Operation | Tests |
 |---|---|
 | polyAdd, polySub, polyMul, polyDerivative, polyIntegral, polyEval, polyShift, polyTruncate, polyNormalize | `basicSuite`: 400 random cases per modulus (trailing zeros, negative shifts, `p = 7` with `len(a) < 7`) against coefficient loops; `polyIntegral` at `len(a) = p - 1` |
-| polyDivmod, polyMod | `divSuite`: identity, degree bound and long-division equality across the cutoff (`cut(DIV)` and `+1` neighbours) and up to 4e5 / 1.5e5 coefficients (optimized); trailing-zero divisor |
+| polyDivmod | `divSuite`: identity, degree bound and long-division equality across the cutoff (`cut(DIV)` and `+1` neighbours) and up to 4e5 / 1.5e5 coefficients (optimized); trailing-zero divisor |
 | polyDivLinear | `basicSuite`: identity, `r = a(c)`, zero polynomial |
 | polyGcd, PolyXgcd, polyXgcd | `gcdSuite`: brute extended Euclid on shaped inputs (common factor, trailing zeros, degree 0, zero), threshold neighbours of `cut(GCD)`, 1000 small inputs over `p = 3` patterns, and a 6e4-degree run checked by identity, divisibility and cofactor degrees |
 | polyHalfGcd | `gcdSuite`: transform and remainders equal to the brute remainder sequence stopped at `ceil(deg a / 2)`; large run: degree bounds and unimodularity |
@@ -194,17 +199,18 @@ Moduli: 998244353, 1e9+7, dynamic 1000003, the 64-bit NTT prime `29 * 2^57 + 1`,
 
 ## Commands and results
 
-P057 run (2026-10-11), GCC 16.2.1 and GCC 14.4.1. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`.
+P057 prune run, 2026-10-13: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`.
 
 ```bash
-python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode quick --seed 1            # PASS, 2 configurations, 28 probes: 152,981 / 152,807 checks; MEMORY peak=950MB
-python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 1             # PASS, 3 configurations, 28 probes: 2,810,721 / 2,809,294 / 2,809,294 checks; MEMORY peak=1083MB
-CXX=g++-14 python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 2  # PASS, 3 configurations, 28 probes: 2,810,747 / 2,809,320 / 2,809,320 checks; MEMORY peak=1105MB
-python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode stress --seed 3           # PASS, 3 configurations, 28 probes: 2,908,700 / 2,907,211 / 2,907,211 checks; MEMORY peak=1085MB
-python3 '96-Local Testing/02-integration.py'                                                                   # PASS: every header alone, every 99-all.hpp, two translation units
+python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 20261013             # PASS, 3 configurations, 28 probes: 2,810,627 / 2,809,236 / 2,809,236 checks; MEMORY peak=1084MB
+CXX=g++-14 python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 20261013  # PASS, 3 configurations, 28 probes: 2,810,627 / 2,809,236 / 2,809,236 checks; MEMORY peak=1108MB
+python3 '96-Local Testing/02-integration.py'                                                                          # PASS: 135 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace
+python3 '96-Local Testing/03-consistency.py' --braces '05-Mathematics/14-polynomial_algorithms.hpp' '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.cpp'  # no violations
+python3 '96-Local Testing/03-consistency.py'                                                                          # no errors
 ```
 
-- Pre-flight quick peaks were 878–949 MB under the 2048 MB cap, mostly the compiler on the `_GLIBCXX_DEBUG` build. Test programs peak below 100 MB.
+- Row 15, which includes this header, passed its full suite in the same run ([15-linear_recurrence.md](15-linear_recurrence.md#commands-and-results)).
+- Pre-flight quick peaks were 949 MB (g++) and 876 MB (g++-14) under the 2048 MB cap, mostly the compiler on the `_GLIBCXX_DEBUG` build. Test programs peak below 100 MB.
 - Mode coverage:
   - Quick uses small sizes and every suite.
   - Full adds:
@@ -216,22 +222,6 @@ python3 '96-Local Testing/02-integration.py'                                    
   - Stress adds `2^20` FPS sizes and `Phi_255255`.
   - The checked builds use the smaller sizes so that each run stays below the runner's 180 s limit; it takes about 100 s unloaded.
 - The headers build with `-Wall -Wextra -Wconversion` without warnings, alone and through `99-all.hpp`.
-
-`@reviewer` (2026-10-10) confirmed these defects, all fixed:
-
-- `interpolatePolyExp` (row 15) and `taylorShift` inverted `p!` at `n = mod`. Both now use factorials up to `(n - 1)!`. `taylorShift` also falls back to the `O(n^2)` scheme for composite moduli, so its "any modint" contract holds. Regression cases: `p = 7` with 7 samples, and `ModInt<113>` at `n = 112, 113, 114`.
-- The resultant's half-GCD path was untested. It is now checked above `cut(GCD)` by root formulas in both argument orders.
-- The tester had no composite modulus. It now has `compositeSuite` over `10^9`, and the `fpsSqrt` Newton path for `n > p` is tested too.
-- Violated preconditions under `NDEBUG` were memory-unsafe. Early returns now bound them:
-  - `fpsPow` with a negative `k` and a positive valuation;
-  - `fpsSparsePow` with `k < 0`;
-  - `polyDivmod` with a zero divisor;
-  - `polyHalfGcd` with `deg a <= deg b`;
-  - `fpsCompositionalInverse` with fewer than two coefficients;
-  - `rationalGeneratingFunction` and `linearRecurrenceSemiring` with a short `a`;
-  - `interpolatePeriodicSequence` with a short window;
-  - `matrixPowerVector` with a non-square input.
-- Minor: a `PolyXgcd` comment line, and the BM cutoff in the tester docstring.
 
 ## Benchmarks
 
@@ -294,4 +284,6 @@ The code was written independently.
 
 ## History
 
-- 2026-10-10: P057 initial implementation and verification.
+- 2026-10-10: P057 initial implementation and verification; `@reviewer` found 4 defects, all fixed: `taylorShift` and row 15 `interpolatePolyExp` inverted `p!` at `n = mod` (`taylorShift` also gained the composite-modulus fallback), the half-GCD resultant path and composite moduli were untested, and violated preconditions under `NDEBUG` were unbounded in `fpsPow`, `fpsSparsePow`, `polyDivmod`, `polyHalfGcd`, `fpsCompositionalInverse` and row 15 `rationalGeneratingFunction`, `linearRecurrenceSemiring`, `interpolatePeriodicSequence`, `matrixPowerVector` (now early returns); minor: a `PolyXgcd` comment line and the tester's BM cutoff docstring.
+- 2026-10-11: verification run, quick, full and stress passed on g++, full on g++-14.
+- 2026-10-13: prune, removed `polyMod` (`polyDivmod(a, b).second`; its cases are covered by the `divSuite` identity on the same inputs, and the large-gcd divisibility checks now call `polyDivmod`); full suite passed on g++ and g++-14.

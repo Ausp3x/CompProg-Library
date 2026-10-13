@@ -427,14 +427,15 @@ Pruned 2026-10-13.
 
 ## P057 — 05-Mathematics — polynomial algorithms, linear recurrence (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `polyMul` | `14-polynomial_algorithms.hpp:260` | `polyNormalize(convolution(a, b))` | keep | composition: convolution then trim (clarified rule) | `14-…_tester.cpp:147,386-399` | `15-linear_recurrence.hpp:57,59` |
-| `polyMod` | `14-polynomial_algorithms.hpp:443` | `polyDivmod(a, b).second` | remove | projected field | `14-…_tester.cpp:175,393,398` | `14-…hpp:538` |
+| `polyMul` | `14-polynomial_algorithms.hpp:260` | `polyNormalize(convolution(a, b))` | keep | composition: convolution then trim (clarified rule) | `14-…_tester.cpp:147,385-398` | `15-linear_recurrence.hpp:57,59` |
 | `nthTermLinearRecurrence` | `15-linear_recurrence.hpp:135` | `rationalGeneratingFunction` then `bostanMori` | keep | builds the generating function itself (clarified rule) | `15-…_tester.cpp:143,159,181,223,362-363` | `15-…hpp:167`; `14-polynomial_algorithms_benchmark.cpp:148` |
 | `consecutiveTerms` | `15-linear_recurrence.hpp:158` | builder then `sliceRationalFps` | keep | builds the generating function itself (clarified rule) | `15-…_tester.cpp:152,166-169,363`; probe `consecutive-negative` | benchmark :149 |
 | detail `inverses`, `factorials` | `14-polynomial_algorithms.hpp:37,44` | `09-modinverse.hpp` `inverseTable`; `PrimeCombinatorics` | keep | internal helpers; reuse adds includes and work (decided 2026-10-11) | — | — |
-| `polyDivLinear`, `polyGcd`, `polyInverseMod`, `fiduccia`, `kitamasa`, `berlekampMassey` | `14:446,456,536`; `15:89,86,44` | — | keep | named special cases; cheaper (`polyGcd`); only form; `tryX` pair | — | — |
+| `polyDivLinear`, `polyGcd`, `polyInverseMod`, `fiduccia`, `kitamasa`, `berlekampMassey` | `14:445,455,535`; `15:89,86,44` | — | keep | named special cases; cheaper (`polyGcd`); only form; `tryX` pair | — | — |
 
 ## P084 — 07-Strings — string matching, bitap, subsequence automaton, bwt (verified)
 
