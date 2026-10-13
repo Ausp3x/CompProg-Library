@@ -6,7 +6,7 @@
 - Divisor and multiple zeta/Möbius on index arrays `[1, n]`, with gcd and lcm convolutions.
 - Ranked (popcount-graded) transforms with subset and q-operand disjoint-union convolution.
 - Kronecker powers of any `D x D` kernel.
-- The legacy `FastConv` names as thin in-place wrappers.
+- The legacy `FastConv` gcd/lcm transforms in place, over a caller's `LinearSieve` or by harmonic loops.
 
 It depends on `01-template.hpp` and `04-sieve_algorithms.hpp` (Eratosthenes primes, and `LinearSieve` for the legacy sieve overloads). Set power series (exp/log/composition) belong to row 66.
 
@@ -86,13 +86,20 @@ The rank product overwrites `f[k] = sum over i of f[i] g[k - i]` in descending `
 
 ### FastConv
 
-These are the legacy static in-place methods with their original names and signatures, kept as thin wrappers:
+These are the legacy static in-place methods with their original names and signatures:
 
-- `fctOr` is subset zeta/Möbius, `fctAnd` is superset, `fctXor` is `walshHadamard` (now exact for integers).
 - `fctGcd`/`fctLcm` are the multiple/divisor transforms using the primes of a caller's `LinearSieve`, asserted to cover `a.size() - 1`.
 - `fctGcdSlow`/`fctLcmSlow` are the sieve-free harmonic loops in `O(n log(n))`.
 
 The legacy forms had no assertion on the sieve size; a smaller sieve silently gave wrong answers.
+
+### Legacy mapping
+
+| Removed (prune, 2026-10-13) | Replacement |
+|---|---|
+| `FastConv<T>::fctOr(a, inv)` | `subsetZeta(a)`, or `subsetMobius(a)` when `inv` |
+| `FastConv<T>::fctAnd(a, inv)` | `supersetZeta(a)`, or `supersetMobius(a)` when `inv` |
+| `FastConv<T>::fctXor(a, inv)` | `walshHadamard(a, inv)` |
 
 ## Feature-to-test map
 
@@ -111,37 +118,31 @@ The types are `lng` (values ±30), 998244353 and 1e9+7, plus double, `__int128` 
 | Feature | Oracle and edge classes |
 |---|---|
 | `subsetZeta`, `subsetMobius`, `supersetZeta`, `supersetMobius` | Definitions for every `N = 2^0 .. 2^6/2^9/2^10` (quick/full/stress); Möbius of a brute image; round trips; wrapping `ulng` round trip at `2^10`. |
-| `walshHadamard` | Definition and exact inverse over `lng`, both modints, double (tolerance `1e-12`) and `__int128` values near `2^100`. |
-| `orConvolution`, `andConvolution`, `xorConvolution` | `O(N^2)` pairwise brute at every tested size, `xorConvolution(a, a)` aliasing; at `2^16` (full) or `2^20` (stress) the subset-sum identity `zeta(or)[S] = zeta(a)[S] zeta(b)[S]` on 12 masks including 0 and full, and the total-sum identity for xor. |
+| `walshHadamard` | Definition (default and explicit `inverse = false`) and exact inverse over `lng` and both modints; round trips over double (tolerance `1e-12`), `__int128` values near `2^100` and wrapping `ulng` and `uint` (two's-complement inverse). These and the zeta/Möbius checks carry the removed `fctOr`, `fctAnd` and `fctXor` cases. |
+| `orConvolution`, `andConvolution`, `xorConvolution` | `O(N^2)` pairwise brute at every tested size, `xorConvolution(a, a)` aliasing; at `2^16` (full) or `2^20` (stress) the subset-sum identity `zeta(or)[S] = zeta(a)[S] zeta(b)[S]` on 12 masks including 0 and full, and the total-sum identity for xor; `xorConvolution` over wrapping `ulng` with a negative result. |
 | `divisorZeta`, `divisorMobius`, `multipleZeta`, `multipleMobius` | Divisor-scan brute for every `n` from -1 (empty) to 40/150/300, round trips at `10^6` (full) or `3 * 10^6` (stress), and spot checks at `k` = 1, 2, n, n - 1, n/2. |
 | `gcdConvolution`, `lcmConvolution` | Pairwise brute for every `n` above against six `m` values, including 0, 1, equal, longer and `3n + 2` (unequal sizes, truncation); `10^6` spot checks at four `k`. |
 | `rankedZeta`, `rankedMobius` | The definition per rank and set; round trip. |
 | `subsetConvolution` | Submask brute at every tested size; at `2^16`/`2^20` submask brute on 12 masks with up to 14 bits. |
 | `disjointUnionConvolution` | `q = 1` identity, `q = 2` and `q = 3` against iterated submask brute. |
 | `kroneckerPowerTransform` | Dense Kronecker power for `D = 1..4` and every `k` up to `9 / D` (`D = 1` with `N = 1`), random kernels; the subset and Hadamard kernels against their brute forms. |
-| `FastConv` (all seven methods) | The same definitions and round trips; `fctGcd`/`fctLcm` with an exactly fitting `LinearSieve`, including `n = 0`. |
+| `FastConv` (`fctGcd`, `fctLcm`, `fctGcdSlow`, `fctLcmSlow`) | The divisor-scan definitions and round trips for every `n` above; `fctGcd`/`fctLcm` with an exactly fitting `LinearSieve`, including `n = 0`. |
 | Preconditions | 14 checked-build probes: non-power-of-two and empty sizes; size mismatches in or/xor/subset/disjoint-union; non-square, empty and non-power kernels; ranked size and rank-count mismatch; no operands; a sieve smaller than the array for `fctGcd` and `fctLcm`. |
 
 ## Commands and results
 
-P055 run (2026-10-09), same configurations as [13-convolution.md](13-convolution.md).
+P055 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations as in [13-convolution.md](13-convolution.md#commands-and-results).
 
 ```bash
-python3 '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.py' --mode quick --seed 1           # PASS, 2 configurations, 14 probes: 4,217 checks each
-python3 '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.py' --mode full --seed 1            # PASS, 3 configurations: 28,307 checks each; MEMORY peak=496MB
-CXX=g++-14 python3 '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.py' --mode full --seed 1 # PASS, 3 configurations: 28,307 checks each; MEMORY peak=545MB
-python3 '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.py' --mode stress --seed 2          # PASS, 3 configurations: 60,414 checks each; MEMORY peak=496MB
+python3 '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.py' --mode full --seed 20261013
+CXX=g++-14 python3 '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.py' --mode full --seed 20261013
+g++ -std=gnu++20 -Wall -Wextra -Wshadow -Wconversion -pedantic <configuration flags> -c '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.cpp' -o /dev/null  # each configuration, g++ and g++-14, memory-capped
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
+python3 '96-Local Testing/03-consistency.py' --braces '05-Mathematics/24-transform_algorithms.hpp' '96-Local Testing/05-Mathematics/24-transform_algorithms_tester.cpp'
 ```
 
-The header builds alone, with `05-Mathematics/99-all.hpp`, and with every folder's aggregate in two translation units, with no warnings under `-Wall -Wextra -Wconversion`.
-
-`@reviewer` (2026-10-09) found three defects in this header, all fixed:
-
-- `walshHadamard` divided unsigned `T` without a sign. `{0, 2^64 - 1}` came back as `{0, 2^63 - 1}`, and `xorConvolution({0, -1}, {1, 0})` was wrong. Now regression-tested for `ulng` and `uint`.
-- Size mismatches read out of bounds under `NDEBUG`: or/and/xor with unequal sizes, subset and disjoint-union with unequal sizes, `rankedMobius` with too few ranks, and a ragged Kronecker kernel. Each now stays bounded.
-- The minor suggestions were adopted: lowercase locals and one sieve per gcd/lcm call.
-
-Every reviewer reproducer was rerun with `-O1 -DNDEBUG -fsanitize=address,undefined`; all terminate cleanly with peak 11 MB.
+Full, seed 20261013: PASS in all three configurations with all 14 assertion probes, 28,167 checks per configuration; peak 501 MB on g++ and 547 MB on g++-14 (quick pre-flights 482 MB and 546 MB). The warning build reports no warnings in any configuration on either compiler. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
 
 ## Benchmarks
 
@@ -157,7 +158,7 @@ The subset product runs every `(k, i)` rank pair over all sets, about `n^2 N / 2
 
 ## Sources
 
-[00-sources.md](00-sources.md), P055 sweep: Library Checker set-power-series problems, maspypy `ranked_zeta`/`nt/zeta`, hitonanode zeta/Möbius and subset convolution, suisen `kronecker_power`, noshi91 transforms, OI Wiki FWT. Written independently. Legacy: `OLD/algorithms.cpp:3823-3933` (`FastConv`); its local excerpt was removed once this row was verified. All seven names keep their signatures. `fctXor` integer inverse fixed. The sieve size is now asserted.
+[00-sources.md](00-sources.md), P055 sweep: Library Checker set-power-series problems, maspypy `ranked_zeta`/`nt/zeta`, hitonanode zeta/Möbius and subset convolution, suisen `kronecker_power`, noshi91 transforms, OI Wiki FWT. Written independently. Legacy: `OLD/algorithms.cpp:3823-3933` (`FastConv`); its local excerpt was removed once this row was verified. The four gcd/lcm names keep their signatures and the sieve size is now asserted; `fctOr`, `fctAnd` and `fctXor` map to the transforms in the Legacy mapping, with the `fctXor` integer inverse fixed in `walshHadamard`.
 
 ## Limits and handoffs
 
@@ -167,4 +168,5 @@ The subset product runs every `(k, i)` rank pair over all sets, about `n^2 N / 2
 
 ## History
 
-- 2026-10-09: P055 initial implementation and verification; legacy `FastConv` migrated to wrappers.
+- 2026-10-09: P055 initial implementation and verification; legacy `FastConv` migrated to wrappers; `@reviewer` found two defects (unsigned `walshHadamard` inverse, out-of-bounds reads on size mismatches under `NDEBUG`), both fixed, and two adopted suggestions (lowercase locals, one sieve per gcd/lcm call); quick, full and stress passed on g++, full on g++-14.
+- 2026-10-13: prune, removed `FastConv::fctOr`, `fctAnd` and `fctXor` (cases already covered by the zeta/Möbius and Walsh–Hadamard checks; explicit `inverse = false` forward check added); full suite passed on g++ and g++-14.

@@ -158,12 +158,9 @@ vector<T> subsetConvolution(const vector<T> &a, const vector<T> &b) {
     transform_detail::rankedMul(f, rankedZeta(b));
     return rankedMobius(std::move(f));}
 
-// S: NA, U: NA, Q: O(n * log(n)) bitwise, O(n * log(log(n))) with a sieve covering n, O(n * log(n)) Slow, M: O(1); legacy in-place names.
+// S: NA, U: NA, Q: O(n * log(log(n))) with a sieve covering n, O(n * log(n)) Slow, M: O(1); legacy in-place names.
 template<typename T>
 struct FastConv {
-    static void fctOr(vector<T> &a, bool is_inv) { is_inv ? subsetMobius(a) : subsetZeta(a); }
-    static void fctAnd(vector<T> &a, bool is_inv) { is_inv ? supersetMobius(a) : supersetZeta(a); }
-    static void fctXor(vector<T> &a, bool is_inv) { walshHadamard(a, is_inv); }
     static void fctGcdSlow(vector<T> &a, bool is_inv) {
         int n = int(a.size()) - 1;
         if (is_inv) { for (int i = n; i >= 1; --i) { for (int j = 2 * i; j <= n; j += i) { a[i] -= a[j]; } } }

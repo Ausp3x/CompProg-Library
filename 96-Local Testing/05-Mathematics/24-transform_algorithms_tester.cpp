@@ -55,12 +55,7 @@ void bitSuite(const string &name, int maxLg) {
         supersetMobius(x); check(x == a, "supersetMobius " + tag);
         x = a; walshHadamard(x); check(x == bruteWht(a), "walshHadamard " + tag);
         walshHadamard(x, true); check(x == a, "walshHadamard inverse " + tag);
-        x = a; FastConv<T>::fctOr(x, false); check(x == bruteSubset(a, false), "fctOr " + tag);
-        FastConv<T>::fctOr(x, true); check(x == a, "fctOr inverse " + tag);
-        x = a; FastConv<T>::fctAnd(x, false); check(x == bruteSubset(a, true), "fctAnd " + tag);
-        FastConv<T>::fctAnd(x, true); check(x == a, "fctAnd inverse " + tag);
-        x = a; FastConv<T>::fctXor(x, false); check(x == bruteWht(a), "fctXor " + tag);
-        FastConv<T>::fctXor(x, true); check(x == a, "fctXor inverse " + tag);
+        x = a; walshHadamard(x, false); check(x == bruteWht(a), "walshHadamard explicit forward " + tag);
         check(orConvolution(a, b) == bruteBinary(a, b, N, [](int i, int j) { return i | j; }), "orConvolution " + tag);
         check(andConvolution(a, b) == bruteBinary(a, b, N, [](int i, int j) { return i & j; }), "andConvolution " + tag);
         check(xorConvolution(a, b) == bruteBinary(a, b, N, [](int i, int j) { return i ^ j; }), "xorConvolution " + tag);
@@ -80,7 +75,7 @@ void bitSuite(const string &name, int maxLg) {
         check(disjointUnionConvolution(vector<vector<T>>{a, b, c}) == bruteSubsetConv(bruteSubsetConv(a, b), c), "disjointUnionConvolution q=3 " + tag);
         x = a; kroneckerPowerTransform(x, {{T(1), T(0)}, {T(1), T(1)}}); check(x == bruteSubset(a, false), "kronecker subset kernel " + tag);
         x = a; kroneckerPowerTransform(x, {{T(1), T(1)}, {T(1), T(0) - T(1)}}); check(x == bruteWht(a), "kronecker Hadamard kernel " + tag);}
-    cout << "PASS " << name << ": subset/superset zeta and Mobius, walshHadamard, or/and/xor/subset/disjoint-union convolutions, ranked transforms, FastConv bitwise\n";}
+    cout << "PASS " << name << ": subset/superset zeta and Mobius, walshHadamard, or/and/xor/subset/disjoint-union convolutions, ranked transforms\n";}
 
 template<typename T>
 void kroneckerSuite(const string &name) {

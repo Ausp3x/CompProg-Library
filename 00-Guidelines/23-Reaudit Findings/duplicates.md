@@ -395,9 +395,10 @@ Pruned 2026-10-13.
 
 ## P055 — 05-Mathematics — convolution, transform algorithms (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `FastConv::fctOr`, `fctAnd`, `fctXor` | `24-transform_algorithms.hpp:164-166` | `subsetZeta`/`subsetMobius`, `supersetZeta`/`supersetMobius`, `walshHadamard(a, inv)` | remove | another name plus a flag | `24-…_tester.cpp:58-63` | `24-…hpp:161`; `Docs/00-notes.md:156` |
 | `crossCorrelation` | `13-convolution.hpp:290` | `convolution(a, b reversed)` | keep | derived: convolution with `b` reversed (clarified rule) | `13-convolution_tester.cpp:123-128` | none |
 | `convolution2d` | `13-convolution.hpp:383` | `convolutionTensor` | keep | rank-2 named special case | — | — |
 

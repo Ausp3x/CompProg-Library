@@ -153,7 +153,7 @@ Adopted: `convolution` (dispatcher), `nttDoubling` and `convolutionU128` (row 13
 | Batch | Header | Evidence and scope |
 |---|---|---|
 | MA06 | `13-convolution.hpp` | [13-convolution.md](13-convolution.md): naive, Karatsuba, complex FFT, NTT over any static NTT prime (bit-reversed spectra, transposed, doubling, root tables), three-prime CRT products (signed 64-bit, unsigned 128-bit, any modulus), block products beyond the transform limit, the dispatcher and the cyclic/negacyclic/truncated/middle/correlation/tensor/2-D wrappers. |
-| MA12 | `24-transform_algorithms.hpp` | [24-transform_algorithms.md](24-transform_algorithms.md): subset/superset zeta and Mobius, Walsh-Hadamard with exact inverse, bitwise and gcd/lcm convolutions, divisor/multiple transforms, ranked transforms, subset and q-operand disjoint-union convolution, D x D Kronecker powers, and the legacy `FastConv` names as thin wrappers. |
+| MA12 | `24-transform_algorithms.hpp` | [24-transform_algorithms.md](24-transform_algorithms.md): subset/superset zeta and Mobius, Walsh-Hadamard with exact inverse, bitwise and gcd/lcm convolutions, divisor/multiple transforms, ranked transforms, subset and q-operand disjoint-union convolution, D x D Kronecker powers, and the legacy `FastConv` gcd/lcm transforms (caller's sieve and harmonic loops). |
 
 ## P057 research decisions (2026-10-10)
 
