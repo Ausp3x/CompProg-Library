@@ -40,7 +40,6 @@ template<class S> void verify(const S &s) {
         if (compareRotations(dk, hi, k, n) < 0) { hi = k; }}
     for (int k = lo + 1; k < n && second == n; ++k) {
         if (!compareRotations(dk, k, lo, n)) { second = k; }}
-    expectEqual(minRotation(s), lo, "minRotation");
     expectEqual(maxRotation(s), hi, "maxRotation");
     auto [first, gap] = minRotationIndices(s);
     expectEqual(first, lo, "minRotationIndices first");
@@ -119,7 +118,7 @@ void large(const string &mode) {
     context = "large random binary";
     string d = s + s;
     int expected = minRotation(SuffixArray<int>(string_view(d)));
-    expectEqual(minRotation(s), expected, "random binary versus suffix array");
+    expectEqual(minRotationIndices(s).first, expected, "random binary versus suffix array");
     string t = s.substr(12345 % n) + s.substr(0, 12345 % n);
     check(rotationEquivalent(s, t) && canonicalRotation(t) == canonicalRotation(s), "large rotation");
     cout << "PASS large unary/periodic/random versus suffix array n=" << n << '\n';}

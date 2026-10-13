@@ -1,7 +1,7 @@
 """Minimal rotation: brute force over every materialized rotation.
 
-Every mode checks minRotation, maxRotation, minRotationIndices (first start and
-gap), canonicalRotation, minRotation over a SuffixArray of s + s, and
+Every mode checks minRotationIndices (first start and gap), maxRotation,
+canonicalRotation, minRotation over a SuffixArray of s + s, and
 rotationOffset/rotationEquivalent against every rotation, a modified string and
 a shorter string. Quick/full/stress enumerate ternary strings through lengths
 7/9/10, then 300/3000/20000 random byte strings (some periodic) each also run as

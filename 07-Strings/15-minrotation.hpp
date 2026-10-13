@@ -20,15 +20,14 @@ namespace rotation_detail {
 
 // T: O(n), M: O(1); ordered symbols (char as unsigned), n <= INT_MAX / 2; smallest start, Indices adds the gap p between equal starts (p = n when unique).
 template<class S> pair<int, int> minRotationIndices(const S &s) { return rotation_detail::extreme(s, false); }
-template<class S> int minRotation(const S &s) { return rotation_detail::extreme(s, false).first; }
 template<class S> int maxRotation(const S &s) { return rotation_detail::extreme(s, true).first; }
-template<class S> S canonicalRotation(S s) { std::rotate(s.begin(), s.begin() + minRotation(s), s.end()); return s; }
+template<class S> S canonicalRotation(S s) { std::rotate(s.begin(), s.begin() + minRotationIndices(s).first, s.end()); return s; }
 // T: O(n), M: O(1); smallest k with a[k, n) + a[0, k) == b, -1 when b is not a rotation of a.
 template<class S> int rotationOffset(const S &a, const S &b) {
     int n = int(a.size());
     if (b.size() != a.size()) { return -1; }
     auto [x, p] = minRotationIndices(a);
-    int y = minRotation(b);
+    int y = minRotationIndices(b).first;
     for (int t = 0; t < n; ++t) {
         if (!(rotation_detail::at(a, (x + t) % n) == rotation_detail::at(b, (y + t) % n))) { return -1; }}
     return n ? ((x - y) % p + p) % p : 0;}

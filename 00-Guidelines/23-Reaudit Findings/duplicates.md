@@ -404,11 +404,12 @@ Pruned 2026-10-13.
 
 ## P083 — 07-Strings — palindromictree, lyndon, minrotation, lcs (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `bitsetLcs` | `19-lcs.hpp:102` | `lcs(a, b)` (body moves in) | keep | bit-parallel on types where `lcs` falls back to the scalar DP (clarified rule) | `19-lcs_tester.cpp:70,189-190`; `19-lcs_benchmark.cpp:30,33` | `19-lcs.hpp:106,128` |
-| `minRotation(s)` | `15-minrotation.hpp:23` | `minRotationIndices(s).first` | remove | projected field, same cost | `15-minrotation_tester.cpp:43,122` | `15-minrotation.hpp:25,31` |
-| `rotationEquivalent`, `isLyndon` | `15-minrotation.hpp:35`; `14-lyndon.hpp:30` | `rotationOffset(a, b) >= 0`; `longestLyndonPrefix(s) == n` | keep | named special case (ruling 1) | `15-…_tester.cpp:63,74,77,124`; `14-lyndon_tester.cpp:46` | `14-lyndon.hpp:32` |
+| `rotationEquivalent`, `isLyndon` | `15-minrotation.hpp:34`; `14-lyndon.hpp:30` | `rotationOffset(a, b) >= 0`; `longestLyndonPrefix(s) == n` | keep | named special case (ruling 1) | `15-…_tester.cpp:62,73,76,123`; `14-lyndon_tester.cpp:46` | `14-lyndon.hpp:32` |
 | `countDistinctSubsequences` | `19-lcs.hpp:219` | `20-subsequence_automaton.hpp:76` member | keep | different domains each way (decided 2026-10-11) | `19-lcs_tester.cpp:92,95` | none |
 | `countPalindromicSubsequences(s, distinct)` | `19-lcs.hpp:229` | — | keep | only form of both DPs | — | — |
 
