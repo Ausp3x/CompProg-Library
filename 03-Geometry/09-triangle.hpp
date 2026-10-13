@@ -13,7 +13,7 @@ struct Barycentric2 {
         return {static_cast<long double>(w[0]) / q, static_cast<long double>(w[1]) / q, static_cast<long double>(w[2]) / q};}
 };
 
-// T: O(1), M: O(1). Finite vertices, computed signs, no epsilon; bool queries return false on computed-zero area and leave out unchanged.
+// T: O(1), M: O(1). Finite vertices, computed signs, no epsilon; bool queries return false on computed-zero area (fromBarycentric: zero weight sum) and leave out unchanged.
 struct TriangleApprox {
     dpoint a{}, b{}, c{};
     TriangleApprox(dpoint a = {}, dpoint b = {}, dpoint c = {}) : a(a), b(b), c(c) {
