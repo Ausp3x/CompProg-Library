@@ -34,11 +34,15 @@ Construction takes the point universe `vector<pair<lng, lng>>` (duplicates allow
 
 ### Fenwick01 (alias FenwickSet)
 
-A set of integers in `[0, n)`: one bit per element in 64-bit words plus a Fenwick array over word popcounts. `get`/`contains`, `size`, `add(i, ±1)` (asserts the bit changes), `insert`/`erase` returning whether the set changed, `rank(r)` = count below `r` for `r` in `[0, n]`, `sum(l, r)` count in `[l, r)`, `kth(k)` = k-th smallest (0-based) or `n` when `k >= size()`, `next(i)` = smallest element `>= i` or `n` (`i` in `[0, n]`), `prev(i)` = largest element `<= i` or `-1` (`i` in `[-1, n)`). The in-word select is a 6-step popcount binary search, so `kth` is `O(log(n / 64) + log 64)`. The `vector<bool>` constructor builds in `O(n)` (bit packing) with its own complexity comment.
+A set of integers in `[0, n)`: one bit per element in 64-bit words plus a Fenwick array over word popcounts. `get`, `size`, `add(i, ±1)` (asserts the bit changes), `insert`/`erase` returning whether the set changed, `rank(r)` = count below `r` for `r` in `[0, n]`, `sum(l, r)` count in `[l, r)`, `kth(k)` = k-th smallest (0-based) or `n` when `k >= size()`, `next(i)` = smallest element `>= i` or `n` (`i` in `[0, n]`), `prev(i)` = largest element `<= i` or `-1` (`i` in `[-1, n)`). The in-word select is a 6-step popcount binary search, so `kth` is `O(log(n / 64) + log 64)`. The `vector<bool>` constructor builds in `O(n)` (bit packing) with its own complexity comment.
 
-### Replaced legacy operations
+### Legacy mapping
 
 `FenTreeRangeAdd1D` → `FenwickRangeAdd`; `FenTree` 1D with `f`/`f_inv` → Basic `Fenwick<T>` with a group `T`, or `FenwickPrefixMonoid` when only a prefix monoid is needed; `FenTree` 2D/3D → `Fenwick2D`/`Fenwick3D` including the linear builds; `FenTree::lowerBound` → `Fenwick::lowerBound`; `getIdx` was an internal flattening helper; the `operator<<` node printers are not ported (the structures expose their arrays and the debug header prints vectors). Rectangle add with point get is `Fenwick2D::add` at the four corners plus `prefixSum(i + 1, j + 1)`.
+
+| Removed (prune, 2026-10-13) | Replacement |
+|---|---|
+| `Fenwick01::contains(i)` | `get(i)` |
 
 ## Feature-to-test map
 
@@ -50,24 +54,24 @@ Tester `96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.cpp`
 | Fenwick2D `add`, `sum`, `prefixSum`, `get`, matrix build; Fenwick2DRangeAdd `add`, `sum`, `prefixSum`; Fenwick3D `add`, `sum`, `prefixSum`, `get`, box build | `grids` | Dense matrices/boxes with brute rectangle and box sums; dimensions include `0 x 3`, `3 x 0`, `1 x 1`, `32 x 33`, `16 x 3 x 17` |
 | CompressedFenwick2D `add`, `sum`, `prefixSum` | `compressed` | `map<point, weight>` scanned per query; coordinate spans 4, 1000 and 1e18 with negative values, duplicate registered points, unregistered query bounds |
 | FenwickPrefixMonoid `apply`, `prefix`, vector build | `prefixMonoid` | Max (identity `INT64_MIN`) and gcd folds recomputed by scanning |
-| Fenwick01 `get`, `contains`, `size`, `add`, `insert`, `erase`, `rank`, `sum`, `kth`, `next`, `prev`, vector<bool> build; alias `FenwickSet` | `bitset01` | Sorted element vector with `lower_bound`/`upper_bound`; `n` in {0, 1, 2, 63, 64, 65, 127, 128, 129, 200, 1000, 4096, 20000 (stress)}, densities empty/sparse/half/full |
+| Fenwick01 `get`, `size`, `add`, `insert`, `erase`, `rank`, `sum`, `kth`, `next`, `prev`, vector<bool> build; alias `FenwickSet` | `bitset01` | Sorted element vector with `lower_bound`/`upper_bound`; `n` in {0, 1, 2, 63, 64, 65, 127, 128, 129, 200, 1000, 4096, 20000 (stress)}, densities empty/sparse/half/full |
 | Preconditions | `invalid` probes | 37 probes: negative sizes, `update` at `-1` and `n + 1` on `FenwickRangeAdd`, `DualFenwick` and `FenwickRangeArithmeticAdd`, oversize grid and box, reversed or out-of-range ranges, ragged matrix rows, unregistered compressed points, double insert/remove, `kth(-1)` |
 
 Quick: 6 sizes, 150 steps, no sanitizer build. Full: 14 sizes, 1500 steps, three builds. Stress: sizes up to 513/20000, 4000 steps (sized so the `-O0` debug-iterator build stays inside the runner's 180 s limit). Mutation check (2026-10-08, quick mode, temporary copies): 7 of 8 injected faults detected (fused 3D build pass, select comparison, triangular number, 2D range-add prefix formula, `prev` sentinel, difference index weight, 3D inclusion–exclusion sign); the survivor (keeping duplicate `y` values per compressed node) is functionally equivalent.
 
 ## Commands and results
 
+P027 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H.
+
 ```bash
-python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode quick --seed 1
 python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode full --seed 1
 CXX=g++-14 python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode full --seed 1
-python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/11-fenwick_tree_advanced.hpp' '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.cpp'
+python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
-python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/1' --no-integration
-python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/11-fenwick_tree_advanced.hpp' '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.cpp'
 ```
 
-Latest run 2026-10-12 (after the `update` bound fixes on all three one-dimensional range-add types): quick mode seed 1 passed (2 configurations, 121,045 checks, 37 assertion probes); full mode seed 1 passed on GCC 16.2 and GCC 14.4.1 (`CXX=g++-14`) with 2,134,536 checks per configuration and 37 assertion probes, MEMORY peak 548 MB and 543 MB; `--braces` and `03-consistency.py` reported no errors. Stress (`--mode stress --seed 3`) passed with 6,837,277 checks per configuration, peak 549 MB, and `python3 '96-Local Testing/02-integration.py' --sanitizers` passed (136 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, sanitizer self-tests, peak 2677 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, with `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
+Full, seed 1: PASS in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the 37 assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, all with `-Wall -Wextra -Wconversion -Werror`, 2,024,085 checks per configuration, peak 549 MB on g++ and 548 MB on g++-14. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
 
 ## Sources
 
@@ -94,3 +98,4 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 - 2026-10-08: independent review (P027) — fixed the overflowing 3D size check (finding 3, new `box-oversize` probe), restated the integral domains with their constant factors (finding 4) and added zero/negative inputs to the range-add suites (finding 6); the formulas, builds and compressed node lists were confirmed.
 - 2026-10-08: P027 re-audit pass (second session): formulas and builds reconfirmed; the `CompressedFenwick2D::add` registration assert moved out of the per-level loop and the `Fenwick01` `vector<bool>` constructor got its own `O(n)` comment (style findings only).
 - 2026-10-12: re-audit fix: `update` on `FenwickRangeAdd`, `DualFenwick` and `FenwickRangeArithmeticAdd` asserts `0 <= i <= n`, with direct oracle tests and 6 new probes; full suite passed on g++ and g++-14.
+- 2026-10-13: prune, removed `Fenwick01::contains` (its checks were the `get` checks on the same inputs); full suite passed on g++ and g++-14.

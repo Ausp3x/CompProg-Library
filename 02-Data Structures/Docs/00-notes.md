@@ -37,7 +37,7 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 - Geometry owns point-facing kd/R/quadtree and nearest-neighbour APIs (`28-spatial_index.hpp`), rectangle-union area/perimeter (`13-segment_union.hpp`), kinetic geometry and dynamic/decremental hulls; it may use `43-rangetree.hpp` and `33-offline_rectangle_queries.hpp` as engines.
 - Strings owns literal-prefix and radix tries; this folder owns binary integer/XOR tries and succinct rank/select engines used by Strings `36-compressed_text_index.hpp`.
 - Miscellaneous owns CDQ, parallel binary search, Hilbert order, generic undo log/checkpoints, persistent allocator, slope trick, coordinate compression by encounter ID, interval algorithms over static endpoint sets and probabilistic sketches. `63-offline_deletion.hpp` owns the generic add/remove-over-time engine and the queue-undo trick because its contract is the rollback structure, not a graph.
-- Core owns reusable accelerated dynamic bitsets and GF(2) matrices; `62-xorbasis.hpp` owns the incremental basis, prefix (timestamped) basis and offline range basis queries. Mathematics owns Sprague–Grundy mex; `24-interval_set.hpp` owns dynamic mex over a set.
+- Core owns reusable accelerated dynamic bitsets and GF(2) matrices; `62-xorbasis.hpp` owns the incremental basis, prefix (timestamped) basis and offline range basis queries. Mathematics owns Sprague–Grundy mex; `24-interval_set.hpp` owns dynamic mex over a set (`IntervalSet::find(x).second`).
 - Python mirrors (`08-Python`) own their own sorted-list and xor-basis implementations.
 - Rollback DSU owns the generic undo/connectivity substrate; weighted DSU owns potential/parity/noncommutative algebra and the weighted rollback variant. Reuse the undo contract without reciprocal header dependencies. `65-dsu_extensions.hpp` holds member enumeration, component aggregates, sparse keys and the merge-history forest; it depends on `01-dsu.hpp` only.
 - Dynamic wavelet and succinct structures are Esoteric rows, never extra modes hidden inside the Advanced wavelet header. Persistent split/merge stays with the persistent segment tree; destructive meld/split stays with the dynamic segment tree.
@@ -117,7 +117,7 @@ Candidates from the 2026-10-08 sweep ([00-sources.md](00-sources.md)) left out o
 - Dynamic tree one-node-per-key sparse variant (MAS): a memory variant of the same API.
 - Dynamic tree range `clear` (TKO), split by count (MAS sortable), meld on the lazy tree (NYA), dual `getAll` (MAS): rare; split by count is `split(root, maxRight(root, lo, count <= k))`; sortable trees are row 51.
 - Dynamic tree vector build (legacy `DynSegTree(span)`): a dense array is row 12.
-- Interval set `sameInterval`, `maxExcluded`, iterator `lowerBound` (SUI, NYA): `covers(min, max + 1)`; mirror of `mex`; `find`/`next` cover the lookups.
+- Interval set `sameInterval`, `maxExcluded`, iterator `lowerBound` (SUI, NYA): `covers(min, max + 1)`; `contains(x) ? find(x).first - 1 : x` (none when that interval starts at the minimum of `T`); `find`/`next` cover the lookups.
 - `IntervalsFast` over a fastset, splay-backed `PiecewiseConstant` with slides (MAS): row 36 owns the fastset; the sliding structure is an Esoteric candidate without a current owner.
 - `IntervalMap::toArray` (MAS): `enumerate` over `[lo, hi)`.
 

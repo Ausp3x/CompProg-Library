@@ -291,7 +291,6 @@ struct Fenwick01 {
             if (int p = i | (i + 1); p < nw) { c[p] += c[i]; }}}
 
     bool get(int i) const { assert(0 <= i && i < n); return bits[i >> 6] >> (i & 63) & 1; }
-    bool contains(int i) const { return get(i); }
     int size() const { return cnt; }
 
     void add(int i, int x) {

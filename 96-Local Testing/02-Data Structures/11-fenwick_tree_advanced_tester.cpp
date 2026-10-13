@@ -207,7 +207,7 @@ namespace {
                         checkEqual(f.next(i), rank < int(elems.size()) ? elems[rank] : n, at + " next(" + show(i) + ")");
                         int up = int(std::upper_bound(elems.begin(), elems.end(), i - 1) - elems.begin());
                         checkEqual(f.prev(i - 1), up ? elems[up - 1] : -1, at + " prev(" + show(i - 1) + ")");
-                        if (i < n) { checkEqual(f.get(i), bool(a[i]), at + " get(" + show(i) + ")"); checkEqual(f.contains(i), bool(a[i]), at + " contains"); }
+                        if (i < n) { checkEqual(f.get(i), bool(a[i]), at + " get(" + show(i) + ")"); }
                         int k = int(rnd(rng, 0, int(elems.size()) + 1));
                         checkEqual(f.kth(k), k < int(elems.size()) ? elems[k] : n, at + " kth(" + show(k) + ")");}
                     int l = int(rnd(rng, 0, n)), r = int(rnd(rng, 0, n));

@@ -349,11 +349,11 @@ Pruned 2026-10-13.
 
 ## P027 — 02-Data Structures — fenwick tree advanced, lazysegmenttree, dynamicsegmenttree, interval set (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `DualFenwick` | `11-fenwick_tree_advanced.hpp:40` | `Fenwick<T>` over differences: `add(l, x)`, `add(r, -x)` if `r < n`; `get(i)` = `prefixSum(i + 1)` | keep | different purpose: range add and point get (clarified rule) | `11-…_tester.cpp:30,33,42,65`; probes `dual-*` (:235-236) | row 11; `Docs/11-fenwick_tree_advanced.md:11-13,49` |
-| `Fenwick01::contains` | `11-fenwick_tree_advanced.hpp:290` | `get(i)` | remove | another name | `11-…_tester.cpp:204` | `Docs/11-…md:37,53` |
-| `IntervalSet::mex(x)` | `24-interval_set.hpp:22` | `find(x).second` | remove | projected field | `24-interval_set_tester.cpp:53,131,149` | `Docs/00-notes.md:40`; `Docs/24-interval_set.md:68` |
 | `IntervalMap::fold` | `24-interval_set.hpp:76` | `enumerate` with an accumulator | keep | derived accumulation over `enumerate` (clarified rule) | `24-interval_set_tester.cpp:216` | `08-Python` row `_61` |
 | `IntervalSet::contains` | `24-interval_set.hpp:20` | `find(x).second != x` | keep | named special case (ruling 1) | `24-interval_set_tester.cpp:46,61,133,147-153` | none |
 | `CommutativeDualSegmentTree` | `12-lazysegmenttree.hpp:157` | `DualSegmentTree` | keep | constant-factor variant (ruling 4) | `12-lazysegmenttree_tester.cpp:299-309`; probes `comm-*` | none |

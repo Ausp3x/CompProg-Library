@@ -19,7 +19,6 @@ struct IntervalSet {
         return *it;}
     bool contains(T x) const { return find(x).second != x; }
     bool covers(T l, T r) const { assert(l <= r); return l == r || find(l).second >= r; }
-    T mex(T x) const { return find(x).second; }
     T next(T x) const {
         if (contains(x)) { return x; }
         auto it = m.lower_bound(x);

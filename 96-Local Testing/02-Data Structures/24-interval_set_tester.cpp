@@ -50,7 +50,7 @@ namespace {
                 checkEqual(s.find(x), piece, at + " find(" + show(x) + ")");
                 T m = x;
                 while (lo <= m && m < hi && cov[m - lo]) { ++m; }
-                checkEqual(s.mex(x), m, at + " mex(" + show(x) + ")");
+                checkEqual(s.find(x).second, m, at + " find(" + show(x) + ").second");
                 T nx = x;
                 while (nx < hi && !(lo <= nx && cov[nx - lo])) { ++nx; }
                 checkEqual(s.next(x), nx < hi ? nx : std::numeric_limits<T>::max(), at + " next(" + show(x) + ")");
@@ -128,7 +128,6 @@ namespace {
                 if (p.first <= x && x < p.second) { piece = p; }
                 if (p.second > x) { nx = min(nx, max(p.first, x)); }}
             checkEqual(s.find(x), piece, "find step=" + show(step));
-            checkEqual(s.mex(x), piece.second, "mex step=" + show(step));
             checkEqual(s.next(x), nx, "next step=" + show(step));
             checkEqual(s.covers(x, x + 1), piece.first != piece.second, "covers step=" + show(step));}
         std::cout << "PASS IntervalSet with 1e18 coordinates against a sorted-merge oracle\n";}
@@ -146,7 +145,7 @@ namespace {
         checkEqual(s.find(T(mx - 1)), pair<T, T>{T(mx - w), mx}, "find max - 1");
         checkEqual(s.contains(T(mx - 1)), true, "contains max - 1");
         checkEqual(s.contains(mx), false, "max is never covered");
-        checkEqual(s.mex(T(mx - w)), mx, "mex reaches max");
+        checkEqual(s.find(T(mx - w)).second, mx, "find(max - w).second reaches max");
         checkEqual(s.next(T(mx - w - 1)), T(mx - w), "next before max piece");
         checkEqual(s.next(mx), mx, "next at max is the sentinel");
         checkEqual(s.covers(mn, T(mn + w)), true, "covers min piece");
