@@ -20,6 +20,7 @@ Decided by the user from 2026-10-10 to 2026-10-13; binding, and only the user ch
 - **P053** row 11: the `modLog` multiplier form `k * a^x = b (mod m)` becomes a multiplier parameter of `discreteLogEx`, not a second function.
 - **P013** `06-Miscellaneous/04-compression.hpp`: `Compression` is removed (decided 2026-10-11). `ranks` and `pointRange` move into `CoordinateCompression` (`02-Data Structures/07-ordered_set.hpp`), `compressEndpoints` returns `CoordinateCompression`, `08-sequence_algorithms.hpp` switches to it, and the `Compression::ranks` example in `00-Guidelines/03-cpp.md` becomes `CoordinateCompression::ranks`. Done 2026-10-12.
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
+- **P045** row 20 (decided 2026-10-13): `minCostMaxFlow` is `flow(s, t)`; `bellmanFordPotentials` folds into `flow`, `slope` and `potentials`, which initialise the residual potentials themselves (Kahn order, so a DAG takes one round; Bellman–Ford otherwise); `pathReconstruction` is `MaxFlow::pathDecomposition` on the flow's edges (every flow cycle of a min-cost flow costs 0). All three leave the row. Done 2026-10-13.
 - **P004, P005** (decided 2026-10-11; run P004 first): Montgomery `powMont` and `pow` take a 128-bit (`ulll`) exponent, and Barrett64's Mersenne-61 fold becomes one constexpr static helper (P004). `modint_detail::powerMontgomery` becomes a `noinline` one-line call to `Montgomery64(m).pow(a, e)` with the 512 threshold re-measured, and `fold61`/`Context::red` call the Barrett64 fold (P005). Done 2026-10-12; the one-liner was superseded the same day by cached contexts (`10-decisions.md`).
 - **P104** `08-Python` row `_33_twosat.py` (planned): `solve` leaves the row (decided 2026-10-13); `satisfiable` is the only form, as in C++ (`04-python.md`, operations keep the library's names). Done 2026-10-13.
 - **P174** row 82 (planned): the general-graph b-matching is named `generalBMatching`, so it no longer shares the name of row 21's bipartite `bMatching` (decided 2026-10-13). Done 2026-10-13.
@@ -47,6 +48,7 @@ Items a reader could mistake for duplicates.
 | P011 | `getKthAncestor` | Accepts k < 0 |
 | P011, P043 | `kosarajuScc`, `kuhn` | Different algorithms from `tarjanScc`, `hopcroftKarp` |
 | P012 | `ternSearch`, `ternSearchRealBracket` | Different algorithms from `fibSearch`, `goldenSearchRealBracket` |
+| P045 | `MinCostFlow::flow` (`slope(...).back()`) | Decided 2026-10-13: the family's primary operation; `slope` is its batch form over all amounts |
 | P012 | `binSearch(ok, ng, f)` | Decided 2026-10-11: one orientation-free call for the common ok/ng idiom; the replacement needs `lastTrue` or `firstTrue` by orientation plus a result mapping |
 | P029 | `WaveletMatrix::countEqual`, `kth`/`kthMax`, inclusive `maxLeq`/`minGeq` | Named special case; mirrors (ruling 3); decided 2026-10-13: the only predecessor/successor forms |
 | P029 | `rectangleCount`, `rectangleSum` (point sets) | Decided 2026-10-13: larger domain (arbitrary signed x with duplicates, weights), non-legacy builder |
@@ -474,13 +476,6 @@ Pruned 2026-10-13.
 | `kthMin` (now `kth`) | `17-waveletmatrix.hpp:81` | `kthMax(l, r, r - l - 1 - k)` | keep | mirror of `kthMax` (ruling 3) | none | — |
 | `maxLeq`, `minGeq` | `17-waveletmatrix.hpp:90,96` | `prevValue`, `nextValue` | keep | decided 2026-10-13: inclusive with a `bool` status as `MergeSortTree`; `prevValue`, `nextValue` leave the row instead | none | — |
 | `rectangleCount`, `rectangleSum` (point sets) | `17-waveletmatrix.hpp:141-142` | `countRange`/`sumLess` after an x-sorted build and binary search | keep | decided 2026-10-13: larger domain (arbitrary signed x, weights) | — | — |
-
-## P045 — 04-Graphs — min cost flow (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `minCostMaxFlow` | row 20 | `MinCostFlow::flow(s, t)` | remove (row only) | another name | — | — |
-| `bellmanFordPotentials`, `pathReconstruction` | row 20 | `bellmanFord(g, all).dist`; `MaxFlow::pathDecomposition` | ask | wrappers unless the residual initialiser and a different decomposition | — | — |
 
 ## P033 — 02-Data Structures — trie, cartesiantree, disjointsparsetable, offline rectangle queries (planned)
 
@@ -1306,7 +1301,6 @@ All decided.
 - **P020** move the floating branches to `solveReal`, `invReal`, `rankReal`, or drop those entries? `StaticMatrix`: is a compile-time shape a different domain? `rowSpace`, `colSpace`: another basis? The 8-lane REDC in `mulRow`, `elimRow`: the same as `Montgomery32` `mul8`, `red8`, or an assert-free lazy variant like Poly's kept `Mont8`? `Matrix(vector, axis)` and the vector products: an empty vector gives 0×0 here and 1×0 or 0×1 from `Matrix(1, n, v)`; is that difference real?
 - **P022** GF(2) `-=`, `-`: keep for generic ring code?
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
-- **P045** `bellmanFordPotentials`, `pathReconstruction`: the residual initialiser and a different decomposition, or wrappers?
 - **P053** keep `sqrtModPrime` beside Core `ModInt::sqrt`, and the narrow `discreteLog`, `jacobiSymbol`?
 - **P085** `mutableLcp`: the same query as `PointUpdateHash::lcp`? `distinctSubstringsPerPrefix`: does row 22 take integer sequences (the suffix automaton takes `string_view` only)?
 - **P054** row 12 Stirling, Eulerian and partition rows beside Core Poly: allowed? `factorialPowerConvert` and `tetrationMod`: which row owns each? Row 67 `dyckPaths`, `pathsBelowDiagonal`: `catalan` and `ballot` under other names, or general endpoints? Row 12 `inclusionExclusion`: the subset Möbius transform under another name, or a pruned search over items?

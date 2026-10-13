@@ -39,8 +39,8 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 ## Legacy migration obligations
 
 - Existing-unverified headers (`12`, `13`, `15`, `16`, `19`, `26`) contain unchanged monolith excerpts; see `97-Legacy/00-index.md` and `00-Guidelines/History/2026-09-27-monolith-transfer.md`. Compilation does not verify semantics, completeness, performance, indexing or complexity claims. The source-range/hash map `00-Guidelines/Ledgers/monolith-map.json` is authoritative for provenance.
-- Legacy-reference rows (`20`, `27`) point at Team Notebook sources `OLD/Team Notebook/src/graph/old_mcmf.cpp` and `old_block-cut-tree.cpp` (`old_kuhn.cpp` is accounted for by the verified row `21`); `old_bellman-ford.cpp` is superseded by `05-shortest_path.hpp`.
-- Unchanged archive leads in `OLD/Team Notebook/src/algs.cpp`, `algsbetter.cpp` and `test.cpp`: `LcaO1`, `LcaLog`, `DEsopoPape`, `TarjanSCC`, `StrongOrientation`, `EulerPath`, `Kruskal`, `PrimDense`, `TreeEdgePainting`, `Dinic`, `FlowWithDemands`, `PushRelabel`, `Kuhn` (symbols vary by file). They are behavioral references, never specifications. `OLD/[1] algorithms.cpp` TODO comments motivated rows `14` and `17`.
+- Legacy-reference row `27` points at the Team Notebook source `OLD/Team Notebook/src/graph/old_block-cut-tree.cpp`; `old_kuhn.cpp` and `old_mcmf.cpp` are accounted for by the verified rows `21` and `20`, and `old_bellman-ford.cpp` is superseded by `05-shortest_path.hpp`.
+- Unchanged archive leads in `OLD/Team Notebook/src/algs.cpp`, `algsbetter.cpp` and `test.cpp`: `LcaO1`, `LcaLog`, `DEsopoPape`, `TarjanSCC`, `StrongOrientation`, `EulerPath`, `Kruskal`, `PrimDense`, `TreeEdgePainting`, `Dinic`, `FlowWithDemands`, `PushRelabel`, `Kuhn` (symbols vary by file); their `MinCostMaxFlow`/`MaxFlowMinCut` copies are mapped in `20-min_cost_flow.md`. They are behavioral references, never specifications. `OLD/[1] algorithms.cpp` TODO comments motivated rows `14` and `17`.
 - Delete from `OLD` or `97-Legacy` only after an audited implementation accounts for every feature the file contained.
 
 ## Placement decisions recorded
@@ -135,4 +135,17 @@ The 2026-10-10 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-10-p044-m
 - `limit` for push-relabel: use `flow(s, t, limit)`.
 - Mixed directed/undirected Euler circuits (flow application): row 69 with row 10, using this header.
 - ei1333 bipartite flow with edge erasure and lexicographic matching: row 21; lower bounds: row 30; Gomory–Hu, global min cut, dynamic star min cut: rows 46, 47, 76.
+
+## P045 min cost flow omissions
+
+The 2026-10-13 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-13-p045-min-cost-flow)) added `potentials`, the `below` bound of `flow`/`slope` (min-cost flow of any amount at `below = 0`) and the DAG-order initialisation to row 20. `minCostMaxFlow` (`flow(s, t)`), `bellmanFordPotentials` (automatic inside `flow`, `slope` and `potentials`) and `pathReconstruction` (`MaxFlow::pathDecomposition`) left the row (`duplicates.md`). No catalog has a convex-cost edge API, so `addConvexEdge` follows the row's piecewise-linear wording. The other candidates stay out:
+
+- Target flow with an infeasible status (ei1333, cp-algorithms): `flow(s, t, k).first < k`.
+- Max-cost (max-gain) flow: negate the costs; the result is minus the minimum.
+- Dense O(n^2) Dijkstra (OI Wiki footnote): measured slower than the heap on every benchmarked workload, including a 300-vertex half-dense graph.
+- Primal–dual blocking flow on the zero-reduced-cost network (zkw style): same worst case; one path per Dijkstra as ACL.
+- Changing an edge's capacity or cost after a flow: no SSP catalog has it; rebuild, or cancel with row 65.
+- Convex costs given by a callable over a large capacity (capacity scaling, Ahuja–Magnanti–Orlin): piecewise lists only; scaling belongs with row 65.
+- Floating-point capacities or costs (legacy `old_mcmf.cpp`): integers only; scale.
+- Multi-source/sink, supplies and negative cycles: rows 30 and 65.
 

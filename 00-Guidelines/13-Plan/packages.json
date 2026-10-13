@@ -731,8 +731,10 @@
       "phase": "Contest core",
       "size": "XL",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "04-Graphs/Docs/20-min_cost_flow.md"
+      ],
       "note": ""
     },
     {

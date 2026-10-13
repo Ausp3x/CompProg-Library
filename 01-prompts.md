@@ -57,7 +57,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P084 — ST08, ST20, ST23** (opus, L+L+M): 07-Strings — string matching, bitap, subsequence automaton, bwt. Status: verified. [evidence](07-Strings/Docs/16-string_matching.md) [evidence](07-Strings/Docs/17-bitap.md) [evidence](07-Strings/Docs/20-subsequence_automaton.md) [evidence](07-Strings/Docs/29-bwt.md)
 - [x] **P036 — GE03, GE24, GE25** (opus, L+M+L): 03-Geometry — halfplaneintersection, minkowskisum, circle polygon, polygon distance. Status: verified. [evidence](03-Geometry/Docs/10-halfplaneintersection.md) [evidence](03-Geometry/Docs/11-minkowskisum.md) [evidence](03-Geometry/Docs/16-circle_polygon.md) [evidence](03-Geometry/Docs/17-polygon_distance.md)
 - [x] **P029 — DS09, DS10, DS48** (opus, L+L+L): 02-Data Structures — waveletmatrix, treap, heap deque. Status: verified. [evidence](<02-Data Structures/Docs/17-waveletmatrix.md>) [evidence](<02-Data Structures/Docs/19-treap.md>) [evidence](<02-Data Structures/Docs/25-heap_deque.md>)
-- [ ] **P045 — GR09** (opus, XL): 04-Graphs — min cost flow. Status: planned.
+- [x] **P045 — GR09** (opus, XL): 04-Graphs — min cost flow. Status: verified. [evidence](04-Graphs/Docs/20-min_cost_flow.md)
 - [ ] **P075 — MI23** (opus, L): 06-Miscellaneous — slope trick. Status: planned.
 - [ ] **P033 — DS13, DS29** (opus, L+L): 02-Data Structures — trie, cartesiantree, disjointsparsetable, offline rectangle queries. Status: planned.
 - [ ] **P056 — GR06** (opus, L): 04-Graphs — centroiddecomposition, treeisomorphism. Status: planned.

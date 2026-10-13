@@ -102,6 +102,24 @@ Fetched by the row 19 completeness sweep. Code was written from the algorithms; 
 | ei1333 dinic, ford-fulkerson | https://ei1333.github.io/library/graph/flow/dinic.hpp | 2026-10-10 | Row 19 comparison; nothing else missing |
 | CSES Police Chase | https://cses.fi/problemset/ | 2026-10-10 | Min cut edge list (`minCutEdges`) |
 
+## Pages fetched on 2026-10-13 (P045 min cost flow)
+
+Fetched by the row 20 completeness sweep. Code was written from the algorithms; no implementation was copied. Not fetched: the Library Checker `min_cost_b_flow` page (rendered by script; its `task.md` was read), the last 15k characters of the Nyaan index, and search-only hits (ferin's convex-edge blog, the ABC393 editorial, beet-aizu capacity scaling).
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| ACL mincostflow document and source | https://github.com/atcoder/ac-library/blob/master/document_en/mincostflow.md | 2026-10-13 | `addEdge`, `flow(s, t, limit)`, `slope`, `getEdge`, `edges`; dual bound `-(n-1)C <= dual <= 0`; the documented ban on repeated `flow`/`slope` calls, which a member potential removes |
+| KACTL MinCostMaxFlow | https://github.com/kth-competitive-programming/kactl/blob/main/content/graph/MinCostMaxFlow.h | 2026-10-13 | `setpi` Bellman–Ford initial potentials for negative costs, no negative cycles |
+| maspypy min_cost_flow, min_cost_b_flow, dual_mcf, cyclic_b_flow | https://github.com/maspypy/library/tree/main/flow | 2026-10-13 | `get_potentials` (`potentials`), `DAG=true` initial potentials, `path_decomposition` (row 19's `pathDecomposition`); b-flow and dual variants belong to rows 65 and 44 |
+| hitonanode mincostflow, mincostflow_nonegativeloop, b-flow | https://hitonanode.github.io/cplib-cpp/flow/mincostflow.hpp | 2026-10-13 | Linear-time DAG initial potentials; nonnegative-cost contract; pre-saturating negative arcs (b-flow, row 65) |
+| ei1333 primal-dual | https://ei1333.github.io/library/graph/flow/primal-dual.hpp | 2026-10-13 | Target-flow form returning -1 (the `flow` limit with a size check) |
+| suisen min_cost_flow | https://suisen-cp.github.io/cp-library-cpp/library/graph/min_cost_flow.hpp | 2026-10-13 | `min_cost_arbitrary_flow` (the `below` bound), member potentials kept across calls, DAG/Bellman–Ford/Dijkstra initialisers |
+| Koosaga flow_cost_dijkstra, flow_cost_cubic | https://github.com/koosaga/olympiad/tree/master/Library/codes/combinatorial_optimization | 2026-10-13 | SPFA then Dijkstra; cost scaling belongs to row 65 |
+| cp-algorithms Minimum-cost flow | https://cp-algorithms.com/graph/min_cost_flow.html | 2026-10-13 | SSP bound and target-flow form |
+| OI Wiki 费用流 | https://oi-wiki.org/graph/flow/min-cost/ | 2026-10-13 | Primal–dual with potentials; dense O(n^2) Dijkstra footnote (measured, not adopted); negative cycles need cycle cancelling |
+| Library Checker min_cost_b_flow task | https://github.com/yosupo06/library-checker-problems/blob/master/graph/min_cost_b_flow/task.md | 2026-10-13 | b-flow with potentials and infeasibility (row 65) |
+| misawa flow library design | https://misawa.github.io/others/flow/library_design.html | 2026-10-13 | Max-gain flow by cost negation (needs negative-cost support) |
+
 ## Source keys
 
 Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder.
