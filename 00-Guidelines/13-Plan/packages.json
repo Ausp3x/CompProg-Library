@@ -746,8 +746,10 @@
       "phase": "Contest core",
       "size": "L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "06-Miscellaneous/Docs/34-slope_trick.md"
+      ],
       "note": ""
     },
     {

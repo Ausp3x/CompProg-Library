@@ -58,7 +58,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P036 — GE03, GE24, GE25** (opus, L+M+L): 03-Geometry — halfplaneintersection, minkowskisum, circle polygon, polygon distance. Status: verified. [evidence](03-Geometry/Docs/10-halfplaneintersection.md) [evidence](03-Geometry/Docs/11-minkowskisum.md) [evidence](03-Geometry/Docs/16-circle_polygon.md) [evidence](03-Geometry/Docs/17-polygon_distance.md)
 - [x] **P029 — DS09, DS10, DS48** (opus, L+L+L): 02-Data Structures — waveletmatrix, treap, heap deque. Status: verified. [evidence](<02-Data Structures/Docs/17-waveletmatrix.md>) [evidence](<02-Data Structures/Docs/19-treap.md>) [evidence](<02-Data Structures/Docs/25-heap_deque.md>)
 - [x] **P045 — GR09** (opus, XL): 04-Graphs — min cost flow. Status: verified. [evidence](04-Graphs/Docs/20-min_cost_flow.md)
-- [ ] **P075 — MI23** (opus, L): 06-Miscellaneous — slope trick. Status: planned.
+- [x] **P075 — MI23** (opus, L): 06-Miscellaneous — slope trick. Status: verified. [evidence](06-Miscellaneous/Docs/34-slope_trick.md)
 - [ ] **P033 — DS13, DS29** (opus, L+L): 02-Data Structures — trie, cartesiantree, disjointsparsetable, offline rectangle queries. Status: planned.
 - [ ] **P056 — GR06** (opus, L): 04-Graphs — centroiddecomposition, treeisomorphism. Status: planned.
 - [ ] **P053 — MA05** (opus, L): 05-Mathematics — discrete log root. Status: planned.

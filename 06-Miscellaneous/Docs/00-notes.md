@@ -42,7 +42,7 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 - Advanced knapsack (`29`) owns value/count/witness variants, grouped, two-resource and tree (dependency) knapsack, k-best and optimal-selection counts; sharp-P subset sum uses Mathematics FPS with positive weights and explicit modulus/degree conditions and is never conflated with Boolean reachability. Boolean bitset reachability is `22`; meet-in-the-middle split/join is `30` and `29` calls it.
 - Meet in the middle (`30`): duplicate multiplicities are counted exactly; Pareto pruning only when justified; the four-list split documents its memory tradeoff.
 - Digit DP (`31`): memoization keys include every state (position, tight, leading zero, automaton state); signed intervals are handled by an explicit policy. Subset DP (`32`) documents `O(3^n)` submask costs and reconstruction; Graphs `73` owns the Hamiltonian/TSP API and depends on `32`, never the reverse. Profile DP (`33`) states canonical frontier labels, boundary closure and state invariants.
-- Slope trick (`34`) represents convex piecewise-linear functions by breakpoint heaps with explicit infinity contracts and weighted multiplicities; Mathematics `27-optimization.hpp` bridges to it and owns Monge/Knuth/WQS.
+- Slope trick (`34`, contracts in [34-slope_trick.md](34-slope_trick.md)) represents convex piecewise-linear functions three ways: unit breakpoints in two binary heaps (`SlopeTrick`), weighted breakpoints in a treap with weight and weight-times-position sums plus an exact `+INF` domain (`WeightedSlopeTrick`), and the conjugate of a finite-domain integer function (`DualSlopeTrick`). Unbounded argmin ends are `-INF`/`INF`; Mathematics `27-optimization.hpp` bridges to it and owns Monge/Knuth/WQS; array min-plus convolution is Mathematics `53`.
 - State-space search (`35`) distinguishes exact exhaustion from budget-stopped outcomes and requires admissible lower bounds for IDA*; explicit-graph engines remain in Graphs (`43-implicit_graph.hpp` owns implicit BFS/Dijkstra). Game search (`36`) distinguishes solved values from heuristic horizons and documents depth/window semantics; retrograde analysis and Sprague–Grundy are Mathematics `25`.
 - Expression parsing (`37`) reports exact error offsets, supports configurable evaluation domains and never evaluates arbitrary code. Heuristic optimization (`38`) gives no optimality guarantee; seeds replay deterministically and incumbents are retained.
 - Scheduling (`39`) records the exchange-argument assumptions of each ordering rule (Livshits–Kladov limits them to linear, exponential and identical monotone penalties); weighted interval scheduling reuses `09`, flow formulations reuse Graphs; rooted-tree precedence orders are Graphs `79`.
@@ -148,3 +148,21 @@ Omitted, one reason each:
 Independent review (`@reviewer`, 2026-10-08): one confirmed defect, unsigned reply types bypassing the `-1` sentinel in `50`, fixed by asserting a disabled sentinel for unsigned types (see [50-interactive.md](50-interactive.md)); no other defects.
 
 Handoff: `02-customhash.hpp` (P013) fails to compile under the local GCC 14.4.1 (`rnd` is referenced inside its own `static inline` initializer, "'rnd' was not declared in this scope"), which breaks `98-basic.hpp`/`99-all.hpp` for `CXX=g++-14`; GCC 16.2 accepts it. The P229 suites include only their own headers and pass under g++-14; the fix belongs to a P013 re-audit.
+
+## P075 package record (MI23)
+
+Implemented 2026-10-13: `34-slope_trick.hpp` with `SlopeTrick` (unit heaps), `WeightedSlopeTrick` (treap, the row's weighted-multiplicity variant, with an exact `+INF` domain) and `DualSlopeTrick` (conjugate heaps). Adopted from the 2026-10-13 sweep: `addLinear` (all three), `size`, `restrictDomain`/`domain`, `clampSlope`, `minPlusConvolution`, non-destructive `O(log n)` `evaluate`, weighted adds, treap-union `merge`. Evidence: [34-slope_trick.md](34-slope_trick.md). No online submission was made.
+
+Omitted, one reason each:
+- Meldable-heap `merge` (OI Wiki, USACO Guide): binary heaps cannot meld, and a leftist heap only merges one-sided functions; treap union gives the same `O(n log n)` total over a merge tree for two-sided functions.
+- `restrictDomain`, `clampSlope` and `minPlusConvolution` on `SlopeTrick`: they delete or re-rank the far end of a binary heap. `WeightedSlopeTrick` provides them.
+- `fromPoints`, `segmentFunc` (MAS): `addLinear` plus one weighted `addXMinusA` per breakpoint.
+- `convolveSegment(s, w)` (MAS super): exactly `addLinear(-s)`, `slide(0, w)`, `addLinear(s)` on `WeightedSlopeTrick`.
+- `sumAll` (MAS super): repeated `merge`.
+- `breakpoints`/`lines` iteration (SUI): solution recovery uses `argminRange` with backward clamping; `SlopeTrick` exposes `left`, `right`, `addl`, `addr`.
+- `slopeAt(x)`: `evaluate(x + 1) - evaluate(x)` on the integer domain.
+- `clear` (NYA): assign a default-constructed object.
+- Floating-point `WeightedSlopeTrick`: splitting real weights at a real `wl` is ill-conditioned under rounding. `SlopeTrick<double>` covers real positions with unit slopes.
+- `DualSlopeTrick::evaluate` and `min`: conjugate evaluation costs `O(n)`. Use `shift` with `atZero`, or `WeightedSlopeTrick`.
+- `DualSlopeTrick::addAbs`: `addXMinusA` plus `addAMinusX`, same cost. `DualSlopeTrick::restrictDomain`: it deletes the extreme slopes, the far ends of the binary heaps. `DualSlopeTrick::merge`: the conjugate of a sum is the infimal convolution of the conjugates, which binary heaps cannot form. `WeightedSlopeTrick` provides all three.
+- TKO negative-argument sliding maximum: not convexity-preserving.
