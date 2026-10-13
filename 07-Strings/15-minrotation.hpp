@@ -18,7 +18,7 @@ namespace rotation_detail {
         return {min(i, j), k == n && n ? abs(i - j) : n};}
 } // namespace rotation_detail
 
-// T: O(n), M: O(1); ordered symbols (char as unsigned), n <= INT_MAX / 2; smallest start, Indices adds the gap p between equal starts (p = n when unique).
+// T: O(n), M: O(1); ordered symbols (char as unsigned), n <= INT_MAX / 2; smallest start; minRotationIndices also returns the gap p between equal starts (p = n when unique).
 template<class S> pair<int, int> minRotationIndices(const S &s) { return rotation_detail::extreme(s, false); }
 template<class S> int maxRotation(const S &s) { return rotation_detail::extreme(s, true).first; }
 template<class S> S canonicalRotation(S s) { std::rotate(s.begin(), s.begin() + minRotationIndices(s).first, s.end()); return s; }
