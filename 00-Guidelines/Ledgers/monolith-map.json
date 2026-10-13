@@ -778,22 +778,21 @@
       "symbols": [
         "WaveletMatrix"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [
-        "Retains original sentinel/overflow conventions; internal BitVec stays inside the unchanged struct."
+        "Legacy x - 1 bounds overflowed at INT64_MIN and used closed ranges with INF64 sentinels; the rewrite uses rank bounds, half-open ranges and bool status."
       ],
       "body_sha256": "f0bf8a0289f91fe41769060fea0066690ebcab29da6433b5b41447d097ca177a",
       "body_bytes": 4321,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P029 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 3651,
       "end_line": 3817,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 7,
-      "target_body_end_line": 173
+      "verification": "02-Data Structures/Docs/17-waveletmatrix.md"
     },
     {
       "source": "OLD/algorithms.cpp",

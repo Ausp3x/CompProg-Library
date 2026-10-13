@@ -23,6 +23,7 @@ Decided by the user from 2026-10-10 to 2026-10-13; binding, and only the user ch
 - **P004, P005** (decided 2026-10-11; run P004 first): Montgomery `powMont` and `pow` take a 128-bit (`ulll`) exponent, and Barrett64's Mersenne-61 fold becomes one constexpr static helper (P004). `modint_detail::powerMontgomery` becomes a `noinline` one-line call to `Montgomery64(m).pow(a, e)` with the 512 threshold re-measured, and `fold61`/`Context::red` call the Barrett64 fold (P005). Done 2026-10-12; the one-liner was superseded the same day by cached contexts (`10-decisions.md`).
 - **P104** `08-Python` row `_33_twosat.py` (planned): `solve` leaves the row (decided 2026-10-13); `satisfiable` is the only form, as in C++ (`04-python.md`, operations keep the library's names). Done 2026-10-13.
 - **P174** row 82 (planned): the general-graph b-matching is named `generalBMatching`, so it no longer shares the name of row 21's bipartite `bMatching` (decided 2026-10-13). Done 2026-10-13.
+- **P029** row 17 (decided 2026-10-13): the rewritten `WaveletMatrix` takes `MergeSortTree`'s names for the same queries (`countLess`, `countRange` for `rangeFreq`, `countEqual` for `cntEql`, 0-based `kth` for `kthMin`, inclusive `maxLeq`/`minGeq` with a `bool` status); `prevValue`, `nextValue` and `WaveletTree` leave the row, and the planned `rectangleFold` is named `prod` as in row 15. Row 25: `TwoHeapMedian` leaves the row and `PrioritySum` gains `boundary()` (the k-th largest kept value) and `sumRest` (the sum of the values not kept); `MinMaxQueue` (SWAGQueue over a min/max monoid) and `RingDeque` (`std::deque`) leave the row. Done 2026-10-13.
 
 ### Keeps
 
@@ -47,6 +48,10 @@ Items a reader could mistake for duplicates.
 | P011, P043 | `kosarajuScc`, `kuhn` | Different algorithms from `tarjanScc`, `hopcroftKarp` |
 | P012 | `ternSearch`, `ternSearchRealBracket` | Different algorithms from `fibSearch`, `goldenSearchRealBracket` |
 | P012 | `binSearch(ok, ng, f)` | Decided 2026-10-11: one orientation-free call for the common ok/ng idiom; the replacement needs `lastTrue` or `firstTrue` by orientation plus a result mapping |
+| P029 | `WaveletMatrix::countEqual`, `kth`/`kthMax`, inclusive `maxLeq`/`minGeq` | Named special case; mirrors (ruling 3); decided 2026-10-13: the only predecessor/successor forms |
+| P029 | `rectangleCount`, `rectangleSum` (point sets) | Decided 2026-10-13: larger domain (arbitrary signed x with duplicates, weights), non-legacy builder |
+| P029 | `WaveletMatrix::rank(r, x)` | Decided 2026-10-13: the succinct prefix operation that the `countEqual` keep specializes, as `Fenwick::prefixSum` beside `sum` |
+| P029 | `WaveletMatrixMonoid::prod` beside row 15 `SegmentTree2DSparse::prod` | Decided 2026-10-13: different algorithm (wavelet levels with per-level segment trees); same name for the same rectangle fold |
 | P012 | `LinearSieve::getPhi`, `getMu`, `getNumDiv`, `getSumDiv` | Reuse the sieve's `spf` table |
 | P012 | `PrimeCombinatorics` fields `fac`, `inv_fac` | Data, direct indexing |
 | P012 | `permuWR`; the `ballot` `strict` flag | Named count (0 for negative b); variant inside one operation |
@@ -459,21 +464,16 @@ Pruned 2026-10-12.
 | `polygon_distance_detail::touch`, `nearest` | `17-polygon_distance.hpp:40-49` | the test inside `segmentDistanceApprox` (`02-line_segment.hpp:160-163`); `pointSegmentDistanceApprox` | keep | internal helpers (decided 2026-10-11) | — | — |
 | `halfplane_detail::vertex`; `polygonKernel` | `10-halfplaneintersection.hpp:40-42,151` | `intersect(…).p`; `polygonKernelLinear` | keep | detail helper; different algorithm, user decision 2026-10-10 (`Docs/00-notes.md:67`) | — | — |
 
-## P029 — 02-Data Structures — waveletmatrix, treap, heap deque (planned)
+## P029 — 02-Data Structures — waveletmatrix, treap, heap deque (verified)
 
-`17-waveletmatrix.hpp` is pinned.
+Pruned 2026-10-13.
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `cntRan` | `17-waveletmatrix.hpp:125` | `rangeFreq(l, r + 1, x1, x2 + 1)`; at `x2 = INT64_MAX`, `(r - l + 1) - countLess(l, r + 1, x1)` | ask | the closed bound reaches `x2 = INT64_MAX`, which half-open `rangeFreq` cannot express | none | `99-all.hpp:18` |
-| `cntEql` | `17-waveletmatrix.hpp:119` | `rank(r + 1, x) - rank(l, x)` | keep | named special case, as `MergeSortTree::countEqual` (clarified rule) | none | — |
-| `kthMin` | `17-waveletmatrix.hpp:134` | `kthMax(l, r + 1, r - l + 1 - k)` (0-based) | keep | mirror of `kthMax` (ruling 3) | none | — |
-| `maxLeq`, `minGeq` | `17-waveletmatrix.hpp:158,166` | `prevValue`, `nextValue` on `[l, r + 1)` | ask | the same as `prevValue`, `nextValue` only if those are inclusive | none | — |
-| `BitVec` (`set`, `build`, `rank0`, `rank1`) | `17-waveletmatrix.hpp:12-40` | row 40 `SuccinctBitVector` | remove (row only) | helper; the bit-vector API belongs to row 40 | none | — |
-| row 25: `BinaryHeap` | row 25 | `DAryHeap<2>` (alias kept, `erase` moves) | remove (row only) | second implementation | — | — |
-| row 17: `rectangleCount`, `rectangleSum (point sets)` | row 17 | `rangeFreq` after an x-sorted build and binary search | ask | builder or larger domain (arbitrary x) | — | — |
-| row 17: `WaveletTree` | row 17 | `WaveletMatrix` | ask | pointer wavelet tree: different algorithm? | — | — |
-| row 25: `MinMaxQueue`, `TwoHeapMedian`, `RingDeque` | row 25 | `SWAGQueue` (min, max); `PrioritySum`; `std::deque` | ask | duplicates unless each is a different algorithm | — | — |
+| `cntEql` (now `countEqual`) | `17-waveletmatrix.hpp:75` | `rank(r, x) - rank(l, x)` | keep | named special case, as `MergeSortTree::countEqual` (clarified rule) | none | — |
+| `kthMin` (now `kth`) | `17-waveletmatrix.hpp:81` | `kthMax(l, r, r - l - 1 - k)` | keep | mirror of `kthMax` (ruling 3) | none | — |
+| `maxLeq`, `minGeq` | `17-waveletmatrix.hpp:90,96` | `prevValue`, `nextValue` | keep | decided 2026-10-13: inclusive with a `bool` status as `MergeSortTree`; `prevValue`, `nextValue` leave the row instead | none | — |
+| `rectangleCount`, `rectangleSum` (point sets) | `17-waveletmatrix.hpp:141-142` | `countRange`/`sumLess` after an x-sorted build and binary search | keep | decided 2026-10-13: larger domain (arbitrary signed x, weights) | — | — |
 
 ## P045 — 04-Graphs — min cost flow (planned)
 
@@ -1306,7 +1306,6 @@ All decided.
 - **P020** move the floating branches to `solveReal`, `invReal`, `rankReal`, or drop those entries? `StaticMatrix`: is a compile-time shape a different domain? `rowSpace`, `colSpace`: another basis? The 8-lane REDC in `mulRow`, `elimRow`: the same as `Montgomery32` `mul8`, `red8`, or an assert-free lazy variant like Poly's kept `Mont8`? `Matrix(vector, axis)` and the vector products: an empty vector gives 0×0 here and 1×0 or 0×1 from `Matrix(1, n, v)`; is that difference real?
 - **P022** GF(2) `-=`, `-`: keep for generic ring code?
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
-- **P029** row 17 `rectangleCount`, `rectangleSum (point sets)`: is arbitrary x a different domain? `WaveletTree`: a different algorithm? Row 25 `MinMaxQueue`, `TwoHeapMedian`, `RingDeque`: which algorithms? Row 17 `cntRan`: its closed bound reaches `x2 = INT64_MAX`, which `rangeFreq` cannot express; keep it? `maxLeq`, `minGeq`: will `prevValue`, `nextValue` be inclusive?
 - **P045** `bellmanFordPotentials`, `pathReconstruction`: the residual initialiser and a different decomposition, or wrappers?
 - **P053** keep `sqrtModPrime` beside Core `ModInt::sqrt`, and the narrow `discreteLog`, `jacobiSymbol`?
 - **P085** `mutableLcp`: the same query as `PointUpdateHash::lcp`? `distinctSubstringsPerPrefix`: does row 22 take integer sequences (the suffix automaton takes `string_view` only)?

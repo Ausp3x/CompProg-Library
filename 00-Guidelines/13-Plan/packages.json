@@ -714,9 +714,13 @@
       "phase": "Contest core",
       "size": "L+L+L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": "Defect in the pinned 17-waveletmatrix.hpp body, fix in the rewrite: cntEql, cntRan, maxLeq and minGeq compute x - 1 and overflow at x = INT64_MIN."
+      "status": "verified",
+      "evidence": [
+        "02-Data Structures/Docs/17-waveletmatrix.md",
+        "02-Data Structures/Docs/19-treap.md",
+        "02-Data Structures/Docs/25-heap_deque.md"
+      ],
+      "note": ""
     },
     {
       "id": "P045",
