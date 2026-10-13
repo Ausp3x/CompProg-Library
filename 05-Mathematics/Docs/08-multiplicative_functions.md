@@ -63,6 +63,8 @@ CXX=g++-14 python3 '96-Local Testing/05-Mathematics/08-multiplicative_functions_
 python3 '96-Local Testing/05-Mathematics/08-multiplicative_functions_tester.py' --mode stress --seed 1          # PASS, 3 configurations: 1,088,377 C++ checks and 20,001 Python cases each
 ```
 
+2026-10-13 (P052 prune, which changed the included `07-primality_factorization.hpp`): full mode with seed 1 passed again on g++ and `CXX=g++-14`, 3 configurations, the same 350,193 C++ checks and 4,001 Python cases each, 10 probes; MEMORY peak 474 / 487 MB.
+
 The first full run failed under UBSan with signed overflow in `dirichletInverseTable` on random `lng` input. That is a test-domain error: integer Dirichlet inverses grow exponentially. The test now uses wrapping `ulng` and modint, and the contract states the overflow responsibility. The header and tester build with no warnings under `-Wall -Wextra -Wconversion`, including two translation units.
 
 `@reviewer` (2026-10-09) found no defect. Its note that `DivisorArray::index` asserts once per prime of `n` was rejected: the check is `O(1)` per prime, does not change the `O(omega(n) + log(d))` bound, and is not inside an element loop.

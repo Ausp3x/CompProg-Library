@@ -45,8 +45,7 @@ int main(int argc, char **argv) {
                 vector<tuple<lng, lng, lng>> eqs(k);
                 for (auto &[a, b, m] : eqs) { cin >> a >> b >> m; }
                 auto r = crtScaled(eqs);
-                auto legacy = superChiRemThm(eqs);
-                cout << r.value << ' ' << r.modulus << ' ' << r.ok << ' ' << r.overflow << ' ' << legacy.fi << ' ' << legacy.se << '\n';
+                cout << r.value << ' ' << r.modulus << ' ' << r.ok << ' ' << r.overflow << '\n';
                 continue;}
             vector<pair<lng, lng>> c(k);
             for (auto &[a, m] : c) { cin >> a >> m; }
@@ -99,7 +98,6 @@ int main(int argc, char **argv) {
         auto ws = bruteScaled(eqs);
         auto rs = crtScaled(eqs);
         check(sameResult(rs, ws), "crtScaled round " + std::to_string(it));
-        check(superChiRemThm(eqs) == (ws.fi < 0 ? pair<lng, lng>{-1, -1} : ws), "superChiRemThm round " + std::to_string(it));
         bool coprime = true;
         for (int i = 0; i < k; ++i) { for (int j = 0; j < i; ++j) { coprime &= gcd(c[i].se, c[j].se) == 1; } }
         vector<lng> d{42};
@@ -112,7 +110,7 @@ int main(int argc, char **argv) {
             x += d[i] * pre; pre *= c[i].se;}
         check(int(d.size()) == k && x == want.fi, "garnerDigits reconstruction" + tag);}
     check(sameResult(crt({}), {0, 1}) && garner({}, 7) == 0 && crtMod({}, 7) == 0 && crtMod({{5, 9}}, 1) == 0, "empty systems");
-    cout << "PASS crt, crtScaled, superChiRemThm, garner, garnerDigits, crtMod on " << rounds << " random systems\n";
+    cout << "PASS crt, crtScaled, garner, garnerDigits, crtMod on " << rounds << " random systems\n";
 
     const lng P = 9223372036854775783LL, Q = 4611686018427387847LL;
     auto r = crt2(5, P, 7, 3);

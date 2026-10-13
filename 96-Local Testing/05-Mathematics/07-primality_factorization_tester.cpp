@@ -50,11 +50,11 @@ vector<ulng> coarsestBase(const vector<ulng> &a) {
     sort(res.begin(), res.end()); return res;}
 void checkComposite(ulng n, const vector<ulng> &ps) {
     string tag = " n=" + str(n);
-    check(!isPrime(n) && !millerRabin64(n) && !isPrimeCompact(n) && !millerRabin64Compact(n), "composite accepted" + tag);
-    vector<ulng> got = primeFactors(n), want = ps;
+    check(!isPrime(n) && !isPrimeCompact(n), "composite accepted" + tag);
+    vector<ulng> got, compact, want = ps;
     sort(want.begin(), want.end());
+    for (auto [p, e] : factorize(n)) { got.insert(got.end(), e, p); }
     check(got == want, "factorize composite" + tag);
-    vector<ulng> compact;
     for (auto [p, e] : factorizeCompact(n)) { compact.insert(compact.end(), e, p); }
     check(compact == want, "factorizeCompact composite" + tag);
     ulng d = pollardRhoBrent(n, 7);
@@ -68,7 +68,6 @@ int main(int argc, char **argv) {
         if (s == "factorize-zero") { factorize(0); }
         if (s == "compact-zero") { factorizeCompact(0); }
         if (s == "trial-zero") { factorizeTrial(0); }
-        if (s == "primefactors-zero") { primeFactors(0); }
         if (s == "divisors-zero") { divisors(ulng(0)); }
         if (s == "count-zero") { divisorCount(0); }
         if (s == "sum-zero") { divisorSum(0); }
@@ -81,8 +80,8 @@ int main(int argc, char **argv) {
         string op; ulng n;
         while (cin >> op >> n) {
             if (op == "p") {
-                cout << isPrime(n) << ' ' << millerRabin64(n) << ' ' << pollardRhoBrent(n, n ^ 99) << ' ';
-                cout << isPrimeCompact(n) << ' ' << millerRabin64Compact(n) << ' ' << pollardRhoBrentCompact(n, n ^ 99) << '\n';
+                cout << isPrime(n) << ' ' << pollardRhoBrent(n, n ^ 99) << ' ';
+                cout << isPrimeCompact(n) << ' ' << pollardRhoBrentCompact(n, n ^ 99) << '\n';
                 continue;}
             if (op == "t") { cout << isPrimeTrial(n) << '\n'; continue; }
             auto f = factorize(n), fc = factorizeCompact(n);
@@ -92,9 +91,6 @@ int main(int argc, char **argv) {
             cout << f.size();
             for (auto [p, e] : f) { cout << ' ' << p << ' ' << e; }
             cout << ' ' << divisorCount(n) << ' ' << str(divisorSum(n)) << ' ' << isPrimePower(n) << ' ' << isSquarefree(n) << ' ' << radical(n);
-            auto pf = primeFactors(n);
-            cout << ' ' << pf.size();
-            for (ulng p : pf) { cout << ' ' << p; }
             if (op == "d") {
                 auto ds = divisors(n);
                 cout << ' ' << ds.size();
@@ -116,8 +112,8 @@ int main(int argc, char **argv) {
     for (int n = 0; n <= lim; ++n) {
         bool want = sv[n], spf = isPrimeSpf(ulng(n), ls);
         string tag = " n=" + std::to_string(n);
-        check(isPrime(ulng(n)) == want && millerRabin64(ulng(n)) == want && spf == want, "primality" + tag);
-        check(isPrimeCompact(ulng(n)) == want && millerRabin64Compact(ulng(n)) == want, "Compact primality" + tag);
+        check(isPrime(ulng(n)) == want && spf == want, "primality" + tag);
+        check(isPrimeCompact(ulng(n)) == want, "Compact primality" + tag);
         if (n <= flim) { check(isPrimeTrial(ulng(n)) == want, "isPrimeTrial" + tag); }}
     cout << "PASS primality exhaustive through " << lim << '\n';
 
@@ -129,10 +125,9 @@ int main(int argc, char **argv) {
         string tag = " n=" + std::to_string(n);
         auto f = trialFactor(u);
         check(factorize(u) == f && factorizeTrial(u) == f && factorizeCompact(u) == f, "factorize" + tag);
-        vector<ulng> pf;
         ulng rad = 1; lng cnt = 1; ulll sum = 1; bool sqf = true;
         for (auto [p, e] : f) {
-            pf.insert(pf.end(), e, p); rad *= p; cnt *= e + 1; sqf &= e == 1;
+            rad *= p; cnt *= e + 1; sqf &= e == 1;
             ulll s = 1, pk = 1;
             for (int k = 0; k < e; ++k) { pk *= p; s += pk; }
             sum *= s;}
@@ -140,7 +135,7 @@ int main(int argc, char **argv) {
         ulll dsum = 0;
         for (ulng d : ds) { dsum += d; }
         check(lng(ds.size()) == dcount[n] && dsum == sum, "brute divisor oracle" + tag);
-        check(primeFactors(u) == pf && divisors(u) == ds && divisors(f) == ds, "primeFactors/divisors" + tag);
+        check(divisors(u) == ds && divisors(f) == ds, "divisors" + tag);
         check(divisorCount(u) == cnt && divisorSum(u) == dsum, "divisorCount/divisorSum" + tag);
         check(isPrimePower(u) == (f.size() == 1 ? f[0].fi : 0), "isPrimePower" + tag);
         check(isSquarefree(u) == sqf && radical(u) == rad, "isSquarefree/radical" + tag);
@@ -158,10 +153,10 @@ int main(int argc, char **argv) {
     for (ulng b : {2ULL, 7ULL, 61ULL, 325ULL, 9375ULL, 28178ULL, 450775ULL, 9780504ULL, 1795265022ULL}) {
         for (ulng d : trialDivisors(b)) {
             bool want = trialPrime(d);
-            check(isPrime(d) == want && millerRabin64(d) == want && isPrimeCompact(d) == want && millerRabin64Compact(d) == want, "base divisor n=" + str(d));}}
+            check(isPrime(d) == want && isPrimeCompact(d) == want, "base divisor n=" + str(d));}}
     for (ulng n : {2047ULL, 1373653ULL, 25326001ULL, 3215031751ULL, 2152302898747ULL, 3474749660383ULL, 341550071728321ULL,
                    3825123056546413051ULL, 4759123141ULL, 1122004669633ULL, 561ULL, 41041ULL, 825265ULL, 321197185ULL}) {
-        check(!isPrime(n) && !millerRabin64(n) && !isPrimeTrial(n) && !isPrimeCompact(n) && !millerRabin64Compact(n), "pseudoprime accepted n=" + str(n));
+        check(!isPrime(n) && !isPrimeTrial(n) && !isPrimeCompact(n), "pseudoprime accepted n=" + str(n));
         auto f = trialFactor(n);
         check(factorize(n) == f && factorizeTrial(n) == f && factorizeCompact(n) == f, "pseudoprime factorization n=" + str(n));}
     int carmichael = 0;

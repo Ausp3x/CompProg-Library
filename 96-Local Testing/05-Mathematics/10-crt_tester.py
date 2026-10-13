@@ -4,7 +4,7 @@ C++: crt2, CrtIncremental and crtMod for every pair of moduli through 12 (quick)
 or 28 (stress) and residues across three periods, against enumeration of [0, lcm); 2000 /
 30000 / 150000 random systems of 0..4 congruences with moduli <= 12 (half of them
 consistent by construction) for crt, crtMod, crtScaled with signed coefficients,
-superChiRemThm, garner and garnerDigits (status on shared factors, untouched output on
+garner and garnerDigits (status on shared factors, untouched output on
 failure, digit ranges and mixed-radix reconstruction); empty systems, lcm overflow, an
 inconsistency detected before overflow, extreme residues, sticky failure of CrtIncremental,
 and signedRepresentative for m <= 50 and |x| <= 200 against enumeration plus 128-bit
@@ -96,9 +96,7 @@ def oracle(binary, args, env):
                 if b % g: pairs = None; break
                 mg = m // g
                 pairs.append((b // g * pow(a // g, -1, mg) % mg if mg > 1 else 0, mg))
-            want = [0, 0, 0, 0] if pairs is None else fold(pairs)
-            want += [want[0], want[1]] if want[2] else [-1, -1]
-            ok = got == want
+            ok = got == ([0, 0, 0, 0] if pairs is None else fold(pairs))
         else:
             res = fold(c)
             whole = (0, 1)

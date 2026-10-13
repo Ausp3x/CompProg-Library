@@ -10,7 +10,7 @@ struct CrtResult {
     bool ok = false, overflow = false;
 };
 
-// T: O(log(min(m1, m2))), M: O(1); m1, m2 >= 1, all lng residues, any moduli.
+// T: O(log(min(m1, m2))) for crt2, O(k * log(max(m))) for k congruences, M: O(1) (crtScaled O(k)); moduli >= 1, any lng residues, x = a_i or a_i * x = b_i, empty gives {0, 1}.
 inline CrtResult crt2(lng a1, lng m1, lng a2, lng m2) {
     assert(m1 >= 1 && m2 >= 1);
     a1 = modNorm(a1, m1); a2 = modNorm(a2, m2);
@@ -21,8 +21,6 @@ inline CrtResult crt2(lng a1, lng m1, lng a2, lng m2) {
     if (__builtin_mul_overflow(m1, m, &l)) { return {0, 0, false, true}; }
     lng t = modNorm(lll(d / g) * x, m);
     return {a1 + m1 * t, l, true, false};}
-
-// T: O(k * log(max(m))), M: O(k); k congruences x = a_i or a_i * x = b_i mod m_i >= 1, empty gives {0, 1}, legacy {-1, -1} on failure.
 inline CrtResult crt(const vector<pair<lng, lng>> &cong) {
     CrtResult res{0, 1, true, false};
     for (auto [a, m] : cong) {
@@ -35,9 +33,6 @@ inline CrtResult crtScaled(const vector<tuple<lng, lng, lng>> &eqs) {
         cong.pb(solveModEq(a, b, m));
         if (cong.back().se < 0) { return {}; }}
     return crt(cong);}
-inline pair<lng, lng> superChiRemThm(const vector<tuple<lng, lng, lng>> &eqs) {
-    auto r = crtScaled(eqs);
-    return r.ok ? pair<lng, lng>{r.value, r.modulus} : pair<lng, lng>{-1, -1};}
 
 // T: O(k^2 + k * log(max(m))), M: O(k); pairwise coprime m_i >= 1, digits d_i in [0, m_i) or false; garner: least solution mod `mod` >= 1 or -1.
 inline bool garnerDigits(const vector<pair<lng, lng>> &cong, vector<lng> &digits) {

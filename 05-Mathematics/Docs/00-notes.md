@@ -6,7 +6,7 @@ Contracts and ownership rules moved out of the inventory on 2026-10-06. The inve
 
 - `verified` rows are backed by the linked per-header evidence documents (`Docs/01-mod_arithmetic.md` … `Docs/06-segmentedsieve.md`); every operation in the row has a test with an independent oracle and recorded commands.
 - `partial` rows keep their evidence link; the `missing:` list is planned work, not a defect in the verified part.
-- `legacy-reference` rows have an archived implementation in `OLD/5-Mathematics` and no active header; names listed in the row are the intended active API, and legacy names (`modLog` multiplier form, `superChiRemThm`) remain available under the new header.
+- `legacy-reference` rows have an archived implementation in `OLD/5-Mathematics` and no active header; names listed in the row are the intended active API, and the legacy `modLog` multiplier form remains available under the new header.
 - `planned` rows name the API that would be implemented; nothing in them establishes compliance.
 - P012 verified the six MA01/MA02 foundation headers and re-audited them on 2026-10-07, completing the previously missing `01-mod_arithmetic.hpp` operations; see the per-header documents [01](01-mod_arithmetic.md)–[06](06-segmentedsieve.md) and the package record below.
 
@@ -126,9 +126,9 @@ Adopted: `factorizeTrial` (legacy `getPrimeFacSlow`), `divisors` from a factoriz
 | MA03 | `07-primality_factorization.hpp` | [07-primality_factorization.md](07-primality_factorization.md): deterministic u64 Miller–Rabin and Brent rho on Core `Montgomery64` (benchmark: factorization 33–36% faster than `__int128 %`), factorizations, divisors, prime powers, coarsest coprime base, highly composite search. |
 | MA04 | `08-multiplicative_functions.hpp` | [08-multiplicative_functions.md](08-multiplicative_functions.md): point functions, the linear-sieve multiplicative hook and its tables, Dirichlet tables, divisor arrays. |
 | MA04 | `09-modinverse.hpp` | [09-modinverse.md](09-modinverse.md): extended Euclid, Fermat and Pierce inverses, linear table, batch and zero-tolerant inverses, `i^k` table. |
-| MA04 | `10-crt.hpp` | [10-crt.md](10-crt.md): status CRT with overflow detection, scaled congruences, Garner digits and target reduction, non-coprime CRT modulo a target, incremental form, legacy `superChiRemThm`. |
+| MA04 | `10-crt.hpp` | [10-crt.md](10-crt.md): status CRT with overflow detection, scaled congruences, Garner digits and target reduction, non-coprime CRT modulo a target, incremental form. |
 
-Compact rerun (2026-10-09, after P231): `07` now has dependency-free `millerRabin64Compact`, `isPrimeCompact`, `pollardRhoBrentCompact` and `factorizeCompact`. Its algorithms are templates over a product functor, so they are written once. Headers `08`–`10` use no Barrett or Montgomery directly (`09` is generic over the modint type), so they need no twins.
+Compact rerun (2026-10-09, after P231): `07` now has dependency-free `isPrimeCompact`, `pollardRhoBrentCompact` and `factorizeCompact`. Its algorithms are templates over a product functor, so they are written once. Headers `08`–`10` use no Barrett or Montgomery directly (`09` is generic over the modint type), so they need no twins.
 
 Incident: a first oracle row sent `n = 0` to the optimized (`-DNDEBUG`) `factorize`, whose stripped precondition left an infinite `push_back` loop. Memory growth killed the user's editor. The loops in `factorize`, `factorizeTrial` and `coprimeBase` now terminate on 0, the oracle sends only valid inputs, and every later run used `systemd-run --user --scope -p MemoryMax=... -p MemorySwapMax=0`.
 

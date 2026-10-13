@@ -26,14 +26,12 @@ namespace primality_detail {
         while (above(r)) { --r; }
         while (!above(r + 1)) { ++r; }
         return r;}
-    // T: O(log(n)) products (7 bases above 2^32, 3 below), M: O(1); odd n >= 5, mul and form share one residue representation.
+    // T: O(log(n)) products (7 bases above 2^32, 3 below), M: O(1); odd n > 61, so every base lies in [2, n), mul and form share one residue representation.
     template<typename Mul, typename Form>
     bool strongProbablePrime(ulng n, Mul mul, Form form) {
         int s = std::countr_zero(n - 1);
         ulng d = (n - 1) >> s, one = form(1), neg = form(n - 1);
         auto witness = [&](ulng a) {
-            a %= n;
-            if (a == 0) { return false; }
             ulng x = one, b = form(a);
             for (ulng e = d; e; e >>= 1) {
                 if (e & 1) { x = mul(x, b); }
@@ -99,16 +97,13 @@ inline bool isPrimeTrial(ulng n) {
     for (ulng i = 5; i <= n / i; i += 6) { if (n % i == 0 || n % (i + 2) == 0) { return false; } }
     return true;}
 
-// T: O(log(n)) products, M: O(1); all ulng, deterministic; Compact twins use 128-bit remainders and no Core reduction.
-inline bool millerRabin64(ulng n) {
-    if (n < 4 || n % 2 == 0) { return n == 2 || n == 3; }
-    Montgomery64 mg(n);
-    return primality_detail::strongProbablePrime(n, primality_detail::montMul(mg), primality_detail::montForm(mg));}
-inline bool millerRabin64Compact(ulng n) {
-    if (n < 4 || n % 2 == 0) { return n == 2 || n == 3; }
-    return primality_detail::strongProbablePrime(n, primality_detail::plainMul(n), [](ulng a) { return a; });}
-inline bool isPrime(ulng n) { return primality_detail::isPrimeWith(n, millerRabin64); }
-inline bool isPrimeCompact(ulng n) { return primality_detail::isPrimeWith(n, millerRabin64Compact); }
+// T: O(log(n)) products, M: O(1); all ulng, deterministic Miller-Rabin; Compact twins use 128-bit remainders and no Core reduction.
+inline bool isPrime(ulng n) {
+    return primality_detail::isPrimeWith(n, [](ulng m) {
+        Montgomery64 mg(m);
+        return primality_detail::strongProbablePrime(m, primality_detail::montMul(mg), primality_detail::montForm(mg));});}
+inline bool isPrimeCompact(ulng n) {
+    return primality_detail::isPrimeWith(n, [](ulng m) { return primality_detail::strongProbablePrime(m, primality_detail::plainMul(m), [](ulng a) { return a; }); });}
 
 // T: O(1) when n <= s.n, else O(log(n)), M: O(1); table lookup with isPrime fallback.
 inline bool isPrimeSpf(ulng n, const LinearSieve &s) { return n <= ulng(s.n) ? s.spf[n] == lng(n) : isPrime(n); }
@@ -124,7 +119,7 @@ inline ulng pollardRhoBrentCompact(ulng n, ulng seed = 0, int budget = 64) {
     if (n % 2 == 0) { return 2; }
     return primality_detail::rho(n, seed, budget, primality_detail::plainMul(n), [](ulng a) { return a; });}
 
-// T: O(n^(1/4) * log(n)) expected, M: O(log(n)); n >= 1, ascending (prime, exponent) or primes with multiplicity, exact d(n) and sigma(n).
+// T: O(n^(1/4) * log(n)) expected, M: O(log(n)); n >= 1, ascending (prime, exponent), exact d(n) and sigma(n).
 inline vector<pair<ulng, int>> factorize(ulng n) {
     return primality_detail::factorizeWith(n, isPrime, [](ulng m, ulng &seed) {
         Montgomery64 mg(m);
@@ -132,10 +127,6 @@ inline vector<pair<ulng, int>> factorize(ulng n) {
 inline vector<pair<ulng, int>> factorizeCompact(ulng n) {
     return primality_detail::factorizeWith(n, isPrimeCompact, [](ulng m, ulng &seed) {
         return primality_detail::rho(m, seed, std::numeric_limits<int>::max(), primality_detail::plainMul(m), [](ulng a) { return a; });});}
-inline vector<ulng> primeFactors(ulng n) {
-    vector<ulng> res;
-    for (auto [p, e] : factorize(n)) { res.insert(res.end(), e, p); }
-    return res;}
 inline lng divisorCount(ulng n) {
     lng res = 1;
     for (auto [p, e] : factorize(n)) { res *= e + 1; }

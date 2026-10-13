@@ -1,11 +1,11 @@
 """Primality and factorization against independent C++ brute force and Python exact integers.
 
-Every check of millerRabin64, isPrime, pollardRhoBrent and factorize also runs on its
+Every check of isPrime, pollardRhoBrent and factorize also runs on its
 dependency-free Compact twin (no Montgomery), against the same independent oracles.
 C++ (all modes): exhaustive primality of every n through 100000 (quick), 2000000 (full) or
-10000000 (stress) against a separate sieve for isPrime, millerRabin64 and isPrimeSpf (table
+10000000 (stress) against a separate sieve for isPrime and isPrimeSpf (table
 below n/2, fallback above), isPrimeTrial through the factor bound; every n through 20000 /
-200000 / 1000000 for factorize, factorizeTrial, primeFactors, divisors (both overloads),
+200000 / 1000000 for factorize, factorizeTrial, divisors (both overloads),
 divisorCount, divisorSum, isPrimePower, isSquarefree, radical, pollardRhoBrent and
 maxDivisorCount (every n through 20000, then every 101st) against trial division, a separate
 divisor enumeration and a divisor-count sieve; every divisor of each Miller-Rabin base, named
@@ -17,7 +17,7 @@ Python oracle: random and structured 64-bit inputs (semiprimes of 20- to 32-bit 
 prime powers, Carmichael products, smooth numbers with full divisor lists only when d(n) <= 4096,
 boundaries) checked with a separate
 13-base Miller-Rabin, exact product reconstruction and divisor generation from the verified
-factorization. 11 assertion probes run in the checked build.
+factorization. 10 assertion probes run in the checked build.
 """
 import random
 import subprocess
@@ -87,7 +87,7 @@ def oracle(binary, args, env):
         if op == 'p':
             want = is_prime(n)
             proper = lambda d: d == 0 if (want or n < 4) else 1 < d < n and n % d == 0
-            ok = len(got) == 6 and got[:2] == got[3:5] == [want, want] and proper(got[2]) and got[5] == got[2]
+            ok = len(got) == 4 and got[0] == got[2] == want and proper(got[1]) and got[3] == got[1]
         elif op == 't': ok = got == [is_prime(n)]
         else:
             kc = got[0]
@@ -102,8 +102,7 @@ def oracle(binary, args, env):
             if ok:
                 cnt, sig, rad = 1, 1, 1
                 for q, e in f: cnt *= e + 1; sig *= (q ** (e + 1) - 1) // (q - 1); rad *= q
-                pf = [q for q, e in f for _ in range(e)]
-                want = [cnt, sig, f[0][0] if k == 1 else 0, int(all(e == 1 for _, e in f)), rad, len(pf)] + pf
+                want = [cnt, sig, f[0][0] if k == 1 else 0, int(all(e == 1 for _, e in f)), rad]
                 if op == 'd':
                     ds = [1]
                     for q, e in f: ds = [d * q ** j for d in ds for j in range(e + 1)]
@@ -114,5 +113,5 @@ def oracle(binary, args, env):
 
 
 if __name__ == '__main__':
-    raise SystemExit(main('07-primality_factorization', ['factorize-zero', 'compact-zero', 'trial-zero', 'primefactors-zero',
-        'divisors-zero', 'count-zero', 'sum-zero', 'squarefree-zero', 'radical-zero', 'base-zero', 'hcn-zero'], oracle))
+    raise SystemExit(main('07-primality_factorization', ['factorize-zero', 'compact-zero', 'trial-zero', 'divisors-zero',
+        'count-zero', 'sum-zero', 'squarefree-zero', 'radical-zero', 'base-zero', 'hcn-zero'], oracle))

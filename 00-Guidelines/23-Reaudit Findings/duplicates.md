@@ -370,12 +370,11 @@ Pruned 2026-10-13.
 
 ## P052 — 05-Mathematics — primality factorization, multiplicative functions, modinverse, crt (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `superChiRemThm` | `10-crt.hpp:38` | `crtScaled(eqs)` | remove | legacy name, pair with a sentinel | `10-crt_tester.cpp:48,102` | `10-crt.hpp:25`; `Docs/00-notes.md:9,129`; `Docs/10-crt.md` |
-| `millerRabin64`, `millerRabin64Compact` | `07-primality_factorization.hpp:103,107` | `isPrime`, `isPrimeCompact` (kernel into `primality_detail`) | remove | another name | `07-…_tester.cpp:53,84-85,119-120,161,164` | `07-…hpp:110-111` |
-| `primeFactors` | `07-primality_factorization.hpp:135` | `factorize(n)` flattened | remove | result shape | `07-…_tester.cpp:54,95,143`; probe `primefactors-zero` | none |
-| `CrtIncremental` | `10-crt.hpp:84` | `if (r.ok) { r = crt2(r.value, r.modulus, a, m); }` | keep | online form of `crt` (clarified rule) | `10-crt_tester.cpp:54,77-79,126-129`; probe `incremental-zero` | none |
+| `CrtIncremental` | `10-crt.hpp:79` | `if (r.ok) { r = crt2(r.value, r.modulus, a, m); }` | keep | online form of `crt` (clarified rule) | `10-crt_tester.cpp:53,76-78,124-127`; probe `incremental-zero` | none |
 | `inverseBatch` | `09-modinverse.hpp:36` | Core `batchInv(a, o)` | keep | larger domain: every modular type, minis included (decided 2026-10-11) | `09-modinverse_tester.cpp:23-25,85-90` | none |
 | `primality_detail::splitmix` | `07-primality_factorization.hpp:9` | `06-Miscellaneous/02-customhash.hpp:14` `splitMix64` | keep | internal helper; no cross-folder include (decided 2026-10-11) | — | — |
 | `inverseXgcd` | `09-modinverse.hpp:7` | `modPow(a, -1, m)` | keep | named special case | — | — |
