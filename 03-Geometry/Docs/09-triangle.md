@@ -21,7 +21,7 @@ Exact homogeneous weights `w` relative to `(a, b, c)` with denominator `d > 0` a
 - `area2()` is the signed twice-area, CCW positive. `area()` is its absolute half. `sides()` gives the side lengths opposite `(a, b, c)` in that order, and `perimeter()` their sum. `centroid()` is the vertex average. All five are defined for collinear and collapsed triangles.
 - `barycentric(p, out)`: normalized signed-area coordinates of a finite `p`. Returns false when the computed area is zero.
 - `fromBarycentric(w, out)`: finite homogeneous weights, possibly negative, normalized by their computed sum. Returns false when the sum is zero (a point at infinity). A degenerate triangle still reconstructs a point.
-- `circumcircle`, `incircle`, `circumcenter`, `incenter`, `circumradius`, `inradius`, `orthocenter`: wrappers over the GE02 constructors `circumcircleApprox` and `incircleApprox`. They return false on a computed-degenerate triangle. Right, acute and obtuse triangles are supported; the orthocenter of a right triangle is its right-angle vertex.
+- `orthocenter(out)`: built from the GE02 circumcenter (`circumcircleApprox`). Returns false on a computed-degenerate triangle. Right, acute and obtuse triangles are supported; the orthocenter of a right triangle is its right-angle vertex.
 - `excircle(opposite, out)`: `opposite` is the vertex index 0, 1 or 2 (asserted). `out.c` is the excenter and `out.r` the exradius. Returns false when the twice-area computed from the opposite vertex, `cross(u, v)`, is zero. No step cancels beyond `cross` and `dot` themselves. When these are exact (for example integer coordinates with differences below 2^31, possibly scaled by a power of two), the exradius is accurate to a few ulp, even for thin triangles with huge answers. Otherwise rounding in `cross` gives a relative error of O(eps * L^2 / |area2|), where `L` is the longest side, which is the problem's own conditioning. The center has absolute error O(eps * (|o| + r * L^2 / |area2|)). The intermediate `k = r / |cross(u, v)|` must be finite. It overflows only when |area2| < about 1e-2466 * L^2, and then the `CircleApprox` constructor asserts.
 - `ninePointCircle(out)`: center halfway between the circumcenter and orthocenter, radius `R / 2`. Returns false on a computed-degenerate triangle.
 - A thin triangle can have side lengths that round to an exact equality even though its determinant is nonzero. A side-only query cannot recover that lost information.
@@ -43,11 +43,19 @@ Exact homogeneous weights `w` relative to `(a, b, c)` with denominator `d > 0` a
 
 Integral differences have magnitude at most 2 * 10^9, so every determinant and dot product is at most 8 * 10^18 and fits `lll`. Centroid numerators are at most 3 * 10^9. The barycentric numerators are the three oriented subtriangle areas. Their sum equals the full determinant, and their coordinate-weighted sum equals the full determinant times the query point. `angleKind` uses the fact that the angle at a vertex is acute, right or obtuse exactly when the dot product of its two edge vectors is positive, zero or negative. At most one angle is non-acute, so the smallest dot product decides the triangle.
 
-The floating barycentrics use the same signed-area identities, and the affine reconstruction translates to the first vertex before applying the other two weights. GE02's circumcircle solves the equal-distance equations. Its incircle uses side-length weights and the radius twice-area / perimeter. The orthocenter identity `H = A + B + C - 2 * O` satisfies each altitude equation; the code translates by `A` to avoid cancellation from a common offset. The nine-point center is `(O + H) / 2` with radius `R / 2`.
+The floating barycentrics use the same signed-area identities, and the affine reconstruction translates to the first vertex before applying the other two weights. GE02's `circumcircleApprox` solves the equal-distance equations. The orthocenter identity `H = A + B + C - 2 * O` satisfies each altitude equation; the code translates by `A` to avoid cancellation from a common offset. The nine-point center is `(O + H) / 2` with radius `R / 2`.
 
 Excircle opposite `o`: let `u` and `v` be the edges to the other two vertices, `x = |v|`, `y = |u|`, `z = |v - u|`, `s = cross(u, v)` and `w = dot(u, v)`. The excenter is `o + (u * x + v * y) / (x + y - z)` with radius `|s| / (x + y - z)` (weights `(-z, x, y)`). Since `(x + y)^2 - z^2 = 2 * (x * y + w)`, the gap is `x + y - z = 2 * g / (x + y + z)` with `g = x * y + w`. When `w >= 0`, `g` is a sum of nonnegative terms. When `w < 0`, `x * y + w = s^2 / (x * y - w)`, from `x^2 * y^2 = w^2 + s^2`. That form is evaluated as `s / (x * y - w) * s`, so neither branch cancels and no intermediate exceeds the size of `area2`. The code multiplies by `k = (x + y + z) / (2 * g)` instead of dividing by the gap. A direct `min(x, y) - (z - max(x, y))` would lose about `log2(L^2 / gap)` bits. This form stays within 2.5 ulp of `(sqrt(1 + h^2) + 1) / h` from `h = 1e-1` down to `1e-2000`.
 
 Heron sorts `a >= b >= c`, then tests `c - (a - b)`: negative is impossible and zero is degenerate. Otherwise it evaluates Kahan's grouping, `16 * area^2 = (a + (b + c)) * (c - (a - b)) * (c + (a - b)) * (a + (b - c))`. `frexp` splits each factor into a mantissa in [1/2, 1) and an exponent. The four mantissas multiply to a value in [1/16, 1), and the exponents add in an `int`. An odd exponent is made even before the square root, and `scalbn` applies the remaining power of two and the division by four. This avoids an overflowing or underflowing quartic product, and it never normalizes by the largest side, which could erase a tiny third side. The Kahan parentheses require ordinary floating semantics with no unsafe reassociation flags.
+
+### Legacy mapping
+
+| Removed (prune, 2026-10-13) | Replacement |
+|---|---|
+| `t.circumcircle(out)`, `t.incircle(out)` | `circumcircleApprox(t.a, t.b, t.c, out)`, `incircleApprox(t.a, t.b, t.c, out)` |
+| `t.circumcenter(p)`, `t.circumradius(r)` | `.c`, `.r` of `circumcircleApprox(t.a, t.b, t.c, out)` |
+| `t.incenter(p)`, `t.inradius(r)` | `.c`, `.r` of `incircleApprox(t.a, t.b, t.c, out)` |
 
 ## Feature-to-test map
 
@@ -61,13 +69,12 @@ Entry: [09-triangle_tester.py](<../../96-Local Testing/03-Geometry/09-triangle_t
 | `Triangle2::barycentric`, `Barycentric2` w, d, approx | Independent subdeterminants; positive denominator, exact partition of unity and weighted reconstruction; outside and vertex points; unchanged output on degeneracy |
 | `Triangle2::approx`, `TriangleApprox` area2, area, sides, perimeter, centroid | Exact agreement on the binary integer corpus, the 3-4-5 values, opposite-vertex side order, orientation, scaling and the independent mean |
 | `TriangleApprox` barycentric, fromBarycentric | Exact rational weights across the grid and fixture corpus, vertex Kronecker weights, random round trips and affine invariance, signed and negated weights, zero sums, degenerate reconstruction and output aliasing |
-| circumcircle, circumcenter, circumradius | Known right-triangle values, equal vertex distances, `4 * area * R = a * b * c`, all six vertex permutations and similarities |
-| incircle, incenter, inradius | Known values, interior orientation, equal side-line distances, `r * perimeter = 2 * area`, permutations and similarities |
+| `circumcircleApprox`, `incircleApprox` on triangles (the removed methods' cases, Legacy mapping) | Known right-triangle values; equal vertex distances and `4 * area * R = a * b * c`; interior orientation, equal side-line distances and `r * perimeter = 2 * area`; all six vertex permutations, similarities and scaled triangles; thin triangles (circumcircle only); unchanged output on degeneracy; output center passed as a vertex |
 | orthocenter | Altitude perpendicularity, right-triangle vertex, Euler-line identity and conditioned thin-isosceles formulas |
 | excircle | Python Decimal reference from the direct gap at 200 digits or more: exradius within 64 eps relative, excenter within the conditioning bound above. Thin obtuse closed form `(sqrt(1 + h^2) + 1) / h` within 8 eps, for `h` from `1e-1` to `1e-2000`. Product identity `r_a * r_b * r_c = r * s^2` and sum identity `r_a + r_b + r_c = 4 * R + r` within 512 eps relative; equal distances to all three side lines; halfplane placement; the three 3-4-5 answers |
 | ninePointCircle | Side midpoints, altitude feet and vertex-orthocenter midpoints on the circle; center and radius identities |
 | heronAreaApprox | Exact `Fraction` classification and Heron factors with a Decimal square root; side permutations, impossible, degenerate and zero sides, exactly degenerate dyadic sides, nearly degenerate sides, huge and tiny scales, mixed exponents; direct subnormal regressions |
-| State and preconditions | Defaults, copy and move, public-field mutation, vertex and radius-output aliasing, every bool no-answer preserving output; 17 checked-build assertion probes for coordinate bounds, degenerate `angleKind`, nonfinite points and weights, bad excircle indices, unrepresentable exradius, invalid sides, Heron factor overflow and unrepresentable areas |
+| State and preconditions | Defaults, copy and move, public-field mutation, vertex-output aliasing, every bool no-answer preserving output; 17 checked-build assertion probes for coordinate bounds, degenerate `angleKind`, nonfinite points and weights, bad excircle indices, unrepresentable exradius, invalid sides, Heron factor overflow and unrepresentable areas |
 
 Approximate constructions without a tighter oracle use a scaled absolute or relative residual of 4e-13, with conditioned equations for very thin, small or large triangles. Heron uses a purely relative 8e-16 against Decimal references of up to 11,000 digits. These are test tolerances, not certified error bounds. Exact answers are compared as integers or rationals before any conversion.
 
@@ -79,28 +86,26 @@ Approximate constructions without a tighter oracle use a scaled absolute or rela
 
 ## Commands and results
 
-2026-10-07, Linux x86-64, GCC 16.2.1 and the floor compiler GCC 14.4.1 20260915 (`/usr/bin/g++-14`), Python 3.14, GNU++20.
+P009 prune run, 2026-10-13: Linux x86-64, i9-11900H, GCC 16.2.1 20260810 and the floor compiler GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, GNU++20.
 
 | Command | Result |
 |---|---|
-| Full, seed 20260927 (optimized, checked, ASan/UBSan) | PASS, 576,007 checks per configuration, 17 assertion probes |
-| Full, seed 20260927, `CXX=g++-14` | PASS, 576,007 checks per configuration, 17 assertion probes |
-| Full, seeds 1 to 6, optimized | PASS |
-| Stress, seed 42, optimized | PASS, 8,240,487 checks |
-| Quick, seed 1 | PASS, 110,055 checks in two configurations |
-| Two-translation-unit program, optimized and ASan/UBSan; header alone under `-Wall -Wextra -Wconversion` | PASS, no warnings |
-| Two-translation-unit program, `g++-14 -Wall -Wextra -Wconversion` | Builds without warnings, runs correctly |
-| Mutation: the direct gap formula | Fails the Decimal fixtures, the product identity alone and the closed-form loop |
-| `03-consistency.py --braces` on header and tester | Clean |
-| `@reviewer`: full seeds 1, 7, 12345 and quick seed 3 | PASS |
+| Full, seed 20261013 (optimized, checked, ASan/UBSan) | PASS, 561,896 checks per configuration, 17 assertion probes; 39 s, peak 484 MB |
+| Full, seed 20261013, `CXX=g++-14` | PASS, 561,896 checks per configuration, 17 assertion probes; peak 497 MB |
+| Stress, seed 42, optimized | PASS, 8,156,466 checks; peak 346 MB |
+| Quick, seed 1 | PASS, 109,334 checks in two configurations; peak 379 MB |
+| `02-integration.py` | PASS, 135 standalone and aggregate headers, scalar and available AVX2 multiple-translation-unit builds, workspace; peak 650 MB |
+| `03-consistency.py`; `--braces` on header and tester | No errors; no closing-brace, comment-cap or free-function violations |
+| `@reviewer`: bit-exact old-versus-new comparison of the kept methods and every replacement form on 200,000 triangles (38,643 degenerate) under ASan/UBSan; quick seed 3 | No defects; one test-map wording fix |
+
+Check counts are below the 2026-10-07 run's because the comparisons of the removed methods against the circles they forwarded are gone; every other case is unchanged or moved to `circumcircleApprox` and `incircleApprox`.
 
 ```bash
-python3 '96-Local Testing/03-Geometry/09-triangle_tester.py' --mode full --seed 20260927
-CXX=g++-14 python3 '96-Local Testing/03-Geometry/09-triangle_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/03-Geometry/09-triangle_tester.py' --mode full --seed 1 --configuration optimized   # likewise seeds 2-6
+python3 '96-Local Testing/03-Geometry/09-triangle_tester.py' --mode full --seed 20261013
+CXX=g++-14 python3 '96-Local Testing/03-Geometry/09-triangle_tester.py' --mode full --seed 20261013
 python3 '96-Local Testing/03-Geometry/09-triangle_tester.py' --mode stress --seed 42 --configuration optimized
 python3 '96-Local Testing/03-Geometry/09-triangle_tester.py' --mode quick --seed 1
-python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/09-triangle.hpp '96-Local Testing/03-Geometry/09-triangle_tester.cpp'
 python3 '96-Local Testing/03-consistency.py'
 ```
@@ -122,3 +127,4 @@ The row covers planar single-triangle measurements, coordinates, the angle kind 
 
 - 2026-09-27: original P009, full suite (seed 20260927, 560,820 checks, 16 probes) passed on g++ 16.
 - 2026-10-07: re-audit, added `angleKind`; 4 findings fixed (excircle gap cancellation, Heron oracle misclassifying dyadic degenerate sides, `; }` closings, excircle contract conditioning); full suite passed on g++ and g++-14.
+- 2026-10-13: prune, removed `TriangleApprox` circumcircle, incircle, circumcenter, incenter, circumradius and inradius (cases moved to `circumcircleApprox` and `incircleApprox`); full suite passed on g++ and g++-14.

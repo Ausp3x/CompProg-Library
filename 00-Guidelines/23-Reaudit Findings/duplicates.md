@@ -159,11 +159,11 @@ Pruned 2026-10-12.
 
 ## P009 — 03-Geometry — triangle (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `Triangle2::areaApprox` | `09-triangle.hpp:77` | `abs(t.area2()) / 2.L` | keep | derived formula: half the absolute doubled area (clarified rule) | `09-triangle_tester.cpp:46` | none |
-| `TriangleApprox::circumcircle(out)`, `incircle(out)` | `09-triangle.hpp:40-41` | `circumcircleApprox(t.a, t.b, t.c, out)`, `incircleApprox(…)` | remove | another name | `09-triangle_tester.cpp:197-198,217,253,275-277,285-294` | `09-triangle.hpp:50-52,63-66` |
-| `circumcenter`, `incenter`, `circumradius`, `inradius` | `09-triangle.hpp:42-49` | `.c`, `.r` of the free constructors | remove | projected field with an out-parameter | `09-triangle_tester.cpp:134-137,159-160,169-171,192-196,202-203,216-221` | none |
 | `TriangleApprox::area()` | `09-triangle.hpp:23` | `abs(area2()) / 2` | keep | derived formula: half the absolute doubled area (clarified rule) | `09-triangle_tester.cpp:130,187,206` | none |
 
 ## P010 — 04-Graphs — graph, traversal, toposort, dsu, shortest path, mst (verified)

@@ -130,12 +130,12 @@ void basic() {
     require(triangle.area2() == 12 && triangle.area() == 6 && triangle.perimeter() == 12, "3-4-5 area/perimeter");
     require(triangle.sides() == array<long double, 3>{5, 3, 4}, "side order is opposite a,b,c");
     closePoint(triangle.centroid(), {4.L / 3, 1}, "floating centroid");
-    dpoint p; long double radius;
-    require(triangle.circumcenter(p), "right circumcenter exists"); closePoint(p, {2, 1.5L}, "right circumcenter");
-    require(triangle.incenter(p), "right incenter exists"); closePoint(p, {1, 1}, "right incenter");
+    dpoint p; CircleApprox circle;
+    require(circumcircleApprox(triangle.a, triangle.b, triangle.c, circle), "right circumcircle exists");
+    closePoint(circle.c, {2, 1.5L}, "right circumcenter"); require(circle.r == 2.5L, "right circumradius", "2.5", show(circle.r));
+    require(incircleApprox(triangle.a, triangle.b, triangle.c, circle), "right incircle exists");
+    closePoint(circle.c, {1, 1}, "right incenter"); require(circle.r == 1, "right inradius", "1", show(circle.r));
     require(triangle.orthocenter(p), "right orthocenter exists"); closePoint(p, {}, "right orthocenter");
-    require(triangle.circumradius(radius) && radius == 2.5L && triangle.inradius(radius) && radius == 1, "right triangle radii");
-    CircleApprox circle;
     array<dpoint, 3> excenters{dpoint{6, 6}, dpoint{-2, 2}, dpoint{3, -3}};
     array<long double, 3> exradii{6, 2, 3};
     for (int i = 0; i < 3; ++i) {
@@ -156,19 +156,18 @@ void basic() {
             TriangleApprox q = triangle; array<dpoint *, 3> vertices{&q.a, &q.b, &q.c};
             dpoint &out = *vertices[i]; bool ok = false; dpoint expected;
             if (operation == 0) { expected = {4, 3}; ok = q.fromBarycentric({-2, 2, 2}, out); }
-            if (operation == 1) { expected = {2, 1.5L}; ok = q.circumcenter(out); }
-            if (operation == 2) { expected = {1, 1}; ok = q.incenter(out); }
-            if (operation == 3) { expected = {}; ok = q.orthocenter(out); }
+            if (operation == 1) { expected = {}; ok = q.orthocenter(out); }
             require(ok, "successful vertex-alias operation=" + std::to_string(operation));
             closePoint(out, expected, "successful vertex-alias result");};
-        for (int operation = 0; operation < 4; ++operation) { aliasCheck(operation); }
+        for (int operation = 0; operation < 2; ++operation) { aliasCheck(operation); }
         TriangleApprox q = triangle; array<dpoint *, 3> vertices{&q.a, &q.b, &q.c};
         dpoint before = *vertices[i];
-        require(!q.fromBarycentric({1, -1, 0}, *vertices[i]) && *vertices[i] == before, "failed vertex-alias reconstruction unchanged");}
-    TriangleApprox radius_alias = triangle;
-    require(radius_alias.circumradius(radius_alias.a.x) && radius_alias.a.x == 2.5L, "circumradius aliases coordinate");
-    radius_alias = triangle;
-    require(radius_alias.inradius(radius_alias.b.y) && radius_alias.b.y == 1, "inradius aliases coordinate");
+        require(!q.fromBarycentric({1, -1, 0}, *vertices[i]) && *vertices[i] == before, "failed vertex-alias reconstruction unchanged");
+        // Vertex i is read from the output circle's center.
+        CircleApprox o(before, 7); array<const dpoint *, 3> in{&q.a, &q.b, &q.c}; in[i] = &o.c;
+        require(circumcircleApprox(*in[0], *in[1], *in[2], o) && o.r == 2.5L, "circumcircle output aliases vertex"); closePoint(o.c, {2, 1.5L}, "center-alias circumcenter");
+        o = {before, 7};
+        require(incircleApprox(*in[0], *in[1], *in[2], o) && o.r == 1, "incircle output aliases vertex"); closePoint(o.c, {1, 1}, "center-alias incenter");}
     long double side_alias = 3; require(heronAreaApprox(side_alias, 4, 5, side_alias) && side_alias == 6, "Heron output aliases input");
     long double tiny = std::numeric_limits<long double>::denorm_min();
     for (int multiple : {2, 4, 8}) {
@@ -188,19 +187,15 @@ void basic() {
         weights = {7, 9, 11}; require(!degenerate.barycentric({3, 4}, weights) && weights == array<long double, 3>{7, 9, 11}, "degenerate barycentric unchanged");
         require(degenerate.fromBarycentric({1, 1, 1}, p), "degenerate homogeneous reconstruction exists");
         closePoint(p, degenerate.centroid(), "degenerate reconstruction centroid", big);
-        p = {7, 9}; radius = 123; circle = {{7, 9}, 123};
-        require(!degenerate.circumcenter(p) && p == dpoint(7, 9), "degenerate circumcenter unchanged");
-        require(!degenerate.incenter(p) && p == dpoint(7, 9), "degenerate incenter unchanged");
+        p = {7, 9}; circle = {{7, 9}, 123};
         require(!degenerate.orthocenter(p) && p == dpoint(7, 9), "degenerate orthocenter unchanged");
-        require(!degenerate.circumradius(radius) && radius == 123, "degenerate circumradius unchanged");
-        require(!degenerate.inradius(radius) && radius == 123, "degenerate inradius unchanged");
-        require(!degenerate.circumcircle(circle) && circle.c == dpoint(7, 9) && circle.r == 123, "degenerate circumcircle unchanged");
-        require(!degenerate.incircle(circle) && circle.c == dpoint(7, 9) && circle.r == 123, "degenerate incircle unchanged");
+        require(!circumcircleApprox(degenerate.a, degenerate.b, degenerate.c, circle) && circle.c == dpoint(7, 9) && circle.r == 123, "degenerate circumcircle unchanged");
+        require(!incircleApprox(degenerate.a, degenerate.b, degenerate.c, circle) && circle.c == dpoint(7, 9) && circle.r == 123, "degenerate incircle unchanged");
         require(!degenerate.ninePointCircle(circle) && circle.c == dpoint(7, 9) && circle.r == 123, "degenerate nine-point circle unchanged");
         for (int i = 0; i < 3; ++i) { require(!degenerate.excircle(i, circle) && circle.c == dpoint(7, 9) && circle.r == 123, "degenerate excircle unchanged"); }
-        dpoint before = degenerate.a;
-        require(!degenerate.circumcenter(degenerate.a) && degenerate.a == before, "failed vertex-alias circumcenter unchanged");
-        require(!degenerate.incenter(degenerate.a) && degenerate.a == before, "failed vertex-alias incenter unchanged");
+        dpoint before = degenerate.a; circle = {before, 123};
+        require(!circumcircleApprox(circle.c, degenerate.b, degenerate.c, circle) && circle.c == before && circle.r == 123, "failed center-alias circumcircle unchanged");
+        require(!incircleApprox(circle.c, degenerate.b, degenerate.c, circle) && circle.c == before && circle.r == 123, "failed center-alias incircle unchanged");
         require(!degenerate.orthocenter(degenerate.a) && degenerate.a == before, "failed vertex-alias orthocenter unchanged");}
     TriangleApprox copied = triangle, shifted = std::move(copied); shifted.a = {1, 0};
     require(shifted.area() == 4.5L && triangle.area() == 6, "floating copy/move and public vertex mutation");}
@@ -212,14 +207,10 @@ void constructions(TriangleApprox t) {
     close(area, std::abs(area2) / 2, "unsigned area orientation");
     for (int i = 0; i < 3; ++i) { close(sides[i], length(v[(i + 1) % 3] - v[(i + 2) % 3]), "opposite side length"); }
     close(t.perimeter(), sides[0] + sides[1] + sides[2], "perimeter");
-    CircleApprox circum, incircle, nine;
-    dpoint circumcenter, incenter, orthocenter; long double cr, ir;
-    require(t.circumcircle(circum) && t.incircle(incircle) && t.ninePointCircle(nine), "all triangle circles exist");
-    require(t.circumcenter(circumcenter) && t.incenter(incenter) && t.orthocenter(orthocenter), "all named centers exist");
-    require(t.circumradius(cr) && t.inradius(ir), "both radii exist");
-    closePoint(circumcenter, circum.c, "circumcenter wrapper"); closePoint(incenter, incircle.c, "incenter wrapper");
-    close(cr, circum.r, "circumradius wrapper"); close(ir, incircle.r, "inradius wrapper");
-    long double big = max({scale, cr, length(orthocenter)});
+    CircleApprox circum, incircle, nine; dpoint orthocenter;
+    require(circumcircleApprox(t.a, t.b, t.c, circum) && incircleApprox(t.a, t.b, t.c, incircle) && t.ninePointCircle(nine), "all triangle circles exist");
+    require(t.orthocenter(orthocenter), "orthocenter exists");
+    long double cr = circum.r, ir = incircle.r, big = max({scale, cr, length(orthocenter)});
     closePoint(t.centroid(), (t.a + t.b + t.c) / 3.L, "centroid independent mean", scale);
     closePoint(orthocenter + 2.L * circum.c, 3.L * t.centroid(), "Euler line identity", big);
     long double product = 1, sum = 0;
@@ -250,7 +241,7 @@ void constructions(TriangleApprox t) {
     array<int, 3> permutation{0, 1, 2};
     for (bool more = true; more; more = std::next_permutation(permutation.begin(), permutation.end())) {
         TriangleApprox q(v[permutation[0]], v[permutation[1]], v[permutation[2]]); CircleApprox cc, ii;
-        require(q.circumcircle(cc) && q.incircle(ii), "permuted circles exist");
+        require(circumcircleApprox(q.a, q.b, q.c, cc) && incircleApprox(q.a, q.b, q.c, ii), "permuted circles exist");
         closePoint(cc.c, circum.c, "six-permutation circumcenter", big); close(cc.r, cr, "six-permutation circumradius", big);
         closePoint(ii.c, incircle.c, "six-permutation incenter", scale); close(ii.r, ir, "six-permutation inradius", scale);
         close(q.area(), area, "six-permutation unsigned area", area);}}
@@ -272,9 +263,9 @@ void randomChecks(int count) {
         close(transformed.area(), 4 * t.area(), "similarity area"); close(transformed.perimeter(), 2 * t.perimeter(), "similarity perimeter");
         closePoint(transformed.centroid(), f(t.centroid()), "similarity centroid");
         CircleApprox before, after;
-        require(t.circumcircle(before) && transformed.circumcircle(after), "similarity circumcircle exists");
+        require(circumcircleApprox(t.a, t.b, t.c, before) && circumcircleApprox(transformed.a, transformed.b, transformed.c, after), "similarity circumcircle exists");
         closePoint(after.c, f(before.c), "similarity circumcenter", before.r * 2); close(after.r, 2 * before.r, "similarity circumradius");
-        require(t.incircle(before) && transformed.incircle(after), "similarity incircle exists");
+        require(incircleApprox(t.a, t.b, t.c, before) && incircleApprox(transformed.a, transformed.b, transformed.c, after), "similarity incircle exists");
         closePoint(after.c, f(before.c), "similarity incenter"); close(after.r, 2 * before.r, "similarity inradius");
         array<long double, 3> other; require(transformed.barycentric(f(p), other), "similarity barycentric exists");
         for (int j = 0; j < 3; ++j) { close(other[j], w[j], "affine-invariant barycentric weights"); }}
@@ -282,8 +273,8 @@ void randomChecks(int count) {
         TriangleApprox t({}, {4 * scale, 0}, {0, 3 * scale}); CircleApprox c; dpoint p;
         context = "scaled right triangle scale=" + show(scale);
         close(t.area() / scale / scale, 6, "scaled area"); close(t.perimeter() / scale, 12, "scaled perimeter");
-        require(t.circumcircle(c), "scaled circumcircle"); close(c.r / scale, 2.5L, "scaled circumradius");
-        require(t.incircle(c), "scaled incircle"); close(c.r / scale, 1, "scaled inradius");
+        require(circumcircleApprox(t.a, t.b, t.c, c), "scaled circumcircle"); close(c.r / scale, 2.5L, "scaled circumradius");
+        require(incircleApprox(t.a, t.b, t.c, c), "scaled incircle"); close(c.r / scale, 1, "scaled inradius");
         require(t.excircle(0, c), "scaled excircle"); close(c.r / scale, 6, "scaled exradius");
         require(t.orthocenter(p), "scaled orthocenter"); closePoint(p / scale, {}, "scaled orthocenter value");
         require(t.ninePointCircle(c), "scaled nine-point circle"); close(c.r / scale, 1.25L, "scaled nine-point radius");}
@@ -291,7 +282,7 @@ void randomChecks(int count) {
         TriangleApprox t({}, {2, 0}, {1, h}); CircleApprox c; dpoint p;
         context = "thin isosceles triangle height=" + show(h);
         close(t.area() / h, 1, "thin area");
-        require(t.circumcircle(c), "thin circumcircle exists"); close(c.c.x, 1, "thin circumcenter x");
+        require(circumcircleApprox(t.a, t.b, t.c, c), "thin circumcircle exists"); close(c.c.x, 1, "thin circumcenter x");
         close(c.c.y * h, (h * h - 1) / 2, "thin circumcenter conditioned y");
         require(t.orthocenter(p), "thin orthocenter exists"); close(p.x, 1, "thin orthocenter x"); close(p.y * h, 1, "thin orthocenter conditioned y");}
     // Opposite the apex of ({0,0},{2,0},{1,h}): center (1,-r), r = h / (sqrt(1+h^2) - 1) = (sqrt(1+h^2) + 1) / h.

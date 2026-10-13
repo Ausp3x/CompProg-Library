@@ -37,18 +37,8 @@ struct TriangleApprox {
         if (d == 0) { return false; }
         out = a + (b - a) * (w[1] / d) + (c - a) * (w[2] / d); return true;}
 
-    bool circumcircle(CircleApprox &out) const { return circumcircleApprox(a, b, c, out); }
-    bool incircle(CircleApprox &out) const { return incircleApprox(a, b, c, out); }
-    bool circumcenter(dpoint &out) const {
-        CircleApprox q; if (!circumcircle(q)) { return false; } out = q.c; return true;}
-    bool incenter(dpoint &out) const {
-        CircleApprox q; if (!incircle(q)) { return false; } out = q.c; return true;}
-    bool circumradius(long double &out) const {
-        CircleApprox q; if (!circumcircle(q)) { return false; } out = q.r; return true;}
-    bool inradius(long double &out) const {
-        CircleApprox q; if (!incircle(q)) { return false; } out = q.r; return true;}
     bool orthocenter(dpoint &out) const {
-        CircleApprox q; if (!circumcircle(q)) { return false; }
+        CircleApprox q; if (!circumcircleApprox(a, b, c, q)) { return false; }
         out = a + ((b - a) + (c - a) - (q.c - a) * 2.L); return true;}
     bool excircle(int opposite, CircleApprox &out) const {
         assert(0 <= opposite && opposite < 3);
@@ -61,7 +51,7 @@ struct TriangleApprox {
         long double g = w >= 0 ? x * y + w : s / (x * y - w) * s, k = (x + y + z) / (2 * g);
         out = CircleApprox(o + (u * x + v * y) * k, std::abs(s) * k); return true;}
     bool ninePointCircle(CircleApprox &out) const {
-        CircleApprox q; if (!circumcircle(q)) { return false; }
+        CircleApprox q; if (!circumcircleApprox(a, b, c, q)) { return false; }
         dpoint v = q.c - a;
         out = CircleApprox(a + ((b - a) + (c - a) - v) / 2.L, q.r / 2); return true;}
 };
