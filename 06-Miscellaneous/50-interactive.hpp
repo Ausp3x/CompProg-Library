@@ -26,7 +26,6 @@ struct Interactive {
         bool first = true;
         (put(a, first), ...);
         out << '\n';}
-    void flushNow() { out.flush(); }
     template<class R = lng, class... A>
     R ask(const A &...a) {
         assert(used < budget);
@@ -35,24 +34,24 @@ struct Interactive {
     template<class... A>
     void answer(const A &...a) {
         writeLine(a...);
-        flushNow();}
+        out.flush();}
 
     template<class T = lng>
     T readReply() {
         if constexpr (std::is_integral_v<T> && sizeof(T) > 1 && std::is_unsigned_v<T>) { assert(!error); }
-        flushNow();
+        out.flush();
         T x{};
         if (!(in >> x)) { judgeErrorExit(); }
         if constexpr (std::is_integral_v<T> && sizeof(T) > 1 && std::is_signed_v<T>) {
             if (error && x == *error) { judgeErrorExit(); }}
         return x;}
     string readLine() {
-        flushNow();
+        out.flush();
         string s;
         if (!std::getline(in >> std::ws, s)) { judgeErrorExit(); }
         if (!s.empty() && s.back() == '\r') { s.pop_back(); }
         return s;}
     [[noreturn]] void judgeErrorExit() {
-        flushNow();
+        out.flush();
         std::exit(0);}
 };

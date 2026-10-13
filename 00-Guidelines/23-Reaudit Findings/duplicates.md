@@ -215,12 +215,13 @@ Pruned 2026-10-12.
 
 ## P229 — 06-Miscellaneous — timer, interactive, grid utilities (verified)
 
+Pruned 2026-10-13.
+
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `flushNow()` | `50-interactive.hpp:29` | `io.out.flush()` | remove | another name | `50-interactive_tester.cpp:109-110` | `50-interactive.hpp:37,43,50,56` |
 | `elapsedUs`, `elapsedSec` | `49-timer.hpp:12,14` | `lng(t.elapsedMs() * 1000)`, `t.elapsedMs() / 1000` | keep | another unit (decided 2026-10-11) | `49-timer_tester.cpp:30-37,83-86` | none |
 | `elapsed()` | `49-timer.hpp:11` | `elapsedMs()`; `Timer::Clock::now() - t.start` for a duration | keep | another unit and type, a duration (decided 2026-10-11) | `49-timer_tester.cpp:30-37` | `49-timer.hpp:13` (`elapsedMs` inlines it) |
-| `answer(a…)` | `50-interactive.hpp:35-38` | `writeLine` plus flush | keep | named special case, unbudgeted | — | — |
+| `answer(a…)` | `50-interactive.hpp:34-37` | `writeLine` plus flush | keep | named special case, unbudgeted | — | — |
 | `Dice::top()` … `bottom()` | `51-grid_utilities.hpp:59-64` | `d.f[Dice::TOP]` … | keep | accessors of a public data member (as `size()`, `val()`) | — | — |
 
 ## P016 — 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength (verified)

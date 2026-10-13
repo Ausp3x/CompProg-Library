@@ -105,9 +105,9 @@ void fixedCases() {
         h.io.writeLine("pre");
         checkEqual(h.io.readReply(), 1LL, "readReply after writeLine");
         h.io.writeLine("mid", 1);
+        h.io.out.flush();
+        checkEqual(h.ob.pending, string(), "out.flush publishes");
         checkEqual(h.io.readReply(), 2LL, "second read");
-        h.io.flushNow();
-        checkEqual(h.ob.pending, string(), "flushNow publishes");
         h.io.writeLine("x");
         checkEqual(h.io.ask('?'), 3LL, "ask after a pending line");
         h.io.writeLine("y");
