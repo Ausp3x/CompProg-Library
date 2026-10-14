@@ -48,7 +48,7 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 - `OLD/algorithms.cpp:1402–1477` DSU mixed connectivity, weighted distances, parity and edge counts, and narrowed `lng` to `int`. Basic `DSU` keeps `n/ncon/par/siz`; weighted unions, `dis`, `esz`, `is_bip`, `getDis`, `getEsiz`, `isBipartite` belong to `29-weighteddsu.hpp` (potential/parity) and `09-rollbackdsu.hpp`/Graphs (component metadata).
 - Unchanged extractions (`18`, `21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit (P027 split `FenTree` into `Fenwick2D`/`Fenwick3D` and replaced `FenTreeRangeAdd1D`, `SegTree` and the `Mon*` presets; P028 replaced `SegTreeBeats`, `SegTree2D` and `DynMergeSortTree`; P029 replaced `WaveletMatrix`; see the row 11–17 evidence); the Basic `Fenwick` and `SegmentTree` names were chosen to avoid collisions with `FenTree` and lazy `SegTree`.
 - `97-Legacy/02-sqrtdecomp.cpp` (invalid defaults, clamped inclusive ranges, unused lazy array) is superseded by `06-sqrt_decomposition.hpp`; only its diagnostic printer remains unported. `97-Legacy/04-lichao_older.cpp` is a query-less hull skeleton, `97-Legacy/01-monset.cpp` is a placeholder scaffold. Delete a legacy file only after its owning row accounts for every feature.
-- `OLD/Team Notebook/src/ds/impltreap.cpp` informed row 19 (P029, see [19-treap.md](19-treap.md)) and `cartesiantree.cpp` is the legacy reference for row 27; `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` contain `DynamicMex` (row 24) and `LcaO1` (covered by Graphs `07-lca.hpp` `EulerLCA`; row 54 `LinearRMQ` is the array form).
+- `OLD/Team Notebook/src/ds/impltreap.cpp` informed row 19 (P029, see [19-treap.md](19-treap.md)) and `cartesiantree.cpp` informed row 27 (P033, see [27-cartesiantree.md](27-cartesiantree.md)); `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` contain `DynamicMex` (row 24) and `LcaO1` (covered by Graphs `07-lca.hpp` `EulerLCA`; row 54 `LinearRMQ` is the array form).
 - The sparse-table public `v` storage changed from a flat padded array to valid rows; clients use query methods.
 
 ## P006 re-audit omissions
@@ -166,6 +166,25 @@ Candidates from the 2026-10-13 sweep ([00-sources.md](00-sources.md#fetched-2026
 - `decreaseKey` on `BinomialHeap`/`LeftistHeap` and handle `erase` on the leftist, skew, randomized and binomial heaps (OI, CPA, HIT): they need parent pointers or handle-moving key swaps; `PairingHeap` and `FibonacciHeap` cover handles with better bounds.
 - Heap pool `clear`, sorted dumps, lazy multiply tags, `DAryHeap` push-or-decrease (HIT, SUI, MAS, OI): a new object, popping a copy, rare, and `contains` with `push`/`decreaseKey`.
 - Brodal and soft heaps: no catalog implementation.
+
+## P033 omissions
+
+Candidates from the 2026-10-14 sweep ([00-sources.md](00-sources.md#fetched-2026-10-14-p033-sweep)) left out of rows 26, 27, 28 and 33:
+
+- Binary trie meld (OI, NYA): merging in amortized O(total nodes) needs tries sharing one node pool; small-to-large insertion gives O(n log(n) B).
+- LSB-first trie with global +1 and subtree xor sums (OI): a different bit orientation for one problem family (P6623).
+- kth xor pair and the count of pairs with xor below t (HIT, yukicoder 2977): the count is n `countLess` calls; the parallel descent for the kth pair is rare.
+- Range xored mex (SUI): a wavelet-like structure, not a trie; rare.
+- Index payloads per key and ordered enumeration (EI, NYA, MAS): a map beside the trie; enumeration is `kth` for each rank at the same bound.
+- Per-query xor masks on `BinaryTrie::kth`, `countLess`, `lowerBound` (EI, MAS, SUI): `applyXor` around the query; `PersistentBinaryTrie` takes the mask because versions are immutable.
+- Weighted subarray counts by minimum (MAS `count_subrectangle`): `(i - l + 1) * (r - i)` from `range`; depth or traversal arrays: no catalog offers them.
+- DisjointSparseTable `maxRight`/`minLeft` (MAS): a binary search over `fold` gives the same O(log(n)) bound.
+- Blocked static range product with naive in-block queries (MAS `Static_Range_Product`): O(2^LOG) in-block queries; `staticRangeProducts` answers offline in O(n + q) memory.
+- Xor-indexed disjoint sparse table, 2D associative products on a segment tree (MAS): rare; row 15 covers commutative rectangle products.
+- Alon–Schieber O(α(n)) semigroup queries after linear preprocessing: research-level, no contest implementation.
+- Higher-order coefficient queries `[x^p y^q] f / ((1 - x)^A (1 - y)^B)` (MAS `coefficient_query_2d`): A = B = 1 and A = B = 2 are the engine's kernels; higher orders are rare.
+- Online rectangle-add rectangle-sum and rectangle-add point-get on registered points (SUI, MAS): row 33 sweeps offline, row 11 `Fenwick2DRangeAdd` is the dense online case (as recorded in the P027 and P028 omissions).
+- K-dimensional compressed, dynamic 2D and block-decomposed Fenwick trees (SUI, NYA, OI): online structures; row 11 would own them if a motivating problem appears.
 
 ## Planned-row omissions
 

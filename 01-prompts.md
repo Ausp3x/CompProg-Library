@@ -59,7 +59,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P029 — DS09, DS10, DS48** (opus, L+L+L): 02-Data Structures — waveletmatrix, treap, heap deque. Status: verified. [evidence](<02-Data Structures/Docs/17-waveletmatrix.md>) [evidence](<02-Data Structures/Docs/19-treap.md>) [evidence](<02-Data Structures/Docs/25-heap_deque.md>)
 - [x] **P045 — GR09** (opus, XL): 04-Graphs — min cost flow. Status: verified. [evidence](04-Graphs/Docs/20-min_cost_flow.md)
 - [x] **P075 — MI23** (opus, L): 06-Miscellaneous — slope trick. Status: verified. [evidence](06-Miscellaneous/Docs/34-slope_trick.md)
-- [ ] **P033 — DS13, DS29** (opus, L+L): 02-Data Structures — trie, cartesiantree, disjointsparsetable, offline rectangle queries. Status: planned.
+- [x] **P033 — DS13, DS29** (opus, L+L): 02-Data Structures — trie, cartesiantree, disjointsparsetable, offline rectangle queries. Status: verified. [evidence](<02-Data Structures/Docs/26-trie.md>) [evidence](<02-Data Structures/Docs/27-cartesiantree.md>) [evidence](<02-Data Structures/Docs/28-disjointsparsetable.md>) [evidence](<02-Data Structures/Docs/33-offline_rectangle_queries.md>)
 - [ ] **P056 — GR06** (opus, L): 04-Graphs — centroiddecomposition, treeisomorphism. Status: planned.
 - [ ] **P053 — MA05** (opus, L): 05-Mathematics — discrete log root. Status: planned.
 - [ ] **P178 — MA17** (opus, L): 05-Mathematics — modular square roots, quadratic congruence. Status: planned.

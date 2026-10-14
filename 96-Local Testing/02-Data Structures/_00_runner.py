@@ -28,9 +28,10 @@ def main(stem, invalid):
     # disagrees with valid stateful comparators, and validates whole trees on
     # every operation (the 16-mergesorttree full corpus exceeds the timeout);
     # debug lower_bound checks partitioning in O(n) per call, and every
-    # 17-waveletmatrix query binary-searches its alphabet.
+    # 17-waveletmatrix query binary-searches its alphabet, and the 33-offline_rectangle_queries
+    # sweep binary-searches its compressed y coordinates for every event.
     # Keep their full oracle corpus and assertions; use debug iterators elsewhere.
-    checked = '-D_GLIBCXX_ASSERTIONS' if stem in ('07-ordered_set', '16-mergesorttree', '17-waveletmatrix') else '-D_GLIBCXX_DEBUG'
+    checked = '-D_GLIBCXX_ASSERTIONS' if stem in ('07-ordered_set', '16-mergesorttree', '17-waveletmatrix', '33-offline_rectangle_queries') else '-D_GLIBCXX_DEBUG'
     variants = [('optimized', ['-O2', '-DNDEBUG']), ('checked', ['-O0', '-g', checked])]
     if args.mode != 'quick':
         variants.append(('ASan-UBSan', ['-O1', '-g', '-D_GLIBCXX_ASSERTIONS',

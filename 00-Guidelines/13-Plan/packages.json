@@ -762,8 +762,13 @@
       "phase": "Contest core",
       "size": "L+L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "02-Data Structures/Docs/26-trie.md",
+        "02-Data Structures/Docs/27-cartesiantree.md",
+        "02-Data Structures/Docs/28-disjointsparsetable.md",
+        "02-Data Structures/Docs/33-offline_rectangle_queries.md"
+      ],
       "note": ""
     },
     {
