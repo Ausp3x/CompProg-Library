@@ -91,11 +91,12 @@ The code was written independently from the recurrences and proofs in the packag
 - Finite corpora support the proofs above; they are not proofs themselves. Vector sizes beyond `INT_MAX` are reviewed, not allocated.
 - Comparator, callback and window-validity obligations are the caller's responsibility and are not asserted.
 - Checked builds cap the large interval fixtures (and the sequence fixtures) at 2000, because debug-STL partition checks make repeated `lower_bound` calls linear.
-- `39-scheduling.hpp`'s planned `intervalPartitionMachines` is to be removed as the projected `.first` of `intervalPartitionAssignment` (P079); whether Geometry `13`'s `segmentUnionLength` is a separate operation is open (P037). Both are in [duplicates.md](<../../00-Guidelines/23-Reaudit Findings/duplicates.md>).
+- `39-scheduling.hpp`'s planned `intervalPartitionMachines` is to be removed as the projected `.first` of `intervalPartitionAssignment` (P079); whether Geometry `13`'s `segmentUnionLength` is a separate operation is open (P037). Both are in [duplicates.md](<../../00-Guidelines/23-Sweep Ledgers/duplicates.md>).
 - GCC 14.2 exactly and Codeforces' Windows MSYS2 build were not run; the code uses no Windows-sensitive types or POSIX calls.
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): k-machine schedules; interval jump queries; circular arc cover; ConstantIntervals.
 
 ## History
 
 - 2026-09-28: first implementation and audit (MI03, P014); full suite passed.
-- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes; re-audit then added `intervalCover`, `intervalPartitionAssignment`, `removeNestedIntervals` and `nestedIntervalCounts` (`/reaudit-review` findings 1, 3, 6–12, 15, 17 fixed).
+- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes.
+- 2026-10-08: re-audit, added `intervalCover`, `intervalPartitionAssignment`, `removeNestedIntervals` and `nestedIntervalCounts`, 11 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.

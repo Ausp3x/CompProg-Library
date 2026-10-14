@@ -95,4 +95,6 @@ Algorithm/proof references; the implementation was written independently without
 
 ## History
 
-- 2026-09-28: nine traversals verified (P015, previous system); the 2026-10-06 sweep added partitions and rank/unrank to the row. 2026-10-08 re-audit: four missing operations and `forEachSupermask` implemented, comment cap and closing braces restyled, `/reaudit-review` findings 1–4 fixed. Tester and benchmark sources brace-normalized after review (whitespace only); full suites, g++-14 full and benchmarks rerun, PASS.
+- 2026-09-28: nine traversals verified (P015, previous system).
+- 2026-10-06: completeness sweep added partitions and rank/unrank to the row.
+- 2026-10-08: re-audit, four missing operations and `forEachSupermask` added, comment cap and closing braces restyled, 4 findings fixed; full suites, g++-14 full and benchmarks passed.

@@ -51,6 +51,7 @@ These are in place on a power-of-two length `n` that divides `2^RANK`, all asser
 - The first half is unchanged: the even indices of a bit-reversed length-`2n` spectrum are the length-`n` spectrum.
 - The second half is `ntt(intt(a) * z^j)` with `z` a primitive `2n`-th root.
 - Cost: one `intt` and one `ntt` of length `n`.
+- A nonempty power-of-two `a` is asserted; under `NDEBUG` an empty `a` stays empty.
 
 ### fft, ifft
 
@@ -194,13 +195,6 @@ python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode stress
 - `convolutionFft` worst rounding error at the bound: 0.0078 to 0.0156.
 - The header builds alone, with `05-Mathematics/99-all.hpp`, and with every folder's `99-all.hpp` in two translation units, with no warnings under `-Wall -Wextra -Wconversion`. The only aggregate warning is pre-existing, in `06-segmentedsieve.hpp`.
 
-`@reviewer` (2026-10-09) found two defects in this header, both fixed:
-
-- `convolutionLarge` never ended for `RANK = 0` (`ModInt<2>`): `B = 0` made the block loop stall. It is now rejected by `static_assert`; the dispatcher never selects it for such types.
-- `nttDoubling` divided by zero on an empty vector under `NDEBUG`, and `convolutionTensor` read `db` out of bounds on a rank mismatch under `NDEBUG`. Both are now bounded.
-
-The minor suggestions were adopted: lowercase locals, the precise `primitiveRootNtt` cost line, the "one forward transform" wording, and an empty result when the tensor size exceeds the cap. Every reviewer reproducer was rerun with `-O1 -DNDEBUG -fsanitize=address,undefined`; all terminate cleanly.
-
 ## Benchmarks
 
 `python3 '96-Local Testing/05-Mathematics/13-convolution_benchmark.py' 5`. Conditions:
@@ -234,6 +228,8 @@ The radix-2 kernel is generic over `M`. A separate probe timed one length-`2^20`
 
 [00-sources.md](00-sources.md), P055 sweep: AC Library `convolution.hpp` (CRT primes, naive cutoff, butterfly order), KACTL FFT/NTT (root halving, two-for-one product, rounding bound), Nyaan `ntt.hpp` and `arbitrary-ntt.hpp` (doubling, aliasing square, u128 product), maspypy `convolution.hpp`/`ntt_doubling.hpp` (dispatcher, doubling), Library Checker convolution problems. Written independently.
 
+Adopted by the P055 sweep: `convolution` (dispatcher), `nttDoubling` and `convolutionU128`.
+
 ## Limits and handoffs
 
 - `fft`/`ntt` spectra are bit-reversed. A natural-order DFT is a bit-reversal permutation away and is not provided.
@@ -245,4 +241,4 @@ The radix-2 kernel is generic over `M`. A separate probe timed one length-`2^20`
 
 ## History
 
-- 2026-10-09: P055 initial implementation and verification.
+- 2026-10-09: P055 initial implementation and verification, `@reviewer` found 2 defects, fixed; quick, full and stress passed on g++, full on g++-14.

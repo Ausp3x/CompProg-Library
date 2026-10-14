@@ -31,17 +31,19 @@ Finite tests complement the algorithm arguments; they do not prove all inputs.
 
 ## Commands and results
 
-2026-10-07, GCC 16.2.1, CPython 3.14, Linux x86-64, GNU++20.
+2026-10-07, GCC 16.2.1, CPython 3.14, Linux x86-64, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
 | Command | Result |
 |---|---|
 | `08-scc_tester.py --mode full --seed 20260927` | PASS 3 configurations, 7,030 cases, 3,772,582 checks, 4 probes |
+| `CXX=g++-14 08-scc_tester.py --mode full --seed 20261014` (GCC 14.4.1, 2026-10-14) | PASS 3 configurations, 7,030 cases, 3,779,154 checks per configuration, 4 probes; MEMORY peak 641 MB |
 | `08-scc_tester.py --mode stress --seed 1` | PASS 3 configurations, 82,816 cases |
 | `02-integration.py` and `02-integration.py --sanitizers` | PASS: 102 standalone/aggregate headers, scalar/available-AVX2 multi-TU, workspace, sanitizer self-tests |
 | `03-consistency.py` | No errors |
 
 ```bash
 python3 '96-Local Testing/04-Graphs/08-scc_tester.py' --mode full --seed 20260927
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/08-scc_tester.py' --mode full --seed 20261014
 python3 '96-Local Testing/04-Graphs/08-scc_tester.py' --mode stress --seed 1
 python3 '96-Local Testing/04-Graphs/00-decomposition_benchmark.py'
 python3 '96-Local Testing/02-integration.py' --sanitizers
@@ -75,9 +77,10 @@ Legacy: `OLD/Team Notebook/src/graph/old_kosaraju.cpp` was inspected; its two DF
 
 ## Limits and handoffs
 
-Incremental SCC belongs to `70-incrementalscc.hpp`; SCC-based transitive closure/reduction belongs to `40-reachability.hpp`; dynamic SCC remains with its separate batch owner. These are not claimed here. No `CXX=g++-14` floor run is recorded for this header.
+Incremental SCC belongs to `70-incrementalscc.hpp`; SCC-based transitive closure/reduction belongs to `40-reachability.hpp`; fully dynamic SCC has no row. These are not claimed here. GCC 14.4.1 (`CXX=g++-14`) passed the full-mode floor check on 2026-10-14; exact GCC 14.2 was not run.
 
 ## History
 
 - 2026-09-27: original P011, full suite (seed 20260927, 3,772,582 checks), integration and benchmark passed on g++ 16; stress not run.
-- 2026-10-07: re-audit, no findings for this header; brace rule and comment cap applied; full suite, stress, integration and benchmark passed on g++ 16.
+- 2026-10-07: re-audit, no findings for this header; brace rule and comment cap applied; full suite, stress, integration and benchmark passed on g++ 16; independent review: all eight package findings confirmed fixed.
+- 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.

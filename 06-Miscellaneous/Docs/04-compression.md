@@ -87,5 +87,5 @@ Interval sweeps belong to `09-interval_algorithms.hpp`. No benchmark: no tuned t
 ## History
 
 - 2026-09-28: P013 first verification, full and stress suites passed.
-- 2026-10-07: P013 re-audit, finding 2 (missing bulk `ranks`) and finding 7 (braces, including the tester's embedded C++) fixed, `stableRanks` added, contracts moved out of code comments; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.
+- 2026-10-07: P013 re-audit, bulk `ranks` and `stableRanks` added, 2 findings fixed, contracts moved out of code comments; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.
 - 2026-10-12: prune, removed `Compression` (`ranks` and `pointRange` moved into `CoordinateCompression`, its cases to `07-ordered_set_tester.cpp`; `compressEndpoints` returns `CoordinateCompression`; `08-sequence_algorithms.hpp` migrated); full suite passed on g++ and g++-14.

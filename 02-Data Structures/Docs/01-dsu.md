@@ -27,16 +27,17 @@ Quick: n<=4, depth 3, 35 trials, 1,024 vertices. Stress: history depth 6, 600 ra
 
 ## Commands and results
 
-Re-audit, 2026-10-07:
+Re-audit, 2026-10-07, and floor check, 2026-10-14 (last line):
 
 ```bash
 python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 2 --filter '02-Data Structures' --no-integration
 python3 '96-Local Testing/01-run.py' --mode full --seed 20261007 --filter '02-Data Structures' --no-integration
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/01-dsu_tester.py' --mode full --seed 20261014
 ```
 
-All runs used GCC 16.2.1, GNU++20 and CPython 3.14 on Linux x86-64 (Intel Core i9-11900H), and all passed. Every tester build used `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked and ASan/UBSan configurations with leak checking. The final full run (seed 20261007, after the review fixes) took 4 min 10 s for the package and passed all 8 suites x 3 configurations and all 112 assertion probes. Stress over two rounds (seeds 7 and 8, 21 min) passed all 8 suites before the review fixes. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, multiple-translation-unit linkage, the Workspace build and the sanitizer self-tests. `03-consistency.py` reports no errors and checks the closing-brace rule on the package's headers and testers. The DSU suite passed in every run above.
+The 2026-10-07 runs used GCC 16.2.1, GNU++20 and CPython 3.14 on Linux x86-64 (Intel Core i9-11900H), and all passed. Every tester build used `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked and ASan/UBSan configurations with leak checking. The final full run (seed 20261007, after the review fixes) took 4 min 10 s for the package and passed all 8 suites x 3 configurations and all 112 assertion probes. Stress over two rounds (seeds 7 and 8, 21 min) passed all 8 suites before the review fixes. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, multiple-translation-unit linkage, the Workspace build and the sanitizer self-tests. `03-consistency.py` reports no errors and checks the closing-brace rule on the package's headers and testers. The DSU suite passed in every run above. The 2026-10-14 floor check on GCC 14.4.1 passed all four corpus groups in each of the three configurations and 7 assertion probes, `MEMORY peak=523MB`.
 
 ## Sources
 
@@ -55,4 +56,6 @@ The old DSU at `OLD/algorithms.cpp:1402–1477` mixed connectivity, weighted dis
 ## History
 
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
-- 2026-10-07: P006 re-audit, findings 9, 10–12, 14, 17, 19, 20, 23, 24 (of 24 package findings) addressed in this header, added `makeSet`, full and stress passed on g++.
+- 2026-10-07: P006 re-audit, 10 findings fixed, `makeSet` added, full and stress passed on g++; independent review: confirmed findings 2–24 fixed, accepted the contract-based resolution of finding 1, raised five findings, all fixed.
+- 2026-10-13: P006 prune rerun, header and tests unchanged; full suite (seed 20261013) passed on g++ and g++-14.
+- 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.

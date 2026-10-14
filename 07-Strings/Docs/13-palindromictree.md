@@ -66,7 +66,7 @@ Code is independently implemented from the invariants above.
 - [Library Checker `eertree`](https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/string/eertree/task.md) (fetched 2026-10-10): parent and suffix link per node, node of the longest suffix palindrome per prefix.
 - [ei1333](https://ei1333.github.io/library/string/palindromic-tree.hpp), [hitonanode](https://hitonanode.github.io/cplib-cpp/string/palindromic_tree.hpp) (joint trees, yukicoder 263), [tko919](https://tko919.github.io/library/String/palindromictree.hpp) (fetched 2026-10-10).
 - [Rubinchik and Shur, EERTREE (arXiv 1506.04862)](https://arxiv.org/abs/1506.04862) (pages 1–2 read): joint eertrees and the linear construction bound.
-- Catalog sweep 2026-10-10 in [00-sources.md](00-sources.md).
+- Catalog sweep 2026-10-10 in [00-sources.md](00-sources.md); adopted: eertree `parent`, `pos`/`palindrome`, joint trees (`newString`), `substringSuffixPalindrome`, the generic series-link fold.
 
 ## Limits and handoffs
 
@@ -77,4 +77,4 @@ Code is independently implemented from the invariants above.
 
 ## History
 
-- 2026-10-10: implemented and verified (P083); independent review found no wrong answers, its fixes (NDEBUG-bounded dense append and occurrenceCounts default, documented length bound) are in place.
+- 2026-10-10: implemented and verified (P083), independent review found no wrong answers and 3 robustness issues, fixed.

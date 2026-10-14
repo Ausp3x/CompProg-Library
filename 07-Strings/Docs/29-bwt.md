@@ -49,16 +49,17 @@ Exhaustive strings over alphabets 1..3 through length 7/9/10 (ternary two shorte
 
 ## Commands and results
 
-Run 2026-10-12, after the tester gained its own `07-suffixarray.hpp` include (the header is unchanged since 2026-10-11). Every run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, precondition probes) binaries, and full adds ASan/UBSan (`-O1`); all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full first passes the quick pre-flight under the 2048 MB cap.
+Run 2026-10-12, after the tester gained its own `07-suffixarray.hpp` include; the stress and integration lines are from 2026-10-11 (the header is unchanged since). Every run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, precondition probes) binaries, and full and stress add ASan/UBSan (`-O1`); all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full and stress first pass the quick pre-flight under the 2048 MB cap.
 
 ```bash
 python3 '96-Local Testing/07-Strings/29-bwt_tester.py' --mode quick --seed 1  # PASS, 2 configurations, 133,013 checks, 5 assertion probes, MEMORY peak 516 MB
 python3 '96-Local Testing/07-Strings/29-bwt_tester.py' --mode full --seed 1  # PASS, 3 configurations, 1,281,729 checks each, MEMORY peak 601 MB
 CXX=g++-14 python3 '96-Local Testing/07-Strings/29-bwt_tester.py' --mode full --seed 1  # PASS, 3 configurations, 1,281,729 checks each, MEMORY peak 602 MB
+python3 '96-Local Testing/07-Strings/29-bwt_tester.py' --mode stress --seed 3  # 2026-10-11: PASS, 3 configurations, 2,747,479 checks (optimized, ASan/UBSan), 1,291,565 (checked), MEMORY peak 780 MB
+python3 '96-Local Testing/02-integration.py'  # 2026-10-11: PASS, 129 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace
+python3 '96-Local Testing/02-integration.py' --sanitizers  # 2026-10-11: FAIL outside this package: the Core 16-poly_tester.cpp self-test is linked alone and misses its second translation unit (otherUnitConvolution); all earlier stages passed
 python3 '96-Local Testing/03-consistency.py'  # PASS, errors: []
 ```
-
-Stress and the integration runs were last done on 2026-10-11 (History).
 
 ## Benchmarks
 
@@ -83,6 +84,5 @@ Code is independently implemented from the cited descriptions.
 
 ## History
 
-- 2026-10-11: implemented and verified (P084); no review findings.
-- 2026-10-11 run: full seed 1 (peak 655 MB) and `CXX=g++-14` full seed 2 (peak 619 MB) passed; stress seed 3 passed (2,747,479 optimized and ASan/UBSan checks, 1,291,565 checked, peak 780 MB); `02-integration.py` passed (129 headers); `02-integration.py --sanitizers` failed outside this package (the Core 16-poly self-test linked without its second translation unit).
-- 2026-10-12: the tester includes `07-suffixarray.hpp` itself, since `14-lyndon.hpp` no longer does.
+- 2026-10-11: implemented and verified (P084), no review findings; full (seed 1), `CXX=g++-14` full (seed 2), stress and integration passed; sanitizer integration failed outside this package.
+- 2026-10-12: the tester includes `07-suffixarray.hpp` itself, since `14-lyndon.hpp` no longer does; quick, full and `CXX=g++-14` full passed.

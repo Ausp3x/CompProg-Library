@@ -93,11 +93,12 @@ The preserved `OLD` headers contain no Aho-Corasick implementation.
 
 ## Limits and handoffs
 
-- `/reaudit-review` findings ([p017](<../../00-Guidelines/23-Reaudit Findings/>), deleted after this run): 1 (`sparseStep` checks) superseded by its removal in the 2026-10-13 prune; 3 `fromTrie` implemented and tested; 4 closing braces normalized; 5 scans use the unchecked `next` and direct counts after one entry check; 6 complexity comments rewritten in `S/U/Q/M` and `T/M` form with `out`, and the contract text moved here.
 - Not adopted: a parent field (Library Checker `aho_corasick` prints parents; recover them in `O(V)` from `nodes[u].next`) and scans resuming from a given state (ei1333 `move`; use `step` and `matchCount` directly).
 - ST13 (`34-dynamicaho.hpp`) owns dynamic updates; ST11 owns generalized multiple-string indexes.
 
 ## History
 
-- 2026-09-28: verified under the previous system (P017) without `fromTrie`; optimized stress seed 20260929 passed 9,612,363 checks. 2026-10-08 re-audit: `fromTrie` added, `/reaudit-review` findings 1 and 3–6 fixed.
-- 2026-10-13: prune, removed `sparseStep` (its transition checks were already made on `step` in both representations; its past-end probe moved to `step`, 14 probes); full suite passed on g++ and g++-14.
+- 2026-09-28: verified under the previous system (P017) without `fromTrie`; optimized stress seed 20260929 passed 9,612,363 checks.
+- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
+- 2026-10-08: re-audit, `fromTrie` added, 5 findings fixed; quick, full and stress passed on g++, full on g++-14, benchmark passed.
+- 2026-10-13: prune, removed `sparseStep` (its checks were already made on `step`); full suite passed on g++ and g++-14.

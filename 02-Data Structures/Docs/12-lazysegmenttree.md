@@ -33,7 +33,7 @@ The former legacy names map as `MonAlg -> RangeAffineRangeMinMaxArg` (gains the 
 
 Store an action per point; `get(p)` returns the composition of every action applied to `p` (`id()` initially), `apply(l, r, f)`, `values()`; `DualSegmentTree` additionally has `set(p, f)` and pushes pending actions down the two boundary paths before composing, so noncommutative compositions keep their order; `CommutativeDualSegmentTree` uses a bottom-up tree of size `2n` (any `n`) without pushes and requires a commutative composition. Both accept a `vector<F>` of initial actions.
 
-## Correctness and cost
+### Correctness and cost
 
 The lazy tree is the ACL algorithm (push along both boundary paths before touching canonical nodes, pull along them afterwards). The search descents keep the accumulated product in `acc` and only descend into a node after it fails, so each call touches `O(log n)` nodes; identity padding keeps the right-hand descent valid for nonpowers of two. Each preset is proven exact as an algebra: sums under affine maps use `len`; min/max under affine maps swap on negative scale; bitwise and/or under `(x & a) ^ b` follow from the per-bit case split (`a` bit 0 forces `b`; `a` bit 1 keeps or complements) and xor uses the parity of `len`; gcd/lcm commute with the action because gcd and lcm distribute over each other. `RangeSetRangeComposite::mapping` is `O(log len)`, giving `O(log^2 n)` per range assignment; an `O(log n)` amortized alternative is `IntervalMap` (row 24) with a point-update segment tree of powered maps, recorded under limits.
 
@@ -84,5 +84,5 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 ## History
 
 - 2026-10-08: P027 first verification; legacy `SegTree` and `Mon*` presets replaced.
-- 2026-10-08: independent review (P027) — every preset's algebra, the ACL push/pull order, padding and both dual trees were confirmed; only a complexity-comment form and tester `std::get` qualification were corrected (finding 9).
-- 2026-10-08: P027 re-audit pass (second session): fixed `RangeSetRangeComposite::mapping` squaring once past the top bit (signed overflow of the length at `len = 2^62`, reachable from row 13; regression `lazyCompositeWide` in the row-13 tester); all other presets and the three trees reconfirmed.
+- 2026-10-08: independent review (P027), 1 finding fixed.
+- 2026-10-08: P027 re-audit pass (second session), 1 finding fixed; full (seed 20261008) on g++ and g++-14 and stress (seed 7) passed.

@@ -27,17 +27,17 @@ def main():
     except ValueError:
         return
     if tool in ('Edit', 'Write', 'NotebookEdit'):
-        if (rel.startswith('OLD/') and rel != 'OLD/00-index.md') or '/97-Legacy/' in rel:
+        if (rel.startswith('OLD/') and rel != 'OLD/00-index.md') or ('/97-Legacy/' in rel and not rel.endswith('/97-Legacy/00-index.md')):
             return deny('Archived material under OLD/ and 97-Legacy/ is immutable; account for its features in the inventory and notes instead.')
         if rel == '99-Workspace/template.cpp':
             return deny("template.cpp is generated: edit 01-Core/01-template.hpp or 02-debug.hpp, then run python3 '97-Online Testing/03-workspace.py'.")
         return
     if tool == 'Read':
-        if rel.startswith('95-Resources/') and rel.endswith('.pdf'):
+        if rel.startswith('95-Resources/') and rel.endswith('.pdf') and not inp.get('pages'):
             return deny('Reference PDFs are not read whole; use the pages parameter for at most a few pages, or rely on the online catalogs in 00-Guidelines/09-sources.md.')
-        if rel.startswith('00-Guidelines/Ledgers/') and rel.endswith('.json'):
+        if rel.startswith('00-Guidelines/Ledgers/') and rel.endswith('.json') and not inp.get('limit'):
             return deny('Machine ledgers are not read whole; query them with rg or a short python3 snippet.')
-        if path.is_file() and path.stat().st_size > BIG and not inp.get('limit'):
+        if path.is_file() and path.stat().st_size > BIG and not (inp.get('limit') or inp.get('pages')):
             return deny(f'{rel} is {path.stat().st_size // 1024} KB; read a slice with offset/limit or search it with rg.')
 
 

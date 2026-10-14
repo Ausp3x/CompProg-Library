@@ -106,7 +106,7 @@ Driver: [`16-string_matching_benchmark.py`](<../../96-Local Testing/07-Strings/1
 
 The full grid (S in {2, 4, 26, 256}, m in {4, 32, 256}, adversarial at m in {4, 32, 256}) is in the JSONL. Dispatcher decision: among linear-worst-case matchers Boyer–Moore with Galil is fastest on every random byte workload (up to 20x faster than two-way at large alphabets) and stays within 25 ms on the adversarial ones, where Horspool, Sunday and verified Rabin–Karp degrade by 20–50x; two-way is faster on unary-miss and periodic texts but 2–20x slower on random text. For non-byte symbols Boyer–Moore needs a dense alphabet, so the dispatcher uses two-way, which beats KMP by 20–40%. `string::find` (memchr plus compare) wins at `m = 4` over large alphabets but is quadratic (43–45 ms on the unary workloads at `m = 256`, growing with `m`). No threshold is needed: Boyer–Moore is never more than about 1.3x slower than the best linear matcher on random byte text.
 
-The table was measured 2026-10-11. `rabinKarp` was re-timed 2026-10-13 after switching to the `StringHash61` arithmetic, with an ad-hoc A/B against the previous header (commit 6225705) on the same machine and flags: random S = 2/26/256 with m = 4/32/256, unary hit and period 2 at m = 256 (bytes), and random S = 4 and 10^9 at m = 64 (`vector<int>`), `n = 4 * 10^6`, data from seed 20261010 as in the driver. Each figure is the median over six interleaved runs; each run is the median of seven timed repetitions after one warmup, with every count checked against `kmpOccurrences`. The A/B driver is not committed. New-to-old ratios were 0.89–1.02, inside run-to-run noise, so the table stands.
+The table was measured 2026-10-11. `rabinKarp` was re-timed on 2026-10-13 after switching to the `StringHash61` arithmetic, in an ad-hoc A/B against the previous header (commit 6225705; the A/B driver is not committed): random S = 2/26/256 with m = 4/32/256, unary hit and period 2 at m = 256 (bytes), and random S = 4 and 10^9 at m = 64 (`vector<int>`), `n = 4 * 10^6`, seed 20261010, same machine and flags, each figure the median of six interleaved runs of seven timed repetitions after one warmup, every count checked against `kmpOccurrences`. Its times were 0.89–1.02 times those of the earlier arithmetic, inside run-to-run noise, so the table stands.
 
 ## Sources
 
@@ -127,5 +127,5 @@ Code is independently implemented from the cited descriptions.
 
 ## History
 
-- 2026-10-11: implemented and verified (P084); independent review fixes: dispatcher memory stated as O(m + S) for char, complexity lines for firstOccurrence and countOccurrences; quick, full and stress passed on g++, full on g++-14.
+- 2026-10-11: implemented and verified (P084), independent review found 3 issues, fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `allOccurrences` (its checks moved to `boyerMoore` at the default `S` and to `twoWay`) and the Rabin–Karp copies of the `StringHash61` arithmetic; full suite passed on g++ and g++-14.

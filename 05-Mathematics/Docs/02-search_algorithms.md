@@ -6,7 +6,7 @@
 
 ### binSearch
 
-`binSearch(ok, ng, f)` accepts any two `lng` endpoints, in either order. The caller knows `ok` is feasible and `ng` infeasible, with one monotone transition between them. Neither endpoint is evaluated, so they may stand for hypothetical boundary states. Equal endpoints mean the answer has already converged. The function returns the last feasible value next to the transition and makes at most 64 predicate calls. It equals `lastTrue(ok + 1, ng, f)` when `ok < ng` and `firstTrue(ng + 1, ok, f)` when `ok > ng`, mapped to `ok` when nothing qualifies; it stays as the one orientation-free call for the ok/ng idiom (`00-Guidelines/23-Reaudit Findings/duplicates.md`, Keeps).
+`binSearch(ok, ng, f)` accepts any two `lng` endpoints, in either order. The caller knows `ok` is feasible and `ng` infeasible, with one monotone transition between them. Neither endpoint is evaluated, so they may stand for hypothetical boundary states. Equal endpoints mean the answer has already converged. The function returns the last feasible value next to the transition and makes at most 64 predicate calls. It equals `lastTrue(ok + 1, ng, f)` when `ok < ng` and `firstTrue(ng + 1, ok, f)` when `ok > ng`, mapped to `ok` when nothing qualifies; it stays as the one orientation-free call for the ok/ng idiom (`00-Guidelines/23-Sweep Ledgers/duplicates.md`, Keeps).
 
 Correctness: `std::midpoint` rounds toward `ok`; when the midpoint equals `ok`, the endpoints are adjacent or equal. Every queried midpoint is strictly interior, and updating one endpoint keeps the transition bracketed. This avoids the archived `abs(ok - ng)` overflow even for `INT64_MIN` and `INT64_MAX`.
 
@@ -121,5 +121,6 @@ Inspected on 2026-09-27, plus the 2026-10-07 completeness sweep:
 ## History
 
 - 2026-09-27: initial P012 evidence; full mode with seed `20260927` passed before `fibSearch` and `expSearch` existed.
-- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit then added `fibSearch` and `expSearch` and fixed findings 7 and 10; after `@reviewer` (which probed `fibSearch` on 151,280 shapes), full and stress (seed 1) and integration passed.
+- 2026-10-07: P012 re-audit baseline, full suite passed on all six headers before any change.
+- 2026-10-07: P012 re-audit, added `fibSearch` and `expSearch`, 2 findings fixed; after `@reviewer` (which probed `fibSearch` on 151,280 shapes), full, stress (seed 1) and integration passed.
 - 2026-10-12: prune, removed `binSearchReal`, `ternSearchReal` and `goldenSearchReal` (probes and the binary default-argument case moved to the bracket forms); full suite passed on g++ and g++-14.

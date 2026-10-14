@@ -103,13 +103,13 @@ CXX=g++-14 python3 '96-Local Testing/05-Mathematics/07-primality_factorization_t
 python3 '96-Local Testing/05-Mathematics/07-primality_factorization_tester.py' --mode stress --seed 1
 ```
 
-The first stress attempt ran beside the review's probes and other sessions (load average about 4) and timed out in the checked build's `--oracle` at the runner's 180 s limit, after the optimized build had passed; the rerun above, at load about 2.5, passed. The checked stress oracle is the suite's slowest step and is close to that limit on a loaded machine.
+The checked build's stress `--oracle` is the suite's slowest step and comes close to the runner's 180 s limit on a loaded machine.
 
 Warnings: the header, the tester and a two-translation-unit build with `10-crt.hpp` compile with no warnings under `-Wall -Wextra -Wconversion -Werror` on both compilers.
 
 Regression probe for the witness-loop change: `isPrime` and `isPrimeCompact` agree with the previous header on 2,454,568 inputs (random odd 64-bit and random-width values, every `n` within 50,000 of 67^2, 2^32, 4,759,123,141, 2^63 and 2^64 - 200,000, and the base divisors).
 
-Prune review (`@reviewer`, 2026-10-13) found no correctness defect. It confirmed the three removals as duplicates and the base-skip deletion for every `ulng`, with its own probe of the kernel in both forms on every odd `n` from 63 to 3 * 10^6 and on `2^32 ± 2 * 10^6` against a sieve and `isPrimeTrial` (no mismatch). Its document findings were fixed: results recorded before their runs finished, the history's reason for the unreachable branch, the scope of the base-skip convention, the exact memory bound of the merged CRT comment, the `10-crt` quick counts, and the `08` dependent rerun.
+Prune review (`@reviewer`, 2026-10-13): no defect; 6 evidence findings fixed. It confirmed the three removals as duplicates and the base-skip deletion for every `ulng`, with its own probe of the kernel in both forms on every odd `n` from 63 to 3 * 10^6 and on `2^32 ± 2 * 10^6` against a sieve and `isPrimeTrial` (no mismatch).
 
 ## Benchmarks
 
@@ -125,20 +125,22 @@ Driver: [`07-primality_factorization_benchmark.py`](<../../96-Local Testing/05-M
 
 The Montgomery rule from `01-principles.md` is met. Factorization, the representative workload, is 34–36% faster, and no workload regresses. 64-bit primality is level on this CPU, which has a fast 64-bit divider. The Compact twins cost about 1.5x on factorization; that is the price of a copy with no Core reduction dependency.
 
-The 2026-10-13 prune removed one 64-bit remainder per witness and a redundant parity guard from the measured paths and changed nothing else in them. The machine was then loaded (load average about 4 from concurrent sessions), so the table was not re-recorded. An A/B of the previous and current headers (four alternating runs of nine repetitions, pinned to one core) ran 45–80% above the table's absolute times with about ±10% spread between runs, and the two headers were indistinguishable within it. For the current header the Montgomery saving per run was 35–38% on both factorization workloads and 24–26% on 32-bit `isPrime`. On 64-bit `isPrime` it ranged from -9% to +2%, the same spread as the previous header (-6% to +1%), so the noise hides the level result of the idle table rather than contradicting it.
+The 2026-10-13 prune removed one 64-bit remainder per witness and a redundant parity guard from the measured paths and changed nothing else in them. The machine was then loaded (load average about 4), so the table was not re-recorded. An A/B of the previous and current headers (four alternating runs of nine repetitions, pinned to one core) ran 45–80% above the table's absolute times with about ±10% spread between runs, and the two headers were indistinguishable within it. For the current header the Montgomery saving per run was 35–38% on both factorization workloads and 24–26% on 32-bit `isPrime`. On 64-bit `isPrime` it ranged from -9% to +2%, the same spread as the previous header (-6% to +1%), so the noise hides the level result of the idle table rather than contradicting it.
 
 ## Sources
 
 Fetched on 2026-10-09 by the completeness sweep, written independently with no code copied. See [00-sources.md](00-sources.md), P052 sweep: cp-algorithms and OI Wiki on Pollard rho, Nyaan and hitonanode fast factorization (both limited to 2^62), maspypy `divisors`, and OI Wiki on highly composite numbers. The Miller–Rabin base sets and Bernstein's coprime-base paper are cited from memory and were not fetched. Legacy: `OLD/5-Mathematics/05-primesandfactors.hpp`.
 
+Adopted from the P052 sweep: `factorizeTrial` (legacy `getPrimeFacSlow`), `divisors` from a factorization and `maxDivisorCount`.
+
 ## Limits and handoffs
 
 - Legacy accounting: `isPrimeMR` becomes `isPrime`; `getPrimeFacSlow` becomes `factorizeTrial`; `getOneFacBPR(n, x0, c)` becomes `pollardRhoBrent` (seeded instead of explicit `x0`/`c`); `getPrimeFacFast` becomes `factorize` (both legacy forms returned flat prime lists; flatten as in Legacy mapping); `getAllFac(n, opt)` becomes `divisors`; `getNumDiv` and `getSumDiv` become `divisorCount` and `divisorSum` (exact `ulll`). The legacy global `Random rnd` is gone.
 - Precondition violations under `-DNDEBUG`: `n = 0` was originally an infinite loop with unbounded `push_back` in `factorize`, `factorizeTrial` and `coprimeBase`. During this package an oracle row sent 0 to the optimized build, and the resulting memory growth got the user's editor killed by the kernel. The loops now stop on 0, and every later test ran under a memory cap.
-- Research decisions (adopted and rejected) are in [00-notes.md](00-notes.md).
+- Rejected candidates are in [00-notes.md](00-notes.md), P052 research decisions.
 
 ## History
 
-- 2026-10-09: P052 initial implementation and verification (3,678,282 full checks before the twins, 2 * 10^4..10^7 exhaustive ranges, integration of 112 headers passed).
-- 2026-10-09: P052 rerun for the Compact rule (P231): algorithm templates with product functors, four Compact twins, capped runs; review fixed the Compact rho constants (raw values were used as Montgomery forms), full and stress passed on g++, full on g++-14.
-- 2026-10-13: prune, removed `millerRabin64`, `millerRabin64Compact` and `primeFactors` (Legacy mapping) and the witness loop's base-skip branch, unreachable behind the `isPrimeWith` filter (odd n >= 67^2, every base in `[2, n)`); their checks run on `isPrime`, `isPrimeCompact` and flattened `factorize`, and the `primefactors-zero` probe was dropped (`factorize-zero` covers it); full passed on g++ and g++-14, stress on g++.
+- 2026-10-09: P052 initial implementation and verification; full passed (3,678,282 checks) and integration passed (112 headers).
+- 2026-10-09: P052 rerun for the Compact rule (P231), algorithm templates with product functors and four Compact twins, review found 1 defect, fixed; full and stress passed on g++, full on g++-14.
+- 2026-10-13: prune, removed `millerRabin64`, `millerRabin64Compact`, `primeFactors` (Legacy mapping) and the witness loop's unreachable base-skip branch, review found no defect, 6 evidence findings fixed; full passed on g++ and g++-14, stress on g++.

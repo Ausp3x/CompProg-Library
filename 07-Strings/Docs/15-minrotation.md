@@ -71,7 +71,7 @@ Code is independently implemented from the invariants above.
 - [cp-algorithms, Lyndon factorization](https://cp-algorithms.com/string/lyndon_factorization.html) (fetched 2026-10-10): smallest cyclic shift by Duval on `s + s` (returns the string); the same operation as `canonicalRotation`.
 - [maspypy `minimum_cyclic_shift.hpp`](https://maspypy.github.io/library/string/minimum_cyclic_shift.hpp) (fetched 2026-10-10): index form.
 - [cp-algorithms, suffix array](https://cp-algorithms.com/string/suffix-array.html) (fetched 2026-10-10): cyclic-shift sorting, basis of the suffix-array variant.
-- Catalog sweep 2026-10-10 in [00-sources.md](00-sources.md).
+- Catalog sweep 2026-10-10 in [00-sources.md](00-sources.md); adopted: `minRotationIndices`, `rotationOffset`.
 
 ## Limits and handoffs
 
@@ -82,5 +82,5 @@ Code is independently implemented from the invariants above.
 
 ## History
 
-- 2026-10-10: implemented and verified (P083); independent review finding fixed: domain narrowed to n <= INT_MAX / 2 because rotation indices reach 2n; quick, full and stress passed on g++, full on g++-14.
+- 2026-10-10: implemented and verified (P083), independent review found 1 defect, fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `minRotation(s)` (cases moved to `minRotationIndices(s).first`); full suite passed on g++ and g++-14.

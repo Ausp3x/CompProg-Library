@@ -82,4 +82,4 @@ The code was written independently from the algorithm; no source code was copied
 
 ## History
 
-- 2026-10-09: implemented and verified (P081). Independent review: map `step(u, x)` now range-checks codes (regression test over every code and out-of-range values); state-count locals renamed.
+- 2026-10-09: implemented and verified (P081), independent review found 1 defect and 1 naming issue, fixed.

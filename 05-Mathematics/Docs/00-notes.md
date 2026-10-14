@@ -1,14 +1,12 @@
 # 05 Mathematics — notes
 
-Contracts and ownership rules moved out of the inventory on 2026-10-06. The inventory lists operations; this file holds the rules every row must satisfy.
+The inventory lists operations and cross-folder ownership; this file holds the folder-wide contracts every row must satisfy, the row notes and the omissions each package recorded.
 
 ## Status semantics
 
-- `verified` rows are backed by the linked per-header evidence documents (`Docs/01-mod_arithmetic.md` … `Docs/06-segmentedsieve.md`); every operation in the row has a test with an independent oracle and recorded commands.
 - `partial` rows keep their evidence link; the `missing:` list is planned work, not a defect in the verified part.
 - `legacy-reference` rows have an archived implementation in `OLD/5-Mathematics` and no active header; names listed in the row are the intended active API, and the legacy `modLog` multiplier form remains available under the new header.
 - `planned` rows name the API that would be implemented; nothing in them establishes compliance.
-- P012 verified the six MA01/MA02 foundation headers and re-audited them on 2026-10-07, completing the previously missing `01-mod_arithmetic.hpp` operations; see the per-header documents [01](01-mod_arithmetic.md)–[06](06-segmentedsieve.md) and the package record below.
 
 ## Domains
 
@@ -17,46 +15,94 @@ Contracts and ownership rules moved out of the inventory on 2026-10-06. The inve
 - Factorial tables in `05` require `n < mod` and a prime modulus; large-index and composite-modulus binomials belong to `12` and `37`.
 - Randomized operations distinguish expected time, Monte Carlo error and verifiable Las Vegas retry, with seeds and budgets as parameters.
 - Approximate methods state tolerance, error and conditioning and never silently replace exact variants; exact and approximate pivoting APIs are separately named in `16`.
-- All-solution and enumeration APIs return compact parameterizations or bounded enumerations and are charged by output size.
 - Prime-field roots and logs are Advanced (`11`); prime-power/composite roots (`33`) and large-order discrete-log techniques (`54`) are separate Esoteric families.
 - Fast composition, factorization, multivariate and polynomial-matrix families stay in their own Esoteric headers rather than mixing tiers into `14`.
-
-## Ownership boundaries
-
-- Core owns reduction, modint, big-integer, rational, matrix, bitset and polynomial/FPS types and may independently implement accelerated operations from these families. Mathematics uses scalar contest implementations or the allowed Core interfaces, with no handwritten ISA kernels; dependencies remain acyclic and never include an aggregate.
-- Core `16-poly.hpp` owns full composition and compositional inverse; `14` keeps scalar duplicates and `40` keeps Lagrange inversion as coefficient extraction.
-- Core `10-matrix.hpp` owns characteristic/minimal polynomial and Frobenius/Jordan forms for the full type; `44` owns the scalar Hessenberg/Berkowitz/black-box reference algorithms. Core `14-sparsematrix.hpp` keeps its fixed-iteration `steadyState`; `26` owns stationary distributions that test irreducibility.
-- Graphs `53-graph_counting.hpp` owns graph-facing applications and witnesses (LGV, BEST, Tutte, matching counts); matrix-tree, Pfaffian, permanent and lattice-path kernels live here.
-- Geometry `19-lattice_geometry.hpp` owns lattice counts in polygons; `34` and `55` own circle and convex-curve arithmetic counts.
-- Data Structures owns the convex-hull-trick and Li Chao engines and is the recommended owner of the XOR linear basis; Core `12-bitmatrix.hpp` owns packed GF(2) subspace arithmetic.
-- Miscellaneous owns slope trick, bit tricks, enumeration, digit DP, knapsack, randomness and parallel binary search; Mathematics owns scalar transforms and algebraic DP optimizations (`24`, `27`).
-- Strings owns distinct-subsequence counting and de Bruijn sequences.
-- Integer roots have canonical ownership in `21`; `17` may call them.
 
 ## Legacy obligations
 
 - `OLD/5-Mathematics/05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp`, `13-numericalmethods.hpp` and `14-miscellaneous.hpp` stay pending until `11`, `17`–`19` account for every feature, including the `modLog` multiplier parameter. All originals stay in `OLD`.
 - `OLD/5-Mathematics/09-montgomery.hpp` is a Core reference; `10-poly.hpp` and `11-moly.hpp` are references for Core Poly.
-- The [transfer record](../../00-Guidelines/History/2026-09-27-monolith-transfer.md) preserves source-range/hash provenance for the former local excerpts. The last one (`FastConv`) was removed when P055 verified row 24; the original stays in `OLD/algorithms.cpp`.
+- The [transfer record](../../00-Guidelines/History/2026-09-27-monolith-transfer.md) preserves source-range/hash provenance for the former local excerpts: `ModFac` (`OLD/[1] algorithms.cpp`) is accounted for by row 05, and `FastConv` (`OLD/algorithms.cpp`), the last one, was removed when P055 verified row 24.
 - The archived closed segmented-sieve interval migrated to half-open `[l, r)`; closed callers map as in the Legacy mapping of [06-segmentedsieve.md](06-segmentedsieve.md).
 
 ## Evidence rules
 
 - Check small signed domains by exhaustive references; factor products and primality, equation substitution, CRT residuals, convolution versus O(n m), interpolation reconstruction, normal-form identities, root intervals and algebraic invariants.
-- Tests on source libraries are inspiration, not copied evidence. Finite tests pair with a correctness argument.
-- Barrett or Montgomery outside Core needs a recorded end-to-end benchmark (see `01-principles.md`).
-- A selected implementation batch refines its own API/variant checklist before coding and records discovered gaps rather than declaring unsupported completeness.
+
+## Row notes
+
+Explanations and legacy names moved out of the inventory operation cells, one bullet per row in inventory order.
+
+- `01-mod_arithmetic.hpp`: intPow: overflow checked; modPow: signed exponent, unit inverse; invMod2p64: Newton inverse of odd word mod 2^64.
+- `02-search_algorithms.hpp`: ternSearch: leftmost discrete minimum; fibSearch: Fibonacci-section leftmost minimum, fewer evaluations; expSearch: upward galloping, unbounded.
+- `07-primality_factorization.hpp`: isPrimeSpf: table fallback; pollardRhoBrent: seeded, retry budget; factorize: sorted prime powers; isPrimeCompact, pollardRhoBrentCompact, factorizeCompact: Compact twins without Montgomery; factorizeTrial: deterministic O(sqrt(n)), legacy getPrimeFacSlow; coprimeBase: coarsest coprime factorization of a list; maxDivisorCount: highly composite search.
+- `08-multiplicative_functions.hpp`: phi: from factorization; carmichaelLambda: lcm over prime powers, not multiplicative in the ordinary product sense; multiplicativeTable: linear-sieve hook from prime-power values, also completely multiplicative i^K.
+- `09-modinverse.hpp`: inverseXgcd: nonunit failure; inverseTable: 1..n; inverseBatch: prefix-product trick, nonunit failure; inversePierce: legacy expansion; inverseList: zero entries; powerTable: i^k for i in [0, n].
+- `10-crt.hpp`: crt: system, lcm overflow detection; crtScaled: a_i x = b_i mod m_i by linear-congruence reduction; crtMod: answer mod a target, via coprimeBase and Garner; garner: target modulus; garnerDigits: mixed-radix reconstruction.
+- `11-discrete_log_root.hpp`: discreteLogEx: least nonnegative; modLog: legacy k a^x = b multiplier form; kthRootModPrime: zero and all-roots cases; unitRootModPrime: primitive nth root of unity.
+- `12-combinatorics_advanced.hpp`: binomialPrefixSum: sum of C(n, i) for i <= k; binomialPrefixSumQueries: n and k moving by one; inclusionExclusion: sign-weighted subset sum helper; subsetSumCount: sharp-P.
+- `13-convolution.hpp`: fft: iterative, bit-reversed spectrum; convolutionFft: error bound; ntt: bit-reversed spectrum; convolution: dispatcher; convolutionLarge: length beyond transform limit; convolutionTensor: multi-dimensional.
+- `14-polynomial_algorithms.hpp`: polyDivLinear: synthetic division by x - c; polyShift: x^k shift; polyPowMod: modular polynomial power; polyComposeMod: f(g) mod h; fpsPow: valuation rules; fpsSqrt: branch choice; productTree: product of a polynomial sequence.
+- `15-linear_recurrence.hpp`: findLinearRecurrence: status on composite modulus; kitamasa: O(d^2 log k); fiduccia: polynomial power modulo characteristic polynomial; bostanMori: nth coefficient of P/Q; consecutiveTerms: range of terms; rationalGeneratingFunction: P and Q from recurrence; interpolateLinearRecurrence: nth term from samples; interpolatePeriodicSequence: explicit period bound; interpolatePolyExp: polynomial times known exponential, degree bound from the sample count.
+- `16-linear_algebra.hpp`: inverseMod: unit determinant; adjugate: singular safe; solveLinear: one solution plus nullspace basis; tridiagonalSolve: pivot breakdown status; bandedSolve: bandwidth bound; solveLinearReal: tolerance; freivaldsProductCheck: randomized; schwartzZippelIdentityCheck: randomized evaluation.
+- `17-numerical_methods.hpp`: DualNumber: forward-mode.
+- `18-floorsum.hpp`: floorSum: sum of floor((a i + b)/m); floorSumUnsigned: ACL contract; enumerateQuotients: distinct floor(n/i) blocks; modSum: sum of (a i + b) mod m; countModInRange: count of i with (a i + b) mod m in [l, r); floorSumMoments: sum of i floor and floor squared.
+- `19-josephus.hpp`: josephus: survivor, O(n); josephusK2: closed form; josephusLarge: O(k log n) recurrence for k < n; josephusKth: kth eliminated; josephusOrder: full order.
+- `20-continued_fraction.hpp`: continuedFractionSqrt: periodic, period detection; bestRationalApproximation: bounded denominator; rationalInInterval: smallest denominator; fractionBinarySearch: predicate on Stern–Brocot path.
+- `21-integer_roots.hpp`: isqrt: exact floor; icbrt: exact floor; ikthRoot: floor, remainder; isPerfectPower: smallest base and largest exponent.
+- `22-interpolation.hpp`: lagrangeInterpolate: O(n^2); lagrangeEvaluate: value at x from points; lagrangeEquidistant: points 0..n, O(n); hermiteInterpolate: repeated points, derivative jets; productOfGeometricShifts: product of f(r^k x) (named apart from row 37's `productOfLinearShifts`).
+- `23-matrixtree.hpp`: eulerianCircuitCountBest: BEST bridge.
+- `24-transform_algorithms.hpp`: walshHadamard: exact integer divisibility; subsetConvolution: O(2^n n^2); disjointUnionConvolution: q operands.
+- `25-game_theory.hpp`: grundy: memoized game DAG; subtractionGame: period detection with proof bound; wythoff: cold positions; retrogradeAnalysis: win, lose, draw on a finite game graph.
+- `27-optimization.hpp`: divideConquerDp: monotone opt; knuthDp: quadrangle inequality; smawk: totally monotone row minima; larsch: online Monge; aliensTrick: Lagrangian relaxation, integer penalty, count tie rule; mongeCheck: quadrangle inequality on small instances; mongeShortestPath: d-edge Monge; convexHullTrickDp: bridge to Data Structures `22-convexhulltrick.hpp`; liChaoDp: bridge.
+- `29-polynomial_roots.hpp`: sturmCount: real roots in an interval; realRootIsolate: rational intervals, square-free; realRootsApprox: tolerance; polyRootsComplex: residual.
+- `30-modular_power_towers.hpp`: tetrationMod: noncoprime threshold; powerTowerMod: finite exponent list; iteratedPowerMod: height, stabilization detection; towerThreshold: log2 m bound.
+- `67-lattice_paths.hpp`: gridPathsAvoidingPoints: sorted obstacles, O(k^2); pathsBetweenLines: strip; pathsBelowLine: y <= a x + b boundary; catalanConvolution: k-fold; nonIntersectingPathsDeterminant: LGV bridge, Graphs owns path families.
+- `31-summatory_functions.hpp`: FloorBlockTable: quotient-indexed memo; dujiaoSieve: prefix of f from a Dirichlet relation; mobiusSum: Mertens; min25Sieve: prime prefix sums then multiplicative prefix; lucyHedgehog: prime counting O(n^(3/4)); primeCount: O(n^(2/3)); divisorSummatory: sum of d(i).
+- `32-dirichlet_series.hpp`: DirichletSeries: truncated prefix representation on quotient blocks; eulerProduct: from prime-power coefficients.
+- `33-modular_square_roots.hpp`: sqrtModPrimePower: singular branch when p divides x; sqrtModAll: enumerated roots; polynomialCongruenceRoots: f(x) = 0 mod p^k; quadraticCongruenceMod: a x^2 + b x + c = 0 mod m.
+- `34-quadratic_congruence.hpp`: pellSolutions: family generation; pellGeneralized: x^2 - D y^2 = N, fundamental set; cornacchia: x^2 + d y^2 = m; twoSquares: one representation; twoSquaresCount: r2; pythagoreanTriples: primitive, bounded hypotenuse; gaussCircleCount: lattice points with x^2 + y^2 <= r^2, O(r).
+- `35-lattice_reduction.hpp`: gramDeterminant: the Gram determinant (squared covolume) that Gram–Schmidt yields; row 49 owns `latticeDeterminant`; lll: delta parameter; bkz: block size parameter; pslq: integer relation, precision parameter.
+- `36-integer_factor_advanced.hpp`: ecm: curve budget; bpsw: probable-prime screening; pocklington: certificate; ecpp: certificate or unknown status.
+- `37-fastfactorial.hpp`: factorialModPrime: O(sqrt(p) log p); factorialLarge: many queries, sorted block products; consecutiveProducts: product of (x + i), multipoint.
+- `38-bernoulli.hpp`: bernoulliTable: B1 sign convention option; faulhaber: sum of i^k as a polynomial; powerSum: sum of i^k for i < n mod p; sumOfExponentialTimesPolynomialLimit: infinite formal sum; mixedPolyExpSum: polynomial given by samples.
+- `40-generating_functions.hpp`: eulerTransform: multiset construction; logarithmicTransform: connected structures; burnsideCount: orbits from fixed-point counts; polyaEnumeration: cycle index evaluation; lagrangeInversion: coefficient of the compositional inverse; coefficientExtraction: nth coefficient of a rational function; rookPolynomial: board; fpsLinearOde: first-order formal differential equation.
+- `41-padic_arithmetic.hpp`: lte: lifting the exponent; henselLiftRoot: polynomial root to precision.
+- `42-finite_fields.hpp`: findIrreducible: random, degree d; conwayPolynomial: table bridge; fieldIsomorphism: embedding between representations; basisConvert: polynomial to normal basis.
+- `43-rationalreconstruction.hpp`: rationalReconstruct: x mod m with bounded numerator and denominator; rationalReconstructVector: common denominator; crtReconstructRational: from modular images; errorTolerantReconstruct: k wrong residues.
+- `44-determinant_advanced.hpp`: berkowitz: division-free characteristic polynomial; hessenbergReduce: similarity; charPolyHessenberg: O(n^3); determinantAPlusXB: polynomial determinant; wiedemannDeterminant: black box, Monte Carlo; vandermondeDeterminant: product of differences.
+- `45-contourintegral.hpp`: contourIntegrate: exponential convergence; argumentPrincipleCount: roots inside a disc; poleExclusion: exclusion discs; cauchyCoefficient: nth Taylor coefficient by contour.
+- `46-polynomial_factorization.hpp`: equalDegreeFactor: randomized; rootsModPrime: all roots, randomized splitting.
+- `47-nimber.hpp`: nimMulTable: small width precomputed; nimSolveQuadratic: x^2 + a x + b = 0; nimToField: basis conversion to GF(2^(2^k)) polynomial basis.
+- `48-combinatorial_linear_algebra.hpp`: permanentRyser: Gray-code inclusion-exclusion; hafnian: O(2^n n^2); cauchyBinet: determinant-sum identity; perfectMatchingCount: Monte Carlo; matrixTreeBridge: Graphs owns LGV and graph-facing counts.
+- `49-integer_linear_algebra.hpp`: hermiteNormalForm: with unimodular transform; smithNormalForm: with left and right unimodular transforms; integerKernel: lattice basis of the Z-nullspace; integerSolve: one solution plus full solution lattice over Z; modularSolve: A x = b mod m, full solution set.
+- `50-multivariate_polynomial.hpp`: mpolyDivision: division with remainder.
+- `51-polynomial_matrix.hpp`: approximantBasis: minimal approximant or order basis; pRecursiveNthTerm: product M(0)...M(n-1); findPRecursive: order r, degree d from samples; reedsSloane: recurrence synthesis modulo composite; matrixBerlekampMassey: vector sequence.
+- `52-relaxed_convolution.hpp`: SemiRelaxedConvolution: one operand known; dcDifferentialEquation: divide and conquer f' = g(f); powerProjection: weighted coefficients of f^k for all k; powerEnumerate: coefficients of f^k.
+- `53-semiring_convolution.hpp`: minPlusConvolutionConvexConvex: merge, O(n); minPlusConvolutionBoundedRange: small value range.
+- `54-discrete_log_advanced.hpp`: pollardRhoLog: randomized, expected sqrt; compositeGroupDecompose: unit group of Z/m as product of cyclic groups.
+- `55-floor_sum_polynomial.hpp`: floorSumPolynomial: sum of i^a floor((p i + q)/m)^b for all a, b up to a bound; floorProduct: Euclidean product sums; floorMonoidProduct: noncommutative monoid of U and R steps, generic Euclidean; latticePointGeneratingFunction: rational generating function of lattice points under a line; convexFloorSum: sum of floor of a convex function; convexLatticeHull: convex hull of lattice points under a curve; gaussCircleFast: O(r^(2/3)).
+- `56-coding_theory.hpp`: listDecodeGuruswamiSudan: radius and list-size parameters.
+- `58-partizan_games.hpp`: zeroSumMatrixGame: mixed strategy by LP, value; misereOutcome: small game graph search.
+- `59-zero_sum.hpp`: egzWitness: n of 2n - 1 elements summing to 0 mod n, constructive; zeroSumSubsequence: from any n elements, prefix sums; sidonSequence: construction.
+- `60-tableau_algorithms.hpp`: hookLengthCount: standard Young tableaux; hookContentCount: semistandard with bound; rsk: permutation to tableau pair; rskWord: two-line arrays; standardTableauEnumerate: bounded.
+- `61-algebraic_numbers.hpp`: AlgebraicNumber::approximate: to precision.
+- `62-ball_arithmetic.hpp`: Ball: midpoint plus radius; intervalNewton: existence and uniqueness certificate; intervalBisect: root isolation; precisionEscalate: retry at higher precision via `63-multiprecision_float.hpp`.
+- `63-multiprecision_float.hpp`: fromDecimalString: correctly rounded; toDouble: correctly rounded; bigPi: stated ulp bound.
+- `64-group_algorithms.hpp`: PermutationGroup::schreierSims: base and strong generating set; PermutationGroup::enumerateElements: bounded; orbitEnumerate: group action on objects; abelianDecompose: generators and relations; kthRootPermutation: p with p^k = q.
+- `65-convolution_specialized.hpp`: convolutionGf2_64: binary extension field, carryless; multiplicativeConvolutionModPrime: index product mod p via primitive root; multiplicativeConvolutionMod2k: index product mod 2^k; karyXorConvolution: digit-wise addition mod k, kth roots of unity; schonhageStrassen: large exact integer convolution, reference.
+- `66-set_power_series.hpp`: spsPolynomialComposite: f(S) for polynomial f, O(2^n n^2); spsComposition: composition with an FPS; spsMultivariate: several set variables; connectedComponentsBySubset: log of the subset generating function.
 
 ## P012 research decisions (2026-10-07)
 
-Adopted: `fibSearch` and `expSearch` (row 02), `combiLarge`, `binomialTable` and `derangementTable` (row 05). Left out, one line each:
+Left out, one line each:
 
 - `floorDivStrict`/`ceilDivStrict` (Nyaan `int_div`): the largest integer strictly below `a / b` is `ceilDiv(a, b) - 1` and the smallest strictly above is `floorDiv(a, b) + 1`; one-liners at the call site.
 - `divMod` (maspypy): `floorDiv` plus `a - b * q` at the call site; the compiler merges the two divisions.
 - `gcd128` (maspypy): GNU `std::gcd` accepts `__int128` directly; no wrapper needed.
 - Binary gcd (hitonanode, Nyaan): the installed libstdc++ `std::gcd` is already Stein's algorithm, and `gcd64` uses it.
 - `binSearchRealRelative` (maspypy): logarithmic-scale bisection is `binSearch` over the order-preserving bit pattern of nonnegative doubles (64 steps); not a separate API.
-- `firstModInRange` (maspypy `first_mod_range_of_linear`): belongs with `18-floorsum.hpp` beside `minOfModOfLinear`; handed off to that row's owner, not added here.
+- `firstModInRange` (maspypy `first_mod_range_of_linear`): belongs with `18-floorsum.hpp` beside `minOfModOfLinear`, where that row now lists it.
 - `dioMinLinear` (cp-algorithms "minimum x + y"): a linear objective over `DioBox` is evaluated at its two endpoint parameters `l` and `r - 1`; no extra API.
 - `primePi` table (hitonanode `bs_sieve`): `upper_bound(prms, x)` on the existing prime list.
 - Factorization above the sieve bound (hitonanode `Sieve::factorize`): owned by `07-primality_factorization.hpp` `factorize`.
@@ -64,46 +110,9 @@ Adopted: `fibSearch` and `expSearch` (row 02), `combiLarge`, `binomialTable` and
 - `lcmOfList` (maspypy `all_lcm`): caller-side maximum of `getPrimeFac` exponents.
 - `combiNegative` and `combiInverse` (maspypy `C_negative`, `C_inv`): `(-1)^k * combiWR(n, k)` and the product `inverseFactorial(a) * factorial(b) * factorial(a - b)` from the existing tables.
 
-## P012 package record (MA01 and MA02)
-
-P012 owns six existing mathematics headers. MA01 was implemented and passed its full per-header verification before MA02 implementation began. Prerequisites P002/C01 and P005/C03 were already checked and their template/modular APIs were inspected. Other Mathematics inventory families and their separate packages remain outside this work. Package-wide commands and per-header counts are in each header's `## Commands and results`.
-
-| Batch | Header | Evidence and scope |
-|---|---|---|
-| MA01 | `01-mod_arithmetic.hpp` | [01-mod_arithmetic.md](01-mod_arithmetic.md): signed boundaries, wide gcd/lcm/division, checked and saturating add/multiply, checked integer powers, native modular arithmetic and the inverse mod 2^64. |
-| MA01 | `02-search_algorithms.hpp` | [02-search_algorithms.md](02-search_algorithms.md): integer and real binary/unimodal searches, Fibonacci-section and galloping searches, precision and termination status. |
-| MA01 | `03-equation_solvers.hpp` | [03-equation_solvers.md](03-equation_solvers.md): complete linear parameterizations, bounded boxes and congruences. |
-| MA02 | `04-sieve_algorithms.hpp` | [04-sieve_algorithms.md](04-sieve_algorithms.md): Eratosthenes, linear SPF/LPF, factors and multiplicative tables. |
-| MA02 | `05-combinatorics.hpp` | [05-combinatorics.md](05-combinatorics.md): prime factorial tables with large-n binomials, any-ring Pascal and derangement tables, checked exact counts, Fibonacci/Lucas, Catalan, ballot and derangements. |
-| MA02 | `06-segmentedsieve.hpp` | [06-segmentedsieve.md](06-segmentedsieve.md): reusable blocked bases, plain/odd/wheel-30 streaming, factorization and interval migration. |
-
-Re-audit (2026-10-07) rules changes across all six headers: every header meets the closing-brace rule and the comment cap; the in-code contracts moved to the `## Contracts` sections of the six per-header documents; the code uses `int8_t` for Möbius tables and `lng` instead of `size_t` for indices. Sources are in [00-sources.md](00-sources.md); rejected candidates are in the research decisions above.
-
-Confirmed findings from `/reaudit-review` (each header's document repeats its own rows):
-
-| # | Header | Finding | Resolution |
-|---|---|---|---|
-| 1 | 03 | `DioSolution.g` was 0 on no solution | Fixed: `g = gcd(abs(a), abs(b))` on every result; both oracles check it |
-| 2 | 06 | Odd/Wheel30 3–6x slower than Plain at high endpoints | Fixed: branch-free start offsets (`k \|= 1`, `NEXT[k % 30]`) and direct index walks; A/B table in [06-segmentedsieve.md](06-segmentedsieve.md) |
-| 3 | 06 | Shared-base materialization copied every base prime | Fixed: copies only `p <= floor(sqrt(r - 1))`; 100 objects from a `10^16` base went from 1087 ms to 0.02 ms |
-| 4 | 01 | `invMod2p64` listed but absent | Implemented and tested against `pow(a, -1, 2^64)` |
-| 5 | 01 | Notes/evidence claimed MA01 complete while the row was partial | All five operations implemented; row verified; these notes and [01-mod_arithmetic.md](01-mod_arithmetic.md) rewritten |
-| 6 | 01 | `modPow` default modulus and `exGcd` input/output aliasing untested | Tested; both removed by the 2026-10-12 prune (One API per operation) |
-| 7 | 02 | `RealSearchResult` lacked a complexity line | Added |
-| 8 | 03 | Lambda closing brace `; };` | Fixed |
-| 9 | 04 | `getAllFac` comment used undefined `d(a)` and `a` | Now `Q: O(log(a) + out), M: O(out); 1 <= a <= n` |
-| 10 | 05, 06, 02 | `ratioProduct` lacked a complexity line | Added (also for the segmented-sieve and search detail helpers) |
-| 11 | all | Space before closing braces in the segmented sieve | Fixed with every other brace violation in the six headers and six testers |
-| 12 | 04, 06 | `size_t` loops and callback index; detail helpers without complexity lines; `signed char` | Loops and the `forEachFactor` callback index are `lng`; helpers commented; `int8_t` |
-| 13 | all testers | Tester `main` closed with a lone brace | Fixed |
-
-The `@reviewer` pass found no correctness defect in the code; its independent probes are recorded in the per-header `## History`. The oracles across the package are Python unbounded integers and built-in modular powers and inverses, matrix powers, enumerated arrangements and paths, trial factors and divisors, divisor-inversion identities, analytic monotone and minimum positions, linear scans, and direct enumeration of bounded equations. Finite tests are paired with the correctness arguments in each per-header document. No Barrett/Montgomery or ISA-specific code is used.
-
-Legacy originals remain untouched in `OLD` and `97-Legacy`. Handoffs from the research sweep (not P012 work): `firstModInRange` to `18-floorsum.hpp`, the completely multiplicative power table to `08-multiplicative_functions.hpp`. There is no unfinished owned P012 feature or verification gap. Separate planned inventory families remain planned. No online submission or online-acceptance claim was made.
-
 ## P052 research decisions (2026-10-09)
 
-Adopted: `factorizeTrial` (legacy `getPrimeFacSlow`), `divisors` from a factorization and `maxDivisorCount` (row 07); `omega`, `bigOmega`, `DivisorArray` `setMultiplicative`/`multipleZeta`/`multipleMobius`/`size`/`operator[]` (row 08); `crtMod` and the `CrtResult.overflow` flag (row 10). Renamed: `divisorCountFn`/`divisorSumFn` became `divisorCountTable`/`divisorSumTable` (point values already in row 07); `powerTable` is fixed as `i^k`. Left out, one line each:
+Left out, one line each:
 
 - `factorizeSpf`/`divisorsSpf` hybrids (maspypy): `LinearSieve::getPrimeFac` below the table, `factorize` above; `isPrimeSpf` is the only hybrid worth a name.
 - `findPrimeFactor` (maspypy): `factorize(n)[0].fi`.
@@ -119,23 +128,9 @@ Adopted: `factorizeTrial` (legacy `getPrimeFacSlow`), `divisors` from a factoriz
 - `garnerBigint` (Nyaan): evaluate `garnerDigits` by Horner in Core `InfInt`.
 - `coprimeBasis` exponents (maspypy): divide each input by the base elements at the call site.
 
-## P052 package record (MA03 and MA04)
-
-| Batch | Header | Evidence and scope |
-|---|---|---|
-| MA03 | `07-primality_factorization.hpp` | [07-primality_factorization.md](07-primality_factorization.md): deterministic u64 Miller–Rabin and Brent rho on Core `Montgomery64` (benchmark: factorization 33–36% faster than `__int128 %`), factorizations, divisors, prime powers, coarsest coprime base, highly composite search. |
-| MA04 | `08-multiplicative_functions.hpp` | [08-multiplicative_functions.md](08-multiplicative_functions.md): point functions, the linear-sieve multiplicative hook and its tables, Dirichlet tables, divisor arrays. |
-| MA04 | `09-modinverse.hpp` | [09-modinverse.md](09-modinverse.md): extended Euclid, Fermat and Pierce inverses, linear table, batch and zero-tolerant inverses, `i^k` table. |
-| MA04 | `10-crt.hpp` | [10-crt.md](10-crt.md): status CRT with overflow detection, scaled congruences, Garner digits and target reduction, non-coprime CRT modulo a target, incremental form. |
-
-Compact rerun (2026-10-09, after P231): `07` now has dependency-free `isPrimeCompact`, `pollardRhoBrentCompact` and `factorizeCompact`. Its algorithms are templates over a product functor, so they are written once. Headers `08`–`10` use no Barrett or Montgomery directly (`09` is generic over the modint type), so they need no twins.
-
-Incident: a first oracle row sent `n = 0` to the optimized (`-DNDEBUG`) `factorize`, whose stripped precondition left an infinite `push_back` loop. Memory growth killed the user's editor. The loops in `factorize`, `factorizeTrial` and `coprimeBase` now terminate on 0, the oracle sends only valid inputs, and every later run used `systemd-run --user --scope -p MemoryMax=... -p MemorySwapMax=0`.
-
-
 ## P055 research decisions (2026-10-09)
 
-Adopted: `convolution` (dispatcher), `nttDoubling` and `convolutionU128` (row 13); `kroneckerPowerTransform` widened from a 2 x 2 to any D x D kernel, and `disjointUnionConvolution` defined as the q-operand ranked product (row 24). Changed: `convolutionLong` uses three-prime CRT lifted to signed 64 bits instead of a split FFT (exact with no floating-point error analysis); `ntt`/`fft` produce bit-reversed spectra (ACL convention), which is what makes `transposedNtt` and `nttDoubling` distinct operations. Left out, one line each:
+Left out, one line each:
 
 - `convolutionSquare` (Nyaan, maspypy): `convolutionNtt(a, a)` detects the aliasing and does one forward transform.
 - `convolutionLeq` (maspypy, sum over i <= j): problem-specific divide and conquer on top of `convolution`.
@@ -148,16 +143,9 @@ Adopted: `convolution` (dispatcher), `nttDoubling` and `convolutionU128` (row 13
 - Zeta with a custom semigroup (max/min over subsets): a two-line loop at the call site or `kroneckerPowerTransform` over a semiring type with `+` and `*` redefined.
 - XNOR convolution: `xorConvolution` with complemented indices; `xor_submask_lower_bound` is a bit trick for Miscellaneous.
 
-## P055 package record (MA06 and MA12)
-
-| Batch | Header | Evidence and scope |
-|---|---|---|
-| MA06 | `13-convolution.hpp` | [13-convolution.md](13-convolution.md): naive, Karatsuba, complex FFT, NTT over any static NTT prime (bit-reversed spectra, transposed, doubling, root tables), three-prime CRT products (signed 64-bit, unsigned 128-bit, any modulus), block products beyond the transform limit, the dispatcher and the cyclic/negacyclic/truncated/middle/correlation/tensor/2-D wrappers. |
-| MA12 | `24-transform_algorithms.hpp` | [24-transform_algorithms.md](24-transform_algorithms.md): subset/superset zeta and Mobius, Walsh-Hadamard with exact inverse, bitwise and gcd/lcm convolutions, divisor/multiple transforms, ranked transforms, subset and q-operand disjoint-union convolution, D x D Kronecker powers, and the legacy `FastConv` gcd/lcm transforms (caller's sieve and harmonic loops). |
-
 ## P057 research decisions (2026-10-10)
 
-Adopted: `fpsDiv`, `polyDivLinear`, `polyFromPowerSums`, `polyComposeMod` (Brent–Kung block Horner sharing the `fpsComposition` kernel) and `prefixSumOfPolynomial` (row 14); `findLinearRecurrenceHalfGcd` (row 15). Changed: row 14's `Poly: ...` operations are `poly*` free functions over `vector<M>`, because Core `16-poly.hpp` owns the `Poly` struct name and Mathematics keeps free functions; `polyXgcd` returns a `PolyXgcd {g, x, y}` result struct; `kitamasa` is the modint instance of `linearRecurrenceSemiring`; `matrixPowerVector` uses the Krylov annihilator of `v` (deterministic, divides the characteristic polynomial) instead of a full characteristic polynomial, so it needs no row 44 code. Left out, one line each:
+Left out, one line each:
 
 - FPS trigonometric and hyperbolic functions (Nyaan `fps-circular`, OI Wiki): owned by Core Poly (`sin` … `atanh`).
 - `fpsComposeExp` (f(e^{cx}), Nyaan/suisen/maspypy): generating-function transform for row 40; the `e^x - 1` case is row 12 `stirlingTransform`.
@@ -170,10 +158,3 @@ Adopted: `fpsDiv`, `polyDivLinear`, `polyFromPowerSums`, `polyComposeMod` (Brent
 - Reeds–Sloane and P-recursive interpolation (maspypy `interpolate_p_recursive`): row 51; Wiedemann and sparse determinants: row 44; `interpolate_poly_exp_sum`: row 38.
 - Multiple k-th term queries for one recurrence: no catalog interface beats one `bostanMori` per query.
 - Overlaps recorded rather than moved: row 46 keeps integer (subresultant) resultants and discriminants, row 14 the field Euclidean ones; row 22 `subproductTree` keeps the multipoint tree, row 14 `productTree` only the product; row 40 `coefficientExtraction` should call row 15 `bostanMori`.
-
-## P057 package record (MA07)
-
-| Batch | Header | Evidence and scope |
-|---|---|---|
-| MA07 | `14-polynomial_algorithms.hpp` | [14-polynomial_algorithms.md](14-polynomial_algorithms.md): polynomial arithmetic and division, half-GCD Euclid (gcd, extended gcd, resultant, discriminant), modular power/inverse/composition, dense and sparse inverse/log/exp/pow/sqrt with measured cutoffs per modulus class, scalar composition and inversion, Taylor shift, product trees, EGF product, cyclotomic polynomials, power sums and prefix sums. |
-| MA07 | `15-linear_recurrence.hpp` | [15-linear_recurrence.md](15-linear_recurrence.md): Berlekamp–Massey (status form for composite moduli) and its half-GCD form, semiring Kitamasa, Fiduccia, Bostan–Mori, slices and consecutive terms, prefix sums, generating functions, recurrent/periodic/poly-exp interpolation and Krylov `A^k v`. |

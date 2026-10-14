@@ -131,7 +131,7 @@ The code was written independently from the recurrences and proofs in the packag
 ## History
 
 - 2026-09-28: first implementation and audit (MI03, P014); full suite passed.
-- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes; re-audit then added `maximumAverageSubarray`, `mex`, `increasingSubsequenceLengths`, `countIncreasingSubsequences` and `adjacentSwapDistance` (`/reaudit-review` findings 2, 3, 6–8, 10–12, 15, 17 fixed).
-- 2026-10-08: re-audit additions verified: full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.
+- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes.
+- 2026-10-08: re-audit, added `maximumAverageSubarray`, `mex`, `increasingSubsequenceLengths`, `countIncreasingSubsequences` and `adjacentSwapDistance`, 10 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.
 - 2026-10-12: unused prefix-sum and monotone-stack includes removed (and their tester checks); full suite seed 1 passed on g++ and g++-14, stress seed 3 passed.
 - 2026-10-13: prune, removed `kadane` (cases moved to `maximumSubarray`); full suite passed on g++ and g++-14.

@@ -160,6 +160,8 @@ The subset product runs every `(k, i)` rank pair over all sets, about `n^2 N / 2
 
 [00-sources.md](00-sources.md), P055 sweep: Library Checker set-power-series problems, maspypy `ranked_zeta`/`nt/zeta`, hitonanode zeta/Möbius and subset convolution, suisen `kronecker_power`, noshi91 transforms, OI Wiki FWT. Written independently. Legacy: `OLD/algorithms.cpp:3823-3933` (`FastConv`); its local excerpt was removed once this row was verified. The four gcd/lcm names keep their signatures and the sieve size is now asserted; `fctOr`, `fctAnd` and `fctXor` map to the transforms in the Legacy mapping, with the `fctXor` integer inverse fixed in `walshHadamard`.
 
+Adopted by the P055 sweep: `kroneckerPowerTransform` widened from a 2 x 2 to any D x D kernel, and `disjointUnionConvolution` defined as the q-operand ranked product.
+
 ## Limits and handoffs
 
 - Index transforms ignore index 0. Callers needing `gcd(0, x) = x` handle 0 separately.
@@ -168,5 +170,5 @@ The subset product runs every `(k, i)` rank pair over all sets, about `n^2 N / 2
 
 ## History
 
-- 2026-10-09: P055 initial implementation and verification; legacy `FastConv` migrated to wrappers; `@reviewer` found two defects (unsigned `walshHadamard` inverse, out-of-bounds reads on size mismatches under `NDEBUG`), both fixed, and two adopted suggestions (lowercase locals, one sieve per gcd/lcm call); quick, full and stress passed on g++, full on g++-14.
+- 2026-10-09: P055 initial implementation and verification, legacy `FastConv` migrated to wrappers, `@reviewer` found 2 defects, fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `FastConv::fctOr`, `fctAnd` and `fctXor` (cases already covered by the zeta/Möbius and Walsh–Hadamard checks; explicit `inverse = false` forward check added); full suite passed on g++ and g++-14.

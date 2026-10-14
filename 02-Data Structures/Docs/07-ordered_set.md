@@ -68,5 +68,6 @@ Dynamic balanced/persistent ordered trees are future variants, not gaps of this 
 ## History
 
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
-- 2026-10-07: P006 re-audit, findings 2, 8, 10–12, 14, 17, 19, 20, 23, 24 (of 24 package findings) addressed in this header, added CoordinateCompression `decode`, OrderedMultiSet `prev` and the `OrderedMap` alias, full and stress passed on g++.
+- 2026-10-07: P006 re-audit, 11 findings fixed, CoordinateCompression `decode`, OrderedMultiSet `prev` and the `OrderedMap` alias added, full and stress passed on g++; independent review: confirmed findings 2–24 fixed, accepted the contract-based resolution of finding 1, raised five findings, all fixed.
 - 2026-10-12: P013 prune moved `ranks` and `pointRange` into CoordinateCompression with linear-count oracles, the moved `Compression` cases and the `range-order` probe; full suite passed on g++ and g++-14.
+- 2026-10-13: P006 prune rerun, header and tests unchanged; full suite (seed 20261013) passed on g++ and g++-14.

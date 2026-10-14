@@ -73,4 +73,5 @@ Inspected on 2026-09-28 (catalog sweep 2026-10-08 in [00-sources.md](00-sources.
 
 ## History
 
-- 2026-09-28: Floyd and Brent verified (P015, previous system). 2026-10-08 re-audit: `orbitTerm` added, comment cap and closing braces restyled, budget helper inlined, `/reaudit-review` findings 8–9 fixed. Tester and benchmark sources brace-normalized after review (whitespace only); full suites, g++-14 full and benchmarks rerun, PASS.
+- 2026-09-28: Floyd and Brent verified (P015, previous system).
+- 2026-10-08: re-audit, `orbitTerm` added, comment cap and closing braces restyled, budget helper inlined, 2 findings fixed; full suites, g++-14 full and benchmarks passed.

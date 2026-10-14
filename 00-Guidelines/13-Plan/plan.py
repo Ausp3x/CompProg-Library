@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Work-plan manifest CLI: show, status, next, set, render and check packages/batches."""
+"""Work-plan manifest CLI: show, status, next, set, render, check, ready and doctor for packages and batches."""
 import argparse
 import collections
 import json
@@ -13,7 +13,7 @@ BEGIN, END = '<!-- plan:begin -->', '<!-- plan:end -->'
 PHASES = ['Foundations re-audit', 'Core full types', 'Contest core',
           'Python contest layer', 'Specialist and research families', 'Final support integration']
 LEGEND = ('Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** '
-          '(model, size): label. Status: planned | in-progress | audit | verified.')
+          '(model, size): label. Status: planned | in-progress | verified.')
 TARGET = re.compile(r'`((?:\d{2}-[^`]+\.hpp)|(?:_\d{2}_[^`]+\.py))`')
 
 
@@ -79,7 +79,7 @@ def ready(batches, packages):
     status = {p['id']: p['status'] for p in packages['packages']}
     deps = prereqs(batches, packages)
     return next((p for p in packages['packages'] if p['status'] != 'verified'
-                 and all(status[d] in ('verified', 'audit') for d in deps[p['id']])), None)
+                 and all(status[d] == 'verified' for d in deps[p['id']])), None)
 
 
 def check(root=ROOT):
@@ -207,14 +207,14 @@ def status_text(root):
 
 
 def ready_list(root=ROOT):
-    """Packages whose prerequisites are all verified or audit, in schedule order, with their folders."""
+    """Packages whose prerequisites are all verified, in schedule order, with their folders."""
     batches, packages = load(root)
     bmap = {b['id']: b for b in batches['batches']}
     status = {p['id']: p['status'] for p in packages['packages']}
     deps = prereqs(batches, packages)
     out = []
     for p in packages['packages']:
-        if p['status'] == 'verified' or not all(status[d] in ('verified', 'audit') for d in deps[p['id']]):
+        if p['status'] == 'verified' or not all(status[d] == 'verified' for d in deps[p['id']]):
             continue
         folders = sorted({bmap[b]['folder'] for b in p['batches']} | {t.split('/')[0] for b in p['batches'] for t in bmap[b]['targets']})
         out.append((p, [f for f in folders if f != 'support'] or ['support']))
@@ -297,8 +297,7 @@ def doctor_text(root, fix):
         return '\n'.join(out + ['doctor: no inconsistencies'])
     for key in sorted(todo):
         out += ['', f'## {key}'] + ['- ' + x for x in todo[key]]
-    cmd = {'audit': '/package', 'in-progress': '/package', 'planned': '/package'}
-    out += ['', 'Resolve with /package Pxxx (re-audit or continue), /restyle Pxxx for pure style, or edit the row/plan; then rerun doctor.']
+    out += ['', 'Resolve with /package Pxxx, /restyle Pxxx for pure style, or edit the row/plan; then rerun doctor.']
     return '\n'.join(out)
 
 

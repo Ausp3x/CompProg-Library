@@ -17,3 +17,5 @@
 .claude/settings.local.json
 96-Local Testing/**/*_benchmark.json
 96-Local Testing/**/*_benchmark.jsonl
+/99-Workspace/*
+!/99-Workspace/template.cpp

@@ -81,6 +81,8 @@ None required (no Barrett, Montgomery or ISA-specific code).
 
 [00-sources.md](00-sources.md), P052 sweep: cp-algorithms CRT and Garner, ACL `crt`, KACTL `CRT.h`, maspypy `nt/crt.hpp` (non-coprime CRT modulo a target via a coprime base). Written independently. Legacy: `OLD/5-Mathematics/07-chiremthmandgarner.hpp`. `chiRemThm` becomes `crt`, `superChiRemThm` becomes `crtScaled` (Legacy mapping), and `garner` keeps its name (returning -1 on non-coprime moduli, as before).
 
+Adopted by the P052 sweep: `crtMod` and the `CrtResult.overflow` flag.
+
 ## Limits and handoffs
 
 - Exact CRT answers above `LLONG_MAX` are not materialized. `crt` reports overflow; use `crtMod` or `garner` with a target, or the digits with `InfInt`.
@@ -88,5 +90,5 @@ None required (no Barrett, Montgomery or ISA-specific code).
 
 ## History
 
-- 2026-10-09: P052 initial implementation and verification; the first full run made inconsistency take precedence over overflow in `crtScaled`, and review fixed a lost newline between `garnerDigits` and `garner`; full and stress passed on g++, full on g++-14.
-- 2026-10-13: prune, removed `superChiRemThm` (Legacy mapping); its checks were already made on `crtScaled`, and `crt2` now shares the `crt` comment line (comment cap); full passed on g++ and g++-14, stress on g++.
+- 2026-10-09: P052 initial implementation and verification, review found 1 defect, fixed; full and stress passed on g++, full on g++-14.
+- 2026-10-13: prune, removed `superChiRemThm` (Legacy mapping); full passed on g++ and g++-14, stress on g++.

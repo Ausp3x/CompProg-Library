@@ -3,7 +3,6 @@
   "statuses": [
     "planned",
     "in-progress",
-    "audit",
     "verified"
   ],
   "models": {

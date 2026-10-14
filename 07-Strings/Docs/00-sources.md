@@ -1,6 +1,6 @@
 # 07 Strings — sources
 
-Source keys used in `00-index.md` status cells are defined in the second section. A key is a research starting point, never correctness evidence.
+Source keys used in `00-index.md` status cells are defined under "Prior source keys and audit narrative" below. A key is a research starting point, never correctness evidence.
 
 ## Catalog pages fetched 2026-10-06
 
@@ -77,7 +77,6 @@ Keys used in status cells: KACTL, CPALG (cp-algorithms), OI-STR (OI Wiki string 
 - The 2026-09-27 cross-library audit (`00-Guidelines/History/2026-09-27-inventory-audit.md`, records in `Ledgers/research-sources.json`) compared catalog navigation and selected API comments, not source correctness; it grew this folder from 35 to 49 rows (14 added). Paper abstracts identified advanced variants (dynamic strings, semi-local LCS, runs, r-index); their proofs remain implementation-time reading.
 - Targeted pages read then: maspypy `inverse_manacher.hpp` (odd-only radii), `online_z_algorithm.hpp`, `double_ended_palindromic_tree.hpp`, `prefix_substring_LCS.hpp` (wavelet-matrix dependency); OI Wiki navigation including suffix balanced tree, in-place suffix sorting, subsequence automaton and Main–Lorentz; Lecroq's complete table of contents (the univ-mlv hostname had a certificate mismatch; the univ-eiffel successor was used).
 - Library Checker coverage (`00-Guidelines/Ledgers/library-checker-coverage.json`) maps string problems to rows; status there is "inventoried", not accepted.
-- P016/P017 (2026-09-28) inspected for the nine Basic headers: cp-algorithms prefix-function, Z, string hashing, Aho–Corasick, suffix array and Manacher articles; OI Wiki Z and trie pages; Nyaan `z-algorithm.hpp`, `rolling-hash.hpp`; ACL `string.hpp` Z and suffix-array overloads; KACTL `Hashing.h`, `SuffixArray.h`, `AhoCorasick.h`, `Manacher.h`; maspypy `run_length.hpp`. All code was written independently from the invariants; details and legacy accounting are in `90`–`97`.
 - Legacy: `OLD/Team Notebook/src/misc/old_zalgo.cpp` (static Z, accounted for in `02`); Team Notebook `algs.cpp`/`algsbetter.cpp` trie/KMP routines (accounted for in `01`/`04`); no other owned string implementation was found in `OLD/algorithms.cpp` or `OLD/[1] algorithms.cpp`.
 
 ## Not adopted
@@ -88,7 +87,10 @@ Keys used in status cells: KACTL, CPALG (cp-algorithms), OI-STR (OI Wiki string 
 - maspypy `split.hpp`, `binary_lyndon_list.txt`, `suffix_tree.png`: utility, data and image files.
 - suisen `morris_pratt.hpp`: the MP border table is `prefixFunction`; no separate operation.
 - hitonanode `suffix_array_doubling.hpp`, `longest_common_prefix.hpp`: covered by `07` radix doubling and `lce`.
-- Lecroq Brute Force and DFA pages: naive scan and `prefixAutomaton`/`dfaSearch` already appear in `16`; no historical row entry.
 - OI Wiki "Standard Library" page: C++ `std::string` usage, not an algorithm.
+
+## Covered by existing rows
+
+- Lecroq Brute Force and DFA pages: naive scan and `prefixAutomaton`/`dfaSearch` already appear in `16`; no historical row entry.
 - KACTL/ACL: no item excluded; every entry maps to an existing row.
 - Library Checker `enumerative_combinatorics/number_of_subsequences`: already mapped to row `20`.

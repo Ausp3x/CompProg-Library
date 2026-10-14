@@ -101,4 +101,4 @@ The code was written independently; no source code was copied. The Python subset
 
 ## History
 
-- 2026-10-09: implemented and verified (P081). Independent review: Hirschberg rows held across recursion (`O(n + m log n)` memory) fixed by the `split` helper; Gotoh locals renamed.
+- 2026-10-09: implemented and verified (P081), independent review found 1 defect and 1 naming issue, fixed.

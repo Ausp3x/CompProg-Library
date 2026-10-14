@@ -34,11 +34,11 @@ python3 '96-Local Testing/00-Tools/03-notebook_tester.py'
 | Path | Contents |
 |---|---|
 | `_00_cpp_test_runner.py` | Shared compile-and-run infrastructure, progress output, PASS/FAIL/SKIP reporting |
-| `_00_memory_cap.py` | Memory-capped execution: every tester, benchmark and integration entry calls `ensure()` (systemd scope, 4096 MB default cap, quick pre-flight before full/stress, `MEMORY peak` report); CLI `-- <command>` for ad-hoc programs. Evidence: [00-memory-safety.md](00-memory-safety.md) |
+| `_00_memory_cap.py` | Memory-capped execution: `ensure()` for entry points, CLI `-- <command>` for ad-hoc programs. Rules: [05-testing.md](../00-Guidelines/05-testing.md), Memory safety; evidence: [00-memory-safety.md](00-memory-safety.md) |
 | `01-run.py` | Suite discovery, modes, `QUICK` registration set |
 | `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds |
 | `03-consistency.py` | Repository record and style validator; imports `plan.py check` |
 | `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, and the notebook |
 | `01-Core/` … `07-Strings/` | Per-header testers, helper `.cpp` files and benchmark drivers |
 
-Known limits: suite discovery scans one folder level; there is no checked-in CI; PyPy is not installed, so Python suites report SKIP for it. The mode names describe actual coverage; a suite that does not exist is not claimed by any mode.
+Known limits: suite discovery scans one folder level; there is no checked-in CI. The mode names describe actual coverage; a suite that does not exist is not claimed by any mode.

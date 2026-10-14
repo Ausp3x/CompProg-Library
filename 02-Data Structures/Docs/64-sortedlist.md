@@ -25,7 +25,7 @@ A sorted multiset stored as a vector of nonempty sorted buckets. `C` is a strict
 | `next(x)` | `lowerBound(x)` |
 | `operator[](k)` | `kth(k)` |
 
-## Correctness and cost
+### Correctness and cost
 
 Buckets are globally sorted: insertion goes to the first bucket whose maximum is greater than `x` (or the last bucket), at the upper bound inside it. Earlier buckets hold only elements `<= x` and later buckets only elements `> x`, so the order is kept and every existing equivalent of `x` precedes the new element, which is the stability guarantee. `lowerBound` takes the first bucket whose maximum is `>= x`; every earlier bucket lies entirely below `x`. `erase(x)` starts at that bucket and continues to the next one only while the current bucket's equivalents reach its end; the interior buckets of the run become empty and are removed in one pass, and only the two partial end buckets can fall below `B / 2`, so two `fix` calls restore the invariant. `fix` loops because a merge with an equally small neighbour may still be below `B / 2`; each iteration removes a bucket, so it terminates.
 
@@ -57,7 +57,7 @@ python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/64-sor
 
 Full, seed 20261013: PASS on both compilers in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the 7 assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, all with `-std=gnu++20 -Wall -Wextra -Wconversion -Werror`; 13,028,822 checks per configuration, MEMORY peak 778 MB on g++ and 781 MB on g++-14, both dominated by the compiler. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
 
-## Benchmark
+## Benchmarks
 
 `64-sortedlist_benchmark.py --runs 5`, seed 20261009, GCC 16.2.1 `-O2 -DNDEBUG`, i9-11900H. The driver rebuilds the benchmark with header copies whose `BMIN`/`RATIO` are substituted, and compares a PBDS order-statistics tree over `(value, id)`. Mixed: n random inserts of values in [0, 4n), then 1e6 operations (25% `insert`, 25% `eraseOne`, 20% `rank`, 20% `kth`, 10% `lowerBound`). Front-heavy: 1e6 ascending inserts then 1e6 `popFront`. Checksums agree across variants and runs. Medians of 5 runs in seconds (MEMORY peak 332 MB), measured before the review fixes, which touch only `erase(x)` (now by value), a field name and the rank helper, none of them on the timed paths except `rank`, whose loop is unchanged.
 
@@ -94,5 +94,5 @@ References inspected 2026-10-09 by the completeness sweep ([00-sources.md](00-so
 
 ## History
 
-- 2026-10-09: P227 first verification, full passed on g++ and g++-14, stress (seed 7) on g++, integration on both, `BMIN`/`RATIO` benchmark sweep. Independent review: fixed `erase(x)` use-after-free when `x` aliases an element (now by value), renamed the runtime field `B` to `load`, merged the `rank`/`upperRank` prefix loops into `position`, corrected two evidence statements.
+- 2026-10-09: P227 first verification, full passed on g++ and g++-14, stress (seed 7) on g++, integration on both, `BMIN`/`RATIO` benchmark sweep; independent review, 5 findings fixed.
 - 2026-10-13: prune, removed `next(x)` and `operator[](k)` (their checks already ran on `lowerBound` and `kth` against the same oracle); full suite passed on g++ and g++-14.

@@ -39,20 +39,21 @@ The Python entry and C++ oracle suite share the stem under `96-Local Testing/02-
 | `largestBinaryRectangle`, `maxZeroSubmatrix` | matrices group | All shapes through 4x4 with at most 12 cells against every rectangle for both bits; arbitrary legacy blockers |
 | Random and generic | random/generic groups | 100 random cases, generic comparator equivalence, independent witness validation/complement symmetry; 11 probes |
 
-Stress: length 9, all binary matrices through 4x4 and a million-bar plateau. Per configuration: 808,326 checks (full, 2026-09-27), 808,148 (full, 2026-10-07).
+Stress: length 9, all binary matrices through 4x4 and a million-bar plateau. Per configuration: 808,148 checks (full, 2026-10-07).
 
 ## Commands and results
 
-Re-audit, 2026-10-07:
+Re-audit, 2026-10-07, and floor check, 2026-10-14 (last line):
 
 ```bash
 python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 2 --filter '02-Data Structures' --no-integration
 python3 '96-Local Testing/01-run.py' --mode full --seed 20261007 --filter '02-Data Structures' --no-integration
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/08-monotone_stack_tester.py' --mode full --seed 20261014
 ```
 
-All runs used GCC 16.2.1, GNU++20 and CPython 3.14 on Linux x86-64 (Intel Core i9-11900H), and all passed. Every tester build used `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked and ASan/UBSan configurations with leak checking. The final full run (seed 20261007, after the review fixes) took 4 min 10 s for the package and passed all 8 suites x 3 configurations and all 112 assertion probes. Stress over two rounds (seeds 7 and 8, 21 min) passed all 8 suites before the review fixes. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, multiple-translation-unit linkage, the Workspace build and the sanitizer self-tests. `03-consistency.py` reports no errors and checks the closing-brace rule on the package's headers and testers. The monotone suite passed in every run above (808,148 checks per configuration in the final full run).
+The 2026-10-07 runs used GCC 16.2.1, GNU++20 and CPython 3.14 on Linux x86-64 (Intel Core i9-11900H), and all passed. Every tester build used `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked and ASan/UBSan configurations with leak checking. The final full run (seed 20261007, after the review fixes) took 4 min 10 s for the package and passed all 8 suites x 3 configurations and all 112 assertion probes. Stress over two rounds (seeds 7 and 8, 21 min) passed all 8 suites before the review fixes. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, multiple-translation-unit linkage, the Workspace build and the sanitizer self-tests. `03-consistency.py` reports no errors and checks the closing-brace rule on the package's headers and testers. The monotone suite passed in every run above (808,148 checks per configuration in the final full run). The 2026-10-14 floor check on GCC 14.4.1 passed 808,282 checks in each of the three configurations and 11 assertion probes, `MEMORY peak=469MB`.
 
 ## Sources
 
@@ -71,4 +72,6 @@ Legacy `maxZeroSubmatrix` keeps its arbitrary-nonzero blocker semantics and wide
 ## History
 
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
-- 2026-10-07: P006 re-audit, findings 10–12, 14, 17, 19, 20, 21, 22, 23, 24 (of 24 package findings) addressed in this header, full and stress passed on g++.
+- 2026-10-07: P006 re-audit, 11 findings fixed, full and stress passed on g++; independent review: confirmed findings 2–24 fixed, accepted the contract-based resolution of finding 1, raised five findings, all fixed.
+- 2026-10-13: P006 prune rerun, header and tests unchanged; full suite (seed 20261013) passed on g++ and g++-14.
+- 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.

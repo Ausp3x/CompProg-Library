@@ -5,5 +5,4 @@ Unchanged excerpts for future migration/audit. These `.cpp` files are reference 
 | File | Symbols | Why retained as a reference |
 |---|---|---|
 | [01-floydwarshall.cpp](01-floydwarshall.cpp) | floydWarshall | Undefined sze(d) prevents standalone compilation; free function lacks inline for header linkage. Kept unchanged as a reference; not an active header. |
-| [02-bipartite.cpp](02-bipartite.cpp) | isBipartite | Free function lacks inline: unchanged inclusion from multiple translation units violates header linkage requirements. Compiles as a source snippet; kept unchanged as a reference, not an active header. |
 | [03-subtree_queries.cpp](03-subtree_queries.cpp) | EulerTourTree | Entire struct is commented out in the source. Static Euler subtree flattening plus range-query adapter, not a dynamic Euler-tour tree. Refers to obsolete non-template SegTree and its incompatible constructor/method interface. Historical TESTED comment is preserved, not accepted as current verification. |

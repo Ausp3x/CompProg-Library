@@ -87,7 +87,7 @@ Finite tests complement the arguments above; they do not prove all inputs.
 | `02-integration.py` | PASS: 136 standalone/aggregate headers (including `19-max_flow.hpp` alone and `99-all.hpp`), scalar/available-AVX2 multi-TU, workspace; MEMORY peak 648 MB |
 | `03-consistency.py`, with `--braces` on the header and tester | No errors |
 | `NDEBUG` boundedness probe (ad hoc, `-O1 -DNDEBUG -fsanitize=address,undefined`, 512 MB cap): `edmondsKarp(1, 1, 7)`, `edmondsKarp(1, 1)`, `augmentPath(1, 1)`, `flow(1, 1, 7)`, `edmondsKarp(0, 1, -1)`, `capacityScalingDinic(1, 1, 7)`, `pushRelabel(1, 1)`, `pathDecomposition(1, 1)`, `augmentPath` to an unreachable `t`, two `LLONG_MAX` source edges into `pushRelabel` | Return 7, `MAX`, `MAX`, 7, 0, 7, 0, no paths, 0 and 0, with every edge flow unchanged; no sanitizer report; peak 23 MB |
-| `@reviewer` (independent; own exact-BFS-path oracle, 40,000 rounds each in `int`, `lng`, `lll` under ASan/UBSan, 3,065,970 checks; reran quick, full and integration) | No code defect. Four evidence findings fixed: the Legacy mapping now says the adapter restarted per call and gives the exact `ncap`, `par` and `s == t` mappings; `changeCapacity`'s domain names `edmondsKarp` and `augmentPath` (tested as `dynamicCase` starts); the `NDEBUG` probes of unchanged engines are rerun above; an untested tie-break sentence was dropped |
+| `@reviewer` (independent; own exact-BFS-path oracle, 40,000 rounds each in `int`, `lng`, `lll` under ASan/UBSan, 3,065,970 checks; reran quick, full and integration) | No code defect; 4 evidence findings fixed. |
 
 ```bash
 python3 '96-Local Testing/04-Graphs/19-max_flow_tester.py' --mode full --seed 20261012
@@ -160,5 +160,5 @@ Legacy material inspected:
 
 ## History
 
-- 2026-10-10: original P044; full suites (seed 20260927, 23,926,841 checks, 22 probes) passed on g++ and g++-14, stress (seed 1), benchmark and integration with sanitizers passed; independent review found 2 `NDEBUG` defects, 2 contract mismatches, supply-overflow UB and `Graph` weight narrowing, all fixed.
+- 2026-10-10: original P044; full suites (seed 20260927, 23,926,841 checks, 22 probes) passed on g++ and g++-14, stress (seed 1), benchmark and integration with sanitizers passed; independent review, 6 findings fixed.
 - 2026-10-12: prune, removed the `EdmondsKarp` legacy adapter (cases moved to `MaxFlow` on `Graph::fromMatrix` and to `augmentPath`, four legacy probes replaced) and added `edmondsKarp` and `augmentPath`; full suite passed on g++ and g++-14, stress passed.

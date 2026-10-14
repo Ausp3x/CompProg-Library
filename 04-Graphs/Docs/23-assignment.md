@@ -106,5 +106,5 @@ Min-cost flow is row 20 and general weighted matching row 64. Incremental row ad
 
 ## History
 
-- 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14.
+- 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; independent review: no wrong answers (own Bellman–Ford min-cost-flow oracle, overflow probes at the stated domain bounds).
 - 2026-10-13: prune, removed the `Hungarian` adapter (Legacy mapping); its hand-checked matrices moved to `hungarian` with the enumeration oracle, the `legacy-range` probe was deleted. The review found that the default-result check could not fail on value-initialized vector elements; it now default-initializes over volatile-poisoned storage. Full passed on g++ and g++-14, stress on g++.

@@ -100,6 +100,6 @@ The code was written independently from the recurrences and proofs in the packag
 ## History
 
 - 2026-09-28: first implementation and audit (MI14, P014); full suite passed.
-- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes; re-audit then added `medianOfMedians` and `threeWayPartition` (`/reaudit-review` findings 3, 4, 6, 8, 10–17 fixed).
-- 2026-10-08: re-audit verified: full suite seed 20261008 passed on g++ and g++-14, stress seed 7 and the benchmark passed, integration and consistency clean.
+- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes.
+- 2026-10-08: re-audit, added `medianOfMedians` and `threeWayPartition`, 12 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 and the benchmark passed, integration and consistency clean.
 - 2026-10-13: prune, removed `stablePartition` and `quickSelect` (cases moved to `std::stable_partition` and `std::nth_element`, `select-*` probes dropped); full suite passed on g++ and g++-14.

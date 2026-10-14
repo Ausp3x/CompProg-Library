@@ -78,8 +78,8 @@
   "files": [
     {
       "path": "OLD/00-index.md",
-      "bytes": 1304,
-      "sha256": "ed91a5dac020c7e0fc1e89b85e389e4cce56f929e45e751f58cc8392766ad6cb",
+      "bytes": 1217,
+      "sha256": "35d0f019fdec99c0d0da32ab40ce87f0dc441764bccfe2c55e8f65f2b53eeb41",
       "extension": ".md",
       "lines": 7,
       "classification": "archive-notes",

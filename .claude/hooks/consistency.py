@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PostToolUse hook: run the library consistency validator after edits to plan/inventory/source files."""
+"""PostToolUse hook: run the library consistency validator after edits to Markdown, plan and source files."""
 import fnmatch
 import json
 import subprocess
@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PATTERNS = ('*/00-index.md', '00-Guidelines/13-Plan/*', '01-prompts.md', '*.hpp', '08-Python/*.py')
+PATTERNS = ('*.md', '00-Guidelines/13-Plan/*', '*.hpp', '08-Python/*.py')
 
 
 def failure(text):

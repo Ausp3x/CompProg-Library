@@ -69,3 +69,4 @@ GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed; exact GCC 14.2 and a Win
 - 2026-09-27: post-migration namespace review, header unchanged, quick suite, consistency and workspace check passed.
 - 2026-10-06: re-audit, 2 findings fixed (Windows contract, tester braces), `indexed_map` added, full and stress passed on g++.
 - 2026-10-06: re-audit, full (seed 335597) and stress (seed 1) passed on g++, closing-brace check and workspace check passed.
+- 2026-10-06: closing-brace checker built in `03-consistency.py` (P002 re-audit), calibrated: the eight P002 files report nothing after normalization (160 true positives before), a probe file reports exactly the four real violations; the bitset review's edge cases fixed ([18-bitset.md](18-bitset.md)).

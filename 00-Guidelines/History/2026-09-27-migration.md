@@ -42,7 +42,7 @@ Final checks: all **31** current headers/aggregates passed standalone compilatio
 
 ## Remaining work and explicit limits
 
-- Most inventoried algorithms are not yet implemented. Existing code retains legacy API/style/complexity details pending per-header audits. Do not interpret the reorganization as maximal optimization, complete semantics review, or research verification.
+- Most inventoried algorithms are not yet implemented. Existing code retains legacy API/style/complexity details pending per-header audits. The reorganization was not maximal optimization, complete semantics review, or research verification.
 - Complete feature suites are still missing for Matrix, Montgomery, ordinary Mathematics and miscellaneous utilities. Available-suite modes describe actual coverage in 96/00-index.md; they do not cover nonexistent suites.
 - No performance superiority benchmarks or Barrett/Montgomery >=20% claims were established by this organizational pass.
 - LuaLaTeX and Inter are unavailable in this environment. The notebook selector and generated TeX were checked, but actual PDF rendering, glyph coverage (including Unicode comments), and page count against real PDFs remain unverified. The build command reports missing prerequisites and does not claim a PDF was built.

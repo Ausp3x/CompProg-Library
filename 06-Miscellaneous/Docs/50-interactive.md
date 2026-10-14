@@ -47,6 +47,8 @@ python3 '96-Local Testing/03-consistency.py'                                    
 
 Warning-free with `-Wall -Wextra -Wconversion` under GCC 16.2 and 14.4 in a two-translation-unit build through `99-all.hpp`. The tester build under the same flags gets one `-Wunused-but-set-variable` on `first` in `writeLine` from the argument-free `answer()` case; it predates the prune (Limits and handoffs).
 
+`@reviewer` (2026-10-13, prune): no correctness defect, removal complete and behavior unchanged; 1 test finding and 3 evidence findings fixed.
+
 ## Benchmarks
 
 None: every operation is one formatted line or one extraction, and interactive problems are bound by the judge round trip.
@@ -64,13 +66,10 @@ Catalog sweep by `@researcher` on 2026-10-08 (ledger in [00-sources.md](00-sourc
 - Buffered `03-fastio.hpp` readers are not used: bulk `fread` can block on a live pipe. `iostream` with the flush discipline above is the portable choice; `17-fast_io_advanced.hpp` must keep its interactive fallback.
 - `08-Python` names its counterpart `ask`/`tell`/`finish`; the C++ names follow the inventory row (`ask`/`answer`).
 - Open: `writeLine()` with no arguments sets `first` without reading it, so `-Wall` warns at that instantiation; left for the package's next audit (a prune changes only its items).
+- Open, also for the next audit: `std::istream`/`std::ostream` qualification, and a C-style cast in the tester.
 - Exact GCC 14.2 and the Windows build were not run; `\r` stripping covers Windows line endings that reach the stream untranslated.
-
-## Independent review
-
-`@reviewer` (2026-10-13, prune): no correctness defect; removal complete and behavior unchanged (four `out.flush()` call sites, two-TU `99-all.hpp` build, exit scenarios, `readReply` flush mutation). Fixed: the moved `out.flush()` check ran after a read had already flushed, so it could not fail; it now precedes the read, and its mutation fails. Evidence nits fixed (warning flag, memory peaks, this section). Pre-existing, left for the next audit: the `writeLine()` warning (Limits and handoffs), `std::istream`/`std::ostream` qualification and a C-style cast in the tester.
 
 ## History
 
-- 2026-10-08: created and verified (P229): quick, full on g++ and g++-14, stress seed 3 and integration with sanitizers passed; `@reviewer` finding on unsigned replies fixed the same day.
+- 2026-10-08: created and verified (P229), `@reviewer` found 1 defect, fixed; quick, full on g++ and g++-14, stress seed 3 and integration with sanitizers passed.
 - 2026-10-13: prune, removed `flushNow` (case moved to `io.out.flush()`); full suite passed on g++ and g++-14, integration and consistency clean.

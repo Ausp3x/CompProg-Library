@@ -131,5 +131,5 @@ Other planned packages own adaptive and exact floating predicates (P128 / GE11),
 ## History
 
 - 2026-09-27: original P007, full suite (seed 20260927, 1,152,578 checks) passed on g++ 16.
-- 2026-10-07: re-audit, implemented the seven missing line operations plus `canonicalLine`; 5 findings fixed (complexity comments, explicit `approx` casts, `LinearIntersection2` comment, braces, comment cap); full suite and stress passed on g++ 16; two-translation-unit GE01 smoke and a `-Wall -Wextra -Wconversion` sweep over all eight `T` passed, `02-integration.py --sanitizers` passed.
+- 2026-10-07: re-audit, implemented the seven missing line operations plus `canonicalLine`; 5 findings fixed (complexity comments, explicit `approx` casts, `LinearIntersection2` comment, braces, comment cap); full suite and stress passed on g++ 16; two-translation-unit GE01 smoke and a `-Wall -Wextra -Wconversion` sweep over all eight `T` passed, `02-integration.py --sanitizers` passed; independent review: confirmed three package defects, all fixed (none in this header).
 - 2026-10-12: prune, removed `onSegment` (cases moved to `contains` on `Linear2::segment`; call sites in `segmentDistanceApprox`, `17-polygon_distance.hpp` and the 10 and 16 testers migrated); full suite passed on g++ and g++-14, stress passed.

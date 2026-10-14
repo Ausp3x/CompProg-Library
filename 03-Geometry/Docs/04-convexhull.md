@@ -27,11 +27,12 @@ Finite tests supplement the arguments above; they do not prove correctness for a
 
 ## Commands and results
 
-2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 was unavailable; no GCC 14 run is claimed.
+2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
 | Command | Result |
 |---|---|
 | `04-convexhull_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 1,292,646 checks per configuration |
+| `CXX=g++-14 04-convexhull_tester.py --mode full --seed 20261014` (GCC 14.4.1, 2026-10-14) | PASS, 1,245,870 checks per configuration; 0 assertion probes; `MEMORY peak=482MB` |
 | `04-convexhull_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 10,264,103 checks |
 | `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU builds, workspace) | PASS |
 | Two-translation-unit smoke mixing all four GE01 headers | PASS |
@@ -40,6 +41,7 @@ Finite tests supplement the arguments above; they do not prove correctness for a
 
 ```bash
 python3 '96-Local Testing/03-Geometry/04-convexhull_tester.py' --mode full --seed 20260927
+CXX=g++-14 python3 '96-Local Testing/03-Geometry/04-convexhull_tester.py' --mode full --seed 20261014
 python3 '96-Local Testing/03-Geometry/04-convexhull_tester.py' --mode stress --seed 42 --configuration optimized
 python3 '96-Local Testing/01-run.py' --mode quick --filter 03-Geometry --seed 20260927 --no-integration
 python3 '96-Local Testing/02-integration.py' --sanitizers
@@ -78,4 +80,5 @@ Higher-dimensional hulls belong to P137 / GE12. Chan's output-sensitive hull is 
 ## History
 
 - 2026-09-27: original P007, full suite (seed 20260927, 1,151,038 checks) and benchmark passed on g++ 16.
-- 2026-10-07: re-audit, added `convexHullIndices` and the shared `hull_detail::chain`; 3 findings fixed (complexity comments, braces, comment cap); full suite, stress and benchmark rerun on g++ 16.
+- 2026-10-07: re-audit, added `convexHullIndices` and the shared `hull_detail::chain`; 3 findings fixed; full suite, stress and benchmark rerun on g++ 16; independent review: confirmed three package defects, all fixed (none in this header).
+- 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.

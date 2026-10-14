@@ -1,12 +1,12 @@
 # Session checklist
 
 Start a session with `/package Pxxx` (Claude Code) or paste `python3 '00-Guidelines/13-Plan/plan.py' show Pxxx` output (other agents).
-Statuses: planned, in-progress, audit (verified under the previous system; re-audit required), verified.
+Statuses: planned, in-progress, verified.
 Order is the default dependency-respecting schedule; `plan.py next` picks the next ready package.
 
 <!-- plan:begin -->
 
-Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model, size): label. Status: planned | in-progress | audit | verified.
+Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model, size): label. Status: planned | in-progress | verified.
 
 ### Foundations re-audit
 

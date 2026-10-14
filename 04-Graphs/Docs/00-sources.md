@@ -34,7 +34,7 @@ Catalog inspection establishes operation names and testable families, never impl
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
-| maspypy graph base | https://maspypy.github.io/library/graph/base.hpp | 2026-10-07 | Degree arrays, endpoint edge lookup and `rearrange` with kept edge IDs (row 01; `inducedSubgraph` keeps an edge map, the rest omitted in 80-notes) |
+| maspypy graph base | https://maspypy.github.io/library/graph/base.hpp | 2026-10-07 | Degree arrays, endpoint edge lookup and `rearrange` with kept edge IDs (row 01; `inducedSubgraph` keeps an edge map, the rest omitted in [00-notes.md](00-notes.md#p010-re-audit-omissions)) |
 | maspypy find_cycle, find_odd_cycle | https://maspypy.github.io/library/graph/find_cycle.hpp | 2026-10-07 | Minimal cycle and directed odd cycle candidates, omitted for row 68 |
 | Nyaan graph template and utility | https://nyaannyaan.github.io/library/graph/graph-template.hpp | 2026-10-07 | Row 01 storage comparison; tree utilities belong to row 14 |
 | cp-algorithms, Depth-first search | https://cp-algorithms.com/graph/depth-first-search.html | 2026-10-07 | Entry/exit times and edge classification, derivable from `order`/`postorder` |
@@ -126,7 +126,6 @@ Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the s
 
 - **YC**: Library Checker problem repository (graph and tree directories) — independently testable operations.
 - **CPA**: cp-algorithms graph section — article-level operation names; implementation-time article review still required.
-- **ACL**: AtCoder Library maxflow/mincostflow/scc/twosat documentation — public method names.
 - **KACTL**: KACTL `content/graph` headers.
 - **OI**: OI Wiki graph navigation.
 - **MAS**: maspypy graph/flow/tree catalog paths.
@@ -142,7 +141,6 @@ Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the s
 - **CSES**: CSES problem set titles (functional graphs, Hamiltonian flights), 2026-09-27 audit.
 - **HDT**: https://github.com/tomtseng/dynamic-connectivity-hdt — README scope and Holm/de Lichtenberg/Thorup 2001 citation, 2026-09-27 audit; connectivity only.
 - **AUDIT**: candidate list supplied with the 2026-10-06 rewrite task (level ancestor, linear extensions, exact vertex cover/dominating set, feedback sets, minimum ratio cycle, widest path, shortest-path counting/DAG, planar dual cut, Tutte-matrix matching, convex-cost flow, Hao–Orlin, tree knapsack, Hall violator, graph-class recognition, pseudoforests, degree-constrained MST, Wilson sampling, line graphs, weighted girth); each verified against at least one catalog or standard reference before adoption.
-- **STANFORD**: Stanford ACM 2015–16 notebook declarations, 2026-09-27 audit; no new operations adopted from it on 2026-10-06.
 
 ## Audit narrative (condensed from the 2026-09-27 index)
 
@@ -156,7 +154,7 @@ The 2026-09-27 completeness audit compared named families and public-operation c
 - maspypy annulus/tree walk generating functions, characteristic polynomial of tree adjacency, count labeled graph classes, count unlabeled trees: Mathematics generating-function and polynomial work.
 - maspypy bracket_graph, decompose_complete, find_path_through_specified, maximum_matching_between_vertex_edge, grid_decremental_connectivity, incremental_centroid, all_cycle_common_vertices, vs_to_es, restore_euler_tour: problem-specific constructions without a reusable family.
 - maspypy flow/longest_shortest_path, min_cost_matching_on_line, unbalanced_transportation: specialized LP/MCF reductions without contest-general contracts.
-- maspypy graph/ds/tree_wavelet_matrix and mo_on_tree: Data Structures 17 composition and Miscellaneous 10 ownership.
+- maspypy graph/ds/tree_wavelet_matrix and mo_on_tree: Data Structures 17 composition and Data Structures 23 (`TreeMo`).
 - Nyaan inclusion-tree: nested-interval tree construction, Miscellaneous interval ownership.
 - ei1333 Fibonacci-heap Prim/Dijkstra: heap choice is Data Structures; no asymptotic gain for contest sizes.
 - hitonanode basepolyhedron and convex_sum: submodular-function machinery beyond graph contracts.

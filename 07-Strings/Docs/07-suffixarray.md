@@ -96,7 +96,6 @@ No local suffix-array implementation was found in the inspected original noteboo
 
 ## Limits and handoffs
 
-- `/reaudit-review` findings ([p017](<../../00-Guidelines/23-Reaudit Findings/>), deleted after this run): 2 `initializer_list<T>` constructor and `patternRange` overloads remove the brace-list ambiguity; 7 the byte-path check compares through `lll`, warning-free for `bool`; 8 closing braces normalized; 9 the struct line has `U: NA` and both `longestCommonSubstring` overloads have `T/M` lines.
 - Added in this re-audit after the completeness sweep: `longestRepeated(k)` and `longestRepeatedDisjoint()` ([OI Wiki 后缀数组](https://oi-wiki.org/string/sa/), sections on substrings occurring at least `k` times and non-overlapping repeats).
 
 SA-IS belongs to ST06/`12-sais.hpp`; generalized indexes and common-substring queries across arbitrary numbers of inputs belong to ST11/`28-multiple_string.hpp`. Distinct-substring counting and kth applications retain ST04/`10-suffixautomaton.hpp` and ST09/`22-lexicographic_queries.hpp` ownership. Suffix trees and dynamic indexing also retain their separate inventory owners. No missing Basic suffix-array feature is deferred to those packages.
@@ -106,5 +105,7 @@ impractical maximum-size objects.
 
 ## History
 
-- 2026-09-28: verified under the previous system (P017). 2026-10-08 re-audit: `/reaudit-review` findings 2 and 7–9 fixed; `longestRepeated(k)` and `longestRepeatedDisjoint` added.
+- 2026-09-28: verified under the previous system (P017).
+- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
+- 2026-10-08: re-audit, `longestRepeated(k)` and `longestRepeatedDisjoint` added, 4 findings fixed; quick, full and stress passed on g++, full on g++-14, integration with sanitizers passed.
 - 2026-10-13: prune, the inline Kasai loop replaced by `lcpArray` from `12-sais.hpp` (construction 4–7% slower at `n = 10^6`, accepted); full suite passed on g++ and g++-14.

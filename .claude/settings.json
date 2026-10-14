@@ -12,6 +12,9 @@
       "Read",
       "WebFetch",
       "WebSearch"
+    ],
+    "deny": [
+      "Bash(git push*)"
     ]
   },
   "hooks": {

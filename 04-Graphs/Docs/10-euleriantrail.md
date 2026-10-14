@@ -31,11 +31,12 @@ Finite tests complement the algorithm arguments; they do not prove all inputs.
 
 ## Commands and results
 
-2026-10-07, GCC 16.2.1, GNU++20.
+2026-10-07, GCC 16.2.1, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
 | Command | Result |
 |---|---|
 | `10-euleriantrail_tester.py --mode full --seed 20260927` | PASS 3 configurations, 3,390 cases, 16,171,778 checks, 3 probes |
+| `CXX=g++-14 10-euleriantrail_tester.py --mode full --seed 20261014` (GCC 14.4.1, 2026-10-14) | PASS 3 configurations, 3,390 cases, 16,169,676 checks per configuration, 3 probes; MEMORY peak 630 MB |
 | `10-euleriantrail_tester.py --mode stress --seed 1` | PASS 3 configurations, 12,740 cases |
 | `02-integration.py` and `02-integration.py --sanitizers` | PASS: 102 standalone/aggregate headers, scalar/available-AVX2 multi-TU, workspace, sanitizer self-tests |
 | `03-consistency.py` | No errors |
@@ -44,6 +45,7 @@ Finite tests complement the algorithm arguments; they do not prove all inputs.
 
 ```bash
 python3 '96-Local Testing/04-Graphs/10-euleriantrail_tester.py' --mode full --seed 20260927
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/10-euleriantrail_tester.py' --mode full --seed 20261014
 python3 '96-Local Testing/04-Graphs/10-euleriantrail_tester.py' --mode stress --seed 1
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
@@ -64,9 +66,10 @@ Legacy: the `EulerPath` sections of `OLD/Team Notebook/src/algsbetter.cpp` (line
 
 ## Limits and handoffs
 
-Euler-tour counting belongs to `53-graph_counting.hpp`, and Chinese postman/route augmentation to `69-tjoin.hpp`; mixed directed/undirected Euler circuits need max flow and belong with rows 19/30/69. These are not claimed here. No `CXX=g++-14` floor run is recorded for this header.
+Euler-tour counting belongs to `53-graph_counting.hpp`, and Chinese postman/route augmentation to `69-tjoin.hpp`; mixed directed/undirected Euler circuits need max flow and belong with rows 19/30/69. These are not claimed here. GCC 14.4.1 (`CXX=g++-14`) passed the full-mode floor check on 2026-10-14; exact GCC 14.2 was not run.
 
 ## History
 
 - 2026-09-27: original P011, full suite (seed 20260927, 3,390 cases, 14,683,272 checks, 3 probes) and integration passed on g++ 16; stress not run.
-- 2026-10-07: re-audit, added the lexicographic option; no findings for this header; full suite, stress and integration passed on g++ 16.
+- 2026-10-07: re-audit, added the lexicographic option; no findings for this header; full suite, stress and integration passed on g++ 16; independent review: all eight package findings confirmed fixed, its own brute-force checks of every addition passed under ASan/UBSan/`_GLIBCXX_DEBUG`.
+- 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.

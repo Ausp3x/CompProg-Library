@@ -81,4 +81,4 @@ Code is independently implemented from the cited descriptions.
 
 ## History
 
-- 2026-10-11: implemented and verified (P084); independent review fix: only r = -1 means n in BitsetText queries (other negative r asserts).
+- 2026-10-11: implemented and verified (P084), independent review found 1 defect, fixed.

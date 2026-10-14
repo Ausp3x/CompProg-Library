@@ -7,7 +7,7 @@
 ### sais (integer alphabet with upper bound)
 
 - `template<int NAIVE = 32> vector<int> sais(const vector<int> &s, int upper)`: symbols in `[0, upper]` (`upper >= 0`, every symbol checked by an `O(n)` entry assertion), `n < INT_MAX`. Returns the `n` suffix starts in lexicographic order, sentinel-free (no caller sentinel, no reserved symbol, the empty suffix omitted; a shorter suffix that is a prefix of a longer one sorts first). `O(n + upper)` time and `O(n + upper)` workspace (bucket arrays of size `upper + 2`), `O(n)` per recursion level with halving sizes. Empty input returns `{}`.
-- `NAIVE`: inputs (and reduced recursive inputs) shorter than `NAIVE` are sorted by direct suffix comparison. The default 32 is measured (Benchmarks); `NAIVE = 1` runs pure SA-IS on every level. The threshold is a compile-time parameter, so no global state exists.
+- `NAIVE >= 1` (`static_assert`): inputs (and reduced recursive inputs) shorter than `NAIVE` are sorted by direct suffix comparison. The default 32 is measured (Benchmarks); `NAIVE = 1` runs pure SA-IS on every level. The threshold is a compile-time parameter, so no global state exists.
 - The original `saisSentinelFree` row item is this function: classical SA-IS appends a unique smallest sentinel; this implementation treats the position after the end as a virtual sentinel (last symbol L-type, `n - 1` induced first), so no sentinel is stored or returned. A caller needing the empty suffix prepends `n`.
 
 ### sais (string_view)
@@ -16,7 +16,7 @@
 
 ### compressAlphabet, sais (vector<T>)
 
-- `compressAlphabet(const vector<T> &s)` returns `{codes, k}`: `codes[i]` in `[0, k)` is the rank of `s[i]` among the `k` distinct values, preserving `<` and equality (equality is `!(a < b) && !(b < a)`; `T` needs a strict weak order only). One index sort: `O(n log(n+1))` time, `O(n)` space.
+- `compressAlphabet(const vector<T> &s)` returns `{codes, k}`: `codes[i]` in `[0, k)` is the rank of `s[i]` among the `k` distinct values, preserving `<` and equality (equality is `!(a < b) && !(b < a)`; `T` needs a strict weak order only). One index sort: `O(n log(n+1))` time, `O(n)` space (ranking by `lower_bound` would be quadratic under `_GLIBCXX_DEBUG`, which checks each searched range).
 - `template<class T> sais(const vector<T> &s)` compresses, then runs `sais(codes, max(k - 1, 0))`: `O(n log(n+1))`. For `T = int` this is the overload without an upper bound.
 
 ### lcpArray
@@ -92,5 +92,5 @@ No legacy SA-IS implementation exists in `OLD` (archive map and text search).
 
 ## History
 
-- 2026-10-09: implemented and verified (P081). Independent review: `static_assert(NAIVE >= 1)` added. A debug-build quadratic slowdown (`_GLIBCXX_DEBUG` checks each `lower_bound` range) was removed by ranking with one index sort in `compressAlphabet`.
+- 2026-10-09: implemented and verified (P081), independent review found 2 issues, fixed.
 - 2026-10-13: P017 prune, `07` `SuffixArray` now builds its LCP with `lcpArray`, so the large `lcpArray` check moved from `SuffixArray::lcp` to an exact block-name lifting oracle; full suite passed on g++ and g++-14, checked stress passed, benchmark rerun.

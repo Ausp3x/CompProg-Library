@@ -89,5 +89,5 @@ The Basic `Fenwick` name avoids a collision with the existing Advanced `FenTree`
 ## History
 
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
-- 2026-10-07: P006 re-audit, findings 1, 3, 4, 10–12, 14, 17, 19, 20, 23, 24 (of 24 package findings) addressed in this header, added `get`, `set`, `values`, `upperBound`, `maxRight`, `minLeft`, full and stress passed on g++.
+- 2026-10-07: P006 re-audit, findings 1, 3, 4, 10–12, 14, 17, 19, 20, 23, 24 (of 24 package findings) addressed in this header, added `get`, `set`, `values`, `upperBound`, `maxRight`, `minLeft`, full and stress passed on g++; independent review: confirmed findings 2–24 fixed, accepted the contract-based resolution of finding 1, raised five findings, all fixed (here the `maxRight` skip guard, restated contract comments, the domain line).
 - 2026-10-13: prune, removed `add1`, `prefixSum1`, `sum1` and `lowerBound1` (cases moved to the zero-based operations); full suite passed on g++ and g++-14.

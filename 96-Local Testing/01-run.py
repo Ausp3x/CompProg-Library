@@ -21,7 +21,7 @@ def main():
     suites = sorted(x for x in HERE.glob('[0-9][0-9]-*/*_tester.py')
                     if '_compile_' not in x.name and a.filter in x.relative_to(HERE).as_posix())
     if a.mode == 'quick':
-        suites = [x for x in suites if x.name in QUICK or x.parent.name in ('00-Tools', '02-Data Structures', '03-Geometry', '04-Graphs', '05-Mathematics', '06-Miscellaneous', '07-Strings')]
+        suites = [x for x in suites if x.name in QUICK or x.parent.name in ('00-Tools', '02-Data Structures', '03-Geometry', '04-Graphs', '05-Mathematics', '06-Miscellaneous', '07-Strings', '08-Python')]
     if not suites: p.error('no suites match')
     runs = a.rounds if a.mode == 'stress' else 1
     for i in range(runs):

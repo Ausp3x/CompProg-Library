@@ -53,8 +53,6 @@ python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 -
 python3 '96-Local Testing/03-consistency.py'  # no errors
 ```
 
-The suite was also run in full mode before any change (seed 1, all three configurations PASS) as the re-audit baseline.
-
 ## Benchmarks
 
 [`04-trie_benchmark.py`](<../../96-Local Testing/07-Strings/04-trie_benchmark.py>) times a full insert, query (`count + 3 * countPrefix + longestPrefix` over stored keys and stored prefixes) and erase pipeline for `Trie` and `TrieDense<26, 'a'>`; checksums must agree. Run 2026-10-08, i9-11900H, GCC 16.2.1, `-O2 -DNDEBUG`, seed 20261008, one warmup and five rotating repetitions; local log `04-trie_benchmark.json` (git-ignored).
@@ -87,4 +85,6 @@ Code is independently implemented.
 
 ## History
 
-- 2026-09-28: map `Trie` verified under the previous system (P016). 2026-10-08 re-audit: one `BasicTrie` template now provides `Trie` and `TrieDense`; `step`, `forEachPrefixOf` and `longestPrefix` added; `/reaudit-review` findings 5 (Node/newNode/findNode tests), 11 (`L`, `S` and fanout `A` symbols, clarified after review) and 12 (closing braces) fixed; contracts moved out of the header.
+- 2026-09-28: map `Trie` verified under the previous system (P016).
+- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
+- 2026-10-08: re-audit, one `BasicTrie` template now provides `Trie` and `TrieDense`, `step`, `forEachPrefixOf` and `longestPrefix` added, 3 findings fixed, contracts moved out of the header; quick, full and stress passed on g++, full on g++-14, integration with sanitizers passed.

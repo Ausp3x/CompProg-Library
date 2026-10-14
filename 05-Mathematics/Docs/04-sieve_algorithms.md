@@ -78,5 +78,6 @@ Inspected on 2026-09-27; written independently with no code copied.
 ## History
 
 - 2026-09-27: initial P012 evidence; full mode with seed `20260927` passed on all configurations.
-- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit fixed findings 9 (`getAllFac` complexity line) and 12 (`int8_t` Möbius) plus three brace-style fixes; after `@reviewer`, full and stress (seed 1) and integration passed.
+- 2026-10-07: P012 re-audit baseline, full suite passed on all six headers before any change.
+- 2026-10-07: P012 re-audit, 2 findings and 3 brace-style issues fixed; after `@reviewer`, full, stress (seed 1) and integration passed.
 - 2026-10-12: P012 prune rerun, header unchanged; full suite passed on g++ and g++-14.

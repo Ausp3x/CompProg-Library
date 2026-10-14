@@ -40,7 +40,10 @@ with no remaining owned implementation or verification gaps.
   all 201 hidden values can be solved by binary search. Permutation validity uses
   length, range and uniqueness; those conditions are necessary and sufficient,
   including the empty permutation. Generator seed parsing is explicit and the
-  complete emitted arrays satisfy their documented bounds.
+  complete emitted arrays satisfy their documented bounds. `03-gen.cpp` stays
+  standalone with a local `ulng = uint64_t` seed, keeping the full `[0,2^64-1]`
+  domain that `lng` would halve; the numeric C++ candidate fixtures use local
+  `lng = int64_t` aliases.
 
 Failure bundles preserve source paths, compiler/interpreter settings, working
 directory, replay path, effective hook arguments, statuses, streams and hidden
@@ -69,7 +72,7 @@ Names below omit the common `test_` prefix; related methods supplement each row.
 | `01-stress.py`: input validator in every mode (valid/invalid/tool error), expected-answer replay with token/byte/checker comparison, `--exact`/`--checker` exclusion | `input_validator_and_expected_answer_replay`, `configuration_rejects_invalid_limits_and_missing_programs` |
 | Extended independent seeded oracles | `stress_seeded_token_oracles`, `stress_seeded_shrink_histories` |
 
-Quick runs eight smoke/regression methods. Full runs 28 deterministic methods (27 before the 2026-10-06 re-audit).
+Quick runs eight smoke/regression methods. Full runs 28 deterministic methods.
 Stress runs those 28 plus 12 seeded exact/token comparison cases and six seeded
 shrinking histories, each with 12 proposals and an independently computed result.
 The suite accepts `--mode`/`--seed` or the top-level runner's environment settings.
@@ -77,123 +80,6 @@ All subprocess fixtures run from an unrelated directory with spaces. Checks use
 non-removable unittest oracles. Failures retain the fixture files, method/subtest,
 seed, working directory and command; they are the smallest known reproducers,
 not automatically minimized. Missing compilers produce an explicit skip.
-
-## Execution evidence
-
-On 2026-09-27: Linux x86_64, CPython 3.14.7, GCC 16.2.1; default C++ commands use
-`-O2 -std=gnu++20`. These are correctness runs, not performance measurements.
-No optional test was skipped on this host.
-
-| Command / configuration | Result |
-|---|---|
-| `python3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode quick` (absolute script path, cwd `/tmp`) | PASS, 8 tests |
-| `python3 -O '96-Local Testing/00-Tools/01-contest_tester.py' --mode full` (absolute script path, cwd `/tmp`) | PASS, 27 tests; assertions remain effective with optimization |
-| `python3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode stress --seed 42` | PASS, 29 methods including the extended workloads |
-| `python3 '96-Local Testing/01-run.py' --mode quick --filter 00-Tools/01-contest --no-integration` | PASS, 8 tests; discovery/environment integration |
-| `python3 '96-Local Testing/01-run.py' --mode stress --seed 43 --rounds 1 --filter 00-Tools/01-contest --no-integration` | PASS, 29 methods |
-| `ast.parse(..., feature_version=(3,10))` for all eight toolkit Python files and the fixture entry | PASS, 9 files; syntax compatibility only |
-| C++ generator with `-std=gnu++20 -O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-omit-frame-pointer` | PASS for seeds `0,1,42,2^64-1`; rejected absent/empty/negative/overflow/junk/extra arguments with exit 2; independent output-domain checks |
-| Independent interactive binary search over every hidden integer `-100..100` | PASS, 201 cases, at most eight comparisons each |
-| Final targeted rerun of configuration, scored precision and descendant-cleanup methods after persisting the last regressions | PASS, 3 methods; includes incompatible hooks, tiny-gap underflow in both objectives and inherited pipes after both leaders exit |
-| Final generator-template method after C++ style/qualification cleanup | PASS; deterministic bounds, seed endpoints and invalid arguments |
-
-The sanitizer run first encountered LeakSanitizer's documented inability to run
-under ptrace in this sandbox. The identical check was rerun outside the sandbox
-with approval and passed. There was no sanitizer diagnostic from the generator.
-Focused additional runner checks covered partial interactive launch and thread
-startup failures. No online submission or algorithm-library verification is
-claimed by this support package.
-
-## Integer and style maintenance (2026-09-27)
-
-Applied the revised [integer and style defaults](../../00-Guidelines/03-cpp.md)
-using the re-audit workflow (`/package P001`, see [the checklist](../../01-prompts.md)).
-This section records fresh maintenance checks; the stress/sanitizer results above
-remain the original completion evidence, not new runs for this change.
-
-- `03-gen.cpp` stays standalone and defines only `using ulng = uint64_t;` locally.
-  The seed uses `ulng`, preserving exact type identity and the full unsigned
-  `[0,2^64-1]` domain. Unsigned storage is intentional here; `lng` would lose half
-  that domain. `argc`, `n` and `i` remain `int`; generated lengths are at most 20.
-  The bounded `rng() % 20` conversion remains safe without a warning-only cast.
-- The two numeric C++ candidate fixtures use local `using lng = int64_t;` aliases
-  in place of `long long`, retaining signed 64-bit input capacity on the supported
-  platform. Their stream operations have no dependency on the old spelling's
-  distinct type identity. The `<iostream>` fixture now includes `<cstdint>` for
-  its alias. Underlying integer spellings remain only in these alias definitions.
-- Generator declarations, parsing and generation are separated visually. The
-  fixture bodies separate input from output, with consistent spacing and the
-  established closing-brace style. The stream-copy fixture retains its single
-  coherent output step. Each C++ program has only `main`, so there are no multiple
-  methods to regroup or public operations to rename.
-
-`std::from_chars`, `std::mt19937_64`, modulo mapping and random draw order remain
-identical. Python conventions, public names and all tool protocols are preserved.
-No Core dependency, legacy edit, shared-checklist edit or unrelated session change
-was made. There are no remaining maintenance gaps or additional style exceptions.
-This spelling/layout update makes no performance claim and needs no new benchmark.
-
-Fresh checks on Linux x86_64, CPython 3.14.7 and GCC 16.2.1:
-
-| Check | Result |
-|---|---|
-| `python3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode full` | **PASS**, all 27 tests in 17.859 seconds, no skips; includes `test_generator_templates_seeded_domain_and_cpp` and both edited candidate fixtures |
-| Saved pre-edit generator versus final generator, both compiled with `g++ -std=gnu++20 -O2` | **PASS**, byte-identical stdout/stderr and exit codes for seeds `0,1,42,2^63-1,2^63,2^64-1` and seven invalid-argument cases: missing, empty, negative, overflow, trailing junk, decimal fraction and extra argument |
-
-P001/SUP01 remains complete. The existing linked inventory and completed checklist
-entry continue to apply; quick mode alone was not used because it omits the
-generator fixture.
-
-## Post-migration defaults review (2026-09-27)
-
-Reread the current [C++ guidelines](../../00-Guidelines/03-cpp.md),
-re-audit workflow (`/package P001`, see [the checklist](../../01-prompts.md)),
-SUP01 row, inventories and [Core migration record](../../00-Guidelines/History/2026-09-27-core-migration.md).
-The generator and all three C++ support snippets already comply; independent
-review found no remaining discrepancy requiring a source edit.
-
-- **Integers:** the standalone generator defines only `ulng = uint64_t` and keeps
-  its complete unsigned seed domain. Its bounded counts/indices remain `int`.
-  Numeric fixtures retain exact local `lng = int64_t` aliases for signed 64-bit
-  payloads. Underlying spellings in alias definitions are intentional.
-- **Names and grouping:** each program contains only `main`. Parsing, generation
-  and fixture input/output steps are grouped coherently; no helper or public name
-  requires renaming. Python conventions and protocol names remain unchanged.
-- **Namespaces:** there are no owned C++ namespace definitions, shared helpers,
-  public type families or wrapper headers to reorganize. `using namespace std`
-  in the standalone examples does not export a detail namespace. Standard names
-  outside the guideline's convenience list remain explicitly qualified, including
-  `std::from_chars`, `std::errc` and `std::mt19937_64`.
-- **Migration:** P001 has no Core includes or retired Core paths. The completed
-  full/mini modular-family consolidation and Core renumbering need no P001 edits.
-  No implementation, legacy original, generated file, shared checklist, index or
-  scheduling map was changed in this review; only this evidence was updated.
-
-Fresh verification: Linux x86_64, CPython 3.14.7, GCC 16.2.1, optimized GNU++20
-fixture builds. The following command passed **all three selected tests in
-4.092 seconds, with no skips**, including the generator test omitted by quick mode:
-
-```bash
-python3 - <<'PY'
-import runpy, unittest
-fixtures = runpy.run_path('96-Local Testing/00-Tools/01-contest_tester.py')
-names = [
-    'test_generator_templates_seeded_domain_and_cpp',
-    'test_batch_pass_exact_and_cpp',
-    'test_cpp_compile_once_flags_executables_and_failures',
-]
-suite = unittest.TestSuite(fixtures['ContestTools'](../name) for name in names)
-result = unittest.TextTestRunner(verbosity=2).run(suite)
-raise SystemExit(not result.wasSuccessful())
-PY
-```
-
-These checks cover deterministic generation through the maximum unsigned seed,
-invalid seeds, output bounds, mixed Python/C++ execution, compile-once behavior,
-custom compiler flags, existing executables and expected compilation failure.
-The earlier full/stress, sanitizer and before/after comparison results above are
-historical evidence; they were not rerun in this source-unchanged review. P001
-remains complete with no new exception, failing reproducer or maintenance handoff.
 
 ## Re-audit (2026-10-06)
 
@@ -324,3 +210,10 @@ future adapters stay **planned** in the folder index, owned by the algorithm or
 problem package that motivates them. Start such work from its input domain and
 checker/probe contract, add independent fixtures here as appropriate, and retain
 the shared runner's existing protocol regressions.
+
+## History
+
+- 2026-09-27: P001/SUP01 completed; quick (8), full (27) and stress (29) passed on CPython 3.14.7 and GCC 16.2.1, with the sanitized C++ generator and a 201-case interactive binary-search check.
+- 2026-09-27: integer and style maintenance (`ulng`/`lng` aliases, generator layout); full suite passed and generator output stayed byte-identical.
+- 2026-09-27: post-migration defaults review, no source edit; the generator and C++ fixture tests passed.
+- 2026-10-06: re-audit; generator brace and `-Wconversion` fix, `--exact`/`--checker` rejection, `--input-validator` and `--expected` added, two review findings fixed; quick, full (28) and stress (30) passed on CPython 3.14, CPython 3.10 and PyPy 3.12.

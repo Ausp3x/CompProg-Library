@@ -24,6 +24,13 @@ Result struct with `root` (-1 for an empty array), `parent`, `leftChild`, `right
 
 The size limits are not reachable in memory tests (`2^30` vertices need more than 8 GB of output), so they have no assertion probes. A `CartesianTree` mutated into a non-tree may make `lcaRmqBridge` read out of range, a caller contract like every public data member in this folder; its walk still stops after `2n` steps.
 
+### Legacy mapping
+
+| `OLD/Team Notebook/src/ds/cartesiantree.cpp` | Replacement |
+|---|---|
+| `CartesianTree<T, Comp>` constructor (stack build, `par`, `lc`, `rc`, `root`) | `cartesianTree(a, comp)` returning `parent`, `leftChild`, `rightChild`, `root` (same stack algorithm and tie rule) |
+| Stored reference `a`, `n`, `comp` | Not adopted: the result owns no reference to the input, so it stays valid after the array changes |
+
 ## Feature-to-test map
 
 Tester `96-Local Testing/02-Data Structures/27-cartesiantree_tester.cpp`, entry `27-cartesiantree_tester.py` (driver `_00_runner.py`; three builds; no assertion probes, see above).
@@ -48,13 +55,6 @@ python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter 
 
 Final run 2026-10-14 (after the review fixes): full mode seed 20261014 passed on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`) with 70,258,594 checks per configuration, MEMORY peak 479 MB and 516 MB; stress mode seed 7 (one round) passed all three configurations with 181,013,001 checks per configuration, MEMORY peak 710 MB. Per-element checks build their failure message only on failure, which brought the ASan stress binary from 263 s to 26 s. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20 with `-Wall -Wextra -Wconversion -Werror`, CPython 3.14, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`) and ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined`) builds; MEMORY peaks are dominated by compilation. `02-integration.py --sanitizers` passed (143 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 2758 MB) and `03-consistency.py` reported no errors. GCC 14.2 exactly, the Windows build and PyPy were not run.
 
-## Legacy mapping
-
-| `OLD/Team Notebook/src/ds/cartesiantree.cpp` | Replacement |
-|---|---|
-| `CartesianTree<T, Comp>` constructor (stack build, `par`, `lc`, `rc`, `root`) | `cartesianTree(a, comp)` returning `parent`, `leftChild`, `rightChild`, `root` (same stack algorithm and tie rule) |
-| Stored reference `a`, `n`, `comp` | Not adopted: the result owns no reference to the input, so it stays valid after the array changes |
-
 ## Sources
 
 | Source | Actual reading and use |
@@ -72,4 +72,4 @@ Fetched 2026-10-14 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 ## History
 
-- 2026-10-14: P033 first implementation and verification; independent review: stress timeout fixed (lazy failure messages).
+- 2026-10-14: P033 first implementation and verification; independent review, 1 finding fixed; full (seed 20261014) on g++ and g++-14 and stress (seed 7) passed.

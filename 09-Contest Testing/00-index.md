@@ -23,7 +23,7 @@ Interactive mode gives the interactor the hidden input **file path** as its firs
 
 For the example above, `hidden.in` contains one integer in `[-100,100]`. `05-interactor.py` prints `guess`, accepts up to eight `? y` queries, and replies `<`, `=` or `>` comparing the hidden value with `y`. Send the final integer on its own line. The interactor rejects malformed messages, early EOF and a ninth query. Both sides must flush each message. This example's hidden format differs from `02-gen.py`; use a matching generator for randomized interactive testing.
 
-Scored mode's validator receives `input output` paths: exit 0 means valid, 1 invalid, other statuses mean a tool error. The scorer receives the same paths and must print one finite decimal number. `--objective maximize|minimize` controls the sign of `gap`: positive means the candidate trails the optional reference. Different valid scores are reported, never called wrong answers; there is no stop-on-regression policy. Without a reference, the candidate score is printed alone. Decimal parsing preserves score digits; widely separated exponents may round the displayed gap while preserving its sign. Scores/gaps outside the Decimal implementation's representable range report `scorer_error`.
+Scored mode's validator receives `input output` paths: exit 0 means valid, 1 invalid, other statuses mean a tool error. The scorer receives the same paths and must print one finite decimal number. `--objective maximize|minimize` controls the sign of `gap`: positive means the candidate trails the optional reference. There is no stop-on-regression policy. Without a reference, the candidate score is printed alone. Decimal parsing preserves score digits; widely separated exponents may round the displayed gap while preserving its sign. Scores/gaps outside the Decimal implementation's representable range report `scorer_error`.
 
 `--count 0` (the default) runs until failure or Ctrl-C. Timeouts must be finite and positive. `--timeout`, `--python`, `--cxx`, and `--cxxflags` control process limits and compilation (each compiler invocation has a 60-second limit). Paths containing spaces work when quoted in the shell. The first failing seed gets a unique folder under `/tmp/contest-stress-artifacts` by default (`--artifacts` changes it), with input, outputs, stderr, source paths, effective command arguments, comparison/configuration, and statuses. Replay that input with `--replay`; the generator is ignored. Builds stay in temporary storage and are never written beside the source. Exit 0 means all requested cases passed; 1 means a saved case failure (including infrastructure failures), 2 means setup/artifact error, and 130 means interrupted. Inspect the printed kind and `case.json` to distinguish contestant failure from generator/reference/tool failure.
 
@@ -39,9 +39,7 @@ python3 08-shrink.py failing.in --propose my_proposer.py --valid my_input_valida
 
 ## Coverage and extension inventory
 
-P001/SUP01 verification is recorded in [the package evidence](Docs/00-verification.md), with the feature-to-test map and scoped follow-up work. The examples remain small demonstrations, not a comprehensive generator/checker library for every algorithm family.
-
-The [integer and style maintenance record](Docs/00-verification.md#integer-and-style-maintenance-2026-09-27) covers the standalone generator's exact local aliases, applicable C++ fixtures, and fresh full-suite/reproducibility checks.
+P001/SUP01 verification is recorded in [the package evidence](Docs/00-verification.md), with the feature-to-test map, the [2026-10-06 re-audit](Docs/00-verification.md#re-audit-2026-10-06) commands and results, and scoped follow-up work. The examples remain small demonstrations, not a comprehensive generator/checker library for every algorithm family.
 
 | Files | Owned features | Status and evidence |
 |---|---|---|
@@ -60,4 +58,4 @@ Planned problem-specific additions, made only when a task needs them:
 - Additional problem-specific interactor protocols and scoring policies as their problems require; the supplied bounded guessing/permutation examples cover the common lifecycle.
 - Shrink hooks that preserve graph/tree structure, algebraic domains and legal rollback/persistence histories. The current helper's progress metric is strictly decreasing **input byte length**, with bounded attempts and per-hook timeouts; arbitrary semantic metrics, a separate total-time limit and generic interactive/scored reducers are not implemented.
 
-Keep these adapters short and separate. Algorithm regression suites and performance benchmarks remain in `96-Local Testing`; successful problem stress does not verify an entire library family. See [the completeness audit](../00-Guidelines/History/2026-09-27-inventory-audit.md) for the expanded workload inventory.
+Toolkit rules: [08-contest-tools.md](../00-Guidelines/08-contest-tools.md). See [the completeness audit](../00-Guidelines/History/2026-09-27-inventory-audit.md) for the expanded workload inventory.

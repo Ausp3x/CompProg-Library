@@ -28,6 +28,7 @@ Correctness: the bipartite algorithm returns an odd cycle when an edge joins equ
 
 - `findCycle(g)` → `dfsForest(g).cycle`.
 - `bfs(g, s)`, `dfs(g, s)` → `bfs(g, {s})`, `dfs(g, {s})`.
+- `isBipartite` (`97-Legacy/02-bipartite.cpp`, deleted 2026-10-14) → `bipartiteCheck` (`color` replaces `side`; a failure also returns an odd cycle).
 
 ## Feature-to-test map
 
@@ -76,7 +77,7 @@ Retrieved and inspected on 2026-09-27; no source code was copied.
 | [cp-algorithms, Bipartite check](https://cp-algorithms.com/graph/bipartite-check.html) (updated 2026-04-02) | BFS coloring and parity criterion. |
 | [cp-algorithms, Finding a cycle](https://cp-algorithms.com/graph/finding-cycle.html) | Gray-state cycle recovery. Its simple-graph limitation is extended here using reverse-arc identities. |
 
-Legacy: the old Team Notebook `old_cycle-find-dfs.cpp` was inspected; its recursive gray-state recovery is replaced by the iterative implementation. The broken exploratory destructive cycle-deletion snippet remains archival; it is not an active API or a claimed reusable cycle-enumeration engine. General cycle enumeration has its separate inventory owner. The legacy bipartite snippet remains in `97-Legacy`; its coloring feature is covered by the new result API with a witness.
+Legacy: the old Team Notebook `old_cycle-find-dfs.cpp` was inspected; its recursive gray-state recovery is replaced by the iterative implementation. The broken exploratory destructive cycle-deletion snippet remains archival; it is not an active API or a claimed reusable cycle-enumeration engine. General cycle enumeration has its separate inventory owner.
 
 ## Limits and handoffs
 
@@ -85,5 +86,5 @@ SCCs belong to `08-scc.hpp`; cycle enumeration and odd-cycle extensions belong t
 ## History
 
 - 2026-09-27: original P010, full suite (seed 20260927) passed on g++ 16 with integration and 61 package probes; stress not run.
-- 2026-10-07: re-audit, 5 findings fixed (internal `treeCycle` removed from the row, BFS tie-order oracle, brace rule, complexity lines, one adjacency fetch per DFS resume); full suite passed on g++ and g++-14, stress passed.
-- 2026-10-12: prune, removed `findCycle` and the single-source `bfs`/`dfs` overloads (cases moved to `dfsForest(g).cycle` and `{s}`); full suite passed on g++ and g++-14, stress passed.
+- 2026-10-07: re-audit, 5 findings fixed; full suite passed on g++ and g++-14, stress passed; independent review: findings 1–3, 5 and 7–14 confirmed fixed, no correctness defect, 22 own mutants (17 killed, 5 survivors equivalent or runtime-only).
+- 2026-10-12: prune, removed `findCycle` and the single-source `bfs`/`dfs` overloads (cases moved to `dfsForest(g).cycle` and `{s}`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.

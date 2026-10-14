@@ -63,11 +63,12 @@ Finite tests supplement the arguments above; they do not prove correctness for a
 
 ## Commands and results
 
-2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 was unavailable; no GCC 14 run is claimed.
+2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
 | Command | Result |
 |---|---|
 | `01-point_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 884,220 checks per configuration, 8 assertion probes |
+| `CXX=g++-14 01-point_tester.py --mode full --seed 20261014` (GCC 14.4.1, 2026-10-14) | PASS, 884,185 checks per configuration; 8 assertion probes; `MEMORY peak=610MB` |
 | `01-point_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 3,949,165 checks |
 | `02-integration.py --sanitizers` (102 headers, scalar and AVX2 multi-TU builds, workspace) | PASS |
 | Two-translation-unit smoke mixing all four GE01 headers | PASS |
@@ -76,6 +77,7 @@ Finite tests supplement the arguments above; they do not prove correctness for a
 
 ```bash
 python3 '96-Local Testing/03-Geometry/01-point_tester.py' --mode full --seed 20260927
+CXX=g++-14 python3 '96-Local Testing/03-Geometry/01-point_tester.py' --mode full --seed 20261014
 python3 '96-Local Testing/03-Geometry/01-point_tester.py' --mode stress --seed 42 --configuration optimized
 python3 '96-Local Testing/01-run.py' --mode quick --filter 03-Geometry --seed 20260927 --no-integration
 python3 '96-Local Testing/02-integration.py' --sanitizers
@@ -100,4 +102,5 @@ Adaptive and exact floating predicates belong to P128 / GE11.
 ## History
 
 - 2026-09-27: original P007, full suite (seed 20260927, 242,646 checks) and stress passed on g++ 16.
-- 2026-10-07: re-audit, implemented `canonicalDirection`, `angleApprox`, `signedAngleApprox`, `unitApprox`, `argApprox`; 6 findings fixed (aliases tested, `int8_t`/`int16_t` narrowing, complexity comments, braces, `signedAngleApprox` `-0` sign); full suite and stress passed on g++ 16.
+- 2026-10-07: re-audit, implemented `canonicalDirection`, `angleApprox`, `signedAngleApprox`, `unitApprox`, `argApprox`; 6 findings fixed; full suite and stress passed on g++ 16; independent review: confirmed three package defects, all fixed (here the `signedAngleApprox` negative-zero case).
+- 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.

@@ -78,11 +78,12 @@ This is the area of the intersection of the two filled disks. Disjoint or tangen
 
 ## Commands and results
 
-2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 is not installed; no GCC 14 run is claimed.
+2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
 | Command | Result |
 |---|---|
 | `06-circle_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 7,256,308 checks per configuration; 13 assertion probes |
+| `CXX=g++-14 06-circle_tester.py --mode full --seed 20261014` (GCC 14.4.1, 2026-10-14) | PASS, 7,256,208 checks per configuration; 13 assertion probes; `MEMORY peak=421MB` |
 | `06-circle_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 80,626,052 checks |
 | Mutation checks, optimized full suite per mutant | Caught: the normalized line formula, the `0.01` series switch, two segment root conditions, the radical-axis sign, the relation's tangent case |
 | Warning sweep, every exact operation for `int8_t`, `int16_t`, `int`, `lng` plus every approximate operation, `-Wall -Wextra -Wconversion` | No header warnings (the tester has `-Wnarrowing` warnings from integer literals in braced `dpoint` initializers) |
@@ -92,6 +93,7 @@ This is the area of the intersection of the two filled disks. Disjoint or tangen
 
 ```bash
 python3 '96-Local Testing/03-Geometry/06-circle_tester.py' --mode full --seed 20260927
+CXX=g++-14 python3 '96-Local Testing/03-Geometry/06-circle_tester.py' --mode full --seed 20261014
 python3 '96-Local Testing/03-Geometry/06-circle_tester.py' --mode stress --seed 42 --configuration optimized
 python3 '96-Local Testing/01-run.py' --mode quick --filter 03-Geometry --seed 20260927 --no-integration
 python3 '96-Local Testing/02-integration.py' --sanitizers
@@ -117,4 +119,5 @@ No claim of universally certified floating geometry is made. Other packages own 
 ## History
 
 - 2026-09-27: original P008, full suite (seed 20260927, 146,311 checks) passed on g++ 16; segment, power and radical axis missing.
-- 2026-10-07: re-audit, implemented `circleSegmentIntersectionApprox`, `powerApprox`, `radicalAxisApprox`, `circleRelation`; 7 findings fixed (series switch accuracy, non-axis tangency misclassification, non-axis tangency tests, tangent complexity line, tester braces, `circleRelation` domain assert); full suite and stress passed on g++ 16.
+- 2026-10-07: re-audit, implemented `circleSegmentIntersectionApprox`, `powerApprox`, `radicalAxisApprox`, `circleRelation`; 7 findings fixed; full suite and stress passed on g++ 16; independent review: reproduced every full count and probe, confirmed one defect (the `circleRelation` domain assert), fixed.
+- 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.

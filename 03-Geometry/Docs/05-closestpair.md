@@ -45,11 +45,12 @@ Correctness: the same recursion maintains two merged orders, by y and by z. At a
 
 ## Commands and results
 
-2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 is not installed; no GCC 14 run is claimed.
+2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
 | Command | Result |
 |---|---|
 | `05-closestpair_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 157,493 checks per configuration; 505 + 505 Python bigint cases (2D + 3D); 5 assertion probes |
+| `CXX=g++-14 05-closestpair_tester.py --mode full --seed 20261014` (GCC 14.4.1, 2026-10-14) | PASS, 157,493 checks per configuration; 505 + 505 Python bigint cases (2D + 3D); 5 assertion probes; `MEMORY peak=563MB` |
 | `05-closestpair_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 1,633,673 checks; 4,005 + 4,005 Python cases |
 | Mutation checks, optimized full suite per mutant | 3D adjacent-row test and slab filter caught; two equivalent mutants (truncated row index, `<` for the cross-row `\|dz\| <= s` bound) survive |
 | Warning sweep, every operation for `int8_t`, `int16_t`, `int`, `lng`, `-Wall -Wextra -Wconversion` | No warnings |
@@ -59,6 +60,7 @@ Correctness: the same recursion maintains two merged orders, by y and by z. At a
 
 ```bash
 python3 '96-Local Testing/03-Geometry/05-closestpair_tester.py' --mode full --seed 20260927
+CXX=g++-14 python3 '96-Local Testing/03-Geometry/05-closestpair_tester.py' --mode full --seed 20261014
 python3 '96-Local Testing/03-Geometry/05-closestpair_tester.py' --mode stress --seed 42 --configuration optimized
 python3 '96-Local Testing/03-Geometry/05-closestpair_benchmark.py'
 python3 '96-Local Testing/01-run.py' --mode quick --filter 03-Geometry --seed 20260927 --no-integration
@@ -103,4 +105,5 @@ Range-restricted closest pair belongs to row 29 (`29-point_set_queries.hpp`).
 ## History
 
 - 2026-09-27: original P008, full suite (seed 20260927, 55,373 checks) passed on g++ 16; `closestPair3` missing.
-- 2026-10-07: re-audit, implemented `closestPair3`; 4 findings fixed (complexity comment, lambda and tester brace closings, comment cap); full suite, stress and benchmark passed on g++ 16.
+- 2026-10-07: re-audit, implemented `closestPair3`; 4 findings fixed; full suite, stress and benchmark passed on g++ 16; independent review: reproduced every full count and probe, confirmed one package defect (in `06-circle.hpp`).
+- 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.

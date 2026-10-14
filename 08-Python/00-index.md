@@ -1,6 +1,6 @@
 # 08 Python — inventory
 
-Scope: a deliberate PyPy-first contest subset of folders `01`–`07` plus the PyPy performance idioms a Python contestant needs (`04-python.md`). Native `int`, `Fraction`, `heapq`, `bisect`, `itertools`, `math` and `functools` replace Core numeric types and Core/Mini wrappers; nothing here is an automatic port of a C++ header. Full algorithm families, SIMD kernels and research string/geometry indexes stay in the C++ folders; a Python row exists only where a PyPy contestant plausibly runs it inside judge limits. Every numbered module is `planned`; contracts, omissions and cross-folder ownership are in `80-notes.md`, sources in `81-sources.md`.
+Scope: a deliberate PyPy-first contest subset of folders `01`–`07` plus the PyPy performance idioms a Python contestant needs (`04-python.md`). Native `int`, `Fraction`, `heapq`, `bisect`, `itertools`, `math` and `functools` replace Core numeric types and Core/Mini wrappers; nothing here is an automatic port of a C++ header. Full algorithm families, SIMD kernels and research string/geometry indexes stay in the C++ folders; a Python row exists only where a PyPy contestant plausibly runs it inside judge limits. Every numbered module is `planned`; contracts and omissions are in [00-notes.md](Docs/00-notes.md), sources in [00-sources.md](Docs/00-sources.md).
 
 ## Basic
 
@@ -80,9 +80,6 @@ Scope: a deliberate PyPy-first contest subset of folders `01`–`07` plus the Py
 
 ## Notes
 
-- `_98_basic.py` and `_99_all.py` exist as aggregates: explicit re-exports of Basic and of all implemented modules; both currently export nothing and do no work on import.
 - Every row mirrors a C++ owner (`02` data structures, `03` geometry, `04` graphs, `05` mathematics, `06` miscellaneous, `07` strings); the C++ inventory is the full contract, the Python row is the documented reduction.
-- GF(2) elimination lives in `_21_matrix.py`; `_22_bitset.py` keeps bit tricks and `XorBasis`. Meet-in-the-middle is owned by `_40_state_search.py` only.
-- `_44`, `_45`, `_46`, `_49` and `_50` are low-value on PyPy (big-int masking, pointer-heavy structures, exponential search); they stay Esoteric and are scheduled last.
-- `_50` mixes sketches with numerical integration/roots; `_49` mixes SAT with exact cover. Both stay as listed until implementation splits them (see `80-notes.md`).
-- Source keys: `pyrival`, `aclpy`, `lc`, `cpalg`, `oiwiki`, `pypy`, `stdlib` are defined in `81-sources.md`.
+- GF(2) elimination lives in `_21_matrix.py`; `_22_bitset.py` keeps bit tricks and `XorBasis`. Meet-in-the-middle is owned by `_40_state_search.py` only. LCS is `_12_dp.py`, longest common substring `_25_suffix.py`; the Basic modular inverse is `_03_number_theory.py`, general CRT `_38_number_theory_advanced.py`; `minRotation` is `_10_strings.py`, Lyndon factorization `_54_lyndon.py`; running median and removable heaps are `_52_heaps.py`, not `_31_ordered_multiset.py`.
+- Source keys: `pyrival`, `aclpy`, `lc`, `cpalg`, `oiwiki`, `pypy`, `stdlib` are defined in [00-sources.md](Docs/00-sources.md).

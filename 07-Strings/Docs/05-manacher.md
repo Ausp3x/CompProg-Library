@@ -77,5 +77,6 @@ Code is independently implemented.
 ## History
 
 - 2026-09-28: verified under the previous system (P016).
-- 2026-10-08: re-audit, `/reaudit-review` findings 13 (`U: NA`) and 14 (closing braces) fixed; predicate constructor, `centerEnd` (range asserted after review), `longestEnding` and `longestStarting` added; contracts moved out of the header; quick, full and stress passed on g++, full on g++-14.
-- 2026-10-13: prune, removed `oddInclusive` and `evenInclusive` (cases covered by the half-open interval checks); after review, `centerEnd`, `longestEnding` and `longestStarting` narrowed to `n < 2^30` (asserted; their doubled centers overflowed `int` above it); full suite passed on g++ and g++-14.
+- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
+- 2026-10-08: re-audit, predicate constructor, `centerEnd`, `longestEnding` and `longestStarting` added, 2 findings and 1 review note fixed, contracts moved out of the header; quick, full and stress passed on g++, full on g++-14.
+- 2026-10-13: prune, removed `oddInclusive` and `evenInclusive` (cases covered by the half-open interval checks), review found 1 defect, fixed; full suite passed on g++ and g++-14.

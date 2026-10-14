@@ -44,11 +44,12 @@ Correctness: the implementation follows multiplication of homogeneous 3x3 affine
 
 ## Commands and results
 
-2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 is not installed; no GCC 14 run is claimed.
+2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
 | Command | Result |
 |---|---|
 | `08-coordinate_transform_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 265,418 checks per configuration; 4 assertion probes |
+| `CXX=g++-14 08-coordinate_transform_tester.py --mode full --seed 20261014` (GCC 14.4.1, 2026-10-14) | PASS, 265,394 checks per configuration; 4 assertion probes; `MEMORY peak=398MB` |
 | `08-coordinate_transform_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 2,042,850 checks |
 | Warning sweep, every approximate operation, `-Wall -Wextra -Wconversion` | No header warnings |
 | Two-translation-unit program mixing all four GE02 headers (optimized, ASan/UBSan); standalone header | PASS |
@@ -56,6 +57,7 @@ Correctness: the implementation follows multiplication of homogeneous 3x3 affine
 
 ```bash
 python3 '96-Local Testing/03-Geometry/08-coordinate_transform_tester.py' --mode full --seed 20260927
+CXX=g++-14 python3 '96-Local Testing/03-Geometry/08-coordinate_transform_tester.py' --mode full --seed 20261014
 python3 '96-Local Testing/03-Geometry/08-coordinate_transform_tester.py' --mode stress --seed 42 --configuration optimized
 python3 '96-Local Testing/01-run.py' --mode quick --filter 03-Geometry --seed 20260927 --no-integration
 python3 '96-Local Testing/02-integration.py' --sanitizers
@@ -74,4 +76,5 @@ The implementation is independently derived. It was compared with KACTL `Point::
 ## History
 
 - 2026-09-27: original P008, full suite (seed 20260927, 265,418 checks) and stress passed on g++ 16.
-- 2026-10-07: re-audit, 1 finding fixed (tester brace closings), contract comments moved to this document; full suite and stress passed on g++ 16.
+- 2026-10-07: re-audit, 1 finding fixed, contract comments moved to this document; full suite and stress passed on g++ 16; independent review: reproduced every full count and probe, confirmed one package defect (in `06-circle.hpp`).
+- 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.

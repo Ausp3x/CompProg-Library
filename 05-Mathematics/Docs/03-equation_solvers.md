@@ -87,5 +87,6 @@ Inspected on 2026-09-27; implemented independently from the proofs, with no exte
 ## History
 
 - 2026-09-27: initial P012 evidence; full mode with seed `20260927` passed on all configurations.
-- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit fixed findings 1 (`DioSolution.g` on no-solution results) and 8 (lambda brace style); after `@reviewer`, full and stress (seed 1) and integration passed.
+- 2026-10-07: P012 re-audit baseline, full suite passed on all six headers before any change.
+- 2026-10-07: P012 re-audit, 2 findings fixed; after `@reviewer`, full, stress (seed 1) and integration passed.
 - 2026-10-12: prune, removed the reference-output `solveDioEq` overload (its `g` and `y` overflow inputs now checked on the result overload); full suite passed on g++ and g++-14.

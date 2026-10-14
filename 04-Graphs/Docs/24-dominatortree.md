@@ -44,7 +44,7 @@ A final pass sets `dom[w] = dom[dom[w]]` where `dom[w] ≠ semi[w]`. `eval` and 
 | `dominanceFrontier` | All small cases; back-arc frontier on the 200,000 chain | Definition evaluated over all predecessors; exact set and no duplicates |
 | Preconditions | 7 probes: undirected graph, root out of range (both algorithms), frontier on a different graph, query out of range, constructor entry out of range, constructor root with a dominator | Expected assertion failure |
 
-The suite caught two of my own defects during development: frontier stamps that were not grouped by target (duplicate entries), and `eval` returning `v` instead of `label[v]` at virtual roots (wrong idom on a 12-vertex graph). Both are fixed. Planted mutants (quick suite): the `eval` regression, a missing final idom pass, unstamped frontier walks, an inverted vertex-deletion comparison, and an inclusive Euler bound, all killed. Removing the balancing swap in `link` survived; it changes only the balance, and so the α bound, not results.
+Planted mutants (quick suite): `eval` returning `v` instead of `label[v]` at virtual roots, a missing final idom pass, unstamped frontier walks, an inverted vertex-deletion comparison, and an inclusive Euler bound, all killed. Removing the balancing swap in `link` survived; it changes only the balance, and so the α bound, not results.
 
 ## Commands and results
 
@@ -57,7 +57,7 @@ The suite caught two of my own defects during development: frontier stamps that 
 | `CXX=g++-14 24-dominatortree_tester.py --mode full --seed 2` | PASS 3 configurations, 267,714 cases, 24,257,760 checks, 7 probes; MEMORY peak 756 MB |
 | `24-dominatortree_tester.py --mode stress --seed 3` | PASS 3 configurations, 293,714 cases, 33,805,505 checks, 7 probes; MEMORY peak 1,049 MB |
 | `02-integration.py --sanitizers` | PASS 113 standalone/aggregate headers (header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 2,755 MB |
-| `03-consistency.py` | No P043 errors; one error predates P043 at `HEAD` (`16-poly_tester.py` missing from `QUICK` in the committed `01-run.py`) |
+| `03-consistency.py` | No P043 errors |
 
 ```bash
 python3 '96-Local Testing/04-Graphs/24-dominatortree_tester.py' --mode full --seed 1
@@ -83,3 +83,7 @@ Not inspected: the Lengauer–Tarjan paper itself and the Cooper–Harvey–Kenn
 ## Limits and handoffs
 
 Post-dominators: run on `g.reverse()` from the exit. Multiple roots: add a super-source. Edge dominators: subdivide each edge. Iterated dominance frontiers and the DAG-only LCA method are omitted ([00-notes.md](00-notes.md#p043-omissions)).
+
+## History
+
+- 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; independent review: no wrong answers (own Cooper–Harvey–Kennedy oracle, overflow probes at the stated domain bounds).

@@ -67,11 +67,12 @@ Quick exhausts maps through n=3, adds 80 random cases and 20,000-vertex fixtures
 
 ## Commands and results
 
-2026-10-07, GCC 16.2.1, GNU++20.
+2026-10-07, GCC 16.2.1, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
 | Command | Result |
 |---|---|
 | `11-functionalgraph_tester.py --mode full --seed 20260927` | PASS 3 configurations, 9,178 cases, 12,336,203 checks, 29 probes |
+| `CXX=g++-14 11-functionalgraph_tester.py --mode full --seed 20261014` (GCC 14.4.1, 2026-10-14) | PASS 3 configurations, 9,178 cases, 12,335,002 checks per configuration, 29 probes; MEMORY peak 861 MB |
 | `11-functionalgraph_tester.py --mode stress --seed 1 --configuration optimized` | PASS, 212,282,298 checks |
 | `02-integration.py` and `02-integration.py --sanitizers` | PASS: 102 standalone/aggregate headers, scalar/available-AVX2 multi-TU, workspace, sanitizer self-tests |
 | `03-consistency.py` | No errors |
@@ -79,6 +80,7 @@ Quick exhausts maps through n=3, adds 80 random cases and 20,000-vertex fixtures
 
 ```bash
 python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode full --seed 20260927
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode full --seed 20261014
 python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode stress --seed 1 --configuration optimized
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
@@ -100,9 +102,10 @@ Sources for `jumpAll` and `maxStep` (fetched 2026-10-07) are in [00-sources.md](
 
 Static all-vertex queries, ordered cycle/walk aggregates and one-orbit constant-memory analysis are complete scope here. Successor updates and fully dynamic functional-graph maintenance require a separate dynamic-tree design; they are outside this static batch. Constant-query-time level-ancestor constructions and arbitrary-speed/collision schedules are distinct specialized extensions, not claimed by these APIs. No original Floyd paper was independently reviewed, and no judge acceptance or automatic submission is claimed.
 
-The checked `-O0` stress build exceeds the runner's 180 s timeout, so stress is recorded for the optimized configuration only. No `CXX=g++-14` floor run is recorded for this header. Functional successor updates and specialized collision schedules are outside GR26's static contracts; they remain with separate owners.
+The checked `-O0` stress build exceeds the runner's 180 s timeout, so stress is recorded for the optimized configuration only. GCC 14.4.1 (`CXX=g++-14`) passed the full-mode floor check on 2026-10-14; exact GCC 14.2 was not run. Functional successor updates and specialized collision schedules are outside GR26's static contracts; they remain with separate owners.
 
 ## History
 
 - 2026-09-27: original P011, full suite (seed 20260927, 9,178 cases, 8,243,815 checks, 28 probes) and integration passed on g++ 16; stress not run.
-- 2026-10-07: re-audit, added `jumpAll` and `maxStep`; 2 findings fixed (per-step `functionalOrbit` assert removed, redundant `maxStep` comment); full suite, optimized stress and integration passed on g++ 16.
+- 2026-10-07: re-audit, added `jumpAll` and `maxStep`; 2 findings fixed; full suite, optimized stress and integration passed on g++ 16; independent review: all eight package findings confirmed fixed, its own brute-force checks of every addition passed under ASan/UBSan/`_GLIBCXX_DEBUG`.
+- 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.

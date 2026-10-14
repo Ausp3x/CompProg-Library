@@ -116,5 +116,5 @@ No Barrett/Montgomery backend is involved.
 ## History
 
 - 2026-09-27: P013 first verification, full and stress suites and benchmark passed.
-- 2026-10-07: P013 re-audit, finding 1 (missing `readLine`, `readDouble`, `writeDouble`) fixed, `read`/`print`/`writeValue`/`end`/`precision` added, contracts moved out of code comments, brace style normalized; full, stress, benchmark and integration passed; `@reviewer` (2026-10-08) found no defects.
+- 2026-10-07: P013 re-audit, `readLine`, `readDouble`, `writeDouble`, `read`, `print`, `writeValue`, `end` and `precision` added (1 finding fixed), contracts moved out of code comments, brace style normalized; full, stress, benchmark and integration passed; `@reviewer` (2026-10-08) found no defects.
 - 2026-10-12: P013 prune run (header unchanged), full suite passed on g++ and g++-14.

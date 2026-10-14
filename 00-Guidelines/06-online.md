@@ -6,7 +6,7 @@ paths:
 
 # Online testing, expansion, workspace
 
-97-Online Testing owns judge-specific source solutions under src/<judge>/ and generated outputs under expanded/<judge>/. Judge/topic directories may be numbered for sorting. Each source records judge/problem URL or ID and which features/variants it exercises. Add CSES, Yosupo, AtCoder, Codeforces, AOJ, SPOJ, Kattis or other suitable judges as needed. Do not auto-submit or claim acceptance without evidence. Distinguish local compilation/sample checks from accepted online runs.
+97-Online Testing owns judge-specific source solutions under src/<judge>/ and generated outputs under expanded/<judge>/. Judge/topic directories may be numbered for sorting. Each source records judge/problem URL or ID and which features/variants it exercises. Add CSES, Yosupo, AtCoder, Codeforces, AOJ, SPOJ, Kattis or other suitable judges as needed. Distinguish local compilation/sample checks from accepted online runs.
 
 The expander runs from any working directory, discovers unexpanded C++ sources recursively under src only, and maps `name.cpp` to `name.expanded.cpp` preserving relative directories. Use oj-bundle for actual C++ preprocessing/bundling behavior; report how to install it when unavailable. Never consume expanded outputs as inputs. Do not modify original sources. Output replacement is atomic on successful expansion; failed expansion preserves the prior valid output and exits nonzero.
 

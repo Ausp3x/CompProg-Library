@@ -5,14 +5,14 @@ paths:
 
 # Library tests and benchmarks
 
-`96-Local Testing` verifies library files. `09-Contest Testing` compares problem solutions. Judge acceptance is never library coverage evidence.
+`96-Local Testing` verifies library files. `09-Contest Testing` compares problem solutions.
 
 ## Layout and modes
 
 - Mirror the library path: `96-Local Testing/02-Data Structures/01-dsu_tester.py` with helper `.cpp` files beside it. One Python entry per header or module; shared infrastructure in `_00_cpp_test_runner.py`. Tests include the real header and run from any working directory; build outputs go to a temporary directory.
 - Modes: `quick` (smoke subset, seconds), `full` (every operation and configuration), `stress` (extended random, exhaustive and adversarial, seeded, with `--rounds`). Document the actual coverage of each mode; never label a truncated run `full`.
-- Register the entry in `01-run.py` discovery. After any rename, inventory or plan change run `python3 '96-Local Testing/03-consistency.py'`.
-- `03-consistency.py` enforces the `03-cpp.md` closing-brace rule and, on type headers, the type-header rule on headers whose row and owning package are both `verified`, and the brace rule on their C++ testers and benchmarks, ignoring comments, literals, preprocessor lines and initializer braces. While editing, `python3 '96-Local Testing/03-consistency.py' --braces <files>` checks any files for the brace rule, the comment cap and, on `01-Core` and `02-Data Structures` type headers, the type-header rule. A re-audit normalizes its package's files before the package is marked verified. In a linked worktree, ledger records of git-ignored artifacts (archive binaries and caches, benchmark logs) pass when the file is absent, so a fresh worktree validates without them; the main checkout keeps requiring them.
+- `01-run.py` discovers testers by glob; quick mode runs every folder except `01-Core`, whose quick testers are listed in `QUICK`. Run `03-consistency.py` after a rename or `plan.py set`, which bypass the post-edit hook.
+- `03-consistency.py` enforces the `03-cpp.md` closing-brace rule and, on type headers, the type-header rule on headers whose row and owning package are both `verified`, and the brace rule on their C++ testers and benchmarks, ignoring comments, literals, preprocessor lines and initializer braces. While editing, `python3 '96-Local Testing/03-consistency.py' --braces <files>` checks any files for the brace rule, the comment cap and, on `01-Core` and `02-Data Structures` type headers, the type-header rule. In a linked worktree, ledger records of git-ignored artifacts (archive binaries and caches, benchmark logs) pass when the file is absent, so a fresh worktree validates without them; the main checkout keeps requiring them.
 - Output: named tests, in-place progress on a terminal, plain lines when redirected, green PASS and red FAIL, nonzero exit on failure, explicit SKIP for missing hardware or interpreters. A failure prints seed, smallest known reproducer, operation and input, expected and actual values, configuration, command, and timeout or crash details. Failures must survive `-DNDEBUG`; never use a removable `assert` as the only oracle. Never ignore a subprocess failure.
 
 ## Memory safety

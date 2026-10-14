@@ -1,6 +1,6 @@
 # 04-montgomery.hpp — evidence
 
-`04-montgomery.hpp` (C02, package P004, together with `03-barrett.hpp`; see [03-barrett.md](03-barrett.md)) provides machine-word Montgomery REDC for odd moduli: canonical and lazy residues, conversion in and out, scalar operations and AVX2 32-bit bulk kernels. Backend choice, the shared benchmark method and the research/ownership boundary for the reduction family are in [00-notes.md](00-notes.md#reduction-family).
+`04-montgomery.hpp` (C02, package P004, together with `03-barrett.hpp`; see [03-barrett.md](03-barrett.md)) provides machine-word Montgomery REDC for odd moduli: canonical and lazy residues, conversion in and out, scalar operations and AVX2 32-bit bulk kernels. Backend choice and the research/ownership boundary for the reduction family are in [00-notes.md](00-notes.md#reduction-family); the shared benchmark method is in [03-barrett.md](03-barrett.md#benchmarks).
 
 ## Contracts
 
@@ -75,7 +75,7 @@ All passed on GCC 16.2.1 and GCC 14.4.1, GNU++20, Linux x86-64 (Intel Core i9-11
 
 ## Benchmarks
 
-Method, corpus and artifact hashes: [00-notes.md](00-notes.md#reduction-family). Raw data: `96-Local Testing/01-Core/03-reduction_benchmark.jsonl`. Nanoseconds per complete workload, medians of five repetitions, accelerated (AVX2) `-O3 -DNDEBUG` build, 2026-10-12 (seed 20261012).
+Method and corpus: [03-barrett.md](03-barrett.md#benchmarks). Raw data: `96-Local Testing/01-Core/03-reduction_benchmark.jsonl`. Nanoseconds per complete workload, medians of five repetitions, accelerated (AVX2) `-O3 -DNDEBUG` build, 2026-10-12 (seed 20261012).
 
 | Workload | Reference | Montgomery |
 |---|---|---|
@@ -86,19 +86,17 @@ Method, corpus and artifact hashes: [00-notes.md](00-notes.md#reduction-family).
 | Eight chained powers on one context, 64-bit exponents, `m=2^64-59` | Native `%`: 2,923; Barrett: 3,175 | 1,424 |
 | Eight chained powers on one context, 128-bit exponents, `m=2^64-1` | Native `%`: 5,837 | 2,732 |
 
-Exponent widening. `dependent-pow` chains eight `pow` calls on one context (each base is the previous result), so the exponent loop's own latency shows. AVX2 build, same seed and flags, three builds: the pre-prune headers (commit 274bc82, same benchmark source with its 128-bit Montgomery line dropped, run 2026-10-12), the interim single 128-bit loop, and the final two-loop form:
+Exponent widening. `dependent-pow` chains eight `pow` calls on one context (each base is the previous result), so the exponent loop's own latency shows. `powMont` runs the 128-bit loop only while the exponent's high word is set because a single 128-bit loop cost 3–16% on `Montgomery32` and 8–10% on `Montgomery64` chains of 64-bit exponents (the independent review's isolated `pow` loop at `-O2`: +26% and +6%), while the two-loop form stays within the run-to-run spread of the pre-widening figures. Two-loop form, AVX2 build, nanoseconds per eight chained powers with 64-bit exponents (the `Barrett64` and native references are in the table above):
 
-| Eight chained powers, 64-bit exponents | Pre-prune header | One 128-bit loop | Final |
-|---|---|---|---|
-| `Montgomery32`, `m=998244353` | 1,278 | 1,317 | 1,289 |
-| `Montgomery32`, `m=2^31-1` | 1,266 | 1,394 | 1,266 |
-| `Montgomery32`, `m=2^32-5` | 1,313 | 1,524 | 1,329 |
-| `Montgomery64`, `m=2^61-1` | 1,276 | 1,405 | 1,298 |
-| `Montgomery64`, `m=2^64-59` | 1,351 | 1,466 | 1,424 |
-| `Barrett64`, `m=2^64-59` (unchanged code, drift reference) | 2,796 | 3,064 | 3,175 |
-| Native `%`, 64-bit, `m=2^64-59` (unchanged, drift reference) | 2,901 | 3,156 | 2,923 |
+| Context and modulus | Nanoseconds |
+|---|---|
+| `Montgomery32`, `m=998244353` | 1,289 |
+| `Montgomery32`, `m=2^31-1` | 1,266 |
+| `Montgomery32`, `m=2^32-5` | 1,329 |
+| `Montgomery64`, `m=2^61-1` | 1,298 |
+| `Montgomery64`, `m=2^64-59` | 1,424 |
 
-The single loop cost 3–16% on `Montgomery32` and 8–10% on `Montgomery64` chains in these runs (the independent review's interleaved isolated `pow` loop at `-O2` measured +26% and +6%); the two-loop form is back within 1% of the pre-prune figures on `Montgomery32` and within 2–5% on `Montgomery64`, inside the spread the unchanged reference rows show between runs. 128-bit exponents cost 2,631 ns (`Montgomery32`, `m=998244353`) and 2,732–3,016 ns (`Montgomery64`) per eight chained powers, about twice the 64-bit chains as the bit count predicts; the `2^64-59` native 128-bit cell of this run (14,658 ns against 5,980–6,002 ns in the other three configurations) is a transient and is not used.
+128-bit exponents cost 2,631 ns (`Montgomery32`, `m=998244353`) and 2,732–3,016 ns (`Montgomery64`) per eight chained powers, about twice the 64-bit chains as the bit count predicts; the `2^64-59` native 128-bit cell of this run (14,658 ns against 5,980–6,002 ns in the other three configurations) is a transient and is not used.
 
 Deferred Guard, `Montgomery32`, `m=998244353`, 256 products: AVX2 bulk 102 ns (`-O3 -DNDEBUG`) versus 121 ns with assertions (`-O2`), while a scalar loop of per-call checked `mul` in the same assertion build takes 458 ns; scalar bulk with assertions 425 ns (`Montgomery64`, `m=2^64-59`: 401 ns). The 2026-10-07 design measurements against the replaced per-element assertions (+4.5% scalar 32-bit, +5% 64-bit, 49% for the AVX2 kernel) and the rejected alternatives (a separate O(n) entry pass, +27% AVX2 and +91% scalar; a branch-free `bad |= x >= top` accumulator, +10–20% scalar) are not reproducible from the current source.
 
@@ -108,7 +106,7 @@ Thresholds (median AVX2 bulk/scalar ratios, canonical / lazy multiplication, ove
 
 | Source inspected (2026-09-27) | Relevant result and limits |
 |---|---|
-| Brent and Zimmermann, Modern Computer Arithmetic v0.5.9 (see [00-notes.md](00-notes.md#reduction-family)) | REDC, inverse lifting, Montgomery–Svoboda/FastREDC/McLaughlin. |
+| Brent and Zimmermann, [Modern Computer Arithmetic, v0.5.9 (2010-10-07)](https://members.loria.fr/PZimmermann/mca/mca-cup-0.5.9.pdf), §§2.4.1–2.4.4 and §2.5 ([saved copy](../../95-Resources/04-modern_computer_arithmetic.pdf); reading copy CC BY-NC-ND, no text copied) | REDC, inverse lifting, Montgomery–Svoboda/FastREDC/McLaughlin. |
 | [cp-algorithms: Montgomery Multiplication](https://cp-algorithms.com/algebra/montgomery_multiplication.html), June 8, 2022 revision | REDC representation, inverse doubling, wide carry handling, R² conversion; independently derived here. Page text CC BY-SA 4.0; no prose/code adaptation. |
 | [Algorithmica: Montgomery Multiplication](https://en.algorithmica.org/hpc/number-theory/montgomery/) | Split-word reduction, lazy residues and optimization rationale. Its range assumptions and measurements cannot be transferred to full-word moduli. |
 | [Nyaan SIMD Montgomery](https://raw.githubusercontent.com/NyaanNyaan/library/master/modint/simd-montgomery.hpp) | Even/odd 32-bit lane widening and packing; narrower lazy signed-comparison domain. CC0 1.0. |
@@ -123,10 +121,10 @@ GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2 and a Windows/
 
 ## History
 
-- 2026-09-27: original P004 completion, quick, full, stress (8,889,119 checks per configuration) and integration passed; first benchmarks.
+- 2026-09-27: original P004 completion, quick, full, stress (8,889,119 checks per configuration) and integration passed; first benchmark (seed 20260927, 4,412 verified measurements).
 - 2026-09-27: maintenance review, full suite, integration and consistency passed.
-- 2026-10-07: re-audit, 2 findings fixed (complexity comment, per-element bulk assertions replaced by `Guard`), `add`/`sub`/`addLazy`/`subLazy` and shared `redc` added, full and stress passed on g++.
-- 2026-10-07 (run): full (seed 20261007, 3,699,028 checks per configuration) and stress (seed 1, 23,203,772) passed, `02-integration.py --sanitizers` passed, independent `@reviewer` differential (8.13 million cases, every 8-lane Guard verdict) and mutants found no defect.
+- 2026-10-07: re-audit, 2 findings fixed, `Guard`, `add`/`sub`/`addLazy`/`subLazy` and shared `redc` added, full and stress passed on g++.
+- 2026-10-07 (run): full (seed 20261007, 3,699,028 checks per configuration) and stress (seed 1, 23,203,772) passed, `02-integration.py --sanitizers` passed, independent `@reviewer` differential (8.13 million cases, every 8-lane Guard verdict) and mutants found no defect, benchmark (seed 20261007, 8,912 verified measurements).
 - 2026-10-08: restyle (comments only), full suite passed on g++ and g++-14, integration and consistency passed.
 - 2026-10-12: prune (`powMont`/`pow` exponents widened to 128 bits; Barrett's `div` and `multiplier` removed, `fold61` added), full suites passed on g++ and g++-14, 9,116 benchmark measurements verified.
 - 2026-10-12 (cached contexts): constructor `constexpr` with compile-time `static_assert`s, `powMont` loops on the unchecked `redc`; full suites passed on g++ and g++-14.

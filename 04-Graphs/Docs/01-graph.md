@@ -125,5 +125,5 @@ GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available. 
 
 - 2026-09-27: original P010, full suite (seed 20260927) passed on g++ 16 with integration and 61 package probes; stress not run.
 - 2026-10-06: inventory rewrite reopened the row as partial (line graph, induced subgraph, contraction, simplification).
-- 2026-10-07: re-audit, implemented `lineGraph`, `inducedSubgraph`, `contract`, `simplify`; 5 findings fixed (missing operations, evidence claim, complexity lines, brace rule, T/M placement); full suite passed on g++ and g++-14, stress passed.
-- 2026-10-12: prune, added `Graph::fromAdjacency` and `fromMatrix`, removed `GraphLabels` (cases moved to `CoordinateCompression`); full suite passed on g++ and g++-14, stress passed.
+- 2026-10-07: re-audit, implemented `lineGraph`, `inducedSubgraph`, `contract`, `simplify`; 5 findings fixed (missing operations, evidence claim, complexity lines, brace rule, T/M placement); full suite passed on g++ and g++-14, stress passed; independent review: findings 1–3, 5 and 7–14 confirmed fixed, no correctness defect, 22 own mutants (17 killed, 5 survivors equivalent or runtime-only).
+- 2026-10-12: prune, added `Graph::fromAdjacency` and `fromMatrix`, removed `GraphLabels` (cases moved to `CoordinateCompression`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.

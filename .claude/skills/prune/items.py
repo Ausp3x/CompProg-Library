@@ -4,7 +4,7 @@ import re
 import sys
 from pathlib import Path
 
-FILE = Path(__file__).resolve().parents[3] / '00-Guidelines/23-Reaudit Findings/duplicates.md'
+FILE = Path(__file__).resolve().parents[3] / '00-Guidelines/23-Sweep Ledgers/duplicates.md'
 
 
 def main():

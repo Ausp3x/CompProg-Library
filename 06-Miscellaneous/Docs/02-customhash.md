@@ -65,6 +65,6 @@ python3 '96-Local Testing/03-consistency.py'
 ## History
 
 - 2026-09-27: P013 first verification, full and stress suites passed.
-- 2026-10-07: P013 re-audit, `safe_gp_hash_table` added, findings 5–7 (`std::uintptr_t`, string-length symbol, braces) fixed, contracts moved out of code comments; full, stress and integration passed.
-- 2026-10-09: P227 fixed the process seed initializer, which never compiled on GCC 14 (`&rnd` inside its own initializer), by anchoring on a function-local static; full suite passed on g++ 16.2.1 and g++-14 14.4.1.
+- 2026-10-07: P013 re-audit, `safe_gp_hash_table` added, 3 findings fixed, contracts moved out of code comments; full, stress and integration passed.
+- 2026-10-09: P227 fixed the process seed initializer for GCC 14; full suite passed on g++ 16.2.1 and g++-14 14.4.1.
 - 2026-10-12: P013 prune run (header unchanged), full suite passed on g++ and g++-14.

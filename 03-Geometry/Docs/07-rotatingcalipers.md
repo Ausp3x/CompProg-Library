@@ -60,11 +60,12 @@ Correctness:
 
 ## Commands and results
 
-2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20. GCC 14 is not installed; no GCC 14 run is claimed.
+2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
 | Command | Result |
 |---|---|
 | `07-rotatingcalipers_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 631,872 checks per configuration; 3,296 Python cases; 6 assertion probes |
+| `CXX=g++-14 07-rotatingcalipers_tester.py --mode full --seed 20261014` (GCC 14.4.1, 2026-10-14) | PASS, 641,508 checks per configuration; 3,296 Python cases; 6 assertion probes; `MEMORY peak=520MB` |
 | `07-rotatingcalipers_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 31,047,696 checks; 21,296 Python cases |
 | Mutation checks, optimized full suite per mutant | Caught: `farthestPair`'s index sorting and initial pair, the singleton width witness |
 | Warning sweep, every exact operation for `int8_t`, `int16_t`, `int`, `lng` plus every approximate operation, `-Wall -Wextra -Wconversion` | No header warnings (the tester has one `-Wconversion` warning) |
@@ -74,6 +75,7 @@ Correctness:
 
 ```bash
 python3 '96-Local Testing/03-Geometry/07-rotatingcalipers_tester.py' --mode full --seed 20260927
+CXX=g++-14 python3 '96-Local Testing/03-Geometry/07-rotatingcalipers_tester.py' --mode full --seed 20261014
 python3 '96-Local Testing/03-Geometry/07-rotatingcalipers_tester.py' --mode stress --seed 42 --configuration optimized
 python3 '96-Local Testing/01-run.py' --mode quick --filter 03-Geometry --seed 20260927 --no-integration
 python3 '96-Local Testing/02-integration.py' --sanitizers
@@ -115,4 +117,5 @@ Other packages own convex polygon queries (GE05), two-polygon calipers problems 
 ## History
 
 - 2026-09-27: original P008, full suite (seed 20260927, 626,364 checks) passed on g++ 16; `farthestPair` missing, degenerate witnesses untested.
-- 2026-10-07: re-audit, implemented `farthestPair`; 4 findings fixed (degenerate witnesses documented and tested, bare closing braces in header, tester and benchmark); full suite, stress and benchmark passed on g++ 16.
+- 2026-10-07: re-audit, implemented `farthestPair`; 4 findings fixed; full suite, stress and benchmark passed on g++ 16; independent review: reproduced every full count and probe, confirmed one package defect (in `06-circle.hpp`).
+- 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.

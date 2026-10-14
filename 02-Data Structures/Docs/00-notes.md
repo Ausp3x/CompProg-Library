@@ -1,14 +1,6 @@
 # 02 Data Structures — notes
 
-Contracts, ownership boundaries and migration obligations moved out of the inventory. Operation lists live only in [00-index.md](../00-index.md); evidence for the verified Basic rows is in the per-header documents ([01-dsu.md](01-dsu.md) … [08-monotone_stack.md](08-monotone_stack.md)); their shared contracts are under [Foundations rows 01–08](#foundations-rows-0108-p006).
-
-## Status vocabulary
-
-- `verified`: every operation in the row has an independent-oracle test and the recorded commands pass.
-- `partial`: a formerly verified row that gained operations; the evidence link still covers the original API and `missing:` names the rest.
-- `existing-unverified`: an unchanged monolith extraction compiles but its semantics, indexing, completeness and complexity claims are unaudited; its feature list is future audit/build work.
-- `legacy-reference`: analogous code exists in `97-Legacy/` or `OLD/` and must be migrated and verified; the target header is absent.
-- `planned`: new implementation needed.
+Folder-wide contracts, ownership boundaries, migration obligations and per-package omissions. Operation lists live only in [00-index.md](../00-index.md); evidence is in the per-header documents, and rows 01–08 share the [Foundations](#foundations-rows-0108-p006) contracts.
 
 ## Common contracts
 
@@ -17,7 +9,6 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 - State static versus online/offline, update/query memory, amortized versus worst-case bounds, and whether balancing is randomized or deterministic. Amortized bounds must be re-proved under persistence and rollback; ephemeral amortization does not transfer.
 - Generic arithmetic must keep every stored value and intermediate representable or be explicitly modular; `lng` is a convenient sum type, not an overflow check.
 - Public storage is exposed for contest use but must not be mutated behind an algorithm's invariants. Structures are single-threaded, own their storage and copy as independent snapshots.
-- All-solution and enumeration APIs return explicitly bounded enumerations charged by output size (`groups`, `members`, `mergedPairs`, `intervals`).
 - Handles (heap nodes, multiset tokens, versions) state their invalidation rules; tokens from other histories must never be passed back.
 
 ## Numeric and algebraic policies
@@ -26,7 +17,7 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 - Segment-tree searches need a deterministic predicate true on the identity whose truth forms a prefix as the interval grows.
 - Sparse-table O(1) queries need idempotence; `fold` and disjoint sparse tables need only associativity.
 - Lazy actions compose new-after-old; an acted monoid in `00-monoids.hpp` defines `S`, `F`, `op`, `e`, `mapping`, `composition`, `id`, maps `e()` to `e()`, and exposes `leaf` builders for index- or length-aware states. Rows 12, 13, 14 (`LazySegmentTreeBeats` adds `fail`) and 15 consume it (row 13 also needs only the monoid part, or only the action part, for its plain and dual trees; row 15's 2D trees need a commutative `op` or `composition`); row 18 still uses the legacy `Mon` contract until its audit. `RangeGcdLcm<T, LCM>` switches the lcm field on.
-- Li Chao and convex hull trick must state an overflow-safe evaluation/intersection policy (128-bit products or bounded domains) and tie rules for equal lines.
+- Li Chao and convex hull trick must state an overflow-safe evaluation policy and exact intersection comparison (128-bit products or bounded domains) and tie rules for equal lines, and serve both min and max queries.
 - Segment-tree beats variants beyond chmin/chmax/add/assign need their own amortized proof and value-domain statement; row 14's evidence proves division, square root and modulo bounds per update mix (modulo has none together with add or chmax).
 - ODT/Chtholly workloads must state adversarial worst-case degeneration: `IntervalMap::assign` is amortised O(log(n)) because every assignment creates at most three pieces, but `apply`/`enumerate`/`fold`/`merge` cost O((k + 1) log(n)) for the k pieces met with no amortisation, so without assignments an adversary pays O(n) per call; the expected O(n log(n)) ODT bound needs uniformly random assignment ranges. Kinetic structures must distinguish adversarial event counts from ordinary update bounds.
 - Hash maps use a process-seeded SplitMix hash; Miscellaneous `02-customhash.hpp` owns the hash functions and seeding policy.
@@ -46,10 +37,9 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 ## Migration obligations
 
 - `OLD/algorithms.cpp:1402–1477` DSU mixed connectivity, weighted distances, parity and edge counts, and narrowed `lng` to `int`. Basic `DSU` keeps `n/ncon/par/siz`; weighted unions, `dis`, `esz`, `is_bip`, `getDis`, `getEsiz`, `isBipartite` belong to `29-weighteddsu.hpp` (potential/parity) and `09-rollbackdsu.hpp`/Graphs (component metadata).
-- Unchanged extractions (`18`, `21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit (P027 split `FenTree` into `Fenwick2D`/`Fenwick3D` and replaced `FenTreeRangeAdd1D`, `SegTree` and the `Mon*` presets; P028 replaced `SegTreeBeats`, `SegTree2D` and `DynMergeSortTree`; P029 replaced `WaveletMatrix`; see the row 11–17 evidence); the Basic `Fenwick` and `SegmentTree` names were chosen to avoid collisions with `FenTree` and lazy `SegTree`.
-- `97-Legacy/02-sqrtdecomp.cpp` (invalid defaults, clamped inclusive ranges, unused lazy array) is superseded by `06-sqrt_decomposition.hpp`; only its diagnostic printer remains unported. `97-Legacy/04-lichao_older.cpp` is a query-less hull skeleton, `97-Legacy/01-monset.cpp` is a placeholder scaffold. Delete a legacy file only after its owning row accounts for every feature.
+- Unchanged extractions (`18`, `21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit (P027 split `FenTree` into `Fenwick2D`/`Fenwick3D` and replaced `FenTreeRangeAdd1D`, `SegTree` and the `Mon*` presets; P028 replaced `SegTreeBeats`, `SegTree2D` and `DynMergeSortTree`; P029 replaced `WaveletMatrix`; see the row 11–17 evidence).
+- `97-Legacy/04-lichao_older.cpp` is a query-less hull skeleton, `97-Legacy/01-monset.cpp` is a placeholder scaffold. Delete a legacy file only after its owning row accounts for every feature.
 - `OLD/Team Notebook/src/ds/impltreap.cpp` informed row 19 (P029, see [19-treap.md](19-treap.md)) and `cartesiantree.cpp` informed row 27 (P033, see [27-cartesiantree.md](27-cartesiantree.md)); `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` contain `DynamicMex` (row 24) and `LcaO1` (covered by Graphs `07-lca.hpp` `EulerLCA`; row 54 `LinearRMQ` is the array form).
-- The sparse-table public `v` storage changed from a flat padded array to valid rows; clients use query methods.
 
 ## P006 re-audit omissions
 
@@ -74,9 +64,7 @@ Folder-level record for the verified Basic rows `01-dsu.hpp` … `08-monotone_st
 
 ### Common foundation contracts
 
-Canonical indices are zero-based and ranges are half-open. Empty construction is supported. Invalid indices, sizes, shapes and required predicate identities are preconditions checked by assertions; they remain preconditions under `NDEBUG`. A valid absent result has a documented sentinel. Public storage is exposed for contest use but must not be mutated behind an algorithm's invariants.
-
-Generic arithmetic must satisfy the stated algebra and keep every stored value and intermediate representable, or use explicitly modular arithmetic. `lng` is a convenient sum type, not an overflow check. Complexity counts constant-cost element operations/comparisons/copies; strings and large integers add their own costs. Allocation failure is ordinary C++ allocation failure. Structures are single-threaded and own their storage; copying produces an independent snapshot. Associativity, idempotence, arithmetic validity and predicate monotonicity are semantic caller contracts, not properties a generic library can cheaply infer.
+The folder [common contracts](#common-contracts) apply. Empty construction is supported. Invalid indices, sizes, shapes and required predicate identities are preconditions checked by assertions; they remain preconditions under `NDEBUG`. A valid absent result has a documented sentinel. Complexity counts constant-cost element operations/comparisons/copies; strings and large integers add their own costs. Allocation failure is ordinary C++ allocation failure. Associativity, idempotence, arithmetic validity and predicate monotonicity are semantic caller contracts, not properties a generic library can cheaply infer.
 
 A moved-from structure may only be assigned to or destroyed. Its size fields keep their old values while its storage is empty, so every other call is a precondition violation. Assignment restores every invariant (re-audit finding 1, resolved by contract; see [02-fenwick.md](02-fenwick.md)). Structures that have both a size constructor and a vector constructor (`Fenwick`, `SegmentTree`, `PrefixSum`, `DifferenceArray`, `SqrtDecomp`, `SqrtRangeSum`) also take an `std::initializer_list<T>`. A braced list therefore always means values, as with `std::vector`: `PrefixSum<lng> p({7})` and `PrefixSum<lng> p{7}` hold the single value 7, and `PrefixSum<lng> p(7)` holds seven zeros. Elements of `T = bool` are read by value through `vector<bool>::const_reference` wherever a reference to storage is returned.
 
@@ -88,15 +76,11 @@ Quick modes reduce enumeration lengths/history depths/random counts and run opti
 
 ### Package verification history
 
-2026-09-27 (original P006): all eight entries passed `--mode full --seed 20260927` (24 configuration runs, all 100 assertion probes). DS01 completed its full runs and Basic/All multiple-TU check before DS02 implementation began. The per-header full suites supplied the P006 sanitizer checks; unrelated Core sanitizer corpora were not repeated. Integration passed 65 standalone/aggregate headers; consistency passed inventory/batch/package paths, aggregates, source/archive hashes and Markdown links with zero errors. Original archived bytes remain unchanged. Stress mode was available but not run as completion evidence. GCC14 itself, other standard-library versions and other platforms were not executed. No online submissions or acceptance claims were made.
-
-2026-10-07 (re-audit): the 24 confirmed findings in `00-Guidelines/23-Reaudit Findings/p006.md` were fixed or resolved; each per-header document lists the findings that concern it. The feature-map comments at the top of four testers and one benchmark comment line moved to the feature-to-test maps. 112 assertion probes remain, up from 100. `@reviewer` confirmed findings 2–24 fixed and accepted the contract-based resolution of finding 1 after a wording correction; it raised five findings (`SegmentTree::apply` operand order, the Fenwick `maxRight` skip guard, SparseTable2D ragged rows with an empty first row, restated contract comments in the Fenwick and SegmentTree bodies, the Fenwick domain line), all fixed and recorded per header, and accepted one shared complexity line per adjacent function pair. Final full run (seed 20261007): 8 suites x 3 configurations, 4 min 10 s; stress seeds 7 and 8 over two rounds (21 min) before the review fixes; stress seed 9 for the three suites changed by the review. Commands and per-header results are in each per-header document.
-
-2026-10-13 (prune): `add1`, `prefixSum1`, `sum1`, `lowerBound1`, `queryFast`, `querySlow`, `SqrtDecomp::setUpdate` and the `rebuild` methods of `PrefixSum`, `PrefixSum2D`, `DifferenceArray`, `DifferenceArray2D` and `SqrtRangeSum` were removed (`03-cpp.md`, One API per operation); their cases moved to the kept operations and each per-header document maps the removed names. All eight suites passed `--mode full --seed 20261013` on g++ and g++-14 (3 configurations each, 104 assertion probes).
+The 2026-09-27 verification, the 2026-10-07 re-audit and the 2026-10-13 prune are recorded in each per-header `## History`.
 
 ### Provenance and ownership
 
-Original files in `OLD` and `97-Legacy` remain byte-for-byte references. The historical monolith map retains source ranges/hashes and distinguishes rewritten destinations from unchanged extractions. Basic aggregates gain all eight headers; existing Advanced headers remain existing-unverified. Future variants remain explicit: rollback/persistent/weighted DSU, range-add/multidimensional Fenwick, lazy/dual/persistent/dynamic segment trees, disjoint sparse tables, Cartesian trees and linear-preprocessing RMQ, Mo and recursive sqrt trees, dynamic balanced/persistent ordered trees, and general sliding-window aggregation. Their existence is not a gap in these Basic ownership batches. No ISA kernels, Barrett/Montgomery use or empirically selected dispatch thresholds were introduced; the families use their standard contest algorithms with stated preprocessing/storage tradeoffs, and no universal performance superiority is claimed.
+Original files in `OLD` remain byte-for-byte references. The historical monolith map retains source ranges/hashes and distinguishes rewritten destinations from unchanged extractions. No ISA kernels, Barrett/Montgomery use or empirically selected dispatch thresholds were introduced; the families use their standard contest algorithms with stated preprocessing/storage tradeoffs, and no universal performance superiority is claimed.
 
 Source inspection and independent oracle tests are separate evidence. Implementations are written for the contracts; legacy code and reference algorithms inform the audit. The [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf) (saved repository edition) chapters 4, 8, 9, 15 and 27 cover PBDS, sliding windows, prefix/difference arrays, Fenwick/segment structures, DSU and block decomposition; [KACTL](https://github.com/kth-competitive-programming/kactl) (saved repository PDF) supplied the UnionFind, FenwickTree, SegmentTree, RMQ, SubMatrix and OrderStatisticTree references. Saved resource editions/checksums are recorded in `95-Resources/99-sources.json`. References were inspected on 2026-09-27. Bibliographic mentions of Fischer–Heun and Tarjan are not claims that their original proofs were inspected. No online acceptance is claimed.
 
@@ -133,7 +117,6 @@ Candidates from the 2026-10-09 sweep ([00-sources.md](00-sources.md)) left out o
 - SortedList `countRange`, slice erase, `irange`/`islice`, bulk `update`, `operator==` (sortedcontainers, tatyam): `rank(r) - rank(l)`, iterators, repeated `insert` or `rebuild`, and comparing iteration.
 - SortedList negative `kth` indices (tatyam, PyRival): Python convention; C++ uses `kth(n - 1 - k)`.
 - Fenwick over bucket sizes (PyRival) or a positional index tree (sortedcontainers): `rank`/`kth` would gain O(log(n)) bucket lookup, but `insert` stays O(sqrt(n)) and every split or merge rebuilds the index; the RATIO sweep in [64-sortedlist.md](64-sortedlist.md) favours smaller buckets (shorter shifts) over fewer buckets, so the linear bucket scan is not the bottleneck at n <= 1e6.
-- Ownership overlap: `06-Miscellaneous/00-index.md` row `19-hash_families.hpp` still lists HashMap/HashSet; row 61 here owns them, and that row should drop them when its package runs.
 
 ## P028 omissions
 
@@ -194,4 +177,3 @@ Candidates from the 2026-10-14 sweep ([00-sources.md](00-sources.md#fetched-2026
 
 - Differential-test Fenwick/segment-tree variants against a vector; persistent versions against copied snapshots; dynamic-tree structures against small forests; sorted containers against a sorted vector; hash maps against `std::unordered_map` with adversarial key patterns.
 - Test negative values, empty structures, repeated update/rollback sequences, noncommutative action order, version branching and failed merges.
-- Record domains, omissions, provenance, test commands with results and benchmark conditions in one `Docs/<NN-name>.md` evidence document per header, as [01-dsu.md](01-dsu.md) … [08-monotone_stack.md](08-monotone_stack.md) do for `01`–`08`.

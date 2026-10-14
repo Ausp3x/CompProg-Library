@@ -26,7 +26,7 @@ A piecewise-constant function on `[lo, hi)` stored as `start -> value`; the cons
 |---|---|
 | `IntervalSet::mex(x)` | `find(x).second` |
 
-## Correctness and cost
+### Correctness and cost
 
 `insert` walks the predecessor that reaches `l` and every interval starting at or before `r`, takes the hull, and charges `hull length − previously covered length`, so touching intervals merge with a zero return. `erase` walks the predecessor that strictly overlaps `l` and every interval starting before `r`, re-inserting the clipped remnants `[a, l)` and `[r, b)`. `assign` splits at `r` and then at `l` (map iterators survive insertions, so the order is only the conventional ODT one), erases the range, emplaces the new piece and checks both neighbours. `split` on an existing boundary is a no-op lookup.
 
@@ -79,7 +79,7 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 ## History
 
 - 2026-10-08: P027 first verification.
-- 2026-10-08: independent review (P027) — insert/erase counts, touching merges, split and neighbour merging confirmed; added the partial-`merge` effect check (finding 7) and corrected the split-order explanation (finding 9).
-- 2026-10-08: P027 re-audit pass (second session): the reviewer found the documented "unbounded coordinates" domain false for lengths (signed overflow in `insert`/`total`); the domain now requires every length and the union length to fit `T` (header domain line and contract), with a new numeric-extremes test.
-- 2026-10-12: re-audit fix: the random map test now checks the 3-argument `assign` against the dense array; full suite passed on g++ and g++-14.
+- 2026-10-08: independent review (P027), 2 findings fixed.
+- 2026-10-08: P027 re-audit pass (second session), 1 finding fixed.
+- 2026-10-12: re-audit, 1 finding fixed, full suite passed on g++ and g++-14.
 - 2026-10-13: prune, removed `IntervalSet::mex` (cases moved to `find(x).second`); full suite passed on g++ and g++-14.

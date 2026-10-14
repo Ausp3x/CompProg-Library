@@ -92,4 +92,5 @@ The abstract/metadata of Karl Bringmann, [*A Near-Linear Pseudopolynomial Time A
 
 ## History
 
-- 2026-09-28: verified (P015, previous system). 2026-10-08 re-audit: comment cap and closing braces restyled, `/reaudit-review` findings 5–7 fixed, no behavior change. Tester and benchmark sources brace-normalized after review (whitespace only); full suites, g++-14 full and benchmarks rerun, PASS.
+- 2026-09-28: verified (P015, previous system).
+- 2026-10-08: re-audit, comment cap and closing braces restyled, 3 findings fixed, no behavior change; full suites, g++-14 full and benchmarks passed.

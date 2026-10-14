@@ -40,7 +40,7 @@ CXX=g++-14 python3 '96-Local Testing/07-Strings/08-palindrome_queries_tester.py'
 python3 '96-Local Testing/07-Strings/08-palindrome_queries_tester.py' --mode stress --seed 20261009  # PASS, 3 configurations, 35,525 cases and 28,545,129 checks each
 ```
 
-The pre-change suite passed in full mode (seed 1) as the re-audit baseline. Integration, the folder run and consistency are recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results).
+Integration, the folder run and consistency are recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results).
 
 ## Benchmarks
 
@@ -61,11 +61,12 @@ Targeted searches of preserved `OLD/algorithms.cpp`, `OLD/[1] algorithms.cpp`, `
 
 ## Limits and handoffs
 
-- `/reaudit-review` finding 10 ([p017](<../../00-Guidelines/23-Reaudit Findings/>), deleted after this run): closing braces normalized. The scan's tie test was simplified to a strict length comparison (same results, argued above).
 - `countPalindromes` was added in this re-audit: the planned Python row `_10_strings.py` lists it and no C++ row owned it ([cp-algorithms, Manacher](https://cp-algorithms.com/string/manacher.html) derives it from the radii).
 
 Hash palindrome answers remain Monte Carlo: the suite demonstrates a known unsigned-word false positive while exact Manacher rejects it. Finite tests support the stated proofs and domains; they do not establish collision freedom or allocate impractical maximum-size objects. Eertree/partitioning (ST07), arbitrary-subrange longest/count palindrome queries and other advanced static queries (ST16) and dynamic edits (ST28) are separate planned owners, not functionality of these adapters.
 
 ## History
 
-- 2026-09-28: verified under the previous system (P017). 2026-10-08 re-audit: finding 10 fixed, `countPalindromes` added, all three hash kinds tested.
+- 2026-09-28: verified under the previous system (P017).
+- 2026-10-08: re-audit baseline, full suite seed 1 passed before any change.
+- 2026-10-08: re-audit, `countPalindromes` added, all three hash kinds tested, 1 finding fixed; quick, full and stress passed on g++, full on g++-14.

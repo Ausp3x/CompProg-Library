@@ -20,7 +20,7 @@ With `PERSISTENT = true`, `set`/`apply` copy the `<= 63` nodes on the update pat
 
 Uses `F`, `composition`, `id`. `apply(l, r, f)` composes `f` after every action on `[l, r)`; `get(i)` returns the composed action at `i` (`id()` initially) by composing root-to-leaf without allocating. Pushes before descending keep ancestors newer than descendants, so noncommutative compositions are ordered correctly.
 
-## Correctness and cost
+### Correctness and cost
 
 Ownership: the plain tree never aliases nodes between roots (every node belongs to one tree) unless `PERSISTENT`, in which case nodes are immutable after creation and sharing is safe. Meld: a recursion step with two nonnull nodes frees exactly one node, so the total meld work over the lifetime of the pool is bounded by the number of nodes ever allocated (`O((sets + splits) * log n)`); a step with one null side is `O(1)`. Split allocates at most one node per level (`O(log n)`), preserves every leaf, and trims childless internal nodes so empty halves are handle 0. Leaf combination in meld is `op(a, b)`, matching `apply`; untouched leaves on one side are inherited verbatim because the other side is `e()` and `op(x, e()) = x`. Searches stop at the first failing leaf, visiting `O(log n)` nodes. Node recycling keeps `nodeCount()` equal to the live nodes. The lazy tree is the recursive lazy algorithm with the identity-fill invariant; the dual tree is the recursive form of row 12's `DualSegmentTree`.
 
@@ -71,5 +71,5 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 ## History
 
 - 2026-10-08: P027 first verification; legacy `DynSegTree` reference deleted.
-- 2026-10-08: independent review (P027) — fixed `allProd` returning a reference into the reallocating pool (finding 1, heap-use-after-free when storing one tree's total into another; now by value, aliasing case added to the tester), `meld(a, a)` corrupting the pool (finding 2, asserted), non-normalised empty split halves (finding 5, trimmed to handle 0), untested `reserve` on the lazy and dual trees and the `INT64` extreme universes (finding 8), and the undefined `n` in the complexity comments (finding 9).
-- 2026-10-08: P027 re-audit pass (second session): the reviewer found signed overflow in `RangeSetRangeComposite::mapping` (fixed in `00-monoids.hpp`, row 12) reachable through a 2^62-long lazy node; added `lazyCompositeWide`, which failed under UBSan before the fix (seed 5) and passes after; the `M` comment now states the `PERSISTENT` bound.
+- 2026-10-08: independent review (P027), 5 findings fixed.
+- 2026-10-08: P027 re-audit pass (second session), 1 finding fixed (in `00-monoids.hpp`, row 12) and the `M` comment corrected; full (seed 20261008) on g++ and g++-14 and stress (seed 7) passed.

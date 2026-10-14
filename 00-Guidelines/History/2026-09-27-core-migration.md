@@ -20,7 +20,7 @@ Family-only shared helpers live with their public types in one shallow `<family>
 
 Debug, FastIintMul and FastMatMul/FastGaussian keep their public names and receive namespace closing comments. Their algorithms are unchanged. Previously existing unverified integer/matrix implementations remain unverified; this migration is not a claim of finishing their planned features.
 
-Previously archived source material retains its original bytes; only the mutable `OLD/00-index.md` routing metadata is updated for the current count. Four original full modular files are additionally preserved under `OLD/2026-09-27-modint-layout/`, bringing the archive manifest to 205 files. Historical benchmark JSONL contents, old source hashes, original mapping keys and monolith source/body hashes remain unchanged. Live destinations are updated. The moved bitset benchmark log retains its historical path/hash fields; current benchmark drivers use current includes and paths. Do not treat an old source hash as a measurement of a later edited source.
+Previously archived source material retains its original bytes; only the mutable `OLD/00-index.md` routing metadata is updated for the current count. Four original full modular files are additionally preserved under `OLD/2026-09-27-modint-layout/`, bringing the archive manifest to 205 files. Historical benchmark JSONL contents, old source hashes, original mapping keys and monolith source/body hashes remain unchanged. Live destinations are updated. The moved bitset benchmark log retains its historical path/hash fields; current benchmark drivers use current includes and paths. An old source hash is not a measurement of a later edited source.
 
 ## Verification
 
@@ -63,6 +63,6 @@ Current hashes for files whose earlier evidence refers to an older name or gener
 
 The permanent [consistency validator](<../../96-Local Testing/03-consistency.py>) audits exact Markdown/machine ownership, target numbering, package prerequisites, local links/formatting, current map destinations/includes, Core aggregate coverage, quick-suite discovery, archived hashes, monolith provenance, expansion manifests and missing-workspace reporting. It is read-only except for temporary fixtures. The integration runner now fails clearly for a missing required Workspace snapshot; generation remains explicit.
 
-## Maintenance in existing sessions
+## Package scope
 
-Re-audit a completed package with `/package Pxxx` (the package status `audit` selects the re-audit workflow in `.claude/skills/package/SKILL.md`). Read current guides and files again. P001–P004 retain their original scope; P002 uses `18-bitset.hpp`. P005 reviews both C03 and C16 and their reduced/full contracts. Do not restore retired paths, redo completed global renumbering, or concurrently edit shared inventories/maps from several sessions.
+P001–P004 kept their original scope, with P002 on `18-bitset.hpp`; P005 covered both C03 and C16 and their reduced and full contracts.

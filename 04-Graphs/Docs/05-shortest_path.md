@@ -117,5 +117,5 @@ Fractional/custom-weight domains are not claimed. All-pairs, advanced, implicit,
 ## History
 
 - 2026-09-27: original P010, full suite (seed 20260927) and benchmark passed on g++ 16 with integration and 61 package probes; stress not run.
-- 2026-10-07: re-audit, 4 findings fixed (brace rule, complexity line placement, unchecked inner-loop `relax`, overload complexity lines) and `[[maybe_unused]]` on `path`; full suite passed on g++ and g++-14, stress passed.
-- 2026-10-12: prune, removed the legacy `Dijkstra` adapter, `dagLongestPaths` and six single-source overloads (cases moved to `dijkstra` on `Graph::fromAdjacency` input, `dagShortestPaths(g, sources, true)` and `{s}`); full suite passed on g++ and g++-14, stress passed.
+- 2026-10-07: re-audit, 4 findings fixed (brace rule, complexity line placement, unchecked inner-loop `relax`, overload complexity lines) and `[[maybe_unused]]` on `path`; full suite passed on g++ and g++-14, stress passed; independent review: findings 1–3, 5 and 7–14 confirmed fixed, no correctness defect, 22 own mutants (17 killed, 5 survivors equivalent or runtime-only).
+- 2026-10-12: prune, removed the legacy `Dijkstra` adapter, `dagLongestPaths` and six single-source overloads (cases moved to `dijkstra` on `Graph::fromAdjacency` input, `dagShortestPaths(g, sources, true)` and `{s}`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.

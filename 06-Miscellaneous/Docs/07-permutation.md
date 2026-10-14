@@ -153,5 +153,5 @@ Omitted candidates: `permute`/`inversePermute` on value arrays (one loop; `permu
 ## History
 
 - 2026-09-28: P013 first verification, full and stress suites passed.
-- 2026-10-07: P013 re-audit, finding 3 (missing `kthNextPermutation`, cycles, sign, order) and finding 8 (`Multiset` complexity line) fixed, `permutationOrderMod` added, contracts moved out of code comments; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects, and its `kthNextPermutation` memory-bound note is now in the contracts.
+- 2026-10-07: P013 re-audit, `kthNextPermutation`, cycles, sign, order and `permutationOrderMod` added, 2 findings fixed, contracts moved out of code comments; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.
 - 2026-10-12: prune, removed `nextPermutation`, `previousPermutation` and `multisetPermutationCount` (cases moved to `std::next_permutation`/`prev_permutation` and `multinomialExact`); full suite passed on g++ and g++-14.

@@ -29,8 +29,8 @@ Runner: [`03-stringhash_tester.py`](<../../96-Local Testing/07-Strings/03-string
 | Operation | Coverage |
 |---|---|
 | get, reverseGet, size, Digest tags | Exhaustive binary strings, random integer symbols and every interval; Python exact weighted power sums (bases from `randomBase`) for all three fields. |
-| encode, add, subtract, multiply | All pairs of boundary and random residues (0, 1, 2, 256, middle, `p - 2`, `p - 1`) against 128-bit modular references; `encode` on codes around 1e9+7, 1e9+9, `2^32`, `2^61 - 1` and `2^64 - 1` (finding 6). |
-| build (caller functor) | 30/300/2000 random code sequences drawn from those codes, every interval forward and reversed; the finding-3 regression (`2^32 + 1` versus `1`) now differs in every field. |
+| encode, add, subtract, multiply | All pairs of boundary and random residues (0, 1, 2, 256, middle, `p - 2`, `p - 1`) against 128-bit modular references; `encode` on codes around 1e9+7, 1e9+9, `2^32`, `2^61 - 1` and `2^64 - 1`. |
+| build (caller functor) | 30/300/2000 random code sequences drawn from those codes, every interval forward and reversed; the code-reduction regression (`2^32 + 1` versus `1`) differs in every field. |
 | hashOf | Every substring of every tested sequence (`vector<uint>`), byte strings including all 256 bytes, substrings and empty input. |
 | power, concat | Split/join identities, right fragments beyond the table, `power(3n + 1)` against one multiplication, constructed `INT_MAX` digest followed by a checked overflow probe. |
 | common, lcp, lcs | Direct scans on random ranges of independent objects, self ranges, 200,000-byte unary and middle-mismatch inputs. |
@@ -55,8 +55,6 @@ python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 -
 python3 '96-Local Testing/03-consistency.py'  # no errors
 ```
 
-The suite was also run in full mode before any change (seed 1, all three configurations PASS) as the re-audit baseline.
-
 ## Benchmarks
 
 [`03-stringhash_benchmark.py`](<../../96-Local Testing/07-Strings/03-stringhash_benchmark.py>) builds each hash and answers LCP queries; every warmup and timed answer is verified against direct scans. Run 2026-10-08, i9-11900H, GCC 16.2.1, `-O2 -DNDEBUG`, seed 20261008, one warmup and five rotating repetitions; local log `03-stringhash_benchmark.json` (git-ignored).
@@ -73,7 +71,7 @@ Median setup / query / pipeline milliseconds, 262,144 bytes and 256 queries:
 | Period 11 | 6.066 / 0.210 / 6.259 | 3.414 / 0.157 / 3.530 | 5.096 / 0.193 / 5.265 | 0 / 11.607 / 11.607 |
 | Unary | 6.014 / 0.221 / 6.236 | 3.437 / 0.155 / 3.592 | 5.088 / 0.212 / 5.286 | 0 / 17.242 / 17.242 |
 
-At 4096 bytes and 1024 queries the pipelines were 0.33, 0.12–0.13, 0.24–0.25 and 0.31–1.23 ms respectively. The Mersenne field is about 15–20% faster than the double-prime default with a single 61-bit field; the word ring is fastest but has the structured collision above. A rerun of the previous header on the same host (6.09–6.44 ms double-prime setup) shows that the new `encode` reduction costs nothing measurable; absolute times are about 2.5–3 times the 2026-09-28 record on this shared host. Auxiliary storage is `24 * (n + 1)` bytes plus the object for every field. No dispatch threshold or universal winner is claimed.
+At 4096 bytes and 1024 queries the pipelines were 0.33, 0.12–0.13, 0.24–0.25 and 0.31–1.23 ms respectively. The Mersenne field is about 15–20% faster than the double-prime default with a single 61-bit field; the word ring is fastest but has the structured collision above. Auxiliary storage is `24 * (n + 1)` bytes plus the object for every field. No dispatch threshold or universal winner is claimed.
 
 ## Sources
 
@@ -89,9 +87,11 @@ Code is independently implemented.
 ## Limits and handoffs
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): appending to a built hash (`push_back`; reversed prefixes cannot extend in O(1), row `23` owns appendable and deque hashes), a field-generic `StringHashField<F>`, several Mersenne bases, `std::hash` for digests, lexicographic substring comparison (row `22`), Rabin–Karp windows (row `16`).
-- Hash answers stay Monte Carlo; `08-palindrome_queries.hpp` `maybePalindrome` now takes `StringHash<KIND>` (one-token change of its template parameter in this package, required because `bool` cannot be deduced from an `int` parameter); it compiles for all three fields, but its P017 tester exercises only `KIND` 0 and 1. That header's own brace and comment-cap restyle remains with P017.
+- Hash answers stay Monte Carlo; `08-palindrome_queries.hpp` `maybePalindrome` takes `StringHash<KIND>` (its template parameter changed from `bool` because `bool` cannot be deduced from an `int` parameter) and is tested on all three fields.
 - Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 
-- 2026-09-28: double-prime and word variants verified under the previous system (P016). 2026-10-08 re-audit: template parameter `bool WRAP64` became `int KIND`; `StringHash61`, `hashOf` and Digest ordering added; `/reaudit-review` findings 3 (codes reduced modulo the field), 4 (StringHash61), 6 (direct helper and `build` tests), 9 (`U: NA`) and 10 (alphabet checked once at entry) fixed; contracts moved out of the header.
+- 2026-09-28: double-prime and word variants verified under the previous system (P016).
+- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
+- 2026-10-08: re-audit, template parameter `bool WRAP64` became `int KIND`, `StringHash61`, `hashOf` and Digest ordering added, 5 findings fixed, contracts moved out of the header; quick, full and stress passed on g++, full on g++-14, integration with sanitizers passed.

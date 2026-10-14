@@ -88,5 +88,5 @@ Incremental 2-SAT, lexicographically smallest assignment, solution counting (#P-
 
 ## History
 
-- 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14.
+- 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; independent review: no wrong answers (own brute-force 2-SAT oracle, overflow probes at the stated domain bounds).
 - 2026-10-13: prune, removed `addClause(a, na, b, nb)` and `solve()` (Legacy mapping); the two-call-style dimension of the tests collapsed into the literal form and the legacy section became a re-solve and copy check; full passed on g++ and g++-14, stress on g++.

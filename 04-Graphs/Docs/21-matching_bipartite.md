@@ -129,5 +129,5 @@ Weighted assignment is row 23; general matching is rows 22/64; maximum antichain
 
 ## History
 
-- 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; engine benchmark recorded.
-- 2026-10-13: prune, `bMatching` runs on `MaxFlow<int>` instead of its own Dinic (complexity argument and old-versus-new timing above); min-cut and doubled-graph Hopcroft–Karp oracles added. Follow-up the same day: `addEdge`, `eraseEdge`, `bipartiteMatchingDense` and `bMatching` stay in bounds under `NDEBUG`, checked by the ad-hoc probe. Full passed on g++ and g++-14, stress on g++.
+- 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; engine benchmark recorded; independent review: no wrong answers (own remove/contract matching-number oracle, overflow probes at the stated domain bounds).
+- 2026-10-13: prune, `bMatching` runs on `MaxFlow<int>` instead of its own Dinic (complexity argument and old-versus-new timing above); min-cut and doubled-graph Hopcroft–Karp oracles added. Follow-up the same day: `addEdge`, `eraseEdge`, `bipartiteMatchingDense` and `bMatching` stay in bounds under `NDEBUG`, checked by the ad-hoc probe. Full passed on g++ and g++-14, stress on g++; independent review: `bMatching` correct, including against its own Ford–Fulkerson probe, complexity argument confirmed against `MaxFlow::dinic`.

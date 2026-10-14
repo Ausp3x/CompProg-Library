@@ -1,7 +1,5 @@
 # 02 Data Structures — sources
 
-A source list is a search plan; only what was actually read is cited. Catalog inspection establishes operation names, never implementation correctness. Status keys in [00-index.md](../00-index.md) use the short keys defined below.
-
 ## Fetched 2026-10-06
 
 | Source | URL | Fetched | Used for |
@@ -119,9 +117,9 @@ Four `@researcher` sweeps for rows 26, 27, 28 and 33; the adopted operations are
 
 ## Source keys and prior audit (condensed)
 
-Keys used in `00-index.md` status cells: **YC** Library Checker problem directories (GitHub), **CPA** cp-algorithms, **ACL** AtCoder Library documents, **KACTL** KACTL data-structures, **OI** OI Wiki ds section, **MAS** maspypy, **NYA** Nyaan, **EI** ei1333, **SUI** suisen, **HIT** hitonanode, **TKO** tko919, **NOSHI** noshi91, **DYNAMIC** xxsds/DYNAMIC, **ODS** Open Data Structures (saved PDF, chapters 4/8/9/10/13, read 2026-09-27), **KOO** Koosaga Library/codes (read 2026-09-27), **PYRIVAL** PyRival sorted list (read 2026-09-27 for `08-Python`).
+Keys used in `00-index.md` status cells: **YC** Library Checker problem directories (GitHub), **CPA** cp-algorithms, **KACTL** KACTL data-structures, **OI** OI Wiki ds section, **MAS** maspypy, **NYA** Nyaan, **EI** ei1333, **SUI** suisen, **HIT** hitonanode, **TKO** tko919, **NOSHI** noshi91, **DYNAMIC** xxsds/DYNAMIC, **ODS** Open Data Structures (saved PDF, chapters 4/8/9/10/13, read 2026-09-27), **KOO** Koosaga Library/codes (read 2026-09-27).
 
-The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guidelines/History/2026-09-27-inventory-audit.md)) compared named families and public-operation catalogs, not source correctness; it introduced rows 28–60 as planned from YC, OI, MAS, NYA, EI, SUI, HIT, TKO, DYNAMIC, ODS, KOO and the saved KACTL/Stanford notebooks. The OI Wiki merge/split entry and the ei1333 Fibonacci-heap entry were recorded as source leads whose proofs remain implementation work. Machine-readable read-scope records are in [17-research-sources.json](../../00-Guidelines/Ledgers/research-sources.json) and the Library Checker family map in [20-library-checker-coverage.json](../../00-Guidelines/Ledgers/library-checker-coverage.json) (snapshot 2026-09-27; `associative_array` and `area_of_union_of_rectangles` postdate it). P006 verification sources for rows 01–08 are listed in the Sources section of each per-header document ([01-dsu.md](01-dsu.md) … [08-monotone_stack.md](08-monotone_stack.md)) and in [00-notes.md](00-notes.md#provenance-and-ownership).
+The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guidelines/History/2026-09-27-inventory-audit.md)) compared named families and public-operation catalogs, not source correctness; it introduced rows 28–60 as planned from YC, OI, MAS, NYA, EI, SUI, HIT, TKO, DYNAMIC, ODS, KOO and the saved KACTL/Stanford notebooks. The OI Wiki merge/split entry and the ei1333 Fibonacci-heap entry were recorded as source leads whose proofs remain implementation work. Machine-readable read-scope records are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json) and the Library Checker family map in [library-checker-coverage.json](../../00-Guidelines/Ledgers/library-checker-coverage.json) (snapshot 2026-09-27; `associative_array` and `area_of_union_of_rectangles` postdate it). P006 verification sources for rows 01–08 are listed in the Sources section of each per-header document ([01-dsu.md](01-dsu.md) … [08-monotone_stack.md](08-monotone_stack.md)) and in [00-notes.md](00-notes.md#provenance-and-ownership).
 
 ## Not adopted
 
@@ -137,7 +135,7 @@ The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guid
 - dividing tree (划分树), persistent block array, cat tree (OI): dominated by wavelet matrix, persistent segment tree and disjoint sparse table respectively.
 - tree block decomposition (树分块) (OI): graph-facing, Graphs tree algorithms.
 - xor-indexed segment/sparse tables, sparse table on segtree, prefix-max/greedy-subtract/make-increasing segment trees, range max/min/mex change, slide split sum, sum over bit positions, power query, doubling (MAS): problem-specific wrappers; their underlying structures are rows 03, 04, 12, 14, 25, 28; doubling is Graphs functional graph.
-- rollback lazy segment tree, dual 2D dense segment tree variants beyond row 15, coefficient 2D queries, offline set intersection, mo_3d naming (MAS): covered by rows 12, 15, 23 operations or too problem-specific.
+- rollback lazy segment tree, dual 2D dense segment tree variants beyond row 15, offline set intersection, mo_3d naming (MAS): covered by rows 12, 15, 23 operations or too problem-specific; coefficient 2D queries (MAS `coefficient_query_2d`): row 33 provides the A = B = 1 and A = B = 2 kernels.
 - xor linked list, light forward list, linked list, stream (NOSHI, HIT, TKO): no operation beyond the standard library.
 - randomized queue, ternary treap (NOSHI): no contest family; ternary search tries belong to Strings if ever needed.
 - dynamic/static bitset utilities (NYA, SUI, HIT, MAS bit_array): Core `18-bitset.hpp`.

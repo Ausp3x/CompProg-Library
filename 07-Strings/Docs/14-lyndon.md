@@ -30,7 +30,7 @@ Correctness: with the state `s[i, j) = u^t u'`, the factorization of a prefix `P
 
 ### nextLyndonWord, lyndonWords
 
-`nextLyndonWord(w, n, k)` transforms a Lyndon word `w` over `[0, k)` with `1 <= |w| <= n` (asserted) into the next Lyndon word of length at most `n` in lexicographic order and returns `true`; after the last word (`{k - 1}`) it clears `w` and returns `false`. Worst case O(n) per call, amortized O(1) over a full enumeration (Berstel–Pocchiola). `lyndonWords(n, k, f, exact = false)` calls `f(const vector<int> &)` for every Lyndon word of length at most `n` (only length `n` when `exact`) in lexicographic order; `n <= 0` or `k <= 0` produce nothing (negative values also assert). O(n + number of Lyndon words of length at most n) amortized, plus the cost of `f`.
+`nextLyndonWord(w, n, k)` transforms a Lyndon word `w` over `[0, k)` with `1 <= |w| <= n` (asserted) into the next Lyndon word of length at most `n` in lexicographic order and returns `true`; after the last word (`{k - 1}`) it clears `w` and returns `false`. Under `NDEBUG` an empty `w` returns `false` and an over-long `w` is not extended, so a violated precondition stays bounded. Worst case O(n) per call, amortized O(1) over a full enumeration (Berstel–Pocchiola). `lyndonWords(n, k, f, exact = false)` calls `f(const vector<int> &)` for every Lyndon word of length at most `n` (only length `n` when `exact`) in lexicographic order; `n <= 0` or `k <= 0` produce nothing (negative values also assert). O(n + number of Lyndon words of length at most n) amortized, plus the cost of `f`.
 
 ## Feature-to-test map
 
@@ -88,7 +88,7 @@ Code is independently implemented from the invariants above.
 - [maspypy `lyndon.hpp`](https://maspypy.github.io/library/string/lyndon.hpp) (fetched 2026-10-10): incremental Lyndon factorization (`add`, per-prefix minimal suffix, factorize); [`lex_min_suffix_for_all_prefix.hpp`](https://maspypy.github.io/library/string/lex_min_suffix_for_all_prefix.hpp) is its projection.
 - [hitonanode `lyndon.hpp`](https://hitonanode.github.io/cplib-cpp/string/lyndon.hpp) (fetched 2026-10-10): generic Duval, longest Lyndon prefixes, Lyndon-word enumeration up to length `n`.
 - [Library Checker `lyndon_factorization`](https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/string/lyndon_factorization/task.md) (fetched 2026-10-10): cut-vector output format.
-- Catalog sweep 2026-10-10 in [00-sources.md](00-sources.md).
+- Catalog sweep 2026-10-10 in [00-sources.md](00-sources.md); adopted: `IncrementalLyndon`, `suffixFactorization`, `nextLyndonWord`.
 
 ## Limits and handoffs
 
@@ -98,5 +98,5 @@ Code is independently implemented from the invariants above.
 
 ## History
 
-- 2026-10-12: `lyndonArray` moved from prefix doubling to `12` SA-IS (O(n) on bytes), byte-order, non-byte and large suffix-array checks added; full suite passed on g++ and g++-14; the unused `07-suffixarray.hpp` include was dropped and `29-bwt_tester.cpp` now includes `07` itself.
-- 2026-10-10: implemented and verified (P083); independent review findings fixed: bounded suffixFactorization walk (new probe), NDEBUG bounds of nextLyndonWord/lyndonWords, LyndonTree complexity line, standardFactorization memory bound.
+- 2026-10-10: implemented and verified (P083), independent review found 4 issues, fixed.
+- 2026-10-12: `lyndonArray` moved from prefix doubling to `12` SA-IS (O(n) on bytes), byte-order, non-byte and large suffix-array checks added, the unused `07-suffixarray.hpp` include dropped; full suite passed on g++ and g++-14.

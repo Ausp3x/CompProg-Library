@@ -52,8 +52,6 @@ python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 -
 python3 '96-Local Testing/03-consistency.py'  # no errors
 ```
 
-The suite was also run in full mode before any change (seed 1, all three configurations PASS) as the re-audit baseline.
-
 ## Benchmarks
 
 No benchmark: a direct linear scan with no specialization, dispatch threshold or
@@ -78,4 +76,6 @@ Targeted path/symbol searches in `OLD/algorithms.cpp`, `OLD/[1] algorithms.cpp`,
 
 ## History
 
-- 2026-09-28: verified under the previous system (P016). 2026-10-08 re-audit: `/reaudit-review` findings 15 (closing braces) and 16 (undefined complexity symbols) fixed; `runLengthSize` and `runLengthSpans` share one complexity line; contracts moved out of the header. Behavior unchanged.
+- 2026-09-28: verified under the previous system (P016).
+- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
+- 2026-10-08: re-audit, 2 findings fixed, contracts moved out of the header, behavior unchanged; quick, full and stress passed on g++, full on g++-14, integration with sanitizers passed.

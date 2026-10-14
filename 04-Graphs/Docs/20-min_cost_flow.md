@@ -74,7 +74,7 @@ Owned by package P045 / GR09. The header implements `MinCostFlow<Cap, Cost>`, su
   - `X(n, E).solve(s, t, k)` → one `addEdge` per entry of `E`, then `flow(s, t, k)`.
   - The legacy versions kept O(n^2) capacity and cost matrices, so parallel edges overwrote each other and antiparallel edges shared one cell. Each listed edge now stays separate, which changes the result exactly when `E` had such pairs.
   - Plain SPFA without potentials → Dijkstra with potentials.
-- **Row names removed 2026-10-13** (`duplicates.md`, P045):
+- **Row names removed 2026-10-13:**
   - `minCostMaxFlow` → `flow(s, t)`;
   - `bellmanFordPotentials` → automatic inside `flow`, `slope` and `potentials` (`initPotentials` is the public helper);
   - `pathReconstruction` → the `MaxFlow::pathDecomposition` recipe above.
@@ -163,7 +163,7 @@ Finite tests complement the arguments above; they do not prove all inputs.
 | `02-integration.py` | PASS: 138 standalone/aggregate headers (including `20-min_cost_flow.hpp` alone and `99-all.hpp`), scalar/available-AVX2 multi-TU, workspace; MEMORY peak 647 MB |
 | `03-consistency.py`, with `--braces` on the header, tester and benchmark | No errors |
 | `NDEBUG` boundedness probe (ad hoc, `-O1 -DNDEBUG -fsanitize=address,undefined`, 512 MB cap) | See below |
-| `@reviewer` (independent: own unit-step Bellman–Ford SSP oracle, 3,000 rounds under ASan/UBSan and 30,000 at `-O2` with assertions, n ≤ 12 and up to 40 calls each; 20,000 × 300-call `NDEBUG` zero-length-piece fuzz; reran quick, full and consistency) | No wrong answer on valid inputs. Fixed: `potentials()` now asserts the magnitude domain before recomputing (it hit the negative-cycle assertion at `B = 2 LIM`); negative capacities are clamped under `NDEBUG` (an `lll` capacity of `-2^126` hid a large total from `bounded()`); the `get_flow` mapping is the net flow; the mutation count; a `total-sum-bound` probe for the `2^126` sum; the `NDEBUG` `s == t` wording. Adopted: loops and zero-capacity edges leave `B`, the `D`/`Convex::e` names, `flow`'s complexity line, the shorter row. Decided by the user: `flow` stays beside `slope` (Keeps in `duplicates.md`) |
+| `@reviewer` (independent: own unit-step Bellman–Ford SSP oracle, 3,000 rounds under ASan/UBSan and 30,000 at `-O2` with assertions, n ≤ 12 and up to 40 calls each; 20,000 × 300-call `NDEBUG` zero-length-piece fuzz; reran quick, full and consistency) | No wrong answer on valid inputs; 6 findings fixed, 4 suggestions adopted; by the user's decision `flow` stays beside `slope` (Keeps in `duplicates.md`) |
 
 The `NDEBUG` probe cases and their results:
 
@@ -221,7 +221,7 @@ Medians in milliseconds:
 | negative DAG: chain cap 10 plus 200,000 unit intervals of cost [-1e6, -1] | 200,000 | 399,999 | — | in-order labels 527 | reverse labels 517 |
 
 Headlines:
-- `MinCostFlow` tracks the ACL-style reference within +1% to +5% on every workload. A run under load average 6 earlier the same day gave -1% to +9%, with absolute times 1.6–2.5× higher.
+- `MinCostFlow` tracks the ACL-style reference within +1% to +5% on every workload.
 - Two inner-loop choices were measured in six interleaved rounds on the dense, bipartite and sparse workloads:
   - Hoisting `dist[u] + h[u]` out of the arc loop.
   - Reading `dist`, `h`, `vis` and `pe` through raw pointers: member vectors otherwise reload their data pointers after every heap push.
@@ -253,3 +253,8 @@ Convex edges follow the row's piecewise-linear wording; no catalog has a convex-
   - Chinese postman: row 69.
 - **Not provided:** changing an edge's capacity or cost after a flow, convex costs given by a callable over large capacities, and floating-point capacities or costs. These are recorded in the notes.
 - **Not run:** exact GCC 14.2 and the Windows build.
+
+## History
+
+- 2026-10-13: P045 implementation; independent review, 6 findings fixed; mutation check (22 of 22 killed), benchmark and `NDEBUG` probe.
+- 2026-10-14: verified (P045) after the rebase onto master; full (seed 20261013) passed on g++ and g++-14, stress (seed 7), integration and consistency passed.

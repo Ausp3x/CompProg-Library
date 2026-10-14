@@ -1,6 +1,6 @@
 # 03-barrett.hpp — evidence
 
-`03-barrett.hpp` (C02, package P004, together with `04-montgomery.hpp`; see [04-montgomery.md](04-montgomery.md)) provides machine-word Barrett reduction: exact quotient and remainder of double-width dividends, products, powers and Shoup fixed multipliers. Backend choice, the shared benchmark method and the research/ownership boundary for the reduction family are in [00-notes.md](00-notes.md#reduction-family).
+`03-barrett.hpp` (C02, package P004, together with `04-montgomery.hpp`; see [04-montgomery.md](04-montgomery.md)) provides machine-word Barrett reduction: exact quotient and remainder of double-width dividends, products, powers and Shoup fixed multipliers. Backend choice and the research/ownership boundary for the reduction family are in [00-notes.md](00-notes.md#reduction-family); the benchmark method shared with Montgomery is under [Benchmarks](#benchmarks).
 
 ## Contracts
 
@@ -76,7 +76,11 @@ All passed on GCC 16.2.1 and GCC 14.4.1, GNU++20, Linux x86-64 (Intel Core i9-11
 
 ## Benchmarks
 
-Method, corpus and artifact hashes: [00-notes.md](00-notes.md#reduction-family). Raw data: `96-Local Testing/01-Core/03-reduction_benchmark.jsonl`, `96-Local Testing/01-Core/03-reduction_candidates.jsonl`. Nanoseconds per complete workload, medians of five repetitions, accelerated (AVX2) `-O3 -DNDEBUG` build, 2026-10-12 (seed 20261012).
+The [benchmark entry](<../../96-Local Testing/01-Core/03-reduction_benchmark.py>) serves both reduction headers and writes `96-Local Testing/01-Core/03-reduction_benchmark.jsonl` with compiler commands, hardware, flags, seed, adaptive warmup and medians of five repetitions. Builds use GNU++20: baseline `-O3 -DNDEBUG` without AVX2/BMI2, accelerated `-O3 -DNDEBUG -mavx2 -mbmi2 -mno-avx512f`, and `scalar-asserts`/`avx2-asserts` at `-O2` with assertions enabled (the Codeforces build). Inputs are shared between implementations and every measured output is verified. Compiler memory barriers and volatile result sinks prevent elimination/hoisting. Kernels use precomputed contexts and O(n) input/output storage with O(1) scratch. Setup-and-power includes context construction and conversion for each of eight full-word bases/exponents.
+
+The corpus covers modulus one, powers of two, typical contest primes, `2^31-1`, `2^61-1`, `2^64-59` and `2^64-1`; uniform and near-modulus inputs; bulk lengths 1, 7, 8, 9, 16, 32, 256 and 4096; arbitrary full-width dividends and fixed factors; canonical/lazy products, conversions, dependent product chains and dependent power chains with 64- and 128-bit exponents on one context. Unit-factor chains avoid products collapsing to zero, while the separate uniform distribution includes that legitimate case. Timings are observations on this host (Intel Core i9-11900H, GCC 16.2.1), not universal claims or timing gates.
+
+Latest run, 2026-10-12 after the prune (seed 20261012, 2 ms warmup, five repetitions, four configurations): 9,116 verified measurements, held in the JSONL. Nanoseconds per complete workload, accelerated (AVX2) `-O3 -DNDEBUG` build:
 
 | Workload | Reference | Barrett |
 |---|---|---|
@@ -93,7 +97,7 @@ Montgomery's figures for the shared power workloads are in [04-montgomery.md](04
 
 General 64-bit Barrett is **not universally faster than native remainder**: modulo `2^64-59` and `2^64-1`, 737 and 746 vs 571 and 574 ns for 256 reductions, and `divMod` 923 and 923 vs 585 and 597. `divMod` wins for every other measured modulus (`2^32+15`: 914 vs 1,133). Its value is a predictable exact precomputed backend over every modulus/dividend domain; use Montgomery for suitable long odd-modulus chains or Shoup for repeated factors, and ordinary `%` when setup/reuse does not justify a context.
 
-Rejected candidates: a general AVX2 Barrett32 kernel with a synthesized high-64 vector reciprocal product showed no consistent improvement (bulk/scalar about 1.07 at 4096 elements), so ordinary Barrett32 uses a scalar loop except for power-of-two masks (eight packed lanes). Mersenne31 folding lost to ordinary reciprocal reduction (about 286 vs 225 ns) and was removed; Mersenne61 folding is retained. Ordinary 64-bit multiplication uses the compiler's native wide products.
+Rejected candidates ([measurements](<../../96-Local Testing/01-Core/03-reduction_candidates.jsonl>), snapshots that predate the final headers and are labeled accordingly): a general AVX2 Barrett32 kernel with a synthesized high-64 vector reciprocal product showed no consistent improvement (bulk/scalar about 1.07 at 4096 elements), so ordinary Barrett32 uses a scalar loop except for power-of-two masks (eight packed lanes). Mersenne31 folding lost to ordinary reciprocal reduction (about 286 vs 225 ns) and was removed; Mersenne61 folding is retained. Manual 64-bit unrolling added overhead on short arrays without a consistent general benefit, so 64-bit bulk loops remain direct. Ordinary 64-bit multiplication uses the compiler's native wide products.
 
 Shoup threshold (median AVX2 bulk/scalar ratio over `998244353`, `2^31-1`, `2^32-5`): 1.27 at 7, 0.45 at 8, 0.57 at 9, 0.31 at 256 elements; 0.54 at 8 with assertions enabled. The eight-element dispatch stands.
 
@@ -101,7 +105,7 @@ Shoup threshold (median AVX2 bulk/scalar ratio over `998244353`, `2^31-1`, `2^32
 
 | Source inspected (2026-09-27) | Relevant result and limits |
 |---|---|
-| Brent and Zimmermann, Modern Computer Arithmetic v0.5.9 (see [00-notes.md](00-notes.md#reduction-family)) | Barrett approximation and special moduli. Its truncated normalized Barrett bound differs from the full-precision one-correction formula above. |
+| Brent and Zimmermann, [Modern Computer Arithmetic, v0.5.9 (2010-10-07)](https://members.loria.fr/PZimmermann/mca/mca-cup-0.5.9.pdf), §§2.4.1–2.4.4 and §2.5 ([saved copy](../../95-Resources/04-modern_computer_arithmetic.pdf); reading copy CC BY-NC-ND, no text copied) | Barrett approximation and special moduli. Its truncated normalized Barrett bound differs from the full-precision one-correction formula above. |
 | [AtCoder internal_math.hpp](https://raw.githubusercontent.com/atcoder/ac-library/master/atcoder/internal_math.hpp), `internal::barrett` | Ceiling reciprocal and correction proof for canonical 32-bit products. CC0 1.0. Does not establish this header's arbitrary-dividend/full-64-bit domain. |
 | [NTL single-precision API](https://libntl.org/doc/ZZ.txt), `PrepMulModPrecon`/`MulModPrecon`; [selected sp_arith.h implementation](https://raw.githubusercontent.com/libntl/ntl/main/include/NTL/sp_arith.h) | Fixed-multiplier reciprocal and vector products. NTL's `NTL_SP_BOUND` restriction differs from this implementation's full-word domain; no source copied. |
 
@@ -113,8 +117,9 @@ GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2 and a Windows/
 
 ## History
 
-- 2026-09-27: original P004 completion, full and stress (91,538,696 checks per configuration) and integration passed; first benchmarks.
+- 2026-09-27: original P004 completion, full and stress (91,538,696 checks per configuration) and integration passed; first benchmark (seed 20260927, 4,412 verified measurements).
 - 2026-09-27: maintenance review, full suite, integration and consistency passed.
-- 2026-10-07: re-audit, 3 findings fixed (row gap `highProduct`, weak bulk fixed-multiplier tests, complexity comment), `divMod`/`div`, `MERSENNE61` and default modulus added, full and stress passed on g++.
-- 2026-10-07 (run): full (seed 20261007, 53,657,153 checks per configuration) and stress (seed 1, 146,158,229) passed, `02-integration.py --sanitizers` passed, independent `@reviewer` differential (8.13 million cases) and mutants found no defect.
+- 2026-10-07: re-audit, 3 findings fixed, `divMod`/`div`, `MERSENNE61` and default modulus added, full and stress passed on g++.
+- 2026-10-07 (run): full (seed 20261007, 53,657,153 checks per configuration) and stress (seed 1, 146,158,229) passed, `02-integration.py --sanitizers` passed, independent `@reviewer` differential (8.13 million cases) and mutants found no defect, benchmark (seed 20261007, 8,912 verified measurements).
 - 2026-10-08: restyle (comments only), full suite passed on g++ and g++-14, integration and consistency passed.
+- 2026-10-12: prune (div and multiplier removed, fold61 added), full suite (seed 20261012) passed on g++ and g++-14, benchmark verified 9,116 measurements.

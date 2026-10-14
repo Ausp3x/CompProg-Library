@@ -58,7 +58,7 @@ python3 '96-Local Testing/05-Mathematics/09-modinverse_tester.py' --mode stress 
 
 The header and tester build with no warnings under `-Wall -Wextra -Wconversion`, including two translation units.
 
-`@reviewer` (2026-10-09) found no defect. Its note that the Pierce bound was stated slightly too strongly was accepted: the bound is now `O(p^(1/3 + e))`.
+`@reviewer` (2026-10-09) found no defect.
 
 ## Benchmarks
 

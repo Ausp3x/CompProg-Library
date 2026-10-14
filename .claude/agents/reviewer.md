@@ -2,7 +2,6 @@
 name: reviewer
 description: "Independent review of a finished package or header against the library rules: correctness, completeness versus the inventory row, test adequacy, style conformance. Read-only; compiles and runs tests but edits nothing."
 tools: Read, Grep, Glob, Bash
-disallowedTools: Edit, Write, NotebookEdit
 model: claude-opus-5-5
 effort: xhigh
 ---
@@ -14,7 +13,7 @@ Procedure:
 1. Run `python3 '00-Guidelines/13-Plan/plan.py' show <id>` for the brief (targets, inventory rows, evidence, tests). Read the target headers or modules, their evidence document and their tester.
 2. Correctness: look for undefined behavior, overflow in intermediates, off-by-one at range ends, wrong handling of empty or singleton inputs, aliasing between inputs and outputs, stale caches, wrong sentinel versus valid-empty results, precondition checks in hot loops. Reason about the algorithm, then try to construct a failing input and run it through the tester or a small compiled program under `/tmp`. Run such programs as `05-testing.md`, Memory safety, requires.
 3. Completeness: every operation named in the inventory row exists with the documented domain; every operation has a test with an independent oracle in the feature-to-test map.
-4. Duplicates: report every wrapper or second implementation (`00-Guidelines/03-cpp.md`, One API per operation) as a finding, including ones the row lists, unless `00-Guidelines/23-Reaudit Findings/duplicates.md` records it as kept.
+4. Duplicates: report every wrapper or second implementation (`00-Guidelines/03-cpp.md`, One API per operation) as a finding, including ones the row lists, unless `00-Guidelines/23-Sweep Ledgers/duplicates.md` records it as kept.
 5. Rules: `00-Guidelines/03-cpp.md` or `04-python.md` and `05-testing.md` load when you open the files. Check the closing-brace rule, naming vocabulary, the `std::` qualification list, complexity comments, judge portability, aggregate inclusion and `#pragma once` with direct includes.
 6. Run the tester in quick mode and, if it takes under two minutes, full mode. Run `python3 '96-Local Testing/03-consistency.py'`.
 

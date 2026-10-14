@@ -15,6 +15,6 @@ Rules `01`–`08` are loaded by Claude Code automatically through `.claude/rules
 | [09-sources](09-sources.md) | on request | Completeness sweep catalogs, provenance rules |
 | [10-decisions](10-decisions.md) | on request | Decision log and rationale |
 | [13-Plan](13-Plan/00-index.md) | via `plan.py` | Work manifest: batches, packages, statuses, models |
-| [23-Reaudit Findings](<23-Reaudit Findings/00-index.md>) | via package notes | Confirmed `/reaudit-review` defects per package, each file deleted once its re-audit fixes it; `duplicates.md` for `/prune` |
+| [23-Sweep Ledgers](<23-Sweep Ledgers/00-index.md>) | via skills | Sweep ledgers with the user's binding decisions: `duplicates.md` (`/duplicate-sweep`, `/prune`), `omissions.md` (`/omission-sweep`) |
 | [History](History/2026-09-27-migration.md) | on request | Dated migration and audit records: migration, monolith transfer, inventory audit, Core migration |
-| `Ledgers/` | never whole | Machine-readable maps checked by the validator: `path-map`, `monolith-map`, `research-sources`, `path-updates`, `archive-map`, `library-checker-coverage`, `core-path-updates`; query with `rg` or Python |
+| `Ledgers/` | never whole | Machine-readable maps `path-map`, `monolith-map`, `path-updates`, `core-path-updates`, `archive-map` (archive accounting), `library-checker-coverage` (judge families to owners), all checked by the validator, and the unchecked `research-sources` (read scopes); query with `rg` or Python |

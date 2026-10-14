@@ -12,16 +12,13 @@ P231 (support batch SUP06) followed the P052 incident. A Python oracle row sent 
 
 `ensure()` acts only when the running `__main__` file is a tester, benchmark or `02-integration.py`, so modules that merely import a runner (for example `03-consistency.py` importing the integration script) are unaffected. A nested call inside a capped process only registers the report. `ensure(mb=...)` changes one suite's cap, and `CP_TEST_MEMORY_MB`, `CP_TEST_PREFLIGHT_MB` and `CP_TEST_PREFLIGHT=0` override it from the environment. `python3 '96-Local Testing/_00_memory_cap.py' [--mb N] -- <command>` caps any other program and reports its peak. Without a systemd user manager the run continues with an explicit `WARNING ... WITHOUT a memory cap` (local testing targets this Linux machine; judges are unaffected).
 
-Wiring: the seven folder runners and `01-Core/_05_modint_test_runner.py` call `ensure()` on import, which covers the 71 testers that use them. The 11 standalone testers, all 20 benchmark drivers and `02-integration.py` call it directly. `01-run.py` needs no change, because every suite it launches caps itself.
+Wiring: the folder runners and `01-Core/_05_modint_test_runner.py` call `ensure()` on import, which covers the testers that use them. Standalone testers, benchmark drivers and `02-integration.py` call it directly. `01-run.py` needs no change, because every suite it launches caps itself.
 
-## Rules added
+## Rules
 
-- `05-testing.md`, Memory safety: every entry point capped, pre-flight before full/stress, peaks recorded in evidence, ad-hoc programs through the CLI, out-of-domain inputs only through checked-build probes.
-- `03-cpp.md`, Toolchain: a violated precondition must stay bounded when `NDEBUG` removes the assertion (no infinite loop, no unbounded allocation).
-- `03-cpp.md`, Headers, and `01-principles.md`: Compact twins. A contest header that uses Core `Barrett*`/`Montgomery*` defines dependency-free `<name>Compact` twins of the functions that perform the reduced arithmetic themselves.
-- `CLAUDE.md`, the `/package` skill and the `@reviewer` agent name the capped CLI and the Compact rule.
+P231's rules are owned by [05-testing.md](../00-Guidelines/05-testing.md) (Memory safety), [03-cpp.md](../00-Guidelines/03-cpp.md) (Toolchain and judges: bounded precondition failures under `NDEBUG`; Headers: Compact twins) and [01-principles.md](../00-Guidelines/01-principles.md) (Profiles).
 
-`03-consistency.py` enforces both. An entry point without `_00_memory_cap.ensure()` (directly or through a capped runner) is an error. A verified contest header that uses Barrett or Montgomery without a `Compact` definition is an error. So is any `*Compact` body that names `Montgomery*`, `Barrett*` or a `mont*` helper. The check cannot tell which fast functions need a twin; `@reviewer` enforces that. Unverified ones are listed under `compact_pending`. At introduction the only flagged header was `05-Mathematics/07-primality_factorization.hpp`, rerun in P052 with its twins.
+`03-consistency.py` enforces the cap and the Compact rule. An entry point without `_00_memory_cap.ensure()` (directly or through a capped runner) is an error. A verified contest header that uses Barrett or Montgomery without a `Compact` definition is an error. So is any `*Compact` body that names `Montgomery*`, `Barrett*` or a `mont*` helper. The check cannot tell which fast functions need a twin; `@reviewer` enforces that. Unverified ones are listed under `compact_pending`. At introduction the only flagged header was `05-Mathematics/07-primality_factorization.hpp`, rerun in P052 with its twins.
 
 ## Verification
 
@@ -65,8 +62,7 @@ Minor notes adopted: the Compact check now inspects twin bodies.
 - The cap needs a systemd user manager and cgroup v2. Elsewhere, runs proceed uncapped with a warning.
 - Five standalone testers (`00-Tools/02-online`, `00-Tools/03-notebook`, `01-Core/02-debug_compile`, `07-infint`, `08-infintmini`) read no `CP_TEST_MODE`. When their mode is not given explicitly they get the main cap but no pre-flight.
 - A SIGKILL is attributed to the cap only when the scope reports `oom_kills > 0`; otherwise the message says it may be an external kill.
-- The guard was also inserted into `01-Core/16-poly_tester.py` and `16-poly_benchmark.py`, which belonged to another package's uncommitted work when P231 ran.
 
 ## History
 
-- 2026-10-09: P231 introduced after the P052 incident.
+- 2026-10-09: P231 introduced after the P052 incident (also guarding `01-Core/16-poly_tester.py` and `16-poly_benchmark.py`, then another package's uncommitted work); review fixed four findings; quick run of all suites, integration and consistency passed.

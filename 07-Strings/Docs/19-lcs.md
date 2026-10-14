@@ -97,7 +97,7 @@ Code is independently implemented from the recurrences above.
 - [AtCoder DP F](https://atcoder.jp/contests/dp/tasks/dp_f) and [CSES problem set](https://cses.fi/problemset/) (fetched 2026-10-10): LCS string output.
 - [OI Wiki, dynamic programming basics](https://oi-wiki.org/dp/basic/) (fetched 2026-10-10): LCS DP.
 - Allison–Dix (1986) and Hyyrö (2004) bit-parallel LCS, Hunt–Szymanski (1977), Hirschberg (1975), Myers (1986, "An O(ND) difference algorithm and its variations", middle snake) are named from standard knowledge; no copy of these papers was read in this package.
-- Catalog sweep 2026-10-10 in [00-sources.md](00-sources.md).
+- Catalog sweep 2026-10-10 in [00-sources.md](00-sources.md); adopted: `shortestCommonSupersequence`, `lcs3`.
 
 ## Limits and handoffs
 
@@ -107,4 +107,4 @@ Code is independently implemented from the recurrences above.
 
 ## History
 
-- 2026-10-10: implemented and verified (P083); independent review findings fixed: carry computation split so no operand order is relied on, DiffOp complexity line.
+- 2026-10-10: implemented and verified (P083), independent review found 2 issues, fixed.

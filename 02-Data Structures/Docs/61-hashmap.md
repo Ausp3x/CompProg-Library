@@ -34,7 +34,7 @@ The shared open-addressing engine behind `HashMap` and `HashSet`; `T` is `K` for
 
 Aliases with `FIXED = true`: construct with the maximum size `m`; capacity `max(4, bit_ceil(2 * m))` is allocated once and never changes, so references and iterators survive insertions. An insertion that would exceed `cap / 2` (at least `m`) is a precondition violation (assert); with `NDEBUG` the table grows instead, so the violation stays bounded. Combined with the O(1) `clear` this is the multi-test pattern: one allocation, many cheap resets.
 
-## Correctness and cost
+### Correctness and cost
 
 `locate(k)` walks from `home(k)` until it finds `k` or an empty slot; termination needs one empty slot, which load <= 1/2 guarantees (also under `NDEBUG` because a violated `FIXED` bound grows the table). `place(k)` locates first and grows only when it must claim a new slot, so a lookup of a present key in a full table never rehashes. `rehash` reinserts by probing only for empty slots (keys are distinct). The backward-shift condition is the standard one for linear probing (Knuth vol. 3, Algorithm 6.4R): an element may move into the hole exactly when the hole lies on its probe path from home, which is the cyclic interval `[home, j)`.
 
@@ -67,9 +67,9 @@ python3 '96-Local Testing/03-consistency.py'
 
 Final run 2026-10-09: full mode seed 20261009 passed on both compilers, 3,695,536 checks per configuration and 8 assertion probes (MEMORY peak 646 MB on g++, 665 MB on g++-14, both dominated by the compiler); stress mode seed 7 passed all three configurations with 16,915,676 checks per configuration (peak at most 835 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, on GCC 16.2.1 and again on the floor compiler GCC 14.4.1 (`CXX=g++-14`). Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
 
-`02-integration.py` passed on GCC 16.2.1 and 14.4.1: 114 standalone/aggregate headers (this one alone, in `99-all.hpp` and `98-basic.hpp`), the scalar and AVX2 two-translation-unit builds and the workspace. Its `--sanitizers` stage stopped at a link error in another session's uncommitted `01-Core/16-poly_tester.cpp`, unrelated to this header, whose own ASan/UBSan configuration passed above. `03-consistency.py` reports no errors and checks the closing-brace rule and comment cap on this header, its tester and its benchmark.
+`02-integration.py` passed on GCC 16.2.1 and 14.4.1: 114 standalone/aggregate headers (this one alone, in `99-all.hpp` and `98-basic.hpp`), the scalar and AVX2 two-translation-unit builds and the workspace. `03-consistency.py` reports no errors and checks the closing-brace rule and comment cap on this header, its tester and its benchmark.
 
-## Benchmark
+## Benchmarks
 
 `61-hashmap_benchmark.py --runs 5`, seed 20261009, GCC 16.2.1 `-O2 -DNDEBUG`, i9-11900H. Per row: a pool of n keys, then q = 4e6 operations (40% `operator[] +=`, 40% `find`, 20% `erase`) on keys drawn uniformly from the pool; construction and destruction timed; all three containers use `CustomHash` with the default process seed; checksums agree across variants and runs. Medians of 5 runs in seconds (MEMORY peak 313 MB).
 
@@ -105,4 +105,4 @@ References inspected 2026-10-09 by the completeness sweep ([00-sources.md](00-so
 
 ## History
 
-- 2026-10-09: P227 first verification. Independent review: fixed a use-after-free when a key or value argument aliases the table across a rehash (`place` now builds the element first), corrected the setup bound to O(m) with reserve, `reserve` doubles in `uint`, added the iterator-to-`const_iterator` conversion and renamed the overloaded `m`. The floor check exposed that `06-Miscellaneous/02-customhash.hpp` never compiled on GCC 14; fixed in this package with the user's approval (see its evidence).
+- 2026-10-09: P227 first verification; independent review, 5 findings fixed; the floor check fixed `06-Miscellaneous/02-customhash.hpp` on GCC 14 with the user's approval; full (seed 20261009) on g++ and g++-14 and stress (seed 7) passed.

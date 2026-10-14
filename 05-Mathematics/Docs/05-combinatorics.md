@@ -125,5 +125,6 @@ All pages below were retrieved and their cited sections read on 2026-09-27. Code
 ## History
 
 - 2026-09-27: initial P012 implementation and evidence.
-- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit added `combiLarge`, `binomialTable` and `derangementTable`, fixed finding 10 (`ratioProduct` complexity line), and applied the reviewer's notes (constructor shadowing, shared derangement recurrence, `n = 0, 1` table tests); after `@reviewer`, full and stress (seed 1) and integration passed.
+- 2026-10-07: P012 re-audit baseline, full suite passed on all six headers before any change.
+- 2026-10-07: P012 re-audit, added `combiLarge`, `binomialTable` and `derangementTable`, 1 finding and 3 reviewer notes fixed; after `@reviewer`, full, stress (seed 1) and integration passed.
 - 2026-10-12: prune, removed `fibonacci<T>` (`fibonacciExact` and the tests use `fibonacciPair<T>(n).first`); full suite passed on g++ and g++-14.

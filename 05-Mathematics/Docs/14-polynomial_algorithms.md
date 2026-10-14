@@ -17,6 +17,7 @@ Common rules:
 - **Domains.** "Any modint" means every Core `ModInt`/`ModInt64`/`DynModInt`/`DynModInt64`, including composite moduli. Products go through `convolution` (NTT for static NTT primes, three-prime CRT otherwise). "Prime field" means the modulus is prime, so every nonzero element is invertible. Operations that divide by `i` (log, exp, integral, power, factorials) need those `i` to be below the modulus; each contract states the bound.
 - **Cutoffs.** `polynomial_detail::cut<M>({ntt, other})` selects the O(n^2) path up to a measured size. The pair holds one value for NTT primes and one for the other moduli (see Benchmarks). Both paths compute the same function, so the cutoff changes speed only.
 - **Purity.** Every function returns a new value. Inputs are never mutated and never aliased with outputs. There are no caches.
+- **Violated preconditions** are asserted. Under `NDEBUG`, `fpsPow`, `fpsSparsePow`, `polyDivmod`, `polyHalfGcd` and `fpsCompositionalInverse` return early with an unspecified result instead of looping or reading out of bounds.
 
 ### polyAdd, polySub, polyMul, polyDerivative, polyIntegral, polyEval, polyShift, polyTruncate, polyNormalize
 
@@ -272,6 +273,8 @@ Headline timings (998244353):
 - OI Wiki polynomial pages: Newton sqrt, power with valuation, composition.
 - Nyaan `fps/` and maspypy `poly/` (sparse recurrences, Taylor shift, prefix sum of polynomial, composition and inverse), Library Checker `polynomial` problems, FLINT `nmod_poly` (power sums to polynomial, `compose_mod_brent_kung`).
 
+Adopted by the P057 sweep: `fpsDiv`, `polyDivLinear`, `polyFromPowerSums`, `polyComposeMod` (Brent–Kung block Horner sharing the `fpsComposition` kernel) and `prefixSumOfPolynomial`.
+
 The code was written independently.
 
 ## Limits and handoffs
@@ -284,6 +287,6 @@ The code was written independently.
 
 ## History
 
-- 2026-10-10: P057 initial implementation and verification; `@reviewer` found 4 defects, all fixed: `taylorShift` and row 15 `interpolatePolyExp` inverted `p!` at `n = mod` (`taylorShift` also gained the composite-modulus fallback), the half-GCD resultant path and composite moduli were untested, and violated preconditions under `NDEBUG` were unbounded in `fpsPow`, `fpsSparsePow`, `polyDivmod`, `polyHalfGcd`, `fpsCompositionalInverse` and row 15 `rationalGeneratingFunction`, `linearRecurrenceSemiring`, `interpolatePeriodicSequence`, `matrixPowerVector` (now early returns); minor: a `PolyXgcd` comment line and the tester's BM cutoff docstring.
+- 2026-10-10: P057 initial implementation and verification, `@reviewer` found 4 defects and 2 minor issues, all fixed.
 - 2026-10-11: verification run, quick, full and stress passed on g++, full on g++-14.
-- 2026-10-13: prune, removed `polyMod` (`polyDivmod(a, b).second`; its cases are covered by the `divSuite` identity on the same inputs, and the large-gcd divisibility checks now call `polyDivmod`); full suite passed on g++ and g++-14.
+- 2026-10-13: prune, removed `polyMod` (Legacy mapping; its cases are covered by the `divSuite` identity); full suite passed on g++ and g++-14.

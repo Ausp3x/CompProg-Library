@@ -18,6 +18,7 @@ Common conventions:
 - **Order zero.** It is the all-zero sequence, an empty sum.
 - **Generating function.** It is `P / Q` with `Q = 1 - sum c_j x^j`.
 - **Indices.** Every index `k` is unsigned 64-bit.
+- **Violated preconditions** are asserted. Under `NDEBUG`, `rationalGeneratingFunction`, `linearRecurrenceSemiring`, `interpolatePeriodicSequence` and `matrixPowerVector` return early with an unspecified result instead of reading out of bounds.
 
 ### findLinearRecurrence, berlekampMassey, findLinearRecurrenceHalfGcd
 
@@ -154,6 +155,8 @@ Headline timings, 998244353, with the same conditions as the 14 table:
 
 [00-sources.md](00-sources.md), P057 sweep: KACTL `BerlekampMassey.h`/`LinearRecurrence.h`, maspypy `seq/find_linear_rec.hpp` (half-GCD form), hitonanode `linear_recurrence.hpp` and `coeff_of_rational_function.hpp`, Nyaan `fps/nth-term.hpp`, OI Wiki linear recurrence (slice coefficients), Library Checker `find_linear_recurrence`, `kth_term_of_linearly_recurrent_sequence`, `consecutive_terms_of_linear_recurrent_sequence`. The code was written independently.
 
+Adopted by the P057 sweep: `findLinearRecurrenceHalfGcd`.
+
 ## Limits and handoffs
 
 - Composite-modulus minimal recurrences (Reeds–Sloane) and P-recursive sequences are row 51. Black-box minimal polynomials and Wiedemann are row 44. Polynomial-times-exponential prefix sums are row 38.
@@ -163,6 +166,6 @@ Headline timings, 998244353, with the same conditions as the 14 table:
 
 ## History
 
-- 2026-10-10: P057 initial implementation and verification; `@reviewer` found that `interpolatePolyExp` inverted `p!` at `n = mod` (now factorials up to `(p - 1)!`, regression case `n = p = 7`); the row's `NDEBUG` bounds are in the 2026-10-10 line of [14-polynomial_algorithms.md](14-polynomial_algorithms.md#history).
+- 2026-10-10: P057 initial implementation and verification, `@reviewer` found 2 defects in this header, fixed.
 - 2026-10-11: verification run, quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: P057 prune rerun (row 14 `polyMod` removed), header and tests unchanged; full suite passed on g++ and g++-14.

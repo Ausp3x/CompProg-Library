@@ -66,5 +66,5 @@ Online range-update/query structures belong to later batches; difference arrays 
 ## History
 
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
-- 2026-10-07: P006 re-audit, findings 3, 4, 10–12, 13, 14, 15, 17, 19, 20, 23, 24 (of 24 package findings) addressed in this header, full and stress passed on g++.
+- 2026-10-07: P006 re-audit, findings 3, 4, 10–12, 13, 14, 15, 17, 19, 20, 23, 24 (of 24 package findings) addressed in this header, full and stress passed on g++; independent review: confirmed findings 2–24 fixed, accepted the contract-based resolution of finding 1, raised five findings, all fixed.
 - 2026-10-13: prune, removed the four `rebuild` methods (cases moved to reconstruction by assignment); full suite passed on g++ and g++-14.

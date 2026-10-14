@@ -46,11 +46,11 @@ The code was written independently from the recurrences and proofs in the packag
 
 - Finite corpora support the proofs above; they are not proofs themselves. Vector sizes beyond `INT_MAX` are reviewed, not allocated.
 - Comparator, callback and window-validity obligations are the caller's responsibility and are not asserted.
-- The Graphs notes' claim that "Mo on tree is Miscellaneous `10`" should point to Data Structures `23` (outside this package).
 - GCC 14.2 exactly and Codeforces' Windows MSYS2 build were not run; the code uses no Windows-sensitive types or POSIX calls.
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): offline set intersection, RMQ, range k-th and arithmetic-progression adds.
 
 ## History
 
 - 2026-09-28: first implementation and audit (MI14, P014); full suite passed.
-- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes; no operation was missing (`/reaudit-review` findings 3, 5–8, 10–12, 15, 17 fixed).
+- 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes.
+- 2026-10-08: re-audit, no operation missing, 10 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.

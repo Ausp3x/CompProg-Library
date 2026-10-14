@@ -16,4 +16,4 @@ Procedure:
 4. Exclude pure problem-specific tricks with no reusable interface.
 5. A different algorithm for a problem the row already solves is `missing` like any other operation. Another name or form of an operation the row has goes under `aliases`, never `missing` (`00-Guidelines/03-cpp.md`, One API per operation).
 
-Output only the structured Markdown report requested by the caller: `row`, `missing`, `aliases`, `misplaced`, `vague`, `sources`. Never fabricate a URL or a fetch; if a page could not be fetched, say so. Do not edit files.
+Return the format the caller requests; by default a Markdown report with `row`, `missing`, `aliases`, `misplaced`, `vague`, `sources`. Never fabricate a URL or a fetch; if a page could not be fetched, say so. Do not edit files.

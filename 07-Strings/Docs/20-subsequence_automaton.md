@@ -83,4 +83,4 @@ Code is independently implemented from the cited descriptions.
 
 ## History
 
-- 2026-10-11: implemented and verified (P084); independent review fixes: saturating counts no longer widen through __int128 (128-bit T now exact up to the cap), only r = -1 means n in isSubsequence; sparse next/prev use a hand-written binary search because debug-mode lower_bound checks partitioning in O(n).
+- 2026-10-11: implemented and verified (P084), independent review found 3 issues, fixed.

@@ -102,7 +102,7 @@ python3 '96-Local Testing/02-integration.py' --sanitizers                       
 python3 '96-Local Testing/03-consistency.py'                                                            # no errors
 ```
 
-The memory peaks are dominated by compiling the tester; the test binary alone peaks near 60 MB (full mode). The stress random section ran 3760 sequences with 241,577 operations, and 15 sequences stopped early at the window bound. Full mode ran 121,049 operations with no early stops. The `@reviewer` run independently passed quick, full (2 min 01 s), `CXX=g++-14` quick and optimized stress with seeds 11–16 before the review fixes. All suites above were rerun after them.
+The memory peaks are dominated by compiling the tester; the test binary alone peaks near 60 MB (full mode). The stress random section ran 3760 sequences with 241,577 operations, and 15 sequences stopped early at the window bound. Full mode ran 121,049 operations with no early stops.
 
 Modes:
 - **quick:** optimized and checked builds. Per map: 40 unit, 40 weighted and 30 dual sequences of up to 16 operations (20 for the `int`/`double` maps). Classics: 10 rounds each. Balance: 4000 merges and 8 doublings. Ping-pong 2000, cross-check 20000.
@@ -134,11 +134,14 @@ Conclusions:
 - On this shallow random tree, small-to-large heaps beat treap union in practice, despite the `log` factor.
 - No timing gate is used.
 
-Host variance: the shared host varied by up to 2x during the session. The same treap binary took 1047–1349 ms on the 10^6 monotone fit across repeated runs, and an A/B against the header without the move operations showed no difference. A run before the review fixes measured 585 ms. Ratios between implementations stayed stable.
+Host variance: the shared host varied by up to 2x during the session. The same treap binary took 1047–1349 ms on the 10^6 monotone fit across repeated runs, and an A/B against the header without the move operations showed no difference. Ratios between implementations stayed stable.
 
 ## Sources
 
 Fetched on 2026-10-13 by `@researcher` (ledger in [00-sources.md](00-sources.md)). They were read for operation sets, semantics and stated complexities; the implementation, the proofs above and every test are independent.
+
+Adopted from the 2026-10-13 sweep: `addLinear` (all three), `size`, `restrictDomain`/`domain`, `clampSlope`, `minPlusConvolution`, non-destructive `O(log n)` `evaluate`, weighted adds, treap-union `merge`.
+
 - hitonanode `slope_trick` and `dual_slope_trick`: the unit API and the conjugate representation. Its loops make `shift` cost `O(|d| log n)`, not the documented `O(log n)`.
 - maspypy `slope_trick_0`, `slope_trick_1`, `slope_trick_super` and articles (1) and (3): `add_linear`, `restrict_domain`, `convolve`/`convolve_segment`, and the conjugate trick.
 - ei1333 `slope-trick` and `generalized-slope-trick`; Nyaan `slope-trick-weighted`: weighted adds and BST sums for non-destructive evaluation.
@@ -174,4 +177,4 @@ Aliases in the fetched libraries:
 
 ## History
 
-- 2026-10-13: implemented and verified (P075). `@reviewer` found five defects, all fixed before the recorded runs: treap balance with duplicate keys and with copied priorities, the moved-from state, one cost line and one test map outside the documented domain.
+- 2026-10-13: implemented and verified (P075), `@reviewer` found 5 defects, fixed before the recorded runs.

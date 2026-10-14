@@ -115,5 +115,6 @@ Inspected 2026-09-27:
 ## History
 
 - 2026-09-27: initial P012 evidence.
-- 2026-10-07: P012 re-audit start, full suite passed on all six headers before any change; re-audit fixed findings 2 (branch-free Odd/Wheel30 start offsets, up to 5x faster at high endpoints), 3 (prefix-only base copy; materialize 1087 ms to 0.02 ms), 10–12 (complexity lines, braces, `lng` offsets, `int8_t` Möbius), and the reviewer's Wheel30 offset-bound evidence error; after `@reviewer` (which probed `[INT64_MAX - 3000, INT64_MAX)` against Miller–Rabin), full and stress (seed 1) and integration passed.
+- 2026-10-07: P012 re-audit baseline, full suite passed on all six headers before any change.
+- 2026-10-07: P012 re-audit, 5 findings and 1 reviewer evidence finding fixed; after `@reviewer` (which probed `[INT64_MAX - 3000, INT64_MAX)` against Miller–Rabin), full, stress (seed 1) and integration passed.
 - 2026-10-12: prune, removed both `fromClosed` overloads (cases moved to the half-open constructors); full suite passed on g++ and g++-14.
