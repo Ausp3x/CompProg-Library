@@ -48,7 +48,7 @@ No external source beyond the canonical P006 DSU evidence. Canonical P006 DSU al
 
 ## Limits and handoffs
 
-Weighted, rollback and other DSU variants are owned by Data Structures (see [00-notes.md](00-notes.md#ownership-boundaries)). GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available.
+Weighted, rollback and other DSU variants are owned by Data Structures (see [00-notes.md](00-notes.md#ownership-boundaries)).
 
 ## History
 

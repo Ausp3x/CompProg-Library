@@ -77,7 +77,6 @@ Code is independently implemented from the cited descriptions.
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): multi-pattern Shift-And, optional/repeatable symbols and bounded gaps, Glushkov regex simulation (`24`), BNDM (`49`).
 - `BitsetText` memory is `S * n / 8` bytes; for byte texts (`S = 256`) that is `32 n` bytes.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

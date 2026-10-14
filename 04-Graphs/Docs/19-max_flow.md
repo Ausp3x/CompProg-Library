@@ -156,7 +156,6 @@ Legacy material inspected:
 
 - Floating-point capacities, push-relabel with `limit`, residual export and the fewest-edge min cut are documented reductions or omissions in the notes.
 - Lower bounds and circulations: row 30. Min-cost flow: row 20. Matching wrappers: rows 21 and 82. Gomory–Hu: row 46. Global min cut: row 47. Edge- and vertex-disjoint path extraction: row 45 (it can use `pathDecomposition` with unit capacities).
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

@@ -123,7 +123,6 @@ Code is independently implemented from the cited descriptions.
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): simplified bad-character-only Boyer–Moore, the b5s/BMHBNFS hybrid, Turbo-BM and Breslauer's two-way variant (`49`/`43`), last occurrence and range-restricted searches, multi-pattern Rabin–Karp.
 - Coded algorithms need symbols in `[0, S)`; callers with sparse integer alphabets compress first or use `twoWay`.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

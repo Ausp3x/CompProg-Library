@@ -112,7 +112,7 @@ Legacy: the original `Dijkstra` in `OLD/algorithms.cpp:4488–4526` and its dupl
 
 ## Limits and handoffs
 
-Fractional/custom-weight domains are not claimed. All-pairs, advanced, implicit, temporal and ranked shortest paths belong to their separate rows (`12-all_pairs_shortest_path.hpp`, `13-shortest_path_advanced.hpp` and others). GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available.
+Fractional/custom-weight domains are not claimed. All-pairs, advanced, implicit, temporal and ranked shortest paths belong to their separate rows (`12-all_pairs_shortest_path.hpp`, `13-shortest_path_advanced.hpp` and others).
 
 ## History
 

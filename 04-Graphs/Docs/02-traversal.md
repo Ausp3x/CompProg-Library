@@ -81,7 +81,7 @@ Legacy: the old Team Notebook `old_cycle-find-dfs.cpp` was inspected; its recurs
 
 ## Limits and handoffs
 
-SCCs belong to `08-scc.hpp`; cycle enumeration and odd-cycle extensions belong to `68-cycle_enumeration.hpp` (see [00-notes.md](00-notes.md#p010-re-audit-omissions)). GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available.
+SCCs belong to `08-scc.hpp`; cycle enumeration and odd-cycle extensions belong to `68-cycle_enumeration.hpp` (see [00-notes.md](00-notes.md#p010-re-audit-omissions)).
 
 ## History
 

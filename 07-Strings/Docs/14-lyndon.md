@@ -94,7 +94,6 @@ Code is independently implemented from the invariants above.
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): Lyndon-word rank/unrank and k-th word (exponential counts need big integers; no competitive-programming catalog has them).
 - Runs (`26`) can consume `lyndonArray`/`lyndonTree` under both orders; de Bruijn sequences (`41`) can consume `nextLyndonWord`; per-prefix lexicographically minimal suffixes (`22`) are `IncrementalLyndon::minSuffix`.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

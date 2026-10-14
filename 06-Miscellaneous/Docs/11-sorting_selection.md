@@ -94,7 +94,7 @@ The code was written independently from the recurrences and proofs in the packag
 
 - Finite corpora support the proofs above; they are not proofs themselves. Vector sizes beyond `INT_MAX` are reviewed, not allocated.
 - Comparator, callback and window-validity obligations are the caller's responsibility and are not asserted.
-- GCC 14.2 exactly and Codeforces' Windows MSYS2 build were not run; the code uses no Windows-sensitive types or POSIX calls.
+- The code uses no `long` or POSIX-only calls.
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): partial sort, k-way merge and multikey radix.
 
 ## History

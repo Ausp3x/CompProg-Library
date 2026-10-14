@@ -90,7 +90,7 @@ The completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetche
 
 ## Limits and handoffs
 
-Fractional/custom-weight domains are not claimed. Directed MSTs, sensitivity/second-best MSTs, spanning-tree counting and fully dynamic MSTs belong to their separate inventory rows. Reconstruction-tree bottleneck queries belong here; general LCA and dynamic-tree APIs retain their separate owners. GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available.
+Fractional/custom-weight domains are not claimed. Directed MSTs, sensitivity/second-best MSTs, spanning-tree counting and fully dynamic MSTs belong to their separate inventory rows. Reconstruction-tree bottleneck queries belong here; general LCA and dynamic-tree APIs retain their separate owners.
 
 ## History
 

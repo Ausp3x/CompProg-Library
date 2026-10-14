@@ -97,7 +97,6 @@ Code is independently implemented from the algorithmic invariants.
 
 - Validity of `pi` for the border, period and count helpers is a caller precondition; it is not rechecked.
 - Online append-only Z, minimum-alphabet reconstruction, substring period indexing and runs remain with their own rows (`30`, `31`, `27`, `26`). Distinct-substring counting belongs to suffix structures; the quadratic prefix-function reduction is not duplicated. Gray-string DP over `prefixAutomaton` is problem-specific and not added.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

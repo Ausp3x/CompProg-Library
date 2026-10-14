@@ -69,7 +69,6 @@ Inspected on 2026-09-28 (catalog sweep 2026-10-08 in [00-sources.md](00-sources.
 - Graphs `11-functionalgraph.hpp` `functionalOrbit` is a second constant-memory Floyd on array graphs; whether it should adapt `brentCycle` is that package's decision.
 - The budgeted `step` and `failed` lambdas are repeated in `floydCycle` and `brentCycle` on purpose: a shared detail helper needs its own complexity line, which would push the header over the 8% comment cap.
 - Determinism and equivalence/congruence are semantic preconditions that cannot be checked in general.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

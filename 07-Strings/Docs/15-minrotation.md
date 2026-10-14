@@ -78,7 +78,6 @@ Code is independently implemented from the invariants above.
 - Not adopted (reasons in [00-notes.md](00-notes.md)): `minCyclicShift` (merged: every catalog treats it as `minRotationIndices().first`), minimal rotation of every prefix, a separate rotation-period function (`minRotationIndices().second`, or `27` `primitiveRoot`), cyclic comparison beyond `rotationEquivalent`.
 - The row previously named Booth's algorithm; the two-pointer minimum expression has the same O(n) bound and O(1) space and is what KACTL and OI Wiki use.
 - Sorting all cyclic shifts belongs to `29` `sortCyclicRotations`; cyclic-shift occurrence counting to `10`.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

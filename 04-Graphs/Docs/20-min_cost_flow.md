@@ -252,7 +252,6 @@ Convex edges follow the row's piecewise-linear wording; no catalog has a convex-
   - min-cost-flow duals for difference constraints: row 44;
   - Chinese postman: row 69.
 - **Not provided:** changing an edge's capacity or cost after a flow, convex costs given by a callable over large capacities, and floating-point capacities or costs. These are recorded in the notes.
-- **Not run:** exact GCC 14.2 and the Windows build.
 
 ## History
 

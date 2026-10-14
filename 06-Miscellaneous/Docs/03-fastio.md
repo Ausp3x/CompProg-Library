@@ -109,7 +109,7 @@ No Barrett/Montgomery backend is involved.
 ## Limits and handoffs
 
 - `readDouble` reports total underflow as `Overflow`. Exact `long double` I/O is not owned. Locale-specific formats are not supported.
-- Floating `from_chars`/`to_chars` have been in libstdc++ since GCC 11; `double` parsing uses the portable fast_float path since GCC 12. The Codeforces MinGW GCC 14.2 floor was not built locally, so portability there rests on that library history, not on a test.
+- Floating `from_chars`/`to_chars` have been in libstdc++ since GCC 11; `double` parsing uses the portable fast_float path since GCC 12; portability to the Codeforces build rests on that library history.
 - Advanced backends (`mmap`, raw `read`/`write`, SIMD digit parsing) remain with `17-fast_io_advanced.hpp`.
 - No online submission was made and no judge acceptance is claimed.
 

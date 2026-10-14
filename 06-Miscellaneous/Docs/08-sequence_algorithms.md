@@ -124,7 +124,7 @@ The code was written independently from the recurrences and proofs in the packag
 - Finite corpora support the proofs above; they are not proofs themselves. Vector sizes beyond `INT_MAX` are reviewed, not allocated.
 - Comparator, callback and window-validity obligations are the caller's responsibility and are not asserted.
 - Checked builds cap the large sequence fixtures (and the interval fixtures) at 2000, because debug-STL partition checks make repeated `lower_bound` calls linear.
-- GCC 14.2 exactly and Codeforces' Windows MSYS2 build were not run; the code uses no Windows-sensitive types or POSIX calls.
+- The code uses no `long` or POSIX-only calls.
 - Legacy `OLD/Team Notebook/src/misc/old_kadane.cpp` is accounted for by `maximumSubarray(a).sum` (Legacy mapping).
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): rotation and all-range inversions; subarray-sum counting; three- and four-sum. Value-distinct LIS counts, all-LIS enumeration and subcubic rectangle methods remain unowned research items.
 

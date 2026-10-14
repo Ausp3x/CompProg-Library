@@ -102,7 +102,7 @@ Sources for `jumpAll` and `maxStep` (fetched 2026-10-07) are in [00-sources.md](
 
 Static all-vertex queries, ordered cycle/walk aggregates and one-orbit constant-memory analysis are complete scope here. Successor updates and fully dynamic functional-graph maintenance require a separate dynamic-tree design; they are outside this static batch. Constant-query-time level-ancestor constructions and arbitrary-speed/collision schedules are distinct specialized extensions, not claimed by these APIs. No original Floyd paper was independently reviewed, and no judge acceptance or automatic submission is claimed.
 
-The checked `-O0` stress build exceeds the runner's 180 s timeout, so stress is recorded for the optimized configuration only. GCC 14.4.1 (`CXX=g++-14`) passed the full-mode floor check on 2026-10-14; exact GCC 14.2 was not run. Functional successor updates and specialized collision schedules are outside GR26's static contracts; they remain with separate owners.
+The checked `-O0` stress build exceeds the runner's 180 s timeout, so stress is recorded for the optimized configuration only. GCC 14.4.1 (`CXX=g++-14`) passed the full-mode floor check on 2026-10-14. Functional successor updates and specialized collision schedules are outside GR26's static contracts; they remain with separate owners.
 
 ## History
 

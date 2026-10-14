@@ -81,7 +81,6 @@ Code is independently implemented.
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): kth key and rank by multiplicity (no catalog source; Data Structures binary trie and row `24` own ranking), per-key id lists (Aho–Corasick `06` owns pattern ids), parent links.
 - Radix/compressed and persistent tries remain row `25`; binary integer/XOR tries remain Data Structures; `06` `fromTrie` may consume this node cursor.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

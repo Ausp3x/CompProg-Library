@@ -56,7 +56,7 @@ python3 '96-Local Testing/03-consistency.py'
 python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/24-interval_set.hpp' '96-Local Testing/02-Data Structures/24-interval_set_tester.cpp'
 ```
 
-Full, seed 1: PASS in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the 11 assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, all with `-Wall -Wextra -Wconversion -Werror`, 4,070,016 checks per configuration, peak 516 MB on g++ and 521 MB on g++-14. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations. Exact GCC 14.2 and the Windows build stay unrun; PyPy is not involved.
+Full, seed 1: PASS in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the 11 assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, all with `-Wall -Wextra -Wconversion -Werror`, 4,070,016 checks per configuration, peak 516 MB on g++ and 521 MB on g++-14. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
 
 ## Sources
 

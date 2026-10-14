@@ -125,7 +125,7 @@ The 2026-10-07 sweep of minimal modints (KACTL, ACL, Nyaan, maspypy, ei1333, ecn
 
 ## Limits and handoffs
 
-GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2, a Windows/MinGW build, Python 3.10 (the tester parses under 3.10 grammar) and PyPy execution were not run. No online acceptance is claimed. The mini stays independent of the full type's `ModInt61` fold path.
+GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; Python 3.10 execution (the tester parses under 3.10 grammar) was not run. No online acceptance is claimed. The mini stays independent of the full type's `ModInt61` fold path.
 
 ## History
 

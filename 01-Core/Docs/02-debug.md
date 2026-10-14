@@ -97,7 +97,7 @@ All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64, with 
 
 ## Limits and handoffs
 
-Wide/UTF string types, arbitrary reflection, pointer-pointee traversal and format customization beyond hooks/streaming are outside this convenience layer; callers use hooks where needed. The bit-proxy rule treats any class convertible to bool with a `flip()` member as a proxy (a `debugString` hook overrides it); long double output is the 80-bit x87 shortest text on x86-64; `__float128` has no `to_chars` and is outside the domain; a user `operator<<` for a byte-wide unscoped enum that prints exactly the raw byte is indistinguishable from promotion and yields the number. GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed; exact GCC 14.2 and a Windows/MinGW build were not executed. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug"). Workspace regeneration stays coordinated with SUP05/P003.
+Wide/UTF string types, arbitrary reflection, pointer-pointee traversal and format customization beyond hooks/streaming are outside this convenience layer; callers use hooks where needed. The bit-proxy rule treats any class convertible to bool with a `flip()` member as a proxy (a `debugString` hook overrides it); long double output is the 80-bit x87 shortest text on x86-64; `__float128` has no `to_chars` and is outside the domain; a user `operator<<` for a byte-wide unscoped enum that prints exactly the raw byte is indistinguishable from promotion and yields the number. GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug"). Workspace regeneration stays coordinated with SUP05/P003.
 
 ## History
 

@@ -12,7 +12,7 @@ headers in that order with `#pragma once`, Debug's local include of the template
 and every other line starting with `//` removed, followed by the driver
 `void solve(int t)` and `main()` with `ios::sync_with_stdio(false); cin.tie(nullptr);
 int t = 1; cin >> t;` and `solve(i)` for `i = 1..t`. It needs no repository
-include path. Its GNU C++20, GCC 14.2+ contract and template/debug API domains
+include path. Its GNU C++20, GCC 14+ contract and template/debug API domains
 are those of C01.
 
 Driver domain: valid contest input whose first token is a nonnegative `int` case
@@ -101,7 +101,7 @@ compile, 10 s run. The snapshot's SHA256 is checked unchanged afterwards. The
 retained regressions are `--check`, the fixture and integration.
 
 No algorithm, ISA path or performance claim is involved, so no benchmark applies.
-GCC 14.2 was not run (not installed); no online submission was made.
+No online submission was made.
 
 SHA256 at this run:
 

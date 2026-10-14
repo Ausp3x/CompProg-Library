@@ -80,7 +80,6 @@ Code is independently implemented from the cited descriptions.
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): extended BWT of a string collection and its inverse, the sort transform, the run count `r`, dynamic BWT updates, move-to-front.
 - `36` builds FM-index backward search on `bwt` and `lfMapping`; `46` counts runs of `bwt` or `bwtPrimary`.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

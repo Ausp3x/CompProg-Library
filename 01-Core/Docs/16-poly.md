@@ -226,7 +226,7 @@ Linux x86-64 (11th Gen Intel Core i9-11900H), GCC 16.2.1 unless stated; every en
 | `python3 '96-Local Testing/03-consistency.py' --braces '01-Core/16-poly.hpp' '96-Local Testing/01-Core/16-poly_tester.cpp'` and `python3 '96-Local Testing/03-consistency.py'` (2026-10-13) | no closing-brace, comment-cap or free-function violations; 0 errors |
 | Review differential program (`/tmp/p025_diff/diff.cpp`, 2026-10-13): HEAD's header against the pruned header on `*`/`*=` (self-aliasing included) for every coefficient type at sizes 0..3000 and a 150000 x 140000 block product over 786433, `cyclic`, `negacyclic`, `middleProduct`, `multivariate`, 1200 `convolution2d` shapes, and each removed operation against its replacement; `g++ -O2` scalar and AVX2, `g++-14 -O2` scalar, ASan/UBSan scalar and AVX2 | 22,621 outputs identical in every build; sanitizers clean |
 
-Coverage per mode: quick runs every test family with the small size lists (51,261 checks); full adds the large sizes (`convolutionFftMod` at 2^20, 300-node Hermite data, 4200-degree gcd, degree-300 factorizations, exhaustive small fields), the sanitized builds and the `--invalid` probes (63,188 checks); stress extends the random size lists (5000/8192-term products, 3000-term series, 1500-degree algebra) in the optimized and checked builds and repeats per `--rounds` with consecutive seeds; its sanitized builds execute the full-mode lists with the stress seeds, because the stress lists under ASan/UBSan exceeded the two-hour limit (7200 s timeout on 2026-10-10). AVX2/FMA/BMI2/PCLMUL execution ran natively (no SKIP); PyPy, oj-bundle, the exact GCC 14.2 build and the Windows/MinGW build were not run.
+Coverage per mode: quick runs every test family with the small size lists (51,261 checks); full adds the large sizes (`convolutionFftMod` at 2^20, 300-node Hermite data, 4200-degree gcd, degree-300 factorizations, exhaustive small fields), the sanitized builds and the `--invalid` probes (63,188 checks); stress extends the random size lists (5000/8192-term products, 3000-term series, 1500-degree algebra) in the optimized and checked builds and repeats per `--rounds` with consecutive seeds; its sanitized builds execute the full-mode lists with the stress seeds, because the stress lists under ASan/UBSan exceeded the two-hour limit (7200 s timeout on 2026-10-10). AVX2/FMA/BMI2/PCLMUL execution ran natively (no SKIP); oj-bundle was not run.
 
 ## Benchmarks
 
@@ -301,7 +301,7 @@ Thresholds set from this run: `SCHOOLBOOK` 16 under AVX2 (NTT and schoolbook tie
 - `Rational` coefficients are untested until `09-rational.hpp` exists; the field paths compile for any type with `T(1) / c`.
 - `multivariateCyclic` needs a prime 32-bit modulus with every shape entry dividing `mod - 1`; `mixedRadix` needs a primitive root supplied by the caller.
 - Mathematics keeps its scalar duplicates (`13`, `22`, `40`, `46`, `52`, `65`) under its own rows.
-- GCC 14.4.1 (`CXX=g++-14`) is the floor check; exact GCC 14.2 and the Windows/MinGW build were not executed. AVX-512 is not used (`-mno-avx512f` in the benchmark).
+- GCC 14.4.1 (`CXX=g++-14`) is the floor check. AVX-512 is not used (`-mno-avx512f` in the benchmark).
 
 ## History
 

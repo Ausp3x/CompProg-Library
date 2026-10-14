@@ -1,8 +1,26 @@
 # Session checklist
 
-Start a session with `/package Pxxx` (Claude Code) or paste `python3 '00-Guidelines/13-Plan/plan.py' show Pxxx` output (other agents).
-Statuses: planned, in-progress, verified.
-Order is the default dependency-respecting schedule; `plan.py next` picks the next ready package.
+How to run the work on this library; the package list below is rendered by `plan.py` (other agents paste `python3 '00-Guidelines/13-Plan/plan.py' show Pxxx` instead of using skills). Statuses: planned, in-progress, verified. Order is the default dependency-respecting schedule.
+
+## Workflow
+
+Start one fresh session per task with the preset of its work, and pass `--effort` at launch:
+
+- Core full types (`01-Core` non-mini headers, packages tagged `fable`): `claude --agent core-session --effort max`
+- Everything else, sweeps included: `claude --agent contest-session --effort xhigh`
+- Parallel packages: `python3 '00-Guidelines/13-Plan/plan.py' ready --max 3` picks ready packages from different folders; launch each with `--worktree <name>` added.
+
+| Skill | Use it | Afterwards |
+|---|---|---|
+| `/package Pxxx` (or `next`, or a batch id) | Implement or continue a package; `/plan-status` shows progress and the next one | Run the commit command it prints |
+| `/prune Pxxx` | Remove the wrappers `duplicates.md` lists for a verified package | Commit |
+| `/duplicate-sweep [02 04 …]` | After many new headers: list wrappers and duplicates in `duplicates.md` | Answer its `ask` items, then `/prune` each verified package it names (`/package` handles planned ones) |
+| `/omission-sweep [02 04 … or paths]` | When a folder's packages are mostly done (Mathematics early): list completeness gaps in `omissions.md`. A whole folder starts about 50 agents, so raise "Dynamic workflow size" in `/config` first | `/omission-sweep apply`, then `/package` the packages it reopened or created |
+| `/tidy [scope]` | Every ten or so packages, or after a guideline change: remove stale, restated and superseded text | Answer its questions, then commit |
+| `/restyle Pxxx` | Only after the comment cap or closing-brace rule changes | Commit |
+| `/worktree-done` | Inside a finished worktree session | From the main checkout: `python3 '00-Guidelines/13-Plan/worktree.py' <path> --finish` |
+
+Commits: run the command a skill prints; `git push` is denied, and you push `master` yourself. Pending one-off runs: `/omission-sweep "02-Data Structures/45-kineticheap.hpp" "03-Geometry/26-geometry3d.hpp" "03-Geometry/53-dynamicconvexhull.hpp"` (the skill's first test), then `/omission-sweep 05`.
 
 <!-- plan:begin -->
 
@@ -255,6 +273,6 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 
 - [ ] **P224 — SUP02** (opus, S): Whole-library test-runner, aggregate and build integration audit. Status: planned.
 - [ ] **P225 — SUP03** (opus, S): Online solution coverage and expansion audit. Status: planned.
-- [ ] **P226 — SUP04** (opus, S): Curated notebook, contest notes and printable-build audit. Status: planned.
+- [ ] **P226 — SUP04** (opus, S): Curated notebook, contest notes and printable-build audit. Status: planned. Note: Also: landscape page layout; a CJK fallback font so the template's Chinese motto renders (first build 2026-10-15 showed no glyphs).
 
 <!-- plan:end -->

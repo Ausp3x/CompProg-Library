@@ -67,7 +67,7 @@ Catalog sweep by `@researcher` on 2026-10-08 (ledger in [00-sources.md](00-sourc
 - `08-Python` names its counterpart `ask`/`tell`/`finish`; the C++ names follow the inventory row (`ask`/`answer`).
 - Open: `writeLine()` with no arguments sets `first` without reading it, so `-Wall` warns at that instantiation; left for the package's next audit (a prune changes only its items).
 - Open, also for the next audit: `std::istream`/`std::ostream` qualification, and a C-style cast in the tester.
-- Exact GCC 14.2 and the Windows build were not run; `\r` stripping covers Windows line endings that reach the stream untranslated.
+- `\r` stripping covers Windows line endings that reach the stream untranslated.
 
 ## History
 

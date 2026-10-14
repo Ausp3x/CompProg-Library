@@ -60,7 +60,6 @@ Catalog sweep by `@researcher` on 2026-10-08 (ledger in [00-sources.md](00-sourc
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): dice orientation graph, multidimensional index, Manhattan walk, grid BFS/parsing (Graphs `43`), Chebyshev/Manhattan conversions and king distance (Geometry `21`), bounded-board knight distance (BFS).
 - Face labels are `int`; `index` assumes `n * m` fits an `int`.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

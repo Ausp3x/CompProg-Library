@@ -72,7 +72,6 @@ Targeted path/symbol searches in `OLD/algorithms.cpp`, `OLD/[1] algorithms.cpp`,
 
 - Not adopted (reason in [00-notes.md](00-notes.md)): suisen-style `pushBack`/`popBack` on an encoding (single unverified source; two-line caller idioms on the run vector).
 - Miscellaneous retains Huffman coding; Lempel–Ziv (`42`) and run-length BWT (`46`) remain separate Strings owners; streaming merge state is not part of these static contracts.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

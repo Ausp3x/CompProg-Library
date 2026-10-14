@@ -91,7 +91,6 @@ Algorithm/proof references; the implementation was written independently without
 
 - Not adopted, with reasons recorded in [00-notes.md](00-notes.md): set-bit iteration (the idiom `x &= x - 1` with `std::countr_zero`), submasks of fixed popcount (reduce to `forEachCombinationMask` over the mask's bits), revolving-door/cool-lex combination orders, weak/strict compositions (bijection with `forEachMulticombination` by bar counts), xor-range block decomposition (a BitOps-family operation, outside this package), labeled/unlabeled tree enumeration (Graphs Prüfer codes plus `forEachProduct`), all (mask, submask) pairs (nested `forEachSubmask`; `32-subset_dp` owns the engine), and a part-count cap for integer partitions.
 - No enumeration implementation exists in the legacy index or `OLD`. Permutation ranking stays in MI02; constrained search keeps its own owner.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

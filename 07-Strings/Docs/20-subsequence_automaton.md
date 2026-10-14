@@ -79,7 +79,6 @@ Code is independently implemented from the cited descriptions.
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): distinct common subsequences and shortest uncommon subsequence of two texts (product-automaton DPs), lexicographically smallest subsequence of length k (monotone stack), lexicographic rank of a subsequence, a persistent-segment-tree transition table.
 - The whole-text distinct count is `countDistinctSubsequences()[0]`; subtract one for the nonempty convention used by Nyaan, suisen and Library Checker `number_of_subsequences`.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

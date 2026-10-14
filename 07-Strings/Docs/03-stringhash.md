@@ -88,7 +88,6 @@ Code is independently implemented.
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): appending to a built hash (`push_back`; reversed prefixes cannot extend in O(1), row `23` owns appendable and deque hashes), a field-generic `StringHashField<F>`, several Mersenne bases, `std::hash` for digests, lexicographic substring comparison (row `22`), Rabin–Karp windows (row `16`).
 - Hash answers stay Monte Carlo; `08-palindrome_queries.hpp` `maybePalindrome` takes `StringHash<KIND>` (its template parameter changed from `bool` because `bool` cannot be deduced from an `int` parameter) and is tested on all three fields.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

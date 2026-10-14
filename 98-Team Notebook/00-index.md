@@ -27,13 +27,13 @@ The checked-in [selection](02-selection.json) starts with contest notes, the cor
 
 ## Requirements and behavior
 
-`generate` uses only Python's standard library. `build` requires `lualatex` and the configured fonts installed for LuaLaTeX/fontconfig (defaults **Inter** for text and **JetBrains Mono** for code) and reports a missing executable or font by name. After LuaLaTeX runs, it reports the actual page count and any excess over the budget; an over-budget PDF is retained and the CLI exits with status 2. Build, font and page-budget rules: [07-notebook.md](../00-Guidelines/07-notebook.md).
+`generate` uses only Python's standard library. `build` requires `lualatex` and the configured fonts installed for LuaLaTeX/fontconfig (defaults **Inter** for text and **JetBrains Mono** for code) and reports a missing executable or font by name. On Arch these are `texlive-basic`, `texlive-latex`, `texlive-latexrecommended`, `texlive-luatex`, `texlive-fontsrecommended` (Latin Modern, which LuaLaTeX loads before the configured fonts), `inter-font` and `ttf-jetbrains-mono`. After LuaLaTeX runs, it reports the actual page count and any excess over the budget; an over-budget PDF is retained and the CLI exits with status 2. Build, font and page-budget rules: [07-notebook.md](../00-Guidelines/07-notebook.md).
 
 Source IDs must match a discovered regular C++ or Python file inside a numbered `01`–`08` source folder. `OLD`, topic-local `97-Legacy`, `build` and `__pycache__` subtrees are skipped. A selected path outside those folders, a symlink, or a stale ID is rejected. This avoids accidental inclusion of test programs, workspace files, archived notebook material, and arbitrary filesystem paths. Only the fixed notebook artifact paths are written.
 
 Code listings are for reference: a full header may repeat dependencies that also appear in another selected file. The notebook is a source collection, not a C++ compilation unit.
 
-Some sources contain non-ASCII comment characters: the template's Chinese motto, and en dashes or an accented letter in `01-Core/16-poly.hpp`, `01-Core/17-polymini.hpp` and `03-Geometry/10-halfplaneintersection.hpp` (`rg -l '[^\x00-\x7F]' -g '*.{hpp,cpp,py}' 0[1-8]-*/` from the repository root lists the current set). LuaLaTeX is not installed in this environment, so no PDF has been built and `listings` Unicode rendering is unverified; inspect those glyphs in the PDF after installing the build prerequisites.
+Some sources contain non-ASCII comment characters: the template's Chinese motto, and en dashes or an accented letter in `01-Core/16-poly.hpp`, `01-Core/17-polymini.hpp` and `03-Geometry/10-halfplaneintersection.hpp` (`rg -l '[^\x00-\x7F]' -g '*.{hpp,cpp,py}' 0[1-8]-*/` from the repository root lists the current set). The first build (2026-10-15) renders them except the template's Chinese motto, which shows no glyphs because Inter and JetBrains Mono have none (P226 adds a CJK fallback font).
 
 ## Selection and validation backlog
 

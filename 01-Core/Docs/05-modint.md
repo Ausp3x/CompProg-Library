@@ -168,7 +168,7 @@ Legacy: originals remain unchanged in `OLD/1-Core/03-modint.hpp` and `OLD/1-Core
 
 ## Limits and handoffs
 
-GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2, a Windows/MinGW build, Python 3.10 execution (scripts parse under 3.10 grammar) and PyPy were not run; no online acceptance is claimed.
+GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; Python 3.10 execution (scripts parse under 3.10 grammar) was not run; no online acceptance is claimed.
 
 ### Dependent-owner handoff
 

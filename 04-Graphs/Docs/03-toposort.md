@@ -60,7 +60,7 @@ The completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetche
 
 ## Limits and handoffs
 
-GCC 14.2 itself (the judge floor) was not run; 14.4.1 is the closest available.
+None.
 
 ## History
 

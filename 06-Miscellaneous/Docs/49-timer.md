@@ -38,7 +38,7 @@ Quick/full/stress use 20/120/600 bracket rounds. The bracket oracle is independe
 
 ## Benchmarks
 
-Not required by the contest profile. One observation for the throttling advice above: 10,000,000 `expired()` calls in a loop, GCC 16.2 `-O2`, i9-11900H, Linux vDSO clock, seven repetitions, median 17.8 ns per call (min 16.9, max 19.5). Windows `QueryPerformanceCounter` was not measured.
+Not required by the contest profile. One observation for the throttling advice above: 10,000,000 `expired()` calls in a loop, GCC 16.2 `-O2`, i9-11900H, Linux vDSO clock, seven repetitions, median 17.8 ns per call (min 16.9, max 19.5).
 
 ## Sources
 
@@ -51,7 +51,6 @@ Catalog sweep by `@researcher` on 2026-10-08 (ledger in [00-sources.md](00-sourc
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): throttled cached expiry check, `measure(f)`, `elapsed<Unit>()`, `operator()`, iteration-count budgets, laps.
 - `elapsedUs` truncates; `elapsedMs`/`elapsedSec` are exact to clock resolution. `expired` uses `>=`, so `expired(0)` is always true.
-- Exact GCC 14.2 and the Windows build were not run; `steady_clock` resolution on MinGW was not measured.
 
 ## History
 

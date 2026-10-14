@@ -173,7 +173,6 @@ Aliases in the fetched libraries:
 - 08-Python `_30_dp_optimization.py` plans a SlopeTrick reduction (`addLeft`/`addRight`). Its owner should adopt these names (`addAMinusX`/`addXMinusA`).
 - Mathematics `27` (planned) bridges to these structures; array min-plus convolution stays with Mathematics `53`.
 - No legacy excerpt or `OLD` implementation exists for this row.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

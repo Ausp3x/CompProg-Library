@@ -115,7 +115,7 @@ The 2026-10-06 catalog sweep ([00-sources.md](00-sources.md), [00-notes.md](00-n
 
 ## Limits and handoffs
 
-`combineRange` has no dedicated AVX2 edge handling (two masked scalar edge words plus the shared kernel); self-aliased `combineRange` allocates a copy of the source range. GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed; exact GCC 14.2 and a Windows/MinGW build were not executed. BitMatrix (`12-bitmatrix.hpp`) may adopt `combineRange<Op::Xor>` for row elimination when its package runs.
+`combineRange` has no dedicated AVX2 edge handling (two masked scalar edge words plus the shared kernel); self-aliased `combineRange` allocates a copy of the source range. GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed. BitMatrix (`12-bitmatrix.hpp`) may adopt `combineRange<Op::Xor>` for row elimination when its package runs.
 
 ## History
 

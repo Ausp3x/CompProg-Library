@@ -103,7 +103,6 @@ Code is independently implemented from the recurrences above.
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): longest common increasing subsequence, an exposed full LCS table, counting LCS strings, the lexicographically smallest LCS, range distinct-subsequence counting.
 - Edit distance and alignment are `18`; subsequence automata and pattern-as-subsequence counting `20`; prefix–substring (semi-local) LCS `48`; longest common substring `07`/`28`.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

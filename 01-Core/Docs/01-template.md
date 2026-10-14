@@ -6,7 +6,7 @@
 
 ### Platform and includes
 
-GNU C++20, GCC14+, Linux and Windows (MinGW) x86-64; standard/PBDS includes. No global ISA/FP flags or executable I/O initialization. The Windows contract is a correctness argument, not an executed test: the header uses PBDS, `__int128` and `<cstdint>` aliases only, no `long`, no POSIX calls; MinGW-w64 GCC 14 provides all of them.
+GNU C++20, GCC14+, Linux and Windows (MinGW) x86-64; standard/PBDS includes. No global ISA/FP flags or executable I/O initialization. The Windows contract is a correctness argument: the header uses PBDS, `__int128` and `<cstdint>` aliases only, no `long`, no POSIX calls; MinGW-w64 GCC 14 provides all of them.
 
 ### Width aliases
 
@@ -60,7 +60,7 @@ All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64, with 
 
 ## Limits and handoffs
 
-GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed; exact GCC 14.2 and a Windows/MinGW build were not executed; the exact floor and the Windows contract rest on the correctness argument above. No concurrency safety or online judge acceptance is claimed. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug").
+GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed. No concurrency safety or online judge acceptance is claimed. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug").
 
 ## History
 

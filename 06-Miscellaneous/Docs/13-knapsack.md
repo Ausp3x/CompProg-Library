@@ -88,7 +88,6 @@ The abstract/metadata of Karl Bringmann, [*A Near-Linear Pseudopolynomial Time A
 - Legacy `OLD/Team Notebook/src/algsbetter.cpp` lines 3567–3608 and `algs.cpp` lines 2486–2508 (`knapsack01`, `knapsackComplete`, binary-grouped `knapsackMultiple`) are covered; their `lng` overflow, unchecked domains and zero-weight unboundedness are corrected here. No active callers; archives preserved.
 - MI18 owns monotone-queue bounded optimization, meet-in-the-middle and bitset subset sum, specialized value/small-weight domains, generating-function counts and their witnesses. Counting optimal selections, k-best scores, grouped/precedence/multiple-resource constraints and fine-grained algorithms are research leads for that owner.
 - 2026-10-08 catalog sweep, not adopted here (reasons in [00-notes.md](00-notes.md)): Pisinger balanced `O(n * max(w))` subset sum and its witness (KACTL FastKnapsack, maspypy `subset_sum`) and the adaptive weight/value/meet-in-the-middle 0/1 dispatcher (Nyaan, maspypy) are leads for `29`; ordered pick sequences (CSES 1635) are compositions, `ways[w] = sum ways[w - w_i]`, not knapsack selections; fewest items for an exact weight is `KnapsackDP` with value `-1` per copy.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

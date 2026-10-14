@@ -113,7 +113,7 @@ The 2026-10-07 catalog sweep is in [00-sources.md](00-sources.md) ("Fetched 2026
 
 ## Limits and handoffs
 
-GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2 and a Windows/MinGW build were not executed. The `Multiplier` has no quotient. Signed-dividend reduction and residue inverses stay with `05-modint.hpp`. Lazy Barrett outputs, a divisibility test and the other left-out candidates are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
+GCC 14.4.1 (`CXX=g++-14`, the floor check) passed. The `Multiplier` has no quotient. Signed-dividend reduction and residue inverses stay with `05-modint.hpp`. Lazy Barrett outputs, a divisibility test and the other left-out candidates are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
 
 ## History
 

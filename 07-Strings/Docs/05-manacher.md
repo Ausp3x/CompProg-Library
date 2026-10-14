@@ -72,7 +72,6 @@ Code is independently implemented.
 - Not adopted (reasons in [00-notes.md](00-notes.md)): the Library Checker `2n - 1` combined length array (a radius/index conversion owned by `08-palindrome_queries.hpp`), a bulk `enumeratePalindromes` (a loop over the interval methods), the odd-only switch.
 - Exact substring palindrome checks and longest-palindrome extraction stay in `08`; eertree in `13`; inverse Manacher in `31`.
 - The `n < 2^30` assertions of `centerEnd`, `longestEnding` and `longestStarting` have no probe: an object that violates them holds at least 8 GB of radii, above the 4 GB test cap. Their placement rests on the bound above: with `n < 2^30` every doubled center, loop bound and length (`2n - 2`, `2r - c + 1`, `c - 2l + 1`) stays below `2^31`.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 

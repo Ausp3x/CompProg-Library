@@ -117,7 +117,7 @@ Legacy accounting: the unchanged original is [OLD/5-Mathematics/09-montgomery.hp
 
 ## Limits and handoffs
 
-GCC 14.4.1 (`CXX=g++-14`, the floor check) passed; exact GCC 14.2 and a Windows/MinGW build were not executed. The AVX2 kernels are 32-bit only (no 64x64 vector multiply in AVX2). Residue inverses stay with `05-modint.hpp`, whose contexts each hold the `Montgomery64` of their modulus (a `constexpr` member for static moduli, rebuilt by `setMod` for dynamic ones) and call `pow` on it since 2026-10-12. Left-out candidates (`neg`, `one`, lazy equality, `square`, 64-bit/AVX-512/IFMA/signed lanes) are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
+GCC 14.4.1 (`CXX=g++-14`, the floor check) passed. The AVX2 kernels are 32-bit only (no 64x64 vector multiply in AVX2). Residue inverses stay with `05-modint.hpp`, whose contexts each hold the `Montgomery64` of their modulus (a `constexpr` member for static moduli, rebuilt by `setMod` for dynamic ones) and call `pow` on it since 2026-10-12. Left-out candidates (`neg`, `one`, lazy equality, `square`, 64-bit/AVX-512/IFMA/signed lanes) are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
 
 ## History
 

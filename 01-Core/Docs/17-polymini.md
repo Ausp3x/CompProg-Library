@@ -103,7 +103,7 @@ python3 '96-Local Testing/03-consistency.py'
 | integration | PASS, 135 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, 303 s | | 650 MB |
 | review differential (`/tmp/p026_review/diff.cpp`): HEAD's header with the struct renamed against the pruned header; static assertions that both resolve `*` alike (compiles or not, result type) for 27 operand kinds on each side over five coefficient types; products over every size pair 0..70 and sampled sizes up to 4097 with lvalue, `const`, rvalue, moved and aliased operands, and every internal caller (`divMod`, `inv`, `log`, `exp`, `pow`, `evalMulti`, `interpolate`, `taylorShift`, `linearRecurrenceKth` up to `k = 2^62 + 5`); `g++ -O2 -D_GLIBCXX_ASSERTIONS`, `g++-14 -O2`, ASan/UBSan | 459,215 comparisons identical in every build; sanitizers clean | | 700 MB |
 
-The full-mode count at seed 20261013 is 133,761 with HEAD's tester rebuilt (optimized scalar) and 127,762 now; the 5,999 difference is exactly the deleted `convolution(a, b)` comparison on each size pair and the deleted `a = convolution(a, a)` check per coefficient type, whose inputs stay checked through `a * b`. The memory peaks are the compiler on the tester translation unit, which instantiates the full `Poly<T>` for nine coefficient types; the test programs themselves stay below 40 MB (1.3 GB under ASan). Brace, comment-cap and type-header checks report no violation; consistency reports no errors. Exact GCC 14.2 and a Windows build were not run.
+The full-mode count at seed 20261013 is 133,761 with HEAD's tester rebuilt (optimized scalar) and 127,762 now; the 5,999 difference is exactly the deleted `convolution(a, b)` comparison on each size pair and the deleted `a = convolution(a, a)` check per coefficient type, whose inputs stay checked through `a * b`. The memory peaks are the compiler on the tester translation unit, which instantiates the full `Poly<T>` for nine coefficient types; the test programs themselves stay below 40 MB (1.3 GB under ASan). Brace, comment-cap and type-header checks report no violation; consistency reports no errors.
 
 ## Benchmarks
 
@@ -140,7 +140,7 @@ Independently written from the algorithms in the cited references; no code copie
 
 ## Limits and handoffs
 
-Exact GCC 14.2, a Windows/MinGW build and PyPy were not run; no online judge submission was made. The mini has no transform-limit fallback: products beyond `2^v` terms for `2^v || p - 1` assert, where the full type switches to its block product.
+No online judge submission was made. The mini has no transform-limit fallback: products beyond `2^v` terms for `2^v || p - 1` assert, where the full type switches to its block product.
 
 ## History
 

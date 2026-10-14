@@ -77,7 +77,7 @@ Legacy: `OLD/Team Notebook/src/graph/old_kosaraju.cpp` was inspected; its two DF
 
 ## Limits and handoffs
 
-Incremental SCC belongs to `70-incrementalscc.hpp`; SCC-based transitive closure/reduction belongs to `40-reachability.hpp`; fully dynamic SCC has no row. These are not claimed here. GCC 14.4.1 (`CXX=g++-14`) passed the full-mode floor check on 2026-10-14; exact GCC 14.2 was not run.
+Incremental SCC belongs to `70-incrementalscc.hpp`; SCC-based transitive closure/reduction belongs to `40-reachability.hpp`; fully dynamic SCC has no row. These are not claimed here. GCC 14.4.1 (`CXX=g++-14`) passed the full-mode floor check on 2026-10-14.
 
 ## History
 

@@ -3300,7 +3300,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Also: landscape page layout; a CJK fallback font so the template's Chinese motto renders (first build 2026-10-15 showed no glyphs)."
     }
   ]
 }

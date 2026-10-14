@@ -73,7 +73,6 @@ Code is independently implemented from the invariants above.
 - Not adopted (reasons in [00-notes.md](00-notes.md)): a separate `seriesLink` method (the `series` field), a raw per-node count field (recomputed by `occurrenceCounts`), k-factorization, per-symbol DP callbacks, rich-string enumeration, persistence (`45`), listing the end positions of one palindrome.
 - `39` lists `palindromicLength (per prefix)`; the series-link implementation lives here and `39` should reuse it.
 - Double-ended and rollback eertrees are `45`; range palindrome queries and palindromic characteristics are `39`.
-- Exact GCC 14.2 and the Windows build were not run.
 
 ## History
 
