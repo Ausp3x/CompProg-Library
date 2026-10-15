@@ -251,12 +251,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | row 14: `toCOO`, `toCSR` | row 14 | `entries`, triplet constructor | ask | wrappers unless COO and CSR are distinct types | — | — |
 | `size()` | `14-sparsematrix.hpp:45` | `.n` | keep | accessor of a public data member | — | — |
 
-## P056 — 04-Graphs — centroiddecomposition, treeisomorphism (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| constructor's recursive `par`, `sz` build | `16-centroiddecomposition.hpp:16-48` | `build` | remove (row only) | same algorithm, vertex 0's component only (pinned) | none | `99-all.hpp:17` |
-
 ## P053 — 05-Mathematics — discrete log root (planned)
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |

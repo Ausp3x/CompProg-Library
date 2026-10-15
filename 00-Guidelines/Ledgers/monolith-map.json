@@ -1172,18 +1172,16 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "issues": [
-        "Constructor starts at vertex 0, assumes a nonempty connected tree, and is recursive; only decomposition parents are supplied.",
-        "No algorithm verification performed."
+        "P056 replaces the recursive vertex-0 build with an iterative forest build (parent, level, size, preorder blocks, ancestor distances) and adds nearest-marked, distance-sum, contour and path-count operations; the legacy constructor's par and sz map to parent and size (component size)."
       ],
       "source_context": "AI GENERATED FAST section",
       "tier": "Advanced",
       "body_sha256": "1f28da11166e7d750e4a6de31f5358836d26fc7f8030c456959333856bf67d14",
       "disposition": "extracted",
-      "target_body_start_line": 10,
-      "target_body_end_line": 49,
-      "target_sha256": "8d16a8bbf4b6ef5d63ca14c3fcb2827a6c540532efc1c024b9dee5d015bc3964"
+      "relationship": "P056 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/Docs/16-centroiddecomposition.md"
     },
     {
       "source": "OLD/algorithms.cpp",

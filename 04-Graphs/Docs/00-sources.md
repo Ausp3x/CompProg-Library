@@ -120,6 +120,23 @@ Fetched by the row 20 completeness sweep. Code was written from the algorithms; 
 | Library Checker min_cost_b_flow task | https://github.com/yosupo06/library-checker-problems/blob/master/graph/min_cost_b_flow/task.md | 2026-10-13 | b-flow with potentials and infeasibility (row 65) |
 | misawa flow library design | https://misawa.github.io/others/flow/library_design.html | 2026-10-13 | Max-gain flow by cost negation (needs negative-cost support) |
 
+## Pages fetched on 2026-10-16 (P056)
+
+Fetched by the row 16 and 17 completeness sweeps. Code was written from the algorithms; no implementation was copied. Not fetched: judge.yosupo.jp problem pages (rendered by script; the `task.md` files were read, and their numeric limits are unrendered placeholders), the suisen `point_add_range_contour_sum` pages, the tko919 file pages, the maspypy unlabeled-tree enumeration pages, the CSES task pages and any cp-algorithms tree-isomorphism article (none found).
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| Library Checker tree tasks | https://github.com/yosupo06/library-checker-problems/tree/master/tree | 2026-10-16 | `vertex_add_range_contour_sum_on_tree` and `vertex_get_range_contour_add_on_tree` ([l, r) with distance 0 included), `frequency_table_of_tree_distance` (unordered pairs, distances 1..n-1), `rooted_tree_isomorphism_classification` (exact classes, K and ids) |
+| maspypy centroid_decomposition, contour_query_range, distance_sum, incremental_centroid, subtree_hash | https://maspypy.github.io/library/graph/centroid_decomposition.hpp | 2026-10-16 | Per-centroid hook (preorder blocks here), binarized subtraction-free contours (`ContourFold`), `DistanceSum`, unweighted contour contract; incremental centroid left to row 14; rerooted subtree hash |
+| suisen point_set_range_contour_sum, point_get_range_contour_operate, contour_sum, tree_isomorphism_classification | https://suisen-cp.github.io/cp-library-cpp/library/tree/point_get_range_contour_operate.hpp | 2026-10-16 | Monoid point-set contour fold, commutative-operator contour apply, static contour sum; per-instance classification ids and `classify_rerooting` (`allRootsClassification`) |
+| hitonanode centroid_decomposition, tree_isomorphism | https://hitonanode.github.io/cplib-cpp/tree/centroid_decomposition.hpp | 2026-10-16 | Callback over centroid components; all-roots hash |
+| Nyaan centroid-decomposition, tree-hash, rooted-tree-hash | https://nyaannyaan.github.io/library/tree/tree-hash.hpp | 2026-10-16 | Centroid tree views; hash prod(x[height] + child) mod 2^61 - 1 (`rootedTreeHash`) |
+| ei1333 centroid-decomposition, tree-isomorphism | https://ei1333.github.io/library/graph/tree/tree-isomorphism.hpp | 2026-10-16 | Centroid tree views; unrooted isomorphism test |
+| OI Wiki 点分治, 树哈希, AHU | https://oi-wiki.org/graph/tree-divide/ | 2026-10-16 | Weighted path counting with dist <= k (`countPathsWithin`, P4178), edge divide-and-conquer (omitted); AHU canonical names, rerooting hash, automorphism counts mod 998244353 (https://oi-wiki.org/graph/tree-hash/, https://oi-wiki.org/graph/tree-ahu/) |
+| cp-algorithms centroid decomposition | https://cp-algorithms.com/graph/centroid_decomposition.html | 2026-10-16 | Paths of length k (a `treeDistanceFrequency` entry) |
+| Koosaga tree_isomorphism | https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/tree_isomorphism.cpp | 2026-10-16 | Recursive sort-based classification, per-call ids |
+| NetworkX isomorphism | https://networkx.org/documentation/stable/reference/algorithms/isomorphism.html | 2026-10-16 | `rooted_tree_isomorphism` and `tree_isomorphism` return a mapping (`rootedTreeIsomorphism`, `unrootedTreeIsomorphism`) |
+
 ## Source keys
 
 Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder.

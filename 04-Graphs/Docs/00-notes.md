@@ -36,7 +36,7 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 
 ## Legacy migration obligations
 
-- Existing-unverified headers (`12`, `13`, `15`, `16`, `26`) contain unchanged monolith excerpts; see `97-Legacy/00-index.md` and `00-Guidelines/History/2026-09-27-monolith-transfer.md`. Compilation does not verify semantics, completeness, performance, indexing or complexity claims. The source-range/hash map `00-Guidelines/Ledgers/monolith-map.json` is authoritative for provenance.
+- Existing-unverified headers (`12`, `13`, `15`, `26`) contain unchanged monolith excerpts; see `97-Legacy/00-index.md` and `00-Guidelines/History/2026-09-27-monolith-transfer.md`. Compilation does not verify semantics, completeness, performance, indexing or complexity claims. The source-range/hash map `00-Guidelines/Ledgers/monolith-map.json` is authoritative for provenance.
 - Legacy-reference row `27` points at the Team Notebook source `OLD/Team Notebook/src/graph/old_block-cut-tree.cpp`; `old_kuhn.cpp` and `old_mcmf.cpp` are accounted for by the verified rows `21` and `20`, and `old_bellman-ford.cpp` is superseded by `05-shortest_path.hpp`.
 - Unchanged archive leads in `OLD/Team Notebook/src/algs.cpp`, `algsbetter.cpp` and `test.cpp`: `LcaO1`, `LcaLog`, `DEsopoPape`, `TarjanSCC`, `StrongOrientation`, `EulerPath`, `Kruskal`, `PrimDense`, `TreeEdgePainting`, `Dinic`, `FlowWithDemands`, `PushRelabel`, `Kuhn` (symbols vary by file); their `MinCostMaxFlow`/`MaxFlowMinCut` copies are mapped in `20-min_cost_flow.md`. They are behavioral references, never specifications. `OLD/[1] algorithms.cpp` TODO comments motivated rows `14` and `17`.
 
@@ -135,3 +135,14 @@ The 2026-10-13 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-13-p045-m
 - Floating-point capacities or costs (legacy `old_mcmf.cpp`): integers only; scale.
 - Multi-source/sink, supplies and negative cycles: rows 30 and 65.
 
+## P056 omissions
+
+The 2026-10-16 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-16-p056)) added `NearestMarked: unmark`, `DistanceSum`, `ContourFold`, `ContourApply` and `countPathsWithin` to row 16, and `allRootsClassification` and `rootedTreeIsomorphism` to row 17. The legacy recursive `par`/`sz` build left row 16 ([16-centroiddecomposition.md](16-centroiddecomposition.md#legacy-mapping)). The other candidates stay out:
+
+- Per-centroid callback (maspypy, hitonanode): `tin`, `order` and `size` expose every component and its child blocks; a callback adds nothing.
+- Static contour sum (suisen `contour_sum`): `ContourSum` without updates; prefix arrays change only the constant.
+- Edge centroid decomposition (OI Wiki 边分治): no catalog exposes a reusable API beyond the vertex version.
+- Incremental centroid (maspypy): a dynamic centroid of a weighted tree, row 14 if adopted.
+- Rerooted (all-roots) Monte Carlo hash (maspypy, hitonanode, OI Wiki): `allRootsClassification` is exact and linear within one tree; across trees, `unrootedTreeIsomorphism` maps the orbits.
+- Forest isomorphism and vertex-coloured trees: no catalog API; join each forest's roots to a new vertex, and encode colours as leaf gadgets or compare ids per colour.
+- Path rolling hash on trees (maspypy `Rolling_Hash_on_Tree`) and unlabeled-tree enumeration (maspypy): Strings and Mathematics work, not tree isomorphism.

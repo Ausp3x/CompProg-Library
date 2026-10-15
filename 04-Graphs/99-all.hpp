@@ -15,6 +15,7 @@
 #include "13-shortest_path_advanced.hpp"
 #include "15-hld.hpp"
 #include "16-centroiddecomposition.hpp"
+#include "17-treeisomorphism.hpp"
 #include "18-twosat.hpp"
 #include "19-max_flow.hpp"
 #include "20-min_cost_flow.hpp"
