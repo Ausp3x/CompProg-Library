@@ -59,6 +59,9 @@ Items a reader could mistake for duplicates.
 | P083 | `countDistinctSubsequences` (`19-lcs.hpp`) | Different domain from P084's member |
 | P057 | `polynomial_detail::inverses`, `factorials` | Internal helpers |
 | P084 | `bwt(s, sentinel)`, `dfaSearch(pattern, text, sigma)` | Headline operation; only form taking a `char` pattern |
+| P085 | `longestCommonSuffix` (row 22) | Decided 2026-10-16: kept as `BidirectionalSuffixArray::longestCommonSuffix`, which owns the forward and reversed suffix arrays (the backward query beside `SuffixArray::substringLce`) |
+| P085 | `SequenceHash::get`, `reverseGet` (row 23) | Decided 2026-10-16: the typed `Digest` (length, base) compares soundly with `StringHash` and `PointUpdateHash` digests and across lengths; the raw `prod` value does neither |
+| P085 | `distinctSubstringsPerPrefix` (row 22) | Decided 2026-10-16: larger domain (integer sequences through `SuffixArray<T>`) beside `distinctSubstringsOnline(string_view)` |
 | P036 | `polygon_distance_detail::touch`, `nearest` | Internal helpers |
 | P029 | `WaveletMatrix::countEqual`, `kth`/`kthMax`, inclusive `maxLeq`/`minGeq` | Named special case; mirrors (ruling 3); decided 2026-10-13: the only predecessor/successor forms |
 | P029 | `rectangleCount`, `rectangleSum` (point sets) | Decided 2026-10-13: larger domain (arbitrary signed x with duplicates, weights), non-legacy builder |
@@ -169,6 +172,9 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P084 | Pattern overloads of `shiftAnd`, `shiftOr`, `shiftOrMultiword`, `bitapHamming`, `bitapEdit` (`17-bitap.hpp`) | Build the masks themselves (clarified rule) |
 | P084 | `isSubstring` (`16-string_matching.hpp`) | Named special case (ruling 1) |
 | P084 | `countOccurrences`, `BitsetText::count`, `lfMapping` (`16-string_matching.hpp`; `17-bitap.hpp`; `29-bwt.hpp`) | Only disjoint form; cheaper counts; standard map |
+| P085 | `lexMinSuffixPerPrefix`, `occurrenceCount` (`22-lexicographic_queries.hpp`) | Batch form with derived starts over `IncrementalLyndon`; derived count, `n + 1` for the empty range (clarified rule) |
+| P085 | `occurrenceRange`, `SubstringOrder` kth queries (`22-lexicographic_queries.hpp`) | Different domain from `SuffixArray::patternRange` (a substring by position, RMQ search) and different algorithm and domain from the automaton kth queries (suffix array, integer sequences) |
+| P085 | `PointUpdateHash::common`, `SequenceHash::common` (`23-dynamicstringhash.hpp`) | Helper of `lcp` and `lcs`, as `StringHash::common` |
 | P036 | `minkowskiDifference` (`11-minkowskisum.hpp`) | Derived: negation then sum (clarified rule) |
 | P036 | `minkowskiSumHull` (`11-minkowskisum.hpp`) | Larger domain: any point sets (clarified rule) |
 | P036 | `halfplane_detail::vertex`; `polygonKernel` (`10-halfplaneintersection.hpp`) | Detail helper; different algorithm, user decision 2026-10-10 (`Docs/00-notes.md:67`) |
@@ -250,15 +256,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | `berlekampMassey` | `14-sparsematrix.hpp:74` | Poly `findLinearRecurrence` | ask | same algorithm over exact fields; floating T uses a 1e-9 zero test | none | `14-sparsematrix.hpp:132-249` |
 | row 14: `toCOO`, `toCSR` | row 14 | `entries`, triplet constructor | ask | wrappers unless COO and CSR are distinct types | — | — |
 | `size()` | `14-sparsematrix.hpp:45` | `.n` | keep | accessor of a public data member | — | — |
-
-## P085 — 07-Strings — wildcardmatching, lexicographic queries, dynamicstringhash (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `lce` | row 22 | `SuffixArray::lce` | remove (row only) | same operation | — | — |
-| `lexMinSuffixPerPrefix`, `occurrenceCount` | row 22 | `IncrementalLyndon` (`m - mn[m]`); width of `occurrenceRange` | keep | batch form with derived starts; derived count (clarified rule) | — | — |
-| `distinctSubstringsPerPrefix` | row 22 | `distinctSubstringsOnline(s)` | ask | the same unless row 22 takes integer sequences (the automaton takes `string_view` only) | — | — |
-| `mutableLcp` | row 23 | `PointUpdateHash::lcp` | ask | same query? | — | — |
 
 ## P060 — 05-Mathematics — floorsum, josephus, continued fraction (planned)
 
@@ -1049,7 +1046,6 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P020** move the floating branches to `solveReal`, `invReal`, `rankReal`, or drop those entries? `StaticMatrix`: is a compile-time shape a different domain? `rowSpace`, `colSpace`: another basis? The 8-lane REDC in `mulRow`, `elimRow`: the same as `Montgomery32` `mul8`, `red8`, or an assert-free lazy variant like Poly's kept `Mont8`? `Matrix(vector, axis)` and the vector products: an empty vector gives 0×0 here and 1×0 or 0×1 from `Matrix(1, n, v)`; is that difference real?
 - **P022** GF(2) `-=`, `-`: keep for generic ring code?
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
-- **P085** `mutableLcp`: the same query as `PointUpdateHash::lcp`? `distinctSubstringsPerPrefix`: does row 22 take integer sequences (the suffix automaton takes `string_view` only)?
 - **P054** row 12 Stirling, Eulerian and partition rows beside Core Poly: allowed? `factorialPowerConvert` and `tetrationMod`: which row owns each? Row 67 `dyckPaths`, `pathsBelowDiagonal`: `catalan` and `ballot` under other names, or general endpoints? Row 12 `inclusionExclusion`: the subset Möbius transform under another name, or a pruned search over items?
 - **P037** `latticeInDisk`: arbitrary centers? `latticeUnderLine`, `latticeInHalfplanePolygon`, `segmentUnionLength`, `orthogonalIntersectionCount`, `convexIntersection`, `cut`, `verifyEnclosing`, `maxPointsInDisk`: own algorithm or bound, or builders?
 - **P034** what `snapshot()` returns; what `contradictions` counts; `PersistentArray`: k-ary or binary path copying?

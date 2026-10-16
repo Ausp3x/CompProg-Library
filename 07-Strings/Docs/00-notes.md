@@ -97,3 +97,14 @@ Research outcomes (sources in [00-sources.md](00-sources.md)); left out, one lin
 - `29`: the extended BWT of a string collection and its inverse are research constructions with no contest catalog; the sort transform of order k is niche; the run count `r` is a one-line loop owned by `46`; dynamic BWT updates have no stated bound and no contest use; move-to-front is a separate pipeline stage (Wikipedia, Princeton COS226) and belongs with Huffman coding in Miscellaneous.
 
 Handoffs: `36` FM-index builds on `bwt`/`lfMapping`; `46` counts runs of `bwt`/`bwtPrimary`; `38` Hamming matching can compare with `bitapHamming` for small `k`; `24` may reuse `PatternMasks` for character classes.
+
+## P085 package record (ST09, ST21)
+
+Research outcomes (sources in [00-sources.md](00-sources.md)); left out, one line each:
+
+- `21`: Kalai's one-convolution randomized matcher handles pattern-only wildcards, a domain `wildcardMatch` covers with the same bound and a constant factor (seen in search results only); the single-backtrack iterative glob (Krauss, Cantatore) is `O(n * m)` worst case and returns the same answers as the greedy `globMatch`; dynamic wildcard matching (arXiv 2601.16182) and wildcard indexing (arXiv 1110.5236) are research structures with no catalog source; the row's "variable-length star DP" is `GlobAutomaton`'s bit-parallel simulation, and `globMatch` uses greedy leftmost segments, which are asymptotically better.
+- `22`: maspypy `suffix_lcp_change` (one source, a compact form of rank-0 LCPs) and `non_dominated_suffix` (niche, would belong to `14`) are not adopted; the basic substring structure (arXiv 2312.11873) is esoteric; ordered-set queries over arbitrary patterns (suisen `SubstringSet` lower bounds) are `07` `patternRange` plus the ranks here; maspypy's two-string `all_pairs_lcp` table is an `O(n * m)` DP, not a suffix-array query.
+- `23`: `reverseGet`, `lcp` and `compare` on `DequeHash` are left to `45` (double-ended palindrome structures); multi-base hashing is a template choice, not an operation; period checks are digest equalities of `get`.
+
+Handoffs: `24` may compile globs through `GlobAutomaton`'s `PatternMasks`; `28` generalizes `StringCollection` into a generalized suffix index; `45` and `47` own double-ended and `O(log n)` dynamic LCE structures.
+

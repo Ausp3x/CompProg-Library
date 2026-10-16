@@ -81,7 +81,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P056 — GR06** (opus, L): 04-Graphs — centroiddecomposition, treeisomorphism. Status: verified. [evidence](04-Graphs/Docs/16-centroiddecomposition.md) [evidence](04-Graphs/Docs/17-treeisomorphism.md)
 - [x] **P053 — MA05** (opus, L): 05-Mathematics — discrete log root. Status: verified. [evidence](05-Mathematics/Docs/11-discrete_log_root.md)
 - [ ] **P178 — MA17** (opus, L): 05-Mathematics — modular square roots, quadratic congruence. Status: planned.
-- [ ] **P085 — ST21, ST09** (opus, L+L): 07-Strings — wildcardmatching, lexicographic queries, dynamicstringhash. Status: planned.
+- [x] **P085 — ST21, ST09** (opus, L+L): 07-Strings — wildcardmatching, lexicographic queries, dynamicstringhash. Status: verified. [evidence](07-Strings/Docs/21-wildcardmatching.md) [evidence](07-Strings/Docs/22-lexicographic_queries.md) [evidence](07-Strings/Docs/23-dynamicstringhash.md)
 - [ ] **P060 — MA10** (opus, M): 05-Mathematics — floorsum, josephus, continued fraction. Status: planned.
 - [ ] **P054 — MA26, MA41, MA52** (opus, L+M+M): 05-Mathematics — combinatorics advanced, modular power towers, lattice paths. Status: planned.
 - [ ] **P037 — GE05, GE27, GE44** (opus, L+L+M): 03-Geometry — segment union, minimumenclosingcircle, convex polygon query, lattice geometry, fixed radius queries. Status: planned.

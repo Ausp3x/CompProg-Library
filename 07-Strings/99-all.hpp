@@ -10,4 +10,7 @@
 #include "18-editdistance.hpp"
 #include "19-lcs.hpp"
 #include "20-subsequence_automaton.hpp"
+#include "21-wildcardmatching.hpp"
+#include "22-lexicographic_queries.hpp"
+#include "23-dynamicstringhash.hpp"
 #include "29-bwt.hpp"
