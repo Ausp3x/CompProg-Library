@@ -50,7 +50,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 
 - [x] **P025 — C11** (fable, XL): 01-Core — poly. Status: verified. [evidence](01-Core/Docs/16-poly.md)
 - [x] **P026 — C12** (opus, M): 01-Core — polymini. Status: verified. [evidence](01-Core/Docs/17-polymini.md)
-- [ ] **P018 — C04** (fable, XL): 01-Core — infint. Status: planned.
+- [x] **P018 — C04** (fable, XL): 01-Core — infint. Status: verified. [evidence](01-Core/Docs/07-infint.md)
 - [ ] **P019 — C05, C06** (opus, M+M): 01-Core — infintmini, rational. Status: planned.
 - [ ] **P020 — C07** (fable, XL): 01-Core — matrix. Status: planned.
 - [ ] **P021 — C08** (opus, M): 01-Core — matrixmini. Status: planned.

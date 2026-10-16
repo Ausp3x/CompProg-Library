@@ -1,5 +1,18 @@
 # 01 Core — sources
 
+## Fetched 2026-10-17
+
+InfInt completeness sweep (P018, `@researcher`); adopted items are in row 07 and [07-infint.md](07-infint.md), rejected ones in [00-notes.md](00-notes.md).
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| GMP manual, Integer Functions (division, number theoretic, logic and bit fiddling, roots, import/export, random numbers, I/O, conversion) and Algorithms (multiplication, division, GCD, powering, roots, radix conversion, perfect square/power) | https://gmplib.org/manual/Integer-Functions, https://gmplib.org/manual/Algorithms (section pages) | yes | `divModCeil`/`divCeil`/`remCeil`, `removeFactor`, `scan0`/`scan1`, `kronecker`, `toDigits`, the perfect-square residue filter and the perfect-power exponent filter, Möller–Granlund reciprocal division, the exact-division and middle-product contracts, threshold names |
+| FLINT fmpz documentation | https://flintlib.org/doc/fmpz.html | yes | `fmpz_remove`, `fmpz_kronecker`, `fmpz_cdiv_qr`; `fmpz_ndiv_qr`, `fmpz_smod`, `fmpz_flog`/`clog`, `fmpz_preinvn`, multi-modular and CRT functions rejected with reasons |
+| maspypy bigint pages (`base.hpp`, `binary.hpp`, `redundant_binary_number.hpp`) | https://maspypy.github.io/library/bigint/base.hpp | yes | `toDigits` (base-p representation); redundant binary numbers rejected |
+| Nyaan bigint pages (`bigint.hpp`, `bigint-garner.hpp`, `bigint-binary.hpp`, `bigint-gcd.hpp`, `bigint-to-hex.hpp`) | https://nyaannyaan.github.io/library/math/bigint.hpp | yes | Hex fast path and 128-bit cast coverage confirmed; product-tree Garner and floating conversions rejected |
+| suisen bigint and unsigned bigint, tko919 bigint, hitonanode multiprecision, PyRival `iroot.py`, KACTL number theory, cp-algorithms big integer, OI Wiki bignum, Library Checker `big_integer` | https://suisen-cp.github.io/cp-library-cpp/library/math/bigint.hpp, https://tko919.github.io/library/Math/bigint.hpp, https://cp-algorithms.com/algebra/big-integer.html, https://oi-wiki.org/math/bignum/, https://github.com/yosupo06/library-checker-problems/tree/master/big_integer | yes | Coverage check of the row (add, mul, div, hex problems; kth roots); no additional operations |
+| Zimmermann, Karatsuba square root (RR-3805, 1999) as summarised in the GMP Square Root Algorithm page; Möller and Granlund, Improved division by invariant integers (IEEE TC 2011) as summarised in the GMP Division Algorithms page | https://gmplib.org/manual/Square-Root-Algorithm, https://gmplib.org/manual/Division-Algorithms | yes | `isqrtRem` recursion and the 2-by-1 reciprocal division; implemented independently from the descriptions |
+
 ## Fetched 2026-10-06
 
 | Source | URL | Fetched | Used for |

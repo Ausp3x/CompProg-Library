@@ -381,8 +381,10 @@
       "phase": "Core full types",
       "size": "XL",
       "model": "fable",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "01-Core/Docs/07-infint.md"
+      ],
       "note": ""
     },
     {

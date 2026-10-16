@@ -180,28 +180,13 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P036 | `halfplane_detail::vertex`; `polygonKernel` (`10-halfplaneintersection.hpp`) | Detail helper; different algorithm, user decision 2026-10-10 (`Docs/00-notes.md:67`) |
 | P033 | `fold(l, r)` with the empty range (`28-disjointsparsetable.hpp`) | Accepts `l == r`, which `query` rejects (clarified rule) |
 | P033 | `lcaRmqBridge` (`27-cartesiantree.hpp`) | An LCA–RMQ reduction, not a rename (clarified rule) |
+| P018 | `explicit operator bool` beside `isNil` (`07-infint.hpp`) | Decided 2026-10-16: both stay, `isNil` for Poly's `BigInt` concept and the modint-style truthiness |
+| P018 | `infint_detail` NTT, FFT and Montgomery kernels beside Poly's and `04-montgomery.hpp` | Decided 2026-10-16: InfInt keeps independent kernels and depends on `01-template.hpp` only |
+| P018 | `divModSlow` beside `divMod`; `isPerfectSquare` beside `isqrtRem`; `isProbablePrime` beside Mathematics `bpsw` | Knuth D as a separate algorithm; residue filters before the root; BPSW on arbitrary size (decided 2026-10-16) |
 
 ## Conventions
 
 Locations are relative to the package's folder and tests to `96-Local Testing/<folder>/`; "row NN" is the `00-index.md` row of header `NN-`, "clarified rule" cites `03-cpp.md`, One API per operation, and "ruling N" the Nth of the Rulings above. A `remove (row only)` item has no code to change, or its code is a pinned extraction whose body stays until the package rewrites it.
-
-## P018 — 01-Core — infint (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `bin`, `oct`, `hex` | `07-infint.hpp:1542,1553,1565` | `toString(2)`, `toString(8)`, `toString(16)` | remove | another name; the bodies become `toString`'s power-of-two path | `07-infint_tester.cpp:128-137,491-494`; `.py:120-121` | none |
-| `operator!` | `07-infint.hpp:1412` | `!a` | remove | another form | `07-infint_tester.cpp:444` | none |
-| `operator=(string_view)` | `07-infint.hpp:548` | `a.read(s)` | remove | another name (`a = "123"` stops compiling) | none | none |
-| `rand(bits)` | `07-infint.hpp:1396` | planned `sampleBits(bits, rng)` | keep | no existing operation yet, and other results; its hidden seed is a separate `03-cpp.md` issue (clarified rule) | `07-infint_tester.cpp:436-437` | none |
-| repeated bodies: word division ×4, `read` repeating `init`, power-cache extension | `07-infint.hpp:299-303,373-385,437-441,456-460,469-484,869-935` | one helper each | remove | body-level second implementations | — | — |
-| `shiftBlocksLeft`, `shiftBlocksRight` | `07-infint.hpp:969,973` | `<<=`, `>>=` | keep | helpers outside the row (and `32 * k` overflows); move to `infint_detail` | — | `07-infint.hpp:989-993,1034,1123-1124` |
-| `explicit operator bool` beside `isNil()` | `07-infint.hpp:1408,1410` | each other's negation | ask | which survives | `07-infint_tester.cpp:444` | `16-poly.hpp:17` (`BigInt` needs `isNil`) |
-| `init`, `read` | `07-infint.hpp:327,362` | constructors | ask | in-place re-initialisers | `07-infint_tester.cpp:111-114` | `>>` (:1647) |
-| `convTwosComp`, `fromTwosComp` | `07-infint.hpp:1464,1473` | planned `toLimbs`, `fromLimbs`; inline copy in `bitOpTwosComp` | ask | unlisted: list as signed limb forms or remove | `07-infint_tester.cpp:189-192` | none |
-| `FastIintMul` | `07-infint.hpp:6-232` | `04-montgomery.hpp`, Poly NTT | ask | second Montgomery and NTT kernel: reuse or move into `infint_detail` | `07-infint_tester.cpp:197-276` | — |
-| row 07: `divTrunc`, `remTrunc`; `fitsLng`, `fitsUlng` | row 07 | `/`, `%`; status of `tryCast` | remove (row only) | another name; projected field | — | — |
-| row 07: `schoolbook (Knuth D)`, `newtonReciprocal`, `radixDivideAndConquer`, `quotientOnly`, `remainderOnly` | row 07 | `divModSlow`, `newtonRaphsonInv`, `initFromBlks` and `toString`, `/`, `%` | remove (row only) | listed as missing operations; annotate the existing names | — | — |
-| row 07: base 2–36 parse and print, `UInt::fromString`, `isDivisible`, `isPerfectSquare`, `hammingDistance`, `isProbablePrime` | row 07 | `read`/`toString`, constructor, `%`, `isqrtRem`, popcount of xor, Mathematics row 36 `bpsw` | ask | wrappers unless each has its own algorithm or domain | — | — |
 
 ## P019 — 01-Core — infintmini, rational (planned)
 
@@ -1041,7 +1026,6 @@ Stdlib functions are existing operations (`04-python.md:15`).
 
 Every remaining `ask` above, with the fact the user decides. `/package` and `/prune` put a package's `ask` rows to the user before changing anything.
 
-- **P018** `operator bool` or `isNil` (Poly's `BigInt` needs `isNil`)? `init`, `read`: separate in-place operations? `convTwosComp`, `fromTwosComp`: list as signed limb forms or remove? `FastIintMul`: reuse Core Montgomery and Poly NTT, or keep a kernel in `infint_detail`? Row 07 base 2–36 parse/print, `UInt::fromString`, `isDivisible`, `isPerfectSquare`, `hammingDistance`, `isProbablePrime`: does each get its own algorithm or domain?
 - **P019** `operator bool` or `isNil` (as P018); Rational `toDouble` (correctly rounded?) and `parse`, `toString` beside the stream operators.
 - **P020** move the floating branches to `solveReal`, `invReal`, `rankReal`, or drop those entries? `StaticMatrix`: is a compile-time shape a different domain? `rowSpace`, `colSpace`: another basis? The 8-lane REDC in `mulRow`, `elimRow`: the same as `Montgomery32` `mul8`, `red8`, or an assert-free lazy variant like Poly's kept `Mont8`? `Matrix(vector, axis)` and the vector products: an empty vector gives 0×0 here and 1×0 or 0×1 from `Matrix(1, n, v)`; is that difference real?
 - **P022** GF(2) `-=`, `-`: keep for generic ring code?
