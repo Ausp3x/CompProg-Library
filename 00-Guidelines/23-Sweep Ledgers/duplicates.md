@@ -4,14 +4,13 @@ Wrappers and second implementations under `00-Guidelines/03-cpp.md`, One API per
 
 ## Recorded decisions
 
-Decided by the user from 2026-10-10 to 2026-10-15; binding, and only the user changes them.
+Decided by the user from 2026-10-10 to 2026-10-16; binding, and only the user changes them.
 
 ### Changes
 
 - **P030** row 18 (pinned): `PerSegTree` is a second persistent segment tree beside `PersistentSegmentTree`; its entries leave the row and `PersistentSegmentTree` gains `maxRight`/`minLeft` (from `maxR`/`minL`). `KSPerSegTree::kthMin` leaves the row (`rangeKth`); its `cntEql`, `cntRan`, `kthSum`, `maxLeq`, `minGeq` stay as the only persistent forms.
 - **P047** row 26 (pinned): `OnlineBridges` leaves the row; `IncrementalBridgeConnectivity` gains `connected` (from `findCC`).
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
-- **P053** row 11: the `modLog` multiplier form `k * a^x = b (mod m)` becomes a multiplier parameter of `discreteLogEx`, not a second function.
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
 
 ### Keeps
@@ -73,6 +72,7 @@ Items a reader could mistake for duplicates.
 | P090 | Python maximum-subarray functions | Only maximum-subarray functions in their row (renamed, see Changes) |
 | P061, P181 | `productOfGeometricShifts` (row 22) beside `productOfLinearShifts` (row 37) | Row 22's is the product of f(r^k x), not a linear shift; renamed apart from row 37's (decided 2026-10-15) |
 | P179, P192 | `gramDeterminant` (row 35) beside `latticeDeterminant` (row 49) | Squared covolume from Gram–Schmidt versus the exact lattice determinant; renamed apart (decided 2026-10-15) |
+| P053 | `legendreSymbol` (row 11) beside `kroneckerSymbol` | Decided 2026-10-16: Euler's criterion, a different algorithm |
 
 ### Rulings
 
@@ -250,13 +250,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | `berlekampMassey` | `14-sparsematrix.hpp:74` | Poly `findLinearRecurrence` | ask | same algorithm over exact fields; floating T uses a 1e-9 zero test | none | `14-sparsematrix.hpp:132-249` |
 | row 14: `toCOO`, `toCSR` | row 14 | `entries`, triplet constructor | ask | wrappers unless COO and CSR are distinct types | — | — |
 | `size()` | `14-sparsematrix.hpp:45` | `.n` | keep | accessor of a public data member | — | — |
-
-## P053 — 05-Mathematics — discrete log root (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `modLog` (multiplier form) | row 11 | `discreteLogEx` with a multiplier parameter | remove (row only) | Changes; still listed in the row and in `plan.py show P053` | — | `Docs/00-notes.md:9` |
-| `sqrtModPrime (Tonelli–Shanks)`; `discreteLog` (prime), `jacobiSymbol` | row 11 | Core `ModInt::sqrt`, `trySqrt`; `discreteLogEx`, `kroneckerSymbol` | ask | same algorithm on another type; narrowings | — | — |
 
 ## P085 — 07-Strings — wildcardmatching, lexicographic queries, dynamicstringhash (planned)
 
@@ -1056,7 +1049,6 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P020** move the floating branches to `solveReal`, `invReal`, `rankReal`, or drop those entries? `StaticMatrix`: is a compile-time shape a different domain? `rowSpace`, `colSpace`: another basis? The 8-lane REDC in `mulRow`, `elimRow`: the same as `Montgomery32` `mul8`, `red8`, or an assert-free lazy variant like Poly's kept `Mont8`? `Matrix(vector, axis)` and the vector products: an empty vector gives 0×0 here and 1×0 or 0×1 from `Matrix(1, n, v)`; is that difference real?
 - **P022** GF(2) `-=`, `-`: keep for generic ring code?
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
-- **P053** keep `sqrtModPrime` beside Core `ModInt::sqrt`, and the narrow `discreteLog`, `jacobiSymbol`?
 - **P085** `mutableLcp`: the same query as `PointUpdateHash::lcp`? `distinctSubstringsPerPrefix`: does row 22 take integer sequences (the suffix automaton takes `string_view` only)?
 - **P054** row 12 Stirling, Eulerian and partition rows beside Core Poly: allowed? `factorialPowerConvert` and `tetrationMod`: which row owns each? Row 67 `dyckPaths`, `pathsBelowDiagonal`: `catalan` and `ballot` under other names, or general endpoints? Row 12 `inclusionExclusion`: the subset Möbius transform under another name, or a pruned search over items?
 - **P037** `latticeInDisk`: arbitrary centers? `latticeUnderLine`, `latticeInHalfplanePolygon`, `segmentUnionLength`, `orthogonalIntersectionCount`, `convexIntersection`, `cut`, `verifyEnclosing`, `maxPointsInDisk`: own algorithm or bound, or builders?

@@ -5,7 +5,7 @@ The inventory lists operations and cross-folder ownership; this file holds the f
 ## Status semantics
 
 - `partial` rows keep their evidence link; the `missing:` list is planned work, not a defect in the verified part.
-- `legacy-reference` rows have an archived implementation in `OLD/5-Mathematics` and no active header; names listed in the row are the intended active API, and the legacy `modLog` multiplier form remains available under the new header.
+- `legacy-reference` rows have an archived implementation in `OLD/5-Mathematics` and no active header; names listed in the row are the intended active API.
 - `planned` rows name the API that would be implemented; nothing in them establishes compliance.
 
 ## Domains
@@ -20,7 +20,7 @@ The inventory lists operations and cross-folder ownership; this file holds the f
 
 ## Legacy obligations
 
-- `OLD/5-Mathematics/05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp`, `13-numericalmethods.hpp` and `14-miscellaneous.hpp` stay pending until `11`, `17`–`19` account for every feature, including the `modLog` multiplier parameter. All originals stay in `OLD`.
+- `OLD/5-Mathematics/05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp` is accounted for by row `11` (P053), except `modRoot` modulo prime powers and composites, which row `33` owns. `13-numericalmethods.hpp` and `14-miscellaneous.hpp` stay pending until `17`–`19` account for every feature. All originals stay in `OLD`.
 - `OLD/5-Mathematics/09-montgomery.hpp` is a Core reference; `10-poly.hpp` and `11-moly.hpp` are references for Core Poly.
 - The [transfer record](../../00-Guidelines/History/2026-09-27-monolith-transfer.md) preserves source-range/hash provenance for the former local excerpts: `ModFac` (`OLD/[1] algorithms.cpp`) is accounted for by row 05, and `FastConv` (`OLD/algorithms.cpp`), the last one, was removed when P055 verified row 24.
 - The archived closed segmented-sieve interval migrated to half-open `[l, r)`; closed callers map as in the Legacy mapping of [06-segmentedsieve.md](06-segmentedsieve.md).
@@ -39,7 +39,7 @@ Explanations and legacy names moved out of the inventory operation cells, one bu
 - `08-multiplicative_functions.hpp`: phi: from factorization; carmichaelLambda: lcm over prime powers, not multiplicative in the ordinary product sense; multiplicativeTable: linear-sieve hook from prime-power values, also completely multiplicative i^K.
 - `09-modinverse.hpp`: inverseXgcd: nonunit failure; inverseTable: 1..n; inverseBatch: prefix-product trick, nonunit failure; inversePierce: legacy expansion; inverseList: zero entries; powerTable: i^k for i in [0, n].
 - `10-crt.hpp`: crt: system, lcm overflow detection; crtScaled: a_i x = b_i mod m_i by linear-congruence reduction; crtMod: answer mod a target, via coprimeBase and Garner; garner: target modulus; garnerDigits: mixed-radix reconstruction.
-- `11-discrete_log_root.hpp`: discreteLogEx: least nonnegative; modLog: legacy k a^x = b multiplier form; kthRootModPrime: zero and all-roots cases; unitRootModPrime: primitive nth root of unity.
+- `11-discrete_log_root.hpp`: discreteLogEx: least nonnegative x of k a^x = b, the legacy modLog multiplier; discreteLogMonoid: least n in [lb, ub), non-invertible actions; kthRootModPrime: some root, zero and k = 0 cases; unitRootModPrime: primitive nth root of unity.
 - `12-combinatorics_advanced.hpp`: binomialPrefixSum: sum of C(n, i) for i <= k; binomialPrefixSumQueries: n and k moving by one; inclusionExclusion: sign-weighted subset sum helper; subsetSumCount: sharp-P.
 - `13-convolution.hpp`: fft: iterative, bit-reversed spectrum; convolutionFft: error bound; ntt: bit-reversed spectrum; convolution: dispatcher; convolutionLarge: length beyond transform limit; convolutionTensor: multi-dimensional.
 - `14-polynomial_algorithms.hpp`: polyDivLinear: synthetic division by x - c; polyShift: x^k shift; polyPowMod: modular polynomial power; polyComposeMod: f(g) mod h; fpsPow: valuation rules; fpsSqrt: branch choice; productTree: product of a polynomial sequence.
@@ -158,3 +158,16 @@ Left out, one line each:
 - Reeds–Sloane and P-recursive interpolation (maspypy `interpolate_p_recursive`): row 51; Wiedemann and sparse determinants: row 44; `interpolate_poly_exp_sum`: row 38.
 - Multiple k-th term queries for one recurrence: no catalog interface beats one `bostanMori` per query.
 - Overlaps recorded rather than moved: row 46 keeps integer (subresultant) resultants and discriminants, row 14 the field Euclidean ones; row 22 `subproductTree` keeps the multipoint tree, row 14 `productTree` only the product; row 40 `coefficientExtraction` should call row 15 `bostanMori`.
+
+## P053 research decisions (2026-10-16)
+
+Left out, one line each:
+
+- Least positive discrete log (KACTL `modLog`, PyRival): `discreteLogEx(a, b, m, k * a mod m) + 1` when that is not -1.
+- All k-th roots modulo a prime (cp-algorithms discrete root): `kthRootModPrime` times the powers of `unitRootModPrime(gcd(k, p - 1), p)`; the count is row 33 `rootCount`.
+- Precomputed-modulus order object (suisen `OrderMod`): one factorization of `lambda(m)` per query costs O(m^(1/4)); many queries for one modulus are row 54.
+- Lifting primitive roots to `p^e` and random primitive roots (maspypy, suisen): internal choices of `primitiveRoot`.
+- An element of maximal order `lambda(m)` (OI Wiki): row 54 `compositeGroupDecompose`.
+- Index calculus (suisen `IndexCalculus`): a subexponential prime-field log for row 54.
+- Square-root special cases (p = 3 mod 4 power, Atkin, Legendre's algorithm): dominated by Cipolla and Core `trySqrt`, which already takes the p = 3 mod 4 power.
+- Nonresidue search and the order-of-a-power formula: internal loops and one-line formulas.

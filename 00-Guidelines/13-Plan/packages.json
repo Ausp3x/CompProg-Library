@@ -795,8 +795,10 @@
       "phase": "Contest core",
       "size": "L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "05-Mathematics/Docs/11-discrete_log_root.md"
+      ],
       "note": ""
     },
     {

@@ -93,6 +93,18 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | KACTL `numerical/` (`BerlekampMassey.h`, `LinearRecurrence.h`, `PolyRoots.h`) | https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical | 2026-10-10 | Berlekamp–Massey layout, O(d^2 log k) Kitamasa (row 15) |
 | FLINT `nmod_poly` | https://flintlib.org/doc/nmod_poly.html | 2026-10-10 | power sums to polynomial, `compose_mod_brent_kung` (row 14) |
 
+## P053 sweep (fetched 2026-10-16, `@researcher`)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| Library Checker `discrete_logarithm_mod`, `kth_root_mod`, `primitive_root`, `sqrt_mod` task statements | https://github.com/yosupo06/library-checker-problems/tree/master/number_theory | 2026-10-16 | least x with 0^0 = 1, K = 0 and Y = 0 cases, p up to 1e18 for primitive roots (row 11) |
+| cp-algorithms discrete log, primitive root, discrete root | https://cp-algorithms.com/algebra/discrete-log.html, https://cp-algorithms.com/algebra/primitive-root.html, https://cp-algorithms.com/algebra/discrete-root.html | 2026-10-16 | multiplier form `k * a^x = b`, gcd reduction, all roots as `x0 * zeta^i` (row 11) |
+| OI Wiki discrete logarithm, primitive root, quadratic and k-th residues | https://oi-wiki.org/math/number-theory/discrete-logarithm/, https://oi-wiki.org/math/number-theory/primitive-root/, https://oi-wiki.org/math/number-theory/quad-residue/, https://oi-wiki.org/math/number-theory/residue/ | 2026-10-16 | Cipolla, Adleman–Manders–Miller, Kronecker symbol, existence of primitive roots (row 11) |
+| hitonanode `number/discrete_logarithm.hpp`, `primitive_root.hpp`, `sqrt_mod.hpp` | https://hitonanode.github.io/cplib-cpp/number/discrete_logarithm.hpp | 2026-10-16 | monoid-action BSGS with a search range and the second false hit as failure; smallest primitive roots up to 1e18 (row 11) |
+| maspypy `nt/discrete_log.hpp`, `mod/mod_log.hpp`, `mod/mod_kth_root.hpp`, `mod/primitive_root.hpp` | https://github.com/maspypy/library/tree/main/mod | 2026-10-16 | `discrete_log_acted` range form, k-th root by prime-power steps (row 11) |
+| suisen `number/order_Z_mZ.hpp`, `discrete_logarithm.hpp`, `primitive_root.hpp`; Nyaan `modulo/mod-log.hpp`; KACTL `ModLog.h`; PyRival `discrete_log.py`, `primitive_root.py` | https://github.com/suisen-cp/cp-library-cpp/tree/main/library/number | 2026-10-16 | completeness cross-check; KACTL and PyRival return the least x > 0 (row 11) |
+| FLINT `ulong_extras` | https://flintlib.org/doc/ulong_extras.html | 2026-10-16 | `n_jacobi` with signed x, `n_discrete_log_bsgs`, square roots modulo prime powers left to row 33 (row 11) |
+
 ## Earlier source record (condensed from the previous index and evidence documents)
 
 - The 2026-09-27 audit compared external algorithm catalogs and the saved Modern Computer Arithmetic contents; read scope and URLs are in the [central audit](../../00-Guidelines/History/2026-09-27-inventory-audit.md). A follow-up scope pass compared the active arithmetic/search/equation/sieve/combinatorics/transform interfaces and the archived factorization/inverse/CRT/log/root/numerical helpers plus the saved [KACTL notebook](../../95-Resources/05-kactl.pdf) `Tridiagonal.h` contract.

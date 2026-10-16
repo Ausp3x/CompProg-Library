@@ -10,6 +10,7 @@
 #include "08-multiplicative_functions.hpp"
 #include "09-modinverse.hpp"
 #include "10-crt.hpp"
+#include "11-discrete_log_root.hpp"
 #include "13-convolution.hpp"
 #include "14-polynomial_algorithms.hpp"
 #include "15-linear_recurrence.hpp"
