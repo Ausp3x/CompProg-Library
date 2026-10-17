@@ -470,7 +470,8 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `AffineComposition` | row 41 | `00-monoids.hpp:79-80` `RangeAffineRangeSum::composition`, `id` | remove (row only) | second implementation | — | — |
+| `AffineComposition` | row 41 | `00-monoids.hpp` `AffineComposite` | remove (row only) | second implementation | — | — |
+| `MaxPlusMatrix` (`multiply`, `identity`) | row 41 | `00-monoids.hpp` `MaxPlusMatrix` (`op`, `e`) | remove (row only) | second implementation under the same name | — | — |
 
 ## P089 — 07-Strings — multidimensional matching (planned)
 
@@ -574,7 +575,7 @@ Stdlib functions are existing operations (`04-python.md:15`).
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `heapMerge`, `nSmallest`, `nLargest` | `_52` (:23) | `heapq.merge`, `nsmallest`, `nlargest` | remove (row only) | stdlib under another name | — | — |
-| inlined `SegTreeMin`, `SegTreeMax`, `SegTreeSum`, `SparseTableGcd` (and `_29` range-add variants, P102) | `_08`, `_13` | the generic structures | keep | PyPy constant-factor variants (ruling 4) | — | — |
+| inlined `SegmentTreeMin`, `SegmentTreeMax`, `SegmentTreeSum`, `SparseTableGcd` (and `_29` range-add variants, P102) | `_08`, `_13` | the generic structures | keep | PyPy constant-factor variants (ruling 4) | — | — |
 
 ## P092 — 08-Python — graph (planned)
 

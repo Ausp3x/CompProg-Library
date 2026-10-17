@@ -6,7 +6,7 @@ Package P028 (batch DS26). New header; no legacy source. Indices are not exposed
 
 ### Monoid contract
 
-`M` provides `S`, `op(a, b)` (associative, need not be commutative) and `e()` (two-sided identity), under the stored-object contract of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp): each structure keeps it as `m` and takes it in its only constructor `explicit X(M mon = {})`. `allProd()` (renamed from `fold` on 2026-10-17) of an empty structure returns `e()`, so absence and a legitimate identity product are the same value by design (both Library Checker composite problems print `x` for an empty queue).
+`M` provides `S`, `op(a, b)` (associative, need not be commutative) and `e()` (two-sided identity), under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract): each structure keeps it as `m` and takes it in its only constructor `explicit X(M mon = {})`. `allProd()` (renamed from `fold` on 2026-10-17) of an empty structure returns `e()`, so absence and a legitimate identity product are the same value by design (both Library Checker composite problems print `x` for an empty queue).
 
 ### SWAGQueue<M>
 

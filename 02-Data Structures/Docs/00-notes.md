@@ -16,7 +16,7 @@ Folder-wide contracts, ownership boundaries, migration obligations and per-packa
 - Fenwick variants require an additive commutative group; prefix-monoid Fenwick requires monotone updates (max/min) and has no range subtraction.
 - Segment-tree searches need a deterministic predicate true on the identity whose truth forms a prefix as the interval grows.
 - `SparseTable::prod` needs idempotence; `associativeProd` and the disjoint sparse table need only associativity.
-- Monoids are objects: every consumer stores `[[no_unique_address]] M m` (acted and dual trees: `A m`), takes it as constructor argument `mon = {}` after its data arguments and calls `m.op`, `m.e()`, `m.mapping`, `m.composition`, `m.id()`, so static presets, stateful structs and lambdas through `Monoid`/`ActedMonoid` all work and an empty monoid adds no size. Lazy actions compose new-after-old; an acted monoid defines `S`, `F`, `op`, `e`, `mapping`, `composition`, `id`, maps `e()` to `e()` and exposes `leaf` and action builders. Rows 12, 13, 14 (`LazySegmentTreeBeats` adds `fail`), 15 and 19 consume acted monoids (row 13 also needs only the monoid part, or only the action part, for its plain and dual trees; row 15's 2D trees need a commutative `op` or `composition`); row 18 still uses the legacy `Mon` contract until its audit.
+- Monoids follow the `03-cpp.md` monoid rule; presets, adapters and laws are row 00 ([00-monoids.md](00-monoids.md)). Rows 12, 13, 14 (`LazySegmentTreeBeats` adds `fail`), 15 and 19 consume acted monoids (row 13 also needs only the monoid part, or only the action part, for its plain and dual trees; row 15's 2D trees need a commutative `op` or `composition`); row 18 still uses the legacy `Mon` contract until its audit.
 - Li Chao and convex hull trick must state an overflow-safe evaluation policy and exact intersection comparison (128-bit products or bounded domains) and tie rules for equal lines, and serve both min and max queries.
 - Segment-tree beats variants beyond chmin/chmax/add/assign need their own amortized proof and value-domain statement; row 14's evidence proves division, square root and modulo bounds per update mix (modulo has none together with add or chmax).
 - ODT/Chtholly workloads must state adversarial worst-case degeneration: `IntervalMap::assign` is amortised O(log(n)) because every assignment creates at most three pieces, but `apply`/`enumerate`/`fold`/`merge` cost O((k + 1) log(n)) for the k pieces met with no amortisation, so without assignments an adversary pays O(n) per call; the expected O(n log(n)) ODT bound needs uniformly random assignment ranges. Kinetic structures must distinguish adversarial event counts from ordinary update bounds.
@@ -38,7 +38,7 @@ Folder-wide contracts, ownership boundaries, migration obligations and per-packa
 
 - `OLD/algorithms.cpp:1402–1477` DSU mixed connectivity, weighted distances, parity and edge counts, and narrowed `lng` to `int`. Basic `DSU` keeps `n/ncon/par/siz`; weighted unions, `dis`, `esz`, `is_bip`, `getDis`, `getEsiz`, `isBipartite` belong to `29-weighteddsu.hpp` (potential/parity) and `09-rollbackdsu.hpp`/Graphs (component metadata); row 09 accounts for `esz`/`getEsiz` as `RollbackDSUAggregate::edgeCount` (P034).
 - Unchanged extractions (`18`, `21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit (P027 split `FenTree` into `Fenwick2D`/`Fenwick3D` and replaced `FenTreeRangeAdd1D`, `SegTree` and the `Mon*` presets; P028 replaced `SegTreeBeats`, `SegTree2D` and `DynMergeSortTree`; P029 replaced `WaveletMatrix`; see the row 11–17 evidence).
-- `97-Legacy/04-lichao_older.cpp` is a query-less hull skeleton, `97-Legacy/01-monset.cpp` is a placeholder scaffold. Delete a legacy file only after its owning row accounts for every feature.
+- `97-Legacy/04-lichao_older.cpp` is a query-less hull skeleton.
 - `OLD/Team Notebook/src/ds/impltreap.cpp` informed row 19 (P029, see [19-treap.md](19-treap.md)) and `cartesiantree.cpp` informed row 27 (P033, see [27-cartesiantree.md](27-cartesiantree.md)); `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` contain `DynamicMex` (row 24) and `LcaO1` (covered by Graphs `07-lca.hpp` `EulerLCA`; row 54 `LinearRMQ` is the array form).
 
 ## P006 re-audit omissions
@@ -86,7 +86,7 @@ Source inspection and independent oracle tests are separate evidence. Implementa
 
 ## P027 omissions
 
-Candidates from the 2026-10-08 sweep and the 2026-10-17 monoid sweeps ([00-sources.md](00-sources.md)) left out of rows 11, 12, 13 and 24:
+Candidates from the 2026-10-08 sweep and the 2026-10-17 monoid sweeps ([00-sources.md](00-sources.md)) left out of rows 00, 11, 12, 13 and 24:
 
 - Hash-map dynamic Fenwick, dynamic 2D Fenwick (NYA): row 13 covers huge universes; a hash-map Fenwick is a constant-factor variant without new operations.
 - Persistent Fenwick (SUI): row 18 owns persistence.

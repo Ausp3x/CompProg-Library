@@ -502,6 +502,7 @@
         "01-Core/02-debug.hpp",
         "01-Core/05-modint.hpp",
         "01-Core/10-matrix.hpp",
+        "02-Data Structures/00-monoids.hpp",
         "02-Data Structures/01-dsu.hpp",
         "02-Data Structures/04-sparsetable.hpp",
         "02-Data Structures/08-monotone_stack.hpp",
@@ -640,7 +641,7 @@
             "MonAlg"
           ],
           "targets": [
-            "02-Data Structures/12-lazysegmenttree.hpp"
+            "02-Data Structures/00-monoids.hpp"
           ]
         },
         {
@@ -649,7 +650,7 @@
             "MonBin"
           ],
           "targets": [
-            "02-Data Structures/12-lazysegmenttree.hpp"
+            "02-Data Structures/00-monoids.hpp"
           ]
         },
         {
@@ -658,7 +659,7 @@
             "MonGcd"
           ],
           "targets": [
-            "02-Data Structures/12-lazysegmenttree.hpp"
+            "02-Data Structures/00-monoids.hpp"
           ]
         },
         {
@@ -667,7 +668,7 @@
             "MonSar"
           ],
           "targets": [
-            "02-Data Structures/12-lazysegmenttree.hpp"
+            "02-Data Structures/00-monoids.hpp"
           ]
         },
         {
@@ -2989,11 +2990,10 @@
       "lines": 200,
       "classification": "algorithm-support",
       "targets": [
-        "02-Data Structures/03-segmenttree.hpp",
-        "02-Data Structures/12-lazysegmenttree.hpp"
+        "02-Data Structures/00-monoids.hpp"
       ],
       "read_scope": "Class/free-function declaration catalog and filename/family cross-check; Core full and Poly/Moly public-method catalogs additionally inspected. Body correctness not audited.",
-      "reason": "Monoid/action adapters belong to segment/lazy-tree batches; existing00-monoids.hpp support header is not a new algorithm tier."
+      "reason": "Monoid/action adapters; row 00 owns them."
     },
     {
       "path": "OLD/Team Notebook/src/ds/persegtree.cpp",
@@ -5484,6 +5484,7 @@
         "01-Core/01-template.hpp",
         "01-Core/12-bitmatrix.hpp",
         "01-Core/14-sparsematrix.hpp",
+        "02-Data Structures/00-monoids.hpp",
         "02-Data Structures/01-dsu.hpp",
         "02-Data Structures/04-sparsetable.hpp",
         "02-Data Structures/06-sqrt_decomposition.hpp",
@@ -5592,7 +5593,7 @@
             "MonAlg"
           ],
           "targets": [
-            "02-Data Structures/12-lazysegmenttree.hpp"
+            "02-Data Structures/00-monoids.hpp"
           ],
           "previous_transfer_target": "02-Data Structures/00-monoids.hpp",
           "status": "existing-unverified",
@@ -5605,7 +5606,7 @@
             "MonBin"
           ],
           "targets": [
-            "02-Data Structures/12-lazysegmenttree.hpp"
+            "02-Data Structures/00-monoids.hpp"
           ],
           "previous_transfer_target": "02-Data Structures/00-monoids.hpp",
           "status": "existing-unverified",
@@ -5618,7 +5619,7 @@
             "MonGcd"
           ],
           "targets": [
-            "02-Data Structures/12-lazysegmenttree.hpp"
+            "02-Data Structures/00-monoids.hpp"
           ],
           "previous_transfer_target": "02-Data Structures/00-monoids.hpp",
           "status": "existing-unverified",
@@ -5631,7 +5632,7 @@
             "MonSar"
           ],
           "targets": [
-            "02-Data Structures/12-lazysegmenttree.hpp"
+            "02-Data Structures/00-monoids.hpp"
           ],
           "previous_transfer_target": "02-Data Structures/00-monoids.hpp",
           "status": "existing-unverified",
@@ -5644,7 +5645,7 @@
             "MonSet"
           ],
           "targets": [
-            "02-Data Structures/12-lazysegmenttree.hpp"
+            "02-Data Structures/00-monoids.hpp"
           ],
           "previous_transfer_target": "02-Data Structures/97-Legacy/01-monset.cpp",
           "status": "legacy-reference",

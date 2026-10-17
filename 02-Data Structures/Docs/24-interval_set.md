@@ -80,7 +80,7 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 
 - Left out with reasons in [00-notes.md](00-notes.md#p027-omissions): dense `IntervalsFast` over a fastset, splay-backed `PiecewiseConstant`, `toArray`, `maxExcluded`, iterator-returning `lowerBound`.
 - Dynamic mex over a *set of values* (the `DynamicMex` legacy note) is `IntervalSet::find(0).second` with `insert(x, x + 1)`.
-- `IntervalMap` with a monoid-weighted segment tree gives `O(log n)` amortised range-assign/range-composite, the alternative to row 12's `RangeAssignRangeComposite`.
+- `IntervalMap` with a monoid-weighted segment tree gives `O(log n)` amortised range-assign/range-composite, the alternative to row 00's `RangeAssignRangeComposite`.
 
 ## History
 

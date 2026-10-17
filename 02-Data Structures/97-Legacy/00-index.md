@@ -4,5 +4,4 @@ Unchanged excerpts for future migration/audit. These `.cpp` files are reference 
 
 | File | Symbols | Why retained as a reference |
 |---|---|---|
-| [01-monset.cpp](01-monset.cpp) | MonSet | Incomplete customization scaffold: states, combine, and map are placeholders. |
 | [04-lichao_older.cpp](04-lichao_older.cpp) | LiChaoTree | TODO draft is a complex-vector hull skeleton without queries; distinct from the newer Li Chao implementation. |

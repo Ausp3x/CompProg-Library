@@ -29,7 +29,7 @@ A `Digest` from any of these structures equals the `StringHash<KIND>` digest of 
 - `e() = {0, 0, 1}`;
 - `reverse` swaps `h` and `r`.
 
-It is a static preset under the stored-object monoid contract ([12-lazysegmenttree.md](<../../02-Data Structures/Docs/12-lazysegmenttree.md#monoid-contract-00-monoidshpp>)): `ImplicitTreap` and `LazySegmentTree` store it as an empty member `m`, and `ImplicitTreap` calls `m.reverse`. The base stays in `SequenceHash`, because only `leaf` and `assignment` need it.
+It is a static preset under the stored-object monoid contract ([00-monoids.md](<../../02-Data Structures/Docs/00-monoids.md#monoid-contract>)): `ImplicitTreap` and `LazySegmentTree` store it as an empty member `m`, and `ImplicitTreap` calls `m.reverse`. The base stays in `SequenceHash`, because only `leaf` and `assignment` need it.
 
 `F = {k, assign}` is a range assignment. `mapping` gives every symbol of the range the code `c`: `h = r = k (p - 1)` with `k = c / (B - 1)`, the geometric sum `c (B^L - 1) / (B - 1)`. `id()` has `assign = false` and maps every value to itself; `composition(f, g)` returns `f` when `f` assigns, else `g`, the newer action winning. Assignments need `B - 1` invertible, so not KIND 1 (a `static_assert` in `SequenceHash::assignment`). The interface (`S`, `F`, `op`, `e`, `mapping`, `composition`, `id`, `reverse`) plugs into `ImplicitTreap` and `LazySegmentTree` (`12-lazysegmenttree.hpp`), the latter for fixed-length range assignment (tested). `O(1)` per operation.
 

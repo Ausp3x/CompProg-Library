@@ -20,7 +20,7 @@ Vertices `[0, n)`, `0 <= n <= INT_MAX`. Union by size; on equal sizes the first 
 
 ### RollbackDSUAggregate<M>
 
-`M` provides `S` and `op(a, b)`, commutative and associative, under the stored-object contract of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp): `RollbackDSUAggregate(a, mon = {})` keeps it as `m` (static presets, stateful structs and `Monoid` lambdas all work; no `e` is needed). Commutativity is needed because which root absorbs the other depends on sizes, not on argument order. `e()` is not used. The constructor takes the initial vertex values `a`; `n = a.size()`.
+`M` provides `S` and `op(a, b)`, commutative and associative, under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract): `RollbackDSUAggregate(a, mon = {})` keeps it as `m` (static presets, stateful structs and `Monoid` lambdas all work; no `e` is needed). Commutativity is needed because which root absorbs the other depends on sizes, not on argument order. `e()` is not used. The constructor takes the initial vertex values `a`; `n = a.size()`.
 
 - Inherits `findSet`, `isSameSet`, `getSize`, `count`, `groups` and `snapshot`. Defines its own `uniteSets`, `undo` and `rollback`, which also maintain the aggregates. Never call `RollbackDSU::uniteSets`, `undo` or `rollback` on an aggregate (qualified, or through a base reference): they skip the aggregate state.
 - `componentValue(u)`: `op` over `a[w]` for every member `w`, and over every live `addValue` on the component. Returns `vector<S>::const_reference`, valid until the next mutation.

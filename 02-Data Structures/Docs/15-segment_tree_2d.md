@@ -4,7 +4,7 @@ Package P028 (batch DS08). Replaces the unchanged extraction `SegTree2D` (`OLD/a
 
 ## Contracts
 
-All four structures combine values with an operation that must be commutative: a two-dimensional decomposition visits cells in row-of-column order, not in row-major order. Each stores its monoid as `m` and takes it as constructor argument `mon = {}` after its data arguments (stored-object contract, [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp)); the dense trees keep their sizes in `rows` and `cols`.
+All four structures combine values with an operation that must be commutative: a two-dimensional decomposition visits cells in row-of-column order, not in row-major order. Each stores its monoid as `m` and takes it as constructor argument `mon = {}` after its data arguments (stored-object contract, [00-monoids.md](00-monoids.md#monoid-contract)); the dense trees keep their sizes in `rows` and `cols`.
 
 ### SegmentTree2DDense<M>
 
@@ -25,7 +25,7 @@ All four structures combine values with an operation that must be commutative: a
 
 ### LazyKdTree<A>
 
-- `A` is an acted monoid ([12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp)) whose `op` is commutative. Points keep their input index `i`; they start at `w[i]`, or `e()` when `w` is empty (an inactive point, which an acted monoid maps to itself).
+- `A` is an acted monoid ([00-monoids.md](00-monoids.md#monoid-contract)) whose `op` is commutative. Points keep their input index `i`; they start at `w[i]`, or `e()` when `w` is empty (an inactive point, which an acted monoid maps to itself).
 - Build: median split by `nth_element`, alternating x and y by depth; every node stores the tight bounding box of its points. Memory O(k); build O(k log k).
 - `get(i)`, `set(i, s)` O(log k) (push along the leaf's ancestors, then pull); `prod` and `apply` on a rectangle O(sqrt(k)): a node is skipped when its box misses the rectangle, used whole when its box lies inside, and split otherwise. With alternating median splits, a rectangle edge crosses O(sqrt(k)) boxes; equal coordinates do not break this, because two siblings split on y both straddling a horizontal edge would need the median below and above the edge at once. `allProd()` O(1).
 - The Library Checker task `dynamic_point_set_rectangle_affine_rectangle_sum` is `LazyKdTree<RangeAffineRangeSum<mint>>` over every point the input ever inserts (registered at `e()`); inserting or setting point `i` with weight `w` is `set(i, leaf(w))`.

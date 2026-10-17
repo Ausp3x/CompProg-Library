@@ -6,7 +6,7 @@ Package P034 (batch DS30). New header; no legacy source. Range products with O(1
 
 ### Monoid contract
 
-`M` provides `S`, `op(a, b)` (associative, need not be commutative) and `e()` (two-sided identity), under the stored-object contract of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp): `SqrtTree(a = {}, mon = {})` keeps it as `m`, and the block-count field is `nb`. `e()` is returned for empty queries and fills unused storage; it never enters a nonempty product. Products run left to right: `op(a[l], ..., a[r - 1])`. `S` is copyable. Like row 28's `DisjointSparseTable::fold`, the folder convention (empty range gives the identity) needs `e()`.
+`M` provides `S`, `op(a, b)` (associative, need not be commutative) and `e()` (two-sided identity), under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract): `SqrtTree(a = {}, mon = {})` keeps it as `m`, and the block-count field is `nb`. `e()` is returned for empty queries and fills unused storage; it never enters a nonempty product. Products run left to right: `op(a[l], ..., a[r - 1])`. `S` is copyable. Like row 28's `DisjointSparseTable::fold`, the folder convention (empty range gives the identity) needs `e()`.
 
 ### SqrtTree<M>
 

@@ -319,19 +319,19 @@
       "id": "DS05",
       "folder": "02-Data Structures",
       "targets": [
+        "02-Data Structures/00-monoids.hpp",
         "02-Data Structures/12-lazysegmenttree.hpp"
       ],
-      "support_targets": [
-        "02-Data Structures/00-monoids.hpp"
-      ],
+      "support_targets": [],
       "size": "L",
-      "focus": "Lazy segment tree and shared monoid/action definitions; DS01. The support header is not an additional numbered inventory target.  Also owns `00-monoids.hpp`.",
+      "focus": "Monoid presets, adapters and acted presets (`00-monoids.hpp`) and the lazy and dual segment trees; DS01.",
       "prerequisites": [
         "C01",
         "DS01"
       ],
       "tiers": [
-        "Advanced"
+        "Advanced",
+        "Basic"
       ]
     },
     {

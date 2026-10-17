@@ -76,7 +76,7 @@ The two are separate structures: a contour sum over contour-added values counts 
 
 ### ContourFold and ContourApply
 
-Both use edge-count distances. `ContourFold<M>(g, a, mon = {})` takes a commutative monoid `M` (`S`, `op`, `e`). `ContourApply<A>(g, mon = {})` takes commutative actions `A` (`F`, `composition`, `id`; `MonoidAction<M>` adapts a commutative monoid). Both keep the monoid as `m` under the [stored-object contract](<../../02-Data Structures/Docs/12-lazysegmenttree.md#monoid-contract-00-monoidshpp>). Neither needs inverses. Commutativity is required because the folds visit vertices in no fixed order.
+Both use edge-count distances. `ContourFold<M>(g, a, mon = {})` takes a commutative monoid `M` (`S`, `op`, `e`). `ContourApply<A>(g, mon = {})` takes commutative actions `A` (`F`, `composition`, `id`; `MonoidAction<M>` adapts a commutative monoid). Both keep the monoid as `m` under the [stored-object contract](<../../02-Data Structures/Docs/00-monoids.md#monoid-contract>). Neither needs inverses. Commutativity is required because the folds visit vertices in no fixed order.
 
 **Binarization.** `centroid_detail::binarize` roots each tree by BFS. It chains every child list through virtual vertices (ids `>= n`) joined by 0-weight edges; real edges get weight 1.
 

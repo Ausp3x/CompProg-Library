@@ -21,11 +21,11 @@ Contracts moved out of `00-index.md` on 2026-10-06. Rules here bind every module
 
 ## Structural and domain contracts
 
-- Containers: vertices are `0..n-1`; ranges are half-open `[l, r)`; empty-range folds return the identity.
+- Containers: vertices are `0..n-1`; ranges are half-open `[l, r)`; empty-range folds return the identity. A monoid is `op`/`e` callables (acted: `mapping`/`composition`/`id`) in place of the C++ monoid object.
 - Graph inputs are adjacency lists (`buildAdj`) or CSR arrays (`buildCsr`); multigraphs, self-loops and disconnected graphs are accepted unless a function says otherwise (`_34` edge ids distinguish parallel edges; `_35` reports isolated vertices and empty graphs).
 - `_02`: `list.insert` is linear; `bisect`-based structures never claim logarithmic insertion. `_31_ordered_multiset` gives the measured per-operation cost of the bucketed list (amortized sqrt-block) and the treap (expected log); `WordSet` is the integer-key fast path.
 - `_13`: sparse-table `O(1)` holds for idempotent operations only; `DisjointSparseTable` is the non-idempotent alternative; empty queries need an explicit identity.
-- `_08`/`_29`: noncommutative monoids fold left to right; `maxRight`/`minLeft` predicates must be monotone and accept the identity.
+- `_08`/`_29`: noncommutative monoids fold left to right; `maxRight`/`minLeft` predicates must be monotone and accept the identity. `_29` has one `apply(l, r, f)`, a point being `apply(p, p + 1, f)`, since Python cannot overload by arity.
 - `_17`: rerooting has one canonical owner here (`reroot`); `_30` calls it rather than duplicating it. Trees are forests when stated; node/edge indexing is zero-based.
 - `_18`: rollback DSU uses union by size without path compression; `WeightedDsu` returns `None` for inconsistent merges. Offline dynamic connectivity is the segment-tree-over-time reduction.
 - `_19`/`_56`: persistent trees use parallel node arrays with explicit version ids; the wavelet matrix owns its compact `BitVector`; `_45` keeps the sampled, general rank/select variant.

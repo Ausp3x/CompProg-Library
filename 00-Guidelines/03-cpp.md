@@ -45,6 +45,7 @@ paths:
 - Preconditions: `assert`. Valid no-answer results: a non-colliding sentinel, a `bool` status plus out-parameter, or a small status enum. Use `std::optional` only when those are more cumbersome. Absence is never the same value as a legitimate empty or zero result.
 - Exact and approximate variants have distinct names and contracts even when they share code. State tolerances and coordinate bounds.
 - Randomized algorithms expose a reproducible seed and state whether failure is Monte Carlo (wrong answer with probability p) or Las Vegas (runtime only).
+- An operation over an associative fold takes a monoid `M` (`S`, `op`, `e`; an acted monoid adds `F`, `mapping`, `composition` new after old, `id`), never a separate identity and function. A structure stores it as `[[no_unique_address]] M m`, constructors and functions take a defaulted `M mon = {}` as their last argument (`LCAFold` keeps its optional `root` after it), and calls go through the object (`m.op`), so presets, stateful structs and lambdas through `Monoid`/`ActedMonoid` all work. Range products are `prod(l, r)` and `allProd()`. Presets, adapters and laws: row 00 of `02-Data Structures`.
 - No `private`. State and helpers stay inside their struct.
 - Type headers have no public free functions. A type header is every `01-Core` header except `01-template.hpp` and `02-debug.hpp` (full and mini), and every `02-Data Structures` header whose inventory row starts with a struct (structs and their operations, as opposed to rows of standalone functions such as `08-monotone_stack.hpp`). Every public operation of the type sits with the type:
   - An operation that takes at least one value of the type is a `friend` defined inside the struct, operators included (`exp(f, n)`, `gcd(a, b)`, `a * b`). It is found only through ADL, so it never collides with a `std::` or Mathematics function of the same name.
@@ -84,7 +85,7 @@ paths:
 - Inside a body, a comment is one line and appears only where the code's trick or invariant is not evident from the code itself. No restated contracts, no history, no references to other documents.
 - A file may open with one comment line. No block comments.
 - Everything else (full contracts, staleness and invalidation rules, sentinel policies, proofs, provenance) goes to the header's evidence document under `## Contracts`, one subsection per struct or free function (a type's `friend` algorithms and `static` builders go under the type's subsection or in their own subsections), linked from the inventory row.
-- The validator rejects a verified header with more than two consecutive comment-only lines or with comment-only lines above 8% of its non-blank lines; one comment line is always allowed, so a one-function header keeps its complexity line.
+- The validator rejects a verified header with more than two consecutive comment-only lines or with comment-only lines above 8% of its non-blank lines; one comment line is always allowed, so a one-function header keeps its complexity line. `02-Data Structures/00-monoids.hpp`, one complexity line per struct, is exempt from the 8% share.
 
 ## Complexity comments
 

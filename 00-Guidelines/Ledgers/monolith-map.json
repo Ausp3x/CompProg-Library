@@ -385,7 +385,7 @@
         "MonAlg"
       ],
       "status": "verified",
-      "tier": "support",
+      "tier": "Basic",
       "issues": [
         "Affine aggregate helper; overflow/domain audit pending."
       ],
@@ -398,7 +398,7 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/12-lazysegmenttree.md"
+      "verification": "02-Data Structures/Docs/00-monoids.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -407,7 +407,7 @@
         "MonBin"
       ],
       "status": "verified",
-      "tier": "support",
+      "tier": "Basic",
       "issues": [],
       "body_sha256": "6d8754ce7b466479bad4186c8b247a15b49d8018d288bf97240549050a404dd8",
       "body_bytes": 1585,
@@ -418,7 +418,7 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/12-lazysegmenttree.md"
+      "verification": "02-Data Structures/Docs/00-monoids.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -427,7 +427,7 @@
         "MonGcd"
       ],
       "status": "verified",
-      "tier": "support",
+      "tier": "Basic",
       "issues": [
         "LCM overflow/domain audit pending."
       ],
@@ -440,7 +440,7 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/12-lazysegmenttree.md"
+      "verification": "02-Data Structures/Docs/00-monoids.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -449,7 +449,7 @@
         "MonSar"
       ],
       "status": "verified",
-      "tier": "support",
+      "tier": "Basic",
       "issues": [],
       "body_sha256": "32e60acc91903d7a796a5993783a53f1fe4a11a12d596234960a3e5dcfb71ae7",
       "body_bytes": 1788,
@@ -460,30 +460,29 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "verification": "02-Data Structures/Docs/12-lazysegmenttree.md"
+      "verification": "02-Data Structures/Docs/00-monoids.md"
     },
     {
       "source": "OLD/algorithms.cpp",
-      "target": "02-Data Structures/97-Legacy/01-monset.cpp",
+      "target": "02-Data Structures/00-monoids.hpp",
       "symbols": [
         "MonSet"
       ],
-      "status": "legacy-reference",
-      "tier": "Advanced",
+      "status": "verified",
+      "tier": "Basic",
       "issues": [
         "Incomplete customization scaffold: states, combine, and map are placeholders."
       ],
       "body_sha256": "530a5cea733643974bf23da9ab39ff48236dada16337a283f5a71588e9bf6b5d",
       "body_bytes": 1052,
-      "relationship": "unchanged reference extraction",
+      "relationship": "P027 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 1260,
       "end_line": 1316,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 3,
-      "target_body_end_line": 59
+      "verification": "02-Data Structures/Docs/00-monoids.md"
     },
     {
       "source": "OLD/algorithms.cpp",

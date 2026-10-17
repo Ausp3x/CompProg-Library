@@ -30,7 +30,7 @@ Construction takes the point universe `vector<pair<lng, lng>>` (duplicates allow
 
 ### FenwickPrefixMonoid<M>
 
-`M` is a commutative monoid (`S`, `op`, `e`) under the stored-object contract of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp), kept as `m` and passed last as `mon = {}` (`FenwickPrefixMonoid(N = 0, mon = {})`, `FenwickPrefixMonoid(vector<S>, mon = {})`; formerly `<T, F>` with `(id, f)`). `apply(i, x)` sets `a[i] = op(a[i], x)` (point combine, never overwrite); `prefix(r)` folds `[0, r)`. Max/min, gcd, bitwise or, saturating sums, products of units: anything commutative. No range query and no inverse.
+`M` is a commutative monoid (`S`, `op`, `e`) under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract), kept as `m` and passed last as `mon = {}` (`FenwickPrefixMonoid(N = 0, mon = {})`, `FenwickPrefixMonoid(vector<S>, mon = {})`; formerly `<T, F>` with `(id, f)`). `apply(i, x)` sets `a[i] = op(a[i], x)` (point combine, never overwrite); `prefix(r)` folds `[0, r)`. Max/min, gcd, bitwise or, saturating sums, products of units: anything commutative. No range query and no inverse.
 
 ### Fenwick01 (alias FenwickSet)
 

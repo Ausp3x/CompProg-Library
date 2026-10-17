@@ -472,7 +472,7 @@
     },
     {
       "id": "P027",
-      "label": "02-Data Structures — fenwick tree advanced, lazysegmenttree, dynamicsegmenttree, interval set",
+      "label": "02-Data Structures — fenwick tree advanced, monoids, lazysegmenttree, dynamicsegmenttree, interval set",
       "batches": [
         "DS04",
         "DS05",
@@ -487,9 +487,10 @@
         "02-Data Structures/Docs/11-fenwick_tree_advanced.md",
         "02-Data Structures/Docs/12-lazysegmenttree.md",
         "02-Data Structures/Docs/13-dynamicsegmenttree.md",
-        "02-Data Structures/Docs/24-interval_set.md"
+        "02-Data Structures/Docs/24-interval_set.md",
+        "02-Data Structures/Docs/00-monoids.md"
       ],
-      "note": "Monoid pass of 2026-10-17 done (user decisions in Docs/12-lazysegmenttree.md and duplicates.md): stored-object monoid contract in every consumer, including P034's rows 09 and 34; prod/allProd names; final preset, adapter and acted-preset list in row 12."
+      "note": "Monoids row migration (2026-10-18): 00-monoids.hpp is row 00 of DS05 with its own tester and evidence; monoid rule in 03-cpp.md; explicit comment-cap exemption; Python row names aligned."
     },
     {
       "id": "P227",

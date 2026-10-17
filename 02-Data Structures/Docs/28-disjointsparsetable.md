@@ -6,7 +6,7 @@ Package P033 (batch DS13). New header; no legacy source. Static range products f
 
 ### Monoid contract
 
-`M` provides `S`, `op(a, b)` (associative, need not be commutative) and `e()` (two-sided identity, needed only for empty ranges and by `staticRangeProducts`; the table and `prod` on nonempty ranges work for a semigroup without `e`, since unused cells are copies of the array). It follows the stored-object contract of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp): kept as `m`, passed last (`DisjointSparseTable(a = {}, mon = {})`, `staticRangeProducts(a, qs, mon = {})`), static or `const` member functions. Products are taken left to right: `op(a[l], ..., a[r - 1])`. `S` is copyable; the table copies values.
+`M` provides `S`, `op(a, b)` (associative, need not be commutative) and `e()` (two-sided identity, needed only for empty ranges and by `staticRangeProducts`; the table and `prod` on nonempty ranges work for a semigroup without `e`, since unused cells are copies of the array). It follows the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract): kept as `m`, passed last (`DisjointSparseTable(a = {}, mon = {})`, `staticRangeProducts(a, qs, mon = {})`), static or `const` member functions. Products are taken left to right: `op(a[l], ..., a[r - 1])`. `S` is copyable; the table copies values.
 
 ### DisjointSparseTable<M>
 

@@ -125,18 +125,28 @@ def check(root=ROOT):
     return errors
 
 
+def stem(name):
+    return re.sub(r'^_?\d{2}[-_]|\.(hpp|py)$', '', name)
+
+
+def row_stem(name):
+    """Prefix 00 is shared with folder-level files, so a 00 row's files must also match its stem."""
+    return stem(name) if re.match(r'_?00[-_]', name) else ''
+
+
 def tests_for(root, target):
     folder, name = target.split('/')
     prefix, base = re.search(r'\d{2}', name)[0], root / '96-Local Testing' / folder
     return sorted(str(p.relative_to(root)) for p in base.iterdir() if p.is_file()
-                  and re.match(r'_?(\d{2})[-_]', p.name) and re.match(r'_?(\d{2})', p.name)[1] == prefix) if base.is_dir() else []
+                  and re.match(r'_?(\d{2})[-_]', p.name) and re.match(r'_?(\d{2})', p.name)[1] == prefix
+                  and re.sub(r'^_?\d{2}[-_]', '', p.name).startswith(row_stem(name))) if base.is_dir() else []
 
 
 def legacy_for(root, target):
     folder, name = target.split('/')
     index = root / folder / '97-Legacy/00-index.md'
-    stem = re.sub(r'^_?\d{2}[-_]|\.(hpp|py)$', '', name).lower()
-    keys = {stem, stem.replace('_', ''), stem.replace('_', ' ')}
+    base = stem(name).lower()
+    keys = {base, base.replace('_', ''), base.replace('_', ' ')}
     rows = [cells(l) for l in index.read_text().splitlines() if l.startswith('| [') and any(k in l.lower() for k in keys)] if index.exists() else []
     return [' — '.join([re.sub(r'\[[^]]*\]\(<?([^)>]+)>?\)', rf'`{folder}/97-Legacy/\1`', r[0]), *r[1:]]) for r in rows]
 
@@ -145,7 +155,7 @@ def docs_for(root, target):
     folder, name = target.split('/')
     prefix = re.search(r'\d{2}', name)[0]
     base = root / folder / 'Docs'
-    return sorted(str(p.relative_to(root)) for p in base.glob(f'{prefix}-*.md')) if base.is_dir() else []
+    return sorted(str(p.relative_to(root)) for p in base.glob(f'{prefix}-{row_stem(name)}*.md')) if base.is_dir() else []
 
 
 def batch_brief(root, b, inv):
