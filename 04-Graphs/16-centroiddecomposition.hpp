@@ -260,36 +260,37 @@ struct ContourAdd : centroid_detail::Contour<T> {
 template<class M>
 struct ContourFold : centroid_detail::Layout {
     using S = typename M::S;
+    [[no_unique_address]] M m;
     vector<S> val, seg;
 
     template<class G>
-    ContourFold(const G &g, const vector<S> &a) : Layout(g), val(a), seg(2 * size_t(off.back()), M::e()) {
+    ContourFold(const G &g, const vector<S> &a, M mon = {}) : Layout(g), m(std::move(mon)), val(a), seg(2 * size_t(off.back()), m.e()) {
         assert(int(a.size()) == n);
         for (int v = 0; v < n; ++v) {
             for (int c = v; cd.parent[c] != -1; c = cd.parent[c]) { seg[2 * off[c] + len(c) + at[v * cd.L + cd.level[c] - 1]] = a[v]; }}
         for (int c = 0; c < cd.n; ++c) {
-            for (int i = len(c) - 1, b = 2 * off[c]; i > 0; --i) { seg[b + i] = M::op(seg[b + 2 * i], seg[b + 2 * i + 1]); }}}
+            for (int i = len(c) - 1, b = 2 * off[c]; i > 0; --i) { seg[b + i] = m.op(seg[b + 2 * i], seg[b + 2 * i + 1]); }}}
 
     void set(int v, S x) {
         assert(0 <= v && v < n);
         val[v] = x;
         for (int c = v; cd.parent[c] != -1; c = cd.parent[c]) {
             int b = 2 * off[c], i = len(c) + at[v * cd.L + cd.level[c] - 1];
-            for (seg[b + i] = x; i > 1; i >>= 1) { seg[b + i / 2] = M::op(seg[b + (i & ~1)], seg[b + (i | 1)]); }}}
+            for (seg[b + i] = x; i > 1; i >>= 1) { seg[b + i / 2] = m.op(seg[b + (i & ~1)], seg[b + (i | 1)]); }}}
 
     S rangeContourFold(int v, int l, int r) const {
         assert(0 <= v && v < n && 0 <= l && l <= r);
-        S res = M::e();
+        S res = m.e();
         for (int c = v, k = cd.level[v], prev = -1; c != -1; prev = c, c = cd.parent[c], --k) {
             int d = cd.distance(v, k);
-            if (c < n && l <= d && d < r) { res = M::op(res, val[c]); }
+            if (c < n && l <= d && d < r) { res = m.op(res, val[c]); }
             for (int p = cd.tin[c] + 1; p < cd.tin[c] + cd.size[c]; p += cd.size[cd.order[p]]) {
                 int ch = cd.order[p], b = 2 * off[ch];
                 if (ch == prev) { continue; }
                 auto [lo, hi] = range(ch, l - d, r - d);
                 for (lo += len(ch), hi += len(ch); lo < hi; lo >>= 1, hi >>= 1) {
-                    if (lo & 1) { res = M::op(res, seg[b + lo++]); }
-                    if (hi & 1) { res = M::op(res, seg[b + --hi]); }}}}
+                    if (lo & 1) { res = m.op(res, seg[b + lo++]); }
+                    if (hi & 1) { res = m.op(res, seg[b + --hi]); }}}}
         return res;}
 };
 
@@ -298,30 +299,31 @@ struct ContourFold : centroid_detail::Layout {
 template<class A>
 struct ContourApply : centroid_detail::Layout {
     using F = typename A::F;
+    [[no_unique_address]] A m;
     vector<F> self, tag;
 
     template<class G>
-    explicit ContourApply(const G &g) : Layout(g), self(n, A::id()), tag(2 * size_t(off.back()), A::id()) {}
+    explicit ContourApply(const G &g, A mon = {}) : Layout(g), m(std::move(mon)), self(n, m.id()), tag(2 * size_t(off.back()), m.id()) {}
 
     void rangeContourApply(int v, int l, int r, F f) {
         assert(0 <= v && v < n && 0 <= l && l <= r);
         for (int c = v, k = cd.level[v], prev = -1; c != -1; prev = c, c = cd.parent[c], --k) {
             int d = cd.distance(v, k);
-            if (c < n && l <= d && d < r) { self[c] = A::composition(f, self[c]); }
+            if (c < n && l <= d && d < r) { self[c] = m.composition(f, self[c]); }
             for (int p = cd.tin[c] + 1; p < cd.tin[c] + cd.size[c]; p += cd.size[cd.order[p]]) {
                 int ch = cd.order[p], b = 2 * off[ch];
                 if (ch == prev) { continue; }
                 auto [lo, hi] = range(ch, l - d, r - d);
                 for (lo += len(ch), hi += len(ch); lo < hi; lo >>= 1, hi >>= 1) {
-                    if (lo & 1) { tag[b + lo] = A::composition(f, tag[b + lo]); ++lo; }
-                    if (hi & 1) { --hi; tag[b + hi] = A::composition(f, tag[b + hi]); }}}}}
+                    if (lo & 1) { tag[b + lo] = m.composition(f, tag[b + lo]); ++lo; }
+                    if (hi & 1) { --hi; tag[b + hi] = m.composition(f, tag[b + hi]); }}}}}
 
     F pointGet(int v) const {
         assert(0 <= v && v < n);
         F res = self[v];
         for (int c = v; cd.parent[c] != -1; c = cd.parent[c]) {
             int b = 2 * off[c];
-            for (int i = len(c) + at[v * cd.L + cd.level[c] - 1]; i > 0; i >>= 1) { res = A::composition(tag[b + i], res); }}
+            for (int i = len(c) + at[v * cd.L + cd.level[c] - 1]; i > 0; i >>= 1) { res = m.composition(tag[b + i], res); }}
         return res;}
 };
 

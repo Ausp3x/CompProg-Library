@@ -1,4 +1,5 @@
 #include "../../04-Graphs/07-lca.hpp"
+#include "../../02-Data Structures/00-monoids.hpp"
 
 static ulng seed = 20260927;
 static lng checks = 0;
@@ -58,8 +59,8 @@ void paths(const Graph &g, int root, const LCA &binary, const EulerLCA &euler, c
     for (int u = 0; u < g.n; ++u) {
         label[u] = std::to_string(u) + ","; edge[u] = oracle.parent[u] < 0 ? "R" : key(u, oracle.parent[u]);}
     auto cat = [](const string &x, const string &y) { return x + y; };
-    LCAFold vertex(g, label, string(), cat, root);
-    LCAFold edges(CsrGraph(g), edge, string(), cat, root);
+    LCAFold vertex(g, label, Monoid{string(), cat}, root);
+    LCAFold edges(CsrGraph(g), edge, Monoid{string(), cat}, root);
     vector<vector<vector<int>>> path(g.n, vector<vector<int>>(g.n));
     for (int u = 0; u < g.n; ++u) { for (int v = 0; v < g.n; ++v) { path[u][v] = oracle.path(u, v).first; }}
     bool folds = g.n <= 4 || g.n > 6 || root <= 0 || root == g.n - 1;
@@ -219,13 +220,20 @@ void shapes(const string &mode) {
         expect(euler.rerootedLCA(u, v, r), points[1], "deep Euler reroot median");}
     lll out = 0; require(binary.weightedDistance(0, n - 1, out) && out == lll(n - 1) * std::numeric_limits<lng>::max(), "deep exact wide sum");
     expect(binary.jump(n - 1, 0, n - 1), 0, "deep jump to endpoint");
-    LCAFold fold(g, vector<lng>(n, 1), lng(0), [](lng x, lng y) { return x + y; });
+    LCAFold fold(g, vector<lng>(n, 1), Sum<lng>{});
     for (int i = 0; i < 2000; ++i) {
         int u = int(rng() % n), v = int(rng() % n);
         require(fold.pathFold(u, v) == std::pair<bool, lng>{true, abs(u - v) + 1}, "deep vertex pathFold");
         require(fold.pathFold(u, v, true) == std::pair<bool, lng>{true, abs(u - v)}, "deep edge pathFold");
         require((pathIntersection(euler, u, v, n - 1 - u, n - 1 - v).first != -1) == (max(u, v) >= min(n - 1 - u, n - 1 - v) && min(u, v) <= max(n - 1 - u, n - 1 - v)), "deep interval intersection");}
     require(offlineLCA(g, {{0, n - 1}, {n - 1, n - 1}, {n / 2, n - 1}}) == vector<int>({0, n - 1, n / 2}), "deep Tarjan stack safety");
+    // Runtime state: path counts modulo a captured modulus on the chain (vertex i holds i).
+    for (lng mod : {lng(7), lng(1000000007)}) {
+        vector<lng> w(n); std::iota(w.begin(), w.end(), lng(0));
+        LCAFold modFold(g, w, Monoid{lng(0), [mod](lng x, lng y) { return (x + y) % mod; }});
+        for (int i = 0; i < 500; ++i) {
+            lng u = lng(rng() % ulng(n)), v = lng(rng() % ulng(n)), lo = min(u, v), hi = max(u, v);
+            require(modFold.pathFold(int(u), int(v)).second == lng(lll(lo + hi) * (hi - lo + 1) / 2 % mod), "stateful pathFold");}}
     std::cout << "PASS FCB block boundaries, adversarial shapes and iterative chain n=" << n << '\n';}
 void invalid(const string &probe) {
     Graph g(3); g.addEdge(0, 1); g.addEdge(1, 2);
@@ -251,8 +259,8 @@ void invalid(const string &probe) {
         else if (probe == "euler-query-end") { (void)y.getLCA(0, 3); }
         else if (probe == "offline-query-end") { (void)offlineLCA(g, {{0, 3}}); }
         else if (probe == "intersection-end") { (void)pathIntersection(y, 0, 1, 2, 3); }
-        else if (probe == "fold-size") { LCAFold z(g, vector<int>(2), 0, [](int p, int q) { return p + q; }); }
-        else if (probe == "fold-query-end") { LCAFold z(g, vector<int>(3), 0, [](int p, int q) { return p + q; }); (void)z.pathFold(0, 3); }
+        else if (probe == "fold-size") { LCAFold z(g, vector<int>(2), Sum<int>{}); }
+        else if (probe == "fold-query-end") { LCAFold z(g, vector<int>(3), Sum<int>{}); (void)z.pathFold(0, 3); }
         else { throw std::runtime_error("unknown invalid probe " + probe); }}
     throw std::runtime_error("precondition accepted " + probe);}
 int main(int argc, char **argv) {

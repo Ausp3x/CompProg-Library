@@ -15,8 +15,8 @@ Folder-wide contracts, ownership boundaries, migration obligations and per-packa
 
 - Fenwick variants require an additive commutative group; prefix-monoid Fenwick requires monotone updates (max/min) and has no range subtraction.
 - Segment-tree searches need a deterministic predicate true on the identity whose truth forms a prefix as the interval grows.
-- Sparse-table O(1) queries need idempotence; `fold` and disjoint sparse tables need only associativity.
-- Lazy actions compose new-after-old; an acted monoid in `00-monoids.hpp` defines `S`, `F`, `op`, `e`, `mapping`, `composition`, `id`, maps `e()` to `e()`, and exposes `leaf` builders for index- or length-aware states. Rows 12, 13, 14 (`LazySegmentTreeBeats` adds `fail`) and 15 consume it (row 13 also needs only the monoid part, or only the action part, for its plain and dual trees; row 15's 2D trees need a commutative `op` or `composition`); row 18 still uses the legacy `Mon` contract until its audit. `RangeGcdLcm<T, LCM>` switches the lcm field on.
+- `SparseTable::prod` needs idempotence; `associativeProd` and the disjoint sparse table need only associativity.
+- Monoids are objects: every consumer stores `[[no_unique_address]] M m` (acted and dual trees: `A m`), takes it as constructor argument `mon = {}` after its data arguments and calls `m.op`, `m.e()`, `m.mapping`, `m.composition`, `m.id()`, so static presets, stateful structs and lambdas through `Monoid`/`ActedMonoid` all work and an empty monoid adds no size. Lazy actions compose new-after-old; an acted monoid defines `S`, `F`, `op`, `e`, `mapping`, `composition`, `id`, maps `e()` to `e()` and exposes `leaf` and action builders. Rows 12, 13, 14 (`LazySegmentTreeBeats` adds `fail`), 15 and 19 consume acted monoids (row 13 also needs only the monoid part, or only the action part, for its plain and dual trees; row 15's 2D trees need a commutative `op` or `composition`); row 18 still uses the legacy `Mon` contract until its audit.
 - Li Chao and convex hull trick must state an overflow-safe evaluation policy and exact intersection comparison (128-bit products or bounded domains) and tie rules for equal lines, and serve both min and max queries.
 - Segment-tree beats variants beyond chmin/chmax/add/assign need their own amortized proof and value-domain statement; row 14's evidence proves division, square root and modulo bounds per update mix (modulo has none together with add or chmax).
 - ODT/Chtholly workloads must state adversarial worst-case degeneration: `IntervalMap::assign` is amortised O(log(n)) because every assignment creates at most three pieces, but `apply`/`enumerate`/`fold`/`merge` cost O((k + 1) log(n)) for the k pieces met with no amortisation, so without assignments an adversary pays O(n) per call; the expected O(n log(n)) ODT bound needs uniformly random assignment ranges. Kinetic structures must distinguish adversarial event counts from ordinary update bounds.
@@ -86,7 +86,7 @@ Source inspection and independent oracle tests are separate evidence. Implementa
 
 ## P027 omissions
 
-Candidates from the 2026-10-08 sweep ([00-sources.md](00-sources.md)) left out of rows 11, 12, 13 and 24:
+Candidates from the 2026-10-08 sweep and the 2026-10-17 monoid sweeps ([00-sources.md](00-sources.md)) left out of rows 11, 12, 13 and 24:
 
 - Hash-map dynamic Fenwick, dynamic 2D Fenwick (NYA): row 13 covers huge universes; a hash-map Fenwick is a constant-factor variant without new operations.
 - Persistent Fenwick (SUI): row 18 owns persistence.
@@ -96,8 +96,12 @@ Candidates from the 2026-10-08 sweep ([00-sources.md](00-sources.md)) left out o
 - K-dimensional compressed prefix monoid (SUI, EI): rare; `CompressedFenwick2D` with a group covers dominance sums, and 2D prefix max is a sorted sweep over `FenwickPrefixMonoid`.
 - Fenwick01 `kth` from an offset (MAS): `kth(rank(l) + k)`.
 - Lazy tree `multiply`, generator build, `reset` (MAS): `apply(p, f)` or `set(p, op(get(p), x))`; constructing a new object.
-- Lazy tree xor-index range apply, rollback lazy tree, power-sum assignment preset, run-based range-assignment tree (MAS): rare; the last is `IntervalMap` plus a point-update tree.
-- Presets for assign-with-min/max, chmin/chmax-only actions, add-with-sum-and-min, flip-with-inversion-count (MAS, NYA, KACTL, ACL practice L): `RangeAffineRangeMinMaxArg` covers assign/add with min, max, argmin, argmax and sum; the others are ten-line user structs under the documented contract, kept out to keep the preset list reviewable.
+- Lazy tree xor-index range apply, rollback lazy tree, run-based range-assignment tree (MAS): rare; the last is `IntervalMap` plus a point-update tree. Power sums under add or assignment (MAS) are `RangeLinearRangeSum` with a binomial or rank-one matrix.
+- Plain `Assign` monoid (MAS): any assign preset's action drives a dual tree (`DualSegmentTree<RangeAssignRangeSum<T>>`), and `MonoidAction<Max<pair<time, value>>>` assigns by timestamp.
+- `AddDivide` floor-division composite (MAS, CF 878E), Fibonacci-progression add (CF 446C), elementary symmetric sums under add (P4247), pairs of acted monoids (CF 1114F): one problem each; user structs under the contract.
+- `Dummy` and dihedral-group monoids, public `monoid_pow` (MAS): rare; `Monoid` with a user op, and powers by squaring with `m.op`.
+- Leftmost free block of length k (P2894 Hotel): needs a custom descent over the run fields of `MaxSubarray`, which `maxRight` cannot express.
+- Euler-tour diameter monoid (CF 1149C): Graphs owns tree diameters.
 - Dynamic tree one-node-per-key sparse variant (MAS): a memory variant of the same API.
 - Dynamic tree range `clear` (TKO), split by count (MAS sortable), meld on the lazy tree (NYA), dual `getAll` (MAS): rare; split by count is `split(root, maxRight(root, lo, count <= k))`; sortable trees are row 51.
 - Dynamic tree vector build (legacy `DynSegTree(span)`): a dense array is row 12.

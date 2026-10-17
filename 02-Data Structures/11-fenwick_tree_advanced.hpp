@@ -249,28 +249,28 @@ struct CompressedFenwick2D {
         return prefixSum(x2, y2) - prefixSum(x1, y2) - prefixSum(x2, y1) + prefixSum(x1, y1);}
 };
 
-// f is associative and commutative with identity id; apply sets a[i] = f(a[i], x); no range inverse.
+// M is a commutative monoid (S, op, e); apply sets a[i] = op(a[i], x); no range inverse.
 // S: O(n), U: O(log(n)), Q: O(log(n)), M: O(n)
-template<typename T, typename F>
+template<typename M>
 struct FenwickPrefixMonoid {
+    using S = typename M::S;
+    [[no_unique_address]] M m;
     int n;
-    T id;
-    F f;
-    vector<T> v;
+    vector<S> v;
 
-    FenwickPrefixMonoid(int N, T id, F f) : n(N), id(id), f(f) { assert(n >= 0); v.assign(n, id); }
-    FenwickPrefixMonoid(const vector<T> &a, T id, F f) : n(int(a.size())), id(id), f(f), v(a) {
+    explicit FenwickPrefixMonoid(int N = 0, M mon = {}) : m(std::move(mon)), n(N) { assert(n >= 0); v.assign(n, m.e()); }
+    explicit FenwickPrefixMonoid(const vector<S> &a, M mon = {}) : m(std::move(mon)), n(int(a.size())), v(a) {
         for (int i = 0; i < n; ++i) {
-            if (int p = i | (i + 1); p < n) { v[p] = this->f(v[p], v[i]); }}}
+            if (int p = i | (i + 1); p < n) { v[p] = m.op(v[p], v[i]); }}}
 
-    void apply(int i, const T &x) {
+    void apply(int i, const S &x) {
         assert(0 <= i && i < n);
-        for (; i < n; i |= i + 1) { v[i] = f(v[i], x); }}
+        for (; i < n; i |= i + 1) { v[i] = m.op(v[i], x); }}
 
-    T prefix(int r) const {
+    S prefix(int r) const {
         assert(0 <= r && r <= n);
-        T res = id;
-        for (; r > 0; r &= r - 1) { res = f(res, v[r - 1]); }
+        S res = m.e();
+        for (; r > 0; r &= r - 1) { res = m.op(res, v[r - 1]); }
         return res;}
 };
 

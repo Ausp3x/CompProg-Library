@@ -38,7 +38,7 @@ namespace {
         static S op(S a, S b) { return min(a, b); }
         static S e() { return INT_MAX; }
     };
-    // A semigroup without an identity: query and the table need only op.
+    // A semigroup without an identity: prod on nonempty ranges and the table need only op.
     struct MaxSemi {
         using S = lng;
         static S op(S a, S b) { return max(a, b); }
@@ -53,7 +53,7 @@ namespace {
         for (int i = l; i < r; ++i) { res = M::op(res, a[i]); }
         return res;}
 
-    // All (l, r) for small n: query, fold and the offline products, against a left fold.
+    // All (l, r) for small n: prod and the offline products, against a left fold.
     template<typename M>
     void exhaustive(Rng &rng, int maxN, const string &name) {
         for (int n = 0; n <= maxN; ++n) {
@@ -65,8 +65,7 @@ namespace {
                 for (int r = l; r <= n; ++r) {
                     context = name + " exhaustive n=" + show(n) + " l=" + show(l) + " r=" + show(r);
                     auto want = naive<M>(a, l, r);
-                    if (l < r) { checkEqual(t.query(l, r), want, "query"); }
-                    checkEqual(t.fold(l, r), want, "fold");
+                    checkEqual(t.prod(l, r), want, "prod");
                     qs.push_back({l, r});}}
             std::shuffle(qs.begin(), qs.end(), rng);
             auto res = DisjointSparseTable<M>::staticRangeProducts(a, qs);
@@ -89,7 +88,7 @@ namespace {
                 if (rng() % 3 == 0 && n) { r = min(n, l + int(rnd(rng, 0, 40))); }
                 qs.push_back({l, r});
                 context = name + " medium n=" + show(n) + " l=" + show(l) + " r=" + show(r);
-                checkEqual(t.fold(l, r), naive<M>(a, l, r), "fold");}
+                checkEqual(t.prod(l, r), naive<M>(a, l, r), "prod");}
             auto res = DisjointSparseTable<M>::staticRangeProducts(a, qs);
             for (size_t j = 0; j < qs.size(); ++j) { checkEqual(res[j], naive<M>(a, qs[j].first, qs[j].second), "staticRangeProducts " + show(qs[j])); }}}
 
@@ -128,7 +127,7 @@ namespace {
             context = "large n=" + show(n) + " set=" + show(k);
             for (int j = 0; j < q; j += 1 + q / 2000) {
                 auto [l, r] = sets[k][j];
-                checkEqual(t.fold(l, r), want(l, r), "fold " + show(sets[k][j]));}
+                checkEqual(t.prod(l, r), want(l, r), "prod " + show(sets[k][j]));}
             saved = ops;
             auto res = DisjointSparseTable<Affine>::staticRangeProducts(a, sets[k]);
             lng used = ops - saved, blocks = (n + sb - 1) / sb;
@@ -144,27 +143,41 @@ namespace {
             for (int l = 0; l < n; ++l) {
                 for (int r = l + 1; r <= n; ++r) {
                     context = "semigroup n=" + show(n) + " l=" + show(l) + " r=" + show(r);
-                    checkEqual(t.query(l, r), *std::max_element(a.begin() + l, a.begin() + r), "query");}}}}
+                    checkEqual(t.prod(l, r), *std::max_element(a.begin() + l, a.begin() + r), "semigroup prod");}}}}
 
     void edges() {
         context = "edges";
         DisjointSparseTable<Min> e(vector<int>{});
-        checkEqual(e.fold(0, 0), INT_MAX, "empty fold");
+        checkEqual(e.prod(0, 0), INT_MAX, "empty prod");
         checkEqual(DisjointSparseTable<Min>::staticRangeProducts({}, {{0, 0}, {0, 0}}), vector<int>{INT_MAX, INT_MAX}, "empty offline");
         checkEqual(DisjointSparseTable<Min>::staticRangeProducts({4, 2, 9}, {}).size(), size_t(0), "no queries");
         DisjointSparseTable<Concat> c(vector<string>{"a", "b", "c", "d", "e"});
-        checkEqual(c.query(1, 4), string("bcd"), "concat order"); checkEqual(c.fold(3, 3), string(), "fold empty");
+        checkEqual(c.prod(1, 4), string("bcd"), "concat order"); checkEqual(c.prod(3, 3), string(), "prod empty");
         DisjointSparseTable<Concat> copy = c;
-        checkEqual(copy.query(0, 5), string("abcde"), "copy");
-        checkEqual(DisjointSparseTable<Concat>::staticRangeProducts({"x", "y"}, {{0, 2}, {1, 1}, {1, 2}, {0, 2}}), vector<string>{"xy", "", "y", "xy"}, "repeated queries");}
+        checkEqual(copy.prod(0, 5), string("abcde"), "copy");
+        checkEqual(DisjointSparseTable<Concat>::staticRangeProducts({"x", "y"}, {{0, 2}, {1, 1}, {1, 2}, {0, 2}}), vector<string>{"xy", "", "y", "xy"}, "repeated queries");
+        // Runtime state: sums modulo a member modulus, in the table and in the offline products.
+        struct ModSum { lng mod; using S = lng; S op(S a, S b) const { return (a + b) % mod; } S e() const { return 0; } };
+        for (lng mod : {lng(5), lng(1000000007)}) {
+            vector<lng> a{4, 9, 2, 7, 3, 8, 1};
+            for (lng &x : a) { x %= mod; }
+            DisjointSparseTable st(a, ModSum{mod});
+            vector<pair<int, int>> qs;
+            vector<lng> want;
+            for (int l = 0; l <= 7; ++l) {
+                for (int r = l; r <= 7; ++r) {
+                    lng s = 0;
+                    for (int i = l; i < r; ++i) { s = (s + a[i]) % mod; }
+                    checkEqual(st.prod(l, r), s, "stateful prod"); qs.push_back({l, r}); want.push_back(s);}}
+            checkEqual(DisjointSparseTable<ModSum>::staticRangeProducts(a, qs, ModSum{mod}), want, "stateful staticRangeProducts");}}
 
     void invalid(const string &name) {
         DisjointSparseTable<Min> t(vector<int>{3, 1, 4});
-        if (name == "query-empty") { (void)t.query(1, 1); }
-        else if (name == "query-range") { (void)t.query(0, 4); }
-        else if (name == "query-negative") { (void)t.query(-1, 2); }
-        else if (name == "fold-reversed") { (void)t.fold(2, 1); }
-        else if (name == "fold-range") { (void)t.fold(0, 4); }
+        DisjointSparseTable<MaxSemi> g(vector<MaxSemi::S>(3, MaxSemi::S(1)));
+        if (name == "semigroup-prod-empty") { (void)g.prod(1, 1); }
+        else if (name == "prod-range") { (void)t.prod(0, 4); }
+        else if (name == "prod-negative") { (void)t.prod(-1, 2); }
+        else if (name == "prod-reversed") { (void)t.prod(2, 1); }
         else if (name == "static-reversed") { (void)DisjointSparseTable<Min>::staticRangeProducts({3, 1, 4}, {{2, 1}}); }
         else if (name == "static-range") { (void)DisjointSparseTable<Min>::staticRangeProducts({3, 1, 4}, {{0, 4}}); }
         else { throw std::runtime_error("unknown invalid probe " + name); }

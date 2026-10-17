@@ -160,6 +160,35 @@ namespace {
             for (int i = ql; i < qr; ++i) { sum += a[i]; }
             checkEqual(t.prod(ql, qr).sum, sum, "prod.sum");}}
 
+    // Runtime state: affine sums modulo a member modulus, stored by the tree and called through its object.
+    struct ModAffineBeats {
+        lng mod;
+        struct S { lng sum, len; };
+        struct F { lng a, b; };
+        S op(const S &x, const S &y) const { return {(x.sum + y.sum) % mod, x.len + y.len}; }
+        S e() const { return {0, 0}; }
+        S mapping(const F &f, const S &x) const { return {lng((lll(f.a) * x.sum + lll(f.b) * x.len) % mod), x.len}; }
+        F composition(const F &f, const F &g) const { return {lng(lll(f.a) * g.a % mod), lng((lll(f.a) * g.b + f.b) % mod)}; }
+        F id() const { return {1, 0}; }
+        bool fail(const S &) const { return false; }
+    };
+    void statefulGenericRun(Rng &rng, int n, int steps) {
+        lng mod = array<lng, 3>{7, 998244353, 1000000007}[rng() % 3];
+        vector<lng> a(n);
+        vector<ModAffineBeats::S> init;
+        for (auto &x : a) { x = rnd(rng, 0, mod - 1); init.push_back({x, 1}); }
+        LazySegmentTreeBeats t(init, ModAffineBeats{mod});
+        for (int s = 0; s < steps; ++s) {
+            auto [l, r] = range(rng, n);
+            lng b = rnd(rng, 0, mod - 1), c = rnd(rng, 0, mod - 1);
+            context = "statefulGeneric mod=" + show(mod) + " n=" + show(n) + " step=" + show(s);
+            t.apply(l, r, {c, b});
+            for (int i = l; i < r; ++i) { a[i] = lng((lll(c) * a[i] + b) % mod); }
+            auto [ql, qr] = range(rng, n);
+            lng sum = 0;
+            for (int i = ql; i < qr; ++i) { sum = (sum + a[i]) % mod; }
+            checkEqual(t.prod(ql, qr).sum, sum, "prod.sum");}}
+
     void edges() {
         context = "edges";
         SegTreeBeats z(0), sized(5);
@@ -260,6 +289,6 @@ int main(int argc, char **argv) {
             beatsRun(rng, n, steps, {0, 1, 2, 3, 4, 5, 6}, 0, 100000, "allMixedNonnegative");
             historicRun(rng, n, steps, 9);
             andOrRun<ulng>(rng, n, steps, 64); andOrRun<uint>(rng, n, steps, 5); andOrRun<lng>(rng, n, steps, 7);
-            chminGenericRun(rng, n, steps); affineGenericRun(rng, n, steps);}
+            chminGenericRun(rng, n, steps); affineGenericRun(rng, n, steps); statefulGenericRun(rng, n, steps);}
         std::cout << "PASS segtreebeats checks=" << checks << '\n'; return 0;} catch (const std::exception &e) {
         std::cerr << "FAIL segtreebeats seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1;}}

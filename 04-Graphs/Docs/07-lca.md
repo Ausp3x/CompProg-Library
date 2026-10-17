@@ -35,7 +35,7 @@ Offline Tarjan returns one answer per input query, retaining order and duplicate
 
 ### LCAFold
 
-`LCAFold<T, Op>(g, values, identity, op, root = -1)` is an `LCA` (same forest, root and query contracts, all `LCA` methods available) plus two vertex-major lifting tables: `rise[u][j]` folds the `2^j` vertices from `u` upward in walk order, `fall[u][j]` folds the same vertices in the reverse (downward) order. `op` is associative with two-sided `identity`; commutativity is not needed. `values.size() == n` is asserted. `pathFold(u, v)` returns `{true, fold of the vertex labels on the path u -> v in order, both endpoints included}`; `pathFold(u, v, true)` folds edge labels instead, where the caller stores each edge's label at its child vertex under the chosen rooting and the LCA's label is skipped. A self path folds `values[u]` (vertex mode) or nothing (edge mode). Disconnected pairs return `{false, identity}`. Setup O(n * log(n)) operations and storage; query O(log(n)) operations. Table entries above a root repeat the root's saturated jump and are never read by a query, which only climbs at most the depth difference. Caller-owned arithmetic must not overflow for any prefix the tables combine.
+`LCAFold<M>(g, values, mon = {}, root = -1)` (formerly `<T, Op>` with `(identity, op)`) takes a monoid `M` (`S`, `op`, `e`) under the [stored-object contract](<../../02-Data Structures/Docs/12-lazysegmenttree.md#monoid-contract-00-monoidshpp>), kept as `m`; it is an `LCA` (same forest, root and query contracts, all `LCA` methods available) plus two vertex-major lifting tables: `rise[u][j]` folds the `2^j` vertices from `u` upward in walk order, `fall[u][j]` folds the same vertices in the reverse (downward) order. `op` is associative with two-sided identity `e()`; commutativity is not needed. `values.size() == n` is asserted. `pathFold(u, v)` returns `{true, fold of the vertex labels on the path u -> v in order, both endpoints included}`; `pathFold(u, v, true)` folds edge labels instead, where the caller stores each edge's label at its child vertex under the chosen rooting and the LCA's label is skipped. A self path folds `values[u]` (vertex mode) or nothing (edge mode). Disconnected pairs return `{false, identity}`. Setup O(n * log(n)) operations and storage; query O(log(n)) operations. Table entries above a root repeat the root's saturated jump and are never read by a query, which only climbs at most the depth difference. Caller-owned arithmetic must not overflow for any prefix the tables combine.
 
 ### pathIntersection
 
@@ -74,7 +74,7 @@ Tester: [07-lca_tester.py](<../../96-Local Testing/04-Graphs/07-lca_tester.py>),
 | Query order, duplicates, repeated calls | Reverse/duplicate offline batches, empty batches and repeated queries on each fixture |
 | Construction, lifetime, copy/move/reset | Graph/CSR constructors, copied/moved/assigned preprocessors, mutated input graph with unchanged snapshots, rebuild by assignment |
 | Adjacency lists through `Graph::fromAdjacency` (the removed constructor's cases); `getKthAncestor` | Unsorted zero- and one-based lists, vertex count equal to the list count, unused vertex 0 isolated, empty lists; nonpositive `getKthAncestor` offsets return the vertex |
-| `LCAFold::pathFold` (vertex and edge modes) | Noncommutative string concatenation over every ordered pair of every enumerated forest through n=4 with every root, enumerated n=5..6 forests with roots -1, 0 and n-1, and every random forest, against the label sequence of the independent BFS path (edge labels keyed by endpoint pair at the BFS child); Graph and CSR builds; 2000 random sum folds on the 200000-vertex chain |
+| `LCAFold::pathFold` (vertex and edge modes) | Noncommutative string concatenation over every ordered pair of every enumerated forest through n=4 with every root, enumerated n=5..6 forests with roots -1, 0 and n-1, and every random forest, against the label sequence of the independent BFS path (edge labels keyed by endpoint pair at the BFS child); Graph and CSR builds; 2000 random sum folds with `Sum<lng>` on the 200000-vertex chain and 500 per modulus with a capturing-lambda sum modulo 7 and 10^9+7 through `Monoid` (closed-form path sums) |
 | `pathIntersection` | All n^4 quadruples of every enumerated forest through n=5 (default root); 100 random quadruples for other default-root cases and 10 per explicit root (the answer does not depend on the rooting); binary and Euler variants, against the common vertices of the two BFS paths in c-to-d order; interval-overlap identity on the 200000-vertex chain |
 | Invalid preconditions | 20 assertion subprocesses: directed/cyclic/loop/parallel input, invalid roots/endpoints/offsets, an out-of-range entry in undirected lists through `Graph::fromAdjacency` (`adjacency-label`); binary/Euler/offline paths; `pathIntersection` endpoint, `LCAFold` label count and query endpoint. Unmirrored lists and a loop listed once are `01-graph_tester` probes |
 
@@ -82,25 +82,25 @@ Hand mutations of `LCAFold`, `pathIntersection` and the unchecked `getLCA` loop 
 
 ## Commands and results
 
-2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, i9-11900H.
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
-| `07-lca_tester.py --mode full --seed 20261012` (optimized, checked, ASan-UBSan) | PASS, 27,125,712 checks per build, 20 probes, peak 862 MB |
-| `CXX=g++-14 07-lca_tester.py --mode full --seed 20261012` | PASS, all three builds, same counts, peak 912 MB |
-| `07-lca_tester.py --mode stress --seed 7 --configuration optimized` | PASS, 38,730,427 checks, peak 484 MB |
-| `02-integration.py` (136 standalone/aggregate headers, scalar and AVX2 multi-TU linkage, workspace) | PASS, peak 649 MB |
-| `03-consistency.py`, with `--braces` on the touched headers and testers | No errors |
-
-Full mode includes 22,497 exhaustive forest/root cases, 350 random weighted forests and the 200,000-vertex chain; stress expands random cases to 2,500 and the chain to 500,000.
+| `07-lca_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 27,128,486 checks per configuration, 20 assertion probes, MEMORY peak 1052 MB |
+| `CXX=g++-14 07-lca_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 27,128,486 checks per configuration, MEMORY peak 1201 MB |
+| `07-lca_tester.py --mode stress --seed 7` | PASS, 38,731,427 checks per configuration, MEMORY peak 1680 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/07-lca_tester.py' --mode full --seed 20261012
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/07-lca_tester.py' --mode full --seed 20261012
-python3 '96-Local Testing/04-Graphs/07-lca_tester.py' --mode stress --seed 7 --configuration optimized
-python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/04-Graphs/07-lca_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/07-lca_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/04-Graphs/07-lca_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
 ```
+
+Full mode includes 22,497 exhaustive forest/root cases, 350 random weighted forests and the 200,000-vertex chain; stress expands random cases to 2,500 and the chain to 500,000.
 
 ## Benchmarks
 
@@ -140,3 +140,4 @@ Ancestor/path binary search by predicate belongs to row 15 (HLD); tree/HLD aggre
 - 2026-09-27: original P011, full suite (seed 20260927, 25,537,081 checks, 20 probes), integration and benchmark passed on g++ 16.
 - 2026-10-07: re-audit, added `LCAFold::pathFold` and `pathIntersection`; 4 findings fixed (complexity lines, unchecked `getLCA` loop, `offlineLCA` naming and brace); full suite, stress, integration and benchmark passed on g++ 16; independent review: all eight package findings confirmed fixed, its own brute-force checks of every addition passed under ASan/UBSan/`_GLIBCXX_DEBUG`.
 - 2026-10-12: prune, removed the legacy `LCA(n, root, adj)` constructor and `lca_detail::fromAdjacency` (cases moved to `Graph::fromAdjacency` lists, four legacy probes replaced by `adjacency-label`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect, equivalence confirmed on its own 30,000 random forests and multigraphs.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1052/1201/1680 MB.

@@ -150,6 +150,7 @@ struct RectangleWaveletMatrix {
 template<typename T, typename M>
 struct WaveletMatrixMonoid {
     using S = typename M::S;
+    [[no_unique_address]] M m;
     int n;
     vector<T> xs;
     vector<int> at;
@@ -157,20 +158,20 @@ struct WaveletMatrixMonoid {
     WaveletMatrix<T> wm;
     vector<vector<S>> seg;
 
-    WaveletMatrixMonoid(const vector<T> &x, const vector<T> &y, const vector<S> &v0 = {}) : n(int(x.size())), at(n), v(v0) {
+    WaveletMatrixMonoid(const vector<T> &x, const vector<T> &y, const vector<S> &v0 = {}, M mon = {}) : m(std::move(mon)), n(int(x.size())), at(n), v(v0) {
         assert(x.size() == y.size() && (v0.empty() || v0.size() == x.size()));
-        if (v.empty()) { v.assign(n, M::e()); }
+        if (v.empty()) { v.assign(n, m.e()); }
         vector<int> ord(n);
         std::iota(ord.begin(), ord.end(), 0);
         std::stable_sort(ord.begin(), ord.end(), [&](int i, int j) { return x[i] < x[j]; });
         vector<T> ys;
         for (int k = 0; k < n; ++k) { xs.push_back(x[ord[k]]); ys.push_back(y[ord[k]]); at[ord[k]] = k; }
         wm = WaveletMatrix<T>(ys);
-        seg.assign(wm.h, vector<S>(2 * n, M::e()));
+        seg.assign(wm.h, vector<S>(2 * n, m.e()));
         for (int i = 0; i < n; ++i) {
             for (int d = wm.h - 1, p = at[i]; d >= 0; --d) { p = wm.step(d, p); seg[d][n + p] = v[i]; }}
         for (auto &s : seg) {
-            for (int k = n - 1; k > 0; --k) { s[k] = M::op(s[2 * k], s[2 * k + 1]); }}}
+            for (int k = n - 1; k > 0; --k) { s[k] = m.op(s[2 * k], s[2 * k + 1]); }}}
 
     const S &get(int i) const { assert(0 <= i && i < n); return v[i]; }
 
@@ -182,19 +183,19 @@ struct WaveletMatrixMonoid {
             auto &t = seg[d];
             int k = n + p;
             t[k] = s;
-            while (k >>= 1) { t[k] = M::op(t[2 * k], t[2 * k + 1]); }}}
-    void apply(int i, const S &s) { assert(0 <= i && i < n); set(i, M::op(v[i], s)); }
+            while (k >>= 1) { t[k] = m.op(t[2 * k], t[2 * k + 1]); }}}
+    void apply(int i, const S &s) { assert(0 <= i && i < n); set(i, m.op(v[i], s)); }
 
     S fold(int d, int l, int r) const {
-        S res = M::e();
+        S res = m.e();
         for (l += n, r += n; l < r; l >>= 1, r >>= 1) {
-            if (l & 1) { res = M::op(res, seg[d][l++]); }
-            if (r & 1) { res = M::op(res, seg[d][--r]); }}
+            if (l & 1) { res = m.op(res, seg[d][l++]); }
+            if (r & 1) { res = m.op(res, seg[d][--r]); }}
         return res;}
     S prod(const T &xl, const T &xr, const T &yl, const T &yr) const {
         int l = int(lower_bound(xs.begin(), xs.end(), xl) - xs.begin()), r = max(l, int(lower_bound(xs.begin(), xs.end(), xr) - xs.begin()));
         int a = wm.lowerRank(yl), b = max(a, wm.lowerRank(yr)), d = wm.h - 1;
-        S res = M::e();
+        S res = m.e();
         if (a == b) { return res; }
         // Follow the shared high bits of a and b; below their first difference a's path folds ranks >= a and b's path ranks < b.
         for (; (a >> d & 1) == (b >> d & 1); --d) {
@@ -204,9 +205,9 @@ struct WaveletMatrixMonoid {
         while (--d >= 0) {
             l1 = wm.rank1(d, la); r1 = wm.rank1(d, ra);
             if (a >> d & 1) { la = wm.mid[d] + l1; ra = wm.mid[d] + r1; }
-            else { res = M::op(res, fold(d, wm.mid[d] + l1, wm.mid[d] + r1)); la -= l1; ra -= r1; }
+            else { res = m.op(res, fold(d, wm.mid[d] + l1, wm.mid[d] + r1)); la -= l1; ra -= r1; }
             l1 = wm.rank1(d, lb); r1 = wm.rank1(d, rb);
-            if (b >> d & 1) { res = M::op(res, fold(d, lb - l1, rb - r1)); lb = wm.mid[d] + l1; rb = wm.mid[d] + r1; }
+            if (b >> d & 1) { res = m.op(res, fold(d, lb - l1, rb - r1)); lb = wm.mid[d] + l1; rb = wm.mid[d] + r1; }
             else { lb -= l1; rb -= r1; }}
-        return M::op(res, fold(0, la, ra));}
+        return m.op(res, fold(0, la, ra));}
 };

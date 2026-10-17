@@ -1,4 +1,5 @@
 #include "../../04-Graphs/11-functionalgraph.hpp"
+#include "../../02-Data Structures/00-monoids.hpp"
 
 namespace {
     ulng seed = 20260927;
@@ -147,8 +148,8 @@ namespace {
     void stepResult(const vector<int> &next, const vector<string> &words) {
         int n = int(next.size()); vector<lll> weights(n);
         for (int u = 0; u < n; ++u) { weights[u] = (7 * u + 3) % 3; }
-        FunctionalGraph g(next); FunctionalGraphFold<string, Concat> text(g, words, string{}, Concat{});
-        FunctionalGraphFold<lll, Sum> sum(g, weights, lll(0), Sum{});
+        FunctionalGraph g(next); FunctionalGraphFold text(g, words, Monoid{string{}, Concat{}});
+        FunctionalGraphFold sum(g, weights, Monoid{lll(0), Sum{}});
         vector<ulng> limits{0, 1, 2, ulng(n), ulng(2 * n + 3), std::numeric_limits<ulng>::max()};
         for (int u = 0; u < n; ++u) {
             for (ulng limit : limits) {
@@ -169,12 +170,12 @@ namespace {
         auto expected_cycles = cycles(orbits); vector<T> expected;
         for (const auto &cycle : expected_cycles) {
             T value = id; for (int u : cycle) { value = op(value, values[u]); } expected.push_back(value);}
-        check(g.cycleAggregates(values, id, op) == expected, "cycle aggregates in canonical successor order");
-        FunctionalGraphFold<T, Op> folded(g, values, id, op);
+        check(g.cycleAggregates(values, Monoid{id, op}) == expected, "cycle aggregates in canonical successor order");
+        FunctionalGraphFold folded(g, values, Monoid{id, op});
         for (int u = 0; u < g.n; ++u) {
             const auto &r = orbits[u]; T value = id;
             if (r.length) { for (int i = r.tail; i < int(r.path.size()); ++i) { value = op(value, values[r.path[i]]); }}
-            auto a = g.cycleAggregate(u, values, id, op), b = folded.cycleAggregate(u);
+            auto a = g.cycleAggregate(u, values, Monoid{id, op}), b = folded.cycleAggregate(u);
             check(a.first == bool(r.length) && a.second == value && b == a, "cycle rotation starts at orbit entry");
             for (ulng count = 0; count <= ulng(2 * g.n + 3); ++count) {
                 auto ref = bruteFold(next, values, u, count, id, op); auto actual = folded.fold(u, count);
@@ -200,17 +201,28 @@ namespace {
         aggregateResult(g, next, orbits, words, string{}, Concat{});
         aggregateResult(g, next, orbits, matrices, IDENTITY, Multiply{});
         if (matrix_huge || n <= 4) { stepResult(next, words); }
-        FunctionalGraphFold<lll, Sum> sum(g, weights, lll(0), Sum{}); ReferenceFold<lll, Sum> ref(next, weights, 0, Sum{});
+        FunctionalGraphFold sum(g, weights, Monoid{lll(0), Sum{}}); ReferenceFold<lll, Sum> ref(next, weights, 0, Sum{});
         for (int u = 0; u < n; ++u) { for (ulng count : counts(n)) {
             auto a = sum.fold(u, count); auto b = ref.fold(u, count);
             check(a.next == b.next && a.count == b.count && a.value == b.value,
                   "64-level exact sum fold u=" + std::to_string(u) + " count=" + std::to_string(count));}}
         if (matrix_huge) {
-            FunctionalGraphFold<Matrix, Multiply> folded(g, matrices, IDENTITY, Multiply{});
+            FunctionalGraphFold folded(g, matrices, Monoid{IDENTITY, Multiply{}});
             ReferenceFold<Matrix, Multiply> reference(next, matrices, IDENTITY, Multiply{});
             for (int u = 0; u < n; ++u) { for (ulng count : counts(n)) {
                 auto a = folded.fold(u, count); auto b = reference.fold(u, count);
                 check(a.next == b.next && a.count == b.count && a.value == b.value, "64-level noncommutative matrix fold");}}}
+        for (lng mod : {lng(7), lng(1000000007)}) {
+            if (n > 40) { break; }
+            // Runtime state: a capturing lambda through the Monoid adapter, against the same walk fold by hand.
+            auto plus = [mod](lll x, lll y) { return lll((x + y) % mod); };
+            vector<lll> w(n); for (int u = 0; u < n; ++u) { w[u] = lll((u * 7919 + 13) % mod); }
+            FunctionalGraphFold modFold(g, w, Monoid{lll(0), plus});
+            for (int u = 0; u < n; ++u) { for (ulng count : counts(n)) {
+                auto a = modFold.fold(u, count); auto b = bruteFold(next, w, u, min(count, ulng(4 * n + 4)), lll(0), plus);
+                if (count <= ulng(4 * n + 4)) { check(a.next == b.next && a.value == b.value, "stateful fold u=" + std::to_string(u)); }}}
+            vector<lll> want; for (const auto &cycle : cycles(orbits)) { lll v = 0; for (int u : cycle) { v = plus(v, w[u]); } want.push_back(v); }
+            check(g.cycleAggregates(w, Monoid{lll(0), plus}) == want, "stateful cycleAggregates");}
         check(g.successor == next, "all operations preserve source graph");}
     void exhaustive() {
         int bound = mode == "quick" ? 3 : mode == "full" ? 5 : 6;
@@ -242,7 +254,7 @@ namespace {
             check(g.jump(0, n - 1) == n - 1 && g.jump(0, n) == -1 && g.jump(0, std::numeric_limits<ulng>::max()) == -1, "large terminal jumps");
             check(g.distance(0, n - 1) == n - 1 && g.distance(n - 1, 0) == -1, "large terminal distances");
             check(g.firstMeeting(0, 1) == -1 && g.firstMeeting(n - 1, n - 1) == 0, "termination is never a meeting");
-            FunctionalGraphFold<lll, Sum> fold(g, vector<lll>(n, 1), 0, Sum{});
+            FunctionalGraphFold fold(g, vector<lll>(n, 1), Monoid{lll(0), Sum{}});
             auto a = fold.fold(0, std::numeric_limits<ulng>::max());
             check(a.next == -1 && a.count == ulng(n) && a.value == n, "large fold consumes terminal once");
             auto all = g.jumpAll(ulng(n / 2)); bool ok = true;
@@ -257,7 +269,7 @@ namespace {
             ulng count = std::numeric_limits<ulng>::max();
             check(g.jump(0, count) == int(count % n) && g.distance(n - 1, 0) == 1 && g.firstMeeting(0, 1) == -1, "large cycle queries");
             auto r = functionalOrbit(next, 0); check(r.entry == 0 && r.tail == 0 && r.cycle_length == n, "large constant-space cycle orbit");
-            FunctionalGraphFold<lll, Sum> fold(g, vector<lll>(n, 1), 0, Sum{}); auto a = fold.fold(0, count);
+            FunctionalGraphFold fold(g, vector<lll>(n, 1), Monoid{lll(0), Sum{}}); auto a = fold.fold(0, count);
             check(a.next == int(count % n) && a.count == count && a.value == lll(count), "large full-range cycle fold");
             auto all = g.jumpAll(count); bool ok = true;
             for (int u = 0; u < n; ++u) { ok = ok && all[u] == int((u + count % n) % n); }
@@ -274,14 +286,14 @@ namespace {
         fixture[2] = -1; original = FunctionalGraph(fixture);
         context = "copy/move/reassignment and external successor mutation";
         check(moved.jump(0, 3) == 4 && original.jump(0, 3) == -1, "graph snapshots and rebuild");
-        vector<string> words(moved.n, "x"); FunctionalGraphFold<string, Concat> folded(moved, words, "", Concat{});
+        vector<string> words(moved.n, "x"); FunctionalGraphFold folded(moved, words, Monoid{string(), Concat{}});
         words[0] = "bad"; auto fold_copy = folded; auto fold_moved = std::move(fold_copy);
-        folded = FunctionalGraphFold<string, Concat>(original, words, "", Concat{});
+        folded = FunctionalGraphFold(original, words, Monoid{string(), Concat{}});
         check(fold_moved.fold(0, 3).value == "xxx" && folded.fold(0, 3).value == "badx", "fold label/graph ownership and assignment");
         cout << "PASS stack-safe terminal chains/cycles/tails n=" << n << ", copy/move/snapshot/rebuild\n";}
     void invalid(const string &name) {
         FunctionalGraph g(vector<int>{1, -1}); vector<int> next{1, -1}; vector<string> words{"a", "b"};
-        FunctionalGraphFold<string, Concat> fold(g, words, "", Concat{});
+        FunctionalGraphFold fold(g, words, Monoid{string(), Concat{}});
         if (name == "successor-negative") { FunctionalGraph bad(vector<int>{-2}); }
         else if (name == "successor-high") { FunctionalGraph bad(vector<int>{1}); }
         else if (name == "undirected") { FunctionalGraph bad(Graph(2)); }
@@ -300,10 +312,10 @@ namespace {
         else if (name == "empty-jump") { FunctionalGraph(vector<int>{}).jump(0, 0); }
         else if (name == "orbit-negative") { functionalOrbit(next, -1); }
         else if (name == "orbit-high") { functionalOrbit(next, 2); }
-        else if (name == "aggregate-size") { g.cycleAggregates(vector<string>{"a"}, string{}, Concat{}); }
-        else if (name == "rotated-size") { g.cycleAggregate(0, vector<string>{"a"}, string{}, Concat{}); }
-        else if (name == "rotated-high") { g.cycleAggregate(2, words, string{}, Concat{}); }
-        else if (name == "fold-size") { FunctionalGraphFold<string, Concat> bad(g, vector<string>{"a"}, "", Concat{}); }
+        else if (name == "aggregate-size") { g.cycleAggregates(vector<string>{"a"}, Monoid{string{}, Concat{}}); }
+        else if (name == "rotated-size") { g.cycleAggregate(0, vector<string>{"a"}, Monoid{string{}, Concat{}}); }
+        else if (name == "rotated-high") { g.cycleAggregate(2, words, Monoid{string{}, Concat{}}); }
+        else if (name == "fold-size") { FunctionalGraphFold bad(g, vector<string>{"a"}, Monoid{string(), Concat{}}); }
         else if (name == "fold-negative") { fold.fold(-1, 0); }
         else if (name == "fold-high") { fold.fold(2, 0); }
         else if (name == "fold-cycle-high") { fold.cycleAggregate(2); }

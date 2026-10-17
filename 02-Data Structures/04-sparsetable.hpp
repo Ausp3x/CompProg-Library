@@ -2,38 +2,39 @@
 
 #include "../01-Core/01-template.hpp"
 
-// 0 <= n <= INT_MAX; f is associative (query also idempotent); queries take nonempty [l, r); no identity is needed.
+// 0 <= n <= INT_MAX; M supplies S and an associative op (prod also needs it idempotent); products take nonempty [l, r) and never call e.
 // S: O(n * log(n + 1)), U: NA, Q: O(1), M: O(n * log(n + 1))
-template<typename T, typename F>
+template<typename M>
 struct SparseTable {
+    using S = typename M::S;
+    [[no_unique_address]] M m;
     int n, h;
-    vector<vector<T>> v;
-    F f;
+    vector<vector<S>> v;
 
-    SparseTable(vector<T> a, const F &fnc) : n(0), h(0), f(fnc) {
+    explicit SparseTable(vector<S> a = {}, M mon = {}) : m(std::move(mon)), n(0), h(0) {
         assert(a.size() <= INT_MAX);
         n = int(a.size()); h = std::bit_width(uint(n));
         if (!n) { return; }
         v.reserve(h); v.push_back(std::move(a));
         for (int i = 1; i < h; ++i) {
             int len = 1 << i;
-            vector<T> level; level.reserve(n - len + 1);
+            vector<S> level; level.reserve(n - len + 1);
             for (int j = 0; j <= n - len; ++j) {
-                level.push_back(this->f(v[i - 1][j], v[i - 1][j + len / 2]));}
+                level.push_back(m.op(v[i - 1][j], v[i - 1][j + len / 2]));}
             v.push_back(std::move(level));}}
 
-    T query(int l, int r) const {
+    S prod(int l, int r) const {
         assert(0 <= l && l < r && r <= n);
         int i = std::bit_width(uint(r - l)) - 1;
-        return f(v[i][l], v[i][r - (1 << i)]);}
-    // Q: O(log(n + 1)); fold needs only associativity.
-    T fold(int l, int r) const {
+        return m.op(v[i][l], v[i][r - (1 << i)]);}
+    // Q: O(log(n + 1)); associativeProd needs only associativity.
+    S associativeProd(int l, int r) const {
         assert(0 <= l && l < r && r <= n);
         int i = std::bit_width(uint(r - l)) - 1;
-        T acc = v[i][l]; l += 1 << i;
+        S acc = v[i][l]; l += 1 << i;
         while (l < r) {
             i = std::bit_width(uint(r - l)) - 1;
-            acc = f(acc, v[i][l]); l += 1 << i;}
+            acc = m.op(acc, v[i][l]); l += 1 << i;}
         return acc;}
 
     // T: O(n * log(n + 1)); legacy diagnostic format with inclusive blocks.
@@ -50,36 +51,37 @@ struct SparseTable {
         return os << "]\n";}
 };
 
-// n x m grid, n * m <= INT_MAX; f is associative, commutative and idempotent; queries take nonempty [x1, x2) x [y1, y2).
-// S: O(n * m * log(n + 1) * log(m + 1)), U: NA, Q: O(1), M: O(n * m * log(n + 1) * log(m + 1))
-template<typename T, typename F>
+// rows x cols grid, rows * cols <= INT_MAX; M supplies S and an associative, commutative, idempotent op; prod takes nonempty [x1, x2) x [y1, y2).
+// S: O(n * m * log(n + 1) * log(m + 1)), U: NA, Q: O(1), M: O(n * m * log(n + 1) * log(m + 1)) for n rows and m cols
+template<typename M>
 struct SparseTable2D {
-    int n, m, hn, hm;
-    vector<vector<T>> v;
-    F f;
+    using S = typename M::S;
+    [[no_unique_address]] M m;
+    int rows, cols, hr, hc;
+    vector<vector<S>> v;
 
-    SparseTable2D(const vector<vector<T>> &a, const F &fnc) : n(0), m(0), hn(0), hm(0), f(fnc) {
+    explicit SparseTable2D(const vector<vector<S>> &a = {}, M mon = {}) : m(std::move(mon)), rows(0), cols(0), hr(0), hc(0) {
         assert(a.size() <= INT_MAX && (a.empty() || a[0].size() <= INT_MAX / a.size()));
-        n = int(a.size()); m = n ? int(a[0].size()) : 0;
-        assert(std::ranges::all_of(a, [this](const vector<T> &row) { return row.size() == size_t(m); }));
-        hn = std::bit_width(uint(n)); hm = std::bit_width(uint(m));
-        if (!n || !m) { return; }
-        v.resize(hn * hm);
-        v[0].reserve(n * m);
+        rows = int(a.size()); cols = rows ? int(a[0].size()) : 0;
+        assert(std::ranges::all_of(a, [this](const vector<S> &row) { return row.size() == size_t(cols); }));
+        hr = std::bit_width(uint(rows)); hc = std::bit_width(uint(cols));
+        if (!rows || !cols) { return; }
+        v.resize(hr * hc);
+        v[0].reserve(rows * cols);
         for (const auto &row : a) { v[0].insert(v[0].end(), row.begin(), row.end()); }
-        for (int i = 0; i < hn; ++i) {
-            for (int j = !i; j < hm; ++j) {
-                int w = m - (1 << j) + 1, h = n - (1 << i) + 1;
-                const vector<T> &src = j ? v[i * hm + j - 1] : v[(i - 1) * hm];
-                int sw = j ? m - (1 << (j - 1)) + 1 : w, di = j ? 0 : 1 << (i - 1), dj = j ? 1 << (j - 1) : 0;
-                vector<T> &dst = v[i * hm + j]; dst.reserve(h * w);
+        for (int i = 0; i < hr; ++i) {
+            for (int j = !i; j < hc; ++j) {
+                int w = cols - (1 << j) + 1, h = rows - (1 << i) + 1;
+                const vector<S> &src = j ? v[i * hc + j - 1] : v[(i - 1) * hc];
+                int sw = j ? cols - (1 << (j - 1)) + 1 : w, di = j ? 0 : 1 << (i - 1), dj = j ? 1 << (j - 1) : 0;
+                vector<S> &dst = v[i * hc + j]; dst.reserve(h * w);
                 for (int x = 0; x < h; ++x) {
-                    for (int y = 0; y < w; ++y) { dst.push_back(this->f(src[x * sw + y], src[(x + di) * sw + y + dj])); }}}}}
+                    for (int y = 0; y < w; ++y) { dst.push_back(m.op(src[x * sw + y], src[(x + di) * sw + y + dj])); }}}}}
 
-    T query(int x1, int y1, int x2, int y2) const {
-        assert(0 <= x1 && x1 < x2 && x2 <= n && 0 <= y1 && y1 < y2 && y2 <= m);
-        int i = std::bit_width(uint(x2 - x1)) - 1, j = std::bit_width(uint(y2 - y1)) - 1, w = m - (1 << j) + 1;
-        const vector<T> &t = v[i * hm + j];
+    S prod(int x1, int y1, int x2, int y2) const {
+        assert(0 <= x1 && x1 < x2 && x2 <= rows && 0 <= y1 && y1 < y2 && y2 <= cols);
+        int i = std::bit_width(uint(x2 - x1)) - 1, j = std::bit_width(uint(y2 - y1)) - 1, w = cols - (1 << j) + 1;
+        const vector<S> &t = v[i * hc + j];
         x2 -= 1 << i; y2 -= 1 << j;
-        return f(f(t[x1 * w + y1], t[x1 * w + y2]), f(t[x2 * w + y1], t[x2 * w + y2]));}
+        return m.op(m.op(t[x1 * w + y1], t[x1 * w + y2]), m.op(t[x2 * w + y1], t[x2 * w + y2]));}
 };

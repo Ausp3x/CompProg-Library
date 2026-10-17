@@ -201,7 +201,18 @@ namespace {
         o.uniteSets(2, 0);
         checkEqual(o.edgeCount(2), 2, "redundant edge counted");
         o.rollback(1);
-        checkEqual(bool(o.componentValue(0)), false, "addValue undone"); checkEqual(o.edgeCount(0), 1, "edges after rollback");}
+        checkEqual(bool(o.componentValue(0)), false, "addValue undone"); checkEqual(o.edgeCount(0), 1, "edges after rollback");
+        // Runtime state: component sums modulo a member modulus, through unions, addValue and rollback.
+        struct ModSum { lng mod; using S = lng; S op(S x, S y) const { return (x + y) % mod; } S e() const { return 0; } };
+        for (lng mod : {lng(5), lng(1000000007)}) {
+            RollbackDSUAggregate md(vector<lng>{1, 2, 3, 4}, ModSum{mod});
+            md.uniteSets(0, 1); md.uniteSets(2, 3); md.addValue(3, mod - 1);
+            checkEqual(md.componentValue(1), 3 % mod, "stateful pair sum"); checkEqual(md.componentValue(2), (7 + mod - 1) % mod, "stateful addValue");
+            int t = md.snapshot();
+            md.uniteSets(1, 2);
+            checkEqual(md.componentValue(0), (10 + mod - 1) % mod, "stateful merge");
+            md.rollback(t);
+            checkEqual(md.componentValue(0), 3 % mod, "stateful rollback");}}
 
     void invalid(const string &name) {
         RollbackDSU d(3);

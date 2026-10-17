@@ -51,28 +51,29 @@ struct RollbackDSU {
         return res;}
 };
 
-// M is a commutative monoid (S, op); addValue folds x into u's component; edgeCount counts uniteSets calls inside it.
+// M is a commutative monoid (S, op), stored as m; addValue folds x into u's component; edgeCount counts uniteSets calls inside it.
 // S: O(n), U: O(log(n)) (undo O(1)), Q: O(log(n)), M: O(n + q)
 template<typename M>
 struct RollbackDSUAggregate : RollbackDSU {
     using S = typename M::S;
+    [[no_unique_address]] M m;
     vector<S> val;
     vector<int> edg;
     vector<pair<S, int>> old;
 
-    explicit RollbackDSUAggregate(const vector<S> &a) : RollbackDSU(int(a.size())), val(a), edg(n, 0) { assert(a.size() <= size_t(INT_MAX)); }
+    explicit RollbackDSUAggregate(const vector<S> &a, M mon = {}) : RollbackDSU(int(a.size())), m(std::move(mon)), val(a), edg(n, 0) { assert(a.size() <= size_t(INT_MAX)); }
 
     bool uniteSets(int u, int v) {
         bool res = RollbackDSU::uniteSets(u, v);
         int x = his.back(), r = res ? par[x] : ~x;
         old.emplace_back(val[r], edg[r]);
-        if (res) { val[r] = M::op(val[r], val[x]); edg[r] += edg[x] + 1; }
+        if (res) { val[r] = m.op(val[r], val[x]); edg[r] += edg[x] + 1; }
         else { ++edg[r]; }
         return res;}
     void addValue(int u, const S &x) {
         int r = findSet(u);
         old.emplace_back(val[r], edg[r]); his.push_back(~r);
-        val[r] = M::op(val[r], x);}
+        val[r] = m.op(val[r], x);}
     void undo() {
         assert(!his.empty());
         int x = his.back(), r = x >= 0 ? par[x] : ~x;

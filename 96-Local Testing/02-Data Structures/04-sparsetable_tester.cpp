@@ -13,30 +13,31 @@ namespace {
         ++checks;
         if (got != want) {
             throw std::runtime_error(context + " operation=" + op + " expected=" + show(want) + " actual=" + show(got));}}
-    struct Minimum { lng operator()(lng a, lng b) const { return std::min(a, b); } };
-    struct Maximum { lng operator()(lng a, lng b) const { return std::max(a, b); } };
-    struct Add { lng operator()(lng a, lng b) const { return a + b; } };
-    struct Join { string operator()(const string &a, const string &b) const { return a + b; } };
-    using Table = SparseTable<lng, Minimum>;
+    // Semigroups with S and op only: the tables never call e.
+    struct Minimum { using S = lng; static S op(S a, S b) { return std::min(a, b); } };
+    struct Maximum { using S = lng; static S op(S a, S b) { return std::max(a, b); } };
+    struct Add { using S = lng; static S op(S a, S b) { return a + b; } };
+    struct Join { using S = string; static S op(const S &a, const S &b) { return a + b; } };
+    using Table = SparseTable<Minimum>;
 
     void numeric(const vector<lng> &a, bool sums = true) {
         int n = int(a.size()); context = "array=" + show(a);
-        Table t(a, Minimum{}); SparseTable mx(a, Maximum{});
-        SparseTable sum(a, Add{});
+        Table t(a); SparseTable<Maximum> mx(a);
+        SparseTable<Add> sum(a);
         checkEqual(t.n, n, "size"); checkEqual(t.h, int(std::bit_width(uint(n))), "height");
         for (int l = 0; l < n; ++l) {
             lng low = a[l], high = a[l], total = 0;
             for (int r = l + 1; r <= n; ++r) {
                 low = std::min(low, a[r - 1]); high = std::max(high, a[r - 1]);
                 string range = "(" + show(l) + "," + show(r) + ")";
-                checkEqual(t.query(l, r), low, "query" + range);
-                checkEqual(t.fold(l, r), low, "fold" + range);
-                checkEqual(mx.query(l, r), high, "maximum query" + range);
+                checkEqual(t.prod(l, r), low, "prod" + range);
+                checkEqual(t.associativeProd(l, r), low, "associativeProd" + range);
+                checkEqual(mx.prod(l, r), high, "maximum prod" + range);
                 if (sums) {
                     total += a[r - 1];
-                    checkEqual(sum.fold(l, r), total, "associative sum fold" + range);}}}
+                    checkEqual(sum.associativeProd(l, r), total, "associative sum associativeProd" + range);}}}
         Table copied = t, moved = std::move(copied);
-        if (n) { checkEqual(moved.query(0, n), *std::min_element(a.begin(), a.end()), "copy/move"); }
+        if (n) { checkEqual(moved.prod(0, n), *std::min_element(a.begin(), a.end()), "copy/move"); }
         else {
             std::ostringstream s; s << t;
             checkEqual(s.str(), string("[]"), "empty output");}
@@ -75,9 +76,9 @@ namespace {
             numeric(a);
             if (n) {
                 context = "trial=" + show(trial) + " original=" + show(a);
-                Table t(a, Minimum{}); lng low = *std::min_element(a.begin(), a.end());
+                Table t(a); lng low = *std::min_element(a.begin(), a.end());
                 a.assign(n, 7000000001LL);
-                checkEqual(t.query(0, n), low, "input ownership");}}
+                checkEqual(t.prod(0, n), low, "input ownership");}}
         for (int n : {1, 2, 3, 4, 7, 8, 9, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128, 129}) {
             vector<lng> a(n); std::iota(a.begin(), a.end(), lng(-n)); numeric(a);
             std::reverse(a.begin(), a.end()); numeric(a);}
@@ -88,7 +89,8 @@ namespace {
         int eval(int x) const { return (a * x + b) % 97; }
     };
     struct Compose {
-        Affine operator()(Affine x, Affine y) const { return {y.a * x.a % 97, (y.a * x.b + y.b) % 97}; }
+        using S = Affine;
+        static S op(Affine x, Affine y) { return {y.a * x.a % 97, (y.a * x.b + y.b) % 97}; }
     };
     struct Ends {
         int first, last;
@@ -96,12 +98,12 @@ namespace {
         Ends(int first, int last) : first(first), last(last) {}
     };
     // Rectangular band: associative/idempotent, explicitly noncommutative.
-    struct Band { Ends operator()(Ends a, Ends b) const { return Ends(a.first, b.last); } };
-    struct CopyOnlyMin {
-        CopyOnlyMin() = default;
-        CopyOnlyMin(const CopyOnlyMin &) = default;
-        CopyOnlyMin(CopyOnlyMin &&) = delete;
-        int operator()(int a, int b) const { return std::min(a, b); }
+    struct Band { using S = Ends; static S op(Ends a, Ends b) { return Ends(a.first, b.last); } };
+    // Runtime state: index of the leftmost smallest key in a caller's array (idempotent, associative).
+    struct ArgminByKey {
+        vector<lng> key;
+        using S = int;
+        S op(S i, S j) const { return key[j] < key[i] || (key[j] == key[i] && j < i) ? j : i; }
     };
 
     void noncommutative(std::mt19937_64 &rng) {
@@ -112,40 +114,48 @@ namespace {
             for (int i = 0; i < n; ++i) {
                 a[i] = string(1, char('a' + rng() % 5)); affine[i] = {int(rng() % 97), int(rng() % 97)};
                 ends.emplace_back(i, n - i);}
-            SparseTable text(a, Join{}); SparseTable composed(affine, Compose{}); SparseTable band(ends, Band{});
+            SparseTable<Join> text(a); SparseTable<Compose> composed(affine); SparseTable<Band> band(ends);
             context = "trial=" + show(trial) + " strings=" + show(a);
             for (int l = 0; l < n; ++l) {
                 string joined;
                 for (int r = l + 1; r <= n; ++r) {
                     joined += a[r - 1]; string range = "(" + show(l) + "," + show(r) + ")";
-                    checkEqual(text.fold(l, r), joined, "ordered concatenation" + range);
+                    checkEqual(text.associativeProd(l, r), joined, "ordered concatenation" + range);
                     for (int x = 0; x < 3; ++x) {
                         int result = x;
                         for (int i = l; i < r; ++i) { result = affine[i].eval(result); }
-                        checkEqual(composed.fold(l, r).eval(x), result, "affine fold" + range + " x=" + show(x));}
-                    checkEqual(band.query(l, r).first, l, "idempotent noncommutative first" + range);
-                    checkEqual(band.query(l, r).last, n - r + 1, "idempotent noncommutative last" + range);
-                    checkEqual(band.fold(l, r).first, l, "nondefault payload fold first" + range);
-                    checkEqual(band.fold(l, r).last, n - r + 1, "nondefault payload fold last" + range);}}}
-        context = "copy-only legacy callable";
-        CopyOnlyMin f;
-        SparseTable copied(vector<int>{3, 1, 2}, f);
-        checkEqual(copied.query(0, 3), 1, "copy-only callable construction/query");
-        std::cout << "PASS strings/affine and idempotent noncommutative generic payloads\n";}
+                        checkEqual(composed.associativeProd(l, r).eval(x), result, "affine associativeProd" + range + " x=" + show(x));}
+                    checkEqual(band.prod(l, r).first, l, "idempotent noncommutative first" + range);
+                    checkEqual(band.prod(l, r).last, n - r + 1, "idempotent noncommutative last" + range);
+                    checkEqual(band.associativeProd(l, r).first, l, "nondefault payload associativeProd first" + range);
+                    checkEqual(band.associativeProd(l, r).last, n - r + 1, "nondefault payload associativeProd last" + range);}}}
+        for (int trial = 0; trial < rounds; ++trial) {
+            int n = 1 + int(rng() % 45);
+            vector<lng> key(n); vector<int> ids(n);
+            for (int i = 0; i < n; ++i) { key[i] = lng(rng() % 7); ids[i] = i; }
+            SparseTable arg(ids, ArgminByKey{key});
+            context = "stateful argmin keys=" + show(key);
+            for (int l = 0; l < n; ++l) {
+                int best = l;
+                for (int r = l + 1; r <= n; ++r) {
+                    if (key[r - 1] < key[best]) { best = r - 1; }
+                    checkEqual(arg.prod(l, r), best, "stateful prod(" + show(l) + "," + show(r) + ")");
+                    checkEqual(arg.associativeProd(l, r), best, "stateful associativeProd(" + show(l) + "," + show(r) + ")");}}}
+        std::cout << "PASS strings/affine, idempotent noncommutative generic payloads and stateful monoid\n";}
 
-    struct Gcd { lng operator()(lng a, lng b) const { return std::gcd(a, b); } };
+    struct Gcd { using S = lng; static S op(S a, S b) { return std::gcd(a, b); } };
     struct Cell {
         lng x;
         Cell() = delete;
         explicit Cell(lng x) : x(x) {}
     };
-    struct CellMin { Cell operator()(const Cell &a, const Cell &b) const { return a.x < b.x ? a : b; } };
+    struct CellMin { using S = Cell; static S op(const Cell &a, const Cell &b) { return a.x < b.x ? a : b; } };
 
     void grid(const vector<vector<lng>> &a) {
         int n = int(a.size()), m = n ? int(a[0].size()) : 0;
         context = "grid=" + show(a);
-        SparseTable2D low(a, Minimum{}); SparseTable2D high(a, Maximum{}); SparseTable2D div(a, Gcd{});
-        checkEqual(low.n, n, "2D rows"); checkEqual(low.m, m, "2D columns");
+        SparseTable2D<Minimum> low(a); SparseTable2D<Maximum> high(a); SparseTable2D<Gcd> div(a);
+        checkEqual(low.rows, n, "2D rows"); checkEqual(low.cols, m, "2D columns");
         for (int x1 = 0; x1 < n; ++x1) {
             vector<lng> mn(a[x1]), mx(a[x1]), g(a[x1]);
             for (int x2 = x1 + 1; x2 <= n; ++x2) {
@@ -157,11 +167,11 @@ namespace {
                     for (int y2 = y1 + 1; y2 <= m; ++y2) {
                         lo = std::min(lo, mn[y2 - 1]); hi = std::max(hi, mx[y2 - 1]); d = std::gcd(d, g[y2 - 1]);
                         string rect = "[" + show(x1) + "," + show(x2) + ")x[" + show(y1) + "," + show(y2) + ")";
-                        checkEqual(low.query(x1, y1, x2, y2), lo, "2D min" + rect);
-                        checkEqual(high.query(x1, y1, x2, y2), hi, "2D max" + rect);
-                        checkEqual(div.query(x1, y1, x2, y2), d, "2D gcd" + rect);}}}}
+                        checkEqual(low.prod(x1, y1, x2, y2), lo, "2D min" + rect);
+                        checkEqual(high.prod(x1, y1, x2, y2), hi, "2D max" + rect);
+                        checkEqual(div.prod(x1, y1, x2, y2), d, "2D gcd" + rect);}}}}
         SparseTable2D copied = low, moved = std::move(copied);
-        if (n && m) { checkEqual(moved.query(0, 0, n, m), low.query(0, 0, n, m), "2D copy/move"); }}
+        if (n && m) { checkEqual(moved.prod(0, 0, n, m), low.prod(0, 0, n, m), "2D copy/move"); }}
 
     void grids(std::mt19937_64 &rng) {
         int cells = mode == "quick" ? 4 : mode == "full" ? 8 : 9;
@@ -179,45 +189,46 @@ namespace {
             vector<vector<lng>> a(n, vector<lng>(m));
             for (auto &row : a) { for (lng &v : row) { v = lng(rng() % 2000000001) - 1000000000; }}
             grid(a);
-            SparseTable2D t(a, Minimum{}); lng low = a[0][0];
+            SparseTable2D<Minimum> t(a); lng low = a[0][0];
             for (const auto &row : a) { low = std::min(low, *std::min_element(row.begin(), row.end())); }
             for (auto &row : a) { fill(row.begin(), row.end(), 7000000001LL); }
-            checkEqual(t.query(0, 0, n, m), low, "2D input ownership");}
+            checkEqual(t.prod(0, 0, n, m), low, "2D input ownership");}
         for (auto [n, m] : vector<pair<int, int>>{{1, 1}, {1, 33}, {33, 1}, {8, 9}, {16, 16}, {17, 15}, {2, 64}}) {
             vector<vector<lng>> a(n, vector<lng>(m));
             for (int i = 0; i < n; ++i) { for (int j = 0; j < m; ++j) { a[i][j] = lng((i * 37 + j * 91) % 101) - 50; }}
             grid(a);}
         context = "2D extremes";
         vector<vector<lng>> extreme{{std::numeric_limits<lng>::min(), std::numeric_limits<lng>::max()}, {0, -1}};
-        SparseTable2D extremeLow(extreme, Minimum{}); SparseTable2D extremeHigh(extreme, Maximum{});
-        checkEqual(extremeLow.query(0, 0, 2, 2), std::numeric_limits<lng>::min(), "2D extreme min");
-        checkEqual(extremeHigh.query(0, 0, 2, 2), std::numeric_limits<lng>::max(), "2D extreme max");
-        checkEqual(extremeHigh.query(1, 0, 2, 2), lng(0), "2D extreme row max");
+        SparseTable2D<Minimum> extremeLow(extreme); SparseTable2D<Maximum> extremeHigh(extreme);
+        checkEqual(extremeLow.prod(0, 0, 2, 2), std::numeric_limits<lng>::min(), "2D extreme min");
+        checkEqual(extremeHigh.prod(0, 0, 2, 2), std::numeric_limits<lng>::max(), "2D extreme max");
+        checkEqual(extremeHigh.prod(1, 0, 2, 2), lng(0), "2D extreme row max");
         context = "2D nondefault payload and copy-only callable";
-        SparseTable2D cell(vector<vector<Cell>>{{Cell(5), Cell(2)}, {Cell(4), Cell(9)}}, CellMin{});
-        checkEqual(cell.query(0, 0, 2, 2).x, lng(2), "2D nondefault min"); checkEqual(cell.query(1, 0, 2, 2).x, lng(4), "2D nondefault row");
-        CopyOnlyMin f; SparseTable2D copyOnly(vector<vector<int>>{{3, 1}, {2, 0}}, f);
-        checkEqual(copyOnly.query(0, 0, 1, 2), 1, "2D copy-only callable");
+        SparseTable2D<CellMin> cell(vector<vector<Cell>>{{Cell(5), Cell(2)}, {Cell(4), Cell(9)}});
+        checkEqual(cell.prod(0, 0, 2, 2).x, lng(2), "2D nondefault min"); checkEqual(cell.prod(1, 0, 2, 2).x, lng(4), "2D nondefault row");
+        vector<lng> key{5, 1, 4, 0};
+        SparseTable2D argGrid(vector<vector<int>>{{0, 1}, {2, 3}}, ArgminByKey{key});
+        checkEqual(argGrid.prod(0, 0, 1, 2), 1, "2D stateful row"); checkEqual(argGrid.prod(0, 0, 2, 2), 3, "2D stateful grid");
         std::cout << "PASS 2D exhaustive grids n*m<=" << cells << ", seeded grids, boundaries and generic payloads\n";}
 
     void invalid(const string &name) {
-        Table t(vector<lng>{3, 1, 2}, Minimum{});
-        if (name == "query-empty") { (void)t.query(1, 1); }
-        else if (name == "query-negative") { (void)t.query(-1, 2); }
-        else if (name == "query-end") { (void)t.query(0, 4); }
-        else if (name == "query-reversed") { (void)t.query(2, 1); }
-        else if (name == "fold-empty") { (void)t.fold(0, 0); }
-        else if (name == "fold-negative") { (void)t.fold(-1, 2); }
-        else if (name == "fold-end") { (void)t.fold(0, 4); }
-        else if (name == "fold-reversed") { (void)t.fold(2, 1); }
-        else if (name == "empty-table") { Table e(vector<lng>{}, Minimum{}); (void)e.query(0, 1); }
-        else if (name == "grid-empty-rows") { SparseTable2D g(vector<vector<lng>>{{1, 2}, {3, 4}}, Minimum{}); (void)g.query(1, 0, 1, 2); }
-        else if (name == "grid-empty-columns") { SparseTable2D g(vector<vector<lng>>{{1, 2}, {3, 4}}, Minimum{}); (void)g.query(0, 1, 2, 1); }
-        else if (name == "grid-row-end") { SparseTable2D g(vector<vector<lng>>{{1, 2}, {3, 4}}, Minimum{}); (void)g.query(0, 0, 3, 1); }
-        else if (name == "grid-column-negative") { SparseTable2D g(vector<vector<lng>>{{1, 2}, {3, 4}}, Minimum{}); (void)g.query(0, -1, 1, 1); }
-        else if (name == "grid-ragged-empty-first") { SparseTable2D g(vector<vector<lng>>{{}, {1, 2}}, Minimum{}); }
-        else if (name == "grid-ragged") { SparseTable2D g(vector<vector<lng>>{{1, 2}, {3}}, Minimum{}); }
-        else if (name == "grid-zero-width") { SparseTable2D g(vector<vector<lng>>(2), Minimum{}); (void)g.query(0, 0, 1, 1); }
+        Table t(vector<lng>{3, 1, 2});
+        if (name == "prod-empty") { (void)t.prod(1, 1); }
+        else if (name == "prod-negative") { (void)t.prod(-1, 2); }
+        else if (name == "prod-end") { (void)t.prod(0, 4); }
+        else if (name == "prod-reversed") { (void)t.prod(2, 1); }
+        else if (name == "associative-prod-empty") { (void)t.associativeProd(0, 0); }
+        else if (name == "associative-prod-negative") { (void)t.associativeProd(-1, 2); }
+        else if (name == "associative-prod-end") { (void)t.associativeProd(0, 4); }
+        else if (name == "associative-prod-reversed") { (void)t.associativeProd(2, 1); }
+        else if (name == "empty-table") { Table e(vector<lng>{}); (void)e.prod(0, 1); }
+        else if (name == "grid-empty-rows") { SparseTable2D<Minimum> g(vector<vector<lng>>{{1, 2}, {3, 4}}); (void)g.prod(1, 0, 1, 2); }
+        else if (name == "grid-empty-columns") { SparseTable2D<Minimum> g(vector<vector<lng>>{{1, 2}, {3, 4}}); (void)g.prod(0, 1, 2, 1); }
+        else if (name == "grid-row-end") { SparseTable2D<Minimum> g(vector<vector<lng>>{{1, 2}, {3, 4}}); (void)g.prod(0, 0, 3, 1); }
+        else if (name == "grid-column-negative") { SparseTable2D<Minimum> g(vector<vector<lng>>{{1, 2}, {3, 4}}); (void)g.prod(0, -1, 1, 1); }
+        else if (name == "grid-ragged-empty-first") { SparseTable2D<Minimum> g(vector<vector<lng>>{{}, {1, 2}}); }
+        else if (name == "grid-ragged") { SparseTable2D<Minimum> g(vector<vector<lng>>{{1, 2}, {3}}); }
+        else if (name == "grid-zero-width") { SparseTable2D<Minimum> g(vector<vector<lng>>(2)); (void)g.prod(0, 0, 1, 1); }
         else { throw std::runtime_error("unknown invalid probe " + name); }
         throw std::runtime_error("invalid precondition survived " + name);}
 } // namespace

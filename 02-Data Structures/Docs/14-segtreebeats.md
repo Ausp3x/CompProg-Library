@@ -30,7 +30,7 @@ Package P028 (batch DS07). Replaces the unchanged extraction `SegTreeBeats` (`OL
 
 ### LazySegmentTreeBeats<A> and the BeatsMonoid contract
 
-- A BeatsMonoid is an acted monoid in the sense of [12-lazysegmenttree.md](12-lazysegmenttree.md#acted-monoid-contract-00-monoidshpp) (`S`, `F`, `op`, `e`, `mapping`, `composition` = new after old, `id`) plus `static bool fail(const S &)`. `mapping(f, x)` may return a value with `fail` true when it cannot summarize a node of two or more elements; the tree then composes `f` into the node's tag, pushes it to the children and recomputes the node. Requirements: `mapping` never fails on a single element or on `e()`, `mapping(id(), x)` never fails, and the failed value is discarded.
+- A BeatsMonoid is an acted monoid in the sense of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp) (`S`, `F`, `op`, `e`, `mapping`, `composition` = new after old, `id`) plus `fail(const S &)` (static or a `const` member), stored as `m` and passed last (`LazySegmentTreeBeats(N = 0, mon = {})`, `LazySegmentTreeBeats(vector<S>, mon = {})`). `mapping(f, x)` may return a value with `fail` true when it cannot summarize a node of two or more elements; the tree then composes `f` into the node's tag, pushes it to the children and recomputes the node. Requirements: `mapping` never fails on a single element or on `e()`, `mapping(id(), x)` never fails, and the failed value is discarded.
 - `0 <= n <= 2^29`; `get`, `set`, `apply(l, r, f)`, `prod`, `allProd`; ACL iterative layout. Each operation costs O(log n) plus O(1) per failed node; the total number of failures is the preset's amortized bound. Searches (`maxRight`, `minLeft`) are omitted.
 
 ### RangeAndOrRangeSumMax<T>
@@ -52,6 +52,7 @@ Tester `96-Local Testing/02-Data Structures/14-segtreebeats_tester.cpp`, entry `
 | HistoricSegTree `addUpdate`, `tick`, every query | `historicRun` | Per-element current, maximum, minimum and summed history |
 | LazySegmentTreeBeats `get`, `set`, `apply`, `prod`, `allProd`; `RangeAndOrRangeSumMax` with `andWith`, `orWith`, `assign`, `leaf` for `ulng` (64 bits), `uint` (5 bits) and nonnegative `lng` (7 bits) | `andOrRun` | Vector of words; sum modulo 2^w and max |
 | BeatsMonoid failure path on a second preset | `chminGenericRun` | Tester-local chmin/sum/max monoid failing at the second maximum, against a vector |
+| Runtime monoid state | `statefulGenericRun` | Affine sums modulo a member modulus (7, 998244353 or 10^9+7) in a never-failing stateful BeatsMonoid, against a vector |
 | Tree without failures | `affineGenericRun` | `RangeAffineRangeSum` with `fail` false, against a vector |
 | Preconditions | `invalid` | 24 probes: negative and oversize sizes, reversed and out-of-range ranges for every update and query (including `divideUpdate` with `q = 1`), `q = 0`, `m = 0`, chmin and chmax with the `lng min` sentinel, sqrt and mod on negative values, historic and generic variants |
 
@@ -59,16 +60,23 @@ Sizes 0–100 in full mode (plus 257 and 1000 in stress), 1500 steps per family 
 
 ## Commands and results
 
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+
+| Command | Result |
+|---|---|
+| `14-segtreebeats_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 1,947,073 checks per configuration, 24 assertion probes, MEMORY peak 542 MB |
+| `CXX=g++-14 14-segtreebeats_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 1,947,073 checks per configuration, MEMORY peak 566 MB |
+| `14-segtreebeats_tester.py --mode stress --seed 7` | PASS, 9,632,205 checks per configuration, MEMORY peak 541 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
+
 ```bash
-python3 '96-Local Testing/02-Data Structures/14-segtreebeats_tester.py' --mode full --seed 20261010
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/14-segtreebeats_tester.py' --mode full --seed 20261010
-python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/14' --no-integration
+python3 '96-Local Testing/02-Data Structures/14-segtreebeats_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/14-segtreebeats_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/02-Data Structures/14-segtreebeats_tester.py' --mode stress --seed 7
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
-python3 '96-Local Testing/02-Data Structures/14-segtreebeats_benchmark.py'
 ```
-
-Final run 2026-10-10 (after the review fixes): full mode seed 20261010 passed on GCC 16.2 and GCC 14.4.1 (`CXX=g++-14`) with 1,924,561 checks per configuration and 24 assertion probes, MEMORY peak 503 MB and 538 MB; stress mode seed 7 (one round) passed all three configurations with 9,530,275 checks per configuration, MEMORY peak 503 MB. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20 with `-Wall -Wextra -Wconversion -Werror`, CPython 3.14, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`) and ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined`) builds. MEMORY peaks are dominated by compilation. `02-integration.py --sanitizers` passed (112 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 2693 MB), and a separate two-unit probe instantiating `SegTreeBeats`, `HistoricSegTree`, `SegmentTree2DDense`, `SWAGQueue`, `SWAGDeque` and `MergeSortTree` in both units linked and ran. `03-consistency.py` cannot run inside this worktree (seven gitignored binaries under `OLD/` and one benchmark log exist only in the main checkout); on a copy with those files restored after rebasing onto master (97ed2db) it reported no errors, and the four suites passed quick mode again.
 
 ## Benchmarks
 
@@ -105,3 +113,4 @@ Fetched 2026-10-10 by the completeness sweep ([00-sources.md](00-sources.md)); J
 
 - 2026-10-10: P028 first verification; legacy `SegTreeBeats` replaced (half-open ranges, shared max/min sides, no assignment tag, value-domain updates, historic and generic trees added).
 - 2026-10-10: independent review (P028): no wrong answers in the domain; fixed a walk that never ended for chmin/chmax with the `lng min` sentinel (entry assert plus leaf guard), the skipped range assert for `q = 1`, and the node size in this document.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 542/566/541 MB.

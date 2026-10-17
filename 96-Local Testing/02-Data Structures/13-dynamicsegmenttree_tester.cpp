@@ -24,7 +24,7 @@ namespace {
         if (mode == "quick") { u = {{0, 1}, {-7, 9}, {lng(-1) << 61, lng(1) << 61}}; }
         return u;}
 
-    struct Sum {
+    struct SumSpec {
         using M = RangeAddRangeSum<lng>;
         using K = tuple<lng, lng>;
         static M::S leaf(Rng &rng, K &k) { lng v = rnd(rng, -9, 9); k = {v, 1}; return M::leaf(v); }
@@ -35,7 +35,7 @@ namespace {
         static bool small(const K &k) { return std::abs(std::get<0>(k)) <= 1000000 && std::get<1>(k) <= 1000000; }
     };
     struct Composite {
-        using M = RangeSetRangeComposite<mint>;
+        using M = RangeAssignRangeComposite<mint>;
         using K = tuple<lng, lng, lng>;
         static M::S leaf(Rng &rng, K &k) { lng a = rnd(rng, 0, P - 1), b = rnd(rng, 0, P - 1); k = {a, b, 1}; return M::leaf(mint(a), mint(b)); }
         static K key(const M::S &s) { return {lng(s.a.val()), lng(s.b.val()), s.len}; }
@@ -179,7 +179,7 @@ namespace {
         std::cout << "PASS persistent path copying keeps every version\n";}
 
     void lazySmall(Rng &rng) {
-        using A = RangeAffineRangeMinMaxArg<lng>;
+        using A = RangeAffineRangeSumMinMaxIndex<lng>;
         using S = A::S;
         for (auto [lo, hi] : universes()) {
             if (hi - lo > 100) { continue; }
@@ -287,7 +287,7 @@ namespace {
         std::cout << "PASS DynamicLazySegmentTree on a 2^41 universe\n";}
 
     void lazyCompositeWide(Rng &rng) {
-        using A = RangeSetRangeComposite<mint>;
+        using A = RangeAssignRangeComposite<mint>;
         using K = Composite::K;
         auto power = [](K p, lng k) {
             K res = Composite::e();
@@ -320,7 +320,7 @@ namespace {
                 string at = "step=" + show(step) + " l=" + show(l) + " r=" + show(r);
                 if (step == 0 || rng() % 2) {
                     lng a = rnd(rng, 0, P - 1), b = rnd(rng, 0, P - 1);
-                    t.apply(l, r, {true, mint(a), mint(b)});
+                    t.apply(l, r, A::assign(mint(a), mint(b)));
                     if (l < r) {
                         cut(l); cut(r);
                         piece.erase(piece.lower_bound(l), piece.lower_bound(r));
@@ -363,6 +363,45 @@ namespace {
                         checkEqual(pair<lng, lng>(g.a.val(), g.b.val()), val[segOf(i + 1) - 1], "step=" + show(step) + " sweep get(" + show(i) + ")");}}}
             checkEqual(t.nodeCount() <= 4 * 64 * q + 1, true, "node count bounded");}
         std::cout << "PASS DynamicDualSegmentTree\n";}
+
+    // Runtime state in all three trees: sums and affine maps modulo a modulus chosen per round.
+    struct ModSum { lng mod; using S = lng; S op(S a, S b) const { return (a + b) % mod; } S e() const { return 0; } };
+    struct ModAffine {
+        lng mod;
+        struct S { lng sum, len; };
+        struct F { lng a, b; };
+        S op(const S &x, const S &y) const { return {(x.sum + y.sum) % mod, x.len + y.len}; }
+        S e() const { return {0, 0}; }
+        S mapping(const F &f, const S &x) const { return {lng((lll(f.a) * x.sum + lll(f.b) * x.len) % mod), x.len}; }
+        F composition(const F &f, const F &g) const { return {lng(lll(f.a) * g.a % mod), lng((lll(f.a) * g.b + f.b) % mod)}; }
+        F id() const { return {1, 0}; }
+    };
+    void stateful(Rng &rng) {
+        int rounds = mode == "quick" ? 4 : mode == "full" ? 24 : 80;
+        for (int round = 0; round < rounds; ++round) {
+            lng mod = array<lng, 4>{2, 97, 998244353, 1000000007}[round % 4], lo = -40, hi = 41;
+            context = "stateful mod=" + show(mod) + " round=" + show(round);
+            DynamicSegmentTree<ModSum> t(lo, hi, ModSum{mod});
+            DynamicLazySegmentTree z(lo, hi, [](lng l, lng r) { return ModAffine::S{0, r - l}; }, ModAffine{mod});
+            DynamicDualSegmentTree d(lo, hi, MonoidAction{Monoid{lng(0), [mod](lng x, lng y) { return (x + y) % mod; }}});
+            vector<lng> a(hi - lo, 0), b(hi - lo, 0), c(hi - lo, 0);
+            int root = 0;
+            for (int step = 0; step < steps(); ++step) {
+                lng i = rnd(rng, lo, hi - 1), x = rnd(rng, 0, mod - 1), y = rnd(rng, 0, mod - 1), l = rnd(rng, lo, hi), r = rnd(rng, lo, hi);
+                if (l > r) { swap(l, r); }
+                if (rng() % 2) { root = t.set(root, i, x); a[i - lo] = x; }
+                else { root = t.apply(root, i, x); a[i - lo] = (a[i - lo] + x) % mod; }
+                z.apply(l, r, {x, y});
+                for (lng k = l; k < r; ++k) { b[k - lo] = lng((lll(x) * b[k - lo] + y) % mod); }
+                d.apply(l, r, x);
+                for (lng k = l; k < r; ++k) { c[k - lo] = (c[k - lo] + x) % mod; }
+                lng want = 0, lazy = 0;
+                for (lng k = l; k < r; ++k) { want = (want + a[k - lo]) % mod; lazy = (lazy + b[k - lo]) % mod; }
+                checkEqual(t.prod(root, l, r), want, "step=" + show(step) + " plain prod");
+                checkEqual(z.prod(l, r).sum, lazy, "step=" + show(step) + " lazy prod");
+                checkEqual(z.get(i).sum, b[i - lo], "step=" + show(step) + " lazy get");
+                checkEqual(d.get(i), c[i - lo], "step=" + show(step) + " dual get");}}
+        std::cout << "PASS stateful monoids in the dynamic, lazy and dual trees\n";}
 
     void invalid(const string &name) {
         using M = RangeAddRangeSum<lng>;
@@ -413,12 +452,13 @@ int main(int argc, char **argv) {
         std::cout << "dynamicsegmenttree seed=" << seed << " mode=" << mode << '\n';
         if (!probe.empty()) { invalid(probe); }
         Rng rng(seed);
-        plain<Sum>(rng, "sum");
+        plain<SumSpec>(rng, "sum");
         plain<Composite>(rng, "composite");
         persistent(rng);
         lazySmall(rng);
         lazyLarge(rng);
         lazyCompositeWide(rng);
         dual(rng);
+        stateful(rng);
         std::cout << "PASS dynamicsegmenttree checks=" << checks << '\n'; return 0;} catch (const std::exception &e) {
         std::cerr << "FAIL dynamicsegmenttree seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1;}}

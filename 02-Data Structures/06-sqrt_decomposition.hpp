@@ -2,46 +2,45 @@
 
 #include "../01-Core/01-template.hpp"
 
-// 0 <= n <= INT_MAX; f is associative with two-sided identity id; B = 0 picks block width m = max(1, floor(sqrt(n))).
-// S: O(n), U: O(m), Q: O(m + n / m), M: O(n + 1)
-template<typename T, typename F = std::plus<T>>
+// 0 <= n <= INT_MAX; M is a monoid (S, op, e); B = 0 picks block width k = max(1, floor(sqrt(n))).
+// S: O(n), U: O(k), Q: O(k + n / k), M: O(n + 1)
+template<typename M>
 struct SqrtDecomp {
-    int n = 0, m = 1;
-    vector<T> v, blks;
-    T id;
-    F f;
+    using S = typename M::S;
+    [[no_unique_address]] M m;
+    int n = 0, width = 1;
+    vector<S> v, blks;
 
-    explicit SqrtDecomp(int N = 0, int B = 0, T id = T{}, F f = F{}) : id(std::move(id)), f(std::move(f)) {
-        assert(N >= 0); rebuild(vector<T>(N, this->id), B);}
-    explicit SqrtDecomp(vector<T> a, int B = 0, T id = T{}, F f = F{}) : id(std::move(id)), f(std::move(f)) { rebuild(std::move(a), B); }
-    SqrtDecomp(std::initializer_list<T> a, int B = 0, T id = T{}, F f = F{}) : SqrtDecomp(vector<T>(a), B, std::move(id), std::move(f)) {}
-    void rebuild(vector<T> a, int B = 0) {
+    explicit SqrtDecomp(int N = 0, int B = 0, M mon = {}) : m(std::move(mon)) { assert(N >= 0); rebuild(vector<S>(max(N, 0), m.e()), B); }
+    explicit SqrtDecomp(vector<S> a, int B = 0, M mon = {}) : m(std::move(mon)) { rebuild(std::move(a), B); }
+    SqrtDecomp(std::initializer_list<S> a, int B = 0, M mon = {}) : SqrtDecomp(vector<S>(a), B, std::move(mon)) {}
+    void rebuild(vector<S> a, int B = 0) {
         assert(a.size() <= size_t(INT_MAX) && B >= 0);
-        n = int(a.size()); m = B ? B : max(1, int(std::sqrt(n))); v = std::move(a);
-        blks.assign(n / m + (n % m != 0), id);
+        n = int(a.size()); width = B ? B : max(1, int(std::sqrt(n))); v = std::move(a);
+        blks.assign(n / width + (n % width != 0), m.e());
         for (int bi = 0; bi < int(blks.size()); ++bi) { pull(bi); }}
 
     // Q: O(1) for get, O(n) for values.
-    typename vector<T>::const_reference get(int i) const { assert(0 <= i && i < n); return v[i]; }
-    vector<T> values() const { return v; }
+    typename vector<S>::const_reference get(int i) const { assert(0 <= i && i < n); return v[i]; }
+    vector<S> values() const { return v; }
 
-    void set(int i, T x) { assert(0 <= i && i < n); v[i] = std::move(x); pull(i / m); }
-    void opeUpdate(int i, T x) { assert(0 <= i && i < n); v[i] = f(v[i], x); pull(i / m); }
+    void set(int i, S x) { assert(0 <= i && i < n); v[i] = std::move(x); pull(i / width); }
+    void apply(int i, S x) { assert(0 <= i && i < n); v[i] = m.op(v[i], x); pull(i / width); }
 
-    T query(int l, int r) const {
+    S prod(int l, int r) const {
         assert(0 <= l && l <= r && r <= n);
-        T res = id;
+        S res = m.e();
         while (l < r) {
-            int bi = l / m, start = bi * m, end = start + min(m, n - start), stop = min(r, end);
-            if (l == start && stop == end) { res = f(res, blks[bi]); }
+            int bi = l / width, start = bi * width, end = start + min(width, n - start), stop = min(r, end);
+            if (l == start && stop == end) { res = m.op(res, blks[bi]); }
             else {
-                for (int i = l; i < stop; ++i) { res = f(res, v[i]); }}
+                for (int i = l; i < stop; ++i) { res = m.op(res, v[i]); }}
             l = stop;}
         return res;}
 
     void pull(int bi) {
-        int l = bi * m, r = l + min(m, n - l); blks[bi] = id;
-        for (int i = l; i < r; ++i) { blks[bi] = f(blks[bi], v[i]); }}
+        int l = bi * width, r = l + min(width, n - l); blks[bi] = m.e();
+        for (int i = l; i < r; ++i) { blks[bi] = m.op(blks[bi], v[i]); }}
 };
 
 // T is a commutative ring with T(0), T(1), T(length) and ==; affine(l, r, a, b) maps x to a * x + b after pending tags.

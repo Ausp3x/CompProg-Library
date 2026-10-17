@@ -28,9 +28,9 @@ Dense `n x m` (`n x m x h`) tables, flat storage, `n * m (* h) <= INT_MAX` (the 
 
 Construction takes the point universe `vector<pair<lng, lng>>` (duplicates allowed); `add(x, y, w)` asserts `(x, y)` is a registered point once at entry (registration in the first column implies every ancestor column); `sum(x1, y1, x2, y2)` and `prefixSum(x, y)` accept any `lng` bounds. Each Fenwick node over the distinct `x` values holds the sorted distinct `y` values of the points it covers (built from the points sorted by `y`, so no per-node sort); storage is `O(n log n)`, operations `O(log^2 n)`. `T` is a commutative group.
 
-### FenwickPrefixMonoid<T, F>
+### FenwickPrefixMonoid<M>
 
-`f` is associative and commutative with identity `id`. `apply(i, x)` sets `a[i] = f(a[i], x)` (point combine, never overwrite); `prefix(r)` folds `[0, r)`. Max/min, gcd, bitwise or, products of units: anything commutative. No range query and no inverse. Size and vector constructors.
+`M` is a commutative monoid (`S`, `op`, `e`) under the stored-object contract of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp), kept as `m` and passed last as `mon = {}` (`FenwickPrefixMonoid(N = 0, mon = {})`, `FenwickPrefixMonoid(vector<S>, mon = {})`; formerly `<T, F>` with `(id, f)`). `apply(i, x)` sets `a[i] = op(a[i], x)` (point combine, never overwrite); `prefix(r)` folds `[0, r)`. Max/min, gcd, bitwise or, saturating sums, products of units: anything commutative. No range query and no inverse.
 
 ### Fenwick01 (alias FenwickSet)
 
@@ -53,7 +53,7 @@ Tester `96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.cpp`
 | FenwickRangeAdd `add`, `update` (suffix add, `i` in `[0, n]`), `sum`, `prefixSum`, `get`, vector build; DualFenwick `add`, `update` (suffix add, `i` in `[0, n]`), `get`, vector build; FenwickRangeArithmeticAdd `addProgression`, `add`, `update` (raw coefficients, `i` in `[0, n]`), `sum`, `prefixSum`, `get`, vector build | `rangeAdd<lng>`, `rangeAdd<mint>` | Plain vectors updated element by element (`a[i] += x + s * (i - l)`; `update(i, x)` adds `x` to `a[i..n)` and `b[i..n)`; the arithmetic `update(i, a, b, c)` adds `P(j + 1) - P(j)` to `c[j]` with `P(r) = a + b * r + c * r(r-1)/2` for `r > i`, else 0) with zero, negative and positive values, adds and differences (shifted only for `mint`), every prefix and point re-read for `n <= 17` and every 50 steps; sizes 0–100 (513 in stress) |
 | Fenwick2D `add`, `sum`, `prefixSum`, `get`, matrix build; Fenwick2DRangeAdd `add`, `sum`, `prefixSum`; Fenwick3D `add`, `sum`, `prefixSum`, `get`, box build | `grids` | Dense matrices/boxes with brute rectangle and box sums; dimensions include `0 x 3`, `3 x 0`, `1 x 1`, `32 x 33`, `16 x 3 x 17` |
 | CompressedFenwick2D `add`, `sum`, `prefixSum` | `compressed` | `map<point, weight>` scanned per query; coordinate spans 4, 1000 and 1e18 with negative values, duplicate registered points, unregistered query bounds |
-| FenwickPrefixMonoid `apply`, `prefix`, vector build | `prefixMonoid` | Max (identity `INT64_MIN`) and gcd folds recomputed by scanning |
+| FenwickPrefixMonoid `apply`, `prefix`, size and vector builds | `prefixMonoid` | `Max<lng>` (identity `INT64_MIN`), gcd through `Monoid`, and a stateful `CappedSum{cap}` (sum saturated at a runtime cap) recomputed by scanning |
 | Fenwick01 `get`, `size`, `add`, `insert`, `erase`, `rank`, `sum`, `kth`, `next`, `prev`, vector<bool> build; alias `FenwickSet` | `bitset01` | Sorted element vector with `lower_bound`/`upper_bound`; `n` in {0, 1, 2, 63, 64, 65, 127, 128, 129, 200, 1000, 4096, 20000 (stress)}, densities empty/sparse/half/full |
 | Preconditions | `invalid` probes | 37 probes: negative sizes, `update` at `-1` and `n + 1` on `FenwickRangeAdd`, `DualFenwick` and `FenwickRangeArithmeticAdd`, oversize grid and box, reversed or out-of-range ranges, ragged matrix rows, unregistered compressed points, double insert/remove, `kth(-1)` |
 
@@ -61,17 +61,23 @@ Quick: 6 sizes, 150 steps, no sanitizer build. Full: 14 sizes, 1500 steps, three
 
 ## Commands and results
 
-P027 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H.
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+
+| Command | Result |
+|---|---|
+| `11-fenwick_tree_advanced_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 2,044,911 checks per configuration, 37 assertion probes, MEMORY peak 551 MB |
+| `CXX=g++-14 11-fenwick_tree_advanced_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 2,044,911 checks per configuration, MEMORY peak 551 MB |
+| `11-fenwick_tree_advanced_tester.py --mode stress --seed 7` | PASS, 6,553,341 checks per configuration, MEMORY peak 551 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
 
 ```bash
-python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode full --seed 1
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode full --seed 1
-python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
-python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/11-fenwick_tree_advanced.hpp' '96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.cpp'
 ```
-
-Full, seed 1: PASS in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the 37 assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, all with `-Wall -Wextra -Wconversion -Werror`, 2,024,085 checks per configuration, peak 549 MB on g++ and 548 MB on g++-14. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
 
 ## Sources
 
@@ -99,3 +105,4 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 - 2026-10-08: P027 re-audit pass (second session): formulas and builds reconfirmed; the `CompressedFenwick2D::add` registration assert moved out of the per-level loop and the `Fenwick01` `vector<bool>` constructor got its own `O(n)` comment (style findings only).
 - 2026-10-12: re-audit fix: `update` on `FenwickRangeAdd`, `DualFenwick` and `FenwickRangeArithmeticAdd` asserts `0 <= i <= n`, with direct oracle tests and 6 new probes; full suite passed on g++ and g++-14.
 - 2026-10-13: prune, removed `Fenwick01::contains` (its checks were the `get` checks on the same inputs); full suite passed on g++ and g++-14.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 551/551/551 MB.

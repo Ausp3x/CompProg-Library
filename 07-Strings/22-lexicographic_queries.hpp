@@ -1,5 +1,6 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
+#include "../02-Data Structures/00-monoids.hpp"
 #include "../02-Data Structures/04-sparsetable.hpp"
 #include "07-suffixarray.hpp"
 #include "14-lyndon.hpp"
@@ -194,12 +195,12 @@ template<class T> pair<int, int> occurrenceRange(const SuffixArray<T> &sa, int l
     int p = sa.rank[l], len = r - l, a = -1, b = p;
     while (b - a > 1) {
         int mid = std::midpoint(a, b);
-        (sa.rmq.query(mid, p) >= len ? b : a) = mid;}
+        (sa.rmq.prod(mid, p) >= len ? b : a) = mid;}
     int lo = b;
     a = p; b = n;
     while (b - a > 1) {
         int mid = std::midpoint(a, b);
-        (sa.rmq.query(p, mid) >= len ? a : b) = mid;}
+        (sa.rmq.prod(p, mid) >= len ? a : b) = mid;}
     return {lo, a + 1};}
 // T: O(log(n + 1)), M: O(1); occurrences of s[l, r) as a substring, overlaps included; n + 1 for the empty range.
 template<class T> int occurrenceCount(const SuffixArray<T> &sa, int l, int r) {
@@ -225,16 +226,15 @@ template<class T> vector<int> sortSubstrings(const SuffixArray<T> &sa, const vec
 // k 0-based over distinct or all n(n+1)/2 nonempty substrings: {leftmost start, length}, {-1, 0} out of range; ranks count smaller ones.
 template<class T = int> requires std::is_integral_v<T>
 struct SubstringOrder {
-    using Minimum = typename SuffixArray<T>::Minimum;
     SuffixArray<T> index;
-    SparseTable<int, Minimum> leftmost{{}, {}};
+    SparseTable<Min<int>> leftmost;
     vector<lng> distinct, total, later;
 
     explicit SubstringOrder(vector<T> s) : index(std::move(s)) { init(); }
     explicit SubstringOrder(string_view s) requires std::is_same_v<T, int> : index(s) { init(); }
     void init() {
         int n = index.size();
-        leftmost = SparseTable<int, Minimum>(index.sa, {});
+        leftmost = SparseTable<Min<int>>(index.sa);
         distinct.assign(n + 1, 0); total.assign(n + 1, 0);
         for (int r = 0; r < n; ++r) {
             int len = n - index.sa[r];
@@ -250,7 +250,7 @@ struct SubstringOrder {
         int r = int(upper_bound(distinct.begin(), distinct.end(), k) - distinct.begin()) - 1, s = index.sa[r];
         int len = (r ? index.lcp[r - 1] : 0) + 1 + int(k - distinct[r]);
         auto [p, q] = occurrenceRange(index, s, s + len);
-        return {leftmost.query(p, q), len};}
+        return {leftmost.prod(p, q), len};}
     pair<int, int> kthSubstring(lng k) const {
         int n = index.size();
         if (k < 0 || k >= total[n]) { return {-1, 0}; }
@@ -264,7 +264,7 @@ struct SubstringOrder {
             int mid = std::midpoint(a, b);
             (count(s, mid) > k ? b : a) = mid;}
         auto [p, q] = occurrenceRange(index, s, s + b);
-        return {leftmost.query(p, q), b};}
+        return {leftmost.prod(p, q), b};}
     lng distinctSubstringRank(int l, int r) const {
         auto [p, q] = occurrenceRange(index, l, r);
         return l == r ? 0 : distinct[p] + (r - l) - (p ? index.lcp[p - 1] : 0) - 1;}

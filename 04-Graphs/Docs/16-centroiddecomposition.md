@@ -76,7 +76,7 @@ The two are separate structures: a contour sum over contour-added values counts 
 
 ### ContourFold and ContourApply
 
-Both use edge-count distances. `ContourFold<M>(g, a)` takes a commutative monoid `M` (`S`, `op`, `e`). `ContourApply<A>(g)` takes commutative actions `A` (`F`, `composition`, `id`). Neither needs inverses. Commutativity is required because the folds visit vertices in no fixed order.
+Both use edge-count distances. `ContourFold<M>(g, a, mon = {})` takes a commutative monoid `M` (`S`, `op`, `e`). `ContourApply<A>(g, mon = {})` takes commutative actions `A` (`F`, `composition`, `id`; `MonoidAction<M>` adapts a commutative monoid). Both keep the monoid as `m` under the [stored-object contract](<../../02-Data Structures/Docs/12-lazysegmenttree.md#monoid-contract-00-monoidshpp>). Neither needs inverses. Commutativity is required because the folds visit vertices in no fixed order.
 
 **Binarization.** `centroid_detail::binarize` roots each tree by BFS. It chains every child list through virtual vertices (ids `>= n`) joined by 0-weight edges; real edges get weight 1.
 
@@ -155,8 +155,8 @@ Each forest has 1–4 trees, random labels and orientations, and unit, signed ±
 | `DistanceSum`: `add`, `sum` | `DistanceSum<lll, lng>` with signed 2^40 weights; `DistanceSum<lng>` unweighted; large weighted star | `Σ x_u · d(q, u)` in `lll` |
 | `ContourSum`: `pointAdd`, `rangeContourSum` | Random updates and contours, including `l = r`, `r = INT_MAX` and `l > n`; large path closed form; random total | Direct sum over the matrix |
 | `ContourAdd`: `rangeContourAdd`, `pointGet` | Random contour adds on CSR input; large random totals | Per-vertex accumulation |
-| `ContourFold`: `set`, `rangeContourFold` | Sum monoid and the `(max, count)` monoid (neither invertible nor idempotent, so double counting shows); large star | Direct fold |
-| `ContourApply`: `rangeContourApply`, `pointGet` | `(add, max)` commutative actions; large caterpillar | Per-vertex composition |
+| `ContourFold`: `set`, `rangeContourFold` | Sum monoid and the `(max, count)` monoid (neither invertible nor idempotent, so double counting shows); a capturing-lambda sum modulo 7 or 10^9+7 through `Monoid`; large star | Direct fold |
+| `ContourApply`: `rangeContourApply`, `pointGet` | `(add, max)` commutative actions; a capturing-lambda add modulo 7 or 10^9+7 through `MonoidAction{Monoid}`; large caterpillar | Per-vertex composition |
 | `treeDistanceFrequency` | Every random forest (Graph and CSR); n = 1700 (quick), 1700/3000 (full) and 1700/3000/4000 (stress, optimized and ASan) in six shapes, whose paths take the NTT branch; paths n = 1599..1602, where the root square has top 799 and 800 (threshold neighbours); large path and star closed forms; large random total `C(n, 2)` | Pair counts from the matrix or from BFS; `n - d` on paths |
 | `countPathsWithin` | Every random forest with `k` = a sampled distance ± 1, `LLONG_MAX` and `LLONG_MIN`; saved regression with two centroid distances of 2^62 − 1 (the review's overflow case, moved inside the domain); large path | Pair counts from the matrix; hand count |
 | Preconditions | 14 probes: directed input, cycle, distance level, nearest range, negative weight, sum range, contour size, `l > r`, negative `l`, fold on a cycle, fold range, apply range, frequency on a cycle, directed path count | Expected assertion failure |
@@ -178,26 +178,25 @@ Planted mutants were each compiled against the quick suite on 2026-10-16. All 12
 
 ## Commands and results
 
-2026-10-16, GCC 16.2.1 and GCC 14.4.1, Linux x86-64, GNU++20, 11th Gen Intel Core i9-11900H.
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
-| `16-centroiddecomposition_tester.py --mode quick` | PASS 2 configurations, 156 cases, 2,644,836 checks, 14 probes; MEMORY peak 556 MB |
-| `16-centroiddecomposition_tester.py --mode full --seed 1` | PASS 3 configurations, 1,512 cases, 31,106,923 checks (optimized; 8,483,957 in the capped checked build), 14 probes; MEMORY peak 1,056 MB |
-| `CXX=g++-14 16-centroiddecomposition_tester.py --mode full --seed 2` | PASS 3 configurations, 1,512 cases, 31,048,217 checks, 14 probes; MEMORY peak 1,014 MB |
-| `16-centroiddecomposition_tester.py --mode stress --seed 3` | PASS 3 configurations, 8,018 cases, 171,145,370 checks (optimized; ASan/UBSan 38,744,232, checked 16,161,316), 14 probes; MEMORY peak 1,560 MB |
-| `16-centroiddecomposition_benchmark.py` | PASS, all outputs checked; MEMORY peak 352 MB (tables below) |
-| `02-integration.py --sanitizers` | PASS 144 standalone/aggregate headers (each header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 2,763 MB |
+| `16-centroiddecomposition_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 31,217,625 checks per configuration, 14 assertion probes, MEMORY peak 964 MB |
+| `CXX=g++-14 16-centroiddecomposition_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 31,217,625 checks per configuration, MEMORY peak 952 MB |
+| `16-centroiddecomposition_tester.py --mode stress --seed 7` | PASS, 39,037,872 checks per configuration, MEMORY peak 1560 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
 | `03-consistency.py` | No errors |
 
-The checked build (`-O0 -D_GLIBCXX_DEBUG`) runs full and stress at frequency n ≤ 3000 and 50,000-vertex shapes; the ASan/UBSan build runs stress at 200,000-vertex shapes. Both caps keep each run inside the runner's 180 s timeout, and the optimized build runs the full sizes.
-
 ```bash
-python3 '96-Local Testing/04-Graphs/16-centroiddecomposition_tester.py' --mode full --seed 1
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/16-centroiddecomposition_tester.py' --mode full --seed 2
-python3 '96-Local Testing/04-Graphs/16-centroiddecomposition_tester.py' --mode stress --seed 3
-python3 '96-Local Testing/04-Graphs/16-centroiddecomposition_benchmark.py'
+python3 '96-Local Testing/04-Graphs/16-centroiddecomposition_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/16-centroiddecomposition_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/04-Graphs/16-centroiddecomposition_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
 ```
+
+The checked build (`-O0 -D_GLIBCXX_DEBUG`) runs full and stress at frequency n ≤ 3000 and 50,000-vertex shapes; the ASan/UBSan build runs stress at 200,000-vertex shapes. Both caps keep each run inside the runner's 180 s timeout, and the optimized build runs the full sizes.
 
 ## Benchmarks
 
@@ -252,3 +251,4 @@ The binarization, the two-bank subtraction identity and the per-centroid squarin
 ## History
 
 - 2026-10-16: verified (P056); legacy excerpt replaced; completeness sweep added unmark, `DistanceSum`, `ContourFold`, `ContourApply` and `countPathsWithin`; independent review: 3 findings fixed (`countPathsWithin` domain narrowed to `[-2^62, 2^62)`, directed input routed to the `NDEBUG` fallback, `treeDistanceFrequency` asserts `n < 2^24`); 12 planted mutants killed; quick, full and stress passed on g++, full on g++-14.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 964/952/1560 MB.

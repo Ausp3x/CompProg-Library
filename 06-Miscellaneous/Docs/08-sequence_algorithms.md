@@ -98,18 +98,23 @@ Mutation probes (2026-10-08, quick mode) detected changes to the hull pop, lengt
 
 ## Commands and results
 
-P014 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H.
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
 
-- Quick: `python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode quick --seed 1`: PASS, 2 configurations, 9 probes.
-- Full: `python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode full --seed 1`: PASS (table below).
-- Floor: `CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode full --seed 1`: PASS in all three configurations with every assertion probe.
-- `python3 '96-Local Testing/02-integration.py'`: PASS, 135 standalone and aggregate headers, scalar and available AVX2 multi-TU builds, workspace.
-- `python3 '96-Local Testing/03-consistency.py'`: no errors; `--braces` on the header and its C++ tester: no violations.
-- `g++ -std=gnu++20 -Wall -Wextra -Wconversion -fsyntax-only` and the same with `g++-14` on the tester: no warnings.
+| Command | Result |
+|---|---|
+| `08-sequence_algorithms_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, n/a checks per configuration, 9 assertion probes, MEMORY peak 709 MB |
+| `CXX=g++-14 08-sequence_algorithms_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, n/a checks per configuration, MEMORY peak 742 MB |
+| `08-sequence_algorithms_tester.py --mode stress --seed 7` | PASS, n/a checks per configuration, MEMORY peak 710 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
 
-| Suite | Full, seed 1 (optimized, checked, ASan/UBSan) | Probes |
-|---|---|---|
-| `08-sequence_algorithms` | PASS in 54 s (g++, peak 712 MB) and 55 s (g++-14, peak 719 MB): 3280 exhaustive ternary arrays (length ≤ 7), 350 random rounds, rectangles ≤ 3x3, large n = 100000 | 9 |
+```bash
+python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/06-Miscellaneous/08-sequence_algorithms_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
+```
 
 ## Benchmarks
 
@@ -135,3 +140,4 @@ The code was written independently from the recurrences and proofs in the packag
 - 2026-10-08: re-audit, added `maximumAverageSubarray`, `mex`, `increasingSubsequenceLengths`, `countIncreasingSubsequences` and `adjacentSwapDistance`, 10 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.
 - 2026-10-12: unused prefix-sum and monotone-stack includes removed (and their tester checks); full suite seed 1 passed on g++ and g++-14, stress seed 3 passed.
 - 2026-10-13: prune, removed `kadane` (cases moved to `maximumSubarray`); full suite passed on g++ and g++-14.
+- 2026-10-17: P027 monoid pass (`SegmentTree` over the `Monoid` adapter; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 709/742/710 MB.

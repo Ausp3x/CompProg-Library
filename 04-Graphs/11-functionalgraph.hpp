@@ -122,19 +122,19 @@ struct FunctionalGraph {
         return time + 1;}
 
     // Q: O(n), M: O(number of cycles).
-    template<class T, class Op>
-    vector<T> cycleAggregates(const vector<T> &values, T identity, Op op) const {
-        assert(values.size() == size_t(n)); vector<T> out(cycles.size(), identity);
+    template<class M>
+    vector<typename M::S> cycleAggregates(const vector<typename M::S> &values, M mon = {}) const {
+        assert(values.size() == size_t(n)); vector<typename M::S> out(cycles.size(), mon.e());
         for (int c = 0; c < int(cycles.size()); ++c) {
-            for (int u : cycles[c]) { out[c] = op(out[c], values[u]); }}
+            for (int u : cycles[c]) { out[c] = mon.op(out[c], values[u]); }}
         return out;}
     // Q: O(cycle length).
-    template<class T, class Op>
-    pair<bool, T> cycleAggregate(int u, const vector<T> &values, T identity, Op op) const {
+    template<class M>
+    pair<bool, typename M::S> cycleAggregate(int u, const vector<typename M::S> &values, M mon = {}) const {
         check(u); assert(values.size() == size_t(n));
-        if (cycle[u] == -1) { return {false, identity}; }
-        int start = entry[u], v = start; T out = identity;
-        do { out = op(out, values[v]); v = successor[v]; } while (v != start);
+        if (cycle[u] == -1) { return {false, mon.e()}; }
+        int start = entry[u], v = start; typename M::S out = mon.e();
+        do { out = mon.op(out, values[v]); v = successor[v]; } while (v != start);
         return {true, std::move(out)};}
 };
 
@@ -142,32 +142,31 @@ struct FunctionalGraph {
 template<class T>
 struct FunctionalFoldResult { int next; ulng count; T value; };
 
-// Vertex labels under an associative op with identity, folded in walk order; k is a full ulng count.
+// Vertex labels under a monoid M (S, op, e), folded in walk order; k is a full ulng count.
 // S: O(n * log(n + 1)), Q: O(log(n + 1) + log(k + 1)), M: O(n * log(n + 1)).
-template<class T, class Op>
+template<class M>
 struct FunctionalGraphFold {
+    using S = typename M::S;
+    [[no_unique_address]] M m;
     FunctionalGraph graph;
-    T identity;
-    Op op;
-    vector<vector<T>> table;
+    vector<vector<S>> table;
 
-    FunctionalGraphFold(FunctionalGraph g, vector<T> values, T id, Op operation)
-        : graph(std::move(g)), identity(std::move(id)), op(std::move(operation)) {
+    FunctionalGraphFold(FunctionalGraph g, vector<S> values, M mon = {}) : m(std::move(mon)), graph(std::move(g)) {
         assert(values.size() == size_t(graph.n)); table.push_back(std::move(values));
         for (int j = 1; j < int(graph.up.size()); ++j) {
-            table.push_back(vector<T>(graph.n, identity));
+            table.push_back(vector<S>(graph.n, m.e()));
             for (int u = 0; u < graph.n; ++u) {
                 int v = graph.up[j - 1][u];
-                table[j][u] = v == -1 ? table[j - 1][u] : op(table[j - 1][u], table[j - 1][v]);}}}
+                table[j][u] = v == -1 ? table[j - 1][u] : m.op(table[j - 1][u], table[j - 1][v]);}}}
 
-    FunctionalFoldResult<T> segment(int u, int k) const {
+    FunctionalFoldResult<S> segment(int u, int k) const {
         graph.check(u); assert(0 <= k && k <= graph.n);
         assert(graph.cycle[u] != -1 || k <= lng(graph.depth[u]) + 1);
-        T value = identity; int count = k;
+        S value = m.e(); int count = k;
         for (int j = 0; k; ++j, k >>= 1) {
-            if (k & 1) { value = op(value, table[j][u]); u = graph.up[j][u]; }}
+            if (k & 1) { value = m.op(value, table[j][u]); u = graph.up[j][u]; }}
         return {u, ulng(count), std::move(value)};}
-    FunctionalFoldResult<T> fold(int u, ulng k) const {
+    FunctionalFoldResult<S> fold(int u, ulng k) const {
         graph.check(u);
         if (graph.cycle[u] == -1) { return segment(u, int(min(k, ulng(graph.depth[u]) + 1))); }
         ulng count = k; int tail = int(min(k, ulng(graph.depth[u])));
@@ -176,26 +175,26 @@ struct FunctionalGraphFold {
             int len = int(graph.cycles[graph.cycle[u]].size());
             ulng times = k / len;
             if (times) {
-                T power = segment(u, len).value;
+                S power = segment(u, len).value;
                 while (times) {
-                    if (times & 1) { out.value = op(out.value, power); }
-                    times >>= 1; if (times) { power = op(power, power); }}}
+                    if (times & 1) { out.value = m.op(out.value, power); }
+                    times >>= 1; if (times) { power = m.op(power, power); }}}
             auto last = segment(u, int(k % len));
-            out.next = last.next; out.value = op(out.value, last.value);}
+            out.next = last.next; out.value = m.op(out.value, last.value);}
         out.count = count; return out;}
-    pair<bool, T> cycleAggregate(int u) const {
+    pair<bool, S> cycleAggregate(int u) const {
         graph.check(u); int c = graph.cycle[u];
-        if (c == -1) { return {false, identity}; }
+        if (c == -1) { return {false, m.e()}; }
         return {true, segment(graph.entry[u], int(graph.cycles[c].size())).value};}
     template<class Pred>
     ulng maxStep(int u, Pred pred, ulng limit = ULLONG_MAX) const {
-        graph.check(u); assert(pred(identity));
-        T acc = identity; ulng k = 0;
+        graph.check(u); assert(pred(m.e()));
+        S acc = m.e(); ulng k = 0;
         auto descend = [&](ulng bound) {
             for (int j = int(table.size()) - 1; j >= 0; --j) {
                 if (u == -1 || bound - k < (1ULL << j)) { continue; }
                 if (graph.cycle[u] == -1 && (1 << j) > graph.depth[u] + 1) { continue; }
-                T next = op(acc, table[j][u]);
+                S next = m.op(acc, table[j][u]);
                 if (pred(next)) { acc = std::move(next); k += 1ULL << j; u = graph.up[j][u]; }}};
         if (graph.cycle[u] == -1) { descend(limit); return k; }
         ulng tail = min(limit, ulng(graph.depth[u]));
@@ -203,12 +202,12 @@ struct FunctionalGraphFold {
         if (k < tail) { return k; }
         int len = int(graph.cycles[graph.cycle[u]].size());
         ulng laps = (limit - k) / len, taken = 0;
-        vector<T> power{segment(u, len).value};
-        while (power.size() < 64 && (2ULL << (power.size() - 1)) <= laps && pred(op(acc, power.back()))) {
-            power.push_back(op(power.back(), power.back()));}
+        vector<S> power{segment(u, len).value};
+        while (power.size() < 64 && (2ULL << (power.size() - 1)) <= laps && pred(m.op(acc, power.back()))) {
+            power.push_back(m.op(power.back(), power.back()));}
         for (int i = int(power.size()) - 1; i >= 0; --i) {
             if (laps - taken < (1ULL << i)) { continue; }
-            T next = op(acc, power[i]);
+            S next = m.op(acc, power[i]);
             if (pred(next)) { acc = std::move(next); taken += 1ULL << i; }}
         k += taken * len; descend(limit); return k;}
 };

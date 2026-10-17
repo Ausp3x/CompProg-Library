@@ -6,7 +6,7 @@ Common contracts for rows 01–08 (indices, preconditions, algebra, moved-from s
 
 ### SqrtDecomp
 
-f is associative with two-sided identity `id` and keeps left-to-right operand order. `0 <= n <= INT_MAX`, zero-based points, half-open ranges, and an empty query returns `id`. `B = 0` picks block width `m = max(1, floor(sqrt(n)))`; a positive `B` is the width. The size and vector constructors are `explicit`; the braced-list constructor is not, so a braced list always means values. `rebuild(a, B)` replaces every point and picks a fresh width in O(n), keeping the stored `id` and `f`; it also works when `F` is not assignable (a capturing lambda), where `x = SqrtDecomp(a, B, x.id, x.f)` does not compile. `get` is O(1) (by value for `T = bool`, through `vector<T>::const_reference`), `values` copies in O(n), and `set`/`opeUpdate` rebuild one block in O(m). `opeUpdate(i, x)` sets `v[i] = f(v[i], x)`. `query` is O(m + n / m). `pull(bi)` recomputes block `bi` from `v`. It is an internal helper without a bounds check and is not part of the inventory row. Public state must not be edited directly. Costs count T and f operations as O(1).
+`M` is a monoid (`S`, associative `op`, two-sided identity `e`) under the stored-object contract of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp), kept as `m` and passed last as `mon = {}` (`SqrtDecomp(N = 0, B = 0, mon = {})`, `SqrtDecomp(vector<S>, B = 0, mon = {})`); left-to-right operand order is kept. `0 <= n <= INT_MAX`, zero-based points, half-open ranges, and an empty product returns `e()`. `B = 0` picks block width `width = max(1, floor(sqrt(n)))` (the field is `width` because `m` is the monoid); a positive `B` is the width. The size and vector constructors are `explicit`; the braced-list constructor is not, so a braced list always means values. `rebuild(a, B)` replaces every point and picks a fresh width in O(n), keeping the stored monoid, which also works when the monoid is not assignable (a capturing lambda through `Monoid`). `get` is O(1) (by value for `S = bool`, through `vector<S>::const_reference`), `values` copies in O(n), and `set`/`apply` rebuild one block in O(width). `apply(i, x)` sets `v[i] = op(v[i], x)`. `prod` is O(width + n / width). Renamed on 2026-10-17: `opeUpdate` is `apply`, `query` is `prod`, and the `(id, f)` arguments (formerly with default `std::plus`) are one monoid such as `Sum<lng>`. `pull(bi)` recomputes block `bi` from `v`. It is an internal helper without a bounds check and is not part of the inventory row. Public state must not be edited directly. Costs count `op` calls and `S` copies as O(1).
 
 ### SqrtRangeSum
 
@@ -21,6 +21,7 @@ Blocks store ordered folds; queries concatenate full blocks and at most two tail
 | Removed (prune, 2026-10-13) | Replacement |
 |---|---|
 | `SqrtDecomp::setUpdate(i, x)` | `set(i, x)` |
+| `SqrtDecomp::opeUpdate(i, x)`, `query(l, r)` (renamed 2026-10-17) | `apply(i, x)`, `prod(l, r)` |
 | `SqrtRangeSum::rebuild(a, B)` | `x = SqrtRangeSum<T>(a, B)`; its body is now the vector constructor, and the size constructor delegates to it |
 
 ## Feature-to-test map
@@ -29,26 +30,32 @@ The Python entry and C++ oracle suite share the stem under `96-Local Testing/02-
 
 | Operation | Test (`06-sqrt_decomposition_tester.cpp` group) | Oracle |
 |---|---|---|
-| `SqrtDecomp`: `get`, `values`, `set`, `opeUpdate`, `query`, `rebuild` | generic and ordered groups | Ternary generic arrays through length 5 with default/1/2/n/n+2/INT_MAX widths; concatenation/reverse concatenation, with string `set` (formerly `setUpdate`) |
+| `SqrtDecomp`: `get`, `values`, `set`, `apply`, `prod`, `rebuild` | generic and ordered groups | Ternary generic arrays through length 5 with default/1/2/n/n+2/INT_MAX widths over `Sum<lng>`; concatenation/reverse concatenation through the stateful monoid `Join{backwards}` (runtime flag) against an independent lambda, with string `set` (formerly `setUpdate`) |
 | `SqrtRangeSum`: `affine`, `add`, `assign`, `multiply`, `sum`, `get`, `set`, `values` | scalar exhaustive/history groups | Every length-2 affine history on small ternary arrays and every half-open range; 100 histories of 200 operations |
 | Tag order, constness, value semantics, types | regression groups | Assignment/add/multiply order, pending tags, read constness, copy/move/reconstruction (the removed `rebuild` cases, including reconstruction from `values()` with pending tags), 128-bit/modular/exact dyadic/alias cases |
-| `T = bool`, construction | regression groups | Bool OR payload with `get` bound to `const bool &` for widths 0–3; braced singleton/list; constructors not implicitly convertible; 21 probes (`generic-setupdate-end` is `generic-set-end`; `lazy-rebuild-block` became `lazy-vector-negative-block`) |
+| `S = bool`, construction | regression groups | Bool OR payload through `Monoid{false, any}` with `get` bound to `const bool &` for widths 0–3; braced singleton/list; constructors not implicitly convertible; 21 probes (`generic-setupdate-end` is `generic-set-end`; `lazy-rebuild-block` became `lazy-vector-negative-block`; on 2026-10-17 `generic-ope-end` became `generic-apply-end` and `generic-query-*` became `generic-prod-*`) |
 
 Quick: generic n<=3, lazy n<=2 depth 1, 20 trials. Stress: 400 trials. The suite reports named corpus groups instead of a scalar check count. The probes `generic-pull-end`, `lazy-apply-end`, `lazy-push-end` and `lazy-pull-end` were removed in the re-audit with the helper asserts.
 
 ## Commands and results
 
-P006 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H.
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+
+| Command | Result |
+|---|---|
+| `06-sqrt_decomposition_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, n/a checks per configuration, 21 assertion probes, MEMORY peak 509 MB |
+| `CXX=g++-14 06-sqrt_decomposition_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, n/a checks per configuration, MEMORY peak 520 MB |
+| `06-sqrt_decomposition_tester.py --mode stress --seed 7` | PASS, n/a checks per configuration, MEMORY peak 509 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
 
 ```bash
-python3 '96-Local Testing/02-Data Structures/06-sqrt_decomposition_tester.py' --mode full --seed 20261013
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/06-sqrt_decomposition_tester.py' --mode full --seed 20261013
-python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/02-Data Structures/06-sqrt_decomposition_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/06-sqrt_decomposition_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/02-Data Structures/06-sqrt_decomposition_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
-python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/06-sqrt_decomposition.hpp' '96-Local Testing/02-Data Structures/06-sqrt_decomposition_tester.cpp'
 ```
-
-Full, seed 20261013: PASS in the optimized, checked and ASan/UBSan configurations (all with `-Wall -Wextra -Wconversion -Werror`, leak checking on) with all 21 assertion probes, 50 s and peak 506 MB on g++, 47 s and peak 528 MB on g++-14 (rerun after the review restored a checked copy assignment). The other seven P006 suites passed the same commands. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
 
 ## Sources
 
@@ -68,3 +75,4 @@ The legacy `97-Legacy/02-sqrtdecomp.cpp` had invalid constructor defaults, silen
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
 - 2026-10-07: P006 re-audit, findings 2, 3, 4, 6, 7, 10–12, 14, 16, 17, 18, 19, 20, 23, 24 (of 24 package findings) addressed in this header, full and stress passed on g++; independent review: confirmed findings 2–24 fixed, accepted the contract-based resolution of finding 1, raised five findings, all fixed.
 - 2026-10-13: prune, removed `SqrtDecomp::setUpdate` and `SqrtRangeSum::rebuild` (cases moved to `set` and the vector constructor); full suite passed on g++ and g++-14.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 509/520/509 MB.

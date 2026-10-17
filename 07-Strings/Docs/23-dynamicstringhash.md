@@ -29,6 +29,8 @@ A `Digest` from any of these structures equals the `StringHash<KIND>` digest of 
 - `e() = {0, 0, 1}`;
 - `reverse` swaps `h` and `r`.
 
+It is a static preset under the stored-object monoid contract ([12-lazysegmenttree.md](<../../02-Data Structures/Docs/12-lazysegmenttree.md#monoid-contract-00-monoidshpp>)): `ImplicitTreap` and `LazySegmentTree` store it as an empty member `m`, and `ImplicitTreap` calls `m.reverse`. The base stays in `SequenceHash`, because only `leaf` and `assignment` need it.
+
 `F = {k, assign}` is a range assignment. `mapping` gives every symbol of the range the code `c`: `h = r = k (p - 1)` with `k = c / (B - 1)`, the geometric sum `c (B^L - 1) / (B - 1)`. `id()` has `assign = false` and maps every value to itself; `composition(f, g)` returns `f` when `f` assigns, else `g`, the newer action winning. Assignments need `B - 1` invertible, so not KIND 1 (a `static_assert` in `SequenceHash::assignment`). The interface (`S`, `F`, `op`, `e`, `mapping`, `composition`, `id`, `reverse`) plugs into `ImplicitTreap` and `LazySegmentTree` (`12-lazysegmenttree.hpp`), the latter for fixed-length range assignment (tested). `O(1)` per operation.
 
 ### PointUpdateHash<KIND>
@@ -101,15 +103,22 @@ Runner: [`23-dynamicstringhash_tester.py`](<../../96-Local Testing/07-Strings/23
 
 ## Commands and results
 
-Run 2026-10-16 on the final code. Every run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, precondition probes) binaries, and full/stress add ASan/UBSan (`-O1`); all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full and stress first pass the quick pre-flight under the 2048 MB cap. The checked build runs stress at full-mode sizes.
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+
+| Command | Result |
+|---|---|
+| `23-dynamicstringhash_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 1,468,101 checks per configuration, 10 assertion probes, MEMORY peak 551 MB |
+| `CXX=g++-14 23-dynamicstringhash_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 1,468,101 checks per configuration, MEMORY peak 558 MB |
+| `23-dynamicstringhash_tester.py --mode stress --seed 7` | PASS, 5,712,181 checks per configuration, MEMORY peak 554 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
 
 ```bash
-python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 23 suites (this one: 2 configurations, 10 assertion probes)
-python3 '96-Local Testing/07-Strings/23-dynamicstringhash_tester.py' --mode full --seed 1  # PASS, 3 configurations, 1,468,017 checks each, 10 assertion probes, MEMORY peak 554 MB
-CXX=g++-14 python3 '96-Local Testing/07-Strings/23-dynamicstringhash_tester.py' --mode full --seed 2  # PASS, 3 configurations, 1,467,906 checks each, MEMORY peak 561 MB
-python3 '96-Local Testing/07-Strings/23-dynamicstringhash_tester.py' --mode stress --seed 3  # PASS, 3 configurations, 5,711,699 checks (optimized, ASan/UBSan), 1,468,015 (checked), MEMORY peak 552 MB
-python3 '96-Local Testing/02-integration.py'  # PASS, 146 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace
-python3 '96-Local Testing/03-consistency.py'  # PASS, errors: []
+python3 '96-Local Testing/07-Strings/23-dynamicstringhash_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/07-Strings/23-dynamicstringhash_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/07-Strings/23-dynamicstringhash_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
 ```
 
 ## Benchmarks
@@ -133,3 +142,4 @@ Code is independently implemented from the cited descriptions; catalog sweep in 
 ## History
 
 - 2026-10-16: implemented and verified (P085), independent review found 4 rule and test-gap findings, fixed; full suite passed on g++ and g++-14.
+- 2026-10-17: P027 monoid pass (`ImplicitTreap` stores `HashMonoid` as an empty object; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 551/558/554 MB.

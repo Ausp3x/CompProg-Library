@@ -1,5 +1,6 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
+#include "../02-Data Structures/00-monoids.hpp"
 #include "../02-Data Structures/04-sparsetable.hpp"
 #include "12-sais.hpp"
 
@@ -7,10 +8,9 @@
 // Integral T, n < INT_MAX, sentinel-free (sa omits suffix n, lce accepts it); string input is T = int with unsigned byte order.
 template<class T = int> requires std::is_integral_v<T>
 struct SuffixArray {
-    struct Minimum { int operator()(int a, int b) const { return min(a, b); } };
     vector<T> text;
     vector<int> sa, rank, lcp;
-    SparseTable<int, Minimum> rmq{{}, {}};
+    SparseTable<Min<int>> rmq;
     bool indexed = true;
 
     SuffixArray() = default;
@@ -61,9 +61,9 @@ struct SuffixArray {
             rank.swap(next_rank);}
         lcp = lcpArray(text, sa);
         indexed = false;
-        rmq = SparseTable<int, Minimum>({}, {});
+        rmq = SparseTable<Min<int>>();
         if (with_rmq) { buildRmq(); }}
-    void buildRmq() { rmq = SparseTable<int, Minimum>(lcp, {}); indexed = true; }
+    void buildRmq() { rmq = SparseTable<Min<int>>(lcp); indexed = true; }
 
     int lce(int i, int j) const {
         int n = size();
@@ -71,7 +71,7 @@ struct SuffixArray {
         if (i == j) { return n - i; }
         if (i == n || j == n) { return 0; }
         auto [a, b] = std::minmax(rank[i], rank[j]);
-        return rmq.query(a, b);}
+        return rmq.prod(a, b);}
     int substringLce(int l, int r, int a, int b) const {
         assert(0 <= l && l <= r && r <= size() && 0 <= a && a <= b && b <= size());
         return min({r - l, b - a, lce(l, a)});}

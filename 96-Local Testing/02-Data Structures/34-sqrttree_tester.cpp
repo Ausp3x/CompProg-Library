@@ -84,7 +84,7 @@ namespace {
                 for (int l = 0; l <= n; ++l) {
                     for (int r = l; r <= n; ++r) {
                         context = name + " exhaustive n=" + show(n) + " " + stage + " l=" + show(l) + " r=" + show(r);
-                        checkEqual(t.query(l, r), naive<M>(a, l, r), "query");}}};
+                        checkEqual(t.prod(l, r), naive<M>(a, l, r), "prod");}}};
             all("build");
             for (int s = 0; s < (n ? updates : 0); ++s) {
                 int p = int(rnd(rng, 0, n - 1));
@@ -110,7 +110,7 @@ namespace {
                 if (kind == 0) { l = int(rnd(rng, 0, n)); r = int(min<lng>(n, l + rnd(rng, 0, 9))); }
                 else if (kind == 1) { int w = 1 << rnd(rng, 0, 12); l = int(rnd(rng, 0, n - 1)) / w * w; r = min(n, l + w); }
                 else { l = int(rnd(rng, 0, n)); r = int(rnd(rng, l, n)); }
-                checkEqual(t.query(l, r), naive<M>(a, l, r), "query l=" + show(l) + " r=" + show(r));}}}
+                checkEqual(t.prod(l, r), naive<M>(a, l, r), "prod l=" + show(l) + " r=" + show(r));}}}
 
     // Large affine trees around layer and block boundaries: reference segment tree oracle and op-count bounds.
     template<typename M>
@@ -125,7 +125,7 @@ namespace {
         lng cells = 0, update = 0;
         for (int i = 0; i < int(t.lay.size()); ++i) {
             int bs = (t.lay[i] + 1) / 2;
-            cells += 3 * lng(t.n + t.m) + (1LL << t.lay[i]);
+            cells += 3 * lng(t.n + t.nb) + (1LL << t.lay[i]);
             update += 2 * (2LL << bs) + (i ? 2 * (1LL << t.lay[i]) : 0);}
         checkTrue(build <= cells, "build op count " + show(build) + " <= " + show(cells));
         checkTrue(update <= 16 * (1LL << ((t.lg + 1) / 2)) + 64, "update bound O(sqrt(n))");
@@ -143,10 +143,10 @@ namespace {
             else if (kind == 2) { l = 0; r = n; }
             else { l = int(rnd(rng, 0, n)); r = int(rnd(rng, l, n)); }
             ops = 0;
-            auto got = t.query(l, r);
+            auto got = t.prod(l, r);
             maxQuery = max(maxQuery, ops);
-            checkEqual(got, ref.query(l, r), "query l=" + show(l) + " r=" + show(r));}
-        checkTrue(maxQuery <= 9, "query op count " + show(maxQuery) + " <= 9");
+            checkEqual(got, ref.query(l, r), "prod l=" + show(l) + " r=" + show(r));}
+        checkTrue(maxQuery <= 9, "prod op count " + show(maxQuery) + " <= 9");
         checkTrue(maxSet <= update, "set op count " + show(maxSet) + " <= " + show(update));}
 
     void refTreeSelfCheck(Rng &rng) {
@@ -163,23 +163,36 @@ namespace {
     void edges() {
         context = "edges";
         SqrtTree<Min> e(vector<int>{});
-        checkEqual(e.query(0, 0), INT_MAX, "empty tree");
+        checkEqual(e.prod(0, 0), INT_MAX, "empty tree");
         SqrtTree<Concat> c(vector<string>{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q"});
-        checkEqual(c.query(1, 16), string("bcdefghijklmnop"), "concat order");
-        for (int l = 0; l <= 17; ++l) { checkEqual(c.query(l, l), string(), "identity on empty"); }
+        checkEqual(c.prod(1, 16), string("bcdefghijklmnop"), "concat order");
+        for (int l = 0; l <= 17; ++l) { checkEqual(c.prod(l, l), string(), "identity on empty"); }
         SqrtTree<Concat> copy = c;
         copy.set(3, "X");
-        checkEqual(copy.query(0, 5), string("abcXe"), "copy set"); checkEqual(c.query(0, 5), string("abcde"), "original unchanged");
+        checkEqual(copy.prod(0, 5), string("abcXe"), "copy set"); checkEqual(c.prod(0, 5), string("abcde"), "original unchanged");
         c.set(4, c.v[0]);
-        checkEqual(c.query(3, 6), string("daf"), "aliased set");
+        checkEqual(c.prod(3, 6), string("daf"), "aliased set");
         c.set(4, "e"); c.set(4, "e");
-        checkEqual(c.query(0, 17), string("abcdefghijklmnopq"), "repeated set");}
+        checkEqual(c.prod(0, 17), string("abcdefghijklmnopq"), "repeated set");
+        // Runtime state: sums modulo a member modulus over every range, before and after point sets.
+        struct ModSum { lng mod; using S = lng; S op(S x, S y) const { return (x + y) % mod; } S e() const { return 0; } };
+        for (lng mod : {lng(7), lng(1000000007)}) {
+            vector<lng> w(300);
+            for (int i = 0; i < 300; ++i) { w[i] = (i * 7919 + 11) % mod; }
+            SqrtTree st(w, ModSum{mod});
+            for (int round = 0; round < 2; ++round) {
+                for (int l = 0; l <= 300; l += 7) {
+                    lng want = 0;
+                    for (int r = l; r <= 300; ++r) {
+                        checkEqual(st.prod(l, r), want, "stateful prod l=" + show(l) + " r=" + show(r));
+                        if (r < 300) { want = (want + w[r]) % mod; }}}
+                for (int i = 0; i < 300; i += 13) { w[i] = (w[i] * 3 + 1) % mod; st.set(i, w[i]); }}}}
 
     void invalid(const string &name) {
         SqrtTree<Min> t(vector<int>{3, 1, 4});
-        if (name == "query-reversed") { (void)t.query(2, 1); }
-        else if (name == "query-range") { (void)t.query(0, 4); }
-        else if (name == "query-negative") { (void)t.query(-1, 2); }
+        if (name == "prod-reversed") { (void)t.prod(2, 1); }
+        else if (name == "prod-range") { (void)t.prod(0, 4); }
+        else if (name == "prod-negative") { (void)t.prod(-1, 2); }
         else if (name == "set-range") { t.set(3, 0); }
         else if (name == "set-negative") { t.set(-1, 0); }
         else { throw std::runtime_error("unknown invalid probe " + name); }

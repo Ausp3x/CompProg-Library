@@ -6,16 +6,15 @@ Package P033 (batch DS13). New header; no legacy source. Static range products f
 
 ### Monoid contract
 
-`M` provides `S`, `static S op(const S &, const S &)` (associative, need not be commutative) and `static S e()` (two-sided identity, needed only by `fold` and `staticRangeProducts`; the table and `query` work for a semigroup without `e`, since unused cells are copies of the array). Products are taken left to right: `op(a[l], ..., a[r - 1])`. `S` is copyable; the table copies values.
+`M` provides `S`, `op(a, b)` (associative, need not be commutative) and `e()` (two-sided identity, needed only for empty ranges and by `staticRangeProducts`; the table and `prod` on nonempty ranges work for a semigroup without `e`, since unused cells are copies of the array). It follows the stored-object contract of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp): kept as `m`, passed last (`DisjointSparseTable(a = {}, mon = {})`, `staticRangeProducts(a, qs, mon = {})`), static or `const` member functions. Products are taken left to right: `op(a[l], ..., a[r - 1])`. `S` is copyable; the table copies values.
 
 ### DisjointSparseTable<M>
 
 `n < 2^30`. Level 0 is the array; level `k >= 1` splits the array into blocks of `2^(k + 1)` and stores, around each block midpoint `mid`, the suffix products `a[i..mid)` for `i < mid` and the prefix products `a[mid..i]` for `i >= mid`, with `h = max(1, bit_width(n - 1))` levels (0 for `n = 0`). A nonempty query `[l, r)` with `l < r - 1` has `l` and `r - 1` in one block of level `k = bit_width(l xor (r - 1)) - 1` on opposite sides of its midpoint, so it is `op(level_k[l], level_k[r - 1])`: one `op` call; `l = r - 1` returns `a[l]` with none.
 
-- `query(l, r)`: asserts `0 <= l < r <= n`; O(1), at most one `op` call.
-- `fold(l, r)`: asserts `0 <= l <= r <= n`; returns `e()` when `l == r`, otherwise `query(l, r)`. Kept by decision beside `query` (`duplicates.md`): it accepts the empty range that `query` rejects.
+- `prod(l, r)`: asserts `0 <= l <= r <= n`; returns `e()` when `l == r` if `M` has `e` (checked at compile time with `requires`), and otherwise asserts `l < r`; O(1), at most one `op` call. It replaced `query` (nonempty) and `fold` (empty allowed) on 2026-10-17 (`duplicates.md`, P027 change), keeping both domains.
 - Build: at most `n` `op` calls per level, `n * (h - 1)` in total; memory `n * h` values in one flat vector.
-- Row 04 `SparseTable::fold` answers the same associative query in O(log n) with `n log n` storage; this table answers it with one `op` call.
+- Row 04 `SparseTable::associativeProd` answers the same associative query in O(log n) with `n log n` storage; this table answers it with one `op` call.
 
 ### DisjointSparseTable<M>::staticRangeProducts(a, qs)
 
@@ -29,33 +28,43 @@ Offline products of `a[l, r)` for every query `(l, r)`, `0 <= l <= r <= n < 2^30
 
 ### Violated preconditions
 
-Under `NDEBUG` an out-of-range or empty `query` is undefined: `query(l, l)` reads level `bit_width(l xor (l - 1)) - 1`, a meaningless cell, and outside the table for `l = 0`. Every loop is bounded by `n`, the number of levels or `q`.
+Under `NDEBUG` an out-of-range `prod`, or an empty one on a semigroup, is undefined: `prod(l, l)` without `e` reads level `bit_width(l xor (l - 1)) - 1`, a meaningless cell, and outside the table for `l = 0`. Every loop is bounded by `n`, the number of levels or `q`.
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/28-disjointsparsetable_tester.cpp`, entry `28-disjointsparsetable_tester.py` (driver `_00_runner.py`; three builds; 7 assertion probes).
+Tester `96-Local Testing/02-Data Structures/28-disjointsparsetable_tester.cpp`, entry `28-disjointsparsetable_tester.py` (driver `_00_runner.py`; three builds; 6 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
-| `query`, `fold`, `staticRangeProducts` | `exhaustive<Affine>`, `exhaustive<Concat>`, `exhaustive<Min>` (every `n <= 70`, every `(l, r)` in shuffled order; 140 in stress) | Left-to-right fold; affine maps mod 998244353 and string concatenation are noncommutative |
+| `prod` (empty and nonempty ranges), `staticRangeProducts` | `exhaustive<Affine>`, `exhaustive<Concat>`, `exhaustive<Min>` (every `n <= 70`, every `(l, r)` in shuffled order; 140 in stress) | Left-to-right fold; affine maps mod 998244353 and string concatenation are noncommutative |
 | Same, medium sizes | `randomMedium` (n <= 3000, mixed short and long ranges) | Left-to-right fold |
 | Same, large sizes and block structure | `largeGroup` for n around powers of two (1, 2, 3, 31–33, 255–257, 4095–4097) and 2^17, 100003 (full), 2^20, 2^20 + 1 (stress); query sets uniform, inside one block, across adjacent blocks, block aligned, the full range, empty and single | Affine maps with a nonzero slope form a group: the product of `[l, r)` is `inverse(pre[l]) * pre[r]`, an O(1) independent oracle |
 | Complexity | `largeGroup` | Counted `op` calls: build at most `n * (h - 1)`; `staticRangeProducts` at most `2n + n * log2(s) + blocks * bit_width(blocks) + 3q` on every query set |
-| `query` for a semigroup without `e()` | `semigroup` (max over `lng`, every `(l, r)` for `n <= 70`) | Direct maximum; compiling it proves the table never calls `e()` |
-| Empty table, no queries, repeated queries, copies | `edges` | Direct values |
-| Preconditions | `invalid` | Empty, out-of-range and negative `query`; reversed and out-of-range `fold`; reversed and out-of-range offline queries |
+| `prod` for a semigroup without `e()` | `semigroup` (max over `lng`, every nonempty `(l, r)` for `n <= 70`) | Direct maximum; compiling it proves the table and nonempty `prod` never call `e()` |
+| Empty table, no queries, repeated queries, copies; runtime monoid state | `edges` | Direct values; sums modulo a member modulus (5 and 10^9+7) over every range through `prod` and `staticRangeProducts(a, qs, mon)` |
+| Preconditions | `invalid` | Empty `prod` on a semigroup, out-of-range, negative and reversed `prod`; reversed and out-of-range offline queries (6 probes; the old `query-empty`/`fold-*` pairs became `semigroup-prod-empty`, `prod-range`, `prod-negative`, `prod-reversed`) |
 
-Mutation check (2026-10-14, quick mode, temporary copies): 6 of 6 injected faults detected (wrong level, reversed suffix order, reversed final combine, dyadic right end off by one, prefix products crossing blocks, `fold` returning an element for an empty range).
+Mutation check (2026-10-14, quick mode, temporary copies): 6 of 6 injected faults detected (wrong level, reversed suffix order, reversed final combine, dyadic right end off by one, prefix products crossing blocks, the empty-range path returning an element, now `prod`).
 
 ## Commands and results
 
-```bash
-python3 '96-Local Testing/02-Data Structures/28-disjointsparsetable_tester.py' --mode full --seed 20261014
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/28-disjointsparsetable_tester.py' --mode full --seed 20261014
-python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/28' --no-integration
-```
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
 
-Final run 2026-10-14 (after the review fixes): full mode seed 20261014 passed on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`) with 1,784,521 checks per configuration and 7 assertion probes, MEMORY peak 658 MB and 779 MB; stress mode seed 7 (one round) passed all three configurations with 10,011,632 checks per configuration, MEMORY peak 1212 MB. Informal timing (ad-hoc driver, best of 5, `-O2 -DNDEBUG`, GCC 16.2.1; not a benchmark driver): for n = q = 5 * 10^5 affine maps, `staticRangeProducts` took 45 ms against 62 ms for building the table and folding every query. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20 with `-Wall -Wextra -Wconversion -Werror`, CPython 3.14, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`) and ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined`) builds; MEMORY peaks are dominated by compilation. `02-integration.py --sanitizers` passed (143 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 2758 MB) and `03-consistency.py` reported no errors.
+| Command | Result |
+|---|---|
+| `28-disjointsparsetable_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 1,657,545 checks per configuration, 6 assertion probes, MEMORY peak 693 MB |
+| `CXX=g++-14 28-disjointsparsetable_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 1,657,545 checks per configuration, MEMORY peak 653 MB |
+| `28-disjointsparsetable_tester.py --mode stress --seed 7` | PASS, 9,017,706 checks per configuration, MEMORY peak 1250 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
+
+```bash
+python3 '96-Local Testing/02-Data Structures/28-disjointsparsetable_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/28-disjointsparsetable_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/02-Data Structures/28-disjointsparsetable_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
+```
 
 ## Sources
 
@@ -76,3 +85,4 @@ Fetched 2026-10-14 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 ## History
 
 - 2026-10-14: P033 first implementation and verification; independent review: the table no longer calls `e()` (semigroups work for `query`), the empty-query note corrected.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 693/653/1250 MB.

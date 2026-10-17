@@ -18,13 +18,13 @@ Missing successors terminate the walk. They do not create a shared absorbing ver
 
 ### cycleAggregates and cycleAggregate
 
-`cycleAggregates(values,identity,op)` folds each canonical stored cycle in successor order. `cycleAggregate(u,values,identity,op)` rotates the fold to `entry[u]` and excludes all tail labels. Its result is `{false,identity}` for terminating components. Label count must equal n. These direct variants require no aggregate preprocessing and work with ordered, noncommutative monoids.
+`cycleAggregates(values, mon)` folds each canonical stored cycle in successor order under the monoid `mon` (`S`, `op`, `e`; [stored-object contract](<../../02-Data Structures/Docs/12-lazysegmenttree.md#monoid-contract-00-monoidshpp>); formerly `(values, identity, op)`). `cycleAggregate(u, values, mon)` rotates the fold to `entry[u]` and excludes all tail labels. Its result is `{false, e()}` for terminating components. `M` is deduced from `mon`, so callers pass a preset object or `Monoid{id, op}`. Label count must equal n. These direct variants require no aggregate preprocessing and work with ordered, noncommutative monoids.
 
 ### FunctionalFoldResult and FunctionalGraphFold
 
-`FunctionalGraphFold<T,Op>` owns a graph and label snapshot and preprocesses ordered aggregate blocks. `op` must be a const-callable associative binary operation with the supplied two-sided identity. The caller must ensure that its arithmetic and storage support all intermediate aggregates. `fold(u,k)` folds up to k **visited vertices**, starting with u, and returns `{next,count,value}`. The terminal is included once, then `next=-1`; `count<k` explicitly reports early termination. A zero count returns u and the identity. Cyclic walks always consume the full requested count, including `UINT64_MAX`. Labels can also represent outgoing edges, with the terminal label chosen as identity if there is no edge to count. `cycleAggregate(u)` provides the rotated full-cycle result using the precomputed blocks. The helper `segment(u,k)` requires `0<=k<=n` and at least k real visited vertices; its result uses the same convention.
+`FunctionalGraphFold<M>(g, values, mon = {})` (formerly `<T, Op>` with `(id, op)`) owns a graph, a label snapshot and the monoid, kept as `m`, and preprocesses ordered aggregate blocks. `M` follows the [stored-object contract](<../../02-Data Structures/Docs/12-lazysegmenttree.md#monoid-contract-00-monoidshpp>): `op` associative with two-sided identity `e()`, static or `const` member functions. The caller must ensure that its arithmetic and storage support all intermediate aggregates. `fold(u,k)` folds up to k **visited vertices**, starting with u, and returns `{next,count,value}`. The terminal is included once, then `next=-1`; `count<k` explicitly reports early termination. A zero count returns u and `e()`. Cyclic walks always consume the full requested count, including `UINT64_MAX`. Labels can also represent outgoing edges, with the terminal label chosen as identity if there is no edge to count. `cycleAggregate(u)` provides the rotated full-cycle result using the precomputed blocks. The helper `segment(u,k)` requires `0<=k<=n` and at least k real visited vertices; its result uses the same convention.
 
-`maxStep(u, pred, limit = ULLONG_MAX)` returns the largest `k <= limit` such that `pred(fold(u, k).value)` holds, never more than the number of vertices actually available on a terminating walk. `pred` must hold for `identity` (asserted) and be monotone: once false for some `k` it stays false for every larger `k`. The smallest `k` at which a monotone predicate becomes true (`step_until` in other libraries) is `maxStep` of its negation plus one, when that is at most `limit`. The search descends the doubling table greedily through the tail (each level is taken only if the step count is available, within the bound and the predicate still holds), then counts whole laps by exponential search on powers of the rotated lap aggregate, squaring only while the predicate still accepts the next power, and finally descends the table through the last partial lap. Because squaring stops at the first rejected power, no fold longer than about twice the answer is ever formed, so a summing monoid whose answer fits does not overflow in the search. Cost: O(log(n + 1) + log(k + 1)) operations and predicate calls for answer k; O(log(k + 1)) temporary label values.
+`maxStep(u, pred, limit = ULLONG_MAX)` returns the largest `k <= limit` such that `pred(fold(u, k).value)` holds, never more than the number of vertices actually available on a terminating walk. `pred` must hold for `e()` (asserted) and be monotone: once false for some `k` it stays false for every larger `k`. The smallest `k` at which a monotone predicate becomes true (`step_until` in other libraries) is `maxStep` of its negation plus one, when that is at most `limit`. The search descends the doubling table greedily through the tail (each level is taken only if the step count is available, within the bound and the predicate still holds), then counts whole laps by exponential search on powers of the rotated lap aggregate, squaring only while the predicate still accepts the next power, and finally descends the table through the last partial lap. Because squaring stops at the first rejected power, no fold longer than about twice the answer is ever formed, so a summing monoid whose answer fits does not overflow in the search. Cost: O(log(n + 1) + log(k + 1)) operations and predicate calls for answer k; O(log(k + 1)) temporary label values.
 
 ### FunctionalOrbit and functionalOrbit
 
@@ -55,8 +55,8 @@ Floyd's two-speed pointers either encounter termination or meet on a cycle. Rese
 | Synchronous first meeting | Explicit simulation in the product state space `(u,v)` until coincidence, termination or a repeated pair; no depth/phase formula is used by the oracle. |
 | Reverse-tree intervals, compact powers and adapters | Every Graph/CSR/vector construction on every small case; independent ancestor walks, exact table powers and component order; all ignored weight extremes and direct `successors` helper. |
 | Floyd single-orbit analysis | Compare returned entry/tail/cycle length to visited sequences for every small starting vertex; large terminating/cyclic orbit fixtures. |
-| Direct and preprocessed cycle aggregates | Literal successor-order folds, with canonical and entry-rotated order; terminal false/identity result; strings and noncommutative 2×2 matrices. |
-| Walk folds and bounded segments | Literal walks for every count through 2n+3, including terminal consumption once, zero counts, lengths beyond termination and all available segment lengths. |
+| Direct and preprocessed cycle aggregates | Literal successor-order folds, with canonical and entry-rotated order; terminal false/identity result; strings and noncommutative 2×2 matrices through `Monoid`; a capturing-lambda sum modulo 7 and 10^9+7 (runtime state) for `cycleAggregates`. |
+| Walk folds and bounded segments | Literal walks for every count through 2n+3, including terminal consumption once, zero counts, lengths beyond termination and all available segment lengths; the same walk oracle for `FunctionalGraphFold` over the capturing-lambda modular sum. |
 | Full-width ordered folds | A separate fixed-64-level reference stores actual truncated block lengths, without cycle decomposition or repeated-cycle powers. Exact 128-bit signed sums cover every exhaustive map; noncommutative matrix products cover 700 random maps/permutations. |
 | Boundaries and ownership | Default/explicit empty constructors, singleton terminal/self-loop, disconnected components, copies/moves, input mutation, snapshot/reassignment, labels/graph lifetime; 200,000-vertex terminal chains, cycles and long tails. |
 | `jumpAll` | Every vertex against the explicit orbit position for every count in the jump list plus every count through 2n+3, on every enumerated and random map; full-range counts on the 200,000-vertex terminal chain and cycle. |
@@ -67,21 +67,20 @@ Quick exhausts maps through n=3, adds 80 random cases and 20,000-vertex fixtures
 
 ## Commands and results
 
-2026-10-07, GCC 16.2.1, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
-| `11-functionalgraph_tester.py --mode full --seed 20260927` | PASS 3 configurations, 9,178 cases, 12,336,203 checks, 29 probes |
-| `CXX=g++-14 11-functionalgraph_tester.py --mode full --seed 20261014` (GCC 14.4.1, 2026-10-14) | PASS 3 configurations, 9,178 cases, 12,335,002 checks per configuration, 29 probes; MEMORY peak 861 MB |
-| `11-functionalgraph_tester.py --mode stress --seed 1 --configuration optimized` | PASS, 212,282,298 checks |
-| `02-integration.py` and `02-integration.py --sanitizers` | PASS: 102 standalone/aggregate headers, scalar/available-AVX2 multi-TU, workspace, sanitizer self-tests |
+| `11-functionalgraph_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 12,806,455 checks per configuration, 29 assertion probes, MEMORY peak 805 MB |
+| `CXX=g++-14 11-functionalgraph_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 12,806,455 checks per configuration, MEMORY peak 835 MB |
+| `11-functionalgraph_tester.py --mode stress --seed 7 --configuration optimized` | PASS, 222,137,296 checks (optimized build; the checked build exceeds the runner limit at stress size), MEMORY peak 407 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
 | `03-consistency.py` | No errors |
-| `@reviewer`: own brute-force full-range `jumpAll`/`maxStep` checks, ASan/UBSan/`_GLIBCXX_DEBUG` | PASS |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode full --seed 20260927
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode full --seed 20261014
-python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode stress --seed 1 --configuration optimized
+python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/04-Graphs/11-functionalgraph_tester.py' --mode stress --seed 7 --configuration optimized
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
 ```
@@ -109,3 +108,4 @@ The checked `-O0` stress build exceeds the runner's 180 s timeout, so stress is 
 - 2026-09-27: original P011, full suite (seed 20260927, 9,178 cases, 8,243,815 checks, 28 probes) and integration passed on g++ 16; stress not run.
 - 2026-10-07: re-audit, added `jumpAll` and `maxStep`; 2 findings fixed; full suite, optimized stress and integration passed on g++ 16; independent review: all eight package findings confirmed fixed, its own brute-force checks of every addition passed under ASan/UBSan/`_GLIBCXX_DEBUG`.
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 805/835/407 MB.

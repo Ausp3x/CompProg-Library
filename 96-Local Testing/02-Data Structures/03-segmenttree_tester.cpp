@@ -1,4 +1,5 @@
 #include "../../02-Data Structures/03-segmenttree.hpp"
+#include "../../02-Data Structures/00-monoids.hpp"
 
 namespace {
     ulng seed = 20260927;
@@ -13,26 +14,28 @@ namespace {
         ++checks;
         if (got != want) {
             throw std::runtime_error(context + " operation=" + op + " expected=" + show(want) + " actual=" + show(got));}}
-    struct Add { lng operator()(lng a, lng b) const { return a + b; } };
+    struct Add { using S = lng; static S op(S a, S b) { return a + b; } static S e() { return 0; } };
     struct Join { string operator()(const string &a, const string &b) const { return a + b; } };
-    using Tree = SegmentTree<lng, Add>;
+    using Tree = SegmentTree<Add>;
+    // Runtime state through a member and through a capturing lambda.
+    struct ModSum { lng mod; using S = lng; S op(S a, S b) const { return (a + b) % mod; } S e() const { return 0; } };
 
     void numeric(const vector<lng> &a, bool searches) {
         int n = int(a.size()); context = "array=" + show(a);
-        Tree t(a, 0, Add{}), empty(n, 0, Add{});
-        checkEqual(empty.allQuery(), 0, "identity-filled/allQuery");
+        Tree t(a), empty(n);
+        checkEqual(empty.allProd(), 0, "identity-filled/allProd");
         lng total = 0;
         for (int l = 0; l <= n; ++l) {
             lng sum = 0;
             for (int r = l; r <= n; ++r) {
-                checkEqual(t.query(l, r), sum, "query(" + show(l) + "," + show(r) + ")");
+                checkEqual(t.prod(l, r), sum, "prod(" + show(l) + "," + show(r) + ")");
                 if (r < n) { sum += a[r]; }}
             if (l < n) { checkEqual(t.get(l), a[l], "get(" + show(l) + ")"); total += a[l]; }}
-        checkEqual(t.allQuery(), total, "allQuery");
+        checkEqual(t.allProd(), total, "allProd");
         checkEqual(show(t.values()), show(a), "values");
         if (n) {
             lng delta = a[n - 1] >= 0 ? -1 : 1; Tree u = t; u.apply(n - 1, delta);
-            checkEqual(u.get(n - 1), a[n - 1] + delta, "apply"); checkEqual(u.allQuery(), total + delta, "apply aggregate");}
+            checkEqual(u.get(n - 1), a[n - 1] + delta, "apply"); checkEqual(u.allProd(), total + delta, "apply aggregate");}
         if (searches) {
             for (lng cap = 0; cap <= total + 1; ++cap) {
                 auto pred = [cap](lng x) { return x <= cap; };
@@ -45,11 +48,11 @@ namespace {
                     while (l && a[l - 1] + sum <= cap) { sum += a[--l]; }
                     checkEqual(t.minLeft(r, pred), l, "minLeft(" + show(r) + ",cap=" + show(cap) + ")");}}}
         Tree copy = t, moved = std::move(copy);
-        checkEqual(moved.allQuery(), total, "move");
+        checkEqual(moved.allProd(), total, "move");
         if (n) {
             moved.set(0, -17); checkEqual(t.get(0), a[0], "copy independence");
             t.set(0, t.get(0)); checkEqual(t.get(0), a[0], "set/get alias");
-            lng before = t.allQuery(); t.set(0, t.allQuery()); checkEqual(t.get(0), before, "set/aggregate alias");}}
+            lng before = t.allProd(); t.set(0, t.allProd()); checkEqual(t.get(0), before, "set/aggregate alias");}}
 
     void exhaustive() {
         int limit = mode == "quick" ? 4 : mode == "full" ? 6 : 8;
@@ -60,9 +63,9 @@ namespace {
                 numeric(a, true);}}
         numeric({-10, 0, 7, -4, 8}, false);
         numeric({std::numeric_limits<lng>::min(), std::numeric_limits<lng>::max()}, false);
-        Tree single({7}, 0, Add{}), triple({1, 2, 3}, 0, Add{});
+        Tree single({7}), triple({1, 2, 3});
         checkEqual(single.n, 1, "braced singleton size"); checkEqual(single.get(0), lng(7), "braced singleton value");
-        checkEqual(triple.query(0, 3), lng(6), "braced list");
+        checkEqual(triple.prod(0, 3), lng(6), "braced list");
         std::cout << "PASS bounded exhaustive range/point/search/copy tests\n";}
 
     void booleans() {
@@ -74,20 +77,20 @@ namespace {
                 vector<bool> a(n);
                 for (int i = 0; i < n; ++i) { a[i] = mask >> i & 1; }
                 context = "bool n=" + show(n) + " mask=" + show(mask);
-                SegmentTree<bool, decltype(orf)> o(a, false, orf);
-                SegmentTree<bool, decltype(andf)> c(a, true, andf);
+                SegmentTree o(a, Monoid{false, orf});
+                SegmentTree c(a, Monoid{true, andf});
                 bool any = false, all = true;
                 for (int i = 0; i < n; ++i) {
                     const bool &got = o.get(i);
                     checkEqual(got, bool(a[i]), "bool get(" + show(i) + ")"); any = any || a[i]; all = all && a[i];}
-                const bool &oa = o.allQuery(), &ca = c.allQuery();
-                checkEqual(oa, any, "or allQuery"); checkEqual(ca, all, "and allQuery");
+                const bool &oa = o.allProd(), &ca = c.allProd();
+                checkEqual(oa, any, "or allProd"); checkEqual(ca, all, "and allProd");
                 checkEqual(o.values() == a, true, "bool values");
                 for (int l = 0; l <= n; ++l) {
                     bool x = false, y = true;
                     for (int r = l; r <= n; ++r) {
-                        checkEqual(o.query(l, r), x, "or query(" + show(l) + "," + show(r) + ")");
-                        checkEqual(c.query(l, r), y, "and query(" + show(l) + "," + show(r) + ")");
+                        checkEqual(o.prod(l, r), x, "or prod(" + show(l) + "," + show(r) + ")");
+                        checkEqual(c.prod(l, r), y, "and prod(" + show(l) + "," + show(r) + ")");
                         if (r < n) { x = x || a[r]; y = y && a[r]; }}
                     int r = l;
                     while (r < n && !a[r]) { ++r; }
@@ -104,15 +107,15 @@ namespace {
                     checkEqual(c.minLeft(r, [](bool v) { return v; }), l, "and minLeft(" + show(r) + ")");}
                 if (n) {
                     o.apply(n - 1, true); checkEqual(bool(o.get(n - 1)), true, "or apply");
-                    c.apply(0, false); checkEqual(bool(c.allQuery()), false, "and apply");}}}
-        std::cout << "PASS bool payload get/allQuery/values/query/search/apply n<=" << limit << "\n";}
+                    c.apply(0, false); checkEqual(bool(c.allProd()), false, "and apply");}}}
+        std::cout << "PASS bool payload get/allProd/values/prod/search/apply n<=" << limit << "\n";}
 
     void randomHistories(std::mt19937_64 &rng) {
         int rounds = mode == "quick" ? 10 : mode == "full" ? 100 : 500;
         for (int trial = 0; trial < rounds; ++trial) {
             int n = 1 + int(rng() % 220);
             vector<lng> a(n); for (lng &x : a) { x = lng(rng() % 100); }
-            Tree t(a, 0, Add{});
+            Tree t(a);
             for (int step = 0; step < 250; ++step) {
                 context = "trial=" + show(trial) + " step=" + show(step) + " array=" + show(a);
                 int p = int(rng() % n); lng value = lng(rng() % 100);
@@ -122,7 +125,7 @@ namespace {
                 int l = int(rng() % (n + 1)), r = int(rng() % (n + 1));
                 if (l > r) { std::swap(l, r); }
                 lng sum = 0; for (int i = l; i < r; ++i) { sum += a[i]; }
-                checkEqual(t.query(l, r), sum, "random query(" + show(l) + "," + show(r) + ")");
+                checkEqual(t.prod(l, r), sum, "random prod(" + show(l) + "," + show(r) + ")");
                 lng cap = lng(rng() % (100 * n + 1));
                 auto pred = [cap](lng x) { return x <= cap; };
                 int right = l, left = r; sum = 0;
@@ -131,8 +134,25 @@ namespace {
                 sum = 0;
                 while (left && a[left - 1] + sum <= cap) { sum += a[--left]; }
                 checkEqual(t.minLeft(r, pred), left, "random minLeft(" + show(r) + ",cap=" + show(cap) + ")");
-                checkEqual(t.allQuery(), std::accumulate(a.begin(), a.end(), lng(0)), "random allQuery");}}
-        std::cout << "PASS seeded update/query/search histories\n";}
+                checkEqual(t.allProd(), std::accumulate(a.begin(), a.end(), lng(0)), "random allProd");}}
+        std::cout << "PASS seeded update/prod/search histories\n";}
+
+    void stateful(std::mt19937_64 &rng) {
+        int rounds = mode == "quick" ? 10 : mode == "full" ? 60 : 300;
+        for (int trial = 0; trial < rounds; ++trial) {
+            lng mod = array<lng, 4>{2, 7, 97, 1000000007}[trial % 4];
+            int n = int(rng() % 60);
+            vector<lng> a(n); for (lng &x : a) { x = lng(rng() % ulng(mod)); }
+            SegmentTree s(a, ModSum{mod});
+            SegmentTree c(a, Monoid{lng(0), [mod](lng x, lng y) { return (x + y) % mod; }});
+            for (int step = 0; step < 100; ++step) {
+                context = "stateful mod=" + show(mod) + " trial=" + show(trial) + " step=" + show(step);
+                int l = int(rng() % ulng(n + 1)), r = int(rng() % ulng(n + 1));
+                if (l > r) { std::swap(l, r); }
+                lng want = 0; for (int i = l; i < r; ++i) { want = (want + a[i]) % mod; }
+                checkEqual(s.prod(l, r), want, "member state prod"); checkEqual(c.prod(l, r), want, "capturing lambda prod");
+                if (n) { int p = int(rng() % ulng(n)); lng x = lng(rng() % ulng(mod)); s.apply(p, x); c.apply(p, x); a[p] = (a[p] + x) % mod; }}}
+        std::cout << "PASS stateful monoids (member modulus, capturing lambda)\n";}
 
     struct Affine {
         int a, b;
@@ -155,18 +175,18 @@ namespace {
             vector<string> a(n); vector<Affine> affine(n);
             for (int i = 0; i < n; ++i) {
                 a[i] = string(1, char('a' + rng() % 3)); affine[i] = {int(rng() % 97), int(rng() % 97)};}
-            SegmentTree s(a, string(), Join{});
-            SegmentTree t(affine, Affine{1, 0}, Compose{});
+            SegmentTree s(a, Monoid{string(), Join{}});
+            SegmentTree t(affine, Monoid{Affine{1, 0}, Compose{}});
             for (int step = 0; step < 3; ++step) {
                 context = "trial=" + show(trial) + " step=" + show(step) + " strings=" + show(a);
                 for (int l = 0; l <= n; ++l) {
                     string joined;
                     for (int r = l; r <= n; ++r) {
-                        checkEqual(s.query(l, r), joined, "concatenation(" + show(l) + "," + show(r) + ")");
+                        checkEqual(s.prod(l, r), joined, "concatenation(" + show(l) + "," + show(r) + ")");
                         for (int x = 0; x < 3; ++x) {
                             int result = x;
                             for (int i = l; i < r; ++i) { result = affine[i].eval(result); }
-                            checkEqual(t.query(l, r).eval(x), result, "affine evaluation(" + show(l) + "," + show(r) + ",x=" + show(x) + ")");}
+                            checkEqual(t.prod(l, r).eval(x), result, "affine evaluation(" + show(l) + "," + show(r) + ",x=" + show(x) + ")");}
                         if (r < n) { joined += a[r]; }}
                     auto pred = [](const string &x) { return x.find("ab") == string::npos; };
                     int right = l, left = l; joined.clear();
@@ -187,24 +207,24 @@ namespace {
                 auto u = s; u.apply(q, string("z"));
                 string all;
                 for (int i = 0; i < n; ++i) { all += i == q ? a[i] + "z" : a[i]; }
-                checkEqual(u.get(q), a[q] + "z", "string apply order p=" + show(q)); checkEqual(u.allQuery(), all, "string apply aggregate p=" + show(q));}}
+                checkEqual(u.get(q), a[q] + "z", "string apply order p=" + show(q)); checkEqual(u.allProd(), all, "string apply aggregate p=" + show(q));}}
         context = "non-default-constructible payload";
-        SegmentTree b(vector<Box>{Box(4), Box(-3)}, Box(0), BoxAdd{});
-        checkEqual(b.query(0, 2).x, 1, "Box fold"); b.set(1, Box(8)); checkEqual(b.allQuery().x, 12, "Box set");
+        SegmentTree b(vector<Box>{Box(4), Box(-3)}, Monoid{Box(0), BoxAdd{}});
+        checkEqual(b.prod(0, 2).x, 1, "Box fold"); b.set(1, Box(8)); checkEqual(b.allProd().x, 12, "Box set");
         std::cout << "PASS noncommutative strings/affine/search and generic payloads\n";}
 
     void invalid(const string &name) {
-        Tree t(vector<lng>{1, 2, 3}, 0, Add{});
-        if (name == "negative-size") { Tree x(-1, 0, Add{}); }
-        else if (name == "oversize") { Tree x(Tree::MAX_SIZE + 1, 0, Add{}); }
+        Tree t(vector<lng>{1, 2, 3});
+        if (name == "negative-size") { Tree x(-1); }
+        else if (name == "oversize") { Tree x(Tree::MAX_SIZE + 1); }
         else if (name == "vector-size") { (void)Tree::checkedSize(size_t(Tree::MAX_SIZE) + 1); }
         else if (name == "get-negative") { (void)t.get(-1); }
         else if (name == "get-end") { (void)t.get(3); }
         else if (name == "set-end") { t.set(3, 1); }
         else if (name == "apply-end") { t.apply(3, 1); }
-        else if (name == "query-negative") { (void)t.query(-1, 2); }
-        else if (name == "query-reversed") { (void)t.query(2, 1); }
-        else if (name == "query-end") { (void)t.query(0, 4); }
+        else if (name == "prod-negative") { (void)t.prod(-1, 2); }
+        else if (name == "prod-reversed") { (void)t.prod(2, 1); }
+        else if (name == "prod-end") { (void)t.prod(0, 4); }
         else if (name == "max-right-index") { (void)t.maxRight(4, [](lng) { return true; }); }
         else if (name == "min-left-index") { (void)t.minLeft(-1, [](lng) { return true; }); }
         else if (name == "max-right-identity") { (void)t.maxRight(0, [](lng) { return false; }); }
@@ -226,6 +246,6 @@ int main(int argc, char **argv) {
         std::cout << "segmenttree seed=" << seed << " mode=" << mode << '\n';
         if (!probe.empty()) { invalid(probe); }
         std::mt19937_64 rng(seed);
-        exhaustive(); booleans(); randomHistories(rng); noncommutative(rng);
+        exhaustive(); booleans(); randomHistories(rng); stateful(rng); noncommutative(rng);
         std::cout << "PASS segmenttree checks=" << checks << '\n'; return 0;} catch (const std::exception &e) {
         std::cerr << "FAIL segmenttree seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1;}}

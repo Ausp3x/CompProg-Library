@@ -101,18 +101,19 @@ struct Treap {
         return res;}
 };
 
-// A is an acted monoid (S, F, op, e, mapping, composition = new after old, id); reverse needs a commutative op or A::reverse(s), the product read backwards; trees are root ids in one pool (0 is empty); search predicates hold on e and stay false as the range grows.
+// A is an acted monoid (S, F, op, e, mapping, composition = new after old, id); reverse needs a commutative op or A::reverse(s) (static or member), the product read backwards; trees are root ids in one pool (0 is empty); search predicates hold on e and stay false as the range grows.
 // S: O(1), U: O(log(n)) expected, Q: O(log(n)) expected, M: O(m) for m created nodes
 template<typename A>
 struct ImplicitTreap {
     using S = typename A::S;
     using F = typename A::F;
     struct Node { S val, sum; F lz; uint pri; int sz, l, r; bool rev, act; };
+    [[no_unique_address]] A m;
     vector<Node> t;
     ulng seed;
 
-    explicit ImplicitTreap(ulng seed = CustomHash::rnd) : t(1, Node{A::e(), A::e(), A::id(), 0, 0, 0, 0, false, false}), seed(seed) {}
-    int node(const S &x) { t.push_back({x, x, A::id(), uint(CustomHash::splitMix64(seed++) >> 32), 1, 0, 0, false, false}); return int(t.size()) - 1; }
+    explicit ImplicitTreap(ulng seed = CustomHash::rnd, A mon = {}) : m(std::move(mon)), t(1, Node{m.e(), m.e(), m.id(), 0, 0, 0, 0, false, false}), seed(seed) {}
+    int node(const S &x) { t.push_back({x, x, m.id(), uint(CustomHash::splitMix64(seed++) >> 32), 1, 0, 0, false, false}); return int(t.size()) - 1; }
     // T: O(n), M: O(n).
     int build(const vector<S> &a) {
         vector<int> st;
@@ -140,18 +141,18 @@ struct ImplicitTreap {
             if (i < t[t[v].l].sz) { v = t[v].l; } else { i -= t[t[v].l].sz + 1; v = t[v].r; }}
         return t[v].val;}
 
-    void pull(int v) { Node &x = t[v]; x.sz = t[x.l].sz + 1 + t[x.r].sz; x.sum = A::op(A::op(t[x.l].sum, x.val), t[x.r].sum); }
+    void pull(int v) { Node &x = t[v]; x.sz = t[x.l].sz + 1 + t[x.r].sz; x.sum = m.op(m.op(t[x.l].sum, x.val), t[x.r].sum); }
     void all(int v, const F &f) {
         if (!v) { return; }
         Node &x = t[v];
-        x.val = A::mapping(f, x.val); x.sum = A::mapping(f, x.sum);
-        x.lz = x.act ? A::composition(f, x.lz) : f; x.act = true;}
+        x.val = m.mapping(f, x.val); x.sum = m.mapping(f, x.sum);
+        x.lz = x.act ? m.composition(f, x.lz) : f; x.act = true;}
     // A flipped node already has its children swapped; rev flips their subtrees on push.
     void flip(int v) {
         if (!v) { return; }
         Node &x = t[v];
         swap(x.l, x.r); x.rev = !x.rev;
-        if constexpr (requires (const S &s) { A::reverse(s); }) { x.sum = A::reverse(x.sum); }}
+        if constexpr (requires (const S &s) { m.reverse(s); }) { x.sum = m.reverse(x.sum); }}
     void push(int v) {
         Node &x = t[v];
         if (x.rev) { flip(x.l); flip(x.r); x.rev = false; }
@@ -173,42 +174,42 @@ struct ImplicitTreap {
     void range(int &v, int l, int r, G g) {
         assert(0 <= l && l <= r && r <= size(v));
         auto [a, b] = cut(v, l);
-        auto [m, c] = cut(b, r - l);
-        g(m);
-        v = merge(merge(a, m), c);}
-    void set(int &v, int i, const S &x) { assert(0 <= i && i < size(v)); range(v, i, i + 1, [&](int m) { t[m].val = t[m].sum = x; }); }
-    void reverse(int &v, int l, int r) { range(v, l, r, [&](int m) { flip(m); }); }
-    void apply(int &v, int l, int r, const F &f) { range(v, l, r, [&](int m) { all(m, f); }); }
+        auto [mid, c] = cut(b, r - l);
+        g(mid);
+        v = merge(merge(a, mid), c);}
+    void set(int &v, int i, const S &x) { assert(0 <= i && i < size(v)); range(v, i, i + 1, [&](int u) { t[u].val = t[u].sum = x; }); }
+    void reverse(int &v, int l, int r) { range(v, l, r, [&](int u) { flip(u); }); }
+    void apply(int &v, int l, int r, const F &f) { range(v, l, r, [&](int u) { all(u, f); }); }
 
-    S prod(int &v, int l, int r) { S res = A::e(); range(v, l, r, [&](int m) { res = t[m].sum; }); return res; }
+    S prod(int &v, int l, int r) { S res = m.e(); range(v, l, r, [&](int u) { res = t[u].sum; }); return res; }
     template<typename G>
     int maxRight(int &v, int l, G pred) {
-        assert(0 <= l && l <= size(v) && pred(A::e()));
+        assert(0 <= l && l <= size(v) && pred(m.e()));
         auto [a, b] = cut(v, l);
-        S acc = A::e();
+        S acc = m.e();
         int res = l;
         for (int u = b; u;) {
             push(u);
-            S s = A::op(acc, t[t[u].l].sum);
+            S s = m.op(acc, t[t[u].l].sum);
             if (!pred(s)) { u = t[u].l; continue; }
             acc = s; res += t[t[u].l].sz;
-            s = A::op(acc, t[u].val);
+            s = m.op(acc, t[u].val);
             if (!pred(s)) { break; }
             acc = s; ++res; u = t[u].r;}
         v = merge(a, b);
         return res;}
     template<typename G>
     int minLeft(int &v, int r, G pred) {
-        assert(0 <= r && r <= size(v) && pred(A::e()));
+        assert(0 <= r && r <= size(v) && pred(m.e()));
         auto [a, b] = cut(v, r);
-        S acc = A::e();
+        S acc = m.e();
         int res = r;
         for (int u = a; u;) {
             push(u);
-            S s = A::op(t[t[u].r].sum, acc);
+            S s = m.op(t[t[u].r].sum, acc);
             if (!pred(s)) { u = t[u].r; continue; }
             acc = s; res -= t[t[u].r].sz;
-            s = A::op(t[u].val, acc);
+            s = m.op(t[u].val, acc);
             if (!pred(s)) { break; }
             acc = s; --res; u = t[u].l;}
         v = merge(a, b);

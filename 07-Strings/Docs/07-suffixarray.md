@@ -15,7 +15,7 @@
 - `longestRepeated(k = 2)` returns `{start,length}` of the longest substring with at least `k >= 1` (asserted) occurrences, overlaps allowed. `k = 1` gives the whole text `{0,n}`; no answer (including `k > n`) gives `{0,0}`. Equal lengths select the lexicographically smallest such substring, then its earliest start. It takes the maximum over windows of `k-1` adjacent LCP entries of the window minimum with a monotonic deque, then scans the selected LCP group: `O(n)` time, `O(min(k, n))` deque workspace, no RMQ.
 - `longestRepeatedDisjoint()` returns `{first,last,length}` of the longest substring with two non-overlapping occurrences (`last - first >= length`), choosing the lexicographically smallest such substring; `first`/`last` are its earliest and latest starts. No answer gives `{0,0,0}`. Binary search on the length, each probe scanning LCP groups for the start spread: `O(n * log(n+1))` time, `O(1)` workspace, no RMQ.
 - `longestCommonSubstring(a,b)` returns `{start_in_a,start_in_b,length}`. No common symbol returns `{0,0,0}`. Ties choose the lexicographically smallest common substring, then its earliest start independently in each input. Both vectors must use the same integer type; byte overloads use unsigned byte order. It requires `n+m+1 < INT_MAX`, compresses the union alphabet to positive ranks and uses a fresh separator zero, independent of all original symbol values. Time is `O((n+m) * log(n+m+1))`, storage/workspace `O(n+m)`; this reduction omits RMQ. Rank initialization of the joined sequence uses the same tested constructor.
-- Fields are read-only after construction; replace the object to change its input. Copy and move destinations preserve their indexes. Assign a valid object to a moved-from object before querying it. The exposed `build(bytes,with_rmq)` construction helper operates on the owned text; its byte path requires all values in `[0,256)`, checked through a 128-bit comparison so every integral `T` (including `bool` and wide unsigned values) is exact and warning-free.
+- `rmq` is a `SparseTable<Min<int>>` over `lcp` (`00-monoids.hpp` preset; the nested `Minimum` functor was replaced on 2026-10-17, and `SubstringOrder` in `22-lexicographic_queries.hpp` uses the same preset). Fields are read-only after construction; replace the object to change its input. Copy and move destinations preserve their indexes. Assign a valid object to a moved-from object before querying it. The exposed `build(bytes,with_rmq)` construction helper operates on the owned text; its byte path requires all values in `[0,256)`, checked through a 128-bit comparison so every integral `T` (including `bool` and wide unsigned values) is exact and warning-free.
 
 Correctness: at doubling width `k`, each current rank describes the first `k` symbols of its suffix. Suffixes shorter than or equal to `k` have a missing second rank, smaller than every real rank. Listing those starts first, then subtracting `k` from the current suffix order where possible, sorts all starts by second rank. Stable counting sort on first ranks therefore sorts the rank pairs. Consecutive unequal pairs receive consecutive ranks, preserving equality and lexicographic order for width `2k`. Eventually the width covers every suffix; unique ranks permit early termination. Missing ranks use the internal value `-1`, never a text symbol. Width and index calculations avoid overflowing signed sums.
 
@@ -50,18 +50,23 @@ Runnable entry: [07-suffixarray_tester.py](<../../96-Local Testing/07-Strings/07
 
 ## Commands and results
 
-P017 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations as in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+
+| Command | Result |
+|---|---|
+| `07-suffixarray_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 3,744,494 checks per configuration, 12 assertion probes, MEMORY peak 694 MB |
+| `CXX=g++-14 07-suffixarray_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 3,744,494 checks per configuration, MEMORY peak 686 MB |
+| `07-suffixarray_tester.py --mode stress --seed 7` | PASS, 14,701,731 checks per configuration, MEMORY peak 895 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
 
 ```bash
-python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode full --seed 20261013
-CXX=g++-14 python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode full --seed 20261013
-python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20261013 --no-integration
-python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/07-Strings/07-suffixarray_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
-python3 '96-Local Testing/03-consistency.py' --braces '07-Strings/06-aho.hpp' '07-Strings/07-suffixarray.hpp' '96-Local Testing/07-Strings/06-aho_tester.cpp' '96-Local Testing/07-Strings/12-sais_tester.cpp'
 ```
-
-Full, seed 20261013: PASS in all three configurations with all 12 assertion probes, 5,534 cases and 3,652,608 checks per configuration; 125 s and peak 679 MB on g++, 129 s and peak 691 MB on g++-14. The SA-IS suite, whose large `lcpArray` oracle changed with this prune, is recorded in [12-sais.md](12-sais.md#commands-and-results). The quick 07-Strings run passed all 20 suites, including `15-minrotation` and `10-suffixautomaton`, which read `SuffixArray::lcp`. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace (peak 646 MB). `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
 
 ## Benchmarks
 
@@ -109,3 +114,4 @@ impractical maximum-size objects.
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
 - 2026-10-08: re-audit, `longestRepeated(k)` and `longestRepeatedDisjoint` added, 4 findings fixed; quick, full and stress passed on g++, full on g++-14, integration with sanitizers passed.
 - 2026-10-13: prune, the inline Kasai loop replaced by `lcpArray` from `12-sais.hpp` (construction 4–7% slower at `n = 10^6`, accepted); full suite passed on g++ and g++-14.
+- 2026-10-17: P027 monoid pass (the `Min<int>` preset replaces the nested `Minimum`; `rmq.prod` calls; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 694/686/895 MB.

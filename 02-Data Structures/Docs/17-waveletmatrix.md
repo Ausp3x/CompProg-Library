@@ -25,7 +25,7 @@ All three structures need only `T`'s `operator<` (a strict weak order whose equi
 
 ### WaveletMatrixMonoid<T, M>
 
-- `M` is a commutative monoid (`S`, `op`, `e`): the points of a rectangle are folded in an order that follows neither coordinate. Points `(x[i], y[i])` are fixed at construction with values `v[i]` (all `e()` when `v` is empty).
+- `M` is a commutative monoid (`S`, `op`, `e`): the points of a rectangle are folded in an order that follows neither coordinate. It is stored as `m` and passed last (`WaveletMatrixMonoid(x, y, v = {}, mon = {})`, stored-object contract of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp)). Points `(x[i], y[i])` are fixed at construction with values `v[i]` (all `e()` when `v` is empty).
 - Layout: a `WaveletMatrix<T>` over the `y` values in stable `x` order, plus one bottom-up segment tree of size `2n` per level over the order after that level's partition; `at[i]` is point `i`'s position in `x` order and `step` maps a position to the next level. Build O(n log n); memory O(n log n) values of `S`.
 - `get(i)` O(1); `set(i, s)` writes `s` at point `i`'s position on every level, O(log k log n); `apply(i, s)` is `set(i, op(get(i), s))`.
 - `prod(xl, xr, yl, yr)`: the product over the points in `[xl, xr) x [yl, yr)`, `e()` when empty. With `a`, `b` the lower rank bounds of `yl`, `yr`, the descent follows the shared high bits of `a` and `b`. Below their first difference, `a`'s path folds the one-side ranges where `a` has a 0 bit (ranks above `a` in that subtree) and finally the run of rank `a`. `b`'s path folds the zero-side ranges where `b` has a 1 bit. O(log k log n).
@@ -55,7 +55,7 @@ Tester `96-Local Testing/02-Data Structures/17-waveletmatrix_tester.cpp`, entry 
 | Alphabet sizes 1–64 around powers of two (level count), `int`, `string` and `lng` values, separate weights | `arrays` | Same |
 | `INT64_MIN`/`INT64_MAX` values and bounds (legacy overflow), empty structure | `extremes` | Direct values |
 | `rectangleCount`, `rectangleSum`, weighted and unweighted, duplicate and extreme coordinates, empty and reversed sides | `rectangles` | Scan over all points |
-| `WaveletMatrixMonoid` `get`, `set`, `apply`, `prod` with a sum mod 998244353 and a non-idempotent max-with-count monoid; copy independence | `monoidRun` | Scan over all points with the current values |
+| `WaveletMatrixMonoid` `get`, `set`, `apply`, `prod` with a sum mod 998244353, a non-idempotent max-with-count monoid and a stateful sum modulo a member modulus (7); copy independence | `monoidRun` | Scan over all points with the current values |
 | Whole-level folds through the segment-tree root (power-of-two point counts, one `y`) | `monoidEdges` | Direct values |
 | Preconditions | `invalid` | Index ranges of every query, `kth`/`kthMax`/`kthSum` ranks, negative `select` rank, `sumLess`/`kthSum`/`rectangleSum` without weights, mismatched sizes, monoid point indices |
 
@@ -63,17 +63,23 @@ Value distributions: one value, `[-2, 1]`, `[0, 20]`, full signed range, `{INT64
 
 ## Commands and results
 
-```bash
-python3 '96-Local Testing/02-Data Structures/17-waveletmatrix_tester.py' --mode quick --seed 1
-python3 '96-Local Testing/02-Data Structures/17-waveletmatrix_tester.py' --mode full --seed 1
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/17-waveletmatrix_tester.py' --mode full --seed 1
-python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/17-' --no-integration
-python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/17-waveletmatrix.hpp' '96-Local Testing/02-Data Structures/17-waveletmatrix_tester.cpp'
-python3 '96-Local Testing/03-consistency.py'
-python3 '96-Local Testing/02-integration.py' --sanitizers
-```
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
 
-Latest run 2026-10-13 (after the review fixes): quick mode passed as the pre-flight of every run (peak about 420 MB); full mode seed 1 passed on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`) with 5,291,023 checks per configuration and 22 assertion probes, MEMORY peak 576 MB and 590 MB; stress (`--seed 7`, one round) passed with 28,788,389 checks per configuration, peak 635 MB. `--braces` reported no violations and `03-consistency.py` no errors; `python3 '96-Local Testing/02-integration.py' --sanitizers` passed on 2026-10-14 (137 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, sanitizer self-tests; peak 2757 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20 with `-Wall -Wextra -Wconversion -Werror`, CPython 3.14.7, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_ASSERTIONS`) and ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined`) builds; MEMORY peaks are dominated by compilation.
+| Command | Result |
+|---|---|
+| `17-waveletmatrix_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 5,061,905 checks per configuration, 22 assertion probes, MEMORY peak 572 MB |
+| `CXX=g++-14 17-waveletmatrix_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 5,061,905 checks per configuration, MEMORY peak 558 MB |
+| `17-waveletmatrix_tester.py --mode stress --seed 7` | PASS, 28,851,144 checks per configuration, MEMORY peak 683 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
+
+```bash
+python3 '96-Local Testing/02-Data Structures/17-waveletmatrix_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/17-waveletmatrix_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/02-Data Structures/17-waveletmatrix_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
+```
 
 ## Sources
 
@@ -94,3 +100,4 @@ Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 ## History
 
 - 2026-10-13: P029 first verification; the unchanged extraction was rewritten (MergeSortTree names, half-open ranges, `bool` status), with weights, `select`, `RectangleWaveletMatrix` and `WaveletMatrixMonoid` added. The independent review found no wavelet defects. The user renamed `rectangleFold` to `prod` and recorded `rank` and `prod` as keeps.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 572/558/683 MB.

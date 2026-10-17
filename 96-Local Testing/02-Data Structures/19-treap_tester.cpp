@@ -151,7 +151,7 @@ namespace {
 
     // Composite of affine maps in both directions; reverse swaps them, so prod stays exact under reversal.
     struct RevComposite {
-        using B = RangeSetRangeComposite<Mod>;
+        using B = RangeAssignRangeComposite<Mod>;
         struct S { B::S f, g; };
         using F = B::F;
         static S op(const S &x, const S &y) { return {B::op(x.f, y.f), B::op(y.g, x.g)}; }
@@ -193,20 +193,43 @@ namespace {
         static F action(Rng &rng) { return rnd(rng, -3, 5); }
     };
 
+    // The library's Reversible adapter over the composite preset (non-static op, e and mapping).
+    struct AdapterComposite : Reversible<RangeAssignRangeComposite<Mod>> {
+        using B = RangeAssignRangeComposite<Mod>;
+        static string key(const S &x) { return show(x.x.a) + "x+" + show(x.x.b) + "/" + show(x.y.a) + "x+" + show(x.y.b) + "/" + show(x.x.len); }
+        static S value(Rng &rng) { return leaf(B::leaf(rnd(rng, 0, P - 1), rnd(rng, 0, P - 1))); }
+        static F action(Rng &rng) { return rng() % 4 ? B::assign(rnd(rng, 0, P - 1), rnd(rng, 0, P - 1)) : B::id(); }
+    };
+    // Runtime state: affine sums modulo a member modulus; generators read the round's modulus.
+    lng treapMod = 7;
+    struct ModAffine {
+        lng mod;
+        struct S { lng sum, len; };
+        struct F { lng a, b; };
+        S op(const S &x, const S &y) const { return {(x.sum + y.sum) % mod, x.len + y.len}; }
+        S e() const { return {0, 0}; }
+        S mapping(const F &f, const S &x) const { return {lng((lll(f.a) * x.sum + lll(f.b) * x.len) % mod), x.len}; }
+        F composition(const F &f, const F &g) const { return {lng(lll(f.a) * g.a % mod), lng((lll(f.a) * g.b + f.b) % mod)}; }
+        F id() const { return {1, 0}; }
+        static string key(const S &x) { return show(x.sum) + "/" + show(x.len); }
+        static S value(Rng &rng) { return {rnd(rng, 0, treapMod - 1), 1}; }
+        static F action(Rng &rng) { return {rnd(rng, 0, treapMod - 1), rnd(rng, 0, treapMod - 1)}; }
+    };
+
     template<typename A>
-    typename A::S fold(const vector<typename A::S> &a, int l, int r) {
-        typename A::S res = A::e();
-        for (int i = l; i < r; ++i) { res = A::op(res, a[i]); }
+    typename A::S fold(const vector<typename A::S> &a, int l, int r, const A &m) {
+        typename A::S res = m.e();
+        for (int i = l; i < r; ++i) { res = m.op(res, a[i]); }
         return res;}
     template<typename A>
     vector<string> keys(const vector<typename A::S> &a) { vector<string> res; for (auto &x : a) { res.push_back(A::key(x)); } return res; }
 
     // Three sequences share one pool and mirror vectors; every operation, including splits that move pieces between sequences.
     template<typename A>
-    void implicitRandom(Rng &rng, int steps, const string &name, auto pred) {
+    void implicitRandom(Rng &rng, int steps, const string &name, auto pred, A m = {}) {
         using S = typename A::S;
         constexpr int K = 3;
-        ImplicitTreap<A> tr(seed ^ 0x77);
+        ImplicitTreap<A> tr(seed ^ 0x77, m);
         int root[K] = {};
         vector<S> ref[K];
         auto compare = [&](int i) {
@@ -229,8 +252,8 @@ namespace {
                 else if (op == 6) {
                     auto f = A::action(rng);
                     tr.apply(root[i], l, r, f);
-                    for (int k = l; k < r; ++k) { ref[i][k] = A::mapping(f, ref[i][k]); }}
-                else { checkEqual(A::key(tr.prod(root[i], l, r)), A::key(fold<A>(ref[i], l, r)), "prod [" + show(l) + "," + show(r) + ")"); }}
+                    for (int k = l; k < r; ++k) { ref[i][k] = m.mapping(f, ref[i][k]); }}
+                else { checkEqual(A::key(tr.prod(root[i], l, r)), A::key(fold<A>(ref[i], l, r, m)), "prod [" + show(l) + "," + show(r) + ")"); }}
             else if (op == 8) {
                 // Rotation: split at k and merge the parts in swapped order.
                 int k = int(rnd(rng, 0, n));
@@ -253,12 +276,12 @@ namespace {
                 auto [g, t] = pred(rng);
                 auto ok = [&](const S &x) { return g(x, t); };
                 int l = int(rnd(rng, 0, n)), want = l;
-                S acc = A::e();
-                while (want < n && ok(A::op(acc, ref[i][want]))) { acc = A::op(acc, ref[i][want++]); }
+                S acc = m.e();
+                while (want < n && ok(m.op(acc, ref[i][want]))) { acc = m.op(acc, ref[i][want++]); }
                 checkEqual(tr.maxRight(root[i], l, ok), want, "maxRight l=" + show(l));
                 int r = int(rnd(rng, 0, n));
-                want = r; acc = A::e();
-                while (want > 0 && ok(A::op(ref[i][want - 1], acc))) { acc = A::op(ref[i][--want], acc); }
+                want = r; acc = m.e();
+                while (want > 0 && ok(m.op(ref[i][want - 1], acc))) { acc = m.op(ref[i][--want], acc); }
                 checkEqual(tr.minLeft(root[i], r, ok), want, "minLeft r=" + show(r));}
             if (s % 8 == 0) { compare(i); }}
         for (int i = 0; i < K; ++i) { compare(i); }}
@@ -350,5 +373,11 @@ int main(int argc, char **argv) {
         implicitRandom<RevString>(rng, steps / 2, "revstring", aPred);
         implicitRandom<AffineSum>(rng, steps, "affinesum", sumPred);
         implicitRandom<AddMax>(rng, steps, "addmax", maxPred);
+        auto adapterPred = [](Rng &g) { return pair{[](const AdapterComposite::S &x, lng t) { return x.x.len <= t; }, rnd(g, 0, 40)}; };
+        implicitRandom<AdapterComposite>(rng, steps, "Reversible adapter composite", adapterPred);
+        auto modPred = [](Rng &g) { return pair{[](const ModAffine::S &x, lng t) { return x.len <= t; }, rnd(g, 0, 40)}; };
+        for (lng mod : {lng(7), lng(998244353)}) {
+            treapMod = mod;
+            implicitRandom<ModAffine>(rng, steps / 2, "stateful affine mod " + show(mod), modPred, ModAffine{mod});}
         std::cout << "PASS treap checks=" << checks << '\n'; return 0;} catch (const std::exception &e) {
         std::cerr << "FAIL treap seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1;}}

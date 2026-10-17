@@ -37,15 +37,15 @@ namespace {
         for (auto *g : {&t.pre, &t.suf, &t.btw}) { for (auto &v : *g) { cells += lng(v.size()); } }
         ulng sum = 0;
         t0 = Clock::now();
-        for (auto [l, r] : lr) { sum = sum * 31 + digest(t.query(l, r)); }
+        for (auto [l, r] : lr) { sum = sum * 31 + digest(t.prod(l, r)); }
         double random = std::chrono::duration<double>(Clock::now() - t0).count();
         t0 = Clock::now();
-        for (auto [l, r] : sh) { sum = sum * 31 + digest(t.query(l, r)); }
+        for (auto [l, r] : sh) { sum = sum * 31 + digest(t.prod(l, r)); }
         double shortq = std::chrono::duration<double>(Clock::now() - t0).count();
         t0 = Clock::now();
         for (int k = 0; k < q / 200; ++k) { t.set(int(rng() % ulng(n)), gen(rng)); }
         double sets = std::chrono::duration<double>(Clock::now() - t0).count();
-        sum = sum * 31 + digest(t.query(0, n));
+        sum = sum * 31 + digest(t.prod(0, n));
         std::cout << "{\"workload\":\"" << name << "\",\"variant\":\"" << VARIANT << "\",\"n\":" << n << ",\"q\":" << q << ",\"layers\":" << t.lay.size()
                   << ",\"cells_per_n\":" << double(cells) / n << ",\"build\":" << build << ",\"random\":" << random << ",\"short\":" << shortq
                   << ",\"sets\":" << sets << ",\"checksum\":" << sum << "}\n";}

@@ -6,7 +6,7 @@ Package P027 (batch DS06). Replaces the legacy reference `97-Legacy/03-dynsegtre
 
 ### DynamicSegmentTree<M, PERSISTENT = false>
 
-`M` is a monoid (`S`, `op`, `e`); the row-12 presets qualify. The struct is a node pool shared by any number of trees: a tree is an `int` root handle, `0` is the empty tree, and every mutator returns the (possibly new) root. Unset keys hold `e()`, so the structure is sparse: a `prod` over untouched keys is `e()` and length-aware presets count only set keys. `set(root, i, x)`, `apply(root, i, x)` (`a[i] = op(a[i], x)`), `get(root, i)`, `prod(root, l, r)`, `allProd(root)` (returned by value: the pool may reallocate during the next mutation, so no method hands out references into it), `enumerate(root, visit)` (every key ever set, in increasing order, `visit(key, value)`), `maxRight(root, l, pred)` (largest `r` in `[l, hi]` with `pred(prod(l, r))`), `minLeft(root, r, pred)` (smallest `l` in `[lo, r]`), `reserve(nodes)`, `nodeCount()` (live nodes in the pool). Predicates are deterministic, true on `e()` (asserted) and monotone; callbacks must not mutate the pool.
+`M` is a monoid (`S`, `op`, `e`) under the stored-object contract of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp), kept as `m` and passed last (`DynamicSegmentTree(lo, hi, mon = {})`); the row-12 presets, stateful structs and `Monoid` lambdas qualify. The struct is a node pool shared by any number of trees: a tree is an `int` root handle, `0` is the empty tree, and every mutator returns the (possibly new) root. Unset keys hold `e()`, so the structure is sparse: a `prod` over untouched keys is `e()` and length-aware presets count only set keys. `set(root, i, x)`, `apply(root, i, x)` (`a[i] = op(a[i], x)`), `get(root, i)`, `prod(root, l, r)`, `allProd(root)` (returned by value: the pool may reallocate during the next mutation, so no method hands out references into it), `enumerate(root, visit)` (every key ever set, in increasing order, `visit(key, value)`), `maxRight(root, l, pred)` (largest `r` in `[l, hi]` with `pred(prod(l, r))`), `minLeft(root, r, pred)` (smallest `l` in `[lo, r]`), `reserve(nodes)`, `nodeCount()` (live nodes in the pool). Predicates are deterministic, true on `e()` (asserted) and monotone; callbacks must not mutate the pool.
 
 `meld(a, b)` destructively merges tree `b` into tree `a` and returns the root: `a` and `b` are distinct trees (asserted: `a != b` unless both are empty) that share no nodes, a key present in both becomes `op(a_value, b_value)` (operand order `a` first), nodes of `b` are released to a free list and `b` must not be used again. `split(root, i)` returns `{left, right}` with the keys `< i` in `left` and the keys `>= i` in `right`; `i` in `[lo, hi]`. A half without keys is returned as handle `0` (internal nodes left without children are released), so `root == 0` is exactly "no keys" for every tree produced by `set`, `apply`, `meld` and `split`. Both are `static_assert`ed away when `PERSISTENT`.
 
@@ -14,11 +14,11 @@ With `PERSISTENT = true`, `set`/`apply` copy the `<= 63` nodes on the update pat
 
 ### DynamicLazySegmentTree<A, D>
 
-`A` is an acted monoid, `D` a callable `S fill(lng l, lng r)` giving the product of an untouched range; it must be consistent with `op` (`fill(l, r) == op(fill(l, m), fill(m, r))`) so that nodes materialised later agree with their parents. One tree, created eagerly for `[lo, hi)` (an empty universe has no nodes). `set(i, x)`, `get(i)`, `apply(l, r, f)`, `prod(l, r)` (`e()` for an empty range), `allProd()`, `maxRight(l, pred)`, `minLeft(r, pred)`, `reserve`, `nodeCount`. Descents push pending actions and create both children of a node they pass through, so queries allocate too: memory is `O(q * log(n))` nodes for `q` operations of any kind.
+`A` is an acted monoid, stored as `m` and passed last (`DynamicLazySegmentTree(lo, hi, fill, mon = {})`), `D` a callable `S fill(lng l, lng r)` giving the product of an untouched range; it must be consistent with `op` (`fill(l, r) == op(fill(l, m), fill(m, r))`) so that nodes materialised later agree with their parents. One tree, created eagerly for `[lo, hi)` (an empty universe has no nodes). `set(i, x)`, `get(i)`, `apply(l, r, f)`, `prod(l, r)` (`e()` for an empty range), `allProd()`, `maxRight(l, pred)`, `minLeft(r, pred)`, `reserve`, `nodeCount`. Descents push pending actions and create both children of a node they pass through, so queries allocate too: memory is `O(q * log(n))` nodes for `q` operations of any kind.
 
 ### DynamicDualSegmentTree<A>
 
-Uses `F`, `composition`, `id`. `apply(l, r, f)` composes `f` after every action on `[l, r)`; `get(i)` returns the composed action at `i` (`id()` initially) by composing root-to-leaf without allocating. Pushes before descending keep ancestors newer than descendants, so noncommutative compositions are ordered correctly.
+Uses `F`, `composition`, `id` of the stored `m` (`DynamicDualSegmentTree(lo, hi, mon = {})`; `MonoidAction<M>` turns a plain monoid into such an action). `apply(l, r, f)` composes `f` after every action on `[l, r)`; `get(i)` returns the composed action at `i` (`id()` initially) by composing root-to-leaf without allocating. Pushes before descending keep ancestors newer than descendants, so noncommutative compositions are ordered correctly.
 
 ### Correctness and cost
 
@@ -30,26 +30,35 @@ Tester `96-Local Testing/02-Data Structures/13-dynamicsegmenttree_tester.cpp`, e
 
 | Operation | Group | Oracle |
 |---|---|---|
-| DynamicSegmentTree `set`, `apply`, `get`, `prod`, `allProd`, `enumerate`, `maxRight`, `minLeft`, `meld`, `split`, `reserve`, `nodeCount` | `plain<Sum>`, `plain<Composite>` | Three roots with `map<key, tuple>` oracles folded by an independent tuple `op` (sum/len; modular affine composite, noncommutative, which pins the meld operand order); universes `[0,0)`, `[0,1)`, `[0,2)`, `[-7,9)`, `[0,64)`, `[-3,100)`, `[-2^61, 2^61)`, `[-2^61+5, 2^61)`, `[INT64_MIN, INT64_MIN + 2^62)`, `[INT64_MAX - 2^62, INT64_MAX)`; all `O(n^2)` ranges of all three roots re-read after each step on small universes; meld/split between roots with map merge/partition; `root == 0` iff the oracle map is empty; one root's `allProd` stored into another root (the aliasing case, run under ASan; taken only while the stored total is small, since repeating it through melds doubles the sums until they overflow and the length predicate stops being monotone); `nodeCount` equals pool size minus free list and stays within the allocation bound |
+| DynamicSegmentTree `set`, `apply`, `get`, `prod`, `allProd`, `enumerate`, `maxRight`, `minLeft`, `meld`, `split`, `reserve`, `nodeCount` | `plain<SumSpec>`, `plain<Composite>` | Three roots with `map<key, tuple>` oracles folded by an independent tuple `op` (sum/len; modular affine composite, noncommutative, which pins the meld operand order); universes `[0,0)`, `[0,1)`, `[0,2)`, `[-7,9)`, `[0,64)`, `[-3,100)`, `[-2^61, 2^61)`, `[-2^61+5, 2^61)`, `[INT64_MIN, INT64_MIN + 2^62)`, `[INT64_MAX - 2^62, INT64_MAX)`; all `O(n^2)` ranges of all three roots re-read after each step on small universes; meld/split between roots with map merge/partition; `root == 0` iff the oracle map is empty; one root's `allProd` stored into another root (the aliasing case, run under ASan; taken only while the stored total is small, since repeating it through melds doubles the sums until they overflow and the length predicate stops being monotone); `nodeCount` equals pool size minus free list and stays within the allocation bound |
 | `PERSISTENT` path copying | `persistent` | Every version keeps its own map snapshot; random old versions re-queried (`prod`, `allProd`, `get`, `enumerate`) |
 | DynamicLazySegmentTree `set`, `get`, `apply`, `prod`, `allProd`, `maxRight`, `minLeft`, `fill`, `reserve`, `nodeCount` | `lazySmall` (affine min/max/argmin with `fill` carrying leftmost indices and constants 0, 3, −2), `lazyLarge` (sum on `[-2^40, 2^40 + k)`) | Dense vector with element-wise affine maps and brute min/max/argmin; compressed-segment oracle on the 2^41 universe with searches computed arithmetically inside the failing segment |
-| DynamicLazySegmentTree with `RangeSetRangeComposite` on full-width universes | `lazyCompositeWide` | `[0, 2^62)` and `[INT64_MIN, INT64_MIN + 2^62)`: the first step assigns the whole universe (a root node of length 2^62, the overflow reproducer), then random range assigns and `prod`/`allProd` against a piecewise map of assigned affine maps powered by an independent tuple square-and-multiply |
+| DynamicLazySegmentTree with `RangeAssignRangeComposite` on full-width universes | `lazyCompositeWide` | `[0, 2^62)` and `[INT64_MIN, INT64_MIN + 2^62)`: the first step assigns the whole universe (a root node of length 2^62, the overflow reproducer), then random range assigns and `prod`/`allProd` against a piecewise map of assigned affine maps powered by an independent tuple square-and-multiply |
 | DynamicDualSegmentTree `apply`, `get`, `reserve`, `nodeCount` | `dual` | Per-segment affine composition mod 998244353 on all universes including 2^62 and the `INT64` extremes |
+| Runtime monoid state in all three trees | `stateful` | Sums modulo a member modulus (`ModSum`), affine sums through a stateful acted struct with a `fill` functor, and range add through `MonoidAction{Monoid}` with a capturing lambda, on `[-40, 41)` for moduli 2, 97, 998244353 and 10^9+7 (4 rounds quick, 24 full, 80 stress): `prod`, `get`, `apply` against arrays |
 | Preconditions | `invalid` | 23 probes: reversed or too-wide universes (the width check uses unsigned arithmetic so a 2^63 span cannot overflow past it), keys and ranges outside `[lo, hi)`, reversed ranges, searches with a false identity predicate, split key beyond `hi`, `meld(a, a)`, lazy and dual variants |
 
 Quick: 3 universes, 120 steps. Full: 10 universes, 900 steps, three builds. Stress: 1400 steps (sized so the `-O0` debug-iterator build with per-root verification stays inside the runner's 180 s limit). Mutation check (2026-10-08, quick mode, temporary copies): 9 of 9 injected faults detected (meld operand order, split boundary, lazy push to one child, dual composition order, right-first search descent, persistence without copying, split leaving the right child shared, `minLeft` leaf result, `get` stopping one level early).
 
 ## Commands and results
 
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+
+| Command | Result |
+|---|---|
+| `13-dynamicsegmenttree_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 13,299,055 checks per configuration, 23 assertion probes, MEMORY peak 593 MB |
+| `CXX=g++-14 13-dynamicsegmenttree_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 13,299,055 checks per configuration, MEMORY peak 609 MB |
+| `13-dynamicsegmenttree_tester.py --mode stress --seed 7` | PASS, 21,058,112 checks per configuration, MEMORY peak 593 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
+
 ```bash
-python3 '96-Local Testing/02-Data Structures/13-dynamicsegmenttree_tester.py' --mode full --seed 20261008
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/13-dynamicsegmenttree_tester.py' --mode full --seed 20261008
-python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/1' --no-integration
+python3 '96-Local Testing/02-Data Structures/13-dynamicsegmenttree_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/13-dynamicsegmenttree_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/02-Data Structures/13-dynamicsegmenttree_tester.py' --mode stress --seed 7
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
 ```
-
-Final run 2026-10-08 (re-audit pass, after its fixes): full mode seed 20261008 passed on both compilers, 13,214,123 checks per configuration and 23 assertion probes; stress mode seed 7 passed all three configurations with 20,610,112 checks per configuration (the optimized binary also passed seeds 1 and 2 at the earlier 2500-step size, 36.9 M checks each). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, with `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, on GCC 16.2.1 and again on the floor compiler GCC 14.4.1 (`CXX=g++-14`). `02-integration.py --sanitizers` passed 108 standalone/aggregate headers (including this one alone, in `99-all.hpp` and in the two-translation-unit build), the workspace build and the sanitizer self-tests; `03-consistency.py` reports no errors and checks the closing-brace rule and comment cap on this header and its tester.
 
 ## Sources
 
@@ -73,3 +82,4 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 - 2026-10-08: P027 first verification; legacy `DynSegTree` reference deleted.
 - 2026-10-08: independent review (P027), 5 findings fixed.
 - 2026-10-08: P027 re-audit pass (second session), 1 finding fixed (in `00-monoids.hpp`, row 12) and the `M` comment corrected; full (seed 20261008) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 593/609/593 MB.

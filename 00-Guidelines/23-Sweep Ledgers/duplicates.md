@@ -12,6 +12,7 @@ Decided by the user from 2026-10-10 to 2026-10-16; binding, and only the user ch
 - **P047** row 26 (pinned): `OnlineBridges` leaves the row; `IncrementalBridgeConnectivity` gains `connected` (from `findCC`).
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
+- **P027** monoid pass (decided 2026-10-17): `DisjointSparseTable::query` and `fold` become one `prod` (`e()` on an empty range; a semigroup without `e` keeps nonempty ranges); `SparseTable::query`/`fold` are named `prod`/`associativeProd`; `SegmentTree::query`/`allQuery`, the SWAG `fold`s and `SqrtDecomp::query` become `prod`/`allProd`; `SqrtDecomp::opeUpdate` becomes `apply`.
 
 ### Keeps
 
@@ -26,8 +27,8 @@ Items a reader could mistake for duplicates.
 | P005 | `ModInt::sqrt` returning -1 | `tryX`/`X` pair with `trySqrt` |
 | P005 | `ModInt` explicit integral conversion | Checked `T(x)` conversion |
 | P006 | `maxZeroSubmatrix` | Larger domain: any nonzero cell blocks; `largestBinaryRectangle` asserts 0/1 |
-| P006 | `SqrtDecomp::opeUpdate`, `SparseTable::operator<<` | Only form |
-| P006 | `SqrtDecomp::rebuild` | Decided 2026-10-13: larger domain; resets in place with the stored `id` and `f`, while assigning a new object needs an assignable `F`, which a capturing lambda is not |
+| P006 | `SqrtDecomp::apply` (formerly `opeUpdate`), `SparseTable::operator<<` | Only form |
+| P006 | `SqrtDecomp::rebuild` | Decided 2026-10-13: larger domain; resets in place with the stored monoid `m`, while assigning a new object needs an assignable `M`, which a `Monoid` over a capturing lambda is not |
 | P007 | 2D `angleApprox` | Named special case (unsigned angle; one name for 2D and 3D) |
 | P010 | `findNegativeCycle`, `bfsShortestPaths` | Named special case (all-vertex seeding); BFS form of `ShortestPathResult` |
 | P011 | `lca_detail::Forest` inclusive `t_in`/`t_out` | Only form |
@@ -103,7 +104,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P002 | `setRange(l, r, false)` (`18-bitset.hpp`) | The flag is the value written, as in `set(p, v)` |
 | P004 | `redc(x, lazy)` (`04-montgomery.hpp`) | Unchecked kernel public only because there is no `private` |
 | P006 | Fenwick `lowerBound`, `upperBound`, `descend` (`02-fenwick.hpp`) | Named special case; larger domain (`x <= 0`); 11% faster (`Docs/02-fenwick.md`) |
-| P006 | `SegmentTree::apply` (`03-segmenttree.hpp`) | As the recorded keep `SqrtDecomp::opeUpdate` |
+| P006 | `SegmentTree::apply` (`03-segmenttree.hpp`) | As the recorded keep `SqrtDecomp::apply` |
 | P006 | `DifferenceArray(2D)::clear` (`05-prefix_sum.hpp`) | Named special case, in place |
 | P006 | Braced-list constructors (`02-fenwick.hpp`, `03-segmenttree.hpp`, `05-prefix_sum.hpp`, `06-sqrt_decomposition.hpp`) | Without them `Fenwick<lng> f{7}` picks the size constructor (`Docs/00-notes.md:79`) |
 | P006 | `CoordinateCompression::decode` (`07-ordered_set.hpp`) | Named inverse of `encode`; replaces P013's `value` |
@@ -165,7 +166,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P083 | `rotationEquivalent`, `isLyndon` (`15-minrotation.hpp`; `14-lyndon.hpp`) | Named special case (ruling 1) |
 | P083 | `countPalindromicSubsequences(s, distinct)` (`19-lcs.hpp`) | Only form of both DPs |
 | P028 | `SWAGStack` (`30-aggregation_queue.hpp`) | Constant-factor variant: one array, no extra `op(e(), ·)` per fold (ruling 4) |
-| P028 | 2D point `apply` (`15-segment_tree_2d.hpp`) | As `SegmentTree::apply` and the recorded `opeUpdate` |
+| P028 | 2D point `apply` (`15-segment_tree_2d.hpp`) | As `SegmentTree::apply` and the recorded `SqrtDecomp::apply` |
 | P028 | `LazySegmentTreeBeats`; merge-sort-tree `countLess`, `countRange`, `countEqual`, `maxLeq`, `minGeq`, `set` (`14-segtreebeats.hpp`; `16-mergesorttree.hpp`) | Larger domain (`fail`); named special cases, cheaper cascades |
 | P057 | `polyMul` (`14-polynomial_algorithms.hpp`) | Composition: convolution then trim (clarified rule) |
 | P057 | `nthTermLinearRecurrence` (`15-linear_recurrence.hpp`) | Builds the generating function itself (clarified rule) |
@@ -181,7 +182,6 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P036 | `minkowskiDifference` (`11-minkowskisum.hpp`) | Derived: negation then sum (clarified rule) |
 | P036 | `minkowskiSumHull` (`11-minkowskisum.hpp`) | Larger domain: any point sets (clarified rule) |
 | P036 | `halfplane_detail::vertex`; `polygonKernel` (`10-halfplaneintersection.hpp`) | Detail helper; different algorithm, user decision 2026-10-10 (`Docs/00-notes.md:67`) |
-| P033 | `fold(l, r)` with the empty range (`28-disjointsparsetable.hpp`) | Accepts `l == r`, which `query` rejects (clarified rule) |
 | P033 | `lcaRmqBridge` (`27-cartesiantree.hpp`) | An LCA–RMQ reduction, not a rename (clarified rule) |
 | P018 | `explicit operator bool` beside `isNil` (`07-infint.hpp`) | Decided 2026-10-16: both stay, `isNil` for Poly's `BigInt` concept and the modint-style truthiness |
 | P018 | `infint_detail` NTT, FFT and Montgomery kernels beside Poly's and `04-montgomery.hpp` | Decided 2026-10-16: InfInt keeps independent kernels and depends on `01-template.hpp` only |

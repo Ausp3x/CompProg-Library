@@ -15,8 +15,8 @@ namespace {
         if (!(got == want)) {
             throw std::runtime_error(context + " operation=" + op + " expected=" + show(want) + " actual=" + show(got));}}
 
-    struct Sum { using S = lng; static S op(S a, S b) { return a + b; } static S e() { return 0; } static S unit(lng x) { return x; } };
-    struct Min { using S = lng; static S op(S a, S b) { return min(a, b); } static S e() { return std::numeric_limits<lng>::max(); } static S unit(lng x) { return x; } };
+    struct SumM { using S = lng; static S op(S a, S b) { return a + b; } static S e() { return 0; } static S unit(lng x) { return x; } };
+    struct MinM { using S = lng; static S op(S a, S b) { return min(a, b); } static S e() { return std::numeric_limits<lng>::max(); } static S unit(lng x) { return x; } };
     struct AddAct { using F = lng; static F composition(F f, F g) { return f + g; } static F id() { return 0; } };
     struct MaxAct { using F = lng; static F composition(F f, F g) { return max(f, g); } static F id() { return std::numeric_limits<lng>::min(); } };
     pair<int, int> range(Rng &rng, int n) {
@@ -116,22 +116,65 @@ namespace {
             checkEqual(lng(t.allProd().sum.val()), all, "allProd");
             if (k) { int i = int(rng() % k); auto g = t.get(i); checkEqual(lng(g.sum.val()), on[i] ? val[i] : 0, "get"); }}}
 
+    // Runtime state in every 2D structure: sums, adds and affine maps modulo a member or captured modulus.
+    struct ModSum { lng mod; using S = lng; S op(S a, S b) const { return (a + b) % mod; } S e() const { return 0; } };
+    struct ModAffine {
+        lng mod;
+        struct S { lng sum, len; };
+        struct F { lng a, b; };
+        S op(const S &x, const S &y) const { return {(x.sum + y.sum) % mod, x.len + y.len}; }
+        S e() const { return {0, 0}; }
+        S mapping(const F &f, const S &x) const { return {lng((lll(f.a) * x.sum + lll(f.b) * x.len) % mod), x.len}; }
+        F composition(const F &f, const F &g) const { return {lng(lll(f.a) * g.a % mod), lng((lll(f.a) * g.b + f.b) % mod)}; }
+        F id() const { return {1, 0}; }
+    };
+    void statefulRun(Rng &rng, int steps) {
+        for (lng mod : {lng(7), lng(1000000007)}) {
+            int n = int(rnd(rng, 1, 6)), m = int(rnd(rng, 1, 6));
+            context = "stateful 2D mod=" + show(mod) + " n=" + show(n) + " m=" + show(m);
+            vector<vector<lng>> a(n, vector<lng>(m, 0)), d(n, vector<lng>(m, 0));
+            SegmentTree2DDense dense(a, ModSum{mod});
+            DualSegmentTree2DDense dual(n, m, MonoidAction{Monoid{lng(0), [mod](lng x, lng y) { return (x + y) % mod; }}});
+            vector<pair<lng, lng>> pts;
+            vector<ModAffine::S> w;
+            for (int i = 0; i < n; ++i) { for (int j = 0; j < m; ++j) { pts.push_back({i, j}); w.push_back({0, 1}); }}
+            SegmentTree2DSparse sparse(pts, vector<lng>(pts.size(), 0), ModSum{mod});
+            LazyKdTree kd(pts, w, ModAffine{mod});
+            vector<vector<lng>> kv(n, vector<lng>(m, 0));
+            for (int s = 0; s < steps; ++s) {
+                int i = int(rnd(rng, 0, n - 1)), j = int(rnd(rng, 0, m - 1));
+                lng x = rnd(rng, 0, mod - 1), y = rnd(rng, 0, mod - 1);
+                dense.apply(i, j, x); sparse.apply(i, j, x); a[i][j] = (a[i][j] + x) % mod;
+                auto [xl, xr] = range(rng, n); auto [yl, yr] = range(rng, m);
+                dual.apply(xl, xr, yl, yr, x); kd.apply(xl, xr, yl, yr, {x, y});
+                lng want = 0, kw = 0;
+                for (int r = 0; r < n; ++r) {
+                    for (int c = 0; c < m; ++c) {
+                        bool in = xl <= r && r < xr && yl <= c && c < yr;
+                        if (in) { d[r][c] = (d[r][c] + x) % mod; kv[r][c] = lng((lll(x) * kv[r][c] + y) % mod); }}}
+                auto [ql, qr] = range(rng, n); auto [cl, cr] = range(rng, m);
+                for (int r = ql; r < qr; ++r) { for (int c = cl; c < cr; ++c) { want = (want + a[r][c]) % mod; kw = (kw + kv[r][c]) % mod; }}
+                checkEqual(dense.prod(ql, qr, cl, cr), want, "dense prod"); checkEqual(sparse.prod(ql, qr, cl, cr), want, "sparse prod");
+                checkEqual(kd.prod(ql, qr, cl, cr).sum, kw, "kd prod");
+                checkEqual(dual.get(i, j), d[i][j], "dual get");}}
+        std::cout << "PASS stateful monoids in the 2D trees\n";}
+
     void edges() {
         context = "edges";
-        SegmentTree2DDense<Sum> z(0, 5), z2(4, 0), z3;
+        SegmentTree2DDense<SumM> z(0, 5), z2(4, 0), z3;
         checkEqual(z.allProd(), 0, "dense empty rows"); checkEqual(z2.prod(0, 4, 0, 0), 0, "dense empty cols"); checkEqual(z3.allProd(), 0, "dense default");
-        SegmentTree2DDense<Min> one(vector<vector<lng>>{{5}});
+        SegmentTree2DDense<MinM> one(vector<vector<lng>>{{5}});
         checkEqual(one.allProd(), 5, "dense 1x1"); one.apply(0, 0, 3); checkEqual(one.get(0, 0), 3, "dense 1x1 apply");
-        SegmentTree2DDense<Sum> c(vector<vector<lng>>{{1, 2, 3}, {4, 5, 6}});
+        SegmentTree2DDense<SumM> c(vector<vector<lng>>{{1, 2, 3}, {4, 5, 6}});
         auto copy = c;
         copy.set(1, 2, 100);
         checkEqual(c.prod(0, 2, 0, 3), 21, "dense copy independent"); checkEqual(copy.prod(1, 2, 2, 3), 100, "dense copy");
         DualSegmentTree2DDense<AddAct> d0(0, 0);
         checkEqual(d0.values().size(), size_t(0), "dual empty values");
-        SegmentTree2DSparse<Sum> s0;
+        SegmentTree2DSparse<SumM> s0;
         checkEqual(s0.prod(-5, 5, -5, 5), 0, "sparse empty"); checkEqual(s0.allProd(), 0, "sparse empty all");
         lng big = std::numeric_limits<lng>::max();
-        SegmentTree2DSparse<Sum> s1({{big - 1, -big}, {big - 1, -big}, {-big, big - 1}}, {2, 3, 4});
+        SegmentTree2DSparse<SumM> s1({{big - 1, -big}, {big - 1, -big}, {-big, big - 1}}, {2, 3, 4});
         checkEqual(s1.get(big - 1, -big), 5, "sparse duplicate weights"); checkEqual(s1.prod(-big, big, -big, big), 9, "sparse extreme coordinates");
         checkEqual(s1.prod(0, 0, -big, big), 0, "sparse empty x");
         LazyKdTree<AS> k0;
@@ -141,13 +184,13 @@ namespace {
         checkEqual(lng(k1.get(0).sum.val()), lng(9), "kd duplicate point"); checkEqual(lng(k1.prod(0, 5, 0, 5).sum.val()), lng(22), "kd duplicate sum");}
 
     void invalid(const string &name) {
-        SegmentTree2DDense<Sum> t(3, 4);
+        SegmentTree2DDense<SumM> t(3, 4);
         DualSegmentTree2DDense<AddAct> d(3, 4);
-        SegmentTree2DSparse<Sum> s({{0, 0}, {1, 2}});
+        SegmentTree2DSparse<SumM> s({{0, 0}, {1, 2}});
         LazyKdTree<AS> k({{0, 0}, {1, 2}});
-        if (name == "dense-negative") { SegmentTree2DDense<Sum> x(-1, 2); }
-        else if (name == "dense-oversize") { SegmentTree2DDense<Sum> x(1 << 15, 1 << 14); }
-        else if (name == "dense-ragged") { SegmentTree2DDense<Sum> x(vector<vector<lng>>{{1, 2}, {3}}); }
+        if (name == "dense-negative") { SegmentTree2DDense<SumM> x(-1, 2); }
+        else if (name == "dense-oversize") { SegmentTree2DDense<SumM> x(1 << 15, 1 << 14); }
+        else if (name == "dense-ragged") { SegmentTree2DDense<SumM> x(vector<vector<lng>>{{1, 2}, {3}}); }
         else if (name == "dense-get-end") { (void)t.get(3, 0); }
         else if (name == "dense-set-negative") { t.set(0, -1, 1); }
         else if (name == "dense-apply-end") { t.apply(0, 4, 1); }
@@ -156,7 +199,7 @@ namespace {
         else if (name == "dual-negative") { DualSegmentTree2DDense<AddAct> x(2, -1); }
         else if (name == "dual-get-end") { (void)d.get(0, 4); }
         else if (name == "dual-apply-reversed") { d.apply(0, 3, 3, 2, 1); }
-        else if (name == "sparse-weights") { SegmentTree2DSparse<Sum> x({{0, 0}}, {1, 2}); }
+        else if (name == "sparse-weights") { SegmentTree2DSparse<SumM> x({{0, 0}}, {1, 2}); }
         else if (name == "sparse-set-missing") { s.set(1, 1, 5); }
         else if (name == "sparse-get-missing") { (void)s.get(2, 2); }
         else if (name == "kd-weights") { LazyKdTree<AS> x({{0, 0}}, {AS::leaf(mint(1)), AS::leaf(mint(2))}); }
@@ -185,13 +228,14 @@ int main(int argc, char **argv) {
         int steps = mode == "quick" ? 60 : mode == "full" ? 400 : 1500;
         for (int n : sizes) {
             for (int m : sizes) {
-                denseRun<Sum>(rng, n, m, steps / 4, "sum"); denseRun<Min>(rng, n, m, steps / 4, "min");
+                denseRun<SumM>(rng, n, m, steps / 4, "sum"); denseRun<MinM>(rng, n, m, steps / 4, "min");
                 dualRun<AddAct>(rng, n, m, steps / 4, "add"); dualRun<MaxAct>(rng, n, m, steps / 4, "max");}}
         vector<int> counts = mode == "quick" ? vector<int>{0, 1, 2, 5, 17} : vector<int>{0, 1, 2, 3, 4, 7, 8, 9, 16, 33, 100, 257};
         if (mode == "stress") { counts.push_back(1000); }
         for (int k : counts) {
             for (lng span : {lng(2), lng(6), lng(1000000000000000000)}) {
-                sparseRun<Sum>(rng, k, span, steps, "sum"); sparseRun<Min>(rng, k, span, steps, "min");
+                sparseRun<SumM>(rng, k, span, steps, "sum"); sparseRun<MinM>(rng, k, span, steps, "min");
                 kdRun(rng, k, span, steps, false); kdRun(rng, k, span, steps, true);}}
+        statefulRun(rng, steps);
         std::cout << "PASS segment_tree_2d checks=" << checks << '\n'; return 0;} catch (const std::exception &e) {
         std::cerr << "FAIL segment_tree_2d seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1;}}

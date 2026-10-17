@@ -1,4 +1,5 @@
 #include "../../02-Data Structures/06-sqrt_decomposition.hpp"
+#include "../../02-Data Structures/00-monoids.hpp"
 
 ulng seed = 20260927;
 string mode = "quick", context;
@@ -25,15 +26,15 @@ vector<int> widths(int n) {
     vector<int> result{0,1,2,max(1,n),n+2,INT_MAX};
     sort(result.begin(),result.end()); result.erase(unique(result.begin(),result.end()),result.end());
     return result;}
-template<typename T, typename F>
-void verifyGeneric(const SqrtDecomp<T,F> &d, const vector<T> &a, T id, F op) {
+template<typename M, typename T, typename F>
+void verifyGeneric(const SqrtDecomp<M> &d, const vector<T> &a, T id, F op) {
     int n = int(a.size()); check(d.n,n,"generic size"); auto values = d.values();
     check(values.size(),a.size(),"generic values size");
     for (int i = 0; i < n; ++i) { check(d.get(i),a[i],"generic get "+show(i)); check(values[i],a[i],"generic values "+show(i)); }
     for (int l = 0; l <= n; ++l) {
         T expected = id;
         for (int r = l; r <= n; ++r) {
-            check(d.query(l,r),expected,"generic query("+show(l)+","+show(r)+")");
+            check(d.prod(l,r),expected,"generic prod("+show(l)+","+show(r)+")");
             if (r < n) { expected = op(expected,a[r]); }}}}
 template<typename T> void verifyLazy(const SqrtRangeSum<T> &d, const vector<T> &a) {
     int n = int(a.size()); check(d.n,n,"lazy size"); auto values = d.values();
@@ -53,19 +54,22 @@ void genericExhaustive() {
             input = a; history.clear();
             for (int b : widths(n)) {
                 context = "generic n="+show(n)+" mask="+show(mask)+" B="+show(b);
-                SqrtDecomp<lng> d(a,b), zero(n,b); verifyGeneric(d,a,lng(0),std::plus<lng>{});
+                SqrtDecomp<Sum<lng>> d(a,b), zero(n,b); verifyGeneric(d,a,lng(0),std::plus<lng>{});
                 verifyGeneric(zero,vector<lng>(n),lng(0),std::plus<lng>{});
                 for (int i = 0; i < n; ++i) { for (lng x : {-2,0,2}) {
                     auto e = d; auto v = a; v[i] = x; e.set(i,x); verifyGeneric(e,v,lng(0),std::plus<lng>{});
-                    e = d; v = a; v[i] += x; e.opeUpdate(i,x); verifyGeneric(e,v,lng(0),std::plus<lng>{});}}
-                auto copy = d; SqrtDecomp<lng> moved(std::move(copy)); verifyGeneric(moved,a,lng(0),std::plus<lng>{});
+                    e = d; v = a; v[i] += x; e.apply(i,x); verifyGeneric(e,v,lng(0),std::plus<lng>{});}}
+                auto copy = d; SqrtDecomp<Sum<lng>> moved(std::move(copy)); verifyGeneric(moved,a,lng(0),std::plus<lng>{});
                 copy = d; verifyGeneric(copy,a,lng(0),std::plus<lng>{});
                 copy.rebuild(vector<lng>{7,-2,3},2); verifyGeneric(copy,vector<lng>{7,-2,3},lng(0),std::plus<lng>{});
                 copy.rebuild({}); verifyGeneric(copy,vector<lng>{},lng(0),std::plus<lng>{});}}}
     cout << "PASS sqrt generic exhaustive n<=" << limit << '\n';}
+// Stateful monoid: the member flag picks the concatenation order.
 struct Join {
     bool backwards;
-    string operator()(const string &a, const string &b) const { return backwards ? b+a : a+b; }
+    using S = string;
+    S op(const S &a, const S &b) const { return backwards ? b+a : a+b; }
+    S e() const { return ""; }
 };
 void noncommutative() {
     input.clear(); history.clear();
@@ -73,9 +77,10 @@ void noncommutative() {
         context = "strings n="+show(n)+" B="+show(b)+" reverse="+show(reverse_order);
         vector<string> a(n);
         for (int i = 0; i < n; ++i) { a[i] = string(1,char('a'+i)); }
-        Join op{reverse_order}; SqrtDecomp<string,Join> d(a,b,"",op); verifyGeneric(d,a,string{},op);
+        auto op = [reverse_order](const string &x, const string &y) { return reverse_order ? y+x : x+y; };
+        SqrtDecomp d(a,b,Join{reverse_order}); verifyGeneric(d,a,string{},op);
         for (int i = 0; i < n; ++i) {
-            d.opeUpdate(i,"Z"); a[i] = op(a[i],"Z"); verifyGeneric(d,a,string{},op);
+            d.apply(i,"Z"); a[i] = op(a[i],"Z"); verifyGeneric(d,a,string{},op);
             d.set(i,"X"); a[i] = "X"; verifyGeneric(d,a,string{},op);}
         d.rebuild(vector<string>{"ab","c","de"},2); verifyGeneric(d,vector<string>{"ab","c","de"},string{},op);}}}
     cout << "PASS sqrt noncommutative/stateful fold/rebuild\n";}
@@ -137,8 +142,8 @@ void regressions() {
         d.assign(0,5,d.get(1)); verifyLazy(d,vector<lng>(5,100));}
     SqrtRangeSum<lng> zero(7,3); verifyLazy(zero,vector<lng>(7));
     zero.affine(0,7,2,3); zero.affine(0,7,zero.lazy_mul[0],zero.lazy_add[0]); verifyLazy(zero,vector<lng>(7,9));
-    SqrtDecomp<lng> generic(vector<lng>{1,2,3},2); generic.set(0,generic.get(1));
-    generic.opeUpdate(2,generic.get(0)); verifyGeneric(generic,vector<lng>{2,2,5},lng(0),std::plus<lng>{});
+    SqrtDecomp<Sum<lng>> generic(vector<lng>{1,2,3},2); generic.set(0,generic.get(1));
+    generic.apply(2,generic.get(0)); verifyGeneric(generic,vector<lng>{2,2,5},lng(0),std::plus<lng>{});
     lll big = lll(1) << 95; SqrtRangeSum<lll> wide(vector<lll>{big,2*big,-big},2);
     wide.affine(0,3,lll(2),big); wide.set(1,-big); verifyLazy(wide,vector<lll>{3*big,-big,-big});
     SqrtRangeSum<uint> modular(vector<uint>{UINT_MAX,2,3},2);
@@ -146,23 +151,23 @@ void regressions() {
     modular.add(1,3,uint(5)); verifyLazy(modular,vector<uint>{2,4,3});
     SqrtRangeSum<double> dyadic(vector<double>{0.5,1.25,0.25},2);
     dyadic.affine(0,3,2.0,0.5); verifyLazy(dyadic,vector<double>{1.5,3.0,1.0});
-    SqrtDecomp<lng> empty; verifyGeneric(empty,vector<lng>{},lng(0),std::plus<lng>{});
+    SqrtDecomp<Sum<lng>> empty; verifyGeneric(empty,vector<lng>{},lng(0),std::plus<lng>{});
     SqrtRangeSum<lng> empty_sum; verifyLazy(empty_sum,vector<lng>{});
-    SqrtDecomp<lng> single({5}); SqrtRangeSum<lng> single_sum({5}), triple{1, 2, 3};
+    SqrtDecomp<Sum<lng>> single({5}); SqrtRangeSum<lng> single_sum({5}), triple{1, 2, 3};
     verifyGeneric(single,vector<lng>{5},lng(0),std::plus<lng>{}); verifyLazy(single_sum,vector<lng>{5}); verifyLazy(triple,vector<lng>{1,2,3});
-    static_assert(!std::is_convertible_v<int, SqrtDecomp<lng>> && !std::is_convertible_v<vector<lng>, SqrtDecomp<lng>>);
+    static_assert(!std::is_convertible_v<int, SqrtDecomp<Sum<lng>>> && !std::is_convertible_v<vector<lng>, SqrtDecomp<Sum<lng>>>);
     static_assert(!std::is_convertible_v<int, SqrtRangeSum<lng>> && !std::is_convertible_v<vector<lng>, SqrtRangeSum<lng>>);
     auto any = [](bool x, bool y) { return x || y; };
     for (int b : {0, 1, 2, 3}) {
         vector<bool> bits{false, true, false, false, true};
-        SqrtDecomp<bool, decltype(any)> flags(bits, b, false, any);
+        SqrtDecomp flags(bits, b, Monoid{false, any});
         for (int i = 0; i < 5; ++i) { const bool &got = flags.get(i); check(got, bool(bits[i]), "bool get"); }
         for (int l = 0; l <= 5; ++l) {
             for (int r = l; r <= 5; ++r) {
                 bool want = false;
                 for (int i = l; i < r; ++i) { want = want || bits[i]; }
-                check(flags.query(l,r), want, "bool query");}}
-        flags.set(4,false); flags.opeUpdate(2,true); check(flags.values() == vector<bool>{false,true,true,false,false}, true, "bool values");}
+                check(flags.prod(l,r), want, "bool prod");}}
+        flags.set(4,false); flags.apply(2,true); check(flags.values() == vector<bool>{false,true,true,false,false}, true, "bool values");}
     cout << "PASS sqrt action order/empty/type/alias/block boundary regressions\n";}
 int main(int argc, char **argv) {
     string invalid;
@@ -173,16 +178,16 @@ int main(int argc, char **argv) {
         else if (arg == "--invalid") { invalid = argv[++i]; }
         else { return 2; }}
     if (!invalid.empty()) {
-        SqrtDecomp<lng> g(2,1); SqrtRangeSum<lng> d(2,1);
-        if (invalid == "generic-negative-size") { SqrtDecomp<lng> bad(-1); }
-        else if (invalid == "generic-negative-block") { SqrtDecomp<lng> bad(2,-1); }
+        SqrtDecomp<Sum<lng>> g(2,1); SqrtRangeSum<lng> d(2,1);
+        if (invalid == "generic-negative-size") { SqrtDecomp<Sum<lng>> bad(-1); }
+        else if (invalid == "generic-negative-block") { SqrtDecomp<Sum<lng>> bad(2,-1); }
         else if (invalid == "generic-get-negative") { g.get(-1); }
         else if (invalid == "generic-get-end") { g.get(2); }
         else if (invalid == "generic-set-end") { g.set(2,1); }
-        else if (invalid == "generic-ope-end") { g.opeUpdate(2,1); }
-        else if (invalid == "generic-query-negative") { g.query(-1,1); }
-        else if (invalid == "generic-query-reversed") { g.query(1,0); }
-        else if (invalid == "generic-query-end") { g.query(0,3); }
+        else if (invalid == "generic-apply-end") { g.apply(2,1); }
+        else if (invalid == "generic-prod-negative") { g.prod(-1,1); }
+        else if (invalid == "generic-prod-reversed") { g.prod(1,0); }
+        else if (invalid == "generic-prod-end") { g.prod(0,3); }
         else if (invalid == "generic-rebuild-block") { g.rebuild({},-1); }
         else if (invalid == "lazy-negative-size") { SqrtRangeSum<lng> bad(-1); }
         else if (invalid == "lazy-negative-block") { SqrtRangeSum<lng> bad(2,-1); }

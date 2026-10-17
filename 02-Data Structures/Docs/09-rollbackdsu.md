@@ -20,7 +20,7 @@ Vertices `[0, n)`, `0 <= n <= INT_MAX`. Union by size; on equal sizes the first 
 
 ### RollbackDSUAggregate<M>
 
-`M` provides `S` and `static S op(const S &, const S &)`, commutative and associative. Commutativity is needed because which root absorbs the other depends on sizes, not on argument order. `e()` is not used. The constructor takes the initial vertex values `a`; `n = a.size()`.
+`M` provides `S` and `op(a, b)`, commutative and associative, under the stored-object contract of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp): `RollbackDSUAggregate(a, mon = {})` keeps it as `m` (static presets, stateful structs and `Monoid` lambdas all work; no `e` is needed). Commutativity is needed because which root absorbs the other depends on sizes, not on argument order. `e()` is not used. The constructor takes the initial vertex values `a`; `n = a.size()`.
 
 - Inherits `findSet`, `isSameSet`, `getSize`, `count`, `groups` and `snapshot`. Defines its own `uniteSets`, `undo` and `rollback`, which also maintain the aggregates. Never call `RollbackDSU::uniteSets`, `undo` or `rollback` on an aggregate (qualified, or through a base reference): they skip the aggregate state.
 - `componentValue(u)`: `op` over `a[w]` for every member `w`, and over every live `addValue` on the component. Returns `vector<S>::const_reference`, valid until the next mutation.
@@ -49,18 +49,28 @@ Tester `96-Local Testing/02-Data Structures/09-rollbackdsu_tester.cpp`, entry `0
 | `uniteSets` (return value), `undo`, `snapshot`, `rollback`, `findSet`, `isSameSet`, `getSize`, `count`, `groups` | `baseHistories` (n <= 12 with 60 steps, n <= 60 with 200 steps; self-loops, redundant unions, tokens reused after undos) | Brute force from the live record list: BFS components; `findSet` must be a member and the same vertex for the whole component; exact `groups` order |
 | `componentValue`, `addValue`, `edgeCount`, aggregate `uniteSets`, `undo`, `rollback` | `aggregateHistories<SumMax>` (sum mod 1e9+7, maximum and its multiplicity), `<Or>` (`bool` storage); final `rollback(0)` | Brute force: per-component fold of initial values and `addValue` operands; edge counts from unite records |
 | Depth bound and large histories | `large`: n = 2 * 10^5 and 2^16 with up to 4 * 10^5 steps of unions and batch rollbacks (full); n = 10^6 with 3 * 10^6 steps (stress) | Checkpoints rebuild row 01's path-compressed `DSU` from the live edges (count, sizes, 2000 random pairs); maximum depth at most `floor(log2(n))` |
-| Empty structure, copies, self-loops, redundant counts, `bool` aggregate | `edges` | Direct values |
+| Empty structure, copies, self-loops, redundant counts, `bool` aggregate; runtime monoid state | `edges` | Direct values; component sums modulo a member modulus (5 and 10^9+7) through unions, `addValue` and `rollback` |
 | Preconditions | `invalid` | Out-of-range and negative vertices, empty `undo`, future and negative `rollback`, negative size, aggregate empty `undo`, future `rollback`, out-of-range `addValue` |
 
 ## Commands and results
+
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+
+| Command | Result |
+|---|---|
+| `09-rollbackdsu_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 3,714,962 checks per configuration, 10 assertion probes, MEMORY peak 502 MB |
+| `CXX=g++-14 09-rollbackdsu_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 3,714,962 checks per configuration, MEMORY peak 525 MB |
+| `09-rollbackdsu_tester.py --mode stress --seed 7` | PASS, 27,165,990 checks per configuration, MEMORY peak 824 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/09-rollbackdsu_tester.py' --mode full --seed 20261017
 CXX=g++-14 python3 '96-Local Testing/02-Data Structures/09-rollbackdsu_tester.py' --mode full --seed 20261017
 python3 '96-Local Testing/02-Data Structures/09-rollbackdsu_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
 ```
-
-Final run 2026-10-17: full mode seed 20261017 passed on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`) with 3,714,954 checks per configuration and 10 assertion probes, MEMORY peak 492 MB and 503 MB; stress mode seed 7 (one round) passed all three configurations with 27,165,982 checks per configuration, MEMORY peak 689 MB. Mutation check (temporary header copies, quick mode seed 7, `-O2 -DNDEBUG`): 5 of 5 injected faults detected (`undo` keeping the count, redundant calls unrecorded, edge count not restored, `groups` joining the newest group, redundant edges uncounted); a `groups` mutant without the path memo stays correct at O(n log(n)) and is not detectable by results. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20 with `-Wall -Wextra -Wconversion -Werror`, CPython 3.14.8, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`) and ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined`) builds; MEMORY peaks are dominated by compilation. `02-integration.py --sanitizers` passed (153 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 1820 MB) and `03-consistency.py` reported no errors.
 
 ## Sources
 
@@ -79,3 +89,4 @@ Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 ## History
 
 - 2026-10-17: P034 first implementation and verification (user decisions on `snapshot`, `edgeCount`); `rollback(t)` bounded for `t < 0` under `NDEBUG`; independent review: no defect in this header, `rollback` cost added to the complexity line.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract for `RollbackDSUAggregate`, stateful-monoid test added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 502/525/824 MB.

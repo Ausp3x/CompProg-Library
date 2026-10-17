@@ -1,6 +1,7 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
 #include "../02-Data Structures/02-fenwick.hpp"
+#include "../02-Data Structures/00-monoids.hpp"
 #include "../02-Data Structures/03-segmenttree.hpp"
 #include "../02-Data Structures/07-ordered_set.hpp"
 
@@ -136,12 +137,12 @@ pair<int, Count> countLongestIncreasingSubsequences(const vector<T> &a, bool str
     auto merge = [](const State &x, const State &y) -> State {
         if (x.first != y.first) { return x.first > y.first ? x : y; }
         return {x.first, Count(x.second + y.second)};};
-    SegmentTree tree(c.size(), State{0, Count(0)}, merge);
+    SegmentTree tree(c.size(), Monoid{State{0, Count(0)}, merge});
     for (const auto &x : a) {
-        int r = c.index(x); auto cur = tree.query(0, r + !strict);
+        int r = c.index(x); auto cur = tree.prod(0, r + !strict);
         if (!cur.first) { cur.second = Count(1); }
         ++cur.first; tree.set(r, merge(tree.get(r), cur));}
-    auto res = tree.allQuery();
+    auto res = tree.allProd();
     if (!res.first) { res.second = Count(1); }
     return res;}
 // T: O(n * log(n + 1)), M: O(n) in Count operations; number of nonempty index-distinct chains of any length.
@@ -164,12 +165,12 @@ WeightedSubsequence weightedIncreasingSubsequence(const vector<T> &a, const vect
         if (x.second == -1) { return y; }
         if (y.second == -1) { return x; }
         return x.first >= y.first ? x : y;};
-    SegmentTree tree(c.size(), State{0, -1}, merge); vector<int> p(n, -1);
+    SegmentTree tree(c.size(), Monoid{State{0, -1}, merge}); vector<int> p(n, -1);
     for (int i = 0; i < n; ++i) {
-        int r = c.index(a[i]); auto old = tree.query(0, r + !strict); lll value = w[i];
+        int r = c.index(a[i]); auto old = tree.prod(0, r + !strict); lll value = w[i];
         if (old.second >= 0 && old.first > 0) { value += old.first; p[i] = old.second; }
         tree.set(r, merge(tree.get(r), State{value, i}));}
-    auto best = tree.allQuery();
+    auto best = tree.allProd();
     if (allow_empty && (best.second == -1 || best.first <= 0)) { return {0, true, {}}; }
     return {best.first, best.second >= 0, sequence_detail::restore(p, best.second)};}
 

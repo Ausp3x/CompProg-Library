@@ -1,4 +1,5 @@
 #include "../../02-Data Structures/11-fenwick_tree_advanced.hpp"
+#include "../../02-Data Structures/00-monoids.hpp"
 #include "../../01-Core/05-modint.hpp"
 
 namespace {
@@ -158,27 +159,34 @@ namespace {
                 checkEqual(f.prefixSum(x2, y2), pre, "prefixSum step=" + show(step));}}
         std::cout << "PASS CompressedFenwick2D\n";}
 
+    // Runtime state: saturating sum capped at cap (commutative monoid on values >= 0).
+    struct CappedSum { lng cap; using S = lng; S op(S a, S b) const { return min(cap, a + b); } S e() const { return 0; } };
     void prefixMonoid(Rng &rng) {
-        auto mx = [](lng a, lng b) { return max(a, b); };
         auto g = [](lng a, lng b) { return gcd(a, b); };
         for (int n : sizes()) {
             context = "FenwickPrefixMonoid n=" + show(n);
-            vector<lng> a(n), c(n);
+            lng cap = rnd(rng, 0, 400);
+            vector<lng> a(n), c(n), w(n);
             for (lng &x : a) { x = rnd(rng, -50, 50); }
             for (lng &x : c) { x = rnd(rng, 0, 60); }
-            FenwickPrefixMonoid f(a, std::numeric_limits<lng>::min(), mx), z(n, std::numeric_limits<lng>::min(), mx);
-            FenwickPrefixMonoid h(c, lng(0), g);
+            for (lng &x : w) { x = rnd(rng, 0, 30); }
+            FenwickPrefixMonoid<Max<lng>> f(a), z(n);
+            FenwickPrefixMonoid h(c, Monoid{lng(0), g});
+            FenwickPrefixMonoid s(w, CappedSum{cap});
+            for (lng &x : w) { x = min(cap, x); }
             for (int step = 0; step < steps(); ++step) {
                 if (n) {
                     int i = int(rnd(rng, 0, n - 1));
                     lng x = rnd(rng, -60, 60), y = rnd(rng, 0, 60);
                     f.apply(i, x); a[i] = max(a[i], x);
-                    h.apply(i, y); c[i] = gcd(c[i], y);}
+                    h.apply(i, y); c[i] = gcd(c[i], y);
+                    s.apply(i, y % 31); w[i] = min(cap, w[i] + y % 31);}
                 int r = int(rnd(rng, 0, n));
-                lng m = std::numeric_limits<lng>::min(), gg = 0;
-                for (int i = 0; i < r; ++i) { m = max(m, a[i]); gg = gcd(gg, c[i]); }
+                lng m = std::numeric_limits<lng>::min(), gg = 0, sum = 0;
+                for (int i = 0; i < r; ++i) { m = max(m, a[i]); gg = gcd(gg, c[i]); sum += w[i]; }
                 checkEqual(f.prefix(r), m, "max prefix(" + show(r) + ")");
                 checkEqual(h.prefix(r), gg, "gcd prefix(" + show(r) + ")");
+                checkEqual(s.prefix(r), min(cap, sum), "stateful capped prefix(" + show(r) + ")");
                 checkEqual(z.prefix(r), std::numeric_limits<lng>::min(), "identity prefix");}}
         std::cout << "PASS FenwickPrefixMonoid\n";}
 
@@ -232,7 +240,7 @@ namespace {
         Fenwick2DRangeAdd<lng> u(2, 2);
         Fenwick3D<lng> b(2, 2, 2);
         CompressedFenwick2D<lng> c({{1, 1}});
-        FenwickPrefixMonoid p(3, lng(0), [](lng x, lng y) { return max(x, y); });
+        FenwickPrefixMonoid<Max<lng>> p(3);
         Fenwick01 s(70);
         if (name == "range-add-negative-size") { FenwickRangeAdd<lng> x(-1); }
         else if (name == "range-add-reversed") { f.add(2, 1, 1); }

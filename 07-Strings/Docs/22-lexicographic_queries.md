@@ -141,15 +141,22 @@ Inputs: exhaustive binary texts through 7/9/12 and ternary through 4/6/7 symbols
 
 ## Commands and results
 
-Run 2026-10-16 on the final code. Every run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, precondition probes) binaries, and full/stress add ASan/UBSan (`-O1`); all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full and stress first pass the quick pre-flight under the 2048 MB cap. The checked and ASan/UBSan builds run stress at full-mode sizes.
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+
+| Command | Result |
+|---|---|
+| `22-lexicographic_queries_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 17,209,333 checks per configuration, 11 assertion probes, MEMORY peak 722 MB |
+| `CXX=g++-14 22-lexicographic_queries_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 17,209,333 checks per configuration, MEMORY peak 763 MB |
+| `22-lexicographic_queries_tester.py --mode stress --seed 7` | PASS, 17,261,494 checks per configuration, MEMORY peak 724 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
 
 ```bash
-python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 23 suites (this one: 2 configurations, 11 assertion probes)
-python3 '96-Local Testing/07-Strings/22-lexicographic_queries_tester.py' --mode full --seed 1  # PASS, 3 configurations, 17,248,002 checks each, 11 assertion probes, MEMORY peak 725 MB
-CXX=g++-14 python3 '96-Local Testing/07-Strings/22-lexicographic_queries_tester.py' --mode full --seed 2  # PASS, 3 configurations, 17,234,545 checks each, MEMORY peak 721 MB
-python3 '96-Local Testing/07-Strings/22-lexicographic_queries_tester.py' --mode stress --seed 3  # PASS, 3 configurations, 141,927,003 checks (optimized), 17,244,372 (checked, ASan/UBSan), MEMORY peak 725 MB
-python3 '96-Local Testing/02-integration.py'  # PASS, 146 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace
-python3 '96-Local Testing/03-consistency.py'  # PASS, errors: []
+python3 '96-Local Testing/07-Strings/22-lexicographic_queries_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/07-Strings/22-lexicographic_queries_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/07-Strings/22-lexicographic_queries_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
 ```
 
 ## Benchmarks
@@ -174,3 +181,4 @@ Code is independently implemented from the cited descriptions; catalog sweep in 
 ## History
 
 - 2026-10-16: implemented and verified (P085), independent review found 4 rule and test-gap findings, fixed; full suite passed on g++ and g++-14.
+- 2026-10-17: P027 monoid pass (`SparseTable<Min<int>>` with a direct `00-monoids.hpp` include; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 722/763/724 MB.

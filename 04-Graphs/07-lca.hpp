@@ -84,32 +84,31 @@ struct LCA : lca_detail::Forest {
         return dep[a] >= dep[b] && dep[a] >= dep[c] ? a : dep[b] >= dep[c] ? b : c;}
 };
 
-// Labels on vertices, or on child vertices for edges (edges=true skips the LCA); path order u -> v.
-// S: O(n * log(n)), Q: O(log(n)), M: O(n * log(n)); no answer is {false, identity}.
-template<class T, class Op>
+// Labels on vertices, or on child vertices for edges (edges=true skips the LCA), under a monoid M (S, op, e); path order u -> v.
+// S: O(n * log(n)), Q: O(log(n)), M: O(n * log(n)); no answer is {false, e()}.
+template<class M>
 struct LCAFold : LCA {
-    T identity;
-    Op op;
-    vector<vector<T>> rise, fall;
+    using S = typename M::S;
+    [[no_unique_address]] M m;
+    vector<vector<S>> rise, fall;
 
     template<class G>
-    LCAFold(const G &g, const vector<T> &values, T id, Op operation, int root = -1)
-        : LCA(g, root), identity(std::move(id)), op(std::move(operation)), rise(n), fall(n) {
+    LCAFold(const G &g, const vector<S> &values, M mon = {}, int root = -1) : LCA(g, root), m(std::move(mon)), rise(n), fall(n) {
         assert(values.size() == size_t(n));
         for (int u : order) {
             rise[u].assign(l + 1, values[u]); fall[u].assign(l + 1, values[u]);
             for (int j = 1; j <= l; ++j) {
                 int v = up[u][j - 1];
-                rise[u][j] = op(rise[u][j - 1], rise[v][j - 1]); fall[u][j] = op(fall[v][j - 1], fall[u][j - 1]);}}}
+                rise[u][j] = m.op(rise[u][j - 1], rise[v][j - 1]); fall[u][j] = m.op(fall[v][j - 1], fall[u][j - 1]);}}}
 
-    pair<bool, T> pathFold(int u, int v, bool edges = false) const {
+    pair<bool, S> pathFold(int u, int v, bool edges = false) const {
         int a = getLCA(u, v);
-        if (a == -1) { return {false, identity}; }
-        T left = identity, right = identity;
-        for (int k = dep[u] - dep[a], j = 0; k; ++j, k >>= 1) { if (k & 1) { left = op(left, rise[u][j]); u = up[u][j]; }}
-        for (int k = dep[v] - dep[a], j = 0; k; ++j, k >>= 1) { if (k & 1) { right = op(fall[v][j], right); v = up[v][j]; }}
-        if (!edges) { left = op(left, rise[a][0]); }
-        return {true, op(left, right)};}
+        if (a == -1) { return {false, m.e()}; }
+        S left = m.e(), right = m.e();
+        for (int k = dep[u] - dep[a], j = 0; k; ++j, k >>= 1) { if (k & 1) { left = m.op(left, rise[u][j]); u = up[u][j]; }}
+        for (int k = dep[v] - dep[a], j = 0; k; ++j, k >>= 1) { if (k & 1) { right = m.op(fall[v][j], right); v = up[v][j]; }}
+        if (!edges) { left = m.op(left, rise[a][0]); }
+        return {true, m.op(left, right)};}
 };
 
 // Same contract as LCA with 2 * n + 1 <= INT_MAX; Farach-Colton-Bender RMQ, no kthAncestor or jump.

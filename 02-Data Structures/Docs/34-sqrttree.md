@@ -6,7 +6,7 @@ Package P034 (batch DS30). New header; no legacy source. Range products with O(1
 
 ### Monoid contract
 
-`M` provides `S`, `static S op(const S &, const S &)` (associative, need not be commutative) and `static S e()` (two-sided identity). `e()` is returned for empty queries and fills unused storage; it never enters a nonempty product. Products run left to right: `op(a[l], ..., a[r - 1])`. `S` is copyable. Like row 28's `DisjointSparseTable::fold`, the folder convention (empty range gives the identity) needs `e()`.
+`M` provides `S`, `op(a, b)` (associative, need not be commutative) and `e()` (two-sided identity), under the stored-object contract of [12-lazysegmenttree.md](12-lazysegmenttree.md#monoid-contract-00-monoidshpp): `SqrtTree(a = {}, mon = {})` keeps it as `m`, and the block-count field is `nb`. `e()` is returned for empty queries and fills unused storage; it never enters a nonempty product. Products run left to right: `op(a[l], ..., a[r - 1])`. `S` is copyable. Like row 28's `DisjointSparseTable::fold`, the folder convention (empty range gives the identity) needs `e()`.
 
 ### SqrtTree<M>
 
@@ -14,10 +14,10 @@ Package P034 (batch DS30). New header; no legacy source. Range products with O(1
 
 Layer 0 would need a Θ(n) block table. Instead its `m = ceil(n / 2^ceil(lg / 2))` block products (the index) sit after the array and form a tree at base `n` that starts from layer 1 (`m <= 2^lay[1]`), so a point set rebuilds O(sqrt(n)) cells.
 
-- `query(l, r)`: asserts `0 <= l <= r <= n`; returns `e()` on `l == r`.
+- `prod(l, r)` (named `query` until the P027 monoid pass of 2026-10-17): asserts `0 <= l <= r <= n`; returns `e()` on `l == r`.
   - Otherwise let `d = bit_width(l xor (r - 1))`. If `d <= cut`, the closed range lies in one block of the last layer, at most `2^cut <= 8` positions, and is folded directly. `cut` is the last layer's block exponent, or `lg` when there is no layer.
   - Otherwise the deepest layer with `lay[i] >= d` holds `l` and `r - 1` in one segment but different blocks, and the answer is `suf[l]`, then the blocks strictly between, then `pre[r - 1]`. The middle comes from `btw` on layers `i >= 1`. On layer 0 it comes from one index query, which lands on a layer `>= 1` or on a direct fold of at most 8 index values.
-  - At most 9 `op` calls per query.
+  - At most 9 `op` calls per product.
 - `set(p, x)`: asserts `0 <= p < n`. On every layer it rebuilds the block containing `p`, and the segment's `btw` on layers `>= 1`. On layer 0 it also updates `p`'s index value and that value's path in the index tree. Cost O(2^ceil(lg / 2)) = O(sqrt(n)) `op` calls. `x` may alias a stored value.
 - Build: per layer at most `2(n + m)` prefix and suffix calls plus `(n + m) / 2 + 2^lay[i]` block-table calls. There are O(log(log(n))) layers, so build is O(n log(log(n))). Memory: `2 * layers * (n + m) + (layers - 1) * (2^lg + 2^ceil(lg / 2))` values of `S`.
 - Threshold: layering stops at `lay <= 3`. The two smallest layers of the textbook structure (segments of 4 and 8) are replaced by a direct fold of at most 8 values, which also removes its `l == r` and `l + 1 == r` special cases. For `n = 2^20` the stored values drop from 15 to 9 per element (5 layers to 3) and build time drops by half; query and set times are unchanged within noise (see Benchmarks).
@@ -26,11 +26,11 @@ Layer 0 would need a Θ(n) block table. Instead its `m = ceil(n / 2^ceil(lg / 2)
 
 ### Violated preconditions
 
-Under `NDEBUG` a reversed or out-of-range `query`, or an out-of-range `set`, reads or writes outside the arrays and is undefined. Every loop is bounded by `n`, and index recursion shrinks its range by a block factor on each call.
+Under `NDEBUG` a reversed or out-of-range `prod`, or an out-of-range `set`, reads or writes outside the arrays and is undefined. Every loop is bounded by `n`, and index recursion shrinks its range by a block factor on each call.
 
 ### Legacy mapping
 
-No legacy code. The row's planned `update (point)` is named `set`, as in rows 03 and 06. cp-algorithms `query`, maspypy `prod` and sotanishy `fold` are `query`.
+No legacy code. The row's planned `update (point)` is named `set`, as in rows 03 and 06. cp-algorithms `query`, maspypy `prod` and sotanishy `fold` are `prod`.
 
 ## Feature-to-test map
 
@@ -38,24 +38,34 @@ Tester `96-Local Testing/02-Data Structures/34-sqrttree_tester.cpp`, entry `34-s
 
 | Operation | Group | Oracle |
 |---|---|---|
-| `query` (including `e()` on empty), build | `exhaustive<Affine>`, `<Min>`, `<Or>`: every `n <= 70` (140 in stress, 24 in quick); `<Concat>` to half that; every `(l, r)` | Left-to-right fold. Affine maps mod 998244353 and string concatenation are noncommutative; `Or` stores `bool`. |
+| `prod` (including `e()` on empty), build | `exhaustive<Affine>`, `<Min>`, `<Or>`: every `n <= 70` (140 in stress, 24 in quick); `<Concat>` to half that; every `(l, r)` | Left-to-right fold. Affine maps mod 998244353 and string concatenation are noncommutative; `Or` stores `bool`. |
 | `set` | Same groups: random point sets, every `(l, r)` rechecked after each set | Left-to-right fold over the updated array |
-| `query`, `set`, medium sizes | `randomMedium` (n <= 5000; short, block-aligned power-of-two and long ranges interleaved with sets) | Left-to-right fold |
+| `prod`, `set`, medium sizes | `randomMedium` (n <= 5000; short, block-aligned power-of-two and long ranges interleaved with sets) | Left-to-right fold |
 | Layer and block boundaries | `large<Affine>` and `large<Byte>` (affine maps mod 16 in one byte) for n in 1, 2, 3, 8, 9, 16, 17, 31–33, 64, 65, 255–257, 4095–4097; `large<Affine>` for 65535–65537 and 100003 (full), 2^20, 2^20 + 1 and 2^22 − 3 (stress); `large<Byte>` for 2^24 + 1, the four-layer configuration (stress) | Reference bottom-up segment tree (noncommutative), itself checked against the left fold on every `(l, r)` for `n <= 40` |
-| Complexity | `large` | Counted `op` calls: query at most 9; set at most `sum(4 * 2^bs + 2 * 2^lay)` over layers, at most `16 * 2^ceil(lg / 2) + 64`; build at most `sum(3(n + m) + 2^lay)` |
+| Complexity | `large` | Counted `op` calls: `prod` at most 9; set at most `sum(4 * 2^bs + 2 * 2^lay)` over layers, at most `16 * 2^ceil(lg / 2) + 64`; build at most `sum(3(n + nb) + 2^lay)` |
 | Copies, aliasing, repeated sets, empty tree | `edges` | Direct values |
-| Preconditions | `invalid` | Reversed, out-of-range and negative `query`; out-of-range and negative `set` |
+| Runtime monoid state | `edges` | Sums modulo a member modulus (7 and 10^9+7) on 300 points: every seventh left end against every right end, before and after point sets |
+| Preconditions | `invalid` | Reversed, out-of-range and negative `prod` (probes `prod-reversed`, `prod-range`, `prod-negative`); out-of-range and negative `set` |
 
 ## Commands and results
+
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+
+| Command | Result |
+|---|---|
+| `34-sqrttree_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 1,517,687 checks per configuration, 5 assertion probes, MEMORY peak 724 MB |
+| `CXX=g++-14 34-sqrttree_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 1,517,687 checks per configuration, MEMORY peak 684 MB |
+| `34-sqrttree_tester.py --mode stress --seed 7` | PASS, 11,185,398 checks per configuration, MEMORY peak 1479 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/34-sqrttree_tester.py' --mode full --seed 20261017
 CXX=g++-14 python3 '96-Local Testing/02-Data Structures/34-sqrttree_tester.py' --mode full --seed 20261017
 python3 '96-Local Testing/02-Data Structures/34-sqrttree_tester.py' --mode stress --seed 7
-python3 '96-Local Testing/02-Data Structures/34-sqrttree_benchmark.py' --runs 5
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
 ```
-
-Final run 2026-10-17: full mode seed 20261017 passed on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`) with 1,491,199 checks per configuration and 5 assertion probes, MEMORY peak 712 MB and 712 MB; stress mode seed 7 (one round) passed all three configurations with 11,158,910 checks per configuration, MEMORY peak 1412 MB. Mutation check (temporary header copies, quick mode seed 7, `-O2 -DNDEBUG`): 5 of 5 injected faults detected (block table reading its own cell, first full block off by one, index not updated by `set`, reversed suffix order, direct-fold threshold off by one). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20 with `-Wall -Wextra -Wconversion -Werror`, CPython 3.14.8, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`) and ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined`) builds; MEMORY peaks are dominated by compilation. `02-integration.py --sanitizers` passed (153 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 1820 MB) and `03-consistency.py` reported no errors.
 
 ## Benchmarks
 
@@ -78,7 +88,7 @@ Each workload is a build, q uniform random ranges, q ranges of length 1–16, an
 | | **lay > 3** | 3 | 9.02 | 0.0180 | 0.1245 | 0.0899 | 0.0811 |
 | | lay > 4 | 3 | 9.02 | 0.0222 | 0.1079 | 0.0787 | 0.0754 |
 
-For n = 2^18 the `lay > 3` and `lay > 4` builds have identical layers and code paths. Their 15% spread therefore measures run-to-run noise, and query and set differences between thresholds stay within it. Memory and build time decide: `lay > 3` keeps the fewest values (tied with `lay > 4`, which allows direct folds of up to 16 elements) and builds 1.8–2.1 times faster than the textbook layering.
+For n = 2^18 the `lay > 3` and `lay > 4` builds have identical layers and code paths. Their 15% spread therefore measures run-to-run noise, and `prod` and `set` differences between thresholds stay within it. Memory and build time decide: `lay > 3` keeps the fewest values (tied with `lay > 4`, which allows direct folds of up to 16 elements) and builds 1.8–2.1 times faster than the textbook layering.
 
 ## Sources
 
@@ -97,3 +107,4 @@ Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 ## History
 
 - 2026-10-17: P034 first implementation and verification; independent review: no valid-input defect; added the four-layer configuration to stress, the threshold benchmark driver and corrected test-size statements.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract, `query` renamed `prod`, block-count field `nb`, stateful-monoid test added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 724/684/1479 MB.

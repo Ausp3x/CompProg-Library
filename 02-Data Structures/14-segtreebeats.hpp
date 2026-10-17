@@ -167,29 +167,30 @@ struct LazySegmentTreeBeats {
     using S = typename A::S;
     using F = typename A::F;
     static constexpr int MAX_SIZE = 1 << 29;
+    [[no_unique_address]] A m;
     int n, lg, base;
     vector<S> d;
     vector<F> lz;
 
     static int checkedSize(size_t n) { assert(n <= MAX_SIZE); return int(n); }
-    explicit LazySegmentTreeBeats(int N = 0) : n(N) { assert(0 <= n && n <= MAX_SIZE); init(); }
-    explicit LazySegmentTreeBeats(const vector<S> &a) : n(checkedSize(a.size())) {
+    explicit LazySegmentTreeBeats(int N = 0, A mon = {}) : m(std::move(mon)), n(N) { assert(0 <= n && n <= MAX_SIZE); init(); }
+    explicit LazySegmentTreeBeats(const vector<S> &v, A mon = {}) : m(std::move(mon)), n(checkedSize(v.size())) {
         init();
-        std::copy(a.begin(), a.end(), d.begin() + base);
+        std::copy(v.begin(), v.end(), d.begin() + base);
         for (int k = base - 1; k; --k) { pull(k); }}
     void init() {
         for (lg = 0; (1 << lg) < n; ++lg) {}
         base = 1 << lg;
-        d.assign(2 * base, A::e());
-        lz.assign(base, A::id());}
+        d.assign(2 * base, m.e());
+        lz.assign(base, m.id());}
 
-    void pull(int k) { d[k] = A::op(d[2 * k], d[2 * k + 1]); }
+    void pull(int k) { d[k] = m.op(d[2 * k], d[2 * k + 1]); }
     void put(int k, const F &f) {
-        d[k] = A::mapping(f, d[k]);
+        d[k] = m.mapping(f, d[k]);
         if (k < base) {
-            lz[k] = A::composition(f, lz[k]);
-            if (A::fail(d[k])) { push(k); pull(k); }}}
-    void push(int k) { put(2 * k, lz[k]); put(2 * k + 1, lz[k]); lz[k] = A::id(); }
+            lz[k] = m.composition(f, lz[k]);
+            if (m.fail(d[k])) { push(k); pull(k); }}}
+    void push(int k) { put(2 * k, lz[k]); put(2 * k + 1, lz[k]); lz[k] = m.id(); }
     void pushPath(int p) { for (int i = lg; i >= 1; --i) { push(p >> i); }}
     void pullPath(int p) { for (int i = 1; i <= lg; ++i) { pull(p >> i); }}
     void pushBounds(int l, int r) {
@@ -215,14 +216,14 @@ struct LazySegmentTreeBeats {
 
     S prod(int l, int r) {
         assert(0 <= l && l <= r && r <= n);
-        if (l == r) { return A::e(); }
+        if (l == r) { return m.e(); }
         l += base; r += base;
         pushBounds(l, r);
-        S left = A::e(), right = A::e();
+        S left = m.e(), right = m.e();
         for (; l < r; l >>= 1, r >>= 1) {
-            if (l & 1) { left = A::op(left, d[l++]); }
-            if (r & 1) { right = A::op(d[--r], right); }}
-        return A::op(left, right);}
+            if (l & 1) { left = m.op(left, d[l++]); }
+            if (r & 1) { right = m.op(d[--r], right); }}
+        return m.op(left, right);}
 };
 
 // T: O(1) per call, M: O(1); T unsigned (sum modulo 2^w) or signed with nonnegative values and or-operands; F {a, b} maps x to (x & a) | b.

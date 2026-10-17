@@ -1,4 +1,5 @@
 #include "../../04-Graphs/16-centroiddecomposition.hpp"
+#include "../../02-Data Structures/00-monoids.hpp"
 
 namespace {
     ulng seed = 20260927;
@@ -129,6 +130,13 @@ namespace {
         ContourFold<MaxCount> fm(CsrGraph(g), fa);
         ContourApply<AddMax> ap(g);
         vector<AddMax::F> applied(n, AddMax::id());
+        // Runtime state: contour sums and contour adds modulo a captured modulus.
+        lng mod = n % 2 ? 7 : 1000000007;
+        auto plusMod = [mod](lng x, lng y) { return ((x + y) % mod + mod) % mod; };
+        vector<lng> am(n), addm(n, 0);
+        for (int v = 0; v < n; ++v) { am[v] = plusMod(a[v], 0); }
+        ContourFold fmod(g, am, Monoid{lng(0), plusMod});
+        ContourApply apmod(g, MonoidAction{Monoid{lng(0), plusMod}});
         vector<char> marked(n);
         vector<lll> weight(n, 0);
         vector<lng> cur = a, plus(n, 0);
@@ -156,24 +164,26 @@ namespace {
                 check(ds.sum(q) == e && lll(dsu.sum(q)) == eu, "distance sum");}
             else if (type == 3) {
                 cs.pointAdd(v, x); fs.set(v, cur[v] + x); cur[v] += x;
-                fm.set(v, {cur[v], 1});}
+                fm.set(v, {cur[v], 1}); am[v] = plusMod(cur[v], 0); fmod.set(v, am[v]);}
             else if (type == 4) {
-                lng e = 0; pair<lng, int> em = MaxCount::e();
+                lng e = 0, emod = 0; pair<lng, int> em = MaxCount::e();
                 for (int u = 0; u < n; ++u) {
-                    if (unit.comp[u] == unit.comp[v] && l <= unit.d[v][u] && unit.d[v][u] < r) { e += cur[u]; em = MaxCount::op(em, {cur[u], 1}); }}
+                    if (unit.comp[u] == unit.comp[v] && l <= unit.d[v][u] && unit.d[v][u] < r) { e += cur[u]; em = MaxCount::op(em, {cur[u], 1}); emod = plusMod(emod, am[u]); }}
+                check(fmod.rangeContourFold(v, l, r) == emod, "rangeContourFold stateful");
                 check(cs.rangeContourSum(v, l, r) == e, "rangeContourSum");
                 check(fs.rangeContourFold(v, l, r) == e, "rangeContourFold sum");
                 check(fm.rangeContourFold(v, l, r) == em, "rangeContourFold max-count");}
             else if (type == 5) {
                 ca.rangeContourAdd(v, l, r, x);
                 AddMax::F f{x, rndRange(-20, 20)};
-                ap.rangeContourApply(v, l, r, f);
+                ap.rangeContourApply(v, l, r, f); apmod.rangeContourApply(v, l, r, x);
                 for (int u = 0; u < n; ++u) {
-                    if (unit.comp[u] == unit.comp[v] && l <= unit.d[v][u] && unit.d[v][u] < r) { plus[u] += x; applied[u] = AddMax::composition(f, applied[u]); }}}
+                    if (unit.comp[u] == unit.comp[v] && l <= unit.d[v][u] && unit.d[v][u] < r) { plus[u] += x; applied[u] = AddMax::composition(f, applied[u]); addm[u] = plusMod(addm[u], x); }}}
             else {
                 auto f = ap.pointGet(v);
                 check(ca.pointGet(v) == a[v] + plus[v], "ContourAdd pointGet");
-                check(f.add == applied[v].add && f.mx == applied[v].mx, "ContourApply pointGet");}}
+                check(f.add == applied[v].add && f.mx == applied[v].mx, "ContourApply pointGet");
+                check(apmod.pointGet(v) == addm[v], "ContourApply stateful pointGet");}}
         vector<lng> freq(n, 0);
         lng pairs = 0, k = n ? wt.d[rnd(n)][rnd(n)] + rndRange(-1, 1) : 0;
         for (int u = 0; u < n; ++u) {

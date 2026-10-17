@@ -195,8 +195,10 @@ namespace {
         static S op(S a, S b) { return a.first != b.first ? max(a, b) : S{a.first, a.second + b.second}; }
         static S e() { return {LO, 0}; }
     };
+    // Runtime state: sums modulo a member modulus.
+    struct ModSum { lng mod; using S = lng; S op(S a, S b) const { return (a + b) % mod; } S e() const { return 0; } };
     template<typename M>
-    void monoidRun(Rng &rng, const string &name, auto gen) {
+    void monoidRun(Rng &rng, const string &name, auto gen, M mon = {}) {
         int rounds = mode == "quick" ? 20 : mode == "full" ? 150 : 700;
         for (int round = 0; round < rounds; ++round) {
             int n = int(rnd(rng, 0, round % 10 == 0 ? 300 : 20)), dist = round % 5;
@@ -204,19 +206,19 @@ namespace {
             vector<typename M::S> v(n);
             for (int i = 0; i < n; ++i) { x[i] = value(rng, dist, 0); y[i] = value(rng, (dist + 2) % 5, 0); v[i] = gen(rng); }
             context = name + " round=" + show(round) + " n=" + show(n);
-            WaveletMatrixMonoid<lng, M> wm(x, y, round % 3 ? v : vector<typename M::S>{});
-            if (round % 3 == 0) { std::fill(v.begin(), v.end(), M::e()); }
+            WaveletMatrixMonoid<lng, M> wm(x, y, round % 3 ? v : vector<typename M::S>{}, mon);
+            if (round % 3 == 0) { std::fill(v.begin(), v.end(), mon.e()); }
             vector<lng> cx = probes(x), cy = probes(y);
             for (int q = 0; q < 60; ++q) {
                 if (n && rng() % 2) {
                     int i = int(rnd(rng, 0, n - 1));
                     auto s = gen(rng);
-                    if (rng() % 2) { wm.set(i, s); v[i] = s; } else { wm.apply(i, s); v[i] = M::op(v[i], s); }
+                    if (rng() % 2) { wm.set(i, s); v[i] = s; } else { wm.apply(i, s); v[i] = mon.op(v[i], s); }
                     checkEqual(wm.get(i), v[i], "get i=" + show(i));}
                 lng xl = cx[rng() % cx.size()], xr = cx[rng() % cx.size()], yl = cy[rng() % cy.size()], yr = cy[rng() % cy.size()];
-                auto want = M::e();
+                auto want = mon.e();
                 for (int i = 0; i < n; ++i) {
-                    if (!(x[i] < xl) && x[i] < xr && !(y[i] < yl) && y[i] < yr) { want = M::op(want, v[i]); }}
+                    if (!(x[i] < xl) && x[i] < xr && !(y[i] < yl) && y[i] < yr) { want = mon.op(want, v[i]); }}
                 checkEqual(wm.prod(xl, xr, yl, yr), want, "prod rect=[" + show(xl) + "," + show(xr) + ")x[" + show(yl) + "," + show(yr) + ")");}
             if (n) {
                 auto copy = wm;
@@ -290,5 +292,6 @@ int main(int argc, char **argv) {
         rectangles(rng);
         monoidRun<SumMod>(rng, "monoid summod", [](Rng &g) { return rnd(g, 0, P - 1); });
         monoidRun<MaxCount>(rng, "monoid maxcount", [](Rng &g) { return pair<lng, int>{rnd(g, -3, 3), int(rnd(g, 1, 3))}; });
+        monoidRun(rng, "monoid stateful mod 7", [](Rng &g) { return rnd(g, 0, 6); }, ModSum{7});
         std::cout << "PASS waveletmatrix checks=" << checks << '\n'; return 0;} catch (const std::exception &e) {
         std::cerr << "FAIL waveletmatrix seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1;}}

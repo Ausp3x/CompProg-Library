@@ -46,17 +46,23 @@ Mutation check (2026-10-08, quick mode, temporary copies): 6 of 9 injected fault
 
 ## Commands and results
 
-P027 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H.
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+
+| Command | Result |
+|---|---|
+| `24-interval_set_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 4,070,377 checks per configuration, 11 assertion probes, MEMORY peak 515 MB |
+| `CXX=g++-14 24-interval_set_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 4,070,377 checks per configuration, MEMORY peak 521 MB |
+| `24-interval_set_tester.py --mode stress --seed 7` | PASS, 24,382,531 checks per configuration, MEMORY peak 558 MB |
+| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `03-consistency.py` | No errors |
 
 ```bash
-python3 '96-Local Testing/02-Data Structures/24-interval_set_tester.py' --mode full --seed 1
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/24-interval_set_tester.py' --mode full --seed 1
-python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/02-Data Structures/24-interval_set_tester.py' --mode full --seed 20261017
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/24-interval_set_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/02-Data Structures/24-interval_set_tester.py' --mode stress --seed 7
+python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
-python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/24-interval_set.hpp' '96-Local Testing/02-Data Structures/24-interval_set_tester.cpp'
 ```
-
-Full, seed 1: PASS in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the 11 assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, all with `-Wall -Wextra -Wconversion -Werror`, 4,070,016 checks per configuration, peak 516 MB on g++ and 521 MB on g++-14. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
 
 ## Sources
 
@@ -74,7 +80,7 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 
 - Left out with reasons in [00-notes.md](00-notes.md#p027-omissions): dense `IntervalsFast` over a fastset, splay-backed `PiecewiseConstant`, `toArray`, `maxExcluded`, iterator-returning `lowerBound`.
 - Dynamic mex over a *set of values* (the `DynamicMex` legacy note) is `IntervalSet::find(0).second` with `insert(x, x + 1)`.
-- `IntervalMap` with a monoid-weighted segment tree gives `O(log n)` amortised range-assign/range-composite, the alternative to row 12's `RangeSetRangeComposite`.
+- `IntervalMap` with a monoid-weighted segment tree gives `O(log n)` amortised range-assign/range-composite, the alternative to row 12's `RangeAssignRangeComposite`.
 
 ## History
 
@@ -83,3 +89,4 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 - 2026-10-08: P027 re-audit pass (second session), 1 finding fixed.
 - 2026-10-12: re-audit, 1 finding fixed, full suite passed on g++ and g++-14.
 - 2026-10-13: prune, removed `IntervalSet::mex` (cases moved to `find(x).second`); full suite passed on g++ and g++-14.
+- 2026-10-17: P027 monoid pass (headers and tests unchanged; rerun for the memory-peak record); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 515/521/558 MB.
