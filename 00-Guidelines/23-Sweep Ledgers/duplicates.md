@@ -29,6 +29,7 @@ Items a reader could mistake for duplicates.
 | P006 | `maxZeroSubmatrix` | Larger domain: any nonzero cell blocks; `largestBinaryRectangle` asserts 0/1 |
 | P006 | `SqrtDecomp::apply` (formerly `opeUpdate`), `SparseTable::operator<<` | Only form |
 | P006 | `SqrtDecomp::rebuild` | Decided 2026-10-13: larger domain; resets in place with the stored monoid `m`, while assigning a new object needs an assignable `M`, which a `Monoid` over a capturing lambda is not |
+| P006, P027 | `SegmentTree` and `LazySegmentTree` `fold`, `foldRight` beside `act(x, prod(l, r))` | Different algorithm: the product is never formed, so `act` replaces `op` (`O(K^2)` instead of `O(K^3)` per node for `K`-vectors over matrices); decided 2026-10-18 |
 | P007 | 2D `angleApprox` | Named special case (unsigned angle; one name for 2D and 3D) |
 | P010 | `findNegativeCycle`, `bfsShortestPaths` | Named special case (all-vertex seeding); BFS form of `ShortestPathResult` |
 | P011 | `lca_detail::Forest` inclusive `t_in`/`t_out` | Only form |
@@ -466,13 +467,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | unweighted beside weighted forms | row 25 (and row 48, P146) | the weighted form with unit weights | ask | named special case or wrapper | — | — |
 | `greatCircleDistanceApprox`, `antipodal` | row 27 | `r * angleApprox` (3D), `-p` | ask | wrappers if inputs are `Point3` | — | — |
 
-## P080 — 06-Miscellaneous — dynamic dp (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `AffineComposition` | row 41 | `00-monoids.hpp` `AffineComposite` | remove (row only) | second implementation | — | — |
-| `MaxPlusMatrix` (`multiply`, `identity`) | row 41 | `00-monoids.hpp` `MaxPlusMatrix` (`op`, `e`) | remove (row only) | second implementation under the same name | — | — |
-
 ## P089 — 07-Strings — multidimensional matching (planned)
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
@@ -698,7 +692,7 @@ Stdlib functions are existing operations (`04-python.md:15`).
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `RangeTree::count`, `fold` | row 43 | `MergeSortTree::countRange` after an x-sort; `SegmentTree2DSparse::prod` | ask | the merge-sort tree and 2D sparse segment tree after a point-set builder, or a separate structure | — | — |
+| `RangeTree::count`, `prod` | row 43 | `MergeSortTree::countRange` after an x-sort; `SegmentTree2DSparse::prod` | ask | the merge-sort tree and 2D sparse segment tree after a point-set builder, or a separate structure | — | — |
 | `PersistentDeque` | row 47 | row 57 `FingerTree` | ask | duplicate if a finger tree | — | — |
 
 ## P122 — 02-Data Structures — linearrmq, commonintervaltree (planned)
@@ -1040,7 +1034,7 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P129** `countIntersections`; **P130** `triangulateSimple`, `trapezoidalDecomposition`; **P131** `tangentCircles`, `apolloniusCircles` cases; **P135** `manhattanClosestPair`, `euclideanBottleneck` (largest MST edge or a threshold test?), `euclideanMstDense`, `Voronoi::adjacency`: own algorithms or wrappers?
 - **P090** `modInv`: `None` for non-units (a `tryX` form) or a precondition? `binarySearchInt`: the `binSearch` mirror (renamed) or `firstTrue`? `argminUnimodal`: Fibonacci search or `ternaryMinInt`?
 - **P092** `dijkstraPath`; **P096** `primePi` beside `countPrimes`; **P101** `weightedChoice` (alias method?); **P094** `farthestPair`; **P104** `setFalse` (merge into `setValue`?); **P105** `floydPath`; **P106** `kthRootMod` beside `discreteRoot`; **P222** `necklaceCountColors`; **P223** `bisectionRoot`: separate operations?
-- **P115** `PersistentDeque`: a finger tree? `RangeTree::count`, `fold`: the merge-sort tree and 2D sparse segment tree after a point-set builder, or a separate structure? **P122** `PlusMinusOneRMQ`: expose it for `EulerLCA`, or drop it?
+- **P115** `PersistentDeque`: a finger tree? `RangeTree::count`, `prod`: the merge-sort tree and 2D sparse segment tree after a point-set builder, or a separate structure? **P122** `PlusMinusOneRMQ`: expose it for `EulerLCA`, or drop it?
 - **P138** `feasiblePoint3`, `removeRedundant3`; **P140** `lp2d`, `lp3d`, `minimumEnclosingBall` (d = 2); **P148** `alphaShape2`, `criticalAlphas`; **P149** `convexPolyhedronIntersection`, `bspBoolean`'s operation flag; **P150** `continuousFrechet`; **P139** `lowerEnvelope` beside DS row 22, `geodesicPath` beside `funnel`: own algorithms or views?
 - **P153** `matroidUnion`, `matroidPartition`, `forestDecomposition`: one algorithm?
 - **P155** `DynamicForest`: keep it as an edge-ID adapter or use `LinkCutTree`? MST sensitivity formulas over `mstEdgeSensitivity`?

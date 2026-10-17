@@ -5713,23 +5713,6 @@
       ]
     },
     {
-      "id": "MI30",
-      "folder": "06-Miscellaneous",
-      "targets": [
-        "06-Miscellaneous/41-dynamic_dp.hpp"
-      ],
-      "support_targets": [],
-      "size": "L",
-      "focus": "Chain DP and reusable associative/state-transfer summaries with point updates and composition-order tests. Graphs GR68 owns fixed/dynamic tree DP; do not implement tree adapters here. Optional matrix policy can use an existing Core/Math matrix; no dependency on GR68 is needed for the chain engine.",
-      "prerequisites": [
-        "C01",
-        "DS01"
-      ],
-      "tiers": [
-        "Advanced"
-      ]
-    },
-    {
       "id": "MI31",
       "folder": "06-Miscellaneous",
       "targets": [

@@ -10,6 +10,7 @@ namespace {
         string s = "[";
         for (int i = 0; i < int(a.size()); ++i) { s += (i ? "," : "") + show(a[i]); }
         return s + "]";}
+    template<typename T, size_t K> string show(const array<T, K> &a) { return show(vector<T>(a.begin(), a.end())); }
     template<typename T, typename U> void checkEqual(const T &got, const U &want, const string &op) {
         ++checks;
         if (got != want) {
@@ -91,6 +92,8 @@ namespace {
                     for (int r = l; r <= n; ++r) {
                         checkEqual(o.prod(l, r), x, "or prod(" + show(l) + "," + show(r) + ")");
                         checkEqual(c.prod(l, r), y, "and prod(" + show(l) + "," + show(r) + ")");
+                        checkEqual(c.fold(l, r, true, [](bool u, bool s) { return u && s; }), y, "and fold(" + show(l) + "," + show(r) + ")");
+                        checkEqual(o.foldRight(l, r, false, [](bool s, bool u) { return s || u; }), x, "or foldRight(" + show(l) + "," + show(r) + ")");
                         if (r < n) { x = x || a[r]; y = y && a[r]; }}
                     int r = l;
                     while (r < n && !a[r]) { ++r; }
@@ -213,6 +216,68 @@ namespace {
         checkEqual(b.prod(0, 2).x, 1, "Box fold"); b.set(1, Box(8)); checkEqual(b.allProd().x, 12, "Box set");
         std::cout << "PASS noncommutative strings/affine/search and generic payloads\n";}
 
+    // Max-plus matrices act on row vectors (fold) and column vectors (foldRight); the oracles apply them one leaf at a time.
+    using MaxPlus = MaxPlusMatrix<lng, 3>;
+    using Mat = MaxPlus::S;
+    using Vec = array<lng, 3>;
+    constexpr lng NONE = MaxPlus::NONE;
+    Vec rowTimes(const Vec &v, const Mat &a) {
+        Vec res; res.fill(NONE);
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                if (v[i] != NONE && a[i][j] != NONE) { res[j] = max(res[j], v[i] + a[i][j]); }}}
+        return res;}
+    Vec timesColumn(const Mat &a, const Vec &v) {
+        Vec res; res.fill(NONE);
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                if (a[i][j] != NONE && v[j] != NONE) { res[i] = max(res[i], a[i][j] + v[j]); }}}
+        return res;}
+
+    void folds(std::mt19937_64 &rng) {
+        int rounds = mode == "quick" ? 10 : mode == "full" ? 80 : 250;
+        for (int trial = 0; trial < rounds; ++trial) {
+            int n = int(rng() % 40);
+            vector<Mat> mats(n); vector<Affine> affine(n); vector<string> words(n);
+            auto draw = [&](int i) {
+                for (auto &row : mats[i]) { for (lng &x : row) { x = rng() % 4 ? lng(rng() % 19) - 9 : NONE; }}
+                affine[i] = {int(rng() % 97), int(rng() % 97)}; words[i] = string(1, char('a' + rng() % 3));};
+            for (int i = 0; i < n; ++i) { draw(i); }
+            SegmentTree<MaxPlus> mt(mats);
+            SegmentTree t(affine, Monoid{Affine{1, 0}, Compose{}});
+            int ops = 0;
+            SegmentTree s(words, Monoid{string(), [&ops](const string &u, const string &w) { ++ops; return u + w; }});
+            int bound = 2 * std::bit_width(unsigned(mt.base)), calls = 0;
+            auto row = [&](Vec v, const Mat &a) { ++calls; return rowTimes(v, a); };
+            auto column = [&](const Mat &a, Vec v) { ++calls; return timesColumn(a, v); };
+            for (int step = 0; step < 3; ++step) {
+                context = "fold trial=" + show(trial) + " step=" + show(step) + " n=" + show(n);
+                for (int l = 0; l <= n; ++l) {
+                    for (int r = l; r <= n; ++r) {
+                        string at = "(" + show(l) + "," + show(r) + ")";
+                        Vec v{lng(rng() % 7), NONE, lng(rng() % 7) - 3}, want = v, wantColumn = v;
+                        for (int i = l; i < r; ++i) { want = rowTimes(want, mats[i]); }
+                        for (int i = r; i-- > l;) { wantColumn = timesColumn(mats[i], wantColumn); }
+                        calls = 0; checkEqual(mt.fold(l, r, v, row), want, "max-plus fold" + at);
+                        checkEqual(calls <= bound, true, "fold act calls" + at);
+                        calls = 0; checkEqual(mt.foldRight(l, r, v, column), wantColumn, "max-plus foldRight" + at);
+                        checkEqual(calls <= bound, true, "foldRight act calls" + at);
+                        int x = int(rng() % 97), y = x;
+                        Affine g{int(rng() % 97), int(rng() % 97)}, c{1, 0};
+                        for (int i = l; i < r; ++i) { y = affine[i].eval(y); c = Compose{}(c, affine[i]); }
+                        c = Compose{}(c, g);
+                        checkEqual(t.fold(l, r, x, [](int u, const Affine &f) { return f.eval(u); }), y, "point set range composite fold" + at);
+                        Affine h = t.foldRight(l, r, g, [](const Affine &f, const Affine &u) { return Compose{}(f, u); });
+                        checkEqual(97 * h.a + h.b, 97 * c.a + c.b, "composite foldRight" + at);
+                        string joined;
+                        for (int i = l; i < r; ++i) { joined += words[i]; }
+                        ops = 0;
+                        checkEqual(s.fold(l, r, string("<"), [](string u, const string &w) { return u + w; }), "<" + joined, "string fold" + at);
+                        checkEqual(s.foldRight(l, r, string(">"), [](const string &w, string u) { return w + u; }), joined + ">", "string foldRight" + at);
+                        checkEqual(ops, 0, "folds form no product" + at);}}
+                if (n) { int p = int(rng() % n); draw(p); mt.set(p, mats[p]); t.set(p, affine[p]); s.set(p, words[p]); }}}
+        std::cout << "PASS fold/foldRight: max-plus row and column vectors, affine values and maps, strings\n";}
+
     void invalid(const string &name) {
         Tree t(vector<lng>{1, 2, 3});
         if (name == "negative-size") { Tree x(-1); }
@@ -229,6 +294,12 @@ namespace {
         else if (name == "min-left-index") { (void)t.minLeft(-1, [](lng) { return true; }); }
         else if (name == "max-right-identity") { (void)t.maxRight(0, [](lng) { return false; }); }
         else if (name == "min-left-identity") { (void)t.minLeft(3, [](lng) { return false; }); }
+        else if (name == "fold-negative") { (void)t.fold(-1, 2, lng(0), std::plus<lng>()); }
+        else if (name == "fold-reversed") { (void)t.fold(2, 1, lng(0), std::plus<lng>()); }
+        else if (name == "fold-end") { (void)t.fold(0, 4, lng(0), std::plus<lng>()); }
+        else if (name == "fold-right-negative") { (void)t.foldRight(-1, 2, lng(0), std::plus<lng>()); }
+        else if (name == "fold-right-reversed") { (void)t.foldRight(2, 1, lng(0), std::plus<lng>()); }
+        else if (name == "fold-right-end") { (void)t.foldRight(0, 4, lng(0), std::plus<lng>()); }
         else { throw std::runtime_error("unknown invalid probe " + name); }
         throw std::runtime_error("invalid precondition survived " + name);}
 } // namespace
@@ -246,6 +317,6 @@ int main(int argc, char **argv) {
         std::cout << "segmenttree seed=" << seed << " mode=" << mode << '\n';
         if (!probe.empty()) { invalid(probe); }
         std::mt19937_64 rng(seed);
-        exhaustive(); booleans(); randomHistories(rng); stateful(rng); noncommutative(rng);
+        exhaustive(); booleans(); randomHistories(rng); stateful(rng); noncommutative(rng); folds(rng);
         std::cout << "PASS segmenttree checks=" << checks << '\n'; return 0;} catch (const std::exception &e) {
         std::cerr << "FAIL segmenttree seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1;}}

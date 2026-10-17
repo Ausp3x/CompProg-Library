@@ -3,7 +3,7 @@
 #include "../01-Core/01-template.hpp"
 #include "00-monoids.hpp"
 
-// 0 <= n <= 2^29; A is an acted monoid (op, e, mapping, composition = new after old, id); search predicates hold on e and stay false as the range grows.
+// 0 <= n <= 2^29; A is an acted monoid (op, e, mapping, composition = new after old, id); search predicates hold on e and stay false as the range grows; fold and foldRight take a right (act(x, s)) or left (act(s, x)) action of A.
 // S: O(n + 1), U: O(log(n + 1)), Q: O(log(n + 1)), M: O(n + 1)
 template<typename A>
 struct LazySegmentTree {
@@ -34,6 +34,10 @@ struct LazySegmentTree {
     void push(int k) { put(2 * k, lz[k]); put(2 * k + 1, lz[k]); lz[k] = m.id(); }
     void pushPath(int p) { for (int i = lg; i >= 1; --i) { push(p >> i); }}
     void pullPath(int p) { for (int i = 1; i <= lg; ++i) { pull(p >> i); }}
+    void pushBounds(int l, int r) {
+        for (int i = lg; i >= 1; --i) {
+            if (((l >> i) << i) != l) { push(l >> i); }
+            if (((r >> i) << i) != r) { push((r - 1) >> i); }}}
 
     S get(int p) { assert(0 <= p && p < n); p += base; pushPath(p); return d[p]; }
     const S &allProd() const { return d[1]; }
@@ -47,10 +51,7 @@ struct LazySegmentTree {
     void apply(int l, int r, const F &f) {
         assert(0 <= l && l <= r && r <= n);
         if (l == r) { return; }
-        l += base; r += base;
-        for (int i = lg; i >= 1; --i) {
-            if (((l >> i) << i) != l) { push(l >> i); }
-            if (((r >> i) << i) != r) { push((r - 1) >> i); }}
+        l += base; r += base; pushBounds(l, r);
         for (int a = l, b = r; a < b; a >>= 1, b >>= 1) {
             if (a & 1) { put(a++, f); }
             if (b & 1) { put(--b, f); }}
@@ -61,15 +62,34 @@ struct LazySegmentTree {
     S prod(int l, int r) {
         assert(0 <= l && l <= r && r <= n);
         if (l == r) { return m.e(); }
-        l += base; r += base;
-        for (int i = lg; i >= 1; --i) {
-            if (((l >> i) << i) != l) { push(l >> i); }
-            if (((r >> i) << i) != r) { push((r - 1) >> i); }}
+        l += base; r += base; pushBounds(l, r);
         S left = m.e(), right = m.e();
         for (; l < r; l >>= 1, r >>= 1) {
             if (l & 1) { left = m.op(left, d[l++]); }
             if (r & 1) { right = m.op(d[--r], right); }}
         return m.op(left, right);}
+    template<typename X, typename G>
+    X fold(int l, int r, X x, G act) {
+        assert(0 <= l && l <= r && r <= n);
+        if (l == r) { return x; }
+        l += base; r += base; pushBounds(l, r);
+        int nodes[30], k = 0;
+        for (; l < r; l >>= 1, r >>= 1) {
+            if (l & 1) { x = act(std::move(x), d[l++]); }
+            if (r & 1) { nodes[k++] = --r; }}
+        while (k) { x = act(std::move(x), d[nodes[--k]]); }
+        return x;}
+    template<typename X, typename G>
+    X foldRight(int l, int r, X x, G act) {
+        assert(0 <= l && l <= r && r <= n);
+        if (l == r) { return x; }
+        l += base; r += base; pushBounds(l, r);
+        int nodes[30], k = 0;
+        for (; l < r; l >>= 1, r >>= 1) {
+            if (l & 1) { nodes[k++] = l++; }
+            if (r & 1) { x = act(d[--r], std::move(x)); }}
+        while (k) { x = act(d[nodes[--k]], std::move(x)); }
+        return x;}
     template<typename G>
     int maxRight(int l, G pred) {
         assert(0 <= l && l <= n && pred(m.e()));

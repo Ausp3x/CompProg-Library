@@ -29,6 +29,12 @@ namespace {
         static auto key(const A::S &s) { return tuple(s.sum, s.len); }
         static auto expect(const vector<V> &a, int l, int r) { lng s = 0; for (int i = l; i < r; ++i) { s += a[i]; } return tuple(s, lng(r - l)); }
         static bool ok(const auto &k, lng t) { return std::get<1>(k) <= t; }
+        using X = lng;
+        static X seedX(Rng &rng) { return rnd(rng, -9, 9); }
+        static X right(X x, const A::S &s) { return x + s.sum; }
+        static X left(const A::S &s, X x) { return s.sum + x; }
+        static X slow(const vector<V> &a, int l, int r, X x, bool) { for (int i = l; i < r; ++i) { x += a[i]; } return x; }
+        static X keyX(X x) { return x; }
     };
     tuple<lng, lng, lng> composite(const vector<pair<lng, lng>> &a, int l, int r) {
         lng ca = 1, cb = 0;
@@ -50,6 +56,15 @@ namespace {
         static auto key(const A::S &s) { return tuple(lng(s.a.val()), lng(s.b.val()), s.len); }
         static auto expect(const vector<V> &a, int l, int r) { return composite(a, l, r); }
         static bool ok(const auto &k, lng t) { return std::get<2>(k) <= t; }
+        using X = A::S;
+        static X seedX(Rng &rng) { return leaf(0, value(rng)); }
+        static X right(const X &x, const A::S &s) { return A::op(x, s); }
+        static X left(const A::S &s, const X &x) { return A::op(s, x); }
+        static auto slow(const vector<V> &a, int l, int r, const X &x, bool fromLeft) {
+            vector<V> b(a.begin() + l, a.begin() + r);
+            b.insert(fromLeft ? b.begin() : b.end(), V(x.a.val(), x.b.val()));
+            return composite(b, 0, int(b.size()));}
+        static auto keyX(const X &x) { return key(x); }
     };
     struct SumMinMaxIndex {
         using A = RangeAffineRangeSumMinMaxIndex<lng>; using V = lng;
@@ -95,6 +110,23 @@ namespace {
         static auto expect(const vector<V> &a, int l, int r) { lng s = 0; for (int i = l; i < r; ++i) { s = (s + a[i]) % runtimeMod; } return tuple(s, lng(r - l)); }
         static bool ok(const auto &k, lng t) { return std::get<1>(k) <= t; }
     };
+    // Specs with X check fold and foldRight, each on a copy so it relies on no earlier push; right and left act on X, slow folds a[l, r) directly.
+    template<typename C, typename T>
+    void checkFolds(Rng &rng, const T &t, const vector<typename C::V> &a, int l, int r, const string &when) {
+        if constexpr (requires { typename C::X; }) {
+            using S = typename C::A::S;
+            using X = typename C::X;
+            int calls = 0;
+            auto right = [&](X u, const S &s) { ++calls; return C::right(u, s); };
+            auto left = [&](const S &s, X u) { ++calls; return C::left(s, u); };
+            X x = C::seedX(rng);
+            string at = "(" + show(l) + "," + show(r) + ")";
+            T u = t, w = t;
+            checkEqual(C::keyX(u.fold(l, r, x, right)), C::slow(a, l, r, x, true), when + " fold" + at);
+            checkEqual(calls <= 2 * (t.lg + 1), true, when + " fold act calls" + at);
+            calls = 0;
+            checkEqual(C::keyX(w.foldRight(l, r, x, left)), C::slow(a, l, r, x, false), when + " foldRight" + at);
+            checkEqual(calls <= 2 * (t.lg + 1), true, when + " foldRight act calls" + at);}}
     template<typename C>
     typename C::A makeMonoid() {
         if constexpr (requires { C::make(); }) { return C::make(); }
@@ -112,6 +144,8 @@ namespace {
         bool all = n <= 17;
         auto verify = [&](const string &when) {
             if (all) {
+                for (int l = 0; l <= n; ++l) {
+                    for (int r = l; r <= n; ++r) { checkFolds<C>(rng, t, a, l, r, when); }}
                 for (int l = 0; l <= n; ++l) {
                     for (int r = l; r <= n; ++r) { checkEqual(C::key(t.prod(l, r)), C::expect(a, l, r), when + " prod(" + show(l) + "," + show(r) + ")"); }}}
             checkEqual(C::key(t.allProd()), C::expect(a, 0, n), when + " allProd");};
@@ -135,6 +169,7 @@ namespace {
                     t.apply(l, r, C::draw(rng, a, l, r));
                     break;
                 case 5:
+                    checkFolds<C>(rng, t, a, l, r, at);
                     checkEqual(C::key(t.prod(l, r)), C::expect(a, l, r), at + " prod(" + show(l) + "," + show(r) + ")");
                     break;
                 case 6: {
@@ -168,6 +203,37 @@ namespace {
         int steps = mode == "quick" ? 60 : mode == "full" ? 300 : 600;
         for (int n : sizes()) { history<C>(rng, name, n, n > 17 ? 4 * steps : steps); }
         std::cout << "PASS lazy " << name << '\n';}
+
+    // Counts op calls: a fold never forms a product, so besides act it only pushes (mapping, composition).
+    struct CountingSum : RangeAddRangeSum<lng> {
+        int *ops;
+        S op(const S &x, const S &y) const { ++*ops; return RangeAddRangeSum<lng>::op(x, y); }
+    };
+    void foldOps(Rng &rng) {
+        int ops = 0;
+        for (int n : sizes()) {
+            if (n > 33) { break; }
+            context = "fold op count n=" + show(n);
+            vector<lng> a(n);
+            vector<CountingSum::S> leaves;
+            for (lng &v : a) { v = rnd(rng, -5, 5); leaves.push_back(CountingSum::leaf(v)); }
+            LazySegmentTree<CountingSum> t(leaves, CountingSum{{}, &ops});
+            for (int step = 0; step < 4; ++step) {
+                int p = int(rnd(rng, 0, n)), q = int(rnd(rng, 0, n));
+                if (p > q) { swap(p, q); }
+                lng f = rnd(rng, -3, 3);
+                t.apply(p, q, f);
+                for (int i = p; i < q; ++i) { a[i] += f; }
+                for (int l = 0; l <= n; ++l) {
+                    for (int r = l; r <= n; ++r) {
+                        string at = "step=" + show(step) + " (" + show(l) + "," + show(r) + ")";
+                        lng want = std::accumulate(a.begin() + l, a.begin() + r, lng(0));
+                        auto u = t, w = t;
+                        ops = 0;
+                        checkEqual(u.fold(l, r, lng(0), [](lng x, const CountingSum::S &s) { return x + s.sum; }), want, at + " fold");
+                        checkEqual(w.foldRight(l, r, lng(0), [](const CountingSum::S &s, lng x) { return s.sum + x; }), want, at + " foldRight");
+                        checkEqual(ops, 0, at + " op calls in folds");}}}}
+        std::cout << "PASS folds form no product (op never called) over pending range adds\n";}
 
     void dual(Rng &rng) {
         using A = RangeAffineRangeSum<mint>;
@@ -221,6 +287,14 @@ namespace {
         checkEqual(e.maxRight(0, [](const A::S &) { return true; }), 0, "empty maxRight");
         checkEqual(e.minLeft(0, [](const A::S &) { return true; }), 0, "empty minLeft");
         checkEqual(int(e.values().size()), 0, "empty values");
+        checkEqual(e.fold(0, 0, lng(7), [](lng u, const A::S &s) { return u + s.sum; }), lng(7), "empty fold");
+        checkEqual(e.foldRight(0, 0, lng(7), [](const A::S &s, lng u) { return s.sum + u; }), lng(7), "empty foldRight");
+        for (int side = 0; side < 2; ++side) {
+            LazySegmentTree<A> z(vector<A::S>(4, A::leaf(0)));
+            z.apply(2 * side, 2 * side + 2, A::add(5));
+            auto y = z;
+            checkEqual(z.fold(1, 3, lng(0), [](lng u, const A::S &s) { return u + s.sum; }), lng(5), "fold pushes the " + string(side ? "right" : "left") + " boundary");
+            checkEqual(y.foldRight(1, 3, lng(0), [](const A::S &s, lng u) { return s.sum + u; }), lng(5), "foldRight pushes the " + string(side ? "right" : "left") + " boundary");}
         LazySegmentTree<A> t(vector<A::S>(5, A::leaf(1)));
         auto u = t;
         u.apply(0, 5, A::add(10));
@@ -240,6 +314,8 @@ namespace {
         CommutativeDualSegmentTree<A> c(3);
         auto yes = [](const A::S &) { return true; };
         auto no = [](const A::S &) { return false; };
+        auto act = [](lng u, const A::S &s) { return u + s.sum; };
+        auto actLeft = [](const A::S &s, lng u) { return s.sum + u; };
         if (name == "negative-size") { T x(-1); }
         else if (name == "oversize") { T x(T::MAX_SIZE + 1); }
         else if (name == "vector-size") { (void)T::checkedSize(size_t(T::MAX_SIZE) + 1); }
@@ -254,6 +330,12 @@ namespace {
         else if (name == "max-right-identity") { (void)t.maxRight(0, no); }
         else if (name == "min-left-index") { (void)t.minLeft(-1, yes); }
         else if (name == "min-left-identity") { (void)t.minLeft(3, no); }
+        else if (name == "fold-negative") { (void)t.fold(-1, 2, lng(0), act); }
+        else if (name == "fold-reversed") { (void)t.fold(2, 1, lng(0), act); }
+        else if (name == "fold-end") { (void)t.fold(0, 4, lng(0), act); }
+        else if (name == "fold-right-negative") { (void)t.foldRight(-1, 2, lng(0), actLeft); }
+        else if (name == "fold-right-reversed") { (void)t.foldRight(2, 1, lng(0), actLeft); }
+        else if (name == "fold-right-end") { (void)t.foldRight(0, 4, lng(0), actLeft); }
         else if (name == "dual-negative-size") { DualSegmentTree<A> x(-1); }
         else if (name == "dual-get-end") { (void)d.get(3); }
         else if (name == "dual-set-end") { d.set(3, 1); }
@@ -284,6 +366,7 @@ int main(int argc, char **argv) {
         preset<AssignComposite>(rng, "RangeAssignRangeComposite (noncommutative)");
         preset<SumMinMaxIndex>(rng, "RangeAffineRangeSumMinMaxIndex (index-aware leaves)");
         preset<StatefulAffine>(rng, "stateful struct (affine mod " + show(runtimeMod) + ")");
+        foldOps(rng);
         dual(rng);
         std::cout << "PASS lazysegmenttree checks=" << checks << '\n'; return 0;} catch (const std::exception &e) {
         std::cerr << "FAIL lazysegmenttree seed=" << seed << " mode=" << mode << " " << e.what() << '\n'; return 1;}}

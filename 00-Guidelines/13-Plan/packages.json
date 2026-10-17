@@ -1316,19 +1316,6 @@
       "note": ""
     },
     {
-      "id": "P080",
-      "label": "06-Miscellaneous — dynamic dp",
-      "batches": [
-        "MI30"
-      ],
-      "phase": "Contest core",
-      "size": "L",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
       "id": "P074",
       "label": "04-Graphs — steiner tree",
       "batches": [

@@ -115,7 +115,6 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P073 — MI19, MI20, MI21, MI22, MI33** (opus, M+M+L+L+M): 06-Miscellaneous — meetinthemiddle, digitdp, subset dp, profile dp, interval dp, bracket sequences. Status: planned.
 - [ ] **P087 — ST10** (opus, XL): 07-Strings — runs. Status: planned.
 - [ ] **P039 — GE10, GE30, GE18** (opus, L+L+M): 03-Geometry — circleunion, geometric median, spherical geometry. Status: planned.
-- [ ] **P080 — MI30** (opus, L): 06-Miscellaneous — dynamic dp. Status: planned.
 - [ ] **P074 — GR33** (opus, L): 04-Graphs — steiner tree. Status: planned.
 - [ ] **P064 — MA27** (opus, XL): 05-Mathematics — simplex. Status: planned.
 - [ ] **P089 — ST26** (opus, L): 07-Strings — multidimensional matching. Status: planned.

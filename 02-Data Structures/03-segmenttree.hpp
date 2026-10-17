@@ -2,7 +2,7 @@
 
 #include "../01-Core/01-template.hpp"
 
-// 0 <= n <= 2^29; M is a monoid (S, op associative, e two-sided identity); search predicates are true on e and stay false as the range grows.
+// 0 <= n <= 2^29; M is a monoid (S, op associative, e two-sided identity); search predicates are true on e and stay false as the range grows; fold and foldRight take a right (act(x, s)) or left (act(s, x)) action of M.
 // S: O(n + 1), U: O(log(n + 1)), Q: O(log(n + 1)), M: O(n + 1)
 template<typename M>
 struct SegmentTree {
@@ -41,6 +41,24 @@ struct SegmentTree {
             if (l & 1) { left = m.op(left, tree[l++]); }
             if (r & 1) { right = m.op(tree[--r], right); }}
         return m.op(left, right);}
+    template<typename X, typename G>
+    X fold(int l, int r, X x, G act) const {
+        assert(0 <= l && l <= r && r <= n);
+        int nodes[30], k = 0;
+        for (l += base, r += base; l < r; l >>= 1, r >>= 1) {
+            if (l & 1) { x = act(std::move(x), tree[l++]); }
+            if (r & 1) { nodes[k++] = --r; }}
+        while (k) { x = act(std::move(x), tree[nodes[--k]]); }
+        return x;}
+    template<typename X, typename G>
+    X foldRight(int l, int r, X x, G act) const {
+        assert(0 <= l && l <= r && r <= n);
+        int nodes[30], k = 0;
+        for (l += base, r += base; l < r; l >>= 1, r >>= 1) {
+            if (l & 1) { nodes[k++] = l++; }
+            if (r & 1) { x = act(tree[--r], std::move(x)); }}
+        while (k) { x = act(tree[nodes[--k]], std::move(x)); }
+        return x;}
 
     template<typename G>
     int maxRight(int l, G pred) const {

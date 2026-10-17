@@ -137,7 +137,7 @@ Candidates from the 2026-10-10 sweep ([00-sources.md](00-sources.md#fetched-2026
 - Merge sort tree `sumLeq`/`countSumLeq` (YC `static_range_sum_with_upper_bound`): row 17 `sumLess`; `countGreater`, `countGeq`, `countLeq` (HIT): `r - l - countLess` or `countLess` of the next value.
 - Fenwick of value segment trees for O(log^2) dynamic kth (OI seg-in-bit): needs values known offline and O(n log^2 n) memory; `DynamicMergeSortTree` answers kth online in O(log n log^2 m) without either.
 - Online `lng` x coordinates in `DynamicMergeSortTree` (legacy `insert2D`): compress x to slots; huge online universes belong to row 13.
-- SWAG `operator[]`, separate front/back folds, pop returning the value, iterator constructors, separate value and product types (SUI, MAS, HIT): rare conveniences; `front`/`back`/`top` and `fold` cover the uses.
+- SWAG `operator[]`, separate front/back folds, pop returning the value, iterator constructors, separate value and product types (SUI, MAS, HIT): rare conveniences; `front`/`back`/`top` and `allProd` cover the uses.
 
 ## P029 omissions
 
@@ -165,7 +165,7 @@ Candidates from the 2026-10-14 sweep ([00-sources.md](00-sources.md#fetched-2026
 - Index payloads per key and ordered enumeration (EI, NYA, MAS): a map beside the trie; enumeration is `kth` for each rank at the same bound.
 - Per-query xor masks on `BinaryTrie::kth`, `countLess`, `lowerBound` (EI, MAS, SUI): `applyXor` around the query; `PersistentBinaryTrie` takes the mask because versions are immutable.
 - Weighted subarray counts by minimum (MAS `count_subrectangle`): `(i - l + 1) * (r - i)` from `range`; depth or traversal arrays: no catalog offers them.
-- DisjointSparseTable `maxRight`/`minLeft` (MAS): a binary search over `fold` gives the same O(log(n)) bound.
+- DisjointSparseTable `maxRight`/`minLeft` (MAS): a binary search over `prod` gives the same O(log(n)) bound.
 - Blocked static range product with naive in-block queries (MAS `Static_Range_Product`): O(2^LOG) in-block queries; `staticRangeProducts` answers offline in O(n + q) memory.
 - Xor-indexed disjoint sparse table, 2D associative products on a segment tree (MAS): rare; row 15 covers commutative rectangle products.
 - Alon–Schieber O(α(n)) semigroup queries after linear preprocessing: research-level, no contest implementation.
