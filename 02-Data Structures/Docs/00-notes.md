@@ -36,7 +36,7 @@ Folder-wide contracts, ownership boundaries, migration obligations and per-packa
 
 ## Migration obligations
 
-- `OLD/algorithms.cpp:1402–1477` DSU mixed connectivity, weighted distances, parity and edge counts, and narrowed `lng` to `int`. Basic `DSU` keeps `n/ncon/par/siz`; weighted unions, `dis`, `esz`, `is_bip`, `getDis`, `getEsiz`, `isBipartite` belong to `29-weighteddsu.hpp` (potential/parity) and `09-rollbackdsu.hpp`/Graphs (component metadata).
+- `OLD/algorithms.cpp:1402–1477` DSU mixed connectivity, weighted distances, parity and edge counts, and narrowed `lng` to `int`. Basic `DSU` keeps `n/ncon/par/siz`; weighted unions, `dis`, `esz`, `is_bip`, `getDis`, `getEsiz`, `isBipartite` belong to `29-weighteddsu.hpp` (potential/parity) and `09-rollbackdsu.hpp`/Graphs (component metadata); row 09 accounts for `esz`/`getEsiz` as `RollbackDSUAggregate::edgeCount` (P034).
 - Unchanged extractions (`18`, `21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit (P027 split `FenTree` into `Fenwick2D`/`Fenwick3D` and replaced `FenTreeRangeAdd1D`, `SegTree` and the `Mon*` presets; P028 replaced `SegTreeBeats`, `SegTree2D` and `DynMergeSortTree`; P029 replaced `WaveletMatrix`; see the row 11–17 evidence).
 - `97-Legacy/04-lichao_older.cpp` is a query-less hull skeleton, `97-Legacy/01-monset.cpp` is a placeholder scaffold. Delete a legacy file only after its owning row accounts for every feature.
 - `OLD/Team Notebook/src/ds/impltreap.cpp` informed row 19 (P029, see [19-treap.md](19-treap.md)) and `cartesiantree.cpp` informed row 27 (P033, see [27-cartesiantree.md](27-cartesiantree.md)); `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` contain `DynamicMex` (row 24) and `LcaO1` (covered by Graphs `07-lca.hpp` `EulerLCA`; row 54 `LinearRMQ` is the array form).
@@ -168,6 +168,17 @@ Candidates from the 2026-10-14 sweep ([00-sources.md](00-sources.md#fetched-2026
 - Higher-order coefficient queries `[x^p y^q] f / ((1 - x)^A (1 - y)^B)` (MAS `coefficient_query_2d`): A = B = 1 and A = B = 2 are the engine's kernels; higher orders are rare.
 - Online rectangle-add rectangle-sum and rectangle-add point-get on registered points (SUI, MAS): row 33 sweeps offline, row 11 `Fenwick2DRangeAdd` is the dense online case (as recorded in the P027 and P028 omissions).
 - K-dimensional compressed, dynamic 2D and block-decomposed Fenwick trees (SUI, NYA, OI): online structures; row 11 would own them if a motivating problem appears.
+
+## P034 omissions
+
+Candidates from the 2026-10-17 sweep ([00-sources.md](00-sources.md#fetched-2026-10-17-p034-sweep)) left out of rows 09, 10, 34, 35 and 63:
+
+- SqrtTree range assignment (CPA, OI `massUpdate`): an assigned block's products need x^k, which a monoid gives only by repeated squaring, so queries meeting a lazy block lose O(1); row 12 assigns ranges with O(log(n)) queries. The O(sqrt(n)) update with O(log(log(n))) queries is the same operation by another algorithm.
+- SqrtTree generator build and fixed three-layer layout (MAS): construction from a vector; row 34 already stops layering at segments of at most 8 elements, which a direct fold answers.
+- PersistentArray in-place set (SUI `mut_set`, MAS `make_copy = false`): writes into nodes shared with other versions. `size` (SUI): the public `n`. Node pools, reset and garbage collection (SUI, MAS): Miscellaneous row 43 owns persistent arenas. Fat-node partially persistent array (EI internals): `PartiallyPersistentDSU` keeps its own attach times. Persistent block array (OI): O(sqrt(n)) per operation.
+- RollbackDSU `makeSet` and an `undo` reporting what it reverted: no catalog has them. Union by rank (CPA): `getSize` needs sizes. History-clearing `snapshot` (EI, SUI) and `reset` (MAS, HIT): `rollback` to a token and `rollback(0)`.
+- PersistentDSU `groups(version)` and `dump` (SUI): `findSet` over every vertex; debug output. Offline persistent DSU by DFS over the version tree (the usual Library Checker solution): a use of rows 09 and 63.
+- Priority-queue undo (Codeforces blog 111117) and deque undo (blog 154645): both tutorials returned 403, so neither algorithm nor its amortized proof could be checked; `OfflineDeletion` covers deletions with known times and `QueueUndo` the FIFO case.
 
 ## Planned-row omissions
 

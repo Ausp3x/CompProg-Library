@@ -76,6 +76,7 @@ Items a reader could mistake for duplicates.
 | P061, P181 | `productOfGeometricShifts` (row 22) beside `productOfLinearShifts` (row 37) | Row 22's is the product of f(r^k x), not a linear shift; renamed apart from row 37's (decided 2026-10-15) |
 | P179, P192 | `gramDeterminant` (row 35) beside `latticeDeterminant` (row 49) | Squared covolume from Gram–Schmidt versus the exact lattice determinant; renamed apart (decided 2026-10-15) |
 | P053 | `legendreSymbol` (row 11) beside `kroneckerSymbol` | Decided 2026-10-16: Euler's criterion, a different algorithm |
+| P034 | `PersistentArray` (row 35) beside row 18 `PersistentSegmentTree` get/set | Decided 2026-10-17: k-ary path copying, a different time and memory tradeoff from the binary tree |
 
 ### Rulings
 
@@ -183,6 +184,8 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P018 | `explicit operator bool` beside `isNil` (`07-infint.hpp`) | Decided 2026-10-16: both stay, `isNil` for Poly's `BigInt` concept and the modint-style truthiness |
 | P018 | `infint_detail` NTT, FFT and Montgomery kernels beside Poly's and `04-montgomery.hpp` | Decided 2026-10-16: InfInt keeps independent kernels and depends on `01-template.hpp` only |
 | P018 | `divModSlow` beside `divMod`; `isPerfectSquare` beside `isqrtRem`; `isProbablePrime` beside Mathematics `bpsw` | Knuth D as a separate algorithm; residue filters before the root; BPSW on arbitrary size (decided 2026-10-16) |
+| P034 | `PartiallyPersistentDSU::uniteTime` (`10-persistentdsu.hpp`) beside row 65 `MergeHistoryForest::earliestConnectTime` | Different algorithm: a walk over attach times in the union-by-size forest, no merge forest or LCA (clarified rule) |
+| P034 | `OfflineDeletion::insert`, `erase` beside `addInterval` (`63-offline_deletion.hpp`) | Larger domain: unpaired per-key events with multiplicities, paired through an ordered map and closed at `n` (clarified rule) |
 
 ## Conventions
 
@@ -270,14 +273,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | `latticeUnderLine`, `latticeInHalfplanePolygon` | row 19 | `floorSum` after a builder; `latticeInRationalPolygon(halfplaneIntersection(h).vertices)` | ask | builders | — | — |
 | `segmentUnionLength`, `orthogonalIntersectionCount` | row 13 | Miscellaneous `intervalUnionMeasure`; DS row 33 `staticRectangleSum` | ask | builders unless real endpoints | — | `06-Miscellaneous/Docs/00-notes.md:24` |
 | `convexIntersection`, `cut`; `verifyEnclosing`; `maxPointsInDisk` | rows 15, 14, 54 | `clipConvex`; row 23 `maxDiskDepth` | ask | wrappers unless O(n + m) or O(log n + out) | — | — |
-
-## P034 — 02-Data Structures — sqrttree, persistentarray, rollbackdsu, persistentdsu, offline deletion (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `historySize` beside `snapshot()` | row 09 | each other | ask | duplicate if `snapshot()` returns the history length | — | — |
-| `RollbackDSUAggregate::contradictions` | row 09 | row 29 `RollbackWeightedDSU` | ask | meaning | — | — |
-| `PersistentArray` | row 35 | row 18 `PersistentSegmentTree` with a trivial monoid | ask | k-ary path copying or the same binary tree | — | — |
 
 ## P047 — 04-Graphs — directedmst, dynamic connectivity, blockcuttree, path cover (planned)
 
@@ -1032,7 +1027,6 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
 - **P054** row 12 Stirling, Eulerian and partition rows beside Core Poly: allowed? `factorialPowerConvert` and `tetrationMod`: which row owns each? Row 67 `dyckPaths`, `pathsBelowDiagonal`: `catalan` and `ballot` under other names, or general endpoints? Row 12 `inclusionExclusion`: the subset Möbius transform under another name, or a pruned search over items?
 - **P037** `latticeInDisk`: arbitrary centers? `latticeUnderLine`, `latticeInHalfplanePolygon`, `segmentUnionLength`, `orthogonalIntersectionCount`, `convexIntersection`, `cut`, `verifyEnclosing`, `maxPointsInDisk`: own algorithm or bound, or builders?
-- **P034** what `snapshot()` returns; what `contradictions` counts; `PersistentArray`: k-ary or binary path copying?
 - **P047** row 27 `bridgeTree`, `sameBlock` and `biconnectedQuery`, `connectedAfterRemoving*` (whole graph or a pair?); row 31 `dagMinimumChainCover`: keep?
 - **P072** `fractionalBinarySearch`: a named entry point or `binSearchRealBracket`? `largeWeightSmallValueKnapsack`: widen `KnapsackItem::weight` and remove it, or keep it for weights above `INT_MAX`?
 - **P035** `SparseDSU`: a larger key domain or a builder? `ParityDSU`: an alias of `WeightedDSU` over Z/2 or a 2n-node DSU? `MergeHistoryForest`: `KruskalReconstruction` after a builder from the union sequence, or a separate operation?

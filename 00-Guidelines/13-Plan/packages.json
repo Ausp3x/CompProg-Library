@@ -892,8 +892,14 @@
       "phase": "Contest core",
       "size": "L+M+L+M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "02-Data Structures/Docs/09-rollbackdsu.md",
+        "02-Data Structures/Docs/10-persistentdsu.md",
+        "02-Data Structures/Docs/34-sqrttree.md",
+        "02-Data Structures/Docs/35-persistentarray.md",
+        "02-Data Structures/Docs/63-offline_deletion.md"
+      ],
       "note": ""
     },
     {
