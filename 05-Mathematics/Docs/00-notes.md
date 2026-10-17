@@ -20,7 +20,7 @@ The inventory lists operations and cross-folder ownership; this file holds the f
 
 ## Legacy obligations
 
-- `OLD/5-Mathematics/05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp` is accounted for by row `11` (P053), except `modRoot` modulo prime powers and composites, which row `33` owns. `13-numericalmethods.hpp` and `14-miscellaneous.hpp` stay pending until `17`–`19` account for every feature. All originals stay in `OLD`.
+- `OLD/5-Mathematics/05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp` is accounted for by rows `11` (P053) and `33` (P178, `modRoot` modulo prime powers and composites). `13-numericalmethods.hpp` and `14-miscellaneous.hpp` stay pending until `17`–`19` account for every feature. All originals stay in `OLD`.
 - `OLD/5-Mathematics/09-montgomery.hpp` is a Core reference; `10-poly.hpp` and `11-moly.hpp` are references for Core Poly.
 - The [transfer record](../../00-Guidelines/History/2026-09-27-monolith-transfer.md) preserves source-range/hash provenance for the former local excerpts: `ModFac` (`OLD/[1] algorithms.cpp`) is accounted for by row 05, and `FastConv` (`OLD/algorithms.cpp`), the last one, was removed when P055 verified row 24.
 - The archived closed segmented-sieve interval migrated to half-open `[l, r)`; closed callers map as in the Legacy mapping of [06-segmentedsieve.md](06-segmentedsieve.md).
@@ -60,8 +60,8 @@ Explanations and legacy names moved out of the inventory operation cells, one bu
 - `67-lattice_paths.hpp`: gridPathsAvoidingPoints: sorted obstacles, O(k^2); pathsBetweenLines: strip; pathsBelowLine: y <= a x + b boundary; catalanConvolution: k-fold; nonIntersectingPathsDeterminant: LGV bridge, Graphs owns path families.
 - `31-summatory_functions.hpp`: FloorBlockTable: quotient-indexed memo; dujiaoSieve: prefix of f from a Dirichlet relation; mobiusSum: Mertens; min25Sieve: prime prefix sums then multiplicative prefix; lucyHedgehog: prime counting O(n^(3/4)); primeCount: O(n^(2/3)); divisorSummatory: sum of d(i).
 - `32-dirichlet_series.hpp`: DirichletSeries: truncated prefix representation on quotient blocks; eulerProduct: from prime-power coefficients.
-- `33-modular_square_roots.hpp`: sqrtModPrimePower: singular branch when p divides x; sqrtModAll: enumerated roots; polynomialCongruenceRoots: f(x) = 0 mod p^k; quadraticCongruenceMod: a x^2 + b x + c = 0 mod m.
-- `34-quadratic_congruence.hpp`: pellSolutions: family generation; pellGeneralized: x^2 - D y^2 = N, fundamental set; cornacchia: x^2 + d y^2 = m; twoSquares: one representation; twoSquaresCount: r2; pythagoreanTriples: primitive, bounded hypotenuse; gaussCircleCount: lattice points with x^2 + y^2 <= r^2, O(r).
+- `33-modular_square_roots.hpp`: sqrtModPrimePower: least root, singular branch when p divides a; sqrtModAll: residue classes (r, M) covering every root; polynomialCongruenceRoots: f(x) = 0 mod any m, residue classes, seeded Las Vegas; quadraticCongruenceMod: a x^2 + b x + c = 0 mod m, classes with one modulus; rootCount: solutions of x^k = a mod m.
+- `34-quadratic_congruence.hpp`: pellSolutions: family member (x + y sqrt(D)) u^k; pellGeneralized: x^2 - D y^2 = N, one fundamental solution per class; cornacchia: x^2 + d y^2 = m, every primitive pair; twoSquares: one representation; twoSquaresCount: r2; twoSquaresAll: nonnegative ordered pairs; threeSquares: deterministic prime scan, factorization fallback; pythagoreanTriples: primitive, bounded hypotenuse; gaussCircleCount: lattice points with x^2 + y^2 <= n, O(sqrt(n)); reducedForms: the class group of a negative discriminant.
 - `35-lattice_reduction.hpp`: gramDeterminant: the Gram determinant (squared covolume) that Gram–Schmidt yields; row 49 owns `latticeDeterminant`; lll: delta parameter; bkz: block size parameter; pslq: integer relation, precision parameter.
 - `36-integer_factor_advanced.hpp`: ecm: curve budget; bpsw: probable-prime screening; pocklington: certificate; ecpp: certificate or unknown status.
 - `37-fastfactorial.hpp`: factorialModPrime: O(sqrt(p) log p); factorialLarge: many queries, sorted block products; consecutiveProducts: product of (x + i), multipoint.
@@ -171,3 +171,21 @@ Left out, one line each:
 - Index calculus (suisen `IndexCalculus`): a subexponential prime-field log for row 54.
 - Square-root special cases (p = 3 mod 4 power, Atkin, Legendre's algorithm): dominated by Cipolla and Core `trySqrt`, which already takes the p = 3 mod 4 power.
 - Nonresidue search and the order-of-a-power formula: internal loops and one-line formulas.
+
+## P178 research decisions (2026-10-17)
+
+Adopted: `BinaryQuadraticForm::reducedForms` (class-group enumeration; `classNumber` is its size). `fourSquares` reduces to `threeSquares` (maspypy), replacing the planned randomized Rabin–Shallit four-square search: same O(log(n)) expected primality tests, deterministic. Left out, one line each:
+
+- `unitRootMod` (an element of exact order k modulo a composite, OI Wiki): the unit group is not cyclic; row 54 `compositeGroupDecompose` owns generators and orders.
+- `kthPowerResidueCount` (OI Wiki): phi(p^e) / gcd(k, phi(p^e)) per odd prime power, a call-site formula; residuosity of one value is `rootCount > 0`.
+- All k-th roots modulo a composite (OI Wiki `kth_roots_mod_m`): a coset of the k-torsion, not a union of residue classes; `kthRootModComposite` and `rootCount`, and for a cyclic unit group the coset `x0 * (g^(phi / d))^i` with row 11 `primitiveRoot`.
+- Factorization-taking overloads (FLINT `n_sqrtmod_primepow`, `n_sqrtmodn`): the prime-power operations already take (p, e).
+- `quadraticDiophantine` (SymPy `diop_quadratic`): completing the square reduces it to `pellGeneralized` plus congruence filtering of the classes; a full conic solver is research-level.
+- `legendreTernary` (SymPy `diop_ternary_quadratic`): needs square roots modulo |abc| and lattice reduction (row 35); no contest catalog entry.
+- `pellFour` (x^2 - D y^2 = +-4, OI Wiki): `pellGeneralized(D, +-4)`.
+- Stern–Brocot Pell search (maspypy `pell_equation`): the same continued-fraction path found by comparisons.
+- Brute-force and PQa generalized Pell (SymPy `diop_bf_DN`, OI Wiki): Lagrange–Matthews–Mollin is polynomial in the period and the root count, with no Nagell-bound scan.
+- `eisensteinRepresentationCount` (OI Wiki): `BinaryQuadraticForm{1, 1, 1}.represent(n).size()`, or 6 times the sum of (-3 / d) over d | n.
+- `sumOfSquaresEnumerate` for k > 2 (SymPy): low value; k = 2 is `twoSquaresAll`.
+- Indefinite forms (cycle reduction, NUCOMP): the principal indefinite form is the Pell family; general real quadratic class groups are research-level.
+- Row 57 `gaussianPrimeFactor` and `fourSquaresFromHurwitz` overlap `twoSquares` and `fourSquares`; the row 57 package settles them (handoff in [34-quadratic_congruence.md](34-quadratic_congruence.md)).

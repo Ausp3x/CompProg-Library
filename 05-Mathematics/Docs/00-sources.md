@@ -105,6 +105,20 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | suisen `number/order_Z_mZ.hpp`, `discrete_logarithm.hpp`, `primitive_root.hpp`; Nyaan `modulo/mod-log.hpp`; KACTL `ModLog.h`; PyRival `discrete_log.py`, `primitive_root.py` | https://github.com/suisen-cp/cp-library-cpp/tree/main/library/number | 2026-10-16 | completeness cross-check; KACTL and PyRival return the least x > 0 (row 11) |
 | FLINT `ulong_extras` | https://flintlib.org/doc/ulong_extras.html | 2026-10-16 | `n_jacobi` with signed x, `n_discrete_log_bsgs`, square roots modulo prime powers left to row 33 (row 11) |
 
+## P178 sweep (fetched 2026-10-17, `@researcher`)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| Library Checker `two_square_sum` task, checker and info | https://github.com/yosupo06/library-checker-problems/tree/master/number_theory | 2026-10-17 | every nonnegative ordered pair, N <= 1e18, Q <= 100, N = 0 gives (0, 0) (row 34 `twoSquaresAll`) |
+| OI Wiki quadratic and k-th residues | https://oi-wiki.org/math/number-theory/quad-residue/, https://oi-wiki.org/math/number-theory/residue/ | 2026-10-17 | roots modulo p^e when p divides a, root counts for odd p^e and 2^e, k-th roots with p dividing k (row 33) |
+| OI Wiki Pell equation and quadratic forms | https://oi-wiki.org/math/number-theory/pell-equation/, https://oi-wiki.org/math/number-theory/quadratic/ | 2026-10-17 | x^2 - D y^2 = -1 solvable iff the period is odd, families (x1 + y1 sqrt(D))^k, x^2 + x y + y^2 counts (row 34) |
+| FLINT `ulong_extras`, `fmpz_mod_poly_factor` | https://flintlib.org/doc/ulong_extras.html, https://flintlib.org/doc/fmpz_mod_poly_factor.html | 2026-10-17 | `n_sqrtmod_primepow`, `n_sqrtmod_2pow`, `n_sqrtmodn`; polynomial roots modulo factored n (row 33) |
+| Nyaan `modulo/quadratic-equation.hpp`, `math/two-square.hpp` | https://nyaannyaan.github.io/library/modulo/quadratic-equation.hpp | 2026-10-17 | quadratic congruence modulo an odd prime, discriminant 1 case; sorted two-square output (rows 33, 34) |
+| maspypy `mod/mod_kth_root.hpp`, `nt/` (pell_equation, two_square, three_square, four_square, three_triangular, pythagorean_triple) | https://github.com/maspypy/library/tree/main/nt | 2026-10-17 | deterministic three-square scan from sqrt(N) with prime tests, four squares through three, Berggren enumeration (row 34) |
+| hitonanode `number/square_sums.hpp`; cp-algorithms discrete root; KACTL number theory; PyRival algebra; suisen and ei1333 indexes | https://hitonanode.github.io/cplib-cpp/ | 2026-10-17 | completeness cross-check (rows 33, 34) |
+| SymPy diophantine module | https://docs.sympy.org/latest/modules/solvers/diophantine.html | 2026-10-17 | LMM `diop_DN`, `diop_bf_DN`, Cornacchia returning primitive solutions, ternary and general quadratic solvers (row 34) |
+| Wikipedia, binary quadratic form | https://en.wikipedia.org/wiki/Binary_quadratic_form | 2026-10-17 | class number as the count of reduced forms (row 34) |
+
 ## Earlier source record (condensed from the previous index and evidence documents)
 
 - The 2026-09-27 audit compared external algorithm catalogs and the saved Modern Computer Arithmetic contents; read scope and URLs are in the [central audit](../../00-Guidelines/History/2026-09-27-inventory-audit.md). A follow-up scope pass compared the active arithmetic/search/equation/sieve/combinatorics/transform interfaces and the archived factorization/inverse/CRT/log/root/numerical helpers plus the saved [KACTL notebook](../../95-Resources/05-kactl.pdf) `Tridiagonal.h` contract.

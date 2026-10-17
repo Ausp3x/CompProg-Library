@@ -15,3 +15,5 @@
 #include "14-polynomial_algorithms.hpp"
 #include "15-linear_recurrence.hpp"
 #include "24-transform_algorithms.hpp"
+#include "33-modular_square_roots.hpp"
+#include "34-quadratic_congruence.hpp"
