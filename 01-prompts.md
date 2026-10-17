@@ -51,7 +51,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P025 — C11** (fable, XL): 01-Core — poly. Status: verified. [evidence](01-Core/Docs/16-poly.md)
 - [x] **P026 — C12** (opus, M): 01-Core — polymini. Status: verified. [evidence](01-Core/Docs/17-polymini.md)
 - [x] **P018 — C04** (fable, XL): 01-Core — infint. Status: verified. [evidence](01-Core/Docs/07-infint.md)
-- [ ] **P019 — C05, C06** (opus, M+M): 01-Core — infintmini, rational. Status: planned.
+- [x] **P019 — C05, C06** (opus, M+M): 01-Core — infintmini, rational. Status: verified. [evidence](01-Core/Docs/08-infintmini.md) [evidence](01-Core/Docs/09-rational.md)
 - [ ] **P020 — C07** (fable, XL): 01-Core — matrix. Status: planned.
 - [ ] **P021 — C08** (opus, M): 01-Core — matrixmini. Status: planned.
 - [ ] **P022 — C09, C10** (fable, L+M): 01-Core — bitmatrix, bitmatrixmini. Status: planned. Note: Defects in the pinned 12-bitmatrix.hpp body, fix in the rewrite: operator*=(int) zeroes only for 0 (GF(2) needs o & 1, so a * 2 returns a); BitMatrix(string, axis) leaves fields uninitialised for an axis other than 0 or 1.

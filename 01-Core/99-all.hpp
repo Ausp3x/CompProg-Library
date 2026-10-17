@@ -8,6 +8,7 @@
 #include "06-modintmini.hpp"
 #include "07-infint.hpp"
 #include "08-infintmini.hpp"
+#include "09-rational.hpp"
 #include "10-matrix.hpp"
 #include "12-bitmatrix.hpp"
 #include "14-sparsematrix.hpp"

@@ -397,8 +397,11 @@
       "phase": "Core full types",
       "size": "M+M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "01-Core/Docs/08-infintmini.md",
+        "01-Core/Docs/09-rational.md"
+      ],
       "note": ""
     },
     {

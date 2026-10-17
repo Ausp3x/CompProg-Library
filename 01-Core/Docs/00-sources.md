@@ -1,5 +1,21 @@
 # 01 Core — sources
 
+## Fetched 2026-10-17 (P019 InfIntMini and Rational sweep)
+
+Completeness sweeps of rows 08 and 09 (`@researcher`); adopted items are in the rows and in [08-infintmini.md](08-infintmini.md) and [09-rational.md](09-rational.md), rejected ones in those documents and [00-notes.md](00-notes.md).
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| cp-algorithms big integer, OI Wiki bignum, KACTL number theory, Library Checker `big_integer` tree | https://cp-algorithms.com/algebra/big-integer.html, https://oi-wiki.org/math/bignum/, https://github.com/kth-competitive-programming/kactl/tree/main/content/number-theory, https://github.com/yosupo06/library-checker-problems/tree/master/big_integer | yes | Mini row coverage (read, print, add, sub, mul, short and long division, power by int); the hexadecimal problems as a limit of the quadratic radix conversion |
+| Nyaan `bigint.hpp`, `bigint-gcd.hpp`; maspypy `bigint/base.hpp`; suisen `bigint.hpp`, `unsigned_bigint.hpp`; tko919 `bigint.hpp`; hitonanode `multiprecision_int.hpp`; ei1333 index | https://nyaannyaan.github.io/library/math/bigint.hpp, https://maspypy.github.io/library/bigint/base.hpp, https://suisen-cp.github.io/cp-library-cpp/library/math/bigint.hpp, https://tko919.github.io/library/Math/bigint.hpp, https://hitonanode.github.io/cplib-cpp/utilities/multiprecision_int.hpp, https://ei1333.github.io/library/ | yes | Mini reductions: `++`/`--`, `lcm`, `to_ld`/floating casts, 128-bit casts, limb shifts, digit sums, `square`, constants not adopted; `divmod` and scalar operands already covered |
+| Python `fractions` documentation and `Lib/fractions.py` | https://docs.python.org/3/library/fractions.html, https://raw.githubusercontent.com/python/cpython/main/Lib/fractions.py | yes | `read` grammar (decimal and exponent input), `limit_denominator` (Mathematics), `__round__` and `__format__` (`round`, `toDecimal`), the test oracle |
+| Boost.Rational | https://www.boost.org/doc/libs/release/libs/rational/rational.html | yes | Converting constructor; `numerator()`/`denominator()`, integer overloads and `++`/`--` recorded as aliases |
+| GMP Rational Number Functions, Comparing Rationals, Rational Arithmetic; FLINT `fmpq` | https://gmplib.org/manual/Rational-Number-Functions, https://gmplib.org/manual/Comparing-Rationals, https://gmplib.org/manual/Rational-Arithmetic, https://flintlib.org/doc/fmpq.html | yes | Canonical form, Knuth addition and cross-cancelled products, `fmpq_mod_fmpz` (`toMod`); `height`, `gcd`, `mul_2exp` not adopted; continued fractions and simplest-between owned by Mathematics |
+| Nyaan `rational.hpp`, maspypy `nt/rational.hpp`, ei1333 `rational.hpp`, suisen `rational.hpp`, hitonanode `rational_number.hpp`, tko919 `fraction.hpp` | https://nyaannyaan.github.io/library/math/rational.hpp, https://maspypy.github.io/library/nt/rational.hpp, https://ei1333.github.io/library/math/rational/rational.hpp, https://suisen-cp.github.io/cp-library-cpp/library/number/rational.hpp, https://hitonanode.github.io/cplib-cpp/rational/rational_number.hpp, https://tko919.github.io/library/Math/fraction.hpp | yes | `raw` (coprime construction), `to_mint` (`toMod`); the `den == 0` infinity of hitonanode and suisen rejected |
+| KACTL `FracBinarySearch.h`, `ContinuedFractions.h`; cp-algorithms continued fractions; OI Wiki Stern–Brocot; Library Checker `stern_brocot_tree` and `rational_approximation` statements | https://github.com/kth-competitive-programming/kactl/tree/main/content/number-theory, https://cp-algorithms.com/algebra/continued-fractions.html, https://oi-wiki.org/math/number-theory/stern-brocot/, https://github.com/yosupo06/library-checker-problems/tree/master/number_theory | yes | Ownership check: Mathematics `20-continued_fraction.hpp` owns approximation, Stern–Brocot, convergents and fraction binary search |
+
+KACTL has no `Fraction.h` (HTTP 404), the judge.yosupo.jp pages render only with JavaScript, and the GMP conversion and I/O subsections were not read.
+
 ## Fetched 2026-10-17
 
 InfInt completeness sweep (P018, `@researcher`); adopted items are in row 07 and [07-infint.md](07-infint.md), rejected ones in [00-notes.md](00-notes.md).

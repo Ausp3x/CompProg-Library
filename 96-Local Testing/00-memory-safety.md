@@ -60,7 +60,7 @@ Minor notes adopted: the Compact check now inspects twin bodies.
 ## Limits
 
 - The cap needs a systemd user manager and cgroup v2. Elsewhere, runs proceed uncapped with a warning.
-- Five standalone testers (`00-Tools/02-online`, `00-Tools/03-notebook`, `01-Core/02-debug_compile`, `07-infint`, `08-infintmini`) read no `CP_TEST_MODE`. When their mode is not given explicitly they get the main cap but no pre-flight.
+- Four standalone testers (`00-Tools/02-online`, `00-Tools/03-notebook`, `01-Core/02-debug_compile`, `07-infint`) read no `CP_TEST_MODE`. When their mode is not given explicitly they get the main cap but no pre-flight.
 - A SIGKILL is attributed to the cap only when the scope reports `oom_kills > 0`; otherwise the message says it may be an external kill.
 
 ## History

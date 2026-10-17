@@ -47,6 +47,8 @@ Items a reader could mistake for duplicates.
 | P016 | `prefixToZ`, `centerEnd`, `prefixPeriods`, `zPeriods`, `StringHash` field arithmetic | Named conversion; listed operation; mirrored convention; self-contained hashing arithmetic |
 | P017 | `AhoCorasick::countPatterns` | Named per-pattern count |
 | P018, P019 | InfInt infinity flag, `INF` token, saturating conversions | Only signed-infinity arithmetic |
+| P019 | `InfIntMini` `explicit operator bool` beside `isNil` | As P018 (decided 2026-10-17) |
+| P019 | `Rational` `toDouble` beside `toLongDouble`; `read`, `toString` beside `>>`, `<<` | Each conversion rounds the exact value once to its own precision; base 2–36, status and decimal input (decided 2026-10-17) |
 | P023 | `steadyState` | Only form; fixed-iteration power method, kept beside the planned converged solver |
 | P052 | `factorizeTrial`, `isPrimeTrial`, `inversePierce`, `inverseFermat` | Different algorithms |
 | P052 | `inverseBatch`; `primality_detail::splitmix` | Larger domain (every modular type); internal helper |
@@ -190,17 +192,6 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 ## Conventions
 
 Locations are relative to the package's folder and tests to `96-Local Testing/<folder>/`; "row NN" is the `00-index.md` row of header `NN-`, "clarified rule" cites `03-cpp.md`, One API per operation, and "ruling N" the Nth of the Rulings above. A `remove (row only)` item has no code to change, or its code is a pinned extraction whose body stays until the package rewrites it.
-
-## P019 — 01-Core — infintmini, rational (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `divModSlow` | `08-infintmini.hpp:357` | `divMod` (body moves in) | remove | another name | `08-infintmini_tester.cpp:270` | none |
-| `operator!` | `08-infintmini.hpp:468` | `!a` | remove | another form | `08-infintmini_tester.cpp:131` | none |
-| `operator=(string_view)` | `08-infintmini.hpp:100` | `a.read(s)` | remove | another name | `08-infintmini_tester.cpp:100` | none |
-| word loops in `/=`, `%=` | `08-infintmini.hpp:313-319,339-345` | `divMagSmall` (widened) | remove | body-level | — | — |
-| `explicit operator bool` beside `isNil` | `08-infintmini.hpp:464,466` | each other | ask | as P018 | `08-infintmini_tester.cpp:131,153` | — |
-| row 09 Rational `toDouble`; `parse`, `toString` | row 09 | `toLongDouble`; `>>`, `<<` | ask | narrowing unless correctly rounded; stream shape (decide with InfInt) | — | — |
 
 ## P020 — 01-Core — matrix (planned)
 
@@ -1021,7 +1012,6 @@ Stdlib functions are existing operations (`04-python.md:15`).
 
 Every remaining `ask` above, with the fact the user decides. `/package` and `/prune` put a package's `ask` rows to the user before changing anything.
 
-- **P019** `operator bool` or `isNil` (as P018); Rational `toDouble` (correctly rounded?) and `parse`, `toString` beside the stream operators.
 - **P020** move the floating branches to `solveReal`, `invReal`, `rankReal`, or drop those entries? `StaticMatrix`: is a compile-time shape a different domain? `rowSpace`, `colSpace`: another basis? The 8-lane REDC in `mulRow`, `elimRow`: the same as `Montgomery32` `mul8`, `red8`, or an assert-free lazy variant like Poly's kept `Mont8`? `Matrix(vector, axis)` and the vector products: an empty vector gives 0×0 here and 1×0 or 0×1 from `Matrix(1, n, v)`; is that difference real?
 - **P022** GF(2) `-=`, `-`: keep for generic ring code?
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
