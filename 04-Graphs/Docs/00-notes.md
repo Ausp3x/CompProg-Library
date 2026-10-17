@@ -36,8 +36,8 @@ Contracts, ownership boundaries and migration obligations moved out of the inven
 
 ## Legacy migration obligations
 
-- Existing-unverified headers (`12`, `13`, `15`, `26`) contain unchanged monolith excerpts; see `97-Legacy/00-index.md` and `00-Guidelines/History/2026-09-27-monolith-transfer.md`. Compilation does not verify semantics, completeness, performance, indexing or complexity claims. The source-range/hash map `00-Guidelines/Ledgers/monolith-map.json` is authoritative for provenance.
-- Legacy-reference row `27` points at the Team Notebook source `OLD/Team Notebook/src/graph/old_block-cut-tree.cpp`; `old_kuhn.cpp` and `old_mcmf.cpp` are accounted for by the verified rows `21` and `20`, and `old_bellman-ford.cpp` is superseded by `05-shortest_path.hpp`.
+- Existing-unverified headers (`12`, `13`, `15`) contain unchanged monolith excerpts; see `97-Legacy/00-index.md` and `00-Guidelines/History/2026-09-27-monolith-transfer.md`. Compilation does not verify semantics, completeness, performance, indexing or complexity claims. The source-range/hash map `00-Guidelines/Ledgers/monolith-map.json` is authoritative for provenance.
+- The Team Notebook `OLD/Team Notebook/src/graph/old_block-cut-tree.cpp` is accounted for by the verified row `27` ([27-blockcuttree.md](27-blockcuttree.md#legacy-mapping)); `old_kuhn.cpp` and `old_mcmf.cpp` are accounted for by the verified rows `21` and `20`, and `old_bellman-ford.cpp` is superseded by `05-shortest_path.hpp`.
 - Unchanged archive leads in `OLD/Team Notebook/src/algs.cpp`, `algsbetter.cpp` and `test.cpp`: `LcaO1`, `LcaLog`, `DEsopoPape`, `TarjanSCC`, `StrongOrientation`, `EulerPath`, `Kruskal`, `PrimDense`, `TreeEdgePainting`, `Dinic`, `FlowWithDemands`, `PushRelabel`, `Kuhn` (symbols vary by file); their `MinCostMaxFlow`/`MaxFlowMinCut` copies are mapped in `20-min_cost_flow.md`. They are behavioral references, never specifications. `OLD/[1] algorithms.cpp` TODO comments motivated rows `14` and `17`.
 
 ## Placement decisions recorded
@@ -146,3 +146,25 @@ The 2026-10-16 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-16-p056)
 - Rerooted (all-roots) Monte Carlo hash (maspypy, hitonanode, OI Wiki): `allRootsClassification` is exact and linear within one tree; across trees, `unrootedTreeIsomorphism` maps the orbits.
 - Forest isomorphism and vertex-coloured trees: no catalog API; join each forest's roots to a new vertex, and encode colours as leaf gadgets or compare ids per colour.
 - Path rolling hash on trees (maspypy `Rolling_Hash_on_Tree`) and unlabeled-tree enumeration (maspypy): Strings and Mathematics work, not tree isomorphism.
+
+## P047 package record
+
+The 2026-10-18 verification of rows 25, 26, 27 and 31 is recorded in their `## History`; evidence in [25-directedmst.md](25-directedmst.md), [26-dynamic_connectivity.md](26-dynamic_connectivity.md), [27-blockcuttree.md](27-blockcuttree.md) and [31-path_cover.md](31-path_cover.md). Rows 25 and 31 were new; row 26 replaced the pinned `OnlineBridges` excerpt, and row 27 replaced the Team Notebook reference.
+
+- User decisions (2026-10-18, `00-Guidelines/23-Sweep Ledgers/duplicates.md`): `bridgeTree` stays as a builder; `biconnectedQuery` left the row (`sameBlock`); `connectedAfterRemovingVertex`/`Edge` are pair queries; `dagMinimumChainCover` stays as the bitset algorithm. The recorded prune removed `OnlineBridges` and `isArticulation` (`lowlink(g).is_art`).
+- `rangeEdgeComponentCount` does not wait for the planned link-cut tree (Data Structures 37): a divide and conquer over edge IDs that compresses bottleneck forests onto the subrange endpoints computes each edge's leaving time from the max-ID forest, then a Fenwick count answers the queries.
+
+## P047 omissions
+
+The 2026-10-18 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-18-p047)) added the all-roots `DirectedMst`, `IncrementalBridgeConnectivity: find`, `componentSizeAfterRemovingVertex`/`Edge`, `mandatoryVertexCount`, `simplePathVertexCount` and `twoEdgeConnectivityAugmentation`. The other candidates stay out:
+
+- k-best arborescences (NetworkX `ArborescenceIterator`): O(k) constrained Edmonds runs over forced/forbidden arcs; in no contest catalog.
+- Minimum arborescence with a free root: the minimum of `arborescence(r)` over roots, or a super-root with arcs heavier than `n` times the largest weight spread while that stays below 2^64; maximum arborescence: `DirectedMst(n, arcs)` with negated `lll` weights; forced or forbidden arcs: drop the other in-arcs of the head, or the arc.
+- Gabow–Galil–Spencer–Tarjan O(m + n log n): Fibonacci heaps, no catalog implementation, no contest gain over O(m log m).
+- Grid decremental connectivity (maspypy, CF 1864I): a grid-only dual technique from one catalog. Component counts per time and XOR-path presets: `run` callbacks over `count()` or a weighted DSU (Data Structures 29).
+- Offline 2-edge-connectivity over time: in no catalog.
+- OGDF `insertNode`, `repVertex` and an incremental `blockOf`: SPQR maintenance internals; incremental block ids change under merges, so `sameBlock` is the stable query.
+- Vertex-biconnectivity augmentation: only NetworkX's general k-connectivity augmentation; set-of-terminals block queries (SDOI2018) are a row 14 virtual tree over `BlockCutTree::tree`.
+- Mirsky partition (minimum antichain cover): level sets of longest paths (`dagShortestPaths`, longest mode). Antichain enumeration (NetworkX `antichains`): exponential output.
+- Flow-based chain cover without closure (maspypy `dag_path_cover`): the same result as `dagMinimumChainCover`; the closure-free antichain is `maximumWeightedAntichain` with unit weights.
+- Chain covers of digraphs with cycles: condense with row 08 (`condensationDag`), cover the DAG and expand each component inside its chain. Vertex-disjoint path cover with cycles is NP-hard. Greene–Kleitman k-antichains of posets: in no catalog.

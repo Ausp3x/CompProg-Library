@@ -1147,18 +1147,17 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "issues": [
-        "Insertion-only online bridge counter, not a complete dynamic-connectivity implementation.",
-        "No algorithm verification performed."
+        "P047 replaces the insertion-only excerpt with IncrementalBridgeConnectivity (iterative finds, reused path buffers) beside offline dynamic connectivity and range edge component counts. OnlineBridges left the row (One API per operation): addEdge, find2ec and findCC map to addEdge, find and root, and the bridges field to bridgeCount()."
       ],
       "source_context": "AI GENERATED FAST section",
       "tier": "Advanced",
       "body_sha256": "70b6bba90ea3b87af01fe3806a411bb5c0fb14592d4c2c4e2636f1ce565e0c78",
-      "disposition": "extracted",
-      "target_body_start_line": 10,
-      "target_body_end_line": 107,
-      "target_sha256": "9a09460bb819cf716b332807cfc8d136b413b2f97e673e27e77d51b60824ead9"
+      "disposition": "audited-replacement",
+      "relationship": "P047 audited replacement; original source excerpt preserved",
+      "historical_target_sha256": "9a09460bb819cf716b332807cfc8d136b413b2f97e673e27e77d51b60824ead9",
+      "verification": "04-Graphs/Docs/26-dynamic_connectivity.md"
     },
     {
       "source": "OLD/algorithms.cpp",

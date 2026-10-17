@@ -917,8 +917,13 @@
       "phase": "Contest core",
       "size": "L+L+M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "04-Graphs/Docs/25-directedmst.md",
+        "04-Graphs/Docs/26-dynamic_connectivity.md",
+        "04-Graphs/Docs/27-blockcuttree.md",
+        "04-Graphs/Docs/31-path_cover.md"
+      ],
       "note": ""
     },
     {

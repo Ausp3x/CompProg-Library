@@ -86,7 +86,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P054 — MA26, MA41, MA52** (opus, L+M+M): 05-Mathematics — combinatorics advanced, modular power towers, lattice paths. Status: planned.
 - [ ] **P037 — GE05, GE27, GE44** (opus, L+L+M): 03-Geometry — segment union, minimumenclosingcircle, convex polygon query, lattice geometry, fixed radius queries. Status: planned.
 - [x] **P034 — DS30, DS31, DS03, DS51** (opus, L+M+L+M): 02-Data Structures — sqrttree, persistentarray, rollbackdsu, persistentdsu, offline deletion. Status: verified. [evidence](<02-Data Structures/Docs/09-rollbackdsu.md>) [evidence](<02-Data Structures/Docs/10-persistentdsu.md>) [evidence](<02-Data Structures/Docs/34-sqrttree.md>) [evidence](<02-Data Structures/Docs/35-persistentarray.md>) [evidence](<02-Data Structures/Docs/63-offline_deletion.md>)
-- [ ] **P047 — GR69, GR12, GR28** (opus, L+L+M): 04-Graphs — directedmst, dynamic connectivity, blockcuttree, path cover. Status: planned.
+- [x] **P047 — GR69, GR12, GR28** (opus, L+L+M): 04-Graphs — directedmst, dynamic connectivity, blockcuttree, path cover. Status: verified. [evidence](04-Graphs/Docs/25-directedmst.md) [evidence](04-Graphs/Docs/26-dynamic_connectivity.md) [evidence](04-Graphs/Docs/27-blockcuttree.md) [evidence](04-Graphs/Docs/31-path_cover.md)
 - [ ] **P082 — ST05** (opus, XL): 07-Strings — suffixtree. Status: planned.
 - [ ] **P072 — MI18, MI34** (opus, L+M): 06-Miscellaneous — knapsack advanced, kbest enumeration, fractional programming. Status: planned.
 - [ ] **P035 — DS25, DS32, DS52** (opus, M+M+M): 02-Data Structures — weighteddsu, fastset, dsu extensions. Status: planned.

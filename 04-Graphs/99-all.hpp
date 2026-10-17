@@ -22,4 +22,7 @@
 #include "21-matching_bipartite.hpp"
 #include "23-assignment.hpp"
 #include "24-dominatortree.hpp"
+#include "25-directedmst.hpp"
 #include "26-dynamic_connectivity.hpp"
+#include "27-blockcuttree.hpp"
+#include "31-path_cover.hpp"

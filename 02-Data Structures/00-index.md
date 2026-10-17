@@ -86,7 +86,7 @@ Scope: this folder owns sequence, set, tree and persistent data-structure engine
 
 ## Notes
 
-- Rollback DSU owns the generic undo/connectivity substrate; weighted DSU owns potential/parity specializations without reciprocal includes. Graphs `26-dynamic_connectivity.hpp` owns edge-interval time decomposition over it; `63-offline_deletion.hpp` owns the generic non-graph add/remove engine.
+- Rollback DSU owns the generic undo/connectivity substrate; weighted DSU owns potential/parity specializations without reciprocal includes. `63-offline_deletion.hpp` owns the generic add/remove time engine; Graphs `26-dynamic_connectivity.hpp` drives it with graph edges and vertex values over this DSU.
 - Area of union of rectangles is owned by Geometry `13-segment_union.hpp`; kd-trees and R/quadtrees by Geometry `28-spatial_index.hpp`; Hilbert ordering by Miscellaneous `16-hilbertorder.hpp`; slope trick by Miscellaneous `34-slope_trick.hpp`; hash functions by Miscellaneous `02-customhash.hpp`; generic undo log by Miscellaneous `42-rollback_framework.hpp`.
 - GF(2) packed matrices (rank/solve/nullspace) are Core `12-bitmatrix.hpp`; `62-xorbasis.hpp` owns the incremental linear basis and its prefix/range variants. Python xor basis lives in `08-Python/_22_bitset.py`.
 - Literal-prefix tries are Strings `04-trie.hpp`; CDQ and parallel binary search are Miscellaneous `21-cdq.hpp` and `20-parallelbinarysearch.hpp`; mex over game states is Mathematics `25-game_theory.hpp`.

@@ -9,7 +9,6 @@ Decided by the user from 2026-10-10 to 2026-10-16; binding, and only the user ch
 ### Changes
 
 - **P030** row 18 (pinned): `PerSegTree` is a second persistent segment tree beside `PersistentSegmentTree`; its entries leave the row and `PersistentSegmentTree` gains `maxRight`/`minLeft` (from `maxR`/`minL`). `KSPerSegTree::kthMin` leaves the row (`rangeKth`); its `cntEql`, `cntRan`, `kthSum`, `maxLeq`, `minGeq` stay as the only persistent forms.
-- **P047** row 26 (pinned): `OnlineBridges` leaves the row; `IncrementalBridgeConnectivity` gains `connected` (from `findCC`).
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
 - **P027** monoid pass (decided 2026-10-17): `DisjointSparseTable::query` and `fold` become one `prod` (`e()` on an empty range; a semigroup without `e` keeps nonempty ranges); `SparseTable::query`/`fold` are named `prod`/`associativeProd`; `SegmentTree::query`/`allQuery`, the SWAG `fold`s and `SqrtDecomp::query` become `prod`/`allProd`; `SqrtDecomp::opeUpdate` becomes `apply`.
@@ -81,6 +80,9 @@ Items a reader could mistake for duplicates.
 | P179, P192 | `gramDeterminant` (row 35) beside `latticeDeterminant` (row 49) | Squared covolume from Gram–Schmidt versus the exact lattice determinant; renamed apart (decided 2026-10-15) |
 | P053 | `legendreSymbol` (row 11) beside `kroneckerSymbol` | Decided 2026-10-16: Euler's criterion, a different algorithm |
 | P034 | `PersistentArray` (row 35) beside row 18 `PersistentSegmentTree` get/set | Decided 2026-10-17: k-ary path copying, a different time and memory tradeoff from the binary tree |
+| P047 | `bridgeTree` (row 27) beside `simplify(contract(g, low.component, k))` | Decided 2026-10-18: a dedicated builder |
+| P047 | `dagMinimumChainCover` (row 31) beside `dagMinimumPathCover` on row 40 `transitiveClosure` | Decided 2026-10-18: bitset closure and bitset matching in O(n^2/64) memory, no closure Graph |
+| P047 | `connectedAfterRemovingVertex`, `connectedAfterRemovingEdge` (row 27) beside `lowlink` `cut_components[x] <= 1`, `roots.size() + is_bridge[e] == 1` | Decided 2026-10-18: pair queries (u, v after deleting x or e), not the whole-graph fields |
 
 ### Rulings
 
@@ -189,6 +191,10 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P018 | `divModSlow` beside `divMod`; `isPerfectSquare` beside `isqrtRem`; `isProbablePrime` beside Mathematics `bpsw` | Knuth D as a separate algorithm; residue filters before the root; BPSW on arbitrary size (decided 2026-10-16) |
 | P034 | `PartiallyPersistentDSU::uniteTime` (`10-persistentdsu.hpp`) beside row 65 `MergeHistoryForest::earliestConnectTime` | Different algorithm: a walk over attach times in the union-by-size forest, no merge forest or LCA (clarified rule) |
 | P034 | `OfflineDeletion::insert`, `erase` beside `addInterval` (`63-offline_deletion.hpp`) | Larger domain: unpaired per-key events with multiplicities, paired through an ordered map and closed at `n` (clarified rule) |
+| P047 | `blockOf` (`27-blockcuttree.hpp`) | Maps a vertex to its unique block, -1 at articulation points |
+| P047 | `maximumBranching` (`25-directedmst.hpp`) beside `DirectedMst::arborescence` | Different problem: no root, any number of roots, only positive arcs; built on the contraction engine, not a sign mirror |
+| P047 | `OfflineDynamicConnectivity::insertEdge`, `eraseEdge` beside `addEdge` (`26-dynamic_connectivity.hpp`) | Larger domain: unpaired per-pair events with multiplicities, as P034 `OfflineDeletion::insert`, `erase` |
+| P047 | `OfflineDynamicConnectivity` (`26-dynamic_connectivity.hpp`) | Named special case of Data Structures row 63 `OfflineDeletion` with `RollbackDSU` (`02-Data Structures/00-index.md:89` reworded) |
 
 ## Conventions
 
@@ -265,17 +271,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | `latticeUnderLine`, `latticeInHalfplanePolygon` | row 19 | `floorSum` after a builder; `latticeInRationalPolygon(halfplaneIntersection(h).vertices)` | ask | builders | — | — |
 | `segmentUnionLength`, `orthogonalIntersectionCount` | row 13 | Miscellaneous `intervalUnionMeasure`; DS row 33 `staticRectangleSum` | ask | builders unless real endpoints | — | `06-Miscellaneous/Docs/00-notes.md:24` |
 | `convexIntersection`, `cut`; `verifyEnclosing`; `maxPointsInDisk` | rows 15, 14, 54 | `clipConvex`; row 23 `maxDiskDepth` | ask | wrappers unless O(n + m) or O(log n + out) | — | — |
-
-## P047 — 04-Graphs — directedmst, dynamic connectivity, blockcuttree, path cover (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `OnlineBridges` | `26-dynamic_connectivity.hpp:11-106` | `IncrementalBridgeConnectivity`: `addEdge`, `twoEdgeConnected`, `connected`, `bridgeCount` | remove (row only) | Changes; second implementation (pinned) | none | `99-all.hpp:23` |
-| `isArticulation` | row 27 | `lowlink(g).is_art[v]` | remove (row only) | projected field | — | — |
-| `bridgeTree`; `sameBlock`, `biconnectedQuery`; `connectedAfterRemovingVertex`, `connectedAfterRemovingEdge` | row 27 | `simplify(contract(g, low.component, k))`; each other; `cut_components[u] <= 1`, `roots.size() + is_bridge[e] == 1` | ask | builder chain; same query; whole-graph or pair query | — | — |
-| `dagMinimumChainCover` | row 31 | `dagMinimumPathCover` on `transitiveClosure` | ask | builder | — | — |
-| `blockOf` | row 27 | — | keep | maps a vertex to its block-cut-tree node | — | — |
-| `OfflineDynamicConnectivity` | row 26 | DS row 63 `OfflineDeletion` plus `RollbackDSU` | keep | named special case if built on row 63; reword `02-Data Structures/00-index.md:89` | — | — |
 
 ## P082 — 07-Strings — suffixtree (planned)
 
@@ -1012,7 +1007,6 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
 - **P054** row 12 Stirling, Eulerian and partition rows beside Core Poly: allowed? `factorialPowerConvert` and `tetrationMod`: which row owns each? Row 67 `dyckPaths`, `pathsBelowDiagonal`: `catalan` and `ballot` under other names, or general endpoints? Row 12 `inclusionExclusion`: the subset Möbius transform under another name, or a pruned search over items?
 - **P037** `latticeInDisk`: arbitrary centers? `latticeUnderLine`, `latticeInHalfplanePolygon`, `segmentUnionLength`, `orthogonalIntersectionCount`, `convexIntersection`, `cut`, `verifyEnclosing`, `maxPointsInDisk`: own algorithm or bound, or builders?
-- **P047** row 27 `bridgeTree`, `sameBlock` and `biconnectedQuery`, `connectedAfterRemoving*` (whole graph or a pair?); row 31 `dagMinimumChainCover`: keep?
 - **P072** `fractionalBinarySearch`: a named entry point or `binSearchRealBracket`? `largeWeightSmallValueKnapsack`: widen `KnapsackItem::weight` and remove it, or keep it for weights above `INT_MAX`?
 - **P035** `SparseDSU`: a larger key domain or a builder? `ParityDSU`: an alias of `WeightedDSU` over Z/2 or a 2n-node DSU? `MergeHistoryForest`: `KruskalReconstruction` after a builder from the union sequence, or a separate operation?
 - **P058** `gaussJordan` or `rref`? `nullspace` beside `solveLinear(A, 0)`?

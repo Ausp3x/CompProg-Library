@@ -137,6 +137,26 @@ Fetched by the row 16 and 17 completeness sweeps. Code was written from the algo
 | Koosaga tree_isomorphism | https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/tree_isomorphism.cpp | 2026-10-16 | Recursive sort-based classification, per-call ids |
 | NetworkX isomorphism | https://networkx.org/documentation/stable/reference/algorithms/isomorphism.html | 2026-10-16 | `rooted_tree_isomorphism` and `tree_isomorphism` return a mapping (`rootedTreeIsomorphism`, `unrootedTreeIsomorphism`) |
 
+## Pages fetched on 2026-10-18 (P047)
+
+Fetched by the row 25, 26, 27 and 31 completeness sweeps. Code was written from the algorithms; no implementation was copied. Not fetched: judge.yosupo.jp problem pages (rendered by script; the `task.md` files were read), upstream KACTL Dilworth notes, the Library Checker problem list for path covers, and the Tarjan (1977) and Gabow–Galil–Spencer–Tarjan papers.
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| Library Checker directedmst | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/graph/directedmst/task.md | 2026-10-18 | Nonnegative weights, reachable root, output `p_S = S` (`parentEdge[root] = -1` here) |
+| KACTL DirectedMST | https://github.com/kth-competitive-programming/kactl/blob/main/content/graph/DirectedMST.h | 2026-10-18 | Skew-heap contraction with rollback reconstruction, O(E log V), -1 when unreachable (`ok`) |
+| maspypy directed_mst, dag_path_cover, maximum_antichain, maximum_weighted_antichain | https://maspypy.github.io/library/graph/directed_mst.hpp | 2026-10-18 | Edge-ID output; flow-based chain cover without closure (not adopted); antichain routines on a closed relation (here the closure is internal or avoided) |
+| maspypy block_cut, remove_one_vertex_connectivity, remove_one_edge_connectivity, incremental_bridge_connectivity, range_edge_connected_component_query, grid_decremental_connectivity | https://maspypy.github.io/library/graph/block_cut.hpp | 2026-10-18 | Extended numbering (vertices then blocks), pair and size queries after one removal (O(log deg) vertex, O(1) edge), range edge components by link-cut forest plus Fenwick (replaced by bottleneck-forest divide and conquer), grid decremental connectivity (not adopted) |
+| ei1333 directed-mst, block-cut-tree, incremental-bridge-connectivity, offline-dynamic-connectivity | https://ei1333.github.io/library/graph/connected-components/incremental-bridge-connectivity.hpp | 2026-10-18 | `find` of the 2-edge-connected representative, component count member, super-vertex trick for a free root |
+| hitonanode directed_mst, extended_block_cut_trees, incremental_bridge_connectivity, offline_dynamic_connectivity | https://hitonanode.github.io/cplib-cpp/graph/extended_block_cut_trees.hpp | 2026-10-18 | O(NM) Chu–Liu/Edmonds (dominated), singleton blocks for isolated vertices, `find`, Begins/Ends schedule (DS row 63) |
+| Koosaga directed_mst | https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/directed_mst.cpp | 2026-10-18 | Single-root contraction without an unreachable check |
+| Nyaan block-cut-tree, offline-dynamic-connectivity | https://nyaannyaan.github.io/library/graph/offline-dynamic-connectivity.hpp | 2026-10-18 | Cut-vertex numbering, `run(add, del, query)` callback form (`run`) |
+| tko919 blockcut | https://tko919.github.io/library/Graph/blockcut.hpp | 2026-10-18 | Block-cut tree catalog comparison |
+| OGDF BCTree, DynamicBCTree | https://ogdf.github.io/doc/ogdf/classogdf_1_1_dynamic_b_c_tree.html | 2026-10-18 | Incremental `updateInsertedEdge`, `bComponent` (`sameBlock`), `insertNode` (not adopted) |
+| cp-algorithms online bridges, deleting in O(log n) | https://cp-algorithms.com/graph/bridge-searching-online.html | 2026-10-18 | Forest over 2-edge-connected components, small-to-large rerooting, `find_2ecc`; offline segment tree over time (https://cp-algorithms.com/data_structures/deleting_in_log_n.html) |
+| OI Wiki 最小树形图, 圆方树, 偏序理论 | https://oi-wiki.org/graph/dmst/ | 2026-10-18 | Tarjan contraction tree with O(n) expansion per root (`DirectedMst::arborescence`); block-forest mandatory vertices and simple-path vertex sums (https://oi-wiki.org/graph/block-forest/); Dilworth and Mirsky (https://oi-wiki.org/math/order-theory/) |
+| NetworkX branchings, connectivity, dag | https://networkx.org/documentation/stable/reference/algorithms/tree.html | 2026-10-18 | `minimum_spanning_arborescence`, `maximum_branching`, `ArborescenceIterator` (not adopted); `k_edge_augmentation` (two-edge-connectivity augmentation); `antichains`, `antichain_width` |
+
 ## Source keys
 
 Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder.
