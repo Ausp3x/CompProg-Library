@@ -119,6 +119,22 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | SymPy diophantine module | https://docs.sympy.org/latest/modules/solvers/diophantine.html | 2026-10-17 | LMM `diop_DN`, `diop_bf_DN`, Cornacchia returning primitive solutions, ternary and general quadratic solvers (row 34) |
 | Wikipedia, binary quadratic form | https://en.wikipedia.org/wiki/Binary_quadratic_form | 2026-10-17 | class number as the count of reduced forms (row 34) |
 
+## P060 sweep (fetched 2026-10-18, `@researcher`)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| Library Checker `sum_of_floor_of_linear`, `min_of_mod_of_linear`, `enumerate_quotients`, `stern_brocot_tree`, `rational_approximation` tasks | https://github.com/yosupo06/library-checker-problems/tree/master/number_theory | 2026-10-18 | contracts: ascending quotients; min value over [0, n); ENCODE_PATH, DECODE_PATH, LCA, ANCESTOR (-1 below the depth), RANGE (open, 0/1 and 1/0); approximations with numerator and denominator at most N (rows 18, 20) |
+| AC Library `floor_sum` | https://github.com/atcoder/ac-library/blob/master/document_en/math.md | 2026-10-18 | n, m < 2^32, result modulo 2^64 (row 18 `floorSum`) |
+| maspypy `mod/` (floor_sum_of_linear, min_of_linear, min_of_linear_segments, max_of_linear_segments, first_mod_range_of_linear, mod_sum_of_linear, range_freq_of_linear), `enumerate/floor_range`, `ceil_range`, `nt/` (stern_brocot_tree, rational_binary_search, range_rational_count) | https://github.com/maspypy/library | 2026-10-18 | [L, R) forms, argmin and argmax, first hit with cyclic bounds, Farey k-th term (rows 18, 20) |
+| Nyaan `math/floor-sum.hpp`, `math/enumerate-quotient.hpp`, `math/stern-brocot-tree.hpp`, `math/stern-brocot-tree-binary-search.hpp` | https://nyaannyaan.github.io/library/ | 2026-10-18 | quotient callback contract, tree depth and binary search (rows 18, 20) |
+| suisen `number/min_of_mod_of_linear`, `number/enumerate_quotient`, `number/stern_brocot_tree` | https://suisen-cp.github.io/cp-library-cpp/ | 2026-10-18 | O(log(m)^2) minimum, joint quotient ranges, tree navigation (rows 18, 20) |
+| hitonanode `utilities/floor_sum.hpp`, `utilities/quotients.hpp`, `number/stern_brocot_tree.hpp`, `rational_approximation.md`; ei1333 `sum-of-floor-of-linear`; tko919 `floorsum` | https://hitonanode.github.io/cplib-cpp/ | 2026-10-18 | cross-check of the floor-sum and approximation contracts (rows 18, 20) |
+| KACTL `ModSum.h`, `ContinuedFractions.h`, `FracBinarySearch.h` | https://github.com/kth-competitive-programming/kactl/tree/main/content/number-theory | 2026-10-18 | `modsum`, `divsum`, closest bounded approximation of a real, fraction binary search (rows 18, 20) |
+| OI Wiki 类欧几里得算法, 数论分块, 约瑟夫问题, Stern–Brocot 树与 Farey 序列, 连分数 | https://oi-wiki.org/math/number-theory/euclidean/ | 2026-10-18 | f, g, h moments, multi-dimensional quotient blocks, Josephus recurrences, Farey rank and k-th term (rows 18, 19, 20) |
+| cp-algorithms Josephus problem, Continued fractions, Stern–Brocot tree and Farey sequences | https://cp-algorithms.com/algebra/continued-fractions.html | 2026-10-18 | O(k log n) survivor, quadratic irrationals, convergents and semiconvergents, `middle`, Farey neighbours (rows 19, 20) |
+| Halbeisen and Hungerbühler, The Josephus problem (JTNB 9, 1997), pp. 303–307, 316–317 | https://www.numdam.org/item/JTNB_1997__9_2_303_0.pdf | 2026-10-18 | j(n + 1, k, i + 1) = (k + j(n, k, i)) mod (n + 1) (row 19 `josephusKth`) |
+| Wikipedia, Josephus problem; Shahjalal Shohag code library; CSES Josephus I, II, Queries | https://en.wikipedia.org/wiki/Josephus_problem | 2026-10-18 | k log n bounds, m-th removal skip-ahead, k = 2 queries (row 19) |
+
 ## Earlier source record (condensed from the previous index and evidence documents)
 
 - The 2026-09-27 audit compared external algorithm catalogs and the saved Modern Computer Arithmetic contents; read scope and URLs are in the [central audit](../../00-Guidelines/History/2026-09-27-inventory-audit.md). A follow-up scope pass compared the active arithmetic/search/equation/sieve/combinatorics/transform interfaces and the archived factorization/inverse/CRT/log/root/numerical helpers plus the saved [KACTL notebook](../../95-Resources/05-kactl.pdf) `Tridiagonal.h` contract.

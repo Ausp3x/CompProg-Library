@@ -20,7 +20,7 @@ The inventory lists operations and cross-folder ownership; this file holds the f
 
 ## Legacy obligations
 
-- `OLD/5-Mathematics/05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp` is accounted for by rows `11` (P053) and `33` (P178, `modRoot` modulo prime powers and composites). `13-numericalmethods.hpp` and `14-miscellaneous.hpp` stay pending until `17`–`19` account for every feature. All originals stay in `OLD`.
+- `OLD/5-Mathematics/05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp` is accounted for by rows `11` (P053) and `33` (P178, `modRoot` modulo prime powers and composites). `14-miscellaneous.hpp` is accounted for by rows `18` and `19` (P060: `getFloorSum` by `floorSum`, the recursive `josephus` by `josephus`); `13-numericalmethods.hpp` stays pending until row `17` accounts for every feature. All originals stay in `OLD`.
 - `OLD/5-Mathematics/09-montgomery.hpp` is a Core reference; `10-poly.hpp` and `11-moly.hpp` are references for Core Poly.
 - The [transfer record](../../00-Guidelines/History/2026-09-27-monolith-transfer.md) preserves source-range/hash provenance for the former local excerpts: `ModFac` (`OLD/[1] algorithms.cpp`) is accounted for by row 05, and `FastConv` (`OLD/algorithms.cpp`), the last one, was removed when P055 verified row 24.
 - The archived closed segmented-sieve interval migrated to half-open `[l, r)`; closed callers map as in the Legacy mapping of [06-segmentedsieve.md](06-segmentedsieve.md).
@@ -46,9 +46,9 @@ Explanations and legacy names moved out of the inventory operation cells, one bu
 - `15-linear_recurrence.hpp`: findLinearRecurrence: status on composite modulus; kitamasa: O(d^2 log k); fiduccia: polynomial power modulo characteristic polynomial; bostanMori: nth coefficient of P/Q; consecutiveTerms: range of terms; rationalGeneratingFunction: P and Q from recurrence; interpolateLinearRecurrence: nth term from samples; interpolatePeriodicSequence: explicit period bound; interpolatePolyExp: polynomial times known exponential, degree bound from the sample count.
 - `16-linear_algebra.hpp`: inverseMod: unit determinant; adjugate: singular safe; solveLinear: one solution plus nullspace basis; tridiagonalSolve: pivot breakdown status; bandedSolve: bandwidth bound; solveLinearReal: tolerance; freivaldsProductCheck: randomized; schwartzZippelIdentityCheck: randomized evaluation.
 - `17-numerical_methods.hpp`: DualNumber: forward-mode.
-- `18-floorsum.hpp`: floorSum: sum of floor((a i + b)/m); floorSumUnsigned: ACL contract; enumerateQuotients: distinct floor(n/i) blocks; modSum: sum of (a i + b) mod m; countModInRange: count of i with (a i + b) mod m in [l, r); floorSumMoments: sum of i floor and floor squared.
-- `19-josephus.hpp`: josephus: survivor, O(n); josephusK2: closed form; josephusLarge: O(k log n) recurrence for k < n; josephusKth: kth eliminated; josephusOrder: full order.
-- `20-continued_fraction.hpp`: continuedFractionSqrt: periodic, period detection; bestRationalApproximation: bounded denominator; rationalInInterval: smallest denominator; fractionBinarySearch: predicate on Stern–Brocot path.
+- `18-floorsum.hpp`: floorSum: sum of floor((a i + b)/m) modulo 2^128, exact when it fits, ACL's unsigned result by narrowing; modSum: sum of (a i + b) mod m; countModInRange: count of i with (a i + b) mod m in [l, r); floorSumMoments: sums of floor, i floor and floor squared over a ring; minOfModOfLinear, maxOfModOfLinear: least argument; firstModInRange: least x >= 0 or -1; forEachQuotientBlock, enumerateQuotients: distinct floor(n/i) blocks; forEachJointQuotientBlock: blocks shared by several values.
+- `19-josephus.hpp`: josephus: survivor, O(min(n, k log(n / k))); josephusK2: closed form; josephusKth: removal at step t by runs without wraparound, O(min(t, k log(n / (n - t)))); josephusTime: inverse of josephusKth; josephusOrder: full order.
+- `20-continued_fraction.hpp`: continuedFractionQuadratic: (P + sqrt(D))/Q, minimal preperiod and period from the first reduced state; bestRationalApproximation: numerator and denominator bounded; rationalInInterval: open interval, least denominator; fractionBinarySearch: adjacent pair on the Stern–Brocot path; fareyKth, countRationalsInRange: Mertens on quotient values, O(n^(2/3)).
 - `21-integer_roots.hpp`: isqrt: exact floor; icbrt: exact floor; ikthRoot: floor, remainder; isPerfectPower: smallest base and largest exponent.
 - `22-interpolation.hpp`: lagrangeInterpolate: O(n^2); lagrangeEvaluate: value at x from points; lagrangeEquidistant: points 0..n, O(n); hermiteInterpolate: repeated points, derivative jets; productOfGeometricShifts: product of f(r^k x) (named apart from row 37's `productOfLinearShifts`).
 - `23-matrixtree.hpp`: eulerianCircuitCountBest: BEST bridge.
@@ -189,3 +189,22 @@ Adopted: `BinaryQuadraticForm::reducedForms` (class-group enumeration; `classNum
 - `sumOfSquaresEnumerate` for k > 2 (SymPy): low value; k = 2 is `twoSquaresAll`.
 - Indefinite forms (cycle reduction, NUCOMP): the principal indefinite form is the Pell family; general real quadratic class groups are research-level.
 - Row 57 `gaussianPrimeFactor` and `fourSquaresFromHurwitz` overlap `twoSquares` and `fourSquares`; the row 57 package settles them (handoff in [34-quadratic_congruence.md](34-quadratic_congruence.md)).
+
+## P060 research decisions (2026-10-18)
+
+Adopted: `maxOfModOfLinear` (maspypy; a ruling 3 mirror), `forEachJointQuotientBlock` (OI Wiki multi-dimensional blocks, suisen), `josephusTime` (Concrete Mathematics 3.3 renumbering), `continuedFractionQuadratic` (cp-algorithms) and `fareyKth` (maspypy, OI Wiki). Removed by user decision: `floorSumUnsigned` (`ulng(floorSum(n, m, a, b))`), `josephusZeroBased`/`josephusOneBased` (index base) and `josephusLarge` (2026-10-18: `josephus` itself became the run-skipping survivor, no slower than the plain loop it replaced, [19-josephus.md](19-josephus.md)). Left out, one line each:
+
+- `forEachCeilQuotientBlock` (maspypy `ceil_range`): ceil(N / x) = floor((N - 1) / x) + 1 for N >= 1, so its blocks are those of `forEachQuotientBlock(N - 1)` plus x >= N with quotient 1.
+- `quotientCount` (suisen): `enumerateQuotients(n).size()`, or 2 isqrt(n) - [isqrt(n)^2 + isqrt(n) > n].
+- `minOfLinearSegments` (maspypy): the prefix-minimum structure behind its `min_of_linear`; `minOfModOfLinear` exposes the value and least argument.
+- Minimum by binary search with floor sums (suisen, O(log(m)^2)): dominated by `minOfModOfLinear`.
+- Range forms over [L, R) (maspypy `floor_sum_of_linear`, `min_of_linear`): shift b by a L at the call site.
+- Josephus with k = 2 by halving (CSES 2164): `josephusKth` is already O(log(n)) at k = 2; a start position s adds s mod n.
+- Josephus with a variable step, k = 3 closed forms, the Halbeisen–Hungerbühler matrix method: no contest catalog, high-precision constants, or an unproven running time.
+- `convergentAt` (cp-algorithms, k-th convergent of a periodic expansion): the period's 2 x 2 matrices raised with Core Matrix; row 34 `pellSolutions` covers Pell.
+- `compareContinuedFractions` (cp-algorithms): compare the convergents' rationals at the call site.
+- Linear fractional transformations and Gosper arithmetic (cp-algorithms): no contest library implements them.
+- `approximateReal` (KACTL `approximate`): a decimal input is the exact rational x / 10^k; take the nearer side of `bestRationalApproximation`.
+- Stern–Brocot depth, distance, isAncestor, moveTo, order comparisons and auxiliary trees (suisen, maspypy, Nyaan): depth is the sum of the encoded counts; the rest combine `sternBrocotRange`, `sternBrocotLca` and `sternBrocotAncestor`.
+- Calkin–Wilf tree and Stern's diatomic sequence (OI Wiki, cp-algorithms): expository only, no catalog implementation.
+- The length of F_n: row 31 `phiSum` plus one, or `countRationalsInRange(n, 0, 1, 1, 1) + 1`.

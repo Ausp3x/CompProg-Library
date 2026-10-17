@@ -850,8 +850,12 @@
       "phase": "Contest core",
       "size": "M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "05-Mathematics/Docs/18-floorsum.md",
+        "05-Mathematics/Docs/19-josephus.md",
+        "05-Mathematics/Docs/20-continued_fraction.md"
+      ],
       "note": ""
     },
     {

@@ -195,6 +195,11 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P047 | `maximumBranching` (`25-directedmst.hpp`) beside `DirectedMst::arborescence` | Different problem: no root, any number of roots, only positive arcs; built on the contraction engine, not a sign mirror |
 | P047 | `OfflineDynamicConnectivity::insertEdge`, `eraseEdge` beside `addEdge` (`26-dynamic_connectivity.hpp`) | Larger domain: unpaired per-pair events with multiplicities, as P034 `OfflineDeletion::insert`, `erase` |
 | P047 | `OfflineDynamicConnectivity` (`26-dynamic_connectivity.hpp`) | Named special case of Data Structures row 63 `OfflineDeletion` with `RollbackDSU` (`02-Data Structures/00-index.md:89` reworded) |
+| P060 | `ceilSum` (`18-floorsum.hpp`) | Named special case (ruling 3) |
+| P060 | `enumerateQuotients` (`18-floorsum.hpp`) | Stored form beside the callback `forEachQuotientBlock`, as the kept `getPrimeFac()` (clarified rule) |
+| P060 | `maxOfModOfLinear` (`18-floorsum.hpp`) beside `minOfModOfLinear` | Mirror (ruling 3) |
+| P060 | `josephus` (`19-josephus.hpp`), `josephusKth` at `t = n - 1`; `josephusK2` | Named special case (the survivor); `josephusK2` is a different algorithm (O(1) closed form). The plain O(n) loop and `josephusLarge` were merged into `josephus` by user decision 2026-10-18 |
+| P060 | `continuedFractionSqrt` (`20-continued_fraction.hpp`), `continuedFractionQuadratic(0, D, 1)` | Named special case |
 
 ## Conventions
 
@@ -242,15 +247,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | `berlekampMassey` | `14-sparsematrix.hpp:74` | Poly `findLinearRecurrence` | ask | same algorithm over exact fields; floating T uses a 1e-9 zero test | none | `14-sparsematrix.hpp:132-249` |
 | row 14: `toCOO`, `toCSR` | row 14 | `entries`, triplet constructor | ask | wrappers unless COO and CSR are distinct types | — | — |
 | `size()` | `14-sparsematrix.hpp:45` | `.n` | keep | accessor of a public data member | — | — |
-
-## P060 — 05-Mathematics — floorsum, josephus, continued fraction (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `floorSumUnsigned` | row 18 | `floorSum` | ask | takes unsigned `a`, `b` up to 2^64 and returns modulo 2^64, beyond signed `floorSum` | — | — |
-| `josephusZeroBased`, `josephusOneBased` | row 19 | `josephus` | remove (row only) | index base | — | — |
-| `ceilSum` | row 18 | `floorSum(n, m, a, b + m - 1)` | keep | named special case (ruling 3) | — | — |
-| `enumerateQuotients` | row 18 | `forEachQuotientBlock` | keep | stored form beside the callback, as the kept `getPrimeFac()` (clarified rule) | — | — |
 
 ## P054 — 05-Mathematics — combinatorics advanced, modular power towers, lattice paths (planned)
 
@@ -1037,6 +1033,5 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P211** and **P216** `count` beside `FmIndex::count`, `RlFmIndex::count`; **P213** `injectiveRenamingMatch`; **P218** `prefixSubstringLcs`: the same queries?
 - **P073** `countBalanced`: Catalan under another name, or counted by length with 0 for odd lengths?
 - **P160** `planarEmbedding`: converts `isPlanar`'s embedding to the row 29 half-edge structure; a result shape (remove) or a builder (keep)?
-- **P060** `floorSumUnsigned`: unsigned `a`, `b` up to 2^64 with the result modulo 2^64; keep it beside signed `floorSum`?
 - **P062** `grundySum`: `nimSum` of Grundy values (remove) or of whole games (keep)?
 - **P183** `labelledSequence`: on series it equals `unlabelledSequence`; do the row 40 constructions take series or counts?
