@@ -44,7 +44,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P014 — MI03, MI14** (opus, M+M): 06-Miscellaneous — sequence algorithms, interval algorithms, offline queries, sorting selection. Status: verified. [evidence](06-Miscellaneous/Docs/08-sequence_algorithms.md) [evidence](06-Miscellaneous/Docs/09-interval_algorithms.md) [evidence](06-Miscellaneous/Docs/10-offline_queries.md) [evidence](06-Miscellaneous/Docs/11-sorting_selection.md)
 - [x] **P015 — MI15, MI16, MI17** (opus, M+M+S): 06-Miscellaneous — enumeration, knapsack, cyclefinding. Status: verified. [evidence](06-Miscellaneous/Docs/12-enumeration.md) [evidence](06-Miscellaneous/Docs/13-knapsack.md) [evidence](06-Miscellaneous/Docs/14-cyclefinding.md)
 - [x] **P016 — ST01, ST02, ST19** (opus, S+M+S): 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength. Status: verified. [evidence](07-Strings/Docs/01-prefixfunction.md) [evidence](07-Strings/Docs/02-z.md) [evidence](07-Strings/Docs/03-stringhash.md) [evidence](07-Strings/Docs/04-trie.md) [evidence](07-Strings/Docs/05-manacher.md) [evidence](07-Strings/Docs/09-runlength.md)
-- [x] **P017 — ST03** (opus, L): 07-Strings — aho, suffixarray, palindrome queries. Status: verified. [evidence](07-Strings/Docs/06-aho.md) [evidence](07-Strings/Docs/07-suffixarray.md) [evidence](07-Strings/Docs/08-palindrome_queries.md)
+- [ ] **P017 — ST03** (opus, L): 07-Strings — aho, suffixarray, palindrome queries. Status: in-progress. Note: Omission sweep 2026-10-19: implement build (SA-IS default; generic T through compressAlphabet) and doubling (static builder SuffixArray<T>::doubling(s, with_rmq), prefix doubling, kept as row 12 independent oracle) in 07-suffixarray.hpp; a small-input dispatch only with a measured crossover. [evidence](07-Strings/Docs/06-aho.md) [evidence](07-Strings/Docs/07-suffixarray.md) [evidence](07-Strings/Docs/08-palindrome_queries.md)
 
 ### Core full types
 
@@ -81,13 +81,13 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P056 — GR06** (opus, L): 04-Graphs — centroiddecomposition, treeisomorphism. Status: verified. [evidence](04-Graphs/Docs/16-centroiddecomposition.md) [evidence](04-Graphs/Docs/17-treeisomorphism.md)
 - [x] **P053 — MA05** (opus, L): 05-Mathematics — discrete log root. Status: verified. [evidence](05-Mathematics/Docs/11-discrete_log_root.md)
 - [x] **P178 — MA17** (opus, L): 05-Mathematics — modular square roots, quadratic congruence. Status: verified. [evidence](05-Mathematics/Docs/33-modular_square_roots.md) [evidence](05-Mathematics/Docs/34-quadratic_congruence.md)
-- [x] **P085 — ST21, ST09** (opus, L+L): 07-Strings — wildcardmatching, lexicographic queries, dynamicstringhash. Status: verified. [evidence](07-Strings/Docs/21-wildcardmatching.md) [evidence](07-Strings/Docs/22-lexicographic_queries.md) [evidence](07-Strings/Docs/23-dynamicstringhash.md)
+- [ ] **P085 — ST21, ST09** (opus, L+L): 07-Strings — wildcardmatching, lexicographic queries, dynamicstringhash. Status: in-progress. Note: Omission sweep 2026-10-19: implement distinctSubstringsByLength in 22-lexicographic_queries.hpp. [evidence](07-Strings/Docs/21-wildcardmatching.md) [evidence](07-Strings/Docs/22-lexicographic_queries.md) [evidence](07-Strings/Docs/23-dynamicstringhash.md)
 - [x] **P060 — MA10** (opus, M): 05-Mathematics — floorsum, josephus, continued fraction. Status: verified. [evidence](05-Mathematics/Docs/18-floorsum.md) [evidence](05-Mathematics/Docs/19-josephus.md) [evidence](05-Mathematics/Docs/20-continued_fraction.md)
 - [ ] **P054 — MA26, MA41, MA52** (opus, L+M+M): 05-Mathematics — combinatorics advanced, modular power towers, lattice paths. Status: planned.
 - [ ] **P037 — GE05, GE27, GE44** (opus, L+L+M): 03-Geometry — segment union, minimumenclosingcircle, convex polygon query, lattice geometry, fixed radius queries. Status: planned.
 - [x] **P034 — DS30, DS31, DS03, DS51** (opus, L+M+L+M): 02-Data Structures — sqrttree, persistentarray, rollbackdsu, persistentdsu, offline deletion. Status: verified. [evidence](<02-Data Structures/Docs/09-rollbackdsu.md>) [evidence](<02-Data Structures/Docs/10-persistentdsu.md>) [evidence](<02-Data Structures/Docs/34-sqrttree.md>) [evidence](<02-Data Structures/Docs/35-persistentarray.md>) [evidence](<02-Data Structures/Docs/63-offline_deletion.md>)
 - [x] **P047 — GR69, GR12, GR28** (opus, L+L+M): 04-Graphs — directedmst, dynamic connectivity, blockcuttree, path cover. Status: verified. [evidence](04-Graphs/Docs/25-directedmst.md) [evidence](04-Graphs/Docs/26-dynamic_connectivity.md) [evidence](04-Graphs/Docs/27-blockcuttree.md) [evidence](04-Graphs/Docs/31-path_cover.md)
-- [x] **P082 — ST05** (opus, XL): 07-Strings — suffixtree. Status: verified. [evidence](07-Strings/Docs/11-suffixtree.md)
+- [ ] **P082 — ST05** (opus, XL): 07-Strings — suffixtree. Status: in-progress. Note: Omission sweep 2026-10-19: implement lca (O(1)), suffixLink (O(1), links precomputed at build by an offline LCA pass, replacing the O(log n) weightedAncestor derivation), weightedAncestors (offline batch, O((n + q)·α(n))) in 11-suffixtree.hpp; weightedAncestor stays online O(log n) by jump pointers. [evidence](07-Strings/Docs/11-suffixtree.md)
 - [ ] **P072 — MI18, MI34** (opus, L+M): 06-Miscellaneous — knapsack advanced, kbest enumeration, fractional programming. Status: planned.
 - [ ] **P035 — DS25, DS32, DS52** (opus, M+M+M): 02-Data Structures — weighteddsu, fastset, dsu extensions. Status: planned.
 - [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.
@@ -267,6 +267,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P222 — PY10** (opus, L): 08-Python — algebraic, combinatorial species. Status: planned.
 - [ ] **P223 — PY15, PY16** (opus, L+M): 08-Python — sat, approximation. Status: planned.
 - [ ] **P228 — GE45** (opus, L): 03-Geometry — ham sandwich. Status: planned. Note: geometric partition theorems
+- [ ] **P232 — ST40** (opus, L): 07-Strings — weightedancestor. Status: planned. Note: Omission sweep 2026-10-19: before choosing a structure, research whether later or more practical weighted-ancestor results for suffix trees exist beyond GLN14 and BKPR21 (citing papers, simplifications, implementations) and record them in 07-Strings/Docs/00-sources.md.
 
 ### Final support integration
 

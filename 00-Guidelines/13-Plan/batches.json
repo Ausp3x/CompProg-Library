@@ -6320,6 +6320,23 @@
       ]
     },
     {
+      "id": "ST40",
+      "folder": "07-Strings",
+      "targets": [
+        "07-Strings/51-weightedancestor.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "O(1)-query weighted ancestors on the `11` SuffixTree: GLN 2014, or the BKPR 2021 structure (linear construction) if the package confirms it is simpler; benchmark against the `11` jump-pointer weightedAncestor.",
+      "prerequisites": [
+        "C01",
+        "ST05"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
       "id": "PY40",
       "folder": "08-Python",
       "targets": [

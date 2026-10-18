@@ -334,13 +334,13 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "07-Strings/Docs/06-aho.md",
         "07-Strings/Docs/07-suffixarray.md",
         "07-Strings/Docs/08-palindrome_queries.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-10-19: implement build (SA-IS default; generic T through compressAlphabet) and doubling (static builder SuffixArray<T>::doubling(s, with_rmq), prefix doubling, kept as row 12 independent oracle) in 07-suffixarray.hpp; a small-input dispatch only with a measured crossover."
     },
     {
       "id": "P025",
@@ -833,13 +833,13 @@
       "phase": "Contest core",
       "size": "L+L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "07-Strings/Docs/21-wildcardmatching.md",
         "07-Strings/Docs/22-lexicographic_queries.md",
         "07-Strings/Docs/23-dynamicstringhash.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-10-19: implement distinctSubstringsByLength in 22-lexicographic_queries.hpp."
     },
     {
       "id": "P060",
@@ -939,11 +939,11 @@
       "phase": "Contest core",
       "size": "XL",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "07-Strings/Docs/11-suffixtree.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-10-19: implement lca (O(1)), suffixLink (O(1), links precomputed at build by an offline LCA pass, replacing the O(log n) weightedAncestor derivation), weightedAncestors (offline batch, O((n + q)·α(n))) in 11-suffixtree.hpp; weightedAncestor stays online O(log n) by jump pointers."
     },
     {
       "id": "P072",
@@ -3284,6 +3284,19 @@
       "status": "planned",
       "evidence": [],
       "note": "geometric partition theorems"
+    },
+    {
+      "id": "P232",
+      "label": "07-Strings — weightedancestor",
+      "batches": [
+        "ST40"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-10-19: before choosing a structure, research whether later or more practical weighted-ancestor results for suffix trees exist beyond GLN14 and BKPR21 (citing papers, simplifications, implementations) and record them in 07-Strings/Docs/00-sources.md."
     },
     {
       "id": "P224",
