@@ -100,7 +100,13 @@ void rectangleCase(const vector<Rect> &a) {
             require(i < int(g.xs.size()) && g.xs[i] == hi, "horizontal piece ends on the grid");}}
     sort(want.begin(), want.end()); sort(got.begin(), got.end());
     require(want == got, "rectangleUnionBoundary pieces and directions equal the cell boundary");
-    for (auto &s : b) { for (auto &t : b) { require(!(s[1] == t[0] && orient(s[0], s[1], t[1]) == 0 && dot(s[1] - s[0], t[1] - t[0]) > 0), "boundary segments are maximal"); } }}
+    for (auto &s : b) { for (auto &t : b) { require(!(s[1] == t[0] && orient(s[0], s[1], t[1]) == 0 && dot(s[1] - s[0], t[1] - t[0]) > 0), "boundary segments are maximal"); } }
+    auto key = [](vector<array<point, 2>> v) {
+        vector<array<lng, 4>> k;
+        for (auto &x : v) { k.push_back({x[0].x, x[0].y, x[1].x, x[1].y}); }
+        sort(k.begin(), k.end());
+        return k;};
+    require(key(rectangleUnionBoundaryGuting(a)) == key(b), "rectangleUnionBoundaryGuting returns the same segments");}
 
 void orthogonalCase(const vector<array<lng, 3>> &h, const vector<array<lng, 3>> &v) {
     context = "orthogonal";
@@ -170,11 +176,22 @@ int main(int argc, char **argv) {
 #ifdef _GLIBCXX_DEBUG
     n = min(n, 4000); // Debug STL checks the partition on every lower_bound, which is linear; domains are unchanged.
 #endif
+#ifdef __SANITIZE_ADDRESS__
+    n = min(n, 25000); // ASan quarantine keeps the O(n * log(n)) contour tree's reallocations alive; domains are unchanged.
+#endif
     for (int i = 0; i < n; ++i) { a.push_back({lng(i), lng(i), lng(i) + 2, lng(i) + 2}); }
     context = "staircase";
     require(rectangleUnionArea(a) == 3 * lll(n) + 1 && rectangleUnionPerimeter(a) == 4 * lll(n) + 4, "staircase union");
     require(rectangleCoverageArea(a, 2).first == lll(n) - 1 && maxRectangleOverlap(a).first == 2, "staircase overlap");
-    require(int(rectangleUnionBoundary(a).size()) == 4 * n, "staircase boundary segment count");
+    require(int(rectangleUnionBoundary(a).size()) == 4 * n && int(rectangleUnionBoundaryGuting(a).size()) == 4 * n, "staircase boundary segment count");
+    // A lattice of g thin horizontal and g thin vertical bars: Theta(g^2) boundary segments.
+    int bars = quick ? 60 : 400; vector<Rect> lattice;
+    for (int i = 0; i < bars; ++i) { lattice.push_back({0, 4 * lng(i), 4 * lng(bars), 4 * lng(i) + 1}); lattice.push_back({4 * lng(i), 0, 4 * lng(i) + 1, 4 * lng(bars)}); }
+    auto lb = rectangleUnionBoundary(lattice), lg = rectangleUnionBoundaryGuting(lattice);
+    require(lb.size() == lg.size() && lg.size() >= size_t(4) * (bars - 1) * (bars - 1), "bar lattice boundary sizes agree");
+    lll per = 0;
+    for (auto &x : lg) { per += abs(lll(x[1].x) - x[0].x) + abs(lll(x[1].y) - x[0].y); }
+    require(per == rectangleUnionPerimeter(lattice), "bar lattice boundary length equals the perimeter");
     // A g x g grid of crossing segments plus n disjoint short ones: g^2 reported pairs.
     vector<array<lng, 3>> h, v; int g = quick || n < 100000 ? 300 : 2000;
     for (int i = 0; i < g; ++i) { h.push_back({lng(i), 0, lng(g)}); v.push_back({lng(i), 0, lng(g)}); }

@@ -86,14 +86,14 @@ Finite tests supplement the arguments above; they do not prove correctness for a
 
 ## Commands and results
 
-2026-10-18, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
+2026-10-19, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
 
 | Command | Result |
 |---|---|
-| `10-halfplaneintersection_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan, 10 probes) | PASS, 9,042,753 checks per configuration (9,042,755 in the checked build, which adds two non-simple cases), 10 probes, `MEMORY peak=562MB` |
-| same with `CXX=g++-14` | PASS, same counts, 10 probes, `MEMORY peak=600MB` |
-| `10-halfplaneintersection_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 75,968,253 checks, `MEMORY peak=399MB` |
-| `02-integration.py --sanitizers` | PASS, 167 headers, two translation units, sanitizer self-tests, `MEMORY peak=1829MB` |
+| `10-halfplaneintersection_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan, 10 probes) | PASS, 9,042,753 checks per configuration (9,042,755 in the checked build, which adds two non-simple cases), 10 probes, `MEMORY peak=593MB` |
+| same with `CXX=g++-14` | PASS, same counts, 10 probes, `MEMORY peak=588MB` |
+| `10-halfplaneintersection_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 75,968,253 checks, `MEMORY peak=404MB` |
+| `02-integration.py --sanitizers` | PASS, 167 headers, two translation units, sanitizer self-tests, `MEMORY peak=1831MB` |
 | `03-consistency.py --braces` on the four headers, testers and benchmark; `03-consistency.py` | No violations; no errors |
 
 Mutation check (2026-10-11). Each mutant was built from a copy of the tree and run through the optimized full suite. 8 mutants.
@@ -152,3 +152,4 @@ The implementation was written independently. The legacy notebook routine was re
 
 - 2026-10-11: first implementation (P036). Independent review: one finding (out-of-bounds read on non-simple input in `polygonKernelLinear`, spike assertion incomplete) fixed with new probes and checked-build cases.
 - 2026-10-18: P037 factored the edge rotation of `clipConvex` into `halfplane_detail::edges` for `convexIntersection`; full suite passed on g++ and g++-14, stress passed.
+- 2026-10-19: P037 re-audit rerun (row 15 changed), header unchanged; full suite passed on g++ and g++-14, stress passed.

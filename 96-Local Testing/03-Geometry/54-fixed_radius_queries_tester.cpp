@@ -16,13 +16,28 @@ vector<point> randomPoints(std::mt19937_64 &rng, lng c, int n) {
     for (auto &x : p) { x = {lng(rng() % ulng(2 * c + 1)) - c, lng(rng() % ulng(2 * c + 1)) - c}; }
     return p;}
 int sgn(lll x) { return (x > 0) - (x < 0); }
-// Sign of a * sqrt(x) + b * sqrt(y), small magnitudes.
+// 256-bit magnitudes for the oracle, written independently of the header's I512.
+using Limbs = array<ulng, 4>;
+Limbs square(ulll u) {
+    ulng a[2] = {ulng(u), ulng(u >> 64)}; Limbs r{};
+    for (int i = 0; i < 2; ++i) {
+        ulng c = 0;
+        for (int j = 0; j < 2; ++j) { ulll x = ulll(a[i]) * a[j] + r[i + j] + c; r[i + j] = ulng(x); c = ulng(x >> 64); }
+        r[i + 2] += c;}
+    return r;}
+Limbs times(Limbs a, ulng m) {
+    Limbs r{}; ulng c = 0;
+    for (int i = 0; i < 4; ++i) { ulll x = ulll(a[i]) * m + c; r[i] = ulng(x); c = ulng(x >> 64); }
+    return r;}
+// Sign of a * sqrt(x) + b * sqrt(y) for 0 <= x, y < 2^64 and a^2 x, b^2 y < 2^256 (|a|, |b| < 2^96 suffices).
 int radicalSign(lll a, lll x, lll b, lll y) {
     int s = x ? sgn(a) : 0, t = y ? sgn(b) : 0;
     if (s == t || !t) { return s; }
     if (!s) { return t; }
-    lll l = a * a * x, r = b * b * y;
-    return l > r ? s : l < r ? t : 0;}
+    Limbs l = times(square(ulll(a < 0 ? -a : a)), ulng(x)), r = times(square(ulll(b < 0 ? -b : b)), ulng(y));
+    for (int i = 3; i >= 0; --i) {
+        if (l[i] != r[i]) { return l[i] > r[i] ? s : t; }}
+    return 0;}
 // Points inside the closed disk of radius sqrt(r2) centred at p + (d + e * perp(d) * sqrt(X / D)) / 2.
 int coverCount(point p, point d, int e, lng r2) {
     lll D = norm2(d), X = 4 * lll(r2) - D; int c = 0;
@@ -78,20 +93,22 @@ void comparatorCase(std::mt19937_64 &rng, lng r2, lng c) {
         long double t = std::sqrt((long double)x.X / (long double)x.D); dpoint d = x.d.cast<long double>(), v = d + perp(d) * (x.e * t);
         long double a = std::atan2(v.y, v.x);
         return a < 0 ? a + 2 * std::numbers::pi_v<long double> : a;};
+    auto before = [](const Event &a, const Event &b) { return fixed_radius_detail::before<fixed_radius_detail::I512>(a, b); };
     for (auto &x : e) {
-        require(!fixed_radius_detail::before(x, x), "irreflexive");
+        require(!before(x, x), "irreflexive");
         for (auto &y : e) {
-            bool xy = fixed_radius_detail::before(x, y), yx = fixed_radius_detail::before(y, x);
+            bool xy = before(x, y), yx = before(y, x);
             require(!(xy && yx), "asymmetric");
+            if (r2 <= 400000000) { require(xy == fixed_radius_detail::before<lll>(x, y), "lll and I512 comparators agree"); }
             long double ax = angle(x), ay = angle(y);
             if (std::abs(ax - ay) > 1e-12L) { require(xy == (ax < ay), "agrees with separated rounded angles"); }
             for (auto &z : e) {
-                if (xy && fixed_radius_detail::before(y, z)) { require(fixed_radius_detail::before(x, z), "transitive"); }}}}}
+                if (xy && before(y, z)) { require(before(x, z), "transitive"); }}}}}
 void invalid(const string &name) {
     if (name == "grid-r") { GridHash g(vector<point>{{0, 0}}, 0); }
     if (name == "grid-coordinate") { GridHash g(vector<point>{{2000000000, 0}}, 1); }
     if (name == "grid-index") { GridHash g(vector<point>{{0, 0}}, 1); (void)g.neighbours(1); }
-    if (name == "disk-r2") { (void)maxPointsInDisk(vector<point>{{0, 0}}, 400000001); }
+    if (name == "disk-r2") { (void)maxPointsInDisk(vector<point>{{0, 0}}, 4000000000000000001LL); }
     std::exit(2);}
 int main(int argc, char **argv) {
     string mode = "full";
@@ -129,8 +146,27 @@ int main(int argc, char **argv) {
     context = "domain edge";
     pts = {{-20000, 0}, {20000, 0}, {0, 0}, {1000000000, 1000000000}}; diskCase(400000000, true);
     require(maxPointsInDisk(pts, 400000000).first == 3, "diameter 4 * 10^4 at the radius bound");
+    phase = "disk wide radius";
+    for (int t = 0; t < rounds / 3; ++t) {
+        lng S = t % 3 == 0 ? 1000 : t % 3 == 1 ? 1000000 : 1000000000;
+        pts = randomPoints(rng, S, 3 + int(rng() % 22));
+        if (t % 5 == 0) { pts.push_back(pts[0]); }
+        lll lo = lll(S) * S / 16, hi = min(lll(4) * S * S, lll(4000000000000000000LL));
+        diskCase(lng(lo + lll(rng() % ulng(hi - lo + 1))), true);}
+    context = "wide domain edge";
+    lng B = 1000000000;
+    pts = {{-B, -B}, {B, -B}, {B, B}, {-B, B}, {0, 0}, {B, 0}};
+    diskCase(2000000000000000000LL, true); diskCase(4000000000000000000LL, true); diskCase(1999999999999999999LL, true);
+    require(maxPointsInDisk(pts, 2000000000000000000LL).first == 6, "corners on a radius sqrt(2) * 10^9 disk");
+    phase = "dispatch threshold";
+    for (int t = 0; t < rounds / 10; ++t) {
+        pts = randomPoints(rng, 20000, 3 + int(rng() % 20));
+        diskCase(400000000, true); diskCase(400000001, true);}
     phase = "comparator";
-    for (int t = 0; t < rounds * 4; ++t) { lng r2 = t % 2 ? 1 + lng(rng() % 400000000) : 1 + lng(rng() % 50); comparatorCase(rng, r2, t % 2 ? 40000 : 15); }
+    for (int t = 0; t < rounds * 4; ++t) {
+        lng r2 = t % 3 == 0 ? 1 + lng(rng() % 50) : t % 3 == 1 ? 1 + lng(rng() % 400000000) : 1 + lng(rng() % 4000000000000000000ULL);
+        lng c = t % 3 == 0 ? 15 : t % 3 == 1 ? 40000 : 2000000000;
+        comparatorCase(rng, r2, c);}
     phase = "medium brute";
     for (int t = 0; t < (quick ? 1 : stress ? 40 : 6); ++t) {
         pts = randomPoints(rng, 200, quick ? 60 : 200);

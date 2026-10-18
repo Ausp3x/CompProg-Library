@@ -46,7 +46,7 @@ def main():
                   flags=flags, python=platform.python_version(), warmups=1, repetitions=5,
                   units='microseconds', statistic='median',
                   setup='input generation and hull construction excluded',
-                  validation='both disk counts agree where the row scan runs; k-gons have k vertices; checksum consumed',
+                  validation='both disk counts agree where the row scan runs; k-gons have k vertices and the plain and Smawk versions agree (perimeters within 1e-15 relative); checksum consumed',
                   checksum=result.stderr.strip(),
                   hashes={p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
                   rows=[json.loads(line) for line in result.stdout.splitlines()])

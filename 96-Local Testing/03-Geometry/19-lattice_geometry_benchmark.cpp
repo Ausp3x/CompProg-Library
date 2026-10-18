@@ -33,11 +33,15 @@ int main(int argc, char **argv) {
             p.push_back({std::llround(9e8L * std::cos(t)), std::llround(9e8L * std::sin(t))});}
         p = convexHull(p);
         for (int k : {3, 10, 100}) {
-            InscribedKgon<lll> res;
-            row("inscribed k-gon area", "n=" + std::to_string(p.size()) + " k=" + std::to_string(k), "maxAreaInscribedKgon", median([&] { res = maxAreaInscribedKgon(p, k); }));
-            if (int(res.vertices.size()) != k) { std::cerr << "k-gon size mismatch\n"; return 1; }
+            InscribedKgon<lll> res, fast;
+            string size = "n=" + std::to_string(p.size()) + " k=" + std::to_string(k);
+            row("inscribed k-gon area", size, "maxAreaInscribedKgon", median([&] { res = maxAreaInscribedKgon(p, k); }));
+            row("inscribed k-gon area", size, "maxAreaInscribedKgonSmawk", median([&] { fast = maxAreaInscribedKgonSmawk(p, k); }));
+            if (int(res.vertices.size()) != k || res.value != fast.value) { std::cerr << "k-gon mismatch\n"; return 1; }
             checksum += ulng(res.value);}
-        InscribedKgon<long double> per;
+        InscribedKgon<long double> per, fast;
         row("inscribed k-gon perimeter", "n=" + std::to_string(p.size()) + " k=10", "maxPerimeterInscribedKgonApprox", median([&] { per = maxPerimeterInscribedKgonApprox(p, 10); }));
-        checksum += ulng(per.value);}
+        row("inscribed k-gon perimeter", "n=" + std::to_string(p.size()) + " k=10", "maxPerimeterInscribedKgonSmawkApprox", median([&] { fast = maxPerimeterInscribedKgonSmawkApprox(p, 10); }));
+        if (std::abs(per.value - fast.value) > 1e-15L * per.value) { std::cerr << "perimeter mismatch\n"; return 1; }
+        checksum += ulng(per.value) + ulng(fast.value);}
     std::cerr << checksum << '\n';}

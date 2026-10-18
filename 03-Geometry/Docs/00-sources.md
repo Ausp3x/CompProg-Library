@@ -100,6 +100,20 @@ Five `@researcher` passes, one each for rows 13, 14, 15, 19 and 54. Decisions ar
 | CGAL Spatial_searching; OI Wiki nearest points; maspypy geo/closest_pair.hpp | https://doc.cgal.org/latest/Spatial_searching/index.html, https://oi-wiki.org/geometry/nearest-points/, https://maspypy.github.io/library/geo/closest_pair.hpp | Row 54: fixed-radius search ownership (row 28), grid hashing |
 | Failed fetches | LeetCode 1453 (HTTP 403), poj.org 1981 (refused), min-25 blog (404), QOJ 6188 (403), Springer BF02574380 (login) | Statements of those pages are not relied on |
 
+## P037 re-audit sources, fetched 2026-10-19
+
+Two `@researcher` passes: k-gon interleaving (row 15) and output-sensitive contours (row 13). Decisions are in [00-notes.md](00-notes.md#p037-re-audit-decisions-2026-10-19).
+
+| Source | URL | Used for |
+|---|---|---|
+| Keikha, Löffler, Mohades, Urhausen, van der Hoog, arXiv 1705.11035 v1 and v2; arXiv 1708.00681 | https://arxiv.org/pdf/1705.11035v2, https://arxiv.org/pdf/1705.11035v1, https://arxiv.org/pdf/1708.00681 | Row 15: the 9- and 16-vertex counterexamples; Lemma 8 (Boyce Lemma 2.2) treated as valid; the flaw placed in the rooted seed |
+| Aggarwal, Klawe, Moran, Shor, Wilber, Algorithmica 2 (1987), §6.1 | https://hcsoso.github.io/teaching/topology-f21/papers/SMAWK.pdf | Row 15: Facts 1 and 2, the constrained root recursion, SMAWK |
+| Jin, Zhu, Luo, arXiv 1707.04071 | https://arxiv.org/pdf/1707.04071v1 | Row 15: restatement of rooted interleaving (not relied on) |
+| Güting, Acta Informatica 21 (1984) 271–291 | https://radhesh-sarma.github.io/DAA_Assignment/assets/Guting%20paper.pdf | Row 13: `rectangleUnionBoundaryGuting` |
+| Preparata & Shamos, Computational Geometry, §8.5 | https://www.cs.kent.edu/~dragan/CG/CG-Book.pdf | Row 13: the Lipski–Preparata contour sweep |
+| mayoff/RectangleContour; gopchandani/union_of_rectangles | https://github.com/mayoff/RectangleContour, https://github.com/gopchandani/union_of_rectangles | Row 13: survey of implementations (Lipski–Preparata) |
+| Failed fetches | Boyce et al. SIAM and ACM PDFs (403), ResearchGate (403), Güting J. Algorithms 1984 (paywalled), Lipski–Preparata full text (2-page preview only) | Not relied on |
+
 ## Source keys used in the inventory
 
 KACTL, STANFORD (jaehyunp/stanfordacm notebook), CPALG (cp-algorithms), OI-GEO (OI Wiki geometry), CGAL, SHEWCHUK, MASPYPY, EI1333, SUISEN, HITONANODE, TKO (tko919), LC (Library Checker), CSES. Keys identify research starting points, not correctness evidence. CGAL supplies breadth and contracts, never an automatic dependency.

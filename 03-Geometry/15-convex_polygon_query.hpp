@@ -18,20 +18,46 @@ namespace convex_query_detail {
         friend bool operator<(const Frac &x, const Frac &y) { return x.num * y.den < y.num * x.den; }
         friend bool operator==(const Frac &x, const Frac &y) { return x.num * y.den == y.num * x.den; }
     };
+    // Rightmost row maxima of a totally monotone matrix: better(r, u, v) for u < v holds for every row after r once it holds at r.
+    template<typename B> vector<int> smawk(const vector<int> &rows, const vector<int> &cols, B better) {
+        int n = int(rows.size());
+        if (!n) { return {}; }
+        vector<int> c, odd;
+        for (int x : cols) {
+            while (!c.empty() && better(rows[c.size() - 1], c.back(), x)) { c.pop_back(); }
+            if (int(c.size()) < n) { c.push_back(x); }}
+        for (int i = 1; i < n; i += 2) { odd.push_back(rows[i]); }
+        vector<int> sub = smawk(odd, c, better), res(n);
+        for (int i = 0; i < int(sub.size()); ++i) { res[2 * i + 1] = sub[i]; }
+        for (int i = 0, j = 0; i < n; i += 2) {
+            res[i] = c[j];
+            int end = i + 1 < n ? res[i + 1] : c.back();
+            while (c[j] != end) {
+                ++j;
+                if (better(rows[i], res[i], c[j])) { res[i] = c[j]; }}}
+        return res;}
     // Best path s = v[0] < ... < v[k - 1] < s + n, lo[t] <= v[t] <= hi[t], closed by w(v[k - 1], s + n); rightmost optimal predecessors move right.
-    template<typename V, typename W> pair<V, vector<int>> rooted(int n, int k, const vector<int> &lo, const vector<int> &hi, W w) {
+    template<typename V, bool SMAWK, typename W> pair<V, vector<int>> rooted(int n, int k, const vector<int> &lo, const vector<int> &hi, W w) {
         int s = lo[0]; vector<vector<V>> f(k); vector<vector<int>> arg(k); f[0] = {V{}};
         for (int t = 1; t < k; ++t) {
             f[t].resize(hi[t] - lo[t] + 1); arg[t].resize(hi[t] - lo[t] + 1);
-            auto solve = [&](auto &&self, int jl, int jr, int il, int ir) -> void {
-                if (jl > jr) { return; }
-                int j = std::midpoint(jl, jr), best = il; V bv = f[t - 1][il - lo[t - 1]] + w(il, j);
-                for (int i = il + 1; i <= min(ir, j - 1); ++i) {
-                    V c = f[t - 1][i - lo[t - 1]] + w(i, j);
-                    if (!(c < bv)) { best = i; bv = c; }}
-                f[t][j - lo[t]] = bv; arg[t][j - lo[t]] = best;
-                self(self, jl, j - 1, il, best); self(self, j + 1, jr, best, ir);};
-            solve(solve, lo[t], hi[t], lo[t - 1], hi[t - 1]);}
+            auto val = [&](int i, int j) { return f[t - 1][i - lo[t - 1]] + w(i, j); };
+            if constexpr (SMAWK) {
+                vector<int> rows(hi[t] - lo[t] + 1), cols(hi[t - 1] - lo[t - 1] + 1);
+                iota(rows.begin(), rows.end(), lo[t]); iota(cols.begin(), cols.end(), lo[t - 1]);
+                // A column at or after its row is invalid and loses to every column on its left.
+                auto best = smawk(rows, cols, [&](int r, int u, int v) { return v < r && !(val(v, r) < val(u, r)); });
+                for (int x = 0; x < int(rows.size()); ++x) { arg[t][x] = best[x]; f[t][x] = val(best[x], rows[x]); }}
+            else {
+                auto solve = [&](auto &&self, int jl, int jr, int il, int ir) -> void {
+                    if (jl > jr) { return; }
+                    int j = std::midpoint(jl, jr), best = il; V bv = val(il, j);
+                    for (int i = il + 1; i <= min(ir, j - 1); ++i) {
+                        V c = val(i, j);
+                        if (!(c < bv)) { best = i; bv = c; }}
+                    f[t][j - lo[t]] = bv; arg[t][j - lo[t]] = best;
+                    self(self, jl, j - 1, il, best); self(self, j + 1, jr, best, ir);};
+                solve(solve, lo[t], hi[t], lo[t - 1], hi[t - 1]);}}
         int best = lo[k - 1]; V bv{};
         for (int j = lo[k - 1]; j <= hi[k - 1]; ++j) {
             V c = f[k - 1][j - lo[k - 1]] + w(j, s + n);
@@ -40,10 +66,13 @@ namespace convex_query_detail {
         for (int t = k - 1; t > 0; --t) { v[t - 1] = arg[t][v[t] - lo[t]]; }
         return {bv, v};}
     // Interleaving divide and conquer over the roots in [1, a[1]] of an optimal path a rooted at 0 (Boyce et al.).
-    template<typename V, typename W> pair<V, vector<int>> inscribed(int n, int k, W w) {
-        vector<int> lo(k), hi(k);
-        for (int t = 0; t < k; ++t) { lo[t] = t; hi[t] = t ? n - k + t : 0; }
-        auto res = rooted<V>(n, k, lo, hi, w);
+    template<typename V, bool SMAWK, typename W> pair<V, vector<int>> inscribed(int n, int k, V whole, W w) {
+        vector<int> lo(min(k, n));
+        iota(lo.begin(), lo.end(), 0);
+        if (k >= n) { return {whole, lo}; }
+        vector<int> hi(k);
+        for (int t = 0; t < k; ++t) { hi[t] = t ? n - k + t : 0; }
+        auto res = rooted<V, SMAWK>(n, k, lo, hi, w);
         vector<int> up(k);
         for (int t = 0; t < k; ++t) { up[t] = t + 1 < k ? res.second[t + 1] : n; }
         auto rec = [&](auto &&self, int sl, int sr, const vector<int> &l, const vector<int> &u) -> void {
@@ -51,7 +80,7 @@ namespace convex_query_detail {
             int s = std::midpoint(sl, sr); vector<int> a(k), b(k);
             a[0] = b[0] = s;
             for (int t = 1; t < k; ++t) { a[t] = max(l[t], a[t - 1] + 1); b[t] = min(u[t], s + n - k + t); }
-            auto cur = rooted<V>(n, k, a, b, w);
+            auto cur = rooted<V, SMAWK>(n, k, a, b, w);
             if (res.first < cur.first) { res = cur; }
             self(self, sl, s - 1, l, cur.second); self(self, s + 1, sr, cur.second, u);};
         vector<int> a0 = res.second;
@@ -219,18 +248,20 @@ template<typename V> struct InscribedKgon {
 // T: O(k * n * log(n) + n * log(n)^2), M: O(k * n). Strictly convex CCW ring, n >= 3, 3 <= k (k >= n takes every vertex); vertices among the polygon's.
 // Area exact; perimeter rounded, so near ties may pick a near-optimal k-gon.
 template<typename T> InscribedKgon<lll> maxAreaInscribedKgon(const vector<Point2<T>> &poly, int k) {
-    ConvexPolygonQuery c(poly); int n = c.n; assert(k >= 3); k = max(k, 3);
-    if (k >= n) {
-        InscribedKgon<lll> res{c.pre[n], vector<int>(n)};
-        iota(res.vertices.begin(), res.vertices.end(), 0);
-        return res;}
-    auto r = convex_query_detail::inscribed<lll>(n, k, [&](int i, int j) { return cross(c.at(i), c.at(j)); });
+    ConvexPolygonQuery c(poly); assert(k >= 3);
+    auto r = convex_query_detail::inscribed<lll, false>(c.n, max(k, 3), c.pre[c.n], [&](int i, int j) { return cross(c.at(i), c.at(j)); });
     return {r.first, r.second};}
 template<typename T> InscribedKgon<long double> maxPerimeterInscribedKgonApprox(const vector<Point2<T>> &poly, int k) {
-    ConvexPolygonQuery c(poly); int n = c.n; assert(k >= 3); k = max(k, 3);
-    if (k >= n) {
-        InscribedKgon<long double> res{polygonPerimeter(c.p), vector<int>(n)};
-        iota(res.vertices.begin(), res.vertices.end(), 0);
-        return res;}
-    auto r = convex_query_detail::inscribed<long double>(n, k, [&](int i, int j) { return distanceApprox(c.at(i), c.at(j)); });
+    ConvexPolygonQuery c(poly); assert(k >= 3);
+    auto r = convex_query_detail::inscribed<long double, false>(c.n, max(k, 3), polygonPerimeter(c.p), [&](int i, int j) { return distanceApprox(c.at(i), c.at(j)); });
+    return {r.first, r.second};}
+
+// T: O(k * n + n * log(n)), M: O(k * n). As maxAreaInscribedKgon and maxPerimeterInscribedKgonApprox, with SMAWK row maxima in every layer.
+template<typename T> InscribedKgon<lll> maxAreaInscribedKgonSmawk(const vector<Point2<T>> &poly, int k) {
+    ConvexPolygonQuery c(poly); assert(k >= 3);
+    auto r = convex_query_detail::inscribed<lll, true>(c.n, max(k, 3), c.pre[c.n], [&](int i, int j) { return cross(c.at(i), c.at(j)); });
+    return {r.first, r.second};}
+template<typename T> InscribedKgon<long double> maxPerimeterInscribedKgonSmawkApprox(const vector<Point2<T>> &poly, int k) {
+    ConvexPolygonQuery c(poly); assert(k >= 3);
+    auto r = convex_query_detail::inscribed<long double, true>(c.n, max(k, 3), polygonPerimeter(c.p), [&](int i, int j) { return distanceApprox(c.at(i), c.at(j)); });
     return {r.first, r.second};}

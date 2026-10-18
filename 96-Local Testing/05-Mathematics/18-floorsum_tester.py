@@ -161,8 +161,27 @@ def oracle(binary, args, env):
             raise RuntimeError(f'Python integer oracle seed={args.seed} failing row #{i}={row}\n'
                                f'expected={want}\nactual={got}\ncommand={shlex.join(command)}')
     print(f'PASS Python exact-integer oracle (validated by brute force) cases={len(rows)} seed={args.seed}', flush=True)
+    wide = []
+    for i in range(count):
+        n = rng.choice([0, 1, 2, rng.randint(0, 1000), rng.randint(0, 1 << rng.randint(1, 62)), HI])
+        m = rng.choice([1, 2, rng.randint(1, 1 << rng.randint(1, 126)), (1 << 127) - 1, (1 << 126) + rng.randint(0, 1 << 125)])
+        a, b = (rng.choice([-(1 << 127), (1 << 127) - 1, -1, 0, 1]) if rng.random() < 0.15 else rng.randint(-(1 << 127), (1 << 127) - 1) >> rng.randint(0, 126) for _ in range(2))
+        wide.append((n, m, a, b))
+    command = [str(binary), '--oracle-wide']
+    result = subprocess.run(command, input=''.join(' '.join(map(str, row)) + '\n' for row in wide),
+                            text=True, capture_output=True, env=env, timeout=180)
+    if result.returncode:
+        raise RuntimeError(f'Python wide oracle returncode={result.returncode} command={shlex.join(command)}\n{result.stderr}')
+    actual = result.stdout.splitlines()
+    if len(actual) != len(wide):
+        raise RuntimeError(f'Python wide oracle output count expected={len(wide)} actual={len(actual)} command={shlex.join(command)}')
+    for i, (row, line) in enumerate(zip(wide, actual)):
+        want = str(signed128(floor_sum(*row)))
+        if line != want:
+            raise RuntimeError(f'Python wide oracle seed={args.seed} failing row #{i}={row}\nexpected={want}\nactual={line}\ncommand={shlex.join(command)}')
+    print(f'PASS Python exact-integer oracle for floorSumWide cases={len(wide)} seed={args.seed}', flush=True)
 
 
 if __name__ == '__main__':
-    raise SystemExit(main('18-floorsum', ['floorsum-m', 'floorsum-n', 'count-range', 'count-top', 'moments-m', 'min-empty',
+    raise SystemExit(main('18-floorsum', ['floorsum-m', 'floorsum-n', 'floorsumwide-m', 'count-range', 'count-top', 'moments-m', 'min-empty',
                                           'max-m', 'first-range', 'quotient-negative', 'joint-negative'], oracle))

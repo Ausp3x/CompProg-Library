@@ -64,15 +64,16 @@ Mutation check (2026-10-18, quick, optimized): negating the incircle orientation
 
 ## Commands and results
 
-2026-10-18, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
+2026-10-19, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
 
 | Command | Result |
 |---|---|
-| `14-minimumenclosingcircle_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan, 3 probes) | PASS, 676,132 checks per configuration, 3 probes, `MEMORY peak=414MB` |
-| same with `CXX=g++-14` | PASS, 676,132 checks per configuration, 3 probes, `MEMORY peak=419MB` |
-| `14-minimumenclosingcircle_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 3,926,268 checks, `MEMORY peak=335MB` |
+| `14-minimumenclosingcircle_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan, 3 probes) | PASS, 676,132 checks per configuration, 3 probes, `MEMORY peak=420MB` |
+| same with `CXX=g++-14` | PASS, 676,132 checks per configuration, 3 probes, `MEMORY peak=421MB` |
+| `14-minimumenclosingcircle_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 3,926,268 checks, `MEMORY peak=339MB` |
 | `-Wall -Wextra -Wconversion` build of the tester with `g++` and `g++-14` | No warnings |
-| `02-integration.py` (every header alone, aggregates, two translation units including `99-all.hpp`) | PASS, 167 headers, `MEMORY peak=650MB` |
+| `02-integration.py` (every header alone, aggregates, two translation units including `99-all.hpp`) | PASS, 167 headers, `MEMORY peak=654MB` |
+| `02-integration.py --sanitizers` | PASS, 167 headers, sanitizer self-tests, `MEMORY peak=1831MB` |
 | `03-consistency.py` | No errors |
 
 ```bash
@@ -102,3 +103,4 @@ The implementation was written independently. Sources of the completeness sweep 
 ## History
 
 - 2026-10-18: first implementation (P037). Independent review: the comment share was reduced, empty input under `NDEBUG` returns an empty result, and `10^9` sets gained the hull criterion and a 256-bit side oracle. Full suite passed on g++ and g++-14, stress passed.
+- 2026-10-19: P037 re-audit rerun, header unchanged; full suite passed on g++ and g++-14, stress passed.

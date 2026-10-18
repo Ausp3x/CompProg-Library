@@ -19,68 +19,99 @@ namespace lattice_detail {
         return a != b ? a < b : (x.first - a * x.second) * y.second < (y.first - b * y.second) * x.second;}
     inline lll lineFloorSum(lll a, lll b, lll m, lll l, lll r) {
         if (l > r) { return 0; }
-        if (m < 0) { a = -a; b = -b; m = -m; }
-        assert(m <= std::numeric_limits<lng>::max() && r - l < std::numeric_limits<lng>::max());
-        return floorSum(lng(r - l + 1), lng(m), a, b + a * l);}
-    struct Edge { RationalPoint2 p, q; point dir; lll k; };
-    inline int crossDelta(point u) { return u.x ? -geometry_detail::sign(u.x) : -geometry_detail::sign(u.y); }
+        assert(m >= 1 && r - l < std::numeric_limits<lng>::max());
+        lll c = b + a * l, lim = lll(1) << 126;
+        if (m <= std::numeric_limits<lng>::max() && -lim <= a && a <= lim && -lim <= c && c <= lim) { return floorSum(lng(r - l + 1), lng(m), a, c); }
+        return floorSumWide(lng(r - l + 1), m, a, c);}
+    // Exact 256-bit products hi * 2^128 + lo, hi signed.
+    struct Wide { lll hi; ulll lo; };
+    inline Wide mul(lll a, lll b) {
+        ulll x = a < 0 ? ulll(0) - ulll(a) : ulll(a), y = b < 0 ? ulll(0) - ulll(b) : ulll(b);
+        ulll x0 = ulng(x), x1 = x >> 64, y0 = ulng(y), y1 = y >> 64, p00 = x0 * y0, p01 = x0 * y1, p10 = x1 * y0;
+        ulll mid = (p00 >> 64) + ulng(p01) + ulng(p10), lo = (mid << 64) | ulng(p00), hi = x1 * y1 + (p01 >> 64) + (p10 >> 64) + (mid >> 64);
+        if ((a < 0) != (b < 0)) { lo = ~lo + 1; hi = ~hi + (lo == 0); }
+        return {lll(hi), lo};}
+    inline Wide sub(Wide a, Wide b) { return {lll(ulll(a.hi) - ulll(b.hi) - (a.lo < b.lo)), a.lo - b.lo}; }
+    inline int crossSign(Point2<lll> u, Point2<lll> v) {
+        Wide w = sub(mul(u.x, v.y), mul(u.y, v.x));
+        return w.hi < 0 ? -1 : w.hi > 0 || w.lo ? 1 : 0;}
+    // floor(w / d) for 1 <= d < 2^63 when the quotient fits lll; exact reports d | w.
+    inline lll floorDivWide(Wide w, lll d, bool &exact) {
+        bool neg = w.hi < 0;
+        if (neg) { w.lo = ~w.lo + 1; w.hi = lll(~ulll(w.hi) + (w.lo == 0)); }
+        ulll rem = 0, q = 0;
+        for (ulng x : {ulng(ulll(w.hi) >> 64), ulng(ulll(w.hi)), ulng(w.lo >> 64), ulng(w.lo)}) {
+            ulll cur = rem << 64 | x;
+            q = q << 64 | ulng(cur / ulll(d)); rem = cur % ulll(d);}
+        exact = !rem;
+        return neg ? -lll(q) - !exact : lll(q);}
+    inline lll mulMod(lll a, lll b, lll m) {
+        ulll r = 0, x = ulll(a), mm = ulll(m);
+        for (ulll y = ulll(b); y; y >>= 1) {
+            if (y & 1) { r += x; r -= r >= mm ? mm : 0; }
+            x += x; x -= x >= mm ? mm : 0;}
+        return lll(r);}
+    // Edge p -> q on the line dir.x * y - dir.y * x = c through t, dir primitive; c = fl when exact, else c lies in (fl, fl + 1).
+    struct Edge { RationalPoint2 p, q; Point2<lll> dir; lll fl; bool exact; };
+    inline Edge edge(const RationalPoint2 &p, const RationalPoint2 &q, const RationalPoint2 &t, Point2<lll> u) {
+        lll g = gcd(abs(u.x), abs(u.y)); Point2<lll> d{u.x / g, u.y / g}; bool exact;
+        lll fl = floorDivWide(sub(mul(d.x, t.y), mul(d.y, t.x)), t.d, exact);
+        return {p, q, d, fl, exact};}
+    inline int crossDelta(Point2<lll> u) { return u.x ? -geometry_detail::sign(u.x) : -geometry_detail::sign(u.y); }
     inline lll openCount(const pair<lll, lll> &lo, const pair<lll, lll> &hi, lll r, lll m) {
         lll a = floorDiv(lo.first, lo.second) + 1, b = ceilDiv(hi.first, hi.second) - 1;
         return a > b ? 0 : floorDiv(b - r, m) - floorDiv(a - 1 - r, m);}
     inline lll openLattice(const Edge &e) {
-        lll g = gcd(abs(lll(e.dir.x)), abs(lll(e.dir.y)));
-        if (e.k % g) { return 0; }
-        lll dx = e.dir.x / g, dy = e.dir.y / g, k = e.k / g;
+        if (!e.exact) { return 0; }
+        lll dx = e.dir.x, dy = e.dir.y;
         if (!dx) {
             pair<lll, lll> a{e.p.y, e.p.d}, b{e.q.y, e.q.d};
             if (dy < 0) { swap(a, b); }
-            return e.p.x % e.p.d ? 0 : openCount(a, b, 0, 1);}
-        lll m = abs(dx), c = ((-dy) % m + m) % m, t = ((k % m) + m) % m, x0 = 0;
+            return openCount(a, b, 0, 1);}
+        lll m = abs(dx), c = ((-dy) % m + m) % m, t = (e.fl % m + m) % m, x0 = 0;
         if (m > 1) {
             lll r0 = m, r1 = c, s0 = 0, s1 = 1;
             while (r1) { lll z = r0 / r1; r0 -= z * r1; swap(r0, r1); s0 -= z * s1; swap(s0, s1); }
-            x0 = ((s0 % m + m) % m) * t % m;}
+            x0 = mulMod((s0 % m + m) % m, t, m);}
         pair<lll, lll> a{e.p.x, e.p.d}, b{e.q.x, e.q.d};
         if (dx < 0) { swap(a, b); }
         return openCount(a, b, x0, m);}
     // s counts lattice P with P + (e', -e) inside, 0 < e' << e; boundary points where that shift points inward are then removed.
-    inline lll count(vector<Edge> e, bool closed) {
-        int n = int(e.size()); lll s = 0, inward = 0, boundary = 0;
-        for (auto &x : e) {
-            lll g = gcd(gcd(abs(lll(x.dir.x)), abs(lll(x.dir.y))), abs(x.k));
-            x.dir /= lng(g); x.k /= g;}
+    inline lll count(const vector<Edge> &e, bool closed) {
+        int n = int(e.size()); ulll s = 0; lll inward = 0, boundary = 0;
         for (int i = 0; i < n; ++i) {
             const Edge &x = e[i]; lll on = openLattice(x); boundary += on;
             if (x.dir.x) {
                 const RationalPoint2 &lo = x.dir.x > 0 ? x.p : x.q, &hi = x.dir.x > 0 ? x.q : x.p;
-                lll sum = lineFloorSum(x.dir.y, x.k, x.dir.x, ceilDiv(lo.x, lo.d), ceilDiv(hi.x, hi.d) - 1);
-                s += x.dir.x < 0 ? sum : -sum;
+                lll l = ceilDiv(lo.x, lo.d), r = ceilDiv(hi.x, hi.d) - 1;
+                // floor((c + dy * x) / dx) = floor((floor(c) + dy * x) / dx) for dx > 0; negate c, dy and dx otherwise.
+                lll sum = x.dir.x > 0 ? lineFloorSum(x.dir.y, x.fl, x.dir.x, l, r) : lineFloorSum(-x.dir.y, -x.fl - !x.exact, -x.dir.x, l, r);
+                s += x.dir.x < 0 ? ulll(sum) : ulll(0) - ulll(sum);
                 if (x.dir.x < 0) { inward += on; }}
             else if (x.dir.y < 0) { inward += on; }
             if (x.p.d == 1) {
-                point b = x.dir, c = -e[(i + n - 1) % n].dir; int bd = crossDelta(b), dc = -crossDelta(c);
-                ++boundary; inward += cross(b, c) > 0 ? (bd > 0 && dc > 0) : (bd > 0 || dc > 0);}}
-        lll interior = s - inward;
+                Point2<lll> b = x.dir, c = -e[(i + n - 1) % n].dir; int bd = crossDelta(b), dc = -crossDelta(c);
+                ++boundary; inward += crossSign(b, c) > 0 ? (bd > 0 && dc > 0) : (bd > 0 || dc > 0);}}
+        lll interior = lll(s - ulll(inward));
         return closed ? interior + boundary : interior;}
-    inline vector<Edge> rationalEdges(const vector<RationalPoint2> &v) {
-        int n = int(v.size()); vector<Edge> e(n);
-        lll big = 0, den = 1;
+    inline void rationalDomain(const vector<RationalPoint2> &v) {
+        lll big = 1, den = 1;
         for (const auto &p : v) { den = max(den, p.d); big = max({big, ceilDiv(abs(p.x), p.d), ceilDiv(abs(p.y), p.d)}); }
-        assert(den <= 1600000 && big * den * den * den <= 2000000000000000000LL);
-        for (int i = 0; i < n; ++i) {
-            const RationalPoint2 &p = v[i], &q = v[(i + 1) % n];
-            lll ux = q.x * p.d - p.x * q.d, uy = q.y * p.d - p.y * q.d;
-            assert(ux || uy);
-            e[i] = {p, q, point{lng(ux * p.d), lng(uy * p.d)}, ux * p.y - uy * p.x};}
-        int low = 0;
+        assert(den <= 4000000000000000000LL && big <= 4000000000000000000LL / den);}
+    inline Point2<lll> direction(const RationalPoint2 &p, const RationalPoint2 &q) { return {q.x * p.d - p.x * q.d, q.y * p.d - p.y * q.d}; }
+    inline vector<Edge> rationalEdges(vector<RationalPoint2> v) {
+        rationalDomain(v);
+        int n = int(v.size()), low = 0; vector<Edge> e(n);
         for (int i = 1; i < n; ++i) {
             lll a = v[i].x * v[low].d, b = v[low].x * v[i].d;
             if (a < b || (a == b && v[i].y * v[low].d < v[low].y * v[i].d)) { low = i; }}
-        lll turn = cross(e[(low + n - 1) % n].dir, e[low].dir);
+        int turn = crossSign(direction(v[(low + n - 1) % n], v[low]), direction(v[low], v[(low + 1) % n]));
         assert(turn != 0);
-        if (turn < 0) {
-            vector<RationalPoint2> w(v.rbegin(), v.rend());
-            return rationalEdges(w);}
+        if (turn < 0) { reverse(v.begin(), v.end()); }
+        for (int i = 0; i < n; ++i) {
+            const RationalPoint2 &p = v[i], &q = v[(i + 1) % n]; Point2<lll> u = direction(p, q);
+            assert(u != Point2<lll>{});
+            e[i] = edge(p, q, p, u);}
         return e;}
     // Sum of floor((b + sqrt(n - (q x - a)^2)) / q) over x in [l, r], slope in [-1, 0]: Stern–Brocot walk on the lattice hull.
     inline lll hullWalk(lll a, lll b, lll q, lll n, lll l, lll r) {
@@ -120,17 +151,17 @@ namespace lattice_detail {
         return top - low + (hi - lo + 1);}
 } // namespace lattice_detail
 
-// T: O(log(C)), M: O(1), C the largest numerator or denominator. Rational p, q, p.x != q.x: sum of floor(l(x)) over integers x in the closed x-range,
-// l the line through p and q (lattice points 0 < y <= l(x), negated where l(x) < 0). Domain: max |coordinate| * (max d)^3 <= 2 * 10^18, d <= 1.6 * 10^6.
+// T: O(log(C)) (O(128 * log(C)) beyond 64-bit slopes), M: O(1), C the largest numerator. Rational p, q, p.x != q.x, either order: sum of floor(l(x)) over integers x in
+// the closed x-range, l the line through p and q (lattice points 0 < y <= l(x), negated where l(x) < 0). Domain: max(ceil(|x| / d), ceil(|y| / d), 1) * max d <= 4 * 10^18.
 inline lll latticeUnderLine(const RationalPoint2 &p, const RationalPoint2 &q) {
-    lll ux = q.x * p.d - p.x * q.d, uy = q.y * p.d - p.y * q.d;
-    lll big = max({lattice_detail::ceilDiv(abs(p.x), p.d), lattice_detail::ceilDiv(abs(p.y), p.d), lattice_detail::ceilDiv(abs(q.x), q.d), lattice_detail::ceilDiv(abs(q.y), q.d)});
-    assert(ux != 0 && max(p.d, q.d) <= 1600000 && big * max(p.d, q.d) * max(p.d, q.d) * max(p.d, q.d) <= 2000000000000000000LL);
-    const RationalPoint2 &lo = ux > 0 ? p : q, &hi = ux > 0 ? q : p;
-    lll a = uy * p.d, b = ux * p.y - uy * p.x, m = ux * p.d, g = gcd(gcd(abs(a), abs(b)), abs(m));
-    return lattice_detail::lineFloorSum(a / g, b / g, m / g, lattice_detail::ceilDiv(lo.x, lo.d), lattice_detail::floorDiv(hi.x, hi.d));}
+    lattice_detail::rationalDomain({p, q});
+    bool flip = lattice_detail::less({q.x, q.d}, {p.x, p.d});
+    const RationalPoint2 &a = flip ? q : p, &b = flip ? p : q; Point2<lll> u = lattice_detail::direction(a, b);
+    assert(u.x > 0);
+    auto e = lattice_detail::edge(a, b, a, u);
+    return lattice_detail::lineFloorSum(e.dir.y, e.fl, e.dir.x, lattice_detail::ceilDiv(a.x, a.d), lattice_detail::floorDiv(b.x, b.d));}
 
-// T: O(n * log(C)), M: O(n), C as latticeUnderLine. Simple polygon with rational vertices, either orientation, nonzero area, no repeated consecutive vertices, domain as latticeUnderLine;
+// T: O(n * log(C)) (O(128 * n * log(C)) beyond 64-bit slopes), M: O(n), C as latticeUnderLine. Simple polygon with rational vertices, either orientation, nonzero area, no repeated consecutive vertices, domain as latticeUnderLine;
 // lattice points strictly inside, or inside and on the boundary when closed.
 inline lll latticeInRationalPolygon(const vector<RationalPoint2> &v, bool closed) {
     assert(v.size() >= 3 && v.size() <= INT_MAX);
@@ -146,7 +177,7 @@ inline lll latticeInHalfplanePolygon(const vector<Halfplane> &h, bool closed) {
     if (r.kind == HalfplaneKind::Point) { return r.vertices[0].d == 1; }
     auto edge = [](const Halfplane &s, const RationalPoint2 &p, const RationalPoint2 &q) {
         point w = s.b - s.a;
-        return lattice_detail::Edge{p, q, w, lll(w.x) * s.a.y - lll(w.y) * s.a.x};};
+        return lattice_detail::edge(p, q, RationalPoint2(s.a), Point2<lll>{w.x, w.y});};
     if (r.kind == HalfplaneKind::Segment) {
         const Halfplane &s = r.planes[0]; point w = s.b - s.a;
         RationalPoint2 p = r.vertices[0], q = r.vertices[1];

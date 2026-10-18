@@ -15,6 +15,24 @@ namespace floorsum_detail {
             else { n = ulng(y) / m; b = ulng(y) % m; }
             swap(m, a);}}
 
+    // {(a * n + b) / m, (a * n + b) % m} for a, b < m < 2^127 and n < 2^63: a 191-bit numerator, a quotient below 2^64.
+    inline pair<ulng, ulll> divStep(ulll a, ulng n, ulll b, ulll m) {
+        ulll low = ulll(ulng(a)) * n, high = (a >> 64) * n, lo = low + (high << 64), hi = (high >> 64) + (lo < low), r;
+        lo += b; hi += lo < b; r = hi; ulng q = 0;
+        if (!hi) { return {ulng(lo / m), lo % m}; }
+        for (int i = 127; i >= 0; --i) {
+            r = r << 1 | (lo >> i & 1);
+            if (r >= m) { r -= m; q |= i < 64 ? ulng(1) << i : 0; }}
+        return {q, r};}
+    inline ulll reducedWide(ulng n, ulll m, ulll a, ulll b) {
+        ulll res = 0;
+        while (n) {
+            if (a >= m) { res += ulll(n) * (n - 1) / 2 * (a / m); a %= m; }
+            if (b >= m) { res += ulll(n) * (b / m); b %= m; }
+            auto [q, r] = divStep(a, n, b, m);
+            if (!q) { break; }
+            n = q; b = r; swap(m, a);}
+        return res;}
     template<typename T> T tri(lng x) { return x % 2 == 0 ? T(x / 2) * (T(x) + T(1)) : T(x) * T((x >> 1) + 1); }
     template<typename T> T choose3(lng n) {
         lng f[3] = {n, n - 1, n - 2}, d = 6;
@@ -65,6 +83,12 @@ inline lll floorSum(lng n, lng m, lll a, lll b) {
     ulll res = ulll(qa) * (ulll(n) * ulng(n - 1) / 2) + ulll(qb) * ulng(n);
     return lll(res + floorsum_detail::reduced(ulng(n), ulng(m), ulng(a - qa * m), ulng(b - qb * m)));}
 inline lll ceilSum(lng n, lng m, lll a, lll b) { return floorSum(n, m, a, b + m - 1); }
+// T: O(128 * log(m)) bit steps, O(log(m)) divisions while a n + b < 2^128, M: O(1); n >= 0, 1 <= m < 2^127, any lll a, b: floorSum with a 128-bit modulus, modulo 2^128, exact when it fits lll.
+inline lll floorSumWide(lng n, lll m, lll a, lll b) {
+    assert(n >= 0 && m >= 1);
+    lll qa = floorDiv(a, m), qb = floorDiv(b, m);
+    ulll res = ulll(qa) * (ulll(n) * ulng(max(n, lng(1)) - 1) / 2) + ulll(qb) * ulng(n);
+    return lll(res + floorsum_detail::reducedWide(ulng(max(n, lng(0))), ulll(m), ulll(a) - ulll(qa) * ulll(m), ulll(b) - ulll(qb) * ulll(m)));}
 inline lll modSum(lng n, lng m, lll a, lll b) {
     assert(n >= 0 && m >= 1);
     lng ra = modNorm(a, m), rb = modNorm(b, m);

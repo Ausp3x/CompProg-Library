@@ -113,12 +113,54 @@ void invalid(const string &name) {
     if (name == "halfplane-unbounded") { (void)latticeInHalfplanePolygon({Halfplane{{0, 0}, {1, 0}}}, true); }
     std::exit(2);}
 
+// 256-bit sign of a * b - c * d, written independently of the header.
+int productSign(lll a, lll b, lll c, lll d) {
+    auto mag = [](lll a, lll b) {
+        ulll x = a < 0 ? ulll(0) - ulll(a) : ulll(a), y = b < 0 ? ulll(0) - ulll(b) : ulll(b);
+        ulng xs[2] = {ulng(x), ulng(x >> 64)}, ys[2] = {ulng(y), ulng(y >> 64)}; array<ulng, 4> r{};
+        for (int i = 0; i < 2; ++i) {
+            ulng carry = 0;
+            for (int j = 0; j < 2; ++j) { ulll t = ulll(xs[i]) * ys[j] + r[i + j] + carry; r[i + j] = ulng(t); carry = ulng(t >> 64); }
+            r[i + 2] += carry;}
+        return pair<int, array<ulng, 4>>{x && y ? ((a < 0) != (b < 0) ? -1 : 1) : 0, r};};
+    auto [s1, m1] = mag(a, b); auto [s2, m2] = mag(c, d);
+    if (s1 != s2) { return s1 > s2 ? 1 : -1; }
+    int cmp = 0;
+    for (int i = 3; i >= 0 && !cmp; --i) { cmp = m1[i] < m2[i] ? -1 : m1[i] > m2[i] ? 1 : 0; }
+    return s1 * cmp;}
+// Exact location of the lattice point (x, y) against a polygon with large denominators: -1 inside, 0 boundary, 1 outside.
+int locateWide(const vector<RationalPoint2> &v, lll x, lll y) {
+    int n = int(v.size()); bool in = false;
+    for (int i = 0; i < n; ++i) {
+        const auto &p = v[i], &q = v[(i + 1) % n];
+        lll ux = q.x * p.d - p.x * q.d, uy = q.y * p.d - p.y * q.d, vx = x * p.d - p.x, vy = y * p.d - p.y;
+        int c = productSign(ux, vy, uy, vx);
+        auto inRange = [](lll t, const RationalPoint2 &a, lll an, const RationalPoint2 &b, lll bn) {
+            bool ge = productSign(t, a.d, an, 1) >= 0, le = productSign(t, b.d, bn, 1) <= 0, ge2 = productSign(t, b.d, bn, 1) >= 0, le2 = productSign(t, a.d, an, 1) <= 0;
+            return (ge && le) || (ge2 && le2);};
+        if (c == 0 && inRange(x, p, p.x, q, q.x) && inRange(y, p, p.y, q, q.y)) { return 0; }
+        bool pa = y * p.d < p.y, qa = y * q.d < q.y;
+        if (pa != qa && (uy > 0 ? c > 0 : c < 0)) { in = !in; }}
+    return in ? -1 : 1;}
 int main(int argc, char **argv) {
     string mode = "full";
     for (int i = 1; i < argc; ++i) {
         string a = argv[i]; if (a == "--mode") { mode = argv[++i]; }
         else if (a == "--seed") { seed = std::stoull(argv[++i]); }
-        else if (a == "--invalid") { invalid(argv[++i]); }}
+        else if (a == "--invalid") { invalid(argv[++i]); }
+        else if (a == "--oracle") {
+            auto parse = [](const string &t) { lll v = 0; bool neg = t[0] == '-'; for (char c : t.substr(neg)) { v = v * 10 + (neg ? '0' - c : c - '0'); } return v; };
+            string kind, w[3];
+            while (cin >> kind) {
+                if (kind == "U") {
+                    RationalPoint2 r[2];
+                    for (auto &x : r) { cin >> w[0] >> w[1] >> w[2]; x = RationalPoint2(parse(w[0]), parse(w[1]), parse(w[2])); }
+                    std::cout << str(latticeUnderLine(r[0], r[1])) << '\n';}
+                else {
+                    int closed, n; cin >> closed >> n; vector<RationalPoint2> v(n);
+                    for (auto &x : v) { cin >> w[0] >> w[1] >> w[2]; x = RationalPoint2(parse(w[0]), parse(w[1]), parse(w[2])); }
+                    std::cout << str(latticeInRationalPolygon(v, closed)) << '\n';}}
+            return 0;}}
     bool quick = mode == "quick", stress = mode == "stress";
     std::mt19937_64 rng(seed);
     phase = "disk exhaustive";
@@ -183,6 +225,61 @@ int main(int argc, char **argv) {
         bool convex = true;
         for (int i = 0; i < m; ++i) { convex &= orient3(v[i], v[(i + 1) % m], v[(i + 2) % m]); }
         if (convex) { polygonCase(v); }}
+    phase = "rational polygon huge denominators";
+    for (int t = 0; t < rounds / 4; ++t) {
+        // Values within 2 and denominators up to 2 * 10^18: max value times max denominator at the domain edge 4 * 10^18.
+        int m = 3 + int(rng() % 6); vector<pair<long double, RationalPoint2>> a;
+        for (int i = 0; i < m; ++i) {
+            long double ang = 2 * std::numbers::pi_v<long double> * (long double)(rng() % 1000000) / 1000000; lll den = 1 + lll(rng() % 2000000000000000000ULL);
+            a.push_back({ang, RationalPoint2(lll(std::llround(1.9L * std::cos(ang) * (long double)den)), lll(std::llround(1.9L * std::sin(ang) * (long double)den)), den)});}
+        sort(a.begin(), a.end(), [](auto &x, auto &y) { return x.first < y.first; });
+        vector<RationalPoint2> v;
+        for (auto &x : a) { v.push_back(x.second); }
+        bool convex = true;
+        for (int i = 0; i < m; ++i) {
+            const auto &p = v[i], &q = v[(i + 1) % m], &r = v[(i + 2) % m];
+            convex &= productSign(q.x * p.d - p.x * q.d, r.y * p.d - p.y * r.d, q.y * p.d - p.y * q.d, r.x * p.d - p.x * r.d) > 0;}
+        if (!convex) { continue; }
+        context = "huge denominators";
+        lll in = 0, on = 0;
+        for (lll x = -3; x <= 3; ++x) { for (lll y = -3; y <= 3; ++y) { int z = locateWide(v, x, y); in += z < 0; on += z == 0; } }
+        require(latticeInRationalPolygon(v, false) == in && latticeInRationalPolygon(v, true) == in + on, "huge denominators equal enumeration");}
+    phase = "spiral";
+    {
+        // A unit-width rectilinear spiral at |coordinate| < 4 * 10^18: same-signed edge sums pass 2^127 before cancelling. Pick's formula is the oracle.
+        lll V = 4000000000000000000LL - 100; int L = 3; vector<pair<lll, lll>> S, T, P;
+        for (int i = 0; i < L; ++i) { S.push_back({-V + 2 * i, -V + 2 * i}); S.push_back({V - 2 * i, -V + 2 * i}); S.push_back({V - 2 * i, V - 2 * i}); S.push_back({-V + 2 * i + 2, V - 2 * i}); }
+        T.push_back({-V, -V + 1});
+        for (int i = 0; i < L; ++i) {
+            if (i) { T.push_back({-V + 2 * i + 1, -V + 2 * i + 1}); }
+            T.push_back({V - 2 * i - 1, -V + 2 * i + 1}); T.push_back({V - 2 * i - 1, V - 2 * i - 1}); T.push_back({-V + 2 * i + 3, V - 2 * i - 1});}
+        T.push_back({-V + 2 * L, V - 2 * L + 1});
+        vector<pair<lll, lll>> all = S; all.insert(all.end(), T.rbegin(), T.rend());
+        for (int k = 0; k < int(all.size()); ++k) { if (all[k] != all[(k + int(all.size()) - 1) % all.size()]) { P.push_back(all[k]); } }
+        ulll area = 0; lll boundary = 0; int m = int(P.size()); vector<RationalPoint2> v;
+        for (int k = 0; k < m; ++k) {
+            auto [x1, y1] = P[k]; auto [x2, y2] = P[(k + 1) % m];
+            area += ulll(x1) * ulll(y2) - ulll(x2) * ulll(y1); boundary += gcd(abs(x2 - x1), abs(y2 - y1)); v.push_back(RationalPoint2(x1, y1));}
+        lll a2 = abs(lll(area)), interior = (a2 - boundary + 2) / 2;
+        context = "spiral";
+        require(latticeInRationalPolygon(v, false) == interior && latticeInRationalPolygon(v, true) == interior + boundary, "wide spiral equals Pick");}
+    phase = "halfplane against rational vertices";
+    for (int t = 0; t < rounds / 4; ++t) {
+        lng B = 500000;
+        vector<Halfplane> h{{{-B, -B}, {B, -B}}, {{B, -B}, {B, B}}, {{B, B}, {-B, B}}, {{-B, B}, {-B, -B}}};
+        for (int i = 0; i < 4; ++i) {
+            point a{lng(rng() % (2 * B + 1)) - B, lng(rng() % (2 * B + 1)) - B}, b{lng(rng() % (2 * B + 1)) - B, lng(rng() % (2 * B + 1)) - B};
+            if (a != b) { h.push_back({a, b}); }}
+        auto r = halfplaneIntersection(h);
+        if (r.kind != HalfplaneKind::Polygon) { continue; }
+        context = "halfplane polygon";
+        for (int closed = 0; closed < 2; ++closed) {
+            require(latticeInHalfplanePolygon(h, closed) == latticeInRationalPolygon(r.vertices, closed), "integral lines and rational vertices agree");}
+        auto shifted = r.vertices; lll dx = lll(rng() % 2000001) - 1000000, dy = lll(rng() % 2000001) - 1000000;
+        for (auto &p : shifted) { p = RationalPoint2(p.x + dx * p.d, p.y + dy * p.d, p.d); }
+        require(latticeInRationalPolygon(shifted, true) == latticeInRationalPolygon(r.vertices, true), "integral translation preserves the count");
+        for (auto &p : shifted) { p = RationalPoint2(p.y, p.x, p.d); }
+        require(latticeInRationalPolygon(shifted, false) == latticeInRationalPolygon(r.vertices, false), "translation and transposition preserve the count");}
     phase = "rational polygon axis";
     for (int t = 0; t < rounds / 4; ++t) {
         lng x0 = lng(rng() % 9) - 4, y0 = lng(rng() % 9) - 4, d = 1 + lng(rng() % 3);

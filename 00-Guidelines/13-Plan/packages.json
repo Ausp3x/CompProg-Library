@@ -894,7 +894,8 @@
         "03-Geometry/Docs/14-minimumenclosingcircle.md",
         "03-Geometry/Docs/15-convex_polygon_query.md",
         "03-Geometry/Docs/19-lattice_geometry.md",
-        "03-Geometry/Docs/54-fixed_radius_queries.md"
+        "03-Geometry/Docs/54-fixed_radius_queries.md",
+        "05-Mathematics/Docs/18-floorsum.md"
       ],
       "note": ""
     },

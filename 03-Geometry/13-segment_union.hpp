@@ -112,6 +112,99 @@ namespace rectangle_detail {
                     res.push_back(flip ? array<point, 2>{point{q.y, q.x}, point{p.y, p.x}} : array<point, 2>{p, q});}
                 if (!pass) {
                     for (int s = i; s < j; ++s) { t.add(e[s][2], e[s][3], int(e[s][1])); }}}}}
+    // Gueting's divide and conquer over vertical edges: each y-stripe keeps a tree of the true x transitions of the union, shared by refined stripes.
+    struct Contour {
+        struct Edge { lng x; int side, y1, y2, id; };
+        struct Node { lng key, hi; int l, r; int8_t side, hiSide; };
+        struct Part { vector<int> P, tree, L, R; };
+        int m; vector<Edge> e; vector<Node> t; vector<int> y1, y2, pos; vector<char> mark;
+        int leaf(lng x, int side) { t.push_back({x, x, -1, -1, int8_t(side), int8_t(side)}); return int(t.size()) - 1; }
+        int join(int a, int b) {
+            if (a < 0 || b < 0) { return a < 0 ? b : a; }
+            t.push_back({t[a].hi, t[b].hi, a, b, 0, t[b].hiSide});
+            return int(t.size()) - 1;}
+        void index(const vector<int> &P) {
+            for (int i = 0; i < int(P.size()); ++i) { pos[P[i] + 1] = i; }}
+        // Stripes of P whose y-range lies inside an interval of the rectangles ids.
+        vector<char> inside(const vector<int> &P, const vector<int> &ids) {
+            vector<int> d(P.size()); vector<char> res(P.size() - 1);
+            for (int id : ids) { ++d[pos[y1[id] + 1]]; --d[pos[y2[id] + 1]]; }
+            for (int i = 0, c = 0; i + 1 < int(P.size()); ++i) { c += d[i]; res[i] = c > 0; }
+            return res;}
+        Part build(int l, int r) {
+            if (r - l == 1) {
+                const Edge &x = e[l]; Part res{{-1, x.y1, x.y2, m}, {-1, leaf(x.x, x.side), -1}, {}, {}};
+                (x.side > 0 ? res.L : res.R).push_back(x.id);
+                return res;}
+            Part a = build(l, (l + r) / 2), b = build((l + r) / 2, r), res; vector<int> right, left;
+            // Rectangles closing in b with their left edge in a are complete; the others span a whole half.
+            for (int id : b.R) { mark[id] = 1; }
+            for (int id : a.L) {
+                if (!mark[id]) { right.push_back(id); }}
+            for (int id : a.L) { mark[id] = 0; }
+            for (int id : b.R) {
+                if (mark[id]) { left.push_back(id); }
+                mark[id] = 0;}
+            res.L = right; res.L.insert(res.L.end(), b.L.begin(), b.L.end());
+            res.R = a.R; res.R.insert(res.R.end(), left.begin(), left.end());
+            std::set_union(a.P.begin(), a.P.end(), b.P.begin(), b.P.end(), std::back_inserter(res.P));
+            index(res.P);
+            auto c1 = inside(res.P, left), c2 = inside(res.P, right);
+            res.tree.resize(res.P.size() - 1);
+            for (int i = 0, j = 0, k = 0; i + 1 < int(res.P.size()); ++i) {
+                while (a.P[j + 1] <= res.P[i]) { ++j; }
+                while (b.P[k + 1] <= res.P[i]) { ++k; }
+                res.tree[i] = join(c1[i] ? -1 : a.tree[j], c2[i] ? -1 : b.tree[k]);}
+            return res;}
+        // Covered just left of x: the side of the last leaf before x, uncovered when there is none.
+        bool coveredBefore(int v, lng x) const {
+            int side = -1;
+            while (v >= 0) {
+                if (t[v].l < 0) {
+                    if (t[v].key < x) { side = t[v].side; }
+                    break;}
+                if (t[v].key < x) { side = t[t[v].l].hiSide; v = t[v].r; }
+                else { v = t[v].l; }}
+            return side > 0;}
+        template<typename F> void each(int v, lng lo, lng hi, F &f) const {
+            if (v < 0) { return; }
+            if (t[v].l < 0) {
+                if (lo <= t[v].key && t[v].key < hi) { f(t[v].key, t[v].side); }
+                return;}
+            if (lo <= t[v].key) { each(t[v].l, lo, hi, f); }
+            if (t[v].key < hi) { each(t[v].r, lo, hi, f); }}
+        // Calls emit(a, b) for every maximal uncovered run [a, b) of [lo, hi) in the stripe tree v.
+        template<typename F> void runs(int v, lng lo, lng hi, F emit) const {
+            bool cov = coveredBefore(v, lo); lng start = lo;
+            auto f = [&](lng x, int side) {
+                if (side > 0 && !cov && start < x) { emit(start, x); }
+                cov = side > 0; start = x;};
+            each(v, lo, hi, f);
+            if (!cov && start < hi) { emit(start, hi); }}
+    };
+    inline void gutingHorizontal(const vector<array<lng, 4>> &a, bool flip, vector<array<point, 2>> &res) {
+        assert(a.size() <= INT_MAX / 2);
+        vector<lng> ys = coordinates(a); Contour c; c.m = int(ys.size());
+        auto rank = [&](lng y) { return int(lower_bound(ys.begin(), ys.end(), y) - ys.begin()); };
+        c.y1.assign(a.size(), 0); c.y2.assign(a.size(), 0); c.mark.assign(a.size(), 0); c.pos.assign(ys.size() + 2, 0);
+        vector<array<lng, 4>> sides;
+        for (int i = 0; i < int(a.size()); ++i) {
+            if (!valid(a[i])) { continue; }
+            c.y1[i] = rank(a[i][1]); c.y2[i] = rank(a[i][3]);
+            c.e.push_back({a[i][0], 1, c.y1[i], c.y2[i], i}); c.e.push_back({a[i][2], -1, c.y1[i], c.y2[i], i});
+            sides.push_back({c.y1[i], 0, a[i][0], a[i][2]}); sides.push_back({c.y2[i], 1, a[i][0], a[i][2]});}
+        if (c.e.empty()) { return; }
+        sort(c.e.begin(), c.e.end(), [](const Contour::Edge &x, const Contour::Edge &y) { return x.x != y.x ? x.x < y.x : x.side > y.side; });
+        auto root = c.build(0, int(c.e.size()));
+        c.index(root.P);
+        sort(sides.begin(), sides.end());
+        // Bottom edges look at the stripe below their y, top edges at the stripe above; touching edges at one y are merged first.
+        for (int i = 0, j; i < int(sides.size()); i = j) {
+            int y = int(sides[i][0]), top = int(sides[i][1]); lng lo = sides[i][2], hi = sides[i][3];
+            for (j = i + 1; j < int(sides.size()) && sides[j][0] == y && sides[j][1] == top && sides[j][2] <= hi; ++j) { hi = max(hi, sides[j][3]); }
+            c.runs(root.tree[c.pos[y + 1] - !top], lo, hi, [&](lng l, lng r) {
+                point p{top ? r : l, ys[y]}, q{top ? l : r, ys[y]};
+                res.push_back(flip ? array<point, 2>{point{q.y, q.x}, point{p.y, p.x}} : array<point, 2>{p, q});});}}
 } // namespace rectangle_detail
 
 // T: O(n * log(n)), M: O(n). Half-open [x1, x2) x [y1, y2) given as {x1, y1, x2, y2}, |coordinate| <= 4 * 10^18; empty rectangles are ignored; exact.
@@ -160,6 +253,11 @@ inline pair<int, point> maxRectangleOverlap(const vector<array<lng, 4>> &a) {
 inline vector<array<point, 2>> rectangleUnionBoundary(const vector<array<lng, 4>> &a) {
     vector<array<point, 2>> res;
     rectangle_detail::boundary(a, false, res); rectangle_detail::boundary(rectangle_detail::transpose(a), true, res);
+    return res;}
+// T: O(n * log(n) + out), M: O(n * log(n) + out). The same segments by Gueting's divide and conquer over the vertical edges.
+inline vector<array<point, 2>> rectangleUnionBoundaryGuting(const vector<array<lng, 4>> &a) {
+    vector<array<point, 2>> res;
+    rectangle_detail::gutingHorizontal(a, false, res); rectangle_detail::gutingHorizontal(rectangle_detail::transpose(a), true, res);
     return res;}
 
 // T: O((n + m) * log(n + m)), M: O(n + m) (orthogonalIntersections O(n + m + out)). Closed horizontal {y, x1, x2} and vertical {x, y1, y2} segments,

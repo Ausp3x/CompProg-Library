@@ -134,6 +134,9 @@ void intersectionCase(const vector<point> &p, const vector<point> &q) {
 void kgonCase(int k) {
     int n = n0(); context = "k=" + std::to_string(k);
     auto a = maxAreaInscribedKgon(poly, k); auto b = maxPerimeterInscribedKgonApprox(poly, k);
+    auto a2 = maxAreaInscribedKgonSmawk(poly, k); auto b2 = maxPerimeterInscribedKgonSmawkApprox(poly, k);
+    require(a2.value == a.value && a2.vertices == a.vertices, "SMAWK and divide and conquer find the same area k-gon");
+    require(int(b2.vertices.size()) == int(b.vertices.size()) && std::abs(b2.value - b.value) <= 1e-15L * max(1.L, b.value), "SMAWK perimeter equals divide and conquer");
     if (k >= n) {
         require(a.value == signedArea2(poly) && int(a.vertices.size()) == n, "k >= n takes the polygon");
         return;}
@@ -163,7 +166,8 @@ void kgonDp(int k) {
                     if (f[i] >= 0 || (i == 0 && t == 1)) { g[j] = max(g[j], f[i] + cross(poly[(s + i) % n] - poly[s], poly[(s + j) % n] - poly[s])); }}}
             f = g;}
         for (int j = k - 1; j < n; ++j) { best = max(best, f[j]); }}
-    require(maxAreaInscribedKgon(poly, k).value == best, "maxAreaInscribedKgon equals the all-roots dynamic program");}
+    require(maxAreaInscribedKgon(poly, k).value == best, "maxAreaInscribedKgon equals the all-roots dynamic program");
+    require(maxAreaInscribedKgonSmawk(poly, k).value == best, "maxAreaInscribedKgonSmawk equals the all-roots dynamic program");}
 void invalid(const string &name) {
     if (name == "clockwise") { ConvexPolygonQuery c(vector<point>{{0, 0}, {0, 1}, {1, 0}}); }
     if (name == "collinear") { ConvexPolygonQuery c(vector<point>{{0, 0}, {1, 0}, {2, 0}, {1, 1}}); }
@@ -173,6 +177,7 @@ void invalid(const string &name) {
     if (name == "cut-degenerate") { ConvexPolygonQuery c(vector<point>{{0, 0}, {4, 0}, {0, 4}}); (void)c.cut({1, 1}, {1, 1}); }
     if (name == "batch-unsorted") { ConvexPolygonQuery c(vector<point>{{0, 0}, {4, 0}, {0, 4}}); (void)c.batchedLocate({{0, 5}, {5, 0}}); }
     if (name == "kgon-k") { (void)maxAreaInscribedKgon(vector<point>{{0, 0}, {4, 0}, {0, 4}}, 2); }
+    if (name == "kgon-smawk-k") { (void)maxPerimeterInscribedKgonSmawkApprox(vector<point>{{0, 0}, {4, 0}, {0, 4}}, 2); }
     if (name == "pentagram") { ConvexPolygonQuery c(vector<point>{{0, 10}, {-6, -8}, {10, 3}, {-10, 3}, {6, -8}}); }
     if (name == "extreme-bound") { ConvexPolygonQuery c(vector<point>{{0, 0}, {4, 0}, {0, 4}}); (void)c.extreme({std::numeric_limits<lng>::min(), 1}); }
     if (name == "intersection-clockwise") { (void)convexIntersection(vector<point>{{0, 0}, {0, 1}, {1, 0}}, vector<point>{{0, 0}, {1, 0}, {0, 1}}); }
@@ -231,6 +236,7 @@ int main(int argc, char **argv) {
     for (int t = 0; t < rounds / 3; ++t) {
         poly = randomConvex(rng, t % 3 ? 20 : 1000000000, 3 + int(rng() % 12));
         for (int k = 3; k <= min(n0() + 1, 8); ++k) { kgonCase(k); }}
+    kgonCase(std::numeric_limits<int>::max()); // Nothing sized by k may be allocated once k >= n.
     phase = "kgon regular";
     for (int m : {8, 12, 16}) {
         poly.clear();
@@ -240,6 +246,17 @@ int main(int argc, char **argv) {
         poly = convexHull(poly);
         for (int k = 3; k <= 6; ++k) { kgonCase(k); }}
     poly = {{0, 0}, {2, 0}, {3, 1}, {3, 3}, {2, 4}, {0, 4}, {-1, 3}, {-1, 1}};
+    for (int k = 3; k <= 8; ++k) { kgonCase(k); }
+    phase = "kgon Keikha counterexamples";
+    // arXiv 1705.11035 section 3 (9 vertices, largest triangle a0 b0 c0) and section 7.2 (16 vertices, largest quadrilateral a4 a8 a12 a16).
+    poly = convexHull(vector<point>{{4752, 4262}, {3383, 413}, {759, 2927}, {4745, 4322}, {1213, 691}, {2506, 4423}, {3040, 4460}, {1000, 1000}, {5000, 1000}});
+    require(n0() == 9, "Keikha 9-gon is in convex position");
+    require(maxAreaInscribedKgon(poly, 3).value == signedArea2(vector<point>{{1000, 1000}, {5000, 1000}, {3040, 4460}}), "Keikha 9-gon: the largest triangle is a0 b0 c0");
+    for (int k = 3; k <= 8; ++k) { kgonCase(k); }
+    poly = convexHull(vector<point>{{26096, 6750}, {26130, 9933}, {25940, 10728}, {23090, 22189}, {18106, 23681}, {13484, 24407}, {13174, 24343}, {3090, 22189},
+                                    {0, 17308}, {80, 14350}, {323, 13331}, {3090, 2189}, {8459, 385}, {12837, 0}, {13392, 114}, {23090, 2189}});
+    require(n0() == 16, "Keikha 16-gon is in convex position");
+    require(maxAreaInscribedKgon(poly, 4).value == signedArea2(vector<point>{{3090, 2189}, {23090, 2189}, {23090, 22189}, {3090, 22189}}), "Keikha 16-gon: the largest quadrilateral is a4 a8 a12 a16");
     for (int k = 3; k <= 8; ++k) { kgonCase(k); }
     phase = "kgon dp";
     for (int t = 0; t < (quick ? 3 : stress ? 200 : 30); ++t) {
@@ -258,6 +275,8 @@ int main(int argc, char **argv) {
     sort(qs.begin(), qs.end(), [&](point x, point y) { return polarLess(x - o, y - o); });
     auto r = big.batchedLocate(qs);
     for (int i = 0; i < n; ++i) { require(r[i] == big.contains(qs[i]), "large batchedLocate equals contains"); }
-    auto k3 = maxAreaInscribedKgon(vector<point>(poly.begin(), poly.begin() + min(int(poly.size()), quick ? 2000 : 20000)), 5);
-    require(k3.vertices.size() == 5, "large k-gon runs");
+    vector<point> sub(poly.begin(), poly.begin() + min(int(poly.size()), quick ? 2000 : 20000));
+    for (int k : {3, 5, 40}) {
+        auto x = maxAreaInscribedKgon(sub, k), y = maxAreaInscribedKgonSmawk(sub, k);
+        require(int(x.vertices.size()) == k && x.value == y.value && x.vertices == y.vertices, "large k-gon: both versions agree");}
     std::cout << "PASS convex_polygon_query seed=" << seed << " mode=" << mode << " checks=" << checks << '\n';}

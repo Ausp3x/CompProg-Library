@@ -94,6 +94,9 @@ Items a reader could mistake for duplicates.
 | P037 | `latticeInDisk`, `latticeInDiskFast` (row 19) beside `gaussCircleCount`, row 55 `gaussCircleFast` | Decided 2026-10-18: larger domain, a rational centre and squared radius |
 | P037 | `convexIntersection`, `cut`, `batchedLocate` (row 15) beside `clipConvex`, `polygonCutApprox`, `contains` | Decided 2026-10-18: better bounds, O(n + m), O(log(n) + out) and O(n + q) for angle-sorted queries |
 | P037 | `maxPointsInDisk` (row 54) beside row 23 `maxDiskDepth` | Decided 2026-10-18: named special case, equal radii |
+| P037 | `maxAreaInscribedKgonSmawk`, `maxPerimeterInscribedKgonSmawkApprox` (row 15) beside `maxAreaInscribedKgon`, `maxPerimeterInscribedKgonApprox` | Decided 2026-10-19: different algorithm (SMAWK layers, O(k n + n log n)); both kept even where one is faster |
+| P037 | `rectangleUnionBoundaryGuting` (row 13) beside `rectangleUnionBoundary` | Decided 2026-10-19: different algorithm (Güting's divide and conquer, O(n log n + out)) |
+| P037 | Mathematics `floorSumWide` (row 18) beside `floorSum` | Decided 2026-10-19: larger domain, a 128-bit modulus |
 
 ### Rulings
 

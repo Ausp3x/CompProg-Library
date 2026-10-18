@@ -30,24 +30,37 @@ A result record: `count` and `points`; only `points[0..count)` are meaningful.
 
 Input: two convex CCW polygons, collinear vertices allowed, positive area, `|coordinate| <= 10^9`, as in `clipConvex`. The edges of each polygon, rotated into angular order by `halfplane_detail::edges` (factored out of `clipConvex` in this package), are merged in `O(n + m)` and passed to the halfplane deque sweep. The result is an exact `HalfplaneResult`: Empty, Point, Segment or Polygon. `O(n + m)` time and memory. Kept by decision (2026-10-18) beside `clipConvex`, which sorts its second list and costs `O(n + m * log(m))`.
 
-### InscribedKgon, maxAreaInscribedKgon, maxPerimeterInscribedKgonApprox
+### InscribedKgon, maxAreaInscribedKgon, maxPerimeterInscribedKgonApprox, maxAreaInscribedKgonSmawk, maxPerimeterInscribedKgonSmawkApprox
 
-Input: a strictly convex CCW ring and `k >= 3` (asserted; under `NDEBUG` smaller `k` is raised to 3). The result has increasing vertex indices and a value: twice the area as `lll`, or the perimeter as `long double`. When `k >= n`, every vertex is taken. Ties in area return one of the optimal k-gons.
+Input: a strictly convex CCW ring and `k >= 3` (asserted; under `NDEBUG` smaller `k` is raised to 3). The result has increasing vertex indices and a value: twice the area as `lll`, or the perimeter as `long double`. When `k >= n`, every vertex is taken, in `O(n)` time and memory whatever `k` is. Ties in area return one of the optimal k-gons.
 
-Both maximize a cyclic `k`-link path through increasing indices. The weights are `w(i, j) = cross(p[i], p[j])` (twice the area, by the shoelace formula) or `|p[i] − p[j]|`. The algorithm follows Boyce–Dobkin–Drysdale–Guibas (SIAM J. Comput. 1985):
+All four maximize a cyclic `k`-link path through increasing indices, with weights `w(i, j) = cross(p[i], p[j])` (twice the area, by the shoelace formula) or `|p[i] − p[j]|`. They follow the framework of Boyce–Dobkin–Drysdale–Guibas (SIAM J. Comput. 1985) in the form of Aggarwal–Klawe–Moran–Shor–Wilber (Algorithmica 1987, §6.1):
 
-1. **Rooted optimum.** For a root `r`, layer `t` computes `F_t(j) = max over i < j of F_{t−1}(i) + w(i, j)`. The rightmost optimal predecessor `opt(j)` is nondecreasing in `j`, so divide and conquer over the rows finds every layer in `O(range * log(range))`.
-2. **Global optimum.** An optimal path is computed for root 0, with vertices `a`. The global optimum interleaves it, so only the roots `s` in `[1, a[1]]` remain.
-3. **Remaining roots.** The rooted optima of those roots interleave each other. They are found by divide and conquer over `s`, each layer restricted to the range between the two neighbouring solutions.
+1. **Rooted optimum.** For a root `r`, layer `t` computes `F_t(j) = max over i < j of F_{t−1}(i) + w(i, j)`. The plain versions find each layer's rightmost row maxima by divide and conquer. The `Smawk` versions use SMAWK, which treats a column at or after its row as invalid and ranked below every column to its left.
+2. **First root.** An optimal k-gon `a` through vertex 0 is computed. A global optimum interleaves it, so its first vertex lies in `[0, a[1]]`.
+3. **Remaining roots.** Divide and conquer over the roots `s` in `[1, a[1]]`. A subproblem keeps two bounding k-gons, `L` (lower root) and `U` (upper root). For its middle root it computes the best k-gon whose vertex `t` lies in `[L[t], U[t]]`, which means interleaving both bounds. That k-gon becomes the upper bound on the left and the lower bound on the right.
 
-**Why step 1 holds.**
-- *Perimeter:* the weights are inverse Monge, `w(a, c) + w(b, d) >= w(a, d) + w(b, c)` for `a < b < c < d`, because crossing diagonals of a convex quadrilateral are at least as long as two opposite sides. Monotonicity is then standard.
-- *Area:* the weights are not Monge. `cross(p[b] − p[a], p[d] − p[c])` is negative when the two chords turn by more than π, for example (0,0), (20,0), (20,2), (0,1). The proof uses the optimal chains instead. In fan form around `r`, suppose `j1 < j2`, `opt(j1) = b > a = opt(j2)`, and let `Δ(x) = −cross(p[b] − p[a], p[x] − p[r]) / 2`. Then `F(b) − F(a) >= Δ(j1)`, and `F(b) − F(a) < Δ(j2)` strictly by the rightmost rule. If `Δ(j2) <= Δ(j1)`, this is a contradiction. Otherwise, replacing `a` by `b` in `a`'s optimal chain, whose last edge is `(v, a)`, gives `F(b) − F(a) >= Δ(v)`. `Δ` is a linear function, so along the arc from `b` to `a` (which holds `j1`, `j2`, `r`, `v` in that order) it first falls and then rises. `Δ(j2) > Δ(j1)` puts `j2` on the rising part, so `Δ(v) >= Δ(j2)`, again a contradiction. The same replacement is available inside the ranges of step 3, so restricted layers stay monotone.
-- *Probe:* 1.27M rooted layers on thin and rounded hulls with 391k violating quadruples showed no decrease.
+**Why step 1 holds.** Both layer methods need total monotonicity: for columns `a < b` and rows `b < j1 < j2`, if column `b` is at least as good as `a` in row `j1`, it is so in row `j2` too.
+- *Perimeter:* the weights are inverse Monge, `w(a, c) + w(b, d) >= w(a, d) + w(b, c)`, because crossing diagonals of a convex quadrilateral are at least as long as two opposite sides.
+- *Area:* the weights are not Monge. `cross(p[b] − p[a], p[d] − p[c])` is negative when the chords turn by more than π, for example (0,0), (20,0), (20,2), (0,1). The proof uses the optimal chains instead.
+  - In fan form around `r`, let `Δ(x) = −cross(p[b] − p[a], p[x] − p[r]) / 2`. The hypothesis says `F(b) − F(a) >= Δ(j1)`; suppose `F(b) − F(a) < Δ(j2)`.
+  - If `Δ(j2) <= Δ(j1)`, this is a contradiction.
+  - Otherwise, replacing `a` by `b` in `a`'s optimal chain, whose last edge is `(v, a)`, gives `F(b) − F(a) >= Δ(v)`. `Δ` is linear, so along the arc from `b` to `a` (which holds `j1`, `j2`, `r` and `v` in that order) it first falls and then rises. `Δ(j2) > Δ(j1)` puts `j2` on the rising part, so `Δ(v) >= Δ(j2)`, again a contradiction.
+  - The replacement stays inside the column ranges of step 3, so restricted layers are totally monotone too.
+- *Probes:* 1.17M 2×2 checks on exact DP values and 1.27M rooted layers on thin and rounded hulls, with 391k quadruples violating the Monge inequality. No violation was found.
 
-**Steps 2 and 3** rest on Boyce et al.'s interleaving lemmas. Keikha et al. (arXiv 1705.11035) found that Boyce et al.'s and AKMSW's procedures are wrong only because they start from a Dobkin–Snyder rooted triangle that is not the true rooted optimum, and they fix them by starting from the exact rooted optimum. Step 1 computes that optimum exactly here. CGAL's `maximum_area_inscribed_k_gon_2` uses the same framework. The exhaustive and all-roots oracles in the tests check the whole algorithm.
+**Steps 2 and 3** use only Boyce et al.'s Lemma 2.2, quoted by AKMSW as Fact 2: a globally maximum k-gon and a maximum rooted k-gon interleave, for area and for perimeter. AKMSW apply it inside the family of k-gons that interleave the bounding polygons, which is what step 3 searches.
+- **What is not used:** the claim that maximum rooted k-gons at nearby roots interleave each other (restated by Jin–Zhu–Luo). Boyce et al. reportedly say it can fail. Only a search snippet supports that; the paper itself could not be read.
+- **Status of the lemma:** Keikha et al. (arXiv 1705.11035) list Lemma 2.2 among established results (their Lemma 8). They place the flaw of Boyce et al.'s and AKMSW's k-gon algorithms only in their Dobkin–Snyder rooted triangle seed; step 2 here computes the true rooted optimum.
+- **Not proved here:** the crossing-transform proof of Lemma 2.2 for area could not be read (the SIAM and ACM copies returned 403), so it is cited.
+- **Checks:** exhaustive subsets, an all-roots dynamic program, both Keikha counterexamples, and a probe of 157,756 adversarial (polygon, k) cases that found no mismatch.
 
-Time `O(k * n * log(n) + n * log(n)^2)`, memory `O(k * n)`. The perimeter version uses rounded weights, so its comparisons hold only up to rounding, and near ties may return a near-optimal k-gon.
+**Bounds.**
+- Plain versions: time `O(k * n * log(n) + n * log(n)^2)`.
+- `Smawk` versions: time `O(k * n + n * log(n))`. Each level of the root recursion costs `O(n + k * roots)`, and there are `log(n)` levels.
+- All four: memory `O(k * n)`.
+- The plain versions are 1.2–1.7× faster at the measured sizes (see Benchmarks); both pairs are kept by decision (2026-10-19).
+- The perimeter versions use rounded weights, so monotonicity holds only up to rounding, and near ties may return a near-optimal k-gon.
 
 ### Renames and legacy mapping
 
@@ -62,7 +75,7 @@ No legacy code exists for this header.
 
 ## Feature-to-test map
 
-`96-Local Testing/03-Geometry/15-convex_polygon_query_tester.py` runs quick, full and stress modes in three configurations, with eleven assertion probes: a clockwise ring, a collinear vertex, two vertices, a pentagram (convex turns, two windings), `tangents` from an interior point, a zero direction, a direction beyond `10^18`, a degenerate cut line, unsorted batch queries, `k = 2`, and a clockwise `convexIntersection` input.
+`96-Local Testing/03-Geometry/15-convex_polygon_query_tester.py` runs quick, full and stress modes in three configurations, with twelve assertion probes: a clockwise ring, a collinear vertex, two vertices, a pentagram (convex turns, two windings), `tangents` from an interior point, a zero direction, a direction beyond `10^18`, a degenerate cut line, unsorted batch queries, `k = 2` for both k-gon versions, and a clockwise `convexIntersection` input.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -76,24 +89,28 @@ No legacy code exists for this header.
 | `areaLeftOfLineApprox` | Same lines | Shoelace area of the exact cut, `10^-12 * scale^2` |
 | `prefixArea2` | Every `(i, j)` on scale-8 and `10^9` hulls | `signedArea2` of the chain |
 | `convexIntersection` | Random pairs at scale 6 and `10^9`, with and without collinear vertices, both orders, a polygon with itself | 10 `clipConvex` with the other polygon's edges |
-| `maxAreaInscribedKgon` | Every `k` in `3..min(n + 1, 8)` on random hulls (`n <= 14`) at scales 20 and `10^9`; regular 8-, 12- and 16-gons; an octagon with parallel sides; 30–90 vertex hulls with `k` in `{3, 4, 7, n / 2}` | Exhaustive subsets; an `O(k * n^2)` dynamic program over every root |
+| `maxAreaInscribedKgon` | Every `k` in `3..min(n + 1, 8)` on random hulls (`n <= 14`) at scales 20 and `10^9`; regular 8-, 12- and 16-gons; an octagon with parallel sides; Keikha et al.'s 9-vertex (triangle) and 16-vertex (quadrilateral) counterexamples; 30–90 vertex hulls with `k` in `{3, 4, 7, n / 2}`; `k = 2^31 − 1` | Exhaustive subsets; the known optima; an `O(k * n^2)` dynamic program over every root |
+| `maxAreaInscribedKgonSmawk` | The same corpus; 20,000-vertex hulls with `k` in `{3, 5, 40}` | The same oracles; identical vertices to `maxAreaInscribedKgon` |
 | `maxPerimeterInscribedKgonApprox` | The exhaustive corpus | Exhaustive best perimeter, `10^-15` relative |
+| `maxPerimeterInscribedKgonSmawkApprox` | The exhaustive corpus | Exhaustive best perimeter; equal to the plain version within `10^-15` relative |
 
-Mutation checks (2026-10-18, quick, optimized):
-- Caught: stopping the roots before `a[1]`; choosing the wrong smallest edge.
+Mutation checks (2026-10-18; SMAWK and allocation checks 2026-10-19; quick, optimized):
+- Caught: stopping the roots before `a[1]`; choosing the wrong smallest edge; leftmost ties in the SMAWK comparison; allocating the `k`-sized layer array before the `k >= n` return (killed at the memory cap).
+- Not caught, runtime only: SMAWK's reduce step keeping more columns than rows.
 - Not caught: leftmost instead of rightmost layer maxima. The argument needs the rightmost rule only on exact ties, which the random corpus does not produce.
 
 ## Commands and results
 
-2026-10-18, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
+2026-10-19, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
 
 | Command | Result |
 |---|---|
-| `15-convex_polygon_query_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan, 11 probes) | PASS, 1,114,921 checks per configuration, 11 probes, `MEMORY peak=535MB` |
-| same with `CXX=g++-14` | PASS, 1,114,921 checks per configuration, 11 probes, `MEMORY peak=535MB` |
-| `15-convex_polygon_query_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 6,494,753 checks, `MEMORY peak=389MB` |
+| `15-convex_polygon_query_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan, 12 probes) | PASS, 1,123,660 checks per configuration, 12 probes, `MEMORY peak=706MB` |
+| same with `CXX=g++-14` | PASS, 1,123,660 checks per configuration, 12 probes, `MEMORY peak=674MB` |
+| `15-convex_polygon_query_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 6,552,079 checks, `MEMORY peak=405MB` |
 | `-Wall -Wextra -Wconversion` build of the tester with `g++` and `g++-14` | No warnings |
-| `02-integration.py` (every header alone, aggregates, two translation units including `99-all.hpp`) | PASS, 167 headers, `MEMORY peak=650MB` |
+| `02-integration.py` (every header alone, aggregates, two translation units including `99-all.hpp`) | PASS, 167 headers, `MEMORY peak=654MB` |
+| `02-integration.py --sanitizers` | PASS, 167 headers, sanitizer self-tests, `MEMORY peak=1831MB` |
 | `03-consistency.py` | No errors |
 
 ```bash
@@ -104,15 +121,15 @@ python3 '96-Local Testing/03-Geometry/15-convex_polygon_query_tester.py' --mode 
 
 ## Benchmarks
 
-Measured by `96-Local Testing/03-Geometry/19-lattice_geometry_benchmark.py --seed 20260927` (2026-10-18, conditions in [19-lattice_geometry.md](19-lattice_geometry.md#benchmarks)); random points on a circle of radius `9 * 10^8`, hull taken first.
+Measured by `96-Local Testing/03-Geometry/19-lattice_geometry_benchmark.py --seed 20260927` (2026-10-19, conditions in [19-lattice_geometry.md](19-lattice_geometry.md#benchmarks)); random points on a circle of radius `9 * 10^8`, hull taken first; the area versions return the same area and the perimeters agree within `10^-15` relative.
 
-| Hull vertices | k | `maxAreaInscribedKgon` (µs) | `maxPerimeterInscribedKgonApprox`, k = 10 (µs) |
-|---|---|---|---|
-| 1,000 | 3 / 10 / 100 | 260 / 623 / 4,068 | 1,304 |
-| 9,949 | 3 / 10 / 100 | 3,514 / 8,662 / 60,532 | 19,635 |
-| 84,428 | 3 / 10 / 100 | 41,003 / 105,081 / 667,296 | 234,509 |
+| Hull vertices | k | `maxAreaInscribedKgon` (µs) | `maxAreaInscribedKgonSmawk` (µs) | perimeter, k = 10: plain / `Smawk` (µs) |
+|---|---|---|---|---|
+| 1,000 | 3 / 10 / 100 | 246 / 570 / 3,781 | 400 / 960 / 5,700 | 1,228 / 1,973 |
+| 9,949 | 3 / 10 / 100 | 3,495 / 8,640 / 60,926 | 5,065 / 12,863 / 76,027 | 19,310 / 24,897 |
+| 84,428 | 3 / 10 / 100 | 41,009 / 98,659 / 640,044 | 59,276 / 139,890 / 818,196 | 259,964 / 311,107 |
 
-Growth per tenfold `n` is 11–15×, matching `k * n * log(n)`.
+The divide-and-conquer layers win at every measured size. The gap shrinks with `n` (1.5–1.7× at 1,000 vertices, 1.2–1.45× at 84,428), as SMAWK's missing `log(n)` factor starts to pay.
 
 ## Sources
 
@@ -124,10 +141,11 @@ The implementation was written independently. Sources of the completeness sweep 
 
 ## Limits and handoffs
 
-- The k-gons cost `O(k * n * log(n) + n * log(n)^2)`. The best known bound is `O(k * n + n * log(n))` (AKMSW with SMAWK). Linear-time triangle algorithms (Chandran–Mount, Kallus, Jin) are not used, by the notes' contract.
+- The `Smawk` k-gons reach the best known bound `O(k * n + n * log(n))`. The plain versions cost `O(k * n * log(n) + n * log(n)^2)` but are faster at measured sizes. Linear-time triangle algorithms (Chandran–Mount, Kallus, Jin) are not used, by the notes' contract.
 - Degenerate hulls with `n <= 2` are rejected; use `02-line_segment.hpp`.
 - Common tangents of two convex polygons, enclosing triangles and inscribed homothets are not adopted (see 00-notes).
 
 ## History
 
 - 2026-10-18: first implementation (P037). Independent review: the false inverse-Monge argument for areas was replaced by a monotonicity proof and the tie break removed; `k < 3` under `NDEBUG` is raised to 3; `extreme` asserts its direction bound; the constructor rejects pentagrams; `10^9` line, cut and prefix tests were added; the comment share was reduced. Full suite passed on g++ and g++-14, stress passed.
+- 2026-10-19: P037 re-audit added the `Smawk` k-gons, the interleaving proof and Keikha et al.'s counterexamples. Independent review: a `k`-sized array was allocated before the `k >= n` return (now after it, with a `k = 2^31 − 1` regression). Full suite passed on g++ and g++-14, stress passed.

@@ -125,6 +125,19 @@ void joint(const vector<lng> &vs) {
         expect = r;});
     need(expect == hi + 1, "joint cover");}
 
+// floorSumWide against direct loops modulo 2^128 (coefficients below 2^120, n <= 64) and against floorSum on 64-bit moduli.
+void wide(std::mt19937_64 &rng) {
+    // Signed value of at most bits bits, and a modulus in [1, 2^bits].
+    auto big = [&](int bits) { return lll(ulll(rng()) << 64 | rng()) >> (127 - bits); };
+    auto mod = [&](int bits) { return lll((ulll(rng()) << 64 | rng()) & ((ulll(1) << bits) - 1)) + 1; };
+    lng n = lng(rng() % 65); lll m = mod(1 + int(rng() % 126)), a = big(int(rng() % 120)), b = big(int(rng() % 120)); ulll want = 0;
+    for (lng i = 0; i < n; ++i) { want += ulll(floorDiv(a * i + b, m)); }
+    context = show(n, m, a, b);
+    need(ulll(floorSumWide(n, m, a, b)) == want, "floorSumWide equals the direct sum modulo 2^128");
+    lng n2 = lng(rng() >> (1 + rng() % 63)), m2 = max<lng>(1, lng(rng() >> (1 + rng() % 63)));
+    lll a2 = lll(std::bit_cast<lng>(rng())) << (rng() % 62), b2 = lll(std::bit_cast<lng>(rng())) << (rng() % 62);
+    context = show(n2, m2, a2, b2);
+    need(floorSumWide(n2, m2, a2, b2) == floorSum(n2, m2, a2, b2), "floorSumWide equals floorSum on 64-bit moduli");}
 int main(int argc, char **argv) {
     string mode = "full", invalid;
     ulng seed = 20261018;
@@ -145,11 +158,17 @@ int main(int argc, char **argv) {
                     cout << v << ' ' << x << ' ' << V << ' ' << X << ' ';}
                 else { cout << "- - - - "; }
                 cout << decimal(u[0]) << ' ' << decimal(u[1]) << ' ' << decimal(u[2]) << ' ' << w[0].val() << ' ' << w[1].val() << ' ' << w[2].val() << '\n';}
+            return 0;}
+        else if (arg == "--oracle-wide") {
+            string n, m, a, b;
+            auto parse = [](const string &t) { lll v = 0; bool neg = t[0] == '-'; for (char c : t.substr(neg)) { v = v * 10 + (neg ? '0' - c : c - '0'); } return v; };
+            while (cin >> n >> m >> a >> b) { cout << decimal(floorSumWide(lng(parse(n)), parse(m), parse(a), parse(b))) << '\n'; }
             return 0;}}
     if (!invalid.empty()) {
         auto f = [](lng, lng, lng) {};
         if (invalid == "floorsum-m") { floorSum(3, 0, 1, 1); }
         else if (invalid == "floorsum-n") { floorSum(-1, 3, 1, 1); }
+        else if (invalid == "floorsumwide-m") { floorSumWide(3, 0, 1, 1); }
         else if (invalid == "count-range") { countModInRange(3, 5, 1, 1, 3, 2); }
         else if (invalid == "count-top") { countModInRange(3, 5, 1, 1, 0, 6); }
         else if (invalid == "moments-m") { floorSumMoments<ulll>(3, 0, 1, 1); }
@@ -174,12 +193,17 @@ int main(int argc, char **argv) {
     for (int i = 0; i < rounds; ++i) {
         lng m = max<lng>(1, lng(rng() >> (1 + rng() % 63)));
         bruteLong(rng, lng(rng() % (quick ? 200 : 2000)) + 1, m, std::bit_cast<lng>(rng()), std::bit_cast<lng>(rng()));
-        identities(rng);}
+        identities(rng); wide(rng);}
     cout << "PASS seeded long loops and identities rounds=" << rounds << " checks=" << checks << '\n';
     context = "maximal lng n and m, 2^126 coefficients, 64-bit division boundary";
     need(floorSum(HI, HI, HI - 1, HI - 1) == lll(HI) * (HI - 1) / 2, "n = m = 2^63 - 1 closed form");
     lll big = lll(1) << 126;
     need(ulll(floorSum(HI, 1, big, -big)) == ulll(big) * tri(ulng(HI)) - ulll(big) * ulng(HI), "2^126 coefficients wrap modulo 2^128");
+    lll top = (lll(1) << 126) - 1 + (lll(1) << 126);
+    need(floorSumWide(HI, top, top - 1, top - 1) == lll(ulll(HI) * ulng(HI - 1) / 2), "floorSumWide with m = 2^127 - 1 and n = 2^63 - 1");
+    need(floorSumWide(0, top, top, top) == 0 && floorSumWide(2, 1, -top - 1, top) == top - 1, "floorSumWide empty range and extreme coefficients");
+    // floor(-2^127 / 3) * 3 alone would overflow; the remainder is formed modulo 2^128.
+    need(floorSumWide(2, 3, -top - 1, 0) == floorDiv(-top - 1, 3) + 0 && floorSumWide(3, top, -top - 1, -top - 1) == -2 + -3 + -4, "floorSumWide reduces extreme coefficients without overflow");
     lng p32 = lng(1) << 32;
     need(floorSum(p32, p32 - 1, p32 - 2, p32 - 2) == floorSum(p32, p32 - 1, -1, -1) + lll(tri(ulng(p32))) + p32, "a n + b crossing 2^64");
     for (lng n = 0; n <= (quick ? 300 : 3000); ++n) { quotientBrute(n); }

@@ -4,7 +4,7 @@
 
 ## Contracts
 
-Common domain: `n >= 0` (`n >= 1` for the extrema), `1 <= m < 2^63`, and `a`, `b` are `lll` with `|a|, |b| <= 2^126`. Any `lng` or `ulng` argument converts implicitly. The precondition violations `m < 1`, `n < 0`, `l > r`, `l < 0`, `r > m` and an empty extremum range are asserted.
+Common domain: `n >= 0` (`n >= 1` for the extrema), `1 <= m < 2^63`, and `a`, `b` are `lll` with `|a|, |b| <= 2^126`; `floorSumWide` widens this to `1 <= m < 2^127` and any `lll` `a`, `b`. Any `lng` or `ulng` argument converts implicitly. The precondition violations `m < 1`, `n < 0`, `l > r`, `l < 0`, `r > m` and an empty extremum range are asserted.
 
 ### floorSum, ceilSum
 
@@ -13,6 +13,22 @@ Common domain: `n >= 0` (`n >= 1` for the extrema), `1 <= m < 2^63`, and `a`, `b
 Algorithm: an `a` or `b` outside `[0, 2^64)` is reduced by `q = floorDiv(x, m)`, which contributes `q n (n - 1) / 2` or `q n`. The kernel `floorsum_detail::reduced` is ACL's Euclidean loop over 64-bit `n`, `m`, `a`, `b` with a 128-bit accumulator. It folds `a >= m` and `b >= m` into the accumulator, sets `y = a n + b`, stops when `y < m`, and otherwise continues with `(floor(y / m), a, m, y mod m)`, the lattice-point reciprocity that swaps the roles of `m` and `a`.
 
 Correctness and widths: after the fold, `a, b < m < 2^63` and `n < 2^63`, so `y < m (n + 1) < 2^127` and the new `n` is at most the old one. The modulus sequence `(m, a)` follows Euclid, so there are `O(log(m))` rounds. When `y < 2^64` (always when `n, m < 2^32`), both divisions are 64-bit; otherwise they are 128-by-64 divisions. Every accumulated term is exact modulo 2^128, and the reduced sum is below `n (n + 1) < 2^127`. `ceilSum` is `floorSum(n, m, a, b + m - 1)`.
+
+### floorSumWide
+
+`floorSumWide(n, m, a, b)` is `floorSum` for a 128-bit modulus. It takes `n >= 0`, `1 <= m < 2^127` and any `lll` `a`, `b`, and returns the sum modulo 2^128, exact when the true sum fits `lll`.
+
+Algorithm:
+- `a` and `b` are folded into `[0, m)` by `floorDiv`, contributing `q n (n - 1) / 2` and `q n`. The remainder `a - q m` is formed in `ulll`, because `q m` alone can leave `lll` (`a = -2^127`, `m = 3`).
+- The kernel `floorsum_detail::reducedWide` runs the same Euclidean loop as `reduced` with 128-bit `m`, `a`, `b`.
+- Each round needs `(a n + b) / m` and its remainder, where `a, b < m < 2^127` and `n < 2^63`. `divStep` forms the 191-bit numerator from two 64-by-64-bit partial products (the low and high halves of `a` times `n`) and an addition, propagating both carries. When the numerator fits 128 bits it divides directly; otherwise it divides by `m` one bit at a time over 128 steps.
+
+Widths:
+- The remainder stays below `m`, so `2 r + 1 < 2^128`.
+- The quotient is at most `n`, so it fits 64 bits, and the loop keeps `a, b < m`.
+- That makes `O(log(m))` rounds, each one division or 128 bit steps.
+
+Geometry row 19 uses it for rational polygons whose slopes need more than 64 bits (P037). It is kept beside `floorSum` by decision (2026-10-19) for its larger domain.
 
 ### modSum, countModInRange
 
@@ -68,25 +84,27 @@ Entry: [`18-floorsum_tester.py`](<../../96-Local Testing/05-Mathematics/18-floor
 | Feature | Independent evidence |
 |---|---|
 | `floorSum`, `ceilSum`, `modSum` | Direct 128-bit loops for every `n <= 12`, `m <= 12` and `a, b` in `[-15, 15]`, every signed64 extreme `a`, `b` with moduli up to `2^63 - 1`, and seeded loops up to length 2000 with any modulus. Exact Python integers through the OI Wiki recursion, an independent derivation, on 3000 rows up to `n = m = 2^63 - 1`. Identities modulo 2^128 for `a`, `b` up to 2^126 in magnitude: additivity in `n`, `a + m`, `b + m`, and `ceilSum` as the negated mirror. Closed forms at `n = m = 2^63 - 1`, at 2^126 coefficients, and across the 2^64 division boundary. |
+| `floorSumWide` | Direct loops modulo 2^128 for `n <= 64`, moduli up to `2^126` and coefficients below `2^120`; equality with `floorSum` on random 64-bit moduli with coefficients up to `2^125`; `m = 2^127 - 1` with `n = 2^63 - 1`; extreme coefficients `-2^127` and `2^127 - 1`, including reductions of `-2^127` whose `q m` alone would overflow. The exact Python integer oracle checks quick 300, full 3000 and stress 20,000 rows, with moduli up to `2^127 - 1` and coefficients over the whole `lll` range. |
 | `countModInRange` | Every `[l, r)` in the exhaustive domain against counting, seeded long loops, additivity over adjacent ranges, the total `n`, and the Python identity. |
 | `floorSumMoments` | Direct sums in `ulll` and in `mint` (`ModInt<998244353>`) in the exhaustive and long-loop domains, the first moment against `floorSum`, and the Python OI Wiki `f`, `g`, `h` recursion modulo 2^128 and modulo 998244353. |
 | `minOfModOfLinear`, `maxOfModOfLinear` | Direct scans with the least index, and certificates: the value at `x`, no smaller (larger) value counted by `countModInRange`, and `x` recovered by `firstModInRange`. A Python binary search on the value with floor-sum counts and the least argument from a modular inverse, a different algorithm. |
 | `firstModInRange` | A one-period scan for every `[l, r)` in the exhaustive domain, certificates (value in range, no earlier hit by count, a full-period count for `-1`), and a Python binary search on the prefix count. |
 | Quotient blocks | Exhaustive `n <= 3000` against the set of quotients, and tiling, maximality and the block-count formula up to `10^12` and `2^40`. Joint blocks against the per-`x` quotient tuples for up to four values below 400. |
 | Oracle validation | The Python recursions, the value search and the first-hit search are checked against brute force for `n <= 8`, `m <= 7` and `a, b` in `[-9, 9]` before use. |
-| Preconditions | Ten checked-build death probes: `m = 0`, `n < 0`, reversed and oversized ranges, moments with `m = 0`, an empty minimum, `max` with `m = 0`, a negative bound, and negative quotient inputs. A separate `-DNDEBUG` probe (2026-10-18, `-O0` and `-O2`) confirmed that 16 violating calls (zero or negative `m` and `n`, empty and reversed ranges, negative quotient inputs) terminate. |
+| Preconditions | Eleven checked-build death probes: `m = 0` (for `floorSum` and `floorSumWide`), `n < 0`, reversed and oversized ranges, moments with `m = 0`, an empty minimum, `max` with `m = 0`, a negative bound, and negative quotient inputs. A separate `-DNDEBUG` probe (2026-10-18, `-O0` and `-O2`) confirmed that 16 violating calls (zero or negative `m` and `n`, empty and reversed ranges, negative quotient inputs) terminate. |
 
 ## Commands and results
 
-Run 2026-10-18 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H. The shared runner builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and (full, stress) ASan/UBSan configurations. Counts are per configuration. With `-Wall -Wextra -Wconversion`, the header and tester compile without warnings on both compilers.
+Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H. The shared runner builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and (full, stress) ASan/UBSan configurations. Counts are per configuration. With `-Wall -Wextra -Wconversion`, the header and tester compile without warnings on both compilers.
 
 | Command | Result |
 |---|---|
-| `18-floorsum_tester.py --mode full --seed 1` | PASS, 32,873,542 C++ checks and 3000 Python rows per configuration, 10 assertion probes, `MEMORY peak=438MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=439MB` |
-| `18-floorsum_tester.py --mode stress --seed 7` | PASS, 156,726,328 C++ checks and 20,000 Python rows per configuration, 10 assertion probes, `MEMORY peak=642MB` |
+| `18-floorsum_tester.py --mode full --seed 1` | PASS, 32,674,154 C++ checks, 3000 Python rows and 3000 `floorSumWide` Python rows per configuration, 11 assertion probes, `MEMORY peak=443MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=446MB` |
+| `18-floorsum_tester.py --mode stress --seed 7` | PASS, 157,985,065 C++ checks, 20,000 Python rows and 20,000 `floorSumWide` Python rows per configuration, 11 assertion probes, `MEMORY peak=666MB` |
 | `18-floorsum_benchmark.py 5` | PASS; table below |
-| `02-integration.py` | PASS, 159 standalone and aggregate headers, two translation units, workspace, `MEMORY peak=651MB` |
+| `02-integration.py` | PASS, 167 standalone and aggregate headers, two translation units, workspace, `MEMORY peak=654MB` |
+| `02-integration.py --sanitizers` | PASS, 167 headers, sanitizer self-tests, `MEMORY peak=1831MB` |
 | `03-consistency.py` | PASS, no errors |
 
 ## Benchmarks
@@ -118,3 +136,4 @@ Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep)
 ## History
 
 - 2026-10-18: P060 initial implementation; `@reviewer` found 8 package issues, all fixed; full suite passed on g++ and g++-14, stress seed 7 and integration passed.
+- 2026-10-19: P037 added `floorSumWide` for geometry row 19. Independent review: the coefficient reduction overflowed `lll` (now modulo `2^128`), a direct division when the numerator fits 128 bits; the stress run caught a signed overflow in the tester's direct sum (now modulo `2^128`). Full suite passed on g++ and g++-14, stress seed 7 passed.

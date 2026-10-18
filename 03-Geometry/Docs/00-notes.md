@@ -139,6 +139,18 @@ Five `@researcher` passes, one per row; sources in [00-sources.md](00-sources.md
   - the smallest disk covering `k` points (bisection over `maxPointsInDisk`);
   - unit-disk components and hop distances (row 22 `euclideanBottleneck`; Esoteric).
 
+## P037 re-audit decisions (2026-10-19)
+
+Requested by the user after the first verification; recorded in `duplicates.md` (Keeps).
+
+- **Variants kept beside the first versions:**
+  - `maxAreaInscribedKgonSmawk` and `maxPerimeterInscribedKgonSmawkApprox` beside the divide-and-conquer k-gons (a different algorithm, kept even though the plain versions are faster at the measured sizes);
+  - `rectangleUnionBoundaryGuting` beside the sweep.
+- **Domains widened:**
+  - `maxPointsInDisk` to `r2 <= 4 * 10^18` (an `I512` comparator above `4 * 10^8`);
+  - rational lattice counts to `V * D <= 4 * 10^18` (primitive directions, a floored line constant, 256-bit products and Mathematics row 18 `floorSumWide`).
+- **k-gon correctness:** the k-gon root search now cites only Boyce et al.'s Lemma 2.2, as AKMSW do, and the layer step has a proof; see [15-convex_polygon_query.md](15-convex_polygon_query.md).
+
 ## P007 / GE01 package record
 
 Rows 01–04: the 2026-09-27 verification and the 2026-10-07 re-audit (findings, completeness-sweep additions, and the independent review's result on the 2026-10-07 line) are recorded in each per-header `## History`, with commands and results in the evidence documents.
