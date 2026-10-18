@@ -42,7 +42,7 @@ Cost: `O(n * log(n))` for the sort, `O(n)` for everything else; the antiparallel
 
 ### clipConvex
 
-Input: a convex CCW polygon, `n >= 3`, positive area, collinear vertices allowed (`polygonConvex(p, false)` and positive area are asserted), plus any halfplanes. Integral `|coordinate| <= 10^9`. The polygon's edges are already in cyclic angular order. They are rotated to the first edge of the smallest-direction run and merged with the sorted halfplanes, then the same exact core runs. Result: `Empty`, `Point`, `Segment` or `Polygon`. `O(n + m * log(m))` time, `O(n + m)` memory.
+Input: a convex CCW polygon, `n >= 3`, positive area, collinear vertices allowed (`polygonConvex(p, false)` and positive area are asserted), plus any halfplanes. Integral `|coordinate| <= 10^9`. The polygon's edges are already in cyclic angular order. `halfplane_detail::edges` rotates them to the first edge of the smallest-direction run (row 15 `convexIntersection` reuses it); they are merged with the sorted halfplanes, then the same exact core runs. Result: `Empty`, `Point`, `Segment` or `Polygon`. `O(n + m * log(m))` time, `O(n + m)` memory.
 
 ### polygonKernel
 
@@ -86,14 +86,14 @@ Finite tests supplement the arguments above; they do not prove correctness for a
 
 ## Commands and results
 
-2026-10-11, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.7, GNU++20.
+2026-10-18, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
 
 | Command | Result |
 |---|---|
-| `10-halfplaneintersection_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan, 10 probes) | PASS, 9,042,753 checks per configuration, 10 probes, `MEMORY peak=570MB` |
-| same with `CXX=g++-14` | PASS, 9,042,753 checks per configuration, 10 probes, `MEMORY peak=541MB` |
+| `10-halfplaneintersection_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan, 10 probes) | PASS, 9,042,753 checks per configuration (9,042,755 in the checked build, which adds two non-simple cases), 10 probes, `MEMORY peak=562MB` |
+| same with `CXX=g++-14` | PASS, same counts, 10 probes, `MEMORY peak=600MB` |
 | `10-halfplaneintersection_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 75,968,253 checks, `MEMORY peak=399MB` |
-| `02-integration.py --sanitizers` | Stops at its first failure, outside P036: `96-Local Testing/01-Core/16-poly_tester.cpp` (P025) needs its second unit `16-poly_tester_tu.cpp`, which the script does not link. For this package the same checks were run directly: header alone for `10`, `11`, `16`, `17`, `98-basic` and `99-all`, and a two-translation-unit program using every operation, with `g++` and `g++-14` under `-Wall -Wextra -Wconversion` and with ASan/UBSan. All pass with no warnings |
+| `02-integration.py --sanitizers` | PASS, 167 headers, two translation units, sanitizer self-tests, `MEMORY peak=1829MB` |
 | `03-consistency.py --braces` on the four headers, testers and benchmark; `03-consistency.py` | No violations; no errors |
 
 Mutation check (2026-10-11). Each mutant was built from a copy of the tree and run through the optimized full suite. 8 mutants.
@@ -151,3 +151,4 @@ The implementation was written independently. The legacy notebook routine was re
 ## History
 
 - 2026-10-11: first implementation (P036). Independent review: one finding (out-of-bounds read on non-simple input in `polygonKernelLinear`, spike assertion incomplete) fixed with new probes and checked-build cases.
+- 2026-10-18: P037 factored the edge rotation of `clipConvex` into `halfplane_detail::edges` for `convexIntersection`; full suite passed on g++ and g++-14, stress passed.

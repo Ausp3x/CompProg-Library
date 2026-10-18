@@ -888,8 +888,14 @@
       "phase": "Contest core",
       "size": "L+L+M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "03-Geometry/Docs/13-segment_union.md",
+        "03-Geometry/Docs/14-minimumenclosingcircle.md",
+        "03-Geometry/Docs/15-convex_polygon_query.md",
+        "03-Geometry/Docs/19-lattice_geometry.md",
+        "03-Geometry/Docs/54-fixed_radius_queries.md"
+      ],
       "note": ""
     },
     {

@@ -1,6 +1,6 @@
 # 03 Geometry — notes
 
-Contracts and ownership rules moved out of the inventory. Evidence is one document per header: [01-point.md](01-point.md), [02-line_segment.md](02-line_segment.md), [03-polygon.md](03-polygon.md), [04-convexhull.md](04-convexhull.md), [05-closestpair.md](05-closestpair.md), [06-circle.md](06-circle.md), [07-rotatingcalipers.md](07-rotatingcalipers.md), [08-coordinate_transform.md](08-coordinate_transform.md), [09-triangle.md](09-triangle.md), [10-halfplaneintersection.md](10-halfplaneintersection.md), [11-minkowskisum.md](11-minkowskisum.md), [16-circle_polygon.md](16-circle_polygon.md) and [17-polygon_distance.md](17-polygon_distance.md).
+Contracts and ownership rules moved out of the inventory. Evidence is one document per header: [01-point.md](01-point.md), [02-line_segment.md](02-line_segment.md), [03-polygon.md](03-polygon.md), [04-convexhull.md](04-convexhull.md), [05-closestpair.md](05-closestpair.md), [06-circle.md](06-circle.md), [07-rotatingcalipers.md](07-rotatingcalipers.md), [08-coordinate_transform.md](08-coordinate_transform.md), [09-triangle.md](09-triangle.md), [10-halfplaneintersection.md](10-halfplaneintersection.md), [11-minkowskisum.md](11-minkowskisum.md), [13-segment_union.md](13-segment_union.md), [14-minimumenclosingcircle.md](14-minimumenclosingcircle.md), [15-convex_polygon_query.md](15-convex_polygon_query.md), [16-circle_polygon.md](16-circle_polygon.md), [17-polygon_distance.md](17-polygon_distance.md), [19-lattice_geometry.md](19-lattice_geometry.md) and [54-fixed_radius_queries.md](54-fixed_radius_queries.md).
 
 ## Numeric policy
 
@@ -45,7 +45,8 @@ Rows 05–08 (`05-closestpair.hpp`, `06-circle.hpp`, `07-rotatingcalipers.hpp`, 
 
 - Superseded and accounted for by GE01/GE02 (bytes preserved, no active dependency): `OLD/Team Notebook/src/geometry/point.cpp`, `intersection.cpp`, `polyarea.cpp`, `getnearestpair.cpp`, plus their counterparts in `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp`. Historical names (`Point`, `PointD`, `sgn`, `polyArea`, `isIntscLinSeg`) are not compatibility APIs. Consumers of the old coefficient-form line intersection migrate to endpoint-defined `Linear2`.
 - Superseded and accounted for by P036 (bytes preserved, no active dependency): `halfplane.cpp` (row 10; its `±2 * 10^9` box and `1e-9` predicates are not adopted) and `getminkowskisum.cpp` (row 11).
-- Pending until their rows are implemented: `getintersectingsegs.cpp` (12), `getlensegunion.cpp` (13), `welzlmec.cpp` (14), `getmanhattammstedges.cpp` (21). Legacy epsilon predicates (`1e-9`) are not adopted; each successor states its own exact/approximate policy.
+- Superseded and accounted for by P037 (bytes preserved, no active dependency): `getlensegunion.cpp` (row 13 `segmentUnionLength`) and `welzlmec.cpp` (row 14; its double predicates and clock seed are not adopted).
+- Pending until their rows are implemented: `getintersectingsegs.cpp` (12), `getmanhattammstedges.cpp` (21). Legacy epsilon predicates (`1e-9`) are not adopted; each successor states its own exact/approximate policy.
 - `lichaotree.cpp` in the same directory belongs to Data Structures `21-lichao.hpp`.
 - `OLD/Team Notebook/main.tex` lines 232–234 (Heron) are covered by `heronAreaApprox`.
 - No correctness claim in any legacy snippet is adopted.
@@ -95,6 +96,48 @@ Rows 05–08 (`05-closestpair.hpp`, `06-circle.hpp`, `07-rotatingcalipers.hpp`, 
   - distance between hulls of point sets (`convexHull` composition);
   - polygons with holes and ranges of polygons in `polygonsIntersect` (CGAL breadth).
 - **General `polygonsIntersect` and `polygonDistanceApprox` stay `O(n * m)`** by decision on 2026-10-10. Rows 12 and 45/46 own the optimal sweeps; see the handoff in [17-polygon_distance.md](17-polygon_distance.md).
+
+## P037 completeness decisions (2026-10-18)
+
+Five `@researcher` passes, one per row; sources in [00-sources.md](00-sources.md#p037-completeness-sweep-fetched-2026-10-18). Duplicate questions were settled by the user and recorded in `duplicates.md` (Keeps).
+
+- **Decided by the user (2026-10-18):**
+  - `coverageCount` is the 1D depth histogram;
+  - `batchedLocate` is the merge for angle-sorted queries;
+  - both disk counts take a rational centre;
+  - `verifyEnclosing` becomes the exact `EnclosingCircle::contains`;
+  - `segmentUnionLength`, `orthogonalIntersectionCount`, `latticeUnderLine`, `latticeInHalfplanePolygon`, `convexIntersection`, `cut` and `maxPointsInDisk` stay.
+- **Added:**
+  - `EnclosingCircle::points`, `center` and exact `locate` (Library Checker reports every point on the circle);
+  - `ConvexLineIntersection` and segment and ray queries in `lineIntersection`;
+  - `InscribedKgon`;
+  - `diskCoverCounts` as a `GridHash` query.
+- **Renamed by the naming policy:**
+  - `areaLeftOfLine` to `areaLeftOfLineApprox`;
+  - `prefixArea` to `prefixArea2`;
+  - `maxPerimeterInscribedKgon` to `maxPerimeterInscribedKgonApprox`.
+- **Not adopted for `13-segment_union.hpp`:**
+  - the incremental anchored rectangle union (an online staircase map that maspypy and ei1333 file under data structures);
+  - anchored and general box union volume in 3D (one problem, CF 815D; Klee's measure is Esoteric);
+  - the all-depth rectangle distribution (`O(n^1.5 * log(n))` research partition);
+  - orthogonal any-intersection with collinear overlaps (CSES 1742 only).
+- **Not adopted for `14-minimumenclosingcircle.hpp`:**
+  - the enclosing circle of circles (needs row 24's Apollonius construction);
+  - incremental insertion (`O(n)` worst case per point);
+  - Megiddo's deterministic linear algorithm (no contest source);
+  - the smallest circle covering `k` points (bisection over row 54 or Har-Peled's research algorithm);
+  - the rectangular p-centre (row 21);
+  - an exact squared radius (degree 6 exceeds `lll`).
+- **Not adopted for `15-convex_polygon_query.hpp`:**
+  - linear-time largest inscribed triangle and quadrilateral (this file's contract assumes no triangle shortcut);
+  - the minimum enclosing triangle, circumscribing k-gons, largest inscribed homothets and axis rectangles (no contest catalog);
+  - common tangents of two convex polygons (row 53 bridges).
+- **Not adopted for `19-lattice_geometry.hpp`:** the generic convex-region lattice count, the lattice hull under a line and polynomial lattice sums. Mathematics row 55 owns the engines (`convexLatticeHull`, `convexFloorSum`, `floorSumPolynomial`).
+- **Not adopted for `54-fixed_radius_queries.hpp`:**
+  - weighted, coloured and two-disk variants and approximation schemes (papers only);
+  - Chazelle–Lee's `O(n^2)` sweep (heavy, no catalog);
+  - the smallest disk covering `k` points (bisection over `maxPointsInDisk`);
+  - unit-disk components and hop distances (row 22 `euclideanBottleneck`; Esoteric).
 
 ## P007 / GE01 package record
 

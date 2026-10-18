@@ -126,6 +126,14 @@ namespace halfplane_detail {
         for (int t = 0; t < m; ++t) {
             if (side(c[q[0]], c[q[1]], c[t]) == 0) { res.planes.push_back(c[t]); }}
         return res;}
+    // Edges of a convex CCW ring as halfplanes, rotated into the order of less.
+    template<typename T> vector<Halfplane> edges(const vector<Point2<T>> &p) {
+        int n = int(p.size()), s = 0; vector<Halfplane> e(n);
+        for (int i = 0; i < n; ++i) { e[i] = {p[i].template cast<lng>(), p[(i + 1) % n].template cast<lng>()}; }
+        for (int i = 1; i < n; ++i) { s = less(e[i], e[s]) ? i : s; }
+        for (int t = 0; t < n && same(dir(e[(s + n - 1) % n]), dir(e[s])); ++t) { s = (s + n - 1) % n; }
+        std::rotate(e.begin(), e.begin() + s, e.end());
+        return e;}
 } // namespace halfplane_detail
 
 // T: O(n * log(n)), M: O(n). Exact; kinds Empty, Point, Segment, Ray, Line, Polygon (CCW from the smallest edge angle) or Unbounded (no bounding box).
@@ -137,11 +145,7 @@ inline HalfplaneResult halfplaneIntersection(vector<Halfplane> h) {
 template<typename T> HalfplaneResult clipConvex(const vector<Point2<T>> &p, vector<Halfplane> h) {
     static_assert(std::is_integral_v<T>);
     assert(p.size() >= 3 && p.size() <= INT_MAX && polygonConvex(p, false) && signedArea2(p) > 0);
-    int n = int(p.size()), s = 0; vector<Halfplane> e(n);
-    for (int i = 0; i < n; ++i) { e[i] = {p[i].template cast<lng>(), p[(i + 1) % n].template cast<lng>()}; }
-    for (int i = 1; i < n; ++i) { s = halfplane_detail::less(e[i], e[s]) ? i : s; }
-    for (int t = 0; t < n && halfplane_detail::same(halfplane_detail::dir(e[(s + n - 1) % n]), halfplane_detail::dir(e[s])); ++t) { s = (s + n - 1) % n; }
-    std::rotate(e.begin(), e.begin() + s, e.end());
+    auto e = halfplane_detail::edges(p);
     sort(h.begin(), h.end(), halfplane_detail::less);
     vector<Halfplane> all(e.size() + h.size());
     std::merge(e.begin(), e.end(), h.begin(), h.end(), all.begin(), halfplane_detail::less);

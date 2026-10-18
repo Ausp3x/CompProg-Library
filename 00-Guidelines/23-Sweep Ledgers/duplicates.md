@@ -88,6 +88,12 @@ Items a reader could mistake for duplicates.
 | P054 | `dyckPaths`, `pathsBelowDiagonal` (row 67) beside row 05 `catalan`, `ballot` | Decided 2026-10-19: general endpoints |
 | P054 | `inclusionExclusion` (row 12) beside row 24 `subsetMobius` | Decided 2026-10-19: pruned search over items, a different algorithm |
 | P054 | `BinomialSmallPrimeTable` (row 12) beside `binomialLucas` | Decided 2026-10-19: O(N) p-free factorial table with O(1) queries for n <= N, kept for its constant factor |
+| P037 | `segmentUnionLength`, `orthogonalIntersectionCount` (row 13) beside `intervalUnionMeasure`, row 33 `OfflineRectangleSweep` | Decided 2026-10-18: geometry entry points; the union length also takes floating endpoints, the count needs no point and rectangle builder |
+| P037 | `latticeUnderLine` (row 19) beside `floorSum` | Decided 2026-10-18: lattice points under a segment with rational endpoints |
+| P037 | `latticeInHalfplanePolygon` (row 19) beside `latticeInRationalPolygon(halfplaneIntersection(h).vertices)` | Decided 2026-10-18: larger domain; it counts from the integral line equations, while the composition overflows on vertex denominators up to 8 * 10^18 |
+| P037 | `latticeInDisk`, `latticeInDiskFast` (row 19) beside `gaussCircleCount`, row 55 `gaussCircleFast` | Decided 2026-10-18: larger domain, a rational centre and squared radius |
+| P037 | `convexIntersection`, `cut`, `batchedLocate` (row 15) beside `clipConvex`, `polygonCutApprox`, `contains` | Decided 2026-10-18: better bounds, O(n + m), O(log(n) + out) and O(n + q) for angle-sorted queries |
+| P037 | `maxPointsInDisk` (row 54) beside row 23 `maxDiskDepth` | Decided 2026-10-18: named special case, equal radii |
 
 ### Rulings
 
@@ -256,14 +262,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | row 14: `toCOO`, `toCSR` | row 14 | `entries`, triplet constructor | ask | wrappers unless COO and CSR are distinct types | — | — |
 | `size()` | `14-sparsematrix.hpp:45` | `.n` | keep | accessor of a public data member | — | — |
 
-## P037 — 03-Geometry — segment union, minimumenclosingcircle, convex polygon query, lattice geometry, fixed radius queries (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `latticeInDisk`, `latticeInDiskFast` | row 19 | Mathematics rows 34, 55 `gaussCircleCount`, `gaussCircleFast` | ask | same algorithms unless centers are arbitrary | — | — |
-| `latticeUnderLine`, `latticeInHalfplanePolygon` | row 19 | `floorSum` after a builder; `latticeInRationalPolygon(halfplaneIntersection(h).vertices)` | ask | builders | — | — |
-| `segmentUnionLength`, `orthogonalIntersectionCount` | row 13 | Miscellaneous `intervalUnionMeasure`; DS row 33 `staticRectangleSum` | ask | builders unless real endpoints | — | `06-Miscellaneous/Docs/00-notes.md:24` |
-| `convexIntersection`, `cut`; `verifyEnclosing`; `maxPointsInDisk` | rows 15, 14, 54 | `clipConvex`; row 23 `maxDiskDepth` | ask | wrappers unless O(n + m) or O(log n + out) | — | — |
 
 ## P082 — 07-Strings — suffixtree (planned)
 
@@ -998,7 +996,6 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P020** move the floating branches to `solveReal`, `invReal`, `rankReal`, or drop those entries? `StaticMatrix`: is a compile-time shape a different domain? `rowSpace`, `colSpace`: another basis? The 8-lane REDC in `mulRow`, `elimRow`: the same as `Montgomery32` `mul8`, `red8`, or an assert-free lazy variant like Poly's kept `Mont8`? `Matrix(vector, axis)` and the vector products: an empty vector gives 0×0 here and 1×0 or 0×1 from `Matrix(1, n, v)`; is that difference real?
 - **P022** GF(2) `-=`, `-`: keep for generic ring code?
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
-- **P037** `latticeInDisk`: arbitrary centers? `latticeUnderLine`, `latticeInHalfplanePolygon`, `segmentUnionLength`, `orthogonalIntersectionCount`, `convexIntersection`, `cut`, `verifyEnclosing`, `maxPointsInDisk`: own algorithm or bound, or builders?
 - **P072** `fractionalBinarySearch`: a named entry point or `binSearchRealBracket`? `largeWeightSmallValueKnapsack`: widen `KnapsackItem::weight` and remove it, or keep it for weights above `INT_MAX`?
 - **P035** `SparseDSU`: a larger key domain or a builder? `ParityDSU`: an alias of `WeightedDSU` over Z/2 or a 2n-node DSU? `MergeHistoryForest`: `KruskalReconstruction` after a builder from the union sequence, or a separate operation?
 - **P058** `gaussJordan` or `rref`? `nullspace` beside `solveLinear(A, 0)`?
