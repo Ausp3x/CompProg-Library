@@ -76,6 +76,14 @@ Research outcomes (sources in [00-sources.md](00-sources.md)); operations left o
 
 Handoffs: `22` may reuse `distinctSubstringsOnline` for `distinctSubstringsPerPrefix`; `28` generalizes `BasicSuffixAutomaton`.
 
+## P082 package record (ST05)
+
+Research outcomes (sources in [00-sources.md](00-sources.md)); left out, one line each:
+
+- `11`: Gusfield maximal pairs (Wikipedia only, `Θ(n + z)` output) are niche and enumerable per node from `maximalRepeats` and `occurrences`; an occurrence count is `r - l` of the locus node; the suffix tree as the suffix-link tree of the reversed text's automaton (OI Wiki) is a second construction of the same topology, owned by `10` `suffixLinkTree`; `parent` is the `Node::parent` field and maspypy `get_suffix_positions` is `leaf`; `O(1)` weighted-ancestor structures (Gawrychowski, Lewenstein, Nicholson) are research-only, so `weightedAncestor` uses `O(log n)` jump pointers.
+
+Handoffs: `28` GeneralizedSuffixTree can reuse the LCP-interval build over a separator-joined text; `33` Ukkonen should keep the `{node, length}` locus and `step` conventions.
+
 ## P083 package record (ST07, ST34)
 
 Research outcomes (sources in [00-sources.md](00-sources.md)); left out, one line each:

@@ -22,6 +22,14 @@ Source keys used in `00-index.md` status cells are defined under "Prior source k
 | Runs Theorem (arXiv 1406.0263) | https://arxiv.org/abs/1406.0263 | 2026-10-06 | Abstract: Lyndon-root characterization, `rho(n) < n`, sum of exponents `< 3n`, linear-time runs algorithm without LZ factorization; basis for `runs` in row `26` and Fibonacci/Thue–Morse worst-case generators in row `50` |
 | r-index (arXiv 1705.10382) | https://arxiv.org/abs/1705.10382 | 2026-10-06 | Abstract: count and locate in `O(r)` space, optimal `O(m + occ)` locate in `O(r log(n/r))` space, extraction bounds; basis for row `46` operations and the `36`/`46` ownership split |
 
+## P082 sweep (2026-10-18)
+
+Research for `11`; pages fetched 2026-10-18 by the completeness researcher. Adopted operations are cited in [11-suffixtree.md](11-suffixtree.md); rejections are in [00-notes.md](00-notes.md).
+
+| Row | Pages | Outcome |
+|---|---|---|
+| `11` | https://maspypy.github.io/library/string/suffix_tree.hpp, https://raw.githubusercontent.com/maspypy/library/main/string/suffix_tree.hpp, https://maspypy.github.io/library/string/basic_substring_structure.hpp, https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/strings/SuffixTree.h, https://oi-wiki.org/string/suffix-tree/, https://cp-algorithms.com/string/suffix-tree-ukkonen.html, https://en.wikipedia.org/wiki/Suffix_tree, https://github.com/yosupo06/library-checker-problems/tree/master/string; ei1333, hitonanode and suisen indexes (no suffix tree); Nyaan by search only; Gusfield's textbook not accessed | `step` (maspypy `next`), `suffixLink`, `children`, pre-order ids with `Node::end` (maspypy numbering) adopted; KACTL and cp-algorithms are Ukkonen (`33`); Library Checker has no suffix-tree problem |
+
 ## P085 sweeps (2026-10-16)
 
 Per-row research for `21`, `22`, `23`; pages fetched 2026-10-16 by the completeness researcher. Adopted operations are cited in each evidence document; rejections are in [00-notes.md](00-notes.md).

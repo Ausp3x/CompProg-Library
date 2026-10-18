@@ -939,8 +939,10 @@
       "phase": "Contest core",
       "size": "XL",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "07-Strings/Docs/11-suffixtree.md"
+      ],
       "note": ""
     },
     {

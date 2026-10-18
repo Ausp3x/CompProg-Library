@@ -1,6 +1,7 @@
 #pragma once
 #include "98-basic.hpp"
 #include "10-suffixautomaton.hpp"
+#include "11-suffixtree.hpp"
 #include "12-sais.hpp"
 #include "13-palindromictree.hpp"
 #include "14-lyndon.hpp"
