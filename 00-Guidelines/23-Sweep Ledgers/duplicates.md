@@ -83,6 +83,11 @@ Items a reader could mistake for duplicates.
 | P047 | `bridgeTree` (row 27) beside `simplify(contract(g, low.component, k))` | Decided 2026-10-18: a dedicated builder |
 | P047 | `dagMinimumChainCover` (row 31) beside `dagMinimumPathCover` on row 40 `transitiveClosure` | Decided 2026-10-18: bitset closure and bitset matching in O(n^2/64) memory, no closure Graph |
 | P047 | `connectedAfterRemovingVertex`, `connectedAfterRemovingEdge` (row 27) beside `lowlink` `cut_components[x] <= 1`, `roots.size() + is_bridge[e] == 1` | Decided 2026-10-18: pair queries (u, v after deleting x or e), not the whole-graph fields |
+| P054 | `stirling1Row`, `stirling2Row`, `eulerianRow`, `partitionCount` (row 12) beside Core Poly `stirling1Row`, `stirling2Row`, `eulerianRow`, `partitionNumbers` | Decided 2026-10-19: intended Mathematics duplicates (inventory scope note) |
+| P054 | `tetrationMod` (row 30) beside `iteratedPowerMod` | Decided 2026-10-19: named special case (top exponent 1) |
+| P054 | `dyckPaths`, `pathsBelowDiagonal` (row 67) beside row 05 `catalan`, `ballot` | Decided 2026-10-19: general endpoints |
+| P054 | `inclusionExclusion` (row 12) beside row 24 `subsetMobius` | Decided 2026-10-19: pruned search over items, a different algorithm |
+| P054 | `BinomialSmallPrimeTable` (row 12) beside `binomialLucas` | Decided 2026-10-19: O(N) p-free factorial table with O(1) queries for n <= N, kept for its constant factor |
 
 ### Rulings
 
@@ -200,6 +205,8 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P060 | `maxOfModOfLinear` (`18-floorsum.hpp`) beside `minOfModOfLinear` | Mirror (ruling 3) |
 | P060 | `josephus` (`19-josephus.hpp`), `josephusKth` at `t = n - 1`; `josephusK2` | Named special case (the survivor); `josephusK2` is a different algorithm (O(1) closed form). The plain O(n) loop and `josephusLarge` were merged into `josephus` by user decision 2026-10-18 |
 | P060 | `continuedFractionSqrt` (`20-continued_fraction.hpp`), `continuedFractionQuadratic(0, D, 1)` | Named special case |
+| P054 | `gridPaths` (`67-lattice_paths.hpp`) beside `combiNR(dx + dy, dx)` | Larger domain: returns 0 for unreachable targets, which `combiNR` rejects (clarified rule) |
+| P054 | `catalanConvolution`, `catalanTriangle` (`67-lattice_paths.hpp`) beside row 05 `ballot` | Named special case (the k-th power of the Catalan series equals the weak ballot to (n + k - 1, n)) and batch form in any ring (additions only) |
 
 ## Conventions
 
@@ -247,17 +254,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | `berlekampMassey` | `14-sparsematrix.hpp:74` | Poly `findLinearRecurrence` | ask | same algorithm over exact fields; floating T uses a 1e-9 zero test | none | `14-sparsematrix.hpp:132-249` |
 | row 14: `toCOO`, `toCSR` | row 14 | `entries`, triplet constructor | ask | wrappers unless COO and CSR are distinct types | — | — |
 | `size()` | `14-sparsematrix.hpp:45` | `.n` | keep | accessor of a public data member | — | — |
-
-## P054 — 05-Mathematics — combinatorics advanced, modular power towers, lattice paths (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `gridPaths` | row 67 | `combiNR(dx + dy, dx)` | keep | returns 0 for unreachable targets, which `combiNR` rejects (clarified rule) | — | — |
-| `dyckPaths`, `pathsBelowDiagonal` | row 67 | `catalan`; `ballot` | ask | another name, or general endpoints | — | — |
-| `inclusionExclusion` | row 12 | `subsetMobius` | ask | the subset Möbius transform under another name, or a pruned search over items | — | — |
-| `zeroPowerZeroConvention` | row 30 | contracts | remove (row only) | not an operation | — | — |
-| `stirling1Row`, `stirling2Row`, `eulerianRow`, `partitionCount` | row 12 | Core Poly series | ask | the scope note allows only rows 13–15 and 22 to duplicate Core | — | — |
-| `factorialPowerConvert` (row 22 `factorialBasisConvert`); `tetrationMod` (`iteratedPowerMod`) | rows 12, 22, 30 | each other | ask | which row owns each | — | — |
 
 ## P037 — 03-Geometry — segment union, minimumenclosingcircle, convex polygon query, lattice geometry, fixed radius queries (planned)
 
@@ -1001,7 +997,6 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P020** move the floating branches to `solveReal`, `invReal`, `rankReal`, or drop those entries? `StaticMatrix`: is a compile-time shape a different domain? `rowSpace`, `colSpace`: another basis? The 8-lane REDC in `mulRow`, `elimRow`: the same as `Montgomery32` `mul8`, `red8`, or an assert-free lazy variant like Poly's kept `Mont8`? `Matrix(vector, axis)` and the vector products: an empty vector gives 0×0 here and 1×0 or 0×1 from `Matrix(1, n, v)`; is that difference real?
 - **P022** GF(2) `-=`, `-`: keep for generic ring code?
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
-- **P054** row 12 Stirling, Eulerian and partition rows beside Core Poly: allowed? `factorialPowerConvert` and `tetrationMod`: which row owns each? Row 67 `dyckPaths`, `pathsBelowDiagonal`: `catalan` and `ballot` under other names, or general endpoints? Row 12 `inclusionExclusion`: the subset Möbius transform under another name, or a pruned search over items?
 - **P037** `latticeInDisk`: arbitrary centers? `latticeUnderLine`, `latticeInHalfplanePolygon`, `segmentUnionLength`, `orthogonalIntersectionCount`, `convexIntersection`, `cut`, `verifyEnclosing`, `maxPointsInDisk`: own algorithm or bound, or builders?
 - **P072** `fractionalBinarySearch`: a named entry point or `binSearchRealBracket`? `largeWeightSmallValueKnapsack`: widen `KnapsackItem::weight` and remove it, or keep it for weights above `INT_MAX`?
 - **P035** `SparseDSU`: a larger key domain or a builder? `ParityDSU`: an alias of `WeightedDSU` over Z/2 or a 2n-node DSU? `MergeHistoryForest`: `KruskalReconstruction` after a builder from the union sequence, or a separate operation?

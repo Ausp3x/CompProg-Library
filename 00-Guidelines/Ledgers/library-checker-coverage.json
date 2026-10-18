@@ -870,7 +870,7 @@
       "problem": "enumerative_combinatorics/number_of_increasing_sequences_between_two_sequences",
       "judge_url": "https://judge.yosupo.jp/problem/number_of_increasing_sequences_between_two_sequences",
       "targets": [
-        "05-Mathematics/12-combinatorics_advanced.hpp"
+        "05-Mathematics/67-lattice_paths.hpp"
       ],
       "read_scopes": [
         "Complete statement read; parameters remain template symbols, no implementation/acceptance verification"

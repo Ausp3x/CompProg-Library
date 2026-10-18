@@ -869,8 +869,12 @@
       "phase": "Contest core",
       "size": "L+M+M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "05-Mathematics/Docs/12-combinatorics_advanced.md",
+        "05-Mathematics/Docs/30-modular_power_towers.md",
+        "05-Mathematics/Docs/67-lattice_paths.md"
+      ],
       "note": ""
     },
     {

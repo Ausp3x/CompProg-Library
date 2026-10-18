@@ -135,6 +135,21 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | Halbeisen and Hungerbühler, The Josephus problem (JTNB 9, 1997), pp. 303–307, 316–317 | https://www.numdam.org/item/JTNB_1997__9_2_303_0.pdf | 2026-10-18 | j(n + 1, k, i + 1) = (k + j(n, k, i)) mod (n + 1) (row 19 `josephusKth`) |
 | Wikipedia, Josephus problem; Shahjalal Shohag code library; CSES Josephus I, II, Queries | https://en.wikipedia.org/wiki/Josephus_problem | 2026-10-18 | k log n bounds, m-th removal skip-ahead, k = 2 queries (row 19) |
 
+## P054 sweep (fetched 2026-10-19, `@researcher` and the package session)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| Library Checker `enumerative_combinatorics` and `number_theory` tasks: binomial_coefficient, binomial_coefficient_prime_mod, q_binomial_coefficient_prime_mod, stirling_number_of_the_first_kind (fixed_k, small_p_large_n), stirling_number_of_the_second_kind_small_p_large_n, number_of_increasing_sequences_between_two_sequences, partition_function, bell_number, sharp_p_subset_sum, tetration_mod | https://github.com/yosupo06/library-checker-problems/tree/master/enumerative_combinatorics | 2026-10-19 | signed s(n, k), fixed p per test, arbitrary (non-monotone) bounds with x_i < b_i, 0^0 = 1 in tetration (rows 12, 30, 67) |
+| maspypy `mod/q_analogue.hpp`, `mod/prefix_sum_of_binom.hpp`, `seq/famous/stirling_number_query.hpp`, `bell_number_large.hpp`, `simple_permutations.hpp`, `seq/count_grid_path.hpp`, `seq/famous/catalan_convolution.hpp`, `mod/tetration.hpp` | https://github.com/maspypy/library | 2026-10-19 | q-Lucas split, block prefix sums, small-prime Stirling struct, Touchard, monotone-boundary paths, catalanConvolution, tower contract (rows 12, 30, 67) |
+| suisen `sequence/binomial_coefficitnt_enumeration.hpp`, `math/binomial_coefficient_sum.hpp`, `number/tetration_mod.hpp` (`saturation_pow`) | https://suisen-cp.github.io/cp-library-cpp/ | 2026-10-19 | binomial rows modulo any m, weighted prefix sums, capped towers (rows 12, 30) |
+| Nyaan `fps/fps-famous-series.hpp`, `fps/stirling-matrix.hpp`, `modulo/tetration.hpp`; ei1333 `math/fps/binomial-prefix-sum.hpp`, `math/combinatorics/mod-tetration.hpp` | https://nyaannyaan.github.io/library/ | 2026-10-19 | sign conventions, Stirling transforms, multipoint prefix sums (left out), tower edge cases (rows 12, 30) |
+| hitonanode `other_algorithms/north_east_lattice_paths.hpp` | https://hitonanode.github.io/cplib-cpp/ | 2026-10-19 | rectangle boundary transfer and bounded north-east paths (row 67) |
+| OI Wiki 划分数, 第一类和第二类斯特林数, 排列组合 (bounded stars and bars), 欧拉定理 (extended Euler theorem) | https://github.com/OI-wiki/OI-wiki/tree/master/docs/math | 2026-10-19 | partition recurrences, bounded tuples, threshold form of Euler's theorem (rows 12, 30) |
+| cp-algorithms Binomial coefficients, Catalan numbers, Inclusion-exclusion, Euler's totient (generalization) | https://cp-algorithms.com/combinatorics/binomial-coefficients.html | 2026-10-19 | Granville prime-power method, obstacle DP, exponent reduction (rows 12, 30, 67) |
+| Krattenthaler, Lattice path enumeration (Handbook of Enumerative Combinatorics, ch. 10), pp. 591–610 | https://www.mat.univie.ac.at/~kratt/artikel/encylatt.pdf | 2026-10-19 | Theorems 10.3.3 (strips), 10.4.5 (slope-mu ballot), 10.4.7 (Korolyuk), 10.4.1 (rational lines) (row 67) |
+| Bizley's formula, arXiv 1606.08412 | https://arxiv.org/abs/1606.08412 | 2026-10-19 | exp generating function of paths under a rational line (row 67 `bizleyPaths`) |
+| OEIS A006318, A001003, A001850, A111111; Project Euler 188; SPOJ POWTOW, Codeforces 906D (search results only) | https://oeis.org/A006318 | 2026-10-19 | Schroeder and Delannoy recurrences, tower problems (rows 30, 67) |
+
 ## Earlier source record (condensed from the previous index and evidence documents)
 
 - The 2026-09-27 audit compared external algorithm catalogs and the saved Modern Computer Arithmetic contents; read scope and URLs are in the [central audit](../../00-Guidelines/History/2026-09-27-inventory-audit.md). A follow-up scope pass compared the active arithmetic/search/equation/sieve/combinatorics/transform interfaces and the archived factorization/inverse/CRT/log/root/numerical helpers plus the saved [KACTL notebook](../../95-Resources/05-kactl.pdf) `Tridiagonal.h` contract.
