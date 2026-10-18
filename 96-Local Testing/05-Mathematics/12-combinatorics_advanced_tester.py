@@ -3,10 +3,10 @@
 C++ (every mode, optimized, checked and, outside quick, ASan/UBSan builds): factorialValuation against
 summed valuations and kummerCarries against Legendre and digit sums (128-bit digit sums at p = 2^64 - 1);
 binomialLucas, BinomialSmallPrimeTable and BinomialPrimePower (e = 1 and prime powers up to 2^20),
-BinomialCompositeMod (m up to 2^31 - 1) and binomialRowCompositeMod (m up to 2^63 - 1) against Pascal's
-triangle modulo m; binomialPrefixSum for weights 1, 2, -1, 0 and random, Mo's queries and the block table
-against Pascal sums; factorial powers against C(x, n) n! and 64-bit wraparound; Stirling rows and
-columns against the recurrences modulo 998244353, 1000003 and the composite 10^6 (rows), StirlingSmallPrime
+BinomialCompositeMod (smooth m above 2^63) and binomialRowCompositeMod (m up to 2^64 - 1) against Pascal's
+triangle modulo m; binomialPrefixSum for weights 1, 2, -1, 0 and random, Mo's queries (r = -1 included) and
+the weighted block table against Pascal sums; factorial powers against C(x, n) n! and 64-bit wraparound; Stirling rows and
+columns against the recurrences modulo 998244353, 1000003, the composite 10^6 and 101 past p (rows), StirlingSmallPrime
 against DP for n <= 400 and the explicit sum for 64-bit n; bellTable against the Bell triangle,
 bellNumberLarge against the triangle modulo small primes, B_(p^m) = m + 1 and the period (p^p - 1) / (p - 1);
 Eulerian rows and numbers against the recurrence and the closed forms for k <= 2 at 64-bit n; Entringer
@@ -15,17 +15,18 @@ and polynomial powers; partitions against coin-change DP (also modulo 2^64), enu
 a recursive generator in order; QCombinatorics against q-Pascal for every q modulo primes <= 17 and 101;
 the four transforms against direct sums and round trips; inclusionExclusion pruned and unpruned against a
 scan; subsetSumCount against knapsack; pisanoPeriod against simulation for m <= 20000; Zeckendorf validity;
-indecomposable permutations against the first-block recurrence and enumeration. quick shrinks every
-bound; stress repeats the randomized sections three times.
+indecomposable permutations against the first-block recurrence and enumeration; the FPS-based operations
+modulo 2^64 - 59 and 10^18. quick shrinks every bound; stress repeats the randomized sections three times.
 Python oracle (quick 60, full 400, stress 2000 rows): math.comb for indices up to 10^18 (Lucas, prime
-powers, composites, rows, weighted prefix sums), exact v_p(C(n, k)), Eulerian and surjection DP tables,
-and Pisano periods certified by F_pi = 0, F_(pi + 1) = 1 and non-periodicity of every pi / q.
+powers, composites up to 2^64, rows, weighted prefix sums), exact v_p(C(n, k)), Eulerian and surjection DP
+tables, and Pisano periods for every m below 2^64 certified by F_pi = 0, F_(pi + 1) = 1 and non-periodicity
+of every pi / q (Pollard rho factorization of pi).
 """
 from math import comb
 import random
 import shlex
 import subprocess
-from _00_runner import main
+from _00_runner import factor, is_prime, main
 
 P = 998244353
 SMALL = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113]
@@ -49,22 +50,6 @@ def fib(n, m):
         c, d = a * (2 * b - a) % m, (a * a + b * b) % m
         a, b = (d, (c + d) % m) if bit == '1' else (c, d)
     return a, b
-
-
-def factor_small(n):
-    res = []
-    for p in PRIMES:
-        if p * p > n:
-            break
-        if n % p == 0:
-            e = 0
-            while n % p == 0:
-                n //= p
-                e += 1
-            res.append(p)
-    if n > 1:
-        res.append(n)
-    return res
 
 
 def vp(x, p):
@@ -100,8 +85,8 @@ def validate_oracle():
             a, b, n = b, (a + b) % m, n + 1
             if a == 0 and b == 1 % m:
                 break
-        assert fib(n, m) == (0, 1 % m) and all(fib(n // q, m) != (0, 1 % m) for q in factor_small(n)), m
-    assert factor_small(2 * 3 * 3 * 1000003) == [2, 3, 1000003]
+        assert fib(n, m) == (0, 1 % m) and all(fib(n // q, m) != (0, 1 % m) for q, _ in factor(n)), m
+    assert factor(2 * 3 * 3 * 1000003) == ((2, 1), (3, 2), (1000003, 1))
 
 
 def oracle(binary, args, env):
@@ -118,6 +103,11 @@ def oracle(binary, args, env):
             while p ** (e + 1) <= 200000 and rng.random() < 0.6:
                 e += 1
             m = rng.randint(1, 200000)
+            if rng.random() < 0.3:
+                m = 1
+                for q in rng.sample(PRIMES[:200], 8):
+                    qe = q ** rng.randint(1, max(1, int(16 / q.bit_length())))
+                    m = m * qe if m * qe < 1 << 64 else m
             n = rng.choice([rng.randint(0, 3000), rng.getrandbits(rng.randint(1, 63))])
             k = rng.choice([rng.randint(0, 30), max(0, n - rng.randint(0, 30)), rng.randint(0, n)] if n <= 3000 else [rng.randint(0, 30), n - rng.randint(0, min(n, 30))])
             b = comb(n, k)
@@ -155,10 +145,23 @@ def oracle(binary, args, env):
             m = 1
             for q in ps:
                 for _ in range(rng.randint(1, 3)):
-                    if m * q <= 3 * 10 ** 18:
+                    if m * q < 1 << 64:
                         m *= q
+            u = rng.random()
+            if u < 0.3:
+                big = rng.getrandbits(rng.randint(21, 64)) | 1
+                while not is_prime(big) or big >= 1 << 64:
+                    big = (big + 2) % (1 << 64) | 1
+                m = big * (m if m * big < 1 << 64 else 1)
+            elif u < 0.5:
+                big = (1 << 63) | rng.getrandbits(63) | 1
+                while not is_prime(big) or big % 5 not in (2, 3):
+                    big = (big + 2) % (1 << 64) | (1 << 63) | 1
+                m = big
+            elif u < 0.55:
+                m = 2 * 5 ** 27
             pi = int(subprocess.run([str(binary), '--oracle'], input=f'pisano {m}\n', text=True, capture_output=True, env=env, timeout=60).stdout.split()[0])
-            ok = 1 <= pi <= 6 * m and fib(pi, m) == (0, 1 % m) and all(fib(pi // q, m) != (0, 1 % m) for q in factor_small(pi))
+            ok = 1 <= pi <= 6 * m and fib(pi, m) == (0, 1 % m) and all(fib(pi // q, m) != (0, 1 % m) for q, _ in factor(pi))
             if not ok:
                 raise RuntimeError(f'Pisano certificate failed m={m} pi={pi} seed={args.seed}')
             rows.append(f'pisano {m}')
@@ -187,6 +190,6 @@ def oracle(binary, args, env):
 
 if __name__ == '__main__':
     raise SystemExit(main('12-combinatorics_advanced', [
-        'valuation-p', 'carries-k', 'lucas-digit', 'small-table-n', 'prime-power-q', 'prime-power-composite', 'composite-zero', 'row-m', 'prefix-k',
+        'valuation-p', 'carries-k', 'lucas-digit', 'small-table-n', 'prime-power-q', 'prime-power-composite', 'composite-zero', 'composite-cap', 'row-m', 'prefix-k',
         'queries-n', 'table-n', 'rising-n', 'stirling-small-prime', 'bell-composite', 'q-table', 'partitions-negative',
         'enumerate-negative', 'subset-negative', 'pisano-zero', 'surjection-k'], oracle))

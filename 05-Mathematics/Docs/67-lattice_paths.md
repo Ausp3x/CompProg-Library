@@ -77,6 +77,7 @@ Entry: [`67-lattice_paths_tester.py`](<../../96-Local Testing/05-Mathematics/67-
 | `gridPathsBoundaryTransfer` | Random flows on rectangles up to 14 x 14 against the cell DP, and empty sides passing through. |
 | `increasingSequencesBetweenBounds` | 3000 random bound pairs (arbitrary and banded, crossings, n = 0) with n, m <= 12, and 12 cases up to 1500 x 1500, against an O(n m) prefix-sum DP, also modulo 1000003. |
 | `nonIntersectingPathsDeterminant` | 150 random systems with k <= 3 on 4 x 4 grids against the signed enumeration of vertex-disjoint path systems over every endpoint permutation. |
+| 64-bit prime | `increasingSequencesBetweenBounds`, `bizleyPaths` and `gridPathsBoundaryTransfer` modulo 2^64 - 59 (every convolution through row 13's six-prime path) against the same DP oracles. |
 | Oracle validation | The Python closed forms are checked against grid DP and known sequence prefixes before use. |
 | Preconditions | Thirteen checked-build death probes: table bounds (gridPaths, catalanConvolution, motzkinPaths, the transfer), negative arguments (dyckPaths, ballotGeneral, the sequence bounds, motzkinTable), mu < 0, lo > hi, size mismatches (bounds, LGV), a zero Bizley slope. |
 
@@ -86,25 +87,25 @@ Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.1
 
 | Command | Result |
 |---|---|
-| `67-lattice_paths_tester.py --mode full --seed 1` | PASS, 130,150 C++ checks and 400 Python rows per configuration, 3 configurations, 13 assertion probes, `MEMORY peak=558MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=573MB` |
-| `67-lattice_paths_tester.py --mode stress --seed 7` | PASS, 218,410 C++ checks and 2000 Python rows per configuration, 13 assertion probes, `MEMORY peak=756MB` |
-| `67-lattice_paths_benchmark.py 5` | PASS; table below, `MEMORY peak=356MB` |
+| `67-lattice_paths_tester.py --mode full --seed 1` | PASS, 130,325 C++ checks and 400 Python rows per configuration, 3 configurations, 13 assertion probes, `MEMORY peak=757MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=783MB` |
+| `67-lattice_paths_tester.py --mode stress --seed 7` | PASS, 218,585 C++ checks and 2000 Python rows per configuration, 13 assertion probes, `MEMORY peak=774MB` |
+| `67-lattice_paths_benchmark.py 5` | PASS; table below, `MEMORY peak=362MB` |
 | `02-integration.py` | PASS, 165 standalone and aggregate headers, two translation units, workspace |
 | `03-consistency.py` | PASS, no errors |
 
 ## Benchmarks
 
-`67-lattice_paths_benchmark.py`, GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 5 repetitions, modulo 998244353, seeded inputs; repeated outputs are compared. Library Checker `number_of_increasing_sequences_between_two_sequences` has N, M <= 131072.
+`67-lattice_paths_benchmark.py`, GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 5 repetitions, modulo 998244353, seeded inputs, machine shared with other work (load about 2.5); repeated outputs are compared. Library Checker `number_of_increasing_sequences_between_two_sequences` has N, M <= 131072.
 
 | Workload | Median |
 |---|---|
-| `increasingSequencesBetweenBounds`, N = M = 131072, band of width 4000 around the diagonal | 864.9 ms |
-| `increasingSequencesBetweenBounds`, N = M = 131072, random bounds | 148.2 ms |
+| `increasingSequencesBetweenBounds`, N = M = 131072, band of width 4000 around the diagonal | 801.5 ms |
+| `increasingSequencesBetweenBounds`, N = M = 131072, random bounds | 139.3 ms |
 | `gridPathsBoundaryTransfer`, h = w = 131072 | 92.7 ms |
-| `bizleyPaths`, a = 3, b = 5, n = 10^5 | 56.8 ms |
-| `gridPathsAvoidingPoints`, 3000 obstacles in a 10^5 x 10^5 box | 22.7 ms |
-| `motzkinTable`, `schroderLarge`, `delannoyCentral`, n = 10^6 each | 33.7 ms |
+| `bizleyPaths`, a = 3, b = 5, n = 10^5 | 55.9 ms |
+| `gridPathsAvoidingPoints`, 3000 obstacles in a 10^5 x 10^5 box | 19.6 ms |
+| `motzkinTable`, `schroderLarge`, `delannoyCentral`, n = 10^6 each | 35.5 ms |
 
 A banded region keeps the staircase boundaries long, which is the worst case of the divide and conquer; random bounds collapse after monotonization.
 
@@ -120,10 +121,11 @@ Fetched 2026-10-19 by `@researcher` and the package session ([00-sources.md](00-
 
 ## Limits and handoffs
 
-- Path families on general DAGs and LGV beyond grid paths are Graphs row 53.
-- Step sets beyond {E, N, diagonal} need a bounded-height DP or row 15 recurrences; Sato's matrix formula for rational offsets is left out (notes, P054 decisions).
+- Path families on general DAGs and LGV beyond grid paths are Graphs row 53; general step sets are bounded-height DP or row 15 recurrences.
+- Scope decisions (Sato's matrix formula, Schroeder paths between heights, strict Bizley counts) are in [00-notes.md](00-notes.md), P054 decisions.
 - No `97-Legacy` excerpt existed for this row.
 
 ## History
 
 - 2026-10-19: P054 initial implementation; `@reviewer` found a misplaced detail namespace, the Bizley cost statement and do-while braces in the tester, all fixed; full suite passed on g++ and g++-14, stress seed 7 passed.
+- 2026-10-19: P054 follow-up: 64-bit prime coverage through row 13's generalized convolution; full and stress passed on g++, full on g++-14.

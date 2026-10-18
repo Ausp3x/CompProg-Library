@@ -4,7 +4,7 @@
 
 - Ring-generic naive and Karatsuba products.
 - A complex FFT and an NTT over any static NTT-friendly prime modint, sharing one radix-2 kernel pair.
-- Exact products by three-prime CRT, a block product beyond the transform length, a dispatcher, and wrappers: truncated, cross-correlation, middle product, cyclic, negacyclic, tensor and 2-D.
+- Exact products by CRT over one to six NTT primes (every 64-bit modulus and length), a block product beyond the transform length, a dispatcher, and wrappers: truncated, cross-correlation, middle product, cyclic, negacyclic, tensor and 2-D.
 
 It depends on Core `01-template.hpp` and `05-modint.hpp` only. There is no Barrett/Montgomery use and no ISA-specific code.
 
@@ -87,11 +87,13 @@ This is a real product of `vector<double>` using the two-for-one trick: pack `a 
 
 ### convolutionLong, convolutionU128, convolutionArbitraryMod
 
-All three run three NTT products modulo P1 = 754974721 (`45 * 2^24 + 1`), P2 = 167772161 (`5 * 2^25 + 1`) and P3 = 469762049 (`7 * 2^26 + 1`). The length limit is `n + m - 1 <= 2^24`. The private `garner` combines the residues into mixed-radix digits `c = d0 + P1 d1 + P1 P2 d2`, with `0 <= c < P = P1 P2 P3`, about `5.95e25` or `2^85.6`.
+All three reduce to products modulo up to six NTT primes, `PRIMES` = P1 = 754974721 (`45 * 2^24 + 1`), P2 = 167772161 (`5 * 2^25 + 1`), P3 = 469762049 (`7 * 2^26 + 1`), 2013265921 (`15 * 2^27 + 1`), 1811939329 (`27 * 2^26 + 1`), 2113929217 (`63 * 2^25 + 1`). Each per-prime product goes through `convolutionLarge`, so any `n + m - 1 < 2^31` works (blocks of `B = 2^23` for P1 beyond `2^24`, which adds the `O(n m / B)` term). The private `garner<K>` turns the K residues in place into mixed-radix digits `c = d_0 + P_1 d_1 + P_1 P_2 d_2 + ...` with `0 <= c < P_1 ... P_K`. Its digit step uses compile-time primes and precomputed inverses (`GarnerTable`), with at most one reduction per four products. When both operands are the same object it converts once, and each prime's product does one forward transform.
 
-- `convolutionLong`: signed 64-bit inputs; every true coefficient must lie in `[-2^63, 2^63)` (unchecked). Since `P > 2^64`, the residue `x` in `[0, P)` is the true value when `x < 2^63`, and `x - P` otherwise. The result is exact even for `INT64_MIN`, unlike a floating split.
-- `convolutionU128`: unsigned 64-bit inputs; every true coefficient must be below `P` (unchecked). A sufficient condition is `min(n, m) * max(a) * max(b) < P`. It returns the exact `ulll` value.
-- `convolutionArbitraryMod<M>`: any modint (static, dynamic, 32- or 64-bit modulus) using `val()`. When `min(n, m) <= 60` it is naive, with no bound. Otherwise it asserts `min(n, m) * (mod - 1)^2 < P`, so the true coefficients of the residues stay below `P`. The digits are combined directly in `M` (`d0 + P1 d1 + (P1 P2 mod m) d2`), so no 128-bit division is needed. The assert costs O(1).
+`primeCount(k, x)` picks the least K in [1, 6] with `k x < P_1 ... P_K`, where `k = min(n, m)` and `x` bounds a product of two entries. It is exact for K <= 4, whose products fit 128 bits, and uses bit lengths for five (`2^144 <= P_1 ... P_5`). Six primes always suffice, because `P_1 ... P_6 > 2^173 > 2^31 * 2^128`.
+
+- `convolutionLong`: any signed 64-bit inputs. When `min(n, m) <= 60` it is a naive product in wrapping `ulng` arithmetic, which gives the same results. Otherwise K covers twice the bound `min(n, m) max|a| max|b|`, so a residue in the upper half of `[0, P_1 ... P_K)` is negative. The sign is read by comparing the digits with those of `(P_1 ... P_K - 1) / 2`, which are `(P_j - 1) / 2`. The result is the true coefficient when it fits `lng`, and otherwise the coefficient modulo 2^64 (two's complement). `INT64_MIN` inputs are exact.
+- `convolutionU128`: any unsigned 64-bit inputs, naive in wrapping `ulll` arithmetic when `min(n, m) <= 60`, otherwise with K from `min(n, m) max(a) max(b)`. It returns every true coefficient modulo 2^128, which is exact below 2^128.
+- `convolutionArbitraryMod<M>`: any modint (static, dynamic, 32- or 64-bit modulus) using `val()`. When `min(n, m) <= 60` it is naive. Otherwise K comes from `min(n, m) (mod - 1)^2`: one or two primes for small moduli, three for 1e9+7 up to length 2^24, and up to six for moduli near 2^64. The digits are combined directly in `M`, using the products `P_1 ... P_j mod m`, so no wide division is needed. `convolutionArbitraryMod(a, a)` squares with one forward transform per prime.
 
 ### convolutionLarge
 
@@ -99,7 +101,7 @@ All three run three NTT products modulo P1 = 754974721 (`45 * 2^24 + 1`), P2 = 1
 
 Otherwise:
 
-1. Each operand is cut into blocks of `B` coefficients, and each block is transformed at length `L`. A block product has length at most `2B - 1 < L`, so it never wraps.
+1. Each operand is cut into blocks of `B` coefficients, and each block is transformed at length `L` (once for both when `&a == &b`). A block product has length at most `2B - 1 < L`, so it never wraps.
 2. For every output block `k`, the pointwise sums of `A_i B_{k-i}` are accumulated and inverted once, then overlap-added at offset `kB`.
 
 The cost is `O(nm / B + (n + m) log(B))`. For 998244353, `B = 2^22`, and a `2^24 x 2^24` product needs 8 forward and 7 inverse transforms of length `2^23`. Peak memory is about `(n/B + m/B + 1) L` words plus the result. The result length `n + m - 1` must fit in `int`.
@@ -164,9 +166,9 @@ Oracles:
 | `convolutionFft` | Exact integer brute for sizes 0..200 with values up to `10^5`. Rounding near the stated bound at `2^12` (quick) and `2^16`, with alternating and all-positive signs. |
 | `convolutionNaive`, `convolutionKaratsuba` | Brute over wrapping `ulng` and 1e9+7 for all sizes around the base case (31, 32, 33, 64, 65, ...) and unbalanced pairs up to `257 x 1000`. Sampled `20000 x 15001`. A double product. |
 | `convolutionNtt` | Brute for `n` from 0 to 70 against `m` in {0, 1, 2, 59, 60, 61, 62, 100}, both orders, so it straddles the naive cutoff. Squaring via `&a == &b`. Sampled at exactly `n + m - 1 = 2^RANK` (or the tested maximum) for six primes. |
-| `convolutionLong` | `__int128` brute for 200 random size pairs and magnitudes at the int64 edge. Extremes: `INT64_MIN * 1`, `INT64_MAX + INT64_MIN`, `-1 * (INT64_MIN + 1)`, an empty operand. Sampled at `n + m - 1 = 2^21` (full) and `2^24` (stress, the limit). Python big integers, signed. |
-| `convolutionU128` | `__int128` brute; values just below `P` (`(2^42 - 1) * floor((P - 1) / (2^42 - 1))`); Python big integers up to `P`. |
-| `convolutionArbitraryMod` | Brute for moduli 1e9+7 (static); 1, 2, 998244353, `2^31 - 1`, 4294967291 (dynamic); `10^12 + 39` (dynamic 64-bit, naive range); sizes across the cutoff. Sampled `300000 x 200000`. Python oracle for random moduli up to `2^62` inside the bound. |
+| `convolutionLong` | `__int128` brute for 200 random size pairs and magnitudes at the int64 edge; full 64-bit inputs against wrapping `ulng` brute (modulo 2^64), aliased squares included. Extremes: `INT64_MIN * 1`, `INT64_MAX + INT64_MIN`, `-1 * (INT64_MIN + 1)`, an empty operand. Sampled at `n + m - 1 = 2^21` (full), `2^24` (stress) and `2^24 + 88` (optimized full and stress, the block path). Python big integers, signed, exact and modulo 2^64. |
+| `convolutionU128` | `__int128` brute; full 64-bit inputs against wrapping `ulll` brute (modulo 2^128); values just below `P1 P2 P3`; 700000 x 700001 maximal entries (six primes, nonzero sixth digit) against the closed form `count(s) (2^64 - 1)^2` modulo 2^128 (optimized full and stress); Python big integers, exact and modulo 2^128. |
+| `convolutionArbitraryMod` | Brute for moduli 1e9+7 (static); 1, 2, 998244353, `2^31 - 1`, 4294967291 (dynamic); `10^12 + 39` (dynamic 64-bit, naive range); 60 random 64-bit moduli up to `2^64 - 1` at sizes 61..260; sizes across the cutoff. Every prime-count boundary for K = 2, 3, 4: all entries `mod - 1` (the worst coefficient) at the largest modulus with `k (mod - 1)^2 < P_1 ... P_K` and one past it, for k = 61, 200, 1000. Five and six primes at `2^64 - 59` with k = 2^15 and 70000 against the closed form `count(s) v^2` of all-equal inputs. A `(2^24 + 5) x 70` product at 1e9+7 (optimized full and stress, the block path) against the same closed form. Aliased squares against brute. Sampled `300000 x 200000`. Python oracle for every 64-bit modulus at sizes up to 120. |
 | `convolutionLarge` | Brute on the block path with transform lengths 2 (p = 3), 4 (p = 13) and 4096 (p = 12289), including uneven and one-element blocks. Sampled 7340033 beyond `2^20`. A sampled `2^24 x 2^24 - 3` mint product in stress (optimized build). |
 | `convolution` | Brute through the dispatcher for 998244353 (NTT), 1e9+7 (CRT), a dynamic modulus and the 64-bit NTT prime; sampled large. |
 | `truncatedConvolution` | Brute prefix for `k` in {0, 1, `n + m - 1`, `n + m + 3`, random}, so it covers zero padding and empty operands. |
@@ -175,47 +177,49 @@ Oracles:
 | `cyclicConvolution`, `negacyclicConvolution` | Folded brute for `n` in {1, 2, 3, 5, 8, 16, 61, 64, 100, 128, 1024}, which covers the power-of-two transform and twist paths and the fold paths; `n = 0`; all four moduli. |
 | `convolutionTensor` | Multi-index brute for ranks 0 to 3 with random extents 0..4, including zero extents. |
 | `convolution2d` | Brute double sum for random shapes including empty ones; `40 x 90` by `30 x 70` shape. |
-| Preconditions | 18 checked-build probes: `p = 1`; root table and `ntt` beyond the rank; non-power-of-two `ntt`, `intt`, `transposedNtt`, `fft`, `ifft`; doubling beyond the rank; the arbitrary-mod bound violated; `middleProduct` with `m = 0`; cyclic and negacyclic size mismatch; negative `k`; tensor rank mismatch, size mismatch and negative extent; ragged 2-D input. |
+| Preconditions | 17 checked-build probes: `p = 1`; root table and `ntt` beyond the rank; non-power-of-two `ntt`, `intt`, `transposedNtt`, `fft`, `ifft`; doubling beyond the rank; `middleProduct` with `m = 0`; cyclic and negacyclic size mismatch; negative `k`; tensor rank mismatch, size mismatch and negative extent; ragged 2-D input. |
 
 ## Commands and results
 
-P055 run (2026-10-09), GCC 16.2 and GCC 14.4.1, configurations optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`.
+Latest run 2026-10-19 (P054 follow-up), GCC 16.2.1 and GCC 14.4.1, configurations optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`.
 
 ```bash
-python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode quick --seed 1           # PASS, 2 configurations, 18 probes: 50,693 C++ checks, 180 Python cases each
-python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode full --seed 1            # PASS, 3 configurations: 2,222,684 (optimized) / 256,597 (checked, ASan) C++ checks, 1,800 Python cases each; MEMORY peak=863MB
-CXX=g++-14 python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode full --seed 1 # PASS, 3 configurations: same counts as full; MEMORY peak=869MB
-python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode stress --seed 2          # PASS, 3 configurations: 9,562,764 (optimized) / 256,597 C++ checks, 9,000 Python cases each; MEMORY peak=1057MB
+python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode full --seed 1            # PASS, 3 configurations, 17 probes: 2,223,046 (optimized) / 256,909 (checked, ASan) C++ checks, 1,800 Python cases each; MEMORY peak=1579MB
+CXX=g++-14 python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode full --seed 1 # PASS, 3 configurations: same counts as full; MEMORY peak=1579MB
+python3 '96-Local Testing/05-Mathematics/13-convolution_tester.py' --mode stress --seed 2          # PASS, 3 configurations: 9,563,126 (optimized) / 256,909 C++ checks, 9,000 Python cases each; MEMORY peak=1607MB
 ```
 
-- Quick and full pre-flight peaks were 813 MB under the 2048 MB cap. Most of that is the compiler on the `_GLIBCXX_DEBUG` build.
+- Dependents rerun on the same code, all PASS in full mode: Mathematics rows 12, 14, 15 and 67, Graphs row 16 (`convolutionLong`) and Strings row 21; `02-integration.py` PASS (165 headers).
 - What each mode adds:
-  - Full adds the 6000-prime root sweep, transform lengths up to `2^20` (optimized) or `2^16` (checked builds), and `2^21`-length CRT runs.
-  - Stress (optimized build) reaches `2^23` transforms, the `2^24` CRT limit and a `2^25` mint product. The checked builds repeat the full sizes with a new seed.
+  - Full adds the 6000-prime root sweep, transform lengths up to `2^20` (optimized) or `2^16` (checked builds), and `2^21`-length CRT runs; the optimized build also runs the six-prime closed forms and the products beyond `2^24`.
+  - Stress (optimized build) reaches `2^23` transforms, `2^24` CRT lengths and a `2^25` mint product. The checked builds repeat the full sizes with a new seed.
 - `convolutionFft` worst rounding error at the bound: 0.0078 to 0.0156.
 - The header builds alone, with `05-Mathematics/99-all.hpp`, and with every folder's `99-all.hpp` in two translation units, with no warnings under `-Wall -Wextra -Wconversion`. The only aggregate warning is pre-existing, in `06-segmentedsieve.hpp`.
 
 ## Benchmarks
 
-`python3 '96-Local Testing/05-Mathematics/13-convolution_benchmark.py' 5`. Conditions:
+`python3 '96-Local Testing/05-Mathematics/13-convolution_benchmark.py' 5`, rerun 2026-10-19 on the final P054 follow-up code. Conditions:
 
 - CPU: Intel i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2` (no `-march`).
 - One warmup and 5 timed repetitions; the table shows medians.
 - Outputs of the two compared implementations are checked equal.
-- Seed 20261009, uniform random inputs.
-- The machine was shared with a concurrent test run, so treat single numbers as ±15%.
+- Seed 20261009, uniform random inputs. The machine was shared with other work (load about 2.5), so compare the columns within a row.
+- The previous kernel is an exact replica of the pre-P054 arbitrary-modulus path (three `convolutionNtt` products, copied operands, ModInt Garner).
 
 | Workload | A | B |
 |---|---|---|
-| mint `2^16 x s`, s = 16 / 32 / 48 / 60 / 64 / 96 / 128 | naive 1.47 / 3.26 / 4.44 / 6.35 / 7.00 / 8.11 / 13.55 ms | NTT path 6.98 / 7.24 / 6.80 / 8.12 / 8.38 / 6.78 / 8.27 ms |
-| `ulng s x s`, s = 16 / 32 / 64 / 128 / 256 / 1024 (4096 / s repetitions) | naive 0.05 / 0.08 / 0.20 / 0.36 / 0.68 / 2.63 ms | Karatsuba 0.05 / 0.09 / 0.15 / 0.23 / 0.36 / 0.84 ms |
-| mint `2^19 x 2^19` | `convolutionNtt` 72.3 ms | `convolution` 75.2 ms |
-| 1e9+7 `2^19 x 2^19` | `convolutionArbitraryMod` 254 ms | `convolution` 264 ms |
-| int `2^19 x 2^19`, values in [-1000, 1000] | `convolutionLong` 270 ms | `convolutionFft` (rounded) 76.1 ms |
-| `ulng 10^5 x 10^5` | Karatsuba 266 ms | |
-| mint `2^24 x 2^24` | `convolutionLarge` 4312 ms | `convolution` 4337 ms |
+| mint `2^16 x s`, s = 16 / 32 / 48 / 60 / 64 / 96 / 128 | naive 1.83 / 3.97 / 5.57 / 6.69 / 7.08 / 10.34 / 13.68 ms | NTT path 8.13 / 8.62 / 8.36 / 8.30 / 8.27 / 8.24 / 8.18 ms |
+| `ulng s x s`, s = 16 / 32 / 64 / 128 / 256 / 1024 (4096 / s repetitions) | naive 0.05 / 0.11 / 0.19 / 0.36 / 0.69 / 2.76 ms | Karatsuba 0.05 / 0.09 / 0.14 / 0.23 / 0.36 / 0.87 ms |
+| mint `2^19 x 2^19` | `convolutionNtt` 76.5 ms | `convolution` 77.2 ms |
+| 1e9+7 `2^19 x 2^19` (three primes) | `convolutionArbitraryMod` 244.7 ms | previous kernel 244.3 ms |
+| 1e9+7 `2^19` squared, aliased | `convolutionArbitraryMod` 171.2 ms | previous kernel 248.1 ms |
+| 99991 `2^18 x 2^18` (two primes) | `convolutionArbitraryMod` 92.0 ms | previous kernel 138.3 ms |
+| 99991 `2^18` squared (two primes, aliased) | `convolutionArbitraryMod` 64.9 ms | previous kernel 142.8 ms |
+| int `2^19 x 2^19`, values in [-1000, 1000] (two primes) | `convolutionLong` 170.4 ms | `convolutionFft` (rounded) 88.1 ms |
+| `ulng 10^5 x 10^5` | Karatsuba 303.5 ms | |
+| mint `2^24 x 2^24` | `convolutionLarge` 3778.8 ms | `convolution` 3814.8 ms |
 
-Benchmark MEMORY peak was 848 MB.
+Benchmark MEMORY peak was 843 MB. Selecting the prime count keeps the three-prime case at parity and saves a third whenever fewer primes suffice; aliasing saves a further third for squares.
 
 Thresholds:
 
@@ -236,9 +240,10 @@ Adopted by the P055 sweep: `convolution` (dispatcher), `nttDoubling` and `convol
 - Karatsuba and the naive product need a commutative ring: the swap of operands reorders products.
 - `convolutionFft` returns unrounded doubles. Exactness beyond the KACTL bound is not claimed. Exact integer products use `convolutionLong`/`convolutionU128`.
 - `convolutionLarge` memory is about `(n/B + m/B + 1) * 2B` words of `M` plus the result; with 998244353 and `2^24 x 2^24` that is about 550 MB.
-- Root tables are static and grow monotonically; they are not thread-safe.
+- Root tables are static and grow monotonically; they are not thread-safe. The CRT path keeps one pair per prime it used, sized by its largest transform (up to `2^27` entries for 2013265921 when `n + m - 1` exceeds `2^24`).
 - Rejected candidates are in [00-notes.md](00-notes.md), P055 research decisions. Core Poly owns FPS operations; rows 14, 52, 53 and 65 own product trees, relaxed, semiring and specialized convolutions.
 
 ## History
 
 - 2026-10-09: P055 initial implementation and verification, `@reviewer` found 2 defects, fixed; quick, full and stress passed on g++, full on g++-14.
+- 2026-10-19: P054 follow-up: CRT over one to six primes chosen from the coefficient bound (every 64-bit modulus; `convolutionLong` modulo 2^64 and `convolutionU128` modulo 2^128 for any inputs), every length below 2^31 through `convolutionLarge`, aliased squares with one transform per prime, naive wrapping paths for short Long and U128 products; `@reviewer` found no defect, a missing six-prime test and stale texts, fixed; full and stress passed on g++, full on g++-14.

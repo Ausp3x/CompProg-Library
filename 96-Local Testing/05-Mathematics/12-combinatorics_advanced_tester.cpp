@@ -72,13 +72,14 @@ void binomials(std::mt19937_64 &rng, bool quick) {
         auto c = pascal(N, bp.q);
         for (int n = 0; n <= N; ++n) {
             for (int k = 0; k <= n + 1; ++k) { context = str({n, k, p, e}); need(bp(ulng(n), ulng(k)) == at(c, n, k), "BinomialPrimePower"); }}}
-    for (uint m : {1u, 2u, 12u, 360u, 1000000u, 999999u, 3145728u, 223092870u, 2147483646u}) {
+    const ulng SMOOTH = 134217728ULL * 43046721 * 7 * 11 * 23;
+    for (ulng m : {ulng(1), ulng(2), ulng(12), ulng(360), ulng(1000000), ulng(999999), ulng(3145728), ulng(223092870), ulng(2147483646), SMOOTH, ulng(48828125) * 40353607 * 169}) {
         BinomialCompositeMod bc(m);
         auto c = pascal(quick ? 60 : 160, m);
         for (int n = 0; n <= (quick ? 60 : 160); ++n) {
-            for (int k = 0; k <= n + 1; ++k) { context = str({n, k, m}); need(bc(ulng(n), ulng(k)) == at(c, n, k), "BinomialCompositeMod"); }}}
+            for (int k = 0; k <= n + 1; ++k) { context = str({n, k}) + "m=" + std::to_string(m); need(bc(ulng(n), ulng(k)) == at(c, n, k), "BinomialCompositeMod"); }}}
     for (int r = 0; r < (quick ? 8 : 40); ++r) {
-        ulng m = r % 4 == 0 ? (ulng(1) << 63) - 1 - rng() % 1000 : r % 4 == 1 ? 1 + rng() % 1000 : max<ulng>(1, rng() >> (1 + rng() % 63));
+        ulng m = r % 4 == 0 ? ~ulng(0) - rng() % 1000 : r % 4 == 1 ? 1 + rng() % 1000 : max<ulng>(1, rng() >> (rng() % 64));
         int n = int(rng() % ulng(N + 1));
         auto c = pascal(n, m);
         auto row = binomialRowCompositeMod(n, m);
@@ -99,7 +100,7 @@ void prefixSums(std::mt19937_64 &rng, bool quick) {
                 need(binomialPrefixSum(ulng(n), k, pc, r) == (k < 0 ? mint(0) : s), "binomialPrefixSum");}}}
     for (int t = 0; t < (quick ? 5 : 30); ++t) {
         int q = 1 + int(rng() % 300);
-        mint r = t % 3 == 0 ? mint(1) : t % 3 == 1 ? mint(rng()) : mint(5);
+        mint r = t % 4 == 0 ? mint(1) : t % 4 == 1 ? mint(rng()) : t % 4 == 2 ? mint(5) : mint(-1);
         vector<pair<int, int>> qs(q);
         for (auto &[n, k] : qs) { n = int(rng() % ulng(N + 1)); k = int(rng() % ulng(N + 3)) - 1; }
         auto res = binomialPrefixSumQueries(qs, pc, r);
@@ -107,9 +108,19 @@ void prefixSums(std::mt19937_64 &rng, bool quick) {
             context = str({qs[i].first, qs[i].second, t});
             need(res[i] == binomialPrefixSum(ulng(qs[i].first), qs[i].second, pc, r), "binomialPrefixSumQueries");}}
     for (int B : {0, 1, 3, 17, 1000}) {
-        BinomialPrefixSumTable<mint> tb(N, B);
-        for (int n = 0; n <= N; n += 1 + n / 50) {
-            for (lng k = -1; k <= N + 2; ++k) { context = str({n, k, B}); need(tb.sum(n, k) == binomialPrefixSum(ulng(n), k, pc), "BinomialPrefixSumTable"); }}}
+        for (mint r : {mint(1), mint(-1), mint(0), mint(7)}) {
+            BinomialPrefixSumTable<mint> tb(N, B, r);
+            for (int n = 0; n <= N; n += 1 + n / 50) {
+                for (lng k = -1; k <= N + 2; ++k) { context = str({n, k, B, lng(r.val())}); need(tb.sum(n, k) == binomialPrefixSum(ulng(n), k, pc, r), "BinomialPrefixSumTable"); }}}}
+    // r = -1 modulo 3 (r = 2) and the closed form in Mo's queries.
+    DynModInt<7>::setMod(3);
+    PrimeCombinatorics<DynModInt<7>> pc3(2);
+    vector<pair<int, int>> q3;
+    for (int n = 0; n <= 2; ++n) { for (int k = -1; k <= 3; ++k) { q3.pb({n, k}); } }
+    auto r3 = binomialPrefixSumQueries(q3, pc3, DynModInt<7>(2));
+    for (int i = 0; i < int(q3.size()); ++i) {
+        context = str({q3[i].first, q3[i].second});
+        need(r3[i] == binomialPrefixSum(ulng(q3[i].first), q3[i].second, pc3, DynModInt<7>(2)), "binomialPrefixSumQueries r = -1 mod 3");}
     cout << "PASS prefix sums vs Pascal, Mo's queries and the block table checks=" << checks << '\n';}
 
 void factorialPowers(std::mt19937_64 &rng) {
@@ -150,6 +161,12 @@ void stirlings(std::mt19937_64 &rng, bool quick) {
     stirlingTables<mint>(quick ? 60 : 220);
     stirlingTables<P2>(quick ? 40 : 120);
     stirlingTables<ModInt<1000000>>(quick ? 30 : 80);
+    // n >= p takes the product tree as well.
+    auto s101 = stirling1Dp<ModInt<101>>(quick ? 150 : 260);
+    for (int n = 0; n < int(s101.size()); n += 1 + n / 40) {
+        auto a = stirling1Row<ModInt<101>>(n);
+        context = str({n, 101});
+        need(int(a.size()) == n + 1 && std::equal(a.begin(), a.end(), s101[n].begin()), "stirling1Row n >= p");}
     for (uint p : {2u, 3u, 5u, 7u, 11u, 13u, 101u}) {
         DynModInt<2>::setMod(p);
         StirlingSmallPrime sp(p);
@@ -387,6 +404,12 @@ void fibonacci(std::mt19937_64 &rng, bool quick) {
         do { ulng c = (a + b) % m; a = b; b = c; ++n; } while (a != 0 || b != 1 % m);
         context = str({lng(m)});
         need(pisanoPeriod(m) == n, "pisanoPeriod vs simulation");}
+    // Periods above 2^64: pi(2 * 5^k) = lcm(3, 4 * 5^k) = 6 m, and the prime 2^64 - 83 = 3 mod 5 attains 2 (p + 1).
+    ulng m5 = 2;
+    for (int i = 0; i < 27; ++i) { m5 *= 5; }
+    const ulng P83 = ~ulng(0) - 82;
+    context = "m=2*5^27 and m=2^64-83";
+    need(pisanoPeriod(m5) == 6 * ulll(m5) && pisanoPeriod(P83) == 2 * (ulll(P83) + 1), "pisanoPeriod above 2^64");
     for (int r = 0; r < 3000; ++r) {
         ulng n = r < 1000 ? ulng(r) : r % 3 ? rng() : ~ulng(0) - rng() % 100;
         auto z = zeckendorf(n);
@@ -419,6 +442,44 @@ void fibonacci(std::mt19937_64 &rng, bool quick) {
         need(indecomposablePermutations(n)[n] == mint(cnt), "indecomposablePermutations vs enumeration");}
     cout << "PASS Pisano, Zeckendorf and indecomposable permutations checks=" << checks << '\n';}
 
+// 64-bit moduli through every FPS path: the prime 2^64 - 59 and the composite 10^18, against DP oracles.
+void wideModuli(bool quick) {
+    using W = ModInt64<18446744073709551557ULL>;
+    using C = ModInt64<1000000000000000000ULL>;
+    stirlingTables<W>(quick ? 20 : 70);
+    stirlingTables<C>(quick ? 20 : 70);
+    int N = quick ? 150 : 600;
+    auto coin = [&]<typename M>(M, bool distinct, int bound) {
+        vector<M> d(N + 1, 0);
+        d[0] = 1;
+        for (int part = 1; part <= min(bound, N); ++part) {
+            if (distinct) { for (int t = N; t >= part; --t) { d[t] += d[t - part]; } }
+            else { for (int t = part; t <= N; ++t) { d[t] += d[t - part]; } }}
+        return d;};
+    context = "wide partitions";
+    need(partitionCount<C>(N) == coin(C(), false, N) && partitionsDistinct<C>(N) == coin(C(), true, N), "partitions modulo 10^18");
+    need(partitionCount<W>(N) == coin(W(), false, N) && partitionsBoundedParts<W>(N, 17) == coin(W(), false, 17), "partitions modulo 2^64 - 59");
+    vector<C> fac(N + 1, 1), ind(N + 1, 0);
+    for (int i = 1; i <= N; ++i) { fac[i] = fac[i - 1] * i; }
+    for (int n = 1; n <= N; ++n) {
+        ind[n] = fac[n];
+        for (int k = 1; k < n; ++k) { ind[n] -= ind[k] * fac[n - k]; }}
+    need(indecomposablePermutations<C>(N) == ind, "indecomposablePermutations modulo 10^18");
+    vector<W> bell(N + 1), row{1};
+    bell[0] = 1;
+    for (int n = 1; n <= N; ++n) {
+        vector<W> nx{row.back()};
+        for (W x : row) { nx.pb(nx.back() + x); }
+        row = nx; bell[n] = row[0];}
+    need(bellTable<W>(N) == bell, "bellTable modulo 2^64 - 59");
+    vector<int> items(80);
+    for (int i = 0; i < 80; ++i) { items[i] = 1 + (i * 37) % N; }
+    vector<W> ks(N + 1, 0);
+    ks[0] = 1;
+    for (int x : items) { for (int v = N; v >= x; --v) { ks[v] += ks[v - x]; } }
+    need(subsetSumCount<W>(items, N) == ks, "subsetSumCount modulo 2^64 - 59");
+    cout << "PASS 64-bit moduli through every FPS path checks=" << checks << '\n';}
+
 int main(int argc, char **argv) {
     string mode = "full", invalid;
     ulng seed = 20261019;
@@ -431,7 +492,7 @@ int main(int argc, char **argv) {
             string op;
             while (cin >> op) {
                 if (op == "binom") {
-                    ulng n, k; uint p, e, m; cin >> n >> k >> p >> e >> m;
+                    ulng n, k, m; uint p, e; cin >> n >> k >> p >> e >> m;
                     DynModInt<5>::setMod(p);
                     cout << binomialLucas(n, k, PrimeCombinatorics<DynModInt<5>>(int(p) - 1)) << ' ' << BinomialPrimePower(p, e)(n, k) << ' ' << BinomialCompositeMod(m)(n, k) << '\n';}
                 else if (op == "row") {
@@ -446,7 +507,13 @@ int main(int argc, char **argv) {
                 else if (op == "val") {
                     ulng n, k, p; cin >> n >> k >> p;
                     cout << factorialValuation(n, p) << ' ' << kummerCarries(n, k, p) << '\n';}
-                else if (op == "pisano") { ulng m; cin >> m; cout << pisanoPeriod(m) << '\n'; }
+                else if (op == "pisano") {
+                    ulng m; cin >> m;
+                    ulll v = pisanoPeriod(m);
+                    string d;
+                    do { d += char('0' + int(v % 10)); v /= 10; } while (v);
+                    reverse(d.begin(), d.end());
+                    cout << d << '\n';}
                 else if (op == "eulerian") { ulng n; lng k; cin >> n >> k; cout << eulerianNumber(n, k) << '\n'; }
                 else if (op == "surj") { ulng n; int k; cin >> n >> k; cout << surjectionCount(n, k, ModFac(200)) << '\n'; }}
             return 0;}}
@@ -459,6 +526,7 @@ int main(int argc, char **argv) {
         else if (invalid == "prime-power-q") { BinomialPrimePower(2, 31); }
         else if (invalid == "prime-power-composite") { BinomialPrimePower(4, 1); }
         else if (invalid == "composite-zero") { BinomialCompositeMod(0); }
+        else if (invalid == "composite-cap") { BinomialCompositeMod(2 * 1000000007ULL); }
         else if (invalid == "row-m") { binomialRowCompositeMod(5, 0); }
         else if (invalid == "prefix-k") { binomialPrefixSum(100, 20, pc); }
         else if (invalid == "queries-n") { binomialPrefixSumQueries(vector<pair<int, int>>{{11, 2}}, pc); }
@@ -488,4 +556,5 @@ int main(int argc, char **argv) {
         qAnalogues(rng, quick);
         transforms(rng, quick);
         searches(rng, quick);
-        fibonacci(rng, quick);}}
+        fibonacci(rng, quick);
+        wideModuli(quick);}}

@@ -11,7 +11,8 @@ random obstacles (duplicates, origin, target, outside points), rectangles (clipp
 boundary flows on rectangles up to 14 x 14 against blocked-grid DP; increasingSequencesBetweenBounds on
 arbitrary bounds against an O(n m) prefix-sum DP for n, m <= 12 and up to 1500 x 1500, also modulo
 1000003; the LGV determinant against the signed enumeration of vertex-disjoint path systems over every
-endpoint permutation for k <= 3; the any-ring triangle in ulng and the tables modulo 1000003. Rounds:
+endpoint permutation for k <= 3; the any-ring triangle in ulng and the tables modulo 1000003; the
+convolution paths (bounds, Bizley, rectangle transfer) modulo 2^64 - 59. Rounds:
 quick 200, full 2000, stress 20000.
 Python oracle (quick 60, full 400, stress 2000 rows): exact closed forms with big integers (Motzkin,
 Schroeder and Delannoy sums, Narayana, k/(2n + k) C(2n + k, n), the slope-mu ballot fractions, Bizley's

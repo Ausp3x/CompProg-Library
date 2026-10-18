@@ -9,11 +9,14 @@ over wrapping 64-bit words and 1e9+7 around the thresholds; convolutionNtt at th
 threshold, squaring and the transform-length limit; convolutionLong and convolutionU128
 against __int128 brute force with signed extremes and the P1 * P2 * P3 boundary, plus a
 2^24-length sampled run in stress; convolutionArbitraryMod over static, dynamic 32-bit and
-64-bit moduli; convolutionLarge block paths with transform lengths 2, 4 and 4096 against brute
+64-bit moduli (random up to 2^64 - 1), at every prime-count boundary (two to four primes exactly,
+five and six at 2^64 - 59 by closed forms), beyond length 2^24 in optimized builds, and on aliased
+squares; convolutionLong and convolutionU128 on full 64-bit inputs modulo 2^64 and 2^128; convolutionLarge block paths with transform lengths 2, 4 and 4096 against brute
 force and a 2^25 mint product in stress; and every wrapper (dispatcher, truncated, cross-
 correlation, middle product, cyclic, negacyclic, tensor, 2-D) over NTT, non-NTT static,
-dynamic and 64-bit moduli. Python oracle: random signed and unsigned products and arbitrary
-moduli up to 2^62 against exact big-integer convolution. 18 assertion probes.
+dynamic and 64-bit moduli. Python oracle: random signed and unsigned products (inside the exact
+range and full 64-bit inputs, modulo 2^64 and 2^128) and every 64-bit modulus at sizes up to 120
+against exact big-integer convolution. 17 assertion probes.
 """
 import random
 import subprocess
@@ -41,14 +44,20 @@ def oracle(binary, args, env):
         a = [rng.randint(-(1 << bits), 1 << bits) for _ in range(n)]
         lim = ((1 << 63) - 1) // (k * (1 << bits))
         b = [rng.randint(-lim, lim) for _ in range(m)]
-        rows.append(('L', None, a, b, conv(a, b)))
+        if rng.random() < 0.5:
+            a = [rng.randint(-(1 << 63), (1 << 63) - 1) for _ in range(n)]
+            b = [rng.randint(-(1 << 63), (1 << 63) - 1) for _ in range(m)]
+        rows.append(('L', None, a, b, [(x + (1 << 63)) % (1 << 64) - (1 << 63) for x in conv(a, b)]))
         bits = rng.randint(1, 63)
         a = [rng.randint(0, (1 << bits) - 1) for _ in range(n)]
         lim = min((1 << 64) - 1, (P - 1) // (k * (1 << bits)))
         b = [rng.randint(0, lim) for _ in range(m)]
-        rows.append(('U', None, a, b, conv(a, b)))
-        mod = rng.choice([1, 2, rng.randint(1, 1 << 31), rng.randint(1, 1 << 40), rng.randint(1, 1 << 62)])
-        if min(n, m) > 60 and min(n, m) * (mod - 1) ** 2 >= P: n = m = min(n, 60)
+        if rng.random() < 0.5:
+            a = [rng.randrange(1 << 64) for _ in range(n)]
+            b = [rng.randrange(1 << 64) for _ in range(m)]
+        rows.append(('U', None, a, b, [x % (1 << 128) for x in conv(a, b)]))
+        mod = rng.choice([1, 2, rng.randint(1, 1 << 31), rng.randint(1, 1 << 40), rng.randint(1, 1 << 62),
+                          rng.randint(1, (1 << 64) - 1), (1 << 64) - 59, (1 << 64) - 1])
         a = [rng.randrange(mod) for _ in range(n)]
         b = [rng.randrange(mod) for _ in range(m)]
         rows.append(('A', mod, a, b, [x % mod for x in conv(a, b)]))
@@ -67,5 +76,5 @@ def oracle(binary, args, env):
 
 if __name__ == '__main__':
     raise SystemExit(main('13-convolution', ['root-one', 'table-rank', 'ntt-size', 'intt-size', 'transposed-size',
-        'ntt-rank', 'doubling-rank', 'fft-size', 'ifft-size', 'arbitrary-bound', 'middle-zero', 'cyclic-size',
+        'ntt-rank', 'doubling-rank', 'fft-size', 'ifft-size', 'middle-zero', 'cyclic-size',
         'negacyclic-size', 'truncated-negative', 'tensor-rank', 'tensor-size', 'tensor-negative', '2d-ragged'], oracle))

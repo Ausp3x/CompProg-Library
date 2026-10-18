@@ -30,6 +30,8 @@ int main(int argc, char **argv) {
     std::mt19937_64 rng(1);
     vector<int> s(N);
     for (auto &x : s) { x = 1 + int(rng() % ulng(N)); }
+    vector<mint> tr(100000);
+    for (auto &x : tr) { x = mint(rng()); }
     vector<pair<int, int>> qs(100000);
     for (auto &[n, k] : qs) { n = int(rng() % 100001); k = int(rng() % 100001); }
     vector<pair<string, std::function<ulng()>>> work = {
@@ -41,8 +43,8 @@ int main(int argc, char **argv) {
         {"partitionCount n=5e5", [&] { return ulng(partitionCount(N)[N].val()); }},
         {"partitionTable n=1e5", [&] { return ulng(partitionTable<mint>(100000)[100000].val()); }},
         {"subsetSumCount n=t=5e5", [&] { return ulng(subsetSumCount(s, N)[N].val()); }},
-        {"stirlingTransform n=1e5", [&] { return ulng(stirlingTransform(vector<mint>(100000, 1))[99999].val()); }},
-        {"inverseStirlingTransform n=1e5", [&] { return ulng(inverseStirlingTransform(vector<mint>(100000, 2))[99999].val()); }},
+        {"stirlingTransform n=1e5 (random)", [&] { return ulng(stirlingTransform(tr)[99999].val()); }},
+        {"inverseStirlingTransform n=1e5 (random)", [&] { return ulng(inverseStirlingTransform(tr)[99999].val()); }},
         {"BinomialCompositeMod m=1e6, 2e5 queries", [&] {
             BinomialCompositeMod b(1000000); std::mt19937_64 g(2); ulng h = 0;
             for (int i = 0; i < 200000; ++i) { ulng n = g() % ulng(1e18); h += b(n, g() % (n + 1)); }

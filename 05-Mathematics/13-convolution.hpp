@@ -91,9 +91,50 @@ namespace convolution_detail {
         for (int i = 0; i < 2 * h - 1; ++i) { res[i] += lo[i]; mid[i] -= lo[i]; }
         for (int i = 0; i < int(hi.size()); ++i) { res[2 * h + i] += hi[i]; mid[i] -= hi[i]; }
         for (int i = 0; i < 2 * h - 1; ++i) { res[h + i] += mid[i]; }}
-    // T: O((n + m) * log(n + m)), M: O(n + m); n + m - 1 <= 2^24; Garner digits (c mod P1, t2, t3) with c = d0 + P1 * d1 + P1 * P2 * d2.
-    template<typename T>
-    vector<array<uint, 3>> garner(const vector<T> &a, const vector<T> &b);
+    // T: O(1), M: O(1); six primes below 2^31 with 2^24 | p - 1, whose product exceeds 2^173.
+    inline constexpr uint PRIMES[6] = {P1, P2, P3, 2013265921, 1811939329, 2113929217};
+    // S: O(1) at compile time, M: O(1); w[j][t] = P_1 ... P_t mod P_(j+1), inv[j] = (P_1 ... P_j)^-1 mod P_(j+1).
+    struct GarnerTable {
+        ulng w[6][6] = {}, inv[6] = {};
+        constexpr GarnerTable() {
+            for (int j = 0; j < 6; ++j) {
+                ulng p = PRIMES[j], acc = 1, r = 1;
+                for (int t = 0; t < j; ++t) { w[j][t] = acc; acc = acc * PRIMES[t] % p; }
+                for (ulng e = p - 2; e; e >>= 1, acc = acc * acc % p) { if (e & 1) { r = r * acc % p; } }
+                inv[j] = r;}}
+    };
+    inline constexpr GarnerTable GARNER{};
+    // T: O(J), M: O(1); mixed-radix digit J of c = d_0 + P_1 d_1 + P_1 P_2 d_2 + ... from the lower digits and c mod P_(J+1).
+    template<int J, int K>
+    uint garnerDigit(const array<uint, K> &d, uint rj) {
+        if constexpr (J == 0) { return rj; }
+        else {
+            constexpr ulng p = PRIMES[J];
+            ulng s = 0;
+            // Each product is below 2^62, so four fit a word before a reduction.
+            for (int t = 0; t < J; ++t) { s += d[t] * GARNER.w[J][t]; if (t % 4 == 3) { s %= p; } }
+            return uint((rj + p - s % p) * GARNER.inv[J] % p);}}
+    // T: O(K * (n * m / B + (n + m) * log(n + m))), M: O(K * (n + m)); B = 2^23, K in [1, 6], any n + m - 1 < 2^31; digit j of every coefficient in res[j].
+    template<int K, typename T>
+    array<vector<uint>, K> garner(const vector<T> &a, const vector<T> &b);
+    // T: O(1), M: O(1); least K with k x < P_1 ... P_K, exact through four primes (product below 2^117), by bit lengths for five (2^144 <= P_1 ... P_5).
+    inline int primeCount(ulng k, ulll x) {
+        ulll w = 1;
+        for (int j = 1; j <= 4; ++j) {
+            w *= PRIMES[j - 1];
+            if (x <= (w - 1) / k) { return j; }}
+        int bits = int(std::bit_width(k)) + (x >> 64 ? 128 - std::countl_zero(ulng(x >> 64)) : int(std::bit_width(ulng(x))));
+        return bits <= 144 ? 5 : 6;}
+    // T: O(1) dispatch, M: O(1); f.template operator()<K>() for K in [1, 6].
+    template<typename F>
+    auto withPrimes(int K, F f) {
+        switch (K) {
+            case 1: return f.template operator()<1>();
+            case 2: return f.template operator()<2>();
+            case 3: return f.template operator()<3>();
+            case 4: return f.template operator()<4>();
+            case 5: return f.template operator()<5>();
+            default: return f.template operator()<6>();}}
 } // namespace convolution_detail
 
 // S: O(n) on growth, Q: O(1), M: O(n) per type and direction; static prime M::mod() with n | 2^RANK; entry h + j = w^j, w primitive 2h-th root (inverse: w^-1); growth invalidates references.
@@ -202,51 +243,6 @@ vector<M> convolutionNtt(const vector<M> &a, const vector<M> &b) {
     x.resize(n + m - 1);
     return x;}
 
-template<typename T>
-vector<array<uint, 3>> convolution_detail::garner(const vector<T> &a, const vector<T> &b) {
-    using M1 = ModInt<P1>; using M2 = ModInt<P2>; using M3 = ModInt<P3>;
-    auto conv = [&]<typename M>(M) { return convolutionNtt(vector<M>(a.begin(), a.end()), vector<M>(b.begin(), b.end())); };
-    auto x = conv(M1());
-    auto y = conv(M2());
-    auto z = conv(M3());
-    const M2 i1 = inv(M2(P1));
-    const M3 i12 = inv(M3(P1) * M3(P2));
-    vector<array<uint, 3>> res(x.size());
-    for (int i = 0; i < int(x.size()); ++i) {
-        uint d0 = x[i].val(), d1 = ((y[i] - M2(d0)) * i1).val();
-        res[i] = {d0, d1, ((z[i] - M3(d0) - M3(P1) * M3(d1)) * i12).val()};}
-    return res;}
-
-// T: O((n + m) * log(n + m)), M: O(n + m); n + m - 1 <= 2^24; Long: every true coefficient in [-2^63, 2^63); U128: inputs in [0, 2^64), coefficients below P1 * P2 * P3 ~ 2^85.6.
-inline vector<lng> convolutionLong(const vector<lng> &a, const vector<lng> &b) {
-    using namespace convolution_detail;
-    constexpr ulll P = ulll(P1) * P2 * P3;
-    vector<lng> res;
-    for (auto [d0, d1, d2] : garner(a, b)) {
-        ulll x = d0 + ulll(P1) * d1 + ulll(P1) * P2 * d2;
-        res.pb(lng(x >> 63 ? x - P : x));}
-    return res;}
-inline vector<ulll> convolutionU128(const vector<ulng> &a, const vector<ulng> &b) {
-    using namespace convolution_detail;
-    vector<ulll> res;
-    for (auto [d0, d1, d2] : garner(a, b)) { res.pb(d0 + ulll(P1) * d1 + ulll(P1) * P2 * d2); }
-    return res;}
-// T: O((n + m) * log(n + m)), M: O(n + m); any modint M (dynamic too), n + m - 1 <= 2^24, min(n, m) * (mod - 1)^2 < P1 * P2 * P3 unless min(n, m) <= 60.
-template<typename M>
-vector<M> convolutionArbitraryMod(const vector<M> &a, const vector<M> &b) {
-    using namespace convolution_detail;
-    if (min(a.size(), b.size()) <= size_t(NAIVE)) { return convolutionNaive(a, b); }
-    [[maybe_unused]] ulll q = ulll(M::mod() - 1) * (M::mod() - 1);
-    assert(q == 0 || ulll(min(a.size(), b.size())) <= (ulll(P1) * P2 * P3 - 1) / q);
-    auto val = [](const vector<M> &v) {
-        vector<ulng> r(v.size());
-        for (int i = 0; i < int(v.size()); ++i) { r[i] = v[i].val(); }
-        return r;};
-    const M s = M(P1), t = s * M(P2);
-    vector<M> res;
-    for (auto [d0, d1, d2] : garner(val(a), val(b))) { res.pb(M(d0) + s * M(d1) + t * M(d2)); }
-    return res;}
-
 // T: O(n * m / B + (n + m) * log(B)), M: O(n + m); B = 2^(min(RANK, 30) - 1); static prime M::mod() with RANK >= 1, any n + m - 1 < 2^31.
 template<typename M = mint>
 vector<M> convolutionLarge(const vector<M> &a, const vector<M> &b) {
@@ -262,7 +258,8 @@ vector<M> convolutionLarge(const vector<M> &a, const vector<M> &b) {
             ntt(t);
             res.pb(std::move(t));}
         return res;};
-    auto x = blocks(a), y = blocks(b);
+    vector<vector<M>> x = blocks(a), z;
+    const vector<vector<M>> &y = &a == &b ? x : (z = blocks(b));
     int p = int(x.size()), q = int(y.size());
     vector<M> res(n + m - 1);
     for (int k = 0; k < p + q - 1; ++k) {
@@ -271,6 +268,83 @@ vector<M> convolutionLarge(const vector<M> &a, const vector<M> &b) {
         intt(acc);
         for (int j = 0; j < L && lng(k) * B + j < n + m - 1; ++j) { res[k * B + j] += acc[j]; }}
     return res;}
+
+template<int K, typename T>
+array<vector<uint>, K> convolution_detail::garner(const vector<T> &a, const vector<T> &b) {
+    array<vector<uint>, K> r;
+    [&]<int... J>(std::integer_sequence<int, J...>) {
+        ((r[J] = [&] {
+            using MP = ModInt<PRIMES[J]>;
+            vector<MP> x(a.begin(), a.end());
+            vector<MP> z = &a == &b ? convolutionLarge(x, x) : convolutionLarge(x, vector<MP>(b.begin(), b.end()));
+            vector<uint> v(z.size());
+            for (int i = 0; i < int(z.size()); ++i) { v[i] = z[i].val(); }
+            return v;}()), ...);}(std::make_integer_sequence<int, K>());
+    array<uint, K> d;
+    for (int i = 0; i < int(r[0].size()); ++i) {
+        [&]<int... J>(std::integer_sequence<int, J...>) { ((d[J] = r[J][i] = garnerDigit<J, K>(d, r[J][i])), ...); }(std::make_integer_sequence<int, K>());}
+    return r;}
+
+// T: O(K * (n * m / B + (n + m) * log(n + m))), M: O(K * (n + m)); B = 2^23, K <= 6 primes chosen from the inputs, any n + m - 1 < 2^31; Long: exact when a coefficient fits lng, else modulo 2^64; U128: modulo 2^128.
+inline vector<lng> convolutionLong(const vector<lng> &a, const vector<lng> &b) {
+    using namespace convolution_detail;
+    if (a.empty() || b.empty()) { return {}; }
+    if (min(a.size(), b.size()) <= size_t(NAIVE)) {
+        vector<lng> res;
+        for (ulng x : convolutionNaive(vector<ulng>(a.begin(), a.end()), vector<ulng>(b.begin(), b.end()))) { res.pb(lng(x)); }
+        return res;}
+    auto mag = [](const vector<lng> &v) {
+        ulng r = 0;
+        for (lng x : v) { r = max(r, x < 0 ? 0 - ulng(x) : ulng(x)); }
+        return r;};
+    // Twice the coefficient bound keeps negative values in the upper half of [0, P_1 ... P_K).
+    return withPrimes(primeCount(min(a.size(), b.size()), 2 * ulll(mag(a)) * mag(b)), [&]<int K>() {
+        array<ulng, K> w;
+        w[0] = 1;
+        for (int j = 1; j < K; ++j) { w[j] = w[j - 1] * PRIMES[j - 1]; }
+        ulng whole = w[K - 1] * PRIMES[K - 1];
+        auto d = garner<K>(a, b);
+        vector<lng> res(d[0].size());
+        for (int i = 0; i < int(res.size()); ++i) {
+            ulng c = 0;
+            for (int j = 0; j < K; ++j) { c += d[j][i] * w[j]; }
+            int j = K - 1;
+            while (j > 0 && d[j][i] == (PRIMES[j] - 1) / 2) { --j; }
+            res[i] = lng(d[j][i] > (PRIMES[j] - 1) / 2 ? c - whole : c);}
+        return res;});}
+inline vector<ulll> convolutionU128(const vector<ulng> &a, const vector<ulng> &b) {
+    using namespace convolution_detail;
+    if (a.empty() || b.empty()) { return {}; }
+    if (min(a.size(), b.size()) <= size_t(NAIVE)) { return convolutionNaive(vector<ulll>(a.begin(), a.end()), vector<ulll>(b.begin(), b.end())); }
+    ulll x = ulll(*std::max_element(a.begin(), a.end())) * *std::max_element(b.begin(), b.end());
+    return withPrimes(primeCount(min(a.size(), b.size()), x), [&]<int K>() {
+        array<ulll, K> w;
+        w[0] = 1;
+        for (int j = 1; j < K; ++j) { w[j] = w[j - 1] * PRIMES[j - 1]; }
+        auto d = garner<K>(a, b);
+        vector<ulll> res(d[0].size(), 0);
+        for (int i = 0; i < int(res.size()); ++i) { for (int j = 0; j < K; ++j) { res[i] += d[j][i] * w[j]; } }
+        return res;});}
+// T: O(K * (n * m / B + (n + m) * log(n + m))), M: O(K * (n + m)); B = 2^23, any modint M (dynamic too), any n + m - 1 < 2^31, K <= 6 primes with min(n, m) (mod - 1)^2 < P_1 ... P_K; naive when min(n, m) <= 60.
+template<typename M>
+vector<M> convolutionArbitraryMod(const vector<M> &a, const vector<M> &b) {
+    using namespace convolution_detail;
+    if (min(a.size(), b.size()) <= size_t(NAIVE)) { return convolutionNaive(a, b); }
+    auto val = [](const vector<M> &v) {
+        vector<ulng> r(v.size());
+        for (int i = 0; i < int(v.size()); ++i) { r[i] = v[i].val(); }
+        return r;};
+    vector<ulng> x = val(a), y = &a == &b ? vector<ulng>() : val(b);
+    const vector<ulng> &z = &a == &b ? x : y;
+    ulng top = M::mod() - 1;
+    return withPrimes(primeCount(min(a.size(), b.size()), ulll(top) * top), [&]<int K>() {
+        array<M, K> w;
+        w[0] = 1;
+        for (int j = 1; j < K; ++j) { w[j] = w[j - 1] * M(PRIMES[j - 1]); }
+        auto d = garner<K>(x, z);
+        vector<M> res(d[0].size(), 0);
+        for (int i = 0; i < int(res.size()); ++i) { for (int j = 0; j < K; ++j) { res[i] += M(d[j][i]) * w[j]; } }
+        return res;});}
 
 // T: O((n + m) * log(n + m)), M: O(n + m); Core modint M: convolutionLarge for a static prime with RANK >= 20, else convolutionArbitraryMod.
 template<typename M = mint>

@@ -1,6 +1,7 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
 #include "../01-Core/05-modint.hpp"
+#include "../01-Core/16-poly.hpp"
 #include "01-mod_arithmetic.hpp"
 #include "05-combinatorics.hpp"
 #include "07-primality_factorization.hpp"
@@ -9,7 +10,7 @@
 #include "14-polynomial_algorithms.hpp"
 
 namespace combinatorics_advanced_detail {
-    // T: O(n * log(n)) egf, euler O(n), O(n * log(n)^2) fractionSum and evaluate, M: O(n); prime M::mod() > n where factorials are used.
+    // T: O(n * log(n)) egf, euler O(n), O(n * log(n)^2) fractionSum, O(log(m)) inverse, M: O(n); prime M::mod() > n where factorials are used, inverse of a unit mod any m >= 1.
     template<typename M>
     vector<M> egfTimesExp(const vector<M> &a, bool negate) {
         int n = int(a.size());
@@ -36,23 +37,13 @@ namespace combinatorics_advanced_detail {
         auto [p1, q1] = fractionSum(d, l, m);
         auto [p2, q2] = fractionSum(d, m, r);
         return {polyAdd(polyMul(p1, q2), polyMul(p2, q1)), polyMul(q1, q2)};}
-    template<typename M>
-    vector<M> evaluate(const vector<M> &f, const vector<M> &xs) {
-        int n = int(xs.size());
-        vector<vector<M>> t(4 * max(n, 1));
-        vector<M> res(n);
-        auto build = [&](auto &&self, int k, int l, int r) -> void {
-            if (r - l == 1) { t[k] = {-xs[l], M(1)}; return; }
-            int m = (l + r) / 2;
-            self(self, 2 * k, l, m); self(self, 2 * k + 1, m, r);
-            t[k] = polyMul(t[2 * k], t[2 * k + 1]);};
-        auto down = [&](auto &&self, int k, int l, int r, vector<M> g) -> void {
-            g = polyDivmod(g, t[k]).second;
-            if (r - l == 1) { res[l] = g.empty() ? M(0) : g[0]; return; }
-            int m = (l + r) / 2;
-            self(self, 2 * k, l, m, g); self(self, 2 * k + 1, m, r, g);};
-        if (n) { build(build, 1, 0, n); down(down, 1, 0, n, f); }
-        return res;}
+    inline ulng inverse(ulng a, ulng m) {
+        lll r0 = m, r1 = a % m, s0 = 0, s1 = 1;
+        while (r1) {
+            lll q = r0 / r1;
+            r0 -= q * r1; swap(r0, r1);
+            s0 -= q * s1; swap(s0, s1);}
+        return ulng((s0 % lll(m) + lll(m)) % lll(m));}
 } // namespace combinatorics_advanced_detail
 
 // T: O(log_p(n)), M: O(1); p >= 2, 0 <= k <= n; v_p(n!) and the carries of k + (n - k) in base p, which equal v_p(C(n, k)).
@@ -98,14 +89,17 @@ struct BinomialSmallPrimeTable {
         return v[n] > v[k] + v[n - k] ? M(0) : u[n] * iu[k] * iu[n - k];}
 };
 
-// S: O(q), Q: O(log_p(n) + log(q)), M: O(q); prime power q = p^e < 2^31, any 64-bit n, k; Granville: p-free factorials with period q.
+// S: O(q), Q: O(log_p(n) + log(q)), M: O(q); prime power q = p^e <= 2^27 (512 MB), any 64-bit n, k; Granville: p-free factorials with period q.
 struct BinomialPrimePower {
+    static constexpr uint CAP = 1u << 27;
     uint p, e, q;
     vector<uint> f;
 
     BinomialPrimePower(uint p, uint e) : p(p), e(e), q(1) {
         assert(p >= 2 && e >= 1 && isPrime(p));
-        for (uint i = 0; i < e; ++i) { assert(q <= uint(std::numeric_limits<int>::max()) / p); q *= p; }
+        uint t = 0;
+        for (; t < e && p > 1 && ulng(q) * p <= CAP; ++t) { q *= p; }
+        assert(t == e);
         f.assign(q, 1);
         for (uint i = 1; i < q; ++i) { f[i] = i % p ? uint(ulng(f[i - 1]) * i % q) : f[i - 1]; }}
     // The units of [1, q] multiply to f[q - 1] = +-1.
@@ -118,32 +112,33 @@ struct BinomialPrimePower {
         ulng c = factorialValuation(n, p) - factorialValuation(k, p) - factorialValuation(n - k, p);
         if (c >= e) { return 0; }
         ulng d = unitFactorial(k) * unitFactorial(n - k) % q;
-        ulng res = unitFactorial(n) * ulng(modNorm(extendedGcd(lng(d), lng(q)).x, lng(q))) % q;
+        ulng res = unitFactorial(n) * combinatorics_advanced_detail::inverse(d, q) % q;
         for (; c; --c) { res = res * p % q; }
         return uint(res);}
 };
 
-// S: O(s + m^(1/4) * log(m)), Q: O(w * (log(n) + log(m))), M: O(s); 1 <= m < 2^31, s = sum and w = count of the prime powers of m; CRT over parts.
+// S: O(s + m^(1/4) * log(m)), Q: O(w * (log(n) + log(m))), M: O(s); any m >= 1 whose prime powers are each <= 2^27, s = their sum, w = their count; CRT over parts.
 struct BinomialCompositeMod {
-    uint m;
+    ulng m;
     vector<BinomialPrimePower> parts;
     vector<ulng> coef;
 
-    explicit BinomialCompositeMod(uint m) : m(m) {
-        assert(m >= 1 && m <= uint(std::numeric_limits<int>::max()));
+    explicit BinomialCompositeMod(ulng m) : m(m) {
+        assert(m >= 1);
         for (auto [p, e] : factorize(m)) {
-            parts.emplace_back(uint(p), uint(e));
+            assert(p <= BinomialPrimePower::CAP);
+            parts.emplace_back(uint(p <= BinomialPrimePower::CAP ? p : 1), uint(e));
             ulng q = parts.back().q, r = m / q;
-            coef.pb(r * ulng(modNorm(extendedGcd(lng(r % q), lng(q)).x, lng(q))) % m);}}
-    uint operator()(ulng n, ulng k) const {
+            coef.pb(ulng(ulll(r) * combinatorics_advanced_detail::inverse(r % q, q) % m));}}
+    ulng operator()(ulng n, ulng k) const {
         ulng res = 0;
-        for (int i = 0; i < int(parts.size()); ++i) { res = (res + parts[i](n, k) * coef[i]) % m; }
-        return uint(res);}
+        for (int i = 0; i < int(parts.size()); ++i) { res = ulng((res + ulll(parts[i](n, k)) * coef[i]) % m); }
+        return res;}
 };
 
-// T: O(N * w + m^(1/4) * log(m)) expected, M: O(N); 0 <= N < INT_MAX, 1 <= m < 2^63, w = distinct primes of m up to N; C(N, k) mod m for k in [0, N].
+// T: O(N * w + m^(1/4) * log(m)) expected, M: O(N); 0 <= N < INT_MAX, any m >= 1, w = distinct primes of m up to N; C(N, k) mod m for k in [0, N].
 inline vector<ulng> binomialRowCompositeMod(int N, ulng m) {
-    assert(0 <= N && N < std::numeric_limits<int>::max() && m >= 1 && m >> 63 == 0);
+    assert(0 <= N && N < std::numeric_limits<int>::max() && m >= 1);
     vector<ulng> ps, res(N + 1), unit(N + 1, 1), pre(N + 1, 1 % m);
     for (auto [p, e] : factorize(m)) { if (p <= ulng(N)) { ps.pb(p); } }
     int w = int(ps.size());
@@ -155,7 +150,7 @@ inline vector<ulng> binomialRowCompositeMod(int N, ulng m) {
         for (int j = 0; j < w; ++j) { for (; x % ps[j] == 0; x /= ps[j]) { ex[j] += sgn; } }
         return x;};
     for (int i = 1; i <= N; ++i) { unit[i] = strip(ulng(i), 0); pre[i] = modMul64(pre[i - 1], unit[i] % m, m); }
-    ulng iv = ulng(modNorm(extendedGcd(lng(pre[N] % m), lng(m)).x, lng(m))), cur = 1 % m;
+    ulng iv = combinatorics_advanced_detail::inverse(pre[N], m), cur = 1 % m;
     vector<ulng> inverse(N + 1, 0);
     for (int i = N; i >= 1; --i) { inverse[i] = modMul64(iv, pre[i - 1], m); iv = modMul64(iv, unit[i] % m, m); }
     res[0] = 1 % m;
@@ -183,13 +178,20 @@ M binomialPrefixSum(ulng n, lng k, const PrimeCombinatorics<M> &pc, M r = 1) {
         if (i < k) { c *= M(n - ulng(i)) * pc.inverseFactorial(i + 1) * pc.factorial(i); }}
     return res;}
 
-// T: O(N * sqrt(q) + q * log(q)), M: O(N + q); N = max n <= pc.n, prime M::mod(), r + 1 a unit; Mo's order over (n, k) with S(n + 1, k) = (1 + r) S(n, k) - r^(k + 1) C(n, k).
+// T: O(N * sqrt(q) + q * log(q)), M: O(N + q); N = max n <= pc.n, prime M::mod(), any r; Mo's order with S(n + 1, k) = (1 + r) S(n, k) - r^(k + 1) C(n, k), r = -1 in closed form.
 template<typename M>
 vector<M> binomialPrefixSumQueries(const vector<pair<int, int>> &qs, const PrimeCombinatorics<M> &pc, M r = 1) {
     pc.check();
     int q = int(qs.size()), N = 0;
     for (auto [n, k] : qs) { assert(0 <= n && n <= pc.n); N = max(N, n); }
     vector<M> pw(N + 2, 1), res(q);
+    if (r + 1 == 0) {
+        // sum_(i <= k) (-1)^i C(n, i) = (-1)^k C(n - 1, k) for n >= 1.
+        for (int i = 0; i < q; ++i) {
+            auto [n, k] = qs[i];
+            k = min(k, n);
+            res[i] = k < 0 ? M(0) : n == 0 ? M(1) : k % 2 ? -pc.combiNR(n - 1, k) : pc.combiNR(n - 1, k);}
+        return res;}
     for (int i = 1; i <= N + 1; ++i) { pw[i] = pw[i - 1] * r; }
     M ir = inv(r + 1), s = 1;
     int b = max(1, int(N / std::sqrt(max(q, 1)))), n = 0, k = 0;
@@ -206,24 +208,26 @@ vector<M> binomialPrefixSumQueries(const vector<pair<int, int>> &qs, const Prime
         res[i] = s;}
     return res;}
 
-// S: O(N^2 / B), Q: O(B), M: O(N^2 / B); prime M::mod() > N, block B (default sqrt(N)); sum over i <= k of C(n, i) for 0 <= n <= N, any k.
+// S: O(N^2 / B), Q: O(B), M: O(N^2 / B); prime M::mod() > N, any weight r, block B (default sqrt(N)); sum over i <= k of r^i C(n, i) for 0 <= n <= N, any k.
 template<typename M = mint>
 struct BinomialPrefixSumTable {
     int b;
     PrimeCombinatorics<M> pc;
+    vector<M> pw;
     vector<vector<M>> col;
 
-    explicit BinomialPrefixSumTable(int N = 0, int B = 0) : b(B > 0 ? B : max(1, int(std::sqrt(N)))), pc(N) {
+    explicit BinomialPrefixSumTable(int N = 0, int B = 0, M r = 1) : b(B > 0 ? B : max(1, int(std::sqrt(N)))), pc(N), pw(N + 2, 1) {
+        for (int i = 1; i <= N + 1; ++i) { pw[i] = pw[i - 1] * r; }
         for (int K = b; K <= N; K += b) {
             vector<M> c(N + 1, 1);
-            for (int n = 0; n < N; ++n) { c[n + 1] = c[n] + c[n] - pc.combiNR(n, K); }
+            for (int n = 0; n < N; ++n) { c[n + 1] = (r + 1) * c[n] - pw[K + 1] * pc.combiNR(n, K); }
             col.pb(std::move(c));}}
     M sum(int n, lng k) const {
         assert(0 <= n && n <= pc.n);
         if (k < 0) { return 0; }
         int t = int(min<lng>(k, n)), j = t / b;
         M res = j ? col[j - 1][n] : M(0);
-        for (int i = j ? j * b + 1 : 0; i <= t; ++i) { res += pc.combiNR(n, i); }
+        for (int i = j ? j * b + 1 : 0; i <= t; ++i) { res += pw[i] * pc.combiNR(n, i); }
         return res;}
 };
 
@@ -239,10 +243,15 @@ T fallingFactorial(T x, lng n) {
     for (lng i = 0; i < n; ++i) { res *= x - T(i); }
     return res;}
 
-// T: O(n * log(n)), M: O(n); prime M::mod() > n (stirling1Row falls back to O(n^2) Taylor shifts otherwise); signed s(n, k) and S(n, k) for k in [0, n].
+// T: O(n * log(n)) for a prime M::mod() > n, O(n * log(n)^2) for stirling1Row under any other modulus, M: O(n); signed s(n, k) and S(n, k) for k in [0, n].
 template<typename M = mint>
 vector<M> stirling1Row(int n) {
     assert(n >= 0);
+    if (!M::is_prime || ulng(n) >= M::mod()) {
+        vector<vector<M>> lin(n);
+        for (int i = 0; i < n; ++i) { lin[i] = {-M(i), M(1)}; }
+        auto g = productTree(lin);
+        g.resize(n + 1); return g;}
     vector<M> f{1};
     // x^(2m falling) = x^(m falling) (x - m)^(m falling), plus one linear factor per set bit.
     for (int bit = int(std::bit_width(uint(n))), m = 0; bit-- > 0;) {
@@ -524,7 +533,7 @@ vector<M> inverseStirlingTransform(const vector<M> &b) {
     for (int j = 1; j <= n; ++j) { lin.pb({M(1), -M(j)}); xs[j - 1] = j; }
     auto num = truncatedConvolution(b, productTree(lin), n + 1);
     reverse(num.begin(), num.end());
-    auto val = combinatorics_advanced_detail::evaluate(num, xs);
+    auto val = evalMulti(Poly<M>(num), xs);
     vector<M> e(n + 1), v(n + 1);
     e[0] = b[0];
     for (int j = 1; j <= n; ++j) {
@@ -569,21 +578,24 @@ vector<M> subsetSumCount(const vector<int> &s, int t) {
     for (auto &x : res) { x *= z; }
     return res;}
 
-// T: O(m^(1/4) * log(m)^2) expected, M: O(log(m)); 1 <= m <= 3 * 10^18 (pi(m) <= 6 m < 2^64); least period of the Fibonacci numbers modulo m.
-inline ulng pisanoPeriod(ulng m) {
-    assert(m >= 1 && m <= 3000000000000000000ULL);
-    auto isPeriod = [](ulng n, ulng mod) {
+// T: O(m^(1/4) * log(m)^2) expected, M: O(log(m)); any m >= 1; least period of the Fibonacci numbers modulo m, at most 6 m, hence ulll.
+inline ulll pisanoPeriod(ulng m) {
+    assert(m >= 1);
+    auto isPeriod = [](ulll n, ulng mod) {
         ulng a = 0, b = 1 % mod;
-        for (int i = int(std::bit_width(n)); i-- > 0;) {
-            ulng c = modMul64(a, (2 * b + mod - a) % mod, mod), d = (modMul64(a, a, mod) + modMul64(b, b, mod)) % mod;
-            if ((n >> i) & 1) { a = d; b = (c + d) % mod; }
+        for (int i = n >> 64 ? 128 - std::countl_zero(ulng(n >> 64)) : int(std::bit_width(ulng(n))); i-- > 0;) {
+            ulng c = modMul64(a, ulng((2 * ulll(b) + mod - a) % mod), mod), d = ulng((ulll(modMul64(a, a, mod)) + modMul64(b, b, mod)) % mod);
+            if ((n >> i) & 1) { a = d; b = ulng((ulll(c) + d) % mod); }
             else { a = c; b = d; }}
         return a == 0 && b == 1 % mod;};
-    ulng res = 1;
+    ulll res = 1;
     for (auto [p, e] : factorize(m)) {
         // pi(p) divides p - 1 or 2 (p + 1) by Legendre's symbol (5 / p); pi(p^e) = pi(p) p^j for the least such period.
-        ulng l = p == 2 ? 3 : p == 5 ? 20 : p % 5 == 1 || p % 5 == 4 ? p - 1 : 2 * (p + 1), pe = 1;
-        for (auto [q, f] : factorize(l)) { while (l % q == 0 && isPeriod(l / q, p)) { l /= q; } }
+        bool plus = p != 2 && p != 5 && p % 5 != 1 && p % 5 != 4;
+        ulng base = p == 2 ? 3 : p == 5 ? 20 : plus ? p + 1 : p - 1;
+        ulll l = plus ? 2 * ulll(base) : base;
+        for (auto [q, f] : factorize(base)) { while (l % q == 0 && isPeriod(l / q, p)) { l /= q; } }
+        ulng pe = 1;
         for (int i = 0; i < e; ++i) { pe *= p; }
         for (int i = 1; i < e && !isPeriod(l, pe); ++i) { l *= p; }
         res = lcm(res, l);}

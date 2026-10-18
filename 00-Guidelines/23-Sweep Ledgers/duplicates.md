@@ -207,6 +207,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P060 | `continuedFractionSqrt` (`20-continued_fraction.hpp`), `continuedFractionQuadratic(0, D, 1)` | Named special case |
 | P054 | `gridPaths` (`67-lattice_paths.hpp`) beside `combiNR(dx + dy, dx)` | Larger domain: returns 0 for unreachable targets, which `combiNR` rejects (clarified rule) |
 | P054 | `catalanConvolution`, `catalanTriangle` (`67-lattice_paths.hpp`) beside row 05 `ballot` | Named special case (the k-th power of the Catalan series equals the weak ballot to (n + k - 1, n)) and batch form in any ring (additions only) |
+| P054 | `combinatorics_advanced_detail::inverse` (`12-combinatorics_advanced.hpp`) beside row 09 `inverseXgcd` | Larger domain: a private 128-bit Euclid for moduli up to 2^64 - 1, where `inverseXgcd` takes `lng` |
 
 ## Conventions
 

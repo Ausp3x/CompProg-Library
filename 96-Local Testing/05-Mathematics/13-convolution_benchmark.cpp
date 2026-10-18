@@ -21,6 +21,27 @@ vector<mint> nttOnly(const vector<mint> &a, const vector<mint> &b) {
     x.resize(a.size() + b.size() - 1);
     return x;}
 
+// The arbitrary-modulus kernel before P054: three convolutionNtt products with operands copied apart, Garner in ModInt arithmetic.
+template<typename M>
+vector<M> previousKernel(const vector<M> &a, const vector<M> &b) {
+    using namespace convolution_detail;
+    using M1 = ModInt<P1>; using M2 = ModInt<P2>; using M3 = ModInt<P3>;
+    vector<ulng> va(a.size()), vb(b.size());
+    for (int i = 0; i < int(a.size()); ++i) { va[i] = a[i].val(); }
+    for (int i = 0; i < int(b.size()); ++i) { vb[i] = b[i].val(); }
+    auto conv = [&]<typename P>(P) { return convolutionNtt(vector<P>(va.begin(), va.end()), vector<P>(vb.begin(), vb.end())); };
+    auto x = conv(M1());
+    auto y = conv(M2());
+    auto z = conv(M3());
+    const M2 i1 = inv(M2(P1));
+    const M3 i12 = inv(M3(P1) * M3(P2));
+    const M s = M(P1), t = s * M(P2);
+    vector<M> res(x.size());
+    for (int i = 0; i < int(x.size()); ++i) {
+        uint d0 = x[i].val(), d1 = ((y[i] - M2(d0)) * i1).val(), d2 = ((z[i] - M3(d0) - M3(P1) * M3(d1)) * i12).val();
+        res[i] = M(d0) + s * M(d1) + t * M(d2);}
+    return res;}
+
 int main(int argc, char **argv) {
     int reps = argc > 1 ? std::stoi(argv[1]) : 5;
     std::mt19937_64 rng(20261009);
@@ -50,7 +71,11 @@ int main(int argc, char **argv) {
         auto a = rnd<mint>(rng, 1 << 19), b = rnd<mint>(rng, 1 << 19);
         run("mint 2^19 x 2^19", [&] { return convolutionNtt(a, b); }, [&] { return convolution(a, b); }, "convolutionNtt", "convolution");
         auto c = rnd<ModInt<1000000007>>(rng, 1 << 19), d = rnd<ModInt<1000000007>>(rng, 1 << 19);
-        run("1e9+7 2^19 x 2^19", [&] { return convolutionArbitraryMod(c, d); }, [&] { return convolution(c, d); }, "convolutionArbitraryMod", "convolution");
+        run("1e9+7 2^19 x 2^19", [&] { return convolutionArbitraryMod(c, d); }, [&] { return previousKernel(c, d); }, "convolutionArbitraryMod", "previous_kernel");
+        run("1e9+7 2^19 squared (aliased)", [&] { return convolutionArbitraryMod(c, c); }, [&] { return previousKernel(c, c); }, "convolutionArbitraryMod", "previous_kernel");
+        auto p = rnd<ModInt<99991>>(rng, 1 << 18), q = rnd<ModInt<99991>>(rng, 1 << 18);
+        run("99991 2^18 x 2^18 (two primes)", [&] { return convolutionArbitraryMod(p, q); }, [&] { return previousKernel(p, q); }, "convolutionArbitraryMod", "previous_kernel");
+        run("99991 2^18 squared (two primes, aliased)", [&] { return convolutionArbitraryMod(p, p); }, [&] { return previousKernel(p, p); }, "convolutionArbitraryMod", "previous_kernel");
         vector<lng> e(1 << 19), f(1 << 19);
         vector<double> g(1 << 19), h(1 << 19);
         for (int i = 0; i < (1 << 19); ++i) { e[i] = lng(rng() % 2001) - 1000; f[i] = lng(rng() % 2001) - 1000; g[i] = double(e[i]); h[i] = double(f[i]); }

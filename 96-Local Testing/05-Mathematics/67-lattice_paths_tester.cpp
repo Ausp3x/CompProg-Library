@@ -277,4 +277,31 @@ int main(int argc, char **argv) {
         need(m2[n] == walkDp<P2>(n, 0, 0, {-1, 0, 1}, 100), "motzkinTable second prime");
         need(s2[n] == gridDp<P2>(0, 0, n, n, [](int x, int y) { return y <= x; }, true) && q2[n] * 2 == s2[n] + P2(n == 0), "schroder second prime");
         need(d2[n] == gridDp<P2>(0, 0, n, n, [](int, int) { return true; }, true), "delannoyCentral second prime");}
-    cout << "PASS second prime and any-ring tables checks=" << checks << '\n';}
+    cout << "PASS second prime and any-ring tables checks=" << checks << '\n';
+    // The 64-bit prime 2^64 - 59 through the convolution-based paths.
+    using W = ModInt64<18446744073709551557ULL>;
+    for (int r = 0; r < (quick ? 20 : 120); ++r) {
+        int n = 1 + int(rng() % 80), m = 2 + int(rng() % 80);
+        vector<int> a(n), b(n);
+        for (int i = 0; i < n; ++i) { a[i] = int(rng() % ulng(m - 1)); b[i] = a[i] + 1 + int(rng() % ulng(m - a[i])); }
+        context = "64-bit n=" + std::to_string(n) + " m=" + std::to_string(m);
+        need(increasingSequencesBetweenBounds<W>(a, b) == sequencesDp<W>(a, b), "increasingSequencesBetweenBounds modulo 2^64 - 59");}
+    for (int a = 1; a <= 3; ++a) {
+        for (int b = 1; b <= 3; ++b) {
+            auto bz = bizleyPaths<W>(a, b, 5);
+            for (int i = 0; i <= 5; ++i) {
+                context = str({a, b, i});
+                need(bz[i] == gridDp<W>(0, 0, a * i, b * i, [&](int x, int y) { return lng(a) * y <= lng(b) * x; }), "bizleyPaths modulo 2^64 - 59");}}}
+    PrimeCombinatorics<W> pw(400);
+    vector<W> left(150), bottom(170);
+    for (auto &v : left) { v = W(rng()); }
+    for (auto &v : bottom) { v = W(rng()); }
+    auto [right, top] = gridPathsBoundaryTransfer(left, bottom, pw);
+    vector<vector<W>> d(170, vector<W>(150, 0));
+    for (int x = 0; x < 170; ++x) { for (int y = 0; y < 150; ++y) { d[x][y] = (x ? d[x - 1][y] : left[y]) + (y ? d[x][y - 1] : bottom[x]); } }
+    bool ok = true;
+    for (int y = 0; y < 150; ++y) { ok = ok && right[y] == d[169][y]; }
+    for (int x = 0; x < 170; ++x) { ok = ok && top[x] == d[x][149]; }
+    context = "64-bit transfer";
+    need(ok, "gridPathsBoundaryTransfer modulo 2^64 - 59");
+    cout << "PASS 64-bit prime through the convolution paths checks=" << checks << '\n';}

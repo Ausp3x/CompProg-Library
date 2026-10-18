@@ -61,9 +61,9 @@ Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.1
 
 | Command | Result |
 |---|---|
-| `30-modular_power_towers_tester.py --mode full --seed 1` | PASS, 89,235 C++ checks and 800 Python rows per configuration, 3 configurations, 6 assertion probes, `MEMORY peak=415MB` |
+| `30-modular_power_towers_tester.py --mode full --seed 1` | PASS, 89,235 C++ checks and 800 Python rows per configuration, 3 configurations, 6 assertion probes, `MEMORY peak=410MB` |
 | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=436MB` |
-| `30-modular_power_towers_tester.py --mode stress --seed 7` | PASS, 280,602 C++ checks and 4000 Python rows per configuration, 6 assertion probes, `MEMORY peak=538MB` |
+| `30-modular_power_towers_tester.py --mode stress --seed 7` | PASS, 280,602 C++ checks and 4000 Python rows per configuration, 6 assertion probes, `MEMORY peak=524MB` |
 | `02-integration.py` | PASS, 165 standalone and aggregate headers, two translation units, workspace |
 | `03-consistency.py` | PASS, no errors |
 
@@ -77,11 +77,11 @@ Fetched 2026-10-19 by `@researcher` ([00-sources.md](00-sources.md), P054 sweep)
 
 ## Limits and handoffs
 
-- Chains need factorizations; a caller with many moduli pays O(L m^(1/4) log(m)) per modulus.
-- Exponent reduction by multiplicative orders (row 11) and exact preperiods (suisen) are other routes to the same values and are not separate operations.
-- Infinite towers and higher hyperoperations are left out (notes, P054 decisions): a↑↑b mod m stops changing once b passes the chain length.
+- Multiplicative orders are row 11; reducing exponents by orders or by suisen's exact preperiods gives the same values by another route and is not a separate operation.
+- Scope decisions (infinite towers, higher hyperoperations, exact tower comparison) are in [00-notes.md](00-notes.md), P054 decisions.
 - No `97-Legacy` excerpt existed for this row.
 
 ## History
 
 - 2026-10-19: P054 initial implementation; `@reviewer` found 1 bug in this header (exponent overflow at m = 2^64 - 59) and a cost statement for `powerTowerCapped`, both fixed with a regression; full suite passed on g++ and g++-14, stress seed 7 passed.
+- 2026-10-19: P054 follow-up: shared Pollard rho moved into the folder runner, limits section reduced to handoffs; full and stress passed on g++, full on g++-14.

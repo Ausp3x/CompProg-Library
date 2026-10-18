@@ -107,7 +107,7 @@ For each centroid `c` it builds two distance histograms:
 
 Then `Σ_c (h_c * h_c - h'_c * h'_c)` is twice the pair count at every `d ≥ 1`. Indices `≥ n` cancel and are dropped.
 
-A square uses a naive symmetric product when `top < 800` (the maximum distance; crossover measured below) and `convolutionLong` (exact, three-prime NTT) otherwise. Coefficients are at most `n² < 2^63`, and the square length `2·top + 1 <= n + 1` stays within the convolution limit `2^24`. Time is O(n log² n); memory is O(n log n) for the decomposition.
+A square uses a naive symmetric product when `top < 800` (the maximum distance; crossover measured below) and `convolutionLong` (exact multi-prime NTT, row 13) otherwise. Coefficients are at most `n² < 2^63`, so they are exact, and row 13 accepts any length. Time is O(n log² n); memory is O(n log n) for the decomposition.
 
 ### countPathsWithin
 

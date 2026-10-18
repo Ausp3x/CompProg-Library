@@ -211,7 +211,6 @@ int main(int argc, char **argv) {
         if (s == "doubling-rank") { vector<ModInt<12289>> v(4096); nttDoubling(v); }
         if (s == "fft-size") { vector<std::complex<double>> v(3); fft(v); }
         if (s == "ifft-size") { vector<std::complex<double>> v(6); ifft(v); }
-        if (s == "arbitrary-bound") { using B = ModInt64<1000000000039ULL>; convolutionArbitraryMod(vector<B>(100, 1), vector<B>(100, 1)); }
         if (s == "middle-zero") { middleProduct(three, vector<M>{}); }
         if (s == "cyclic-size") { cyclicConvolution(three, one); }
         if (s == "negacyclic-size") { negacyclicConvolution(three, one); }
@@ -369,6 +368,21 @@ int main(int argc, char **argv) {
         auto u = convolutionU128(ua, ub);
         auto f = brute(vector<ulll>(ua.begin(), ua.end()), vector<ulll>(ub.begin(), ub.end()));
         check(u == f, "convolutionU128 brute rep=" + std::to_string(rep));}
+    // Full 64-bit inputs: Long modulo 2^64 and U128 modulo 2^128 against wrapping brute force; aliased squares.
+    for (int rep = 0; rep < (quick ? 10 : 100); ++rep) {
+        int n = int(rng() % 120) + 1, m = int(rng() % 120) + 1;
+        vector<lng> a(n), b(m);
+        for (auto &x : a) { x = lng(rng()); }
+        for (auto &x : b) { x = lng(rng()); }
+        vector<ulng> wa(a.begin(), a.end()), wb(b.begin(), b.end());
+        auto c = convolutionLong(a, b), cs = convolutionLong(a, a);
+        auto e = brute(wa, wb), es = brute(wa, wa);
+        bool ok = c.size() == e.size() && cs.size() == es.size();
+        for (int i = 0; ok && i < int(e.size()); ++i) { ok = ulng(c[i]) == e[i]; }
+        for (int i = 0; ok && i < int(es.size()); ++i) { ok = ulng(cs[i]) == es[i]; }
+        check(ok, "convolutionLong modulo 2^64 rep=" + std::to_string(rep));
+        auto u = convolutionU128(wa, wb);
+        check(u == brute(vector<ulll>(wa.begin(), wa.end()), vector<ulll>(wb.begin(), wb.end())), "convolutionU128 modulo 2^128 rep=" + std::to_string(rep));}
     check(convolutionLong({LLONG_MIN}, {1}) == vector<lng>{LLONG_MIN} && convolutionLong({LLONG_MAX, LLONG_MIN}, {1, 1}) == vector<lng>{LLONG_MAX, -1, LLONG_MIN}, "convolutionLong extremes");
     check(convolutionLong({-1}, {LLONG_MIN + 1}) == vector<lng>{LLONG_MAX} && convolutionLong({}, {1}).empty(), "convolutionLong extremes 2");
     {
@@ -380,7 +394,12 @@ int main(int argc, char **argv) {
         vector<lng> a(n), b((1 << (quick ? 13 : fast ? (stress ? 24 : 21) : 17)) + 1 - n);
         for (auto &x : a) { x = lng(rng() % 2000001) - 1000000; }
         for (auto &x : b) { x = lng(rng() % 2000001) - 1000000; }
-        sampled(a, b, convolutionLong(a, b), "convolutionLong long length");}
+        sampled(a, b, convolutionLong(a, b), "convolutionLong long length");
+        if (fast && !quick) {
+            vector<lng> la((1 << 24) + 9), lb(80);
+            for (auto &x : la) { x = lng(rng() % 2000001) - 1000000; }
+            for (auto &x : lb) { x = lng(rng() % 2000001) - 1000000; }
+            sampled(la, lb, convolutionLong(la, lb), "convolutionLong beyond 2^24");}}
     cout << "PASS convolutionLong, convolutionU128\n";
 
     {
@@ -399,6 +418,76 @@ int main(int argc, char **argv) {
                 if (min(n, m) <= 60) {
                     auto x = rnd<E>(n), y = rnd<E>(m);
                     check(convolutionArbitraryMod(x, y) == brute(x, y), "convolutionArbitraryMod 64-bit naive range");}}}
+        // Every prime-count boundary from one through four primes: the largest modulus with k (mod - 1)^2 < P_1 ... P_K, all entries mod - 1 (the worst coefficient), and one past it.
+        using F = DynModInt64<5>;
+        for (int K = 1; K <= 4; ++K) {
+            ulll w = 1;
+            for (int j = 0; j < K; ++j) { w *= convolution_detail::PRIMES[j]; }
+            for (int k : {61, 200, 1000}) {
+                ulll lim = (w - 1) / ulll(k);
+                ulng r = ulng(std::sqrt(static_cast<long double>(lim)));
+                while (ulll(r + 1) * (r + 1) <= lim) { ++r; }
+                while (ulll(r) * r > lim) { --r; }
+                for (ulng mod : {r + 1, r + 2}) {
+                    F::setMod(mod);
+                    vector<F> x(k, F(mod - 1)), y(k + 7, F(mod - 1)), z = rnd<F>(k + 3);
+                    check(convolutionArbitraryMod(x, y) == brute(x, y), "convolutionArbitraryMod prime-count bound K=" + std::to_string(K) + " k=" + std::to_string(k) + " mod=" + std::to_string(mod));
+                    check(convolutionArbitraryMod(x, x) == brute(x, x) && convolutionArbitraryMod(z, z) == brute(z, z), "convolutionArbitraryMod aliased square");}}}
+        // Five and six primes at 2^64 - 59 (the bit-length rule switches at k = 2^16): all-equal inputs give c_s = count(s) v^2.
+        for (int k : {32768, 70000}) {
+            ulng mod = ~ulng(0) - 58;
+            F::setMod(mod);
+            int n = k, m = k + 3;
+            vector<F> x(n, F(mod - 1)), y(m, F(mod - 1));
+            auto c = convolutionArbitraryMod(x, y);
+            F v2 = F(mod - 1) * F(mod - 1);
+            bool ok = int(c.size()) == n + m - 1;
+            for (int t = 0; ok && t < n + m - 1; ++t) { ok = c[t] == F(min({t + 1, n, m, n + m - 1 - t})) * v2; }
+            check(ok, "convolutionArbitraryMod five and six primes k=" + std::to_string(k));}
+        for (int t = 0; t < (quick ? 10 : 60); ++t) {
+            ulng mod = t % 3 == 0 ? ~ulng(0) - rng() % 100 : max<ulng>(1, rng() >> (rng() % 64));
+            F::setMod(mod);
+            auto x = rnd<F>(61 + int(rng() % 200)), y = rnd<F>(61 + int(rng() % 200));
+            check(convolutionArbitraryMod(x, y) == brute(x, y) && convolutionArbitraryMod(x, x) == brute(x, x), "convolutionArbitraryMod 64-bit mod=" + std::to_string(mod));}
+        if (fast && !quick) {
+            // Six primes with a nonzero sixth digit (k max^2 above P_1 ... P_5 ~ 2^147.3): U128, Long and the modulus 2^64 - 59 by closed forms.
+            int n = 700000, m = 700001;
+            vector<ulng> uw(n, ~ulng(0)), vw(m, ~ulng(0));
+            auto u = convolutionU128(uw, vw);
+            ulll sq = ulll(~ulng(0)) * ~ulng(0);
+            bool okU = int(u.size()) == n + m - 1;
+            for (int t = 0; okU && t < n + m - 1; ++t) { okU = u[t] == ulll(min({t + 1, n, m, n + m - 1 - t})) * sq; }
+            check(okU, "convolutionU128 six primes");
+            F::setMod(~ulng(0) - 58);
+            vector<F> fx(n, F(~ulng(0) - 59)), fy(m, F(~ulng(0) - 59));
+            auto fc = convolutionArbitraryMod(fx, fy);
+            F f2 = F(~ulng(0) - 59) * F(~ulng(0) - 59);
+            bool okF = int(fc.size()) == n + m - 1;
+            for (int t = 0; okF && t < n + m - 1; ++t) { okF = fc[t] == F(min({t + 1, n, m, n + m - 1 - t})) * f2; }
+            check(okF, "convolutionArbitraryMod six primes");
+            int ln = 1400000, lm = 1400003;
+            lng va = -(LLONG_MAX), vb = LLONG_MAX - 2;
+            auto lc = convolutionLong(vector<lng>(ln, va), vector<lng>(lm, vb));
+            bool okL = int(lc.size()) == ln + lm - 1;
+            for (int t = 0; okL && t < ln + lm - 1; ++t) { okL = ulng(lc[t]) == ulng(min({t + 1, ln, lm, ln + lm - 1 - t})) * ulng(va) * ulng(vb); }
+            check(okL, "convolutionLong six primes");}
+        {
+            // One prime when k max^2 < P_1: 0/1 vectors through Long, small moduli through the arbitrary path.
+            vector<lng> za(1000), zb(1200);
+            for (auto &v : za) { v = lng(rng() & 1); }
+            for (auto &v : zb) { v = lng(rng() & 1); }
+            check(convolutionLong(za, zb) == brute(za, zb), "convolutionLong one prime");}
+        if (fast && !quick) {
+            // Beyond 2^24 the per-prime products split into blocks.
+            int n = (1 << 24) + 5, m = 70;
+            vector<A> x(n, A(1000000006)), y(m, A(1000000006));
+            auto c = convolutionArbitraryMod(x, y);
+            A v2 = A(1000000006) * A(1000000006);
+            bool ok = int(c.size()) == n + m - 1;
+            for (int t = 0; ok && t < n + m - 1; ++t) { ok = c[t] == A(min({t + 1, n, m, n + m - 1 - t})) * v2; }
+            check(ok, "convolutionArbitraryMod beyond 2^24");}
+        auto sq = rnd<A>(quick ? 300 : 3000);
+        check(convolutionArbitraryMod(sq, sq) == brute(sq, sq), "convolutionArbitraryMod aliased square 1e9+7");
         auto a = rnd<A>(quick ? 4000 : 300000), b = rnd<A>(quick ? 3000 : 200000);
         sampled(a, b, convolutionArbitraryMod(a, b), "convolutionArbitraryMod large");
         cout << "PASS convolutionArbitraryMod\n";}
