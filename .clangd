@@ -1,5 +1,5 @@
 CompileFlags:
-  Add: [-std=gnu++20, -O2, -Wall, -Wextra, -Wconversion, -DLOCAL]
+  Add: [-std=gnu++20, -O2, -Wall, -Wextra, -Wconversion, -Wno-sign-conversion, -DLOCAL]
   Compiler: g++
 Diagnostics:
   UnusedIncludes: None

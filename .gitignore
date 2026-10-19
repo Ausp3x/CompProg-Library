@@ -15,6 +15,7 @@
 98-Team Notebook/*.toc
 
 .claude/settings.local.json
+.claude/finish/
 96-Local Testing/**/*_benchmark.json
 96-Local Testing/**/*_benchmark.jsonl
 /99-Workspace/*

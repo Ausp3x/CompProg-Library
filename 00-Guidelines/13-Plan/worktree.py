@@ -3,16 +3,23 @@
 
 Usage: worktree.py [PATH] [--sync | --finish] [--integration] [--remove]
   PATH defaults to the current directory.
-  (no flag)      report: clean? branch tip in master? package verified on master?
-  --sync         rebase the branch onto master. Only the generated plan file
-                 (01-prompts.md) is resolved automatically, by re-rendering it;
-                 any other conflict aborts the rebase and is reported. The
+  (no flag)      report: clean? branch tip in master? package status on master?
+                 A clean, merged worktree is DONE; an unverified package is
+                 only reported, since its work is already in master.
+  --sync         rebase the branch onto master. Only conflicts inside the
+                 generated plan block of 01-prompts.md are resolved, by
+                 re-rendering it; a conflict marker left anywhere else aborts
+                 the rebase and is reported. The
                  consistency validator runs before and after; new errors fail.
+                 Notes other worktrees whose uncommitted edits touch the
+                 files this branch changes.
   --integration  also run the integration build after a sync.
   --remove       remove the worktree and delete its branch once it is DONE.
-  --finish       --sync, then fast-forward master, then --remove.
+  --finish       --sync, then fast-forward master (the main checkout must have
+                 master checked out), then --remove.
   --sync, --remove and --finish must run from outside the worktree (the main
-  checkout); the report works from anywhere.
+  checkout); the report works from anywhere. /finish runs --finish after
+  leaving the worktree, so its own session's lock is not reported as live.
 """
 import argparse
 import json
@@ -23,6 +30,7 @@ import subprocess
 import sys
 
 GENERATED = {'01-prompts.md'}
+MARKER = re.compile(r'^(<{7} |={7}$|>{7} )', re.M)
 
 
 def git(*args, cwd, check=True):
@@ -50,14 +58,53 @@ def inspect(path):
     match = re.search(r'P\d{3}', facts['branch']) or re.search(r'P\d{3}', path.name)
     facts['package'] = match.group(0) if match else None
     facts['status'] = None
+    facts['note'] = ''
     if facts['package']:
         show = git('show', 'master:00-Guidelines/13-Plan/packages.json', cwd=path, check=False)
         entries = [p for p in json.loads(show.stdout)['packages'] if p['id'] == facts['package']] if show.returncode == 0 else []
         facts['status'] = entries[0]['status'] if entries else '(not in plan)'
+        facts['note'] = entries[0]['note'] if entries else ''
     lock = git('worktree', 'list', '--porcelain', cwd=path).stdout
     pid = re.search(re.escape(str(path)) + r'\n[^\n]*\n[^\n]*\nlocked[^\n]*pid (\d+)', lock)
-    facts['live'] = bool(pid) and Path('/proc', pid.group(1)).exists()
+    facts['live'] = bool(pid) and Path('/proc', pid.group(1)).exists() and int(pid.group(1)) not in ancestors()
     return facts
+
+
+def uncommitted(path):
+    """(status, path) per uncommitted file, NUL-safe, untracked directories expanded."""
+    entries, res = iter(git('--no-optional-locks', 'status', '--porcelain', '-z', '--untracked-files=all', cwd=path, check=False).stdout.split('\0')), []
+    for e in entries:
+        if e:
+            res.append((e[:2], e[3:]))
+            if 'R' in e[:2] or 'C' in e[:2]:
+                res.append((e[:2], next(entries, '')))  # the rename source follows; it changes too
+    return res
+
+
+def overlaps(path, main_root):
+    """Other worktrees whose uncommitted edits touch files this branch changes. Reading another worktree is a
+    git operation a worktree session may not run, so this runs only with --sync or --finish, from outside."""
+    mine = set(git('diff', '--name-only', '-z', 'master...HEAD', cwd=path).stdout.split('\0')) - {''}
+    res = []
+    for line in git('worktree', 'list', '--porcelain', cwd=main_root).stdout.splitlines():
+        other = Path(line.split(' ', 1)[1]) if line.startswith('worktree ') else None
+        if other and other not in (path, main_root) and other.is_dir():
+            shared = sorted(mine & {p for _, p in uncommitted(other)})
+            if shared:
+                res.append(f'{other.name} has uncommitted edits to {", ".join(shared[:8])}{" ..." if len(shared) > 8 else ""}; its next rebase may conflict')
+    return res
+
+
+def ancestors():
+    """Process ids of this process and its parents, so the calling session's own lock is not reported as live."""
+    pid, seen = os.getpid(), set()
+    while pid > 1 and pid not in seen:
+        seen.add(pid)
+        try:
+            pid = int(Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()[1])
+        except (OSError, ValueError, IndexError):
+            break
+    return seen
 
 
 def report(path, facts):
@@ -78,9 +125,8 @@ def report(path, facts):
         else:
             problems.append(f'master can fast-forward: `git merge --ff-only {facts["branch"]}` in the main checkout, or `--finish`')
     if facts['package']:
-        print(f'plan     {facts["package"]} is {facts["status"]} on master')
-        if facts['status'] != 'verified':
-            problems.append(f'{facts["package"]} is {facts["status"]} on master, not verified')
+        print(f'plan     {facts["package"]} is {facts["status"]} on master'
+              + ('' if facts['status'] == 'verified' else f' (removal still allowed once merged; plan note: {facts["note"] or "EMPTY, so nothing records the remaining work"})'))
     if facts['ignored']:
         print(f'note     {len(facts["ignored"])} git-ignored files present (fine; removal may need --force)')
     if facts['live']:
@@ -98,13 +144,17 @@ def sync(path, facts, integration):
         print(f'sync     rebasing {facts["branch"]} onto master ({len(facts["behind"])} new commits on master)')
         result = git('rebase', 'master', cwd=path, check=False)
         while result.returncode:
-            conflicts = git('diff', '--name-only', '--diff-filter=U', cwd=path).stdout.split()
-            if not conflicts or not set(conflicts) <= GENERATED:
+            conflicts = git('diff', '--name-only', '--diff-filter=U', cwd=path).stdout.splitlines()
+            resolved = bool(conflicts) and set(conflicts) <= GENERATED
+            if resolved:
+                subprocess.run([sys.executable, str(path / '00-Guidelines/13-Plan/plan.py'), 'render'], cwd=path, check=True, capture_output=True)
+                conflicts = [f for f in conflicts if MARKER.search((path / f).read_text())]  # render rewrites only the plan block
+                resolved = not conflicts
+            if not resolved:
                 git('rebase', '--abort', cwd=path, check=False)
-                raise SystemExit('rebase stopped on conflicts outside the generated plan file; aborted. Resolve by hand in the worktree:\n  '
+                raise SystemExit('rebase stopped on conflicts outside the generated plan block; aborted. Resolve by hand in the worktree:\n  '
                                  + '\n  '.join(conflicts or [result.stderr.strip()]))
-            subprocess.run([sys.executable, str(path / '00-Guidelines/13-Plan/plan.py'), 'render'], cwd=path, check=True, capture_output=True)
-            git('add', *conflicts, cwd=path)
+            git('add', *GENERATED, cwd=path)
             result = git('rebase', '--continue', cwd=path, check=False)
         after = validator_errors(path)
         new = after - before
@@ -150,9 +200,14 @@ def main():
     if args.sync or args.finish:
         sync(path, facts, args.integration)
         facts = inspect(path)
+        for line in overlaps(path, main_root):
+            print('note     ' + line)
     if args.finish and not facts['merged']:
         if facts['dirty'] or facts['behind']:
             raise SystemExit('cannot fast-forward master: worktree dirty or still behind master')
+        current = git('branch', '--show-current', cwd=main_root).stdout.strip()
+        if current != 'master':
+            raise SystemExit(f'the main checkout has {current or "a detached HEAD"} checked out, not master; switch it to master and rerun')
         git('merge', '--ff-only', facts['branch'], cwd=main_root)
         print(f'master   fast-forwarded to {facts["branch"]}')
         facts = inspect(path)

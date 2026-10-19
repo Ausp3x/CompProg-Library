@@ -18,7 +18,7 @@ This session writes only the ledger.
 3. **Write.** Keep "Recorded decisions" and replace earlier rows for the swept scope. Per owning package (`plan.py show Pxxx`) a section `## Pxxx — <label> (<status>)` with `| Id | Operation | Row | Purpose | Sources | Decision | Reason |`; proposed rows under `## New rows` with `| Id | Proposed header | Tier | Operations | Sources | Owner | Decision | Reason |`, Owner being a batch of that folder whose package is `planned` and whose focus covers it, or `new`. Merge duplicates; list every `ask` under `## Open questions` with the fact to decide.
 4. **Report** counts by folder and decision, every `ask`, failed fetches and `git add '00-Guidelines/23-Sweep Ledgers/omissions.md' && git commit -m "Omission sweep <scope>"`.
 
-If context runs low, list finished scopes under a temporary `## Sweep progress` in the ledger and `/compact`.
+List finished scopes under a temporary `## Sweep progress` in the ledger as they finish; after a compaction (`CLAUDE.md`, Compact instructions), resume from it.
 
 ## Apply
 

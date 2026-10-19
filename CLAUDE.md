@@ -11,12 +11,16 @@ Maximal competitive-programming library: C++20 headers in `01-Core` … `07-Stri
 
 ## Git
 
-When asked to commit, commit directly to local `master`; create no branch unless asked. Never push: the user pushes `master` to `origin`.
+When asked to commit, commit directly to local `master`; create no branch unless asked. In a worktree, `/finish` commits to the worktree branch and lands it on `master` (its step 7). Never push: the user pushes `master` to `origin`.
 
 ## Models and delegation
 
-- Core full types (`01-Core` non-mini headers): Claude Fable 5.1 (`/model fable`), effort max. Everything else: Claude Opus 5.5 (`/model opus`), effort xhigh; `@reviewer` runs at xhigh and `@researcher` at high. Pass `--effort` at launch: a main session ignores an agent file's `effort`, and `max` cannot be saved as a default. `/package` and `/prune` stop when the session does not match the package; the other skills set their model and effort in their front matter.
+- Core full types (`01-Core` non-mini headers): Claude Fable 5.1 (`/model fable`), effort max. Everything else: Claude Opus 5.5 (`/model opus`), effort xhigh; `@reviewer` runs at xhigh and `@researcher` at high. Pass `--effort` at launch: a main session ignores an agent file's `effort`, and `max` cannot be saved as a default. `/package`, `/prune` and `/finish` stop when the session does not match the package; the other skills set their model and effort in their front matter.
 - `@researcher` sweeps sources for completeness and `@reviewer` reviews a package independently before it is marked verified; both return summaries, keeping the main context small.
+
+## Compact instructions
+
+Sessions auto-compact at 400k tokens (`autoCompactWindow` in `.claude/settings.json`), and the `compact` SessionStart hook re-injects the `/finish` ledger, the package brief and the git state. A summary keeps the package or batch id, the skill and step in progress, decisions made and by whom, operations done and remaining, failing reproducers with seeds, and the exact next step; it drops file contents, passing test output and superseded attempts.
 
 ## Commands
 

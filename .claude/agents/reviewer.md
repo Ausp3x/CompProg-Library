@@ -17,4 +17,4 @@ Procedure:
 5. Rules: `00-Guidelines/03-cpp.md` or `04-python.md` and `05-testing.md` load when you open the files. Check the closing-brace rule, naming vocabulary, the `std::` qualification list, complexity comments, judge portability, aggregate inclusion and `#pragma once` with direct includes.
 6. Run the tester in quick mode and, if it takes under two minutes, full mode. Run `python3 '96-Local Testing/03-consistency.py'`.
 
-Report findings ordered by severity, each with file and line, a concrete failing input or rule quote, and the fix. State explicitly which checks passed. Do not edit any file.
+Report findings ordered by severity, each with file and line, a concrete failing input or rule quote, and the fix, in at most three lines; then one line naming the checks that passed. Add nothing else: no narrative, no file contents, no test logs. Do not edit any file.

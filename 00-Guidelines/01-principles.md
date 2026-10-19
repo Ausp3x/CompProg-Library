@@ -29,7 +29,7 @@ Single-threaded contest execution is the baseline. Static caches and dynamic-mod
 
 ## Scope discipline
 
-- Do the assigned package only. Update its inventory rows, tests, aggregates, evidence, plan entry and dependent paths in the same change.
+- Do the assigned package only. Update its inventory rows, tests, aggregates, evidence, plan entry and dependent paths in the same change. A defect `/finish` finds in another package's files is fixed only with the user's yes and recorded in that package's evidence; the recorded call-site migrations of `/prune` and `/package` step 4 need none.
 - `OLD` is never deleted. A `97-Legacy` excerpt is deleted once the row it informs is verified; until then it stays untouched.
 - Never submit to an online judge.
 - Guideline, skill and document edits state each rule once, in its owning file, as briefly as unambiguity allows; other files link it.

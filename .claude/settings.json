@@ -1,4 +1,5 @@
 {
+  "autoCompactWindow": 400000,
   "permissions": {
     "allow": [
       "Bash(g++ *)",
@@ -38,6 +39,18 @@
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/consistency.py\"",
             "timeout": 90
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/resume.py\"",
+            "timeout": 60
           }
         ]
       }
