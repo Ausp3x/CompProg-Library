@@ -21,12 +21,16 @@ Correctness and widths: after the fold, `a, b < m < 2^63` and `n < 2^63`, so `y 
 Algorithm:
 - `a` and `b` are folded into `[0, m)` by `floorDiv`, contributing `q n (n - 1) / 2` and `q n`. The remainder `a - q m` is formed in `ulll`, because `q m` alone can leave `lll` (`a = -2^127`, `m = 3`).
 - The kernel `floorsum_detail::reducedWide` runs the same Euclidean loop as `reduced` with 128-bit `m`, `a`, `b`.
-- Each round needs `(a n + b) / m` and its remainder, where `a, b < m < 2^127` and `n < 2^63`. `divStep` forms the 191-bit numerator from two 64-by-64-bit partial products (the low and high halves of `a` times `n`) and an addition, propagating both carries. When the numerator fits 128 bits it divides directly; otherwise it divides by `m` one bit at a time over 128 steps.
+- Each round needs `(a n + b) / m` and its remainder, where `a, b < m < 2^127` and `n < 2^63`. `divStep` forms the 191-bit numerator from two 64-by-64-bit partial products (the low and high halves of `a` times `n`) and an addition, propagating both carries. When the numerator fits 128 bits it divides directly. Otherwise the numerator is below `m 2^63`, so `m > 2^65`, and one step of Knuth's Algorithm D gives the quotient word:
+  - shift `m` left by `s`, the leading zeros of its high word (`s` in `[1, 62]`), so that the top bit of `d = m 2^s = <d1, d0>` is set, and shift the numerator by the same `s` into three words `<u2, u1, u0>`;
+  - estimate `q = <u2, u1> / d1` with one 128-by-64 division and `r = <u2, u1> − q d1`;
+  - decrease `q` and add `d1` to `r` while `r < 2^64` and `q d0 > <r, u0>`;
+  - the remainder is `(<r, u0> − q d0) >> s`, computed modulo 2^128 because it lies in `[0, d)`.
 
 Widths:
-- The remainder stays below `m`, so `2 r + 1 < 2^128`.
-- The quotient is at most `n`, so it fits 64 bits, and the loop keeps `a, b < m`.
-- That makes `O(log(m))` rounds, each one division or 128 bit steps.
+- The quotient is at most `n < 2^63`, and the loop keeps `a, b < m`.
+- With `T = <u2, u1> < d / 2 < (d1 + 1) 2^63`, `u2 < d1`, so the estimate fits one word. It exceeds the true quotient by at most 1: `q − X / d <= T / d1 − T / (d1 + 1) = T / (d1 (d1 + 1)) < 2^63 / d1 <= 1` for the shifted numerator `X`. So the correction runs at most once; Knuth's general bound of 2 cannot occur here.
+- That makes `O(log(m))` rounds of `O(1)` word operations.
 
 Geometry row 19 uses it for rational polygons whose slopes need more than 64 bits (P037). It is kept beside `floorSum` by decision (2026-10-19) for its larger domain.
 
@@ -84,14 +88,14 @@ Entry: [`18-floorsum_tester.py`](<../../96-Local Testing/05-Mathematics/18-floor
 | Feature | Independent evidence |
 |---|---|
 | `floorSum`, `ceilSum`, `modSum` | Direct 128-bit loops for every `n <= 12`, `m <= 12` and `a, b` in `[-15, 15]`, every signed64 extreme `a`, `b` with moduli up to `2^63 - 1`, and seeded loops up to length 2000 with any modulus. Exact Python integers through the OI Wiki recursion, an independent derivation, on 3000 rows up to `n = m = 2^63 - 1`. Identities modulo 2^128 for `a`, `b` up to 2^126 in magnitude: additivity in `n`, `a + m`, `b + m`, and `ceilSum` as the negated mirror. Closed forms at `n = m = 2^63 - 1`, at 2^126 coefficients, and across the 2^64 division boundary. |
-| `floorSumWide` | Direct loops modulo 2^128 for `n <= 64`, moduli up to `2^126` and coefficients below `2^120`; equality with `floorSum` on random 64-bit moduli with coefficients up to `2^125`; `m = 2^127 - 1` with `n = 2^63 - 1`; extreme coefficients `-2^127` and `2^127 - 1`, including reductions of `-2^127` whose `q m` alone would overflow. The exact Python integer oracle checks quick 300, full 3000 and stress 20,000 rows, with moduli up to `2^127 - 1` and coefficients over the whole `lll` range. |
+| `floorSumWide` | Direct loops modulo 2^128 for `n <= 64`, moduli up to `2^126` and coefficients below `2^120`; equality with `floorSum` on random 64-bit moduli with coefficients up to `2^125`; `m = 2^127 - 1` with `n = 2^63 - 1`; extreme coefficients `-2^127` and `2^127 - 1`, including reductions of `-2^127` whose `q m` alone would overflow. `floorsum_detail::divStep` against a tester-local restoring division of the 192-bit numerator: moduli at both ends of the shift range (shift 1: `2^127 − 1`, `2^127 − 2`, `2^126`, `2^126 + 1`, `2^127 − 2^64`; shift 62: `2^65 + 1`, `2^66 − 1`) and on the direct path (`2^65 − 1`, `2^64 + 1`) with the largest quotients (`a = b = m − 1`, `n = 2^63 − 1`); random moduli of 65–127 bits (full 200,000, stress 10^6, quick 20,000); and remainders 0–3, which the correction test must decide by the low word. On an instrumented copy the full run took 86,043 steps without and 607 with one correction, over shifts 1 to 62, the whole reachable range. The exact Python integer oracle checks quick 300, full 3000 and stress 20,000 rows, with moduli up to `2^127 - 1` and coefficients over the whole `lll` range. |
 | `countModInRange` | Every `[l, r)` in the exhaustive domain against counting, seeded long loops, additivity over adjacent ranges, the total `n`, and the Python identity. |
 | `floorSumMoments` | Direct sums in `ulll` and in `mint` (`ModInt<998244353>`) in the exhaustive and long-loop domains, the first moment against `floorSum`, and the Python OI Wiki `f`, `g`, `h` recursion modulo 2^128 and modulo 998244353. |
 | `minOfModOfLinear`, `maxOfModOfLinear` | Direct scans with the least index, and certificates: the value at `x`, no smaller (larger) value counted by `countModInRange`, and `x` recovered by `firstModInRange`. A Python binary search on the value with floor-sum counts and the least argument from a modular inverse, a different algorithm. |
 | `firstModInRange` | A one-period scan for every `[l, r)` in the exhaustive domain, certificates (value in range, no earlier hit by count, a full-period count for `-1`), and a Python binary search on the prefix count. |
 | Quotient blocks | Exhaustive `n <= 3000` against the set of quotients, and tiling, maximality and the block-count formula up to `10^12` and `2^40`. Joint blocks against the per-`x` quotient tuples for up to four values below 400. |
 | Oracle validation | The Python recursions, the value search and the first-hit search are checked against brute force for `n <= 8`, `m <= 7` and `a, b` in `[-9, 9]` before use. |
-| Preconditions | Eleven checked-build death probes: `m = 0` (for `floorSum` and `floorSumWide`), `n < 0`, reversed and oversized ranges, moments with `m = 0`, an empty minimum, `max` with `m = 0`, a negative bound, and negative quotient inputs. A separate `-DNDEBUG` probe (2026-10-18, `-O0` and `-O2`) confirmed that 16 violating calls (zero or negative `m` and `n`, empty and reversed ranges, negative quotient inputs) terminate. |
+| Preconditions | Eleven checked-build death probes: `m = 0` (for `floorSum` and `floorSumWide`), `n < 0`, reversed and oversized ranges, moments with `m = 0`, an empty minimum, `max` with `m = 0`, a negative bound, and negative quotient inputs. A separate `-DNDEBUG` probe (2026-10-18, `-O0` and `-O2`) confirmed that 16 violating calls (zero or negative `m` and `n`, empty and reversed ranges, negative quotient inputs) terminate. In round 3 a negative `m` in `floorSumWide` reached a 128-bit shift (UB under `-fsanitize=undefined`); the shift is now split in two, and the reviewer's reproducer runs clean. |
 
 ## Commands and results
 
@@ -99,24 +103,37 @@ Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.1
 
 | Command | Result |
 |---|---|
-| `18-floorsum_tester.py --mode full --seed 1` | PASS, 32,674,154 C++ checks, 3000 Python rows and 3000 `floorSumWide` Python rows per configuration, 11 assertion probes, `MEMORY peak=443MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=446MB` |
-| `18-floorsum_tester.py --mode stress --seed 7` | PASS, 157,985,065 C++ checks, 20,000 Python rows and 20,000 `floorSumWide` Python rows per configuration, 11 assertion probes, `MEMORY peak=666MB` |
+| `18-floorsum_tester.py --mode full --seed 1` | PASS, 32,095,166 C++ checks (400,160 of them on `divStep`), 3000 Python rows and 3000 `floorSumWide` Python rows per configuration, 11 assertion probes, `MEMORY peak=773MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=773MB` |
+| `18-floorsum_tester.py --mode stress --seed 7` | PASS, 160,479,218 C++ checks (2,000,160 on `divStep`), 20,000 Python rows and 20,000 `floorSumWide` Python rows per configuration, 11 assertion probes, `MEMORY peak=902MB` |
+| `20-continued_fraction_tester.py --mode full --seed 1` (includes this header), `g++` and `g++-14` | PASS, 3,805,206 checks and 3000 Python rows per configuration, 17 probes, `MEMORY peak=818MB` and `817MB` |
 | `18-floorsum_benchmark.py 5` | PASS; table below |
-| `02-integration.py` | PASS, 167 standalone and aggregate headers, two translation units, workspace, `MEMORY peak=654MB` |
-| `02-integration.py --sanitizers` | PASS, 167 headers, sanitizer self-tests, `MEMORY peak=1831MB` |
-| `03-consistency.py` | PASS, no errors |
+| `02-integration.py` | PASS, 168 standalone and aggregate headers, two translation units, workspace, `MEMORY peak=652MB` |
+| `02-integration.py --sanitizers` | PASS, 168 headers, sanitizer self-tests, `MEMORY peak=1833MB` |
+| `03-consistency.py` | No errors |
+| `03-consistency.py --braces` on the header, tester and benchmark | No violations |
 
 ## Benchmarks
 
-`18-floorsum_benchmark.py`, GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 5 repetitions, 10^6 random queries with `0 <= a, b < m`. Outputs are compared across kernels, and the Farey rank is verified.
+`18-floorsum_benchmark.py 5` (2026-10-19, round 3), GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 5 repetitions. Run serially on the final code, with other sessions keeping the load average near 2.7; two earlier runs at load 1.8 agreed with each other within 1% and were about 25% faster overall. Outputs are compared across kernels, and the Farey rank is verified.
+
+10^6 random `floorSum` queries with `0 <= a, b < m`:
 
 | Workload | Shipped `floorSum` | Always-128-bit kernel | ACL 64-bit kernel |
 |---|---|---|---|
-| `n, m <= 10^9` (Library Checker sizes) | 210.5 ms | 222.9 ms | 207.7 ms |
-| `n, m < 2^62` | 513.9 ms | 542.9 ms | not valid |
+| `n, m <= 10^9` (Library Checker sizes) | 211.6 ms | 224.8 ms | 187.4 ms |
+| `n, m < 2^62` | 440.1 ms | 514.5 ms | not valid |
 
-The 64-bit division branch keeps `floorSum` within 1.5% of ACL's 64-bit-only kernel on its domain and faster than an always-128-bit kernel everywhere. Skipping the 128-bit normalization for `a, b` in `[0, 2^64)` removed a measured 10% overhead on 62-bit inputs.
+The 64-bit division branch keeps `floorSum` within 13% of ACL's 64-bit-only kernel on its domain in this run (3–4% in the two quieter runs) and faster than an always-128-bit kernel everywhere. Skipping the 128-bit normalization for `a, b` in `[0, 2^64)` removed a measured 10% overhead on 62-bit inputs.
+
+10^5 random `floorSumWide` queries with `n < 2^63` and `0 <= a, b < m`, against the former kernel with 128 restoring steps per round (kept in the benchmark):
+
+| Workload | Shipped (one Knuth D word step) | Former bitwise kernel |
+|---|---|---|
+| `m < 2^64` | 59.7 ms | 81.2 ms |
+| `2^64 <= m < 2^127` | 97.7 ms | 787.8 ms |
+
+The word step makes `floorSumWide` 7.4–8.1× faster on wide moduli (this run and the quieter ones). Below `2^64` both take the direct division; the 1.4× there comes from the smaller kernel.
 
 ## Sources
 
@@ -126,6 +143,7 @@ Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep)
 - OI Wiki 类欧几里得算法: the `f`, `g`, `h` recursion, used here only as the Python oracle. The header uses the division-free binomial form.
 - maspypy `mod/` and Library Checker `min_of_mod_of_linear`, `sum_of_floor_of_linear`, `enumerate_quotients`: contracts of the extrema, first hit and quotient enumeration.
 - OI Wiki 数论分块 and suisen `multiple_quotients_ranges`: joint quotient blocks.
+- Round 3 (2026-10-19), from the P037 bounds sweep: [GMP manual, Basecase Division](https://gmplib.org/manual/Basecase-Division) and the [Möller–Granlund division draft](https://www.lysator.liu.se/~nisse/archive/draft-division-paper.pdf) (normalized divisor, word estimate, at most two corrections). `divStep` implements Knuth's Algorithm D for one quotient word from those statements.
 
 ## Limits and handoffs
 
@@ -137,3 +155,4 @@ Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep)
 
 - 2026-10-18: P060 initial implementation; `@reviewer` found 8 package issues, all fixed; full suite passed on g++ and g++-14, stress seed 7 and integration passed.
 - 2026-10-19: P037 added `floorSumWide` for geometry row 19. Independent review: the coefficient reduction overflowed `lll` (now modulo `2^128`), a direct division when the numerator fits 128 bits; the stress run caught a signed overflow in the tester's direct sum (now modulo `2^128`). Full suite passed on g++ and g++-14, stress seed 7 passed.
+- 2026-10-19 (round 3): `divStep` replaced its 128 restoring steps by one Knuth D word step with at most one correction (7.4× faster on wide moduli), tested against a restoring-division oracle including remainders 0–3. Mutation checks on a private copy: dropping the remainder update of a correction, an off-by-one shift, an unshifted remainder and a correction test without the low word are caught. Full suite passed on g++ and g++-14, stress seed 7 passed, row 20 full passed. Independent review: a negative modulus under `NDEBUG` reached a 128-bit shift (now split, UB-free); shift-62 moduli pinned in the tests. Final full suite passed on g++ and g++-14, stress seed 7 passed, row 20 full passed.

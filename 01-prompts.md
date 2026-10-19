@@ -268,6 +268,11 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P223 — PY15, PY16** (opus, L+M): 08-Python — sat, approximation. Status: planned.
 - [ ] **P228 — GE45** (opus, L): 03-Geometry — ham sandwich. Status: planned. Note: geometric partition theorems
 - [ ] **P232 — ST40** (opus, L): 07-Strings — weightedancestor. Status: planned. Note: Omission sweep 2026-10-19: before choosing a structure, research whether later or more practical weighted-ancestor results for suffix trees exist beyond GLN14 and BKPR21 (citing papers, simplifications, implementations) and record them in 07-Strings/Docs/00-sources.md.
+- [ ] **P233 — GE46** (opus, L): 03-Geometry — circle placement. Status: planned. Note: Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). HPM05 was not fetched and WANG22 only as an abstract; obtain them first.
+- [ ] **P234 — GE47** (opus, L): 03-Geometry — enclosing shapes. Status: planned. Note: Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Megiddo, OAMB86 and STVWE95 were not read yet; obtain them first.
+- [ ] **P235 — GE48** (opus, L): 03-Geometry — rectangle depth. Status: planned. Note: Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Güting's J. Algorithms 1984 paper was not readable (paywalled); obtain it first.
+- [ ] **P236 — GE49** (opus, M): 03-Geometry — kgon klink. Status: planned. Note: Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Area weights are not Monge (15-convex_polygon_query.md); check what AST94 requires before implementing.
+- [ ] **P237 — GE50** (opus, L): 03-Geometry — wordram geometry. Status: planned. Note: Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Expected to be slower than the comparison-model versions at contest sizes; benchmark and record.
 
 ### Final support integration
 

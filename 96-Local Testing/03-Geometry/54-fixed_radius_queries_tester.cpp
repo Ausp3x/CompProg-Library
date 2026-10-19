@@ -16,7 +16,7 @@ vector<point> randomPoints(std::mt19937_64 &rng, lng c, int n) {
     for (auto &x : p) { x = {lng(rng() % ulng(2 * c + 1)) - c, lng(rng() % ulng(2 * c + 1)) - c}; }
     return p;}
 int sgn(lll x) { return (x > 0) - (x < 0); }
-// 256-bit magnitudes for the oracle, written independently of the header's I512.
+// 256-bit magnitudes for the oracle, written independently of the header's 384-bit comparator.
 using Limbs = array<ulng, 4>;
 Limbs square(ulll u) {
     ulng a[2] = {ulng(u), ulng(u >> 64)}; Limbs r{};
@@ -68,7 +68,7 @@ void diskCase(lng r2, bool brute) {
     require(in >= cnt, "the rounded centre covers the count up to rounding");}
 void gridCase(lng r) {
     context = "r=" + std::to_string(r);
-    GridHash g(pts, r); int n = int(pts.size());
+    GridHash g(pts, r); SortedGrid h(pts, r); int n = int(pts.size());
     vector<pair<int, int>> want; vector<int> cover(n, 0);
     for (int i = 0; i < n; ++i) {
         vector<int> nb;
@@ -77,29 +77,39 @@ void gridCase(lng r) {
                 ++cover[i];
                 if (j != i) { nb.push_back(j); }
                 if (i < j) { want.push_back({i, j}); }}}
-        auto got = g.neighbours(i); sort(got.begin(), got.end());
+        auto got = g.neighbours(i);
+        require(h.neighbours(i) == got, "SortedGrid neighbours equal GridHash's, in order");
+        sort(got.begin(), got.end());
         require(got == nb, "neighbours equals the pair scan");}
-    auto pr = g.pairsWithin(); sort(pr.begin(), pr.end());
+    auto pr = g.pairsWithin();
+    require(h.pairsWithin() == pr, "SortedGrid pairsWithin equals GridHash's, in order");
+    sort(pr.begin(), pr.end());
     require(pr == want, "pairsWithin equals the pair scan");
-    require(g.diskCoverCounts() == cover, "diskCoverCounts equals the pair scan");}
-void comparatorCase(std::mt19937_64 &rng, lng r2, lng c) {
+    require(g.diskCoverCounts() == cover && h.diskCoverCounts() == cover, "diskCoverCounts equals the pair scan");}
+// Events for pivot offsets d with 0 < |d|^2 <= 4 r2; near the circle |d| = min(2 sqrt(r2), 2 sqrt(2) * 10^9) when edge is set.
+void comparatorCase(std::mt19937_64 &rng, lng r2, lng c, bool edge = false) {
     using fixed_radius_detail::Event;
-    vector<Event> e;
+    vector<Event> e; lll q = 4 * lll(r2);
     for (int i = 0; i < 6; ++i) {
-        point d = randomPoints(rng, c, 1)[0]; lll D = norm2(d);
-        if (D == 0 || D > 4 * lll(r2)) { continue; }
-        e.push_back({d, D, 4 * lll(r2) - D, rng() % 2 ? 1 : -1});}
+        point d = randomPoints(rng, c, 1)[0];
+        if (edge) {
+            long double rho = std::min(std::sqrt((long double)q), 2828427124.0L) - (long double)(rng() % 64), a = (long double)(rng() % 1000000) * 2e-6L * std::numbers::pi_v<long double>;
+            d = {lng(rho * std::cos(a)), lng(rho * std::sin(a))};
+            d.x = std::clamp<lng>(d.x, -2000000000, 2000000000); d.y = std::clamp<lng>(d.y, -2000000000, 2000000000);}
+        lll D = norm2(d);
+        if (D == 0 || D > q) { continue; }
+        e.push_back({d, D, q - D, rng() % 2 ? 1 : -1});}
     auto angle = [](const Event &x) {
         long double t = std::sqrt((long double)x.X / (long double)x.D); dpoint d = x.d.cast<long double>(), v = d + perp(d) * (x.e * t);
         long double a = std::atan2(v.y, v.x);
         return a < 0 ? a + 2 * std::numbers::pi_v<long double> : a;};
-    auto before = [](const Event &a, const Event &b) { return fixed_radius_detail::before<fixed_radius_detail::I512>(a, b); };
+    auto before = [](const Event &a, const Event &b) { return fixed_radius_detail::before<true>(a, b); };
     for (auto &x : e) {
         require(!before(x, x), "irreflexive");
         for (auto &y : e) {
             bool xy = before(x, y), yx = before(y, x);
             require(!(xy && yx), "asymmetric");
-            if (r2 <= 400000000) { require(xy == fixed_radius_detail::before<lll>(x, y), "lll and I512 comparators agree"); }
+            if (r2 <= (lng(1) << 30)) { require(xy == fixed_radius_detail::before<false>(x, y), "lll and wide comparators agree"); }
             long double ax = angle(x), ay = angle(y);
             if (std::abs(ax - ay) > 1e-12L) { require(xy == (ax < ay), "agrees with separated rounded angles"); }
             for (auto &z : e) {
@@ -108,6 +118,9 @@ void invalid(const string &name) {
     if (name == "grid-r") { GridHash g(vector<point>{{0, 0}}, 0); }
     if (name == "grid-coordinate") { GridHash g(vector<point>{{2000000000, 0}}, 1); }
     if (name == "grid-index") { GridHash g(vector<point>{{0, 0}}, 1); (void)g.neighbours(1); }
+    if (name == "sorted-r") { SortedGrid g(vector<point>{{0, 0}}, 0); }
+    if (name == "sorted-coordinate") { SortedGrid g(vector<point>{{0, -2000000000}}, 1); }
+    if (name == "sorted-index") { SortedGrid g(vector<point>{{0, 0}}, 1); (void)g.neighbours(-1); }
     if (name == "disk-r2") { (void)maxPointsInDisk(vector<point>{{0, 0}}, 4000000000000000001LL); }
     std::exit(2);}
 int main(int argc, char **argv) {
@@ -132,6 +145,16 @@ int main(int argc, char **argv) {
         lng c = t % 4 == 3 ? 1000000000 : 12;
         pts = randomPoints(rng, c, int(rng() % 60));
         gridCase(c == 12 ? 1 + lng(rng() % 8) : 1 + lng(rng() % 4000000000LL));}
+    phase = "grid dense";
+    for (int t = 0; t < rounds / 10; ++t) {
+        // Clusters inside a cell and clusters just beyond r in the neighbouring cells; coordinates at both domain ends.
+        lng r = 1 + lng(rng() % 1000), off = t % 2 ? 999990000 : -1000000000; pts.clear();
+        for (int k = 0; k < 4; ++k) {
+            point centre = {off + lng(rng() % 6000), lng(rng() % 6000) - 3000};
+            for (int j = int(rng() % 40); j-- > 0;) { pts.push_back({centre.x + lng(rng() % ulng(r / 2 + 1)), centre.y + lng(rng() % ulng(r / 2 + 1))}); }
+            point far = {centre.x + r + r / 5 + 1, centre.y};
+            for (int j = int(rng() % 40); j-- > 0;) { pts.push_back({far.x + lng(rng() % ulng(r / 8 + 1)), far.y}); }}
+        gridCase(r);}
     phase = "disk random";
     for (int t = 0; t < rounds; ++t) {
         pts = randomPoints(rng, t % 3 ? 6 : 30, 1 + int(rng() % 18));
@@ -160,13 +183,45 @@ int main(int argc, char **argv) {
     require(maxPointsInDisk(pts, 2000000000000000000LL).first == 6, "corners on a radius sqrt(2) * 10^9 disk");
     phase = "dispatch threshold";
     for (int t = 0; t < rounds / 10; ++t) {
-        pts = randomPoints(rng, 20000, 3 + int(rng() % 20));
-        diskCase(400000000, true); diskCase(400000001, true);}
+        pts = randomPoints(rng, 40000, 3 + int(rng() % 20));
+        diskCase(lng(1) << 30, true); diskCase((lng(1) << 30) + 1, true);}
+    context = "wide cocircular";
+    // The 32 lattice points of x^2 + y^2 = 1105 = 5 * 13 * 17, scaled past the threshold: equal event angles need exact wide ties.
+    pts.clear();
+    for (lng x = -33; x <= 33; ++x) {
+        for (lng y = -33; y <= 33; ++y) { if (x * x + y * y == 1105) { pts.push_back({1000 * x + 123456789, 1000 * y - 987654}); } }}
+    require(pts.size() == 32, "32 lattice points on the circle");
+    diskCase(1105000000, true); diskCase(1104999999, true);
+    require(maxPointsInDisk(pts, 1105000000).first == 32, "cocircular points on a wide radius");
+    // An acute triangle with circumradius sqrt(1105) s: at every pivot an entry and an exit coincide, so ties must put entries first.
+    for (lng s : {1LL, 1000LL, 30000000LL}) {
+        pts = {{33 * s, 4 * s}, {-24 * s, 23 * s}, {-9 * s, -32 * s}}; context = "acute triangle s=" + std::to_string(s);
+        require(maxPointsInDisk(pts, 1105 * s * s).first == 3 && maxPointsInDisk(pts, 1105 * s * s - 1).first == 2, "circumscribed acute triangle");
+        diskCase(1105 * s * s, true);}
+    context = "threshold diameters";
+    pts = {{-32767, 0}, {32768, 0}, {0, 0}, {-46340, 1}, {0, 46341}};
+    diskCase(lng(1) << 30, true); diskCase((lng(1) << 30) + 1, true);
+    phase = "near diameter";
+    for (int t = 0; t < rounds / 5; ++t) {
+        // Points on a ring of radius just under the diameter, where |l| approaches D1 * D2; both comparators, at and past the threshold.
+        lng r2 = t % 5 == 0 ? lng(1) << 30 : t % 5 == 1 ? (lng(1) << 30) + 1 : t % 5 == 2 ? 900000000 + lng(rng() % 173741824) : t % 5 == 3 ? lng(1) << 31 : 1 + lng(rng() % 4000000000000000000ULL);
+        bool corner = t % 2; long double reach = 2 * std::sqrt((long double)r2), R = std::min(reach, corner ? 2800000000.0L : 1000000000.0L);
+        point o = corner ? point{-1000000000, -1000000000} : point{0, 0}; pts = {o};
+        for (int j = 0; j < 14; ++j) {
+            long double rho = std::floor(R) - (long double)(rng() % 64), a = (long double)(rng() % 1000000) * (corner ? 0.5e-6L : 2e-6L) * std::numbers::pi_v<long double>;
+            point x = o + point{lng(rho * std::cos(a)), lng(rho * std::sin(a))};
+            if (std::abs(x.x) <= 1000000000 && std::abs(x.y) <= 1000000000) { pts.push_back(x); }}
+        if (t % 7 == 0) { pts.push_back(pts.back()); }
+        diskCase(r2, true);}
     phase = "comparator";
     for (int t = 0; t < rounds * 4; ++t) {
         lng r2 = t % 3 == 0 ? 1 + lng(rng() % 50) : t % 3 == 1 ? 1 + lng(rng() % 400000000) : 1 + lng(rng() % 4000000000000000000ULL);
         lng c = t % 3 == 0 ? 15 : t % 3 == 1 ? 40000 : 2000000000;
         comparatorCase(rng, r2, c);}
+    phase = "comparator edges";
+    for (int t = 0; t < rounds; ++t) {
+        lng r2 = t % 4 == 0 ? lng(1) << 30 : t % 4 == 1 ? (lng(1) << 30) + 1 : t % 4 == 2 ? 2000000000000000000LL : 4000000000000000000LL;
+        comparatorCase(rng, r2, 1, true);}
     phase = "medium brute";
     for (int t = 0; t < (quick ? 1 : stress ? 40 : 6); ++t) {
         pts = randomPoints(rng, 200, quick ? 60 : 200);
@@ -177,8 +232,9 @@ int main(int argc, char **argv) {
     context = "large"; int in = 0;
     for (auto q : pts) { in += distanceApprox(q.cast<long double>(), centre) <= 10000 + 1e-6L; }
     require(cnt >= 1 && in >= cnt, "large disk witness");
-    GridHash g(pts, 3000);
-    lng pairs = lng(g.pairsWithin().size()), cov = 0;
+    GridHash g(pts, 3000); SortedGrid h(pts, 3000);
+    auto pairs = g.pairsWithin(); lng cov = 0;
     for (int c : g.diskCoverCounts()) { cov += c - 1; }
-    require(2 * pairs == cov, "pairs and cover counts agree");
+    require(2 * lng(pairs.size()) == cov, "pairs and cover counts agree");
+    require(h.pairsWithin() == pairs && h.diskCoverCounts() == g.diskCoverCounts(), "large SortedGrid equals GridHash");
     std::cout << "PASS fixed_radius_queries seed=" << seed << " mode=" << mode << " checks=" << checks << '\n';}

@@ -15,15 +15,17 @@ namespace floorsum_detail {
             else { n = ulng(y) / m; b = ulng(y) % m; }
             swap(m, a);}}
 
-    // {(a * n + b) / m, (a * n + b) % m} for a, b < m < 2^127 and n < 2^63: a 191-bit numerator, a quotient below 2^64.
+    // {(a n + b) / m, (a n + b) % m}, a, b < m < 2^127, n < 2^63: Knuth D for one quotient word below 2^63; hi > 0 forces m > 2^65, a shift in [1, 62].
     inline pair<ulng, ulll> divStep(ulll a, ulng n, ulll b, ulll m) {
-        ulll low = ulll(ulng(a)) * n, high = (a >> 64) * n, lo = low + (high << 64), hi = (high >> 64) + (lo < low), r;
-        lo += b; hi += lo < b; r = hi; ulng q = 0;
+        ulll low = ulll(ulng(a)) * n, high = (a >> 64) * n, lo = low + (high << 64), hi = (high >> 64) + (lo < low);
+        lo += b; hi += lo < b;
         if (!hi) { return {ulng(lo / m), lo % m}; }
-        for (int i = 127; i >= 0; --i) {
-            r = r << 1 | (lo >> i & 1);
-            if (r >= m) { r -= m; q |= i < 64 ? ulng(1) << i : 0; }}
-        return {q, r};}
+        int s = std::countl_zero(ulng(m >> 64));
+        ulll d = m << s, rest = lo << s, top = (hi << s | (lo >> 1) >> (127 - s)) << 64 | rest >> 64;
+        ulng d1 = ulng(d >> 64), d0 = ulng(d), u0 = ulng(rest), q = ulng(top / d1);
+        ulll r = top - ulll(q) * d1;
+        while (!(r >> 64) && ulll(q) * d0 > (r << 64 | u0)) { --q; r += d1; }
+        return {q, ((r << 64 | u0) - ulll(q) * d0) >> s};}
     inline ulll reducedWide(ulng n, ulll m, ulll a, ulll b) {
         ulll res = 0;
         while (n) {
@@ -83,7 +85,7 @@ inline lll floorSum(lng n, lng m, lll a, lll b) {
     ulll res = ulll(qa) * (ulll(n) * ulng(n - 1) / 2) + ulll(qb) * ulng(n);
     return lll(res + floorsum_detail::reduced(ulng(n), ulng(m), ulng(a - qa * m), ulng(b - qb * m)));}
 inline lll ceilSum(lng n, lng m, lll a, lll b) { return floorSum(n, m, a, b + m - 1); }
-// T: O(128 * log(m)) bit steps, O(log(m)) divisions while a n + b < 2^128, M: O(1); n >= 0, 1 <= m < 2^127, any lll a, b: floorSum with a 128-bit modulus, modulo 2^128, exact when it fits lll.
+// T: O(log(m)), M: O(1); n >= 0, 1 <= m < 2^127, any lll a, b: floorSum with a 128-bit modulus, modulo 2^128, exact when it fits lll.
 inline lll floorSumWide(lng n, lll m, lll a, lll b) {
     assert(n >= 0 && m >= 1);
     lll qa = floorDiv(a, m), qb = floorDiv(b, m);

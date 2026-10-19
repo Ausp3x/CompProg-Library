@@ -76,6 +76,29 @@ void halfplaneCase(const vector<Halfplane> &h) {
             cl += c; in += s;}}
     require(latticeInHalfplanePolygon(h, true) == cl, "latticeInHalfplanePolygon closed equals enumeration");
     require(latticeInHalfplanePolygon(h, false) == in, "latticeInHalfplanePolygon open equals enumeration");}
+// Lattice points of [-W, W]^2 in the closed (or open) intersection, by exact per-column bounds on y.
+lll windowCount(const vector<Halfplane> &h, lll W, bool strict) {
+    lll res = 0;
+    for (lll x = -W; x <= W; ++x) {
+        lll lo = -W, hi = W;
+        for (const auto &s : h) {
+            // cross(b - a, (x, y) - a) >= 0 (> 0 when strict) is wx (y - a.y) >= wy (x - a.x).
+            lll wx = s.b.x - s.a.x, c = lll(s.b.y - s.a.y) * (x - s.a.x);
+            if (wx > 0) { lo = max(lo, s.a.y + (strict ? fdiv(c, wx) + 1 : cdiv(c, wx))); }
+            else if (wx < 0) { hi = min(hi, s.a.y + (strict ? cdiv(c, wx) - 1 : fdiv(c, wx))); }
+            else if (strict ? c >= 0 : c > 0) { hi = lo - 1; }}
+        res += max<lll>(0, hi - lo + 1);}
+    return res;}
+// Unbounded sets hold 0 or infinitely many lattice points: windows past every vertex grow exactly when the count is infinite.
+void unboundedCase(const vector<Halfplane> &h) {
+    context = "h=";
+    for (const auto &x : h) { context += "[" + std::to_string(x.a.x) + "," + std::to_string(x.a.y) + "->" + std::to_string(x.b.x) + "," + std::to_string(x.b.y) + "]"; }
+    auto r = halfplaneIntersection(h);
+    lll V = 0;
+    for (const auto &p : r.vertices) { V = max({V, cdiv(abs(p.x), p.d), cdiv(abs(p.y), p.d)}); }
+    for (int closed = 0; closed < 2; ++closed) {
+        lll small = windowCount(h, 2 * V + 60, !closed), large = windowCount(h, 4 * V + 120, !closed), got = latticeInHalfplanePolygon(h, closed);
+        require(small == large ? small == 0 && got == 0 : got == -1, "unbounded count is 0 or infinite (-1) as the windows show");}}
 RationalPoint2 rq(std::mt19937_64 &rng, int c, int d) { lng den = 1 + lng(rng() % ulng(d)); return RationalPoint2(lll(rng() % ulng(2 * c * den + 1)) - c * den, lll(rng() % ulng(2 * c * den + 1)) - c * den, den); }
 vector<RationalPoint2> star(std::mt19937_64 &rng, int c, int d, int n) {
     // Distinct angles around a rational centre give a simple polygon.
@@ -110,7 +133,8 @@ void invalid(const string &name) {
     if (name == "under-vertical") { (void)latticeUnderLine(RationalPoint2(1, 0), RationalPoint2(1, 5)); }
     if (name == "polygon-small") { (void)latticeInRationalPolygon({RationalPoint2(0, 0), RationalPoint2(1, 0)}, true); }
     if (name == "polygon-flat") { (void)latticeInRationalPolygon({RationalPoint2(0, 0), RationalPoint2(1, 0), RationalPoint2(2, 0)}, true); }
-    if (name == "halfplane-unbounded") { (void)latticeInHalfplanePolygon({Halfplane{{0, 0}, {1, 0}}}, true); }
+    // A bounded triangle whose far vertex (2 * 10^9 * (10^9 - 1), about 2 * 10^18) leaves the |coordinate| <= 10^18 domain.
+    if (name == "halfplane-far") { (void)latticeInHalfplanePolygon({Halfplane{{0, 0}, {999999999, 1}}, Halfplane{{1000000000, 3}, {0, 2}}, Halfplane{{0, 2}, {0, 0}}}, true); }
     std::exit(2);}
 
 // 256-bit sign of a * b - c * d, written independently of the header.
@@ -318,6 +342,41 @@ int main(int argc, char **argv) {
         if (t % 5 == 0) { h.push_back({{0, 0}, {1, 1}}); h.push_back({{1, 1}, {0, 0}}); }
         if (t % 7 == 0) { h.push_back({{3, 0}, {3, 1}}); h.push_back({{3, 1}, {3, 0}}); h.push_back({{0, 2}, {1, 2}}); h.push_back({{1, 2}, {0, 2}}); }
         halfplaneCase(h);}
+    phase = "halfplane unbounded";
+    for (int t = 0; t < rounds / 5; ++t) {
+        vector<Halfplane> h;
+        int m = int(rng() % 4);
+        for (int i = 0; i < m; ++i) {
+            point a{lng(rng() % 11) - 5, lng(rng() % 11) - 5}, b{lng(rng() % 11) - 5, lng(rng() % 11) - 5};
+            if (a != b) { h.push_back({a, b}); }}
+        // Doubled lines give rays and lines; near-parallel pairs give strips and half-strips of lattice width 1 and 2.
+        if (t % 3 == 0 && !h.empty()) { h.push_back({h[0].b, h[0].a}); }
+        if (t % 4 == 1) {
+            point d{lng(rng() % 7) - 3, lng(rng() % 7) - 3}, a{lng(rng() % 7) - 3, lng(rng() % 7) - 3}, e{lng(rng() % 5) - 2, lng(rng() % 5) - 2};
+            if (d != point{}) { h.push_back({a, a + d}); h.push_back({a + e + d, a + e}); }}
+        auto kind = halfplaneIntersection(h).kind;
+        if (kind == HalfplaneKind::Ray || kind == HalfplaneKind::Line || kind == HalfplaneKind::Unbounded) { unboundedCase(h); }}
+    {
+        context = "unbounded fixed";
+        auto both = [&](const vector<Halfplane> &h, lll open, lll closed) {
+            require(latticeInHalfplanePolygon(h, false) == open && latticeInHalfplanePolygon(h, true) == closed, "fixed unbounded counts");
+            unboundedCase(h);};
+        both({}, -1, -1);
+        both({{{0, 0}, {1, 0}}}, -1, -1);
+        both({{{0, 0}, {1, 0}}, {{1, 1}, {0, 1}}}, 0, -1);
+        both({{{0, 0}, {1, 0}}, {{1, 2}, {0, 2}}}, -1, -1);
+        both({{{0, 0}, {4, 2}}, {{3, 2}, {1, 1}}}, 0, -1);
+        both({{{0, 0}, {2, 1}}, {{2, 2}, {0, 1}}}, -1, -1);
+        both({{{0, 0}, {1, 0}}, {{1, 1}, {0, 1}}, {{0, 1}, {0, 0}}}, 0, -1);
+        both({{{0, 0}, {1, 0}}, {{1, 2}, {0, 2}}, {{0, 2}, {0, 0}}}, -1, -1);
+        both({{{0, 0}, {1, 0}}, {{0, 1}, {0, 0}}}, -1, -1);
+        both({{{0, 0}, {1, 0}}, {{1, 0}, {0, 0}}, {{0, 1}, {0, 0}}}, 0, -1);
+        both({{{0, 0}, {1, 0}}, {{1, 0}, {0, 0}}}, 0, -1);
+        // Redundant parallel planes in either order: only the tightest strip 5 < y < 6 (width 1) or 5 < y < 7 (width 2) counts.
+        both({{{0, 0}, {1, 0}}, {{0, 5}, {1, 5}}, {{1, 6}, {0, 6}}, {{0, 0}, {0, -1}}}, 0, -1);
+        both({{{0, 5}, {1, 5}}, {{0, 0}, {1, 0}}, {{1, 6}, {0, 6}}, {{0, 0}, {0, -1}}}, 0, -1);
+        both({{{0, 0}, {1, 0}}, {{0, 5}, {1, 5}}, {{1, 7}, {0, 7}}, {{0, 0}, {0, -1}}}, -1, -1);
+        both({{{0, 5}, {1, 5}}, {{1, 6}, {0, 6}}, {{1, 9}, {0, 9}}}, 0, -1);}
     {
         context = "far";
         // x >= 0, y >= x / (10^9 - 1), y <= 1 + x / 10^9 meet at (10^9 * (10^9 - 1), 10^9).

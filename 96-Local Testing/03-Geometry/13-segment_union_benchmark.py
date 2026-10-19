@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""rectangleUnionBoundary (sweep) versus rectangleUnionBoundaryGuting (divide and conquer); no timing gates."""
+"""rectangleUnionBoundary (sweep) versus rectangleUnionBoundaryGuting (divide and conquer) and rectangleUnionContours; rectangleCoverageArea tree versus blocks; no timing gates."""
 import argparse
 import hashlib
 import json
@@ -44,15 +44,18 @@ def main():
                   compiler=run([compiler, '--version']).stdout.splitlines()[0],
                   flags=flags, python=platform.python_version(), warmups=1, repetitions=5,
                   units='microseconds', statistic='median',
-                  setup='random rectangles (side up to 3 * 10^7 in a 10^9 square) and a lattice of g thin horizontal and g thin vertical bars',
-                  validation='both versions must return the same segment multiset; checksum consumed',
+                  setup='random rectangles (side up to 3 * 10^7 in a 10^9 square), a lattice of g thin horizontal and g thin vertical bars, and coverage on short (side up to 6 * 10^9 / sqrt(n)) and tall (side up to 10^9) rectangles',
+                  validation='both boundary versions return the same segment multiset, the rings use every piece, both coverage paths agree; checksum consumed',
                   checksum=result.stderr.strip(),
                   hashes={p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
                   rows=[json.loads(line) for line in result.stdout.splitlines()])
     args.output.write_text(json.dumps(record, indent=2) + '\n')
     for row in record['rows']:
-        print(f'{row["case"]:>12} n={row["n"]:>7} out={row["out"]:>9} sweep={row["sweep_us"]:>10} us guting={row["guting_us"]:>10} us')
-    print(f'PASS {len(record["rows"])} contour measurements; seed={args.seed}; {args.output}')
+        if 'k' in row:
+            print(f'{row["case"]:>16} n={row["n"]:>7} k={row["k"]:>3} tree={row["tree_us"]:>10} us blocks={row["blocks_us"]:>10} us')
+        else:
+            print(f'{row["case"]:>16} n={row["n"]:>7} out={row["out"]:>9} sweep={row["sweep_us"]:>10} us guting={row["guting_us"]:>10} us contours={row["contours_us"]:>10} us')
+    print(f'PASS {len(record["rows"])} contour and coverage measurements; seed={args.seed}; {args.output}')
 
 
 if __name__ == '__main__':

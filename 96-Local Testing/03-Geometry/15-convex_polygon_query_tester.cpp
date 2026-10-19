@@ -25,6 +25,17 @@ vector<point> randomConvex(std::mt19937_64 &rng, lng c, int n) {
 int n0() { return int(poly.size()); }
 // Exact rational comparisons of a / b and c / d, b, d > 0, small values.
 bool fracLess(lll a, lll b, lll c, lll d) { return a * d < c * b; }
+// a * b as a 256-bit (high, low) pair; nonnegative fractions compare through these products at any 128-bit size.
+pair<ulll, ulll> mul256(ulll a, ulll b) {
+    ulll a0 = ulng(a), a1 = a >> 64, b0 = ulng(b), b1 = b >> 64, lo = a0 * b0, m1 = a0 * b1, m2 = a1 * b0;
+    ulll mid = (lo >> 64) + ulng(m1) + ulng(m2);
+    return {a1 * b1 + (m1 >> 64) + (m2 >> 64) + (mid >> 64), mid << 64 | ulng(lo)};}
+// Exact squared distance from q to the closed segment u v, as num / den.
+pair<lll, lll> segmentDistance2(point q, point u, point v) {
+    if (dot(v - u, q - u) <= 0) { return {norm2(q - u), 1}; }
+    if (dot(u - v, q - v) <= 0) { return {norm2(q - v), 1}; }
+    lll h = cross(v - u, q - u);
+    return {h * h, norm2(v - u)};}
 
 void queryCase(const ConvexPolygonQuery &cq, point q) {
     context = "q=(" + std::to_string(q.x) + "," + std::to_string(q.y) + ")"; int n = n0();
@@ -43,7 +54,15 @@ void queryCase(const ConvexPolygonQuery &cq, point q) {
         require(cq.tangents(q) == pair<int, int>{s, e}, "tangents equal the visible chain ends");}
     long double scale = 1;
     for (auto v : poly) { scale = max({scale, std::abs((long double)v.x), std::abs((long double)v.y)}); }
-    require(std::abs(cq.pointDistanceApprox(q) - want) <= 1e-17L * scale, "pointDistanceApprox equals the edge minimum");}
+    require(std::abs(cq.pointDistanceApprox(q) - want) <= 1e-17L * scale, "pointDistanceApprox equals the edge minimum");
+    pair<lll, lll> exact{0, 1};
+    if (loc == PolygonLocation::Outside) {
+        exact = segmentDistance2(q, poly[0], poly[1 % n]);
+        for (int i = 1; i < n; ++i) {
+            auto d = segmentDistance2(q, poly[i], poly[(i + 1) % n]);
+            if (mul256(ulll(d.first), ulll(exact.second)) < mul256(ulll(exact.first), ulll(d.second))) { exact = d; }}
+        lll g = std::gcd(exact.first, exact.second); exact = {exact.first / g, exact.second / g};}
+    require(cq.pointDistance2(q) == exact, "pointDistance2 equals the exact edge minimum, reduced");}
 void extremeCase(const ConvexPolygonQuery &cq, point d) {
     context = "d=(" + std::to_string(d.x) + "," + std::to_string(d.y) + ")"; int n = n0(); lll best = dot(d, poly[0]);
     for (auto v : poly) { best = max(best, dot(d, v)); }
@@ -106,7 +125,22 @@ void cutCase(const ConvexPolygonQuery &cq, point a, point b) {
         require(on || int(got.size()) == n0(), "cut ring starts at a crossing");}
     long double scale = 1;
     for (auto v : poly) { scale = max({scale, std::abs((long double)v.x), std::abs((long double)v.y)}); }
-    require(std::abs(cq.areaLeftOfLineApprox(a, b) - area / 2) <= 1e-12L * scale * scale, "areaLeftOfLineApprox equals the clipped area");}
+    require(std::abs(cq.areaLeftOfLineApprox(a, b) - area / 2) <= 1e-12L * scale * scale, "areaLeftOfLineApprox equals the clipped area");
+    ExactArea2 e = cq.areaLeftOfLine2(a, b), f = cq.areaLeftOfLine2(b, a); lll total = signedArea2(poly);
+    require(e.den > 0 && 0 <= e.num && e.num < e.den && std::gcd(e.num, e.den) == 1, "areaLeftOfLine2 is a reduced proper fraction");
+    require(e.num == 0 ? f.num == 0 && e.whole + f.whole == total : e.den == f.den && e.num + f.num == e.den && e.whole + f.whole + 1 == total,
+            "areaLeftOfLine2 of both sides sums to the polygon exactly");
+    require(std::abs((long double)e.whole + (long double)e.num / (long double)e.den - area) <= 1e-12L * scale * scale, "areaLeftOfLine2 equals the clipped area");
+    if (scale <= 100 && m >= 3) {
+        // Exact shoelace over the cut ring: every term over the common denominator L.
+        lll L = 1;
+        for (int i = 0; i < m; ++i) { lll d = got[i].d * got[(i + 1) % m].d; L = L / std::gcd(L, d) * d; }
+        lll N = 0;
+        for (int i = 0; i < m; ++i) {
+            const auto &x = got[i], &y = got[(i + 1) % m];
+            N += (x.x * y.y - x.y * y.x) * (L / (x.d * y.d));}
+        require(N * e.den == (e.whole * e.den + e.num) * L, "areaLeftOfLine2 equals the exact shoelace of the cut");}
+    else if (m < 3) { require(e.whole == 0 && e.num == 0, "areaLeftOfLine2 is 0 without a polygon"); }}
 // Lines at full scale: the intersection with a line is clipConvex with both of its halfplanes.
 void bigLineCase(const ConvexPolygonQuery &cq, point a, point b) {
     context = "big line=(" + std::to_string(a.x) + "," + std::to_string(a.y) + ")->(" + std::to_string(b.x) + "," + std::to_string(b.y) + ")";
@@ -136,9 +170,24 @@ void kgonCase(int k) {
     auto a = maxAreaInscribedKgon(poly, k); auto b = maxPerimeterInscribedKgonApprox(poly, k);
     auto a2 = maxAreaInscribedKgonSmawk(poly, k); auto b2 = maxPerimeterInscribedKgonSmawkApprox(poly, k);
     require(a2.value == a.value && a2.vertices == a.vertices, "SMAWK and divide and conquer find the same area k-gon");
+    if (k < n) {
+        // Hirschberg recomputation forced (no stored table above 2 (span + layers)) for both layer methods.
+        ConvexPolygonQuery cq(poly); auto w = [&](int i, int j) { return cross(cq.at(i), cq.at(j)); };
+        for (auto h : {convex_query_detail::inscribed<lll, false>(n, k, cq.pre[n], w, 0), convex_query_detail::inscribed<lll, true>(n, k, cq.pre[n], w, 0)}) {
+            vector<point> c;
+            for (int i : h.second) { c.push_back(poly[i]); }
+            require(h.first == a.value && int(h.second.size()) == k && signedArea2(c) == a.value, "Hirschberg recomputation finds the same optimum");}}
     require(int(b2.vertices.size()) == int(b.vertices.size()) && std::abs(b2.value - b.value) <= 1e-15L * max(1.L, b.value), "SMAWK perimeter equals divide and conquer");
+    auto special = [&](lll want) {
+        if (k != 3 && k != 4) { return; }
+        auto z = k == 3 ? maxAreaInscribedTriangle(poly) : maxAreaInscribedQuadrilateral(poly); vector<point> c;
+        for (int t = 0; t < int(z.vertices.size()); ++t) {
+            require(0 <= z.vertices[t] && z.vertices[t] < n && (t == 0 || z.vertices[t - 1] < z.vertices[t]), "linear k-gon vertices increase");
+            c.push_back(poly[z.vertices[t]]);}
+        require(int(z.vertices.size()) == min(k, n) && z.value == want && signedArea2(c) == want, "linear triangle or quadrilateral equals the optimum");};
     if (k >= n) {
         require(a.value == signedArea2(poly) && int(a.vertices.size()) == n, "k >= n takes the polygon");
+        special(signedArea2(poly));
         return;}
     lll best = -1; long double per = 0;
     for (int mask = 0; mask < (1 << n); ++mask) {
@@ -151,6 +200,7 @@ void kgonCase(int k) {
         require(0 <= a.vertices[t] && a.vertices[t] < n && (t == 0 || a.vertices[t - 1] < a.vertices[t]), "area vertices increase");
         c.push_back(poly[a.vertices[t]]);}
     require(a.value == best && signedArea2(c) == best, "maxAreaInscribedKgon equals the exhaustive optimum");
+    special(best);
     c.clear();
     for (int t = 0; t < k; ++t) { c.push_back(poly[b.vertices[t]]); require(t == 0 || b.vertices[t - 1] < b.vertices[t], "perimeter vertices increase"); }
     require(std::abs(b.value - per) <= 1e-15L * per && std::abs(polygonPerimeter(c) - b.value) <= 1e-15L * per, "maxPerimeterInscribedKgonApprox equals the exhaustive optimum");}
@@ -167,7 +217,12 @@ void kgonDp(int k) {
             f = g;}
         for (int j = k - 1; j < n; ++j) { best = max(best, f[j]); }}
     require(maxAreaInscribedKgon(poly, k).value == best, "maxAreaInscribedKgon equals the all-roots dynamic program");
-    require(maxAreaInscribedKgonSmawk(poly, k).value == best, "maxAreaInscribedKgonSmawk equals the all-roots dynamic program");}
+    require(maxAreaInscribedKgonSmawk(poly, k).value == best, "maxAreaInscribedKgonSmawk equals the all-roots dynamic program");
+    ConvexPolygonQuery cq(poly); auto w = [&](int i, int j) { return cross(cq.at(i), cq.at(j)); };
+    require(convex_query_detail::inscribed<lll, false>(n, k, cq.pre[n], w, 0).first == best && convex_query_detail::inscribed<lll, true>(n, k, cq.pre[n], w, 0).first == best,
+            "forced Hirschberg recomputation equals the all-roots dynamic program");
+    if (k == 3) { require(maxAreaInscribedTriangle(poly).value == best, "maxAreaInscribedTriangle equals the all-roots dynamic program"); }
+    if (k == 4) { require(maxAreaInscribedQuadrilateral(poly).value == best, "maxAreaInscribedQuadrilateral equals the all-roots dynamic program"); }}
 void invalid(const string &name) {
     if (name == "clockwise") { ConvexPolygonQuery c(vector<point>{{0, 0}, {0, 1}, {1, 0}}); }
     if (name == "collinear") { ConvexPolygonQuery c(vector<point>{{0, 0}, {1, 0}, {2, 0}, {1, 1}}); }
@@ -252,12 +307,74 @@ int main(int argc, char **argv) {
     poly = convexHull(vector<point>{{4752, 4262}, {3383, 413}, {759, 2927}, {4745, 4322}, {1213, 691}, {2506, 4423}, {3040, 4460}, {1000, 1000}, {5000, 1000}});
     require(n0() == 9, "Keikha 9-gon is in convex position");
     require(maxAreaInscribedKgon(poly, 3).value == signedArea2(vector<point>{{1000, 1000}, {5000, 1000}, {3040, 4460}}), "Keikha 9-gon: the largest triangle is a0 b0 c0");
+    require(maxAreaInscribedTriangle(poly).value == signedArea2(vector<point>{{1000, 1000}, {5000, 1000}, {3040, 4460}}), "Keikha 9-gon: the linear triangle");
     for (int k = 3; k <= 8; ++k) { kgonCase(k); }
     poly = convexHull(vector<point>{{26096, 6750}, {26130, 9933}, {25940, 10728}, {23090, 22189}, {18106, 23681}, {13484, 24407}, {13174, 24343}, {3090, 22189},
                                     {0, 17308}, {80, 14350}, {323, 13331}, {3090, 2189}, {8459, 385}, {12837, 0}, {13392, 114}, {23090, 2189}});
     require(n0() == 16, "Keikha 16-gon is in convex position");
     require(maxAreaInscribedKgon(poly, 4).value == signedArea2(vector<point>{{3090, 2189}, {23090, 2189}, {23090, 22189}, {3090, 22189}}), "Keikha 16-gon: the largest quadrilateral is a4 a8 a12 a16");
+    require(maxAreaInscribedQuadrilateral(poly).value == signedArea2(vector<point>{{3090, 2189}, {23090, 2189}, {23090, 22189}, {3090, 22189}}), "Keikha 16-gon: the linear quadrilateral");
     for (int k = 3; k <= 8; ++k) { kgonCase(k); }
+    phase = "kgon Boyce examples";
+    // Boyce et al. (STOC 1982) Fig. 10, scaled by 10^4: the largest perimeter triangles rooted at A and A' do not interleave each other,
+    // yet both interleave the overall maximum C'BC. The algorithm never assumes that rooted optima at different roots interleave.
+    poly = convexHull(vector<point>{{-4134, 9060}, {-5866, 8260}, {-5866, -8060}, {-4134, -9260}, {10000, 1000}, {10000, -1000}});
+    require(n0() == 6, "Boyce Fig. 10 is in convex position");
+    {
+        auto best = maxPerimeterInscribedKgonApprox(poly, 3); vector<point> c;
+        for (int i : best.vertices) { c.push_back(poly[i]); }
+        sort(c.begin(), c.end());
+        require(c == vector<point>{{-5866, 8260}, {-4134, -9260}, {10000, 1000}}, "Boyce Fig. 10: the largest perimeter triangle is C'BC");}
+    for (int k = 3; k <= 6; ++k) { kgonCase(k); }
+    // Fig. 12, scaled by 100: seven points on which the Dobkin–Snyder walk misses the largest pentagon A D B D' C.
+    poly = convexHull(vector<point>{{-10100, 0}, {0, 0}, {0, -10100}, {-5100, 101}, {-5000, 100}, {101, -5000}, {100, -5100}});
+    require(n0() == 7, "Boyce Fig. 12 is in convex position");
+    require(maxAreaInscribedKgon(poly, 5).value == signedArea2(vector<point>{{0, -10100}, {101, -5000}, {0, 0}, {-5100, 101}, {-10100, 0}}), "Boyce Fig. 12: the largest pentagon is A D B D' C");
+    for (int k = 3; k <= 7; ++k) { kgonCase(k); }
+    phase = "kgon ties";
+    // Centrally symmetric hulls, their shears and lattice disks: many k-gons tie exactly, so tie-breaking rules matter.
+    for (int t = 0; t < (quick ? 20 : stress ? 3000 : 300); ++t) {
+        vector<point> s = randomPoints(rng, t % 2 ? 3 : 6, 2 + int(rng() % 6));
+        for (int i = int(s.size()) - 1; i >= 0; --i) { s.push_back(-s[i]); }
+        lng sh = lng(rng() % 3) - 1;
+        for (auto &x : s) { x = {x.x + sh * x.y, x.y}; }
+        poly = convexHull(s);
+        if (n0() < 3 || n0() > 16) { continue; }
+        std::rotate(poly.begin(), poly.begin() + rng() % poly.size(), poly.end());
+        for (int k = 3; k <= min(n0() + 1, 8); ++k) { kgonCase(k); }}
+    for (lng r = 1; r <= 5; ++r) {
+        vector<point> s;
+        for (lng x = -r; x <= r; ++x) { for (lng y = -r; y <= r; ++y) { if (x * x + y * y <= r * r) { s.push_back({x, y}); } } }
+        poly = convexHull(s);
+        for (int k = 3; k <= min(n0() + 1, 8); ++k) { kgonCase(k); }}
+    poly = {{1, 0}, {1, 1}, {0, 1}, {-1, 0}, {-1, -1}, {0, -1}};
+    for (int k = 3; k <= 6; ++k) { kgonCase(k); }
+    phase = "linear triangle and quadrilateral";
+    // Near-circular, flattened and uniform hulls up to 40 vertices against cubic and quartic scans. A 19-gon whose rooted optimum needs
+    // the corners revisited before it is 3-stable is fixed first; area-only kill rules fail on about 1 in 1700 of these hulls.
+    poly = {{-887248574, 150963464}, {-861203611, -261396902}, {-640957985, -631801283}, {-512770426, -739639433}, {-294092340, -850593731},
+            {-143153078, -888542175}, {-140651386, -888941611}, {-110981948, -893131013}, {876860636, -202769390}, {876216708, 205534135},
+            {728125266, 528993002}, {674920430, 595384257}, {540929741, 719301755}, {507057689, 743567415}, {435247302, 787756171},
+            {291996431, 851315502}, {-728673296, 528237852}, {-743041335, 507828292}, {-880235530, 187577750}};
+    kgonDp(3); kgonDp(4);
+    for (int t = 0; t < (quick ? 400 : stress ? 40000 : 6000); ++t) {
+        lng c = t % 3 == 0 ? 6 : t % 3 == 1 ? 1000 : 900000000; int kind = int(rng() % 3); vector<point> s;
+        for (int i = 3 + int(rng() % 38); i > 0; --i) {
+            if (kind == 0) { s.push_back(randomPoints(rng, c, 1)[0]); continue; }
+            long double ang = (long double)(rng() % 1000000) / 1000000 * 2 * std::numbers::pi_v<long double>, rad = kind == 1 ? 1 : 1 + (long double)(rng() % 1000) / 1e5L;
+            s.push_back({std::llround(c * rad * std::cos(ang)), std::llround(c * (kind == 2 ? 0.3L : 1) * rad * std::sin(ang))});}
+        poly = convexHull(s);
+        int n = n0();
+        if (n < 3) { continue; }
+        lll b3 = 0, b4 = 0;
+        for (int i = 0; i < n; ++i) {
+            for (int j = i + 1; j < n; ++j) {
+                for (int k = j + 1; k < n; ++k) {
+                    b3 = max(b3, cross(poly[j] - poly[i], poly[k] - poly[i]));
+                    for (int l = k + 1; l < n && n <= 24; ++l) { b4 = max(b4, cross(poly[k] - poly[i], poly[l] - poly[j])); }}}}
+        context = "n=" + std::to_string(n);
+        require(maxAreaInscribedTriangle(poly).value == b3, "maxAreaInscribedTriangle equals the cubic scan");
+        if (n <= 24) { require(maxAreaInscribedQuadrilateral(poly).value == (n == 3 ? b3 : b4), "maxAreaInscribedQuadrilateral equals the quartic scan"); }}
     phase = "kgon dp";
     for (int t = 0; t < (quick ? 3 : stress ? 200 : 30); ++t) {
         poly = randomConvex(rng, t % 2 ? 1000000 : 300, 30 + int(rng() % 60));
@@ -275,8 +392,17 @@ int main(int argc, char **argv) {
     sort(qs.begin(), qs.end(), [&](point x, point y) { return polarLess(x - o, y - o); });
     auto r = big.batchedLocate(qs);
     for (int i = 0; i < n; ++i) { require(r[i] == big.contains(qs[i]), "large batchedLocate equals contains"); }
+    // Sparse batches gallop over long runs of the fan.
+    for (int q : {1, 2, 7, 60}) {
+        vector<point> few = randomPoints(rng, 1000000000, q);
+        sort(few.begin(), few.end(), [&](point x, point y) { return polarLess(x - o, y - o); });
+        auto rf = big.batchedLocate(few);
+        for (int i = 0; i < q; ++i) { require(rf[i] == big.contains(few[i]), "sparse batchedLocate equals contains"); }}
     vector<point> sub(poly.begin(), poly.begin() + min(int(poly.size()), quick ? 2000 : 20000));
-    for (int k : {3, 5, 40}) {
+    for (int k : {3, 4, 5, 40}) {
         auto x = maxAreaInscribedKgon(sub, k), y = maxAreaInscribedKgonSmawk(sub, k);
-        require(int(x.vertices.size()) == k && x.value == y.value && x.vertices == y.vertices, "large k-gon: both versions agree");}
+        require(int(x.vertices.size()) == k && x.value == y.value && x.vertices == y.vertices, "large k-gon: both versions agree");
+        if (k <= 4) { require((k == 3 ? maxAreaInscribedTriangle(sub) : maxAreaInscribedQuadrilateral(sub)).value == x.value, "large linear k-gon equals the general one"); }}
+    require(maxAreaInscribedTriangle(poly).value == maxAreaInscribedKgonSmawk(poly, 3).value && maxAreaInscribedQuadrilateral(poly).value == maxAreaInscribedKgonSmawk(poly, 4).value,
+            "linear triangle and quadrilateral on the full large hull");
     std::cout << "PASS convex_polygon_query seed=" << seed << " mode=" << mode << " checks=" << checks << '\n';}

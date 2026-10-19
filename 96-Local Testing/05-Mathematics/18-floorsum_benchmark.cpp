@@ -19,6 +19,25 @@ ulll narrow(ulng n, ulng m, ulng a, ulng b) {
         if (y < m) { return res; }
         n = y / m; b = y % m; swap(m, a);}}
 
+// The former floorSumWide kernel: each Euclidean round divides the 191-bit numerator by m in 128 restoring steps.
+pair<ulng, ulll> bitStep(ulll a, ulng n, ulll b, ulll m) {
+    ulll low = ulll(ulng(a)) * n, high = (a >> 64) * n, lo = low + (high << 64), hi = (high >> 64) + (lo < low), r;
+    lo += b; hi += lo < b; r = hi; ulng q = 0;
+    if (!hi) { return {ulng(lo / m), lo % m}; }
+    for (int i = 127; i >= 0; --i) {
+        r = r << 1 | (lo >> i & 1);
+        if (r >= m) { r -= m; q |= i < 64 ? ulng(1) << i : 0; }}
+    return {q, r};}
+ulll bitWide(ulng n, ulll m, ulll a, ulll b) {
+    ulll res = 0;
+    while (n) {
+        if (a >= m) { res += ulll(n) * (n - 1) / 2 * (a / m); a %= m; }
+        if (b >= m) { res += ulll(n) * (b / m); b %= m; }
+        auto [q, r] = bitStep(a, n, b, m);
+        if (!q) { break; }
+        n = q; b = r; swap(m, a);}
+    return res;}
+
 template<typename F> double median(int reps, F f) {
     vector<double> t;
     f();
@@ -45,6 +64,16 @@ int main(int argc, char **argv) {
         cout << (first ? "" : ",") << "\n {\"workload\": \"1e6 floorSum, " << name << "\", \"shipped_ms\": " << shipped << ", \"wide_ms\": " << w
             << ", \"acl64_ms\": " << (small ? std::to_string(nw) : "null") << "}";
         first = false;}
+    for (auto [name, bits] : vector<pair<string, int>>{{"m < 2^64", 64}, {"2^64 <= m < 2^127", 127}}) {
+        vector<array<ulll, 4>> qs(100000);
+        for (auto &q : qs) {
+            q[0] = rng() >> 1; q[1] = ((ulll(rng()) << 64 | rng()) >> (128 - bits)) | (bits > 64 ? ulll(1) << 64 : 1);
+            q[2] = (ulll(rng()) << 64 | rng()) % q[1]; q[3] = (ulll(rng()) << 64 | rng()) % q[1];}
+        ulll s1 = 0, s2 = 0;
+        double shipped = median(reps, [&] { s1 = 0; for (auto &q : qs) { s1 += ulll(floorSumWide(lng(q[0]), lll(q[1]), lll(q[2]), lll(q[3]))); }});
+        double bit = median(reps, [&] { s2 = 0; for (auto &q : qs) { s2 += bitWide(ulng(q[0]), q[1], q[2], q[3]); }});
+        if (s1 != s2) { cerr << "mismatch floorSumWide " << name << '\n'; return 1; }
+        cout << ",\n {\"workload\": \"1e5 floorSumWide, n < 2^63, " << name << "\", \"shipped_ms\": " << shipped << ", \"bitwise_ms\": " << bit << "}";}
     for (lng n : {lng(1000000), lng(1000000000)}) {
         lng k = n / 3, total = 0;
         pair<lng, lng> f;

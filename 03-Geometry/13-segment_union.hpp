@@ -30,95 +30,159 @@ template<typename T> auto coverageCount(const vector<pair<T, T>> &s) {
     return res;}
 
 namespace rectangle_detail {
-    // len[x * (K + 1) + j]: measure covered at least j times inside node x, counting cover counts at x and below.
-    struct DepthTree {
-        int K, m; vector<lng> ys; vector<int> cnt; vector<lll> len;
-        DepthTree(vector<lng> y, int K) : K(K), m(max(1, int(y.size()) - 1)), ys(std::move(y)), cnt(4 * m), len(4 * size_t(m) * (K + 1)) {}
-        int index(lng y) const { return int(lower_bound(ys.begin(), ys.end(), y) - ys.begin()); }
-        void update(int a, int b, int d, int x, int l, int r) {
-            if (b <= l || r <= a) { return; }
-            if (a <= l && r <= b) { cnt[x] += d; }
-            else {
-                int mid = (l + r) / 2;
-                update(a, b, d, 2 * x, l, mid); update(a, b, d, 2 * x + 1, mid, r);}
-            lll *p = &len[size_t(x) * (K + 1)];
-            for (int j = 0; j <= K; ++j) {
-                if (j <= cnt[x]) { p[j] = lll(ys[r]) - ys[l]; }
-                else { p[j] = r - l == 1 ? 0 : len[size_t(2 * x) * (K + 1) + j - cnt[x]] + len[size_t(2 * x + 1) * (K + 1) + j - cnt[x]]; }}}
-        void add(lng lo, lng hi, int d) { update(index(lo), index(hi), d, 1, 0, m); }
-        lll covered(int j = 1) const { return len[K + 1 + j]; }
-        // Calls f(lo, hi) for each maximal uncovered run inside [ys[a], ys[b]).
-        template<typename F> void uncovered(int a, int b, int x, int l, int r, F &f) const {
-            if (b <= l || r <= a || cnt[x]) { return; }
-            if (len[size_t(x) * (K + 1) + 1] == 0 || r - l == 1) { f(ys[max(a, l)], ys[min(b, r)]); return; }
-            int mid = (l + r) / 2;
-            uncovered(a, b, 2 * x, l, mid, f); uncovered(a, b, 2 * x + 1, mid, r, f);}
-    };
-    inline bool valid(const array<lng, 4> &r) {
-        for (lng v : r) { assert(-4000000000000000000LL <= v && v <= 4000000000000000000LL); }
+    // Covered lengths: at most 8 * 10^18 for integral coordinates.
+    template<typename T> using Len = std::conditional_t<std::is_integral_v<T>, ulng, long double>;
+    inline constexpr int TREE_K = 16;
+    template<typename T> bool valid(const array<T, 4> &r) {
+        static_assert((std::is_integral_v<T> && std::is_signed_v<T> && sizeof(T) <= 8) || std::is_floating_point_v<T>);
+        assert(std::all_of(r.begin(), r.end(), [](T v) {
+            if constexpr (std::is_integral_v<T>) { return -4000000000000000000LL <= v && v <= 4000000000000000000LL; }
+            else { return bool(std::isfinite(v)); }}));
         return r[0] < r[2] && r[1] < r[3];}
-    inline vector<lng> coordinates(const vector<array<lng, 4>> &a) {
-        vector<lng> ys;
+    template<typename T> vector<T> coordinates(const vector<array<T, 4>> &a, int axis) {
+        vector<T> res;
         for (const auto &r : a) {
-            if (valid(r)) { ys.push_back(r[1]); ys.push_back(r[3]); }}
-        sort(ys.begin(), ys.end()); ys.erase(unique(ys.begin(), ys.end()), ys.end());
-        return ys;}
+            if (valid(r)) { res.push_back(r[axis]); res.push_back(r[axis + 2]); }}
+        sort(res.begin(), res.end()); res.erase(unique(res.begin(), res.end()), res.end());
+        return res;}
+    template<typename T> int rank(const vector<T> &v, T z) { return int(lower_bound(v.begin(), v.end(), z) - v.begin()); }
+    // Orthogonal segments: NaN would break the sort's ordering, so non-finite segments are skipped after the assertion.
+    template<typename T> bool finite(const array<T, 3> &s) {
+        if constexpr (std::is_floating_point_v<T>) { return std::isfinite(s[0]) && std::isfinite(s[1]) && std::isfinite(s[2]); }
+        else { return true; }}
+    // Node [l, r) with r - l >= 2 is stored at its split point (l + r) / 2, which no other node shares; leaves are computed from their counts.
+    // len[mid * K + j - 1]: measure covered at least j times inside the node, counting cover counts at the node and below.
+    template<typename T> struct DepthTree {
+        int K, m; vector<T> ys; vector<int> leaf, node; vector<Len<T>> len;
+        DepthTree(vector<T> y, int K) : K(K), m(max(1, int(y.size()) - 1)), ys(std::move(y)), leaf(m), node(m), len(size_t(m) * K) {}
+        Len<T> width(int l, int r) const { return Len<T>(ys[r]) - Len<T>(ys[l]); }
+        int count(int l, int r) const { return r - l == 1 ? leaf[l] : node[(l + r) / 2]; }
+        Len<T> at(int l, int r, int j) const {
+            if (r - l == 1) { return j <= leaf[l] ? width(l, r) : Len<T>(0); }
+            return len[size_t((l + r) / 2) * K + j - 1];}
+        void update(int a, int b, int d, int l, int r) {
+            if (b <= l || r <= a) { return; }
+            int mid = (l + r) / 2;
+            if (a <= l && r <= b) { (r - l == 1 ? leaf[l] : node[mid]) += d; }
+            else { update(a, b, d, l, mid); update(a, b, d, mid, r); }
+            if (r - l == 1) { return; }
+            Len<T> *p = &len[size_t(mid) * K]; int c = node[mid];
+            for (int j = 1; j <= K; ++j) { p[j - 1] = j <= c ? width(l, r) : at(l, mid, j - c) + at(mid, r, j - c); }}
+        int index(T y) const { return rank(ys, y); }
+        void add(T lo, T hi, int d) { update(index(lo), index(hi), d, 0, m); }
+        Len<T> covered(int j = 1) const { return at(0, m, j); }
+        // Calls f(lo, hi) for each maximal uncovered run inside [ys[a], ys[b]).
+        template<typename F> void uncovered(int a, int b, int l, int r, F &f) const {
+            if (b <= l || r <= a || count(l, r)) { return; }
+            if (r - l == 1 || at(l, r, 1) == 0) { f(ys[max(a, l)], ys[min(b, r)]); return; }
+            uncovered(a, b, l, (l + r) / 2, f); uncovered(a, b, (l + r) / 2, r, f);}
+    };
+    // Depths of elementary intervals in blocks of b: base depths, a lazy add per block, intervals sorted by base, distinct bases with suffix weights and the first
+    // reaching k (a +-1 lazy change moves it once); at0, at1 cache each block's weight at depth >= k and > k; floating totals are recounted every nb changes.
+    template<typename T> struct DepthBlocks {
+        int m, b, nb, k, ops = 0; vector<Len<T>> w, suf, at0, at1; Len<T> tot[2]{}; vector<int> base, ord, val, cnt, lz, ptr, in, out;
+        DepthBlocks(const vector<T> &ys, int k) : m(max(1, int(ys.size()) - 1)), b(max(1, int(std::sqrt(m / 32.)))), nb((m + b - 1) / b), k(k),
+                w(m), suf(size_t(nb) * (b + 1)), at0(nb), at1(nb), base(m), ord(m), val(m), cnt(nb), lz(nb), ptr(nb), in(b), out(b) {
+            for (int i = 0; i + 1 < int(ys.size()); ++i) { w[i] = Len<T>(ys[i + 1]) - Len<T>(ys[i]); }
+            iota(ord.begin(), ord.end(), 0);
+            for (int i = 0; i < nb; ++i) { rebuild(i); settle(i); }}
+        void recount() {
+            ops = 0; tot[0] = tot[1] = 0;
+            for (int i = 0; i < nb; ++i) { tot[0] += at0[i]; tot[1] += at1[i]; }}
+        void settle(int i) {
+            int s = i * b, p = ptr[i], q = p + (p < cnt[i] && val[s + p] + lz[i] == k); size_t o = size_t(i) * (b + 1);
+            tot[0] += suf[o + p] - at0[i]; tot[1] += suf[o + q] - at1[i]; at0[i] = suf[o + p]; at1[i] = suf[o + q];
+            if (std::is_floating_point_v<Len<T>> && ++ops >= nb) { recount(); }}
+        void rebuild(int i) {
+            int s = i * b, e = min(m, s + b), c = 0; size_t o = size_t(i) * (b + 1); Len<T> acc = 0;
+            for (int j = s; j < e; ++j) {
+                if (j == s || base[ord[j]] != base[ord[j - 1]]) { val[s + c++] = base[ord[j]]; }}
+            cnt[i] = c; suf[o + c] = 0;
+            for (int j = e - 1, d = c; j >= s; --j) {
+                acc += w[ord[j]];
+                if (j == s || base[ord[j]] != base[ord[j - 1]]) { suf[o + --d] = acc; }}
+            ptr[i] = int(lower_bound(val.begin() + s, val.begin() + s + c, k - lz[i]) - val.begin()) - s;}
+        void shift(int i, int d) {
+            lz[i] += d; int &p = ptr[i], need = k - lz[i], s = i * b;
+            if (d > 0 && p > 0 && val[s + p - 1] >= need) { --p; }
+            if (d < 0 && p < cnt[i] && val[s + p] < need) { ++p; }
+            settle(i);}
+        void partial(int i, int l, int r, int d) {
+            int s = i * b, e = min(m, s + b), x = 0, y = 0;
+            if (l == s && r == e) { shift(i, d); return; }
+            for (int j = l; j < r; ++j) { base[j] += d; }
+            // The changed intervals and the others each stay sorted by base; merge them.
+            for (int j = s; j < e; ++j) {
+                int v = ord[j];
+                if (l <= v && v < r) { in[x++] = v; } else { out[y++] = v; }}
+            std::merge(in.begin(), in.begin() + x, out.begin(), out.begin() + y, ord.begin() + s, [&](int u, int v) { return base[u] < base[v]; });
+            rebuild(i); settle(i);}
+        void add(int l, int r, int d) {
+            if (l >= r) { return; }
+            int bl = l / b, br = (r - 1) / b;
+            if (bl == br) { partial(bl, l, r, d); return; }
+            partial(bl, l, (bl + 1) * b, d); partial(br, br * b, r, d);
+            for (int i = bl + 1; i < br; ++i) { shift(i, d); }}
+        Len<T> atLeast(int t) const { return tot[t]; }
+    };
     // Calls f(x, next x, tree) after each group of events at x; adds precede removals at equal x, and g(tree) runs between them.
-    template<typename F, typename G> void sweep(const vector<array<lng, 4>> &a, int K, F f, G g) {
+    template<typename T, typename F, typename G> void sweep(const vector<array<T, 4>> &a, int K, F f, G g) {
         assert(a.size() <= INT_MAX / 2);
-        DepthTree t(coordinates(a), K); vector<array<lng, 4>> e;
+        DepthTree<T> t(coordinates(a, 1), K); vector<tuple<T, int, T, T>> e;
         for (const auto &r : a) {
             if (valid(r)) { e.push_back({r[0], 0, r[1], r[3]}); e.push_back({r[2], 1, r[1], r[3]}); }}
         sort(e.begin(), e.end());
         for (int i = 0, j = 0; i < int(e.size()); i = j) {
-            for (; j < int(e.size()) && e[j][0] == e[i][0]; ++j) {
-                if (e[j][1] && (j == i || !e[j - 1][1])) { g(t); }
-                t.add(e[j][2], e[j][3], e[j][1] ? -1 : 1);}
-            f(e[i][0], j < int(e.size()) ? e[j][0] : e[i][0], t);}}
-    inline lll vertical(const vector<array<lng, 4>> &a) {
-        lll res = 0, before = 0, mid = -1;
-        sweep(a, 1, [&](lng, lng, const DepthTree &t) {
-            lll now = t.covered();
+            T x = std::get<0>(e[i]);
+            for (; j < int(e.size()) && std::get<0>(e[j]) == x; ++j) {
+                auto [p, out, lo, hi] = e[j];
+                if (out && (j == i || !std::get<1>(e[j - 1]))) { g(t); }
+                t.add(lo, hi, out ? -1 : 1);}
+            f(x, j < int(e.size()) ? std::get<0>(e[j]) : x, t);}}
+    template<typename T> auto vertical(const vector<array<T, 4>> &a) {
+        using W = geometry_detail::Wide<T>; W res = 0, before = 0, mid = -1;
+        sweep(a, 1, [&](T, T, const DepthTree<T> &t) {
+            W now = W(t.covered());
             res += mid < 0 ? now - before : (mid - before) + (mid - now);
-            before = now; mid = -1;}, [&](const DepthTree &t) { mid = t.covered(); });
+            before = now; mid = -1;}, [&](const DepthTree<T> &t) { mid = W(t.covered()); });
         return res;}
-    inline vector<array<lng, 4>> transpose(vector<array<lng, 4>> a) {
+    template<typename T> vector<array<T, 4>> transpose(vector<array<T, 4>> a) {
         for (auto &r : a) { r = {r[1], r[0], r[3], r[2]}; }
         return a;}
-    inline void boundary(const vector<array<lng, 4>> &a, bool flip, vector<array<point, 2>> &res) {
+    template<typename T> void boundary(const vector<array<T, 4>> &a, bool flip, vector<array<Point2<T>, 2>> &res) {
         assert(a.size() <= INT_MAX / 2);
-        DepthTree t(coordinates(a), 1); vector<array<lng, 4>> e;
+        DepthTree<T> t(coordinates(a, 1), 1); vector<tuple<T, int, T, T>> e;
         for (const auto &r : a) {
             if (valid(r)) { e.push_back({r[0], 1, r[1], r[3]}); e.push_back({r[2], -1, r[1], r[3]}); }}
         sort(e.begin(), e.end());
         for (int i = 0, j = 0; i < int(e.size()); i = j) {
-            lng x = e[i][0]; vector<pair<lng, lng>> span, runs;
-            for (; j < int(e.size()) && e[j][0] == x; ++j) { span.push_back({e[j][2], e[j][3]}); }
+            T x = std::get<0>(e[i]); vector<pair<T, T>> span, runs;
+            for (; j < int(e.size()) && std::get<0>(e[j]) == x; ++j) { span.push_back({std::get<2>(e[j]), std::get<3>(e[j])}); }
             sort(span.begin(), span.end());
             int k = 0;
             for (auto [lo, hi] : span) {
                 if (k && lo <= span[k - 1].second) { span[k - 1].second = max(span[k - 1].second, hi); }
                 else { span[k++] = {lo, hi}; }}
             span.resize(k);
-            auto g = [&](lng l, lng r) {
+            auto g = [&](T l, T r) {
                 if (!runs.empty() && runs.back().second == l) { runs.back().second = r; }
                 else { runs.push_back({l, r}); }};
             // Every y of a span is covered just before x or just after x, so each uncovered run is a boundary piece.
             for (int pass = 0; pass < 2; ++pass) {
                 runs.clear();
-                for (auto [lo, hi] : span) { t.uncovered(t.index(lo), t.index(hi), 1, 0, t.m, g); }
+                for (auto [lo, hi] : span) { t.uncovered(t.index(lo), t.index(hi), 0, t.m, g); }
                 for (auto [l, r] : runs) {
-                    point p{x, pass ? l : r}, q{x, pass ? r : l};
-                    res.push_back(flip ? array<point, 2>{point{q.y, q.x}, point{p.y, p.x}} : array<point, 2>{p, q});}
+                    Point2<T> p{x, pass ? l : r}, q{x, pass ? r : l};
+                    res.push_back(flip ? array<Point2<T>, 2>{Point2<T>{q.y, q.x}, Point2<T>{p.y, p.x}} : array<Point2<T>, 2>{p, q});}
                 if (!pass) {
-                    for (int s = i; s < j; ++s) { t.add(e[s][2], e[s][3], int(e[s][1])); }}}}}
-    // Gueting's divide and conquer over vertical edges: each y-stripe keeps a tree of the true x transitions of the union, shared by refined stripes.
+                    for (int s = i; s < j; ++s) { t.add(std::get<2>(e[s]), std::get<3>(e[s]), std::get<1>(e[s])); }}}}}
+    // Gueting's divide and conquer over vertical edges in rank space: each y-stripe keeps a tree of the true x transitions of the union, shared by refined stripes.
     struct Contour {
-        struct Edge { lng x; int side, y1, y2, id; };
-        struct Node { lng key, hi; int l, r; int8_t side, hiSide; };
+        struct Edge { int x, side, y1, y2, id; };
+        struct Node { int key, hi, l, r; int8_t side, hiSide; };
         struct Part { vector<int> P, tree, L, R; };
         int m; vector<Edge> e; vector<Node> t; vector<int> y1, y2, pos; vector<char> mark;
-        int leaf(lng x, int side) { t.push_back({x, x, -1, -1, int8_t(side), int8_t(side)}); return int(t.size()) - 1; }
+        int leaf(int x, int side) { t.push_back({x, x, -1, -1, int8_t(side), int8_t(side)}); return int(t.size()) - 1; }
         int join(int a, int b) {
             if (a < 0 || b < 0) { return a < 0 ? b : a; }
             t.push_back({t[a].hi, t[b].hi, a, b, 0, t[b].hiSide});
@@ -157,7 +221,7 @@ namespace rectangle_detail {
                 res.tree[i] = join(c1[i] ? -1 : a.tree[j], c2[i] ? -1 : b.tree[k]);}
             return res;}
         // Covered just left of x: the side of the last leaf before x, uncovered when there is none.
-        bool coveredBefore(int v, lng x) const {
+        bool coveredBefore(int v, int x) const {
             int side = -1;
             while (v >= 0) {
                 if (t[v].l < 0) {
@@ -166,7 +230,7 @@ namespace rectangle_detail {
                 if (t[v].key < x) { side = t[t[v].l].hiSide; v = t[v].r; }
                 else { v = t[v].l; }}
             return side > 0;}
-        template<typename F> void each(int v, lng lo, lng hi, F &f) const {
+        template<typename F> void each(int v, int lo, int hi, F &f) const {
             if (v < 0) { return; }
             if (t[v].l < 0) {
                 if (lo <= t[v].key && t[v].key < hi) { f(t[v].key, t[v].side); }
@@ -174,60 +238,115 @@ namespace rectangle_detail {
             if (lo <= t[v].key) { each(t[v].l, lo, hi, f); }
             if (t[v].key < hi) { each(t[v].r, lo, hi, f); }}
         // Calls emit(a, b) for every maximal uncovered run [a, b) of [lo, hi) in the stripe tree v.
-        template<typename F> void runs(int v, lng lo, lng hi, F emit) const {
-            bool cov = coveredBefore(v, lo); lng start = lo;
-            auto f = [&](lng x, int side) {
+        template<typename F> void runs(int v, int lo, int hi, F emit) const {
+            bool cov = coveredBefore(v, lo); int start = lo;
+            auto f = [&](int x, int side) {
                 if (side > 0 && !cov && start < x) { emit(start, x); }
                 cov = side > 0; start = x;};
             each(v, lo, hi, f);
             if (!cov && start < hi) { emit(start, hi); }}
     };
-    inline void gutingHorizontal(const vector<array<lng, 4>> &a, bool flip, vector<array<point, 2>> &res) {
+    // Horizontal pieces {x1, y1, x2, y2} in ranks of xs and ys, the x and y coordinates of a (of the transpose when flip, mapped back).
+    template<typename T> void gutingHorizontal(const vector<array<T, 4>> &a, const vector<T> &xs, const vector<T> &ys, bool flip, vector<array<int, 4>> &res) {
         assert(a.size() <= INT_MAX / 2);
-        vector<lng> ys = coordinates(a); Contour c; c.m = int(ys.size());
-        auto rank = [&](lng y) { return int(lower_bound(ys.begin(), ys.end(), y) - ys.begin()); };
+        Contour c; c.m = int(ys.size());
         c.y1.assign(a.size(), 0); c.y2.assign(a.size(), 0); c.mark.assign(a.size(), 0); c.pos.assign(ys.size() + 2, 0);
-        vector<array<lng, 4>> sides;
+        vector<array<int, 4>> sides; vector<tuple<T, int, int>> ev; vector<int> xr(2 * a.size());
         for (int i = 0; i < int(a.size()); ++i) {
             if (!valid(a[i])) { continue; }
-            c.y1[i] = rank(a[i][1]); c.y2[i] = rank(a[i][3]);
-            c.e.push_back({a[i][0], 1, c.y1[i], c.y2[i], i}); c.e.push_back({a[i][2], -1, c.y1[i], c.y2[i], i});
-            sides.push_back({c.y1[i], 0, a[i][0], a[i][2]}); sides.push_back({c.y2[i], 1, a[i][0], a[i][2]});}
-        if (c.e.empty()) { return; }
-        sort(c.e.begin(), c.e.end(), [](const Contour::Edge &x, const Contour::Edge &y) { return x.x != y.x ? x.x < y.x : x.side > y.side; });
+            c.y1[i] = rank(ys, a[i][1]); c.y2[i] = rank(ys, a[i][3]);
+            ev.push_back({a[i][0], 0, i}); ev.push_back({a[i][2], 1, i});}
+        if (ev.empty()) { return; }
+        // Edges by x with left edges first; the x-ranks follow from one scan of xs.
+        sort(ev.begin(), ev.end());
+        for (int j = 0, r = 0; j < int(ev.size()); ++j) {
+            auto [x, right, i] = ev[j];
+            while (xs[r] < x) { ++r; }
+            c.e.push_back({r, right ? -1 : 1, c.y1[i], c.y2[i], i}); xr[2 * i + right] = r;}
+        for (int i = 0; i < int(a.size()); ++i) {
+            if (valid(a[i])) { sides.push_back({c.y1[i], 0, xr[2 * i], xr[2 * i + 1]}); sides.push_back({c.y2[i], 1, xr[2 * i], xr[2 * i + 1]}); }}
         auto root = c.build(0, int(c.e.size()));
         c.index(root.P);
         sort(sides.begin(), sides.end());
         // Bottom edges look at the stripe below their y, top edges at the stripe above; touching edges at one y are merged first.
         for (int i = 0, j; i < int(sides.size()); i = j) {
-            int y = int(sides[i][0]), top = int(sides[i][1]); lng lo = sides[i][2], hi = sides[i][3];
+            int y = sides[i][0], top = sides[i][1], lo = sides[i][2], hi = sides[i][3];
             for (j = i + 1; j < int(sides.size()) && sides[j][0] == y && sides[j][1] == top && sides[j][2] <= hi; ++j) { hi = max(hi, sides[j][3]); }
-            c.runs(root.tree[c.pos[y + 1] - !top], lo, hi, [&](lng l, lng r) {
-                point p{top ? r : l, ys[y]}, q{top ? l : r, ys[y]};
-                res.push_back(flip ? array<point, 2>{point{q.y, q.x}, point{p.y, p.x}} : array<point, 2>{p, q});});}}
+            c.runs(root.tree[c.pos[y + 1] - !top], lo, hi, [&](int l, int r) {
+                array<int, 4> p{top ? r : l, y, top ? l : r, y};
+                res.push_back(flip ? array<int, 4>{p[3], p[2], p[1], p[0]} : p);});}}
+    template<typename T> vector<array<int, 4>> gutingPieces(const vector<array<T, 4>> &a, const vector<T> &xs, const vector<T> &ys) {
+        vector<array<int, 4>> res;
+        gutingHorizontal(a, xs, ys, false, res); gutingHorizontal(transpose(a), ys, xs, true, res);
+        return res;}
+    // Rings of rank-space pieces: sorted by vertex, leaving and entering pieces coincide position by position, and where two of each meet
+    // an entering piece continues with the leaving piece on its right; a ring starts at its first piece in vertex order, its smallest vertex.
+    inline vector<vector<array<int, 2>>> rings(const vector<array<int, 4>> &p, int nx, int ny) {
+        int n = int(p.size());
+        auto order = [&](int o) {
+            vector<int> res(n), tmp(n), c(size_t(max(nx, ny)) + 1);
+            iota(res.begin(), res.end(), 0);
+            for (int pass = 1; pass >= 0; --pass) {
+                fill(c.begin(), c.end(), 0);
+                for (int i : res) { ++c[p[i][o + pass] + 1]; }
+                for (int i = 1; i < int(c.size()); ++i) { c[i] += c[i - 1]; }
+                for (int i : res) { tmp[c[p[i][o + pass]]++] = i; }
+                swap(res, tmp);}
+            return res;};
+        vector<int> s = order(0), e = order(2), succ(n); vector<char> seen(n); vector<vector<array<int, 2>>> res;
+        for (int i = 0, j = 0; i < n; i = j) {
+            while (j < n && p[s[j]][0] == p[s[i]][0] && p[s[j]][1] == p[s[i]][1]) { ++j; }
+            for (int u = i; u < j; ++u) {
+                const auto &q = p[e[u]]; succ[e[u]] = s[i];
+                for (int v = i; v < j; ++v) {
+                    const auto &r = p[s[v]];
+                    if (lng(q[2] - q[0]) * (r[3] - r[1]) - lng(q[3] - q[1]) * (r[2] - r[0]) < 0) { succ[e[u]] = s[v]; }}}}
+        for (int i : s) {
+            if (seen[i]) { continue; }
+            auto &r = res.emplace_back();
+            for (int x = i; !seen[x]; x = succ[x]) { seen[x] = 1; r.push_back({p[x][0], p[x][1]}); }}
+        return res;}
+    template<typename T> auto coverageTree(const vector<array<T, 4>> &a, int k) {
+        using W = geometry_detail::Wide<T>; W exact = 0, least = 0;
+        if (k > int(a.size())) { return pair<W, W>{0, 0}; }
+        sweep(a, k + 1, [&](T x, T next, const DepthTree<T> &t) {
+            W dx = W(next) - x;
+            least += W(t.covered(k)) * dx; exact += (W(t.covered(k)) - W(t.covered(k + 1))) * dx;}, [](const DepthTree<T> &) {});
+        return pair<W, W>{exact, least};}
+    template<typename T> auto coverageBlocks(const vector<array<T, 4>> &a, int k) {
+        using W = geometry_detail::Wide<T>; W exact = 0, least = 0;
+        if (k > int(a.size())) { return pair<W, W>{0, 0}; }
+        vector<T> ys = coordinates(a, 1); DepthBlocks<T> s(ys, k); vector<tuple<T, int, int, int>> e;
+        for (const auto &r : a) {
+            if (valid(r)) { e.push_back({r[0], 1, rank(ys, r[1]), rank(ys, r[3])}); e.push_back({r[2], -1, rank(ys, r[1]), rank(ys, r[3])}); }}
+        sort(e.begin(), e.end());
+        for (int i = 0, j = 0; i < int(e.size()); i = j) {
+            for (; j < int(e.size()) && std::get<0>(e[j]) == std::get<0>(e[i]); ++j) { s.add(std::get<2>(e[j]), std::get<3>(e[j]), std::get<1>(e[j])); }
+            if (j < int(e.size())) {
+                W dx = W(std::get<0>(e[j])) - std::get<0>(e[i]), atk = W(s.atLeast(0));
+                least += atk * dx; exact += (atk - W(s.atLeast(1))) * dx;}}
+        return pair<W, W>{exact, least};}
 } // namespace rectangle_detail
 
-// T: O(n * log(n)), M: O(n). Half-open [x1, x2) x [y1, y2) given as {x1, y1, x2, y2}, |coordinate| <= 4 * 10^18; empty rectangles are ignored; exact.
-inline lll rectangleUnionArea(const vector<array<lng, 4>> &a) {
-    lll res = 0;
-    rectangle_detail::sweep(a, 1, [&](lng x, lng next, const rectangle_detail::DepthTree &t) { res += t.covered() * (lll(next) - x); }, [](const rectangle_detail::DepthTree &) {});
+// T: O(n * log(n)), M: O(n). Half-open [x1, x2) x [y1, y2) given as {x1, y1, x2, y2}; signed integral (|coordinate| <= 4 * 10^18, exact lll) or finite
+// floating (rounded long double, no epsilon) coordinates; empty rectangles are ignored. Points and segments below use the coordinate type.
+template<typename T = lng> auto rectangleUnionArea(const vector<array<T, 4>> &a) {
+    geometry_detail::Wide<T> res = 0;
+    rectangle_detail::sweep(a, 1, [&](T x, T next, const auto &t) { res += geometry_detail::Wide<T>(t.covered()) * (geometry_detail::Wide<T>(next) - x); }, [](const auto &) {});
     return res;}
-inline lll rectangleUnionPerimeter(const vector<array<lng, 4>> &a) {
+template<typename T = lng> auto rectangleUnionPerimeter(const vector<array<T, 4>> &a) {
     return rectangle_detail::vertical(a) + rectangle_detail::vertical(rectangle_detail::transpose(a));}
 
-// T: O(n * k * log(n)), M: O(n * k). As rectangleUnionArea, k >= 1: {area covered by exactly k rectangles, area covered by at least k}.
-inline pair<lll, lll> rectangleCoverageArea(const vector<array<lng, 4>> &a, int k) {
-    assert(k >= 1); k = max(k, 1); lll exact = 0, least = 0;
-    if (k > int(a.size())) { return {0, 0}; }
-    rectangle_detail::sweep(a, k + 1, [&](lng x, lng next, const rectangle_detail::DepthTree &t) {
-        least += t.covered(k) * (lll(next) - x); exact += (t.covered(k) - t.covered(k + 1)) * (lll(next) - x);}, [](const rectangle_detail::DepthTree &) {});
-    return {exact, least};}
+// T: O(n * k * log(n)) for k <= 16, else O(n * sqrt(n)), M: O(n). As rectangleUnionArea, k >= 1: {area covered by exactly k rectangles, area covered by at least k}.
+template<typename T = lng> auto rectangleCoverageArea(const vector<array<T, 4>> &a, int k) {
+    assert(k >= 1); k = max(k, 1);
+    return k <= rectangle_detail::TREE_K ? rectangle_detail::coverageTree(a, k) : rectangle_detail::coverageBlocks(a, k);}
 
-// T: O(n * log(n)), M: O(n). As rectangleUnionArea: {maximum number of rectangles sharing a point, a lattice witness}; {0, (0, 0)} when all are empty.
-inline pair<int, point> maxRectangleOverlap(const vector<array<lng, 4>> &a) {
+// T: O(n * log(n)), M: O(n). As rectangleUnionArea: {maximum number of rectangles sharing a point, a witness corner}; {0, (0, 0)} when all are empty.
+template<typename T = lng> pair<int, Point2<T>> maxRectangleOverlap(const vector<array<T, 4>> &a) {
     assert(a.size() <= INT_MAX / 2);
-    vector<lng> ys = rectangle_detail::coordinates(a); int m = max(1, int(ys.size()) - 1);
-    vector<int> mx(4 * m), lz(4 * m); vector<array<lng, 4>> e;
+    vector<T> ys = rectangle_detail::coordinates(a, 1); int m = max(1, int(ys.size()) - 1);
+    vector<int> mx(4 * m), lz(4 * m); vector<tuple<T, int, int, int>> e;
     auto update = [&](auto &&self, int l0, int r0, int d, int x, int l, int r) -> void {
         if (r0 <= l || r <= l0) { return; }
         if (l0 <= l && r <= r0) { lz[x] += d; }
@@ -236,62 +355,73 @@ inline pair<int, point> maxRectangleOverlap(const vector<array<lng, 4>> &a) {
             self(self, l0, r0, d, 2 * x, l, mid); self(self, l0, r0, d, 2 * x + 1, mid, r);}
         mx[x] = lz[x] + (r - l == 1 ? 0 : max(mx[2 * x], mx[2 * x + 1]));};
     for (const auto &r : a) {
-        if (rectangle_detail::valid(r)) { e.push_back({r[0], 1, r[1], r[3]}); e.push_back({r[2], 0, r[1], r[3]}); }}
-    sort(e.begin(), e.end()); pair<int, point> res{0, {}};
-    auto at = [&](lng y) { return int(lower_bound(ys.begin(), ys.end(), y) - ys.begin()); };
+        if (rectangle_detail::valid(r)) {
+            int lo = rectangle_detail::rank(ys, r[1]), hi = rectangle_detail::rank(ys, r[3]);
+            e.push_back({r[0], 1, lo, hi}); e.push_back({r[2], 0, lo, hi});}}
+    sort(e.begin(), e.end()); pair<int, Point2<T>> res{0, {}};
     for (int i = 0, j = 0; i < int(e.size()); i = j) {
-        for (; j < int(e.size()) && e[j][0] == e[i][0]; ++j) { update(update, at(e[j][2]), at(e[j][3]), e[j][1] ? 1 : -1, 1, 0, m); }
+        for (; j < int(e.size()) && std::get<0>(e[j]) == std::get<0>(e[i]); ++j) { update(update, std::get<2>(e[j]), std::get<3>(e[j]), std::get<1>(e[j]) ? 1 : -1, 1, 0, m); }
         if (mx[1] > res.first) {
             int x = 1, l = 0, r = m;
             while (r - l > 1) {
                 int mid = (l + r) / 2;
                 if (mx[2 * x] >= mx[2 * x + 1]) { x = 2 * x; r = mid; } else { x = 2 * x + 1; l = mid; }}
-            res = {mx[1], {e[i][0], ys[l]}};}}
+            res = {mx[1], {std::get<0>(e[i]), ys[l]}};}}
     return res;}
 
 // T: O((n + out) * log(n)), M: O(n + out). As rectangleUnionArea: maximal axis-parallel boundary segments {a, b} of the union, directed with the union on the left.
-inline vector<array<point, 2>> rectangleUnionBoundary(const vector<array<lng, 4>> &a) {
-    vector<array<point, 2>> res;
+template<typename T = lng> vector<array<Point2<T>, 2>> rectangleUnionBoundary(const vector<array<T, 4>> &a) {
+    vector<array<Point2<T>, 2>> res;
     rectangle_detail::boundary(a, false, res); rectangle_detail::boundary(rectangle_detail::transpose(a), true, res);
     return res;}
 // T: O(n * log(n) + out), M: O(n * log(n) + out). The same segments by Gueting's divide and conquer over the vertical edges.
-inline vector<array<point, 2>> rectangleUnionBoundaryGuting(const vector<array<lng, 4>> &a) {
-    vector<array<point, 2>> res;
-    rectangle_detail::gutingHorizontal(a, false, res); rectangle_detail::gutingHorizontal(rectangle_detail::transpose(a), true, res);
+template<typename T = lng> vector<array<Point2<T>, 2>> rectangleUnionBoundaryGuting(const vector<array<T, 4>> &a) {
+    vector<T> xs = rectangle_detail::coordinates(a, 0), ys = rectangle_detail::coordinates(a, 1); vector<array<Point2<T>, 2>> res;
+    for (auto [x1, y1, x2, y2] : rectangle_detail::gutingPieces(a, xs, ys)) { res.push_back({Point2<T>{xs[x1], ys[y1]}, Point2<T>{xs[x2], ys[y2]}}); }
+    return res;}
+// T: O(n * log(n) + out), M: O(n * log(n) + out). Rings of corners, union on the left (outer CCW, holes CW), each from its smallest vertex, in that order;
+// where four pieces meet a ring turns right, so rings bound the closed union: corner-touching squares form one ring through the corner twice.
+template<typename T = lng> vector<vector<Point2<T>>> rectangleUnionContours(const vector<array<T, 4>> &a) {
+    vector<T> xs = rectangle_detail::coordinates(a, 0), ys = rectangle_detail::coordinates(a, 1); vector<vector<Point2<T>>> res;
+    for (const auto &r : rectangle_detail::rings(rectangle_detail::gutingPieces(a, xs, ys), int(xs.size()), int(ys.size()))) {
+        auto &q = res.emplace_back();
+        for (auto [x, y] : r) { q.push_back({xs[x], ys[y]}); }}
     return res;}
 
-// T: O((n + m) * log(n + m)), M: O(n + m) (orthogonalIntersections O(n + m + out)). Closed horizontal {y, x1, x2} and vertical {x, y1, y2} segments,
-// endpoints in either order; pairs (horizontal, vertical) sharing a point, grouped by vertical in x order, then by y.
-inline lng orthogonalIntersectionCount(const vector<array<lng, 3>> &h, const vector<array<lng, 3>> &v) {
+// T: O((n + m) * log(n + m)), M: O(n + m) (orthogonalIntersections O(n + m + out)). Closed horizontal {y, x1, x2} and vertical {x, y1, y2} segments, endpoints
+// in either order, signed integral or finite floating; pairs (horizontal, vertical) sharing a point, grouped by vertical in x order, then by y.
+template<typename T = lng> lng orthogonalIntersectionCount(const vector<array<T, 3>> &h, const vector<array<T, 3>> &v) {
+    static_assert((std::is_integral_v<T> && std::is_signed_v<T>) || std::is_floating_point_v<T>);
     assert(h.size() <= INT_MAX / 4 && v.size() <= INT_MAX / 4);
-    vector<lng> ys; vector<array<lng, 4>> e;
+    vector<T> ys; vector<tuple<T, int, T, T>> e;
     for (auto s : h) {
+        assert(rectangle_detail::finite(s));
         if (s[2] < s[1]) { swap(s[1], s[2]); }
-        ys.push_back(s[0]); e.push_back({s[1], 0, s[0], 0}); e.push_back({s[2], 2, s[0], 0});}
+        if (rectangle_detail::finite(s)) { ys.push_back(s[0]); e.push_back({s[1], 0, s[0], s[0]}); e.push_back({s[2], 2, s[0], s[0]}); }}
     for (auto s : v) {
+        assert(rectangle_detail::finite(s));
         if (s[2] < s[1]) { swap(s[1], s[2]); }
-        e.push_back({s[0], 1, s[1], s[2]});}
+        if (rectangle_detail::finite(s)) { e.push_back({s[0], 1, s[1], s[2]}); }}
     sort(ys.begin(), ys.end()); ys.erase(unique(ys.begin(), ys.end()), ys.end()); sort(e.begin(), e.end());
     Fenwick<int> f(int(ys.size())); lng res = 0;
-    auto at = [&](lng y) { return int(lower_bound(ys.begin(), ys.end(), y) - ys.begin()); };
-    for (const auto &x : e) {
-        if (x[1] == 1) { res += f.sum(at(x[2]), int(upper_bound(ys.begin(), ys.end(), x[3]) - ys.begin())); }
-        else { f.add(at(x[2]), x[1] ? -1 : 1); }}
+    for (const auto &[x, k, l, r] : e) {
+        if (k == 1) { res += f.sum(rectangle_detail::rank(ys, l), int(upper_bound(ys.begin(), ys.end(), r) - ys.begin())); }
+        else { f.add(rectangle_detail::rank(ys, l), k ? -1 : 1); }}
     return res;}
-inline vector<pair<int, int>> orthogonalIntersections(const vector<array<lng, 3>> &h, const vector<array<lng, 3>> &v) {
+template<typename T = lng> vector<pair<int, int>> orthogonalIntersections(const vector<array<T, 3>> &h, const vector<array<T, 3>> &v) {
+    static_assert((std::is_integral_v<T> && std::is_signed_v<T>) || std::is_floating_point_v<T>);
     assert(h.size() <= INT_MAX / 4 && v.size() <= INT_MAX / 4);
-    vector<array<lng, 5>> e; set<pair<lng, int>> on; vector<pair<int, int>> res;
+    vector<tuple<T, int, T, T, int>> e; set<pair<T, int>> on; vector<pair<int, int>> res;
     for (int i = 0; i < int(h.size()); ++i) {
-        auto [y, l, r] = h[i];
-        e.push_back({min(l, r), 0, y, 0, i}); e.push_back({max(l, r), 2, y, 0, i});}
+        auto [y, l, r] = h[i]; assert(rectangle_detail::finite(h[i]));
+        if (rectangle_detail::finite(h[i])) { e.push_back({min(l, r), 0, y, y, i}); e.push_back({max(l, r), 2, y, y, i}); }}
     for (int i = 0; i < int(v.size()); ++i) {
-        auto [x, l, r] = v[i];
-        e.push_back({x, 1, min(l, r), max(l, r), i});}
+        auto [x, l, r] = v[i]; assert(rectangle_detail::finite(v[i]));
+        if (rectangle_detail::finite(v[i])) { e.push_back({x, 1, min(l, r), max(l, r), i}); }}
     sort(e.begin(), e.end());
-    for (const auto &x : e) {
-        int id = int(x[4]);
-        if (x[1] == 0) { on.insert({x[2], id}); }
-        else if (x[1] == 2) { on.erase({x[2], id}); }
+    for (const auto &[x, k, l, r, id] : e) {
+        if (k == 0) { on.insert({l, id}); }
+        else if (k == 2) { on.erase({l, id}); }
         else {
-            for (auto it = on.lower_bound({x[2], INT_MIN}); it != on.end() && it->first <= x[3]; ++it) { res.push_back({it->second, id}); }}}
+            for (auto it = on.lower_bound({l, INT_MIN}); it != on.end() && it->first <= r; ++it) { res.push_back({it->second, id}); }}}
     return res;}

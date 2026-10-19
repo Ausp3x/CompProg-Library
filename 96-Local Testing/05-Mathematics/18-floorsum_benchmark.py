@@ -1,4 +1,5 @@
-"""floorSum's kernel (64-bit division whenever a n + b fits) against an always-128-bit kernel and ACL's 64-bit kernel; Farey k-th term and count timings.
+"""floorSum's kernel (64-bit division whenever a n + b fits) against an always-128-bit kernel and ACL's 64-bit kernel; floorSumWide's
+word division against the former bitwise kernel; Farey k-th term and count timings.
 
 Builds the C++ workload with -O2 (no -march), runs one warmup plus N timed repetitions per
 workload, checks identical outputs (and the Farey rank), and writes medians with CPU and

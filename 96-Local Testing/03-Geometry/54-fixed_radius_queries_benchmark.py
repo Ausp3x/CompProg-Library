@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""maxPointsInDisk with the lll comparator versus the I512 comparator on the same scaled point sets; no timing gates."""
+"""maxPointsInDisk with the lll comparator versus the 384-bit comparator, and GridHash versus SortedGrid; no timing gates."""
 import argparse
 import hashlib
 import json
@@ -44,15 +44,15 @@ def main():
                   compiler=run([compiler, '--version']).stdout.splitlines()[0],
                   flags=flags, python=platform.python_version(), warmups=1, repetitions=5,
                   units='microseconds', statistic='median',
-                  setup='r2 = 10^8 with uniform points in a square sized for the stated candidates per pivot; the I512 run uses the same points times 1000 and r2 times 10^6',
-                  validation='both scales must report the same count; checksum consumed',
+                  setup='scaled: r2 = 10^8 with uniform points in a square sized for the stated candidates per pivot (side at most 10^6), the wide run uses the same points times 1000 and r2 times 10^6; threshold: the same points at r2 = 2^30 (lll) and 2^30 + 1 (wide); grids: r = 1000, uniform points with about 8 neighbours or clusters of 10 in a 300 x 300 square, GridHash and SortedGrid on the same points',
+                  validation='both scales report the same count; the larger threshold radius covers at least as many points; both grids return identical pair lists and cover counts; checksum consumed',
                   checksum=result.stderr.strip(),
                   hashes={p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths},
                   rows=[json.loads(line) for line in result.stdout.splitlines()])
     args.output.write_text(json.dumps(record, indent=2) + '\n')
     for row in record['rows']:
-        print(f'n={row["n"]:>6} candidates={row["candidates"]:>3} count={row["count"]:>4} lll={row["lll_us"]:>10} us i512={row["i512_us"]:>10} us')
-    print(f'PASS {len(record["rows"])} maxPointsInDisk measurements; seed={args.seed}; {args.output}')
+        print(' '.join(f'{k}={v}' for k, v in row.items()))
+    print(f'PASS {len(record["rows"])} maxPointsInDisk and grid measurements; seed={args.seed}; {args.output}')
 
 
 if __name__ == '__main__':

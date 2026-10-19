@@ -93,4 +93,4 @@ def oracle(binary, args, env):
 
 
 if __name__ == '__main__':
-    raise SystemExit(main('19-lattice_geometry', ['disk-q', 'disk-n', 'under-vertical', 'polygon-small', 'polygon-flat', 'halfplane-unbounded'], oracle))
+    raise SystemExit(main('19-lattice_geometry', ['disk-q', 'disk-n', 'under-vertical', 'polygon-small', 'polygon-flat', 'halfplane-far'], oracle))

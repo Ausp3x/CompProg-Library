@@ -138,6 +138,35 @@ void wide(std::mt19937_64 &rng) {
     lll a2 = lll(std::bit_cast<lng>(rng())) << (rng() % 62), b2 = lll(std::bit_cast<lng>(rng())) << (rng() % 62);
     context = show(n2, m2, a2, b2);
     need(floorSumWide(n2, m2, a2, b2) == floorSum(n2, m2, a2, b2), "floorSumWide equals floorSum on 64-bit moduli");}
+// floorsum_detail::divStep against restoring long division of the 192-bit numerator a n + b, one bit at a time.
+pair<ulng, ulll> slowDivStep(ulll a, ulng n, ulll b, ulll m) {
+    ulng limb[3] = {}, carry = 0;
+    for (int i = 0; i < 2; ++i) { ulll t = ulll(ulng(a >> (64 * i))) * n + carry; limb[i] = ulng(t); carry = ulng(t >> 64); }
+    limb[2] = carry;
+    ulll t = ulll(limb[0]) + ulng(b); limb[0] = ulng(t);
+    t = ulll(limb[1]) + ulng(b >> 64) + ulng(t >> 64); limb[1] = ulng(t); limb[2] += ulng(t >> 64);
+    ulll r = 0, q = 0;
+    for (int i = 191; i >= 0; --i) {
+        r = r << 1 | (limb[i / 64] >> (i % 64) & 1); q <<= 1;
+        if (r >= m) { r -= m; q |= 1; }}
+    return {ulng(q), r};}
+void divSteps(std::mt19937_64 &rng, int count) {
+    auto rand128 = [&] { return ulll(rng()) << 64 | rng(); };
+    auto check = [&](ulll a, ulng n, ulll b, ulll m) {
+        context = show(lll(n), lll(m), lll(a), lll(b));
+        need(floorsum_detail::divStep(a, n, b, m) == slowDivStep(a, n, b, m), "divStep equals restoring division");};
+    ulll top = (ulll(1) << 127) - 1;
+    // Normalization shifts 1 (m >= 2^126) and 62 (2^65 < m < 2^66), m below 2^65 (the direct division), the largest quotients
+    // (a = b = m - 1, n = 2^63 - 1) and low words of all ones.
+    for (ulll m : {top, top - 1, ulll(1) << 126, (ulll(1) << 126) + 1, (ulll(1) << 65) + 1, (ulll(1) << 66) - 1, (ulll(1) << 64) + 1, (ulll(1) << 65) - 1, top >> 1 | 1, (ulll(1) << 127) - (ulll(1) << 64)}) {
+        for (ulng n : {ulng(HI), ulng(HI) - 1, ulng(1) << 62, ulng(3)}) {
+            check(m - 1, n, m - 1, m); check(m - 1, n, 0, m); check(m >> 1, n, m - 1, m); check(1, n, m - 1, m);}}
+    for (int i = 0; i < count; ++i) {
+        ulll m = (rand128() >> (1 + rng() % 63)) | (ulll(1) << 64), a = rand128() % m, b = rand128() % m;
+        check(a, ulng(rng() >> (1 + rng() % 63)), b, m);
+        // Remainders 0 to 3: the correction test must see the low numerator word.
+        ulng n = ulng(rng() >> 1); ulll c = (m - slowDivStep(a, n, 0, m).second) % m + rng() % 4;
+        check(a, n, c >= m ? c - m : c, m);}}
 int main(int argc, char **argv) {
     string mode = "full", invalid;
     ulng seed = 20261018;
@@ -195,6 +224,8 @@ int main(int argc, char **argv) {
         bruteLong(rng, lng(rng() % (quick ? 200 : 2000)) + 1, m, std::bit_cast<lng>(rng()), std::bit_cast<lng>(rng()));
         identities(rng); wide(rng);}
     cout << "PASS seeded long loops and identities rounds=" << rounds << " checks=" << checks << '\n';
+    divSteps(rng, quick ? 20000 : stress ? 1000000 : 200000);
+    cout << "PASS divStep against restoring division checks=" << checks << '\n';
     context = "maximal lng n and m, 2^126 coefficients, 64-bit division boundary";
     need(floorSum(HI, HI, HI - 1, HI - 1) == lll(HI) * (HI - 1) / 2, "n = m = 2^63 - 1 closed form");
     lll big = lll(1) << 126;

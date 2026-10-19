@@ -3310,6 +3310,71 @@
       "note": "Omission sweep 2026-10-19: before choosing a structure, research whether later or more practical weighted-ancestor results for suffix trees exist beyond GLN14 and BKPR21 (citing papers, simplifications, implementations) and record them in 07-Strings/Docs/00-sources.md."
     },
     {
+      "id": "P233",
+      "label": "03-Geometry — circle placement",
+      "batches": [
+        "GE46"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). HPM05 was not fetched and WANG22 only as an abstract; obtain them first."
+    },
+    {
+      "id": "P234",
+      "label": "03-Geometry — enclosing shapes",
+      "batches": [
+        "GE47"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Megiddo, OAMB86 and STVWE95 were not read yet; obtain them first."
+    },
+    {
+      "id": "P235",
+      "label": "03-Geometry — rectangle depth",
+      "batches": [
+        "GE48"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Güting's J. Algorithms 1984 paper was not readable (paywalled); obtain it first."
+    },
+    {
+      "id": "P236",
+      "label": "03-Geometry — kgon klink",
+      "batches": [
+        "GE49"
+      ],
+      "phase": "Specialist and research families",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Area weights are not Monge (15-convex_polygon_query.md); check what AST94 requires before implementing."
+    },
+    {
+      "id": "P237",
+      "label": "03-Geometry — wordram geometry",
+      "batches": [
+        "GE50"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Expected to be slower than the comparison-model versions at contest sizes; benchmark and record."
+    },
+    {
       "id": "P224",
       "label": "Whole-library test-runner, aggregate and build integration audit",
       "batches": [

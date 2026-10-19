@@ -224,3 +224,7 @@ User decisions (duplicates ledger, 2026-10-19): row 12 keeps `stirling1Row`, `st
 - Sato's matrix formula and kernel-method step sets (Krattenthaler 10.5): rational boundaries go through `increasingSequencesBetweenBounds` with heights floor((a x + b) / c); bounded-height DP or row 15 covers step sets.
 - Schroeder paths between heights: same reflection as `motzkinPaths` with flat steps of length 2; no catalog.
 - Strict Bizley counts (touching only at the endpoints): 1 - 1 / F of `bizleyPaths`.
+
+## P037 round-3 decisions (2026-10-19)
+
+- Row 18: `floorSumWide` divides by one Knuth D word step instead of 128 bit steps; the quotient below 2^63 bounds the estimate's error by 1.

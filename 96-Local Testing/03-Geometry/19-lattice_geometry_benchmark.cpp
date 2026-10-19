@@ -1,6 +1,4 @@
 #include "../../03-Geometry/19-lattice_geometry.hpp"
-#include "../../03-Geometry/15-convex_polygon_query.hpp"
-#include "../../03-Geometry/04-convexhull.hpp"
 
 // Medians of five timed calls after one warmup; results are compared outside the timed region.
 template<typename F> lng median(F f) {
@@ -26,22 +24,4 @@ int main(int argc, char **argv) {
                 row(name, size, "latticeInDisk", median([&] { slow = latticeInDisk(a, b, q, n); }));
                 if (fast != slow) { std::cerr << "disk mismatch at r=" << r << '\n'; return 1; }}
             checksum += ulng(fast);}}
-    for (int n : {1000, 10000, 100000}) {
-        vector<point> p;
-        for (int i = 0; i < n; ++i) {
-            long double t = 2 * std::numbers::pi_v<long double> * (long double)(rng() % 1000000007) / 1000000007.L;
-            p.push_back({std::llround(9e8L * std::cos(t)), std::llround(9e8L * std::sin(t))});}
-        p = convexHull(p);
-        for (int k : {3, 10, 100}) {
-            InscribedKgon<lll> res, fast;
-            string size = "n=" + std::to_string(p.size()) + " k=" + std::to_string(k);
-            row("inscribed k-gon area", size, "maxAreaInscribedKgon", median([&] { res = maxAreaInscribedKgon(p, k); }));
-            row("inscribed k-gon area", size, "maxAreaInscribedKgonSmawk", median([&] { fast = maxAreaInscribedKgonSmawk(p, k); }));
-            if (int(res.vertices.size()) != k || res.value != fast.value) { std::cerr << "k-gon mismatch\n"; return 1; }
-            checksum += ulng(res.value);}
-        InscribedKgon<long double> per, fast;
-        row("inscribed k-gon perimeter", "n=" + std::to_string(p.size()) + " k=10", "maxPerimeterInscribedKgonApprox", median([&] { per = maxPerimeterInscribedKgonApprox(p, 10); }));
-        row("inscribed k-gon perimeter", "n=" + std::to_string(p.size()) + " k=10", "maxPerimeterInscribedKgonSmawkApprox", median([&] { fast = maxPerimeterInscribedKgonSmawkApprox(p, 10); }));
-        if (std::abs(per.value - fast.value) > 1e-15L * per.value) { std::cerr << "perimeter mismatch\n"; return 1; }
-        checksum += ulng(per.value) + ulng(fast.value);}
     std::cerr << checksum << '\n';}

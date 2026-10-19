@@ -6482,6 +6482,100 @@
       "tiers": [
         "Advanced"
       ]
+    },
+    {
+      "id": "GE46",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/56-circle_placement.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Circle placement beyond the angular sweep of `54`: Chazelle–Lee O(n^2), output-sensitive O(n K), batched unit-disk counting, the smallest disk covering k points, weighted, coloured and two-disk coverage.",
+      "prerequisites": [
+        "C01",
+        "GE01",
+        "GE02",
+        "GE44"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE47",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/57-enclosing_shapes.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Enclosing shapes beyond `14`: deterministic linear enclosing circle (Megiddo), enclosing circle of circles, minimum enclosing triangle and parallelogram in O(n).",
+      "prerequisites": [
+        "C01",
+        "GE01",
+        "GE02",
+        "GE05",
+        "GE29"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE48",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/58-rectangle_depth.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Rectangle depth distribution over all depths (Barbay et al.) and a linear-memory contour sweep (Güting 1984), beside `13`.",
+      "prerequisites": [
+        "C01",
+        "GE01",
+        "GE05"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE49",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/59-kgon_klink.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Large-k inscribed polygons through k-link paths (Aggarwal–Schieber–Tokuyama, Schieber), beside the `15` k-gons; first establish which weights satisfy the required Monge property.",
+      "prerequisites": [
+        "C01",
+        "GE01",
+        "GE05"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE50",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/60-wordram_geometry.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Word-RAM bounds (Chan–Pătraşcu): offline dominance counting for orthogonal intersections and rectangle overlap in O(n sqrt(log n)), sublogarithmic point location; benchmark against `13` and `34`.",
+      "prerequisites": [
+        "C01",
+        "GE01",
+        "GE05",
+        "GE33"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
     }
   ]
 }

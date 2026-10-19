@@ -108,15 +108,43 @@ Two `@researcher` passes: k-gon interleaving (row 15) and output-sensitive conto
 |---|---|---|
 | Keikha, Löffler, Mohades, Urhausen, van der Hoog, arXiv 1705.11035 v1 and v2; arXiv 1708.00681 | https://arxiv.org/pdf/1705.11035v2, https://arxiv.org/pdf/1705.11035v1, https://arxiv.org/pdf/1708.00681 | Row 15: the 9- and 16-vertex counterexamples; Lemma 8 (Boyce Lemma 2.2) treated as valid; the flaw placed in the rooted seed |
 | Aggarwal, Klawe, Moran, Shor, Wilber, Algorithmica 2 (1987), §6.1 | https://hcsoso.github.io/teaching/topology-f21/papers/SMAWK.pdf | Row 15: Facts 1 and 2, the constrained root recursion, SMAWK |
-| Jin, Zhu, Luo, arXiv 1707.04071 | https://arxiv.org/pdf/1707.04071v1 | Row 15: restatement of rooted interleaving (not relied on) |
+| Jin, Zhu, Luo, arXiv 1707.04071 | https://arxiv.org/pdf/1707.04071v1 | Row 15: restatement of rooted interleaving (not relied on); v7 is relied on since round 3, see below |
 | Güting, Acta Informatica 21 (1984) 271–291 | https://radhesh-sarma.github.io/DAA_Assignment/assets/Guting%20paper.pdf | Row 13: `rectangleUnionBoundaryGuting` |
 | Preparata & Shamos, Computational Geometry, §8.5 | https://www.cs.kent.edu/~dragan/CG/CG-Book.pdf | Row 13: the Lipski–Preparata contour sweep |
 | mayoff/RectangleContour; gopchandani/union_of_rectangles | https://github.com/mayoff/RectangleContour, https://github.com/gopchandani/union_of_rectangles | Row 13: survey of implementations (Lipski–Preparata) |
-| Failed fetches | Boyce et al. SIAM and ACM PDFs (403), ResearchGate (403), Güting J. Algorithms 1984 (paywalled), Lipski–Preparata full text (2-page preview only) | Not relied on |
+| Failed fetches | Boyce et al. SIAM and ACM PDFs (403), ResearchGate (403), Güting J. Algorithms 1984 (paywalled), Lipski–Preparata full text (2-page preview only) | Not relied on; Boyce et al. was read in round 3 from a copy the user supplied, see below |
+
+## P037 round-3 audit sources, fetched 2026-10-19
+
+Five `@researcher` passes compared every operation of rows 13, 14, 15, 19 and 54 (and Mathematics `floorSumWide`) with the best known bounds; decisions are in [00-notes.md](00-notes.md#p037-round-3-decisions-2026-10-19). Paper keys used in the new planned rows:
+
+| Key | Source | Read | Used for |
+|---|---|---|---|
+| CL86 | Chazelle, Lee, On a circle placement problem, Computing 36 (1986) | https://www.cs.princeton.edu/~chazelle/pubs/CirclePlacement.pdf (pp. 1–3) | `56` O(n^2) maximum points in a disk |
+| GR13 | Ghasemalizadeh, Razzazi, output-sensitive covering of many points, arXiv 1312.0389 | https://arxiv.org/abs/1312.0389 | `56` O(n K) and two-disk coverage |
+| WANG22 | Wang, unit-disk range searching, arXiv 2204.08992 | abstract | `56` batched unit-disk counting |
+| HPM05 | Har-Peled, Mazumdar, smallest k-enclosing circle, Algorithmica 41 (2005) | not fetched | `56` smallest disk covering k points (research first) |
+| MEGIDDO83 | Megiddo, linear-time linear programming in R^3 and related problems, SIAM J. Comput. 12 (1983) | not fetched; https://en.wikipedia.org/wiki/Smallest-circle_problem | `57` deterministic linear enclosing circle |
+| OAMB86 | O'Rourke, Aggarwal, Maddila, Baldwin, minimal enclosing triangles, J. Algorithms 7 (1986) | not fetched | `57` minimum enclosing triangle (research first) |
+| STVWE95 | Schwarz, Teich, Vainshtein, Welzl, Evans, minimal enclosing parallelogram, SoCG 1995 | not fetched | `57` minimum enclosing parallelogram |
+| ROTE19 | Rote, largest contained quadrilateral and smallest enclosing parallelogram, arXiv 1905.11203 | https://arxiv.org/pdf/1905.11203 (pp. 1–3, 8–10) | `15` linear quadrilateral; `57` parallelogram (Appendix A) |
+| BPR17 | Barbay, Pérez-Lantero, Rojas-Ledesma, depth distribution in high dimensions, arXiv 1705.10022 | https://arxiv.org/html/1705.10022v3 | `58` all-depth distribution, O(n^1.5 log n) in 2D |
+| GUTING84 | Güting, contour sweep with a contracted segment tree, J. Algorithms (1984) | search snippets only (ScienceDirect 403) | `58` linear-memory contour (obtain the paper first) |
+| AST94 | Aggarwal, Schieber, Tokuyama, minimum-weight k-link paths with the concave Monge property, DCG (1994) | https://researchwith.njit.edu/en/publications/finding-a-minimum-weight-k-link-path-in-graphs-with-monge-propert/ | `59` large-k inscribed polygons (check that area weights qualify; they are not Monge, see 15-convex_polygon_query.md) |
+| SCHIEBER98 | Schieber, k-link paths with the concave Monge property, J. Algorithms 29 (1998) | https://researchwith.njit.edu/en/publications/computing-a-minimum-weight-k-link-path-in-graphs-with-the-concave/ | `59` |
+| CP10 | Chan, Pătraşcu, counting inversions, offline orthogonal range counting, and related problems, SODA 2010; transdichotomous point location (arXiv 1010.1948) | https://people.csail.mit.edu/mip/papers/invs/paper.pdf (pp. 1–4), https://arxiv.org/abs/1010.1948 | `60` word-RAM bounds |
+| — | Boyce, Dobkin, Drysdale, Guibas, Finding extremal polygons, STOC 1982, pp. 282–289 | copy supplied by the user (all pages read) | Row 15: Lemmas 2.1–2.3 and the crossing transform (pp. 284–285), the non-interleaving rooted optima (Fig. 10) and the Dobkin–Snyder pentagon (Fig. 12) |
+| — | Jin, Zhu, Luo, Maximal area triangles in a convex polygon, arXiv 1707.04071 v7 | https://arxiv.org/pdf/1707.04071v7 (pp. 1–12, 17–22, 29–34, 37–48, read by `@researcher`) | Row 15: `maxAreaInscribedTriangle` (Algorithms 1, 3 and 4, Lemmas 2, 6 and 22) |
+| CGAL | Min_sphere_of_spheres_d | https://doc.cgal.org/latest/Bounding_volumes/classCGAL_1_1Min__sphere__of__spheres__d.html | `57` enclosing circle of circles |
+| — | Welzl, Smallest enclosing disks (balls and ellipsoids), 1991 | https://www.stsci.edu/~RAB/Backup%20Oct%2022%202011/f_3_CalculationForWFIRSTML/Bob1.pdf (pp. 359–368) | Row 14: expected-linear analysis, move-to-front, Table 1 |
+| — | Smolik, Skala, 2022 | https://informatica.vu.lt/journal/INFORMATICA/article/1251/text | Row 14: extreme-point seeding (measured, not adopted) |
+| — | Thomas, Integer Hulls of Rational Polyhedra (Theorem 8.2, Meyer) | https://sites.math.washington.edu//~thomas/teaching/m583_s2008_web/berlinnotes.pdf (pp. 27–29) | Row 19: unbounded lattice counts are 0 or infinite |
+| — | Sladkey, arXiv 1206.3369 | https://arxiv.org/abs/1206.3369 | Row 19: log-free hull walk for the hyperbola (not used; no circle proof) |
+| — | Mount, lecture notes (fixed-radius grid) | https://graphics.stanford.edu/courses/cs268-09-winter/manuals/davidmount-754lects.pdf (pp. 6–9) | Row 54: output-sensitive grid bound |
 
 ## Source keys used in the inventory
 
-KACTL, STANFORD (jaehyunp/stanfordacm notebook), CPALG (cp-algorithms), OI-GEO (OI Wiki geometry), CGAL, SHEWCHUK, MASPYPY, EI1333, SUISEN, HITONANODE, TKO (tko919), LC (Library Checker), CSES. Keys identify research starting points, not correctness evidence. CGAL supplies breadth and contracts, never an automatic dependency.
+KACTL, STANFORD (jaehyunp/stanfordacm notebook), CPALG (cp-algorithms), OI-GEO (OI Wiki geometry), CGAL, SHEWCHUK, MASPYPY, EI1333, SUISEN, HITONANODE, TKO (tko919), LC (Library Checker), CSES; paper keys CL86, GR13, WANG22, HPM05, MEGIDDO83, OAMB86, STVWE95, ROTE19, BPR17, GUTING84, AST94, SCHIEBER98 and CP10 are listed in [P037 round-3 audit sources](#p037-round-3-audit-sources-fetched-2026-10-19). Keys identify research starting points, not correctness evidence. CGAL supplies breadth and contracts, never an automatic dependency.
 
 ## Previous audit narrative (condensed)
 

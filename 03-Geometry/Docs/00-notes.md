@@ -29,7 +29,7 @@ Rows 05–08 (`05-closestpair.hpp`, `06-circle.hpp`, `07-rotatingcalipers.hpp`, 
 - Circles are boundaries; disks are filled sets. Zero radius denotes a point. Intersection counts use `-1` for infinitely many; in a fixed-size result array only the prefix `[0, count)` is meaningful.
 - Halfplane and halfspace APIs must not disguise unbounded feasibility with an arbitrary bounding box; unbounded answers keep recession data. Clipping needs a justified finite initial polytope.
 - Polygon Boolean and arrangement APIs state multi-polygons, lower-dimensional contacts, touching/overlapping edges, ring orientation and fill rule; they share one arrangement representation.
-- Inscribed k-gon optimization (`15`) states k, strict-convexity/collinearity assumptions and its own complexity; no linear-time triangle shortcut is assumed.
+- Inscribed k-gon optimization (`15`) states k, strict-convexity/collinearity assumptions and its own complexity; the general versions assume no linear-time shortcut, and `k = 3, 4` are separate linear operations.
 - Enumeration/reporting APIs are charged by output size and separate detection, counting and reporting costs.
 - Degeneracy policies are row contracts, not operations: coincident and vertical segments (`12-segmentintersection.hpp`, including `multiwayCrossing`), cocircular sites (`31-delaunay.hpp`), tangent sight lines (`39-visibilitygraph.hpp`), simultaneous kinetic events (`40-kinetic_geometry.hpp`) and cospherical sites (`47-delaunay3d.hpp`).
 
@@ -119,24 +119,20 @@ Five `@researcher` passes, one per row; sources in [00-sources.md](00-sources.md
 - **Not adopted for `13-segment_union.hpp`:**
   - the incremental anchored rectangle union (an online staircase map that maspypy and ei1333 file under data structures);
   - anchored and general box union volume in 3D (one problem, CF 815D; Klee's measure is Esoteric);
-  - the all-depth rectangle distribution (`O(n^1.5 * log(n))` research partition);
+  - the all-depth rectangle distribution (filed in round 3 as `58-rectangle_depth.hpp`, P235);
   - orthogonal any-intersection with collinear overlaps (CSES 1742 only).
 - **Not adopted for `14-minimumenclosingcircle.hpp`:**
-  - the enclosing circle of circles (needs row 24's Apollonius construction);
+  - the enclosing circle of circles (filed in round 3 as `57-enclosing_shapes.hpp`, P234);
   - incremental insertion (`O(n)` worst case per point);
-  - Megiddo's deterministic linear algorithm (no contest source);
-  - the smallest circle covering `k` points (bisection over row 54 or Har-Peled's research algorithm);
-  - the rectangular p-centre (row 21);
-  - an exact squared radius (degree 6 exceeds `lll`).
-- **Not adopted for `15-convex_polygon_query.hpp`:**
-  - linear-time largest inscribed triangle and quadrilateral (this file's contract assumes no triangle shortcut);
-  - the minimum enclosing triangle, circumscribing k-gons, largest inscribed homothets and axis rectangles (no contest catalog);
+  - Megiddo's deterministic linear algorithm (filed in round 3, P234);
+  - the smallest circle covering `k` points (filed in round 3 as `56-circle_placement.hpp`, P233);
+  - the rectangular p-centre (row 21).
+- **Not adopted for `15-convex_polygon_query.hpp`** (the linear largest triangle and quadrilateral were adopted in round 3, and the minimum enclosing triangle filed as P234):
+  - circumscribing k-gons, largest inscribed homothets and axis rectangles (no contest catalog);
   - common tangents of two convex polygons (row 53 bridges).
 - **Not adopted for `19-lattice_geometry.hpp`:** the generic convex-region lattice count, the lattice hull under a line and polynomial lattice sums. Mathematics row 55 owns the engines (`convexLatticeHull`, `convexFloorSum`, `floorSumPolynomial`).
 - **Not adopted for `54-fixed_radius_queries.hpp`:**
-  - weighted, coloured and two-disk variants and approximation schemes (papers only);
-  - Chazelle–Lee's `O(n^2)` sweep (heavy, no catalog);
-  - the smallest disk covering `k` points (bisection over `maxPointsInDisk`);
+  - approximation schemes (papers only); the weighted, coloured and two-disk variants, Chazelle–Lee's `O(n^2)` sweep and the smallest disk covering `k` points were filed in round 3 as `56-circle_placement.hpp` (P233);
   - unit-disk components and hop distances (row 22 `euclideanBottleneck`; Esoteric).
 
 ## P037 re-audit decisions (2026-10-19)
@@ -150,6 +146,23 @@ Requested by the user after the first verification; recorded in `duplicates.md` 
   - `maxPointsInDisk` to `r2 <= 4 * 10^18` (an `I512` comparator above `4 * 10^8`);
   - rational lattice counts to `V * D <= 4 * 10^18` (primitive directions, a floored line constant, 256-bit products and Mathematics row 18 `floorSumWide`).
 - **k-gon correctness:** the k-gon root search now cites only Boyce et al.'s Lemma 2.2, as AKMSW do, and the layer step has a proof; see [15-convex_polygon_query.md](15-convex_polygon_query.md).
+
+## P037 round-3 decisions (2026-10-19)
+
+A user-requested audit compared every operation of rows 13, 14, 15, 19 and 54 (and Mathematics `floorSumWide`) with the best known algorithms, exactness, accepted inputs, memory and test gaps; sources in [00-sources.md](00-sources.md#p037-round-3-audit-sources-fetched-2026-10-19). Limits are distinguished from scope: a limit is a shortcoming an implementation can remove, and round 3 removed or filed every one it found (several were integer-width or randomness limits: the exact `radius2`, the 384-bit comparator, the deterministic `SortedGrid`). Scope is what stays by design or by necessity: integer-width domains the user chose not to widen again (rational lattice counts), irrational results, open problems (exact sums of square roots), proven lower bounds, and randomized expected bounds kept beside their deterministic variants.
+
+- **Fixed in this round:** listed per row in the evidence documents (History, 2026-10-19 round 3).
+- **Filed as Esoteric packages** (limits that are impractical now, and scope items the user asked to track):
+  - `56-circle_placement.hpp` (P233): Chazelle–Lee O(n^2), output-sensitive O(n K), batched unit-disk counting, the smallest disk covering k points, weighted, coloured and two-disk coverage;
+  - `57-enclosing_shapes.hpp` (P234): Megiddo's deterministic linear enclosing circle, the enclosing circle of circles, the minimum enclosing triangle and parallelogram;
+  - `58-rectangle_depth.hpp` (P235): the all-depth distribution (Barbay et al.) and Güting's linear-memory contour sweep;
+  - `59-kgon_klink.hpp` (P236): large-k inscribed polygons through k-link paths;
+  - `60-wordram_geometry.hpp` (P237): word-RAM bounds (Chan–Pătraşcu), filed by user decision although expected to be slower at contest sizes.
+- **Decided by the user:** a deterministic grid (sorted cells) is added to row 54 as a variant of `GridHash`; rational lattice domains are not widened again.
+- **Row 13:** rectangle and orthogonal operations take floating coordinates (exact structure, rounded sums); `rectangleCoverageArea` uses a compact tree for `k <= 16` and square-root blocks above (`O(n)` memory; threshold and block size measured); `rectangleUnionContours` links the boundary pieces into rings, turning right where four pieces meet (closed-union convention).
+- **Row 14:** `radius2` is exact as Core `Rational<InfInt>` (the numerator reaches 2^189); `minimumEnclosingCircleApprox` takes floating inputs (a larger domain); Welzl's move-to-front is adopted within a `32 n + 64` test budget with a plain-shuffle fallback, which keeps the expected `O(n)` bound provable (1.07–2.4× faster); extreme-point seeding was measured and not adopted.
+- **Row 19:** unbounded halfplane lattice counts return 0 or −1 for infinitely many (Meyer's theorem); the disk hull walk keeps its Stern–Brocot stack as `O(log(r))` runs; Core `u256` replaces the private 256-bit helpers (2–9% measured).
+- **Row 54:** `SortedGrid` is kept beside `GridHash` as its deterministic variant, and `maxPointsInDisk` uses it; the wide comparator uses private 384-bit magnitudes because Core `UInt` measured 1.6–2.6× slower; the `lll` path covers `r2 <= 2^30` (proved).
 
 ## P007 / GE01 package record
 

@@ -92,11 +92,16 @@ Items a reader could mistake for duplicates.
 | P037 | `latticeUnderLine` (row 19) beside `floorSum` | Decided 2026-10-18: lattice points under a segment with rational endpoints |
 | P037 | `latticeInHalfplanePolygon` (row 19) beside `latticeInRationalPolygon(halfplaneIntersection(h).vertices)` | Decided 2026-10-18: larger domain; it counts from the integral line equations, while the composition overflows on vertex denominators up to 8 * 10^18 |
 | P037 | `latticeInDisk`, `latticeInDiskFast` (row 19) beside `gaussCircleCount`, row 55 `gaussCircleFast` | Decided 2026-10-18: larger domain, a rational centre and squared radius |
-| P037 | `convexIntersection`, `cut`, `batchedLocate` (row 15) beside `clipConvex`, `polygonCutApprox`, `contains` | Decided 2026-10-18: better bounds, O(n + m), O(log(n) + out) and O(n + q) for angle-sorted queries |
+| P037 | `convexIntersection`, `cut`, `batchedLocate` (row 15) beside `clipConvex`, `polygonCutApprox`, `contains` | Decided 2026-10-18: better bounds, O(n + m), O(log(n) + out) and O(q log(2 + n / q)) for angle-sorted queries (galloping since round 3) |
 | P037 | `maxPointsInDisk` (row 54) beside row 23 `maxDiskDepth` | Decided 2026-10-18: named special case, equal radii |
 | P037 | `maxAreaInscribedKgonSmawk`, `maxPerimeterInscribedKgonSmawkApprox` (row 15) beside `maxAreaInscribedKgon`, `maxPerimeterInscribedKgonApprox` | Decided 2026-10-19: different algorithm (SMAWK layers, O(k n + n log n)); both kept even where one is faster |
 | P037 | `rectangleUnionBoundaryGuting` (row 13) beside `rectangleUnionBoundary` | Decided 2026-10-19: different algorithm (Güting's divide and conquer, O(n log n + out)) |
 | P037 | Mathematics `floorSumWide` (row 18) beside `floorSum` | Decided 2026-10-19: larger domain, a 128-bit modulus |
+| P037 | `minimumEnclosingCircleApprox` (row 14) beside `minimumEnclosingCircle` | Decided 2026-10-19: larger domain (floating inputs) |
+| P037 | `SortedGrid` (row 54) beside `GridHash` | Decided 2026-10-19 by the user: deterministic variant (radix-sorted cells), a different algorithm |
+| P037 | `maxAreaInscribedTriangle`, `maxAreaInscribedQuadrilateral` (row 15) beside `maxAreaInscribedKgon` | Decided 2026-10-19: named special cases with a linear bound, different algorithms |
+| P037 | `pointDistance2`, `areaLeftOfLine2` (row 15) beside their `Approx` forms | Exact and approximate variants (03-cpp.md, API contracts) |
+| P037 | `rectangleUnionContours` (row 13) beside `rectangleUnionBoundary` | Decided 2026-10-19 by the user: a derived result (closed rings, cycle structure and orientation) that the pieces do not give |
 
 ### Rulings
 

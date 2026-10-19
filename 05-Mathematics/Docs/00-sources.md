@@ -178,3 +178,10 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 - FLINT `acb_modular`, `acb_theta`, `arb_calc`, Calcium symbolic expressions: beyond rows 39, 61, 62 scope.
 - NTL `xdouble`: extended exponent range only; `DoubleDouble` in row 63 covers the compact alternative.
 - GMP radix conversion and assembly chapters: Core InfInt and performance material.
+
+## P037 round-3 sources, fetched 2026-10-19
+
+| Source | URL | Used for |
+|---|---|---|
+| GMP manual, Basecase Division | https://gmplib.org/manual/Basecase-Division | Row 18 `divStep` (Knuth D word step) |
+| Möller, Granlund, division draft | https://www.lysator.liu.se/~nisse/archive/draft-division-paper.pdf (pp. 5–8) | Row 18 `divStep` |
