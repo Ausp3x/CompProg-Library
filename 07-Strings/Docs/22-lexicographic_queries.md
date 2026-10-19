@@ -11,7 +11,7 @@ The per-prefix minimal suffix uses `IncrementalLyndon` (`14-lyndon.hpp`). The pe
 
 ## Contracts
 
-Texts are integral sequences (`vector<T>`); a string is read as unsigned bytes into `T = int` (`SuffixArray(string_view)` and the string constructors), so byte order is unsigned. Sizes are below `INT_MAX`. Ranges are half-open; comparisons return -1, 0, 1, a proper prefix being smaller. Free functions taking a `SuffixArray` need it built with RMQ (the default) wherever `lce` is used (asserted through `indexed`); `frequencyStatistics`, `lcpSums`, `minimalAbsentWords` and the MUS/SUS functions read only `sa`, `rank` and `lcp`. Results never alias inputs.
+Texts are integral sequences (`vector<T>`); a string is read as unsigned bytes into `T = int` (`SuffixArray(string_view)` and the string constructors), so byte order is unsigned. Sizes are below `INT_MAX`. Ranges are half-open; comparisons return -1, 0, 1, a proper prefix being smaller. Free functions taking a `SuffixArray` need it built with RMQ (the default) wherever `lce` is used (asserted through `indexed`); `frequencyStatistics`, `lcpSums`, `minimalAbsentWords`, the MUS/SUS functions and `distinctSubstringsByLength` read only `sa`, `rank` and `lcp`. Results never alias inputs.
 
 ### compareSubstrings(sa, l, r, a, b)
 
@@ -105,6 +105,10 @@ So `z c` beats every longer candidate exactly when `d(z) < c`. The new maximal s
 
 `n + 1` entries; `res[i]` is the number of distinct nonempty substrings of `s[0, i)`. Let `a(j)` be the maximum of `lce(j', j)` over `j' < j`, found from the nearest ranks on either side with a smaller start by two monotone stacks. A substring starting at `j` is new there when it is longer than `a(j)`. So `res[i]` is the sum of `max(0, i - j - a(j))`, accumulated by bucketing `j + a(j)` in `O(n)` after the suffix array. This is the integer-sequence form beside `distinctSubstringsOnline(string_view)` in `10` (kept by the user's decision 2026-10-16).
 
+### distinctSubstringsByLength(sa)
+
+`n + 1` entries; `res[k]` is the number of distinct substrings of length `k`, so `res[0] = 1` (the empty string, also for `n = 0`), `res[n] = 1` when `n > 0`, and `res[1..n]` sum to the distinct nonempty substrings. For `k >= 1`, `res[k] = (n - k + 1) - #{x : lcp[x] >= k}`: the suffixes of length at least `k` are `n - k + 1`, suffixes sharing a length-`k` prefix form a run of adjacent ranks (any suffix between two of them shares the prefix), and each run of `r` such suffixes has `r - 1` adjacent LCPs of at least `k`, while an LCP of at least `k` joins only such suffixes. A histogram of `lcp` and one suffix sum give every count in `O(n)` after the suffix array, reading only `lcp`; each entry is at most `n - k + 1`, so `int` holds it. CSES 2110 (Substring Distribution) prints `res[1..n]`.
+
 ### Legacy mapping
 
 - `lce` (row) → `SuffixArray::lce` (`07`), removed from the row as the same operation.
@@ -114,7 +118,7 @@ So `z c` beats every longer candidate exactly when `d(z) < c`. The new maximal s
 
 ### Aliases
 
-maspypy `lcp_range` is `occurrenceRange`; maspypy `sort_substrings` (dense IDs) is `sortSubstrings`; maspypy `Many_String_Compare` `ST_TS_comp3` is `comparePieces` on two orders; suisen `compare_substring` is `compareSubstrings`; suisen `SubstringSet::kth_element` is `SubstringOrder::kthDistinctSubstring`; maspypy `lex_min_suffix_for_all_prefix` and `lex_max_suffix_for_all_prefix` are the per-prefix functions (lengths there, starts here).
+maspypy `lcp_range` is `occurrenceRange`; maspypy `sort_substrings` (dense IDs) is `sortSubstrings`; maspypy `Many_String_Compare` `ST_TS_comp3` is `comparePieces` on two orders; suisen `compare_substring` is `compareSubstrings`; suisen `SubstringSet::kth_element` is `SubstringOrder::kthDistinctSubstring`; maspypy `lex_min_suffix_for_all_prefix` and `lex_max_suffix_for_all_prefix` are the per-prefix functions (lengths there, starts here); the CSES 2110 output is `distinctSubstringsByLength` entries `1..n`.
 
 ## Feature-to-test map
 
@@ -132,8 +136,9 @@ Runner: [`22-lexicographic_queries_tester.py`](<../../96-Local Testing/07-String
 | minimalUniqueSubstrings, shortestUniqueSubstrings | Brute definitions. Large texts: each MUS unique with repeating parts; sampled SUS cover `p`, occur once, and are minimal when at most 300 long. |
 | lexMinSuffixPerPrefix, lexMaxSuffixPerPrefix | Brute on every small text; medium texts (300/1000/3000: random binary, Fibonacci, 26 letters, Thue–Morse) against brute extrema. |
 | distinctSubstringsPerPrefix | Brute per-prefix sets; large texts against `distinctSubstringsOnline`. |
+| distinctSubstringsByLength | Brute substring sets by length on every text (empty text included), with and without RMQ, `lng` and byte texts. Large texts: the suffix automaton's state length ranges `[minimalLength, len]`, distinct windows of lengths 1, 2, 3, 7, 20, 64, `n - 1`, `n`, and the total against `distinctSubstrings`. A mutant dropping the `+ 1` from `n - k + 1` fails on `s = 0`. |
 | StringCollection (length, lce, compare, comparePieces) | Random collections of 0..4 strings up to 8 symbols, 300 queries each (equal piece lists included); string input with high bytes and the empty string. |
-| Suffix arrays without RMQ | `frequencyStatistics`, `lcpSums`, `minimalAbsentWords`, `minimalUniqueSubstrings`, `shortestUniqueSubstrings` on `SuffixArray(s, false)` give the same results on every text. |
+| Suffix arrays without RMQ | `frequencyStatistics`, `lcpSums`, `minimalAbsentWords`, `minimalUniqueSubstrings`, `shortestUniqueSubstrings`, `distinctSubstringsByLength` on `SuffixArray(s, false)` give the same results on every text. |
 | Symbol types | `lng` symbols with negative values, high-byte strings (`SuffixArray(string)`, string constructors and deduction guides, `string_view`) against an equivalent `int` rank text. |
 | Preconditions | Checked builds abort on eleven probes: compare and suffix ranges, collection range and index, KMR level and range, occurrence range, a suffix array without RMQ, MAW symbol and `sigma`, rank range. |
 
@@ -141,19 +146,21 @@ Inputs: exhaustive binary texts through 7/9/12 and ternary through 4/6/7 symbols
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-19 (P085, `distinctSubstringsByLength`), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wshadow -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
-| `22-lexicographic_queries_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 17,209,333 checks per configuration, 11 assertion probes, MEMORY peak 722 MB |
-| `CXX=g++-14 22-lexicographic_queries_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 17,209,333 checks per configuration, MEMORY peak 763 MB |
-| `22-lexicographic_queries_tester.py --mode stress --seed 7` | PASS, 17,261,494 checks per configuration, MEMORY peak 724 MB |
-| `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
+| `22-lexicographic_queries_tester.py --mode quick --seed 1` | PASS, 2,402,449 checks per configuration, MEMORY peak 603 MB |
+| `22-lexicographic_queries_tester.py --mode full --seed 20261019` (GCC 16.2.1) | PASS, 3 configurations, 17,235,139 checks per configuration, 11 assertion probes, MEMORY peak 734 MB |
+| `CXX=g++-14 22-lexicographic_queries_tester.py --mode full --seed 20261019` (GCC 14.4.1, floor) | PASS, 3 configurations, 17,235,139 checks per configuration, 11 assertion probes, MEMORY peak 740 MB |
+| `22-lexicographic_queries_tester.py --mode stress --seed 7` | PASS, 141,870,400 checks (optimized, stress sizes) and 17,266,356 per checked/ASan configuration (full sizes), MEMORY peak 734 MB |
+| `02-integration.py --sanitizers` | PASS: 166 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1832 MB |
 | `03-consistency.py` | No errors |
 
 ```bash
-python3 '96-Local Testing/07-Strings/22-lexicographic_queries_tester.py' --mode full --seed 20261017
-CXX=g++-14 python3 '96-Local Testing/07-Strings/22-lexicographic_queries_tester.py' --mode full --seed 20261017
+python3 '96-Local Testing/07-Strings/22-lexicographic_queries_tester.py' --mode quick --seed 1
+python3 '96-Local Testing/07-Strings/22-lexicographic_queries_tester.py' --mode full --seed 20261019
+CXX=g++-14 python3 '96-Local Testing/07-Strings/22-lexicographic_queries_tester.py' --mode full --seed 20261019
 python3 '96-Local Testing/07-Strings/22-lexicographic_queries_tester.py' --mode stress --seed 7
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
@@ -170,15 +177,18 @@ Code is independently implemented from the cited descriptions; catalog sweep in 
 - [cp-algorithms, Suffix array](https://cp-algorithms.com/string/suffix-array.html) and [OI Wiki, SA](https://oi-wiki.org/string/sa/) (fetched 2026-10-16): substring comparison, prefix doubling names, the sum of LCPs over all pairs.
 - maspypy `string/{all_pairs_lcp, many_string_compare, sort_substrings, lex_max_suffix_for_all_prefix, lex_min_suffix_for_all_prefix, suffix_lcp_change}.hpp` and suisen `compare_substring`, `substring_set` (fetched 2026-10-16 by the researcher): conventions (half-open ranges, -1/0/1, per-prefix arrays of `n + 1`, 0-based `k`).
 - [arXiv 1312.2738](https://arxiv.org/abs/1312.2738) and [Mieno et al., CPM 2017](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2017.24) (fetched 2026-10-16): minimal unique substrings and point SUS queries. Barton et al. 2014 and Crochemore–Mignosi–Restivo 1998 on minimal absent words were seen in search results only. The node/left-extension formulation and its `O(n + sigma + out)` bound are argued above.
+- [CSES 2110, Substring Distribution](https://cses.fi/problemset/task/2110) (fetched 2026-10-19): `distinctSubstringsByLength`, the only catalog source with counts by length (re-sweep in [00-sources.md](00-sources.md#p085-re-sweep-2026-10-19)).
 - The online maximal-suffix-per-prefix scan is derived here; no fetched source gives an online version (maspypy's is offline over the suffix array).
 
 ## Limits and handoffs
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): maspypy `suffix_lcp_change`, `nonDominatedSuffixes`, the basic substring structure, ordered-set queries over arbitrary patterns, the two-string LCP table.
 - `minimalAbsentWords` allocates `O(sigma)`; compress large alphabets first.
+- P017 (SA-IS default build, `doubling`) was in progress when this row was verified; every function here reads only the `sa`, `rank`, `lcp` and RMQ contract, so P017 reruns this suite when it lands.
 - `kthSubstring` is `O(log^2 n)` per query; the automaton in `10` answers in `O(answer length)` for byte strings.
 
 ## History
 
 - 2026-10-16: implemented and verified (P085), independent review found 4 rule and test-gap findings, fixed; full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (`SparseTable<Min<int>>` with a direct `00-monoids.hpp` include; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 722/763/724 MB.
+- 2026-10-19: P085 omission-sweep follow-up: `distinctSubstringsByLength` added (re-sweep found nothing else), independent review found 1 overflow edge and 3 nits, fixed; quick, full (seed 20261019) on g++ and g++-14, stress (seed 7) and integration passed, MEMORY peak 734/740/734 MB.

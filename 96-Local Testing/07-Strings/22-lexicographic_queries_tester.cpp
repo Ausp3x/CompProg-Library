@@ -183,7 +183,11 @@ void checkText(const V &s, int sigma, std::mt19937_64 &rng, bool all) {
         per.push_back(lng(seen.size()));}
     expect(lexMinSuffixPerPrefix(s), lo, "lexMinSuffixPerPrefix");
     expect(lexMaxSuffixPerPrefix(s), hi, "lexMaxSuffixPerPrefix");
-    expect(distinctSubstringsPerPrefix(sa), per, "distinctSubstringsPerPrefix");}
+    expect(distinctSubstringsPerPrefix(sa), per, "distinctSubstringsPerPrefix");
+    vector<int> by(n + 1);
+    for (const auto &[w, starts] : occ) { ++by[w.size()]; }
+    expect(distinctSubstringsByLength(sa), by, "distinctSubstringsByLength");
+    expect(distinctSubstringsByLength(bare), by, "distinctSubstringsByLength without RMQ");}
 // String collections: lce, compare and comparePieces against explicit concatenations.
 void checkCollection(const vector<V> &strings, std::mt19937_64 &rng) {
     ++cases;
@@ -297,6 +301,8 @@ void typesAndStrings(const string &mode) {
         expect(minimalUniqueSubstrings(sl), minimalUniqueSubstrings(sr), "minimalUniqueSubstrings lng");
         expect(shortestUniqueSubstrings(sb), shortestUniqueSubstrings(sr), "shortestUniqueSubstrings bytes");
         expect(distinctSubstringsPerPrefix(sl), distinctSubstringsPerPrefix(sr), "distinctSubstringsPerPrefix lng");
+        expect(distinctSubstringsByLength(sl), distinctSubstringsByLength(sr), "distinctSubstringsByLength lng");
+        expect(distinctSubstringsByLength(sb), distinctSubstringsByLength(sr), "distinctSubstringsByLength bytes");
         expect(lexMinSuffixPerPrefix(s), lexMinSuffixPerPrefix(ranks), "lexMinSuffixPerPrefix lng");
         expect(lexMaxSuffixPerPrefix(bytes), lexMaxSuffixPerPrefix(ranks), "lexMaxSuffixPerPrefix bytes");
         expect(lexMinSuffixPerPrefix(string_view(bytes)), lexMinSuffixPerPrefix(ranks), "lexMinSuffixPerPrefix string_view");
@@ -365,6 +371,18 @@ void large(const string &mode) {
         expect(squares, pairs, "lcpSums equals sum of squared occurrence counts");
         expect(distinct, sam.distinctSubstrings(), "frequencyStatistics distinct");
         expect(per, distinctSubstringsOnline(text), "distinctSubstringsPerPrefix vs distinctSubstringsOnline");
+        // Each automaton state holds the distinct substrings with lengths [minimalLength, len]; short lengths also count windows directly.
+        vector<int> by = distinctSubstringsByLength(sa), states(n + 2);
+        for (int v = 1; v < int(sam.nodes.size()); ++v) { ++states[sam.minimalLength(v)]; --states[sam.nodes[v].len + 1]; }
+        for (int k = 1; k <= n; ++k) { states[k] += states[k - 1]; }
+        states[0] = 1;
+        states.pop_back();
+        expect(by, states, "distinctSubstringsByLength vs SuffixAutomaton");
+        for (int k : {1, 2, 3, 7, 20, 64, n - 1, n}) {
+            unordered_set<string_view> windows;
+            for (int i = 0; i + k <= n; ++i) { windows.insert(string_view(text).substr(i, k)); }
+            expect(by[k], int(windows.size()), "distinctSubstringsByLength windows");}
+        expect(accumulate(by.begin() + 1, by.end(), lng(0)), sam.distinctSubstrings(), "distinctSubstringsByLength total");
         auto mus = minimalUniqueSubstrings(sa);
         for (auto [i, len] : mus) {
             expect(sam.occurrenceCount(string_view(text).substr(i, len)), 1, "MUS unique");

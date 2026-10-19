@@ -833,7 +833,7 @@
       "phase": "Contest core",
       "size": "L+L",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "07-Strings/Docs/21-wildcardmatching.md",
         "07-Strings/Docs/22-lexicographic_queries.md",

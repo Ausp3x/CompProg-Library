@@ -427,3 +427,15 @@ template<class T> vector<lng> distinctSubstringsPerPrefix(const SuffixArray<T> &
         res[i] = lng(i) * count - sum;
         count += bucket[i]; sum += lng(i) * bucket[i];}
     return res;}
+
+// T: O(n), M: O(n); res[k] = distinct substrings of length k, n + 1 entries, res[0] = 1 (the empty string).
+template<class T> vector<int> distinctSubstringsByLength(const SuffixArray<T> &sa) {
+    int n = sa.size();
+    vector<int> res(n + 1);
+    for (int h : sa.lcp) { ++res[h]; }
+    // n - k + 1 suffixes have length at least k; each adjacent LCP of at least k repeats a length-k prefix.
+    for (int k = n, c = 0; k > 0; --k) {
+        c += res[k];
+        res[k] = n - k + 1 - c;}
+    res[0] = 1;
+    return res;}
