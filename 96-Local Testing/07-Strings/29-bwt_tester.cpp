@@ -153,11 +153,16 @@ void large(const string &mode) {
     for (int i = 0; i < n; ++i) { per[i] = "abaab"[i % 5]; }
     while (int(fib.size()) < n) { string next = fib + prev; prev = fib; fib = next; }
     fib.resize(n);
+    // Independent prefix-doubling suffix order over unsigned byte codes (SuffixArray's constructors run SA-IS, as bwt does).
+    auto doublingSa = [](const string &t) {
+        vector<int> codes(t.begin(), t.end());
+        for (int &c : codes) { c = uint8_t(c); }
+        return SuffixArray<int>::doubling(codes, false).sa;};
     for (auto [name, s] : vector<pair<string, string>>{{"random", rnd}, {"period-5", per}, {"fibonacci", fib}, {"unary", string(n, 'z')}}) {
         context = "large " + name + " n=" + std::to_string(n);
         string b = bwt(s, '$');
         expect(inverseBwt(b, '$'), s, "large inverseBwt");
-        expect(bwtFromSuffixArray(s, SuffixArray<int>(string_view(s)).sa, '$'), b, "large bwt versus SuffixArray");
+        expect(bwtFromSuffixArray(s, doublingSa(s), '$'), b, "large bwt versus doubling SuffixArray");
         auto [last, primary] = bwtPrimary(s);
         expect(inverseBwtPrimary(last, primary), s, "large inverseBwtPrimary");
         auto order = sortCyclicRotations(s);
@@ -171,10 +176,10 @@ void large(const string &mode) {
     // Aperiodic random text: rotation order equals the suffix order of s + s restricted to starts below n.
     string d = rnd + rnd;
     vector<int> expected;
-    for (int i : SuffixArray<int>(string_view(d)).sa) {
+    for (int i : doublingSa(d)) {
         if (i < n) { expected.push_back(i); }}
     context = "large random rotations";
-    expect(sortCyclicRotations(rnd), expected, "large sortCyclicRotations versus SuffixArray");
+    expect(sortCyclicRotations(rnd), expected, "large sortCyclicRotations versus doubling SuffixArray");
     cout << "PASS large random/periodic/Fibonacci/unary round trips n=" << n << '\n';}
 int main(int argc, char **argv) {
     string mode = "full", invalid;

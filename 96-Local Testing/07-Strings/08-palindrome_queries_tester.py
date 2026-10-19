@@ -3,7 +3,7 @@
 Quick/full/stress cover ternary strings through length 5/7/9, 80/500/3000
 seeded byte/integer cases, and 5000/200000/1000000-symbol structural cases.
 All modes cover exact predicates, all three hash kinds, leftmost longest witnesses,
-palindromic substring counts,
+palindromic substring counts in total and by start/last index,
 empty intervals, all bytes, signed extremes, lifecycle and a known hash false
 positive. Full/stress add ASan/UBSan; checked builds run six range probes.
 """

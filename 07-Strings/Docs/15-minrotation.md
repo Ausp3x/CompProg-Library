@@ -22,7 +22,7 @@ Correctness (two-pointer minimum expression): candidates `i < j` are compared on
 
 ### minRotation(const SuffixArray<T> &doubled)
 
-Takes a `SuffixArray<T>` (from `07-suffixarray.hpp`) built over `s + s` (even length, equal halves; asserted in O(n)) and returns the same index as `minRotationIndices(s).first`. Suffix `i < n` of `s + s` is `rot(i)` followed by `s[i, n)`, so the first such suffix in suffix order has a minimal rotation; all minimal starts share that length-`n` prefix and are contiguous in the suffix array with `lcp >= n`, so a forward walk over that block finds the smallest start. O(n) beyond the caller's O(n log n) construction.
+Takes a `SuffixArray<T>` (from `07-suffixarray.hpp`) built over `s + s` (even length, equal halves; asserted in O(n)) and returns the same index as `minRotationIndices(s).first`. Suffix `i < n` of `s + s` is `rot(i)` followed by `s[i, n)`, so the first such suffix in suffix order has a minimal rotation; all minimal starts share that length-`n` prefix and are contiguous in the suffix array with `lcp >= n`, so a forward walk over that block finds the smallest start. O(n) beyond the caller's construction (`O(n)` for bytes and dense ranges since `07` builds through SA-IS, otherwise `O(n log n)`).
 
 ### Legacy mapping
 

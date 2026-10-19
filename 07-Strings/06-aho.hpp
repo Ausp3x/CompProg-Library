@@ -160,6 +160,24 @@ struct AhoCorasick {
         res.reserve(patterns());
         for (int u : terminal) { res.push_back(count[u]); }
         return res;}
+    // T: scan + O(V + k), M: O(V + k); res[id] = start of the first occurrence of each ID, -1 if none.
+    vector<int> firstOccurrences(string_view text) const {
+        checkState(0);
+        assert(text.size() < INT_MAX);
+        vector<int> first(size(), INT_MAX), res;
+        first[0] = 0;
+        for (int u = 0, r = 0; r < int(text.size());) {
+            u = next(u, uint8_t(text[r++]));
+            first[u] = min(first[u], r);}
+        // A state's string ends wherever a state of its failure subtree is reached.
+        for (int i = size() - 1; i > 0; --i) {
+            int &f = first[nodes[order[i]].link];
+            f = min(f, first[order[i]]);}
+        res.reserve(patterns());
+        for (int id = 0; id < patterns(); ++id) {
+            int r = first[terminal[id]];
+            res.push_back(r == INT_MAX ? -1 : r - length[id]);}
+        return res;}
     // T: scan, M: O(n) returned; res[r] counts IDs ending at boundary r, 0 <= r <= n.
     vector<int> countPositions(string_view text) const {
         checkState(0);

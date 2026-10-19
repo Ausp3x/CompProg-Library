@@ -4,7 +4,25 @@
 #include "../02-Data Structures/04-sparsetable.hpp"
 #include "12-sais.hpp"
 
-// S: O(n * log(n + 1)), U: NA, Q: O(1) lce, O(m + log(n + 1)) patternRange (O(m * log(n + 1)) without RMQ), M: O(n * log(n + 1)) with RMQ, O(n) without.
+namespace suffixarray_detail {
+    // T: O(n) if max - min < max(4n, 256), else O(n * log(n + 1)), M: O(n); order-preserving codes in [0, upper], dense ranges shifted, sparse ones sorted.
+    template<class T> pair<vector<int>, int> alphabetCodes(const vector<T> &s) {
+        assert(s.size() < INT_MAX);
+        int n = int(s.size());
+        if (!n) { return {{}, 0}; }
+        auto [lo, hi] = std::minmax_element(s.begin(), s.end());
+        ulll base = ulll(*lo), range = ulll(*hi) - base;
+        // Measured: shifting wins below about 8n (n = 10^6); 4n bounds the SA-IS buckets at 12n ints.
+        if (range >= std::clamp(4 * ulll(n), ulll(256), ulll(INT_MAX - 1))) {
+            auto res = compressAlphabet(s);
+            --res.second;
+            return res;}
+        vector<int> res(n);
+        for (int i = 0; i < n; ++i) { res[i] = int(ulll(s[i]) - base); }
+        return {std::move(res), int(range)};}
+} // namespace suffixarray_detail
+
+// S: O(n) without RMQ if max - min < max(4n, 256) (bytes), else O(n * log(n + 1)), U: NA, Q: O(1) lce, O(m + log(n + 1)) patternRange (O(m * log(n + 1)) without RMQ), M: O(n * log(n + 1)) with RMQ, O(n) without.
 // Integral T, n < INT_MAX, sentinel-free (sa omits suffix n, lce accepts it); string input is T = int with unsigned byte order.
 template<class T = int> requires std::is_integral_v<T>
 struct SuffixArray {
@@ -14,34 +32,23 @@ struct SuffixArray {
     bool indexed = true;
 
     SuffixArray() = default;
-    explicit SuffixArray(vector<T> s, bool with_rmq = true) : text(std::move(s)) { build(false, with_rmq); }
+    explicit SuffixArray(vector<T> s, bool with_rmq = true) : text(std::move(s)) { build(with_rmq); }
     explicit SuffixArray(std::initializer_list<T> s, bool with_rmq = true) : SuffixArray(vector<T>(s), with_rmq) {}
     explicit SuffixArray(string_view s, bool with_rmq = true) requires std::is_same_v<T, int> {
         assert(s.size() < INT_MAX);
         text.assign(s.begin(), s.end());
         for (int &c : text) { c = uint8_t(c); }
-        build(true, with_rmq);}
-    int size() const { return int(text.size()); }
-
-    void build(bool bytes, bool with_rmq) {
-        assert(text.size() < INT_MAX);
-        int n = size();
-        sa.resize(n);
-        rank.resize(n);
+        build(with_rmq);}
+    // T: O(n * log(n + 1)), M: O(n) workspace; prefix doubling with stable counting sorts, same index as the constructor.
+    static SuffixArray doubling(vector<T> s, bool with_rmq = true) {
+        assert(s.size() < INT_MAX);
+        int n = int(s.size()), classes = 0;
+        vector<int> sa(n), rank(n), second(n), next_rank(n), count(n);
         iota(sa.begin(), sa.end(), 0);
-        if (bytes) {
-            array<int, 256> count{};
-            for (T c : text) {
-                assert(0 <= lll(c) && lll(c) < 256);
-                ++count[int(c)];}
-            for (int c = 1; c < 256; ++c) { count[c] += count[c - 1]; }
-            for (int i = n - 1; i >= 0; --i) { sa[--count[int(text[i])]] = i; }}
-        else { sort(sa.begin(), sa.end(), [&](int i, int j) { return text[i] < text[j]; }); }
-        int classes = 0;
+        sort(sa.begin(), sa.end(), [&](int i, int j) { return s[i] < s[j]; });
         for (int i = 0; i < n; ++i) {
-            if (!i || text[sa[i - 1]] != text[sa[i]]) { ++classes; }
+            if (!i || s[sa[i - 1]] != s[sa[i]]) { ++classes; }
             rank[sa[i]] = classes - 1;}
-        vector<int> second(n), next_rank(n), count(n);
         for (int k = 1; k < n && classes < n; k = k >= n - k ? n : 2 * k) {
             int at = 0;
             for (int i = n - k; i < n; ++i) { second[at++] = i; }
@@ -59,6 +66,20 @@ struct SuffixArray {
                 if (rank[a] != rank[b] || ra != rb) { ++classes; }
                 next_rank[b] = classes - 1;}
             rank.swap(next_rank);}
+        SuffixArray res;
+        res.text = std::move(s);
+        res.sa = std::move(sa);
+        res.buildIndex(with_rmq);
+        return res;}
+    int size() const { return int(text.size()); }
+
+    void build(bool with_rmq) {
+        auto [codes, upper] = suffixarray_detail::alphabetCodes(text);
+        sa = sais(codes, upper);
+        buildIndex(with_rmq);}
+    void buildIndex(bool with_rmq) {
+        rank.resize(sa.size());
+        for (int i = 0; i < size(); ++i) { rank[sa[i]] = i; }
         lcp = lcpArray(text, sa);
         indexed = false;
         rmq = SparseTable<Min<int>>();
@@ -139,23 +160,18 @@ SuffixArray(string_view, bool = true) -> SuffixArray<int>;
 SuffixArray(const string &, bool = true) -> SuffixArray<int>;
 SuffixArray(const char *, bool = true) -> SuffixArray<int>;
 
-// T: O((n + m) * log(n + m + 1)), M: O(n + m); n + m + 1 < INT_MAX.
+// T: O(n + m) if max - min < max(4(n + m), 256), else O((n + m) * log(n + m + 1)), M: O(n + m); n + m + 1 < INT_MAX.
 // {start in a, start in b, length} of the smallest longest common substring, earliest starts; {0, 0, 0} if none.
 template<class T> requires std::is_integral_v<T>
 tuple<int, int, int> longestCommonSubstring(const vector<T> &a, const vector<T> &b) {
     assert(a.size() < INT_MAX && b.size() < INT_MAX && a.size() + b.size() < INT_MAX - 1);
     if (a.empty() || b.empty()) { return {0, 0, 0}; }
     int n = int(a.size()), m = int(b.size());
-    vector<T> alphabet = a;
-    alphabet.insert(alphabet.end(), b.begin(), b.end());
-    sort(alphabet.begin(), alphabet.end());
-    alphabet.erase(unique(alphabet.begin(), alphabet.end()), alphabet.end());
-    auto code = [&](T c) { return int(lower_bound(alphabet.begin(), alphabet.end(), c) - alphabet.begin()) + 1; };
-    vector<int> joined;
-    joined.reserve(n + m + 1);
-    for (T c : a) { joined.push_back(code(c)); }
-    joined.push_back(0);
-    for (T c : b) { joined.push_back(code(c)); }
+    vector<T> ab = a;
+    ab.insert(ab.end(), b.begin(), b.end());
+    auto [joined, upper] = suffixarray_detail::alphabetCodes(ab);
+    for (int &c : joined) { ++c; }
+    joined.insert(joined.begin() + n, 0);
     SuffixArray index(std::move(joined), false);
     int best = 0, first = 0;
     for (int i = 0; i < n + m; ++i) {
@@ -170,7 +186,7 @@ tuple<int, int, int> longestCommonSubstring(const vector<T> &a, const vector<T> 
         if (p < n) { x = min(x, p); }
         else if (p > n) { y = min(y, p - n - 1); }}
     return {x, y, best};}
-// T: O((n + m) * log(n + m + 1)), M: O(n + m); bytes ordered unsigned.
+// T: O(n + m), M: O(n + m); bytes ordered unsigned.
 inline tuple<int, int, int> longestCommonSubstring(string_view a, string_view b) {
     vector<int> x(a.begin(), a.end()), y(b.begin(), b.end());
     for (int &c : x) { c = uint8_t(c); }

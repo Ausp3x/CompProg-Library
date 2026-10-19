@@ -62,12 +62,22 @@ template<class T> void verify(const vector<T> &s, bool byte_case = false) {
         return std::lexicographical_compare(s.begin() + i, s.end(), s.begin() + j, s.end());});
     check(index.sa == expected && plain.sa == expected, "suffix order naive sorted suffixes");
     check(index.text == s && index.indexed && !plain.indexed && plain.rmq.v.empty(), "storage/configuration");
+    auto doubled = SuffixArray<T>::doubling(s), doubled_plain = SuffixArray<T>::doubling(s, false);
+    SuffixArray<T> rebuilt;
+    rebuilt.text = s;
+    rebuilt.build(false);
+    check(doubled.sa == expected && doubled_plain.sa == expected, "doubling suffix order naive sorted suffixes");
+    check(doubled.text == s && doubled.indexed && !doubled_plain.indexed && doubled_plain.rmq.v.empty(), "doubling storage/configuration");
     expectEqual(index.size(), n, "size");
     expectEqual(int(index.lcp.size()), max(0, n - 1), "LCP length");
     for (int i = 0; i < n; ++i) { expectEqual(index.rank[index.sa[i]], i, "inverse rank"); }
     for (int i = 0; i + 1 < n; ++i) { expectEqual(index.lcp[i], directLcp(s, index.sa[i], s, index.sa[i + 1]), "Kasai adjacent LCP"); }
+    check(doubled.rank == index.rank && doubled.lcp == index.lcp && doubled_plain.rank == index.rank && doubled_plain.lcp == index.lcp, "doubling ranks/LCP");
+    check(rebuilt.sa == expected && rebuilt.rank == index.rank && rebuilt.lcp == index.lcp && !rebuilt.indexed, "direct build");
     for (int i = 0; i <= n; ++i) {
-        for (int j = 0; j <= n; ++j) { expectEqual(index.lce(i, j), directLcp(s, i, s, j), "LCE i=" + std::to_string(i) + " j=" + std::to_string(j)); }}
+        for (int j = 0; j <= n; ++j) {
+            expectEqual(index.lce(i, j), directLcp(s, i, s, j), "LCE i=" + std::to_string(i) + " j=" + std::to_string(j));
+            expectEqual(doubled.lce(i, j), directLcp(s, i, s, j), "doubling LCE");}}
     if (n <= 5) {
         for (int l = 0; l <= n; ++l) {
             for (int r = l; r <= n; ++r) {
@@ -114,7 +124,8 @@ void braceLists() {
     check(a.patternRange({0}) == pair<int, int>{0, 2} && a.patternRange({0, 1}) == pair<int, int>{1, 2}, "brace-list pattern");
     check(a.patternRange({}) == pair<int, int>{0, 3} && a.patternRange({1, 0, 0}) == pair<int, int>{3, 3}, "brace-list empty/absent pattern");
     SuffixArray<lng> d({0, -1});
-    check(d.sa == vector<int>{1, 0} && d.patternRange({0}) == pair<int, int>{1, 2}, "brace-list lng");}
+    check(d.sa == vector<int>{1, 0} && d.patternRange({0}) == pair<int, int>{1, 2}, "brace-list lng");
+    check(SuffixArray<int>::doubling({0, 1, 0}).sa == vector<int>{2, 0, 1} && SuffixArray<lng>::doubling({0, -1}, false).sa == vector<int>{1, 0}, "brace-list doubling");}
 void exhaustive(const string &mode) {
     int bound = mode == "quick" ? 5 : mode == "full" ? 7 : 8;
     for (int n = 0, count = 1; n <= bound; ++n, count *= 3) {
@@ -189,6 +200,30 @@ void randomCases(const string &mode) {
     verify(vector<bool>{true, false, true, true, false});
     context = "signed char alphabet";
     verify(vector<signed char>{127, -128, 0, -128});
+    // Code-range boundary: max - min < max(4n, 256) shifts (upper = max - min), otherwise compressAlphabet sorts (upper = distinct - 1).
+    auto upper = [](const auto &s) { return suffixarray_detail::alphabetCodes(s).second; };
+    lng low = std::numeric_limits<lng>::min();
+    context = "dense/sparse boundary lng";
+    vector<lng> dense_lng{low + 255, low, low + 1, low + 255, low}, sparse_lng{256, 0, 1, 256, 0};
+    verify(dense_lng);
+    verify(sparse_lng);
+    vector<ulng> top{~ulng(0), ~ulng(0) - 255, ~ulng(0)};
+    verify(top);
+    check(upper(dense_lng) == 255 && upper(sparse_lng) == 2 && upper(top) == 255, "code path n=5 lng/ulng");
+    lll wide = std::numeric_limits<lll>::min();
+    context = "dense/sparse boundary lll";
+    vector<lll> dense_lll{wide + 3, wide, wide + 3, wide + 1}, sparse_lll{std::numeric_limits<lll>::max(), wide, 0, wide, std::numeric_limits<lll>::max()};
+    verify(dense_lll);
+    verify(sparse_lll);
+    check(upper(dense_lll) == 3 && upper(sparse_lll) == 2 && upper(vector<int>{}) == 0, "code path lll/empty");
+    for (int width : {1199, 1200}) {
+        vector<int> s(300), spike(300);
+        for (int i = 0; i < 300; ++i) { s[i] = i * 7 % 300; }
+        s[1] = width;
+        spike[0] = width;
+        context = "dense/sparse boundary n=300 max=" + std::to_string(width);
+        verify(s);
+        check(upper(s) == (width < 1200 ? width : 299) && upper(spike) == (width < 1200 ? width : 1), "code path n=300");}
     braceLists();
     cout << "PASS seeded byte/sparse integer/extreme alphabets cases=" << count << '\n';}
 void large(const string &mode) {
@@ -203,6 +238,8 @@ void large(const string &mode) {
     check(index.longestRepeatedDisjoint() == tuple<int, int, int>{0, n - n / 2, n / 2}, "unary disjoint repeat");
     check(index.patternRange(string(n / 2, char(255))) == pair<int, int>{n / 2 - 1, n}, "long unary pattern");
     check(index.patternRange(string(n + 1, char(255))) == pair<int, int>{n, n}, "long absent pattern");
+    auto unary = SuffixArray<int>::doubling(vector<int>(n, 255), false);
+    check(unary.sa == index.sa && unary.lcp == index.lcp && unary.rank == index.rank, "unary doubling");
     for (int i = 0; i < n; ++i) { s[i] = char(i % 3); }
     SuffixArray periodic(s);
     context = "large period three n=" + std::to_string(n);
@@ -211,6 +248,11 @@ void large(const string &mode) {
         check(x % 3 < y % 3 || (x % 3 == y % 3 && x > y), "periodic suffix order");
         expectEqual(periodic.lcp[i - 1], x % 3 == y % 3 ? n - max(x, y) : 0, "periodic LCP");}
     expectEqual(periodic.lce(0, 3), n - 3, "periodic LCE");
+    vector<lng> sparse(n);
+    for (int i = 0; i < n; ++i) { sparse[i] = lng(i % 3) * 1000000007 - 1000000007; }
+    check(SuffixArray<lng>(sparse, false).sa == periodic.sa, "large sparse periodic");
+    auto periodic_doubled = SuffixArray<int>::doubling(periodic.text);
+    check(periodic_doubled.sa == periodic.sa && periodic_doubled.lcp == periodic.lcp && periodic_doubled.lce(0, 3) == n - 3, "periodic doubling");
     check(periodic.longestRepeated() == pair<int, int>{0, n - 3}, "periodic repeated");
     check(periodic.longestRepeated(4) == pair<int, int>{0, n - 9}, "periodic repeated k=4");
     int best = 0;
@@ -237,8 +279,6 @@ int invalid(const string &probe) {
     if (probe == "reversed-substring") { a.substringLce(2, 1, 0, 0); }
     if (probe == "large-substring") { a.substringLce(0, 4, 0, 0); }
     if (probe == "reversed-second") { a.substringLce(0, 0, 2, 1); }
-    if (probe == "byte-domain") { SuffixArray<int> bad({-1}); bad.build(true, false); }
-    if (probe == "byte-domain-wide") { SuffixArray<ulng> bad({ulng(1) << 32}); bad.build(true, false); }
     if (probe == "repeat-count") { a.longestRepeated(0); }
     return 0;}
 int main(int argc, char **argv) {

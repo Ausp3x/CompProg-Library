@@ -1,4 +1,4 @@
-"""SA-IS naive-threshold sweep (NAIVE = 1, 8, 16, 32, 64) and prefix-doubling SuffixArray.
+"""SA-IS naive-threshold sweep (NAIVE = 1, 8, 16, 32, 64) and prefix-doubling SuffixArray<int>::doubling.
 
 Workloads: 2,000,000 symbols split into independent texts of 8/16/24/32/64/256
 symbols over 4 letters and unary texts of 16/32/48/64 symbols (worst case for

@@ -14,7 +14,8 @@ Quick/full/stress enumerate every string over alphabets 1..3 through length
 symbols (a third over 255 bytes, a quarter periodic) each as bytes, shifted
 bytes with the 0xFF sentinel, extreme lng and signed int, and random,
 period-5, Fibonacci and unary texts of length 30000/200000/500000 (round trips,
-SuffixArray-based BWT, rotation order versus SuffixArray of s + s). Builds use
+BWT and rotation order versus the prefix-doubling SuffixArray<int>::doubling,
+independent of SA-IS). Builds use
 -Wall -Wextra -Wshadow -Wconversion -Werror. Full/stress add ASan/UBSan (the
 checked _GLIBCXX_DEBUG build runs stress at full-mode sizes); checked builds
 run five precondition probes.

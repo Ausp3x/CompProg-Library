@@ -334,7 +334,7 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "07-Strings/Docs/06-aho.md",
         "07-Strings/Docs/07-suffixarray.md",

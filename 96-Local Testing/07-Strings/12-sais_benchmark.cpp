@@ -13,7 +13,7 @@ template<int NAIVE> lng run(const vector<vector<int>> &texts, int upper) {
     return res;}
 lng runDoubling(const vector<vector<int>> &texts, int) {
     lng res = 0;
-    for (auto &s : texts) { res ^= digest(SuffixArray<int>(s, false).sa); }
+    for (auto &s : texts) { res ^= digest(SuffixArray<int>::doubling(s, false).sa); }
     return res;}
 int main(int argc, char **argv) {
     ulng seed = argc > 1 ? std::stoull(argv[1]) : 20261009;

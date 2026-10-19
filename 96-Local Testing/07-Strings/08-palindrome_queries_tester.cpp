@@ -4,6 +4,10 @@ ulng test_seed = 0;
 lng checks = 0, cases = 0;
 string context;
 ostream &operator<<(ostream &out, pair<int, int> p) { return out << '[' << p.first << ',' << p.second << ')'; }
+ostream &operator<<(ostream &out, const vector<int> &v) {
+    for (int x : v) { out << x << ' '; }
+    return out;}
+ostream &operator<<(ostream &out, const pair<vector<int>, vector<int>> &p) { return out << "starting=" << p.first << "ending=" << p.second; }
 template<class T> void expectEqual(const T &actual, const T &expected, const string &op) {
     ++checks;
     if (actual == expected) { return; }
@@ -20,17 +24,20 @@ template<class S> void verifyExact(const S &s) {
     Manacher m(s);
     pair<int, int> best{0, 0};
     lng count = 0;
+    vector<int> starting(n), ending(n);
     for (int l = 0; l <= n; ++l) {
         for (int r = l; r <= n; ++r) {
             bool expected = direct(s, l, r);
             expectEqual(isPalindrome(m, l, r), expected, "exact [" + std::to_string(l) + ',' + std::to_string(r) + ')');
             count += expected && r > l;
+            if (expected && r > l) { ++starting[l]; ++ending[r - 1]; }
             if (expected && r - l > best.second - best.first) { best = {l, r}; }}}
     auto got = longestPalindrome(m);
     expectEqual(got.first, best.first, "leftmost longest start");
     expectEqual(got.second, best.second, "leftmost longest end");
     expectEqual(direct(s, got.first, got.second), true, "longest witness");
-    expectEqual(countPalindromes(m), count, "palindromic substring count");}
+    expectEqual(countPalindromes(m), count, "palindromic substring count");
+    expectEqual(countPalindromesByEndpoint(m), pair{starting, ending}, "palindromes by start and last index");}
 template<int KIND, class S> void verifyHash(const S &s, ulng seed) {
     StringHash<KIND> h(s, StringHash<KIND>::randomBase(seed));
     int n = int(s.size());
@@ -86,6 +93,7 @@ void lifecycleAndCollisions() {
     expectEqual(isPalindrome(empty, 0, 0), true, "default empty");
     expectEqual(longestPalindrome(empty), pair<int, int>{0, 0}, "empty longest");
     expectEqual(countPalindromes(empty), lng(0), "empty count");
+    expectEqual(countPalindromesByEndpoint(empty), pair<vector<int>, vector<int>>{}, "empty endpoint counts");
     expectEqual(maybePalindrome(StringHash<>(), 0, 0), true, "default empty hash");
     expectEqual(maybePalindrome(StringHash64(), 0, 0), true, "default empty word hash");
     expectEqual(maybePalindrome(StringHash61(), 0, 0), true, "default empty Mersenne hash");
@@ -94,6 +102,7 @@ void lifecycleAndCollisions() {
     Manacher moved = std::move(copy);
     expectEqual(longestPalindrome(moved), pair<int, int>{0, 3}, "odd tie chooses bab");
     expectEqual(countPalindromes(moved), lng(7), "babad count");
+    expectEqual(countPalindromesByEndpoint(moved), pair{vector<int>{2, 2, 1, 1, 1}, vector<int>{1, 1, 2, 2, 1}}, "babad endpoint counts");
     copy = Manacher(string_view("abbacddc"));
     expectEqual(longestPalindrome(copy), pair<int, int>{0, 4}, "even tie chooses abba");
     s.assign(5, 'x');
@@ -122,6 +131,10 @@ void large(const string &mode) {
     Manacher unary(s);
     expectEqual(longestPalindrome(unary), pair<int, int>{0, n}, "unary longest");
     expectEqual(countPalindromes(unary), lng(n) * (n + 1) / 2, "unary count");
+    auto [unary_starting, unary_ending] = countPalindromesByEndpoint(unary);
+    for (int i = 0; i < n; ++i) {
+        expectEqual(unary_starting[i], n - i, "unary starting count");
+        expectEqual(unary_ending[i], i + 1, "unary ending count");}
     for (int i = 0; i <= n; ++i) { expectEqual(isPalindrome(unary, i, n), true, "unary suffix"); }
     for (int i = 0; i < n; ++i) { s[i] = char(i % 2); }
     Manacher alternating(s);
@@ -133,6 +146,10 @@ void large(const string &mode) {
     lng count = 0;
     for (int i = 0; i < n; ++i) { count += min(i, n - 1 - i) + 1; }
     expectEqual(countPalindromes(alternating), count, "alternating count");
+    auto [alternating_starting, alternating_ending] = countPalindromesByEndpoint(alternating);
+    for (int i = 0; i < n; ++i) {
+        expectEqual(alternating_starting[i], (n - i + 1) / 2, "alternating starting count (odd lengths)");
+        expectEqual(alternating_ending[i], i / 2 + 1, "alternating ending count (odd lengths)");}
     for (int i = 0; i <= n; ++i) {
         bool expected = i == n || (n - i) % 2;
         expectEqual(isPalindrome(alternating, i, n), expected, "alternating suffix exact");

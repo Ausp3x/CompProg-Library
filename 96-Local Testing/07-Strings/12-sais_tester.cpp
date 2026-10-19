@@ -168,7 +168,7 @@ void large(const string &mode) {
         ++cases;
         context = "large n=" + std::to_string(n) + " prefix=" + show(vector<int>(s.begin(), s.begin() + 20));
         int upper = *std::max_element(s.begin(), s.end());
-        SuffixArray<int> oracle(s, false);
+        auto oracle = SuffixArray<int>::doubling(s, false);
         auto sa = sais(s, upper);
         check(sa == oracle.sa, "large sais versus prefix-doubling SuffixArray");
         check(lcpArray(s, sa) == blockLcp(s, sa), "large lcpArray versus block-class LCP");

@@ -5,7 +5,7 @@
 #include "../02-Data Structures/04-sparsetable.hpp"
 #include "07-suffixarray.hpp"
 
-// S: O(n) from a moved SuffixArray, O(n * log(n + 1)) from a text, U: NA, Q: O(1) access/lca/suffixLink, O(log(S + 1)) child/step, O(m * log(S + 1)) locate/isSubstring, O(log(n + 1)) weightedAncestor, M: O(n) (O(n * log(n + 1)) if index keeps RMQ).
+// S: O(n) from a moved SuffixArray or a text with max - min < max(4n, 256) (bytes), O(n * log(n + 1)) from other texts, U: NA, Q: O(1) access/lca/suffixLink, O(log(S + 1)) child/step, O(m * log(S + 1)) locate/isSubstring, O(log(n + 1)) weightedAncestor, M: O(n) (O(n * log(n + 1)) if index keeps RMQ).
 // Integral T (string input: bytes as T = int), n < 2^30, sentinel-free; ids in lexicographic pre-order, root 0; locus {node, length}, {-1, 0} when step fails.
 template<class T = int> requires std::is_integral_v<T>
 struct SuffixTree {

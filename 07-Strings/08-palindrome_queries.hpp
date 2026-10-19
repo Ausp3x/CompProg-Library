@@ -11,7 +11,7 @@ inline bool isPalindrome(const Manacher &m, int l, int r) {
 template<int KIND> bool maybePalindrome(const StringHash<KIND> &h, int l, int r) {
     return h.get(l, r) == h.reverseGet(l, r);}
 
-// T: O(n), M: O(1); leftmost longest palindrome [l,r) ([0,0) if n = 0) and the number of nonempty palindromic substrings by position.
+// T: O(n), M: O(1) (O(n) returned by countPalindromesByEndpoint); leftmost longest palindrome [l,r) ([0,0) if n = 0); nonempty palindromic substrings in total, by start and by last index.
 inline pair<int, int> longestPalindrome(const Manacher &m) {
     pair<int, int> res{0, 0};
     auto take = [&](pair<int, int> p) {
@@ -25,3 +25,13 @@ inline lng countPalindromes(const Manacher &m) {
     for (int k : m.odd) { res += k; }
     for (int k : m.even) { res += k; }
     return res;}
+inline pair<vector<int>, vector<int>> countPalindromesByEndpoint(const Manacher &m) {
+    int n = m.size();
+    vector<int> starting(n + 1), ending(n + 1);
+    auto add = [&](int l, int r, int k) { ++starting[l - k]; --starting[l]; ++ending[r]; --ending[r + k]; };
+    for (int i = 0; i < n; ++i) { add(i + 1, i, m.odd[i]); }
+    for (int i = 0; i <= n; ++i) { add(i, i, m.even[i]); }
+    for (int i = 0; i < n; ++i) { starting[i + 1] += starting[i]; ending[i + 1] += ending[i]; }
+    starting.pop_back();
+    ending.pop_back();
+    return {std::move(starting), std::move(ending)};}

@@ -83,6 +83,9 @@ void testText(const AhoCorasick &ac, const vector<string> &p, const string &text
             if (suffix(string_view(text).substr(0, r), p[id])) { ++by_pattern[id]; ++by_position[r]; expected[r].push_back(id); }}
         std::ranges::stable_sort(expected[r], [&](int a, int b) { return p[a].size() > p[b].size(); });}
     check(ac.countPatterns(text), by_pattern, "per-pattern-naive");
+    vector<int> first;
+    for (const auto &q : p) { first.push_back(text.find(q) == string::npos ? -1 : int(text.find(q))); }
+    check(ac.firstOccurrences(text), first, "first-occurrence-find");
     check(ac.countPositions(text), by_position, "per-boundary-naive");
     lng total = accumulate(by_pattern.begin(), by_pattern.end(), lng(0));
     check(ac.countMatches(text), total, "total-naive");
@@ -189,6 +192,7 @@ int invalid(const string &probe) {
     ac.add("bc");
     if (probe == "unbuilt") { ac.step(0, 0); }
     if (probe == "unbuilt-sink") { ac.safeStep(-1, 0); }
+    if (probe == "unbuilt-first") { ac.firstOccurrences("ab"); }
     if (probe == "trie-duplicate-label") { AhoCorasick::fromTrie({-1, 0, 0}, "xaa"); }
     if (probe == "trie-unreachable") { AhoCorasick::fromTrie({-1, 2, 1}, "xab"); }
     if (probe == "trie-parent-range") { AhoCorasick::fromTrie({-1, 3}, "xa"); }
@@ -289,7 +293,12 @@ int main(int argc, char **argv) {
         long_text.back() = 'b';
         auto count = large.countPatterns(long_text);
         for (int i = 2; i < int(count.size()); ++i) { check(count[i], expected[i] - 1, "long-failure-fallback"); }
-        long_text.back() = 'a';}
+        long_text.back() = 'a';
+        string late(n - depth, 'b');
+        late += string(depth - 1, 'a');
+        vector<int> first{0, 0};
+        for (int i = 1; i <= depth; ++i) { first.push_back(i < depth ? n - depth : -1); }
+        check(large.firstOccurrences(late), first, "large-first-occurrences");}
     // Caterpillar trie: spine a^i with a 'b' leaf at every spine node; links and counts have closed forms.
     int spine = limit(2000, 50000, 200000);
     vector<int> parent{-1};
@@ -308,6 +317,7 @@ int main(int argc, char **argv) {
         string text(spine, 'a');
         text += 'b';
         check(big.countPatterns(text), vector<lng>{1, 1}, "caterpillar-counts");
+        check(big.firstOccurrences(text), vector<int>{0, spine - 1}, "caterpillar-first-occurrences");
         check(big.length, vector<int>{spine, 2}, "caterpillar-depths");}
     int adversarial_m = limit(500, 5000, 20000);
     auto [adv_parent, adv_label] = adversarial(adversarial_m);

@@ -78,6 +78,16 @@ Per-row research for `13`, `14`, `15`, `19`; pages fetched 2026-10-10. Adopted o
 | `15` | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/strings/MinRotation.h, https://oi-wiki.org/string/minimal-string/, https://cp-algorithms.com/string/lyndon_factorization.html, https://cp-algorithms.com/string/suffix-array.html, https://maspypy.github.io/library/string/minimum_cyclic_shift.hpp, PyRival `strings/min_rotation.py`; Nyaan, ei1333, hitonanode have no rotation files | `minRotationIndices`, `rotationOffset` adopted; `minCyclicShift` merged into `minRotationIndices` |
 | `19` | https://maspypy.github.io/library/string/longest_common_subsequence.hpp, https://maspypy.github.io/library/string/count_subsequence.hpp, https://suisen-cp.github.io/cp-library-cpp/library/dp/number_of_subsequences.hpp, https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/strings/lcs.py, https://oi-wiki.org/dp/basic/, https://atcoder.jp/contests/dp/tasks/dp_f, https://cses.fi/problemset/; Library Checker, KACTL, cp-algorithms, Nyaan, ei1333, hitonanode have no LCS page | `shortestCommonSupersequence`, `lcs3` adopted |
 
+## P017 re-sweep (2026-10-19)
+
+Research for `06`–`08` after the omission sweep; pages fetched 2026-10-19 by the completeness researcher. Adopted operations are cited in each evidence document; rejections are in [00-notes.md](00-notes.md).
+
+| Row | Pages | Outcome |
+|---|---|---|
+| `06` | https://cp-algorithms.com/string/aho_corasick.html, https://oi-wiki.org/string/ac-automaton/, https://ei1333.github.io/library/string/aho-corasick.hpp, https://nyaannyaan.github.io/library/string/aho-corasick.hpp, https://hitonanode.github.io/cplib-cpp/string/aho_corasick.hpp, https://suisen-cp.github.io/cp-library-cpp/library/string/aho_corasick.hpp, KACTL `AhoCorasick.h`, https://github.com/maspypy/library/tree/main/string, https://cses.fi/problemset/task/2104 | `firstOccurrences` adopted (CSES Pattern Positions); `lastOccurrences` left out |
+| `07` | https://cp-algorithms.com/string/suffix-array.html, https://oi-wiki.org/string/sa/, ACL `string.hpp`, KACTL `SuffixArray.h`, https://raw.githubusercontent.com/maspypy/library/main/string/suffix_array.hpp, https://nyaannyaan.github.io/library/string/suffix-array.hpp, https://ei1333.github.io/library/string/suffix-array.hpp, https://ei1333.github.io/library/string/longest-common-substring.hpp, https://hitonanode.github.io/cplib-cpp/string/suffix_array.hpp | No new operation; DC3 left out; byte `longestCommonSubstring` restated as `O(n + m)` (ei1333) |
+| `08` | https://oi-wiki.org/string/manacher/, maspypy/Nyaan/ei1333/hitonanode/suisen `manacher.hpp`, KACTL `strings/`, PyRival `strings/`, https://www.luogu.com.cn/problem/CF17E, https://ouuan.github.io/post/cf17e-palisectionmanacher/, https://jkloverdcoi.github.io/2019/08/29/CF17E-Palisection/ | `countPalindromesByEndpoint` adopted (CF 17E Palisection: starts/ends per position by difference arrays over the radii) |
+
 ## P016 and P017 re-audit sweeps (2026-10-08)
 
 Per-row research for `01`–`09`; pages fetched 2026-10-08. Adopted operations are cited in each evidence document; rejections are in [00-notes.md](00-notes.md).

@@ -38,8 +38,8 @@ Runner: [`29-bwt_tester.py`](<../../96-Local Testing/07-Strings/29-bwt_tester.py
 
 | Operation | Coverage |
 |---|---|
-| sortCyclicRotations | Every case against stably sorted rotations; a random text of the large size against `SuffixArray` of `s + s`. |
-| bwt, bwtFromSuffixArray | Every case against the brute sentinel matrix (the brute suffix order supplies `sa`), with sentinels NUL, `0xFF` (largest byte, still ranked lowest), `INT64_MIN` and `1000` (largest `int` value used); large texts against `SuffixArray`. |
+| sortCyclicRotations | Every case against stably sorted rotations; a random text of the large size against the prefix-doubling `SuffixArray<int>::doubling` of `s + s` (independent of SA-IS). |
+| bwt, bwtFromSuffixArray | Every case against the brute sentinel matrix (the brute suffix order supplies `sa`), with sentinels NUL, `0xFF` (largest byte, still ranked lowest), `INT64_MIN` and `1000` (largest `int` value used); large texts against `SuffixArray<int>::doubling` (prefix doubling, independent of SA-IS). |
 | inverseBwt, inverseBwtPrimary | Round trip on every case and on random, period-5, Fibonacci and unary texts of 30000/200000/500000 symbols (quick/full/stress). |
 | bwtPrimary | Last column and smallest primary row against the brute matrix; `order[primary] = 0` on large texts. |
 | psiMapping, lfMapping (both forms) | Against a brute stable sort; LF as the inverse of psi; LF maps each row to the rotation one position earlier (exactly for the sentinel form, as strings for rotations). |
@@ -85,3 +85,4 @@ Code is independently implemented from the cited descriptions.
 
 - 2026-10-11: implemented and verified (P084), no review findings; full (seed 1), `CXX=g++-14` full (seed 2), stress and integration passed; sanitizer integration failed outside this package.
 - 2026-10-12: the tester includes `07-suffixarray.hpp` itself, since `14-lyndon.hpp` no longer does; quick, full and `CXX=g++-14` full passed.
+- 2026-10-19: P017, the large oracles moved to `SuffixArray<int>::doubling` (the `07` constructors now run SA-IS, as `bwt` does); full suite passed on g++ and g++-14.

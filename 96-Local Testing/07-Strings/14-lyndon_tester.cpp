@@ -205,7 +205,9 @@ void largeBytes(const string &mode) {
         string s(n, '\0');
         for (int i = 0; i < n; ++i) { s[i] = pass == 0 ? char(rng() % 256) : pass == 1 ? char(rng() % 2 ? '\xff' : '\0') : char(i % 5 == 4 ? '\x80' : '\x7f'); }
         context = string("large bytes ") + (pass == 0 ? "random 256" : pass == 1 ? "random {00,ff}" : "(7f^4 80)^*") + " n=" + std::to_string(n);
-        vector<int> lambda = lyndonArray(s), rank = SuffixArray<int>(string_view(s), false).rank;
+        vector<int> lambda = lyndonArray(s), bytes(s.begin(), s.end());
+        for (int &c : bytes) { c = uint8_t(c); }
+        vector<int> rank = SuffixArray<int>::doubling(bytes, false).rank;
         check(lyndonArray(vector<char>(s.begin(), s.end())) == lambda, "vector<char> equals string");
         vector<vector<int>> mn{rank};
         for (int h = 1; 2 * h <= n; h *= 2) {
