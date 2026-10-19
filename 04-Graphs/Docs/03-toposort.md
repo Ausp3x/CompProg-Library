@@ -1,20 +1,18 @@
 # 03-toposort.hpp — evidence
 
-Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp`, `02-traversal.hpp` and `04-dsu.hpp` through `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract).
+Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp`, `02-traversal.hpp` and `04-dsu.hpp` through `06-mst.hpp`); see the [common graph contract](00-notes.md#p010-common-contract).
 
 ## Contracts
 
 ### TopologicalResult, topologicalSort and topologicalSortDfs
 
-All require a directed graph and ignore weights. `topologicalSort(g)` is Kahn's algorithm with a FIFO queue; `topologicalSort(g, true)` uses a min-heap and returns the lexicographically smallest order. Parallel arcs count separately in in-degrees. `topologicalSortDfs(g)` returns the reverse DFS finishing order. On a cycle, `acyclic` is false, `order` is empty and `cycle` is a directed witness. `unique` is true exactly when the order is the only topological order; an empty or one-vertex graph has a unique order, and a cyclic graph has `unique = false`.
-
-Correctness: Kahn topological sorting counts every arc, including duplicates. A FIFO queue gives linear time; a minimum heap yields the lexicographically smallest valid order. DFS reverse postorder is a second implementation. Both require directed input and return an explicit acyclic flag; cyclic inputs return an empty order plus an oriented cycle. Empty directed graphs succeed with empty orders.
+All require a directed graph and ignore weights. `topologicalSort(g)` is Kahn's algorithm with a FIFO queue (O(n + m)); `topologicalSort(g, true)` uses a min-heap (O(m + n log n)) and returns the lexicographically smallest order. Parallel arcs count separately in in-degrees. `topologicalSortDfs(g)` returns the reverse DFS finishing order. On a cycle, `acyclic` is false, `order` is empty and `cycle` is a directed witness. `unique` is true exactly when the order is the only topological order; an empty or one-vertex graph has a unique order, and a cyclic graph has `unique = false`.
 
 A topological order is unique exactly when every consecutive pair is joined by an arc: if some consecutive pair `x, y` has no arc `x -> y`, no path joins them either (any path from `x` to `y` would pass through vertices strictly between them in the order), so swapping them gives a second order; conversely, a Hamiltonian path fixes the order. `toposort_detail::ordered` checks this in O(n + m) for both Kahn and DFS orders.
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/03-toposort_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. Oracles use non-removable checks. Checked builds also run invalid-precondition subprocesses. Test outputs are temporary; seeds and failed inputs/operations are printed. The full corpus is 6,951 cases: exhaustive loopless graphs through four vertices and looped graphs through three, and 1,200 random graphs/parallel-edge variants. Quick uses smaller exhaustive domains, 100 random cases and 20,000-vertex chains; stress extends random counts to 10,000 and chains to 500,000. Exact mode coverage is also stated in the runnable entry.
+`96-Local Testing/04-Graphs/03-toposort_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. The full corpus is 4,697 exhaustive graphs (loopless through four vertices, looped through three) and 1,200 random graphs, each with a parallel-edge variant when it has an edge. Quick uses smaller exhaustive domains, 100 random cases and 20,000-vertex chains; stress extends random counts to 10,000 and chains to 500,000. Exact mode coverage is also stated in the runnable entry.
 
 | Operation | Test | Oracle |
 |---|---|---|

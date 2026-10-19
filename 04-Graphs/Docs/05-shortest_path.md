@@ -1,6 +1,6 @@
 # 05-shortest_path.hpp — evidence
 
-Owned by package P010 / GR02 (graph foundations, with `01-graph.hpp` through `04-dsu.hpp` and `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract).
+Owned by package P010 / GR02 (graph foundations, with `01-graph.hpp` through `04-dsu.hpp` and `06-mst.hpp`); see the [common graph contract](00-notes.md#p010-common-contract).
 
 ## Contracts
 
@@ -32,17 +32,18 @@ Correctness: relaxation follows topological order; a cyclic graph is a valid fai
 
 Correctness: an improvement in pass n is reachable from a negative cycle. The algorithm marks all such destinations and every vertex reachable from them as negative-infinite. Stepping n predecessors from the final changed vertex reaches a negative cycle, which is recovered with original arc orientation. This witness is a directed arc-cycle; an undirected negative edge legitimately supplies both reciprocal arcs of the same logical edge. `findNegativeCycle` seeds every vertex, so it also detects cycles outside any single source's reachable component.
 
-Every Bellman–Ford intermediate represents a walk with at most n·m edge additions. Since n,m≤INT_MAX and |w|≤2^63, its magnitude is less than 2^125; exact `lll` arithmetic needs no saturating sentinels. Finite optimal paths and DAG paths have smaller bounds. Strict relaxations preserve finite parent chains and do not form spurious zero-weight parent cycles.
+Finite optimal paths and DAG paths have smaller bounds. Strict relaxations preserve finite parent chains and do not form spurious zero-weight parent cycles.
 
 ### Legacy mapping
 
 - `Dijkstra(n).runDijkstra(sources, adj)` (vertices `[0, n]`) → `dijkstra(Graph::fromAdjacency(adj, true), sources)` and `dis[u] = reachable[u] ? dist[u] : INF64`. `adj` must hold exactly `n + 1` lists, because lists past `n + 1` become vertices: resize it first. `is_proc` is `reachable`; every call returns a fresh result, so nothing needs a reset; distances have no `INF64` bound. `runGraph(sources, g)` → `dijkstra(g, sources)`.
 - `dagLongestPaths(g, sources)` → `dagShortestPaths(g, sources, true)`; `dagLongestPaths(g, s)` → `dagShortestPaths(g, {s}, true)`.
+- `bellman_ford(src)` and `has_negative_cycle()` (`OLD/Team Notebook/src/graph/old_bellman-ford.cpp`) are superseded by `bellmanFord(g, {src})` and its `negative_cycle` witness.
 - The single-source overloads `bfsShortestPaths(g, s)`, `zeroOneBfs(g, s)`, `dijkstra(g, s)`, `dijkstraDense(g, s)`, `dagShortestPaths(g, s, longest)` and `bellmanFord(g, s)` → the same call with `{s}`.
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/05-shortest_path_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. Oracles use non-removable checks. Checked builds also run invalid-precondition subprocesses. Test outputs are temporary; seeds and failed inputs/operations are printed. The full corpus is 4,096 signed three-vertex digraphs × all eight source subsets, 1,000 random multigraphs and 1,000 signed DAGs. Quick uses two-vertex exhaustive graphs, 100 multigraphs/100 DAGs and 2,000-vertex chains; stress adds 19,683 looped signed digraphs, 5,000 multigraphs/5,000 DAGs and 300,000-vertex chains. Exact mode coverage is also stated in the runnable entry.
+`96-Local Testing/04-Graphs/05-shortest_path_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. The full corpus is 4,096 signed three-vertex digraphs × all eight source subsets, 1,000 random multigraphs and 1,000 signed DAGs. Quick uses two-vertex exhaustive graphs, 100 multigraphs/100 DAGs and 2,000-vertex chains; stress adds 19,683 looped signed digraphs, 5,000 multigraphs/5,000 DAGs and 300,000-vertex chains. Exact mode coverage is also stated in the runnable entry.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -91,7 +92,7 @@ The [driver](<../../96-Local Testing/04-Graphs/00-path_mst_benchmark.py>) and `9
 | Complete | 8.699 / 9.759 | 4.537 |
 | Disconnected blocks | 0.002 / 0.009 | 0.174 |
 
-These shared-host observations support keeping workload-specific choices explicit. Dense setup can outweigh its traversal saving for a single call. No automatic density threshold, universal superiority or timing gate is claimed. The record includes compiler/CPU/flags, memory accounting and every sample.
+These shared-host observations support keeping workload-specific choices explicit. Dense setup can outweigh its traversal saving for a single call. No automatic density threshold, universal superiority or timing gate is claimed. Conditions from the git-ignored `00-path_mst_benchmark.json` log, which also holds memory accounting and every sample: 11th Gen Intel Core i9-11900H, GCC 16.2.1 20260810, `-std=gnu++20 -O2 -DNDEBUG -mno-avx2`.
 
 ```bash
 python3 '96-Local Testing/04-Graphs/00-path_mst_benchmark.py'
@@ -108,7 +109,7 @@ Retrieved and inspected on 2026-09-27; no source code was copied.
 | [Princeton Algorithms, §4.4 Shortest Paths](https://algs4.cs.princeton.edu/44sp/) | Nonnegative Dijkstra and signed DAG shortest/longest topological relaxation. |
 | [cp-algorithms, 0-1 BFS](https://cp-algorithms.com/graph/01_bfs.html) | Deque ordering and zero/one front/back insertion. |
 
-Legacy: the original `Dijkstra` in `OLD/algorithms.cpp:4488–4526` and its duplicate in `OLD/[1] algorithms.cpp` are preserved. Its n+1 indexing, multisource runs and reset behavior map to `dijkstra` on `Graph::fromAdjacency` input (Legacy mapping); the graph APIs are zero-based. The notebook's global negative-cycle detector is covered by all-vertex Bellman–Ford initialization (`findNegativeCycle`). The old Team Notebook `old_bellman-ford.cpp` is superseded by this header.
+Legacy: the original `Dijkstra` in `OLD/algorithms.cpp:4488–4526` and its duplicate in `OLD/[1] algorithms.cpp` are preserved. Its n+1 indexing, multisource runs and reset behavior map to `dijkstra` on `Graph::fromAdjacency` input (Legacy mapping); the graph APIs are zero-based. The notebook's global negative-cycle detector is covered by all-vertex Bellman–Ford initialization (`findNegativeCycle`).
 
 ## Limits and handoffs
 

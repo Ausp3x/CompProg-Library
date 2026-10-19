@@ -1,10 +1,10 @@
 # Session checklist
 
-How to run the work on this library; the package list below is rendered by `plan.py` (other agents paste `python3 '00-Guidelines/13-Plan/plan.py' show Pxxx` instead of using skills). Statuses: planned, in-progress, verified. Order is the default dependency-respecting schedule.
+How to run the work on this library; the package list below is rendered by `plan.py` (other agents follow `AGENTS.md`). Order is the default dependency-respecting schedule.
 
 ## Workflow
 
-Start one fresh session per task with the preset of its work, and pass `--effort` at launch:
+Start one fresh session per task with the preset of its work:
 
 - Core full types (`01-Core` non-mini headers, packages tagged `fable`): `claude --agent core-session --effort max`
 - Everything else, sweeps included: `claude --agent contest-session --effort xhigh`
@@ -21,7 +21,7 @@ Start one fresh session per task with the preset of its work, and pass `--effort
 | `/restyle Pxxx` | Only after the comment cap or closing-brace rule changes | Commit |
 | `/finish [Pxxx or batch id]` | After `/package` or `/prune`, in a worktree or the main checkout, even with no gaps reported: fixes the remaining defects, asks everything else, loops until nothing is open, then on your yes commits, rebases, fast-forwards `master` and removes the worktree, or prints the one command that does when the session cannot leave the worktree | Push `master` |
 
-Commits: `/finish` commits and lands `/package` and `/prune` work; other skills print their commit command. `git push` is denied, and you push `master` yourself. Pending one-off runs: `/omission-sweep "02-Data Structures/45-kineticheap.hpp" "03-Geometry/26-geometry3d.hpp" "03-Geometry/53-dynamicconvexhull.hpp"` (the skill's first test), then `/omission-sweep 05`.
+Commits: `/finish` commits and lands `/package` and `/prune` work; other skills print their commit command. Pending one-off runs: `/omission-sweep "02-Data Structures/45-kineticheap.hpp" "03-Geometry/26-geometry3d.hpp" "03-Geometry/53-dynamicconvexhull.hpp"`, then `/omission-sweep 05`.
 
 <!-- plan:begin -->
 
@@ -45,14 +45,14 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P014 — MI03, MI14** (opus, M+M): 06-Miscellaneous — sequence algorithms, interval algorithms, offline queries, sorting selection. Status: verified. [evidence](06-Miscellaneous/Docs/08-sequence_algorithms.md) [evidence](06-Miscellaneous/Docs/09-interval_algorithms.md) [evidence](06-Miscellaneous/Docs/10-offline_queries.md) [evidence](06-Miscellaneous/Docs/11-sorting_selection.md)
 - [x] **P015 — MI15, MI16, MI17** (opus, M+M+S): 06-Miscellaneous — enumeration, knapsack, cyclefinding. Status: verified. [evidence](06-Miscellaneous/Docs/12-enumeration.md) [evidence](06-Miscellaneous/Docs/13-knapsack.md) [evidence](06-Miscellaneous/Docs/14-cyclefinding.md)
 - [x] **P016 — ST01, ST02, ST19** (opus, S+M+S): 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength. Status: verified. [evidence](07-Strings/Docs/01-prefixfunction.md) [evidence](07-Strings/Docs/02-z.md) [evidence](07-Strings/Docs/03-stringhash.md) [evidence](07-Strings/Docs/04-trie.md) [evidence](07-Strings/Docs/05-manacher.md) [evidence](07-Strings/Docs/09-runlength.md)
-- [x] **P017 — ST03** (opus, L): 07-Strings — aho, suffixarray, palindrome queries. Status: verified. Note: Omission sweep 2026-10-19: implement build (SA-IS default; generic T through compressAlphabet) and doubling (static builder SuffixArray<T>::doubling(s, with_rmq), prefix doubling, kept as row 12 independent oracle) in 07-suffixarray.hpp; a small-input dispatch only with a measured crossover. [evidence](07-Strings/Docs/06-aho.md) [evidence](07-Strings/Docs/07-suffixarray.md) [evidence](07-Strings/Docs/08-palindrome_queries.md)
+- [x] **P017 — ST03** (opus, L): 07-Strings — aho, suffixarray, palindrome queries. Status: verified. [evidence](07-Strings/Docs/06-aho.md) [evidence](07-Strings/Docs/07-suffixarray.md) [evidence](07-Strings/Docs/08-palindrome_queries.md)
 
 ### Core full types
 
 - [x] **P025 — C11** (fable, XL): 01-Core — poly. Status: verified. [evidence](01-Core/Docs/16-poly.md)
 - [x] **P026 — C12** (opus, M): 01-Core — polymini. Status: verified. [evidence](01-Core/Docs/17-polymini.md)
 - [x] **P018 — C04** (fable, XL): 01-Core — infint. Status: verified. [evidence](01-Core/Docs/07-infint.md)
-- [x] **P019 — C05, C06** (opus, M+M): 01-Core — infintmini, rational. Status: verified. [evidence](01-Core/Docs/08-infintmini.md) [evidence](01-Core/Docs/09-rational.md)
+- [x] **P019 — C05, C06** (fable, M+M): 01-Core — infintmini, rational. Status: verified. [evidence](01-Core/Docs/08-infintmini.md) [evidence](01-Core/Docs/09-rational.md)
 - [ ] **P020 — C07** (fable, XL): 01-Core — matrix. Status: planned.
 - [ ] **P021 — C08** (opus, M): 01-Core — matrixmini. Status: planned.
 - [ ] **P022 — C09, C10** (fable, L+M): 01-Core — bitmatrix, bitmatrixmini. Status: planned. Note: Defects in the pinned 12-bitmatrix.hpp body, fix in the rewrite: operator*=(int) zeroes only for 0 (GF(2) needs o & 1, so a * 2 returns a); BitMatrix(string, axis) leaves fields uninitialised for an axis other than 0 or 1.
@@ -65,7 +65,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P027 — DS04, DS05, DS06, DS47** (opus, M+L+L+M): 02-Data Structures — fenwick tree advanced, monoids, lazysegmenttree, dynamicsegmenttree, interval set. Status: verified. Note: Monoids row migration (2026-10-18): 00-monoids.hpp is row 00 of DS05 with its own tester and evidence; monoid rule in 03-cpp.md; explicit comment-cap exemption; Python row names aligned. [evidence](<02-Data Structures/Docs/11-fenwick_tree_advanced.md>) [evidence](<02-Data Structures/Docs/12-lazysegmenttree.md>) [evidence](<02-Data Structures/Docs/13-dynamicsegmenttree.md>) [evidence](<02-Data Structures/Docs/24-interval_set.md>) [evidence](<02-Data Structures/Docs/00-monoids.md>)
 - [x] **P227 — DS49** (opus, M): 02-Data Structures — hashmap, sortedlist. Status: verified. Note: hash map and sorted list containers [evidence](<02-Data Structures/Docs/61-hashmap.md>) [evidence](<02-Data Structures/Docs/64-sortedlist.md>)
 - [x] **P052 — MA03, MA04** (opus, L+L): 05-Mathematics — primality factorization, multiplicative functions, modinverse, crt. Status: verified. [evidence](05-Mathematics/Docs/07-primality_factorization.md) [evidence](05-Mathematics/Docs/08-multiplicative_functions.md) [evidence](05-Mathematics/Docs/09-modinverse.md) [evidence](05-Mathematics/Docs/10-crt.md)
-- [x] **P231 — SUP06** (opus, S): Memory-capped test execution and Compact-alternative rule. Status: verified. [evidence](<96-Local Testing/00-memory-safety.md>)
+- [x] **P231 — SUP06** (opus, S): Memory-capped test execution and Compact-alternative rule. Status: verified. [evidence](<96-Local Testing/Docs/00-memory-safety.md>)
 - [x] **P081 — ST04, ST06, ST33** (opus, L+L+L): 07-Strings — suffixautomaton, sais, editdistance. Status: verified. [evidence](07-Strings/Docs/10-suffixautomaton.md) [evidence](07-Strings/Docs/12-sais.md) [evidence](07-Strings/Docs/18-editdistance.md)
 - [x] **P044 — GR08** (opus, XL): 04-Graphs — max flow. Status: verified. [evidence](04-Graphs/Docs/19-max_flow.md)
 - [x] **P043 — GR07, GR10, GR11** (opus, M+L+L): 04-Graphs — twosat, matching bipartite, assignment, dominatortree. Status: verified. [evidence](04-Graphs/Docs/18-twosat.md) [evidence](04-Graphs/Docs/21-matching_bipartite.md) [evidence](04-Graphs/Docs/23-assignment.md) [evidence](04-Graphs/Docs/24-dominatortree.md)
@@ -82,13 +82,13 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P056 — GR06** (opus, L): 04-Graphs — centroiddecomposition, treeisomorphism. Status: verified. [evidence](04-Graphs/Docs/16-centroiddecomposition.md) [evidence](04-Graphs/Docs/17-treeisomorphism.md)
 - [x] **P053 — MA05** (opus, L): 05-Mathematics — discrete log root. Status: verified. [evidence](05-Mathematics/Docs/11-discrete_log_root.md)
 - [x] **P178 — MA17** (opus, L): 05-Mathematics — modular square roots, quadratic congruence. Status: verified. [evidence](05-Mathematics/Docs/33-modular_square_roots.md) [evidence](05-Mathematics/Docs/34-quadratic_congruence.md)
-- [x] **P085 — ST21, ST09** (opus, L+L): 07-Strings — wildcardmatching, lexicographic queries, dynamicstringhash. Status: verified. Note: Omission sweep 2026-10-19: implement distinctSubstringsByLength in 22-lexicographic_queries.hpp. [evidence](07-Strings/Docs/21-wildcardmatching.md) [evidence](07-Strings/Docs/22-lexicographic_queries.md) [evidence](07-Strings/Docs/23-dynamicstringhash.md)
+- [x] **P085 — ST21, ST09** (opus, L+L): 07-Strings — wildcardmatching, lexicographic queries, dynamicstringhash. Status: verified. [evidence](07-Strings/Docs/21-wildcardmatching.md) [evidence](07-Strings/Docs/22-lexicographic_queries.md) [evidence](07-Strings/Docs/23-dynamicstringhash.md)
 - [x] **P060 — MA10** (opus, M): 05-Mathematics — floorsum, josephus, continued fraction. Status: verified. [evidence](05-Mathematics/Docs/18-floorsum.md) [evidence](05-Mathematics/Docs/19-josephus.md) [evidence](05-Mathematics/Docs/20-continued_fraction.md)
 - [x] **P054 — MA26, MA41, MA52** (opus, L+M+M): 05-Mathematics — combinatorics advanced, modular power towers, lattice paths. Status: verified. [evidence](05-Mathematics/Docs/12-combinatorics_advanced.md) [evidence](05-Mathematics/Docs/30-modular_power_towers.md) [evidence](05-Mathematics/Docs/67-lattice_paths.md)
 - [x] **P037 — GE05, GE27, GE44** (opus, L+L+M): 03-Geometry — segment union, minimumenclosingcircle, convex polygon query, lattice geometry, fixed radius queries. Status: verified. [evidence](03-Geometry/Docs/13-segment_union.md) [evidence](03-Geometry/Docs/14-minimumenclosingcircle.md) [evidence](03-Geometry/Docs/15-convex_polygon_query.md) [evidence](03-Geometry/Docs/19-lattice_geometry.md) [evidence](03-Geometry/Docs/54-fixed_radius_queries.md) [evidence](05-Mathematics/Docs/18-floorsum.md)
 - [x] **P034 — DS30, DS31, DS03, DS51** (opus, L+M+L+M): 02-Data Structures — sqrttree, persistentarray, rollbackdsu, persistentdsu, offline deletion. Status: verified. [evidence](<02-Data Structures/Docs/09-rollbackdsu.md>) [evidence](<02-Data Structures/Docs/10-persistentdsu.md>) [evidence](<02-Data Structures/Docs/34-sqrttree.md>) [evidence](<02-Data Structures/Docs/35-persistentarray.md>) [evidence](<02-Data Structures/Docs/63-offline_deletion.md>)
 - [x] **P047 — GR69, GR12, GR28** (opus, L+L+M): 04-Graphs — directedmst, dynamic connectivity, blockcuttree, path cover. Status: verified. [evidence](04-Graphs/Docs/25-directedmst.md) [evidence](04-Graphs/Docs/26-dynamic_connectivity.md) [evidence](04-Graphs/Docs/27-blockcuttree.md) [evidence](04-Graphs/Docs/31-path_cover.md)
-- [x] **P082 — ST05** (opus, XL): 07-Strings — suffixtree. Status: verified. Note: Omission sweep 2026-10-19: implement lca (O(1)), suffixLink (O(1), links precomputed at build by an offline LCA pass, replacing the O(log n) weightedAncestor derivation), weightedAncestors (offline batch, O((n + q)·α(n))) in 11-suffixtree.hpp; weightedAncestor stays online O(log n) by jump pointers. [evidence](07-Strings/Docs/11-suffixtree.md)
+- [x] **P082 — ST05** (opus, XL): 07-Strings — suffixtree. Status: verified. [evidence](07-Strings/Docs/11-suffixtree.md)
 - [ ] **P072 — MI18, MI34** (opus, L+M): 06-Miscellaneous — knapsack advanced, kbest enumeration, fractional programming. Status: planned.
 - [ ] **P035 — DS25, DS32, DS52** (opus, M+M+M): 02-Data Structures — weighteddsu, fastset, dsu extensions. Status: planned.
 - [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.
@@ -163,7 +163,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P108 — PY30, PY32** (opus, L+M): 08-Python — state search, functionalgraph. Status: planned.
 - [ ] **P109 — PY31** (opus, L): 08-Python — geometry float. Status: planned.
 - [ ] **P110 — PY33, PY46** (opus, L+S): 08-Python — dp advanced, game theory. Status: planned.
-- [ ] **P230 — PY47** (opus, L): 08-Python — graph advanced. Status: planned. Note: 08-Python — graph advanced
+- [ ] **P230 — PY47** (opus, L): 08-Python — graph advanced. Status: planned.
 
 ### Specialist and research families
 

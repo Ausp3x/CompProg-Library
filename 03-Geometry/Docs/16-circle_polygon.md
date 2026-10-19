@@ -14,7 +14,7 @@ Signed area of the disk intersected with the triangle `(c.c, a, b)`. It is posit
 
 ### diskPolygonAreaApprox, diskRingsAreaApprox
 
-`diskPolygonAreaApprox(c, ring)` sums the fan terms over the edges of a closed walk (no repeated closing vertex). The result is the signed area: positive for a CCW simple ring, negative for a CW one. For any closed walk it is the winding-weighted area inside the disk. `diskRingsAreaApprox(c, rings)` sums the rings, so `{outer CCW, holes CW}` gives the area of the disk intersected with the polygon with holes. The row's "signed, holes" item is the signed ring form combined through rings, and "rings" means polygon rings (the 03-polygon convention), not annuli. `O(n + r)`.
+`diskPolygonAreaApprox(c, ring)` sums the fan terms over the edges of a closed walk (no repeated closing vertex). The result is the signed area: positive for a CCW simple ring, negative for a CW one. For any closed walk it is the winding-weighted area inside the disk. `diskRingsAreaApprox(c, rings)` sums the rings, so `{outer CCW, holes CW}` gives the area of the disk intersected with the polygon with holes. Rings are polygon rings (the 03-polygon convention), not annuli. `O(n + r)`.
 
 ### circleArcsInPolygonApprox
 
@@ -23,6 +23,12 @@ Input: a polygon given as a ring or as rings, nonzero winding counting as inside
 Each crossing contributes an event, a winding step of ±1 by the sign of `dot(edge direction, crossing - c.c)`. The number of crossings on an edge comes from its endpoint statuses (inside, on, outside), each computed once per vertex, so adjacent edges always agree. A vertex on the circle counts as inside a radius `r + ε` circle; edges leaving or arriving tangentially there produce a step at the vertex. An outside-outside edge crosses twice exactly when its closest point lies inside the segment and the discriminant is positive. Roots are clamped to the segment and used only for angles. Touches (on-circle vertices and tangencies) add zero steps. That keeps the reference angle, the midpoint of the largest gap between event angles, off the polygon's boundary. A single `polygonWinding` query there seeds the sweep. Arcs carry the original event angles; only a `begin` of exactly π is shifted to −π. `O(n * log(n))` time, `O(n)` memory.
 
 Near-degenerate rounded inputs can split or join an arc across a gap of about `1e-19` rad. The same happens when two edges cross the circle at one point that is not a shared vertex, for example rings crossing each other on the circle. No epsilon merges such events, by the numeric policy. A single simple integral ring within the exact range above produces no slivers, and the tests check that.
+
+### Renames
+
+| Planned name | Implemented as | Reason |
+|---|---|---|
+| `circleBoundaryArcsInPolygon` | `circleArcsInPolygonApprox` | Naming policy: rounded `long double` angles |
 
 ## Feature-to-test map
 
@@ -64,7 +70,7 @@ Mutation check (2026-10-11), optimized full suite on a copy of the tree. 5 mutan
 ```bash
 python3 '96-Local Testing/03-Geometry/16-circle_polygon_tester.py' --mode full --seed 20260927
 CXX=g++-14 python3 '96-Local Testing/03-Geometry/16-circle_polygon_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/03-Geometry/16-circle_polygon_tester.py' --mode stress --seed 42
+python3 '96-Local Testing/03-Geometry/16-circle_polygon_tester.py' --mode stress --seed 42 --configuration optimized
 ```
 
 ## Benchmarks
@@ -88,3 +94,4 @@ Written independently. Sources of the completeness sweep are in [00-sources.md](
 ## History
 
 - 2026-10-11: first implementation (P036). Independent review: three findings fixed (exactness range of touch classification narrowed, sliver claim limited to single simple rings, a two-line body comment).
+- 2026-10-12: P007 prune migrated `onSegment` call sites in the tester; full suite passed ([02-line_segment.md](02-line_segment.md)).

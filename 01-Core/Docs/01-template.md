@@ -1,6 +1,6 @@
 # 01-template.hpp — evidence
 
-`01-template.hpp` (C01, package P002, together with `02-debug.hpp`; see [02-debug.md](02-debug.md)) is the contest preamble: standard and PBDS includes, exact-width aliases, legacy macros, PBDS order-statistics aliases, finite sentinels and `chmin`/`chmax`. It supplies the verified width aliases that the rest of Core uses.
+`01-template.hpp` (C01, package P002, together with `02-debug.hpp` and `18-bitset.hpp`; see [02-debug.md](02-debug.md)) is the contest preamble: standard and PBDS includes, exact-width aliases, legacy macros, PBDS order-statistics aliases, finite sentinels and `chmin`/`chmax`. It supplies the verified width aliases that the rest of Core uses.
 
 ## Contracts
 
@@ -33,11 +33,11 @@ One comparison; assignment only on strict improvement; return whether assigned. 
 | `indexed_set`, `indexed_map` | `testIndexedSet` | Empty/out-of-range, duplicates, pair keys, deletion, map overwrite, deterministic random histories against independent `std::set`/`std::map` iteration |
 | `chmin`, `chmax` | `testChminChmax` | constexpr, boundaries, ties, self-alias, strings, counted custom operations, NaN |
 
-Quick uses the optimized configuration and 500 random histories; full runs 5,000 histories per configuration; stress uses the same full configuration set and 30,000 histories with the requested seed. Fixed boundary tests run in all modes. All oracles are non-removable checks.
+Quick uses the optimized configuration and 500 random histories; full runs 5,000 histories per configuration; stress uses the same full configuration set and 30,000 histories with the requested seed. Fixed boundary tests run in all modes.
 
 ## Commands and results
 
-The entries resolve their headers relative to the script and run from any working directory; `CXX` selects the compiler, and they accept `--mode quick|full|stress` and `--seed` (or `CP_TEST_MODE`/`CP_TEST_SEED`). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_ASSERTIONS` (PBDS under `_GLIBCXX_DEBUG` is impractically slow), and `-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie` with leak detection, plus a standalone build.
+Harness: [`05-testing.md`](../../00-Guidelines/05-testing.md); flags `--mode` and `--seed` (or `CP_TEST_MODE`/`CP_TEST_SEED`). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_ASSERTIONS` (PBDS under `_GLIBCXX_DEBUG` is impractically slow), and `-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie` with leak detection, plus a standalone build.
 
 Restyle, 2026-10-08:
 
@@ -55,12 +55,12 @@ All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64, with 
 ## Sources
 
 - `OLD/1-Core/01-template.hpp`: immediate feature/API reference; the active template preserves its aliases, helper names, PBDS alias, constants and macros.
-- `01-Core/97-Legacy/01-template.cpp`: its older `all(x)`, `ral(x)` and narrowing `sze(x)` macros were superseded by explicit begin/end/rbegin/rend/size expressions and are not reintroduced. Original bytes remain in `OLD`.
+- `OLD/algorithms.cpp` lines 1–30: its older `all(x)`, `ral(x)` and narrowing `sze(x)` macros were superseded by explicit begin/end/rbegin/rend/size expressions and are not reintroduced.
 - 2026-10-06 catalog sweep: [00-sources.md](00-sources.md); `indexed_map` follows KACTL OrderStatisticTree and hitonanode `pbds_map`.
 
 ## Limits and handoffs
 
-GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed. No concurrency safety or online judge acceptance is claimed. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug").
+No concurrency safety is claimed. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug").
 
 ## History
 
@@ -70,3 +70,4 @@ GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed. No concurrency safety or
 - 2026-10-06: re-audit, 2 findings fixed (Windows contract, tester braces), `indexed_map` added, full and stress passed on g++.
 - 2026-10-06: re-audit, full (seed 335597) and stress (seed 1) passed on g++, closing-brace check and workspace check passed.
 - 2026-10-06: closing-brace checker built in `03-consistency.py` (P002 re-audit), calibrated: the eight P002 files report nothing after normalization (160 true positives before), a probe file reports exactly the four real violations; the bitset review's edge cases fixed ([18-bitset.md](18-bitset.md)).
+- 2026-10-08: restyle, full suite (seed 20261008) passed on g++ and g++-14, integration, consistency and workspace check passed.

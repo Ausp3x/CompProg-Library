@@ -27,17 +27,18 @@ Quick: n<=4, depth 3, 35 trials, 1,024 vertices. Stress: history depth 6, 600 ra
 
 ## Commands and results
 
-Re-audit, 2026-10-07, and floor check, 2026-10-14 (last line):
+Latest result of each command: the P006 prune rerun, 2026-10-13 (first four lines; GCC 16.2.1 and GCC 14.4.1, Python 3.14.7, Linux x86-64, i9-11900H), the floor check, 2026-10-14, and the latest stress run, 2026-10-07 (last line):
 
 ```bash
-python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 2 --filter '02-Data Structures' --no-integration
-python3 '96-Local Testing/01-run.py' --mode full --seed 20261007 --filter '02-Data Structures' --no-integration
-python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/02-Data Structures/01-dsu_tester.py' --mode full --seed 20261013
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/01-dsu_tester.py' --mode full --seed 20261013
+python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 CXX=g++-14 python3 '96-Local Testing/02-Data Structures/01-dsu_tester.py' --mode full --seed 20261014
+python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 2 --filter '02-Data Structures' --no-integration
 ```
 
-The 2026-10-07 runs used GCC 16.2.1, GNU++20 and CPython 3.14 on Linux x86-64 (Intel Core i9-11900H), and all passed. Every tester build used `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked and ASan/UBSan configurations with leak checking. The final full run (seed 20261007, after the review fixes) took 4 min 10 s for the package and passed all 8 suites x 3 configurations and all 112 assertion probes. Stress over two rounds (seeds 7 and 8, 21 min) passed all 8 suites before the review fixes. `02-integration.py --sanitizers` passed 102 standalone/aggregate headers, multiple-translation-unit linkage, the Workspace build and the sanitizer self-tests. `03-consistency.py` reports no errors and checks the closing-brace rule on the package's headers and testers. The DSU suite passed in every run above. The 2026-10-14 floor check on GCC 14.4.1 passed all four corpus groups in each of the three configurations and 7 assertion probes, `MEMORY peak=523MB`.
+Full, seed 20261013: PASS on g++ and g++-14 in the runner's optimized, checked and ASan/UBSan builds (header and tests unchanged since the re-audit); probe counts and MEMORY peaks not recorded. Integration and consistency passed with the package run recorded in [02-fenwick.md](02-fenwick.md#commands-and-results). The 2026-10-14 floor check on GCC 14.4.1 passed all four corpus groups in each of the three configurations and 7 assertion probes, `MEMORY peak=523MB`. Stress over two rounds (seeds 7 and 8, GCC 16.2.1) passed on 2026-10-07, before the re-audit's review fixes; its peak was not recorded.
 
 ## Sources
 
@@ -51,7 +52,7 @@ References inspected on 2026-09-27. Bibliographic mentions of Tarjan are not cla
 
 ## Limits and handoffs
 
-The old DSU at `OLD/algorithms.cpp:1402–1477` mixed connectivity, weighted distances, parity/bipartiteness and edge counts; its distance getter also narrowed `lng` to `int`. Basic connectivity names and `n/ncon/par/siz` remain; weighted three-argument unions, `dis`, `esz`, `is_bip`, `getDis`, `getEsiz` and `isBipartite` are not Basic APIs. No maintained consumers were found. The outstanding weighted/parity semantics belong to `29-weighteddsu.hpp` (planned, which retains this handoff); the component edge counts `esz`/`getEsiz` are `RollbackDSUAggregate::edgeCount` in `09-rollbackdsu.hpp` ([09-rollbackdsu.md](09-rollbackdsu.md), P034), and Graphs owns dynamic-connectivity orchestration. Rollback, persistent and weighted DSU are separate rows, not gaps of this row. DSU grid adapters and delete/move element (HIT, OI) were left out of the 2026-10-07 sweep as variants for row 65 if a motivating problem appears.
+The old DSU at `OLD/algorithms.cpp:1402–1477` mixed connectivity, weighted distances, parity/bipartiteness and edge counts; its distance getter also narrowed `lng` to `int`. Basic connectivity names and `n/ncon/par/siz` remain; weighted three-argument unions, `dis`, `esz`, `is_bip`, `getDis`, `getEsiz` and `isBipartite` are not Basic APIs. No maintained consumers were found. The outstanding weighted/parity semantics belong to `29-weighteddsu.hpp` (planned; [00-notes.md](00-notes.md#migration-obligations) points here); the component edge counts `esz`/`getEsiz` are `RollbackDSUAggregate::edgeCount` in `09-rollbackdsu.hpp` ([09-rollbackdsu.md](09-rollbackdsu.md), P034), and Graphs owns dynamic-connectivity orchestration. Rollback, persistent and weighted DSU are separate rows, not gaps of this row. DSU grid adapters and delete/move element are left out with reasons in [00-notes.md](00-notes.md#p006-re-audit-omissions).
 
 ## History
 

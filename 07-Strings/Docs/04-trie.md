@@ -25,7 +25,7 @@ Correctness: every live edge appends its byte to the root-to-node key; `terminal
 
 ## Feature-to-test map
 
-Runner: [`04-trie_tester.py`](<../../96-Local Testing/07-Strings/04-trie_tester.py>). One generic suite runs on `Trie`, `TrieDense<26, 'a'>`, `TrieDense<2, 'a'>`, `TrieDense<256, 0>` and `TrieDense<4, 'a'>` against an ordered-map multiset oracle; all checks survive `-DNDEBUG`.
+Runner: [`04-trie_tester.py`](<../../96-Local Testing/07-Strings/04-trie_tester.py>). One generic suite runs on `Trie`, `TrieDense<26, 'a'>`, `TrieDense<2, 'a'>`, `TrieDense<256, 0>` and `TrieDense<4, 'a'>` against an ordered-map multiset oracle.
 
 | Operation | Coverage |
 |---|---|
@@ -41,7 +41,7 @@ Checked builds run eight assertion probes (nonpositive insert/erase counts, tota
 
 ## Commands and results
 
-Run 2026-10-08 with the configurations listed in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
+Run 2026-10-08. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/04-trie_tester.py' --mode quick --seed 1  # PASS, 2 configurations

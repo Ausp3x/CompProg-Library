@@ -8,7 +8,7 @@
 
 - `template<int NAIVE = 32> vector<int> sais(const vector<int> &s, int upper)`: symbols in `[0, upper]` (`upper >= 0`, every symbol checked by an `O(n)` entry assertion), `n < INT_MAX`. Returns the `n` suffix starts in lexicographic order, sentinel-free (no caller sentinel, no reserved symbol, the empty suffix omitted; a shorter suffix that is a prefix of a longer one sorts first). `O(n + upper)` time and `O(n + upper)` workspace (bucket arrays of size `upper + 2`), `O(n)` per recursion level with halving sizes. Empty input returns `{}`.
 - `NAIVE >= 1` (`static_assert`): inputs (and reduced recursive inputs) shorter than `NAIVE` are sorted by direct suffix comparison. The default 32 is measured (Benchmarks); `NAIVE = 1` runs pure SA-IS on every level. The threshold is a compile-time parameter, so no global state exists.
-- The original `saisSentinelFree` row item is this function: classical SA-IS appends a unique smallest sentinel; this implementation treats the position after the end as a virtual sentinel (last symbol L-type, `n - 1` induced first), so no sentinel is stored or returned. A caller needing the empty suffix prepends `n`.
+- Sentinel-free: classical SA-IS appends a unique smallest sentinel; this implementation treats the position after the end as a virtual sentinel (last symbol L-type, `n - 1` induced first), so no sentinel is stored or returned. A caller needing the empty suffix prepends `n`.
 
 ### sais (string_view)
 
@@ -27,7 +27,7 @@ Correctness: positions are typed S (suffix smaller than its successor) or L, wit
 
 ## Feature-to-test map
 
-Runnable entry: [12-sais_tester.py](<../../96-Local Testing/07-Strings/12-sais_tester.py>), with the actual-header [C++ suite](<../../96-Local Testing/07-Strings/12-sais_tester.cpp>). All oracles survive `-DNDEBUG`.
+Runnable entry: [12-sais_tester.py](<../../96-Local Testing/07-Strings/12-sais_tester.py>), with the actual-header [C++ suite](<../../96-Local Testing/07-Strings/12-sais_tester.cpp>).
 
 | Feature/domain | Independent verification |
 |---|---|
@@ -40,7 +40,7 @@ Runnable entry: [12-sais_tester.py](<../../96-Local Testing/07-Strings/12-sais_t
 
 ## Commands and results
 
-P017 run, 2026-10-19 (the large suffix-order oracle is now `SuffixArray<int>::doubling`, since `07`'s constructors call `sais`; the stress line is from the 2026-10-13 prune): 11th Gen Intel Core i9-11900H, GCC 16.2.1 (`g++`) and the floor compiler GCC 14.4.1 (`CXX=g++-14`), Python 3.14.7. Configurations (shared string runner): optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` (with the assertion probes), and in full/stress `-O1 -g -fsanitize=address,undefined`; all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full runs passed the quick pre-flight under the 2048 MB cap; `MEMORY peak` is the run's capped peak (4096 MB cap, 0 OOM kills).
+P017 run, 2026-10-19 (the large suffix-order oracle is now `SuffixArray<int>::doubling`, since `07`'s constructors call `sais`; the stress line is from the 2026-10-13 prune): 11th Gen Intel Core i9-11900H, GCC 16.2.1 (`g++`) and the floor compiler GCC 14.4.1 (`CXX=g++-14`), Python 3.14.7. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/12-sais_tester.py' --mode full --seed 20261019  # PASS, 3 configurations, 283,735 cases and 10,115,167 checks each, 4 assertion probes, MEMORY peak=814MB
@@ -49,7 +49,7 @@ CP_TEST_PREFLIGHT=0 python3 '96-Local Testing/07-Strings/12-sais_tester.py' --mo
 python3 '96-Local Testing/07-Strings/12-sais_benchmark.py' --reps 5  # PASS, every checksum equal, MEMORY peak=358MB
 ```
 
-The checked build is the slowest: at full size it ran in 70 s on g++-14 against 59 s with the previous large check, under the runner's 180 s limit. At stress size (700,000 symbols) it passes on g++ (157 s in the review) but exceeds the limit on g++-14 (187 s, and 184 s with the previous tester, so the overrun predates this prune); the floor compiler is required in full mode only. A mutation capping `lcpArray` at 1000 passes every small case and fails the large block-name check in quick mode. Integration, the folder run and consistency are recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results).
+The checked build is the slowest: at full size it runs in 70 s on g++-14, under the runner's 180 s limit. A mutation capping `lcpArray` at 1000 passes every small case and fails the large block-name check in quick mode. Integration and consistency are recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results).
 
 ## Benchmarks
 
@@ -89,6 +89,7 @@ No legacy SA-IS implementation exists in `OLD` (archive map and text search).
 ## Limits and handoffs
 
 - `upper` drives bucket memory; sparse integer alphabets should use the generic overload. Prefix doubling, RMQ, LCE and pattern search stay in `07`, which builds through `sais` and `lcpArray`; `29` can derive a BWT from `sais`.
+- The checked stress run (700,000 symbols) passes on g++ (157 s) but exceeds the runner's 180 s limit on g++-14 (187 s).
 
 ## History
 

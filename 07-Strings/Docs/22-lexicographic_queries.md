@@ -122,7 +122,7 @@ maspypy `lcp_range` is `occurrenceRange`; maspypy `sort_substrings` (dense IDs) 
 
 ## Feature-to-test map
 
-Runner: [`22-lexicographic_queries_tester.py`](<../../96-Local Testing/07-Strings/22-lexicographic_queries_tester.py>). Oracle: brute enumeration of every substring (occurrence lists, sorted distinct and multiset orders, sorted suffixes), brute scans for prefixes and suffixes, a brute MAW construction from the substring set (every `a u b` absent with `a u` and `u b` occurring, plus the absent symbols of `[0, sigma)`), and brute per-prefix sets and extrema. Large texts: the suffix automaton (`10`, verified independently) and counting identities. Every check survives `-DNDEBUG`.
+Runner: [`22-lexicographic_queries_tester.py`](<../../96-Local Testing/07-Strings/22-lexicographic_queries_tester.py>). Oracle: brute enumeration of every substring (occurrence lists, sorted distinct and multiset orders, sorted suffixes), brute scans for prefixes and suffixes, a brute MAW construction from the substring set (every `a u b` absent with `a u` and `u b` occurring, plus the absent symbols of `[0, sigma)`), and brute per-prefix sets and extrema. Large texts: the suffix automaton (`10`, verified independently) and counting identities.
 
 | Operation | Coverage |
 |---|---|
@@ -146,7 +146,7 @@ Inputs: exhaustive binary texts through 7/9/12 and ternary through 4/6/7 symbols
 
 ## Commands and results
 
-Latest run 2026-10-19 (P085, `distinctSubstringsByLength`), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wshadow -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-19 (P085, `distinctSubstringsByLength`), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, the optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan configurations built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>):
 
 | Command | Result |
 |---|---|
@@ -184,7 +184,6 @@ Code is independently implemented from the cited descriptions; catalog sweep in 
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): maspypy `suffix_lcp_change`, `nonDominatedSuffixes`, the basic substring structure, ordered-set queries over arbitrary patterns, the two-string LCP table.
 - `minimalAbsentWords` allocates `O(sigma)`; compress large alphabets first.
-- P017 (SA-IS default build, `doubling`) was in progress when this row was verified; every function here reads only the `sa`, `rank`, `lcp` and RMQ contract, so P017 reruns this suite when it lands.
 - `kthSubstring` is `O(log^2 n)` per query; the automaton in `10` answers in `O(answer length)` for byte strings.
 
 ## History
@@ -192,3 +191,4 @@ Code is independently implemented from the cited descriptions; catalog sweep in 
 - 2026-10-16: implemented and verified (P085), independent review found 4 rule and test-gap findings, fixed; full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (`SparseTable<Min<int>>` with a direct `00-monoids.hpp` include; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 722/763/724 MB.
 - 2026-10-19: P085 omission-sweep follow-up: `distinctSubstringsByLength` added (re-sweep found nothing else), independent review found 1 overflow edge and 3 nits, fixed; quick, full (seed 20261019) on g++ and g++-14, stress (seed 7) and integration passed, MEMORY peak 734/740/734 MB.
+- 2026-10-19: P017 dependent rerun after `07` moved to SA-IS (no change here): full on g++ before the final code-range cutoff and quick on the final code passed (recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results)).

@@ -24,7 +24,7 @@ All bulk APIs use pointer/count overloads with an `int n >= 0`; pointers address
 
 ### MontgomeryBackend
 
-`MontgomeryBackend<T>` is a public class template (a detail alias would change template identity and specialization/CTAD behavior); `Montgomery32`, `Montgomery64` and `Montgomery` are its aliases (with `Wide` and `BITS`). `mod`, `inv = -mod^-1 mod R` and `rsq = R^2 mod mod` are immutable after construction and constant-evaluated when the modulus is. `add` and `sub` use the same formulas for ordinary residues. Scalar bulk loops run the unchecked `redc` shared by every scalar operation; the AVX2 loops (Montgomery32 only) run `red4`/`red8`, with `red8` factoring the even/odd lane packing shared by `mul8` and the bulk `get`, and `load`/`store` helpers; these kernels are internal and reached only through the checked bulk APIs. Even moduli belong to Barrett32/Barrett64. Compare lazy values only after normalization. `powMont` runs a 128-bit loop only while the exponent's high word is set and then the plain word loop of `Barrett::pow`, so exponents below `2^64` cost what they did before the widening (dependent-chain figures under Benchmarks); it asserts its base once at entry and runs the unchecked `redc` inside the loops.
+`MontgomeryBackend<T>` is a public class template (a detail alias would change template identity and specialization/CTAD behavior); `Montgomery32`, `Montgomery64` and `Montgomery` are its aliases (with `Wide` and `BITS`). `mod`, `inv = -mod^-1 mod R` and `rsq = R^2 mod mod` are immutable after construction and constant-evaluated when the modulus is. `add` and `sub` use the same formulas for ordinary residues. Scalar bulk loops run the unchecked `redc` shared by every scalar operation; the AVX2 loops (Montgomery32 only) run `red4`/`red8`, with `red8` factoring the even/odd lane packing shared by `mul8` and the bulk `get`, and `load`/`store` helpers; these kernels are internal and reached only through the checked bulk APIs. Even moduli belong to Barrett32/Barrett64. Compare lazy values only after normalization. `powMont` runs a 128-bit loop only while the exponent's high word is set and then the plain word loop of `Barrett::pow`, so exponents below `2^64` run only the word loop (dependent-chain figures under Benchmarks); it asserts its base once at entry and runs the unchecked `redc` inside the loops.
 
 ### Guard
 
@@ -42,7 +42,7 @@ All bulk APIs use pointer/count overloads with an `int n >= 0`; pointers address
 
 ## Feature-to-test map
 
-The Python entry resolves paths independently of the working directory, uses only Python's standard library and GCC, reports seeds/configurations and first failing inputs, retains its oracles under `NDEBUG`, and executes precondition failures in subprocesses.
+Harness: [`05-testing.md`](../../00-Guidelines/05-testing.md); the entry uses only Python's standard library and GCC.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -52,11 +52,11 @@ The Python entry resolves paths independently of the working directory, uses onl
 | `redc` | `04-montgomery_tester.cpp` | Canonical and lazy core against the oracle on every boundary dividend of every boundary modulus; every other operation routes through it |
 | `add`, `sub` | `04-montgomery_tester.cpp` | Oracle `(a+b) % m`, `(a-b) mod m` on all boundary pairs and random pairs per width, decoded through `get`; exhaustive odd `m <= 65/129`; carry past the word (`m = R-1`, `a = R-2, b = R-3`) and borrow (`0 - (R-2)`) |
 | `addLazy`, `subLazy` | `04-montgomery_tester.cpp` | Output bound `< 2m` and normalized value against the oracle on boundary pairs shifted by `m`, exhaustive `a, b < 2m` for odd `m <= 65/129`, chained `subLazy(addLazy(..), subLazy(..))` |
-| `Guard` | `04-montgomery_tester.cpp` | Direct: all-canonical and all-lazy arrays accepted; every single position raised to `m` or to the word maximum rejected, for `n` in {0, 1, 2, 7, 8, 9, 15, 16, 17, 31, 32, 33, 63, 65, 257}, with 8-lane notes under AVX2 for Montgomery32; indirect: 32 bulk precondition deaths per width across vector, tail and `n = 8` positions |
-| `mod`, `inv`, `rsq`, `Wide`, `BITS`, `Montgomery` alias, constexpr construction | `04-montgomery_tester.cpp` | `mod * inv == R - 1` for every boundary modulus (`negative inverse`), `rsq` against the square of the oracle's independently computed `R mod m`, `static_assert` on the alias identity and on compile-time construction (`mod`, `inv` and `rsq` of `Montgomery32/64(998244353)` against `R - 1` and `(R mod m)^2 mod m`; `inv == R - 1`, `rsq == 0` for the default modulus); `Wide` and `BITS` drive the oracle's radix and every dividend bound |
-| `red8`, `load`, `store` | `04-montgomery_tester.cpp` | Through every bulk operation in the optimized and checked AVX2 builds (sizes/offsets/aliases above) |
+| `Guard` (`note`, `ok`, `top`, `mx`, `acc`) | `04-montgomery_tester.cpp` | Direct: all-canonical and all-lazy arrays accepted; every single position raised to `m` or to the word maximum rejected, for `n` in {0, 1, 2, 7, 8, 9, 15, 16, 17, 31, 32, 33, 63, 65, 257}, with 8-lane notes under AVX2 for Montgomery32; indirect: 32 bulk precondition deaths per width across vector, tail and `n = 8` positions |
+| `MontgomeryBackend`, `mod`, `inv`, `rsq`, `Wide`, `BITS`, `Montgomery` alias, constexpr construction | `04-montgomery_tester.cpp` | `mod * inv == R - 1` for every boundary modulus (`negative inverse`), `rsq` against the square of the oracle's independently computed `R mod m`, `static_assert` on the alias identity and on compile-time construction (`mod`, `inv` and `rsq` of `Montgomery32/64(998244353)` against `R - 1` and `(R mod m)^2 mod m`; `inv == R - 1`, `rsq == 0` for the default modulus); `Wide` and `BITS` drive the oracle's radix and every dividend bound |
+| `red4`, `red8`, `mul8`, `load`, `store` | `04-montgomery_tester.cpp` | Through every bulk operation in the optimized and checked AVX2 builds (sizes/offsets/aliases above) |
 
-Quick mode covers every public operation with smaller exhaustive/random corpora. Full covers odd moduli through 65 and 10,000 random cases per width; stress covers through 129 and 100,000 random cases per width. Full/stress execute optimized `-O3 -DNDEBUG`, checked, and ASan/UBSan scalar/AVX2 paths. Unsupported AVX2 hardware is reported as a skip.
+Quick mode covers every public operation with smaller exhaustive/random corpora. Full covers odd moduli through 65 and 10,000 random cases per width; stress covers through 129 and 100,000 random cases per width. Full/stress execute optimized `-O3 -DNDEBUG`, checked, and ASan/UBSan scalar/AVX2 paths.
 
 ## Commands and results
 
@@ -86,7 +86,7 @@ Method and corpus: [03-barrett.md](03-barrett.md#benchmarks). Raw data: `96-Loca
 | Eight chained powers on one context, 64-bit exponents, `m=2^64-59` | Native `%`: 2,923; Barrett: 3,175 | 1,424 |
 | Eight chained powers on one context, 128-bit exponents, `m=2^64-1` | Native `%`: 5,837 | 2,732 |
 
-Exponent widening. `dependent-pow` chains eight `pow` calls on one context (each base is the previous result), so the exponent loop's own latency shows. `powMont` runs the 128-bit loop only while the exponent's high word is set because a single 128-bit loop cost 3–16% on `Montgomery32` and 8–10% on `Montgomery64` chains of 64-bit exponents (the independent review's isolated `pow` loop at `-O2`: +26% and +6%), while the two-loop form stays within the run-to-run spread of the pre-widening figures. Two-loop form, AVX2 build, nanoseconds per eight chained powers with 64-bit exponents (the `Barrett64` and native references are in the table above):
+Exponent widening. `dependent-pow` chains eight `pow` calls on one context (each base is the previous result), so the exponent loop's own latency shows. `powMont` runs the 128-bit loop only while the exponent's high word is set because a single 128-bit loop cost 3–16% on `Montgomery32` and 8–10% on `Montgomery64` chains of 64-bit exponents (the independent review's isolated `pow` loop at `-O2`: +26% and +6%). Two-loop form, AVX2 build, nanoseconds per eight chained powers with 64-bit exponents (the `Barrett64` and native references are in the table above):
 
 | Context and modulus | Nanoseconds |
 |---|---|
@@ -98,7 +98,7 @@ Exponent widening. `dependent-pow` chains eight `pow` calls on one context (each
 
 128-bit exponents cost 2,631 ns (`Montgomery32`, `m=998244353`) and 2,732–3,016 ns (`Montgomery64`) per eight chained powers, about twice the 64-bit chains as the bit count predicts; the `2^64-59` native 128-bit cell of this run (14,658 ns against 5,980–6,002 ns in the other three configurations) is a transient and is not used.
 
-Deferred Guard, `Montgomery32`, `m=998244353`, 256 products: AVX2 bulk 102 ns (`-O3 -DNDEBUG`) versus 121 ns with assertions (`-O2`), while a scalar loop of per-call checked `mul` in the same assertion build takes 458 ns; scalar bulk with assertions 425 ns (`Montgomery64`, `m=2^64-59`: 401 ns). The 2026-10-07 design measurements against the replaced per-element assertions (+4.5% scalar 32-bit, +5% 64-bit, 49% for the AVX2 kernel) and the rejected alternatives (a separate O(n) entry pass, +27% AVX2 and +91% scalar; a branch-free `bad |= x >= top` accumulator, +10–20% scalar) are not reproducible from the current source.
+Deferred Guard, `Montgomery32`, `m=998244353`, 256 products: AVX2 bulk 102 ns (`-O3 -DNDEBUG`) versus 121 ns with assertions (`-O2`), while a scalar loop of per-call checked `mul` in the same assertion build takes 458 ns; scalar bulk with assertions 425 ns (`Montgomery64`, `m=2^64-59`: 401 ns). Per-element assertions, a separate O(n) entry pass and a branch-free `bad |= x >= top` accumulator were measured slower on 2026-10-07 and rejected.
 
 Thresholds (median AVX2 bulk/scalar ratios, canonical / lazy multiplication, over `998244353`, `2^31-1`, `2^32-5`; the lazy kernel exists only for `998244353 < R/4`): 1.20 / 1.20 at 7, 0.44 / 0.43 at 8, 0.51 / 0.54 at 9, 0.40 / 0.36 at 256 elements; with assertions enabled 0.57 / 0.49 at 8. The lazy ratio at 8 is read from the near-modulus cell: this run's uniform cell (14.1 ns against 3.1 ns near-modulus and 4.4 ns at 9) is a transient. Both conversion kernels improve from 8 elements in both configurations (`init` 0.37/0.50, `get` 0.49/0.69). The eight-element dispatch threshold and scalar tails stand.
 
@@ -113,11 +113,11 @@ Thresholds (median AVX2 bulk/scalar ratios, canonical / lazy multiplication, ove
 
 The 2026-10-07 catalog sweep is in [00-sources.md](00-sources.md) ("Fetched 2026-10-07 (P004 re-audit sweep)"). Independently written; no external code copied.
 
-Legacy accounting: the unchanged original is [OLD/5-Mathematics/09-montgomery.hpp](../../OLD/5-Mathematics/09-montgomery.hpp). Its public `Montgomery`, `mod/inv/rsq`, default constructor, `red/init/mul/pow` remain available. Previously the constructor required an odd modulus below `2^63`; canonical support now extends to every odd 64-bit modulus. The valid REDC dividend domain is explicit. The old code did not provide 32-bit, lazy, conversion-out, array, or SIMD interfaces. No legacy material is deleted and no dependent modular integer API is changed.
+Legacy accounting: the unchanged original is [OLD/5-Mathematics/09-montgomery.hpp](../../OLD/5-Mathematics/09-montgomery.hpp). Its public `Montgomery`, `mod/inv/rsq`, default constructor, `red/init/mul/pow` remain available. The legacy constructor required an odd modulus below `2^63`; this header accepts every odd word modulus. The valid REDC dividend domain is explicit. The old code did not provide 32-bit, lazy, conversion-out, array, or SIMD interfaces.
 
 ## Limits and handoffs
 
-GCC 14.4.1 (`CXX=g++-14`, the floor check) passed. The AVX2 kernels are 32-bit only (no 64x64 vector multiply in AVX2). Residue inverses stay with `05-modint.hpp`, whose contexts each hold the `Montgomery64` of their modulus (a `constexpr` member for static moduli, rebuilt by `setMod` for dynamic ones) and call `pow` on it since 2026-10-12. Left-out candidates (`neg`, `one`, lazy equality, `square`, 64-bit/AVX-512/IFMA/signed lanes) are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
+The AVX2 kernels are 32-bit only (no 64x64 vector multiply in AVX2). Residue inverses stay with `05-modint.hpp`, whose 64-bit `pow` uses each context's cached `Montgomery64` for odd non-Mersenne moduli below `2^62` ([05-modint.md](05-modint.md#context-mul-red-canon-montgomery-reduction-norm-power)). Left-out candidates (`neg`, `one`, lazy equality, `square`, 64-bit/AVX-512/IFMA/signed lanes) are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
 
 ## History
 

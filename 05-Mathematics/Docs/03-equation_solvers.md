@@ -49,9 +49,9 @@ Entry: [`03-equation_solvers_tester.py`](<../../96-Local Testing/05-Mathematics/
 
 | Feature | Independent evidence |
 |---|---|
-| Solvability, canonical point, primitive direction, `g` | Exhaustive small signed coefficients with point substitution and unsigned `std::gcd`. Every boundary coefficient/RHS triple and seeded full-width cases, with explicit `g = 2^63` for `(MIN, 0, 0)` and `y = 2^63` for `(0, -1, MIN)`. The Python built-in modular inverse with arbitrary-precision substitution. `s.g` is checked before the no-solution branch, and the Python oracle expects `g` on no-solution results. |
+| `solveDioEq`, `DioSolution`: solvability, canonical point, primitive direction, `g` | Exhaustive small signed coefficients with point substitution and unsigned `std::gcd`. Every boundary coefficient/RHS triple and seeded full-width cases, with explicit `g = 2^63` for `(MIN, 0, 0)` and `y = 2^63` for `(0, -1, MIN)`. The Python built-in modular inverse with arbitrary-precision substitution. `s.g` is checked before the no-solution branch, and the Python oracle expects `g` on no-solution results. |
 | Complete parameterization | Every solution in a brute-force `[-8, 9)^2` grid maps to an integral parameter, and every bounded parameter maps back to a solution. |
-| Half-open boxes, signs and zeros | Every box with endpoints in `[-2, 3]` against direct enumeration. Independently computed Python parameter bounds over arbitrary signed 64-bit ranges. |
+| `solveDioBox`, `DioBox`: half-open boxes, signs and zeros | Every box with endpoints in `[-2, 3]` against direct enumeration. Independently computed Python parameter bounds over arbitrary signed 64-bit ranges. |
 | Wide arithmetic and count | Signed minima and maxima with their neighbours, `-1`, zero, impossible-gcd cases, the full-length diagonal `2^64 - 1`, and the exact count `(2^64 - 1)^2`. |
 | `solveModEq` | Every residue for signed `a`, `b` through magnitude 40 and moduli through 40: the sentinel, the least representative, the least period and every solution residue. A Python arbitrary-precision inverse oracle. |
 | Preconditions | Four checked-build death probes: zero or negative modulus and reversed intervals. |

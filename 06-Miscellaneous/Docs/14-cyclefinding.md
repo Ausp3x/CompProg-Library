@@ -1,6 +1,6 @@
 # 14-cyclefinding.hpp — evidence
 
-`14-cyclefinding.hpp` (batch MI17, package P015) provides budgeted Floyd and Brent cycle detection on one successor orbit and the k-th orbit term built on Brent. Prerequisite: the C01 template (P002). Implementations are independent contest-profile code. No online submission was made.
+`14-cyclefinding.hpp` (batch MI17, package P015) provides budgeted Floyd and Brent cycle detection on one successor orbit and the k-th orbit term built on Brent. Prerequisite: the C01 template (P002). Implementations are independent contest-profile code.
 
 ## Contracts
 
@@ -31,7 +31,7 @@ States support copy/move construction and assignment. The successor receives an 
 
 ## Commands and results
 
-Run 2026-10-08: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined` with leak checking.
+Run 2026-10-08: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/06-Miscellaneous/14-cyclefinding_tester.py' --mode quick --seed 1             # PASS, 2 configurations
@@ -51,7 +51,7 @@ The [benchmark driver](<../../96-Local Testing/06-Miscellaneous/14-cyclefinding_
 
 Twenty explicit tail/period shapes include self-loops, pure cycles, long tails and lengths around powers of two, through 65,539 states. Each runs both algorithms with either table lookup or a synthetic successor performing 16 rounds of integer mixing. One warmup and five rotating-order repetitions include complete detection and recovery. Every result, independent closed-form call count, exact/one-short budget, and retained expensive-work checksum is verified; setup and verification occur outside timing.
 
-Brent/Floyd median time ratios ranged 0.481–0.952 for instrumented table lookups and 0.493–1.014 for the expensive successor. Both methods pay an observed volatile call-counter cost, which is material for cheap successors. Integer states, contiguous tables, warmed caches and synthetic successor cost limit these shared-host observations; the slight near-boundary regression is retained. No universal winner or automatic algorithm selector is claimed.
+Brent/Floyd median time ratios ranged 0.476–0.977 for instrumented table lookups and 0.492–1.017 for the expensive successor. Both methods pay an observed volatile call-counter cost, which is material for cheap successors. Integer states, contiguous tables, warmed caches and synthetic successor cost limit these shared-host observations; the slight near-boundary regression is retained. No universal winner or automatic algorithm selector is claimed.
 
 ## Sources
 
@@ -65,8 +65,8 @@ Inspected on 2026-09-28 (catalog sweep 2026-10-08 in [00-sources.md](00-sources.
 ## Limits and handoffs
 
 - No general orbit-cycle implementation exists in the legacy index or `OLD`. Archived Pollard–rho routines use a related technique and stay with Mathematics, unmodified.
-- Not adopted (reasons in [00-notes.md](00-notes.md)): hash-map orbit recording (needs hashing or ordering on states and `O(mu+lambda)` memory; Brent is within a small constant of the minimal call count at constant memory), Gosper and Nivasch stack/multistack (find the period only, need an order, expected rather than worst-case space), Sedgewick–Szymanski–Yao and distinguished points (cryptanalytic time-memory trade-offs), orbit monoid folds (Graphs `FunctionalGraphFold` for array graphs; implicit orbits compose `CycleResult` with a fold).
-- Graphs `11-functionalgraph.hpp` `functionalOrbit` is a second constant-memory Floyd on array graphs; whether it should adapt `brentCycle` is that package's decision.
+- Not adopted in the 2026-10-08 sweep, with reasons: hash-map orbit recording (needs hashing or ordering on states and `O(mu+lambda)` memory; Brent is within a small constant of the minimal call count at constant memory), Gosper and Nivasch stack/multistack (find the period only, need an order, expected rather than worst-case space), Sedgewick–Szymanski–Yao and distinguished points (cryptanalytic time-memory trade-offs), orbit monoid folds (Graphs `FunctionalGraphFold` for array graphs; implicit orbits compose `CycleResult` with a fold).
+- Graphs `11-functionalgraph.hpp` `functionalOrbit` stays beside these as a different domain (walks that stop; [duplicates.md](<../../00-Guidelines/23-Sweep Ledgers/duplicates.md>), P011).
 - The budgeted `step` and `failed` lambdas are repeated in `floydCycle` and `brentCycle` on purpose: a shared detail helper needs its own complexity line, which would push the header over the 8% comment cap.
 - Determinism and equivalence/congruence are semantic preconditions that cannot be checked in general.
 

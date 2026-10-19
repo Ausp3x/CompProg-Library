@@ -33,7 +33,7 @@ Runner: [`03-stringhash_tester.py`](<../../96-Local Testing/07-Strings/03-string
 | build (caller functor) | 30/300/2000 random code sequences drawn from those codes, every interval forward and reversed; the code-reduction regression (`2^32 + 1` versus `1`) differs in every field. |
 | hashOf | Every substring of every tested sequence (`vector<uint>`), byte strings including all 256 bytes, substrings and empty input. |
 | power, concat | Split/join identities, right fragments beyond the table, `power(3n + 1)` against one multiplication, constructed `INT_MAX` digest followed by a checked overflow probe. |
-| common, lcp, lcs | Direct scans on random ranges of independent objects, self ranges, 200,000-byte unary and middle-mismatch inputs. |
+| lcp, lcs (through the helper `common`) | Direct scans on random ranges of independent objects, self ranges, 200,000-byte unary and middle-mismatch inputs. |
 | defaultBase, randomBase, contexts | 2000 seeds per field inside the stated ranges, seed repeatability, `StringHash<true>` identity with `StringHash64`, copy/move/assignment, different-base and different-length rejection. |
 | Digest ordering | `set<Digest>` size equals the exact distinct-substring count on random strings; `<` and `==` match the member-wise tuple order. |
 | StringHash64, StringHash61 limits | Ten seeded odd bases reproduce the Thue–Morse word-ring collision; the double-prime and Mersenne fields separate the same pair. |
@@ -42,7 +42,7 @@ Checked builds run 17 assertion probes: base bounds and parity for all three fie
 
 ## Commands and results
 
-Run 2026-10-08 with the configurations listed in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
+Run 2026-10-08. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/03-stringhash_tester.py' --mode quick --seed 1  # PASS, 2 configurations

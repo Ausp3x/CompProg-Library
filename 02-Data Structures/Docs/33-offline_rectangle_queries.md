@@ -26,7 +26,7 @@ Events are recorded in time order and answered by `solve()`; an update reaches e
 - Bounds: `k <= 4 * events` corners, one O(k log k) sort, depth `ceil(log2(r))`, and O(k log k) Fenwick work per depth level. Total O(k log(k) log(r + 1)) and O(k) memory. Static input costs O(k log k).
 - Bounds for comparison: row 11 `CompressedFenwick2D` answers time-ordered point add and rectangle sum online on registered points in O(log^2) per operation with O(n log n) memory; row 17 `RectangleWaveletMatrix` answers static weighted counts online in O(log n). This engine is the offline sweep family with O(k) memory.
 
-### Removed planned names
+### Legacy mapping
 
 | Planned | Replacement |
 |---|---|
@@ -66,7 +66,7 @@ CXX=g++-14 python3 '96-Local Testing/02-Data Structures/33-offline_rectangle_que
 python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/33' --no-integration
 ```
 
-Final run 2026-10-14 (after the review fixes): full mode seed 20261014 passed on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`) with 1,145,792 checks per configuration and 8 assertion probes, MEMORY peak 628 MB and 619 MB; stress mode seed 7 (one round) passed all three configurations with 6,699,211 checks per configuration, MEMORY peak 649 MB. Informal timing (ad-hoc driver, best of 5, `-O2 -DNDEBUG`, GCC 16.2.1, random coordinates below 10^9; not a benchmark driver) at N = Q = 2 * 10^5, including the add calls: static rectangle sum 219 ms, interleaved point add and rectangle sum 519 ms, static rectangle add and rectangle sum (mod 998244353) 592 ms, interleaved rectangle add and point get 300 ms. Sorting the corners in place and looking up y once per event cut the static case from 293 ms. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20 with `-Wall -Wextra -Wconversion -Werror`, CPython 3.14, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_ASSERTIONS`) and ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined`) builds; MEMORY peaks are dominated by compilation. `02-integration.py --sanitizers` passed (143 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 2758 MB) and `03-consistency.py` reported no errors.
+Final run 2026-10-14 (after the review fixes): full mode seed 20261014 passed on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`) with 1,145,792 checks per configuration and 8 assertion probes, MEMORY peak 628 MB and 619 MB; stress mode seed 7 (one round) passed all three configurations with 6,699,211 checks per configuration, MEMORY peak 649 MB. Informal timing (ad-hoc driver, best of 5, `-O2 -DNDEBUG`, GCC 16.2.1, random coordinates below 10^9; not a benchmark driver) at N = Q = 2 * 10^5, including the add calls: static rectangle sum 219 ms, interleaved point add and rectangle sum 519 ms, static rectangle add and rectangle sum (mod 998244353) 592 ms, interleaved rectangle add and point get 300 ms. All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, in the runner's optimized, checked (`_GLIBCXX_ASSERTIONS`, see above) and ASan/UBSan builds; MEMORY peaks are dominated by compilation. `02-integration.py --sanitizers` passed (143 standalone and aggregate headers, `99-all.hpp` in two translation units, scalar and AVX2, workspace, sanitizer self-tests; peak 2758 MB) and `03-consistency.py` reported no errors.
 
 ## Sources
 

@@ -41,7 +41,7 @@ Catalog inspection establishes operation names and testable families, never impl
 | cp-algorithms, Breadth-first search | https://cp-algorithms.com/graph/breadth-first-search.html | 2026-10-07 | Shortest-path DAG vertices/edges (row 13) and BFS tie order |
 | OI Wiki, 拓扑排序 | https://oi-wiki.org/graph/topo/ | 2026-10-07 | Unique-order check (`TopologicalResult::unique`), lexicographic orders |
 | OI Wiki, 最小生成树 | https://oi-wiki.org/graph/mst/ | 2026-10-07 | Kruskal reconstruction tree DFS-order leaf intervals (`leafRange`), maximum spanning forests |
-| OI Wiki, 同余最短路 | https://oi-wiki.org/graph/mod-shortest-path/ | 2026-10-07 | Congruence shortest path, candidate for row 13 |
+| OI Wiki, 同余最短路 | https://oi-wiki.org/graph/mod-shortest-path/ | 2026-10-07 | Congruence shortest path (not adopted) |
 | hitonanode shortest_path | https://hitonanode.github.io/cplib-cpp/graph/shortest_path.hpp | 2026-10-07 | 0/c-weight BFS, omitted as a scaling of `zeroOneBfs` |
 | maspypy minimum_spanning_tree | https://maspypy.github.io/library/graph/minimum_spanning_tree.hpp | 2026-10-07 | MST operation list; cycle data and second-best MST belong to row 52 |
 
@@ -127,7 +127,7 @@ Fetched by the row 16 and 17 completeness sweeps. Code was written from the algo
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
 | Library Checker tree tasks | https://github.com/yosupo06/library-checker-problems/tree/master/tree | 2026-10-16 | `vertex_add_range_contour_sum_on_tree` and `vertex_get_range_contour_add_on_tree` ([l, r) with distance 0 included), `frequency_table_of_tree_distance` (unordered pairs, distances 1..n-1), `rooted_tree_isomorphism_classification` (exact classes, K and ids) |
-| maspypy centroid_decomposition, contour_query_range, distance_sum, incremental_centroid, subtree_hash | https://maspypy.github.io/library/graph/centroid_decomposition.hpp | 2026-10-16 | Per-centroid hook (preorder blocks here), binarized subtraction-free contours (`ContourFold`), `DistanceSum`, unweighted contour contract; incremental centroid left to row 14; rerooted subtree hash |
+| maspypy centroid_decomposition, contour_query_range, distance_sum, incremental_centroid, subtree_hash | https://maspypy.github.io/library/graph/centroid_decomposition.hpp | 2026-10-16 | Per-centroid hook (preorder blocks here), binarized subtraction-free contours (`ContourFold`), `DistanceSum`, unweighted contour contract; incremental centroid (not adopted); rerooted subtree hash |
 | suisen point_set_range_contour_sum, point_get_range_contour_operate, contour_sum, tree_isomorphism_classification | https://suisen-cp.github.io/cp-library-cpp/library/tree/point_get_range_contour_operate.hpp | 2026-10-16 | Monoid point-set contour fold, commutative-operator contour apply, static contour sum; per-instance classification ids and `classify_rerooting` (`allRootsClassification`) |
 | hitonanode centroid_decomposition, tree_isomorphism | https://hitonanode.github.io/cplib-cpp/tree/centroid_decomposition.hpp | 2026-10-16 | Callback over centroid components; all-roots hash |
 | Nyaan centroid-decomposition, tree-hash, rooted-tree-hash | https://nyaannyaan.github.io/library/tree/tree-hash.hpp | 2026-10-16 | Centroid tree views; hash prod(x[height] + child) mod 2^61 - 1 (`rootedTreeHash`) |
@@ -159,7 +159,7 @@ Fetched by the row 25, 26, 27 and 31 completeness sweeps. Code was written from 
 
 ## Source keys
 
-Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder.
+Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder. Per-family read scope and caveats of that audit are in `00-Guidelines/History/2026-09-27-inventory-audit.md`.
 
 - **YC**: Library Checker problem repository (graph and tree directories) — independently testable operations.
 - **CPA**: cp-algorithms graph section — article-level operation names; implementation-time article review still required.
@@ -179,21 +179,14 @@ Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the s
 - **HDT**: https://github.com/tomtseng/dynamic-connectivity-hdt — README scope and Holm/de Lichtenberg/Thorup 2001 citation, 2026-09-27 audit; connectivity only.
 - **AUDIT**: candidate list supplied with the 2026-10-06 rewrite task (level ancestor, linear extensions, exact vertex cover/dominating set, feedback sets, minimum ratio cycle, widest path, shortest-path counting/DAG, planar dual cut, Tutte-matrix matching, convex-cost flow, Hao–Orlin, tree knapsack, Hall violator, graph-class recognition, pseudoforests, degree-constrained MST, Wilson sampling, line graphs, weighted girth); each verified against at least one catalog or standard reference before adoption.
 
-## Audit narrative (condensed from the 2026-09-27 index)
-
-The 2026-09-27 completeness audit compared named families and public-operation catalogs, not source correctness; all entries it added were planned and extracted bodies were unchanged. Canonical ownership was fixed then: DSU and dynamic-tree adapters reuse Data Structures, polynomial/determinant/counting kernels reuse Mathematics, Graphs owns combinatorial graph APIs and certificates. The boundary with Miscellaneous small-to-large/DSU-on-tree was clarified using the Nyaan DSU-on-tree catalog entry, and directed degree-sequence realization was made explicit as a flow reduction (paired out-/in-degree copies, admissible-arc capacities, saturating flow, loop/parallel-edge restrictions in the contract). Per-family read scope and caveats are in `00-Guidelines/History/2026-09-27-inventory-audit.md`; monolith extraction evidence is in `00-Guidelines/History/2026-09-27-monolith-transfer.md` and `Ledgers/monolith-map.json`.
-
 ## Not adopted
 
-- cp-algorithms MPM max flow: dominated by Dinic and push-relabel in row 19.
-- OI Wiki modular shortest path (同余最短路): a modelling pattern over Dijkstra, not a separate operation.
 - OI Wiki random walks on trees/graphs: expectation computations belong to Mathematics probability.
 - maspypy annulus/tree walk generating functions, characteristic polynomial of tree adjacency, count labeled graph classes, count unlabeled trees: Mathematics generating-function and polynomial work.
-- maspypy bracket_graph, decompose_complete, find_path_through_specified, maximum_matching_between_vertex_edge, grid_decremental_connectivity, incremental_centroid, all_cycle_common_vertices, vs_to_es, restore_euler_tour: problem-specific constructions without a reusable family.
+- maspypy bracket_graph, decompose_complete, find_path_through_specified, maximum_matching_between_vertex_edge, all_cycle_common_vertices, restore_euler_tour: problem-specific constructions without a reusable family.
 - maspypy flow/longest_shortest_path, min_cost_matching_on_line, unbalanced_transportation: specialized LP/MCF reductions without contest-general contracts.
 - maspypy graph/ds/tree_wavelet_matrix and mo_on_tree: Data Structures 17 composition and Data Structures 23 (`TreeMo`).
 - Nyaan inclusion-tree: nested-interval tree construction, Miscellaneous interval ownership.
-- ei1333 Fibonacci-heap Prim/Dijkstra: heap choice is Data Structures; no asymptotic gain for contest sizes.
 - hitonanode basepolyhedron and convex_sum: submodular-function machinery beyond graph contracts.
 - NetworkX centrality, communities, link analysis, similarity, summarization, assortativity, rich club, small-world, s-metric, structural holes, swap, planar drawing, D-separation, moral graphs, node classification, asteroidal (AT-free) and perfect-graph tests: not contest algorithms or lack a reusable exact engine.
 - NetworkX Voronoi cells: already expressed by multi-source Dijkstra parents in row 05.

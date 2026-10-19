@@ -56,11 +56,11 @@ Tester `96-Local Testing/02-Data Structures/14-segtreebeats_tester.cpp`, entry `
 | Tree without failures | `affineGenericRun` | `RangeAffineRangeSum` with `fail` false, against a vector |
 | Preconditions | `invalid` | 24 probes: negative and oversize sizes, reversed and out-of-range ranges for every update and query (including `divideUpdate` with `q = 1`), `q = 0`, `m = 0`, chmin and chmax with the `lng min` sentinel, sqrt and mod on negative values, historic and generic variants |
 
-Sizes 0–100 in full mode (plus 257 and 1000 in stress), 1500 steps per family and size. Mutation check (2026-10-10, quick mode, temporary copies): 9 of 11 injected faults detected (no uniform overwrite on push, missing second-minimum update in `cap`, monotone flag on mod, truncating division, historic peak tag, historic-sum sign, ignored `fail`, and/or uniformity test, second-maximum merge); the two survivors are equivalent: accepting `x == v2` as a tag leaves a node whose max equals its second max, which no later tag can touch before a recompute, and testing `<` instead of `!=` on the shifts is the same test because `f(x) - x` is nonincreasing. The second-minimum fault first survived and is now caught by the two-valued regressions in `edges`.
+Sizes 0–100 in full mode (plus 257 and 1000 in stress), 1500 steps per family and size. Mutation check (2026-10-10, quick mode, temporary copies): 9 of 11 injected faults detected (no uniform overwrite on push, missing second-minimum update in `cap`, monotone flag on mod, truncating division, historic peak tag, historic-sum sign, ignored `fail`, and/or uniformity test, second-maximum merge); the two survivors are equivalent: accepting `x == v2` as a tag leaves a node whose max equals its second max, which no later tag can touch before a recompute, and testing `<` instead of `!=` on the shifts is the same test because `f(x) - x` is nonincreasing.
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
@@ -80,7 +80,7 @@ python3 '96-Local Testing/03-consistency.py'
 
 ## Benchmarks
 
-`14-segtreebeats_benchmark.py` (driver `14-segtreebeats_benchmark.cpp`): n = q = 200000, seed 20261010, median of 5 runs without a separate warm-up, GNU++20 `-O2 -DNDEBUG`, GCC 16.2, Intel Core i9-11900H, each workload checksums its answers and the checksum must repeat across runs; final run after the review fixes; other worktree sessions were running on the machine and no CPU was pinned, so the medians carry noise (an earlier run before the leaf guard measured 10–15% lower).
+`14-segtreebeats_benchmark.py` (driver `14-segtreebeats_benchmark.cpp`): n = q = 200000, seed 20261010, median of 5 runs without a separate warm-up, GNU++20 `-O2 -DNDEBUG`, GCC 16.2, Intel Core i9-11900H, each workload checksums its answers and the checksum must repeat across runs; final run after the review fixes; other worktree sessions were running on the machine and no CPU was pinned, so the medians carry noise.
 
 | Workload | Median ms |
 |---|---|

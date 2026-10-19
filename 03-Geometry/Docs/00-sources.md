@@ -146,22 +146,6 @@ Five `@researcher` passes compared every operation of rows 13, 14, 15, 19 and 54
 
 KACTL, STANFORD (jaehyunp/stanfordacm notebook), CPALG (cp-algorithms), OI-GEO (OI Wiki geometry), CGAL, SHEWCHUK, MASPYPY, EI1333, SUISEN, HITONANODE, TKO (tko919), LC (Library Checker), CSES; paper keys CL86, GR13, WANG22, HPM05, MEGIDDO83, OAMB86, STVWE95, ROTE19, BPR17, GUTING84, AST94, SCHIEBER98 and CP10 are listed in [P037 round-3 audit sources](#p037-round-3-audit-sources-fetched-2026-10-19). Keys identify research starting points, not correctness evidence. CGAL supplies breadth and contracts, never an automatic dependency.
 
-## Previous audit narrative (condensed)
+## 2026-09-27 audit provenance
 
-The 2026-09-27 cross-library audit ([2026-09-27-inventory-audit.md](../../00-Guidelines/History/2026-09-27-inventory-audit.md), metadata in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json)) inspected catalogs, selected API/comments and named paper abstracts; proofs remain part of the implementation batches. Package-level provenance for the verified rows (KACTL PDF pp. 16–20, Stanford notebook pp. 6–7, cp-algorithms hull/area/Pick/closest-pair/circle pages, KACTL CircleTangents/HullDiameter/ClosestPair, CGAL min_quadrilateral_2, MathWorld circle/triangle pages, Kahan's needle-triangle paper) is recorded with read scope in the per-header evidence documents [01-point.md](01-point.md) through [09-triangle.md](09-triangle.md). Industrial CAD, molecular surfaces, remeshing/visualization and machine-learning reconstruction remain outside this contest inventory. Geometry snippets in `OLD/Team Notebook/src/geometry`, `algs.cpp` and `algsbetter.cpp` are legacy references only.
-
-## Not adopted
-
-- maspypy `minimum_three_distance_sum`: single-problem curiosity without a reusable family.
-- maspypy `convex_polygon_edge_voronoi`: nearest-edge diagram of a convex polygon; no contest use case beyond `15` distance queries.
-- maspypy `definite_integral`, `modint_real`: numerical integration is Mathematics `17-numerical_methods.hpp`; modular reals are not geometry.
-- hitonanode `point2d_w_error` as a public type: absorbed as the `IntervalPoint2` filter inside row 36 rather than a separate header.
-- Nyaan `LowerHull`/`UpperHull` as public API: internal passes of `convexHull`; `HullSegtree` in row 20 covers range lower/upper hulls.
-- KACTL `Angle` class: `polarLess` and `canonicalDirection` cover its use; no separate angle type.
-- CSES "Lines and Queries I/II": convex hull trick, owned by Data Structures `22-convexhulltrick.hpp`.
-- cp-algorithms "Finding faces of a planar graph": Graphs `29-planar_graph.hpp`.
-- cp-algorithms "Convex hull trick and Li Chao tree": Data Structures `21-lichao.hpp`, `22-convexhulltrick.hpp`.
-- CGAL 2D Snap Rounding, Polygon Repair, Movable Separability, Interval Skip List, natural-neighbour Interpolation, Spatial Sorting, periodic/hyperbolic triangulations, mesh generation, shape reconstruction, polygon mesh processing, point set processing: no contest algorithmic use case.
-- CGAL Linear and Quadratic Programming Solver: Mathematics `28-simplex.hpp`.
-- OI Wiki 随机增量法 as a separate header: covered by `14` (Welzl) and `31` (incremental Delaunay).
-- Lattice points on a circle boundary (sum of two squares): Mathematics `57-quadratic_integer.hpp`; only disk counts are in row 19.
+The 2026-09-27 cross-library audit ([2026-09-27-inventory-audit.md](../../00-Guidelines/History/2026-09-27-inventory-audit.md), metadata in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json)) inspected catalogs, selected API/comments and named paper abstracts. Package-level provenance for the verified rows (KACTL PDF pp. 16–20, Stanford notebook pp. 6–7, cp-algorithms hull/area/Pick/closest-pair/circle pages, KACTL CircleTangents/HullDiameter/ClosestPair, CGAL min_quadrilateral_2, MathWorld circle/triangle pages, Kahan's needle-triangle paper) is recorded with read scope in the per-header evidence documents [01-point.md](01-point.md) through [09-triangle.md](09-triangle.md). Items not adopted are in [00-notes.md](00-notes.md#2026-09-27-audit-not-adopted).

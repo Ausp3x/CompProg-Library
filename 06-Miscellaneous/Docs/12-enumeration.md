@@ -1,6 +1,6 @@
 # 12-enumeration.hpp — evidence
 
-`12-enumeration.hpp` (batch MI15, package P015) provides visitor-based traversals of combinations, multicombinations, subsets, mixed-radix products and Gray products; submasks, supermasks, subset masks, fixed-popcount masks and Gray masks; integer partitions and set partitions; and lexicographic combination rank/unrank. It reuses verified MI02 `BitOps` and the C01 template (P002). Implementations are independent contest-profile code. No online submission was made.
+`12-enumeration.hpp` (batch MI15, package P015) provides visitor-based traversals of combinations, multicombinations, subsets, mixed-radix products and Gray products; submasks, supermasks, subset masks, fixed-popcount masks and Gray masks; integer partitions and set partitions; and lexicographic combination rank/unrank. It reuses verified MI02 `BitOps` and the C01 template (P002). Implementations are independent contest-profile code.
 
 ## Contracts
 
@@ -43,28 +43,28 @@ Costs: vector combinations use `O(k)` state and worst-case `O(k+1)` delay; subse
 
 ## Feature-to-test map
 
-`12-enumeration_tester.cpp` uses independent recursive references: combinations, subsets and products by recursion, reflected Gray lists by mirroring, mask lists by bit recursion, supermasks by subsets of the free bits, partitions by first-part recursion, set partitions by block assignment, and counts by Pascal's triangle, coin-change `p(n)` and the Bell triangle. Production steppers are never oracles. Non-removable checks run in optimized NDEBUG, checked and sanitizer builds.
+`12-enumeration_tester.cpp` uses independent recursive references: combinations, subsets and products by recursion, reflected Gray lists by mirroring, mask lists by bit recursion, supermasks by subsets of the free bits, partitions by first-part recursion, set partitions by block assignment, and counts by Pascal's triangle, coin-change `p(n)` and the Bell triangle. Production steppers are never oracles.
 
 | Public feature | Coverage |
 |---|---|
-| Combinations and multicombinations | Exhaustive small dimensions, positional order, `k>n`, empty identities, `INT_MAX` prefixes and large repeated-index output. |
-| Arbitrary-dimensional subsets | Recursive binary-order sets, decreasing-index invariant, empty set, 100,000-dimensional prefixes. |
-| Product and Gray product | Exhaustive radix vectors of length 0–5 with radices 0–3; 1,500 seeded random products; zero/unit radices; 100,000-dimensional sparse products; changed-digit and adjacency checks. |
-| Five mask traversals | Unsigned 8/16/32/64/128-bit words, exhaustive small words, every mask for supermasks through `n=8`, random sparse submask and dense supermask fixtures at and below full width, boundary combinations, changed-bit checks. |
-| Integer partitions | Every `n<=22` (full) under seven caps (1, 2, 3, `n/2+1`, `n`, `n+1`, `INT_MAX`) and the default overload against first-part recursion; counts against `p(n)`; a 1,000,000 prefix. |
-| Set partitions | Every `n<=10` (full) against block assignment with canonical labels, counts against the Bell triangle. |
-| Rank and unrank | Every combination for `n<=13` (full) against its recursive position both ways; 50,000 random round trips (with a direct Pascal-table sum `sum C(n-1-v, k-1-i)` as an independent rank oracle for `n<=67`) with `n<=67` or `n` up to `INT_MAX`, closed forms for `k<=2`, consecutive ranks increasing; `C(67,33)`, `C(66,33)`, `C(64,32)`, `k=n-1` boundaries and the last rank `C-1`. |
+| `forEachCombination`, `forEachMulticombination` | Exhaustive small dimensions, positional order, `k>n`, empty identities, `INT_MAX` prefixes and large repeated-index output. |
+| `forEachSubset` | Recursive binary-order sets, decreasing-index invariant, empty set, 100,000-dimensional prefixes. |
+| `forEachProduct`, `forEachGrayProduct` | Exhaustive radix vectors of length 0–5 with radices 0–3; 1,500 seeded random products; zero/unit radices; 100,000-dimensional sparse products; changed-digit and adjacency checks. |
+| `forEachSubmask`, `forEachSupermask`, `forEachSubsetMask`, `forEachCombinationMask`, `forEachGrayMask` | Unsigned 8/16/32/64/128-bit words, exhaustive small words, every mask for supermasks through `n=8`, random sparse submask and dense supermask fixtures at and below full width, boundary combinations, changed-bit checks. |
+| `forEachIntegerPartition` | Every `n<=22` (full) under seven caps (1, 2, 3, `n/2+1`, `n`, `n+1`, `INT_MAX`) and the default overload against first-part recursion; counts against `p(n)`; a 1,000,000 prefix. |
+| `forEachSetPartition` | Every `n<=10` (full) against block assignment with canonical labels, counts against the Bell triangle. |
+| `combinationRank`, `combinationUnrank` | Every combination for `n<=13` (full) against its recursive position both ways; 50,000 random round trips (with a direct Pascal-table sum `sum C(n-1-v, k-1-i)` as an independent rank oracle for `n<=67`) with `n<=67` or `n` up to `INT_MAX`, closed forms for `k<=2`, consecutive ranks increasing; `C(67,33)`, `C(66,33)`, `C(64,32)`, `k=n-1` boundaries and the last rank `C-1`. |
 | Visitor/lifetime behavior | Immutable vector type checks, cancellation at first/intermediate/final output, saved copies, repeated and nested calls, exceptions from 13 traversal calls. |
 | Preconditions | 28 checked-build assertion probes, including a negative radix after a zero radix, a supermask bit above `n`, `max_part=0`, `C(68,34)` overflow, unsorted and out-of-range ranks and an oversized unrank rank. |
 
 ## Commands and results
 
-Run 2026-10-08: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined` with leak checking.
+Runs 2026-10-08, except the two full runs of 2026-10-12 (P013 prune call-site suites, recorded in [04-compression.md](04-compression.md)): Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/06-Miscellaneous/12-enumeration_tester.py' --mode quick --seed 1                 # PASS, 2 configurations
-python3 '96-Local Testing/06-Miscellaneous/12-enumeration_tester.py' --mode full --seed 1                  # PASS, 3 configurations, 28 probes, 11,145,684 checks
-CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/12-enumeration_tester.py' --mode full --seed 2       # PASS, 3 configurations
+python3 '96-Local Testing/06-Miscellaneous/12-enumeration_tester.py' --mode full --seed 20260927           # 2026-10-12: PASS, 3 configurations, 28 probes
+CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/12-enumeration_tester.py' --mode full --seed 20260927 # 2026-10-12: PASS, 3 configurations, 28 probes
 python3 '96-Local Testing/06-Miscellaneous/12-enumeration_tester.py' --mode stress --seed 3                # PASS, 3 configurations, 80,781,781 checks (before the review-added Pascal oracle)
 python3 '96-Local Testing/02-integration.py' --sanitizers                                                   # PASS, 102 headers (one package run)
 python3 '96-Local Testing/03-consistency.py'                                                                # no errors
@@ -89,11 +89,12 @@ Algorithm/proof references; the implementation was written independently without
 
 ## Limits and handoffs
 
-- Not adopted, with reasons recorded in [00-notes.md](00-notes.md): set-bit iteration (the idiom `x &= x - 1` with `std::countr_zero`), submasks of fixed popcount (reduce to `forEachCombinationMask` over the mask's bits), revolving-door/cool-lex combination orders, weak/strict compositions (bijection with `forEachMulticombination` by bar counts), xor-range block decomposition (a BitOps-family operation, outside this package), labeled/unlabeled tree enumeration (Graphs Prüfer codes plus `forEachProduct`), all (mask, submask) pairs (nested `forEachSubmask`; `32-subset_dp` owns the engine), and a part-count cap for integer partitions.
+- Not adopted in the 2026-10-08 sweep: see [00-notes.md](00-notes.md), Basic contracts (Enumeration).
 - No enumeration implementation exists in the legacy index or `OLD`. Permutation ranking stays in MI02; constrained search keeps its own owner.
 
 ## History
 
 - 2026-09-28: nine traversals verified (P015, previous system).
 - 2026-10-06: completeness sweep added partitions and rank/unrank to the row.
-- 2026-10-08: re-audit, four missing operations and `forEachSupermask` added, comment cap and closing braces restyled, 4 findings fixed; full suites, g++-14 full and benchmarks passed.
+- 2026-10-08: re-audit, four missing operations and `forEachSupermask` added, comment cap and closing braces restyled, 4 findings fixed; full suites and g++-14 full passed.
+- 2026-10-12: P013 prune migrated `forEachGrayMask` to `std::countr_zero`; full suite (seed 20260927, 28 probes) passed on g++ and g++-14 (recorded in [04-compression.md](04-compression.md)).

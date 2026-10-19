@@ -133,6 +133,7 @@ python3 '96-Local Testing/02-integration.py'                                    
   - Full adds the exhaustive GF(2) `n <= 10` and GF(3) `n <= 6` searches, orders up to 1500, and the `cut(BM)` neighbours (the 1e9+7 ones in the optimized build).
   - Stress repeats every random loop four times in the optimized build. The checked builds rerun the full sizes with a new seed and stay below the 180 s limit.
 - Test programs peak below 10 MB; the reported peaks are the compiler.
+- 2026-10-19 rerun after the row 13 change: full PASS ([13-convolution.md](13-convolution.md#commands-and-results)); counts not recorded.
 
 ## Benchmarks
 
@@ -147,7 +148,7 @@ Headline timings, 998244353, with the same conditions as the 14 table:
 | `berlekampMassey` n = 1e4 | 210 |
 | `findLinearRecurrenceHalfGcd` n = 2e5 | 1545 |
 
-- `bostanMori` uses four transforms per halving step for NTT primes. The spectrum of `Q(-x)` is the bit-reversed spectrum of `Q` with slots `i` and `i ^ 1` swapped. Before this change it used two full products (six transforms) and took 2094 ms on the same workload.
+- `bostanMori` uses four transforms per halving step for NTT primes. The spectrum of `Q(-x)` is the bit-reversed spectrum of `Q` with slots `i` and `i ^ 1` swapped.
 - `consecutiveTerms` and `sliceRationalFps` spend most of their time in `polyPowMod` (the state at `l`). A Graeffe-based slice could roughly halve that; see Limits.
 - The `BM` cutoff row is in the 14 table.
 
@@ -169,3 +170,4 @@ Adopted by the P057 sweep: `findLinearRecurrenceHalfGcd`.
 - 2026-10-10: P057 initial implementation and verification, `@reviewer` found 2 defects in this header, fixed.
 - 2026-10-11: verification run, quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: P057 prune rerun (row 14 `polyMod` removed), header and tests unchanged; full suite passed on g++ and g++-14.
+- 2026-10-19: P054 follow-up rerun (included `13-convolution.hpp` changed), header unchanged; full passed.

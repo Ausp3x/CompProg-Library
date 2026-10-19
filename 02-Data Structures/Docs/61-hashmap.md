@@ -47,7 +47,7 @@ Tester `96-Local Testing/02-Data Structures/61-hashmap_tester.cpp`, entry `61-ha
 | HashMap `operator[]` (accumulating `+=`), `insert` (return value, no overwrite), `erase` (return value), `contains`, `find` (`== end()`, `*it`, `it->second` write-through), `at` (read and write), `get` with and without default, `size`, `empty`, `clear`, `reserve` (capacity bound), mutable and const iteration | `mapRandom` with seeded `CustomHash` on key ranges 3, 40, 2000 and 1e18, and with `ConstHash` (one cluster covering the table), `Mod3Hash` (three clusters, wraparound) and `IdHash` | `std::map`, full contents compared through iteration |
 | HashSet `insert`, `erase`, `contains`, `find`, `size`, `empty`, `clear`, `reserve`, const iterators (`static_assert`) | `setRandom` with the same hashers | `std::set` |
 | Backward-shift erase in every cluster shape | `exhaustiveSmall` | Identity hash on a 16-slot table, all subsets of keys with homes 14, 15, 0, 1, … and their `+16` collisions (clusters wrapping past the end), every deleted position: membership of all other keys and the structural invariant |
-| Aliased arguments across rehashes (`al[al[i]]`, `insert(-i, al[i - 1])` against `std::map`; string keys and values, `sk[sk.at(k)]`, set insert from `*begin()`; caught by ASan before the fix), iterator to `const_iterator` conversion, value reset after `erase` and `clear` (`HashMap<int, vector<int>>`), generation wraparound (stamp set to `UINT_MAX - 1`, four clears), copy independence, empty table without allocation, `reserve` without rehash and stable references, `HashMapFixed`/`HashSetFixed` filled to exactly `cap / 2` without rehash and cleared, string and pair keys, extreme `ulng` keys | `semantics` | Hand-computed contents, `std::map`/`std::set` for generic keys |
+| Aliased arguments across rehashes (`al[al[i]]`, `insert(-i, al[i - 1])` against `std::map`; string keys and values, `sk[sk.at(k)]`, set insert from `*begin()`), iterator to `const_iterator` conversion, value reset after `erase` and `clear` (`HashMap<int, vector<int>>`), generation wraparound (stamp set to `UINT_MAX - 1`, four clears), copy independence, empty table without allocation, `reserve` without rehash and stable references, `HashMapFixed`/`HashSetFixed` filled to exactly `cap / 2` without rehash and cleared, string and pair keys, extreme `ulng` keys | `semantics` | Hand-computed contents, `std::map`/`std::set` for generic keys |
 | Structured keys `i << 20`, consecutive, `i * 1000000007` under the seeded hash; erase half | `adversarial` | Mean extra probes < 2 per key (2^18 keys in full), lookups after erasing every second key |
 | Preconditions | `invalid` | `at` missing (both overloads), fixed overflow via `operator[]`, `insert` and `HashSetFixed::insert`, zero-capacity fixed table, `reserve(-1)`, `reserve(2^30)` |
 
@@ -65,7 +65,7 @@ CXX=g++-14 python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-Final run 2026-10-09: full mode seed 20261009 passed on both compilers, 3,695,536 checks per configuration and 8 assertion probes (MEMORY peak 646 MB on g++, 665 MB on g++-14, both dominated by the compiler); stress mode seed 7 passed all three configurations with 16,915,676 checks per configuration (peak at most 835 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, `-Wall -Wextra -Wconversion -Werror`, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes) and ASan/UBSan (leak checking, `halt_on_error`) configurations, on GCC 16.2.1 and again on the floor compiler GCC 14.4.1 (`CXX=g++-14`).
+Final run 2026-10-09: full mode seed 20261009 passed on both compilers, 3,695,536 checks per configuration and 8 assertion probes (MEMORY peak 646 MB on g++, 665 MB on g++-14, both dominated by the compiler); stress mode seed 7 passed all three configurations with 16,915,676 checks per configuration (peak at most 835 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, in the runner's optimized, checked and ASan/UBSan builds, on GCC 16.2.1 and again on the floor compiler GCC 14.4.1 (`CXX=g++-14`).
 
 `02-integration.py` passed on GCC 16.2.1 and 14.4.1: 114 standalone/aggregate headers (this one alone, in `99-all.hpp` and `98-basic.hpp`), the scalar and AVX2 two-translation-unit builds and the workspace. `03-consistency.py` reports no errors and checks the closing-brace rule and comment cap on this header, its tester and its benchmark.
 
@@ -100,7 +100,6 @@ References inspected 2026-10-09 by the completeness sweep ([00-sources.md](00-so
 ## Limits and handoffs
 
 - Omissions with reasons in [00-notes.md](00-notes.md#p227-omissions): `count`, `forEach`, erase by iterator, `emplace`, shrinking.
-- `06-Miscellaneous` row `19-hash_families.hpp` still lists HashMap/HashSet; this row owns them.
 - Iteration is O(cap), so iterating a large table that was cleared or mostly erased pays for its peak capacity.
 
 ## History

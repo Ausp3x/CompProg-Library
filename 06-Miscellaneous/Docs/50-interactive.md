@@ -1,6 +1,6 @@
 # 50-interactive.hpp — evidence
 
-`50-interactive.hpp` (batch MI32, package P229) wraps the contestant side of an interactive protocol: formatted query lines, a flush before every read, a query budget and the judge-error exit. Prerequisite: the C01 template (P002). Independent contest-profile code; no online submission was made.
+`50-interactive.hpp` (batch MI32, package P229) wraps the contestant side of an interactive protocol: formatted query lines, a flush before every read, a query budget and the judge-error exit. Prerequisite: the C01 template (P002). Independent contest-profile code.
 
 ## Contracts
 
@@ -47,8 +47,6 @@ python3 '96-Local Testing/03-consistency.py'                                    
 
 Warning-free with `-Wall -Wextra -Wconversion` under GCC 16.2 and 14.4 in a two-translation-unit build through `99-all.hpp`. The tester build under the same flags gets one `-Wunused-but-set-variable` on `first` in `writeLine` from the argument-free `answer()` case; it predates the prune (Limits and handoffs).
 
-`@reviewer` (2026-10-13, prune): no correctness defect, removal complete and behavior unchanged; 1 test finding and 3 evidence findings fixed.
-
 ## Benchmarks
 
 None: every operation is one formatted line or one extraction, and interactive problems are bound by the judge round trip.
@@ -72,4 +70,4 @@ Catalog sweep by `@researcher` on 2026-10-08 (ledger in [00-sources.md](00-sourc
 ## History
 
 - 2026-10-08: created and verified (P229), `@reviewer` found 1 defect, fixed; quick, full on g++ and g++-14, stress seed 3 and integration with sanitizers passed.
-- 2026-10-13: prune, removed `flushNow` (case moved to `io.out.flush()`); full suite passed on g++ and g++-14, integration and consistency clean.
+- 2026-10-13: prune, removed `flushNow` (case moved to `io.out.flush()`); full suite passed on g++ and g++-14, integration and consistency clean; `@reviewer` found no correctness defect, 4 findings fixed.

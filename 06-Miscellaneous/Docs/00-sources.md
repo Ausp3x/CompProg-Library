@@ -36,7 +36,7 @@
 | Algorithmica HPC | https://en.algorithmica.org/hpc/ | 2026-10-06 | External memory (external sorting, list ranking, cache-oblivious), binary search/Eytzinger and static B-trees (`44`), SIMD and arithmetic chapters (Core profile) |
 | AtCoder Library documentation | https://atcoder.github.io/ac-library/production/document_en/ | 2026-10-06 | No miscellaneous component; all twelve components are owned by other folders |
 
-Catalog presence is a feature lead only; algorithm proofs, current fastest variants and licensing are checked during implementation. Short keys used in `00-index.md` status cells: CPA cp-algorithms, OIW OI Wiki, KACTL, LC Library Checker, CSES, CF Codeforces practice, NYA Nyaan, MAS maspypy, EI ei1333, SUI suisen, HIT hitonanode, TKO tko919, NOS noshi91, ALG Algorithmica.
+Short keys used in `00-index.md` status cells: CPA cp-algorithms, OIW OI Wiki, KACTL, LC Library Checker, CSES, CF Codeforces practice, NYA Nyaan, MAS maspypy, EI ei1333, SUI suisen, HIT hitonanode, TKO tko919, NOS noshi91, ALG Algorithmica.
 
 ## P013 re-audit sweep (2026-10-07)
 
@@ -112,9 +112,9 @@ Fetched by `@researcher` for row `34`; adoption decisions are in [34-slope_trick
 
 KACTL and cp-algorithms have no slope-trick article. maspy's article (2), zscoder's Codeforces tutorial (blog 47821) and ei1333's documentation page returned HTTP 404/403 and were not read.
 
-## Earlier audit (condensed from the previous index)
+## 2026-09 audit
 
-The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, dynamic DP, slope trick, IDA*, alpha-beta, job ordering, expression parsing, majority candidates, Garsia–Wachs and annealing, and compared cp-algorithms, CSES, Library Checker, OI Wiki navigation and the Japanese library catalogs. The Garsia–Wachs page has conflicting complexity wording, so `48` requires independent verification rather than adopting its headline. Per-package source inspections with dates, page revisions and read scopes are recorded in the per-header documents [01-random.md](01-random.md), [02-customhash.md](02-customhash.md), [03-fastio.md](03-fastio.md), [04-compression.md](04-compression.md), [06-bit_operations.md](06-bit_operations.md), [07-permutation.md](07-permutation.md), [08-sequence_algorithms.md](08-sequence_algorithms.md), [09-interval_algorithms.md](09-interval_algorithms.md), [10-offline_queries.md](10-offline_queries.md), [11-sorting_selection.md](11-sorting_selection.md), [12-enumeration.md](12-enumeration.md), [13-knapsack.md](13-knapsack.md) and [14-cyclefinding.md](14-cyclefinding.md); machine-readable timestamps are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json). Code in every verified header was written independently from the mathematical recurrences; no external source text was adapted.
+The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, dynamic DP, slope trick, IDA*, alpha-beta, job ordering, expression parsing, majority candidates, Garsia–Wachs and annealing, and compared cp-algorithms, CSES, Library Checker, OI Wiki navigation and the Japanese library catalogs. The Garsia–Wachs page has conflicting complexity wording (contract for `48` in [00-notes.md](00-notes.md)). Per-package source inspections with dates, page revisions and read scopes are recorded in the per-header documents [01-random.md](01-random.md), [02-customhash.md](02-customhash.md), [03-fastio.md](03-fastio.md), [04-compression.md](04-compression.md), [06-bit_operations.md](06-bit_operations.md), [07-permutation.md](07-permutation.md), [08-sequence_algorithms.md](08-sequence_algorithms.md), [09-interval_algorithms.md](09-interval_algorithms.md), [10-offline_queries.md](10-offline_queries.md), [11-sorting_selection.md](11-sorting_selection.md), [12-enumeration.md](12-enumeration.md), [13-knapsack.md](13-knapsack.md) and [14-cyclefinding.md](14-cyclefinding.md); machine-readable timestamps are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json). Code in every verified header was written independently from the mathematical recurrences; no external source text was adapted.
 
 ## Not adopted
 
@@ -123,7 +123,7 @@ The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, 
 - Library Checker `two_sat`: Graphs `18-twosat.hpp`.
 - cp-algorithms RMQ, Josephus, Stern–Brocot, games on graphs, Sprague–Grundy: Data Structures and Mathematics owners.
 - cp-algorithms largest zero submatrix; Nyaan/ei1333/suisen/tko919 maximal rectangle and maximum square: Data Structures `08-monotone_stack.hpp`.
-- KACTL IntervalContainer: Data Structures `24-interval_set.hpp`. KACTL DivideAndConquerDP, KnuthDP, TernarySearch: Mathematics `27`/`02`. KACTL SIMD, Unrolling, FastMod: Core profile.
+- KACTL DivideAndConquerDP, KnuthDP, TernarySearch: Mathematics `27`/`02`. KACTL SIMD, Unrolling, FastMod: Core profile.
 - OI Wiki Mo variants, 珂朵莉树, 悬线法: Data Structures. 有限状态自动机, 计算理论基础, 字节顺序, 空间优化简介: expository, no API. Kahan summation: Mathematics numerics.
 - OI Wiki 倍增 (doubling) and Nyaan/hitonanode doubling/binary_lifting: Graphs `11-functionalgraph.hpp`.
 - maspypy ancestor-closed/connected/independent-set knapsack, anulus_scheduling, magic_square, poker, hukumenzan, manhattan path/walk: problem-specific, no reusable family.
@@ -136,4 +136,3 @@ The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, 
 - Nyaan/ei1333 cumulative sums, 2D cumulative sums, suisen cumulative_sum: Data Structures `05-prefix_sum.hpp`.
 - noshi91 monoid/action adapters: Data Structures segment-tree policies.
 - Algorithmica SIMD argmin, prefix sum, matrix multiplication, Montgomery: Core full profile.
-- AtCoder Library: no miscellaneous component.

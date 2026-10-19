@@ -6,7 +6,7 @@ Common contracts for rows 01–08 (indices, preconditions, algebra, moved-from s
 
 ### PrefixSum and PrefixSum2D
 
-Zero-based half-open ranges and rectangles `[x1, x2) x [y1, y2)` in (row, column) order; 2D arguments are `(row1, col1, row2, col2)`. Each dimension is in `[0, INT_MAX - 1]`. T is an additive commutative group with zero `T(0)`. Every stored prefix and intermediate must fit T, or T is modular. Input vectors are copied. An empty outer vector means 0 x 0; the dimension constructor also represents 0 x m and n x 0. Rows must have equal length (asserted). The 1D types take a braced list (`std::initializer_list<T>`): `PrefixSum<lng> p({7})` and `PrefixSum<lng> p{7}` hold the single value 7, and `PrefixSum<lng> p(7)` holds seven zeros.
+Zero-based half-open ranges and rectangles `[x1, x2) x [y1, y2)` in (row, column) order; 2D arguments are `(row1, col1, row2, col2)`. Each dimension is in `[0, INT_MAX - 1]`. T is an additive commutative group with zero `T(0)`. Every stored prefix and intermediate must fit T, or T is modular. Input vectors are copied. An empty outer vector means 0 x 0; the dimension constructor also represents 0 x m and n x 0. Rows must have equal length (asserted). The 1D types take a braced list (`std::initializer_list<T>`; [00-notes.md](00-notes.md#common-foundation-contracts)).
 
 ### DifferenceArray and DifferenceArray2D
 
@@ -33,7 +33,7 @@ The Python entry and C++ oracle suite share the stem under `96-Local Testing/02-
 | Rectangle update histories | `randomized` | 100 histories of 120 rectangle updates against literal cell loops |
 | `clear`, construction, types | `arrays`, `matrices`, `randomized`, `boundaries` | Empty dimensions, clear/copy/move/repeated reconstruction (the removed `rebuild` cases: reconstruction after copy/move in `arrays` and `matrices`, periodic reconstruction in `randomized`, reconstruction from the object's own storage in `boundaries`), argument/input aliases, int64/128-bit/modular/exact dyadic cases, braced singleton/list and non-convertibility from `int`; 16 probes |
 
-Quick: length 4, 2x2, depth 2, 15 cases. Stress: length 8, history depth 4, 400 cases. Per configuration: 681,515 checks (full, 2026-10-13).
+Quick: length 4, 2x2, depth 2, 15 cases. Stress: length 8, history depth 4, 400 cases.
 
 ## Commands and results
 
@@ -47,7 +47,7 @@ python3 '96-Local Testing/03-consistency.py'
 python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/05-prefix_sum.hpp' '96-Local Testing/02-Data Structures/05-prefix_sum_tester.cpp'
 ```
 
-Full, seed 20261013: PASS in the optimized, checked and ASan/UBSan configurations (all with `-Wall -Wextra -Wconversion -Werror`, leak checking on) with all 16 assertion probes, 38 s and peak 487 MB on g++, 43 s and peak 502 MB on g++-14 (the two compilers' package runs overlapped, so times are indicative). 681,515 checks per configuration. The other seven P006 suites passed the same commands. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
+Full, seed 20261013: PASS in the runner's optimized, checked and ASan/UBSan builds with all 16 assertion probes, 38 s and peak 487 MB on g++, 43 s and peak 502 MB on g++-14 (the two compilers' package runs overlapped, so times are indicative). 681,515 checks per configuration. The other seven P006 suites passed the same commands. `02-integration.py` passed 135 standalone and aggregate headers, the scalar and available AVX2 multiple-translation-unit builds and the workspace. `03-consistency.py` reports no errors; `--braces` reports no closing-brace, comment-cap or free-function violations.
 
 ## Sources
 
@@ -61,7 +61,7 @@ References inspected on 2026-09-27.
 
 ## Limits and handoffs
 
-Online range-update/query structures belong to later batches; difference arrays reconstruct offline. Left out of the 2026-10-07 sweep, with reasons in [00-notes.md](00-notes.md#p006-re-audit-omissions): 3D prefix sums and difference arrays, tree prefix sums and path differences (Graphs), noncommutative or xor-group prefix products.
+Online range-update/query structures are rows 11 and 12; difference arrays reconstruct offline. Left out of the 2026-10-07 sweep, with reasons in [00-notes.md](00-notes.md#p006-re-audit-omissions): 3D prefix sums and difference arrays, tree prefix sums and path differences (Graphs), noncommutative or xor-group prefix products.
 
 ## History
 

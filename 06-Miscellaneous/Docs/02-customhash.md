@@ -14,7 +14,7 @@
 - Guarantee: no universal or cryptographic collision bound; a known seed permits collision construction. The containers keep exact key equality, so collisions cost time, never correctness: expected O(1) table operations can degrade to O(n) per operation.
 - `safe_gp_hash_table<K, V>` is `__gnu_pbds::gp_hash_table<K, V, CustomHash>` (open addressing, linear probing, power-of-two sizes). Construct with `safe_gp_hash_table<K, V>(CustomHash(seed))` for a reproducible seed. Under `-D_GLIBCXX_DEBUG`, PB-DS enables its own debug validation, which revalidates every key after each operation (roughly quartic total work); do not use it in debug-mode stress runs.
 
-Correctness: SplitMix64 is a composition of invertible steps (addition modulo 2^64, xorshift-right, multiplication by odd constants). The former pair shift/xor combiner lost bits and had a deterministic collision, kept as a regression test.
+Correctness: SplitMix64 is a composition of invertible steps (addition modulo 2^64, xorshift-right, multiplication by odd constants).
 
 ## Feature-to-test map
 
@@ -27,40 +27,29 @@ Correctness: SplitMix64 is a composition of invertible steps (addition modulo 2^
 | safe_gp_hash_table | 100,000 seeded insert/erase operations (40 under `_GLIBCXX_DEBUG`) on keys including `INT64_MIN + [0, 2000]` compared with `std::map`, erase results, final contents, stored seed; default-seed pair keys |
 | Header/linkage | Each tester includes only its header; optimized two-TU test in both link orders checks early hash values, the shared seed address and the global `Random` address. Package integration owns aggregates. |
 
-Modes: quick runs optimized and checked builds with smaller hash dictionaries. Full adds ASan/UBSan, 100,000 C++ hash operations and 25,682 hash oracle cases per configuration. Stress raises C++ workloads to 500,000 hash operations. Oracle checks survive `-DNDEBUG`. The tester has no assertion probes.
+Modes: quick runs optimized and checked builds with smaller hash dictionaries. Full adds ASan/UBSan, 100,000 C++ hash operations and 25,682 hash oracle cases per configuration. Stress raises C++ workloads to 500,000 hash operations. The tester has no assertion probes.
 
 ## Commands and results
 
-P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection.
+P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
 
 | Command | Result |
 |---|---|
 | `02-customhash_tester.py --mode full --seed 20260927` | PASS, 3 configurations, 25,682 exact Python hash cases, 100,000 map/set cases, both two-TU link orders, `MEMORY peak=517MB` |
 | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=545MB` |
-| Other P013 suites, the call-site suites (`07-ordered_set`, `08-sequence_algorithms`, `12-enumeration`), `02-integration.py` and `03-consistency.py` | PASS; details in [04-compression.md](04-compression.md) |
-
-```bash
-for c in g++ g++-14; do
-  for s in 01-random 02-customhash 03-fastio 04-compression 06-bit_operations 07-permutation 08-sequence_algorithms 12-enumeration; do
-    CXX=$c python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode full --seed 20260927
-  done
-  CXX=$c python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20260927
-done
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
+| Other P013 suites, the call-site suites (`07-ordered_set`, `08-sequence_algorithms`, `12-enumeration`), `02-integration.py` and `03-consistency.py` | PASS; details and the package command loop in [04-compression.md](04-compression.md) |
 
 ## Sources
 
 - Sebastiano Vigna, [*splitmix64.c*](https://prng.di.unimi.it/splitmix64.c), public domain: constants and finalizer match the header (2026-09-27).
 - Completeness sweep 2026-10-07 (`@researcher`): [KACTL HashMap.h](https://github.com/kth-competitive-programming/kactl/blob/main/content/data-structures/HashMap.h) motivated the `gp_hash_table` alias. The sweep's random sources are listed in [01-random.md](01-random.md).
-- Local `97-Legacy/02-customhash.cpp`: read in full for legacy accounting; every retained public name is present in the active header.
+- `OLD/algorithms.cpp` lines 872–933: read in full for legacy accounting; every retained public name is present in the active header.
 
 ## Limits and handoffs
 
 - Hashing is noncryptographic and has no universal collision bound.
 - Universal/tabulation/adversarial-resistant hash families belong to `19`.
-- No benchmark: no reduction backend or tuned threshold exists. No online submission was made and no judge acceptance is claimed.
+- No benchmark: no reduction backend or tuned threshold exists.
 
 ## History
 

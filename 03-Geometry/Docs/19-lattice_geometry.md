@@ -67,18 +67,18 @@ Both count lattice points `(x, y)` of the closed disk `(q x − a)^2 + (q y − 
 
 Complexity: the lattice hull of a disk has `O(r^(2/3))` vertices (Balog–Bárány), and each costs `O(log(r))` tests, so `O(r^(2/3) * log(r) + 1)` time and `O(log(r))` memory.
 
-Measured on instrumented copies (2026-10-19, origin, `q = 1`; counts identical to the former stack; the stack peak is the maximum over the four caps):
+Measured on instrumented copies (2026-10-19, origin, `q = 1`; the stack peak is the maximum over the four caps):
 
-| r | Hull edges | Tests per edge | Stack peak (runs) | Former stack peak (entries) |
-|---|---|---|---|---|
-| 10^4 | 1,608 | 9.12 | 4 | 141 |
-| 10^5 | 7,272 | 9.24 | 5 | 447 |
-| 10^6 | 34,736 | 9.31 | 6 | 1,414 |
-| 10^7 | 160,568 | 9.35 | 7 | 4,472 |
-| 10^8 | 746,056 | 9.37 | 7 | 14,142 |
-| 10^9 | 3,459,448 | 9.38 | 8 | 44,721 |
+| r | Hull edges | Tests per edge | Stack peak (runs) |
+|---|---|---|---|
+| 10^4 | 1,608 | 9.12 | 4 |
+| 10^5 | 7,272 | 9.24 | 5 |
+| 10^6 | 34,736 | 9.31 | 6 |
+| 10^7 | 160,568 | 9.35 | 7 |
+| 10^8 | 746,056 | 9.37 | 7 |
+| 10^9 | 3,459,448 | 9.38 | 8 |
 
-Tests per edge stay flat, so the observed time grows like `r^(2/3)`. The proven bound keeps the logarithm: no published proof removes it for this walk (Sladkey proves `O(n^(1/3))` for the hyperbola with a different, tangent-based recursion). The former stack held about `sqrt(2 r)` entries; the runs stay at most 8. The centre `(12345, −6789) / 7` gives the same tests per edge (9.14–9.39) and at most 8 runs.
+Tests per edge stay flat, so the observed time grows like `r^(2/3)`. The proven bound keeps the logarithm: no published proof removes it for this walk (Sladkey proves `O(n^(1/3))` for the hyperbola with a different, tangent-based recursion). The centre `(12345, −6789) / 7` gives the same tests per edge (9.14–9.39) and at most 8 runs.
 
 Both disk counts are kept by decision (2026-10-18) beside `gaussCircleCount` (Mathematics row 34, origin) and the planned `gaussCircleFast` (Mathematics row 55): the rational centre and radius are a larger domain.
 
@@ -141,7 +141,7 @@ python3 '96-Local Testing/03-Geometry/19-lattice_geometry_tester.py' --mode stre
 
 ## Benchmarks
 
-`19-lattice_geometry_benchmark.py --seed 20260927` (2026-10-19, run serially after all round-3 changes; other sessions kept the load average near 2.6 on the 8-core CPU; Intel Core i9-11900H, GCC 16.2.1 `-O2 -DNDEBUG`, one warmup, median of five; input generation excluded; both disk counts agree wherever the row scan runs). Rows with `r = 10^9` and `q = 7` are capped at `n = 4 * 10^18`, so their effective radius is about `2.9 * 10^8`.
+`19-lattice_geometry_benchmark.py --seed 20260927` (2026-10-19, run serially on the final code; other sessions kept the load average near 2.6 on the 8-core CPU; Intel Core i9-11900H, GCC 16.2.1 `-O2 -DNDEBUG`, one warmup, median of five; input generation excluded; both disk counts agree wherever the row scan runs). Rows with `r = 10^9` and `q = 7` are capped at `n = 4 * 10^18`, so their effective radius is about `2.9 * 10^8`.
 
 | Centre | r | `latticeInDiskFast` (µs) | `latticeInDisk` (µs) |
 |---|---|---|---|
@@ -158,7 +158,7 @@ python3 '96-Local Testing/03-Geometry/19-lattice_geometry_tester.py' --mode stre
 | (a, b) / 7 | 10^8 | 70,116 | — |
 | (a, b) / 7 | 10^9 (capped, about `2.9 * 10^8`) | 144,823 | — |
 
-Per tenfold radius the hull walk grows 4.5–7× (`10^(2/3) ≈ 4.6`, with tests per edge flat) and the row scan 10×. Against the previous run the run-length stack costs 3–20% (within this machine's run-to-run spread under load) for `O(log(r))` instead of `O(sqrt(r))` memory. The walk is faster at every measured radius; the row scan stays as the simpler `O(r)` reference with the same domain.
+Per tenfold radius the hull walk grows 4.3–7.3× (`10^(2/3) ≈ 4.6`, with tests per edge flat) and the row scan 10×. The walk is faster at every measured radius; the row scan stays as the simpler `O(r)` reference with the same domain.
 
 ## Sources
 
@@ -168,7 +168,7 @@ The implementation was written independently. Sources of the completeness sweep 
 - [maspypy convex/lattice_point_count.hpp](https://maspypy.github.io/library/convex/lattice_point_count.hpp): halfplane input with closed constraints.
 - [maspypy nt/convex_floor_sum.hpp](https://maspypy.github.io/library/nt/convex_floor_sum.hpp), [259-momone, lattice points under convex curves](https://259-momone.hatenablog.com/entry/2021/07/25/025655) and [Nyaan enumerate-convex](https://nyaannyaan.github.io/library/math/enumerate-convex.hpp): the Stern–Brocot hull walk with an inside oracle and a slope oracle. Their code was not copied; the walk and its stop rule were derived and tested here.
 - [AtCoder ABC191 D](https://atcoder.jp/contests/abc191/tasks/abc191_d): a closed disk with a decimal centre and radius, the rational-centre use case.
-- Round 3 (2026-10-19), from the P037 bounds sweep: [Thomas, *Integer Hulls of Rational Polyhedra*, Thm 8.2](https://sites.math.washington.edu//~thomas/teaching/m583_s2008_web/berlinnotes.pdf) (Meyer's theorem) for the 0-or-infinite count of unbounded sets. [Sladkey, arXiv 1206.3369](https://arxiv.org/abs/1206.3369) proves `O(n^(1/3))` time and `O(log(n))` space for the hyperbola by tangent recursion; it is not used here.
+- Read 2026-10-19: [Thomas, *Integer Hulls of Rational Polyhedra*, Thm 8.2](https://sites.math.washington.edu//~thomas/teaching/m583_s2008_web/berlinnotes.pdf) (Meyer's theorem) for the 0-or-infinite count of unbounded sets. [Sladkey, arXiv 1206.3369](https://arxiv.org/abs/1206.3369) proves `O(n^(1/3))` time and `O(log(n))` space for the hyperbola by tangent recursion; it is not used here.
 
 ## Limits and handoffs
 

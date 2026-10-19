@@ -1,10 +1,10 @@
 # 08-sequence_algorithms.hpp — evidence
 
-`08-sequence_algorithms.hpp` (batch MI03, package P014) covers maximum subarray, bounded, circular, rectangle and average variants, increasing-subsequence lengths, counts and weights, inversions and adjacent-swap distance, `mex`, monotone windows, sorted pair sums and majority/heavy hitters. It uses the DS02 Fenwick, SegmentTree and `CoordinateCompression`; it includes no prefix-sum or monotone-stack header. Every operation in the row has an independent-oracle test (map below). Prerequisites P002, P006 and P013 are verified. No online submission was made.
+`08-sequence_algorithms.hpp` (batch MI03, package P014) covers maximum subarray, bounded, circular, rectangle and average variants, increasing-subsequence lengths, counts and weights, inversions and adjacent-swap distance, `mex`, monotone windows, sorted pair sums and majority/heavy hitters. It uses the DS02 Fenwick, SegmentTree and `CoordinateCompression`; it includes no prefix-sum or monotone-stack header. Every operation in the row has an independent-oracle test (map below). Prerequisites P002, P006 and P013 are verified.
 
 ## Contracts
 
-Common rules: sizes are below `INT_MAX`. Indices are zero-based and ranges half-open. Inputs are borrowed and never mutated unless a contract says so. Ties are deterministic but otherwise arbitrary. Comparators are pure strict weak orders, and equality callbacks are pure equivalences. Projections and predicates are pure and depend on element values, not addresses or positions. Callback exceptions propagate, with no rollback after mutation has begun. Each bound counts a comparison, projection, copy, move or `Count` operation as O(1).
+Common rules: see [00-notes.md](00-notes.md), Basic contracts.
 
 ### Sequence result records (`SubarraySum`, `CircularSubarraySum`, `SubrectangleSum`, `WeightedSubsequence`)
 
@@ -52,7 +52,7 @@ The domain is `w.size() == a.size()` (asserted), with integral weights of up to 
 
 ### `mex(a)`
 
-The result is the smallest nonnegative integer absent from an integral `a`. Negative values are ignored, and the result is at most `n`. Dynamic mex belongs to Data Structures `24`/`32`. Correctness: values in `[0, n]` are marked and the first unmarked one is returned.
+The result is the smallest nonnegative integer absent from an integral `a`. Negative values are ignored, and the result is at most `n`. Dynamic mex belongs to Data Structures `24`, offline range mex to `32`. Correctness: values in `[0, n]` are marked and the first unmarked one is returned.
 
 ### `monotoneWindowEnds(n, can_add, add, remove)` and `nonnegativeSumWindowEnds(a, limit)`
 
@@ -64,7 +64,7 @@ The input must be ascending (asserted). The result is any `i < j` with `a[i] + a
 
 ### `majorityElement(a, eq)` and `heavyHitters(a, k, cmp)`
 
-Both are verified. `majorityElement` returns Boyer–Moore `{representative index, exact frequency}` of a class with frequency above `n / 2`, or `{-1, 0}`. `heavyHitters` uses Misra–Gries with `k >= 1` (asserted). It returns representatives and exact frequencies of classes above `floor(n / k)`, sorted by `cmp`. `k = 1` returns none, and `k > n` returns every class. A mandatory second pass verifies every candidate in both functions.
+`majorityElement` returns Boyer–Moore `{representative index, exact frequency}` of a class with frequency above `n / 2`, or `{-1, 0}`. `heavyHitters` uses Misra–Gries with `k >= 1` (asserted). It returns representatives and exact frequencies of classes above `floor(n / k)`, sorted by `cmp`. `k = 1` returns none, and `k > n` returns every class. A mandatory second pass verifies every candidate in both functions.
 
 Correctness: Boyer–Moore cancels pairs of different classes and Misra–Gries groups of `k` distinct classes. At most `floor(n / k)` groups can be cancelled, so any class above the threshold survives, and the second pass makes both answers exact. Across decrement scans every counter unit visited was created earlier, giving linear total work.
 
@@ -75,8 +75,6 @@ Correctness: Boyer–Moore cancels pairs of different classes and Misra–Gries 
 | `kadane(a)` | `maximumSubarray(a).sum`, an exact `lll`: `0` for `n = 0` (the absent sum), with no `lng` fit assert |
 
 ## Feature-to-test map
-
-Every oracle is independent of the implementation and uses non-removable checks. Tests run in the optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (the last only in full and stress). Assertion probes run as SIGABRT subprocesses in the checked build.
 
 | Operation | Oracle and cases |
 |---|---|
@@ -98,13 +96,13 @@ Mutation probes (2026-10-08, quick mode) detected changes to the hull pop, lengt
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
-| `08-sequence_algorithms_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, n/a checks per configuration, 9 assertion probes, MEMORY peak 709 MB |
-| `CXX=g++-14 08-sequence_algorithms_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, n/a checks per configuration, MEMORY peak 742 MB |
-| `08-sequence_algorithms_tester.py --mode stress --seed 7` | PASS, n/a checks per configuration, MEMORY peak 710 MB |
+| `08-sequence_algorithms_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 9 assertion probes, MEMORY peak 709 MB |
+| `CXX=g++-14 08-sequence_algorithms_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, MEMORY peak 742 MB |
+| `08-sequence_algorithms_tester.py --mode stress --seed 7` | PASS, MEMORY peak 710 MB |
 | `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
 | `03-consistency.py` | No errors |
 
@@ -126,7 +124,7 @@ The code was written independently from the recurrences and proofs in the packag
 
 ## Limits and handoffs
 
-- Finite corpora support the proofs above; they are not proofs themselves. Vector sizes beyond `INT_MAX` are reviewed, not allocated.
+- Vector sizes beyond `INT_MAX` are reviewed, not allocated.
 - Comparator, callback and window-validity obligations are the caller's responsibility and are not asserted.
 - Checked builds cap the large sequence fixtures (and the interval fixtures) at 2000, because debug-STL partition checks make repeated `lower_bound` calls linear.
 - The code uses no `long` or POSIX-only calls.
@@ -139,5 +137,6 @@ The code was written independently from the recurrences and proofs in the packag
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes.
 - 2026-10-08: re-audit, added `maximumAverageSubarray`, `mex`, `increasingSubsequenceLengths`, `countIncreasingSubsequences` and `adjacentSwapDistance`, 10 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.
 - 2026-10-12: unused prefix-sum and monotone-stack includes removed (and their tester checks); full suite seed 1 passed on g++ and g++-14, stress seed 3 passed.
+- 2026-10-12: P013 prune migrated `Compression` to `CoordinateCompression`; full suite (seed 20260927) passed on g++ and g++-14 (recorded in [04-compression.md](04-compression.md)).
 - 2026-10-13: prune, removed `kadane` (cases moved to `maximumSubarray`); full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (`SegmentTree` over the `Monoid` adapter; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 709/742/710 MB.

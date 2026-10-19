@@ -36,7 +36,7 @@ Edge cases follow from the recursion: m = 1 gives 0; a base 0 gives 0^E = [E = 0
 
 | Planned | Implemented |
 |---|---|
-| `zeroPowerZeroConvention` (removed from the row, duplicates ledger) | the 0^0 = 1 contract above |
+| `zeroPowerZeroConvention` (removed from the row in P054: not an operation) | the 0^0 = 1 contract above |
 | `tetrationMod (Euler chain)` | `tetrationMod(a, b, chain)` with either chain |
 
 Aliases: Library Checker `tetration_mod`; maspypy `tetration`; Nyaan `tetration`; ei1333 `mod_tetration`; suisen `tetration_mod`, `saturation_pow`, `saturation_tetration`; Codeforces 906D power tower queries; SPOJ POWTOW; Project Euler 188 (hyperexponentiation).
@@ -67,6 +67,10 @@ Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.1
 | `02-integration.py` | PASS, 165 standalone and aggregate headers, two translation units, workspace |
 | `03-consistency.py` | PASS, no errors |
 
+## Benchmarks
+
+None required (no specialized arithmetic or threshold).
+
 ## Sources
 
 Fetched 2026-10-19 by `@researcher` ([00-sources.md](00-sources.md), P054 sweep). The algorithms were implemented from the stated identities, and no external code was copied.
@@ -78,7 +82,7 @@ Fetched 2026-10-19 by `@researcher` ([00-sources.md](00-sources.md), P054 sweep)
 ## Limits and handoffs
 
 - Multiplicative orders are row 11; reducing exponents by orders or by suisen's exact preperiods gives the same values by another route and is not a separate operation.
-- Scope decisions (infinite towers, higher hyperoperations, exact tower comparison) are in [00-notes.md](00-notes.md), P054 decisions.
+- Scope decisions (infinite towers, higher hyperoperations, exact tower comparison) are in [00-notes.md](00-notes.md), P054 research decisions.
 - No `97-Legacy` excerpt existed for this row.
 
 ## History

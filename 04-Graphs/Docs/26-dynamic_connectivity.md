@@ -1,6 +1,6 @@
 # 26-dynamic_connectivity.hpp — evidence
 
-Owned by package P047 / GR12; see [00-notes.md](00-notes.md#p047-package-record). Contest profile: offline time-segment connectivity over Data Structures 63 (`OfflineDeletion`) and 09 (`RollbackDSU`, `RollbackDSUAggregate`), online bridge maintenance after cp-algorithms, and an offline range edge component count. The pinned `OnlineBridges` excerpt (`OLD/algorithms.cpp:4906-5003`) was replaced; the monolith map records it as a P047 audited replacement.
+Owned by package P047 / GR12; omissions are in [00-notes.md](00-notes.md#p047-omissions). Contest profile: offline time-segment connectivity over Data Structures 63 (`OfflineDeletion`) and 09 (`RollbackDSU`, `RollbackDSUAggregate`), online bridge maintenance after cp-algorithms, and an offline range edge component count. The pinned `OnlineBridges` excerpt (`OLD/algorithms.cpp:4906-5003`) was replaced; the monolith map records it as a P047 audited replacement.
 
 ## Contracts
 
@@ -84,6 +84,7 @@ Planted mutants (quick suite, optimized build), all killed: a wrong terminal rep
 | `03-consistency.py` | No errors |
 
 ```bash
+python3 '96-Local Testing/04-Graphs/26-dynamic_connectivity_tester.py' --mode quick
 python3 '96-Local Testing/04-Graphs/26-dynamic_connectivity_tester.py' --mode full --seed 1
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/26-dynamic_connectivity_tester.py' --mode full --seed 2
 python3 '96-Local Testing/04-Graphs/26-dynamic_connectivity_tester.py' --mode stress --seed 3
@@ -104,6 +105,8 @@ The measurement was a one-off scratch driver run through `_00_memory_cap.py`, no
 | Stamped union-find (kept) | 652 ms | 161 ms |
 
 ## Sources
+
+Fetched 2026-10-18; the ledger is [00-sources.md](00-sources.md#pages-fetched-on-2026-10-18-p047).
 
 | Source | Inspected claim and application |
 |---|---|

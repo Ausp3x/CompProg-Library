@@ -50,7 +50,7 @@ Correctness: each DP evaluates the standard recurrence whose states are prefix p
 
 ## Feature-to-test map
 
-Runnable entry: [18-editdistance_tester.py](<../../96-Local Testing/07-Strings/18-editdistance_tester.py>), with the actual-header [C++ suite](<../../96-Local Testing/07-Strings/18-editdistance_tester.cpp>). All oracles survive `-DNDEBUG`.
+Runnable entry: [18-editdistance_tester.py](<../../96-Local Testing/07-Strings/18-editdistance_tester.py>), with the actual-header [C++ suite](<../../96-Local Testing/07-Strings/18-editdistance_tester.cpp>).
 
 | Feature/domain | Independent verification |
 |---|---|
@@ -67,7 +67,7 @@ Runnable entry: [18-editdistance_tester.py](<../../96-Local Testing/07-Strings/1
 
 ## Commands and results
 
-Run 2026-10-09 on an 11th Gen Intel Core i9-11900H with GCC 16.2.1 (`g++`) and the floor compiler GCC 14.4.1 (`CXX=g++-14`). Configurations (shared string runner): optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` (with the assertion probes), and in full/stress `-O1 -g -fsanitize=address,undefined`; all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full and stress runs passed the quick pre-flight under the 2048 MB cap; `MEMORY peak` is the run's capped peak (4096 MB cap, 0 OOM kills).
+Run 2026-10-09 on an 11th Gen Intel Core i9-11900H with GCC 16.2.1 (`g++`) and the floor compiler GCC 14.4.1 (`CXX=g++-14`). Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/18-editdistance_tester.py' --mode quick --seed 20261009  # PASS, 2 configurations, 1,795 cases and 127,926 checks each, 5 assertion probes

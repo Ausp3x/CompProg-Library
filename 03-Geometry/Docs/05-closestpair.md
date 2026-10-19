@@ -1,6 +1,6 @@
 # 05-closestpair.hpp — evidence
 
-Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `06-circle.hpp`, `07-rotatingcalipers.hpp` and `08-coordinate_transform.hpp`); see [00-notes.md](00-notes.md#p008--ge02-package-record) for the package record and the folder numeric policy. Every operation in the row has a test with an independent oracle.
+Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `06-circle.hpp`, `07-rotatingcalipers.hpp` and `08-coordinate_transform.hpp`); see [00-notes.md](00-notes.md#ge02-numeric-policy-p008) for the folder numeric policy. Every operation in the row has a test with an independent oracle.
 
 ## Contracts
 
@@ -30,7 +30,7 @@ Correctness: the same recursion maintains two merged orders, by y and by z. At a
 
 ## Feature-to-test map
 
-`96-Local Testing/03-Geometry/05-closestpair_tester.py` drives the C++ suite and the Python bigint oracle in both dimensions. Mode coverage is stated in the entry's docstring. C++ oracle failures shrink by single-point deletion to a locally minimal input before printing it. Python failures print the seed, the full input, the expected and actual values and the command. Assertions are never the oracle.
+`96-Local Testing/03-Geometry/05-closestpair_tester.py` drives the C++ suite and the Python bigint oracle in both dimensions. Mode coverage is stated in the entry's docstring. C++ oracle failures shrink by single-point deletion to a locally minimal input before printing it. Python failures print the seed, the full input, the expected and actual values and the command.
 
 | Operation | Test | Oracle |
 |---|---|---|

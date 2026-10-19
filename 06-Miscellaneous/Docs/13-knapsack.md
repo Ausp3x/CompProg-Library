@@ -1,6 +1,6 @@
 # 13-knapsack.hpp — evidence
 
-`13-knapsack.hpp` (batch MI16, package P015) provides capacity- and value-indexed knapsack DP with exact/at-most queries and witness restoration, Boolean feasibility and multiplicity-vector counts. Prerequisite: the C01 template (P002). Implementations are independent contest-profile code. No online submission was made.
+`13-knapsack.hpp` (batch MI16, package P015) provides capacity- and value-indexed knapsack DP with exact/at-most queries and witness restoration, Boolean feasibility and multiplicity-vector counts. Prerequisite: the C01 template (P002). Implementations are independent contest-profile code.
 
 ## Contracts
 
@@ -19,7 +19,7 @@
 | `bestWithin(weight_budget)` | Highest reachable value **within the constructed value table** with minimum weight at most the nonnegative `lng` budget. This is the global optimum only if the caller's value bound covers it. |
 | `restore(target)` | With tracing enabled and a finite reachable exact target, returns one quantity per input item. Capacity DP takes a weight target; value DP takes a value target. It does not expand large multiplicities into repeated item IDs. |
 | `knapsackFeasible(capacity,items)` | Boolean exact-weight feasibility independent of values. |
-| `KnapsackCounts<T>(capacity,items)` | Counts multiplicity vectors by exact weight, using the caller's exact or modular arithmetic type; `exact` and `atMost` queries distinguish unreachable, finite and unbounded results. These are all feasible selections, not just optimal selections or ordered sequences of picks. |
+| `KnapsackCounts<T>(capacity,items)` | Counts multiplicity vectors by exact weight, using the caller's exact or modular arithmetic type; `exact` and `atMost` return `KnapsackCount{status,count}` and distinguish unreachable, finite and unbounded results. These are all feasible selections, not just optimal selections or ordered sequences of picks. |
 
 The empty choice is reachable with zero value/weight, even for an empty item list or axis zero. An unlimited zero-weight positive-value item makes every reachable capacity-DP state unbounded, without making an unreachable exact weight reachable. Unlimited zero-weight nonpositive values can be skipped for maximization; they still make selection counts infinite. A finite zero-weight item contributes all copies exactly when its value is positive, and contributes a factor `count+1` to counting regardless of value. Negative-valued positive-weight items can be necessary for an exact-weight optimum and are retained.
 
@@ -35,11 +35,11 @@ Costs: optimization takes `O((axis+1) * (n+1+sum(log(1+bounded_limit))))` time i
 
 | Public feature | Independent coverage |
 |---|---|
-| `KnapsackDP.exact/atMost` | Recursive multiplicity-vector enumeration; exhaustive mixed item alphabets, singleton domains, seeded random cases, finite/unreachable/unbounded status, negative/full-width values and smallest-weight ties. |
+| `KnapsackDP.exact/atMost`, `KnapsackItem`, `KnapsackStatus`, `KnapsackResult` | Recursive multiplicity-vector enumeration; exhaustive mixed item alphabets, singleton domains, seeded random cases, finite/unreachable/unbounded status, negative/full-width values and smallest-weight ties. |
 | `ValueKnapsackDP.minWeight/bestWithin` | Independent exact-value enumeration and budget scans; nonnegative/zero values, oversized values and explicit finite truncation under unlimited zero-weight positive-value items. |
 | Both `restore` methods | Multiplicity bounds, exact total weight/value and optimum checks against every traced small target; stale-parent counterexample, copies and repeated construction. |
 | `knapsackFeasible` | Independent reachability of recursively enumerated multiplicity vectors, including zero-capacity and zero-count items. |
-| `KnapsackCounts<T>` | Exact and prefix multiplicity counts, bounded count-five duplicate-bundle regression, finite zero-weight factors and unlimited zero-weight infinity; modular types for moduli 2 and 1 verify zero residues remain reachable. |
+| `KnapsackCounts<T>.exact/atMost`, `KnapsackCount` | Exact and prefix multiplicity counts, bounded count-five duplicate-bundle regression, finite zero-weight factors and unlimited zero-weight infinity; modular types for moduli 2 and 1 verify zero residues remain reachable. |
 | Width/size/generic arithmetic | `INT_MAX` finite counts, `lng` extremes and 128-bit objectives; 100,000-item and 100,000-axis fixtures; exact `2^1000` counts and independent Python arbitrary-integer convolution outputs. |
 | Preconditions | 37 checked probes covering axes, weights/counts/values, queries, negative budgets and unavailable/unreachable/unbounded reconstruction. |
 
@@ -47,7 +47,7 @@ The C++ oracle recursively enumerates original item multiplicities rather than r
 
 ## Commands and results
 
-Run 2026-10-08: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined` with leak checking. The re-audit changed only comments and closing braces; behavior and tests are unchanged.
+Run 2026-10-08: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>). The re-audit changed only comments and closing braces; behavior and tests are unchanged.
 
 ```bash
 python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode full --seed 1                  # PASS before and after the restyle, 3 configurations
@@ -66,11 +66,11 @@ The [driver](<../../96-Local Testing/06-Miscellaneous/13-knapsack_benchmark.py>)
 
 | Workload | Library time / direct reference time |
 |---|---|
-| 0/1 | 0.272–0.432 |
-| Bounded | 0.122–0.373 |
+| 0/1 | 0.269–0.435 |
+| Bounded | 0.122–0.407 |
 | Unlimited | 0.0005–0.0032 at capacity 4096; the reference keeps its direct quantity loop |
 
-The reference enumerates every legal quantity from the previous layer without binary splitting. These are warmed-cache shared-host observations against a simple recurrence, not a fastest-known result, a timing gate or a tuned threshold. MI18 monotone queues, bitsets and fine-grained subset-sum algorithms were not benchmarked.
+The reference enumerates every legal quantity from the previous layer without binary splitting. These are warmed-cache shared-host observations against a simple recurrence, not a fastest-known result, a timing gate or a tuned threshold. Row `29` monotone queues, row `22` bitsets and fine-grained subset-sum algorithms were not benchmarked.
 
 ## Sources
 
@@ -86,8 +86,8 @@ The abstract/metadata of Karl Bringmann, [*A Near-Linear Pseudopolynomial Time A
 ## Limits and handoffs
 
 - Legacy `OLD/Team Notebook/src/algsbetter.cpp` lines 3567–3608 and `algs.cpp` lines 2486–2508 (`knapsack01`, `knapsackComplete`, binary-grouped `knapsackMultiple`) are covered; their `lng` overflow, unchecked domains and zero-weight unboundedness are corrected here. No active callers; archives preserved.
-- MI18 owns monotone-queue bounded optimization, meet-in-the-middle and bitset subset sum, specialized value/small-weight domains, generating-function counts and their witnesses. Counting optimal selections, k-best scores, grouped/precedence/multiple-resource constraints and fine-grained algorithms are research leads for that owner.
-- 2026-10-08 catalog sweep, not adopted here (reasons in [00-notes.md](00-notes.md)): Pisinger balanced `O(n * max(w))` subset sum and its witness (KACTL FastKnapsack, maspypy `subset_sum`) and the adaptive weight/value/meet-in-the-middle 0/1 dispatcher (Nyaan, maspypy) are leads for `29`; ordered pick sequences (CSES 1635) are compositions, `ways[w] = sum ways[w - w_i]`, not knapsack selections; fewest items for an exact weight is `KnapsackDP` with value `-1` per copy.
+- Advanced knapsack variants belong to row `29` (MI18), Boolean bitset subset sum to `22` and meet-in-the-middle to `30`; see [00-notes.md](00-notes.md), Advanced and Esoteric contracts.
+- Not adopted in the 2026-10-08 sweep: see [00-notes.md](00-notes.md), Basic contracts (Knapsack); the swept sources are in [00-sources.md](00-sources.md).
 
 ## History
 

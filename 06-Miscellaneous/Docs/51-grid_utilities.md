@@ -1,6 +1,6 @@
 # 51-grid_utilities.hpp — evidence
 
-`51-grid_utilities.hpp` (batch MI32, package P229) provides grid direction tables and transforms, a dice value type with fixed orientation conventions, and the closed-form knight distance. Prerequisite: the C01 template (P002). Independent contest-profile code; no online submission was made.
+`51-grid_utilities.hpp` (batch MI32, package P229) provides grid direction tables and transforms, a dice value type with fixed orientation conventions, and the closed-form knight distance. Prerequisite: the C01 template (P002). Independent contest-profile code.
 
 ## Contracts
 

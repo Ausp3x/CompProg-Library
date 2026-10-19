@@ -1,6 +1,6 @@
 # 49-timer.hpp — evidence
 
-`49-timer.hpp` (batch MI32, package P229) provides a `steady_clock` stopwatch for time-limited loops and a scope-exit reporter. Prerequisite: the C01 template (P002). Independent contest-profile code; no online submission was made.
+`49-timer.hpp` (batch MI32, package P229) provides a `steady_clock` stopwatch for time-limited loops and a scope-exit reporter. Prerequisite: the C01 template (P002). Independent contest-profile code.
 
 ## Contracts
 
@@ -23,7 +23,7 @@
 
 ## Commands and results
 
-Run 2026-10-08: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined` with leak checking.
+Run 2026-10-08: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/06-Miscellaneous/49-timer_tester.py' --mode quick --seed 1             # PASS, 2 configurations, 100,989 checks
@@ -38,7 +38,7 @@ Quick/full/stress use 20/120/600 bracket rounds. The bracket oracle is independe
 
 ## Benchmarks
 
-Not required by the contest profile. One observation for the throttling advice above: 10,000,000 `expired()` calls in a loop, GCC 16.2 `-O2`, i9-11900H, Linux vDSO clock, seven repetitions, median 17.8 ns per call (min 16.9, max 19.5).
+Not required by the contest profile. One unrecorded one-off probe (no driver or command kept) for the throttling advice above: 10,000,000 `expired()` calls in a loop, GCC 16.2 `-O2`, i9-11900H, Linux vDSO clock, seven repetitions, median 17.8 ns per call (min 16.9, max 19.5).
 
 ## Sources
 

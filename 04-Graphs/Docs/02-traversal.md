@@ -1,6 +1,6 @@
 # 02-traversal.hpp — evidence
 
-Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp` and `03-toposort.hpp` through `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract).
+Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp` and `03-toposort.hpp` through `06-mst.hpp`); see the [common graph contract](00-notes.md#p010-common-contract).
 
 ## Contracts
 
@@ -16,7 +16,7 @@ A present cycle satisfies `vertices.size() == arcs.size() + 1`, `vertices.front(
 
 `dfs(g, sources)` is an iterative DFS with exactly the recursive discovery order, finishing order and parents. Sources are considered in turn, skipping already reached ones, so `depth` is tree depth. Directed cycles are detected by gray ancestors; undirected DFS skips only the exact reverse of the parent arc, so loops and parallel edges are detected. `dfsForest(g)` seeds every vertex in order; its `cycle` is the first cycle found, directed or undirected, or an empty witness, so it finds a cycle anywhere in `g`.
 
-Correctness: `bfs` seeds all sources before traversal, yielding unweighted shortest distances; `dfs` considers seeds sequentially and returns recursive-order discovery/finishing order without recursion. Duplicate sources are ignored, and empty source lists reach nothing. DFS detects a gray ancestor and skips only the reverse parent arc in undirected graphs, so loops and parallel-edge cycles are handled correctly. The iterative DFS fetches the adjacency once per frame resume and continues the scan until a child is pushed; the skipped reverse parent arc is computed once per resume.
+Correctness: in both traversals duplicate sources are ignored and an empty source list reaches nothing. The iterative DFS fetches the adjacency once per frame resume and continues the scan until a child is pushed; the skipped reverse parent arc is computed once per resume.
 
 ### ComponentsResult, connectedComponents, BipartiteResult and bipartiteCheck
 
@@ -28,11 +28,11 @@ Correctness: the bipartite algorithm returns an odd cycle when an edge joins equ
 
 - `findCycle(g)` → `dfsForest(g).cycle`.
 - `bfs(g, s)`, `dfs(g, s)` → `bfs(g, {s})`, `dfs(g, {s})`.
-- `isBipartite` (`97-Legacy/02-bipartite.cpp`, deleted 2026-10-14) → `bipartiteCheck` (`color` replaces `side`; a failure also returns an odd cycle).
+- `isBipartite` (`OLD/algorithms.cpp:4768-4795`) → `bipartiteCheck` (`color` replaces `side`; a failure also returns an odd cycle).
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/02-traversal_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. Oracles use non-removable checks. Checked builds also run invalid-precondition subprocesses. Test outputs are temporary; seeds and failed inputs/operations are printed. The corpus is 4,160 exhaustive/random graph cases; quick uses smaller exhaustive domains, 100 random cases and 20,000-vertex chains; full uses the stated corpus, and stress extends random counts to 12,000 and chains to 500,000. Exact mode coverage is also stated in the runnable entry.
+`96-Local Testing/04-Graphs/02-traversal_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. The corpus is 4,160 exhaustive/random graph cases; quick uses smaller exhaustive domains, 100 random cases and 20,000-vertex chains; full uses the stated corpus, and stress extends random counts to 12,000 and chains to 500,000. Exact mode coverage is also stated in the runnable entry.
 
 | Operation | Test | Oracle |
 |---|---|---|

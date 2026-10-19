@@ -1,12 +1,12 @@
 # 06-circle.hpp — evidence
 
-Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `05-closestpair.hpp`, `07-rotatingcalipers.hpp` and `08-coordinate_transform.hpp`); see [00-notes.md](00-notes.md#p008--ge02-package-record) for the package record and the folder numeric policy. Every operation in the row has a test with an independent oracle.
+Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `05-closestpair.hpp`, `07-rotatingcalipers.hpp` and `08-coordinate_transform.hpp`); see [00-notes.md](00-notes.md#ge02-numeric-policy-p008) for the folder numeric policy. Every operation in the row has a test with an independent oracle.
 
 ## Contracts
 
 ### Numeric policy
 
-The GE02 numeric policy in [00-notes.md](00-notes.md#ge02-numeric-policy-p008) applies. `circleRelation` is the exact API; every other function is an `Approx` API using ordinary `long double` arithmetic. Inputs, intermediates and results must be finite, and nonzero divisors and geometric distinctions must survive rounding. Classification uses computed comparisons with no hidden epsilon and no certified topology near degeneracy. Only membership queries (`locate`, `onBoundary`, `contains`) accept an explicit absolute length tolerance `>= 0`; every tolerance defaults to zero. Approximate constructions return a line as two points; its left side is the positive side. Counts use `-1` for infinitely many. In a fixed-size result array, only the prefix `[0, count)` is meaningful.
+The GE02 numeric policy in [00-notes.md](00-notes.md#ge02-numeric-policy-p008) applies. `circleRelation` is the exact API; every other function is an `Approx` API.
 
 ### CircleApprox
 
@@ -67,7 +67,7 @@ This is the area of the intersection of the two filled disks. Disjoint or tangen
 | `circleRelation` | Exhaustive grid; regressions for every value, `10^18` coordinates and `int`; the `relation-bound` probe | Tangent-count formula `2[q > (r-s)^2] + [q = (r-s)^2 > 0] + 2[q > (r+s)^2] + [q = (r+s)^2]`; supporting check that it equals the outer plus inner `commonTangentsApprox` counts |
 | `CircleTangentApprox`, `CircleTangentsApprox`, `commonTangentsApprox`, `pointTangentsApprox` | Contacts on both boundaries, unit direction, perpendicular radii, collinear contacts, center sides and distinct lines; random point-tangent right angles; point-circle cases | Exhaustive exact squared-distance tangent counts |
 | `circleCentersApprox` | Diameter, impossible, repeated-point and zero-radius cases | Constructed 3-4-5 geometry |
-| `circumcircleApprox`, `incircleApprox` | Collinear/repeated inputs return false with `out` unchanged; 1,600 random triangles checked for equal distances, interior incenters and permutation invariance | 3-4-5 answers; geometric properties |
+| `circumcircleApprox`, `incircleApprox` | Collinear/repeated inputs return false with `out` unchanged; 1,600 random triangles checked for equal distances, interior incenters and permutation invariance | 3-4-5 answers; geometric properties; triangle cases in `09-triangle_tester` |
 | `CircleApprox`: `locate`, `onBoundary`, `contains` (point, disk), `area`, `perimeter`, `arcLength`, `sectorArea`, `segmentArea` | Inside/boundary/outside, tolerance band, internal tangency; zero/half/quarter/full sweeps, negative sweeps, repeated revolutions | Exhaustive disk containment against exact squared distances; closed forms |
 | `segmentArea` series switch | Relative error `<= 4e-18` on 1,436 geometric sweeps from `1e-6` to `1.6`, across the `0.5` switch | Direct alternating Taylor summation, accurate to `3.1e-19` against `__float128` |
 | `diskOverlapAreaApprox` | 75 lenses; containment, zero-radius, disjoint and touching cases; symmetry, rigid motion and scale covariance; small external-lens asymptotics | Independent midpoint integration of vertical slices; unit-lens closed form |

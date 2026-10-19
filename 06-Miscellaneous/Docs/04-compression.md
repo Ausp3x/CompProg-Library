@@ -34,17 +34,17 @@ Correctness: the map stores the ID assigned at each class's first appearance; lo
 |---|---|
 | `compressEndpoints` | Every consecutive pair of every exhaustive and random array as an interval, against a `std::set` of the endpoints; Python sorted endpoint set over full-width signed intervals (extremes, equal endpoints, random and array-derived intervals); empty/repeated/equal intervals, descending and length-equivalence comparators, signed extrema, closed maximum point through `pointRange`, original-distance slab sum through `index`/`decode` in signed 128-bit arithmetic |
 | `stableRanks` | C++ counting oracle (`a[j] < a[i]` or equal with `j < i`) on every exhaustive and random array; Python `sorted(range(n), key=(a[i], i))` inverse; equivalence by string length, stateful descending comparator, empty input |
-| Encounter IDs | Independent first-appearance linear scan, every prior ID checked after each append, repeated/equivalent keys, first representative, move/reset, alias of stored value, `bool` proxy storage; Python first-appearance scan |
+| `EncounterCompression` (`add`, `id`, `value`, `size`, `clear`) | Independent first-appearance linear scan, every prior ID checked after each append, repeated/equivalent keys, first representative, move/reset, alias of stored value, `bool` proxy storage; Python first-appearance scan |
 | Invalid inputs | Three assertion probes: negative and excluded `EncounterCompression::value` index, reversed collected interval. Huge-size guards are inspected structurally rather than allocating over `INT_MAX` test elements. Invalid comparators remain caller preconditions. |
 | Include orders | `07-ordered_set.hpp` and `04-compression.hpp` included in both orders, compiled and run: `compressEndpoints` equals a direct `CoordinateCompression`, plus `pointRange`, `stableRanks` and encounter IDs |
 
 The removed `Compression` cases now run against `CoordinateCompression` in `07-ordered_set_tester.cpp`: descending and width-equivalence stateful comparators, strings, packed `bool`, composite pairs, 128-bit and int64-extreme keys, full-width random arrays, every probe pair and closure of `pointRange`, bulk `ranks`, rebuild replacement and copy independence, the `range-order` probe, and `decode-end`/`decode-negative` for the inverse-index probes.
 
-The per-header Python entries run from any working directory and expose quick/full/stress modes plus seed/configuration selection. Compression quick uses length 0–4 exhaustive arrays over five values, 100 random C++ cases and 105 Python arrays; full uses length 0–6 (19,531 arrays), 1,000 random C++ cases and 1,505 Python arrays; stress uses length 0–7, 10,000 and 15,005. Full makes 1,771,696 C++ checks and 4,515 Python rows per configuration. Random arrays include broad 64-bit values and high duplication. Failures carry seed, operation and input context; oracles survive `-DNDEBUG`.
+Compression quick uses length 0–4 exhaustive arrays over five values, 100 random C++ cases and 105 Python arrays; full uses length 0–6 (19,531 arrays), 1,000 random C++ cases and 1,505 Python arrays; stress uses length 0–7, 10,000 and 15,005. Full makes 1,771,696 C++ checks and 4,515 Python rows per configuration. Random arrays include broad 64-bit values and high duplication.
 
 ## Commands and results
 
-P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection.
+P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
 
 | Command | Result |
 |---|---|
@@ -80,9 +80,9 @@ Inspected during the 2026-09-27/28 session; code written locally, with no extern
 
 ## Limits and handoffs
 
-From the 2026-10-07 sweep; reasons are recorded in [00-notes.md](00-notes.md): incremental `add`/`build` builders (collect then `rebuild`), neighbour queries `minGeq`/`maxLeq` (one `rank`/`upperRank` plus `decode`), a counting-sort build (`11-sorting_selection.hpp` owns `countingSort`), hashed first-encounter ids (the ordered map keeps comparator equivalence and worst-case bounds; use `safe_unordered_map` directly for expected O(1)), exact IEEE-754 bisection (Mathematics `02` owns real search), branchless lower bound (constant factor only), 2D compression (compress each axis).
+Not adopted in the 2026-10-07 sweep, with reasons: incremental `add`/`build` builders (collect then `rebuild`), neighbour queries `minGeq`/`maxLeq` (one `rank`/`upperRank` plus `decode`), a counting-sort build (`11-sorting_selection.hpp` owns `countingSort`), hashed first-encounter ids (the ordered map keeps comparator equivalence and worst-case bounds; use `safe_unordered_map` directly for expected O(1)), exact IEEE-754 bisection (Mathematics `02` owns real search), branchless lower bound (constant factor only), 2D compression (compress each axis).
 
-Interval sweeps belong to `09-interval_algorithms.hpp`. No benchmark: no tuned threshold or reduction backend. No online submission was made and no judge acceptance is claimed.
+Interval sweeps belong to `09-interval_algorithms.hpp`. No benchmark: no tuned threshold or reduction backend.
 
 ## History
 

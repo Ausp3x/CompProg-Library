@@ -1,6 +1,6 @@
 # 25-directedmst.hpp — evidence
 
-Owned by package P047 / GR69; see [00-notes.md](00-notes.md#p047-package-record). Contest profile: Tarjan's contraction with the Data Structures 25 `LeftistHeap` (lazy add) and the Data Structures 01 `DSU`, followed by an O(n) expansion for any root. The row was planned; there is no legacy code.
+Owned by package P047 / GR69; omissions are in [00-notes.md](00-notes.md#p047-omissions). Contest profile: Tarjan's contraction with the Data Structures 25 `LeftistHeap` (lazy add) and the Data Structures 01 `DSU`, followed by an O(n) expansion for any root. The row was planned; there is no legacy code.
 
 ## Contracts
 
@@ -60,6 +60,7 @@ Planted mutants (quick suite, optimized build): an unlinked cycle ring (`nxt[p] 
 | `03-consistency.py` | No errors |
 
 ```bash
+python3 '96-Local Testing/04-Graphs/25-directedmst_tester.py' --mode quick
 python3 '96-Local Testing/04-Graphs/25-directedmst_tester.py' --mode full --seed 1
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/25-directedmst_tester.py' --mode full --seed 2
 python3 '96-Local Testing/04-Graphs/25-directedmst_tester.py' --mode stress --seed 3
@@ -72,6 +73,8 @@ python3 '96-Local Testing/03-consistency.py'
 None required: contest profile, no threshold. The 100,000/300,000-vertex shapes check stack safety and near-linear behaviour, not timings.
 
 ## Sources
+
+Fetched 2026-10-18; the ledger is [00-sources.md](00-sources.md#pages-fetched-on-2026-10-18-p047).
 
 | Source | Inspected claim and application |
 |---|---|

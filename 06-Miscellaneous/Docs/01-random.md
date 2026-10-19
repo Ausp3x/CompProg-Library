@@ -6,7 +6,7 @@
 
 ### Random
 
-- Engine: public `std::mt19937_64 rng`. `Random()` seeds from `steady_clock` ticks, a convenient varying seed with no entropy or uniqueness guarantee. `Random(ulng)` accepts every 64-bit seed; record an explicit seed to replay, and reseed by assignment, `g = Random(x)`. Copy and move preserve engine state. Single-threaded use is the baseline; callers synchronize shared objects.
+- Engine: public `std::mt19937_64 rng`. `Random()` seeds from `steady_clock` ticks, a convenient varying seed with no entropy or uniqueness guarantee. `Random(ulng)` accepts every 64-bit seed; record an explicit seed to replay, and reseed by assignment, `g = Random(x)`. Copy and move preserve engine state. Callers synchronize shared objects.
 - URBG: `result_type = ulng`, `min() = 0`, `max() = 2^64 - 1`, `operator()()` returns the next engine word. `Random` therefore satisfies `std::uniform_random_bit_generator` and works with `std::shuffle`, `std::sample` and `<random>` distributions. Those standard algorithms are implementation-defined in how they consume words; only the library's own methods replay across standard libraries.
 - `randLng(l, r)`, `randUlng(l, r)`: inclusive bounds over the entire representable domains, including singleton and full-width intervals; precondition `l <= r` (asserted). The helper `randBelow(n)` behind them and `shuffle`: `n > 0`, result in `[0, n)`.
 - `randDouble()`: `(word >> 11) * 2^-53`, uniform over the 2^53 multiples of 2^-53 in `[0, 1)`; one word per call.
@@ -37,41 +37,30 @@ Correctness: Lemire's mapping puts `M = 2^64`, `t = M mod n`, `p = x * n`, accep
 | Invalid Random preconditions | Six checked assertion probes: zero bound, reversed lng/ulng intervals, reversed shuffle range, empty and infinite-width `randDouble` intervals |
 | Header/linkage | Each tester includes only its header; optimized two-TU test in both link orders checks early hash values, the shared seed address and the global `Random` address. Package integration owns aggregates. |
 
-Modes: quick runs optimized and checked builds, 5,000 random draws and reduced words through 8 bits. Full adds ASan/UBSan, 100,000 C++ draws, 725 exact Random oracle cases and 200 `randDouble` cases per configuration, and reduced words through 10 bits. Stress raises C++ workloads to 1,000,000 draws. Oracle checks survive `-DNDEBUG`. Fixed-seed frequency checks are regressions, not uniformity proofs.
+Modes: quick runs optimized and checked builds, 5,000 random draws and reduced words through 8 bits. Full adds ASan/UBSan, 100,000 C++ draws, 725 exact Random oracle cases and 200 `randDouble` cases per configuration, and reduced words through 10 bits. Stress raises C++ workloads to 1,000,000 draws. Fixed-seed frequency checks are regressions, not uniformity proofs.
 
 ## Commands and results
 
-P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection.
+P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
 
 | Command | Result |
 |---|---|
 | `01-random_tester.py --mode full --seed 20260927` | PASS, 3 configurations, 725 exact Random oracle cases (22,335 rejected words), 200 `randDouble` cases (15,054 redraws), 6 assertion probes, `MEMORY peak=429MB` |
 | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=446MB` |
-| Other P013 suites, the call-site suites (`07-ordered_set`, `08-sequence_algorithms`, `12-enumeration`), `02-integration.py` and `03-consistency.py` | PASS; details in [04-compression.md](04-compression.md) |
-
-```bash
-for c in g++ g++-14; do
-  for s in 01-random 02-customhash 03-fastio 04-compression 06-bit_operations 07-permutation 08-sequence_algorithms 12-enumeration; do
-    CXX=$c python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode full --seed 20260927
-  done
-  CXX=$c python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20260927
-done
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
+| Other P013 suites, the call-site suites (`07-ordered_set`, `08-sequence_algorithms`, `12-enumeration`), `02-integration.py` and `03-consistency.py` | PASS; details and the package command loop in [04-compression.md](04-compression.md) |
 
 ## Sources
 
 - Daniel Lemire, [*Fast Random Integer Generation in an Interval*, arXiv:1805.10941v4](https://arxiv.org/html/1805.10941v4): Algorithm 5, Lemma 4.1 and the Fisher–Yates description (read 2026-09-27).
 - [cppreference `std::mersenne_twister_engine`](https://en.cppreference.com/w/cpp/numeric/random/mersenne_twister_engine.html): `mt19937_64` parameters and the 10000th-value fixture (2026-09-27).
 - Completeness sweep 2026-10-07 (`@researcher`): [Nyaan rng](https://nyaannyaan.github.io/library/misc/rng.hpp), [maspypy random_real](https://raw.githubusercontent.com/maspypy/library/main/random/random_real.hpp) and [base](https://raw.githubusercontent.com/maspypy/library/main/random/base.hpp), [hitonanode rand_nondeterministic](https://hitonanode.github.io/cplib-cpp/random/rand_nondeterministic.hpp), [OI Wiki random](https://oi-wiki.org/misc/random/), [KACTL HashMap.h](https://github.com/kth-competitive-programming/kactl/blob/main/content/data-structures/HashMap.h). They motivated the URBG interface, the `[l, r)` real overload (Nyaan's `rng() * 2^-64` can round up to 1.0, which the 53-bit form avoids) and the `gp_hash_table` alias.
-- Local `97-Legacy/01-random.cpp`: read in full for legacy accounting; every legacy feature maps to an active operation (`randInt` through the Legacy mapping above).
+- `OLD/algorithms.cpp` lines 856–870: read in full for legacy accounting; every legacy feature maps to an active operation (`randInt` through the Legacy mapping above).
 
 ## Limits and handoffs
 
 - Randomness is noncryptographic (MT19937-64). `randDouble(l, r)` replays bit-exactly only without FMA contraction.
 - Advanced random sampling belongs to `18`; `randomPermutation(n)` is `iota` plus `shuffle` (see [00-notes.md](00-notes.md)).
-- No benchmark: no reduction backend or tuned threshold exists. No online submission was made and no judge acceptance is claimed.
+- No benchmark: no reduction backend or tuned threshold exists.
 
 ## History
 

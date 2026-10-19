@@ -48,36 +48,25 @@ bool ok = out.flush();
 | Operation | Independent coverage |
 |---|---|
 | `readInt`/`writeInt`, all integer widths | `std::to_chars` expected bytes; exhaustive 8-bit (quick) and 16-bit (full) domains; random 32/64/128-bit; `char`, wide/UTF code-unit and `long long` identities; Python arbitrary-precision 128-bit round trip (3,003 pairs full, 30,003 stress) |
-| Integer syntax/overflow/recovery | Bare/repeated signs, punctuation, hex-like, embedded NUL, byte 255, boundary ±1, 1000-digit tokens, unsigned `-0`; delimiter- and EOF-terminated failures with destination preservation |
+| Integer syntax/overflow/recovery, `FastIoStatus`/`status` | Bare/repeated signs, punctuation, hex-like, embedded NUL, byte 255, boundary ±1, 1000-digit tokens, unsigned `-0`; delimiter- and EOF-terminated failures with destination preservation |
 | `peek`/`get`/`space`/`skipSpace`/`readChar`/`readToken` | All 256 bytes raw, buffers 1/7/65536, empty and whitespace-only input, NUL/high-byte tokens, delimiter preservation, EOF preservation; 10 KB/1 MiB/8 MiB binary round trips |
 | `readLine` | Independent C++ splitter over fixtures (empty, `\n`, `\n\n`, CRLF, lone `\r`, `\r\r\n`, NUL, leading/trailing spaces, 70,000-byte line, lines straddling 65,536) and random `ab\r\n \t` strings at buffers 1/7/65536; interleaving with `readInt`/`readToken`; Python `bytes.split` oracle over random bytes including NUL and 255 (60,005 bytes full, 600,005 stress); EOF and fault-injected `Error` preserve the destination |
 | `readDouble` | `strtod` bit-exact comparison for `%.17g`, `%.3e`, `%.25f` forms of random finite bit patterns plus fixed spellings (`-0`, `+0`, `.5`, `5.`, `1E5`, subnormals, `DBL_MAX`, 30-digit integers, `inf`, `nan`, `Infinity`); Python `float()` correctly-rounded oracle on 3,000 (full) / 30,000 (stress) random decimal tokens with exponents to 330 and signs, including overflow and total underflow (`Overflow`); invalid forms (`1.5e`, `0x10`, `+`, `+-1`, `--1`, `.`, `1,5`, `e5`, `1e400x`) at a delimiter and at EOF, with recovery; fault-injected `Error` preserves the destination |
 | `writeDouble` | glibc `printf("%.*f")` byte comparison for fixed values (zeros, halves, `DBL_MAX`, `DBL_MIN`, `5e-324`, infinities, `999.9995`) and random finite values at precisions 0–20 and 200, with and without `end`; NaN spelling; Python `format(x, '.{p}f')` exact oracle on 3,000 (full) / 30,000 (stress) random bit patterns |
 | `read`/`print`/`writeValue`/`write` end/`precision` | Mixed `int`, `string`, `char`, `double`, `uint8_t` read; range read stopping at EOF with partial assignment; `print` with string literal, `string`, `char`, `double` at precision 3, vectors, empty vector, nested vectors, `lll`, `int8_t`; `print()`; `write(s, '!')`; `float` through `writeValue`; compile-time checks that `writeDouble` rejects `long double` and accepts `double`, `float` and `int` |
-| Flush, lifetime, errors | `tmpfile` reuse; descriptor observation of destructor flush after `drain`; GNU `fopencookie` short/failed reads and writes, error precedence for tokens, integers, lines and doubles, delayed `fflush` failure, sticky failure without retries, empty lifetime without I/O; pipe tokens with `N = 1` before the writer closes |
+| `put`, `drain`, `flush`, `error`, lifetime | `tmpfile` reuse; descriptor observation of destructor flush after `drain`; GNU `fopencookie` short/failed reads and writes, error precedence for tokens, integers, lines and doubles, delayed `fflush` failure, sticky failure without retries, empty lifetime without I/O; pipe tokens with `N = 1` before the writer closes |
 | Preconditions | Four checked assertion probes: null input, null output, precision -1, precision 201; deleted copy/move and positive `N` at compile time |
 
 ## Commands and results
 
-P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection.
+P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
 
 | Command | Result |
 |---|---|
 | `03-fastio_tester.py --mode full --seed 20260927` | PASS, 3 configurations, 3,003 Python 128-bit decimal pairs, `readLine`/`readDouble`/`writeDouble` oracles over 60,005 bytes, 4 assertion probes, `MEMORY peak=732MB` |
 | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=748MB` |
 | `03-fastio_benchmark.py` | not rerun (header unchanged); the table below is the 2026-10-07 record |
-| Other P013 suites, the call-site suites (`07-ordered_set`, `08-sequence_algorithms`, `12-enumeration`), `02-integration.py` and `03-consistency.py` | PASS; details in [04-compression.md](04-compression.md) |
-
-```bash
-for c in g++ g++-14; do
-  for s in 01-random 02-customhash 03-fastio 04-compression 06-bit_operations 07-permutation 08-sequence_algorithms 12-enumeration; do
-    CXX=$c python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode full --seed 20260927
-  done
-  CXX=$c python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20260927
-done
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
+| Other P013 suites, the call-site suites (`07-ordered_set`, `08-sequence_algorithms`, `12-enumeration`), `02-integration.py` and `03-consistency.py` | PASS; details and the package command loop in [04-compression.md](04-compression.md) |
 
 ## Benchmarks
 
@@ -111,7 +100,6 @@ No Barrett/Montgomery backend is involved.
 - `readDouble` reports total underflow as `Overflow`. Exact `long double` I/O is not owned. Locale-specific formats are not supported.
 - Floating `from_chars`/`to_chars` have been in libstdc++ since GCC 11; `double` parsing uses the portable fast_float path since GCC 12; portability to the Codeforces build rests on that library history.
 - Advanced backends (`mmap`, raw `read`/`write`, SIMD digit parsing) remain with `17-fast_io_advanced.hpp`.
-- No online submission was made and no judge acceptance is claimed.
 
 ## History
 

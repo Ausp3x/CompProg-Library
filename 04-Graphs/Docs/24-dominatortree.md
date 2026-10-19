@@ -1,6 +1,6 @@
 # 24-dominatortree.hpp — evidence
 
-Owned by package P043 / GR11; see [00-notes.md](00-notes.md#p043-package-record). Contest profile: iterative Lengauer–Tarjan with balanced linking over the verified `Graph`/`CsrGraph` representation, plus an independent vertex-deletion algorithm. The row was planned; there is no legacy code.
+Owned by package P043 / GR11; omissions are in [00-notes.md](00-notes.md#p043-omissions). Contest profile: iterative Lengauer–Tarjan with balanced linking over the verified `Graph`/`CsrGraph` representation, plus an independent vertex-deletion algorithm. The row was planned; there is no legacy code.
 
 ## Contracts
 
@@ -31,7 +31,7 @@ A final pass sets `dom[w] = dom[dom[w]]` where `dom[w] ≠ semi[w]`. `eval` and 
 
 ### dominatorTreeSimple
 
-`dominatorTreeSimple(g, root)` has the same input domain and returns the same tree. For each reachable `d ≠ root`, a BFS from the root that skips `d` marks the vertices that `d` strictly dominates: the reachable vertices left unreached. The strict dominators of `w` form a chain whose dominated sets strictly shrink, so `idom(w)` is the one dominating the fewest vertices; `w` defaults to the root when nothing else strictly dominates it. Time O(V·(V + E)), memory O(V + E). The row's former label "iterative O(VE)" is replaced by this provable vertex-deletion bound. Cooper–Harvey–Kennedy iteration is simpler to state but has no O(V·E) worst case.
+`dominatorTreeSimple(g, root)` has the same input domain and returns the same tree. For each reachable `d ≠ root`, a BFS from the root that skips `d` marks the vertices that `d` strictly dominates: the reachable vertices left unreached. The strict dominators of `w` form a chain whose dominated sets strictly shrink, so `idom(w)` is the one dominating the fewest vertices; `w` defaults to the root when nothing else strictly dominates it. Time O(V·(V + E)), memory O(V + E). Cooper–Harvey–Kennedy iteration is simpler to state but has no O(V·E) worst case.
 
 ## Feature-to-test map
 
@@ -60,9 +60,12 @@ Planted mutants (quick suite): `eval` returning `v` instead of `label[v]` at vir
 | `03-consistency.py` | No P043 errors |
 
 ```bash
+python3 '96-Local Testing/04-Graphs/24-dominatortree_tester.py' --mode quick
 python3 '96-Local Testing/04-Graphs/24-dominatortree_tester.py' --mode full --seed 1
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/24-dominatortree_tester.py' --mode full --seed 2
 python3 '96-Local Testing/04-Graphs/24-dominatortree_tester.py' --mode stress --seed 3
+python3 '96-Local Testing/02-integration.py' --sanitizers
+python3 '96-Local Testing/03-consistency.py'
 ```
 
 ## Benchmarks
@@ -70,6 +73,8 @@ python3 '96-Local Testing/04-Graphs/24-dominatortree_tester.py' --mode stress --
 None required: contest profile, no threshold. The 1,000,000-vertex stress shapes check stack safety and near-linear behaviour, not timings.
 
 ## Sources
+
+Fetched 2026-10-09; the ledger is [00-sources.md](00-sources.md#pages-fetched-on-2026-10-09-p043).
 
 | Source | Inspected claim and application |
 |---|---|

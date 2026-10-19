@@ -20,7 +20,7 @@ All bulk APIs use pointer/count overloads with an `int n >= 0`; pointers address
 
 ### Barrett32, Barrett64
 
-The fields `mod`, `mu` and `mask` are immutable state. `mu = floor(2^(2w) / mod)` on the reciprocal path and zero on the power-of-two and Mersenne61 paths (`MERSENNE61 = 2305843009213693951`); `mask` flags a power-of-two modulus. `divMod` returns a quotient as wide as the dividend. With `mod = 1` every result is zero, even for exponent zero; for every other modulus `a^0 = 1`, including `a = 0`. Copies and moves are independent; there is no allocation, cache or global state. `Barrett64::highProduct` is the exact high half of a 128 x 128-bit product. `Barrett64::fold61` is the one Mersenne-61 fold: `divMod` applies it twice to an arbitrary dividend, and the modular types' Mersenne paths call it since the 2026-10-12 P005 prune.
+The fields `mod`, `mu` and `mask` are immutable state. `mu = floor(2^(2w) / mod)` on the reciprocal path and zero on the power-of-two and Mersenne61 paths (`MERSENNE61 = 2305843009213693951`); `mask` flags a power-of-two modulus. `divMod` returns a quotient as wide as the dividend. With `mod = 1` every result is zero, even for exponent zero; for every other modulus `a^0 = 1`, including `a = 0`. Copies and moves are independent; there is no allocation, cache or global state. `Barrett64::highProduct` is the exact high half of a 128 x 128-bit product. `Barrett64::fold61` is the one Mersenne-61 fold: `divMod` applies it twice to an arbitrary dividend, and the modular types' Mersenne paths call it.
 
 ### Barrett32::Multiplier, Barrett64::Multiplier
 
@@ -39,11 +39,11 @@ Constructed as `Multiplier(r, b)` from a reducer `r` and any factor word `b`: `v
 
 **Fixed multiplier.** With `b < m`, precompute `c = floor(b*R/m)`. For any word `a`, `floor(a*c/R)` underestimates `floor(a*b/m)` by at most one. The widened residual is `<2m`, so one subtraction suffices, including full-width moduli. This replaces the general double-width reciprocal product for repeated scalar factors.
 
-**Quotients.** On the mask path `x >> countr_zero(m)` is the exact quotient (shift zero for `m=1`). On the reciprocal path `q` is the true quotient or one less, so `q*m <= x` and `q + [r >= m]` is exact. For `m = 2^61-1` write `x = (x>>61)*2^61 + (x & m) = (x>>61)*m + y` with `y = fold61(x) = (x>>61) + (x & m) <= 2^67 + 2^61 - 2`, then `y = (y>>61)*m + z` with `z = fold61(y) = (y>>61) + (y & m) <= m + 64 < 2m`; hence `x = ((x>>61) + (y>>61))*m + z` and the quotient is `(x>>61) + (y>>61) + [z >= m]`, the remainder `z - [z >= m]*m`. `divMod` is the Barrett core: `reduce` reads its remainder, so the remainder path is unchanged after inlining (`Barrett32::reduce` 16 and `Barrett64::reduce` 104 instructions at `-O2` on GCC 16.2, identical instruction streams before and after `fold61`; 103 on GCC 14.4).
+**Quotients.** On the mask path `x >> countr_zero(m)` is the exact quotient (shift zero for `m=1`). On the reciprocal path `q` is the true quotient or one less, so `q*m <= x` and `q + [r >= m]` is exact. For `m = 2^61-1` write `x = (x>>61)*2^61 + (x & m) = (x>>61)*m + y` with `y = fold61(x) = (x>>61) + (x & m) <= 2^67 + 2^61 - 2`, then `y = (y>>61)*m + z` with `z = fold61(y) = (y>>61) + (y & m) <= m + 64 < 2m`; hence `x = ((x>>61) + (y>>61))*m + z` and the quotient is `(x>>61) + (y>>61) + [z >= m]`, the remainder `z - [z >= m]*m`. `divMod` is the Barrett core: `reduce` reads its remainder, so the remainder path is unchanged after inlining (`Barrett32::reduce` 16 and `Barrett64::reduce` 104 instructions at `-O2` on GCC 16.2; 103 on GCC 14.4).
 
 ## Feature-to-test map
 
-The Python entry resolves paths independently of the working directory, uses only Python's standard library and GCC, reports seeds/configurations and first failing inputs, retains its oracles under `NDEBUG`, and executes precondition failures in subprocesses.
+Harness: [`05-testing.md`](../../00-Guidelines/05-testing.md); the entry uses only Python's standard library and GCC.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -51,13 +51,13 @@ The Python entry resolves paths independently of the working directory, uses onl
 | `highProduct` | `03-barrett_tester.cpp` | Independent bit-by-bit 256-bit shift/add multiplication; carry boundaries and random full-width pairs |
 | `pow`, `Multiplier` construction, value semantics | `03-barrett_tester.cpp` | Independent MSB-first modular exponentiation, zero/max exponents, `0^0`, arbitrary input words, all small fixed-factor pairs, copies/moves and a `Multiplier` outliving its temporary reducer |
 | Bulk `mul` and preconditions | `03-barrett_tester.cpp` | Lengths 0–65, 127/128/129, 255/256/257 and 4095/4096/4097, eight offsets, guard words, alias either/both inputs, fixed in-place products, null empty ranges; 16 assertion death cases (in both checked builds) |
-| `divMod` (both widths) | `03-barrett_tester.cpp` | Native `/` and `%` on the boundary dividend list (0, 1, m-1, m, m+1, 2m-1, MAX, MAX+1, MAX², TOP, TOP-1, m·MAX, m·MAX-1) for ~250 moduli per width including every power of two and its neighbours, `2^61-1`, `2^64-1`; 60,000 (full) / 600,000 (stress) random full-width dividends per width; exhaustive `m <= 128, x < 16384` (full) / `m <= 256, x < 65536` (stress); default constructor; the quotient is checked from the pair and as `divMod(x).first` (the former `div` cases) |
+| `divMod` (both widths) | `03-barrett_tester.cpp` | Native `/` and `%` on the boundary dividend list (0, 1, m-1, m, m+1, 2m-1, MAX, MAX+1, MAX², TOP, TOP-1, m·MAX, m·MAX-1) for ~250 moduli per width including every power of two and its neighbours, `2^61-1`, `2^64-1`; 60,000 (full) / 600,000 (stress) random full-width dividends per width; exhaustive `m <= 128, x < 16384` (full) / `m <= 256, x < 65536` (stress); default constructor; the quotient is checked from the pair and as `divMod(x).first` |
 | `mod`, `mu`, `mask`, `Multiplier::{mod, value, mu, mask}`, `MERSENNE61` | `03-barrett_tester.cpp` | Bitwise restoring division `floor((2^(2w)-1)/m)` and `floor((b % m)·2^w / m)`; zero on the mask and Mersenne paths; constant equals `2305843009213693951` |
 | `fold61` | `03-barrett_tester.cpp` `folds()` | Native 128-bit `%`: congruence modulo `M = 2^61-1` on 17 boundary inputs (0, 1, `M-1`, `M`, `M+1`, `2^61`, `2^61+1`, `(M-1)^2`, `M^2`, `M·2^61`, `M·2^61 + M`, `2^122 - 2^61 - 1`, `2^122 - 2^61`, `2^122`, `2^127`, `2^128-2`, `2^128-1`) and 10,000 (full) / 100,000 (stress) seeded random full-width and product-shaped inputs each, with the `< 2^67 + 2^61` bound everywhere and the `< 2M` bound below `2^122 - 2^61`; `static_assert` evaluates it at compile time at 0, `M`, `2^61`, `2^122 - 2^61 - 1` and `2^128-1` |
 | `Barrett` alias, `load`, `store` | `03-barrett_tester.cpp` | `Barrett(17).mul(123, 456)` against `123 * 456 % 17`, and the multiple-TU build compares `Barrett` with `Barrett64`; the AVX2 helpers run inside every AVX2 bulk kernel of the batch tests in the optimized, checked and sanitized AVX2 builds |
 | Bulk fixed products | `03-barrett_tester.cpp` `batches()` | Factors `MAX`, `m-1` and a seeded random factor for 16 (32-bit) / 17 (64-bit) batch moduli, checked against `Wide(a)*f % m`, sizes 0–65, 127–129, 255–257, 4095–4097, eight offsets, separate and in-place, leading/trailing guards; Barrett32 moduli include `2^32-5` and `3*2^30+1`, so the AVX2 Shoup kernel runs with residuals near `2^33` through its signed correction |
 
-Quick mode covers every public operation with smaller exhaustive/random corpora. Full uses 60,000 random cases per width and exhaustive `m<=128, x<16384`; stress uses 600,000 and `m<=256, x<65536`, with exhaustive small fixed-factor pairs. Full/stress execute optimized `-O3 -DNDEBUG`, checked, and ASan/UBSan scalar/AVX2 paths (including a checked AVX2 build). Unsupported AVX2 hardware is reported as a skip.
+Quick mode covers every public operation with smaller exhaustive/random corpora. Full uses 60,000 random cases per width and exhaustive `m<=128, x<16384`; stress uses 600,000 and `m<=256, x<65536`, with exhaustive small fixed-factor pairs. Full/stress execute optimized `-O3 -DNDEBUG`, checked, and ASan/UBSan scalar/AVX2 paths (including a checked AVX2 build).
 
 ## Commands and results
 
@@ -113,7 +113,7 @@ The 2026-10-07 catalog sweep is in [00-sources.md](00-sources.md) ("Fetched 2026
 
 ## Limits and handoffs
 
-GCC 14.4.1 (`CXX=g++-14`, the floor check) passed. The `Multiplier` has no quotient. Signed-dividend reduction and residue inverses stay with `05-modint.hpp`. Lazy Barrett outputs, a divisibility test and the other left-out candidates are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
+The `Multiplier` has no quotient. Signed-dividend reduction and residue inverses stay with `05-modint.hpp`. Lazy Barrett outputs, a divisibility test and the other left-out candidates are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
 
 ## History
 

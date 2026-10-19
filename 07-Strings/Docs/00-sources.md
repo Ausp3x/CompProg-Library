@@ -1,6 +1,6 @@
 # 07 Strings — sources
 
-Source keys used in `00-index.md` status cells are defined under "Prior source keys and audit narrative" below. A key is a research starting point, never correctness evidence.
+Source keys used in `00-index.md` status cells are defined under "Prior source keys and audit narrative" below.
 
 ## Catalog pages fetched 2026-10-06
 
@@ -116,7 +116,7 @@ Pages fetched 2026-10-09 by the completeness researcher; all code was written in
 
 ## Fetched 2026-10-19 (omission sweep)
 
-Scope `07`, `11`; decisions are in the rows, the P017/P082/P085/P232 notes and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
+Scope `07`, `11`; decisions are in the rows, the P017/P082/P085/P232 plan notes and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
 
 | URL | Used for |
 |---|---|
@@ -130,18 +130,18 @@ Scope `07`, `11`; decisions are in the rows, the P017/P082/P085/P232 notes and `
 
 ## Prior source keys and audit narrative (2026-09-27 and 2026-09-28, condensed)
 
-Keys used in status cells: KACTL, CPALG (cp-algorithms), OI-STR (OI Wiki string section), MASPYPY, NYAAN, EI1333, SUISEN, HITONANODE, TKO919, ACL, YOSUPO (Library Checker), CSES, LECROQ, RUNS (arXiv 1406.0263), RINDEX (arXiv 1705.10382), DYNAMICSTRINGS (arXiv 1511.02612, Gawrychowski et al., Optimal Dynamic Strings), SEMILOCAL (arXiv 0707.3619, Tiskin, Semi-local string comparison), GLN14 (arXiv 1406.7716, Gawrychowski, Lewenstein, Nicholson, Weighted ancestors in suffix trees, ESA 2014), BKPR21 (LIPIcs CPM 2021.8, Belazzougui, Kosolobov, Puglisi, Raman, Weighted Ancestors in Suffix Trees Revisited), DS17 (Data Structures succinct engines batch).
+Keys used in status cells: KACTL, CPALG (cp-algorithms), OI-STR (OI Wiki string section), MASPYPY, NYAAN, SUISEN, HITONANODE, TKO919, YOSUPO (Library Checker), CSES, LECROQ, RUNS (arXiv 1406.0263), RINDEX (arXiv 1705.10382), DYNAMICSTRINGS (arXiv 1511.02612, Gawrychowski et al., Optimal Dynamic Strings), SEMILOCAL (arXiv 0707.3619, Tiskin, Semi-local string comparison), GLN14 (arXiv 1406.7716, Gawrychowski, Lewenstein, Nicholson, Weighted ancestors in suffix trees, ESA 2014), BKPR21 (LIPIcs CPM 2021.8, Belazzougui, Kosolobov, Puglisi, Raman, Weighted Ancestors in Suffix Trees Revisited).
 
 - The 2026-09-27 cross-library audit (`00-Guidelines/History/2026-09-27-inventory-audit.md`, records in `Ledgers/research-sources.json`) compared catalog navigation and selected API comments, not source correctness; it grew this folder from 35 to 49 rows (14 added). Paper abstracts identified advanced variants (dynamic strings, semi-local LCS, runs, r-index); their proofs remain implementation-time reading.
 - Targeted pages read then: maspypy `inverse_manacher.hpp` (odd-only radii), `online_z_algorithm.hpp`, `double_ended_palindromic_tree.hpp`, `prefix_substring_LCS.hpp` (wavelet-matrix dependency); OI Wiki navigation including suffix balanced tree, in-place suffix sorting, subsequence automaton and Main–Lorentz; Lecroq's complete table of contents (the univ-mlv hostname had a certificate mismatch; the univ-eiffel successor was used).
 - Library Checker coverage (`00-Guidelines/Ledgers/library-checker-coverage.json`) maps string problems to rows; status there is "inventoried", not accepted.
-- Legacy: `OLD/Team Notebook/src/misc/old_zalgo.cpp` (static Z, accounted for in `02`); Team Notebook `algs.cpp`/`algsbetter.cpp` trie/KMP routines (accounted for in `01`/`04`); no other owned string implementation was found in `OLD/algorithms.cpp` or `OLD/[1] algorithms.cpp`.
+- Legacy: no string implementation beyond those in [00-notes.md](00-notes.md) (Legacy obligations) was found in `OLD/algorithms.cpp` or `OLD/[1] algorithms.cpp`.
 
 ## Not adopted
 
 - cp-algorithms "Expression parsing": owned by Miscellaneous `37-expression_parser.hpp`.
 - Nyaan `misc/compress.hpp` and `math/enumerate-quotient.hpp`: coordinate compression and quotient enumeration are not string operations.
-- maspypy `suffix_lcp_change.hpp`, `non_dominated_suffix.hpp`, `substring_abundant_string.hpp`: single-problem constructions whose API was not inspected beyond the file name; no named family in any other catalog.
+- maspypy `substring_abundant_string.hpp`: a single-problem construction with no named family in any other catalog; `suffix_lcp_change` and `non_dominated_suffix` are decided under P085 in [00-notes.md](00-notes.md).
 - maspypy `split.hpp`, `binary_lyndon_list.txt`, `suffix_tree.png`: utility, data and image files.
 - suisen `morris_pratt.hpp`: the MP border table is `prefixFunction`; no separate operation.
 - hitonanode `suffix_array_doubling.hpp`, `longest_common_prefix.hpp`: covered by `07` radix doubling and `lce`.
@@ -149,6 +149,6 @@ Keys used in status cells: KACTL, CPALG (cp-algorithms), OI-STR (OI Wiki string 
 
 ## Covered by existing rows
 
-- Lecroq Brute Force and DFA pages: naive scan and `prefixAutomaton`/`dfaSearch` already appear in `16`; no historical row entry.
+- Lecroq Brute Force and DFA pages: naive scan and `dfaSearch` appear in `16`, `prefixAutomaton` in `01`; no historical row entry.
 - KACTL/ACL: no item excluded; every entry maps to an existing row.
 - Library Checker `enumerative_combinatorics/number_of_subsequences`: already mapped to row `20`.

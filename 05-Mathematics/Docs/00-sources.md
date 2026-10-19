@@ -35,6 +35,10 @@
 | FLINT documentation index | https://flintlib.org/doc/ | 2026-10-06 | module families: ulong_extras, fmpz_lll, aprcl, ecpp, qsieve, arith, qfb, dirichlet, dlog, nf, qqbar, arb/acb, ca, fq, padic, perm, partitions |
 | NTL module tour | https://libntl.org/doc/tour-modules.html | 2026-10-06 | HNF, LLL, ZZXFactoring, GF2E/GF2EX, RR, quad_float, mat_poly characteristic polynomial |
 
+## Source keys
+
+Keys in the status cells of rows not yet verified name the catalogs above whose Used-for entry names that row or one of its operations: LC (the Library Checker directories), CPA (cp-algorithms), KACTL, OI (OI Wiki), NYA (Nyaan), MAS (maspypy), EI (ei1333), SUI (suisen), HIT (hitonanode), TKO (tko919), NOSHI (noshi91), GMP, FLINT, NTL.
+
 ## P012 re-audit sweep (fetched 2026-10-07)
 
 | Source | URL | Fetched | Used for |
@@ -63,7 +67,7 @@
 | cp-algorithms modular inverse and CRT; ACL `inv_mod`, `crt`; KACTL `ModInverse.h`, `CRT.h` | https://cp-algorithms.com/algebra/module-inverse.html, https://cp-algorithms.com/algebra/chinese-remainder-theorem.html | 2026-10-09 | contracts of rows 09 and 10; nothing new adopted |
 | Sources checked with nothing adopted | Nyaan `math-fast/inv-o1.hpp`, maspypy `mod/O1_inverse.hpp`, `mod/crt3.hpp`, `nt/count_by_factor_type.hpp`, Nyaan `math/bigint-garner.hpp`, CSES Divisor Analysis | 2026-10-09 | reasons in [00-notes.md](00-notes.md) |
 
-Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 1795265022} (Jim Sinclair, verified against Feitsma's list of base-2 pseudoprimes below 2^64) and {2, 7, 61} below 4759123141 (Jaeschke) are listed at https://miller-rabin.appspot.com/; that page and the paper below are cited from memory and were not fetched in this session. The full-range claim rests on that published verification; the tests cover every n below 10^7, every divisor of every base and named pseudoprimes. Bernstein, "Factoring into coprimes in essentially linear time" (J. Algorithms 54, 2005) defines the natural coprime base used in row 07's contract.
+Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 1795265022} (Jim Sinclair, verified against Feitsma's list of base-2 pseudoprimes below 2^64) and {2, 7, 61} below 4759123141 (Jaeschke) are listed at https://miller-rabin.appspot.com/; that page and the paper below are cited from memory and were not fetched in the P052 sweep (2026-10-09). The full-range claim rests on that published verification. Bernstein, "Factoring into coprimes in essentially linear time" (J. Algorithms 54, 2005) defines the natural coprime base used in row 07's contract.
 
 ## P055 sweep (fetched 2026-10-09, `@researcher`)
 
@@ -154,7 +158,6 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 
 - The 2026-09-27 audit compared external algorithm catalogs and the saved Modern Computer Arithmetic contents; read scope and URLs are in the [central audit](../../00-Guidelines/History/2026-09-27-inventory-audit.md). A follow-up scope pass compared the active arithmetic/search/equation/sieve/combinatorics/transform interfaces and the archived factorization/inverse/CRT/log/root/numerical helpers plus the saved [KACTL notebook](../../95-Resources/05-kactl.pdf) `Tridiagonal.h` contract.
 - Package evidence documents record their own inspected sources with dates: [01-mod_arithmetic.md](01-mod_arithmetic.md) (cp-algorithms extended Euclid, OI Wiki gcd, `OLD/5-Mathematics/01-exgcdandmodpow.hpp`), [02-search_algorithms.md](02-search_algorithms.md) (cp-algorithms binary/ternary search, KACTL GoldenSectionSearch, cppreference midpoint, `OLD/5-Mathematics/02-search.hpp`), [03-equation_solvers.md](03-equation_solvers.md) (cp-algorithms linear Diophantine, KACTL euclid.h, OI Wiki linear congruence), [04-sieve_algorithms.md](04-sieve_algorithms.md) (cp-algorithms sieve and linear sieve, OI Wiki sieve, KACTL Eratosthenes, `OLD/5-Mathematics/04-sieves.hpp`), [05-combinatorics.md](05-combinatorics.md) (cp-algorithms binomials, stars and bars, Fibonacci; OI Wiki combinations, Catalan, derangements; Bertrand ballot; `OLD/5-Mathematics/12-combinatorics.hpp`), [06-segmentedsieve.md](06-segmentedsieve.md) (cp-algorithms sieve, OI Wiki sieve, primesieve EratSmall).
-- `ProgVar.pdf` and `frankenstein.pdf` are excluded by decision.
 
 ## Not adopted
 
@@ -163,7 +166,7 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 - Library Checker `matrix_product`, `pow_of_matrix`, `*_mod_2` variants: Core `10-matrix.hpp` and `12-bitmatrix.hpp` own the full types; row 16 keeps only scalar power.
 - cp-algorithms Balanced Ternary, Gray code, bit manipulation, submask enumeration, arbitrary precision, Montgomery: Miscellaneous bit operations/enumeration and Core InfInt/Montgomery.
 - cp-algorithms Simulated Annealing, KACTL HillClimbing: heuristic search belongs to Miscellaneous randomness/search.
-- cp-algorithms counting labeled graphs, placing bishops, balanced bracket sequences: graph counting is Graphs `53`; bracket sequences are Catalan/ballot applications already in rows 05 and 67.
+- cp-algorithms placing bishops, balanced bracket sequences: bracket sequences are Catalan/ballot applications already in rows 05 and 67.
 - KACTL IntPerm, maspypy `kth_next_permutation`, `factorial_digit_system`: Miscellaneous `07-permutation.hpp`.
 - maspypy `digit_sum`, `digit_frequency`: Miscellaneous `31-digitdp.hpp`.
 - maspypy `de_bruijn`, `longest_increasing_subsequence`, `cartesian_tree`, `common_interval_decomposition`: Strings and sequence structures.

@@ -146,7 +146,7 @@ Full, seed 20261013: PASS in all three configurations with all 14 assertion prob
 
 ## Benchmarks
 
-Measured with the row 13 driver; conditions in [13-convolution.md](13-convolution.md).
+Measured 2026-10-09 with the row 13 driver (`13-convolution_benchmark.py 5`): i9-11900H, GCC 16.2.1, `-O2` without `-march`, one warmup, median of 5, machine shared with a concurrent test run (±15%).
 
 | Workload | Median |
 |---|---|

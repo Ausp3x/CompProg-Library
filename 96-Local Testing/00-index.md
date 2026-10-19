@@ -1,13 +1,13 @@
 # Local library verification
 
-Every verified header or module has one tester entry here, mirroring its library path: `96-Local Testing/<folder>/<NN-name>_tester.py`, with helper `.cpp` files and `<NN-name>_benchmark.*` drivers beside it. Coverage, feature-to-test maps, commands with results and benchmark tables are recorded in the header's evidence document `<folder>/Docs/<NN-name>.md`, not here. `plan.py doctor` reports verified rows without a tester and testers not registered for quick mode.
+Layout, modes, coverage and evidence rules: [05-testing.md](../00-Guidelines/05-testing.md). `plan.py doctor` reports verified rows without a tester and testers not registered for quick mode.
 
 ## Commands
 
 From the library root (scripts resolve paths independently of the working directory):
 
 ```bash
-python3 '96-Local Testing/01-run.py' --mode quick                 # all registered suites, smoke subset, then integration and consistency
+python3 '96-Local Testing/01-run.py' --mode quick                 # smoke subsets (table below), then integration and consistency
 python3 '96-Local Testing/01-run.py' --mode full                  # every operation and configuration; add CXX=g++-14 for the floor check
 python3 '96-Local Testing/01-run.py' --mode stress --seed 42 --rounds 3
 python3 '96-Local Testing/01-run.py' --mode full --filter 04-Graphs
@@ -23,7 +23,7 @@ python3 '96-Local Testing/00-Tools/03-notebook_tester.py'
 
 | Mode | Coverage |
 |---|---|
-| quick | Registered suites' smoke subsets, tool fixtures, integration and consistency; excludes the big-integer corpora |
+| quick | Smoke subsets of every non-Core suite and the `QUICK` Core suites, tool fixtures, integration and consistency; excludes the big-integer corpora |
 | full | Every suite completely, big-integer differential corpora, available scalar and AVX2 paths, integration with ASan/UBSan self-tests |
 | stress | The full set repeated for `--rounds` seeds, then integration with sanitizers |
 
@@ -34,10 +34,11 @@ python3 '96-Local Testing/00-Tools/03-notebook_tester.py'
 | Path | Contents |
 |---|---|
 | `_00_cpp_test_runner.py` | Shared compile-and-run infrastructure, progress output, PASS/FAIL/SKIP reporting |
-| `_00_memory_cap.py` | Memory-capped execution: `ensure()` for entry points, CLI `-- <command>` for ad-hoc programs. Rules: [05-testing.md](../00-Guidelines/05-testing.md), Memory safety; evidence: [00-memory-safety.md](00-memory-safety.md) |
+| `_00_memory_cap.py` | Memory-capped execution: `ensure()` for entry points, CLI `-- <command>` for ad-hoc programs. Rules: [05-testing.md](../00-Guidelines/05-testing.md), Memory safety |
 | `01-run.py` | Suite discovery, modes, `QUICK` registration set |
 | `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds |
 | `03-consistency.py` | Repository record and style validator; imports `plan.py check` |
+| `Docs/` | Support-pass evidence ([00-memory-safety.md](Docs/00-memory-safety.md), P231) |
 | `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, and the notebook |
 | `01-Core/` … `07-Strings/` | Per-header testers, helper `.cpp` files and benchmark drivers |
 

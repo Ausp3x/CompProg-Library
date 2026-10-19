@@ -4,14 +4,13 @@ Wrappers and second implementations under `00-Guidelines/03-cpp.md`, One API per
 
 ## Recorded decisions
 
-Decided by the user from 2026-10-10 to 2026-10-16; binding, and only the user changes them.
+Decided by the user since 2026-10-10; binding, and only the user changes them.
 
 ### Changes
 
 - **P030** row 18 (pinned): `PerSegTree` is a second persistent segment tree beside `PersistentSegmentTree`; its entries leave the row and `PersistentSegmentTree` gains `maxRight`/`minLeft` (from `maxR`/`minL`). `KSPerSegTree::kthMin` leaves the row (`rangeKth`); its `cntEql`, `cntRan`, `kthSum`, `maxLeq`, `minGeq` stay as the only persistent forms.
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
-- **P027** monoid pass (decided 2026-10-17): `DisjointSparseTable::query` and `fold` become one `prod` (`e()` on an empty range; a semigroup without `e` keeps nonempty ranges); `SparseTable::query`/`fold` are named `prod`/`associativeProd`; `SegmentTree::query`/`allQuery`, the SWAG `fold`s and `SqrtDecomp::query` become `prod`/`allProd`; `SqrtDecomp::opeUpdate` becomes `apply`.
 
 ### Keeps
 
@@ -128,7 +127,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P006 | Fenwick `lowerBound`, `upperBound`, `descend` (`02-fenwick.hpp`) | Named special case; larger domain (`x <= 0`); 11% faster (`Docs/02-fenwick.md`) |
 | P006 | `SegmentTree::apply` (`03-segmenttree.hpp`) | As the recorded keep `SqrtDecomp::apply` |
 | P006 | `DifferenceArray(2D)::clear` (`05-prefix_sum.hpp`) | Named special case, in place |
-| P006 | Braced-list constructors (`02-fenwick.hpp`, `03-segmenttree.hpp`, `05-prefix_sum.hpp`, `06-sqrt_decomposition.hpp`) | Without them `Fenwick<lng> f{7}` picks the size constructor (`Docs/00-notes.md:79`) |
+| P006 | Braced-list constructors (`02-fenwick.hpp`, `03-segmenttree.hpp`, `05-prefix_sum.hpp`, `06-sqrt_decomposition.hpp`) | Without them `Fenwick<lng> f{7}` picks the size constructor (`Docs/00-notes.md`, Common foundation contracts) |
 | P006 | `CoordinateCompression::decode` (`07-ordered_set.hpp`) | Named inverse of `encode`; replaces P013's `value` |
 | P006 | `previousGreater`, `nextGreater`, `slidingMaximum` (`08-monotone_stack.hpp`) | Named special cases |
 | P007 | `signedAreaApprox` (`03-polygon.hpp`) | Another scale: half the doubled area (clarified rule) |
@@ -203,7 +202,8 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P085 | `PointUpdateHash::common`, `SequenceHash::common` (`23-dynamicstringhash.hpp`) | Helper of `lcp` and `lcs`, as `StringHash::common` |
 | P036 | `minkowskiDifference` (`11-minkowskisum.hpp`) | Derived: negation then sum (clarified rule) |
 | P036 | `minkowskiSumHull` (`11-minkowskisum.hpp`) | Larger domain: any point sets (clarified rule) |
-| P036 | `halfplane_detail::vertex`; `polygonKernel` (`10-halfplaneintersection.hpp`) | Detail helper; different algorithm, user decision 2026-10-10 (`Docs/00-notes.md:67`) |
+| P036 | `halfplane_detail::vertex`; `polygonKernel` (`10-halfplaneintersection.hpp`) | Detail helper; different algorithm, user decision 2026-10-10 (`Docs/00-notes.md`, P036 completeness decisions) |
+| P036 | `polygonKernelLinear` (`10-halfplaneintersection.hpp`) beside `polygonKernel` | Different algorithm (Lee–Preparata, `O(n)`), user decision 2026-10-10 (`Docs/00-notes.md`, P036 completeness decisions) |
 | P033 | `lcaRmqBridge` (`27-cartesiantree.hpp`) | An LCA–RMQ reduction, not a rename (clarified rule) |
 | P018 | `explicit operator bool` beside `isNil` (`07-infint.hpp`) | Decided 2026-10-16: both stay, `isNil` for Poly's `BigInt` concept and the modint-style truthiness |
 | P018 | `infint_detail` NTT, FFT and Montgomery kernels beside Poly's and `04-montgomery.hpp` | Decided 2026-10-16: InfInt keeps independent kernels and depends on `01-template.hpp` only |
@@ -213,7 +213,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P047 | `blockOf` (`27-blockcuttree.hpp`) | Maps a vertex to its unique block, -1 at articulation points |
 | P047 | `maximumBranching` (`25-directedmst.hpp`) beside `DirectedMst::arborescence` | Different problem: no root, any number of roots, only positive arcs; built on the contraction engine, not a sign mirror |
 | P047 | `OfflineDynamicConnectivity::insertEdge`, `eraseEdge` beside `addEdge` (`26-dynamic_connectivity.hpp`) | Larger domain: unpaired per-pair events with multiplicities, as P034 `OfflineDeletion::insert`, `erase` |
-| P047 | `OfflineDynamicConnectivity` (`26-dynamic_connectivity.hpp`) | Named special case of Data Structures row 63 `OfflineDeletion` with `RollbackDSU` (`02-Data Structures/00-index.md:89` reworded) |
+| P047 | `OfflineDynamicConnectivity` (`26-dynamic_connectivity.hpp`) | Named special case of Data Structures row 63 `OfflineDeletion` with `RollbackDSU` (Data Structures `Docs/00-notes.md`, Ownership boundaries, reworded) |
 | P060 | `ceilSum` (`18-floorsum.hpp`) | Named special case (ruling 3) |
 | P060 | `enumerateQuotients` (`18-floorsum.hpp`) | Stored form beside the callback `forEachQuotientBlock`, as the kept `getPrimeFac()` (clarified rule) |
 | P060 | `maxOfModOfLinear` (`18-floorsum.hpp`) beside `minOfModOfLinear` | Mirror (ruling 3) |
@@ -222,6 +222,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P054 | `gridPaths` (`67-lattice_paths.hpp`) beside `combiNR(dx + dy, dx)` | Larger domain: returns 0 for unreachable targets, which `combiNR` rejects (clarified rule) |
 | P054 | `catalanConvolution`, `catalanTriangle` (`67-lattice_paths.hpp`) beside row 05 `ballot` | Named special case (the k-th power of the Catalan series equals the weak ballot to (n + k - 1, n)) and batch form in any ring (additions only) |
 | P054 | `combinatorics_advanced_detail::inverse` (`12-combinatorics_advanced.hpp`) beside row 09 `inverseXgcd` | Larger domain: a private 128-bit Euclid for moduli up to 2^64 - 1, where `inverseXgcd` takes `lng` |
+| P082 | `isSubstring` (`11-suffixtree.hpp`) | Named special case (ruling 1) |
 
 ## Conventions
 
@@ -271,12 +272,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | `size()` | `14-sparsematrix.hpp:45` | `.n` | keep | accessor of a public data member | — | — |
 
 
-## P082 — 07-Strings — suffixtree (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `isSubstring` | row 11 | `locate` | keep | named special case (ruling 1) | — | — |
-
 ## P072 — 06-Miscellaneous — knapsack advanced, kbest enumeration, fractional programming (planned)
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
@@ -291,7 +286,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `NoncommutativeWeightedDSU` | row 29 | `WeightedDSU` over a group with a fixed orientation | keep | larger domain: non-commutative groups (clarified rule) | — | — |
-| `MergeHistoryForest` | row 65 | `04-Graphs/06-mst.hpp:99` `KruskalReconstruction` weighted by union index | ask | built from a union sequence, while `KruskalReconstruction` needs a weighted graph | — | `Docs/00-notes.md:42` |
+| `MergeHistoryForest` | row 65 | `04-Graphs/06-mst.hpp:99` `KruskalReconstruction` weighted by union index | ask | built from a union sequence, while `KruskalReconstruction` needs a weighted graph | — | `Docs/00-notes.md`, Ownership boundaries |
 | `unionEnumerate` | row 65 | `LinkedDSU::members` before `uniteSets` | keep | derived: the newly merged pairs (clarified rule) | — | — |
 | `SparseDSU` | row 65 | `HashMap<K, int>` plus `DSU::makeSet` | ask | builder or larger key domain | — | — |
 | `ParityDSU` | row 29 | `WeightedDSU` over Z/2 | ask | alias, or a different (2n-node) algorithm | — | — |
@@ -333,8 +328,8 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `multipointEvaluateGeometric`; `productOfLinearShifts` | row 22 | row 65 `bluesteinTransform`; row 37 entry of the same name | ask | same chirp-z; one owner | — | — |
-| row 23 matrix-tree counts (`countSpanningTrees`, `countArborescences`, forests, BEST) | row 23 | Graphs row 53 | ask | one owner (`00-index.md` note gives graph-facing counts to Graphs) | — | — |
+| `multipointEvaluateGeometric` | row 22 | row 65 `bluesteinTransform` | ask | same chirp-z; one owner | — | — |
+| row 23 matrix-tree counts (`countSpanningTrees`, `countArborescences`, forests, BEST) | row 23 | Graphs row 53 | ask | one owner (Mathematics `Docs/00-notes.md`, Ownership boundaries, gives graph-facing counts to Graphs) | — | — |
 
 ## P069 — 06-Miscellaneous — exactcover (planned)
 
@@ -357,7 +352,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 |---|---|---|---|---|---|---|
 | `staticRangeFrequency` | row 32 | `PointSetRangeFrequency(a).count`, `MergeSortTree::countEqual` | keep | static constant-factor variant (ruling 4) | — | — |
 | `queryWitness` beside `query` | rows 21, 22 | each other | ask | `query` is the value field of the witness form | — | — |
-| `XorBasis::rank`, `countRepresentable`; `intersection`, `reducedEchelon` | row 62 | `size()`, `1ull << size()`; Core `BitMatrix` | ask | projections; ownership of subspace operations (`01-Core/00-index.md:33`) | — | — |
+| `XorBasis::rank`, `countRepresentable`; `intersection`, `reducedEchelon` | row 62 | `size()`, `1ull << size()`; Core `BitMatrix` | ask | projections; ownership of subspace operations (`01-Core/Docs/00-notes.md`, Ownership boundaries) | — | — |
 
 ## P042 — 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor (planned)
 
@@ -375,12 +370,12 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `HashMap`, `HashSet` | row 19 | DS `61-hashmap.hpp` | remove (row only) | second implementation, same open addressing | — | `Docs/00-notes.md:134` |
+| `HashMap`, `HashSet` | row 19 | DS `61-hashmap.hpp` | remove (row only) | second implementation, same open addressing | — | `Docs/00-notes.md`, Ownership boundaries |
 | `vectorHash` | row 19 | `CustomHash` range overload | keep | different algorithm: random-base polynomial hash (clarified rule) | — | — |
 | `pairHash` | row 19 | `CustomHash{}(p)` | ask | the same mixing as `CustomHash`'s pair overload | — | — |
 | `MmapInput`, `SyscallOutput` | row 17 | `FastInput`, `FastOutput` | ask | second parser over another byte source; `03-cpp.md` bans POSIX calls | — | — |
 | `mergeSortedVectors`, `kWayMerge` | rows 15, 44 | `std::merge`; row 44 | ask | stdlib and second implementation | — | — |
-| `hilbertIndex2D` | row 16 | pinned `Mo::getHilOrd` | keep | row 16 owns Hilbert order (`Docs/00-notes.md:34`); see P067 | — | — |
+| `hilbertIndex2D` | row 16 | pinned `Mo::getHilOrd` | keep | row 16 owns Hilbert order (`Docs/00-notes.md`, Advanced and Esoteric contracts); see P067 | — | — |
 
 ## P067 — 02-Data Structures — range query offline (planned)
 
@@ -400,7 +395,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `mex` | row 25 | `06-Miscellaneous/08-sequence_algorithms.hpp:206-214` `mex(a)` | remove (row only) | second implementation | — | `06-Miscellaneous/00-index.md:80` note |
+| `mex` | row 25 | `06-Miscellaneous/08-sequence_algorithms.hpp:206-214` `mex(a)` | remove (row only) | second implementation | — | `06-Miscellaneous/Docs/00-notes.md`, Ownership boundaries (mex of game states) |
 | `grundySum` | row 25 | `nimSum` | ask | `nimSum` of Grundy values (remove) or of whole games (keep) | — | — |
 | `nimWin` | row 25 | `nimSum != 0` | keep | named special case (ruling 1) | — | — |
 
@@ -471,7 +466,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `intervalPartitionMachines` | row 39 | `intervalPartitionAssignment` | remove (row only) | projected `.first` (`Docs/00-notes.md:24`) | — | `Docs/09-interval_algorithms.md:94` |
+| `intervalPartitionMachines` | row 39 | `intervalPartitionAssignment` | remove (row only) | projected `.first` (`Docs/00-notes.md`, Basic contracts) | — | `Docs/09-interval_algorithms.md`, Limits and handoffs |
 | `optimalMergePattern` | row 40 | `huffmanTree` (internal nodes in merge order) | remove (row only) | same algorithm | — | — |
 | `huffmanCost` | row 40 | the tree's cost | ask | projection | — | — |
 
@@ -528,7 +523,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `manhattanMst`; `manhattanFarthestPair` | row 21 | `kruskal` over `manhattanMstEdges`; `chebyshevFarthestPair(toChebyshev(p))` | keep | builders over the edges and the Chebyshev transform (clarified rule) | — | `04-Graphs/00-index.md:112`, `04-Graphs/Docs/00-notes.md:25` say row 22 |
+| `manhattanMst`; `manhattanFarthestPair` | row 21 | `kruskal` over `manhattanMstEdges`; `chebyshevFarthestPair(toChebyshev(p))` | keep | builders over the edges and the Chebyshev transform (clarified rule) | — | — |
 | `manhattanClosestPair`; `euclideanBottleneck`; `euclideanMstDense`; `Voronoi::adjacency` | rows 21, 22, 32 | the octant sweep; the largest `euclideanMst` edge; `primDense`; row 31 `Delaunay::adjacency` | ask | projections unless separate algorithms | — | — |
 
 ## P132 — 03-Geometry — geometry3d (planned)
@@ -551,11 +546,11 @@ Stdlib functions are existing operations (`04-python.md:15`).
 |---|---|---|---|---|---|---|
 | `lowerBound`, `upperBound`, `bisectKey` | `_02_search` (`00-index.md:10`) | `bisect_left`, `bisect_right` with `key=` | remove (row only) | stdlib under another name | — | — |
 | `countRange` | `_02_search` (`00-index.md:10`) | two bisects | keep | derived: the difference of two bisects (clarified rule) | — | — |
-| `modPow`, `isqrt`, `floorDiv`, `floorMod`, `divmodFloor` | `_03` (:11) | `pow(a, e, m)`, `math.isqrt`, `//`, `%`, `divmod` | remove (row only) | stdlib under another name | — | `Docs/00-notes.md:15` |
+| `modPow`, `isqrt`, `floorDiv`, `floorMod`, `divmodFloor` | `_03` (:11) | `pow(a, e, m)`, `math.isqrt`, `//`, `%`, `divmod` | remove (row only) | stdlib under another name | — | `Docs/00-notes.md`, Numeric policy |
 | `comb`, `perm`; `fibonacci` | `_04` (:12) | `math.comb`, `math.perm`; `fibPair(n)[0]` | remove (row only) | stdlib; projection | — | — |
 | `prefixSums` | `_05` (:13) | `accumulate(a, initial=0)` | remove (row only) | stdlib under another name | — | — |
 | `lisLength` | `_05` (:13) | `len(lisWitness(a))` | keep | different result: the length only (clarified rule) | — | — |
-| `modInv` | `_03` | `pow(a, -1, m)` | ask | `tryX` form returning `None`, or a precondition | — | `Docs/00-notes.md:46,51` |
+| `modInv` | `_03` | `pow(a, -1, m)` | ask | `tryX` form returning `None`, or a precondition | — | `Docs/00-notes.md`, Legacy migration |
 | `binarySearchInt`; `argminUnimodal` | `_02` | C++ `binSearch` mirror or `firstTrue`; `ternaryMinInt` | ask | contracts unstated | — | — |
 
 ## P091 — 08-Python — dsu, fenwick, segmenttree, sparsetable, heaps (planned)
@@ -838,7 +833,7 @@ Stdlib functions are existing operations (`04-python.md:15`).
 |---|---|---|---|---|---|---|
 | `unlabelledMultiset` | row 40 | `eulerTransform` (multiset construction) | remove (row only) | another name | — | — |
 | `labelledSequence` | row 40 | `unlabelledSequence` (1/(1 − A); with counts, through `ogfToEgf`, `egfToOgf`) | ask | the same as `unlabelledSequence` on series (remove), or on counts through the EGF conversions (keep) | — | — |
-| `coefficientExtraction` | row 40 | `bostanMori` (`Docs/00-notes.md:172`) | remove (row only) | another name | — | — |
+| `coefficientExtraction` | row 40 | `bostanMori` (`Docs/00-notes.md`, P057 research decisions) | remove (row only) | another name | — | — |
 | `labelledSet`, `labelledCycle`, `logarithmicTransform` | row 40 | row 14 `fpsExp`, `fpsLog` with the EGF conversions | ask | wrappers if the constructions take counts | — | — |
 | `burnsideCount` | row 40 | — | keep | reuses the caller's fixed-point counts; see P204 | — | — |
 
@@ -1008,7 +1003,7 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P035** `SparseDSU`: a larger key domain or a builder? `ParityDSU`: an alias of `WeightedDSU` over Z/2 or a 2n-node DSU? `MergeHistoryForest`: `KruskalReconstruction` after a builder from the union sequence, or a separate operation?
 - **P058** `gaussJordan` or `rref`? `nullspace` beside `solveLinear(A, 0)`?
 - **P088** row 31 `stringFromPrefixFunction`, `stringFromZ`, `infeasible`: minimum-alphabet or lex-min witnesses?
-- **P061** `multipointEvaluateGeometric` beside `bluesteinTransform`; `productOfLinearShifts` in rows 22 and 37; row 23 matrix-tree counts beside Graphs row 53: which row owns each?
+- **P061** `multipointEvaluateGeometric` beside `bluesteinTransform`; row 23 matrix-tree counts beside Graphs row 53: which row owns each?
 - **P032** `queryWitness` beside `query` (rows 21, 22); `XorBasis::rank`, `countRepresentable`, `intersection`, `reducedEchelon` beside `size()` and Core `BitMatrix`?
 - **P042** `apspPath`, `rootTree` (children lists?), `pathRanges`, `pathVertices`: does each add a result?
 - **P066** row 17 `MmapInput`, `SyscallOutput` (POSIX calls are banned); `mergeSortedVectors`, `kWayMerge` (P205) beside `std::merge`? Row 19 `pairHash`: the same mixing as `CustomHash`'s pair overload?

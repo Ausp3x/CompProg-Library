@@ -33,11 +33,11 @@ Correctness: the state invariant is the longest pattern prefix that is a suffix 
 
 ## Feature-to-test map
 
-Runnable entry: [06-aho_tester.py](<../../96-Local Testing/07-Strings/06-aho_tester.py>), suite [06-aho_tester.cpp](<../../96-Local Testing/07-Strings/06-aho_tester.cpp>), built with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Quick/full/stress enumerate every subset of binary patterns through length 1/2/2 against all binary texts through length 3/4/5, ordered duplicate dictionaries `[a, b, a]`, 100/1200/6000 seeded random dictionaries (alphabets 1, 3, 256) and 60/600/3000 random external tries. Every mode covers every query in both representations.
+Runnable entry: [06-aho_tester.py](<../../96-Local Testing/07-Strings/06-aho_tester.py>), suite [06-aho_tester.cpp](<../../96-Local Testing/07-Strings/06-aho_tester.cpp>). Quick/full/stress enumerate every subset of binary patterns through length 1/2/2 against all binary texts through length 3/4/5, ordered duplicate dictionaries `[a, b, a]`, 100/1200/6000 seeded random dictionaries (alphabets 1, 3, 256) and 60/600/3000 random external tries. Every mode covers every query in both representations.
 
 | Feature | Independent checks |
 |---|---|
-| Node, add, size, patterns, trie states | Insertion IDs; state count equals the number of distinct pattern prefixes; every state's string rebuilt from the trie; `terminal`/`length` per ID. |
+| Node, add, size, patterns, order, trie states | Insertion IDs; state count equals the number of distinct pattern prefixes; every state's string rebuilt from the trie along `order` (parents first); `terminal`/`length` per ID. |
 | build (sparse/dense), link, out, step | Direct longest-suffix search for every state and bytes 0, 97–99, 127, 128, 255, checking `step` in both representations (the failure walk in sparse builds, the table in dense ones); repeated sparse/dense rebuilds; dense release on `build(false)`. |
 | fromTrie | Random labelled trees with shuffled node ids, alphabets 2–4 and 256, up to 40 nodes; node strings rebuilt from the parent chain; node ids preserved; sparse results release the table; every structural and text query compared with the direct oracles; single-node trie. Adversarial tries (spines `a^i`, `b a^i`, a `c` leaf below every `b a^i`) with `m = 3` (walk path) and `m = 20` (temporary dense path, `D > N * S`) under the full oracle, and `m = 500/5000/20000` with closed-form links and counts. Caterpillar trie (spine 2000/50000/200000 with a leaf at every spine node) with closed-form links, counts and depths, sparse and dense. |
 | matchCount, countPatterns, countPositions, countMatches, stateCounts | Direct matching of every pattern and state string at all `n+1` boundaries; empty and duplicate IDs. |
@@ -49,11 +49,11 @@ Runnable entry: [06-aho_tester.py](<../../96-Local Testing/07-Strings/06-aho_tes
 | Large counts | Nested unary patterns depth 100/1000/2500 on unary text 10000/150000/600000, closed-form counts, then a final mismatch forcing long sparse fallbacks. |
 | Preconditions | 15 checked-build death probes: unbuilt `step`/sink/`firstOccurrences`, `fromTrie` duplicate sibling label, unreachable cycle, parent out of range, end out of range, label size, `add` after build, negative and past-end `step` states, past-end `matchCount` state, negative `forEachOutput` state, invalid safe state, aggregate size. |
 
-Mutation sanity (not a gate): dropping the terminal check in output links, a wrong `fromTrie` depth, an off-by-one failure walk (rerun 2026-10-13: the sparse `step` check fails) and a corrupted link on the temporary dense path each fail the quick suite; so does dropping the failure-subtree minimum of `firstOccurrences` (2026-10-19).
+Mutation sanity (not a gate): dropping the terminal check in output links, a wrong `fromTrie` depth, an off-by-one failure walk (caught by the sparse `step` check) and a corrupted link on the temporary dense path each fail the quick suite; so does dropping the failure-subtree minimum of `firstOccurrences`.
 
 ## Commands and results
 
-Latest run 2026-10-19 (P017 re-sweep, `firstOccurrences`): GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations as in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
+Latest run 2026-10-19 (P017 re-sweep, `firstOccurrences`): GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/06-aho_tester.py' --mode full --seed 20261019
@@ -67,11 +67,11 @@ python3 '96-Local Testing/07-Strings/06-aho_tester.py' --mode stress --seed 7
 | full, g++-14 (floor) | PASS, same counts, MEMORY peak 541 MB |
 | stress, seed 7 | PASS, 3 configurations, 12,700,994 checks per configuration, MEMORY peak 717 MB |
 
-The benchmark was not rerun: `firstOccurrences` adds a query and changes no measured path. Integration, the folder run and consistency are recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results).
+The benchmark was not rerun: `firstOccurrences` adds a query and changes no measured path. Integration and consistency are recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results).
 
 ## Benchmarks
 
-`python3 '96-Local Testing/07-Strings/06-aho_benchmark.py' --seed 20261008`: Intel Core i9-11900H, GCC 16.2.1, GNU++20 `-O2 -DNDEBUG`, Python 3.14.7, one warmup and five measured repetitions, medians. Construction covers insertion (or `fromTrie`) and build; scanning calls `countMatches`, checked against `string::find` counts or the unary closed form outside the timed region. Random texts and patterns are uniform over the stated alphabet. Shared-host observations, not timing gates.
+`python3 '96-Local Testing/07-Strings/06-aho_benchmark.py' --seed 20261008`, run 2026-10-08: Intel Core i9-11900H, GCC 16.2.1, GNU++20 `-O2 -DNDEBUG`, Python 3.14.7, one warmup and five measured repetitions, medians. Construction covers insertion (or `fromTrie`) and build; scanning calls `countMatches`, checked against `string::find` counts or the unary closed form outside the timed region. Random texts and patterns are uniform over the stated alphabet. Shared-host observations, not timing gates.
 
 | Workload | States / alphabet | Sparse build + scan ms | Dense build + scan ms | Dense table bytes |
 |---|---|---|---|---|
@@ -83,8 +83,6 @@ The benchmark was not rerun: `firstOccurrences` adds a query and changes no meas
 | `fromTrie`: trie of 20,000 patterns of length 12; text 500,000 | 192,128 / 26 | 32.518 + 43.151 | 24.246 + 6.261 | 19,981,312 |
 | `fromTrie`: caterpillar spine 200,000; text 500,000 | 400,001 / 2 | 22.368 + 4.832 | 21.915 + 1.253 | 3,200,008 |
 | `fromTrie`: adversarial spines 20,000 (`D` about `2 * 10^8`); text 500,000 | 60,003 / 3 | 2.166 + 5.936 | 2.215 + 1.271 | 720,036 |
-
-Before the leaf-depth threshold, the adversarial sparse build took 683.259 ms.
 
 Dense scans are 3–13 times faster; dense builds match or beat sparse ones for small alphabets and are about twice as slow with 256 symbols, where the table costs 37 MiB. Dense stays an explicit choice. The unary workload counts 149,875,250 matches without materializing them.
 

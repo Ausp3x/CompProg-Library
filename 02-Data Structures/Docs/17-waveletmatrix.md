@@ -42,7 +42,7 @@ All three structures need only `T`'s `operator<` (a strict weak order whose equi
 | `BitVec` (`set`, `build`, `rank0`, `rank1`), `_cntLeq`, `_cntLeqOrd` | internal levels and the `descend` helper; row 40 `SuccinctBitVector` owns the bit-vector API |
 | planned `rangeFreq`, `prevValue` (strict), `nextValue`, `pointUpdate`, `rectangleFold`, `WaveletTree` | `countRange`; `maxLeq(l, r, x - 1, res)` for integers; `minGeq`; `set`/`apply`; `prod` (row 15's name); `WaveletMatrix` and `WaveletMatrixMonoid` (decided 2026-10-13) |
 
-The legacy `cntEql`, `cntRan`, `maxLeq` and `minGeq` computed `x - 1` and overflowed at `x = INT64_MIN` (the package note's defect). It also had no weights, `select` or rectangle forms, and returned `∓INF64`, which collides with stored values.
+The legacy `cntEql`, `cntRan`, `maxLeq` and `minGeq` computed `x - 1` and overflowed at `x = INT64_MIN`. It also had no weights, `select` or rectangle forms, and returned `∓INF64`, which collides with stored values.
 
 ## Feature-to-test map
 
@@ -59,11 +59,11 @@ Tester `96-Local Testing/02-Data Structures/17-waveletmatrix_tester.cpp`, entry 
 | Whole-level folds through the segment-tree root (power-of-two point counts, one `y`) | `monoidEdges` | Direct values |
 | Preconditions | `invalid` | Index ranges of every query, `kth`/`kthMax`/`kthSum` ranks, negative `select` rank, `sumLess`/`kthSum`/`rectangleSum` without weights, mismatched sizes, monoid point indices |
 
-Value distributions: one value, `[-2, 1]`, `[0, 20]`, full signed range, `{INT64_MIN, INT64_MIN + 1, -1, 0, 1, INT64_MAX - 1, INT64_MAX}`, and `k` exact distinct values. Query probes are every present value, its neighbours and the type extremes. Mutation check (2026-10-13, quick mode, temporary copies): 10 of 10 injected faults detected. They covered the zero-side descent, `bit_width(k - 1)` levels, the `kth` boundary, the dropped final `kthSum` run, the `select` bound, `maxLeq` with the lower rank, `present` without equality, the rectangle `x` upper bound, the dropped rank-`a` run and a segment-tree update that skips the root (caught only after `monoidEdges` was added).
+Value distributions: one value, `[-2, 1]`, `[0, 20]`, full signed range, `{INT64_MIN, INT64_MIN + 1, -1, 0, 1, INT64_MAX - 1, INT64_MAX}`, and `k` exact distinct values. Query probes are every present value, its neighbours and the type extremes. Mutation check (2026-10-13, quick mode, temporary copies): 10 of 10 injected faults detected. They covered the zero-side descent, `bit_width(k - 1)` levels, the `kth` boundary, the dropped final `kthSum` run, the `select` bound, `maxLeq` with the lower rank, `present` without equality, the rectangle `x` upper bound, the dropped rank-`a` run and a segment-tree update that skips the root.
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
@@ -100,4 +100,4 @@ Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 ## History
 
 - 2026-10-13: P029 first verification; the unchanged extraction was rewritten (MergeSortTree names, half-open ranges, `bool` status), with weights, `select`, `RectangleWaveletMatrix` and `WaveletMatrixMonoid` added. The independent review found no wavelet defects. The user renamed `rectangleFold` to `prod` and recorded `rank` and `prod` as keeps.
-- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 572/558/683 MB.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract for `WaveletMatrixMonoid`, stateful-monoid test added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 572/558/683 MB.

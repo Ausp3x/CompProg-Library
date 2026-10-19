@@ -1,10 +1,10 @@
 # 09-interval_algorithms.hpp — evidence
 
-`09-interval_algorithms.hpp` (batch MI03, package P014) covers interval domains with open/closed ends over continuous or integer points, union, events and overlap, stabbing, scheduling, cover, partition and nesting. It reuses the DS Fenwick. Every operation in the row has an independent-oracle test (map below). Prerequisites P002, P006 and P013 are verified. No online submission was made.
+`09-interval_algorithms.hpp` (batch MI03, package P014) covers interval domains with open/closed ends over continuous or integer points, union, events and overlap, stabbing, scheduling, cover, partition and nesting. It reuses the DS Fenwick. Every operation in the row has an independent-oracle test (map below). Prerequisites P002, P006 and P013 are verified.
 
 ## Contracts
 
-Common rules: sizes are below `INT_MAX`. Indices are zero-based and ranges half-open. Inputs are borrowed and never mutated unless a contract says so. Ties are deterministic but otherwise arbitrary. Comparators are pure strict weak orders, and equality callbacks are pure equivalences. Projections and predicates are pure and depend on element values, not addresses or positions. Callback exceptions propagate, with no rollback after mutation has begun. Each bound counts a comparison, projection, copy, move or `Count` operation as O(1).
+Common rules: see [00-notes.md](00-notes.md), Basic contracts.
 
 ### `IntervalDomain`, `Interval`: `bounds`, `empty`, `contains`
 
@@ -44,15 +44,13 @@ This finds the fewest sets whose union contains `target`. The bounds of `target`
 
 ### `intervalPartitionAssignment(a, domain)`
 
-This returns `{machines, machine}`, where `machine[i]` is in `[0, machines)` and sets on one machine are pairwise disjoint. `machines` equals the maximum overlap, or `1` when only empty sets exist (they all use machine 0), or `0` for no sets. It is minimal and runs in O(n * log(n + 1)) time using a min-heap of finishing bounds. The planned `39-scheduling.hpp` must forward here. Correctness: sets are processed by start. A new machine opens only when every busy machine's finish is at or after the current start, so all of them and the current set contain the start point; the machine count equals the maximum overlap, a lower bound. Reusing the earliest-finishing machine keeps the invariant.
+This returns `{machines, machine}`, where `machine[i]` is in `[0, machines)` and sets on one machine are pairwise disjoint. `machines` equals the maximum overlap, or `1` when only empty sets exist (they all use machine 0), or `0` for no sets. It is minimal and runs in O(n * log(n + 1)) time using a min-heap of finishing bounds. Correctness: sets are processed by start. A new machine opens only when every busy machine's finish is at or after the current start, so all of them and the current set contain the start point; the machine count equals the maximum overlap, a lower bound. Reusing the earliest-finishing machine keeps the invariant.
 
 ### `removeNestedIntervals(a, domain)` and `nestedIntervalCounts(a, domain)`
 
 Containment is set containment in the chosen domain. `removeNestedIntervals` keeps `i` iff no other set strictly contains it and no earlier id is an equal set. Output is in increasing start order, which is also increasing end order. Empty sets lie inside every set. They survive only when no nonempty set exists, and then only the first one. `nestedIntervalCounts` returns `res[i] = {number of other sets inside i, number of other sets containing i}`. Equal sets count in both directions. Empty sets are inside every other set, and an empty set contains only the other empty sets. Correctness: after sorting by `(l asc, r desc, id asc)`, an interval is contained in an earlier one iff the running maximum right bound reaches its right bound; equal sets meet this through the earlier id. `nestedIntervalCounts` processes blocks of equal sets in this order: containing sets are earlier blocks with right bound `>= r` (Fenwick suffix), contained sets are later blocks with right bound `<= r` (reverse pass, Fenwick prefix), plus the other members of its own block.
 
 ## Feature-to-test map
-
-Every oracle is independent of the implementation and uses non-removable checks. Tests run in the optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (the last only in full and stress). Assertion probes run as SIGABRT subprocesses in the checked build.
 
 | Operation | Oracle and cases |
 |---|---|
@@ -88,10 +86,10 @@ The code was written independently from the recurrences and proofs in the packag
 
 ## Limits and handoffs
 
-- Finite corpora support the proofs above; they are not proofs themselves. Vector sizes beyond `INT_MAX` are reviewed, not allocated.
+- Vector sizes beyond `INT_MAX` are reviewed, not allocated.
 - Comparator, callback and window-validity obligations are the caller's responsibility and are not asserted.
 - Checked builds cap the large interval fixtures (and the sequence fixtures) at 2000, because debug-STL partition checks make repeated `lower_bound` calls linear.
-- `39-scheduling.hpp`'s planned `intervalPartitionMachines` is to be removed as the projected `.first` of `intervalPartitionAssignment` (P079); whether Geometry `13`'s `segmentUnionLength` is a separate operation is open (P037). Both are in [duplicates.md](<../../00-Guidelines/23-Sweep Ledgers/duplicates.md>).
+- `39-scheduling.hpp`'s planned `intervalPartitionMachines` is to be removed as the projected `.first` of `intervalPartitionAssignment` (P079); Geometry `13`'s `segmentUnionLength` stays beside `intervalUnionMeasure` by decision (2026-10-18, P037). Both are in [duplicates.md](<../../00-Guidelines/23-Sweep Ledgers/duplicates.md>).
 - The code uses no `long` or POSIX-only calls.
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): k-machine schedules; interval jump queries; circular arc cover; ConstantIntervals.
 

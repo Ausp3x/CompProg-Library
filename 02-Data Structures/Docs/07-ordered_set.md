@@ -32,24 +32,20 @@ The Python entry and C++ oracle suite share the stem under `96-Local Testing/02-
 | OrderedMultiSet `insert`, `erase`, `eraseOne`, `clear`, `rebuild`, `size`, `empty`, `begin`, `end`, `lowerBound`, `upperBound`, `prev`, `rank`, `upperRank`, `count`, `findByOrder` | dynamic-history and random groups | Five-action histories through depth 5 and 12 random histories of 180 operations against a sorted token vector; stale/exact tokens, copy/move, ID exhaustion; `prev` at every rank probe |
 | OrderedSet, OrderedMap | PBDS adapter group | `std::set`/`std::map` with a stateful comparator |
 
-5 assertion probes: `id-exhaustion`, `rebuild-id-exhaustion`, `decode-end`, `decode-negative` and `range-order`. Per configuration: 715,602 checks (full, 2026-10-12). Checked builds of this suite use `_GLIBCXX_ASSERTIONS` instead of `_GLIBCXX_DEBUG`: GCC16 PBDS `debug_map_base` default-constructs its diagnostic comparator, which can disagree with a valid supplied stateful comparator. A reproduced equivalence-width example aborts only in that debug layer; all comparator oracle cases remain in the checked suite. This is an instrumentation limitation, not a skipped algorithm feature.
+5 assertion probes: `id-exhaustion`, `rebuild-id-exhaustion`, `decode-end`, `decode-negative` and `range-order`. Mutation check (2026-10-12, quick mode): `pointRange` with its right closure swapped, without its empty-range normalization, and `ranks` returning `upperRank` each failed; the header was restored. Checked builds of this suite use `_GLIBCXX_ASSERTIONS` instead of `_GLIBCXX_DEBUG`: GCC16 PBDS `debug_map_base` default-constructs its diagnostic comparator, which can disagree with a valid supplied stateful comparator. A reproduced equivalence-width example aborts only in that debug layer; all comparator oracle cases remain in the checked suite. This is an instrumentation limitation, not a skipped algorithm feature.
 
 ## Commands and results
 
-P013 prune run, 2026-10-12 (`ranks` and `pointRange` moved in from Miscellaneous `Compression`), GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64 (Intel Core i9-11900H). Every tester build used `-Wall -Wextra -Wconversion -Werror` in the optimized (`-O2 -DNDEBUG`), checked and ASan/UBSan configurations with leak checking.
-
-| Command | Result |
-|---|---|
-| `07-ordered_set_tester.py --mode full --seed 20260927` | PASS, 3 configurations, 715,602 checks per configuration, 5 assertion probes, `MEMORY peak=727MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=726MB` |
-| Mutation check: `pointRange` right closure swapped, empty-range normalization dropped, `ranks` returning `upperRank` | each FAIL in quick mode, header restored |
+P006 prune rerun, 2026-10-13: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64 (Intel Core i9-11900H).
 
 ```bash
-python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20260927
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20260927
+python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20261013
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20261013
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
 ```
 
-Integration, consistency and the Miscellaneous call-site suites of the same change are recorded in [04-compression.md](../../06-Miscellaneous/Docs/04-compression.md).
+Full, seed 20261013: PASS on g++ and g++-14 in the runner's optimized, checked (`_GLIBCXX_ASSERTIONS`, see above) and ASan/UBSan builds (header and tests unchanged since the 2026-10-12 P013 prune); check counts, probe counts and MEMORY peaks not recorded. Integration and consistency passed with the package run recorded in [02-fenwick.md](02-fenwick.md#commands-and-results).
 
 ## Sources
 
@@ -63,7 +59,7 @@ References inspected on 2026-09-27.
 
 ## Limits and handoffs
 
-Dynamic balanced/persistent ordered trees are future variants, not gaps of this row. Left out of the 2026-10-07 sweep, with reasons in [00-notes.md](00-notes.md#p006-re-audit-omissions): OrderedMultiSet `split`/`join` (`OrderedSet` keeps the native PBDS API, including both), CoordinateCompression distinct-by-position encoding and counting-sort mode.
+Dynamic balanced and persistent ordered trees are rows 19, 20 and 58, not gaps of this row. Left out of the 2026-10-07 sweep, with reasons in [00-notes.md](00-notes.md#p006-re-audit-omissions): OrderedMultiSet `split`/`join` (`OrderedSet` keeps the native PBDS API, including both), CoordinateCompression distinct-by-position encoding and counting-sort mode.
 
 ## History
 

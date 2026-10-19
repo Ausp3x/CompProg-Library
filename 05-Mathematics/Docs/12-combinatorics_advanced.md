@@ -125,7 +125,7 @@ For a = (a_0..a_n), prime modulus > n:
 | `stirling1SmallPrimeLargeN`, `stirling2SmallPrimeLargeN`, `stirlingQueries (offline)` | `StirlingSmallPrime::stirling1`, `stirling2` (user decision 2026-10-19) |
 | `qBinomial`, `qFactorial` | `QCombinatorics::qBinomial`, `qFactorial` |
 | `increasingSequencesBetweenBounds` | moved to row 67 ([67-lattice_paths.md](67-lattice_paths.md)) |
-| `factorialPowerConvert` | row 22 `factorialBasisConvert` (duplicates ledger) |
+| `factorialPowerConvert` | row 22 `factorialBasisConvert` (user decision 2026-10-19, [00-notes.md](00-notes.md), P054 research decisions) |
 
 Aliases: Library Checker `binomial_coefficient`, `binomial_coefficient_prime_mod`, `stirling_number_of_the_first_kind`, `..._fixed_k`, `..._small_p_large_n`, `stirling_number_of_the_second_kind` (same three forms), `bell_number`, `partition_function`, `q_binomial_coefficient_prime_mod`, `sharp_p_subset_sum`; maspypy `prefix_sum_of_binom`, `stirling_number_query`, `bell_number_large`, `q_analogue`, `surjection`; suisen `binomial_coefficient_enumeration`, `binomial_coefficient_sum`; Nyaan `stirling_matrix` (transforms), `pascal_matrix` (binomial transform); OEIS A000111 (zigzag), A003319 (indecomposable permutations).
 
@@ -138,16 +138,16 @@ Entry: [`12-combinatorics_advanced_tester.py`](<../../96-Local Testing/05-Mathem
 | `factorialValuation`, `kummerCarries` | Summed v_p(i) for n <= 3000 and seven primes; carries against Legendre for n <= 200, against digit sums for 2000 random 64-bit cases, at p = 2^64 - 1 for the 128-bit sum; Python exact v_p(C(n, k)) for n <= 5000. |
 | `binomialLucas`, `BinomialSmallPrimeTable`, `BinomialPrimePower` | Pascal's triangle modulo p for n <= 300 and six primes (k outside [0, n] included), and modulo p^e for eight prime powers up to 2^20; Python `math.comb` for n up to 10^18 with k or n - k <= 30, and all k for n <= 3000. |
 | `BinomialCompositeMod`, `binomialRowCompositeMod` | Pascal modulo eleven composites (m = 1 included) up to 2^27 * 3^16 * 7 * 11 * 23, above 2^63; rows against Pascal for 40 moduli up to 2^64 - 1; Python `math.comb` rows (hashed) up to N = 2500 and composite queries up to 10^18 for m up to 2 * 10^5 and smooth m up to 2^64. |
-| Prefix sums | `binomialPrefixSum` against Pascal sums for weights 1, 2, -1, 0 and random; Mo's queries (weights 1, 5, random and -1, also r = 2 modulo 3) and the block table (weights 1, -1, 0, 7 with B = 1, 3, 17, 1000, default) against it; Python exact sums for n up to 2^64 - 1. |
-| Factorial powers | C(x, n) n! modulo 998244353 and products modulo 2^64. |
-| Stirling rows and columns | The recurrences modulo 998244353, 1000003 and the composite 10^6 (rows; columns for primes), and rows modulo 101 up to n = 260 (n >= p takes the product tree). |
+| `binomialPrefixSum`, `binomialPrefixSumQueries`, `BinomialPrefixSumTable` | `binomialPrefixSum` against Pascal sums for weights 1, 2, -1, 0 and random; Mo's queries (weights 1, 5, random and -1, also r = 2 modulo 3) and the block table (weights 1, -1, 0, 7 with B = 1, 3, 17, 1000, default) against it; Python exact sums for n up to 2^64 - 1. |
+| `risingFactorial`, `fallingFactorial` | C(x, n) n! modulo 998244353 and products modulo 2^64. |
+| `stirling1Row`, `stirling2Row`, `stirling1Column`, `stirling2Column` | The recurrences modulo 998244353, 1000003 and the composite 10^6 (rows; columns for primes), and rows modulo 101 up to n = 260 (n >= p takes the product tree). |
 | `StirlingSmallPrime` | DP for n <= 400 and every k <= n + 2 at p = 2, 3, 5, 7, 11, 13, 101; the explicit sum for 64-bit n (also within 3p of 2^64, the review regression) and k < p; s(n, n) = 1 and s(n, n - 1) = -C(n, 2) at 64-bit n. |
-| Bell | The Bell triangle for n <= 500; `bellNumberLarge` against the triangle modulo six primes for n <= 1500, B_(p^m) = m + 1 mod p, and the period (p^p - 1) / (p - 1) for p <= 5. |
-| Eulerian | The descent recurrence for n <= 500; closed forms A(n, 1) = 2^n - n - 1, A(n, 2) and symmetry at 64-bit n; Python DP for n <= 1500, k <= 30. |
-| Entringer, Lah, surjections, bounded tuples | Alternating permutations enumerated for n <= 8; the Lah recurrence; the surjection recurrence (and Python DP); coefficients of (1 + ... + x^c)^k. |
-| Partitions | Coin-change DP for n <= 2000 (also modulo 2^64), bounded parts for eight bounds; enumeration against a recursive generator in order for n <= 30 and by count at n = 60. |
+| `bellTable`, `bellNumberLarge` | The Bell triangle for n <= 500; `bellNumberLarge` against the triangle modulo six primes for n <= 1500, B_(p^m) = m + 1 mod p, and the period (p^p - 1) / (p - 1) for p <= 5. |
+| `eulerianRow`, `eulerianNumber` | The descent recurrence for n <= 500; closed forms A(n, 1) = 2^n - n - 1, A(n, 2) and symmetry at 64-bit n; Python DP for n <= 1500, k <= 30. |
+| `entringerTable`, `lahNumber`, `surjectionCount`, `boundedStarsBars` | Alternating permutations enumerated for n <= 8; the Lah recurrence; the surjection recurrence (and Python DP); coefficients of (1 + ... + x^c)^k. |
+| `partitionTable`, `partitionCount`, `partitionsBoundedParts`, `partitionsDistinct`, `enumeratePartitions` | Coin-change DP for n <= 2000 (also modulo 2^64), bounded parts for eight bounds; enumeration against a recursive generator in order for n <= 30 and by count at n = 60. |
 | `QCombinatorics` | q-Pascal for every q modulo p = 2..17 and 101 (orders d <= N exercise q-Lucas), and q = 0, 1, -1, random modulo 998244353; `reset` on a live object from N = 12 to smaller tables with other q. |
-| Transforms | Direct O(n^2) sums with Pascal and both Stirling tables, and round trips. |
+| `binomialTransform`, `inverseBinomialTransform`, `stirlingTransform`, `inverseStirlingTransform` | Direct O(n^2) sums with Pascal and both Stirling tables, and round trips. |
 | `inclusionExclusion` | A direct scan of [1, X] for random divisor lists, pruned (lcm > X) and unpruned. |
 | `subsetSumCount` | 0/1 knapsack DP, zeros and values above t included. |
 | `pisanoPeriod` | Simulation for every m <= 20000; Python certificates (F_pi = 0, F_(pi + 1) = 1, pi / q not a period for every prime factor q of pi, factored by Pollard rho) for products of primes below 2^20 and for primes up to 2^64 times such products, every m below 2^64. |
@@ -190,7 +190,7 @@ Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.1
 | `bellNumberLarge`, p = 10007, n = 10^18: shipped left-to-right powering | 166.2 ms |
 | the same with right-to-left binary powering | 249.5 ms |
 
-Left-to-right powering replaces the multiplication by x of each set bit with a shift (33% faster here); together with row 13's two-prime aliased squaring, `bellNumberLarge` at p = 10007 fell from 365 ms to 166 ms. On random input, Core Poly `evalMulti` evaluates the 10^5-point step of `inverseStirlingTransform` in about 335 ms against 465 ms for the former private remainder tree (probe on the same machine).
+Left-to-right powering replaces the multiplication by x of each set bit with a shift (33% faster here). On random input, Core Poly `evalMulti` evaluates the 10^5-point step of `inverseStirlingTransform` in about 335 ms against 465 ms for the former private remainder tree (probe on the same machine).
 
 ## Sources
 
@@ -204,7 +204,7 @@ Fetched 2026-10-19 by `@researcher` and the package session ([00-sources.md](00-
 ## Limits and handoffs
 
 - n! mod p and C(n, k) mod p for n beyond any table (sample-point shift) are row 37; the factorial-basis conversion is row 22.
-- Scope decisions (left-out catalog candidates, each with its reason) are in [00-notes.md](00-notes.md), P054 decisions.
+- Scope decisions (left-out catalog candidates, each with its reason) are in [00-notes.md](00-notes.md), P054 research decisions.
 - No `97-Legacy` excerpt existed for this row.
 
 ## History

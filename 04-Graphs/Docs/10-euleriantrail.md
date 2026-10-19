@@ -1,6 +1,6 @@
 # 10-euleriantrail.hpp — evidence
 
-Owned by package P011 / GR03 (with `07-lca.hpp`, `08-scc.hpp` and `09-bridges_articulation.hpp`; GR26 `11-functionalgraph.hpp` completes P011); see [00-notes.md](00-notes.md#p011-package-record) for the package record. The header is complete within GR03's static Euler-trail scope. It uses the verified P010 `Graph`/`CsrGraph` representation, accepts loops and parallel edges, ignores weights across the full `lng` domain, leaves inputs unchanged and uses iterative traversals.
+Owned by package P011 / GR03 (with `07-lca.hpp`, `08-scc.hpp` and `09-bridges_articulation.hpp`; GR26 `11-functionalgraph.hpp` completes P011); omissions are in [00-notes.md](00-notes.md#p011-re-audit-omissions). The header is complete within GR03's static Euler-trail scope. It uses the verified P010 `Graph`/`CsrGraph` representation, accepts loops and parallel edges, ignores weights across the full `lng` domain, leaves inputs unchanged and uses iterative traversals.
 
 ## Contracts
 
@@ -18,7 +18,7 @@ The undirected degree condition is zero or two odd vertices; in the latter case 
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/10-euleriantrail_tester.py` reuses the graph test driver with non-removable assertions, failing graph/operation output, reproducible seeds and subprocess timeouts. The driver compiles GNU++20 optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g` ASan/UBSan with leak detection. Quick/full/stress coverage is documented in the runnable entry; quick omits sanitizers, and stress expands random corpora to 10,000 rounds and chain/cycle sizes to 500,000.
+`96-Local Testing/04-Graphs/10-euleriantrail_tester.py` reuses the graph test driver, which compiles GNU++20 optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g` ASan/UBSan with leak detection. Quick/full/stress coverage is documented in the runnable entry; quick omits sanitizers, and stress expands random corpora to 10,000 rounds and chain/cycle sizes to 500,000.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -26,8 +26,6 @@ The undirected degree condition is zero or two odd vertices; in the latter case 
 | `eulerianTrail(..., true)` lexicographic option | Every case with at most 8 edges, automatic start and every explicit start, Graph and CSR; 200,000-vertex reversed-insertion cycles (directed, and undirected with two parallel chords) | Memoized search over used-edge masks computes the smallest vertex sequence from every start; cross-checked against the subset DP's existence answer; hand-derived smallest sequence for the large cycles |
 | Representations, lifecycle and boundaries | Graph/CSR in every small case, oriented arc/logical-ID validation, zero-edge and n=0 successes, wrong legal starts, degree failures, balanced disconnected graphs, loops and isolates, extreme ignored weights, result move/repeated calls, mutation/snapshot, 200,000-vertex directed/undirected chains and cycles | Same oracles |
 | Preconditions | Three checked assertion probes | Expected assertion failure |
-
-Finite tests complement the algorithm arguments; they do not prove all inputs.
 
 ## Commands and results
 
@@ -66,7 +64,7 @@ Legacy: the `EulerPath` sections of `OLD/Team Notebook/src/algsbetter.cpp` (line
 
 ## Limits and handoffs
 
-Euler-tour counting belongs to `53-graph_counting.hpp`, and Chinese postman/route augmentation to `69-tjoin.hpp`; mixed directed/undirected Euler circuits need max flow and belong with rows 19/30/69. These are not claimed here. GCC 14.4.1 (`CXX=g++-14`) passed the full-mode floor check on 2026-10-14.
+Euler-tour counting belongs to `53-graph_counting.hpp`, and Chinese postman/route augmentation to `69-tjoin.hpp`; mixed directed/undirected Euler circuits need max flow and belong with rows 19/30/69. These are not claimed here.
 
 ## History
 

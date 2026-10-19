@@ -8,7 +8,7 @@ Implementation: [09-triangle.hpp](../09-triangle.hpp). Prerequisites C01/P002, G
 
 - Every operation takes O(1) time and O(1) storage and allocates nothing. The one exception is `Triangle2::centroid`, whose `RationalPoint2` gcd normalization takes O(log(C)) word operations, C <= 3 * 10^9. There is no size threshold, competing asymptotic algorithm or ISA path, so this contest-profile header has nothing to benchmark.
 - Exact APIs (`Triangle2`, `Barycentric2`) use integral `point` coordinates in [-10^9, 10^9]; determinants widen to `lll` before multiplication. Public fields must keep that domain.
-- Approximate APIs (`TriangleApprox`, `heronAreaApprox`) follow the `CircleApprox` policy of [00-notes.md](00-notes.md#ge02-numeric-policy-p008). Inputs, intermediates and results must be finite, and nonzero divisors and geometric distinctions must survive rounding. Signs are computed with no hidden epsilon and no certified topology. Overflow, or a nonzero divisor erased by rounding, is a precondition violation, not a no-answer result.
+- Approximate APIs (`TriangleApprox`, `heronAreaApprox`) follow the `CircleApprox` policy of [00-notes.md](00-notes.md#ge02-numeric-policy-p008). Overflow, or a nonzero divisor erased by rounding, is a precondition violation, not a no-answer result.
 - Every failed bool query leaves its output unchanged, even when that output aliases a vertex.
 
 ### Barycentric2
@@ -59,7 +59,7 @@ Heron sorts `a >= b >= c`, then tests `c - (a - b)`: negative is impossible and 
 
 ## Feature-to-test map
 
-Entry: [09-triangle_tester.py](<../../96-Local Testing/03-Geometry/09-triangle_tester.py>), with its C++ feature suite and the shared geometry runner. Python uses only the standard library. Failures stay active under `NDEBUG` and print the seed, the reproducing input and operation, and the expected and actual values. The runner adds command, configuration and crash or timeout details.
+Entry: [09-triangle_tester.py](<../../96-Local Testing/03-Geometry/09-triangle_tester.py>), with its C++ feature suite and the shared geometry runner. Python uses only the standard library. Failures print the seed, the reproducing input and operation, and the expected and actual values. The runner adds command, configuration and crash or timeout details.
 
 | Feature or edge class | Independent verification |
 |---|---|
@@ -97,8 +97,6 @@ P009 prune run, 2026-10-13: Linux x86-64, i9-11900H, GCC 16.2.1 20260810 and the
 | `02-integration.py` | PASS, 135 standalone and aggregate headers, scalar and available AVX2 multiple-translation-unit builds, workspace; peak 650 MB |
 | `03-consistency.py`; `--braces` on header and tester | No errors; no closing-brace, comment-cap or free-function violations |
 | `@reviewer`: bit-exact old-versus-new comparison of the kept methods and every replacement form on 200,000 triangles (38,643 degenerate) under ASan/UBSan; quick seed 3 | No defects; one test-map wording fix |
-
-Check counts are below the 2026-10-07 run's because the comparisons of the removed methods against the circles they forwarded are gone; every other case is unchanged or moved to `circumcircleApprox` and `incircleApprox`.
 
 ```bash
 python3 '96-Local Testing/03-Geometry/09-triangle_tester.py' --mode full --seed 20261013

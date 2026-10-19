@@ -93,9 +93,9 @@ Entry: [`18-floorsum_tester.py`](<../../96-Local Testing/05-Mathematics/18-floor
 | `floorSumMoments` | Direct sums in `ulll` and in `mint` (`ModInt<998244353>`) in the exhaustive and long-loop domains, the first moment against `floorSum`, and the Python OI Wiki `f`, `g`, `h` recursion modulo 2^128 and modulo 998244353. |
 | `minOfModOfLinear`, `maxOfModOfLinear` | Direct scans with the least index, and certificates: the value at `x`, no smaller (larger) value counted by `countModInRange`, and `x` recovered by `firstModInRange`. A Python binary search on the value with floor-sum counts and the least argument from a modular inverse, a different algorithm. |
 | `firstModInRange` | A one-period scan for every `[l, r)` in the exhaustive domain, certificates (value in range, no earlier hit by count, a full-period count for `-1`), and a Python binary search on the prefix count. |
-| Quotient blocks | Exhaustive `n <= 3000` against the set of quotients, and tiling, maximality and the block-count formula up to `10^12` and `2^40`. Joint blocks against the per-`x` quotient tuples for up to four values below 400. |
+| `forEachQuotientBlock`, `enumerateQuotients`, `forEachJointQuotientBlock` | Exhaustive `n <= 3000` against the set of quotients, and tiling, maximality and the block-count formula up to `10^12` and `2^40`. Joint blocks against the per-`x` quotient tuples for up to four values below 400. |
 | Oracle validation | The Python recursions, the value search and the first-hit search are checked against brute force for `n <= 8`, `m <= 7` and `a, b` in `[-9, 9]` before use. |
-| Preconditions | Eleven checked-build death probes: `m = 0` (for `floorSum` and `floorSumWide`), `n < 0`, reversed and oversized ranges, moments with `m = 0`, an empty minimum, `max` with `m = 0`, a negative bound, and negative quotient inputs. A separate `-DNDEBUG` probe (2026-10-18, `-O0` and `-O2`) confirmed that 16 violating calls (zero or negative `m` and `n`, empty and reversed ranges, negative quotient inputs) terminate. In round 3 a negative `m` in `floorSumWide` reached a 128-bit shift (UB under `-fsanitize=undefined`); the shift is now split in two, and the reviewer's reproducer runs clean. |
+| Preconditions | Eleven checked-build death probes: `m = 0` (for `floorSum` and `floorSumWide`), `n < 0`, reversed and oversized ranges, moments with `m = 0`, an empty minimum, `max` with `m = 0`, a negative bound, and negative quotient inputs. A separate `-DNDEBUG` probe (2026-10-18, `-O0` and `-O2`) confirmed that 16 violating calls (zero or negative `m` and `n`, empty and reversed ranges, negative quotient inputs) terminate. |
 
 ## Commands and results
 
@@ -115,7 +115,7 @@ Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.1
 
 ## Benchmarks
 
-`18-floorsum_benchmark.py 5` (2026-10-19, round 3), GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 5 repetitions. Run serially on the final code, with other sessions keeping the load average near 2.7; two earlier runs at load 1.8 agreed with each other within 1% and were about 25% faster overall. Outputs are compared across kernels, and the Farey rank is verified.
+`18-floorsum_benchmark.py 5` (2026-10-19, round 3), GCC 16.2.1, `-O2` without `-march`, Intel Core i9-11900H, one warmup and the median of 5 repetitions. Run serially on the final code, with other sessions keeping the load average near 2.7. Outputs are compared across kernels, and the Farey rank is verified.
 
 10^6 random `floorSum` queries with `0 <= a, b < m`:
 
@@ -124,7 +124,7 @@ Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.1
 | `n, m <= 10^9` (Library Checker sizes) | 211.6 ms | 224.8 ms | 187.4 ms |
 | `n, m < 2^62` | 440.1 ms | 514.5 ms | not valid |
 
-The 64-bit division branch keeps `floorSum` within 13% of ACL's 64-bit-only kernel on its domain in this run (3–4% in the two quieter runs) and faster than an always-128-bit kernel everywhere. Skipping the 128-bit normalization for `a, b` in `[0, 2^64)` removed a measured 10% overhead on 62-bit inputs.
+The 64-bit division branch keeps `floorSum` within 13% of ACL's 64-bit-only kernel on its domain and faster than an always-128-bit kernel everywhere. Skipping the 128-bit normalization for `a, b` in `[0, 2^64)` removed a measured 10% overhead on 62-bit inputs.
 
 10^5 random `floorSumWide` queries with `n < 2^63` and `0 <= a, b < m`, against the former kernel with 128 restoring steps per round (kept in the benchmark):
 
@@ -133,7 +133,7 @@ The 64-bit division branch keeps `floorSum` within 13% of ACL's 64-bit-only kern
 | `m < 2^64` | 59.7 ms | 81.2 ms |
 | `2^64 <= m < 2^127` | 97.7 ms | 787.8 ms |
 
-The word step makes `floorSumWide` 7.4–8.1× faster on wide moduli (this run and the quieter ones). Below `2^64` both take the direct division; the 1.4× there comes from the smaller kernel.
+The word step makes `floorSumWide` 8.1× faster on wide moduli. Below `2^64` both take the direct division; the 1.4× there comes from the smaller kernel.
 
 ## Sources
 
@@ -154,5 +154,5 @@ Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep)
 ## History
 
 - 2026-10-18: P060 initial implementation; `@reviewer` found 8 package issues, all fixed; full suite passed on g++ and g++-14, stress seed 7 and integration passed.
-- 2026-10-19: P037 added `floorSumWide` for geometry row 19. Independent review: the coefficient reduction overflowed `lll` (now modulo `2^128`), a direct division when the numerator fits 128 bits; the stress run caught a signed overflow in the tester's direct sum (now modulo `2^128`). Full suite passed on g++ and g++-14, stress seed 7 passed.
-- 2026-10-19 (round 3): `divStep` replaced its 128 restoring steps by one Knuth D word step with at most one correction (7.4× faster on wide moduli), tested against a restoring-division oracle including remainders 0–3. Mutation checks on a private copy: dropping the remainder update of a correction, an off-by-one shift, an unshifted remainder and a correction test without the low word are caught. Full suite passed on g++ and g++-14, stress seed 7 passed, row 20 full passed. Independent review: a negative modulus under `NDEBUG` reached a 128-bit shift (now split, UB-free); shift-62 moduli pinned in the tests. Final full suite passed on g++ and g++-14, stress seed 7 passed, row 20 full passed.
+- 2026-10-19: P037 added `floorSumWide` for geometry row 19; review fixes (coefficient reduction modulo `2^128`, direct division when the numerator fits 128 bits) and a tester overflow caught by the stress run; full suite passed on g++ and g++-14, stress seed 7 passed.
+- 2026-10-19 (round 3): `divStep` became one Knuth D word step with at most one correction (mutation checks on a private copy caught four planted faults); review found a 128-bit shift reachable by a negative modulus under `NDEBUG` (split, UB-free) and pinned shift-62 moduli; final full suite passed on g++ and g++-14, stress seed 7 and row 20 full passed.

@@ -1,6 +1,6 @@
 # 02-debug.hpp — evidence
 
-`02-debug.hpp` (C01, package P002, together with `01-template.hpp`; see [01-template.md](01-template.md)) is the `LOCAL`-only formatting and tracing layer. It does not advertise general C++ reflection.
+`02-debug.hpp` (C01, package P002, together with `01-template.hpp` and `18-bitset.hpp`; see [01-template.md](01-template.md)) is the `LOCAL`-only formatting and tracing layer. It does not advertise general C++ reflection.
 
 ## Contracts
 
@@ -56,22 +56,22 @@ These helpers have no material numeric/vector kernel warranting an ISA-specific 
 
 | Operation | Test | Oracle |
 |---|---|---|
-| Scalar/string output, `IS_BIT_PROXY`, floating and enum formatting | `02-debug_tester.cpp`: `testScalarsAndStrings`, `testFloatingRoundTrip`, `testOptionalVariantHooksAndWidths`, `testViewsAndRandomNesting` | Signed/unsigned 128-bit extrema, bounded exhaustive small integers, all 256 char bytes, embedded NUL strings, signed/unsigned byte values, bitsets, floating literals/extrema/denormals/long double, seeded random double/float `strtod`/`strtof` round trips with a 17-significant-digit bound, scoped/unscoped/byte-wide/streamable enums (`uint8_t` and `char` unscoped enums print numbers, a scoped `char` enum with `operator<<` streams its character), proxies from slices, views, nested slices, `bitset` references and a user bit-proxy class; `Debug::to_string(Bitset::Reference)` in the bitset suite |
-| Tuples, `element`, aggregates (`AGG_SIZE_GEQ`, `AGG_SIZE_EXACT`) | `testTuplesRangesAndAggregates`; `testOptionalVariantHooksAndWidths` | Sizes 0–9, tuple nesting, arrays; custom tuple protocol, complex aggregate handled by hook |
+| Scalar/string output (`write`, `writeRange`), `IS_BITSET`, `IS_BIT_PROXY`, `IS_UNSCOPED_ENUM`, floating and enum formatting | `02-debug_tester.cpp`: `testScalarsAndStrings`, `testFloatingRoundTrip`, `testOptionalVariantHooksAndWidths`, `testViewsAndRandomNesting` | Signed/unsigned 128-bit extrema, bounded exhaustive small integers, all 256 char bytes, embedded NUL strings, signed/unsigned byte values, bitsets, floating literals/extrema/denormals/long double, seeded random double/float `strtod`/`strtof` round trips with a 17-significant-digit bound, scoped/unscoped/byte-wide/streamable enums (`uint8_t` and `char` unscoped enums print numbers, a scoped `char` enum with `operator<<` streams its character), proxies from slices, views, nested slices, `bitset` references and a user bit-proxy class; `Debug::to_string(Bitset::Reference)` in the bitset suite |
+| Tuples, `element`, aggregates (`Any`, `AGG_SIZE_GEQ`, `AGG_SIZE_EXACT`) | `testTuplesRangesAndAggregates`; `testOptionalVariantHooksAndWidths` | Sizes 0–9, tuple nesting, arrays; custom tuple protocol, complex aggregate handled by hook |
 | Ranges and views | `testViewsAndRandomNesting` and range groups | Standard sequence/ordered/unordered containers, C arrays, spans, packed bools, filter/iota views; seeded nested vectors versus an independent stream-built expected result |
 | `container` (queue, stack, priority_queue) | `testContainerAdaptors` | Empty/populated adaptors, comparator variants, content and unchanged-state checks; move-only queue elements |
-| Optional and variant | `testOptionalVariantHooksAndWidths` | Absent/present/nested optional; each variant alternative, duplicate types, monostate, and a throwing move assignment that produces the valueless state |
+| Optional and variant (`IS_OPTIONAL`, `IS_VARIANT`) | `testOptionalVariantHooksAndWidths` | Absent/present/nested optional; each variant alternative, duplicate types, monostate, and a throwing move assignment that produces the valueless state |
 | `debugString` hooks | Hook groups in `02-debug_tester.cpp` | Hook/stream precedence, hook/range precedence, nested optional/range hooks, array/reference aggregate hook, move-only hook |
 | `slice` | Slice groups in `02-debug_tester.cpp` | 1D/2D/3D, mutation through borrowed source, const/temporary source, empty/clipped/INT_MAX endpoints, owned nested temporaries and prvalue subranges; assertion failures for negative start and reversed endpoints |
 | `debugO`, `debug`, `trace`, `Tracer`, `dep`, `indent` | Output groups in `02-debug_tester.cpp` | Exact output, empty argument list, expression/short-circuit/if-else contexts, multiple trace calls on one source line, nesting and ownership traits, extreme indentation, tracer precondition failure |
 | Disabled macros | `02-debug_no-local_tester.cpp` | Side effects, nonexistent names/types, loops, if/else and expression contexts |
 | Standalone inclusion, macro syntax, multiple TUs | `02-debug_compile_tester.py` | Template/debug standalone inclusion in LOCAL/non-LOCAL, macro syntax, same/mixed-LOCAL multiple-TU linkage and execution with `-Wall -Wextra -Werror` |
 
-Full checked debug execution also requires SIGABRT for the three documented invalid-precondition cases. Quick uses the optimized configuration and 500 random histories; full runs 5,000 histories per configuration; stress uses the same full configuration set and 30,000 histories with the requested seed. Fixed boundary and formatting tests run in all modes. All oracles are non-removable checks.
+Full checked debug execution also requires SIGABRT for the three documented invalid-precondition cases. Quick uses the optimized configuration and 500 random histories; full runs 5,000 histories per configuration; stress uses the same full configuration set and 30,000 histories with the requested seed. Fixed boundary and formatting tests run in all modes.
 
 ## Commands and results
 
-The entries resolve their headers relative to the script and run from any working directory; `CXX` selects the compiler, and they accept `--mode quick|full|stress` and `--seed` (or `CP_TEST_MODE`/`CP_TEST_SEED`). The runner compiles with `-Werror`, and its precondition-abort cases require an assertion message on stderr.
+Harness: [`05-testing.md`](../../00-Guidelines/05-testing.md); flags `--mode` and `--seed` (or `CP_TEST_MODE`/`CP_TEST_SEED`). The precondition-abort cases require an assertion message on stderr.
 
 Restyle, 2026-10-08 (slice comment reworded; behavior unchanged):
 
@@ -89,7 +89,7 @@ All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64, with 
 ## Sources
 
 - `OLD/1-Core/02-debug.hpp`: immediate feature/API reference. The active debug preserves `Debug::to_string`, `debugO`, `slice`, `dep`, `indent`, `Tracer`, the aggregate arity predicates (renamed `AGG_SIZE_GEQ`/`AGG_SIZE_EXACT`) and the `debug`/`trace` macros.
-- `01-Core/97-Legacy/02-debug.cpp`: the older aggregate heuristic and invalid adaptor downcast are superseded by the explicit aggregate domain and legal pointer-to-member access. Original bytes remain in `OLD`.
+- `OLD/[1] algorithms.cpp` lines 31–228: the older aggregate heuristic and invalid adaptor downcast are superseded by the explicit aggregate domain and legal pointer-to-member access.
 - Deliberate output changes against the legacy debug: null character pointers print `nullptr` rather than an empty string; oversized aggregates show an explicit unsupported marker instead of misleading `{}`; signed/unsigned char values print their numeric value (ordinary char retains quoted-byte output); floating point prints shortest round-trip text instead of `std::to_string` fixed six decimals; enums print their underlying value. Optional/variant/custom hooks are additions. Inclusive slice semantics and raw-byte string formatting are preserved.
 - [cppreference, `std::visit`](https://en.cppreference.com/w/cpp/utility/variant/visit2.html), revision 187035, inspected 2026-09-27: visitation throws `bad_variant_access` for valueless input; one-variant dispatch has constant complexity independent of alternative count. This is the C++17/20 free function, not the similarly named C++26 member page. No external source code was copied.
 - Installed GCC 16.2.1 libstdc++ headers, independently inspected on 2026-09-27: `/usr/include/c++/16/variant` lines 1952–1987 checks the valueless state before visitation; `/usr/include/c++/16/optional` lines 1250–1304 checks engagement before dereference and distinguishes throwing `value()`. `/usr/include/c++/16/bits/stl_queue.h` lines 152–161 and 591–594, and `stl_stack.h` lines 154–156 expose the standard protected backing-container member. These checks support the standard API contracts and legal inherited-member access, rather than granting correctness to the old debug implementation.
@@ -97,7 +97,7 @@ All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64, with 
 
 ## Limits and handoffs
 
-Wide/UTF string types, arbitrary reflection, pointer-pointee traversal and format customization beyond hooks/streaming are outside this convenience layer; callers use hooks where needed. The bit-proxy rule treats any class convertible to bool with a `flip()` member as a proxy (a `debugString` hook overrides it); long double output is the 80-bit x87 shortest text on x86-64; `__float128` has no `to_chars` and is outside the domain; a user `operator<<` for a byte-wide unscoped enum that prints exactly the raw byte is indistinguishable from promotion and yields the number. GCC 14.4.1 (`CXX=g++-14`, the floor check) also passed. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug"). Workspace regeneration stays coordinated with SUP05/P003.
+Wide/UTF string types, arbitrary reflection, pointer-pointee traversal and format customization beyond hooks/streaming are outside this convenience layer; callers use hooks where needed. The bit-proxy rule treats any class convertible to bool with a `flip()` member as a proxy (a `debugString` hook overrides it); long double output is the 80-bit x87 shortest text on x86-64; `__float128` has no `to_chars` and is outside the domain; a user `operator<<` for a byte-wide unscoped enum that prints exactly the raw byte is indistinguishable from promotion and yields the number. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug"). Workspace regeneration stays coordinated with SUP05/P003.
 
 ## History
 
@@ -106,3 +106,4 @@ Wide/UTF string types, arbitrary reflection, pointer-pointee traversal and forma
 - 2026-09-27: post-migration namespace review, full suite, consistency and workspace check passed.
 - 2026-10-06: re-audit, 6 findings fixed (bit proxies, row names, ALL_CAPS predicates, closers, tester braces), shortest floating and enum formatting added, full and stress passed on g++.
 - 2026-10-06 (run): full (seed 335597) and stress (seed 1) passed on g++, Workspace regenerated.
+- 2026-10-08: restyle (slice comment reworded, behavior unchanged), full suite (seed 20261008, 16/16 steps) passed on g++ and g++-14, integration, consistency and workspace check passed.

@@ -340,7 +340,7 @@
         "07-Strings/Docs/07-suffixarray.md",
         "07-Strings/Docs/08-palindrome_queries.md"
       ],
-      "note": "Omission sweep 2026-10-19: implement build (SA-IS default; generic T through compressAlphabet) and doubling (static builder SuffixArray<T>::doubling(s, with_rmq), prefix doubling, kept as row 12 independent oracle) in 07-suffixarray.hpp; a small-input dispatch only with a measured crossover."
+      "note": ""
     },
     {
       "id": "P025",
@@ -396,7 +396,7 @@
       ],
       "phase": "Core full types",
       "size": "M+M",
-      "model": "opus",
+      "model": "fable",
       "status": "verified",
       "evidence": [
         "01-Core/Docs/08-infintmini.md",
@@ -538,7 +538,7 @@
       "model": "opus",
       "status": "verified",
       "evidence": [
-        "96-Local Testing/00-memory-safety.md"
+        "96-Local Testing/Docs/00-memory-safety.md"
       ],
       "note": ""
     },
@@ -839,7 +839,7 @@
         "07-Strings/Docs/22-lexicographic_queries.md",
         "07-Strings/Docs/23-dynamicstringhash.md"
       ],
-      "note": "Omission sweep 2026-10-19: implement distinctSubstringsByLength in 22-lexicographic_queries.hpp."
+      "note": ""
     },
     {
       "id": "P060",
@@ -954,7 +954,7 @@
       "evidence": [
         "07-Strings/Docs/11-suffixtree.md"
       ],
-      "note": "Omission sweep 2026-10-19: implement lca (O(1)), suffixLink (O(1), links precomputed at build by an offline LCA pass, replacing the O(log n) weightedAncestor derivation), weightedAncestors (offline batch, O((n + q)·α(n))) in 11-suffixtree.hpp; weightedAncestor stays online O(log n) by jump pointers."
+      "note": ""
     },
     {
       "id": "P072",
@@ -1918,7 +1918,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "08-Python — graph advanced"
+      "note": ""
     },
     {
       "id": "P111",

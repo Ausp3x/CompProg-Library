@@ -16,7 +16,7 @@
 - `longestRepeated(k = 2)` returns `{start,length}` of the longest substring with at least `k >= 1` (asserted) occurrences, overlaps allowed. `k = 1` gives the whole text `{0,n}`; no answer (including `k > n`) gives `{0,0}`. Equal lengths select the lexicographically smallest such substring, then its earliest start. It takes the maximum over windows of `k-1` adjacent LCP entries of the window minimum with a monotonic deque, then scans the selected LCP group: `O(n)` time, `O(min(k, n))` deque workspace, no RMQ.
 - `longestRepeatedDisjoint()` returns `{first,last,length}` of the longest substring with two non-overlapping occurrences (`last - first >= length`), choosing the lexicographically smallest such substring; `first`/`last` are its earliest and latest starts. No answer gives `{0,0,0}`. Binary search on the length, each probe scanning LCP groups for the start spread: `O(n * log(n+1))` time, `O(1)` workspace, no RMQ.
 - `longestCommonSubstring(a,b)` returns `{start_in_a,start_in_b,length}`. No common symbol returns `{0,0,0}`. Ties choose the lexicographically smallest common substring, then its earliest start independently in each input. Both vectors must use the same integer type; byte overloads use unsigned byte order. It requires `n+m+1 < INT_MAX`, codes the concatenation with `alphabetCodes` (shifted by the union minimum, or sorted when the union range is at least `max(4(n + m), 256)`), adds one so that a fresh separator zero is smaller than every symbol whatever the original values, and builds the joined index with the tested constructor without RMQ. Time is `O(n+m)` for bytes and dense ranges, `O((n+m) * log(n+m+1))` otherwise; storage/workspace `O(n+m)`.
-- `rmq` is a `SparseTable<Min<int>>` over `lcp` (`00-monoids.hpp` preset; the nested `Minimum` functor was replaced on 2026-10-17, and `SubstringOrder` in `22-lexicographic_queries.hpp` uses the same preset). Fields are read-only after construction; replace the object to change its input. Copy and move destinations preserve their indexes. Assign a valid object to a moved-from object before querying it. The construction helpers operate on owned fields: `build(with_rmq)` (codes and SA-IS over the owned text) requires only `n < INT_MAX`; `buildIndex(with_rmq)` (inverse ranks, LCP and RMQ) requires `sa` to be the suffix array of `text`. Codes compare through `ulll` differences: for every integral `T` up to 128 bits, including `bool`, signed extremes and `__int128`, `ulll(x) - ulll(min)` is the exact difference, and the dense codes stay below `INT_MAX - 1`.
+- `rmq` is a `SparseTable<Min<int>>` over `lcp` (`00-monoids.hpp` preset, also used by `SubstringOrder` in `22-lexicographic_queries.hpp`). Fields are read-only after construction; replace the object to change its input. Copy and move destinations preserve their indexes. Assign a valid object to a moved-from object before querying it. The construction helpers operate on owned fields: `build(with_rmq)` (codes and SA-IS over the owned text) requires only `n < INT_MAX`; `buildIndex(with_rmq)` (inverse ranks, LCP and RMQ) requires `sa` to be the suffix array of `text`. Codes compare through `ulll` differences: for every integral `T` up to 128 bits, including `bool`, signed extremes and `__int128`, `ulll(x) - ulll(min)` is the exact difference, and the dense codes stay below `INT_MAX - 1`.
 
 Correctness: both codings are strictly increasing maps of the symbols (a shift, or ranks among the distinct values), so suffix order, LCPs and every derived answer are unchanged; SA-IS correctness is argued in [12-sais.md](12-sais.md). For `doubling`: at doubling width `k`, each current rank describes the first `k` symbols of its suffix. Suffixes shorter than or equal to `k` have a missing second rank, smaller than every real rank. Listing those starts first, then subtracting `k` from the current suffix order where possible, sorts all starts by second rank. Stable counting sort on first ranks therefore sorts the rank pairs. Consecutive unequal pairs receive consecutive ranks, preserving equality and lexicographic order for width `2k`. Eventually the width covers every suffix; unique ranks permit early termination. Missing ranks use the internal value `-1`, never a text symbol. Width and index calculations avoid overflowing signed sums.
 
@@ -28,15 +28,15 @@ A substring with at least `k` occurrences is a common prefix of `k` consecutive 
 
 ### Legacy mapping
 
-| Removed (prune, 2026-10-13) | Replacement |
+| Removed | Replacement |
 |---|---|
-| Kasai loop inside `SuffixArray::build` (second implementation) | `lcpArray(text, sa)` from `12-sais.hpp`; same `lcp` values |
+| Kasai loop inside `SuffixArray::build` (second implementation; prune, 2026-10-13) | `lcpArray(text, sa)` from `12-sais.hpp`; same `lcp` values |
 | Prefix doubling as the default construction (2026-10-19, omission sweep) | `SuffixArray<T>::doubling(s, with_rmq)`; the constructors use SA-IS |
 | `build(bytes, with_rmq)` byte flag and its `[0, 256)` precondition (2026-10-19) | `build(with_rmq)`: bytes always take the dense shift |
 
 ## Feature-to-test map
 
-Runnable entry: [07-suffixarray_tester.py](<../../96-Local Testing/07-Strings/07-suffixarray_tester.py>), with the actual-header [C++ suite](<../../96-Local Testing/07-Strings/07-suffixarray_tester.cpp>). All test oracles survive `-DNDEBUG`.
+Runnable entry: [07-suffixarray_tester.py](<../../96-Local Testing/07-Strings/07-suffixarray_tester.py>), with the actual-header [C++ suite](<../../96-Local Testing/07-Strings/07-suffixarray_tester.cpp>).
 
 | Feature/domain | Independent verification |
 |---|---|
@@ -46,14 +46,14 @@ Runnable entry: [07-suffixarray_tester.py](<../../96-Local Testing/07-Strings/07
 | Pattern interval and acceleration | Direct suffix/pattern scans for every substring of short inputs, empty/absent/extreme patterns, random patterns, with and without RMQ; unary patterns half the text length and longer than the entire text; brace-list texts and patterns starting with `0` for `int` and `lng` (compile-time ambiguity regression). |
 | Longest repeated (k), disjoint repeat | Direct enumeration of every distinct substring with its sorted occurrence starts, longest first and lexicographic within a length: `k = 2` for every case, every `k` in `1..n+1` and the disjoint variant for `n <= 24` (all exhaustive ternary texts, binary random texts); unary and period-three closed forms at 5,000/200,000/700,000 for `k` in `{1, 3, n/2, n, n+1}`, `k = 4` and the disjoint witness. |
 | Longest common substring | Direct pair-of-starts LCP oracle, all binary input pairs through lengths 3/5/6, random byte/signed/unsigned inputs, empty/disjoint inputs and canonical ties; a large periodic pair. |
-| Lifecycle and query configuration | Deferred and repeated `buildRmq`, default empty queries, copy, move destination, reassignment of moved-from object, assignment of a different index. |
+| Lifecycle, `text`, `size` and query configuration | `text` equal to the input and `size()` to its length; deferred and repeated `buildRmq`, default empty queries, copy, move destination, reassignment of moved-from object, assignment of a different index. |
 | Preconditions | Ten checked subprocesses require assertion `SIGABRT`: negative/past-end LCE positions, absent RMQ, invalid half-open intervals and `longestRepeated(0)`. |
 | Warnings | Every configuration compiles with `-Wall -Wextra -Wshadow -Wconversion -Werror`, including the `SuffixArray<bool>` and `signed char` instantiations. |
 | Large/adversarial shape | Unary and period-three texts of length 5,000/200,000/700,000, with closed-form suffix/LCP/LCE and witness oracles; `doubling` on both, and the period-three text over sparse `lng` symbols (sorted coding) against the same order. Dependent suites `10`, `11`, `12`, `14`, `15`, `22`, `29` rerun on the new construction. |
 
 ## Commands and results
 
-Latest run 2026-10-19 (P017 omission-sweep apply), Linux x86-64 (Intel Core i9-11900H), GNU++20, GCC 16.2.1 and the floor GCC 14.4.1 (`CXX=g++-14`), CPython 3.14.7, `-Wall -Wextra -Wshadow -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-19 (P017 omission-sweep apply), Linux x86-64 (Intel Core i9-11900H), GNU++20, GCC 16.2.1 and the floor GCC 14.4.1 (`CXX=g++-14`), CPython 3.14.7, the optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan configurations built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>):
 
 | Command | Result |
 |---|---|
@@ -115,9 +115,7 @@ Code-range cutoff: the same run times SA-IS over shifted codes (`shift`, buckets
 | 10^4 | n/2 / n / 2n / 4n / 8n / 16n | 68.4 / 69.8 / 72.6 / 78.6 / 92.2 / 137.7 | 170.8 / 169.9 / 171.7 / 172.4 / 171.8 / 171.8 |
 | 10^6 | n/2 / n / 2n / 4n / 8n / 16n | 107.0 / 118.6 / 140.6 / 188.7 / 237.3 / 399.1 | 298.6 / 296.0 / 299.4 / 303.6 / 305.8 / 303.8 |
 
-Shifting wins through `8n` and loses at `16n` for `n = 10^6`. Its cost is the three SA-IS bucket arrays, about `12 * (max - min)` bytes. The cutoff `max - min < max(4n, 256)` keeps a 1.4–2.8 times gain over sorting everywhere below it, while bounding those arrays at about `48n` bytes, comparable to the rest of an RMQ-free build. Before dense coding, every `vector` went through `compressAlphabet`; on the first run of this driver, random `S=26` took 146.7 ms against doubling's 137.1 ms.
-
-Prune measurement, 2026-10-13 (one-off, against the deleted inline Kasai loop in the former doubling construction): `lcpArray` cost 4–7% at `n = 10^6` and rebuilds the inverse ranks (peak 65 MB against 62 MB); the user confirmed the removal on 2026-10-13.
+Shifting wins through `8n` and loses at `16n` for `n = 10^6`. Its cost is the three SA-IS bucket arrays, about `12 * (max - min)` bytes. The cutoff `max - min < max(4n, 256)` keeps a 1.4–2.8 times gain over sorting everywhere below it, while bounding those arrays at about `48n` bytes, comparable to the rest of an RMQ-free build.
 
 ## Sources
 
@@ -136,12 +134,7 @@ No local suffix-array implementation was found in the inspected original noteboo
 
 ## Limits and handoffs
 
-- Added in this re-audit after the completeness sweep: `longestRepeated(k)` and `longestRepeatedDisjoint()` ([OI Wiki 后缀数组](https://oi-wiki.org/string/sa/), sections on substrings occurring at least `k` times and non-overlapping repeats).
-
 SA-IS itself belongs to ST06/`12-sais.hpp`; DC3 and a small-input dispatch are not adopted ([00-notes.md](00-notes.md)); generalized indexes and common-substring queries across arbitrary numbers of inputs belong to ST11/`28-multiple_string.hpp`. Distinct-substring counting and kth applications retain ST04/`10-suffixautomaton.hpp` and ST09/`22-lexicographic_queries.hpp` ownership. Suffix trees and dynamic indexing also retain their separate inventory owners. No missing Basic suffix-array feature is deferred to those packages.
-
-Finite tests support the stated proofs and domains; they do not allocate
-impractical maximum-size objects.
 
 ## History
 

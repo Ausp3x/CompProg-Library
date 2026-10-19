@@ -28,11 +28,11 @@ Correctness: the construction is the standard online algorithm (Blumer et al.): 
 
 ## Feature-to-test map
 
-Runnable entry: [10-suffixautomaton_tester.py](<../../96-Local Testing/07-Strings/10-suffixautomaton_tester.py>), with the actual-header [C++ suite](<../../96-Local Testing/07-Strings/10-suffixautomaton_tester.cpp>). All oracles survive `-DNDEBUG`.
+Runnable entry: [10-suffixautomaton_tester.py](<../../96-Local Testing/07-Strings/10-suffixautomaton_tester.py>), with the actual-header [C++ suite](<../../96-Local Testing/07-Strings/10-suffixautomaton_tester.cpp>).
 
 | Feature/domain | Independent verification |
 |---|---|
-| `Node`, states, `minimalLength`, `endposSize` | For every distinct substring (direct enumeration with sorted starts): the state found by `findNode`; equal endpos sets share a state and distinct sets do not; states = endpos classes + root; `len` = longest member, `minimalLength` = shortest, members contiguous, `link` length = `minimalLength - 1`; root values. |
+| `Node`, states, `findNode`, `isSubstring`, `step`, `minimalLength`, `endposSize` | For every distinct substring (direct enumeration with sorted starts): the state found by `findNode`; equal endpos sets share a state and distinct sets do not; states = endpos classes + root; `len` = longest member, `minimalLength` = shortest, members contiguous, `link` length = `minimalLength - 1`; root values; `isSubstring` on every substring and absent probe; `step` (code overload) from the root for every code and out-of-range codes against `findNode`. |
 | `extend`, online counters, `build`, `build(s)`, `size` | Per-prefix substring sets after each `extend`; `firstOccurrence` before `build`; `built` flag; online automaton plus `build()` equals `build(s)`; `distinctSubstringsOnline` per prefix. |
 | Counting and positions | `occurrenceCount`, `firstOccurrence`, `lastOccurrence`, `occurrences` against the sorted start list of every substring; empty pattern (`n + 1`, `0`, `n`, `0..n`); absent probes (random, text plus a symbol, out-of-alphabet byte). |
 | `distinctSubstrings`, `totalSubstringLength` | Set size and summed lengths; large texts: `n(n+1)/2 - sum lcp` and `n(n+1)(n+2)/6 - sum lcp(lcp+1)/2` from the verified `SuffixArray`. |
@@ -48,7 +48,7 @@ Runnable entry: [10-suffixautomaton_tester.py](<../../96-Local Testing/07-String
 
 ## Commands and results
 
-Run 2026-10-09 on an 11th Gen Intel Core i9-11900H with GCC 16.2.1 (`g++`) and the floor compiler GCC 14.4.1 (`CXX=g++-14`). Configurations (shared string runner): optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` (with the assertion probes), and in full/stress `-O1 -g -fsanitize=address,undefined`; all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full and stress runs passed the quick pre-flight under the 2048 MB cap; `MEMORY peak` is the run's capped peak (4096 MB cap, 0 OOM kills).
+Run 2026-10-09 on an 11th Gen Intel Core i9-11900H with GCC 16.2.1 (`g++`) and the floor compiler GCC 14.4.1 (`CXX=g++-14`). Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/10-suffixautomaton_tester.py' --mode quick --seed 20261009  # PASS, 2 configurations, 952 cases and 550,940 checks each, 10 assertion probes
@@ -83,3 +83,4 @@ The code was written independently from the algorithm; no source code was copied
 ## History
 
 - 2026-10-09: implemented and verified (P081), independent review found 1 defect and 1 naming issue, fixed.
+- 2026-10-19: P017 dependent rerun after `07` moved to SA-IS (no change here): full on g++ before the final code-range cutoff and quick on the final code passed (recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results)).

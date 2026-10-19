@@ -110,7 +110,7 @@ The other code names are `hq` for `H`, `ex` for the digit exponent and `qt = q^(
 | `modLog(a, b, mod, k)` (`OLD/5-Mathematics/08-modlogandmodroot.hpp`) | `discreteLogEx(a, b, mod, k)`, same least-`x` semantics; `mod >= 1` is asserted |
 | `getPrimRoot(mod, opt)` | `primitiveRoot(m)`; the trial/Pollard `opt` flag is gone (factorization is always Pollard–Brent), and `mod <= 0` is asserted instead of returning -1 |
 | `modRoot(a, b, mod, opt)` with prime `mod` | One root `kthRootModPrime(b, a, mod)`; all roots, sorted at the call site, are that root times the powers of `unitRootModPrime(gcd(a, mod - 1), mod)` |
-| `modRoot` with `mod = p^k`, `2 p^k`, or `b = 0` and composite `mod` | Row 33 (`kthRootModPrimePower`, `kthRootModComposite`, planned) |
+| `modRoot` with `mod = p^k`, `2 p^k`, or `b = 0` and composite `mod` | Row 33 (`kthRootModPrimePower`, `kthRootModComposite`) |
 | `discreteLog` (prime modulus; row only, decided 2026-10-16) | `discreteLogEx` |
 | `sqrtModPrime` (Tonelli–Shanks; row only, decided 2026-10-16) | Core `trySqrt` on `DynModInt`/`DynModInt64`, `kthRootModPrime(a, 2, p)` or `sqrtModPrimeCipolla` |
 | `jacobiSymbol` (row only, decided 2026-10-16) | `kroneckerSymbol` |
@@ -119,7 +119,7 @@ The other code names are `hq` for `H`, `ex` for the digit exponent and `qt = q^(
 
 Entry: [`11-discrete_log_root_tester.py`](<../../96-Local Testing/05-Mathematics/11-discrete_log_root_tester.py>).
 
-The C++ oracles are iteration, brute order tables, square enumeration and definitions. The Python oracle uses constructed primes below `2^63` with known `p - 1` factorizations: smooth, `2 Q r`, `2^s r`, `q^s r` for `q` up to 1009, `Q^2 r` with `Q` up to `2^28`, the NTT primes, `2^61 - 1` and `1e18 + 3`. It checks its index formula, Kronecker definition and order characterization against brute force on primes below 200 before every run. Ten header mutants (least-`j` table, reduction recheck, reciprocity, AMM correction, monoid failure count, smaller root, `m = 4`, order loop, unit-root test, root exponent) were each caught by the C++ suite in quick mode. The Python oracle caught the nine in its scope: six in quick mode and three more in full; the monoid is C++ only. Failures print the operation, inputs, expected and actual values and the seed.
+The C++ oracles are iteration, brute order tables, square enumeration and definitions. The Python oracle uses constructed primes below `2^63` with known `p - 1` factorizations: smooth, `2 Q r`, `2^s r`, `q^s r` for `q` up to 1009, `Q^2 r` with `Q` up to `2^28`, the NTT primes, `2^61 - 1` and `1e18 + 3`. It checks its index formula, Kronecker definition and order characterization against brute force on primes below 200 before every run. Ten header mutants (least-`j` table, reduction recheck, reciprocity, AMM correction, monoid failure count, smaller root, `m = 4`, order loop, unit-root test, root exponent) were each caught by the C++ suite in quick mode. The Python oracle caught the nine in its scope: six in quick mode and three more in full; the monoid is C++ only.
 
 Limits below are given as quick / full / stress.
 
@@ -180,4 +180,4 @@ Adopted by the P053 sweep: `discreteLogMonoid`. Rejected candidates are in [00-n
 
 ## History
 
-- 2026-10-16: P053 initial implementation; duplicates settled with the user (`discreteLog`, `sqrtModPrime`, `jacobiSymbol` removed from the row, `legendreSymbol` kept as Euler's criterion, `modLog` folded into `discreteLogEx`); `discreteLogMonoid` adopted from the sweep; review found 6 issues (NDEBUG bounds for `lb > ub`, `m < 0` and square composite Cipolla moduli; direct include; local names; monoid memory bound; evidence text), all fixed; full passed on g++ and g++-14, stress on g++.
+- 2026-10-16: P053 initial implementation, duplicates settled with the user (Legacy mapping), `discreteLogMonoid` adopted from the sweep, review found 6 issues, all fixed; full passed on g++ and g++-14, stress on g++.

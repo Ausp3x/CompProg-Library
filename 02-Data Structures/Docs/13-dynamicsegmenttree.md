@@ -1,6 +1,6 @@
 # 13-dynamicsegmenttree.hpp — evidence
 
-Package P027 (batch DS06). Replaces the legacy reference `97-Legacy/03-dynsegtree.cpp` (`OLD/algorithms.cpp:2215–2443`, deleted with this verification). Keys are `lng` in a half-open universe `[lo, hi)` with `hi - lo <= 2^62` (so midpoints `a + (b - a) / 2` and lengths never overflow); every node splits its range at that midpoint, giving depth `<= 62`. Preconditions are `assert`s checked once per operation. General persistent trees belong to row 18.
+Package P027 (batch DS06). Replaces the legacy reference `DynSegTree` (`OLD/algorithms.cpp:2215–2443`). Keys are `lng` in a half-open universe `[lo, hi)` with `hi - lo <= 2^62` (so midpoints `a + (b - a) / 2` and lengths never overflow); every node splits its range at that midpoint, giving depth `<= 62`. Preconditions are `assert`s checked once per operation. General persistent trees belong to row 18.
 
 ## Contracts
 
@@ -42,7 +42,7 @@ Quick: 3 universes, 120 steps. Full: 10 universes, 900 steps, three builds. Stre
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|

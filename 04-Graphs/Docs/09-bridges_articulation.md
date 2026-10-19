@@ -1,6 +1,6 @@
 # 09-bridges_articulation.hpp — evidence
 
-Owned by package P011 / GR03 (lowlink and strong orientation); see [00-notes.md](00-notes.md#p011-package-record) for the package record.
+Owned by package P011 / GR03 (lowlink and strong orientation); omissions are in [00-notes.md](00-notes.md#p011-re-audit-omissions).
 
 ## Contracts
 
@@ -25,8 +25,6 @@ Vertex blocks overlap at articulation vertices, so they are not a vertex partiti
 
 The result is a static snapshot. Reinvoke either free function after changing the graph; there is no incremental state, shared cache or borrowed adjacency. ID values and member order are deterministic for the same input adjacency order, but no sorted block/bridge order is promised.
 
-The old Team Notebook cutpoint/bridge code's vertex-block feature is covered by `block_vertices`; isolated vertices, exact parallel-edge parent skipping and stable bridge IDs repair gaps in that reference. The old bridge-only algorithm is covered by the canonical `bridges`/`is_bridge` results. Block-cut forest / bridge-tree query wrappers remain assigned to GR12. Dynamic bridge maintenance (GR12), directed dominators, st-numbering/open-ear decomposition, triconnectivity/SPQR and three-edge components are distinct inventory families; none is implied by static lowlink completion.
-
 ### Correctness
 
 The explicit DFS stack retains the next adjacency position of each active vertex and exactly simulates recursive discovery and return events. Skipping only the reverse arc of the tree edge preserves a second parallel edge as a back edge. An undirected DFS has no cross edges between distinct finished subtrees. On return from child `u` of `v`, `low[u]` is the minimum discovery index reachable from `u`'s subtree using tree edges and at most one upward non-tree edge. Thus `(v,u)` is a bridge exactly when `low[u] > tin[v]`, and a nonroot `v` is an articulation point exactly when some child has `low[u] >= tin[v]`. A DFS root is an articulation point exactly when it has at least two children. Loops affect none of these conditions.
@@ -44,10 +42,12 @@ The originals of the removed adapters (bridge/articulation lowlink, not SCC) sta
 - `Tarjan(n, adj)` → `auto low = lowlink(g)` with `g = Graph::fromAdjacency(adj)`: `is_art`, `low` and `tin` (was `t_in`); the bridge pairs are `minmax(g.edges[e].u, g.edges[e].v)` over `e` in `low.bridges`. `adj` must hold exactly `n` lists, because lists past `n` become vertices, and be symmetric as multisets with a loop listed twice; a loop changes no bridge or articulation answer, so dropping it is equally valid. `tin` and `low` keep their meanings, but the DFS may number vertices differently. `vst` (all true) and `timer` (`n`) have no counterpart.
 - `BridgeAlgo(n, adj)`, `build(adj)` and `dfs(cur, prv, adj)` → the same call, with the bridge pairs collected in a `set`. Each call returns a fresh result, so nothing needs a reset.
 - `lowlink_detail::graph(n, adj)` → `Graph::fromAdjacency(adj)` under the list conditions of the `Tarjan` line; it keeps loops and adds the edges in increasing `(min, max)` order, where the old builder dropped loops and kept list order.
+- `StrongOrientation(n, m)`, `addEdge(u, v, id)`, `solve()` (`OLD/Team Notebook/src/algs.cpp:1474`, `algsbetter.cpp:1477`, `test.cpp:315`) → `strongOrientation(g)` with the edges added in ID order: its `{comp_cnt + bridge_cnt, orient}` is `count` and `arcs`, where `orient[id] == '>'` exactly when `g.arcs[arcs[id]].from == g.edges[id].u`.
+- `OLD/Team Notebook/src/graph/old_cutpoints-bridges.cpp`: its vertex-block feature is covered by `block_vertices`; isolated vertices, exact parallel-edge parent skipping and stable bridge IDs repair gaps in that reference. The bridge-only `old_bridgealgo.cpp` is covered by `bridges`/`is_bridge`.
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/09-bridges_articulation_tester.py` uses the shared graph runner and includes the actual header. Assertions are not test oracles; all correctness checks throw/report failures in `-DNDEBUG` builds as well. The command reports seed, mode, configuration, graph edge list, failing operation and expected/actual success, plus subprocess command and timeout/crash details. Exhaustive cases run in increasing graph size, followed by reproducible random cases and named large shapes.
+`96-Local Testing/04-Graphs/09-bridges_articulation_tester.py` uses the shared graph runner. Exhaustive cases run in increasing graph size, followed by reproducible random cases and named large shapes.
 
 | Feature | Independent verification |
 |---|---|
@@ -55,8 +55,8 @@ The originals of the removed adapters (bridge/articulation lowlink, not SCC) sta
 | Articulation vertices | Delete each vertex and compare the global component count, including roots, isolated vertices and disconnected graphs. |
 | Vertex blocks / edge membership | Enumerate every vertex subset, retain maximal subsets that remain connected after each one-vertex deletion, recover all internal nonloop edges, then add the documented loop and isolated blocks. Compare both vertex/edge lists and every edge-to-block index. |
 | Edge components | Independent traversal after removing deletion-oracle bridges; verify labels, complete groups and minimum-vertex order. |
-| DFS diagnostics | Discovery permutation, exact root set, acyclic input parent arcs, and independently enumerate descendant/back-edge pairs to check every lowlink value. |
-| Orientation / Robbins / witnesses | Validate every selected original arc ID; transitive closure verifies the exact SCC equivalence relation. Check obstruction edges/vertices against independent deletion/component oracles and the minimum-component lower bound. |
+| `lowlink`: DFS diagnostics (`tin`, `low`, `parent_arc`, `roots`) | Discovery permutation, exact root set, acyclic input parent arcs, and independently enumerate descendant/back-edge pairs to check every lowlink value. |
+| `strongOrientation`, `StrongOrientationResult`, `orientation`: Robbins / witnesses | Validate every selected original arc ID; transitive closure verifies the exact SCC equivalence relation. Check obstruction edges/vertices against independent deletion/component oracles and the minimum-component lower bound. |
 | `lowlink` on `Graph::fromAdjacency` lists (the removed `Tarjan`/`BridgeAlgo` cases) | Every enumerated and random case is rebuilt from its symmetric lists (loops listed twice): sorted bridge endpoint pairs and articulation flags against the deletion oracles. Repeated calls after adding a parallel edge and then a new edge return fresh bridges. `tin`/`low` are checked independently on the original multigraph: `tin` must be a permutation, the DFS forest is reconstructed from `tin` alone (each vertex's parent is its neighbor with the largest earlier discovery time, a property of every undirected DFS), every nonloop edge must join an ancestor and a descendant, and each `low[u]` must equal the minimum discovery time over `u`'s subtree and the back edges (including extra parallel copies of tree edges) leaving it. |
 | `cut_components` | Deletion oracle: BFS component count of the graph without each vertex, for every enumerated and random case (Graph and CSR), plus the 200,000-vertex chain, cycle and parallel star. |
 | Boundaries / lifetime | Empty graphs, singleton loops, dyads, parallel parent edges, multiple cycles meeting at a cutpoint, disconnected isolated vertices, full-range ignored weights, copied/moved owning results, graph mutation and repeated calls. |
@@ -97,13 +97,13 @@ The implementation is independent code from the stated invariants; no external s
 - [KACTL, “BiconnectedComponents.h”](https://github.com/kth-competitive-programming/kactl/blob/main/content/graph/BiconnectedComponents.h), Simon Lindholm, dated 2017-04-17, CC0: edge-ID parent exclusion and linear edge-stack decomposition. Its convention omits bridges from callback blocks; this API explicitly includes bridge dyads and accounts for loops and isolates.
 - [OI Wiki, “双连通分量”](https://oi-wiki.org/graph/bcc/), page reports update 2026-08-17: edge- versus vertex-biconnectivity, bridge deletion decomposition, lowlink vertex blocks, singleton convention, and the alternative difference/tree-edge coverage formulation. Its sample code drops loops; this API preserves loop edge ownership explicitly.
 
-These sources establish the relevant static decomposition/orientation scope. Resource-limited streaming bridge extraction and higher/dynamic connectivity require separate representations and algorithms; they are not alternate implementations required for this in-memory Graph/CSR contract. No online solution was submitted or acceptance claimed.
+These sources establish the relevant static decomposition/orientation scope. Resource-limited streaming bridge extraction and higher/dynamic connectivity require separate representations and algorithms; they are not alternate implementations required for this in-memory Graph/CSR contract.
 
 Sources for `cut_components` (fetched 2026-10-07) are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p011-re-audit); rejected candidates are in [00-notes.md](00-notes.md#p011-re-audit-omissions).
 
 ## Limits and handoffs
 
-Dynamic connectivity/bridge maintenance and block-cut/bridge-tree query wrappers remain with their separate batch owners (row 27 for block-cut and bridge trees and two-edge-connectivity augmentation).
+Block-cut and bridge-tree queries and two-edge-connectivity augmentation are row 27, incremental bridge maintenance is row 26, and dominators, st-numbering/ear decomposition, triconnectivity/SPQR and three-edge components are rows 24, 60, 61 and 74; none is implied by static lowlink.
 
 ## History
 

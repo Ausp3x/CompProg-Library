@@ -32,7 +32,7 @@ Takes a `SuffixArray<T>` (from `07-suffixarray.hpp`) built over `s + s` (even le
 
 ## Feature-to-test map
 
-Runner: [`15-minrotation_tester.py`](<../../96-Local Testing/07-Strings/15-minrotation_tester.py>). The oracle materializes every rotation and compares them with `std::vector` ordering; all checks survive `-DNDEBUG`.
+Runner: [`15-minrotation_tester.py`](<../../96-Local Testing/07-Strings/15-minrotation_tester.py>). The oracle materializes every rotation and compares them with `std::vector` ordering.
 
 | Operation | Coverage |
 |---|---|
@@ -45,7 +45,7 @@ Checked builds run two precondition probes: an odd-length suffix array and one w
 
 ## Commands and results
 
-P083 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations as in [13-palindromictree.md](13-palindromictree.md#commands-and-results).
+P083 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/15-minrotation_tester.py' --mode full --seed 20261013
@@ -76,10 +76,11 @@ Code is independently implemented from the invariants above.
 ## Limits and handoffs
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): `minCyclicShift` (merged: every catalog treats it as `minRotationIndices().first`), minimal rotation of every prefix, a separate rotation-period function (`minRotationIndices().second`, or `27` `primitiveRoot`), cyclic comparison beyond `rotationEquivalent`.
-- The row previously named Booth's algorithm; the two-pointer minimum expression has the same O(n) bound and O(1) space and is what KACTL and OI Wiki use.
+- Booth's algorithm is not used: the two-pointer minimum expression has the same O(n) bound and O(1) space and is what KACTL and OI Wiki use.
 - Sorting all cyclic shifts belongs to `29` `sortCyclicRotations`; cyclic-shift occurrence counting to `10`.
 
 ## History
 
 - 2026-10-10: implemented and verified (P083), independent review found 1 defect, fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `minRotation(s)` (cases moved to `minRotationIndices(s).first`); full suite passed on g++ and g++-14.
+- 2026-10-19: P017, the suffix-array variant's construction cost restated for SA-IS (no API change); full on g++ before the final code-range cutoff and quick on the final code passed (recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results)).

@@ -1,6 +1,6 @@
 # 08-infintmini.hpp — evidence
 
-P019/C05 owns `08-infintmini.hpp`: `InfIntMini` (alias `iintmini`), the independently copyable mini of the arbitrary-precision signed integer. It is a documented reduction of [`07-infint.hpp`](07-infint.md): every operation the two share returns the same value, string and sentinel. The header includes only `01-template.hpp` and depends on no sibling, full type or detail namespace. P019 rewrote the legacy header (513 lines, kept in `OLD/1-Core/06-infintmini.hpp`) into 252 lines.
+P019/C05 owns `08-infintmini.hpp`: `InfIntMini` (alias `iintmini`), the independently copyable mini of the arbitrary-precision signed integer. It is a documented reduction of [`07-infint.hpp`](07-infint.md): every operation the two share returns the same value, string and sentinel. The header includes only `01-template.hpp` and depends on no sibling, full type or detail namespace. The legacy original is `OLD/1-Core/06-infintmini.hpp`.
 
 ## Contracts
 
@@ -76,7 +76,7 @@ The mini keeps the full type's names and results for the shared operations above
 | Preconditions under the checked build (8 `--invalid` cases: `/`, `%`, `divMod` and scalar `/` by zero, `read` base 1, `toString` base 37, malformed string constructor, negative exponent) | `--invalid` |
 | Two translation units, header alone, standalone copy (pasted template), `98-basic` and `99-all`, full and mini in one program (`08-infintmini_tester_mixed.cpp`: `+ - * divMod gcd pow`, `toString` in random bases, casts, comparisons and `read` agree with `InfInt` on 100/600/2000 random pairs including the sentinel; supporting evidence only) | the driver's compile steps; `otherUnit` |
 
-Quick runs the small corpus (about 800 protocol cases); full adds the sanitizer build (ASan quarantine capped at 64 MB, which keeps its peak near 0.4 GB instead of 3.7 GB), operands up to 443,000 bits and the large transforms (about 3,800 protocol cases and 3,700 self-test checks per configuration); stress repeats with `--rounds` seeds and operands up to 2.2 million bits. gcd cases keep the smaller operand below 100,000 bits because Euclid is quadratic. Line coverage of the header by the quick corpus is complete (gcov, 2026-10-17). Mutation check (2026-10-17, quick mode): each of 6 seeded faults in this header (the NTT reduction's overflow fold, the butterfly's wrap-around, the `inf` base limit, the cast window, the word-divisor bound, the gcd's sign normalization) failed the suite; the three survivors were equivalent changes and were simplified away (the `+ 1` in the digit estimate, the second add-back it required, and the sentinel branches of `gcd`).
+Quick runs the small corpus (about 800 protocol cases); full adds the sanitizer build (ASan quarantine capped at 64 MB, which keeps its peak near 0.4 GB instead of 3.7 GB), operands up to 443,000 bits and the large transforms (about 3,800 protocol cases and 3,700 self-test checks per configuration); stress repeats with `--rounds` seeds and operands up to 2.2 million bits. gcd cases keep the smaller operand below 100,000 bits because Euclid is quadratic. Line coverage of the header by the quick corpus is complete (gcov, 2026-10-17). Mutation check (2026-10-17, quick mode): each of 6 seeded faults in this header (the NTT reduction's overflow fold, the butterfly's wrap-around, the `inf` base limit, the cast window, the word-divisor bound, the gcd's sign normalization) failed the suite.
 
 ## Commands and results
 
@@ -125,7 +125,7 @@ Every run builds optimized (`-O2 -DNDEBUG`), checked (`-O1 -g -D_GLIBCXX_ASSERTI
 | 16384 x 256 | 1835.65 | 2684.15 | 1843.84 | 8.00 | schoolbook |
 | 16384 x 512 | 3645.88 | 2682.54 | 2817.76 | 16.00 | NTT |
 
-`cost_ratio` is `n m / (L bit_width(L))`. Balanced products cross between 256 and 512 limbs (interpolated near 388 limbs, ratio 13.4), the 65536 x m rows near `m = 410` (ratio 11.4) and the 16384 x m rows near `m = 373` (ratio 11.7), so `MUL_NTT = 13` keeps every balanced size on the faster side and costs at most about 14% in the unbalanced band between the two ratios. Putting the shorter operand in the outer loop made the unbalanced schoolbook about 20% faster than the legacy orientation, which moved its crossover from ratio 10 to 11.4.
+`cost_ratio` is `n m / (L bit_width(L))`. Balanced products cross between 256 and 512 limbs (interpolated near 388 limbs, ratio 13.4), the 65536 x m rows near `m = 410` (ratio 11.4) and the 16384 x m rows near `m = 373` (ratio 11.7), so `MUL_NTT = 13` keeps every balanced size on the faster side and costs at most about 14% in the unbalanced band between the two ratios. Putting the shorter operand in the outer loop made the unbalanced schoolbook about 20% faster than the legacy orientation.
 
 ## Sources
 
@@ -135,7 +135,7 @@ The 2026-10-17 completeness sweep (`@researcher`) read cp-algorithms, OI Wiki, K
 
 - Non-decimal radix conversion is O(L^2); the Library Checker hexadecimal problems at full size need the full type.
 - P025 (`16-poly.hpp`): `poly_detail::BigInt` matches any type with `vector<uint> n`, `int sgn`, `trim()` and `isNil()`, so it also matches `InfIntMini`, whose limbs are base 10^5 rather than 2^32; `Poly<InfIntMini>` products through `kronecker` would be wrong. The concept should require base-2^32 limbs (for example by naming `InfInt`).
-- The judge wrappers `97-Online Testing/src/01-Yosupo/02-Big Integers/02-additionmini.cpp`, `04-multiplicationmini.cpp` and `06-divisionmini.cpp` use only `>>`, `+=`, `*=`, `divMod` and `<<`, which keep their meaning; no online acceptance is claimed.
+- The judge wrappers `97-Online Testing/src/01-Yosupo/02-Big Integers/02-additionmini.cpp`, `04-multiplicationmini.cpp` and `06-divisionmini.cpp` use only `>>`, `+=`, `*=`, `divMod` and `<<`, which keep their meaning.
 
 ## History
 

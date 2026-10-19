@@ -12,7 +12,7 @@ Package P033 (batch DS13). New header; no legacy source. Static range products f
 
 `n < 2^30`. Level 0 is the array; level `k >= 1` splits the array into blocks of `2^(k + 1)` and stores, around each block midpoint `mid`, the suffix products `a[i..mid)` for `i < mid` and the prefix products `a[mid..i]` for `i >= mid`, with `h = max(1, bit_width(n - 1))` levels (0 for `n = 0`). A nonempty query `[l, r)` with `l < r - 1` has `l` and `r - 1` in one block of level `k = bit_width(l xor (r - 1)) - 1` on opposite sides of its midpoint, so it is `op(level_k[l], level_k[r - 1])`: one `op` call; `l = r - 1` returns `a[l]` with none.
 
-- `prod(l, r)`: asserts `0 <= l <= r <= n`; returns `e()` when `l == r` if `M` has `e` (checked at compile time with `requires`), and otherwise asserts `l < r`; O(1), at most one `op` call. It replaced `query` (nonempty) and `fold` (empty allowed) on 2026-10-17 (`duplicates.md`, P027 change), keeping both domains.
+- `prod(l, r)`: asserts `0 <= l <= r <= n`; returns `e()` when `l == r` if `M` has `e` (checked at compile time with `requires`), and otherwise asserts `l < r`; O(1), at most one `op` call.
 - Build: at most `n` `op` calls per level, `n * (h - 1)` in total; memory `n * h` values in one flat vector.
 - Row 04 `SparseTable::associativeProd` answers the same associative query in O(log n) with `n log n` storage; this table answers it with one `op` call.
 
@@ -24,11 +24,18 @@ Offline products of `a[l, r)` for every query `(l, r)`, `0 <= l <= r <= n < 2^30
 - A query inside one block goes to the dyadic routine on `a`; a query over blocks `bl < br` is `op(suf[l], mid, pre[r - 1])`, where `mid` (the product of the blocks strictly between, when there are any) comes from the dyadic routine on `blocks`.
 - Dyadic routine: queries are counting-sorted by `l` and grouped by split level `k = bit_width(l xor r) - 1` and then by block `l >> (k + 1)`; for each group the suffix products from the midpoint down to the smallest `l` and the prefix products up to the largest `r` are computed once into a shared buffer, and each query takes one `op` call. A level costs at most one `op` per element, and only levels holding queries are visited.
 - Bound: in-block queries have level `< log2(s)`, so the routine on `a` costs at most `n * log2(s) = O(n log(log(n)))` calls; the routine on the `n / s` block products costs `O((n / s) * log(n)) = O(n)`; `pre`, `suf` cost `2n`; each query costs at most 3. Total `O(n log(log(n)) + q)` `op` calls and O(n + q) time beyond them.
-- Optimality: Alon and Schieber show that linear preprocessing allows O(α(n)) steps per online semigroup query and that this is best possible, and Chazelle and Rosenberg give an offline `Ω(n + q α(q, n))` lower bound (cited, not inspected), so O(n + q) is out of reach for a general associative operation. The row's former "offline O(n + q)" claim is replaced by this bound; the inverse-Ackermann constructions are research-level and left out ([00-notes.md](00-notes.md#p033-omissions)).
+- Optimality: Alon and Schieber show that linear preprocessing allows O(α(n)) steps per online semigroup query and that this is best possible, and Chazelle and Rosenberg give an offline `Ω(n + q α(q, n))` lower bound (cited, not inspected), so O(n + q) is out of reach for a general associative operation. The inverse-Ackermann constructions are research-level and left out ([00-notes.md](00-notes.md#p033-omissions)).
 
 ### Violated preconditions
 
 Under `NDEBUG` an out-of-range `prod`, or an empty one on a semigroup, is undefined: `prod(l, l)` without `e` reads level `bit_width(l xor (l - 1)) - 1`, a meaningless cell, and outside the table for `l = 0`. Every loop is bounded by `n`, the number of levels or `q`.
+
+### Legacy mapping
+
+| Renamed (P027 monoid pass, 2026-10-17) | Replacement |
+|---|---|
+| `query(l, r)` (nonempty) | `prod(l, r)` on a semigroup |
+| `fold(l, r)` (empty allowed) | `prod(l, r)` with `e()` |
 
 ## Feature-to-test map
 
@@ -42,13 +49,13 @@ Tester `96-Local Testing/02-Data Structures/28-disjointsparsetable_tester.cpp`, 
 | Complexity | `largeGroup` | Counted `op` calls: build at most `n * (h - 1)`; `staticRangeProducts` at most `2n + n * log2(s) + blocks * bit_width(blocks) + 3q` on every query set |
 | `prod` for a semigroup without `e()` | `semigroup` (max over `lng`, every nonempty `(l, r)` for `n <= 70`) | Direct maximum; compiling it proves the table and nonempty `prod` never call `e()` |
 | Empty table, no queries, repeated queries, copies; runtime monoid state | `edges` | Direct values; sums modulo a member modulus (5 and 10^9+7) over every range through `prod` and `staticRangeProducts(a, qs, mon)` |
-| Preconditions | `invalid` | Empty `prod` on a semigroup, out-of-range, negative and reversed `prod`; reversed and out-of-range offline queries (6 probes; the old `query-empty`/`fold-*` pairs became `semigroup-prod-empty`, `prod-range`, `prod-negative`, `prod-reversed`) |
+| Preconditions | `invalid` | Empty `prod` on a semigroup, out-of-range, negative and reversed `prod`; reversed and out-of-range offline queries (6 probes) |
 
-Mutation check (2026-10-14, quick mode, temporary copies): 6 of 6 injected faults detected (wrong level, reversed suffix order, reversed final combine, dyadic right end off by one, prefix products crossing blocks, the empty-range path returning an element, now `prod`).
+Mutation check (2026-10-14, quick mode, temporary copies): 6 of 6 injected faults detected (wrong level, reversed suffix order, reversed final combine, dyadic right end off by one, prefix products crossing blocks, the empty-range path returning an element).
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
@@ -85,4 +92,4 @@ Fetched 2026-10-14 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 ## History
 
 - 2026-10-14: P033 first implementation and verification; independent review: the table no longer calls `e()` (semigroups work for `query`), the empty-query note corrected.
-- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 693/653/1250 MB.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract, `query`/`fold` merged into `prod`, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 693/653/1250 MB.

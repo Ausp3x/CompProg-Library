@@ -52,7 +52,7 @@ The dispatcher uses `boyerMoore` when both pattern and text have `char` symbols 
 
 ## Feature-to-test map
 
-Runner: [`16-string_matching_tester.py`](<../../96-Local Testing/07-Strings/16-string_matching_tester.py>). The oracle compares every window with `std::equal`; tables use brute definitions. All checks survive `-DNDEBUG`.
+Runner: [`16-string_matching_tester.py`](<../../96-Local Testing/07-Strings/16-string_matching_tester.py>). The oracle compares every window with `std::equal`; tables use brute definitions.
 
 | Operation | Coverage |
 |---|---|
@@ -67,7 +67,7 @@ Checked builds run five precondition probes: a pattern symbol and a text symbol 
 
 ## Commands and results
 
-P084 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Full runs build optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, precondition probes) and ASan/UBSan (`-O1`) binaries after the quick pre-flight under the 2048 MB cap; quick runs build optimized and checked; all use `-Wall -Wextra -Wshadow -Wconversion -Werror`.
+P084 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/16-string_matching_tester.py' --mode full --seed 20261013
@@ -106,7 +106,7 @@ Driver: [`16-string_matching_benchmark.py`](<../../96-Local Testing/07-Strings/1
 
 The full grid (S in {2, 4, 26, 256}, m in {4, 32, 256}, adversarial at m in {4, 32, 256}) is in the JSONL. Dispatcher decision: among linear-worst-case matchers Boyer–Moore with Galil is fastest on every random byte workload (up to 20x faster than two-way at large alphabets) and stays within 25 ms on the adversarial ones, where Horspool, Sunday and verified Rabin–Karp degrade by 20–50x; two-way is faster on unary-miss and periodic texts but 2–20x slower on random text. For non-byte symbols Boyer–Moore needs a dense alphabet, so the dispatcher uses two-way, which beats KMP by 20–40%. `string::find` (memchr plus compare) wins at `m = 4` over large alphabets but is quadratic (43–45 ms on the unary workloads at `m = 256`, growing with `m`). No threshold is needed: Boyer–Moore is never more than about 1.3x slower than the best linear matcher on random byte text.
 
-The table was measured 2026-10-11. `rabinKarp` was re-timed on 2026-10-13 after switching to the `StringHash61` arithmetic, in an ad-hoc A/B against the previous header (commit 6225705; the A/B driver is not committed): random S = 2/26/256 with m = 4/32/256, unary hit and period 2 at m = 256 (bytes), and random S = 4 and 10^9 at m = 64 (`vector<int>`), `n = 4 * 10^6`, seed 20261010, same machine and flags, each figure the median of six interleaved runs of seven timed repetitions after one warmup, every count checked against `kmpOccurrences`. Its times were 0.89–1.02 times those of the earlier arithmetic, inside run-to-run noise, so the table stands.
+The table was measured 2026-10-11. After `rabinKarp` moved to the `StringHash61` arithmetic (2026-10-13), an ad-hoc re-timing (same machine, flags and seed) gave 0.89–1.02 times the earlier times, inside run-to-run noise, so the table stands.
 
 ## Sources
 

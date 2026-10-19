@@ -50,7 +50,7 @@ Same domain. Returns 0, with a common witness from the first touching edge pair 
 
 | Operation | Test | Oracle |
 |---|---|---|
-| `convexPolygonDistanceApprox` | All pairs of a square, a triangle, a point, a segment and a far point; touching, contained and identical polygons; ±`10^9` slabs and a triangle; random hulls at scales 6 and `10^9` with random shifts and rotations; 200,000-vertex disjoint circles (distance `2 * 10^8`) | All-pairs distance, meeting oracle, witness checks |
+| `convexPolygonDistanceApprox`, `PolygonDistanceApprox` | All pairs of a square, a triangle, a point, a segment and a far point; touching, contained and identical polygons; ±`10^9` slabs and a triangle; random hulls at scales 6 and `10^9` with random shifts and rotations; 200,000-vertex disjoint circles (distance `2 * 10^8`) | All-pairs distance, meeting oracle, witness checks |
 | `convexSeparated` | The same corpus; the `clockwise` probe | Meeting oracle; exact projection test of the axis; axis untouched when the polygons meet |
 | `convexPolygonMaxDistance` | The same corpus; wide slabs (exact `8 * 10^18`) | Exact all-pairs maximum with smallest indices |
 | `pointPolygonDistanceApprox` (ring, rings) | Points inside, on the boundary, in a notch and in a hole; random simple polygons at scales 5 and `10^9` | Exact rational minimum |
@@ -103,4 +103,4 @@ Written independently. Sources of the completeness sweep are in [00-sources.md](
 ## History
 
 - 2026-10-11: first implementation (P036). Independent review: one finding (ring overload memory) fixed; full suite passed on g++ and g++-14, stress passed; `02-integration.py --sanitizers` stopped at an unrelated P025 failure, so the header-alone, aggregate and two-translation-unit checks ran directly and passed.
-- 2026-10-12: prune, removed the `convexSeparated(p, q)` wrapper (its cases and the `clockwise` probe moved to the `axis` form); full suite passed on g++ and g++-14, stress passed.
+- 2026-10-12: prune, removed the `convexSeparated(p, q)` wrapper (its cases and the `clockwise` probe moved to the `axis` form); the P007 prune migrated the `onSegment` call site in `polygon_distance_detail::touch` ([02-line_segment.md](02-line_segment.md)); full suite passed on g++ and g++-14, stress passed.

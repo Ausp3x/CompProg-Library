@@ -1,6 +1,6 @@
 # 07-lca.hpp — evidence
 
-Owned by package P011 / GR03 (static forest LCA); see [00-notes.md](00-notes.md#p011-package-record) for the package record. Implementation: [07-lca.hpp](../07-lca.hpp).
+Owned by package P011 / GR03 (static forest LCA); omissions are in [00-notes.md](00-notes.md#p011-re-audit-omissions). Implementation: [07-lca.hpp](../07-lca.hpp).
 
 ## Contracts
 
@@ -18,7 +18,7 @@ Preprocessing owns its state and remains valid after the input graph changes or 
 | `weightedDistance(u,v,out)` | Connected status; exact signed `lll` sum written only if connected | O(log(n)) | O(1) |
 | `rerootedLCA(u,v,r)` | LCA when rooted at `r`; `-1` unless all three are connected | O(log(n)) | O(1) |
 | `kthAncestor(u,k)` | `k >= 0`; ID or `-1` above the root; signed 64-bit `k` accepted | O(log(n)) | Use binary variant |
-| `getKthAncestor(u,k)` | Legacy signed-int wrapper; `k <= 0` returns `u` | O(log(n)) | Use binary variant |
+| `getKthAncestor(u,k)` | Signed-`int` form that also accepts `k <= 0` (returns `u`) | O(log(n)) | Use binary variant |
 | `jump(u,v,k)` | Vertex at zero-based edge offset `k >= 0` along `u` to `v`; `-1` if disconnected or beyond endpoint | O(log(n)) | Use binary variant |
 
 Self paths are legitimate zero-edge, zero-weight paths: LCA and zero-offset jump return the vertex. Graph weights span all `lng` values, including negatives. Distances are sums along the unique simple forest path, with no optimization over walks. At most `INT_MAX-1` edges of signed 64-bit magnitude fit in `lll`, including the temporary expressions in weighted queries.
@@ -59,14 +59,14 @@ A path from `u` to `v` climbs to `a=LCA(u,v)` and descends to `v`. Subtracting t
 
 ## Feature-to-test map
 
-Tester: [07-lca_tester.py](<../../96-Local Testing/04-Graphs/07-lca_tester.py>), including the actual header from [07-lca_tester.cpp](<../../96-Local Testing/04-Graphs/07-lca_tester.cpp>). Failure messages retain seed, graph edges/root, operation and expected/actual values. Test oracles use explicit runtime checks even with `-DNDEBUG`.
+Tester: [07-lca_tester.py](<../../96-Local Testing/04-Graphs/07-lca_tester.py>), including the actual header from [07-lca_tester.cpp](<../../96-Local Testing/04-Graphs/07-lca_tester.cpp>).
 
 | Features | Independent evidence |
 |---|---|
-| Binary, Euler and offline LCA; CSR parity | Enumerated labeled simple forests through n=6, every preferred root/default, every vertex pair; independently rooted BFS parent-chain intersection |
-| Ancestor/kth ancestor, inclusive timestamps | BFS depths/parents, explicit parent walks, all valid offsets and one-past-root, signed-64 maximum and legacy negative offsets |
-| Edge distance, weighted sums, path jump | Independent BFS between each pair reconstructs the unique path and its exact `lll` sum; every path position plus one-past-end |
-| Rerooted LCA | Independently BFS-root each small component at every possible vertex; compare every triple, including cross-component roots |
+| `LCA`, `EulerLCA`: `getLCA`; `offlineLCA`; CSR parity | Enumerated labeled simple forests through n=6, every preferred root/default, every vertex pair; independently rooted BFS parent-chain intersection |
+| `isAncestor`, `kthAncestor`, inclusive timestamps | BFS depths/parents, explicit parent walks, all valid offsets and one-past-root, signed-64 maximum and legacy negative offsets |
+| `distance`, `weightedDistance`, `jump` | Independent BFS between each pair reconstructs the unique path and its exact `lll` sum; every path position plus one-past-end |
+| `rerootedLCA` | Independently BFS-root each small component at every possible vertex; compare every triple, including cross-component roots |
 | Empty/singleton/isolated/disconnected forests | Exhaustive enumeration from n=0; empty batches, self paths, missing result/status semantics and unchanged weighted output |
 | Full signed weight domain | 350 seeded random forests using `LNG_MIN`, `LNG_MAX`, negative/zero/positive edges; 200000-vertex all-maximum chain |
 | FCB blocks, partial signatures and macrotable boundaries | Sizes 7/8 through 1023/1024, chains/stars/binary/random/disconnected forests, independent parent oracle on 1000 pairs per shape |
@@ -82,7 +82,7 @@ Hand mutations of `LCAFold`, `pathIntersection` and the unchecked `getLCA` loop 
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
@@ -104,9 +104,9 @@ Full mode includes 22,497 exhaustive forest/root cases, 350 random weighted fore
 
 ## Benchmarks
 
-[Benchmark driver](<../../96-Local Testing/04-Graphs/00-decomposition_benchmark.py>) and `96-Local Testing/04-Graphs/00-decomposition_benchmark.json` (shared with `08-scc.hpp`) contain CPU/compiler/flags, workload generation, seed, all five samples and medians. The C++ driver warms up both alternatives, includes allocation in construction time, separates LCA query time, excludes input generation and checks every result outside the timed region. Small/common/large cases use n=32, 2,000 and 100,000; LCA uses chains, stars, random recursive trees and disconnected chains. Memory is O(n log(n)) for binary LCA and O(n) for Euler LCA/Tarjan auxiliary results.
+[Benchmark driver](<../../96-Local Testing/04-Graphs/00-decomposition_benchmark.py>) and its git-ignored `00-decomposition_benchmark.json` log (shared with `08-scc.hpp`) hold workload generation, seed, all five samples and medians. The C++ driver warms up both alternatives, includes allocation in construction time, separates LCA query time, excludes input generation and checks every result outside the timed region. Small/common/large cases use n=32, 2,000 and 100,000; LCA uses chains, stars, random recursive trees and disconnected chains. Memory is O(n log(n)) for binary LCA and O(n) for Euler LCA/Tarjan auxiliary results.
 
-Recorded 2026-10-07 medians in milliseconds (flags `-O2 -DNDEBUG -mno-avx2`, i9-11900H, shared machine; 100,000 vertices, 400,000 LCA queries):
+Recorded 2026-10-07 medians in milliseconds (from the log: GCC 16.2.1 20260810, `-std=gnu++20 -O2 -DNDEBUG -mno-avx2`, i9-11900H; shared machine; 100,000 vertices, 400,000 LCA queries):
 
 | Workload | Binary LCA setup / queries | Euler LCA setup / queries |
 |---|---|---|
@@ -133,7 +133,7 @@ Sources for `LCAFold` and `pathIntersection` (fetched 2026-10-07) are in [00-sou
 
 ## Limits and handoffs
 
-Ancestor/path binary search by predicate belongs to row 15 (HLD); tree/HLD aggregates and dynamic-tree APIs remain with their separate owners (see [00-notes.md](00-notes.md#p011-package-record)).
+Ancestor/path binary search by predicate belongs to row 15 (HLD); tree/HLD aggregates and dynamic-tree APIs remain with their separate owners (see [00-notes.md](00-notes.md#placement-decisions-recorded)).
 
 ## History
 

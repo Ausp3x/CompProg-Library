@@ -10,7 +10,7 @@
 
 ## Contracts
 
-Inputs are `lng`, and the arithmetic uses `__int128` where products can exceed 64 bits. Nothing is cached. The header calls:
+Inputs are `lng`, and the arithmetic uses `__int128` where products can exceed 64 bits. The class-member enumerations (`x += M` in `cornacchia`, `pellGeneralized` and `represent`) count in `__int128`, so moduli near `2^63` cannot overflow. Nothing is cached. The header calls:
 
 - `07` `factorize`, `isPrime` and `divisors` (Pollard–Brent and Miller–Rabin on Core `Montgomery64`);
 - row 11 `sqrtModPrimeCipolla`;
@@ -165,7 +165,7 @@ The Python oracle uses constructed factorizations and closed formulas, listed in
 |---|---|
 | `twoSquaresAll`, `twoSquaresCount`, `twoSquares` | Every `n <= 5000 / 60000 / 200000` against enumerated pairs. 300 / 3000 / 12000 random 64-bit and smooth `n`: validity, sorted and distinct lists of size `r2 / 4 + [square]`. Python: constructed `n` with primes `1` and `3 mod 4` (odd exponents included), powers of 2 and repeated primes, against the `r2` product formula. |
 | `threeSquares`, `fourSquares`, `threeTriangular` | Every `n <= 5000 / 60000 / 200000` against Legendre's set by enumeration; this covers the fallback inputs 214, 526, 1414 and their `4^k` multiples. Random 64-bit `n`: validity and the exclusion `4^a (8 b + 7)`. Extremes `2^63 - 1`, `2^63 - 2`, `2^62`, `2^62 - 1`, `10^18`, and the prime `10^18 - 11`. Python: random `n` up to `2^63 - 1` and constructed excluded forms. |
-| `cornacchia` | Every coprime `(d, m)` with `d <= 12 / 40 / 80` and `m <= 2000 / 8000 / 20000` against enumerated primitive pairs; this is where `m = 1` with `d = 1`, and `(1, 1)` for `m = 2`, are tested. 200 / 2000 / 8000 random 64-bit coprime `(d, m)`: validity, primitivity and sorted distinct output; this input found the overflow fixed below. Python: odd `m` from split primes, with `2^w` pairs for `d = 1` and `2^(w - 1)` for `d = 2`. |
+| `cornacchia` | Every coprime `(d, m)` with `d <= 12 / 40 / 80` and `m <= 2000 / 8000 / 20000` against enumerated primitive pairs; this is where `m = 1` with `d = 1`, and `(1, 1)` for `m = 2`, are tested. 200 / 2000 / 8000 random 64-bit coprime `(d, m)`: validity, primitivity and sorted distinct output; Python: odd `m` from split primes, with `2^w` pairs for `d = 1` and `2^(w - 1)` for `d = 2`. |
 | `pythagoreanTriples` | Brute force over `(a, c)` for `N` in `{0, 1, 4, 5, 12, 13, 16, 17, 25, 29, 100, 997, 600 / 2500}`; Euclid's parametrization for `N = 10^4` and `10^5 / 3 * 10^6`; exact sets and sizes. |
 | `gaussCircleCount` | Every `n <= 5000 / 60000 / 200000` against prefix sums of enumerated `r2`; `n` in `{10^6, 10^12 - 1, 10^12, 4 * 10^12}` against an independent column sum. |
 | `reducedForms` | Every discriminant down to -1500 / -12000 / -30000 against the scan. Python: Dirichlet's analytic class number formula `h = (w / 2 abs(D)) abs(sum (D / a) a)` for 3 / 12 / 30 fundamental `D` down to -20000 / -120000 / -250000. |
@@ -176,8 +176,6 @@ The Python oracle uses constructed factorizations and closed formulas, listed in
 | `pellSolutions` | Seven powers and their inverses against repeated `iint` multiplication (`D <= 400`); random `k < 2^63` with `mint` against a hand-written `2 x 2` matrix power. |
 | `pellGeneralized` | Every non-square `D <= 40 / 120 / 250` with `x1 <= 10^12`, and every `abs(N) <= 25 / 80 / 150` whose Nagell bound is at most `10^5` (1700 / 17440 scans in quick / full), against the scan grouped into classes (least `y`, then larger `x`), exact list; `iint` agrees with `lll`. `N` near `±2^63` (`±(2^63 - 1)`, `2^62 - 57`): validity. Python: planted `(x0, y0)` with `D <= 10^4` and `abs(N)` up to `10^14`, which must have its class present; validity, distinct classes, order, minimality against both unit neighbours, and the tie rule. With `iint` for `D` in `{1021, 1117, 991, 661, 9949}` (units beyond the `lll` bound) and nine `N`: equation, `(y, x)` order, minimality against both unit neighbours, distinct classes, and `(-1022, 32)` present for `D = 1021`, `N = -1020`. |
 | Preconditions | 24 checked-build probes: `cornacchia` with `d = 0`, `m = 0`, `gcd > 1`; negative `n` for each sum-of-squares function, `pythagoreanTriples` and `gaussCircleCount`; `threeTriangular` above its bound; `pellGeneralized` with a square `D`, `D = 1` and `N = LLONG_MIN`; `reducedForms` with `D > 0` or `D = 2 mod 4`; `reduce` on indefinite and negative definite forms; `compose` across discriminants and on a non-primitive form; `represent` on an indefinite form; `reduce` with coefficients below `2^62` but `abs(D) >= 2^62`; `pellSolutions` with a non-unit. |
-
-UBSan in the full suite found real overflows in the header: enumeration loops `x += M` in `cornacchia`, `pellGeneralized` and `represent` could exceed `2^63 - 1` for moduli near `2^63`. They now use `__int128` counters, and regression cases with `N` and `n` near `2^63` were added. The `-DNDEBUG` sanitized probe also found `reducedForms(LLONG_MIN)` negating the minimum; the domain is now `-2^62 < D < 0`.
 
 ## Commands and results
 
@@ -245,4 +243,4 @@ Research decisions (adopted and rejected) are in [00-notes.md](00-notes.md), P17
 
 ## History
 
-- 2026-10-17: P178 initial implementation. `reducedForms` adopted from the sweep, and `fourSquares` made deterministic through `threeSquares`. UBSan found the `x += M` overflow in three enumeration loops and the `reducedForms(LLONG_MIN)` negation; both fixed with regressions added. Review found 7 issues, all fixed: `pellGeneralized<lll>` overflow for large units (bound documented and measured, `D = 1021` regression on `iint`); `definite` missing the `abs(D) < 2^62` bound (added, with a probe); the `pellSolutions` unit not asserted (asserted, with a probe); `threeSquares` and `pellGeneralized` complexity lines; unqualified `tie`; uppercase locals; stale counts. Full suite passed on g++ and g++-14, stress on g++.
+- 2026-10-17: P178 initial implementation, `reducedForms` adopted from the sweep, `fourSquares` made deterministic through `threeSquares`, UBSan found 2 overflows (fixed, with regressions), review found 7 issues, all fixed; full suite passed on g++ and g++-14, stress on g++.

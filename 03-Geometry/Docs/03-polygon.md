@@ -1,12 +1,12 @@
 # 03-polygon.hpp — evidence
 
-Owned by package P007 / GE01 (geometry foundations, together with `01-point.hpp`, `02-line_segment.hpp` and `04-convexhull.hpp`); see [00-notes.md](00-notes.md#p007--ge01-package-record) for the package record and the folder numeric policy. Every operation in the row has a test.
+Owned by package P007 / GE01 (geometry foundations, together with `01-point.hpp`, `02-line_segment.hpp` and `04-convexhull.hpp`); see [00-notes.md](00-notes.md#ge01-numeric-policy-p007) for the folder numeric policy. Every operation in the row has a test.
 
 ## Contracts
 
 ### Numeric policy
 
-The GE01 numeric policy in [00-notes.md](00-notes.md#ge01-numeric-policy-p007) applies. With `|x| <= 10^9`, the polygon first-moment terms are `<= 4 * 10^27`, summable over `INT_MAX` vertices. The lattice counts require integral coordinates with `|x| <= 10^9` and assert this bound; the other integral polygon routines also accept wider coordinates as long as every intermediate fits `lll`. Floating inputs use computed signs with no epsilon.
+The GE01 numeric policy in [00-notes.md](00-notes.md#ge01-numeric-policy-p007) applies.
 
 ### Polygon conventions
 
@@ -58,13 +58,13 @@ Correctness: the cut replaces each excursion into the open right half-plane with
 
 ## Feature-to-test map
 
-`96-Local Testing/03-Geometry/03-polygon_tester.py` provides quick, full and stress modes, deterministic seeds, oracles that survive `-DNDEBUG`, and assertion-failure subprocesses. Full mode builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and AddressSanitizer/UndefinedBehaviorSanitizer configurations. Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
+`96-Local Testing/03-Geometry/03-polygon_tester.py` runs the geometry runner's optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan builds ([`_00_runner.py`](<../../96-Local Testing/03-Geometry/_00_runner.py>)). Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
 
 The base oracle is unions of unit grid cells, which supply area, first moments, occupancy, perimeter and enumerated lattice points. Reversal, triangle barycenters, floating dyadic and wide-coordinate regressions supplement it.
 
 | Operation | Test | Oracle |
 |---|---|---|
-| `PolygonMoments`, `polygonMoments`, `signedArea2`, `signedAreaApprox` (ring, rings) | Signed area and moments, oriented holes, every ring overload | Grid-cell union area and first moments; reversal |
+| `PolygonMoments` (`+=` through the rings overload), `polygonMoments`, `signedArea2`, `signedAreaApprox` (ring, rings) | Signed area and moments, oriented holes, every ring overload | Grid-cell union area and first moments; reversal |
 | `centroidExact`, `centroidApprox` | Exact and approximate centroids, including `out` left unchanged on zero area | Grid-cell first moments; triangle barycenters |
 | `PolygonLocation`, `WindingResult`, `polygonWinding`, `polygonContains` | Winding, nonzero-fill containment and boundary, holes | Grid-cell occupancy |
 | `polygonPerimeter` (ring, rings) | Perimeter including holes | Grid-cell union perimeter |
@@ -73,7 +73,7 @@ The base oracle is unions of unit grid cells, which supply area, first moments, 
 | `polygonCutApprox` | 14 lines per histogram polygon plus empty, edge-line, whole, wide-diagonal, nonconvex-bridge and floating regressions; the output-size bound; vertices on the closed left side | Expected area integrates each cell's clipped column heights piecewise-linearly, self-checked by complementary half-planes summing to 1 per cell |
 | Preconditions | 6 assertion probes, including `a == b` for the cut | Expected assertion failure in a subprocess |
 
-Finite tests supplement the arguments above; they do not prove correctness for all inputs. Approximate checks use scale-aware tolerances on the specified fixtures. They do not establish a universal error bound for ill-conditioned floating inputs.
+Approximate checks use scale-aware tolerances on the specified fixtures. They do not establish a universal error bound for ill-conditioned floating inputs.
 
 ## Commands and results
 
@@ -111,7 +111,7 @@ The implementation was written independently from the geometric identities. Note
 
 ## Limits and handoffs
 
-Other planned packages own simple-polygon validation and intersection sweeps (P129 / GE04), general rational-lattice counts (P037 / GE27) and adaptive and exact floating predicates (P128 / GE11).
+Other planned packages own simple-polygon validation and intersection sweeps (P129 / GE04) and adaptive and exact floating predicates (P128 / GE11). General rational-lattice counts are row 19 (`19-lattice_geometry.hpp`).
 
 ## History
 

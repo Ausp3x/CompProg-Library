@@ -23,24 +23,24 @@ Encoding must inspect all source symbols, size validation must inspect all runs,
 
 ## Feature-to-test map
 
-The entry point is `96-Local Testing/07-Strings/09-runlength_tester.py`, using the shared Strings runner and the actual public header. Failure checks remain active under `-DNDEBUG` and report seed, mode, operation, input, expected and actual output; the driver adds compiler configuration and failing command.
+The entry point is `96-Local Testing/07-Strings/09-runlength_tester.py`.
 
 | Feature | Verification |
 |---|---|
-| Maximal encoding and count cap | Independent adjacent-change boundary oracle; all ternary sequences through length eight in full mode; exact cap and one below; empty cap zero; deterministic random sequences. |
-| Decode and roundtrip | Direct expansion of bounded external encodings, source roundtrips, exact decoded cap and one below, repeated calls and clearing old output. |
+| runLengthEncode: maximal encoding and count cap | Independent adjacent-change boundary oracle; all ternary sequences through length eight in full mode; exact cap and one below; empty cap zero; deterministic random sequences. |
+| runLengthDecode: decode and roundtrip | Direct expansion of bounded external encodings, source roundtrips, exact decoded cap and one below, repeated calls and clearing old output. |
 | Malformed/nonmaximal encodings | Exhaustive run lists through three entries with two symbols and counts `-1..3`, under every cap `0..10`; adjacent equal runs remain valid. |
-| Size/count overflow | Independent signed-128-bit sum oracle, `INT64_MIN`, zero/negative counts, one `INT64_MAX` run, total exactly `INT64_MAX`, total `INT64_MAX+1`, caps one below, and deterministic random full-width counts. No oversized expansion is attempted. |
+| runLengthSize: size/count overflow | Independent signed-128-bit sum oracle, `INT64_MIN`, zero/negative counts, one `INT64_MAX` run, total exactly `INT64_MAX`, total `INT64_MAX+1`, caps one below, and deterministic random full-width counts. No oversized expansion is attempted. |
 | Container capacity | A vector with an allocator reporting capacity three accepts decoded size three and rejects four before allocation. |
-| Witness spans and aliasing | Expected source-boundary spans, direct external-run positions, successful and failed input/output span aliases, and successful/failed output aliases into an input count for size queries. |
+| runLengthSpans: witness spans and aliasing | Expected source-boundary spans, direct external-run positions, successful and failed input/output span aliases, and successful/failed output aliases into an input count for size queries. |
 | Alphabet and size domains | Empty/singleton, full byte alphabet with embedded NUL/high bytes, string-view source, signed/unsigned integer extremes through 64 bits, `vector<bool>`, and 200,000-symbol unary/alternating inputs. Larger GNU integral symbol types follow the same copy/equality-only algorithm but are not separate executed fixtures. |
 | Preconditions | Five checked-build assertion probes: oversized source, negative encode cap, negative size cap, negative decode cap and negative span cap. |
 
-Quick/full/stress enumerate ternary strings through lengths 5/8/10, run 300/4,000/20,000 random source cases, enumerate external run lists through 2/3/4 entries, and exercise large inputs of 10,000/200,000/1,000,000 symbols. Every mode covers all public operations; full and stress add sanitizers.
+Quick/full/stress enumerate ternary strings through lengths 5/8/10, run 300/4,000/20,000 random source cases, enumerate external run lists through 2/3/4 entries, and exercise large inputs of 10,000/200,000/1,000,000 symbols. Every mode covers all public operations.
 
 ## Commands and results
 
-Run 2026-10-08 with the configurations listed in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
+Run 2026-10-08. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/09-runlength_tester.py' --mode quick --seed 1  # PASS, 2 configurations
@@ -54,8 +54,7 @@ python3 '96-Local Testing/03-consistency.py'  # no errors
 
 ## Benchmarks
 
-No benchmark: a direct linear scan with no specialization, dispatch threshold or
-speed claim. Large unary and alternating cases exercise both extreme output sizes.
+No benchmark: a direct linear scan with no specialization, dispatch threshold or speed claim. Large unary and alternating cases exercise both extreme output sizes.
 
 ## Sources
 

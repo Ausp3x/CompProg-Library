@@ -46,7 +46,7 @@ Entry: [`10-crt_tester.py`](<../../96-Local Testing/05-Mathematics/10-crt_tester
 
 | Feature | Oracle and edge classes |
 |---|---|
-| `crt2`, `CrtIncremental` | Every modulus pair through 12 / 24 / 28 with residues across three periods, against enumeration. Overflow at the lcm boundary (`2^63 - 25` with 3). Inconsistency detected before overflow. Extreme residues. A lcm of `2 * (2^62 - 57)`. Sticky failure for both kinds. |
+| `crt2`, `CrtIncremental`, `CrtResult` | Every modulus pair through 12 / 24 / 28 with residues across three periods, against enumeration. Overflow at the lcm boundary (`2^63 - 25` with 3). Inconsistency detected before overflow. Extreme residues. A lcm of `2 * (2^62 - 57)`. Sticky failure for both kinds. |
 | `crt`, `crtScaled` | 2000 / 30000 / 150000 random systems of 0–4 congruences, half consistent by construction, and scaled systems with signed coefficients, against enumeration of the least solution and its period. Python: up to 6 congruences with moduli up to 2^62 built from shared random primes, consistent or perturbed, with residues shifted beyond the modulus; scaled triples with random signed coefficients. |
 | `garner`, `garnerDigits` | Status against pairwise gcds. Output untouched on failure. Digit ranges, mixed-radix reconstruction and target reduction. Python reconstruction of the digits on large coprime systems, including random 62-bit primes. |
 | `crtMod` | Every pair and all random systems with random targets. Python on large non-coprime systems. Empty system, target 1. |
@@ -63,7 +63,7 @@ P052 prune run, 2026-10-13, same conditions as [07-primality_factorization.md](0
 | `10-crt_tester.py --mode full --seed 1` | PASS 3 configurations, 1,730,419 C++ checks and 8,000 Python cases, 9 probes; 66 s; MEMORY peak 532 MB |
 | same with `CXX=g++-14` | PASS, same counts; 75 s; MEMORY peak 531 MB |
 | `10-crt_tester.py --mode stress --seed 1` | PASS 3 configurations, 3,544,495 C++ checks and 40,000 Python cases, 9 probes; 160 s; MEMORY peak 579 MB (before the last, comment-only edit of the `crt2` group line) |
-| `02-integration.py`, `03-consistency.py` and `--braces`; prune review | PASS, no errors; details and review in [07-primality_factorization.md](07-primality_factorization.md) |
+| `02-integration.py`, `03-consistency.py` and `--braces` | PASS, no errors; details in [07-primality_factorization.md](07-primality_factorization.md#commands-and-results) |
 
 ```bash
 python3 '96-Local Testing/05-Mathematics/10-crt_tester.py' --mode full --seed 1

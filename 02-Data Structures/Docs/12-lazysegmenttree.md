@@ -29,7 +29,7 @@ Tester `96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.cpp`, entr
 
 ## Commands and results
 
-Latest run 2026-10-18, Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-18, Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|

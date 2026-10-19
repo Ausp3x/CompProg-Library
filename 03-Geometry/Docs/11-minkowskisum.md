@@ -52,7 +52,7 @@ Mutation check (2026-10-11): parallel edges advancing only one pointer is caught
 ```bash
 python3 '96-Local Testing/03-Geometry/11-minkowskisum_tester.py' --mode full --seed 20260927
 CXX=g++-14 python3 '96-Local Testing/03-Geometry/11-minkowskisum_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/03-Geometry/11-minkowskisum_tester.py' --mode stress --seed 42
+python3 '96-Local Testing/03-Geometry/11-minkowskisum_tester.py' --mode stress --seed 42 --configuration optimized
 ```
 
 ## Benchmarks

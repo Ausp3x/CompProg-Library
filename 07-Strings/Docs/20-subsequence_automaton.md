@@ -32,7 +32,7 @@ The number of index tuples `i_1 < ... < i_m` with `text[i_j] = t[j]` (1 for the 
 
 ## Feature-to-test map
 
-Runner: [`20-subsequence_automaton_tester.py`](<../../96-Local Testing/07-Strings/20-subsequence_automaton_tester.py>). Both variants run every check. The reference is independent of the header: next/prev by scanning (a backward table above `3 * 10^7` scan steps), counts by summing `1 + sum_c cnt[next(i, c) + 1]` with saturation, the absent word by an `O(n * S)` DP over all symbols, and occurrences by the `O(n * m)` DP. Small cases add brute subsequence sets by bitmask. All checks survive `-DNDEBUG`.
+Runner: [`20-subsequence_automaton_tester.py`](<../../96-Local Testing/07-Strings/20-subsequence_automaton_tester.py>). Both variants run every check. The reference is independent of the header: next/prev by scanning (a backward table above `3 * 10^7` scan steps), counts by summing `1 + sum_c cnt[next(i, c) + 1]` with saturation, the absent word by an `O(n * S)` DP over all symbols, and occurrences by the `O(n * m)` DP. Small cases add brute subsequence sets by bitmask.
 
 | Operation | Coverage |
 |---|---|
@@ -48,7 +48,7 @@ Exhaustive strings over alphabets 1..3 through length 6/7/8 (ternary one shorter
 
 ## Commands and results
 
-Run 2026-10-11 on the final code. Every run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, precondition probes; stress runs at full sizes) binaries, and full/stress add ASan/UBSan (`-O1`); all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full and stress first pass the quick pre-flight under the 2048 MB cap.
+Run 2026-10-11 on the final code. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>). The checked build runs stress at full sizes.
 
 ```bash
 python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 20 suites (this one: 2 configurations, 6 assertion probes)

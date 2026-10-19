@@ -21,6 +21,6 @@ Saved PDFs are indexed in [95-Resources](../95-Resources/00-index.md). `OLD` and
 
 ## Provenance
 
-- For each adopted result record title or URL, version or date, the claim it supports, and whether code was adapted or written independently. Keep licenses and attribution; put detail in `Docs/00-sources.md` and only a one-line notice in code.
+- For each adopted result record in the header's evidence document the title or URL, version or date, the claim it supports, and whether code was adapted or written independently. Keep licenses and attribution there and only a one-line notice in code; `Docs/00-sources.md` records the sources consulted (Completeness sweep).
 
 Machine-readable ledgers are listed in [00-index.md](00-index.md).

@@ -27,7 +27,7 @@ Correctness: for each parity the loop keeps the rightmost maximal palindrome fou
 
 ## Feature-to-test map
 
-Runner: [`05-manacher_tester.py`](<../../96-Local Testing/07-Strings/05-manacher_tester.py>). The oracle enumerates every interval and tests it directly (no mirrored recurrence); all checks survive `-DNDEBUG`.
+Runner: [`05-manacher_tester.py`](<../../96-Local Testing/07-Strings/05-manacher_tester.py>). The oracle enumerates every interval and tests it directly (no mirrored recurrence).
 
 | Operation | Coverage |
 |---|---|
@@ -40,7 +40,7 @@ Checked builds run twelve precondition probes: ten center/radius probes on the i
 
 ## Commands and results
 
-P016 prune follow-up run, 2026-10-13 (after the `n < 2^30` assertions): GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations as in [01-prefixfunction.md](01-prefixfunction.md#commands-and-results).
+P016 prune follow-up run, 2026-10-13 (after the `n < 2^30` assertions): GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/05-manacher_tester.py' --mode full --seed 20261013
@@ -69,7 +69,7 @@ Code is independently implemented.
 
 ## Limits and handoffs
 
-- Not adopted (reasons in [00-notes.md](00-notes.md)): the Library Checker `2n - 1` combined length array (a radius/index conversion owned by `08-palindrome_queries.hpp`), a bulk `enumeratePalindromes` (a loop over the interval methods), the odd-only switch.
+- Not adopted (reasons in [00-notes.md](00-notes.md)): the Library Checker `2n - 1` combined length array (a radius/index conversion), a bulk `enumeratePalindromes` (a loop over the interval methods), the odd-only switch.
 - Exact substring palindrome checks and longest-palindrome extraction stay in `08`; eertree in `13`; inverse Manacher in `31`.
 - The `n < 2^30` assertions of `centerEnd`, `longestEnding` and `longestStarting` have no probe: an object that violates them holds at least 8 GB of radii, above the 4 GB test cap. Their placement rests on the bound above: with `n < 2^30` every doubled center, loop bound and length (`2n - 2`, `2r - c + 1`, `c - 2l + 1`) stays below `2^31`.
 

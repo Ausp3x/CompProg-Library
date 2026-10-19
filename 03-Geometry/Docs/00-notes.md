@@ -1,6 +1,6 @@
 # 03 Geometry — notes
 
-Contracts and ownership rules moved out of the inventory. Evidence is one document per header: [01-point.md](01-point.md), [02-line_segment.md](02-line_segment.md), [03-polygon.md](03-polygon.md), [04-convexhull.md](04-convexhull.md), [05-closestpair.md](05-closestpair.md), [06-circle.md](06-circle.md), [07-rotatingcalipers.md](07-rotatingcalipers.md), [08-coordinate_transform.md](08-coordinate_transform.md), [09-triangle.md](09-triangle.md), [10-halfplaneintersection.md](10-halfplaneintersection.md), [11-minkowskisum.md](11-minkowskisum.md), [13-segment_union.md](13-segment_union.md), [14-minimumenclosingcircle.md](14-minimumenclosingcircle.md), [15-convex_polygon_query.md](15-convex_polygon_query.md), [16-circle_polygon.md](16-circle_polygon.md), [17-polygon_distance.md](17-polygon_distance.md), [19-lattice_geometry.md](19-lattice_geometry.md) and [54-fixed_radius_queries.md](54-fixed_radius_queries.md).
+Evidence is one document per header: [01-point.md](01-point.md), [02-line_segment.md](02-line_segment.md), [03-polygon.md](03-polygon.md), [04-convexhull.md](04-convexhull.md), [05-closestpair.md](05-closestpair.md), [06-circle.md](06-circle.md), [07-rotatingcalipers.md](07-rotatingcalipers.md), [08-coordinate_transform.md](08-coordinate_transform.md), [09-triangle.md](09-triangle.md), [10-halfplaneintersection.md](10-halfplaneintersection.md), [11-minkowskisum.md](11-minkowskisum.md), [13-segment_union.md](13-segment_union.md), [14-minimumenclosingcircle.md](14-minimumenclosingcircle.md), [15-convex_polygon_query.md](15-convex_polygon_query.md), [16-circle_polygon.md](16-circle_polygon.md), [17-polygon_distance.md](17-polygon_distance.md), [19-lattice_geometry.md](19-lattice_geometry.md) and [54-fixed_radius_queries.md](54-fixed_radius_queries.md).
 
 ## Numeric policy
 
@@ -29,17 +29,18 @@ Rows 05–08 (`05-closestpair.hpp`, `06-circle.hpp`, `07-rotatingcalipers.hpp`, 
 - Circles are boundaries; disks are filled sets. Zero radius denotes a point. Intersection counts use `-1` for infinitely many; in a fixed-size result array only the prefix `[0, count)` is meaningful.
 - Halfplane and halfspace APIs must not disguise unbounded feasibility with an arbitrary bounding box; unbounded answers keep recession data. Clipping needs a justified finite initial polytope.
 - Polygon Boolean and arrangement APIs state multi-polygons, lower-dimensional contacts, touching/overlapping edges, ring orientation and fill rule; they share one arrangement representation.
-- Inscribed k-gon optimization (`15`) states k, strict-convexity/collinearity assumptions and its own complexity; the general versions assume no linear-time shortcut, and `k = 3, 4` are separate linear operations.
-- Enumeration/reporting APIs are charged by output size and separate detection, counting and reporting costs.
+- Reporting APIs separate detection, counting and reporting costs.
 - Degeneracy policies are row contracts, not operations: coincident and vertical segments (`12-segmentintersection.hpp`, including `multiwayCrossing`), cocircular sites (`31-delaunay.hpp`), tangent sight lines (`39-visibilitygraph.hpp`), simultaneous kinetic events (`40-kinetic_geometry.hpp`) and cospherical sites (`47-delaunay3d.hpp`).
 
 ## Ownership boundaries
 
 - Data Structures: `43-rangetree.hpp` (orthogonal count/report), `11-fenwick_tree_advanced.hpp`, `33-offline_rectangle_queries.hpp`, `21-lichao.hpp`, `22-convexhulltrick.hpp`, `24-interval_set.hpp`. Geometry owns point-facing kd/R/quadtree and nearest-neighbour APIs and reuses those engines without wrapping or duplicating them (`00-Guidelines/03-cpp.md`, One API per operation). Range-restricted closest pair is owned by `29-point_set_queries.hpp`, which may reuse `28-spatial_index.hpp`.
-- Graphs: `29-planar_graph.hpp` owns combinatorial half-edge embeddings, faces and duals; Geometry subdivisions own coordinates and events. Graph MST engines are reused by `22-geometricmst.hpp`; generic DP engines stay in Miscellaneous even when `41` supplies an angular event order.
+- Graphs: `29-planar_graph.hpp` owns combinatorial half-edge embeddings, faces and duals; Geometry subdivisions own coordinates and events, and `33-linearrangement.hpp` exports to it instead of duplicating face logic. Graph MST engines are reused by `22-geometricmst.hpp`; generic DP engines stay in Miscellaneous even when `41` supplies an angular event order.
+- Mathematics: floor sums and lattice-count kernels (`18-floorsum.hpp`, `55-floor_sum_polynomial.hpp`), real and complex root isolation (`29-polynomial_roots.hpp`), ternary/golden search (`02-search_algorithms.hpp`), Simplex LP (`28-simplex.hpp`), numerical integration (`17-numerical_methods.hpp`), sums of two squares (`34-quadratic_congruence.hpp`) and Gaussian integers (`57-quadratic_integer.hpp`); rows 19, 23, 25, 42 and 44 reuse them and do not duplicate them.
 - `42-randomizedlp.hpp` stays in Geometry: Seidel's fixed-dimension LP is the feasibility engine for `38` and `49`; general LP is Mathematics `28-simplex.hpp`.
 - `44-algebraic_geometry.hpp` stays in Geometry but only for conic/arc/Bézier intersections; polynomial root isolation itself is Mathematics.
 - Chan's output-sensitive hull is a named `41` variant, not a requirement of `04-convexhull.hpp`.
+- Python: `08-Python/_11_geometry.py` (rows 01–04, 15), `_41_geometry_float.py` (01, 02, 06, 08, 14), `_44_exact_geometry.py` (12) and `_55_geometry_advanced.py` (05, 07, 10, 11, 13, 15) are documented reductions.
 
 ## Legacy obligations
 
@@ -48,8 +49,22 @@ Rows 05–08 (`05-closestpair.hpp`, `06-circle.hpp`, `07-rotatingcalipers.hpp`, 
 - Superseded and accounted for by P037 (bytes preserved, no active dependency): `getlensegunion.cpp` (row 13 `segmentUnionLength`) and `welzlmec.cpp` (row 14; its double predicates and clock seed are not adopted).
 - Pending until their rows are implemented: `getintersectingsegs.cpp` (12), `getmanhattammstedges.cpp` (21). Legacy epsilon predicates (`1e-9`) are not adopted; each successor states its own exact/approximate policy.
 - `lichaotree.cpp` in the same directory belongs to Data Structures `21-lichao.hpp`.
-- `OLD/Team Notebook/main.tex` lines 232–234 (Heron) are covered by `heronAreaApprox`.
 - No correctness claim in any legacy snippet is adopted.
+
+## 2026-09-27 audit: not adopted
+
+Industrial CAD, molecular surfaces, remeshing/visualization and machine-learning reconstruction remain outside this contest inventory. Catalog items of the [2026-09-27 audit](00-sources.md#2026-09-27-audit-provenance) left out:
+
+- maspypy `minimum_three_distance_sum`: single-problem curiosity without a reusable family.
+- maspypy `convex_polygon_edge_voronoi`: nearest-edge diagram of a convex polygon; no contest use case beyond `15` distance queries.
+- maspypy `definite_integral`, `modint_real`: numerical integration is Mathematics `17-numerical_methods.hpp`; modular reals are not geometry.
+- hitonanode `point2d_w_error` as a public type: absorbed as the `IntervalPoint2` filter inside row 36 rather than a separate header.
+- KACTL `Angle` class: `polarLess` and `canonicalDirection` cover its use; no separate angle type.
+- cp-algorithms "Finding faces of a planar graph": Graphs `29-planar_graph.hpp`.
+- CGAL 2D Snap Rounding, Polygon Repair, Movable Separability, Interval Skip List, natural-neighbour Interpolation, Spatial Sorting, periodic/hyperbolic triangulations, mesh generation, shape reconstruction, polygon mesh processing, point set processing: no contest algorithmic use case.
+- CGAL Linear and Quadratic Programming Solver: Mathematics `28-simplex.hpp`.
+- OI Wiki 随机增量法 as a separate header: covered by `14` (Welzl) and `31` (incremental Delaunay).
+- Lattice points on a circle boundary (sum of two squares): Mathematics `34-quadratic_congruence.hpp` (`twoSquaresCount`, `twoSquaresAll`); only disk counts are in row 19.
 
 ## P007 completeness decisions (2026-10-07)
 
@@ -60,27 +75,18 @@ Rows 05–08 (`05-closestpair.hpp`, `06-circle.hpp`, `07-rotatingcalipers.hpp`, 
 
 ## P008 completeness decisions (2026-10-07)
 
-- Added: `circleRelation` (exact integer five-way relation, AOJ CGL_7_A) to `06-circle.hpp`; `degenerateBox` is listed in the `07-rotatingcalipers.hpp` row because the contest struct exposes it.
 - Not adopted for `05-closestpair.hpp`: the minimum-perimeter triangle (a rare extension of the same recursion); the randomized expected-linear grid (it needs floor-hashing, its runtime is hackable with a fixed seed, and the deterministic O(n * log(n)) bound is optimal for comparison-based algorithms); floating-coordinate closest pair (the exact-first policy scales or rounds inputs to integers).
 - Not adopted for `06-circle.hpp`: the Apollonian ratio-locus circle (a construction for `24-circle_constructions.hpp`).
-- Not adopted for `07-rotatingcalipers.hpp`: two-polygon calipers problems (maximum distance between convex polygons, hull merge bridges, critical support lines, widest separating strip, Grenander distance). They belong to the two-polygon rows 04, 11, 17 and 25.
+- Not adopted for `07-rotatingcalipers.hpp`: two-polygon calipers problems (maximum distance between convex polygons, hull merge bridges, critical support lines, widest separating strip, Grenander distance). Row 17 owns the maximum distance (`convexPolygonMaxDistance`) and row 53 the bridges; the others are not adopted (P036 decisions for row 17).
 - Not adopted for `08-coordinate_transform.hpp`: line and direction images (apply the map to two points or use `applyVector`), map equality and how-built predicates (field comparison), and exact rational transforms (no contest need, and they conflict with the `Approx` contract).
 
 ## P009 completeness decisions (2026-10-07)
 
-- Added: `Triangle2::angleKind` (exact acute/right/obtuse classification by the smallest vertex dot product; CGAL `angle`).
 - Not adopted for `09-triangle.hpp`: an approximate angle kind (a right angle is not decidable from rounded coordinates; use the exact type); vertex angles (`angleApprox` in `01-point.hpp`); altitude and median lengths and feet (one projection or `area2 / side`); orientation, bounded side and transforms of a triangle (rows 02, 03 and 08); Fermat point (row 25).
 
 ## P036 completeness decisions (2026-10-10)
 
-- **Added to `10-halfplaneintersection.hpp`:**
-  - kinds `Ray` and `Line`, and `HalfplaneResult::planes`, so that every degenerate and unbounded result is described without a bounding box;
-  - `contains` on rational points;
-  - `polygonKernelLinear` (Lee–Preparata, `O(n)`) next to `polygonKernel`; the two versions are a deliberate exception to "no duplication", decided by the user on 2026-10-10;
-  - `chebyshevCenter` renamed `chebyshevCenterApprox` by the naming policy.
-- **Added to `11-minkowskisum.hpp`:** a family overload of `minkowskiSum` (`k` convex polygons in `O(n * log(k))`; maspypy cites CF 87E). `minkowskiDifference` is the CP `P + (−Q)`. "Canonical start" is the lexicographic minimum.
-- **Added to `16-circle_polygon.hpp`:** `circleBoundaryArcsInPolygon` renamed `circleArcsInPolygonApprox` by the naming policy. `diskRingsAreaApprox` takes polygon rings (outer ring and holes), not annuli.
-- **Added to `17-polygon_distance.hpp`:** `convexPolygonMaxDistance` (exact farthest pair between two convex polygons, rotating-calipers catalogue), `PolygonDistanceApprox` witnesses, and the separating-axis witness of `convexSeparated`. `polygonsIntersect` uses closed semantics.
+- **Added to `10-halfplaneintersection.hpp`:** `polygonKernelLinear` (Lee–Preparata, `O(n)`) next to `polygonKernel`, a different algorithm kept by user decision 2026-10-10.
 - **Not adopted for `10-halfplaneintersection.hpp`:**
   - halfplanes from coefficients `A x + B y + C <= 0` (integral endpoints need not exist inside the domain; same reason as the P007 line decision);
   - a bounding-box helper (four `Halfplane` values; unbounded results are exact here).
@@ -107,15 +113,6 @@ Five `@researcher` passes, one per row; sources in [00-sources.md](00-sources.md
   - both disk counts take a rational centre;
   - `verifyEnclosing` becomes the exact `EnclosingCircle::contains`;
   - `segmentUnionLength`, `orthogonalIntersectionCount`, `latticeUnderLine`, `latticeInHalfplanePolygon`, `convexIntersection`, `cut` and `maxPointsInDisk` stay.
-- **Added:**
-  - `EnclosingCircle::points`, `center` and exact `locate` (Library Checker reports every point on the circle);
-  - `ConvexLineIntersection` and segment and ray queries in `lineIntersection`;
-  - `InscribedKgon`;
-  - `diskCoverCounts` as a `GridHash` query.
-- **Renamed by the naming policy:**
-  - `areaLeftOfLine` to `areaLeftOfLineApprox`;
-  - `prefixArea` to `prefixArea2`;
-  - `maxPerimeterInscribedKgon` to `maxPerimeterInscribedKgonApprox`.
 - **Not adopted for `13-segment_union.hpp`:**
   - the incremental anchored rectangle union (an online staircase map that maspypy and ei1333 file under data structures);
   - anchored and general box union volume in 3D (one problem, CF 815D; Klee's measure is Esoteric);
@@ -126,14 +123,15 @@ Five `@researcher` passes, one per row; sources in [00-sources.md](00-sources.md
   - incremental insertion (`O(n)` worst case per point);
   - Megiddo's deterministic linear algorithm (filed in round 3, P234);
   - the smallest circle covering `k` points (filed in round 3 as `56-circle_placement.hpp`, P233);
-  - the rectangular p-centre (row 21).
+  - the rectangular p-centre (row 21);
+  - extreme-point seeding (Smolik–Skala; measured in round 3).
 - **Not adopted for `15-convex_polygon_query.hpp`** (the linear largest triangle and quadrilateral were adopted in round 3, and the minimum enclosing triangle filed as P234):
   - circumscribing k-gons, largest inscribed homothets and axis rectangles (no contest catalog);
   - common tangents of two convex polygons (row 53 bridges).
 - **Not adopted for `19-lattice_geometry.hpp`:** the generic convex-region lattice count, the lattice hull under a line and polynomial lattice sums. Mathematics row 55 owns the engines (`convexLatticeHull`, `convexFloorSum`, `floorSumPolynomial`).
 - **Not adopted for `54-fixed_radius_queries.hpp`:**
   - approximation schemes (papers only); the weighted, coloured and two-disk variants, Chazelle–Lee's `O(n^2)` sweep and the smallest disk covering `k` points were filed in round 3 as `56-circle_placement.hpp` (P233);
-  - unit-disk components and hop distances (row 22 `euclideanBottleneck`; Esoteric).
+  - unit-disk components (row 22 `euclideanBottleneck`) and hop distances (Esoteric, not filed).
 
 ## P037 re-audit decisions (2026-10-19)
 
@@ -143,15 +141,13 @@ Requested by the user after the first verification; recorded in `duplicates.md` 
   - `maxAreaInscribedKgonSmawk` and `maxPerimeterInscribedKgonSmawkApprox` beside the divide-and-conquer k-gons (a different algorithm, kept even though the plain versions are faster at the measured sizes);
   - `rectangleUnionBoundaryGuting` beside the sweep.
 - **Domains widened:**
-  - `maxPointsInDisk` to `r2 <= 4 * 10^18` (an `I512` comparator above `4 * 10^8`);
+  - `maxPointsInDisk` to `r2 <= 4 * 10^18`;
   - rational lattice counts to `V * D <= 4 * 10^18` (primitive directions, a floored line constant, 256-bit products and Mathematics row 18 `floorSumWide`).
-- **k-gon correctness:** the k-gon root search now cites only Boyce et al.'s Lemma 2.2, as AKMSW do, and the layer step has a proof; see [15-convex_polygon_query.md](15-convex_polygon_query.md).
 
 ## P037 round-3 decisions (2026-10-19)
 
-A user-requested audit compared every operation of rows 13, 14, 15, 19 and 54 (and Mathematics `floorSumWide`) with the best known algorithms, exactness, accepted inputs, memory and test gaps; sources in [00-sources.md](00-sources.md#p037-round-3-audit-sources-fetched-2026-10-19). Limits are distinguished from scope: a limit is a shortcoming an implementation can remove, and round 3 removed or filed every one it found (several were integer-width or randomness limits: the exact `radius2`, the 384-bit comparator, the deterministic `SortedGrid`). Scope is what stays by design or by necessity: integer-width domains the user chose not to widen again (rational lattice counts), irrational results, open problems (exact sums of square roots), proven lower bounds, and randomized expected bounds kept beside their deterministic variants.
+A user-requested audit compared every operation of rows 13, 14, 15, 19 and 54 (and Mathematics `floorSumWide`) with the best known algorithms, exactness, accepted inputs, memory and test gaps; sources in [00-sources.md](00-sources.md#p037-round-3-audit-sources-fetched-2026-10-19). Proven lower bounds, and randomized expected bounds kept beside their deterministic variants, stay by design.
 
-- **Fixed in this round:** listed per row in the evidence documents (History, 2026-10-19 round 3).
 - **Filed as Esoteric packages** (limits that are impractical now, and scope items the user asked to track):
   - `56-circle_placement.hpp` (P233): Chazelle–Lee O(n^2), output-sensitive O(n K), batched unit-disk counting, the smallest disk covering k points, weighted, coloured and two-disk coverage;
   - `57-enclosing_shapes.hpp` (P234): Megiddo's deterministic linear enclosing circle, the enclosing circle of circles, the minimum enclosing triangle and parallelogram;
@@ -159,20 +155,8 @@ A user-requested audit compared every operation of rows 13, 14, 15, 19 and 54 (a
   - `59-kgon_klink.hpp` (P236): large-k inscribed polygons through k-link paths;
   - `60-wordram_geometry.hpp` (P237): word-RAM bounds (Chan–Pătraşcu), filed by user decision although expected to be slower at contest sizes.
 - **Decided by the user:** a deterministic grid (sorted cells) is added to row 54 as a variant of `GridHash`; rational lattice domains are not widened again.
-- **Row 13:** rectangle and orthogonal operations take floating coordinates (exact structure, rounded sums); `rectangleCoverageArea` uses a compact tree for `k <= 16` and square-root blocks above (`O(n)` memory; threshold and block size measured); `rectangleUnionContours` links the boundary pieces into rings, turning right where four pieces meet (closed-union convention).
-- **Row 14:** `radius2` is exact as Core `Rational<InfInt>` (the numerator reaches 2^189); `minimumEnclosingCircleApprox` takes floating inputs (a larger domain); Welzl's move-to-front is adopted within a `32 n + 64` test budget with a plain-shuffle fallback, which keeps the expected `O(n)` bound provable (1.07–2.4× faster); extreme-point seeding was measured and not adopted.
-- **Row 19:** unbounded halfplane lattice counts return 0 or −1 for infinitely many (Meyer's theorem); the disk hull walk keeps its Stern–Brocot stack as `O(log(r))` runs; Core `u256` replaces the private 256-bit helpers (2–9% measured).
-- **Row 54:** `SortedGrid` is kept beside `GridHash` as its deterministic variant, and `maxPointsInDisk` uses it; the wide comparator uses private 384-bit magnitudes because Core `UInt` measured 1.6–2.6× slower; the `lll` path covers `r2 <= 2^30` (proved).
-
-## P007 / GE01 package record
-
-Rows 01–04: the 2026-09-27 verification and the 2026-10-07 re-audit (findings, completeness-sweep additions, and the independent review's result on the 2026-10-07 line) are recorded in each per-header `## History`, with commands and results in the evidence documents.
-
-## P008 / GE02 package record
-
-Rows 05–08: the 2026-09-27 verification and the 2026-10-07 re-audit (findings, completeness-sweep additions, and the independent review's result on the 2026-10-07 line) are recorded in each per-header `## History`, with commands, results and mutation checks in the evidence documents.
 
 ## Validation rules
 
-- Validate sweeps and queries against brute force on small sets, topology against independent constructions, and invariants such as area/volume conservation.
+- Beside the `05-testing.md` oracles, check topology against independent constructions and area/volume conservation.
 - Always include repeated/collinear/coplanar points, vertical/coincident segments, cocircular/cospherical sets, exact boundary contacts, holes, reversed orientation, huge coordinates and zero-area/volume results.

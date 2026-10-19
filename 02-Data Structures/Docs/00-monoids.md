@@ -72,7 +72,7 @@ Every preset but `RangeLinearRangeSum` has action builders; `F` is listed by mea
 | `RangeFlipRangeInversion` | `{zero, one, inv}` (`lng`) | flip (`flip`) | 0/1 sequences; inversions count a one before a zero; `leaf(bit)` (AtCoder practice2 L) |
 | `RangeLinearRangeSum<T, K>` | `array<T, K>` (sums of K-vectors) | `K x K` matrix acting as `F * x`, composition `F * G`; the matrix is the action, so there is no builder | commutative ring `T`; covers sums of products under two adds (`K = 4` over `(1, a, b, ab)`), Fibonacci values under exponent add, power sums under add or assignment and weighted sums; mapping `O(K^2)`, composition `O(K^3)` |
 
-### Renamed presets
+### Legacy mapping
 
 | Old | New |
 |---|---|
@@ -83,7 +83,7 @@ Every preset but `RangeLinearRangeSum` has action builders; `F` is listed by mea
 | `RangeGcdLcm` | `RangeGcdLcmRangeGcdLcm` |
 | `RangeAssignMaxSubarray` | `RangeAssignRangeMaxSubarray` |
 
-Earlier legacy names: `MonAlg -> RangeAffineRangeSumMinMaxIndex`, `MonBin -> RangeAndOrXorRangeAndOrXor`, `MonGcd<opt> -> RangeGcdLcmRangeGcdLcm<T, LCM>`, `MonSar -> RangeAssignRangeMaxSubarray`, and the placeholder scaffold `MonSet` (range set with custom states, its `97-Legacy` excerpt deleted) is the assign presets or `ActedMonoid` with the user's states; the legacy `init(i, x)` / `defR(l, r)` members are `leaf(...)` builders and, for row 13, the user's fill functor. Each consumer's evidence maps its own renames (`query` to `prod`, `fold` to `allProd` or `associativeProd`, `(id, f)` to `mon`).
+Earlier legacy names: `MonAlg -> RangeAffineRangeSumMinMaxIndex`, `MonBin -> RangeAndOrXorRangeAndOrXor`, `MonGcd<opt> -> RangeGcdLcmRangeGcdLcm<T, LCM>`, `MonSar -> RangeAssignRangeMaxSubarray`, and the placeholder scaffold `MonSet` (range set with custom states) is the assign presets or `ActedMonoid` with the user's states; the legacy `init(i, x)` / `defR(l, r)` members are `leaf(...)` builders and, for row 13, the user's fill functor. Each consumer's evidence maps its own renames (`query` to `prod`, `fold` to `allProd` or `associativeProd`, `(id, f)` to `mon`).
 
 ### Aliases
 
@@ -115,7 +115,7 @@ Every consumer tester also runs a stateful monoid (runtime modulus, key array or
 
 ## Commands and results
 
-Latest run 2026-10-18, Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-18, Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|

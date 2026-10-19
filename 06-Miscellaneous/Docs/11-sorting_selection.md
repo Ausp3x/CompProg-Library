@@ -1,10 +1,10 @@
 # 11-sorting_selection.hpp — evidence
 
-`11-sorting_selection.hpp` (batch MI14, package P014) provides counting, stable counting and radix sorts, the three-way partition and worst-case linear median-of-medians selection; stable partition and introselect are `std::stable_partition` and `std::nth_element` (Legacy mapping). Every operation in the row has an independent-oracle test (map below). Prerequisites P002, P006 and P013 are verified. No online submission was made.
+`11-sorting_selection.hpp` (batch MI14, package P014) provides counting, stable counting and radix sorts, the three-way partition and worst-case linear median-of-medians selection; stable partition and introselect are `std::stable_partition` and `std::nth_element` (Legacy mapping). Every operation in the row has an independent-oracle test (map below). Prerequisites P002, P006 and P013 are verified.
 
 ## Contracts
 
-Common rules: sizes are below `INT_MAX`. Indices are zero-based and ranges half-open. Inputs are borrowed and never mutated unless a contract says so. Ties are deterministic but otherwise arbitrary. Comparators are pure strict weak orders, and equality callbacks are pure equivalences. Projections and predicates are pure and depend on element values, not addresses or positions. Callback exceptions propagate, with no rollback after mutation has begun. Each bound counts a comparison, projection, copy, move or `Count` operation as O(1).
+Common rules: see [00-notes.md](00-notes.md), Basic contracts.
 
 ### `sorting_detail`
 
@@ -39,8 +39,6 @@ The domain is `0 <= k < n` (asserted). It returns a copy of the rank-`k` value i
 
 ## Feature-to-test map
 
-Every oracle is independent of the implementation and uses non-removable checks. Tests run in the optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations (the last only in full and stress). Assertion probes run as SIGABRT subprocesses in the checked build.
-
 | Operation | Oracle and cases |
 |---|---|
 | `countingSort`, `stableCountingSort`, `radixSort` | Comparison-sort references; original ids prove stability; every key width through 128 bits; one-projection counter; copy-only records; empty and zero-alphabet input; large shapes; asserts for range, width and keys; compile rejections for bool and real keys |
@@ -52,12 +50,12 @@ Mutation probes (2026-10-08, quick mode): a group-minimum pivot in `medianOfMedi
 
 ## Commands and results
 
-P014 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. The integration and consistency runs of that date are in [08-sequence_algorithms.md](08-sequence_algorithms.md).
+P014 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. `02-integration.py` (135 standalone and aggregate headers, scalar and available AVX2 multi-TU builds, workspace) and `03-consistency.py` passed that date (record moved from the superseded 08-sequence_algorithms.md run).
 
 - Quick: `python3 '96-Local Testing/06-Miscellaneous/11-sorting_selection_tester.py' --mode quick --seed 1`: PASS, 2 configurations, 13 probes.
 - Full: `python3 '96-Local Testing/06-Miscellaneous/11-sorting_selection_tester.py' --mode full --seed 1`: PASS (table below); with `CXX=g++-14`: PASS in all three configurations with the six compile rejections.
 - `python3 '96-Local Testing/03-consistency.py' --braces` on the header and its C++ tester: no violations.
-- `g++ -std=gnu++20 -O2 -Wall -Wextra -Wconversion`: no warnings in the header; the tester's `vector<signed char>` and `vector<char>` construction triggers a GCC 16-only `-Warray-bounds` false positive (absent under `g++-14`). The benchmark (it times `std::nth_element` directly) builds with `-O2 -DNDEBUG -Wall -Wextra -Wconversion` and no warnings on both compilers since its mismatch index became `size_t`, and its binary ran with every output verified; the recorded timings stand, as that index is read only on a failure.
+- `g++ -std=gnu++20 -O2 -Wall -Wextra -Wconversion`: no warnings in the header; the tester's `vector<signed char>` and `vector<char>` construction triggers a GCC 16-only `-Warray-bounds` false positive (absent under `g++-14`). The benchmark (it times `std::nth_element` directly) builds with `-O2 -DNDEBUG -Wall -Wextra -Wconversion` without warnings on both compilers and its binary ran with every output verified; the timings below are the 2026-10-07 record.
 
 | Suite | Full, seed 1 (optimized, checked, ASan/UBSan) | Probes |
 |---|---|---|
@@ -92,7 +90,7 @@ The code was written independently from the recurrences and proofs in the packag
 
 ## Limits and handoffs
 
-- Finite corpora support the proofs above; they are not proofs themselves. Vector sizes beyond `INT_MAX` are reviewed, not allocated.
+- Vector sizes beyond `INT_MAX` are reviewed, not allocated.
 - Comparator, callback and window-validity obligations are the caller's responsibility and are not asserted.
 - The code uses no `long` or POSIX-only calls.
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): partial sort, k-way merge and multikey radix.
@@ -102,4 +100,4 @@ The code was written independently from the recurrences and proofs in the packag
 - 2026-09-28: first implementation and audit (MI14, P014); full suite passed.
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes.
 - 2026-10-08: re-audit, added `medianOfMedians` and `threeWayPartition`, 12 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 and the benchmark passed, integration and consistency clean.
-- 2026-10-13: prune, removed `stablePartition` and `quickSelect` (cases moved to `std::stable_partition` and `std::nth_element`, `select-*` probes dropped); full suite passed on g++ and g++-14.
+- 2026-10-13: prune, removed `stablePartition` and `quickSelect` (cases moved to `std::stable_partition` and `std::nth_element`, `select-*` probes dropped); full suite passed on g++ and g++-14; benchmark rebuilt warning-free, outputs verified.

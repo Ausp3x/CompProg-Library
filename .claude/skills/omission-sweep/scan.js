@@ -43,7 +43,7 @@ const items = [
 ]
 
 const COMMON = `Read-only completeness scan of the CompProg Library; edit nothing. ` +
-  `First read the folder's 00-index.md (Scope, Notes), Docs/00-notes.md (ownership and recorded omissions) and the "Not adopted" list in Docs/00-sources.md. ` +
+  `First read the folder's 00-index.md (Scope), Docs/00-notes.md (ownership and recorded omissions) and the "Not adopted" list in Docs/00-sources.md. ` +
   `Skip aliases under 00-Guidelines/03-cpp.md, One API per operation, and one-problem tricks; *mini.hpp rows and 08-Python modules are documented reductions of their full or C++ counterpart. ` +
   `Revisit a recorded omission only with a concrete reason it fails, quoted in "recorded". List the URLs you fetched and the failed fetches; invent none (Library Checker problems: github.com/yosupo06/library-checker-problems).`
 

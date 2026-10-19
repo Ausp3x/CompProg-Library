@@ -65,7 +65,7 @@ The [test entry](<../../96-Local Testing/01-Core/17-polymini_tester.py>) drives 
 | `ntt`, `ntt(a, true)` | Naive bit-reversed DFT with an independently searched non-residue (lengths <= 512), spot evaluations `a(w^{rev(j)})` above; inverse round trip; `Poly::ntt`/`intt` agreement at every length up to the modulus limit (2^16 full, 2^19 stress); GF(2), GF(3), GF(5) at every allowed length (1; 1, 2; 1, 2, 4) |
 | `*` | Schoolbook over all size pairs of the size list; random-point evaluation `c(x) = a(x) b(x)` up to 2^16 + 3 (full) and 2^19 - 1 (stress); aliasing `a = a * a` |
 | `+`, `-`, scalar `*` | Coefficientwise loops over unequal sizes; `a + a`, `a - a`, multiplication by zero |
-| `deg`, `trim`, `eval`, `deriv`, `integ` | Trailing-zero and zero polynomials; power sums `sum a_i x^i`; explicit formulas `i a_i` and `a_i / (i + 1)` with direct inverses; `deriv(integ(a, c)) = a` |
+| ctor (vector, initializer list, `n` copies), `deg`, `trim`, `eval`, `deriv`, `integ` | Trailing-zero and zero polynomials; power sums `sum a_i x^i`; explicit formulas `i a_i` and `a_i / (i + 1)` with direct inverses; `deriv(integ(a, c)) = a` |
 | `divMod` | Schoolbook long division (dividend and divisor with trailing zeros, constant divisor, zero dividend, `deg a < deg b`); large sizes: shape and `a = q b + r` at random points; `a = a / a` |
 | `inv`, `log`, `exp` | Quadratic recurrences for `1/a`, `log a` (`i b_i = i a_i - sum j b_j a_{i-j}`) and `exp a`, inputs shorter and longer than `n`; large: `a * inv(a) = 1`, `exp(log a) = a`, `log(exp a) = a` |
 | `pow` | Truncated binary powering by schoolbook for `k` in {0, 1, 2, 3, 5, 17, p - 1, p, 10^9 + 7, 2^63 - 1, -1, -2, -7} and valuations 0, 1, 2, 5; zero series, `0^0`, `x^k mod x^n` at the boundary `v k = n`, `n = 0`; large: `a^3` by products, `a^3 a^2 = a^5`, `u^{-1} u = 1` |
@@ -101,9 +101,9 @@ python3 '96-Local Testing/03-consistency.py'
 | full, g++-14 (floor check) | PASS, pre-flight quick (peak 1,400 MB), 4 configurations in 484.0 s (optimized 16.5 s, checked 24.1 s, AVX2 13.1 s, ASan/UBSan 111.5 s) | 127,762 | 1,823 MB |
 | stress, 1 round, g++ (2026-10-10, previous header) | PASS, 4 configurations in 1,030.0 s (sanitized build on the full lists) | 138,461 (sanitized 133,763) | 1,747 MB |
 | integration | PASS, 135 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, 303 s | | 650 MB |
-| review differential (`/tmp/p026_review/diff.cpp`): HEAD's header with the struct renamed against the pruned header; static assertions that both resolve `*` alike (compiles or not, result type) for 27 operand kinds on each side over five coefficient types; products over every size pair 0..70 and sampled sizes up to 4097 with lvalue, `const`, rvalue, moved and aliased operands, and every internal caller (`divMod`, `inv`, `log`, `exp`, `pow`, `evalMulti`, `interpolate`, `taylorShift`, `linearRecurrenceKth` up to `k = 2^62 + 5`); `g++ -O2 -D_GLIBCXX_ASSERTIONS`, `g++-14 -O2`, ASan/UBSan | 459,215 comparisons identical in every build; sanitizers clean | | 700 MB |
+| review differential (`/tmp/p026_review/diff.cpp`, scratch program, not kept): HEAD's header with the struct renamed against the pruned header; static assertions that both resolve `*` alike (compiles or not, result type) for 27 operand kinds on each side over five coefficient types; products over every size pair 0..70 and sampled sizes up to 4097 with lvalue, `const`, rvalue, moved and aliased operands, and every internal caller (`divMod`, `inv`, `log`, `exp`, `pow`, `evalMulti`, `interpolate`, `taylorShift`, `linearRecurrenceKth` up to `k = 2^62 + 5`); `g++ -O2 -D_GLIBCXX_ASSERTIONS`, `g++-14 -O2`, ASan/UBSan | 459,215 comparisons identical in every build; sanitizers clean | | 700 MB |
 
-The full-mode count at seed 20261013 is 133,761 with HEAD's tester rebuilt (optimized scalar) and 127,762 now; the 5,999 difference is exactly the deleted `convolution(a, b)` comparison on each size pair and the deleted `a = convolution(a, a)` check per coefficient type, whose inputs stay checked through `a * b`. The memory peaks are the compiler on the tester translation unit, which instantiates the full `Poly<T>` for nine coefficient types; the test programs themselves stay below 40 MB (1.3 GB under ASan). Brace, comment-cap and type-header checks report no violation; consistency reports no errors.
+The memory peaks are the compiler on the tester translation unit, which instantiates the full `Poly<T>` for nine coefficient types; the test programs themselves stay below 40 MB (1.3 GB under ASan). Brace, comment-cap and type-header checks report no violation; consistency reports no errors.
 
 ## Benchmarks
 
@@ -117,8 +117,8 @@ Conditions (2026-10-10, header before the prune; `a * b` runs the body it then r
 
 | Operation | n | PolyMini | Poly | Ratio |
 |---|---|---|---|---|
-| convolution n x n | 131072 | 30.59 | 24.16 | 1.27 |
-| convolution n x n | 500000 | 146.08 | 113.35 | 1.29 |
+| `a * a`, n x n | 131072 | 30.59 | 24.16 | 1.27 |
+| `a * a`, n x n | 500000 | 146.08 | 113.35 | 1.29 |
 | divMod n by n/2 | 500000 | 260.22 | 273.78 | 0.95 |
 | inv | 500000 | 273.06 | 233.74 | 1.17 |
 | log | 500000 | 423.03 | 392.81 | 1.08 |
@@ -140,7 +140,7 @@ Independently written from the algorithms in the cited references; no code copie
 
 ## Limits and handoffs
 
-No online judge submission was made. The mini has no transform-limit fallback: products beyond `2^v` terms for `2^v || p - 1` assert, where the full type switches to its block product.
+The mini has no transform-limit fallback: products beyond `2^v` terms for `2^v || p - 1` assert, where the full type switches to its block product.
 
 ## History
 

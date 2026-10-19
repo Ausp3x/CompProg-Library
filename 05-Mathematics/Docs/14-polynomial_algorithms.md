@@ -14,7 +14,7 @@ It depends on Core `01-template.hpp` and `05-modint.hpp` and on `13-convolution.
 Common rules:
 
 - **Polynomial vs FPS results.** A *polynomial* result is trimmed: no trailing zeros, and the zero polynomial is the empty vector. Inputs may carry trailing zeros. An *FPS* result (`fps*`, `polyTruncate`, `taylorShift`) has exactly the requested length `n`, zero-padded.
-- **Domains.** "Any modint" means every Core `ModInt`/`ModInt64`/`DynModInt`/`DynModInt64`, including composite moduli. Products go through `convolution` (NTT for static NTT primes, three-prime CRT otherwise). "Prime field" means the modulus is prime, so every nonzero element is invertible. Operations that divide by `i` (log, exp, integral, power, factorials) need those `i` to be below the modulus; each contract states the bound.
+- **Domains.** "Any modint" means every Core `ModInt`/`ModInt64`/`DynModInt`/`DynModInt64`, including composite moduli. Products go through `convolution` (NTT for static NTT primes, CRT over one to six primes otherwise). "Prime field" means the modulus is prime, so every nonzero element is invertible. Operations that divide by `i` (log, exp, integral, power, factorials) need those `i` to be below the modulus; each contract states the bound.
 - **Cutoffs.** `polynomial_detail::cut<M>({ntt, other})` selects the O(n^2) path up to a measured size. The pair holds one value for NTT primes and one for the other moduli (see Benchmarks). Both paths compute the same function, so the cutoff changes speed only.
 - **Purity.** Every function returns a new value. Inputs are never mutated and never aliased with outputs. There are no caches.
 - **Violated preconditions** are asserted. Under `NDEBUG`, `fpsPow`, `fpsSparsePow`, `polyDivmod`, `polyHalfGcd` and `fpsCompositionalInverse` return early with an unspecified result instead of looping or reading out of bounds.
@@ -211,6 +211,7 @@ python3 '96-Local Testing/03-consistency.py'                                    
 ```
 
 - Row 15, which includes this header, passed its full suite in the same run ([15-linear_recurrence.md](15-linear_recurrence.md#commands-and-results)).
+- 2026-10-19 rerun after the row 13 change: full PASS ([13-convolution.md](13-convolution.md#commands-and-results)); counts not recorded.
 - Pre-flight quick peaks were 949 MB (g++) and 876 MB (g++-14) under the 2048 MB cap, mostly the compiler on the `_GLIBCXX_DEBUG` build. Test programs peak below 100 MB.
 - Mode coverage:
   - Quick uses small sizes and every suite.
@@ -283,6 +284,7 @@ The code was written independently.
 - `fpsComposition` and `fpsCompositionalInverse` are the scalar `O(n^2)`-type duplicates. The `O(n log^2 n)` Kinoshita–Li composition and power projection belong to Core Poly and row 52.
 - `fpsPow` with a rational exponent requires lowest coefficient 1. General constants need a `q`-th root from row 11.
 - `cyclotomicPolynomial` does not detect `lng` overflow (see the contract).
+- The other-moduli cutoffs were measured before row 13's 2026-10-19 change (prime count chosen from the coefficient bound, aliased squares); re-measure them at the next P057 run.
 - Rejected candidates are in [00-notes.md](00-notes.md), under P057 research decisions.
 
 ## History
@@ -290,3 +292,4 @@ The code was written independently.
 - 2026-10-10: P057 initial implementation and verification, `@reviewer` found 4 defects and 2 minor issues, all fixed.
 - 2026-10-11: verification run, quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `polyMod` (Legacy mapping; its cases are covered by the `divSuite` identity); full suite passed on g++ and g++-14.
+- 2026-10-19: P054 follow-up rerun (included `13-convolution.hpp` changed), header unchanged; full passed.

@@ -77,14 +77,14 @@ Runner: [`05-combinatorics_tester.py`](<../../96-Local Testing/05-Mathematics/05
 
 | Feature | Independent coverage |
 |---|---|
-| Factorials, inverses, derangements | Python exact factorials and inverses; Pascal table; derangements by inclusion-exclusion plus permutation enumeration through 8. |
-| Four counting operations | Exact Python combinations, permutations and powers; empty and impossible selections; zero choices; unsigned index-sum overflow; every binomial threshold around rows 60–80. |
-| Stars-and-bars, ballot, Catalan | Explicit small composition and path enumeration; independent exact closed forms; empty conventions; strict and weak branches; the Catalan 36/37 boundary and the overflowing-binomial regression. |
-| Multinomial | Python factorial ratios, empty and zero groups, full-width groups, sum and product overflow. |
+| `factorial`, `inverseFactorial`, `derangement`, `factorialExact`, `derangementExact` | Python exact factorials and inverses; Pascal table; derangements by inclusion-exclusion plus permutation enumeration through 8. |
+| `combiNR`, `combiWR`, `permuNR`, `permuWR`, `combiExact`, `combiRepExact`, `permuExact`, `permuRepExact` | Exact Python combinations, permutations and powers; empty and impossible selections; zero choices; unsigned index-sum overflow; every binomial threshold around rows 60–80. |
+| `starsBars`, `ballot`, `catalan`, `starsBarsExact`, `ballotExact`, `catalanExact` | Explicit small composition and path enumeration; independent exact closed forms; empty conventions; strict and weak branches; the Catalan 36/37 boundary and the overflowing-binomial regression. |
+| `multinomial`, `multinomialExact` | Python factorial ratios, empty and zero groups, full-width groups, sum and product overflow. |
 | `combiLarge` | Op `ml` against `math.comb(a, b) % p` for `a` in {0, 1, 2, n, p-1, p, p+1, 2p+3, 2^63, 2^64-1, random words} and `b` in {-1, 0, 1, 2, n/2, n, random}, restricted to `b <= n`, for every prime setup (2, 3, 7, 97, 998244353 and a prime near `2^64`). Probe `large-bound`. |
 | `derangementTable`, `binomialTable` | Ops `rd` (n = 30) and `rb` (n = 12) over `DynModInt64` ring moduli 1, 2, 8, 1000, `2^63` and `2^64-1`, and op `ud` (wrapping `ulng`, n = 40), against Python exact values reduced mod the ring. Probes `table-negative` and `derangement-table-negative`. |
-| Fibonacci, Lucas | Modular matrix powers, arbitrary 64-bit indices, static and dynamic prime, composite and modulus-one rings, unsigned 32/64-bit rings, exact 92/93/94 boundaries; a safe signed 32-bit regression and narrow-type compile rejection. |
-| Types, state, preconditions | Static and dynamic 32/64-bit Core types, modulus 2 and a prime near `2^64`, copy/move/reset, same-modulus rebuild, changed-modulus assertions, preserved aliased outputs, and 30 assertion probes. |
+| `fibonacciPair`, `lucas`, `fibonacciPairExact`, `fibonacciExact`, `lucasExact` | Modular matrix powers, arbitrary 64-bit indices, static and dynamic prime, composite and modulus-one rings, unsigned 32/64-bit rings, exact 92/93/94 boundaries; a safe signed 32-bit regression and narrow-type compile rejection. |
+| `PrimeCombinatorics` (`reset`, `check`), `ModFac`, types, state, preconditions | Static and dynamic 32/64-bit Core types, modulus 2 and a prime near `2^64`, copy/move/reset, same-modulus rebuild, changed-modulus assertions, preserved aliased outputs, and 30 assertion probes. |
 
 A compile-fail fixture checks, on every run, that narrow unsigned Fibonacci types are rejected. This is separate from the assertion probes.
 
@@ -117,10 +117,10 @@ All pages below were retrieved and their cited sections read on 2026-09-27. Code
 
 ## Limits and handoffs
 
-- `OLD/5-Mathematics/12-combinatorics.hpp`, the `ModFac` block in `OLD/[1] algorithms.cpp` and `97-Legacy/02-modfac.cpp` (the verbatim disabled block) are preserved unchanged. The legacy factorial, inverse-factorial and four counting operations are accounted for; `ModFac` and its exposed `n`, `fac` and `inv_fac` remain available. The old `combiWR(0,0)=0` is corrected to one empty multiset, construction rejects invalid prime-factorial domains, and wide index checks avoid signed overflow before indexing. Legacy method-based modular inverse/power syntax remains only in its archive.
-- Factorial inversion at `n >= p` is invalid and rejected. Lucas-theorem (small prime, large index), prime-power and CRT composite-modulus binomials belong to the planned Advanced `12-combinatorics_advanced.hpp`, batch **MA26**, together with general rising/falling factorials, Stirling/Bell/partition numbers, bounded partitions, q-binomials and combinatorial transforms. Fibonacci's companion **Lucas sequence** here is distinct from **Lucas's binomial theorem**. No advanced package is claimed complete here.
+- `OLD/5-Mathematics/12-combinatorics.hpp` and the `ModFac` block in `OLD/[1] algorithms.cpp` are preserved unchanged. The legacy factorial, inverse-factorial and four counting operations are accounted for; `ModFac` and its exposed `n`, `fac` and `inv_fac` remain available. The old `combiWR(0,0)=0` is corrected to one empty multiset, construction rejects invalid prime-factorial domains, and wide index checks avoid signed overflow before indexing. Legacy method-based modular inverse/power syntax remains only in its archive.
+- Factorial inversion at `n >= p` is invalid and rejected. Lucas-theorem (small prime, large index), prime-power and CRT composite-modulus binomials belong to `12-combinatorics_advanced.hpp`, together with general rising/falling factorials, Stirling/Bell/partition numbers, bounded partitions, q-binomials and combinatorial transforms. Fibonacci's companion **Lucas sequence** here is distinct from **Lucas's binomial theorem**.
 - The 2026-10-07 sweep's `combiNegative` and `combiInverse` were not adopted: `C(-n, k) = (-1)^k * combiWR(n, k)` and `1 / C(a, b) = inv_fac[a] * fac[b] * fac[a-b]` are one-line identities over the existing API (also in [00-notes.md](00-notes.md)).
-- Inverse tables/CRT and general primality/factorization remain with their existing later owners.
+- Inverse tables, CRT and primality/factorization are rows 09, 10 and 07.
 
 ## History
 

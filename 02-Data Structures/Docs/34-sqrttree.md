@@ -6,7 +6,7 @@ Package P034 (batch DS30). New header; no legacy source. Range products with O(1
 
 ### Monoid contract
 
-`M` provides `S`, `op(a, b)` (associative, need not be commutative) and `e()` (two-sided identity), under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract): `SqrtTree(a = {}, mon = {})` keeps it as `m`, and the block-count field is `nb`. `e()` is returned for empty queries and fills unused storage; it never enters a nonempty product. Products run left to right: `op(a[l], ..., a[r - 1])`. `S` is copyable. Like row 28's `DisjointSparseTable::fold`, the folder convention (empty range gives the identity) needs `e()`.
+`M` provides `S`, `op(a, b)` (associative, need not be commutative) and `e()` (two-sided identity), under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract): `SqrtTree(a = {}, mon = {})` keeps it as `m`, and the block-count field is `nb`. `e()` is returned for empty queries and fills unused storage; it never enters a nonempty product. Products run left to right: `op(a[l], ..., a[r - 1])`. `S` is copyable. Like row 28's `DisjointSparseTable::prod`, the folder convention (empty range gives the identity) needs `e()`.
 
 ### SqrtTree<M>
 
@@ -14,7 +14,7 @@ Package P034 (batch DS30). New header; no legacy source. Range products with O(1
 
 Layer 0 would need a Θ(n) block table. Instead its `m = ceil(n / 2^ceil(lg / 2))` block products (the index) sit after the array and form a tree at base `n` that starts from layer 1 (`m <= 2^lay[1]`), so a point set rebuilds O(sqrt(n)) cells.
 
-- `prod(l, r)` (named `query` until the P027 monoid pass of 2026-10-17): asserts `0 <= l <= r <= n`; returns `e()` on `l == r`.
+- `prod(l, r)`: asserts `0 <= l <= r <= n`; returns `e()` on `l == r`.
   - Otherwise let `d = bit_width(l xor (r - 1))`. If `d <= cut`, the closed range lies in one block of the last layer, at most `2^cut <= 8` positions, and is folded directly. `cut` is the last layer's block exponent, or `lg` when there is no layer.
   - Otherwise the deepest layer with `lay[i] >= d` holds `l` and `r - 1` in one segment but different blocks, and the answer is `suf[l]`, then the blocks strictly between, then `pre[r - 1]`. The middle comes from `btw` on layers `i >= 1`. On layer 0 it comes from one index query, which lands on a layer `>= 1` or on a direct fold of at most 8 index values.
   - At most 9 `op` calls per product.
@@ -30,7 +30,7 @@ Under `NDEBUG` a reversed or out-of-range `prod`, or an out-of-range `set`, read
 
 ### Legacy mapping
 
-No legacy code. The row's planned `update (point)` is named `set`, as in rows 03 and 06. cp-algorithms `query`, maspypy `prod` and sotanishy `fold` are `prod`.
+No legacy code. `query` was renamed `prod` in the P027 monoid pass (2026-10-17). The row's planned `update (point)` is named `set`, as in rows 03 and 06. cp-algorithms `query`, maspypy `prod` and sotanishy `fold` are `prod`.
 
 ## Feature-to-test map
 
@@ -49,7 +49,7 @@ Tester `96-Local Testing/02-Data Structures/34-sqrttree_tester.cpp`, entry `34-s
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|

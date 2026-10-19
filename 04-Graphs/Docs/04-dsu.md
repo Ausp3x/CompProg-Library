@@ -1,6 +1,6 @@
 # 04-dsu.hpp — evidence
 
-Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp` through `03-toposort.hpp`, `05-shortest_path.hpp` and `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract). Prerequisite: the verified P006 canonical DSU.
+Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp` through `03-toposort.hpp`, `05-shortest_path.hpp` and `06-mst.hpp`); see the [common graph contract](00-notes.md#p010-common-contract). Prerequisite: the verified P006 canonical DSU.
 
 ## Contracts
 
@@ -8,11 +8,9 @@ Owned by package P010 / GR01 (graph foundations, with `01-graph.hpp` through `03
 
 Returns the canonical P006 `DSU` after uniting the ends of every edge: connected components, or weak components of a directed graph. Loops are allowed. The DSU is re-exported by inclusion, with no duplicate implementation.
 
-Correctness: the graph-facing adapter uses the canonical P006 `DSU`, treating a directed graph as weak connectivity; it neither duplicates nor modifies the DSU implementation.
-
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/04-dsu_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. Oracles use non-removable checks. Checked builds also run invalid-precondition subprocesses. Test outputs are temporary; seeds and failed inputs/operations are printed. Quick uses three vertices/50 random cases, full four vertices/500 cases and stress four vertices/4,000 cases. Exact mode coverage is also stated in the runnable entry.
+`96-Local Testing/04-Graphs/04-dsu_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. Quick uses three vertices/50 random cases, full four vertices/500 cases and stress four vertices/4,000 cases. Exact mode coverage is also stated in the runnable entry.
 
 | Operation | Test | Oracle |
 |---|---|---|

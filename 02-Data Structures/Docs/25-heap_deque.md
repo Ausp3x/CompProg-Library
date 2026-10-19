@@ -34,7 +34,7 @@ Package P029 (batch DS48). New header; no legacy source. Every heap is a min-hea
 - `in` holds the `min(k, size)` C-greatest values (its top is the C-smallest kept value, `boundary()`), and `out` holds the others; both are `ErasableHeap`s. Invariant: `in` has `min(k, size)` values and no kept value is C-less than an unkept one. `insert` pushes into `in` and moves the smallest kept value out when `in` exceeds `k`. `erase(x)` (a present copy required) goes to `in` when `x` is not C-less than `boundary()`, where a copy then always exists, and otherwise to `out`; both then rebalance. `setK(k)` moves `|Δk|` values. `insert` and `erase` take their argument by value, so `erase(boundary())` and `insert(boundary())` are valid. `sum()` and `sumRest()` are the sums of the kept and the other values; `T` needs `+=`, `-=` and `T()` as zero, and every partial sum must be representable. Each operation is O(log n) amortized per moved value; `k` asserts nonnegative (clamped to 0 under `NDEBUG`).
 - `std::greater<T>` keeps the `k` smallest values. Running median: `setK((size() + 1) / 2)` then `boundary()` is `sorted[size() / 2]`, the upper median for even sizes; sums of absolute deviations follow from `sum()` and `sumRest()`.
 
-### Removed planned names
+### Legacy mapping
 
 | Planned | Replacement (decided 2026-10-13) |
 |---|---|
@@ -76,7 +76,7 @@ python3 '96-Local Testing/03-consistency.py'
 python3 '96-Local Testing/02-integration.py' --sanitizers
 ```
 
-Latest run 2026-10-13 (after the review fixes and the pair layout): quick mode passed as the pre-flight of every run (peak about 525 MB); full mode seed 1 passed on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`) with 7,415,440 checks per configuration and 31 assertion probes, MEMORY peak 696 MB and 724 MB; stress (`--seed 7`, one round, 120,000 random steps per group) passed with 14,662,383 checks per configuration, peak 695 MB; the benchmark below peaked at 334 MB. `--braces` reported no violations and `03-consistency.py` no errors; `python3 '96-Local Testing/02-integration.py' --sanitizers` passed on 2026-10-14 (137 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, sanitizer self-tests; peak 2757 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20 with `-Wall -Wextra -Wconversion -Werror`, CPython 3.14.7, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`) and ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined`) builds; MEMORY peaks are dominated by compilation.
+Latest run 2026-10-13 (after the review fixes and the pair layout): quick mode passed as the pre-flight of every run (peak about 525 MB); full mode seed 1 passed on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`) with 7,415,440 checks per configuration and 31 assertion probes, MEMORY peak 696 MB and 724 MB; stress (`--seed 7`, one round, 120,000 random steps per group) passed with 14,662,383 checks per configuration, peak 695 MB; the benchmark below peaked at 334 MB. `--braces` reported no violations and `03-consistency.py` no errors; `python3 '96-Local Testing/02-integration.py' --sanitizers` passed on 2026-10-14 (137 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, sanitizer self-tests; peak 2757 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds; MEMORY peaks are dominated by compilation.
 
 ## Benchmarks
 
@@ -120,3 +120,4 @@ Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 ## History
 
 - 2026-10-13: P029 first verification. The independent review led to fixes, with regression tests, for argument aliasing in `PrioritySum` and `applyAdd` and for `NDEBUG` writes on absent `DAryHeap` ids. After the benchmark, `DAryHeap` moved to a `(key, id)` pair layout with a `key(i)` accessor.
+- 2026-10-14: integration (`02-integration.py --sanitizers`) passed.

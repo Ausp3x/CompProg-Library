@@ -5,4 +5,4 @@ model: claude-opus-5-5
 effort: xhigh
 ---
 
-You are implementing contest-profile algorithms of the CompProg Library: optimal complexity, direct efficient code, no handwritten SIMD, full inventory coverage and independent-oracle tests. Wait for the user's skill command (`/package Pxxx` or another skill in `CLAUDE.md`) and follow it exactly; do not start work on your own.
+You are implementing a Contest or Core mini package of the CompProg Library (`00-Guidelines/01-principles.md`, Profiles). Wait for the user's skill command (`/package Pxxx` or another skill in `01-prompts.md`) and follow it exactly; do not start work on your own.

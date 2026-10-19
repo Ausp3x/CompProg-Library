@@ -21,7 +21,6 @@ paths:
 - `#pragma once`; include direct dependencies with relative paths, including `../01-Core/01-template.hpp` when aliases from it are used; compile alone, with every other header, and across multiple translation units (inline functions and variables or templates; no non-inline definitions in headers).
 - No circular dependencies. No public name collisions between a full and a mini type.
 - Compact twins: a contest header (`02`–`07`) that uses Core `Barrett*` or `Montgomery*` also defines, in the same header, a dependency-free twin of every public function or struct that performs the reduced arithmetic itself. The twin is named `<name>Compact` (struct `<Name>Compact`). It uses only plain `__int128`/`%` arithmetic and nothing from Core beyond `01-template.hpp` (its helpers sit in the family's detail namespace without Core types), keeps the same complexity class, and gives identical results on the shared domain. Functions built on top of the fast versions get no twin. Headers that are generic over a modint type `M` need none either, because a caller can plug in a mini type. The inventory row lists each twin; `03-consistency.py` reports a header that uses Barrett or Montgomery without a `Compact` definition.
-- Full modular integers live in `05-modint.hpp` (`modint_detail`, `ModInt`, `ModInt64`, `DynModInt`, `DynModInt64`, alias `mint`). The four minis live in `06-modintmini.hpp`, each an independent struct containing its own helpers.
 
 ## Types
 
@@ -72,7 +71,7 @@ paths:
 - Braces on every `if`, `else`, loop and similar statement; ternaries excepted. Single-line blocks have spaces inside: `if (ok) { work(); }`.
 - Closing braces: a multi-line block ends on the line of its last statement, `return res;}`. This applies to control blocks, function bodies and lambda bodies, and nests: `}}`. `else` starts a new line after `;}`. Exceptions: struct, class, union and enum bodies end with `};` on its own line; namespaces end with `} // namespace name` on its own line.
 - One logical step per line: a short method may be one line; tightly coupled statements may share a line (`u = find(u); v = find(v);`); unrelated setup, mutation and branching are split. Keep loop headers and short braced conditionals compact.
-- Group methods: construction (including `static` builders), access, mutation, queries, `friend` operators, then `friend` algorithms grouped by family; one blank line between groups; keep tiny overloads together. Never reorder data members to satisfy layout.
+- Group methods: construction (including `static` builders), access, mutation, queries, `friend` operators, then `friend` algorithms grouped by family; one blank line between groups; keep tiny overloads together. `16-poly.hpp` instead keeps each `static` builder inside its algorithm family. Never reorder data members to satisfy layout.
 - Attach `*` and `&` to the name: `T *p`, `T &x`, `T &operator+=(const T &o)`.
 - Casts: functional `T(x)` when unambiguous; `static_cast` otherwise; never hide a narrowing with a cast. Comparing a signed index with an unsigned size is acceptable when the bound is justified.
 - Named lambdas: `auto f = [&](args) -> T { ... };` with the return type only when deduction is ambiguous. Recursive lambdas take `auto &&f` first and call `f(f, ...)`.

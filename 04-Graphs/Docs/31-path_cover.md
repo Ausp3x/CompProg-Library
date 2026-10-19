@@ -1,6 +1,6 @@
 # 31-path_cover.hpp — evidence
 
-Owned by package P047 / GR28; see [00-notes.md](00-notes.md#p047-package-record). Contest profile: Hopcroft–Karp from row 21 for vertex-disjoint path covers, a word-bitset closure with bitset Hopcroft–Karp for Dilworth chain covers, and a min cut (row 19 Dinic) on the split DAG for weighted antichains. The row was planned; there is no legacy code.
+Owned by package P047 / GR28; omissions are in [00-notes.md](00-notes.md#p047-omissions). Contest profile: Hopcroft–Karp from row 21 for vertex-disjoint path covers, a word-bitset closure with bitset Hopcroft–Karp for Dilworth chain covers, and a min cut (row 19 Dinic) on the split DAG for weighted antichains. The row was planned; there is no legacy code.
 
 ## Contracts
 
@@ -75,6 +75,7 @@ Planted mutants (quick suite, optimized build): a closure missing direct success
 | `03-consistency.py` | No errors |
 
 ```bash
+python3 '96-Local Testing/04-Graphs/31-path_cover_tester.py' --mode quick
 python3 '96-Local Testing/04-Graphs/31-path_cover_tester.py' --mode full --seed 1
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/31-path_cover_tester.py' --mode full --seed 2
 python3 '96-Local Testing/04-Graphs/31-path_cover_tester.py' --mode stress --seed 3
@@ -87,6 +88,8 @@ python3 '96-Local Testing/03-consistency.py'
 None required: contest profile, no threshold.
 
 ## Sources
+
+Fetched 2026-10-18; the ledger is [00-sources.md](00-sources.md#pages-fetched-on-2026-10-18-p047).
 
 | Source | Inspected claim and application |
 |---|---|

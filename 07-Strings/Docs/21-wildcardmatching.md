@@ -32,7 +32,7 @@ Library Checker `wildcard_pattern_matching` (0/1 per start): set entries from th
 
 ## Feature-to-test map
 
-Runner: [`21-wildcardmatching_tester.py`](<../../96-Local Testing/07-Strings/21-wildcardmatching_tester.py>). Oracles: brute window scans at every start, and the glob DP over (text prefix, pattern prefix), itself checked against exponential backtracking on tiny inputs. Every check survives `-DNDEBUG`.
+Runner: [`21-wildcardmatching_tester.py`](<../../96-Local Testing/07-Strings/21-wildcardmatching_tester.py>). Oracles: brute window scans at every start, and the glob DP over (text prefix, pattern prefix), itself checked against exponential backtracking on tiny inputs.
 
 | Operation | Coverage |
 |---|---|
@@ -44,7 +44,7 @@ Runner: [`21-wildcardmatching_tester.py`](<../../96-Local Testing/07-Strings/21-
 
 ## Commands and results
 
-Run 2026-10-16 on the final code. Every run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, precondition probes) binaries, and full/stress add ASan/UBSan (`-O1`); all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full and stress first pass the quick pre-flight under the 2048 MB cap. The checked build runs stress at full-mode sizes.
+Run 2026-10-16 on the final code. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>). The checked build runs stress at full-mode sizes.
 
 ```bash
 python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 23 suites (this one: 2 configurations, 3 assertion probes)
@@ -107,3 +107,4 @@ Code is independently implemented from the cited descriptions; catalog sweep in 
 ## History
 
 - 2026-10-16: implemented and verified (P085), independent review found 1 defect and 5 rule findings, fixed; full suite passed on g++ and g++-14.
+- 2026-10-19: dependent rerun after the P054 follow-up changed `05-Mathematics/13-convolution.hpp` (no change here): full mode passed (recorded in [13-convolution.md](../../05-Mathematics/Docs/13-convolution.md#commands-and-results)).

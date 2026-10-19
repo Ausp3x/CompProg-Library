@@ -50,7 +50,7 @@ Encoded pattern symbols in `[0, sigma)`, `sigma >= 0` (asserted once at entry). 
 
 ## Feature-to-test map
 
-Runner: [`01-prefixfunction_tester.py`](<../../96-Local Testing/07-Strings/01-prefixfunction_tester.py>) with shared oracles in `01-prefix_z_test_support.hpp`. Oracles are direct substring and suffix scans and restricted-growth alphabet partitions, independent of failure chains; all checks survive `-DNDEBUG`.
+Runner: [`01-prefixfunction_tester.py`](<../../96-Local Testing/07-Strings/01-prefixfunction_tester.py>) with shared oracles in `01-prefix_z_test_support.hpp`. Oracles are direct substring and suffix scans and restricted-growth alphabet partitions, independent of failure chains.
 
 | Operation | Coverage |
 |---|---|
@@ -67,7 +67,7 @@ Checked builds run seven assertion probes: oversized sequence, negative and too-
 
 ## Commands and results
 
-P016 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined` with leak checking; every build adds `-Wall -Wextra -Wshadow -Wconversion -Werror`.
+P016 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/01-prefixfunction_tester.py' --mode full --seed 20261013
@@ -90,7 +90,7 @@ Code is independently implemented from the algorithmic invariants.
 
 - [cp-algorithms, Prefix function. Knuth–Morris–Pratt algorithm](https://cp-algorithms.com/string/prefix-function.html): failure-chain proof, streaming storage, both prefix-count applications, periods and the O(m * sigma) automaton.
 - [Lecroq, Knuth-Morris-Pratt algorithm](https://www-igm.univ-eiffel.fr/~lecroq/string/node8.html) (fetched 2026-10-08): the strong failure table `kmpNext` and the logarithmic per-symbol delay bound.
-- Catalog sweep 2026-10-08 (cp-algorithms, OI Wiki, KACTL, maspypy `kmp`/`periods`, suisen `morris_pratt`, hitonanode `mp_algorithm`, Nyaan, ei1333, ACL, Library Checker) in [00-sources.md](00-sources.md): only `kmpNext` was missing.
+- Catalog sweep 2026-10-08 (cp-algorithms, OI Wiki, KACTL, maspypy `kmp`/`periods`, suisen `morris_pratt`, hitonanode `mp_algorithm`, Nyaan, ei1333, ACL, Library Checker) in [00-sources.md](00-sources.md).
 - Targeted searches of `OLD/algorithms.cpp`, `OLD/[1] algorithms.cpp` and Team Notebook `algs.cpp`/`algsbetter.cpp` found no additional prefix/KMP feature.
 
 ## Limits and handoffs

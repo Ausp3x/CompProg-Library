@@ -66,7 +66,7 @@ Adopted from the 2026-10-17 sweep ([00-sources.md](00-sources.md)): `toMod` (Nya
 | Feature | Verification (self-test; protocol command) |
 |---|---|
 | Constructors and normalization (negative denominators, zero, `MIN/MIN`, `2/MIN`), `normalize` after a direct edit, `raw`, converting constructors in all six directions (only fitting values for narrowing), InfInt's integral constructor | identities; `nm` (pairs scaled by -6 to 3^39 and 2^69), `rw`, `cv` |
-| `tryAdd`, `trySub`, `tryMul`, `tryDiv` (exact status against `fits(T, exact)`, operators against the try forms, the result unchanged after every false status, aliasing), bounds at `MAX`, `MIN`, `-1 - MAX`, `MIN / MIN`; constructed sums whose cross sum overflows the width before a large `gcd(t, g)` cancels it (`lll`: above 2^128, the 256-bit path) | identities; `ar` |
+| `tryAdd`, `trySub`, `tryMul`, `tryDiv` (exact status against `fits(T, exact)`, operators against the try forms, the result unchanged after every false status, aliasing), bounds at `MAX`, `MIN`, `-1 - MAX`, `MIN / MIN`; constructed sums whose cross sum overflows the width before a large `gcd(t, g)` cancels it (`lll`: above 2^128, the 256-bit `mulW`/`divW` path) | identities; `ar` |
 | `<=>`, `==` with mixed signs, equal values and cross products above 2^127 (`lll`) and 2^64 (`lng`); a sort of 3000 `Frac` against an independent 128-bit cross-product comparator | identities; `ar` |
 | unary `-`, `abs`, `inv` (minimum and zero excluded by the protocol, asserted in probes), `sign`, `isInteger`, `floor`, `ceil`, `trunc`, `round` (ties both signs), `fracPart`, hash of a renormalized copy, unary `+` | `un` |
 | `pow` with exponents -9 to 40 (results that fit), `0^0`, `LLONG_MIN` exponent, the minimum to the first power | identities; `pw` |
@@ -136,7 +136,7 @@ GMP `mpq` and FLINT `fmpq` (canonical form, Knuth addition, cross-cancelled prod
 ## Limits and handoffs
 
 - `read` on `lng` and `lll` follows the bounded component rule above; text whose unreduced components overflow is read only by `Rational<InfInt>`.
-- P025 (`16-poly.hpp`): `Poly<Frac>` compiles and its product, `divMod`, `eval` and `deriv` match hand results (this tester's consumer step); the generic field paths with `Rational` coefficients remain untested in Poly's own suite, and overflow in `Frac` coefficients asserts.
+- P025 (`16-poly.hpp`): `Poly<Frac>` compiles and its product, `divMod`, `eval` and `deriv` match hand results (this tester's consumer step); overflow in `Frac` coefficients asserts. Rational coefficients are outside Poly's row domain until P025 adds them with Poly-suite tests ([16-poly.md](16-poly.md#limits-and-handoffs)).
 - `Rational<InfInt>` costs the InfInt gcd per operation; long sums of InfInt rationals are dominated by gcds as in GMP.
 
 ## History

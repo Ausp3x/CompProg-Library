@@ -1,12 +1,12 @@
 # 04-convexhull.hpp — evidence
 
-Owned by package P007 / GE01 (geometry foundations, together with `01-point.hpp`, `02-line_segment.hpp` and `03-polygon.hpp`); see [00-notes.md](00-notes.md#p007--ge01-package-record) for the package record and the folder numeric policy. Every operation in the row has a test.
+Owned by package P007 / GE01 (geometry foundations, together with `01-point.hpp`, `02-line_segment.hpp` and `03-polygon.hpp`); see [00-notes.md](00-notes.md#ge01-numeric-policy-p007) for the folder numeric policy. Every operation in the row has a test.
 
 ## Contracts
 
 ### Numeric policy
 
-The GE01 numeric policy in [00-notes.md](00-notes.md#ge01-numeric-policy-p007) applies. The hulls are integral-only because floating rounding can break a sort's strict weak ordering. They accept coordinates wider than `10^9` as long as every intermediate fits `lll`.
+The GE01 numeric policy in [00-notes.md](00-notes.md#ge01-numeric-policy-p007) applies.
 
 ### convexHull, convexHullIndices, convexHullGraham
 
@@ -16,14 +16,12 @@ Correctness and cost: monotone chain maintains the lower and upper hulls by remo
 
 ## Feature-to-test map
 
-`96-Local Testing/03-Geometry/04-convexhull_tester.py` provides quick, full and stress modes, deterministic seeds, oracles that survive `-DNDEBUG`, and assertion-failure subprocesses. Full mode builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and AddressSanitizer/UndefinedBehaviorSanitizer configurations. Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
+`96-Local Testing/03-Geometry/04-convexhull_tester.py` runs the geometry runner's optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan builds ([`_00_runner.py`](<../../96-Local Testing/03-Geometry/_00_runner.py>)). Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
 
 | Operation | Test | Oracle |
 |---|---|---|
 | `convexHull`, `convexHullGraham` (both `keep_collinear` policies) | Canonical orientation and start; duplicates; empty and singleton input; all-collinear input and both retention policies; the caller's input unchanged; exhaustive 3×3-grid subsets and seeded adversarial point sets | Independent supporting-edge (Jarvis) oracle; agreement between hull implementations is supplemental |
 | `convexHullIndices` | Index ranges, first-duplicate indices, and agreement with the oracle hull on every case, including 20,001-point parabolas | Independent supporting-edge (Jarvis) oracle |
-
-Finite tests supplement the arguments above; they do not prove correctness for all inputs.
 
 ## Commands and results
 
@@ -53,7 +51,7 @@ python3 '96-Local Testing/03-consistency.py'
 
 The [benchmark driver](<../../96-Local Testing/03-Geometry/00-foundations_benchmark.py>) and `96-Local Testing/03-Geometry/00-foundations_benchmark.json` compare monotone chain and Graham scan at 32, 2,048 and 32,768 points. The inputs are random coordinates, duplicate-heavy grids, collinear points and parabolic convex-position points, each with both retention policies: 48 measurements. Each measurement uses one warmup and five timed calls and reports the median. The timing includes the input copy and output allocation, and every complete canonical output is checked outside the timed interval. Compiler flags are `-std=gnu++20 -O2 -DNDEBUG`. The record includes the seed, CPU and compiler, input generation settings, code hashes and an observed checksum. Both algorithms use `O(n)` storage; no peak-RSS claim is made.
 
-The measurements support monotone chain as the default, and Graham remains an explicit alternative. Collinear inputs share preprocessing, so their small timing differences are noise-sensitive. Timings are observations on a shared machine, not universal speed claims or pass/fail gates. Medians at 32,768 points without collinear retention, 2026-10-07:
+The measurements support monotone chain as the default, and Graham remains an explicit alternative. Collinear inputs share preprocessing, so their small timing differences are noise-sensitive. Medians at 32,768 points without collinear retention, 2026-10-07:
 
 | Distribution | Monotone chain | Graham scan |
 |---|---|---|

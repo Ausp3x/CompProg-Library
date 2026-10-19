@@ -30,7 +30,7 @@ Construction takes the point universe `vector<pair<lng, lng>>` (duplicates allow
 
 ### FenwickPrefixMonoid<M>
 
-`M` is a commutative monoid (`S`, `op`, `e`) under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract), kept as `m` and passed last as `mon = {}` (`FenwickPrefixMonoid(N = 0, mon = {})`, `FenwickPrefixMonoid(vector<S>, mon = {})`; formerly `<T, F>` with `(id, f)`). `apply(i, x)` sets `a[i] = op(a[i], x)` (point combine, never overwrite); `prefix(r)` folds `[0, r)`. Max/min, gcd, bitwise or, saturating sums, products of units: anything commutative. No range query and no inverse.
+`M` is a commutative monoid (`S`, `op`, `e`) under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract), kept as `m` and passed last as `mon = {}` (`FenwickPrefixMonoid(N = 0, mon = {})`, `FenwickPrefixMonoid(vector<S>, mon = {})`). `apply(i, x)` sets `a[i] = op(a[i], x)` (point combine, never overwrite); `prefix(r)` folds `[0, r)`. Max/min, gcd, bitwise or, saturating sums, products of units: anything commutative. No range query and no inverse.
 
 ### Fenwick01 (alias FenwickSet)
 
@@ -38,7 +38,7 @@ A set of integers in `[0, n)`: one bit per element in 64-bit words plus a Fenwic
 
 ### Legacy mapping
 
-`FenTreeRangeAdd1D` → `FenwickRangeAdd`; `FenTree` 1D with `f`/`f_inv` → Basic `Fenwick<T>` with a group `T`, or `FenwickPrefixMonoid` when only a prefix monoid is needed; `FenTree` 2D/3D → `Fenwick2D`/`Fenwick3D` including the linear builds; `FenTree::lowerBound` → `Fenwick::lowerBound`; `getIdx` was an internal flattening helper; the `operator<<` node printers are not ported (the structures expose their arrays and the debug header prints vectors). Rectangle add with point get is `Fenwick2D::add` at the four corners plus `prefixSum(i + 1, j + 1)`.
+`FenTreeRangeAdd1D` → `FenwickRangeAdd`; `FenTree` 1D with `f`/`f_inv` → Basic `Fenwick<T>` with a group `T`, or `FenwickPrefixMonoid` when only a prefix monoid is needed; `FenwickPrefixMonoid<T, F>` with `(id, f)` → `FenwickPrefixMonoid<M>` with one monoid (P027 monoid pass, 2026-10-17); `FenTree` 2D/3D → `Fenwick2D`/`Fenwick3D` including the linear builds; `FenTree::lowerBound` → `Fenwick::lowerBound`; `getIdx` was an internal flattening helper; the `operator<<` node printers are not ported (the structures expose their arrays and the debug header prints vectors). Rectangle add with point get is `Fenwick2D::add` at the four corners plus `prefixSum(i + 1, j + 1)`.
 
 | Removed (prune, 2026-10-13) | Replacement |
 |---|---|
@@ -46,7 +46,7 @@ A set of integers in `[0, n)`: one bit per element in 64-bit words plus a Fenwic
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.cpp`, entry `11-fenwick_tree_advanced_tester.py` (driver `_00_runner.py`: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan; `-Wall -Wextra -Wconversion -Werror`; 37 assertion probes under the checked build).
+Tester `96-Local Testing/02-Data Structures/11-fenwick_tree_advanced_tester.cpp`, entry `11-fenwick_tree_advanced_tester.py` (driver `_00_runner.py`; three builds; 37 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -61,7 +61,7 @@ Quick: 6 sizes, 150 steps, no sanitizer build. Full: 14 sizes, 1500 steps, three
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
@@ -105,4 +105,4 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 - 2026-10-08: P027 re-audit pass (second session): formulas and builds reconfirmed; the `CompressedFenwick2D::add` registration assert moved out of the per-level loop and the `Fenwick01` `vector<bool>` constructor got its own `O(n)` comment (style findings only).
 - 2026-10-12: re-audit fix: `update` on `FenwickRangeAdd`, `DualFenwick` and `FenwickRangeArithmeticAdd` asserts `0 <= i <= n`, with direct oracle tests and 6 new probes; full suite passed on g++ and g++-14.
 - 2026-10-13: prune, removed `Fenwick01::contains` (its checks were the `get` checks on the same inputs); full suite passed on g++ and g++-14.
-- 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 551/551/551 MB.
+- 2026-10-17: P027 monoid pass (stored-object monoid contract for `FenwickPrefixMonoid`, stateful-monoid test added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 551/551/551 MB.

@@ -33,7 +33,7 @@ Source IDs must match a discovered regular C++ or Python file inside a numbered 
 
 Code listings are for reference: a full header may repeat dependencies that also appear in another selected file. The notebook is a source collection, not a C++ compilation unit.
 
-Some sources contain non-ASCII comment characters: the template's Chinese motto, and en dashes or an accented letter in `01-Core/16-poly.hpp`, `01-Core/17-polymini.hpp` and `03-Geometry/10-halfplaneintersection.hpp` (`rg -l '[^\x00-\x7F]' -g '*.{hpp,cpp,py}' 0[1-8]-*/` from the repository root lists the current set). The first build (2026-10-15) renders them except the template's Chinese motto, which shows no glyphs because Inter and JetBrains Mono have none (P226 adds a CJK fallback font).
+Some sources contain non-ASCII comment characters (`rg -l '[^\x00-\x7F]' -g '*.{hpp,cpp,py}' 0[1-8]-*/` from the repository root lists them). The first build (2026-10-15) rendered the set then present except the template's Chinese motto, which shows no glyphs because Inter and JetBrains Mono have none (P226 adds a CJK fallback font).
 
 ## Selection and validation backlog
 

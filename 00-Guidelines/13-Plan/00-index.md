@@ -1,12 +1,14 @@
 # Work plan
 
-The plan is one compact manifest plus a CLI. Batches are stable ownership units; packages are assignable sessions that run batches in order. The rendered checklist lives in [01-prompts.md](../../01-prompts.md).
+The plan is one compact manifest plus CLIs. Batches are stable ownership units; packages are assignable sessions that run batches in order. The rendered checklist lives in [01-prompts.md](../../01-prompts.md).
 
 | File | Contents |
 |---|---|
 | [batches.json](batches.json) | Each batch's folder, owned targets, support targets, size, focus, prerequisite batches and tiers, including support passes SUP01–SUP06. |
 | [packages.json](packages.json) | Packages P001–Pn in default order: label, batches, phase, size, model, status, evidence and note. Package prerequisites are derived from batch prerequisites. |
 | [plan.py](plan.py) | Standard-library CLI; runs from any directory. |
+| [worktree.py](worktree.py) | Package worktrees: report (default), `--sync` (`--integration` also runs the integration build), `--finish` (sync, fast-forward `master`, remove) and `--remove`; all but the report run from the main checkout. |
+| [context_usage.py](context_usage.py) | Token and context usage of past sessions from the local transcripts, with an auto-compact window replay (`--windows`). |
 
 Commands (`python3 '00-Guidelines/13-Plan/plan.py' <command>`):
 
@@ -18,4 +20,4 @@ Commands (`python3 '00-Guidelines/13-Plan/plan.py' <command>`):
 - `ready [--max K]`: every package whose prerequisites are satisfied, plus a disjoint set of K packages from different folders for parallel worktree sessions.
 - `doctor [--fix]`: cross-checks plan, inventory rows, files on disk, testers and evidence, grouped by package with the command that resolves each item; `--fix` re-renders the checklist.
 
-Statuses: planned, in-progress, verified. Mark `verified` only with recorded evidence.
+Statuses: planned, in-progress, verified; `verified` follows `01-principles.md`, Evidence.

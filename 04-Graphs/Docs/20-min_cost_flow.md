@@ -102,7 +102,7 @@ libstdc++ debug mode re-validates the whole heap on every `push_heap`/`pop_heap`
 | convex comparison | n = 80 | 400 / 1,200 |
 | assignment | k = 25 | 60 / 120 |
 
-Quick mode uses its own sizes in every build. The optimized and ASan/UBSan builds run every section at its listed size. Failures are non-removable and print the seed, the network, the call, and the expected and actual values.
+Quick mode uses its own sizes in every build. The optimized and ASan/UBSan builds run every section at its listed size.
 
 Every library call is compared with an oracle and then certified:
 - **Edge reads:** `getEdge` and `edges` endpoints, capacity, `0 <= flow <= cap`, and `cost` equal to the unit cost of the last unit.
@@ -113,7 +113,7 @@ Every library call is compared with an oracle and then certified:
 
 | Operation | Test | Oracle |
 |---|---|---|
-| `flow`, `slope` (limit, below, resumed, other `(s, t)`) | 3,000 full / 12,000 stress random networks, n ≤ 5, m ≤ 6 and up to 3 more edges added between 1–4 calls, caps ≤ 3, convex edges of 1–3 pieces, five `(Cap, Cost)` combinations | Exhaustive enumeration of every integral edge-flow vector: min cost per divergence vector, giving the exact cost curve from any current state; breakpoint vectors compared exactly |
+| `addEdge`, `flow`, `slope` (limit, below, resumed, other `(s, t)`) | 3,000 full / 12,000 stress random networks, n ≤ 5, m ≤ 6 and up to 3 more edges added between 1–4 calls, caps ≤ 3, convex edges of 1–3 pieces, five `(Cap, Cost)` combinations | Exhaustive enumeration of every integral edge-flow vector: min cost per divergence vector, giving the exact cost curve from any current state; breakpoint vectors compared exactly |
 | same, medium | 300 / 1,000 networks, n ≤ 24, m ≤ 96, caps ≤ 8, convex up to 4 pieces of length ≤ 4, 1–5 calls | Unit-step Bellman–Ford successive shortest paths on the model residual (convex pieces as unit marginals) |
 | `flow`, `slope` on every small shape | All 46,656 networks on 3 vertices (quick: 4,096) whose 6 ordered pairs take cap {0, 1, 2} and cost {-1, 2}; 31,744 without negative cycles; `flow(0, 2)` or `slope(0, 2)`, then a repeated call adding nothing | Exhaustive edge-flow enumeration conserving at vertex 1 (oracle validated: zero flow costs 0) |
 | `Cap`, `Cost` = `int`, `lng`, `lll` | Mixed combinations in every random corpus; caps scaled by K ≤ 2^62 and costs by L ≤ 2^54 (600 / 3,000) | Scaled exhaustive curve: breakpoint `(F, C)` maps to `(K F, K L C)` (metamorphic) |
@@ -148,8 +148,6 @@ The other three were killed elsewhere:
 - `bounded()` always true: the `path-bound`, `total-bound` and `total-sum-bound` probes.
 - The `2^126` sum check dropped: the `total-sum-bound` probe.
 
-Finite tests complement the arguments above; they do not prove all inputs.
-
 ## Commands and results
 
 2026-10-14, i9-11900H, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), CPython 3.14, Linux x86-64, GNU++20. The tester, integration and consistency runs are from 2026-10-14, after the rebase onto master. The benchmark, the review and the `NDEBUG` probe are from 2026-10-13, on the same header.
@@ -180,7 +178,7 @@ The `NDEBUG` probe cases and their results:
 | convex pieces with lengths 0, -3, `MAX` overflow and decreasing costs, called twice | `{0, 0}` |
 | negative residual cycle after flow | `{0, 0}` |
 | negative loop | `{0, 0}` |
-| `lll` capacity `-2^126` beside two `2^120` edges (formerly hid the total from `bounded()`) | flow 0 |
+| `lll` capacity `-2^126` beside two `2^120` edges | flow 0 |
 | `potentials()` with `B = 2 LIM` | returns clamped values |
 | valid: loop of cost `LIM` and zero-capacity edge of cost `-LIM` beside a `±LIM/2` path | `{2, 0}` |
 

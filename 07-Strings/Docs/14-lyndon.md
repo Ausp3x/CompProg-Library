@@ -34,7 +34,7 @@ Correctness: with the state `s[i, j) = u^t u'`, the factorization of a prefix `P
 
 ## Feature-to-test map
 
-Runner: [`14-lyndon_tester.py`](<../../96-Local Testing/07-Strings/14-lyndon_tester.py>). The oracle tests Lyndon-ness directly (strictly below every proper suffix, O(n^2)) and factorizes greedily by longest Lyndon prefix; all checks survive `-DNDEBUG`.
+Runner: [`14-lyndon_tester.py`](<../../96-Local Testing/07-Strings/14-lyndon_tester.py>). The oracle tests Lyndon-ness directly (strictly below every proper suffix, O(n^2)) and factorizes greedily by longest Lyndon prefix.
 
 | Operation | Coverage |
 |---|---|
@@ -50,12 +50,12 @@ Checked builds run twelve precondition probes: `standardFactorization` on a sing
 
 ## Commands and results
 
-Run 2026-10-12 on the final code (SA-IS `lyndonArray`, unused `07` include dropped; quick and full rerun after the drop); configurations as in [13-palindromictree.md](13-palindromictree.md#commands-and-results).
+Run 2026-10-12 on the final code (SA-IS `lyndonArray`, unused `07` include dropped; quick and full rerun after the drop). The full lines are the 2026-10-19 P017 rerun with the large oracle `SuffixArray<int>::doubling`, before `07`'s final code-range cutoff (recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results)). Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode quick --seed 1  # PASS, 2 configurations, 1,125,301 checks, 12 assertion probes
-python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode full --seed 1  # PASS, 3 configurations, 7,768,991 checks each, MEMORY peak 760 MB
-CXX=g++-14 python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode full --seed 1  # PASS, 3 configurations, 7,768,991 checks each, MEMORY peak 738 MB
+python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode full  # PASS, 7,698,991 checks per configuration, MEMORY peak 872 MB
+CXX=g++-14 python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode full  # PASS, same counts, MEMORY peak 767 MB
 python3 '96-Local Testing/07-Strings/14-lyndon_tester.py' --mode stress --seed 3  # PASS, 3 configurations, 20,745,777 checks (optimized, ASan/UBSan), 7,725,613 (checked), MEMORY peak 960 MB
 python3 '96-Local Testing/07-Strings/29-bwt_tester.py' --mode quick --seed 1  # PASS, 2 configurations, 5 assertion probes
 python3 '96-Local Testing/02-integration.py' --sanitizers  # PASS, 136 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace, sanitizer self-tests
@@ -66,9 +66,9 @@ python3 '96-Local Testing/03-consistency.py'  # errors: []
 
 ## Benchmarks
 
-Duval is linear and needs no benchmark. `lyndonArray`, SA-IS against the former prefix-doubling `07` suffix array (identical outputs checked), ad-hoc driver under `_00_memory_cap.py` (peak 180 MB), i9-11900H, `g++` 16.2 `-std=gnu++20 -O2`, seed 1, median of 7 runs after one warm-up check run:
+Duval is linear and needs no benchmark. `lyndonArray` on `07`'s prefix-doubling suffix array (`doubling`) against `12` SA-IS (`sais`), identical outputs checked, ad-hoc driver under `_00_memory_cap.py` (peak 180 MB), i9-11900H, `g++` 16.2 `-std=gnu++20 -O2`, seed 1, median of 7 runs after one warm-up check run:
 
-| n | input | old ms | new ms | speedup |
+| n | input | `doubling` ms | `sais` ms | speedup |
 |---|---|---|---|---|
 | 10^6 | random 256 bytes | 208.6 | 86.0 | 2.4x |
 | 10^6 | unary | 176.0 | 19.4 | 9.1x |

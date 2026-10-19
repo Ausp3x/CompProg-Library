@@ -48,10 +48,9 @@ Some optimal disk has an input point `p` on its boundary. For each such pivot `p
   - `c^2`, `t^2`, `D1 D2`, `|L|` and `M <= q^2 / 4` are below `6.4 * 10^37 < 2^126` and stay in `lll`; the half-plane test stays in `lll` (products at most `6.4 * 10^37`).
   - Every product `a^2 x` of the radical signs is at most `6.4 * 10^37 * 1.6 * 10^19 < 2^190`, three limbs from one `ulll × ulng` product.
   - `K` is the difference of `c^2 D2 + t^2 X2 < 2^191` and `D1 D2 X1 < 2^190`, compared before subtracting, so `|K| < 2^191`; `K^2 < 2^382` and `L^2 M < 2^252 * 2^126 = 2^378`, so six-limb truncated products are exact.
-  - On the same inputs the 384-bit path costs 1.2–1.8× the `lll` path, and 4.4–5.1× less than the 512-bit `I512` it replaces; at `r2 = 2^30` the raised threshold makes the old `I512` workloads 6–9× faster (see Benchmarks).
+  - On the same inputs the 384-bit path costs 1.2–1.8× the `lll` path (see Benchmarks).
   - The `lll` path's 128 × 128-bit product comparison (`compareProducts`, six lines) stays private too: Core `u256` took 4.7× longer on `10^7` random comparisons (615–636 ms against 132–135 ms).
   - Core's `UInt<3>` and `UInt<6>` (`01-Core/07-infint.hpp`) were measured for this path and rejected: with them the 384-bit path was 1.6–2.6× slower end to end than with the private magnitudes (two interleaved runs, all ten workloads).
-  - Below the threshold, the old `lll` path and the new one take 0.99–1.14× each other's time (medians of six alternating runs).
 
 **Ties.** At equal angles, entries come before exits, which is the closed disk. Arcs whose exit sorts before their entry wrap through the starting direction `+x` and start counted.
 
@@ -81,13 +80,13 @@ No legacy code exists for this header.
 | `pairsWithin` | Every grid case; 60,000 points with `r = 3000` | All-pairs scan; consistency with `diskCoverCounts` |
 | `diskCoverCounts` | Same | All-pairs scan |
 | `SortedGrid` (build, `neighbours`, `pairsWithin`, `diskCoverCounts`) | Every grid case above, and the 60,000 points | All-pairs scan; the same vectors as `GridHash`, element by element and in order |
-| `maxPointsInDisk` | Fixed: a point, duplicates, a diameter pair, a pair beyond the diameter, six cocircular points, a square at radii `sqrt(8)` and `sqrt(7)`. Random sets of 1–19 points at scales 6 and 30 with `r2 < 60`, some duplicated. Sets of 4–29 points within `6 * 10^4` shifted up to `5 * 10^8`, with `r2` up to `4 * 10^8`. The old radius bound with a far point. Sets of 3–25 points at scales `10^3`, `10^6` and `10^9` with `r2` up to `4 * 10^18` (the 384-bit path). Both sides of the dispatch threshold, `r2 = 2^30` and `2^30 + 1`, on random sets and on diameter pairs. Rings of 14 points just inside the diameter around a pivot at the origin or at the corner `(−10^9, −10^9)`, at `r2 = 2^30`, `2^30 + 1`, `2^31`, random values in `[9 * 10^8, 2^30]` and up to `4 * 10^18`. The 32 lattice points of `x^2 + y^2 = 1105` scaled by 1000 and shifted (`r2 = 1.105 * 10^9`, all on the circle) and one below. The acute triangle `(33, 4), (−24, 23), (−9, −32)` scaled by 1, 1000 and `3 * 10^7`, at its circumradius squared (3 points) and one below (2). The four corners of the `10^9` square plus two points at `r2 = 2 * 10^18 − 1`, `2 * 10^18` and `4 * 10^18`. The old bound `r2 = 4 * 10^8` with a far point. 200-point sets. 60,000 points | Exhaustive exact centre search; the rounded centre covers the count up to `10^-12` times the scale; the known counts |
+| `maxPointsInDisk` | Fixed: a point, duplicates, a diameter pair, a pair beyond the diameter, six cocircular points, a square at radii `sqrt(8)` and `sqrt(7)`. Random sets of 1–19 points at scales 6 and 30 with `r2 < 60`, some duplicated. Sets of 4–29 points within `6 * 10^4` shifted up to `5 * 10^8`, with `r2` up to `4 * 10^8`. Sets of 3–25 points at scales `10^3`, `10^6` and `10^9` with `r2` up to `4 * 10^18` (the 384-bit path). Both sides of the dispatch threshold, `r2 = 2^30` and `2^30 + 1`, on random sets and on diameter pairs. Rings of 14 points just inside the diameter around a pivot at the origin or at the corner `(−10^9, −10^9)`, at `r2 = 2^30`, `2^30 + 1`, `2^31`, random values in `[9 * 10^8, 2^30]` and up to `4 * 10^18`. The 32 lattice points of `x^2 + y^2 = 1105` scaled by 1000 and shifted (`r2 = 1.105 * 10^9`, all on the circle) and one below. The acute triangle `(33, 4), (−24, 23), (−9, −32)` scaled by 1, 1000 and `3 * 10^7`, at its circumradius squared (3 points) and one below (2). The four corners of the `10^9` square plus two points at `r2 = 2 * 10^18 − 1`, `2 * 10^18` and `4 * 10^18`. The old bound `r2 = 4 * 10^8` with a far point. 200-point sets. 60,000 points | Exhaustive exact centre search; the rounded centre covers the count up to `10^-12` times the scale; the known counts |
 | Event order | Random events at small radii, at `r2 <= 4 * 10^8` and at `r2` up to `4 * 10^18` with differences up to `2 * 10^9`; events within 64 of the largest offset (offset length about `min(2 sqrt(r2), 2 sqrt(2) * 10^9)`) at `r2 = 2^30`, `2^30 + 1`, `2 * 10^18` and `4 * 10^18` | Irreflexive, asymmetric, transitive (384-bit); the `lll` and 384-bit comparators agree for every `r2 <= 2^30`; agrees with rounded angles separated by more than `10^-12` |
 
 Both final comparisons are reached: an instrumented full run decided 4.7 million `lll` comparisons (557 exact ties) and 346,000 384-bit ones, and the cocircular and acute-triangle cases add exact 384-bit ties (6,716 in quick mode).
 
-Mutation checks (2026-10-18 and 2026-10-19 round 3, on a copy of the tree, optimized unless noted; caught unless noted):
-- Earlier: exits before entries at equal angles; dropping the wrap-around count; inverting the final radical comparison.
+Mutation checks (2026-10-18 and 2026-10-19, on a copy of the tree, optimized unless noted; caught unless noted):
+- Sweep: exits before entries at equal angles; dropping the wrap-around count; inverting the final radical comparison.
 - 384-bit path: `add` dropping the carry; subtraction dropping the borrow (caught by the acute triangle); `mul` dropping the carry; `less` from the low limb; `mag` dropping the low carry; swapped radical-sign results; a final tie read as `+1` (acute triangle); the sign of `K` flipped.
 - `lll` path: `L^2` formed in signed `lll` (undefined behaviour; caught by UBSan in the full ASan/UBSan run).
 - `SortedGrid`: `dy` outer instead of `dx`; skipping every radix pass; sorting only the low 32 bits; `<=` in the neighbour pointer; an unbiased `y` key.
@@ -116,7 +115,7 @@ python3 '96-Local Testing/03-Geometry/54-fixed_radius_queries_tester.py' --mode 
 
 ## Benchmarks
 
-`54-fixed_radius_queries_benchmark.py --seed 20260927` (2026-10-19, round 3; Intel Core i9-11900H, GCC 16.2.1 `-O2 -DNDEBUG`, one warmup, median of five; run serially on the final code; other sessions kept the load average near 2.2 on the 8-core CPU).
+`54-fixed_radius_queries_benchmark.py --seed 20260927` (2026-10-19; Intel Core i9-11900H, GCC 16.2.1 `-O2 -DNDEBUG`, one warmup, median of five; run serially on the final code; other sessions kept the load average near 2.2 on the 8-core CPU).
 - **Scaled:** uniform points use `r2 = 10^8` (the `lll` path), in a square sized for about `m` candidates within `2 * r` of each pivot, at most `10^6` wide so the scaled copy stays within `10^9`. Only row (8,000, 10) reaches the cap, which raises its expected candidates from 10 to 10.05. The same points times 1000 with `r2` times `10^6` take the 384-bit path; both scales must report the same count.
 - **Threshold:** the same points at `r2 = 2^30` (`lll`) and `2^30 + 1` (384-bit).
 
@@ -133,8 +132,6 @@ python3 '96-Local Testing/03-Geometry/54-fixed_radius_queries_tester.py' --mode 
 | threshold | 8,000 | 10 | 14 | 47,727 | 66,779 |
 | threshold | 8,000 | 50 | 31 | 370,228 | 613,692 |
 
-Against the replaced 512-bit `I512` (the previous header built from `HEAD` with the same driver, two interleaved runs at the same load): the scaled 384-bit runs took 4.4–5.1× less time (for example 8,000 / 50: 4,278,758 and 4,649,995 µs before, 909,590 and 863,559 µs after), and the threshold rows, which `I512` handled above `4 * 10^8`, took 6–9× less (8,000 / 50: 4,921,355 and 5,130,070 µs before, 564,499 and 522,675 µs after, now on the `lll` path).
-
 **Grids:** `r = 1000`, uniform points with about 8 others within `r`, or clusters of 10 inside a 300 × 300 square; both grids on the same points, which must give identical pair lists and cover counts.
 
 | Points | n | Pairs | `GridHash` build + `diskCoverCounts` (µs) | `SortedGrid` build + `diskCoverCounts` (µs) | `GridHash` `pairsWithin` (µs) | `SortedGrid` `pairsWithin` (µs) |
@@ -149,14 +146,14 @@ Against the replaced 512-bit `I512` (the previous header built from `HEAD` with 
 The implementation was written independently. Sources of the completeness sweep are in [00-sources.md](00-sources.md#p037-completeness-sweep-fetched-2026-10-18).
 
 - [USACO Guide, LeetCode 1453 solution](https://usaco.guide/problems/lc-maximum-number-of-darts-inside-of-a-circular-dartboard/solution): the angular sweep with floating angles and entries before exits. The exact comparator here is new to the catalogs swept.
-- [Chazelle–Lee and later work, arXiv 1312.0389](https://arxiv.org/html/1312.0389v1) and [arXiv 2509.16008](https://arxiv.org/html/2509.16008): the `O(n^2)` bound (optimal under 3SUM) and the weighted, coloured and two-disk variants, none adopted.
+- [Chazelle–Lee and later work, arXiv 1312.0389](https://arxiv.org/html/1312.0389v1) and [arXiv 2509.16008](https://arxiv.org/html/2509.16008): the `O(n^2)` bound (optimal under 3SUM) and the weighted, coloured and two-disk variants, filed as row 56 (P233).
 - [CGAL Spatial_searching](https://doc.cgal.org/latest/Spatial_searching/index.html): fixed-radius search through kd-trees, owned by row 28.
 
 ## Limits and handoffs
 
-- `maxPointsInDisk` is `O(n * K * log(K + 1))`, `O(n^2 * log(n))` in the worst case; Chazelle–Lee's `O(n^2)` and the output-sensitive `O(n * K)` are planned as an esoteric package (P037 round 3). Radii above `sqrt(2^30)` pay the 1.2–1.8× 384-bit constant.
+- `maxPointsInDisk` is `O(n * K * log(K + 1))`, `O(n^2 * log(n))` in the worst case; Chazelle–Lee's `O(n^2)` and the output-sensitive `O(n * K)` are planned as row 56 `maxPointsInDiskQuadratic` and `maxPointsInDiskOutputSensitive` (P233). Radii above `sqrt(2^30)` pay the 1.2–1.8× 384-bit constant.
 - Radius queries around arbitrary points belong to row 28 `KdTree: radius`. Unit-disk graph components belong to row 22 (`euclideanBottleneck`).
-- Not adopted (see 00-notes): weighted and coloured disks, two disks, the smallest disk covering `k` points.
+- Weighted and coloured disks, two disks and the smallest disk covering `k` points are row 56 (`56-circle_placement.hpp`, P233, planned).
 
 ## History
 

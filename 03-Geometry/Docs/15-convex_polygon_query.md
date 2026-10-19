@@ -113,7 +113,7 @@ No legacy code exists for this header.
 | `tangents` | Every outside query above | Ends of the visible edge chain from a scan |
 | `pointDistanceApprox` | Every query above | Minimum `pointSegmentDistanceApprox` over all edges, `10^-17` relative |
 | `pointDistance2` | Every query above, scales 8 and `10^9` | Exact minimum over all edges of the clamped squared segment distance, compared with 256-bit products, reduced |
-| `lineIntersection` | Random segments, rays and lines including points; every edge line, reversed edge segment and an outside ray along an edge; random and edge lines on `10^9` hulls | 02 `intersect` with every edge, exact rational parameters, clipped; at `10^9`, `clipConvex` with both halfplanes of the line |
+| `lineIntersection`, `ConvexLineIntersection` | Random segments, rays and lines including points; every edge line, reversed edge segment and an outside ray along an edge; random and edge lines on `10^9` hulls | 02 `intersect` with every edge, exact rational parameters, clipped; at `10^9`, `clipConvex` with both halfplanes of the line |
 | `cut` | Random lines, every edge in both directions, edge normals; random and edge lines on `10^9` hulls | 10 `clipConvex` with one halfplane (same exact vertex set and kind); CCW and start on the line |
 | `areaLeftOfLineApprox` | Same lines | Shoelace area of the exact cut, `10^-12 * scale^2` |
 | `areaLeftOfLine2`, `ExactArea2` | Same lines, both directions | Reduced proper fraction; the two sides sum exactly to `signedArea2`; exact rational shoelace of the cut ring at scale 8; the rounded area at `10^9` |
@@ -123,12 +123,12 @@ No legacy code exists for this header.
 | `maxAreaInscribedKgonSmawk` | The same corpus; 20,000-vertex hulls with `k` in `{3, 5, 40}` | The same oracles; identical vertices to `maxAreaInscribedKgon` |
 | `maxPerimeterInscribedKgonApprox` | The exhaustive corpus | Exhaustive best perimeter, `10^-15` relative |
 | `maxPerimeterInscribedKgonSmawkApprox` | The exhaustive corpus | Exhaustive best perimeter; equal to the plain version within `10^-15` relative |
-| All k-gons, ties | Centrally symmetric hulls (scales 3 and 6) and their shears, lattice-disk hulls of radius 1–5, an affine-regular hexagon; every `k` in `3..min(n + 1, 8)` | Exhaustive subsets; identical vertices from the plain and `Smawk` versions |
+| All k-gons (`InscribedKgon`), ties | Centrally symmetric hulls (scales 3 and 6) and their shears, lattice-disk hulls of radius 1–5, an affine-regular hexagon; every `k` in `3..min(n + 1, 8)` | Exhaustive subsets; identical vertices from the plain and `Smawk` versions |
 | All k-gons, Boyce et al. | Fig. 10 (the largest perimeter triangle C'BC) and Fig. 12 (the largest pentagon A D B D' C), every `k` | The paper's optima; exhaustive subsets |
 | `maxAreaInscribedTriangle` | The exhaustive, ties and Boyce corpora; Keikha's 9-gon; 30–90 vertex hulls; 20,000- and 200,000-vertex hulls; the 19-gon regression; quick 400, full 6,000, stress 40,000 near-circular, flattened and uniform hulls up to 40 vertices | Exhaustive subsets; the all-roots dynamic program; the general k-gon; a cubic scan |
 | `maxAreaInscribedQuadrilateral` | The same, Keikha's 16-gon; hulls up to 24 vertices in the stress phase | The same oracles; a quartic scan |
 
-Mutation checks (2026-10-18; round-3 checks 2026-10-19 on the final header, in a private copy of the tree; quick mode, optimized and checked builds):
+Mutation checks (2026-10-18 and 2026-10-19 on the final header, in a private copy of the tree; quick mode, optimized and checked builds):
 - Caught by an independent oracle: stopping the roots before `a[1]`; choosing the wrong smallest edge; allocating the `k`-sized layer array before the `k >= n` return (memory cap); the Hirschberg pass not carrying the middle vertex (forced recomputation against the exhaustive optimum); the triangle's kill always advancing `b`, ignoring whether the rays meet, or comparing areas instead (the cubic-scan stress phase); skipping the stabilising pass, or not revisiting `r` in it (the 3-stability assertion on the 19-gon); the quadrilateral skipping `d`; galloping without the halving phase; `pointDistance2` on the wrong edge; `areaLeftOfLine2` rounding toward zero or dropping the carry; SMAWK's workspace without its reserve (a crash).
 - Caught only by the cross-check that the plain and `Smawk` versions return identical vertices: leftmost instead of rightmost maxima in the divide and conquer, in SMAWK's reduce step and in its interpolation. They pick another optimal k-gon, which the contract allows: with the cross-check removed no oracle catches them, and a search of 1,345,715 tie-heavy (polygon, `k`) cases against the all-roots dynamic program found no wrong value. The proof of step 1 uses the rightmost rule.
 - Not caught, equivalent in results: a looser Hirschberg clip that lets the left half end on the middle vertex (that path has a zero edge and one vertex fewer, so it is strictly worse); ignoring the kill denominator's sign (the rays never meet with a negative denominator in the stress run); advancing `c` instead of `a` on an antipodal tie in the quadrilateral sweep (Rote: ties need no care).
@@ -181,7 +181,7 @@ Large `k`, one run each in its own process, 84,304 hull vertices:
 | 1,000 | 8.6 | 10.2 | 30 MB |
 | 10,000 | 77.7 | 98.8 | 21 MB |
 
-A stored table would hold `k * (n − k)` predecessors: about 330 MB and 3 GB of indices, and five times as much with the values the earlier version kept per layer.
+A stored table would hold `k * (n − k)` predecessors: about 330 MB and 3 GB of indices.
 
 | Located queries (135,175 hull vertices) | `batchedLocate` (µs) | `contains` per query (µs) |
 |---|---|---|

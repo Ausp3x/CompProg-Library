@@ -15,8 +15,7 @@ unsigned word gives its modulo-2^W representation; the API never performs an
 implicit signed shift. `W` is the type's bit width, at most 128.
 
 Every operation is `constexpr`, O(1) time and O(1) auxiliary memory for these
-fixed scalar widths (`grayDecode` takes O(log(w)) shift-xor steps, at most 7). The compiler chooses ordinary scalar instructions; there
-are no handwritten ISA kernels or target-specific flags.
+fixed scalar widths (`grayDecode` takes O(log(w)) shift-xor steps, at most 7).
 
 | Operation | Contract |
 |---|---|
@@ -66,13 +65,9 @@ Each replacement accepts every BitOps word type, including GNU `unsigned __int12
 
 ## Feature-to-test map
 
-[`06-bit_operations_tester.py`](<../../96-Local Testing/06-Miscellaneous/06-bit_operations_tester.py>) includes the
-actual header through its supporting C++ suite. Checks remain active under
-NDEBUG. It requires Python's standard library and GCC only.
-
 | Features | Independent checks |
 |---|---|
-| `first`, `last`, `lowBit`, bit read/set/clear/flip; the `<bit>` replacements of the removed counts, scans and floor | Bit-by-bit reference for 8/16/32/64/128-bit words; all zero/one/top/full/prefix masks; seeded words and exact Python integers. |
+| `first`, `last`, `lowBit`, `lowMask`, bit read/set/clear/flip; the `<bit>` replacements of the removed counts, scans and floor | Bit-by-bit reference for 8/16/32/64/128-bit words; all zero/one/top/full/prefix masks; seeded words and exact Python integers. |
 | Ceiling failure and mutation | Top-bit+1 through full-word cases, unchanged output on failure, input/output aliasing, zero→1 and constexpr checks. |
 | Shifts; the `std::rotl`/`std::rotr` replacements of the removed rotations | Reconstruct every output bit by position; zero/width shifts; all-int extreme rotation counts; Python rotation of binary strings. |
 | Fixed-popcount successor | Independent set-position advancement; a descending exhaustive table of all 8-bit words (quick) and all 16-bit words (full/stress); zero/final mask preservation and high 128-bit transitions. |
@@ -90,24 +85,13 @@ members, in 15,764 cases in full mode.
 
 ## Commands and results
 
-P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection.
+P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
 
 | Command | Result |
 |---|---|
 | `06-bit_operations_tester.py --mode full --seed 20260927` | PASS, 3 configurations, 9,243,635 C++ checks and 15,764 exact Python cases per configuration, 16 assertion probes, six compile rejections, `MEMORY peak=433MB` |
 | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=446MB` |
-| Other P013 suites, the call-site suites (`07-ordered_set`, `08-sequence_algorithms`, `12-enumeration`), `02-integration.py` and `03-consistency.py` | PASS; details in [04-compression.md](04-compression.md) |
-
-```bash
-for c in g++ g++-14; do
-  for s in 01-random 02-customhash 03-fastio 04-compression 06-bit_operations 07-permutation 08-sequence_algorithms 12-enumeration; do
-    CXX=$c python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode full --seed 20260927
-  done
-  CXX=$c python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20260927
-done
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
+| Other P013 suites, the call-site suites (`07-ordered_set`, `08-sequence_algorithms`, `12-enumeration`), `02-integration.py` and `03-consistency.py` | PASS; details and the package command loop in [04-compression.md](04-compression.md) |
 
 ## Sources
 
@@ -133,9 +117,7 @@ external source code was copied.
 
 ## Limits and handoffs
 
-Omitted candidates: `countOnesUpTo(n)` (total popcount over `[0, n]`) needs more than `W` bits for full-range inputs and is digit-DP territory (`31-digit_dp.hpp`). `bitReverse` appeared in none of the swept catalogs. General combination generation and dynamic bitsets have separate owners.
-
-Handoff to P015: `forEachSupermask` in `12-enumeration.hpp` can build on `BitOps::nextSupermask`. No online submission was made and no judge acceptance is claimed.
+Omitted candidates: `countOnesUpTo(n)` (total popcount over `[0, n]`) needs more than `W` bits for full-range inputs and is digit-DP territory (`31-digitdp.hpp`). `bitReverse` appeared in none of the swept catalogs. General combination generation and dynamic bitsets have separate owners.
 
 ## History
 

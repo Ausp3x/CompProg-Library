@@ -1,6 +1,6 @@
 # 11-functionalgraph.hpp — evidence
 
-Owned by package P011 / GR26 (functional graphs); see [00-notes.md](00-notes.md#p011-package-record) for the package record.
+Owned by package P011 / GR26 (functional graphs); omissions are in [00-notes.md](00-notes.md#p011-re-audit-omissions).
 
 ## Contracts
 
@@ -46,7 +46,7 @@ Floyd's two-speed pointers either encounter termination or meet on a cycle. Rese
 
 ## Feature-to-test map
 
-[11-functionalgraph_tester.py](<../../96-Local Testing/04-Graphs/11-functionalgraph_tester.py>) runs the actual header through the shared graph driver, with [independent C++ oracles](<../../96-Local Testing/04-Graphs/11-functionalgraph_tester.cpp>). Failure reporting retains seed, mode, configuration, successor map, operation and expected/actual success, and the driver reports command, crash and timeout details. Oracles remain active under `-DNDEBUG`.
+[11-functionalgraph_tester.py](<../../96-Local Testing/04-Graphs/11-functionalgraph_tester.py>) runs the actual header through the shared graph driver, with [independent C++ oracles](<../../96-Local Testing/04-Graphs/11-functionalgraph_tester.cpp>).
 
 | Features | Independent verification |
 |---|---|
@@ -56,7 +56,7 @@ Floyd's two-speed pointers either encounter termination or meet on a cycle. Rese
 | Reverse-tree intervals, compact powers and adapters | Every Graph/CSR/vector construction on every small case; independent ancestor walks, exact table powers and component order; all ignored weight extremes and direct `successors` helper. |
 | Floyd single-orbit analysis | Compare returned entry/tail/cycle length to visited sequences for every small starting vertex; large terminating/cyclic orbit fixtures. |
 | Direct and preprocessed cycle aggregates | Literal successor-order folds, with canonical and entry-rotated order; terminal false/identity result; strings and noncommutative 2×2 matrices through `Monoid`; a capturing-lambda sum modulo 7 and 10^9+7 (runtime state) for `cycleAggregates`. |
-| Walk folds and bounded segments | Literal walks for every count through 2n+3, including terminal consumption once, zero counts, lengths beyond termination and all available segment lengths; the same walk oracle for `FunctionalGraphFold` over the capturing-lambda modular sum. |
+| `FunctionalGraphFold::fold`, `FunctionalFoldResult`: walk folds and bounded segments | Literal walks for every count through 2n+3, including terminal consumption once, zero counts, lengths beyond termination and all available segment lengths; the same walk oracle for `FunctionalGraphFold` over the capturing-lambda modular sum. |
 | Full-width ordered folds | A separate fixed-64-level reference stores actual truncated block lengths, without cycle decomposition or repeated-cycle powers. Exact 128-bit signed sums cover every exhaustive map; noncommutative matrix products cover 700 random maps/permutations. |
 | Boundaries and ownership | Default/explicit empty constructors, singleton terminal/self-loop, disconnected components, copies/moves, input mutation, snapshot/reassignment, labels/graph lifetime; 200,000-vertex terminal chains, cycles and long tails. |
 | `jumpAll` | Every vertex against the explicit orbit position for every count in the jump list plus every count through 2n+3, on every enumerated and random map; full-range counts on the 200,000-vertex terminal chain and cycle. |
@@ -67,7 +67,7 @@ Quick exhausts maps through n=3, adds 80 random cases and 20,000-vertex fixtures
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
@@ -99,9 +99,9 @@ Sources for `jumpAll` and `maxStep` (fetched 2026-10-07) are in [00-sources.md](
 
 ## Limits and handoffs
 
-Static all-vertex queries, ordered cycle/walk aggregates and one-orbit constant-memory analysis are complete scope here. Successor updates and fully dynamic functional-graph maintenance require a separate dynamic-tree design; they are outside this static batch. Constant-query-time level-ancestor constructions and arbitrary-speed/collision schedules are distinct specialized extensions, not claimed by these APIs. No original Floyd paper was independently reviewed, and no judge acceptance or automatic submission is claimed.
+Static all-vertex queries, ordered cycle/walk aggregates and one-orbit constant-memory analysis are complete scope here. Successor updates and fully dynamic functional-graph maintenance require a separate dynamic-tree design; they are outside this static batch. Constant-query-time level-ancestor constructions and arbitrary-speed/collision schedules are distinct specialized extensions, not claimed by these APIs. No original Floyd paper was independently reviewed.
 
-The checked `-O0` stress build exceeds the runner's 180 s timeout, so stress is recorded for the optimized configuration only. GCC 14.4.1 (`CXX=g++-14`) passed the full-mode floor check on 2026-10-14. Functional successor updates and specialized collision schedules are outside GR26's static contracts; they remain with separate owners.
+The checked `-O0` stress build exceeds the runner's 180 s timeout, so stress runs the optimized configuration only.
 
 ## History
 

@@ -1,6 +1,6 @@
 # Core modular-family migration
 
-The 2026-09-27 migration implements the approved namespace/co-location rules and adds independently copyable modular mini types. Current scope is **428 numbered targets, 335 algorithm batches, 226 packages and five support passes**. Core has 18 numbered targets. Existing package IDs and C01–C15 retain their identity; P005 owns C03 and the new C16, in that order. The earlier expansion audit remains a historical record.
+The 2026-09-27 migration implements the approved namespace/co-location rules and adds independently copyable modular mini types. Scope after this migration was **428 numbered targets, 335 algorithm batches, 226 packages and five support passes**. Core has 18 numbered targets. Existing package IDs and C01–C15 retain their identity; P005 owns C03 and the new C16, in that order. The earlier expansion audit remains a historical record.
 
 ## Canonical layout and ownership
 
@@ -53,7 +53,7 @@ python3 '98-Team Notebook/01-notebook.py' list
 
 Sanitizer runs retain leak checking; an initial sandbox ptrace restriction was resolved by approved execution outside that sandbox. Full/mini evidence distinguishes those reruns from actual arithmetic failures. No fresh performance claim is made for the unchanged full engine or renamed Bitset. No online submission was made. Finite tests and catalog/path checks do not prove all possible algorithm inputs or implement the remaining inventory.
 
-Current hashes for files whose earlier evidence refers to an older name or generated snapshot:
+Hashes at this migration for files whose earlier evidence refers to an older name or generated snapshot:
 
 | Current file | SHA256 |
 |---|---|

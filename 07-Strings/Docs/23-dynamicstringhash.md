@@ -65,7 +65,7 @@ All are `O(log n)` expected, `build` `O(n)`. The structure adds:
 - `leaves(s)`: the batch form for a string or a symbol vector.
 - `assignment(x)`: the action giving every symbol in a range the value `x`; not for KIND 1.
 - `get(v, l, r)` and `reverseGet(v, l, r)`: from `prod`, `O(log n)` expected. They are kept by the user's decision 2026-10-16: the typed `Digest` (length, base) compares soundly with other digests, and `prod`'s raw value does not.
-- `lcp`, `lcs`, `compare(v, l, r, a, b)` on two ranges of one sequence: `O(log^2 n)` expected. `lcp` is the former row operation `mutableLcp`, LCP under insertion, erasure and reversal (user decision 2026-10-16). `compare` reads the two symbols at the first difference with `at`.
+- `lcp`, `lcs`, `compare(v, l, r, a, b)` on two ranges of one sequence: `O(log^2 n)` expected. `compare` reads the two symbols at the first difference with `at`.
 
 Queries split and re-merge the tree. The shape depends only on the priorities, so it is unchanged; root ids may change and are passed by reference.
 
@@ -91,19 +91,19 @@ maspypy `Monoid_Rolling_Hash` and suisen's `DynamicRollingHash` node are `HashMo
 
 ## Feature-to-test map
 
-Runner: [`23-dynamicstringhash_tester.py`](<../../96-Local Testing/07-Strings/23-dynamicstringhash_tester.py>). Oracle: an independent polynomial hash of a mirrored `vector`/`deque` (per-KIND arithmetic written in the tester), brute prefix/suffix scans and brute lexicographic comparison; `StringHash<KIND>` agreement is supporting evidence. Every check survives `-DNDEBUG`. All three KINDs; default and random bases.
+Runner: [`23-dynamicstringhash_tester.py`](<../../96-Local Testing/07-Strings/23-dynamicstringhash_tester.py>). Oracle: an independent polynomial hash of a mirrored `vector`/`deque` (per-KIND arithmetic written in the tester), brute prefix/suffix scans and brute lexicographic comparison; `StringHash<KIND>` agreement is supporting evidence. All three KINDs; default and random bases.
 
 | Operation | Coverage |
 |---|---|
 | PointUpdateHash (construction, set, get, reverseGet, lcp, lcs, compare, size) | 30/200/800 rounds of 60 steps (half point sets) on 0..119 symbols, alphabets 1..3 and the full symbol range. Equal-length range pairs a third of the time. `StringHash` agreement after edits. A high-byte `string_view`. Periodic texts of 20000/100000/300000 symbols with 2000/20000/20000 long-prefix queries and point edits. |
 | SequenceHash (leaf, leaves, assignment, get, reverseGet, lcp, lcs, compare, with insert, erase, set, split, merge, reverse, apply, at, size, values, build) | 20/120/500 rounds of 80 random edits (split checked on both parts, then merge as a rotation; assignment for KIND 0 and 2) with queries after every edit; a high-byte string; large periodic texts against `PointUpdateHash`. |
 | DequeHash (pushFront, pushBack, popFront, popBack, get, size) | 20/150/600 rounds of 300 random end operations with a random range digest after each; 20000/100000/300000 front pushes. |
-| HashMonoid (e, op, reverse, mapping, composition, id) | 100/1000/4000 rounds: identity, associativity, forward/reversed/power fields against the brute hash, reversal, assignment mapping and composition, `mapping(id, x) = x`, `composition` with `id` on either side, `mapping(f, e) = e`; `LazySegmentTree<HashMonoid>` with 400 mixed assignments and products, which applies `id` and caught an earlier non-identity `id`. |
+| HashMonoid (e, op, reverse, mapping, composition, id) | 100/1000/4000 rounds: identity, associativity, forward/reversed/power fields against the brute hash, reversal, assignment mapping and composition, `mapping(id, x) = x`, `composition` with `id` on either side, `mapping(f, e) = e`; `LazySegmentTree<HashMonoid>` with 400 mixed assignments and products (it applies `id`). |
 | Preconditions | Checked builds abort on ten probes: point index, range, symbol and lcp ranges, a base below 257, an even KIND 1 base, popping an empty deque, a deque range, a sequence lcp range, a sequence symbol. |
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, the optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan configurations built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>):
 
 | Command | Result |
 |---|---|
@@ -137,7 +137,7 @@ Code is independently implemented from the cited descriptions; catalog sweep in 
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): `reverseGet`, `lcp` and `compare` on `DequeHash` (double-ended palindrome structures are `45`), multi-base hashing as a separate operation, period checks.
 - `lcp`/`lcs`/`compare` are `O(log^2 n)`; an `O(log n)` dynamic LCE is the Optimal Dynamic Strings row `47`.
-- Tests include `06-Miscellaneous/02-customhash.hpp` and `02-Data Structures/19-treap.hpp` first under a `-Wshadow` suppression. Their constructor parameters `seed` shadow members (owned by P013 and P028). This header builds with `-Wshadow`.
+- Tests include `06-Miscellaneous/02-customhash.hpp` and `02-Data Structures/19-treap.hpp` first under a `-Wshadow` suppression. Their constructor parameters `seed` shadow members (owned by P013 and P029). This header builds with `-Wshadow`.
 
 ## History
 

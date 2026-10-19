@@ -1,6 +1,6 @@
 # 21-matching_bipartite.hpp — evidence
 
-Owned by package P043 / GR10 (with `23-assignment.hpp`); see [00-notes.md](00-notes.md#p043-package-record). Contest profile: iterative augmenting searches, word-parallel dense Kuhn using plain 64-bit words (no ISA code), SCCs through the verified `tarjanScc` of `08-scc.hpp` and b-matching flow through the verified `MaxFlow` of `19-max_flow.hpp`. The planned row had no implementation; the legacy reference `OLD/Team Notebook/src/graph/old_kuhn.cpp` is defective and was used only to identify features.
+Owned by package P043 / GR10 (with `23-assignment.hpp`); omissions are in [00-notes.md](00-notes.md#p043-omissions). Contest profile: iterative augmenting searches, word-parallel dense Kuhn using plain 64-bit words (no ISA code), SCCs through the verified `tarjanScc` of `08-scc.hpp` and b-matching flow through the verified `MaxFlow` of `19-max_flow.hpp`. The planned row had no implementation; the legacy reference `OLD/Team Notebook/src/graph/old_kuhn.cpp` is defective and was used only to identify features.
 
 ## Contracts
 
@@ -12,7 +12,6 @@ Owned by package P043 / GR10 (with `23-assignment.hpp`); see [00-notes.md](00-no
 - `hopcroftKarp()` and `kuhn()` grow the current matching to a maximum one, starting from whatever matching is present. Both run on a CSR snapshot of `adj`, with mates stored as adjacency slots, and write edge IDs back at the end (O(V + E) extra memory).
   - `hopcroftKarp()` alternates two steps. A full BFS layers left vertices from all free left vertices. An iterative layered DFS with current-arc pointers then accepts a free right vertex at any depth, and retires exhausted vertices and vertices on found paths.
   - The relaxed acceptance keeps the O(√V) phase bound. Every augmented arc goes up one layer, so residual distances never decrease and created arcs point down. A remaining augmenting path of the old shortest length would therefore lie wholly in the old layer graph. But its free root's DFS exhausted every vertex it could reach there, and path vertices from other roots are only entered through new downward arcs. So the shortest length strictly increases each phase, and after √V phases at most √V augmentations remain. Total O((V + E)·√V).
-  - Development measurement (n = 100,000, m = 300,000 sparse random, construction included): truncated phases on edge-ID adjacency took about 380 ms over 45 phases. Relaxed phases cut that to about 140 ms over 12 augmenting phases plus a final empty one, and the CSR snapshot to about 70 ms.
   - `kuhn()` repeats passes of single-root augmenting DFS, with marks kept for the whole pass, until a pass finds nothing; O(V·(V + E)).
 - `augment()` runs one BFS over alternating paths from all free left vertices and flips the first augmenting path found; returns whether `size` grew; O(V + E). Because one edge insertion or deletion changes the maximum by at most one, a single `augment()` after `addEdge` or after erasing a matched edge restores maximality.
 - `match()` lists matched edge IDs in increasing left-vertex order; `mate(u)` is the right partner or −1.
@@ -73,15 +72,20 @@ P043 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-1
 | `02-integration.py` | PASS 135 standalone/aggregate headers, scalar and available AVX2 multi-TU, workspace; MEMORY peak 649 MB |
 | `03-consistency.py` | No errors |
 | `03-consistency.py --braces` on the three P043 headers and testers | No closing-brace, comment-cap or free-function violations |
-| Ad-hoc `-DNDEBUG` probe, `-O1` with ASan, UBSan and `_GLIBCXX_ASSERTIONS` (not kept), five processes: invalid constructor edges followed by every engine and query; out-of-range `addEdge`; out-of-range and repeated `eraseEdge`; `bipartiteMatchingDense` with invalid edges; seven invalid `bMatching` calls | PASS, all in bounds and terminating; the header before the guards failed all five with an out-of-range `operator[]` |
+| Ad-hoc `-DNDEBUG` probe, `-O1` with ASan, UBSan and `_GLIBCXX_ASSERTIONS` (not kept), five processes: invalid constructor edges followed by every engine and query; out-of-range `addEdge`; out-of-range and repeated `eraseEdge`; `bipartiteMatchingDense` with invalid edges; seven invalid `bMatching` calls | PASS, all in bounds and terminating |
 
 ```bash
+python3 '96-Local Testing/04-Graphs/21-matching_bipartite_tester.py' --mode quick
 python3 '96-Local Testing/04-Graphs/21-matching_bipartite_tester.py' --mode full --seed 20261013
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/21-matching_bipartite_tester.py' --mode full --seed 20261013
 python3 '96-Local Testing/04-Graphs/21-matching_bipartite_tester.py' --mode stress --seed 3
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
 ```
 
 The benchmark driver (`python3 '96-Local Testing/04-Graphs/21-matching_bipartite_benchmark.py'`) last ran on 2026-10-09; the engines it times are unchanged.
+
+Design measurement (development, n = 100,000, m = 300,000 sparse random, construction included): truncated phases on edge-ID adjacency took about 380 ms over 45 phases, relaxed phases about 140 ms over 12 augmenting phases plus a final empty one, and the CSR snapshot about 70 ms; hence relaxed acceptance on a CSR snapshot.
 
 ## Benchmarks
 
@@ -110,6 +114,8 @@ The shared Dinic, which pushes many units per search from `t`, is faster on the 
 
 ## Sources
 
+Fetched 2026-10-09; the ledger is [00-sources.md](00-sources.md#pages-fetched-on-2026-10-09-p043).
+
 | Source | Inspected claim and application |
 |---|---|
 | [cp-algorithms, Kuhn's algorithm](https://cp-algorithms.com/graph/kuhn_maximum_bipartite_matching.html) | Augmenting-path theorem and the one-pass argument (Berge) |
@@ -121,7 +127,7 @@ The shared Dinic, which pushes many units per search from `t`, is faster on the 
 | [Nyaan, flow-on-bipartite-graph](https://nyaannyaan.github.io/library/flow/flow-on-bipartite-graph.hpp) | Capacity edges via flow (b-matching interface) |
 | [Library Checker graph problems](https://github.com/yosupo06/library-checker-problems/tree/master/graph) | `bipartitematching` problem id |
 
-Legacy: `OLD/Team Notebook/src/graph/old_kuhn.cpp` was inspected. It returns after the first neighbour and writes `mt[v] = v`, so it is not a valid matcher; its features (edge insertion, Kuhn DFS) are covered. The `Kuhn` structs at `OLD/Team Notebook/src/algsbetter.cpp:2201` and `test.cpp:831` (recursive DFS, greedy initial matching, `mt` right-to-left array, size result) are covered by `kuhn()`, `right[]` and `size`. The greedy initialisation is a heuristic, not an operation.
+Legacy: `OLD/Team Notebook/src/graph/old_kuhn.cpp` was inspected. It returns after the first neighbour and writes `mt[v] = v`, so it is not a valid matcher; its features (edge insertion, Kuhn DFS) are covered. The `Kuhn` structs at `OLD/Team Notebook/src/algs.cpp:1852`, `algsbetter.cpp:2201` and `test.cpp:831` (recursive DFS, greedy initial matching, `mt` right-to-left array, size result) are covered by `kuhn()`, `right[]` and `size`. The greedy initialisation is a heuristic, not an operation.
 
 ## Limits and handoffs
 

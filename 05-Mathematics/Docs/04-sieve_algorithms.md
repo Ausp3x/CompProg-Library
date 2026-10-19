@@ -40,11 +40,11 @@ Entry: [`04-sieve_algorithms_tester.py`](<../../96-Local Testing/05-Mathematics/
 
 | Feature | Oracle and edge classes |
 |---|---|
-| Eratosthenes and linear flags, SPF, LPF, sorted lists | Trial division for every integer through 50,000 and every prefix through 128. The known prime count at one million. Random larger trial factorizations. Zero, one, prime endpoints and prime squares. |
+| `SieveOfErath` (`is_prime`, `prms`), `LinearSieve` (`spf`, `prms`, `getLpf`) | Trial division for every integer through 50,000 and every prefix through 128. The known prime count at one million. Random larger trial factorizations. Zero, one, prime endpoints and prime squares. |
 | `getPrimeFac`, `getAllFac` | Trial factorization, and a separate square-root divisor enumeration sorted to check set equality and duplicates. Covers prime powers and squarefree products. |
 | `getNumDiv`, `getSumDiv` | An independent divisor-multiple enumeration. |
 | `getPhi`, `getMu` | Inversion of `sum(phi(d)) = n` and `sum(mu(d)) = [n = 1]` over divisors. Totients also by gcd counting through 300, Möbius also by trial-factor exponents. |
-| State and lifetime | Randomized builder order, repeated calls, lazy tables, copy and copy assignment, move construction, reset after a move, grow and shrink resets. |
+| `reset`, state and lifetime | Randomized builder order, repeated calls, lazy tables, copy and copy assignment, move construction, reset after a move, grow and shrink resets. |
 | Preconditions | 14 checked-build probes: negative and `INT_MAX` constructor and reset arguments, and out-of-range factor queries. |
 
 ## Commands and results
@@ -59,7 +59,7 @@ P012 prune run, 2026-10-12, recorded once for all six headers `01-mod_arithmetic
 
 ## Benchmarks
 
-The [benchmark driver](<../../96-Local Testing/05-Mathematics/00-foundations_benchmark.py>), [C++ workload](<../../96-Local Testing/05-Mathematics/00-foundations_benchmark.cpp>) and `96-Local Testing/05-Mathematics/00-foundations_benchmark.json` hold CPU, compiler, flags, workloads, memory models, one warmup and five samples with medians. Inputs are deterministic, outputs are checked outside the timed region, and no timing gate is applied. Dense tables through 2,000,000 recorded 7.10 ms packed-bit reference, 5.77 ms byte Eratosthenes and 7.78 ms linear SPF in the same run as the P012 re-audit. No Barrett/Montgomery or ISA-specific code is used.
+The [benchmark driver](<../../96-Local Testing/05-Mathematics/00-foundations_benchmark.py>), [C++ workload](<../../96-Local Testing/05-Mathematics/00-foundations_benchmark.cpp>) and `96-Local Testing/05-Mathematics/00-foundations_benchmark.json` hold CPU, compiler, flags, workloads, memory models, one warmup and five samples with medians. Inputs are deterministic, and outputs are checked outside the timed region. Dense tables through 2,000,000 recorded 7.10 ms packed-bit reference, 5.77 ms byte Eratosthenes and 7.78 ms linear SPF in the same run as the P012 re-audit. No Barrett/Montgomery or ISA-specific code is used.
 
 ## Sources
 

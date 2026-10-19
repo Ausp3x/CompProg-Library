@@ -96,27 +96,27 @@ Entry: [`20-continued_fraction_tester.py`](<../../96-Local Testing/05-Mathematic
 |---|---|
 | `continuedFraction`, `convergents` | Every `p/q` with `p` in `[-60, 60]` and `1 <= q <= 60`, signed64 extremes and seeded full-width values. Canonical form, last convergent equal to reduced `p/q`, each convergent equal to its prefix evaluated backwards, and the determinant identity. Python Euclid and `Fraction` evaluation on 3000 rows. |
 | `semiconvergents` | The definition, checked on every expansion above and on seeded expansions, sorted by denominator. The Python definition from `Fraction` convergents. |
-| `continuedFractionSqrt`, `continuedFractionQuadratic` | For `D <= 3000`: `pre = {a0}`, a period ending in `2 a0` with a palindromic body, and squares with no period. Seeded `P`, `Q` in `[-30, 30]` and extremes up to `P`, `Q` of magnitude `2^31 - 1`, `D` near 2^62: minimal preperiod and primitive period. Python expands `(x + y sqrt(D)) / z` exactly with integer square roots and lowest terms, a representation independent of the `(p, q)` recurrence, and matches `pre` followed by two periods. Rational cases are checked against Euclid. |
+| `continuedFractionSqrt`, `continuedFractionQuadratic`, `PeriodicContinuedFraction` | For `D <= 3000`: `pre = {a0}`, a period ending in `2 a0` with a palindromic body, and squares with no period. Seeded `P`, `Q` in `[-30, 30]` and extremes up to `P`, `Q` of magnitude `2^31 - 1`, `D` near 2^62: minimal preperiod and primitive period. Python expands `(x + y sqrt(D)) / z` exactly with integer square roots and lowest terms, a representation independent of the `(p, q)` recurrence, and matches `pre` followed by two periods. Rational cases are checked against Euclid. |
 | `bestRationalApproximation` | Brute force over every bounded fraction for `x, y <= 30` and `n <= 12`. A complete certificate for 62-bit inputs in C++ and Python: bracket, bounds, reduction, Stern–Brocot adjacency `hi.p lo.q - lo.p hi.q = 1`, and a mediant out of bounds, or both equal to a qualifying `x/y`. |
 | `rationalInInterval` | Brute force by increasing denominator for every term at most 12, including `c/0`. 62-bit certificates: the result lies in the interval, and the interval lies in the result's subtree, with the subtree computed by `sternBrocotRange` in C++ and by convergent formulas in Python. Python brute force when `b + d <= 400`. |
 | `fractionBinarySearch` | Brute force over every bounded fraction for threshold predicates. 62-bit certificates with at most `6 bit_width(n) + 8` predicate calls, and the irrational threshold `p^2 >= 2 q^2`. |
-| Stern–Brocot tree | A BFS of the tree to depth 11 for encode, decode, range, children, every ancestor depth and LCA. 62-bit roundtrips, depth through `sternBrocotAncestor`, the node as the mediant of its range, ancestor ranges containing the node, and the LCA containing both nodes, which leave it on different sides. Python paths from continued fractions, ranges from convergent formulas, and LCA and ancestors by walking. |
-| Farey operations | Enumeration for every `n <= 60`: every term, every successor, every k-th term, and counts between sampled terms and below `x/y` up to 20/1. Counts against an `O(n log(n))` divisor-sieve recurrence that does not use Mertens, up to `n = 200000`. k-th terms with exactly `k` smaller terms, and successor certificates. At `n = 10^9` and `999999937`, ranks and successors agree. Python enumeration with `Fraction` for `n <= 120`. |
+| `sternBrocotEncode`, `sternBrocotDecode`, `sternBrocotRange`, `sternBrocotChildren`, `sternBrocotAncestor`, `sternBrocotLca` | A BFS of the tree to depth 11 for encode, decode, range, children, every ancestor depth and LCA. 62-bit roundtrips, depth through `sternBrocotAncestor`, the node as the mediant of its range, ancestor ranges containing the node, and the LCA containing both nodes, which leave it on different sides. Python paths from continued fractions, ranges from convergent formulas, and LCA and ancestors by walking. |
+| `fareySequence`, `fareyNext`, `fareyKth`, `countRationalsInRange` | Enumeration for every `n <= 60`: every term, every successor, every k-th term, and counts between sampled terms and below `x/y` up to 20/1. Counts against an `O(n log(n))` divisor-sieve recurrence that does not use Mertens, up to `n = 200000`. k-th terms with exactly `k` smaller terms, and successor certificates. At `n = 10^9` and `999999937`, ranks and successors agree. Python enumeration with `Fraction` for `n <= 120`. |
 | Preconditions | Seventeen checked-build death probes: `q = 0`; quadratic `Q = 0` and `D < 0`; a zero term and an overflowing convergent; a negative semiconvergent term; `y = 0`; a reversed interval; `n = 0` search; a non-coprime node; a bad path character; `k < 0`; a zero node; `fareySequence(0)`; `fareyNext` with `p = q`; `k` past the last term; a reversed count range. A separate `-DNDEBUG` probe (2026-10-18, `-O0` and `-O2`) confirmed that 36 violating calls, including nonpositive nodes, negative `D`, reversed intervals and `n <= 0` searches, terminate. |
 
 ## Commands and results
 
-Run 2026-10-18; conditions as in [18-floorsum.md](18-floorsum.md).
+Full runs 2026-10-19 (after the row 18 change, recorded in [18-floorsum.md](18-floorsum.md)), stress 2026-10-18; conditions as in [18-floorsum.md](18-floorsum.md).
 
 | Command | Result |
 |---|---|
-| `20-continued_fraction_tester.py --mode full --seed 1` | PASS, 3,805,206 C++ checks and 3000 Python rows per configuration, 17 assertion probes, `MEMORY peak=861MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=806MB` |
+| `20-continued_fraction_tester.py --mode full --seed 1` | PASS, 3,805,206 C++ checks and 3000 Python rows per configuration, 17 assertion probes, `MEMORY peak=818MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=817MB` |
 | `20-continued_fraction_tester.py --mode stress --seed 7` | PASS, 25,257,307 C++ checks and 20,000 Python rows per configuration, 17 assertion probes, `MEMORY peak=1063MB` |
 
 ## Benchmarks
 
-From `18-floorsum_benchmark.py` (conditions in [18-floorsum.md](18-floorsum.md)), `k = n / 3`, with the rank of the result verified:
+From `18-floorsum_benchmark.py` (2026-10-18: GCC 16.2.1, `-O2` without `-march`, i9-11900H, one warmup, median of 5), `k = n / 3`, with the rank of the result verified:
 
 | `n` | `fareyKth` | `countRationalsInRange(n, 0, 1, p, q)` |
 |---|---|---|
@@ -143,3 +143,4 @@ Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep)
 ## History
 
 - 2026-10-18: P060 initial implementation; `@reviewer` found 8 issues, all fixed (precondition checks, `-DNDEBUG` termination, complexity statements, the `n <= 10^13` bound); full suite passed on g++ and g++-14, stress seed 7 passed.
+- 2026-10-19: P037 round-3 rerun (included `18-floorsum.hpp` changed), header unchanged; full passed on g++ and g++-14.

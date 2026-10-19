@@ -85,7 +85,7 @@ Entry: [`07-primality_factorization_tester.py`](<../../96-Local Testing/05-Mathe
 
 ## Commands and results
 
-P052 prune run, 2026-10-13: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64 (i9-11900H). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with the assertion probes, ASan/UBSan `-O1` (full and stress). Every run is self-capped by `_00_memory_cap.ensure()` (4096 MB main cap; full and stress first pre-flight quick under 2048 MB). Counts are per configuration and equal on both compilers.
+P052 prune run, 2026-10-13: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64 (i9-11900H). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with the assertion probes, ASan/UBSan `-O1` (full and stress). Counts are per configuration and equal on both compilers.
 
 | Command | Result |
 |---|---|
@@ -93,7 +93,7 @@ P052 prune run, 2026-10-13: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, C
 | `07-primality_factorization_tester.py --mode full --seed 1` | PASS 3 configurations, 6,079,117 C++ checks and 36,027 Python cases, 10 probes; 105 s; MEMORY peak 729 MB |
 | same with `CXX=g++-14` | PASS, same counts; 117 s; MEMORY peak 692 MB |
 | `07-primality_factorization_tester.py --mode stress --seed 1` | PASS 3 configurations, 30,402,516 C++ checks and 180,027 Python cases, 10 probes; 461 s; MEMORY peak 1,034 MB |
-| `08-multiplicative_functions_tester.py --mode full --seed 1`, plain and `CXX=g++-14` (its header includes this one) | PASS 3 configurations, 350,193 C++ checks and 4,001 Python cases, 10 probes; MEMORY peak 474 / 487 MB |
+| `08-multiplicative_functions_tester.py --mode full --seed 1`, plain and `CXX=g++-14` (its header includes this one) | PASS; results in [08-multiplicative_functions.md](08-multiplicative_functions.md#commands-and-results) |
 | `02-integration.py` | PASS 135 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace; 239 s; MEMORY peak 649 MB |
 | `03-consistency.py`; `--braces` on `07`, `10` and their testers | No errors; no closing-brace, comment-cap or free-function violations |
 
@@ -106,10 +106,6 @@ python3 '96-Local Testing/05-Mathematics/07-primality_factorization_tester.py' -
 The checked build's stress `--oracle` is the suite's slowest step and comes close to the runner's 180 s limit on a loaded machine.
 
 Warnings: the header, the tester and a two-translation-unit build with `10-crt.hpp` compile with no warnings under `-Wall -Wextra -Wconversion -Werror` on both compilers.
-
-Regression probe for the witness-loop change: `isPrime` and `isPrimeCompact` agree with the previous header on 2,454,568 inputs (random odd 64-bit and random-width values, every `n` within 50,000 of 67^2, 2^32, 4,759,123,141, 2^63 and 2^64 - 200,000, and the base divisors).
-
-Prune review (`@reviewer`, 2026-10-13): no defect; 6 evidence findings fixed. It confirmed the three removals as duplicates and the base-skip deletion for every `ulng`, with its own probe of the kernel in both forms on every odd `n` from 63 to 3 * 10^6 and on `2^32 ± 2 * 10^6` against a sieve and `isPrimeTrial` (no mismatch).
 
 ## Benchmarks
 
@@ -125,7 +121,7 @@ Driver: [`07-primality_factorization_benchmark.py`](<../../96-Local Testing/05-M
 
 The Montgomery rule from `01-principles.md` is met. Factorization, the representative workload, is 34–36% faster, and no workload regresses. 64-bit primality is level on this CPU, which has a fast 64-bit divider. The Compact twins cost about 1.5x on factorization; that is the price of a copy with no Core reduction dependency.
 
-The 2026-10-13 prune removed one 64-bit remainder per witness and a redundant parity guard from the measured paths and changed nothing else in them. The machine was then loaded (load average about 4), so the table was not re-recorded. An A/B of the previous and current headers (four alternating runs of nine repetitions, pinned to one core) ran 45–80% above the table's absolute times with about ±10% spread between runs, and the two headers were indistinguishable within it. For the current header the Montgomery saving per run was 35–38% on both factorization workloads and 24–26% on 32-bit `isPrime`. On 64-bit `isPrime` it ranged from -9% to +2%, the same spread as the previous header (-6% to +1%), so the noise hides the level result of the idle table rather than contradicting it.
+The table predates the 2026-10-13 prune, which removed one 64-bit remainder per witness and a redundant parity guard from the measured paths; it was not re-recorded on the then-loaded machine, where an A/B of the two headers was indistinguishable (Montgomery saving 35–38% on factorization, 24–26% on 32-bit `isPrime`).
 
 ## Sources
 
@@ -136,7 +132,7 @@ Adopted from the P052 sweep: `factorizeTrial` (legacy `getPrimeFacSlow`), `divis
 ## Limits and handoffs
 
 - Legacy accounting: `isPrimeMR` becomes `isPrime`; `getPrimeFacSlow` becomes `factorizeTrial`; `getOneFacBPR(n, x0, c)` becomes `pollardRhoBrent` (seeded instead of explicit `x0`/`c`); `getPrimeFacFast` becomes `factorize` (both legacy forms returned flat prime lists; flatten as in Legacy mapping); `getAllFac(n, opt)` becomes `divisors`; `getNumDiv` and `getSumDiv` become `divisorCount` and `divisorSum` (exact `ulll`). The legacy global `Random rnd` is gone.
-- Precondition violations under `-DNDEBUG`: `n = 0` was originally an infinite loop with unbounded `push_back` in `factorize`, `factorizeTrial` and `coprimeBase`. During this package an oracle row sent 0 to the optimized build, and the resulting memory growth got the user's editor killed by the kernel. The loops now stop on 0, and every later test ran under a memory cap.
+- Under `-DNDEBUG`, `n = 0` stops the loops of `factorize`, `factorizeTrial` and `coprimeBase` instead of growing memory without bound.
 - Rejected candidates are in [00-notes.md](00-notes.md), P052 research decisions.
 
 ## History

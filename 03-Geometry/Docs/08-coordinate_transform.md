@@ -1,12 +1,12 @@
 # 08-coordinate_transform.hpp — evidence
 
-Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `05-closestpair.hpp`, `06-circle.hpp` and `07-rotatingcalipers.hpp`); see [00-notes.md](00-notes.md#p008--ge02-package-record) for the package record and the folder numeric policy. Every operation in the row has a test with an independent oracle.
+Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `05-closestpair.hpp`, `06-circle.hpp` and `07-rotatingcalipers.hpp`); see [00-notes.md](00-notes.md#ge02-numeric-policy-p008) for the folder numeric policy. Every operation in the row has a test with an independent oracle.
 
 ## Contracts
 
 ### Numeric policy
 
-The GE02 numeric policy in [00-notes.md](00-notes.md#ge02-numeric-policy-p008) applies. Both APIs are `Approx` APIs using ordinary `long double` arithmetic. Inputs, intermediates and results must be finite, and nonzero divisors and geometric distinctions must survive rounding; there is no hidden epsilon.
+The GE02 numeric policy in [00-notes.md](00-notes.md#ge02-numeric-policy-p008) applies. Both APIs are `Approx` APIs using ordinary `long double` arithmetic.
 
 ### Affine2Approx
 

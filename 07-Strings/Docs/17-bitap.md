@@ -32,7 +32,7 @@ Wu–Manber: returns every end `e` in `[0, n]` such that some substring `text[s,
 
 ## Feature-to-test map
 
-Runner: [`17-bitap_tester.py`](<../../96-Local Testing/07-Strings/17-bitap_tester.py>). Oracles: brute window scans (exact and Hamming), Sellers' semi-global edit DP checked against brute Levenshtein over every substring on small cases, and brute substring scans for `BitsetText`. All checks survive `-DNDEBUG`.
+Runner: [`17-bitap_tester.py`](<../../96-Local Testing/07-Strings/17-bitap_tester.py>). Oracles: brute window scans (exact and Hamming), Sellers' semi-global edit DP checked against brute Levenshtein over every substring on small cases, and brute substring scans for `BitsetText`.
 
 | Operation | Coverage |
 |---|---|
@@ -41,13 +41,13 @@ Runner: [`17-bitap_tester.py`](<../../96-Local Testing/07-Strings/17-bitap_teste
 | shiftOrMultiword | Every case (up to 200 symbols, four words); large binary text at `m` = 1, 63, 64, 65, 130, 1000; unary 300-symbol pattern over a unary text. |
 | bitapHamming, bitapEdit | Every case for `k` in {0, 1, 2, 3, m/2, m-1, m, m+2} (deduplicated), both overloads; brute Levenshtein on exhaustive cases; large binary text (50000/100000/500000 symbols) at `m <= 130`. |
 | Character classes | Exhaustive ternary class patterns (each position any of the 8 subsets, including empty and wildcard) and random class patterns. |
-| BitsetText | 100/500/5000 random texts (quick/full/stress) up to 400 symbols, alphabets 1..3 and 256, 30 interleaved `set`/`get`/range queries each, patterns up to 150 symbols, default ranges, foreign symbols (`-1`, `S`), byte-string construction; a 20000/200000-symbol binary text with updates. |
+| BitsetText (get, set, count, occurrences; `scan` only through `count` and `occurrences`) | 100/500/5000 random texts (quick/full/stress) up to 400 symbols, alphabets 1..3 and 256, 30 interleaved `set`/`get`/range queries each, patterns up to 150 symbols, default ranges, foreign symbols (`-1`, `S`), byte-string construction; a 20000/200000-symbol binary text with updates. |
 
 Exhaustive: binary patterns through length 3/4/5 against binary texts through 5/7/8; ternary class patterns through length 2 against texts through 4/4/5. Random: 300/1500/6000 cases, alphabets 1..4 and 256, half with `m < 70` and half up to 200, a third periodic. Checked builds run nine precondition probes (Shift-And/Shift-Or with `m = 65`, text, pattern and class symbols outside the alphabet, negative `k`, `BitsetText::set` out of range, `l > r`, `r = -5`).
 
 ## Commands and results
 
-Run 2026-10-11 on the final code. Every run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, precondition probes; stress runs at full sizes) binaries, and full/stress add ASan/UBSan (`-O1`); all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full and stress first pass the quick pre-flight under the 2048 MB cap.
+Run 2026-10-11 on the final code. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>). The checked build runs stress at full sizes.
 
 ```bash
 python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 20 suites (this one: 2 configurations, 9 assertion probes)
@@ -77,6 +77,7 @@ Code is independently implemented from the cited descriptions.
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): multi-pattern Shift-And, optional/repeatable symbols and bounded gaps, Glushkov regex simulation (`24`), BNDM (`49`).
 - `BitsetText` memory is `S * n / 8` bytes; for byte texts (`S = 256`) that is `32 n` bytes.
+- `BitsetText::scan` has no direct test; it is exercised only through `count` and `occurrences` (open item).
 
 ## History
 

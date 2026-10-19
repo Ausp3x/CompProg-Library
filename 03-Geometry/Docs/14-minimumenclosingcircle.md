@@ -45,7 +45,7 @@ The algorithm is Welzl's, as three nested scans in which the points `i` and `j` 
 
 With exact predicates the inner circle never needs three collinear points: Welzl's lemma guarantees that the constrained circle exists and passes through both fixed points, and a collinear third point outside would contradict it. An `assert` guards this.
 
-The algorithm is Las Vegas: the result is the unique minimum enclosing circle for every seed, and the seed affects only time and which support is reported. The support is reproducible for a fixed seed; it may differ from the 2026-10-18 version, which had no move-to-front. Memory `O(n)`. The default seed is `CustomHash::rnd`, which varies by run so that a fixed shuffle cannot be attacked; pass a fixed seed to reproduce support indices.
+The algorithm is Las Vegas: the result is the unique minimum enclosing circle for every seed, and the seed affects only time and which support is reported. The support is reproducible for a fixed seed. Memory `O(n)`. The default seed is `CustomHash::rnd`, which varies by run so that a fixed shuffle cannot be attacked; pass a fixed seed to reproduce support indices.
 
 ### minimumEnclosingCircleApprox
 
@@ -64,7 +64,6 @@ Kept beside `minimumEnclosingCircle` (`03-cpp.md`, One API per operation): float
 |---|---|
 | `WelzlMEC::getMEC(vector<complex<double>>)` (`OLD/Team Notebook/src/geometry/welzlmec.cpp`; double coordinates, clock seed, `variant` of two or three points) | `minimumEnclosingCircleApprox(points, seed)` on floating points; `minimumEnclosingCircle(points, seed)` on integral points with exact predicates, where `EnclosingCircle::points` holds the defining points |
 | `WelzlMEC::isInside`, `indicator` | `EnclosingCircle::contains`, `locate`; `CircleApprox::locate` for the floating circle |
-| `verifyEnclosing` (planned row entry) | `EnclosingCircle::contains` per point (decided 2026-10-18) |
 
 ## Feature-to-test map
 
@@ -91,7 +90,7 @@ Kept beside `minimumEnclosingCircle` (`03-cpp.md`, One API per operation): float
 | `minimumEnclosingCircleApprox` | Every integer case above as `double`, `long double` and `float`; 1–40 random dyadic doubles of mixed exponents; all-equal points; Python random doubles; the 400,000-point disk, duplicates and collinear run | The exact circle within `10^-9` of the scale; enclosure; seed independence; bit equality across input types; `Fraction` brute force within `10^-12` |
 | Seed | Seeds 7 and 8 on random sets | Same circle for every seed; the same support when the seed repeats |
 
-Mutation checks (2026-10-19, round 3, quick, optimized and checked builds, on a copy of the tree): 26 mutants, 22 caught.
+Mutation checks (2026-10-19, quick, optimized and checked builds, on a copy of the tree): 26 mutants, 22 caught.
 - Caught: the diametral sign, the single-point test, the incircle orientation and tie direction; support indices left as positions; a forgotten second support point; the third scan's bound; both move-to-front pointer updates; a budget never spent; a fallback that keeps the budget (timeout); loading the points before the shuffle or not at all; three `radius2` formula errors; the centre of one point; the floating circumcentre sign, diametral centre and one-point radius; a non-strict floating outside test; the floating finiteness check (the NaN probe).
 - Not caught, equivalent or runtime only: removing the collinear assertion (unreachable in exact arithmetic); a biased shuffle (the circle is unique; only time and the reported support move); no move-to-front for the second support point; move-to-front left on in the fallback (only the `O(n)` proof is lost).
 
@@ -121,7 +120,7 @@ python3 '96-Local Testing/03-Geometry/14-minimumenclosingcircle_benchmark.py' --
 
 `14-minimumenclosingcircle_benchmark.py --seed 20260927` (2026-10-19; Intel Core i9-11900H, GCC 16.2.1 `-O2 -DNDEBUG`, one warmup, median of five, shuffle included). Run serially on the final code; other sessions kept the load average near 2.2 on the 8-core CPU. Both exact versions must return the same centre and `radius2`, and the floating radius must agree within `10^-9` of the scale. Coordinates are within `10^9`: uniform in the square, uniform in the disk of radius `9 * 10^8`, on that circle (rounded), and Gaussian with deviation `2 * 10^8`.
 
-| Points | n | `minimumEnclosingCircle` (µs) | plain three scans, the 2026-10-18 algorithm (µs) | `minimumEnclosingCircleApprox` (µs) |
+| Points | n | `minimumEnclosingCircle` (µs) | plain three scans, no move-to-front (µs) | `minimumEnclosingCircleApprox` (µs) |
 |---|---|---|---|---|
 | square | 10^3 / 10^4 / 10^5 / 10^6 | 48 / 375 / 2,581 / 56,351 | 60 / 576 / 2,764 / 90,375 | 24 / 248 / 2,278 / 40,112 |
 | disk | 10^3 / 10^4 / 10^5 / 10^6 | 46 / 556 / 4,884 / 53,047 | 101 / 1,278 / 10,336 / 103,880 | 25 / 263 / 2,370 / 35,621 |
@@ -139,14 +138,14 @@ The implementation was written independently. Sources of the completeness sweep 
 - Library Checker `minimum_enclosing_circle` ([task](https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/geo/minimum_enclosing_circle/task.md) and [reference solution](https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/geo/minimum_enclosing_circle/sol/correct.cpp)): it uses exact `long long` predicates and asks for every point on the circle, which `locate` provides.
 - [KACTL MinimumEnclosingCircle.h](https://github.com/kth-competitive-programming/kactl/blob/main/content/geometry/MinimumEnclosingCircle.h), [cp-algorithms enclosing circle](https://cp-algorithms.com/geometry/enclosing-circle.html), [OI Wiki 最小圆覆盖](https://oi-wiki.org/geometry/random-incremental/), [maspypy minimum_enclosing_circle](https://maspypy.github.io/library/geo/minimum_enclosing_circle.hpp) and [tko919 Enclosing.hpp](https://tko919.github.io/library/Geometry/Enclosing.hpp): the three-loop form, with epsilon predicates in KACTL and OI Wiki and exact ones in maspypy.
 - [CGAL Min_circle_2](https://doc.cgal.org/latest/Bounding_volumes/classCGAL_1_1Min__circle__2.html): exact bounded-side queries and support sets.
-- [Welzl 1991, Smallest enclosing disks (balls and ellipsoids)](https://www.stsci.edu/~RAB/Backup%20Oct%2022%202011/f_3_CalculationForWFIRSTML/Bob1.pdf), read by the round-3 `@researcher` pass: the expected-linear analysis, the move-to-front heuristic, its measured gains (Table 1) and the absence of an analysis for it.
+- [Welzl 1991, Smallest enclosing disks (balls and ellipsoids)](https://www.stsci.edu/~RAB/Backup%20Oct%2022%202011/f_3_CalculationForWFIRSTML/Bob1.pdf), read 2026-10-19: the expected-linear analysis, the move-to-front heuristic, its measured gains (Table 1) and the absence of an analysis for it.
 - `OLD/Team Notebook/src/geometry/welzlmec.cpp`: legacy, superseded. It used double arithmetic.
 
 ## Limits and handoffs
 
 - `circle` is rounded because the radius is irrational in general; `center` and `radius2` are exact.
 - `minimumEnclosingCircleApprox` is exact only up to rounding, and only where every decision survives rounding (see its contract).
-- Megiddo's deterministic linear algorithm, the enclosing circle of circles and the smallest circle covering `k` points are planned in the esoteric packages filed by P037 round 3 (see 00-notes). Incremental insertion and the rectangular p-centre (row 21) stay not adopted. The 3D ball belongs to row 42.
+- Megiddo's deterministic linear algorithm, the enclosing circle of circles and the smallest circle covering `k` points are planned as row 57 `minimumEnclosingCircleDeterministic` and `minimumEnclosingCircleOfCircles` (P234) and row 56 `smallestDiskCoveringK` (P233). Incremental insertion and the rectangular p-centre (row 21) stay not adopted. The 3D ball belongs to row 42.
 
 ## History
 

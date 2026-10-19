@@ -34,7 +34,7 @@ Gil–Scott bijective BWT: factor `s` into Lyndon words `w_1 >= … >= w_k` (`du
 
 ## Feature-to-test map
 
-Runner: [`29-bwt_tester.py`](<../../96-Local Testing/07-Strings/29-bwt_tester.py>). Oracles materialize rotations and sort them stably; the sentinel is a key below every symbol; brute Lyndon factors compare all rotations; omega order compares the first `|u| + |v|` symbols of the repetitions. All checks survive `-DNDEBUG`.
+Runner: [`29-bwt_tester.py`](<../../96-Local Testing/07-Strings/29-bwt_tester.py>). Oracles materialize rotations and sort them stably; the sentinel is a key below every symbol; brute Lyndon factors compare all rotations; omega order compares the first `|u| + |v|` symbols of the repetitions.
 
 | Operation | Coverage |
 |---|---|
@@ -49,17 +49,16 @@ Exhaustive strings over alphabets 1..3 through length 7/9/10 (ternary two shorte
 
 ## Commands and results
 
-Run 2026-10-12, after the tester gained its own `07-suffixarray.hpp` include; the stress and integration lines are from 2026-10-11 (the header is unchanged since). Every run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, precondition probes) binaries, and full and stress add ASan/UBSan (`-O1`); all with `-Wall -Wextra -Wshadow -Wconversion -Werror`. Full and stress first pass the quick pre-flight under the 2048 MB cap.
+Run 2026-10-12, after the tester gained its own `07-suffixarray.hpp` include. The full lines are the 2026-10-19 P017 rerun on the final code, with the large oracles on `SuffixArray<int>::doubling` (recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results)); the stress line is from 2026-10-11 (the header is unchanged since). Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/29-bwt_tester.py' --mode quick --seed 1  # PASS, 2 configurations, 133,013 checks, 5 assertion probes, MEMORY peak 516 MB
-python3 '96-Local Testing/07-Strings/29-bwt_tester.py' --mode full --seed 1  # PASS, 3 configurations, 1,281,729 checks each, MEMORY peak 601 MB
-CXX=g++-14 python3 '96-Local Testing/07-Strings/29-bwt_tester.py' --mode full --seed 1  # PASS, 3 configurations, 1,281,729 checks each, MEMORY peak 602 MB
+python3 '96-Local Testing/07-Strings/29-bwt_tester.py' --mode full  # PASS, 1,267,465 checks per configuration, MEMORY peak 673 MB
+CXX=g++-14 python3 '96-Local Testing/07-Strings/29-bwt_tester.py' --mode full  # PASS, same counts, MEMORY peak 698 MB
 python3 '96-Local Testing/07-Strings/29-bwt_tester.py' --mode stress --seed 3  # 2026-10-11: PASS, 3 configurations, 2,747,479 checks (optimized, ASan/UBSan), 1,291,565 (checked), MEMORY peak 780 MB
-python3 '96-Local Testing/02-integration.py'  # 2026-10-11: PASS, 129 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace
-python3 '96-Local Testing/02-integration.py' --sanitizers  # 2026-10-11: FAIL outside this package: the Core 16-poly_tester.cpp self-test is linked alone and misses its second translation unit (otherUnitConvolution); all earlier stages passed
-python3 '96-Local Testing/03-consistency.py'  # PASS, errors: []
 ```
+
+Integration and consistency on the final code are recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results).
 
 ## Benchmarks
 

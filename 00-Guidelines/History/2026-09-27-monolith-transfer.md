@@ -15,7 +15,7 @@ All 26 headers are **existing-unverified**. Their original bodies remain byte-fo
 
 Fourteen distinct older, incomplete or integration-blocked excerpts are placed in local `97-Legacy/` folders under Core, Data Structures, Graphs, Mathematics and Miscellaneous. Each has a short index explaining its role. These `.cpp` files are reference text, not standalone programs; they are excluded from aggregates and notebook selection. Notebook discovery now prunes these directories. The complete source monoliths remain unchanged in OLD.
 
-[15-monolith-map.json](../Ledgers/monolith-map.json) maps 55 source blocks: 47 extracted bodies (some share a header), six exact duplicates mapped to their chosen copy, and two archive-only items (TODO labels and the empty main). It records source ranges, original file hashes, excerpt hashes, target body ranges and known issues. Every nonblank source line outside these ranges is a heading or historical comment, not an omitted algorithm body. There are no implemented Geometry or Strings algorithms to extract from these two monoliths.
+[monolith-map.json](../Ledgers/monolith-map.json) maps 55 source blocks: 47 extracted bodies (some share a header), six exact duplicates mapped to their chosen copy, and two archive-only items (TODO labels and the empty main). It records source ranges, original file hashes, excerpt hashes, target body ranges and known issues. Every nonblank source line outside these ranges is a heading or historical comment, not an omitted algorithm body. There are no implemented Geometry or Strings algorithms to extract from these two monoliths.
 
 ## Placement and known integration limits
 
@@ -35,4 +35,4 @@ Fourteen distinct older, incomplete or integration-blocked excerpts are placed i
 
 These are extraction and integration checks, not algorithm feature suites or performance benchmarks. A syntax-only template check does not instantiate every operation/type combination. New per-header behavioral tests, GCC14 execution, numerical/randomized guarantees, full-Core ISA optimization and completeness reviews remain with their implementation batches. See [01-prompts.md](../../01-prompts.md) to start one.
 
-Later inventory audit: [2026-09-27-inventory-audit.md](2026-09-27-inventory-audit.md) records the expanded scope/current counts; [18-path-updates.json](../Ledgers/path-updates.json) resolves later prefix changes. Counts and placement descriptions above are historical snapshots. The live monolith map uses current target paths while preserving original source/body hashes.
+Later inventory audit: [2026-09-27-inventory-audit.md](2026-09-27-inventory-audit.md) records the expanded scope and its counts; [path-updates.json](../Ledgers/path-updates.json) resolves later prefix changes. Counts and placement descriptions above are historical snapshots. The live monolith map uses current target paths while preserving original source/body hashes.

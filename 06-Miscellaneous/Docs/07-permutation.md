@@ -78,13 +78,10 @@ The implementation uses the shared Fenwick engine, with no tuned threshold or cl
 
 ## Feature-to-test map
 
-[`07-permutation_tester.py`](<../../96-Local Testing/06-Miscellaneous/07-permutation_tester.py>) runs from any working
-directory and uses non-removable checks in every configuration.
-
 | Feature | Independent evidence |
 |---|---|
 | Lexicographic walk, wrap and duplicates | Recursive choice-by-label enumeration, independent of the standard permutation algorithms, against the `std::next_permutation`/`std::prev_permutation` replacements of the removed wrappers (result flag and wrap); the moved wrapper cases: strings, descending comparator, equal comparison keys with unequal records, a packed `vector<bool>`, empty/singleton/all-equal cases. |
-| Inverse/composition and validation | Pointwise inverse and composition oracles, identity, invalid labels/duplicates, equal-size contract. |
+| Inverse/composition and validation (`isPermutation`) | Pointwise inverse and composition oracles, identity, invalid labels/duplicates, equal-size contract. |
 | Powers | Independent binary exponentiation of mappings, all small exponents, random full-width exponents, signed min/max, empty/fixed-point/multicycle and long single-cycle inputs. |
 | Lehmer and scalar ranks | Brute inversion counts, every permutation through n=8 in full, independent recursive enumeration ranks, Python exact factorial arithmetic through n=20, rank n! and maximum `ulng` rejection, empty rank0. |
 | Multiset rank/unrank and totals | Independent recursive enumeration for all three-symbol counts 0..3 in full, with the totals from `multinomialExact` (the moved `multisetPermutationCount` cases); Python factorial-based counts and candidate-block enumeration; negative/extreme integer labels, zero counts, alias-safe output, preserved output on failure. |
@@ -94,28 +91,17 @@ directory and uses non-removable checks in every configuration.
 | `permutationOrder`, `permutationOrderMod` | Smallest `t` with `p^t = id` by repeated composition for every permutation through n=8; `permutationPower(p, order) = id` and `OrderMod<ulng>` agreement on random n<70; product of the first 15 primes fits exactly, first 16 primes overflow with `out` preserved, and `OrderMod<mint>` matches that product times 53; `OrderMod<lll>`/`<mint>` agreement on enumerated permutations; Python `math.lcm` (exact and mod 998244353) on random conjugated cycle structures with up to 19 distinct lengths (n up to several hundred), on both sides of 2^64 |
 | Preconditions | 18 checked-build assertion probes: non-permutation inputs to kthNext, cycles, sign, order and orderMod, plus malformed inverse/compose/power/Lehmer/rank inputs, invalid digit bounds, scalar rank size, negative/oversized unrank size. |
 
-Quick exhausts distinct permutations through n=6, three-symbol multiplicities 0..2, 100 random algebra cases and size-1000 long inputs. Full raises these to n=8, counts 0..3, 3000 cases and size 100,000, with 1,202 Python exact-arithmetic queries. Stress uses n=9, counts 0..4, 30,000 cases, size 500,000 and 9,102 Python queries. Failures include seed, operation, input, expected and actual values.
+Quick exhausts distinct permutations through n=6, three-symbol multiplicities 0..2, 100 random algebra cases and size-1000 long inputs. Full raises these to n=8, counts 0..3, 3000 cases and size 100,000, with 1,202 Python exact-arithmetic queries. Stress uses n=9, counts 0..4, 30,000 cases, size 500,000 and 9,102 Python queries.
 
 ## Commands and results
 
-P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan/UBSan `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` with leak detection.
+P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
 
 | Command | Result |
 |---|---|
 | `07-permutation_tester.py --mode full --seed 20260927` | PASS, 3 configurations, 1,202 exact Python queries, 18 assertion probes, `MEMORY peak=714MB` |
 | same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=743MB` |
-| Other P013 suites, the call-site suites (`07-ordered_set`, `08-sequence_algorithms`, `12-enumeration`), `02-integration.py` and `03-consistency.py` | PASS; details in [04-compression.md](04-compression.md) |
-
-```bash
-for c in g++ g++-14; do
-  for s in 01-random 02-customhash 03-fastio 04-compression 06-bit_operations 07-permutation 08-sequence_algorithms 12-enumeration; do
-    CXX=$c python3 "96-Local Testing/06-Miscellaneous/${s}_tester.py" --mode full --seed 20260927
-  done
-  CXX=$c python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20260927
-done
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-```
+| Other P013 suites, the call-site suites (`07-ordered_set`, `08-sequence_algorithms`, `12-enumeration`), `02-integration.py` and `03-consistency.py` | PASS; details and the package command loop in [04-compression.md](04-compression.md) |
 
 ## Sources
 
@@ -148,7 +134,6 @@ Fenwick and `multinomialExact` are shared local dependencies. No external implem
 Omitted candidates: `permute`/`inversePermute` on value arrays (one loop; `permutationCompose` covers integer labels), `argsort`/index sort (`11-sorting_selection.hpp` and `04-compression.hpp` `stableRanks`), `permutationFromCycles` and `cycleType` (direct one-pass transforms of `permutationCycles`), linear non-lexicographic ranking (KACTL `IntPerm`, suisen `PermutationHash`; the lexicographic rank covers the need), dynamic cycle decomposition under swaps (Data Structures), k-th roots of permutations and permutation groups (Mathematics `64`), inversion count (`08-sequence_algorithms.hpp`).
 
 - Scalar distinct ranks need n ≤ 20; Lehmer digits and `kthNextPermutation` scale to any n; multiset ranks need the multinomial to fit `ulng`; `permutationOrder` reports overflow, `permutationOrderMod` reduces into the caller's type.
-- No online submission was made and no judge acceptance is claimed.
 
 ## History
 

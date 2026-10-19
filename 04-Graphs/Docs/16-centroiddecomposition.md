@@ -174,7 +174,7 @@ Planted mutants were each compiled against the quick suite on 2026-10-16. All 12
 - NTT square replaced;
 - strict path count;
 - `upper_bound` range;
-- the Fenwick linear build stopping early (the bug the first quick run found).
+- the Fenwick linear build stopping early.
 
 ## Commands and results
 
@@ -197,6 +197,8 @@ python3 '96-Local Testing/03-consistency.py'
 ```
 
 The checked build (`-O0 -D_GLIBCXX_DEBUG`) runs full and stress at frequency n ≤ 3000 and 50,000-vertex shapes; the ASan/UBSan build runs stress at 200,000-vertex shapes. Both caps keep each run inside the runner's 180 s timeout, and the optimized build runs the full sizes.
+
+On 2026-10-19 the P054 follow-up reran this suite in full mode as a dependent of row 13's new `convolutionLong`; [13-convolution.md](../../05-Mathematics/Docs/13-convolution.md#commands-and-results) records the PASS.
 
 ## Benchmarks
 
@@ -231,6 +233,8 @@ Paths and caterpillars take the NTT branch at the upper levels; random trees sta
 
 ## Sources
 
+Fetched 2026-10-16; the ledger is [00-sources.md](00-sources.md#pages-fetched-on-2026-10-16-p056).
+
 | Source | Inspected claim and application |
 |---|---|
 | [Library Checker tree tasks](https://github.com/yosupo06/library-checker-problems/tree/master/tree) | Contour problems' `[l, r)` with distance 0; frequency table as unordered pairs at distances 1..n-1 |
@@ -252,3 +256,4 @@ The binarization, the two-bank subtraction identity and the per-centroid squarin
 
 - 2026-10-16: verified (P056); legacy excerpt replaced; completeness sweep added unmark, `DistanceSum`, `ContourFold`, `ContourApply` and `countPathsWithin`; independent review: 3 findings fixed (`countPathsWithin` domain narrowed to `[-2^62, 2^62)`, directed input routed to the `NDEBUG` fallback, `treeDistanceFrequency` asserts `n < 2^24`); 12 planted mutants killed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 964/952/1560 MB.
+- 2026-10-19: P054 follow-up, `treeDistanceFrequency` contract updated for row 13's any-length `convolutionLong`; full suite passed as a row 13 dependent ([13-convolution.md](../../05-Mathematics/Docs/13-convolution.md#commands-and-results)).

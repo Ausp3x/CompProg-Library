@@ -57,7 +57,7 @@ These are in place on a power-of-two length `n` that divides `2^RANK`, all asser
 
 These are in place on `vector<complex<double>>` of power-of-two length (asserted).
 
-- `fft` computes `X[k] = sum x[j] exp(-2 pi i j k / n)` into bit-reversed slots.
+- `fft` computes `X[k] = sum x[j] exp(-2 pi i j k / n)` into bit-reversed slots, iteratively, with the radix-2 decimation-in-frequency kernel that `ntt` uses.
 - `ifft` inverts it, taking bit-reversed input, and scales by `1/n`.
 - Roots come from a static table per direction, built in `long double` by halving (KACTL), so each root has error near `long double` precision. Growth invalidates earlier references, as for the NTT table.
 

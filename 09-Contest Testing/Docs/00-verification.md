@@ -2,10 +2,7 @@
 
 Scope: the selected SUP01 row owns concrete gaps in the existing stress, quick,
 interactive, scored and shrinking protocols and their fixtures. It does not own
-the future graph, algebra, geometry or stateful generator/checker corpus. There
-are no prerequisite implementation packages. **Verified and complete on
-2026-09-27; re-audited and verified on 2026-10-06** ([re-audit](#re-audit-2026-10-06)),
-with no remaining owned implementation or verification gaps.
+the future graph, algebra, geometry or stateful generator/checker corpus.
 
 ## Changes and correctness arguments
 
@@ -13,7 +10,8 @@ with no remaining owned implementation or verification gaps.
   pipes after success, failure, timeout and interruption. Quick testing and shrink
   hooks reuse it, eliminating their weaker duplicate subprocess handling. Timers
   reject NaN/infinity; zero-count iteration is actually unbounded. Compiler runs
-  have a separate 60-second timeout. Invalid mode/hook combinations are rejected.
+  have a separate 60-second timeout. Invalid mode/hook combinations are rejected;
+  `--exact` with `--checker` exits 2 at setup.
 - Batch testing generates one byte string and gives it unchanged to both programs.
   A failing reference prevents candidate judging. Token comparison splits bytes,
   never converts integers to floating point; byte comparison preserves all bytes.
@@ -43,7 +41,21 @@ with no remaining owned implementation or verification gaps.
   complete emitted arrays satisfy their documented bounds. `03-gen.cpp` stays
   standalone with a local `ulng = uint64_t` seed, keeping the full `[0,2^64-1]`
   domain that `lng` would halve; the numeric C++ candidate fixtures use local
-  `lng = int64_t` aliases.
+  `lng = int64_t` aliases. Its `1 + int(rng() % 20)` cast is value-preserving
+  (`rng() % 20 < 20`).
+- `--input-validator` runs once per case on the exact input bytes (generated or
+  replayed), in every mode, after a successful generator and before any program
+  starts. Exit 0 continues; exit 1 is `invalid_input`; other exits/timeouts are
+  `input_validator_error`. Both save the usual bundle (input, validator streams,
+  effective command with the input path) and are infrastructure failures, never
+  contestant verdicts. Interactive hidden input is therefore never shown to the
+  contestant when invalid: the candidate is not launched. The validator run is
+  always kept in `statuses` and streams, and the input-path command is recorded
+  only when the validator ran.
+- `--expected FILE` (batch, `--replay`, no reference program) reads the answer
+  once at setup and substitutes it as a successful reference output. Token, byte
+  and checker comparison are then unchanged code paths; the bundle stores it as
+  `reference.out` and its path in `config.expected`. A missing file exits 2.
 
 Failure bundles preserve source paths, compiler/interpreter settings, working
 directory, replay path, effective hook arguments, statuses, streams and hidden
@@ -75,54 +87,10 @@ Names below omit the common `test_` prefix; related methods supplement each row.
 Quick runs eight smoke/regression methods. Full runs 28 deterministic methods.
 Stress runs those 28 plus 12 seeded exact/token comparison cases and six seeded
 shrinking histories, each with 12 proposals and an independently computed result.
-The suite accepts `--mode`/`--seed` or the top-level runner's environment settings.
-All subprocess fixtures run from an unrelated directory with spaces. Checks use
-non-removable unittest oracles. Failures retain the fixture files, method/subtest,
-seed, working directory and command; they are the smallest known reproducers,
-not automatically minimized. Missing compilers produce an explicit skip.
+All subprocess fixtures run from an unrelated directory with spaces. Harness
+rules: [05-testing.md](../../00-Guidelines/05-testing.md).
 
-## Re-audit (2026-10-06)
-
-Re-audited under the Claude Code `/package P001` workflow; the code was treated as
-existing-unverified. No reaudit-findings file names P001. Baseline before any edit:
-`python3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode full` (cwd `/tmp`)
-PASS, 27 tests in 16.755 s.
-
-Gap list (row features against code and tests, before changes):
-
-- `03-gen.cpp`: the `main` body closed on its own line, violating the current
-  closing-brace rule; `int n = 1 + rng() % 20;` warned under `-Wconversion`.
-- `01-stress.py`: `--exact` together with `--checker` was accepted and `--exact`
-  silently ignored, unlike every other incompatible option pair.
-- Completeness sweep ([sources](00-sources.md), [decisions](00-notes.md)): a batch
-  input-validator phase (testlib, Kattis; previously listed as absent in the folder
-  index) and expected-answer replay (oj, cf-tool, Kattis samples) were missing.
-
-Changes and correctness arguments:
-
-- Generator: `;}}` closing and `1 + int(rng() % 20)`. The cast is value-preserving
-  (`rng() % 20 < 20`), so draw order and output are unchanged.
-- `--exact` with `--checker` now exits 2 at setup.
-- `--input-validator` runs once per case on the exact input bytes (generated or
-  replayed), in every mode, after a successful generator and before any program
-  starts. Exit 0 continues; exit 1 is `invalid_input`; other exits/timeouts are
-  `input_validator_error`. Both save the usual bundle (input, validator streams,
-  effective command with the input path) and are infrastructure failures, never
-  contestant verdicts. Interactive hidden input is therefore never shown to the
-  contestant when invalid: the candidate is not launched.
-- `--expected FILE` (batch, `--replay`, no reference program) reads the answer
-  once at setup and substitutes it as a successful reference output. Token, byte
-  and checker comparison are then unchanged code paths; the bundle stores it as
-  `reference.out` and its path in `config.expected`. A missing file exits 2.
-
-New test `test_input_validator_and_expected_answer_replay` (full and stress):
-validator reject/tool-error by seed in batch and scored modes with status sets and
-absence of candidate output, valid generated and replayed inputs, contestant WA
-after a valid input with the validator run kept in the bundle, generator failure
-before validation, interactive invalid hidden input without transcript, expected-answer pass under token, byte
-and checker comparison, mismatch bundle contents, and four setup rejections.
-`test_configuration_rejects_invalid_limits_and_missing_programs` adds the
-`--exact --checker` rejection (the old code would loop forever and time out).
+## Commands and results (2026-10-06)
 
 | Command (Linux x86_64, CPython 3.14, GCC 16.2, cwd `/tmp`) | Result |
 |---|---|
@@ -134,14 +102,7 @@ and checker comparison, mismatch bundle contents, and four setup rejections.
 | Pre-edit vs final generator (`-O2`) and final under `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined` | byte-identical stdout, stderr and exit codes for seeds `0,1,42,2^63-1,2^63,2^64-1` and 7 invalid argv cases; identical md5 over seeds `0..2000`; no sanitizer output |
 | `ast.parse(..., feature_version=(3,10))` on the 8 toolkit files and the tester | PASS, 9 files |
 
-Independent review (`@reviewer`) found no correctness defect and two low findings,
-both fixed and rerun with the commands above: scored-mode and replay validator
-coverage was missing, and a bundle after a passing validator dropped the
-validator's run while a generator-failure bundle listed a validator command with
-an input path it never received. The run is now always kept in `statuses` and
-streams, and the input-path command is recorded only when the validator ran.
-
-PyPy 3.12.14 (PyPy 8.0.0), installed later the same day: the tester run under
+PyPy 3.12.14 (PyPy 8.0.0): the tester run under
 `pypy3` also launches every tool with `pypy3`, because the tools default to the
 running interpreter. Commands from cwd `/tmp`:
 
@@ -151,8 +112,8 @@ running interpreter. Commands from cwd `/tmp`:
 | `pypy3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode full` | PASS, 28 tests in 80.8 s |
 | `pypy3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode stress --seed 11` | PASS, 30 tests in 109.0 s |
 
-CPython 3.10.22 (uv-managed, `uv python find 3.10`), installed later the same
-day, exercises the Python floor end to end; the tools again inherit the
+CPython 3.10.22 (uv-managed, `uv python find 3.10`) exercises the Python floor
+end to end; the tools again inherit the
 interpreter. Commands from cwd `/tmp`, with `P=$(uv python find 3.10)`:
 
 | Command | Result |
@@ -163,25 +124,11 @@ interpreter. Commands from cwd `/tmp`, with `P=$(uv python find 3.10)`:
 
 No benchmark: no algorithm or threshold is involved.
 
-## Reference review
+## Provenance
 
-Reviewed on 2026-09-27; these references informed protocol/lifecycle checks, with
-no imported implementation code or added runtime dependency:
-
-| Source | Selected material inspected and consequence |
-|---|---|
-| [Python subprocess documentation](https://docs.python.org/3/library/subprocess.html), Python 3.14.7, updated 2026-09-27 | `Popen`, `communicate`, timeout cleanup, pipe deadlock/memory warnings and `start_new_session`. `communicate` timeout does not itself kill the child; explicit cleanup is necessary. The tools use APIs available in Python 3.10. |
-| [Mike Mirzayanov testlib.h](https://github.com/MikeMirzayanov/testlib/blob/master/testlib.h), version 0.9.45 | File-format introduction, `TResult`, `registerGen`, `registerInteraction`, `registerValidation`, finite-score checks. Confirmed the seed/input/checker/interactive/scoring families and the need to distinguish invalid output from tool failure. This repository deliberately uses its own smaller hook contracts. In particular testlib presentation-error exit 2 needs an adapter mapping to contestant failure; testlib interactors also take an additional output-file argument. Raw testlib hooks are not universally drop-in compatible. |
-
-Retrieved snapshot SHA-256 values (for identifying this review, not runtime inputs):
-
-- Python page: `4f11546e19df639ff09b1bd57f25346f3be6db8ebe70529ee636e931dbd05982`.
-- testlib source: `bb323e3c89285214966076e0d23d5a295c5f6126da7ff198c1276ddb95ecb1a0`.
-
-The [migration notes](../../00-Guidelines/History/2026-09-27-migration.md) identify these tools as new
-support files from the reorganization, not transferred algorithm implementations.
-Their prior fixture claims were treated as reference evidence and rerun, not as
-proof of correctness. No legacy files were deleted or superseded here.
+New support files from the [2026-09-27 reorganization](../../00-Guidelines/History/2026-09-27-migration.md);
+no legacy code transferred and no external code imported. Sources consulted:
+[00-sources.md](00-sources.md).
 
 ## Limits and follow-up ownership
 
@@ -200,16 +147,7 @@ proof of correctness. No legacy files were deleted or superseded here.
   Arbitrary semantic shrink metrics, a separate global shrink timeout and generic
   reducers remain conditional planned extensions in the folder index. Nothing in
   P001 claims those future adapters are implemented.
-- CPython 3.14, CPython 3.10 (floor) and PyPy 3.12 with GNU++20 were exercised on
-  Linux (see the 2026-10-06 re-audit); macOS execution is not available here. No
-  algorithm performance claim or optimization threshold is introduced, so a
-  throughput benchmark is not a completion requirement for these fixes.
-
-Handoff: no failing reproducer or unfinished SUP01 feature remains. Conditional
-future adapters stay **planned** in the folder index, owned by the algorithm or
-problem package that motivates them. Start such work from its input domain and
-checker/probe contract, add independent fixtures here as appropriate, and retain
-the shared runner's existing protocol regressions.
+- Only Linux was exercised; macOS execution is not available here.
 
 ## History
 

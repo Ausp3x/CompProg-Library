@@ -1,6 +1,6 @@
 # 01-graph.hpp — evidence
 
-Owned by package P010 / GR01 (graph foundations, with `02-traversal.hpp` through `06-mst.hpp`); see [00-notes.md](00-notes.md#p010-package-record) for the package record and the [common graph contract](00-notes.md#p010-common-contract).
+Owned by package P010 / GR01 (graph foundations, with `02-traversal.hpp` through `06-mst.hpp`); see the [common graph contract](00-notes.md#p010-common-contract).
 
 ## Contracts
 
@@ -14,7 +14,7 @@ Owned by package P010 / GR01 (graph foundations, with `02-traversal.hpp` through
 
 `fromAdjacency(adj, directed = false)` builds `adj.size()` vertices from `vector<vector<int>>` lists (weight 1) or `vector<vector<pair<int, lng>>>` lists; every entry must be in `[0, n)`. Directed: one arc `u -> v` per entry `v` of `adj[u]`, in vertex then list order. Undirected: the lists must be symmetric as multisets of (neighbour, weight), so every unordered pair `{u, v}` has the same weight multiset in `adj[u]` and `adj[v]` and every loop is listed twice in its own list with equal weights. Each mirrored pair becomes one edge, so parallel edges keep their multiplicity; the edges come in increasing `(u, v, w)` order with `u <= v`, independent of list order. An asymmetric input is an asserted precondition. `fromMatrix(w, directed = true)` takes a square `vector<vector<lng>>` and adds one arc `u -> v` of weight `w[u][v]` per nonzero entry in row-major order; undirected requires a symmetric matrix and adds one edge per nonzero entry with `u <= v`, a nonzero diagonal entry being a loop. A zero entry means no edge, so zero-weight edges need `addEdge`. Costs: O(n + m) with m the total list length, and O(n^2).
 
-Correctness: `Graph` owns zero-based vertices, insertion-ordered logical edges and oriented arcs. All counts fit `int`; weights use the full `lng` domain. An undirected edge has two reciprocal arcs even for a self-loop. A directed arc has `rev == -1`; its reverse graph is a separate object. Reversal preserves logical edge IDs. Algorithms return arc indices so orientation and parallel edges remain distinguishable; `g.arcs[a].id` recovers the logical ID. Public storage is inspectable but must not be edited directly. `Graph::read` accepts exactly the requested number of weighted/unweighted records and base 0 or 1; malformed input is a precondition violation.
+Correctness: `Graph` owns zero-based vertices, insertion-ordered logical edges and oriented arcs. All counts fit `int`; weights use the full `lng` domain. A directed graph's reverse is a separate object. Algorithms return arc indices so orientation and parallel edges remain distinguishable; `g.arcs[a].id` recovers the logical ID. Public storage is inspectable but must not be edited directly.
 
 Correctness of `fromAdjacency`: undirected entries become records `(u, v, w)` of the listing vertex `u`. Least-significant-digit radix sort by weight (eight 8-bit passes on the sign-flipped value, each skipped when its byte is constant), then stable counting sorts by `max(u, v)` and by `min(u, v)`, order them by `(min(u, v), max(u, v), w)` in O(n + m) with word-size constants. A group of equal keys holds exactly the entries of the edges with that key: for `u < v` the forward entries (listed at `u`) and the backward ones must be equally many, and a loop group, all forward, must be even. Symmetry as multisets is exactly this group-wise condition, so the assertion accepts every valid input and rejects every other, and a valid group yields one edge per mirrored pair (`forward` edges, `forward / 2` for a loop). Under `NDEBUG` an asymmetric input with in-range entries still terminates, with at most one edge per forward entry; an out-of-range entry is undefined there, as in `addEdge`. Directed lists and matrices are direct scans; the unweighted overload skips the weight passes. `fromMatrix` checks row sizes and symmetry in one entry pass, so with assertions enabled an undirected matrix costs one extra O(n^2) pass with strided reads.
 
@@ -45,7 +45,7 @@ Correctness: these are direct constructions. `lineGraph` enumerates, per vertex,
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/01-graph_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. Oracles use non-removable checks. Checked builds also run invalid-precondition subprocesses. Test outputs are temporary; seeds and failed inputs/operations are printed. The corpus is 606 exhaustive small graphs, 500 random multigraphs and 1,000 builder cases; quick uses exhaustive graphs through two vertices, 70 random cases and 100 builder cases, full extends to three vertices, 500 random and 1,000 builder cases, stress to 4,000 random and 8,000 builder cases. Exact mode coverage is also stated in the runnable entry.
+`96-Local Testing/04-Graphs/01-graph_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. The corpus is 606 exhaustive small graphs, 500 random multigraphs and 1,000 builder cases; quick uses exhaustive graphs through two vertices, 70 random cases and 100 builder cases, full extends to three vertices, 500 random and 1,000 builder cases, stress to 4,000 random and 8,000 builder cases. Exact mode coverage is also stated in the runnable entry.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -55,7 +55,7 @@ Correctness: these are direct constructions. `lineGraph` enumerates, per vertex,
 | `DenseGraph: best` (minimum or maximum view) | Dense minima and maxima with earliest ties | Independent dense minima and maxima |
 | `Graph: read` (base/weighted/directed adapters) | Input adapters | Expected edge lists |
 | `Graph: fromAdjacency, fromMatrix` | Every exhaustive and random graph as shuffled weighted and unit lists; builder cases with full-range weights differing in one random byte, loops and parallel edges, and random directed or symmetric matrices; fixtures for defaults, mirrored parallel edges listed in different orders, loops and empty inputs | Directed: the list scan. Undirected: the source edge multiset normalized to `(min, max, w)` and sorted with `std::sort`. Matrices: the row-major nonzero scan, and identity with `fromAdjacency` of the same lists |
-| `CoordinateCompression` (replaces `GraphLabels`; Data Structures row 07) | Label adapters: integer extremes, strings with the empty label, keys with only `operator<`, empty set, copy/move, absent labels | Sorted distinct labels; -1 for an absent label |
+| Legacy `GraphLabels` cases (DS row 07 `CoordinateCompression`) | Label adapters: integer extremes, strings with the empty label, keys with only `operator<`, empty set, copy/move, absent labels | Sorted distinct labels; -1 for an absent label |
 | `lineGraph`, `Subgraph` | Each graph and its CSR snapshot | Brute-force incidence counting |
 | `inducedSubgraph` | Empty, full and three shuffled random subsets | Filtered edge list with relabelled endpoints |
 | `contract` | Identity, all-merged and random labels (two spare labels) | Relabelled edges |
@@ -100,7 +100,7 @@ The [benchmark driver](<../../96-Local Testing/04-Graphs/00-foundations_benchmar
 | BFS on CSR | 9.27 ms |
 | CSR construction | 4.48 ms |
 
-Tiny cases slightly favored lists; chain/star results also varied. This supports an explicit reusable CSR option, not an automatic threshold or universal speed claim. Full compiler/CPU/flags and raw samples are in the record. Measured on a shared host.
+Tiny cases slightly favored lists; chain/star results also varied. This supports an explicit reusable CSR option, not an automatic threshold or universal speed claim. Conditions from the git-ignored `00-foundations_benchmark.json` log, which also holds the raw samples: 11th Gen Intel Core i9-11900H, GCC 16.2.1 20260810, `-std=gnu++20 -O2 -DNDEBUG -mno-avx2`. Measured on a shared host.
 
 ```bash
 python3 '96-Local Testing/04-Graphs/00-foundations_benchmark.py'
@@ -108,7 +108,7 @@ python3 '96-Local Testing/04-Graphs/00-foundations_benchmark.py'
 
 ## Sources
 
-Retrieved and inspected on 2026-09-27; no source code was copied. A source review is distinct from verification or online acceptance.
+Retrieved and inspected on 2026-09-27; no source code was copied.
 
 | Source | Inspected claims and use |
 |---|---|

@@ -72,7 +72,7 @@ Correctness of the real searches: `std::midpoint` and `std::lerp` avoid overflow
 
 ## Feature-to-test map
 
-Entry: [`02-search_algorithms_tester.py`](<../../96-Local Testing/05-Mathematics/02-search_algorithms_tester.py>), driving the C++ suite, which includes the header directly and keeps its checks under `-DNDEBUG`. Quick mode exhausts arrays through length 6 and runs 100 random cases; full exhausts through length 8 with 3000 random cases; stress reaches length 9 with 30000. The exhaustive shape filter accepts 282 arrays in quick mode and 452 in full.
+Entry: [`02-search_algorithms_tester.py`](<../../96-Local Testing/05-Mathematics/02-search_algorithms_tester.py>), driving the C++ suite. Quick mode exhausts arrays through length 6 and runs 100 random cases; full exhausts through length 8 with 3000 random cases; stress reaches length 9 with 30000. The exhaustive shape filter accepts 282 arrays in quick mode and 452 in full.
 
 | Feature | Independent verification |
 |---|---|

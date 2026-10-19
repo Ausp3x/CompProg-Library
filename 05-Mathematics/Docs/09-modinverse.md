@@ -47,7 +47,7 @@ Entry: [`09-modinverse_tester.py`](<../../96-Local Testing/05-Mathematics/09-mod
 
 ## Commands and results
 
-P052 run (2026-10-09), same conditions as [07-primality_factorization.md](07-primality_factorization.md).
+P052 run (2026-10-09), same conditions as [07-primality_factorization.md](07-primality_factorization.md). MEMORY peaks not recorded.
 
 ```bash
 python3 '96-Local Testing/05-Mathematics/09-modinverse_tester.py' --mode quick --seed 1           # PASS, 2 configurations, 8 probes
@@ -57,8 +57,6 @@ python3 '96-Local Testing/05-Mathematics/09-modinverse_tester.py' --mode stress 
 ```
 
 The header and tester build with no warnings under `-Wall -Wextra -Wconversion`, including two translation units.
-
-`@reviewer` (2026-10-09) found no defect.
 
 ## Benchmarks
 
@@ -71,9 +69,9 @@ None required: the scalar paths use `extendedGcd`/`modPow` and the vector paths 
 ## Limits and handoffs
 
 - The row's `inverseList (arbitrary values)` was made concrete as a prime-modulus list that tolerates zeros. Per-element inverses over a composite modulus are a loop over `inverseXgcd`.
-- `powerTable` is `i^k`, the completely multiplicative table handed over from row 04. Powers `a^i` of one base are a running product at the call site.
+- `powerTable` is the completely multiplicative `i^k` table. Powers `a^i` of one base are a running product at the call site.
 - Rejected candidates (O(1) inverse queries, Euler-theorem inverse) are in [00-notes.md](00-notes.md).
 
 ## History
 
-- 2026-10-09: P052 initial implementation and verification.
+- 2026-10-09: P052 initial implementation and verification, `@reviewer` found no defect; quick, full and stress passed on g++, full on g++-14.

@@ -15,8 +15,9 @@ When asked to commit, commit directly to local `master`; create no branch unless
 
 ## Models and delegation
 
-- Core full types (`01-Core` non-mini headers): Claude Fable 5.1 (`/model fable`), effort max. Everything else: Claude Opus 5.5 (`/model opus`), effort xhigh; `@reviewer` runs at xhigh and `@researcher` at high. Pass `--effort` at launch: a main session ignores an agent file's `effort`, and `max` cannot be saved as a default. `/package`, `/prune` and `/finish` stop when the session does not match the package; the other skills set their model and effort in their front matter.
+- Core full types (`01-Core` non-mini headers): Claude Fable 5.1 (`/model fable`), effort max. Everything else: Claude Opus 5.5 (`/model opus`), effort xhigh; `@reviewer` runs at xhigh and `@researcher` at high. Pass `--effort` at launch: a main session ignores an agent file's `effort`, and `max` cannot be saved as a default. `/package`, `/prune` and `/finish` stop when the session does not match the package; the other skills set their effort, and the sweeps and `/tidy` their model, in their front matter.
 - `@researcher` sweeps sources for completeness and `@reviewer` reviews a package independently before it is marked verified; both return summaries, keeping the main context small.
+- Questions to the user go through AskUserQuestion: at most four per call, recommendation first.
 
 ## Compact instructions
 
@@ -26,7 +27,7 @@ Sessions auto-compact at 400k tokens (`autoCompactWindow` in `.claude/settings.j
 
 ```bash
 python3 '00-Guidelines/13-Plan/plan.py' show P018       # package brief
-python3 '00-Guidelines/13-Plan/plan.py' set P018 verified --evidence '01-Core/26-infint.md'
+python3 '00-Guidelines/13-Plan/plan.py' set P018 verified --evidence '01-Core/Docs/07-infint.md'
 python3 '96-Local Testing/01-run.py' --mode quick        # all suites, quick
 python3 '96-Local Testing/_00_memory_cap.py' -- <cmd>    # run any ad-hoc binary, probe or benchmark memory-capped (testers cap themselves)
 python3 '96-Local Testing/<folder>/<NN-name>_tester.py' --mode full --seed 1
@@ -37,4 +38,4 @@ python3 '97-Online Testing/03-workspace.py' --check      # workspace template is
 
 ## Toolchain
 
-Local: GCC 16.2 (`g++`), GCC 14.4.1 (`g++-14`), CPython 3.14. Floors: GCC 14 (`g++-14`) with `-std=gnu++20` (judges in `03-cpp.md`), Python 3.10. Every package also runs its suites in full mode with `CXX=g++-14` (the runners read `CXX`) as the floor check and records the result in its evidence. PyPy 8.0.1 (`pypy3`, Python 3.12) is installed; `oj-bundle` and `lualatex` are optional, and a missing tool is reported as SKIP, never a faked pass.
+Local: GCC 16.2 (`g++`), GCC 14.4.1 (`g++-14`), CPython 3.14. Floors: `03-cpp.md` (Toolchain and judges) and `04-python.md` (Baseline); the per-package `CXX=g++-14` full run: `05-testing.md` (Builds). PyPy 8.0.1 (`pypy3`, Python 3.12) is installed; `oj-bundle` and `lualatex` are optional, and a missing tool is reported as SKIP, never a faked pass.

@@ -67,9 +67,15 @@ This is a Lee–Preparata march, adapted:
 
 Returns false unless the intersection is a `Polygon`. In that case it returns true with an approximate center of a largest inscribed disk and its radius `r > 0`. The method bisects on the inward offset of the polygon's irredundant planes, which are sorted once, so each feasibility test is an `O(k)` floating deque with strict semantics. Bisection starts on `[0, perimeter / 4]`, valid because `2 * r <= diameter <= perimeter / 2`. It stops when the midpoint no longer moves or after 256 steps. The center is the vertex mean of the last feasible offset polygon. `O(n * log(n) + k * 256)` time, `O(n)` memory. The result is rounded, with no certified error. The optimum is a three-variable LP, so an exact-arithmetic route belongs to row 42 (`lp3d`), which is still planned.
 
+### Renames
+
+| Planned name | Implemented as | Reason |
+|---|---|---|
+| `chebyshevCenter` | `chebyshevCenterApprox` | Naming policy: rounded `long double` result |
+
 ## Feature-to-test map
 
-`96-Local Testing/03-Geometry/10-halfplaneintersection_tester.py` provides quick, full and stress modes, deterministic seeds, oracles that survive `-DNDEBUG`, and ten assertion probes. Full mode builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan configurations.
+`96-Local Testing/03-Geometry/10-halfplaneintersection_tester.py` runs quick, full and stress modes in the geometry runner's optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan builds ([`_00_runner.py`](<../../96-Local Testing/03-Geometry/_00_runner.py>)), with ten assertion probes.
 
 **Oracle.** Vertices come from Cramer intersections of every pair of input boundaries, written from `A x + B y <= C` and independent of the header's formulas. A vertex survives if it passes an exact membership test against every input plane. Survivors go through an exact rational hull. The recession cone is compared on a witness set: every candidate direction plus one strictly interior direction per angular gap. Equality of membership on that set decides equality of two planar cones. A parallel-only family gets a 1-D offset test. Each `planes` field is re-run through the oracle and must reproduce the same intersection and cone. At `|coordinate| = 10^9` the rational hull would overflow. There, Helly triples certify `Empty` (some three planes already have empty intersection), and boundary certificates check `Polygon` results: every vertex is feasible, each edge lies on its plane, edges have positive length, and the planes turn left once around. Scaling and translation metamorphic tests carry small exact cases up to `10^9`.
 
@@ -81,8 +87,6 @@ Returns false unless the intersection is a `Polygon`. In that case it returns tr
 | `clipConvex` | Random hulls with and without collinear vertices plus up to four planes; disjoint and empty clip sets; `int` coordinates | Brute force on edges plus planes |
 | `polygonKernel`, `polygonKernelLinear` | Convex, clockwise, notched, cross-shaped, slit, point-kernel, segment-kernel and repeated-vertex polygons. Random 2-opt simple polygons and star polygons in every rotation and both orientations. Stress mode: every simple polygon on the 3×3 grid. A 200,000-vertex star (both versions must agree exactly) and a 10-turn spiral corridor with an empty kernel and turning far beyond 6π | Brute force on the edge planes; the linear version must match kind, vertices and order, and its planes must reproduce the kernel |
 | `chebyshevCenterApprox` | Square (exact 2), rectangle, 3-4-5 triangle, false on unbounded input, random planes | Brute-force maximum over plane triples of the 3×3 tangent-circle systems (the vertices of the 3D LP), relative tolerance `1e-9`; the center keeps the radius to every line |
-
-Finite tests supplement the arguments above; they do not prove correctness for all inputs.
 
 ## Commands and results
 
@@ -112,7 +116,7 @@ Mutation check (2026-10-11). Each mutant was built from a copy of the tree and r
 ```bash
 python3 '96-Local Testing/03-Geometry/10-halfplaneintersection_tester.py' --mode full --seed 20260927
 CXX=g++-14 python3 '96-Local Testing/03-Geometry/10-halfplaneintersection_tester.py' --mode full --seed 20260927
-python3 '96-Local Testing/03-Geometry/10-halfplaneintersection_tester.py' --mode stress --seed 42
+python3 '96-Local Testing/03-Geometry/10-halfplaneintersection_tester.py' --mode stress --seed 42 --configuration optimized
 python3 '96-Local Testing/03-Geometry/10-halfplaneintersection_benchmark.py' --seed 20260927
 ```
 
@@ -129,7 +133,7 @@ python3 '96-Local Testing/03-Geometry/10-halfplaneintersection_benchmark.py' --s
 | Star polygon, thin kernel | ~10^6 | | 359 ms | 55.9 ms |
 | Spiral corridor (empty kernel) | 10^6 | | 377 ms | 24.9 ms |
 
-The linear kernel is 5–6× faster on stars and 15× faster on spirals, where the turning guard stops the march early. Timings are observations on a shared machine, not universal speed claims or pass/fail gates.
+The linear kernel is 5.3–6.4× faster on stars and 15× faster on spirals, where the turning guard stops the march early.
 
 ## Sources
 
@@ -151,5 +155,6 @@ The implementation was written independently. The legacy notebook routine was re
 ## History
 
 - 2026-10-11: first implementation (P036). Independent review: one finding (out-of-bounds read on non-simple input in `polygonKernelLinear`, spike assertion incomplete) fixed with new probes and checked-build cases.
+- 2026-10-12: P007 prune migrated `onSegment` call sites in the tester; full suite passed ([02-line_segment.md](02-line_segment.md)).
 - 2026-10-18: P037 factored the edge rotation of `clipConvex` into `halfplane_detail::edges` for `convexIntersection`; full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19: P037 re-audit rerun (row 15 changed), header unchanged; full suite passed on g++ and g++-14, stress passed.

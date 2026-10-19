@@ -38,7 +38,7 @@ The result type `T` is any commutative ring with `T(0)`, `T(1)`, `+`, `-`, `+=` 
 
 ## Feature-to-test map
 
-Runner: [`19-lcs_tester.py`](<../../96-Local Testing/07-Strings/19-lcs_tester.py>). The oracle is an independent full-table DP; counts use subsequence enumeration; all checks survive `-DNDEBUG`.
+Runner: [`19-lcs_tester.py`](<../../96-Local Testing/07-Strings/19-lcs_tester.py>). The oracle is an independent full-table DP; counts use subsequence enumeration.
 
 | Operation | Coverage |
 |---|---|
@@ -54,7 +54,7 @@ The checked (`-O0`, `_GLIBCXX_DEBUG`) build divides the random count and the med
 
 ## Commands and results
 
-Run 2026-10-10 on the final code with the configurations listed in [13-palindromictree.md](13-palindromictree.md#commands-and-results); the checked build uses the size divisor described above.
+Run 2026-10-10 on the final code. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>). The checked build uses the size divisor described above.
 
 ```bash
 python3 '96-Local Testing/07-Strings/19-lcs_tester.py' --mode quick --seed 1  # PASS, 2 configurations, 1 assertion probe

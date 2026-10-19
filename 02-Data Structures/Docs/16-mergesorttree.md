@@ -1,6 +1,6 @@
 # 16-mergesorttree.hpp — evidence
 
-Package P028 (batch DS08). Replaces the unchanged extraction `DynMergeSortTree` (`OLD/algorithms.cpp:3185–3459`) and absorbs the legacy reference `97-Legacy/05-mergesorttree_older.cpp` (`OLD/[1] algorithms.cpp:695–799`). Indices are zero-based, index ranges `[l, r)` and value ranges `[lo, hi)` are half-open, `kth` is 0-based, and preconditions are `assert`s checked once per operation.
+Package P028 (batch DS08). Replaces the unchanged extraction `DynMergeSortTree` (`OLD/algorithms.cpp:3185–3459`) and absorbs the older `MergeSortTree` reference (`OLD/[1] algorithms.cpp:695–799`). Indices are zero-based, index ranges `[l, r)` and value ranges `[lo, hi)` are half-open, `kth` is 0-based, and preconditions are `assert`s checked once per operation.
 
 ## Contracts
 
@@ -62,11 +62,11 @@ python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode 
 CXX=g++-14 python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode full --seed 1
 python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/16-mergesorttree.hpp' '96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp'
 python3 '96-Local Testing/03-consistency.py'
-python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 1 --filter '02-Data Structures/16' --no-integration
+python3 '96-Local Testing/01-run.py' --mode stress --seed 3 --rounds 1 --filter '02-Data Structures/16' --no-integration
 python3 '96-Local Testing/02-integration.py' --sanitizers
 ```
 
-Latest run 2026-10-12 (after the `countRange` assert fix): quick mode seed 1 passed (2 configurations, 55,529 checks, 18 assertion probes); full mode seed 1 passed on GCC 16.2 and GCC 14.4.1 (`CXX=g++-14`) with 960,253 checks per configuration and 18 assertion probes, MEMORY peak 632 MB and 596 MB; `--braces` and `03-consistency.py` reported no errors. Stress (`--mode stress --seed 3`) passed with 4,683,876 checks per configuration, peak 645 MB, and `python3 '96-Local Testing/02-integration.py' --sanitizers` passed (136 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, sanitizer self-tests, peak 2677 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20 with `-Wall -Wextra -Wconversion -Werror`, CPython 3.14, in the optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_ASSERTIONS`) and ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined`) builds; MEMORY peaks are dominated by compilation.
+Latest run 2026-10-12 (after the `countRange` assert fix): quick mode seed 1 passed (2 configurations, 55,529 checks, 18 assertion probes); full mode seed 1 passed on GCC 16.2 and GCC 14.4.1 (`CXX=g++-14`) with 960,253 checks per configuration and 18 assertion probes, MEMORY peak 632 MB and 596 MB; `--braces` and `03-consistency.py` reported no errors. Stress (`--mode stress --seed 3`) passed with 4,683,876 checks per configuration, peak 645 MB, and `python3 '96-Local Testing/02-integration.py' --sanitizers` passed (136 standalone/aggregate headers, scalar and AVX2 multi-TU, workspace, sanitizer self-tests, peak 2677 MB). All runs on Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, in the runner's optimized, checked (`_GLIBCXX_ASSERTIONS`, see above) and ASan/UBSan builds; MEMORY peaks are dominated by compilation.
 
 ## Sources
 

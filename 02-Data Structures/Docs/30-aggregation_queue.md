@@ -6,7 +6,7 @@ Package P028 (batch DS26). New header; no legacy source. Indices are not exposed
 
 ### Monoid contract
 
-`M` provides `S`, `op(a, b)` (associative, need not be commutative) and `e()` (two-sided identity), under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract): each structure keeps it as `m` and takes it in its only constructor `explicit X(M mon = {})`. `allProd()` (renamed from `fold` on 2026-10-17) of an empty structure returns `e()`, so absence and a legitimate identity product are the same value by design (both Library Checker composite problems print `x` for an empty queue).
+`M` provides `S`, `op(a, b)` (associative, need not be commutative) and `e()` (two-sided identity), under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract): each structure keeps it as `m` and takes it in its only constructor `X(M mon = {})`. `allProd()` of an empty structure returns `e()`, so absence and a legitimate identity product are the same value by design (both Library Checker composite problems print `x` for an empty queue).
 
 ### SWAGQueue<M>
 
@@ -23,6 +23,12 @@ Package P028 (batch DS26). New header; no legacy source. Indices are not exposed
 ### Violated preconditions
 
 Under `NDEBUG`, popping an empty structure is a no-op (the pops are guarded so the vector end never moves below its start); `front`, `back` and `top` on an empty structure read invalid memory. All calls stay O(1) amortized.
+
+### Legacy mapping
+
+| Renamed (P027 monoid pass, 2026-10-17) | Replacement |
+|---|---|
+| `fold()` | `allProd()` |
 
 ## Feature-to-test map
 
@@ -41,7 +47,7 @@ Mutation check (2026-10-10, quick mode, temporary copies): 5 of 5 injected fault
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|

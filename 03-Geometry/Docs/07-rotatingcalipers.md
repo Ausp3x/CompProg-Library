@@ -1,6 +1,6 @@
 # 07-rotatingcalipers.hpp — evidence
 
-Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `05-closestpair.hpp`, `06-circle.hpp` and `08-coordinate_transform.hpp`); see [00-notes.md](00-notes.md#p008--ge02-package-record) for the package record and the folder numeric policy. `degenerateBox` is listed in the row because the contest struct exposes it. Every operation in the row has a test with an independent oracle.
+Owned by package P008 / GE02 (closest pair, circles, calipers and transforms, together with `05-closestpair.hpp`, `06-circle.hpp` and `08-coordinate_transform.hpp`); see [00-notes.md](00-notes.md#ge02-numeric-policy-p008) for the folder numeric policy. `degenerateBox` is listed in the row because the contest struct exposes it. Every operation in the row has a test with an independent oracle.
 
 ## Contracts
 
@@ -50,7 +50,7 @@ Correctness:
 | `ConvexDiameter`, `diameter` and its index ties | Empty, singleton and segment cases | All vertex pairs with independently expanded exact products |
 | `antipodalPairs` and tie events | Every input edge direction, all min/max support vertex combinations | Exact set equality and no duplicates |
 | `ConvexWidthApprox`, `minimumWidthApprox` | Exact optimum and opposite-support witness; degenerate witnesses `-1/-1`, `0/0`, `0/1` | All edges and vertices, independent 256-bit fraction oracle |
-| `CaliperBoxApprox`, `rectangleApprox`, `minimumAreaRectangleApprox`, `minimumPerimeterRectangleApprox` | Every edge and point as the four supports; exact selected objective; corners, containment, orthogonality, area and perimeter | Exhaustive support enumeration |
+| `CaliperBoxApprox`, `minimumAreaRectangleApprox`, `minimumPerimeterRectangleApprox` | Every edge and point as the four supports; exact selected objective; corners, containment, orthogonality, area and perimeter | Exhaustive support enumeration |
 | `minimumAreaParallelogramApprox` | Exact optimum; corner and enclosure properties | Every distinct edge pair with independent 256-bit comparisons |
 | `degenerateBox` | For fewer than three points, all three box queries have `edges == {-1, -1}` and the stated vertex layout | Stated layout |
 | `ratioLess` | Edge cases and random full 128-bit operands | Python arbitrary-precision products and the C++ schoolbook 256-bit product |
@@ -112,7 +112,7 @@ Inspected on 2026-09-27:
 
 ## Limits and handoffs
 
-Other packages own convex polygon queries (GE05), two-polygon calipers problems (rows 04, 11, 17 and 25) and polygon distance (GE25).
+Other packages own convex polygon queries (GE05), two-polygon distance, separation and farthest pair (row 17, GE25) and hull bridges (row 53); inner and outer common tangents, the widest separating strip and Grenander distance are not adopted ([00-notes.md](00-notes.md#p036-completeness-decisions-2026-10-10)).
 
 ## History
 

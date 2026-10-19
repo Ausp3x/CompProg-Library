@@ -158,7 +158,7 @@ Both sweeps were run by `@researcher`, which fetched every listed page itself on
 
 Keys used in `00-index.md` status cells: **YC** Library Checker problem directories (GitHub), **CPA** cp-algorithms, **KACTL** KACTL data-structures, **OI** OI Wiki ds section, **MAS** maspypy, **NYA** Nyaan, **EI** ei1333, **SUI** suisen, **HIT** hitonanode, **TKO** tko919, **NOSHI** noshi91, **DYNAMIC** xxsds/DYNAMIC, **ODS** Open Data Structures (saved PDF, chapters 4/8/9/10/13, read 2026-09-27), **KOO** Koosaga Library/codes (read 2026-09-27).
 
-The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guidelines/History/2026-09-27-inventory-audit.md)) compared named families and public-operation catalogs, not source correctness; it introduced rows 28–60 as planned from YC, OI, MAS, NYA, EI, SUI, HIT, TKO, DYNAMIC, ODS, KOO and the saved KACTL/Stanford notebooks. The OI Wiki merge/split entry and the ei1333 Fibonacci-heap entry were recorded as source leads whose proofs remain implementation work. Machine-readable read-scope records are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json) and the Library Checker family map in [library-checker-coverage.json](../../00-Guidelines/Ledgers/library-checker-coverage.json) (snapshot 2026-09-27; `associative_array` and `area_of_union_of_rectangles` postdate it). P006 verification sources for rows 01–08 are listed in the Sources section of each per-header document ([01-dsu.md](01-dsu.md) … [08-monotone_stack.md](08-monotone_stack.md)) and in [00-notes.md](00-notes.md#provenance-and-ownership).
+The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guidelines/History/2026-09-27-inventory-audit.md)) compared named families and public-operation catalogs, not source correctness; it introduced rows 28–60 as planned from YC, OI, MAS, NYA, EI, SUI, HIT, TKO, DYNAMIC, ODS, KOO and the saved KACTL/Stanford notebooks. The OI Wiki merge/split entry and the ei1333 Fibonacci-heap entry were recorded as source leads whose proofs remain implementation work. Machine-readable read-scope records are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json) and the Library Checker family map in [library-checker-coverage.json](../../00-Guidelines/Ledgers/library-checker-coverage.json) (snapshot 2026-09-27; `associative_array` and `area_of_union_of_rectangles` postdate it). P006 verification sources for rows 01–08 are listed in the Sources section of each per-header document ([01-dsu.md](01-dsu.md) … [08-monotone_stack.md](08-monotone_stack.md)).
 
 ## Not adopted
 
@@ -166,19 +166,18 @@ The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guid
 - kd-tree nearest/kNearest/radius/box reporting (MAS, HIT, TKO): Geometry `28-spatial_index.hpp` owns point-facing kd-trees; the acted-monoid rectangle engine is `LazyKdTree` in row 15 (P028).
 - slope trick, generalized/weighted slope trick (NYA, EI, SUI, TKO): Miscellaneous `34-slope_trick.hpp`.
 - offline dynamic connectivity, incremental bridge connectivity (HIT, NOSHI): Graphs `26-dynamic_connectivity.hpp`.
-- Manhattan MST (TKO), static top tree DP clients, HLD: Graphs.
+- Manhattan MST (TKO): Geometry `21-manhattan_geometry.hpp`; static top tree DP clients, HLD: Graphs.
 - parallel binary search, Hilbert order, CDQ, rollback array/undo log, persistent allocator (MAS): Miscellaneous rows 20, 16, 21, 42, 43.
 - Huffman tree (OI): Miscellaneous `40-optimal_merge.hpp`.
 - ZDD (SUI): set-family decision diagrams; no contest family here, candidate for Miscellaneous or Mathematics.
 - string trie, Patricia binary trie (SUI, EI): Strings `04-trie.hpp` / `25-radixtrie.hpp`; the binary-trie Patricia compression is a memory variant, not a new operation.
-- dividing tree (划分树), persistent block array, cat tree (OI): dominated by wavelet matrix, persistent segment tree and disjoint sparse table respectively.
+- dividing tree (划分树), persistent block array, cat tree (OI): dominated by wavelet matrix, persistent array (row 35) and disjoint sparse table respectively.
 - tree block decomposition (树分块) (OI): graph-facing, Graphs tree algorithms.
 - xor-indexed segment/sparse tables, sparse table on segtree, prefix-max/greedy-subtract/make-increasing segment trees, range max/min/mex change, slide split sum, sum over bit positions, power query, doubling (MAS): problem-specific wrappers; their underlying structures are rows 03, 04, 12, 14, 25, 28; doubling is Graphs functional graph.
-- rollback lazy segment tree, dual 2D dense segment tree variants beyond row 15, offline set intersection, mo_3d naming (MAS): covered by rows 12, 15, 23 operations or too problem-specific; coefficient 2D queries (MAS `coefficient_query_2d`): row 33 provides the A = B = 1 and A = B = 2 kernels.
+- rollback lazy segment tree, dual 2D dense segment tree variants beyond row 15, offline set intersection, mo_3d naming (MAS): covered by rows 12, 15, 23 operations or too problem-specific.
 - xor linked list, light forward list, linked list, stream (NOSHI, HIT, TKO): no operation beyond the standard library.
 - randomized queue, ternary treap (NOSHI): no contest family; ternary search tries belong to Strings if ever needed.
 - dynamic/static bitset utilities (NYA, SUI, HIT, MAS bit_array): Core `18-bitset.hpp`.
 - fenwick-tree-on-wavelet-matrix as a separate header (NYA): folded into row 17 as WaveletMatrixMonoid.
-- persistent Fenwick tree (SUI): persistent segment tree (row 18) covers it with the same bounds.
 - union-find lazy/dual (MAS, SUI): semantics not identifiable from the catalog name; revisit when a motivating problem appears.
 - hash-map-variable-length (NYA): row 61 covers resizing; the fixed-capacity variant is HashMapFixed.

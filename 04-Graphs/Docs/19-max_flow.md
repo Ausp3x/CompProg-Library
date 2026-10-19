@@ -24,7 +24,7 @@ Owned by package P044 / GR08. The header replaces the byte-for-byte legacy `Edmo
 
 ### Engines and correctness
 
-- **Dinic (`flow`, internal `dinic`).** Each phase runs a BFS from `s` over arcs with residual `>= delta`, stopping once `t` is labelled; every vertex at a level below `level[t]` has been labelled by then. The blocking flow is ACL's multi-push DFS from `t` back to `s` over arcs to level − 1, simulated with an explicit frame stack `(v, up, got)`. Each frame pushes into one child at a time and adds the child's result to its arc pair. It returns once `got == up` (keeping its current arc) or when its arcs are exhausted (the vertex is then marked dead with level `n`). There is no recursion, so a 500,000-vertex path is stack-safe. Bound: O(n^2 * m) in general, O(m * sqrt(m)) for unit capacities.
+- **Dinic (`flow`, internal `dinic`).** Each phase runs a BFS from `s` over arcs with residual `>= delta`, stopping once `t` is labelled; every vertex at a level below `level[t]` has been labelled by then. The blocking flow is ACL's multi-push DFS from `t` back to `s` over arcs to level − 1 (a single-path blocking flow would re-walk the shared prefix for every augment), simulated with an explicit frame stack `(v, up, got)`. Each frame pushes into one child at a time and adds the child's result to its arc pair. It returns once `got == up` (keeping its current arc) or when its arcs are exhausted (the vertex is then marked dead with level `n`). There is no recursion, so a 500,000-vertex path is stack-safe. Bound: O(n^2 * m) in general, O(m * sqrt(m)) for unit capacities.
 - **Edmonds–Karp (`edmondsKarp`, `augmentPath`, internal `augment`).** A BFS from `s` over arcs with positive residual stops once `t` is labelled. `it[v]` holds the index of `v`'s reverse arc to its BFS parent, so a walk from `t` reads the bottleneck, and a second walk pushes `min(bottleneck, limit)`. A BFS-tree path is a shortest residual path. `edmondsKarp` stops when `t` is unreachable, so no residual s–t path remains and the flow is maximum, or when the added flow reaches `limit`, because the last push is capped at the remaining limit. Each push is at most one arc's residual and keeps every arc pair's sum, so no arithmetic overflows. Bound: shortest-path distances never decrease, and each arc is saturated as the bottleneck at most n/2 times, so a run makes O(n * m) augmentations from any starting flow, each costing O(n + m). With integer capacities each augmentation also adds at least 1, so the cost is O(min(n * m, F + 1) * (n + m)) for an added flow F.
 - **Push-relabel.** It saturates every residual arc leaving `s`, then assigns exact labels by a global relabel: the distance to `t` over reverse residual arcs, avoiding `s`; otherwise `n` plus the distance to `s`; otherwise `2n - 1`. Each of these is at least any valid labelling, so labels never decrease and the standard bounds hold.
   - It discharges the highest active label first, keeping a current arc per vertex.
@@ -46,7 +46,7 @@ The removed adapter `EdmondsKarp` (`OLD/[1] algorithms.cpp:348-469`) maps to `Ma
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/19-max_flow_tester.py` uses the shared graph driver: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan `-O1 -g` with leak detection, all with `-Wall -Wextra -Wconversion -Werror`. Failures are non-removable and print the network, the operation, and the expected and actual values. The oracles:
+`96-Local Testing/04-Graphs/19-max_flow_tester.py` uses the shared graph driver: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan `-O1 -g` with leak detection, all with `-Wall -Wextra -Wconversion -Werror`. The oracles:
 - **Brute force:** the minimum over every s-side vertex subset (max-flow min-cut theorem), validated against the exhaustive three-vertex corpus.
 - **Certificate:** a feasible, conserving flow of the returned value plus a residual cut of equal capacity. This is independent of the engines.
 
@@ -72,8 +72,6 @@ Mutation checks (scratch copies under `/tmp`, quick mode, not part of the suite)
 - 2026-10-10, 17 mutants of the other kept code, 16 killed: changeCapacity dropping the `t -> v` cancel or the final augmentation, a decomposition direction swap or cycle off-by-one, the scaling loop skipping `delta = 1`, `minCutEdges` or `getEdge` ignoring reverse capacity, `changeEdge` writing the wrong slot, the `Graph` adapter dropping reverse capacity, Dinic ignoring `limit` or overrequesting from a child, global relabel ignoring residual capacity, push overshooting, a relabel that keeps its current arc, and `pathDecomposition` ignoring or not capping the net inflow of `t` (killed by the arbitrary-flow corpus).
 - The survivor sets gap-lifted labels to `old + 1`. That changes labels only for vertices that cannot reach `t`, so it affects performance, not the result. Removing the dead-end pruning or the reroute in `changeCapacity` also survives, as expected for optimizations.
 
-Finite tests complement the arguments above; they do not prove all inputs.
-
 ## Commands and results
 
 2026-10-12, i9-11900H, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), CPython 3.14, Linux x86-64, GNU++20.
@@ -87,7 +85,7 @@ Finite tests complement the arguments above; they do not prove all inputs.
 | `02-integration.py` | PASS: 136 standalone/aggregate headers (including `19-max_flow.hpp` alone and `99-all.hpp`), scalar/available-AVX2 multi-TU, workspace; MEMORY peak 648 MB |
 | `03-consistency.py`, with `--braces` on the header and tester | No errors |
 | `NDEBUG` boundedness probe (ad hoc, `-O1 -DNDEBUG -fsanitize=address,undefined`, 512 MB cap): `edmondsKarp(1, 1, 7)`, `edmondsKarp(1, 1)`, `augmentPath(1, 1)`, `flow(1, 1, 7)`, `edmondsKarp(0, 1, -1)`, `capacityScalingDinic(1, 1, 7)`, `pushRelabel(1, 1)`, `pathDecomposition(1, 1)`, `augmentPath` to an unreachable `t`, two `LLONG_MAX` source edges into `pushRelabel` | Return 7, `MAX`, `MAX`, 7, 0, 7, 0, no paths, 0 and 0, with every edge flow unchanged; no sanitizer report; peak 23 MB |
-| `@reviewer` (independent; own exact-BFS-path oracle, 40,000 rounds each in `int`, `lng`, `lll` under ASan/UBSan, 3,065,970 checks; reran quick, full and integration) | No code defect; 4 evidence findings fixed. |
+| `@reviewer` (independent; own exact-BFS-path oracle, 40,000 rounds each in `int`, `lng`, `lll` under ASan/UBSan, 3,065,970 checks; reran quick, full and integration) | No code defect |
 
 ```bash
 python3 '96-Local Testing/04-Graphs/19-max_flow_tester.py' --mode full --seed 20261012
@@ -121,7 +119,6 @@ Medians in milliseconds:
 
 Headlines:
 - The iterative Dinic tracks the recursive reference within noise on bipartite and grid workloads, and is 7–18% slower on sparse and dense ones, in exchange for stack safety.
-- An earlier single-path iterative blocking flow took 105 s on a 200,000-vertex version of the adversarial chain, because it re-walked the shared prefix for every augment. It was replaced by the multi-push frame stack.
 - Push-relabel without global relabelling took 405 ms on the grid. Probing the global-relabel frequency (relabel work above `GLOBAL * (n + m)`, three runs each, push-relabel only) gave these medians in ms for GLOBAL = 1, 2, 4, 8 and never:
   - sparse: 17, 18, 22, 28, 29
   - bipartite: 168, 170, 138, 161, 177
@@ -160,4 +157,4 @@ Legacy material inspected:
 ## History
 
 - 2026-10-10: original P044; full suites (seed 20260927, 23,926,841 checks, 22 probes) passed on g++ and g++-14, stress (seed 1), benchmark and integration with sanitizers passed; independent review, 6 findings fixed.
-- 2026-10-12: prune, removed the `EdmondsKarp` legacy adapter (cases moved to `MaxFlow` on `Graph::fromMatrix` and to `augmentPath`, four legacy probes replaced) and added `edmondsKarp` and `augmentPath`; full suite passed on g++ and g++-14, stress passed.
+- 2026-10-12: prune, removed the `EdmondsKarp` legacy adapter (cases moved to `MaxFlow` on `Graph::fromMatrix` and to `augmentPath`, four legacy probes replaced) and added `edmondsKarp` and `augmentPath`; full suite passed on g++ and g++-14, stress passed; independent review: no code defect, 4 evidence findings fixed.

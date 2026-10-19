@@ -34,7 +34,7 @@ Kernel arithmetic: block ends are formed in 128 bits. Each base prime's start co
 
 A materialized object **copies** only the base primes it can read: those with `p <= floor(sqrt(r - 1))`. That is all that `forEachFactor` (which stops at `p * p >= r`) and `getPrimeFac(x)` (`x < r`) use. So the object stays valid after the source base is reset or destroyed, and its memory is `O(n + pi(sqrt(r)))`. For many queries whose results need not persist, use streaming instead.
 
-The archived constructor used **closed `[L, R]`**; such calls become `SegmentedSieve(L, R + 1, ...)` (Legacy mapping). Empty half-open intervals at either signed extreme stay valid without building huge bases.
+Empty half-open intervals at either signed extreme stay valid without building huge bases.
 
 `reset(L, R, base, block, mode)` replaces the interval and clears the old optional tables and workspace. Logical contents are reset, but vector capacity may stay allocated. Copying creates an independent snapshot, and moving follows vector semantics. Public metadata and vectors are algorithm state and must not be edited outside the APIs. Construction costs base setup plus one streamed query plus `O(n)`. Optional tables add `O(n)` storage, and returned factor lists add `O(n * log(R))`.
 
@@ -59,14 +59,14 @@ Correctness: the interval factor engine initializes residuals once, divides mult
 
 ## Feature-to-test map
 
-Runnable entry: [`06-segmentedsieve_tester.py`](<../../96-Local Testing/05-Mathematics/06-segmentedsieve_tester.py>). It includes the actual production header, uses non-removable checks, and runs from any working directory through the shared runner. Quick uses endpoints `[-4,24]`, three block sizes and 50 random intervals. Full uses the bounds below. Stress extends exhaustive endpoints to `[-8,96]` and uses 3000 random intervals. High and boundary regressions run in every mode.
+Runnable entry: [`06-segmentedsieve_tester.py`](<../../96-Local Testing/05-Mathematics/06-segmentedsieve_tester.py>). Quick uses endpoints `[-4,24]`, three block sizes and 50 random intervals. Full uses the bounds below. Stress extends exhaustive endpoints to `[-8,96]` and uses 3000 random intervals. High and boundary regressions run in every mode.
 
 | Feature | Verification |
 |---|---|
-| Base generation and reuse | Exhaust base limits through 4096; independently enumerate trial/Miller–Rabin primes through each square-root boundary. Repeated queries, base reset/shrink, materialized snapshot lifetime (exactly the needed base prefix `p * p <= r - 1` after the source base is reset), copy and move. |
-| All three modes and arbitrary block boundaries | Exhaust all half-open endpoint pairs in `[-6,64]` with block spans `1,2,7,30,31,64`; compare each flag, stored list and streamed list with independent primality. |
+| `SegmentedSieveBase` (`reset`, `bprms`, `forEachPrime`): base generation and reuse | Exhaust base limits through 4096; independently enumerate trial/Miller–Rabin primes through each square-root boundary. Repeated queries, base reset/shrink, materialized snapshot lifetime (exactly the needed base prefix `p * p <= r - 1` after the source base is reset), copy and move. |
+| `SegmentedSieveMode` (`Plain`, `Odd`, `Wheel30`), `SegmentedSieve` (`is_prime`, `prms`): all three modes and arbitrary block boundaries | Exhaust all half-open endpoint pairs in `[-6,64]` with block spans `1,2,7,30,31,64`; compare each flag, stored list and streamed list with independent primality. |
 | Signed/empty/singleton intervals | Negative-only intervals near `INT64_MIN`, huge negative streaming ranges, empty `INT64_MAX`, zero/one, prime singleton `[97, 98)`, `[0, 98)` on a shared base equal to its own-base twin and including `r - 1 = 97`, and the materialized width overflow probe. |
-| Factor lists and multiplicative tables | Independent trial factorization and direct divisor-pair count/sum; individual/combined parity and repeated calls. Full positive interval factor output, callback output (`lng` offset), one and nonpositive table sentinels. |
+| `forEachFactor`, `getPrimeFac`, `getNumDiv`, `getSumDiv`, `getPhi`, `getMu`, `getTables` | Independent trial factorization and direct divisor-pair count/sum; individual/combined parity and repeated calls. Full positive interval factor output, callback output (`lng` offset), one and nonpositive table sentinels. |
 | High endpoints and arithmetic | Short intervals near `10^9`, `10^12`, and a large prime square; independent deterministic 64-bit Miller–Rabin, validated first against trial division for every integer through 10000. Independent divisor/factor checks around `10^12`. Exact square inequalities and first-multiple invariants at `INT64_MAX`. |
 | Broad/adversarial inputs | 500 seeded intervals in the full suite; known prime counts `pi(10^5)=9592`, `pi(10^6)=78498`; tiny blocks and all wheel alignment residues. |
 | Preconditions | 13 assertion subprocess probes for negative base limits, invalid blocks/modes/order, insufficient bases, oversized materialization and invalid factorization domains. |
@@ -93,7 +93,7 @@ Intel Core i9-11900H, GCC 16.2.1, `-std=gnu++20 -O2 -DNDEBUG`, [00-foundations_b
 | same, block 262144 | 10.22 | 6.78 | 13.60 |
 | `[1e16-1e5, 1e16)` | 78.05 | 80.11 | 84.05 |
 
-Materialize workload (100 `SegmentedSieve` objects `[100+q, 200+q)` sharing a base for `10^16 - 1`): 0.02 ms. The committed record `96-Local Testing/05-Mathematics/00-foundations_benchmark.json` (single run) gave 66.86/66.80/83.53 ms at `10^16` and 0.03 ms for materialize. Odd remains the default; Wheel30 is slower than Odd at low endpoints because of its per-step table walk. These are host measurements, not timing gates. No Barrett/Montgomery or ISA-specific code was introduced.
+Materialize workload (100 `SegmentedSieve` objects `[100+q, 200+q)` sharing a base for `10^16 - 1`): 0.02 ms. Odd remains the default; Wheel30 is slower than Odd at low endpoints because of its per-step table walk. No Barrett/Montgomery or ISA-specific code was introduced.
 
 ## Sources
 
@@ -109,6 +109,7 @@ Inspected 2026-09-27:
 
 - The constructor consistently means half-open `[L, R)`; old closed intervals map as in Legacy mapping. Divisor sums use `lll`. There were no active dependent call sites to migrate.
 - Enormous segmented queries still require square-root base-prime storage; the contracts above report that cost and the tested high-endpoint limits.
+- `getTables` (`06-segmentedsieve.hpp:151`) raises a `-Wconversion` warning (`__int128` to `lng` in the chained table initialization), reported by the `99-all.hpp` builds of rows 11, 13, 33 and 34; it is to be fixed in a P012 rerun.
 - The `SegmentedSieve` excerpt in `OLD/5-Mathematics/04-sieves.hpp` and the mechanical-split statement in `00-Guidelines/History/2026-09-27-migration.md` were reviewed. Prime flags/lists, exposed base primes, residual workspace and all four table methods are accounted for; the archive remains preserved.
 - The 2026-10-07 completeness sweep found no missing operation: cp-algorithms range sieve, KACTL FastEratosthenes, maspypy `factor_interval`/`prime_table` and Library Checker `enumerate_primes` are covered by `prms`, `forEachPrime` and `forEachFactor`.
 

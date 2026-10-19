@@ -1,6 +1,6 @@
 # 08-scc.hpp — evidence
 
-Owned by package P011 / GR03 (with `07-lca.hpp`, `09-bridges_articulation.hpp` and `10-euleriantrail.hpp`; GR26 `11-functionalgraph.hpp` completes P011); see [00-notes.md](00-notes.md#p011-package-record) for the package record. The header is complete within GR03's static SCC scope. It uses the verified P010 `Graph`/`CsrGraph` representation, accepts loops and parallel edges, ignores weights across the full `lng` domain, leaves inputs unchanged and uses iterative traversals.
+Owned by package P011 / GR03 (with `07-lca.hpp`, `09-bridges_articulation.hpp` and `10-euleriantrail.hpp`; GR26 `11-functionalgraph.hpp` completes P011); omissions are in [00-notes.md](00-notes.md#p011-re-audit-omissions). The header is complete within GR03's static SCC scope. It uses the verified P010 `Graph`/`CsrGraph` representation, accepts loops and parallel edges, ignores weights across the full `lng` domain, leaves inputs unchanged and uses iterative traversals.
 
 ## Contracts
 
@@ -18,7 +18,7 @@ Kosaraju computes complete DFS finishing order and traverses the transpose in de
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/08-scc_tester.py` reuses the graph test driver with non-removable assertions, failing graph/operation output, reproducible seeds and subprocess timeouts. The driver compiles GNU++20 optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g` ASan/UBSan with leak detection. Quick/full/stress coverage is documented in the runnable entry; quick omits sanitizers, and stress expands random corpora to 10,000 rounds and chain/cycle sizes to 500,000, and also enumerates all looped four-vertex digraphs.
+`96-Local Testing/04-Graphs/08-scc_tester.py` reuses the graph test driver, which compiles GNU++20 optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g` ASan/UBSan with leak detection. Quick/full/stress coverage is documented in the runnable entry; quick omits sanitizers, and stress expands random corpora to 10,000 rounds and chain/cycle sizes to 500,000, and also enumerates all looped four-vertex digraphs.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -26,8 +26,6 @@ Kosaraju computes complete DFS finishing order and traverses the transpose in de
 | `condensationDag` (duplicate-free) | Same corpus | Exact intercomponent edge sets and condensed reachability |
 | Representation, lifetime and boundaries | Every small case on Graph and CSR with both algorithms; 200,000-vertex chain and cycle (stack safety/order/condensation); cross-edge fixture, empty/singleton/isolate cases, ignored extreme signed weights, result move/repeated calls and CSR snapshot after graph mutation | Same oracles |
 | Preconditions | Four checked assertion probes | Expected assertion failure |
-
-Finite tests complement the algorithm arguments; they do not prove all inputs.
 
 ## Commands and results
 
@@ -52,9 +50,9 @@ python3 '96-Local Testing/03-consistency.py'
 
 ## Benchmarks
 
-[Benchmark driver](<../../96-Local Testing/04-Graphs/00-decomposition_benchmark.py>) and `96-Local Testing/04-Graphs/00-decomposition_benchmark.json` (shared with `07-lca.hpp`) contain CPU/compiler/flags, workload generation, seed, all five samples and medians. The C++ driver warms up both alternatives, includes allocation in construction time, excludes input generation and checks every result outside the timed region. Small/common/large cases use n=32, 2,000 and 100,000; SCC uses chains, cycles, random graphs and SCC blocks. Memory is O(n+m) for Kosaraju's transpose and results.
+[Benchmark driver](<../../96-Local Testing/04-Graphs/00-decomposition_benchmark.py>) and its git-ignored `00-decomposition_benchmark.json` log (shared with `07-lca.hpp`) hold workload generation, seed, all five samples and medians. The C++ driver warms up both alternatives, includes allocation in construction time, excludes input generation and checks every result outside the timed region. Small/common/large cases use n=32, 2,000 and 100,000; SCC uses chains, cycles, random graphs and SCC blocks. Memory is O(n+m) for Kosaraju's transpose and results.
 
-Recorded 2026-10-07 medians in milliseconds (flags `-O2 -DNDEBUG -mno-avx2`, i9-11900H, shared machine; 100,000 vertices):
+Recorded 2026-10-07 medians in milliseconds (from the log: GCC 16.2.1 20260810, `-std=gnu++20 -O2 -DNDEBUG -mno-avx2`, i9-11900H; shared machine; 100,000 vertices):
 
 | Workload | Tarjan SCC | Kosaraju SCC |
 |---|---|---|
@@ -77,7 +75,7 @@ Legacy: `OLD/Team Notebook/src/graph/old_kosaraju.cpp` was inspected; its two DF
 
 ## Limits and handoffs
 
-Incremental SCC belongs to `70-incrementalscc.hpp`; SCC-based transitive closure/reduction belongs to `40-reachability.hpp`; fully dynamic SCC has no row. These are not claimed here. GCC 14.4.1 (`CXX=g++-14`) passed the full-mode floor check on 2026-10-14.
+Incremental SCC belongs to `70-incrementalscc.hpp`; SCC-based transitive closure/reduction belongs to `40-reachability.hpp`; fully dynamic SCC has no row. These are not claimed here.
 
 ## History
 

@@ -39,11 +39,11 @@ python3 08-shrink.py failing.in --propose my_proposer.py --valid my_input_valida
 
 ## Coverage and extension inventory
 
-P001/SUP01 verification is recorded in [the package evidence](Docs/00-verification.md), with the feature-to-test map, the [2026-10-06 re-audit](Docs/00-verification.md#re-audit-2026-10-06) commands and results, and scoped follow-up work. The examples remain small demonstrations, not a comprehensive generator/checker library for every algorithm family.
+P001 evidence (contracts, feature-to-test map, latest commands and results, limits): [00-verification.md](Docs/00-verification.md). The examples remain small demonstrations, not a comprehensive generator/checker library for every algorithm family.
 
 | Files | Owned features | Status and evidence |
 |---|---|---|
-| `01-stress.py`, `09-quick.py` | Sequential seeds, Python/C++/executables, token/byte/custom comparison, input validator, expected-answer replay, error classes, unique bundles, replay, child cleanup, reduced quick CLI | **Verified**, 2026-10-06 re-audit; [P001 evidence](Docs/00-verification.md) |
+| `01-stress.py`, `09-quick.py` | Sequential seeds, Python/C++/executables, token/byte/custom comparison, input validator, expected-answer replay, error classes, unique bundles, replay, child cleanup, reduced quick CLI | **Verified**; [P001 evidence](Docs/00-verification.md) |
 | `01-stress.py`, `05-interactor.py` | Hidden input, bidirectional relay/transcript, EOF/backpressure, total/idle limits, bounded query example | **Verified**; same evidence |
 | `01-stress.py`, `06-validator.py`, `07-scorer.py` | Validity versus tool errors, finite Decimal scores, both objectives, optional reference, permutation example | **Verified**; same evidence |
 | `08-shrink.py` | Valid baseline, shorter valid proposals, exact signatures, skip/errors/timeouts, bounded attempts, preserved progress | **Verified**; same evidence |

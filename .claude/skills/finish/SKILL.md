@@ -10,7 +10,7 @@ The run ends only when the ledger is empty and the done checklist passes, or whe
 
 ## Rules
 
-- **Questions** go through AskUserQuestion only (at most four per call, recommendation first), never as a plain reply that waits for a typed answer: the git grant above ends at the user's next message. While a subagent runs, end the turn with a one-line status; its result resumes the run.
+- **Questions** go through AskUserQuestion only, never as a plain reply that waits for a typed answer: the git grant above ends at the user's next message. While a subagent runs, end the turn with a one-line status; its result resumes the run.
 - **Defect**: breaks a written rule, contract or test requirement and has exactly one fix that changes no API, domain, scope or plan. Fix it without asking.
 - **Decision**: everything else, including kinds of gap these rules do not name. Ask it, unless an owning file already records a user decision on it. Recommend implementing research-level additions now, unless they need another model (`CLAUDE.md`, Models and delegation) or a source that cannot be fetched; then recommend a package. For a finding in another package's files, offer fixing it here (`01-principles.md`, Scope discipline) or recording it in that package's note.
 - **Record** each answer as `user decision <date>` in its owning file: a contract or limit in the evidence document, a scope choice in `Docs/00-notes.md`, a rule in its guideline with the reason in `00-Guidelines/10-decisions.md`. It is never asked again.

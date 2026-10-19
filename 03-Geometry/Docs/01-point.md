@@ -1,12 +1,12 @@
 # 01-point.hpp — evidence
 
-Owned by package P007 / GE01 (geometry foundations, together with `02-line_segment.hpp`, `03-polygon.hpp` and `04-convexhull.hpp`); see [00-notes.md](00-notes.md#p007--ge01-package-record) for the package record and the folder numeric policy. Every operation in the row has a test.
+Owned by package P007 / GE01 (geometry foundations, together with `02-line_segment.hpp`, `03-polygon.hpp` and `04-convexhull.hpp`); see [00-notes.md](00-notes.md#ge01-numeric-policy-p007) for the folder numeric policy. Every operation in the row has a test.
 
 ## Contracts
 
 ### Numeric policy
 
-The GE01 numeric policy in [00-notes.md](00-notes.md#ge01-numeric-policy-p007) applies: signed integral and floating `T`, widening to `lll` before arithmetic, `|x| <= 10^9` sufficient for every operation (including the cubic `tetraVolume6`), finite floating inputs with computed signs and no epsilon, and `long double` results for every `Approx` API. `polarLess` is integral-only because floating rounding can break a sort's strict weak ordering.
+The GE01 numeric policy in [00-notes.md](00-notes.md#ge01-numeric-policy-p007) applies.
 
 ### Point2, Point3, point, dpoint
 
@@ -45,7 +45,7 @@ Correctness: dividing by the gcd leaves a primitive vector. Two primitive vector
 
 ## Feature-to-test map
 
-`96-Local Testing/03-Geometry/01-point_tester.py` provides quick, full and stress modes, deterministic seeds, oracles that survive `-DNDEBUG`, and assertion-failure subprocesses. Full mode builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and AddressSanitizer/UndefinedBehaviorSanitizer configurations. Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
+`96-Local Testing/03-Geometry/01-point_tester.py` runs the geometry runner's optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan builds ([`_00_runner.py`](<../../96-Local Testing/03-Geometry/_00_runner.py>)). Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -59,7 +59,7 @@ Correctness: dividing by the gcd leaves a primitive vector. Two primitive vector
 | `argApprox`, `angleApprox` (2D, 3D), `signedAngleApprox` | The small lattice, random 10^9 coordinates, and straight, quarter, near-parallel (cross `-1`) and `1e-300` angles; regressions for `(-1, 0), (1, 0)` and negative-zero inputs | Trigonometric identities (cosine and sine of the angle times both norms equal dot and cross) and agreement of `argApprox` with the exact `polarLess` order |
 | Preconditions | 8 assertion probes: division by zero, zero vectors for each angle/unit form, `INT_MIN` direction | Expected assertion failure in a subprocess |
 
-Finite tests supplement the arguments above; they do not prove correctness for all inputs. Approximate checks use scale-aware tolerances on the specified fixtures. They do not establish a universal error bound for ill-conditioned floating inputs.
+Approximate checks use scale-aware tolerances on the specified fixtures. They do not establish a universal error bound for ill-conditioned floating inputs.
 
 ## Commands and results
 

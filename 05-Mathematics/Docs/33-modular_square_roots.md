@@ -149,8 +149,6 @@ Every returned class is checked exactly: `f(r) = 0` and `f^(j)(r) M^j / j! = 0 m
 | `polynomialCongruenceRoots` | 400 / 4000 / 16000 cases with `m <= 300` and the moduli 64, 81, 128, 243, 625, 1024, 2187, 3125, 4608 and 2048, against evaluation at every residue: zero polynomial, random coefficients with multiples of `m`, products of `(x - r)^k` with multiplicity up to 3, contents 2, 3, 4, 8, 9, and an extra constant term. 40 / 300 / 1200 planted products modulo `2^61 - 1`, `2^62 - 57`, `1e9 + 7`, 998244353, `1e6 + 3` and `(1e9 + 7)^2`, through Cantor–Zassenhaus with Newton or cluster lifting; every Taylor term is checked and every planted root covered. Python: random small components; `prod (x - r)^m (x^2 - n)` modulo large `p`, counted as distinct `r`; and `(x - r1)^2 (x - r2)(x^2 - n)` modulo `p^2`, counted as `p + 1`. |
 | Preconditions | 15 checked-build probes: `p^e` overflow (`2^63`, `3^40`), `e = 0`, `p = 1`, `k = 65`, `k = -1`, `m = 0` and `m = -3` (composite forms, `rootCount`, polynomial, quadratic), and `k < 0`. |
 
-A UBSan finding in the sibling row 34 (enumeration loops `x += M` overflowing near `2^63`) prompted an audit of this header. Its enumerations live only in the testers; the header never enumerates class members.
-
 ## Commands and results
 
 2026-10-17, i9-11900H, Arch Linux, GCC 16.2 and GCC 14.4.1, CPython 3.14. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with probes, and ASan/UBSan (full and stress). Counts are per configuration and equal on both compilers.
@@ -198,10 +196,10 @@ Research decisions (adopted and rejected) are in [00-notes.md](00-notes.md), P17
 
 - `sqrtModComposite` and the k-th root functions return a deterministic root, not the least. The least square root is `sqrtModAll(a, m)[0].first`.
 - k-th roots of a unit modulo `p^e` call row 11 `kthRootModPrime`, so a large prime power `q^s || p - 1` with `q^2 | p - 1` costs `O(q^(1/2))`. All k-th roots of a composite modulus are a coset, not a union of classes, and are not enumerated (00-notes).
-- `rootsModP` here is a private Cantor–Zassenhaus over `F_p` for 64-bit `p`. When row 46 `rootsModP` (prime-field polynomial roots) is implemented, that package should make this header call it rather than keep two public-equivalent kernels.
+- `rootsModP` here is a private Cantor–Zassenhaus over `F_p` for 64-bit `p`. When row 46 `rootsModPrime` (prime-field polynomial roots) is implemented, that package should make this header call it rather than keep two public-equivalent kernels.
 - `modroot_detail::mul` repeats row 11's `discrete_log_detail::mul` (one line, private to each family; neither is public API).
 - Polynomial degree enters cubically (`O(n^3 e log(p))`). The intended use is small-degree congruences, not row 46-scale factorization.
 
 ## History
 
-- 2026-10-17: P178 initial implementation. Research sweep: no operation added to the row, five candidates rejected. A UBSan audit after the row 34 finding confirmed that this header has no class enumeration. Review: no header defect; planted square and quadratic coverage extended to every large prime power, the Python quadratic oracle extended to `2^e` and `p^2`, `p^3`, locals renamed lowercase, tester names qualified. Full suite passed on g++ and g++-14, stress on g++.
+- 2026-10-17: P178 initial implementation, sweep added no operation (five candidates rejected), UBSan audit found no class enumeration in the header, review found no header defect, test coverage and style issues fixed; full suite passed on g++ and g++-14, stress on g++.

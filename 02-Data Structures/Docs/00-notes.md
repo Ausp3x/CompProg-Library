@@ -4,11 +4,11 @@ Folder-wide contracts, ownership boundaries, migration obligations and per-packa
 
 ## Common contracts
 
-- Canonical indices are zero-based and ranges are half-open; empty ranges return the identity.
+- Ranges follow `03-cpp.md`, API contracts (zero-based, half-open); empty ranges return the identity.
 - State indexing, boundary inclusivity, empty-range identity, key duplicates, signed coordinates, overflow policy and the operation algebra (associativity, identity, action homomorphism, commutativity) for every structure.
 - State static versus online/offline, update/query memory, amortized versus worst-case bounds, and whether balancing is randomized or deterministic. Amortized bounds must be re-proved under persistence and rollback; ephemeral amortization does not transfer.
 - Generic arithmetic must keep every stored value and intermediate representable or be explicitly modular; `lng` is a convenient sum type, not an overflow check.
-- Public storage is exposed for contest use but must not be mutated behind an algorithm's invariants. Structures are single-threaded, own their storage and copy as independent snapshots.
+- Public storage is exposed for contest use but must not be mutated behind an algorithm's invariants. Structures own their storage and copy as independent snapshots.
 - Handles (heap nodes, multiset tokens, versions) state their invalidation rules; tokens from other histories must never be passed back.
 
 ## Numeric and algebraic policies
@@ -18,28 +18,26 @@ Folder-wide contracts, ownership boundaries, migration obligations and per-packa
 - `SparseTable::prod` needs idempotence; `associativeProd` and the disjoint sparse table need only associativity.
 - Monoids follow the `03-cpp.md` monoid rule; presets, adapters and laws are row 00 ([00-monoids.md](00-monoids.md)). Rows 12, 13, 14 (`LazySegmentTreeBeats` adds `fail`), 15 and 19 consume acted monoids (row 13 also needs only the monoid part, or only the action part, for its plain and dual trees; row 15's 2D trees need a commutative `op` or `composition`); row 18 still uses the legacy `Mon` contract until its audit.
 - Li Chao and convex hull trick must state an overflow-safe evaluation policy and exact intersection comparison (128-bit products or bounded domains) and tie rules for equal lines, and serve both min and max queries.
-- Segment-tree beats variants beyond chmin/chmax/add/assign need their own amortized proof and value-domain statement; row 14's evidence proves division, square root and modulo bounds per update mix (modulo has none together with add or chmax).
-- ODT/Chtholly workloads must state adversarial worst-case degeneration: `IntervalMap::assign` is amortised O(log(n)) because every assignment creates at most three pieces, but `apply`/`enumerate`/`fold`/`merge` cost O((k + 1) log(n)) for the k pieces met with no amortisation, so without assignments an adversary pays O(n) per call; the expected O(n log(n)) ODT bound needs uniformly random assignment ranges. Kinetic structures must distinguish adversarial event counts from ordinary update bounds.
+- Segment-tree beats variants beyond chmin/chmax/add/assign need their own amortized proof and value-domain statement ([14-segtreebeats.md](14-segtreebeats.md)).
+- ODT/Chtholly workloads must state adversarial worst-case degeneration ([24-interval_set.md](24-interval_set.md)). Kinetic structures must distinguish adversarial event counts from ordinary update bounds.
 - Hash maps use a process-seeded SplitMix hash; Miscellaneous `02-customhash.hpp` owns the hash functions and seeding policy.
 
 ## Ownership boundaries
 
 - Data Structures owns data-structure engines. Graphs owns dynamic-connectivity orchestration (`26-dynamic_connectivity.hpp`), HLD, LCA and tree adapters; Graphs `48-matroidintersection.hpp` consumes the oracles of `46-matroid_oracle.hpp` and Mathematics linear algebra.
 - Geometry owns point-facing kd/R/quadtree and nearest-neighbour APIs (`28-spatial_index.hpp`), rectangle-union area/perimeter (`13-segment_union.hpp`), kinetic geometry and dynamic/decremental hulls; it may use `43-rangetree.hpp` and `33-offline_rectangle_queries.hpp` as engines.
-- Strings owns literal-prefix and radix tries; this folder owns binary integer/XOR tries and succinct rank/select engines used by Strings `36-compressed_text_index.hpp`.
-- Miscellaneous owns CDQ, parallel binary search, Hilbert order, generic undo log/checkpoints, persistent allocator, slope trick, coordinate compression by encounter ID, interval algorithms over static endpoint sets and probabilistic sketches. `63-offline_deletion.hpp` owns the generic add/remove-over-time engine and the queue-undo trick because its contract is the rollback structure, not a graph.
-- Core owns reusable accelerated dynamic bitsets and GF(2) matrices; `62-xorbasis.hpp` owns the incremental basis, prefix (timestamped) basis and offline range basis queries. Mathematics owns Sprague–Grundy mex; `24-interval_set.hpp` owns dynamic mex over a set (`IntervalSet::find(x).second`).
-- Python mirrors (`08-Python`) own their own sorted-list and xor-basis implementations.
-- Rollback DSU owns the generic undo/connectivity substrate; weighted DSU owns potential/parity/noncommutative algebra and the weighted rollback variant. Reuse the undo contract without reciprocal header dependencies. `65-dsu_extensions.hpp` holds member enumeration, component aggregates, sparse keys and the merge-history forest; it depends on `01-dsu.hpp` only.
+- Strings owns literal-prefix (`04-trie.hpp`) and radix tries; this folder owns binary integer/XOR tries and succinct rank/select engines used by Strings `36-compressed_text_index.hpp`.
+- Miscellaneous owns CDQ (`21-cdq.hpp`), parallel binary search (`20-parallelbinarysearch.hpp`), Hilbert order (`16-hilbertorder.hpp`), generic undo log/checkpoints (`42-rollback_framework.hpp`), persistent allocator, slope trick (`34-slope_trick.hpp`), coordinate compression by encounter ID, interval algorithms over static endpoint sets and probabilistic sketches. `63-offline_deletion.hpp` owns the generic add/remove-over-time engine and the queue-undo trick because its contract is the rollback structure, not a graph.
+- Core owns reusable accelerated dynamic bitsets and GF(2) matrices (`12-bitmatrix.hpp`: rank, solve, nullspace); `62-xorbasis.hpp` owns the incremental basis, prefix (timestamped) basis and offline range basis queries. Mathematics owns Sprague–Grundy mex (`25-game_theory.hpp`); `24-interval_set.hpp` owns dynamic mex over a set (`IntervalSet::find(x).second`).
+- Python mirrors (`08-Python`) own their own sorted-list and xor-basis (`_22_bitset.py`) implementations.
+- Rollback DSU owns the generic undo/connectivity substrate; weighted DSU owns potential/parity/noncommutative algebra and the weighted rollback variant. Reuse the undo contract without reciprocal header dependencies. `65-dsu_extensions.hpp` holds member enumeration, component aggregates, sparse keys and the merge-history forest; it depends on `01-dsu.hpp` and `61-hashmap.hpp` only.
 - Dynamic wavelet and succinct structures are Esoteric rows, never extra modes hidden inside the Advanced wavelet header. Persistent split/merge stays with the persistent segment tree; destructive meld/split stays with the dynamic segment tree.
-- Heap and deque engines are consumed by Graphs Dijkstra, Miscellaneous optimal merge and k-shortest walks; those clients do not reimplement heaps.
+- Heap and deque engines are consumed by Graphs Dijkstra and k-shortest walks and Miscellaneous optimal merge; those clients do not reimplement heaps.
 
 ## Migration obligations
 
-- `OLD/algorithms.cpp:1402–1477` DSU mixed connectivity, weighted distances, parity and edge counts, and narrowed `lng` to `int`. Basic `DSU` keeps `n/ncon/par/siz`; weighted unions, `dis`, `esz`, `is_bip`, `getDis`, `getEsiz`, `isBipartite` belong to `29-weighteddsu.hpp` (potential/parity) and `09-rollbackdsu.hpp`/Graphs (component metadata); row 09 accounts for `esz`/`getEsiz` as `RollbackDSUAggregate::edgeCount` (P034).
-- Unchanged extractions (`18`, `21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit (P027 split `FenTree` into `Fenwick2D`/`Fenwick3D` and replaced `FenTreeRangeAdd1D`, `SegTree` and the `Mon*` presets; P028 replaced `SegTreeBeats`, `SegTree2D` and `DynMergeSortTree`; P029 replaced `WaveletMatrix`; see the row 11–17 evidence).
-- `97-Legacy/04-lichao_older.cpp` is a query-less hull skeleton.
-- `OLD/Team Notebook/src/ds/impltreap.cpp` informed row 19 (P029, see [19-treap.md](19-treap.md)) and `cartesiantree.cpp` informed row 27 (P033, see [27-cartesiantree.md](27-cartesiantree.md)); `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` contain `DynamicMex` (row 24) and `LcaO1` (covered by Graphs `07-lca.hpp` `EulerLCA`; row 54 `LinearRMQ` is the array form).
+- `OLD/algorithms.cpp:1402–1477` DSU: handoffs to rows 09 and 29 are in [01-dsu.md](01-dsu.md#limits-and-handoffs).
+- Unchanged extractions (`18`, `21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit.
 
 ## P006 re-audit omissions
 
@@ -60,29 +58,19 @@ Candidates from the 2026-10-07 sweep ([00-sources.md](00-sources.md)) left out o
 
 ## Foundations rows 01–08 (P006)
 
-Folder-level record for the verified Basic rows `01-dsu.hpp` … `08-monotone_stack.hpp` (package P006, DS01 then DS02 order), moved from the former package document. Per-header evidence: [01-dsu.md](01-dsu.md), [02-fenwick.md](02-fenwick.md), [03-segmenttree.md](03-segmenttree.md), [04-sparsetable.md](04-sparsetable.md), [05-prefix_sum.md](05-prefix_sum.md), [06-sqrt_decomposition.md](06-sqrt_decomposition.md), [07-ordered_set.md](07-ordered_set.md), [08-monotone_stack.md](08-monotone_stack.md). C01/P002 supplies the verified template, integer aliases and PBDS imports. Advanced structures retain their separate inventory owners.
+Folder-level record for the verified Basic rows `01-dsu.hpp` … `08-monotone_stack.hpp` (package P006, DS01 then DS02 order). Per-header evidence: [01-dsu.md](01-dsu.md), [02-fenwick.md](02-fenwick.md), [03-segmenttree.md](03-segmenttree.md), [04-sparsetable.md](04-sparsetable.md), [05-prefix_sum.md](05-prefix_sum.md), [06-sqrt_decomposition.md](06-sqrt_decomposition.md), [07-ordered_set.md](07-ordered_set.md), [08-monotone_stack.md](08-monotone_stack.md). C01/P002 supplies the verified template, integer aliases and PBDS imports. Rows 01–08 use no ISA kernels, Barrett/Montgomery reduction or empirically selected dispatch thresholds.
 
 ### Common foundation contracts
 
-The folder [common contracts](#common-contracts) apply. Empty construction is supported. Invalid indices, sizes, shapes and required predicate identities are preconditions checked by assertions; they remain preconditions under `NDEBUG`. A valid absent result has a documented sentinel. Complexity counts constant-cost element operations/comparisons/copies; strings and large integers add their own costs. Allocation failure is ordinary C++ allocation failure. Associativity, idempotence, arithmetic validity and predicate monotonicity are semantic caller contracts, not properties a generic library can cheaply infer.
+The folder [common contracts](#common-contracts) apply. Empty construction is supported. Invalid indices, sizes, shapes and required predicate identities are preconditions checked by assertions; they remain preconditions under `NDEBUG`. Complexity counts constant-cost element operations/comparisons/copies; strings and large integers add their own costs. Allocation failure is ordinary C++ allocation failure. Associativity, idempotence, arithmetic validity and predicate monotonicity are semantic caller contracts, not properties a generic library can cheaply infer.
 
-A moved-from structure may only be assigned to or destroyed. Its size fields keep their old values while its storage is empty, so every other call is a precondition violation. Assignment restores every invariant (re-audit finding 1, resolved by contract; see [02-fenwick.md](02-fenwick.md)). Structures that have both a size constructor and a vector constructor (`Fenwick`, `SegmentTree`, `PrefixSum`, `DifferenceArray`, `SqrtDecomp`, `SqrtRangeSum`) also take an `std::initializer_list<T>`. A braced list therefore always means values, as with `std::vector`: `PrefixSum<lng> p({7})` and `PrefixSum<lng> p{7}` hold the single value 7, and `PrefixSum<lng> p(7)` holds seven zeros. Elements of `T = bool` are read by value through `vector<bool>::const_reference` wherever a reference to storage is returned.
+A moved-from structure may only be assigned to or destroyed. Its size fields keep their old values while its storage is empty, so every other call is a precondition violation. Assignment restores every invariant. Structures that have both a size constructor and a vector constructor (`Fenwick`, `SegmentTree`, `PrefixSum`, `DifferenceArray`, `SqrtDecomp`, `SqrtRangeSum`) also take an `std::initializer_list<T>`. A braced list therefore always means values, as with `std::vector`: `PrefixSum<lng> p({7})` and `PrefixSum<lng> p{7}` hold the single value 7, and `PrefixSum<lng> p(7)` holds seven zeros. Elements of `T = bool` are read by value through `vector<bool>::const_reference` wherever a reference to storage is returned.
 
 ### Test infrastructure
 
-Each header has one runnable Python entry and one C++ oracle suite under `96-Local Testing/02-Data Structures`, with matching filename stem. The shared `_00_runner.py` resolves paths independently of the working directory. Checks are non-removable under `NDEBUG`. Failures report seed, mode, configuration/command, operation/input or history and expected/actual values; invalid probes require SIGABRT with assertion diagnostics. Exhaustive enumerations stop on the first discovered failing case; no automatic shrinking claim is made.
+Failure reporting follows `05-testing.md`; invalid probes require SIGABRT with assertion diagnostics. Exhaustive enumerations stop on the first discovered failing case; no automatic shrinking claim is made.
 
-Quick modes reduce enumeration lengths/history depths/random counts and run optimized plus checked builds. Full runs every feature in optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`; the ordered suite uses `_GLIBCXX_ASSERTIONS`, see [07-ordered_set.md](07-ordered_set.md)), and sanitizer (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie`) builds, with leak checking enabled. Since the re-audit every configuration compiles with `-Wall -Wextra -Wconversion -Werror`. Stress modes extend the enumerations/random counts; each suite's source records its concrete mode limits. Declared algebra/monotonicity/representability conditions and impractically large allocations are justified contracts, not runtime proof by finite tests.
-
-### Package verification history
-
-The 2026-09-27 verification, the 2026-10-07 re-audit and the 2026-10-13 prune are recorded in each per-header `## History`.
-
-### Provenance and ownership
-
-Original files in `OLD` remain byte-for-byte references. The historical monolith map retains source ranges/hashes and distinguishes rewritten destinations from unchanged extractions. No ISA kernels, Barrett/Montgomery use or empirically selected dispatch thresholds were introduced; the families use their standard contest algorithms with stated preprocessing/storage tradeoffs, and no universal performance superiority is claimed.
-
-Source inspection and independent oracle tests are separate evidence. Implementations are written for the contracts; legacy code and reference algorithms inform the audit. The [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf) (saved repository edition) chapters 4, 8, 9, 15 and 27 cover PBDS, sliding windows, prefix/difference arrays, Fenwick/segment structures, DSU and block decomposition; [KACTL](https://github.com/kth-competitive-programming/kactl) (saved repository PDF) supplied the UnionFind, FenwickTree, SegmentTree, RMQ, SubMatrix and OrderStatisticTree references. Saved resource editions/checksums are recorded in `95-Resources/99-sources.json`. References were inspected on 2026-09-27. Bibliographic mentions of Fischer–Heun and Tarjan are not claims that their original proofs were inspected. No online acceptance is claimed.
+Quick modes reduce enumeration lengths/history depths/random counts and run optimized plus checked builds. Full runs every feature in optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`; the ordered suite uses `_GLIBCXX_ASSERTIONS`, see [07-ordered_set.md](07-ordered_set.md)), and sanitizer (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie`) builds, with leak checking enabled. Every configuration compiles with `-Wall -Wextra -Wconversion -Werror`. Stress modes extend the enumerations/random counts; each suite's source records its concrete mode limits. Declared algebra/monotonicity/representability conditions and impractically large allocations are justified contracts, not runtime proof by finite tests.
 
 ## P027 omissions
 
@@ -191,4 +179,4 @@ Candidates from the 2026-10-17 sweep ([00-sources.md](00-sources.md#fetched-2026
 ## Test matrix
 
 - Differential-test Fenwick/segment-tree variants against a vector; persistent versions against copied snapshots; dynamic-tree structures against small forests; sorted containers against a sorted vector; hash maps against `std::unordered_map` with adversarial key patterns.
-- Test negative values, empty structures, repeated update/rollback sequences, noncommutative action order, version branching and failed merges.
+- Also test repeated update/rollback sequences, noncommutative action order, version branching and failed merges.

@@ -1,6 +1,6 @@
 # 27-blockcuttree.hpp — evidence
 
-Owned by package P047 / GR12; see [00-notes.md](00-notes.md#p047-package-record). Contest profile: extended block-cut and bridge forests built from the verified `lowlink` (row 09), with `EulerLCA` (row 07) for O(1) path tests, plus an incremental block forest over Data Structures 01 `DSU`. The row was a legacy reference to a non-compiling Team Notebook sketch.
+Owned by package P047 / GR12; omissions are in [00-notes.md](00-notes.md#p047-omissions). Contest profile: extended block-cut and bridge forests built from the verified `lowlink` (row 09), with `EulerLCA` (row 07) for O(1) path tests, plus an incremental block forest over Data Structures 01 `DSU`. The row was a legacy reference to a non-compiling Team Notebook sketch.
 
 ## Contracts
 
@@ -96,6 +96,7 @@ Planted mutants (quick suite, optimized build), all killed: an edge-removal size
 | `03-consistency.py` | No errors |
 
 ```bash
+python3 '96-Local Testing/04-Graphs/27-blockcuttree_tester.py' --mode quick
 python3 '96-Local Testing/04-Graphs/27-blockcuttree_tester.py' --mode full --seed 1
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/27-blockcuttree_tester.py' --mode full --seed 2
 python3 '96-Local Testing/04-Graphs/27-blockcuttree_tester.py' --mode stress --seed 3
@@ -108,6 +109,8 @@ python3 '96-Local Testing/03-consistency.py'
 None required: contest profile, no threshold.
 
 ## Sources
+
+Fetched 2026-10-18; the ledger is [00-sources.md](00-sources.md#pages-fetched-on-2026-10-18-p047).
 
 | Source | Inspected claim and application |
 |---|---|

@@ -1,6 +1,6 @@
 # 23-assignment.hpp — evidence
 
-Owned by package P043 / GR10 (with `21-matching_bipartite.hpp`); see [00-notes.md](00-notes.md#p043-package-record). Contest profile: dense shortest-augmenting-path Hungarian, Murty partitioning with warm-started single-row re-augmentation, and sparse successive shortest paths with a binary heap. It replaces the unchanged `OLD/algorithms.cpp:4797-4862` excerpt (1-based e-maxx with `INF64` sentinels and `n ≤ m` only); its `Hungarian` interface maps to `hungarian` (Legacy mapping).
+Owned by package P043 / GR10 (with `21-matching_bipartite.hpp`); omissions are in [00-notes.md](00-notes.md#p043-omissions). Contest profile: dense shortest-augmenting-path Hungarian, Murty partitioning with warm-started single-row re-augmentation, and sparse successive shortest paths with a binary heap. It replaces the unchanged `OLD/algorithms.cpp:4797-4862` excerpt (1-based e-maxx with `INF64` sentinels and `n ≤ m` only); its `Hungarian` interface maps to `hungarian` (Legacy mapping).
 
 ## Contracts
 
@@ -78,9 +78,12 @@ P043 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-1
 | `03-consistency.py --braces` on the three P043 headers and testers | No closing-brace, comment-cap or free-function violations |
 
 ```bash
+python3 '96-Local Testing/04-Graphs/23-assignment_tester.py' --mode quick
 python3 '96-Local Testing/04-Graphs/23-assignment_tester.py' --mode full --seed 20261013
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/23-assignment_tester.py' --mode full --seed 20261013
 python3 '96-Local Testing/04-Graphs/23-assignment_tester.py' --mode stress --seed 3
+python3 '96-Local Testing/02-integration.py'
+python3 '96-Local Testing/03-consistency.py'
 ```
 
 ## Benchmarks
@@ -88,6 +91,8 @@ python3 '96-Local Testing/04-Graphs/23-assignment_tester.py' --mode stress --see
 None required: contest profile without dispatch thresholds or Barrett/Montgomery. The large cases are correctness checks; dense Hungarian is O(n²·m) and sparse SSP O(k·(V + E)·log(V)), and callers choose by density.
 
 ## Sources
+
+Fetched 2026-10-09; the ledger is [00-sources.md](00-sources.md#pages-fetched-on-2026-10-09-p043).
 
 | Source | Inspected claim and application |
 |---|---|

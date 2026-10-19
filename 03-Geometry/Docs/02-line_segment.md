@@ -1,12 +1,12 @@
 # 02-line_segment.hpp — evidence
 
-Owned by package P007 / GE01 (geometry foundations, together with `01-point.hpp`, `03-polygon.hpp` and `04-convexhull.hpp`); see [00-notes.md](00-notes.md#p007--ge01-package-record) for the package record and the folder numeric policy. Every operation in the row has a test.
+Owned by package P007 / GE01 (geometry foundations, together with `01-point.hpp`, `03-polygon.hpp` and `04-convexhull.hpp`); see [00-notes.md](00-notes.md#ge01-numeric-policy-p007) for the folder numeric policy. Every operation in the row has a test.
 
 ## Contracts
 
 ### Numeric policy
 
-The GE01 numeric policy in [00-notes.md](00-notes.md#ge01-numeric-policy-p007) applies. Exact line topology, `canonicalLine` and the lattice counts require integral coordinates with `|x| <= 10^9`, and they assert this bound; the degree-3 intersection numerators are then `<= 24 * 10^27`. An API ending in `Approx` returns `long double` values computed with ordinary rounding and no certified error bound. An approximate construction returns a line as two points (`array<dpoint, 2>`); the left side of a line is the positive side.
+The GE01 numeric policy in [00-notes.md](00-notes.md#ge01-numeric-policy-p007) applies.
 
 ### RationalPoint2
 
@@ -74,12 +74,12 @@ Correctness: a disjoint segment pair attains its minimum distance at an endpoint
 
 ## Feature-to-test map
 
-`96-Local Testing/03-Geometry/02-line_segment_tester.py` provides quick, full and stress modes, deterministic seeds, oracles that survive `-DNDEBUG`, and assertion-failure subprocesses. Full mode builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and AddressSanitizer/UndefinedBehaviorSanitizer configurations. Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
+`96-Local Testing/03-Geometry/02-line_segment_tester.py` runs the geometry runner's optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan builds ([`_00_runner.py`](<../../96-Local Testing/03-Geometry/_00_runner.py>)). Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
 
 | Operation | Test | Oracle |
 |---|---|---|
 | `RationalPoint2`: normalization, equality, `approx` | `02-line_segment_tester` | Python Fraction |
-| `Linear2` factories, `contains` | Membership including singleton degeneracies; every fixture also checks `contains(Linear2::segment(s.a, s.b), p)` whatever the kind of `s` | Python Fraction topology via implicit line equations |
+| `Linear2` factories, `LinearKind`, `contains` | Membership including singleton degeneracies; every fixture also checks `contains(Linear2::segment(s.a, s.b), p)` whatever the kind of `s` | Python Fraction topology via implicit line equations |
 | `parallel`, `orthogonal`, `collinear` | `02-line_segment_tester` | Python Fraction topology; an orthogonality bit from exact dot products |
 | `intersect`, `IntersectionKind`, `LinearIntersection2` | Every line/segment/ray intersection pair with all five output kinds, reversed operands, and singleton degeneracies (54,256 Fraction topology fixtures) | Python Fraction topology via implicit line equations |
 | `canonicalLine` | Key equality against same-line bits, normalization, endpoint incidence and extreme constants | Python Fraction same-line bits |
@@ -89,7 +89,7 @@ Correctness: a disjoint segment pair attains its minimum distance at an endpoint
 | `latticeOnSegment`, `gridCellsCrossed` | All pairs of a 5×5 grid, random `[-12, 12]` pairs, and the `±10^9` diagonal and coprime extremes (681 lattice/cell fixtures) | Lattice-point enumeration and exact Fraction cell-interior tests that do not use gcd |
 | Preconditions | 23 assertion probes | Expected assertion failure in a subprocess |
 
-Finite tests supplement the arguments above; they do not prove correctness for all inputs. Approximate checks use scale-aware tolerances on the specified fixtures. They do not establish a universal error bound for ill-conditioned floating inputs.
+Approximate checks use scale-aware tolerances on the specified fixtures. They do not establish a universal error bound for ill-conditioned floating inputs.
 
 ## Commands and results
 
@@ -126,7 +126,7 @@ The implementation was written independently from the geometric identities. Note
 
 ## Limits and handoffs
 
-Other planned packages own adaptive and exact floating predicates (P128 / GE11), segment intersection sweeps (P129 / GE04) and general rational-lattice counts (P037 / GE27).
+Other planned packages own adaptive and exact floating predicates (P128 / GE11) and segment intersection sweeps (P129 / GE04). General rational-lattice counts are row 19 (`19-lattice_geometry.hpp`).
 
 ## History
 

@@ -8,7 +8,7 @@ There is no global state. Point functions take `ulng n >= 1` (asserted via `fact
 
 ### phi, mobius, omega, bigOmega, liouville, carmichaelLambda
 
-Euler's totient (exact `ulng`), Möbius in {-1, 0, 1}, the number of distinct primes, the number of primes with multiplicity, Liouville `(-1)^Omega(n)`, and Carmichael's `lambda(n)`, the least `m` with `a^m = 1` for every unit. `lambda` is the lcm over prime powers of `phi(p^e)`, halved for `2^e` with `e >= 3`. It is at most `n`, so the lcm cannot overflow.
+Euler's totient (exact `ulng`), Möbius in {-1, 0, 1}, the number of distinct primes, the number of primes with multiplicity, Liouville `(-1)^Omega(n)`, and Carmichael's `lambda(n)`, the least `m` with `a^m = 1` for every unit. `lambda` is the lcm over prime powers of `phi(p^e)`, halved for `2^e` with `e >= 3`, so it is not multiplicative in the ordinary product sense. It is at most `n`, so the lcm cannot overflow.
 
 ### sigmaK, jordanTotient
 
@@ -45,11 +45,11 @@ Entry: [`08-multiplicative_functions_tester.py`](<../../96-Local Testing/05-Math
 | `phi`, `mobius`, `omega`, `bigOmega`, `liouville` | Trial-factor formulas for every `n` through 3000 / 30000 / 150000. `phi` by gcd counting through 400. Python closed forms on 300 / 4000 / 20000 values up to 2^64 with up to 8 known primes. |
 | `carmichaelLambda` | lcm of brute multiplicative orders through 400; through 3000, every unit satisfies `a^lambda = 1` and some unit fails `lambda / q` for each prime `q`; Python. |
 | `sigmaK`, `jordanTotient` | Divisor sums of `d^k` for `k` in 0..3, exact and modint with exponent `k + 10^9 + 7`, through 2000. `sum J_k(d) = n^k` for `k` in 1..3. Pair counting `J_2` and `J_1 = phi` through 60. Python: `sigma_0`, `sigma_1`, `sigma_3` and `J_2` modulo 2^128, `sigma` with `k = 10^18` and `J` with `k = 123456789` modulo 998244353. |
-| Six tables | Sizes 0, 1, 2, 3 and N against trial-factor values, divisor-multiple sieves and running sums. |
+| `phiTable`, `mobiusTable`, `divisorCountTable`, `divisorSumTable`, `prefixPhiTable`, `prefixMobiusTable` | Sizes 0, 1, 2, 3 and N against trial-factor values, divisor-multiple sieves and running sums. |
 | `multiplicativeTable` | Salted hash of `(p, k, p^k)` compared with the product over trial factors. A completely multiplicative modint `i^K` table with random `K`. Sizes 0 and 1. |
 | `dirichletConvolutionTable` | `O(n^2)` divisor sums for sizes 0, 1, 2, 7 and 300 / 3000 / 12000, random signed entries. |
 | `dirichletInverseTable` | `a * a^(-1) = e` for wrapping `ulng` with `a[1] = 1` and for modint with random `a[1] != 0`. The inverse of all-ones equals `mobiusTable`. |
-| `DivisorArray` | 11 fixed `n` (1, primes, 360, 720720, `600851475143`, `897612484786617600` with 103680 divisors, `2^64 - 1`) and 40 / 400 random `n`. Both constructors; divisor sets against `07` `divisors` and brute enumeration below 10^5. Every `index`. `get` and `operator[]`. `zeta` and `multipleZeta` against brute sums when `d(n) <= 3000`. Inverse round trips everywhere. `setMultiplicative` (phi then zeta gives the identity; Möbius against trial factors). Default object. |
+| `DivisorArray` | 11 fixed `n` (1, primes, 360, 720720, `600851475143`, `897612484786617600` with 103680 divisors, `2^64 - 1`) and 40 / 400 random `n`. Both constructors (each calls `build`); `size` and divisor sets against `07` `divisors` and brute enumeration below 10^5. Every `index`. `get` and `operator[]`. `zeta` and `multipleZeta` against brute sums when `d(n) <= 3000`. Inverse round trips (`mobius`, `multipleMobius`) everywhere. `setMultiplicative` (phi then zeta gives the identity; Möbius against trial factors). Default object. |
 | Preconditions | 10 checked-build probes: zero `n`, negative and `INT_MAX` table sizes, mismatched or empty convolution inputs, a too-small inverse input, `index(0)`, `index` of a non-divisor. |
 
 ## Commands and results
@@ -71,7 +71,7 @@ None required. No Barrett, Montgomery or ISA-specific code is used directly; Mon
 
 [00-sources.md](00-sources.md), P052 sweep: maspypy `array_on_divisors`, hitonanode `sieve` (divisor-array multiplicative fill and multiple-direction transforms), OI Wiki number-theory basics (`omega`, `bigOmega`), OI Wiki sieve (linear-sieve recurrences). Written independently. Legacy: `OLD/5-Mathematics/06-phiandinverse.hpp` (`getPhi` becomes `phi`).
 
-Adopted by the P052 sweep: `omega`, `bigOmega`, `DivisorArray` `setMultiplicative`/`multipleZeta`/`multipleMobius`/`size`/`operator[]`. Renamed: `divisorCountFn`/`divisorSumFn` became `divisorCountTable`/`divisorSumTable` (point values already in row 07); `powerTable` is fixed as `i^k`.
+Adopted by the P052 sweep: `omega`, `bigOmega`, `DivisorArray` `setMultiplicative`/`multipleZeta`/`multipleMobius`/`size`/`operator[]`.
 
 ## Limits and handoffs
 

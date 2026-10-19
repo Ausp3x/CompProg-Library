@@ -1,10 +1,10 @@
 # 34-slope_trick.hpp — evidence
 
-`34-slope_trick.hpp` (batch MI23, package P075) maintains convex piecewise-linear functions under the slope-trick operations. It has three structures. `SlopeTrick` stores unit breakpoints in two binary heaps. `WeightedSlopeTrick` stores weighted breakpoints in a treap with an exact `+INF` domain, which adds domain restriction, slope clamping and infimal convolution. `DualSlopeTrick` stores the convex conjugate of a finite-domain integer function. Dependencies: the C01 template (P002) and `01-random.hpp` (treap priorities). Contest profile: no ISA-specific code. The code is independently implemented and adapts no external code. No online submission was made.
+`34-slope_trick.hpp` (batch MI23, package P075) maintains convex piecewise-linear functions under the slope-trick operations. It has three structures. `SlopeTrick` stores unit breakpoints in two binary heaps. `WeightedSlopeTrick` stores weighted breakpoints in a treap with an exact `+INF` domain, which adds domain restriction, slope clamping and infimal convolution. `DualSlopeTrick` stores the convex conjugate of a finite-domain integer function. Dependencies: the C01 template (P002) and `01-random.hpp` (treap priorities). The code is independently implemented and adapts no external code.
 
 ## Contracts
 
-All three structures represent a convex function `f`. `INF = numeric_limits<T>::max()` is the sentinel: an unbounded end of `argminRange()` or `domain()` is `-INF` or `INF`, and `WeightedSlopeTrick::evaluate` and `DualSlopeTrick::atZero` return `INF` outside the domain. Positions, shifts and query points must stay strictly inside `(-INF/2, INF/2)`, and every queried function value must lie in `(-INF, INF)`, since `INF` means outside the domain. `slide(a, b)` requires `a <= b` (asserted) and sets `f(x) <- min over y in [x - b, x - a] of f(y)`. `shift(d)` sets `f(x) <- f(x - d)`. Copies are independent values. `merge` and `minPlusConvolution` take their operand by value, so pass `std::move(g)` to keep the stated bound; a self-merge copies first and is valid. A moved-from `WeightedSlopeTrick` is the zero function on `(-INF, INF)`. A moved-from `SlopeTrick` or `DualSlopeTrick` is valid but unspecified, so every operation on it is safe. Single-threaded use is the baseline.
+All three structures represent a convex function `f`. `INF = numeric_limits<T>::max()` is the sentinel: an unbounded end of `argminRange()` or `domain()` is `-INF` or `INF`, and `WeightedSlopeTrick::evaluate` and `DualSlopeTrick::atZero` return `INF` outside the domain. Positions, shifts and query points must stay strictly inside `(-INF/2, INF/2)`, and every queried function value must lie in `(-INF, INF)`, since `INF` means outside the domain. `slide(a, b)` requires `a <= b` (asserted) and sets `f(x) <- min over y in [x - b, x - a] of f(y)`. `shift(d)` sets `f(x) <- f(x - d)`. Copies are independent values. `merge` and `minPlusConvolution` take their operand by value, so pass `std::move(g)` to keep the stated bound; a self-merge copies first and is valid. A moved-from `WeightedSlopeTrick` is the zero function on `(-INF, INF)`. A moved-from `SlopeTrick` or `DualSlopeTrick` is valid but unspecified, so every operation on it is safe.
 
 ### SlopeTrick
 
@@ -70,7 +70,7 @@ The structure keeps an anchor `c = clamp(0, domain())` and a `SlopeTrick<T> g` e
 - `addXMinusA(a, w)` adds `w * (x - a)^+`. It is linear when `a <= min domain` and a no-op when `a >= max domain`. Otherwise it convolves `g` with the conjugate `a' * p` on `[0, w]` (`a' = a - c`) via `addLinear(-a')`, `slide(0, w)`, `addLinear(a')`, in `O(min(|a|, n) log n)`. The cost does not depend on `w`. `addAMinusX(a, w)` adds `w * (a - x)^+ = w * (x - a)^+ - w * x + w * a` and costs the same.
 - `slide(a, b)` is `shift(a)`, then `b - a` unit relus at `p = 0` in `g` (the support function of `[0, b - a]`), then a re-anchor. Cost `O((min(|a|, n) + b - a) log n)`; the domain widens by `b - a`.
 
-Every operation here is also available on `WeightedSlopeTrick` in expected `O(log n)`, so the dual heaps are the deterministic heap-only choice for small arguments and slopes up to `INF/2`. They are 12x faster on the choose-half benchmark (below). hitonanode documents its `shift` as `O(log n)`, but its loop runs `|d|` times. This header keeps an exact finite domain instead of the `INF/2` sentinel slopes.
+Every operation here is also available on `WeightedSlopeTrick` in expected `O(log n)`, so the dual heaps are the deterministic heap-only choice for small arguments and slopes up to `INF/2`. They are 14x faster on the choose-half benchmark (below). hitonanode documents its `shift` as `O(log n)`, but its loop runs `|d|` times. This header keeps an exact finite domain instead of the `INF/2` sentinel slopes.
 
 ## Feature-to-test map
 
@@ -86,11 +86,11 @@ Every operation here is also available on `WeightedSlopeTrick` in expected `O(lo
 | Supporting only | Unit and weighted structures agree on 2·10^5 (full) and 10^6 (stress) random operations. Node reuse holds: the pool stays within peak live nodes + 8. Copies stay independent. |
 | Preconditions | 20 checked-build assertion probes: reversed `slide` (all three), out-of-range `SlopeTrick::addLinear`, negative weights in every weighted add (five), empty domain, disjoint `merge`, `min`/`argminRange`/`prefixMin`/`suffixMin` on unbounded functions, `clampSlope` with `s1 > 0`, with `s2 < 0` and on an unbounded function, `minPlusConvolution` with either operand unbounded. |
 
-Mutation check (2026-10-13): 27 hand mutations of the header ran against quick mode. 26 failed the suite; the survivor (clipping nodes at exactly `hi`) is an equivalent mutant, because those nodes are zero on the domain and `norm()` restores the weight. Three more mutations restored the defects that review found. The first sends duplicates right in `insert`, the second orders `unite` duplicates by priority, and the third keeps the operand's priorities in `merge`. The depth guards caught each one: depths 1008 for 4000 nodes, 4000 for 4000, and 1539 for 16384.
+Mutation check (2026-10-13): 27 hand mutations of the header ran against quick mode. 26 failed the suite; the survivor (clipping nodes at exactly `hi`) is an equivalent mutant, because those nodes are zero on the domain and `norm()` restores the weight. Three more mutations (duplicates sent right in `insert`, `unite` duplicates ordered by priority, the operand's priorities kept in `merge`) were caught by the depth guards: depths 1008 for 4000 nodes, 4000 for 4000, and 1539 for 16384.
 
 ## Commands and results
 
-Run 2026-10-13: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14.7. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` (with the probes), and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined` with leak checking (full and stress).
+Run 2026-10-13: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14.7. Configurations: optimized, checked (with the probes) and ASan/UBSan (full and stress), as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
 
 ```bash
 python3 '96-Local Testing/06-Miscellaneous/34-slope_trick_tester.py' --mode quick --seed 1             # PASS, 2 configurations, 20 probes, 156,345 checks, MEMORY peak 489 MB
@@ -134,7 +134,7 @@ Conclusions:
 - On this shallow random tree, small-to-large heaps beat treap union in practice, despite the `log` factor.
 - No timing gate is used.
 
-Host variance: the shared host varied by up to 2x during the session. The same treap binary took 1047–1349 ms on the 10^6 monotone fit across repeated runs, and an A/B against the header without the move operations showed no difference. Ratios between implementations stayed stable.
+Host variance: the shared host varied by up to 2x during the session. The same treap binary took 1047–1349 ms on the 10^6 monotone fit across repeated runs. Ratios between implementations stayed stable.
 
 ## Sources
 
@@ -171,7 +171,7 @@ Aliases in the fetched libraries:
 - `WeightedSlopeTrick` needs signed integral `T`. `SlopeTrick<double>` covers real positions.
 - `DualSlopeTrick::slide` costs `b - a` heap insertions. Use `WeightedSlopeTrick` for wide windows.
 - 08-Python `_30_dp_optimization.py` plans a SlopeTrick reduction (`addLeft`/`addRight`). Its owner should adopt these names (`addAMinusX`/`addXMinusA`).
-- Mathematics `27` (planned) bridges to these structures; array min-plus convolution stays with Mathematics `53`.
+- Mathematics `27` owns Monge/Knuth/Aliens and does not re-implement slope trick; array min-plus convolution stays with Mathematics `53`.
 - No legacy excerpt or `OLD` implementation exists for this row.
 
 ## History

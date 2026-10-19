@@ -22,7 +22,7 @@ List finished scopes under a temporary `## Sweep progress` in the ledger as they
 
 ## Apply
 
-1. **Settle** each `ask` with AskUserQuestion (at most four per call, your recommendation first); record the answer in its row and, dated, under "Recorded decisions".
+1. **Settle** each `ask` with AskUserQuestion; record the answer in its row and, dated, under "Recorded decisions".
 2. **Adopt into a row:** add the operation to the row; a `verified` row and its package reopen (`01-principles.md`, Evidence). Every owning package gets `Omission sweep YYYY-MM-DD: implement <operations> in <header>.` appended to its existing note (`plan.py set`).
 3. **Adopt a new row:** next free prefix of its folder (`02-structure.md`, Names), status `planned; <source keys>`, owned by exactly one batch: the named batch whose package is `planned` (widen its `focus` and `tiers`) or, through a `python3` script on `batches.json` and `packages.json`, a new batch (folder letters, next number, prerequisites from its includes) and package (next `Pnnn`; phase `Core full types`, `Python contest layer`, `Specialist and research families` for Esoteric, else `Contest core`; model per `CLAUDE.md`, Models and delegation; status `planned`; after its prerequisites). Then `plan.py render`.
 4. **Omit:** one bullet per item, `- <operation> (<source keys>): <reason>.`, under `## Omission sweep YYYY-MM-DD` in the folder's `Docs/00-notes.md`.

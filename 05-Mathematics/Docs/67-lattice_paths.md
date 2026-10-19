@@ -122,7 +122,7 @@ Fetched 2026-10-19 by `@researcher` and the package session ([00-sources.md](00-
 ## Limits and handoffs
 
 - Path families on general DAGs and LGV beyond grid paths are Graphs row 53; general step sets are bounded-height DP or row 15 recurrences.
-- Scope decisions (Sato's matrix formula, Schroeder paths between heights, strict Bizley counts) are in [00-notes.md](00-notes.md), P054 decisions.
+- Scope decisions (Sato's matrix formula, Schroeder paths between heights, strict Bizley counts) are in [00-notes.md](00-notes.md), P054 research decisions.
 - No `97-Legacy` excerpt existed for this row.
 
 ## History

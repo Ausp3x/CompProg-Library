@@ -22,7 +22,7 @@ Partition DPs (on the current string `s[start, n)`, local prefix lengths `0..m`;
 
 ## Feature-to-test map
 
-Runner: [`13-palindromictree_tester.py`](<../../96-Local Testing/07-Strings/13-palindromictree_tester.py>). The oracle enumerates substrings and tests palindromes directly; partitions use an O(n^2) table DP; all checks survive `-DNDEBUG`.
+Runner: [`13-palindromictree_tester.py`](<../../96-Local Testing/07-Strings/13-palindromictree_tester.py>). The oracle enumerates substrings and tests palindromes directly; partitions use an O(n^2) table DP.
 
 | Operation | Coverage |
 |---|---|
@@ -39,7 +39,7 @@ Checked builds run ten precondition probes: `palindrome` on a root and past the 
 
 ## Commands and results
 
-Run 2026-10-10 on the final code. Configurations: optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, assertion probes; stress runs at full-mode sizes because the debug library is slow) and ASan/UBSan (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined`), all with `-std=gnu++20 -Wall -Wextra -Wshadow -Wconversion -Werror`; local `g++` is GCC 16.2.1, the floor run uses `g++-14` (GCC 14.4.1).
+Run 2026-10-10 on the final code; local `g++` is GCC 16.2.1, the floor run uses `g++-14` (GCC 14.4.1). Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>). The checked build runs stress at full-mode sizes because the debug library is slow.
 
 ```bash
 python3 '96-Local Testing/07-Strings/13-palindromictree_tester.py' --mode quick --seed 1  # PASS, 2 configurations, 10 assertion probes
@@ -48,10 +48,10 @@ CXX=g++-14 python3 '96-Local Testing/07-Strings/13-palindromictree_tester.py' --
 python3 '96-Local Testing/07-Strings/13-palindromictree_tester.py' --mode stress --seed 3  # PASS, 3 configurations, 28,632,370 checks (optimized, ASan/UBSan), 8,741,368 (checked), MEMORY peak 881 MB
 python3 '96-Local Testing/02-integration.py' --sanitizers  # PASS, 115 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 2693 MB
 python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 13 suites
-python3 '96-Local Testing/03-consistency.py'  # no new errors (see below)
+python3 '96-Local Testing/03-consistency.py'  # no errors
 ```
 
-Every pre-flight quick run passed under the 2048 MB cap. `03-consistency.py` cannot run inside this worktree because gitignored `OLD` binaries and a `.jsonl` log are absent; on a temporary copy of the worktree with the main checkout's `OLD` archive and `18-bitset_benchmark.jsonl` it reports no errors. After rebasing onto `master` (which added `10`, `12`, `18` to this folder) the four suites passed quick again, `02-integration.py` passed (124 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace) and the validator reported no errors.
+After rebasing onto `master` (which added `10`, `12`, `18` to this folder) the four suites passed quick again, `02-integration.py` passed (124 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace) and the validator reported no errors.
 
 ## Benchmarks
 
@@ -71,7 +71,7 @@ Code is independently implemented from the invariants above.
 ## Limits and handoffs
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): a separate `seriesLink` method (the `series` field), a raw per-node count field (recomputed by `occurrenceCounts`), k-factorization, per-symbol DP callbacks, rich-string enumeration, persistence (`45`), listing the end positions of one palindrome.
-- `39` lists `palindromicLength (per prefix)`; the series-link implementation lives here and `39` should reuse it.
+- Row `39` lists `palindromicLength (per prefix)`, which is this operation; the P209 duplicate sweep marks it for removal from row 39 (`duplicates.md`, pending `/prune`).
 - Double-ended and rollback eertrees are `45`; range palindrome queries and palindromic characteristics are `39`.
 
 ## History

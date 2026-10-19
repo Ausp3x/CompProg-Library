@@ -36,7 +36,7 @@ The perimeter sums the vertical boundary length of the sweep and of the transpos
 
   A `±1` change of the lazy add moves that threshold by one, so the pointer moves at most one distinct value, in `O(1)`. The pointer for `k + 1` is the same one, or one step further when that base reaches exactly `k`. A partially covered block changes the bases of its interval range, merges the changed and unchanged sorted runs (each run stays sorted) and rebuilds in `O(b)`. Each block caches its weight at depth `>= k` and `> k`, and running totals are updated by the change. Integral totals are exact (`ulng` arithmetic modulo `2^64`, final values below `8 * 10^18`). Floating totals are recounted from the block caches every `nb` changes, so rounding cannot drift. An event costs `O(nb + b) = O(sqrt(n))`: `O(n * sqrt(n))` time and `O(n)` memory for every `k`.
 
-The overall bound is `O(n * k * log(n))` for `k <= 16`, else `O(n * sqrt(n))`, with `O(n)` memory. The threshold comes from the benchmark below. On short rectangles the blocks are ahead from `k = 2` (narrowly at `k = 2`, 2× by `k = 16`); on rectangles spanning most of the range (every block shifted on every event) the tree wins up to `k` between 32 and 64 at `n = 10^5`, and, in a one-off tuning measurement not kept in the driver, near 64 at `n = 4 * 10^5`. But the tree's memory grows with `k`: `8 (k + 1)` bytes per interval, 211 MB at `k = 32` and `n = 4 * 10^5`. `k = 16` caps the worst slowdown either way at about 2–3× and keeps memory linear.
+The overall bound is `O(n * k * log(n))` for `k <= 16`, else `O(n * sqrt(n))`, with `O(n)` memory. The threshold `k = 16` is chosen in Benchmarks.
 
 ### maxRectangleOverlap
 
@@ -68,7 +68,7 @@ Returns the same segments as `rectangleUnionBoundary` (as a multiset; the order 
 
 The trees work in rank space: leaves and node keys are x-ranks among the rectangles' distinct x coordinates (nodes are 20 bytes), queries pass the ranks of their x-range, and the pieces are mapped back to coordinates at the end. The same rank-space pieces feed `rectangleUnionContours`.
 
-Time `O(n * log(n) + out)`; memory `O(n * log(n) + out)` for the shared tree nodes. Kept beside the sweep by decision (2026-10-19). In the round-3 measurements below the sweep is as fast or faster at every size but one (the 600-bar lattice, 4%): its extra `log(n)` factor on the output does not show yet, and the shared trees cost memory traffic.
+Time `O(n * log(n) + out)`; memory `O(n * log(n) + out)` for the shared tree nodes. Kept beside the sweep by decision (2026-10-19). In the measurements below the sweep is as fast or faster at every size but one (the 600-bar lattice, 4%): its extra `log(n)` factor on the output does not show yet, and the shared trees cost memory traffic.
 
 ### rectangleUnionContours
 
@@ -82,7 +82,7 @@ Returns the union's boundary as rings of corners: `vector<vector<Point2<T>>>`, e
   A ring visits a vertex at most twice and never crosses itself.
 - **Order.** The pieces are walked in start-vertex order and a ring starts at the first piece not yet used, so each ring starts at its lexicographically smallest vertex (x, then y) and the rings come out in that order. A ring visits its smallest vertex once: at a four-piece vertex, the pairing that visits it twice includes an edge to its left or below it. A hole can start at a corner it shares with the outer ring (the union in the north-west and south-east quadrants there).
 
-`O(n * log(n) + out)` time and memory, with Güting's pieces. Added in round 3 (2026-10-19).
+`O(n * log(n) + out)` time and memory, with Güting's pieces.
 
 ### orthogonalIntersectionCount, orthogonalIntersections
 
@@ -141,7 +141,7 @@ Mutation checks (2026-10-19, quick, optimized):
   - making `maxRectangleOverlap` keep right ends closed;
   - Güting without blackening the left half;
   - Güting losing the state before the query range;
-  - (round 3) the block pointer moving on `>` instead of `>=`;
+  - the block pointer moving on `>` instead of `>=`;
   - the `k + 1` pointer never stepping past an exact `k`;
   - a partial block update skipping its merge (by the depth-array phase);
   - a tree leaf counting `j < count`;
@@ -154,7 +154,7 @@ Mutation checks (2026-10-19, quick, optimized):
 
 ## Commands and results
 
-2026-10-19 (round 3, final code), Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
+2026-10-19, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
 
 | Command | Result |
 |---|---|
@@ -179,7 +179,7 @@ python3 '96-Local Testing/03-Geometry/13-segment_union_benchmark.py' --seed 2026
 
 ## Benchmarks
 
-`13-segment_union_benchmark.py --seed 20260927` (2026-10-19, round 3; Intel Core i9-11900H, GCC 16.2.1 `-O2 -DNDEBUG`, one warmup, median of five; other sessions kept the load average near 2.2 on the 8-core CPU; run serially after all round-3 changes).
+`13-segment_union_benchmark.py --seed 20260927` (2026-10-19; Intel Core i9-11900H, GCC 16.2.1 `-O2 -DNDEBUG`, one warmup, median of five; other sessions kept the load average near 2.2 on the 8-core CPU; run serially on the final code).
 - **Validation:** both boundary versions return the same segment multiset, the rings use every piece, and both coverage paths agree.
 - **Inputs:**
   - random rectangles have sides up to `3 * 10^7` in a `10^9` square;
@@ -224,9 +224,9 @@ The implementation was written independently. Sources of the completeness sweep 
 
 ## Limits and handoffs
 
-- `rectangleCoverageArea` answers one `k` in `O(n * k * log(n))` for `k <= 16` and `O(n * sqrt(n))` above, with `O(n)` memory. The whole depth distribution in `O(n^1.5 * log(n))` (Barbay et al.) belongs to the planned esoteric rectangle-depth package (round 3, E2).
-- `rectangleUnionBoundary` is `O((n + out) * log(n))`. `rectangleUnionBoundaryGuting` and `rectangleUnionContours` reach the optimal `O(n * log(n) + out)` at `O(n * log(n))` working memory. A linear-memory contour sweep (Güting's contracted segment tree) belongs to the same planned package (E4).
-- Floating coordinates are exact in structure and rounded in sums; there is no tolerance-based merging of nearly equal coordinates. Online anchored unions (maspypy `incremental_rectangle_union`) belong to Data Structures.
+- `rectangleCoverageArea` answers one `k` in `O(n * k * log(n))` for `k <= 16` and `O(n * sqrt(n))` above, with `O(n)` memory. The whole depth distribution in `O(n^1.5 * log(n))` (Barbay et al.) belongs to row 58 `rectangleDepthDistribution` (P235, planned).
+- `rectangleUnionBoundary` is `O((n + out) * log(n))`. `rectangleUnionBoundaryGuting` and `rectangleUnionContours` reach the optimal `O(n * log(n) + out)` at `O(n * log(n))` working memory. A linear-memory contour sweep (Güting's contracted segment tree) is row 58 `rectangleUnionBoundaryLinearMemory` (P235, planned).
+- Floating coordinates are exact in structure and rounded in sums; there is no tolerance-based merging of nearly equal coordinates. Online anchored unions (maspypy `incremental_rectangle_union`) are not adopted ([00-notes.md](00-notes.md#p037-completeness-decisions-2026-10-18)).
 
 ## History
 
