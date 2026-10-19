@@ -30,6 +30,14 @@ Research for `11`; pages fetched 2026-10-18 by the completeness researcher. Adop
 |---|---|---|
 | `11` | https://maspypy.github.io/library/string/suffix_tree.hpp, https://raw.githubusercontent.com/maspypy/library/main/string/suffix_tree.hpp, https://maspypy.github.io/library/string/basic_substring_structure.hpp, https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/strings/SuffixTree.h, https://oi-wiki.org/string/suffix-tree/, https://cp-algorithms.com/string/suffix-tree-ukkonen.html, https://en.wikipedia.org/wiki/Suffix_tree, https://github.com/yosupo06/library-checker-problems/tree/master/string; ei1333, hitonanode and suisen indexes (no suffix tree); Nyaan by search only; Gusfield's textbook not accessed | `step` (maspypy `next`), `suffixLink`, `children`, pre-order ids with `Node::end` (maspypy numbering) adopted; KACTL and cp-algorithms are Ukkonen (`33`); Library Checker has no suffix-tree problem |
 
+## P082 re-sweep (2026-10-19)
+
+Research for `11` after the omission sweep; pages fetched 2026-10-19 by the completeness researcher.
+
+| Row | Pages | Outcome |
+|---|---|---|
+| `11` | https://raw.githubusercontent.com/ecnerwala/cp-book/master/src/seq/suffix_array.hpp, https://raw.githubusercontent.com/ecnerwala/cp-book/master/src/ds/rmq.hpp, https://api.github.com/repos/ecnerwala/cp-book/contents/src/seq, https://api.github.com/repos/maspypy/library/contents/string, https://raw.githubusercontent.com/maspypy/library/main/string/suffix_tree.hpp, https://en.wikipedia.org/wiki/Suffix_tree, https://oi-wiki.org/string/suffix-tree/, https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/strings/SuffixTree.h, https://nyaannyaan.github.io/library/ | `get_split` (LCP and split index of an SA interval over `{lcp, index}` pairs) informs `lca`; its `RangeMinQuery` layout (32-element blocks, in-block bitmasks, sparse table over block minima) is the `split` RMQ; Wikipedia's first occurrence is left out ([00-notes.md](00-notes.md)); nothing else missing |
+
 ## P085 sweeps (2026-10-16)
 
 Per-row research for `21`, `22`, `23`; pages fetched 2026-10-16 by the completeness researcher. Adopted operations are cited in each evidence document; rejections are in [00-notes.md](00-notes.md).

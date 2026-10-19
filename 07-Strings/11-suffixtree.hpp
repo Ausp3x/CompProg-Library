@@ -1,15 +1,20 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
+#include "../02-Data Structures/00-monoids.hpp"
+#include "../02-Data Structures/01-dsu.hpp"
+#include "../02-Data Structures/04-sparsetable.hpp"
 #include "07-suffixarray.hpp"
 
-// S: O(n) from a moved SuffixArray, O(n * log(n + 1)) from a text, U: NA, Q: O(1) access, O(log(S + 1)) child/step, O(m * log(S + 1)) locate/isSubstring, O(log(n + 1)) weightedAncestor/suffixLink, M: O(n) (O(n * log(n + 1)) if index keeps RMQ).
+// S: O(n) from a moved SuffixArray, O(n * log(n + 1)) from a text, U: NA, Q: O(1) access/lca/suffixLink, O(log(S + 1)) child/step, O(m * log(S + 1)) locate/isSubstring, O(log(n + 1)) weightedAncestor, M: O(n) (O(n * log(n + 1)) if index keeps RMQ).
 // Integral T (string input: bytes as T = int), n < 2^30, sentinel-free; ids in lexicographic pre-order, root 0; locus {node, length}, {-1, 0} when step fails.
 template<class T = int> requires std::is_integral_v<T>
 struct SuffixTree {
     struct Node { int l, r, depth, parent, end; };
     SuffixArray<T> index;
     vector<Node> nodes;
-    vector<int> start, kids, leaf, jump;
+    vector<int> start, kids, leaf, jump, link, split;
+    vector<uint> window;
+    SparseTable<Min<int>> blocks;
 
     SuffixTree() : SuffixTree(SuffixArray<T>()) {}
     explicit SuffixTree(SuffixArray<T> sa) { build(std::move(sa)); }
@@ -24,6 +29,7 @@ struct SuffixTree {
         vector<Node> raw{{0, n, 0, -1, 0}};
         vector<int> st{0};
         leaf.assign(n, 0);
+        split.assign(max(n - 1, 0), 0);
         // Bottom-up LCP-interval scan; a suffix that is a prefix of the next one ends on the internal node of depth h.
         for (int k = 0; k < n; ++k) {
             int d = n - sa[k], h = k + 1 < n ? lcp[k] : 0, last = -1;
@@ -43,7 +49,9 @@ struct SuffixTree {
                 if (last < 0) { leaf[sa[k]] = v; }
                 else { raw[last].parent = v; }
                 st.push_back(v);}
-            else { raw[last].parent = st.back(); }}
+            else { raw[last].parent = st.back(); }
+            // The top, of depth lcp[k], is the deepest node holding ranks k and k + 1.
+            if (k + 1 < n) { split[k] = st.back(); }}
         int cnt = int(raw.size());
         vector<int> id(cnt), pos(n + 1);
         // Non-root nodes sharing l are created deepest first, so a reversed counting sort by l yields (l, depth) order.
@@ -56,6 +64,7 @@ struct SuffixTree {
             nodes[id[v]] = raw[v];
             if (v) { nodes[id[v]].parent = id[raw[v].parent]; }}
         for (int &u : leaf) { u = id[u]; }
+        for (int &u : split) { u = id[u]; }
         start.assign(cnt + 1, 0);
         kids.resize(cnt - 1);
         for (int v = 1; v < cnt; ++v) { ++start[nodes[v].parent]; }
@@ -67,7 +76,21 @@ struct SuffixTree {
         for (int v = 1; v < cnt; ++v) {
             int p = nodes[v].parent, j = jump[p];
             level[v] = level[p] + 1;
-            jump[v] = level[p] - level[j] == level[j] - level[jump[j]] ? jump[j] : p;}}
+            jump[v] = level[p] - level[j] == level[j] - level[jump[j]] ? jump[j] : p;}
+        int m = int(split.size());
+        window.assign(m, 0);
+        vector<int> mins((m + 31) / 32, INT_MAX);
+        for (int k = 0; k < m; ++k) {
+            uint mask = k ? window[k - 1] << 1 : 0;
+            // Bit t marks k - t as a strict suffix minimum of split over the last 32 boundaries.
+            while (mask && split[k - std::countr_zero(mask)] >= split[k]) { mask &= mask - 1; }
+            window[k] = mask | 1;
+            mins[k / 32] = min(mins[k / 32], split[k]);}
+        blocks = SparseTable<Min<int>>(std::move(mins));
+        link.assign(cnt, -1);
+        for (int v = 1; v < cnt; ++v) {
+            const Node &x = nodes[v];
+            link[v] = x.depth == 1 ? 0 : lca(leaf[sa[x.l] + 1], leaf[sa[x.r - 1] + 1]);}}
 
     int root() const { return 0; }
     int depth(int v) const {
@@ -118,14 +141,49 @@ struct SuffixTree {
         vector<int> res(index.sa.begin() + nodes[v].l, index.sa.begin() + nodes[v].r);
         sort(res.begin(), res.end());
         return res;}
+    int lca(int u, int v) const {
+        assert(0 <= u && u < int(nodes.size()) && 0 <= v && v < int(nodes.size()));
+        if (u > v) { swap(u, v); }
+        if (v < nodes[u].end) { return u; }
+        // Every boundary between the two intervals splits at the LCA or below it, and pre-order ids put the LCA first.
+        int l = nodes[u].l, r = nodes[v].l;
+        auto near = [&](int e, int len) { return split[e + 1 - std::bit_width(window[e] & (~0u >> (32 - len)))]; };
+        if (r - l <= 32) { return near(r - 1, r - l); }
+        int bl = l / 32 + 1, br = (r - 1) / 32, res = min(near(l + 31, 32), near(r - 1, 32));
+        return bl < br ? min(res, blocks.prod(bl, br)) : res;}
     int weightedAncestor(int v, int len) const {
         assert(0 <= v && v < int(nodes.size()) && 0 <= len && len <= nodes[v].depth);
         while (v && nodes[nodes[v].parent].depth >= len) { v = nodes[jump[v]].depth >= len ? jump[v] : nodes[v].parent; }
         return v;}
+    // T: O((n + q) * alpha(n)), M: O(n + q); alpha is inverse Ackermann; queries {v, len} as in weightedAncestor, answers in query order.
+    vector<int> weightedAncestors(const vector<pair<int, int>> &queries) const {
+        assert(queries.size() <= size_t(INT_MAX) - nodes.size());
+        int cnt = int(nodes.size()), q = int(queries.size()), n = index.size();
+        vector<int> head(n + 1, -1), chain(cnt + q), top(cnt), res(q);
+        for (int i = 0; i < q; ++i) {
+            auto [v, len] = queries[i];
+            assert(0 <= v && v < cnt && 0 <= len && len <= nodes[v].depth);
+            int d = std::clamp(len, 0, n);
+            chain[cnt + i] = head[d];
+            head[d] = cnt + i;}
+        // Threshold buckets: the edge into v opens at its parent's depth, ahead of that bucket's queries.
+        for (int v = 1; v < cnt; ++v) {
+            int d = nodes[nodes[v].parent].depth;
+            chain[v] = head[d];
+            head[d] = v;}
+        iota(top.begin(), top.end(), 0);
+        DSU dsu(cnt);
+        for (int d = n; d >= 0; --d) {
+            for (int e = head[d]; e >= 0; e = chain[e]) {
+                if (e < cnt) {
+                    int p = nodes[e].parent;
+                    dsu.uniteSets(e, p);
+                    top[dsu.findSet(p)] = p;}
+                else { res[e - cnt] = top[dsu.findSet(queries[e - cnt].first)]; }}}
+        return res;}
     int suffixLink(int v) const {
         assert(0 < v && v < int(nodes.size()));
-        int d = nodes[v].depth;
-        return d == 1 ? 0 : weightedAncestor(leaf[index.sa[nodes[v].l] + 1], d - 1);}
+        return link[v];}
 
     // T: O(n), M: O(n); left- and right-maximal repeats (Gusfield), ascending ids.
     vector<int> maximalRepeats() const {

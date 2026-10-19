@@ -76,10 +76,17 @@ template<class T> struct Brute {
     int up(int v, int len) const {
         while (v && depth(parent[v]) >= len) { v = parent[v]; }
         return v;}
+    // Lowest common ancestor by walking the deeper node up.
+    int meet(int u, int v) const {
+        while (u != v) {
+            if (depth(u) < depth(v)) { swap(u, v); }
+            u = parent[u];}
+        return u;}
 };
 
 template<class T> void sameTree(const SuffixTree<T> &a, const SuffixTree<T> &b, const char *op) {
-    bool ok = a.nodes.size() == b.nodes.size() && a.leaf == b.leaf && a.start == b.start && a.kids == b.kids && a.jump == b.jump;
+    bool ok = a.nodes.size() == b.nodes.size() && a.leaf == b.leaf && a.start == b.start && a.kids == b.kids && a.jump == b.jump
+              && a.link == b.link && a.split == b.split && a.window == b.window && a.blocks.v == b.blocks.v;
     for (int v = 0; ok && v < int(a.nodes.size()); ++v) {
         auto x = a.nodes[v], y = b.nodes[v];
         ok = x.l == y.l && x.r == y.r && x.depth == y.depth && x.parent == y.parent && x.end == y.end;}
@@ -101,10 +108,21 @@ template<class T> void verify(const vector<T> &s, const vector<T> &symbols) {
     vector<vector<T>> suffixes;
     for (int i = 0; i < n; ++i) { suffixes.emplace_back(s.begin() + i, s.end()); }
     sort(suffixes.begin(), suffixes.end());
+    vector<pair<int, int>> batch;
+    vector<int> want_batch;
     for (int v = 0; v < V; ++v) {
         const vector<T> &w = b.names[v];
         int m = int(w.size()), l = 0, r, end = v;
         at_v = v;
+        for (int u = 0; u < V; ++u) {
+            const vector<T> &x = b.names[u];
+            int k = int(std::mismatch(w.begin(), w.end(), x.begin(), x.end()).first - w.begin()), z = b.meet(v, u);
+            at_a = u;
+            expectEqual(b.depth(z), k, "oracle: brute LCA string is the common prefix of the node strings");
+            expectEqual(t.lca(v, u), z, "lca(node, a)");}
+        for (int len = m; len >= 0; --len) {
+            batch.push_back({v, len});
+            want_batch.push_back(b.up(v, len));}
         while (l < n && !hasPrefix(suffixes[l], w)) { ++l; }
         for (r = l; r < n && hasPrefix(suffixes[r], w); ++r) {}
         while (end < V && hasPrefix(b.names[end], w)) { ++end; }
@@ -145,11 +163,17 @@ template<class T> void verify(const vector<T> &s, const vector<T> &symbols) {
     for (int i = 0; i <= n; ++i) {
         for (int j = i; j <= n; ++j) {
             at_a = i, at_b = j;
+            batch.push_back({i < n ? t.leaf[i] : 0, j - i});
+            want_batch.push_back(i < n ? b.up(b.leaf[i], j - i) : 0);
             expectEqual(t.weightedAncestor(i < n ? t.leaf[i] : 0, j - i), i < n ? b.up(b.leaf[i], j - i) : 0, "locus of s[a, b)");}}
+    at_a = at_b = 0;
+    check(t.weightedAncestors(batch) == want_batch, "weightedAncestors over every (node, length) and every s[i, j), duplicates included");
+    check(t.weightedAncestors({}).empty(), "weightedAncestors on an empty batch");
     for (auto &[w, starts] : b.occ) {
         int m = int(w.size()), p0 = starts[0], u = p0 < n ? b.up(b.leaf[p0], m) : 0;
         at_a = p0, at_b = p0 + m;
-        check(!m || b.locus(w) == u, "oracle: extension locus equals ancestor locus of s[a, b)");
+        // Cross-validating the two brute-force loci costs O(n^3 * log(n)); texts up to 30 symbols cover it.
+        check(!m || n > 30 || b.locus(w) == u, "oracle: extension locus equals ancestor locus of s[a, b)");
         expectPair(t.locate(w), {u, m}, "locate s[a, b)");
         check(t.isSubstring(w), "isSubstring s[a, b)");
         for (T c : symbols) {
@@ -237,6 +261,7 @@ void small(const string &mode) {
     context = "default constructed";
     check(empty.nodes.size() == 1 && empty.leaf.empty() && empty.distinctSubstrings() == 0 && empty.isSubstring("") && !empty.isSubstring("a"), "empty tree");
     check(empty.occurrences(0).empty() && empty.maximalRepeats().empty() && empty.supermaximalRepeats().empty() && empty.children(0).empty(), "empty tree queries");
+    check(empty.lca(0, 0) == 0 && empty.weightedAncestors({{0, 0}, {0, 0}}) == vector<int>{0, 0} && empty.weightedAncestors({}).empty(), "empty tree lca and weightedAncestors");
     cout << "PASS exhaustive ternary texts through length " << ternary << " and binary through " << binary << '\n';}
 void randomCases(const string &mode) {
     int rounds = mode == "quick" ? 80 : mode == "full" ? 800 : 1600;
@@ -271,21 +296,11 @@ void randomCases(const string &mode) {
     cout << "PASS random int/bool/lng/signed char/byte texts rounds=" << rounds << " and " << medium << " medium texts\n";}
 
 // Independent oracle for large texts: the SuffixArray with RMQ (verified in 07), its LCE and pattern ranges.
-pair<int, int> rangeOf(const SuffixArray<int> &sa, int i, int len) {
-    int n = sa.size(), at = i < n ? sa.rank[i] : 0;
-    if (!len) { return {0, n}; }
-    int lo = 0, hi = at;
-    while (lo < hi) {
-        int mid = std::midpoint(lo, hi);
-        if (sa.lce(sa.sa[mid], i) >= len) { hi = mid; }
-        else { lo = mid + 1; }}
-    int first = lo;
-    lo = at + 1, hi = n;
-    while (lo < hi) {
-        int mid = std::midpoint(lo, hi);
-        if (sa.lce(sa.sa[mid], i) >= len) { lo = mid + 1; }
-        else { hi = mid; }}
-    return {first, lo};}
+// [l, r) is the SA range of s[i, i + len) (i <= n): it holds rank i, its ends share len symbols with suffix i and its outer neighbours do not.
+bool isRangeOf(const SuffixArray<int> &sa, int i, int len, int l, int r) {
+    int n = sa.size();
+    auto shares = [&](int k) { return sa.lce(sa.sa[k], i) >= len; };
+    return 0 <= l && l < r && r <= n && (i == n || (l <= sa.rank[i] && sa.rank[i] < r)) && shares(l) && shares(r - 1) && (!l || !shares(l - 1)) && (r == n || !shares(r));}
 void large(const string &mode) {
     int n = mode == "quick" ? 3000 : mode == "full" ? 200000 : 700000;
     auto randomOver = [&](const string &alphabet) {
@@ -334,12 +349,36 @@ void large(const string &mode) {
         lng distinct = lng(n) * (n + 1) / 2;
         for (int h : sa.lcp) { distinct -= h; }
         expectEqual(t.distinctSubstrings(), distinct, "distinctSubstrings versus n(n+1)/2 - sum lcp");
+        for (int v = 1; v < V; ++v) {
+            const auto &x = t.nodes[v], &y = t.nodes[t.suffixLink(v)];
+            at_v = v;
+            check(y.depth == x.depth - 1 && isRangeOf(sa, sa.sa[x.l] + 1, x.depth - 1, y.l, y.r), "suffixLink of every node");}
+        auto lcaOracle = [&](int u, int v) {
+            const auto &x = t.nodes[u], &y = t.nodes[v];
+            int d = min({x.depth, y.depth, sa.lce(sa.sa[x.l], sa.sa[y.l])}), z = t.lca(u, v);
+            at_v = u, at_a = v;
+            check(t.nodes[z].depth == d && isRangeOf(sa, sa.sa[x.l], d, t.nodes[z].l, t.nodes[z].r) && t.lca(v, u) == z, "lca(node, a) versus the interval LCE");};
+        vector<pair<int, int>> batch;
+        for (int k = 0; k < min(n, 200000); ++k) {
+            int v = int(nextRandom() % V), d = t.nodes[v].depth;
+            batch.push_back({v, int(nextRandom() % (k % 2 ? d + 1 : min(d + 1, 40)))});}
+        auto found = t.weightedAncestors(batch);
+        for (int k = 0; k < int(batch.size()); ++k) {
+            auto [v, len] = batch[k];
+            const auto &x = t.nodes[found[k]];
+            at_v = v, at_a = len;
+            check(isRangeOf(sa, sa.sa[t.nodes[v].l], len, x.l, x.r) && x.depth >= len && (!found[k] ? !len : t.nodes[x.parent].depth < len), "weightedAncestors batch (node, a)");}
+        at_v = -1;
         for (int q = 0; q < 2000; ++q) {
+            int r0 = int(nextRandom() % n), r1 = min(n - 1, r0 + int(nextRandom() % 100));
+            lcaOracle(int(nextRandom() % V), int(nextRandom() % V));
+            lcaOracle(t.leaf[sa.sa[r0]], t.leaf[sa.sa[r1]]);
+            at_v = -1;
             int i = int(nextRandom() % n), len = q % 2 ? int(nextRandom() % (n - i + 1)) : min(n - i, int(nextRandom() % 40));
             int u = t.weightedAncestor(t.leaf[i], len);
             const auto &x = t.nodes[u];
             at_a = i, at_b = i + len;
-            check(pair{x.l, x.r} == rangeOf(sa, i, len) && x.depth >= len && (!u ? !len : t.nodes[x.parent].depth < len), "weightedAncestor locus of s[a, b)");
+            check(isRangeOf(sa, i, len, x.l, x.r) && x.depth >= len && (!u ? !len : t.nodes[x.parent].depth < len), "weightedAncestor locus of s[a, b)");
             if (i + len < n) { expectPair(t.step({u, len}, uint8_t(s[i + len])), {t.weightedAncestor(t.leaf[i], len + 1), len + 1}, "step along the text"); }
             expectPair(t.step({u, len}, 'z' + 1), {-1, 0}, "step absent symbol");
             int m = min(n - i, int(nextRandom() % 40));
@@ -352,9 +391,7 @@ void large(const string &mode) {
             check(k == int(p.size()) || lo2 == hi2, "locate is the longest occurring prefix");
             check(t.isSubstring(p) == (k == int(p.size())), "isSubstring");
             int v = 1 + int(nextRandom() % (V - 1)), d = t.nodes[v].depth;
-            int link = t.suffixLink(v);
             at_v = v;
-            check(t.nodes[link].depth == d - 1 && pair{t.nodes[link].l, t.nodes[link].r} == rangeOf(sa, sa.sa[t.nodes[v].l] + 1, d - 1), "suffixLink");
             if (t.nodes[v].r - t.nodes[v].l <= 200) {
                 auto occ = t.occurrences(v);
                 bool ok = int(occ.size()) == t.nodes[v].r - t.nodes[v].l && std::is_sorted(occ.begin(), occ.end());
@@ -397,6 +434,11 @@ int invalid(const string &probe) {
     if (probe == "depth-range") { t.depth(V); }
     if (probe == "children-range") { t.children(-1); }
     if (probe == "child-range") { t.child(V, 'a'); }
+    if (probe == "lca-range") { t.lca(V, 0); }
+    if (probe == "lca-negative") { t.lca(0, -1); }
+    if (probe == "ancestors-deep") { t.weightedAncestors({{0, 0}, {leaf, t.depth(leaf) + 1}}); }
+    if (probe == "ancestors-negative") { t.weightedAncestors({{leaf, -1}}); }
+    if (probe == "ancestors-node") { t.weightedAncestors({{V, 0}}); }
     return 0;}
 int main(int argc, char **argv) {
     string mode = "full";

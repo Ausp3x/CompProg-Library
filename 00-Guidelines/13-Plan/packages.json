@@ -943,7 +943,7 @@
       "phase": "Contest core",
       "size": "XL",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "07-Strings/Docs/11-suffixtree.md"
       ],

@@ -80,9 +80,9 @@ Handoffs: `22` may reuse `distinctSubstringsOnline` for `distinctSubstringsPerPr
 
 Research outcomes (sources in [00-sources.md](00-sources.md)); left out, one line each:
 
-- `11`: Gusfield maximal pairs (Wikipedia only, `Θ(n + z)` output) are niche and enumerable per node from `maximalRepeats` and `occurrences`; an occurrence count is `r - l` of the locus node; the suffix tree as the suffix-link tree of the reversed text's automaton (OI Wiki) is a second construction of the same topology, owned by `10` `suffixLinkTree`; `parent` is the `Node::parent` field and maspypy `get_suffix_positions` is `leaf`; `O(1)` weighted-ancestor structures (GLN14, BKPR21) belong to `51`, so `weightedAncestor` uses `O(log n)` jump pointers.
+- `11`: Gusfield maximal pairs (Wikipedia only, `Θ(n + z)` output) are niche and enumerable per node from `maximalRepeats` and `occurrences`; an occurrence count is `r - l` of the locus node; the suffix tree as the suffix-link tree of the reversed text's automaton (OI Wiki) is a second construction of the same topology, owned by `10` `suffixLinkTree`; `parent` is the `Node::parent` field and maspypy `get_suffix_positions` is `leaf`; `O(1)` weighted-ancestor structures (GLN14, BKPR21) belong to `51`, so `weightedAncestor` uses `O(log n)` jump pointers; the first or last occurrence of a locus (Wikipedia) is `10` `firstOccurrence`/`lastOccurrence` or the ends of `occurrences(v)`, and per-node extremes would store `2V` more `int`s for an operation `10` owns.
 
-Handoffs: `28` GeneralizedSuffixTree can reuse the LCP-interval build over a separator-joined text; `33` Ukkonen should keep the `{node, length}` locus and `step` conventions.
+Handoffs: `28` GeneralizedSuffixTree can reuse the LCP-interval build over a separator-joined text; `33` Ukkonen should keep the `{node, length}` locus and `step` conventions; Data Structures `54` LinearRMQ, once verified, may replace the inline `split` window RMQ of `lca` if it is not slower.
 
 ## P083 package record (ST07, ST34)
 
