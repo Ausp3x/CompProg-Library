@@ -30,13 +30,12 @@ Folder-wide contracts, ownership boundaries, migration obligations and per-packa
 - Miscellaneous owns CDQ (`21-cdq.hpp`), parallel binary search (`20-parallelbinarysearch.hpp`), Hilbert order (`16-hilbertorder.hpp`), generic undo log/checkpoints (`42-rollback_framework.hpp`), persistent allocator, slope trick (`34-slope_trick.hpp`), coordinate compression by encounter ID, interval algorithms over static endpoint sets and probabilistic sketches. `63-offline_deletion.hpp` owns the generic add/remove-over-time engine and the queue-undo trick because its contract is the rollback structure, not a graph.
 - Core owns reusable accelerated dynamic bitsets and GF(2) matrices (`12-bitmatrix.hpp`: rank, solve, nullspace); `62-xorbasis.hpp` owns the incremental basis, prefix (timestamped) basis and offline range basis queries. Mathematics owns Sprague–Grundy mex (`25-game_theory.hpp`); `24-interval_set.hpp` owns dynamic mex over a set (`IntervalSet::find(x).second`).
 - Python mirrors (`08-Python`) own their own sorted-list and xor-basis (`_22_bitset.py`) implementations.
-- Rollback DSU owns the generic undo/connectivity substrate; weighted DSU owns potential/parity/noncommutative algebra and the weighted rollback variant. Reuse the undo contract without reciprocal header dependencies. `65-dsu_extensions.hpp` holds member enumeration, component aggregates, sparse keys and the merge-history forest; it depends on `01-dsu.hpp` and `61-hashmap.hpp` only.
+- Rollback DSU owns the generic undo/connectivity substrate; weighted DSU owns potential/parity/noncommutative algebra and the weighted rollback variant. Reuse the undo contract without reciprocal header dependencies. `65-dsu_extensions.hpp` holds member enumeration, component aggregates and actions, sparse keys and the merge-history forest; it depends on `01-dsu.hpp`, `61-hashmap.hpp` and Miscellaneous `02-customhash.hpp` only. Groups for rows 29 and 65 are monoids with `inv` ([00-monoids.md](00-monoids.md#group-contract)).
 - Dynamic wavelet and succinct structures are Esoteric rows, never extra modes hidden inside the Advanced wavelet header. Persistent split/merge stays with the persistent segment tree; destructive meld/split stays with the dynamic segment tree.
 - Heap and deque engines are consumed by Graphs Dijkstra and k-shortest walks and Miscellaneous optimal merge; those clients do not reimplement heaps.
 
 ## Migration obligations
 
-- `OLD/algorithms.cpp:1402–1477` DSU: handoffs to rows 09 and 29 are in [01-dsu.md](01-dsu.md#limits-and-handoffs).
 - Unchanged extractions (`18`, `21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit.
 
 ## P006 re-audit omissions
@@ -54,7 +53,7 @@ Candidates from the 2026-10-07 sweep ([00-sources.md](00-sources.md)) left out o
 - O(1)-update / O(sqrt(n))-query group block sums (MAS): a Mo value-domain tool, owned with Mo (row 23).
 - OrderedMultiSet `split`/`join` (OI pb_ds): rare; `OrderedSet` keeps the native PBDS API, including both.
 - CoordinateCompression distinct-by-position encoding and counting-sort mode (MAS, NYA): an argsort rank, not compression.
-- DSU grid adapters, delete/move element (HIT, OI): variants for row 65 if a motivating problem appears.
+- DSU grid adapters, delete/move element (HIT, OI): left out by P035 ([P035 omissions](#p035-omissions)).
 
 ## Foundations rows 01–08 (P006)
 
@@ -171,6 +170,17 @@ Candidates from the 2026-10-17 sweep ([00-sources.md](00-sources.md#fetched-2026
 - RollbackDSU `makeSet` and an `undo` reporting what it reverted: no catalog has them. Union by rank (CPA): `getSize` needs sizes. History-clearing `snapshot` (EI, SUI) and `reset` (MAS, HIT): `rollback` to a token and `rollback(0)`.
 - PersistentDSU `groups(version)` and `dump` (SUI): `findSet` over every vertex; debug output. Offline persistent DSU by DFS over the version tree (the usual Library Checker solution): a use of rows 09 and 63.
 - Priority-queue undo (Codeforces blog 111117) and deque undo (blog 154645): both tutorials returned 403, so neither algorithm nor its amortized proof could be checked; `OfflineDeletion` covers deletions with known times and `QueueUndo` the FIFO case.
+
+## P035 omissions
+
+Candidates from the 2026-10-23 sweep ([00-sources.md](00-sources.md#fetched-2026-10-23-p035-sweep)) left out of rows 29, 36 and 65:
+
+- Persistent weighted DSU: no catalog has one.
+- Component sums under a component-wide action (suisen `UnionFindLazy`): needs an action on sums that merges can cancel; rare. `DualDSU` reads single values, `ComponentSumDSU` folds without actions. Monoid-only component actions (chmax) are left out too: `DualDSU` cancels the absorbing root's tag with `inv`.
+- Delete and move element (OI Wiki virtual nodes, UVa 11987) and grid adapters with a border merge (hitonanode `grid_unionfind`): a move needs a group to remove the old value from its component; a grid is `r * w + c` and a loop.
+- Merges of one batch as a single time step (suisen `merge_simultaneously`): `MergeHistoryForest` stamps each union with its index; a caller maps indices to steps.
+- FastSet `clear`/`reset` (maspypy, hitonanode): constructing a new set does the same. `fillOne`: `build` with a true predicate. `toString`: debug output. `any(l, r)`: `next(l) < r`. Range erase: `enumerate` with `erase` in the callback. Counting and k-th: Fenwick `lowerBound` (row 02).
+- Arpa's offline RMQ (cp-algorithms, a DSU over next-smaller links): rows 04 and 28 answer the same queries online.
 
 ## Planned-row omissions
 

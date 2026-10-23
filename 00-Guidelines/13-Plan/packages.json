@@ -981,8 +981,13 @@
       "phase": "Contest core",
       "size": "M+M+M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "02-Data Structures/Docs/29-weighteddsu.md",
+        "02-Data Structures/Docs/36-fastset.md",
+        "02-Data Structures/Docs/65-dsu_extensions.md",
+        "02-Data Structures/Docs/00-monoids.md"
+      ],
       "note": ""
     },
     {

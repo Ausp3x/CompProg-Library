@@ -6,7 +6,11 @@ Package P027 (batch DS05). Replaces the unchanged extractions `MonAlg`/`MonBin`/
 
 ### Monoid contract
 
-`op` is associative and `e()` a two-sided identity. An acted monoid satisfies `mapping(id(), x) == x`, `mapping(composition(f, g), x) == mapping(f, mapping(g, x))`, `mapping(f, op(x, y)) == op(mapping(f, x), mapping(f, y))` and `mapping(f, e()) == e()` (a length or sentinel guard, which lets row 13's dynamic trees treat untouched ranges as identities). Dual consumers use only `F`, `composition` and `id`; `SparseTable` and a semigroup `DisjointSparseTable` use only `S` and `op`. Members are `static` (every preset, so `Type<T>::op` works) or `const` members reading runtime state (a modulus, a key array, a comparator flag). `M` must be move-constructible (a deleted move constructor is not supported), default-constructible only when `mon` is omitted, and adds no size when empty (asserted for `LazySegmentTree`, `SegmentTree` and `DualSegmentTree<MonoidAction<...>>`). Consumers: rows 03, 04, 06, 09 (`RollbackDSUAggregate`), 11, 12, 13, 14, 15, 17, 19, 28, 30 and 34 (`SqrtTree`); Graphs `07-lca.hpp` (`LCAFold`), `11-functionalgraph.hpp` (`FunctionalGraphFold`, `cycleAggregate`, `cycleAggregates`) and `16-centroiddecomposition.hpp` (`ContourFold`, `ContourApply`).
+`op` is associative and `e()` a two-sided identity. An acted monoid satisfies `mapping(id(), x) == x`, `mapping(composition(f, g), x) == mapping(f, mapping(g, x))`, `mapping(f, op(x, y)) == op(mapping(f, x), mapping(f, y))` and `mapping(f, e()) == e()` (a length or sentinel guard, which lets row 13's dynamic trees treat untouched ranges as identities). Dual consumers use only `F`, `composition` and `id`; `SparseTable` and a semigroup `DisjointSparseTable` use only `S` and `op`. Members are `static` (every preset, so `Type<T>::op` works) or `const` members reading runtime state (a modulus, a key array, a comparator flag). `M` must be move-constructible (a deleted move constructor is not supported), default-constructible only when `mon` is omitted, and adds no size when empty (asserted for `LazySegmentTree`, `SegmentTree` and `DualSegmentTree<MonoidAction<...>>`). Consumers: rows 03, 04, 06, 09 (`RollbackDSUAggregate`), 11, 12, 13, 14, 15, 17, 19, 28, 29 (groups), 30, 34 (`SqrtTree`) and 65 (`ComponentSumDSU`, `DualDSU`); Graphs `07-lca.hpp` (`LCAFold`), `11-functionalgraph.hpp` (`FunctionalGraphFold`, `cycleAggregate`, `cycleAggregates`) and `16-centroiddecomposition.hpp` (`ContourFold`, `ContourApply`).
+
+### Group contract
+
+A group is a monoid with `inv(a)`, a two-sided inverse: `op(a, inv(a)) == op(inv(a), a) == e()`; `op` need not commute. `Sum<T>` (`inv` is `T(-a)`: signed values other than the lowest, unsigned and modular `T` wrap) and `Xor<T>` (`inv(a) = a`) are the group presets. A multiplicative group has no preset, because zero has no inverse; a caller's struct over units supplies one. Consumers: row 29 (`WeightedDSU`, `RollbackWeightedDSU`), which also needs `==` on `S`, and row 65 (`DualDSU`).
 
 ### Adapters
 
@@ -27,10 +31,10 @@ Package P027 (batch DS05). Replaces the unchanged extractions `MonAlg`/`MonBin`/
 
 | Preset | `S` | Identity | Domain and notes |
 |---|---|---|---|
-| `Sum<T>`, `Mul<T>` | `T` | `T(0)`, `T(1)` | ring or modular `T` |
+| `Sum<T>`, `Mul<T>` | `T` | `T(0)`, `T(1)` | ring or modular `T`; `Sum::inv` is negation |
 | `Min<T>`, `Max<T>` | `T` | numeric max, lowest | `T` with numeric limits |
 | `MinMax<T>` | `{mn, mx}` | `mn > mx` | as `Min`/`Max` |
-| `Xor<T>`, `And<T>`, `Or<T>` | `T` | `0`, all ones, `0` | integral `T` |
+| `Xor<T>`, `And<T>`, `Or<T>` | `T` | `0`, all ones, `0` | integral `T`; `Xor::inv` is the identity map |
 | `Gcd<T>`, `Lcm<T>` | `T` | `0`, `1` | values `>= 0` (gcd) and `>= 1` with every lcm fitting `T` (lcm); `gcd(0, x) = abs(x)` breaks the identity on negative values |
 | `AffineComposite<T>` | `{a, b}` (`x -> a x + b`) | `{1, 0}` | `op(f, g)` applies `f` first (Library Checker order); `eval(f, x)` |
 | `AddChminChmax<T>` | `{a, lo, hi}` (`x -> max(min(x + a, hi), lo)`) | `{0, lowest, max}` | composite of add, chmin, chmax and assign (`add`, `chmin`, `chmax`, `assign`, `eval`); values and shifted bounds stay strictly inside (lowest, max), the sentinels |
@@ -107,26 +111,27 @@ Tester `96-Local Testing/02-Data Structures/00-monoids_tester.cpp`, entry `00-mo
 | Operation | Group | Oracle |
 |---|---|---|
 | Every acted preset with its `leaf` and action builders; `RangeAssignFlip<LongestRun>`; `Opposite` and `Reversible` over the composite; `ActedMonoid` with plain and capturing lambdas; a stateful struct | `lazy <Preset>`, 29 groups (`RangeAndOrXorRangeSum` at 6 and 64 bits, `RangeGcdLcmRangeGcdLcm` without and with lcm) | A plain vector mutated by each action's meaning (`v += x`, `v = a v + b`, `min`/`max`/assign for the clamp, the and/or/xor/assign case table, gcd/lcm, flips, matrix-vector products modulo 998244353) and brute aggregates (sums, sums of squares, leftmost extremes, counts, Kadane, block counts, run lengths, inversion pairs, composites left to right and right to left, vector sums), independent of `op`/`mapping`; all `O(n^2)` ranges after every step for `n <= 17`; sizes 0–100 (257 in stress), 300 steps per size (60 quick, 600 stress; four times as many for `n > 17`); searches with monotone threshold families and brute scans |
-| Plain presets; `Opposite<MinIndex>`; `Monoid` with plain and capturing lambdas; `PairMonoid`; `ArrayMonoid`; `Opposite` and `Reversible` over concatenation | `plain <Preset>`, 33 groups | Brute meaning of the raw values (sums, products modulo P, extremes, bit folds, Euclid gcd and lcm, affine, clamp and bitwise chains evaluated on probe inputs, top two by `map`, Kadane, gain by double loop, blocks, runs, a bracket stack, naive matrix and max-plus products, majority by counting, concatenations both ways); all ranges at every step for `n <= 17`, a random range and the whole range otherwise; 200 steps per size (40 quick, 400 stress); left and right identity of `e()` on every leaf; `MajorityVote` checked only where a strict majority exists |
+| Plain presets; `Opposite<MinIndex>`; `Monoid` with plain and capturing lambdas; `PairMonoid`; `ArrayMonoid`; `Opposite` and `Reversible` over concatenation | `plain <Preset>`, 33 groups | Brute meaning of the raw values (sums, products modulo P, extremes, bit folds, Euclid gcd and lcm, affine, clamp and bitwise chains evaluated on probe inputs, top two by `map`, Kadane, gain by double loop, blocks, runs, a bracket stack, naive matrix and max-plus products, majority by counting, concatenations both ways); all ranges at every step for `n <= 17`, a random range and the whole range otherwise; 200 steps per size (40 quick, 400 stress); left and right identity of `e()` on every leaf, and left and right inverses wherever the preset has `inv` (`Sum`, `Xor`); `MajorityVote` checked only where a strict majority exists |
 | `MonoidAction` over `AddChminChmax`, `BitwiseComposite`, `AffineComposite`, `Max` and a capturing `Monoid` | `MonoidAction on dual trees` | Per-point brute application of each action in order, compared through `eval` on per-point start values |
-| Assignment powers, empty-monoid layout | `contract` | Composite power 1000 and `RangeAssignFlip` power 700 against direct values; `sizeof` against a mirror struct without the monoid member |
+| Assignment powers, empty-monoid layout, group inverses at the domain edges | `contract` | Composite power 1000 and `RangeAssignFlip` power 700 against direct values; `sizeof` against a mirror struct without the monoid member; `inv` of `Sum<ulng>`, `Sum<uint8_t>` (wrapping), `Sum<mint>`, `Sum<lng>` at `LLONG_MAX` and `Xor<bool>` against direct values |
 
 Every consumer tester also runs a stateful monoid (runtime modulus, key array or comparator flag) next to its static presets, as its own evidence records.
 
 ## Commands and results
 
-Latest run 2026-10-18, Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
+Latest run 2026-10-23 (P035 `inv` on `Sum` and `Xor`), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
-| `00-monoids_tester.py --mode full --seed 20261018` (GCC 16.2.1) | PASS, 3 configurations, 13,072,374 checks per configuration, MEMORY peak 1377 MB |
-| `CXX=g++-14 00-monoids_tester.py --mode full --seed 20261018` (GCC 14.4.1, floor) | PASS, 13,072,374 checks per configuration, MEMORY peak 1400 MB |
-| `00-monoids_tester.py --mode stress --seed 7` | PASS, 31,351,251 checks per configuration, MEMORY peak 1376 MB |
+| `00-monoids_tester.py --mode full --seed 20261023` (GCC 16.2.1) | PASS, 3 configurations, 13,089,219 checks per configuration, MEMORY peak 1371 MB |
+| `CXX=g++-14 00-monoids_tester.py --mode full --seed 20261023` (GCC 14.4.1, floor) | PASS, 13,089,219 checks per configuration, MEMORY peak 1387 MB |
+| `00-monoids_tester.py --mode stress --seed 7` | PASS, 31,378,524 checks per configuration, MEMORY peak 1370 MB |
+| `02-integration.py` | PASS, 174 standalone and aggregate headers, multi-TU, workspace; MEMORY peak 714 MB |
 | `03-consistency.py`, `plan.py check` | No errors |
 
 ```bash
-python3 '96-Local Testing/02-Data Structures/00-monoids_tester.py' --mode full --seed 20261018
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/00-monoids_tester.py' --mode full --seed 20261018
+python3 '96-Local Testing/02-Data Structures/00-monoids_tester.py' --mode full --seed 20261023
+CXX=g++-14 python3 '96-Local Testing/02-Data Structures/00-monoids_tester.py' --mode full --seed 20261023
 python3 '96-Local Testing/02-Data Structures/00-monoids_tester.py' --mode stress --seed 7
 python3 '96-Local Testing/03-consistency.py'
 python3 '00-Guidelines/13-Plan/plan.py' check
@@ -156,3 +161,4 @@ Fetch dates, URLs and failed fetches: [00-sources.md](00-sources.md) (2026-10-08
 - 2026-10-08: independent review (P027), 1 finding fixed; re-audit pass, 1 finding fixed in this header; full (seed 20261008) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-10-17: P027 monoid pass: stored-object contract, regular preset names, 26 plain presets, 8 adapters and 8 new acted presets after catalog and problem sweeps; independent review, 9 findings fixed.
 - 2026-10-18: own row 00 (split from row 12), with its own tester and evidence, the monoid rule in `03-cpp.md` and an explicit comment-cap exemption; full (seed 20261018) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1377/1400/1376 MB.
+- 2026-10-23: P035 (the user's yes to editing this row): `inv` on `Sum` and `Xor`, the group contract, inverse checks in `plain` and at the domain edges in `contract` (added after the P035 independent review); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1371/1387/1370 MB.

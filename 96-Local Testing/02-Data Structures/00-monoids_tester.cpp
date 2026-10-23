@@ -785,6 +785,9 @@ namespace {
                     S x = C::leaf(p, a[p]);
                     checkEqual(C::key(m.op(m.e(), x)), C::key(x), "left identity");
                     checkEqual(C::key(m.op(x, m.e())), C::key(x), "right identity");
+                    if constexpr (requires { m.inv(x); }) {
+                        checkEqual(C::key(m.op(x, m.inv(x))), C::key(m.e()), "right inverse");
+                        checkEqual(C::key(m.op(m.inv(x), x)), C::key(m.e()), "left inverse");}
                     a[p] = C::value(rng); t.set(p, C::leaf(p, a[p]));}}}
         std::cout << "PASS plain " << name << '\n';}
 
@@ -849,7 +852,13 @@ namespace {
         checkEqual(sizeof(LazySegmentTree<A>), sizeof(Layout), "empty acted monoid adds no size");
         checkEqual(sizeof(SegmentTree<Sum<lng>>), sizeof(SegLayout), "empty monoid adds no size");
         checkEqual(sizeof(DualSegmentTree<MonoidAction<Max<lng>>>), sizeof(DualSegmentTree<A>), "empty MonoidAction adds no size");
-        std::cout << "PASS assignment powers and empty-monoid layout\n";}
+        Sum<ulng> su; Sum<uint8_t> s8; Sum<mint> sm; Sum<lng> sl; Xor<bool> xb;
+        checkEqual(pair(su.inv(5), su.op(5, su.inv(5))), pair(ulng(0) - 5, ulng(0)), "Sum<ulng> inverse wraps");
+        checkEqual(pair(int(s8.inv(3)), int(s8.op(3, s8.inv(3)))), pair(253, 0), "Sum<uint8_t> inverse wraps");
+        checkEqual(pair(lng(sm.inv(mint(5)).val()), lng(sm.op(mint(5), sm.inv(mint(5))).val())), pair(lng(P - 5), lng(0)), "Sum<mint> inverse");
+        checkEqual(sl.inv(LLONG_MAX), -LLONG_MAX, "Sum<lng> inverse at LLONG_MAX");
+        checkEqual(pair(xb.inv(true), xb.op(true, xb.inv(true))), pair(true, false), "Xor<bool> inverse");
+        std::cout << "PASS assignment powers, empty-monoid layout and group inverses\n";}
 
 } // namespace
 

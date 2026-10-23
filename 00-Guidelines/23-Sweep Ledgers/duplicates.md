@@ -101,6 +101,9 @@ Items a reader could mistake for duplicates.
 | P037 | `maxAreaInscribedTriangle`, `maxAreaInscribedQuadrilateral` (row 15) beside `maxAreaInscribedKgon` | Decided 2026-10-19: named special cases with a linear bound, different algorithms |
 | P037 | `pointDistance2`, `areaLeftOfLine2` (row 15) beside their `Approx` forms | Exact and approximate variants (03-cpp.md, API contracts) |
 | P037 | `rectangleUnionContours` (row 13) beside `rectangleUnionBoundary` | Decided 2026-10-19 by the user: a derived result (closed rings, cycle structure and orientation) that the pieces do not give |
+| P035 | `SparseDSU` (row 65) beside `HashMap<K, int>` plus `DSU::makeSet` | Decided 2026-10-23 by the user: larger key domain (hashable keys) |
+| P035 | `ParityDSU` (row 29) beside `WeightedDSU` over Z/2 | Decided 2026-10-23 by the user: a different algorithm, a 2n-node DSU |
+| P035 | `MergeHistoryForest` (row 65) beside `KruskalReconstruction` weighted by union index and `PartiallyPersistentDSU::uniteTime` | Decided 2026-10-23 by the user: a separate builder from a union sequence, with no graph or sort |
 
 ### Rulings
 
@@ -223,6 +226,10 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P054 | `catalanConvolution`, `catalanTriangle` (`67-lattice_paths.hpp`) beside row 05 `ballot` | Named special case (the k-th power of the Catalan series equals the weak ballot to (n + k - 1, n)) and batch form in any ring (additions only) |
 | P054 | `combinatorics_advanced_detail::inverse` (`12-combinatorics_advanced.hpp`) beside row 09 `inverseXgcd` | Larger domain: a private 128-bit Euclid for moduli up to 2^64 - 1, where `inverseXgcd` takes `lng` |
 | P082 | `isSubstring` (`11-suffixtree.hpp`) | Named special case (ruling 1) |
+| P035 | `WeightedDSU` over non-commutative groups (`29-weighteddsu.hpp`; the planned `NoncommutativeWeightedDSU`) | Larger domain: non-commutative groups (clarified rule); one orientation-correct `WeightedDSU<G>` covers both |
+| P035 | `LinkedDSU::unionEnumerate` (`65-dsu_extensions.hpp`) | Derived: the newly merged pairs (clarified rule) |
+| P035 | `ComponentSumDSU` (`65-dsu_extensions.hpp`) beside row 09 `RollbackDSUAggregate` | Different algorithm: path compression, no undo |
+| P035 | `DecrementalSet` (`36-fastset.hpp`) beside `FastSet` | Different algorithm: a DSU over runs of empty words, O(alpha(n)) amortized on the erase-only domain |
 
 ## Conventions
 
@@ -280,17 +287,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | `kLargest` | row 54 | `kSmallest*` with a comparator | keep | mirror of `kSmallest` (ruling 3) | — | — |
 | `fractionalBinarySearch` | row 55 | `binSearchRealBracket` with `oracle(t) >= 0` | ask | builder | — | — |
 | `treeKnapsack` | row 29 | Graphs row 14 `subtreeMergeDp` | keep | different algorithm, O(n·W) | — | — |
-
-## P035 — 02-Data Structures — weighteddsu, fastset, dsu extensions (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `NoncommutativeWeightedDSU` | row 29 | `WeightedDSU` over a group with a fixed orientation | keep | larger domain: non-commutative groups (clarified rule) | — | — |
-| `MergeHistoryForest` | row 65 | `04-Graphs/06-mst.hpp:99` `KruskalReconstruction` weighted by union index | ask | built from a union sequence, while `KruskalReconstruction` needs a weighted graph | — | `Docs/00-notes.md`, Ownership boundaries |
-| `unionEnumerate` | row 65 | `LinkedDSU::members` before `uniteSets` | keep | derived: the newly merged pairs (clarified rule) | — | — |
-| `SparseDSU` | row 65 | `HashMap<K, int>` plus `DSU::makeSet` | ask | builder or larger key domain | — | — |
-| `ParityDSU` | row 29 | `WeightedDSU` over Z/2 | ask | alias, or a different (2n-node) algorithm | — | — |
-| `ComponentSumDSU` | row 65 | row 09 `RollbackDSUAggregate` | keep | different algorithm (path compression, no undo) | — | — |
 
 ## P046 — 04-Graphs — matching general (planned)
 
@@ -1000,7 +996,6 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P022** GF(2) `-=`, `-`: keep for generic ring code?
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
 - **P072** `fractionalBinarySearch`: a named entry point or `binSearchRealBracket`? `largeWeightSmallValueKnapsack`: widen `KnapsackItem::weight` and remove it, or keep it for weights above `INT_MAX`?
-- **P035** `SparseDSU`: a larger key domain or a builder? `ParityDSU`: an alias of `WeightedDSU` over Z/2 or a 2n-node DSU? `MergeHistoryForest`: `KruskalReconstruction` after a builder from the union sequence, or a separate operation?
 - **P058** `gaussJordan` or `rref`? `nullspace` beside `solveLinear(A, 0)`?
 - **P088** row 31 `stringFromPrefixFunction`, `stringFromZ`, `infeasible`: minimum-alphabet or lex-min witnesses?
 - **P061** `multipointEvaluateGeometric` beside `bluesteinTransform`; row 23 matrix-tree counts beside Graphs row 53: which row owns each?

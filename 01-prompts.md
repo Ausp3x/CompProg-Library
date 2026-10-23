@@ -90,7 +90,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P047 — GR69, GR12, GR28** (opus, L+L+M): 04-Graphs — directedmst, dynamic connectivity, blockcuttree, path cover. Status: verified. [evidence](04-Graphs/Docs/25-directedmst.md) [evidence](04-Graphs/Docs/26-dynamic_connectivity.md) [evidence](04-Graphs/Docs/27-blockcuttree.md) [evidence](04-Graphs/Docs/31-path_cover.md)
 - [x] **P082 — ST05** (opus, XL): 07-Strings — suffixtree. Status: verified. [evidence](07-Strings/Docs/11-suffixtree.md)
 - [ ] **P072 — MI18, MI34** (opus, L+M): 06-Miscellaneous — knapsack advanced, kbest enumeration, fractional programming. Status: planned.
-- [ ] **P035 — DS25, DS32, DS52** (opus, M+M+M): 02-Data Structures — weighteddsu, fastset, dsu extensions. Status: planned.
+- [x] **P035 — DS25, DS32, DS52** (opus, M+M+M): 02-Data Structures — weighteddsu, fastset, dsu extensions. Status: verified. [evidence](<02-Data Structures/Docs/29-weighteddsu.md>) [evidence](<02-Data Structures/Docs/36-fastset.md>) [evidence](<02-Data Structures/Docs/65-dsu_extensions.md>) [evidence](<02-Data Structures/Docs/00-monoids.md>)
 - [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.
 - [ ] **P058 — MA08** (opus, L): 05-Mathematics — linear algebra. Status: planned.
 - [ ] **P088 — ST11, ST25** (opus, L+L): 07-Strings — string periodicity, multiple string, string reconstruction. Status: planned.

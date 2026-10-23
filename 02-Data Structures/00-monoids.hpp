@@ -22,12 +22,13 @@ namespace monoid_detail {
         return res;}
 } // namespace monoid_detail
 
-// T: O(1) per call, M: O(1); T(0) is the identity of +.
+// T: O(1) per call, M: O(1); T(0) is the identity of +, inv is negation (a group for signed, unsigned and modular T).
 template<typename T>
 struct Sum {
     using S = T;
     static S op(const S &a, const S &b) { return T(a + b); }
     static S e() { return T(0); }
+    static S inv(const S &a) { return T(-a); }
 };
 
 // T: O(1) per call, M: O(1); T(1) is the identity of *.
@@ -63,12 +64,13 @@ struct MinMax {
     static S leaf(T x) { return {x, x}; }
 };
 
-// T: O(1) per call, M: O(1); integral T.
+// T: O(1) per call, M: O(1); integral T, every value is its own inverse.
 template<typename T>
 struct Xor {
     using S = T;
     static S op(const S &a, const S &b) { return T(a ^ b); }
     static S e() { return T(0); }
+    static S inv(const S &a) { return a; }
 };
 
 // T: O(1) per call, M: O(1); integral T, all bits set is the identity.
