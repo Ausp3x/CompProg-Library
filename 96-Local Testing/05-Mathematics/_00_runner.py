@@ -102,14 +102,12 @@ def main(stem, invalid, oracle=None):
     compiler = os.environ.get('CXX', 'g++')
     checked = '-D_GLIBCXX_DEBUG'
     variants = [('optimized', ['-O2', '-DNDEBUG']), ('checked', ['-O0', '-g', checked])]
-    if args.mode != 'quick':
+    if args.mode != 'quick' or args.configuration == 'ASan-UBSan':
         variants.append(('ASan-UBSan', ['-O1', '-g', '-D_GLIBCXX_ASSERTIONS',
                          '-fsanitize=address,undefined', '-fno-sanitize-recover=all',
                          '-fno-omit-frame-pointer', '-fno-pie', '-no-pie']))
     if args.configuration != 'all':
         variants = [(label, flags) for label, flags in variants if label == args.configuration]
-        if not variants:
-            parser.error('quick mode excludes ASan-UBSan; use full or stress')
     env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1:halt_on_error=1',
                UBSAN_OPTIONS='halt_on_error=1:print_stacktrace=1')
     color = sys.stdout.isatty() and 'NO_COLOR' not in os.environ

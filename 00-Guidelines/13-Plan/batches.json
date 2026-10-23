@@ -5528,6 +5528,7 @@
       "focus": "knapsack advanced. Complete all selected inventory contracts and variants.",
       "prerequisites": [
         "C01",
+        "MA04",
         "MA07",
         "MI16"
       ],
@@ -6292,11 +6293,12 @@
       ],
       "support_targets": [],
       "size": "M",
-      "focus": "Priority-queue frontier k-best enumeration (pair sums, subset sums, k-way list sums) with explicit tie order and O(k log k) accounting; Dinkelbach and binary-search fractional programming over caller oracles with exact rational termination on integer weights, reused by Graphs ratio problems.",
+      "focus": "Priority-queue frontier k-best enumeration (pair sums, subset sums, k-way list sums) with explicit tie order and O(k log k) accounting; Dinkelbach fractional programming over caller oracles with exact rational termination on integer weights, reused by Graphs ratio problems; Eppstein-Hirschberg exactly-k selection.",
       "prerequisites": [
         "C01",
-        "MA01",
-        "MI16"
+        "DS01",
+        "DS05",
+        "MI01"
       ],
       "tiers": [
         "Advanced"

@@ -2,7 +2,7 @@
 #include "../01-Core/01-template.hpp"
 
 // T: NA, M: O(1); weight >= 0, count=-1 unlimited else 0 <= count <= INT_MAX; status unreachable/unbounded has value 0.
-struct KnapsackItem { int weight; lng value; int count = 1; };
+struct KnapsackItem { lng weight; lng value; int count = 1; };
 enum class KnapsackStatus { finite, unreachable, unbounded };
 struct KnapsackResult {
     KnapsackStatus status = KnapsackStatus::unreachable;
@@ -14,9 +14,9 @@ struct KnapsackCount { KnapsackStatus status; T count; };
 
 namespace knapsack_detail {
     // T: O(n), M: O(1); 0 <= limit < INT_MAX, value >= 0 on the value axis.
-    inline void validate(int limit, const vector<KnapsackItem> &items, bool by_value = false) {
+    inline void validate([[maybe_unused]] int limit, const vector<KnapsackItem> &items, bool by_value = false) {
         assert(0 <= limit && limit < INT_MAX && items.size() <= INT_MAX);
-        for (const auto &x : items) {
+        for ([[maybe_unused]] const auto &x : items) {
             assert(x.weight >= 0 && x.count >= -1);
             if (by_value) { assert(x.value >= 0); }}}
 
@@ -114,11 +114,11 @@ inline vector<char> knapsackFeasible(int capacity, const vector<KnapsackItem> &i
     vector<int> left(capacity + 1, -1); left[0] = 0;
     for (const auto &x : items) {
         if (!x.weight || !x.count || x.weight > capacity) { continue; }
-        int count = x.count == -1 ? capacity / x.weight : min(x.count, capacity / x.weight);
+        int step = int(x.weight), count = x.count == -1 ? capacity / step : min(x.count, capacity / step);
         for (int w = 0; w <= capacity; ++w) {
             if (left[w] >= 0) { left[w] = count; }
-            else if (w < x.weight || left[w - x.weight] <= 0) { left[w] = -1; }
-            else { left[w] = left[w - x.weight] - 1; }}}
+            else if (w < step || left[w - step] <= 0) { left[w] = -1; }
+            else { left[w] = left[w - step] - 1; }}}
     vector<char> reachable(capacity + 1);
     for (int w = 0; w <= capacity; ++w) { reachable[w] = left[w] >= 0; }
     return reachable;}
@@ -142,19 +142,19 @@ struct KnapsackCounts {
             if (!x.weight) {
                 for (auto &z : ways) { z = T(z * T(lng(x.count) + 1)); }
                 continue;}
-            int bound = capacity / x.weight;
+            int step = int(x.weight), bound = capacity / step;
             if (x.count == -1 || x.count >= bound) {
-                for (int w = x.weight; w <= capacity; ++w) { ways[w] = T(ways[w] + ways[w - x.weight]); }
+                for (int w = step; w <= capacity; ++w) { ways[w] = T(ways[w] + ways[w - step]); }
                 continue;}
             vector<T> old = ways;
-            for (int r = 0; r < x.weight; ++r) {
+            for (int r = 0; r < step; ++r) {
                 T sum(0); int leaving = -1;
                 for (int w = r; w <= capacity;) {
-                    if (leaving >= 0) { sum = T(sum - old[leaving]); leaving += x.weight; }
+                    if (leaving >= 0) { sum = T(sum - old[leaving]); leaving += step; }
                     sum = T(sum + old[w]); ways[w] = sum;
-                    if (w / x.weight == x.count) { leaving = r; }
-                    if (capacity - w < x.weight) { break; }
-                    w += x.weight;}}}
+                    if (w / step == x.count) { leaving = r; }
+                    if (capacity - w < step) { break; }
+                    w += step;}}}
         T sum(0);
         for (int w = 0; w <= capacity; ++w) { sum = T(sum + ways[w]); prefix[w] = sum; }}
 

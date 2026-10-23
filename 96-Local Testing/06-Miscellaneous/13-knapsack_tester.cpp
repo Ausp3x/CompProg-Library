@@ -64,7 +64,7 @@ template<class T> void checkEqual(const T &actual, const T &expected, const stri
         cerr << "FAIL seed=" << test_seed << " smallest known reproducer=" << context
              << " operation=" << what << " expected=" << number(expected) << " actual=" << number(actual) << '\n';
         std::exit(1);}}
-struct RefItem { int weight; lng value; int count; };
+struct RefItem { lng weight; lng value; int count; };
 string show(const vector<RefItem> &items, int axis) {
     string out = "axis=" + std::to_string(axis) + " items=[";
     for (const auto &x : items) {
@@ -231,8 +231,13 @@ void regressionCases() {
     for (const vector<RefItem> &items : vector<vector<RefItem>>{
         {}, {{0, 2, -1}}, {{0, 0, -1}, {2, 3, 1}}, {{1, 1, 5}, {2, 1, 5}},
         {{INT_MAX, 1, 3}}, {{1, INT64_MAX, INT_MAX}}, {{0, INT64_MAX, -1}},
-        {{0, 0, 2}, {INT_MAX, 1, 2}, {0, 2, 1}}, {{1, 2, 2}, {2, 1, 1}, {0, 0, 0}}}) {
+        {{0, 0, 2}, {INT_MAX, 1, 2}, {0, 2, 1}}, {{1, 2, 2}, {2, 1, 1}, {0, 0, 0}},
+        {{INT64_MAX, 3, 2}, {lng(1) << 40, 1, -1}, {3000000000, 2, 1}}, {{INT64_MAX, 1, -1}, {INT64_MAX, 2, INT_MAX}},
+        {{lng(INT_MAX) + 1, 1, 5}, {0, 2, 1}, {INT64_MAX - 1, 4, 1}}}) {
         checkValue(items, 7); checkValue(items, 0);}
+    for (const vector<RefItem> &items : vector<vector<RefItem>>{
+        {{lng(1) << 40, 5, 1}, {1, 1, 1}}, {{INT64_MAX, 9, -1}, {2, 3, 2}}, {{lng(INT_MAX) + 1, -1, INT_MAX}, {0, 2, 1}}}) {
+        checkCapacity(items, 7); checkCapacity(items, 0);}
     context = "bounded count=5 must not duplicate chunk subsets 1,2,2";
     KnapsackCounts<Big> count_five(5, {{1, 4, 5}});
     for (int w = 0; w <= 5; ++w) { checkEqual(count_five.exact(w).count, Big(1), "each bounded multiplicity counted exactly once"); }
@@ -274,8 +279,10 @@ void randomCases(const string &mode) {
             items.push_back({int(gen() % 8), lng(gen() % 11) - 5, multiplicities[gen() % 5]});}
         checkCapacity(items, cap);
         for (auto &item : items) { item.value = abs(item.value); }
+        checkValue(items, cap);
+        for (auto &item : items) { item.weight = lng(gen() >> 1); }
         checkValue(items, cap);}
-    cout << "PASS seeded recursive multiplicity oracles rounds=" << rounds << " max_items=7 max_axis=10\n";}
+    cout << "PASS seeded recursive multiplicity oracles rounds=" << rounds << " max_items=7 max_axis=10 value-axis weights<2^63\n";}
 
 void largeCases(const string &mode) {
     int n = mode == "quick" ? 1000 : mode == "full" ? 100000 : 500000;

@@ -966,9 +966,13 @@
       "phase": "Contest core",
       "size": "L+M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
+      "status": "verified",
+      "evidence": [
+        "06-Miscellaneous/Docs/29-knapsack_advanced.md",
+        "06-Miscellaneous/Docs/54-kbest_enumeration.md",
+        "06-Miscellaneous/Docs/55-fractional_programming.md"
+      ],
+      "note": "KnapsackItem::weight is lng in 13 (P015 files migrated)."
     },
     {
       "id": "P035",
@@ -2351,7 +2355,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Planned operation (user decision 2026-10-24, from P072): minimumRatioSpanningTree (POJ 2728), 06-Miscellaneous/55 dinkelbach over a dense Prim (06-mst primDense) oracle with weights a - t * b, exact rational result and tree witness; add it to the row 56 operations beside minimumRatioCycle and update 06-Miscellaneous/Docs/00-notes.md (Ownership boundaries) when implemented."
     },
     {
       "id": "P153",
@@ -2910,7 +2914,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Migration (user decision 2026-10-23, from P072): once 53-semiring_convolution.hpp provides maxPlusConvolutionConcaveArbitrary, 06-Miscellaneous/29-knapsack_advanced.hpp smallWeightKnapsack calls it instead of its knapsack_advanced_detail SMAWK; update Docs/29-knapsack_advanced.md and rerun the 29 tester."
     },
     {
       "id": "P196",

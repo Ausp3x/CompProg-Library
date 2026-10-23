@@ -104,6 +104,7 @@ Items a reader could mistake for duplicates.
 | P035 | `SparseDSU` (row 65) beside `HashMap<K, int>` plus `DSU::makeSet` | Decided 2026-10-23 by the user: larger key domain (hashable keys) |
 | P035 | `ParityDSU` (row 29) beside `WeightedDSU` over Z/2 | Decided 2026-10-23 by the user: a different algorithm, a 2n-node DSU |
 | P035 | `MergeHistoryForest` (row 65) beside `KruskalReconstruction` weighted by union index and `PartiallyPersistentDSU::uniteTime` | Decided 2026-10-23 by the user: a separate builder from a union sequence, with no graph or sort |
+| P072 | `kSmallestSubsetSums` (`54-kbest_enumeration.hpp`) beside `kSmallestSortedListSums` over lists `{min(0, a_i), max(0, a_i)}` | Decided 2026-10-23 by the user: named special case (subset witnesses, no list construction) |
 
 ### Rulings
 
@@ -230,6 +231,11 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P035 | `LinkedDSU::unionEnumerate` (`65-dsu_extensions.hpp`) | Derived: the newly merged pairs (clarified rule) |
 | P035 | `ComponentSumDSU` (`65-dsu_extensions.hpp`) beside row 09 `RollbackDSUAggregate` | Different algorithm: path compression, no undo |
 | P035 | `DecrementalSet` (`36-fastset.hpp`) beside `FastSet` | Different algorithm: a DSU over runs of empty words, O(alpha(n)) amortized on the erase-only domain |
+| P072 | `kLargest` (`54-kbest_enumeration.hpp`), every `kSmallest*` under `std::greater<>` | Mirror of `kSmallest*` (ruling 3) |
+| P072 | `treeKnapsack` (`29-knapsack_advanced.hpp`) beside Graphs row 14 `subtreeMergeDp` | Different algorithm: O(n * W) preorder suffix tables against O(n * W^2) subtree merging |
+| P072 | `kSmallestPairSums` (`54-kbest_enumeration.hpp`) beside `kSmallestSortedListSums({a, b})` | Named special case (clarified rule): two sorted arrays, `(sum, i, j)` tie order and index pairs, as `kSmallestSubsetSums` (Keeps) |
+| P072 | `boundedKnapsackMonotoneQueue`, `smallWeightKnapsack` (`29-knapsack_advanced.hpp`) beside `KnapsackDP::exact` (`13-knapsack.hpp`) | Different algorithms: monotone-queue O((n + 1) * (W + 1)) and SMAWK over D distinct weights O(n log n + (D + 1) * (W + 1)) against binary splitting O((W + 1) * (n + 1 + sum(log(c_i + 1)))) |
+| P072 | `knapsackCountsFps` (`29-knapsack_advanced.hpp`) beside `KnapsackCounts<ModInt>` (`13-knapsack.hpp`) | Different algorithm: power-series log/exp O((t + 1) * log(t + 2) + n) against the O((n + 1) * (W + 1)) counting DP, same counts modulo a prime above t |
 
 ## Conventions
 
@@ -277,16 +283,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | `berlekampMassey` | `14-sparsematrix.hpp:74` | Poly `findLinearRecurrence` | ask | same algorithm over exact fields; floating T uses a 1e-9 zero test | none | `14-sparsematrix.hpp:132-249` |
 | row 14: `toCOO`, `toCSR` | row 14 | `entries`, triplet constructor | ask | wrappers unless COO and CSR are distinct types | — | — |
 | `size()` | `14-sparsematrix.hpp:45` | `.n` | keep | accessor of a public data member | — | — |
-
-
-## P072 — 06-Miscellaneous — knapsack advanced, kbest enumeration, fractional programming (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `largeWeightSmallValueKnapsack` | row 29 | `13-knapsack.hpp:97-107` `ValueKnapsackDP::bestWithin` (widen `KnapsackItem::weight`) | ask | takes weights above `INT_MAX`, which `KnapsackItem::weight` rejects | — | — |
-| `kLargest` | row 54 | `kSmallest*` with a comparator | keep | mirror of `kSmallest` (ruling 3) | — | — |
-| `fractionalBinarySearch` | row 55 | `binSearchRealBracket` with `oracle(t) >= 0` | ask | builder | — | — |
-| `treeKnapsack` | row 29 | Graphs row 14 `subtreeMergeDp` | keep | different algorithm, O(n·W) | — | — |
 
 ## P046 — 04-Graphs — matching general (planned)
 
@@ -995,7 +991,6 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P020** move the floating branches to `solveReal`, `invReal`, `rankReal`, or drop those entries? `StaticMatrix`: is a compile-time shape a different domain? `rowSpace`, `colSpace`: another basis? The 8-lane REDC in `mulRow`, `elimRow`: the same as `Montgomery32` `mul8`, `red8`, or an assert-free lazy variant like Poly's kept `Mont8`? `Matrix(vector, axis)` and the vector products: an empty vector gives 0×0 here and 1×0 or 0×1 from `Matrix(1, n, v)`; is that difference real?
 - **P022** GF(2) `-=`, `-`: keep for generic ring code?
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
-- **P072** `fractionalBinarySearch`: a named entry point or `binSearchRealBracket`? `largeWeightSmallValueKnapsack`: widen `KnapsackItem::weight` and remove it, or keep it for weights above `INT_MAX`?
 - **P058** `gaussJordan` or `rref`? `nullspace` beside `solveLinear(A, 0)`?
 - **P088** row 31 `stringFromPrefixFunction`, `stringFromZ`, `infeasible`: minimum-alphabet or lex-min witnesses?
 - **P061** `multipointEvaluateGeometric` beside `bluesteinTransform`; row 23 matrix-tree counts beside Graphs row 53: which row owns each?

@@ -6,7 +6,7 @@
 
 ### KnapsackItem, KnapsackStatus, KnapsackResult
 
-`KnapsackItem{weight,value,count}` represents an item type with nonnegative `int weight`, full signed `lng value`, and `count=-1` for unlimited copies or `count>=0` for a finite multiplicity. `count=1` is ordinary 0/1 knapsack; mixed item policies may coexist. Repeated identical item types remain distinct coordinates of a selection vector. Axis bounds are nonnegative and less than `INT_MAX`, and the item count fits `int`. Input values and multiplicities are copied as needed; no borrowed state or global cache survives construction.
+`KnapsackItem{weight,value,count}` represents an item type with nonnegative `lng weight` (widened from `int` on 2026-10-23 so value-indexed tables accept huge weights; a weight above a capacity axis never fits), full signed `lng value`, and `count=-1` for unlimited copies or `count>=0` for a finite multiplicity. `count=1` is ordinary 0/1 knapsack; mixed item policies may coexist. Repeated identical item types remain distinct coordinates of a selection vector. Axis bounds are nonnegative and less than `INT_MAX`, and the item count fits `int`. Input values and multiplicities are copied as needed; no borrowed state or global cache survives construction.
 
 ### KnapsackDP, ValueKnapsackDP, knapsackFeasible, KnapsackCounts
 
@@ -40,35 +40,36 @@ Costs: optimization takes `O((axis+1) * (n+1+sum(log(1+bounded_limit))))` time i
 | Both `restore` methods | Multiplicity bounds, exact total weight/value and optimum checks against every traced small target; stale-parent counterexample, copies and repeated construction. |
 | `knapsackFeasible` | Independent reachability of recursively enumerated multiplicity vectors, including zero-capacity and zero-count items. |
 | `KnapsackCounts<T>.exact/atMost`, `KnapsackCount` | Exact and prefix multiplicity counts, bounded count-five duplicate-bundle regression, finite zero-weight factors and unlimited zero-weight infinity; modular types for moduli 2 and 1 verify zero residues remain reachable. |
-| Width/size/generic arithmetic | `INT_MAX` finite counts, `lng` extremes and 128-bit objectives; 100,000-item and 100,000-axis fixtures; exact `2^1000` counts and independent Python arbitrary-integer convolution outputs. |
+| Width/size/generic arithmetic | `INT_MAX` finite counts, `lng` extremes and 128-bit objectives; value-axis tables with weights `2^31` to `INT64_MAX` and random 63-bit weights, capacity tables with weights above the axis; 100,000-item and 100,000-axis fixtures; exact `2^1000` counts and independent Python arbitrary-integer convolution outputs. |
 | Preconditions | 37 checked probes covering axes, weights/counts/values, queries, negative budgets and unavailable/unreachable/unbounded reconstruction. |
 
 The C++ oracle recursively enumerates original item multiplicities rather than repeating DP transitions. Boost was unavailable; a compact test-only nonnegative exact counter supplies the generic arithmetic instantiation, and its actual decimal outputs are checked independently against Python integers. The Python oracle directly convolves permitted multiplicities without sliding windows or binary grouping.
 
 ## Commands and results
 
-Run 2026-10-08: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>). The re-audit changed only comments and closing braces; behavior and tests are unchanged.
+Run 2026-10-23 (P072, after `KnapsackItem::weight` became `lng`): Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>); MEMORY peaks include the compiler.
 
 ```bash
-python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode full --seed 1                  # PASS before and after the restyle, 3 configurations
-python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode quick --seed 1                 # PASS, 2 configurations
-CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode full --seed 2       # PASS, 3 configurations
-python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode stress --seed 3                # PASS, 3 configurations
-python3 '96-Local Testing/06-Miscellaneous/13-knapsack_benchmark.py'                                    # PASS, 48 comparisons
+python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode quick --seed 1                 # PASS, 2 configurations, 37 probes, peak 444 MB
+python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode full --seed 1                  # PASS, 3 configurations, peak 500 MB
+CXX=g++-14 python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode full --seed 2       # PASS, 3 configurations, peak 508 MB
+python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode stress --seed 3                # PASS, 3 configurations, peak 825 MB
+python3 '96-Local Testing/06-Miscellaneous/13-knapsack_benchmark.py'                                    # PASS, 48 comparisons, peak 333 MB
+python3 '96-Local Testing/02-integration.py'                                                             # PASS, 174 standalone/aggregate headers, multi-TU, workspace
 python3 '96-Local Testing/03-consistency.py'                                                             # no errors
 ```
 
-Each full configuration ran 9,593 cases / 1,489,426 C++ checks and 207 Python fixtures / 2,286 exact-count rows; the checked build passed 37 assertion probes. Quick/full/stress use exhaustive item-alphabet sequences through 2/3/4 items, axes 4/6/8, 100/2,000/10,000 seeded cases and large fixtures of 1,000/100,000/500,000; every mode also exhausts singleton weight 0–4, value -3–3, counts -1/0/1/2/5 and axes 0–7. Integration is recorded in [14-cyclefinding.md](14-cyclefinding.md).
+Each full configuration ran 11,605 cases / 1,650,055 C++ checks and 207 Python fixtures / 2,286 exact-count rows; the checked build passed 37 assertion probes. Quick/full/stress use exhaustive item-alphabet sequences through 2/3/4 items, axes 4/6/8, 100/2,000/10,000 seeded cases and large fixtures of 1,000/100,000/500,000; every mode also exhausts singleton weight 0–4, value -3–3, counts -1/0/1/2/5 and axes 0–7. The value-axis width fixtures and 63-bit random weights were added on 2026-10-23.
 
 ## Benchmarks
 
-The [driver](<../../96-Local Testing/06-Miscellaneous/13-knapsack_benchmark.py>) and its local, git-ignored `13-knapsack_benchmark.json` (2026-10-08): GCC 16.2.1 GNU++20 `-O2 -DNDEBUG`, i9-11900H, fixed seed, one warmup and five rotating-order repetitions. Capacities 16/512/4096 with 12/48/48 item types, weights 1–23 (1–3 in a small-weight corpus), values -50–150, and 0/1, bounded 1–32 or unlimited multiplicities, both trace settings. Timing covers DP allocation, every exact query, one full-capacity at-most query, optional reconstruction and destruction; reference generation and full output/witness verification are untimed.
+The [driver](<../../96-Local Testing/06-Miscellaneous/13-knapsack_benchmark.py>) and its local, git-ignored `13-knapsack_benchmark.json` (2026-10-23): GCC 16.2.1 GNU++20 `-O2 -DNDEBUG`, i9-11900H, fixed seed, one warmup and five rotating-order repetitions. Capacities 16/512/4096 with 12/48/48 item types, weights 1–23 (1–3 in a small-weight corpus), values -50–150, and 0/1, bounded 1–32 or unlimited multiplicities, both trace settings. Timing covers DP allocation, every exact query, one full-capacity at-most query, optional reconstruction and destruction; reference generation and full output/witness verification are untimed.
 
 | Workload | Library time / direct reference time |
 |---|---|
-| 0/1 | 0.269–0.435 |
-| Bounded | 0.122–0.407 |
-| Unlimited | 0.0005–0.0032 at capacity 4096; the reference keeps its direct quantity loop |
+| 0/1 | 0.248–0.411 |
+| Bounded | 0.146–0.382 |
+| Unlimited | 0.0006–0.0039 at capacity 4096; the reference keeps its direct quantity loop |
 
 The reference enumerates every legal quantity from the previous layer without binary splitting. These are warmed-cache shared-host observations against a simple recurrence, not a fastest-known result, a timing gate or a tuned threshold. Row `29` monotone queues, row `22` bitsets and fine-grained subset-sum algorithms were not benchmarked.
 
@@ -93,3 +94,5 @@ The abstract/metadata of Karl Bringmann, [*A Near-Linear Pseudopolynomial Time A
 
 - 2026-09-28: verified (P015, previous system).
 - 2026-10-08: re-audit, comment cap and closing braces restyled, 3 findings fixed, no behavior change; full suites, g++-14 full and benchmarks passed.
+- 2026-10-23: `KnapsackItem::weight` widened to `lng` (P072, replacing `largeWeightSmallValueKnapsack`), width tests added; full suites, g++-14 full, stress and benchmarks passed.
+- 2026-10-24: P072 `/finish` (user decision 2026-10-24): `knapsack_detail::validate` marks its assert-only parameter and loop variable `[[maybe_unused]]`, so `-DNDEBUG -Wall -Wextra` builds are warning-free; quick and full passed.

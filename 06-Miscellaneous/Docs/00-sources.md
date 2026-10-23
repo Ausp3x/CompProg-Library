@@ -112,6 +112,34 @@ Fetched by `@researcher` for row `34`; adoption decisions are in [34-slope_trick
 
 KACTL and cp-algorithms have no slope-trick article. maspy's article (2), zscoder's Codeforces tutorial (blog 47821) and ei1333's documentation page returned HTTP 404/403 and were not read.
 
+## P072 sweep (2026-10-23)
+
+Fetched by `@researcher` for rows `29`, `54` and `55`; adoption decisions are in [00-notes.md](00-notes.md) and the evidence documents [29-knapsack_advanced.md](29-knapsack_advanced.md), [54-kbest_enumeration.md](54-kbest_enumeration.md) and [55-fractional_programming.md](55-fractional_programming.md).
+
+| Source | URL | Used for |
+|---|---|---|
+| OI Wiki 背包 DP (mirror) and 背包 DP 进阶 | https://next.oi-wiki.org/dp/knapsack/, https://oi-wiki.org/dp/knapsack/advanced/ | `29` group, two-dimensional, dependency, undo (counting only), kth-best (strict, HDU 2639) and optimal-count variants |
+| cp-algorithms knapsack | https://cp-algorithms.com/dynamic_programming/knapsack.html | `29` monotone-queue bounded knapsack |
+| KACTL FastKnapsack | https://github.com/kth-competitive-programming/kactl/blob/main/content/various/FastKnapsack.h | `29` `pisingerSubsetSum` |
+| maspypy `knapsack/` (knapsack01, knapsack_branch_bound, subset_sum, subset_sum_count, ancestor_closed_set_knapsack, connected_set_knapsack, independent_set_knapsack), `mod/modular_subset_sum` | https://maspypy.github.io/library/ | `29` branch and bound, Pisinger witness, tree knapsack; connected/independent-set and modular subset sum not adopted |
+| Nyaan `dp/knapsack01`, `dp/branch-and-bound` | https://nyaannyaan.github.io/library/ | `29` adaptive 0/1 dispatch (not adopted), branch and bound |
+| ei1333 `dp/knapsack`, `dp/knapsack-limitations`, `dp/knapsack-limitations-2` | https://ei1333.github.io/library/ | `29` monotone queue; `boundedKnapsackSmallValue` (AOJ DPL_1_I) |
+| hitonanode `other_algorithms/bounded_knapsack` | https://hitonanode.github.io/cplib-cpp/ | `29` Pisinger bounded form |
+| noshi91 `algorithm/axiotis_tzamos_knapsack`, `axiotis_tzamos_unbounded_knapsack` | https://noshi91.github.io/Library/ | `29` `smallWeightKnapsack` (concave max-plus per weight class), `unboundedKnapsackLargeCapacity` |
+| Library Checker problem repository | https://github.com/yosupo06/library-checker-problems | `sharp_p_subset_sum` is Mathematics `12` `subsetSumCount`; `29` keeps only the multiplicity form |
+| maspypy `convex/nth_element_from_sorted_lists`, `convex/nth_element_from_sorted_matrix` | https://maspypy.github.io/library/convex/nth_element_from_sorted_lists.hpp, https://maspypy.github.io/library/convex/nth_element_from_sorted_matrix.hpp | `54` sorted-matrix selection, not adopted |
+| OI Wiki 堆, 可持久化可并堆 | https://oi-wiki.org/ds/heap/, https://oi-wiki.org/ds/persistent-heap/ | `54` frontier heaps; persistent-heap k-best paths are Graphs `32` |
+| cnblogs autoint (NOI 2010 超级钢琴) | https://www.cnblogs.com/autoint/p/10671934.html | `54` `kSmallestSubarraySums` range split with an argmin table |
+| Qiita tsukasa\_\_diary (Lawler k-best) | https://qiita.com/tsukasa__diary/items/8bc2947d1f65d1451bb3 | `54` `lawlerKBest` |
+| algo.monster 2386 | https://algo.monster/liteproblems/2386 | `54` k-th largest subsequence sum as `kSmallestSubsetSums` under `std::greater` |
+| Eppstein–Hirschberg, Choosing subsets with maximum weighted average (J. Algorithms 24, 1997; UCI TR 95-12) | https://ics.uci.edu/~eppstein/pubs/EppHir-Algs-97.pdf | `55` engine of `zeroOneFractionalSelect` (Lemmas 1, 4–6, Figure 1); located 2026-10-24 by the `/finish` audit, pages 1–12 read 2026-10-24 |
+| OI Wiki 分数规划 | https://oi-wiki.org/misc/frac-programming/ | `55` Dinkelbach, exactly-k selection, ratio applications |
+| USACO 2018 Open Gold "Talent Show" solution, USACO forum thread 212 | https://usaco.org/current/data/sol_talent_gold_open18.html, https://forum.usaco.guide/t/talent-show-fake-solve/212 | `55` `ratioKnapsack`; the search-free variant is not adopted |
+| cp-algorithms binary search, Nyaan Stern–Brocot binary search, maspypy `nt/rational_binary_search` | https://cp-algorithms.com/num_methods/binary_search.html, https://nyaannyaan.github.io/library/math/stern-brocot-tree-binary-search.hpp.html, https://maspypy.github.io/library/nt/rational_binary_search.hpp | `55` real bisection and exact rational search, owned by Mathematics `02` and `20` |
+| Wikipedia parametric search, linear-fractional programming, fractional programming | https://en.wikipedia.org/wiki/Parametric_search, https://en.wikipedia.org/wiki/Linear-fractional_programming, https://en.wikipedia.org/wiki/Fractional_programming | `55` Megiddo and Charnes–Cooper, not adopted |
+
+Codeforces blogs 61211, 146040 and 4190 (HTTP 403), the Luogu CCO 2020 "Shopping Plans" article (HTTP 523), poj.org and usaco.guide fractional programming (unreachable) were not read; `kSmallestFixedSizeSubsetSums` is derived and proved in its evidence document, not taken from them.
+
 ## 2026-09 audit
 
 The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, dynamic DP, slope trick, IDA*, alpha-beta, job ordering, expression parsing, majority candidates, Garsia–Wachs and annealing, and compared cp-algorithms, CSES, Library Checker, OI Wiki navigation and the Japanese library catalogs. The Garsia–Wachs page has conflicting complexity wording (contract for `48` in [00-notes.md](00-notes.md)). Per-package source inspections with dates, page revisions and read scopes are recorded in the per-header documents [01-random.md](01-random.md), [02-customhash.md](02-customhash.md), [03-fastio.md](03-fastio.md), [04-compression.md](04-compression.md), [06-bit_operations.md](06-bit_operations.md), [07-permutation.md](07-permutation.md), [08-sequence_algorithms.md](08-sequence_algorithms.md), [09-interval_algorithms.md](09-interval_algorithms.md), [10-offline_queries.md](10-offline_queries.md), [11-sorting_selection.md](11-sorting_selection.md), [12-enumeration.md](12-enumeration.md), [13-knapsack.md](13-knapsack.md) and [14-cyclefinding.md](14-cyclefinding.md); machine-readable timestamps are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json). Code in every verified header was written independently from the mathematical recurrences; no external source text was adapted.

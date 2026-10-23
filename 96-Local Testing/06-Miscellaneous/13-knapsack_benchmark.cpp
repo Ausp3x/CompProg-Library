@@ -16,10 +16,11 @@ Output direct(int capacity, const vector<KnapsackItem> &items, bool trace) {
     vector<vector<int>> take;
     for (const auto &item : items) {
         auto next = value; auto seen = reachable; vector<int> used(trace ? capacity + 1 : 0);
+        int step = int(item.weight);
         for (int w = 0; w <= capacity; ++w) {
-            int limit = item.count < 0 ? w / item.weight : min(item.count, w / item.weight);
+            int limit = item.count < 0 ? w / step : min(item.count, w / step);
             for (int q = 1; q <= limit; ++q) {
-                int old = w - q * item.weight;
+                int old = w - q * step;
                 if (reachable[old] && (!seen[w] || next[w] < value[old] + lll(q) * item.value)) {
                     next[w] = value[old] + lll(q) * item.value; seen[w] = true;
                     if (trace) { used[w] = q; }}}}
@@ -32,7 +33,7 @@ Output direct(int capacity, const vector<KnapsackItem> &items, bool trace) {
     if (trace) {
         int w = target;
         for (int i = int(items.size()) - 1; i >= 0; --i) {
-            witness[i] = take[i][w]; w -= witness[i] * items[i].weight;}}
+            witness[i] = take[i][w]; w -= witness[i] * int(items[i].weight);}}
     return {std::move(value), std::move(reachable), std::move(witness), target};}
 Output library(int capacity, const vector<KnapsackItem> &items, bool trace) {
     KnapsackDP dp(capacity, items, trace); Output out;

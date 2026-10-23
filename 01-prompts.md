@@ -89,7 +89,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P034 — DS30, DS31, DS03, DS51** (opus, L+M+L+M): 02-Data Structures — sqrttree, persistentarray, rollbackdsu, persistentdsu, offline deletion. Status: verified. [evidence](<02-Data Structures/Docs/09-rollbackdsu.md>) [evidence](<02-Data Structures/Docs/10-persistentdsu.md>) [evidence](<02-Data Structures/Docs/34-sqrttree.md>) [evidence](<02-Data Structures/Docs/35-persistentarray.md>) [evidence](<02-Data Structures/Docs/63-offline_deletion.md>)
 - [x] **P047 — GR69, GR12, GR28** (opus, L+L+M): 04-Graphs — directedmst, dynamic connectivity, blockcuttree, path cover. Status: verified. [evidence](04-Graphs/Docs/25-directedmst.md) [evidence](04-Graphs/Docs/26-dynamic_connectivity.md) [evidence](04-Graphs/Docs/27-blockcuttree.md) [evidence](04-Graphs/Docs/31-path_cover.md)
 - [x] **P082 — ST05** (opus, XL): 07-Strings — suffixtree. Status: verified. [evidence](07-Strings/Docs/11-suffixtree.md)
-- [ ] **P072 — MI18, MI34** (opus, L+M): 06-Miscellaneous — knapsack advanced, kbest enumeration, fractional programming. Status: planned.
+- [x] **P072 — MI18, MI34** (opus, L+M): 06-Miscellaneous — knapsack advanced, kbest enumeration, fractional programming. Status: verified. Note: KnapsackItem::weight is lng in 13 (P015 files migrated). [evidence](06-Miscellaneous/Docs/29-knapsack_advanced.md) [evidence](06-Miscellaneous/Docs/54-kbest_enumeration.md) [evidence](06-Miscellaneous/Docs/55-fractional_programming.md)
 - [x] **P035 — DS25, DS32, DS52** (opus, M+M+M): 02-Data Structures — weighteddsu, fastset, dsu extensions. Status: verified. [evidence](<02-Data Structures/Docs/29-weighteddsu.md>) [evidence](<02-Data Structures/Docs/36-fastset.md>) [evidence](<02-Data Structures/Docs/65-dsu_extensions.md>) [evidence](<02-Data Structures/Docs/00-monoids.md>)
 - [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.
 - [ ] **P058 — MA08** (opus, L): 05-Mathematics — linear algebra. Status: planned.
@@ -196,7 +196,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P149 — GE41** (opus, XL): 03-Geometry — polyhedron boolean. Status: planned.
 - [ ] **P150 — GE42** (opus, XL): 03-Geometry — curve distance. Status: planned.
 - [ ] **P151 — GE43** (opus, XL): 03-Geometry — dynamicconvexhull. Status: planned.
-- [ ] **P152 — GR14, GR16, GR23** (opus, L+L+M): 04-Graphs — gomoryhutree, stoerwagner, maximumclique, minimummeancycle. Status: planned.
+- [ ] **P152 — GR14, GR16, GR23** (opus, L+L+M): 04-Graphs — gomoryhutree, stoerwagner, maximumclique, minimummeancycle. Status: planned. Note: Planned operation (user decision 2026-10-24, from P072): minimumRatioSpanningTree (POJ 2728), 06-Miscellaneous/55 dinkelbach over a dense Prim (06-mst primDense) oracle with weights a - t * b, exact rational result and tree witness; add it to the row 56 operations beside minimumRatioCycle and update 06-Miscellaneous/Docs/00-notes.md (Ownership boundaries) when implemented.
 - [ ] **P153 — GR15** (opus, XL): 04-Graphs — matroidintersection. Status: planned.
 - [ ] **P154 — GR17** (opus, XL): 04-Graphs — treedecomposition. Status: planned.
 - [ ] **P155 — GR18, GR21, GR24** (opus, L+L+M): 04-Graphs — lct, sensitivity analysis, temporal graph, maximumdensitysubgraph. Status: planned.
@@ -238,7 +238,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P192 — MA33** (opus, XL): 05-Mathematics — integer linear algebra. Status: planned.
 - [ ] **P193 — MA34** (opus, XL): 05-Mathematics — multivariate polynomial. Status: planned.
 - [ ] **P194 — MA35** (opus, XL): 05-Mathematics — polynomial matrix. Status: planned.
-- [ ] **P195 — MA36, MA37** (opus, L+L): 05-Mathematics — relaxed convolution, semiring convolution. Status: planned.
+- [ ] **P195 — MA36, MA37** (opus, L+L): 05-Mathematics — relaxed convolution, semiring convolution. Status: planned. Note: Migration (user decision 2026-10-23, from P072): once 53-semiring_convolution.hpp provides maxPlusConvolutionConcaveArbitrary, 06-Miscellaneous/29-knapsack_advanced.hpp smallWeightKnapsack calls it instead of its knapsack_advanced_detail SMAWK; update Docs/29-knapsack_advanced.md and rerun the 29 tester.
 - [ ] **P196 — MA38, MA42, MA44** (opus, L+L+M): 05-Mathematics — discrete log advanced, quadratic integer, zero sum. Status: planned.
 - [ ] **P197 — MA39** (opus, L): 05-Mathematics — floor sum polynomial. Status: planned.
 - [ ] **P198 — MA40** (opus, XL): 05-Mathematics — coding theory. Status: planned.
