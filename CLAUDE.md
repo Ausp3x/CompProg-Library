@@ -21,7 +21,7 @@ When asked to commit, commit directly to local `master`; create no branch unless
 
 ## Compact instructions
 
-Sessions auto-compact at 400k tokens (`autoCompactWindow` in `.claude/settings.json`), and the `compact` SessionStart hook re-injects the `/finish` ledger, the package brief and the git state. A summary keeps the package or batch id, the skill and step in progress, decisions made and by whom, operations done and remaining, failing reproducers with seeds, and the exact next step; it drops file contents, passing test output and superseded attempts.
+Sessions auto-compact at 400k tokens (`autoCompactWindow` in `.claude/settings.json`), and the `compact` SessionStart hook re-injects the `/finish` ledger, the package brief and the git state; at startup and after `/clear` it injects the newest `/pause` handoff (`.claude/pause/`, git-ignored) with the git state. A summary keeps the package or batch id, the skill and step in progress, decisions made and by whom, operations done and remaining, failing reproducers with seeds, and the exact next step; it drops file contents, passing test output and superseded attempts.
 
 ## Commands
 

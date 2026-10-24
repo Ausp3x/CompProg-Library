@@ -16,6 +16,7 @@
 
 .claude/settings.local.json
 .claude/finish/
+.claude/pause/
 96-Local Testing/**/*_benchmark.json
 96-Local Testing/**/*_benchmark.jsonl
 /99-Workspace/*

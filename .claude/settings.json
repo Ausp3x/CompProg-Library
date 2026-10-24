@@ -49,11 +49,36 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/resume.py\"",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/resume.py\" compact",
+            "timeout": 60
+          }
+        ]
+      },
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/resume.py\" startup",
+            "timeout": 60
+          }
+        ]
+      },
+      {
+        "matcher": "clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/resume.py\" clear",
             "timeout": 60
           }
         ]
       }
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/statusline.py\"",
+    "padding": 0
   }
 }
