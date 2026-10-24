@@ -1,12 +1,12 @@
 ---
 name: finish
-description: Close the package, batch or branch this session worked on. Collects every remaining gap, fixes the defects, asks every other decision, loops until nothing is open, then commits, rebases onto master, fast-forwards master and removes the worktree on the user's yes.
+description: Close the package, batch or branch this session worked on in one pass. One full review, one round of questions (landing included), fixes, then the suites and a review of the fixes; then commits, rebases onto master, fast-forwards master and removes the worktree as answered.
 disable-model-invocation: true
 argument-hint: "[Pxxx | batch id] (default: from the branch or worktree name)"
 allowed-tools: Bash(git add *) Bash(git commit *) Bash(git rebase *) Bash(git rm *) Bash(git mv *)
 ---
 
-The run ends only when the ledger is empty and the done checklist passes, or when the user chooses otherwise; it never stops silently. The facts below the procedure are this run's starting state.
+The run is one pass: collect, ask once, fix, verify, land. It never stops silently and repeats only the checks a fix needs. The facts below the procedure are this run's starting state.
 
 ## Rules
 
@@ -22,13 +22,14 @@ The run ends only when the ledger is empty and the done checklist passes, or whe
 ## Procedure
 
 1. **Model and scope.** As `/package` step 1. If the facts name no package but this session worked on one, rerun `gaps.py <id>` and use its facts. Without a package, the branch changes are the scope; after `/prune`, only its items and checks (`/prune` changes nothing else).
-2. **Collect** into the ledger: the recorded gaps below, plan notes and rows not verified, open review findings, failing or skipped checks, and a fresh `@reviewer` audit of the target plus every changed file. Ask the reviewer for limits as well as defects: domain edges, inputs no test reaches, operations without an independent oracle, claims without a recorded run, sources not fetched, decisions made without the user. A target row without a recorded `@researcher` sweep in `Docs/00-sources.md` gets `/package` step 3.
-3. **Classify** each item as defect or decision; ask all open decisions in one batch.
-4. **Fix** the defects and carry out the answers through `/package` steps 4 to 10. Anything found along the way enters the ledger. A decision that blocks all remaining work is asked at once; the rest wait for the end of the round.
-5. **Re-audit** what changed in this round: affected suites and a fresh `@reviewer`. New items return to step 3. If a round leaves the ledger no shorter or an item recurs, ask how to proceed.
-6. **Done checklist**: everything `/package` steps 5 to 10 require holds for every target (a batch as its Batch argument says), and the last `@reviewer` pass found nothing.
-7. **Land.** Ask once: commit, rebase onto master, merge and remove the worktree? On no, stop and report. On yes:
-   - If the user lands with items open, first set the package `in-progress` with a note listing them.
+2. **Collect** into the ledger: the recorded gaps below, plan notes and rows not verified, open review findings, failing or skipped checks, and one fresh `@reviewer` audit of the target plus every changed file, the run's only full audit. Ask the reviewer for limits as well as defects: domain edges, inputs no test reaches, operations without an independent oracle, claims without a recorded run, sources not fetched, decisions made without the user. A target row without a recorded `@researcher` sweep in `Docs/00-sources.md` gets `/package` step 3.
+3. **Ask once.** Classify each item as defect or decision. Put every open decision in one round of consecutive AskUserQuestion calls, the last question being whether to land (commit, rebase, merge, remove the worktree) when the run ends clean.
+4. **Fix** the defects and carry out the answers through `/package` steps 4 to 10. Anything found along the way enters the ledger.
+5. **Verify** what changed: the affected suites in quick and full mode, full again with `CXX=g++-14`, the integration build `05-testing.md` (Coverage) requires, `96-Local Testing/03-consistency.py`, and, if code or tests changed, an `@reviewer` pass limited to this run's diff. Fix a new defect and rerun its checks; ask a new decision in one final round. No further full audit.
+6. **Done checklist**: everything `/package` steps 5 to 10 require holds for every target (a batch as its Batch argument says), and step 5 left nothing open.
+7. **Land** when step 3 answered yes and step 6 holds; otherwise ask once: land with the open items or stop. On stop, report. To land:
+   - If items stay open, first set the package `in-progress` with a note listing them.
+   - Append one tab-separated line to `00-Guidelines/13-Plan/finish-log.tsv`: date, key, session model, effort, confirmed findings of the step 2 review, defects fixed, decisions asked, result (`verified`, `partial` or `branch`).
    - Commit with the session's attribution lines: in a worktree every change, so that `git status` is clean; in the main checkout only this run's paths. The message is `Pxxx: <label> — <verified|partial>`, after `/prune` the one its step 9 gives, and without a package `<branch>: <summary>`. Then delete the ledger; in the main checkout, stop there.
    - `git rebase master`. A conflict inside the plan block of `01-prompts.md` is resolved by `python3 '00-Guidelines/13-Plan/plan.py' render`; any marker left after it, and any other conflict, by hand, keeping both sides' intent. After a rebase that applied master commits, rerun the validator and the target's quick suites; a failure goes to a new ledger and back to step 3.
    - Call ExitWorktree with action `keep`, then from the main checkout run `python3 '00-Guidelines/13-Plan/worktree.py' '<worktree path>' --finish`. On failure show the error and ask: retry, fix it (EnterWorktree with the worktree path, then repeat from the rebase) or stop. If ExitWorktree reports no active worktree session, print that command for the user to run from a terminal in the main checkout.

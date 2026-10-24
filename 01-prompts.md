@@ -19,7 +19,7 @@ Start one fresh session per task with the preset of its work:
 | `/omission-sweep [02 04 … or paths]` | When a folder's packages are mostly done (Mathematics early): list completeness gaps in `omissions.md`. A whole folder starts about 50 agents, so raise "Dynamic workflow size" in `/config` first | `/omission-sweep apply`, then `/package` the packages it reopened or created |
 | `/tidy [scope]` | Every ten or so packages, or after a guideline change: remove stale, restated and superseded text | Answer its questions, then commit |
 | `/restyle Pxxx` | Only after the comment cap or closing-brace rule changes | Commit |
-| `/finish [Pxxx or batch id]` | After `/package` or `/prune`, in a worktree or the main checkout, even with no gaps reported: fixes the remaining defects, asks everything else, loops until nothing is open, then on your yes commits, rebases, fast-forwards `master` and removes the worktree, or prints the one command that does when the session cannot leave the worktree | Push `master` |
+| `/finish [Pxxx or batch id]` | After `/package` or `/prune`, in a worktree or the main checkout, even with no gaps reported: one full review, one round of questions including whether to land, fixes, then the suites and a review of the fixes; on your yes it commits, rebases, fast-forwards `master` and removes the worktree, or prints the one command that does when the session cannot leave the worktree | Push `master` |
 
 Commits: `/finish` commits and lands `/package` and `/prune` work; other skills print their commit command. Pending one-off runs: `/omission-sweep "02-Data Structures/45-kineticheap.hpp" "03-Geometry/26-geometry3d.hpp" "03-Geometry/53-dynamicconvexhull.hpp"`, then `/omission-sweep 05`.
 

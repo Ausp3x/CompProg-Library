@@ -8,6 +8,7 @@ The plan is one compact manifest plus CLIs. Batches are stable ownership units; 
 | [packages.json](packages.json) | Packages P001–Pn in default order: label, batches, phase, size, model, status, evidence and note. Package prerequisites are derived from batch prerequisites. |
 | [plan.py](plan.py) | Standard-library CLI; runs from any directory. |
 | [worktree.py](worktree.py) | Package worktrees: report (default), `--sync` (`--integration` also runs the integration build), `--finish` (sync, fast-forward `master`, remove) and `--remove`; all but the report run from the main checkout. |
+| [finish-log.tsv](finish-log.tsv) | One line per `/finish` landing: date, key, session model and effort, confirmed findings of its review, defects fixed, decisions asked, result. Merged as a union (`.gitattributes`). |
 | [context_usage.py](context_usage.py) | Token and context usage of past sessions from the local transcripts, with an auto-compact window replay (`--windows`). |
 
 Commands (`python3 '00-Guidelines/13-Plan/plan.py' <command>`):
