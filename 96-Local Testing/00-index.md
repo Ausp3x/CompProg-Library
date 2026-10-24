@@ -19,6 +19,7 @@ python3 '96-Local Testing/_00_memory_cap.py' [--mb N] -- <cmd>    # run any othe
 python3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/02-online_tester.py'
 python3 '96-Local Testing/00-Tools/03-notebook_tester.py'
+python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full
 ```
 
 | Mode | Coverage |
@@ -39,7 +40,7 @@ python3 '96-Local Testing/00-Tools/03-notebook_tester.py'
 | `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds |
 | `03-consistency.py` | Repository record and style validator; imports `plan.py check` |
 | `Docs/` | Support-pass evidence ([00-memory-safety.md](Docs/00-memory-safety.md), P231) |
-| `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, and the notebook |
+| `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, the notebook and the header dependency graph |
 | `01-Core/` … `07-Strings/` | Per-header testers, helper `.cpp` files and benchmark drivers |
 
 Known limits: suite discovery scans one folder level; there is no checked-in CI. The mode names describe actual coverage; a suite that does not exist is not claimed by any mode.

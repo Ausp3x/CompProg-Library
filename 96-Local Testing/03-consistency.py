@@ -11,6 +11,10 @@ from pathlib import Path
 from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[1]
+deps_spec = importlib.util.spec_from_file_location('library_dependencies_check', ROOT / '98-Team Notebook/05-dependencies.py')
+deps = importlib.util.module_from_spec(deps_spec)
+deps_spec.loader.exec_module(deps)
+strip_cpp = deps.strip_cpp
 errors = []
 counts = {}
 
@@ -32,50 +36,6 @@ def ignored(paths):
 
 def cells(line):
     return [x.strip() for x in re.split(r'(?<!\\)\|', line.strip())[1:-1]]
-
-def strip_cpp(text):
-    """Blank comments, string/character literals and preprocessor lines; keep every newline and column."""
-    out, i, n, line_start = [], 0, len(text), True
-    while i < n:
-        c = text[i]
-        if c == '\n':
-            out.append(c); i += 1; line_start = True
-            continue
-        if line_start and c not in ' \t':
-            line_start = False
-            if c == '#':
-                while i < n and text[i] != '\n':
-                    if text[i] == '\\' and i + 1 < n and text[i + 1] == '\n':
-                        out.append(' \n'); i += 2
-                    else:
-                        out.append(' '); i += 1
-                continue
-        if text.startswith('//', i):
-            j = text.find('\n', i); j = n if j < 0 else j
-            out.append(' ' * (j - i)); i = j
-            continue
-        if text.startswith('/*', i):
-            j = text.find('*/', i + 2); j = n if j < 0 else j + 2
-            out.append(''.join('\n' if ch == '\n' else ' ' for ch in text[i:j])); i = j
-            continue
-        if c == '"' and i > 0 and text[i - 1] == 'R':
-            j = text.find('(', i); delim = text[i + 1:j]
-            k = text.find(')' + delim + '"', j); k = n if k < 0 else k + len(delim) + 2
-            out.append(''.join('\n' if ch == '\n' else ' ' for ch in text[i:k])); i = k
-            continue
-        k = i
-        while k > 0 and (text[k - 1].isalnum() or text[k - 1] == '_'):
-            k -= 1
-        separator = c == "'" and k < i and text[k].isdigit() and i + 1 < n and text[i + 1].isalnum()
-        if c in '"\'' and not separator:
-            j = i + 1
-            while j < n and text[j] != c and text[j] != '\n':
-                j += 2 if text[j] == '\\' else 1
-            j = min(j + 1, n)
-            out.append(c + ' ' * (j - i - 2) + c if j - i >= 2 else ' ' * (j - i)); i = j
-            continue
-        out.append(c); i += 1
-    return ''.join(out)
 
 def brace_violations(path):
     """03-cpp.md closing-brace rule: a multi-line function, control or lambda block closes as ';}' on its
@@ -297,9 +257,9 @@ for target, parts in inventories.items():
         continue
     raw = path.read_text()
     code = strip_cpp(raw)
-    if not (re.search(r'^#include "[^"]*0[34]-(barrett|montgomery)\.hpp"', raw, re.M) or re.search(r'\b(Montgomery|Barrett)\w*', code)):
+    if not deps.uses_reduction(raw):
         continue
-    twins = list(re.finditer(r'\b(?:inline|struct)\b[^;{]*?\b(\w+Compact)\b[^;{]*\{', code))
+    twins = list(deps.TWIN.finditer(code))
     for m in twins:
         depth, i = 1, m.end()
         while depth and i < len(code):
@@ -415,7 +375,7 @@ for folder in [*counts, '96-Local Testing', '97-Online Testing/src', '99-Workspa
     for p in (ROOT / folder).rglob('*'):
         if not p.is_file() or '97-Legacy' in p.parts or p.suffix not in ('.hpp', '.cpp'):
             continue
-        for inc in re.findall(r'^#include "([^"\n]+)"', p.read_text(), re.M):
+        for inc, _ in deps.includes(p.read_text()):
             require((p.parent / inc).is_file(), 'Unresolved include: ' + str(p.relative_to(ROOT)) + ': ' + inc)
 
 core_headers = {p.name for p in (ROOT / '01-Core').glob('*.hpp') if p.name[:2].isdigit() and int(p.name[:2]) < 98}

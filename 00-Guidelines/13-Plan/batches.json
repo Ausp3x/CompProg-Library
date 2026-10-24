@@ -416,7 +416,8 @@
       "focus": "Key and implicit treap, lazy tags and seed policy.",
       "prerequisites": [
         "C01",
-        "DS01"
+        "DS01",
+        "MI01"
       ],
       "tiers": [
         "Advanced"
@@ -757,7 +758,12 @@
       "prerequisites": [
         "C01",
         "GE01",
-        "GE02"
+        "GE02",
+        "C04",
+        "C06",
+        "DS01",
+        "GE03",
+        "MI01"
       ],
       "tiers": [
         "Advanced"
@@ -1117,7 +1123,8 @@
       "focus": "LCA, SCC, lowlink and Euler trails; GR01.",
       "prerequisites": [
         "C01",
-        "GR01"
+        "GR01",
+        "DS01"
       ],
       "tiers": [
         "Basic"
@@ -1177,7 +1184,8 @@
         "C01",
         "GR01",
         "GR03",
-        "MA06"
+        "MA06",
+        "MI01"
       ],
       "tiers": [
         "Advanced"
@@ -1249,7 +1257,8 @@
       "prerequisites": [
         "C01",
         "GR01",
-        "GR08"
+        "GR08",
+        "GR03"
       ],
       "tiers": [
         "Advanced"
@@ -1286,7 +1295,10 @@
         "C01",
         "DS03",
         "GR01",
-        "GR03"
+        "GR03",
+        "DS01",
+        "DS05",
+        "DS51"
       ],
       "tiers": [
         "Advanced"
@@ -1580,7 +1592,9 @@
       "focus": "Deterministic 64-bit primality and factorization.",
       "prerequisites": [
         "C01",
-        "MA01"
+        "MA01",
+        "C02",
+        "MA02"
       ],
       "tiers": [
         "Advanced"
@@ -1600,7 +1614,8 @@
       "prerequisites": [
         "C01",
         "MA01",
-        "MA03"
+        "MA03",
+        "C03"
       ],
       "tiers": [
         "Advanced"
@@ -1636,7 +1651,8 @@
       "focus": "Standalone ordinary convolution; independent of Core Poly.",
       "prerequisites": [
         "C01",
-        "MA01"
+        "MA01",
+        "C03"
       ],
       "tiers": [
         "Advanced"
@@ -1655,7 +1671,8 @@
       "prerequisites": [
         "C01",
         "MA01",
-        "MA06"
+        "MA06",
+        "C03"
       ],
       "tiers": [
         "Advanced"
@@ -1709,7 +1726,8 @@
       "focus": "Floor sum, Josephus and continued fractions.",
       "prerequisites": [
         "C01",
-        "MA01"
+        "MA01",
+        "MA02"
       ],
       "tiers": [
         "Advanced"
@@ -1839,7 +1857,8 @@
       "prerequisites": [
         "C01",
         "MA01",
-        "MA05"
+        "MA05",
+        "MA03"
       ],
       "tiers": [
         "Esoteric"
@@ -2005,7 +2024,11 @@
         "MA01",
         "MA02",
         "MA03",
-        "MA04"
+        "MA04",
+        "C03",
+        "C11",
+        "MA06",
+        "MA07"
       ],
       "tiers": [
         "Advanced"
@@ -2100,7 +2123,8 @@
         "C01",
         "DS01",
         "DS02",
-        "MI02"
+        "MI02",
+        "DS05"
       ],
       "tiers": [
         "Basic"
@@ -2328,7 +2352,10 @@
       "prerequisites": [
         "C01",
         "ST01",
-        "ST02"
+        "ST02",
+        "DS01",
+        "DS05",
+        "ST06"
       ],
       "tiers": [
         "Basic"
@@ -2363,7 +2390,9 @@
       "prerequisites": [
         "C01",
         "ST01",
-        "ST03"
+        "ST03",
+        "DS01",
+        "DS05"
       ],
       "tiers": [
         "Advanced"
@@ -2377,11 +2406,10 @@
       ],
       "support_targets": [],
       "size": "L",
-      "focus": "SA-IS; ST03 for differential checks.",
+      "focus": "SA-IS; its tester compares with ST03's suffix array, which includes it.",
       "prerequisites": [
         "C01",
-        "ST01",
-        "ST03"
+        "ST01"
       ],
       "tiers": [
         "Advanced"
@@ -2400,7 +2428,9 @@
       "focus": "Eertree, Lyndon and minimal rotation.",
       "prerequisites": [
         "C01",
-        "ST01"
+        "ST01",
+        "ST03",
+        "ST06"
       ],
       "tiers": [
         "Advanced"
@@ -2418,7 +2448,8 @@
       "focus": "Exact single-pattern matching and Bitap. Edit distance and LCS have separate owners after the scope split.",
       "prerequisites": [
         "C01",
-        "ST01"
+        "ST01",
+        "ST02"
       ],
       "tiers": [
         "Advanced"
@@ -2438,7 +2469,12 @@
         "C01",
         "ST01",
         "ST02",
-        "ST03"
+        "ST03",
+        "DS01",
+        "DS05",
+        "DS10",
+        "MI01",
+        "ST07"
       ],
       "tiers": [
         "Advanced"
@@ -2992,7 +3028,8 @@
       "prerequisites": [
         "C01",
         "MA01",
-        "MA04"
+        "MA04",
+        "MA03"
       ],
       "tiers": [
         "Advanced"
@@ -3963,7 +4000,8 @@
       "prerequisites": [
         "C01",
         "GR01",
-        "GR10"
+        "GR10",
+        "GR08"
       ],
       "tiers": [
         "Advanced"
@@ -4891,7 +4929,9 @@
       "prerequisites": [
         "C01",
         "GE01",
-        "MA10"
+        "MA10",
+        "C04",
+        "GE03"
       ],
       "tiers": [
         "Advanced"
@@ -5244,7 +5284,9 @@
         "C01",
         "ST01",
         "ST08",
-        "MA06"
+        "MA06",
+        "C03",
+        "MI01"
       ],
       "tiers": [
         "Advanced"
@@ -5280,7 +5322,8 @@
       "prerequisites": [
         "C01",
         "ST01",
-        "ST06"
+        "ST06",
+        "ST07"
       ],
       "tiers": [
         "Advanced"
@@ -5610,7 +5653,8 @@
       "size": "L",
       "focus": "slope trick. Complete all selected inventory contracts and variants.",
       "prerequisites": [
-        "C01"
+        "C01",
+        "MI01"
       ],
       "tiers": [
         "Advanced"
@@ -5958,7 +6002,8 @@
       "focus": "Heap/deque family with separate indexed/erasable, meldable and median/top-k milestones; compare binary/d-ary, leftist/skew/pairing/binomial/Fibonacci operation bounds and practical workloads. Handles, invalidation and memory costs are explicit.",
       "prerequisites": [
         "C01",
-        "DS01"
+        "DS01",
+        "MI01"
       ],
       "tiers": [
         "Advanced"
@@ -5977,7 +6022,8 @@
         "C01",
         "DS03",
         "DS48",
-        "GR01"
+        "GR01",
+        "DS01"
       ],
       "tiers": [
         "Advanced"
@@ -6112,7 +6158,8 @@
       "prerequisites": [
         "C01",
         "DS01",
-        "DS49"
+        "DS49",
+        "MI01"
       ],
       "tiers": [
         "Advanced"
@@ -6147,7 +6194,8 @@
       "prerequisites": [
         "C01",
         "GE01",
-        "GE02"
+        "GE02",
+        "DS49"
       ],
       "tiers": [
         "Advanced"
@@ -6240,7 +6288,11 @@
         "C01",
         "C03",
         "MA02",
-        "MA10"
+        "MA10",
+        "MA01",
+        "MA04",
+        "MA06",
+        "MA07"
       ],
       "tiers": [
         "Advanced"

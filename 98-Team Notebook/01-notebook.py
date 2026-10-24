@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import importlib.util
 import json
 import os
 import re
@@ -39,6 +40,9 @@ DEFAULT = {
 PAPERS = {"a4": "a4paper", "letter": "letterpaper", "b5": "b5paper"}
 SAFE_PART = re.compile(r"^[^\\{}%#\r\n\x00]+$")
 SKIP_DIRS = {"old", "97-legacy", "build", "__pycache__"}
+_SPEC = importlib.util.spec_from_file_location("notebook_dependencies", HERE / "05-dependencies.py")
+DEPS = importlib.util.module_from_spec(_SPEC)
+_SPEC.loader.exec_module(DEPS)
 
 
 class NotebookError(ValueError):
@@ -114,6 +118,28 @@ def save(cfg: dict, available: dict[str, Path]) -> None:
     temp.replace(CONFIG)
 
 
+def with_dependencies(selected: list[str], available: dict[str, Path]) -> tuple[list[str], list[str]]:
+    """Selection with each missing include dependency inserted, in typing order, before the first source needing it;
+    returns it and the added IDs. A dependency that is not a selectable source is an error naming both."""
+    graph, out, have = DEPS.headers(ROOT), [], set(selected)
+    for item in selected:
+        for dep in DEPS.closure(graph, item)[:-1] if item in graph else []:
+            if dep not in available:
+                raise NotebookError(f"{item} needs {dep}, which is not a selectable source")
+            if dep not in have:
+                have.add(dep)
+                out.append(dep)
+        out.append(item)
+    return out, [x for x in out if x not in selected]
+
+
+def needs(graph: dict[str, list[str]], item: str, selected: list[str]) -> str:
+    """Direct includes of a source, the template only when it is not selected; unselected ones are marked."""
+    skip = set(DEPS.plan(ROOT, graph, item)["optional"]) if item in graph else set()
+    return ", ".join(d + (" (not for the Compact twins)" if d in skip else "") + ("" if d in selected else " (not selected)")
+                     for d in graph.get(item, []) if d != DEPS.TEMPLATE or d not in selected)
+
+
 def tex_escape(value: str) -> str:
     table = {"\\": r"\textbackslash{}", "{": r"\{", "}": r"\}", "%": r"\%", "#": r"\#",
              "$": r"\$", "&": r"\&", "_": r"\_", "^": r"\textasciicircum{}", "~": r"\textasciitilde{}"}
@@ -175,6 +201,7 @@ def generate(cfg: dict, available: dict[str, Path]) -> Path:
         chunks.append(rf"\begin{{multicols}}{{{columns}}}" + "\n")
     if cfg["include_notes"]:
         chunks.extend([notes_tex(), "\n"])
+    graph = DEPS.headers(ROOT)
     for item in cfg["selected"]:
         path = available[item]
         # The source path is resolved by TeX at build time, so edits to canonical files appear automatically.
@@ -182,6 +209,9 @@ def generate(cfg: dict, available: dict[str, Path]) -> Path:
         title = tex_escape(relative)
         language = "Python" if path.suffix.lower() == ".py" else "C++"
         chunks.append(r"\sourceheading{" + title + "}\n")
+        need = needs(graph, item, cfg["selected"])
+        if need:
+            chunks.append(r"{\footnotesize\textcolor{muted}{Needs: " + tex_escape(need) + r"}\par}" + "\n")
         chunks.append(rf"\lstinputlisting[language={language}]{{\detokenize{{../{relative}}}}}" + "\n")
     if columns > 1:
         chunks.extend([r"\end{multicols}", "\n"])
@@ -240,6 +270,7 @@ def form_selection(values: dict[str, list[str]]) -> list[str]:
 
 def page(cfg: dict, available: dict[str, Path], token: str, message: str = "") -> str:
     esc = html.escape
+    graph = DEPS.headers(ROOT)
     groups: dict[str, list[str]] = {}
     for item in available:
         group = item.split("/", 1)[0]
@@ -249,7 +280,12 @@ def page(cfg: dict, available: dict[str, Path], token: str, message: str = "") -
         source_html.append(f"<details open><summary>{esc(group)} <small>{len(items)} files</small></summary>")
         for item in items:
             checked = " checked" if item in cfg["selected"] else ""
-            source_html.append(f'<label class="file"><input type="checkbox" name="selected" value="{esc(item, quote=True)}"{checked}><span>{esc(item.split("/", 1)[1])}</span></label>')
+            deps = DEPS.closure(graph, item)[:-1] if item in graph else []
+            hint = f' title="{esc("Needs: " + ", ".join(deps), quote=True)}"' if deps else ""
+            lost = [d for d in deps if d not in available]
+            warn = f' <small class="warn">needs {esc(", ".join(lost))}, which is not selectable</small>' if lost else ""
+            source_html.append(f'<label class="file"{hint}><input type="checkbox" name="selected" value="{esc(item, quote=True)}" '
+                               f'data-deps="{esc(json.dumps(deps), quote=True)}"{checked}><span>{esc(item.split("/", 1)[1])}{warn}</span></label>')
         source_html.append("</details>")
     ordered_html = "".join(
         f'<li data-id="{esc(item, quote=True)}"><span>{esc(item)}</span><div>'
@@ -293,7 +329,12 @@ function syncOrder() {
   for (const input of checks) if (input.checked && !existing.has(input.value)) addRow(input.value);
 }
 form.addEventListener('change', event => {
-  if (event.target.matches('input[name="selected"]')) syncOrder();
+  if (!event.target.matches('input[name="selected"]')) return;
+  if (event.target.checked) for (const id of JSON.parse(event.target.dataset.deps)) {
+    const dep = checks.find(x => x.value === id);
+    if (dep && !dep.checked) { dep.checked = true; addRow(id); }
+  }
+  syncOrder();
 });
 ordered.addEventListener('click', event => {
   const button = event.target.closest('button[data-move]');
@@ -321,13 +362,13 @@ form.addEventListener('submit', () => {
 main{{max-width:1100px;margin:0 auto;padding:36px 20px 80px}}header{{display:flex;gap:16px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}}
 .marker{{background:var(--cyan);width:8px;height:34px;box-shadow:10px 0 #b4e9ee}}h1{{font-size:27px;margin:0 0 3px}}p{{margin:0;color:var(--muted)}}
 .grid{{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:24px}}.card{{background:#fff;border:1px solid var(--line);border-radius:9px;padding:20px}}h2{{font-size:15px;text-transform:uppercase;letter-spacing:.12em;margin:0 0 14px}}
-details{{border-top:1px solid var(--line);padding:8px 0}}summary{{cursor:pointer;font-weight:600}}summary small{{color:var(--muted);font-weight:400}}.file{{display:flex;gap:8px;align-items:start;padding:5px 4px 5px 16px;font:13px 'JetBrains Mono',monospace;overflow-wrap:anywhere;cursor:pointer}}input[type=checkbox]{{accent-color:var(--cyan)}}
+details{{border-top:1px solid var(--line);padding:8px 0}}summary{{cursor:pointer;font-weight:600}}summary small{{color:var(--muted);font-weight:400}}.warn{{color:#a33}}.file{{display:flex;gap:8px;align-items:start;padding:5px 4px 5px 16px;font:13px 'JetBrains Mono',monospace;overflow-wrap:anywhere;cursor:pointer}}input[type=checkbox]{{accent-color:var(--cyan)}}
 .field{{display:block;color:var(--muted);font-size:12px;margin-bottom:13px;text-transform:uppercase;letter-spacing:.06em}}.field input,.field select{{display:block;width:100%;margin-top:5px;padding:8px;border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--ink);font:14px Inter,system-ui,sans-serif}}
 .toggle{{display:block;margin:14px 0}}.actions{{display:grid;gap:8px;margin-top:18px}}button{{background:var(--ink);color:#fff;border:0;border-radius:5px;padding:10px;cursor:pointer;font-weight:600}}button:hover{{background:#006e7d}}.notice{{background:#e6f7f9;border-left:3px solid var(--cyan);padding:12px;margin-bottom:20px;white-space:pre-wrap;overflow-wrap:anywhere}}
 .order-title{{margin-top:22px}}.order-hint{{margin-bottom:8px;font-size:12px}}#selected-order{{list-style:none;padding:0;margin:0}}#selected-order li{{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding:7px 4px;font:12px 'JetBrains Mono',monospace;overflow-wrap:anywhere}}#selected-order li span{{min-width:0}}#selected-order li div{{display:flex;flex:none;gap:3px}}#selected-order button{{padding:3px 8px;background:#e6f7f9;color:#006e7d}}
 @media(max-width:760px){{.grid{{grid-template-columns:1fr}}}}
 </style></head><body><main><header><div class="marker"></div><div><h1>Team Notebook</h1><p>Canonical sources · curated print layout</p></div></header>{notice}
-<form method="post" action="/action"><input type="hidden" name="token" value="{esc(token)}"><div class="grid"><section class="card"><h2>Source selection</h2>{''.join(source_html) or '<p>No canonical 01–08 source files found yet.</p>'}<h2 class="order-title">Notebook order</h2><p class="order-hint">Use the arrows to arrange checked files. New selections go last.</p><ol id="selected-order">{ordered_html}</ol></section>
+<form method="post" action="/action"><input type="hidden" name="token" value="{esc(token)}"><div class="grid"><section class="card"><h2>Source selection</h2>{''.join(source_html) or '<p>No canonical 01–08 source files found yet.</p>'}<h2 class="order-title">Notebook order</h2><p class="order-hint">Use the arrows to arrange checked files. New selections go last, after the dependencies they select.</p><ol id="selected-order">{ordered_html}</ol></section>
 <aside class="card"><h2>Layout</h2>{field('title','Title')}{field('max_pages','Page budget','number','min="1" max="1000"')}{select('paper',list(PAPERS))}{select('columns',['1','2','3'])}{field('body_size','Body size (pt)','number','min="4" max="20" step="0.1"')}{field('code_size','Code size (pt)','number','min="4" max="20" step="0.1"')}{field('body_font','Body font')}{field('code_font','Code font')}{check('include_notes','Include contest notes')}{check('print_mode','Monochrome print mode')}
 <div class="actions"><button name="action" value="save">Save selection</button><button name="action" value="generate">Generate .tex</button><button name="action" value="build">Build PDF</button></div></aside></div></form><script>{script}</script></main></body></html>'''
 
@@ -409,6 +450,8 @@ def main() -> int:
     update = sub.add_parser("save", help="Update 02-selection.json")
     update.add_argument("--select", action="append", metavar="SOURCE_ID", help="Source ID; repeat to select several")
     update.add_argument("--clear", action="store_true", help="Clear source selection")
+    update.add_argument("--deps", action=argparse.BooleanOptionalAction, default=True,
+                        help="Add the include dependencies of --select sources (default)")
     update.add_argument("--title")
     update.add_argument("--pages", type=int)
     update.add_argument("--paper", choices=list(PAPERS))
@@ -436,10 +479,11 @@ def main() -> int:
         if args.command == "save":
             if args.clear and args.select:
                 raise NotebookError("Use either --clear or --select")
+            added = []
             if args.clear:
                 cfg["selected"] = []
             elif args.select is not None:
-                cfg["selected"] = args.select
+                cfg["selected"], added = with_dependencies(args.select, available) if args.deps else (args.select, [])
             for flag, key in (("title", "title"), ("pages", "max_pages"), ("paper", "paper"),
                               ("columns", "columns"), ("body_size", "body_size"), ("code_size", "code_size"),
                               ("body_font", "body_font"), ("code_font", "code_font"),
@@ -448,6 +492,8 @@ def main() -> int:
                 if value is not None:
                     cfg[key] = value
             save(cfg, available)
+            if added:
+                print("Added dependencies: " + ", ".join(added))
             print(f"Saved {CONFIG.name}: {len(cfg['selected'])} source file(s).")
         elif args.command == "generate":
             print(f"Generated {generate(cfg, available)} with {len(cfg['selected'])} source file(s).")

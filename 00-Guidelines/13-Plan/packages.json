@@ -1003,8 +1003,10 @@
       "phase": "Contest core",
       "size": "M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "98-Team Notebook/Docs/00-dependencies.md"
+      ],
       "note": ""
     },
     {

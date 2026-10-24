@@ -17,9 +17,9 @@ Commands (`python3 '00-Guidelines/13-Plan/plan.py' <command>`):
 - `status`: counts per status and phase, plus the next ready package; `next` prints only its ID.
 - `set Pxxx STATUS [--evidence PATH ...] [--note TEXT]`: update a package (evidence is appended) and re-render the checklist.
 - `render`: rewrite the checklist between the `plan:begin`/`plan:end` markers in `01-prompts.md`; a verified package shows only its label.
-- `rank`: reorder the schedule and render. Phases keep their order; in each, started packages keep theirs, then planned ones go support passes first, then by most basic tier (Basic or Core, Advanced, Esoteric), then by most transitive open dependents, then by current position, each after its prerequisites.
-- `check`: manifest, schedule, ownership, inventory and checklist-sync checks; `96-Local Testing/03-consistency.py` runs the same `check(root)`.
+- `rank`: reorder the schedule and render. Phases keep their order; in each, started packages keep theirs, then planned ones go support passes first, then by most basic tier (Basic or Core, Advanced, Esoteric), then by most transitive open dependents, then by current position, each after its prerequisites unless one of the two is verified.
+- `check`: manifest, schedule, ownership, inventory and checklist-sync checks, and that every `#include` between headers of different batches is a direct batch prerequisite (the graph comes from [05-dependencies.py](<../../98-Team Notebook/05-dependencies.py>)); batch prerequisites form no cycle; no quoted include sits inside an `#if` block; and each open package comes after its open prerequisites; `96-Local Testing/03-consistency.py` runs the same `check(root)`.
 - `ready [--max K]`: every package whose prerequisites are satisfied, plus a disjoint set of K packages from different folders for parallel worktree sessions.
-- `doctor [--fix]`: cross-checks plan, inventory rows, files on disk, testers and evidence, grouped by package with the command that resolves each item; `--fix` re-renders the checklist.
+- `doctor [--fix]`: cross-checks plan, inventory rows, files on disk, testers and evidence, grouped by package with the command that resolves each item; `--fix` adds the missing include-derived batch prerequisites and re-renders the checklist.
 
 Statuses: planned, in-progress, verified; `verified` follows `01-principles.md`, Evidence.

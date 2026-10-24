@@ -92,7 +92,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P082 — ST05** (opus, XL): 07-Strings — suffixtree.
 - [x] **P072 — MI18, MI34** (opus, L+M): 06-Miscellaneous — knapsack advanced, kbest enumeration, fractional programming.
 - [x] **P035 — DS25, DS32, DS52** (opus, M+M+M): 02-Data Structures — weighteddsu, fastset, dsu extensions.
-- [ ] **P238 — SUP07** (opus, M): Header dependency graph, include-derived prerequisites and notebook dependency selection. Status: planned.
+- [x] **P238 — SUP07** (opus, M): Header dependency graph, include-derived prerequisites and notebook dependency selection.
 - [ ] **P239 — SUP08** (opus, L): Documentation site generator, header pages and dependency charts. Status: planned.
 - [ ] **P247 — SUP16** (opus, M): Parallel test runner and integration build. Status: planned.
 - [ ] **P030 — DS23** (opus, XL): 02-Data Structures — persistentsegmenttree. Status: planned.

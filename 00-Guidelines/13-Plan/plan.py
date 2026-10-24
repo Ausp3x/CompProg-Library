@@ -2,6 +2,7 @@
 """Work-plan manifest CLI: show, status, next, set, render, rank, check, ready and doctor for packages and batches."""
 import argparse
 import collections
+import importlib.util
 import json
 import os
 import re
@@ -23,8 +24,8 @@ def load(root=ROOT):
     return [json.loads((root / PLAN / n).read_text()) for n in ('batches.json', 'packages.json')]
 
 
-def save(root, packages):
-    (root / PLAN / 'packages.json').write_text(json.dumps(packages, indent=2, ensure_ascii=False) + '\n')
+def save(root, data, name='packages.json'):
+    (root / PLAN / name).write_text(json.dumps(data, indent=2, ensure_ascii=False) + '\n')
 
 
 def cells(line):
@@ -43,6 +44,21 @@ def inventories(root=ROOT):
             if match:
                 rows.setdefault(folder.name + '/' + match[1], (cells(line)[1:], tier))
     return rows
+
+
+def dependencies(root):
+    spec = importlib.util.spec_from_file_location('library_dependencies', root / '98-Team Notebook/05-dependencies.py')
+    deps = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(deps)
+    return deps
+
+
+def include_edges(root, batches, found=None):
+    """(batch, prerequisite batch, header, include) for every include between headers that different batches own;
+    `found` is a `05-dependencies.py` scan to reuse."""
+    owner = {t: b['id'] for b in batches['batches'] for t in b['targets']}
+    return [(owner[h], owner[d], h, d) for h, ds in dependencies(root).headers(root, found).items() if h in owner
+            for d in ds if owner.get(d, owner[h]) != owner[h]]
 
 
 def prereqs(batches, packages):
@@ -80,7 +96,8 @@ def rendered_file(root, packages):
 def rank(batches, packages):
     """Schedule order: phases in PHASES order; in each, started packages keep their order, then planned ones go by
     support pass first, then most basic tier (Basic or Core, Advanced, Esoteric), then most transitive open
-    dependents, then current position, each after its prerequisites (an unsatisfiable one is left to `check`)."""
+    dependents, then current position, each after its prerequisites while both are open (`late`; an unsatisfiable
+    one is left to `check`)."""
     bmap = {b['id']: b for b in batches['batches']}
     pl, deps = packages['packages'], prereqs(batches, packages)
     status, index = {p['id']: p['status'] for p in pl}, {p['id']: i for i, p in enumerate(pl)}
@@ -106,10 +123,15 @@ def rank(batches, packages):
         todo = [p for p in pl if p['phase'] == phase]
         while todo:
             placed = {q['id'] for q in out}
-            fit = [p for p in todo if all(d in placed for d in deps[p['id']])] or todo[:1]
+            fit = [p for p in todo if all(d in placed or not late(status, d, p['id']) for d in deps[p['id']])] or todo[:1]
             out.append(min(fit, key=key))
             todo.remove(out[-1])
     packages['packages'] = out + [p for p in pl if p['phase'] not in PHASES]
+
+
+def late(status, d, p):
+    """Whether prerequisite d must precede p in the schedule: only while both are open."""
+    return 'verified' not in (status[d], status[p])
 
 
 def ready(batches, packages):
@@ -129,16 +151,29 @@ def check(root=ROOT):
     for b in bl:
         for d in b['prerequisites']:
             require(d in bmap and d != b['id'], f'Unknown/self batch prerequisite: {b["id"]} -> {d}')
+    state = {}
+
+    def cycle(b, path):
+        state[b] = 1
+        for d in bmap[b]['prerequisites']:
+            if state.get(d) == 1:
+                require(False, 'Batch prerequisite cycle: ' + ' -> '.join(path[path.index(d):] + [d]))
+            elif d in bmap and d not in state:
+                cycle(d, path + [d])
+        state[b] = 2
+    for b in bmap:
+        if b not in state:
+            cycle(b, [b])
     ids = [p['id'] for p in pl]
     require(len(set(ids)) == len(ids) and all(re.fullmatch(r'P\d{3}', i) for i in ids), 'Package ids must be unique Pnnn; list order is the schedule')
     scheduled = collections.Counter(b for p in pl for b in p['batches'])
     require(scheduled == collections.Counter(list(bmap)), 'Batches not scheduled exactly once: '
             + str(sorted(set(scheduled.items()) ^ {(b, 1) for b in bmap})))
     order = {p: i for i, p in enumerate(ids)}
-    deps = prereqs(batches, packages)
+    deps, status = prereqs(batches, packages), {p['id']: p['status'] for p in pl}
     for p in pl:
         for d in deps[p['id']]:
-            require(order[d] < order[p['id']], f'Prerequisite scheduled late: {p["id"]} -> {d}')
+            require(order[d] < order[p['id']] or not late(status, d, p['id']), f'Prerequisite scheduled late: {p["id"]} -> {d}')
         local = {b: i for i, b in enumerate(p['batches'])}
         for b in p['batches']:
             require(b in bmap, f'Unknown batch in {p["id"]}: {b}')
@@ -149,6 +184,12 @@ def check(root=ROOT):
         require(p['phase'] in PHASES, f'Bad phase: {p["id"]} {p["phase"]}')
         for e in p['evidence']:
             require((root / e).exists(), f'Missing evidence: {p["id"]} -> {e}')
+    found = dependencies(root).scan(root)
+    for b, d, h, inc in include_edges(root, batches, found):
+        require(d in bmap[b]['prerequisites'], f'Undeclared include edge: {h} -> {inc}; add {d} to the prerequisites of {b} (plan.py doctor --fix)')
+    for h, incs in found.items():
+        for inc, cond in incs:
+            require(not cond, f'Conditional include (the dependency graph treats every include as active): {h} -> {inc}')
     inv = inventories(root)
     owned = collections.Counter(t for b in bl for t in b['targets'])
     for t in inv:
@@ -319,7 +360,8 @@ def ready_text(root, limit):
 
 
 def doctor(root=ROOT, fix=False):
-    """Cross-check plan, inventories, files and tests; --fix re-renders the checklist. Returns (todo lines, fixed lines)."""
+    """Cross-check plan, inventories, files and tests; --fix adds include-derived batch prerequisites and re-renders the
+    checklist. Returns (todo lines, fixed lines)."""
     import ast
     batches, packages = load(root)
     bmap = {b['id']: b for b in batches['batches']}
@@ -328,6 +370,12 @@ def doctor(root=ROOT, fix=False):
     batch_of = {t: b for b in bmap for t in bmap[b]['targets']}
     pstatus = {p['id']: p['status'] for p in packages['packages']}
     todo, fixed = collections.defaultdict(list), []
+    missing = {(b, d) for b, d, _, _ in include_edges(root, batches) if d not in bmap[b]['prerequisites']}
+    if fix and missing:
+        for b, d in sorted(missing):
+            bmap[b]['prerequisites'].append(d)
+        save(root, batches, 'batches.json')
+        fixed.append(f'Added {len(missing)} include-derived batch prerequisites: ' + ', '.join(f'{b} -> {d}' for b, d in sorted(missing)))
     for e in check(root):
         if 'out of sync' in e and fix:
             (root / '01-prompts.md').write_text(rendered_file(root, packages)); fixed.append('Re-rendered 01-prompts.md')
@@ -389,7 +437,7 @@ def main():
     for name in ('status', 'next', 'render', 'rank', 'check'):
         sub.add_parser(name)
     sub.add_parser('ready').add_argument('--max', type=int, default=3, help='size of the disjoint parallel set')
-    sub.add_parser('doctor').add_argument('--fix', action='store_true', help='re-render the checklist when out of sync')
+    sub.add_parser('doctor').add_argument('--fix', action='store_true', help='add include-derived prerequisites, re-render the checklist')
     s = sub.add_parser('set')
     s.add_argument('id')
     s.add_argument('status')
