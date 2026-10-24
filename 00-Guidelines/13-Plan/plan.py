@@ -3,6 +3,7 @@
 import argparse
 import collections
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -158,6 +159,28 @@ def docs_for(root, target):
     return sorted(str(p.relative_to(root)) for p in base.glob(f'{prefix}-{row_stem(name)}*.md')) if base.is_dir() else []
 
 
+def batch_done(b, inv):
+    """A batch with targets is done once every target's inventory row is verified."""
+    return bool(b['targets']) and all(inv.get(t, ([''],))[0][-1].split(';')[0].split(' ')[0].strip('*').lower() == 'verified'
+                                      for t in b['targets'])
+
+
+def launch(root, model):
+    """(launch command, session check) for a package model id: the `*-session` agent preset in `.claude/agents` with
+    that model, compared with the running session's preset and effort when Claude Code exports them."""
+    preset = None
+    for f in sorted((root / '.claude/agents').glob('*-session.md')):
+        meta = dict(re.findall(r'^(\w+):[ \t]*(.+)$', f.read_text().split('---')[1], re.M))
+        if meta.get('model') == model:
+            preset = (meta.get('name', f.stem), meta.get('effort', '?'))
+    if not preset:
+        return f'no session preset uses {model}', ''
+    agent, effort = os.environ.get('CLAUDE_CODE_AGENT'), os.environ.get('CLAUDE_EFFORT')
+    check = '' if not (agent or effort) else (f'this session: {agent or "no preset"}, effort {effort or "?"}'
+                                              + ('' if (agent, effort) == preset else ' — MISMATCH'))
+    return f'claude --agent {preset[0]} --effort {preset[1]}', check
+
+
 def batch_brief(root, b, inv):
     out = [f'### {b["id"]} ({b["size"]})', '', 'Focus: ' + b['focus'],
            'Batch prerequisites: ' + (', '.join(b['prerequisites']) or 'none')]
@@ -183,20 +206,30 @@ def show(root, ident):
         if not p:
             raise SystemExit('No package is ready')
         ident = p['id']
+    owner = {b: p for p in packages['packages'] for b in p['batches']}
     if ident in bmap:
-        return '\n'.join(batch_brief(root, bmap[ident], inv))
-    if ident not in pmap:
+        p, shown = owner[ident], [ident]
+    elif ident in pmap:
+        p = pmap[ident]
+        open_ = [b for b in p['batches'] if not batch_done(bmap[b], inv)]
+        shown = open_[:1] if len(p['batches']) > 1 and open_ and p['status'] != 'verified' else p['batches']
+    else:
         raise SystemExit(f'Unknown package or batch: {ident}')
-    p = pmap[ident]
+    command, check = launch(root, packages['models'][p['model']])
     out = [f'{p["id"]} — {p["label"]} | {p["phase"]} | {p["size"]} | {p["status"]} | '
-           f'model: {p["model"]} ({packages["models"][p["model"]]})', '']
-    deps = prereqs(batches, packages)[ident]
+           f'model: {p["model"]} ({packages["models"][p["model"]]}) | launch: {command}' + (f' | {check}' if check else ''), '']
+    if len(p['batches']) > 1:
+        out += ['Batches: ' + ', '.join(f'{b} ({"done" if batch_done(bmap[b], inv) else "this brief" if shown == [b] else "open"})'
+                                        for b in p['batches'])
+                + (f'. One batch per session: use {shown[0]} as the id for @reviewer and /finish.'
+                   if len(shown) == 1 and not batch_done(bmap[shown[0]], inv) else ''), '']
+    deps = prereqs(batches, packages)[p['id']]
     out.append('Prerequisite packages:' if deps else 'Prerequisite packages: none')
     out += [f'- {d} ({pmap[d]["status"]}) — {pmap[d]["label"]}' for d in deps]
     out += [f'WARNING: prerequisite {d} is {pmap[d]["status"]}; its APIs may be missing or unstable.'
             for d in deps if pmap[d]['status'] in ('planned', 'in-progress')]
     out.append('')
-    for b in p['batches']:
+    for b in shown:
         out += batch_brief(root, bmap[b], inv)
     out.append('Evidence: ' + (' '.join(link(e) for e in p['evidence']) or 'none'))
     if p['note']:

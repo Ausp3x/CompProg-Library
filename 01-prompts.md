@@ -9,7 +9,7 @@ Start one fresh session per task with the preset of its work:
 - Core full types (`01-Core` non-mini headers, packages tagged `fable`): `claude --agent core-session --effort xhigh`
 - Everything else, sweeps included: `claude --agent contest-session --effort high`
 - Parallel packages: `python3 '00-Guidelines/13-Plan/plan.py' ready --max 3` picks ready packages from different folders; launch each with `--worktree <name>` added. New worktrees branch from `origin/master` by default (`worktree.baseRef`), so push `master` before launching them.
-- Packages with several batches: one session per batch (`/package <batch id>`, then `/finish <batch id>`), so each batch starts with a clean context.
+- Packages with several batches run one batch per session, so each batch starts with a clean context: `/package Pxxx` takes the next open batch (or name one, `/package <batch id>`), then `/finish <batch id>`.
 
 | Skill | Use it | Afterwards |
 |---|---|---|
