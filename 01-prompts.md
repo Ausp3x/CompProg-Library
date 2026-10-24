@@ -6,8 +6,8 @@ How to run the work on this library; the package list below is rendered by `plan
 
 Start one fresh session per task with the preset of its work:
 
-- Core full types (`01-Core` non-mini headers, packages tagged `fable`): `claude --agent core-session --effort max`
-- Everything else, sweeps included: `claude --agent contest-session --effort xhigh`
+- Core full types (`01-Core` non-mini headers, packages tagged `fable`): `claude --agent core-session --effort xhigh`
+- Everything else, sweeps included: `claude --agent contest-session --effort high`
 - Parallel packages: `python3 '00-Guidelines/13-Plan/plan.py' ready --max 3` picks ready packages from different folders; launch each with `--worktree <name>` added. New worktrees branch from `origin/master` by default (`worktree.baseRef`), so push `master` before launching them.
 - Packages with several batches: one session per batch (`/package <batch id>`, then `/finish <batch id>`), so each batch starts with a clean context.
 

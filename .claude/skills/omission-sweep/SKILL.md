@@ -4,7 +4,7 @@ description: Library-wide completeness sweep. A read-only workflow checks every 
 disable-model-invocation: true
 argument-hint: "[folder prefixes or inventory paths] (default: 01 to 08) | apply"
 model: claude-opus-5-5
-effort: xhigh
+effort: high
 ---
 
 The ledger is `00-Guidelines/23-Sweep Ledgers/omissions.md`; its "Recorded decisions" are the user's and bind every step. `$ARGUMENTS` starting with `apply` selects Apply; anything else is a sweep scope.

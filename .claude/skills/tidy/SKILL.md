@@ -4,7 +4,7 @@ description: Documentation and configuration hygiene. Read-only audits per scope
 disable-model-invocation: true
 argument-hint: "[.claude | 00-Guidelines | folder prefixes | evidence | tools] (default: all)"
 model: claude-opus-5-5
-effort: xhigh
+effort: high
 ---
 
 Scope units: `.claude` with `CLAUDE.md`, `AGENTS.md`, the root `00-index.md`, `01-prompts.md` above the plan block and the auto-memory; `00-Guidelines` with its ledgers; each library folder (`00-index.md`, `Docs/00-notes.md`, `Docs/00-sources.md`, `97-Legacy/00-index.md`); `evidence`, the `Docs/<NN-name>.md` documents, one unit per folder; `tools`, the indexes and documents of `09`, `95`–`98` and `OLD/00-index.md`.
