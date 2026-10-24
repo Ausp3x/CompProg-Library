@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Work-plan manifest CLI: show, status, next, set, render, check, ready and doctor for packages and batches."""
+"""Work-plan manifest CLI: show, status, next, set, render, rank, check, ready and doctor for packages and batches."""
 import argparse
 import collections
 import json
@@ -13,8 +13,9 @@ PLAN = '00-Guidelines/13-Plan'
 BEGIN, END = '<!-- plan:begin -->', '<!-- plan:end -->'
 PHASES = ['Foundations re-audit', 'Core full types', 'Contest core',
           'Python contest layer', 'Specialist and research families', 'Final support integration']
-LEGEND = ('Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** '
-          '(model, size): label. Status: planned | in-progress | verified.')
+LEGEND = ('Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model, size): label. Open packages add '
+          'their status (planned or in-progress) and note; `plan.py show Pxxx` gives a verified package\'s evidence and note.')
+TIER_RANK = {'Basic': 0, 'Core': 0, 'Advanced': 1, 'Esoteric': 2}
 TARGET = re.compile(r'`((?:\d{2}-[^`]+\.hpp)|(?:_\d{2}_[^`]+\.py))`')
 
 
@@ -63,9 +64,9 @@ def render_text(packages):
         out += ['', '### ' + phase, '']
         for p in packages['packages']:
             if p['phase'] == phase:
+                head = f'**{p["id"]} — {", ".join(p["batches"])}** ({p["model"]}, {p["size"]}): {p["label"]}.'
                 tail = ''.join([f' Note: {p["note"]}' if p['note'] else '', *(' ' + link(e) for e in p['evidence'])])
-                out.append(f'- [{"x" if p["status"] == "verified" else " "}] **{p["id"]} — {", ".join(p["batches"])}** '
-                           f'({p["model"]}, {p["size"]}): {p["label"]}. Status: {p["status"]}.{tail}')
+                out.append(f'- [x] {head}' if p['status'] == 'verified' else f'- [ ] {head} Status: {p["status"]}.{tail}')
     return '\n'.join(out + ['', END])
 
 
@@ -74,6 +75,41 @@ def rendered_file(root, packages):
     if BEGIN in text and END in text:
         return text[:text.index(BEGIN)] + render_text(packages) + text[text.index(END) + len(END):]
     return text.rstrip('\n') + ('\n\n' if text.strip() else '') + render_text(packages) + '\n'
+
+
+def rank(batches, packages):
+    """Schedule order: phases in PHASES order; in each, started packages keep their order, then planned ones go by
+    support pass first, then most basic tier (Basic or Core, Advanced, Esoteric), then most transitive open
+    dependents, then current position, each after its prerequisites."""
+    bmap = {b['id']: b for b in batches['batches']}
+    pl, deps = packages['packages'], prereqs(batches, packages)
+    status, index = {p['id']: p['status'] for p in pl}, {p['id']: i for i, p in enumerate(pl)}
+    users = collections.defaultdict(set)
+    for p, ds in deps.items():
+        for d in ds:
+            users[d].add(p)
+
+    def below(x, acc):
+        for y in users[x] - acc:
+            acc.add(y)
+            below(y, acc)
+        return acc
+
+    def key(p):
+        tiers = [TIER_RANK.get(t, 2) for b in p['batches'] for t in bmap[b]['tiers']]
+        return (min(tiers) if tiers else -1, -sum(status[y] != 'verified' for y in below(p['id'], set())), index[p['id']])
+
+    out = []
+    for phase in PHASES:
+        todo = [p for p in pl if p['phase'] == phase]
+        out += [p for p in todo if p['status'] != 'planned']
+        todo = [p for p in todo if p['status'] == 'planned']
+        while todo:
+            placed = {q['id'] for q in out}
+            fit = [p for p in todo if all(d in placed for d in deps[p['id']])] or todo[:1]
+            out.append(min(fit, key=key))
+            todo.remove(out[-1])
+    packages['packages'] = out + [p for p in pl if p['phase'] not in PHASES]
 
 
 def ready(batches, packages):
@@ -348,7 +384,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest='cmd', required=True)
     sub.add_parser('show').add_argument('id')
-    for name in ('status', 'next', 'render', 'check'):
+    for name in ('status', 'next', 'render', 'rank', 'check'):
         sub.add_parser(name)
     sub.add_parser('ready').add_argument('--max', type=int, default=3, help='size of the disjoint parallel set')
     sub.add_parser('doctor').add_argument('--fix', action='store_true', help='re-render the checklist when out of sync')
@@ -377,7 +413,10 @@ def main():
         print('\n'.join(errors) or 'plan check: ok')
         return bool(errors)
     else:
-        packages = load(ROOT)[1]
+        batches, packages = load(ROOT)
+        if a.cmd == 'rank':
+            rank(batches, packages)
+            save(ROOT, packages)
         if a.cmd == 'set':
             p = next((p for p in packages['packages'] if p['id'] == a.id), None)
             if p is None or a.status not in packages['statuses']:

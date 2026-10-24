@@ -1,6 +1,6 @@
 # Session checklist
 
-How to run the work on this library; the package list below is rendered by `plan.py` (other agents follow `AGENTS.md`). Order is the default dependency-respecting schedule.
+How to run the work on this library; the package list below is rendered by `plan.py` (other agents follow `AGENTS.md`). Order is the schedule `plan.py rank` keeps (`00-Guidelines/13-Plan/00-index.md`).
 
 ## Workflow
 
@@ -26,117 +26,119 @@ Commits: `/finish` commits and lands `/package` and `/prune` work; other skills 
 
 <!-- plan:begin -->
 
-Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model, size): label. Status: planned | in-progress | verified.
+Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model, size): label. Open packages add their status (planned or in-progress) and note; `plan.py show Pxxx` gives a verified package's evidence and note.
 
 ### Foundations re-audit
 
-- [x] **P001 — SUP01** (opus, S): Contest testing pipeline and reusable generators/checkers. Status: verified. [evidence](<09-Contest Testing/Docs/00-verification.md>)
-- [x] **P002 — C01, C15** (fable, M+L): 01-Core — template, debug, bitset. Status: verified. [evidence](01-Core/Docs/01-template.md) [evidence](01-Core/Docs/02-debug.md) [evidence](01-Core/Docs/18-bitset.md)
-- [x] **P003 — SUP05** (opus, S): Refresh and check the standalone contest template. Status: verified. [evidence](<97-Online Testing/Docs/00-workspace-verification.md>)
-- [x] **P004 — C02** (fable, L): 01-Core — barrett, montgomery. Status: verified. [evidence](01-Core/Docs/03-barrett.md) [evidence](01-Core/Docs/04-montgomery.md)
-- [x] **P005 — C03, C16** (fable, L+L): 01-Core — full and mini modular-integer families. Status: verified. [evidence](01-Core/Docs/05-modint.md) [evidence](01-Core/Docs/06-modintmini.md)
-- [x] **P006 — DS01, DS02** (opus, M+M): 02-Data Structures — dsu, fenwick, segmenttree, sparsetable, prefix sum, sqrt decomposition, ordered set, monotone stack. Status: verified. [evidence](<02-Data Structures/Docs/01-dsu.md>) [evidence](<02-Data Structures/Docs/02-fenwick.md>) [evidence](<02-Data Structures/Docs/03-segmenttree.md>) [evidence](<02-Data Structures/Docs/04-sparsetable.md>) [evidence](<02-Data Structures/Docs/05-prefix_sum.md>) [evidence](<02-Data Structures/Docs/06-sqrt_decomposition.md>) [evidence](<02-Data Structures/Docs/07-ordered_set.md>) [evidence](<02-Data Structures/Docs/08-monotone_stack.md>)
-- [x] **P007 — GE01** (opus, L): 03-Geometry — point, line segment, polygon, convexhull. Status: verified. [evidence](03-Geometry/Docs/01-point.md) [evidence](03-Geometry/Docs/02-line_segment.md) [evidence](03-Geometry/Docs/03-polygon.md) [evidence](03-Geometry/Docs/04-convexhull.md)
-- [x] **P008 — GE02** (opus, L): 03-Geometry — closestpair, circle, rotatingcalipers, coordinate transform. Status: verified. [evidence](03-Geometry/Docs/05-closestpair.md) [evidence](03-Geometry/Docs/06-circle.md) [evidence](03-Geometry/Docs/07-rotatingcalipers.md) [evidence](03-Geometry/Docs/08-coordinate_transform.md)
-- [x] **P009 — GE23** (opus, M): 03-Geometry — triangle. Status: verified. [evidence](03-Geometry/Docs/09-triangle.md)
-- [x] **P010 — GR01, GR02** (opus, M+L): 04-Graphs — graph, traversal, toposort, dsu, shortest path, mst. Status: verified. [evidence](04-Graphs/Docs/01-graph.md) [evidence](04-Graphs/Docs/02-traversal.md) [evidence](04-Graphs/Docs/03-toposort.md) [evidence](04-Graphs/Docs/04-dsu.md) [evidence](04-Graphs/Docs/05-shortest_path.md) [evidence](04-Graphs/Docs/06-mst.md)
-- [x] **P011 — GR03, GR26** (opus, L+M): 04-Graphs — lca, scc, bridges articulation, euleriantrail, functionalgraph. Status: verified. [evidence](04-Graphs/Docs/07-lca.md) [evidence](04-Graphs/Docs/08-scc.md) [evidence](04-Graphs/Docs/09-bridges_articulation.md) [evidence](04-Graphs/Docs/10-euleriantrail.md) [evidence](04-Graphs/Docs/11-functionalgraph.md)
-- [x] **P012 — MA01, MA02** (opus, M+M): 05-Mathematics — mod arithmetic, search algorithms, equation solvers, sieve algorithms, combinatorics, segmentedsieve. Status: verified. [evidence](05-Mathematics/Docs/01-mod_arithmetic.md) [evidence](05-Mathematics/Docs/02-search_algorithms.md) [evidence](05-Mathematics/Docs/03-equation_solvers.md) [evidence](05-Mathematics/Docs/04-sieve_algorithms.md) [evidence](05-Mathematics/Docs/05-combinatorics.md) [evidence](05-Mathematics/Docs/06-segmentedsieve.md)
-- [x] **P013 — MI01, MI02** (opus, M+M): 06-Miscellaneous — random, customhash, fastio, compression, bit operations, permutation. Status: verified. [evidence](06-Miscellaneous/Docs/01-random.md) [evidence](06-Miscellaneous/Docs/02-customhash.md) [evidence](06-Miscellaneous/Docs/03-fastio.md) [evidence](06-Miscellaneous/Docs/04-compression.md) [evidence](06-Miscellaneous/Docs/06-bit_operations.md) [evidence](06-Miscellaneous/Docs/07-permutation.md)
-- [x] **P014 — MI03, MI14** (opus, M+M): 06-Miscellaneous — sequence algorithms, interval algorithms, offline queries, sorting selection. Status: verified. [evidence](06-Miscellaneous/Docs/08-sequence_algorithms.md) [evidence](06-Miscellaneous/Docs/09-interval_algorithms.md) [evidence](06-Miscellaneous/Docs/10-offline_queries.md) [evidence](06-Miscellaneous/Docs/11-sorting_selection.md)
-- [x] **P015 — MI15, MI16, MI17** (opus, M+M+S): 06-Miscellaneous — enumeration, knapsack, cyclefinding. Status: verified. [evidence](06-Miscellaneous/Docs/12-enumeration.md) [evidence](06-Miscellaneous/Docs/13-knapsack.md) [evidence](06-Miscellaneous/Docs/14-cyclefinding.md)
-- [x] **P016 — ST01, ST02, ST19** (opus, S+M+S): 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength. Status: verified. [evidence](07-Strings/Docs/01-prefixfunction.md) [evidence](07-Strings/Docs/02-z.md) [evidence](07-Strings/Docs/03-stringhash.md) [evidence](07-Strings/Docs/04-trie.md) [evidence](07-Strings/Docs/05-manacher.md) [evidence](07-Strings/Docs/09-runlength.md)
-- [x] **P017 — ST03** (opus, L): 07-Strings — aho, suffixarray, palindrome queries. Status: verified. [evidence](07-Strings/Docs/06-aho.md) [evidence](07-Strings/Docs/07-suffixarray.md) [evidence](07-Strings/Docs/08-palindrome_queries.md)
+- [x] **P001 — SUP01** (opus, S): Contest testing pipeline and reusable generators/checkers.
+- [x] **P002 — C01, C15** (fable, M+L): 01-Core — template, debug, bitset.
+- [x] **P003 — SUP05** (opus, S): Refresh and check the standalone contest template.
+- [x] **P004 — C02** (fable, L): 01-Core — barrett, montgomery.
+- [x] **P005 — C03, C16** (fable, L+L): 01-Core — full and mini modular-integer families.
+- [x] **P006 — DS01, DS02** (opus, M+M): 02-Data Structures — dsu, fenwick, segmenttree, sparsetable, prefix sum, sqrt decomposition, ordered set, monotone stack.
+- [x] **P007 — GE01** (opus, L): 03-Geometry — point, line segment, polygon, convexhull.
+- [x] **P008 — GE02** (opus, L): 03-Geometry — closestpair, circle, rotatingcalipers, coordinate transform.
+- [x] **P009 — GE23** (opus, M): 03-Geometry — triangle.
+- [x] **P010 — GR01, GR02** (opus, M+L): 04-Graphs — graph, traversal, toposort, dsu, shortest path, mst.
+- [x] **P011 — GR03, GR26** (opus, L+M): 04-Graphs — lca, scc, bridges articulation, euleriantrail, functionalgraph.
+- [x] **P012 — MA01, MA02** (opus, M+M): 05-Mathematics — mod arithmetic, search algorithms, equation solvers, sieve algorithms, combinatorics, segmentedsieve.
+- [x] **P013 — MI01, MI02** (opus, M+M): 06-Miscellaneous — random, customhash, fastio, compression, bit operations, permutation.
+- [x] **P014 — MI03, MI14** (opus, M+M): 06-Miscellaneous — sequence algorithms, interval algorithms, offline queries, sorting selection.
+- [x] **P015 — MI15, MI16, MI17** (opus, M+M+S): 06-Miscellaneous — enumeration, knapsack, cyclefinding.
+- [x] **P016 — ST01, ST02, ST19** (opus, S+M+S): 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength.
+- [x] **P017 — ST03** (opus, L): 07-Strings — aho, suffixarray, palindrome queries.
 
 ### Core full types
 
-- [x] **P025 — C11** (fable, XL): 01-Core — poly. Status: verified. [evidence](01-Core/Docs/16-poly.md)
-- [x] **P026 — C12** (opus, M): 01-Core — polymini. Status: verified. [evidence](01-Core/Docs/17-polymini.md)
-- [x] **P018 — C04** (fable, XL): 01-Core — infint. Status: verified. [evidence](01-Core/Docs/07-infint.md)
-- [x] **P019 — C05, C06** (fable, M+M): 01-Core — infintmini, rational. Status: verified. [evidence](01-Core/Docs/08-infintmini.md) [evidence](01-Core/Docs/09-rational.md)
+- [x] **P025 — C11** (fable, XL): 01-Core — poly.
+- [x] **P026 — C12** (opus, M): 01-Core — polymini.
+- [x] **P018 — C04** (fable, XL): 01-Core — infint.
+- [x] **P019 — C05, C06** (fable, M+M): 01-Core — infintmini, rational.
 - [ ] **P020 — C07** (fable, XL): 01-Core — matrix. Status: planned.
-- [ ] **P021 — C08** (opus, M): 01-Core — matrixmini. Status: planned.
 - [ ] **P022 — C09, C10** (fable, L+M): 01-Core — bitmatrix, bitmatrixmini. Status: planned. Note: Defects in the pinned 12-bitmatrix.hpp body, fix in the rewrite: operator*=(int) zeroes only for 0 (GF(2) needs o & 1, so a * 2 returns a); BitMatrix(string, axis) leaves fields uninitialised for an axis other than 0 or 1.
 - [ ] **P023 — C13** (fable, XL): 01-Core — sparsematrix. Status: planned.
+- [ ] **P021 — C08** (opus, M): 01-Core — matrixmini. Status: planned.
 - [ ] **P024 — C14** (opus, M): 01-Core — sparsematrixmini. Status: planned.
 
 ### Contest core
 
-- [x] **P229 — MI32** (opus, M): 06-Miscellaneous — timer, interactive, grid utilities. Status: verified. [evidence](06-Miscellaneous/Docs/49-timer.md) [evidence](06-Miscellaneous/Docs/50-interactive.md) [evidence](06-Miscellaneous/Docs/51-grid_utilities.md)
-- [x] **P027 — DS04, DS05, DS06, DS47** (opus, M+L+L+M): 02-Data Structures — fenwick tree advanced, monoids, lazysegmenttree, dynamicsegmenttree, interval set. Status: verified. Note: Monoids row migration (2026-10-18): 00-monoids.hpp is row 00 of DS05 with its own tester and evidence; monoid rule in 03-cpp.md; explicit comment-cap exemption; Python row names aligned. [evidence](<02-Data Structures/Docs/11-fenwick_tree_advanced.md>) [evidence](<02-Data Structures/Docs/12-lazysegmenttree.md>) [evidence](<02-Data Structures/Docs/13-dynamicsegmenttree.md>) [evidence](<02-Data Structures/Docs/24-interval_set.md>) [evidence](<02-Data Structures/Docs/00-monoids.md>)
-- [x] **P227 — DS49** (opus, M): 02-Data Structures — hashmap, sortedlist. Status: verified. Note: hash map and sorted list containers [evidence](<02-Data Structures/Docs/61-hashmap.md>) [evidence](<02-Data Structures/Docs/64-sortedlist.md>)
-- [x] **P052 — MA03, MA04** (opus, L+L): 05-Mathematics — primality factorization, multiplicative functions, modinverse, crt. Status: verified. [evidence](05-Mathematics/Docs/07-primality_factorization.md) [evidence](05-Mathematics/Docs/08-multiplicative_functions.md) [evidence](05-Mathematics/Docs/09-modinverse.md) [evidence](05-Mathematics/Docs/10-crt.md)
-- [x] **P231 — SUP06** (opus, S): Memory-capped test execution and Compact-alternative rule. Status: verified. [evidence](<96-Local Testing/Docs/00-memory-safety.md>)
-- [x] **P081 — ST04, ST06, ST33** (opus, L+L+L): 07-Strings — suffixautomaton, sais, editdistance. Status: verified. [evidence](07-Strings/Docs/10-suffixautomaton.md) [evidence](07-Strings/Docs/12-sais.md) [evidence](07-Strings/Docs/18-editdistance.md)
-- [x] **P044 — GR08** (opus, XL): 04-Graphs — max flow. Status: verified. [evidence](04-Graphs/Docs/19-max_flow.md)
-- [x] **P043 — GR07, GR10, GR11** (opus, M+L+L): 04-Graphs — twosat, matching bipartite, assignment, dominatortree. Status: verified. [evidence](04-Graphs/Docs/18-twosat.md) [evidence](04-Graphs/Docs/21-matching_bipartite.md) [evidence](04-Graphs/Docs/23-assignment.md) [evidence](04-Graphs/Docs/24-dominatortree.md)
-- [x] **P055 — MA06, MA12** (opus, L+L): 05-Mathematics — convolution, transform algorithms. Status: verified. [evidence](05-Mathematics/Docs/13-convolution.md) [evidence](05-Mathematics/Docs/24-transform_algorithms.md)
-- [x] **P083 — ST07, ST34** (opus, L+L): 07-Strings — palindromictree, lyndon, minrotation, lcs. Status: verified. [evidence](07-Strings/Docs/13-palindromictree.md) [evidence](07-Strings/Docs/14-lyndon.md) [evidence](07-Strings/Docs/15-minrotation.md) [evidence](07-Strings/Docs/19-lcs.md)
-- [x] **P028 — DS07, DS08, DS26** (opus, L+L+M): 02-Data Structures — segtreebeats, segment tree 2d, mergesorttree, aggregation queue. Status: verified. [evidence](<02-Data Structures/Docs/14-segtreebeats.md>) [evidence](<02-Data Structures/Docs/15-segment_tree_2d.md>) [evidence](<02-Data Structures/Docs/16-mergesorttree.md>) [evidence](<02-Data Structures/Docs/30-aggregation_queue.md>)
-- [x] **P057 — MA07** (opus, L): 05-Mathematics — polynomial algorithms, linear recurrence. Status: verified. [evidence](05-Mathematics/Docs/14-polynomial_algorithms.md) [evidence](05-Mathematics/Docs/15-linear_recurrence.md)
-- [x] **P084 — ST08, ST20, ST23** (opus, L+L+M): 07-Strings — string matching, bitap, subsequence automaton, bwt. Status: verified. [evidence](07-Strings/Docs/16-string_matching.md) [evidence](07-Strings/Docs/17-bitap.md) [evidence](07-Strings/Docs/20-subsequence_automaton.md) [evidence](07-Strings/Docs/29-bwt.md)
-- [x] **P036 — GE03, GE24, GE25** (opus, L+M+L): 03-Geometry — halfplaneintersection, minkowskisum, circle polygon, polygon distance. Status: verified. [evidence](03-Geometry/Docs/10-halfplaneintersection.md) [evidence](03-Geometry/Docs/11-minkowskisum.md) [evidence](03-Geometry/Docs/16-circle_polygon.md) [evidence](03-Geometry/Docs/17-polygon_distance.md)
-- [x] **P029 — DS09, DS10, DS48** (opus, L+L+L): 02-Data Structures — waveletmatrix, treap, heap deque. Status: verified. [evidence](<02-Data Structures/Docs/17-waveletmatrix.md>) [evidence](<02-Data Structures/Docs/19-treap.md>) [evidence](<02-Data Structures/Docs/25-heap_deque.md>)
-- [x] **P045 — GR09** (opus, XL): 04-Graphs — min cost flow. Status: verified. [evidence](04-Graphs/Docs/20-min_cost_flow.md)
-- [x] **P075 — MI23** (opus, L): 06-Miscellaneous — slope trick. Status: verified. [evidence](06-Miscellaneous/Docs/34-slope_trick.md)
-- [x] **P033 — DS13, DS29** (opus, L+L): 02-Data Structures — trie, cartesiantree, disjointsparsetable, offline rectangle queries. Status: verified. [evidence](<02-Data Structures/Docs/26-trie.md>) [evidence](<02-Data Structures/Docs/27-cartesiantree.md>) [evidence](<02-Data Structures/Docs/28-disjointsparsetable.md>) [evidence](<02-Data Structures/Docs/33-offline_rectangle_queries.md>)
-- [x] **P056 — GR06** (opus, L): 04-Graphs — centroiddecomposition, treeisomorphism. Status: verified. [evidence](04-Graphs/Docs/16-centroiddecomposition.md) [evidence](04-Graphs/Docs/17-treeisomorphism.md)
-- [x] **P053 — MA05** (opus, L): 05-Mathematics — discrete log root. Status: verified. [evidence](05-Mathematics/Docs/11-discrete_log_root.md)
-- [x] **P178 — MA17** (opus, L): 05-Mathematics — modular square roots, quadratic congruence. Status: verified. [evidence](05-Mathematics/Docs/33-modular_square_roots.md) [evidence](05-Mathematics/Docs/34-quadratic_congruence.md)
-- [x] **P085 — ST21, ST09** (opus, L+L): 07-Strings — wildcardmatching, lexicographic queries, dynamicstringhash. Status: verified. [evidence](07-Strings/Docs/21-wildcardmatching.md) [evidence](07-Strings/Docs/22-lexicographic_queries.md) [evidence](07-Strings/Docs/23-dynamicstringhash.md)
-- [x] **P060 — MA10** (opus, M): 05-Mathematics — floorsum, josephus, continued fraction. Status: verified. [evidence](05-Mathematics/Docs/18-floorsum.md) [evidence](05-Mathematics/Docs/19-josephus.md) [evidence](05-Mathematics/Docs/20-continued_fraction.md)
-- [x] **P054 — MA26, MA41, MA52** (opus, L+M+M): 05-Mathematics — combinatorics advanced, modular power towers, lattice paths. Status: verified. [evidence](05-Mathematics/Docs/12-combinatorics_advanced.md) [evidence](05-Mathematics/Docs/30-modular_power_towers.md) [evidence](05-Mathematics/Docs/67-lattice_paths.md)
-- [x] **P037 — GE05, GE27, GE44** (opus, L+L+M): 03-Geometry — segment union, minimumenclosingcircle, convex polygon query, lattice geometry, fixed radius queries. Status: verified. [evidence](03-Geometry/Docs/13-segment_union.md) [evidence](03-Geometry/Docs/14-minimumenclosingcircle.md) [evidence](03-Geometry/Docs/15-convex_polygon_query.md) [evidence](03-Geometry/Docs/19-lattice_geometry.md) [evidence](03-Geometry/Docs/54-fixed_radius_queries.md) [evidence](05-Mathematics/Docs/18-floorsum.md)
-- [x] **P034 — DS30, DS31, DS03, DS51** (opus, L+M+L+M): 02-Data Structures — sqrttree, persistentarray, rollbackdsu, persistentdsu, offline deletion. Status: verified. [evidence](<02-Data Structures/Docs/09-rollbackdsu.md>) [evidence](<02-Data Structures/Docs/10-persistentdsu.md>) [evidence](<02-Data Structures/Docs/34-sqrttree.md>) [evidence](<02-Data Structures/Docs/35-persistentarray.md>) [evidence](<02-Data Structures/Docs/63-offline_deletion.md>)
-- [x] **P047 — GR69, GR12, GR28** (opus, L+L+M): 04-Graphs — directedmst, dynamic connectivity, blockcuttree, path cover. Status: verified. [evidence](04-Graphs/Docs/25-directedmst.md) [evidence](04-Graphs/Docs/26-dynamic_connectivity.md) [evidence](04-Graphs/Docs/27-blockcuttree.md) [evidence](04-Graphs/Docs/31-path_cover.md)
-- [x] **P082 — ST05** (opus, XL): 07-Strings — suffixtree. Status: verified. [evidence](07-Strings/Docs/11-suffixtree.md)
-- [x] **P072 — MI18, MI34** (opus, L+M): 06-Miscellaneous — knapsack advanced, kbest enumeration, fractional programming. Status: verified. Note: KnapsackItem::weight is lng in 13 (P015 files migrated). [evidence](06-Miscellaneous/Docs/29-knapsack_advanced.md) [evidence](06-Miscellaneous/Docs/54-kbest_enumeration.md) [evidence](06-Miscellaneous/Docs/55-fractional_programming.md)
-- [x] **P035 — DS25, DS32, DS52** (opus, M+M+M): 02-Data Structures — weighteddsu, fastset, dsu extensions. Status: verified. [evidence](<02-Data Structures/Docs/29-weighteddsu.md>) [evidence](<02-Data Structures/Docs/36-fastset.md>) [evidence](<02-Data Structures/Docs/65-dsu_extensions.md>) [evidence](<02-Data Structures/Docs/00-monoids.md>)
-- [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.
-- [ ] **P058 — MA08** (opus, L): 05-Mathematics — linear algebra. Status: planned.
-- [ ] **P088 — ST11, ST25** (opus, L+L): 07-Strings — string periodicity, multiple string, string reconstruction. Status: planned.
-- [ ] **P068 — MI07** (opus, M): 06-Miscellaneous — bitset optimization, contestallocator, memoization. Status: planned.
-- [ ] **P050 — GR35, GR36, GR37, GR38** (opus, M+M+L+M): 04-Graphs — stablematching, graphicalsequence, reachability, cactusgraph. Status: planned.
-- [ ] **P061 — MA11** (opus, L): 05-Mathematics — interpolation, matrixtree. Status: planned.
-- [ ] **P086 — ST35, ST22, ST24** (opus, L+L+L): 07-Strings — regular language, radixtrie, onlinez. Status: planned.
-- [ ] **P069 — MI08** (opus, L): 06-Miscellaneous — exactcover. Status: planned.
+- [x] **P229 — MI32** (opus, M): 06-Miscellaneous — timer, interactive, grid utilities.
+- [x] **P027 — DS04, DS05, DS06, DS47** (opus, M+L+L+M): 02-Data Structures — fenwick tree advanced, monoids, lazysegmenttree, dynamicsegmenttree, interval set.
+- [x] **P227 — DS49** (opus, M): 02-Data Structures — hashmap, sortedlist.
+- [x] **P052 — MA03, MA04** (opus, L+L): 05-Mathematics — primality factorization, multiplicative functions, modinverse, crt.
+- [x] **P231 — SUP06** (opus, S): Memory-capped test execution and Compact-alternative rule.
+- [x] **P081 — ST04, ST06, ST33** (opus, L+L+L): 07-Strings — suffixautomaton, sais, editdistance.
+- [x] **P044 — GR08** (opus, XL): 04-Graphs — max flow.
+- [x] **P043 — GR07, GR10, GR11** (opus, M+L+L): 04-Graphs — twosat, matching bipartite, assignment, dominatortree.
+- [x] **P055 — MA06, MA12** (opus, L+L): 05-Mathematics — convolution, transform algorithms.
+- [x] **P083 — ST07, ST34** (opus, L+L): 07-Strings — palindromictree, lyndon, minrotation, lcs.
+- [x] **P028 — DS07, DS08, DS26** (opus, L+L+M): 02-Data Structures — segtreebeats, segment tree 2d, mergesorttree, aggregation queue.
+- [x] **P057 — MA07** (opus, L): 05-Mathematics — polynomial algorithms, linear recurrence.
+- [x] **P084 — ST08, ST20, ST23** (opus, L+L+M): 07-Strings — string matching, bitap, subsequence automaton, bwt.
+- [x] **P036 — GE03, GE24, GE25** (opus, L+M+L): 03-Geometry — halfplaneintersection, minkowskisum, circle polygon, polygon distance.
+- [x] **P029 — DS09, DS10, DS48** (opus, L+L+L): 02-Data Structures — waveletmatrix, treap, heap deque.
+- [x] **P045 — GR09** (opus, XL): 04-Graphs — min cost flow.
+- [x] **P075 — MI23** (opus, L): 06-Miscellaneous — slope trick.
+- [x] **P033 — DS13, DS29** (opus, L+L): 02-Data Structures — trie, cartesiantree, disjointsparsetable, offline rectangle queries.
+- [x] **P056 — GR06** (opus, L): 04-Graphs — centroiddecomposition, treeisomorphism.
+- [x] **P053 — MA05** (opus, L): 05-Mathematics — discrete log root.
+- [x] **P178 — MA17** (opus, L): 05-Mathematics — modular square roots, quadratic congruence.
+- [x] **P085 — ST21, ST09** (opus, L+L): 07-Strings — wildcardmatching, lexicographic queries, dynamicstringhash.
+- [x] **P060 — MA10** (opus, M): 05-Mathematics — floorsum, josephus, continued fraction.
+- [x] **P054 — MA26, MA41, MA52** (opus, L+M+M): 05-Mathematics — combinatorics advanced, modular power towers, lattice paths.
+- [x] **P037 — GE05, GE27, GE44** (opus, L+L+M): 03-Geometry — segment union, minimumenclosingcircle, convex polygon query, lattice geometry, fixed radius queries.
+- [x] **P034 — DS30, DS31, DS03, DS51** (opus, L+M+L+M): 02-Data Structures — sqrttree, persistentarray, rollbackdsu, persistentdsu, offline deletion.
+- [x] **P047 — GR69, GR12, GR28** (opus, L+L+M): 04-Graphs — directedmst, dynamic connectivity, blockcuttree, path cover.
+- [x] **P082 — ST05** (opus, XL): 07-Strings — suffixtree.
+- [x] **P072 — MI18, MI34** (opus, L+M): 06-Miscellaneous — knapsack advanced, kbest enumeration, fractional programming.
+- [x] **P035 — DS25, DS32, DS52** (opus, M+M+M): 02-Data Structures — weighteddsu, fastset, dsu extensions.
+- [ ] **P238 — SUP07** (opus, M): Header dependency graph, include-derived prerequisites and notebook dependency selection. Status: planned.
+- [ ] **P239 — SUP08** (opus, L): Documentation site generator, header pages and dependency charts. Status: planned.
 - [ ] **P030 — DS23** (opus, XL): 02-Data Structures — persistentsegmenttree. Status: planned.
 - [ ] **P032 — DS11, DS27, DS28, DS50** (opus, L+M+L+M): 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis. Status: planned.
+- [ ] **P058 — MA08** (opus, L): 05-Mathematics — linear algebra. Status: planned.
 - [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: planned.
-- [ ] **P066 — MI04, MI05, MI06** (opus, M+L+M): 06-Miscellaneous — smalltolarge, hilbertorder, fast io advanced, randomized algorithms, hash families, parallelbinarysearch, cdq. Status: planned.
-- [ ] **P067 — DS12** (opus, L): 02-Data Structures — range query offline. Status: planned.
 - [ ] **P048 — GR13, GR27, GR32** (opus, L+L+M): 04-Graphs — cycle basis, planar graph, flow with demands, subgraph enumeration. Status: planned.
+- [ ] **P063 — MA14** (opus, L): 05-Mathematics — optimization. Status: planned.
+- [ ] **P059 — MA09** (opus, L): 05-Mathematics — numerical methods, integer roots. Status: planned.
+- [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.
+- [ ] **P073 — MI19, MI20, MI21, MI22, MI33** (opus, M+M+L+L+M): 06-Miscellaneous — meetinthemiddle, digitdp, subset dp, profile dp, interval dp, bracket sequences. Status: planned.
+- [ ] **P050 — GR35, GR36, GR37, GR38** (opus, M+M+L+M): 04-Graphs — stablematching, graphicalsequence, reachability, cactusgraph. Status: planned.
+- [ ] **P061 — MA11** (opus, L): 05-Mathematics — interpolation, matrixtree. Status: planned.
+- [ ] **P066 — MI04, MI05, MI06** (opus, M+L+M): 06-Miscellaneous — smalltolarge, hilbertorder, fast io advanced, randomized algorithms, hash families, parallelbinarysearch, cdq. Status: planned.
 - [ ] **P062 — MA13** (opus, L): 05-Mathematics — game theory, probability. Status: planned.
-- [ ] **P077 — MI26** (opus, M): 06-Miscellaneous — expression parser. Status: planned.
 - [ ] **P031 — DS24** (opus, XL): 02-Data Structures — balanced bst. Status: planned.
 - [ ] **P049 — GR30, GR31, GR34** (opus, L+L+L): 04-Graphs — chordalgraph, edge coloring, graph closure. Status: planned.
-- [ ] **P059 — MA09** (opus, L): 05-Mathematics — numerical methods, integer roots. Status: planned.
+- [ ] **P064 — MA27** (opus, XL): 05-Mathematics — simplex. Status: planned.
+- [ ] **P079 — MI28, MI29** (opus, M+M): 06-Miscellaneous — scheduling, optimal merge. Status: planned.
+- [ ] **P065 — MA29** (opus, XL): 05-Mathematics — polynomial roots. Status: planned.
+- [ ] **P040 — GE17** (opus, L): 03-Geometry — spatial index. Status: planned.
+- [ ] **P038 — GE28** (opus, XL): 03-Geometry — convex hull updates. Status: planned.
+- [ ] **P088 — ST11, ST25** (opus, L+L): 07-Strings — string periodicity, multiple string, string reconstruction. Status: planned.
+- [ ] **P068 — MI07** (opus, M): 06-Miscellaneous — bitset optimization, contestallocator, memoization. Status: planned.
+- [ ] **P086 — ST35, ST22, ST24** (opus, L+L+L): 07-Strings — regular language, radixtrie, onlinez. Status: planned.
+- [ ] **P069 — MI08** (opus, L): 06-Miscellaneous — exactcover. Status: planned.
+- [ ] **P067 — DS12** (opus, L): 02-Data Structures — range query offline. Status: planned.
+- [ ] **P077 — MI26** (opus, M): 06-Miscellaneous — expression parser. Status: planned.
 - [ ] **P076 — MI24, MI25** (opus, L+L): 06-Miscellaneous — state space search, game search. Status: planned.
 - [ ] **P051 — GR39, GR58, GR60, GR65** (opus, M+L+M+L): 04-Graphs — graph decomposition, implicit graph, differenceconstraints, graph connectivity. Status: planned.
-- [ ] **P063 — MA14** (opus, L): 05-Mathematics — optimization. Status: planned.
-- [ ] **P073 — MI19, MI20, MI21, MI22, MI33** (opus, M+M+L+L+M): 06-Miscellaneous — meetinthemiddle, digitdp, subset dp, profile dp, interval dp, bracket sequences. Status: planned.
 - [ ] **P087 — ST10** (opus, XL): 07-Strings — runs. Status: planned.
 - [ ] **P039 — GE10, GE30, GE18** (opus, L+L+M): 03-Geometry — circleunion, geometric median, spherical geometry. Status: planned.
 - [ ] **P074 — GR33** (opus, L): 04-Graphs — steiner tree. Status: planned.
-- [ ] **P064 — MA27** (opus, XL): 05-Mathematics — simplex. Status: planned.
 - [ ] **P089 — ST26** (opus, L): 07-Strings — multidimensional matching. Status: planned.
-- [ ] **P079 — MI28, MI29** (opus, M+M): 06-Miscellaneous — scheduling, optimal merge. Status: planned.
-- [ ] **P065 — MA29** (opus, XL): 05-Mathematics — polynomial roots. Status: planned.
 - [ ] **P071 — MI10** (opus, M): 06-Miscellaneous — calendar time, encoding. Status: planned.
-- [ ] **P040 — GE17** (opus, L): 03-Geometry — spatial index. Status: planned.
 - [ ] **P078 — MI27** (opus, L): 06-Miscellaneous — heuristic optimization. Status: planned.
-- [ ] **P038 — GE28** (opus, XL): 03-Geometry — convex hull updates. Status: planned.
 - [ ] **P070 — MI09** (opus, XL): 06-Miscellaneous — satsolver. Status: planned.
 - [ ] **P041 — GE32** (opus, XL): 03-Geometry — point set queries. Status: planned.
 - [ ] **P128 — GE11** (opus, XL): 03-Geometry — exact predicates. Status: planned.
-- [ ] **P129 — GE04** (opus, XL): 03-Geometry — segmentintersection. Status: planned.
 - [ ] **P130 — GE26** (opus, XL): 03-Geometry — polygontriangulation. Status: planned.
+- [ ] **P129 — GE04** (opus, XL): 03-Geometry — segmentintersection. Status: planned.
 - [ ] **P131 — GE29, GE16, GE34** (opus, L+L+L): 03-Geometry — circle constructions, linearrangement, visibilitypolygon. Status: planned.
-- [ ] **P133 — GE06** (opus, XL): 03-Geometry — polygon boolean. Status: planned.
 - [ ] **P134 — GE07** (opus, XL): 03-Geometry — delaunay. Status: planned.
-- [ ] **P135 — GE09, GE08** (opus, M+L): 03-Geometry — manhattan geometry, geometricmst, voronoi. Status: planned.
-- [ ] **P136 — GE33** (opus, XL): 03-Geometry — pointlocation. Status: planned.
 - [ ] **P132 — GE31** (opus, XL): 03-Geometry — geometry3d. Status: planned.
+- [ ] **P135 — GE09, GE08** (opus, M+L): 03-Geometry — manhattan geometry, geometricmst, voronoi. Status: planned.
+- [ ] **P133 — GE06** (opus, XL): 03-Geometry — polygon boolean. Status: planned.
+- [ ] **P136 — GE33** (opus, XL): 03-Geometry — pointlocation. Status: planned.
 - [ ] **P137 — GE12** (opus, XL): 03-Geometry — convexhull3d. Status: planned.
 - [ ] **P117 — DS34, DS38, DS39** (opus, L+L+L): 02-Data Structures — persistentheap, rangeparallelunionfind, rangemode. Status: planned.
 - [ ] **P118 — GR29** (opus, L): 04-Graphs — kshortestwalks. Status: planned.
@@ -148,14 +150,14 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P092 — PY03** (opus, L): 08-Python — graph. Status: planned.
 - [ ] **P093 — PY17** (opus, M): 08-Python — strings. Status: planned.
 - [ ] **P095 — PY19** (opus, M): 08-Python — dp. Status: planned.
-- [ ] **P096 — PY04** (opus, L): 08-Python — prime factor. Status: planned.
-- [ ] **P097 — PY34, PY35** (opus, L+L): 08-Python — flow, matching. Status: planned.
 - [ ] **P098 — PY05, PY36, PY38, PY44** (opus, L+L+M+M): 08-Python — tree, rollback, persistent, bitset, wavelet matrix. Status: planned.
-- [ ] **P099 — PY06, PY37** (opus, L+L): 08-Python — polynomial, matrix. Status: planned.
-- [ ] **P100 — PY07, PY42** (opus, L+M): 08-Python — trie, aho, suffix, eertree, lyndon. Status: planned.
-- [ ] **P101 — PY08, PY11** (opus, M+M): 08-Python — offline, randomized, io advanced. Status: planned.
 - [ ] **P102 — PY12, PY21, PY48** (opus, L+L+M): 08-Python — lazysegmenttree, ordered multiset, sqrt decomposition, interval map. Status: planned.
 - [ ] **P094 — PY18, PY43** (opus, M+M): 08-Python — geometry, geometry advanced. Status: planned.
+- [ ] **P096 — PY04** (opus, L): 08-Python — prime factor. Status: planned.
+- [ ] **P097 — PY34, PY35** (opus, L+L): 08-Python — flow, matching. Status: planned.
+- [ ] **P100 — PY07, PY42** (opus, L+M): 08-Python — trie, aho, suffix, eertree, lyndon. Status: planned.
+- [ ] **P099 — PY06, PY37** (opus, L+L): 08-Python — polynomial, matrix. Status: planned.
+- [ ] **P101 — PY08, PY11** (opus, M+M): 08-Python — offline, randomized, io advanced. Status: planned.
 - [ ] **P103 — PY22, PY39** (opus, L+L): 08-Python — line envelope, dp optimization. Status: planned.
 - [ ] **P104 — PY23, PY24, PY25** (opus, M+L+S): 08-Python — twosat, lowlink, eulertrail. Status: planned.
 - [ ] **P105 — PY26, PY27** (opus, L+L): 08-Python — shortest paths, mincostflow. Status: planned.
@@ -168,46 +170,56 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 
 ### Specialist and research families
 
+- [ ] **P114 — DS17, DS18, DS21** (opus, L+L+M): 02-Data Structures — succinctbitvector, succincttree, vanemdeboas, matroid oracle. Status: planned.
+- [ ] **P185 — MA21** (opus, XL): 05-Mathematics — finite fields. Status: planned.
+- [ ] **P179 — MA24** (opus, XL): 05-Mathematics — lattice reduction. Status: planned.
 - [ ] **P111 — DS14** (opus, XL): 02-Data Structures — lct. Status: planned.
+- [ ] **P119 — DS35** (opus, XL): 02-Data Structures — dynamicbitvector. Status: planned.
+- [ ] **P162 — GR45** (opus, XL): 04-Graphs — weightedblossom. Status: planned.
 - [ ] **P112 — DS15** (opus, XL): 02-Data Structures — eulertourtree. Status: planned.
 - [ ] **P113 — DS16** (opus, XL): 02-Data Structures — toptree. Status: planned.
-- [ ] **P114 — DS17, DS18, DS21** (opus, L+L+M): 02-Data Structures — succinctbitvector, succincttree, vanemdeboas, matroid oracle. Status: planned.
+- [ ] **P123 — DS42** (opus, XL): 02-Data Structures — pqtree. Status: planned.
+- [ ] **P138 — GE13** (opus, XL): 03-Geometry — halfspaceintersection3d. Status: planned.
+- [ ] **P139 — GE14, GE19, GE20** (opus, L+L+M): 03-Geometry — visibilitygraph, kinetic geometry, geometric duality. Status: planned.
+- [ ] **P140 — GE15** (opus, L): 03-Geometry — randomizedlp. Status: planned.
+- [ ] **P143 — GE36** (opus, XL): 03-Geometry — weighted voronoi. Status: planned.
+- [ ] **P145 — GE37** (opus, XL): 03-Geometry — delaunay3d. Status: planned.
+- [ ] **P152 — GR14, GR16, GR23** (opus, L+L+M): 04-Graphs — gomoryhutree, stoerwagner, maximumclique, minimummeancycle. Status: planned. Note: Planned operation (user decision 2026-10-24, from P072): minimumRatioSpanningTree (POJ 2728), 06-Miscellaneous/55 dinkelbach over a dense Prim (06-mst primDense) oracle with weights a - t * b, exact rational result and tree witness; add it to the row 56 operations beside minimumRatioCycle and update 06-Miscellaneous/Docs/00-notes.md (Ownership boundaries) when implemented.
+- [ ] **P158 — GR41, GR48, GR49, GR71** (opus, L+L+L+M): 04-Graphs — stnumbering, coloring exact, cycle enumeration, feedback set. Status: planned.
+- [ ] **P176 — MA15** (opus, XL): 05-Mathematics — summatory functions. Status: planned.
+- [ ] **P181 — MA19** (opus, XL): 05-Mathematics — fastfactorial, bernoulli. Status: planned.
+- [ ] **P183 — MA28** (opus, L): 05-Mathematics — generating functions. Status: planned.
+- [ ] **P188 — MA30** (opus, XL): 05-Mathematics — polynomial factorization. Status: planned.
+- [ ] **P190 — MA32** (opus, XL): 05-Mathematics — combinatorial linear algebra. Status: planned.
+- [ ] **P202 — MA48** (opus, XL): 05-Mathematics — multiprecision float. Status: planned.
+- [ ] **P211 — ST14** (opus, XL): 07-Strings — compressed text index. Status: planned.
+- [ ] **P212 — ST15** (opus, XL): 07-Strings — grammar compression. Status: planned.
 - [ ] **P115 — DS22, DS20, DS33, DS53** (opus, L+L+L+L): 02-Data Structures — rangetree, kineticheap, persistentqueue, ordermaintenance. Status: planned.
 - [ ] **P116 — DS19** (opus, XL): 02-Data Structures — retroactivequeue. Status: planned.
-- [ ] **P119 — DS35** (opus, XL): 02-Data Structures — dynamicbitvector. Status: planned.
 - [ ] **P120 — DS36** (opus, XL): 02-Data Structures — dynamic wavelet. Status: planned.
 - [ ] **P121 — DS37** (opus, XL): 02-Data Structures — sortablesegmenttree. Status: planned.
 - [ ] **P122 — DS40, DS41** (opus, L+L): 02-Data Structures — linearrmq, commonintervaltree. Status: planned.
-- [ ] **P123 — DS42** (opus, XL): 02-Data Structures — pqtree. Status: planned.
 - [ ] **P124 — DS43** (opus, XL): 02-Data Structures — fingertree. Status: planned.
 - [ ] **P125 — DS44** (opus, XL): 02-Data Structures — persistent bst. Status: planned.
 - [ ] **P126 — DS45** (opus, XL): 02-Data Structures — range sequence queries. Status: planned.
 - [ ] **P127 — DS46** (opus, XL): 02-Data Structures — succinct sequence. Status: planned.
-- [ ] **P138 — GE13** (opus, XL): 03-Geometry — halfspaceintersection3d. Status: planned.
-- [ ] **P139 — GE14, GE19, GE20** (opus, L+L+M): 03-Geometry — visibilitygraph, kinetic geometry, geometric duality. Status: planned.
-- [ ] **P140 — GE15** (opus, L): 03-Geometry — randomizedlp. Status: planned.
 - [ ] **P141 — GE22** (opus, XL): 03-Geometry — algebraic geometry. Status: planned.
 - [ ] **P142 — GE35** (opus, XL): 03-Geometry — constraineddelaunay. Status: planned.
-- [ ] **P143 — GE36** (opus, XL): 03-Geometry — weighted voronoi. Status: planned.
 - [ ] **P144 — GE21** (opus, XL): 03-Geometry — minimumwidthannulus. Status: planned.
-- [ ] **P145 — GE37** (opus, XL): 03-Geometry — delaunay3d. Status: planned.
 - [ ] **P146 — GE38** (opus, XL): 03-Geometry — polygonoffset. Status: planned.
 - [ ] **P147 — GE39** (opus, XL): 03-Geometry — minimumenclosingellipse. Status: planned.
 - [ ] **P148 — GE40** (opus, XL): 03-Geometry — alphashape. Status: planned.
 - [ ] **P149 — GE41** (opus, XL): 03-Geometry — polyhedron boolean. Status: planned.
 - [ ] **P150 — GE42** (opus, XL): 03-Geometry — curve distance. Status: planned.
 - [ ] **P151 — GE43** (opus, XL): 03-Geometry — dynamicconvexhull. Status: planned.
-- [ ] **P152 — GR14, GR16, GR23** (opus, L+L+M): 04-Graphs — gomoryhutree, stoerwagner, maximumclique, minimummeancycle. Status: planned. Note: Planned operation (user decision 2026-10-24, from P072): minimumRatioSpanningTree (POJ 2728), 06-Miscellaneous/55 dinkelbach over a dense Prim (06-mst primDense) oracle with weights a - t * b, exact rational result and tree witness; add it to the row 56 operations beside minimumRatioCycle and update 06-Miscellaneous/Docs/00-notes.md (Ownership boundaries) when implemented.
 - [ ] **P153 — GR15** (opus, XL): 04-Graphs — matroidintersection. Status: planned.
 - [ ] **P154 — GR17** (opus, XL): 04-Graphs — treedecomposition. Status: planned.
 - [ ] **P155 — GR18, GR21, GR24** (opus, L+L+M): 04-Graphs — lct, sensitivity analysis, temporal graph, maximumdensitysubgraph. Status: planned.
 - [ ] **P156 — GR20** (opus, XL): 04-Graphs — graph isomorphism. Status: planned.
 - [ ] **P157 — GR40** (opus, XL): 04-Graphs — kshortestsimplepaths. Status: planned.
-- [ ] **P158 — GR41, GR48, GR49, GR71** (opus, L+L+L+M): 04-Graphs — stnumbering, coloring exact, cycle enumeration, feedback set. Status: planned.
 - [ ] **P159 — GR42** (opus, XL): 04-Graphs — triconnectivity. Status: planned.
 - [ ] **P160 — GR43** (opus, XL): 04-Graphs — planarity. Status: planned.
 - [ ] **P161 — GR44** (opus, XL): 04-Graphs — fully dynamic connectivity. Status: planned.
-- [ ] **P162 — GR45** (opus, XL): 04-Graphs — weightedblossom. Status: planned.
 - [ ] **P163 — GR22** (opus, XL): 04-Graphs — gabowmatching. Status: planned.
 - [ ] **P164 — GR46** (opus, XL): 04-Graphs — costscalingflow. Status: planned.
 - [ ] **P165 — GR47** (opus, XL): 04-Graphs — networksimplex. Status: planned.
@@ -221,20 +233,13 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P173 — GR63, GR64, GR67** (opus, L+L+L): 04-Graphs — rankedmatching, stableroommates, extremevertexsets. Status: planned.
 - [ ] **P174 — GR66** (opus, XL): 04-Graphs — skew symmetric flow. Status: planned.
 - [ ] **P175 — GR68** (opus, XL): 04-Graphs — dynamictreedp. Status: planned.
-- [ ] **P176 — MA15** (opus, XL): 05-Mathematics — summatory functions. Status: planned.
 - [ ] **P177 — MA16** (opus, L): 05-Mathematics — dirichlet series. Status: planned.
-- [ ] **P179 — MA24** (opus, XL): 05-Mathematics — lattice reduction. Status: planned.
 - [ ] **P180 — MA18** (opus, XL): 05-Mathematics — integer factor advanced. Status: planned.
-- [ ] **P181 — MA19** (opus, XL): 05-Mathematics — fastfactorial, bernoulli. Status: planned.
 - [ ] **P182 — MA25** (opus, M): 05-Mathematics — special functions. Status: planned.
-- [ ] **P183 — MA28** (opus, L): 05-Mathematics — generating functions. Status: planned.
 - [ ] **P184 — MA20** (opus, L): 05-Mathematics — padic arithmetic, rationalreconstruction. Status: planned.
-- [ ] **P185 — MA21** (opus, XL): 05-Mathematics — finite fields. Status: planned.
 - [ ] **P186 — MA22** (opus, XL): 05-Mathematics — determinant advanced. Status: planned.
 - [ ] **P187 — MA23** (opus, M): 05-Mathematics — contourintegral. Status: planned.
-- [ ] **P188 — MA30** (opus, XL): 05-Mathematics — polynomial factorization. Status: planned.
 - [ ] **P189 — MA31** (opus, L): 05-Mathematics — nimber. Status: planned.
-- [ ] **P190 — MA32** (opus, XL): 05-Mathematics — combinatorial linear algebra. Status: planned.
 - [ ] **P191 — GR19** (opus, XL): 04-Graphs — graph counting. Status: planned.
 - [ ] **P192 — MA33** (opus, XL): 05-Mathematics — integer linear algebra. Status: planned.
 - [ ] **P193 — MA34** (opus, XL): 05-Mathematics — multivariate polynomial. Status: planned.
@@ -246,7 +251,6 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P199 — MA43** (opus, L): 05-Mathematics — partizan games. Status: planned.
 - [ ] **P200 — MA45, MA50, MA51** (opus, L+L+L): 05-Mathematics — tableau algorithms, convolution specialized, set power series. Status: planned.
 - [ ] **P201 — MA46** (opus, XL): 05-Mathematics — algebraic numbers. Status: planned.
-- [ ] **P202 — MA48** (opus, XL): 05-Mathematics — multiprecision float. Status: planned.
 - [ ] **P203 — MA47** (opus, XL): 05-Mathematics — ball arithmetic. Status: planned.
 - [ ] **P204 — MA49** (opus, XL): 05-Mathematics — group algorithms. Status: planned.
 - [ ] **P205 — MI11, MI13** (opus, M+L): 06-Miscellaneous — rollback framework, persistentallocator, external memory. Status: planned.
@@ -255,8 +259,6 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P208 — ST12** (opus, XL): 07-Strings — onlinesuffixtree. Status: planned.
 - [ ] **P209 — ST13, ST37, ST16** (opus, L+L+L): 07-Strings — dynamicaho, approximate matching, palindrome advanced. Status: planned.
 - [ ] **P210 — ST36** (opus, XL): 07-Strings — dynamicsuffixarray. Status: planned.
-- [ ] **P211 — ST14** (opus, XL): 07-Strings — compressed text index. Status: planned.
-- [ ] **P212 — ST15** (opus, XL): 07-Strings — grammar compression. Status: planned.
 - [ ] **P213 — ST17, ST18, ST38, ST39** (opus, M+L+L+S): 07-Strings — stringisomorphism, debruijn, zivlempel, linear string algorithms, combinatorial words. Status: planned.
 - [ ] **P214 — ST27** (opus, XL): 07-Strings — dynamic suffix automaton. Status: planned.
 - [ ] **P215 — ST28** (opus, XL): 07-Strings — dynamicpalindrome. Status: planned.
@@ -281,5 +283,12 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P224 — SUP02** (opus, S): Whole-library test-runner, aggregate and build integration audit. Status: planned.
 - [ ] **P225 — SUP03** (opus, S): Online solution coverage and expansion audit. Status: planned.
 - [ ] **P226 — SUP04** (opus, S): Curated notebook, contest notes and printable-build audit. Status: planned. Note: Also: landscape page layout; a CJK fallback font so the template's Chinese motto renders (first build 2026-10-15 showed no glyphs).
+- [ ] **P240 — SUP09** (opus, L): Site articles and practice lists: 01-Core. Status: planned.
+- [ ] **P241 — SUP10** (opus, XL): Site articles and practice lists: 02-Data Structures. Status: planned.
+- [ ] **P242 — SUP11** (opus, XL): Site articles and practice lists: 03-Geometry. Status: planned.
+- [ ] **P243 — SUP12** (opus, XL): Site articles and practice lists: 04-Graphs. Status: planned.
+- [ ] **P244 — SUP13** (opus, XL): Site articles and practice lists: 05-Mathematics. Status: planned.
+- [ ] **P245 — SUP14** (opus, XL): Site articles and practice lists: 06-Miscellaneous. Status: planned.
+- [ ] **P246 — SUP15** (opus, XL): Site articles and practice lists: 07-Strings. Status: planned.
 
 <!-- plan:end -->

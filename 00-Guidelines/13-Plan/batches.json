@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-06",
+  "date": "2026-10-24",
   "batches": [
     {
       "id": "C01",
@@ -6578,6 +6578,112 @@
       "tiers": [
         "Esoteric"
       ]
+    },
+    {
+      "id": "SUP07",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Header dependency graph from the `#include \"…\"` lines of the `01`–`07` headers: for each header its transitive closure in typing order with line counts, preferring mini and `Compact` alternatives where a row offers them, and per-folder charts without the template edge every header has. Derive the batch prerequisites of implemented headers from their includes (44 include edges were undeclared on 2026-10-24) and make `plan.py check` require every include edge to be declared. In the notebook, ticking a header selects its dependencies and each section names what it needs; see [notebook](../07-notebook.md).",
+      "prerequisites": [],
+      "tiers": []
+    },
+    {
+      "id": "SUP08",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Documentation site in the manner of cp-algorithms, generated from the canonical sources and built locally (MkDocs Material or equivalent, with search and math): one page per header and Python module from its inventory row and evidence document (operations, contracts, domains, complexity, dependencies from SUP07) and per-folder dependency charts. Its folder needs a user decision first, since `02-structure.md` allows no new top-level folder. Hand-written articles follow per folder (SUP09–SUP15).",
+      "prerequisites": [
+        "SUP07"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "SUP09",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Site articles for `01-Core`: an in-depth explanation (idea, correctness argument, complexity, pitfalls) for each type and a concise one for the rest, reusing the evidence documents' contracts and arguments, and a practice list per header from maintained judges (Codeforces, AtCoder, CSES, Library Checker, yukicoder and the problems `97-Online Testing` already solves), each problem backed by a fetched statement, editorial or tag page showing it uses the algorithm. No defunct or outdated judges; any other judge needs a user decision.",
+      "prerequisites": [
+        "SUP08"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "SUP10",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "XL",
+      "focus": "Site articles for `02-Data Structures`: an in-depth explanation (idea, correctness argument, complexity, pitfalls) for each Basic header and a concise one for the rest, reusing the evidence documents' contracts and arguments, and a practice list per header from maintained judges (Codeforces, AtCoder, CSES, Library Checker, yukicoder and the problems `97-Online Testing` already solves), each problem backed by a fetched statement, editorial or tag page showing it uses the algorithm. No defunct or outdated judges; any other judge needs a user decision.",
+      "prerequisites": [
+        "SUP08"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "SUP11",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "XL",
+      "focus": "Site articles for `03-Geometry`: an in-depth explanation (idea, correctness argument, complexity, pitfalls) for each Basic header and a concise one for the rest, reusing the evidence documents' contracts and arguments, and a practice list per header from maintained judges (Codeforces, AtCoder, CSES, Library Checker, yukicoder and the problems `97-Online Testing` already solves), each problem backed by a fetched statement, editorial or tag page showing it uses the algorithm. No defunct or outdated judges; any other judge needs a user decision.",
+      "prerequisites": [
+        "SUP08"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "SUP12",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "XL",
+      "focus": "Site articles for `04-Graphs`: an in-depth explanation (idea, correctness argument, complexity, pitfalls) for each Basic header and a concise one for the rest, reusing the evidence documents' contracts and arguments, and a practice list per header from maintained judges (Codeforces, AtCoder, CSES, Library Checker, yukicoder and the problems `97-Online Testing` already solves), each problem backed by a fetched statement, editorial or tag page showing it uses the algorithm. No defunct or outdated judges; any other judge needs a user decision.",
+      "prerequisites": [
+        "SUP08"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "SUP13",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "XL",
+      "focus": "Site articles for `05-Mathematics`: an in-depth explanation (idea, correctness argument, complexity, pitfalls) for each Basic header and a concise one for the rest, reusing the evidence documents' contracts and arguments, and a practice list per header from maintained judges (Codeforces, AtCoder, CSES, Library Checker, yukicoder and the problems `97-Online Testing` already solves), each problem backed by a fetched statement, editorial or tag page showing it uses the algorithm. No defunct or outdated judges; any other judge needs a user decision.",
+      "prerequisites": [
+        "SUP08"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "SUP14",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "XL",
+      "focus": "Site articles for `06-Miscellaneous`: an in-depth explanation (idea, correctness argument, complexity, pitfalls) for each Basic header and a concise one for the rest, reusing the evidence documents' contracts and arguments, and a practice list per header from maintained judges (Codeforces, AtCoder, CSES, Library Checker, yukicoder and the problems `97-Online Testing` already solves), each problem backed by a fetched statement, editorial or tag page showing it uses the algorithm. No defunct or outdated judges; any other judge needs a user decision.",
+      "prerequisites": [
+        "SUP08"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "SUP15",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "XL",
+      "focus": "Site articles for `07-Strings`: an in-depth explanation (idea, correctness argument, complexity, pitfalls) for each Basic header and a concise one for the rest, reusing the evidence documents' contracts and arguments, and a practice list per header from maintained judges (Codeforces, AtCoder, CSES, Library Checker, yukicoder and the problems `97-Online Testing` already solves), each problem backed by a fetched statement, editorial or tag page showing it uses the algorithm. No defunct or outdated judges; any other judge needs a user decision.",
+      "prerequisites": [
+        "SUP08"
+      ],
+      "tiers": []
     }
   ]
 }
