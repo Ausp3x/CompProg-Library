@@ -9,7 +9,7 @@ Start one fresh session per task with the preset of its work:
 - Core full types (`01-Core` non-mini headers, packages tagged `fable`): `claude --agent core-session --effort xhigh`
 - Everything else, sweeps included: `claude --agent contest-session --effort high`
 - Parallel packages: `python3 '00-Guidelines/13-Plan/plan.py' ready --max 3` picks ready packages from different folders; launch each with `--worktree <name>` added. New worktrees branch from `origin/master` by default (`worktree.baseRef`), so push `master` before launching them.
-- Packages with several batches run one batch per session, so each batch starts with a clean context: `/package Pxxx` takes the next open batch (or name one, `/package <batch id>`), then `/finish <batch id>`.
+- Packages with several batches run one batch per session under its batch id (`/package`, Batches); `/package Pxxx` names the next one.
 
 | Skill | Use it | Afterwards |
 |---|---|---|
@@ -17,10 +17,10 @@ Start one fresh session per task with the preset of its work:
 | `/prune Pxxx` | Remove the wrappers `duplicates.md` lists for a verified package | `/finish` |
 | `/duplicate-sweep [02 04 …]` | After many new headers: list wrappers and duplicates in `duplicates.md` | Answer its `ask` items, then `/prune` each verified package it names (`/package` handles planned ones) |
 | `/omission-sweep [02 04 … or paths]` | When a folder's packages are mostly done (Mathematics early): list completeness gaps in `omissions.md`. A whole folder starts about 50 agents, so raise "Dynamic workflow size" in `/config` first | `/omission-sweep apply`, then `/package` the packages it reopened or created |
-| `/pause [hours]` | Before stepping away from an open session (Esc first): writes a handoff and keeps the cache warm with pings for the given hours (default 2) while the computer stays awake | Come back and type; a new session loads the handoff |
+| `/pause [hours]` | Before stepping away from an open session: a handoff plus keep-alive pings (default 2 hours) | Come back and type; a new session loads the handoff |
 | `/tidy [scope]` | Every ten or so packages, or after a guideline change: remove stale, restated and superseded text | Answer its questions, then commit |
 | `/restyle Pxxx` | Only after the comment cap or closing-brace rule changes | Commit |
-| `/finish [Pxxx or batch id]` | After `/package` or `/prune`, in a worktree or the main checkout, even with no gaps reported: one full review, one round of questions including whether to land, fixes, then the suites and a review of the fixes; on your yes it commits, rebases, fast-forwards `master` and removes the worktree, or prints the one command that does when the session cannot leave the worktree | Push `master` |
+| `/finish [Pxxx or batch id]` | After `/package` or `/prune`, in a worktree or the main checkout, even with no gaps reported: closes the work in one pass with one round of questions and lands it on your yes | Push `master` |
 
 Commits: `/finish` commits and lands `/package` and `/prune` work; other skills print their commit command. Pending one-off runs: `/omission-sweep "02-Data Structures/45-kineticheap.hpp" "03-Geometry/26-geometry3d.hpp" "03-Geometry/53-dynamicconvexhull.hpp"`, then `/omission-sweep 05`.
 

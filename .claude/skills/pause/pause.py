@@ -28,6 +28,8 @@ def main():
         hours = float(args[0]) if args[0].strip() else 2.0
     except ValueError:
         raise SystemExit(f'/pause takes a number of hours, not "{args[0]}"')
+    if not 0 <= hours <= 24:
+        raise SystemExit('/pause takes 0 to 24 hours (a session holds at most 50 scheduled jobs)')
     session = args[1] if args[1] and not args[1].startswith('$') else os.environ.get('CLAUDE_CODE_SESSION_ID', '')
     root = Path(subprocess.run(['git', 'rev-parse', '--show-toplevel'], capture_output=True, text=True).stdout.strip()
                 or Path(__file__).resolve().parents[3])

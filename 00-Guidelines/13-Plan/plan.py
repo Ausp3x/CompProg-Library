@@ -80,7 +80,7 @@ def rendered_file(root, packages):
 def rank(batches, packages):
     """Schedule order: phases in PHASES order; in each, started packages keep their order, then planned ones go by
     support pass first, then most basic tier (Basic or Core, Advanced, Esoteric), then most transitive open
-    dependents, then current position, each after its prerequisites."""
+    dependents, then current position, each after its prerequisites (an unsatisfiable one is left to `check`)."""
     bmap = {b['id']: b for b in batches['batches']}
     pl, deps = packages['packages'], prereqs(batches, packages)
     status, index = {p['id']: p['status'] for p in pl}, {p['id']: i for i, p in enumerate(pl)}
@@ -96,14 +96,14 @@ def rank(batches, packages):
         return acc
 
     def key(p):
+        if p['status'] != 'planned':
+            return (-2, 0, index[p['id']])
         tiers = [TIER_RANK.get(t, 2) for b in p['batches'] for t in bmap[b]['tiers']]
         return (min(tiers) if tiers else -1, -sum(status[y] != 'verified' for y in below(p['id'], set())), index[p['id']])
 
     out = []
     for phase in PHASES:
         todo = [p for p in pl if p['phase'] == phase]
-        out += [p for p in todo if p['status'] != 'planned']
-        todo = [p for p in todo if p['status'] == 'planned']
         while todo:
             placed = {q['id'] for q in out}
             fit = [p for p in todo if all(d in placed for d in deps[p['id']])] or todo[:1]
@@ -212,8 +212,9 @@ def launch(root, model):
     if not preset:
         return f'no session preset uses {model}', ''
     agent, effort = os.environ.get('CLAUDE_CODE_AGENT'), os.environ.get('CLAUDE_EFFORT')
+    differs = (agent and agent != preset[0]) or (effort and effort != preset[1])
     check = '' if not (agent or effort) else (f'this session: {agent or "no preset"}, effort {effort or "?"}'
-                                              + ('' if (agent, effort) == preset else ' — MISMATCH'))
+                                              + (' — MISMATCH' if differs else ''))
     return f'claude --agent {preset[0]} --effort {preset[1]}', check
 
 
@@ -248,17 +249,17 @@ def show(root, ident):
     elif ident in pmap:
         p = pmap[ident]
         open_ = [b for b in p['batches'] if not batch_done(bmap[b], inv)]
-        shown = open_[:1] if len(p['batches']) > 1 and open_ and p['status'] != 'verified' else p['batches']
+        shown = [] if len(p['batches']) > 1 and open_ and p['status'] != 'verified' else p['batches']
     else:
         raise SystemExit(f'Unknown package or batch: {ident}')
     command, check = launch(root, packages['models'][p['model']])
     out = [f'{p["id"]} — {p["label"]} | {p["phase"]} | {p["size"]} | {p["status"]} | '
            f'model: {p["model"]} ({packages["models"][p["model"]]}) | launch: {command}' + (f' | {check}' if check else ''), '']
     if len(p['batches']) > 1:
+        first = next((b for b in p['batches'] if not batch_done(bmap[b], inv)), None)
         out += ['Batches: ' + ', '.join(f'{b} ({"done" if batch_done(bmap[b], inv) else "this brief" if shown == [b] else "open"})'
                                         for b in p['batches'])
-                + (f'. One batch per session: use {shown[0]} as the id for @reviewer and /finish.'
-                   if len(shown) == 1 and not batch_done(bmap[shown[0]], inv) else ''), '']
+                + (f'. One batch per session, under its batch id: run `/package {first}`, then `/finish {first}`.' if not shown else ''), '']
     deps = prereqs(batches, packages)[p['id']]
     out.append('Prerequisite packages:' if deps else 'Prerequisite packages: none')
     out += [f'- {d} ({pmap[d]["status"]}) — {pmap[d]["label"]}' for d in deps]
@@ -324,6 +325,7 @@ def doctor(root=ROOT, fix=False):
     bmap = {b['id']: b for b in batches['batches']}
     inv = inventories(root)
     owner = {t: p['id'] for p in packages['packages'] for b in p['batches'] for t in bmap[b]['targets']}
+    batch_of = {t: b for b in bmap for t in bmap[b]['targets']}
     pstatus = {p['id']: p['status'] for p in packages['packages']}
     todo, fixed = collections.defaultdict(list), []
     for e in check(root):
@@ -345,7 +347,7 @@ def doctor(root=ROOT, fix=False):
             todo[key].append(f'{name}: file exists but row is planned; set existing-unverified or partial')
         if rstatus in ('verified', 'partial', 'existing-unverified') and not exists:
             todo[key].append(f'{name}: row is {rstatus} but the file is missing')
-        if rstatus == 'verified' and ps in ('planned', 'in-progress'):
+        if rstatus == 'verified' and ps in ('planned', 'in-progress') and not (ps == 'in-progress' and batch_done(bmap[batch_of[t]], inv)):
             todo[key].append(f'{name}: row verified but package {pid} is {ps}; finish the package or downgrade the row')
         if ps == 'verified' and rstatus not in ('verified', 'partial'):
             todo[key].append(f'{name}: package verified but row is {rstatus}')
