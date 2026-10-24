@@ -6684,6 +6684,16 @@
         "SUP08"
       ],
       "tiers": []
+    },
+    {
+      "id": "SUP16",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Run the `96-Local Testing/01-run.py` suites and the `02-integration.py` builds in parallel across the cores (16 locally, about 13 GB free on 2026-10-24): bounded jobs inside the memory cap, a recorded reason for any raised cap (`05-testing.md`, Memory safety), results and failure artifacts identical to a sequential run, and `ccache` when installed. Measure before and after; the last sequential integration build took 304 s, and `--sanitizers` 737 s in total (2026-10-19). P224 keeps the end-of-plan audit.",
+      "prerequisites": [],
+      "tiers": []
     }
   ]
 }

@@ -4,7 +4,7 @@ The plan is one compact manifest plus CLIs. Batches are stable ownership units; 
 
 | File | Contents |
 |---|---|
-| [batches.json](batches.json) | Each batch's folder, owned targets, support targets, size, focus, prerequisite batches and tiers, including support passes SUP01–SUP15. |
+| [batches.json](batches.json) | Each batch's folder, owned targets, support targets, size, focus, prerequisite batches and tiers, including support passes SUP01–SUP16. |
 | [packages.json](packages.json) | Packages P001–Pn in schedule order: label, batches, phase, size, model, status, evidence and note. Package prerequisites are derived from batch prerequisites. |
 | [plan.py](plan.py) | Standard-library CLI; runs from any directory. |
 | [worktree.py](worktree.py) | Package worktrees: report (default), `--sync` (`--integration` also runs the integration build), `--finish` (sync, fast-forward `master`, remove) and `--remove`; all but the report run from the main checkout. |

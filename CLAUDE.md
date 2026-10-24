@@ -36,6 +36,8 @@ python3 '96-Local Testing/03-consistency.py'             # runs automatically af
 python3 '97-Online Testing/03-workspace.py' --check      # workspace template is generated; never hand-edit
 ```
 
+Run a command that may exceed two minutes in the foreground with a `timeout` of up to 600000 ms, or with `run_in_background` and let its completion notice resume the session; never poll with `sleep`, since every poll re-reads the whole context.
+
 ## Toolchain
 
 Local: GCC 16.2 (`g++`), GCC 14.4.1 (`g++-14`), CPython 3.14. Floors: `03-cpp.md` (Toolchain and judges) and `04-python.md` (Baseline); the per-package `CXX=g++-14` full run: `05-testing.md` (Builds). PyPy 8.0.1 (`pypy3`, Python 3.12) is installed; `oj-bundle` and `lualatex` are optional, and a missing tool is reported as SKIP, never a faked pass.

@@ -94,6 +94,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P035 — DS25, DS32, DS52** (opus, M+M+M): 02-Data Structures — weighteddsu, fastset, dsu extensions.
 - [ ] **P238 — SUP07** (opus, M): Header dependency graph, include-derived prerequisites and notebook dependency selection. Status: planned.
 - [ ] **P239 — SUP08** (opus, L): Documentation site generator, header pages and dependency charts. Status: planned.
+- [ ] **P247 — SUP16** (opus, M): Parallel test runner and integration build. Status: planned.
 - [ ] **P030 — DS23** (opus, XL): 02-Data Structures — persistentsegmenttree. Status: planned.
 - [ ] **P032 — DS11, DS27, DS28, DS50** (opus, L+M+L+M): 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis. Status: planned.
 - [ ] **P058 — MA08** (opus, L): 05-Mathematics — linear algebra. Status: planned.

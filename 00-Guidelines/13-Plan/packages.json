@@ -1021,6 +1021,19 @@
       "note": ""
     },
     {
+      "id": "P247",
+      "label": "Parallel test runner and integration build",
+      "batches": [
+        "SUP16"
+      ],
+      "phase": "Contest core",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
       "id": "P030",
       "label": "02-Data Structures — persistentsegmenttree",
       "batches": [
