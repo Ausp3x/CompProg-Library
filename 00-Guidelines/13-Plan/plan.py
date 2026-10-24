@@ -478,6 +478,7 @@ def main():
             p['evidence'] += [e for e in a.evidence if e not in p['evidence']]
             if a.note is not None:
                 p['note'] = a.note
+            rank(batches, packages)  # a started package moves ahead of planned ones
             save(ROOT, packages)
         (ROOT / '01-prompts.md').write_text(rendered_file(ROOT, packages))
         print(f'Rendered 01-prompts.md ({len(packages["packages"])} packages)')

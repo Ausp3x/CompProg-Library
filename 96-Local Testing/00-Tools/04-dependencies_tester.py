@@ -18,7 +18,7 @@ test_repo_mm_closure, test_repo_typing_order, test_random_dags; lines -> test_li
 strip_cpp/includes -> test_strip_cpp_*, test_includes_*; scan/headers(found) -> test_headers_conditional_*;
 uses_reduction -> test_uses_reduction; compact -> test_compact_detection; minis -> test_minis_mapping; plan -> test_plan_*, test_repo_plan_invariants,
 test_random_dags (stress: on disk); describe -> test_describe_text; chart -> test_chart_*; CLI -> test_cli_*;
-plan.py include_edges -> test_plan_include_edges_*; check (undeclared edges, late prerequisites, batch cycles) ->
+plan.py include_edges -> test_plan_include_edges_*; set re-ranks -> test_plan_set_reranks; check (undeclared edges, late prerequisites, batch cycles) ->
 test_plan_check_*; doctor -> test_plan_doctor_fix_*; rank -> test_plan_rank_*. The notebook page's JS tick handler is
 run under node in 03-notebook_tester.py (explicit SKIP when node is absent).
 """
@@ -921,6 +921,21 @@ class PlanRules(Base):
         ranked = [p["id"] for p in packages["packages"]]
         self.assertGreater(ranked.index(mover), ranked.index(before))
         self.assertEqual(sorted(ranked), sorted(moved))
+
+    def test_plan_set_reranks(self):
+        batches, packages = self.plan.load(self.copy)
+        deps, status = self.plan.prereqs(batches, packages), {p["id"]: p["status"] for p in packages["packages"]}
+        ready = [p for p in packages["packages"] if p["status"] == "planned" and p["phase"] == "Contest core"
+                 and all(status[d] == "verified" for d in deps[p["id"]])]
+        mover = ready[-1]["id"]
+        subprocess.run([sys.executable, self.copy / "00-Guidelines/13-Plan/plan.py", "set", mover, "in-progress"],
+                       check=True, capture_output=True)
+        batches, packages = self.plan.load(self.copy)
+        ids = [p["id"] for p in packages["packages"]]
+        planned = [p["id"] for p in packages["packages"] if p["phase"] == "Contest core" and p["status"] == "planned"]
+        self.assertLess(ids.index(mover), min(map(ids.index, planned)), "a started package precedes the planned ones")
+        self.plan.rank(batches, packages)
+        self.assertEqual([p["id"] for p in packages["packages"]], ids, "set leaves the schedule ranked")
 
     def add_prerequisite(self, batch, prereq):
         batches = self.json("batches.json")

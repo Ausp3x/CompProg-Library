@@ -13,6 +13,7 @@ python3 '96-Local Testing/01-run.py' --mode stress --seed 42 --rounds 3
 python3 '96-Local Testing/01-run.py' --mode full --filter 04-Graphs
 python3 '96-Local Testing/<folder>/<NN-name>_tester.py' --mode full --seed 1
 python3 '96-Local Testing/02-integration.py' --sanitizers         # header-alone, aggregates, two translation units, scalar/AVX2, workspace
+python3 '96-Local Testing/01-run.py' --mode full -j 1             # one suite at a time, live output (same for 02-integration.py -j 1)
 python3 '96-Local Testing/03-consistency.py'                      # records, links, plan, brace and comment rules
 python3 '96-Local Testing/03-consistency.py' --braces <files>     # brace rule and comment cap for arbitrary files
 python3 '96-Local Testing/_00_memory_cap.py' [--mb N] -- <cmd>    # run any other program memory-capped
@@ -20,6 +21,7 @@ python3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/02-online_tester.py'
 python3 '96-Local Testing/00-Tools/03-notebook_tester.py'
 python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full
+python3 '96-Local Testing/00-Tools/05-runner_tester.py' --mode full
 ```
 
 | Mode | Coverage |
@@ -28,7 +30,7 @@ python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full
 | full | Every suite completely, big-integer differential corpora, available scalar and AVX2 paths, integration with ASan/UBSan self-tests |
 | stress | The full set repeated for `--rounds` seeds, then integration with sanitizers |
 
-`CXX` selects the compiler (`g++` locally, `g++-14` for the floor). `--filter` selects suite path substrings; `--no-integration` skips integration and consistency. Test binaries and raw benchmark logs are temporary or git-ignored; nothing is written next to canonical headers or the workspace.
+`CXX` selects the compiler (`g++` locally, `g++-14` for the floor). `--filter` selects suite path substrings; `--no-integration` skips integration and consistency. `-j` (default: logical CPUs) and `--memory-mb` (default: MemAvailable minus 2048 MB) bound the parallel suites; design and measurements: [00-parallel.md](Docs/00-parallel.md). Test binaries and raw benchmark logs are temporary or git-ignored; nothing is written next to canonical headers or the workspace.
 
 ## Layout
 
@@ -36,11 +38,11 @@ python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full
 |---|---|
 | `_00_cpp_test_runner.py` | Shared compile-and-run infrastructure, progress output, PASS/FAIL/SKIP reporting |
 | `_00_memory_cap.py` | Memory-capped execution: `ensure()` for entry points, CLI `-- <command>` for ad-hoc programs. Rules: [05-testing.md](../00-Guidelines/05-testing.md), Memory safety |
-| `01-run.py` | Suite discovery, modes, `QUICK` registration set |
-| `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds |
+| `01-run.py` | Suite discovery, modes, `QUICK` registration set, parallel memory-bounded jobs; `.run-stats.json` (git-ignored) keeps each suite's last peak and runtime for scheduling |
+| `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds as parallel jobs, through `ccache` when installed |
 | `03-consistency.py` | Repository record and style validator; imports `plan.py check` |
-| `Docs/` | Support-pass evidence ([00-memory-safety.md](Docs/00-memory-safety.md), P231) |
-| `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, the notebook and the header dependency graph |
+| `Docs/` | Support-pass evidence ([00-memory-safety.md](Docs/00-memory-safety.md), P231; [00-parallel.md](Docs/00-parallel.md), P247) |
+| `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, the notebook, the header dependency graph and the parallel runner |
 | `01-Core/` … `07-Strings/` | Per-header testers, helper `.cpp` files and benchmark drivers |
 
 Known limits: suite discovery scans one folder level; there is no checked-in CI. The mode names describe actual coverage; a suite that does not exist is not claimed by any mode.

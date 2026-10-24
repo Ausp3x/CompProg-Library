@@ -54,3 +54,7 @@ python3 '96-Local Testing/03-consistency.py'                         # no errors
 
 - 2026-10-09: P231 introduced after the P052 incident (also guarding `01-Core/16-poly_tester.py` and `16-poly_benchmark.py`, then another package's uncommitted work); review fixed four findings; quick run of all suites, integration and consistency passed.
 - 2026-10-24: P072 `/finish` (user decision 2026-10-24): the six folder runners (`02`–`07`) accept `--configuration ASan-UBSan` in quick mode, so the pre-flight of a full or stress ASan retry no longer fails; checked with `55-fractional_programming_tester.py --mode full --configuration ASan-UBSan`.
+- 2026-10-24/25: P247 (user decision 2026-10-25: kept), recorded in [00-parallel.md](00-parallel.md):
+  - `supervise()` and the CLI reporter ignore SIGINT, so a capped child finishes its own cleanup instead of being killed 0.25 s after Ctrl-C or a group SIGINT.
+  - An interrupted pre-flight prints `INTERRUPTED` instead of a FAIL.
+  - A second `ensure()` in one process prints its `MEMORY` line once.

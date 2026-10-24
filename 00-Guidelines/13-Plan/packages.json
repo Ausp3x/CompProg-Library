@@ -1010,19 +1010,6 @@
       "note": ""
     },
     {
-      "id": "P239",
-      "label": "Documentation site generator, header pages and dependency charts",
-      "batches": [
-        "SUP08"
-      ],
-      "phase": "Contest core",
-      "size": "L",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
       "id": "P247",
       "label": "Parallel test runner and integration build",
       "batches": [
@@ -1030,6 +1017,21 @@
       ],
       "phase": "Contest core",
       "size": "M",
+      "model": "opus",
+      "status": "verified",
+      "evidence": [
+        "96-Local Testing/Docs/00-parallel.md"
+      ],
+      "note": "01-run.py and 02-integration.py run parallel memory-bounded jobs; a failure counts only alone. Defaults and limits accepted by the user (2026-10-25). Testers build in one compile-and-link step, so only integration uses ccache."
+    },
+    {
+      "id": "P239",
+      "label": "Documentation site generator, header pages and dependency charts",
+      "batches": [
+        "SUP08"
+      ],
+      "phase": "Contest core",
+      "size": "L",
       "model": "opus",
       "status": "planned",
       "evidence": [],

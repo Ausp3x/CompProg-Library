@@ -24,6 +24,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import signal
 import subprocess
 import sys
 
@@ -119,6 +120,7 @@ def sigkill_note(code, peak='MEMORY unknown'):
 def supervise(command, mode=None, source='env', label=None):
     """Run command under the pre-flight (when mode is full/stress) and main caps; return its exit status."""
     label = label or Path(command[1] if len(command) > 1 else command[0]).name
+    signal.signal(signal.SIGINT, lambda *_: None)  # the child's group gets the signal too: wait for its own cleanup
     base, scope = dict(os.environ), available()
     if not scope:
         print(f'WARNING {label}: no systemd user scope; running WITHOUT a memory cap', file=sys.stderr, flush=True)
@@ -131,6 +133,9 @@ def supervise(command, mode=None, source='env', label=None):
                      for i, a in enumerate(command)]
         result = subprocess.run(capped(quick, PREFLIGHT_MB), env=env, capture_output=True, text=True)
         peak = next((l for l in result.stdout.splitlines() if l.startswith('MEMORY ')), 'MEMORY unknown')
+        if result.returncode == -signal.SIGINT:  # the quick run itself died of the interrupt
+            print(f'INTERRUPTED {label}: pre-flight quick run stopped by SIGINT; {mode} run skipped', file=sys.stderr, flush=True)
+            return 128 + signal.SIGINT
         if result.returncode:
             tail = '\n'.join((result.stdout + result.stderr).splitlines()[-40:])
             print(f'{tail}\nFAIL {label}: pre-flight quick run {sigkill_note(result.returncode, peak)} ({peak}); {mode} run skipped',
@@ -153,6 +158,7 @@ def ensure(force=False, mb=None):
         MAIN_MB = mb
     if os.environ.get('CP_MEMORY_CAPPED'):
         if os.environ['CP_MEMORY_CAPPED'] != 'none':
+            atexit.unregister(report)  # a second ensure() (an imported entry point) reports once
             atexit.register(report)
         return
     main = getattr(sys.modules.get('__main__'), '__file__', None)
@@ -179,7 +185,7 @@ if __name__ == '__main__':
     if not args:
         raise SystemExit(usage)
     os.environ.pop('CP_MEMORY_CAPPED', None)
-    reporter = [sys.executable, '-c', 'import subprocess, sys; sys.path.insert(0, sys.argv[1]); '
+    reporter = [sys.executable, '-c', 'import signal, subprocess, sys; signal.signal(signal.SIGINT, lambda *_: None); sys.path.insert(0, sys.argv[1]); '
                 'import _00_memory_cap as m; code = subprocess.run(sys.argv[2:]).returncode; m.report(); sys.exit(m.exit_code(code))',
                 str(Path(__file__).resolve().parent), *args]
     raise SystemExit(supervise(reporter, None, 'env', Path(args[0]).name))

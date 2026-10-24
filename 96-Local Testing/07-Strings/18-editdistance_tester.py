@@ -18,4 +18,4 @@ from _00_runner import main
 
 
 if __name__ == '__main__':
-    raise SystemExit(main('18-editdistance', ['band-negative', 'threshold-negative', 'weighted-negative', 'semi-positive-gap', 'local-positive-gap'], strict=True))
+    raise SystemExit(main('18-editdistance', ['band-negative', 'threshold-negative', 'weighted-negative', 'semi-positive-gap', 'local-positive-gap'], strict=True, timeout=360))  # its ASan full run exceeds 180 s under parallel load

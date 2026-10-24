@@ -15,7 +15,7 @@ _00_memory_cap.ensure()
 HERE = Path(__file__).resolve().parent
 
 
-def main(stem, invalid, oracle=None, strict=False):
+def main(stem, invalid, oracle=None, strict=False, timeout=180):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mode', choices=('quick', 'full', 'stress'),
                         default=os.environ.get('CP_TEST_MODE', 'full'))
@@ -45,9 +45,9 @@ def main(stem, invalid, oracle=None, strict=False):
 
     def run(command, *, death=False):
         try:
-            result = subprocess.run(command, capture_output=True, text=True, env=env, timeout=180)
+            result = subprocess.run(command, capture_output=True, text=True, env=env, timeout=timeout)
         except subprocess.TimeoutExpired as error:
-            raise RuntimeError(f'timeout=180s command={shlex.join(command)}\n{error.stdout}\n{error.stderr}') from error
+            raise RuntimeError(f'timeout={timeout}s command={shlex.join(command)}\n{error.stdout}\n{error.stderr}') from error
         if death:
             ok = result.returncode == -signal.SIGABRT and 'assert' in result.stderr.lower()
         else:

@@ -15,7 +15,7 @@ Commands (`python3 '00-Guidelines/13-Plan/plan.py' <command>`):
 
 - `show Pxxx`, `show next` or `show <batch>`: compact brief with the launch command (and a session MISMATCH flag), prerequisites, focus, inventory rows, tests, legacy references and evidence; a package id with several open batches names the batch to run instead.
 - `status`: counts per status and phase, plus the next ready package; `next` prints only its ID.
-- `set Pxxx STATUS [--evidence PATH ...] [--note TEXT]`: update a package (evidence is appended) and re-render the checklist.
+- `set Pxxx STATUS [--evidence PATH ...] [--note TEXT]`: update a package (evidence is appended), re-rank the schedule as `rank` does, and re-render the checklist.
 - `render`: rewrite the checklist between the `plan:begin`/`plan:end` markers in `01-prompts.md`; a verified package shows only its label.
 - `rank`: reorder the schedule and render. Phases keep their order; in each, started packages keep theirs, then planned ones go support passes first, then by most basic tier (Basic or Core, Advanced, Esoteric), then by most transitive open dependents, then by current position, each after its prerequisites unless one of the two is verified.
 - `check`: manifest, schedule, ownership, inventory and checklist-sync checks, and that every `#include` between headers of different batches is a direct batch prerequisite (the graph comes from [05-dependencies.py](<../../98-Team Notebook/05-dependencies.py>)); batch prerequisites form no cycle; no quoted include sits inside an `#if` block; and each open package comes after its open prerequisites; `96-Local Testing/03-consistency.py` runs the same `check(root)`.

@@ -71,8 +71,9 @@ Run 2026-10-09 on an 11th Gen Intel Core i9-11900H with GCC 16.2.1 (`g++`) and t
 
 ```bash
 python3 '96-Local Testing/07-Strings/18-editdistance_tester.py' --mode quick --seed 20261009  # PASS, 2 configurations, 1,795 cases and 127,926 checks each, 5 assertion probes
-python3 '96-Local Testing/07-Strings/18-editdistance_tester.py' --mode full --seed 20261009  # PASS, 3 configurations, 16,446 cases and 1,209,818 checks each, MEMORY peak=744MB
-CXX=g++-14 python3 '96-Local Testing/07-Strings/18-editdistance_tester.py' --mode full --seed 20261009  # PASS, 3 configurations, same counts, MEMORY peak=768MB
+python3 '96-Local Testing/07-Strings/18-editdistance_tester.py' --mode full  # 2026-10-25, 360 s per-command limit: PASS, 3 configurations, 16,446 cases and 1,209,915 checks each, 229 s, MEMORY peak=862MB
+CXX=g++-14 python3 '96-Local Testing/07-Strings/18-editdistance_tester.py' --mode full  # 2026-10-25: PASS, 3 configurations, same counts, 320 s, MEMORY peak=771MB
+python3 '96-Local Testing/07-Strings/18-editdistance_tester.py' --mode full --configuration ASan-UBSan  # 2026-10-25: PASS alone, 195 s including pre-flight and build
 python3 '96-Local Testing/07-Strings/18-editdistance_tester.py' --mode stress --seed 20261010  # PASS, 3 configurations, 17,096 cases and 1,248,763 checks each, MEMORY peak=953MB
 python3 '96-Local Testing/02-integration.py' --sanitizers  # PASS, 114 standalone/aggregate headers, scalar/AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak=2737MB
 python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 20261009 --no-integration  # PASS, 12 suites
@@ -97,8 +98,10 @@ The code was written independently; no source code was copied. The Python subset
 
 ## Limits and handoffs
 
+- The tester gives each command 360 s, not the folder default of 180 s (user decision 2026-10-25): its ASan-UBSan full run exceeded 180 s beside other suites in a parallel full run ([00-parallel.md](../../96-Local%20Testing/Docs/00-parallel.md)).
 - LCS, indel distance and shortest edit scripts are `19`; approximate occurrence search (bitap, Landau–Vishkin `O(n + d^2)` with LCE) is `17`/`38`; cyclic and semi-local edit distance is `48`.
 
 ## History
 
 - 2026-10-09: implemented and verified (P081), independent review found 1 defect and 1 naming issue, fixed.
+- 2026-10-25: P247 `/finish` (user decision 2026-10-25): the tester passes `timeout=360` to `07-Strings/_00_runner.py`'s new `timeout` parameter (default 180 s). Its ASan-UBSan full run passes alone, but exceeded 180 s beside 15 other suites in the parallel full run. `--mode full --configuration ASan-UBSan` passed alone in 195 s, including the pre-flight and the build.
