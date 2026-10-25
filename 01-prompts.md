@@ -52,7 +52,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 
 - [x] **P025 — C11** (fable, XL): 01-Core — poly.
 - [x] **P026 — C12** (opus, M): 01-Core — polymini.
-- [x] **P018 — C04** (fable, XL): 01-Core — infint.
+- [ ] **P018 — C04** (fable, XL): 01-Core — infint. Status: in-progress. Note: 2026-10-25 re-check, user decisions recorded in Docs/07-infint.md (Optimality re-check): judge hex add 44 ms (#5/40, leaders 9), mul 63 (#6/40, 17), div 200 (#7/29, 28). Route: proven-bound FFT + exact NTT; three stages in C04, one session each, closed by /finish P018 as partial until the last: (1) representation, arena, toChars, judge tool, P025 handoff; (2) transforms; (3) division. toChars added to the row (partial until stage 1). Data under /tmp/lc and /tmp/yosupo. Next: /package P018 in a fresh core-session (stage 1). [evidence](01-Core/Docs/07-infint.md)
 - [x] **P019 — C05, C06** (fable, M+M): 01-Core — infintmini, rational.
 - [ ] **P020 — C07** (fable, XL): 01-Core — matrix. Status: planned.
 - [ ] **P022 — C09, C10** (fable, L+M): 01-Core — bitmatrix, bitmatrixmini. Status: planned. Note: Defects in the pinned 12-bitmatrix.hpp body, fix in the rewrite: operator*=(int) zeroes only for 0 (GF(2) needs o & 1, so a * 2 returns a); BitMatrix(string, axis) leaves fields uninitialised for an axis other than 0 or 1.

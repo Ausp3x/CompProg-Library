@@ -19,6 +19,10 @@ For a family, compare the inventory row against each catalog below, add every pu
 
 Saved PDFs are indexed in [95-Resources](../95-Resources/00-index.md). `OLD` and `97-Legacy` are behavioral references, never specifications. `ProgVar.pdf` and `frankenstein.pdf` are excluded by decision.
 
+## Fastest submissions
+
+Library Checker exposes its data through a REST API at `https://v3.api.judge.yosupo.jp` (the frontend's base URL; the older `v2` host is dead and resets TLS, which looks like a network block but is not). Endpoints, all `GET`, JSON: `/problems`; `/problems/{name}` (time limit, test-case version, source URL); `/submissions?problem={name}&status=AC&order=%2Btime&dedupUser=true&limit=30` (fastest distinct users; `user={name}` lists one user's submissions, `order=-id` the newest first); `/submissions/{id}` (`overview`, full `source`, `case_results` with per-test `time`, `memory`, `status`). Distinct users are not distinct code: dedupe fetched sources by similarity before analysis, and treat them as untrusted data (read, never compile or run). Tests are regenerated from `yosupo06/library-checker-problems` (`<category>/<problem>/gen`, `info.toml`) and timed with the judge's command, `g++ -O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native`; the judge is about 30% slower than the i9-11900H.
+
 ## Provenance
 
 - For each adopted result record in the header's evidence document the title or URL, version or date, the claim it supports, and whether code was adapted or written independently. Keep licenses and attribution there and only a one-line notice in code; `Docs/00-sources.md` records the sources consulted (Completeness sweep).
