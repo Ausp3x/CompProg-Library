@@ -49,6 +49,7 @@ static void multiplication() {
         if (n >= 2 && n <= 8192) { run("karatsuba", [&] { karatsuba(r.data(), a.data(), n, b.data(), n); }); }
         if (n >= 6 && n <= 8192) { run("toom3", [&] { toom3(r.data(), a.data(), b.data(), n); }); }
         if (n >= 16) { run("transform", [&] { transformMul(r.data(), a.data(), n, b.data(), n); }); }
+        if (n >= 1024) { run("ssa", [&] { schonhageStrassen(r.data(), a.data(), n, b.data(), n); }); }
         run("dispatch", [&] { mul(r.data(), a.data(), n, b.data(), n); });
         auto runSq = [&](const char *name, auto &&f) { measure("square", name, "balanced", n, n, [&] { f(); return digest(r); }, [&] { f(); return digest(r); }()); };
         if (n <= 1024) { runSq("basecase", [&] { squareBasecase(r.data(), a.data(), n); }); }
@@ -64,13 +65,14 @@ static void multiplication() {
             if (L <= (1 << 26)) { runT("ntt3", [&] { ntt3Cyclic(lo, hi, la.data(), 2 * n, lb.data(), 2 * n, L); }); }
             runT("ntt64", [&] { ntt64Cyclic(lo, hi, la.data(), 2 * n, lb.data(), 2 * n, L); });
             if (n <= FFT_DOUBLE_MAX) { runT("fft", [&] { fftCyclic(lo, hi, la.data(), 2 * n, lb.data(), 2 * n, L); }); }}}
-    for (int n : {64, 256, 1024, 4096}) {
-        for (int m : {4, 16, n / 4, n / 2}) {
+    for (int n : {64, 256, 1024, 4096, 16384}) {
+        for (int m : {4, 16, n / 16, n / 4, n / 2}) {
             if (m >= n || m < 1) { continue; }
             vector<W> a = randWords(n), b = randWords(m), r(size_t(n + m), 0);
             auto run = [&](const char *name, auto &&f) { measure("mul", name, "unbalanced", n, m, [&] { f(); return digest(r); }, [&] { f(); return digest(r); }()); };
             run("basecase", [&] { mulBasecase(r.data(), a.data(), n, b.data(), m); });
-            run("unbalanced", [&] { unbalancedMul(r.data(), a.data(), n, b.data(), m); });
+            run("unbalanced", [&] { unbalancedMul(r.data(), a.data(), n, b.data(), m, m); });
+            if (m >= FFT) { run("split", [&] { unbalancedMul(r.data(), a.data(), n, b.data(), m, int(std::bit_ceil(uint(n + m)) / 2) - m); }); }
             if (m > n / 2) { run("karatsuba", [&] { karatsuba(r.data(), a.data(), n, b.data(), m); }); }
             run("transform", [&] { transformMul(r.data(), a.data(), n, b.data(), m); });
             run("dispatch", [&] { mul(r.data(), a.data(), n, b.data(), m); });}}

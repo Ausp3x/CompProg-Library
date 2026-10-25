@@ -368,7 +368,7 @@
       "evidence": [
         "01-Core/Docs/07-infint.md"
       ],
-      "note": ""
+      "note": "Optimality re-review and /finish 2026-10-25 recorded in Docs/07-infint.md: Library Checker reproduction, measured thresholds and chunk estimator, Schönhage–Strassen as an undispatched backend (user decision), all user decisions stamped."
     },
     {
       "id": "P019",

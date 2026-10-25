@@ -1,5 +1,14 @@
 # 01 Core — sources
 
+## Fetched 2026-10-25 (P018 Schönhage–Strassen)
+
+User decision of 2026-10-25 to add the Fermat-ring product as a backend of `07-infint.hpp` ([07-infint.md](07-infint.md), kernels and Limits).
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| Wikipedia, Schönhage–Strassen algorithm (structure, the K-th root 2^(2N/K) in Z/(2^N + 1), coefficient bound D M' >= 2M + k, pointwise products mod 2^N + 1 or by another method, O(n log n log log n)) | https://en.wikipedia.org/wiki/Sch%C3%B6nhage%E2%80%93Strassen_algorithm | yes | `Fermat`, `schonhageStrassen` parameter rules |
+| Schönhage, Strassen, "Schnelle Multiplikation großer Zahlen", Computing 7 (1971) 281–292, doi:10.1007/BF02242355; Gaudry, Kruppa, Zimmermann, "A GMP-based implementation of Schönhage–Strassen's large integer multiplication algorithm" (2007), inria-00126462 | https://doi.org/10.1007/BF02242355, https://inria.hal.science/inria-00126462 | no (cited from the Wikipedia reference list; the √2 trick and the recursive negacyclic pointwise products they describe are not implemented) | provenance |
+
 ## Fetched 2026-10-17 (P019 InfIntMini and Rational sweep)
 
 Completeness sweeps of rows 08 and 09 (`@researcher`); adopted items are in the rows and in [08-infintmini.md](08-infintmini.md) and [09-rational.md](09-rational.md), rejected ones in those documents and [00-notes.md](00-notes.md).

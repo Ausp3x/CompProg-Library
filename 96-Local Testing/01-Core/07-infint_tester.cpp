@@ -1,5 +1,6 @@
 // Independent oracles for 07-infint.hpp: schoolbook limb products, identities checked with oracle products, two's-complement bit models, sieves and native 128-bit arithmetic; --protocol serves the Python big-integer oracle.
 #include "../../01-Core/07-infint.hpp"
+#include <cctype>
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
@@ -82,7 +83,14 @@ static void construction() {
     { InfInt z; require(z.isNil() && !z && z.toString() == "0" && z.toDigits(10) == vector<uint>{0} && z.toLimbs() == vector<uint>{0}, "zero forms"); InfInt z2 = 0; require(z == z2 && std::hash<InfInt>{}(z) == std::hash<InfInt>{}(z2), "zero hash");
       expect(InfInt("-0"), z, "-0"); expect(InfInt("000123"), InfInt(123), "leading zeros"); expect(InfInt("+123"), InfInt(123), "plus sign");
       InfInt keep = 5; for (const char *bad : {"", "+", "-", "12a", "1 2", "--1", " 1", "1.0", "in", "infinity"}) { require(!keep.read(bad) && keep == 5, std::string("reject ") + bad); }
-      require(!keep.read("129", 9) && keep.read("128", 9) && keep == 107, "digit below base"); require(keep.read("INF") && keep.is_inf && keep.sgn == 1 && keep.read("-Inf") && keep.sgn == -1, "inf tokens");
+      require(!keep.read("129", 9) && keep.read("128", 9) && keep == 107, "digit below base");
+      require(!keep.read("102", 2) && !keep.read("18", 8) && !keep.read("1W", 32) && keep.read("1V", 32) && keep == 63 && keep.read("-0Fa", 16) && keep == -250, "power-of-two bases");
+      for (int len : {1, 7, 8, 9, 15, 16, 17, 31, 32, 33, 40, 63, 64, 65, 100, 4097}) {
+          if (len > 100 && !full()) { continue; }
+          std::string h; InfInt acc = 0; for (int i = 0; i < len; ++i) { char c = "0123456789abcdefABCDEF"[ri(22)]; h += c; acc = acc * 16 + InfInt::DIGIT_VALUE[size_t(uint8_t(c))]; }
+          expect(InfInt(h, 16), acc, "hex parse of length " + std::to_string(len));
+          for (int pos = 0; pos < len; pos += full() ? (len <= 100 ? 1 : 97) : max(1, len / 2)) { for (int bad = 0; bad < 256; ++bad) { if (std::isxdigit(bad) || (pos == 0 && (bad == '+' || bad == '-'))) { continue; } std::string w = h; w[size_t(pos)] = char(bad); InfInt k = 5; require(!k.read(w, 16) && k == 5, "byte " + std::to_string(bad) + " kept out at " + std::to_string(pos) + " of " + std::to_string(len)); } }
+          InfInt si("inf"); require(!si.read(h + "g", 16) && si.is_inf, "rejected hex keeps the sentinel");} require(keep.read("INF") && keep.is_inf && keep.sgn == 1 && keep.read("-Inf") && keep.sgn == -1, "inf tokens");
       expect(InfInt("ZZ", 36), InfInt(1295), "base 36"); expect(InfInt(1295).toString(36), std::string("ZZ"), "print base 36"); expect(InfInt("-ff", 16), InfInt(-255), "hex lowercase");}
     for (int words : {64, 65, 300, 1023, 1024, 1025, 2500}) {
         if (!full() && words > 300) { continue; }
@@ -164,9 +172,17 @@ static void multiplication() {
                 mulBasecase(r.data(), x.data(), nx, y.data(), ny); check("mulBasecase");
                 if (ny > nx / 2) { std::fill(r.begin(), r.end(), 0); karatsuba(r.data(), x.data(), nx, y.data(), ny); check("karatsuba"); }
                 if (nx == ny && nx >= 6) { toom3(r.data(), x.data(), y.data(), nx); check("toom3"); toom3Square(r.data(), x.data(), nx); expect(ofWords(r), omul(abs(a), abs(a)), "toom3Square"); karatsubaSquare(r.data(), x.data(), nx); expect(ofWords(r), omul(abs(a), abs(a)), "karatsubaSquare"); squareBasecase(r.data(), x.data(), nx); expect(ofWords(r), omul(abs(a), abs(a)), "squareBasecase"); }
-                if (nx >= 2 * ny) { unbalancedMul(r.data(), x.data(), nx, y.data(), ny); check("unbalancedMul"); }
-                if (nx + ny <= 20000) { transformMul(r.data(), x.data(), nx, y.data(), ny); check("transformMul"); }
+                if (nx >= 2 * ny) { for (int ch : {1, 2, ny / 2 + 1, ny - 1, ny, ny + 1, int(std::bit_ceil(uint(nx + ny)) / 2) - ny, nx / 3 + 1, nx - 1, nx, nx + 5}) { if (ch >= 1) { unbalancedMul(r.data(), x.data(), nx, y.data(), ny, ch); check(("unbalancedMul chunks of " + std::to_string(ch)).c_str()); } } }
+                if (nx + ny <= 20000) {
+                    transformMul(r.data(), x.data(), nx, y.data(), ny); check("transformMul");
+                    schonhageStrassen(r.data(), x.data(), nx, y.data(), ny); check("schonhageStrassen");
+                    if (nx == ny) { schonhageStrassen(r.data(), x.data(), nx, x.data(), nx); expect(ofWords(r), omul(abs(a), abs(a)), "schonhageStrassen square"); }}
                 if (nx == ny) { vector<W> tr(size_t(nx), 0); truncatedMul(tr.data(), x.data(), y.data(), nx); vector<W> low = wordsOf(abs(e)); low.resize(size_t(nx), 0); low.resize(size_t(norm(low.data(), nx))); expect(ofWords(tr), ofWords(low), "truncatedMul"); }}}}
+    vector<pair<int, int>> wide = {{2 * FFT + 100, FFT + 1}, {4 * FFT + 3, FFT}};
+    if (full()) { for (auto p : {pair{16391, 1025}, {12000, 700}, {9000, 2100}, {4100, 600}, {2600, 1300}, {1300, 1000}, {7000, 2100}, {16391, 2100}, {20000, 2048}}) { wide.push_back(p); } }
+    for (auto [n, m] : wide) {
+        context = "unbalanced transform product " + std::to_string(n) + "x" + std::to_string(m);
+        InfInt a = randBits(64 * n - ri(64)), b = randBits(64 * m - ri(64)); InfInt e = omul(a, b); expect(a * b, e, "product"); expect(b * a, e, "product commuted");}
     for (int t = 0; t < sz(60, 400); ++t) {
         int na = 1 + ri(full() ? 300 : 60), nb = 1 + ri(full() ? 300 : 60), lo = ri(na + nb), cnt = 1 + ri(na + nb + 2 - lo); bool ones = t % 5 == 0;
         InfInt a = ones ? (InfInt(1) << (64 * na)) - 1 : randBits(64 * na), b = ones ? (InfInt(1) << (64 * nb)) - 1 : randBits(64 * nb);
@@ -221,11 +237,18 @@ static void division() {
     vector<pair<int, int>> shapes = {{1, 1}, {2, 1}, {2, 2}, {3, 2}, {5, 3}, {8, 7}, {16, 8}, {39, 38}, {40, 39}, {41, 40}, {80, 40}, {81, 41}, {120, 60}, {200, 39}, {200, 41}, {300, 150}};
     if (full()) { for (auto p : {pair{1100, 1024}, {2048, 1023}, {2100, 1025}, {3000, 1500}, {5000, 2500}, {1030, 1030}, {100, 1}, {4000, 40}}) { shapes.push_back(p); } }
     if (stress()) { shapes.push_back({12000, 6000}); shapes.push_back({9000, 1100}); }
+    for (int t = 0; t < sz(60, 400); ++t) {
+        static const int edges[] = {0, 1, 31, 32, 33, 63, 64, 65}; int k = t < 8 ? edges[t] : ri(full() ? 3000 : 400); context = "divide by 2^" + std::to_string(k);
+        InfInt b = InfInt(1) << k; if (ri(2)) { b = -b; }
+        for (InfInt a : {randSigned(full() ? 6000 : 800), InfInt(0), b, -b, b - 1, randBits(k + 1)}) {
+            auto [q, r] = divMod(a, b); auto [sq, sr] = divModSlow(a, b);
+            expect(q, sq, "quotient"); expect(r, sr, "remainder"); expect(q * b + r, a, "identity"); require(magCmp(r, b) < 0 && (r.isNil() || r.sgn == a.sgn), "remainder range and sign");}}
     for (auto [qn, bn] : shapes) {
         for (int pattern = 0; pattern < 3; ++pattern) {
             context = "divide quotient " + std::to_string(qn) + " divisor " + std::to_string(bn) + " pattern " + std::to_string(pattern);
             InfInt b = pattern == 1 ? (InfInt(1) << (64 * bn)) - 1 : randBits(64 * bn - (pattern == 2 ? 1 + ri(63) : 0)), q = randBits(64 * qn - ri(64));
             for (InfInt r : {InfInt(0), InfInt(1), b / 2, b - 1}) {
+                if (magCmp(r, b) >= 0) { continue; }
                 for (int signs = 0; signs < 4; ++signs) {
                     InfInt bs = signs & 1 ? -b : b, a = omul(q, b) + r; if (signs & 2) { a = -a; }
                     InfInt eq = signs == 1 || signs == 2 ? -q : q, er = signs & 2 ? -r : r;
@@ -562,8 +585,8 @@ static void protocol() {
             if (op == "mulk") {
                 int n = int(x.size()), m = int(y.size()); vector<W> r(size_t(n + m), 0);
                 if (kind == "basecase") { infint_detail::mulBasecase(r.data(), x.data(), n, y.data(), m); } else if (kind == "karatsuba") { infint_detail::karatsuba(r.data(), x.data(), n, y.data(), m); }
-                else if (kind == "toom3") { infint_detail::toom3(r.data(), x.data(), y.data(), n); } else if (kind == "unbalanced") { infint_detail::unbalancedMul(r.data(), x.data(), n, y.data(), m); }
-                else if (kind == "transform") { infint_detail::transformMul(r.data(), x.data(), n, y.data(), m); } else if (kind == "square") { infint_detail::square(r.data(), x.data(), n); }
+                else if (kind == "toom3") { infint_detail::toom3(r.data(), x.data(), y.data(), n); } else if (kind == "unbalanced") { infint_detail::unbalancedMul(r.data(), x.data(), n, y.data(), m, m); }
+                else if (kind == "transform") { infint_detail::transformMul(r.data(), x.data(), n, y.data(), m); } else if (kind == "ssa") { infint_detail::schonhageStrassen(r.data(), x.data(), n, y.data(), m); } else if (kind == "square") { infint_detail::square(r.data(), x.data(), n); }
                 else if (kind == "toom3square") { infint_detail::toom3Square(r.data(), x.data(), n); } else if (kind == "karatsubasquare") { infint_detail::karatsubaSquare(r.data(), x.data(), n); }
                 else if (kind == "truncated") { r.assign(size_t(n), 0); infint_detail::truncatedMul(r.data(), x.data(), y.data(), n); }
                 else { infint_detail::mul(r.data(), x.data(), n, y.data(), m); }

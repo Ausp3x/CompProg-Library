@@ -424,7 +424,7 @@ def build_cases(seed: int, mode: str):
             n, m = m, n
         a = rand_bits(rng, 64 * n - rng.randrange(0, 63)) if t % 4 else (1 << (64 * n)) - 1
         b = rand_bits(rng, 64 * m - rng.randrange(0, 63)) if t % 4 else (1 << (64 * m)) - 1
-        for kind in ("basecase", "dispatch", "transform"):
+        for kind in ("basecase", "dispatch", "transform", "ssa"):
             add(f"mulk {kind} {a} {b}", f"mul backend {kind} #{t}", a * b)
         if m > n // 2:
             add(f"mulk karatsuba {a} {b}", f"mul backend karatsuba #{t}", a * b)
