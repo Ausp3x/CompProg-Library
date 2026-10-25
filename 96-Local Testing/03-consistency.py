@@ -308,8 +308,9 @@ for entry in monolith['entries']:
 
 markdown_count = 0
 links = 0
+UNSCANNED = {'.git', '.agents', '.codex', '.judge-cache'}  # .judge-cache: fetched judge data of 07-judge.py, git-ignored
 for p in sorted(ROOT.rglob('*.md')):
-    if any(part in ('.git', '.agents', '.codex') for part in p.relative_to(ROOT).parts) or p.is_relative_to(ROOT / '98-Team Notebook/site'):  # generated site: 06-site_tester.py
+    if UNSCANNED & set(p.relative_to(ROOT).parts) or p.is_relative_to(ROOT / '98-Team Notebook/site'):  # generated site: 06-site_tester.py
         continue
     markdown_count += 1
     lines = p.read_text().splitlines()
@@ -373,7 +374,7 @@ except (OSError, ValueError) as exc:
 # All current quoted local includes resolve, including test fixtures and judge adapters.
 for folder in [*counts, '96-Local Testing', '97-Online Testing/src', '99-Workspace']:
     for p in (ROOT / folder).rglob('*'):
-        if not p.is_file() or '97-Legacy' in p.parts or p.suffix not in ('.hpp', '.cpp'):
+        if not p.is_file() or '97-Legacy' in p.parts or UNSCANNED & set(p.parts) or p.suffix not in ('.hpp', '.cpp'):
             continue
         for inc, _ in deps.includes(p.read_text()):
             require((p.parent / inc).is_file(), 'Unresolved include: ' + str(p.relative_to(ROOT)) + ': ' + inc)

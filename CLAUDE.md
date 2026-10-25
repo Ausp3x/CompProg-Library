@@ -15,8 +15,8 @@ When asked to commit, commit directly to local `master`; create no branch unless
 
 ## Models and delegation
 
-- Core full types (`01-Core` non-mini headers): Claude Fable 5.1 (`/model fable`), effort xhigh. Everything else: Claude Opus 5.5 (`/model opus`), effort high. `@reviewer` runs at xhigh, on Fable (Agent `model: fable`) for Core full packages; `@researcher` runs at high. Pass `--effort` at launch: a main session ignores an agent file's `effort`, while a subagent's own `effort` overrides the session's. `/package`, `/prune` and `/finish` stop when the session does not match the package; the other skills except `/pause` set their effort, and the sweeps and `/tidy` their model, in their front matter; `/pause` sets neither, so no model or effort change resets the cache it keeps warm.
-- `@researcher` sweeps sources for completeness and `@reviewer` reviews a package independently before it is marked verified; both return summaries, keeping the main context small.
+- Core full types (`01-Core` non-mini headers): Claude Fable 5.1 (`/model fable`), effort xhigh. Everything else: Claude Opus 5.5 (`/model opus`), effort high. `@reviewer` runs at xhigh, on Fable (Agent `model: fable`) for Core full packages; `@researcher` runs at high; `@speedscout` runs on Fable at xhigh. Pass `--effort` at launch: a main session ignores an agent file's `effort`, while a subagent's own `effort` overrides the session's. `/package`, `/prune` and `/finish` stop when the session does not match the package; the other skills except `/pause` set their effort, and the sweeps and `/tidy` their model, in their front matter; `/pause` sets neither, so no model or effort change resets the cache it keeps warm.
+- `@researcher` sweeps sources for completeness, `@reviewer` reviews a package independently before it is marked verified, and `@speedscout` explains for `/speed-sweep` how the fastest judge submissions beat a Core full type. All three return summaries, keeping the main context small.
 - Questions to the user go through AskUserQuestion: at most four per call, recommendation first.
 
 ## Compact instructions
