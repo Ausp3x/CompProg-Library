@@ -368,7 +368,7 @@
       "evidence": [
         "01-Core/Docs/07-infint.md"
       ],
-      "note": "2026-10-25 re-check, user decisions recorded in Docs/07-infint.md (Optimality re-check): judge hex add 44 ms (#5/40, leaders 9), mul 63 (#6/40, 17), div 200 (#7/29, 28). Route: proven-bound FFT + exact NTT; three stages in C04, one session each, closed by /finish P018 as partial until the last: (1) representation, arena, toChars, P025 handoff; (2) transforms; (3) division; each stage ends with /speed-sweep P018 verify. toChars added to the row (partial until stage 1). Next: /package P018 in a fresh core-session (stage 1)."
+      "note": "2026-10-25 re-check, user decisions recorded in Docs/07-infint.md (Optimality re-check): judge hex add 44 ms (#5/40, leaders 9), mul 63 (#6/40, 17), div 200 (#7/29, 28). Route: proven-bound FFT + exact NTT; three stages in C04, one session each, closed by /finish P018 as partial until the last: (1) representation, arena, toChars, P025 handoff; (2) transforms; (3) division. After stage 1 the user runs /speed-sweep P018 (scout: writes the Optimality gap baseline); after stages 2 and 3, /speed-sweep P018 verify; remind the user at each stage's end. toChars added to the row (partial until stage 1). Next: /package P018 in a fresh core-session (stage 1)."
     },
     {
       "id": "P019",
