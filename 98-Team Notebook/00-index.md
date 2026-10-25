@@ -35,7 +35,7 @@ Code listings are for reference; the notebook is a source collection, not a C++ 
 
 ## Dependency graph
 
-[05-dependencies.py](05-dependencies.py) reads the `#include "…"` lines of the `01`–`07` headers. It serves the selector above, `plan.py check` (every include edge between batches is a declared prerequisite) and the planned documentation site:
+[05-dependencies.py](05-dependencies.py) reads the `#include "…"` lines of the `01`–`07` headers. It serves the selector above, `plan.py check` (every include edge between batches is a declared prerequisite) and the documentation site below:
 
 ```bash
 python3 05-dependencies.py closure '05-Mathematics/12-combinatorics_advanced.hpp'   # typing order with line counts; no argument: every header
@@ -45,6 +45,19 @@ python3 05-dependencies.py chart '07-Strings'                                   
 Contracts, including which mini and `Compact` substitutes a listing offers, and evidence: [Docs/00-dependencies.md](Docs/00-dependencies.md).
 
 Some sources contain non-ASCII comment characters (`rg -l '[^\x00-\x7F]' -g '*.{hpp,cpp,py}' 0[1-8]-*/` from the repository root lists them). The first build (2026-10-15) rendered the set then present except the template's Chinese motto, which shows no glyphs because Inter and JetBrains Mono have none (P226 adds a CJK fallback font).
+
+## Documentation site
+
+[06-site.py](06-site.py) generates a documentation site for [Zensical](https://zensical.org/) or [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) from the canonical sources. Each existing header or module gets one page: operations from its inventory row; complexity from its comments; contracts, limits and sources from its evidence document; then its include line, typing order, includers, tests and source listing. Each folder gets an overview with its inventory tables and include chart, plus its notes. Hand-written articles go in `Articles/<NN-Folder>/<NN-stem>.md` (the evidence document's name) and are merged into that header's page; `Articles/<NN-Folder>/00-index.md` goes on the folder overview. Other files in the same folder are copied beside the pages as images. An article or file without an existing header or folder fails the generation.
+
+```bash
+python3 06-site.py generate          # site/mkdocs.yml and site/docs/; standard library only
+python3 06-site.py build             # then a strict build into site/html/; open site/html/index.html, which works offline
+python3 06-site.py serve --port 8000 # then serve on 127.0.0.1; restart it after editing sources or articles
+python3 06-site.py build --engine mkdocs   # force an engine (auto: Zensical, else MkDocs)
+```
+
+`build` and `serve` need Zensical (`pipx install zensical`) or MkDocs Material (`pacman -S mkdocs-material python-pymdown-extensions`, or `pipx install mkdocs-material --include-deps`). They name a missing engine or module. The first build downloads the fonts and scripts the site self-hosts. Everything under `site/` is generated and git-ignored. Contracts and evidence: [Docs/00-site.md](Docs/00-site.md).
 
 ## Selection and validation backlog
 

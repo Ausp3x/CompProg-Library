@@ -309,7 +309,7 @@ for entry in monolith['entries']:
 markdown_count = 0
 links = 0
 for p in sorted(ROOT.rglob('*.md')):
-    if any(part in ('.git', '.agents', '.codex') for part in p.relative_to(ROOT).parts):
+    if any(part in ('.git', '.agents', '.codex') for part in p.relative_to(ROOT).parts) or p.is_relative_to(ROOT / '98-Team Notebook/site'):  # generated site: 06-site_tester.py
         continue
     markdown_count += 1
     lines = p.read_text().splitlines()

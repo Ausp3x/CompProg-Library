@@ -22,6 +22,7 @@ python3 '96-Local Testing/00-Tools/02-online_tester.py'
 python3 '96-Local Testing/00-Tools/03-notebook_tester.py'
 python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/05-runner_tester.py' --mode full
+python3 '96-Local Testing/00-Tools/06-site_tester.py' --mode full
 ```
 
 | Mode | Coverage |
@@ -42,7 +43,7 @@ python3 '96-Local Testing/00-Tools/05-runner_tester.py' --mode full
 | `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds as parallel jobs, through `ccache` when installed |
 | `03-consistency.py` | Repository record and style validator; imports `plan.py check` |
 | `Docs/` | Support-pass evidence ([00-memory-safety.md](Docs/00-memory-safety.md), P231; [00-parallel.md](Docs/00-parallel.md), P247) |
-| `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, the notebook, the header dependency graph and the parallel runner |
+| `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, the notebook, the header dependency graph, the parallel runner and the documentation site |
 | `01-Core/` … `07-Strings/` | Per-header testers, helper `.cpp` files and benchmark drivers |
 
 Known limits: suite discovery scans one folder level; there is no checked-in CI. The mode names describe actual coverage; a suite that does not exist is not claimed by any mode.

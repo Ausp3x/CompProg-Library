@@ -236,9 +236,14 @@ def docs_for(root, target):
     return sorted(str(p.relative_to(root)) for p in base.glob(f'{prefix}-{row_stem(name)}*.md')) if base.is_dir() else []
 
 
+def row_status(parts):
+    """The status word of an inventory row's cells (`verified; [evidence](...)` -> `verified`)."""
+    return parts[-1].split(';')[0].split(' ')[0].strip('*').lower()
+
+
 def batch_done(b, inv):
     """A batch with targets is done once every target's inventory row is verified."""
-    return bool(b['targets']) and all(inv.get(t, ([''],))[0][-1].split(';')[0].split(' ')[0].strip('*').lower() == 'verified'
+    return bool(b['targets']) and all(row_status(inv.get(t, ([''],))[0]) == 'verified'
                                       for t in b['targets'])
 
 
@@ -387,7 +392,7 @@ def doctor(root=ROOT, fix=False):
     quick_folders = set(re.findall(r"'(0\d-[^']+)'", run.split('x.parent.name in', 1)[1].split(']', 1)[0])) if 'x.parent.name in' in run else set()
     for t, (parts, _) in inv.items():
         folder, name = t.split('/')
-        rstatus = parts[-1].split(';')[0].split(' ')[0].strip('*').lower()
+        rstatus = row_status(parts)
         exists = (root / t).exists()
         pid = owner.get(t, '?'); ps = pstatus.get(pid)
         key = f'{pid} ({folder})'

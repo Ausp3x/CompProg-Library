@@ -13,6 +13,7 @@
 98-Team Notebook/*.log
 98-Team Notebook/*.out
 98-Team Notebook/*.toc
+98-Team Notebook/site/
 
 .claude/settings.local.json
 .claude/finish/
