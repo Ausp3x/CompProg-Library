@@ -39,7 +39,7 @@ Scope: [`07-judge.py`](../00-Tools/07-judge.py) fetches the fastest submissions,
 | Feature | Tests |
 |---|---|
 | Comment and whitespace normalisation, string literals kept, similarity values | `test_similarity`, `test_similarity_random` (50 seeded cases; `--rounds` × 50 in stress) |
-| `fastest`: distinct-code merge, table, details fetched once, lists refetched | `test_fastest_dedupe` |
+| `fastest`: distinct-code merge, table, details fetched once, lists refetched, entries without `submission_time` | `test_fastest_dedupe` |
 | `submission`: cached source outside the tracked tree, per-case table, pending status refetched | `test_submission_cache` |
 | `--offline`, `problems` | `test_offline`, `test_problems` |
 | `mine`, newest AC past a newer WA | `test_mine` |
@@ -84,3 +84,4 @@ The launcher and a direct Python spawn timed the same binary within noise: `smal
 ## History
 
 - 2026-10-25: tool, tester and sandbox built from the P018 re-check prototypes; the launcher replaced Python-side `wait4` after the live run showed the inherited RSS; tester passed in quick, full, stress and on g++-14.
+- 2026-10-26: `fastest division_of_big_integers` raised `KeyError: 'submission_time'` during the P018 speed sweep (three 2023 entries carry no time stamp); `date()` now prints an empty day for them, the tester covers it, quick and full reran (user's yes, recorded here per scope discipline).

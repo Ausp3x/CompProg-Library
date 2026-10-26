@@ -112,8 +112,8 @@ class Api:
             res = {'count': 2, 'submissions': [dict(s, problem_name=q['problem'], submission_time='2026-10-20T00:00:00Z') for s in MINE]}
         elif path == '/submissions':
             assert q == dict(problem='aplusb', status='AC', order='+time', dedupUser='true', limit=q['limit']), q
-            res = {'count': 4, 'submissions': [dict(s, status='AC', problem_name='aplusb', submission_time='2026-09-26T04:52:02Z')
-                                               for s in LIST[:int(q['limit'])]]}
+            res = {'count': 4, 'submissions': [dict(s, status='AC', problem_name='aplusb', **({} if s['id'] == 14 else dict(submission_time='2026-09-26T04:52:02Z')))
+                                               for s in LIST[:int(q['limit'])]]}  # the oldest judge entries carry no submission_time
         else:
             sid = int(path.rsplit('/', 1)[1])
             o = next((s for s in LIST + MINE if s['id'] == sid), dict(id=sid, user_name='Late', lang='cpp', time=0.001, memory=0))
@@ -199,6 +199,7 @@ class Judge(unittest.TestCase):
         self.assertEqual(t[0], ['#', 'id', 'user', 'lang', 'ms', 'MiB', 'date', 'same code'])
         self.assertEqual(t[1], ['1', '12', 'Rohan_Kapri', 'cpp', '9', '3.0', '2026-09-26', '11 (anonymous)'])
         self.assertEqual(len(t), 4)
+        self.assertEqual(t[3][6], '', 'an entry without submission_time prints an empty date')
         self.assertEqual(len(self.details()), 4, 'every listed source fetched once')
         out(J.fastest, 'aplusb', 2)
         self.assertEqual(len(self.details()), 4, 'final details come from the cache')

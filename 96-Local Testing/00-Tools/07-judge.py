@@ -117,6 +117,11 @@ def ms(t):
     return round(t * 1000)
 
 
+def date(s):
+    """Submission day; the oldest entries (2023) carry no submission_time."""
+    return s.get('submission_time', '')[:10]
+
+
 def table(head, rows):
     print('| ' + ' | '.join(head) + ' |\n|' + '---|' * len(head))
     for r in rows:
@@ -135,7 +140,7 @@ def fastest(problem, limit=30, show=True):
             kept.append((s, [], lines))
     if show:
         table(['#', 'id', 'user', 'lang', 'ms', 'MiB', 'date', 'same code'],
-              [(i + 1, s['id'], user(s), s['lang'], ms(s['time']), f"{s['memory'] / 2**20:.1f}", s['submission_time'][:10],
+              [(i + 1, s['id'], user(s), s['lang'], ms(s['time']), f"{s['memory'] / 2**20:.1f}", date(s),
                 ', '.join(f"{c['id']} {user(c)}" for c in copies)) for i, (s, copies, _) in enumerate(kept)])
     return [(s, copies) for s, copies, _ in kept]
 
@@ -144,7 +149,7 @@ def show_submission(sid):
     d, path = submission(sid)
     o = d['overview']
     print(f"{o['id']} {o['problem_name']} {user(o)} {o['lang']} {o['status']} {ms(o['time'])} ms "
-          f"{o['memory'] / 2**20:.1f} MiB {o['submission_time'][:10]}\nsource: {path} ({len(d['source'])} bytes)")
+          f"{o['memory'] / 2**20:.1f} MiB {date(o)}\nsource: {path} ({len(d['source'])} bytes)")
     table(['case', 'ms', 'MiB', 'status'], [(c['case'], ms(c['time']), f"{c['memory'] / 2**20:.1f}", c['status'])
                                             for c in d['case_results']])
 
@@ -154,7 +159,7 @@ def latest_ac(name, problem, show=False):
     subs = get('/submissions', problem=problem, user=name, order='-id', limit=20)['submissions']
     if show:
         table(['id', 'status', 'ms', 'MiB', 'date'], [(s['id'], s['status'], ms(s['time']), f"{s['memory'] / 2**20:.1f}",
-                                                       s['submission_time'][:10]) for s in subs])
+                                                       date(s)) for s in subs])
     return next((s['id'] for s in subs if s['status'] == 'AC'), None)
 
 

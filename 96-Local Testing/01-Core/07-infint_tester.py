@@ -4,9 +4,10 @@
 Every mode builds the optimized scalar, checked scalar and (when the CPU has them)
 AVX2/FMA/BMI2 configurations of the C++ oracle with a second translation unit and runs
 the self-test phases (schoolbook limb products, identities on oracle products,
-two's-complement bit models, sieves, native 128-bit arithmetic) and the differential
-protocol against Python's big integers (cases are generated and validated as a stream, so the corpus never sits in memory); full and stress add ASan/UBSan scalar and AVX2
-builds and the checked build runs the --invalid precondition probes; stress repeats
+two's-complement bit models, sieves, native 128-bit arithmetic, libstdc++'s integer std::format)
+and the differential protocol against Python's big integers, format() and base conversion (cases are generated and validated as a
+stream, so the corpus never sits in memory); full and stress add ASan/UBSan scalar and AVX2 builds with INFINT_SCRATCH_HEAP (every
+arena frame a separate heap block) and the checked build runs the --invalid precondition probes; stress repeats
 --rounds times with consecutive seeds and larger operands. Every check survives -DNDEBUG.
 """
 from __future__ import annotations
@@ -41,8 +42,12 @@ INVALID_CASES = ("div-zero", "rem-zero", "divmod-zero", "divmodslow-zero", "scal
                  "powmod-zero-mod", "pow-negative", "read-base", "tostring-base", "todigits-base", "ctor-string", "ctor-digits",
                  "fromlimbs-sign", "fromdouble-nan", "bitwise-inf", "testbit-negative-index", "popcount-inf", "sample-zero",
                  "removefactor-one", "newton-unnormalized", "uint-shift", "uint-divword", "uint-div-zero", "uint-from-inf",
-                 "isprime-inf", "tolimbs-inf")
+                 "isprime-inf", "tolimbs-inf", "tochars-base", "charsbound-base", "rshift-negative", "setbit-negative",
+                 "clearbit-negative", "scan0-negative", "scan1-negative", "not-inf", "ctz-inf", "bitlength-inf", "issquare-inf",
+                 "kronecker-inf", "todigits-inf", "root-inf", "uint-rshift", "removefactor-zero", "uint-ctor-string", "bitlength-words",
+                 "popcount-words")
 DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+FILLS = " *0#+-x<^_~"
 
 
 class Failure(RuntimeError):
@@ -93,6 +98,43 @@ def to_base(a: int, base: int) -> str:
         a, d = divmod(a, base)
         out.append(DIGITS[d])
     return ("-" if neg else "") + "".join(reversed(out))
+
+
+def check_tochars(line: str, a: int, base: int, lower: int) -> None:
+    """toChars text against to_base and charsBound (the second field) against the length: an upper bound, exact for power-of-two
+    bases (digits plus a sign slot)."""
+    text, _, bound = line.rpartition(" ")
+    expected = to_base(a, base).lower() if lower else to_base(a, base)
+    if text != expected:
+        shown = lambda x: x if len(x) <= 200 else x[:90] + "..." + x[-90:]
+        raise Failure(f"toChars text: expected {shown(expected)!r}, got {shown(text)!r}")
+    if int(bound) < len(text) or (base & (base - 1) == 0 and int(bound) != len(text) + (a >= 0)):
+        raise Failure(f"charsBound {bound} for a text of length {len(text)} in base {base}")
+
+
+def random_spec(rng: random.Random) -> tuple[str, str, str, str, str, str, str]:
+    """[[fill]align][sign][#][0][width][type] parts with a literal width of 1-60 or none and the types d b B o x X."""
+    kind = rng.randrange(3)
+    align = rng.choice("<>^") if kind else ""
+    fill = rng.choice(FILLS) if kind == 2 else ""
+    return (fill, align, rng.choice(["", "", "+", "-", " "]), rng.choice(["", "#"]), rng.choice(["", "", "0"]),
+            str(rng.randrange(1, 61)) if rng.randrange(3) else "", rng.choice(["", "d", "b", "B", "o", "x", "X"]))
+
+
+def cpp_format(v: int, fill: str, align: str, sign: str, alt: str, zero: str, width: str, typ: str) -> str:
+    """std::format of an integer through Python's format(): C++ ignores 0 beside an explicit alignment (Python turns it into the fill),
+    prints B as Python's b with the prefix 0B, and prefixes octal with 0 for nonzero values (Python writes 0o), so #o pads the
+    sign, prefix and digits as one string (or zero-pads the digits behind the sign)."""
+    if align:
+        zero = ""
+    if typ == "o" and alt:
+        sgn = "-" if v < 0 else ("" if sign in ("", "-") else sign)
+        body = ("0" if v else "") + format(abs(v), "o")
+        if zero:
+            return sgn + format(body, "0>" + str(max(int(width or 0) - len(sgn), 0)))
+        return format(sgn + body, (fill or " ") + (align or ">") + width)
+    out = format(v, fill + align + sign + alt + zero + width + ("b" if typ == "B" else typ))
+    return out.replace("0b", "0B", 1) if typ == "B" and alt else out
 
 
 def digits_of(a: int, base: int) -> list[int]:
@@ -216,6 +258,18 @@ def build_cases(seed: int, mode: str):
 
     bits_choices = [1, 2, 31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256, 257, 511, 1024, 1025, 2047, 4096, 8191]
     big_choices = [20000, 32768, 65537, 100000, 150000] if mode != "quick" else [4000]
+    add("tochars 16 1 inf", "toChars sentinel", "inf 4")
+    add("tochars 10 0 -inf", "toChars negative sentinel", "-inf 4")
+    for base in (2, 10, 36):
+        cases.append((f"tochars {base} 0 0", f"toChars zero base {base}", lambda line, base=base: check_tochars(line, 0, base, 0)))
+    yield from cases; cases.clear()
+    for t in range({"quick": 300, "full": 3000, "stress": 9000}[mode]):
+        v = 0 if t % 25 == 0 else rand_bits(rng, rng.randrange(1, 301), True)
+        parts = random_spec(rng)
+        spec = "".join(parts)
+        add(f"format {v} {spec}", f"format {{:{spec}}} #{t}", cpp_format(v, *parts))
+        if t % 100 == 99:
+            yield from cases; cases.clear()
     yield from cases; cases.clear()
     for t in range(count):
         a = rand_bits(rng, rng.choice(bits_choices), True)
@@ -237,6 +291,10 @@ def build_cases(seed: int, mode: str):
         add(f"neg {a}", f"neg #{t}", -a)
         add(f"inc {a}", f"inc #{t}", a + 1)
         add(f"dec {a}", f"dec #{t}", a - 1)
+        k = rng.randrange(1, 7)
+        edge = rng.choice([1, -1]) * ((1 << (64 * k)) - rng.randrange(0, 3))
+        for x, y, z in ((a, b, edge), (edge, rng.choice([1, -1, edge, -edge, 2]), b), (edge, a, -edge)):
+            add(f"addchain {x} {y} {z}", f"addchain ({k}-word edge) #{t}", f"{(x + y) + z} {(x - y) - z} {x + (y - z)} {x - y}")
         if b:
             q, r = trunc(a, b)
             add(f"div {a} {b}", f"divMod #{t}", f"{q} {r}")
@@ -316,6 +374,9 @@ def build_cases(seed: int, mode: str):
         add(f"tobase {a} {base}", f"toString base {base} #{t}", to_base(a, base))
         add(f"frombase {base} {to_base(a, base)}", f"read base {base} #{t}", a)
         add(f"frombase {base} {to_base(a, base).lower()}", f"read lowercase base {base} #{t}", a)
+        for cbase, lower in ((rng.randrange(2, 37), rng.randrange(2)), (rng.choice([2, 4, 8, 16, 32]), rng.randrange(2))):
+            cases.append((f"tochars {cbase} {lower} {a}", f"toChars base {cbase}{' lower' if lower else ''} #{t}",
+                          lambda line, a=a, cbase=cbase, lower=lower: check_tochars(line, a, cbase, lower)))
         dbase = rng.choice([2, 10, 1000, 65536, 1000000007, 4294967295])
         if abs(a) < 1 << 5000:
             digits = digits_of(a, dbase)
@@ -567,7 +628,7 @@ def main() -> int:
     else:
         report("SKIP", "AVX2/FMA/BMI2 execution: " + ("requested --scalar-only" if args.scalar_only else "CPU lacks AVX2/FMA/BMI2"))
     if args.mode != "quick":
-        sanitizer = ["-O1", "-g", "-D_GLIBCXX_ASSERTIONS", "-fno-omit-frame-pointer", "-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-no-pie"]
+        sanitizer = ["-O1", "-g", "-D_GLIBCXX_ASSERTIONS", "-DINFINT_SCRATCH_HEAP", "-fno-omit-frame-pointer", "-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-no-pie"]
         variants.append(("sanitized-scalar", [*sanitizer, *scalar]))
         if accelerated:
             variants.append(("sanitized-avx2", [*sanitizer, *vector]))

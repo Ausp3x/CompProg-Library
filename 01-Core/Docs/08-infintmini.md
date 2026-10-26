@@ -134,9 +134,10 @@ The 2026-10-17 completeness sweep (`@researcher`) read cp-algorithms, OI Wiki, K
 ## Limits and handoffs
 
 - Non-decimal radix conversion is O(L^2); the Library Checker hexadecimal problems at full size need the full type.
-- P025 (`16-poly.hpp`): `poly_detail::BigInt` matches any type with `vector<uint> n`, `int sgn`, `trim()` and `isNil()`, so it also matches `InfIntMini`, whose limbs are base 10^5 rather than 2^32; `Poly<InfIntMini>` products through `kronecker` would be wrong. The concept should require base-2^32 limbs (for example by naming `InfInt`).
+- P025 (`16-poly.hpp`): since P018 stage 1 (2026-10-26) `poly_detail::BigInt` requires `n.size() -> int` and `n.data() -> ulng *` (base-2^64 words), which `InfIntMini`'s `vector<uint> n` of base-10^5 limbs does not satisfy, so `Poly<InfIntMini>` takes Poly's generic `karatsuba` path and the earlier concern about a wrong `kronecker` product is closed (user decision 2026-10-26, recorded by the P018 `/finish` audit).
 - The judge wrappers `97-Online Testing/src/01-Yosupo/02-Big Integers/02-additionmini.cpp`, `04-multiplicationmini.cpp` and `06-divisionmini.cpp` use only `>>`, `+=`, `*=`, `divMod` and `<<`, which keep their meaning.
 
 ## History
 
 - 2026-10-17: P019 rewrite verified: new header (513 to 252 lines), tester, mixed full/mini program and benchmark; 6 mutants killed and 3 equivalent ones simplified away; the review's findings (backend preconditions, cost-bound wording, the unbalanced crossover and loop orientation, doc limits) fixed; full suites passed on g++ and g++-14, two stress rounds passed.
+- 2026-10-26: the P025 handoff line updated by the P018 `/finish` audit: `poly_detail::BigInt` now requires base-2^64 words, so the mini no longer matches it (user decision 2026-10-26).

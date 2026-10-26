@@ -1,9 +1,12 @@
 // Independent oracles for 07-infint.hpp: schoolbook limb products, identities checked with oracle products, two's-complement bit models, sieves and native 128-bit arithmetic; --protocol serves the Python big-integer oracle.
 #include "../../01-Core/07-infint.hpp"
 #include <cctype>
+#include <charconv>
 #include <chrono>
 #include <cstdlib>
 #include <cstring>
+#include <format>
+#include <iomanip>
 #include <iostream>
 #include <random>
 #include <sstream>
@@ -46,21 +49,85 @@ static vector<uint> schoolLimbs(const vector<uint> &a, const vector<uint> &b) {
 // Oracle product through limb schoolbook arithmetic only.
 static InfInt omul(const InfInt &a, const InfInt &b) {
     if (a.isNil() || b.isNil()) { return 0; }
-    return InfInt::fromLimbs(schoolLimbs(a.n, b.n), a.sgn * b.sgn);}
-static vector<W> wordsOf(const InfInt &a) { vector<W> w = a.toWords(); w.resize(size_t(infint_detail::norm(w.data(), int(w.size())))); return w; }
+    return InfInt::fromLimbs(schoolLimbs(a.toLimbs(), b.toLimbs()), a.sgn * b.sgn);}
+static vector<W> wordsOf(const InfInt &a) { vector<W> w(a.n.begin(), a.n.end()); w.resize(size_t(infint_detail::norm(w.data(), int(w.size())))); return w; }
 static InfInt ofWords(const vector<W> &w) { return InfInt::fromLimbs(w); }
 static InfInt egcd(InfInt a, InfInt b) { a = abs(a); b = abs(b); while (!b.isNil()) { InfInt r = divMod(a, b).second; a = std::move(b); b = std::move(r); } return a; }
 static lng floorDiv(lng a, lng b) { lng q = a / b; if ((a % b != 0) && ((a < 0) != (b < 0))) { --q; } return q; }
 static int sz(int small, int big) { return full() ? big : small; }
+static std::string lowered(std::string s) { for (char &c : s) { c = char(std::tolower(uint8_t(c))); } return s; }
+// Pattern words for arena frames: salt and index, so a frame overwritten by another frame or a lost copy shows.
+static void pattern(W *p, size_t n, W salt) { for (size_t i = 0; i < n; ++i) { p[i] = (salt * 0x9E3779B97F4A7C15ULL) ^ i; } }
+static bool intact(const W *p, size_t n, W salt) { for (size_t i = 0; i < n; ++i) { if (p[i] != ((salt * 0x9E3779B97F4A7C15ULL) ^ i)) { return false; } } return true; }
+static bool disjoint(const W *p, size_t n, const W *q, size_t m) { auto a = uintptr_t(p), b = uintptr_t(q); return a + 8 * n <= b || b + 8 * m <= a; }
+
+// Words inline-to-heap transitions against a vector model, InfInt values across the inline limit and nested arena frames.
+static void storage() {
+    context = "Words";
+    using infint_detail::Words;
+    require(sizeof(InfInt) == 56, "sizeof(InfInt) == 56");
+    auto same = [](const Words &x, const vector<W> &v) { return x.size() == int(v.size()) && std::equal(x.begin(), x.end(), v.begin(), v.end()); };
+    Words w; vector<W> model;
+    require(w.empty() && w.size() == 0 && w.data() == w.buf, "default Words is empty and inline");
+    for (int i = 0; i < 40; ++i) {
+        W v = rng(); w.push_back(v); model.push_back(v);
+        require(same(w, model) && w.back() == v && (w.data() == w.buf) == (i < Words::INLINE), "push_back to " + std::to_string(i + 1) + " words");
+        Words c = w; require(c == w && same(c, model) && c.data() != w.data() && (c.data() == c.buf) == (i < Words::INLINE), "copy construction");
+        Words m = std::move(c); require(same(m, model) && c.empty() && c.data() == c.buf, "move construction empties the source");
+        c.push_back(1); require(c.size() == 1 && c[0] == 1, "a moved-from Words is reusable");
+        Words h; h.resize(9, 3); h = std::move(m); require(same(h, model) && m.empty(), "move assignment over heap storage");
+        Words in; in.push_back(5); in = h; require(same(in, model), "copy assignment over inline storage");
+        Words big; big.assign(50, 7); big = in; require(same(big, model), "copy assignment over heap storage");
+        Words &alias = in; in = alias; require(same(in, model), "self copy assignment"); in = std::move(alias); require(same(in, model), "self move assignment");}
+    while (w.size() > 3) { w.pop_back(); model.pop_back(); }
+    { Words small = w; require(same(small, model) && small.data() == small.buf, "a copy of three heap words is inline");
+      const W *heap = w.data(); Words moved = std::move(w); require(same(moved, model) && moved.data() == heap && w.empty() && w.data() == w.buf, "a move steals heap storage");
+      Words r; r.setSize(3); r[0] = r[1] = r[2] = 7; r.resize(6); require(r.size() == 6 && r[2] == 7 && r[3] == 0 && r[5] == 0, "resize zero-fills");
+      r.resize(2); r.resize(5, 9); require(r[1] == 7 && r[2] == 9 && r[4] == 9, "resize fills the new words"); r.reserve(100); require(r.size() == 5 && r[0] == 7 && r[4] == 9, "reserve keeps the words");
+      Words s; s.assign(5, 9); s[0] = 7; s[1] = 7; require(s == r && !(s == small), "operator=="); r.clear(); require(r.empty(), "clear"); }
+    context = "InfInt inline and heap words";
+    for (int words = 1; words <= 9; ++words) {
+        InfInt a = randBits(64 * words, ri(2) == 1), b = randBits(64 * (10 - words)), a0 = a, b0 = b;
+        expect(a.n.size(), words, "word count"); require((a.n.data() == a.n.buf) == (words <= 4), "inline up to four words");
+        std::swap(a, b); expect(a, b0, "swap"); expect(b, a0, "swap back"); std::swap(a, b);
+        InfInt c = a; c = b; expect(c, b0, "copy assignment across storage"); c = std::move(a); expect(c, a0, "move assignment across storage"); a = c;
+        expect(omul(a + b - b, InfInt(1)), a0, "arithmetic across the inline limit"); expect((a << 64) >> 64, a0, "shift across the inline limit");}
+    context = "moved-from values";
+    for (InfInt src : {InfInt(-5), InfInt("inf"), InfInt("-inf"), -randBits(64 * 9), randBits(64 * 3), InfInt(0)}) {
+        InfInt a = src, b = std::move(a);
+        require(a.isNil() && a.sgn == 1 && !a.is_inf && a.n.empty(), "a moved-from InfInt is zero");
+        require(b.is_inf == src.is_inf && b.sgn == src.sgn && b.n == src.n, "moved-to value");
+        ++a; expect(a, InfInt(1), "++ on a moved-from value");
+        a = src; b = std::move(a); require(a.isNil() && a.sgn == 1 && !a.is_inf && a.n.empty(), "move assignment resets the source");
+        a.setBit(3); expect(a, InfInt(8), "setBit on a moved-from value");
+        a = src; b = std::move(a); a.flipBit(0); expect(a, InfInt(1), "flipBit on a moved-from value");
+        a = src; b = std::move(a); require(a == InfInt(0) && !(a < InfInt(0)) && a + src == b, "comparison and sum on a moved-from value");}
+    context = "Scratch";
+    using infint_detail::Scratch;
+    {   Scratch s1(1); pattern(s1, 1, 1);
+        {   Scratch s2(1000); pattern(s2, 1000, 2);
+            {   Scratch s3(1000000); pattern(s3, 1000000, 3);
+                {   Scratch s4(3000000); pattern(s4, 3000000, 4);
+                    require(intact(s4, 3000000, 4) && intact(s3, 1000000, 3) && intact(s2, 1000, 2) && intact(s1, 1, 1), "nested frames of 1, 1000, 10^6 and 3 10^6 words");
+                    require(disjoint(s4, 3000000, s3, 1000000) && disjoint(s3, 1000000, s2, 1000) && disjoint(s2, 1000, s1, 1), "nested frames are disjoint");}
+                require(intact(s3, 1000000, 3) && intact(s2, 1000, 2) && intact(s1, 1, 1), "outer frames after the 3 10^6-word frame is released");
+                { Scratch s5(3000000); pattern(s5, 3000000, 5); require(disjoint(s5, 3000000, s3, 1000000), "a reused block is disjoint from live frames"); }
+                { Scratch s6(10); pattern(s6, 10, 6); require(disjoint(s6, 10, s3, 1000000) && disjoint(s6, 10, s2, 1000), "a new frame is disjoint from live frames"); }
+                require(intact(s3, 1000000, 3) && intact(s2, 1000, 2), "outer frames after reuse");}
+            require(intact(s2, 1000, 2) && intact(s1, 1, 1), "outer frames after the 10^6-word frame is released");}
+        require(intact(s1, 1, 1), "outermost frame");}
+    { Scratch after(100); pattern(after, 100, 9); require(intact(after, 100, 9), "a frame after the nested frames are released"); }
+    context = "construction";}
 
 static void construction() {
+    storage();
     context = "construction";
     for (lng x : {LLONG_MIN, -4294967297LL, -4294967296LL, -1LL, 0LL, 1LL, 4294967295LL, 4294967296LL, LLONG_MAX}) {
         InfInt a = x; lng y = 0; require(a.tryCast(y) && y == x && lng(a) == x, "lng round trip"); InfInt b; b = x; expect(b, a, "assignment");
         expect(a.toString(), std::to_string(x), "decimal of lng"); expect(InfInt(std::to_string(x)), a, "parse decimal");}
     for (ulng x : {0ULL, 1ULL, 0xFFFFFFFFULL, 0x100000000ULL, ULLONG_MAX}) { InfInt a = x; ulng y = 1; require(a.tryCast(y) && y == x && ulng(a) == x, "ulng round trip"); }
-    { InfInt u = ~ulll(0); expect(u.n, vector<uint>({UINT_MAX, UINT_MAX, UINT_MAX, UINT_MAX}), "ulll limbs"); ulll back = 0; require(u.tryCast(back) && back == ~ulll(0), "ulll round trip");
-      InfInt s = lll(ulll(1) << 127); require(s.sgn == -1 && s.n == vector<uint>({0, 0, 0, 0x80000000u}), "lll min limbs"); lll b2 = 0; require(s.tryCast(b2) && b2 == lll(ulll(1) << 127), "lll min round trip");
+    { InfInt u = ~ulll(0); expect(u.toLimbs(), vector<uint>({UINT_MAX, UINT_MAX, UINT_MAX, UINT_MAX}), "ulll limbs"); require(u.n.size() == 2 && u.n[0] == ~W(0) && u.n[1] == ~W(0), "ulll words"); ulll back = 0; require(u.tryCast(back) && back == ~ulll(0), "ulll round trip");
+      InfInt s = lll(ulll(1) << 127); require(s.sgn == -1 && s.toLimbs() == vector<uint>({0, 0, 0, 0x80000000u}) && s.n.size() == 2 && s.n[0] == 0 && s.n[1] == W(1) << 63, "lll min limbs"); lll b2 = 0; require(s.tryCast(b2) && b2 == lll(ulll(1) << 127), "lll min round trip");
       int i = 0; require(!s.tryCast(i) && !u.tryCast(i), "narrow fails"); require(InfInt(INT_MIN).tryCast(i) && i == INT_MIN, "int min"); require(!InfInt(lng(INT_MIN) - 1).tryCast(i), "below int min");
       uint8_t c = 0; require(InfInt(255).tryCast(c) && c == 255 && !InfInt(256).tryCast(c) && !InfInt(-1).tryCast(c), "uint8 bounds"); int8_t d = 0; require(InfInt(-128).tryCast(d) && d == -128 && !InfInt(-129).tryCast(d), "int8 bounds");
       InfInt inf("inf"); require(!inf.tryCast(i) && lng(inf) == LLONG_MAX && lng(-inf) == LLONG_MIN && ulng(inf) == ULLONG_MAX && ulng(-inf) == 0, "sentinel casts");
@@ -77,7 +144,7 @@ static void construction() {
         for (uint base : {2u, 10u, 1000u, 65536u, 1000000007u, 4294967295u}) {
             vector<uint> d = abs(a).toDigits(base); for (uint x : d) { require(x < base, "digit range"); } require(d.size() == 1 || d[0] != 0, "no leading zero digit");
             expect(InfInt(d, base, a.sgn), a, "digits round trip base " + std::to_string(base));}}
-    { InfInt t; t.n = {5, 0, 0}; t.sgn = -1; t.trim(); require(t.n == vector<uint>{5} && t == -5, "trim strips zero limbs"); t.n = {0, 0}; t.sgn = -1; t.trim(); require(t.n == vector<uint>{0} && t.sgn == 1 && t.isNil(), "trim resets negative zero"); t.n.clear(); t.trim(); require(t.n == vector<uint>{0}, "trim fills empty");
+    { InfInt t; const W five[] = {5, 0, 0}; t.n.assign(five, 3); t.sgn = -1; t.trim(); require(t.n.size() == 1 && t.n[0] == 5 && t == -5, "trim strips zero words"); t.n.assign(2, 0); t.sgn = -1; t.trim(); require(t.n.size() == 1 && t.n[0] == 0 && t.sgn == 1 && t.isNil(), "trim resets negative zero"); t.n.clear(); t.trim(); require(t.n.size() == 1 && t.n[0] == 0, "trim fills empty");
       InfInt p = 7; expect(p++, InfInt(7), "postfix increment value"); expect(p, InfInt(8), "postfix increment effect"); expect(p--, InfInt(8), "postfix decrement value"); expect(p, InfInt(7), "postfix decrement effect"); InfInt q = -1; expect(q++, InfInt(-1), "postfix through zero"); require(q.isNil() && q.sgn == 1, "zero after increment");
       require(InfInt::getBaseId() == InfInt::getBaseId() && InfInt::getBaseId() >= 0, "stable base id"); }
     { InfInt z; require(z.isNil() && !z && z.toString() == "0" && z.toDigits(10) == vector<uint>{0} && z.toLimbs() == vector<uint>{0}, "zero forms"); InfInt z2 = 0; require(z == z2 && std::hash<InfInt>{}(z) == std::hash<InfInt>{}(z2), "zero hash");
@@ -105,6 +172,73 @@ static void construction() {
     { InfInt t = (InfInt(1) << 53) + 1; expect(t.toDouble(), 9007199254740992.0, "tie to even"); t += 2; expect(t.toDouble(), 9007199254740996.0, "tie to even up"); t = (InfInt(1) << 100) + 1; expect(t.toDouble(), std::ldexp(1.0, 100), "sticky below"); t = (InfInt(1) << 1024); require(std::isinf(t.toDouble()) && t.toDouble() > 0, "overflow to inf"); require(std::isinf((-t).toDouble()), "negative overflow");
       expect(InfInt::fromDouble(0.0), InfInt(0), "fromDouble zero"); expect(InfInt::fromDouble(-0.999), InfInt(0), "fromDouble fraction"); expect(InfInt::fromDouble(-2.5), InfInt(-2), "fromDouble truncation"); require(InfInt::fromDouble(INFINITY).is_inf && InfInt::fromDouble(-INFINITY).sgn == -1, "fromDouble infinity"); expect(InfInt("inf").toDouble(), INFINITY, "inf toDouble");
       expect(InfInt::fromDouble(1e300).toString(), std::string("1000000000000000052504760255204420248704468581108159154915854115511802457988908195786371375080447864043704443832883878176942523235360430575644792184786706982848387200926575803737830233794788090059368953234970799945081119038967640880074652742780142494579258788820056842838115669472196386865459400540160"), "1e300 exact");}
+    context = "";}
+
+// A random std::format spec [[fill]align][sign][#][0][width][type] with a literal width of 1-60 or none.
+static std::string randSpec() {
+    static const char fills[] = " *0#+-x<^_~", *types = "dbBoxX";
+    std::string s; int a = ri(3);
+    if (a == 2) { s += fills[ri(int(sizeof fills) - 1)]; }
+    if (a) { s += "<>^"[ri(3)]; }
+    if (int g = ri(5); g >= 2) { s += " +-"[g - 2]; }
+    if (ri(2)) { s += '#'; }
+    if (ri(3) == 0) { s += '0'; }
+    if (ri(3)) { s += std::to_string(1 + ri(60)); }
+    if (int t = ri(7); t) { s += types[t - 1]; }
+    return s;}
+template<typename T> static std::string fmt(const std::string &spec, const T &x) { return std::vformat("{:" + spec + "}", std::make_format_args(x)); }
+template<typename T> static bool rejects(const std::string &spec, const T &x) { try { (void)fmt(spec, x); } catch (const std::format_error &) { return true; } return false; }
+
+// toChars against canonical digit strings, read-back, std::to_chars and exact-fit buffers; toString(base, lower); std::format against
+// the native integer formatter of libstdc++ (lng, lll, ulll), literal format strings, the sentinel and rejected specs.
+static void textOutput() {
+    context = "toChars";
+    InfInt one = 1;
+    vector<InfInt> vals = {0, 1, -1, InfInt("inf"), InfInt("-inf"), InfInt(~ulng(0)), -InfInt(~ulng(0)), one << 64, -(one << 64), (one << 256) - 1, -(one << 256), InfInt(LLONG_MIN), InfInt(35), InfInt(-36)};
+    for (int t = 0; t < sz(40, 200); ++t) { vals.push_back(randSigned(t % 4 == 0 ? 5000 : t % 4 == 1 ? 64 : t % 4 == 2 ? 300 : 1500)); }
+    for (const InfInt &v : vals) {
+        bool neg = v.sgn == -1 && !v.isNil(); InfInt mag = abs(v); ulng small = 0; bool word = !v.is_inf && mag.tryCast(small);
+        for (uint base = 2; base <= 36; ++base) {
+            std::string upper = v.toString(base);
+            for (bool lower : {false, true}) {
+                std::string s = v.toString(base, lower); int len = int(s.size());
+                expect(s, lower ? lowered(upper) : upper, "toString(base, lower) is the lowercased toString(base)");
+                if (v.is_inf) { expect(s, std::string(v.sgn == 1 ? "inf" : "-inf"), "sentinel text"); }
+                else {
+                    bool ok = len > neg && (!neg || s[0] == '-') && (s[size_t(neg)] != '0' || len == 1);
+                    for (int i = neg; i < len && ok; ++i) {
+                        char c = s[size_t(i)]; uint d = c >= '0' && c <= '9' ? uint(c - '0') : lower && c >= 'a' && c <= 'z' ? uint(c - 'a' + 10) : !lower && c >= 'A' && c <= 'Z' ? uint(c - 'A' + 10) : 99;
+                        ok = d < base;}
+                    require(ok, "canonical digits base " + std::to_string(base) + ": " + s.substr(0, 80)); expect(InfInt(s, base), v, "read back base " + std::to_string(base));
+                    if (word) {
+                        char nb[80]; std::string ref = (neg ? "-" : "") + std::string(nb, std::to_chars(nb, nb + 80, small, int(base)).ptr);
+                        if (!lower) { for (char &c : ref) { c = char(std::toupper(uint8_t(c))); } }
+                        expect(s, ref, "std::to_chars of one word base " + std::to_string(base));}}
+                std::string buf(size_t(len) + 8, '\x7f');
+                auto [p, ec] = v.toChars(buf.data(), buf.data() + len, base, lower);
+                require(ec == std::errc() && p == buf.data() + len && buf.compare(0, size_t(len), s) == 0 && buf.substr(size_t(len)) == std::string(8, '\x7f'), "exact-fit toChars base " + std::to_string(base));
+                std::string shortBuf(size_t(len) + 8, '\x7f');
+                auto [q, ec2] = v.toChars(shortBuf.data(), shortBuf.data() + len - 1, base, lower);
+                require(ec2 == std::errc::value_too_large && q == shortBuf.data() + len - 1 && shortBuf == std::string(size_t(len) + 8, '\x7f'), "toChars one byte short base " + std::to_string(base));
+                auto [e, ec3] = v.toChars(shortBuf.data(), shortBuf.data(), base, lower); require(ec3 == std::errc::value_too_large && e == shortBuf.data() && shortBuf == std::string(size_t(len) + 8, '\x7f'), "toChars into an empty range");
+                int bound = v.charsBound(base); require(bound >= len, "charsBound(" + std::to_string(base) + ") = " + std::to_string(bound) + " below length " + std::to_string(len));
+                if (std::has_single_bit(base) && !v.is_inf) { expect(bound, len + !neg, "charsBound exact (digits plus a sign slot) in base " + std::to_string(base)); }
+                if (v.is_inf) { expect(bound, 4, "sentinel charsBound"); }}}}
+    context = "format";
+    for (int t = 0; t < sz(500, 5000); ++t) {
+        std::string spec = randSpec();
+        lll x = t % 3 == 0 ? lll(rng() >> ri(64)) : lll(((ulll(rng()) << 64) | rng()) >> (1 + ri(127))); if (ri(2)) { x = -x; } if (t == 1) { x = lll(ulll(1) << 127); } if (t == 2) { x = 0; }
+        InfInt X = x; expect(fmt(spec, X), fmt(spec, x), "std::format(\"{:" + spec + "}\") of " + X.toString() + " against lll");
+        lng y = lng(x); InfInt Y = y; expect(fmt(spec, Y), fmt(spec, y), "std::format(\"{:" + spec + "}\") of " + Y.toString() + " against lng");
+        ulll u = ulll(x); UInt<2> U = u; expect(fmt(spec, U), fmt(spec, u), "std::format(\"{:" + spec + "}\") of UInt<2> " + InfInt(U).toString() + " against ulll");
+        UInt<4> V(X); expect(fmt(spec, V), fmt(spec, InfInt(V)), "UInt<4> formats as its InfInt value");}
+    InfInt a = 255, b = -42, z = 0, eight = 8, pi("inf"), ni("-inf"), big = (one << 300) - 1; u256 m1 = u256(InfInt(-1)); UInt<1> seven = 7; UInt<2> e8 = 8;
+    expect(std::format("{:#x}", a), std::string("0xff"), "{:#x}"); expect(std::format("{:#X}", a), std::string("0XFF"), "{:#X}"); expect(std::format("{:#b}", eight), std::string("0b1000"), "{:#b}"); expect(std::format("{:#B}", eight), std::string("0B1000"), "{:#B}");
+    expect(std::format("{:#o}", eight), std::string("010"), "{:#o}"); expect(std::format("{:#o}", z), std::string("0"), "{:#o} of zero"); expect(std::format("{:*^9}", b), std::string("***-42***"), "{:*^9}"); expect(std::format("{:+08}", eight), std::string("+0000008"), "{:+08}");
+    expect(std::format("{:#010X}", a), std::string("0X000000FF"), "{:#010X}"); expect(std::format("{:<05}", eight), std::string("8    "), "{:<05}"); expect(std::format("{: }|{:-}|{}", eight, eight, b), std::string(" 8|8|-42"), "signs");
+    expect(std::format("{}", big), big.toString(), "{} of 300 bits"); expect(std::format("{:X}", big), big.toString(16), "{:X} of 300 bits"); expect(std::format("{:x}", m1), std::string(64, 'f'), "u256 {:x}"); expect(std::format("{:>4}|{}", seven, e8), std::string("   7|8"), "UInt<1>, UInt<2>");
+    expect(std::format("{}|{}|{:x}|{:>6}|{:<6}|", pi, ni, pi, pi, ni), std::string("inf|-inf|inf|   inf|-inf  |"), "sentinel format");
+    for (const char *bad : {"q", ".3", "L", "c", "{}", "5.2", "#q", "=5", "dd", "+-5", "##x", "Ld", "s", "e", "00", "65536", "9999999999", "2147483648"}) { require(rejects(bad, a) && rejects(bad, m1), std::string("format_error for spec ") + bad); }
     context = "";}
 
 static void smallExhaustive() {
@@ -148,6 +282,43 @@ static void smallExhaustive() {
             if (b >= 0 && b <= 12) { lll p = 1; for (int i = 0; i < b; ++i) { p *= a; } expect(pow(A, b), InfInt(p), "pow"); }}}
     context = "";}
 
+// Oracle sum through limb schoolbook addition and subtraction of magnitudes only.
+static InfInt oadd(const InfInt &a, const InfInt &b) {
+    if (a.isNil()) { return b; }
+    if (b.isNil()) { return a; }
+    vector<uint> x = a.toLimbs(), y = b.toLimbs(); int s = a.sgn; bool same = a.sgn == b.sgn;
+    auto below = [](const vector<uint> &p, const vector<uint> &q) {
+        if (p.size() != q.size()) { return p.size() < q.size(); }
+        for (size_t i = p.size(); i-- > 0;) { if (p[i] != q[i]) { return p[i] < q[i]; } }
+        return false;};
+    if (!same && below(x, y)) { std::swap(x, y); s = b.sgn; }
+    x.resize(max(x.size(), y.size()) + 1, 0); ulng c = 0;
+    for (size_t i = 0; i < x.size(); ++i) {
+        ulng t = (i < y.size() ? y[i] : 0) + c;
+        if (same) { ulng v = x[i] + t; x[i] = uint(v); c = v >> 32; }
+        else { c = ulng(x[i]) < t; x[i] = uint(ulng(x[i]) - t); }}
+    return InfInt::fromLimbs(x, s);}
+
+// + and - on lvalues (one-pass combine), temporaries (compound forms) and chains, against the limb oracle: carries and borrows across
+// the top word at 1-6 words (the four-word inline limit included), a - a, a + ~a, a + a.
+static void addition() {
+    context = "addition oracle";
+    for (int t = 0; t < sz(300, 3000); ++t) { lng x = lng(rng() >> ri(64)) * (ri(2) ? -1 : 1), y = lng(rng() >> ri(64)) * (ri(2) ? -1 : 1); expect(oadd(InfInt(x), InfInt(y)), InfInt(lll(x) + y), "limb oracle against 128-bit sums"); }
+    vector<InfInt> vals = {0, 1, -1, 2, -2};
+    for (int k = 1; k <= 6; ++k) { InfInt p = InfInt(1) << (64 * k); for (const InfInt &v : {p - 1, p, p + 1, p - 2, (p >> 1) - 1}) { vals.push_back(v); vals.push_back(-v); } }
+    for (int t = 0; t < sz(20, 60); ++t) { vals.push_back(randSigned(t % 2 ? 64 * 5 : 400)); }
+    for (size_t i = 0; i < vals.size(); ++i) {
+        const InfInt &a = vals[i]; context = "addition a=" + a.toString(16);
+        expect(a + ~a, InfInt(-1), "a + ~a"); expect(a - a, InfInt(0), "a - a"); expect(a + a, omul(a, InfInt(2)), "a + a"); expect(InfInt(a) - a, InfInt(0), "temporary - itself"); expect(InfInt(a) + a, omul(a, InfInt(2)), "temporary + itself");
+        for (size_t j = 0; j < vals.size(); ++j) {
+            const InfInt &b = vals[j]; InfInt s = oadd(a, b), d = oadd(a, -b), r = a + b; std::string what = " b=" + b.toString(16);
+            expect(r, s, "lvalue + lvalue" + what); require(r.isNil() ? r.sgn == 1 : r.n.back() != 0, "canonical sum" + what);
+            expect(a - b, d, "lvalue - lvalue" + what); expect(InfInt(a) + b, s, "temporary + lvalue" + what); expect(InfInt(a) - b, d, "temporary - lvalue" + what);
+            expect(a + InfInt(b), s, "lvalue + temporary" + what); expect(a - InfInt(b), d, "lvalue - temporary" + what);
+            InfInt c = a; c += b; expect(c, s, "+=" + what); c = a; c -= b; expect(c, d, "-=" + what);
+            expect((a + b) + a, oadd(s, a), "(a + b) + a" + what); expect((a - b) - a, oadd(d, -a), "(a - b) - a" + what); expect(a + (b - a), oadd(a, oadd(b, -a)), "a + (b - a)" + what);}}
+    context = "";}
+
 static void multiplication() {
     context = "multiplication";
     using namespace infint_detail;
@@ -186,7 +357,7 @@ static void multiplication() {
     for (int t = 0; t < sz(60, 400); ++t) {
         int na = 1 + ri(full() ? 300 : 60), nb = 1 + ri(full() ? 300 : 60), lo = ri(na + nb), cnt = 1 + ri(na + nb + 2 - lo); bool ones = t % 5 == 0;
         InfInt a = ones ? (InfInt(1) << (64 * na)) - 1 : randBits(64 * na), b = ones ? (InfInt(1) << (64 * nb)) - 1 : randBits(64 * nb);
-        vector<W> x = a.toWords(), y = b.toWords(); x.resize(size_t(na), 0); y.resize(size_t(nb), 0);
+        vector<W> x = wordsOf(a), y = wordsOf(b); x.resize(size_t(na), 0); y.resize(size_t(nb), 0);
         vector<W> r(size_t(cnt), 0); infint_detail::middleProduct(r.data(), x.data(), na, y.data(), nb, lo, cnt);
         InfInt exact = omul(a, b) >> (64 * lo); exact &= (InfInt(1) << (64 * cnt)) - 1;
         InfInt diff = divModEuclid(exact - ofWords(r), InfInt(1) << (64 * cnt)).second;
@@ -197,14 +368,14 @@ static void multiplication() {
             int n = 1 + ri(full() ? 2000 : 200), m = 1 + ri(full() ? 2000 : 200); if (n < m) { std::swap(n, m); }
             bool same = t % 3 == 0, ones = t % 4 == 0;
             InfInt a = ones ? (InfInt(1) << (64 * n)) - 1 : randBits(64 * n), b = same ? a : (ones ? (InfInt(1) << (64 * m)) - 1 : randBits(64 * m)); if (same) { m = n; }
-            vector<W> x = a.toWords(), y = b.toWords(); x.resize(size_t(n), 0); y.resize(size_t(m), 0);
+            vector<W> x = wordsOf(a), y = wordsOf(b); x.resize(size_t(n), 0); y.resize(size_t(m), 0);
             vector<uint> la(size_t(2 * n), 0), lb(size_t(2 * m), 0);
             for (int i = 0; i < n; ++i) { la[size_t(2 * i)] = uint(x[size_t(i)]); la[size_t(2 * i) + 1] = uint(x[size_t(i)] >> 32); }
             for (int i = 0; i < m; ++i) { lb[size_t(2 * i)] = uint(y[size_t(i)]); lb[size_t(2 * i) + 1] = uint(y[size_t(i)] >> 32); }
-            int L = int(std::bit_ceil(uint(2 * (n + m)))); vector<W> lo, hi; const uint *pb = same ? la.data() : lb.data();
-            if (k == 0) { infint_detail::ntt3Cyclic(lo, hi, la.data(), 2 * n, pb, 2 * m, L); }
-            else if (k == 1) { infint_detail::ntt64Cyclic(lo, hi, la.data(), 2 * n, pb, 2 * m, L); }
-            else { infint_detail::fftCyclic(lo, hi, la.data(), 2 * n, pb, 2 * m, L); }
+            int L = int(std::bit_ceil(uint(2 * (n + m)))); vector<W> lo(static_cast<size_t>(L)), hi(static_cast<size_t>(L)); const uint *pb = same ? la.data() : lb.data();
+            if (k == 0) { infint_detail::ntt3Cyclic(lo.data(), hi.data(), la.data(), 2 * n, pb, 2 * m, L); }
+            else if (k == 1) { infint_detail::ntt64Cyclic(lo.data(), hi.data(), la.data(), 2 * n, pb, 2 * m, L); }
+            else { infint_detail::fftCyclic(lo.data(), hi.data(), la.data(), 2 * n, pb, 2 * m, L); }
             vector<W> r(size_t(n + m), 0); ulll carry = 0;
             for (int i = 0; i < n + m; ++i) {
                 ulll c0 = lo[size_t(2 * i)] + (ulll(hi[size_t(2 * i)]) << 64) + carry; W low = uint(c0); carry = c0 >> 32;
@@ -214,11 +385,11 @@ static void multiplication() {
         for (auto [n, m] : {pair{16384, 16384}, pair{32768, 16384}}) {
             context = "double FFT limit " + std::to_string(n) + "x" + std::to_string(m);
             InfInt a = (InfInt(1) << (64 * n)) - 1, b = (InfInt(1) << (64 * m)) - 1;
-            vector<W> x = a.toWords(), y = b.toWords(); vector<uint> la(size_t(2 * n)), lb(size_t(2 * m));
+            vector<W> x = wordsOf(a), y = wordsOf(b); vector<uint> la(size_t(2 * n)), lb(size_t(2 * m));
             for (int i = 0; i < n; ++i) { la[size_t(2 * i)] = uint(x[size_t(i)]); la[size_t(2 * i) + 1] = uint(x[size_t(i)] >> 32); }
             for (int i = 0; i < m; ++i) { lb[size_t(2 * i)] = uint(y[size_t(i)]); lb[size_t(2 * i) + 1] = uint(y[size_t(i)] >> 32); }
-            int len = int(std::bit_ceil(uint(2 * (n + m)))); vector<W> lo, hi;
-            infint_detail::fftCyclic(lo, hi, la.data(), 2 * n, lb.data(), 2 * m, len);
+            int len = int(std::bit_ceil(uint(2 * (n + m)))); vector<W> lo(static_cast<size_t>(len)), hi(static_cast<size_t>(len));
+            infint_detail::fftCyclic(lo.data(), hi.data(), la.data(), 2 * n, lb.data(), 2 * m, len);
             vector<W> r(size_t(n + m)); ulll carry = 0;
             for (int i = 0; i < n + m; ++i) {
                 ulll c0 = lo[size_t(2 * i)] + (ulll(hi[size_t(2 * i)]) << 64) + carry; W low = uint(c0); carry = c0 >> 32;
@@ -267,7 +438,7 @@ static void division() {
                             divNewton(qq.data(), rr.data(), x.data(), nx, y.data(), ny, iv.data()); expect(ofWords(qq), q, "divNewton q"); expect(ofWords(rr), r, "divNewton r");}}}}}}
     context = "newtonRaphsonInv";
     for (int limbs : {1, 2, 3, 4, 7, 8, 33, 64, 65, 100}) {
-        InfInt a = randBits(32 * limbs); a.n.back() |= 0x80000000u; a.trim();
+        InfInt a = randBits(32 * limbs); a.setBit(32 * limbs - 1);
         InfInt inv = newtonRaphsonInv(a), B = InfInt(1) << (64 * limbs);
         require(omul(a, inv) <= B && omul(a, inv + 1) > B, "newtonRaphsonInv floor limbs=" + std::to_string(limbs));}
     context = "hensel";
@@ -283,6 +454,14 @@ static void division() {
         auto [q, r] = divMod(a, InfInt(u)); expect(a / u, q, "div ulng"); expect(a % u, r, "rem ulng"); expect(omul(q, InfInt(u)) + r, a, "scalar identity");
         auto [qs, rs] = divMod(a, InfInt(s)); expect(a / s, qs, "div lng"); expect(a % s, rs, "rem lng");
         int k = 1 + ri(100); InfInt p = InfInt(1) << k; auto [qp, rp] = divMod(a, p); expect(a / (ulng(1) << min(k, 63)), k <= 63 ? qp : InfInt(a) / (ulng(1) << 63), "div power of two"); expect(a % p, rp, "rem power of two");}
+    context = "remWord";
+    for (int t = 0; t < sz(300, 3000); ++t) {
+        int n = 1 + ri(t % 10 == 0 ? 200 : 8); vector<W> a(static_cast<size_t>(n)); for (W &x : a) { x = rng() >> ri(64); } if (t % 7 == 0) { a.back() = 0; }
+        W d = t % 5 == 0 ? rng() | (W(1) << 63) : t % 5 == 1 ? W(1 + ri(16)) : t % 5 == 2 ? (rng() >> ri(64)) | 1 : t % 5 == 3 ? W(1) << ri(64) : ~W(0) - W(ri(3));
+        vector<W> q(static_cast<size_t>(n)); W r = infint_detail::divWord(q.data(), a.data(), n, d); ulll h = 0;
+        for (int i = n - 1; i >= 0; --i) { h = ((h << 64) | a[size_t(i)]) % d; }
+        expect(infint_detail::remWord(a.data(), n, d), r, "remWord equals divWord's remainder, divisor " + std::to_string(d)); expect(r, W(h), "remainder against 128-bit Horner");
+        expect(omul(ofWords(q), InfInt(d)) + InfInt(r), ofWords(a), "divWord identity");}
     context = "rounded division";
     for (int t = 0; t < sz(200, 2000); ++t) {
         InfInt a = randSigned(600), b = randSigned(300); if (b.isNil()) { b = 7; }
@@ -334,7 +513,7 @@ static void modularPower() {
     vector<int> mbits = {2, 31, 32, 33, 63, 64, 65, 127, 128, 129, 200, 500}; if (full()) { mbits.push_back(1030); mbits.push_back(4000); }
     for (int mb : mbits) {
         for (int t = 0; t < sz(3, 6); ++t) {
-            InfInt m = randBits(mb); if (t % 2) { m.n[0] |= 1; } else { m.n[0] &= ~1u; m.trim(); if (m.isNil()) { m = 2; } }
+            InfInt m = randBits(mb); if (t % 2) { m.n[0] |= 1; } else { m.n[0] &= ~W(1); m.trim(); if (m.isNil()) { m = 2; } }
             int eb = t < 3 ? 1 + ri(70) : 1 + ri(full() ? 600 : 200); InfInt e = randBits(eb), a = randSigned(mb + 30);
             context = "powMod modulus bits " + std::to_string(mb) + " exponent bits " + std::to_string(eb);
             expect(powMod(a, e, m), refPow(a, e, m), "windowed power"); expect(powMod(a, e, -m), refPow(a, e, m), "negative modulus");
@@ -344,7 +523,7 @@ static void modularPower() {
             InfInt iv = inv(a, m); if (iv == -1) { expect(powMod(a, -e, m), InfInt(-1), "negative exponent sentinel"); } else { expect(powMod(a, -e, m), refPow(iv, e, m), "negative exponent"); }}}
     if (full()) {
         context = "powMod cached reciprocal";
-        InfInt m = randBits(64 * 800); m.n[0] &= ~1u; InfInt e = randBits(64), a = randSigned(64 * 801);
+        InfInt m = randBits(64 * 800); m.n[0] &= ~W(1); InfInt e = randBits(64), a = randSigned(64 * 801);
         expect(powMod(a, e, m), refPow(a, e, m), "even modulus above NEWTON_DIV words");}
     expect(powMod(InfInt(3), InfInt(-2), InfInt(7)), InfInt(4), "3^-2 mod 7"); expect(powMod(InfInt(0), InfInt(0), InfInt(17)), InfInt(1), "0^0");
     context = "";}
@@ -407,7 +586,7 @@ static void bits() {
     for (int t = 0; t < sz(200, 2000); ++t) {
         int bits = 1 + ri(300); InfInt a = randSigned(bits); const int M = bits + 70; InfInt mag = abs(a);
         vector<bool> model(size_t(M), 0);
-        for (int i = 0; i < M; ++i) { model[size_t(i)] = size_t(i / 32) < mag.n.size() && ((mag.n[size_t(i / 32)] >> (i % 32)) & 1); }
+        for (int i = 0; i < M; ++i) { model[size_t(i)] = i / 64 < mag.n.size() && ((mag.n[i / 64] >> (i % 64)) & 1); }
         int pc = 0; for (int i = 0; i < M; ++i) { pc += model[size_t(i)]; }
         if (a.sgn == -1) { bool carry = true; for (int i = 0; i < M; ++i) { bool v = !model[size_t(i)]; if (carry) { carry = v; v = !v; } model[size_t(i)] = v; } }
         expect(popcount(a), pc, "popcount"); expect(bitLength(a), a.isNil() ? 0 : bitLength(mag), "bitLength");
@@ -423,6 +602,18 @@ static void bits() {
         InfInt c = a; c &= b; expect(c, a & b, "and assign"); c = a; c |= b; expect(c, a | b, "or assign"); c = a; c ^= b; expect(c, a ^ b, "xor assign");
         int s = ri(200); expect((a << s) >> s, a, "shift round trip"); expect(a << s, omul(a, InfInt(1) << s), "shift is product"); expect(a >> s, divModFloor(a, InfInt(1) << s).first, "shift is floor division");}
     context = "";}
+
+// Stream buffer with a 7-byte get area, so token reads cross underflow boundaries.
+struct ChunkBuf : std::streambuf {
+    std::string src; size_t pos = 0; char area[7];
+    explicit ChunkBuf(std::string s) : src(std::move(s)) {}
+    int_type underflow() override {
+        if (gptr() < egptr()) { return traits_type::to_int_type(*gptr()); }
+        if (pos >= src.size()) { return traits_type::eof(); }
+        size_t k = min(sizeof area, src.size() - pos); std::memcpy(area, src.data() + pos, k); pos += k;
+        setg(area, area, area + k);
+        return traits_type::to_int_type(*gptr());}
+};
 
 static void samplingHashStreams() {
     context = "sampling";
@@ -441,6 +632,33 @@ static void samplingHashStreams() {
       std::istringstream flag("ff 17"); flag >> std::hex >> p >> std::dec >> q; require(p == 255 && q == 17, "std::hex input");
       std::ostringstream out; out << InfInt(255) << ' ' << InfInt::SetBase(16) << InfInt(-255) << ' ' << InfInt::SetBase(2) << InfInt(5) << ' ' << InfInt("inf") << ' ' << InfInt::SetBase(10) << std::hex << InfInt(255) << std::dec << ' ' << InfInt(-1); expect(out.str(), std::string("255 -FF 101 inf FF -1"), "stream output");
       std::ostringstream big; InfInt huge = (InfInt(1) << 20000) - 3; big << huge; expect(InfInt(big.str()), huge, "large stream round trip"); }
+    context = "stream tokens";
+    { auto token = [&](int len, uint base) { std::string s(1, InfInt::DIGITS[1 + ri(int(base) - 1)]); while (int(s.size()) < len) { s += InfInt::DIGITS[ri(int(base))]; } return s; };
+      const std::string spaces = " \t\n\v\f\r";
+      for (int len : {1, 6, 7, 8, 14, 15, 4095, 4096, 4097, 8192, 8193, 70000}) {
+          std::string dec = token(len, 10), neg = "-" + token(len, 10), hex = token(len, 16), text;
+          vector<std::string> parts = {dec, neg, hex, "5"};
+          for (size_t i = 0; i < parts.size(); ++i) { text += parts[i]; if (i + 1 < parts.size()) { for (int k = 0, r = 1 + ri(4); k < r; ++k) { text += spaces[size_t(ri(6))]; } } }
+          auto check = [&](std::istream &in, const char *how) {
+              InfInt a, b, c, d; in >> a >> b >> InfInt::SetBase(16) >> c >> InfInt::SetBase(10) >> d;
+              std::string what = std::string(how) + " token length " + std::to_string(len);
+              require(!in.fail() && in.eof(), what + ": stream state (eofbit at the last token, no failbit)");
+              expect(a.toString(), dec, what + " decimal"); expect(b.toString(), neg, what + " negative"); expect(c.toString(16), hex, what + " hex"); expect(d, InfInt(5), what + " last token");};
+          std::istringstream ss(text); check(ss, "istringstream");
+          ChunkBuf cb(text); std::istream cs(&cb); check(cs, "7-byte stream buffer");}
+      for (const char *src : {"", "   ", " \n\t\r\v\f"}) {
+          std::istringstream e(src); InfInt k = 5; e >> k; require(e.fail() && e.eof() && k == 5, "no token: failbit and eofbit, value kept");
+          ChunkBuf cb(src); std::istream ce(&cb); ce >> k; require(ce.fail() && ce.eof() && k == 5, "no token through the 7-byte buffer");}
+      for (const std::string &bad : {std::string("12x 34"), std::string("- 7"), std::string("+"), std::string("0x10"), token(5000, 10) + "g 1", std::string("1-2")}) {
+          std::istringstream m(bad); InfInt k = 5; m >> k; require(m.fail() && k == 5, "malformed token keeps the value: " + bad.substr(0, 40));
+          ChunkBuf cb(bad); std::istream cm(&cb); cm >> k; require(cm.fail() && k == 5, "malformed token through the 7-byte buffer: " + bad.substr(0, 40));}
+      { std::istringstream wd("12345 6"); InfInt x, y, z; wd >> std::setw(3) >> x >> y >> z; require(x == 123 && y == 45 && z == 6 && !wd.fail(), "setw limits one token like a string extraction"); }
+      { std::istringstream in("12 34"); InfInt a, b; in >> a >> b; require(a == 12 && b == 34 && in.eof() && !in.fail(), "token at end of input without a newline");
+        std::istringstream nl("12\n"); nl >> a; require(a == 12 && !nl.eof() && !nl.fail(), "token before a newline leaves eofbit clear"); }
+      { std::ostringstream o; o << std::setw(10) << InfInt(-42) << '|' << std::setfill('*') << std::left << std::setw(8) << InfInt(255) << '|' << std::right << std::setw(6) << std::hex << InfInt(255) << std::dec << '|' << std::setw(2) << InfInt(12345) << '|' << InfInt(7) << '|' << std::setw(5) << InfInt("inf");
+        expect(o.str(), std::string("       -42|255*****|****FF|12345|7|**inf"), "stream width, fill and alignment");
+        InfInt huge = (InfInt(1) << 9000) - 1; std::ostringstream w; w << huge; expect(w.str(), huge.toString(), "stream output without width is the text");
+        std::ostringstream wide; wide << std::setw(3000) << std::setfill('.') << huge; expect(wide.str(), std::string(3000 - huge.toString().size(), '.') + huge.toString(), "stream width wider than a long value"); } }
     context = "";}
 
 static void infinity() {
@@ -482,11 +700,41 @@ template<int N> static void uintType() {
         ulng d = (rng() >> ri(64)) | 1; UInt<N> z = x; ulng rem = z.divWord(d); expect(InfInt(z), wrap(a) / d, "divWord quotient"); expect(InfInt(rem), wrap(a) % d, "divWord remainder");
         require((x <=> y) == (wrap(a) <=> wrap(b)) && (x == y) == (wrap(a) == wrap(b)), "compare");
         expect(bitLength(x), bitLength(wrap(a)), "bitLength"); expect(popcount(x), popcount(wrap(a)), "popcount"); expect(ctz(x), ctz(wrap(a)), "ctz");
-        uint base = 2 + ri(35); expect(x.toString(base), wrap(a).toString(base), "toString"); expect(UInt<N>(x.toString(base), base), x, "string round trip"); expect(ulng(x), ulng(wrap(a)), "low word");
+        uint base = 2 + ri(35); expect(x.toString(base), wrap(a).toString(base), "toString"); expect(x.toString(base, true), lowered(x.toString(base)), "toString lower"); expect(x.toString(base, true), wrap(a).toString(base, true), "toString lower against InfInt"); expect(UInt<N>(x.toString(base), base), x, "string round trip"); expect(ulng(x), ulng(wrap(a)), "low word");
         UInt<N> c = x; c += y; expect(c, x + y, "+="); c = x; c -= y; expect(c, x - y, "-="); c = x; c *= y; expect(c, x * y, "*="); c = x; c /= y; expect(c, x / y, "/="); c = x; c %= y; expect(c, x % y, "%="); c = x; c <<= s; expect(c, x << s, "<<="); c = x; c >>= s; expect(c, x >> s, ">>="); c = x; c &= y; expect(c, x & y, "&="); c = x; c |= y; expect(c, x | y, "|="); c = x; c ^= y; expect(c, x ^ y, "^=");
         c = x; c *= c; expect(c, x * x, "self square"); c = x; c += c; expect(c, x + x, "self add"); c = x; c -= c; expect(InfInt(c), InfInt(0), "self sub");}
     { UInt<N> a = lng(-1); expect(InfInt(a), M - 1, "negative integral"); UInt<N> b = ulll(1) << 70; expect(InfInt(b), N >= 2 ? InfInt(1) << 70 : InfInt(0), "128-bit integral"); UInt<N> c = lll(-5); expect(InfInt(c), M - 5, "negative 128-bit"); UInt<N> d = 7; expect(InfInt(d), InfInt(7), "small"); std::ostringstream o; o << d; expect(o.str(), std::string("7"), "stream"); }
     if constexpr (N == 2) { for (int t = 0; t < sz(300, 3000); ++t) { ulll a = (ulll(rng()) << 64 | rng()) >> ri(128), b = ((ulll(rng()) << 64 | rng()) >> ri(128)) | 1; UInt<2> x = a, y = b; require(ulng(x + y) == ulng(a + b) && ulng((x + y) >> 64) == ulng((a + b) >> 64), "ulll add"); require(ulng(x * y) == ulng(a * b) && ulng((x * y) >> 64) == ulng((a * b) >> 64), "ulll mul"); require(ulng(x / y) == ulng(a / b) && ulng((x / y) >> 64) == ulng((a / b) >> 64), "ulll div"); require(ulng(x % y) == ulng(a % b) && ulng((x % y) >> 64) == ulng((a % b) >> 64), "ulll mod"); } }
+    context = "";}
+
+// UInt<N> stream input: decimal, SetBase(16) and std::hex round trips, negative tokens wrap, the sentinel token fails and keeps the value.
+template<int N> static void uintStreams() {
+    context = "UInt<" + std::to_string(N) + "> streams";
+    for (int t = 0; t < sz(50, 300); ++t) {
+        InfInt v = randSigned(64 * N + 20); UInt<N> e(v), x, y;
+        std::stringstream dec; dec << v << ' ' << -v << '\n' << e; UInt<N> z; dec >> x >> y >> z;
+        require(!dec.fail(), "decimal tokens read"); expect(x, e, "decimal token wraps like UInt(InfInt)"); expect(y, UInt<N>(-v), "negated token wraps"); expect(z, e, "UInt output read back");
+        std::stringstream hs; hs << InfInt::SetBase(16) << v << ' ' << e; hs >> x >> y; require(!hs.fail(), "SetBase(16) tokens read"); expect(x, e, "SetBase(16) token"); expect(y, e, "SetBase(16) UInt round trip");
+        std::stringstream hx; hx << std::hex << v << ' ' << e; hx >> x >> y; require(!hx.fail(), "std::hex tokens read"); expect(x, e, "std::hex token"); expect(y, e, "std::hex UInt round trip");}
+    { std::istringstream in("-1 inf 5 -INF 6 12x 7"); UInt<N> x = 9;
+      in >> x; expect(InfInt(x), (InfInt(1) << (64 * N)) - 1, "-1 wraps to all ones");
+      in >> x; require(in.fail() && InfInt(x) == (InfInt(1) << (64 * N)) - 1, "inf token sets failbit and keeps the value"); in.clear(); in >> x; require(!in.fail() && x == UInt<N>(5), "token after inf");
+      in >> x; require(in.fail() && x == UInt<N>(5), "-INF token"); in.clear(); in >> x; require(x == UInt<N>(6), "token after -INF");
+      in >> x; require(in.fail() && x == UInt<N>(6), "malformed token keeps the value"); in.clear(); in >> x; require(x == UInt<N>(7) && in.eof(), "token after a malformed one");}
+    context = "";}
+
+template<int M, int N> static void uintConvert() {
+    InfInt mod = InfInt(1) << (64 * N);
+    for (int t = 0; t < sz(30, 200); ++t) {
+        InfInt v = t == 0 ? InfInt(-1) : t == 1 ? InfInt(0) : randSigned(64 * max(M, N) + 10);
+        UInt<M> a(v); UInt<N> b(a); InfInt va(a); std::string what = "UInt<" + std::to_string(M) + "> -> UInt<" + std::to_string(N) + ">";
+        expect(b, UInt<N>(va), what + " against UInt<N>(InfInt)");
+        expect(InfInt(b), N >= M ? va : divModEuclid(va, mod).second, what + (N >= M ? " keeps the value" : " is the value modulo 2^(64 N)"));}}
+template<int M> static void uintConvertFrom() { uintConvert<M, 1>(); uintConvert<M, 2>(); uintConvert<M, 4>(); uintConvert<M, 8>(); }
+static void uintConversions() {
+    context = "UInt<M> -> UInt<N>";
+    uintConvertFrom<1>(); uintConvertFrom<2>(); uintConvertFrom<4>(); uintConvertFrom<8>();
+    uintStreams<1>(); uintStreams<2>(); uintStreams<4>();
     context = "";}
 
 static void aliasing() {
@@ -496,9 +744,16 @@ static void aliasing() {
         InfInt c = a; c += c; expect(c, omul(a, InfInt(2)), "a += a"); c = a; c -= c; expect(c, InfInt(0), "a -= a"); c = a; c *= c; expect(c, omul(a, a), "a *= a");
         if (!a.isNil()) { c = a; c /= c; expect(c, InfInt(1), "a /= a"); c = a; c %= c; expect(c, InfInt(0), "a %= a"); }
         c = a; c &= c; expect(c, a, "a &= a"); c = a; c |= c; expect(c, a, "a |= a"); c = a; c ^= c; expect(c, InfInt(0), "a ^= a");
+        { InfInt x("123456789012345678901234567890123"), y(-6); expect(removeFactor(x, x), 1, "removeFactor(x, x) count"); expect(x, InfInt(1), "removeFactor(x, x) rest"); expect(removeFactor(y, y), 1, "removeFactor(y, y) count"); expect(y, InfInt(1), "removeFactor(y, y) rest"); }
         InfInt x, y; expect(exGcd(a, a, x, y), abs(a), "exGcd(a, a)"); expect(gcd(a, a), abs(a), "gcd(a, a)"); if (!a.isNil()) { expect(divMod(a, a), pair<InfInt, InfInt>(1, 0), "divMod(a, a)"); }
         InfInt m = abs(a) + 2; InfInt r = powMod(m, m, m); expect(r, InfInt(0), "powMod(m, m, m)"); require(InfInt(5).read("17") && c.read("x") == false, "read alias");
         c = a; c = c * c; expect(c, omul(a, a), "c = c * c"); c = a; c = c + c; expect(c, a + a, "c = c + c"); c = a; c = -std::move(c); expect(c, -a, "negate moved");
+        { const InfInt b0 = randSigned(t % 25 == 0 ? 64 * 1100 : 300), b = b0.isNil() ? InfInt(3) : b0, big = t % 25 == 0 ? randSigned(64 * 2300) : a;
+          vector<InfInt> vals = {a, b, omul(a, b) + 1, big}; const vector<InfInt> keep = vals;
+          for (auto [i, j] : {pair{0, 1}, {2, 1}, {2, 0}, {1, 1}, {0, 0}, {3, 1}, {3, 3}, {2, 2}}) {
+              const InfInt &num = vals[size_t(i)], &den = vals[size_t(j)]; if (den.isNil()) { continue; }
+              auto [dq, dr] = divMod(num, den); require(omul(dq, den) + dr == num && magCmp(dr, den) < 0 && (dr.isNil() || dr.sgn == num.sgn), "divMod of vector elements " + std::to_string(i) + ", " + std::to_string(j));
+              expect(divModSlow(num, den), pair<InfInt, InfInt>(dq, dr), "divModSlow of vector elements"); require(vals == keep, "divMod leaves its operands unchanged");}}
         std::vector<InfInt> v(3, a); v[1] = v[0] + v[2]; expect(v[1], a + a, "vector elements");}
     context = "";}
 
@@ -539,6 +794,25 @@ static void invalid(const std::string &which) {
     else if (which == "uint-from-inf") { u256 x(inf); (void)x; }
     else if (which == "isprime-inf") { bool r = isProbablePrime(inf); (void)r; }
     else if (which == "tolimbs-inf") { auto r = inf.toLimbs(); (void)r; }
+    else if (which == "tochars-base") { char buf[64]; auto r = a.toChars(buf, buf + 64, 37); (void)r; }
+    else if (which == "charsbound-base") { int r = a.charsBound(1); (void)r; }
+    else if (which == "rshift-negative") { a >>= -1; }
+    else if (which == "setbit-negative") { a.setBit(-1); }
+    else if (which == "clearbit-negative") { a.clearBit(-1); }
+    else if (which == "scan0-negative") { int r = scan0(a, -1); (void)r; }
+    else if (which == "scan1-negative") { int r = scan1(a, -1); (void)r; }
+    else if (which == "not-inf") { InfInt r = ~inf; (void)r; }
+    else if (which == "ctz-inf") { int r = ctz(inf); (void)r; }
+    else if (which == "bitlength-inf") { int r = bitLength(inf); (void)r; }
+    else if (which == "issquare-inf") { bool r = isPerfectSquare(inf); (void)r; }
+    else if (which == "kronecker-inf") { int r = kronecker(inf, a); (void)r; }
+    else if (which == "todigits-inf") { auto d = inf.toDigits(10); (void)d; }
+    else if (which == "root-inf") { auto r = kthRootRem(inf, 3); (void)r; }
+    else if (which == "uint-rshift") { u256 x = 1; x >>= 256; }
+    else if (which == "removefactor-zero") { InfInt x = z; removeFactor(x, a); }
+    else if (which == "uint-ctor-string") { u256 x("12x", 10); (void)x; }
+    else if (which == "bitlength-words") { InfInt x = 1; x.n.setSize(1 << 25); int r = bitLength(x); (void)r; }
+    else if (which == "popcount-words") { InfInt x = 1; x.n.setSize(1 << 25); int r = popcount(x); (void)r; }
     else { fail("unknown invalid case " + which); }
     std::cerr << "precondition case " << which << " did not abort\n";
     std::exit(2);}
@@ -571,6 +845,14 @@ static void protocol() {
             else if (op == "scan0") { out(scan0(a, int(k))); } else if (op == "scan1") { out(scan1(a, int(k))); } else if (op == "tobase") { out(a.toString(uint(k))); }
             else if (op == "todigits") { vector<uint> d = a.toDigits(uint(k)); for (size_t i = 0; i < d.size(); ++i) { std::cout << (i ? " " : "") << d[i]; } }
             else if (op == "muls") { out(a * k); } else { auto [q, r] = divMod(a, InfInt(k)); std::cout << a / k << ' ' << a % k << ' ' << q << ' ' << r; }}
+        else if (op == "addchain") {   // sums of temporaries: (a + b) + c, (a - b) - c, a + (b - c), moved a - b
+            std::cin >> sa >> sb >> sc; InfInt a(sa), b(sb), c(sc), m = a; std::cout << (a + b) + c << ' ' << (a - b) - c << ' ' << a + (b - c) << ' ' << std::move(m) - b;}
+        else if (op == "tochars") {
+            lng b, low; std::cin >> b >> low >> sa; InfInt a(sa); std::string buf(size_t(a.charsBound(uint(b))), '\0');
+            auto [p, ec] = a.toChars(buf.data(), buf.data() + buf.size(), uint(b), low != 0); std::cout << (ec == std::errc() ? std::string(buf.data(), p) : std::string("error")) << ' ' << buf.size();}
+        else if (op == "format") {   // format <value> <spec>: the spec is the rest of the line after one space (it may hold spaces or be empty)
+            std::cin >> sa; std::cin.get(); std::string spec; std::getline(std::cin, spec); InfInt a(sa);
+            try { std::cout << fmt(spec, a); } catch (const std::format_error &) { std::cout << "format_error"; }}
         else if (op == "frombase") { lng b; std::cin >> b >> sa; InfInt a; std::cout << (a.read(sa, uint(b)) ? a.toString() : std::string("invalid")); }
         else if (op == "fromdigits") { lng b, k; std::cin >> b >> k; vector<uint> d(size_t(k), 0); for (uint &x : d) { std::cin >> x; } out(InfInt(d, uint(b))); }
         else if (op == "powmod") { std::cin >> sa >> sb >> sc; out(powMod(InfInt(sa), InfInt(sb), InfInt(sc))); }
@@ -625,9 +907,9 @@ int main(int argc, char **argv) {
     auto phase = [&](const char *name, auto &&f) {
         auto t0 = std::chrono::steady_clock::now(); lng before = checks; f();
         std::cout << "phase " << name << " checks=" << checks - before << " time=" << std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count() << "s\n" << std::flush;};
-    phase("construction", construction); phase("small exhaustive", smallExhaustive); phase("multiplication", multiplication); phase("division", division); phase("gcd", gcdFamily); phase("powMod", modularPower);
+    phase("construction", construction); phase("text output", textOutput); phase("small exhaustive", smallExhaustive); phase("addition", addition); phase("multiplication", multiplication); phase("division", division); phase("gcd", gcdFamily); phase("powMod", modularPower);
     phase("roots", roots); phase("number theory", numberTheory); phase("bits", bits); phase("sampling, hash, streams", samplingHashStreams); phase("infinity", infinity);
-    phase("UInt<1>", uintType<1>); phase("UInt<2>", uintType<2>); phase("UInt<4>", uintType<4>); phase("aliasing", aliasing);
+    phase("UInt<1>", uintType<1>); phase("UInt<2>", uintType<2>); phase("UInt<4>", uintType<4>); phase("UInt conversions and streams", uintConversions); phase("aliasing", aliasing);
     require(otherUnitSum(InfInt("123456789012345678901234567890")) == otherUnitSum(InfInt("123456789012345678901234567890")) && otherUnitSum(InfInt(7)) == 9, "second translation unit");
     double sec = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
     std::cout << "PASS mode=" << mode << " seed=" << seed << " checks=" << checks << " time=" << sec << "s\n";

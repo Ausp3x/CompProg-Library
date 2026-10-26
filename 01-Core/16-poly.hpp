@@ -14,7 +14,7 @@ namespace poly_detail {
     template<typename T> inline constexpr bool is_complex = false;
     template<typename U> inline constexpr bool is_complex<std::complex<U>> = true;
     template<typename T> concept Approx = std::is_floating_point_v<T> || is_complex<T>;
-    template<typename T> concept BigInt = requires(T x) { { x.n } -> std::same_as<vector<uint> &>; { x.sgn } -> std::same_as<int &>; x.trim(); x.isNil(); };
+    template<typename T> concept BigInt = requires(T x) { { x.n.size() } -> std::same_as<int>; { x.n.data() } -> std::same_as<ulng *>; { x.sgn } -> std::same_as<int &>; x.trim(); x.isNil(); };
     template<typename T> concept Ring = std::is_integral_v<T> || BigInt<T>;
     template<typename T> concept Field = !Ring<T>;
     template<typename T> concept Fftable = std::is_same_v<T, double> || std::is_same_v<T, std::complex<double>>;
@@ -526,7 +526,7 @@ namespace poly_detail {
         for (int i = 0; i < 2 * t - 1; ++i) { z1[i] -= z2[i]; res[2 * h + i] += z2[i]; }
         for (int i = 0; i < 2 * t - 1; ++i) { res[h + i] += z1[i]; }}
 
-    // T: O(M(n * (la + lb))) big-integer work for limb counts la, lb; M: O(n * (la + lb)); Kronecker packing with offsets for signs.
+    // T: O(M(n * (la + lb))) big-integer work for word counts la, lb; M: O(n * (la + lb)); Kronecker packing with offsets for signs.
     template<BigInt T> vector<T> kronecker(const vector<T> &a, const vector<T> &b) {
         int n = int(a.size()), m = int(b.size());
         auto limbs = [](const vector<T> &v) { int l = 1; for (const T &x : v) { l = max(l, int(x.n.size())); } return l; };
@@ -534,17 +534,17 @@ namespace poly_detail {
         int la = limbs(a), lb = limbs(b), s = la + lb + 3;
         T ca = power(la), cb = power(lb);
         auto pack = [&](const vector<T> &v, const T &off) {
-            T big; big.n.assign(size_t(s) * v.size(), 0); big.sgn = 1;
+            T big; big.n.assign(s * int(v.size()), 0); big.sgn = 1;
             for (int i = 0; i < int(v.size()); ++i) { T x = v[i] + off; assert(x.sgn == 1 && int(x.n.size()) <= s); std::copy(x.n.begin(), x.n.end(), big.n.begin() + size_t(s) * i); }
             big.trim(); return big;};
-        T prod = pack(a, ca) * pack(b, cb); prod.n.resize(size_t(s) * (n + m - 1), 0);
+        T prod = pack(a, ca) * pack(b, cb); prod.n.resize(s * (n + m - 1), 0);
         vector<T> pa(n + 1), pb(m + 1), res(n + m - 1);
         for (int i = 0; i < n; ++i) { pa[i + 1] = pa[i] + a[i]; }
         for (int i = 0; i < m; ++i) { pb[i + 1] = pb[i] + b[i]; }
         T cc = ca * cb;
         for (int k = 0; k < n + m - 1; ++k) {
             int lo = max(0, k - m + 1), hi = min(k, n - 1);
-            T &r = res[k]; r.n.assign(prod.n.begin() + size_t(s) * k, prod.n.begin() + size_t(s) * (k + 1)); r.sgn = 1; r.trim();
+            T &r = res[k]; r.n.assign(prod.n.data() + s * k, s); r.sgn = 1; r.trim();
             r -= ca * (pb[k - lo + 1] - pb[k - hi]); r -= cb * (pa[hi + 1] - pa[lo]); r -= cc * T(hi - lo + 1);}
         return res;}
     template<typename T> bool fastSpec(int n) {
