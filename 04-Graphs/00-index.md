@@ -57,6 +57,7 @@ Scope: combinatorial graph and tree algorithms over the canonical `Graph`/`CsrGr
 | `44-differenceconstraints.hpp` | differenceConstraints (feasibility, assignment, cycle witness, anchored bounds); minCostPotentials (min-cost-flow dual) | planned; sources: OI, MAS |
 | `45-graph_connectivity.hpp` | edgeConnectivity (pair/global); vertexConnectivity (pair/global, vertex splitting); edgeDisjointPaths; vertexDisjointPaths; mengerCut | planned; sources: OI, CPA, NX |
 | `85-levelancestor.hpp` | LevelAncestor (ladder decomposition, O(1) query): build, query; levelAncestorOffline (batched DFS, O(n+q)) | planned; sources: SUI, AUDIT |
+| `88-tree_path_kth.hpp` | TreePathKth (static rooted forest, one persistent value version per vertex): kth, countLess, countEqual (path u–v) | planned; filed by P030; sources: OI (persistent segment tree), SPOJ COT |
 
 ## Esoteric
 

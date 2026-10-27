@@ -1538,6 +1538,19 @@
       "note": ""
     },
     {
+      "id": "P248",
+      "label": "04-Graphs — tree path kth",
+      "batches": [
+        "GR73"
+      ],
+      "phase": "Contest core",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Filed by P030 (user decision 2026-10-27, 02-Data Structures/Docs/00-notes.md P030 omissions); sources in 02-Data Structures/Docs/00-sources.md (P030 sweep). SPOJ COT was not fetched; read it first."
+    },
+    {
       "id": "P128",
       "label": "03-Geometry — exact predicates",
       "batches": [

@@ -36,7 +36,7 @@ A group is a monoid with `inv(a)`, a two-sided inverse: `op(a, inv(a)) == op(inv
 | `MinMax<T>` | `{mn, mx}` | `mn > mx` | as `Min`/`Max` |
 | `Xor<T>`, `And<T>`, `Or<T>` | `T` | `0`, all ones, `0` | integral `T`; `Xor::inv` is the identity map |
 | `Gcd<T>`, `Lcm<T>` | `T` | `0`, `1` | values `>= 0` (gcd) and `>= 1` with every lcm fitting `T` (lcm); `gcd(0, x) = abs(x)` breaks the identity on negative values |
-| `AffineComposite<T>` | `{a, b}` (`x -> a x + b`) | `{1, 0}` | `op(f, g)` applies `f` first (Library Checker order); `eval(f, x)` |
+| `AffineComposite<T>` | `{a, b}` (`x -> a x + b`) | `{1, 0}` | `op(f, g)` applies `f` first (Library Checker order); `eval(f, x)`; defaulted `operator==` when `T` has one, so row 18 skips copies under the identity action of the affine presets (user decision 2026-10-27, P030) |
 | `AddChminChmax<T>` | `{a, lo, hi}` (`x -> max(min(x + a, hi), lo)`) | `{0, lowest, max}` | composite of add, chmin, chmax and assign (`add`, `chmin`, `chmax`, `assign`, `eval`); values and shifted bounds stay strictly inside (lowest, max), the sentinels |
 | `BitwiseComposite<T = ulng>` | `{a, b}` (`x -> (x & a) ^ b`) | `{~0, 0}` | composite of and, or, xor and assign (`andWith`, `orWith`, `xorWith`, `assign`, `eval`) |
 | `MinIndex<T, Less>`, `MaxIndex<T>` | `{x, i}` | `i = -1` | leftmost extreme under `Less`; `leaf(i, x)` |
@@ -161,3 +161,4 @@ Fetch dates, URLs and failed fetches: [00-sources.md](00-sources.md) (2026-10-08
 - 2026-10-17: P027 monoid pass: stored-object contract, regular preset names, 26 plain presets, 8 adapters and 8 new acted presets after catalog and problem sweeps; independent review, 9 findings fixed.
 - 2026-10-18: own row 00 (split from row 12), with its own tester and evidence, the monoid rule in `03-cpp.md` and an explicit comment-cap exemption; full (seed 20261018) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1377/1400/1376 MB.
 - 2026-10-23: P035 (the user's yes to editing this row): `inv` on `Sum` and `Xor`, the group contract, inverse checks in `plain` and at the domain edges in `contract` (added after the P035 independent review); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1371/1387/1370 MB.
+- 2026-10-27: P030 (user decision 2026-10-27 to edit this row): defaulted `operator==` on `AffineComposite<T>::S`; full (seed 20261027) on g++ and g++-14 passed for rows 00 and 12, MEMORY peak 1366/1384 MB (row 00) and 678/716 MB (row 12).

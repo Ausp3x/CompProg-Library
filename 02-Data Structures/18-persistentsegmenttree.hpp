@@ -8,8 +8,8 @@ namespace persistentsegmenttree_detail {
     template<typename A> requires requires { typename A::F; } struct Action<A> { using type = typename A::F; };
 } // namespace persistentsegmenttree_detail
 
-// Positions in [0, n) for any n >= 0; A is a monoid or an acted monoid; versions are dense ids from 0 and untouched positions hold e(); COMMUTATIVE keeps tags in place on apply and needs commuting actions.
-// S: O(1) empty, O(log(n)^2) filled, O(n) from a vector; U: O(log(n)), merge O(k) for k positions of tree nodes present in both versions; Q: O(log(n)); M: O(n + q * log(n) + K) for q updates and merges of total cost K
+// Positions in [0, n) for any n >= 0; A is a monoid or an acted monoid; versions are dense ids from 0 and the empty build holds e(); COMMUTATIVE keeps tags in place on apply and needs commuting actions.
+// S: O(1) empty, O(log(n)^2) filled, O(|v|) from a vector v; U: O(log(n)), merge O(k) for k positions of tree nodes present in both versions; Q: O(log(n)); M: O(|v| + log(n) + q * log(n) + K) for q updates and merges of total cost K
 template<typename A, bool COMMUTATIVE = false>
 struct PersistentSegmentTree {
     using S = typename A::S;
@@ -40,6 +40,7 @@ struct PersistentSegmentTree {
             return node(id(), lc, build(build, mid, b));};
         if (n) { roots[0] = build(build, 0, n); }}
     void reserve(int nodes) { t.reserve(size_t(nodes) + 1); }
+    void reset() { t.erase(t.begin() + 1, t.end()); roots.assign(1, 0); }
     S map(const F &f, const S &x) const { if constexpr (LAZY) { return m.mapping(f, x); } return x; }
     F comp(const F &f, const F &g) const { if constexpr (LAZY) { return m.composition(f, g); } return f; }
     F id() const { if constexpr (LAZY) { return m.id(); } return {}; }
@@ -99,9 +100,10 @@ struct PersistentSegmentTree {
         lng mid = std::midpoint(a, b);
         int lc = act(t[k].l, h, a, mid, l, r, f), rc = act(t[k].r, h, mid, b, l, r, f);
         return node(COMMUTATIVE ? t[k].f : id(), lc, rc);}
-    int copyRange(int v, int w, lng l, lng r) {
+    int copyRange(int v, int w, lng l, lng r) { return copyRange(v, w, l, r, id()); }
+    int copyRange(int v, int w, lng l, lng r, const F &f) {
         assert(0 <= v && v < versionCount() && 0 <= w && w < versionCount() && 0 <= l && l <= r && r <= n);
-        return commit(l < r ? copy(roots[v], id(), roots[w], id(), 0, n, l, r) : roots[v]);}
+        return commit(l < r ? copy(roots[v], id(), roots[w], f, 0, n, l, r) : roots[v]);}
     int copy(int k, const F &g, int j, const F &h, lng a, lng b, lng l, lng r) {
         if (r <= a || b <= l) { return tagged(k, g); }
         if (l <= a && b <= r) { return tagged(j, h); }
@@ -176,6 +178,7 @@ struct PersistentDualSegmentTree {
 
     explicit PersistentDualSegmentTree(lng N = 0, A mon = {}) : m(std::move(mon)), n(max(N, lng(0))), t{{m.id(), 0, 0}}, roots{0} { assert(N >= 0); }
     void reserve(int nodes) { t.reserve(size_t(nodes) + 1); }
+    void reset() { t.erase(t.begin() + 1, t.end()); roots.assign(1, 0); }
     int make(const F &f, int l, int r) { t.push_back({f, l, r}); return int(t.size()) - 1; }
     int tagged(int k, const F &f) {
         if constexpr (std::equality_comparable<F>) { if (f == m.id()) { return k; }}
@@ -193,6 +196,17 @@ struct PersistentDualSegmentTree {
             if (i < mid) { k = t[k].l; b = mid; }
             else { k = t[k].r; a = mid; }}
         return res;}
+    // T: O(n), M: O(n)
+    vector<F> toVector(int v) const {
+        assert(0 <= v && v < versionCount());
+        vector<F> res(n, m.id());
+        auto dfs = [&](auto &&dfs, int k, const F &g, lng a, lng b) -> void {
+            F h = m.composition(g, t[k].f);
+            if (!k || b - a == 1) { fill(res.begin() + a, res.begin() + b, h); return; }
+            lng mid = std::midpoint(a, b);
+            dfs(dfs, t[k].l, h, a, mid); dfs(dfs, t[k].r, h, mid, b);};
+        if (n) { dfs(dfs, roots[v], m.id(), 0, n); }
+        return res;}
 
     int apply(int v, lng l, lng r, const F &f) {
         assert(0 <= v && v < versionCount() && 0 <= l && l <= r && r <= n);
@@ -207,7 +221,7 @@ struct PersistentDualSegmentTree {
         return make(COMMUTATIVE ? t[k].f : m.id(), lc, rc);}
 };
 
-// 0 <= n < 2^31; T has operator< (a strict weak order); W is an additive group with W() as zero; k-th counts from 0 in (value, index) order; maxLeq and minGeq return false when no value qualifies.
+// n * (ceil(log2(n)) + 1) < 2^31 (int node ids); T has operator< (a strict weak order); W is an additive group with W() as zero; k-th counts from 0 in (value, index) order; maxLeq and minGeq return false when no value qualifies.
 // S: O(n * log(n)), U: NA, Q: O(log(n)), M: O(n * log(n))
 template<typename T, typename W = lng>
 struct PersistentValueTree {
@@ -255,9 +269,12 @@ struct PersistentValueTree {
             k -= c; kl = t[kl].r; kr = t[kr].r; a = mid;}
         return a;}
 
+    int countLess(int l, int r, const T &x) const { assert(0 <= l && l <= r && r <= n); return below(l, r, lowerRank(x)); }
     int countEqual(int l, int r, const T &x) const { assert(0 <= l && l <= r && r <= n); return below(l, r, upperRank(x)) - below(l, r, lowerRank(x)); }
     int countRange(int l, int r, const T &lo, const T &hi) const { assert(0 <= l && l <= r && r <= n); return lo < hi ? below(l, r, lowerRank(hi)) - below(l, r, lowerRank(lo)) : 0; }
     T rangeKth(int l, int r, int k) const { assert(0 <= l && l <= r && r <= n && 0 <= k && k < r - l); return vals[leaf(l, r, k)]; }
+    T kthMax(int l, int r, int k) const { assert(0 <= l && l <= r && r <= n && 0 <= k && k < r - l); return vals[leaf(l, r, r - l - 1 - k)]; }
+    W sumLess(int l, int r, const T &x) const { return kthSum(l, r, countLess(l, r, x)); }
     W kthSum(int l, int r, int k) const {
         assert(0 <= l && l <= r && r <= n && 0 <= k && k <= r - l && s.size() == t.size());
         if (k == r - l) { return s[roots[r]] - s[roots[l]]; }
@@ -278,7 +295,7 @@ struct PersistentValueTree {
         return true;}
 };
 
-// 0 <= n < 2^31; T has operator< (a strict weak order whose equivalence is equality).
+// n * (ceil(log2(n)) + 1) < 2^31 (int node ids); T has operator< (a strict weak order whose equivalence is equality).
 // S: O(n * log(n)), U: NA, Q: O(log(n)), M: O(n * log(n))
 template<typename T>
 struct PersistentDistinctCount {

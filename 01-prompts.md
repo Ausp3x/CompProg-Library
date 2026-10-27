@@ -132,6 +132,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P078 — MI27** (opus, L): 06-Miscellaneous — heuristic optimization. Status: planned.
 - [ ] **P070 — MI09** (opus, XL): 06-Miscellaneous — satsolver. Status: planned.
 - [ ] **P041 — GE32** (opus, XL): 03-Geometry — point set queries. Status: planned.
+- [ ] **P248 — GR73** (opus, M): 04-Graphs — tree path kth. Status: planned. Note: Filed by P030 (user decision 2026-10-27, 02-Data Structures/Docs/00-notes.md P030 omissions); sources in 02-Data Structures/Docs/00-sources.md (P030 sweep). SPOJ COT was not fetched; read it first.
 - [ ] **P128 — GE11** (opus, XL): 03-Geometry — exact predicates. Status: planned.
 - [ ] **P130 — GE26** (opus, XL): 03-Geometry — polygontriangulation. Status: planned.
 - [ ] **P129 — GE04** (opus, XL): 03-Geometry — segmentintersection. Status: planned.

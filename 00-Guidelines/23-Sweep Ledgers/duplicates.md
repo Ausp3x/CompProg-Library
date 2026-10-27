@@ -49,9 +49,11 @@ Items a reader could mistake for duplicates.
 | P019 | `InfIntMini` `explicit operator bool` beside `isNil` | As P018 (decided 2026-10-17) |
 | P019 | `Rational` `toDouble` beside `toLongDouble`; `read`, `toString` beside `>>`, `<<` | Each conversion rounds the exact value once to its own precision; base 2–36, status and decimal input (decided 2026-10-17) |
 | P023 | `steadyState` | Only form; fixed-iteration power method, kept beside the planned converged solver |
-| P030 | `PersistentSegmentTree` over a plain monoid beside row 13 `DynamicSegmentTree<M, true>` and row 35 `PersistentArray` | Decided 2026-10-27: version ids, vector and fill builds, `copyRange`, functional `split`/`merge`, and the binary tree's time and memory tradeoff |
-| P030 | `PersistentValueTree` beside rows 16 `MergeSortTree` and 17 `WaveletMatrix` | Decided 2026-10-27: a different algorithm whose prefix versions can be combined |
-| P030 | `PersistentDistinctCount` beside row 32 `staticRangeCountDistinct` | Decided 2026-10-27: online, where row 32 is offline |
+| P030 | `PersistentSegmentTree` over a plain monoid beside row 13 `DynamicSegmentTree<M, true>` and row 35 `PersistentArray` | Decided by the user 2026-10-27: version ids, vector and fill builds, `copyRange`, functional `split`/`merge`, and the binary tree's time and memory tradeoff |
+| P030 | `PersistentValueTree` beside rows 16 `MergeSortTree` and 17 `WaveletMatrix` | Decided by the user 2026-10-27: a different algorithm whose prefix versions can be combined |
+| P030 | `PersistentDistinctCount` beside row 32 `staticRangeCountDistinct` | Decided by the user 2026-10-27: online, where row 32 is offline |
+| P030 | `PersistentSegmentTree::copyRange(v, w, l, r)` beside `copyRange(v, w, l, r, f)` | One operation with an optional action, spelled as an overload because the default `id()` needs the stored monoid; user decision 2026-10-27 |
+| P030 | `PersistentValueTree` `kthMax`, `sumLess`, `countLess`; `reset` on both segment trees | Decided by the user 2026-10-27: `kthMax` as row 17 keeps it, `sumLess` and `countLess` need no least value of `T` (`countRange` does), `reset` reuses the pool's capacity |
 | P052 | `factorizeTrial`, `isPrimeTrial`, `inversePierce`, `inverseFermat` | Different algorithms |
 | P052 | `inverseBatch`; `primality_detail::splitmix` | Larger domain (every modular type); internal helper |
 | P081 | unit-cost `hirschberg(a, b)` | Named special case (unit-cost alignment) |

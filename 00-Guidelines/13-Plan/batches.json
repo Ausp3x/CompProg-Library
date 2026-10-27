@@ -6746,6 +6746,24 @@
       "focus": "Run the `96-Local Testing/01-run.py` suites and the `02-integration.py` builds in parallel across the cores (16 locally, about 13 GB free on 2026-10-24): bounded jobs inside the memory cap, a recorded reason for any raised cap (`05-testing.md`, Memory safety), results and failure artifacts identical to a sequential run, and `ccache` when installed. Measure before and after; the last sequential integration build took 304 s, and `--sanitizers` 737 s in total (2026-10-19). P224 keeps the end-of-plan audit.",
       "prerequisites": [],
       "tiers": []
+    },
+    {
+      "id": "GR73",
+      "folder": "04-Graphs",
+      "targets": [
+        "04-Graphs/88-tree_path_kth.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "k-th smallest and value counts on a tree path (SPOJ COT): one persistent value version per vertex built along a DFS, four versions (u, v, lca, parent(lca)) combined in one descent; reuse the row 18 value-tree layout and the LCA of `07-lca.hpp`.",
+      "prerequisites": [
+        "C01",
+        "GR03",
+        "DS23"
+      ],
+      "tiers": [
+        "Advanced"
+      ]
     }
   ]
 }

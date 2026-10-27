@@ -162,6 +162,34 @@ namespace {
         bool bounded(K) const { return true; }
     };
 
+    // Affine maps mod P on (sum, len) whose F has no operator==, so tagged always copies.
+    struct AffineNoEq {
+        struct S { lng sum, len; };
+        struct F { lng a, b; };
+        static S op(const S &x, const S &y) { return {(x.sum + y.sum) % P, x.len + y.len}; }
+        static S e() { return {0, 0}; }
+        static S mapping(const F &f, const S &x) { return {lng((lll(f.a) * x.sum + lll(f.b) * x.len) % P), x.len}; }
+        static F composition(const F &f, const F &g) { return {f.a * g.a % P, (f.a * g.b + f.b) % P}; }
+        static F id() { return {1, 0}; }
+    };
+    static_assert(!std::equality_comparable<AffineNoEq::F> && std::equality_comparable<AffineSumSpec::A::F>);
+    struct NoEqSpec {
+        using A = AffineNoEq;
+        using K = pair<lng, lng>;
+        A mon() const { return {}; }
+        K e() const { return {0, 0}; }
+        K op(const K &x, const K &y) const { return {(x.first + y.first) % P, x.second + y.second}; }
+        K leaf(Rng &rng) const { return {rnd(rng, 0, P - 1), 1}; }
+        A::S val(const K &k) const { return {k.first, k.second}; }
+        K key(const A::S &s) const { return {s.sum, s.len}; }
+        K digest(const K &k) const { return k; }
+        A::F action(Rng &rng) const { return rng() % 4 ? A::F{rnd(rng, 0, P - 1), rnd(rng, 0, P - 1)} : A::F{1, 0}; }
+        K map(const A::F &f, const K &k) const { return {lng((lll(f.a) * k.first + lll(f.b) * (k.second % P)) % P), k.second}; }
+        bool ok(const K &k, lng th) const { return k.second <= th; }
+        lng threshold(Rng &rng) const { return rng() % 3 ? rnd(rng, 0, 12) : rnd(rng, 0, INF); }
+        bool bounded(const K &k) const { return k.second <= 1000; }
+    };
+
     // Brute force: a full copy of the array per version.
     template<typename Spec>
     struct VecOracle {
@@ -190,6 +218,11 @@ namespace {
             auto a = ver[v];
             for (lng i = l; i < r; ++i) { a[i] = ver[w][i]; }
             ver.push_back(std::move(a));}
+        template<typename F> void copy(int v, int w, lng l, lng r, const F &f) {
+            auto a = ver[v];
+            for (lng i = l; i < r; ++i) { a[i] = sp.map(f, ver[w][i]); }
+            ver.push_back(std::move(a));}
+        void reset() { ver.assign(1, vector<K>(size_t(n), sp.e())); }
         void split(int v, lng i) {
             vector<K> x(size_t(n), sp.e()), y(size_t(n), sp.e());
             for (lng j = 0; j < n; ++j) { (j < i ? x : y)[j] = ver[v][j]; }
@@ -262,6 +295,14 @@ namespace {
             for (auto it = y.lower_bound(l); it != y.end() && it->first < r; ++it) { x.insert(*it); }
             return x;}
         void copy(int v, int w, lng l, lng r) { ver.push_back(splice(ver[v], ver[w], l, r)); }
+        template<typename F> void copy(int v, int w, lng l, lng r, const F &f) {
+            Map m = ver[w];
+            cut(m, l); cut(m, r);
+            for (auto it = m.lower_bound(l); it != m.end() && it->first < r; ++it) { it->second = sp.map(f, it->second); }
+            ver.push_back(splice(ver[v], m, l, r));}
+        void reset() {
+            ver.assign(1, Map());
+            if (n) { ver[0][0] = sp.e(); }}
         void split(int v, lng i) {
             Map z;
             if (n) { z[0] = sp.e(); }
@@ -354,6 +395,7 @@ namespace {
                 auto [l, r] = pts.range();
                 if (c == 0) { auto x = sp.leaf(rng); a.set(v, i, x); b.set(v, i, x); }
                 else if (c == 1) { auto f = sp.action(rng); a.apply(v, l, r, f); b.apply(v, l, r, f); }
+                else if (c == 2 && rng() % 2) { auto f = sp.action(rng); a.copy(v, w, l, r, f); b.copy(v, w, l, r, f); }
                 else if (c == 2) { a.copy(v, w, l, r); b.copy(v, w, l, r); }
                 else if (c == 3) { a.split(v, j); b.split(v, j); }
                 else if (a.bounded(v) && a.bounded(w)) { a.merge(v, w); b.merge(v, w); }
@@ -422,52 +464,77 @@ namespace {
                     lng i = pts(n - 1);
                     checkEqual(sp.key(t.get(v, i)), sp.digest(o.get(v, i)), [&] { return at + " get(" + show(v) + "," + show(i) + ")"; });}
                 searches(v, l, r, at);}};
-        verify(0, true, "initial");
-        for (int step = 0; step < steps; ++step) {
-            int vc = t.versionCount(), v = rng() % 2 ? vc - 1 : pick(rng, 0, vc - 1), w = rng() % 6 ? pick(rng, 0, vc - 1) : v, before = t.nodeCount(), made = 1, c = int(rng() % 10);
-            auto [l, r] = pts.range();
-            lng i = n ? pts(n - 1) : 0, bound = 4 * h;
-            string at = "step=" + show(step), what;
-            if (c >= 7) { verify(v, false, at + " query"); continue; }
-            if (c == 6 && !(merges && o.bounded(v) && o.bounded(w))) { c = 4; }
-            if (n == 0 && c <= 3) { c = rng() % 2 && LAZY ? 2 : 4; }
-            if (c <= 1 || (c <= 3 && !LAZY)) {
-                K x = sp.leaf(rng);
-                if (rng() % 4 == 0 && n <= INT_MAX && sp.bounded(o.prod(w, l, r))) { x = o.prod(w, l, r); }
-                what = "set(" + show(v) + "," + show(i) + ")";
-                checkEqual(t.set(v, i, sp.val(x)), vc, [&] { return at + " " + what + " id"; });
-                o.set(v, i, x);
-                bound = 2 * h;}
-            else if (c <= 3) {
-                if constexpr (LAZY) {
-                    auto f = sp.action(rng);
-                    what = "apply(" + show(v) + "," + show(l) + "," + show(r) + ")";
-                    checkEqual(t.apply(v, l, r, f), vc, [&] { return at + " " + what + " id"; });
-                    o.apply(v, l, r, f);}}
-            else if (c == 4) {
-                what = "copyRange(" + show(v) + "," + show(w) + "," + show(l) + "," + show(r) + ")";
-                checkEqual(t.copyRange(v, w, l, r), vc, [&] { return at + " " + what + " id"; });
-                o.copy(v, w, l, r);}
-            else if (c == 5) {
-                lng j = pts(n);
-                what = "split(" + show(v) + "," + show(j) + ")";
-                checkEqual(t.split(v, j), pair(vc, vc + 1), [&] { return at + " " + what + " ids"; });
-                o.split(v, j);
-                made = 2;
-                bound = 8 * h;}
-            else {
-                what = "merge(" + show(v) + "," + show(w) + ")";
-                checkEqual(t.merge(v, w), vc, [&] { return at + " " + what + " id"; });
-                o.merge(v, w);
-                bound = INF;}
-            context = base + " last=" + what;
-            checkEqual(t.versionCount(), vc + made, [&] { return at + " " + what + " versionCount"; });
-            checkEqual(o.count(), vc + made, [&] { return at + " oracle versions"; });
-            checkEqual(t.nodeCount() - before <= bound, true, [&] { return at + " " + what + " new nodes " + show(t.nodeCount() - before) + " <= " + show(bound); });
-            for (int k = vc; k < vc + made; ++k) { verify(k, true, at + " " + what); }
-            verify(pick(rng, 0, vc - 1), false, at + " older");}
-        context = base;
-        for (int k = 0; k < t.versionCount(); ++k) { verify(k, true, "final"); }}
+        // Tree positions holding a node in version v; meld makes at most one node per position present in both, plus one tagged copy per child of those.
+        auto present = [&](int v) {
+            lng res = 0;
+            auto dfs = [&](auto &&dfs, int k) -> void {
+                if (!k) { return; }
+                ++res;
+                dfs(dfs, t.t[k].l); dfs(dfs, t.t[k].r);};
+            dfs(dfs, t.roots[v]);
+            return res;};
+        auto run = [&](int q, const string &phase) {
+            verify(0, true, phase + " initial");
+            for (int step = 0; step < q; ++step) {
+                int vc = t.versionCount(), v = rng() % 2 ? vc - 1 : pick(rng, 0, vc - 1), w = rng() % 6 ? pick(rng, 0, vc - 1) : v, before = t.nodeCount(), made = 1, c = int(rng() % 10);
+                auto [l, r] = pts.range();
+                lng i = n ? pts(n - 1) : 0, bound = 4 * h;
+                string at = phase + " step=" + show(step), what;
+                if (c >= 7) { verify(v, false, at + " query"); continue; }
+                if (c == 6 && !(merges && o.bounded(v) && o.bounded(w))) { c = 4; }
+                if (n == 0 && c <= 3) { c = rng() % 2 && LAZY ? 2 : 4; }
+                if (c <= 1 || (c <= 3 && !LAZY)) {
+                    K x = sp.leaf(rng);
+                    if (rng() % 4 == 0 && n <= INT_MAX && sp.bounded(o.prod(w, l, r))) { x = o.prod(w, l, r); }
+                    what = "set(" + show(v) + "," + show(i) + ")";
+                    checkEqual(t.set(v, i, sp.val(x)), vc, [&] { return at + " " + what + " id"; });
+                    o.set(v, i, x);
+                    bound = 2 * h;}
+                else if (c <= 3) {
+                    if constexpr (LAZY) {
+                        auto f = sp.action(rng);
+                        what = "apply(" + show(v) + "," + show(l) + "," + show(r) + ")";
+                        checkEqual(t.apply(v, l, r, f), vc, [&] { return at + " " + what + " id"; });
+                        o.apply(v, l, r, f);}}
+                else if (c == 4) {
+                    int form = LAZY ? int(rng() % 3) : 0;
+                    what = "copyRange(" + show(v) + "," + show(w) + "," + show(l) + "," + show(r) + array<string, 3>{"", ",id()", ",f"}[form] + ")";
+                    if (form == 0) {
+                        checkEqual(t.copyRange(v, w, l, r), vc, [&] { return at + " " + what + " id"; });
+                        o.copy(v, w, l, r);}
+                    else if constexpr (LAZY) {
+                        auto f = form == 1 ? t.id() : sp.action(rng);
+                        checkEqual(t.copyRange(v, w, l, r, f), vc, [&] { return at + " " + what + " id"; });
+                        o.copy(v, w, l, r, f);}}
+                else if (c == 5) {
+                    lng j = pts(n);
+                    what = "split(" + show(v) + "," + show(j) + ")";
+                    checkEqual(t.split(v, j), pair(vc, vc + 1), [&] { return at + " " + what + " ids"; });
+                    o.split(v, j);
+                    made = 2;
+                    bound = 8 * h;}
+                else {
+                    what = "merge(" + show(v) + "," + show(w) + ")";
+                    bound = 3 * min(present(v), present(w)) + 1;
+                    checkEqual(t.merge(v, w), vc, [&] { return at + " " + what + " id"; });
+                    o.merge(v, w);}
+                context = base + " last=" + what;
+                checkEqual(t.versionCount(), vc + made, [&] { return at + " " + what + " versionCount"; });
+                checkEqual(o.count(), vc + made, [&] { return at + " oracle versions"; });
+                checkEqual(t.nodeCount() - before <= bound, true, [&] { return at + " " + what + " new nodes " + show(t.nodeCount() - before) + " <= " + show(bound); });
+                for (int k = vc; k < vc + made; ++k) { verify(k, true, at + " " + what); }
+                verify(pick(rng, 0, vc - 1), false, at + " older");}
+            context = base;
+            for (int k = 0; k < t.versionCount(); ++k) { verify(k, true, phase + " final"); }};
+        run(steps, "first");
+        size_t cap = t.t.capacity();
+        t.reset();
+        o.reset();
+        context = base + " after reset";
+        checkEqual(t.nodeCount(), 0, "reset nodeCount");
+        checkEqual(t.versionCount(), 1, "reset versionCount");
+        checkEqual(t.t.capacity() >= cap, true, "reset keeps the pool capacity");
+        run(steps / 2, "after reset");}
 
     // apply over never-set positions of an empty tree keeps them e() and allocates nothing.
     template<bool COMM, typename Spec>
@@ -497,7 +564,7 @@ namespace {
         if (mode != "quick") { ns = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 31, 32, 33, 64, 100}; }
         if (mode == "stress") {
             for (int k = 0; k < 6; ++k) { ns.push_back(pick(rng, 1, 200)); }}
-        int steps = scale(30, 100, 260), round = 0;
+        int steps = scale(30, 100, 200), round = 0;
         auto hash = [&]() {
             lng mod = array<lng, 4>{2, 97, 998244353, 1000000007}[round++ % 4];
             return HashSpec{mod, rnd(rng, 1, mod - 1)};};
@@ -506,6 +573,7 @@ namespace {
             history<true, VecOracle>(rng, SumSpec{}, n, init, q, merges, tag + "Sum<lng>");
             history<false, VecOracle>(rng, AffSpec{}, n, init, q, merges, tag + "PairMonoid<AffineComposite<mint>,Sum<lng>>");
             history<false, VecOracle>(rng, AffineSumSpec{}, n, init, q, merges, tag + "RangeAffineRangeSum<mint>");
+            history<false, VecOracle>(rng, NoEqSpec{}, n, init, q, merges, tag + "AffineNoEq (F without ==)");
             history<false, VecOracle>(rng, hash(), n, init, q, merges, tag + "stateful HashAffine");
             history<false, VecOracle>(rng, AddSumSpec{}, n, init, q, merges, tag + "RangeAddRangeSum<lng>");
             history<true, VecOracle>(rng, AddSumSpec{}, n, init, q, merges, tag + "RangeAddRangeSum<lng>");
@@ -513,19 +581,33 @@ namespace {
             history<true, VecOracle>(rng, AddMinSpec{}, n, init, q, merges, tag + "RangeAddRangeMin<lng>");};
         for (int n : ns) {
             for (int init = 0; init < 3; ++init) { all(n, init, steps, true, ""); }}
-        std::cout << "PASS PersistentSegmentTree small n (" << ns.size() << " sizes x 3 builds x 9 configurations, " << steps << " steps each)\n";
+        std::cout << "PASS PersistentSegmentTree small n (" << ns.size() << " sizes x 3 builds x 10 configurations, " << steps << " steps each)\n";
         int medium = scale(200, 1000, 1500);
         for (int init = 0; init < 3; ++init) { all(medium, init, scale(15, 60, 100), true, "medium "); }
         std::cout << "PASS PersistentSegmentTree n=" << medium << "\n";
         for (lng n : {lng(1), lng(5), lng(64), lng(INT_MAX), INF}) {
             nullNodes<false>(rng, AffineSumSpec{}, n, "RangeAffineRangeSum<mint>");
+            nullNodes<false>(rng, NoEqSpec{}, n, "AffineNoEq");
             nullNodes<false>(rng, hash(), n, "stateful HashAffine");
             nullNodes<false>(rng, AddSumSpec{}, n, "RangeAddRangeSum<lng>");
             nullNodes<true>(rng, AddSumSpec{}, n, "RangeAddRangeSum<lng>");
             nullNodes<true>(rng, AddMinSpec{}, n, "RangeAddRangeMin<lng>");}
         std::cout << "PASS PersistentSegmentTree null nodes stay e() under apply\n";
+        // operator== on AffineComposite lets apply(id()) reuse every untouched subtree: at most 2 new nodes per level.
+        for (int n : {1, 2, 7, 64, 1000}) {
+            using A = RangeAffineRangeSum<mint>;
+            PersistentSegmentTree<A> t(vector<A::S>(n, A::S{mint(1), mint(1)}));
+            int h = std::bit_width(unsigned(n)) + 1;
+            for (int step = 0; step < 20; ++step) {
+                lng l = rnd(rng, 0, n), r = rnd(rng, 0, n);
+                if (l > r) { swap(l, r); }
+                int before = t.nodeCount(), v = t.apply(int(rng() % unsigned(t.versionCount())), l, r, A::id());
+                checkEqual(t.nodeCount() - before <= 2 * h, true, [&] { return "identity apply n=" + show(n) + " new nodes " + show(t.nodeCount() - before); });
+                checkEqual(lng(t.allProd(v).sum.val()), lng(n), "identity apply keeps values");}}
+        std::cout << "PASS PersistentSegmentTree identity apply reuses subtrees (AffineComposite operator==)\n";
         oracleCrossCheck(rng, AddSumSpec{}, "RangeAddRangeSum<lng>");
         oracleCrossCheck(rng, AffineSumSpec{}, "RangeAffineRangeSum<mint>");
+        oracleCrossCheck(rng, NoEqSpec{}, "AffineNoEq");
         oracleCrossCheck(rng, AddMinSpec{}, "RangeAddRangeMin<lng>");
         int large = scale(25, 120, 600);
         vector<lng> huge{INT_MAX, INF};
@@ -538,6 +620,8 @@ namespace {
             history<false, PieceOracle>(rng, AffSpec{}, n, 0, large, true, "large PairMonoid<AffineComposite<mint>,Sum<lng>>");
             history<false, PieceOracle>(rng, AffSpec{}, n, 1, large, false, "large PairMonoid<AffineComposite<mint>,Sum<lng>>");
             history<false, PieceOracle>(rng, AffineSumSpec{}, n, 0, large, true, "large RangeAffineRangeSum<mint>");
+            history<false, PieceOracle>(rng, NoEqSpec{}, n, 0, large, true, "large AffineNoEq");
+            history<false, PieceOracle>(rng, NoEqSpec{}, n, 1, large, false, "large AffineNoEq");
             history<false, PieceOracle>(rng, AddSumSpec{}, n, 0, large, true, "large RangeAddRangeSum<lng>");
             history<true, PieceOracle>(rng, AddSumSpec{}, n, 0, large, true, "large RangeAddRangeSum<lng>");
             if (sums) { history<false, PieceOracle>(rng, AddSumSpec{}, n, 1, large, false, "large RangeAddRangeSum<lng>"); }
@@ -556,6 +640,15 @@ namespace {
         A::F action(Rng &rng) const { return rng() % 5 ? A::F{mint(rnd(rng, 0, P - 1)), mint(rnd(rng, 0, P - 1))} : A::F{mint(1), mint(0)}; }
         K key(const A::F &f) const { return {lng(f.a.val()), lng(f.b.val())}; }
         K map(const A::F &f, const K &g) const { auto [a, b] = key(f); return {a * g.first % P, (a * g.second + b) % P}; }
+    };
+    struct DualNoEqSpec {
+        using A = AffineNoEq;
+        using K = pair<lng, lng>;
+        A mon() const { return {}; }
+        K e() const { return {1, 0}; }
+        A::F action(Rng &rng) const { return rng() % 5 ? A::F{rnd(rng, 0, P - 1), rnd(rng, 0, P - 1)} : A::F{1, 0}; }
+        K key(const A::F &f) const { return {f.a, f.b}; }
+        K map(const A::F &f, const K &g) const { return {f.a * g.first % P, (f.a * g.second + f.b) % P}; }
     };
     struct DualHashSpec {
         using A = HashAffine;
@@ -605,27 +698,42 @@ namespace {
         Points pts{rng, n};
         auto verify = [&](int v, bool heavy, const string &at) {
             if (n && heavy && n <= 64) {
-                for (lng i = 0; i < n; ++i) { checkEqual(sp.key(t.get(v, i)), o.get(v, i), [&] { return at + " get(" + show(v) + "," + show(i) + ")"; }); }
+                auto all = t.toVector(v);
+                checkEqual(lng(all.size()), n, [&] { return at + " toVector size"; });
+                for (lng i = 0; i < n; ++i) {
+                    checkEqual(sp.key(t.get(v, i)), o.get(v, i), [&] { return at + " get(" + show(v) + "," + show(i) + ")"; });
+                    checkEqual(sp.key(all[i]), o.get(v, i), [&] { return at + " toVector(" + show(v) + ")[" + show(i) + "]"; });}
                 return;}
             for (int q = 0; n && q < (heavy ? 8 : 3); ++q) {
                 lng i = pts(n - 1);
                 checkEqual(sp.key(t.get(v, i)), o.get(v, i), [&] { return at + " get(" + show(v) + "," + show(i) + ")"; });}};
-        for (int step = 0; step < steps; ++step) {
-            int vc = t.versionCount(), v = rng() % 2 ? vc - 1 : pick(rng, 0, vc - 1), before = t.nodeCount();
-            string at = "step=" + show(step);
-            if (rng() % 4 == 0) { verify(v, false, at + " query"); continue; }
-            auto [l, r] = pts.range();
-            auto f = sp.action(rng);
-            string what = "apply(" + show(v) + "," + show(l) + "," + show(r) + ")";
-            context = base + " last=" + what;
-            checkEqual(t.apply(v, l, r, f), vc, [&] { return at + " " + what + " id"; });
-            o.apply(v, l, r, f);
-            checkEqual(t.versionCount(), vc + 1, [&] { return at + " versionCount"; });
-            checkEqual(t.nodeCount() - before <= 4 * h, true, [&] { return at + " " + what + " new nodes " + show(t.nodeCount() - before); });
-            verify(vc, true, at + " " + what);
-            verify(pick(rng, 0, vc - 1), false, at + " older");}
-        context = base;
-        for (int k = 0; k < t.versionCount(); ++k) { verify(k, true, "final"); }}
+        auto run = [&](int q, const string &phase) {
+            for (int step = 0; step < q; ++step) {
+                int vc = t.versionCount(), v = rng() % 2 ? vc - 1 : pick(rng, 0, vc - 1), before = t.nodeCount();
+                string at = phase + " step=" + show(step);
+                if (rng() % 4 == 0) { verify(v, false, at + " query"); continue; }
+                auto [l, r] = pts.range();
+                auto f = sp.action(rng);
+                string what = "apply(" + show(v) + "," + show(l) + "," + show(r) + ")";
+                context = base + " last=" + what;
+                checkEqual(t.apply(v, l, r, f), vc, [&] { return at + " " + what + " id"; });
+                o.apply(v, l, r, f);
+                checkEqual(t.versionCount(), vc + 1, [&] { return at + " versionCount"; });
+                checkEqual(t.nodeCount() - before <= 4 * h, true, [&] { return at + " " + what + " new nodes " + show(t.nodeCount() - before); });
+                verify(vc, true, at + " " + what);
+                verify(pick(rng, 0, vc - 1), false, at + " older");}
+            context = base;
+            for (int k = 0; k < t.versionCount(); ++k) { verify(k, true, phase + " final"); }};
+        run(steps, "first");
+        size_t cap = t.t.capacity();
+        t.reset();
+        o.reset();
+        context = base + " after reset";
+        checkEqual(t.nodeCount(), 0, "reset nodeCount");
+        checkEqual(t.versionCount(), 1, "reset versionCount");
+        checkEqual(t.t.capacity() >= cap, true, "reset keeps the pool capacity");
+        verify(0, true, "after reset identity");
+        run(steps / 2, "after reset");}
 
     void dualTests(Rng &rng) {
         vector<int> ns{0, 1, 2, 3, 5, 8, 13};
@@ -638,12 +746,14 @@ namespace {
             auto add = [mod](lng x, lng y) { return (x + y) % mod; };
             MonoidAction act{Monoid{lng(0), add}};
             dualHistory<false, VecOracle>(rng, DualAffineSpec{}, n, steps, "RangeAffineRangeSum<mint>");
+            dualHistory<false, VecOracle>(rng, DualNoEqSpec{}, n, steps, "AffineNoEq (F without ==)");
             dualHistory<false, VecOracle>(rng, DualHashSpec{mod}, n, steps, "stateful HashAffine");
             dualHistory<true, VecOracle>(rng, DualAddSpec{}, n, steps, "RangeAddRangeSum<lng>");
             dualHistory<false, VecOracle>(rng, DualAddSpec{}, n, steps, "RangeAddRangeSum<lng>");
             dualHistory<true, VecOracle>(rng, DualModSpec<decltype(act)>{act, mod}, n, steps, "MonoidAction<Monoid<lambda>>");}
         for (lng n : {lng(INT_MAX), (lng(1) << 30) + 1, INF, (lng(1) << 62) + 3}) {
             dualHistory<false, PieceOracle>(rng, DualAffineSpec{}, n, steps, "large RangeAffineRangeSum<mint>");
+            dualHistory<false, PieceOracle>(rng, DualNoEqSpec{}, n, steps, "large AffineNoEq");
             dualHistory<true, PieceOracle>(rng, DualAddSpec{}, n, steps, "large RangeAddRangeSum<lng>");
             dualHistory<false, PieceOracle>(rng, DualHashSpec{1000000007}, n, steps, "large stateful HashAffine");}
         std::cout << "PASS PersistentDualSegmentTree (" << ns.size() << " sizes + n up to 2^63 - 1, " << steps << " steps)\n";}
@@ -662,7 +772,8 @@ namespace {
             iota(ord.begin(), ord.end(), l);
             sort(ord.begin(), ord.end(), [&](int i, int j) { return a[i] < a[j] || (!(a[j] < a[i]) && i < j); });
             for (int k = 0; k < len; ++k) {
-                if (all || rng() % ulng(len) < 2) { checkEqual(t.rangeKth(l, r, k), a[ord[k]], [&] { return at + " rangeKth(" + show(k) + ")"; }); }}
+                if (all || rng() % ulng(len) < 2) { checkEqual(t.rangeKth(l, r, k), a[ord[k]], [&] { return at + " rangeKth(" + show(k) + ")"; }); }
+                if (all || rng() % ulng(len) < 2) { checkEqual(t.kthMax(l, r, k), a[ord[len - 1 - k]], [&] { return at + " kthMax(" + show(k) + ")"; }); }}
             if (!w.empty()) {
                 W sum = W();
                 for (int k = 0; k <= len; ++k) {
@@ -670,14 +781,19 @@ namespace {
                     if (k < len) { sum += w[ord[k]]; }}}
             for (int q = 0; q < (all ? 8 : 3); ++q) {
                 const T &x = probes[rng() % probes.size()], &y = probes[rng() % probes.size()], &sentinel = probes[rng() % probes.size()];
-                int eq = 0, in = 0, le = -1, ge = -1;
+                int eq = 0, in = 0, less = 0, le = -1, ge = -1;
+                W below = W();
                 for (int i = l; i < r; ++i) {
                     eq += !(a[i] < x) && !(x < a[i]);
+                    less += a[i] < x;
+                    if (a[i] < x && !w.empty()) { below += w[i]; }
                     in += !(a[i] < x) && a[i] < y;
                     if (!(x < a[i]) && (le < 0 || !(a[i] < a[le]))) { le = i; }
                     if (!(a[i] < x) && (ge < 0 || a[i] < a[ge])) { ge = i; }}
                 string q2 = at + " x=" + show(x);
                 checkEqual(t.countEqual(l, r, x), eq, [&] { return q2 + " countEqual"; });
+                checkEqual(t.countLess(l, r, x), less, [&] { return q2 + " countLess"; });
+                if (!w.empty() || n == 0) { checkEqual(t.sumLess(l, r, x), below, [&] { return q2 + " sumLess"; }); }
                 checkEqual(t.countRange(l, r, x, y), x < y ? in : 0, [&] { return q2 + " countRange to " + show(y); });
                 T res = sentinel;
                 checkEqual(t.maxLeq(l, r, x, res), le >= 0, [&] { return q2 + " maxLeq found"; });
@@ -728,6 +844,8 @@ namespace {
         PersistentValueTree<lng> z;
         lng res = 7;
         checkEqual(z.kthSum(0, 0, 0), lng(0), "unweighted n=0 kthSum");
+        checkEqual(z.sumLess(0, 0, INF), lng(0), "unweighted n=0 sumLess");
+        checkEqual(z.countLess(0, 0, INF), 0, "n=0 countLess");
         checkEqual(z.maxLeq(0, 0, 0, res) || z.minGeq(0, 0, 0, res) || res != 7, false, "n=0 searches report absence");
         for (int kind = 0; kind < 3; ++kind) { valueTree(rng, lngs(medium, kind), weights(medium), extremes, queries, "PersistentValueTree<lng> medium kind=" + show(kind)); }
         std::cout << "PASS PersistentValueTree (" << ns.size() << " exhaustive sizes, n=" << medium << " with " << queries << " ranges)\n";}
@@ -785,6 +903,11 @@ namespace {
         else if (name == "seg-tovector-version") { (void)t.toVector(1); }
         else if (name == "seg-set-negative") { (void)t.set(0, -1, x); }
         else if (name == "seg-set-version") { (void)t.set(2, 0, x); }
+        else if (name == "seg-set-high") { (void)t.set(0, 5, x); }
+        else if (name == "seg-copy-high") { (void)t.copyRange(0, 0, 0, 6); }
+        else if (name == "seg-copy-action-high") { (void)t.copyRange(0, 0, 0, 6, 1); }
+        else if (name == "seg-copy-action-version") { (void)t.copyRange(0, 1, 0, 1, 1); }
+        else if (name == "seg-split-negative") { (void)t.split(0, -1); }
         else if (name == "seg-apply-reversed") { (void)t.apply(0, 3, 2, 1); }
         else if (name == "seg-apply-high") { (void)t.apply(0, 0, 6, 1); }
         else if (name == "seg-apply-version") { (void)t.apply(1, 0, 1, 1); }
@@ -811,6 +934,7 @@ namespace {
         else if (name == "dual-apply-reversed") { (void)d.apply(0, 3, 2, 1); }
         else if (name == "dual-apply-high") { (void)d.apply(0, 0, 6, 1); }
         else if (name == "dual-apply-version") { (void)d.apply(1, 0, 1, 1); }
+        else if (name == "dual-tovector-version") { (void)d.toVector(1); }
         else if (name == "dual-huge-get-high") { PersistentDualSegmentTree<A> z(INF); (void)z.get(0, INF); }
         else if (name == "value-weight-size") { PersistentValueTree<lng> z({1, 2, 3}, {1, 2}); }
         else if (name == "value-count-reversed") { (void)u.countEqual(2, 1, 1); }
@@ -821,6 +945,11 @@ namespace {
         else if (name == "value-kthsum-unweighted") { (void)u.kthSum(0, 2, 1); }
         else if (name == "value-kthsum-high") { (void)wv.kthSum(0, 2, 3); }
         else if (name == "value-kthsum-negative") { (void)wv.kthSum(0, 2, -1); }
+        else if (name == "value-count-negative") { (void)u.countLess(-1, 2, 1); }
+        else if (name == "value-kthmax-high") { (void)u.kthMax(0, 2, 2); }
+        else if (name == "value-kthmax-negative") { (void)u.kthMax(0, 2, -1); }
+        else if (name == "value-sumless-unweighted") { (void)u.sumLess(0, 2, 5); }
+        else if (name == "value-sumless-reversed") { (void)wv.sumLess(2, 1, 5); }
         else if (name == "value-maxleq-reversed") { (void)u.maxLeq(2, 1, 1, res); }
         else if (name == "value-mingeq-high") { (void)u.minGeq(0, 4, 1, res); }
         else if (name == "distinct-reversed") { (void)c.countDistinct(2, 1); }

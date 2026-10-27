@@ -108,7 +108,7 @@ struct Lcm {
 // T: O(1) per call, M: O(1); S {a, b} maps x to a * x + b, op(f, g) applies f first.
 template<typename T>
 struct AffineComposite {
-    struct S { T a, b; };
+    struct S { T a, b; friend bool operator==(const S &, const S &) = default; };
     static S op(const S &f, const S &g) { return {g.a * f.a, g.a * f.b + g.b}; }
     static S e() { return {T(1), T(0)}; }
     static T eval(const S &f, const T &x) { return f.a * x + f.b; }

@@ -184,14 +184,11 @@ Candidates from the 2026-10-23 sweep ([00-sources.md](00-sources.md#fetched-2026
 
 ## P030 omissions
 
-Candidates from the 2026-10-27 sweep ([00-sources.md](00-sources.md#fetched-2026-10-27-p030-sweep)) left out of row 18:
+Candidates from the 2026-10-27 sweep ([00-sources.md](00-sources.md#fetched-2026-10-27-p030-sweep)) left out of row 18 (user decision 2026-10-27; pool reset, copy with an action, `kthMax`, `countLess` and `sumLess` were added instead):
 
-- Pool `reset`/`clear_pool` (SUI, MAS): constructing a new tree does the same; reclaiming unreachable nodes is Miscellaneous row 43.
-- Persistent Fenwick tree (SUI): the plain-sum case of `PersistentSegmentTree` at the same bounds.
-- `copyRange` applying an action while copying (MAS `copy_interval`): `copyRange` then `apply`.
-- `kthMax`, `countLess`, `sumLess` on `PersistentValueTree` (row 17 lists them): `rangeKth(l, r, r - l - 1 - k)`, `countRange` from the lowest value, and `kthSum` at a `countRange` count.
-- k-th smallest on a tree path (SPOJ COT, versions per vertex combined through the LCA): a Graphs tree adapter; no catalog offers it.
-- Position-dependent defaults for untouched ranges (legacy `defR(l, r)`, row 13's `fill` functor) in `PersistentSegmentTree`: untouched ranges would hold `fill` instead of `e()`, which breaks the null-node shortcuts of `merge`, `split` and retagging; the fill build `(n, x)` covers uniform defaults on any `lng` universe and a vector build covers the rest up to memory (decided 2026-10-27).
+- Persistent Fenwick tree (SUI): the left-sum tree with path copying is `PersistentSegmentTree<Sum<lng>>` at the same bounds; a scratch measurement (2026-10-27, n = q = 2 * 10^5, half point adds, half range sums on random versions) made 1.86M nodes either way in about 65 ms against 64 ms.
+- k-th smallest on a tree path (SPOJ COT, versions per vertex combined through the LCA): Graphs owns tree adapters; filed as P248 (Graphs row 88).
+- Position-dependent defaults for untouched ranges (legacy `defR(l, r)`, row 13's `fill` functor) in `PersistentSegmentTree`: untouched ranges would hold `fill` instead of `e()`, which breaks the null-node shortcuts of `merge`, `split` and retagging; the fill build `(n, x)` covers uniform defaults on any `lng` universe and a vector build covers the rest up to memory.
 
 ## Planned-row omissions
 
