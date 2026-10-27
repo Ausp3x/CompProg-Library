@@ -2,479 +2,298 @@
 
 #include "../01-Core/01-template.hpp"
 
-// Unchanged legacy extraction: OLD/algorithms.cpp:2445-2725.
-// Status: existing-unverified; correctness, performance and API audit pending.
-// S: O(q * log(n)), U: O(log(n)), Q: O(log(n)), M: O(q * log(n))
-template<typename Mon>
-struct PerSegTree {
-    using S = typename Mon::S;
-    using F = typename Mon::F;
+namespace persistentsegmenttree_detail {
+    struct NoAction {};
+    template<typename A> struct Action { using type = NoAction; };
+    template<typename A> requires requires { typename A::F; } struct Action<A> { using type = typename A::F; };
+} // namespace persistentsegmenttree_detail
 
-    struct Node {
-        S val;
-        F lzy;
-        int lc = -1, rc = -1;
-
-        Node(lng l, lng r) : val(Mon::defR(l, r)), lzy(Mon::idF()) {}
-    };
-
+// Positions in [0, n) for any n >= 0; A is a monoid or an acted monoid; versions are dense ids from 0 and untouched positions hold e(); COMMUTATIVE keeps tags in place on apply and needs commuting actions.
+// S: O(1) empty, O(log(n)^2) filled, O(n) from a vector; U: O(log(n)), merge O(k) for k positions of tree nodes present in both versions; Q: O(log(n)); M: O(n + q * log(n) + K) for q updates and merges of total cost K
+template<typename A, bool COMMUTATIVE = false>
+struct PersistentSegmentTree {
+    using S = typename A::S;
+    using F = typename persistentsegmenttree_detail::Action<A>::type;
+    static constexpr bool LAZY = !std::is_empty_v<F>;
+    struct Node { S x; [[no_unique_address]] F f; int l, r; };
+    [[no_unique_address]] A m;
     lng n;
+    vector<Node> t;
     vector<int> roots;
-    vector<Node> tree;
 
-    PerSegTree(lng N) : n(N) {
-        tree.reserve(10'000'000); 
-        roots.push_back(cloneNode(-1, 0, n - 1));
-    }
+    explicit PersistentSegmentTree(lng N = 0, A mon = {}) : m(std::move(mon)), n(max(N, lng(0))), t{{m.e(), id(), 0, 0}}, roots{0} { assert(N >= 0); }
+    // Subtrees of equal length are equal, so each of the O(log(n)) lengths is built once.
+    PersistentSegmentTree(lng N, const S &x, A mon = {}) : PersistentSegmentTree(N, std::move(mon)) {
+        vector<pair<lng, int>> memo;
+        auto build = [&](auto &&build, lng len) -> int {
+            for (auto [sz, k] : memo) { if (sz == len) { return k; }}
+            int k = len == 1 ? make(x, id(), 0, 0) : node(id(), build(build, len / 2), build(build, len - len / 2));
+            memo.push_back({len, k});
+            return k;};
+        if (n) { roots[0] = build(build, n); }}
+    explicit PersistentSegmentTree(const vector<S> &v, A mon = {}) : PersistentSegmentTree(lng(v.size()), std::move(mon)) {
+        t.reserve(2 * v.size());
+        auto build = [&](auto &&build, lng a, lng b) -> int {
+            if (b - a == 1) { return make(v[a], id(), 0, 0); }
+            lng mid = std::midpoint(a, b);
+            int lc = build(build, a, mid);
+            return node(id(), lc, build(build, mid, b));};
+        if (n) { roots[0] = build(build, 0, n); }}
+    void reserve(int nodes) { t.reserve(size_t(nodes) + 1); }
+    S map(const F &f, const S &x) const { if constexpr (LAZY) { return m.mapping(f, x); } return x; }
+    F comp(const F &f, const F &g) const { if constexpr (LAZY) { return m.composition(f, g); } return f; }
+    F id() const { if constexpr (LAZY) { return m.id(); } return {}; }
+    int make(const S &x, const F &f, int l, int r) { t.push_back({x, f, l, r}); return int(t.size()) - 1; }
+    int node(const F &f, int l, int r) { return l || r ? make(map(f, m.op(t[l].x, t[r].x)), f, l, r) : 0; }
+    // Copy of k with the pending action f applied; nodes are immutable once made.
+    int tagged(int k, const F &f) {
+        if constexpr (LAZY) {
+            if constexpr (std::equality_comparable<F>) { if (f == m.id()) { return k; }}
+            if (k) { return make(m.mapping(f, t[k].x), m.composition(f, t[k].f), t[k].l, t[k].r); }}
+        return k;}
+    int commit(int root) { roots.push_back(root); return int(roots.size()) - 1; }
 
-    template<typename T>
-    PerSegTree(std::span<const T> &a) : n(a.size()) {
-        tree.reserve(10'000'000); 
-        roots.push_back(build(0, n - 1, a));
-    }
+    int nodeCount() const { return int(t.size()) - 1; }
+    int versionCount() const { return int(roots.size()); }
+    S get(int v, lng i) const {
+        assert(0 <= v && v < versionCount() && 0 <= i && i < n);
+        F g = id();
+        int k = roots[v];
+        for (lng a = 0, b = n; k && b - a > 1;) {
+            g = comp(g, t[k].f);
+            lng mid = std::midpoint(a, b);
+            if (i < mid) { k = t[k].l; b = mid; }
+            else { k = t[k].r; a = mid; }}
+        return map(g, t[k].x);}
+    S allProd(int v) const { assert(0 <= v && v < versionCount()); return t[roots[v]].x; }
+    // T: O(n), M: O(n)
+    vector<S> toVector(int v) const {
+        assert(0 <= v && v < versionCount());
+        vector<S> res(n, m.e());
+        auto dfs = [&](auto &&dfs, int k, const F &g, lng a, lng b) -> void {
+            if (!k) { return; }
+            if (b - a == 1) { res[a] = map(g, t[k].x); return; }
+            F h = comp(g, t[k].f);
+            lng mid = std::midpoint(a, b);
+            dfs(dfs, t[k].l, h, a, mid); dfs(dfs, t[k].r, h, mid, b);};
+        dfs(dfs, roots[v], id(), 0, n);
+        return res;}
 
-    // S: O(n)
-    template<typename T>
-    int build(lng l, lng r, std::span<const T> &a) {
-        int cur = cloneNode(-1, l, r);
-        
-        if (l == r) {
-            tree[cur].val = Mon::init(l, a[l]);
-            return cur;
-        }
+    int set(int v, lng i, const S &x) { assert(0 <= v && v < versionCount() && 0 <= i && i < n); return commit(point(roots[v], id(), 0, n, i, x)); }
+    int point(int k, const F &g, lng a, lng b, lng i, const S &x) {
+        if (b - a <= 1) { return make(x, id(), 0, 0); }
+        F h = comp(g, t[k].f);
+        lng mid = std::midpoint(a, b);
+        int lc = t[k].l, rc = t[k].r;
+        if (i < mid) { lc = point(lc, h, a, mid, i, x); rc = tagged(rc, h); }
+        else { lc = tagged(lc, h); rc = point(rc, h, mid, b, i, x); }
+        return node(id(), lc, rc);}
+    int apply(int v, lng l, lng r, const F &f) {
+        static_assert(LAZY);
+        assert(0 <= v && v < versionCount() && 0 <= l && l <= r && r <= n);
+        return commit(l < r ? act(roots[v], id(), 0, n, l, r, f) : roots[v]);}
+    int act(int k, const F &g, lng a, lng b, lng l, lng r, const F &f) {
+        if (r <= a || b <= l) { return COMMUTATIVE ? k : tagged(k, g); }
+        if (l <= a && b <= r) { return tagged(k, comp(f, g)); }
+        F h = COMMUTATIVE ? g : comp(g, t[k].f);
+        lng mid = std::midpoint(a, b);
+        int lc = act(t[k].l, h, a, mid, l, r, f), rc = act(t[k].r, h, mid, b, l, r, f);
+        return node(COMMUTATIVE ? t[k].f : id(), lc, rc);}
+    int copyRange(int v, int w, lng l, lng r) {
+        assert(0 <= v && v < versionCount() && 0 <= w && w < versionCount() && 0 <= l && l <= r && r <= n);
+        return commit(l < r ? copy(roots[v], id(), roots[w], id(), 0, n, l, r) : roots[v]);}
+    int copy(int k, const F &g, int j, const F &h, lng a, lng b, lng l, lng r) {
+        if (r <= a || b <= l) { return tagged(k, g); }
+        if (l <= a && b <= r) { return tagged(j, h); }
+        F g2 = comp(g, t[k].f), h2 = comp(h, t[j].f);
+        lng mid = std::midpoint(a, b);
+        int lc = copy(t[k].l, g2, t[j].l, h2, a, mid, l, r), rc = copy(t[k].r, g2, t[j].r, h2, mid, b, l, r);
+        return node(id(), lc, rc);}
+    pair<int, int> split(int v, lng i) {
+        assert(0 <= v && v < versionCount() && 0 <= i && i <= n);
+        int lo = copy(roots[v], id(), 0, id(), 0, n, i, n), hi = copy(roots[v], id(), 0, id(), 0, n, 0, i);
+        return {commit(lo), commit(hi)};}
+    int merge(int v, int w) { assert(0 <= v && v < versionCount() && 0 <= w && w < versionCount()); return commit(meld(roots[v], id(), roots[w], id(), n)); }
+    int meld(int k, const F &g, int j, const F &h, lng len) {
+        if (!k || !j) { return k ? tagged(k, g) : tagged(j, h); }
+        if (len <= 1) { return make(m.op(map(g, t[k].x), map(h, t[j].x)), id(), 0, 0); }
+        F g2 = comp(g, t[k].f), h2 = comp(h, t[j].f);
+        int lc = meld(t[k].l, g2, t[j].l, h2, len / 2), rc = meld(t[k].r, g2, t[j].r, h2, len - len / 2);
+        return node(id(), lc, rc);}
 
-        lng md = std::midpoint(l, r);
-        int nlc = build(l,      md, a);
-        tree[cur].lc = nlc;
-        int nrc = build(md + 1, r,  a);
-        tree[cur].rc = nrc;
-        tree[cur].val = Mon::ope(tree[nlc].val, tree[nrc].val);
-
-        return cur;
-    }
-
-    int cloneNode(int i, lng l, lng r) {
-        if (i == -1) {
-            tree.emplace_back(l, r);
-        } else {
-            Node tmp = tree[i];
-            tree.push_back(tmp);
-        }
-
-        return tree.size() - 1;
-    }
-
-    inline void apply(int i, F f) {
-        tree[i].val = Mon::map(f, tree[i].val);
-        tree[i].lzy = Mon::cmp(f, tree[i].lzy);
-    }
-
-    inline void push(int i, lng l, lng r) {
-        if (tree[i].lzy == Mon::idF()) {
-            return;}
-        
-        lng md = std::midpoint(l, r);
-        int nlc = cloneNode(tree[i].lc, l,      md);
-        tree[i].lc = nlc;
-        int nrc = cloneNode(tree[i].rc, md + 1, r);
-        tree[i].rc = nrc;
-
-        apply(tree[i].lc, tree[i].lzy);
-        apply(tree[i].rc, tree[i].lzy);
-        tree[i].lzy = Mon::idF();
-    }
-
-    int _modify(int i1, int i2, lng l, lng r, lng ql, lng qr, F acc) {
-        if (ql <= l && r <= qr) {
-            int j = cloneNode(i2, l, r);
-            apply(j, acc);
-            return j;
-        }
-
-        int j = cloneNode(i1, l, r);
-       
-        push(j, l, r);
-
-        int lc2 = -1, rc2 = -1;
-        F nac = acc;
-        if (i2 != -1) {
-            lc2 = tree[i2].lc;
-            rc2 = tree[i2].rc;
-            nac = Mon::cmp(acc, tree[i2].lzy);
-        }
-
-        lng md = std::midpoint(l, r);
-        if (ql <= md) {
-            int nlc = _modify(tree[j].lc, lc2, l,      md, ql, qr, nac);
-            tree[j].lc = nlc;
-        }
-        if (qr > md) {
-            int nrc = _modify(tree[j].rc, rc2, md + 1, r,  ql, qr, nac);
-            tree[j].rc = nrc;
-        }
-
-        S l_val = tree[j].lc != -1 ? tree[tree[j].lc].val : Mon::defR(l, md);
-        S r_val = tree[j].rc != -1 ? tree[tree[j].rc].val : Mon::defR(md + 1, r);
-        tree[j].val = Mon::ope(l_val, r_val);
-
-        return j;
-    }
-
-    int modify(int ver1, int ver2, lng l, lng r) {
-        if (l < 0 || r > n - 1 || l > r) {
-            int cur = roots[ver1];
-            roots.push_back(cur);
-            return roots.size() - 1;
-        }
-        
-        int cur = _modify(roots[ver1], roots[ver2], 0, n - 1, l, r, Mon::idF());
-        roots.push_back(cur);
-        
-        return roots.size() - 1;
-    }
-
-    int _update(int i, lng l, lng r, lng ql, lng qr, F f) {
-        int j = cloneNode(i, l, r);
-        
-        if (ql <= l && r <= qr) {
-            apply(j, f);
-            return j;
-        }
-
-        push(j, l, r);
-        
-        lng md = std::midpoint(l, r);
-        if (ql <= md) {
-            int nlc = _update(tree[j].lc, l,      md, ql, qr, f);
-            tree[j].lc = nlc;
-        }
-        if (qr > md)  {
-            int nrc = _update(tree[j].rc, md + 1, r,  ql, qr, f);
-            tree[j].rc = nrc;
-        }
-
-        S l_val = tree[j].lc != -1 ? tree[tree[j].lc].val : Mon::defR(l, md);
-        S r_val = tree[j].rc != -1 ? tree[tree[j].rc].val : Mon::defR(md + 1, r);
-        tree[j].val = Mon::ope(l_val, r_val);
-        
-        return j;
-    }
-
-    int update(int ver, lng l, lng r, F f) { 
-        if (l < 0 || r > n - 1 || l > r) {
-            int cur = roots[ver];
-            roots.push_back(cur);
-            return roots.size() - 1;
-        }
-        
-        int cur = _update(roots[ver], 0, n - 1, l, r, f);
-        roots.push_back(cur);
-
-        return roots.size() - 1;
-    }
-
-    template<class G>
-    lng _maxR(int i, lng l, lng r, lng ql, G &g, S &acc, F tac) {
-        if (r < ql) {
-            return -1;}
-        
-        if (ql <= l) {
-            S val = i == -1 ? Mon::defR(l, r) : tree[i].val;
-            val = Mon::map(tac, val);
-            S nac = Mon::ope(acc, val);
-            if (g(nac)) {
-                acc = nac;
-                return -1;
-            }
-        }
-
-        if (l == r) {
-            return l - 1;}
-
-        tac = i == -1 ? tac : Mon::cmp(tac, tree[i].lzy);
- 
-        lng md = std::midpoint(l, r);
-        lng res = _maxR(i == -1 ? -1 : tree[i].lc, l, md, ql, g, acc, tac);
-        if (res != -1) {
-            return res;}
-        
-        return _maxR(i == -1 ? -1 : tree[i].rc, md + 1, r, ql, g, acc, tac);
-    }
-
-    template<class G>
-    lng maxR(int ver, lng l, G g) { // Returns max r in [l, n - 1] where g(query(l, r)) is true. If g(a[l]) is false, returns l - 1.
-        if (l < 0 || l > n - 1) {
-            return l - 1;}
-
-        S acc = Mon::idS();
-        lng res = _maxR(roots[ver], 0, n - 1, l, g, acc, Mon::idF());
-        
-        return res == -1 ? n - 1 : res;
-    }
-
-    template<class G>
-    lng _minL(int i, lng l, lng r, lng qr, G &g, S &acc, F tac) {
-        if (l > qr) {
-            return -1;}
-        
-        if (r <= qr) {
-            S val = i == -1 ? Mon::defR(l, r) : tree[i].val;
-            val = Mon::map(tac, val);
-            S nac = Mon::ope(val, acc);
-            if (g(nac)) {
-                acc = nac;
-                return -1;
-            }
-        }
-
-        if (l == r) {
-            return l + 1;}
-        
-        tac = i == -1 ? tac : Mon::cmp(tac, tree[i].lzy);
-
-        lng md = std::midpoint(l, r);
-        lng res = _minL(i == -1 ? -1 : tree[i].rc, md + 1, r, qr, g, acc, tac);
-        if (res != -1) {
-            return res;}
-        
-        return _minL(i == -1 ? -1 : tree[i].lc, l, md, qr, g, acc, tac);
-    }
-
-    template<class G>
-    lng minL(int ver, lng r, G g) { // Returns min l in [0, r] where g(query(l, r)) is true. If g(a[r]) is false, returns r + 1.
-        if (r < 0 || r > n - 1) {
-            return r + 1;}
-        
-        S acc = Mon::idS();
-        lng res = _minL(roots[ver], 0, n - 1, r, g, acc, Mon::idF());
-        
-        return res == -1 ? 0 : res;
-    }
-
-    S _query(int i, lng l, lng r, lng ql, lng qr, F acc) {
-        if (i == -1) {
-            if (max(l, ql) > min(r, qr)) {
-                return Mon::idS();}
-
-            return Mon::map(acc, Mon::defR(max(l, ql), min(r, qr))); 
-        }
-
-        if (ql <= l && r <= qr) {
-            return Mon::map(acc, tree[i].val);}
-
-        F nac = Mon::cmp(acc, tree[i].lzy); 
-
-        lng md = std::midpoint(l, r);
-        if (qr <= md) {
-            return _query(tree[i].lc, l,      md, ql, qr, nac);}
-        if (ql > md) {
-            return _query(tree[i].rc, md + 1, r,  ql, qr, nac);}
-        
-        return Mon::ope(_query(tree[i].lc, l, md, ql, qr, nac), _query(tree[i].rc, md + 1, r, ql, qr, nac));
-    }
-
-    S query(int ver, lng l, lng r) { 
-        if (l < 0 || r > n - 1 || l > r) {
-            return Mon::idS();}
-
-        return _query(roots[ver], 0, n - 1, l, r, Mon::idF()); 
-    }
-
-    // Q: O(1)
-    S queryAll(int ver) {
-        return roots[ver] == -1 ? Mon::defR(0, n - 1) : tree[roots[ver]].val;
-    }
+    S prod(int v, lng l, lng r) const { assert(0 <= v && v < versionCount() && 0 <= l && l <= r && r <= n); return fold(roots[v], 0, n, l, r); }
+    S fold(int k, lng a, lng b, lng l, lng r) const {
+        if (!k || r <= a || b <= l) { return m.e(); }
+        if (l <= a && b <= r) { return t[k].x; }
+        lng mid = std::midpoint(a, b);
+        return map(t[k].f, m.op(fold(t[k].l, a, mid, l, r), fold(t[k].r, mid, b, l, r)));}
+    template<typename G>
+    lng maxRight(int v, lng l, G pred) const {
+        assert(0 <= v && v < versionCount() && 0 <= l && l <= n && pred(m.e()));
+        S acc = m.e();
+        lng res = n;
+        descendRight(roots[v], id(), 0, n, l, pred, acc, res);
+        return res;}
+    template<typename G>
+    bool descendRight(int k, const F &g, lng a, lng b, lng l, G &pred, S &acc, lng &res) const {
+        if (!k || b <= l) { return false; }
+        if (l <= a) {
+            S next = m.op(acc, map(g, t[k].x));
+            if (pred(next)) { acc = std::move(next); return false; }
+            if (b - a == 1) { res = a; return true; }}
+        F h = comp(g, t[k].f);
+        lng mid = std::midpoint(a, b);
+        return descendRight(t[k].l, h, a, mid, l, pred, acc, res) || descendRight(t[k].r, h, mid, b, l, pred, acc, res);}
+    template<typename G>
+    lng minLeft(int v, lng r, G pred) const {
+        assert(0 <= v && v < versionCount() && 0 <= r && r <= n && pred(m.e()));
+        S acc = m.e();
+        lng res = 0;
+        descendLeft(roots[v], id(), 0, n, r, pred, acc, res);
+        return res;}
+    template<typename G>
+    bool descendLeft(int k, const F &g, lng a, lng b, lng r, G &pred, S &acc, lng &res) const {
+        if (!k || r <= a) { return false; }
+        if (b <= r) {
+            S next = m.op(map(g, t[k].x), acc);
+            if (pred(next)) { acc = std::move(next); return false; }
+            if (b - a == 1) { res = b; return true; }}
+        F h = comp(g, t[k].f);
+        lng mid = std::midpoint(a, b);
+        return descendLeft(t[k].r, h, mid, b, r, pred, acc, res) || descendLeft(t[k].l, h, a, mid, r, pred, acc, res);}
 };
 
-// Unchanged legacy extraction: OLD/algorithms.cpp:3461-3649.
-// Status: existing-unverified; correctness, performance and API audit pending.
-// S: O(n * log(n)), U: N/A, Q: O(log(n)), M: O(n * log(n))
-struct KSPerSegTree {
-    struct Mon {
-        struct S { 
-            int cnt;
-            lng sum;
-        };
-        
-        struct F {
-            int cnt_upd;
-            lng sum_upd;
+// Positions in [0, n) for any n >= 0; A supplies F, composition (new after old) and id; get returns the composed action at i; COMMUTATIVE keeps tags in place and needs commuting actions.
+// S: O(1), U: O(log(n)), Q: O(log(n)), M: O(q * log(n)) for q applications
+template<typename A, bool COMMUTATIVE = false>
+struct PersistentDualSegmentTree {
+    using F = typename A::F;
+    struct Node { F f; int l, r; };
+    [[no_unique_address]] A m;
+    lng n;
+    vector<Node> t;
+    vector<int> roots;
 
-            bool operator==(const F o) const {
-                return cnt_upd == o.cnt_upd && sum_upd == o.sum_upd;
-            }
+    explicit PersistentDualSegmentTree(lng N = 0, A mon = {}) : m(std::move(mon)), n(max(N, lng(0))), t{{m.id(), 0, 0}}, roots{0} { assert(N >= 0); }
+    void reserve(int nodes) { t.reserve(size_t(nodes) + 1); }
+    int make(const F &f, int l, int r) { t.push_back({f, l, r}); return int(t.size()) - 1; }
+    int tagged(int k, const F &f) {
+        if constexpr (std::equality_comparable<F>) { if (f == m.id()) { return k; }}
+        return make(m.composition(f, t[k].f), t[k].l, t[k].r);}
 
-            bool operator!=(const F o) const {
-                return !(*this == o);
-            }
-        };
+    int nodeCount() const { return int(t.size()) - 1; }
+    int versionCount() const { return int(roots.size()); }
+    F get(int v, lng i) const {
+        assert(0 <= v && v < versionCount() && 0 <= i && i < n);
+        F res = m.id();
+        int k = roots[v];
+        for (lng a = 0, b = n; k;) {
+            res = m.composition(res, t[k].f);
+            lng mid = std::midpoint(a, b);
+            if (i < mid) { k = t[k].l; b = mid; }
+            else { k = t[k].r; a = mid; }}
+        return res;}
 
-        static constexpr inline S idS() { 
-            return {0, 0}; 
-        }
-        
-        static constexpr inline F idF() { 
-            return {0, 0}; 
-        }
-        
-        static S defR(int l, int r) { 
-            return {0, 0}; 
-        }
-        
-        static S init(int i, lng x) { 
-            return {0, 0}; 
-        }
-        
-        static constexpr inline S ope(const S &a, const S &b) { 
-            return {a.cnt + b.cnt, a.sum + b.sum}; 
-        }
-        
-        static constexpr inline S map(const F &f, const S &a) { 
-            return {a.cnt + f.cnt_upd, a.sum + f.sum_upd}; 
-        }
-        
-        static constexpr inline F cmp(const F &f, const F &g) { 
-            return {f.cnt_upd + g.cnt_upd, f.sum_upd + g.sum_upd}; 
-        }
-    };
+    int apply(int v, lng l, lng r, const F &f) {
+        assert(0 <= v && v < versionCount() && 0 <= l && l <= r && r <= n);
+        roots.push_back(l < r ? act(roots[v], m.id(), 0, n, l, r, f) : roots[v]);
+        return versionCount() - 1;}
+    int act(int k, const F &g, lng a, lng b, lng l, lng r, const F &f) {
+        if (r <= a || b <= l) { return COMMUTATIVE ? k : tagged(k, g); }
+        if (l <= a && b <= r) { return tagged(k, m.composition(f, g)); }
+        F h = COMMUTATIVE ? g : m.composition(g, t[k].f);
+        lng mid = std::midpoint(a, b);
+        int lc = act(t[k].l, h, a, mid, l, r, f), rc = act(t[k].r, h, mid, b, l, r, f);
+        return make(COMMUTATIVE ? t[k].f : m.id(), lc, rc);}
+};
 
+// 0 <= n < 2^31; T has operator< (a strict weak order); W is an additive group with W() as zero; k-th counts from 0 in (value, index) order; maxLeq and minGeq return false when no value qualifies.
+// S: O(n * log(n)), U: NA, Q: O(log(n)), M: O(n * log(n))
+template<typename T, typename W = lng>
+struct PersistentValueTree {
+    struct Node { int c, l, r; };
     int n;
-    vector<lng> v;
-    std::optional<PerSegTree<Mon>> segt;
+    vector<T> vals;
+    vector<Node> t;
+    vector<W> s;
+    vector<int> roots;
 
-    KSPerSegTree(const vector<lng> &a) : n(a.size()), v(a) {
-        sort(v.begin(), v.end());
-        v.erase(unique(v.begin(), v.end()), v.end());
-        segt.emplace(v.size());
+    // Leaf p is the p-th element in (value, index) order; version i holds a[0, i).
+    explicit PersistentValueTree(const vector<T> &a = {}, const vector<W> &w = {}) : n(int(a.size())), t{{0, 0, 0}}, s{W()}, roots{0} {
+        assert(a.size() <= size_t(INT_MAX) && (w.empty() || w.size() == a.size()));
+        vector<int> ord(n), pos(n);
+        iota(ord.begin(), ord.end(), 0);
+        std::stable_sort(ord.begin(), ord.end(), [&](int i, int j) { return a[i] < a[j]; });
+        vals.reserve(n);
+        for (int p = 0; p < n; ++p) { vals.push_back(a[ord[p]]); pos[ord[p]] = p; }
+        for (int i = 0; i < n; ++i) { roots.push_back(insert(roots[i], 0, n, pos[i], w.empty() ? nullptr : &w[i])); }}
+    int insert(int k, int a, int b, int p, const W *w) {
+        int l = t[k].l, r = t[k].r, mid = std::midpoint(a, b);
+        if (b - a > 1 && p < mid) { l = insert(l, a, mid, p, w); }
+        else if (b - a > 1) { r = insert(r, mid, b, p, w); }
+        t.push_back({t[k].c + 1, l, r});
+        if (w) { s.push_back(s[k] + *w); }
+        return int(t.size()) - 1;}
+    int lowerRank(const T &x) const { return int(lower_bound(vals.begin(), vals.end(), x) - vals.begin()); }
+    int upperRank(const T &x) const { return int(upper_bound(vals.begin(), vals.end(), x) - vals.begin()); }
+    // Elements of a[l, r) whose leaf is below p.
+    int below(int l, int r, int p) const {
+        int res = 0;
+        for (int kl = roots[l], kr = roots[r], a = 0, b = n; kr && a < p;) {
+            if (b <= p) { return res + t[kr].c - t[kl].c; }
+            int mid = std::midpoint(a, b);
+            if (p <= mid) { kl = t[kl].l; kr = t[kr].l; b = mid; }
+            else { res += t[t[kr].l].c - t[t[kl].l].c; kl = t[kl].r; kr = t[kr].r; a = mid; }}
+        return res;}
+    // Leaf of the k-th element of a[l, r); adds the weights before it to *sum.
+    int leaf(int l, int r, int k, W *sum = nullptr) const {
+        int kl = roots[l], kr = roots[r], a = 0, b = n;
+        while (b - a > 1) {
+            int mid = std::midpoint(a, b), c = t[t[kr].l].c - t[t[kl].l].c;
+            if (k < c) { kl = t[kl].l; kr = t[kr].l; b = mid; continue; }
+            if (sum) { *sum += s[t[kr].l] - s[t[kl].l]; }
+            k -= c; kl = t[kl].r; kr = t[kr].r; a = mid;}
+        return a;}
 
-        for (int i = 0; i < n; i++) {
-            int ord = lower_bound(v.begin(), v.end(), a[i]) - v.begin();
-            segt->update(i, ord, ord, {1, a[i]});
-        }
-    }
-
-    int _cntLeq(int l, int r, lng x) {
-        auto it = upper_bound(v.begin(), v.end(), x);
-        if (it == v.begin()) {
-            return 0;}
-
-        int ord = (it - v.begin()) - 1; 
-        int l_cnt = segt->query(l,     0, ord).cnt;
-        int r_cnt = segt->query(r + 1, 0, ord).cnt;
-        
-        return r_cnt - l_cnt;
-    }
-
-    int cntEql(int l, int r, lng x) {
-        assert(0 <= l && l <= r && r < n);
-
-        auto it = lower_bound(v.begin(), v.end(), x);
-        if (it == v.end() || *it != x) {
-            return 0;}
-        
-        int ord = it - v.begin();
-        int l_cnt = segt->query(l,     ord, ord).cnt;
-        int r_cnt = segt->query(r + 1, ord, ord).cnt;
-
-        return r_cnt - l_cnt;
-    }
-
-    int cntRan(int l, int r, lng x1, lng x2) {
-        assert(0 <= l && l <= r && r < n);
-
-        if (x1 > x2) {
-            return 0;}
-
-        return _cntLeq(l, r, x2) - _cntLeq(l, r, x1 - 1);
-    }
-
-    int _kthMin(int l_i, int r_i, int l, int r, int k) {
-        if (l == r) {
-            return l;}
-
-        int cnt = 0;
-        int l_lc = l_i == -1 ? -1 : segt->tree[l_i].lc;
-        if (l_lc != -1) {
-            cnt -= segt->tree[l_lc].val.cnt;}
-        int r_lc = r_i == -1 ? -1 : segt->tree[r_i].lc;
-        if (r_lc != -1) {
-            cnt += segt->tree[r_lc].val.cnt;}
-        
-        int md = std::midpoint(l, r);
-        if (cnt >= k) {
-            return _kthMin(l_lc, r_lc, l, md, k);}
-
-        int l_rc = l_i == -1 ? -1 : segt->tree[l_i].rc;
-        int r_rc = r_i == -1 ? -1 : segt->tree[r_i].rc;
-        
-        return _kthMin(l_rc, r_rc, md + 1, r, k - cnt);
-    }
-
-    lng kthMin(int l, int r, int k) {
-        assert(0 <= l && l <= r && r < n);
-        assert(1 <= k && k <= r - l + 1);
-
-        int ord = _kthMin(segt->roots[l], segt->roots[r + 1], 0, v.size() - 1, k);
-        
-        return v[ord];
-    }
-
-    lng _kthSum(int l_i, int r_i, int l, int r, int k) {
-        if (k == 0) {
-            return 0;}
-            
-        if (l == r) {
-            return lng(k) * v[l];}
-
-        int l_cnt = 0;
-        lng l_sum = 0;
-        
-        int l_lc = l_i == -1 ? -1 : segt->tree[l_i].lc;
-        if (l_lc != -1) {
-            l_cnt -= segt->tree[l_lc].val.cnt;
-            l_sum -= segt->tree[l_lc].val.sum;
-        }
-        int r_lc = r_i == -1 ? -1 : segt->tree[r_i].lc;
-        if (r_lc != -1) {
-            l_cnt += segt->tree[r_lc].val.cnt;
-            l_sum += segt->tree[r_lc].val.sum;
-        }
-
-        int md = std::midpoint(l, r);
-        if (l_cnt >= k) {
-            return _kthSum(l_lc, r_lc, l, md, k);
-        } else {
-            int l_rc = l_i == -1 ? -1 : segt->tree[l_i].rc;
-            int r_rc = r_i == -1 ? -1 : segt->tree[r_i].rc;
-            return l_sum + _kthSum(l_rc, r_rc, md + 1, r, k - l_cnt);
-        }
-    }
-
-    lng kthSum(int l, int r, int k) {
-        assert(0 <= l && l <= r && r < n);
-        assert(0 <= k && k <= r - l + 1);
-        
-        return _kthSum(segt->roots[l], segt->roots[r + 1], 0, v.size() - 1, k);
-    }
-    
-    lng maxLeq(int l, int r, lng x) {
-        assert(0 <= l && l <= r && r < n);
-
-        int cnt = _cntLeq(l, r, x);
-        if (cnt == 0) {
-            return -INF64;}
-
-        return kthMin(l, r, cnt);
-    }
-
-    lng minGeq(int l, int r, lng x) {
-        assert(0 <= l && l <= r && r < n);
-
-        int cnt = _cntLeq(l, r, x - 1);
-        if (cnt == r - l + 1) {
-            return INF64;}
-
-        return kthMin(l, r, cnt + 1);
-    }
+    int countEqual(int l, int r, const T &x) const { assert(0 <= l && l <= r && r <= n); return below(l, r, upperRank(x)) - below(l, r, lowerRank(x)); }
+    int countRange(int l, int r, const T &lo, const T &hi) const { assert(0 <= l && l <= r && r <= n); return lo < hi ? below(l, r, lowerRank(hi)) - below(l, r, lowerRank(lo)) : 0; }
+    T rangeKth(int l, int r, int k) const { assert(0 <= l && l <= r && r <= n && 0 <= k && k < r - l); return vals[leaf(l, r, k)]; }
+    W kthSum(int l, int r, int k) const {
+        assert(0 <= l && l <= r && r <= n && 0 <= k && k <= r - l && s.size() == t.size());
+        if (k == r - l) { return s[roots[r]] - s[roots[l]]; }
+        W res = W();
+        leaf(l, r, k, &res);
+        return res;}
+    bool maxLeq(int l, int r, const T &x, T &res) const {
+        assert(0 <= l && l <= r && r <= n);
+        int c = below(l, r, upperRank(x));
+        if (!c) { return false; }
+        res = vals[leaf(l, r, c - 1)];
+        return true;}
+    bool minGeq(int l, int r, const T &x, T &res) const {
+        assert(0 <= l && l <= r && r <= n);
+        int c = below(l, r, lowerRank(x));
+        if (c == r - l) { return false; }
+        res = vals[leaf(l, r, c)];
+        return true;}
 };
 
+// 0 <= n < 2^31; T has operator< (a strict weak order whose equivalence is equality).
+// S: O(n * log(n)), U: NA, Q: O(log(n)), M: O(n * log(n))
+template<typename T>
+struct PersistentDistinctCount {
+    PersistentValueTree<int, int> tree;
+
+    explicit PersistentDistinctCount(const vector<T> &a = {}) : tree(previous(a)) {}
+    static vector<int> previous(const vector<T> &a) {
+        assert(a.size() <= size_t(INT_MAX));
+        vector<int> ord(a.size()), res(a.size(), -1);
+        iota(ord.begin(), ord.end(), 0);
+        std::stable_sort(ord.begin(), ord.end(), [&](int i, int j) { return a[i] < a[j]; });
+        for (int p = 1; p < int(ord.size()); ++p) {
+            if (!(a[ord[p - 1]] < a[ord[p]])) { res[ord[p]] = ord[p - 1]; }}
+        return res;}
+
+    // Positions j in [l, r) with no equal value in [l, j).
+    int countDistinct(int l, int r) const { assert(0 <= l && l <= r && r <= tree.n); return tree.countRange(l, r, -1, l); }
+};

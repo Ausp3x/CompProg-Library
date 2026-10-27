@@ -1048,8 +1048,10 @@
       "phase": "Contest core",
       "size": "XL",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
+      "status": "verified",
+      "evidence": [
+        "02-Data Structures/Docs/18-persistentsegmenttree.md"
+      ],
       "note": ""
     },
     {

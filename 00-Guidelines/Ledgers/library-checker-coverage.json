@@ -671,7 +671,8 @@
       "problem": "data_structure/static_range_count_distinct",
       "judge_url": "https://judge.yosupo.jp/problem/static_range_count_distinct",
       "targets": [
-        "02-Data Structures/32-static_range_queries.hpp"
+        "02-Data Structures/32-static_range_queries.hpp",
+        "02-Data Structures/18-persistentsegmenttree.hpp"
       ],
       "read_scopes": [
         "Problem catalog name/path compared; full statement/generators not audited."

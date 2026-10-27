@@ -8,7 +8,6 @@ Decided by the user since 2026-10-10; binding, and only the user changes them.
 
 ### Changes
 
-- **P030** row 18 (pinned): `PerSegTree` is a second persistent segment tree beside `PersistentSegmentTree`; its entries leave the row and `PersistentSegmentTree` gains `maxRight`/`minLeft` (from `maxR`/`minL`). `KSPerSegTree::kthMin` leaves the row (`rangeKth`); its `cntEql`, `cntRan`, `kthSum`, `maxLeq`, `minGeq` stay as the only persistent forms.
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
 
@@ -50,6 +49,9 @@ Items a reader could mistake for duplicates.
 | P019 | `InfIntMini` `explicit operator bool` beside `isNil` | As P018 (decided 2026-10-17) |
 | P019 | `Rational` `toDouble` beside `toLongDouble`; `read`, `toString` beside `>>`, `<<` | Each conversion rounds the exact value once to its own precision; base 2–36, status and decimal input (decided 2026-10-17) |
 | P023 | `steadyState` | Only form; fixed-iteration power method, kept beside the planned converged solver |
+| P030 | `PersistentSegmentTree` over a plain monoid beside row 13 `DynamicSegmentTree<M, true>` and row 35 `PersistentArray` | Decided 2026-10-27: version ids, vector and fill builds, `copyRange`, functional `split`/`merge`, and the binary tree's time and memory tradeoff |
+| P030 | `PersistentValueTree` beside rows 16 `MergeSortTree` and 17 `WaveletMatrix` | Decided 2026-10-27: a different algorithm whose prefix versions can be combined |
+| P030 | `PersistentDistinctCount` beside row 32 `staticRangeCountDistinct` | Decided 2026-10-27: online, where row 32 is offline |
 | P052 | `factorizeTrial`, `isPrimeTrial`, `inversePierce`, `inverseFermat` | Different algorithms |
 | P052 | `inverseBatch`; `primality_detail::splitmix` | Larger domain (every modular type); internal helper |
 | P081 | unit-cost `hirschberg(a, b)` | Named special case (unit-cost alignment) |
@@ -328,15 +330,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `exactCover` | row 25 | `DancingLinks` plus `addRow` plus `solve` | keep | batch builder over `DancingLinks` (clarified rule) | — | — |
-
-## P030 — 02-Data Structures — persistentsegmenttree (planned)
-
-`18-persistentsegmenttree.hpp` is pinned; both hashes match the ledger.
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `PerSegTree` entries | `18-persistentsegmenttree.hpp:7-287` | `PersistentSegmentTree`: `apply(v, l, r + 1, f)`, `copyRange`, `prod`, `maxRight(v, l, g) - 1`, `minLeft(v, r + 1, g)` | remove (row only) | Changes | none | `KSPerSegTree` (`18:343-457`) builds on it |
-| `KSPerSegTree::kthMin` | `18-persistentsegmenttree.hpp:413` | `rangeKth(l, r + 1, k - 1)` | remove (row only) | Changes | none | `maxLeq`, `minGeq` (:467,477) use its descent |
 
 ## P032 — 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis (planned)
 

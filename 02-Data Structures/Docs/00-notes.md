@@ -16,7 +16,7 @@ Folder-wide contracts, ownership boundaries, migration obligations and per-packa
 - Fenwick variants require an additive commutative group; prefix-monoid Fenwick requires monotone updates (max/min) and has no range subtraction.
 - Segment-tree searches need a deterministic predicate true on the identity whose truth forms a prefix as the interval grows.
 - `SparseTable::prod` needs idempotence; `associativeProd` and the disjoint sparse table need only associativity.
-- Monoids follow the `03-cpp.md` monoid rule; presets, adapters and laws are row 00 ([00-monoids.md](00-monoids.md)). Rows 12, 13, 14 (`LazySegmentTreeBeats` adds `fail`), 15 and 19 consume acted monoids (row 13 also needs only the monoid part, or only the action part, for its plain and dual trees; row 15's 2D trees need a commutative `op` or `composition`); row 18 still uses the legacy `Mon` contract until its audit.
+- Monoids follow the `03-cpp.md` monoid rule; presets, adapters and laws are row 00 ([00-monoids.md](00-monoids.md)). Rows 12, 13, 14 (`LazySegmentTreeBeats` adds `fail`), 15, 18 and 19 consume acted monoids (rows 13 and 18 also need only the monoid part, or only the action part, for their plain and dual trees; row 15's 2D trees need a commutative `op` or `composition`).
 - Li Chao and convex hull trick must state an overflow-safe evaluation policy and exact intersection comparison (128-bit products or bounded domains) and tie rules for equal lines, and serve both min and max queries.
 - Segment-tree beats variants beyond chmin/chmax/add/assign need their own amortized proof and value-domain statement ([14-segtreebeats.md](14-segtreebeats.md)).
 - ODT/Chtholly workloads must state adversarial worst-case degeneration ([24-interval_set.md](24-interval_set.md)). Kinetic structures must distinguish adversarial event counts from ordinary update bounds.
@@ -36,7 +36,7 @@ Folder-wide contracts, ownership boundaries, migration obligations and per-packa
 
 ## Migration obligations
 
-- Unchanged extractions (`18`, `21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit.
+- Unchanged extractions (`21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit.
 
 ## P006 re-audit omissions
 
@@ -181,6 +181,17 @@ Candidates from the 2026-10-23 sweep ([00-sources.md](00-sources.md#fetched-2026
 - Merges of one batch as a single time step (suisen `merge_simultaneously`): `MergeHistoryForest` stamps each union with its index; a caller maps indices to steps.
 - FastSet `clear`/`reset` (maspypy, hitonanode): constructing a new set does the same. `fillOne`: `build` with a true predicate. `toString`: debug output. `any(l, r)`: `next(l) < r`. Range erase: `enumerate` with `erase` in the callback. Counting and k-th: Fenwick `lowerBound` (row 02).
 - Arpa's offline RMQ (cp-algorithms, a DSU over next-smaller links): rows 04 and 28 answer the same queries online.
+
+## P030 omissions
+
+Candidates from the 2026-10-27 sweep ([00-sources.md](00-sources.md#fetched-2026-10-27-p030-sweep)) left out of row 18:
+
+- Pool `reset`/`clear_pool` (SUI, MAS): constructing a new tree does the same; reclaiming unreachable nodes is Miscellaneous row 43.
+- Persistent Fenwick tree (SUI): the plain-sum case of `PersistentSegmentTree` at the same bounds.
+- `copyRange` applying an action while copying (MAS `copy_interval`): `copyRange` then `apply`.
+- `kthMax`, `countLess`, `sumLess` on `PersistentValueTree` (row 17 lists them): `rangeKth(l, r, r - l - 1 - k)`, `countRange` from the lowest value, and `kthSum` at a `countRange` count.
+- k-th smallest on a tree path (SPOJ COT, versions per vertex combined through the LCA): a Graphs tree adapter; no catalog offers it.
+- Position-dependent defaults for untouched ranges (legacy `defR(l, r)`, row 13's `fill` functor) in `PersistentSegmentTree`: untouched ranges would hold `fill` instead of `e()`, which breaks the null-node shortcuts of `merge`, `split` and retagging; the fill build `(n, x)` covers uniform defaults on any `lng` universe and a vector build covers the rest up to memory (decided 2026-10-27).
 
 ## Planned-row omissions
 

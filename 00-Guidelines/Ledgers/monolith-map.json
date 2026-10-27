@@ -666,22 +666,21 @@
       "symbols": [
         "PerSegTree"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [
-        "Large fixed reserve and empty-size behavior remain unaudited."
+        "Legacy fixed 10M-node reserve, silent copies on out-of-range ranges and lng positions with a position-dependent defR; P030 replaced it with PersistentSegmentTree (lng positions, uniform fill build, reserve, asserted ranges)."
       ],
       "body_sha256": "9b5b5aead6e6bed1454d7cd6d20edaf0253c10fa56f56dcb0cfcf2e9c65902e4",
       "body_bytes": 7825,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P030 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 2445,
       "end_line": 2725,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 7,
-      "target_body_end_line": 287
+      "verification": "02-Data Structures/Docs/18-persistentsegmenttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -753,14 +752,14 @@
       "symbols": [
         "KSPerSegTree"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [
-        "Retains optional storage and original sentinel/overflow conventions."
+        "Legacy optional storage and +-INF64 sentinels; P030 replaced it with PersistentValueTree (bool status with out-parameter) and PersistentDistinctCount."
       ],
       "body_sha256": "670495bb73a9fd005a0d12c7760338cf9b8806011e36146694c5d4062760a7b1",
       "body_bytes": 5175,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P030 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 3461,
       "end_line": 3649,
@@ -768,8 +767,7 @@
         "01-Core/01-template.hpp",
         "PerSegTree (same file)"
       ],
-      "target_body_start_line": 291,
-      "target_body_end_line": 479
+      "verification": "02-Data Structures/Docs/18-persistentsegmenttree.md"
     },
     {
       "source": "OLD/algorithms.cpp",
