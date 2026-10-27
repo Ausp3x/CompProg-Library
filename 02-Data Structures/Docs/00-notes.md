@@ -36,7 +36,7 @@ Folder-wide contracts, ownership boundaries, migration obligations and per-packa
 
 ## Migration obligations
 
-- Unchanged extractions (`21`, `23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit.
+- Unchanged extractions (`23`) keep original bodies and comments; compilation proves nothing about semantics. Audits must strip hidden template globals and compile each header alone. Mixed-operation bodies are split during audit.
 
 ## P006 re-audit omissions
 
@@ -189,6 +189,17 @@ Candidates from the 2026-10-27 sweep ([00-sources.md](00-sources.md#fetched-2026
 - Persistent Fenwick tree (SUI): the left-sum tree with path copying is `PersistentSegmentTree<Sum<lng>>` at the same bounds; a scratch measurement (2026-10-27, n = q = 2 * 10^5, half point adds, half range sums on random versions) made 1.86M nodes either way in about 65 ms against 64 ms.
 - k-th smallest on a tree path (SPOJ COT, versions per vertex combined through the LCA): Graphs owns tree adapters; filed as P248 (Graphs row 88).
 - Position-dependent defaults for untouched ranges (legacy `defR(l, r)`, row 13's `fill` functor) in `PersistentSegmentTree`: untouched ranges would hold `fill` instead of `e()`, which breaks the null-node shortcuts of `merge`, `split` and retagging; the fill build `(n, x)` covers uniform defaults on any `lng` universe and a vector build covers the rest up to memory.
+
+## P032 omissions
+
+Candidates from the 2026-10-28 DS11 sweep ([00-sources.md](00-sources.md#fetched-2026-10-28-p032-ds11-sweep)) left out of rows 21 and 22 (user decision 2026-10-28; floating-point lines were added to row 22 instead):
+
+- Minimum over an x-interval (Nyaan, monotone lines only) and lazy additive tags on the envelope (maspypy `extended_lichao`; CF 1120F named there, not fetched): rare; range linear add with range minimum is row 45.
+- Real x coordinates (cp-algorithms): `LiChaoTreeCompressed` takes any finite point set of `lng`; real points need a rank mapping inside `F::eval`, which a stored function cannot capture.
+- Line deletion: `undo` with row 63 `OfflineDeletion`; node-pool reset (maspypy): a new object.
+- Rollback CHT with binary-search insertion (CEOI 2009 Harbingers, named by the sweep, not fetched; CF blog 51684 returned 403): `LiChaoTree` and `LiChaoTreeCompressed` with `UNDO` answer the same tree DP at O(log(C)) per operation.
+- `empty`, `size`, `clear` (ei1333, maspypy): the public deque, a new object. Merging two monotone hulls (hitonanode, unverified there), single-crossing functions in a monotone CHT (maspypy `CHT_Monotone_F`): one catalog each; the Li Chao trees cover general functions.
+- Max of `a x + b y` over points (maspypy `CHT_XY`, Nyaan `LineContainer2D`) and static envelope pieces (maspypy `line_min_function`): Geometry rows 20 and 41.
 
 ## Planned-row omissions
 

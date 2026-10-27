@@ -21,6 +21,7 @@
 #include "18-persistentsegmenttree.hpp"
 #include "19-treap.hpp"
 #include "21-lichao.hpp"
+#include "22-convexhulltrick.hpp"
 #include "23-range_query_offline.hpp"
 #include "24-interval_set.hpp"
 #include "25-heap_deque.hpp"

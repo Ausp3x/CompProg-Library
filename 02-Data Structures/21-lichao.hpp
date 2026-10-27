@@ -2,383 +2,270 @@
 
 #include "../01-Core/01-template.hpp"
 
-// Unchanged legacy extraction: OLD/algorithms.cpp:3935-4116.
-// Status: existing-unverified; correctness, performance and API audit pending.
-// S: O(n), U: O(log(n)), Q: O(log(n)), M: O(n * log(n))
+namespace lichao_detail {
+    // T: O(1), M: O(1)
+    struct Line {
+        lng m, b;
+
+        lng eval(lng x) const { return m * x + b; }
+    };
+
+    template<bool MAX, typename T>
+    inline constexpr T NONE = MAX ? std::numeric_limits<T>::lowest() : std::numeric_limits<T>::max();
+
+    // T: O(1), M: O(1)
+    template<bool MAX, typename T>
+    bool better(const T &a, const T &b) { return MAX ? b < a : a < b; }
+
+    // T: O(log(C)) (C = r - l), M: O(1)
+    // Node v of a pointer tree is the offset of {function id, left child, right child} in t; -1 is none.
+    template<bool MAX, typename F, typename T>
+    T query(const vector<int> &t, const vector<F> &fs, int v, lng l, lng r, lng x) {
+        T res = NONE<MAX, T>;
+        while (v >= 0) {
+            if (t[v] >= 0) {
+                T y = fs[t[v]].eval(x);
+                if (better<MAX>(y, res)) { res = y; }}
+            lng md = std::midpoint(l, r);
+            int c = x < md ? 1 : 2;
+            (x < md ? r : l) = md;
+            v = t[v + c];}
+        return res;}
+} // namespace lichao_detail
+
+// Integer x in [lo, hi); functions pairwise cross at most once there, values exact and strictly inside the sentinels; query returns NONE when nothing covers x.
+// S: O(1), U: O(log(C)) (C = hi - lo), Q: O(log(C)), M: O(n + s * log(C)) (s segments; UNDO adds O(log(C)) per line, O(log(C)^2) per segment)
+template<bool MAX = false, bool UNDO = false, typename F = lichao_detail::Line>
 struct LiChaoTree {
-    struct Line {
-        lng m, b;
+    using Line = lichao_detail::Line;
+    using T = decltype(std::declval<const F &>().eval(lng()));
+    static constexpr T NONE = lichao_detail::NONE<MAX, T>;
+    lng lo, hi;
+    vector<F> fs;
+    vector<int> t;
+    vector<pair<int, int>> his;
+    vector<array<int, 3>> saves;
 
-        lng eval(lng x) const {
-            return m * x + b;
-        }
-    };
+    LiChaoTree(lng lo, lng hi) : lo(lo), hi(hi), t{-1, -1, -1} { assert(lo < hi); }
 
-    struct Node {
-        Line mx_l, mn_l;
-        int lc = -1, rc = -1;
+    int node(int f) {
+        t.insert(t.end(), {f, -1, -1});
+        return int(t.size()) - 3;}
 
-        Node(Line Mx_l, Line Mn_l) : mx_l(Mx_l), mn_l(Mn_l) {}
-    };
+    void set(int p, int x) {
+        if constexpr (UNDO) { his.emplace_back(p, t[p]); }
+        t[p] = x;}
 
-    lng mn_x, mx_x;
-    int root = -1;
-    vector<Node> tree;
+    void save() {
+        if constexpr (UNDO) { saves.push_back({int(his.size()), int(t.size()), int(fs.size())}); }}
 
-    LiChaoTree(lng Mn_x, lng Mx_x) : mn_x(Mn_x), mx_x(Mx_x) {
-        tree.reserve(2'500'000);
-    }
+    bool better(int f, int g, lng x) const { return lichao_detail::better<MAX>(fs[f].eval(x), fs[g].eval(x)); }
 
-    int createNode() {
-        tree.emplace_back(Line{0, -INF64}, Line{0, INF64});
-        
-        return tree.size() - 1;
-    }
+    // Each node keeps the better function at its midpoint; the loser can only win on one side.
+    void descend(int v, lng l, lng r, int f) {
+        while (true) {
+            int g = t[v];
+            if (g < 0) { set(v, f); return; }
+            lng md = std::midpoint(l, r);
+            bool lef = better(f, g, l), mid = better(f, g, md);
+            if (mid) { set(v, f); f = g; }
+            if (md == l) { return; }
+            int c = lef != mid ? 1 : 2;
+            (lef != mid ? r : l) = md;
+            if (t[v + c] < 0) { set(v + c, node(f)); return; }
+            v = t[v + c];}}
 
-    int _addLineMax(int i, lng l, lng r, Line y) {
-        if (i == -1) {
-            i = createNode();}
-
+    void segment(int v, lng l, lng r, lng a, lng b, int f) {
+        if (a <= l && r <= b) { descend(v, l, r, f); return; }
         lng md = std::midpoint(l, r);
-        bool l_bet = y.eval(l)  > tree[i].mx_l.eval(l);
-        bool m_bet = y.eval(md) > tree[i].mx_l.eval(md);
-        if (m_bet) {
-            std::swap(tree[i].mx_l, y);}
+        for (int c : {1, 2}) {
+            if (c == 1 ? a >= md : b <= md) { continue; }
+            if (t[v + c] < 0) { set(v + c, node(-1)); }
+            segment(t[v + c], c == 1 ? l : md, c == 1 ? md : r, a, b, f);}}
 
-        if (l == r) {
-            return i;}
-
-        if (l_bet != m_bet) {
-            int nlc = _addLineMax(tree[i].lc, l,      md, y);
-            tree[i].lc = nlc;
-        } else {
-            int nrc = _addLineMax(tree[i].rc, md + 1, r,  y);
-            tree[i].rc = nrc;
-        }
-
-        return i;
-    }
-
-    int _addLineMin(int i, lng l, lng r, Line y) {
-        if (i == -1) {
-            i = createNode();}
-
+    void absorb(int v, const LiChaoTree &o, int u, lng l, lng r) {
+        if (o.t[u] >= 0) {
+            fs.push_back(o.fs[o.t[u]]);
+            descend(v, l, r, int(fs.size()) - 1);}
         lng md = std::midpoint(l, r);
-        bool l_bet = y.eval(l)  < tree[i].mn_l.eval(l);
-        bool m_bet = y.eval(md) < tree[i].mn_l.eval(md);
-        if (m_bet) {
-            std::swap(tree[i].mn_l, y);}
+        for (int c : {1, 2}) {
+            if (o.t[u + c] < 0) { continue; }
+            if (t[v + c] < 0) { set(v + c, node(-1)); }
+            absorb(t[v + c], o, o.t[u + c], c == 1 ? l : md, c == 1 ? md : r);}}
 
-        if (l == r) {
-            return i;}
+    void addLine(const F &f) {
+        save();
+        fs.push_back(f);
+        descend(0, lo, hi, int(fs.size()) - 1);}
 
-        if (l_bet != m_bet) {
-            int nlc = _addLineMin(tree[i].lc, l,      md, y);
-            tree[i].lc = nlc;
-        } else {
-            int nrc = _addLineMin(tree[i].rc, md + 1, r,  y);
-            tree[i].rc = nrc;
-        }
+    // U: O(log(C)^2); f covers [l, r) intersected with [lo, hi).
+    void addSegment(lng l, lng r, const F &f) {
+        save();
+        fs.push_back(f);
+        l = max(l, lo); r = min(r, hi);
+        if (l < r) { segment(0, lo, hi, l, r, int(fs.size()) - 1); }}
 
-        return i;
-    }
+    // U: O(nodes of o + levels its functions move down), each function moving at most log(C) levels in all; merge the smaller tree into the larger.
+    void merge(const LiChaoTree &o) {
+        assert(this != &o && lo == o.lo && hi == o.hi);
+        save();
+        absorb(0, o, 0, lo, hi);}
 
-    int _addSegmMax(int i, lng l, lng r, lng ql, lng qr, Line y) {
-        if (ql <= l && r <= qr) {
-            return _addLineMax(i, l, r, y);}
+    // U: O(changes of the reverted call); reverts the latest addLine, addSegment or merge.
+    void undo() {
+        static_assert(UNDO, "LiChaoTree::undo needs UNDO = true");
+        assert(!saves.empty());
+        if (saves.empty()) { return; }
+        auto [h, n, k] = saves.back();
+        saves.pop_back();
+        for (; int(his.size()) > h; his.pop_back()) { t[his.back().first] = his.back().second; }
+        t.resize(n);
+        fs.erase(fs.begin() + k, fs.end());}
 
-        if (i == -1) {
-            i = createNode();}
-
-        lng md = std::midpoint(l, r);
-        if (ql <= md) {
-            int nlc = _addSegmMax(tree[i].lc, l,      md, ql, qr, y);
-            tree[i].lc = nlc;
-        }
-        if (qr > md) {
-            int nrc = _addSegmMax(tree[i].rc, md + 1, r,  ql, qr, y);
-            tree[i].rc = nrc;
-        }
-
-        return i;
-    }
-
-    int _addSegmMin(int i, lng l, lng r, lng ql, lng qr, Line y) {
-        if (ql <= l && r <= qr) {
-            return _addLineMin(i, l, r, y);}
-
-        if (i == -1) {
-            i = createNode();}
-
-        lng md = std::midpoint(l, r);
-        if (ql <= md) {
-            int nlc = _addSegmMin(tree[i].lc, l,      md, ql, qr, y);
-            tree[i].lc = nlc;
-        }
-        if (qr > md) {
-            int nrc = _addSegmMin(tree[i].rc, md + 1, r,  ql, qr, y);
-            tree[i].rc = nrc;
-        }
-
-        return i;
-    }
-
-    void addLine(lng m, lng b) {
-        root = _addLineMax(root, mn_x, mx_x, {m, b});
-        root = _addLineMin(root, mn_x, mx_x, {m, b});
-    }
-
-    // U: O(log(n)^2)
-    void addSegm(lng l, lng r, lng m, lng b) {
-        if (l >= mn_x && l <= r && r <= mx_x) {
-            root = _addSegmMax(root, mn_x, mx_x, l, r, {m, b});
-            root = _addSegmMin(root, mn_x, mx_x, l, r, {m, b});
-        }
-    }
-
-    lng _maxQuery(int i, lng l, lng r, lng x) {
-        if (i == -1) {
-            return -INF64;}
-
-        lng res = tree[i].mx_l.eval(x);
-        if (l == r) {
-            return res;}
-
-        lng md = std::midpoint(l, r);
-        if (x <= md) {
-            res = max(res, _maxQuery(tree[i].lc, l,      md, x));
-        } else {
-            res = max(res, _maxQuery(tree[i].rc, md + 1, r,  x));
-        }
-
-        return res;
-    }
-
-    lng _minQuery(int i, lng l, lng r, lng x) {
-        if (i == -1) {
-            return INF64;}
-
-        lng res = tree[i].mn_l.eval(x);
-        if (l == r) {
-            return res;}
-
-        lng md = std::midpoint(l, r);
-        if (x <= md) {
-            res = min(res, _minQuery(tree[i].lc, l,      md, x));
-        } else {
-            res = min(res, _minQuery(tree[i].rc, md + 1, r,  x));
-        }
-
-        return res;
-    }
-
-    lng maxQuery(lng x) {
-        if (x < mn_x || x > mx_x) {
-            return -INF64;}
-            
-        return _maxQuery(root, mn_x, mx_x, x);
-    }
-
-    lng minQuery(lng x) {
-        if (x < mn_x || x > mx_x) {
-            return INF64;}
-            
-        return _minQuery(root, mn_x, mx_x, x);
-    }
+    T query(lng x) const {
+        assert(lo <= x && x < hi);
+        return lichao_detail::query<MAX, F, T>(t, fs, 0, lo, hi, x);}
 };
 
-// Unchanged legacy extraction: OLD/algorithms.cpp:4232-4423.
-// Status: existing-unverified; correctness, performance and API audit pending.
-// S: O(n), U: O(log(n)), Q: O(log(n)), M: O(n * log(n))
+// Versions from 0 (empty); every update returns a new version. Domain and sentinel as LiChaoTree.
+// S: O(1), U: O(log(C)) (C = hi - lo), Q: O(log(C)), M: O(n * log(C) + s * log(C)^2) (s segments)
+template<bool MAX = false, typename F = lichao_detail::Line>
 struct PerLiChaoTree {
-    struct Line {
-        lng m, b;
+    using Line = lichao_detail::Line;
+    using T = decltype(std::declval<const F &>().eval(lng()));
+    static constexpr T NONE = lichao_detail::NONE<MAX, T>;
+    lng lo, hi;
+    vector<F> fs;
+    vector<int> t, roots;
 
-        lng eval(lng x) const {
-            return m * x + b;
-        }
-    };
+    PerLiChaoTree(lng lo, lng hi) : lo(lo), hi(hi), roots{-1} { assert(lo < hi); }
 
-    struct Node {
-        Line mx_l, mn_l;
-        int lc = -1, rc = -1;
+    void reserve(int nodes) { t.reserve(3 * size_t(nodes)); }
 
-        Node(Line Mx_l, Line Mn_l) : mx_l(Mx_l), mn_l(Mn_l) {}
-    };
+    int copy(int v) {
+        if (v < 0) { t.insert(t.end(), {-1, -1, -1}); }
+        else { t.insert(t.end(), {t[v], t[v + 1], t[v + 2]}); }
+        return int(t.size()) - 3;}
 
-    lng mn_x, mx_x;
-    vector<int> roots;
-    vector<Node> tree;
+    bool better(int f, int g, lng x) const { return lichao_detail::better<MAX>(fs[f].eval(x), fs[g].eval(x)); }
 
-    PerLiChaoTree(lng Mn_x, lng Mx_x) : mn_x(Mn_x), mx_x(Mx_x) {
-        tree.reserve(10'000'000);
-        roots.push_back(-1);
-    }
+    int descend(int v, lng l, lng r, int f) {
+        int res = copy(v);
+        for (int u = res;;) {
+            int g = t[u];
+            if (g < 0) { t[u] = f; return res; }
+            lng md = std::midpoint(l, r);
+            bool lef = better(f, g, l), mid = better(f, g, md);
+            if (mid) { t[u] = f; f = g; }
+            if (md == l) { return res; }
+            int c = lef != mid ? 1 : 2;
+            (lef != mid ? r : l) = md;
+            int w = copy(t[u + c]);
+            t[u + c] = w;
+            u = w;}}
 
-    int cloneNode(int i) {
-        if (i == -1) {
-            tree.emplace_back(Line{0, -INF64}, Line{0, INF64});
-        } else {
-            Node tmp = tree[i];
-            tree.push_back(tmp);
-        }
-        
-        return tree.size() - 1;
-    }
-
-    int _addLineMax(int i, lng l, lng r, Line y) {
-        int j = cloneNode(i);
-
+    int segment(int v, lng l, lng r, lng a, lng b, int f) {
+        if (a <= l && r <= b) { return descend(v, l, r, f); }
+        int res = copy(v);
         lng md = std::midpoint(l, r);
-        bool l_bet = y.eval(l)  > tree[j].mx_l.eval(l);
-        bool m_bet = y.eval(md) > tree[j].mx_l.eval(md);
-        if (m_bet) {
-            std::swap(tree[j].mx_l, y);}
+        if (a < md) { t[res + 1] = segment(t[res + 1], l, md, a, b, f); }
+        if (md < b) { t[res + 2] = segment(t[res + 2], md, r, a, b, f); }
+        return res;}
 
-        if (l == r) {
-            return j;}
+    int addLine(int ver, const F &f) {
+        assert(0 <= ver && ver < int(roots.size()));
+        fs.push_back(f);
+        roots.push_back(descend(roots[ver], lo, hi, int(fs.size()) - 1));
+        return int(roots.size()) - 1;}
 
-        if (l_bet != m_bet) {
-            int nlc = _addLineMax(tree[j].lc, l,      md, y);
-            tree[j].lc = nlc;
-        } else {
-            int nrc = _addLineMax(tree[j].rc, md + 1, r,  y);
-            tree[j].rc = nrc;
-        }
+    // U: O(log(C)^2); f covers [l, r) intersected with [lo, hi).
+    int addSegment(int ver, lng l, lng r, const F &f) {
+        assert(0 <= ver && ver < int(roots.size()));
+        fs.push_back(f);
+        l = max(l, lo); r = min(r, hi);
+        roots.push_back(l < r ? segment(roots[ver], lo, hi, l, r, int(fs.size()) - 1) : roots[ver]);
+        return int(roots.size()) - 1;}
 
-        return j;
-    }
-
-    int _addLineMin(int i, lng l, lng r, Line y) {
-        int j = cloneNode(i);
-
-        lng md = std::midpoint(l, r);
-        bool l_bet = y.eval(l)  < tree[j].mn_l.eval(l);
-        bool m_bet = y.eval(md) < tree[j].mn_l.eval(md);
-        if (m_bet) {
-            std::swap(tree[j].mn_l, y);}
-
-        if (l == r) {
-            return j;}
-
-        if (l_bet != m_bet) {
-            int nlc = _addLineMin(tree[j].lc, l,      md, y);
-            tree[j].lc = nlc;
-        } else {
-            int nrc = _addLineMin(tree[j].rc, md + 1, r,  y);
-            tree[j].rc = nrc;
-        }
-
-        return j;
-    }
-
-    int _addSegmMax(int i, lng l, lng r, lng ql, lng qr, Line y) {
-        if (ql <= l && r <= qr) {
-            return _addLineMax(i, l, r, y);}
-
-        int j = cloneNode(i);
-
-        lng md = std::midpoint(l, r);
-        if (ql <= md) {
-            int nlc = _addSegmMax(tree[j].lc, l,      md, ql, qr, y);
-            tree[j].lc = nlc;
-        }
-        if (qr > md) {
-            int nrc = _addSegmMax(tree[j].rc, md + 1, r,  ql, qr, y);
-            tree[j].rc = nrc;
-        }
-
-        return j;
-    }
-
-    int _addSegmMin(int i, lng l, lng r, lng ql, lng qr, Line y) {
-        if (ql <= l && r <= qr) {
-            return _addLineMin(i, l, r, y);}
-
-        int j = cloneNode(i);
-
-        lng md = std::midpoint(l, r);
-        if (ql <= md) {
-            int nlc = _addSegmMin(tree[j].lc, l,      md, ql, qr, y);
-            tree[j].lc = nlc;
-        }
-        if (qr > md) {
-            int nrc = _addSegmMin(tree[j].rc, md + 1, r,  ql, qr, y);
-            tree[j].rc = nrc;
-        }
-
-        return j;
-    }
-
-    int addLine(int ver, lng m, lng b) {
-        int j = roots[ver];
-        j = _addLineMax(j, mn_x, mx_x, {m, b});
-        j = _addLineMin(j, mn_x, mx_x, {m, b});
-        roots.push_back(j);
-        
-        return roots.size() - 1;
-    }
-
-    // U: O(log(n)^2)
-    int addSegm(int ver, lng l, lng r, lng m, lng b) {
-        int j = roots[ver];
-        if (l >= mn_x && l <= r && r <= mx_x) {
-            j = _addSegmMax(j, mn_x, mx_x, l, r, {m, b});
-            j = _addSegmMin(j, mn_x, mx_x, l, r, {m, b});
-        }
-        roots.push_back(j);
-        
-        return roots.size() - 1;
-    }
-
-    lng _maxQuery(int i, lng l, lng r, lng x) {
-        if (i == -1) {
-            return -INF64;}
-
-        lng res = tree[i].mx_l.eval(x);
-        if (l == r) {
-            return res;}
-
-        lng md = std::midpoint(l, r);
-        if (x <= md) {
-            res = max(res, _maxQuery(tree[i].lc, l,      md, x));
-        } else {
-            res = max(res, _maxQuery(tree[i].rc, md + 1, r,  x));
-        }
-
-        return res;
-    }
-
-    lng _minQuery(int i, lng l, lng r, lng x) {
-        if (i == -1) {
-            return INF64;}
-
-        lng res = tree[i].mn_l.eval(x);
-        if (l == r) {
-            return res;}
-
-        lng md = std::midpoint(l, r);
-        if (x <= md) {
-            res = min(res, _minQuery(tree[i].lc, l,      md, x));
-        } else {
-            res = min(res, _minQuery(tree[i].rc, md + 1, r,  x));
-        }
-
-        return res;
-    }
-
-    lng maxQuery(int ver, lng x) {
-        if (x < mn_x || x > mx_x) {
-            return -INF64;}
-            
-        return _maxQuery(roots[ver], mn_x, mx_x, x);
-    }
-
-    lng minQuery(int ver, lng x) {
-        if (x < mn_x || x > mx_x) {
-            return INF64;}
-            
-        return _minQuery(roots[ver], mn_x, mx_x, x);
-    }
+    T query(int ver, lng x) const {
+        assert(0 <= ver && ver < int(roots.size()) && lo <= x && x < hi);
+        return lichao_detail::query<MAX, F, T>(t, fs, roots[ver], lo, hi, x);}
 };
 
+// x among the constructor's points; functions cross at most once on them; query returns {value, line id (insertion index)}, {NONE, -1} when nothing covers x.
+// S: O(m * log(m)) (m points), U: O(log(m)), Q: O(log(m)), M: O(n + m) (UNDO adds O(log(m)) per line, O(log(m)^2) per segment)
+template<bool MAX = false, bool UNDO = false, typename F = lichao_detail::Line>
+struct LiChaoTreeCompressed {
+    using Line = lichao_detail::Line;
+    using T = decltype(std::declval<const F &>().eval(lng()));
+    static constexpr T NONE = lichao_detail::NONE<MAX, T>;
+    int n, sz;
+    vector<lng> xs;
+    vector<F> fs;
+    vector<int> t;
+    vector<pair<int, int>> his, saves;
+
+    explicit LiChaoTreeCompressed(vector<lng> pts) : xs(std::move(pts)) {
+        sort(xs.begin(), xs.end());
+        xs.erase(unique(xs.begin(), xs.end()), xs.end());
+        n = int(xs.size());
+        sz = int(std::bit_ceil(unsigned(max(n, 1))));
+        xs.resize(sz, n > 0 ? xs.back() : 0);
+        t.assign(2 * sz, -1);}
+
+    void set(int p, int x) {
+        if constexpr (UNDO) { his.emplace_back(p, t[p]); }
+        t[p] = x;}
+
+    bool better(int f, int g, int i) const { return lichao_detail::better<MAX>(fs[f].eval(xs[i]), fs[g].eval(xs[i])); }
+
+    void descend(int v, int l, int r, int f) {
+        while (true) {
+            int g = t[v];
+            if (g < 0) { set(v, f); return; }
+            int md = (l + r) / 2;
+            bool lef = better(f, g, l), mid = better(f, g, md);
+            if (mid) { set(v, f); f = g; }
+            if (md == l) { return; }
+            v = 2 * v + (lef != mid ? 0 : 1);
+            (lef != mid ? r : l) = md;}}
+
+    void segment(int v, int l, int r, int a, int b, int f) {
+        if (b <= l || r <= a) { return; }
+        if (a <= l && r <= b) { descend(v, l, r, f); return; }
+        int md = (l + r) / 2;
+        segment(2 * v, l, md, a, b, f);
+        segment(2 * v + 1, md, r, a, b, f);}
+
+    int index(lng x) const { return int(lower_bound(xs.begin(), xs.begin() + n, x) - xs.begin()); }
+
+    void addLine(const F &f) {
+        if constexpr (UNDO) { saves.emplace_back(int(his.size()), int(fs.size())); }
+        fs.push_back(f);
+        if (n > 0) { descend(1, 0, sz, int(fs.size()) - 1); }}
+
+    // U: O(log(m)^2); f covers the points in [l, r).
+    void addSegment(lng l, lng r, const F &f) {
+        if constexpr (UNDO) { saves.emplace_back(int(his.size()), int(fs.size())); }
+        fs.push_back(f);
+        segment(1, 0, sz, index(l), index(r), int(fs.size()) - 1);}
+
+    // U: O(changes of the reverted call); reverts the latest addLine or addSegment.
+    void undo() {
+        static_assert(UNDO, "LiChaoTreeCompressed::undo needs UNDO = true");
+        assert(!saves.empty());
+        if (saves.empty()) { return; }
+        auto [h, k] = saves.back();
+        saves.pop_back();
+        for (; int(his.size()) > h; his.pop_back()) { t[his.back().first] = his.back().second; }
+        fs.erase(fs.begin() + k, fs.end());}
+
+    pair<T, int> query(lng x) const {
+        int p = index(x);
+        assert(p < n && xs[p] == x);
+        pair<T, int> res{NONE, -1};
+        for (int v = p + sz; v > 0; v /= 2) {
+            if (t[v] < 0) { continue; }
+            T y = fs[t[v]].eval(x);
+            if (lichao_detail::better<MAX>(y, res.first)) { res = {y, t[v]}; }}
+        return res;}
+};

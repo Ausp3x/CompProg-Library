@@ -238,26 +238,25 @@
     },
     {
       "source": "OLD/[1] algorithms.cpp",
-      "target": "02-Data Structures/97-Legacy/04-lichao_older.cpp",
+      "target": "02-Data Structures/21-lichao.hpp",
       "symbols": [
         "LiChaoTree"
       ],
-      "status": "legacy-reference",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [
-        "TODO draft is a complex-vector hull skeleton without queries; distinct from the newer Li Chao implementation."
+        "TODO draft of a complex-vector monotone hull without queries; P032 accounted for it as not adopted, MonotoneCHT (22-convexhulltrick.hpp) being the finished structure."
       ],
       "body_sha256": "0902112863e538076d570c9f674678e0fb966b6c5db1debb2450bfbb098b2705",
       "body_bytes": 578,
-      "relationship": "unchanged reference extraction",
+      "relationship": "P032 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 661,
       "end_line": 691,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 3,
-      "target_body_end_line": 33
+      "verification": "02-Data Structures/Docs/21-lichao.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
@@ -812,22 +811,21 @@
       "symbols": [
         "LiChaoTree"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [
-        "Integer line evaluation may overflow outside an unstated bounded domain; future audit required."
+        "Legacy closed [mn_x, mx_x] domain, max and min envelopes in every node, +-INF64 sentinels, a 2.5M-node reserve and silently ignored invalid segments; P032 replaced it with LiChaoTree<MAX, UNDO, F> (half-open domain, one envelope, numeric-limit sentinels, merge, undo)."
       ],
       "body_sha256": "9f71e2ffd7cbbc9dc3a6871ddcc95947c707abc1f15709843ef441d35bca6cc8",
       "body_bytes": 4563,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P032 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 3935,
       "end_line": 4116,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 7,
-      "target_body_end_line": 188
+      "verification": "02-Data Structures/Docs/21-lichao.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -859,22 +857,21 @@
       "symbols": [
         "PerLiChaoTree"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "tier": "Advanced",
       "issues": [
-        "Integer line evaluation and large fixed reserve require future domain/memory audit."
+        "Legacy 10M-node reserve, both envelopes per node and +-INF64 sentinels; P032 replaced it with PerLiChaoTree<MAX, F> (half-open domain, one envelope, numeric-limit sentinels)."
       ],
       "body_sha256": "74812950564e549ad5fb8e82a799942f9ffd5e38f649c4a2ada56458137a66a4",
       "body_bytes": 4848,
-      "relationship": "canonical unchanged extraction",
+      "relationship": "P032 audited replacement; original source excerpt preserved",
       "duplicate_of": null,
       "start_line": 4232,
       "end_line": 4423,
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "target_body_start_line": 192,
-      "target_body_end_line": 383
+      "verification": "02-Data Structures/Docs/21-lichao.md"
     },
     {
       "source": "OLD/algorithms.cpp",

@@ -1081,9 +1081,12 @@
       "phase": "Contest core",
       "size": "L+M+L+M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
+      "status": "in-progress",
+      "evidence": [
+        "02-Data Structures/Docs/21-lichao.md",
+        "02-Data Structures/Docs/22-convexhulltrick.md"
+      ],
+      "note": "DS11 done 2026-10-28 (rows 21, 22 verified). Next batch: DS27 (/package DS27 in a fresh session). Open in duplicates.md: XorBasis ask row (DS50)."
     },
     {
       "id": "P042",
