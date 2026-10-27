@@ -18,7 +18,7 @@
 - Data Structures owns DSU (01, 09 rollback, 29 weighted), link-cut trees (37), Euler-tour trees (38), top trees (39), radix heaps (31), persistent leftist heaps (48), PQ-trees (56), matroid oracles (46) and Mo's algorithm including Mo on trees (`23-range_query_offline.hpp`, `TreeMo`). `04-dsu.hpp` and `51-lct.hpp` are adapters keyed by graph vertices and edge IDs.
 - Mathematics owns determinants and matrix-tree (23), permanent/Pfaffian/hafnian (48), convolution (13), polynomial and generating-function kernels (14, 40) and linear algebra (16). `53-graph_counting.hpp` adapts graphs to them; `16-centroiddecomposition.hpp` uses Mathematics convolution for the all-distance histogram. Labeled graph-class counts by vertex count (connected, biconnected, DAG, Eulerian, forest, strong digraph, tree, unicyclic) are Mathematics generating-function work, not graph rows.
 - Miscellaneous owns small-to-large/DSU-on-tree merging (`15-smalltolarge.hpp`), generic Floyd/Brent cycle finding (`14-cyclefinding.hpp`), exchange-rule scheduling (39) and subset DP scaffolding (32). `14-tree_algorithms.hpp` supplies Euler-tour layouts to Miscellaneous 15 and does not duplicate its container merging.
-- Geometry owns Manhattan MST (`21-manhattan_geometry.hpp`) and geometric graph construction (`22-geometricmst.hpp`). Geometric arrangements stay in Geometry; `29-planar_graph.hpp` works on a given combinatorial embedding only.
+- Geometry owns Manhattan MST (`21-manhattan_geometry.hpp`) and geometric graph construction (`22-geometricmst.hpp`). Geometric arrangements and point location stay in Geometry; `29-planar_graph.hpp` works on a given combinatorial embedding, and its `fromDrawing` builds one from a straight-line drawing (cp-algorithms faces, decided 2026-10-28) without resolving nested components.
 - Walks versus simple paths (`32` vs `59`), cardinality versus weighted general matching (`22` vs `64`), given planar embedding versus recognition (`29` vs `62`), offline versus online fully dynamic connectivity (`26` vs `63`), fundamental versus minimum cycle basis (`28` vs `72`), and edge connectivity versus vertex triconnectivity (`74` vs `61`) are separate rows.
 
 ## Bounded-flow ownership
@@ -145,3 +145,16 @@ The 2026-10-18 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-18-p047)
 - Mirsky partition (minimum antichain cover): level sets of longest paths (`dagShortestPaths`, longest mode). Antichain enumeration (NetworkX `antichains`): exponential output.
 - Flow-based chain cover without closure (maspypy `dag_path_cover`): the same result as `dagMinimumChainCover`; the closure-free antichain is `maximumWeightedAntichain` with unit weights.
 - Chain covers of digraphs with cycles: condense with row 08 (`condensationDag`), cover the DAG and expand each component inside its chain. Vertex-disjoint path cover with cycles is NP-hard. Greene–Kleitman k-antichains of posets: in no catalog.
+
+## P048 GR13 omissions
+
+The 2026-10-28 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-28-p048-gr13)) added `XorWalk` and `CutSpaceHash` to row 28, and `fromDrawing`, `outer`, `commonFace`, per-arc capacities and the flow witness of `planarMinCutDual` to row 29; `primalDualTraversal` became `treeCotree` (decided 2026-10-28). Lipton–Tarjan planar separators (OGDF) and maspypy's dynamic fundamental cut became planned rows 89 and 90 (package P249, user decision 2026-10-28). The other candidates stay out (user decision 2026-10-28: every omission below and the agent's design calls recorded in [28-cycle_basis.md](28-cycle_basis.md) and [29-planar_graph.md](29-planar_graph.md) are confirmed):
+
+- Covering counts per forest edge: sizes of `fundamentalCuts`; tree differences over the chords give them in O(n + m) without a dedicated API.
+- Cycle-space and cut-space membership, coordinates and enumeration (ABC419 G): an even-degree check, the chords or forest edges a set contains, and Gray-code XOR over `cycles`.
+- Integer (gcd) cycle values of signed walks: no source.
+- Next/previous half-edge around a vertex or face, twins, left and right faces, bridges, face sizes and counts: `next`, `prev`, `arcs[a].rev`, `face` and `faces`.
+- Embedding validity (NetworkX `check_structure`): the constructor builds twins from the graph; planarity of the embedding is `genus[c] == 0` for every component.
+- Half-edge insertion and connecting components inside a face (NetworkX, Boost): permute `g.adj` and rebuild.
+- OGDF embedding edits (split/join faces, subdivide, contract), Boost biconnected/maximal planar augmentation, canonical ordering and straight-line grid drawing: no contest use in any fetched catalog.
+- Itai–Shiloach planar flow: no better bound than the dual shortest path; planar global min cut: `dualGraph` with row 68 `weightedGirth`; all-pairs planar min cut and multi-terminal outer-face cuts (Luogu P7916): research level or problem-specific.

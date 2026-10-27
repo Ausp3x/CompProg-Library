@@ -1070,6 +1070,24 @@
       "note": ""
     },
     {
+      "id": "P048",
+      "label": "04-Graphs — cycle basis, planar graph, flow with demands, subgraph enumeration",
+      "batches": [
+        "GR13",
+        "GR27",
+        "GR32"
+      ],
+      "phase": "Contest core",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "in-progress",
+      "evidence": [
+        "04-Graphs/Docs/28-cycle_basis.md",
+        "04-Graphs/Docs/29-planar_graph.md"
+      ],
+      "note": "GR13 done (rows 28, 29 verified 2026-10-28). Next batch: GR27; then GR32. Handoff: XorWalk/CutSpaceHash use a private reduced XOR basis, to migrate to Data Structures 62 XorBasis when DS50 is verified."
+    },
+    {
       "id": "P032",
       "label": "02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis",
       "batches": [
@@ -1086,7 +1104,7 @@
         "02-Data Structures/Docs/21-lichao.md",
         "02-Data Structures/Docs/22-convexhulltrick.md"
       ],
-      "note": "DS11 done 2026-10-28 (rows 21, 22 verified). Next batch: DS27 (/package DS27 in a fresh session). Open in duplicates.md: XorBasis ask row (DS50)."
+      "note": "DS11 done 2026-10-28 (rows 21, 22 verified). Next batch: DS27 (/package DS27 in a fresh session). Open in duplicates.md: XorBasis ask row (DS50). DS50 (62-xorbasis.hpp): once verified, migrate 04-Graphs/28-cycle_basis.hpp XorWalk and CutSpaceHash off the private cycle_basis_detail insert/reduce basis onto XorBasis (user decision 2026-10-28, recorded by P048 GR13; see 04-Graphs/Docs/28-cycle_basis.md, Limits and handoffs)."
     },
     {
       "id": "P042",
@@ -1098,21 +1116,6 @@
       ],
       "phase": "Contest core",
       "size": "L+L+S",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P048",
-      "label": "04-Graphs — cycle basis, planar graph, flow with demands, subgraph enumeration",
-      "batches": [
-        "GR13",
-        "GR27",
-        "GR32"
-      ],
-      "phase": "Contest core",
-      "size": "L+L+M",
       "model": "opus",
       "status": "planned",
       "evidence": [],
@@ -3447,6 +3450,20 @@
       "status": "planned",
       "evidence": [],
       "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Expected to be slower than the comparison-model versions at contest sizes; benchmark and record."
+    },
+    {
+      "id": "P249",
+      "label": "04-Graphs — planar separator, dynamic fundamental cut",
+      "batches": [
+        "GR74",
+        "GR75"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Filed by P048 (user decision 2026-10-28, 04-Graphs/Docs/00-notes.md P048 GR13 omissions); sources in 04-Graphs/Docs/00-sources.md (P048 GR13 sweep). Run the completeness sweep first."
     },
     {
       "id": "P224",

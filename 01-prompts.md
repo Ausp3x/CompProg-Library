@@ -98,9 +98,9 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P239 — SUP08** (opus, L): Documentation site generator, header pages and dependency charts.
 - [x] **P030 — DS23** (opus, XL): 02-Data Structures — persistentsegmenttree.
 - [x] **P058 — MA08** (opus, L): 05-Mathematics — linear algebra.
-- [ ] **P032 — DS11, DS27, DS28, DS50** (opus, L+M+L+M): 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis. Status: in-progress. Note: DS11 done 2026-10-28 (rows 21, 22 verified). Next batch: DS27 (/package DS27 in a fresh session). Open in duplicates.md: XorBasis ask row (DS50). [evidence](<02-Data Structures/Docs/21-lichao.md>) [evidence](<02-Data Structures/Docs/22-convexhulltrick.md>)
+- [ ] **P048 — GR13, GR27, GR32** (opus, L+L+M): 04-Graphs — cycle basis, planar graph, flow with demands, subgraph enumeration. Status: in-progress. Note: GR13 done (rows 28, 29 verified 2026-10-28). Next batch: GR27; then GR32. Handoff: XorWalk/CutSpaceHash use a private reduced XOR basis, to migrate to Data Structures 62 XorBasis when DS50 is verified. [evidence](04-Graphs/Docs/28-cycle_basis.md) [evidence](04-Graphs/Docs/29-planar_graph.md)
+- [ ] **P032 — DS11, DS27, DS28, DS50** (opus, L+M+L+M): 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis. Status: in-progress. Note: DS11 done 2026-10-28 (rows 21, 22 verified). Next batch: DS27 (/package DS27 in a fresh session). Open in duplicates.md: XorBasis ask row (DS50). DS50 (62-xorbasis.hpp): once verified, migrate 04-Graphs/28-cycle_basis.hpp XorWalk and CutSpaceHash off the private cycle_basis_detail insert/reduce basis onto XorBasis (user decision 2026-10-28, recorded by P048 GR13; see 04-Graphs/Docs/28-cycle_basis.md, Limits and handoffs). [evidence](<02-Data Structures/Docs/21-lichao.md>) [evidence](<02-Data Structures/Docs/22-convexhulltrick.md>)
 - [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: planned.
-- [ ] **P048 — GR13, GR27, GR32** (opus, L+L+M): 04-Graphs — cycle basis, planar graph, flow with demands, subgraph enumeration. Status: planned.
 - [ ] **P063 — MA14** (opus, L): 05-Mathematics — optimization. Status: planned.
 - [ ] **P059 — MA09** (opus, L): 05-Mathematics — numerical methods, integer roots. Status: planned.
 - [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.
@@ -280,6 +280,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P235 — GE48** (opus, L): 03-Geometry — rectangle depth. Status: planned. Note: Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Güting's J. Algorithms 1984 paper was not readable (paywalled); obtain it first.
 - [ ] **P236 — GE49** (opus, M): 03-Geometry — kgon klink. Status: planned. Note: Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Area weights are not Monge (15-convex_polygon_query.md); check what AST94 requires before implementing.
 - [ ] **P237 — GE50** (opus, L): 03-Geometry — wordram geometry. Status: planned. Note: Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Expected to be slower than the comparison-model versions at contest sizes; benchmark and record.
+- [ ] **P249 — GR74, GR75** (opus, L+M): 04-Graphs — planar separator, dynamic fundamental cut. Status: planned. Note: Filed by P048 (user decision 2026-10-28, 04-Graphs/Docs/00-notes.md P048 GR13 omissions); sources in 04-Graphs/Docs/00-sources.md (P048 GR13 sweep). Run the completeness sweep first.
 
 ### Final support integration
 

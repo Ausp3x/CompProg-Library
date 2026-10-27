@@ -1316,7 +1316,10 @@
       "focus": "Cycle basis and planar embeddings.",
       "prerequisites": [
         "C01",
-        "GR01"
+        "GR01",
+        "GR02",
+        "MI01",
+        "DS01"
       ],
       "tiers": [
         "Advanced"
@@ -6763,6 +6766,42 @@
       ],
       "tiers": [
         "Advanced"
+      ]
+    },
+    {
+      "id": "GR74",
+      "folder": "04-Graphs",
+      "targets": [
+        "04-Graphs/89-planarseparator.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Planar separator on a given row 29 embedding (Lipton–Tarjan, separator of O(sqrt(n)) vertices with sides of at most 2n/3).",
+      "prerequisites": [
+        "C01",
+        "GR01",
+        "GR13"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GR75",
+      "folder": "04-Graphs",
+      "targets": [
+        "04-Graphs/90-dynamicfundamentalcut.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Dynamic fundamental cut: non-tree pairs switched on and off, an active pair crossing a given tree edge (maspypy Fundamental_Cut, CF 1889E).",
+      "prerequisites": [
+        "C01",
+        "GR01",
+        "GR13"
+      ],
+      "tiers": [
+        "Esoteric"
       ]
     }
   ]

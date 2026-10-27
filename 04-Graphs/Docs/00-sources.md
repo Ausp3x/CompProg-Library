@@ -157,6 +157,32 @@ Fetched by the row 25, 26, 27 and 31 completeness sweeps. Code was written from 
 | OI Wiki 最小树形图, 圆方树, 偏序理论 | https://oi-wiki.org/graph/dmst/ | 2026-10-18 | Tarjan contraction tree with O(n) expansion per root (`DirectedMst::arborescence`); block-forest mandatory vertices and simple-path vertex sums (https://oi-wiki.org/graph/block-forest/); Dilworth and Mirsky (https://oi-wiki.org/math/order-theory/) |
 | NetworkX branchings, connectivity, dag | https://networkx.org/documentation/stable/reference/algorithms/tree.html | 2026-10-18 | `minimum_spanning_arborescence`, `maximum_branching`, `ArborescenceIterator` (not adopted); `k_edge_augmentation` (two-edge-connectivity augmentation); `antichains`, `antichain_width` |
 
+## Pages fetched on 2026-10-28 (P048 GR13)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| NetworkX cycles | https://networkx.org/documentation/stable/reference/algorithms/cycles.html | 2026-10-28 | `cycle_basis` (Paton; node lists) as the form of `fundamentalCycleBasis`; no fundamental-cut API |
+| NetworkX cycle_basis | https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.cycles.cycle_basis.html | 2026-10-28 | Undirected-only contract of row 28 |
+| NetworkX cuts | https://networkx.org/documentation/stable/reference/algorithms/cuts.html | 2026-10-28 | No fundamental cut-set function |
+| maspypy fundamental_cut | https://maspypy.github.io/library/graph/ds/fundamental_cut.hpp | 2026-10-28 | Dynamic pair switching over tree-edge cuts: planned row 90 |
+| OI Wiki linear basis | https://oi-wiki.org/math/linear-algebra/basis/ | 2026-10-28 | Maximum XOR path exercise (Luogu P4151): `XorWalk` |
+| AtCoder ABC451 G | https://atcoder.jp/contests/abc451/tasks/abc451_g | 2026-10-28 | Minimum XOR walk and walk-value counting: `XorWalk::minXorWalk`, `count` |
+| AtCoder ABC419 editorial | https://atcoder.jp/contests/abc419/editorial/13662 | 2026-10-28 | Cycle-space membership by even degrees and enumeration as path XOR cycles (compositions, not adopted) |
+| Gloid on BZOJ 3569 | https://www.cnblogs.com/Gloid/p/9382450.html | 2026-10-28 | Random cut-space labels and GF(2) dependence: `CutSpaceHash::disconnects` |
+| maspypy planar_graph | https://maspypy.github.io/library/graph/planar_graph.hpp | 2026-10-28 | Faces from a drawing, outer face 0, left faces and twins: `fromDrawing`, `outer`, `face`, `next` |
+| cp-algorithms planar faces | https://cp-algorithms.com/geometry/planar.html | 2026-10-28 | Angle-sorted rotations, face walks, outer face by signed area: `fromDrawing` |
+| OI Wiki planar graphs | https://oi-wiki.org/graph/planar/ | 2026-10-28 | Euler formula, dual graph, bridges as dual loops, min cut as dual shortest path (BZOJ 1001): `planarMinCutDual` |
+| NetworkX PlanarEmbedding | https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.planarity.PlanarEmbedding.html | 2026-10-28 | Half-edge accessors, `traverse_face`, `check_structure`, `connect_components` |
+| Boost planar graphs | https://www.boost.org/doc/libs/1_86_0/libs/graph/doc/planar_graphs.html | 2026-10-28 | Face traversal, make_biconnected/maximal_planar, canonical ordering (not adopted) |
+| OGDF ConstCombinatorialEmbedding | https://ogdf.github.io/doc/ogdf/classogdf_1_1_const_combinatorial_embedding.html | 2026-10-28 | `findCommonFace`, left/right face, `isBridge`, `externalFace`: `commonFace`, `outer` |
+| OGDF CombinatorialEmbedding | https://ogdf.github.io/doc/ogdf/classogdf_1_1_combinatorial_embedding.html | 2026-10-28 | Embedding edits (not adopted) |
+| OGDF DualGraphBase | https://ogdf.github.io/doc/ogdf/classogdf_1_1_dual_graph_base.html | 2026-10-28 | Primal-dual ID correspondence, kept as dual vertex f = face f and dual edge e = edge e |
+| OGDF flow group | https://ogdf.github.io/doc/ogdf/group__ga-flow.html | 2026-10-28 | `MaxFlowSTPlanarDigraph` (flow from dual distances, Hassin) and Itai–Shiloach: the flow witness of `planarMinCutDual` |
+| OGDF SeparatorLiptonTarjan | https://ogdf.github.io/doc/ogdf/classogdf_1_1_separator_lipton_tarjan.html | 2026-10-28 | Planar separators: planned row 89 |
+| maspypy, Nyaan, ei1333, hitonanode, suisen, tko919, KACTL, Library Checker (v3 API problem list) | catalog indexes as in the 2026-10-06 table; https://v3.api.judge.yosupo.jp/problems | 2026-10-28 | No planar-embedding, face, cycle-basis or XOR-path entry beyond those listed above. Planar sweep read maspypy to 300k of 392k characters and Nyaan, ei1333, hitonanode and suisen to 200k; the cycle-basis sweep read maspypy fully and the others to 100k, plus tko919, noshi91, PyRival and the first Koosaga listing page |
+
+Both headers were written independently from these descriptions; no catalog code was copied. Not inspected: the Codeforces 845G statement (HTTP 403), Luogu P4151, BZOJ 1001, NOI2010 海拔, CF 1889E and Luogu P7916 (search snippets only), and the original papers of Hassin (1981), Eppstein (tree–cotree) and Reif.
+
 ## Source keys
 
 Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder. Per-family read scope and caveats of that audit are in `00-Guidelines/History/2026-09-27-inventory-audit.md`.
@@ -174,7 +200,7 @@ Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the s
 - **NOS**: noshi91 library index.
 - **KOO**: Koosaga `Library/codes/graph` and `combinatorial_optimization` file lists; focused skew-symmetric-flow comments, extreme-set function and tree-packing code inspected in the 2026-09-27 audit.
 - **NX**: NetworkX algorithm reference headings; planarity, cycles and eulerize API documentation inspected in the 2026-09-27 audit (eulerize is unweighted; the Edmonds–Johnson reference motivates weighted T-joins).
-- **OGDF**: OGDF graph-decomposition class list.
+- **OGDF**: OGDF class and group documentation (graph decomposition, planar embedding, flow, separators).
 - **CSES**: CSES problem set titles (functional graphs, Hamiltonian flights), 2026-09-27 audit.
 - **HDT**: https://github.com/tomtseng/dynamic-connectivity-hdt — README scope and Holm/de Lichtenberg/Thorup 2001 citation, 2026-09-27 audit; connectivity only.
 - **AUDIT**: candidate list supplied with the 2026-10-06 rewrite task (level ancestor, linear extensions, exact vertex cover/dominating set, feedback sets, minimum ratio cycle, widest path, shortest-path counting/DAG, planar dual cut, Tutte-matrix matching, convex-cost flow, Hao–Orlin, tree knapsack, Hall violator, graph-class recognition, pseudoforests, degree-constrained MST, Wilson sampling, line graphs, weighted girth); each verified against at least one catalog or standard reference before adoption.
