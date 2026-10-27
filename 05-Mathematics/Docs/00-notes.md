@@ -25,6 +25,7 @@ The inventory lists operations; this file holds the folder-wide contracts every 
 ## Legacy obligations
 
 - `OLD/5-Mathematics/01-exgcdandmodpow.hpp`–`04-sieves.hpp` and `12-combinatorics.hpp` are accounted for by rows `01`–`06` (P012). `05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp` is accounted for by rows `11` (P053) and `33` (P178, `modRoot` modulo prime powers and composites). `14-miscellaneous.hpp` is accounted for by rows `18` and `19` (P060: `getFloorSum` by `floorSum`, the recursive `josephus` by `josephus`); `13-numericalmethods.hpp` stays pending until rows `17` and `21` (`isSquare`) account for every feature. All originals stay in `OLD`.
+- `OLD/Team Notebook/src/math/old_gaussjordan.cpp`, `old_matrix.cpp` and the `Matrix` of `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` are accounted for by row `16` (P058, mapping in its evidence document); `00-matrix.hpp` is shared with Core Matrix (P020), which owns its arithmetic and `FastMatMul`.
 - `OLD/5-Mathematics/09-montgomery.hpp` is a Core reference; `10-poly.hpp` and `11-moly.hpp` are references for Core Poly.
 - Former `97-Legacy` excerpts `ModFac` (`OLD/[1] algorithms.cpp`) and `FastConv` (`OLD/algorithms.cpp`) are accounted for by rows 05 and 24; provenance in the [transfer record](../../00-Guidelines/History/2026-09-27-monolith-transfer.md).
 
@@ -36,7 +37,6 @@ The inventory lists operations; this file holds the folder-wide contracts every 
 
 Explanations moved out of the operation cells of rows not yet verified, one bullet per row in inventory order; verified rows keep theirs in their evidence documents.
 
-- `16-linear_algebra.hpp`: inverseMod: unit determinant; adjugate: singular safe; solveLinear: one solution plus nullspace basis; tridiagonalSolve: pivot breakdown status; bandedSolve: bandwidth bound; solveLinearReal: tolerance; freivaldsProductCheck: randomized; schwartzZippelIdentityCheck: randomized evaluation.
 - `17-numerical_methods.hpp`: DualNumber: forward-mode.
 - `21-integer_roots.hpp`: isqrt: exact floor; icbrt: exact floor; ikthRoot: floor, remainder; isPerfectPower: smallest base and largest exponent.
 - `22-interpolation.hpp`: lagrangeInterpolate: O(n^2); lagrangeEvaluate: value at x from points; lagrangeEquidistant: points 0..n, O(n); hermiteInterpolate: repeated points, derivative jets; productOfGeometricShifts: product of f(r^k x) (named apart from row 37's `productOfLinearShifts`).
@@ -208,3 +208,15 @@ User decisions (2026-10-19): row 12 keeps `stirling1Row`, `stirling2Row`, `euler
 - Sato's matrix formula and kernel-method step sets (Krattenthaler 10.5): rational boundaries go through `increasingSequencesBetweenBounds` with heights floor((a x + b) / c); bounded-height DP or row 15 covers step sets.
 - Schroeder paths between heights: same reflection as `motzkinPaths` with flat steps of length 2; no catalog.
 - Strict Bizley counts (touching only at the endpoints): 1 - 1 / F of `bizleyPaths`.
+
+## P058 research decisions (2026-10-28)
+
+User decisions (2026-10-28): `rref` stays and `gaussJordan` left row 16; `nullspace` stays beside the basis of `solveLinear(A, 0)`. Adopted from the sweep: `luSolve` (maspypy `solve_linear_lower`; reuses `luDecompose`), `FieldBasis` (maspypy `linalg/basis`, OI Wiki basis), and the named `Mat` operations `identityMatrix` and `matrixProduct` (Library Checker `matrix_product`). `determinantInteger` is Bareiss: Euclidean reduction over Z has no polynomial bound on entry growth. Left out, one line each:
+
+- `triangularSolve` (maspypy): `luSolve` on a factorization is the reusable form; a triangular A is solved by `solveLinear` or by `luSolve` after `luDecompose`.
+- `hessenbergSolve` (hitonanode): Hessenberg structure belongs with row 44 `hessenbergReduce`; a candidate for that package.
+- `maximumWeightBasis` (maspypy): a weighted linear matroid basis, a candidate for Data Structures row 46 `LinearMatroid`.
+- `rankAllColumnSubsets` (maspypy): one catalog, no judge problem.
+- `solveLinear2` (KACTL, determined variables): variable j is determined iff column j is zero in every `nullspace` vector.
+- `diagonalizeTriangular` (maspypy): a special case of Core Matrix `jordanForm`.
+- `mcrt` (PyRival, a different modulus per row): integer linear algebra, a candidate for row 49 `modularSolve`.

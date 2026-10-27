@@ -97,8 +97,8 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P247 — SUP16** (opus, M): Parallel test runner and integration build.
 - [x] **P239 — SUP08** (opus, L): Documentation site generator, header pages and dependency charts.
 - [x] **P030 — DS23** (opus, XL): 02-Data Structures — persistentsegmenttree.
+- [x] **P058 — MA08** (opus, L): 05-Mathematics — linear algebra.
 - [ ] **P032 — DS11, DS27, DS28, DS50** (opus, L+M+L+M): 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis. Status: planned.
-- [ ] **P058 — MA08** (opus, L): 05-Mathematics — linear algebra. Status: planned.
 - [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: planned.
 - [ ] **P048 — GR13, GR27, GR32** (opus, L+L+M): 04-Graphs — cycle basis, planar graph, flow with demands, subgraph enumeration. Status: planned.
 - [ ] **P063 — MA14** (opus, L): 05-Mathematics — optimization. Status: planned.

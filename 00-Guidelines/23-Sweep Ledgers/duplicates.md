@@ -108,6 +108,7 @@ Items a reader could mistake for duplicates.
 | P035 | `SparseDSU` (row 65) beside `HashMap<K, int>` plus `DSU::makeSet` | Decided 2026-10-23 by the user: larger key domain (hashable keys) |
 | P035 | `ParityDSU` (row 29) beside `WeightedDSU` over Z/2 | Decided 2026-10-23 by the user: a different algorithm, a 2n-node DSU |
 | P035 | `MergeHistoryForest` (row 65) beside `KruskalReconstruction` weighted by union index and `PartiallyPersistentDSU::uniteTime` | Decided 2026-10-23 by the user: a separate builder from a union sequence, with no graph or sort |
+| P058 | `nullspace` (`16-linear_algebra.hpp`) beside the basis of `solveLinear(A, 0)` | Decided 2026-10-28 by the user: a standalone kernel basis without a right-hand side; `gaussJordan` left row 16 for `rref` the same day |
 | P072 | `kSmallestSubsetSums` (`54-kbest_enumeration.hpp`) beside `kSmallestSortedListSums` over lists `{min(0, a_i), max(0, a_i)}` | Decided 2026-10-23 by the user: named special case (subset witnesses, no list construction) |
 
 ### Rulings
@@ -235,6 +236,9 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P035 | `LinkedDSU::unionEnumerate` (`65-dsu_extensions.hpp`) | Derived: the newly merged pairs (clarified rule) |
 | P035 | `ComponentSumDSU` (`65-dsu_extensions.hpp`) beside row 09 `RollbackDSUAggregate` | Different algorithm: path compression, no undo |
 | P035 | `DecrementalSet` (`36-fastset.hpp`) beside `FastSet` | Different algorithm: a DSU over runs of empty words, O(alpha(n)) amortized on the erase-only domain |
+| P058 | `tridiagonalSolve` (`16-linear_algebra.hpp`) beside `bandedSolve(·, 1, 1, ·)` | Named special case (clarified rule): three-diagonal input without band packing, O(n) |
+| P058 | `inverse` (`16-linear_algebra.hpp`) beside `solveLinearMultiRhs(a, identityMatrix(n), x)` | Named special case (clarified rule): in place, square, singularity status |
+| P058 | `matrixRank` (`16-linear_algebra.hpp`) beside `rref(copy).size()` | Cheaper projection kept for its constant factor (ruling 4): forward elimination only |
 | P072 | `kLargest` (`54-kbest_enumeration.hpp`), every `kSmallest*` under `std::greater<>` | Mirror of `kSmallest*` (ruling 3) |
 | P072 | `treeKnapsack` (`29-knapsack_advanced.hpp`) beside Graphs row 14 `subtreeMergeDp` | Different algorithm: O(n * W) preorder suffix tables against O(n * W^2) subtree merging |
 | P072 | `kSmallestPairSums` (`54-kbest_enumeration.hpp`) beside `kSmallestSortedListSums({a, b})` | Named special case (clarified rule): two sorted arrays, `(sum, i, j)` tie order and index pairs, as `kSmallestSubsetSums` (Keeps) |
@@ -293,12 +297,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `perfectMatchingExists` | row 22 | `2 * size == n` | keep | named special case (ruling 1) | — | — |
-
-## P058 — 05-Mathematics — linear algebra (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `gaussJordan` beside `rref`; `nullspace` | row 16 | each other; the basis of `solveLinear(A, 0)` | ask | same elimination: which survives | — | — |
 
 ## P088 — 07-Strings — string periodicity, multiple string, string reconstruction (planned)
 
@@ -986,7 +984,6 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P020** move the floating branches to `solveReal`, `invReal`, `rankReal`, or drop those entries? `StaticMatrix`: is a compile-time shape a different domain? `rowSpace`, `colSpace`: another basis? The 8-lane REDC in `mulRow`, `elimRow`: the same as `Montgomery32` `mul8`, `red8`, or an assert-free lazy variant like Poly's kept `Mont8`? `Matrix(vector, axis)` and the vector products: an empty vector gives 0×0 here and 1×0 or 0×1 from `Matrix(1, n, v)`; is that difference real?
 - **P022** GF(2) `-=`, `-`: keep for generic ring code?
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
-- **P058** `gaussJordan` or `rref`? `nullspace` beside `solveLinear(A, 0)`?
 - **P088** row 31 `stringFromPrefixFunction`, `stringFromZ`, `infeasible`: minimum-alphabet or lex-min witnesses?
 - **P061** `multipointEvaluateGeometric` beside `bluesteinTransform`; row 23 matrix-tree counts beside Graphs row 53: which row owns each?
 - **P032** `queryWitness` beside `query` (rows 21, 22); `XorBasis::rank`, `countRepresentable`, `intersection`, `reducedEchelon` beside `size()` and Core `BitMatrix`?

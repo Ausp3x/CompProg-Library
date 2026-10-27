@@ -15,6 +15,7 @@
 #include "13-convolution.hpp"
 #include "14-polynomial_algorithms.hpp"
 #include "15-linear_recurrence.hpp"
+#include "16-linear_algebra.hpp"
 #include "18-floorsum.hpp"
 #include "19-josephus.hpp"
 #include "20-continued_fraction.hpp"

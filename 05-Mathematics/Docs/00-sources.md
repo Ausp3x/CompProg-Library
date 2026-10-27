@@ -188,3 +188,14 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 |---|---|---|
 | GMP manual, Basecase Division | https://gmplib.org/manual/Basecase-Division | Row 18 `divStep` (Knuth D word step) |
 | Möller, Granlund, division draft | https://www.lysator.liu.se/~nisse/archive/draft-division-paper.pdf (pp. 5–8) | Row 18 `divStep` |
+
+## P058 sources, fetched 2026-10-28
+
+| Source | URL | Used for |
+|---|---|---|
+| Library Checker, linear_algebra | https://github.com/yosupo06/library-checker-problems/tree/master/linear_algebra | Row 16 problem set (determinant, arbitrary-mod determinant, inverse, system of linear equations, matrix product, power, rank, adjugate) |
+| KACTL numerical | https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical | Row 16 `solveLinearReal`, `tridiagonalSolve`, `determinantMod` contracts; `SolveLinear2` left out |
+| maspypy linalg | https://maspypy.github.io/library/linalg/solve_linear_lower.hpp, https://maspypy.github.io/library/linalg/basis.hpp | Row 16 `luSolve`, `FieldBasis` |
+| OI Wiki linear algebra | https://oi-wiki.org/math/linear-algebra/basis/, https://oi-wiki.org/math/linear-algebra/matrix/ | Row 16 `FieldBasis` over a field, matrix product and power |
+| hitonanode Hessenberg system | https://hitonanode.github.io/cplib-cpp/linear_algebra_matrix/hessenberg_system.hpp | Left out of row 16 (row 44 candidate) |
+
