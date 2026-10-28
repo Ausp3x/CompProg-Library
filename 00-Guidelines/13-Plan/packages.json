@@ -1083,9 +1083,10 @@
       "status": "in-progress",
       "evidence": [
         "04-Graphs/Docs/28-cycle_basis.md",
-        "04-Graphs/Docs/29-planar_graph.md"
+        "04-Graphs/Docs/29-planar_graph.md",
+        "04-Graphs/Docs/30-flow_with_demands.md"
       ],
-      "note": "GR13 done (rows 28, 29 verified 2026-10-28). Next batch: GR27; then GR32. Handoff: XorWalk/CutSpaceHash use a private reduced XOR basis, to migrate to Data Structures 62 XorBasis when DS50 is verified."
+      "note": "GR13 and GR27 done (rows 28, 29, 30 verified 2026-10-28). Next batch: GR32. Handoff: XorWalk/CutSpaceHash use a private reduced XOR basis, to migrate to Data Structures 62 XorBasis when DS50 is verified."
     },
     {
       "id": "P032",

@@ -183,6 +183,19 @@ Fetched by the row 25, 26, 27 and 31 completeness sweeps. Code was written from 
 
 Both headers were written independently from these descriptions; no catalog code was copied. Not inspected: the Codeforces 845G statement (HTTP 403), Luogu P4151, BZOJ 1001, NOI2010 海拔, CF 1889E and Luogu P7916 (search snippets only), and the original papers of Hassin (1981), Eppstein (tree–cotree) and Reif.
 
+## Pages fetched on 2026-10-28 (P048 GR27)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| cp-algorithms flows with demands | https://cp-algorithms.com/graph/flow_with_demands.html | 2026-10-28 | Super source/sink reduction of lower bounds (`feasibleCirculation`); minimum flow by binary search on the t→s capacity (not adopted) |
+| OI Wiki 上下界网络流 | https://oi-wiki.org/graph/flow/bound/ | 2026-10-28 | Feasible circulation, s–t feasible flow through a t→s arc, maximum and minimum flow by a second residual max flow (`maxFlowWithLowerBounds`, `minFlowWithLowerBounds`) |
+| ei1333 maxflow-lower-bound | https://ei1333.github.io/library/graph/flow/maxflow-lower-bound.hpp | 2026-10-28 | `can_flow`, `max_flow`, `min_flow` (negative minimum allowed) |
+| maspypy maxflow_with_lower_bound, min_cost_b_flow, cyclic_b_flow | https://maspypy.github.io/library/flow/maxflow_with_lower_bound.hpp | 2026-10-28 | Per-edge flow result in insertion order; `add_source`/`add_sink` supplies; costed b-flow is row 65 (https://maspypy.github.io/library/flow/min_cost_b_flow.hpp); `cyclic_b_flow` not adopted |
+| hitonanode maxflow_lowerbound, b-flow | https://hitonanode.github.io/cplib-cpp/flow/maxflow_lowerbound.hpp | 2026-10-28 | Lower-bounded max flow; `B_Flow` accepts signed lower bounds and supplies (https://hitonanode.github.io/cplib-cpp/flow/b-flow.hpp): the signed-bound domain of row 30 |
+| Nyaan, suisen, KACTL, NetworkX flow, Library Checker (v3 API problem list) | catalog indexes; https://networkx.org/documentation/stable/reference/algorithms/flow.html; https://v3.api.judge.yosupo.jp/problems | 2026-10-28 | No lower-bound or demand flow entry; `min_cost_b_flow` is row 65. Nyaan and suisen indexes read to 100k characters |
+
+The header was written independently from these descriptions; no catalog code was copied. Not inspected: LEMON `Circulation` (connection refused) and ACL (no bounded-flow API).
+
 ## Source keys
 
 Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder. Per-family read scope and caveats of that audit are in `00-Guidelines/History/2026-09-27-inventory-audit.md`.

@@ -27,4 +27,5 @@
 #include "27-blockcuttree.hpp"
 #include "28-cycle_basis.hpp"
 #include "29-planar_graph.hpp"
+#include "30-flow_with_demands.hpp"
 #include "31-path_cover.hpp"

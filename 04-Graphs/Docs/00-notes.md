@@ -23,7 +23,7 @@
 
 ## Bounded-flow ownership
 
-`30-flow_with_demands.hpp` owns lower/upper-bound and vertex-supply reductions and their reconstruction. Its costed-network adapter states the backend domain: `20-min_cost_flow.hpp` (successive shortest paths) excludes negative cycles ([20-min_cost_flow.md](20-min_cost_flow.md)); general signed-cost circulation belongs to `65-costscalingflow.hpp` and `66-networksimplex.hpp`. Those backends may use the bounded-flow model, so the model must not depend back on them. `65` also owns min-cost b-flow with supplies and demands. `39-graphicalsequence.hpp` `directedDegreeRealization` is a flow reduction: paired out-/in-degree copies, admissible-arc capacities, a saturating flow; its contract must state the loop and parallel-edge restrictions.
+`30-flow_with_demands.hpp` owns lower/upper-bound and vertex-supply reductions and their reconstruction. Its costed-network adapter starts negative-cost edges saturated, so its backend sees nonnegative costs only, which keeps `20-min_cost_flow.hpp` (successive shortest paths, no negative cycles; [20-min_cost_flow.md](20-min_cost_flow.md)) inside its domain at a cost pseudo-polynomial in the total positive excess after the reversal ([30-flow_with_demands.md](30-flow_with_demands.md)); polynomial general signed-cost circulation engines belong to `65-costscalingflow.hpp` and `66-networksimplex.hpp`. Those backends may use the bounded-flow model, so the model must not depend back on them. `65` also owns min-cost b-flow with supplies and demands. `39-graphicalsequence.hpp` `directedDegreeRealization` is a flow reduction: paired out-/in-degree copies, admissible-arc capacities, a saturating flow; its contract must state the loop and parallel-edge restrictions.
 
 ## Tree ownership
 
@@ -158,3 +158,12 @@ The 2026-10-28 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-28-p048-
 - Half-edge insertion and connecting components inside a face (NetworkX, Boost): permute `g.adj` and rebuild.
 - OGDF embedding edits (split/join faces, subdivide, contract), Boost biconnected/maximal planar augmentation, canonical ordering and straight-line grid drawing: no contest use in any fetched catalog.
 - Itai–Shiloach planar flow: no better bound than the dual shortest path; planar global min cut: `dualGraph` with row 68 `weightedGirth`; all-pairs planar min cut and multi-terminal outer-face cuts (Luogu P7916): research level or problem-specific.
+
+## P048 GR27 omissions
+
+The 2026-10-28 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-28-p048-gr27)) added the `value` and `cost` fields to `FlowWithDemandsResult` and the signed lower-bound domain (hitonanode `B_Flow`) to row 30. `feasibleFlow` (ei1333 `can_flow(s, t)`) and the `stCut` and `potentials` witnesses were added on user decision 2026-10-29. The other candidates stay out (user decision 2026-10-29):
+
+- Lower-bounded s–t flow of a fixed value k: an added edge `(t, s, k, k)`.
+- Minimum flow by binary search on the t→s capacity (cp-algorithms): O(log U) max flows, dominated by the second residual max flow.
+- Builder structs with `add_edge(from, to, lo, hi)` (every catalog): an argument shape; the free functions take the edge list.
+- maspypy `cyclic_b_flow`: a problem-specific costed ring flow. Min-cost b-flow with a dual certificate (Library Checker `min_cost_b_flow`): row 65.
