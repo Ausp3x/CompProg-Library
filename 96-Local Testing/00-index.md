@@ -24,6 +24,7 @@ python3 '96-Local Testing/00-Tools/04-dependencies_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/05-runner_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/06-site_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode full
+python3 '96-Local Testing/00-Tools/08-plan_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Checker fetch, reproduce and compare (/speed-sweep)
 ```
 
@@ -45,7 +46,7 @@ python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Che
 | `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds as parallel jobs, through `ccache` when installed |
 | `03-consistency.py` | Repository record and style validator; imports `plan.py check` |
 | `Docs/` | Support-pass evidence ([00-memory-safety.md](Docs/00-memory-safety.md), P231; [00-parallel.md](Docs/00-parallel.md), P247; [00-judge.md](Docs/00-judge.md), the judge tool) |
-| `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, the notebook, the header dependency graph, the parallel runner, the documentation site and the judge tool |
+| `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, the notebook, the header dependency graph, the parallel runner, the documentation site, the judge tool and the plan's roles and claims |
 | `00-Tools/07-judge.py` | Library Checker tool for `/speed-sweep`: fastest distinct submissions, sources and per-case times, test regeneration and judge-flag reproduction, per-case comparison; cache `.judge-cache/` (git-ignored) |
 | `01-Core/` … `07-Strings/` | Per-header testers, helper `.cpp` files and benchmark drivers |
 

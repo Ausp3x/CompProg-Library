@@ -6803,6 +6803,41 @@
       "tiers": [
         "Esoteric"
       ]
+    },
+    {
+      "id": "SUP17",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Contributor roles and claims: `git config compprog.role` (`contributor` by default; the owner sets `maintainer` once). A contributor's `/finish` commits to the package branch `Pxxx-<batch>-<user>` and stops before landing; the maintainer's lands on local `master` as now (CLAUDE.md, Git). A draft pull request on such a branch claims the package: `plan.py ready` and `show` read open pull requests through `gh` (SKIP without it) and skip claimed packages; Core full packages are maintainer-only. [decisions](../10-decisions.md), 2026-10-29 Contribution.",
+      "prerequisites": [],
+      "tiers": []
+    },
+    {
+      "id": "SUP18",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "L",
+      "focus": "`setup_check.py` and a `/setup-check` skill: required and optional tools with versions and floors (GCC 16 and 14 with ASan/UBSan, static libc, Python 3.11+, git, rg, ccache, bwrap, a systemd user manager with cgroup v2 memory delegation, x86-64 and AVX2, `gh` login, role; optional TeX and fonts, node, site packages, oj-bundle, PyPy), Ubuntu and Arch install hints, and a consistency check that every tool a script calls is declared there. README; CONTRIBUTING (Linux x86-64; Windows through Ubuntu 26.04 on WSL2 with systemd on and the clone on ext4; macOS only through an arm64 Ubuntu VM, since GCC has no Apple Silicon sanitizers; forks and collaborators; roles and claims); LICENSE CC0-1.0 for original work, excluding `95-Resources` and third-party-derived code, after a provenance audit of the `00-sources.md` ledgers (PyRival is Apache-2.0). Runners pass x86-only flags only on x86-64, verified by an arm64 cross build and the quick suite under qemu-user. Remove hardcoded `/home/Ausp3x` paths; state the tooling Python floor (3.11); add `* text=auto eol=lf`; make the site install hint distribution-neutral. [decisions](../10-decisions.md), 2026-10-29 Contribution.",
+      "prerequisites": [
+        "SUP17"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "SUP19",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "M",
+      "focus": "`/merge-pr <N>` for the maintainer: list the pull request's files and stop for the user's yes on any change outside library code (`.claude/`, hooks, scripts, guidelines); check it out into a worktree; rebase onto `master` (`worktree.py --sync`) with `packages.json` merged entry by entry; run the gates (consistency, `plan.py check` and `doctor`, the package's full suites under `g++` and `g++-14`, `02-integration.py --sanitizers`, `03-workspace.py --check`) under `bwrap` (read-only system, no network, writable worktree only) inside the memory cap; independent `@reviewer` (Fable for Core full); land on local `master` on the user's yes; never push; print the `gh pr close` command for the user. No CI. [decisions](../10-decisions.md), 2026-10-29 Contribution.",
+      "prerequisites": [
+        "SUP17",
+        "SUP18"
+      ],
+      "tiers": []
     }
   ]
 }

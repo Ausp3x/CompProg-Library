@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / '00-Guidelines/13-Plan'))
+import plan  # noqa: E402
 from worktree import uncommitted  # noqa: E402
 
 LIMIT_HEADING = re.compile(r'^#+ .*\b(limit|handoff|open|gap|omission|todo|remaining|known)', re.I)
@@ -51,6 +52,9 @@ def target(root, arg=''):
     warning = f'no package or batch id in "{arg}": the branch and worktree names decide' if arg and not pkg else ''
     if not pkg:
         batch, pkg = find(branch, root.name)
+        if pkg and plan.CLAIM.fullmatch(branch):  # a claim branch keeps its first batch's name: take the first not landed
+            fin = plan.landed(root)
+            batch = next((b for b in pkg['batches'] if b not in fin), batch)
     key = batch or (pkg['id'] if pkg else re.sub(r'[^\w.-]', '_', branch or 'detached'))
     return key, pkg, [batch] if batch else pkg['batches'] if pkg else [], warning
 
@@ -104,6 +108,20 @@ def main():
     print(f'### Target\nkey {key} | package {pkg["id"] + " (" + pkg["status"] + ")" if pkg else "none: the branch changes are the scope"}'
           f' | batches {" ".join(scope) or "-"} | branch {branch or "(detached)"} | {"worktree " + str(root) if Path(worktrees[0]) != root else "main checkout"}'
           f' | {position}' + (f'\nWARNING {warning}' if warning else ''))
+    role = plan.role(root)
+    if role == 'maintainer':
+        print('role maintainer: step 7 lands on master')
+    else:
+        _, me, cl, _, _ = plan.gate(root, plan.load(root)[1])
+        fin = plan.landed(root)  # finish-log lines, not rows: /package marks rows verified before /finish runs
+        first = key if key in batches else pkg and next((b for b in pkg['batches'] if b not in fin), pkg['batches'][0])
+        claim = plan.claim_branch(pkg, first, branch, cl, me) if pkg else branch
+        last = not pkg or all(b == first or b in fin for b in pkg['batches'])
+        own = cl.get(pkg['id']) if pkg else None
+        print(f'role contributor: step 7 commits on branch {claim or "(detached)"} and stops before landing; repository '
+              f'{plan.config(root, "compprog.repo") or plan.REPO}; '
+              + (f'pull request #{own[2]}; ' if own and own[0].lower() == me.lower() else '')
+              + ('last open batch: mark the pull request ready if verified' if last else 'more batches follow: the pull request stays a draft'))
     ledger = root / '.claude/finish' / f'{key}.txt'
     print(f'\n### Ledger {ledger.relative_to(root)}')
     print(ledger.read_text().strip() if ledger.is_file() else '(none: start at step 1)')

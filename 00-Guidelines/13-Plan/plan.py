@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Work-plan manifest CLI: show, status, next, set, render, rank, check, ready and doctor for packages and batches."""
+"""Work-plan manifest CLI: show, status, next, set, render, rank, check, ready and doctor for packages and batches.
+show, next, status and ready also read the clone's role and the open pull requests that claim packages."""
 import argparse
 import collections
 import importlib.util
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -17,6 +20,8 @@ PHASES = ['Foundations re-audit', 'Core full types', 'Contest core',
 LEGEND = ('Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model, size): label. Open packages add '
           'their status (planned or in-progress) and note; `plan.py show Pxxx` gives a verified package\'s evidence and note.')
 TIER_RANK = {'Basic': 0, 'Core': 0, 'Advanced': 1, 'Esoteric': 2}
+REPO = 'Ausp3x/CompProg-Library'  # canonical repository; `git config compprog.repo` overrides it
+CLAIM = re.compile(r'(P\d{3})-([A-Za-z]+\d+)-(.+)')  # claim branch Pxxx-<batch>-<user>
 TARGET = re.compile(r'`((?:\d{2}-[^`]+\.hpp)|(?:_\d{2}_[^`]+\.py))`')
 
 
@@ -134,11 +139,90 @@ def late(status, d, p):
     return 'verified' not in (status[d], status[p])
 
 
-def ready(batches, packages):
+def ready(batches, packages, skip=()):
+    """The first open package whose prerequisites are verified, leaving out `skip` (ids `gate` blocks)."""
     status = {p['id']: p['status'] for p in packages['packages']}
     deps = prereqs(batches, packages)
-    return next((p for p in packages['packages'] if p['status'] != 'verified'
+    return next((p for p in packages['packages'] if p['status'] != 'verified' and p['id'] not in skip
                  and all(status[d] == 'verified' for d in deps[p['id']])), None)
+
+
+def gh(root, *args):
+    """(stdout, '') of a gh command, or (None, reason) when gh is missing, fails or times out."""
+    if not shutil.which('gh'):
+        return None, 'gh not installed'
+    try:
+        r = subprocess.run(['gh', *args], cwd=root, capture_output=True, text=True, timeout=10)
+    except subprocess.TimeoutExpired:
+        return None, f'gh {args[0]} timed out'
+    except OSError as e:
+        return None, f'gh {args[0]} failed: {e.strerror}'
+    return (r.stdout, '') if r.returncode == 0 else (None, (r.stderr.strip().splitlines() or [f'gh {args[0]} failed'])[0])
+
+
+def config(root, key):
+    return subprocess.run(['git', 'config', '--get', key], cwd=root, capture_output=True, text=True).stdout.strip()
+
+
+def role(root):
+    """This clone's role, `git config compprog.role`: contributor (the default) or maintainer."""
+    r = config(root, 'compprog.role')
+    if r not in ('', 'contributor', 'maintainer'):
+        raise SystemExit(f'git config compprog.role is {r!r}; set contributor or maintainer')
+    return r or 'contributor'
+
+
+def login(root, ask=True):
+    """The GitHub login through gh (only if `ask`), else `git config user.name`, as a branch-name slug."""
+    out = (ask and gh(root, 'api', 'user', '--jq', '.login')[0] or '').strip() or config(root, 'user.name')
+    return re.sub(r'[^A-Za-z0-9-]+', '-', out).strip('-') or 'user'
+
+
+def claims(root, packages):
+    """({package id: (author, branch, number, draft)}, SKIP reason): the open pull requests whose head branch is a claim
+    branch `Pxxx-<batch>-<user>` of a batch Pxxx owns, in the canonical repository (`REPO`); the reason is empty unless
+    gh could not list them."""
+    out, why = gh(root, 'pr', 'list', '--repo', config(root, 'compprog.repo') or REPO, '--state', 'open', '--limit', '1000', '--json', 'number,headRefName,isDraft,author')
+    try:
+        prs = json.loads(out) if out is not None else None
+    except ValueError:
+        prs, why = None, 'gh pr list printed no JSON'
+    if prs is None:
+        return {}, why
+    owner = {b: p['id'] for p in packages['packages'] for b in p['batches']}
+    res = {}
+    for pr in sorted(prs, key=lambda pr: pr['number']):
+        m = CLAIM.fullmatch(pr['headRefName'])
+        if m and owner.get(m[2].upper()) == m[1]:
+            res.setdefault(m[1], (pr['author']['login'], pr['headRefName'], pr['number'], pr['isDraft']))
+    return res, ''
+
+
+def gate(root, packages):
+    """(role, login or '', claims, claims line, {package id: why this clone may not start it}): a package claimed by
+    someone else's open pull request, and for a contributor a Core full package (model fable), which is maintainer-only.
+    After a failed claim lookup the login skips gh, so the lookups take at most two gh timeouts."""
+    r, (cl, why) = role(root), claims(root, packages)
+    me = login(root, not why) if cl or r == 'contributor' else ''
+    block = {pid: f'claimed by @{a} in {"draft " if d else ""}pull request #{n} ({b})'
+             for pid, (a, b, n, d) in cl.items() if a.lower() != me.lower()}
+    if r == 'contributor':
+        block.update({p['id']: 'maintainer-only (Core full)' for p in packages['packages'] if p['model'] == 'fable' and p['id'] not in block})
+    line = f'Role: {r}; claims: ' + (f'SKIP ({why})' if why else f'{len(cl)} open' if cl else 'none open')
+    return r, me, cl, line, block
+
+
+def current(root):
+    return subprocess.run(['git', 'branch', '--show-current'], cwd=root, capture_output=True, text=True).stdout.strip()
+
+
+def claim_branch(p, batch, branch, cl, me):
+    """A contributor's claim branch for package p: their own open claim's branch, else the current `branch` when it is a
+    claim branch of a batch of p, else `<id>-<batch>-<login>`."""
+    if p['id'] in cl and cl[p['id']][0].lower() == me.lower():
+        return cl[p['id']][1]
+    m = CLAIM.fullmatch(branch or '')
+    return branch if m and m[1] == p['id'] and m[2].upper() in p['batches'] else f'{p["id"]}-{batch}-{me}'
 
 
 def check(root=ROOT):
@@ -241,10 +325,18 @@ def row_status(parts):
     return parts[-1].split(';')[0].split(' ')[0].strip('*').lower()
 
 
-def batch_done(b, inv):
-    """A batch with targets is done once every target's inventory row is verified."""
-    return bool(b['targets']) and all(row_status(inv.get(t, ([''],))[0]) == 'verified'
-                                      for t in b['targets'])
+def landed(root):
+    """Keys whose `/finish` line in finish-log.tsv has the result `verified` (a contributor's line counts once merged)."""
+    rows = [l.split('\t') for l in (root / PLAN / 'finish-log.tsv').read_text().splitlines()[1:]]
+    return {r[1] for r in rows if len(r) > 7 and r[7] == 'verified'}
+
+
+def batch_done(b, inv, done=frozenset()):
+    """A batch with targets is done once every target's inventory row is verified; a support batch, once `/finish`
+    has landed it (`done`, from `landed`)."""
+    if not b['targets']:
+        return b['id'] in done
+    return all(row_status(inv.get(t, ([''],))[0]) == 'verified' for t in b['targets'])
 
 
 def launch(root, model):
@@ -283,9 +375,10 @@ def show(root, ident):
     batches, packages = load(root)
     bmap = {b['id']: b for b in batches['batches']}
     pmap = {p['id']: p for p in packages['packages']}
-    inv = inventories(root)
+    inv, fin = inventories(root), landed(root)
+    r, me, cl, line, block = gate(root, packages)
     if ident == 'next':
-        p = ready(batches, packages)
+        p = ready(batches, packages, block)
         if not p:
             raise SystemExit('No package is ready')
         ident = p['id']
@@ -294,18 +387,32 @@ def show(root, ident):
         p, shown = owner[ident], [ident]
     elif ident in pmap:
         p = pmap[ident]
-        open_ = [b for b in p['batches'] if not batch_done(bmap[b], inv)]
+        open_ = [b for b in p['batches'] if not batch_done(bmap[b], inv, fin)]
         shown = [] if len(p['batches']) > 1 and open_ and p['status'] != 'verified' else p['batches']
     else:
         raise SystemExit(f'Unknown package or batch: {ident}')
     command, check = launch(root, packages['models'][p['model']])
     out = [f'{p["id"]} — {p["label"]} | {p["phase"]} | {p["size"]} | {p["status"]} | '
-           f'model: {p["model"]} ({packages["models"][p["model"]]}) | launch: {command}' + (f' | {check}' if check else ''), '']
+           f'model: {p["model"]} ({packages["models"][p["model"]]}) | launch: {command}' + (f' | {check}' if check else ''), line]
+    batch = shown[0] if len(shown) == 1 else next((b for b in p['batches'] if not batch_done(bmap[b], inv, fin)), p['batches'][0])
+    if p['id'] in block:
+        out.append(f'STOP: {p["id"]} is {block[p["id"]]}; pick another package (`plan.py ready`).')
+    elif p['id'] in cl:
+        b = cl[p['id']][1]
+        out.append(f'Claimed by you: pull request #{cl[p["id"]][2]} on {b}'
+                   + ('.' if current(root) == b else f'; work on it after `git fetch origin {b} && git switch {b}`.'))
+    elif r == 'contributor':
+        b, here = claim_branch(p, batch, current(root), cl, me), current(root)
+        out.append(('Claims unknown: check the open pull requests, then claim' if 'SKIP' in line else 'Unclaimed: claim')
+                   + (' it on this branch: `' if here == b else f" it in the checkout the session will work in, from an up-to-date master: `git switch -c {b} && ")
+                   + f"git commit "
+                   f"--allow-empty -m '{p['id']}: claim {batch}' && git push -u origin {b} && gh pr create --draft --fill "
+                   f"--repo {config(root, 'compprog.repo') or REPO}`.")
+    out.append('')
     if len(p['batches']) > 1:
-        first = next((b for b in p['batches'] if not batch_done(bmap[b], inv)), None)
-        out += ['Batches: ' + ', '.join(f'{b} ({"done" if batch_done(bmap[b], inv) else "this brief" if shown == [b] else "open"})'
+        out += ['Batches: ' + ', '.join(f'{b} ({"done" if batch_done(bmap[b], inv, fin) else "this brief" if shown == [b] else "open"})'
                                         for b in p['batches'])
-                + (f'. One batch per session, under its batch id: run `/package {first}`, then `/finish {first}`.' if not shown else ''), '']
+                + (f'. One batch per session, under its batch id: run `/package {batch}`, then `/finish {batch}`.' if not shown else ''), '']
     deps = prereqs(batches, packages)[p['id']]
     out.append('Prerequisite packages:' if deps else 'Prerequisite packages: none')
     out += [f'- {d} ({pmap[d]["status"]}) — {pmap[d]["label"]}' for d in deps]
@@ -328,37 +435,75 @@ def status_text(root):
     for ph in PHASES + ['Total']:
         row = [sum(n for (f, s), n in count.items() if s == st and ph in (f, 'Total')) for st in sts]
         out.append(f'| {ph} | ' + ' | '.join(map(str, row)) + f' | {sum(row)} |')
-    p = ready(batches, packages)
-    return '\n'.join(out + ['', f'Next: {p["id"]} — {p["label"]}' if p else 'Next: none ready (all verified or blocked).'])
+    _, _, _, line, block = gate(root, packages)
+    p = ready(batches, packages, block)
+    return '\n'.join(out + ['', line, f'Next: {p["id"]} — {p["label"]}' if p else 'Next: none ready (all verified, blocked or claimed).'])
+
+
+def live(root, batches, packages):
+    """Package ids being worked on in this clone: named by a linked worktree's branch or directory name (`P032`, `DS27`), or owning
+    a file with uncommitted changes in the main checkout (a batch target, its tests and docs, or package evidence)."""
+    git = lambda *a: subprocess.run(['git', *a], cwd=root, capture_output=True, text=True).stdout
+    bmap = {b['id']: b for b in batches['batches']}
+    owner = {b: p['id'] for p in packages['packages'] for b in p['batches']}
+    names = [Path(v).name if k == 'worktree' else v.removeprefix('refs/heads/')
+             for block in git('worktree', 'list', '--porcelain').split('\n\n')[1:]
+             for k, _, v in (l.partition(' ') for l in block.splitlines()) if k in ('worktree', 'branch')]
+    names = ' '.join(f'{m[1]}-{m[2]}' if (m := CLAIM.fullmatch(n)) else n for n in names)  # a claim's user part names nothing
+    ids = {p['id'] for p in packages['packages']}
+    out = {owner.get(t, t) for t in map(str.upper, re.findall(r'(?<![A-Za-z0-9])[A-Za-z]+\d+(?![A-Za-z0-9])', names)) if t in owner or t in ids}
+    changed = set(filter(None, (git('diff', '--name-only', '-z', 'HEAD') + git('ls-files', '-oz', '--exclude-standard')).split('\0')))
+    for p in packages['packages']:
+        if p['status'] != 'verified' and p['id'] not in out:
+            files = set(p['evidence']) | {f for b in p['batches'] for t in bmap[b]['targets']
+                                          for f in [t, *docs_for(root, t), *tests_for(root, t)]}
+            if files & changed:
+                out.add(p['id'])
+    return out
 
 
 def ready_list(root=ROOT):
-    """Packages whose prerequisites are all verified, in schedule order, with their folders."""
+    """Open packages whose prerequisites are all verified, in schedule order: (package, folders, live here, next open
+    batch of a multi-batch package, its done batch count, claim or block text), plus the `gate` claims line."""
     batches, packages = load(root)
     bmap = {b['id']: b for b in batches['batches']}
     status = {p['id']: p['status'] for p in packages['packages']}
-    deps = prereqs(batches, packages)
+    deps, busy, inv = prereqs(batches, packages), live(root, batches, packages), inventories(root)
+    fin, (_, _, cl, line, block) = landed(root), gate(root, packages)
     out = []
     for p in packages['packages']:
         if p['status'] == 'verified' or not all(status[d] == 'verified' for d in deps[p['id']]):
             continue
         folders = sorted({bmap[b]['folder'] for b in p['batches']} | {t.split('/')[0] for b in p['batches'] for t in bmap[b]['targets']})
-        out.append((p, [f for f in folders if f != 'support'] or ['support']))
-    return out
+        done = [b for b in p['batches'] if batch_done(bmap[b], inv, fin)]
+        nxt = next((b for b in p['batches'] if b not in done), None) if len(p['batches']) > 1 else None
+        held = block.get(p['id'], '')
+        if p['id'] in cl and not held.startswith('claimed'):
+            held = '; '.join(filter(None, [held, f'claimed by you in pull request #{cl[p["id"]][2]}']))
+        out.append((p, [f for f in folders if f != 'support'] or ['support'], p['id'] in busy, nxt, len(done), held))
+    return out, line
 
 
 def ready_text(root, limit):
-    rows = ready_list(root)
-    out = ['Ready packages (prerequisites satisfied), schedule order:']
-    out += [f'- {p["id"]} [{p["status"]}, {p["model"]}, {p["size"]}] {", ".join(f)} — {p["label"]}' for p, f in rows]
-    chosen, used = [], set()
-    for p, f in rows:
-        if p['status'] != 'in-progress' and not (set(f) & used):
-            chosen.append(p); used |= set(f)
+    """The ready list and a disjoint set: live and claimed packages reserve their folders, blocked ones are left out."""
+    rows, line = ready_list(root)
+    out = [line, 'Ready packages (prerequisites satisfied), schedule order:']
+    out += [f'- {p["id"]} [{p["status"]}, {p["model"]}, {p["size"]}] {", ".join(f)} — {p["label"]}'
+            + (' — live here' if busy else f' — next {nxt} ({done}/{len(p["batches"])} batches done)' if nxt and done else '')
+            + (f' — {held}' if held else '')
+            for p, f, busy, nxt, done, held in rows]
+    used = {x for _, f, busy, _, _, held in rows if busy or 'claimed' in held for x in f}
+    chosen = []
+    for p, f, busy, nxt, done, held in rows:
         if len(chosen) == limit:
             break
+        if not busy and not held and not (set(f) & used):
+            chosen.append((p, nxt, done)); used |= set(f)
     out += ['', f'Disjoint set for {limit} parallel sessions (one folder each; use `claude -w <name>` worktrees and merge after):']
-    out += [f'- {p["id"]} — {p["label"]}' for p in chosen]
+    out += [f'- {p["id"]} — ' + (f'`/package {nxt}` ({done}/{len(p["batches"])} batches done) — ' if nxt else '') + p['label']
+            for p, nxt, done in chosen]
+    busy = [p['id'] for p, _, b, _, _, _ in rows if b]
+    out += [f'Live here (worktree or uncommitted files), folders reserved: {", ".join(busy)}.'] if busy else []
     out += ['', 'Shared files every session touches (expect small merges): 01-prompts.md, 00-Guidelines/13-Plan/packages.json, '
             '96-Local Testing/00-index.md, 96-Local Testing/01-run.py. Same-folder packages also share 00-index.md and the 98/99 aggregates; run those sequentially.']
     return '\n'.join(out)
@@ -454,7 +599,8 @@ def main():
     elif a.cmd == 'status':
         print(status_text(ROOT))
     elif a.cmd == 'next':
-        p = ready(*load(ROOT))
+        batches, packages = load(ROOT)
+        p = ready(batches, packages, gate(ROOT, packages)[4])
         if not p:
             return 1
         print(p['id'])

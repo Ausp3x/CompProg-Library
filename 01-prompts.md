@@ -10,6 +10,7 @@ Start one fresh session per task with the preset of its work:
 - Everything else, sweeps included: `claude --agent contest-session --effort high`
 - Parallel packages: `python3 '00-Guidelines/13-Plan/plan.py' ready --max 3` picks ready packages from different folders; launch each with `--worktree <name>` added. New worktrees branch from `origin/master` by default (`worktree.baseRef`), so push `master` before launching them.
 - Packages with several batches run one batch per session under its batch id (`/package`, Batches); `/package Pxxx` names the next one.
+- Contributors (`CLAUDE.md`, Git) claim a package before `/package` with the commands its brief prints.
 
 | Skill | Use it | Afterwards |
 |---|---|---|
@@ -21,7 +22,7 @@ Start one fresh session per task with the preset of its work:
 | `/pause [hours]` | Before stepping away from an open session: a handoff plus keep-alive pings (default 2 hours) | Come back and type; a new session loads the handoff |
 | `/tidy [scope]` | Every ten or so packages, or after a guideline change: remove stale, restated and superseded text | Answer its questions, then commit |
 | `/restyle Pxxx` | Only after the comment cap or closing-brace rule changes | Commit |
-| `/finish [Pxxx or batch id]` | After `/package` or `/prune`, in a worktree or the main checkout, even with no gaps reported: closes the work in one pass with one round of questions and lands it on your yes | Push `master` |
+| `/finish [Pxxx or batch id]` | After `/package` or `/prune`, in a worktree or the main checkout, even with no gaps reported: closes the work in one pass with one round of questions and lands it on your yes (a contributor's stops on the claim branch) | Push `master`, or as a contributor the claim branch |
 
 Commits: `/finish` commits and lands `/package` and `/prune` work; other skills print their commit command. Pending one-off runs: `/omission-sweep "02-Data Structures/45-kineticheap.hpp" "03-Geometry/26-geometry3d.hpp" "03-Geometry/53-dynamicconvexhull.hpp"`, then `/omission-sweep 05`.
 
@@ -48,6 +49,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P015 — MI15, MI16, MI17** (opus, M+M+S): 06-Miscellaneous — enumeration, knapsack, cyclefinding.
 - [x] **P016 — ST01, ST02, ST19** (opus, S+M+S): 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength.
 - [x] **P017 — ST03** (opus, L): 07-Strings — aho, suffixarray, palindrome queries.
+- [ ] **P250 — SUP17, SUP18, SUP19** (opus, M+L+M): Repository portability and contribution workflow. Status: in-progress. Note: SUP17 (contributor roles and claims) landed 2026-10-29, evidence 00-Guidelines/13-Plan/Docs/00-contribution.md. Open for the user: add Bash(git switch *) Bash(git fetch *) to /finish allowed-tools (user decision; agents are blocked from editing skill front matter). Next: /package SUP18, then SUP19. [evidence](00-Guidelines/13-Plan/Docs/00-contribution.md)
 
 ### Core full types
 

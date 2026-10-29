@@ -11,7 +11,7 @@ Maximal competitive-programming library: C++20 headers in `01-Core` … `07-Stri
 
 ## Git
 
-When asked to commit, commit directly to local `master`; create no branch unless asked. In a worktree, `/finish` commits to the worktree branch and lands it on `master` (its step 7). Never push: the user pushes `master` to `origin`.
+`git config compprog.role` is `contributor` unless the owner has set `maintainer` (once per clone). The maintainer, when asked to commit, commits directly to local `master` without creating a branch unless asked; in a worktree, `/finish` commits to the worktree branch and lands it on `master` (its step 7). A contributor claims a package before starting, with a draft pull request on a `Pxxx-<batch>-<user>` branch created in the checkout the session works in. All their commits go to that branch, and their `/finish` stops before landing. Core full packages are maintainer-only. Never push: the user pushes.
 
 ## Models and delegation
 

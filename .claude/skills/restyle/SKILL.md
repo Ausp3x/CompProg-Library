@@ -16,7 +16,7 @@ effort: high
 
 ## Procedure
 
-This is a text-moving pass. Behavior, public names, domains, tests and benchmarks do not change. Run on any model.
+This is a text-moving pass. Behavior, public names, domains, tests and benchmarks do not change. Run on any model, after checking claims as `/package` step 1 does.
 
 1. For each target header, read it once. Above each struct and free function keep only the complexity line and the domain/no-answer line `03-cpp.md`, Comments, allows; keep an in-body comment only if it is one line naming a non-obvious trick; delete restated contracts, history and cross-references.
 2. Move every removed sentence that states a contract (domain, exactness, mutation, setup or reset, aliasing, staleness or invalidation, sentinel policy, precondition) into the package's evidence document under `## Contracts`, one `###` subsection per struct or free function, as compact prose; drop sentences that only repeat the code. Do not create a new evidence document if the brief links one. Apply the latest-run rule (`02-structure.md`, Names).
