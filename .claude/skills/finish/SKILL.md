@@ -3,7 +3,7 @@ name: finish
 description: Close the package, batch or branch this session worked on in one pass. One full review, one round of questions (landing included), fixes, then the suites and a review of the fixes; then commits, rebases onto master, fast-forwards master and removes the worktree as answered; a contributor's run stops on its claim branch.
 disable-model-invocation: true
 argument-hint: "[Pxxx | batch id] (default: from the branch or worktree name)"
-allowed-tools: Bash(git add *) Bash(git commit *) Bash(git rebase *) Bash(git rm *) Bash(git mv *)
+allowed-tools: Bash(git add *) Bash(git commit *) Bash(git rebase *) Bash(git rm *) Bash(git mv *) Bash(git switch *) Bash(git fetch *)
 ---
 
 The run is one pass: collect, ask once, fix, verify, land. It never stops silently and repeats only the checks a fix needs. The facts below the procedure are this run's starting state.

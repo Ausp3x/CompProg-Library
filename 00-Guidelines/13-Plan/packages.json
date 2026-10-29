@@ -340,7 +340,7 @@
       "evidence": [
         "00-Guidelines/13-Plan/Docs/00-contribution.md"
       ],
-      "note": "SUP17 (contributor roles and claims) landed 2026-10-29, evidence 00-Guidelines/13-Plan/Docs/00-contribution.md. Open for the user: add Bash(git switch *) Bash(git fetch *) to /finish allowed-tools (user decision; agents are blocked from editing skill front matter). Next: /package SUP18, then SUP19."
+      "note": "SUP17 (contributor roles and claims) landed 2026-10-29, evidence 00-Guidelines/13-Plan/Docs/00-contribution.md. Next: /package SUP18, then SUP19."
     },
     {
       "id": "P025",

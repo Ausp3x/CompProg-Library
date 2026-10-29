@@ -49,7 +49,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P015 — MI15, MI16, MI17** (opus, M+M+S): 06-Miscellaneous — enumeration, knapsack, cyclefinding.
 - [x] **P016 — ST01, ST02, ST19** (opus, S+M+S): 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength.
 - [x] **P017 — ST03** (opus, L): 07-Strings — aho, suffixarray, palindrome queries.
-- [ ] **P250 — SUP17, SUP18, SUP19** (opus, M+L+M): Repository portability and contribution workflow. Status: in-progress. Note: SUP17 (contributor roles and claims) landed 2026-10-29, evidence 00-Guidelines/13-Plan/Docs/00-contribution.md. Open for the user: add Bash(git switch *) Bash(git fetch *) to /finish allowed-tools (user decision; agents are blocked from editing skill front matter). Next: /package SUP18, then SUP19. [evidence](00-Guidelines/13-Plan/Docs/00-contribution.md)
+- [ ] **P250 — SUP17, SUP18, SUP19** (opus, M+L+M): Repository portability and contribution workflow. Status: in-progress. Note: SUP17 (contributor roles and claims) landed 2026-10-29, evidence 00-Guidelines/13-Plan/Docs/00-contribution.md. Next: /package SUP18, then SUP19. [evidence](00-Guidelines/13-Plan/Docs/00-contribution.md)
 
 ### Core full types
 
