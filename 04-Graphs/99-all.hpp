@@ -29,3 +29,4 @@
 #include "29-planar_graph.hpp"
 #include "30-flow_with_demands.hpp"
 #include "31-path_cover.hpp"
+#include "35-subgraph_enumeration.hpp"

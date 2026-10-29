@@ -167,3 +167,19 @@ The 2026-10-28 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-28-p048-g
 - Minimum flow by binary search on the t→s capacity (cp-algorithms): O(log U) max flows, dominated by the second residual max flow.
 - Builder structs with `add_edge(from, to, lo, hi)` (every catalog): an argument shape; the free functions take the edge list.
 - maspypy `cyclic_b_flow`: a problem-specific costed ring flow. Min-cost b-flow with a dual certificate (Library Checker `min_cost_b_flow`): row 65.
+
+## P048 GR32 omissions
+
+The 2026-10-29 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-29-p048-gr32)) and the `/finish` audit led to these additions to row 35, all by user decision 2026-10-29:
+- `countC4PerEdge` (Library Checker `counting_c4`), `countC3C4PerVertex` (maspypy pointwise counts), `countTrianglesPerEdge` (OI Wiki) and `triadicCensus` (NetworkX);
+- `countPathsP3P4P5` fixed as per-vertex counts;
+- `localClustering`, `directedClustering`, `weightedClustering`, `weightedDirectedClustering`, `averageClustering`, `transitivity`, `squareClustering` and `generalizedDegree` (NetworkX `cluster.py`);
+- `enumerateC4` and `enumerateK4` (no catalog source; enumeration counterparts of the counts);
+- `enumerateTriangleEdges` beside `enumerateTriangles`, with the edge IDs of every combination of parallel copies (tko919 `EnumTriangle` passes edge indices).
+
+`trussDecomposition` (NetworkX `k_truss`) became a planned operation of row 42 (package P051, same decision). The other candidates stay out (user decision 2026-10-29):
+
+- Totals of the path counts (`sum / 2`) and other pointwise sums of the per-vertex and per-edge counts: projections. The C4 total is kept as `countC4`. A weighted `averageClustering` would need a flag choosing between operations; it is the mean of `weightedClustering`.
+- NetworkX `all_triangles`: the enumeration.
+- Enumerating cliques, counting all cliques and cycles over vertex subsets: rows 49 and 53. Elementary cycles and girth: row 68. Subgraph isomorphism: row 54.
+- Connected 4-edge subgraph counts (OI Wiki, Gym 102028L) and CF 985G: problem-specific inclusion-exclusion.

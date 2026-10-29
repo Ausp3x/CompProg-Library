@@ -1080,13 +1080,14 @@
       "phase": "Contest core",
       "size": "L+L+M",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "04-Graphs/Docs/28-cycle_basis.md",
         "04-Graphs/Docs/29-planar_graph.md",
-        "04-Graphs/Docs/30-flow_with_demands.md"
+        "04-Graphs/Docs/30-flow_with_demands.md",
+        "04-Graphs/Docs/35-subgraph_enumeration.md"
       ],
-      "note": "GR13 and GR27 done (rows 28, 29, 30 verified 2026-10-28). Next batch: GR32. Handoff: XorWalk/CutSpaceHash use a private reduced XOR basis, to migrate to Data Structures 62 XorBasis when DS50 is verified."
+      "note": "All batches done (GR13, GR27 2026-10-28; GR32 2026-10-29). Handoffs: XorWalk/CutSpaceHash use a private reduced XOR basis, to migrate to Data Structures 62 XorBasis when DS50 is verified; row 35 Ranked has its own Batagelj-Zaversnik order, to migrate to row 42 degeneracyOrdering when verified."
     },
     {
       "id": "P032",
@@ -1438,7 +1439,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Handoffs from P048 (user decision 2026-10-29): row 42 owns trussDecomposition (per-edge trussness by peeling triangle counts, NetworkX k_truss; row 35 countTrianglesPerEdge gives the initial supports); 04-Graphs/35-subgraph_enumeration.hpp subgraph_enumeration_detail::Ranked has its own Batagelj-Zaversnik core order, to migrate to row 42 degeneracyOrdering when verified, keeping sorted rank lists without an extra pass."
     },
     {
       "id": "P087",

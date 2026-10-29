@@ -9,6 +9,7 @@ Decided by the user since 2026-10-10; binding, and only the user changes them.
 ### Changes
 
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
+- **P048** row 35 `triangleAggregate` is named `triangleProductSum` (decided 2026-10-29).
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
 
 ### Keeps
@@ -109,6 +110,13 @@ Items a reader could mistake for duplicates.
 | P035 | `ParityDSU` (row 29) beside `WeightedDSU` over Z/2 | Decided 2026-10-23 by the user: a different algorithm, a 2n-node DSU |
 | P035 | `MergeHistoryForest` (row 65) beside `KruskalReconstruction` weighted by union index and `PartiallyPersistentDSU::uniteTime` | Decided 2026-10-23 by the user: a separate builder from a union sequence, with no graph or sort |
 | P058 | `nullspace` (`16-linear_algebra.hpp`) beside the basis of `solveLinear(A, 0)` | Decided 2026-10-28 by the user: a standalone kernel basis without a right-hand side; `gaussJordan` left row 16 for `rref` the same day |
+| P048 | `countTriangles` (row 35) beside an `enumerateTriangles` counting callback, `Σ countC3C4PerVertex(g).first / 3` and `Σ countTrianglesPerEdge(g) / 3` | Decided 2026-10-29 by the user: a different algorithm on dense graphs, popcount of oriented-adjacency bitsets in O(m n / 64), and one pass with no per-vertex or per-edge arrays |
+| P048 | `triangleProductSum` (row 35, formerly `triangleAggregate`) beside `enumerateTriangles` summing `x[a] * x[b] * x[c]` | Decided 2026-10-29 by the user: the named vertex-weighted triangle sum (Library Checker enumerate_triangles) |
+| P048 | `countC4` (row 35) beside `countC4PerEdge` summed over the edges of `simplify(g)` and `Σ countC3C4PerVertex(g).second`, each divided by 4 | Decided 2026-10-29 by the user: one counting pass with no per-edge or per-vertex accumulation, kept for its constant factor |
+| P048 | `countK4` and `enumerateK4` (row 35) beside each other, `countC4` beside an `enumerateC4` counting callback | Decided 2026-10-29 by the user: the counts take O(m · d^2 / w) and O(m · d) without the output term; the enumerations report each subgraph |
+| P048 | `enumerateTriangleEdges` beside `enumerateTriangles` (row 35) | Decided 2026-10-29 by the user: multigraph semantics with edge IDs, every combination of parallel copies, against one report per vertex triangle |
+| P048 | `localClustering`, `squareClustering`, `transitivity` and `generalizedDegree` (row 35) beside `countC3C4PerVertex`, `countTriangles` and `countTrianglesPerEdge` with degrees | Decided 2026-10-29 by the user: NetworkX `cluster.py` measures with fixed denominators and zero conventions (`squareClustering` needs P3 and the 4-cycles through v; `generalizedDegree` counts per simple pair) |
+| P048 | `averageClustering` (row 35) beside the mean of `localClustering` or `directedClustering` | Decided 2026-10-29 by the user: NetworkX `average_clustering` with `count_zeros`, dispatching on `g.directed` |
 | P072 | `kSmallestSubsetSums` (`54-kbest_enumeration.hpp`) beside `kSmallestSortedListSums` over lists `{min(0, a_i), max(0, a_i)}` | Decided 2026-10-23 by the user: named special case (subset witnesses, no list construction) |
 
 ### Rulings
@@ -247,6 +255,8 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P072 | `kSmallestPairSums` (`54-kbest_enumeration.hpp`) beside `kSmallestSortedListSums({a, b})` | Named special case (clarified rule): two sorted arrays, `(sum, i, j)` tie order and index pairs, as `kSmallestSubsetSums` (Keeps) |
 | P072 | `boundedKnapsackMonotoneQueue`, `smallWeightKnapsack` (`29-knapsack_advanced.hpp`) beside `KnapsackDP::exact` (`13-knapsack.hpp`) | Different algorithms: monotone-queue O((n + 1) * (W + 1)) and SMAWK over D distinct weights O(n log n + (D + 1) * (W + 1)) against binary splitting O((W + 1) * (n + 1 + sum(log(c_i + 1)))) |
 | P072 | `knapsackCountsFps` (`29-knapsack_advanced.hpp`) beside `KnapsackCounts<ModInt>` (`13-knapsack.hpp`) | Different algorithm: power-series log/exp O((t + 1) * log(t + 2) + n) against the O((n + 1) * (W + 1)) counting DP, same counts modulo a prime above t |
+| P048 | `cycleSpaceDimension`, `isIndependentF2` (row 28) beside `m - n + connectedComponents(g).count` and `BitMatrix` rank | Derived formula; bool form (ruling 1) |
+| P048 | `eulerCharacteristic` (row 29) beside `n - m + faces().size()` | Derived formula (clarified rule) |
 
 ## Conventions
 
@@ -369,14 +379,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `Mo::getHilOrd` | `23-range_query_offline.hpp:19` | Miscellaneous row 16 `hilbertIndex2D` | remove (row only) | second implementation once P066 adds `hilbertIndex2D` (Changes); pinned body stays until P067 rewrites Mo | none | `99-all.hpp:21` |
-
-## P048 — 04-Graphs — cycle basis, planar graph, flow with demands, subgraph enumeration (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `cycleSpaceDimension`, `isIndependentF2` | row 28 | `m - n + connectedComponents(g).count`; `BitMatrix` rank | keep | derived formula; bool form (ruling 1) | — | — |
-| `eulerCharacteristic` | row 29 | `n - m + faces().size()` | keep | derived formula (clarified rule) | — | — |
-| `countTriangles`, `triangleAggregate` | row 35 | `enumerateTriangles` callback | ask | projections unless cheaper | — | — |
 
 ## P062 — 05-Mathematics — game theory, probability (planned)
 
@@ -991,7 +993,6 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P032** `XorBasis::rank`, `countRepresentable`, `intersection`, `reducedEchelon` beside `size()` and Core `BitMatrix`?
 - **P042** `apspPath`, `rootTree` (children lists?), `pathRanges`, `pathVertices`: does each add a result?
 - **P066** row 17 `MmapInput`, `SyscallOutput` (POSIX calls are banned); `mergeSortedVectors`, `kWayMerge` (P205) beside `std::merge`? Row 19 `pairHash`: the same mixing as `CustomHash`'s pair overload?
-- **P048** `countTriangles`, `triangleAggregate`: cheaper than enumeration?
 - **P077** `evaluateExpression`; **P076** `minimax` or `negamax`; **P073** `setPartitionDP`; **P087** one of `tandemRepeats`, `squares`, `repetitionsCompressed`; **P079** `huffmanCost`; **P071** `daysBetween`, `addDays`, `dayOfYear`; **P206** `StreamReservoir` (is row 18 incremental?); **P207** `alphabeticCodeLengths`: separate operations or compositions?
 - **P050** `blockTree`, `isCactus`: cactus-specific results, or `blockCutTree` and lowlink?
 - **P051** global `edgeConnectivity`, `complementShortestPath`, `differenceConstraints`: distinct algorithms?

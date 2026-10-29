@@ -196,6 +196,24 @@ Both headers were written independently from these descriptions; no catalog code
 
 The header was written independently from these descriptions; no catalog code was copied. Not inspected: LEMON `Circulation` (connection refused) and ACL (no bounded-flow API).
 
+## Pages fetched on 2026-10-29 (P048 GR32)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| Library Checker enumerate_triangles | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/graph/enumerate_triangles/task.md | 2026-10-29 | `triangleProductSum` contract: simple graph, sum of x_a x_b x_c mod 998244353, N, M <= 10^5 (`info.toml`) |
+| Library Checker counting_c4 | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/graph/counting_c4/task.md | 2026-10-29 | `countC4PerEdge`: 4-cycles through each edge, parallel edges allowed, N, M <= 3 * 10^5 (`info.toml`) |
+| maspypy count_C3_C4, count_P3_P4_P5, count_K4, find_C4 | https://raw.githubusercontent.com/maspypy/library/main/graph/count/count_C3_C4.hpp | 2026-10-29 | Totals and pointwise C3/C4 (`countC3C4PerVertex`); per-vertex paths with 3, 4, 5 vertices (`count_P3_P4_P5.hpp`, `countPathsP3P4P5`); K4 by bitsets on each out-neighbourhood, O(m^1.5 + m^2 / w) (`count_K4.hpp`); one 4-cycle witness (`find_C4.hpp`, CF 1468M) |
+| Koosaga count_4_cycles | https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/count_4_cycles.cpp | 2026-10-29 | Per-edge 4-cycle counts with parallel edges by multiplicity |
+| OI Wiki 环计数 | https://oi-wiki.org/graph/rings-count/ | 2026-10-29 | Degree-ordered triangle and 4-cycle counting, O(m sqrt(m)); per-edge triangle counts (HDU 6184) |
+| ei1333, suisen, hitonanode enumerate_triangles | https://ei1333.github.io/library/graph/others/enumerate-triangles.hpp | 2026-10-29 | Aliases of `enumerateTriangles` (suisen https://suisen-cp.github.io/cp-library-cpp/library/graph/enumerate_triangles.hpp, hitonanode https://hitonanode.github.io/cplib-cpp/other_algorithms/enumerate_triangles.hpp); simple graphs only |
+| NetworkX triads | https://networkx.org/documentation/stable/reference/algorithms/triads.html | 2026-10-29 | `triadicCensus`: the 16 triad names and their order |
+| NetworkX triads.py | https://raw.githubusercontent.com/networkx/networkx/main/networkx/algorithms/triads.py | 2026-10-29 | `TRICODES`, `TRIAD_NAMES` and the `_tricode` bit order, embedded verbatim in the tester as the census oracle |
+| tko919 enumtriangle | https://raw.githubusercontent.com/tko919/library/main/Graph/enumtriangle.hpp | 2026-10-29 | `EnumTriangle(n, es, query)`: degree-ordered orientation, `query(u, v, w, i, j, k)` with the three edge indices; alias of `enumerateTriangleEdges` |
+| NetworkX cluster.py | https://raw.githubusercontent.com/networkx/networkx/main/networkx/algorithms/cluster.py | 2026-10-29 | `clustering` (undirected and unweighted directed), `transitivity`, `square_clustering` (the `potential` formula of the current code), `generalized_degree`: contracts and oracles of `localClustering`, `directedClustering`, `transitivity`, `squareClustering`, `generalizedDegree`; weighted clustering (undirected and directed) and `average_clustering`: contracts and oracles of `weightedClustering`, `weightedDirectedClustering`, `averageClustering` |
+| Nyaan, KACTL, cp-algorithms | https://nyaannyaan.github.io/library/; https://github.com/kth-competitive-programming/kactl/tree/main/content/graph; https://cp-algorithms.com/ | 2026-10-29 | Nothing in scope. Nyaan index read to 100k characters |
+
+The header was written independently from these descriptions; no catalog code was copied.
+
 ## Source keys
 
 Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder. Per-family read scope and caveats of that audit are in `00-Guidelines/History/2026-09-27-inventory-audit.md`.

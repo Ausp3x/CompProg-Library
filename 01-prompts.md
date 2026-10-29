@@ -98,7 +98,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P239 — SUP08** (opus, L): Documentation site generator, header pages and dependency charts.
 - [x] **P030 — DS23** (opus, XL): 02-Data Structures — persistentsegmenttree.
 - [x] **P058 — MA08** (opus, L): 05-Mathematics — linear algebra.
-- [ ] **P048 — GR13, GR27, GR32** (opus, L+L+M): 04-Graphs — cycle basis, planar graph, flow with demands, subgraph enumeration. Status: in-progress. Note: GR13 and GR27 done (rows 28, 29, 30 verified 2026-10-28). Next batch: GR32. Handoff: XorWalk/CutSpaceHash use a private reduced XOR basis, to migrate to Data Structures 62 XorBasis when DS50 is verified. [evidence](04-Graphs/Docs/28-cycle_basis.md) [evidence](04-Graphs/Docs/29-planar_graph.md) [evidence](04-Graphs/Docs/30-flow_with_demands.md)
+- [x] **P048 — GR13, GR27, GR32** (opus, L+L+M): 04-Graphs — cycle basis, planar graph, flow with demands, subgraph enumeration.
 - [ ] **P032 — DS11, DS27, DS28, DS50** (opus, L+M+L+M): 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis. Status: in-progress. Note: DS11 done 2026-10-28 (rows 21, 22 verified). Next batch: DS27 (/package DS27 in a fresh session). Open in duplicates.md: XorBasis ask row (DS50). DS50 (62-xorbasis.hpp): once verified, migrate 04-Graphs/28-cycle_basis.hpp XorWalk and CutSpaceHash off the private cycle_basis_detail insert/reduce basis onto XorBasis (user decision 2026-10-28, recorded by P048 GR13; see 04-Graphs/Docs/28-cycle_basis.md, Limits and handoffs). [evidence](<02-Data Structures/Docs/21-lichao.md>) [evidence](<02-Data Structures/Docs/22-convexhulltrick.md>)
 - [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: planned.
 - [ ] **P063 — MA14** (opus, L): 05-Mathematics — optimization. Status: planned.
@@ -123,7 +123,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P067 — DS12** (opus, L): 02-Data Structures — range query offline. Status: planned.
 - [ ] **P077 — MI26** (opus, M): 06-Miscellaneous — expression parser. Status: planned.
 - [ ] **P076 — MI24, MI25** (opus, L+L): 06-Miscellaneous — state space search, game search. Status: planned.
-- [ ] **P051 — GR39, GR58, GR60, GR65** (opus, M+L+M+L): 04-Graphs — graph decomposition, implicit graph, differenceconstraints, graph connectivity. Status: planned.
+- [ ] **P051 — GR39, GR58, GR60, GR65** (opus, M+L+M+L): 04-Graphs — graph decomposition, implicit graph, differenceconstraints, graph connectivity. Status: planned. Note: Handoffs from P048 (user decision 2026-10-29): row 42 owns trussDecomposition (per-edge trussness by peeling triangle counts, NetworkX k_truss; row 35 countTrianglesPerEdge gives the initial supports); 04-Graphs/35-subgraph_enumeration.hpp subgraph_enumeration_detail::Ranked has its own Batagelj-Zaversnik core order, to migrate to row 42 degeneracyOrdering when verified, keeping sorted rank lists without an extra pass.
 - [ ] **P087 — ST10** (opus, XL): 07-Strings — runs. Status: planned.
 - [ ] **P039 — GE10, GE30, GE18** (opus, L+L+M): 03-Geometry — circleunion, geometric median, spherical geometry. Status: planned.
 - [ ] **P074 — GR33** (opus, L): 04-Graphs — steiner tree. Status: planned.
