@@ -30,8 +30,8 @@ static ulng sampled(string_view s) { return sampled(s.data(), s.size()); }
 static void require(bool ok, const char *what) { if (!ok) { std::fprintf(stderr, "verification failed: %s\n", what); std::exit(1); } }
 static bool wanted(const char *family) { return only.empty() || std::string(family).find(only) != std::string::npos; }
 
-// Doubles the iteration count until a pass takes at least minMs, then reports the median of repetitions in nanoseconds per call.
-static void measure(const std::string &family, const std::string &backend, const std::string &shape, int n, int m, const std::function<ulng()> &call, ulng expected, int per = 1) {
+// Doubles the iteration count until a pass takes at least minMs, then reports the median of repetitions in nanoseconds per call; extra: further JSON fields.
+static void measure(const std::string &family, const std::string &backend, const std::string &shape, int n, int m, const std::function<ulng()> &call, ulng expected, int per = 1, const std::string &extra = "") {
     if (!wanted(family.c_str())) { return; }
     int iters = 1; double ms = 0;
     while (true) {
@@ -46,54 +46,96 @@ static void measure(const std::string &family, const std::string &backend, const
         for (int i = 0; i < iters; ++i) { if (call() != expected) { std::exit(1); } }
         samples.push_back(std::chrono::duration<double, std::nano>(std::chrono::steady_clock::now() - t0).count() / iters / per);}
     std::sort(samples.begin(), samples.end());
-    std::printf("{\"family\": \"%s\", \"backend\": \"%s\", \"shape\": \"%s\", \"n\": %d, \"m\": %d, \"ns\": %.3f, \"iters\": %d, \"reps\": %d, \"per\": %d, \"seed\": %llu}\n", family.c_str(), backend.c_str(), shape.c_str(), n, m, samples[size_t(repetitions / 2)], iters, repetitions, per, static_cast<unsigned long long>(seedValue));
+    std::printf("{\"family\": \"%s\", \"backend\": \"%s\", \"shape\": \"%s\", \"n\": %d, \"m\": %d, \"ns\": %.3f, \"iters\": %d, \"reps\": %d, \"per\": %d, \"seed\": %llu%s}\n", family.c_str(), backend.c_str(), shape.c_str(), n, m, samples[size_t(repetitions / 2)], iters, repetitions, per, static_cast<unsigned long long>(seedValue), extra.c_str());
     std::fflush(stdout);}
+static std::string planJson(const infint_detail::FftPlan &p) { char s[96]; std::snprintf(s, sizeof s, ", \"plan\": {\"lg\": %d, \"r\": %d, \"k\": %d}", p.lg, p.r, p.k); return s; }
+
+// 32-bit limb image of words, and the words of a transform's limb coefficients lo + hi * 2^64 (carried as transformMul does).
+static vector<uint> limbs(const vector<W> &a) { vector<uint> l(2 * a.size()); for (size_t i = 0; i < a.size(); ++i) { l[2 * i] = uint(a[i]); l[2 * i + 1] = uint(a[i] >> 32); } return l; }
+static void carryLimbs(W *r, int words, const W *lo, const W *hi) {
+    unsigned __int128 carry = 0;
+    for (int i = 0; i < words; ++i) {
+        unsigned __int128 c0 = lo[2 * i] + ((unsigned __int128)hi[2 * i] << 64) + carry;
+        W low = uint(c0); carry = c0 >> 32;
+        unsigned __int128 c1 = lo[2 * i + 1] + ((unsigned __int128)hi[2 * i + 1] << 64) + carry;
+        r[i] = low | (W(uint(c1)) << 32); carry = c1 >> 32;}}
+static constexpr ulng P61 = (ulng(1) << 61) - 1;
+static ulng modP(const vector<W> &v) { return (ofWords(v) % P61).low64(); }
+// Reference product a * b: the exact three-prime NTT's limb convolution carried into words, checked mod 2^61 - 1 against the operands.
+static vector<W> refProduct(const vector<W> &a, const vector<W> &b) {
+    int n = int(a.size()), m = int(b.size()), L = int(std::bit_ceil(uint(2 * (n + m))));
+    vector<uint> la = limbs(a), lb = limbs(b); vector<W> lo(size_t(L), 0), hi(size_t(L), 0), r(size_t(n + m), 0);
+    infint_detail::ntt3Cyclic(lo.data(), hi.data(), la.data(), 2 * n, lb.data(), 2 * m, L);
+    carryLimbs(r.data(), n + m, lo.data(), hi.data());
+    require(modP(r) == ulng((unsigned __int128)modP(a) * modP(b) % P61), "reference product mod 2^61 - 1");
+    return r;}
 
 static void multiplication() {
     using namespace infint_detail;
-    vector<int> sizes = {2, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 64, 80, 96, 112, 128, 160, 192, 256, 320, 384, 512, 640, 768, 1024, 1536, 2048, 3072, 4096, 8192, 16384, 32768};
+    vector<int> sizes = {2, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 64, 80, 96, 112, 128, 160, 192, 256, 320, 384, 512, 640, 768, 1024, 1536, 2048, 3072, 4096, 8192, 16384, 32768, 65536, 100000, 131072, 262144};
     for (int n : sizes) {
         vector<W> a = randWords(n), b = randWords(n), r(size_t(2 * n), 0);
-        auto run = [&](const char *name, auto &&f) { measure("mul", name, "balanced", n, n, [&] { f(); return digest(r); }, [&] { f(); return digest(r); }()); };
+        ulng want = digest(refProduct(a, b)), wantSq = digest(refProduct(a, a));
+        auto run = [&](const char *name, auto &&f) { measure("mul", name, "balanced", n, n, [&] { f(); return digest(r); }, want); };
         if (n <= 1024) { run("basecase", [&] { mulBasecase(r.data(), a.data(), n, b.data(), n); }); }
         if (n >= 2 && n <= 8192) { run("karatsuba", [&] { karatsuba(r.data(), a.data(), n, b.data(), n); }); }
         if (n >= 6 && n <= 8192) { run("toom3", [&] { toom3(r.data(), a.data(), b.data(), n); }); }
         if (n >= 16) { run("transform", [&] { transformMul(r.data(), a.data(), n, b.data(), n); }); }
         if (n >= 1024) { run("ssa", [&] { schonhageStrassen(r.data(), a.data(), n, b.data(), n); }); }
         run("dispatch", [&] { mul(r.data(), a.data(), n, b.data(), n); });
-        auto runSq = [&](const char *name, auto &&f) { measure("square", name, "balanced", n, n, [&] { f(); return digest(r); }, [&] { f(); return digest(r); }()); };
+        auto runSq = [&](const char *name, auto &&f) { measure("square", name, "balanced", n, n, [&] { f(); return digest(r); }, wantSq); };
         if (n <= 1024) { runSq("basecase", [&] { squareBasecase(r.data(), a.data(), n); }); }
         if (n >= 2 && n <= 8192) { runSq("karatsuba", [&] { karatsubaSquare(r.data(), a.data(), n); }); }
         if (n >= 6 && n <= 8192) { runSq("toom3", [&] { toom3Square(r.data(), a.data(), n); }); }
         if (n >= 16) { runSq("transform", [&] { transformMul(r.data(), a.data(), n, a.data(), n); }); }
         runSq("dispatch", [&] { square(r.data(), a.data(), n); });
+        // The full 2n-word product through each transform: the NTTs' cyclic limb convolution of bit_ceil(4n) limbs (checked once against the reference after the carry) and the planned double FFT.
         if (n >= 16) {
-            vector<uint> la(size_t(2 * n), 0), lb(size_t(2 * n), 0);
-            for (int i = 0; i < n; ++i) { la[size_t(2 * i)] = uint(a[size_t(i)]); la[size_t(2 * i) + 1] = uint(a[size_t(i)] >> 32); lb[size_t(2 * i)] = uint(b[size_t(i)]); lb[size_t(2 * i) + 1] = uint(b[size_t(i)] >> 32); }
-            int L = int(std::bit_ceil(uint(4 * n))); vector<W> lo(static_cast<size_t>(L)), hi(static_cast<size_t>(L));
-            auto runT = [&](const char *name, auto &&f) { measure("transform", name, "cyclic", n, n, [&] { f(); return digest(lo) ^ digest(hi); }, [&] { f(); return digest(lo) ^ digest(hi); }()); };
+            vector<uint> la = limbs(a), lb = limbs(b);
+            int L = int(std::bit_ceil(uint(4 * n))); vector<W> lo(static_cast<size_t>(L)), hi(static_cast<size_t>(L)), w(size_t(2 * n));
+            auto runT = [&](const char *name, auto &&f) {
+                f(); carryLimbs(w.data(), 2 * n, lo.data(), hi.data()); require(digest(w) == want, name);
+                measure("transform", name, "cyclic", n, n, [&] { f(); return digest(lo) ^ digest(hi); }, digest(lo) ^ digest(hi));};
             if (L <= (1 << 26)) { runT("ntt3", [&] { ntt3Cyclic(lo.data(), hi.data(), la.data(), 2 * n, lb.data(), 2 * n, L); }); }
             runT("ntt64", [&] { ntt64Cyclic(lo.data(), hi.data(), la.data(), 2 * n, lb.data(), 2 * n, L); });
-            if (n <= FFT_DOUBLE_MAX) { runT("fft", [&] { fftCyclic(lo.data(), hi.data(), la.data(), 2 * n, lb.data(), 2 * n, L); }); }}}
+            FftPlan p = fftPlan(n, n, 2 * n, false);
+            if (p.lg) { measure("transform", "fft", "cyclic", n, n, [&] { fftRun(r.data(), p, a.data(), n, b.data(), n, false); return digest(r); }, want, 1, planJson(p)); }}}
     for (int n : {64, 256, 1024, 4096, 16384}) {
         for (int m : {4, 16, n / 16, n / 4, n / 2}) {
             if (m >= n || m < 1) { continue; }
             vector<W> a = randWords(n), b = randWords(m), r(size_t(n + m), 0);
-            auto run = [&](const char *name, auto &&f) { measure("mul", name, "unbalanced", n, m, [&] { f(); return digest(r); }, [&] { f(); return digest(r); }()); };
+            ulng want = digest(refProduct(a, b));
+            auto run = [&](const char *name, auto &&f) { measure("mul", name, "unbalanced", n, m, [&] { f(); return digest(r); }, want); };
             run("basecase", [&] { mulBasecase(r.data(), a.data(), n, b.data(), m); });
             run("unbalanced", [&] { unbalancedMul(r.data(), a.data(), n, b.data(), m, m); });
             if (m >= FFT) { run("split", [&] { unbalancedMul(r.data(), a.data(), n, b.data(), m, int(std::bit_ceil(uint(n + m)) / 2) - m); }); }
             if (m > n / 2) { run("karatsuba", [&] { karatsuba(r.data(), a.data(), n, b.data(), m); }); }
             run("transform", [&] { transformMul(r.data(), a.data(), n, b.data(), m); });
             run("dispatch", [&] { mul(r.data(), a.data(), n, b.data(), m); });}}
-    for (int m : {16, 32, 48, 64, 128, 256, 512, 1024, 2048}) {
-        int h = (m + 1) / 2, l = m - h, cnt = l + 4;
-        vector<W> a = randWords(m), b = randWords(h + 1), r(size_t(cnt), 0), f(size_t(2 * m), 0);
-        measure("middle", "middleProduct", "newton", m, h + 1, [&] { middleProduct(r.data(), a.data(), m, b.data(), h + 1, h - 2, cnt); return digest(r); }, [&] { middleProduct(r.data(), a.data(), m, b.data(), h + 1, h - 2, cnt); return digest(r); }());
-        measure("middle", "fullProduct", "newton", m, h + 1, [&] { mulAny(f.data(), a.data(), m, b.data(), h + 1); return digest(f); }, [&] { mulAny(f.data(), a.data(), m, b.data(), h + 1); return digest(f); }());
-        vector<W> t(size_t(m), 0), c = randWords(m);
-        measure("truncated", "truncatedMul", "low", m, m, [&] { truncatedMul(t.data(), c.data(), a.data(), m); return digest(t); }, [&] { truncatedMul(t.data(), c.data(), a.data(), m); return digest(t); }());
-        measure("truncated", "fullProduct", "low", m, m, [&] { mulAny(f.data(), c.data(), m, a.data(), m); return digest(f); }, [&] { mulAny(f.data(), c.data(), m, a.data(), m); return digest(f); }());}}
+    // The Newton step's middle product (words [h - 2, m + 2) of an m-word by (h + 1)-word product): the three paths of middleProduct timed separately and its dispatch,
+    // each checked once against the exact slice (a deficit of at most nb * B is allowed), then the truncated product against the low words of the reference.
+    for (int m : {16, 32, 48, 64, 96, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 16384}) {
+        int h = (m + 1) / 2, l = m - h, cnt = l + 4, nb = h + 1, lo = h - 2;
+        vector<W> a = randWords(m), b = randWords(nb), r(size_t(cnt), 0), f(size_t(m + nb), 0), exact = refProduct(a, b);
+        InfInt slice = ofWords(vector<W>(exact.begin() + lo, exact.begin() + lo + cnt)), wrap = InfInt(1) << (64 * cnt), bound = InfInt(nb) << 64;
+        auto run = [&](const char *name, auto &&g, const std::string &extra = "") {
+            g(); InfInt d = slice - ofWords(r); if (d < 0) { d += wrap; } require(d >= 0 && d <= bound, name);
+            measure("middle", name, "newton", m, nb, [&] { g(); return digest(r); }, digest(r), 1, extra);};
+        if (m <= 2048) {
+            run("direct", [&] {
+                zero(r.data(), cnt);
+                for (int j = 0; j < nb; ++j) {
+                    int i0 = max(lo - j, 0), i1 = min(lo + cnt - j, m);
+                    if (i0 >= i1) { continue; }
+                    W c = addMul(r.data() + (i0 + j - lo), a.data() + i0, i1 - i0, b[size_t(j)]);
+                    if (i1 + j - lo < cnt) { addWord(r.data() + (i1 + j - lo), cnt - (i1 + j - lo), c); }}});}
+        run("fullProduct", [&] { mulAny(f.data(), a.data(), m, b.data(), nb); std::copy(f.begin() + lo, f.begin() + lo + cnt, r.begin()); });
+        int len = max({lo + cnt, m + nb - lo, m, nb}); FftPlan p = fftPlan(m, nb, len, true); vector<W> s(size_t(p.len));
+        if (m >= 64 && p.lg) { run("cyclic", [&] { fftRun(s.data(), p, a.data(), m, b.data(), nb, true); std::copy(s.begin() + lo, s.begin() + lo + cnt, r.begin()); subWord(r.data(), cnt, 1); }, planJson(p)); }
+        run("dispatch", [&] { middleProduct(r.data(), a.data(), m, b.data(), nb, lo, cnt); });
+        vector<W> t(size_t(m), 0), c = randWords(m), full = refProduct(c, a), f2(size_t(2 * m), 0);
+        measure("truncated", "truncatedMul", "low", m, m, [&] { truncatedMul(t.data(), c.data(), a.data(), m); return digest(t); }, digest(vector<W>(full.begin(), full.begin() + m)));
+        measure("truncated", "fullProduct", "low", m, m, [&] { mulAny(f2.data(), c.data(), m, a.data(), m); return digest(f2); }, digest(full));}}
 
 static void division() {
     using namespace infint_detail;

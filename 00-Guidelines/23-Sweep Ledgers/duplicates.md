@@ -228,6 +228,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P018 | `explicit operator bool` beside `isNil` (`07-infint.hpp`) | Decided 2026-10-16: both stay, `isNil` for Poly's `BigInt` concept and the modint-style truthiness |
 | P018 | `infint_detail` NTT, FFT and Montgomery kernels beside Poly's and `04-montgomery.hpp` | Decided 2026-10-16: InfInt keeps independent kernels and depends on `01-template.hpp` only |
 | P018 | `divModSlow` beside `divMod`; `isPerfectSquare` beside `isqrtRem`; `isProbablePrime` beside Mathematics `bpsw` | Knuth D as a separate algorithm; residue filters before the root; BPSW on arbitrary size (decided 2026-10-16) |
+| P018 | `schonhageStrassen` with `Fermat` beside `transformMul` (`07-infint.hpp`) | Tested, undispatched backend kept for completeness; user decision 2026-10-25 (`01-Core/Docs/07-infint.md`, Limits) |
 | P034 | `PartiallyPersistentDSU::uniteTime` (`10-persistentdsu.hpp`) beside row 65 `MergeHistoryForest::earliestConnectTime` | Different algorithm: a walk over attach times in the union-by-size forest, no merge forest or LCA (clarified rule) |
 | P034 | `OfflineDeletion::insert`, `erase` beside `addInterval` (`63-offline_deletion.hpp`) | Larger domain: unpaired per-key events with multiplicities, paired through an ordered map and closed at `n` (clarified rule) |
 | P047 | `blockOf` (`27-blockcuttree.hpp`) | Maps a vertex to its unique block, -1 at articulation points |

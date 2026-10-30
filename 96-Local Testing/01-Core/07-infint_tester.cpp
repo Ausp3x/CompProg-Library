@@ -1,4 +1,4 @@
-// Independent oracles for 07-infint.hpp: schoolbook limb products, identities checked with oracle products, two's-complement bit models, sieves and native 128-bit arithmetic; --protocol serves the Python big-integer oracle.
+// Independent oracles for 07-infint.hpp: schoolbook limb products, identities checked with oracle products, modular residues of large products, two's-complement bit models, sieves and native 128-bit arithmetic; --protocol serves the Python big-integer oracle.
 #include "../../01-Core/07-infint.hpp"
 #include <cctype>
 #include <charconv>
@@ -8,6 +8,7 @@
 #include <format>
 #include <iomanip>
 #include <iostream>
+#include <numeric>
 #include <random>
 #include <sstream>
 #include <string>
@@ -319,6 +320,53 @@ static void addition() {
             expect((a + b) + a, oadd(s, a), "(a + b) + a" + what); expect((a - b) - a, oadd(d, -a), "(a - b) - a" + what); expect(a + (b - a), oadd(a, oadd(b, -a)), "a + (b - a)" + what);}}
     context = "";}
 
+// Residue of little-endian words modulo p < 2^64 by 128-bit Horner steps: the identity oracle (r = a b modulo several primes) for products beyond the schoolbook budget.
+static W residue(const vector<W> &w, W p) { ulll h = 0; for (size_t i = w.size(); i-- > 0;) { h = ((h << 64) | w[i]) % p; } return W(h); }
+static constexpr W BIG_PRIMES[] = {(W(1) << 61) - 1, ~W(0) - 58, (W(1) << 63) - 25}, ONES_PRIMES[] = {3, 5, 17, 257, 641, 65537, 6700417};
+// x = a b modulo every prime of ps; the seven ONES_PRIMES divide B - 1 and so every B^len - 1, which makes them the oracle of a cyclic residue.
+static void residues(const vector<W> &x, const vector<W> &a, const vector<W> &b, const W *ps, int cnt, const std::string &what) {
+    for (int i = 0; i < cnt; ++i) { W p = ps[i]; expect(residue(x, p), W(ulll(residue(a, p)) * residue(b, p) % p), what + " modulo " + std::to_string(p)); }}
+static const char *PATTERN_NAMES[] = {"random", "ones", "alternating", "0x8000800080008000", "worst pieces"};
+// n words of a pattern: 0 random, 1 all ones, 2 alternating zero and all-ones words (top word all ones), 3 0x8000800080008000 in every word, 4 the worst case of
+// the balanced k-bit split: base-2^k digits alternating 2^(k-1) and 2^(k-1) - 1 from phase, so every balanced piece has magnitude exactly 2^(k-1).
+static vector<W> patterned(int n, int pattern, int k = 20, int phase = 0) {
+    vector<W> w(size_t(n), 0);
+    if (pattern == 4) {
+        for (lng off = 0, j = 0; off < 64LL * n; off += k, ++j) {
+            W d = (W(1) << (k - 1)) - W((j + phase) & 1); int at = int(off / 64), s = int(off % 64);
+            w[size_t(at)] |= d << s;
+            if (s + k > 64 && at + 1 < n) { w[size_t(at) + 1] |= d >> (64 - s); }}}
+    else { for (int i = 0; i < n; ++i) { w[size_t(i)] = pattern == 0 ? rng() : pattern == 1 ? ~W(0) : pattern == 2 ? ((n - 1 - i) & 1 ? 0 : ~W(0)) : W(0x8000800080008000ULL); } }
+    if (w.back() == 0) { w.back() = 1; }
+    return w;}
+// got = a b (x, y the operand words): schoolbook limbs within the budget, the closed form (B^n - 1)(B^m - 1) when both operands are all ones, else the
+// residue identity modulo BIG_PRIMES with the exact bit length.
+static void expectProduct(const InfInt &got, const vector<W> &x, const vector<W> &y, bool ones, const std::string &what) {
+    InfInt a = ofWords(x), b = ofWords(y); int n = int(x.size()), m = int(y.size());
+    if (4.0 * n * m <= (full() ? 1.2e8 : 4e7)) { expect(got, omul(a, b), what + " against the schoolbook product"); return; }
+    if (ones) { InfInt one = 1; expect(got, (one << (64 * (n + m))) - (one << (64 * n)) - (one << (64 * m)) + 1, what + " against the all-ones closed form"); return; }
+    require(bitLength(got) == bitLength(a) + bitLength(b) || bitLength(got) == bitLength(a) + bitLength(b) - 1, what + ": bit length of the product");
+    residues(wordsOf(got), x, y, BIG_PRIMES, 3, what);}
+// Representative in [0, B^len - 1) of x modulo B^len - 1 by folding with shifts and additions only.
+static InfInt foldOnes(InfInt x, int len) {
+    InfInt ones = (InfInt(1) << (64 * len)) - 1;
+    while (bitLength(x) > 64 * len) { x = (x & ones) + (x >> (64 * len)); }
+    return x == ones ? InfInt(0) : x;}
+// a b through the limb interface of ntt3Cyclic (goldilocks false) or ntt64Cyclic: the cyclic limb convolution of len >= 2 (n + m) limbs carried into words; y is x for a square.
+static InfInt nttProduct(bool goldilocks, const vector<W> &x, const vector<W> &y, int len) {
+    int n = int(x.size()), m = int(y.size()); bool same = &x == &y;
+    vector<uint> la(size_t(2 * n)), lb(size_t(2 * m));
+    for (int i = 0; i < n; ++i) { la[size_t(2 * i)] = uint(x[size_t(i)]); la[size_t(2 * i) + 1] = uint(x[size_t(i)] >> 32); }
+    for (int i = 0; i < m; ++i) { lb[size_t(2 * i)] = uint(y[size_t(i)]); lb[size_t(2 * i) + 1] = uint(y[size_t(i)] >> 32); }
+    vector<W> lo(static_cast<size_t>(len)), hi(static_cast<size_t>(len)); const uint *pb = same ? la.data() : lb.data();
+    if (goldilocks) { infint_detail::ntt64Cyclic(lo.data(), hi.data(), la.data(), 2 * n, pb, 2 * m, len); }
+    else { infint_detail::ntt3Cyclic(lo.data(), hi.data(), la.data(), 2 * n, pb, 2 * m, len); }
+    vector<W> r(size_t(n + m), 0); ulll carry = 0;
+    for (int i = 0; i < n + m; ++i) {
+        ulll c0 = lo[size_t(2 * i)] + (ulll(hi[size_t(2 * i)]) << 64) + carry; W low = uint(c0); carry = c0 >> 32;
+        ulll c1 = lo[size_t(2 * i) + 1] + (ulll(hi[size_t(2 * i) + 1]) << 64) + carry; r[size_t(i)] = low | (W(uint(c1)) << 32); carry = c1 >> 32;}
+    return ofWords(r);}
+
 static void multiplication() {
     context = "multiplication";
     using namespace infint_detail;
@@ -354,52 +402,128 @@ static void multiplication() {
     for (auto [n, m] : wide) {
         context = "unbalanced transform product " + std::to_string(n) + "x" + std::to_string(m);
         InfInt a = randBits(64 * n - ri(64)), b = randBits(64 * m - ri(64)); InfInt e = omul(a, b); expect(a * b, e, "product"); expect(b * a, e, "product commuted");}
-    for (int t = 0; t < sz(60, 400); ++t) {
-        int na = 1 + ri(full() ? 300 : 60), nb = 1 + ri(full() ? 300 : 60), lo = ri(na + nb), cnt = 1 + ri(na + nb + 2 - lo); bool ones = t % 5 == 0;
-        InfInt a = ones ? (InfInt(1) << (64 * na)) - 1 : randBits(64 * na), b = ones ? (InfInt(1) << (64 * nb)) - 1 : randBits(64 * nb);
-        vector<W> x = wordsOf(a), y = wordsOf(b); x.resize(size_t(na), 0); y.resize(size_t(nb), 0);
+    // middleProduct in its two bands (schoolbook below MIDDLE, the cyclic transform from MIDDLE words) at random shapes and the thresholds:
+    // the window [lo, lo + cnt) of the product less a deficit in [0, min(na, nb) B), with lo and cnt random, a Newton-like window at nb, the whole product and the top words.
+    vector<pair<int, int>> mids;
+    for (int t = 0; t < sz(60, 400); ++t) { mids.push_back({1 + ri(full() ? 300 : 60), 1 + ri(full() ? 300 : 60)}); }
+    for (auto s : {pair{MIDDLE - 1, MIDDLE - 1}, {MIDDLE, MIDDLE}, {MIDDLE, 3 * MIDDLE}, {MIDDLE + 1, MIDDLE - 1}, {FFT - 1, FFT}, {FFT, FFT}, {FFT, FFT + 1}, {FFT + 1, 2 * FFT + 7}, {3 * FFT, FFT}}) { for (int t = 0; t < sz(3, 6); ++t) { mids.push_back(s); } }
+    if (full()) { for (auto s : {pair{FFT + 1000, FFT + 1000}, {4 * FFT + 5, FFT + 3}}) { for (int t = 0; t < 4; ++t) { mids.push_back(s); } } }
+    for (size_t t = 0; t < mids.size(); ++t) {
+        auto [na, nb] = mids[t]; bool ones = t % 5 == 0; int lo = ri(na + nb), cnt = 1 + ri(na + nb + 2 - lo);
+        if (t % 4 == 1) { lo = max(nb - 1 - ri(3), 0); cnt = min(na + 2, na + nb + 2 - lo); }
+        else if (t % 4 == 2) { lo = 0; cnt = na + nb; }
+        else if (t % 4 == 3) { lo = na + nb - 1; cnt = 3; }
+        context = "middleProduct " + std::to_string(na) + "x" + std::to_string(nb) + " lo=" + std::to_string(lo) + " cnt=" + std::to_string(cnt) + (ones ? " ones" : " random") + (min(na, nb) < MIDDLE ? " schoolbook" : " cyclic transform");
+        vector<W> x = patterned(na, ones ? 1 : 0), y = patterned(nb, ones ? 1 : 0); InfInt a = ofWords(x), b = ofWords(y);
         vector<W> r(size_t(cnt), 0); infint_detail::middleProduct(r.data(), x.data(), na, y.data(), nb, lo, cnt);
         InfInt exact = omul(a, b) >> (64 * lo); exact &= (InfInt(1) << (64 * cnt)) - 1;
         InfInt diff = divModEuclid(exact - ofWords(r), InfInt(1) << (64 * cnt)).second;
-        require(diff < (InfInt(min(na, nb)) << 64), "middleProduct error bound na=" + std::to_string(na) + " nb=" + std::to_string(nb) + " lo=" + std::to_string(lo));}
-    for (int k = 0; k < 3; ++k) {
-        context = "transform backend " + std::to_string(k);
-        for (int t = 0; t < sz(12, 60); ++t) {
-            int n = 1 + ri(full() ? 2000 : 200), m = 1 + ri(full() ? 2000 : 200); if (n < m) { std::swap(n, m); }
-            bool same = t % 3 == 0, ones = t % 4 == 0;
-            InfInt a = ones ? (InfInt(1) << (64 * n)) - 1 : randBits(64 * n), b = same ? a : (ones ? (InfInt(1) << (64 * m)) - 1 : randBits(64 * m)); if (same) { m = n; }
-            vector<W> x = wordsOf(a), y = wordsOf(b); x.resize(size_t(n), 0); y.resize(size_t(m), 0);
-            vector<uint> la(size_t(2 * n), 0), lb(size_t(2 * m), 0);
-            for (int i = 0; i < n; ++i) { la[size_t(2 * i)] = uint(x[size_t(i)]); la[size_t(2 * i) + 1] = uint(x[size_t(i)] >> 32); }
-            for (int i = 0; i < m; ++i) { lb[size_t(2 * i)] = uint(y[size_t(i)]); lb[size_t(2 * i) + 1] = uint(y[size_t(i)] >> 32); }
-            int L = int(std::bit_ceil(uint(2 * (n + m)))); vector<W> lo(static_cast<size_t>(L)), hi(static_cast<size_t>(L)); const uint *pb = same ? la.data() : lb.data();
-            if (k == 0) { infint_detail::ntt3Cyclic(lo.data(), hi.data(), la.data(), 2 * n, pb, 2 * m, L); }
-            else if (k == 1) { infint_detail::ntt64Cyclic(lo.data(), hi.data(), la.data(), 2 * n, pb, 2 * m, L); }
-            else { infint_detail::fftCyclic(lo.data(), hi.data(), la.data(), 2 * n, pb, 2 * m, L); }
-            vector<W> r(size_t(n + m), 0); ulll carry = 0;
-            for (int i = 0; i < n + m; ++i) {
-                ulll c0 = lo[size_t(2 * i)] + (ulll(hi[size_t(2 * i)]) << 64) + carry; W low = uint(c0); carry = c0 >> 32;
-                ulll c1 = lo[size_t(2 * i) + 1] + (ulll(hi[size_t(2 * i) + 1]) << 64) + carry; r[size_t(i)] = low | (W(uint(c1)) << 32); carry = c1 >> 32;}
-            expect(ofWords(r), omul(a, b), "cyclic backend product");}}
-    if (full()) {
-        for (auto [n, m] : {pair{16384, 16384}, pair{32768, 16384}}) {
-            context = "double FFT limit " + std::to_string(n) + "x" + std::to_string(m);
-            InfInt a = (InfInt(1) << (64 * n)) - 1, b = (InfInt(1) << (64 * m)) - 1;
-            vector<W> x = wordsOf(a), y = wordsOf(b); vector<uint> la(size_t(2 * n)), lb(size_t(2 * m));
-            for (int i = 0; i < n; ++i) { la[size_t(2 * i)] = uint(x[size_t(i)]); la[size_t(2 * i) + 1] = uint(x[size_t(i)] >> 32); }
-            for (int i = 0; i < m; ++i) { lb[size_t(2 * i)] = uint(y[size_t(i)]); lb[size_t(2 * i) + 1] = uint(y[size_t(i)] >> 32); }
-            int len = int(std::bit_ceil(uint(2 * (n + m)))); vector<W> lo(static_cast<size_t>(len)), hi(static_cast<size_t>(len));
-            infint_detail::fftCyclic(lo.data(), hi.data(), la.data(), 2 * n, lb.data(), 2 * m, len);
-            vector<W> r(size_t(n + m)); ulll carry = 0;
-            for (int i = 0; i < n + m; ++i) {
-                ulll c0 = lo[size_t(2 * i)] + (ulll(hi[size_t(2 * i)]) << 64) + carry; W low = uint(c0); carry = c0 >> 32;
-                ulll c1 = lo[size_t(2 * i) + 1] + (ulll(hi[size_t(2 * i) + 1]) << 64) + carry; r[size_t(i)] = low | (W(uint(c1)) << 32); carry = c1 >> 32;}
-            expect(ofWords(r), omul(a, b), "all-ones double FFT at the exactness limit");}}
+        require(diff < (InfInt(min(na, nb)) << 64), "middleProduct deficit bound");}
     context = "scalar products";
     for (int t = 0; t < sz(200, 2000); ++t) {
         InfInt a = randSigned(500); ulng u = rng() >> ri(64); lng s = lng(rng() >> ri(64)) * (ri(2) ? -1 : 1);
         expect(a * u, omul(a, InfInt(u)), "times ulng"); expect(a * s, omul(a, InfInt(s)), "times lng"); expect(a * 0, InfInt(0), "times zero"); expect(a * 1, a, "times one"); expect(a * -1, -a, "times minus one");
         int k = ri(64); expect(a * (ulng(1) << k), a << k, "times power of two");}
+    context = "";}
+
+
+// Transforms: the residue oracle itself, ntt3Cyclic and ntt64Cyclic through the limb interface (lengths across the 4096-limb leaf), fftPlan (fields, the huge request,
+// every (lg, r) class and both leaf parities), fftRun full and cyclic plans, transformMul and the public products at those sizes, tiny and unbalanced shapes, squares, five patterns.
+static void transforms() {
+    using namespace infint_detail;
+    context = "residue oracle";
+    for (int t = 0; t < sz(50, 300); ++t) {
+        InfInt a = randBits(1 + ri(700)), b = randBits(1 + ri(700)); vector<W> x = wordsOf(a), y = wordsOf(b), e = wordsOf(omul(a, b));
+        for (W p : BIG_PRIMES) { expect(InfInt(residue(x, p)), a % p, "residue against InfInt % " + std::to_string(p)); }
+        for (W p : ONES_PRIMES) { expect(InfInt(residue(x, p)), a % p, "residue against InfInt % " + std::to_string(p)); }
+        residues(e, x, y, BIG_PRIMES, 3, "schoolbook product"); residues(e, x, y, ONES_PRIMES, 7, "schoolbook product");}
+    for (int t = 0; t < sz(50, 300); ++t) { int len = 1 + ri(6); InfInt a = randBits(1 + ri(64 * 14)), ones = (InfInt(1) << (64 * len)) - 1; InfInt f = foldOnes(a, len), m = divModEuclid(a, ones).second; expect(f, m == ones ? InfInt(0) : m, "foldOnes against divModEuclid"); }
+    for (int g = 0; g < 2; ++g) {
+        vector<pair<int, int>> shapes = {{1, 1}, {2, 1}, {3, 3}, {7, 5}, {1100, 1100}, {1100, 1}};
+        for (int t = 0; t < sz(12, 40); ++t) { int n = 1 + ri(full() ? 2000 : 200), m = 1 + ri(full() ? 2000 : 200); shapes.push_back({max(n, m), min(n, m)}); }
+        if (full()) { for (auto s : {pair{2100, 2100}, {4200, 4100}, {8300, 3}, {8300, 8300}}) { shapes.push_back(s); } }
+        if (stress()) { shapes.push_back({20000, 20000}); shapes.push_back({33000, 1000}); }
+        for (auto [n, m] : shapes) {
+            for (int pattern : {0, 1}) {
+                vector<W> x = patterned(n, pattern), y = patterned(m, pattern); int len = max(8, int(std::bit_ceil(uint(2 * (n + m)))));
+                context = std::string(g ? "ntt64Cyclic" : "ntt3Cyclic") + " words " + std::to_string(n) + "x" + std::to_string(m) + " limbs " + std::to_string(len) + " " + PATTERN_NAMES[pattern];
+                expectProduct(nttProduct(g == 1, x, y, len), x, y, pattern == 1, "limb convolution product");
+                if (n == m) { expectProduct(nttProduct(g == 1, x, x, max(8, int(std::bit_ceil(uint(4 * n))))), x, x, pattern == 1, "limb convolution square (b == a)"); }}}}
+    context = "fftPlan";
+    for (bool cyclic : {false, true}) { FftPlan h = fftPlan(1 << 27, 1 << 27, cyclic ? 1 << 27 : 1 << 28, cyclic); require(h.lg == 0 && h.r == 0 && h.k == 0 && h.len == 0, std::string(cyclic ? "cyclic" : "full") + " plan of 2^27 x 2^27 words is lg = 0 with every field 0"); }
+    const int maxLg = full() ? 18 : 15;
+    vector<pair<int, int>> range(6 * 25, {0, 0}); vector<bool> seen(6 * 25, false);
+    for (int n = 1; n <= 450000; n = n < 2000 ? n + 1 : n + n / 64) {
+        FftPlan p = fftPlan(n, n, 2 * n, false); require(p.lg >= FFT_MIN_LOG && p.lg <= FFT_MAX_LOG && (p.r == 1 || p.r == 3 || p.r == 5), "a full plan for " + std::to_string(n) + " x " + std::to_string(n) + " words");
+        auto &c = range[size_t(p.r * 25 + p.lg)]; if (!c.first) { c.first = n; } c.second = n;}
+    for (int lg = FFT_MIN_LOG; lg <= maxLg; ++lg) { for (int r : {1, 3, 5}) { require(range[size_t(r * 25 + lg)].first > 0, "plan class lg=" + std::to_string(lg) + " r=" + std::to_string(r) + " is reached by a balanced size"); } }
+    std::cout << "transform plan classes lg " << FFT_MIN_LOG << ".." << maxLg << " for r = 1, 3, 5 (balanced n up to " << range[size_t(5 * 25 + maxLg)].second << " words)\n";
+    // One shape through the full plan (fftRun, transformMul, operator* and *=; pb < 0 makes b = a for the square path) and its cyclic plans for several want values.
+    auto shape = [&](int n, int m, int pa, int pb, bool heavy) {
+        FftPlan p = fftPlan(n, m, n + m, false); bool same = pb < 0;
+        std::string plan = " plan lg=" + std::to_string(p.lg) + " r=" + std::to_string(p.r) + " k=" + std::to_string(p.k) + " leaf=" + std::to_string((p.lg - 11) & 1 ? FFT_LEAF / 2 : FFT_LEAF), ops = std::string(" a=") + PATTERN_NAMES[pa] + (same ? " b=a" : std::string(" b=") + PATTERN_NAMES[pb]);
+        context = "fftRun " + std::to_string(n) + "x" + std::to_string(m) + plan + ops;
+        require(p.lg >= FFT_MIN_LOG && p.lg <= FFT_MAX_LOG && (p.r == 1 || p.r == 3 || p.r == 5) && p.k >= FFT_MIN_K && p.k <= FFT_MAX_K && p.len == n + m, "full plan fields");
+        require((64LL * n + p.k - 1) / p.k + (64LL * m + p.k - 1) / p.k + 1 <= (2LL * p.r) << p.lg, "the pieces fit the transform");
+        seen[size_t(p.r * 25 + p.lg)] = true;
+        vector<W> x = patterned(n, pa, p.k, 0), y = same ? x : patterned(m, pb, p.k, 1); const W *py = same ? x.data() : y.data();
+        vector<W> r(size_t(n + m)); fftRun(r.data(), p, x.data(), n, py, m, false); InfInt e = ofWords(r), a = ofWords(x), b = same ? a : ofWords(y);
+        bool ones = pa == 1 && (same || pb == 1);
+        expectProduct(e, x, y, ones, "fftRun full");
+        if (!heavy) { vector<W> t(size_t(n + m)); transformMul(t.data(), x.data(), n, py, m); require(t == r, "transformMul equals fftRun"); }
+        expect(a * b, e, "operator*");
+        if (!heavy) { InfInt c = a; c *= b; expect(c, e, "operator*="); }
+        if (same) { expect(a * a, e, "square"); InfInt d = a; d *= d; expect(d, e, "self square"); }
+        vector<int> wants = {max(n, m), n + m + 3}; if (!heavy) { wants.push_back(n + m); wants.push_back(max(n, m) + ri(min(n, m) + 4)); }
+        for (int want : wants) {
+            FftPlan c = fftPlan(n, m, want, true);
+            context = "fftRun cyclic " + std::to_string(n) + "x" + std::to_string(m) + " want=" + std::to_string(want) + " plan lg=" + std::to_string(c.lg) + " r=" + std::to_string(c.r) + " k=" + std::to_string(c.k) + " len=" + std::to_string(c.len) + ops;
+            require(c.lg >= 5 && c.lg <= FFT_MAX_LOG && (c.r == 1 || c.r == 3 || c.r == 5) && c.k >= FFT_MIN_K && c.k <= FFT_MAX_K && c.len >= want && lng(c.len) == lng(c.k) * ((2LL * c.r) << c.lg) / 64, "cyclic plan fields");
+            vector<W> s(size_t(c.len)); fftRun(s.data(), c, x.data(), n, py, m, true);
+            InfInt got = ofWords(s), all = (InfInt(1) << (64 * c.len)) - 1; if (got == all) { got = 0; }
+            expect(got, foldOnes(e, c.len), "cyclic representative of the product (all ones accepted for 0)");
+            residues(s, x, y, ONES_PRIMES, 7, "cyclic residue");}};
+    for (int n = 1; n <= 8; ++n) { for (int m = 1; m <= n; ++m) { for (int pattern : {0, 1, 2, 3}) { shape(n, m, pattern, pattern, false); } } shape(n, n, 0, -1, false); shape(n, n, 1, -1, false); }
+    for (int lg = FFT_MIN_LOG; lg <= maxLg; ++lg) {
+        for (int r : {1, 3, 5}) {
+            auto [lo, hi] = range[size_t(r * 25 + lg)]; bool heavy = lg >= (full() ? 16 : 14);
+            for (int pattern = 0; pattern < 5; ++pattern) { if (!heavy || pattern == 0 || pattern == 1 || pattern == 4) { shape(lo, lo, pattern, pattern, heavy); } }
+            shape(lo, lo, 0, -1, heavy); shape(lo, lo, 4, -1, heavy); shape(lo, lo / 2 + 1, 0, 4, heavy); shape(lo, 1, 4, 0, heavy);
+            if (!heavy) { int mid = std::midpoint(lo, hi); shape(mid, mid, 0, 0, false); shape(mid, mid, 4, 4, false); shape(hi, hi, 4, 4, false); }
+            if (stress()) { int n = lo + ri(hi - lo + 1); shape(n, n, 0, 0, heavy); shape(n, 1 + ri(n), 4, 4, heavy); }}}
+    for (int lg = FFT_MIN_LOG; lg <= maxLg; ++lg) { for (int r : {1, 3, 5}) { require(seen[size_t(r * 25 + lg)], "plan class lg=" + std::to_string(lg) + " r=" + std::to_string(r) + " exercised"); } }
+    vector<pair<int, int>> wide = {{100, 1}, {1000, 1}, {1000, 2}, {5000, 3}, {10000, 1}, {3000, 400}};
+    if (full()) { for (auto s : {pair{10000, 7}, {100000, 1}, {100000, 3}, {40000, 2000}, {300000, 100000}}) { wide.push_back(s); } }
+    for (auto [n, m] : wide) { bool heavy = n >= 100000; shape(n, m, 0, 0, heavy); shape(n, m, 1, 1, heavy); if (!heavy) { shape(n, m, 4, 4, false); shape(n, m, 2, 3, false); } }
+    // fftMerge's cyclic fold at both wrap branches from handcrafted coefficients (c_j at (j & 1 ? im : re)[j >> 1], scale 1, pieces k = 64 len as every cyclic
+    // plan has): the merged value is S = sum c_j 2^(k j) folded modulo B^len - 1, with the all-ones representative standing for 0.
+    context = "fftMerge fold";
+    auto fold = [&](int len, int k, const vector<lng> &c, const char *what) {
+        vector<double> re(c.size() / 2 + 1, 0.0), im(c.size() / 2 + 1, 0.0); InfInt s = 0;
+        for (size_t j = 0; j < c.size(); ++j) { (j & 1 ? im : re)[j >> 1] = double(c[j]); s += InfInt(c[j]) << int(k * j); }
+        vector<W> r(size_t(len), 0); fftMerge(r.data(), len, re.data(), im.data(), int(c.size()), k, 1.0, true);
+        InfInt got = ofWords(r), all = (InfInt(1) << (64 * len)) - 1; if (got == all) { got = 0; }
+        expect(got, divModEuclid(s, all).second, std::string("fold of ") + what + " at len " + std::to_string(len));};
+    const lng F16 = (lng(1) << 16) - 1;
+    fold(1, 16, {F16, F16, F16, F16}, "B - 1 (all ones, read as 0)"); fold(1, 16, {0, 0, 0, 1 << 16}, "B (top 1, no wrap)"); fold(1, 16, {-1, 0, 0, 0}, "-1 (top -1, no borrow)");
+    fold(1, 16, {F16, F16, F16, (lng(1) << 17) - 1}, "2 B - 1 (the carry wraps twice)"); fold(1, 16, {0, 0, 0, -(lng(1) << 16)}, "-B (the borrow wraps)"); fold(1, 16, {0, 0, 0, 3 << 16}, "3 B");
+    fold(2, 16, {F16, F16, F16, F16, F16, F16, F16, (lng(1) << 17) - 1}, "2 B^2 - 1 (the carry wraps twice)"); fold(2, 16, {0, 0, 0, 0, 0, 0, 0, -(lng(1) << 16)}, "-B^2 (the borrow wraps)");
+    fold(2, 8, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -(lng(1) << 8)}, "-B^2 at k = 8"); fold(2, 8, {255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 511}, "2 B^2 - 1 at k = 8");
+    // The nttCyclic fall-through of transformMul and middleProduct with their word-assembly loops: no plan covers 7,000,000 x 1,000,000 words (balanced plans end at
+    // 7,864,318 product words, one-word multipliers at 11,796,478 multiplicand words), nor the cyclic want of the window; the product is checked by residues and bit length, the windows against it.
+    if (stress()) {
+        int n = 7000000, m = 1000000, lo = 100000, cnt = 1000;
+        require(fftPlan(n, m, n + m, false).lg == 0 && fftPlan(n, m, max(lo + cnt, n + m - lo), true).lg == 0, "no FFT plan for 7,000,000 x 1,000,000 words, full or cyclic");
+        vector<W> x = patterned(n, 0), y = patterned(m, 0), r(size_t(n + m));
+        context = "transformMul 7000000x1000000 (nttCyclic fall-through)";
+        transformMul(r.data(), x.data(), n, y.data(), m);
+        expectProduct(ofWords(r), x, y, false, "fall-through product");
+        context = "middleProduct 7000000x1000000 (nttCyclic fall-through)";
+        vector<W> w(size_t(n + m)); middleProduct(w.data(), x.data(), n, y.data(), m, 0, n + m);
+        require(w == r, "whole-product window equals the verified product");
+        vector<W> s(size_t(cnt), 0); middleProduct(s.data(), x.data(), n, y.data(), m, lo, cnt);
+        InfInt exact = ofWords(vector<W>(r.begin() + lo, r.begin() + lo + cnt)), diff = divModEuclid(exact - ofWords(s), InfInt(1) << (64 * cnt)).second;
+        require(diff < (InfInt(m) << 64), "middleProduct deficit bound at lo=100000 cnt=1000");}
     context = "";}
 
 static void division() {
@@ -813,6 +937,7 @@ static void invalid(const std::string &which) {
     else if (which == "uint-ctor-string") { u256 x("12x", 10); (void)x; }
     else if (which == "bitlength-words") { InfInt x = 1; x.n.setSize(1 << 25); int r = bitLength(x); (void)r; }
     else if (which == "popcount-words") { InfInt x = 1; x.n.setSize(1 << 25); int r = popcount(x); (void)r; }
+    else if (which == "fftplan-cyclic-want") { infint_detail::FftPlan p = infint_detail::fftPlan(5, 7, 6, true); (void)p; }
     else { fail("unknown invalid case " + which); }
     std::cerr << "precondition case " << which << " did not abort\n";
     std::exit(2);}
@@ -861,6 +986,11 @@ static void protocol() {
         else if (op == "limbs") { std::cin >> sa; InfInt a(sa); vector<uint> l = a.toLimbs(); vector<ulng> w = a.toLimbs<ulng>(); for (uint x : l) { std::cout << x << ' '; } std::cout << '|'; for (ulng x : w) { std::cout << ' ' << x; } std::cout << " | " << InfInt::fromLimbs(l, a.sgn) << ' ' << InfInt::fromLimbs(w, a.sgn); }
         else if (op == "sample") { std::cin >> sa; lng s; std::cin >> s; std::mt19937_64 g{ulng(s)}; std::cout << sample(InfInt(sa), g) << ' ' << bitLength(InfInt::sampleBits(int(s % 500 + 1), g)); }
         else if (op == "newton") { std::cin >> sa; InfInt a(sa, 16); a <<= 31 - (bitLength(a) - 1) % 32; out(newtonRaphsonInv(a).toString(16)); }
+        else if (op == "phi") { int lg, r; std::cin >> lg >> r; out(std::format("{:.17g}", infint_detail::FFT_PHI[size_t(r)][size_t(lg)])); }   // phi <lg> <r>: the header's bound table entry
+        else if (op == "cyclic") {   // cyclic <a> <b> <want>: "<len> <representative>" of a b modulo B^len - 1 through the cyclic plan, or "none"
+            lng want; std::cin >> sa >> sb >> want; InfInt a(sa), b(sb); vector<W> x = wordsOf(a), y = wordsOf(b); int n = int(x.size()), m = int(y.size());
+            infint_detail::FftPlan p = infint_detail::fftPlan(n, m, int(want), true);
+            if (!p.lg) { out("none"); } else { vector<W> r(size_t(p.len)); infint_detail::fftRun(r.data(), p, x.data(), n, y.data(), m, true); std::cout << p.len << ' ' << ofWords(r); }}
         else if (op == "mulk" || op == "divk" || op == "gcdk") {
             std::string kind; std::cin >> kind >> sa >> sb; InfInt a(sa), b(sb);
             vector<W> x = wordsOf(a), y = wordsOf(b);
@@ -907,7 +1037,7 @@ int main(int argc, char **argv) {
     auto phase = [&](const char *name, auto &&f) {
         auto t0 = std::chrono::steady_clock::now(); lng before = checks; f();
         std::cout << "phase " << name << " checks=" << checks - before << " time=" << std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count() << "s\n" << std::flush;};
-    phase("construction", construction); phase("text output", textOutput); phase("small exhaustive", smallExhaustive); phase("addition", addition); phase("multiplication", multiplication); phase("division", division); phase("gcd", gcdFamily); phase("powMod", modularPower);
+    phase("construction", construction); phase("text output", textOutput); phase("small exhaustive", smallExhaustive); phase("addition", addition); phase("multiplication", multiplication); phase("transforms", transforms); phase("division", division); phase("gcd", gcdFamily); phase("powMod", modularPower);
     phase("roots", roots); phase("number theory", numberTheory); phase("bits", bits); phase("sampling, hash, streams", samplingHashStreams); phase("infinity", infinity);
     phase("UInt<1>", uintType<1>); phase("UInt<2>", uintType<2>); phase("UInt<4>", uintType<4>); phase("UInt conversions and streams", uintConversions); phase("aliasing", aliasing);
     require(otherUnitSum(InfInt("123456789012345678901234567890")) == otherUnitSum(InfInt("123456789012345678901234567890")) && otherUnitSum(InfInt(7)) == 9, "second translation unit");

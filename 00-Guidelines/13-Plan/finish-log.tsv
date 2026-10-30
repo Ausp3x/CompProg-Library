@@ -12,3 +12,4 @@ date	key	model	effort	review_findings	defects_fixed	decisions	result
 2026-10-29	GR32	claude-opus-5-5	high	11	13	7	verified
 2026-10-29	SUP17	claude-opus-5-5	high	7	15	6	verified
 2026-10-30	SUP18	claude-opus-5-5	high	8	18	4	verified
+2026-10-31	P018	claude-fable-5-1	xhigh	14	18	5	partial

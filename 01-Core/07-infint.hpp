@@ -14,14 +14,14 @@ namespace infint_detail {
     static_assert(std::endian::native == std::endian::little);
     constexpr int KARATSUBA = 28, KARATSUBA_SQR = 40, TOOM3 = 128, TOOM3_SQR = 128, TRUNC = 32;
 #ifdef __AVX2__
-    constexpr int FFT = 512, FFT_SQR = 768, MIDDLE = 128, NEWTON_DIV = 512, NEWTON_LONG = 32, BINARY_GCD = 96;
+    constexpr int FFT = 96, FFT_SQR = 80, MIDDLE = 64, NEWTON_DIV = 512, NEWTON_LONG = 32, BINARY_GCD = 96;
 #else
-    constexpr int FFT = 2048, FFT_SQR = 4096, MIDDLE = 256, NEWTON_DIV = 768, NEWTON_LONG = 1 << 29, BINARY_GCD = 48;
+    constexpr int FFT = 640, FFT_SQR = 512, MIDDLE = 160, NEWTON_DIV = 768, NEWTON_LONG = 1 << 29, BINARY_GCD = 48;
 #endif
     constexpr int BURNIKEL = 48, HENSEL = 48, HALFGCD = 2048, RADIX = 64, MONTGOMERY_POW = 2;
     constexpr size_t HUGE = size_t(1) << 21;
 
-    // Storage of n words: 2 MiB-aligned multiples of 2 MiB advised as transparent huge pages on Linux from 2 MiB up, 64-byte aligned below.
+    // T: O(1), M: O(n); storage of n words: 2 MiB-aligned multiples of 2 MiB advised as transparent huge pages on Linux from 2 MiB up, 64-byte aligned below.
     inline W *hugeAlloc(size_t n) {
         size_t bytes = max(8 * n, size_t(8)); bool big = bytes >= HUGE;
         if (big) { bytes = (bytes + HUGE - 1) & ~(HUGE - 1); }
@@ -30,6 +30,7 @@ namespace infint_detail {
         if (big) { madvise(p, bytes, MADV_HUGEPAGE); }
 #endif
         return p;}
+    // T: O(1), M: O(1); releases the storage of n words from hugeAlloc.
     inline void hugeFree(W *p, size_t n) { ::operator delete(p, std::align_val_t(8 * n >= HUGE ? HUGE : 64)); }
     // S: O(n), U: O(n) per growth, Q: O(1), M: O(n); a table of T in huge-page storage that grows to the largest size used and lives for the process (roots, transform scratch).
     template<typename T> struct HugeVec {
@@ -60,6 +61,7 @@ namespace infint_detail {
                 if (spare && spare->end - spare->beg >= b->end - b->beg) { drop(b); } else { drop(std::exchange(spare, b)); }}
             top = mark;}
     };
+    // T: O(1), M: O(1); the calling thread's arena.
     inline Arena &arena() { thread_local Arena a; return a; }
     constexpr W POISON = 0xABABABABABABABABull;
     // T: O(1), M: O(n); one arena frame of n uninitialized words; INFINT_SCRATCH_HEAP (sanitizer test builds) takes each frame from the heap filled with POISON, so a kernel relying on zeroed scratch fails there.
@@ -82,12 +84,14 @@ namespace infint_detail {
     inline void square(W *r, const W *a, int n);
     inline W divWord(W *q, const W *a, int n, W d);
 
+    // T: O(n), M: O(1); the length of a without leading zero words.
     inline int norm(const W *a, int n) { while (n > 0 && a[n - 1] == 0) { --n; } return n; }
+    // T: O(n), M: O(1); three-way comparison of the normalized a (n words) and b (m words).
     inline int cmp(const W *a, int n, const W *b, int m) {
         if (n != m) { return n < m ? -1 : 1; }
         for (int i = n - 1; i >= 0; --i) { if (a[i] != b[i]) { return a[i] < b[i] ? -1 : 1; } }
         return 0;}
-    // r = a + b for n >= m; r may alias a or b; returns the carry.
+    // T: O(n), M: O(1); r = a + b for n >= m; r may alias a or b; returns the carry.
     inline W add(W *r, const W *a, int n, const W *b, int m) {
         unsigned long long c = 0; int i = 0;
         for (; i + 4 <= m; i += 4) {
@@ -96,10 +100,11 @@ namespace infint_detail {
         for (; i < m; ++i) { r[i] = __builtin_addcll(a[i], b[i], c, &c); }
         for (; i < n; ++i) { r[i] = __builtin_addcll(a[i], 0, c, &c); }
         return c;}
+    // T: O(n), M: O(1); a += w; returns the carry out of the n words.
     inline W addWord(W *a, int n, W w) {
         for (int i = 0; i < n && w; ++i) { W s = a[i] + w; w = s < w; a[i] = s; }
         return w;}
-    // r = a - b for n >= m; r may alias a or b; returns the borrow.
+    // T: O(n), M: O(1); r = a - b for n >= m; r may alias a or b; returns the borrow.
     inline W sub(W *r, const W *a, int n, const W *b, int m) {
         unsigned long long c = 0; int i = 0;
         for (; i + 4 <= m; i += 4) {
@@ -108,42 +113,46 @@ namespace infint_detail {
         for (; i < m; ++i) { r[i] = __builtin_subcll(a[i], b[i], c, &c); }
         for (; i < n; ++i) { r[i] = __builtin_subcll(a[i], 0, c, &c); }
         return c;}
+    // T: O(n), M: O(1); a -= w; returns the borrow out of the n words.
     inline W subWord(W *a, int n, W w) {
         for (int i = 0; i < n && w; ++i) { W s = a[i] - w; w = a[i] < w; a[i] = s; }
         return w;}
-    // r = a * w; r may alias a; returns the carry word.
+    // T: O(n), M: O(1); r = a * w; r may alias a; returns the carry word.
     inline W mulWord(W *r, const W *a, int n, W w) {
         W c = 0;
         for (int i = 0; i < n; ++i) { WW t = WW(a[i]) * w + c; r[i] = W(t); c = W(t >> 64); }
         return c;}
-    // r += a * w; returns the carry word.
+    // T: O(n), M: O(1); r += a * w; returns the carry word.
     inline W addMul(W *r, const W *a, int n, W w) {
         W c = 0;
         for (int i = 0; i < n; ++i) { WW t = WW(a[i]) * w + r[i] + c; r[i] = W(t); c = W(t >> 64); }
         return c;}
-    // r -= a * w; returns the borrow word.
+    // T: O(n), M: O(1); r -= a * w; returns the borrow word.
     inline W subMul(W *r, const W *a, int n, W w) {
         W c = 0;
         for (int i = 0; i < n; ++i) {
             WW t = WW(a[i]) * w + c; W lo = W(t), x = r[i];
             r[i] = x - lo; c = W(t >> 64) + (x < lo);}
         return c;}
-    // r = a << s for 0 < s < 64 (r may alias a or start above it); returns the bits shifted out.
+    // T: O(n), M: O(1); r = a << s for 0 < s < 64 (r may alias a or start above it); returns the bits shifted out.
     inline W shl(W *r, const W *a, int n, int s) {
         W out = a[n - 1] >> (64 - s);
         for (int i = n - 1; i > 0; --i) { r[i] = (a[i] << s) | (a[i - 1] >> (64 - s)); }
         r[0] = a[0] << s;
         return out;}
-    // r = a >> s for 0 < s < 64 (r may alias a or start below it); returns the bits shifted out.
+    // T: O(n), M: O(1); r = a >> s for 0 < s < 64 (r may alias a or start below it); returns the bits shifted out.
     inline W shr(W *r, const W *a, int n, int s) {
         W out = a[0] << (64 - s);
         for (int i = 0; i + 1 < n; ++i) { r[i] = (a[i] >> s) | (a[i + 1] << (64 - s)); }
         r[n - 1] = a[n - 1] >> s;
         return out;}
+    // T: O(n), M: O(1); r += b (m <= n words) with no carry out (asserted).
     inline void addInto(W *r, int n, const W *b, int m) { [[maybe_unused]] W c = add(r, r, n, b, m); assert(c == 0); }
+    // T: O(n), M: O(1); clears n words.
     inline void zero(W *r, int n) { if (n > 0) { std::fill(r, r + n, 0); } }
+    // T: O(n), M: O(1); r -= b (m <= n words) with no borrow out (asserted).
     inline void subFrom(W *r, int n, const W *b, int m) { [[maybe_unused]] W c = sub(r, r, n, b, m); assert(c == 0); }
-    // r = a * b for any lengths, r zero-filled to n + m words.
+    // T: O(M(n + m)) word products (the dispatcher's bound), M: O(n + m); r = a * b for any lengths, r zero-filled to n + m words.
     inline void mulAny(W *r, const W *a, int n, const W *b, int m) {
         int la = norm(a, n), lb = norm(b, m);
         zero(r, n + m);
@@ -178,6 +187,7 @@ namespace infint_detail {
         mulAny(z, sa, t + 1, sb, t + 1);
         subFrom(z, 2 * t + 2, r, 2 * h); subFrom(z, 2 * t + 2, r + 2 * h, t + u);
         addInto(r + h, n + m - h, z, norm(z, 2 * t + 2));}
+    // T: O(n^1.585) word products, M: O(n); r (2n words) = a^2.
     inline void karatsubaSquare(W *r, const W *a, int n) {
         int h = n / 2, t = n - h;
         mulAny(r, a, h, a, h); mulAny(r + 2 * h, a + h, t, a + h, t);
@@ -187,7 +197,7 @@ namespace infint_detail {
         mulAny(z, sa, t + 1, sa, t + 1);
         subFrom(z, 2 * t + 2, r, 2 * h); subFrom(z, 2 * t + 2, r + 2 * h, 2 * t);
         addInto(r + h, 2 * n - h, z, norm(z, 2 * t + 2));}
-    // Evaluations at 1, -1 (sign in sm) and 2 of the k, k, k2-word thirds of x; each k + 1 words.
+    // T: O(k), M: O(1); evaluations at 1, -1 (sign in sm) and 2 of the k, k, k2-word thirds of x; each k + 1 words.
     inline void toomEval(const W *x, int k, int k2, W *p1, W *pm, W *p2, int &sm) {
         W *s = pm;
         std::copy(x, x + k, s); s[k] = add(s, s, k, x + 2 * k, k2);
@@ -197,7 +207,7 @@ namespace infint_detail {
         shl(p2, p2, k + 1, 1); p2[k] += add(p2, p2, k, x, k);
         if (s[k] || cmp(s, k, x + k, k) >= 0) { s[k] -= sub(s, s, k, x + k, k); sm = 1; }
         else { sub(s, x + k, k, s, k); sm = -1; }}
-    // Bodrato interpolation of r1 = r(1), rm = |r(-1)| with sign sm, r2 = r(2); r holds r(0) in [0, 2k) and r(inf) in [4k, 2n).
+    // T: O(n), M: O(n); bodrato interpolation of r1 = r(1), rm = |r(-1)| with sign sm, r2 = r(2); r holds r(0) in [0, 2k) and r(inf) in [4k, 2n).
     inline void toomInterpolate(W *r, int n, int k, W *r1, W *rm, W *r2, W *t2, int sm) {
         int len = 2 * k + 2, k2 = n - 2 * k;
         std::copy(r1, r1 + len, t2); subFrom(t2, len, r, 2 * k);
@@ -224,6 +234,7 @@ namespace infint_detail {
         mulAny(r1, p1, k + 1, q1, k + 1); mulAny(rm, pm, k + 1, qm, k + 1); mulAny(r2, p2, k + 1, q2, k + 1);
         mulAny(r, a, k, b, k); mulAny(r + 4 * k, a + 2 * k, k2, b + 2 * k, k2);
         toomInterpolate(r, n, k, r1, rm, r2, t2, sa * sb);}
+    // T: O(n^1.465) word products, M: O(n); r (2n words) = a^2 for n >= 6.
     inline void toom3Square(W *r, const W *a, int n) {
         int k = (n + 2) / 3, k2 = n - 2 * k, len = 2 * k + 2;
         Scratch buf(3 * (k + 1) + 4 * len);
@@ -240,8 +251,8 @@ namespace infint_detail {
         for (int i = 0; i < n; i += c) {
             int len = min(c, n - i);
             mulAny(t, b, m, a + i, len);
-            addInto(r + i, n + m - i, t, norm(t, m + len));}}
-    // T: O(n^2 / 2) word products below TRUNC, else M(n); r = a * b mod B^n for n-word a, b.
+            addInto(r + i, m + len, t, norm(t, m + len));}}
+    // T: O(n^2 / 2) word products below TRUNC, else one full product, M: O(n); r = a * b mod B^n for n-word a, b.
     inline void truncatedMul(W *r, const W *a, const W *b, int n) {
         if (n < TRUNC) {
             zero(r, n);
@@ -249,10 +260,15 @@ namespace infint_detail {
             return;}
         Scratch t(2 * size_t(n)); mulAny(t, a, n, b, n);
         std::copy(t.p, t.p + n, r);}
+    // T: O(1), M: O(1); limbs of a cyclic limb convolution holding len words of residue of an n-word by m-word product: the power of two at or above 2 max(len, n, m).
     inline int cyclicLimbs(int len, int n, int m) { return int(std::bit_ceil(uint(2 * max({len, n, m})))); }
     inline void nttCyclic(W *lo, W *hi, const W *a, int n, const W *b, int m, int len);
-    // T: O(na * nb) word products below MIDDLE, M(na + nb) below FFT, else one transform of max(lo + cnt, na + nb - 1 - lo, na, nb) words;
-    // r (cnt words) = words [lo, lo + cnt) of a * b over the terms with i + j >= lo, so the exact words exceed r by less than min(na, nb) * B.
+    // T: NA, M: O(1); a transform plan: r 2^lg complex points, k-bit pieces and the output length len in words (lg = 0: no plan).
+    struct FftPlan { int lg, r, k, len; };
+    inline FftPlan fftPlan(int n, int m, int want, bool cyclic);
+    inline void fftRun(W *r, const FftPlan &p, const W *a, int n, const W *b, int m, bool cyclic);
+    // T: O(na * nb) word products below MIDDLE, else one cyclic transform of max(lo + cnt, na + nb - lo, na, nb) words, M: O(1) below MIDDLE, else O(len) for that length;
+    // r (cnt words) = words [lo, lo + cnt) of a * b less a deficit below min(na, nb) * B: the terms with i + j < lo, or one unit from the wrap.
     inline void middleProduct(W *r, const W *a, int na, const W *b, int nb, int lo, int cnt) {
         zero(r, cnt);
         if (min(na, nb) < MIDDLE) {
@@ -262,12 +278,15 @@ namespace infint_detail {
                 W c = addMul(r + (i0 + j - lo), a + i0, i1 - i0, b[j]);
                 if (i1 + j - lo < cnt) { addWord(r + (i1 + j - lo), cnt - (i1 + j - lo), c); }}
             return;}
-        if (min(na, nb) < FFT) {
-            Scratch full(size_t(na + nb));
-            mulAny(full, a, na, b, nb);
-            std::copy(full.p + min(lo, na + nb), full.p + min(lo + cnt, na + nb), r);
+        int len = max({lo + cnt, na + nb - lo, na, nb});
+        FftPlan p = fftPlan(na, nb, len, true);
+        if (p.lg) {
+            Scratch s(size_t(p.len));
+            fftRun(s, p, a, na, b, nb, true);
+            std::copy(s.p + lo, s.p + lo + cnt, r);
+            subWord(r, cnt, 1);
             return;}
-        int len = max({lo + cnt, na + nb - 1 - lo, na, nb}), limbs = cyclicLimbs(len, na, nb);
+        int limbs = cyclicLimbs(len, na, nb);
         Scratch s(2 * size_t(limbs));
         W *low = s, *high = low + limbs;
         nttCyclic(low, high, a, na, b, nb, len);
@@ -279,33 +298,38 @@ namespace infint_detail {
             WW c1 = low[l + 1] + (WW(high[l + 1]) << 64) + carry;
             r[i] = lw | (W(uint(c1)) << 32); carry = c1 >> 32;}}
     constexpr uint NTT_PRIMES[3] = {2013265921, 1811939329, 469762049}, NTT_ROOTS[3] = {31, 13, 3};
-    constexpr int NTT_MAX_LOG = 26;
+    constexpr int NTT_MAX_LOG = 26, NTT_MAX_WORDS = 1 << 28;
+    // T: O(log(e)), M: O(1); a^e mod p on 32-bit words.
     constexpr uint modPow32(uint a, uint e, uint p) {
         ulng r = 1, b = a % p;
         for (; e; e >>= 1, b = b * b % p) { if (e & 1) { r = r * b % p; } }
         return uint(r);}
 
-    // S: O(len) roots per prime, Q: O(len * log(len)), M: O(len); Montgomery NTT modulo P with 2^k | P - 1.
+    // S: O(n) roots per prime, Q: O(n * log(n)), M: O(n); Montgomery NTT modulo P with 2^k | P - 1 on the block roots rt[B + b] = g^((P - 1) bitrev_B(b) / (2B)):
+    // forward from natural order to the block order of the roots, depth-first radix-4 above LEAF, inverse back scaled by 1 / n.
     template<uint P, uint G>
     struct Ntt32 {
         static constexpr uint NINV = []() { uint x = P; for (int i = 0; i < 5; ++i) { x *= 2 - P * x; } return -x; }();
         static constexpr uint R2 = uint((ulll(1) << 64) % P);
         static constexpr uint ONE = uint((ulng(1) << 32) % P);
+        static constexpr int LEAF = 1 << 12;
 
-        static uint red(ulng x) { uint r = uint((x + ulng(uint(x) * NINV) * P) >> 32); return r >= P ? r - P : r; }
-        static uint mul(uint a, uint b) { return red(ulng(a) * b); }
-        static uint from(uint a) { return mul(a, R2); }
+        static constexpr uint red(ulng x) { uint r = uint((x + ulng(uint(x) * NINV) * P) >> 32); return r >= P ? r - P : r; }
+        static constexpr uint mul(uint a, uint b) { return red(ulng(a) * b); }
+        static constexpr uint from(uint a) { return mul(a, R2); }
+        static uint add(uint a, uint b) { uint s = a + b; return s >= P ? s - P : s; }
+        static uint sub(uint a, uint b) { return a - b + (a < b ? P : 0); }
         static HugeVec<uint> &roots(bool inverse) { static HugeVec<uint> rt, irt; return inverse ? irt : rt; }
         static void ensure(int n) {
             HugeVec<uint> &rt = roots(false), &irt = roots(true);
-            if (rt.n == 0) { rt.resize(2); irt.resize(2); rt[0] = irt[0] = 0; rt[1] = irt[1] = ONE; }
-            if (rt.n >= n) { return; }
-            int m = rt.n; rt.resize(n); irt.resize(n);
-            for (int len = m; len < n; len *= 2) {
-                uint w = from(modPow32(G, (P - 1) / uint(2 * len), P)), iw = from(modPow32(G, P - 1 - (P - 1) / uint(2 * len), P));
-                for (int i = len / 2; i < len; ++i) {
-                    rt[2 * i] = rt[i]; rt[2 * i + 1] = mul(rt[i], w);
-                    irt[2 * i] = irt[i]; irt[2 * i + 1] = mul(irt[i], iw);}}}
+            int old = rt.n;
+            if (old >= n) { return; }
+            rt.resize(n); irt.resize(n);
+            for (int lvl = max(old, 1); lvl < n; lvl *= 2) {
+                uint w = from(modPow32(G, (P - 1) / uint(2 * lvl), P)), iw = from(modPow32(G, P - 1 - (P - 1) / uint(2 * lvl), P)), cur = ONE, icur = ONE;
+                for (int k = 0, rev = 0; k < lvl; ++k) {
+                    rt[lvl + rev] = cur; irt[lvl + rev] = icur; cur = mul(cur, w); icur = mul(icur, iw);
+                    int bit = lvl >> 1; while (rev & bit) { rev ^= bit; bit >>= 1; } rev ^= bit;}}}
 #ifdef __AVX2__
         static __m256i vred(__m256i x0, __m256i x1) {
             __m256i p32 = _mm256_set1_epi32(int(P)), p64 = _mm256_set1_epi64x(lng(P)), ninv = _mm256_set1_epi32(int(NINV));
@@ -323,62 +347,108 @@ namespace infint_detail {
             return vred(_mm256_mul_epu32(a, b), _mm256_mul_epu32(_mm256_srli_epi64(a, 32), _mm256_srli_epi64(b, 32)));}
         static __m256i load(const uint *p) { return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(p)); }
         static void store(uint *p, __m256i x) { _mm256_storeu_si256(reinterpret_cast<__m256i *>(p), x); }
-        static __m256i wpair(const uint *w) { return _mm256_broadcastsi128_si256(_mm_shuffle_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(w)), 0x44)); }
-        static __m256i wquad(const uint *w) { return _mm256_broadcastsi128_si256(_mm_loadu_si128(reinterpret_cast<const __m128i *>(w))); }
+        static __m256i swap128(__m256i x) { return _mm256_permute2x128_si256(x, x, 0x01); }
+        static __m256i oddRoots(const uint *w) { return _mm256_or_si256(_mm256_slli_epi64(_mm256_cvtepu32_epi64(_mm_loadu_si128(reinterpret_cast<const __m128i *>(w))), 32), _mm256_set1_epi64x(lng(ONE))); }
 #endif
-        // Forward DIF to bit-reversed order, inverse DIT back, both in place on canonical residues.
-        static void transform(uint *a, int n, bool inverse) {
-            ensure(n);
-            const uint *w = roots(inverse).p;
-            if (!inverse) {
-                int len = n / 2;
+        // One radix-2 level of len pairs with the block root w (forward) or its inverse (inverse).
+        static void pass2(uint *a, int len, uint w, bool inverse) {
+            int j = 0;
 #ifdef __AVX2__
-                for (; len >= 8; len /= 2) {
-                    for (int i = 0; i < n; i += 2 * len) {
-                        for (int j = 0; j < len; j += 8) {
-                            __m256i u = load(a + i + j), v = load(a + i + j + len), x = load(w + len + j);
-                            store(a + i + j, vadd(u, v)); store(a + i + j + len, vmul(vsub(u, v), x));}}}
-                if (n >= 8) {
-                    __m256i w2 = wpair(w + 2), w4 = wquad(w + 4);
-                    for (int i = 0; i < n; i += 8) {
-                        __m256i x = load(a + i), y = _mm256_permute2x128_si256(x, x, 0x01);
-                        __m256i s = vadd(x, y), d = vsub(x, y);
-                        x = _mm256_blend_epi32(s, vmul(_mm256_permute2x128_si256(d, d, 0x00), w4), 0xF0);
-                        y = _mm256_shuffle_epi32(x, 0x4E); s = vadd(x, y); d = vsub(x, y);
-                        x = _mm256_blend_epi32(s, vmul(_mm256_shuffle_epi32(d, 0x44), w2), 0xCC);
-                        y = _mm256_shuffle_epi32(x, 0xB1); s = vadd(x, y); d = _mm256_shuffle_epi32(vsub(x, y), 0xA0);
-                        store(a + i, _mm256_blend_epi32(s, d, 0xAA));}
-                    return;}
+            __m256i vw = _mm256_set1_epi32(int(w));
+            for (; j + 8 <= len; j += 8) {
+                __m256i u = load(a + j), v = load(a + j + len);
+                if (inverse) { store(a + j, vadd(u, v)); store(a + j + len, vmul(vsub(u, v), vw)); }
+                else { v = vmul(v, vw); store(a + j, vadd(u, v)); store(a + j + len, vsub(u, v)); }}
 #endif
-                for (; len > 0; len /= 2) {
-                    for (int i = 0; i < n; i += 2 * len) {
-                        for (int j = 0; j < len; ++j) {
-                            uint u = a[i + j], v = a[i + j + len], s = u + v;
-                            a[i + j] = s >= P ? s - P : s; a[i + j + len] = mul(u - v + (u < v ? P : 0), w[len + j]);}}}
+            for (; j < len; ++j) {
+                uint u = a[j], v = a[j + len];
+                if (inverse) { a[j] = add(u, v); a[j + len] = mul(sub(u, v), w); }
+                else { v = mul(v, w); a[j] = add(u, v); a[j + len] = sub(u, v); }}}
+        // One radix-4 level over 4 len points: block roots s = rt[i], t = rt[2i], it = rt[2i + 1] forward, their inverses backward.
+        static void pass4(uint *a, int len, int i, bool inverse) {
+            const uint *rt = roots(inverse).p;
+            uint s = rt[i], t = rt[2 * i], it = rt[2 * i + 1];
+            uint *a0 = a, *a1 = a + len, *a2 = a + 2 * len, *a3 = a + 3 * len;
+            int j = 0;
+#ifdef __AVX2__
+            __m256i vs = _mm256_set1_epi32(int(s)), vt = _mm256_set1_epi32(int(t)), vit = _mm256_set1_epi32(int(it));
+            for (; j + 8 <= len; j += 8) {
+                __m256i x0 = load(a0 + j), x1 = load(a1 + j), x2 = load(a2 + j), x3 = load(a3 + j);
+                if (inverse) {
+                    __m256i p0 = vadd(x0, x1), p1 = vmul(vsub(x0, x1), vt), q0 = vadd(x2, x3), q1 = vmul(vsub(x2, x3), vit);
+                    store(a0 + j, vadd(p0, q0)); store(a2 + j, vmul(vsub(p0, q0), vs)); store(a1 + j, vadd(p1, q1)); store(a3 + j, vmul(vsub(p1, q1), vs));}
+                else {
+                    x2 = vmul(x2, vs); x3 = vmul(x3, vs);
+                    __m256i p0 = vadd(x0, x2), q0 = vsub(x0, x2), p1 = vmul(vadd(x1, x3), vt), q1 = vmul(vsub(x1, x3), vit);
+                    store(a0 + j, vadd(p0, p1)); store(a1 + j, vsub(p0, p1)); store(a2 + j, vadd(q0, q1)); store(a3 + j, vsub(q0, q1));}}
+#endif
+            for (; j < len; ++j) {
+                uint x0 = a0[j], x1 = a1[j], x2 = a2[j], x3 = a3[j];
+                if (inverse) {
+                    uint p0 = add(x0, x1), p1 = mul(sub(x0, x1), t), q0 = add(x2, x3), q1 = mul(sub(x2, x3), it);
+                    a0[j] = add(p0, q0); a2[j] = mul(sub(p0, q0), s); a1[j] = add(p1, q1); a3[j] = mul(sub(p1, q1), s);}
+                else {
+                    x2 = mul(x2, s); x3 = mul(x3, s);
+                    uint p0 = add(x0, x2), q0 = sub(x0, x2), p1 = mul(add(x1, x3), t), q1 = mul(sub(x1, x3), it);
+                    a0[j] = add(p0, p1); a1[j] = sub(p0, p1); a2[j] = add(q0, q1); a3[j] = sub(q0, q1);}}}
+        // The last three levels of one block of eight points (block root index i): radix-4 over pairs, then the four pairs with rt[4i + q].
+        static void tail8(uint *a, int i, bool inverse) {
+            const uint *rt = roots(inverse).p;
+#ifdef __AVX2__
+            __m256i x = load(a), one = _mm256_set1_epi32(int(ONE));
+            __m256i vs = _mm256_blend_epi32(one, _mm256_set1_epi32(int(rt[i])), 0xF0);
+            __m256i vt = _mm256_blend_epi32(one, _mm256_blend_epi32(_mm256_set1_epi32(int(rt[2 * i])), _mm256_set1_epi32(int(rt[2 * i + 1])), 0xF0), 0xCC);
+            __m256i vq = oddRoots(rt + 4 * i);
+            if (inverse) {
+                __m256i y = _mm256_shuffle_epi32(x, 0xB1);
+                x = vmul(_mm256_blend_epi32(vadd(x, y), vsub(y, x), 0xAA), vq);
+                y = _mm256_shuffle_epi32(x, 0x4E);
+                x = vmul(_mm256_blend_epi32(vadd(x, y), vsub(y, x), 0xCC), vt);
+                y = swap128(x);
+                store(a, vmul(_mm256_blend_epi32(vadd(x, y), vsub(y, x), 0xF0), vs));
                 return;}
-            int len = 1;
-#ifdef __AVX2__
-            if (n >= 8) {
-                __m256i w2 = wpair(w + 2), w4 = wquad(w + 4);
-                for (int i = 0; i < n; i += 8) {
-                    __m256i x = load(a + i), y = _mm256_shuffle_epi32(x, 0xB1);
-                    __m256i s = vadd(x, y), d = _mm256_shuffle_epi32(vsub(x, y), 0xA0);
-                    x = _mm256_blend_epi32(s, d, 0xAA);
-                    __m256i u = _mm256_shuffle_epi32(x, 0x44), v = vmul(_mm256_shuffle_epi32(x, 0xEE), w2);
-                    x = _mm256_blend_epi32(vadd(u, v), vsub(u, v), 0xCC);
-                    u = _mm256_permute2x128_si256(x, x, 0x00); v = vmul(_mm256_permute2x128_si256(x, x, 0x11), w4);
-                    store(a + i, _mm256_blend_epi32(vadd(u, v), vsub(u, v), 0xF0));}
-                for (len = 8; len < n; len *= 2) {
-                    for (int i = 0; i < n; i += 2 * len) {
-                        for (int j = 0; j < len; j += 8) {
-                            __m256i u = load(a + i + j), v = vmul(load(a + i + j + len), load(w + len + j));
-                            store(a + i + j, vadd(u, v)); store(a + i + j + len, vsub(u, v));}}}}
+            x = vmul(x, vs);
+            __m256i y = swap128(x);
+            x = vmul(_mm256_blend_epi32(vadd(x, y), vsub(y, x), 0xF0), vt);
+            y = _mm256_shuffle_epi32(x, 0x4E);
+            x = vmul(_mm256_blend_epi32(vadd(x, y), vsub(y, x), 0xCC), vq);
+            y = _mm256_shuffle_epi32(x, 0xB1);
+            store(a, _mm256_blend_epi32(vadd(x, y), vsub(y, x), 0xAA));
+            return;
 #endif
-            for (; len < n; len *= 2) {
-                for (int i = 0; i < n; i += 2 * len) {
-                    for (int j = 0; j < len; ++j) {
-                        uint u = a[i + j], v = mul(a[i + j + len], w[len + j]), s = u + v;
-                        a[i + j] = s >= P ? s - P : s; a[i + j + len] = u - v + (u < v ? P : 0);}}}
+            if (inverse) {
+                for (int q = 0; q < 4; ++q) { pass2(a + 2 * q, 1, rt[4 * i + q], true); }
+                pass4(a, 2, i, true);
+                return;}
+            pass4(a, 2, i, false);
+            for (int q = 0; q < 4; ++q) { pass2(a + 2 * q, 1, rt[4 * i + q], false); }}
+        // Forward DIF to block order (inverse: back), depth-first radix-4 down to LEAF, then the level loop over the leaf; n >= 8, i = the block root index.
+        static void transform(uint *a, int n, bool inverse, int i = 1) {
+            if (n < 8) {
+                for (int size = inverse ? 2 : n; inverse ? size <= n : size >= 2; size = inverse ? 2 * size : size / 2) {
+                    for (int b = 0; b < n / size; ++b) { pass2(a + b * size, size / 2, roots(inverse)[i * (n / size) + b], inverse); }}
+                return;}
+            if (n > LEAF) {
+                bool two = (std::countr_zero(uint(n)) - std::countr_zero(uint(LEAF))) % 2 == 1;
+                int parts = two ? 2 : 4, len = n / parts;
+                if (!inverse) { if (two) { pass2(a, len, roots(false)[i], false); } else { pass4(a, len, i, false); } }
+                for (int q = 0; q < parts; ++q) { transform(a + q * len, len, inverse, parts * i + q); }
+                if (inverse) { if (two) { pass2(a, len, roots(true)[i], true); } else { pass4(a, len, i, true); } }
+                return;}
+            int top = n, base = i;
+            if (std::countr_zero(uint(n)) % 2 == 0) { top = n / 2; base = 2 * i; }
+            if (inverse) {
+                for (int b = 0; b < n / 8; ++b) { tail8(a + 8 * b, base * (top / 8) + b, true); }
+                for (int size = 32; size <= top; size *= 4) { for (int b = 0; b < n / size; ++b) { pass4(a + b * size, size / 4, base * (top / size) + b, true); } }
+                if (top < n) { pass2(a, n / 2, roots(true)[i], true); }
+                return;}
+            if (top < n) { pass2(a, n / 2, roots(false)[i], false); }
+            for (int size = top; size > 8; size /= 4) { for (int b = 0; b < n / size; ++b) { pass4(a + b * size, size / 4, base * (top / size) + b, false); } }
+            for (int b = 0; b < n / 8; ++b) { tail8(a + 8 * b, base * (top / 8) + b, false); }}
+        static void run(uint *a, int n, bool inverse) {
+            ensure(n);
+            transform(a, n, inverse);
+            if (!inverse) { return; }
             uint inv = from(P - (P - 1) / uint(n));
             int i = 0;
 #ifdef __AVX2__
@@ -393,37 +463,35 @@ namespace infint_detail {
             __m256i r2 = _mm256_set1_epi32(int(R2));
             for (; i + 8 <= n; i += 8) { store(a + i, vmul(load(a + i), vmul(load(b + i), r2))); }
 #endif
-            for (; i < n; ++i) { a[i] = uint(ulng(a[i]) * b[i] % P); }}
+            for (; i < n; ++i) { a[i] = mul(mul(a[i], R2), b[i]); }}
     };
 
     // T: O(len * log(len)), M: O(len); three-prime CRT: lo + hi * 2^64 holds each limb coefficient of the length-len cyclic
-    // limb convolution (len a power of two <= 2^26, coefficients below 2^89).
+    // limb convolution (len a power of two in [8, 2^26], coefficients below 2^89).
     inline void ntt3Cyclic(W *lo, W *hi, const uint *a, int n, const uint *b, int m, int len) {
         using E0 = Ntt32<NTT_PRIMES[0], NTT_ROOTS[0]>;
         using E1 = Ntt32<NTT_PRIMES[1], NTT_ROOTS[1]>;
         using E2 = Ntt32<NTT_PRIMES[2], NTT_ROOTS[2]>;
         constexpr uint P0 = NTT_PRIMES[0], P1 = NTT_PRIMES[1], P2 = NTT_PRIMES[2];
         constexpr ulng P01 = ulng(P0) * P1;
-        constexpr uint I0_1 = modPow32(P0, P1 - 2, P1), I01_2 = modPow32(uint(P01 % P2), P2 - 2, P2);
+        constexpr uint I0_1 = E1::from(modPow32(P0, P1 - 2, P1)), I01_2 = E2::from(modPow32(uint(P01 % P2), P2 - 2, P2)), P0_2 = E2::from(P0 % P2);
         static HugeVec<uint> buf;
         bool same = a == b && n == m;
         buf.resize((same ? 3 : 6) * len);
         uint *x[3] = {buf.p, buf.p + len, buf.p + 2 * len}, *y[3] = {buf.p + 3 * len, buf.p + 4 * len, buf.p + 5 * len};
-        for (int k = 0; k < 3; ++k) {
-            uint p = NTT_PRIMES[k];
-            for (int i = 0; i < n; ++i) { x[k][i] = a[i] % p; }
-            std::fill(x[k] + n, x[k] + len, 0);
-            if (!same) {
-                for (int i = 0; i < m; ++i) { y[k][i] = b[i] % p; }
-                std::fill(y[k] + m, y[k] + len, 0);}}
-        E0::transform(x[0], len, false); E1::transform(x[1], len, false); E2::transform(x[2], len, false);
-        if (!same) { E0::transform(y[0], len, false); E1::transform(y[1], len, false); E2::transform(y[2], len, false); }
+        auto split = [&](uint **v, const uint *src, int cnt) {
+            for (int i = 0; i < cnt; ++i) { uint w = src[i]; v[0][i] = w % P0; v[1][i] = w % P1; v[2][i] = w % P2; }
+            for (int k = 0; k < 3; ++k) { std::fill(v[k] + cnt, v[k] + len, 0); }};
+        split(x, a, n);
+        if (!same) { split(y, b, m); }
+        E0::run(x[0], len, false); E1::run(x[1], len, false); E2::run(x[2], len, false);
+        if (!same) { E0::run(y[0], len, false); E1::run(y[1], len, false); E2::run(y[2], len, false); }
         E0::dot(x[0], (same ? x : y)[0], len); E1::dot(x[1], (same ? x : y)[1], len); E2::dot(x[2], (same ? x : y)[2], len);
-        E0::transform(x[0], len, true); E1::transform(x[1], len, true); E2::transform(x[2], len, true);
+        E0::run(x[0], len, true); E1::run(x[1], len, true); E2::run(x[2], len, true);
         for (int i = 0; i < len; ++i) {
-            uint v0 = x[0][i], v1 = uint(ulng(x[1][i] + P1 - (v0 >= P1 ? v0 - P1 : v0)) * I0_1 % P1);
+            uint v0 = x[0][i], v1 = E1::mul(E1::sub(x[1][i], v0 >= P1 ? v0 - P1 : v0), I0_1);
             ulng t = v0 + ulng(v1) * P0;
-            uint v2 = uint((x[2][i] + P2 - uint(t % P2)) * ulng(I01_2) % P2);
+            uint t2 = E2::add(v0 % P2, E2::mul(v1, P0_2)), v2 = E2::mul(E2::sub(x[2][i], t2), I01_2);
             ulll e = t + ulll(v2) * P01;
             lo[i] = W(e); hi[i] = W(e >> 64);}}
 
@@ -469,7 +537,7 @@ namespace infint_detail {
             ulng inv = P - (P - 1) / ulng(n);
             for (int i = 0; i < n; ++i) { a[i] = mul(a[i], inv); }}
     };
-    // T: O(len * log(len)), M: O(len); the Goldilocks NTT on 16-bit pieces folded into lo (hi = 0) limb coefficients.
+    // T: O(len * log(len)), M: O(len); the Goldilocks NTT on 16-bit pieces, the two pieces of each limb coefficient recombined as lo + hi 2^64.
     inline void ntt64Cyclic(W *lo, W *hi, const uint *a, int n, const uint *b, int m, int len) {
         static HugeVec<ulng> buf;
         bool same = a == b && n == m;
@@ -490,66 +558,381 @@ namespace infint_detail {
             ulll e = x[2 * i] + (ulll(x[2 * i + 1]) << 16);
             lo[i] = W(e); hi[i] = W(e >> 64);}}
 
-    // S: O(len) roots, Q: O(len * log(len)), M: O(len); split re/im radix-2 FFT, forward to bit-reversed order.
+    // Rounding model of the double FFT: u = 2^-53; a complex product errs by at most RHO |ab| under any FMA contraction, a stored root by MU,
+    // a radix-3 or radix-5 column stage by EPS[r] of its output norm.
+    constexpr double FFT_U = 0x1p-53, FFT_RHO = (1 + 1.4142135623730951) * FFT_U * (1 + FFT_U), FFT_MU = 1.02 * FFT_U, FFT_TAU = FFT_MU + FFT_RHO + FFT_MU * FFT_RHO;
+    constexpr double FFT_EPS[6] = {0, 0, 0, 7 * FFT_U, 0, 16 * FFT_U};
+    constexpr int FFT_MIN_LOG = 3, FFT_MAX_LOG = 24, FFT_MIN_K = 8, FFT_MAX_K = 20, FFT_LEAF = 1 << 11;
+    // T: O(lg), M: O(1); worst-case error of the packed real convolution through r 2^lg complex points relative to |x| |y|: F^2 (1 + rho) (1 + 2 Sigma) - 1 with the
+    // forward factor F = (1+u)^(lg+2) (1+tau)^t (1+eps_r), the inverse factor Sigma = (1+u)^(lg+3) (1+tau)^t (1+eps_r) - 1, t = lg - 1 (r = 1) or lg + 1, and two more u for the inexact 1 / r scale.
+    constexpr double fftPhi(int lg, int r) {
+        auto mulIn = [](double &acc, double t) { acc += t + acc * t; };
+        int t = r == 1 ? lg - 1 : lg + 1;
+        double f = 0;
+        for (int i = 0; i < lg + 2; ++i) { mulIn(f, FFT_U); }
+        for (int i = 0; i < t; ++i) { mulIn(f, FFT_TAU); }
+        mulIn(f, FFT_EPS[r]);
+        double sigma = f, acc = f;
+        mulIn(sigma, FFT_U); mulIn(acc, f); mulIn(acc, FFT_RHO); mulIn(acc, 2 * sigma);
+        if (r > 1) { mulIn(acc, FFT_U); mulIn(acc, FFT_U); }
+        return acc;}
+    constexpr std::array<std::array<double, FFT_MAX_LOG + 1>, 6> FFT_PHI = []() {
+        std::array<std::array<double, FFT_MAX_LOG + 1>, 6> t{};
+        for (int r : {1, 3, 5}) { for (int i = FFT_MIN_LOG; i <= FFT_MAX_LOG; ++i) { t[size_t(r)][size_t(i)] = fftPhi(i, r); } }
+        return t;}();
+
+    // S: O(n) roots, Q: O(n * log(n)), M: O(n); complex FFT of r 2^lg points on split re/im arrays: a radix-r column stage (r = 3, 5), then each of the r chunks with its
+    // block roots tw[B + b] = exp(i pi (q + r bitrev_B(b)) / (r B)) forward from natural order to the roots' block order, depth-first radix-4 above the leaf; inverse back, scaled by r 2^lg.
     struct Fft {
-        static HugeVec<double> &roots(bool imag) { static HugeVec<double> wr, wi; return imag ? wi : wr; }
-        static void ensure(int n) {
-            HugeVec<double> &wr = roots(false), &wi = roots(true);
-            if (wr.n == 0) { wr.resize(2); wi.resize(2); wr[0] = wi[0] = wi[1] = 0; wr[1] = 1; }
-            if (wr.n >= n) { return; }
-            int m = wr.n; wr.resize(n); wi.resize(n);
-            for (int len = m; len < n; len *= 2) {
-                for (int j = 0; j < len; ++j) {
-                    long double t = std::numbers::pi_v<long double> * j / len;
-                    wr[len + j] = double(std::cos(t)); wi[len + j] = double(std::sin(t));}}}
-        static int partner(int p) { return p < 2 ? p : 3 * (1 << (31 - std::countl_zero(uint(p)))) - 1 - p; }
-        static void transform(double *re, double *im, int n, bool inverse) {
-            ensure(n);
-            const double *wr = roots(false).p, *wi = roots(true).p;
-            if (!inverse) {
-                for (int len = n / 2; len > 0; len /= 2) {
-                    for (int i = 0; i < n; i += 2 * len) {
-                        for (int j = 0; j < len; ++j) {
-                            double ur = re[i + j], ui = im[i + j], vr = re[i + j + len], vi = im[i + j + len];
-                            re[i + j] = ur + vr; im[i + j] = ui + vi;
-                            double dr = ur - vr, di = ui - vi;
-                            re[i + j + len] = dr * wr[len + j] - di * wi[len + j]; im[i + j + len] = dr * wi[len + j] + di * wr[len + j];}}}
+        // Table t: 0 the roots of chunk 0 (every r), 1 and 2 the chunks q = 1, 2 of radix 3, 3 to 6 the chunks q = 1 to 4 of radix 5.
+        static HugeVec<double> &table(bool imag, int t = 0) { static HugeVec<double> w[2][7]; return w[imag][t]; }
+        static int tableId(int r, int q) { return q == 0 ? 0 : r == 3 ? q : 2 + q; }
+        // Entries [1, 2n) of the r tables of chunks of n points: the levels B <= n, the last one being the 2n-th roots dot needs; chunk r - q mirrors chunk q.
+        static void ensure(int n, int r) {
+            for (int q = 0; 2 * q < r; ++q) {
+                int t = tableId(r, q), tm = q ? tableId(r, r - q) : 0;
+                HugeVec<double> &wr = table(false, t), &wi = table(true, t);
+                int old = wr.n;
+                if (old >= 2 * n) { continue; }
+                wr.resize(2 * n); wi.resize(2 * n);
+                if (q) { table(false, tm).resize(2 * n); table(true, tm).resize(2 * n); }
+                for (int lvl = max(old, 1); lvl < 2 * n; lvl *= 2) { level(wr.p + lvl, wi.p + lvl, lvl, r, q, q ? table(false, tm).p + lvl : nullptr, q ? table(true, tm).p + lvl : nullptr); }}}
+        // The 2^12-th roots exp(i pi bitrev(j) / 2^g) in block order as double-doubles (a prefix serves every g <= 12), grown on demand from long double trig.
+        static double *coarse(int g) {
+            static std::array<double, 4 << 12> c; static int have = 0;
+            if (have >= 1 << g) { return c.data(); }
+            have = 1 << g;
+            for (int j = 0, k = 0; j < have; ++j) {
+                long double a = std::numbers::pi_v<long double> * k / have, x = std::cos(a), y = std::sin(a);
+                c[j] = double(x); c[4096 + j] = double(x - c[j]); c[8192 + j] = double(y); c[12288 + j] = double(y - c[8192 + j]);
+                int bit = have >> 1; while (k & bit) { k ^= bit; bit >>= 1; } k ^= bit;}
+            return c.data();}
+        // Level lvl of chunk q of radix r, entry b: exp(i pi (q + r bitrev(b)) / (r lvl)) as a coarse root times a fine one (the 2^h angles below pi / 2^g shifted by the chunk's
+        // offset; long double trig split into double-doubles), multiplied in double-double and rounded once; exact at the quarter turns; (mr, mi) mirror chunk r - q as -conj in reverse.
+        static void level(double *wr, double *wi, int lvl, int r, int q, double *mr, double *mi) {
+            int bits = std::countr_zero(uint(lvl)), h = bits / 2, g = bits - h;
+            const double *cr = coarse(g), *cl = cr + 4096, *ci = cr + 8192, *cil = cr + 12288;
+            Scratch s(size_t(4) << h);
+            double *fr = reinterpret_cast<double *>(s.p), *fl = fr + (1 << h), *fi = fl + (1 << h), *fil = fi + (1 << h);
+            for (int j = 0; j < 1 << h; ++j) {
+                long double a = std::numbers::pi_v<long double> * ((q + r * j) / static_cast<long double>(r * lvl)), x = std::cos(a), y = std::sin(a);
+                fr[j] = double(x); fl[j] = double(x - fr[j]); fi[j] = double(y); fil[j] = double(y - fi[j]);}
+            for (int blk = 0, kl = 0; blk < 1 << h; ++blk) {
+                int at = blk << g, j = 0;
+                double *outr = wr + at, *outi = wi + at, *mirr = mr ? mr + lvl - 1 - at : nullptr, *miri = mi ? mi + lvl - 1 - at : nullptr;
+#if defined(__AVX2__) && defined(__FMA__)
+                V ar = _mm256_set1_pd(fr[kl]), al = _mm256_set1_pd(fl[kl]), ai = _mm256_set1_pd(fi[kl]), ail = _mm256_set1_pd(fil[kl]), zero = _mm256_setzero_pd();
+                auto dd = [](V xh, V xl, V yh, V yl, V &ph, V &pl) { ph = _mm256_mul_pd(xh, yh); pl = _mm256_fmsub_pd(xh, yh, ph); pl = _mm256_fmadd_pd(xh, yl, pl); pl = _mm256_fmadd_pd(xl, yh, pl); };
+                auto sum = [](V x, V y, V xl, V yl) {
+                    V t = _mm256_add_pd(x, y), bb = _mm256_sub_pd(t, x), e = _mm256_add_pd(_mm256_sub_pd(x, _mm256_sub_pd(t, bb)), _mm256_sub_pd(y, bb));
+                    return _mm256_add_pd(t, _mm256_add_pd(e, _mm256_add_pd(xl, yl)));};
+                for (; j + 4 <= 1 << g; j += 4) {
+                    V br = ld(cr + j), bl = ld(cl + j), bi = ld(ci + j), bil = ld(cil + j), p1, e1, p2, e2;
+                    dd(ar, al, br, bl, p1, e1); dd(ai, ail, bi, bil, p2, e2);
+                    V re = sum(p1, _mm256_sub_pd(zero, p2), e1, _mm256_sub_pd(zero, e2));
+                    dd(ar, al, bi, bil, p1, e1); dd(ai, ail, br, bl, p2, e2);
+                    V im = sum(p1, p2, e1, e2);
+                    st(outr + j, re); st(outi + j, im);
+                    if (mr) { st(mirr - j - 3, rev(_mm256_sub_pd(zero, re))); st(miri - j - 3, rev(im)); }}
+#endif
+                long double xr = fr[kl] + static_cast<long double>(fl[kl]), xi = fi[kl] + static_cast<long double>(fil[kl]);
+                for (; j < 1 << g; ++j) {
+                    long double yr = cr[j] + static_cast<long double>(cl[j]), yi = ci[j] + static_cast<long double>(cil[j]);
+                    outr[j] = double(xr * yr - xi * yi); outi[j] = double(xr * yi + xi * yr);
+                    if (mr) { mirr[-j] = -outr[j]; miri[-j] = outi[j]; }}
+                int bit = (1 << h) >> 1; while (kl & bit) { kl ^= bit; bit >>= 1; } kl ^= bit;}
+            if (q == 0) { wr[0] = 1; wi[0] = 0; if (lvl > 1) { wr[1] = 0; wi[1] = 1; } }}
+#if defined(__AVX2__) && defined(__FMA__)
+        using V = __m256d;
+        static V ld(const double *p) { return _mm256_loadu_pd(p); }
+        static void st(double *p, V x) { _mm256_storeu_pd(p, x); }
+        static V rev(V x) { return _mm256_permute4x64_pd(x, 0x1B); }
+        static V swap128(V x) { return _mm256_permute2f128_pd(x, x, 0x01); }
+        static void cmul(V ar, V ai, V br, V bi, V &rr, V &ri) { rr = _mm256_fmsub_pd(ar, br, _mm256_mul_pd(ai, bi)); ri = _mm256_fmadd_pd(ar, bi, _mm256_mul_pd(ai, br)); }
+#endif
+        // One radix-2 level of len pairs with the block root (wr, wi): forward (u, v) -> (u + w v, u - w v), inverse (p, q) -> (p + q, (p - q) conj(w)).
+        static void pass2(double *re, double *im, int len, double wr, double wi, bool inverse) {
+            int j = 0;
+            if (inverse) { wi = -wi; }
+#if defined(__AVX2__) && defined(__FMA__)
+            V bwr = _mm256_set1_pd(wr), bwi = _mm256_set1_pd(wi);
+            for (; j + 4 <= len; j += 4) {
+                V ur = ld(re + j), ui = ld(im + j), xr = ld(re + j + len), xi = ld(im + j + len), pr, pi;
+                if (inverse) {
+                    cmul(_mm256_sub_pd(ur, xr), _mm256_sub_pd(ui, xi), bwr, bwi, pr, pi);
+                    st(re + j, _mm256_add_pd(ur, xr)); st(im + j, _mm256_add_pd(ui, xi)); st(re + j + len, pr); st(im + j + len, pi);}
+                else {
+                    cmul(xr, xi, bwr, bwi, pr, pi);
+                    st(re + j, _mm256_add_pd(ur, pr)); st(im + j, _mm256_add_pd(ui, pi)); st(re + j + len, _mm256_sub_pd(ur, pr)); st(im + j + len, _mm256_sub_pd(ui, pi));}}
+#endif
+            for (; j < len; ++j) {
+                double ur = re[j], ui = im[j], xr = re[j + len], xi = im[j + len];
+                if (inverse) {
+                    double dr = ur - xr, di = ui - xi;
+                    re[j] = ur + xr; im[j] = ui + xi; re[j + len] = dr * wr - di * wi; im[j + len] = dr * wi + di * wr;}
+                else {
+                    double vr = xr * wr - xi * wi, vi = xr * wi + xi * wr;
+                    re[j] = ur + vr; im[j] = ui + vi; re[j + len] = ur - vr; im[j + len] = ui - vi;}}}
+        // One radix-4 level over 4 len points with the block roots s = tw[i], t = tw[2i] (and i t); the inverse uses their conjugates in reverse.
+        static void pass4(double *re, double *im, int len, int i, bool inverse, const double *twr, const double *twi) {
+            double sr = twr[i], si = inverse ? -twi[i] : twi[i], tr = twr[2 * i], ti = inverse ? -twi[2 * i] : twi[2 * i];
+            double *r0 = re, *r1 = re + len, *r2 = re + 2 * len, *r3 = re + 3 * len, *i0 = im, *i1 = im + len, *i2 = im + 2 * len, *i3 = im + 3 * len;
+            int j = 0;
+#if defined(__AVX2__) && defined(__FMA__)
+            V vsr = _mm256_set1_pd(sr), vsi = _mm256_set1_pd(si), vtr = _mm256_set1_pd(tr), vti = _mm256_set1_pd(ti);
+            for (; j + 4 <= len; j += 4) {
+                V a0r = ld(r0 + j), a0i = ld(i0 + j), a1r = ld(r1 + j), a1i = ld(i1 + j), a2r = ld(r2 + j), a2i = ld(i2 + j), a3r = ld(r3 + j), a3i = ld(i3 + j);
+                if (inverse) {
+                    V p0r = _mm256_add_pd(a0r, a1r), p0i = _mm256_add_pd(a0i, a1i), q0r = _mm256_add_pd(a2r, a3r), q0i = _mm256_add_pd(a2i, a3i), p1r, p1i, q1r, q1i;
+                    cmul(_mm256_sub_pd(a0r, a1r), _mm256_sub_pd(a0i, a1i), vtr, vti, p1r, p1i);
+                    cmul(_mm256_sub_pd(a2i, a3i), _mm256_sub_pd(a3r, a2r), vtr, vti, q1r, q1i);
+                    V d2r, d2i, d3r, d3i;
+                    cmul(_mm256_sub_pd(p0r, q0r), _mm256_sub_pd(p0i, q0i), vsr, vsi, d2r, d2i);
+                    cmul(_mm256_sub_pd(p1r, q1r), _mm256_sub_pd(p1i, q1i), vsr, vsi, d3r, d3i);
+                    st(r0 + j, _mm256_add_pd(p0r, q0r)); st(i0 + j, _mm256_add_pd(p0i, q0i)); st(r1 + j, _mm256_add_pd(p1r, q1r)); st(i1 + j, _mm256_add_pd(p1i, q1i));
+                    st(r2 + j, d2r); st(i2 + j, d2i); st(r3 + j, d3r); st(i3 + j, d3i);}
+                else {
+                    V s2r, s2i, s3r, s3i;
+                    cmul(a2r, a2i, vsr, vsi, s2r, s2i); cmul(a3r, a3i, vsr, vsi, s3r, s3i);
+                    V p0r = _mm256_add_pd(a0r, s2r), p0i = _mm256_add_pd(a0i, s2i), q0r = _mm256_sub_pd(a0r, s2r), q0i = _mm256_sub_pd(a0i, s2i);
+                    V p1r, p1i, q1r, q1i;
+                    cmul(_mm256_add_pd(a1r, s3r), _mm256_add_pd(a1i, s3i), vtr, vti, p1r, p1i);
+                    cmul(_mm256_sub_pd(a1r, s3r), _mm256_sub_pd(a1i, s3i), vtr, vti, q1r, q1i);
+                    st(r0 + j, _mm256_add_pd(p0r, p1r)); st(i0 + j, _mm256_add_pd(p0i, p1i)); st(r1 + j, _mm256_sub_pd(p0r, p1r)); st(i1 + j, _mm256_sub_pd(p0i, p1i));
+                    st(r2 + j, _mm256_sub_pd(q0r, q1i)); st(i2 + j, _mm256_add_pd(q0i, q1r)); st(r3 + j, _mm256_add_pd(q0r, q1i)); st(i3 + j, _mm256_sub_pd(q0i, q1r));}}
+#endif
+            for (; j < len; ++j) {
+                double a0r = r0[j], a0i = i0[j], a1r = r1[j], a1i = i1[j], a2r = r2[j], a2i = i2[j], a3r = r3[j], a3i = i3[j];
+                if (inverse) {
+                    double p0r = a0r + a1r, p0i = a0i + a1i, dr = a0r - a1r, di = a0i - a1i, p1r = dr * tr - di * ti, p1i = dr * ti + di * tr;
+                    double q0r = a2r + a3r, q0i = a2i + a3i, er = a2i - a3i, ei = a3r - a2r, q1r = er * tr - ei * ti, q1i = er * ti + ei * tr;
+                    double d2r = p0r - q0r, d2i = p0i - q0i, d3r = p1r - q1r, d3i = p1i - q1i;
+                    r0[j] = p0r + q0r; i0[j] = p0i + q0i; r1[j] = p1r + q1r; i1[j] = p1i + q1i;
+                    r2[j] = d2r * sr - d2i * si; i2[j] = d2r * si + d2i * sr; r3[j] = d3r * sr - d3i * si; i3[j] = d3r * si + d3i * sr;}
+                else {
+                    double s2r = a2r * sr - a2i * si, s2i = a2r * si + a2i * sr, s3r = a3r * sr - a3i * si, s3i = a3r * si + a3i * sr;
+                    double p0r = a0r + s2r, p0i = a0i + s2i, q0r = a0r - s2r, q0i = a0i - s2i, ur = a1r + s3r, ui = a1i + s3i, vr = a1r - s3r, vi = a1i - s3i;
+                    double p1r = ur * tr - ui * ti, p1i = ur * ti + ui * tr, q1r = vr * tr - vi * ti, q1i = vr * ti + vi * tr;
+                    r0[j] = p0r + p1r; i0[j] = p0i + p1i; r1[j] = p0r - p1r; i1[j] = p0i - p1i;
+                    r2[j] = q0r - q1i; i2[j] = q0i + q1r; r3[j] = q0r + q1i; i3[j] = q0i - q1r;}}}
+        // The last three levels of one block of eight points (block root index i): radix-4 over pairs, then the four pairs with tw[4i + q].
+        static void tail8(double *re, double *im, int i, bool inverse, const double *twr, const double *twi) {
+#if defined(__AVX2__) && defined(__FMA__)
+            double sg = inverse ? -1.0 : 1.0;
+            V sr = _mm256_set1_pd(twr[i]), si = _mm256_set1_pd(sg * twi[i]), tr = _mm256_setr_pd(1, 1, twr[2 * i], twr[2 * i]), ti = _mm256_setr_pd(0, 0, sg * twi[2 * i], sg * twi[2 * i]);
+            V qr = _mm256_permute4x64_pd(ld(twr + 4 * i), 0xD8), qi = _mm256_permute4x64_pd(_mm256_mul_pd(_mm256_set1_pd(sg), ld(twi + 4 * i)), 0xD8);
+            V hi = _mm256_setr_pd(1, 1, -1, -1), x0r = ld(re), x0i = ld(im), x1r = ld(re + 4), x1i = ld(im + 4);
+            if (inverse) {
+                V er = _mm256_unpacklo_pd(x0r, x1r), ei = _mm256_unpacklo_pd(x0i, x1i), fr = _mm256_unpackhi_pd(x0r, x1r), fi = _mm256_unpackhi_pd(x0i, x1i), dr, di;
+                cmul(_mm256_sub_pd(er, fr), _mm256_sub_pd(ei, fi), qr, qi, dr, di);
+                V gr = _mm256_add_pd(er, fr), gi = _mm256_add_pd(ei, fi);
+                x0r = _mm256_unpacklo_pd(gr, dr); x0i = _mm256_unpacklo_pd(gi, di); x1r = _mm256_unpackhi_pd(gr, dr); x1i = _mm256_unpackhi_pd(gi, di);
+                V y0r = swap128(x0r), y0i = swap128(x0i), y1r = swap128(x1r), y1i = swap128(x1i), pr, pi, qqr, qqi, ar, ai;
+                cmul(_mm256_fmadd_pd(x0r, hi, y0r), _mm256_fmadd_pd(x0i, hi, y0i), tr, ti, pr, pi);
+                V cr = _mm256_blend_pd(_mm256_add_pd(x1r, y1r), _mm256_sub_pd(y1i, x1i), 0xC), ci = _mm256_blend_pd(_mm256_add_pd(x1i, y1i), _mm256_sub_pd(x1r, y1r), 0xC);
+                cmul(cr, ci, tr, ti, qqr, qqi);
+                cmul(_mm256_sub_pd(pr, qqr), _mm256_sub_pd(pi, qqi), sr, si, ar, ai);
+                st(re, _mm256_add_pd(pr, qqr)); st(im, _mm256_add_pd(pi, qqi)); st(re + 4, ar); st(im + 4, ai);
                 return;}
-            for (int len = 1; len < n; len *= 2) {
-                for (int i = 0; i < n; i += 2 * len) {
-                    for (int j = 0; j < len; ++j) {
-                        double ur = re[i + j], ui = im[i + j], xr = re[i + j + len], xi = im[i + j + len];
-                        double vr = xr * wr[len + j] + xi * wi[len + j], vi = xi * wr[len + j] - xr * wi[len + j];
-                        re[i + j] = ur + vr; im[i + j] = ui + vi; re[i + j + len] = ur - vr; im[i + j + len] = ui - vi;}}}
-            double inv = 1.0 / n;
-            for (int i = 0; i < n; ++i) { re[i] *= inv; im[i] *= inv; }}
+            V s1r, s1i, tpr, tpi, tqr, tqi;
+            cmul(x1r, x1i, sr, si, s1r, s1i);
+            cmul(_mm256_add_pd(x0r, s1r), _mm256_add_pd(x0i, s1i), tr, ti, tpr, tpi); cmul(_mm256_sub_pd(x0r, s1r), _mm256_sub_pd(x0i, s1i), tr, ti, tqr, tqi);
+            V ypr = swap128(tpr), ypi = swap128(tpi), yqr = swap128(tqr), yqi = swap128(tqi), nhi = _mm256_setr_pd(-1, -1, 1, 1);
+            x0r = _mm256_fmadd_pd(tpr, hi, ypr); x0i = _mm256_fmadd_pd(tpi, hi, ypi);
+            x1r = _mm256_fmadd_pd(_mm256_blend_pd(yqi, tqi, 0xC), nhi, _mm256_blend_pd(tqr, yqr, 0xC)); x1i = _mm256_fmadd_pd(_mm256_blend_pd(yqr, tqr, 0xC), hi, _mm256_blend_pd(tqi, yqi, 0xC));
+            V er = _mm256_unpacklo_pd(x0r, x1r), ei = _mm256_unpacklo_pd(x0i, x1i), fr = _mm256_unpackhi_pd(x0r, x1r), fi = _mm256_unpackhi_pd(x0i, x1i), wr, wi;
+            cmul(fr, fi, qr, qi, wr, wi);
+            V ar = _mm256_add_pd(er, wr), ai = _mm256_add_pd(ei, wi), br = _mm256_sub_pd(er, wr), bi = _mm256_sub_pd(ei, wi);
+            st(re, _mm256_unpacklo_pd(ar, br)); st(im, _mm256_unpacklo_pd(ai, bi)); st(re + 4, _mm256_unpackhi_pd(ar, br)); st(im + 4, _mm256_unpackhi_pd(ai, bi));
+            return;
+#endif
+            if (inverse) {
+                for (int q = 0; q < 4; ++q) { pass2(re + 2 * q, im + 2 * q, 1, twr[4 * i + q], twi[4 * i + q], true); }
+                pass4(re, im, 2, i, true, twr, twi);
+                return;}
+            pass4(re, im, 2, i, false, twr, twi);
+            for (int q = 0; q < 4; ++q) { pass2(re + 2 * q, im + 2 * q, 1, twr[4 * i + q], twi[4 * i + q], false); }}
+        // Radix-3 and radix-5 DFTs of one column (x_q <- sum_p w^(p q) x_p, w = exp(2 i pi / r)) on scalars or vectors; s and sg carry the sign of the sines (-1 inverts).
+        template<typename T> static void col3(T &x0r, T &x0i, T &x1r, T &x1i, T &x2r, T &x2i, double s) {
+            T ar = x1r + x2r, ai = x1i + x2i, dr = (x1r - x2r) * s, di = (x1i - x2i) * s, mr = x0r - 0.5 * ar, mi = x0i - 0.5 * ai;
+            x0r = x0r + ar; x0i = x0i + ai; x1r = mr - di; x1i = mi + dr; x2r = mr + di; x2i = mi - dr;}
+        template<typename T> static void col5(T &x0r, T &x0i, T &x1r, T &x1i, T &x2r, T &x2i, T &x3r, T &x3i, T &x4r, T &x4i, double sg) {
+            const double c1 = 0.30901699437494742410, c2 = -0.80901699437494742410, s1 = sg * 0.95105651629515357212, s2 = sg * 0.58778525229247312917;
+            T a1r = x1r + x4r, a1i = x1i + x4i, a2r = x2r + x3r, a2i = x2i + x3i, d1r = x1r - x4r, d1i = x1i - x4i, d2r = x2r - x3r, d2i = x2i - x3i;
+            T m1r = x0r + c1 * a1r + c2 * a2r, m1i = x0i + c1 * a1i + c2 * a2i, m2r = x0r + c2 * a1r + c1 * a2r, m2i = x0i + c2 * a1i + c1 * a2i;
+            T t1r = s1 * d1r + s2 * d2r, t1i = s1 * d1i + s2 * d2i, t2r = s2 * d1r - s1 * d2r, t2i = s2 * d1i - s1 * d2i;
+            x0r = x0r + a1r + a2r; x0i = x0i + a1i + a2i;
+            x1r = m1r - t1i; x1i = m1i + t1r; x4r = m1r + t1i; x4i = m1i - t1r; x2r = m2r - t2i; x2i = m2i + t2r; x3r = m2r + t2i; x3i = m2i - t2r;}
+        // The radix-r column stage over the r chunks of len points (r = 3 or 5), conjugate roots when inverse.
+        static void column(double *re, double *im, int len, int r, bool inverse) {
+            double sg = inverse ? -1.0 : 1.0, s3 = sg * 0.86602540378443864676;
+            int j = 0;
+#if defined(__AVX2__) && defined(__FMA__)
+            for (; j + 4 <= len; j += 4) {
+                V x[10];
+                for (int q = 0; q < r; ++q) { x[2 * q] = ld(re + q * len + j); x[2 * q + 1] = ld(im + q * len + j); }
+                if (r == 3) { col3(x[0], x[1], x[2], x[3], x[4], x[5], s3); } else { col5(x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8], x[9], sg); }
+                for (int q = 0; q < r; ++q) { st(re + q * len + j, x[2 * q]); st(im + q * len + j, x[2 * q + 1]); }}
+#endif
+            for (; j < len; ++j) {
+                double *r1 = re + len + j, *i1 = im + len + j, *r2 = re + 2 * len + j, *i2 = im + 2 * len + j;
+                if (r == 3) { col3(re[j], im[j], *r1, *i1, *r2, *i2, s3); }
+                else { col5(re[j], im[j], *r1, *i1, *r2, *i2, re[3 * len + j], im[3 * len + j], re[4 * len + j], im[4 * len + j], sg); }}}
+        // Forward to block order (inverse: back) with the roots (twr, twi): depth-first radix-4 down to a leaf of 2^11 or 2^10 points by the parity of the levels
+        // above, then the level loop over the leaf; n >= 8, i = the block root index.
+        static void transform(double *re, double *im, int n, bool inverse, const double *twr, const double *twi, int i = 1) {
+            int lz = std::countr_zero(uint(n)), leaf = (lz - std::countr_zero(uint(FFT_LEAF))) & 1 ? FFT_LEAF / 2 : FFT_LEAF;
+            if (n > leaf) {
+                int len = n / 4;
+                if (!inverse) { pass4(re, im, len, i, false, twr, twi); }
+                for (int q = 0; q < 4; ++q) { transform(re + q * len, im + q * len, len, inverse, twr, twi, 4 * i + q); }
+                if (inverse) { pass4(re, im, len, i, true, twr, twi); }
+                return;}
+            int top = n, base = i;
+            if (lz % 2 == 0) { top = n / 2; base = 2 * i; }
+            if (inverse) {
+                for (int b = 0; b < n / 8; ++b) { tail8(re + 8 * b, im + 8 * b, base * (top / 8) + b, true, twr, twi); }
+                for (int size = 32; size <= top; size *= 4) { for (int b = 0; b < n / size; ++b) { pass4(re + b * size, im + b * size, size / 4, base * (top / size) + b, true, twr, twi); } }
+                if (top < n) { pass2(re, im, n / 2, twr[i], twi[i], true); }
+                return;}
+            if (top < n) { pass2(re, im, n / 2, twr[i], twi[i], false); }
+            for (int size = top; size > 8; size /= 4) { for (int b = 0; b < n / size; ++b) { pass4(re + b * size, im + b * size, size / 4, base * (top / size) + b, false, twr, twi); } }
+            for (int b = 0; b < n / 8; ++b) { tail8(re + 8 * b, im + 8 * b, base * (top / 8) + b, false, twr, twi); }}
+        // The convolution step of the conjugate positions p and q (frequencies k and M - k) with the 2M-th root w of k: Z'_p and Z'_q of the product of the packed real sequences.
+        static void one(double *xr, double *xi, const double *yr, const double *yi, int p, int q, double wr, double wi) {
+            double er = xr[p] + xr[q], ei = xi[p] - xi[q], o_r = xi[p] + xi[q], o_i = xr[q] - xr[p];
+            double ror = wr * o_r - wi * o_i, roi = wr * o_i + wi * o_r;
+            double xpr = er + ror, xpi = ei + roi, xmr = er - ror, xmi = ei - roi, ypr = xpr, ypi = xpi, ymr = xmr, ymi = xmi;
+            if (yr != xr) {
+                double fr = yr[p] + yr[q], fi = yi[p] - yi[q], g_r = yi[p] + yi[q], g_i = yr[q] - yr[p];
+                double rgr = wr * g_r - wi * g_i, rgi = wr * g_i + wi * g_r;
+                ypr = fr + rgr; ypi = fi + rgi; ymr = fr - rgr; ymi = fi - rgi;}
+            double cpr = xpr * ypr - xpi * ypi, cpi = xpr * ypi + xpi * ypr, cmr = xmr * ymr - xmi * ymi, cmi = xmr * ymi + xmi * ymr;
+            double epr = cpr + cmr, epi = cpi + cmi, ddr = cpr - cmr, ddi = cpi - cmi;
+            double opr = ddr * wr + ddi * wi, opi = ddi * wr - ddr * wi;
+            xr[p] = epr - opi; xi[p] = epi + opr; xr[q] = epr + opi; xi[q] = opr - epi;}
+        // The len pairs (p + j, q - j) with the roots (wr[j], wi[j]).
+        static void pairs(double *xr, double *xi, const double *yr, const double *yi, int p, int q, int len, const double *wr, const double *wi) {
+            int j = 0;
+#if defined(__AVX2__) && defined(__FMA__)
+            V neg = _mm256_set1_pd(-1.0);
+            for (; j + 4 <= len; j += 4, p += 4, q -= 4) {
+                V xpr0 = ld(xr + p), xpi0 = ld(xi + p), xqr0 = rev(ld(xr + q - 3)), xqi0 = rev(ld(xi + q - 3)), vwr = ld(wr + j), vwi = ld(wi + j);
+                V er = _mm256_add_pd(xpr0, xqr0), ei = _mm256_sub_pd(xpi0, xqi0), o_r = _mm256_add_pd(xpi0, xqi0), o_i = _mm256_sub_pd(xqr0, xpr0), ror, roi;
+                cmul(o_r, o_i, vwr, vwi, ror, roi);
+                V xpr = _mm256_add_pd(er, ror), xpi = _mm256_add_pd(ei, roi), xmr = _mm256_sub_pd(er, ror), xmi = _mm256_sub_pd(ei, roi), ypr = xpr, ypi = xpi, ymr = xmr, ymi = xmi;
+                if (yr != xr) {
+                    V ypr0 = ld(yr + p), ypi0 = ld(yi + p), yqr0 = rev(ld(yr + q - 3)), yqi0 = rev(ld(yi + q - 3));
+                    V fr = _mm256_add_pd(ypr0, yqr0), fi = _mm256_sub_pd(ypi0, yqi0), g_r = _mm256_add_pd(ypi0, yqi0), g_i = _mm256_sub_pd(yqr0, ypr0), rgr, rgi;
+                    cmul(g_r, g_i, vwr, vwi, rgr, rgi);
+                    ypr = _mm256_add_pd(fr, rgr); ypi = _mm256_add_pd(fi, rgi); ymr = _mm256_sub_pd(fr, rgr); ymi = _mm256_sub_pd(fi, rgi);}
+                V cpr, cpi, cmr, cmi, opr, opi;
+                cmul(xpr, xpi, ypr, ypi, cpr, cpi); cmul(xmr, xmi, ymr, ymi, cmr, cmi);
+                V epr = _mm256_add_pd(cpr, cmr), epi = _mm256_add_pd(cpi, cmi);
+                cmul(_mm256_sub_pd(cpr, cmr), _mm256_sub_pd(cpi, cmi), vwr, _mm256_mul_pd(vwi, neg), opr, opi);
+                st(xr + p, _mm256_sub_pd(epr, opi)); st(xi + p, _mm256_add_pd(epi, opr));
+                st(xr + q - 3, rev(_mm256_add_pd(epr, opi))); st(xi + q - 3, rev(_mm256_sub_pd(opr, epi)));}
+#endif
+            for (; j < len; ++j, ++p, --q) { one(xr, xi, yr, yi, p, q, wr[j], wi[j]); }}
+        // Packed real convolution step on the block-ordered spectra of r chunks of n points: x <- 8 Z' of the product of the real sequences packed in x and y (y may be x);
+        // chunk 0 pairs p in [h, 3h/2) with 3h - 1 - p, chunk q mirrors chunk r - q.
+        static void dot(double *xr, double *xi, const double *yr, const double *yi, int n, int r) {
+            const double *wr = table(false).p + n, *wi = table(true).p + n;
+            one(xr, xi, yr, yi, 0, 0, 1.0, 0.0); one(xr, xi, yr, yi, 1, 1, 0.0, 1.0);
+            for (int h = 2; h < n; h *= 2) { pairs(xr, xi, yr, yi, h, 2 * h - 1, h / 2, wr + h, wi + h); }
+            for (int q = 1; 2 * q < r; ++q) { pairs(xr, xi, yr, yi, q * n, (r - q + 1) * n - 1, n, table(false, tableId(r, q)).p + n, table(true, tableId(r, q)).p + n); }}
     };
-    // T: O(len * log(len)), M: O(len); 16-bit pieces of a and b packed as one complex sequence; exact while
-    // min(n, m) * 2^33 stays below 2^50, which the dispatcher guarantees.
-    inline void fftCyclic(W *lo, W *hi, const uint *a, int n, const uint *b, int m, int len) {
-        static HugeVec<double> buf;
-        int pieces = 2 * len;
-        buf.resize(2 * pieces);
-        double *re = buf.p, *im = buf.p + pieces;
-        std::fill(re, re + pieces, 0.0); std::fill(im, im + pieces, 0.0);
-        for (int i = 0; i < n; ++i) { re[2 * i] = a[i] & 0xFFFF; re[2 * i + 1] = a[i] >> 16; }
-        for (int i = 0; i < m; ++i) { im[2 * i] = b[i] & 0xFFFF; im[2 * i + 1] = b[i] >> 16; }
-        Fft::transform(re, im, pieces, false);
-        for (int p = 0; p < pieces; ++p) {
-            int q = Fft::partner(p);
-            if (q < p) { continue; }
-            double pr = re[p], pi = im[p], qr = re[q], qi = im[q];
-            double ar = (pr + qr) * 0.5, ai = (pi - qi) * 0.5, br = (pi + qi) * 0.5, bi = (qr - pr) * 0.5;
-            re[p] = ar * br - ai * bi; im[p] = ar * bi + ai * br;
-            if (q != p) {
-                double cr = ar, ci = -ai, dr = br, di = -bi;
-                re[q] = cr * dr - ci * di; im[q] = cr * di + ci * dr;}}
-        Fft::transform(re, im, pieces, true);
-        for (int i = 0; i < len; ++i) {
-            ulll e = ulll(std::llround(re[2 * i])) + (ulll(std::llround(re[2 * i + 1])) << 16);
-            lo[i] = W(e); hi[i] = W(e >> 64);}}
-    constexpr int FFT_DOUBLE_MAX = 1 << 14, NTT_MAX_WORDS = 1 << 28;
-    // Cyclic limb convolution of cyclicLimbs(len, n, m) limbs of the limb images of a and b (words); lo and hi (that many words each) hold lo + hi * 2^64 per limb.
+
+    // T: O(1) (at most 22 * 3 * 13 candidates), M: O(1); plan of an n-word by m-word product: the smallest r 2^lg-point FFT (r in {1, 3, 5}) and the widest k-bit pieces that the bound admits (sqrt(nx ny) 2^(2k - 2) Phi <= 0.49
+    // for the piece counts nx, ny), covering the n + m words of the product or, cyclic, want >= max(n, m) words of residue; lg = 0 when none fits.
+    inline FftPlan fftPlan(int n, int m, int want, bool cyclic) {
+        assert(n >= 1 && m >= 1 && (!cyclic || want >= max(n, m)));
+        int lo = cyclic ? 5 : FFT_MIN_LOG;
+        for (int lg = lo; lg <= FFT_MAX_LOG; ++lg) {
+            for (int r : {1, 5, 3}) {
+                int l = lg - (r == 5 ? 2 : r == 3 ? 1 : 0);
+                if (l < lo) { continue; }
+                lng pts = lng(2 * r) << l;
+                double phi = FFT_PHI[size_t(r)][size_t(l)];
+                for (int k = FFT_MAX_K; k >= FFT_MIN_K; --k) {
+                    lng nx = (64LL * n + k - 1) / k + 1, ny = (64LL * m + k - 1) / k + 1;
+                    if (double(nx) * double(ny) * std::ldexp(phi * phi, 4 * k - 4) > 0.2401) { continue; }
+                    if (cyclic ? k * pts < 64LL * want : nx + ny - 1 > pts) { break; }
+                    return {l, r, k, cyclic ? int(k * pts / 64) : n + m};}}}
+        return {0, 0, 0, 0};}
+    // T: O(n), M: O(1); balanced k-bit pieces x_j = d_j + b_(j-1) - 2^k b_j of the digits d_j of a, b_j = [d_j >= 2^(k-1)] (so |x_j| <= 2^(k-1) without a carry chain) and the
+    // top piece b_last, even pieces into re and odd into im (n2 each, the rest zero; a top piece at 2 n2 folds into x_0); returns the piece count.
+    inline int fftSplit(double *re, double *im, int n2, const W *a, int n, int k) {
+        W mask = (W(1) << k) - 1, half = W(1) << (k - 1);
+        int pieces = int((64LL * n + k - 1) / k), j = 0;
+        lng bprev = 0;
+#ifdef __AVX2__
+        // Eight pieces per step, the even ones in one vector and the odd ones in another; each lane gathers its digit from the two words it spans (all within the four loaded)
+        __m256i lane = _mm256_setr_epi64x(0, 2 * k, 4 * k, 6 * k), vk = _mm256_set1_epi64x(k), vmask = _mm256_set1_epi64x(lng(mask)), vhalf = _mm256_set1_epi64x(lng(half) - 1);
+        __m256i kbit = _mm256_set1_epi64x(lng(1) << k), one = _mm256_set1_epi64x(1), two = _mm256_set1_epi32(2), sixtyfour = _mm256_set1_epi64x(64), magic = _mm256_set1_epi64x(0x4338000000000000LL);
+        __m256d dmagic = _mm256_set1_pd(0x1.8p52);
+        auto digits = [&](__m256i sv, __m256i words) {
+            __m256i idx = _mm256_srli_epi64(sv, 6), sh = _mm256_and_si256(sv, _mm256_set1_epi64x(63));
+            __m256i idx2 = _mm256_add_epi32(_mm256_slli_epi32(_mm256_shuffle_epi32(idx, 0xA0), 1), _mm256_setr_epi32(0, 1, 0, 1, 0, 1, 0, 1));
+            __m256i lo = _mm256_permutevar8x32_epi32(words, idx2), hi = _mm256_permutevar8x32_epi32(words, _mm256_add_epi32(idx2, two));
+            return _mm256_and_si256(_mm256_or_si256(_mm256_srlv_epi64(lo, sh), _mm256_sllv_epi64(hi, _mm256_sub_epi64(sixtyfour, sh))), vmask);};
+        auto toDouble = [&](__m256i v) { return _mm256_sub_pd(_mm256_castsi256_pd(_mm256_add_epi64(v, magic)), dmagic); };
+        for (; j + 8 <= pieces && (lng(k) * j >> 6) + 4 <= n; j += 8) {
+            lng o = lng(k) * j; int w0 = int(o >> 6);
+            __m256i sv = _mm256_add_epi64(_mm256_set1_epi64x(o - 64 * lng(w0)), lane), words = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(a + w0));
+            __m256i de = digits(sv, words), dodd = digits(_mm256_add_epi64(sv, vk), words), be = _mm256_cmpgt_epi64(de, vhalf), bo = _mm256_cmpgt_epi64(dodd, vhalf);
+            __m256i bup = _mm256_blend_epi32(_mm256_permute4x64_epi64(bo, 0x90), _mm256_set1_epi64x(-bprev), 0x03);
+            __m256i ve = _mm256_sub_epi64(_mm256_add_epi64(de, _mm256_and_si256(bup, one)), _mm256_and_si256(be, kbit));
+            __m256i vo = _mm256_sub_epi64(_mm256_add_epi64(dodd, _mm256_and_si256(be, one)), _mm256_and_si256(bo, kbit));
+            _mm256_storeu_pd(re + (j >> 1), toDouble(ve)); _mm256_storeu_pd(im + (j >> 1), toDouble(vo));
+            bprev = -lng(_mm256_extract_epi64(bo, 3));}
+#endif
+        for (; j < pieces; ++j) {
+            lng o = lng(k) * j; int w = int(o >> 6), s = int(o & 63);
+            W d = (a[w] >> s) | (((w + 1 < n ? a[w + 1] : 0) << 1) << (63 - s)), b = (d & mask) >= half;
+            (j & 1 ? im : re)[j >> 1] = double(lng(d & mask) + bprev - lng(b << k));
+            bprev = lng(b);}
+        if (j == 2 * n2) { re[0] += double(bprev); }
+        else { (j & 1 ? im : re)[j >> 1] = double(bprev); ++j; }
+        std::fill(re + (j + 1) / 2, re + n2, 0.0); std::fill(im + j / 2, im + n2, 0.0);
+        return j;}
+    // T: O(len + pieces), M: O(1); words of the sum of the rounded coefficients c_j 2^(k j): the len words of an exact product (the pieces above them cancel), or the fold of all pieces of a cyclic residue.
+    inline void fftMerge(W *r, int len, const double *re, const double *im, int pieces, int k, double scale, bool cyclic) {
+        int last = cyclic ? pieces : min(pieces, int((64LL * len + k - 1) / k)), w = 0, s = 0;
+        // lo and hi: the chunks of the pieces starting in word w that land in words w and w + 1; |c_j| < 2^51, so the bits of c_j + 1.5 2^52 are those of 1.5 2^52 plus the rounded value
+        ulll lo = 0; lng hi = 0, up = 0; lll carry = 0;
+        auto flush = [&] { lll t = lll(lo) + up + carry; r[w++] = W(t); carry = t >> 64; up = hi; lo = 0; hi = 0; };
+        auto step = [&](double v) {
+            lng c = std::bit_cast<lng>(v * scale + 0x1.8p52) - 0x4338000000000000LL;
+            lo += W(c) << s; hi += (c >> 1) >> (63 - s);
+            if ((s += k) >= 64) { flush(); s -= 64; }};
+        for (int j = 0; j + 1 < last; j += 2) { step(re[j >> 1]); step(im[j >> 1]); }
+        if (last & 1) { step(re[last >> 1]); }
+        while (w < len) { flush(); }
+        if (!cyclic) { return; }
+        lng top = lng(up + carry);
+        if (top >= 0) { for (W c = addWord(r, len, W(top)); c; c = addWord(r, len, c)) {} }
+        else if (subWord(r, len, W(-top))) { subWord(r, len, 1); }}
+    // T: O(N * log(N)) for the N pieces of the plan, M: O(N); r = a * b (n + m words) or, cyclic, a representative in [0, B^len) of a * b mod (B^len - 1).
+    inline void fftRun(W *r, const FftPlan &p, const W *a, int n, const W *b, int m, bool cyclic) {
+        static HugeVec<double> bx, by;
+        int len = 1 << p.lg, n2 = p.r * len, k = p.k;
+        bool same = a == b && n == m;
+        Fft::ensure(len, p.r);
+        bx.resize(2 * n2);
+        if (!same) { by.resize(2 * n2); }
+        double *xr = bx.p, *xi = xr + n2, *yr = same ? xr : by.p, *yi = yr + n2;
+        int nx = fftSplit(xr, xi, n2, a, n, k), ny = same ? nx : fftSplit(yr, yi, n2, b, m, k);
+        auto run = [&](double *re, double *im, bool inverse) {
+            if (!inverse && p.r > 1) { Fft::column(re, im, len, p.r, false); }
+            for (int q = 0; q < p.r; ++q) { int t = Fft::tableId(p.r, q); Fft::transform(re + q * len, im + q * len, len, inverse, Fft::table(false, t).p, Fft::table(true, t).p); }
+            if (inverse && p.r > 1) { Fft::column(re, im, len, p.r, true); }};
+        run(xr, xi, false);
+        if (!same) { run(yr, yi, false); }
+        Fft::dot(xr, xi, yr, yi, len, p.r);
+        run(xr, xi, true);
+        fftMerge(r, p.len, xr, xi, cyclic ? 2 * n2 : nx + ny - 1, k, std::ldexp(1.0, -(p.lg + 3)) / p.r, cyclic);}
+    // T: O(len * log(len)), M: O(len); cyclic limb convolution of cyclicLimbs(len, n, m) limbs of the limb images of a and b (words) through the exact NTTs; lo and hi (that many words each) hold lo + hi * 2^64 per limb.
     inline void nttCyclic(W *lo, W *hi, const W *a, int n, const W *b, int m, int len) {
         static HugeVec<uint> la, lb;
         bool same = a == b && n == m;
@@ -561,13 +944,12 @@ namespace infint_detail {
         int limbs = cyclicLimbs(len, n, m);
         const uint *pa = la.p, *pb = same ? la.p : lb.p;
         int na = 2 * n, nb = same ? 2 * n : 2 * m;
-#ifndef __AVX2__
-        if (min(n, m) <= FFT_DOUBLE_MAX && limbs <= (1 << NTT_MAX_LOG)) { fftCyclic(lo, hi, pa, na, pb, nb, limbs); return; }
-#endif
         if (limbs <= (1 << NTT_MAX_LOG)) { ntt3Cyclic(lo, hi, pa, na, pb, nb, limbs); return; }
         ntt64Cyclic(lo, hi, pa, na, pb, nb, limbs);}
-    // T: O(len * log(len)), M: O(len); r (n + m words) = a * b through the transform backends.
+    // T: O((n + m) * log(n + m)), M: O(n + m); r (n + m words) = a * b: the double FFT while its bound is exact, else the NTTs' limb convolution.
     inline void transformMul(W *r, const W *a, int n, const W *b, int m) {
+        FftPlan p = fftPlan(n, m, n + m, false);
+        if (p.lg) { fftRun(r, p, a, n, b, m, false); return; }
         int limbs = cyclicLimbs(n + m, n, m);
         Scratch s(2 * size_t(limbs));
         W *lo = s, *hi = lo + limbs;
@@ -619,7 +1001,7 @@ namespace infint_detail {
                         else { sub(u, p, q); add(p, p, q); shift(q, u, j * step); }}}}
             if (inverse) { for (int i = 0; i < cnt; ++i) { shift(x + size_t(i) * e, x + size_t(i) * e, n2 - std::countr_zero(uint(cnt))); } }}
     };
-    // T: O(n log n) word operations with the pointwise products through the transforms (O(n log n log log n) bit operations recursively): 2^k pieces of p words,
+    // T: O(n * log(n)) word operations with the pointwise products through the transforms (O(n * log(n) * log(log(n))) bit operations recursively), M: O(n + m): 2^k pieces of p words,
     // k = (bit_width(n + m) + 1) / 2, convolved over a Fermat ring; n >= m >= 1, n + m <= 2^30, r has n + m words and may alias a or b.
     inline void schonhageStrassen(W *r, const W *a, int n, const W *b, int m) {
         int k = (std::bit_width(uint(n + m)) + 1) / 2, cnt = 1 << k, p = (n + m) / cnt + 1, q = max(1, cnt >> 7), len = (2 * p + q) / q * q, e = len + 1;
@@ -637,18 +1019,18 @@ namespace infint_detail {
         for (int i = 0; i < cnt; ++i) { mulAny(t, A + size_t(i) * e, e, B + size_t(i) * e, e); f.reduce(A + size_t(i) * e, t); }
         f.transform(A, cnt, true);
         zero(r, n + m);
-        for (int j = 0; j * p < n + m; ++j) { const W *c = A + size_t(j) * e; addInto(r + j * p, n + m - j * p, c, norm(c, len)); }}
-    // Transform lengths round up to a power of two; a product whose length wastes more than a third of the transform stays with Toom-3.
-    inline bool padded(int len) { return 3 * ulng(len) >= 2 * ulng(std::bit_ceil(uint(len))); }
-    // Transform work of a product of len words: its 2 bit_ceil(len) limbs times the log of that length.
-    inline ulng transformWork(int len) { ulng p = std::bit_ceil(uint(len)); return p * std::bit_width(p); }
-    // T: O(M(n)) word products by size: basecase, Karatsuba, Toom-3, transforms; n >= m >= 1, r has n + m words.
+        for (int j = 0; j * p < n + m; ++j) { const W *c = A + size_t(j) * e; addInto(r + j * p, min(len + 1, n + m - j * p), c, norm(c, len)); }}
+    // T: O(1), M: O(1); transform work of a product of len words: the smallest r 2^lg >= len (r in {1, 3, 5}) times the log of that length.
+    inline ulng transformWork(int len) {
+        ulng p = std::bit_ceil(uint(len)), m = 5 * p / 8 >= ulng(len) ? 5 * p / 8 : 3 * p / 4 >= ulng(len) ? 3 * p / 4 : p;
+        return m * std::bit_width(p);}
+    // T: O(M(n)) word products by size: basecase, Karatsuba, Toom-3, transforms, M: O(n + m) workspace; n >= m >= 1, r has n + m words.
     inline void mul(W *r, const W *a, int n, const W *b, int m) {
         if (m == 1) { r[n] = mulWord(r, a, n, b[0]); return; }
         if (a == b && n == m) { square(r, a, n); return; }
         if (m < KARATSUBA) { mulBasecase(r, a, n, b, m); return; }
-        if (m >= FFT && n + m <= NTT_MAX_WORDS && (n >= 2 * m || m >= 3 * FFT / 2 || padded(n + m))) {
-            int chunk = 0; ulng best = padded(n + m) ? 9 * transformWork(n + m) / 10 : ~ulng(0);
+        if (m >= FFT && n + m <= NTT_MAX_WORDS) {
+            int chunk = 0; ulng best = 9 * transformWork(n + m) / 10;
             for (int s = int(std::bit_ceil(uint(n + m))) / 2; s > m; s /= 2) {
                 int c = s - m, pieces = (n + c - 1) / c;
                 ulng work = ulng(pieces - 1) * transformWork(s) + transformWork(n - (pieces - 1) * c + m);
@@ -658,14 +1040,15 @@ namespace infint_detail {
         if (n >= 2 * m) { unbalancedMul(r, a, n, b, m, m); return; }
         if (m >= TOOM3 && n == m) { toom3(r, a, b, n); return; }
         karatsuba(r, a, n, b, m);}
+    // T: O(M(n)) word products by size: basecase, Karatsuba, Toom-3, transforms, M: O(n) workspace; n >= 1, r has 2n words.
     inline void square(W *r, const W *a, int n) {
         if (n < KARATSUBA_SQR) { squareBasecase(r, a, n); return; }
-        if (n >= FFT_SQR && 2 * n <= NTT_MAX_WORDS && padded(2 * n)) { transformMul(r, a, n, a, n); return; }
+        if (n >= FFT_SQR && 2 * n <= NTT_MAX_WORDS) { transformMul(r, a, n, a, n); return; }
         if (n >= TOOM3_SQR) { toom3Square(r, a, n); return; }
         karatsubaSquare(r, a, n);}
-    // Moller-Granlund reciprocal of a normalized divisor (top bit set).
+    // T: O(1), M: O(1); moller-Granlund reciprocal of a normalized divisor (top bit set).
     inline W invWord(W d) { return W(((WW(~d) << 64) | ~W(0)) / d); }
-    // q = (u1:u0) / d, returns the remainder; d normalized, u1 < d, v = invWord(d).
+    // T: O(1), M: O(1); q = (u1:u0) / d, returns the remainder; d normalized, u1 < d, v = invWord(d).
     inline W div2by1(W &q, W u1, W u0, W d, W v) {
         WW t = WW(v) * u1 + ((WW(u1) << 64) | u0);
         W q1 = W(t >> 64) + 1, q0 = W(t), r = u0 - q1 * d;
@@ -713,7 +1096,7 @@ namespace infint_detail {
             q[j] = qh;}
         std::copy(u, u + m, r);}
     inline void div2n1n(W *q, W *r, const W *a, const W *b, int n);
-    // Burnikel-Ziegler 3n/2n step: a (3n words) < b * B^n, b (2n words) normalized; q n words, r 2n words.
+    // T: O(M(n) * log(n)), M: O(n); burnikel-Ziegler 3n/2n step: a (3n words) < b * B^n, b (2n words) normalized; q n words, r 2n words.
     inline void div3n2n(W *q, W *r, const W *a, const W *b, int n) {
         Scratch s(5 * size_t(n) + 1);
         W *rr = s, *d = rr + 3 * n + 1;
@@ -811,8 +1194,8 @@ namespace infint_detail {
             std::copy(z, z + m, z + m);}
         std::copy(qq, qq + (n - m + 1), q);
         std::copy(z + m, z + 2 * m, r);}
-    // T: O(min(m, n - m) * m) word products below BURNIKEL, subquadratic above (a fresh reciprocal for quotients of at least 4m words
-    // from NEWTON_LONG); q (n - m + 1 words), r (m words); b of m >= 1 words with b[m - 1] != 0, n >= m; q and r may be null.
+    // T: O((n - m) * m) word products below BURNIKEL, subquadratic above (a fresh reciprocal for quotients of at least 4m words from NEWTON_LONG),
+    // M: O(n); q (n - m + 1 words), r (m words); b of m >= 1 words with b[m - 1] != 0, n >= m; q and r may be null.
     inline void divRem(W *q, W *r, const W *a, int n, const W *b, int m, const W *inv = nullptr) {
         Scratch s(3 * size_t(n) + size_t(m) + 5);
         W *an = s, *bn = an + n + 1, *qt = bn + m, *iv = qt + n - m + 2, *qq = iv + m + 1;
@@ -829,6 +1212,7 @@ namespace infint_detail {
         else { divBurnikelZiegler(qt, r, an, na, bn, m); }
         std::copy(qt, qt + (n - m + 1), q);
         if (sh) { shr(r, r, m, sh); }}
+    // T: O(1), M: O(1); the inverse of the odd b modulo 2^64.
     inline W invMod64(W b) {
         W x = b;
         for (int i = 0; i < 6; ++i) { x *= 2 - b * x; }
@@ -845,7 +1229,7 @@ namespace infint_detail {
             int len = min(m, n - i);
             W borrow = subMul(u + i, b, len, qi);
             if (i + len < n) { subWord(u + i + len, n - i - len, borrow); }}}
-    // Binary GCD of a (n words) and b (m words), both nonzero, result in a; returns its length.
+    // T: O(n * b) word operations for b-bit operands (at most b subtract-and-shift steps), M: O(n); binary GCD of a (n words) and b (m words), both nonzero, result in a; returns its length.
     inline int gcdBinary(W *a, int n, W *b, int m) {
         W *out = a;
         auto ctz = [](const W *x, int len) { int c = 0; while (x[c] == 0 && c + 1 < len) { ++c; } return 64 * c + std::countr_zero(x[c]); };
@@ -943,13 +1327,13 @@ struct InfInt {
     InfInt() {}
     template<typename T> requires isIntegral<T> InfInt(T x) { *this = x; }
     InfInt(string_view s, uint base = 10) { bool ok = read(s, base); assert(ok); (void)ok; }
-    // T: O(M(n) * log(n)); digits most significant first, each below base in [2, 2^32); sign -1 or 1.
+    // T: O(M(n) * log(n)), M: O(n); digits most significant first, each below base in [2, 2^32); sign -1 or 1.
     InfInt(const vector<uint> &digits, uint base = 10, int sign = 1) {
         assert(base >= 2 && (sign == 1 || sign == -1) && std::ranges::all_of(digits, [&](uint d) { return d < base; }));
         fromDigits(int(digits.size()), base, [&](int i) { return digits[size_t(i)]; });
         trim(); sgn = isNil() ? 1 : sign;}
     template<int N> InfInt(const UInt<N> &u) { n.assign(u.w.data(), N); trim(); }
-    // T: O(n); little-endian magnitude limbs (base 2^32 or 2^64) with a sign.
+    // T: O(n), M: O(n); little-endian magnitude limbs (base 2^32 or 2^64) with a sign.
     static InfInt fromLimbs(const vector<uint> &limbs, int sign = 1) {
         assert(sign == 1 || sign == -1);
         InfInt r; r.n.setSize(int(limbs.size() + 1) / 2);
@@ -960,7 +1344,7 @@ struct InfInt {
         assert(sign == 1 || sign == -1);
         InfInt r; r.n.assign(limbs.data(), int(limbs.size())); r.trim(); r.sgn = r.isNil() ? 1 : sign;
         return r;}
-    // T: O(b / w); the integer part of a non-NaN double, infinities to the sentinel.
+    // T: O(b / w), M: O(b / w); the integer part of a non-NaN double, infinities to the sentinel.
     static InfInt fromDouble(double d) {
         assert(!std::isnan(d));
         InfInt r;
@@ -984,7 +1368,7 @@ struct InfInt {
         for (W &x : r.n) { x = draw64(rng); }
         r.n.back() &= (W(2) << ((bits - 1) % 64)) - 1;
         return r;}
-    // T: O(b / w) expected; uniform on [0, bound) for finite bound > 0 (rejection sampling) and a value of exactly bits bits; rng is
+    // T: O(b / w) expected, M: O(b / w); uniform on [0, bound) for finite bound > 0 (rejection sampling) and a value of exactly bits bits; rng is
     // std::mt19937, std::mt19937_64 or another generator with min() 0 and max() 2^32 - 1 or 2^64 - 1.
     template<typename R> friend InfInt sample(const InfInt &bound, R &rng) {
         assert(!bound.is_inf && bound.sgn == 1 && !bound.isNil());
@@ -1004,7 +1388,7 @@ struct InfInt {
         if (W hi = W(u >> 64)) { n.push_back(hi); }
         return *this;}
 
-    // T: O(1)
+    // T: O(1), M: O(1)
     bool isNil() const { return !is_inf && (n.empty() || (n.size() == 1 && n[0] == 0)); }
     explicit operator bool() const { return !isNil(); }
     void trim() {
@@ -1025,14 +1409,14 @@ struct InfInt {
         r.trim();
         return r;}
     bool fitsWord() const { return n.size() <= 1; }
-    // T: O(1); finite values convert modulo 2^64 (two's complement), infinity saturates.
+    // T: O(1), M: O(1); finite values convert modulo 2^64 (two's complement), infinity saturates.
     explicit operator lng() const {
         if (is_inf) { return sgn == 1 ? LLONG_MAX : LLONG_MIN; }
         return lng(sgn == 1 ? low64() : ulng(0) - low64());}
     explicit operator ulng() const {
         if (is_inf) { return sgn == 1 ? ULLONG_MAX : 0; }
         return sgn == 1 ? low64() : ulng(0) - low64();}
-    // T: O(1); true iff the value is representable in T (integral through 128 bits), then stores it.
+    // T: O(1), M: O(1); true iff the value is representable in T (integral through 128 bits), then stores it.
     template<typename T> requires isIntegral<T> bool tryCast(T &out) const {
         if (is_inf || n.size() > 2) { return false; }
         ulll mag = n.size() == 2 ? (ulll(n[1]) << 64) | n[0] : low64();
@@ -1044,7 +1428,7 @@ struct InfInt {
             if ((sgn == -1 && mag) || mag > ulll(std::numeric_limits<T>::max())) { return false; }
             out = T(mag);}
         return true;}
-    // T: O(n); correctly rounded (nearest even) conversion, overflow and the sentinel give +-infinity.
+    // T: O(n), M: O(1); correctly rounded (nearest even) conversion, overflow and the sentinel give +-infinity.
     double toDouble() const {
         if (is_inf) { return sgn * std::numeric_limits<double>::infinity(); }
         if (isNil()) { return 0.0; }
@@ -1066,7 +1450,7 @@ struct InfInt {
             static_assert(std::same_as<T, ulng>);
             return n.empty() ? vector<ulng>{0} : vector<ulng>(n.begin(), n.end());}}
 
-    // S: O(M(n) log(n)) powers for n words, U: NA, Q: O(1), M: O(n); radix conversion: blocks of DIGITS digits in base BP = base^DIGITS, cached powers BP^(2^j) with reciprocals.
+    // S: O(M(n) * log(n)) powers for n words, U: NA, Q: O(1), M: O(n); radix conversion: blocks of DIGITS digits in base BP = base^DIGITS, cached powers BP^(2^j) with reciprocals.
     struct Radix { W bp; int digits; vector<vector<W>> pow, inv; };
     static Radix &radix(uint base) {
         static unordered_map<uint, Radix> cache;
@@ -1092,7 +1476,7 @@ struct InfInt {
             r.inv[size_t(j)].resize(size_t(m) + 1);
             infint_detail::reciprocal(r.inv[size_t(j)].data(), bn.data(), m);}
         return r.inv[size_t(j)];}
-    // T: O(M(n) * log(n)); little-endian blocks to words at out (room for cnt + 1), returns the length.
+    // T: O(M(n) * log(n)), M: O(n); little-endian blocks to words at out (room for cnt + 1), returns the length.
     static int fromBlocks(W *out, const W *blk, int cnt, Radix &r) {
         if (cnt <= infint_detail::RADIX) {
             int len = 0;
@@ -1111,7 +1495,7 @@ struct InfInt {
         if (lh) { infint_detail::mulAny(out, hi, lh, p.data(), int(p.size())); }
         infint_detail::addInto(out, cnt + 1, lo, ll);
         return infint_detail::norm(out, cnt + 1);}
-    // T: O(M(n) * log(n)); the len words at v (destroyed) to little-endian blocks appended at out + cnt, padded to 2^(j + 1) blocks when pad.
+    // T: O(M(n) * log(n)), M: O(n); the len words at v (destroyed) to little-endian blocks appended at out + cnt, padded to 2^(j + 1) blocks when pad.
     static void toBlocks(W *out, int &cnt, W *v, int len, int j, bool pad, Radix &r) {
         len = infint_detail::norm(v, len);
         if (j < 0 || len <= infint_detail::RADIX) {
@@ -1161,7 +1545,7 @@ struct InfInt {
         auto ge = [](ulng x, ulng k) { return ((x | H) - k * L) & H; };   // top bit of each byte: byte >= k (bytes below 0x80)
         ulng f = w | 0x2020202020202020ULL;
         return !(w & H) && ((ge(w, '0') & ~ge(w, '9' + 1)) | (ge(f, 'a') & ~ge(f, 'f' + 1))) == H;}
-    // T: O(L); the words of a digit string in base 2^bits into out; false when a character is not a digit of the base.
+    // T: O(L), M: O(1); the words of a digit string in base 2^bits into out; false when a character is not a digit of the base.
     static bool parsePow2(Words &out, string_view s, int bits) {
         int len = int(s.size());
         out.assign(int(size_t(len) * size_t(bits) / 64) + 1, 0);
@@ -1195,7 +1579,7 @@ struct InfInt {
             w[bit / 64] |= W(d) << (bit % 64);
             if (bit % 64 + bits > 64) { w[bit / 64 + 1] |= W(d) >> (64 - bit % 64); }}
         return true;}
-    // T: O(L) for power-of-two bases, O(M(L) * log(L)) otherwise; optional sign, digits of base 2-36 (either case) or, in bases up
+    // T: O(L) for power-of-two bases, O(M(L) * log(L)) otherwise, M: O(L / w); optional sign, digits of base 2-36 (either case) or, in bases up
     // to 23, "inf"; false and no change when malformed.
     bool read(string_view s, uint base = 10) {
         assert(base >= 2 && base <= 36);
@@ -1261,13 +1645,13 @@ struct InfInt {
             int bit = i * bits; W d = w[bit / 64] >> (bit % 64);
             if (bit % 64 + bits > 64 && bit / 64 + 1 < len) { d |= w[bit / 64 + 1] << (64 - bit % 64); }
             out[cnt - 1 - i] = dig[d & ((W(1) << bits) - 1)];}}
-    // T: O(1); an upper bound on the length toChars writes in base 2-36, sign included.
+    // T: O(1), M: O(1); an upper bound on the length toChars writes in base 2-36, sign included.
     int charsBound(uint base = 10) const {
         assert(base >= 2 && base <= 36);
         if (is_inf) { return 4; }
         int bits = max(bitLength(*this), 1), k = std::bit_width(std::clamp(base, 2u, 36u)) - 1;
         return (bits + k - 1) / k + 1;}
-    // T: O(L) for power-of-two bases and one-word values, O(M(L) * log(L)) otherwise; the text of toString into [first, last): the end
+    // T: O(L) for power-of-two bases and one-word values, O(M(L) * log(L)) otherwise, M: O(L / w); the text of toString into [first, last): the end
     // pointer, or last with errc::value_too_large and nothing written when the room is short.
     std::to_chars_result toChars(char *first, char *last, uint base = 10, bool lower = false) const {
         assert(base >= 2 && base <= 36);
@@ -1313,12 +1697,12 @@ struct InfInt {
             for (int d = 0; d < r.digits; ++d) { *--o = dig[v % base]; v /= base; }}
         for (W v = blk[cnt - 1]; v; v /= base) { *--o = dig[v % base]; }
         return {end, std::errc()};}
-    // T: as toChars; uppercase digits unless lower, "-" for negatives, "0" for zero, "inf" / "-inf" for the sentinel.
+    // T: as toChars, M: O(L); uppercase digits unless lower, "-" for negatives, "0" for zero, "inf" / "-inf" for the sentinel.
     string toString(uint base = 10, bool lower = false) const {
         string out(size_t(charsBound(base)), '\0');
         out.resize(size_t(toChars(out.data(), out.data() + out.size(), base, lower).ptr - out.data()));
         return out;}
-    // T: O(M(L) * log(L)); digits most significant first in base [2, 2^32), {0} for zero.
+    // T: O(M(L) * log(L)), M: O(n + out); digits most significant first in base [2, 2^32), {0} for zero.
     vector<uint> toDigits(uint base) const {
         assert(!is_inf && base >= 2);
         base = max(base, 2u);
@@ -1414,7 +1798,7 @@ struct InfInt {
     template<typename T> requires isScalar<T> static pair<int, ulng> sgnMag(T x) {
         if constexpr (std::is_signed_v<T>) { if (x < 0) { return {-1, ulng(0) - ulng(x)}; } }
         return {1, ulng(x)};}
-    // T: O(n); inf * 0 = 0.
+    // T: O(n), M: O(n); inf * 0 = 0.
     template<typename T> requires isScalar<T> InfInt &operator*=(T o) {
         auto [os, u] = sgnMag(o);
         if (isNil() || u == 0) { return *this = 0; }
@@ -1424,7 +1808,7 @@ struct InfInt {
         W c = infint_detail::mulWord(n.data(), n.data(), n.size(), u);
         if (c) { n.push_back(c); }
         return *this;}
-    // T: O(M(n)); squares when both operands are the same object or equal.
+    // T: O(M(n)), M: O(n); squares when both operands are the same object or equal.
     InfInt &operator*=(const InfInt &o) {
         if (isNil() || o.isNil()) { return *this = 0; }
         if (is_inf || o.is_inf) { sgn *= o.sgn; is_inf = true; n.clear(); return *this; }
@@ -1437,7 +1821,7 @@ struct InfInt {
         else { infint_detail::mul(r.data(), o.n.data(), m, n.data(), k); }
         n = std::move(r); trim(); sgn = s;
         return *this;}
-    // T: O(n); truncating; inf / x = inf, x / inf = 0.
+    // T: O(n), M: O(1); truncating; inf / x = inf, x / inf = 0.
     template<typename T> requires isScalar<T> InfInt &operator/=(T o) {
         auto [os, u] = sgnMag(o);
         assert(u != 0);
@@ -1448,7 +1832,7 @@ struct InfInt {
         else { infint_detail::divWord(n.data(), n.data(), n.size(), u); trim(); }
         sgn = isNil() ? 1 : s;
         return *this;}
-    // T: O(n); the remainder keeps the dividend's sign; inf % x = 0, x % inf = x.
+    // T: O(n), M: O(1); the remainder keeps the dividend's sign; inf % x = 0, x % inf = x.
     template<typename T> requires isScalar<T> InfInt &operator%=(T o) {
         ulng u = sgnMag(o).second;
         assert(u != 0);
@@ -1470,7 +1854,7 @@ struct InfInt {
         if (c < 0) { out = {0, a}; return true; }
         if (c == 0) { out = {a.sgn * b.sgn, 0}; return true; }
         return false;}
-    // T: O(min(m, n - m) * m) word products; Knuth D only.
+    // T: O((n - m) * m) word products, M: O(n); Knuth D only.
     friend pair<InfInt, InfInt> divModSlow(const InfInt &a, const InfInt &b) {
         pair<InfInt, InfInt> out;
         if (divSentinel(a, b, out)) { return out; }
@@ -1492,7 +1876,7 @@ struct InfInt {
         if (!q.isNil()) { q.sgn = qs; }
         if (!r.isNil()) { r.sgn = rs; }
         return out;}
-    // T: O(M(n) * log(n)), O(n) for a power-of-two divisor; truncating quotient and remainder (remainder keeps a's sign).
+    // T: O(M(n) * log(n)), O(n) for a power-of-two divisor, M: O(n); truncating quotient and remainder (remainder keeps a's sign).
     friend pair<InfInt, InfInt> divMod(const InfInt &a, const InfInt &b) {
         pair<InfInt, InfInt> out;
         if (divSentinel(a, b, out)) { return out; }
@@ -1553,7 +1937,7 @@ struct InfInt {
             ulll t = (ulll(r) << 64) | w[i], f = (t & mod61) + (t >> 61);
             f = (f & mod61) + (f >> 61); r = ulng(f >= mod61 ? f - mod61 : f);}
         return r;}
-    // T: O(k * m) word products for quotients of k <= HENSEL words, else O(M(n) * log(n)); exact quotient a / b for finite b | a, b != 0:
+    // T: O(k * m) word products for quotients of k <= HENSEL words, else O(M(n) * log(n)), M: O(n); exact quotient a / b for finite b | a, b != 0:
     // Hensel (2-adic) division, then the measured faster quotient-only Burnikel-Ziegler division; the assertion checks modulo 2^61 - 1.
     friend InfInt divExact(const InfInt &a, const InfInt &b) {
         assert(!a.is_inf && !b.is_inf && !b.isNil());
@@ -1569,7 +1953,7 @@ struct InfInt {
         assert(ulng(ulll(residue61(r.n.data(), r.n.size())) * residue61(y.n.data(), m) % ((1ULL << 61) - 1)) == residue61(x.n.data(), k));
         r.trim(); r.sgn = r.isNil() ? 1 : a.sgn * b.sgn;
         return r;}
-    // T: O(k * M(n)) for k removed factors; divides x by f (|f| >= 2) while possible, returns the count; x finite nonzero.
+    // T: O((k + 1) * M(n) * log(n)) for k removed factors, O(n) for a power-of-two f, M: O(n); divides x by f (|f| >= 2) while possible, returns the count; x finite nonzero.
     friend int removeFactor(InfInt &x, const InfInt &f) {
         assert(!x.is_inf && !f.is_inf && !x.isNil() && magCmp(f, 1) > 0);
         int cnt = 0;
@@ -1602,7 +1986,7 @@ struct InfInt {
         if (a.isNil() || b.isNil()) { return a.isNil() && b.isNil(); }
         return a.sgn == b.sgn && a.n == b.n;}
 
-    // T: O(n); shifts of the magnitude left, arithmetic (floor) right; the sentinel is unchanged.
+    // T: O(n), M: O(n); shifts of the magnitude left, arithmetic (floor) right; the sentinel is unchanged.
     InfInt &operator<<=(int s) {
         assert(s >= 0);
         if (is_inf || isNil() || s <= 0) { return *this; }
@@ -1655,7 +2039,7 @@ struct InfInt {
         x.resize(len, W(ea)); y.resize(len, W(eb));
         for (int i = 0; i < len; ++i) { x[i] = op(x[i], y[i]); }
         return fromTwos(std::move(x), op(W(ea), W(eb)) ? -1 : 0);}
-    // T: O(n); two's-complement semantics on finite values.
+    // T: O(n), M: O(n); two's-complement semantics on finite values.
     friend InfInt operator&(const InfInt &a, const InfInt &b) {
         if (a.sgn == 1 && b.sgn == 1 && !a.is_inf && !b.is_inf) {
             InfInt r; r.n.setSize(min(a.n.size(), b.n.size()));
@@ -1678,7 +2062,8 @@ struct InfInt {
     InfInt &operator&=(const InfInt &o) { return *this = *this & o; }
     InfInt &operator|=(const InfInt &o) { return *this = *this | o; }
     InfInt &operator^=(const InfInt &o) { return *this = *this ^ o; }
-    // T: O(n); bit queries on the magnitude (ctz, popcount, bitLength) and on the two's-complement image (testBit, scans).
+    // T: O(n), M: O(1), or O(n) for the scans (the two's-complement image) and for setBit, clearBit, flipBit on negatives; bit queries on the magnitude (ctz, popcount,
+    // bitLength) and on the two's-complement image (testBit, scans).
     friend int ctz(const InfInt &a) {
         assert(!a.is_inf && a.n.size() < (1 << 25));   // bit counts are int
         if (a.is_inf || a.isNil()) { return 0; }
@@ -1772,7 +2157,7 @@ struct InfInt {
         ha <<= 64 * shf; ha += la;
         hb <<= 64 * shf; hb += lb;
         a = std::move(ha); b = std::move(hb);}
-    // T: O(n) per pass; Lehmer step on the leading 64 bits of equally long a >= b >= 0 (at least 2 words); false when no quotient is certain.
+    // T: O(n) per pass, M: O(n); Lehmer step on the leading 64 bits of equally long a >= b >= 0 (at least 2 words); false when no quotient is certain.
     template<bool TRACK> static bool lehmerHalfGcd(InfInt &a, InfInt &b, InfInt &ma, InfInt &mb, InfInt &mc, InfInt &md) {
         constexpr lll LIM = lll(1) << 60;
         if (a.n.size() < 2 || a.n.size() != b.n.size()) { return false; }
@@ -1797,7 +2182,7 @@ struct InfInt {
         matApply(ca, cb, cc, cd, a, b);
         if constexpr (TRACK) { matApply(ca, cb, cc, cd, ma, mc); matApply(ca, cb, cc, cd, mb, md); }
         return true;}
-    // T: O(M(n) * log(n)); reduces finite a >= b >= 0 until b has at most half of a's words, returning the matrix when TRACK; false if unchanged.
+    // T: O(M(n) * log(n)), M: O(n); reduces finite a >= b >= 0 until b has at most half of a's words, returning the matrix when TRACK; false if unchanged.
     template<bool TRACK> static bool halfGcd(InfInt &a, InfInt &b, InfInt &ma, InfInt &mb, InfInt &mc, InfInt &md) {
         assert(!a.is_inf && a.sgn == 1 && !b.is_inf && b.sgn == 1 && a >= b);
         if constexpr (TRACK) { ma = 1; mb = 0; mc = 0; md = 1; }
@@ -1839,7 +2224,7 @@ struct InfInt {
                 if constexpr (TRACK) { matApply(pa, pb, pc, pd, ma, mc); matApply(pa, pb, pc, pd, mb, md); }}}
         while (!b.isNil() && b.n.size() > req) { reduce(); }
         return changed;}
-    // T: O(M(n) * log(n)); nonnegative gcd; gcd(inf, x) = |x| for x != 0.
+    // T: O(M(n) * log(n)), M: O(n); nonnegative gcd; gcd(inf, x) = |x| for x != 0.
     friend InfInt gcd(InfInt a, InfInt b) {
         if ((a.is_inf && !b.isNil()) || a.isNil()) { b.sgn = 1; return b; }
         if ((b.is_inf && !a.isNil()) || b.isNil()) { a.sgn = 1; return a; }
@@ -1861,7 +2246,7 @@ struct InfInt {
             if (b.n.size() > infint_detail::HALFGCD && halfGcd<false>(a, b, ma, mb, mc, md)) { continue; }
             if (a.n.size() > b.n.size() || !lehmerHalfGcd<false>(a, b, ma, mb, mc, md)) { a %= b; }}
         return a << z;}
-    // T: O(M(n) * log(n)); g = a x + b y with |x| <= |b| / g and |y| <= |a| / g when both are nonzero.
+    // T: O(M(n) * log(n)), M: O(n); g = a x + b y with |x| <= |b| / g and |y| <= |a| / g when both are nonzero.
     friend InfInt exGcd(InfInt a, InfInt b, InfInt &x, InfInt &y) {
         if (a.is_inf) {
             if (b.is_inf || b.isNil()) { x = a.sgn; y = 0; a.sgn = 1; return a; }
@@ -1890,7 +2275,7 @@ struct InfInt {
         if (a.is_inf || b.is_inf) { InfInt r; r.is_inf = true; return r; }
         InfInt g = gcd(a, b), r = (std::move(a) / std::move(g)) * b; r.sgn = 1;
         return r;}
-    // T: O(M(n) * log(n)); inverse of a modulo |mod| in [0, |mod|), -1 when gcd(a, mod) != 1, 0 for |mod| = 1.
+    // T: O(M(n) * log(n)), M: O(n); inverse of a modulo |mod| in [0, |mod|), -1 when gcd(a, mod) != 1, 0 for |mod| = 1.
     friend InfInt inv(InfInt a, InfInt mod) {
         assert(!a.is_inf && !mod.is_inf && !mod.isNil());
         if (a.is_inf || mod.is_inf || mod.isNil()) { return -1; }
@@ -1908,7 +2293,7 @@ struct InfInt {
         if (g != 1) { return -1; }
         if (x.sgn == -1) { x += mod; }
         return x;}
-    // T: O(M(n * e)); nonnegative exponent; inf^0 = 1.
+    // T: O(M(n * e)), M: O(n * e); nonnegative exponent; inf^0 = 1.
     friend InfInt pow(InfInt a, lng e) {
         assert(e >= 0);
         if (e < 0) { return 0; }
@@ -1919,7 +2304,7 @@ struct InfInt {
         InfInt r = a;
         for (int i = std::bit_width(ulng(e)) - 2; i >= 0; --i) { r *= r; if ((e >> i) & 1) { r *= a; } }
         return r;}
-    // S: O(M(k)), U: NA, Q: O(M(k)) per product, M: O(k); modular context for a finite modulus of k words: Montgomery REDC (odd moduli, when asked) or reduction by a cached reciprocal.
+    // S: O(M(k) * log(k)), U: NA, Q: O(M(k)) per product, M: O(k); modular context for a finite modulus of k words: Montgomery REDC (odd moduli, when asked) or reduction by a cached reciprocal.
     struct ModCtx {
         int k = 0, shift = 0; bool mont = false; Words m, minv, r2, inv, t, u, v;
         ModCtx(const InfInt &modulus, bool montgomery) {
@@ -1969,7 +2354,7 @@ struct InfInt {
             InfInt r; r.n = std::move(x); r.trim();
             return r;}
     };
-    // T: O(log(e) * M(n)) with sliding windows; a^e mod |mod| in [0, |mod|), -1 when e < 0 and a is not a unit; |mod| = 1 gives 0.
+    // T: O(log(e) * M(n)) with sliding windows, M: O(n); a^e mod |mod| in [0, |mod|), -1 when e < 0 and a is not a unit; |mod| = 1 gives 0.
     friend InfInt powMod(InfInt a, InfInt e, InfInt mod) {
         assert(!a.is_inf && !e.is_inf && !mod.is_inf && !mod.isNil());
         if (a.is_inf || e.is_inf || mod.is_inf || mod.isNil()) { return 0; }
@@ -2022,7 +2407,7 @@ struct InfInt {
         ModCtx ctx(mod, true);
         auto mulMod = [&](Words &x, const Words &y) { ctx.mul(x, y); };
         return ctx.leave(window(ctx.enter(a), mulMod));}
-    // T: O(M(n)); Zimmermann's recursive square root with remainder on words, a has n = 4l words with a[n - 1] >= 2^62; s n / 2 words, r n / 2 + 1.
+    // T: O(M(n)), M: O(n); Zimmermann's recursive square root with remainder on words, a has n = 4l words with a[n - 1] >= 2^62; s n / 2 words, r n / 2 + 1.
     static void sqrtRemWords(W *s, W *r, const W *a, int nn) {
         if (nn <= 2) {
             ulll v = nn == 2 ? (ulll(a[1]) << 64) | a[0] : a[0];
@@ -2060,7 +2445,7 @@ struct InfInt {
             infint_detail::subWord(t, hn + 2, 1); infint_detail::subWord(sx, hn + 1, 1);
             borrow -= infint_detail::add(rr, rr, hn + 2, t, hn + 2);}
         std::copy(sx, sx + hn, s); std::copy(rr, rr + hn + 1, r);}
-    // T: O(M(n)); floor square root and remainder of a finite a >= 0.
+    // T: O(M(n)), M: O(n); floor square root and remainder of a finite a >= 0.
     friend pair<InfInt, InfInt> isqrtRem(const InfInt &a) {
         assert(!a.is_inf && a.sgn == 1);
         if (a.is_inf) { return {a, 0}; }
@@ -2079,7 +2464,7 @@ struct InfInt {
         assert(a.sgn == 1);
         if (a.is_inf) { return a; }
         return isqrtRem(a).first;}
-    // T: O(log(b) * M(n) * log(k)); truncated k-th root (k >= 1) and remainder a - root^k; a < 0 only for odd k. Integer Newton from a
+    // T: O(log(b) * M(n) * log(k)), M: O(n); truncated k-th root (k >= 1) and remainder a - root^k; a < 0 only for odd k. Integer Newton from a
     // floating-point upper estimate (2^-20 relative margin), so the iteration count is logarithmic in b for every k.
     friend pair<InfInt, InfInt> kthRootRem(const InfInt &a, int k) {
         assert(!a.is_inf && k >= 1 && (a.sgn == 1 || (k & 1)));
@@ -2106,7 +2491,7 @@ struct InfInt {
         ulng r = 0;
         for (int i = a.n.size(); i-- > 0;) { r = ((r << 32) | (a.n[i] >> 32)) % m; r = ((r << 32) | uint(a.n[i])) % m; }
         return uint(r);}
-    // T: O(M(n)) after O(n) residue filters modulo 64, 63, 65 and 11.
+    // T: O(M(n)) after O(n) residue filters modulo 64, 63, 65 and 11, M: O(n); false for negatives, true for 0, else the filters and then isqrtRem.
     friend bool isPerfectSquare(const InfInt &a) {
         assert(!a.is_inf);
         if (a.is_inf || a.sgn == -1) { return false; }
@@ -2133,7 +2518,7 @@ struct InfInt {
         ulng r = 1; b %= m;
         for (; e; e >>= 1, b = ulng(ulll(b) * b % m)) { if (e & 1) { r = ulng(ulll(r) * b % m); } }
         return r;}
-    // T: O(pi(b) * n + M(n) * log(b)) worst case; 0, 1 and every x^k with k >= 2 (odd k for negative values).
+    // T: O(pi(b) * n + M(n) * log(b)) worst case, M: O(n); 0, 1 and every x^k with k >= 2 (odd k for negative values).
     friend bool isPerfectPower(const InfInt &a) {
         assert(!a.is_inf);
         InfInt m = abs(a);
@@ -2165,7 +2550,7 @@ struct InfInt {
             if ((a & 3) == 3 && (m & 3) == 3) { res = -res; }
             std::swap(a, m); a %= m;}
         return m == 1 ? res : 0;}
-    // T: O(n^2) word operations; Jacobi symbol (a / m) for odd positive m; kronecker extends it to every finite m.
+    // T: O(n^2) word operations, M: O(n); Jacobi symbol (a / m) for odd positive m; kronecker extends it to every finite m.
     friend int jacobi(const InfInt &a, const InfInt &m) {
         assert(!a.is_inf && !m.is_inf && m.sgn == 1 && !m.isNil() && (m.n[0] & 1));
         if (a.is_inf || m.is_inf || m.isNil()) { return 0; }
@@ -2191,7 +2576,7 @@ struct InfInt {
             uint a8 = uint((a & 7).low64());
             if ((t & 1) && (a8 == 3 || a8 == 5)) { res = -res; }}
         return res * jacobi(a, y);}
-    // T: O(b * M(n)); Baillie-PSW: trial division, a strong base-2 test and a strong Lucas-Selfridge test; deterministic below 2^64,
+    // T: O(b * M(n)), M: O(n); Baillie-PSW: trial division, a strong base-2 test and a strong Lucas-Selfridge test; deterministic below 2^64,
     // Monte Carlo above (no counterexample is known); false for values below 2.
     friend bool isProbablePrime(const InfInt &a) {
         assert(!a.is_inf);
@@ -2244,7 +2629,7 @@ struct InfInt {
             qk = ctx.mul(qk, qk);
             if (v.isNil()) { return true; }}
         return false;}
-    // T: O(M(n)); floor(2^(64 n) / a) for a finite positive a of n 32-bit limbs with its top limb bit set (n + 1 limbs, exact).
+    // T: O(M(n)), M: O(n); floor(2^(64 n) / a) for a finite positive a of n 32-bit limbs with its top limb bit set (n + 1 limbs, exact).
     friend InfInt newtonRaphsonInv(const InfInt &a) {
         assert(!a.is_inf && a.sgn == 1 && !a.isNil() && bitLength(a) % 32 == 0);
         if (a.is_inf || a.isNil() || bitLength(a) % 32) { return 0; }
@@ -2267,13 +2652,13 @@ struct InfInt {
         return base ? base : 10;}
     friend istream &operator>>(istream &is, SetBase sb) { is.iword(getBaseId()) = int(sb.base); return is; }
     friend ostream &operator<<(ostream &os, SetBase sb) { os.iword(getBaseId()) = int(sb.base); return os; }
-    // T: O(L); one whitespace-delimited token through the string extractor into a reused thread-local buffer (the library scans the get
+    // T: O(L), M: O(L); one whitespace-delimited token through the string extractor into a reused thread-local buffer (the library scans the get
     // area directly: 2x faster than a sgetc loop here); a malformed token sets failbit and leaves a unchanged.
     friend istream &operator>>(istream &is, InfInt &a) {
         static thread_local string tok;
         if (is >> tok && !a.read(tok, streamBase(is))) { is.setstate(std::ios_base::failbit); }
         return is;}
-    // T: as toChars; the text of toString in the stream's base, written to the stream buffer (through the width field when one is set).
+    // T: as toChars, M: O(L); the text of toString in the stream's base, written to the stream buffer (through the width field when one is set).
     friend ostream &operator<<(ostream &os, const InfInt &a) {
         uint base = streamBase(os); int bound = a.charsBound(base);
         infint_detail::Scratch s(size_t(bound + 7) / 8);
@@ -2284,7 +2669,7 @@ struct InfInt {
 };
 using iint = InfInt;
 
-// T: O(N) per linear operation and O(N^2) per product, M: O(1); fixed N-word unsigned integer, every operation wraps modulo 2^(64 N).
+// T: O(N) per linear operation and O(N^2) per product, M: O(N); fixed N-word unsigned integer, every operation wraps modulo 2^(64 N).
 template<int N> struct UInt {
     static_assert(N >= 1);
     using W = ulng;
@@ -2298,7 +2683,7 @@ template<int N> struct UInt {
         if (neg) { w.fill(~W(0)); }
         w[0] = W(u);
         if constexpr (N > 1) { w[1] = W(u >> 64); }}
-    // T: O(N); two's-complement image of a finite value modulo 2^(64 N); the string form parses as InfInt does; another width copies its low words.
+    // T: O(N), M: O(N); two's-complement image of a finite value modulo 2^(64 N); the string form parses as InfInt does; another width copies its low words.
     explicit UInt(const InfInt &a) {
         assert(!a.is_inf);
         std::copy(a.n.begin(), a.n.begin() + min(N, a.n.size()), w.begin());
@@ -2318,7 +2703,7 @@ template<int N> struct UInt {
     UInt &operator+=(const UInt &o) { infint_detail::add(w.data(), w.data(), N, o.w.data(), N); return *this; }
     UInt &operator-=(const UInt &o) { infint_detail::sub(w.data(), w.data(), N, o.w.data(), N); return *this; }
     UInt &operator*=(const UInt &o) { array<W, N> r; infint_detail::truncatedMul(r.data(), w.data(), o.w.data(), N); w = r; return *this; }
-    // T: O(N^2); quotient and remainder, o != 0.
+    // T: O(N^2), M: O(N); quotient and remainder, o != 0.
     friend pair<UInt, UInt> divMod(const UInt &a, const UInt &o) {
         int n = a.words(), m = o.words();
         assert(m > 0);
@@ -2330,7 +2715,7 @@ template<int N> struct UInt {
         return {q, r};}
     UInt &operator/=(const UInt &o) { return *this = divMod(*this, o).first; }
     UInt &operator%=(const UInt &o) { return *this = divMod(*this, o).second; }
-    // T: O(N); in-place quotient by a word d != 0, returns the remainder.
+    // T: O(N), M: O(1); in-place quotient by a word d != 0, returns the remainder.
     W divWord(W d) {
         assert(d != 0);
         int n = d ? words() : 0;
@@ -2338,7 +2723,7 @@ template<int N> struct UInt {
     UInt &operator&=(const UInt &o) { for (int i = 0; i < N; ++i) { w[size_t(i)] &= o.w[size_t(i)]; } return *this; }
     UInt &operator|=(const UInt &o) { for (int i = 0; i < N; ++i) { w[size_t(i)] |= o.w[size_t(i)]; } return *this; }
     UInt &operator^=(const UInt &o) { for (int i = 0; i < N; ++i) { w[size_t(i)] ^= o.w[size_t(i)]; } return *this; }
-    // T: O(N); shift counts in [0, 64 N); bits leave at the ends.
+    // T: O(N), M: O(1); shift counts in [0, 64 N); bits leave at the ends.
     UInt &operator<<=(int s) {
         assert(s >= 0 && s < 64 * N);
         if (s < 0 || s >= 64 * N) { w.fill(0); return *this; }
@@ -2369,7 +2754,7 @@ template<int N> struct UInt {
     friend UInt operator^(UInt a, const UInt &b) { a ^= b; return a; }
     friend UInt operator<<(UInt a, int s) { a <<= s; return a; }
     friend UInt operator>>(UInt a, int s) { a >>= s; return a; }
-    // T: O(N^2); the high N words of the 2N-word product.
+    // T: O(N^2), M: O(N); the high N words of the 2N-word product.
     friend UInt mulHigh(const UInt &a, const UInt &b) {
         W r[2 * N]; infint_detail::mulBasecase(r, a.w.data(), N, b.w.data(), N);
         UInt h; std::copy(r + N, r + 2 * N, h.w.begin());

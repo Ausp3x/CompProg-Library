@@ -4,7 +4,7 @@
 Every mode builds the optimized scalar, checked scalar and (when the CPU has them)
 AVX2/FMA/BMI2 configurations of the C++ oracle with a second translation unit and runs
 the self-test phases (schoolbook limb products, identities on oracle products,
-two's-complement bit models, sieves, native 128-bit arithmetic, libstdc++'s integer std::format)
+two's-complement bit models, sieves, native 128-bit arithmetic, modular residues of large transform products, libstdc++'s integer std::format)
 and the differential protocol against Python's big integers, format() and base conversion (cases are generated and validated as a
 stream, so the corpus never sits in memory); full and stress add ASan/UBSan scalar and AVX2 builds with INFINT_SCRATCH_HEAP (every
 arena frame a separate heap block) and the checked build runs the --invalid precondition probes; stress repeats
@@ -18,6 +18,7 @@ import os
 from pathlib import Path
 import queue
 import random
+from fractions import Fraction
 import resource
 import shlex
 import shutil
@@ -46,7 +47,7 @@ INVALID_CASES = ("div-zero", "rem-zero", "divmod-zero", "divmodslow-zero", "scal
                  "isprime-inf", "tolimbs-inf", "tochars-base", "charsbound-base", "rshift-negative", "setbit-negative",
                  "clearbit-negative", "scan0-negative", "scan1-negative", "not-inf", "ctz-inf", "bitlength-inf", "issquare-inf",
                  "kronecker-inf", "todigits-inf", "root-inf", "uint-rshift", "removefactor-zero", "uint-ctor-string", "bitlength-words",
-                 "popcount-words")
+                 "popcount-words", "fftplan-cyclic-want")
 DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 FILLS = " *0#+-x<^_~"
 
@@ -239,6 +240,55 @@ def rand_bits(rng: random.Random, bits: int, signed: bool = False) -> int:
         return 0
     x = (1 << (bits - 1)) | rng.getrandbits(bits - 1)
     return -x if signed and rng.randrange(2) else x
+
+
+def transform_operand(rng: random.Random, n: int, pattern: int) -> int:
+    """n words: 0 random with a nonzero top word, 1 all ones, 2 alternating zero and all-ones words with the top word all ones."""
+    if pattern == 1:
+        return (1 << (64 * n)) - 1
+    if pattern == 2:
+        return int("".join("F" * 16 if i % 2 == 0 else "0" * 16 for i in range(n)), 16)
+    return rand_bits(rng, 64 * n - rng.randrange(0, 64))
+
+
+def check_cyclic(line: str, prod: int, want: int) -> None:
+    """"<len> <value>" of the cyclic plan: len >= want and value is prod modulo 2^(64 len) - 1 (folded, never divided) or, when that residue is 0,
+    either 0 or the all-ones value."""
+    if line == "none":
+        raise Failure("no cyclic plan")
+    length, value = map(int, line.split())
+    if length < want:
+        raise Failure(f"cyclic len {length} below want {want}")
+    bits, ones = 64 * length, (1 << (64 * length)) - 1
+    x = prod
+    while x >> bits:
+        x = (x & ones) + (x >> bits)
+    if x == ones:
+        x = 0
+    if value != x and not (x == 0 and value == ones):
+        raise Failure(f"cyclic residue for len {length}: expected {str(x)[:120]}... (or all ones for 0), got {str(value)[:120]}...")
+
+
+def phi_exact(lg: int, r: int) -> Fraction:
+    """The Exactness bound Phi(lg, r) in exact rationals of the header's double constants: F = (1+u)^(lg+2) (1+tau)^t (1+eps_r),
+    Sigma = (1+u)^(lg+3) (1+tau)^t (1+eps_r) - 1, Phi = F^2 (1+rho) (1+2 Sigma) (1+u)^2 - 1 when r > 1 and without the (1+u)^2 for r = 1."""
+    u = Fraction(1, 2 ** 53)
+    rho = (1 + Fraction(1.4142135623730951)) * u * (1 + u)
+    mu = Fraction(1.02) * u
+    tau = mu + rho + mu * rho
+    eps = {1: Fraction(0), 3: 7 * u, 5: 16 * u}[r]
+    t = lg - 1 if r == 1 else lg + 1
+    f = (1 + u) ** (lg + 2) * (1 + tau) ** t * (1 + eps)
+    sigma = (1 + u) ** (lg + 3) * (1 + tau) ** t * (1 + eps) - 1
+    phi = f * f * (1 + rho) * (1 + 2 * sigma) - 1
+    return (1 + phi) * (1 + u) ** 2 - 1 if r > 1 else phi
+
+
+def check_phi(line: str, lg: int, r: int) -> None:
+    """The header's FFT_PHI[r][lg] (17 significant digits) within 2^-46 relative of the exact value."""
+    got, exact = Fraction(float(line)), phi_exact(lg, r)
+    if abs(got - exact) > exact / 2 ** 46:
+        raise Failure(f"FFT_PHI[{r}][{lg}] = {float(got):.17g}, exact {float(exact):.17g}")
 
 
 def build_cases(seed: int, mode: str):
@@ -526,6 +576,25 @@ def build_cases(seed: int, mode: str):
         cases.append((f"gcdk halfgcd {x} {y}", f"gcd backend halfGcd #{t}", check_half))
         cases.append((f"gcdk lehmer {x} {y}", f"gcd backend lehmerHalfGcd #{t}", check_half))
         yield from cases; cases.clear()
+    yield from cases; cases.clear()
+    # Transform products at word sizes across the FFT plan classes: transformMul, the public product and the cyclic plan for want in [max(n, m), n + m + 3]
+    # with random, all-ones and alternating operands (the worst-case pieces need the plan's k and stay in the C++ suite).
+    words = [1, 2, 3, 9, 25, 60, 150, 400, 1100, 2600, 4000] + ([6000, 9600, 14000, 20000, 40000] if mode != "quick" else [])
+    for t in range(count // 6):
+        n = rng.choice([80000, 130000]) if mode == "stress" and t % 25 == 0 else rng.choice(words)
+        m = rng.choice([n, n, max(1, n // 2), 1, max(1, n - 3)])
+        a, b = transform_operand(rng, n, t % 3), transform_operand(rng, m, (t // 3) % 3)
+        prod = a * b
+        expected = str(prod)
+        add(f"mulk transform {a} {b}", f"transformMul {n}x{m} words #{t}", expected)
+        add(f"mul {a} {b}", f"product {n}x{m} words #{t}", expected)
+        for want in (max(n, m), n + m + 3, rng.randrange(max(n, m), n + m + 4)):
+            cases.append((f"cyclic {a} {b} {want}", f"cyclic plan {n}x{m} words want={want} #{t}", lambda line, prod=prod, want=want: check_cyclic(line, prod, want)))
+        yield from cases; cases.clear()
+    # The FFT bound table against its exact-rational evaluation (every plan class)
+    for lg in range(3, 25):
+        for r in (1, 3, 5):
+            cases.append((f"phi {lg} {r}", f"FFT_PHI lg={lg} r={r}", lambda line, lg=lg, r=r: check_phi(line, lg, r)))
     yield from cases; cases.clear()
 
 

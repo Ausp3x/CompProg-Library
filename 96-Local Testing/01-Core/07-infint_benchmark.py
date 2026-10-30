@@ -112,12 +112,12 @@ def main() -> int:
             out.write(json.dumps(rec) + "\n")
     table = collections.defaultdict(dict)
     for rec in records:
-        table[(rec["variant"], rec["family"], rec["shape"], rec["n"], rec["m"])][rec["backend"]] = (rec["ns"], rec.get("minflt"))
+        table[(rec["variant"], rec["family"], rec["shape"], rec["n"], rec["m"])][rec["backend"]] = (rec["ns"], rec.get("minflt"), rec.get("plan"))
     for key in sorted(table):
         backends = table[key]
         best = min(backends, key=lambda b: backends[b][0])
-        cells = "  ".join(f"{b}={fmt(ns)}" + ("" if flt is None else f" ({flt} minor faults)")
-                          for b, (ns, flt) in sorted(backends.items(), key=lambda kv: kv[1][0]))
+        cells = "  ".join(f"{b}={fmt(ns)}" + ("" if flt is None else f" ({flt} minor faults)") + ("" if plan is None else f" [lg={plan['lg']} r={plan['r']} k={plan['k']}]")
+                          for b, (ns, flt, plan) in sorted(backends.items(), key=lambda kv: kv[1][0]))
         print(f"{key[0]:6} {key[1]:10} {key[2]:10} n={key[3]:<6} m={key[4]:<6} best={best:16} {cells}")
     print(f"PASS: {len(records)} verified measurements appended to {args.output}")
     return 0

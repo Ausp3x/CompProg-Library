@@ -35,6 +35,23 @@ InfInt conversion and I/O sweep (P018 stage 1, `@researcher`); the four adopted 
 | SPOJ MUL and VFMUL rankings | https://www.spoj.com/ranks/MUL/, https://www.spoj.com/ranks/VFMUL/ | no (JavaScript challenge page) | — |
 | AtCoder Library Practice Contest standings, Luogu/LibreOJ/UOJ template rankings, Kattis fastest lists, GMP timings | — | not fetched this sweep | the GMP figures of the 2026-10-25 re-check and the judge's GMP entries (216205, 199072, 199073) stand as the ruler |
 
+## Fetched 2026-10-26 (P018 stage 2: transforms)
+
+Transform-multiplication sweep (P018 stage 2, `@researcher`): no operation adopted (the candidates are mpn-level kernel names, overlap rejected items or belong to stage 3; [00-notes.md](00-notes.md#integers)). The error analysis of the double FFT ([07-infint.md](07-infint.md#exactness)) rests on the two papers below, read locally from the saved PDFs with `pdftotext`.
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| Percival, "Rapid multiplication modulo the sum and difference of highly composite numbers", Math. Comp. 72 (2003), Theorem 5.1 (the FFT convolution error bound in Euclidean norms with ε, ε√5 and the twiddle error β per level) | https://www.daemonology.net/papers/fft.pdf | yes (PDF fetched and read with pdftotext; not kept in the repository) | The structure of the proven bound: per-level factors, Euclidean norms, twiddle error as a separate term |
+| Brent, Percival, Zimmermann, "Error bounds on complex floating-point multiplication", Math. Comp. 76 (2007), INRIA RR-6068, Theorem 1 (complex product relative error < ε√5 under round to nearest) and Corollary 5 (the bound is attained up to ε(√5 − 96ε)); the introduction notes that Percival's original proof was incomplete though the claim holds | https://inria.hal.science/inria-00120352 (RR-6068; the copy read came from the ANU research repository, Brent's rpb224 being a different paper) | yes (PDF fetched and read with pdftotext; not kept in the repository) | The complex-product term; this header's own normwise (1+√2)u(1+u) bound covers the four-multiplication, FMA and compiler-contracted variants that ε√5 does not state |
+| Zimmermann, complex multiplication error note (`complex.pdf`) | https://members.loria.fr/PZimmermann/papers/complex.pdf | no (404) | — |
+| Jeannerod, Louvet, Muller, "On the componentwise accuracy of complex floating-point multiplication with an FMA", Math. Comp. 86 (2017) | https://www.ams.org/journals/mcom/2017-86-307/S0025-5718-2017-03122-6/ | no (403) | — (the header's contraction-agnostic bound makes it unnecessary) |
+| FLINT documentation: `fft` (Schönhage–Strassen FFT functions), `mpn_extras` (`mullow`, `mulhigh`, `mulmid`), `fmpz` (`mul_shared`/`fft_precache`, `mulmod_preinvn`, `fmma`) | https://flintlib.org/doc/fft.html, https://flintlib.org/doc/mpn_extras.html, https://flintlib.org/doc/fmpz.html | yes | Candidates rejected as mpn-level kernels or stage-3 internals |
+| NTL `ZZ` reference (`MulMod` with precomputation, `ZZ_p` contexts) | https://libntl.org/doc/ZZ.cpp.html | yes | No missing public operation |
+| GMP manual, Low-level Functions and FFT Multiplication (`mpn_mul`, `mpn_mulmid` family, `mpn_fft_*` tuning) | https://gmplib.org/manual/Low_002dlevel-Functions, https://gmplib.org/manual/FFT-Multiplication | yes | Same |
+| GMP `gmp-impl.h` (threshold macros) | https://gmplib.org/repo/gmp/file/tip/gmp-impl.h | no (403) | — |
+| Library Checker leader sources 385662 (`Integer.h`), 390082 (HyperInt), 389886 and 391969 (`precious-speed`), cached under `96-Local Testing/.judge-cache/sources/`; AZZRCN `precious-speed` archive | https://judge.yosupo.jp/submission/<id>, https://github.com/AZZRCN/precious-speed | yes (cache) | Transform shapes (real-packed double FFT, 2^11 leaves, 3·2^k and 5·2^k lengths, two-level roots) adopted in exact form; heuristic piece widths rejected |
+| maspypy library (bigint), Nyaan's library (multiprecision), cp-algorithms FFT | https://maspypy.github.io/library/, https://nyaannyaan.github.io/library/ (multiprecision page 404), https://cp-algorithms.com/algebra/fft.html | yes except the Nyaan page | No missing operation; cp-algorithms' big-integer FFT is the heuristic double FFT |
+
 ## Fetched 2026-10-17 (P019 InfIntMini and Rational sweep)
 
 Completeness sweeps of rows 08 and 09 (`@researcher`); adopted items are in the rows and in [08-infintmini.md](08-infintmini.md) and [09-rational.md](09-rational.md), rejected ones in those documents and [00-notes.md](00-notes.md).
