@@ -12,6 +12,7 @@ import tempfile
 import threading
 sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
 import _00_memory_cap
+from _00_cpp_test_runner import cpu_runs, x86, x86_only
 
 _00_memory_cap.ensure(mb=8192)
 
@@ -105,10 +106,9 @@ def main():
         a,b = Path('a.cpp'),Path('b.cpp')
         a.write_text(includes+'int other(); int main() { return other(); }\n')
         b.write_text(includes+'int other() { return 0; }\n')
-        variants = [('scalar', ['-mno-avx2'])]
-        cpu = Path('/proc/cpuinfo')
-        if cpu.exists() and 'avx2' in cpu.read_text().split(): variants.append(('avx2', ['-mavx2']))
-        else: print('SKIP AVX2 integration: hardware support not detected')
+        variants = [('scalar', x86_only(['-mno-avx2'], [cxx]))]
+        if cpu_runs({'avx2'}, [cxx]): variants.append(('avx2', ['-mavx2']))
+        else: print('SKIP AVX2 integration: ' + ('hardware support not detected' if x86([cxx]) else 'target is not x86-64'))
         for label,target in variants:
             output = build/f'all-{label}'
             tasks.append(linked(output, [a, b], [*flags, *target], ([str(output)],)))

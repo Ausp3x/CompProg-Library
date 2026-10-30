@@ -19,6 +19,7 @@ import sys
 import tempfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import x86_only
 
 _00_memory_cap.ensure()
 
@@ -33,7 +34,7 @@ def main() -> int:
     cpuinfo = Path("/proc/cpuinfo").read_text() if Path("/proc/cpuinfo").exists() else ""
     cpu = next((line.split(":", 1)[1].strip() for line in cpuinfo.splitlines() if line.startswith("model name")), platform.processor())
     compiler = subprocess.run(cxx + ["--version"], check=True, capture_output=True, text=True).stdout.splitlines()[0]
-    flags = ["-std=gnu++20", "-O2", "-DNDEBUG", "-march=x86-64"]
+    flags = ["-std=gnu++20", "-O2", "-DNDEBUG", *x86_only(["-march=x86-64"], cxx)]
     records = [{"type": "environment", "cpu": cpu, "compiler": compiler, "flags": flags, "platform": platform.platform(),
                 "seed": 20261017, "inputs": "uniform random limbs in [0, 1e5), top limb nonzero"}]
     print(json.dumps(records[0]), flush=True)

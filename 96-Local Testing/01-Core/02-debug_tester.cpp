@@ -166,7 +166,12 @@ void testScalarsAndStrings() {
     expectEq(Debug::to_string(std::numeric_limits<double>::quiet_NaN()), "nan", "nan");
     expectEq(Debug::to_string(std::numeric_limits<double>::max()), "1.7976931348623157e+308", "double max");
     expectEq(Debug::to_string(std::numeric_limits<double>::denorm_min()), "5e-324", "double denormal min");
-    expectEq(Debug::to_string(1.0L / 3), "0.33333333333333333334", "long double shortest round trip");
+    // Shortest round-trip decimal of the long double nearest 1/3 per format (x87, binary128, binary64), from Python fractions.
+    constexpr int LD_DIGITS = std::numeric_limits<long double>::digits;
+    static_assert(LD_DIGITS == 64 || LD_DIGITS == 113 || LD_DIGITS == 53, "add the 1/3 expectation for this long double format");
+    expectEq(Debug::to_string(1.0L / 3),
+             LD_DIGITS == 64 ? "0.33333333333333333334" : LD_DIGITS == 113 ? "0.3333333333333333333333333333333333" : "0.3333333333333333",
+             "long double shortest round trip");
 
     expectEq(Debug::to_string(Color::Red), "2", "scoped enum with uint8 underlying type");
     expectEq(Debug::to_string(Wide::Low), "-5", "scoped enum with lng underlying type");

@@ -119,4 +119,5 @@ def oracle(binary, args, env):
 
 if __name__ == '__main__':
     raise SystemExit(main('01-random', ['below-zero', 'lng-bounds',
-                                     'ulng-bounds', 'shuffle-bounds', 'double-empty', 'double-infinite'], oracle))
+                                     'ulng-bounds', 'shuffle-bounds', 'double-empty', 'double-infinite'], oracle,
+                          ['-ffp-contract=off']))  # the exact randDouble(l, r) oracle rounds twice; aarch64 g++ would fuse

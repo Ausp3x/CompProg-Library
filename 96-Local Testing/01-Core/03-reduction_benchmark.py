@@ -15,6 +15,7 @@ import tempfile
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import cpu_runs, x86, x86_only
 
 _00_memory_cap.ensure()
 
@@ -30,10 +31,11 @@ def main():
     if not 0 <= args.seed < 2**64 or args.repetitions < 1 or args.milliseconds <= 0:
         parser.error("uint64 seed and positive repetitions/milliseconds required")
     cxx = shlex.split(os.getenv("CXX", "g++"))
-    source = Path(__file__).with_suffix(".cpp")
+    source = Path(__file__).resolve().with_suffix(".cpp")
+    root = source.parents[2]
     info = Path("/proc/cpuinfo").read_text()
-    cpu = next(line.split(":", 1)[1].strip() for line in info.splitlines() if line.startswith("model name"))
-    flags = next(line.split(":", 1)[1].split() for line in info.splitlines() if line.startswith("flags"))
+    cpu = next((line.split(":", 1)[1].strip() for line in info.splitlines() if line.startswith("model name")),
+               platform.processor() or "unknown")
     records = []
 
     def emit(record):
@@ -49,18 +51,20 @@ def main():
           "memory": "contexts O(1); bulk arrays O(n) words, no kernel allocation or scratch; inputs precomputed",
           "barrier": "compiler memory barrier per iteration and volatile sink prevent dead-code elimination/hoisting"})
     with tempfile.TemporaryDirectory(prefix="p004-reduction-bench-") as temp:
-        isa_flags = {"scalar": ["-mno-avx2", "-mno-bmi2"], "avx2": ["-mavx2", "-mbmi2", "-mno-avx512f"]}
+        isa_flags = {"scalar": x86_only(["-mno-avx2", "-mno-bmi2"], cxx),
+                     "avx2": x86_only(["-mavx2", "-mbmi2", "-mno-avx512f"], cxx)}
         for config in ("scalar", "avx2", "scalar-asserts", "avx2-asserts"):
             if args.config not in ("all", config):
                 continue
             isa, asserts = config.split("-")[0], config.endswith("-asserts")
-            if isa == "avx2" and not all(flag in flags for flag in ("avx2", "bmi2")):
-                emit({"type": "skip", "config": config, "reason": "AVX2/BMI2 unavailable"})
+            if isa == "avx2" and not cpu_runs({"avx2", "bmi2"}, cxx):
+                emit({"type": "skip", "config": config,
+                      "reason": "AVX2/BMI2 unavailable" if x86(cxx) else "target is not x86-64"})
                 continue
             binary = Path(temp) / config
             options = ["-std=gnu++20", *(["-O2"] if asserts else ["-O3", "-DNDEBUG"]), "-Wall", "-Wextra", *isa_flags[isa]]
-            command = cxx + options + [str(source), "-o", str(binary)]
-            subprocess.run(command, check=True, timeout=180)
+            command = cxx + options + [str(source.relative_to(root)), "-o", str(binary)]
+            subprocess.run(command, check=True, timeout=180, cwd=root)
             run = [str(binary), str(args.seed), str(args.repetitions), str(args.milliseconds)]
             result = subprocess.run(run, capture_output=True, text=True, check=True, timeout=180)
             emit({"type": "configuration", "config": config, "flags": options,

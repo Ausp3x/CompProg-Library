@@ -29,11 +29,11 @@ namespace {
         if (!(got == want)) { fail("operation=" + op() + " expected=" + show(want) + " actual=" + show(got)); }}
 
     lll at(const L &f, lng x) { return lll(f.m) * x + f.b; }
-    // Floating lines; Q<T> is the brute-force oracle type (long double for double, __float128 for long double).
+    // Floating lines; Q<T> is the brute-force oracle type (long double for double, _Float128 for long double).
     template<typename T> struct FL { T m, b; };
-    template<typename T> using Q = std::conditional_t<std::is_same_v<T, double>, long double, __float128>;
-    __float128 at(const FL<double> &f, double x) { return __float128(f.m) * __float128(x) + __float128(f.b); }
-    __float128 at(const FL<long double> &f, long double x) { return __float128(f.m) * __float128(x) + __float128(f.b); }
+    template<typename T> using Q = std::conditional_t<std::is_same_v<T, double>, long double, _Float128>;
+    _Float128 at(const FL<double> &f, double x) { return _Float128(f.m) * _Float128(x) + _Float128(f.b); }
+    _Float128 at(const FL<long double> &f, long double x) { return _Float128(f.m) * _Float128(x) + _Float128(f.b); }
     lng narrow(lll v) {
         if (v <= LLONG_MIN || v >= LLONG_MAX) { fail("test input outside the domain: oracle value does not fit"); }
         return lng(v);}
@@ -341,7 +341,7 @@ namespace {
         std::cout << "exhaustive " << (MAX ? "max" : "min") << " sequences=" << nodes << '\n';}
 
     // Independent oracle for large cases: minimum Li Chao tree over the sorted distinct query points, exact in __int128 (lng lines)
-    // or in __float128 (floating lines: a double product is exact, a long double one rounds at 2^-113).
+    // or in _Float128 (floating lines: a double product is exact, a long double one rounds at 2^-113).
     template<typename X, typename F> struct LiChao {
         using V = decltype(at(F{}, X{}));
         vector<X> xs;
@@ -601,7 +601,7 @@ namespace {
                     if (rng() % 4 == 0) { x = crossing(rng, rng() & 1 ? h.ls : g.ls, x, X); }
                     h.query(x, "random"); g.query(x, "random");}}}}
 
-    // n lines and q queries interleaved (x: 0 increasing, 1 decreasing, 2 random); __float128 Li Chao oracle on every query, brute on a sample.
+    // n lines and q queries interleaved (x: 0 increasing, 1 decreasing, 2 random); _Float128 Li Chao oracle on every query, brute on a sample.
     // MonotoneCHT grows a sorted slope list (1/8 equal or beside the previous) at both ends; LineContainer takes random slopes.
     template<bool MAX, typename T> void fscale(Rng &rng, bool mono, int n, int q, int pattern, const string &name) {
         context = string("floating scale ") + (mono ? "MonotoneCHT " : "LineContainer ") + name + " n=" + show(n) + " q=" + show(q) + " pattern=" + show(pattern);

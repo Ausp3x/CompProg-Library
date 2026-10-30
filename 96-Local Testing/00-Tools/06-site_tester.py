@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Third-party: the BACKTICK pattern and heading-id oracle follow Python-Markdown (BSD-3-Clause); see THIRD-PARTY.md.
 """Checks for 98-Team Notebook/06-site.py, the documentation-site generator for Zensical and MkDocs Material.
 
 quick: every unit and fixture test (pure helpers, git helpers on throw-away repositories, Site pages and targets, href,

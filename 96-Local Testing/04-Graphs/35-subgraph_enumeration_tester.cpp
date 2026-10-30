@@ -1,3 +1,4 @@
+// Third-party: the triad tables and cluster.py transliterations come from NetworkX (BSD-3-Clause); see THIRD-PARTY.md.
 #include "../../04-Graphs/35-subgraph_enumeration.hpp"
 #include "../../01-Core/05-modint.hpp"
 

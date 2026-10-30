@@ -425,5 +425,21 @@ with tempfile.TemporaryDirectory(prefix='cp-consistency-') as name:
     finally:
         sys.argv = argv
 
+# Every tool a tracked script runs by name is declared, with its floor and packages, in the setup check.
+spec = importlib.util.spec_from_file_location('library_setup_check', ROOT / '.claude/skills/setup-check/setup_check.py')
+setup = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(setup)
+for path, name in setup.undeclared(ROOT):
+    require(False, f'Undeclared tool {name} in {path}: declare it in setup_check.py TOOLS')
+# LICENSE is the CC0-1.0 legal code verbatim (creativecommons.org legalcode.txt, identical in SPDX).
+require(hashlib.sha256((ROOT / 'LICENSE').read_bytes()).hexdigest() == 'a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499',
+        'LICENSE differs from the CC0-1.0 legal code')
+# A clone works anywhere: tracked files name no absolute home directory.
+tracked = subprocess.run(['git', 'ls-files', '-z'], cwd=ROOT, capture_output=True, text=True).stdout.split('\0')
+for path in tracked:
+    p = ROOT / path
+    if path and not path.startswith(('OLD/', '95-Resources/')) and p.is_file() and b'\0' not in (data := p.read_bytes()):
+        require(not re.search(rb'/home/\w[\w.-]*/', data), 'Absolute home path in ' + path)
+
 print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'absent_ignored_archive': len(absent_archive), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'compact_pending': compact_pending, 'errors': errors}, indent=2))
 raise SystemExit(bool(errors))

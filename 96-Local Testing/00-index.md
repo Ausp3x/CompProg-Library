@@ -11,6 +11,7 @@ python3 '96-Local Testing/01-run.py' --mode quick                 # smoke subset
 python3 '96-Local Testing/01-run.py' --mode full                  # every operation and configuration; add CXX=g++-14 for the floor check
 python3 '96-Local Testing/01-run.py' --mode stress --seed 42 --rounds 3
 python3 '96-Local Testing/01-run.py' --mode full --filter 04-Graphs
+ulimit -c 0; CXX=aarch64-linux-gnu-g++ QEMU_LD_PREFIX=/usr/aarch64-linux-gnu python3 '96-Local Testing/01-run.py' --mode quick   # arm64 under qemu-user (binfmt); qemu writes guest cores to the working directory unless ulimit -c is 0
 python3 '96-Local Testing/<folder>/<NN-name>_tester.py' --mode full --seed 1
 python3 '96-Local Testing/02-integration.py' --sanitizers         # header-alone, aggregates, two translation units, scalar/AVX2, workspace
 python3 '96-Local Testing/01-run.py' --mode full -j 1             # one suite at a time, live output (same for 02-integration.py -j 1)
@@ -25,6 +26,7 @@ python3 '96-Local Testing/00-Tools/05-runner_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/06-site_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/08-plan_tester.py' --mode full
+python3 '96-Local Testing/00-Tools/09-setup_tester.py' --mode full    # setup_check.py and the x86 target gate
 python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Checker fetch, reproduce and compare (/speed-sweep)
 ```
 

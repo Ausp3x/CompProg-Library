@@ -24,6 +24,7 @@ import os
 from pathlib import Path
 import queue
 import random
+import re
 import resource
 import shlex
 import shutil
@@ -49,6 +50,9 @@ INVALID_CASES = ("den-zero", "ctor-overflow", "raw-den", "inv-zero", "inv-overfl
                  "todecimal-negative", "cast-narrow", "infint-inf")
 DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 WIDTH = {"l": 64, "L": 128, "I": None}
+# The target's long double (significand bits, exponent of the smallest denormal, max exponent), from the compiler in main():
+# x87 extended (64, -16445, 16384) on x86-64, IEEE binary128 (113, -16494, 16384) on aarch64.
+LONG_DOUBLE = (64, -16445, 16384)
 MODS = (998244353, (1 << 61) - 1, 1000000007)
 
 
@@ -166,8 +170,8 @@ def float_line(x: Q) -> str:
         native = math.inf if x > 0 else -math.inf
     if (isinstance(d, float) and d != native) or (not isinstance(d, float) and Q(native) != d):
         raise Failure(f"rounding model disagrees with float(Fraction) for {x}")
-    ld = nearest(x, 64, -16445, 16384)
-    return f"{frexp_form(d, 53, True)} {frexp_form(ld, 64, False)} {int(x < 0)}"
+    ld = nearest(x, *LONG_DOUBLE)
+    return f"{frexp_form(d, 53, True)} {frexp_form(ld, LONG_DOUBLE[0], False)} {int(x < 0)}"
 
 
 def read_model(t: str, s: str, base: int):
@@ -347,8 +351,10 @@ def build_cases(seed: int, mode: str):
                     v = Q(m64) * Q(2) ** ex
                     if fits(t, v):
                         yield f"fd {t} 0x{m64:x}p{ex}", f"fromDouble long {t} #{i}", text(v)
-    for x in (Q(2) ** 16384, -Q(2) ** 16384 + Q(2) ** 16319, Q(2) ** 16384 - Q(2) ** 16320, Q(2) ** 16384 - Q(2) ** 16319, Q(3) ** 10400, Q(1, 3 ** 10400),
-              Q(2) ** 1024 - Q(2) ** 970, Q(2) ** 1024 - Q(2) ** 971, Q(1, 2 ** 1075), Q(3, 2 ** 1076), Q(-1, 2 ** 16446), Q(3, 2 ** 16446)):
+    mant, emin, emax = LONG_DOUBLE  # long double: largest finite, its overflow tie, the smallest denormal, its half and 3/2
+    for x in (Q(2) ** emax, -Q(2) ** emax + Q(2) ** (emax - mant - 1), Q(2) ** emax - Q(2) ** (emax - mant), Q(2) ** emax - Q(2) ** (emax - mant - 1),
+              Q(3) ** 10400, Q(1, 3 ** 10400), Q(2) ** 1024 - Q(2) ** 970, Q(2) ** 1024 - Q(2) ** 971, Q(1, 2 ** 1075), Q(3, 2 ** 1076),
+              Q(2) ** emin, -Q(2) ** (emin - 1), 3 * Q(2) ** (emin - 1)):
         yield f"fl I {text(x)}", f"toDouble boundary {float(x) if abs(x) < 2 ** 1000 else 'huge'}", float_line(x)
     for h, v in (("0x8000000000000001p5000", Q(2 ** 63 + 1) * Q(2) ** 5000), ("-0xffffffffffffffffp-9000", -Q(2 ** 64 - 1) / Q(2) ** 9000)):
         yield f"fd I {h}", f"fromDouble long double {h}", text(v)
@@ -433,6 +439,10 @@ def main() -> int:
     if not compiler or shutil.which(compiler[0]) is None:
         report("FAIL", f"C++ compiler unavailable: {compiler!r}")
         return 1
+    global LONG_DOUBLE
+    macros = subprocess.run([*compiler, "-dM", "-E", "-x", "c++", os.devnull], capture_output=True, text=True, check=True).stdout
+    ld = {k: int(v) for k, v in re.findall(r"#define __LDBL_(MANT_DIG|MIN_EXP|MAX_EXP)__ \(?(-?\d+)", macros)}
+    LONG_DOUBLE = (ld["MANT_DIG"], ld["MIN_EXP"] - ld["MANT_DIG"], ld["MAX_EXP"])
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1:quarantine_size_mb=64", UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]

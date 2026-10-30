@@ -1,4 +1,7 @@
+import functools
 import os
+import platform
+import shlex
 import shutil
 import subprocess
 import sys
@@ -15,6 +18,48 @@ VARIANTS = [
     ("optimized", ["-O2", "-pipe", "-DNDEBUG"]),
     ("checked", ["-O0", "-g", "-D_GLIBCXX_ASSERTIONS"]),
 ]
+
+
+@functools.cache
+def _triple(compiler: tuple[str, ...]) -> str:
+    try:
+        r = subprocess.run([*compiler, "-dumpmachine"], capture_output=True, text=True, timeout=30)
+        return r.stdout.strip() if r.returncode == 0 else ""
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+
+
+def _arch(compiler: list[str] | None) -> str:
+    """The compiler's (default ``$CXX`` or ``g++``) target architecture: the first field of its ``-dumpmachine`` triple."""
+    return _triple(tuple(compiler or shlex.split(os.environ.get("CXX", "g++")))).split("-")[0]
+
+
+def x86(compiler: list[str] | None = None) -> bool:
+    """Whether the compiler targets x86-64."""
+    return _arch(compiler) == "x86_64"
+
+
+def x86_only(flags: list[str], compiler: list[str] | None = None) -> list[str]:
+    """``flags`` for an x86-64 target, else none: elsewhere the scalar path is the only path."""
+    return list(flags) if x86(compiler) else []
+
+
+def native(compiler: list[str] | None = None) -> bool:
+    """Whether the compiler targets this host's architecture; otherwise its binaries run under an emulator (binfmt)."""
+    host = platform.machine()
+    return _arch(compiler) == {"AMD64": "x86_64", "arm64": "aarch64"}.get(host, host)
+
+
+def scaled(seconds: int, compiler: list[str] | None = None) -> int:
+    """A run timeout: seconds for native binaries, ten times that under an emulator (qemu-user is 10-50x slower)."""
+    return seconds if native(compiler) else 10 * seconds
+
+
+def cpu_runs(features: set[str], compiler: list[str] | None = None) -> bool:
+    """Whether binaries using these x86 CPU features (``/proc/cpuinfo`` names) run here."""
+    cpu = Path("/proc/cpuinfo")
+    return (x86(compiler) and platform.machine() in ("x86_64", "AMD64") and cpu.exists()
+            and set(features) <= set(cpu.read_text().split()))
 
 
 class TestFailure(RuntimeError):

@@ -59,7 +59,7 @@ def fixtures(path, mode, seed):
             out.write('H ' + ' '.join(values) + '\n')
 
     def excircles(points, precision=200):
-        # Direct x + y - z with enough digits that its cancellation stays below the reported 30.
+        # Direct x + y - z with enough digits that its cancellation stays below the reported 40 (binary128 long double needs 34).
         with localcontext() as ctx:
             ctx.prec = precision
             p = [[decimal(t) for t in q] for q in points]
@@ -71,8 +71,8 @@ def fixtures(path, mode, seed):
                 y = (u[0] ** 2 + u[1] ** 2).sqrt()
                 z = ((v[0] - u[0]) ** 2 + (v[1] - u[1]) ** 2).sqrt()
                 gap = x + y - z
-                values += [f'{o[j] + (u[j] * x + v[j] * y) / gap:.30E}' for j in range(2)]
-                values.append(f'{abs(u[0] * v[1] - u[1] * v[0]) / gap:.30E}')
+                values += [f'{o[j] + (u[j] * x + v[j] * y) / gap:.40E}' for j in range(2)]
+                values.append(f'{abs(u[0] * v[1] - u[1] * v[0]) / gap:.40E}')
             out.write('X ' + ' '.join(values) + '\n')
 
     with path.open('w') as out:

@@ -12,6 +12,7 @@ import sys
 import tempfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import scaled
 
 _00_memory_cap.ensure()
 
@@ -50,7 +51,7 @@ def run_suite(name, sources, compile_check=None):
         command = list(map(str, cmd))
         if terminal:
             print(f"\r[{done}/{total}] {label}\033[K", end="", flush=True)
-        result = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, timeout=180)
+        result = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, timeout=scaled(180))
         if (expected == 0 and result.returncode != 0) or (expected != 0 and (result.returncode != expected or "assert" not in result.stderr.lower())):
             raise RuntimeError(f"{label}: exit={result.returncode}, expected={expected} (assertion message required for aborts)\n{result.stdout}{result.stderr}")
         done += 1

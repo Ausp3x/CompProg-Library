@@ -67,3 +67,4 @@ P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, C
 - 2026-09-27: P013 first verification, full and stress suites passed.
 - 2026-10-07: P013 re-audit, URBG interface and `randDouble` added, contracts moved out of code comments, brace style normalized; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.
 - 2026-10-12: prune, removed `seed(x)` and `randInt` (cases moved to assignment reseeding and `randLng`); full suite passed on g++ and g++-14.
+- 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the tester builds with `-ffp-contract=off` (a new per-tester flag of the `06-Miscellaneous` runner), so the exact `randDouble(l, r)` oracle holds where g++ would fuse the multiply-add (aarch64); x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.

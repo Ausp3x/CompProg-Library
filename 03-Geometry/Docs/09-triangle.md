@@ -126,3 +126,4 @@ The row covers planar single-triangle measurements, coordinates, the angle kind 
 - 2026-09-27: original P009, full suite (seed 20260927, 560,820 checks, 16 probes) passed on g++ 16.
 - 2026-10-07: re-audit, added `angleKind`; 4 findings fixed (excircle gap cancellation, Heron oracle misclassifying dyadic degenerate sides, `; }` closings, excircle contract conditioning); full suite passed on g++ and g++-14.
 - 2026-10-13: prune, removed `TriangleApprox` circumcircle, incircle, circumcenter, incenter, circumradius and inradius (cases moved to `circumcircleApprox` and `incircleApprox`); full suite passed on g++ and g++-14.
+- 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): excircle references printed to 40 digits instead of 30, which binary128 `long double` needs; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.

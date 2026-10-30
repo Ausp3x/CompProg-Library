@@ -40,4 +40,4 @@ Run a command that may exceed two minutes in the foreground with a `timeout` of 
 
 ## Toolchain
 
-Local: GCC 16.2 (`g++`), GCC 14.4.1 (`g++-14`), CPython 3.14. Floors: `03-cpp.md` (Toolchain and judges) and `04-python.md` (Baseline); the per-package `CXX=g++-14` full run: `05-testing.md` (Builds). PyPy 8.0.1 (`pypy3`, Python 3.12) is installed; `oj-bundle` and `lualatex` are optional, and a missing tool is reported as SKIP, never a faked pass.
+Local: GCC 16.2 (`g++`), GCC 14.4.1 (`g++-14`), CPython 3.14. Floors: `03-cpp.md` (Toolchain and judges) and `04-python.md` (Baseline) for the library; every tool the scripts run, with its floor and its Ubuntu and Arch packages, in `TOOLS` of `.claude/skills/setup-check/setup_check.py`, which `03-consistency.py` holds complete; the per-package `CXX=g++-14` full run: `05-testing.md` (Builds). PyPy 8.0.1 (`pypy3`, Python 3.12) is installed; `oj-bundle` and `lualatex` are optional, and a missing tool is reported as SKIP, never a faked pass.

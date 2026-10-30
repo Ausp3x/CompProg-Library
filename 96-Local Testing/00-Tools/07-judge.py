@@ -34,10 +34,11 @@ import urllib.parse
 import urllib.request
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import x86_only
 
 API = 'https://v3.api.judge.yosupo.jp'
 REPO = 'https://github.com/yosupo06/library-checker-problems'
-FLAGS = ['-O2', '-std=c++23', '-DEVAL', '-DONLINE_JUDGE', '-march=native']
+FLAGS = ['-O2', '-std=c++23', '-DEVAL', '-DONLINE_JUDGE', *x86_only(['-march=native'])]  # the judge's x86 command
 JUDGE_FACTOR = 1.3  # Library Checker (Zen3) wall time over the i9-11900H's
 SIMILAR = 0.9       # line-multiset Jaccard index above which two sources count as one
 PENDING = {'WJ', 'Fetching', 'Compiling', 'Executing'}

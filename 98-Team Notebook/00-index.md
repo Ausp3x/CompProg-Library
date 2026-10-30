@@ -57,7 +57,7 @@ python3 06-site.py serve --port 8000 # then serve on 127.0.0.1; restart it after
 python3 06-site.py build --engine mkdocs   # force an engine (auto: Zensical, else MkDocs)
 ```
 
-`build` and `serve` need Zensical (`pipx install zensical`) or MkDocs Material (`pacman -S mkdocs-material python-pymdown-extensions`, or `pipx install mkdocs-material --include-deps`). They name a missing engine or module. The first build downloads the fonts and scripts the site self-hosts. Everything under `site/` is generated and git-ignored. Contracts and evidence: [Docs/00-site.md](Docs/00-site.md).
+`build` and `serve` need Zensical (`pipx install zensical`) or MkDocs Material with pymdown-extensions (`pipx install mkdocs-material --include-deps`). They name a missing engine or module. The first build downloads the fonts and scripts the site self-hosts. Everything under `site/` is generated and git-ignored. Contracts and evidence: [Docs/00-site.md](Docs/00-site.md).
 
 ## Selection and validation backlog
 

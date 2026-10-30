@@ -52,12 +52,12 @@ with a diff when the snapshot is missing or stale. `99-Workspace` holds only
 CPython 3.14, GCC 16.2.1 (`20260810`), Linux x86-64, invoked from `/tmp`:
 
 ```bash
-python3 '/home/Ausp3x/Documents/CompProg Library/97-Online Testing/03-workspace.py' --check     # Current
-python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/00-Tools/02-online_tester.py' # 4 PASS
-python3 '/home/Ausp3x/Documents/CompProg Library/97-Online Testing/03-workspace.py'             # Generated (identical bytes, mode 0644)
+python3 '/path/to/library/97-Online Testing/03-workspace.py' --check     # Current
+python3 '/path/to/library/96-Local Testing/00-Tools/02-online_tester.py' # 4 PASS
+python3 '/path/to/library/97-Online Testing/03-workspace.py'             # Generated (identical bytes, mode 0644)
 python3 /tmp/p003-workspace-smoke.py                                                          # PASS: 12 builds, 42 runs; empty-input PASS
-python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/02-integration.py'           # PASS: 102 headers, scalar/AVX2 multi-TU, workspace (run before the review fixes; snapshot bytes unchanged since)
-python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/03-consistency.py'           # errors: []
+python3 '/path/to/library/96-Local Testing/02-integration.py'           # PASS: 102 headers, scalar/AVX2 multi-TU, workspace (run before the review fixes; snapshot bytes unchanged since)
+python3 '/path/to/library/96-Local Testing/03-consistency.py'           # errors: []
 ```
 
 The smoke script (a one-time `/tmp` artifact, not a permanent suite) copies the

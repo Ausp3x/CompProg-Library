@@ -29,6 +29,7 @@ import threading
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import cpu_runs, x86, x86_only
 
 _00_memory_cap.ensure()
 if hasattr(sys, "set_int_max_str_digits"):
@@ -617,16 +618,14 @@ def main() -> int:
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1", UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
-    scalar = ["-march=x86-64", "-mno-avx", "-mno-avx2", "-mno-fma", "-mno-bmi2"]
-    vector = ["-march=x86-64", "-mavx2", "-mfma", "-mbmi2"]
+    scalar = x86_only(["-march=x86-64", "-mno-avx", "-mno-avx2", "-mno-fma", "-mno-bmi2"], compiler)
+    vector = x86_only(["-march=x86-64", "-mavx2", "-mfma", "-mbmi2"], compiler)
     variants = [("optimized-scalar", ["-O2", "-DNDEBUG", *scalar]), ("checked-scalar", ["-O1", "-g", "-D_GLIBCXX_ASSERTIONS", *scalar])]
-    cpu = Path("/proc/cpuinfo")
-    cpu_flags = set(cpu.read_text().split()) if cpu.exists() else set()
-    accelerated = not args.scalar_only and {"avx2", "fma", "bmi2"} <= cpu_flags
+    accelerated = not args.scalar_only and cpu_runs({"avx2", "fma", "bmi2"}, compiler)
     if accelerated:
         variants.append(("optimized-avx2", ["-O2", "-DNDEBUG", *vector]))
     else:
-        report("SKIP", "AVX2/FMA/BMI2 execution: " + ("requested --scalar-only" if args.scalar_only else "CPU lacks AVX2/FMA/BMI2"))
+        report("SKIP", "AVX2/FMA/BMI2 execution: " + ("requested --scalar-only" if args.scalar_only else "CPU lacks AVX2/FMA/BMI2" if x86(compiler) else "target is not x86-64"))
     if args.mode != "quick":
         sanitizer = ["-O1", "-g", "-D_GLIBCXX_ASSERTIONS", "-DINFINT_SCRATCH_HEAP", "-fno-omit-frame-pointer", "-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-no-pie"]
         variants.append(("sanitized-scalar", [*sanitizer, *scalar]))

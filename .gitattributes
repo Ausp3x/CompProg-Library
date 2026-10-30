@@ -1,2 +1,5 @@
+* text=auto eol=lf
+# OLD keeps original bytes.
+OLD/** -text
 # Append-only log: concurrent worktrees add lines, so merges keep both sides.
 00-Guidelines/13-Plan/finish-log.tsv merge=union

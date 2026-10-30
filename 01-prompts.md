@@ -14,6 +14,7 @@ Start one fresh session per task with the preset of its work:
 
 | Skill | Use it | Afterwards |
 |---|---|---|
+| `/setup-check [ubuntu or arch]` | On a new machine or clone, or after a toolchain change: required and optional tools with their floors and install commands | Install what it lists, then rerun |
 | `/package Pxxx` (or `next`, or a batch id) | Implement or continue a package; `/plan-status` shows progress and the next one | `/finish` |
 | `/prune Pxxx` | Remove the wrappers `duplicates.md` lists for a verified package | `/finish` |
 | `/duplicate-sweep [02 04 …]` | After many new headers: list wrappers and duplicates in `duplicates.md` | Answer its `ask` items, then `/prune` each verified package it names (`/package` handles planned ones) |
@@ -49,7 +50,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P015 — MI15, MI16, MI17** (opus, M+M+S): 06-Miscellaneous — enumeration, knapsack, cyclefinding.
 - [x] **P016 — ST01, ST02, ST19** (opus, S+M+S): 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength.
 - [x] **P017 — ST03** (opus, L): 07-Strings — aho, suffixarray, palindrome queries.
-- [ ] **P250 — SUP17, SUP18, SUP19** (opus, M+L+M): Repository portability and contribution workflow. Status: in-progress. Note: SUP17 (contributor roles and claims) landed 2026-10-29, evidence 00-Guidelines/13-Plan/Docs/00-contribution.md. Next: /package SUP18, then SUP19. [evidence](00-Guidelines/13-Plan/Docs/00-contribution.md)
+- [ ] **P250 — SUP17, SUP18, SUP19** (opus, M+L+M): Repository portability and contribution workflow. Status: in-progress. Note: SUP17 (roles and claims) landed 2026-10-29. SUP18 (setup check, portability, licensing) landed 2026-10-30: verified on x86-64 and on aarch64 under qemu-user (quick suite; Arch has no aarch64 libasan, so arm64 full-mode sanitizer builds are not run). Evidence 00-Guidelines/13-Plan/Docs/00-contribution.md. Next: /package SUP19. [evidence](00-Guidelines/13-Plan/Docs/00-contribution.md)
 
 ### Core full types
 

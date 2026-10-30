@@ -26,5 +26,6 @@ Library Checker exposes its data through a REST API at `https://v3.api.judge.yos
 ## Provenance
 
 - For each adopted result record in the header's evidence document the title or URL, version or date, the claim it supports, and whether code was adapted or written independently. Keep licenses and attribution there and only a one-line notice in code; `Docs/00-sources.md` records the sources consulted (Completeness sweep).
+- Original work is CC0-1.0 ([LICENSE](../LICENSE)). Adapted third-party code needs a licence that permits it; its one-line notice names the source and licence and points to [THIRD-PARTY.md](../THIRD-PARTY.md), which lists the file with the licence text.
 
 Machine-readable ledgers are listed in [00-index.md](00-index.md).

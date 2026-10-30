@@ -11,6 +11,7 @@ import tempfile
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import x86
 
 _00_memory_cap.ensure()
 
@@ -66,7 +67,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--seed', type=int, default=20261029)
     parser.add_argument('--quick', action='store_true', help='only n <= 1000 G(n, p) and n = m = 1e5')
-    parser.add_argument('--variants', nargs='+', choices=sorted(VARIANTS), default=list(VARIANTS))
+    parser.add_argument('--variants', nargs='+', choices=sorted(VARIANTS), default=[v for v in VARIANTS if v == 'O2' or x86()])
     parser.add_argument('--output', type=Path, default=HERE / '35-subgraph_enumeration_benchmark.json')
     args = parser.parse_args()
     compiler = os.environ.get('CXX', 'g++')

@@ -9,6 +9,7 @@ import sys
 import tempfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import scaled
 
 _00_memory_cap.ensure()
 
@@ -39,9 +40,9 @@ def main(stem, invalid, oracle=None, strict=False):
 
     def run(command, *, death=False):
         try:
-            result = subprocess.run(command, capture_output=True, text=True, env=env, timeout=180)
+            result = subprocess.run(command, capture_output=True, text=True, env=env, timeout=scaled(180))
         except subprocess.TimeoutExpired as error:
-            raise RuntimeError(f'timeout=180s command={shlex.join(command)}\n{error.stdout}\n{error.stderr}') from error
+            raise RuntimeError(f'timeout={scaled(180)}s command={shlex.join(command)}\n{error.stdout}\n{error.stderr}') from error
         if death:
             ok = result.returncode == -signal.SIGABRT and 'assert' in result.stderr.lower()
         else:

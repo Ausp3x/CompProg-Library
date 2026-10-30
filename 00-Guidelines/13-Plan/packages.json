@@ -340,7 +340,7 @@
       "evidence": [
         "00-Guidelines/13-Plan/Docs/00-contribution.md"
       ],
-      "note": "SUP17 (contributor roles and claims) landed 2026-10-29, evidence 00-Guidelines/13-Plan/Docs/00-contribution.md. Next: /package SUP18, then SUP19."
+      "note": "SUP17 (roles and claims) landed 2026-10-29. SUP18 (setup check, portability, licensing) landed 2026-10-30: verified on x86-64 and on aarch64 under qemu-user (quick suite; Arch has no aarch64 libasan, so arm64 full-mode sanitizer builds are not run). Evidence 00-Guidelines/13-Plan/Docs/00-contribution.md. Next: /package SUP19."
     },
     {
       "id": "P025",

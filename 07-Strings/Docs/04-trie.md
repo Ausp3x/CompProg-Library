@@ -87,3 +87,4 @@ Code is independently implemented.
 - 2026-09-28: map `Trie` verified under the previous system (P016).
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
 - 2026-10-08: re-audit, one `BasicTrie` template now provides `Trie` and `TrieDense`, `step`, `forEachPrefixOf` and `longestPrefix` added, 3 findings fixed, contracts moved out of the header; quick, full and stress passed on g++, full on g++-14, integration with sanitizers passed.
+- 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the tester silences, inside `special()` only, a `-Warray-bounds` false positive of aarch64 g++ 16 on the inlined `emplace_back` of a full one-node vector; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.

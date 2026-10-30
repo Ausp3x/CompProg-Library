@@ -41,7 +41,7 @@ The all-ready heap fixture uses 2,000 vertices, because checked libstdc++ valida
 python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode full --seed 20261012
 CXX=g++-14 python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode full --seed 20261012
 python3 '96-Local Testing/04-Graphs/03-toposort_tester.py' --mode stress --seed 7
-python3 '/home/Ausp3x/Documents/CompProg Library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
+python3 '/path/to/library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
 python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```

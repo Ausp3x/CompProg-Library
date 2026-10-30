@@ -11,6 +11,7 @@ import tempfile
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import x86_only
 
 _00_memory_cap.ensure()
 
@@ -23,7 +24,7 @@ def main():
     parser.add_argument('--output', type=Path, default=HERE / '00-decomposition_benchmark.json')
     args = parser.parse_args()
     compiler = os.environ.get('CXX', 'g++')
-    flags = ['-std=gnu++20', '-O2', '-DNDEBUG', '-mno-avx2']
+    flags = ['-std=gnu++20', '-O2', '-DNDEBUG', *x86_only(['-mno-avx2'], [compiler])]
     with tempfile.TemporaryDirectory(prefix='cp-decomposition-bench-') as folder:
         binary = Path(folder) / 'benchmark'
         subprocess.run([compiler, *flags, str(HERE / '00-decomposition_benchmark.cpp'),

@@ -29,6 +29,7 @@ import tempfile
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import x86_only
 
 _00_memory_cap.ensure()
 
@@ -246,7 +247,7 @@ def main() -> int:
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1",
                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-march=x86-64", "-mno-avx", "-mno-avx2"]
+    flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", *x86_only(["-march=x86-64", "-mno-avx", "-mno-avx2"], compiler)]
     variants = [("optimized-scalar", ["-O3", "-DNDEBUG"]),
                 ("checked-scalar", ["-O1", "-g", "-D_GLIBCXX_ASSERTIONS"])]
     if args.mode != "quick":

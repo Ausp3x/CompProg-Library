@@ -17,6 +17,7 @@ import tempfile
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import cpu_runs, x86, x86_only
 
 _00_memory_cap.ensure()
 
@@ -38,10 +39,10 @@ def main():
     cpu = next((line.split(":", 1)[1].strip() for line in cpuinfo.splitlines() if line.startswith("model name")), platform.processor())
     cpu_flags = next((line.split(":", 1)[1].split() for line in cpuinfo.splitlines() if line.startswith("flags")), [])
     compiler = subprocess.run(cxx + ["--version"], check=True, capture_output=True, text=True).stdout.splitlines()[0]
-    configs = {
+    configs = {name: x86_only(isa, cxx) for name, isa in {
         "baseline": ["-march=x86-64", "-mno-avx", "-mno-avx2", "-mno-fma", "-mno-bmi2", "-mno-pclmul"],
         "avx2": ["-march=x86-64", "-mavx2", "-mfma", "-mbmi2", "-mpclmul", "-mno-avx512f"],
-    }
+    }.items()}
     records = []
     def emit(record):
         records.append(record)
@@ -56,9 +57,10 @@ def main():
         for config, isa in configs.items():
             if args.config not in ("all", config):
                 continue
-            missing = [flag for flag in ({"avx2": ["avx2", "fma", "bmi2", "pclmulqdq"]}.get(config, [])) if flag not in cpu_flags]
-            if missing:
-                emit({"type": "skip", "config": config, "reason": "missing CPU flags " + ", ".join(missing)})
+            needs = {"avx2": ["avx2", "fma", "bmi2", "pclmulqdq"]}.get(config, [])
+            if needs and not cpu_runs(set(needs), cxx):
+                reason = "missing CPU flags " + ", ".join(flag for flag in needs if flag not in cpu_flags) if x86(cxx) else "target is not x86-64"
+                emit({"type": "skip", "config": config, "reason": reason})
                 continue
             binary = Path(directory) / config
             flags = ["-std=gnu++20", "-O2", "-DNDEBUG", "-Wall", "-Wextra"] + isa

@@ -118,6 +118,9 @@ template<class T> void exhaustive(const string &mode, const string &label) {
             if (ref.contains(s)) { check(trie.erase(s, ref[s]), "erase remainder"); ref.erase(s); }}
         structure(trie); check(trie.empty(), "fully erased");}
     cout << "PASS " << label << " exhaustive multiset/map oracle states=" << bound << '\n';}
+// aarch64 g++ 16 flags the unreachable inlined fast path of emplace_back on a full one-node vector (false positive).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
 template<class T> void special(const string &mode, const string &label) {
     T trie;
     Dict ref;
@@ -189,6 +192,7 @@ template<class T> void special(const string &mode, const string &label) {
     expectEqual(lng(fresh.nodes.size()), 2, "newNode appended one node");
     fresh.free.push_back(1); structure(fresh);
     cout << "PASS " << label << " full byte/NUL/empty/count bounds/callback/copy/move/deep/reuse n=" << n << '\n';}
+#pragma GCC diagnostic pop
 template<class T> void randomCases(const string &mode, const string &label, int sigma, char base, int queries_outside) {
     std::mt19937_64 rng(test_seed);
     T trie;

@@ -107,3 +107,4 @@ Wide/UTF string types, arbitrary reflection, pointer-pointee traversal and forma
 - 2026-10-06: re-audit, 6 findings fixed (bit proxies, row names, ALL_CAPS predicates, closers, tester braces), shortest floating and enum formatting added, full and stress passed on g++.
 - 2026-10-06 (run): full (seed 335597) and stress (seed 1) passed on g++, Workspace regenerated.
 - 2026-10-08: restyle (slice comment reworded, behavior unchanged), full suite (seed 20261008, 16/16 steps) passed on g++ and g++-14, integration, consistency and workspace check passed.
+- 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the `1.0L / 3` expectation now follows the target's `long double` format (x87, binary128, binary64); x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.

@@ -12,6 +12,7 @@ import tempfile
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import cpu_runs, x86, x86_only
 
 _00_memory_cap.ensure()
 
@@ -30,8 +31,8 @@ def main():
     cxx = shlex.split(os.getenv("CXX", "g++"))
     source = Path(__file__).resolve().with_suffix(".cpp")
     info = Path("/proc/cpuinfo").read_text()
-    cpu = next(line.split(":", 1)[1].strip() for line in info.splitlines() if line.startswith("model name"))
-    flags = next(line.split(":", 1)[1].split() for line in info.splitlines() if line.startswith("flags"))
+    cpu = next((line.split(":", 1)[1].strip() for line in info.splitlines() if line.startswith("model name")),
+               platform.processor() or "unknown")
     records = []
 
     def emit(record):
@@ -53,11 +54,13 @@ def main():
           for path in [source, *[root / "01-Core" / name for name in
                        ("03-barrett.hpp", "04-montgomery.hpp", "05-modint.hpp")]]}})
     with tempfile.TemporaryDirectory(prefix="p005-modint-bench-") as temp:
-        for config, isa in {"scalar": ["-mno-avx2", "-mno-bmi2"], "avx2": ["-mavx2", "-mbmi2", "-mno-avx512f"]}.items():
+        for config, isa in {"scalar": x86_only(["-mno-avx2", "-mno-bmi2"], cxx),
+                            "avx2": x86_only(["-mavx2", "-mbmi2", "-mno-avx512f"], cxx)}.items():
             if args.config not in ("all", config):
                 continue
-            if config == "avx2" and not all(flag in flags for flag in ("avx2", "bmi2")):
-                emit({"type": "skip", "config": config, "reason": "AVX2/BMI2 unavailable"})
+            if config == "avx2" and not cpu_runs({"avx2", "bmi2"}, cxx):
+                emit({"type": "skip", "config": config,
+                      "reason": "AVX2/BMI2 unavailable" if x86(cxx) else "target is not x86-64"})
                 continue
             binary = Path(temp) / config
             options = ["-std=gnu++20", "-O3", "-DNDEBUG", "-Wall", "-Wextra", *isa]

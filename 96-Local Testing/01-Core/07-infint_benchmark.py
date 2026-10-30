@@ -19,6 +19,7 @@ import tempfile
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import cpu_runs, x86, x86_only
 
 _00_memory_cap.ensure()
 
@@ -72,12 +73,12 @@ def main() -> int:
         print(f"FAIL: compiler unavailable {compiler!r}", file=sys.stderr)
         return 1
     version = subprocess.run([*compiler, "--version"], capture_output=True, text=True).stdout.splitlines()[0]
-    variants = [("scalar", ["-march=x86-64", "-mno-avx2", "-mno-fma", "-mno-bmi2"])]
-    cpu_flags = set(Path("/proc/cpuinfo").read_text().split()) if Path("/proc/cpuinfo").exists() else set()
-    if not args.scalar_only and {"avx2", "fma", "bmi2"} <= cpu_flags:
+    variants = [("scalar", x86_only(["-march=x86-64", "-mno-avx2", "-mno-fma", "-mno-bmi2"], compiler))]
+    if not args.scalar_only and cpu_runs({"avx2", "fma", "bmi2"}, compiler):
         variants.append(("avx2", ["-march=x86-64", "-mavx2", "-mfma", "-mbmi2"]))
     else:
-        print("SKIP avx2 variant: requested --scalar-only or CPU lacks AVX2/FMA/BMI2")
+        print("SKIP avx2 variant: " + ("requested --scalar-only or CPU lacks AVX2/FMA/BMI2" if args.scalar_only or x86(compiler)
+                                       else "target is not x86-64"))
     header_hash = hashlib.sha256(HEADER.read_bytes()).hexdigest()[:16]
     state = host_state()
     print("host: " + ", ".join(f"{k}={v}" for k, v in state.items()))

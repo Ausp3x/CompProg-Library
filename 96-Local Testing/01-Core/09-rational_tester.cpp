@@ -31,6 +31,7 @@ template<typename T> static T parseT(const string &s) {
     else { return T(s); }}
 template<typename R> static R parseR(const string &s) { R r; if (!r.read(s)) { fail("protocol input rejected: " + s); } return r; }
 static string str(const auto &x) { return x.toString(); }
+static string dec(ulll v) { string s; do { s += char('0' + int(v % 10)); v /= 10; } while (v); return {s.rbegin(), s.rend()}; }
 
 static void identities() {
     context = "identities";
@@ -119,7 +120,7 @@ template<typename R> static void floatLine(const string &x) {
     if (std::isinf(d)) { cout << (d < 0 ? "-inf " : "inf "); }
     else { double v = std::frexp(d, &e); cout << lng(std::ldexp(v, 53)) << ' ' << e << ' '; }
     if (std::isinf(ld)) { cout << (ld < 0 ? "-inf " : "inf "); }
-    else { long double w = std::frexp(ld, &e); cout << (w < 0 ? "-" : "") << ulng(std::ldexp(std::fabs(w), 64)) << ' ' << e << ' '; }
+    else { long double w = std::frexp(ld, &e); cout << (w < 0 ? "-" : "") << dec(ulll(std::ldexp(std::fabs(w), std::numeric_limits<long double>::digits))) << ' ' << e << ' '; }
     cout << std::signbit(d) << '\n';}
 
 template<typename R> static void modLine(const string &x) {

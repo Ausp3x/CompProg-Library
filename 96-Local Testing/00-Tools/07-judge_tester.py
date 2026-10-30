@@ -26,6 +26,7 @@ import urllib.parse
 from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import native
 
 _00_memory_cap.ensure()
 
@@ -274,7 +275,8 @@ class Judge(unittest.TestCase):
         self.assertEqual((tests / 'example_01.ans').read_text(), '12\n')
         r = self.result('ours')
         self.assertEqual([c['case'] for c in r['cases']], ['example_00', 'example_01', 'random_00', 'random_01', 'random_02'])
-        self.assertTrue(all(c['status'] == 'AC' and 0 < c['time'] < 0.2 and 0 < c['memory'] < 8 << 20 for c in r['cases']),
+        rss = 8 << 20 if native() else 64 << 20  # under qemu-user the emulator's own RSS counts
+        self.assertTrue(all(c['status'] == 'AC' and 0 < c['time'] < 0.2 and 0 < c['memory'] < rss for c in r['cases']),
                         f"{r['cases']}: a trivial solution's peak RSS excludes the tester's own")
         self.assertEqual(len(count.read_text().split()), 15, 'three runs per case; the slow first run is not the minimum')
         self.assertEqual((r['flags'], r['runs'], r['untrusted']), (J.FLAGS, 3, False))

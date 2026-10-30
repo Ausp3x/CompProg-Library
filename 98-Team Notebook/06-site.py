@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Third-party: ports parts of Python-Markdown (BSD-3-Clause), pymdown-extensions and Material for MkDocs (MIT); see THIRD-PARTY.md.
 """Documentation site for Zensical or MkDocs Material, generated from the canonical sources: one page per existing 01-08 header
 or module from its inventory row, evidence document and include graph, one overview with an include chart and one
 notes page per folder, and the hand-written articles in Articles/<NN-Folder>/<NN-stem>.md."""
@@ -916,8 +917,8 @@ def generate(root: Path = ROOT, out: Path | None = None) -> int:
 
 ENGINES = {"zensical": {"zensical": "zensical"},  # executable -> {module its Python needs: package to install}
            "mkdocs": {"material": "mkdocs-material", "pymdownx": "pymdown-extensions"}}
-INSTALL = ("install Zensical (pipx install zensical) or MkDocs Material (pacman -S mkdocs-material "
-           "python-pymdown-extensions, or pipx install mkdocs-material --include-deps)")
+INSTALL = ("install Zensical (pipx install zensical) or MkDocs Material with pymdown-extensions "
+           "(pipx install mkdocs-material --include-deps)")
 
 
 def engine(name: str = "auto") -> tuple[str, str] | str:

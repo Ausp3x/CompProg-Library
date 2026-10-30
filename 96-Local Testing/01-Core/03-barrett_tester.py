@@ -26,6 +26,7 @@ import tempfile
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import cpu_runs, x86, x86_only
 
 _00_memory_cap.ensure()
 
@@ -78,18 +79,17 @@ def main() -> int:
                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
-    scalar = ["-march=x86-64", "-mno-avx", "-mno-avx2"]
-    vector = ["-march=x86-64", "-mavx2"]
+    scalar = x86_only(["-march=x86-64", "-mno-avx", "-mno-avx2"], compiler)
+    vector = x86_only(["-march=x86-64", "-mavx2"], compiler)
     variants = [("optimized-scalar", ["-O3", "-DNDEBUG", *scalar]),
                 ("checked-scalar", ["-O1", "-g", "-D_GLIBCXX_ASSERTIONS", *scalar])]
-    cpu = Path("/proc/cpuinfo")
-    has_avx2 = cpu.exists() and "avx2" in cpu.read_text().split()
-    accelerated = has_avx2 and not args.scalar_only
+    accelerated = cpu_runs({"avx2"}, compiler) and not args.scalar_only
     if accelerated:
         variants += [("optimized-avx2", ["-O3", "-DNDEBUG", *vector]),
                      ("checked-avx2", ["-O1", "-g", "-D_GLIBCXX_ASSERTIONS", *vector])]
     else:
-        report("SKIP", "AVX2 requested off" if args.scalar_only else "AVX2 unavailable on this CPU")
+        report("SKIP", "AVX2 requested off" if args.scalar_only else "AVX2 unavailable on this CPU" if x86(compiler)
+               else "AVX2 execution: target is not x86-64")
     if args.mode != "quick":
         sanitized = ["-O1", "-g", "-D_GLIBCXX_ASSERTIONS", "-fno-omit-frame-pointer",
                      "-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-fno-pie", "-no-pie"]

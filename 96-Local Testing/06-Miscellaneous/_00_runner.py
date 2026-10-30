@@ -9,13 +9,14 @@ import sys
 import tempfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import scaled
 
 _00_memory_cap.ensure()
 
 HERE = Path(__file__).resolve().parent
 
 
-def main(stem, invalid, oracle=None):
+def main(stem, invalid, oracle=None, extra=()):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mode', choices=('quick', 'full', 'stress'),
                         default=os.environ.get('CP_TEST_MODE', 'full'))
@@ -44,9 +45,9 @@ def main(stem, invalid, oracle=None):
 
     def run(command, *, death=False):
         try:
-            result = subprocess.run(command, capture_output=True, text=True, env=env, timeout=180)
+            result = subprocess.run(command, capture_output=True, text=True, env=env, timeout=scaled(180))
         except subprocess.TimeoutExpired as error:
-            raise RuntimeError(f'timeout=180s command={shlex.join(command)}\n{error.stdout}\n{error.stderr}') from error
+            raise RuntimeError(f'timeout={scaled(180)}s command={shlex.join(command)}\n{error.stdout}\n{error.stderr}') from error
         if death:
             ok = result.returncode == -signal.SIGABRT and 'assert' in result.stderr.lower()
         else:
@@ -62,7 +63,7 @@ def main(stem, invalid, oracle=None):
             for label, flags in variants:
                 binary = Path(name) / label
                 progress(f'BUILD {stem} configuration={label} mode={args.mode} seed={args.seed}')
-                run([compiler, '-std=gnu++20', *flags, str(HERE / (stem + '_tester.cpp')), '-o', str(binary)])
+                run([compiler, '-std=gnu++20', *extra, *flags, str(HERE / (stem + '_tester.cpp')), '-o', str(binary)])
                 progress(f'RUN {stem} configuration={label} mode={args.mode} seed={args.seed}')
                 if sys.stdout.isatty():
                     print(flush=True)
