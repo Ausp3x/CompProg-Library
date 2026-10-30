@@ -471,6 +471,19 @@
       "note": ""
     },
     {
+      "id": "P251",
+      "label": "Mutation testing of the testers",
+      "batches": [
+        "SUP20"
+      ],
+      "phase": "Contest core",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
       "id": "P229",
       "label": "06-Miscellaneous — timer, interactive, grid utilities",
       "batches": [

@@ -66,6 +66,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 
 ### Contest core
 
+- [ ] **P251 — SUP20** (opus, M): Mutation testing of the testers. Status: planned.
 - [x] **P229 — MI32** (opus, M): 06-Miscellaneous — timer, interactive, grid utilities.
 - [x] **P027 — DS04, DS05, DS06, DS47** (opus, M+L+L+M): 02-Data Structures — fenwick tree advanced, monoids, lazysegmenttree, dynamicsegmenttree, interval set.
 - [x] **P227 — DS49** (opus, M): 02-Data Structures — hashmap, sortedlist.

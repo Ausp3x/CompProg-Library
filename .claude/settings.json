@@ -1,5 +1,4 @@
 {
-  "autoCompactWindow": 400000,
   "permissions": {
     "allow": [
       "Bash(g++ *)",
@@ -81,5 +80,9 @@
     "type": "command",
     "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/statusline.py\"",
     "padding": 0
+  },
+  "autoCompactWindow": 400000,
+  "enabledPlugins": {
+    "session-report@anthropic-plugin-directory": true
   }
 }

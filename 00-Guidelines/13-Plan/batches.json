@@ -6838,6 +6838,18 @@
         "SUP18"
       ],
       "tiers": []
+    },
+    {
+      "id": "SUP20",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Mutation testing of the testers (user decision 2026-10-31): find, from the sources of the Trail of Bits `mutation-testing` skill (trailofbits/skills, mewt/muton) and of Mull, a tool that mutates C++20 headers built with `g++`, recording its version, licence, network use and any hooks or scripts it installs; installing a third-party plugin or tool needs the user's yes, pinned at the commit read. Run it inside the memory cap on one small Contest header with a fast tester, classify every surviving mutant as a test gap or an equivalent mutant, close the gaps in that header's tester, and record the runtime and survivors so the user decides whether to extend it. [decisions](../10-decisions.md), 2026-10-31 Model and prompt review.",
+      "prerequisites": [
+        "C04"
+      ],
+      "tiers": []
     }
   ]
 }
