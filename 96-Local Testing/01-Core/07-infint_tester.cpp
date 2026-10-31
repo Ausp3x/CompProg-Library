@@ -52,6 +52,11 @@ static InfInt omul(const InfInt &a, const InfInt &b) {
     if (a.isNil() || b.isNil()) { return 0; }
     return InfInt::fromLimbs(schoolLimbs(a.toLimbs(), b.toLimbs()), a.sgn * b.sgn);}
 static vector<W> wordsOf(const InfInt &a) { vector<W> w(a.n.begin(), a.n.end()); w.resize(size_t(infint_detail::norm(w.data(), int(w.size())))); return w; }
+// The decimal text of |a| by repeated single-word division (the independent oracle of the radix tests).
+static std::string slowDecimal(const InfInt &a) {
+    vector<W> v = wordsOf(a); std::string dec;
+    while (!v.empty()) { std::string chunk = std::to_string(infint_detail::divWord(v.data(), v.data(), int(v.size()), W(10000000000000000000ULL))); v.resize(size_t(infint_detail::norm(v.data(), int(v.size())))); dec = (v.empty() ? chunk : std::string(19 - chunk.size(), '0') + chunk) + dec; }
+    return dec;}
 static InfInt ofWords(const vector<W> &w) { return InfInt::fromLimbs(w); }
 static InfInt egcd(InfInt a, InfInt b) { a = abs(a); b = abs(b); while (!b.isNil()) { InfInt r = divMod(a, b).second; a = std::move(b); b = std::move(r); } return a; }
 static lng floorDiv(lng a, lng b) { lng q = a / b; if ((a % b != 0) && ((a < 0) != (b < 0))) { --q; } return q; }
@@ -160,12 +165,53 @@ static void construction() {
           for (int pos = 0; pos < len; pos += full() ? (len <= 100 ? 1 : 97) : max(1, len / 2)) { for (int bad = 0; bad < 256; ++bad) { if (std::isxdigit(bad) || (pos == 0 && (bad == '+' || bad == '-'))) { continue; } std::string w = h; w[size_t(pos)] = char(bad); InfInt k = 5; require(!k.read(w, 16) && k == 5, "byte " + std::to_string(bad) + " kept out at " + std::to_string(pos) + " of " + std::to_string(len)); } }
           InfInt si("inf"); require(!si.read(h + "g", 16) && si.is_inf, "rejected hex keeps the sentinel");} require(keep.read("INF") && keep.is_inf && keep.sgn == 1 && keep.read("-Inf") && keep.sgn == -1, "inf tokens");
       expect(InfInt("ZZ", 36), InfInt(1295), "base 36"); expect(InfInt(1295).toString(36), std::string("ZZ"), "print base 36"); expect(InfInt("-ff", 16), InfInt(-255), "hex lowercase");}
-    for (int words : {64, 65, 300, 1023, 1024, 1025, 2500}) {
-        if (!full() && words > 300) { continue; }
-        context = "radix round trip words " + std::to_string(words);
-        InfInt a = randBits(64 * words - ri(64), ri(2)); if (words == 65) { a = (InfInt(1) << (64 * words)) - 1; }
-        for (uint base : {10u, 16u, 3u, 36u}) { std::string s = a.toString(base); expect(InfInt(s, base), a, "large round trip"); expect(int(s.size()) > 0, true, "nonempty"); }
-        expect(InfInt(abs(a).toDigits(1000000000u), 1000000000u, a.sgn), a, "large digits round trip");}
+    // Radix round trips across RADIX, CACHED_DIV (a prepared Divisor per cached power from CACHED_DIV words) and FFT (a kept spectrum per power from FFT words); the decimal text also against repeated single-word division.
+    vector<int> radixWords = {64, 65, 300, 2 * max(infint_detail::CACHED_DIV, infint_detail::FFT) + 1};
+    if (full()) { for (int w : {1023, 1024, 1025, 2500, 4 * infint_detail::CACHED_DIV + 3}) { radixWords.push_back(w); } }
+    for (int words : radixWords) {
+        for (int pat = 0; pat < 2; ++pat) {
+            if (pat == 0 ? words == 65 : words != 65 && words < 1000) { continue; }
+            context = "radix round trip words " + std::to_string(words) + (pat ? " all ones" : " random");
+            InfInt a = pat ? (InfInt(1) << (64 * words)) - 1 : randBits(64 * words - ri(64), ri(2));
+            for (uint base : {10u, 16u, 3u, 36u, 7u}) { std::string s = a.toString(base); expect(InfInt(s, base), a, "large round trip"); expect(int(s.size()) > 0, true, "nonempty"); }
+            expect(a.toString(), (a.sgn == -1 ? "-" : "") + slowDecimal(a), "decimal text against repeated single-word division");
+            expect(InfInt(abs(a).toDigits(1000000000u), 1000000000u, a.sgn), a, "large digits round trip");}}
+    // Scaled remainder tree (the print from SCALED_TREE words in the AVX2 build; each leaf settled by its residue and the block below it): structured magnitudes around the threshold and the tree-level
+    // boundaries (2^j blocks of 19 digits), decimal text against repeated single-word division, round trips in bases 7 and 36 and through base-1e9 digits; the scalar variants run the same cases through the division tree.
+    {
+        vector<int> treeWords = {80, 81, 96, 127, 128, 129, 136, 255, 256, 257, 300};
+        if (full()) { for (int w : {505, 507, 600, 1010, 1011, 1500}) { treeWords.push_back(w); } }
+        InfInt bp = 10000000000000000000ULL, nines19 = bp - 1;
+        for (int words : treeWords) {
+            int bits = 64 * words - 5, k = int(double(bits) * 0.30103); InfInt t10 = pow(InfInt(10), k), half = pow(InfInt(10), k / 2), third = pow(InfInt(10), k / 3), r = randBits(bits), blocks = 0, alt = 0;
+            for (int b = 0; b < k / 19; ++b) { blocks = blocks * bp + nines19; alt = alt * bp + ((b & 1) ? nines19 : InfInt(0)); }
+            vector<std::pair<const char *, InfInt>> cases = {{"random", r}, {"all ones", (InfInt(1) << bits) - 1}, {"power of ten", t10}, {"nines", t10 - 1}, {"power of ten plus one", t10 + 1}, {"nines then zeros", t10 - half},
+                {"zeros then nines", t10 + half - 1}, {"interior zeros", third * (third * 7 + 1) + 5}, {"trailing zeros", r - r % half}, {"trailing nines", r - r % half + half - 1}, {"full blocks", blocks}, {"alternating blocks", alt}, {"full blocks plus one", blocks + 1}};
+            for (auto &[what, a] : cases) {
+                context = "scaled remainder tree words " + std::to_string(words) + " " + what;
+                expect(a.toString(), slowDecimal(a), "decimal text against repeated single-word division");
+                for (uint base : {7u, 36u}) { expect(InfInt(a.toString(base), base), a, "round trip base " + std::to_string(base)); }
+                expect(InfInt(a.toDigits(1000000000u), 1000000000u), a, "digits round trip");}}}
+    // The leaf rule of the scaled remainder tree on constructed fractions (scaledTree called directly): the exact fraction of V + 1 one unit below and above with 10^19 - 1 or 0 below the leaf (every
+    // band with each neighbour, the upward crossing included) and the exact fraction of V; V random and with 70 (level 6: 60) trailing 10^19 - 1 blocks, so that a correction propagates leaf by leaf, at levels 6-8.
+    {
+        InfInt::Radix &r = InfInt::radix(10); InfInt bp = r.bp;
+        for (int i : {6, 7, 8}) {
+            const vector<W> &pw = InfInt::radixPow(r, i); InfInt P = InfInt::fromLimbs(vector<ulng>(pw.begin(), pw.end())); int f = InfInt::radixFrac(r, i), blocks = 1 << i; InfInt tail = pow(bp, min(70, blocks - 4));
+            size_t lo = 0, pl = size_t(InfInt::radixFrac(r, infint_detail::SCALED_LEAF));
+            for (int k = infint_detail::SCALED_LEAF + 1; k <= i; ++k) { InfInt::Radix::Tree &t = InfInt::radixSplit(r, k); lo += size_t(t.frac - int(InfInt::radixPow(r, k - 1).size())); pl = max(pl, size_t(t.plan.len)); }
+            vector<W> lob(lo + 1), prod(pl), out(size_t(blocks), W(0)), fr(size_t(f), W(0));
+            auto run = [&](const InfInt &num, int d, W below, const InfInt &want, const std::string &what) {
+                InfInt fx = (num << (64 * f)) / P + d; vector<W> fw = wordsOf(fx); require(fw.size() <= size_t(f), "constructed fraction below B^frac");
+                std::fill(fr.begin(), fr.end(), W(0)); std::copy(fw.begin(), fw.end(), fr.begin());
+                InfInt::scaledTree(out.data(), fr.data(), i, lob.data(), prod.data(), below, r);
+                InfInt got = 0; for (int k = blocks - 1; k >= 0; --k) { require(out[size_t(k)] < r.bp, "block range"); got = got * bp + out[size_t(k)]; }
+                expect(got, want, what);};
+            for (int t = 0; t < sz(3, 12); ++t) {
+                InfInt v = sample(P - 2, rng); if (t & 1) { v = v / tail * tail + tail - 1; }
+                context = "scaled remainder tree leaf rule, level " + std::to_string(i) + (t & 1 ? ", 70 trailing full blocks" : ", random");
+                run(v + 1, -1, r.bp - 1, v, "one unit below V + 1, nines below"); run(v + 1, 1, r.bp - 1, v, "one unit above V + 1, nines below (upward crossing)");
+                run(v + 1, 1, 0, v + 1, "one unit above V + 1, zero below"); run(v + 1, -1, 0, v + 1, "one unit below V + 1, zero below"); run(v, 0, 0, v, "exact fraction of V");}}}
     for (int t = 0; t < sz(50, 500); ++t) {
         ulng v = rng() >> ri(64); InfInt a = v; expect(a.toDouble(), double(v), "toDouble below 2^64"); expect(InfInt::fromDouble(double(v)), InfInt(ulng(double(v))), "fromDouble below 2^64 (truncated)");
         int e = ri(900); InfInt big = (InfInt(v) << e); double d = big.toDouble(); require(d == std::ldexp(double(v), e), "toDouble exact scaling"); expect(InfInt::fromDouble(d), InfInt(ulng(double(v))) << e, "fromDouble scaled");
@@ -397,28 +443,12 @@ static void multiplication() {
                     schonhageStrassen(r.data(), x.data(), nx, y.data(), ny); check("schonhageStrassen");
                     if (nx == ny) { schonhageStrassen(r.data(), x.data(), nx, x.data(), nx); expect(ofWords(r), omul(abs(a), abs(a)), "schonhageStrassen square"); }}
                 if (nx == ny) { vector<W> tr(size_t(nx), 0); truncatedMul(tr.data(), x.data(), y.data(), nx); vector<W> low = wordsOf(abs(e)); low.resize(size_t(nx), 0); low.resize(size_t(norm(low.data(), nx))); expect(ofWords(tr), ofWords(low), "truncatedMul"); }}}}
-    vector<pair<int, int>> wide = {{2 * FFT + 100, FFT + 1}, {4 * FFT + 3, FFT}};
-    if (full()) { for (auto p : {pair{16391, 1025}, {12000, 700}, {9000, 2100}, {4100, 600}, {2600, 1300}, {1300, 1000}, {7000, 2100}, {16391, 2100}, {20000, 2048}}) { wide.push_back(p); } }
+    // Wide shapes above FFT (chunked or whole transforms) and below it ({4096, 64}, {16384, 50}: whole transform in the AVX2 build; {4096, 512}: in the scalar build; the rest Karatsuba chunks).
+    vector<pair<int, int>> wide = {{2 * FFT + 100, FFT + 1}, {4 * FFT + 3, FFT}, {4096, 64}, {16384, 50}, {4096, 512}, {2048, 40}};
+    if (full()) { for (auto p : {pair{16391, 1025}, {12000, 700}, {9000, 2100}, {4100, 600}, {2600, 1300}, {1300, 1000}, {7000, 2100}, {16391, 2100}, {20000, 2048}, {65536, 32}, {100000, 80}, {30000, 600}}) { wide.push_back(p); } }
     for (auto [n, m] : wide) {
         context = "unbalanced transform product " + std::to_string(n) + "x" + std::to_string(m);
         InfInt a = randBits(64 * n - ri(64)), b = randBits(64 * m - ri(64)); InfInt e = omul(a, b); expect(a * b, e, "product"); expect(b * a, e, "product commuted");}
-    // middleProduct in its two bands (schoolbook below MIDDLE, the cyclic transform from MIDDLE words) at random shapes and the thresholds:
-    // the window [lo, lo + cnt) of the product less a deficit in [0, min(na, nb) B), with lo and cnt random, a Newton-like window at nb, the whole product and the top words.
-    vector<pair<int, int>> mids;
-    for (int t = 0; t < sz(60, 400); ++t) { mids.push_back({1 + ri(full() ? 300 : 60), 1 + ri(full() ? 300 : 60)}); }
-    for (auto s : {pair{MIDDLE - 1, MIDDLE - 1}, {MIDDLE, MIDDLE}, {MIDDLE, 3 * MIDDLE}, {MIDDLE + 1, MIDDLE - 1}, {FFT - 1, FFT}, {FFT, FFT}, {FFT, FFT + 1}, {FFT + 1, 2 * FFT + 7}, {3 * FFT, FFT}}) { for (int t = 0; t < sz(3, 6); ++t) { mids.push_back(s); } }
-    if (full()) { for (auto s : {pair{FFT + 1000, FFT + 1000}, {4 * FFT + 5, FFT + 3}}) { for (int t = 0; t < 4; ++t) { mids.push_back(s); } } }
-    for (size_t t = 0; t < mids.size(); ++t) {
-        auto [na, nb] = mids[t]; bool ones = t % 5 == 0; int lo = ri(na + nb), cnt = 1 + ri(na + nb + 2 - lo);
-        if (t % 4 == 1) { lo = max(nb - 1 - ri(3), 0); cnt = min(na + 2, na + nb + 2 - lo); }
-        else if (t % 4 == 2) { lo = 0; cnt = na + nb; }
-        else if (t % 4 == 3) { lo = na + nb - 1; cnt = 3; }
-        context = "middleProduct " + std::to_string(na) + "x" + std::to_string(nb) + " lo=" + std::to_string(lo) + " cnt=" + std::to_string(cnt) + (ones ? " ones" : " random") + (min(na, nb) < MIDDLE ? " schoolbook" : " cyclic transform");
-        vector<W> x = patterned(na, ones ? 1 : 0), y = patterned(nb, ones ? 1 : 0); InfInt a = ofWords(x), b = ofWords(y);
-        vector<W> r(size_t(cnt), 0); infint_detail::middleProduct(r.data(), x.data(), na, y.data(), nb, lo, cnt);
-        InfInt exact = omul(a, b) >> (64 * lo); exact &= (InfInt(1) << (64 * cnt)) - 1;
-        InfInt diff = divModEuclid(exact - ofWords(r), InfInt(1) << (64 * cnt)).second;
-        require(diff < (InfInt(min(na, nb)) << 64), "middleProduct deficit bound");}
     context = "scalar products";
     for (int t = 0; t < sz(200, 2000); ++t) {
         InfInt a = randSigned(500); ulng u = rng() >> ri(64); lng s = lng(rng() >> ri(64)) * (ri(2) ? -1 : 1);
@@ -428,7 +458,7 @@ static void multiplication() {
 
 
 // Transforms: the residue oracle itself, ntt3Cyclic and ntt64Cyclic through the limb interface (lengths across the 4096-limb leaf), fftPlan (fields, the huge request,
-// every (lg, r) class and both leaf parities), fftRun full and cyclic plans, transformMul and the public products at those sizes, tiny and unbalanced shapes, squares, five patterns.
+// every (lg, r) class and both leaf parities), fftRun full and cyclic plans, transformMul and the public products at those sizes, tiny and unbalanced shapes, squares, five patterns; cyclicPlan/mulCyclic/foldMod1/subMod1/canonical residues and kept spectra (fftWith).
 static void transforms() {
     using namespace infint_detail;
     context = "residue oracle";
@@ -509,21 +539,78 @@ static void transforms() {
     fold(1, 16, {F16, F16, F16, (lng(1) << 17) - 1}, "2 B - 1 (the carry wraps twice)"); fold(1, 16, {0, 0, 0, -(lng(1) << 16)}, "-B (the borrow wraps)"); fold(1, 16, {0, 0, 0, 3 << 16}, "3 B");
     fold(2, 16, {F16, F16, F16, F16, F16, F16, F16, (lng(1) << 17) - 1}, "2 B^2 - 1 (the carry wraps twice)"); fold(2, 16, {0, 0, 0, 0, 0, 0, 0, -(lng(1) << 16)}, "-B^2 (the borrow wraps)");
     fold(2, 8, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -(lng(1) << 8)}, "-B^2 at k = 8"); fold(2, 8, {255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 511}, "2 B^2 - 1 at k = 8");
-    // The nttCyclic fall-through of transformMul and middleProduct with their word-assembly loops: no plan covers 7,000,000 x 1,000,000 words (balanced plans end at
-    // 7,864,318 product words, one-word multipliers at 11,796,478 multiplicand words), nor the cyclic want of the window; the product is checked by residues and bit length, the windows against it.
+    // Cyclic residues: cyclicPlan gives an FFT plan of len >= max(want, n, m) words up to 3 FFT-word operands at want below, between and beyond the operand sizes; mulCyclic's residue is canonical (never the all-ones
+    // words) and equals the product folded modulo B^len - 1, an all-ones operand of len words gives 0; foldMod1 below, at, at multiples of and one past len (all-ones chunks wrap at every step); subMod1 below, at and above b, in place.
+    context = "cyclic residues";
+    auto allOnes = [](const vector<W> &w) { return std::all_of(w.begin(), w.end(), [](W x) { return x == ~W(0); }); };
+    vector<array<int, 3>> cyc = {{1, 1, 1}, {1, 1, 3}, {2, 1, 1}, {3, 2, 5}, {FFT - 1, FFT - 1, FFT - 1}, {FFT, FFT, FFT}, {FFT, FFT + 1, 2 * FFT + 1}, {FFT + 1, 2 * FFT + 7, 3 * FFT + 8}, {3 * FFT, FFT, FFT}, {FFT, 3 * FFT, 4 * FFT + 1}, {3 * FFT, 3 * FFT, 6 * FFT + 3}};
+    for (int t = 0; t < sz(24, 60); ++t) { int n = 1 + ri(3 * FFT), m = 1 + ri(3 * FFT), want = t % 3 == 0 ? 1 + ri(max(n, m)) : t % 3 == 1 ? max(n, m) + ri(min(n, m) + 1) : n + m + 1 + ri(8); cyc.push_back({n, m, want}); }
+    for (size_t t = 0; t < cyc.size(); ++t) {
+        auto [n, m, want] = cyc[t]; int pattern = t % 3 == 2 ? 1 : 0;
+        CyclicPlan c = cyclicPlan(n, m, want);
+        context = "mulCyclic " + std::to_string(n) + "x" + std::to_string(m) + " want=" + std::to_string(want) + " len=" + std::to_string(c.len) + " plan lg=" + std::to_string(c.p.lg) + " r=" + std::to_string(c.p.r) + " " + PATTERN_NAMES[pattern];
+        require(c.len >= max({want, n, m}) && c.p.lg > 0 && c.limbs == 0 && c.len == c.p.len, "an FFT cyclic plan of at least max(want, n, m) words");
+        vector<W> x = patterned(n, pattern), y = patterned(m, pattern), r(size_t(c.len), POISON); InfInt a = ofWords(x), b = ofWords(y);
+        mulCyclic(r.data(), c, x.data(), n, y.data(), m);
+        require(!allOnes(r), "canonical residue (never all ones)"); expect(ofWords(r), foldOnes(omul(a, b), c.len), "residue of a b modulo B^len - 1");
+        if (n == m) { mulCyclic(r.data(), c, x.data(), n, x.data(), n); require(!allOnes(r), "canonical square residue"); expect(ofWords(r), foldOnes(omul(a, a), c.len), "residue of a^2 (b == a)"); }
+        if (t % 4 == 0) {
+            int len = cyclicPlan(1, m, want).len; CyclicPlan z = cyclicPlan(len, m, want);
+            for (int k = 0; k < 6 && z.len != len; ++k) { len = z.len; z = cyclicPlan(len, m, want); }
+            require(z.len == len, "a plan whose operand length is its residue length");
+            vector<W> ones(size_t(len), ~W(0)), zr(size_t(len), POISON); mulCyclic(zr.data(), z, ones.data(), len, y.data(), m);
+            require(std::all_of(zr.begin(), zr.end(), [](W w) { return w == 0; }), "zero residue of (B^len - 1) b at len=" + std::to_string(len));}}
+    for (int t = 0; t < sz(80, 300); ++t) {
+        int len = 1 + ri(full() ? 200 : 50), k = 2 + ri(4), n = t % 4 == 0 ? 1 + ri(len) : t % 4 == 1 ? len : t % 4 == 2 ? k * len : k * len + 1; bool ones = t % 3 == 0;
+        context = "foldMod1 n=" + std::to_string(n) + " len=" + std::to_string(len) + (ones ? " ones" : " random");
+        vector<W> x = patterned(n, ones ? 1 : 0), r(size_t(len), POISON); foldMod1(r.data(), len, x.data(), n);
+        require(!allOnes(r), "canonical fold"); expect(ofWords(r), foldOnes(ofWords(x), len), "fold of an n-word value modulo B^len - 1");
+        context = "subMod1 len=" + std::to_string(len);
+        vector<W> p = patterned(len, t % 5 == 0 ? 1 : 0), q = t % 7 == 0 ? p : patterned(len, t % 5 == 1 ? 1 : 0), h = patterned(len, 3), h0 = h;
+        canonical(p.data(), len); canonical(q.data(), len); canonical(h.data(), len);
+        require(!allOnes(p) && !allOnes(q) && h == h0 && (t % 5 != 0 || ofWords(p).isNil()), "canonical clears the all-ones words and keeps every other residue");
+        InfInt a = ofWords(p), b = ofWords(q), all = (InfInt(1) << (64 * len)) - 1;
+        subMod1(r.data(), p.data(), q.data(), len); expect(ofWords(r), foldOnes(a - b + all, len), a < b ? "a - b with a < b" : a == b ? "a - b with a == b" : "a - b with a > b");
+        subMod1(r.data(), q.data(), p.data(), len); expect(ofWords(r), foldOnes(b - a + all, len), "b - a");
+        subMod1(p.data(), p.data(), q.data(), len); expect(ofWords(p), foldOnes(a - b + all, len), "a - b in place (r aliases a)");}
+    // Spectrum: the kept forward transform of b under the full plan of n x m words, then under a cyclic plan, multiplies three operands of at most n words in a row: linear against transformMul, cyclic against the fold after canonical.
+    vector<pair<int, int>> specs = {{FFT, FFT}, {FFT + 1, FFT}, {FFT, FFT + 1}, {2 * FFT + 7, FFT + 3}, {3 * FFT, FFT}, {FFT, 3 * FFT + 1}};
+    if (full()) { specs.push_back({4 * FFT + 1, 4 * FFT + 1}); specs.push_back({10 * FFT, 2 * FFT}); }
+    for (auto [n, m] : specs) {
+        for (int pb : {0, 1}) {
+            FftPlan p = fftPlan(n, m, n + m, false); CyclicPlan c = cyclicPlan(n, m, max(n, m) + ri(n + m));
+            std::string label = std::to_string(n) + "x" + std::to_string(m) + " b=" + PATTERN_NAMES[pb];
+            context = "Spectrum " + label;
+            require(p.lg > 0 && c.p.lg > 0 && Spectrum::words(p) == 2 * (p.r << p.lg) && Spectrum::words(c.p) == 2 * (c.p.r << c.p.lg), "full and cyclic plans with their spectrum sizes");
+            vector<W> y = patterned(m, pb), lin(size_t(Spectrum::words(p))), cyb(size_t(Spectrum::words(c.p))); Spectrum s, sc; s.take(lin.data(), p, y.data(), m, n); sc.take(cyb.data(), c.p, y.data(), m, n);
+            require(s.n == m && s.cap == n && s.p.len == n + m && sc.p.len == c.len, "spectrum fields");
+            for (int k = 0; k < 3; ++k) {
+                int na = k == 0 ? n : k == 1 ? 1 + ri(n) : max(1, n / 2), pa = k == 1 ? 1 : k == 2 ? 4 : 0;
+                vector<W> x = patterned(na, pa, p.k), r(size_t(na + m), POISON), e(size_t(na + m)), z(size_t(c.len), POISON);
+                context = "fftWith linear " + label + " a #" + std::to_string(k) + " of " + std::to_string(na) + " words " + PATTERN_NAMES[pa];
+                fftWith(r.data(), s, x.data(), na, false); transformMul(e.data(), x.data(), na, y.data(), m);
+                expectProduct(ofWords(e), x, y, pa == 1 && pb == 1, "transformMul (the oracle product)"); require(r == e, "fftWith equals transformMul");
+                context = "fftWith cyclic " + label + " len=" + std::to_string(c.len) + " a #" + std::to_string(k) + " of " + std::to_string(na) + " words " + PATTERN_NAMES[pa];
+                fftWith(z.data(), sc, x.data(), na, true); canonical(z.data(), c.len);
+                expect(ofWords(z), foldOnes(ofWords(e), c.len), "cyclic residue after canonical");}}}
+    // 7,000,000 x 1,000,000 words: no full FFT plan (balanced plans end at 7,864,318 product words, one-word multipliers at 11,796,478 multiplicand words), so transformMul and the cyclic plan at want = n + m fall through
+    // to the NTTs, while want = 1,000,001 still gets an FFT plan of 7,864,320 < n + m words (a genuine wrap, run through a kept spectrum so one transform buffer stays resident); both residues are the verified product folded at len.
     if (stress()) {
-        int n = 7000000, m = 1000000, lo = 100000, cnt = 1000;
-        require(fftPlan(n, m, n + m, false).lg == 0 && fftPlan(n, m, max(lo + cnt, n + m - lo), true).lg == 0, "no FFT plan for 7,000,000 x 1,000,000 words, full or cyclic");
+        int n = 7000000, m = 1000000;
+        CyclicPlan c = cyclicPlan(n, m, 1000001), d = cyclicPlan(n, m, n + m);
+        require(fftPlan(n, m, n + m, false).lg == 0 && d.p.lg == 0 && d.limbs > 0 && d.len == d.limbs / 2 && d.len >= n + m, "no FFT plan covers 8,000,000 product or residue words: the cyclic plan at want = n + m is the NTT limb count");
+        require(c.p.lg > 0 && c.limbs == 0 && c.len >= n && c.len < n + m, "the cyclic plan at want = 1,000,001 is an FFT plan of fewer than n + m words");
         vector<W> x = patterned(n, 0), y = patterned(m, 0), r(size_t(n + m));
         context = "transformMul 7000000x1000000 (nttCyclic fall-through)";
         transformMul(r.data(), x.data(), n, y.data(), m);
         expectProduct(ofWords(r), x, y, false, "fall-through product");
-        context = "middleProduct 7000000x1000000 (nttCyclic fall-through)";
-        vector<W> w(size_t(n + m)); middleProduct(w.data(), x.data(), n, y.data(), m, 0, n + m);
-        require(w == r, "whole-product window equals the verified product");
-        vector<W> s(size_t(cnt), 0); middleProduct(s.data(), x.data(), n, y.data(), m, lo, cnt);
-        InfInt exact = ofWords(vector<W>(r.begin() + lo, r.begin() + lo + cnt)), diff = divModEuclid(exact - ofWords(s), InfInt(1) << (64 * cnt)).second;
-        require(diff < (InfInt(m) << 64), "middleProduct deficit bound at lo=100000 cnt=1000");}
+        context = "mulCyclic 7000000x1000000 len=" + std::to_string(d.len) + " NTT limbs=" + std::to_string(d.limbs) + " (nttCyclic fall-through)";
+        vector<W> s(size_t(d.len), POISON), f(size_t(d.len)); mulCyclic(s.data(), d, x.data(), n, y.data(), m); foldMod1(f.data(), d.len, r.data(), n + m);
+        require(s == f, "residue equals the fold of the verified product");
+        context = "fftWith cyclic 7000000x1000000 len=" + std::to_string(c.len) + " FFT plan lg=" + std::to_string(c.p.lg) + " r=" + std::to_string(c.p.r) + " k=" + std::to_string(c.p.k) + " (kept spectrum of the 1,000,000-word operand)";
+        vector<W> buf(size_t(Spectrum::words(c.p))); Spectrum sp; sp.take(buf.data(), c.p, y.data(), m, n);
+        s.assign(size_t(c.len), POISON); f.resize(size_t(c.len)); fftWith(s.data(), sp, x.data(), n, true); canonical(s.data(), c.len); foldMod1(f.data(), c.len, r.data(), n + m);
+        require(s == f, "residue after canonical equals the fold of the verified product");}
     context = "";}
 
 static void division() {
@@ -557,14 +644,13 @@ static void division() {
                             vector<W> qq(size_t(nx - ny + 1), 0), rr(size_t(ny), 0);
                             divBasecase(qq.data(), rr.data(), x.data(), nx, y.data(), ny); expect(ofWords(qq), q, "divBasecase q"); expect(ofWords(rr), r, "divBasecase r");
                             if (ny >= 3) { divBurnikelZiegler(qq.data(), rr.data(), x.data(), nx, y.data(), ny); expect(ofWords(qq), q, "burnikelZiegler q"); expect(ofWords(rr), r, "burnikelZiegler r"); }
-                            vector<W> iv(size_t(ny) + 1); reciprocal(iv.data(), y.data(), ny);
-                            InfInt inv = ofWords(iv), B2 = InfInt(1) << (128 * ny); require(omul(b, inv) <= B2 && omul(b, inv + 1) > B2, "reciprocal exact floor");
-                            divNewton(qq.data(), rr.data(), x.data(), nx, y.data(), ny, iv.data()); expect(ofWords(qq), q, "divNewton q"); expect(ofWords(rr), r, "divNewton r");}}}}}}
+                            divRem(qq.data(), rr.data(), x.data(), nx, y.data(), ny); expect(ofWords(qq), q, "divRem dispatcher q"); expect(ofWords(rr), r, "divRem dispatcher r");}}}}}}
     context = "newtonRaphsonInv";
-    for (int limbs : {1, 2, 3, 4, 7, 8, 33, 64, 65, 100}) {
-        InfInt a = randBits(32 * limbs); a.setBit(32 * limbs - 1);
-        InfInt inv = newtonRaphsonInv(a), B = InfInt(1) << (64 * limbs);
-        require(omul(a, inv) <= B && omul(a, inv + 1) > B, "newtonRaphsonInv floor limbs=" + std::to_string(limbs));}
+    for (int limbs : {1, 2, 3, 4, 7, 8, 33, 64, 65, 100, 2 * BURNIKEL, 2 * FFT, 2 * FFT + 2}) {
+        for (int ones = 0; ones < 2; ++ones) {
+            InfInt a = ones ? (InfInt(1) << (32 * limbs)) - 1 : randBits(32 * limbs); a.setBit(32 * limbs - 1);
+            InfInt inv = newtonRaphsonInv(a), B = InfInt(1) << (64 * limbs);
+            require(omul(a, inv) <= B && omul(a, inv + 1) > B, "newtonRaphsonInv floor limbs=" + std::to_string(limbs) + (ones ? " all ones" : ""));}}
     context = "hensel";
     for (int t = 0; t < sz(60, 400); ++t) {
         int bn = 1 + ri(full() ? 120 : 30), qn = 1 + ri(full() ? 200 : 60);
@@ -572,6 +658,17 @@ static void division() {
         vector<W> x = wordsOf(a), y = wordsOf(b); vector<W> qq(x.size() - y.size() + 1);
         divExactHensel(qq.data(), x.data(), int(x.size()), y.data(), int(y.size())); expect(ofWords(qq), q, "divExactHensel");
         int sh = ri(70); expect(divExact(a << sh, b << sh), q, "divExact shifted"); expect(divExact(-(a << sh), b << sh), -q, "divExact shifted negative");}
+    // divExact across HENSEL (2-adic below, the exact divRem above) and the divRem dispatch of the exact flag: Burnikel-Ziegler for quotients of at least m / 2 words below NEWTON_DIV divisor words (NEWTON_LONG from 4m quotient words),
+    // fresh blocks otherwise.
+    vector<pair<int, int>> exactSizes = {{HENSEL - 1, 3}, {HENSEL, 3}, {HENSEL + 1, 3}, {HENSEL + 1, BURNIKEL}, {HENSEL + 1, NEWTON_DIV - 1}, {NEWTON_DIV / 2, NEWTON_DIV - 1}, {HENSEL + 1, NEWTON_DIV}, {NEWTON_DIV + 5, NEWTON_DIV + 5}, {2 * NEWTON_DIV + 1, NEWTON_DIV + 1}};
+    if (lng longQ = 4LL * NEWTON_LONG + 1; longQ < 100000) { exactSizes.push_back({int(longQ), NEWTON_LONG}); exactSizes.push_back({int(longQ), NEWTON_LONG - 1}); }
+    for (auto [qn, bn] : exactSizes) {
+        for (int signs = 0; signs < 4; ++signs) {
+            context = "divExact quotient " + std::to_string(qn) + " divisor " + std::to_string(bn) + " words signs " + std::to_string(signs);
+            InfInt b = randBits(64 * bn - ri(64)); b.n[0] |= 1; InfInt q = signs == 3 ? (InfInt(1) << (64 * qn)) - 1 : randBits(64 * qn - ri(64)), a = omul(q, b);
+            if (signs & 1) { a = -a; } if (signs & 2) { b = -b; }
+            InfInt e = (signs == 1 || signs == 2) ? -q : q; expect(divExact(a, b), e, "exact quotient");
+            int sh = 1 + ri(130); expect(divExact(a << sh, b << sh), e, "exact quotient of shifted operands");}}
     context = "scalar division";
     for (int t = 0; t < sz(200, 2000); ++t) {
         InfInt a = randSigned(700); ulng u = (rng() >> ri(64)) | 1; lng s = (lng(rng() >> ri(63)) | 1) * (ri(2) ? -1 : 1);
@@ -594,6 +691,81 @@ static void division() {
         auto [eq, er] = divModEuclid(a, b); require(omul(eq, b) + er == a && er.sgn == 1 && magCmp(er, b) < 0, "euclid identity");
         InfInt f = randSigned(40); if (magCmp(f, 1) <= 0) { f = 3; } int cnt = ri(6); InfInt x = omul(a.isNil() ? InfInt(1) : a, pow(f, cnt)); if ((a % f).isNil()) { continue; }
         InfInt y = x; expect(removeFactor(y, f), cnt, "removeFactor count"); expect(y, a.isNil() ? InfInt(1) : a, "removeFactor rest");}
+    context = "";}
+
+// invert and invertExact (Knuth D below BURNIKEL, Newton with schoolbook products below FFT, Newton with cyclic FFT products from FFT words) on five divisor patterns: d (B^m + v) <= B^(2m) < d (B^m + v + 2) and
+// d x <= B^(2m) < d (x + 1) by the schoolbook product; Divisor and divBlocks through divRem(..., &dv) and directly on the construction a = q b + r, the exact flag, the 5,000,000 / 4,000,000-word division in stress mode.
+static void inversion() {
+    using namespace infint_detail;
+    static const char *DIVISOR_NAMES[] = {"random", "ones", "top bit only", "top word 2^63", "low half zero", "unnormalized"}, *REM_NAMES[] = {"0", "1", "b-1", "random"};
+    // m words of a divisor pattern with the top bit set, except the unnormalized pattern (random top word shifted right by 1-63 bits).
+    auto divisor = [&](int m, int pattern) {
+        vector<W> d = patterned(m, pattern == 1 ? 1 : 0);
+        if (pattern == 2) { std::fill(d.begin(), d.end(), 0); }
+        if (pattern == 4) { std::fill(d.begin(), d.begin() + m / 2, 0); }
+        if (pattern == 2 || pattern == 3) { d.back() = 0; }
+        d.back() |= W(1) << 63;
+        if (pattern == 5) { d.back() >>= 1 + ri(63); }
+        return d;};
+    context = "invert";
+    vector<int> ms = {1, 2, 3, BURNIKEL - 1, BURNIKEL, BURNIKEL + 1, 2 * BURNIKEL + 1, FFT - 1, FFT, FFT + 1, 3 * FFT + 5};
+    if (full()) { for (int m : {4 * FFT + 1, 2000, 5000}) { ms.push_back(m); } }
+    for (int m : ms) {
+        for (int pattern = 0; pattern < (m > 3000 ? 2 : 5); ++pattern) {
+            context = "invert m=" + std::to_string(m) + " " + DIVISOR_NAMES[pattern] + (m < BURNIKEL ? " (Knuth D)" : m < FFT ? " (Newton, schoolbook products)" : " (Newton, cyclic FFT products)");
+            vector<W> d = divisor(m, pattern), v(size_t(m) + 1, POISON), x(size_t(m) + 1, POISON);
+            invert(v.data(), d.data(), m); v[size_t(m)] = 1; invertExact(x.data(), d.data(), m);
+            InfInt D = ofWords(d), V = ofWords(v), X = ofWords(x), B2 = InfInt(1) << (128 * m), P = omul(D, V);
+            require(P <= B2 && P + D + D > B2, "d (B^m + v) <= B^(2m) < d (B^m + v + 2)");
+            require(X == V || X == V + 1, "invertExact within one above invert");
+            InfInt Q = X == V ? P : P + D; require(Q <= B2 && Q + D > B2, "d x <= B^(2m) < d (x + 1)");}}
+    // Quotient blocks of blk <= m words: the first block of (qn - 1) % blk + 1 words and every block below knuthGate(m, true) words by Knuth D, the linear (blk < cyclicGate(m)) and cyclic remainder paths, spectra from blk >= FFT,
+    // the shift path of an unnormalized divisor, remainders 0, 1, b - 1 and random, all-ones quotients; the dispatcher without a Divisor, a Divisor prepared without the cyclic plan (the fresh path's linear remainders) and the exact flag on odd divisors of a = q b.
+    context = "divBlocks";
+    vector<int> dms = {2, BURNIKEL - 1, BURNIKEL, BURNIKEL + 1, CYCLIC_REM - 1, CYCLIC_REM, CYCLIC_REM + 3, FFT - 1, FFT, FFT + 1, 2 * FFT + 7, 4 * FFT + 1};
+    if (full()) { dms.push_back(NEWTON_DIV + 3); dms.push_back(NEWTON_DIV - 1); }
+    for (int m : {NEWTON_LONG - 1, NEWTON_LONG, NEWTON_LONG + 1}) { if (std::find(dms.begin(), dms.end(), m) == dms.end()) { dms.push_back(m); } }
+    int t = 0;
+    for (int m : dms) {
+        vector<int> blks, qns;
+        for (int b : {1, 2, 7, knuthGate(m, true) - 1, knuthGate(m, true), cyclicGate(m) - 1, cyclicGate(m), FFT - 1, FFT, m / 3, m / 2, m - 1, m}) { if (b >= 1 && b <= m && std::find(blks.begin(), blks.end(), b) == blks.end()) { blks.push_back(b); } }
+        for (int q : {0, 1, knuthGate(m, true) - 1, knuthGate(m, true), knuthGate(m, false) - 1, knuthGate(m, false), m / 3, m / 3 + 1, m, m + 1, 2 * m, 4 * m, 4 * m + 1}) { if (std::find(qns.begin(), qns.end(), q) == qns.end()) { qns.push_back(q); } }
+        for (int qn : qns) {
+            for (int rep = 0; rep < (m > 1000 && qn > 2 * m ? 1 : sz(1, 2)); ++rep, ++t) {
+                int dp = t % 6, qp = (t / 6) % 2, rp = (t / 12) % 4;
+                vector<W> y = divisor(m, dp); if (rp == 0 && dp != 2) { y[0] |= 1; }
+                InfInt b = ofWords(y), q = qn == 0 ? InfInt(0) : qp ? (InfInt(1) << (64 * qn)) - 1 : randBits(64 * qn - ri(64)), r = rp == 0 ? InfInt(0) : rp == 1 ? InfInt(1) : rp == 2 ? b - 1 : randBits(bitLength(b) - 1);
+                InfInt a = omul(q, b) + r; vector<W> x = wordsOf(a); if (int(x.size()) < m) { x.resize(size_t(m), 0); } int n = int(x.size());
+                bool exact = rp == 0 && (y[0] & 1);
+                std::string shape = "divRem m=" + std::to_string(m) + " qn=" + std::to_string(qn) + " divisor " + DIVISOR_NAMES[dp] + (y[0] & 1 ? " odd" : "") + " quotient " + (qp ? "ones" : "random") + " r=" + REM_NAMES[rp];
+                vector<W> qq(size_t(n - m + 1), POISON), rr(size_t(m), POISON);
+                context = shape + " (dispatcher)";
+                divRem(qq.data(), rr.data(), x.data(), n, y.data(), m); expect(ofWords(qq), q, "quotient"); expect(ofWords(rr), r, "remainder");
+                if (exact) { std::fill(qq.begin(), qq.end(), POISON); divRem(qq.data(), nullptr, x.data(), n, y.data(), m, nullptr, true); expect(ofWords(qq), q, "exact quotient"); }
+                for (int blk : blks) {
+                    context = shape + " blk=" + std::to_string(blk) + (blk < knuthGate(m, true) ? " (Knuth D blocks)" : blk < cyclicGate(m) ? " (linear remainder)" : " (cyclic remainder)") + (blk >= FFT ? " with spectra" : "");
+                    Divisor dv; vector<W> ctx(Divisor::words(m, blk)); dv.prepare(ctx.data(), y.data(), m, blk);
+                    require(dv.m == m && dv.blk == blk && dv.shift == std::countl_zero(y.back()) && (dv.cr.len > 0) == (blk >= cyclicGate(m)) && (dv.sv.p.lg > 0) == (blk >= FFT), "Divisor fields");
+                    std::fill(qq.begin(), qq.end(), POISON); std::fill(rr.begin(), rr.end(), POISON);
+                    divRem(qq.data(), rr.data(), x.data(), n, y.data(), m, &dv); expect(ofWords(qq), q, "quotient"); expect(ofWords(rr), r, "remainder");
+                    if (exact) { std::fill(qq.begin(), qq.end(), POISON); divRem(qq.data(), nullptr, x.data(), n, y.data(), m, &dv, true); expect(ofWords(qq), q, "exact quotient"); }
+                    if (dv.shift) { continue; }
+                    std::fill(qq.begin(), qq.end(), POISON); std::fill(rr.begin(), rr.end(), POISON);
+                    divBlocks(qq.data(), rr.data(), x.data(), n, dv); expect(ofWords(qq), q, "divBlocks quotient"); expect(ofWords(rr), r, "divBlocks remainder");
+                    if (dv.cr.len > 0) {
+                        Divisor dl; vector<W> cl(Divisor::words(m, blk)); dl.prepare(cl.data(), y.data(), m, blk, false); require(dl.cr.len == 0 && (dl.sv.p.lg > 0) == (blk >= FFT), "Divisor without the cyclic plan");
+                        std::fill(qq.begin(), qq.end(), POISON); std::fill(rr.begin(), rr.end(), POISON);
+                        divBlocks(qq.data(), rr.data(), x.data(), n, dl); expect(ofWords(qq), q, "linear divBlocks quotient"); expect(ofWords(rr), r, "linear divBlocks remainder");}
+                    std::fill(qq.begin(), qq.end(), POISON); divBlocks(qq.data(), nullptr, x.data(), n, dv); expect(ofWords(qq), q, "divBlocks quotient without a remainder");
+                    if (exact) { std::fill(qq.begin(), qq.end(), POISON); divBlocks(qq.data(), nullptr, x.data(), n, dv, true, x[0] * invMod64(y[0])); expect(ofWords(qq), q, "divBlocks exact quotient"); }}}}}
+    if (stress()) {
+        int m = 4000000, n = 5000000;
+        context = "divRem 5000000 by 4000000 words (one block of 1,000,000 quotient words with spectra)";
+        vector<W> x = patterned(n, 0), y = patterned(m, 0), q(size_t(n - m + 1), POISON), r(size_t(m), POISON);
+        divRem(q.data(), r.data(), x.data(), n, y.data(), m);
+        require(cmp(r.data(), norm(r.data(), m), y.data(), m) < 0, "remainder below the divisor"); require(norm(q.data(), n - m + 1) >= n - m, "quotient length");
+        for (W p : BIG_PRIMES) { expect(residue(x, p), W((ulll(residue(q, p)) * residue(y, p) + residue(r, p)) % p), "a = q b + r modulo " + std::to_string(p)); }
+        for (W p : ONES_PRIMES) { expect(residue(x, p), W((ulll(residue(q, p)) * residue(y, p) + residue(r, p)) % p), "a = q b + r modulo " + std::to_string(p)); }}
     context = "";}
 
 static void gcdFamily() {
@@ -645,10 +817,16 @@ static void modularPower() {
             InfInt sparse = (InfInt(1) << (eb - 1)) + 1; expect(powMod(a, sparse, m), refPow(a, sparse, m), "sparse exponent");
             expect(powMod(a, InfInt(0), m), m == 1 ? InfInt(0) : InfInt(1), "zero exponent"); expect(powMod(a, InfInt(1), m), divModEuclid(a, m).second, "unit exponent");
             InfInt iv = inv(a, m); if (iv == -1) { expect(powMod(a, -e, m), InfInt(-1), "negative exponent sentinel"); } else { expect(powMod(a, -e, m), refPow(iv, e, m), "negative exponent"); }}}
-    if (full()) {
-        context = "powMod cached reciprocal";
-        InfInt m = randBits(64 * 800); m.n[0] &= ~W(1); InfInt e = randBits(64), a = randSigned(64 * 801);
-        expect(powMod(a, e, m), refPow(a, e, m), "even modulus above NEWTON_DIV words");}
+    // Odd moduli reduce through Montgomery below CACHED_DIV words and the ModCtx's prepared Divisor from there, even ones through the Divisor from CACHED_MOD words (Knuth D or Burnikel-Ziegler below); the oracle multiplies by schoolbook and reduces by Knuth D only.
+    auto slowPow = [](InfInt a, InfInt e, const InfInt &m) { InfInt r = 1; a = divModSlow(a, m).second; if (a.sgn == -1) { a += m; } while (!e.isNil()) { if (e.n[0] & 1) { r = divModSlow(omul(r, a), m).second; } a = divModSlow(omul(a, a), m).second; e >>= 1; } return r; };
+    vector<int> pmk;
+    for (int k : {infint_detail::CACHED_MOD - 1, infint_detail::CACHED_MOD, infint_detail::CACHED_MOD + 1, infint_detail::CACHED_DIV - 1, infint_detail::CACHED_DIV, infint_detail::CACHED_DIV + 5, infint_detail::FFT + 1}) { if (std::find(pmk.begin(), pmk.end(), k) == pmk.end()) { pmk.push_back(k); } }
+    for (int k : pmk) {
+        for (int odd = 0; odd < 2; ++odd) {
+            int eb = sz(24, 60); context = "powMod modulus words " + std::to_string(k) + (odd && k < infint_detail::CACHED_DIV ? " odd (Montgomery)" : k >= infint_detail::CACHED_MOD ? " (prepared Divisor)" : " even (Knuth D or Burnikel-Ziegler)") + " exponent bits " + std::to_string(eb);
+            InfInt m = randBits(64 * k - ri(8)); if (odd) { m.n[0] |= 1; } else { m.n[0] &= ~W(1); }
+            InfInt e = randBits(eb), a = randSigned(64 * k + 30);
+            expect(powMod(a, e, m), slowPow(a, e, m), "sliding-window power against the schoolbook and Knuth D oracle");}}
     expect(powMod(InfInt(3), InfInt(-2), InfInt(7)), InfInt(4), "3^-2 mod 7"); expect(powMod(InfInt(0), InfInt(0), InfInt(17)), InfInt(1), "0^0");
     context = "";}
 
@@ -938,6 +1116,7 @@ static void invalid(const std::string &which) {
     else if (which == "bitlength-words") { InfInt x = 1; x.n.setSize(1 << 25); int r = bitLength(x); (void)r; }
     else if (which == "popcount-words") { InfInt x = 1; x.n.setSize(1 << 25); int r = popcount(x); (void)r; }
     else if (which == "fftplan-cyclic-want") { infint_detail::FftPlan p = infint_detail::fftPlan(5, 7, 6, true); (void)p; }
+    else if (which == "divrem-exact-even") { vector<W> x(4, 1), y(2, 2), q(3); infint_detail::divRem(q.data(), nullptr, x.data(), 4, y.data(), 2, nullptr, true); }
     else { fail("unknown invalid case " + which); }
     std::cerr << "precondition case " << which << " did not abort\n";
     std::exit(2);}
@@ -991,6 +1170,13 @@ static void protocol() {
             lng want; std::cin >> sa >> sb >> want; InfInt a(sa), b(sb); vector<W> x = wordsOf(a), y = wordsOf(b); int n = int(x.size()), m = int(y.size());
             infint_detail::FftPlan p = infint_detail::fftPlan(n, m, int(want), true);
             if (!p.lg) { out("none"); } else { vector<W> r(size_t(p.len)); infint_detail::fftRun(r.data(), p, x.data(), n, y.data(), m, true); std::cout << p.len << ' ' << ofWords(r); }}
+        else if (op == "invk") {   // invk inv|exact <d>: B^m + v of invert (within one below floor(B^(2m) / d)) or x of invertExact for the normalized m-word d
+            std::string kind; std::cin >> kind >> sa; vector<W> d = wordsOf(InfInt(sa)); int m = int(d.size()); vector<W> v(size_t(m) + 1, 0);
+            if (kind == "exact") { infint_detail::invertExact(v.data(), d.data(), m); } else { infint_detail::invert(v.data(), d.data(), m); v[size_t(m)] = 1; }
+            out(ofWords(v));}
+        else if (op == "cyc") {   // cyc <a> <b> <want>: "<len> <residue>" of a b modulo B^len - 1 through cyclicPlan and mulCyclic (canonical)
+            lng want; std::cin >> sa >> sb >> want; vector<W> x = wordsOf(InfInt(sa)), y = wordsOf(InfInt(sb)); int n = int(x.size()), m = int(y.size());
+            infint_detail::CyclicPlan c = infint_detail::cyclicPlan(n, m, int(want)); vector<W> r(size_t(c.len)); infint_detail::mulCyclic(r.data(), c, x.data(), n, y.data(), m); std::cout << c.len << ' ' << ofWords(r);}
         else if (op == "mulk" || op == "divk" || op == "gcdk") {
             std::string kind; std::cin >> kind >> sa >> sb; InfInt a(sa), b(sb);
             vector<W> x = wordsOf(a), y = wordsOf(b);
@@ -1003,10 +1189,11 @@ static void protocol() {
                 else if (kind == "truncated") { r.assign(size_t(n), 0); infint_detail::truncatedMul(r.data(), x.data(), y.data(), n); }
                 else { infint_detail::mul(r.data(), x.data(), n, y.data(), m); }
                 out(ofWords(r));}
-            else if (op == "divk") {
-                int n = int(x.size()), m = int(y.size()); vector<W> q(size_t(n - m + 1), 0), r(size_t(m), 0);
+            else if (op == "divk") {   // divk basecase|bz|blocks|exact|hensel|dispatch <a> <b> [blk]: "<q> <r>" (blocks: a Divisor prepared with blk; exact and hensel: b odd and b | a, r printed as 0)
+                int n = int(x.size()), m = int(y.size()), blk = 0; if (kind == "blocks") { std::cin >> blk; } vector<W> q(size_t(n - m + 1), 0), r(size_t(m), 0);
                 if (kind == "basecase") { infint_detail::divBasecase(q.data(), r.data(), x.data(), n, y.data(), m); } else if (kind == "bz") { infint_detail::divBurnikelZiegler(q.data(), r.data(), x.data(), n, y.data(), m); }
-                else if (kind == "newton") { vector<W> iv(size_t(m) + 1); infint_detail::reciprocal(iv.data(), y.data(), m); infint_detail::divNewton(q.data(), r.data(), x.data(), n, y.data(), m, iv.data()); }
+                else if (kind == "blocks") { infint_detail::Divisor dv; vector<W> ctx(infint_detail::Divisor::words(m, blk)); dv.prepare(ctx.data(), y.data(), m, blk); infint_detail::divRem(q.data(), r.data(), x.data(), n, y.data(), m, &dv); }
+                else if (kind == "exact") { infint_detail::divRem(q.data(), nullptr, x.data(), n, y.data(), m, nullptr, true); r.assign(1, 0); }
                 else if (kind == "hensel") { infint_detail::divExactHensel(q.data(), x.data(), n, y.data(), m); r.assign(1, 0); } else { infint_detail::divRem(q.data(), r.data(), x.data(), n, y.data(), m); }
                 std::cout << ofWords(q) << ' ' << ofWords(r);}
             else {
@@ -1037,7 +1224,7 @@ int main(int argc, char **argv) {
     auto phase = [&](const char *name, auto &&f) {
         auto t0 = std::chrono::steady_clock::now(); lng before = checks; f();
         std::cout << "phase " << name << " checks=" << checks - before << " time=" << std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count() << "s\n" << std::flush;};
-    phase("construction", construction); phase("text output", textOutput); phase("small exhaustive", smallExhaustive); phase("addition", addition); phase("multiplication", multiplication); phase("transforms", transforms); phase("division", division); phase("gcd", gcdFamily); phase("powMod", modularPower);
+    phase("construction", construction); phase("text output", textOutput); phase("small exhaustive", smallExhaustive); phase("addition", addition); phase("multiplication", multiplication); phase("transforms", transforms); phase("division", division); phase("inversion and blocks", inversion); phase("gcd", gcdFamily); phase("powMod", modularPower);
     phase("roots", roots); phase("number theory", numberTheory); phase("bits", bits); phase("sampling, hash, streams", samplingHashStreams); phase("infinity", infinity);
     phase("UInt<1>", uintType<1>); phase("UInt<2>", uintType<2>); phase("UInt<4>", uintType<4>); phase("UInt conversions and streams", uintConversions); phase("aliasing", aliasing);
     require(otherUnitSum(InfInt("123456789012345678901234567890")) == otherUnitSum(InfInt("123456789012345678901234567890")) && otherUnitSum(InfInt(7)) == 9, "second translation unit");

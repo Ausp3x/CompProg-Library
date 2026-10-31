@@ -14,12 +14,18 @@ namespace infint_detail {
     static_assert(std::endian::native == std::endian::little);
     constexpr int KARATSUBA = 28, KARATSUBA_SQR = 40, TOOM3 = 128, TOOM3_SQR = 128, TRUNC = 32;
 #ifdef __AVX2__
-    constexpr int FFT = 96, FFT_SQR = 80, MIDDLE = 64, NEWTON_DIV = 512, NEWTON_LONG = 32, BINARY_GCD = 96;
+    constexpr int FFT = 96, FFT_SQR = 80, NEWTON_DIV = 160, NEWTON_LONG = 96, CACHED_DIV = 96, CACHED_MOD = 64, SCALED_TREE = 80, CYCLIC_REM = 24, CYCLIC_REM_LOG = 2, UNBALANCED_FFT = 5, UNBALANCED_FFT_BIG = 7, BINARY_GCD = 96;
 #else
-    constexpr int FFT = 640, FFT_SQR = 512, MIDDLE = 160, NEWTON_DIV = 768, NEWTON_LONG = 1 << 29, BINARY_GCD = 48;
+    constexpr int FFT = 640, FFT_SQR = 512, NEWTON_DIV = 768, NEWTON_LONG = 192, CACHED_DIV = 192, CACHED_MOD = 192, SCALED_TREE = 1 << 30, CYCLIC_REM = 48, CYCLIC_REM_LOG = 16, UNBALANCED_FFT = 32, UNBALANCED_FFT_BIG = 32, BINARY_GCD = 48;
 #endif
-    constexpr int BURNIKEL = 48, HENSEL = 48, HALFGCD = 2048, RADIX = 64, MONTGOMERY_POW = 2;
+    constexpr int BURNIKEL = 48, KNUTH_Q = 8, KNUTH_FRESH = 6144, KNUTH_CACHED = 2048, FRESH_CYCLIC = 3, HENSEL = 64, HALFGCD = 2048, RADIX = 64, MONTGOMERY_POW = 2;
     constexpr size_t HUGE = size_t(1) << 21;
+    // T: O(1), M: O(1); quotient words below which Knuth D beats a quotient block of an m-word divisor, with a prepared (cached) or a fresh context.
+    constexpr int knuthGate(int m, bool cached) { return max(KNUTH_Q, (cached ? KNUTH_CACHED : KNUTH_FRESH) / m); }
+    // T: O(1), M: O(1); block words from which the cyclic transform product of an m-word operand beats the linear product: the transform's cost per word grows with log m.
+    constexpr int cyclicGate(int m) { return CYCLIC_REM + CYCLIC_REM_LOG * max(0, std::bit_width(uint(m)) - 8); }
+    // The scaled remainder tree of the print: leaves of RADIX = 2^SCALED_LEAF blocks, SCALED_GUARD guard words below every fraction.
+    constexpr int SCALED_LEAF = std::countr_zero(uint(RADIX)), SCALED_GUARD = 2;
 
     // T: O(1), M: O(n); storage of n words: 2 MiB-aligned multiples of 2 MiB advised as transparent huge pages on Linux from 2 MiB up, 64-byte aligned below.
     inline W *hugeAlloc(size_t n) {
@@ -123,16 +129,23 @@ namespace infint_detail {
         for (int i = 0; i < n; ++i) { WW t = WW(a[i]) * w + c; r[i] = W(t); c = W(t >> 64); }
         return c;}
     // T: O(n), M: O(1); r += a * w; returns the carry word.
-    inline W addMul(W *r, const W *a, int n, W w) {
+    [[gnu::noinline]] inline W addMul(W *r, const W *a, int n, W w) {
         W c = 0;
-        for (int i = 0; i < n; ++i) { WW t = WW(a[i]) * w + r[i] + c; r[i] = W(t); c = W(t >> 64); }
+        int i = 0;
+        for (; i + 2 <= n; i += 2) {
+            { WW t = WW(a[i]) * w + r[i] + c; r[i] = W(t); c = W(t >> 64); }
+            { WW t = WW(a[i + 1]) * w + r[i + 1] + c; r[i + 1] = W(t); c = W(t >> 64); }}
+        for (; i < n; ++i) { WW t = WW(a[i]) * w + r[i] + c; r[i] = W(t); c = W(t >> 64); }
         return c;}
-    // T: O(n), M: O(1); r -= a * w; returns the borrow word.
-    inline W subMul(W *r, const W *a, int n, W w) {
+    // T: O(n), M: O(1); r -= a * w; returns the borrow word. Both rows are pair-unrolled and never inlined: inlined into the Knuth D and Hensel loops, GCC spills
+    // the 128-bit product of the carry chain, 1.5-2.0x slower at 64-1024 words in both builds.
+    [[gnu::noinline]] inline W subMul(W *r, const W *a, int n, W w) {
         W c = 0;
-        for (int i = 0; i < n; ++i) {
-            WW t = WW(a[i]) * w + c; W lo = W(t), x = r[i];
-            r[i] = x - lo; c = W(t >> 64) + (x < lo);}
+        int i = 0;
+        for (; i + 2 <= n; i += 2) {
+            { WW t = WW(a[i]) * w + c; W lo = W(t), x = r[i]; r[i] = x - lo; c = W(t >> 64) + (x < lo); }
+            { WW t = WW(a[i + 1]) * w + c; W lo = W(t), x = r[i + 1]; r[i + 1] = x - lo; c = W(t >> 64) + (x < lo); }}
+        for (; i < n; ++i) { WW t = WW(a[i]) * w + c; W lo = W(t), x = r[i]; r[i] = x - lo; c = W(t >> 64) + (x < lo); }
         return c;}
     // T: O(n), M: O(1); r = a << s for 0 < s < 64 (r may alias a or start above it); returns the bits shifted out.
     inline W shl(W *r, const W *a, int n, int s) {
@@ -262,41 +275,9 @@ namespace infint_detail {
         std::copy(t.p, t.p + n, r);}
     // T: O(1), M: O(1); limbs of a cyclic limb convolution holding len words of residue of an n-word by m-word product: the power of two at or above 2 max(len, n, m).
     inline int cyclicLimbs(int len, int n, int m) { return int(std::bit_ceil(uint(2 * max({len, n, m})))); }
-    inline void nttCyclic(W *lo, W *hi, const W *a, int n, const W *b, int m, int len);
     // T: NA, M: O(1); a transform plan: r 2^lg complex points, k-bit pieces and the output length len in words (lg = 0: no plan).
     struct FftPlan { int lg, r, k, len; };
-    inline FftPlan fftPlan(int n, int m, int want, bool cyclic);
     inline void fftRun(W *r, const FftPlan &p, const W *a, int n, const W *b, int m, bool cyclic);
-    // T: O(na * nb) word products below MIDDLE, else one cyclic transform of max(lo + cnt, na + nb - lo, na, nb) words, M: O(1) below MIDDLE, else O(len) for that length;
-    // r (cnt words) = words [lo, lo + cnt) of a * b less a deficit below min(na, nb) * B: the terms with i + j < lo, or one unit from the wrap.
-    inline void middleProduct(W *r, const W *a, int na, const W *b, int nb, int lo, int cnt) {
-        zero(r, cnt);
-        if (min(na, nb) < MIDDLE) {
-            for (int j = 0; j < nb; ++j) {
-                int i0 = max(lo - j, 0), i1 = min(lo + cnt - j, na);
-                if (i0 >= i1) { continue; }
-                W c = addMul(r + (i0 + j - lo), a + i0, i1 - i0, b[j]);
-                if (i1 + j - lo < cnt) { addWord(r + (i1 + j - lo), cnt - (i1 + j - lo), c); }}
-            return;}
-        int len = max({lo + cnt, na + nb - lo, na, nb});
-        FftPlan p = fftPlan(na, nb, len, true);
-        if (p.lg) {
-            Scratch s(size_t(p.len));
-            fftRun(s, p, a, na, b, nb, true);
-            std::copy(s.p + lo, s.p + lo + cnt, r);
-            subWord(r, cnt, 1);
-            return;}
-        int limbs = cyclicLimbs(len, na, nb);
-        Scratch s(2 * size_t(limbs));
-        W *low = s, *high = low + limbs;
-        nttCyclic(low, high, a, na, b, nb, len);
-        WW carry = 0;
-        for (int i = 0; i < cnt; ++i) {
-            int l = 2 * (lo + i);
-            WW c0 = low[l] + (WW(high[l]) << 64) + carry;
-            W lw = uint(c0); carry = c0 >> 32;
-            WW c1 = low[l + 1] + (WW(high[l + 1]) << 64) + carry;
-            r[i] = lw | (W(uint(c1)) << 32); carry = c1 >> 32;}}
     constexpr uint NTT_PRIMES[3] = {2013265921, 1811939329, 469762049}, NTT_ROOTS[3] = {31, 13, 3};
     constexpr int NTT_MAX_LOG = 26, NTT_MAX_WORDS = 1 << 28;
     // T: O(log(e)), M: O(1); a^e mod p on 32-bit words.
@@ -495,7 +476,7 @@ namespace infint_detail {
             ulll e = t + ulll(v2) * P01;
             lo[i] = W(e); hi[i] = W(e >> 64);}}
 
-    // S: O(len) roots, Q: O(len * log(len)), M: O(len); NTT modulo 2^64 - 2^32 + 1 on 16-bit pieces, length <= 2^32.
+    // S: O(len) roots, Q: O(len * log(len)), M: O(len); NTT modulo 2^64 - 2^32 + 1 on 16-bit pieces, length <= 2^32: four-lane AVX2 butterflies from 32 x 32 partial products, or scalar.
     struct Ntt64 {
         static constexpr ulng P = 18446744069414584321ULL, G = 7;
         static ulng red(ulll x) {
@@ -518,24 +499,70 @@ namespace infint_detail {
             for (int len = m; len < n; len *= 2) {
                 ulng w0 = power(G, (P - 1) / ulng(2 * len));
                 for (int i = len / 2; i < len; ++i) { w[2 * i] = w[i]; w[2 * i + 1] = mul(w[i], w0); }}}
+#ifdef __AVX2__
+        static __m256i load(const ulng *p) { return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(p)); }
+        static void store(ulng *p, __m256i x) { _mm256_storeu_si256(reinterpret_cast<__m256i *>(p), x); }
+        static __m256i vgt(__m256i a, __m256i b) { __m256i s = _mm256_set1_epi64x(lng(1) << 63); return _mm256_cmpgt_epi64(_mm256_xor_si256(a, s), _mm256_xor_si256(b, s)); }
+        // Lanes a + b in [0, P) for a < 2^64 and b < P, and a - b in [0, P) for a, b < P: a wrap of 2^64 is 2^32 - 1 mod P, so a wrapped sum gains it, a borrowed difference loses it, then one subtraction of P.
+        static __m256i vadd(__m256i a, __m256i b) {
+            __m256i s = _mm256_add_epi64(a, b);
+            s = _mm256_add_epi64(s, _mm256_and_si256(vgt(a, s), _mm256_set1_epi64x(lng(uint(-1)))));
+            return _mm256_sub_epi64(s, _mm256_and_si256(vgt(s, _mm256_set1_epi64x(lng(P - 1))), _mm256_set1_epi64x(lng(P))));}
+        static __m256i vsub(__m256i a, __m256i b) { __m256i d = _mm256_sub_epi64(a, b); return _mm256_sub_epi64(d, _mm256_and_si256(vgt(b, a), _mm256_set1_epi64x(lng(uint(-1))))); }
+        // a b mod P from the four 32 x 32 partial products: the 128-bit value l + hl 2^64 + hh 2^96 is l - hh + hl (2^32 - 1) mod P.
+        static __m256i vmul(__m256i a, __m256i b) {
+            __m256i m = _mm256_set1_epi64x(lng(uint(-1))), ah = _mm256_srli_epi64(a, 32), bh = _mm256_srli_epi64(b, 32);
+            __m256i p00 = _mm256_mul_epu32(a, b), p01 = _mm256_mul_epu32(a, bh), p10 = _mm256_mul_epu32(ah, b), p11 = _mm256_mul_epu32(ah, bh);
+            __m256i t = _mm256_add_epi64(_mm256_add_epi64(_mm256_srli_epi64(p00, 32), _mm256_and_si256(p01, m)), _mm256_and_si256(p10, m));
+            __m256i l = _mm256_or_si256(_mm256_and_si256(p00, m), _mm256_slli_epi64(t, 32));
+            __m256i h = _mm256_add_epi64(_mm256_add_epi64(p11, _mm256_srli_epi64(t, 32)), _mm256_add_epi64(_mm256_srli_epi64(p01, 32), _mm256_srli_epi64(p10, 32)));
+            __m256i hl = _mm256_and_si256(h, m);
+            return vadd(vsub(l, _mm256_srli_epi64(h, 32)), _mm256_sub_epi64(_mm256_slli_epi64(hl, 32), hl));}
+        struct Fly { __m256i s, d; };
+        static Fly fly(__m256i u, __m256i v, __m256i w, bool dit) {
+            if (dit) { v = vmul(v, w); return {vadd(u, v), vsub(u, v)}; }
+            return {vadd(u, v), vmul(vsub(u, v), w)};}
+#endif
+        // One radix-2 level of butterflies at distance len over n points with the roots w[0, len): DIF (the difference times the root) forward, DIT (the root first) in the inverse.
+        static void level(ulng *a, int n, int len, const ulng *w, bool dit) {
+#ifdef __AVX2__
+            if (len >= 4) {
+                for (int i = 0; i < n; i += 2 * len) {
+                    for (int j = 0; j < len; j += 4) {
+                        auto [s, d] = fly(load(a + i + j), load(a + i + j + len), load(w + j), dit);
+                        store(a + i + j, s); store(a + i + j + len, d);}}
+                return;}
+            if (n >= 4) {
+                bool two = len == 2;
+                __m256i rw = two ? _mm256_setr_epi64x(lng(w[0]), lng(w[1]), lng(w[0]), lng(w[1])) : _mm256_set1_epi64x(lng(w[0]));
+                for (int i = 0; i < n; i += 4) {
+                    __m256i x = load(a + i), u, v;
+                    if (two) { u = _mm256_permute4x64_epi64(x, 0x44); v = _mm256_permute4x64_epi64(x, 0xEE); }
+                    else { u = _mm256_permute4x64_epi64(x, 0xA0); v = _mm256_permute4x64_epi64(x, 0xF5); }
+                    auto [s, d] = fly(u, v, rw, dit);
+                    store(a + i, two ? _mm256_blend_epi32(s, d, 0xF0) : _mm256_blend_epi32(s, d, 0xCC));}
+                return;}
+#endif
+            for (int i = 0; i < n; i += 2 * len) {
+                for (int j = 0; j < len; ++j) {
+                    ulng u = a[i + j], v = dit ? mul(a[i + j + len], w[j]) : a[i + j + len], s = u + v, d = u - v + (u < v) * P;
+                    a[i + j] = s - ((s < u) | (s >= P)) * P; a[i + j + len] = dit ? d : mul(d, w[j]);}}}
+        // In place: the forward DIF to bit-reversed order; the inverse is the DIT with the same roots, then the index reversal i -> n - i and the 1 / n scale.
         static void transform(ulng *a, int n, bool inverse) {
             ensure(n);
             const ulng *w = roots().p;
-            if (!inverse) {
-                for (int len = n / 2; len > 0; len /= 2) {
-                    for (int i = 0; i < n; i += 2 * len) {
-                        for (int j = 0; j < len; ++j) {
-                            ulng u = a[i + j], v = a[i + j + len], s = u + v;
-                            a[i + j] = s - ((s < u) | (s >= P)) * P; a[i + j + len] = mul(u - v + (u < v) * P, w[len + j]);}}}
-                return;}
-            for (int len = 1; len < n; len *= 2) {
-                for (int i = 0; i < n; i += 2 * len) {
-                    for (int j = 0; j < len; ++j) {
-                        ulng iw = j == 0 ? 1 : P - w[2 * len - j];
-                        ulng u = a[i + j], v = mul(a[i + j + len], iw), s = u + v;
-                        a[i + j] = s - ((s < u) | (s >= P)) * P; a[i + j + len] = u - v + (u < v) * P;}}}
+            if (!inverse) { for (int len = n / 2; len > 0; len /= 2) { level(a, n, len, w + len, false); } return; }
+            for (int len = 1; len < n; len *= 2) { level(a, n, len, w + len, true); }
             ulng inv = P - (P - 1) / ulng(n);
-            for (int i = 0; i < n; ++i) { a[i] = mul(a[i], inv); }}
+            a[0] = mul(a[0], inv);
+            for (int i = 1, j = n - 1; i <= j; ++i, --j) { ulng x = mul(a[i], inv); a[i] = mul(a[j], inv); a[j] = x; }}
+        // x[i] = x[i] y[i] mod P (y may be x).
+        static void dot(ulng *x, const ulng *y, int n) {
+            int i = 0;
+#ifdef __AVX2__
+            for (; i + 4 <= n; i += 4) { store(x + i, vmul(load(x + i), load(y + i))); }
+#endif
+            for (; i < n; ++i) { x[i] = mul(x[i], y[i]); }}
     };
     // T: O(len * log(len)), M: O(len); the Goldilocks NTT on 16-bit pieces, the two pieces of each limb coefficient recombined as lo + hi 2^64.
     inline void ntt64Cyclic(W *lo, W *hi, const uint *a, int n, const uint *b, int m, int len) {
@@ -547,12 +574,12 @@ namespace infint_detail {
         for (int i = 0; i < n; ++i) { x[2 * i] = a[i] & 0xFFFF; x[2 * i + 1] = a[i] >> 16; }
         std::fill(x + 2 * n, x + pieces, 0);
         Ntt64::transform(x, pieces, false);
-        if (same) { for (int i = 0; i < pieces; ++i) { x[i] = Ntt64::mul(x[i], x[i]); } }
+        if (same) { Ntt64::dot(x, x, pieces); }
         else {
             for (int i = 0; i < m; ++i) { y[2 * i] = b[i] & 0xFFFF; y[2 * i + 1] = b[i] >> 16; }
             std::fill(y + 2 * m, y + pieces, 0);
             Ntt64::transform(y, pieces, false);
-            for (int i = 0; i < pieces; ++i) { x[i] = Ntt64::mul(x[i], y[i]); }}
+            Ntt64::dot(x, y, pieces);}
         Ntt64::transform(x, pieces, true);
         for (int i = 0; i < len; ++i) {
             ulll e = x[2 * i] + (ulll(x[2 * i + 1]) << 16);
@@ -913,25 +940,47 @@ namespace infint_detail {
         lng top = lng(up + carry);
         if (top >= 0) { for (W c = addWord(r, len, W(top)); c; c = addWord(r, len, c)) {} }
         else if (subWord(r, len, W(-top))) { subWord(r, len, 1); }}
-    // T: O(N * log(N)) for the N pieces of the plan, M: O(N); r = a * b (n + m words) or, cyclic, a representative in [0, B^len) of a * b mod (B^len - 1).
-    inline void fftRun(W *r, const FftPlan &p, const W *a, int n, const W *b, int m, bool cyclic) {
-        static HugeVec<double> bx, by;
-        int len = 1 << p.lg, n2 = p.r * len, k = p.k;
-        bool same = a == b && n == m;
+    // T: O(1), M: O(N) for the largest plan; the two process-wide piece buffers of the transient operands.
+    inline HugeVec<double> &fftBuf(bool second) { static HugeVec<double> x, y; return second ? y : x; }
+    // T: O(N * log(N)) for the N pieces of the plan, M: O(1); the forward transform of a (n words) under p into re and im (r 2^lg doubles each, caller-owned); returns the piece count.
+    inline int fftForward(double *re, double *im, const FftPlan &p, const W *a, int n) {
+        int len = 1 << p.lg;
         Fft::ensure(len, p.r);
+        int pieces = fftSplit(re, im, p.r * len, a, n, p.k);
+        if (p.r > 1) { Fft::column(re, im, len, p.r, false); }
+        for (int q = 0; q < p.r; ++q) { int t = Fft::tableId(p.r, q); Fft::transform(re + q * len, im + q * len, len, false, Fft::table(false, t).p, Fft::table(true, t).p); }
+        return pieces;}
+    // T: O(N * log(N)), M: O(1); r (len words) from the spectra x (destroyed) and y: the exact product of pieces = nx + ny - 1 coefficients, or, cyclic, a representative in [0, B^len) of it mod (B^len - 1).
+    inline void fftProduct(W *r, int len, const FftPlan &p, double *xr, double *xi, const double *yr, const double *yi, int pieces, bool cyclic) {
+        int n = 1 << p.lg;
+        Fft::dot(xr, xi, yr, yi, n, p.r);
+        for (int q = 0; q < p.r; ++q) { int t = Fft::tableId(p.r, q); Fft::transform(xr + q * n, xi + q * n, n, true, Fft::table(false, t).p, Fft::table(true, t).p); }
+        if (p.r > 1) { Fft::column(xr, xi, n, p.r, true); }
+        fftMerge(r, len, xr, xi, pieces, p.k, std::ldexp(1.0, -(p.lg + 3)) / p.r, cyclic);}
+    // T: O(N * log(N)) for the N pieces of the plan, M: O(N); r = a * b (n + m words) or, cyclic, p.len words holding a representative in [0, B^len) of a * b mod (B^len - 1).
+    inline void fftRun(W *r, const FftPlan &p, const W *a, int n, const W *b, int m, bool cyclic) {
+        int n2 = p.r << p.lg;
+        bool same = a == b && n == m;
+        HugeVec<double> &bx = fftBuf(false), &by = fftBuf(true);
         bx.resize(2 * n2);
         if (!same) { by.resize(2 * n2); }
         double *xr = bx.p, *xi = xr + n2, *yr = same ? xr : by.p, *yi = yr + n2;
-        int nx = fftSplit(xr, xi, n2, a, n, k), ny = same ? nx : fftSplit(yr, yi, n2, b, m, k);
-        auto run = [&](double *re, double *im, bool inverse) {
-            if (!inverse && p.r > 1) { Fft::column(re, im, len, p.r, false); }
-            for (int q = 0; q < p.r; ++q) { int t = Fft::tableId(p.r, q); Fft::transform(re + q * len, im + q * len, len, inverse, Fft::table(false, t).p, Fft::table(true, t).p); }
-            if (inverse && p.r > 1) { Fft::column(re, im, len, p.r, true); }};
-        run(xr, xi, false);
-        if (!same) { run(yr, yi, false); }
-        Fft::dot(xr, xi, yr, yi, len, p.r);
-        run(xr, xi, true);
-        fftMerge(r, p.len, xr, xi, cyclic ? 2 * n2 : nx + ny - 1, k, std::ldexp(1.0, -(p.lg + 3)) / p.r, cyclic);}
+        int nx = fftForward(xr, xi, p, a, n), ny = same ? nx : fftForward(yr, yi, p, b, m);
+        fftProduct(r, p.len, p, xr, xi, yr, yi, cyclic ? 2 * n2 : nx + ny - 1, cyclic);}
+    // S: O(N * log(N)) for the plan's N pieces (take), U: NA, Q: NA, M: O(N) in caller storage; the forward transform of an n-word operand under plan p, kept (re then im, r 2^lg doubles each) for repeated products with operands of at most cap words.
+    struct Spectrum {
+        FftPlan p{}; double *re = nullptr, *im = nullptr; int n = 0, cap = 0, pieces = 0;
+        static int words(const FftPlan &q) { return q.lg ? 2 * (q.r << q.lg) : 0; }
+        void take(W *buf, const FftPlan &q, const W *a, int len, int other) { p = q; re = reinterpret_cast<double *>(buf); im = re + (q.r << q.lg); n = len; cap = other; pieces = fftForward(re, im, p, a, len); }
+    };
+    // T: O(N * log(N)), M: O(1); r = a (n <= s.cap words) times the operand of s: n + s.n words, or, cyclic, s.p.len words of a representative of the residue as fftRun.
+    inline void fftWith(W *r, const Spectrum &s, const W *a, int n, bool cyclic) {
+        assert(n <= s.cap);
+        int n2 = s.p.r << s.p.lg;
+        HugeVec<double> &bx = fftBuf(false);
+        bx.resize(2 * n2);
+        int nx = fftForward(bx.p, bx.p + n2, s.p, a, n);
+        fftProduct(r, cyclic ? s.p.len : n + s.n, s.p, bx.p, bx.p + n2, s.re, s.im, cyclic ? 2 * n2 : nx + s.pieces - 1, cyclic);}
     // T: O(len * log(len)), M: O(len); cyclic limb convolution of cyclicLimbs(len, n, m) limbs of the limb images of a and b (words) through the exact NTTs; lo and hi (that many words each) hold lo + hi * 2^64 per limb.
     inline void nttCyclic(W *lo, W *hi, const W *a, int n, const W *b, int m, int len) {
         static HugeVec<uint> la, lb;
@@ -960,6 +1009,40 @@ namespace infint_detail {
             W low = uint(c0); carry = c0 >> 32;
             WW c1 = lo[2 * i + 1] + (WW(hi[2 * i + 1]) << 64) + carry;
             r[i] = low | (W(uint(c1)) << 32); carry = c1 >> 32;}}
+    // T: NA, M: O(1); a cyclic product plan: the FFT plan (lg > 0) or the NTT limb count, and the residue length len in words.
+    struct CyclicPlan { FftPlan p; int limbs, len; };
+    // T: O(1), M: O(1); the plan of a * b mod (B^len - 1) for n- and m-word operands with len >= max(want, n, m): the FFT plan while its bound holds, else the NTTs' limb count.
+    inline CyclicPlan cyclicPlan(int n, int m, int want) {
+        want = max({want, n, m});
+        FftPlan p = fftPlan(n, m, want, true);
+        if (p.lg) { return {p, 0, p.len}; }
+        int limbs = cyclicLimbs(want, n, m);
+        return {p, limbs, limbs / 2};}
+    // T: O(len), M: O(1); r (len words) becomes the canonical residue in [0, B^len - 1): the all-ones representative of 0 is cleared.
+    inline void canonical(W *r, int len) { if (std::all_of(r, r + len, [](W w) { return w == ~W(0); })) { zero(r, len); } }
+    // T: O(len * log(len)), M: O(len); r (c.len words) = the canonical residue of a * b mod (B^len - 1): the plan's FFT, else the NTTs' limb convolution carried with its wrap.
+    inline void mulCyclic(W *r, const CyclicPlan &c, const W *a, int n, const W *b, int m) {
+        if (c.p.lg) { fftRun(r, c.p, a, n, b, m, true); canonical(r, c.len); return; }
+        Scratch s(2 * size_t(c.limbs));
+        W *lo = s, *hi = lo + c.limbs;
+        nttCyclic(lo, hi, a, n, b, m, c.len);
+        WW carry = 0;
+        for (int i = 0; i < c.len; ++i) {
+            WW c0 = lo[2 * i] + (WW(hi[2 * i]) << 64) + carry;
+            W low = uint(c0); carry = c0 >> 32;
+            WW c1 = lo[2 * i + 1] + (WW(hi[2 * i + 1]) << 64) + carry;
+            r[i] = low | (W(uint(c1)) << 32); carry = c1 >> 32;}
+        for (W w = W(carry); w; w = addWord(r, c.len, w)) {}
+        canonical(r, c.len);}
+    // T: O(n), M: O(1); r (len words) = the canonical residue of a (n words) mod (B^len - 1): the sum of its len-word chunks with the wrapped carries.
+    inline void foldMod1(W *r, int len, const W *a, int n) {
+        int k = min(n, len);
+        std::copy(a, a + k, r); zero(r + k, len - k);
+        for (int i = len; i < n; i += len) {
+            for (W c = add(r, r, len, a + i, min(len, n - i)); c; c = addWord(r, len, c)) {}}
+        canonical(r, len);}
+    // T: O(len), M: O(1); r = a - b mod (B^len - 1), canonical for canonical a and b (r may alias a).
+    inline void subMod1(W *r, const W *a, const W *b, int len) { if (sub(r, a, len, b, len)) { subWord(r, len, 1); } }
     // S: O(len), Q: O(len) per ring operation and O(cnt * len * log(cnt)) per transform, M: O(len); Z/(2^N + 1) for N = 64 len: an element is
     // len + 1 words valued in [0, 2^N]; r may alias a.
     struct Fermat {
@@ -1024,6 +1107,8 @@ namespace infint_detail {
     inline ulng transformWork(int len) {
         ulng p = std::bit_ceil(uint(len)), m = 5 * p / 8 >= ulng(len) ? 5 * p / 8 : 3 * p / 4 >= ulng(len) ? 3 * p / 4 : p;
         return m * std::bit_width(p);}
+    // T: O(1), M: O(1); true when a transform product of len words beats direct n x m word products: 2 n m (3 n m with a kept spectrum, one transform of three saved) reaches UNBALANCED_FFT transformWork units, UNBALANCED_FFT_BIG from 2^16 words.
+    inline bool transformWins(int n, int m, int len, bool kept) { return len <= NTT_MAX_WORDS && (kept ? 3 : 2) * ulng(n) * ulng(m) >= ulng(len < (1 << 16) ? UNBALANCED_FFT : UNBALANCED_FFT_BIG) * transformWork(len); }
     // T: O(M(n)) word products by size: basecase, Karatsuba, Toom-3, transforms, M: O(n + m) workspace; n >= m >= 1, r has n + m words.
     inline void mul(W *r, const W *a, int n, const W *b, int m) {
         if (m == 1) { r[n] = mulWord(r, a, n, b[0]); return; }
@@ -1037,7 +1122,9 @@ namespace infint_detail {
                 if (work < best) { best = work; chunk = c; }}
             if (chunk) { unbalancedMul(r, a, n, b, m, chunk); return; }
             transformMul(r, a, n, b, m); return;}
-        if (n >= 2 * m) { unbalancedMul(r, a, n, b, m, m); return; }
+        if (n >= 2 * m) {
+            if (n + m >= 2 * FFT && transformWins(n, m, n + m, false)) { transformMul(r, a, n, b, m); return; }
+            unbalancedMul(r, a, n, b, m, m); return;}
         if (m >= TOOM3 && n == m) { toom3(r, a, b, n); return; }
         karatsuba(r, a, n, b, m);}
     // T: O(M(n)) word products by size: basecase, Karatsuba, Toom-3, transforms, M: O(n) workspace; n >= 1, r has 2n words.
@@ -1140,83 +1227,144 @@ namespace infint_detail {
             div2n1n(qq + lo, z + blk, z, bb, blk);}
         std::copy(qq, qq + (n - m + 1), q);
         std::copy(z + blk + pad, z + 2 * blk, r);}
-    // T: O(M(m)), M: O(m); x (m + 1 words) = floor(B^(2m) / b) for normalized b of m words: recursive Newton on the top half, the
-    // residual B^(m + h) - b * xh read from a middle product with two guard words, then an exact correction.
-    inline void reciprocal(W *x, const W *b, int m) {
-        if (m <= BURNIKEL) {
-            Scratch s(4 * size_t(m) + 3);
-            W *num = s, *qq = num + 2 * m + 1, *rr = qq + m + 2;
-            zero(num, 2 * m + 1); num[2 * m] = 1;
-            if (m == 1) { divWord(qq, num, 3, b[0]); }
-            else { divBasecase(qq, rr, num, 2 * m + 1, b, m); }
-            std::copy(qq, qq + m + 1, x);
-            return;}
-        int h = (m + 1) / 2, l = m - h, cnt = l + 4;
-        Scratch s(size_t(h) + 1 + cnt + size_t(l) + 2 + size_t(m) + 2 + 2 * (2 * size_t(m) + 1));
-        W *xh = s, *win = xh + h + 1, *e = win + cnt, *c = e + l + 2, *prod = c + m + 2, *num = prod + 2 * m + 1;
-        reciprocal(xh, b + l, h);
-        middleProduct(win, b, m, xh, h + 1, h - 2, cnt);
-        const W *pm = win + 2;
-        bool neg = pm[l + 1] != ~W(0);
-        zero(e, l + 2);
-        if (neg) { std::copy(pm, pm + l + 1, e); }
-        else { sub(e, e, l + 2, pm, l + 2); e[l + 1] = 0; }
-        int le = norm(e, l + 1);
-        zero(c, m + 2);
-        if (le) { mulAny(c, e, le, xh, h + 1); }
-        std::fill(x, x + m + 1, 0); std::copy(xh, xh + h + 1, x + l);
-        int lc = norm(c + h, l + 2);
-        if (neg) { subFrom(x, m + 1, c + h, lc); }
-        else { addInto(x, m + 1, c + h, lc); }
-        mulAny(prod, b, m, x, m + 1); zero(num, 2 * m + 1); num[2 * m] = 1;
-        while (cmp(prod, norm(prod, 2 * m + 1), num, 2 * m + 1) > 0) { subWord(x, m + 1, 1); subFrom(prod, 2 * m + 1, b, m); }
-        subFrom(num, 2 * m + 1, prod, 2 * m + 1);
-        while (cmp(num, norm(num, 2 * m + 1), b, m) >= 0) { addWord(x, m + 1, 1); subFrom(num, 2 * m + 1, b, m); }}
-    // T: O(M(m) * n / m), M: O(n); block division by the reciprocal inv of normalized b (m words), n >= m.
-    inline void divNewton(W *q, W *r, const W *a, int n, const W *b, int m, const W *inv) {
-        int chunks = (n + m - 1) / m + 1;
-        Scratch s(5 * size_t(m) + 3 + size_t(chunks) * m);
-        W *z = s, *t = z + 2 * m, *qe = t + 2 * m + 2, *qq = qe + m + 1;
-        if (n != (chunks - 1) * m || cmp(a + n - m, m, b, m) < 0) { --chunks; }
-        zero(qq, chunks * m);
-        for (int c = chunks - 1; c >= 0; --c) {
-            int lo = c * m, hi = min(lo + m, n);
-            std::copy(a + lo, a + hi, z); std::fill(z + (hi - lo), z + m, 0);
-            if (c == chunks - 1) { std::copy(z, z + m, z + m); continue; }
-            mulAny(t, z + m - 1, m + 1, inv, m + 1);
-            std::copy(t + m + 1, t + 2 * m + 2, qe);
-            int lq = norm(qe, m + 1);
-            zero(t, 2 * m + 2);
-            if (lq) { mulAny(t, b, m, qe, lq); }
-            subFrom(z, 2 * m, t, 2 * m);
-            while (cmp(z, norm(z, 2 * m), b, m) >= 0) { addWord(qe, m + 1, 1); subFrom(z, 2 * m, b, m); }
-            std::copy(qe, qe + m, qq + lo);
-            std::copy(z, z + m, z + m);}
-        std::copy(qq, qq + (n - m + 1), q);
-        std::copy(z + m, z + 2 * m, r);}
-    // T: O((n - m) * m) word products below BURNIKEL, subquadratic above (a fresh reciprocal for quotients of at least 4m words from NEWTON_LONG),
-    // M: O(n); q (n - m + 1 words), r (m words); b of m >= 1 words with b[m - 1] != 0, n >= m; q and r may be null.
-    inline void divRem(W *q, W *r, const W *a, int n, const W *b, int m, const W *inv = nullptr) {
-        Scratch s(3 * size_t(n) + size_t(m) + 5);
-        W *an = s, *bn = an + n + 1, *qt = bn + m, *iv = qt + n - m + 2, *qq = iv + m + 1;
-        if (!q) { q = qq; }
-        if (!r) { r = qq + (n - m + 1); }
-        if (m == 1) { r[0] = divWord(q, a, n, b[0]); return; }
-        int sh = std::countl_zero(b[m - 1]);
-        if (sh) { an[n] = shl(an, a, n, sh); shl(bn, b, m, sh); }
-        else { std::copy(a, a + n, an); an[n] = 0; std::copy(b, b + m, bn); }
-        int na = an[n] ? n + 1 : n;
-        if (!inv && m >= NEWTON_LONG && na - m >= 4 * m) { reciprocal(iv, bn, m); inv = iv; }
-        if (inv) { divNewton(qt, r, an, na, bn, m, inv); }
-        else if (min(m, na - m + 1) < BURNIKEL) { divBasecase(qt, r, an, na, bn, m); }
-        else { divBurnikelZiegler(qt, r, an, na, bn, m); }
-        std::copy(qt, qt + (n - m + 1), q);
-        if (sh) { shr(r, r, m, sh); }}
     // T: O(1), M: O(1); the inverse of the odd b modulo 2^64.
     inline W invMod64(W b) {
         W x = b;
         for (int i = 0; i < 6; ++i) { x *= 2 - b * x; }
         return x;}
+    // T: O(M(m)), M: O(m); v (m words) with B^m + v <= floor(B^(2m) / d) <= B^m + v + 1 for normalized d of m words: Knuth D on B^(2m) - 1 below BURNIKEL words, else Newton on the
+    // top h = m / 2 + 1 words: xh = B^h + vh - 4, e = B^(m + h) - xh d in [0, 6 B^m) from a cyclic product, x = xh B^l + (xh (e >> (h - 2) words)) >> (h + 2) words, both products sharing xh's spectrum.
+    inline void invert(W *v, const W *d, int m) {
+        if (m < BURNIKEL) {
+            Scratch s(4 * size_t(m) + 1);
+            W *num = s, *q = num + 2 * m, *rem = q + m + 1;
+            std::fill(num, num + 2 * m, ~W(0));
+            if (m == 1) { divWord(q, num, 2, d[0]); }
+            else { divBasecase(q, rem, num, 2 * m, d, m); }
+            std::copy(q, q + m, v);
+            return;}
+        int h = m / 2 + 1, l = m - h;
+        bool fft = m >= FFT;
+        CyclicPlan c = fft ? cyclicPlan(m, h + 1, m + 3) : CyclicPlan{{0, 0, 0, 0}, 0, m + h + 1};
+        int len = c.len;
+        Scratch s(size_t(h) + 1 + 2 * size_t(len) + size_t(Spectrum::words(c.p)));
+        W *xh = s, *e = xh + h + 1, *t = e + len;
+        invert(xh, d + l, h); xh[h] = 1; subWord(xh, h + 1, 4);
+        if (fft) {
+            Spectrum sx;
+            if (c.p.lg) { sx.take(t + len, c.p, xh, h + 1, m); fftWith(e, sx, d, m, true); canonical(e, len); }
+            else { mulCyclic(e, c, xh, h + 1, d, m); }
+            zero(t, len); t[(m + h) % len] = 1;
+            subMod1(e, t, e, len);
+            if (c.p.lg) { fftWith(t, sx, e + (h - 2), l + 3, true); canonical(t, len); }
+            else { mulCyclic(t, c, xh, h + 1, e + (h - 2), l + 3); }}
+        else {
+            mulAny(t, d, m, xh, h + 1);
+            zero(e, len); e[m + h] = 1; subFrom(e, len, t, len);
+            mulAny(t, xh, h + 1, e + (h - 2), l + 3);}
+        assert(norm(e, len) <= m + 1 && e[m] < 6);
+        zero(e, l); std::copy(xh, xh + h + 1, e + l);
+        addInto(e, m + 1, t + h + 2, l + 1);
+        if (e[m] == 1) { std::copy(e, e + m, v); }
+        else { std::fill(v, v + m, e[m] ? ~W(0) : W(0)); }}
+    // T: O(M(m)), M: O(m); x (m + 1 words) = floor(B^(2m) / d) exactly for normalized d of m words: invert, then the residue B^(2m) - d x settles the unit.
+    inline void invertExact(W *x, const W *d, int m) {
+        invert(x, d, m); x[m] = 1;
+        CyclicPlan c = m >= FFT ? cyclicPlan(m, m + 1, m + 2) : CyclicPlan{{0, 0, 0, 0}, 0, 2 * m + 1};
+        Scratch s(2 * size_t(c.len));
+        W *e = s, *t = e + c.len;
+        if (c.p.lg || c.limbs) { mulCyclic(e, c, d, m, x, m + 1); }
+        else { mulAny(e, d, m, x, m + 1); }
+        zero(t, c.len); t[(2 * m) % c.len] = 1;
+        subMod1(e, t, e, c.len);
+        if (cmp(e, norm(e, c.len), d, m) >= 0) { addWord(x, m + 1, 1); }}
+    // S: O(M(m)) (prepare), U: NA, Q: O(M(m)) per quotient block (divBlocks), M: O(m + N) words (the inverse and two spectra of N doubles); a divisor b (m words) prepared for quotient blocks of at most blk <= m words: d = b << shift normalized,
+    // v (blk words) with B^blk + v within one of floor(B^(m + blk) / d) on either side (one-sided below from blk >= m - 1) from the inverse of the top min(m, blk + 1) words, the spectrum of v (linear, from FFT words) and, with cyclic, of d (cyclic, len > m words, from cyclicGate(m) block words).
+    struct Divisor {
+        const W *d = nullptr; W *v = nullptr; int m = 0, blk = 0, shift = 0; Spectrum sv, sd; CyclicPlan cr{};
+        static FftPlan quotientPlan(int blk) { return blk >= FFT ? fftPlan(blk, blk, 2 * blk, false) : FftPlan{0, 0, 0, 0}; }
+        static CyclicPlan remainderPlan(int m, int blk) { return blk >= cyclicGate(m) ? cyclicPlan(m, blk, m + 1) : CyclicPlan{{0, 0, 0, 0}, 0, 0}; }
+        static size_t words(int m, int blk) { return size_t(m) + blk + Spectrum::words(quotientPlan(blk)) + Spectrum::words(remainderPlan(m, blk).p); }
+        void prepare(W *buf, const W *b, int mw, int bw, bool cyclic = true) {
+            assert(bw >= 1 && bw <= mw);
+            m = mw; blk = bw; shift = std::countl_zero(b[m - 1]);
+            W *dn = buf; d = dn; v = dn + m;
+            if (shift) { shl(dn, b, m, shift); } else { std::copy(b, b + m, dn); }
+            int k = min(m, blk + 1);
+            Scratch x{size_t(k)};
+            invert(x, dn + m - k, k);
+            std::copy(x.p + (k - blk), x.p + k, v);
+            FftPlan pq = quotientPlan(blk);
+            W *p = v + blk;
+            if (pq.lg) { sv.take(p, pq, v, blk, blk); p += Spectrum::words(pq); }
+            cr = cyclic ? remainderPlan(m, blk) : CyclicPlan{{0, 0, 0, 0}, 0, 0};
+            if (cr.p.lg) { sd.take(p, cr.p, dn, m, blk); }}
+    };
+    // T: O((M(blk) + M(m)) * (n - m) / blk + m) word products (M(m) cyclic), M: O(m + blk); q (n - m + 1 words), r (m words, null allowed) of a (n words) by dv's normalized d (m words), n >= m: blocks of at most blk quotient
+    // words from the top, each estimated through v (q in [q_hat - 1, q_hat + 4]) and settled by the residue (Knuth D below knuthGate(m, true) words, spectra from cyclicGate words); exact: d odd, d | a, quotient word q0: the last block is settled 2-adically, r is zero.
+    inline void divBlocks(W *q, W *r, const W *a, int n, const Divisor &dv, bool exact = false, W q0 = 0) {
+        int m = dv.m, blk = dv.blk, qn = n - m;
+        const W *d = dv.d;
+        bool cyc = dv.cr.len > 0;
+        int len = cyc ? dv.cr.len : m + blk, pl = max({2 * blk, len, m + blk});
+        Scratch s(size_t(m) + blk + size_t(blk) + 1 + size_t(pl) + (cyc ? size_t(len) : 0));
+        W *rem = s, *qe = rem + m + blk, *prod = qe + blk + 1, *res = prod + pl;
+        std::copy(a + qn, a + n, rem);
+        q[qn] = cmp(rem, m, d, m) >= 0;
+        if (q[qn]) { subFrom(rem, m, d, m); }
+        for (int pos = qn, t = qn ? (qn - 1) % blk + 1 : 0; pos > 0; pos -= t, t = blk) {
+            std::copy_backward(rem, rem + m, rem + m + t); std::copy(a + pos - t, a + pos, rem);
+            if (t < knuthGate(m, true)) { divBasecase(qe, rem, rem, m + t, d, m); std::copy(qe, qe + t, q + pos - t); continue; }
+            const W *top = rem + m;
+            if (dv.sv.p.lg && t >= cyclicGate(blk)) { fftWith(prod, dv.sv, top, t, false); }
+            else { mulAny(prod, top, t, dv.v, blk); }
+            if (add(qe, prod + blk, t, top, t)) { std::fill(qe, qe + t, ~W(0)); }
+            if (exact && pos == t) {
+                W delta = q0 - qe[0];
+                assert(delta <= 4);
+                addWord(qe, t, delta);
+                std::copy(qe, qe + t, q + pos - t);
+                zero(rem, m);
+                break;}
+            if (cyc && t >= cyclicGate(m)) {
+                foldMod1(res, len, rem, m + t);
+                if (dv.cr.p.lg) { fftWith(prod, dv.sd, qe, t, true); canonical(prod, len); }
+                else { mulCyclic(prod, dv.cr, qe, t, d, m); }
+                subMod1(res, res, prod, len);
+                while (res[m] > 4) { addWord(res, len, 1); add(res, res, len, d, m); subWord(qe, t, 1); }
+                while (cmp(res, norm(res, m + 1), d, m) >= 0) { subFrom(res, m + 1, d, m); addWord(qe, t, 1); }
+                std::copy(res, res + m, rem);}
+            else {
+                mulAny(prod, d, m, qe, t);
+                if (sub(rem, rem, m + t, prod, m + t)) { do { subWord(qe, t, 1); } while (!add(rem, rem, m + t, d, m)); }
+                while (cmp(rem, norm(rem, m + t), d, m) >= 0) { subFrom(rem, m + t, d, m); addWord(qe, t, 1); }}
+            std::copy(qe, qe + t, q + pos - t);}
+        if (r) { std::copy(rem, rem + m, r); }}
+    // T: O((n - m) * m) word products by Knuth D (divisors below BURNIKEL or quotients below knuthGate words), O(M(m) log(m) n / m) by Burnikel-Ziegler (quotients of at least m / 2 words, divisors below NEWTON_DIV, or NEWTON_LONG from 4m quotient words),
+    // else O(M(n)) by the blocks of a fresh Divisor (cyclic remainders from FFT divisor words or FRESH_CYCLIC cyclicGate(m) quotient words), M: O(n + m); q (n - m + 1 words) and r (m words) may be null; b of m >= 1 words, b[m - 1] != 0, n >= m; dv: b prepared by the caller; exact: b odd, b | a.
+    inline void divRem(W *q, W *r, const W *a, int n, const W *b, int m, const Divisor *dv = nullptr, bool exact = false) {
+        Scratch s(3 * size_t(n) + 4);
+        W *an = s, *bn = an + n + 1, *qt = bn + m, *qq = qt + n - m + 2;
+        if (!q) { q = qq; }
+        if (!r) { r = qq + (n - m + 1); }
+        if (m == 1) { r[0] = divWord(q, a, n, b[0]); return; }
+        int sh = dv ? dv->shift : std::countl_zero(b[m - 1]);
+        if (sh) { an[n] = shl(an, a, n, sh); shl(bn, b, m, sh); }
+        else { std::copy(a, a + n, an); an[n] = 0; std::copy(b, b + m, bn); }
+        int na = an[n] ? n + 1 : n, qn = na - m;
+        assert(!exact || (b[0] & 1));
+        W q0 = exact ? a[0] * invMod64(b[0]) : 0;
+        if (m < BURNIKEL || qn < knuthGate(m, dv != nullptr)) { divBasecase(qt, r, an, na, bn, m); }
+        else if (dv) { divBlocks(qt, r, an, na, *dv, exact, q0); }
+        else if (2 * qn >= m && m < (qn >= 4 * m ? NEWTON_LONG : NEWTON_DIV)) { divBurnikelZiegler(qt, r, an, na, bn, m); }
+        else {
+            int nb = qn > m ? (qn + m - 1) / m : 3 * qn > m ? 2 : 1, blk = (qn + nb - 1) / nb;
+            Divisor d;
+            Scratch ctx(Divisor::words(m, blk));
+            d.prepare(ctx, b, m, blk, m >= FFT || nb * blk >= FRESH_CYCLIC * cyclicGate(m));
+            divBlocks(qt, r, an, na, d, exact, q0);}
+        std::copy(qt, qt + (n - m + 1), q);
+        if (sh) { shr(r, r, m, sh); }}
     // T: O(k * m) word products, M: O(n); q (k = n - m + 1 words) = a / b for odd b dividing a, word by word through the 2-adic inverse of b[0].
     inline void divExactHensel(W *q, const W *a, int n, const W *b, int m) {
         int k = n - m + 1;
@@ -1450,8 +1598,14 @@ struct InfInt {
             static_assert(std::same_as<T, ulng>);
             return n.empty() ? vector<ulng>{0} : vector<ulng>(n.begin(), n.end());}}
 
-    // S: O(M(n) * log(n)) powers for n words, U: NA, Q: O(1), M: O(n); radix conversion: blocks of DIGITS digits in base BP = base^DIGITS, cached powers BP^(2^j) with reciprocals.
-    struct Radix { W bp; int digits; vector<vector<W>> pow, inv; };
+    // S: O(M(n) * log(n)) powers for n words, U: NA, Q: O(1), M: O(n); radix conversion: blocks of DIGITS digits in base BP = base^DIGITS, cached powers BP^(2^j), each from CACHED_DIV words a prepared Divisor (blk = m) and from FFT words a spectrum for the parse;
+    // for the scaled remainder tree per level the split's cyclic plan with the kept spectrum of the power below and per top level the inverse of its power with two spectra.
+    struct Radix {
+        W bp; int digits; vector<vector<W>> pow, ctx, spec; vector<infint_detail::Divisor> div; vector<infint_detail::Spectrum> mulSpec;
+        struct Tree { int frac = 0; infint_detail::CyclicPlan plan{}; infint_detail::Spectrum spec; vector<W> buf; };
+        struct Root { int frac = 0; infint_detail::FftPlan plan{}; infint_detail::CyclicPlan rem{}; infint_detail::Spectrum inv, mod; vector<W> buf; };
+        vector<Tree> split; vector<Root> root;
+    };
     static Radix &radix(uint base) {
         static unordered_map<uint, Radix> cache;
         Radix &r = cache[max(base, 2u)];
@@ -1467,15 +1621,23 @@ struct InfInt {
             sq.resize(size_t(infint_detail::norm(sq.data(), int(sq.size()))));
             r.pow.push_back(std::move(sq));}
         return r.pow[size_t(j)];}
-    static const vector<W> &radixInv(Radix &r, int j) {
-        const vector<W> &p = radixPow(r, j);
-        if (int(r.inv.size()) <= j) { r.inv.resize(size_t(j) + 1); }
-        if (r.inv[size_t(j)].empty()) {
-            int m = int(p.size()); vector<W> bn(p); int s = std::countl_zero(bn[size_t(m) - 1]);
-            if (s) { infint_detail::shl(bn.data(), bn.data(), m, s); }
-            r.inv[size_t(j)].resize(size_t(m) + 1);
-            infint_detail::reciprocal(r.inv[size_t(j)].data(), bn.data(), m);}
-        return r.inv[size_t(j)];}
+    // The level-j power as a prepared divisor (null below CACHED_DIV words) and as a spectrum for the parse's products (null below FFT words), both kept for the process.
+    static const infint_detail::Divisor *radixDiv(Radix &r, int j) {
+        const vector<W> &p = radixPow(r, j); int m = int(p.size());
+        if (m < infint_detail::CACHED_DIV) { return nullptr; }
+        if (int(r.div.size()) <= j) { r.div.resize(size_t(j) + 1); r.ctx.resize(size_t(j) + 1); }
+        if (!r.div[size_t(j)].d) {
+            r.ctx[size_t(j)].resize(infint_detail::Divisor::words(m, m));
+            r.div[size_t(j)].prepare(r.ctx[size_t(j)].data(), p.data(), m, m);}
+        return &r.div[size_t(j)];}
+    static const infint_detail::Spectrum *radixSpec(Radix &r, int j) {
+        const vector<W> &p = radixPow(r, j); int m = int(p.size());
+        infint_detail::FftPlan q = m >= infint_detail::FFT ? infint_detail::fftPlan(m, m, 2 * m, false) : infint_detail::FftPlan{0, 0, 0, 0};
+        if (!q.lg) { return nullptr; }
+        if (int(r.mulSpec.size()) <= j) { r.mulSpec.resize(size_t(j) + 1); r.spec.resize(size_t(j) + 1); }
+        infint_detail::Spectrum &s = r.mulSpec[size_t(j)];
+        if (!s.re) { r.spec[size_t(j)].resize(size_t(infint_detail::Spectrum::words(q))); s.take(r.spec[size_t(j)].data(), q, p.data(), m, m); }
+        return &s;}
     // T: O(M(n) * log(n)), M: O(n); little-endian blocks to words at out (room for cnt + 1), returns the length.
     static int fromBlocks(W *out, const W *blk, int cnt, Radix &r) {
         if (cnt <= infint_detail::RADIX) {
@@ -1490,9 +1652,11 @@ struct InfInt {
         infint_detail::Scratch s(size_t(cnt) + 2);
         W *lo = s, *hi = lo + h + 1;
         int ll = fromBlocks(lo, blk, h, r), lh = fromBlocks(hi, blk + h, cnt - h, r);
-        const vector<W> &p = radixPow(r, j);
+        const vector<W> &p = radixPow(r, j); int m = int(p.size());
+        const infint_detail::Spectrum *sp = lh && infint_detail::transformWins(lh, m, 2 * m, true) ? radixSpec(r, j) : nullptr;
         infint_detail::zero(out, cnt + 1);
-        if (lh) { infint_detail::mulAny(out, hi, lh, p.data(), int(p.size())); }
+        if (sp) { infint_detail::fftWith(out, *sp, hi, lh, false); }
+        else if (lh) { infint_detail::mulAny(out, hi, lh, p.data(), m); }
         infint_detail::addInto(out, cnt + 1, lo, ll);
         return infint_detail::norm(out, cnt + 1);}
     // T: O(M(n) * log(n)), M: O(n); the len words at v (destroyed) to little-endian blocks appended at out + cnt, padded to 2^(j + 1) blocks when pad.
@@ -1507,10 +1671,83 @@ struct InfInt {
         infint_detail::Scratch s(size_t(lq) + m);
         W *q = s, *rem = q + lq;
         if (len < m) { q[0] = 0; std::copy(v, v + len, rem); infint_detail::zero(rem + len, m - len); }
-        else { infint_detail::divRem(q, rem, v, len, p.data(), m, m >= infint_detail::NEWTON_DIV ? radixInv(r, j).data() : nullptr); }
+        else { infint_detail::divRem(q, rem, v, len, p.data(), m, radixDiv(r, j)); }
         toBlocks(out, cnt, rem, m, j - 1, true, r);
         toBlocks(out, cnt, q, lq, j - 1, pad, r);}
-    // Little-endian blocks of the len-word magnitude w into out (room for 4 len + 4); returns the count without leading zero blocks.
+    // The fraction words of a level-i node of the scaled remainder tree: the leaf power's words plus SCALED_GUARD, plus the words of every power from level SCALED_LEAF below i, so that a split by p_(i-1) scales the error by less than one.
+    static int radixFrac(Radix &r, int i) {
+        int f = int(radixPow(r, infint_detail::SCALED_LEAF).size()) + infint_detail::SCALED_GUARD;
+        for (int k = infint_detail::SCALED_LEAF; k < i; ++k) { f += int(radixPow(r, k).size()); }
+        return f;}
+    // Level i > SCALED_LEAF of the tree: the cyclic plan (len > frac(i)) of a fraction times p_(i-1) and, with an FFT plan, the kept spectrum of p_(i-1); kept for the process.
+    static Radix::Tree &radixSplit(Radix &r, int i) {
+        if (int(r.split.size()) <= i) { r.split.resize(size_t(i) + 1); }
+        Radix::Tree &t = r.split[size_t(i)];
+        if (!t.frac) {
+            const vector<W> &p = radixPow(r, i - 1); int m = int(p.size());
+            t.frac = radixFrac(r, i); t.plan = infint_detail::cyclicPlan(t.frac, m, t.frac + 1);
+            if (t.plan.p.lg) { t.buf.resize(size_t(infint_detail::Spectrum::words(t.plan.p))); t.spec.take(t.buf.data(), t.plan.p, p.data(), m, t.frac); }}
+        return t;}
+    // The top level j of a tree: buf starts with inv (frac(j) + 2 words), the reciprocal of p_j (m words) normalized and padded to frac(j) + 1 words, shifted back, so inv is within 2^64 below B^(m + frac(j) + 1) / p_j,
+    // then its spectrum for operands of up to m + 1 words (plan, when an FFT plan exists) and the cyclic spectrum of p_j for remainders (rem, len > m); kept for the process.
+    static Radix::Root &radixRoot(Radix &r, int j) {
+        if (int(r.root.size()) <= j) { r.root.resize(size_t(j) + 1); }
+        Radix::Root &t = r.root[size_t(j)];
+        if (!t.frac) {
+            const vector<W> &p = radixPow(r, j); int m = int(p.size()), f = radixFrac(r, j), k = f + 1, s = std::countl_zero(p.back());
+            infint_detail::Scratch d(2 * size_t(k) + 1);
+            W *x = d + k;
+            infint_detail::zero(d, k - m);
+            if (s) { infint_detail::shl(d + (k - m), p.data(), m, s); } else { std::copy(p.begin(), p.end(), d.p + (k - m)); }
+            infint_detail::invert(x, d, k); x[k] = 1;
+            t.frac = f; t.plan = infint_detail::fftPlan(m + 1, k + 1, m + k + 2, false); t.rem = infint_detail::cyclicPlan(m, m, m + 1);
+            t.buf.resize(size_t(k) + 1 + size_t(infint_detail::Spectrum::words(t.plan)) + size_t(infint_detail::Spectrum::words(t.rem.p)));
+            if (s) { infint_detail::shl(t.buf.data(), x, k + 1, s); } else { std::copy(x, x + k + 1, t.buf.data()); }
+            W *b = t.buf.data() + k + 1;
+            if (t.plan.lg) { t.inv.take(b, t.plan, t.buf.data(), k + 1, m + 1); b += infint_detail::Spectrum::words(t.plan); }
+            if (t.rem.p.lg) { t.mod.take(b, t.rem.p, p.data(), m, m); }}
+        return t;}
+    // T: O(M(L) log(L)) for L = 2^i blocks, M: O(1) beyond the caller's buffers; the 2^i blocks at out of the level-i fraction fr (frac(i) words of frac(N / (BP^offset p_i)), within 2 + top - i units either way): leaves
+    // extract RADIX blocks as integer parts of x BP, ... and settle a residue within 2^-120 of an integer by the block below; a node splits into the low child's words [m, frac(i)) of F p_(i-1) mod B^len - 1 and the high child's top words of fr.
+    static void scaledTree(W *out, const W *fr, int i, W *lo, W *prod, W below, Radix &r) {
+        if (i == infint_detail::SCALED_LEAF) {
+            int f = radixFrac(r, i);
+            std::copy(fr, fr + f, prod);
+            for (int k = infint_detail::RADIX - 1; k >= 0; --k) { out[k] = infint_detail::mulWord(prod, prod, f, r.bp); }
+            W hi = prod[f - 1], next = prod[f - 2];
+            if (hi == ~W(0) && next >= ~W(0) - 255 && below == 0) { for (int k = 0; k < infint_detail::RADIX && ++out[k] == r.bp; ++k) { out[k] = 0; } }
+            else if (hi == 0 && next < 256 && below == r.bp - 1) { for (int k = 0; k < infint_detail::RADIX && out[k]-- == 0; ++k) { out[k] = r.bp - 1; } }
+            return;}
+        Radix::Tree &t = radixSplit(r, i); const vector<W> &p = radixPow(r, i - 1); int m = int(p.size()), half = 1 << (i - 1), fl = t.frac - m;
+        if (t.plan.p.lg) { infint_detail::fftWith(prod, t.spec, fr, t.frac, true); } else { infint_detail::mulCyclic(prod, t.plan, fr, t.frac, p.data(), m); }
+        std::copy(prod + m, prod + t.frac, lo);
+        scaledTree(out, lo, i - 1, lo + fl, prod, below, r);
+        scaledTree(out + half, fr + m, i - 1, lo + fl, prod, out[half - 1], r);}
+    // T: O(M(n) log(n)), M: O(n); the 2^(j + 1) blocks at out of the len-word magnitude w in [p_j, p_(j + 1)), p_j of m words, by the scaled remainder tree (Bernstein): one Barrett split w = Q p_j + R, Q from the
+    // top m + 1 words of w times inv (within two below, settled by the cyclic remainder), then the trees of R and Q from their fractions, the words [m + 1, m + 1 + frac(j)) of R inv and Q inv; a Q below p_(j-1) by the division tree.
+    static void scaledBlocks(W *out, const W *w, int len, int j, Radix &r) {
+        Radix::Root &rt = radixRoot(r, j); const vector<W> &p = radixPow(r, j);
+        int m = int(p.size()), f = rt.frac, il = f + 2, nt = min(len, m + 1), k = len - nt, qn = len + 1 - m, qm = min(qn, m), rl = rt.rem.len, pw = m + il + 1;
+        size_t lo = 0, pl = size_t(radixFrac(r, infint_detail::SCALED_LEAF));
+        for (int i = infint_detail::SCALED_LEAF + 1; i <= j; ++i) { Radix::Tree &t = radixSplit(r, i); lo += size_t(t.frac - int(radixPow(r, i - 1).size())); pl = max(pl, size_t(t.plan.len)); }
+        infint_detail::Scratch s(2 * size_t(pw) + size_t(m) + 1 + 2 * size_t(rl) + lo + pl);
+        W *bq = s, *br = bq + pw, *q = br + pw, *res = q + m + 1, *prod = res + rl, *lob = prod + rl, *pb = lob + lo;
+        auto times = [&](W *dst, const W *a, int n) {
+            if (rt.plan.lg) { infint_detail::fftWith(dst, rt.inv, a, n, false); } else { infint_detail::mulAny(dst, a, n, rt.buf.data(), il); }
+            infint_detail::zero(dst + n + il, pw - n - il);};
+        times(bq, w + k, nt);
+        std::copy(bq + (m + f + 1 - k), bq + (nt + il), q);
+        infint_detail::foldMod1(res, rl, w, len);
+        if (rt.rem.p.lg) { infint_detail::fftWith(prod, rt.mod, q, qm, true); infint_detail::canonical(prod, rl); } else { infint_detail::mulCyclic(prod, rt.rem, q, qm, p.data(), m); }
+        infint_detail::subMod1(res, res, prod, rl);
+        while (infint_detail::cmp(res, infint_detail::norm(res, rl), p.data(), m) >= 0) { infint_detail::subFrom(res, rl, p.data(), m); infint_detail::addWord(q, qn, 1); }
+        times(br, res, m);
+        scaledTree(out, br + m + 1, j, lob, pb, 0, r);
+        const vector<W> &h = radixPow(r, j - 1);
+        if (infint_detail::cmp(q, infint_detail::norm(q, qn), h.data(), int(h.size())) < 0) { int c = 0; toBlocks(out + (1 << j), c, q, qn, j - 1, true, r); return; }
+        times(bq, q, qm);
+        scaledTree(out + (1 << j), bq + m + 1, j, lob, pb, 0, r);}
+    // Little-endian blocks of the len-word magnitude w into out (room for 4 len + 4); returns the count without leading zero blocks: the scaled remainder tree from SCALED_TREE words, else the division tree.
     static int toBlocks(W *out, const W *w, int len, Radix &r) {
         infint_detail::Scratch v(size_t(max(len, 1)));
         std::copy(w, w + len, v.p);
@@ -1521,7 +1758,8 @@ struct InfInt {
                 const vector<W> &p = radixPow(r, j + 1);
                 if (infint_detail::cmp(v, len, p.data(), int(p.size())) < 0) { break; }
                 ++j;}}
-        toBlocks(out, cnt, v, len, j, false, r);
+        if (len >= infint_detail::SCALED_TREE && j >= infint_detail::SCALED_LEAF) { scaledBlocks(out, v, len, j, r); cnt = 2 << j; }
+        else { toBlocks(out, cnt, v, len, j, false, r); }
         while (cnt && out[cnt - 1] == 0) { --cnt; }
         return cnt;}
     template<typename G> void fromDigits(int len, uint base, const G &get) {
@@ -1949,7 +2187,7 @@ struct InfInt {
         if (k < m) { return 0; }
         InfInt r; r.n.setSize(k - m + 1);
         if (k - m + 1 <= infint_detail::HENSEL) { infint_detail::divExactHensel(r.n.data(), x.n.data(), k, y.n.data(), m); }
-        else { infint_detail::divRem(r.n.data(), nullptr, x.n.data(), k, y.n.data(), m); }
+        else { infint_detail::divRem(r.n.data(), nullptr, x.n.data(), k, y.n.data(), m, nullptr, true); }
         assert(ulng(ulll(residue61(r.n.data(), r.n.size())) * residue61(y.n.data(), m) % ((1ULL << 61) - 1)) == residue61(x.n.data(), k));
         r.trim(); r.sgn = r.isNil() ? 1 : a.sgn * b.sgn;
         return r;}
@@ -2304,9 +2542,9 @@ struct InfInt {
         InfInt r = a;
         for (int i = std::bit_width(ulng(e)) - 2; i >= 0; --i) { r *= r; if ((e >> i) & 1) { r *= a; } }
         return r;}
-    // S: O(M(k) * log(k)), U: NA, Q: O(M(k)) per product, M: O(k); modular context for a finite modulus of k words: Montgomery REDC (odd moduli, when asked) or reduction by a cached reciprocal.
+    // S: O(M(k) * log(k)), U: NA, Q: O(M(k)) per product, M: O(k); modular context for a finite modulus of k words: Montgomery REDC (odd moduli, when asked), else a cached reciprocal from CACHED_MOD words (Knuth D or Burnikel-Ziegler below).
     struct ModCtx {
-        int k = 0, shift = 0; bool mont = false; Words m, minv, r2, inv, t, u, v;
+        int k = 0; bool mont = false; Words m, minv, r2, ctx, t, u, v; infint_detail::Divisor dv;
         ModCtx(const InfInt &modulus, bool montgomery) {
             m = modulus.n; k = m.size(); mont = montgomery && (m[0] & 1) && k >= infint_detail::MONTGOMERY_POW;
             t.setSize(2 * k + 1); u.setSize(k); v.setSize(2 * k);
@@ -2322,16 +2560,13 @@ struct InfInt {
                 Words big; big.assign(2 * k + 1, 0); big[2 * k] = 1;
                 r2.assign(k, 0);
                 infint_detail::divRem(nullptr, r2.data(), big.data(), 2 * k + 1, m.data(), k);}
-            else if (k >= infint_detail::NEWTON_DIV) {
-                Words bn = m; shift = std::countl_zero(bn.back());
-                if (shift) { infint_detail::shl(bn.data(), bn.data(), k, shift); }
-                inv.setSize(k + 1); infint_detail::reciprocal(inv.data(), bn.data(), k);}}
+            else if (k >= infint_detail::CACHED_MOD) { ctx.setSize(int(infint_detail::Divisor::words(k, k))); dv.prepare(ctx.data(), m.data(), k, k); }}
         // x = x * y mod m on k-word residues (Montgomery form when mont); y may alias x.
         void mul(Words &x, const Words &y) {
             if (&x == &y) { infint_detail::square(t.data(), x.data(), k); }
             else { infint_detail::mul(t.data(), x.data(), k, y.data(), k); }
             t[2 * k] = 0;
-            if (!mont) { infint_detail::divRem(nullptr, x.data(), t.data(), 2 * k, m.data(), k, inv.empty() ? nullptr : inv.data()); return; }
+            if (!mont) { infint_detail::divRem(nullptr, x.data(), t.data(), 2 * k, m.data(), k, dv.d ? &dv : nullptr); return; }
             infint_detail::truncatedMul(u.data(), t.data(), minv.data(), k);
             infint_detail::mul(v.data(), u.data(), k, m.data(), k);
             infint_detail::addInto(t.data(), 2 * k + 1, v.data(), 2 * k);
@@ -2350,11 +2585,11 @@ struct InfInt {
         InfInt mul(const InfInt &a, const InfInt &b) {
             Words x = residue(a), y = residue(b);
             infint_detail::mul(t.data(), x.data(), k, y.data(), k);
-            infint_detail::divRem(nullptr, x.data(), t.data(), 2 * k, m.data(), k, inv.empty() ? nullptr : inv.data());
+            infint_detail::divRem(nullptr, x.data(), t.data(), 2 * k, m.data(), k, dv.d ? &dv : nullptr);
             InfInt r; r.n = std::move(x); r.trim();
             return r;}
     };
-    // T: O(log(e) * M(n)) with sliding windows, M: O(n); a^e mod |mod| in [0, |mod|), -1 when e < 0 and a is not a unit; |mod| = 1 gives 0.
+    // T: O(log(e) * M(n)) with sliding windows, M: O(n); a^e mod |mod| in [0, |mod|), -1 when e < 0 and a is not a unit; |mod| = 1 gives 0; Montgomery REDC for odd moduli below CACHED_DIV words, the cached Divisor from there and for even moduli from CACHED_MOD words.
     friend InfInt powMod(InfInt a, InfInt e, InfInt mod) {
         assert(!a.is_inf && !e.is_inf && !mod.is_inf && !mod.isNil());
         if (a.is_inf || e.is_inf || mod.is_inf || mod.isNil()) { return 0; }
@@ -2404,7 +2639,7 @@ struct InfInt {
             ulng um = mod.low64();
             auto mulMod = [&](ulng &x, const ulng &y) { x = ulng(ulll(x) * y % um); };
             return window(a.low64(), mulMod);}
-        ModCtx ctx(mod, true);
+        ModCtx ctx(mod, int(mod.n.size()) < infint_detail::CACHED_DIV);
         auto mulMod = [&](Words &x, const Words &y) { ctx.mul(x, y); };
         return ctx.leave(window(ctx.enter(a), mulMod));}
     // T: O(M(n)), M: O(n); Zimmermann's recursive square root with remainder on words, a has n = 4l words with a[n - 1] >= 2^62; s n / 2 words, r n / 2 + 1.
@@ -2637,7 +2872,7 @@ struct InfInt {
         InfInt x = a, r;
         if (odd) { x <<= 32; }
         r.n.setSize(x.n.size() + 1);
-        infint_detail::reciprocal(r.n.data(), x.n.data(), x.n.size());
+        infint_detail::invertExact(r.n.data(), x.n.data(), x.n.size());
         r.trim();
         if (odd) { r >>= 32; }
         return r;}

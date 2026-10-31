@@ -100,9 +100,9 @@ static void multiplication() {
             runT("ntt64", [&] { ntt64Cyclic(lo.data(), hi.data(), la.data(), 2 * n, lb.data(), 2 * n, L); });
             FftPlan p = fftPlan(n, n, 2 * n, false);
             if (p.lg) { measure("transform", "fft", "cyclic", n, n, [&] { fftRun(r.data(), p, a.data(), n, b.data(), n, false); return digest(r); }, want, 1, planJson(p)); }}}
-    for (int n : {64, 256, 1024, 4096, 16384}) {
-        for (int m : {4, 16, n / 16, n / 4, n / 2}) {
-            if (m >= n || m < 1) { continue; }
+    for (int n : {64, 256, 1024, 4096, 16384, 65536, 131072}) {
+        for (int m : {4, 8, 16, 24, 32, 48, 64, 80, 128, 256, 512, n / 16, n / 4, n / 2}) {
+            if (m >= n || m < 1 || (n >= 65536 && m >= n / 16)) { continue; }
             vector<W> a = randWords(n), b = randWords(m), r(size_t(n + m), 0);
             ulng want = digest(refProduct(a, b));
             auto run = [&](const char *name, auto &&f) { measure("mul", name, "unbalanced", n, m, [&] { f(); return digest(r); }, want); };
@@ -112,55 +112,81 @@ static void multiplication() {
             if (m > n / 2) { run("karatsuba", [&] { karatsuba(r.data(), a.data(), n, b.data(), m); }); }
             run("transform", [&] { transformMul(r.data(), a.data(), n, b.data(), m); });
             run("dispatch", [&] { mul(r.data(), a.data(), n, b.data(), m); });}}
-    // The Newton step's middle product (words [h - 2, m + 2) of an m-word by (h + 1)-word product): the three paths of middleProduct timed separately and its dispatch,
-    // each checked once against the exact slice (a deficit of at most nb * B is allowed), then the truncated product against the low words of the reference.
-    for (int m : {16, 32, 48, 64, 96, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 16384}) {
-        int h = (m + 1) / 2, l = m - h, cnt = l + 4, nb = h + 1, lo = h - 2;
-        vector<W> a = randWords(m), b = randWords(nb), r(size_t(cnt), 0), f(size_t(m + nb), 0), exact = refProduct(a, b);
-        InfInt slice = ofWords(vector<W>(exact.begin() + lo, exact.begin() + lo + cnt)), wrap = InfInt(1) << (64 * cnt), bound = InfInt(nb) << 64;
-        auto run = [&](const char *name, auto &&g, const std::string &extra = "") {
-            g(); InfInt d = slice - ofWords(r); if (d < 0) { d += wrap; } require(d >= 0 && d <= bound, name);
-            measure("middle", name, "newton", m, nb, [&] { g(); return digest(r); }, digest(r), 1, extra);};
+    // The one-sided inverse (B^m + v within one unit below floor(B^2m / d), checked exactly), the exact inverse, the cyclic residue of an m-word square at want = m + 1 against the
+    // linear transform and the dispatcher's full product, then the truncated product against the low words of the reference.
+    for (int m : {16, 32, 48, 64, 96, 128, 160, 192, 224, 256, 320, 384, 448, 512, 640, 768, 1024, 1536, 2048, 3072, 4096, 6144, 8192, 16384, 32768, 65536, 131072}) {
+        vector<W> d = randWords(m), v(size_t(m) + 1, 0), x(size_t(m) + 1, 0);
+        invertExact(x.data(), d.data(), m); InfInt X = ofWords(x), B2 = InfInt(1) << (128 * m), D = ofWords(d);
+        require(D * X <= B2 && D * (X + 1) > B2, "invertExact floor");
+        invert(v.data(), d.data(), m); v[size_t(m)] = 1; InfInt V = ofWords(v);
+        require(V == X || V + 1 == X, "invert within one unit below the floor");
+        measure("invert", "invert", "normalized", m, m, [&] { invert(v.data(), d.data(), m); return digest(v); }, digest(v));
+        if (m <= 65536) { measure("invert", "invertExact", "normalized", m, m, [&] { invertExact(x.data(), d.data(), m); return digest(x); }, digest(x)); }
+        vector<W> a = randWords(m), b = randWords(m), full = refProduct(a, b), f2(size_t(2 * m), 0);
+        CyclicPlan c = cyclicPlan(m, m, m + 1); vector<W> s(size_t(c.len), 0);
+        mulCyclic(s.data(), c, a.data(), m, b.data(), m);
+        require(ofWords(s) == ofWords(full) % ((InfInt(1) << (64 * c.len)) - 1), "mulCyclic residue");
+        measure("cyclic", "mulCyclic", "residue", m, m, [&] { mulCyclic(s.data(), c, a.data(), m, b.data(), m); return digest(s); }, digest(s), 1, c.p.lg ? planJson(c.p) : "");
+        if (m >= 16) { FftPlan p = fftPlan(m, m, 2 * m, false); if (p.lg) { measure("cyclic", "transform", "residue", m, m, [&] { fftRun(f2.data(), p, a.data(), m, b.data(), m, false); return digest(f2); }, digest(full), 1, planJson(p)); } }
+        measure("cyclic", "dispatch", "residue", m, m, [&] { mulAny(f2.data(), a.data(), m, b.data(), m); return digest(f2); }, digest(full));
         if (m <= 2048) {
-            run("direct", [&] {
-                zero(r.data(), cnt);
-                for (int j = 0; j < nb; ++j) {
-                    int i0 = max(lo - j, 0), i1 = min(lo + cnt - j, m);
-                    if (i0 >= i1) { continue; }
-                    W c = addMul(r.data() + (i0 + j - lo), a.data() + i0, i1 - i0, b[size_t(j)]);
-                    if (i1 + j - lo < cnt) { addWord(r.data() + (i1 + j - lo), cnt - (i1 + j - lo), c); }}});}
-        run("fullProduct", [&] { mulAny(f.data(), a.data(), m, b.data(), nb); std::copy(f.begin() + lo, f.begin() + lo + cnt, r.begin()); });
-        int len = max({lo + cnt, m + nb - lo, m, nb}); FftPlan p = fftPlan(m, nb, len, true); vector<W> s(size_t(p.len));
-        if (m >= 64 && p.lg) { run("cyclic", [&] { fftRun(s.data(), p, a.data(), m, b.data(), nb, true); std::copy(s.begin() + lo, s.begin() + lo + cnt, r.begin()); subWord(r.data(), cnt, 1); }, planJson(p)); }
-        run("dispatch", [&] { middleProduct(r.data(), a.data(), m, b.data(), nb, lo, cnt); });
-        vector<W> t(size_t(m), 0), c = randWords(m), full = refProduct(c, a), f2(size_t(2 * m), 0);
-        measure("truncated", "truncatedMul", "low", m, m, [&] { truncatedMul(t.data(), c.data(), a.data(), m); return digest(t); }, digest(vector<W>(full.begin(), full.begin() + m)));
-        measure("truncated", "fullProduct", "low", m, m, [&] { mulAny(f2.data(), c.data(), m, a.data(), m); return digest(f2); }, digest(full));}}
+            vector<W> t(size_t(m), 0);
+            measure("truncated", "truncatedMul", "low", m, m, [&] { truncatedMul(t.data(), a.data(), b.data(), m); return digest(t); }, digest(vector<W>(full.begin(), full.begin() + m)));
+            measure("truncated", "fullProduct", "low", m, m, [&] { mulAny(f2.data(), a.data(), m, b.data(), m); return digest(f2); }, digest(full));}}}
 
+// Division: Knuth D, Burnikel-Ziegler, blocks with a fresh context (the dispatcher's block choice and the alternatives) and with a cached one, the dispatcher; then the exact division
+// backends, the short-quotient grid (Knuth D and Burnikel-Ziegler against one block of the quotient's size, fresh and cached, with the cyclic and the linear remainder product) and the inverse alone.
 static void division() {
     using namespace infint_detail;
-    for (int m : {2, 4, 8, 16, 24, 32, 40, 48, 64, 96, 128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 4096, 8192}) {
+    auto blocksOf = [](int qn, int m) { int nb = qn > m ? (qn + m - 1) / m : 3 * qn > m ? 2 : 1; return (qn + nb - 1) / nb; };
+    for (int m : {2, 4, 8, 16, 24, 32, 40, 48, 64, 96, 128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 4096, 8192, 16384, 32768, 65536, 131072}) {
         for (int qn : {m, 2 * m, 8 * m}) {
-            if (qn > 65536) { continue; }
+            if (qn > 262144 || (m > 8192 && qn > 2 * m)) { continue; }
             vector<W> b = randWords(m), q = randWords(qn), a(size_t(qn + m), 0); mulAny(a.data(), q.data(), qn, b.data(), m);
-            int n = norm(a.data(), qn + m); vector<W> qq(size_t(n - m + 1), 0), rr(size_t(m), 0), iv(size_t(m) + 1);
-            auto run = [&](const char *name, auto &&f) {
+            int n = norm(a.data(), qn + m); vector<W> qq(size_t(n - m + 1), 0), rr(size_t(m), 0);
+            const char *shape = qn == m ? "equal" : qn == 2 * m ? "double" : "long";
+            auto run = [&](const std::string &name, auto &&f) {
                 f(); require(ofWords(qq) * ofWords(b) + ofWords(rr) == ofWords(a) && ofWords(rr) < ofWords(b), "division q * b + r == a, r < b");
-                measure("div", name, qn == m ? "equal" : qn == 2 * m ? "double" : "long", n, m, [&] { f(); return digest(qq) ^ digest(rr); }, digest(qq) ^ digest(rr));};
-            if (m <= 2048) { run("basecase", [&] { divBasecase(qq.data(), rr.data(), a.data(), n, b.data(), m); }); }
-            if (m >= 3) { run("burnikelZiegler", [&] { divBurnikelZiegler(qq.data(), rr.data(), a.data(), n, b.data(), m); }); }
-            run("newton", [&] { reciprocal(iv.data(), b.data(), m); divNewton(qq.data(), rr.data(), a.data(), n, b.data(), m, iv.data()); });
-            reciprocal(iv.data(), b.data(), m);
-            run("newtonCached", [&] { divNewton(qq.data(), rr.data(), a.data(), n, b.data(), m, iv.data()); });
+                measure("div", name, shape, n, m, [&] { f(); return digest(qq) ^ digest(rr); }, digest(qq) ^ digest(rr));};
+            if (m <= 2048 && qn <= 16384) { run("basecase", [&] { divBasecase(qq.data(), rr.data(), a.data(), n, b.data(), m); }); }
+            if (m >= 3 && m <= 16384) { run("burnikelZiegler", [&] { divBurnikelZiegler(qq.data(), rr.data(), a.data(), n, b.data(), m); }); }
+            int blk = blocksOf(n - m, m);
+            auto fresh = [&](int bl) { Divisor dv; Scratch ctx(Divisor::words(m, bl)); dv.prepare(ctx, b.data(), m, bl); divBlocks(qq.data(), rr.data(), a.data(), n, dv); };
+            if (m >= 2) {
+                run("blocks", [&] { fresh(blk); });
+                for (int bl : {m, (m + 1) / 2, (m + 2) / 3}) { if (bl != blk && bl >= 1 && bl <= n - m) { run("blocks" + std::to_string(bl == m ? 1 : bl == (m + 1) / 2 ? 2 : 3), [&] { fresh(bl); }); } }
+                Divisor dv; Scratch ctx(Divisor::words(m, blk)); dv.prepare(ctx, b.data(), m, blk);
+                run("blocksCached", [&] { divBlocks(qq.data(), rr.data(), a.data(), n, dv); });
+                if (blk != m) { Divisor dm; Scratch cm(Divisor::words(m, m)); dm.prepare(cm, b.data(), m, m); run("blocksCachedFull", [&] { divBlocks(qq.data(), rr.data(), a.data(), n, dm); }); }}
             run("dispatch", [&] { divRem(qq.data(), rr.data(), a.data(), n, b.data(), m); });
-            if (qn == 2 * m) { measure("reciprocal", "reciprocal", "normalized", m, m, [&] { reciprocal(iv.data(), b.data(), m); return digest(iv); }, [&] { reciprocal(iv.data(), b.data(), m); return digest(iv); }()); }
-            if (qn == m) {
+            if (qn == m && m <= 65536) {
                 vector<W> bo = b; bo[0] |= 1; vector<W> ao(size_t(qn + m), 0); mulAny(ao.data(), q.data(), qn, bo.data(), m); int no = norm(ao.data(), qn + m); vector<W> qe(size_t(no - m + 1), 0);
                 auto runExact = [&](const char *name, auto &&f) {
                     f(); require(ofWords(qe) * ofWords(bo) == ofWords(ao), "exact division q * b == a");
                     measure("exact", name, "equal", no, m, [&] { f(); return digest(qe); }, digest(qe));};
-                runExact("hensel", [&] { divExactHensel(qe.data(), ao.data(), no, bo.data(), m); });
-                runExact("divRem", [&] { divRem(qe.data(), rr.data(), ao.data(), no, bo.data(), m); });}}}}
+                if (m <= 4096) { runExact("hensel", [&] { divExactHensel(qe.data(), ao.data(), no, bo.data(), m); }); }
+                runExact("divRem", [&] { divRem(qe.data(), rr.data(), ao.data(), no, bo.data(), m); });
+                runExact("divRemExact", [&] { divRem(qe.data(), nullptr, ao.data(), no, bo.data(), m, nullptr, true); });}}}
+    for (int m : {64, 128, 256, 512, 1024, 4096, 16384, 65536}) {
+        for (int qn : {2, 4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 512}) {
+            if (2 * qn > m) { continue; }
+            vector<W> b = randWords(m), q = randWords(qn), a(size_t(qn + m), 0); mulAny(a.data(), q.data(), qn, b.data(), m);
+            int n = norm(a.data(), qn + m); vector<W> qq(size_t(n - m + 1), 0), rr(size_t(m), 0);
+            auto run = [&](const char *name, auto &&f) {
+                f(); require(ofWords(qq) * ofWords(b) + ofWords(rr) == ofWords(a) && ofWords(rr) < ofWords(b), "short division q * b + r == a, r < b");
+                measure("divShort", name, "short", n, m, [&] { f(); return digest(qq) ^ digest(rr); }, digest(qq) ^ digest(rr));};
+            run("basecase", [&] { divBasecase(qq.data(), rr.data(), a.data(), n, b.data(), m); });
+            if (m <= 16384) { run("burnikelZiegler", [&] { divBurnikelZiegler(qq.data(), rr.data(), a.data(), n, b.data(), m); }); }
+            int blk = n - m;
+            run("blocks", [&] { Divisor dv; Scratch ctx(Divisor::words(m, blk)); dv.prepare(ctx, b.data(), m, blk); divBlocks(qq.data(), rr.data(), a.data(), n, dv); });
+            Divisor dv; Scratch ctx(Divisor::words(m, blk)); dv.prepare(ctx, b.data(), m, blk);
+            run("blocksCached", [&] { divBlocks(qq.data(), rr.data(), a.data(), n, dv); });
+            CyclicPlan cyc = cyclicPlan(m, blk, m + 1); Scratch sp(size_t(Spectrum::words(cyc.p)));
+            Divisor dc = dv; dc.cr = cyc; if (cyc.p.lg) { dc.sd.take(sp, cyc.p, dv.d, m, blk); }
+            run("blocksCyclic", [&] { divBlocks(qq.data(), rr.data(), a.data(), n, dc); });
+            Divisor dl; Scratch cl(Divisor::words(m, blk)); dl.prepare(cl, b.data(), m, blk, false);
+            run("blocksLinear", [&] { divBlocks(qq.data(), rr.data(), a.data(), n, dl); });
+            run("dispatch", [&] { divRem(qq.data(), rr.data(), a.data(), n, b.data(), m); });}}}
 
 static void gcdFamily() {
     for (int limbs : {2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 320, 384, 512, 768, 1024, 2048, 4096, 8192}) {

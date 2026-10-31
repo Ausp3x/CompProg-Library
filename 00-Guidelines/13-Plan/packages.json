@@ -381,11 +381,11 @@
       "phase": "Core full types",
       "size": "XL",
       "model": "fable",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "01-Core/Docs/07-infint.md"
       ],
-      "note": "Stage 2 of 3 (large multiplication transforms) finished 2026-10-30, /finish 2026-10-31 (core-session, Fable xhigh), landed as partial (row 07 partial, missing: none). Header 942ec0d82c14fe6a = the measured be2d469c26caede6 plus comment edits (T/M lines on every free function and member comment, FftPlan comment, eight bounds and five forms corrected) and the /finish diff review's one code fix: unbalancedMul added each chunk product into the whole remaining output (Θ(n²/c) word additions behind correct results, 2^20 × 90 words 6.0 s against 0.13 s schoolbook; now the m + len words the partial sum reaches, 0.065 s), likewise the schonhageStrassen recombination (len + 1); the unbalanced table re-measured on it. Stage 2: proven-bound real-packed double FFT on r 2^lg points (r in {1,3,5}) with AVX2-FMA kernels and scalar twins, fftPhi/fftPlan from the Percival / Brent–Percival–Zimmermann bound (the table checked by the tester's phi cases against an exact-rational evaluation), Ntt32 depth-first radix-4 + Montgomery CRT as the exact backend, middleProduct on the cyclic transform; thresholds AVX2 FFT 96 / FFT_SQR 80 / MIDDLE 64, scalar 640 / 512 / 160. Evidence 01-Core/Docs/07-infint.md: Exactness, Benchmarks (stage-2 pass, thresholds, unbalanced/cyclic/middle/maximal tables, phase profile), stage-2 Library Checker reproduction (hex multiplication 1.0–1.3x the leader locally; decimal 21–24x is the radix conversion, stage 3), Commands (quick 1–5, full 13/17/19/21 g++ and 14/18/20/22 g++-14, stress 15/16/23, four consumers, integration --sanitizers, reviewer and sanitizer probes), History. Reviews: package review, /finish audit and diff-limited review (Fable xhigh) found no wrong answer, UB or contract defect; all items fixed (nttCyclic fall-through stress case + ASan/UBSan probe, fftMerge fold unit test, phi check, Exactness magnitudes, comment lines, add windows, evidence wording, sources and duplicates ledgers). User decisions 2026-10-31: middleProduct's removed full-product window branch stays removed; the unbalanced dispatch miss (m < FFT, n >= 4m: whole transform 1.2–1.6x better after the add-window fix) is a recorded limit to be gated in stage 3; ntt64Cyclic gets an AVX2 kernel in stage 3 for completeness. Next: stage 3 (division) in a new /package P018 session: Newton reciprocal with one-sided error, Barrett blocks with cached spectra of divisor and reciprocal, cyclic mod B^m - 1 remainder product, Knuth D to about 128 quotient words, one-shot Newton for short quotients, Burnikel–Ziegler only where measured faster, radix conversion and divExact re-measured, the division thresholds re-measured on the new transforms, the per-m unbalanced dispatch gate from a measured grid, the AVX2 ntt64Cyclic kernel, judge reproduction (leaders 395390/391180), then /speed-sweep P018 verify once the user submits; it inherits the AVX2 Knuth D/Hensel 1.06–1.21x item (Limits). Stage 1 facts stay: 64-bit words with four inline, thread-local huge-page arena + Scratch + HugeVec, allocation-free read/toChars, const-ref divMod, formatter; the judge drivers' whole-stdin I/O is 97-Online Testing work."
+      "note": "Stage 3 (division) closed 2026-10-31 on header b98b2642a126316b after /finish (scaled remainder tree print from SCALED_TREE in the AVX2 build, CACHED_MOD, whole-stdin Yosupo drivers; benchmark and judge pass on the same header). Follow-ups, none blocking: the scalar build never takes the tree (measured no win); the decimal judge gap is the conversion itself (leaders keep decimal limbs)."
     },
     {
       "id": "P019",
@@ -464,19 +464,6 @@
         "C14"
       ],
       "phase": "Core full types",
-      "size": "M",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P251",
-      "label": "Mutation testing of the testers",
-      "batches": [
-        "SUP20"
-      ],
-      "phase": "Contest core",
       "size": "M",
       "model": "opus",
       "status": "planned",
@@ -1137,6 +1124,19 @@
         "02-Data Structures/Docs/22-convexhulltrick.md"
       ],
       "note": "DS11 done 2026-10-28 (rows 21, 22 verified). Next batch: DS27 (/package DS27 in a fresh session). Open in duplicates.md: XorBasis ask row (DS50). DS50 (62-xorbasis.hpp): once verified, migrate 04-Graphs/28-cycle_basis.hpp XorWalk and CutSpaceHash off the private cycle_basis_detail insert/reduce basis onto XorBasis (user decision 2026-10-28, recorded by P048 GR13; see 04-Graphs/Docs/28-cycle_basis.md, Limits and handoffs)."
+    },
+    {
+      "id": "P251",
+      "label": "Mutation testing of the testers",
+      "batches": [
+        "SUP20"
+      ],
+      "phase": "Contest core",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
     },
     {
       "id": "P042",

@@ -47,7 +47,7 @@ INVALID_CASES = ("div-zero", "rem-zero", "divmod-zero", "divmodslow-zero", "scal
                  "isprime-inf", "tolimbs-inf", "tochars-base", "charsbound-base", "rshift-negative", "setbit-negative",
                  "clearbit-negative", "scan0-negative", "scan1-negative", "not-inf", "ctz-inf", "bitlength-inf", "issquare-inf",
                  "kronecker-inf", "todigits-inf", "root-inf", "uint-rshift", "removefactor-zero", "uint-ctor-string", "bitlength-words",
-                 "popcount-words", "fftplan-cyclic-want")
+                 "popcount-words", "fftplan-cyclic-want", "divrem-exact-even")
 DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 FILLS = " *0#+-x<^_~"
 
@@ -267,6 +267,28 @@ def check_cyclic(line: str, prod: int, want: int) -> None:
         x = 0
     if value != x and not (x == 0 and value == ones):
         raise Failure(f"cyclic residue for len {length}: expected {str(x)[:120]}... (or all ones for 0), got {str(value)[:120]}...")
+
+
+def check_invert(line: str, floor: int) -> None:
+    """B^m + v of invert is floor(B^(2m) / d) or one below it."""
+    if int(line) not in (floor - 1, floor):
+        raise Failure(f"invert gave {str(int(line))[:60]}..., floor(B^(2m) / d) is {str(floor)[:60]}...")
+
+
+def check_mul_cyclic(line: str, prod: int, want: int) -> None:
+    """"<len> <value>" of cyclicPlan and mulCyclic: len >= want (already max(want, n, m)) and value is the canonical prod mod 2^(64 len) - 1."""
+    length, value = map(int, line.split())
+    if length < want:
+        raise Failure(f"cyclic len {length} below {want}")
+    if value != prod % ((1 << (64 * length)) - 1):
+        raise Failure(f"mulCyclic residue for len {length}: expected {str(prod % ((1 << (64 * length)) - 1))[:120]}..., got {str(value)[:120]}...")
+
+
+def check_tobase(line: str, a: int, base: int) -> None:
+    """A large base-7 or base-36 text: canonical digits (no leading zero, a sign only when negative) reading back as a."""
+    body = line[1:] if line.startswith("-") else line
+    if int(line, base) != a or (line.startswith("-")) != (a < 0) or (body.startswith("0") and body != "0"):
+        raise Failure(f"toString base {base}: {line[:60]}... does not read back as the value")
 
 
 def phi_exact(lg: int, r: int) -> Fraction:
@@ -530,7 +552,7 @@ def build_cases(seed: int, mode: str):
         add(f"newton {encoded}", f"newtonRaphsonInv #{t} ({limbs} limbs)", format((1 << (64 * limbs)) // normalized, "X"))
     yield from cases; cases.clear()
     for t in range(count // 3):
-        n = rng.choice([1, 2, 5, 23, 24, 25, 40, 60, 100, 160, 700, 1300, 2500] if mode != "quick" else [1, 2, 5, 23, 24, 25, 40, 60])
+        n = rng.choice([1, 2, 5, 23, 24, 25, 40, 60, 100, 160, 700, 1300, 2500] if mode != "quick" else [1, 2, 5, 23, 24, 25, 40, 60, 100])
         m = rng.choice([1, 2, max(1, n // 2), n, n + 1, 2 * n + 1])
         if m > n:
             n, m = m, n
@@ -550,18 +572,21 @@ def build_cases(seed: int, mode: str):
                 add(f"mulk toom3 {a} {b}", f"mul backend toom3 #{t}", a * b)
                 add(f"mulk toom3square {a} {a}", f"mul backend toom3Square #{t}", a * a)
         if m >= 2:
-            q = rand_bits(rng, 64 * rng.choice([1, 2, 5, 40, 41, 100]) - rng.randrange(0, 63))
+            qw = rng.choice([1, 2, 5, 40, 41, 100])
+            q = rand_bits(rng, 64 * qw - rng.randrange(0, 63))
             r = rng.randrange(0, b)
             aa = q * b + r
             bn = b if (b >> (64 * m - 1)) & 1 else None
             add(f"divk dispatch {aa} {b}", f"div backend dispatch #{t}", f"{q} {r}")
+            for blk in sorted({v for v in (1, 2, 7, m // 2, m) if 1 <= v <= m}):
+                add(f"divk blocks {aa} {b} {blk}", f"div backend blocks blk={blk} ({m}-word divisor, {qw}-word quotient) #{t}", f"{q} {r}")
             if bn:
                 add(f"divk basecase {aa} {b}", f"div backend basecase #{t}", f"{q} {r}")
-                add(f"divk newton {aa} {b}", f"div backend newton #{t}", f"{q} {r}")
                 if m >= 3:
                     add(f"divk bz {aa} {b}", f"div backend burnikelZiegler #{t}", f"{q} {r}")
             bo = b | 1
             add(f"divk hensel {q * bo} {bo}", f"div backend hensel #{t}", f"{q} 0")
+            add(f"divk exact {q * bo} {bo}", f"div backend exact ({m}-word divisor, {qw}-word quotient) #{t}", f"{q} 0")
         g = rand_bits(rng, rng.randrange(1, 64 * m + 1))
         x, y = a * g, b * g
         add(f"gcdk binary {x} {y}", f"gcd backend binary #{t}", math.gcd(x, y))
@@ -576,6 +601,69 @@ def build_cases(seed: int, mode: str):
         cases.append((f"gcdk halfgcd {x} {y}", f"gcd backend halfGcd #{t}", check_half))
         cases.append((f"gcdk lehmer {x} {y}", f"gcd backend lehmerHalfGcd #{t}", check_half))
         yield from cases; cases.clear()
+    yield from cases; cases.clear()
+    # invert and invertExact on normalized divisors (random, all ones, a lone top bit) at word counts across both builds' BURNIKEL (48) and FFT (96 AVX2, 640 scalar);
+    # mulCyclic's canonical residue at want below, between and beyond the operand sizes; powMod with even and odd moduli of those word counts and around CACHED_MOD (64 AVX2; a prepared Divisor from CACHED_DIV words: 96 AVX2, 192 scalar, for even moduli from CACHED_MOD;
+    # below it Montgomery for odd moduli, Knuth D or Burnikel-Ziegler for even ones); decimal, hexadecimal, base-7 and base-36 texts of values beyond 2 max(CACHED_DIV, FFT) words (toBlocks through prepared Divisors, fromBlocks through kept spectra).
+    for t, m in enumerate([1, 2, 3, 47, 48, 49, 95, 96, 97, 191, 192, 193, 639, 640, 641] + ([1000, 2561, 5000] if mode != "quick" else [])):
+        for pattern in range(3):
+            d = rand_bits(rng, 64 * m) if pattern == 0 else (1 << (64 * m)) - 1 if pattern == 1 else 1 << (64 * m - 1)
+            floor = (1 << (128 * m)) // d
+            cases.append((f"invk inv {d}", f"invert {m} words pattern {pattern}", lambda line, floor=floor: check_invert(line, floor)))
+            add(f"invk exact {d}", f"invertExact {m} words pattern {pattern}", floor)
+        n2 = rng.choice([1, 2, m // 2 + 1, m, m + 3])
+        a, b = transform_operand(rng, m, t % 3), transform_operand(rng, n2, (t // 3) % 3)
+        for want in (max(1, m // 2), max(m, n2) + rng.randrange(0, 4), m + n2 + 2):
+            cases.append((f"cyc {a} {b} {want}", f"mulCyclic {m}x{n2} words want={want}", lambda line, prod=a * b, want=max(want, m, n2): check_mul_cyclic(line, prod, want)))
+        yield from cases; cases.clear()
+    for k in [63, 64, 65, 95, 97, 191, 192, 193, 511, 512, 517, 639, 641, 767, 768, 773] if mode != "quick" else [64, 95, 97, 193, 639, 768]:
+        for odd in (0, 1):
+            m = rand_bits(rng, 64 * k) | 1 if odd else rand_bits(rng, 64 * k) & ~1
+            a, e = rand_bits(rng, 64 * k + 30, True), rng.getrandbits(40) | (1 << 39)
+            add(f"powmod {a} {e} {m}", f"powMod {k}-word {'odd' if odd else 'even'} modulus", pow(a, e, m))
+    for words in [1025, 1537] if mode == "quick" else [1025, 1537, 2049, 3073, 4000]:
+        a = rand_bits(rng, 64 * words - rng.randrange(0, 64), True)
+        add(f"tobase {a} 10", f"toString base 10 of {words} words", str(a))
+        add(f"frombase 10 {a}", f"read base 10 of {words} words", a)
+        add(f"tobase {a} 16", f"toString base 16 of {words} words", format(a, "X"))
+        for base in (7, 36):
+            cases.append((f"tobase {a} {base}", f"toString base {base} of {words} words", lambda line, a=a, base=base: check_tobase(line, a, base)))
+    # The scaled remainder tree (the AVX2 print from SCALED_TREE words; the division tree in the scalar variants): structured magnitudes at the tree-level boundaries (2^j blocks of 19 digits) beyond
+    # the self-test's sizes, decimal text against str and bases 7 and 36 against to_base.
+    for words in [129, 257, 1025] if mode == "quick" else [129, 257, 1025, 2049, 4097, 8200]:
+        bits = 64 * words - 7; k = int(bits * 0.30103); t = 10 ** k
+        for what, a in (("random", rand_bits(rng, bits)), ("nines", t - 1), ("power of ten", t), ("power of ten plus one", t + 1), ("nines then zeros", t - 10 ** (k // 2)), ("zeros then nines", t + 10 ** (k // 2) - 1),
+                        ("all ones", (1 << bits) - 1), ("full blocks", int("9" * 19 * (k // 19))), ("alternating blocks", int(("9" * 19 + "0" * 19) * (k // 38)))):
+            add(f"tobase {a} 10", f"toString base 10 of {words} words, {what}", str(a))
+            for base in (7, 36):
+                cases.append((f"tobase {a} {base}", f"toString base {base} of {words} words, {what}", lambda line, a=a, base=base: check_tobase(line, a, base)))
+    yield from cases; cases.clear()
+    # Divisions whose Barrett estimate exceeds the true block by one (q_hat = q + 1, the negative-residue corrections of both remainder paths): d = dk B^(m - k) + B^(m - k) - 1 with
+    # dk = floor(B^(2k - 1) / N), k = blk + 1 < m - 1, so that B^blk + v = floor(B^(m + blk) / d) + 1; a = Q' d - 1 for a convergent denominator Q' of (dk + 1) / B^k keeps the low words of a tiny.
+    for m, blk in [(64, 20), (97, 30), (100, 47)] + ([(100, 60), (200, 30), (300, 150), (647, 300)] if mode != "quick" else []):
+        k, hit = blk + 1, None
+        for attempt in range(50):
+            dk = (1 << (64 * (2 * k - 1))) // ((1 << (64 * (k - 1))) + rng.randrange(1, 1 << (64 * (k - 1))))
+            d = (dk << (64 * (m - k))) + (1 << (64 * (m - k))) - 1
+            big_v = (1 << (64 * blk)) + ((((1 << (128 * k)) // dk) - (1 << (64 * k))) >> (64 * (k - blk)))
+            if dk & (dk - 1) == 0 or big_v != (1 << (64 * (m + blk))) // d + 1:
+                continue
+            num, den, p0, q0, p1, q1, i = dk + 1, 1 << (64 * k), 0, 1, 1, 0, 0
+            while den and q1 < (1 << (64 * blk)):
+                c, (num, den) = num // den, (den, num % den)
+                p0, q0, p1, q1 = p1, q1, c * p1 + p0, c * q1 + q0
+                a = q1 * d - 1
+                t = (a.bit_length() + 63) // 64 - m
+                if i % 2 == 0 and q1 > (1 << (32 * (k + 1))) and 1 <= t <= blk and (a >> (64 * t)) < d and ((a >> (64 * m)) * big_v) >> (64 * blk) == q1:
+                    hit = a
+                    break
+                i += 1
+            if hit is not None:
+                break
+        if hit is None:
+            raise RuntimeError(f"no q_hat = q + 1 construction for m={m} blk={blk}")
+        add(f"divk blocks {hit} {d} {blk}", f"div blocks q_hat = q + 1 ({m}-word divisor, {blk}-word blocks)", f"{q1 - 1} {d - 1}")
+        add(f"divk dispatch {hit} {d}", f"div dispatch q_hat = q + 1 ({m}-word divisor, {blk + 1}-word quotient)", f"{q1 - 1} {d - 1}")
     yield from cases; cases.clear()
     # Transform products at word sizes across the FFT plan classes: transformMul, the public product and the cyclic plan for want in [max(n, m), n + m + 3]
     # with random, all-ones and alternating operands (the worst-case pieces need the plan's k and stay in the C++ suite).
