@@ -113,6 +113,15 @@ def probe(tool, exe):
                                                  'session with cgroup v2 and the memory controller delegated']
     if exe == 'gh':
         return [] if out(['gh', 'auth', 'status'])[0] == 0 else ['not logged in: gh auth login']
+    if exe == 'bwrap':  # /merge-pr runs every gate on an overlay of the worktree, its layers under /var/tmp
+        with tempfile.TemporaryDirectory(prefix='cp-setup-', dir='/var/tmp') as d:
+            for x in ('lower', 'upper', 'work'):
+                os.mkdir(os.path.join(d, x))
+            code, text = out(['bwrap', '--ro-bind', '/', '/', '--overlay-src', f'{d}/lower', '--overlay', f'{d}/upper', f'{d}/work', f'{d}/lower',
+                              '--unshare-net', 'touch', f'{d}/lower/probe'])
+            ok = code == 0 and os.path.exists(f'{d}/upper/probe') and not os.path.exists(f'{d}/lower/probe')
+        return [] if ok else [f'no overlay sandbox ({(text.splitlines() or [code])[-1]}): needs bubblewrap 0.10 or later '
+                              'and unprivileged overlayfs (Linux 5.11 or later)']
     if exe == 'lualatex':
         text = (ROOT / '98-Team Notebook/01-notebook.py').read_text()
         names = {n.strip() for group in re.findall(r'usepackage(?:\[[^]]*\])?\{([^}]*)\}', text) for n in group.split(',')}

@@ -14,7 +14,7 @@ Each tool's floor and packages are in its `TOOLS` entry, including Ubuntu's pre-
 
 ## Roles and claims
 
-Work is planned as packages ([`01-prompts.md`](01-prompts.md)). The claim and landing rules are in [CLAUDE.md](CLAUDE.md) (Git): a contributor claims a package with a draft pull request on a `Pxxx-<batch>-<user>` branch, using the commands `python3 '00-Guidelines/13-Plan/plan.py' show Pxxx` prints, and the maintainer lands it. Leave `git config compprog.role` unset (contributor).
+Work is planned as packages ([`01-prompts.md`](01-prompts.md)). The claim and landing rules are in [CLAUDE.md](CLAUDE.md) (Git): a contributor claims a package with a draft pull request on a `Pxxx-<batch>-<user>` branch, using the commands `python3 '00-Guidelines/13-Plan/plan.py' show Pxxx` prints, and the maintainer lands it with `/merge-pr`, which rebases it onto `master`, so never rebase a pushed claim branch yourself. Changes outside library code ([contract](<00-Guidelines/13-Plan/Docs/00-contribution.md#merging-pull-requests-sup19>)) need the maintainer's explicit yes. Leave `git config compprog.role` unset (contributor).
 
 - **Collaborators** with write access push claim branches to the canonical repository.
 - **Forks**: push the claim branch to your fork; the printed `gh pr create --draft --repo …` opens the pull request against the canonical repository, where claims are read (`git config compprog.repo` overrides it only when the project's canonical home moves).

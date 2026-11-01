@@ -26,7 +26,8 @@ check (floors of GCC 16, GCC 14 major 14, Python, PyPy; unknown version; not fou
 problems joined and probe skipped below the floor) -> test_check_*;
 probe (compiler build failure and nonzero run with flags and the 256 MB cap, real compilers; systemd-run exact
 memory.max; gh auth exit code; site engine; fonts; TeX packages through kpsewhich; qemu without and with a cross
-compiler and QEMU_LD_PREFIX; tools without a probe) -> test_probe_*;
+compiler and QEMU_LD_PREFIX; bwrap overlay probe (exact command in a /var/tmp/cp-setup- scratch directory removed afterwards,
+the file in the upper layer only, a failing or silent bwrap, the real bwrap); tools without a probe) -> test_probe_*;
 platform_check (aarch64, AMD64, x86-64 with all flags, lacking bmi2, lacking several, no cpuinfo, this machine) ->
 test_platform_*;
 role_check (unset, contributor, maintainer, invalid, read in ROOT not the cwd) -> test_role_*;
@@ -73,6 +74,9 @@ REQUIRED = {'g++', 'g++-14', 'python3', 'git', 'rg', 'ccache', 'bwrap', 'systemd
 FLOORS = {'GCC 16': (16,), 'GCC 14': (14,), 'Python': (3, 11), 'PyPy': (3, 10)}
 PASS_LINE, FAIL_LINE = 'PASS: every required tool works', 'FAIL: a required tool is missing or below its floor'
 SCOPE_HINT = 'enable a systemd user session with cgroup v2 and the memory controller delegated'
+OVERLAY_HINT = 'needs bubblewrap 0.10 or later and unprivileged overlayfs (Linux 5.11 or later)'
+# a fake bwrap that does what the overlay probe needs: the file lands in the upper layer (shell builtins only)
+BWRAP_OVERLAY = 'while [ $# -gt 0 ]; do [ "$1" = --overlay ] && upper=$2; shift; done\n: > "$upper/probe"\n'
 BOOM = 'fatal: boom'
 
 
@@ -488,9 +492,54 @@ class Probe(Base):
                 self.eq(S.probe(TOOL['qemu-user'], 'qemu-aarch64'),
                         [f'arm64 binary does not run directly ({w}): register binfmt (qemu-user-binfmt)' for w in want], mode_=mode, program=program)
 
+    def bwrap_probe(self, effect):
+        """S.probe for bwrap with `out` replaced by effect(cmd, d) -> (code, text); returns (problems, cmd, d)."""
+        seen = {}
+
+        def fake(cmd, **kw):
+            d = cmd[cmd.index('--overlay-src') + 1].rsplit('/', 1)[0]
+            seen.update(cmd=cmd, d=d, dirs=sorted(os.listdir(d)))
+            return effect(cmd, d)
+        with patch.object(S, 'out', side_effect=fake):
+            problems = S.probe(TOOL['bubblewrap'], 'bwrap')
+        d = seen['d']
+        self.eq(seen['cmd'], ['bwrap', '--ro-bind', '/', '/', '--overlay-src', f'{d}/lower', '--overlay', f'{d}/upper', f'{d}/work', f'{d}/lower',
+                              '--unshare-net', 'touch', f'{d}/lower/probe'])
+        self.assertTrue(str(Path(d).parent) == '/var/tmp' and Path(d).name.startswith('cp-setup-') and seen['dirs'] == ['lower', 'upper', 'work'], self.info(seen=seen))
+        self.assertFalse(Path(d).exists(), self.info(what='scratch directory left behind', d=d))
+        return problems
+
+    def test_probe_bwrap_out(self):
+        def touch(*names):
+            def effect(cmd, d):
+                for n in names:
+                    Path(d, n, 'probe').write_text('')
+                return 0, ''
+            return effect
+        self.eq(self.bwrap_probe(touch('upper')), [], case='file in the upper layer only')
+        self.eq(self.bwrap_probe(touch()), [f'no overlay sandbox (0): {OVERLAY_HINT}'], case='exit 0, no file')
+        self.eq(self.bwrap_probe(touch('upper', 'lower')), [f'no overlay sandbox (0): {OVERLAY_HINT}'], case='file reached the lower layer')
+        for result, shown in (((1, 'bwrap: Unknown option --overlay-src'), 'bwrap: Unknown option --overlay-src'),
+                              ((1, 'x\nbwrap: overlay: Operation not permitted'), 'bwrap: overlay: Operation not permitted'),
+                              ((None, 'No such file or directory'), 'No such file or directory'), ((2, ''), '2')):
+            self.eq(self.bwrap_probe(lambda cmd, d, result=result: result), [f'no overlay sandbox ({shown}): {OVERLAY_HINT}'], out=result)
+
+    def test_probe_bwrap_fake(self):
+        for body, want in ((BWRAP_OVERLAY, []), ('exit 0\n', [f'no overlay sandbox (0): {OVERLAY_HINT}']),
+                           ('echo "bwrap: setting up overlay: Permission denied" >&2\nexit 1\n',
+                            [f'no overlay sandbox (bwrap: setting up overlay: Permission denied): {OVERLAY_HINT}'])):
+            sh(self.bin / 'bwrap', body)
+            with self.path_only():
+                self.eq(S.probe(TOOL['bubblewrap'], 'bwrap'), want, fake=body)
+
+    def test_probe_bwrap_real(self):
+        if not o_which('bwrap', os.environ.get('PATH', '')):
+            self.skipTest('SKIP: bwrap is not installed')
+        self.eq(S.probe(TOOL['bubblewrap'], 'bwrap'), [], what='real bwrap overlay probe')
+
     def test_probe_other_tools_none(self):
         with patch.object(S, 'out', side_effect=AssertionError('no command')), patch.object(S, 'module', side_effect=AssertionError('no module')):
-            for name in ('git', 'ripgrep', 'ccache', 'bubblewrap', 'lscpu', 'kpathsea', 'Node.js', 'oj-bundle', 'PyPy', 'arm64 cross g++'):
+            for name in ('git', 'ripgrep', 'ccache', 'lscpu', 'kpathsea', 'Node.js', 'oj-bundle', 'PyPy', 'arm64 cross g++'):
                 t = TOOL[name]
                 self.eq(S.probe(t, t.exes[0]), [], tool=name)
 
@@ -744,6 +793,8 @@ class Cli(Base):
             elif exe == 'kpsewhich':
                 cases = ''.join(f'  {shlex.quote(n + ".sty")}) exit 1;;\n' for n in kpse_missing)
                 sh(f, f'case "$1" in\n{cases}esac\necho "/tex/$1"\n')
+            elif exe == 'bwrap':  # '' does the overlay, 'noop' exits 0 without the file
+                sh(f, 'exit 0\n' if value == 'noop' else BWRAP_OVERLAY)
             else:
                 sh(f, 'exit 0\n')
         (self.bin / 'git').symlink_to(GIT)
@@ -763,6 +814,8 @@ class Cli(Base):
                 problems = [f'ASan/UBSan build: {BOOM}', f'static build: {BOOM}']
             elif exe == 'systemd-run' and spec[exe] != '67108864':
                 problems = [f'no memory-capped user scope ({spec[exe] or 0}): {SCOPE_HINT}']
+            elif exe == 'bwrap' and spec[exe] == 'noop':
+                problems = [f'no overlay sandbox (0): {OVERLAY_HINT}']
             elif exe == 'gh' and spec[exe] != '0':
                 problems = ['not logged in: gh auth login']
             elif exe == 'lualatex' and 'kpsewhich' in spec:
@@ -858,8 +911,8 @@ class Cli(Base):
         names = sorted(o_usepackages(NOTEBOOK_PY.read_text()))
         choices = {'g++': ['15.2.0', '16.0.1', '16', '17.1.0', 'garbage'], 'g++-14': ['14.3.0', '13.2', '15.1.0', '14'],
                    'python3': ['3.10.14', '3.11.0', '3.14.2', '2.7.18', '4.0', ''], 'pypy3': ['3.9.18', '3.10.14', '3.12.1', 'x'],
-                   'gh': ['0', '1'], 'systemd-run': ['67108864', 'max', '134217728', '']}
-        plain = ['rg', 'ccache', 'bwrap', 'lscpu', 'oj-bundle', 'kpsewhich', 'lualatex', 'node', 'nodejs', 'aarch64-linux-gnu-g++', 'qemu-aarch64']
+                   'gh': ['0', '1'], 'systemd-run': ['67108864', 'max', '134217728', ''], 'bwrap': ['', '', 'noop']}
+        plain = ['rg', 'ccache', 'lscpu', 'oj-bundle', 'kpsewhich', 'lualatex', 'node', 'nodejs', 'aarch64-linux-gnu-g++', 'qemu-aarch64']
         for r in range(self.rounds()):
             shutil.rmtree(self.bin)
             self.bin.mkdir()

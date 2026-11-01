@@ -24,6 +24,7 @@ Start one fresh session per task with the preset of its work:
 | `/tidy [scope]` | Every ten or so packages, or after a guideline change: remove stale, restated and superseded text | Answer its questions, then commit |
 | `/restyle Pxxx` | Only after the comment cap or closing-brace rule changes | Commit |
 | `/finish [Pxxx or batch id]` | After `/package` or `/prune`, in a worktree or the main checkout, even with no gaps reported: closes the work in one pass with one round of questions and lands it on your yes (a contributor's stops on the claim branch) | Push `master`, or as a contributor the claim branch |
+| `/merge-pr <N>` | Maintainer, in the main checkout: gate a contributor's pull request (file check, sandboxed gates, review) and land it on your yes | Run the push and `gh pr close` commands it prints |
 
 Commits: `/finish` commits and lands `/package` and `/prune` work; other skills print their commit command. Pending one-off runs: `/omission-sweep "02-Data Structures/45-kineticheap.hpp" "03-Geometry/26-geometry3d.hpp" "03-Geometry/53-dynamicconvexhull.hpp"`, then `/omission-sweep 05`.
 
@@ -50,7 +51,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P015 — MI15, MI16, MI17** (opus, M+M+S): 06-Miscellaneous — enumeration, knapsack, cyclefinding.
 - [x] **P016 — ST01, ST02, ST19** (opus, S+M+S): 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength.
 - [x] **P017 — ST03** (opus, L): 07-Strings — aho, suffixarray, palindrome queries.
-- [ ] **P250 — SUP17, SUP18, SUP19** (opus, M+L+M): Repository portability and contribution workflow. Status: in-progress. Note: SUP17 (roles and claims) landed 2026-10-29. SUP18 (setup check, portability, licensing) landed 2026-10-30: verified on x86-64 and on aarch64 under qemu-user (quick suite; Arch has no aarch64 libasan, so arm64 full-mode sanitizer builds are not run). Evidence 00-Guidelines/13-Plan/Docs/00-contribution.md. Next: /package SUP19. [evidence](00-Guidelines/13-Plan/Docs/00-contribution.md)
+- [x] **P250 — SUP17, SUP18, SUP19** (opus, M+L+M): Repository portability and contribution workflow.
 
 ### Core full types
 

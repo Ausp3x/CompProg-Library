@@ -6,9 +6,11 @@ Usage: worktree.py [PATH] [--sync | --finish] [--integration] [--remove]
   (no flag)      report: clean? branch tip in master? package status on master?
                  A clean, merged worktree is DONE; an unverified package is
                  only reported, since its work is already in master.
-  --sync         rebase the branch onto master. Only conflicts inside the
-                 generated plan block of 01-prompts.md are resolved, by
-                 re-rendering it; a conflict marker left anywhere else aborts
+  --sync         rebase the branch onto master. Only two conflicts are
+                 resolved: packages.json, merged entry by entry and field by
+                 field (a field both sides changed differently aborts) and then
+                 re-ranked, and the generated plan block of 01-prompts.md,
+                 re-rendered; a conflict marker left anywhere else aborts
                  the rebase and is reported. The
                  consistency validator runs before and after; new errors fail.
                  Notes other worktrees whose uncommitted edits touch the
@@ -29,8 +31,10 @@ import re
 import subprocess
 import sys
 
-GENERATED = {'01-prompts.md'}
+PLAN_JSON = '00-Guidelines/13-Plan/packages.json'
+GENERATED = {'01-prompts.md', PLAN_JSON}
 MARKER = re.compile(r'^(<{7} |={7}$|>{7} )', re.M)
+MISSING = object()
 
 
 def git(*args, cwd, check=True):
@@ -46,6 +50,67 @@ def validator_errors(path):
         return set(json.loads(out[out.index('{'):])['errors'])
     except (ValueError, KeyError):
         return {'validator did not produce a report'}
+
+
+def canon(x):
+    """x as canonical JSON (so 1, 1.0 and true differ), MISSING unchanged."""
+    return x if x is MISSING else json.dumps(x, sort_keys=True)
+
+
+def merge3(base, ours, theirs, where, clashes):
+    """Three-way merge of JSON values (MISSING: absent), compared as canonical JSON: a change on one side wins over the
+    unchanged other; objects merge per key and lists of objects with a string `id` per entry; any other value both
+    sides changed differently, or such a list repeating an id, is a clash, appended to `clashes` as its path."""
+    b, o, t = canon(base), canon(ours), canon(theirs)
+    if o == t or t == b:
+        return ours
+    if o == b:
+        return theirs
+    if all(isinstance(x, dict) for x in (base, ours, theirs)):
+        merged = {k: merge3(base.get(k, MISSING), ours.get(k, MISSING), theirs.get(k, MISSING), f'{where}.{k}', clashes)
+                  for k in [*ours, *(k for k in theirs if k not in ours)]}
+        return {k: v for k, v in merged.items() if v is not MISSING}
+    if all(isinstance(x, list) and all(isinstance(e, dict) and isinstance(e.get('id'), str) for e in x) for x in (base, ours, theirs)):
+        maps = [{e['id']: e for e in x} for x in (base, ours, theirs)]
+        if any(len(m) != len(x) for m, x in zip(maps, (base, ours, theirs))):
+            clashes.append(f'{where} (repeated id)')
+            return ours
+        merged = [merge3(*(m.get(i, MISSING) for m in maps), f'{where}[{i}]', clashes) for i in order(*(list(m) for m in maps))]
+        return [v for v in merged if v is not MISSING]
+    clashes.append(where)
+    return ours
+
+
+def order(base, ours, theirs):
+    """Merged id order: ours, unless only theirs reordered the ids it shares with base; an id only the other side has
+    follows its nearest predecessor there that is placed."""
+    def moved(x):
+        sb, sx = set(base), set(x)
+        return [i for i in x if i in sb] != [i for i in base if i in sx]
+    first, other = (theirs, ours) if moved(theirs) and not moved(ours) else (ours, theirs)
+    res = list(first)
+    for k, i in enumerate(other):
+        if i not in res:
+            prev = next((j for j in reversed(other[:k]) if j in res), None)
+            res.insert(res.index(prev) + 1 if prev else 0, i)
+    return res
+
+
+def merge_plan(path):
+    """Resolve a conflicted packages.json from its three index stages with merge3; returns the clashes, writing the
+    merged file only when there are none."""
+    shown = [git('show', f':{n}:{PLAN_JSON}', cwd=path, check=False) for n in (1, 2, 3)]
+    if any(s.returncode for s in shown):
+        return [f'{PLAN_JSON} (added or deleted on one side)']
+    try:
+        base, ours, theirs = (json.loads(s.stdout) for s in shown)
+    except ValueError:
+        return [f'{PLAN_JSON} (a side is not JSON)']
+    clashes = []
+    merged = merge3(base, ours, theirs, 'packages.json', clashes)
+    if not clashes:
+        (path / PLAN_JSON).write_text(json.dumps(merged, indent=2, ensure_ascii=False) + '\n')
+    return clashes
 
 
 def inspect(path):
@@ -143,19 +208,26 @@ def sync(path, facts, integration):
         before = validator_errors(path)
         print(f'sync     rebasing {facts["branch"]} onto master ({len(facts["behind"])} new commits on master)')
         result = git('rebase', 'master', cwd=path, check=False)
-        while result.returncode:
-            conflicts = git('diff', '--name-only', '--diff-filter=U', cwd=path).stdout.splitlines()
-            resolved = bool(conflicts) and set(conflicts) <= GENERATED
-            if resolved:
-                subprocess.run([sys.executable, str(path / '00-Guidelines/13-Plan/plan.py'), 'render'], cwd=path, check=True, capture_output=True)
-                conflicts = [f for f in conflicts if MARKER.search((path / f).read_text())]  # render rewrites only the plan block
-                resolved = not conflicts
-            if not resolved:
-                git('rebase', '--abort', cwd=path, check=False)
-                raise SystemExit('rebase stopped on conflicts outside the generated plan block; aborted. Resolve by hand in the worktree:\n  '
-                                 + '\n  '.join(conflicts or [result.stderr.strip()]))
-            git('add', *GENERATED, cwd=path)
-            result = git('rebase', '--continue', cwd=path, check=False)
+        try:
+            while result.returncode:
+                conflicts = git('diff', '--name-only', '--diff-filter=U', cwd=path).stdout.splitlines()
+                resolved = bool(conflicts) and set(conflicts) <= GENERATED
+                merged = resolved and PLAN_JSON in conflicts
+                if merged:
+                    clashes = merge_plan(path)
+                    resolved, conflicts = not clashes, clashes or conflicts
+                if resolved:  # rank re-orders the merged plan as `plan.py set` would, and both commands re-render the plan block
+                    subprocess.run([sys.executable, str(path / '00-Guidelines/13-Plan/plan.py'), 'rank' if merged else 'render'], cwd=path, check=True, capture_output=True)
+                    conflicts = [f for f in conflicts if MARKER.search((path / f).read_text())]
+                    resolved = not conflicts
+                if not resolved:
+                    raise SystemExit('rebase stopped on conflicts outside the generated plan block and packages.json entries; aborted. Resolve by hand in the worktree:\n  '
+                                     + '\n  '.join(conflicts or [result.stderr.strip()]))
+                git('add', *GENERATED, cwd=path)
+                result = git('rebase', '--continue', cwd=path, check=False)
+        except BaseException:  # any failure (a clash, a failing rank or render, a git error) leaves no rebase in progress
+            git('rebase', '--abort', cwd=path, check=False)
+            raise
         after = validator_errors(path)
         new = after - before
         if new:

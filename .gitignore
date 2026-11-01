@@ -18,6 +18,7 @@
 .claude/settings.local.json
 .claude/finish/
 .claude/pause/
+.claude/merge-pr/
 96-Local Testing/**/*_benchmark.json
 96-Local Testing/**/*_benchmark.jsonl
 /99-Workspace/*

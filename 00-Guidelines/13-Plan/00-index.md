@@ -7,9 +7,9 @@ The plan is one compact manifest plus CLIs. Batches are stable ownership units; 
 | [batches.json](batches.json) | Each batch's folder, owned targets, support targets, size, focus, prerequisite batches and tiers, including support passes SUP01–SUP19. |
 | [packages.json](packages.json) | Packages P001–Pn in schedule order: label, batches, phase, size, model, status, evidence and note. Package prerequisites are derived from batch prerequisites. |
 | [plan.py](plan.py) | Standard-library CLI; runs from any directory. |
-| [worktree.py](worktree.py) | Package worktrees: report (default), `--sync` (`--integration` also runs the integration build), `--finish` (sync, fast-forward `master`, remove) and `--remove`; all but the report run from the main checkout. |
+| [worktree.py](worktree.py) | Package worktrees: report (default), `--sync` (resolves `packages.json` entry by entry and the plan block; `--integration` also runs the integration build), `--finish` (sync, fast-forward `master`, remove) and `--remove`; all but the report run from the main checkout. |
 | [finish-log.tsv](finish-log.tsv) | One line per `/finish` landing, with the columns its step 7 defines; merged as a union (`.gitattributes`). A support batch, having no inventory rows, is done once a line with its key and the result `verified` exists (user decision 2026-10-29). |
-| [Docs/](Docs/00-contribution.md) | Support-pass evidence for the plan tooling: [00-contribution.md](Docs/00-contribution.md) (roles and claims). |
+| [Docs/](Docs/00-contribution.md) | Support-pass evidence for the plan tooling: [00-contribution.md](Docs/00-contribution.md) (roles and claims, setup and portability, merging pull requests). |
 | [context_usage.py](context_usage.py) | Token and context usage of past sessions from the local transcripts, with an auto-compact window replay (`--windows`) and, with `--split`, calls by model and effort beside `finish-log.tsv`. |
 
 Commands (`python3 '00-Guidelines/13-Plan/plan.py' <command>`):
