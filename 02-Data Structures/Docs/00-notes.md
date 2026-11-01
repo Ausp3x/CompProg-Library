@@ -201,6 +201,14 @@ Candidates from the 2026-10-28 DS11 sweep ([00-sources.md](00-sources.md#fetched
 - `empty`, `size`, `clear` (ei1333, maspypy): the public deque, a new object. Merging two monotone hulls (hitonanode, unverified there), single-crossing functions in a monotone CHT (maspypy `CHT_Monotone_F`): one catalog each; the Li Chao trees cover general functions.
 - Max of `a x + b y` over points (maspypy `CHT_XY`, Nyaan `LineContainer2D`) and static envelope pieces (maspypy `line_min_function`): Geometry rows 20 and 41.
 
+Candidates from the 2026-11-02 DS27 sweep ([00-sources.md](00-sources.md#fetched-2026-11-02-p032-ds27-sweep)) left out of row 31 (user decision 2026-11-02):
+
+- `clear` (hitonanode, iwiwi): a new object, as in rows 22 and 36; `swap`: `std::swap`.
+- Floating-point keys by IEEE bit encoding (iwiwi): rare; a caller encodes them into `ulng` keys.
+- Bounded-gap radix heaps with O(log(C)) buckets (Ahuja et al., scrapbox): the xor buckets already give O(b), and Graphs `dialDijkstra` covers small `C`.
+- Rust `radix-heap` extras (start bound, `constrain`, iterators, max order, `shrink_to_fit`): no contest use; a max-heap is the complemented key.
+- hitonanode `chmin` (push or decrease): `contains` with `push`/`decreaseKey`, as for `DAryHeap`.
+
 ## Planned-row omissions
 
 - Row 48 `PersistentSkewHeap`: skew-heap melds are only amortized, and persistence lets an expensive version be reused, so no bound holds; `PersistentLeftistHeap` gives persistent melds in O(log n).

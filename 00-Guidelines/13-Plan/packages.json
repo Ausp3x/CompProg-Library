@@ -339,7 +339,7 @@
       "evidence": [
         "00-Guidelines/13-Plan/Docs/00-contribution.md"
       ],
-      "note": ""
+      "note": "Follow-up from P032 DS27 /finish (user decision 2026-11-02): 96-Local Testing/03-consistency.py ignored() exempts absent git-ignored archive files only in a linked worktree, so a fresh main-checkout clone without the 7 git-ignored OLD binaries in Ledgers/archive-map.json (e.g. OLD/Team Notebook/src/algs.exe) crashes with FileNotFoundError at the archive hash check. Reproducer: clone, do not copy the binaries, run 03-consistency.py in the main checkout."
     },
     {
       "id": "P025",
@@ -1121,9 +1121,10 @@
       "status": "in-progress",
       "evidence": [
         "02-Data Structures/Docs/21-lichao.md",
-        "02-Data Structures/Docs/22-convexhulltrick.md"
+        "02-Data Structures/Docs/22-convexhulltrick.md",
+        "02-Data Structures/Docs/31-radixheap.md"
       ],
-      "note": "DS11 done 2026-10-28 (rows 21, 22 verified). Next batch: DS27 (/package DS27 in a fresh session). Open in duplicates.md: XorBasis ask row (DS50). DS50 (62-xorbasis.hpp): once verified, migrate 04-Graphs/28-cycle_basis.hpp XorWalk and CutSpaceHash off the private cycle_basis_detail insert/reduce basis onto XorBasis (user decision 2026-10-28, recorded by P048 GR13; see 04-Graphs/Docs/28-cycle_basis.md, Limits and handoffs)."
+      "note": "DS11 done 2026-10-28 (rows 21, 22 verified). DS27 done 2026-11-02 (row 31 verified). Next batch: DS28 (/package DS28 in a fresh session). Open in duplicates.md: XorBasis ask row (DS50). DS50 (62-xorbasis.hpp): once verified, migrate 04-Graphs/28-cycle_basis.hpp XorWalk and CutSpaceHash off the private cycle_basis_detail insert/reduce basis onto XorBasis (user decision 2026-10-28, recorded by P048 GR13; see 04-Graphs/Docs/28-cycle_basis.md, Limits and handoffs)."
     },
     {
       "id": "P251",
