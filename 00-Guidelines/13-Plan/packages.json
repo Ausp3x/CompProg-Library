@@ -385,7 +385,7 @@
         "01-Core/Docs/07-infint.md",
         "01-Core/Docs/19-fastio.md"
       ],
-      "note": "Stages 1-4 and the Core fast I/O header verified (/finish 2026-11-02); the final revision is not yet submitted, so the judge side of the hex comparison is unconfirmed (07-infint.md, Limits)."
+      "note": "Stages 1-4 and the Core fast I/O header verified (/finish 2026-11-02); HUGE_FROM back to 2 MiB after the judge (07-infint.md, Benchmarks); the judge results of the final revision are in 07-infint.md, Library Checker reproduction."
     },
     {
       "id": "P019",

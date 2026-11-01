@@ -19,7 +19,7 @@ namespace infint_detail {
     constexpr int FFT = 640, FFT_SQR = 512, NEWTON_DIV = 768, NEWTON_LONG = 192, CACHED_DIV = 192, CACHED_MOD = 192, SCALED_TREE = 1 << 30, CYCLIC_REM = 48, CYCLIC_REM_LOG = 16, UNBALANCED_FFT = 32, UNBALANCED_FFT_BIG = 32, SPECTRUM_MUL = 192, BINARY_GCD = 48, CACHED_RATIO = 3, NTT_WORK = 10;
 #endif
     constexpr int BURNIKEL = 48, KNUTH_Q = 8, KNUTH_FRESH = 6144, KNUTH_CACHED = 2048, FRESH_DIV = 256, FRESH_CYCLIC = 3, HENSEL = 64, HALFGCD = 2048, RADIX = 64, PRINT_LEAF = 16, MONTGOMERY_POW = 2;
-    constexpr size_t HUGE_PAGE = size_t(1) << 21, HUGE_FROM = HUGE_PAGE / 4;
+    constexpr size_t HUGE_PAGE = size_t(1) << 21, HUGE_FROM = HUGE_PAGE;
     // T: O(1), M: O(1); quotient words below which Knuth D beats a quotient block of an m-word divisor, with a prepared (cached) or a fresh context
     // (from FRESH_DIV divisor words the fresh one takes the cached gate, which divBlocks applies to every block).
     constexpr int knuthGate(int m, bool cached) { return max(KNUTH_Q, (cached || m >= FRESH_DIV ? KNUTH_CACHED : KNUTH_FRESH) / m); }
