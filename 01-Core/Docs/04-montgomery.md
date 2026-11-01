@@ -106,7 +106,7 @@ Thresholds (median AVX2 bulk/scalar ratios, canonical / lazy multiplication, ove
 
 | Source inspected (2026-09-27) | Relevant result and limits |
 |---|---|
-| Brent and Zimmermann, [Modern Computer Arithmetic, v0.5.9 (2010-10-07)](https://members.loria.fr/PZimmermann/mca/mca-cup-0.5.9.pdf), §§2.4.1–2.4.4 and §2.5 ([saved copy](../../95-Resources/04-modern_computer_arithmetic.pdf); reading copy CC BY-NC-ND, no text copied) | REDC, inverse lifting, Montgomery–Svoboda/FastREDC/McLaughlin. |
+| Brent and Zimmermann, [Modern Computer Arithmetic, v0.5.9 (2010-10-07)](https://members.loria.fr/PZimmermann/mca/mca-cup-0.5.9.pdf), §§2.4.1–2.4.4 and §2.5 ([saved copy](../../95-Resources/05-modern_computer_arithmetic.pdf); reading copy CC BY-NC-ND, no text copied) | REDC, inverse lifting, Montgomery–Svoboda/FastREDC/McLaughlin. |
 | [cp-algorithms: Montgomery Multiplication](https://cp-algorithms.com/algebra/montgomery_multiplication.html), June 8, 2022 revision | REDC representation, inverse doubling, wide carry handling, R² conversion; independently derived here. Page text CC BY-SA 4.0; no prose/code adaptation. |
 | [Algorithmica: Montgomery Multiplication](https://en.algorithmica.org/hpc/number-theory/montgomery/) | Split-word reduction, lazy residues and optimization rationale. Its range assumptions and measurements cannot be transferred to full-word moduli. |
 | [Nyaan SIMD Montgomery](https://raw.githubusercontent.com/NyaanNyaan/library/master/modint/simd-montgomery.hpp) | Even/odd 32-bit lane widening and packing; narrower lazy signed-comparison domain. CC0 1.0. |

@@ -105,7 +105,7 @@ Shoup threshold (median AVX2 bulk/scalar ratio over `998244353`, `2^31-1`, `2^32
 
 | Source inspected (2026-09-27) | Relevant result and limits |
 |---|---|
-| Brent and Zimmermann, [Modern Computer Arithmetic, v0.5.9 (2010-10-07)](https://members.loria.fr/PZimmermann/mca/mca-cup-0.5.9.pdf), §§2.4.1–2.4.4 and §2.5 ([saved copy](../../95-Resources/04-modern_computer_arithmetic.pdf); reading copy CC BY-NC-ND, no text copied) | Barrett approximation and special moduli. Its truncated normalized Barrett bound differs from the full-precision one-correction formula above. |
+| Brent and Zimmermann, [Modern Computer Arithmetic, v0.5.9 (2010-10-07)](https://members.loria.fr/PZimmermann/mca/mca-cup-0.5.9.pdf), §§2.4.1–2.4.4 and §2.5 ([saved copy](../../95-Resources/05-modern_computer_arithmetic.pdf); reading copy CC BY-NC-ND, no text copied) | Barrett approximation and special moduli. Its truncated normalized Barrett bound differs from the full-precision one-correction formula above. |
 | [AtCoder internal_math.hpp](https://raw.githubusercontent.com/atcoder/ac-library/master/atcoder/internal_math.hpp), `internal::barrett` | Ceiling reciprocal and correction proof for canonical 32-bit products. CC0 1.0. Does not establish this header's arbitrary-dividend/full-64-bit domain. |
 | [NTL single-precision API](https://libntl.org/doc/ZZ.txt), `PrepMulModPrecon`/`MulModPrecon`; [selected sp_arith.h implementation](https://raw.githubusercontent.com/libntl/ntl/main/include/NTL/sp_arith.h) | Fixed-multiplier reciprocal and vector products. NTL's `NTL_SP_BOUND` restriction differs from this implementation's full-word domain; no source copied. |
 

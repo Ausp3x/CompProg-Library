@@ -4,7 +4,7 @@
   "verification": "PDF signature, pdfinfo page count, opening-page text extraction, title/author spot checks and SHA-256; no claim of algorithm correctness or exhaustive reading.",
   "resources": [
     {
-      "file": "01-algorithms-erickson.pdf",
+      "file": "02-algorithms-erickson.pdf",
       "title": "Algorithms",
       "authors": "Jeff Erickson",
       "source_page": "https://jeffe.cs.illinois.edu/teaching/algorithms/",
@@ -21,7 +21,7 @@
       "reuse_note": "CC BY 4.0; see the PDF notice."
     },
     {
-      "file": "02-open_data_structures-cpp.pdf",
+      "file": "03-open_data_structures-cpp.pdf",
       "title": "Open Data Structures (C++ edition)",
       "authors": "Pat Morin",
       "source_page": "https://opendatastructures.org/",
@@ -38,7 +38,7 @@
       "reuse_note": "Creative Commons Attribution-ShareAlike; retain the PDF notice and consult the source page."
     },
     {
-      "file": "03-mathematics_for_computer_science.pdf",
+      "file": "04-mathematics_for_computer_science.pdf",
       "title": "Mathematics for Computer Science",
       "authors": "Eric Lehman, F. Thomson Leighton, Albert R. Meyer",
       "source_page": "https://courses.csail.mit.edu/6.042/spring18/",
@@ -55,7 +55,7 @@
       "reuse_note": "CC BY-SA 3.0; see the PDF notice."
     },
     {
-      "file": "04-modern_computer_arithmetic.pdf",
+      "file": "05-modern_computer_arithmetic.pdf",
       "title": "Modern Computer Arithmetic (version 0.5.9)",
       "authors": "Richard P. Brent and Paul Zimmermann",
       "source_page": "https://members.loria.fr/PZimmermann/mca/pub226.html",
@@ -72,7 +72,7 @@
       "reuse_note": "CC BY-NC-ND 3.0; see the PDF notice."
     },
     {
-      "file": "05-kactl.pdf",
+      "file": "06-kactl.pdf",
       "title": "KACTL team reference document",
       "authors": "KTH competitive programming team and contributors",
       "source_page": "https://github.com/kth-competitive-programming/kactl",
@@ -89,7 +89,7 @@
       "reuse_note": "Individual snippets have their own license/attribution notices; consult the repository before adapting code."
     },
     {
-      "file": "06-stanford_notebook.pdf",
+      "file": "07-stanford_notebook.pdf",
       "title": "Stanford University ICPC Team Notebook (2015-16)",
       "authors": "Stanford University ICPC Team",
       "source_page": "https://github.com/jaehyunp/stanfordacm",
@@ -106,7 +106,7 @@
       "reuse_note": "Consult the source repository LICENSE and individual code notices before adapting code."
     },
     {
-      "file": "07-optimizing_cpp.pdf",
+      "file": "08-optimizing_cpp.pdf",
       "title": "Optimizing software in C++",
       "authors": "Agner Fog",
       "source_page": "https://www.agner.org/optimize/",
@@ -123,7 +123,7 @@
       "reuse_note": "Public distribution/mirroring prohibited; limited non-public educational distribution allowed. Code examples unrestricted. Retain the full PDF notice."
     },
     {
-      "file": "08-microarchitecture.pdf",
+      "file": "09-microarchitecture.pdf",
       "title": "The microarchitecture of Intel, AMD and VIA CPUs",
       "authors": "Agner Fog",
       "source_page": "https://www.agner.org/optimize/",
@@ -140,7 +140,7 @@
       "reuse_note": "Public distribution/mirroring prohibited; limited non-public educational distribution allowed. Code examples unrestricted. Retain the full PDF notice."
     },
     {
-      "file": "09-instruction_tables.pdf",
+      "file": "10-instruction_tables.pdf",
       "title": "Instruction tables",
       "authors": "Agner Fog",
       "source_page": "https://www.agner.org/optimize/",
@@ -157,7 +157,7 @@
       "reuse_note": "Public distribution/mirroring prohibited; limited non-public educational distribution allowed. Retain the full PDF notice."
     },
     {
-      "file": "10-Advanced Notes/01-fft.pdf",
+      "file": "12-Advanced Notes/01-fft.pdf",
       "title": "Fast Fourier Transforms",
       "authors": "Jeff Erickson",
       "source_page": "https://jeffe.cs.illinois.edu/teaching/algorithms/",
@@ -174,7 +174,7 @@
       "reuse_note": "CC BY-NC-SA 4.0 according to the author's course page; retain individual notices."
     },
     {
-      "file": "10-Advanced Notes/02-advanced_dp.pdf",
+      "file": "12-Advanced Notes/02-advanced_dp.pdf",
       "title": "Advanced Dynamic Programming",
       "authors": "Jeff Erickson",
       "source_page": "https://jeffe.cs.illinois.edu/teaching/algorithms/",
@@ -191,7 +191,7 @@
       "reuse_note": "CC BY-NC-SA 4.0 according to the author's course page; retain individual notices."
     },
     {
-      "file": "10-Advanced Notes/03-matroids.pdf",
+      "file": "12-Advanced Notes/03-matroids.pdf",
       "title": "Matroids",
       "authors": "Jeff Erickson",
       "source_page": "https://jeffe.cs.illinois.edu/teaching/algorithms/",
@@ -208,7 +208,7 @@
       "reuse_note": "CC BY-NC-SA 4.0 according to the author's course page; retain individual notices."
     },
     {
-      "file": "10-Advanced Notes/04-min_cost_flow.pdf",
+      "file": "12-Advanced Notes/04-min_cost_flow.pdf",
       "title": "Minimum-Cost Flows",
       "authors": "Jeff Erickson",
       "source_page": "https://jeffe.cs.illinois.edu/teaching/algorithms/",
@@ -225,7 +225,7 @@
       "reuse_note": "CC BY-NC-SA 4.0 according to the author's course page; retain individual notices."
     },
     {
-      "file": "10-Advanced Notes/05-linear_programming.pdf",
+      "file": "12-Advanced Notes/05-linear_programming.pdf",
       "title": "Linear Programming",
       "authors": "Jeff Erickson",
       "source_page": "https://jeffe.cs.illinois.edu/teaching/algorithms/",
@@ -242,7 +242,7 @@
       "reuse_note": "CC BY-NC-SA 4.0 according to the author's course page; retain individual notices."
     },
     {
-      "file": "10-Advanced Notes/06-simplex.pdf",
+      "file": "12-Advanced Notes/06-simplex.pdf",
       "title": "Linear Programming Algorithms",
       "authors": "Jeff Erickson",
       "source_page": "https://jeffe.cs.illinois.edu/teaching/algorithms/",
