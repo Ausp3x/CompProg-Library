@@ -14,30 +14,31 @@ namespace infint_detail {
     static_assert(std::endian::native == std::endian::little);
     constexpr int KARATSUBA = 28, KARATSUBA_SQR = 40, TOOM3 = 128, TOOM3_SQR = 128, TRUNC = 32;
 #ifdef __AVX2__
-    constexpr int FFT = 96, FFT_SQR = 80, NEWTON_DIV = 160, NEWTON_LONG = 96, CACHED_DIV = 96, CACHED_MOD = 64, SCALED_TREE = 80, CYCLIC_REM = 24, CYCLIC_REM_LOG = 2, UNBALANCED_FFT = 5, UNBALANCED_FFT_BIG = 7, BINARY_GCD = 96;
+    constexpr int FFT = 96, FFT_SQR = 80, NEWTON_DIV = 160, NEWTON_LONG = 96, CACHED_DIV = 96, CACHED_MOD = 64, SCALED_TREE = 80, CYCLIC_REM = 24, CYCLIC_REM_LOG = 2, UNBALANCED_FFT = 5, UNBALANCED_FFT_BIG = 7, SPECTRUM_MUL = 32, BINARY_GCD = 96, CACHED_RATIO = 4, NTT_WORK = 7;
 #else
-    constexpr int FFT = 640, FFT_SQR = 512, NEWTON_DIV = 768, NEWTON_LONG = 192, CACHED_DIV = 192, CACHED_MOD = 192, SCALED_TREE = 1 << 30, CYCLIC_REM = 48, CYCLIC_REM_LOG = 16, UNBALANCED_FFT = 32, UNBALANCED_FFT_BIG = 32, BINARY_GCD = 48;
+    constexpr int FFT = 640, FFT_SQR = 512, NEWTON_DIV = 768, NEWTON_LONG = 192, CACHED_DIV = 192, CACHED_MOD = 192, SCALED_TREE = 1 << 30, CYCLIC_REM = 48, CYCLIC_REM_LOG = 16, UNBALANCED_FFT = 32, UNBALANCED_FFT_BIG = 32, SPECTRUM_MUL = 192, BINARY_GCD = 48, CACHED_RATIO = 3, NTT_WORK = 10;
 #endif
-    constexpr int BURNIKEL = 48, KNUTH_Q = 8, KNUTH_FRESH = 6144, KNUTH_CACHED = 2048, FRESH_CYCLIC = 3, HENSEL = 64, HALFGCD = 2048, RADIX = 64, MONTGOMERY_POW = 2;
-    constexpr size_t HUGE = size_t(1) << 21;
-    // T: O(1), M: O(1); quotient words below which Knuth D beats a quotient block of an m-word divisor, with a prepared (cached) or a fresh context.
-    constexpr int knuthGate(int m, bool cached) { return max(KNUTH_Q, (cached ? KNUTH_CACHED : KNUTH_FRESH) / m); }
+    constexpr int BURNIKEL = 48, KNUTH_Q = 8, KNUTH_FRESH = 6144, KNUTH_CACHED = 2048, FRESH_DIV = 256, FRESH_CYCLIC = 3, HENSEL = 64, HALFGCD = 2048, RADIX = 64, PRINT_LEAF = 16, MONTGOMERY_POW = 2;
+    constexpr size_t HUGE_PAGE = size_t(1) << 21, HUGE_FROM = HUGE_PAGE / 4;
+    // T: O(1), M: O(1); quotient words below which Knuth D beats a quotient block of an m-word divisor, with a prepared (cached) or a fresh context
+    // (from FRESH_DIV divisor words the fresh one takes the cached gate, which divBlocks applies to every block).
+    constexpr int knuthGate(int m, bool cached) { return max(KNUTH_Q, (cached || m >= FRESH_DIV ? KNUTH_CACHED : KNUTH_FRESH) / m); }
     // T: O(1), M: O(1); block words from which the cyclic transform product of an m-word operand beats the linear product: the transform's cost per word grows with log m.
     constexpr int cyclicGate(int m) { return CYCLIC_REM + CYCLIC_REM_LOG * max(0, std::bit_width(uint(m)) - 8); }
     // The scaled remainder tree of the print: leaves of RADIX = 2^SCALED_LEAF blocks, SCALED_GUARD guard words below every fraction.
     constexpr int SCALED_LEAF = std::countr_zero(uint(RADIX)), SCALED_GUARD = 2;
 
-    // T: O(1), M: O(n); storage of n words: 2 MiB-aligned multiples of 2 MiB advised as transparent huge pages on Linux from 2 MiB up, 64-byte aligned below.
+    // T: O(1), M: O(n); storage of n words: from HUGE_FROM bytes up 2 MiB-aligned multiples of 2 MiB advised as transparent huge pages on Linux, 64-byte aligned below.
     inline W *hugeAlloc(size_t n) {
-        size_t bytes = max(8 * n, size_t(8)); bool big = bytes >= HUGE;
-        if (big) { bytes = (bytes + HUGE - 1) & ~(HUGE - 1); }
-        W *p = static_cast<W *>(::operator new(bytes, std::align_val_t(big ? HUGE : 64)));
+        size_t bytes = max(8 * n, size_t(8)); bool big = bytes >= HUGE_FROM;
+        if (big) { bytes = (bytes + HUGE_PAGE - 1) & ~(HUGE_PAGE - 1); }
+        W *p = static_cast<W *>(::operator new(bytes, std::align_val_t(big ? HUGE_PAGE : 64)));
 #ifdef __linux__
         if (big) { madvise(p, bytes, MADV_HUGEPAGE); }
 #endif
         return p;}
     // T: O(1), M: O(1); releases the storage of n words from hugeAlloc.
-    inline void hugeFree(W *p, size_t n) { ::operator delete(p, std::align_val_t(8 * n >= HUGE ? HUGE : 64)); }
+    inline void hugeFree(W *p, size_t n) { ::operator delete(p, std::align_val_t(8 * n >= HUGE_FROM ? HUGE_PAGE : 64)); }
     // S: O(n), U: O(n) per growth, Q: O(1), M: O(n); a table of T in huge-page storage that grows to the largest size used and lives for the process (roots, transform scratch).
     template<typename T> struct HugeVec {
         T *p = nullptr; int n = 0;
@@ -53,7 +54,7 @@ namespace infint_detail {
         struct Block { Block *prev; W *beg, *end; };
         Block *cur = nullptr, *spare = nullptr; W *top = nullptr;
         ~Arena() { drop(spare); while (cur) { drop(std::exchange(cur, cur->prev)); } }
-        static Block *make(size_t n) { n = max(n, HUGE / 8); W *p = hugeAlloc(n); return new Block{nullptr, p, p + n}; }
+        static Block *make(size_t n) { n = max(n, HUGE_PAGE / 8); W *p = hugeAlloc(n); return new Block{nullptr, p, p + n}; }
         static void drop(Block *b) { if (b) { hugeFree(b->beg, size_t(b->end - b->beg)); delete b; } }
         W *alloc(size_t n) {
             if (!cur || size_t(cur->end - top) < n) { push(n); }
@@ -70,7 +71,7 @@ namespace infint_detail {
     // T: O(1), M: O(1); the calling thread's arena.
     inline Arena &arena() { thread_local Arena a; return a; }
     constexpr W POISON = 0xABABABABABABABABull;
-    // T: O(1), M: O(n); one arena frame of n uninitialized words; INFINT_SCRATCH_HEAP (sanitizer test builds) takes each frame from the heap filled with POISON, so a kernel relying on zeroed scratch fails there.
+    // T: O(1), M: O(n); one arena frame of n uninitialized words; INFINT_SCRATCH_HEAP (sanitizer test builds) takes each frame from the heap filled with POISON (and poisons Words' inline words), so a kernel relying on zeroed words fails there.
     struct Scratch {
 #ifdef INFINT_SCRATCH_HEAP
         W *p; size_t cap;
@@ -85,6 +86,57 @@ namespace infint_detail {
         Scratch &operator=(const Scratch &) = delete;
         operator W *() const { return p; }
     };
+    // S: O(1), U: O(n) per resize or copy, Q: O(1), M: O(n) (four words inline); little-endian words, p = buf while at most four are stored: a vector with int sizes whose resize zero-fills and whose setSize leaves new words unset.
+    struct Words {
+        static constexpr int INLINE = 4;
+        W *p = buf; int len = 0, cap = INLINE;
+#ifdef INFINT_SCRATCH_HEAP
+        static constexpr W FIRST = POISON;
+        W buf[INLINE] = {POISON, POISON, POISON, POISON};
+#else
+        static constexpr W FIRST = 0;
+        W buf[INLINE];   // words from len on are never read: no zeroing (scalar builds zero by rep stos); INFINT_SCRATCH_HEAP poisons them
+#endif
+
+        // The first inline word is stored (one store): GCC's -Wmaybe-uninitialized cannot tie reads of buf[0] to len.
+        Words() { buf[0] = FIRST; }
+        Words(const Words &o) { buf[0] = FIRST; assign(o.p, o.len); }
+        Words(Words &&o) noexcept { buf[0] = FIRST; take(o); }
+        ~Words() { if (p != buf) { release(p, cap); } }
+        Words &operator=(const Words &o) { if (this != &o) { assign(o.p, o.len); } return *this; }
+        Words &operator=(Words &&o) noexcept { if (this != &o) { if (p != buf) { release(p, cap); } take(o); } return *this; }
+        void take(Words &o) {
+            len = o.len; cap = o.cap;
+            if (o.p != o.buf) { p = o.p; o.p = o.buf; o.cap = INLINE; } else { p = buf; for (int i = 0; i < len; ++i) { buf[i] = o.buf[i]; } }
+            o.len = 0;}
+        W *data() { return p; }
+        const W *data() const { return p; }
+        int size() const { return len; }
+        bool empty() const { return len == 0; }
+        W &operator[](int i) { return p[i]; }
+        W operator[](int i) const { return p[i]; }
+        W &back() { return p[len - 1]; }
+        W back() const { return p[len - 1]; }
+        W *begin() { return p; }
+        W *end() { return p + len; }
+        const W *begin() const { return p; }
+        const W *end() const { return p + len; }
+        void reserve(int c) { if (c > INLINE && c > cap) { grow(c); } }   // cap >= INLINE: no test for sizes known to fit the inline words
+        [[gnu::noinline]] void grow(int c) {
+            W *q = 8 * size_t(c) >= HUGE_FROM ? hugeAlloc(size_t(c)) : new W[c];
+            for (int i = 0; i < len; ++i) { q[i] = p[i]; }
+            if (p != buf) { release(p, cap); }
+            p = q; cap = c;}
+        static void release(W *q, int c) { if (8 * size_t(c) >= HUGE_FROM) { hugeFree(q, size_t(c)); } else { delete[] q; } }
+        void setSize(int n) { reserve(n); len = n; }
+        void resize(int n, W v = 0) { reserve(n); if (n > len) { std::fill(p + len, p + n, v); } len = n; }
+        void assign(int n, W v) { setSize(n); std::fill(p, p + n, v); }
+        void assign(const W *q, int n) { setSize(n); for (int i = 0; i < n; ++i) { p[i] = q[i]; } }
+        void push_back(W w) { if (len == cap) { reserve(2 * cap); } p[len++] = w; }
+        void pop_back() { --len; }
+        void clear() { len = 0; }
+        friend bool operator==(const Words &a, const Words &b) { return a.len == b.len && std::equal(a.p, a.p + a.len, b.p); }
+    };
 
     inline void mul(W *r, const W *a, int n, const W *b, int m);
     inline void square(W *r, const W *a, int n);
@@ -97,6 +149,8 @@ namespace infint_detail {
         if (n != m) { return n < m ? -1 : 1; }
         for (int i = n - 1; i >= 0; --i) { if (a[i] != b[i]) { return a[i] < b[i] ? -1 : 1; } }
         return 0;}
+    // T: O(n), M: O(1); clears n words.
+    inline void zero(W *r, int n) { if (n > 0) { std::fill(r, r + n, 0); } }
     // T: O(n), M: O(1); r = a + b for n >= m; r may alias a or b; returns the carry.
     inline W add(W *r, const W *a, int n, const W *b, int m) {
         unsigned long long c = 0; int i = 0;
@@ -110,6 +164,8 @@ namespace infint_detail {
     inline W addWord(W *a, int n, W w) {
         for (int i = 0; i < n && w; ++i) { W s = a[i] + w; w = s < w; a[i] = s; }
         return w;}
+    // T: O(n), M: O(1); r += b (m <= n words) with no carry out (asserted).
+    inline void addInto(W *r, int n, const W *b, int m) { [[maybe_unused]] W c = add(r, r, n, b, m); assert(c == 0); }
     // T: O(n), M: O(1); r = a - b for n >= m; r may alias a or b; returns the borrow.
     inline W sub(W *r, const W *a, int n, const W *b, int m) {
         unsigned long long c = 0; int i = 0;
@@ -123,6 +179,8 @@ namespace infint_detail {
     inline W subWord(W *a, int n, W w) {
         for (int i = 0; i < n && w; ++i) { W s = a[i] - w; w = a[i] < w; a[i] = s; }
         return w;}
+    // T: O(n), M: O(1); r -= b (m <= n words) with no borrow out (asserted).
+    inline void subFrom(W *r, int n, const W *b, int m) { [[maybe_unused]] W c = sub(r, r, n, b, m); assert(c == 0); }
     // T: O(n), M: O(1); r = a * w; r may alias a; returns the carry word.
     inline W mulWord(W *r, const W *a, int n, W w) {
         W c = 0;
@@ -159,12 +217,7 @@ namespace infint_detail {
         for (int i = 0; i + 1 < n; ++i) { r[i] = (a[i] >> s) | (a[i + 1] << (64 - s)); }
         r[n - 1] = a[n - 1] >> s;
         return out;}
-    // T: O(n), M: O(1); r += b (m <= n words) with no carry out (asserted).
-    inline void addInto(W *r, int n, const W *b, int m) { [[maybe_unused]] W c = add(r, r, n, b, m); assert(c == 0); }
-    // T: O(n), M: O(1); clears n words.
-    inline void zero(W *r, int n) { if (n > 0) { std::fill(r, r + n, 0); } }
-    // T: O(n), M: O(1); r -= b (m <= n words) with no borrow out (asserted).
-    inline void subFrom(W *r, int n, const W *b, int m) { [[maybe_unused]] W c = sub(r, r, n, b, m); assert(c == 0); }
+
     // T: O(M(n + m)) word products (the dispatcher's bound), M: O(n + m); r = a * b for any lengths, r zero-filled to n + m words.
     inline void mulAny(W *r, const W *a, int n, const W *b, int m) {
         int la = norm(a, n), lb = norm(b, m);
@@ -172,7 +225,6 @@ namespace infint_detail {
         if (la == 0 || lb == 0) { return; }
         if (la >= lb) { mul(r, a, la, b, lb); }
         else { mul(r, b, lb, a, la); }}
-
     // T: O(n * m) word products, M: O(1); n >= m >= 1, r has n + m words.
     inline void mulBasecase(W *r, const W *a, int n, const W *b, int m) {
         r[n] = mulWord(r, a, n, b[0]);
@@ -258,7 +310,7 @@ namespace infint_detail {
         mulAny(r, a, k, a, k); mulAny(r + 4 * k, a + 2 * k, k2, a + 2 * k, k2);
         toomInterpolate(r, n, k, r1, rm, r2, t2, 1);}
     // T: O((n / c) * M(c + m)), M: O(c + m); c-word chunks of a times b, each through the dispatcher.
-    inline void unbalancedMul(W *r, const W *a, int n, const W *b, int m, int c) {
+    [[gnu::noinline]] inline void unbalancedMul(W *r, const W *a, int n, const W *b, int m, int c) {
         std::fill(r, r + n + m, 0);
         Scratch t(size_t(c + m));
         for (int i = 0; i < n; i += c) {
@@ -273,6 +325,7 @@ namespace infint_detail {
             return;}
         Scratch t(2 * size_t(n)); mulAny(t, a, n, b, n);
         std::copy(t.p, t.p + n, r);}
+
     // T: O(1), M: O(1); limbs of a cyclic limb convolution holding len words of residue of an n-word by m-word product: the power of two at or above 2 max(len, n, m).
     inline int cyclicLimbs(int len, int n, int m) { return int(std::bit_ceil(uint(2 * max({len, n, m})))); }
     // T: NA, M: O(1); a transform plan: r 2^lg complex points, k-bit pieces and the output length len in words (lg = 0: no plan).
@@ -611,64 +664,74 @@ namespace infint_detail {
     // S: O(n) roots, Q: O(n * log(n)), M: O(n); complex FFT of r 2^lg points on split re/im arrays: a radix-r column stage (r = 3, 5), then each of the r chunks with its
     // block roots tw[B + b] = exp(i pi (q + r bitrev_B(b)) / (r B)) forward from natural order to the roots' block order, depth-first radix-4 above the leaf; inverse back, scaled by r 2^lg.
     struct Fft {
-        // Table t: 0 the roots of chunk 0 (every r), 1 and 2 the chunks q = 1, 2 of radix 3, 3 to 6 the chunks q = 1 to 4 of radix 5.
+        // Table t: 0 the roots of chunk 0 (every r), 1 and 2 the chunks q = 1, 2 of radix 3, 3 to 6 the chunks q = 1 to 4 of radix 5; entry 0 holds -i times root index 1 and entry i >= 1 root index 2i, so an odd index i is i times entry (i - 1) / 2 throughout.
         static HugeVec<double> &table(bool imag, int t = 0) { static HugeVec<double> w[2][7]; return w[imag][t]; }
         static int tableId(int r, int q) { return q == 0 ? 0 : r == 3 ? q : 2 + q; }
-        // Entries [1, 2n) of the r tables of chunks of n points: the levels B <= n, the last one being the 2n-th roots dot needs; chunk r - q mirrors chunk q.
+        // The root of index i >= 1 from the half table (hr, hi): entry i / 2 at an even index, i times entry (i - 1) / 2 at an odd one.
+        static void root(int i, const double *hr, const double *hi, double &wr, double &wi) {
+            double a = hr[i >> 1], b = hi[i >> 1];
+            bool odd = i & 1;
+            wr = odd ? -b : a; wi = odd ? a : b;}
+        // The root indices [1, 2n) of the r tables of chunks of n points (the levels B <= n, the last one being the 2n-th roots dot needs) as n entries each; chunk r - q mirrors chunk q.
         static void ensure(int n, int r) {
             for (int q = 0; 2 * q < r; ++q) {
                 int t = tableId(r, q), tm = q ? tableId(r, r - q) : 0;
                 HugeVec<double> &wr = table(false, t), &wi = table(true, t);
                 int old = wr.n;
-                if (old >= 2 * n) { continue; }
-                wr.resize(2 * n); wi.resize(2 * n);
-                if (q) { table(false, tm).resize(2 * n); table(true, tm).resize(2 * n); }
-                for (int lvl = max(old, 1); lvl < 2 * n; lvl *= 2) { level(wr.p + lvl, wi.p + lvl, lvl, r, q, q ? table(false, tm).p + lvl : nullptr, q ? table(true, tm).p + lvl : nullptr); }}}
-        // The 2^12-th roots exp(i pi bitrev(j) / 2^g) in block order as double-doubles (a prefix serves every g <= 12), grown on demand from long double trig.
+                if (old >= n) { continue; }
+                wr.resize(n); wi.resize(n);
+                if (q) { table(false, tm).resize(n); table(true, tm).resize(n); }
+                double *mr = q ? table(false, tm).p : nullptr, *mi = q ? table(true, tm).p : nullptr;
+                if (old == 0) {
+                    long double a = std::numbers::pi_v<long double> * q / r;
+                    wr.p[0] = double(std::sin(a)); wi.p[0] = -double(std::cos(a));
+                    if (q) { mr[0] = wr.p[0]; mi[0] = -wi.p[0]; }}
+                for (int lvl = 2 * max(old, 1); lvl < 2 * n; lvl *= 2) { level(wr.p + lvl / 2, wi.p + lvl / 2, lvl, r, q, mr ? mr + lvl / 2 : nullptr, mi ? mi + lvl / 2 : nullptr); }}}
+        // The even entries of the 2^12-th roots in block order, exp(i pi bitrev_11(j) / 2^12) for j < 2^11, as double-doubles (a prefix serves every level g <= 12), grown on demand from long double trig.
         static double *coarse(int g) {
-            static std::array<double, 4 << 12> c; static int have = 0;
-            if (have >= 1 << g) { return c.data(); }
-            have = 1 << g;
+            static std::array<double, 4 << 11> c; static int have = 0;
+            if (have >= 1 << (g - 1)) { return c.data(); }
+            have = 1 << (g - 1);
             for (int j = 0, k = 0; j < have; ++j) {
-                long double a = std::numbers::pi_v<long double> * k / have, x = std::cos(a), y = std::sin(a);
-                c[j] = double(x); c[4096 + j] = double(x - c[j]); c[8192 + j] = double(y); c[12288 + j] = double(y - c[8192 + j]);
+                long double a = std::numbers::pi_v<long double> * k / (2 * have), x = std::cos(a), y = std::sin(a);
+                c[j] = double(x); c[2048 + j] = double(x - c[j]); c[4096 + j] = double(y); c[6144 + j] = double(y - c[4096 + j]);
                 int bit = have >> 1; while (k & bit) { k ^= bit; bit >>= 1; } k ^= bit;}
             return c.data();}
-        // Level lvl of chunk q of radix r, entry b: exp(i pi (q + r bitrev(b)) / (r lvl)) as a coarse root times a fine one (the 2^h angles below pi / 2^g shifted by the chunk's
-        // offset; long double trig split into double-doubles), multiplied in double-double and rounded once; exact at the quarter turns; (mr, mi) mirror chunk r - q as -conj in reverse.
+        // Level lvl >= 2 of chunk q of radix r, even entries b: exp(i pi (q + r bitrev(b)) / (r lvl)) as a coarse root times a fine one (the 2^h angles below pi / 2^g shifted by the chunk's
+        // offset; long double trig split into double-doubles), multiplied in double-double and rounded once; (mr, mi) mirror chunk r - q as i conj in reverse (an odd entry is i times the even one before it).
         static void level(double *wr, double *wi, int lvl, int r, int q, double *mr, double *mi) {
-            int bits = std::countr_zero(uint(lvl)), h = bits / 2, g = bits - h;
-            const double *cr = coarse(g), *cl = cr + 4096, *ci = cr + 8192, *cil = cr + 12288;
+            int bits = std::countr_zero(uint(lvl)), h = bits / 2, g = bits - h, cnt = 1 << (g - 1);
+            const double *cr = coarse(g), *cl = cr + 2048, *ci = cr + 4096, *cil = cr + 6144;
             Scratch s(size_t(4) << h);
             double *fr = reinterpret_cast<double *>(s.p), *fl = fr + (1 << h), *fi = fl + (1 << h), *fil = fi + (1 << h);
             for (int j = 0; j < 1 << h; ++j) {
                 long double a = std::numbers::pi_v<long double> * ((q + r * j) / static_cast<long double>(r * lvl)), x = std::cos(a), y = std::sin(a);
                 fr[j] = double(x); fl[j] = double(x - fr[j]); fi[j] = double(y); fil[j] = double(y - fi[j]);}
             for (int blk = 0, kl = 0; blk < 1 << h; ++blk) {
-                int at = blk << g, j = 0;
-                double *outr = wr + at, *outi = wi + at, *mirr = mr ? mr + lvl - 1 - at : nullptr, *miri = mi ? mi + lvl - 1 - at : nullptr;
+                int at = blk * cnt, j = 0;
+                double *outr = wr + at, *outi = wi + at, *mirr = mr ? mr + lvl / 2 - 1 - at : nullptr, *miri = mi ? mi + lvl / 2 - 1 - at : nullptr;
 #if defined(__AVX2__) && defined(__FMA__)
                 V ar = _mm256_set1_pd(fr[kl]), al = _mm256_set1_pd(fl[kl]), ai = _mm256_set1_pd(fi[kl]), ail = _mm256_set1_pd(fil[kl]), zero = _mm256_setzero_pd();
                 auto dd = [](V xh, V xl, V yh, V yl, V &ph, V &pl) { ph = _mm256_mul_pd(xh, yh); pl = _mm256_fmsub_pd(xh, yh, ph); pl = _mm256_fmadd_pd(xh, yl, pl); pl = _mm256_fmadd_pd(xl, yh, pl); };
                 auto sum = [](V x, V y, V xl, V yl) {
                     V t = _mm256_add_pd(x, y), bb = _mm256_sub_pd(t, x), e = _mm256_add_pd(_mm256_sub_pd(x, _mm256_sub_pd(t, bb)), _mm256_sub_pd(y, bb));
                     return _mm256_add_pd(t, _mm256_add_pd(e, _mm256_add_pd(xl, yl)));};
-                for (; j + 4 <= 1 << g; j += 4) {
+                for (; j + 4 <= cnt; j += 4) {
                     V br = ld(cr + j), bl = ld(cl + j), bi = ld(ci + j), bil = ld(cil + j), p1, e1, p2, e2;
                     dd(ar, al, br, bl, p1, e1); dd(ai, ail, bi, bil, p2, e2);
                     V re = sum(p1, _mm256_sub_pd(zero, p2), e1, _mm256_sub_pd(zero, e2));
                     dd(ar, al, bi, bil, p1, e1); dd(ai, ail, br, bl, p2, e2);
                     V im = sum(p1, p2, e1, e2);
                     st(outr + j, re); st(outi + j, im);
-                    if (mr) { st(mirr - j - 3, rev(_mm256_sub_pd(zero, re))); st(miri - j - 3, rev(im)); }}
+                    if (mr) { st(mirr - j - 3, rev(im)); st(miri - j - 3, rev(re)); }}
 #endif
                 long double xr = fr[kl] + static_cast<long double>(fl[kl]), xi = fi[kl] + static_cast<long double>(fil[kl]);
-                for (; j < 1 << g; ++j) {
+                for (; j < cnt; ++j) {
                     long double yr = cr[j] + static_cast<long double>(cl[j]), yi = ci[j] + static_cast<long double>(cil[j]);
                     outr[j] = double(xr * yr - xi * yi); outi[j] = double(xr * yi + xi * yr);
-                    if (mr) { mirr[-j] = -outr[j]; miri[-j] = outi[j]; }}
+                    if (mr) { mirr[-j] = outi[j]; miri[-j] = outr[j]; }}
                 int bit = (1 << h) >> 1; while (kl & bit) { kl ^= bit; bit >>= 1; } kl ^= bit;}
-            if (q == 0) { wr[0] = 1; wi[0] = 0; if (lvl > 1) { wr[1] = 0; wi[1] = 1; } }}
+            if (q == 0) { wr[0] = 1; wi[0] = 0; }}
 #if defined(__AVX2__) && defined(__FMA__)
         using V = __m256d;
         static V ld(const double *p) { return _mm256_loadu_pd(p); }
@@ -702,7 +765,9 @@ namespace infint_detail {
                     re[j] = ur + vr; im[j] = ui + vi; re[j + len] = ur - vr; im[j + len] = ui - vi;}}}
         // One radix-4 level over 4 len points with the block roots s = tw[i], t = tw[2i] (and i t); the inverse uses their conjugates in reverse.
         static void pass4(double *re, double *im, int len, int i, bool inverse, const double *twr, const double *twi) {
-            double sr = twr[i], si = inverse ? -twi[i] : twi[i], tr = twr[2 * i], ti = inverse ? -twi[2 * i] : twi[2 * i];
+            double sr, si, tr = twr[i], ti = twi[i];
+            root(i, twr, twi, sr, si);
+            if (inverse) { si = -si; ti = -ti; }
             double *r0 = re, *r1 = re + len, *r2 = re + 2 * len, *r3 = re + 3 * len, *i0 = im, *i1 = im + len, *i2 = im + 2 * len, *i3 = im + 3 * len;
             int j = 0;
 #if defined(__AVX2__) && defined(__FMA__)
@@ -742,12 +807,29 @@ namespace infint_detail {
                     double p1r = ur * tr - ui * ti, p1i = ur * ti + ui * tr, q1r = vr * tr - vi * ti, q1i = vr * ti + vi * tr;
                     r0[j] = p0r + p1r; i0[j] = p0i + p1i; r1[j] = p0r - p1r; i1[j] = p0i - p1i;
                     r2[j] = q0r - q1i; i2[j] = q0i + q1r; r3[j] = q0r + q1i; i3[j] = q0i - q1r;}}}
-        // The last three levels of one block of eight points (block root index i): radix-4 over pairs, then the four pairs with tw[4i + q].
-        static void tail8(double *re, double *im, int i, bool inverse, const double *twr, const double *twi) {
+        // The forward top level of chunk 0 (roots 1) when the upper two quarters are zero: pass4 with s2 = s3 = 0 and t = 1, so p0 = q0 = a0 and p1 = q1 = a1.
+        static void pass4Top(double *re, double *im, int len) {
+            double *r0 = re, *r1 = re + len, *r2 = re + 2 * len, *r3 = re + 3 * len, *i0 = im, *i1 = im + len, *i2 = im + 2 * len, *i3 = im + 3 * len;
+            int j = 0;
 #if defined(__AVX2__) && defined(__FMA__)
-            double sg = inverse ? -1.0 : 1.0;
-            V sr = _mm256_set1_pd(twr[i]), si = _mm256_set1_pd(sg * twi[i]), tr = _mm256_setr_pd(1, 1, twr[2 * i], twr[2 * i]), ti = _mm256_setr_pd(0, 0, sg * twi[2 * i], sg * twi[2 * i]);
-            V qr = _mm256_permute4x64_pd(ld(twr + 4 * i), 0xD8), qi = _mm256_permute4x64_pd(_mm256_mul_pd(_mm256_set1_pd(sg), ld(twi + 4 * i)), 0xD8);
+            for (; j + 4 <= len; j += 4) {
+                V a0r = ld(r0 + j), a0i = ld(i0 + j), a1r = ld(r1 + j), a1i = ld(i1 + j);
+                st(r0 + j, _mm256_add_pd(a0r, a1r)); st(i0 + j, _mm256_add_pd(a0i, a1i)); st(r1 + j, _mm256_sub_pd(a0r, a1r)); st(i1 + j, _mm256_sub_pd(a0i, a1i));
+                st(r2 + j, _mm256_sub_pd(a0r, a1i)); st(i2 + j, _mm256_add_pd(a0i, a1r)); st(r3 + j, _mm256_add_pd(a0r, a1i)); st(i3 + j, _mm256_sub_pd(a0i, a1r));}
+#endif
+            for (; j < len; ++j) {
+                double a0r = r0[j], a0i = i0[j], a1r = r1[j], a1i = i1[j];
+                r0[j] = a0r + a1r; i0[j] = a0i + a1i; r1[j] = a0r - a1r; i1[j] = a0i - a1i;
+                r2[j] = a0r - a1i; i2[j] = a0i + a1r; r3[j] = a0r + a1i; i3[j] = a0i - a1r;}}
+        // The last three levels of one block of eight points (block root index i): radix-4 over pairs, then the four pairs with the roots 4i + q; inlined by force,
+        // since GCC 16 leaves the AVX2 form out of line (Docs/07-infint.md, Benchmarks).
+        [[gnu::always_inline]] static void tail8(double *re, double *im, int i, bool inverse, const double *twr, const double *twi) {
+#if defined(__AVX2__) && defined(__FMA__)
+            double sg = inverse ? -1.0 : 1.0, s0r, s0i;
+            root(i, twr, twi, s0r, s0i);
+            V sr = _mm256_set1_pd(s0r), si = _mm256_set1_pd(sg * s0i), tr = _mm256_setr_pd(1, 1, twr[i], twr[i]), ti = _mm256_setr_pd(0, 0, sg * twi[i], sg * twi[i]);
+            __m128d lr = _mm_loadu_pd(twr + 2 * i), li = _mm_loadu_pd(twi + 2 * i);   // the even roots 4i and 4i + 2 in the order (0, 2, 1, 3); 4i + 1 and 4i + 3 are i times them
+            V qr = _mm256_insertf128_pd(_mm256_castpd128_pd256(lr), _mm_sub_pd(_mm_setzero_pd(), li), 1), qi = _mm256_mul_pd(_mm256_set1_pd(sg), _mm256_insertf128_pd(_mm256_castpd128_pd256(li), lr, 1));
             V hi = _mm256_setr_pd(1, 1, -1, -1), x0r = ld(re), x0i = ld(im), x1r = ld(re + 4), x1i = ld(im + 4);
             if (inverse) {
                 V er = _mm256_unpacklo_pd(x0r, x1r), ei = _mm256_unpacklo_pd(x0i, x1i), fr = _mm256_unpackhi_pd(x0r, x1r), fi = _mm256_unpackhi_pd(x0i, x1i), dr, di;
@@ -773,12 +855,16 @@ namespace infint_detail {
             st(re, _mm256_unpacklo_pd(ar, br)); st(im, _mm256_unpacklo_pd(ai, bi)); st(re + 4, _mm256_unpackhi_pd(ar, br)); st(im + 4, _mm256_unpackhi_pd(ai, bi));
             return;
 #endif
-            if (inverse) {
-                for (int q = 0; q < 4; ++q) { pass2(re + 2 * q, im + 2 * q, 1, twr[4 * i + q], twi[4 * i + q], true); }
-                pass4(re, im, 2, i, true, twr, twi);
-                return;}
+            // The last level on the pairs (2q, 2q + 1) with the roots 4i + q: entry 2i + q / 2, times i at odd q, which the butterfly absorbs.
+            auto last = [&](int q) {
+                double ur = twr[2 * i + q / 2], ui = inverse ? -twi[2 * i + q / 2] : twi[2 * i + q / 2], *x = re + 2 * q, *y = im + 2 * q;
+                double dr = inverse ? x[0] - x[1] : x[1], di = inverse ? y[0] - y[1] : y[1], pr = dr * ur - di * ui, pi = dr * ui + di * ur;
+                if (inverse) { x[0] += x[1]; y[0] += y[1]; x[1] = q & 1 ? pi : pr; y[1] = q & 1 ? -pr : pi; return; }
+                double vr = q & 1 ? -pi : pr, vi = q & 1 ? pr : pi;
+                x[1] = x[0] - vr; y[1] = y[0] - vi; x[0] += vr; y[0] += vi;};
+            if (inverse) { last(0); last(1); last(2); last(3); pass4(re, im, 2, i, true, twr, twi); return; }
             pass4(re, im, 2, i, false, twr, twi);
-            for (int q = 0; q < 4; ++q) { pass2(re + 2 * q, im + 2 * q, 1, twr[4 * i + q], twi[4 * i + q], false); }}
+            last(0); last(1); last(2); last(3);}
         // Radix-3 and radix-5 DFTs of one column (x_q <- sum_p w^(p q) x_p, w = exp(2 i pi / r)) on scalars or vectors; s and sg carry the sign of the sines (-1 inverts).
         template<typename T> static void col3(T &x0r, T &x0i, T &x1r, T &x1i, T &x2r, T &x2i, double s) {
             T ar = x1r + x2r, ai = x1i + x2i, dr = (x1r - x2r) * s, di = (x1i - x2i) * s, mr = x0r - 0.5 * ar, mi = x0i - 0.5 * ai;
@@ -806,23 +892,25 @@ namespace infint_detail {
                 if (r == 3) { col3(re[j], im[j], *r1, *i1, *r2, *i2, s3); }
                 else { col5(re[j], im[j], *r1, *i1, *r2, *i2, re[3 * len + j], im[3 * len + j], re[4 * len + j], im[4 * len + j], sg); }}}
         // Forward to block order (inverse: back) with the roots (twr, twi): depth-first radix-4 down to a leaf of 2^11 or 2^10 points by the parity of the levels
-        // above, then the level loop over the leaf; n >= 8, i = the block root index.
-        static void transform(double *re, double *im, int n, bool inverse, const double *twr, const double *twi, int i = 1) {
+        // above, then the level loop over the leaf; n >= 8, i = the block root index; zh: the forward top level of chunk 0 over zero upper quarters (n > FFT_LEAF).
+        static void transform(double *re, double *im, int n, bool inverse, const double *twr, const double *twi, int i = 1, bool zh = false) {
             int lz = std::countr_zero(uint(n)), leaf = (lz - std::countr_zero(uint(FFT_LEAF))) & 1 ? FFT_LEAF / 2 : FFT_LEAF;
             if (n > leaf) {
                 int len = n / 4;
-                if (!inverse) { pass4(re, im, len, i, false, twr, twi); }
+                if (!inverse) { if (zh) { pass4Top(re, im, len); } else { pass4(re, im, len, i, false, twr, twi); } }
                 for (int q = 0; q < 4; ++q) { transform(re + q * len, im + q * len, len, inverse, twr, twi, 4 * i + q); }
                 if (inverse) { pass4(re, im, len, i, true, twr, twi); }
                 return;}
             int top = n, base = i;
             if (lz % 2 == 0) { top = n / 2; base = 2 * i; }
+            double wr = 0, wi = 0;
+            if (top < n) { root(i, twr, twi, wr, wi); }
             if (inverse) {
                 for (int b = 0; b < n / 8; ++b) { tail8(re + 8 * b, im + 8 * b, base * (top / 8) + b, true, twr, twi); }
                 for (int size = 32; size <= top; size *= 4) { for (int b = 0; b < n / size; ++b) { pass4(re + b * size, im + b * size, size / 4, base * (top / size) + b, true, twr, twi); } }
-                if (top < n) { pass2(re, im, n / 2, twr[i], twi[i], true); }
+                if (top < n) { pass2(re, im, n / 2, wr, wi, true); }
                 return;}
-            if (top < n) { pass2(re, im, n / 2, twr[i], twi[i], false); }
+            if (top < n) { pass2(re, im, n / 2, wr, wi, false); }
             for (int size = top; size > 8; size /= 4) { for (int b = 0; b < n / size; ++b) { pass4(re + b * size, im + b * size, size / 4, base * (top / size) + b, false, twr, twi); } }
             for (int b = 0; b < n / 8; ++b) { tail8(re + 8 * b, im + 8 * b, base * (top / 8) + b, false, twr, twi); }}
         // The convolution step of the conjugate positions p and q (frequencies k and M - k) with the 2M-th root w of k: Z'_p and Z'_q of the product of the packed real sequences.
@@ -838,13 +926,15 @@ namespace infint_detail {
             double epr = cpr + cmr, epi = cpi + cmi, ddr = cpr - cmr, ddi = cpi - cmi;
             double opr = ddr * wr + ddi * wi, opi = ddi * wr - ddr * wi;
             xr[p] = epr - opi; xi[p] = epi + opr; xr[q] = epr + opi; xi[q] = opr - epi;}
-        // The len pairs (p + j, q - j) with the roots (wr[j], wi[j]).
-        static void pairs(double *xr, double *xi, const double *yr, const double *yi, int p, int q, int len, const double *wr, const double *wi) {
+        // The len pairs (p + j, q - j) with the roots of index base + j, base even, from the half table (hr, hi) at base / 2: the even entries, i times the one before at odd j.
+        static void pairs(double *xr, double *xi, const double *yr, const double *yi, int p, int q, int len, const double *hr, const double *hi) {
             int j = 0;
 #if defined(__AVX2__) && defined(__FMA__)
-            V neg = _mm256_set1_pd(-1.0);
+            V neg = _mm256_set1_pd(-1.0), flip = _mm256_setr_pd(0.0, -0.0, 0.0, -0.0);
             for (; j + 4 <= len; j += 4, p += 4, q -= 4) {
-                V xpr0 = ld(xr + p), xpi0 = ld(xi + p), xqr0 = rev(ld(xr + q - 3)), xqi0 = rev(ld(xi + q - 3)), vwr = ld(wr + j), vwi = ld(wi + j);
+                V hv = _mm256_insertf128_pd(_mm256_castpd128_pd256(_mm_loadu_pd(hr + j / 2)), _mm_loadu_pd(hi + j / 2), 1);
+                V vwr = _mm256_xor_pd(_mm256_permute4x64_pd(hv, 0xD8), flip), vwi = _mm256_permute4x64_pd(hv, 0x72);
+                V xpr0 = ld(xr + p), xpi0 = ld(xi + p), xqr0 = rev(ld(xr + q - 3)), xqi0 = rev(ld(xi + q - 3));
                 V er = _mm256_add_pd(xpr0, xqr0), ei = _mm256_sub_pd(xpi0, xqi0), o_r = _mm256_add_pd(xpi0, xqi0), o_i = _mm256_sub_pd(xqr0, xpr0), ror, roi;
                 cmul(o_r, o_i, vwr, vwi, ror, roi);
                 V xpr = _mm256_add_pd(er, ror), xpi = _mm256_add_pd(ei, roi), xmr = _mm256_sub_pd(er, ror), xmi = _mm256_sub_pd(ei, roi), ypr = xpr, ypi = xpi, ymr = xmr, ymi = xmi;
@@ -860,36 +950,38 @@ namespace infint_detail {
                 st(xr + p, _mm256_sub_pd(epr, opi)); st(xi + p, _mm256_add_pd(epi, opr));
                 st(xr + q - 3, rev(_mm256_add_pd(epr, opi))); st(xi + q - 3, rev(_mm256_sub_pd(opr, epi)));}
 #endif
-            for (; j < len; ++j, ++p, --q) { one(xr, xi, yr, yi, p, q, wr[j], wi[j]); }}
+            for (; j + 2 <= len; j += 2, p += 2, q -= 2) { one(xr, xi, yr, yi, p, q, hr[j >> 1], hi[j >> 1]); one(xr, xi, yr, yi, p + 1, q - 1, -hi[j >> 1], hr[j >> 1]); }
+            if (j < len) { one(xr, xi, yr, yi, p, q, hr[j >> 1], hi[j >> 1]); }}
         // Packed real convolution step on the block-ordered spectra of r chunks of n points: x <- 8 Z' of the product of the real sequences packed in x and y (y may be x);
         // chunk 0 pairs p in [h, 3h/2) with 3h - 1 - p, chunk q mirrors chunk r - q.
         static void dot(double *xr, double *xi, const double *yr, const double *yi, int n, int r) {
-            const double *wr = table(false).p + n, *wi = table(true).p + n;
+            const double *wr = table(false).p + n / 2, *wi = table(true).p + n / 2;
             one(xr, xi, yr, yi, 0, 0, 1.0, 0.0); one(xr, xi, yr, yi, 1, 1, 0.0, 1.0);
-            for (int h = 2; h < n; h *= 2) { pairs(xr, xi, yr, yi, h, 2 * h - 1, h / 2, wr + h, wi + h); }
-            for (int q = 1; 2 * q < r; ++q) { pairs(xr, xi, yr, yi, q * n, (r - q + 1) * n - 1, n, table(false, tableId(r, q)).p + n, table(true, tableId(r, q)).p + n); }}
+            for (int h = 2; h < n; h *= 2) { pairs(xr, xi, yr, yi, h, 2 * h - 1, h / 2, wr + h / 2, wi + h / 2); }
+            for (int q = 1; 2 * q < r; ++q) { pairs(xr, xi, yr, yi, q * n, (r - q + 1) * n - 1, n, table(false, tableId(r, q)).p + n / 2, table(true, tableId(r, q)).p + n / 2); }}
     };
 
+    // T: O(1), M: O(1); Phi^2 2^(4k - 4) of a plan of r 2^l points with k-bit pieces, the power of two built from its bits (exact): nx and ny pieces round exactly when nx ny times it is at most 0.2401.
+    inline double fftScale(int l, int r, int k) { double phi = FFT_PHI[size_t(r)][size_t(l)]; return phi * phi * std::bit_cast<double>(ulng(1019 + 4 * k) << 52); }
     // T: O(1) (at most 22 * 3 * 13 candidates), M: O(1); plan of an n-word by m-word product: the smallest r 2^lg-point FFT (r in {1, 3, 5}) and the widest k-bit pieces that the bound admits (sqrt(nx ny) 2^(2k - 2) Phi <= 0.49
     // for the piece counts nx, ny), covering the n + m words of the product or, cyclic, want >= max(n, m) words of residue; lg = 0 when none fits.
     inline FftPlan fftPlan(int n, int m, int want, bool cyclic) {
         assert(n >= 1 && m >= 1 && (!cyclic || want >= max(n, m)));
         int lo = cyclic ? 5 : FFT_MIN_LOG;
-        for (int lg = lo; lg <= FFT_MAX_LOG; ++lg) {
+        for (int lg = max(lo, std::bit_width(ulng(cyclic ? want : lng(n) + m)) - 1); lg <= FFT_MAX_LOG; ++lg) {   // below, 3 2^lg points hold fewer than 64 / 20 pieces per word
             for (int r : {1, 5, 3}) {
                 int l = lg - (r == 5 ? 2 : r == 3 ? 1 : 0);
                 if (l < lo) { continue; }
                 lng pts = lng(2 * r) << l;
-                double phi = FFT_PHI[size_t(r)][size_t(l)];
                 for (int k = FFT_MAX_K; k >= FFT_MIN_K; --k) {
                     lng nx = (64LL * n + k - 1) / k + 1, ny = (64LL * m + k - 1) / k + 1;
-                    if (double(nx) * double(ny) * std::ldexp(phi * phi, 4 * k - 4) > 0.2401) { continue; }
+                    if (double(nx) * double(ny) * fftScale(l, r, k) > 0.2401) { continue; }
                     if (cyclic ? k * pts < 64LL * want : nx + ny - 1 > pts) { break; }
                     return {l, r, k, cyclic ? int(k * pts / 64) : n + m};}}}
         return {0, 0, 0, 0};}
     // T: O(n), M: O(1); balanced k-bit pieces x_j = d_j + b_(j-1) - 2^k b_j of the digits d_j of a, b_j = [d_j >= 2^(k-1)] (so |x_j| <= 2^(k-1) without a carry chain) and the
-    // top piece b_last, even pieces into re and odd into im (n2 each, the rest zero; a top piece at 2 n2 folds into x_0); returns the piece count.
-    inline int fftSplit(double *re, double *im, int n2, const W *a, int n, int k) {
+    // top piece b_last, even pieces into re and odd into im (n2 each, the rest zero up to n2, or up to n2 / 2 when lower and the pieces fit there; a top piece at 2 n2 folds into x_0); returns the piece count.
+    inline int fftSplit(double *re, double *im, int n2, const W *a, int n, int k, bool lower) {
         W mask = (W(1) << k) - 1, half = W(1) << (k - 1);
         int pieces = int((64LL * n + k - 1) / k), j = 0;
         lng bprev = 0;
@@ -921,23 +1013,33 @@ namespace infint_detail {
             bprev = lng(b);}
         if (j == 2 * n2) { re[0] += double(bprev); }
         else { (j & 1 ? im : re)[j >> 1] = double(bprev); ++j; }
-        std::fill(re + (j + 1) / 2, re + n2, 0.0); std::fill(im + j / 2, im + n2, 0.0);
+        int fill = lower && j <= n2 ? n2 / 2 : n2;   // the transform's top level overwrites the zero upper half
+        std::fill(re + (j + 1) / 2, re + fill, 0.0); std::fill(im + j / 2, im + fill, 0.0);
         return j;}
     // T: O(len + pieces), M: O(1); words of the sum of the rounded coefficients c_j 2^(k j): the len words of an exact product (the pieces above them cancel), or the fold of all pieces of a cyclic residue.
     inline void fftMerge(W *r, int len, const double *re, const double *im, int pieces, int k, double scale, bool cyclic) {
-        int last = cyclic ? pieces : min(pieces, int((64LL * len + k - 1) / k)), w = 0, s = 0;
-        // lo and hi: the chunks of the pieces starting in word w that land in words w and w + 1; |c_j| < 2^51, so the bits of c_j + 1.5 2^52 are those of 1.5 2^52 plus the rounded value
-        ulll lo = 0; lng hi = 0, up = 0; lll carry = 0;
-        auto flush = [&] { lll t = lll(lo) + up + carry; r[w++] = W(t); carry = t >> 64; up = hi; lo = 0; hi = 0; };
-        auto step = [&](double v) {
-            lng c = std::bit_cast<lng>(v * scale + 0x1.8p52) - 0x4338000000000000LL;
-            lo += W(c) << s; hi += (c >> 1) >> (63 - s);
-            if ((s += k) >= 64) { flush(); s -= 64; }};
-        for (int j = 0; j + 1 < last; j += 2) { step(re[j >> 1]); step(im[j >> 1]); }
-        if (last & 1) { step(re[last >> 1]); }
-        while (w < len) { flush(); }
+        int last = cyclic ? pieces : min(pieces, int((64LL * len + k - 1) / k)), w = 0, s = 0, j = 0;
+        W mask = (W(1) << k) - 1, buf = 0; lng carry = 0;
+        // c_j + carry as a k-bit digit and the next carry, the digits packed from bit s of word w; |c_j| < 2^51, so the bits of c_j + 1.5 2^52 are those of 1.5 2^52 plus the rounded value
+        auto put = [&](lng c) {
+            c += carry; W d = W(c) & mask; carry = c >> k;
+            buf |= d << s;
+            if ((s += k) >= 64) { r[w++] = buf; s -= 64; buf = s ? d >> (k - s) : 0; }};
+        auto piece = [&](double v) { return std::bit_cast<lng>(v * scale + 0x1.8p52) - 0x4338000000000000LL; };
+#ifdef __AVX2__
+        __m256d vs = _mm256_set1_pd(scale), magic = _mm256_set1_pd(0x1.8p52); __m256i bits = _mm256_set1_epi64x(0x4338000000000000LL);
+        for (; j + 8 <= last; j += 8) {
+            lng e[4], o[4];
+            _mm256_storeu_si256(reinterpret_cast<__m256i *>(e), _mm256_sub_epi64(_mm256_castpd_si256(_mm256_add_pd(_mm256_mul_pd(_mm256_loadu_pd(re + j / 2), vs), magic)), bits));
+            _mm256_storeu_si256(reinterpret_cast<__m256i *>(o), _mm256_sub_epi64(_mm256_castpd_si256(_mm256_add_pd(_mm256_mul_pd(_mm256_loadu_pd(im + j / 2), vs), magic)), bits));
+            for (int q = 0; q < 4; ++q) { put(e[q]); put(o[q]); }}
+#endif
+        for (; j + 1 < last; j += 2) { put(piece(re[j >> 1])); put(piece(im[j >> 1])); }
+        if (last & 1) { put(piece(re[last >> 1])); }
+        lll t = lll(buf) + (lll(carry) << s);
+        while (w < len) { r[w++] = W(t); t >>= 64; }
         if (!cyclic) { return; }
-        lng top = lng(up + carry);
+        lng top = lng(t);   // the cyclic pieces end at word len, so t is the carry alone
         if (top >= 0) { for (W c = addWord(r, len, W(top)); c; c = addWord(r, len, c)) {} }
         else if (subWord(r, len, W(-top))) { subWord(r, len, 1); }}
     // T: O(1), M: O(N) for the largest plan; the two process-wide piece buffers of the transient operands.
@@ -946,9 +1048,10 @@ namespace infint_detail {
     inline int fftForward(double *re, double *im, const FftPlan &p, const W *a, int n) {
         int len = 1 << p.lg;
         Fft::ensure(len, p.r);
-        int pieces = fftSplit(re, im, p.r * len, a, n, p.k);
+        bool lower = p.r == 1 && len > FFT_LEAF;
+        int pieces = fftSplit(re, im, p.r * len, a, n, p.k, lower);
         if (p.r > 1) { Fft::column(re, im, len, p.r, false); }
-        for (int q = 0; q < p.r; ++q) { int t = Fft::tableId(p.r, q); Fft::transform(re + q * len, im + q * len, len, false, Fft::table(false, t).p, Fft::table(true, t).p); }
+        for (int q = 0; q < p.r; ++q) { int t = Fft::tableId(p.r, q); Fft::transform(re + q * len, im + q * len, len, false, Fft::table(false, t).p, Fft::table(true, t).p, 1, lower && pieces <= len); }
         return pieces;}
     // T: O(N * log(N)), M: O(1); r (len words) from the spectra x (destroyed) and y: the exact product of pieces = nx + ny - 1 coefficients, or, cyclic, a representative in [0, B^len) of it mod (B^len - 1).
     inline void fftProduct(W *r, int len, const FftPlan &p, double *xr, double *xi, const double *yr, const double *yi, int pieces, bool cyclic) {
@@ -981,6 +1084,7 @@ namespace infint_detail {
         bx.resize(2 * n2);
         int nx = fftForward(bx.p, bx.p + n2, s.p, a, n);
         fftProduct(r, cyclic ? s.p.len : n + s.n, s.p, bx.p, bx.p + n2, s.re, s.im, cyclic ? 2 * n2 : nx + s.pieces - 1, cyclic);}
+
     // T: O(len * log(len)), M: O(len); cyclic limb convolution of cyclicLimbs(len, n, m) limbs of the limb images of a and b (words) through the exact NTTs; lo and hi (that many words each) hold lo + hi * 2^64 per limb.
     inline void nttCyclic(W *lo, W *hi, const W *a, int n, const W *b, int m, int len) {
         static HugeVec<uint> la, lb;
@@ -1009,6 +1113,7 @@ namespace infint_detail {
             W low = uint(c0); carry = c0 >> 32;
             WW c1 = lo[2 * i + 1] + (WW(hi[2 * i + 1]) << 64) + carry;
             r[i] = low | (W(uint(c1)) << 32); carry = c1 >> 32;}}
+
     // T: NA, M: O(1); a cyclic product plan: the FFT plan (lg > 0) or the NTT limb count, and the residue length len in words.
     struct CyclicPlan { FftPlan p; int limbs, len; };
     // T: O(1), M: O(1); the plan of a * b mod (B^len - 1) for n- and m-word operands with len >= max(want, n, m): the FFT plan while its bound holds, else the NTTs' limb count.
@@ -1043,6 +1148,7 @@ namespace infint_detail {
         canonical(r, len);}
     // T: O(len), M: O(1); r = a - b mod (B^len - 1), canonical for canonical a and b (r may alias a).
     inline void subMod1(W *r, const W *a, const W *b, int len) { if (sub(r, a, len, b, len)) { subWord(r, len, 1); } }
+
     // S: O(len), Q: O(len) per ring operation and O(cnt * len * log(cnt)) per transform, M: O(len); Z/(2^N + 1) for N = 64 len: an element is
     // len + 1 words valued in [0, 2^N]; r may alias a.
     struct Fermat {
@@ -1103,25 +1209,72 @@ namespace infint_detail {
         f.transform(A, cnt, true);
         zero(r, n + m);
         for (int j = 0; j * p < n + m; ++j) { const W *c = A + size_t(j) * e; addInto(r + j * p, min(len + 1, n + m - j * p), c, norm(c, len)); }}
+
     // T: O(1), M: O(1); transform work of a product of len words: the smallest r 2^lg >= len (r in {1, 3, 5}) times the log of that length.
     inline ulng transformWork(int len) {
         ulng p = std::bit_ceil(uint(len)), m = 5 * p / 8 >= ulng(len) ? 5 * p / 8 : 3 * p / 4 >= ulng(len) ? 3 * p / 4 : p;
         return m * std::bit_width(p);}
     // T: O(1), M: O(1); true when a transform product of len words beats direct n x m word products: 2 n m (3 n m with a kept spectrum, one transform of three saved) reaches UNBALANCED_FFT transformWork units, UNBALANCED_FFT_BIG from 2^16 words.
     inline bool transformWins(int n, int m, int len, bool kept) { return len <= NTT_MAX_WORDS && (kept ? 3 : 2) * ulng(n) * ulng(m) >= ulng(len < (1 << 16) ? UNBALANCED_FFT : UNBALANCED_FFT_BIG) * transformWork(len); }
+    constexpr int SPECTRUM_RATIO = 16, FFT_CALL = 2000;
+    constexpr double SPECTRUM_PENALTY = 1.1;
+    // T: O(1), M: O(1); the modeled cost of one transform under p (lg = 0: none, unbounded): r 2^lg points times lg + log2(r) + 1, plus FFT_CALL per call.
+    inline double planWork(const FftPlan &p) { return p.lg ? double(p.r << p.lg) * (p.lg + (p.r == 5 ? 3.32 : p.r == 3 ? 2.58 : 1.0)) + FFT_CALL : 1e300; }
+    // T: O(1), M: O(1); the modeled cost of transformMul's NTT on limbs (cyclicLimbs) in planWork units: NTT_WORK per limb and level of the three-prime NTT once its root tables cover limbs, else
+    // unbounded: building them made every measured first call 1.6-2.4x slower than the chunks, and they never cover the Goldilocks NTT's lengths above 2^NTT_MAX_LOG.
+    inline double nttWork(int limbs) { return limbs <= Ntt32<NTT_PRIMES[0], NTT_ROOTS[0]>::roots(false).n ? double(NTT_WORK) * limbs * std::countr_zero(uint(limbs)) : 1e300; }
+    // T: O(FFT_MAX_K), M: O(1); the plan of r 2^l points with the pieces that hold the largest chunk c of words exactly in a product with m words (c = 0: none).
+    inline FftPlan chunkPlan(int l, int r, int m, int &c) {
+        FftPlan p{0, 0, 0, 0}; c = 0;
+        lng pts = lng(2 * r) << l;
+        for (int k = FFT_MAX_K; k >= FFT_MIN_K; --k) {
+            lng ny = (64LL * m + k - 1) / k + 1, cap = pts - ny + 1;
+            double sc = fftScale(l, r, k), lim = 0.2401 / (double(ny) * sc);
+            lng nx = lim >= double(cap) ? cap : lng(lim);
+            while (nx > 1 && double(nx) * double(ny) * sc > 0.2401) { --nx; }
+            if (nx > 1 && (nx - 1) * k / 64 > c) { c = int(min((nx - 1) * k / 64, lng(1) << 30)); p = {l, r, k, c + m}; }
+            if (nx == cap) { break; }}   // the piece count binds: narrower pieces only shrink the chunk
+        return p;}
+    // T: O(FFT_MAX_K) per candidate plan, M: O(1); for an n-word by m-word product (n >= m), the one-transform plan p and n, or the chunk c < n of a and the plan p of chunk products against
+    // the kept spectrum of b, whichever planWork prices lower (the chunks weighted by SPECTRUM_PENALTY; without a one-transform plan, against nttWork); the chunk plans span four sizes from the first that holds m words.
+    inline int spectrumChunk(int n, int m, FftPlan &p) {
+        p = fftPlan(n, m, n + m, false);
+        int chunk = n, top = p.lg ? p.lg : FFT_MAX_LOG; bool seen = false;
+        double best = p.lg ? 3 * planWork(p) : nttWork(cyclicLimbs(n + m, n, m));
+        for (int l = max(FFT_MIN_LOG, std::bit_width(uint(m)) - 2); l <= top; ++l) {   // below, 10 2^l points hold fewer than 2 m words of 20-bit pieces
+            for (int r : {1, 3, 5}) {
+                lng most = (lng(2 * r) << l) * FFT_MAX_K / 64 - m;   // no chunk outgrows pieces of FFT_MAX_K bits: once top is set, a bound at best skips the plan search
+                if (most < m || (seen && SPECTRUM_PENALTY * (2.0 * double((n + most - 1) / most) + 1) * planWork({l, r, 0, 0}) >= best)) { continue; }
+                int c; FftPlan q = chunkPlan(l, r, m, c);
+                if (c < m || c >= n) { continue; }
+                top = min(top, l + 3); seen = true;
+                double w = SPECTRUM_PENALTY * (2.0 * ((n + c - 1) / c) + 1) * planWork(q);
+                if (w < best) { best = w; p = q; chunk = c; }}}
+        return chunk;}
+    // T: O((n / c + 1) * N * log(N)) for the N points of p, M: O(N + c + m); r = a * b (n + m words, n > c >= m) as chunks of c words of a against the spectrum of b kept under p (which holds c + m words).
+    inline void spectrumMul(W *r, const W *a, int n, const W *b, int m, const FftPlan &p, int c) {
+        Scratch sb(size_t(Spectrum::words(p))), t(size_t(c + m));
+        Spectrum s; s.take(sb, p, b, m, c);
+        zero(r, n + m);
+        for (int i = 0; i < n; i += c) {
+            int len = min(c, n - i);
+            fftWith(t, s, a + i, len, false);
+            addInto(r + i, len + m, t, norm(t, len + m));}}
+    // T: O((n / c + 1) * N * log(N)) for the N points of the chosen plan and its chunk c, M: O(N + c + m); mul's transform branch for n >= m: kept-spectrum chunks or one transform,
+    // false (r untouched) when m < FFT and no chunking beats one transform.
+    [[gnu::noinline]] inline bool fftMul(W *r, const W *a, int n, const W *b, int m) {
+        FftPlan p; int c = spectrumChunk(n, m, p);
+        if (c < n) { spectrumMul(r, a, n, b, m, p, c); return true; }
+        if (m < FFT) { return false; }
+        if (p.lg) { fftRun(r, p, a, n, b, m, false); }
+        else { transformMul(r, a, n, b, m); }
+        return true;}
     // T: O(M(n)) word products by size: basecase, Karatsuba, Toom-3, transforms, M: O(n + m) workspace; n >= m >= 1, r has n + m words.
     inline void mul(W *r, const W *a, int n, const W *b, int m) {
         if (m == 1) { r[n] = mulWord(r, a, n, b[0]); return; }
         if (a == b && n == m) { square(r, a, n); return; }
         if (m < KARATSUBA) { mulBasecase(r, a, n, b, m); return; }
-        if (m >= FFT && n + m <= NTT_MAX_WORDS) {
-            int chunk = 0; ulng best = 9 * transformWork(n + m) / 10;
-            for (int s = int(std::bit_ceil(uint(n + m))) / 2; s > m; s /= 2) {
-                int c = s - m, pieces = (n + c - 1) / c;
-                ulng work = ulng(pieces - 1) * transformWork(s) + transformWork(n - (pieces - 1) * c + m);
-                if (work < best) { best = work; chunk = c; }}
-            if (chunk) { unbalancedMul(r, a, n, b, m, chunk); return; }
-            transformMul(r, a, n, b, m); return;}
+        if ((m >= FFT || (m >= SPECTRUM_MUL && n >= SPECTRUM_RATIO * m)) && n + m <= NTT_MAX_WORDS && fftMul(r, a, n, b, m)) { return; }
         if (n >= 2 * m) {
             if (n + m >= 2 * FFT && transformWins(n, m, n + m, false)) { transformMul(r, a, n, b, m); return; }
             unbalancedMul(r, a, n, b, m, m); return;}
@@ -1133,21 +1286,26 @@ namespace infint_detail {
         if (n >= FFT_SQR && 2 * n <= NTT_MAX_WORDS) { transformMul(r, a, n, a, n); return; }
         if (n >= TOOM3_SQR) { toom3Square(r, a, n); return; }
         karatsubaSquare(r, a, n);}
+
     // T: O(1), M: O(1); moller-Granlund reciprocal of a normalized divisor (top bit set).
     inline W invWord(W d) { return W(((WW(~d) << 64) | ~W(0)) / d); }
+    // T: O(1), M: O(1); the inverse of the odd b modulo 2^64.
+    inline W invMod64(W b) {
+        W x = b;
+        for (int i = 0; i < 6; ++i) { x *= 2 - b * x; }
+        return x;}
     // T: O(1), M: O(1); q = (u1:u0) / d, returns the remainder; d normalized, u1 < d, v = invWord(d).
     inline W div2by1(W &q, W u1, W u0, W d, W v) {
         WW t = WW(v) * u1 + ((WW(u1) << 64) | u0);
         W q1 = W(t >> 64) + 1, q0 = W(t), r = u0 - q1 * d;
-        if (r > q0) { --q1; r += d; }
+        W m = W(0) - W(r > q0);   // the likely correction by a mask: GCC branches on it, mispredicted about half the time
+        q1 += m; r += m & d;
         if (r >= d) { ++q1; r -= d; }
         q = q1;
         return r;}
-    // T: O(n), M: O(1); q = a / d (q may alias a), returns a % d; d != 0.
-    inline W divWord(W *q, const W *a, int n, W d) {
-        if (d == 0) { d = 1; }
-        int s = std::countl_zero(d);
-        W dn = d << s, v = invWord(dn), r = 0;
+    // T: O(n), M: O(1); q = a / d (q may alias a), returns a % d, for d = dn >> s given its normalized dn and v = invWord(dn).
+    inline W divNorm(W *q, const W *a, int n, W dn, W v, int s) {
+        W r = 0;
         if (s == 0) {
             for (int i = n - 1; i >= 0; --i) { r = div2by1(q[i], r, a[i], dn, v); }
             return r;}
@@ -1156,6 +1314,11 @@ namespace infint_detail {
             W u = (a[i] << s) | (i ? a[i - 1] >> (64 - s) : 0);
             r = div2by1(q[i], r, u, dn, v);}
         return r >> s;}
+    // T: O(n), M: O(1); q = a / d (q may alias a), returns a % d; d != 0.
+    inline W divWord(W *q, const W *a, int n, W d) {
+        if (d == 0) { d = 1; }
+        int s = std::countl_zero(d);
+        return divNorm(q, a, n, d << s, invWord(d << s), s);}
     // T: O(n), M: O(1); a % d for d != 0.
     inline W remWord(const W *a, int n, W d) {
         if (d == 0) { d = 1; }
@@ -1167,11 +1330,10 @@ namespace infint_detail {
         r = a[n - 1] >> (64 - s);
         for (int i = n - 1; i >= 0; --i) { r = div2by1(q, r, (a[i] << s) | (i ? a[i - 1] >> (64 - s) : 0), dn, v); }
         return r >> s;}
-    // T: O((n - m) * m) word products, M: O(n); Knuth D: q (n - m + 1 words), r (m words) for normalized b of m >= 2 words.
-    inline void divBasecase(W *q, W *r, const W *a, int n, const W *b, int m) {
-        Scratch uv(size_t(n) + 1);
-        W *u = uv, dt = b[m - 1], ds = b[m - 2], v = invWord(dt);
-        std::copy(a, a + n, u); u[n] = 0;
+
+    // T: O((n - m) * m) word products, M: O(1); Knuth D in place on the dividend u (n + 1 words, u[n] = 0, destroyed): q (n - m + 1 words), r (m words) for normalized b of m >= 2 words.
+    inline void divKnuth(W *q, W *r, W *u, int n, const W *b, int m) {
+        W dt = b[m - 1], ds = b[m - 2], v = invWord(dt);
         for (int j = n - m; j >= 0; --j) {
             W qh, rh; bool refine = true;
             if (u[j + m] >= dt) { qh = ~W(0); rh = u[j + m - 1] + dt; refine = rh >= dt; }
@@ -1182,6 +1344,11 @@ namespace infint_detail {
             if (top < borrow) { --qh; u[j + m] += add(u + j, u + j, m, b, m); }
             q[j] = qh;}
         std::copy(u, u + m, r);}
+    // T: O((n - m) * m) word products, M: O(n); Knuth D: q (n - m + 1 words), r (m words, may alias a) for normalized b of m >= 2 words.
+    inline void divBasecase(W *q, W *r, const W *a, int n, const W *b, int m) {
+        Scratch u(size_t(n) + 1);
+        std::copy(a, a + n, u.p); u[n] = 0;
+        divKnuth(q, r, u, n, b, m);}
     inline void div2n1n(W *q, W *r, const W *a, const W *b, int n);
     // T: O(M(n) * log(n)), M: O(n); burnikel-Ziegler 3n/2n step: a (3n words) < b * B^n, b (2n words) normalized; q n words, r 2n words.
     inline void div3n2n(W *q, W *r, const W *a, const W *b, int n) {
@@ -1227,11 +1394,7 @@ namespace infint_detail {
             div2n1n(qq + lo, z + blk, z, bb, blk);}
         std::copy(qq, qq + (n - m + 1), q);
         std::copy(z + blk + pad, z + 2 * blk, r);}
-    // T: O(1), M: O(1); the inverse of the odd b modulo 2^64.
-    inline W invMod64(W b) {
-        W x = b;
-        for (int i = 0; i < 6; ++i) { x *= 2 - b * x; }
-        return x;}
+
     // T: O(M(m)), M: O(m); v (m words) with B^m + v <= floor(B^(2m) / d) <= B^m + v + 1 for normalized d of m words: Knuth D on B^(2m) - 1 below BURNIKEL words, else Newton on the
     // top h = m / 2 + 1 words: xh = B^h + vh - 4, e = B^(m + h) - xh d in [0, 6 B^m) from a cyclic product, x = xh B^l + (xh (e >> (h - 2) words)) >> (h + 2) words, both products sharing xh's spectrum.
     inline void invert(W *v, const W *d, int m) {
@@ -1343,19 +1506,21 @@ namespace infint_detail {
     // T: O((n - m) * m) word products by Knuth D (divisors below BURNIKEL or quotients below knuthGate words), O(M(m) log(m) n / m) by Burnikel-Ziegler (quotients of at least m / 2 words, divisors below NEWTON_DIV, or NEWTON_LONG from 4m quotient words),
     // else O(M(n)) by the blocks of a fresh Divisor (cyclic remainders from FFT divisor words or FRESH_CYCLIC cyclicGate(m) quotient words), M: O(n + m); q (n - m + 1 words) and r (m words) may be null; b of m >= 1 words, b[m - 1] != 0, n >= m; dv: b prepared by the caller; exact: b odd, b | a.
     inline void divRem(W *q, W *r, const W *a, int n, const W *b, int m, const Divisor *dv = nullptr, bool exact = false) {
-        Scratch s(3 * size_t(n) + 4);
-        W *an = s, *bn = an + n + 1, *qt = bn + m, *qq = qt + n - m + 2;
+        Scratch s(3 * size_t(n) + 5);
+        W *an = s, *bn = an + n + 2, *qt = bn + m, *qq = qt + n - m + 2;
         if (!q) { q = qq; }
         if (!r) { r = qq + (n - m + 1); }
         if (m == 1) { r[0] = divWord(q, a, n, b[0]); return; }
         int sh = dv ? dv->shift : std::countl_zero(b[m - 1]);
         if (sh) { an[n] = shl(an, a, n, sh); shl(bn, b, m, sh); }
         else { std::copy(a, a + n, an); an[n] = 0; std::copy(b, b + m, bn); }
+        an[n + 1] = 0;
         int na = an[n] ? n + 1 : n, qn = na - m;
         assert(!exact || (b[0] & 1));
         W q0 = exact ? a[0] * invMod64(b[0]) : 0;
-        if (m < BURNIKEL || qn < knuthGate(m, dv != nullptr)) { divBasecase(qt, r, an, na, bn, m); }
-        else if (dv) { divBlocks(qt, r, an, na, *dv, exact, q0); }
+        bool cached = dv && CACHED_RATIO * qn >= m;   // below m / CACHED_RATIO quotient words a fresh block of qn words beats dv's m-word estimates
+        if (m < BURNIKEL || qn < knuthGate(m, cached)) { divKnuth(qt, r, an, na, bn, m); }
+        else if (cached) { divBlocks(qt, r, an, na, *dv, exact, q0); }
         else if (2 * qn >= m && m < (qn >= 4 * m ? NEWTON_LONG : NEWTON_DIV)) { divBurnikelZiegler(qt, r, an, na, bn, m); }
         else {
             int nb = qn > m ? (qn + m - 1) / m : 3 * qn > m ? 2 : 1, blk = (qn + nb - 1) / nb;
@@ -1365,6 +1530,7 @@ namespace infint_detail {
             divBlocks(qt, r, an, na, d, exact, q0);}
         std::copy(qt, qt + (n - m + 1), q);
         if (sh) { shr(r, r, m, sh); }}
+
     // T: O(k * m) word products, M: O(n); q (k = n - m + 1 words) = a / b for odd b dividing a, word by word through the 2-adic inverse of b[0].
     inline void divExactHensel(W *q, const W *a, int n, const W *b, int m) {
         int k = n - m + 1;
@@ -1400,49 +1566,6 @@ namespace infint_detail {
         n = norm(res, n + w + 1);
         std::copy(res.p, res.p + n, out);
         return n;}
-
-    // S: O(1), U: O(n) per resize or copy, Q: O(1), M: O(n) (four words inline); little-endian words, p = buf while at most four are stored: a vector with int sizes whose resize zero-fills and whose setSize leaves new words unset.
-    struct Words {
-        static constexpr int INLINE = 4;
-        W *p = buf; int len = 0, cap = INLINE; W buf[INLINE] = {};
-
-        Words() {}
-        Words(const Words &o) { assign(o.p, o.len); }
-        Words(Words &&o) noexcept { take(o); }
-        ~Words() { if (p != buf) { delete[] p; } }
-        Words &operator=(const Words &o) { if (this != &o) { assign(o.p, o.len); } return *this; }
-        Words &operator=(Words &&o) noexcept { if (this != &o) { if (p != buf) { delete[] p; } take(o); } return *this; }
-        void take(Words &o) {
-            len = o.len; cap = o.cap;
-            if (o.p != o.buf) { p = o.p; o.p = o.buf; o.cap = INLINE; } else { p = buf; for (int i = 0; i < len; ++i) { buf[i] = o.buf[i]; } }
-            o.len = 0;}
-        W *data() { return p; }
-        const W *data() const { return p; }
-        int size() const { return len; }
-        bool empty() const { return len == 0; }
-        W &operator[](int i) { return p[i]; }
-        W operator[](int i) const { return p[i]; }
-        W &back() { return p[len - 1]; }
-        W back() const { return p[len - 1]; }
-        W *begin() { return p; }
-        W *end() { return p + len; }
-        const W *begin() const { return p; }
-        const W *end() const { return p + len; }
-        void reserve(int c) {
-            if (c <= cap) { return; }
-            W *q = new W[c];
-            for (int i = 0; i < len; ++i) { q[i] = p[i]; }
-            if (p != buf) { delete[] p; }
-            p = q; cap = c;}
-        void setSize(int n) { reserve(n); len = n; }
-        void resize(int n, W v = 0) { reserve(n); if (n > len) { std::fill(p + len, p + n, v); } len = n; }
-        void assign(int n, W v) { setSize(n); std::fill(p, p + n, v); }
-        void assign(const W *q, int n) { setSize(n); for (int i = 0; i < n; ++i) { p[i] = q[i]; } }
-        void push_back(W w) { if (len == cap) { reserve(2 * cap); } p[len++] = w; }
-        void pop_back() { --len; }
-        void clear() { len = 0; }
-        friend bool operator==(const Words &a, const Words &b) { return a.len == b.len && std::equal(a.p, a.p + a.len, b.p); }
-    };
 } // namespace infint_detail
 template<int N> struct UInt;
 
@@ -1452,14 +1575,12 @@ struct InfInt {
     using WW = infint_detail::WW;
     using Words = infint_detail::Words;
     static constexpr const char *DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", *DIGITS_LOWER = "0123456789abcdefghijklmnopqrstuvwxyz";
+    static constexpr char DIGITS2[201] = "00010203040506070809101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899";
     static constexpr array<uint8_t, 256> DIGIT_VALUE = []() {
         array<uint8_t, 256> v{}; v.fill(255);
         for (int i = 0; i < 36; ++i) { v[size_t(DIGITS[i])] = uint8_t(i); if (i >= 10) { v[size_t(DIGITS[i] + 32)] = uint8_t(i); } }
         return v;}();
-    static constexpr array<uint, 10000> ITOS4 = []() {
-        array<uint, 10000> v{};
-        for (int i = 0; i < 10000; ++i) { v[size_t(i)] = uint(0x30303030 + i / 1000 + (i / 100 % 10 << 8) + (i / 10 % 10 << 16) + (i % 10 << 24)); }
-        return v;}();
+    static constexpr array<W, 20> POW10 = []() { array<W, 20> p{1}; for (size_t i = 1; i < 20; ++i) { p[i] = 10 * p[i - 1]; } return p; }();
     template<typename T> static constexpr bool isScalar = std::is_integral_v<T> && sizeof(T) <= 8 && !std::same_as<std::remove_cv_t<T>, bool>;
     template<typename T> static constexpr bool isIntegral = std::is_integral_v<T> || std::same_as<T, lll> || std::same_as<T, ulll>;
 
@@ -1481,6 +1602,16 @@ struct InfInt {
         fromDigits(int(digits.size()), base, [&](int i) { return digits[size_t(i)]; });
         trim(); sgn = isNil() ? 1 : sign;}
     template<int N> InfInt(const UInt<N> &u) { n.assign(u.w.data(), N); trim(); }
+    template<typename T> requires isIntegral<T> InfInt &operator=(T x) {
+        using U = std::conditional_t<(sizeof(T) > 8), ulll, ulng>;
+        bool neg = false;
+        if constexpr (std::is_signed_v<T> || std::same_as<T, lll>) { neg = x < 0; }
+        U u = neg ? U(0) - U(x) : U(x);
+        is_inf = false; sgn = 1 - 2 * neg;
+        if constexpr (sizeof(T) > 8) { W hi = W(u >> 64); n.setSize(1 + (hi != 0)); n[1] = hi; }   // the inline capacity holds two words
+        else { n.setSize(1); }
+        n[0] = W(u);
+        return *this;}
     // T: O(n), M: O(n); little-endian magnitude limbs (base 2^32 or 2^64) with a sign.
     static InfInt fromLimbs(const vector<uint> &limbs, int sign = 1) {
         assert(sign == 1 || sign == -1);
@@ -1529,21 +1660,21 @@ struct InfInt {
         InfInt r = randomBits(bits, rng);
         if (bits > 0) { r.n.back() |= W(1) << ((bits - 1) % 64); }
         return r;}
-    template<typename T> requires isIntegral<T> InfInt &operator=(T x) {
-        is_inf = false; sgn = 1; ulll u = ulll(x);
-        if constexpr (std::is_signed_v<T> || std::same_as<T, lll>) { if (x < 0) { sgn = -1; u = ulll(0) - u; } }
-        n.setSize(1); n[0] = W(u);
-        if (W hi = W(u >> 64)) { n.push_back(hi); }
-        return *this;}
 
     // T: O(1), M: O(1)
     bool isNil() const { return !is_inf && (n.empty() || (n.size() == 1 && n[0] == 0)); }
     explicit operator bool() const { return !isNil(); }
     void trim() {
         if (is_inf) { n.clear(); return; }
-        n.setSize(infint_detail::norm(n.data(), n.size()));
-        if (n.empty()) { n.push_back(0); sgn = 1; }}
+        int k = infint_detail::norm(n.data(), n.size());   // a shrink, so no reserve: GCC then inlines trim whole
+        n.len = max(k, 1);
+        if (!k) { n[0] = 0; sgn = 1; }}
     ulng low64() const { return n.empty() ? 0 : n[0]; }
+    bool fitsWord() const { return n.size() <= 1; }
+    // T: O(1), M: O(1); for one or two words, the second (zero for one) by a mask: a branch on the size would be mispredicted.
+    W high2() const { return n[n.size() - 1] & (W(0) - W(n.size() == 2)); }
+    // T: O(1), M: O(1); the one- or two-word magnitude signed by s.
+    lll low2(int s) const { lll m = s >> 1; return (lll(ulll(high2()) << 64 | n[0]) ^ m) - m; }
     // Bits [i, i + 64) of the magnitude.
     ulng bitsFrom(int i) const {
         int q = i / 64, r = i % 64;
@@ -1556,7 +1687,6 @@ struct InfInt {
         if (k % 64 && len == (k + 63) / 64) { r.n.back() &= (W(1) << (k % 64)) - 1; }
         r.trim();
         return r;}
-    bool fitsWord() const { return n.size() <= 1; }
     // T: O(1), M: O(1); finite values convert modulo 2^64 (two's complement), infinity saturates.
     explicit operator lng() const {
         if (is_inf) { return sgn == 1 ? LLONG_MAX : LLONG_MIN; }
@@ -1601,17 +1731,20 @@ struct InfInt {
     // S: O(M(n) * log(n)) powers for n words, U: NA, Q: O(1), M: O(n); radix conversion: blocks of DIGITS digits in base BP = base^DIGITS, cached powers BP^(2^j), each from CACHED_DIV words a prepared Divisor (blk = m) and from FFT words a spectrum for the parse;
     // for the scaled remainder tree per level the split's cyclic plan with the kept spectrum of the power below and per top level the inverse of its power with two spectra.
     struct Radix {
-        W bp; int digits; vector<vector<W>> pow, ctx, spec; vector<infint_detail::Divisor> div; vector<infint_detail::Spectrum> mulSpec;
+        W bp, inv; int digits, shift; vector<vector<W>> pow, ctx, spec; vector<infint_detail::Divisor> div; vector<infint_detail::Spectrum> mulSpec;
         struct Tree { int frac = 0; infint_detail::CyclicPlan plan{}; infint_detail::Spectrum spec; vector<W> buf; };
         struct Root { int frac = 0; infint_detail::FftPlan plan{}; infint_detail::CyclicPlan rem{}; infint_detail::Spectrum inv, mod; vector<W> buf; };
         vector<Tree> split; vector<Root> root;
     };
     static Radix &radix(uint base) {
-        static unordered_map<uint, Radix> cache;
-        Radix &r = cache[max(base, 2u)];
+        static array<Radix, 37> text;   // the text bases without hashing, the digit bases of toDigits / fromDigits in a map
+        static unordered_map<uint, Radix> other;
+        base = max(base, 2u);
+        Radix &r = base <= 36 ? text[base] : other[base];
         if (r.digits == 0) {
-            base = max(base, 2u); r.bp = base; r.digits = 1;
+            r.bp = base; r.digits = 1;
             while (r.bp <= ~W(0) / base) { r.bp *= base; ++r.digits; }
+            r.shift = std::countl_zero(r.bp); r.inv = infint_detail::invWord(r.bp << r.shift);
             r.pow.push_back({r.bp});}
         return r;}
     static const vector<W> &radixPow(Radix &r, int j) {
@@ -1659,12 +1792,26 @@ struct InfInt {
         else if (lh) { infint_detail::mulAny(out, hi, lh, p.data(), m); }
         infint_detail::addInto(out, cnt + 1, lo, ll);
         return infint_detail::norm(out, cnt + 1);}
+    // T: O(M(n) * log(n)), M: O(n); the value of the cnt little-endian blocks, inline when it fits the inline words (fromBlocks' basecase,
+    // taken up to RADIX blocks, writes at most cnt words).
+    void setBlocks(const W *blk, int cnt, Radix &r) {
+        if (cnt <= Words::INLINE + 1) { W tmp[Words::INLINE + 1] = {}; n.assign(tmp, fromBlocks(tmp, blk, cnt, r)); }
+        else { n.setSize(cnt + 1); n.setSize(fromBlocks(n.data(), blk, cnt, r)); }}
+    template<typename G> void fromDigits(int len, uint base, const G &get) {
+        Radix &r = radix(base);
+        int cnt = (len + r.digits - 1) / r.digits;
+        infint_detail::Scratch blk(size_t(max(cnt, 1)));
+        for (int b = 0; b < cnt; ++b) {
+            int hi = len - b * r.digits, lo = max(hi - r.digits, 0); W v = 0;
+            for (int i = lo; i < hi; ++i) { v = v * base + get(i); }
+            blk[b] = v;}
+        setBlocks(blk, cnt, r);}
     // T: O(M(n) * log(n)), M: O(n); the len words at v (destroyed) to little-endian blocks appended at out + cnt, padded to 2^(j + 1) blocks when pad.
     static void toBlocks(W *out, int &cnt, W *v, int len, int j, bool pad, Radix &r) {
         len = infint_detail::norm(v, len);
-        if (j < 0 || len <= infint_detail::RADIX) {
+        if (j < 0 || len <= infint_detail::PRINT_LEAF) {
             int start = cnt;
-            while (len) { out[cnt++] = infint_detail::divWord(v, v, len, r.bp); len = infint_detail::norm(v, len); }
+            while (len) { out[cnt++] = infint_detail::divNorm(v, v, len, r.bp << r.shift, r.inv, r.shift); len = infint_detail::norm(v, len); }
             if (pad) { int end = start + (2 << max(j, 0)); infint_detail::zero(out + cnt, end - cnt); cnt = end; }
             return;}
         const vector<W> &p = radixPow(r, j); int m = int(p.size()), lq = max(len - m + 1, 1);
@@ -1753,7 +1900,7 @@ struct InfInt {
         std::copy(w, w + len, v.p);
         len = infint_detail::norm(v, len);
         int j = -1, cnt = 0;
-        if (len > infint_detail::RADIX) {
+        if (len > infint_detail::PRINT_LEAF) {
             while (true) {
                 const vector<W> &p = radixPow(r, j + 1);
                 if (infint_detail::cmp(v, len, p.data(), int(p.size())) < 0) { break; }
@@ -1762,34 +1909,170 @@ struct InfInt {
         else { toBlocks(out, cnt, v, len, j, false, r); }
         while (cnt && out[cnt - 1] == 0) { --cnt; }
         return cnt;}
-    template<typename G> void fromDigits(int len, uint base, const G &get) {
-        Radix &r = radix(base);
-        int cnt = (len + r.digits - 1) / r.digits;
-        infint_detail::Scratch blk(size_t(max(cnt, 1)));
-        for (int b = 0; b < cnt; ++b) {
-            int hi = len - b * r.digits, lo = max(hi - r.digits, 0); W v = 0;
-            for (int i = lo; i < hi; ++i) { v = v * base + get(i); }
-            blk[b] = v;}
-        n.setSize(cnt + 1);
-        n.setSize(fromBlocks(n.data(), blk, cnt, r));}
-    static ulng parse8(const char *p) {
-        ulng v; std::memcpy(&v, p, 8);
+
+    static ulng dec8(ulng v) {
         v = (v & 0x0F0F0F0F0F0F0F0FULL) * 2561 >> 8;
         v = (v & 0x00FF00FF00FF00FFULL) * 6553601 >> 16;
         return (v & 0x0000FFFF0000FFFFULL) * 42949672960001ULL >> 32;}
+    // All eight bytes are decimal digits (each high nibble 3, and still 3 after adding 6).
+    static bool decWord(ulng w) { return ((w & 0xF0F0F0F0F0F0F0F0ULL) | (((w + 0x0606060606060606ULL) & 0xF0F0F0F0F0F0F0F0ULL) >> 4)) == 0x3333333333333333ULL; }
     // All eight bytes are hex digits: none above 0x7F and each '0'-'9' or, with bit 5 set, 'a'-'f'.
     static bool hexWord(ulng w) {
         constexpr ulng H = 0x8080808080808080ULL, L = 0x0101010101010101ULL;
         auto ge = [](ulng x, ulng k) { return ((x | H) - k * L) & H; };   // top bit of each byte: byte >= k (bytes below 0x80)
         ulng f = w | 0x2020202020202020ULL;
         return !(w & H) && ((ge(w, '0') & ~ge(w, '9' + 1)) | (ge(f, 'a') & ~ge(f, 'f' + 1))) == H;}
-    // T: O(L), M: O(1); the words of a digit string in base 2^bits into out; false when a character is not a digit of the base.
-    static bool parsePow2(Words &out, string_view s, int bits) {
-        int len = int(s.size());
-        out.assign(int(size_t(len) * size_t(bits) / 64) + 1, 0);
-        W *w = out.data();
-        int i = 0;
+    // The value of the eight hex digits in w (most significant first in memory), given hexWord(w).
+    static uint hex8(ulng w) {
+        w = (w & 0x0F0F0F0F0F0F0F0FULL) + 9 * ((w & 0x4040404040404040ULL) >> 6);
+        w = ((w << 4) | (w >> 8)) & 0x00FF00FF00FF00FFULL;
+        w = ((w << 8) | (w >> 16)) & 0x0000FFFF0000FFFFULL;
+        return uint((w << 16) | (w >> 32));}
+    // The len (1-8) bytes at s right-aligned in an eight-byte group (memory order) under '0' padding, from in-bounds loads only (two overlapping, or the first, middle and last byte).
+    static ulng group8(const char *s, int len) {
+        ulng pad = len == 8 ? 0 : 0x3030303030303030ULL >> (8 * len), g;
+        if (len >= 4) { uint a, b; std::memcpy(&a, s, 4); std::memcpy(&b, s + len - 4, 4); g = ulng(a) << (8 * (8 - len)) | ulng(b) << 32; }
+        else { g = ulng(uint8_t(s[0])) << (8 * (8 - len)) | ulng(uint8_t(s[len / 2])) << (8 * (8 - len + len / 2)) | ulng(uint8_t(s[len - 1])) << 56; }
+        return g | pad;}
+    // The value of the len (1-19) decimal digits at s and true, or false when a byte is not a digit.
+    static pair<W, bool> dec19(const char *s, int len) {
+        if (len <= 8) { ulng g = group8(s, len); return {dec8(g), decWord(g)}; }
+        int b = max(len - 16, 0);
+        ulng lo = group8(s + len - 8, 8), mid = group8(s + b, len - 8 - b), v = dec8(mid) * 100000000 + dec8(lo);
+        if (!b) { return {v, decWord(mid) & decWord(lo)}; }
+        ulng top = group8(s, b);
+        return {v + dec8(top) * 10000000000000000ULL, decWord(top) & decWord(mid) & decWord(lo)};}
+    // The value of the len (1-16) hex digits at s (either case) and true, or false when a byte is not a hex digit (returned in registers: no address-taken local).
+    static pair<W, bool> hex16(const char *s, int len) {
+#ifdef __AVX2__
+        // A byte above ' ' is a hex digit exactly when its value d prints back as the byte with bit 5 set (checked over all bytes).
+        __m128i x = len == 16 ? _mm_loadu_si128(reinterpret_cast<const __m128i *>(s)) : _mm_set_epi64x(lng(group8(s + max(len - 8, 0), min(len, 8))), lng(len > 8 ? group8(s, len - 8) : 0x3030303030303030ULL));
+        __m128i d = _mm_add_epi8(_mm_and_si128(x, _mm_set1_epi8(0x0F)), _mm_and_si128(_mm_cmpgt_epi8(x, _mm_set1_epi8('9')), _mm_set1_epi8(9)));
+        __m128i back = _mm_shuffle_epi8(_mm_setr_epi8('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'), d);
+        __m128i ok = _mm_and_si128(_mm_cmpeq_epi8(back, _mm_or_si128(x, _mm_set1_epi8(0x20))), _mm_cmpgt_epi8(x, _mm_set1_epi8(' ')));
+        d = _mm_maddubs_epi16(d, _mm_set1_epi16(0x0110));
+        W v = __builtin_bswap64(ulng(_mm_cvtsi128_si64(_mm_packus_epi16(d, d)))); bool valid = _mm_movemask_epi8(ok) == 0xFFFF;
+#else
+        ulng lo = group8(s + max(len - 8, 0), min(len, 8)), hi = len > 8 ? group8(s, len - 8) : 0x3030303030303030ULL;
+        W v = ulng(hex8(hi)) << 32 | hex8(lo); bool valid = hexWord(lo) & hexWord(hi);
+#endif
+        return {v, valid};}
+    // The eight decimal digits of v < 10^8 as bytes in memory order, most significant first: 4 + 4, 2 + 2 and 1 + 1 digits split in lanes by exact reciprocal products.
+    static ulng dec8Chars(uint v) {
+        ulng x = v / 10000 | ulng(v % 10000) << 32;
+        ulng q = (x * 10486 >> 20) & 0x0000007F0000007FULL; x = q | (x - 100 * q) << 16;
+        q = (x * 103 >> 10) & 0x000F000F000F000FULL; x = q | (x - 10 * q) << 8;
+        return x + 0x3030303030303030ULL;}
+    // The eight hex digits of v as bytes in memory order, most significant first; alpha is 'A' - '9' - 1 or 'a' - '9' - 1.
+    static ulng hex8Chars(uint v, int alpha) {
+        ulng w = v;
+        w = (w | (w << 16)) & 0x0000FFFF0000FFFFULL;
+        w = (w | (w << 8)) & 0x00FF00FF00FF00FFULL;
+        w = (w | (w << 4)) & 0x0F0F0F0F0F0F0F0FULL;
+        return __builtin_bswap64((w + 0x3030303030303030ULL) + ulng(alpha) * (((w + 0x3636363636363636ULL) & 0x4040404040404040ULL) >> 6));}
+    // The last cnt (1-8) bytes of the eight-byte group g (memory order) at o, by in-bounds stores only.
+    static void putTail(char *o, int cnt, ulng g) {
+        if (cnt >= 4) { uint a = uint(g >> (8 * (8 - cnt))), b = uint(g >> 32); std::memcpy(o, &a, 4); std::memcpy(o + cnt - 4, &b, 4); return; }
+        o[0] = char(g >> (8 * (8 - cnt))); o[cnt / 2] = char(g >> (8 * (8 - cnt + cnt / 2))); o[cnt - 1] = char(g >> 56);}
+    // The 16 hex digits of v at o (uppercase unless lower); returns the end.
+    static char *hex16Chars(char *o, W v, bool lower) {
+#ifdef __AVX2__
+        __m128i x = _mm_cvtsi64_si128(lng(__builtin_bswap64(v))), m = _mm_set1_epi8(0x0F);
+        x = _mm_unpacklo_epi8(_mm_and_si128(_mm_srli_epi16(x, 4), m), _mm_and_si128(x, m));
+        __m128i dig = lower ? _mm_setr_epi8('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f') : _mm_setr_epi8('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F');
+        _mm_storeu_si128(reinterpret_cast<__m128i *>(o), _mm_shuffle_epi8(dig, x));
+#else
+        ulng hi = hex8Chars(uint(v >> 32), lower ? 39 : 7), lo = hex8Chars(uint(v), lower ? 39 : 7);
+        std::memcpy(o, &hi, 8); std::memcpy(o + 8, &lo, 8);
+#endif
+        return o + 16;}
+    // The cnt hex digits of the normalized k-word magnitude w at o (uppercase unless lower), by in-bounds stores only: the top word's 1-16 digits, then 16 per lower word.
+    static void writeHex(char *o, int cnt, const W *w, int k, bool lower) {
+        int d = cnt - 16 * (k - 1);
+#ifdef __AVX2__
+        char g[16]; hex16Chars(g, w[k - 1], lower);   // the top word's groups from one vector conversion, kept in registers
+        ulng hi, lo; std::memcpy(&hi, g, 8); std::memcpy(&lo, g + 8, 8);
+#else
+        ulng lo = hex8Chars(uint(w[k - 1]), lower ? 39 : 7), hi = d > 8 ? hex8Chars(uint(w[k - 1] >> 32), lower ? 39 : 7) : 0;
+#endif
+        if (d <= 8) { putTail(o, d, lo); }
+        else { putTail(o, d - 8, hi); std::memcpy(o + d - 8, &lo, 8); }
+        for (int i = k - 2; i >= 0; --i, d += 16) { hex16Chars(o + d, w[i], lower); }}
+    // The decimal digits of v at o without leading zeros (one digit for zero); returns the end.
+    static char *writeDec(char *o, ulng v) {
+        auto lead = [&](uint x) { ulng g = dec8Chars(x); int d = max(1, 8 - std::countr_zero(g ^ 0x3030303030303030ULL) / 8); putTail(o, d, g); o += d; };
+        if (v < 100000000) { lead(uint(v)); return o; }
+        ulng hi = v / 100000000, lo = dec8Chars(uint(v % 100000000));
+        if (hi < 100000000) { lead(uint(hi)); }
+        else { lead(uint(hi / 100000000)); ulng mid = dec8Chars(uint(hi % 100000000)); std::memcpy(o, &mid, 8); o += 8; }
+        std::memcpy(o, &lo, 8); return o + 8;}
+#ifdef __AVX2__
+    // The 16 decimal digits of hi * 10^8 + lo (both below 10^8) as bytes, most significant first: 32-bit lanes x / 10^4 and x % 10^4, then
+    // 16-bit lanes / 100 and % 100, then bytes / 10 and % 10, by multiply-shift reciprocals.
+    static __m128i dec16Chars(W hi, W lo) {
+        __m128i x = _mm_set_epi64x(lng(lo), lng(hi)), q4 = _mm_srli_epi64(_mm_mul_epu32(x, _mm_set1_epi64x(0xD1B71759)), 45);
+        __m128i y = _mm_or_si128(q4, _mm_slli_epi64(_mm_sub_epi64(x, _mm_mul_epu32(q4, _mm_set1_epi64x(10000))), 32));
+        __m128i h = _mm_srli_epi16(_mm_mulhi_epu16(y, _mm_set1_epi32(5243)), 3);
+        __m128i z = _mm_or_si128(h, _mm_slli_epi32(_mm_sub_epi16(y, _mm_mullo_epi16(h, _mm_set1_epi32(100))), 16));
+        __m128i d = _mm_srli_epi16(_mm_mullo_epi16(z, _mm_set1_epi16(103)), 10);
+        return _mm_add_epi8(_mm_or_si128(d, _mm_slli_epi16(_mm_sub_epi16(z, _mm_mullo_epi16(d, _mm_set1_epi16(10))), 8)), _mm_set1_epi8('0'));}
+#endif
+    // The decimal digits of v at o without leading zeros (one digit for zero), 24 bytes of room: below 100 a table pair, below 10^8 one group, else no
+    // branch on the length, the digits shifted by the leading zeros (AVX2: the top four by one store, the low sixteen by a byte shuffle); returns the end.
+    static char *writeDec24(char *o, ulng v) {
+        if (v < 100) { std::memcpy(o, DIGITS2 + 2 * v + (v < 10), 2); return o + 1 + (v >= 10); }
+        int t = std::bit_width(v) * 1233 >> 12, len = t + (v >= POW10[size_t(t)]) + !v;
+        if (v < 100000000) { ulng g = dec8Chars(uint(v)); int z = std::countr_zero((g ^ 0x3030303030303030ULL) | 1ULL << 56) >> 3; g >>= 8 * z; std::memcpy(o, &g, 8); return o + 8 - z; }
+        ulng r = v % 10000000000000000ULL;
+#ifdef __AVX2__
+        alignas(32) static constexpr char SHIFT[32] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+        int z = 20 - len;   // leading zeros of the 20 digits
+        uint top = uint(dec8Chars(uint(v / 10000000000000000ULL)) >> 32) >> (8 * min(z, 3));   // the top four digits from the first nonzero one
+        std::memcpy(o, &top, 4);
+        _mm_storeu_si128(reinterpret_cast<__m128i *>(o + max(4 - z, 0)), _mm_shuffle_epi8(dec16Chars(r / 100000000, r % 100000000), _mm_loadu_si128(reinterpret_cast<const __m128i *>(SHIFT + max(z - 4, 0)))));
+#else
+        W g[5] = {dec8Chars(uint(v / 10000000000000000ULL)), dec8Chars(uint(r / 100000000)), dec8Chars(uint(r % 100000000)), 0, 0};
+        int z = 24 - len, s = 8 * (z & 7);
+        const W *a = g + z / 8;   // the words from the first digit's, indexed rather than selected: a selection compiles to branches
+        W w0 = W((ulll(a[1]) << 64 | a[0]) >> s), w1 = W((ulll(a[2]) << 64 | a[1]) >> s), w2 = a[2] >> s;
+        std::memcpy(o, &w0, 8); std::memcpy(o + 8, &w1, 8); std::memcpy(o + 16, &w2, 8);   // three stores: a 16-byte store built through memory would block forwarding
+#endif
+        return o + len;}
+    // The 19 decimal digits of v < 10^19 at o, leading zeros included: 3 digits, then 16 (vector lanes with AVX2); returns the end.
+    static char *dec19Chars(char *o, W v) {
+        W q = v / 10000000000000000ULL, r = v - q * 10000000000000000ULL, hi = r / 100000000, lo = r % 100000000;
+        o[0] = char('0' + q / 100); o[1] = char('0' + q / 10 % 10); o[2] = char('0' + q % 10);
+#ifdef __AVX2__
+        _mm_storeu_si128(reinterpret_cast<__m128i *>(o + 3), dec16Chars(hi, lo));
+#else
+        ulng a = dec8Chars(uint(hi)), c = dec8Chars(uint(lo));
+        std::memcpy(o + 3, &a, 8); std::memcpy(o + 11, &c, 8);
+#endif
+        return o + 19;}
+    // The decimal digits of the two-word magnitude hi:lo (hi > 0) at o, 44 bytes of room: below 10^38 one Moller-Granlund step at 10^19, else the top digit first.
+    static char *writeDec2(char *o, W hi, W lo) {
+        constexpr W E19 = 10000000000000000000ULL, INV = W(((WW(~E19) << 64) | ~W(0)) / E19);
+        constexpr WW E38 = WW(E19) * E19;
+        WW v = WW(hi) << 64 | lo;
+        bool full = v >= E38;
+        if (full) { int t = 1 + (v >= 2 * E38) + (v >= 3 * E38); *o++ = char('0' + t); v -= WW(t) * E38; }
+        W q, r = infint_detail::div2by1(q, W(v >> 64), W(v), E19, INV);
+        if (full) { o = dec19Chars(o, q); }
+        else { o = writeDec24(o, q); }
+        return dec19Chars(o, r);}
+    // The decimal text of cnt >= 2 little-endian 19-digit blocks at o: the top block without leading zeros, then each lower one padded to 19 digits.
+    [[gnu::noinline]] static void writeDecBlocks(char *o, const W *blk, int cnt) {
+        o = writeDec(o, blk[cnt - 1]);
+        for (int b = cnt - 2; b >= 0; --b, o += 19) { dec19Chars(o, blk[b]); }}
+
+    // T: O(L), M: O(1); the words of a digit string in base 2^bits or-ed into the zeroed w (L bits / 64 + 1 words); false when a character is not a digit of the base.
+    static bool parsePow2(W *w, string_view s, int bits) {
+        int len = int(s.size()), i = 0;
         if (bits == 4) {
+            if (int top = len % 8, j = len - top; top) {   // the top 1-7 digits as one group padded with '0'
+                ulng cur = group8(s.data(), top);
+                if (!hexWord(cur)) { return false; }
+                w[j / 16] |= W(hex8(cur)) << (32 * (j / 8 % 2));}
 #ifdef __AVX2__
             __m256i m0f = _mm256_set1_epi8(0x0F), v9 = _mm256_set1_epi8('9'), w16 = _mm256_set1_epi16(0x0110), w256 = _mm256_set1_epi32(0x00010100);
             __m256i rev = _mm256_setr_epi32(6, 4, 2, 0, 0, 0, 0, 0), ok = _mm256_set1_epi8(-1), zero = _mm256_setzero_si256();
@@ -1807,10 +2090,8 @@ struct InfInt {
             for (; i + 8 <= len; i += 8) {
                 ulng cur; std::memcpy(&cur, s.data() + len - i - 8, 8);
                 if (!hexWord(cur)) { return false; }
-                cur = (cur & 0x0F0F0F0F0F0F0F0FULL) + 9 * ((cur & 0x4040404040404040ULL) >> 6);
-                cur = ((cur << 4) | (cur >> 8)) & 0x00FF00FF00FF00FFULL;
-                cur = ((cur << 8) | (cur >> 16)) & 0x0000FFFF0000FFFFULL;
-                w[i / 16] |= W(uint((cur << 16) | (cur >> 32))) << (32 * (i / 8 % 2));}}
+                w[i / 16] |= W(hex8(cur)) << (32 * (i / 8 % 2));}
+            return true;}
         for (; i < len; ++i) {
             uint d = DIGIT_VALUE[size_t(uint8_t(s[size_t(len - i - 1)]))]; int bit = i * bits;
             if (d >> bits) { return false; }
@@ -1821,48 +2102,63 @@ struct InfInt {
     // to 23, "inf"; false and no change when malformed.
     bool read(string_view s, uint base = 10) {
         assert(base >= 2 && base <= 36);
-        base = std::clamp(base, 2u, 36u);
         int sign = 1;
         if (!s.empty() && (s[0] == '+' || s[0] == '-')) { sign = s[0] == '-' ? -1 : 1; s.remove_prefix(1); }
+        int len = int(s.size());
+        auto done = [&](W lo, W hi) { int k = hi ? 2 : lo != 0; is_inf = false; n.setSize(k); n.data()[0] = lo; n.data()[1] = hi; sgn = k ? sign : 1; return true; };
+        if (base == 16 && len >= 1 && len <= 32) {   // short tokens: one or two words from in-bounds groups
+            auto [lo, ok] = hex16(s.data() + max(len - 16, 0), min(len, 16));
+            if (ok && len <= 16) { return done(lo, 0); }
+            if (ok) { auto [hi, top] = hex16(s.data(), len - 16); if (top) { return done(lo, hi); } }}
+        if (base == 10 && len >= 1 && len <= 19) { auto [v, ok] = dec19(s.data(), len); if (ok) { return done(v, 0); } }
+        return readRest(s, std::clamp(base, 2u, 36u), sign);}
+    // The rest of read after the sign, out of line so the short tokens above need no frame: "inf", leading zeros, power-of-two bases, one word, decimal blocks, fromDigits.
+    [[gnu::noinline]] bool readRest(string_view s, uint base, int sign) {
         if (s.empty()) { return false; }
         if (base <= 23 && s.size() == 3 && (s[0] | 32) == 'i' && (s[1] | 32) == 'n' && (s[2] | 32) == 'f') { sgn = sign; is_inf = true; n.clear(); return true; }
         while (s.size() > 1 && s[0] == '0') { s.remove_prefix(1); }
         int len = int(s.size());
         if (std::has_single_bit(base)) {
-            Words v;
-            if (!parsePow2(v, s, std::countr_zero(base))) { return false; }
-            is_inf = false; n = std::move(v);}
+            int bits = std::countr_zero(base), words = int((size_t(len) * size_t(bits) + 63) / 64);
+            if (words <= Words::INLINE + 1) {   // a top digit below base / 2 can leave the fifth word zero
+                W tmp[Words::INLINE + 1] = {};
+                if (!parsePow2(tmp, s, bits)) { return false; }
+                is_inf = false; n.assign(tmp, infint_detail::norm(tmp, words));}
+            else {
+                Words v; v.assign(words, 0);
+                if (!parsePow2(v.data(), s, bits)) { return false; }
+                is_inf = false; n = std::move(v);}}
+        else if (base == 10) {   // 19-digit blocks from the end, each checked by three in-bounds groups, the top block of 1-19 digits by dec19
+            int cnt = (len + 18) / 19;
+            auto [top, ok] = dec19(s.data(), len - 19 * (cnt - 1));
+            infint_detail::Scratch blk(size_t(cnt) + 0);
+            for (int b = 0; b + 1 < cnt; ++b) {
+                const char *p = s.data() + len - 19 * (b + 1);
+                ulng x, y, z; std::memcpy(&x, p, 8); std::memcpy(&y, p + 8, 8); std::memcpy(&z, p + 11, 8);
+                ok &= decWord(x) & decWord(y) & decWord(z);
+                blk[b] = (dec8(x) * 100000000 + dec8(y)) * 1000 + ulng(p[16] - '0') * 100 + ulng(p[17] - '0') * 10 + ulng(p[18] - '0');}
+            if (!ok) { return false; }
+            is_inf = false; blk[cnt - 1] = top;
+            setBlocks(blk, cnt, radix(10));}
         else {
             if (std::any_of(s.begin(), s.end(), [&](char c) { return DIGIT_VALUE[size_t(uint8_t(c))] >= base; })) { return false; }
             is_inf = false;
-            if (len <= 12 || (base == 10 && len <= 19)) {   // one word
+            if (len <= 12) {   // one word
                 W v = 0;
                 for (char c : s) { v = v * base + DIGIT_VALUE[size_t(uint8_t(c))]; }
                 n.setSize(1); n[0] = v;}
-            else if (base == 10) {
-                Radix &r = radix(10); int cnt = (len + 18) / 19;
-                infint_detail::Scratch blk(size_t(cnt) + 0);
-                for (int b = 0; b + 1 < cnt; ++b) {
-                    const char *p = s.data() + len - 19 * (b + 1);
-                    blk[b] = (parse8(p) * 100000000 + parse8(p + 8)) * 1000 + ulng(p[16] - '0') * 100 + ulng(p[17] - '0') * 10 + ulng(p[18] - '0');}
-                W top = 0;
-                for (int i = 0; i < len - 19 * (cnt - 1); ++i) { top = top * 10 + ulng(s[size_t(i)] - '0'); }
-                blk[cnt - 1] = top;
-                n.setSize(cnt + 1);
-                n.setSize(fromBlocks(n.data(), blk, cnt, r));}
             else { fromDigits(len, base, [&](int i) { return uint(DIGIT_VALUE[size_t(uint8_t(s[size_t(i)]))]); }); }}
         trim(); sgn = isNil() ? 1 : sign;
         return true;}
     // The cnt digits of the magnitude w in base 2^bits, most significant first, at out.
     static void writePow2(char *out, int cnt, const W *w, int len, int bits, bool lower) {
-        const char *dig = lower ? DIGITS_LOWER : DIGITS;
-        int i = 0;
         if (bits == 4) {
-            char *o = out + cnt, alpha = lower ? 39 : 7;   // 'a' - '9' - 1 or 'A' - '9' - 1
+            int i = 0;
 #ifdef __AVX2__
+            char alpha = lower ? 39 : 7;   // 'a' - '9' - 1 or 'A' - '9' - 1
             __m256i m16 = _mm256_set1_epi64x(0x0000FFFF0000FFFFLL), m8 = _mm256_set1_epi64x(0x00FF00FF00FF00FFLL), m4 = _mm256_set1_epi64x(0x0F0F0F0F0F0F0F0FLL);
             __m256i rev = _mm256_setr_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
-            for (; i + 32 <= cnt; i += 32) {
+            for (; i + 32 < cnt; i += 32) {
                 __m256i cur = _mm256_cvtepu32_epi64(_mm_loadu_si128(reinterpret_cast<const __m128i *>(w + i / 16)));
                 cur = _mm256_and_si256(_mm256_or_si256(cur, _mm256_slli_epi64(cur, 16)), m16);
                 cur = _mm256_and_si256(_mm256_or_si256(cur, _mm256_slli_epi64(cur, 8)), m8);
@@ -1870,30 +2166,53 @@ struct InfInt {
                 __m256i alp = _mm256_cmpgt_epi8(cur, _mm256_set1_epi8(9));
                 cur = _mm256_add_epi8(_mm256_add_epi8(cur, _mm256_set1_epi8('0')), _mm256_and_si256(alp, _mm256_set1_epi8(alpha)));
                 cur = _mm256_shuffle_epi8(cur, rev); cur = _mm256_permute2x128_si256(cur, cur, 1);
-                o -= 32; _mm256_storeu_si256(reinterpret_cast<__m256i *>(o), cur);}
+                _mm256_storeu_si256(reinterpret_cast<__m256i *>(out + cnt - i - 32), cur);}
 #endif
-            for (; i + 8 <= cnt; i += 8) {
-                ulng cur = uint(w[i / 16] >> (32 * (i / 8 % 2)));
-                cur = (cur | (cur << 16)) & 0x0000FFFF0000FFFFULL;
-                cur = (cur | (cur << 8)) & 0x00FF00FF00FF00FFULL;
-                cur = (cur | (cur << 4)) & 0x0F0F0F0F0F0F0F0FULL;
-                cur = __builtin_bswap64((cur + 0x3030303030303030ULL) + ulng(alpha) * (((cur + 0x3636363636363636ULL) & 0x4040404040404040ULL) >> 6));
-                o -= 8; std::memcpy(o, &cur, 8);}}
-        for (; i < cnt; ++i) {
+            writeHex(out, cnt - i, w + i / 16, (cnt - i + 15) / 16, lower);   // the top 1-32 digits, all of them without AVX2
+            return;}
+        const char *dig = lower ? DIGITS_LOWER : DIGITS;
+        for (int i = 0; i < cnt; ++i) {
             int bit = i * bits; W d = w[bit / 64] >> (bit % 64);
             if (bit % 64 + bits > 64 && bit / 64 + 1 < len) { d |= w[bit / 64 + 1] << (64 - bit % 64); }
             out[cnt - 1 - i] = dig[d & ((W(1) << bits) - 1)];}}
+    // The digits of a magnitude of bits bits at k (1-5) bits per digit, by constant divisors (a runtime k would cost a division).
+    static int pow2Digits(int bits, int k) {
+        switch (k) {
+            case 1: return bits;
+            case 2: return (bits + 1) / 2;
+            case 3: return (bits + 2) / 3;
+            case 4: return (bits + 3) / 4;
+            default: return (bits + 4) / 5;}}
     // T: O(1), M: O(1); an upper bound on the length toChars writes in base 2-36, sign included.
     int charsBound(uint base = 10) const {
         assert(base >= 2 && base <= 36);
         if (is_inf) { return 4; }
-        int bits = max(bitLength(*this), 1), k = std::bit_width(std::clamp(base, 2u, 36u)) - 1;
-        return (bits + k - 1) / k + 1;}
+        return pow2Digits(max(bitLength(*this), 1), std::bit_width(std::clamp(base, 2u, 36u)) - 1) + 1;}
     // T: O(L) for power-of-two bases and one-word values, O(M(L) * log(L)) otherwise, M: O(L / w); the text of toString into [first, last): the end
     // pointer, or last with errc::value_too_large and nothing written when the room is short.
     std::to_chars_result toChars(char *first, char *last, uint base = 10, bool lower = false) const {
         assert(base >= 2 && base <= 36);
-        base = std::clamp(base, 2u, 36u);
+        int k = n.size(), neg = sgn == -1;
+        if (base == 16 && !is_inf && uint(k - 1) < 2 && last - first > 32) {   // one or two words (zero as one zero word) with room for two whole groups: the top word shifted to its first digit, then the low word (past the end for one word)
+            int top = 16 - (std::countl_zero(n[k - 1] | 1) >> 2);
+            *first = '-'; first += neg;
+            hex16Chars(first, n[k - 1] << (64 - 4 * top), lower); hex16Chars(first + top, n[0], lower);
+            return {first + top + 16 * (k - 1), std::errc()};}
+        if (base == 10 && !is_inf && k == 1 && last - first > 20) {   // one word with room for 20 digits and a sign, by writeDec24 when 24 bytes remain (the base first: a size test first would be mispredicted in other bases)
+            *first = '-'; first += neg;
+            return {last - first >= 24 ? writeDec24(first, n[0]) : writeDec(first, n[0]), std::errc()};}
+        if (base == 10 && !is_inf && k == 2 && last - first > 44) {   // two words with room for 44 bytes and a sign
+            *first = '-'; first += neg;
+            return {writeDec2(first, n[1], n[0]), std::errc()};}
+        if (base == 16 && !is_inf && uint(k - 1) < 4 && n[k - 1]) {   // one to four words in the exact room (the one-zero-word zero excluded)
+            int cnt = 16 * k - (std::countl_zero(n[k - 1]) >> 2);
+            if (last - first < cnt + neg) { return {last, std::errc::value_too_large}; }
+            *first = '-'; first += neg;
+            writeHex(first, cnt, n.data(), k, lower);
+            return {first + cnt, std::errc()};}
+        return toCharsRest(first, last, std::clamp(base, 2u, 36u), lower);}
+    // The rest of toChars, out of line so the short values above need no frame: the sentinel, zero, power-of-two bases, one word, the radix blocks.
+    [[gnu::noinline]] std::to_chars_result toCharsRest(char *first, char *last, uint base, bool lower) const {
         auto put = [&](const char *s, int len) -> std::to_chars_result {
             if (last - first < len) { return {last, std::errc::value_too_large}; }
             std::memcpy(first, s, size_t(len));
@@ -1903,7 +2222,7 @@ struct InfInt {
         int neg = sgn == -1;
         const char *dig = lower ? DIGITS_LOWER : DIGITS;
         if (std::has_single_bit(base)) {
-            int b = std::countr_zero(base), cnt = (bitLength(*this) + b - 1) / b;
+            int b = std::countr_zero(base), cnt = pow2Digits(bitLength(*this), b);
             if (last - first < cnt + neg) { return {last, std::errc::value_too_large}; }
             if (neg) { *first++ = '-'; }
             writePow2(first, cnt, n.data(), n.size(), b, lower);
@@ -1911,24 +2230,21 @@ struct InfInt {
         if (n.size() == 1) {   // one word
             char buf[65]; W v = n[0]; int len = 0;
             buf[0] = '-';
-            if (base == 10) { len = int(std::to_chars(buf + 1, buf + 25, v).ptr - buf - 1); }
+            if (base == 10) { len = int(writeDec(buf + 1, v) - buf - 1); }
             else { for (; v; v /= base) { buf[1 + len++] = dig[v % base]; } std::reverse(buf + 1, buf + 1 + len); }
             return put(buf + 1 - neg, len + neg);}
         Radix &r = radix(base);
+        lng bits = bitLength(*this) - 1, least = (base == 10 ? bits * 1233 >> 12 : bits * r.digits / (64 - r.shift)) + 1;   // digits of 2^bits at least (log10(2) > 1233 / 2^12, base^digits < 2^(64 - shift))
+        if (last - first < least + neg) { return {last, std::errc::value_too_large}; }   // short without a conversion
         infint_detail::Scratch blk(4 * size_t(n.size()) + 4);
         int cnt = toBlocks(blk, n.data(), n.size(), r), top = 0;
-        for (W v = blk[cnt - 1]; v; v /= base) { ++top; }
+        if (base == 10) { W v = blk[cnt - 1]; int t = std::bit_width(v) * 1233 >> 12; top = t + (v >= POW10[size_t(t)]); }   // log10(2) ~ 1233 / 2^12, one power to settle
+        else { for (W v = blk[cnt - 1]; v; v /= base) { ++top; } }
         int len = top + (cnt - 1) * r.digits;
         if (last - first < len + neg) { return {last, std::errc::value_too_large}; }
         if (neg) { *first++ = '-'; }
         char *end = first + len;
-        if (base == 10) {
-            char *o = std::to_chars(first, end, blk[cnt - 1]).ptr;
-            for (int b = cnt - 2; b >= 0; --b, o += 19) {
-                W v = blk[b];
-                for (int g = 3; g >= 0; --g) { std::memcpy(o + 3 + 4 * g, &ITOS4[size_t(v % 10000)], 4); v /= 10000; }
-                o[0] = char('0' + v / 100); o[1] = char('0' + v / 10 % 10); o[2] = char('0' + v % 10);}
-            return {end, std::errc()};}
+        if (base == 10) { writeDecBlocks(first, blk, cnt); return {end, std::errc()}; }
         char *o = end;
         for (int b = 0; b + 1 < cnt; ++b) {
             W v = blk[b];
@@ -1955,6 +2271,7 @@ struct InfInt {
         while (z + 1 < out.size() && out[z] == 0) { ++z; }
         out.erase(out.begin(), out.begin() + ptrdiff_t(z));
         return out;}
+
     // Magnitude helpers on words: |this| += |o|, |this| -= |o| (|this| >= |o|), |this| = |o| - |this| (|o| > |this|); o may be *this.
     void addMag(const InfInt &o) {
         int k = max(n.size(), o.n.size());
@@ -1962,12 +2279,18 @@ struct InfInt {
         if (n.size() < k) { n.resize(k); }
         W c = infint_detail::add(n.data(), n.data(), k, o.n.data(), o.n.size());
         if (c) { n.push_back(c); }}
+    void subMag(const InfInt &o) { infint_detail::sub(n.data(), n.data(), n.size(), o.n.data(), o.n.size()); trim(); }
+    void rsubMag(const InfInt &o) {
+        int k = n.size(); n.resize(o.n.size());
+        infint_detail::sub(n.data(), o.n.data(), o.n.size(), n.data(), k);
+        trim();}
     // r (k = max words) = |a| + |b|, returns the carry.
     static W addInto(W *r, const InfInt &a, const InfInt &b) {
         const InfInt &x = a.n.size() >= b.n.size() ? a : b, &y = a.n.size() >= b.n.size() ? b : a;
         return infint_detail::add(r, x.n.data(), x.n.size(), y.n.data(), y.n.size());}
     // a + sb * |b| in one pass over the words; the sentinel and zero cases go through the compound forms.
     static InfInt combine(const InfInt &a, const InfInt &b, int sb) {
+        if (small2(a, b)) { return a.low2(a.sgn) + b.low2(sb); }
         if (a.is_inf || b.is_inf || a.isNil() || b.isNil()) { InfInt r = a; if (sb == b.sgn) { r += b; } else { r -= b; } return r; }
         InfInt r;
         if (a.sgn == sb) {
@@ -1983,13 +2306,11 @@ struct InfInt {
         infint_detail::sub(r.n.data(), x.n.data(), x.n.size(), y.n.data(), y.n.size());
         r.trim();
         return r;}
-    void subMag(const InfInt &o) { infint_detail::sub(n.data(), n.data(), n.size(), o.n.data(), o.n.size()); trim(); }
-    void rsubMag(const InfInt &o) {
-        int k = n.size(); n.resize(o.n.size());
-        infint_detail::sub(n.data(), o.n.data(), o.n.size(), n.data(), k);
-        trim();}
+    // One or two words each (the sentinel has none) below 2^126: their sum and difference fit 128 bits.
+    static bool small2(const InfInt &a, const InfInt &b) { return uint(a.n.size() - 1) < 2 && uint(b.n.size() - 1) < 2 && !((a.high2() | b.high2()) >> 62); }
     // inf + x = inf, inf + (-inf) = 0.
     InfInt &operator+=(const InfInt &o) {
+        if (small2(*this, o)) { return *this = low2(sgn) + o.low2(o.sgn); }   // the exact sum in 128 bits
         if (is_inf || o.is_inf) {
             if (is_inf && o.is_inf && sgn != o.sgn) { return *this = 0; }
             if (o.is_inf) { sgn = o.sgn; is_inf = true; }
@@ -2004,6 +2325,7 @@ struct InfInt {
         else { rsubMag(o); sgn = o.sgn; }
         return *this;}
     InfInt &operator-=(const InfInt &o) {
+        if (small2(*this, o)) { return *this = low2(sgn) - o.low2(o.sgn); }
         if (this == &o) { return *this = 0; }
         if (is_inf || o.is_inf) {
             if (is_inf && o.is_inf && sgn == o.sgn) { return *this = 0; }
@@ -2048,6 +2370,11 @@ struct InfInt {
         return *this;}
     // T: O(M(n)), M: O(n); squares when both operands are the same object or equal.
     InfInt &operator*=(const InfInt &o) {
+        if (n.size() == 1 && o.n.size() == 1) {   // one word each, a zero stored as one zero word included
+            ulll p = ulll(n[0]) * o.n[0];
+            sgn = p ? sgn * o.sgn : 1; n[0] = W(p);
+            if (W hi = W(p >> 64)) { n.push_back(hi); }
+            return *this;}
         if (isNil() || o.isNil()) { return *this = 0; }
         if (is_inf || o.is_inf) { sgn *= o.sgn; is_inf = true; n.clear(); return *this; }
         if (o.fitsWord()) { int os = o.sgn; *this *= o.n[0]; sgn *= os; return *this; }
@@ -2116,6 +2443,15 @@ struct InfInt {
         return out;}
     // T: O(M(n) * log(n)), O(n) for a power-of-two divisor, M: O(n); truncating quotient and remainder (remainder keeps a's sign).
     friend pair<InfInt, InfInt> divMod(const InfInt &a, const InfInt &b) {
+        if (a.n.size() == 1 && b.n.size() == 1 && b.n[0]) {   // one word each (the sentinel has none)
+            pair<InfInt, InfInt> out;
+            W q = a.n[0] / b.n[0], r = a.n[0] % b.n[0];
+            out.first = q; out.second = r;
+            out.first.sgn = q ? a.sgn * b.sgn : 1; out.second.sgn = r ? a.sgn : 1;
+            return out;}
+        return divModRest(a, b);}
+    // The rest of divMod, out of line so that one-word operands need no call.
+    [[gnu::noinline]] static pair<InfInt, InfInt> divModRest(const InfInt &a, const InfInt &b) {
         pair<InfInt, InfInt> out;
         if (divSentinel(a, b, out)) { return out; }
         int qs = a.sgn * b.sgn, rs = a.sgn;
@@ -2153,6 +2489,7 @@ struct InfInt {
     friend InfInt operator%(InfInt a, const InfInt &b) { a %= b; return a; }
     template<typename T> requires isScalar<T> friend InfInt operator%(InfInt a, T b) { a %= b; return a; }
     friend InfInt abs(InfInt a) { a.sgn = 1; return a; }
+
     // Rounded division modes on finite operands, b != 0: floor, ceiling and Euclidean (remainder in [0, |b|)).
     friend pair<InfInt, InfInt> divModFloor(const InfInt &a, const InfInt &b) {
         assert(!a.is_inf && !b.is_inf);
@@ -2206,6 +2543,18 @@ struct InfInt {
             auto [q, r] = divMod(x, f);
             if (!r.isNil()) { return cnt; }
             x = std::move(q); ++cnt;}}
+    // T: O(M(n)), M: O(n); floor(2^(64 n) / a) for a finite positive a of n 32-bit limbs with its top limb bit set (n + 1 limbs, exact).
+    friend InfInt newtonRaphsonInv(const InfInt &a) {
+        assert(!a.is_inf && a.sgn == 1 && !a.isNil() && bitLength(a) % 32 == 0);
+        if (a.is_inf || a.isNil() || bitLength(a) % 32) { return 0; }
+        bool odd = !(a.n.back() >> 32);
+        InfInt x = a, r;
+        if (odd) { x <<= 32; }
+        r.n.setSize(x.n.size() + 1);
+        infint_detail::invertExact(r.n.data(), x.n.data(), x.n.size());
+        r.trim();
+        if (odd) { r >>= 32; }
+        return r;}
 
     friend std::strong_ordering magCmp(const InfInt &a, const InfInt &b) {
         if (a.is_inf || b.is_inf) { return int(a.is_inf) <=> int(b.is_inf); }
@@ -2333,22 +2682,6 @@ struct InfInt {
         int t = ctz(a);
         if (i <= t) { return i == t; }
         return i / 64 >= a.n.size() || !(a.n[i / 64] >> (i % 64) & 1);}
-    friend int scan1(const InfInt &a, int i) {
-        assert(!a.is_inf && i >= 0);
-        if (a.is_inf) { return -1; }
-        i = max(i, 0); int ext; Words v = twosComplement(a, ext);
-        for (int k = i / 64; k < v.size(); ++k) {
-            W x = v[k] & (k == i / 64 ? ~W(0) << (i % 64) : ~W(0));
-            if (x) { return 64 * k + std::countr_zero(x); }}
-        return ext ? max(i, 64 * v.size()) : -1;}
-    friend int scan0(const InfInt &a, int i) {
-        assert(!a.is_inf && i >= 0);
-        if (a.is_inf) { return -1; }
-        i = max(i, 0); int ext; Words v = twosComplement(a, ext);
-        for (int k = i / 64; k < v.size(); ++k) {
-            W x = ~v[k] & (k == i / 64 ? ~W(0) << (i % 64) : ~W(0));
-            if (x) { return 64 * k + std::countr_zero(x); }}
-        return ext ? -1 : max(i, 64 * v.size());}
     InfInt &setBit(int i) {
         assert(!is_inf && i >= 0);
         if (is_inf || i < 0) { return *this; }
@@ -2363,6 +2696,23 @@ struct InfInt {
         if (i / 64 < n.size()) { n[i / 64] &= ~(W(1) << (i % 64)); trim(); }
         return *this;}
     InfInt &flipBit(int i) { return testBit(*this, i) ? clearBit(i) : setBit(i); }
+    friend int scan0(const InfInt &a, int i) {
+        assert(!a.is_inf && i >= 0);
+        if (a.is_inf) { return -1; }
+        i = max(i, 0); int ext; Words v = twosComplement(a, ext);
+        for (int k = i / 64; k < v.size(); ++k) {
+            W x = ~v[k] & (k == i / 64 ? ~W(0) << (i % 64) : ~W(0));
+            if (x) { return 64 * k + std::countr_zero(x); }}
+        return ext ? -1 : max(i, 64 * v.size());}
+    friend int scan1(const InfInt &a, int i) {
+        assert(!a.is_inf && i >= 0);
+        if (a.is_inf) { return -1; }
+        i = max(i, 0); int ext; Words v = twosComplement(a, ext);
+        for (int k = i / 64; k < v.size(); ++k) {
+            W x = v[k] & (k == i / 64 ? ~W(0) << (i % 64) : ~W(0));
+            if (x) { return 64 * k + std::countr_zero(x); }}
+        return ext ? max(i, 64 * v.size()) : -1;}
+
     // Half-GCD machinery: 2x2 cofactor matrices [[A, B], [C, D]] applied as (a, b) <- (A a + B b, C a + D b).
     static bool isIdentity(const InfInt &ma, const InfInt &mb, const InfInt &mc, const InfInt &md) { return ma == 1 && mb.isNil() && mc.isNil() && md == 1; }
     static void eucStep(InfInt q, InfInt &ma, InfInt &mb, InfInt &mc, InfInt &md) {
@@ -2531,6 +2881,7 @@ struct InfInt {
         if (g != 1) { return -1; }
         if (x.sgn == -1) { x += mod; }
         return x;}
+
     // T: O(M(n * e)), M: O(n * e); nonnegative exponent; inf^0 = 1.
     friend InfInt pow(InfInt a, lng e) {
         assert(e >= 0);
@@ -2546,7 +2897,7 @@ struct InfInt {
     struct ModCtx {
         int k = 0; bool mont = false; Words m, minv, r2, ctx, t, u, v; infint_detail::Divisor dv;
         ModCtx(const InfInt &modulus, bool montgomery) {
-            m = modulus.n; k = m.size(); mont = montgomery && (m[0] & 1) && k >= infint_detail::MONTGOMERY_POW;
+            m = modulus.n; k = m.size(); mont = montgomery && k >= infint_detail::MONTGOMERY_POW && (m[0] & 1);
             t.setSize(2 * k + 1); u.setSize(k); v.setSize(2 * k);
             if (mont) {
                 minv.assign(k, 0); Words y; y.assign(k, 0);
@@ -2642,6 +2993,7 @@ struct InfInt {
         ModCtx ctx(mod, int(mod.n.size()) < infint_detail::CACHED_DIV);
         auto mulMod = [&](Words &x, const Words &y) { ctx.mul(x, y); };
         return ctx.leave(window(ctx.enter(a), mulMod));}
+
     // T: O(M(n)), M: O(n); Zimmermann's recursive square root with remainder on words, a has n = 4l words with a[n - 1] >= 2^62; s n / 2 words, r n / 2 + 1.
     static void sqrtRemWords(W *s, W *r, const W *a, int nn) {
         if (nn <= 2) {
@@ -2777,6 +3129,7 @@ struct InfInt {
                 reject = r != 0 && powMod64(r, (q - 1) / ulng(p), q) != 1;}
             if (!reject && check(p)) { return true; }}
         return false;}
+
     static int jacobi64(ulng a, ulng m) {
         int res = 1;
         while (a) {
@@ -2864,18 +3217,6 @@ struct InfInt {
             qk = ctx.mul(qk, qk);
             if (v.isNil()) { return true; }}
         return false;}
-    // T: O(M(n)), M: O(n); floor(2^(64 n) / a) for a finite positive a of n 32-bit limbs with its top limb bit set (n + 1 limbs, exact).
-    friend InfInt newtonRaphsonInv(const InfInt &a) {
-        assert(!a.is_inf && a.sgn == 1 && !a.isNil() && bitLength(a) % 32 == 0);
-        if (a.is_inf || a.isNil() || bitLength(a) % 32) { return 0; }
-        bool odd = !(a.n.back() >> 32);
-        InfInt x = a, r;
-        if (odd) { x <<= 32; }
-        r.n.setSize(x.n.size() + 1);
-        infint_detail::invertExact(r.n.data(), x.n.data(), x.n.size());
-        r.trim();
-        if (odd) { r >>= 32; }
-        return r;}
 
     // T: O(1), M: O(1); stream base manipulator: per-stream iword, default 10; std::hex and std::oct flags also apply.
     struct SetBase { uint base; explicit SetBase(uint b) : base(b) {} };
@@ -2925,19 +3266,22 @@ template<int N> struct UInt {
         if (a.sgn == -1 && !a.isNil()) { *this = -*this; }}
     explicit UInt(string_view s, uint base = 10) : UInt(InfInt(s, base)) {}
     template<int M> explicit UInt(const UInt<M> &o) { std::copy(o.w.begin(), o.w.begin() + (M < N ? M : N), w.begin()); }
-    string toString(uint base = 10, bool lower = false) const { return InfInt(*this).toString(base, lower); }
-    explicit operator ulng() const { return w[0]; }
+
     explicit operator bool() const { return std::ranges::any_of(w, [](W x) { return x != 0; }); }
     int words() const { return infint_detail::norm(w.data(), N); }
-    friend int bitLength(const UInt &a) { int k = a.words(); return k ? 64 * k - std::countl_zero(a.w[size_t(k) - 1]) : 0; }
-    friend int ctz(const UInt &a) {
-        for (int i = 0; i < N; ++i) { if (a.w[size_t(i)]) { return 64 * i + std::countr_zero(a.w[size_t(i)]); } }
-        return 0;}
-    friend int popcount(const UInt &a) { int c = 0; for (W x : a.w) { c += std::popcount(x); } return c; }
+    explicit operator ulng() const { return w[0]; }
+
+    string toString(uint base = 10, bool lower = false) const { return InfInt(*this).toString(base, lower); }
 
     UInt &operator+=(const UInt &o) { infint_detail::add(w.data(), w.data(), N, o.w.data(), N); return *this; }
     UInt &operator-=(const UInt &o) { infint_detail::sub(w.data(), w.data(), N, o.w.data(), N); return *this; }
+
     UInt &operator*=(const UInt &o) { array<W, N> r; infint_detail::truncatedMul(r.data(), w.data(), o.w.data(), N); w = r; return *this; }
+    // T: O(N), M: O(1); in-place quotient by a word d != 0, returns the remainder.
+    W divWord(W d) {
+        assert(d != 0);
+        int n = d ? words() : 0;
+        return n ? infint_detail::divWord(w.data(), w.data(), n, d) : 0;}
     // T: O(N^2), M: O(N); quotient and remainder, o != 0.
     friend pair<UInt, UInt> divMod(const UInt &a, const UInt &o) {
         int n = a.words(), m = o.words();
@@ -2950,14 +3294,24 @@ template<int N> struct UInt {
         return {q, r};}
     UInt &operator/=(const UInt &o) { return *this = divMod(*this, o).first; }
     UInt &operator%=(const UInt &o) { return *this = divMod(*this, o).second; }
-    // T: O(N), M: O(1); in-place quotient by a word d != 0, returns the remainder.
-    W divWord(W d) {
-        assert(d != 0);
-        int n = d ? words() : 0;
-        return n ? infint_detail::divWord(w.data(), w.data(), n, d) : 0;}
-    UInt &operator&=(const UInt &o) { for (int i = 0; i < N; ++i) { w[size_t(i)] &= o.w[size_t(i)]; } return *this; }
-    UInt &operator|=(const UInt &o) { for (int i = 0; i < N; ++i) { w[size_t(i)] |= o.w[size_t(i)]; } return *this; }
-    UInt &operator^=(const UInt &o) { for (int i = 0; i < N; ++i) { w[size_t(i)] ^= o.w[size_t(i)]; } return *this; }
+
+    UInt operator-() const { UInt r = ~*this; W one[1] = {1}; infint_detail::add(r.w.data(), r.w.data(), N, one, 1); return r; }
+    friend UInt operator+(UInt a, const UInt &b) { a += b; return a; }
+    friend UInt operator-(UInt a, const UInt &b) { a -= b; return a; }
+    friend UInt operator*(UInt a, const UInt &b) { a *= b; return a; }
+    friend UInt operator/(const UInt &a, const UInt &b) { return divMod(a, b).first; }
+    friend UInt operator%(const UInt &a, const UInt &b) { return divMod(a, b).second; }
+    // T: O(N^2), M: O(N); the high N words of the 2N-word product.
+    friend UInt mulHigh(const UInt &a, const UInt &b) {
+        W r[2 * N]; infint_detail::mulBasecase(r, a.w.data(), N, b.w.data(), N);
+        UInt h; std::copy(r + N, r + 2 * N, h.w.begin());
+        return h;}
+
+    friend std::strong_ordering operator<=>(const UInt &a, const UInt &b) {
+        for (int i = N - 1; i >= 0; --i) { if (a.w[size_t(i)] != b.w[size_t(i)]) { return a.w[size_t(i)] <=> b.w[size_t(i)]; } }
+        return std::strong_ordering::equal;}
+    friend bool operator==(const UInt &a, const UInt &b) { return a.w == b.w; }
+
     // T: O(N), M: O(1); shift counts in [0, 64 N); bits leave at the ends.
     UInt &operator<<=(int s) {
         assert(s >= 0 && s < 64 * N);
@@ -2977,27 +3331,21 @@ template<int N> struct UInt {
             if (r && i + q + 1 < N) { x |= w[size_t(i + q + 1)] << (64 - r); }
             w[size_t(i)] = x;}
         return *this;}
-    UInt operator~() const { UInt r; for (int i = 0; i < N; ++i) { r.w[size_t(i)] = ~w[size_t(i)]; } return r; }
-    UInt operator-() const { UInt r = ~*this; W one[1] = {1}; infint_detail::add(r.w.data(), r.w.data(), N, one, 1); return r; }
-    friend UInt operator+(UInt a, const UInt &b) { a += b; return a; }
-    friend UInt operator-(UInt a, const UInt &b) { a -= b; return a; }
-    friend UInt operator*(UInt a, const UInt &b) { a *= b; return a; }
-    friend UInt operator/(const UInt &a, const UInt &b) { return divMod(a, b).first; }
-    friend UInt operator%(const UInt &a, const UInt &b) { return divMod(a, b).second; }
+    friend UInt operator<<(UInt a, int s) { a <<= s; return a; }
+    friend UInt operator>>(UInt a, int s) { a >>= s; return a; }
     friend UInt operator&(UInt a, const UInt &b) { a &= b; return a; }
     friend UInt operator|(UInt a, const UInt &b) { a |= b; return a; }
     friend UInt operator^(UInt a, const UInt &b) { a ^= b; return a; }
-    friend UInt operator<<(UInt a, int s) { a <<= s; return a; }
-    friend UInt operator>>(UInt a, int s) { a >>= s; return a; }
-    // T: O(N^2), M: O(N); the high N words of the 2N-word product.
-    friend UInt mulHigh(const UInt &a, const UInt &b) {
-        W r[2 * N]; infint_detail::mulBasecase(r, a.w.data(), N, b.w.data(), N);
-        UInt h; std::copy(r + N, r + 2 * N, h.w.begin());
-        return h;}
-    friend std::strong_ordering operator<=>(const UInt &a, const UInt &b) {
-        for (int i = N - 1; i >= 0; --i) { if (a.w[size_t(i)] != b.w[size_t(i)]) { return a.w[size_t(i)] <=> b.w[size_t(i)]; } }
-        return std::strong_ordering::equal;}
-    friend bool operator==(const UInt &a, const UInt &b) { return a.w == b.w; }
+    UInt operator~() const { UInt r; for (int i = 0; i < N; ++i) { r.w[size_t(i)] = ~w[size_t(i)]; } return r; }
+    UInt &operator&=(const UInt &o) { for (int i = 0; i < N; ++i) { w[size_t(i)] &= o.w[size_t(i)]; } return *this; }
+    UInt &operator|=(const UInt &o) { for (int i = 0; i < N; ++i) { w[size_t(i)] |= o.w[size_t(i)]; } return *this; }
+    UInt &operator^=(const UInt &o) { for (int i = 0; i < N; ++i) { w[size_t(i)] ^= o.w[size_t(i)]; } return *this; }
+    friend int ctz(const UInt &a) {
+        for (int i = 0; i < N; ++i) { if (a.w[size_t(i)]) { return 64 * i + std::countr_zero(a.w[size_t(i)]); } }
+        return 0;}
+    friend int popcount(const UInt &a) { int c = 0; for (W x : a.w) { c += std::popcount(x); } return c; }
+    friend int bitLength(const UInt &a) { int k = a.words(); return k ? 64 * k - std::countl_zero(a.w[size_t(k) - 1]) : 0; }
+
     // One token as InfInt reads it (the two's-complement image of a negative value); the sentinel token sets failbit.
     friend istream &operator>>(istream &is, UInt &a) {
         InfInt t;
@@ -3021,6 +3369,7 @@ template<int N> struct std::hash<UInt<N>> {
         for (ulng x : a.w) { h ^= x; h *= 0xBF58476D1CE4E5B9ULL; h ^= h >> 31; }
         return size_t(h);}
 };
+
 // std::format spec [[fill]align][sign][#][0][width][type] with a literal width and type d (default), b, B, o, x or X, as for integers.
 template<> struct std::formatter<InfInt> {
     char fill = ' ', align = 0, sign = '-', type = 'd'; bool alt = false, zero = false; int width = 0;

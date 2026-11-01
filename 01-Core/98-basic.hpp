@@ -8,3 +8,4 @@
 #include "10-matrix.hpp"
 #include "17-polymini.hpp"
 #include "18-bitset.hpp"
+#include "19-fastio.hpp"

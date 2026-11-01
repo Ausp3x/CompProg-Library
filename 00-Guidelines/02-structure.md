@@ -29,7 +29,7 @@ Algorithm folders are `01-Core` … `07-Strings` and `08-Python`; `09-Contest Te
 ## Tiers and Core order
 
 - Basic, Advanced and Esoteric are sections of each inventory outside Core, never directories or filename labels. Basic is what a strong contestant uses in most contests; Advanced is used in harder rounds; Esoteric is research-level or rarely needed. A header belongs to exactly one tier.
-- Core keeps its fixed order 01 template, 02 debug, 03 barrett, 04 montgomery, 05 modint, 06 modintmini, 07 infint, 08 infintmini, 09 rational, 10 matrix, 11 matrixmini, 12 bitmatrix, 13 bitmatrixmini, 14 sparsematrix, 15 sparsematrixmini, 16 poly, 17 polymini, 18 bitset. Add a Core type only for a demonstrated shared need.
+- Core keeps its fixed order 01 template, 02 debug, 03 barrett, 04 montgomery, 05 modint, 06 modintmini, 07 infint, 08 infintmini, 09 rational, 10 matrix, 11 matrixmini, 12 bitmatrix, 13 bitmatrixmini, 14 sparsematrix, 15 sparsematrixmini, 16 poly, 17 polymini, 18 bitset, 19 fastio. Add a Core type only for a demonstrated shared need.
 - Core Poly owns the accelerated polynomial/FPS engine; Mathematics may intentionally duplicate scalar FFT/NTT/FPS, Matrix and linear-recurrence functionality.
 
 ## Aggregates

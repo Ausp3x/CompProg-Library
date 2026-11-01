@@ -11,7 +11,7 @@ User decision of 2026-10-25 to add the Fermat-ring product as a backend of `07-i
 
 ## Fetched 2026-10-26 (P018 stage 1: conversion and I/O)
 
-InfInt conversion and I/O sweep (P018 stage 1, `@researcher`); the four adopted items (`std::formatter`, the lowercase digit flag, `UInt` stream `>>`, `UInt<M>` to `UInt<N>` conversion; user decision 2026-10-26) are in row 07 and [07-infint.md](07-infint.md), the rejected ones in [00-notes.md](00-notes.md#integers), the handoffs (fastio hooks, `probablePrime`) in [07-infint.md](07-infint.md#dependent-owner-handoff).
+InfInt conversion and I/O sweep (P018 stage 1, `@researcher`); the four adopted items (`std::formatter`, the lowercase digit flag, `UInt` stream `>>`, `UInt<M>` to `UInt<N>` conversion; user decision 2026-10-26) are in row 07 and [07-infint.md](07-infint.md), the rejected ones in [00-notes.md](00-notes.md#integers), the fastio hooks in [19-fastio.md](19-fastio.md) and the `probablePrime` handoff in [07-infint.md](07-infint.md#dependent-owner-handoff).
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
@@ -21,7 +21,7 @@ InfInt conversion and I/O sweep (P018 stage 1, `@researcher`); the four adopted 
 | Python `int` (format mini-language, `int.to_bytes`/`from_bytes`) | https://docs.python.org/3/library/stdtypes.html | yes | The formatter spec and its oracle (`format(int, spec)`); byte import/export rejected |
 | Java `BigInteger` (`probablePrime`, `toByteArray`) | https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigInteger.html | yes | `probablePrime(bits, rng)` handed to Mathematics rows 05/36 |
 | FLINT `fmpz` (`fmpz_addmul`, `fmpz_fmma`/`fmms`) | https://flintlib.org/doc/fmpz/index.html | yes | `addmul`/`fmma` rejected (`a += b * c` with arena temporaries) |
-| Library Checker `big_integer` generators and the judge's input format | https://github.com/yosupo06/library-checker-problems/tree/master/big_integer | yes | Fastio hooks handed to `06-Miscellaneous/03-fastio.hpp` |
+| Library Checker `big_integer` generators and the judge's input format | https://github.com/yosupo06/library-checker-problems/tree/master/big_integer | yes | Fastio hooks, now in `19-fastio.hpp` |
 
 ## Fetched 2026-10-26 (speed sweep)
 
@@ -65,6 +65,38 @@ Division, modular and gcd sweep (P018 stage 3, `@researcher`): nine candidates (
 | Library Checker problem list (v3 API) | https://v3.api.judge.yosupo.jp/problems | yes | No big-integer problem beyond the four known (addition, multiplication, division, hex division) |
 | Nyaan (`math/bigint.hpp`, `bigint-gcd.hpp`), maspy (`bigint/base.hpp`), ei1333 (`convert-base.hpp`), suisen (`bigint.hpp`, `unsigned_bigint.hpp`), hitonanode (`multiprecision_int.hpp`), cp-algorithms (big-integer article, index), KACTL number-theory folder, PyRival `algebra` folder, OI Wiki bignum | https://nyaannyaan.github.io/library/math/bigint.hpp, https://maspypy.github.io/library/bigint/base.hpp, https://ei1333.github.io/library/math/number-theory/convert-base.hpp, https://suisen-cp.github.io/cp-library-cpp/library/math/bigint.hpp, https://hitonanode.github.io/cplib-cpp/utilities/multiprecision_int.hpp, https://cp-algorithms.com/algebra/big-integer.html, https://github.com/kth-competitive-programming/kactl/tree/main/content/number-theory, https://github.com/cheran-senthil/PyRival/tree/master/pyrival/algebra, https://oi-wiki.org/math/bignum/ | yes | M7, M8 (native-int modular roots and congruences only), M9 (native-int base conversion only); no new big-integer operation |
 | Boost `cpp_int` reference page, PyRival `number_theory` folder | https://www.boost.org/doc/libs/latest/libs/multiprecision/doc/html/boost_multiprecision/ref/cpp_int.html, https://github.com/cheran-senthil/PyRival/tree/master/pyrival/number_theory | no (404) | — |
+
+## Fetched 2026-10-31 (speed sweep)
+
+`/speed-sweep P018` scout of the final stage-3 header; standing, leaders, causes and targets in [07-infint.md](07-infint.md#optimality-gap).
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| Library Checker API through `96-Local Testing/00-Tools/07-judge.py` (`problems`, `fastest`, `submission`, `mine`, `reproduce`, `compare`): the six `big_integer` problems, their 30 fastest users, our submissions #414337–#414344, and the leader sources 390082, 385662, 335896, 337163, 364005, 410527, 389886, 192927, 364007, 349237, 337459, 391180, 385970, 406183, 400633, 270587, 406184, 208127, 414242, 410173, 254097, 391969, 208479, 414241, 198541, 199073, 395390, 406186, 414197, 216205, 199072 | https://judge.yosupo.jp/problem/addition_of_big_integers, https://judge.yosupo.jp/problem/multiplication_of_big_integers, https://judge.yosupo.jp/problem/division_of_big_integers, https://judge.yosupo.jp/problem/addition_of_hex_big_integers, https://judge.yosupo.jp/problem/multiplication_of_hex_big_integers, https://judge.yosupo.jp/problem/division_of_hex_big_integers, https://judge.yosupo.jp/submission/<id> | yes (API; cached under `96-Local Testing/.judge-cache/`) | standings, per-case tables and leader sources; local reproduction of our six solutions and, with the user's yes, of 390082, 410527, 389886, 391180, 406184, 414242, 391969, 414241, 395390 and 414197 under bwrap (192927, 198541, 349237, 208127 and 208479 do not build with GCC 16) |
+| AZZRCN `precious-speed` (the #1 author's archive): the README, the `master` commit list (newest commit 2026-09-12) and `high_precision/docs/ROADMAP_HEX_DIV_LIMIT.md` (callgrind instruction counts only) | https://github.com/AZZRCN/precious-speed, https://github.com/AZZRCN/precious-speed/commits/master | yes | no change since the 2026-10-26 sweep; the #1 submission list |
+| cp-algorithms-aux PR #19 (adamant, merged 2026-10-31: 56-bit limbs as four 14-bit FFT digits after Library Checker hack 1345; GCC 16.2.1 `-O2` on a Ryzen 9 7945HX, 4–7% slower large products) and the hex division verify file (`bigint<x16>`, blazingio, `O3,unroll-loops` and `avx2` pragmas) | https://github.com/cp-algorithms/cp-algorithms-aux/pull/19, https://github.com/cp-algorithms/cp-algorithms-aux/blob/main/verify/bigint/hex_divmod.test.cpp | yes | adamant's 2026-10-30/31 entries 414197, 414241 and 414242 (their cached sources predate the PR) |
+| Library Checker hack 1345 | https://judge.yosupo.jp/hack/1345 | no (empty JavaScript shell) | — |
+| SPOJ VFMUL ranking | https://www.spoj.com/ranks/VFMUL/ | no (HTTP 403) | — |
+| Web searches for write-ups of the six problems, Luogu P1919 and LibreOJ speed rankings and Kattis fastest lists | — | searched; nothing bearing on the problems in scope beyond the pages above (the Luogu P1919 articles describe base-10^8/10^4 double FFTs of 389886's class) | — |
+| AtCoder Library Practice Contest standings, UOJ template rankings, GMP timings | — | not fetched this sweep | the judge's GMP entries (414197, 216205, 199072, 199073) stand as the ruler |
+
+## Fetched 2026-11-01 (P018 stage 4: fast I/O)
+
+Completeness sweep of row 19 (`@researcher`) after the move of `06-Miscellaneous/03-fastio.hpp` to `19-fastio.hpp`; adopted: pair and tuple `read`/`writeValue`, `bool` written as 0/1, `float` reading (row 19); left out with reasons in [00-notes.md](00-notes.md#fast-io). Earlier fast I/O sources: [06 sources](../../06-Miscellaneous/Docs/00-sources.md) (rows `03` and `17`).
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| maspypy `other/io.hpp` (`rd`/`wt` over pair, tuple, array, `bool`, every floating type; declare-and-read macros; Yes/No printers; destructor flush) | https://raw.githubusercontent.com/maspypy/library/main/other/io.hpp | yes | pair/tuple, `bool`, `float` adopted; macros and printers left out |
+| Nyaan `misc/fastio.hpp` (`single_read`, `single_write(bool)`, `wt`/`wtn`, `atexit` flush) | https://raw.githubusercontent.com/NyaanNyaan/library/master/misc/fastio.hpp | yes | `bool` writing; the rest are forms of `print`/`writeValue` |
+| tko919 `Utility/fastio.hpp` (pair/tuple read and write, `wt_real`) | https://raw.githubusercontent.com/tko919/library/main/Utility/fastio.hpp | yes | pair/tuple adopted |
+| yosupo `fastio.hpp` (`read_unsafe` count, `write<sep>`/`writeln<sep>`, `close`) | https://raw.githubusercontent.com/yosupo06/yosupo-library/main/src/yosupo/fastio.hpp | yes | forms of `read`/`print`; `close` not owned |
+| ei1333 `other/scanner.hpp`, `other/printer.hpp` (`write`, `writeln`, destructor flush) | https://raw.githubusercontent.com/ei1333/library/master/other/scanner.hpp, https://raw.githubusercontent.com/ei1333/library/master/other/printer.hpp | yes | forms of `print`/`writeValue` |
+| hitonanode cplib-cpp utilities index, `reader.hpp`, `readline.hpp` (`read_ints`, `read_str`), `writer.hpp` (`wt_integer(x, delim)`) | https://hitonanode.github.io/cplib-cpp/, https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/utilities/reader.hpp, https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/utilities/readline.hpp, https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/utilities/writer.hpp | yes (index: first 100k characters, utilities section complete) | `read_ints` left out (composable); the rest are forms of row operations |
+| KACTL `content/various/FastInput.h` (`gc`, lenient `readInt`) | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/various/FastInput.h | yes | lenient skipping left out |
+| noshi91 Library index and `other/fast_ios.cpp` | https://noshi91.github.io/Library/, https://raw.githubusercontent.com/noshi91/Library/master/other/fast_ios.cpp | yes | stream setup only; not an operation |
+| OI Wiki, 读入、输出优化 (fread buffers, `char*` tokens, `sync_with_stdio`) | https://oi-wiki.org/contest/io/ | yes | covered by `readToken`; stream setup not owned |
+| Library Checker problem list through the v3 API (`aplusb`, `many_aplusb`, `many_aplusb_128bit`) | https://v3.api.judge.yosupo.jp/problems | yes (https://judge.yosupo.jp/ returned no content) | covered by `readInt`/`writeInt` through 128 bits |
+| cp-algorithms, ACL | — | not fetched (no fast I/O article found by search; ACL has none) | — |
 
 ## Fetched 2026-10-17 (P019 InfIntMini and Rational sweep)
 

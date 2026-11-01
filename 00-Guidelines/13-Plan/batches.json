@@ -54,11 +54,12 @@
       "id": "C04",
       "folder": "01-Core",
       "targets": [
-        "01-Core/07-infint.hpp"
+        "01-Core/07-infint.hpp",
+        "01-Core/19-fastio.hpp"
       ],
       "support_targets": [],
       "size": "XL",
-      "focus": "Full InfInt in multiplication, division/gcd, conversion/bitwise and sentinel stages; retain one header owner and separate checkpoints.",
+      "focus": "Full InfInt in multiplication, division/gcd, conversion/bitwise and sentinel stages; retain one header owner and separate checkpoints; the Core fast I/O header (moved from 06-Miscellaneous, 2026-11-01) with its InfInt hooks.",
       "prerequisites": [
         "C01",
         "C03",
@@ -2077,12 +2078,11 @@
       "folder": "06-Miscellaneous",
       "targets": [
         "06-Miscellaneous/01-random.hpp",
-        "06-Miscellaneous/02-customhash.hpp",
-        "06-Miscellaneous/03-fastio.hpp"
+        "06-Miscellaneous/02-customhash.hpp"
       ],
       "support_targets": [],
       "size": "M",
-      "focus": "Random, hash and fast I/O basics.",
+      "focus": "Random and hash basics.",
       "prerequisites": [
         "C01"
       ],
@@ -2155,13 +2155,12 @@
       "id": "MI05",
       "folder": "06-Miscellaneous",
       "targets": [
-        "06-Miscellaneous/17-fast_io_advanced.hpp",
         "06-Miscellaneous/18-randomized_algorithms.hpp",
         "06-Miscellaneous/19-hash_families.hpp"
       ],
       "support_targets": [],
       "size": "L",
-      "focus": "Advanced I/O, randomized algorithms, hash families.",
+      "focus": "Randomized algorithms, hash families.",
       "prerequisites": [
         "C01"
       ],

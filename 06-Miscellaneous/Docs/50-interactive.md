@@ -61,7 +61,7 @@ Catalog sweep by `@researcher` on 2026-10-08 (ledger in [00-sources.md](00-sourc
 ## Limits and handoffs
 
 - Not adopted (reasons in [00-notes.md](00-notes.md)): `readVerdict`, `readBool`/`readCmp`, comparator adapters, `readVec(n)`, a local interactor (that is `09-Contest Testing/05-interactor.py`).
-- Buffered `03-fastio.hpp` readers are not used: bulk `fread` can block on a live pipe. `iostream` with the flush discipline above is the portable choice; `17-fast_io_advanced.hpp` must keep its interactive fallback.
+- Buffered `FastInput<N>` readers (`01-Core/19-fastio.hpp`) with `N > 1` are not used: bulk `fread` can block on a live pipe. `iostream` with the flush discipline above is the portable choice; `FastInput<1>` is that header's interactive form.
 - `08-Python` names its counterpart `ask`/`tell`/`finish`; the C++ names follow the inventory row (`ask`/`answer`).
 - Open: `writeLine()` with no arguments sets `first` without reading it, so `-Wall` warns at that instantiation; left for the package's next audit (a prune changes only its items).
 - Open, also for the next audit: `std::istream`/`std::ostream` qualification, and a C-style cast in the tester.

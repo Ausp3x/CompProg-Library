@@ -10,6 +10,7 @@ Decided by the user since 2026-10-10; binding, and only the user changes them.
 
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
 - **P048** row 35 `triangleAggregate` is named `triangleProductSum` (decided 2026-10-29).
+- **P018** `06-Miscellaneous/03-fastio.hpp` moves to `01-Core/19-fastio.hpp`, a Core full header with no forwarding header in 06, and absorbs P066's planned row 17: `MmapInput` is `FastInput<0>` (a mapped regular file under Linux, else fread), `SyscallOutput` is `FastOutput` (decided 2026-11-01).
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
 
 ### Keeps
@@ -229,6 +230,10 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P018 | `infint_detail` NTT, FFT and Montgomery kernels beside Poly's and `04-montgomery.hpp` | Decided 2026-10-16: InfInt keeps independent kernels and depends on `01-template.hpp` only |
 | P018 | `divModSlow` beside `divMod`; `isPerfectSquare` beside `isqrtRem`; `isProbablePrime` beside Mathematics `bpsw` | Knuth D as a separate algorithm; residue filters before the root; BPSW on arbitrary size (decided 2026-10-16) |
 | P018 | `schonhageStrassen` with `Fermat` beside `transformMul` (`07-infint.hpp`) | Tested, undispatched backend kept for completeness; user decision 2026-10-25 (`01-Core/Docs/07-infint.md`, Limits) |
+| P018 | `infint_detail::divKnuth` beside `divBasecase` (`07-infint.hpp`) | Decided 2026-11-01 by the user: the in-place Knuth D kernel and its copying entry point, both internal; `divRem` runs `divKnuth` on its own normalised copy, one dividend copy fewer |
+| P018 | `fastio_detail` input kernels `dec8`, `decWord`, `hexWord`, `hex8`, `dec19`, `hex16` and output kernels `dec8Chars`, `dec16Chars`, `dec19Chars`, `hex16Chars`, `writeDec` (64-bit: InfInt's `writeDec24`; 128-bit: `writeDec2`), `writeHex`, `DIGITS2`, `POW10` and `decLen` beside InfInt's statics (`19-fastio.hpp`, `07-infint.hpp`) | Decided 2026-11-01 by the user: `dec19` and `hex16` read a 32-byte window before the token's end, which needs the reader's padding, where InfInt's take an exact view and never read past it; the other kernels repeat so each header copies alone, and a change to one is measured and mirrored in the other. Names follow one scheme in both headers (user decision 2026-11-01): parsers `<base><digits>` (`dec8`, `hex8`, `hex16`, `hex32`, `dec19`), digit writers `<base><digits>Chars`, out-of-line tails `<operation>Rest` (`readRest`, `toCharsRest`, `divModRest`; fast I/O names the token kind: `tokenRest`, `intRest`, `textRest`) |
+| P018 | `FastInput` `readInt` beside `readToken` + `parseInt`, `readToken(string &)` beside `readToken(string_view &)`, `read<B>`, `readText<B>` beside `readToken` + the type's `read`; `FastOutput` `print` beside `writeValue`, `writeValue` beside the typed writers, `writeText<B>` beside `charsBound` + `toChars`, the `end` byte of `write`, `writeInt`, `writeDouble` | Decided 2026-11-01 by the user: the one-call form; an owned copy where the view borrows the buffer; dispatch over ranges, pairs and tuples (`writeValue` per value, `bool` as 0/1); short text tokens taken by assignment and long ones without a copy; one room check for a value and its separator, with one retry after a drain |
+| P018 | InfInt `writeDec` beside `writeDec24` (`07-infint.hpp`); `fastio_detail::hex16` beside `hex32` (`19-fastio.hpp`) | Decided 2026-11-01 by the user: `writeDec` stays inside the caller's bounds where `writeDec24` needs 24 bytes of room; `hex16` is the one-word path of 64-bit and narrower types, `hex32` the two-word path of 128-bit ones |
 | P034 | `PartiallyPersistentDSU::uniteTime` (`10-persistentdsu.hpp`) beside row 65 `MergeHistoryForest::earliestConnectTime` | Different algorithm: a walk over attach times in the union-by-size forest, no merge forest or LCA (clarified rule) |
 | P034 | `OfflineDeletion::insert`, `erase` beside `addInterval` (`63-offline_deletion.hpp`) | Larger domain: unpaired per-key events with multiplicities, paired through an ordered map and closed at `n` (clarified rule) |
 | P047 | `blockOf` (`27-blockcuttree.hpp`) | Maps a vertex to its unique block, -1 at articulation points |
@@ -364,14 +369,13 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | `HLD::addEdge`, `build` | `15-hld.hpp:17-26` | `HLD(Graph, root)` once the row names it | keep | only form today | — | — |
 | `EulerTour` | row 14 | `lca_detail::Forest` | keep | public operation; build it on Forest's DFS with one range convention | — | — |
 
-## P066 — 06-Miscellaneous — smalltolarge, hilbertorder, fast io advanced, randomized algorithms, hash families, parallelbinarysearch, cdq (planned)
+## P066 — 06-Miscellaneous — smalltolarge, hilbertorder, randomized algorithms, hash families, parallelbinarysearch, cdq (planned)
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `HashMap`, `HashSet` | row 19 | DS `61-hashmap.hpp` | remove (row only) | second implementation, same open addressing | — | `Docs/00-notes.md`, Ownership boundaries |
 | `vectorHash` | row 19 | `CustomHash` range overload | keep | different algorithm: random-base polynomial hash (clarified rule) | — | — |
 | `pairHash` | row 19 | `CustomHash{}(p)` | ask | the same mixing as `CustomHash`'s pair overload | — | — |
-| `MmapInput`, `SyscallOutput` | row 17 | `FastInput`, `FastOutput` | ask | second parser over another byte source; `03-cpp.md` bans POSIX calls | — | — |
 | `mergeSortedVectors`, `kWayMerge` | rows 15, 44 | `std::merge`; row 44 | ask | stdlib and second implementation | — | — |
 | `hilbertIndex2D` | row 16 | pinned `Mo::getHilOrd` | keep | row 16 owns Hilbert order (`Docs/00-notes.md`, Advanced and Esoteric contracts); see P067 | — | — |
 
@@ -993,7 +997,7 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P061** `multipointEvaluateGeometric` beside `bluesteinTransform`; row 23 matrix-tree counts beside Graphs row 53: which row owns each?
 - **P032** `XorBasis::rank`, `countRepresentable`, `intersection`, `reducedEchelon` beside `size()` and Core `BitMatrix`?
 - **P042** `apspPath`, `rootTree` (children lists?), `pathRanges`, `pathVertices`: does each add a result?
-- **P066** row 17 `MmapInput`, `SyscallOutput` (POSIX calls are banned); `mergeSortedVectors`, `kWayMerge` (P205) beside `std::merge`? Row 19 `pairHash`: the same mixing as `CustomHash`'s pair overload?
+- **P066** `mergeSortedVectors`, `kWayMerge` (P205) beside `std::merge`? Row 19 `pairHash`: the same mixing as `CustomHash`'s pair overload?
 - **P077** `evaluateExpression`; **P076** `minimax` or `negamax`; **P073** `setPartitionDP`; **P087** one of `tandemRepeats`, `squares`, `repetitionsCompressed`; **P079** `huffmanCost`; **P071** `daysBetween`, `addDays`, `dayOfYear`; **P206** `StreamReservoir` (is row 18 incremental?); **P207** `alphabeticCodeLengths`: separate operations or compositions?
 - **P050** `blockTree`, `isCactus`: cactus-specific results, or `blockCutTree` and lowlink?
 - **P051** global `edgeConnectivity`, `complementShortestPath`, `differenceConstraints`: distinct algorithms?

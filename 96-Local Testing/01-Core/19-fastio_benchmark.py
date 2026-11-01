@@ -26,7 +26,7 @@ def main():
                 if line.startswith('model name')), 'unknown')
     with tempfile.TemporaryDirectory(prefix='cp-fastio-benchmark-') as directory:
         binary = Path(directory) / 'fastio'
-        subprocess.run([compiler, *flags, str(HERE / '03-fastio_benchmark.cpp'), '-o', str(binary)],
+        subprocess.run([compiler, *flags, str(HERE / '19-fastio_benchmark.cpp'), '-o', str(binary)],
                        check=True, timeout=180)
         run = subprocess.run([str(binary)], capture_output=True, text=True, check=True, timeout=180)
     groups = {}
@@ -50,12 +50,12 @@ def main():
               'warmups': 1, 'repetitions': 5, 'method_order': 'rotated per repetition',
               'workload': 'integers: read signed 64-bit decimal tokens, xor unsigned bits with fixed constant, write unsigned decimal lines; uniform [-1000,1000] or random full 64-bit patterns with min/max every 101 values and mixed whitespace. doubles-fixed9: read %.17g tokens of k/1000 * 2^e (|k| <= 10^6, e in [-20,20]), write %.9f lines; 32/20000/500000 values',
               'timed_scope': 'construct buffers, parse complete regular-file input, transform, format complete output, explicit FILE flush and writer destruction; file open/close, fixture generation, rewind, independent to_chars output comparison excluded; warm file page cache, no fsync',
-              'memory': 'FastInput/Output<N>: two N-byte arrays plus constant fields; libc FILE buffers additional and implementation dependent. fscanf/fprintf uses libc buffers. O(1) conversion workspace for each. Fixture strings excluded from timed methods.',
+              'memory': 'FastInput/Output<N>: two N-byte arrays plus constant fields (fast-whole: FastInput<0> maps the whole regular file, FastOutput<65536>); libc FILE buffers additional and implementation dependent. fscanf/fprintf uses libc buffers. O(1) conversion workspace for each. Fixture strings excluded from timed methods.',
               'comparison_limits': 'Shared-host observations for valid ASCII decimal data on warmed regular files; not interactive, cold disk, malformed-input or network throughput; fscanf/fprintf has broader locale/format support; no universal timing gates.',
               'sha256': {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
-                         for p in (ROOT / '06-Miscellaneous/03-fastio.hpp', HERE / '03-fastio_benchmark.cpp')},
+                         for p in (ROOT / '01-Core/19-fastio.hpp', HERE / '19-fastio_benchmark.cpp')},
               'results': results}
-    output = HERE / '03-fastio_benchmark.json'
+    output = HERE / '19-fastio_benchmark.json'
     output.write_text(json.dumps(report, indent=2) + '\n')
     print('PASS full independent output comparisons; benchmark record:', output)
     for row in results:

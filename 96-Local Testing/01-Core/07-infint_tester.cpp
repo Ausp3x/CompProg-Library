@@ -57,6 +57,46 @@ static std::string slowDecimal(const InfInt &a) {
     vector<W> v = wordsOf(a); std::string dec;
     while (!v.empty()) { std::string chunk = std::to_string(infint_detail::divWord(v.data(), v.data(), int(v.size()), W(10000000000000000000ULL))); v.resize(size_t(infint_detail::norm(v.data(), int(v.size())))); dec = (v.empty() ? chunk : std::string(19 - chunk.size(), '0') + chunk) + dec; }
     return dec;}
+// Reference radix conversions of little-endian 64-bit magnitudes, one digit per step (32-bit halves, so no 128-bit division): the independent oracles of toChars and read.
+static vector<ulng> refRead(std::string_view s, uint base) {
+    vector<ulng> w;
+    for (char c : s) {
+        ulll carry = uint(c <= '9' ? c - '0' : (c | 32) - 'a' + 10);
+        for (ulng &x : w) { ulll t = ulll(x) * base + carry; x = ulng(t); carry = t >> 64; }
+        if (carry) { w.push_back(ulng(carry)); }}
+    return w;}
+static std::string refText(vector<ulng> w, uint base, bool lower = false) {
+    const char *dig = lower ? "0123456789abcdefghijklmnopqrstuvwxyz" : "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    std::string s;
+    while (!w.empty() && w.back() == 0) { w.pop_back(); }
+    while (!w.empty()) {
+        ulng r = 0;
+        for (size_t i = w.size(); i-- > 0;) { ulng hi = (r << 32) | (w[i] >> 32), lo = ((hi % base) << 32) | (w[i] & 0xFFFFFFFFULL); w[i] = ((hi / base) << 32) | (lo / base); r = lo % base; }
+        s += dig[r];
+        while (!w.empty() && w.back() == 0) { w.pop_back(); }}
+    std::reverse(s.begin(), s.end());
+    return s.empty() ? "0" : s;}
+// The magnitude words of a 128-bit magnitude: one word, or two when the high half is nonzero.
+static vector<ulng> words128(ulll m) { return m >> 64 ? vector<ulng>{ulng(m), ulng(m >> 64)} : vector<ulng>{ulng(m)}; }
+static std::string escaped(const std::string &s) { std::string o; for (char c : s) { if (c >= 32 && c < 127) { o += c; } else { o += "\\x"; o += "0123456789ABCDEF"[uint8_t(c) >> 4]; o += "0123456789ABCDEF"[uint8_t(c) & 15]; } } return o; }
+// toChars of v into [first, first + r) for every room r in [0, needed + 48] between 64-byte canary guards: a short room returns {first + r, value_too_large} with no byte changed, a long enough
+// one {first + needed, errc()} with the text and no byte changed outside [first, first + r).
+static void roomSweep(const InfInt &v, uint base, bool lower, const std::string &text, const std::string &what) {
+    const int G = 64, need = int(text.size());
+    const std::string clean(size_t(2 * G + need + 48), char(0xA5));
+    std::string buf = clean;
+    char *first = buf.data() + G;
+    for (int r = 0; r <= need + 48; ++r) {
+        auto [p, ec] = v.toChars(first, first + r, base, lower);
+        bool fits = r >= need;
+        bool ok = fits ? ec == std::errc() && p == first + need && buf.compare(0, size_t(G), clean, 0, size_t(G)) == 0 && buf.compare(size_t(G), size_t(need), text) == 0 && buf.compare(size_t(G + r), std::string::npos, clean, size_t(G + r)) == 0
+                       : ec == std::errc::value_too_large && p == first + r && buf == clean;
+        ++checks;
+        if (!ok) {
+            std::ostringstream out; out << what << ": toChars base " << base << (lower ? " lower" : "") << " into a room of " << r << " bytes, text of " << need << "\n expected=" << (fits ? text : std::string("value_too_large with no byte written"));
+            out << "\n actual=" << (ec == std::errc() ? "errc()" : "value_too_large") << " ptr=first+" << (p - first) << ", buffer from first-" << G << " (canary \\xA5): " << escaped(buf);
+            fail(out.str());}
+        if (fits) { std::memcpy(first, clean.data() + G, size_t(r)); }}}
 static InfInt ofWords(const vector<W> &w) { return InfInt::fromLimbs(w); }
 static InfInt egcd(InfInt a, InfInt b) { a = abs(a); b = abs(b); while (!b.isNil()) { InfInt r = divMod(a, b).second; a = std::move(b); b = std::move(r); } return a; }
 static lng floorDiv(lng a, lng b) { lng q = a / b; if ((a % b != 0) && ((a < 0) != (b < 0))) { --q; } return q; }
@@ -67,7 +107,7 @@ static void pattern(W *p, size_t n, W salt) { for (size_t i = 0; i < n; ++i) { p
 static bool intact(const W *p, size_t n, W salt) { for (size_t i = 0; i < n; ++i) { if (p[i] != ((salt * 0x9E3779B97F4A7C15ULL) ^ i)) { return false; } } return true; }
 static bool disjoint(const W *p, size_t n, const W *q, size_t m) { auto a = uintptr_t(p), b = uintptr_t(q); return a + 8 * n <= b || b + 8 * m <= a; }
 
-// Words inline-to-heap transitions against a vector model, InfInt values across the inline limit and nested arena frames.
+// Words inline-to-heap transitions against a vector model, InfInt values across the inline limit, nested arena frames and hugeAlloc alignment across HUGE_FROM.
 static void storage() {
     context = "Words";
     using infint_detail::Words;
@@ -95,6 +135,8 @@ static void storage() {
     for (int words = 1; words <= 9; ++words) {
         InfInt a = randBits(64 * words, ri(2) == 1), b = randBits(64 * (10 - words)), a0 = a, b0 = b;
         expect(a.n.size(), words, "word count"); require((a.n.data() == a.n.buf) == (words <= 4), "inline up to four words");
+        for (uint base : {2u, 3u, 8u, 10u, 16u}) {   // the text paths of read: power-of-two bits, fromDigits, decimal blocks
+            InfInt t; require(t.read(a.toString(base), base) && t == a && (t.n.data() == t.n.buf) == (words <= 4), "read keeps up to four words inline");}
         std::swap(a, b); expect(a, b0, "swap"); expect(b, a0, "swap back"); std::swap(a, b);
         InfInt c = a; c = b; expect(c, b0, "copy assignment across storage"); c = std::move(a); expect(c, a0, "move assignment across storage"); a = c;
         expect(omul(a + b - b, InfInt(1)), a0, "arithmetic across the inline limit"); expect((a << 64) >> 64, a0, "shift across the inline limit");}
@@ -108,6 +150,38 @@ static void storage() {
         a.setBit(3); expect(a, InfInt(8), "setBit on a moved-from value");
         a = src; b = std::move(a); a.flipBit(0); expect(a, InfInt(1), "flipBit on a moved-from value");
         a = src; b = std::move(a); require(a == InfInt(0) && !(a < InfInt(0)) && a + src == b, "comparison and sum on a moved-from value");}
+#ifdef INFINT_SCRATCH_HEAP
+    { Words p; InfInt f; auto poisoned = [](const W *q) { return std::all_of(q, q + Words::INLINE, [](W x) { return x == infint_detail::POISON; }); }; require(poisoned(p.buf) && poisoned(f.n.buf), "INFINT_SCRATCH_HEAP poisons the inline words of a fresh Words"); }
+#endif
+    // Values at the inline boundary: carries into a fifth word and borrows back to four (sums, products, shifts), a heap-backed value reused for one-word values and short reads, copies and moves
+    // between inline and heap storage, a nine-word value cut to k = 8..0 words and grown back; words given directly and the limb oracles.
+    context = "InfInt at the inline boundary";
+    {
+        const ulng F = ~0ULL;
+        const InfInt ones4 = InfInt::fromLimbs(vector<ulng>{F, F, F, F}), five = InfInt::fromLimbs(vector<ulng>{0, 0, 0, 0, 1}), two = InfInt::fromLimbs(vector<ulng>{F, F}), three = InfInt::fromLimbs(vector<ulng>{F, 1, 7});
+        auto words = [](const InfInt &v, const vector<ulng> &e, int sign, const std::string &what) { require(!v.is_inf && v.sgn == sign && v.toLimbs<ulng>() == e && v.n.size() == int(e.size()), what); };
+        InfInt a = ones4; a += 1; words(a, {0, 0, 0, 0, 1}, 1, "four all-ones words += 1 carries into a fifth word");
+        a -= 1; words(a, {F, F, F, F}, 1, "five words -= 1 borrows back to four");
+        words(ones4 + InfInt(1), {0, 0, 0, 0, 1}, 1, "four all-ones words + 1"); words(five - InfInt(1), {F, F, F, F}, 1, "five words - 1");
+        words(-ones4 - InfInt(1), {0, 0, 0, 0, 1}, -1, "-(four words) - 1"); words(InfInt(1) - five, {F, F, F, F}, -1, "1 - five words");
+        words(ones4 + ones4, {F - 1, F, F, F, 1}, 1, "four words + four words"); words(ones4 << 1, {F - 1, F, F, F, 1}, 1, "four words << 1"); words(five >> 1, {0, 0, 0, 1ULL << 63}, 1, "five words >> 1");
+        words(two * two, {1, 0, F - 1, F}, 1, "(2^128 - 1)^2 in four words"); expect(two * three, omul(two, three), "two words * three words"); expect(ones4 * 2, omul(ones4, InfInt(2)), "four words * 2");
+        require((two * three).n.size() == 5 && (ones4 * 2).n.size() == 5, "products filling a fifth word");
+        InfInt h = randBits(64 * 9); h = 7; words(h, {7}, 1, "a nine-word value assigned 7"); require(h.n.data() != h.n.buf, "the assigned value keeps the heap block");
+        h += 5; words(h, {12}, 1, "+= on a heap-backed one-word value"); h -= 20; words(h, {8}, -1, "-= through zero on a heap-backed value"); h *= -3; words(h, {24}, 1, "*= on a heap-backed value");
+        auto [q, r] = divMod(h, InfInt(7)); words(q, {3}, 1, "divMod quotient of a heap-backed value"); words(r, {3}, 1, "divMod remainder of a heap-backed value");
+        require(h.read("-fF", 16), "short hex read into a heap-backed value"); words(h, {255}, -1, "short hex read into a heap-backed value");
+        require(h.read("340282366920938463463374607431768211455"), "decimal read into a heap-backed value"); words(h, {F, F}, 1, "decimal read of 2^128 - 1 into a heap-backed value");
+        require(h.read("-0") && h.isNil() && h.sgn == 1, "read of -0 into a heap-backed value"); h = lll(-5); words(h, {5}, -1, "lll assignment to a heap-backed value");
+        h = 9; InfInt c = h; words(c, {9}, 1, "copy of a heap-backed one-word value"); require(c.n.data() == c.n.buf, "the copy of one word is inline");
+        InfInt m = std::move(h); words(m, {9}, 1, "move of a heap-backed value"); require(h.isNil() && h.n.empty() && h.sgn == 1 && m.n.data() != m.n.buf, "the move steals the heap block, the source is zero");
+        h = 4; words(h, {4}, 1, "a moved-from value reused"); m = c; words(m, {9}, 1, "copy assignment of an inline value over heap storage");
+        c = std::move(m); words(c, {9}, 1, "move assignment of heap storage over an inline value"); require(m.isNil() && m.n.empty(), "move assignment empties the source"); m = c + h; words(m, {13}, 1, "a sum into a moved-from value");
+        InfInt x = randBits(64 * 9 - ri(64), ri(2) == 1);
+        for (int k = 8; k >= 0; --k) {
+            InfInt low = InfInt::fromLimbs(vector<ulng>(x.n.begin(), x.n.begin() + k), x.sgn), s = x; s -= x - low;
+            expect(s, low, "nine words cut to the low " + std::to_string(k)); require(s.isNil() ? s.sgn == 1 && s.n.size() == 1 && s.n[0] == 0 : s.n.back() != 0, "canonical after the cut to " + std::to_string(k) + " words");
+            s += x - low; expect(s, x, "grown back from " + std::to_string(k) + " words");}}
     context = "Scratch";
     using infint_detail::Scratch;
     {   Scratch s1(1); pattern(s1, 1, 1);
@@ -123,6 +197,12 @@ static void storage() {
             require(intact(s2, 1000, 2) && intact(s1, 1, 1), "outer frames after the 10^6-word frame is released");}
         require(intact(s1, 1, 1), "outermost frame");}
     { Scratch after(100); pattern(after, 100, 9); require(intact(after, 100, 9), "a frame after the nested frames are released"); }
+    context = "hugeAlloc";
+    using infint_detail::HUGE_PAGE; using infint_detail::HUGE_FROM;
+    for (size_t bytes : {size_t(8), HUGE_FROM - 8, HUGE_FROM, HUGE_PAGE - 8, HUGE_PAGE, 3 * HUGE_PAGE + 8}) {
+        size_t n = bytes / 8; W *p = infint_detail::hugeAlloc(n);
+        require(uintptr_t(p) % (bytes >= HUGE_FROM ? HUGE_PAGE : 64) == 0, std::to_string(bytes) + " bytes: 2 MiB-aligned from HUGE_FROM bytes up, 64-byte aligned below");
+        pattern(p, n, 8); require(intact(p, n, 8), std::to_string(bytes) + " bytes are writable"); infint_detail::hugeFree(p, n);}
     context = "construction";}
 
 static void construction() {
@@ -138,6 +218,33 @@ static void construction() {
       uint8_t c = 0; require(InfInt(255).tryCast(c) && c == 255 && !InfInt(256).tryCast(c) && !InfInt(-1).tryCast(c), "uint8 bounds"); int8_t d = 0; require(InfInt(-128).tryCast(d) && d == -128 && !InfInt(-129).tryCast(d), "int8 bounds");
       InfInt inf("inf"); require(!inf.tryCast(i) && lng(inf) == LLONG_MAX && lng(-inf) == LLONG_MIN && ulng(inf) == ULLONG_MAX && ulng(-inf) == 0, "sentinel casts");
       expect(lng(InfInt(ulll(1) << 64)), 0LL, "wrap lng"); expect(ulng(InfInt(-1)), ULLONG_MAX, "wrap ulng"); expect(lng(InfInt("-9223372036854775809")), LLONG_MAX, "wrap below min");}
+    // 128-bit construction and assignment (one word, or two with the high word stored past a one-word size), then lng, int and ulng: the magnitude words and sign against the value's halves over fresh,
+    // heap, sentinel, empty and negative destinations; tryCast back.
+    context = "128-bit construction";
+    {
+        const ulll one = 1;
+        vector<lll> sv = {0, 1, -1, lll(one << 127), lll(one << 127) + 1, lll((one << 127) - 1), lll(one << 126), -lll(one << 126), lll(one << 63), -lll(one << 63)};
+        vector<ulll> uv = {0, 1, one << 63, (one << 64) - 1, one << 64, (one << 64) + 1, one << 127, ~ulll(0) - 1, ~ulll(0)};
+        for (lll e : {lll(one << 64) - 1, lll(one << 64), lll(one << 64) + 1}) { sv.push_back(e); sv.push_back(-e); }
+        for (int t = 0; t < sz(30, 300); ++t) { ulll u = ((ulll(rng()) << 64) | rng()) >> ri(128); uv.push_back(u); sv.push_back(ri(2) ? lll(u >> 1) : -lll(u >> 1)); }
+        const InfInt dests[] = {randBits(64 * 7), InfInt("inf"), InfInt("-inf"), InfInt(), InfInt(-3), -randBits(128)};
+        auto check = [&](const InfInt &a, bool neg, ulll mag, const char *what) {
+            vector<ulng> e = words128(mag); ++checks;
+            if (a.is_inf || a.sgn != (neg && mag ? -1 : 1) || a.n.size() != int(e.size()) || a.toLimbs<ulng>() != e) { fail(std::string(what) + " of " + (neg ? "-" : "") + refText(e, 10) + ": sign " + std::to_string(a.sgn) + ", " + std::to_string(a.n.size()) + " words, inf " + std::to_string(a.is_inf)); }};
+        for (lll x : sv) {
+            ulll mag = x < 0 ? ulll(0) - ulll(x) : ulll(x); InfInt a = x; lll back = 1;
+            check(a, x < 0, mag, "construction from lll"); require(a.tryCast(back) && back == x, "lll round trip");
+            for (const InfInt &d : dests) { InfInt b = d; b = x; check(b, x < 0, mag, "lll assignment"); }}
+        for (ulll x : uv) {
+            InfInt a = x; ulll back = 1;
+            check(a, false, x, "construction from ulll"); require(a.tryCast(back) && back == x, "ulll round trip");
+            for (const InfInt &d : dests) { InfInt b = d; b = x; check(b, false, x, "ulll assignment"); }}
+        for (lng x : {LLONG_MIN, LLONG_MIN + 1, -2147483648LL, -1LL, 0LL, 1LL, 2147483647LL, 4294967295LL, LLONG_MAX}) {
+            ulll mag = x < 0 ? ulll(0) - ulll(lll(x)) : ulll(x);
+            for (const InfInt &d : dests) {
+                InfInt b = d; b = x; check(b, x < 0, mag, "lng assignment");
+                if (x >= INT_MIN && x <= INT_MAX) { b = d; b = int(x); check(b, x < 0, mag, "int assignment"); }
+                if (x >= 0) { b = d; b = ulng(x); check(b, false, mag, "ulng assignment"); }}}}
     for (int t = 0; t < sz(100, 1000); ++t) {
         InfInt a = randSigned(300);
         vector<uint> l32 = a.toLimbs(); vector<ulng> l64 = a.toLimbs<ulng>();
@@ -165,8 +272,55 @@ static void construction() {
           for (int pos = 0; pos < len; pos += full() ? (len <= 100 ? 1 : 97) : max(1, len / 2)) { for (int bad = 0; bad < 256; ++bad) { if (std::isxdigit(bad) || (pos == 0 && (bad == '+' || bad == '-'))) { continue; } std::string w = h; w[size_t(pos)] = char(bad); InfInt k = 5; require(!k.read(w, 16) && k == 5, "byte " + std::to_string(bad) + " kept out at " + std::to_string(pos) + " of " + std::to_string(len)); } }
           InfInt si("inf"); require(!si.read(h + "g", 16) && si.is_inf, "rejected hex keeps the sentinel");} require(keep.read("INF") && keep.is_inf && keep.sgn == 1 && keep.read("-Inf") && keep.sgn == -1, "inf tokens");
       expect(InfInt("ZZ", 36), InfInt(1295), "base 36"); expect(InfInt(1295).toString(36), std::string("ZZ"), "print base 36"); expect(InfInt("-ff", 16), InfInt(-255), "hex lowercase");}
-    // Radix round trips across RADIX, CACHED_DIV (a prepared Divisor per cached power from CACHED_DIV words) and FFT (a kept spectrum per power from FFT words); the decimal text also against repeated single-word division.
-    vector<int> radixWords = {64, 65, 300, 2 * max(infint_detail::CACHED_DIV, infint_detail::FFT) + 1};
+    // read on tokens of 1-64 digits (and 80, 81, 320, 321 in full) in bases 10, 16, 2, 8, 3 and 36 (letters in mixed case), unsigned, '+', '-' and after up to 50 leading zeros, from a heap block of exactly the
+    // token's length (ASan sees a read past either end) and between '1' or 0xFF fillers; one byte that is not a digit of the base (quick: / : @ G g ` space NUL 0x01 tab LF 0x1F 0x7F 0x80 0xFF; full: every byte) at every position refused with the value unchanged; refRead is the oracle.
+    context = "read tokens";
+    {
+        const InfInt starts[] = {InfInt(12345), -randBits(64 * 6), InfInt("inf"), InfInt("-inf"), InfInt(), InfInt(-7)};
+        auto readAt = [](InfInt &x, const std::string &tok, uint base, int where) {
+            if (where == 0) { vector<char> h(tok.begin(), tok.end()); return x.read(std::string_view(h.data(), h.size()), base); }
+            std::string pad(40, where == 1 ? '1' : char(0xFF)); pad += tok; pad.append(40, where == 1 ? '1' : char(0xFF));
+            return x.read(std::string_view(pad).substr(40, tok.size()), base);};
+        auto parses = [&](const std::string &tok, uint base) {
+            size_t d = !tok.empty() && (tok[0] == '+' || tok[0] == '-');
+            vector<ulng> w = refRead(std::string_view(tok).substr(d), base); int s = d && tok[0] == '-' && !w.empty() ? -1 : 1;
+            for (int where = 0; where < 3; ++where) {
+                InfInt x = starts[size_t(ri(6))]; bool ok = readAt(x, tok, base, where); ++checks;
+                if (!ok || x.is_inf || x.sgn != s || x.toLimbs<ulng>() != (w.empty() ? vector<ulng>{0} : w) || (!x.isNil() && x.n.back() == 0)) {
+                    fail("read(\"" + escaped(tok) + "\", " + std::to_string(base) + ") from placement " + std::to_string(where) + ": expected " + (s < 0 ? "-" : "") + refText(w, base) + ", got " + (!ok ? std::string("false") : x.is_inf ? std::string("inf") : x.toString(base)));}}};
+        auto refuses = [&](const std::string &tok, uint base, int where) {
+            const InfInt &s0 = starts[size_t(ri(6))]; InfInt x = s0; ++checks;
+            if (readAt(x, tok, base, where) || x.is_inf != s0.is_inf || x.sgn != s0.sgn || !(x.n == s0.n)) { fail("read(\"" + escaped(tok) + "\", " + std::to_string(base) + ") from placement " + std::to_string(where) + " accepted the token or changed the value"); }};
+        auto digits = [&](uint base, int len) { std::string s; for (int i = 0; i < len; ++i) { int d = ri(int(base)); s += d < 10 ? char('0' + d) : char((ri(2) ? 'a' : 'A') + d - 10); } return s; };
+        auto value = [](char c) { return c >= '0' && c <= '9' ? c - '0' : (c | 32) >= 'a' && (c | 32) <= 'z' ? (c | 32) - 'a' + 10 : 99; };
+        vector<char> bad = {'/', ':', '@', 'G', 'g', '`', ' ', '\0', char(0x01), '\t', '\n', char(0x1F), char(0x7F), char(0x80), char(0xFF)};   // every byte in full mode
+        if (full()) { bad.clear(); for (int c = 0; c < 256; ++c) { bad.push_back(char(c)); } }
+        vector<int> lens;
+        for (int len = 1; len <= 64; ++len) { if (full() || len <= 2 || (len >= 7 && len <= 9) || (len >= 15 && len <= 20) || (len >= 31 && len <= 33) || len == 64) { lens.push_back(len); } }
+        if (full()) { for (int len : {80, 81, 320, 321}) { lens.push_back(len); } }
+        for (uint base : {10u, 16u, 2u, 8u, 3u, 36u}) {
+            for (int len : lens) {
+                std::string dg = digits(base, len);
+                parses(dg, base); parses("+" + dg, base); parses("-" + dg, base);
+                for (int z = 1; z <= 50; z += full() ? 7 : 16) { parses((z % 2 ? "-" : "") + std::string(size_t(z), '0') + dg, base); }
+                for (int pos = 0; pos < len; ++pos) {
+                    for (int b = 0; b < int(bad.size()); ++b) {
+                        if (value(bad[size_t(b)]) < int(base) || (pos == 0 && (bad[size_t(b)] == '+' || bad[size_t(b)] == '-'))) { continue; }   // a leading sign is valid
+                        std::string tok = (pos % 3 == 1 ? "+" : pos % 3 == 2 ? "-" : "") + dg; tok[tok.size() - size_t(len - pos)] = bad[size_t(b)];
+                        refuses(tok, base, (pos + b) % 3);}}}
+            for (const char *tok : {"0", "-0", "+0", "00", "-000"}) { parses(tok, base); }
+            parses(std::string(50, '0'), base); parses("-" + std::string(50, '0'), base);
+            for (const char *tok : {"", "+", "-", "+-1", "-+1", "--0", "++0", "0-", "1+", "+ 1", "- 0", "1 "}) { refuses(tok, base, ri(3)); }}
+        for (uint base : {10u, 16u, 2u, 7u}) {
+            for (const char *tok : {"0", "-0", "+00", "0000000000000000000000000000000000000000"}) {
+                InfInt z = -randBits(64 * 5), five = 5, c; std::string at = std::string(" on read(\"") + tok + "\", " + std::to_string(base) + ")";
+                require(z.read(tok, base) && z.isNil() && z.sgn == 1 && z == InfInt(0) && std::hash<InfInt>{}(z) == std::hash<InfInt>{}(InfInt(0)) && z.toString(base) == "0", "zero" + at);
+                require(z + five == five && five + z == five && z - five == -five && five - z == five && (z * five).isNil() && (five * z).isNil() && divMod(z, five) == pair<InfInt, InfInt>(0, 0), "arithmetic" + at);
+                require((z << 70).isNil() && (z >> 3).isNil() && (z & five).isNil() && (z | five) == five && (z ^ five) == five && ~z == InfInt(-1) && (-z).isNil() && (-z).sgn == 1 && gcd(z, five) == five && bitLength(z) == 0 && popcount(z) == 0, "bits" + at);
+                c = z; c += five; require(c == five, "+=" + at); c = z; c -= five; require(c == -five, "-=" + at); c = z; ++c; require(c == 1, "++" + at); c = z; --c; require(c == -1, "--" + at);
+                c = z; c *= -3; require(c.isNil() && c.sgn == 1, "*= -3" + at); c = z; c.setBit(65); require(c == InfInt(1) << 65, "setBit" + at);}}}
+    // Radix round trips across PRINT_LEAF (16 words: 15-17), RADIX, CACHED_DIV (a prepared Divisor per cached power from CACHED_DIV words) and FFT (a kept spectrum per power from FFT words); the decimal text also against repeated single-word division.
+    vector<int> radixWords = {15, 16, 17, 64, 65, 300, 2 * max(infint_detail::CACHED_DIV, infint_detail::FFT) + 1};
     if (full()) { for (int w : {1023, 1024, 1025, 2500, 4 * infint_detail::CACHED_DIV + 3}) { radixWords.push_back(w); } }
     for (int words : radixWords) {
         for (int pat = 0; pat < 2; ++pat) {
@@ -271,6 +425,105 @@ static void textOutput() {
                 int bound = v.charsBound(base); require(bound >= len, "charsBound(" + std::to_string(base) + ") = " + std::to_string(bound) + " below length " + std::to_string(len));
                 if (std::has_single_bit(base) && !v.is_inf) { expect(bound, len + !neg, "charsBound exact (digits plus a sign slot) in base " + std::to_string(base)); }
                 if (v.is_inf) { expect(bound, 4, "sentinel charsBound"); }}}}
+    // Room sweeps (roomSweep: every room from 0 to 48 past the text) on independent texts; first the oracles themselves: refText against std::to_chars on one word and a 128-bit digit loop on two
+    // words, refRead inverting refText.
+    context = "reference radix conversions";
+    for (int t = 0; t < sz(200, 1000); ++t) {
+        ulng x = rng() >> ri(64); ulll u = ((ulll(rng()) << 64) | rng()) >> ri(128); uint base = uint(2 + ri(35));
+        char nb[80]; std::string ref(nb, std::to_chars(nb, nb + 80, x, int(base)).ptr), dec;
+        for (ulll y = u; y; y /= 10) { dec += char('0' + int(y % 10)); }
+        std::reverse(dec.begin(), dec.end());
+        expect(refText({x}, base, true), ref, "refText of one word against std::to_chars base " + std::to_string(base));
+        expect(refText(words128(u), 10), dec.empty() ? std::string("0") : dec, "refText of two words against a 128-bit digit loop");
+        vector<ulng> w(size_t(1 + ri(6))); for (ulng &y : w) { y = rng() >> ri(64); }
+        while (!w.empty() && w.back() == 0) { w.pop_back(); }
+        expect(refRead(refText(w, base, ri(2) == 1), base), w, "refRead inverts refText base " + std::to_string(base));}
+    // One-word decimal: writeDec24 with 24 bytes of room past the sign, writeDec with 21-23, the one-word text path below; zero, powers of ten and of two with their neighbours, random values of every
+    // length 1-20, both signs, inline words and a heap block cut to one word; std::to_chars is the oracle.
+    context = "toChars one-word decimal";
+    {
+        vector<ulng> nums = {0, 1, 9, 10, 99, 100, 101, ~0ULL - 1, ~0ULL};
+        for (ulng p = 10; ; p *= 10) { nums.push_back(p - 1); nums.push_back(p); nums.push_back(p + 1); if (p > ~0ULL / 10) { break; } }
+        for (int j = 1; j < 64; ++j) { nums.push_back((1ULL << j) - 1); nums.push_back(1ULL << j); }
+        for (int d = 1; d <= 20; ++d) {
+            ulng lo = 1; for (int i = 1; i < d; ++i) { lo *= 10; }
+            ulng hi = d == 20 ? ~0ULL : 10 * lo - 1; lo = d == 1 ? 0 : lo;
+            for (int t = 0; t < sz(2, 8); ++t) { nums.push_back(lo + rng() % (hi - lo + 1)); }}
+        const InfInt big = InfInt(1) << 380;
+        for (size_t i = 0; i < nums.size(); ++i) {
+            for (bool neg : {false, true}) {
+                char nb[24]; std::string text = std::string(neg && nums[i] ? "-" : "") + std::string(nb, std::to_chars(nb, nb + 24, nums[i]).ptr);
+                InfInt a = nums[i]; if (neg) { a = -a; }
+                InfInt h = big; h -= big - a;
+                require(a.n.size() == 1 && h.n.size() == 1 && h == a, "one word, inline and cut from a heap block: " + text);
+                roomSweep((i + neg) % 2 ? h : a, 10, false, text, "one-word decimal");}}}
+    // Two-word decimal: writeDec2 with 45 bytes of room past the sign (the top digit t from 10^38, one 10^19 split, writeDec24 or dec19Chars for the quotient), the block path below; powers of two
+    // from 2^64 and neighbours, t 10^38 + q 10^19 + r with q and r at their digit boundaries, random values of every length 20-39; refText is the oracle.
+    context = "toChars two-word decimal";
+    {
+        const ulll u1 = 1, E19 = 10000000000000000000ULL, E38 = E19 * E19;
+        vector<ulll> nums = {u1 << 64, (u1 << 64) + 1, (u1 << 64) + E19 - 1, ~ulll(0) - 1, ~ulll(0)};
+        for (ulll t = 1; t <= 3; ++t) { nums.push_back(t * E38 - 1); nums.push_back(t * E38); nums.push_back(t * E38 + 1); }
+        for (int j = 65; j < 128; ++j) { nums.push_back((u1 << j) - 1); nums.push_back(u1 << j); }
+        vector<ulll> qs = {0, 1, 2, 9, 10, 11, E19 - 1};
+        for (ulll p = 100; p < E19; p *= 10) { qs.push_back(p - 1); qs.push_back(p); }
+        for (ulll t = 0; t <= 3; ++t) {
+            for (ulll q : qs) {
+                for (ulll r : {ulll(0), ulll(1), E19 / 2, E19 - 1}) {
+                    ulll v; if ((full() || ri(4) == 0) && !__builtin_add_overflow(t * E38, q * E19 + r, &v) && v >> 64) { nums.push_back(v); }}}}
+        for (int d = 20; d <= 39; ++d) {
+            ulll lo = 1; for (int i = 1; i < d; ++i) { lo *= 10; }
+            ulll hi = d == 39 ? ~ulll(0) : 10 * lo - 1; lo = max(lo, u1 << 64);
+            for (int t = 0; t < sz(2, 8); ++t) { nums.push_back(lo + ((ulll(rng()) << 64) | rng()) % (hi - lo + 1)); }}
+        for (size_t i = 0; i < nums.size(); ++i) {
+            InfInt a = nums[i]; std::string text = refText(words128(nums[i]), 10);
+            require(a.n.size() == 2 && a.toLimbs<ulng>() == words128(nums[i]), "two words of " + text);
+            for (bool neg : {false, true}) { if (full() || neg == (i % 2 == 1)) { roomSweep(neg ? -a : a, 10, false, (neg ? "-" : "") + text, "two-word decimal"); } }}}
+    // Decimal of three or more words (writeDecBlocks: the top block by writeDec, each lower block in 19 digits by dec19Chars): 10^k, 10^k + 1 and 10^k - 1 for k = 38-120, 5 10^(19j) + 7 and
+    // 10^(19 (j + 1)) - 10^19 with zero and zero-led lower blocks, random three to eight words with zero words; built by refRead from the text, which is the oracle.
+    context = "toChars multi-block decimal";
+    {
+        vector<std::string> texts;
+        for (int k = 38; k <= 120; ++k) {
+            if (!full() && k % 19 > 1 && k != 120) { continue; }
+            std::string p = "1" + std::string(size_t(k), '0'), q = p; q.back() = '1';
+            texts.push_back(p); texts.push_back(q); texts.push_back(std::string(size_t(k), '9'));}
+        for (int j = 2; j <= 6; ++j) { texts.push_back("5" + std::string(size_t(19 * j - 1), '0') + "7"); texts.push_back(std::string(size_t(19 * j), '9') + std::string(19, '0')); }
+        for (int t = 0; t < sz(10, 40); ++t) { vector<ulng> w(size_t(3 + ri(6))); for (ulng &x : w) { x = ri(3) ? rng() : 0; } w.back() |= 1ULL << ri(64); texts.push_back(refText(w, 10)); }
+        for (const std::string &text : texts) {
+            vector<ulng> w = refRead(text, 10);
+            for (int s : {1, -1}) { roomSweep(InfInt::fromLimbs(w, s), 10, false, (s < 0 ? "-" : "") + text, "decimal of " + std::to_string(w.size()) + " words"); }}}
+    // Hexadecimal: the one- and two-word slack path (room above 32: the top word shifted to its first digit, then the low word, past the end for one word), the one-to-four-word exact-room path and the
+    // power-of-two text path from five words; zero as one zero word, as no words and moved-from; top words 2^(j-1) and 2^j - 1 (every nibble count) over zero, all-ones and random lower words.
+    context = "toChars hexadecimal";
+    {
+        InfInt z0, z1 = 0, src = 5, keep = std::move(src), z2 = keep - keep;
+        require(z0.n.empty() && src.n.empty() && z1.n.size() == 1 && z2.n.size() == 1, "zero as no words (default, moved-from) and as one zero word");
+        for (const InfInt *z : {&z0, &z1, &src, &z2}) { for (uint base : {16u, 10u, 2u, 8u, 36u}) { roomSweep(*z, base, base == 36, "0", "zero"); } }
+        for (int k = 1; k <= 6; ++k) {
+            for (int j = 1; j <= 64; ++j) {
+                for (int top = 0; top < 2; ++top) {
+                    vector<ulng> w(static_cast<size_t>(k));
+                    for (int i = 0; i + 1 < k; ++i) { w[size_t(i)] = j % 3 == 0 ? 0 : j % 3 == 1 ? ~0ULL : rng(); }
+                    w.back() = top ? (j == 64 ? ~0ULL : (1ULL << j) - 1) : 1ULL << (j - 1);
+                    InfInt a = InfInt::fromLimbs(w);
+                    for (int c = 0; c < 4; ++c) {
+                        bool lower = c & 1, neg = c & 2;
+                        if (full() || c == (j + top) % 4) { roomSweep(neg ? -a : a, 16, lower, (neg ? "-" : "") + refText(w, 16, lower), "hexadecimal of " + std::to_string(k) + " words"); }}}}}}
+    // Every base 2-36 (toCharsRest, and the decimal and hexadecimal paths above), both cases above base 10: zero in both forms, base - 1, base, base + 1, 2^64 and 2^128 neighbours, the largest power of
+    // the base in one to five words and its neighbours, random one to five words, both signs; the short rooms include the least-digit early fail of multi-word values.
+    context = "toChars every base";
+    for (uint base = 2; base <= 36; ++base) {
+        const InfInt b = base, p64 = InfInt(1) << 64, p128 = InfInt(1) << 128;
+        vector<InfInt> nums = {InfInt(), 0, b - 1, b, b + 1, p64 - 1, p64, p64 + 1, p128 - 1, p128};
+        for (InfInt p = b, prev = 1; p.n.size() <= 5; prev = p, p *= base) { if (p.n.size() > prev.n.size()) { nums.push_back(prev - 1); nums.push_back(prev); nums.push_back(prev + 1); } }
+        for (int t = 0; t < sz(2, 6); ++t) { nums.push_back(randBits(1 + ri(320))); }
+        for (size_t i = 0; i < nums.size(); ++i) {
+            vector<ulng> w = nums[i].toLimbs<ulng>();
+            for (int c = 0; c < 4; ++c) {
+                bool lower = c & 1, neg = c & 2;
+                if ((lower && base <= 10) || (!full() && c != (base <= 10 ? 2 * int(i % 2) : int(i % 4)))) { continue; }
+                roomSweep(neg ? -nums[i] : nums[i], base, lower, (neg && !nums[i].isNil() ? "-" : "") + refText(w, base, lower), "base " + std::to_string(base));}}}
     context = "format";
     for (int t = 0; t < sz(500, 5000); ++t) {
         std::string spec = randSpec();
@@ -364,6 +617,45 @@ static void addition() {
             expect(a + InfInt(b), s, "lvalue + temporary" + what); expect(a - InfInt(b), d, "lvalue - temporary" + what);
             InfInt c = a; c += b; expect(c, s, "+=" + what); c = a; c -= b; expect(c, d, "-=" + what);
             expect((a + b) + a, oadd(s, a), "(a + b) + a" + what); expect((a - b) - a, oadd(d, -a), "(a - b) - a" + what); expect(a + (b - a), oadd(a, oadd(b, -a)), "a + (b - a)" + what);}}
+    // The two-word path of + and - (small2: one or two words each below 2^126, the exact sum of low2's signed 128-bit operands) and its edges: magnitudes around 2^63, 2^64, 2^126, 2^127 and 2^128 - 1,
+    // every sign pair, inline, heap-backed (cut from seven words) and empty zeros, sums of one to three words; the limb oracle, and exact __int128 when both magnitudes are below 2^126.
+    context = "two-word sums";
+    {
+        struct Operand { InfInt v; bool neg; ulll mag; };
+        const ulll u1 = 1; const InfInt big = InfInt(1) << 420;
+        vector<ulll> mags = {0, 1, (u1 << 63) - 1, u1 << 63, (u1 << 63) + 1, (u1 << 64) - 1, u1 << 64, (u1 << 64) + 1, (u1 << 126) - 2, (u1 << 126) - 1, u1 << 126, (u1 << 126) + 1, (u1 << 127) - 1, u1 << 127, (u1 << 127) + 1, ~ulll(0) - 1, ~ulll(0)};
+        for (int t = 0; t < sz(4, 12); ++t) { mags.push_back(((ulll(rng()) << 64) | rng()) >> ri(128)); }
+        vector<Operand> ops; ops.push_back({InfInt(), false, 0});
+        for (size_t i = 0; i < mags.size(); ++i) {
+            for (bool neg : {false, true}) {
+                InfInt v = mags[i]; if (neg) { v = -v; }
+                if ((i + neg) % 3 == 0) { InfInt h = big; h -= big - v; v = std::move(h); }
+                ops.push_back({std::move(v), neg && mags[i], mags[i]});}}
+        auto same = [](const InfInt &r, lll e) { return !r.is_inf && r.sgn == (e < 0 ? -1 : 1) && r.toLimbs<ulng>() == words128(e < 0 ? ulll(-e) : ulll(e)); };
+        for (const Operand &x : ops) {
+            for (const Operand &y : ops) {
+                InfInt s = oadd(x.v, y.v), d = oadd(x.v, -y.v), c1 = x.v, c2 = x.v; c1 += y.v; c2 -= y.v;
+                const InfInt res[] = {x.v + y.v, InfInt(x.v) + y.v, c1, x.v - y.v, InfInt(x.v) - y.v, c2};
+                std::string what = (x.neg ? "-" : "") + refText(words128(x.mag), 16) + " and " + (y.neg ? "-" : "") + refText(words128(y.mag), 16) + " (hex)";
+                for (int k = 0; k < 6; ++k) { expect(res[k], k < 3 ? s : d, std::string(k < 3 ? "sum" : "difference") + " form " + std::to_string(k % 3) + " of " + what); require(res[k].isNil() ? res[k].sgn == 1 : res[k].n.back() != 0, "canonical result of " + what); }
+                if (!(x.mag >> 126) && !(y.mag >> 126)) {
+                    lll a = x.neg ? -lll(x.mag) : lll(x.mag), b = y.neg ? -lll(y.mag) : lll(y.mag);
+                    require(same(res[0], a + b) && same(res[1], a + b) && same(res[2], a + b) && same(res[3], a - b) && same(res[4], a - b) && same(res[5], a - b), "exact 128-bit sum and difference of " + what);}}}}
+    // Cancellation to zero, one word and two words: x - x, x + (-x), (-x) - (-x), -x + x, a temporary minus x, x -= x, x -= its copy, x += -x and -x += x for one to nine words, and five- to
+    // nine-word operands that differ by a one- or two-word d (every sum and difference form against d); a zero result is one zero word with sign +1.
+    context = "cancellation";
+    for (int words : {1, 2, 3, 4, 5, 6, 9}) {
+        for (int t = 0; t < sz(3, 10); ++t) {
+            InfInt x = randBits(64 * words - ri(64), ri(2) == 1), c;
+            auto zero = [&](const InfInt &z, const char *what) { ++checks; if (z.is_inf || !z.isNil() || z.sgn != 1 || z.n.size() != 1 || z.n[0] != 0) { fail(std::string(what) + " of " + std::to_string(words) + " words: not one zero word with sign +1 (sgn=" + std::to_string(z.sgn) + ", " + std::to_string(z.n.size()) + " words)"); } };
+            zero(x - x, "x - x"); zero(x + (-x), "x + (-x)"); zero((-x) - (-x), "(-x) - (-x)"); zero(-x + x, "-x + x"); zero(InfInt(x) - x, "temporary - x");
+            c = x; c -= c; zero(c, "x -= x"); c = x; c -= x; zero(c, "x -= copy"); c = x; c += -x; zero(c, "x += -x"); c = -x; c += x; zero(c, "-x += x");
+            if (words < 5) { continue; }
+            for (int lw : {1, 2}) {
+                InfInt d = randBits(64 * lw - ri(60), ri(2) == 1), y = oadd(x, d), e = x; c = y; c -= x; e -= y;
+                std::string what = std::to_string(words) + "-word operands differing by " + std::to_string(lw) + " words";
+                for (const InfInt &r : {y - x, -x + y, y + (-x), InfInt(y) - x, c}) { expect(r, d, what); require(r.n.size() == d.n.size() && r.n.back() != 0, "canonical: " + what); }
+                for (const InfInt &r : {x - y, InfInt(x) - y, -y + x, e}) { expect(r, -d, what + " (negated)"); require(r.n.size() == d.n.size() && r.n.back() != 0, "canonical: " + what); }}}}
     context = "";}
 
 // Residue of little-endian words modulo p < 2^64 by 128-bit Horner steps: the identity oracle (r = a b modulo several primes) for products beyond the schoolbook budget.
@@ -458,7 +750,7 @@ static void multiplication() {
 
 
 // Transforms: the residue oracle itself, ntt3Cyclic and ntt64Cyclic through the limb interface (lengths across the 4096-limb leaf), fftPlan (fields, the huge request,
-// every (lg, r) class and both leaf parities), fftRun full and cyclic plans, transformMul and the public products at those sizes, tiny and unbalanced shapes, squares, five patterns; cyclicPlan/mulCyclic/foldMod1/subMod1/canonical residues and kept spectra (fftWith).
+// every (lg, r) class and both leaf parities), fftRun full and cyclic plans, transformMul and the public products at those sizes, tiny and unbalanced shapes, squares, five patterns; cyclicPlan/mulCyclic/foldMod1/subMod1/canonical residues, kept spectra (fftWith) and the kept-spectrum products (fftScale, chunkPlan, spectrumChunk, spectrumMul, fftMul).
 static void transforms() {
     using namespace infint_detail;
     context = "residue oracle";
@@ -593,6 +885,77 @@ static void transforms() {
                 context = "fftWith cyclic " + label + " len=" + std::to_string(c.len) + " a #" + std::to_string(k) + " of " + std::to_string(na) + " words " + PATTERN_NAMES[pa];
                 fftWith(z.data(), sc, x.data(), na, true); canonical(z.data(), c.len);
                 expect(ofWords(z), foldOnes(ofWords(e), c.len), "cyclic residue after canonical");}}}
+    // Kept-spectrum products: fftScale against ldexp; chunkPlan admissible and maximal under fftPlan's precision and fit rule over every piece width; spectrumChunk's plan and, past fftPlan's limit, its choice against the NTT; spectrumMul at
+    // exact chunk multiples, short last chunks and an all-zero chunk; fftMul and mul around SPECTRUM_MUL, SPECTRUM_RATIO and FFT (r untouched when fftMul declines).
+    context = "fftScale";
+    for (int l = FFT_MIN_LOG; l <= FFT_MAX_LOG; ++l) { for (int r : {1, 3, 5}) { for (int k = FFT_MIN_K; k <= FFT_MAX_K; ++k) { double phi = FFT_PHI[size_t(r)][size_t(l)]; require(fftScale(l, r, k) == std::ldexp(phi * phi, 4 * k - 4), "fftScale(" + std::to_string(l) + ", " + std::to_string(r) + ", " + std::to_string(k) + ") is phi^2 2^(4k - 4)"); } } }
+    // A chunk of c words and m words fit r 2^l points with k-bit pieces: fftPlan's precision bound and piece count, with the scale from ldexp.
+    auto fits = [](int l, int r, int k, lng c, int m) {
+        double phi = FFT_PHI[size_t(r)][size_t(l)]; lng nx = (64 * c + k - 1) / k + 1, ny = (64LL * m + k - 1) / k + 1;
+        return double(nx) * double(ny) * std::ldexp(phi * phi, 4 * k - 4) <= 0.2401 && nx + ny - 1 <= (lng(2 * r) << l);};
+    context = "chunkPlan";
+    for (int m : {1, 2, 27, 32, 33, 96, 100, 191, 192, 640, 1000, 4097, 40000, 1000000}) {
+        for (int l = FFT_MIN_LOG; l <= FFT_MAX_LOG; ++l) {
+            for (int r : {1, 3, 5}) {
+                int c; FftPlan p = chunkPlan(l, r, m, c);
+                std::string at = "l=" + std::to_string(l) + " r=" + std::to_string(r) + " m=" + std::to_string(m) + " c=" + std::to_string(c);
+                bool larger = false;
+                for (int k = FFT_MIN_K; k <= FFT_MAX_K; ++k) { larger = larger || fits(l, r, k, lng(c) + 1, m); }
+                require(!larger, at + ": no piece width fits a chunk of c + 1 words");
+                if (c == 0) { require(p.lg == 0 && p.r == 0 && p.k == 0 && p.len == 0, at + ": no chunk gives the empty plan"); continue; }
+                require(p.lg == l && p.r == r && p.k >= FFT_MIN_K && p.k <= FFT_MAX_K && p.len == c + m && fits(l, r, p.k, c, m), at + ": the plan holds a chunk of c words and m words");}}}
+    context = "spectrumChunk";
+    for (auto [n, m] : vector<pair<int, int>>{{512, 32}, {600, 32}, {4096, 32}, {8192, 64}, {3000, 100}, {6000, 191}, {6000, 192}, {90000, 10000}, {1000000, 1000}, {2 * FFT, FFT}, {20 * FFT, FFT}, {100 * FFT, FFT}, {4580000, 3300000}, {10000000, 6000000}, {32000000, 4000000}}) {
+        FftPlan p; int c = spectrumChunk(n, m, p), c2;
+        std::string at = std::to_string(n) + "x" + std::to_string(m) + " c=" + std::to_string(c) + " plan lg=" + std::to_string(p.lg) + " r=" + std::to_string(p.r) + " k=" + std::to_string(p.k);
+        if (c == n) { FftPlan f = fftPlan(n, m, n + m, false); require(p.lg == f.lg && p.r == f.r && p.k == f.k && p.len == f.len, at + ": no chunking keeps fftPlan's plan (none past its limit)"); continue; }
+        FftPlan q = chunkPlan(p.lg, p.r, m, c2);
+        require(c >= m && c < n && c2 == c && q.k == p.k && q.len == p.len, at + ": a chunk of m to n - 1 words under chunkPlan's plan");}
+    // Past fftPlan's limit the chunks face transformMul's NTT, priced once its root tables cover the limbs: the choice against the unpruned minimum over every chunk plan and the price recomputed,
+    // with the tables as found and (full) after building them to 2^24 limbs, where 4,580,000 x 3,300,000 words takes the NTT in the AVX2 build and the chunks in the scalar one.
+    context = "spectrumChunk past fftPlan";
+    auto pastPlan = [&](int n, int m) {
+        FftPlan p; int c = spectrumChunk(n, m, p);
+        double low = 1e300;
+        for (int l = FFT_MIN_LOG; l <= FFT_MAX_LOG; ++l) { for (int r : {1, 3, 5}) { int k; FftPlan q = chunkPlan(l, r, m, k); if (k >= m && k < n) { low = min(low, SPECTRUM_PENALTY * (2.0 * ((n + k - 1) / k) + 1) * planWork(q)); } } }
+        lng limbs = lng(std::bit_ceil(2 * ulng(n + m)));
+        double ntt = limbs <= Ntt32<NTT_PRIMES[0], NTT_ROOTS[0]>::roots(false).n ? NTT_WORK * double(limbs) * std::log2(double(limbs)) : 1e300;
+        require(fftPlan(n, m, n + m, false).lg == 0 && (c == n) == (low >= ntt) && (c == n ? p.lg == 0 : c >= m), std::to_string(n) + "x" + std::to_string(m) + " tables " + std::to_string(Ntt32<NTT_PRIMES[0], NTT_ROOTS[0]>::roots(false).n) + ": the chunks exactly when they beat the NTT's price");
+        return c == n;};
+    for (auto [n, m] : vector<pair<int, int>>{{4580000, 3300000}, {10000000, 6000000}, {12000000, 1000000}, {32000000, 4000000}}) { pastPlan(n, m); }
+#ifdef __AVX2__
+    constexpr bool avx2 = true;
+#else
+    constexpr bool avx2 = false;
+#endif
+    if (full()) {
+        Ntt32<NTT_PRIMES[0], NTT_ROOTS[0]>::ensure(1 << 24);
+        require(pastPlan(4580000, 3300000) == avx2, "4580000x3300000 with the tables at 2^24 limbs: the NTT in the AVX2 build, the chunks in the scalar one");}
+    for (int m : {1, 5, 32, 100, FFT + 1, full() ? 3000 : 300}) {
+        vector<pair<FftPlan, int>> plans;
+        for (int l = max(FFT_MIN_LOG, std::bit_width(uint(m)) - 2); l <= FFT_MAX_LOG && plans.size() < 3; ++l) {
+            for (int r : {1, 3, 5}) { int c; FftPlan q = chunkPlan(l, r, m, c); if (c >= m && c <= sz(3000, 12000) && plans.size() < 3) { plans.push_back({q, c}); } }}
+        require(!plans.empty(), "chunk plans for m = " + std::to_string(m));
+        for (auto [q, c] : plans) {
+            for (int n : {c + 1, 2 * c, 2 * c + 1, 3 * c - 1, 3 * c}) {
+                for (int pa : {0, 1, 4}) {
+                    vector<W> x = patterned(n, pa, q.k), y = patterned(m, pa, q.k, 1), got(size_t(n + m), POISON), e(size_t(n + m));
+                    bool hole = pa == 0 && n > 2 * c;
+                    if (hole) { std::fill(x.begin() + c, x.begin() + 2 * c, 0); }   // the second chunk is all zero
+                    context = "spectrumMul " + std::to_string(n) + "x" + std::to_string(m) + " chunk " + std::to_string(c) + " plan lg=" + std::to_string(q.lg) + " r=" + std::to_string(q.r) + " k=" + std::to_string(q.k) + " " + PATTERN_NAMES[pa] + (hole ? " zero chunk" : "");
+                    spectrumMul(got.data(), x.data(), n, y.data(), m, q, c); transformMul(e.data(), x.data(), n, y.data(), m);
+                    expectProduct(ofWords(e), x, y, pa == 1, "transformMul (the oracle product)"); require(got == e, "spectrumMul equals transformMul");}}}}
+    vector<pair<int, int>> around = {{FFT + 5, FFT}, {2 * FFT, FFT + 1}};
+    for (int m : {SPECTRUM_MUL - 1, SPECTRUM_MUL, SPECTRUM_MUL + 1, FFT - 1, FFT, FFT + 1}) {
+        for (int n : {SPECTRUM_RATIO * m - 1, SPECTRUM_RATIO * m, SPECTRUM_RATIO * m + 1, 24 * m, 40 * m + 3}) { if (double(n) * m <= (full() ? 2e8 : 3e7)) { around.push_back({n, m}); } }}
+    for (auto [n, m] : around) {
+        for (int pa : {0, 1}) {
+            vector<W> x = patterned(n, pa), y = patterned(m, pa), got(size_t(n + m), POISON), e(size_t(n + m));
+            context = "fftMul " + std::to_string(n) + "x" + std::to_string(m) + " " + PATTERN_NAMES[pa];
+            if (!fftMul(got.data(), x.data(), n, y.data(), m)) { require(m < FFT && std::all_of(got.begin(), got.end(), [](W w) { return w == POISON; }), "fftMul declines only below FFT and leaves r untouched"); }
+            else { expectProduct(ofWords(got), x, y, pa == 1, "fftMul"); }
+            context = "mul " + std::to_string(n) + "x" + std::to_string(m) + " " + PATTERN_NAMES[pa];
+            mul(e.data(), x.data(), n, y.data(), m); expectProduct(ofWords(e), x, y, pa == 1, "mul");}}
     // 7,000,000 x 1,000,000 words: no full FFT plan (balanced plans end at 7,864,318 product words, one-word multipliers at 11,796,478 multiplicand words), so transformMul and the cyclic plan at want = n + m fall through
     // to the NTTs, while want = 1,000,001 still gets an FFT plan of 7,864,320 < n + m words (a genuine wrap, run through a kept spectrum so one transform buffer stays resident); both residues are the verified product folded at len.
     if (stress()) {
@@ -675,6 +1038,29 @@ static void division() {
         auto [q, r] = divMod(a, InfInt(u)); expect(a / u, q, "div ulng"); expect(a % u, r, "rem ulng"); expect(omul(q, InfInt(u)) + r, a, "scalar identity");
         auto [qs, rs] = divMod(a, InfInt(s)); expect(a / s, qs, "div lng"); expect(a % s, rs, "rem lng");
         int k = 1 + ri(100); InfInt p = InfInt(1) << k; auto [qp, rp] = divMod(a, p); expect(a / (ulng(1) << min(k, 63)), k <= 63 ? qp : InfInt(a) / (ulng(1) << 63), "div power of two"); expect(a % p, rp, "rem power of two");}
+    // divMod's inline entry (one word each) and divModRest (a one-word dividend, a power of two, a one-word divisor, two-word divRem, a dividend below the divisor) on magnitudes of one and two words at
+    // their boundaries, zero as one zero word and as no words, inline and heap-backed values, every sign pair: quotient and remainder against 128-bit division, and the Euclid identity.
+    context = "divMod of one and two words";
+    {
+        struct Operand { InfInt v; bool neg; ulll mag; };
+        const ulll u1 = 1; const InfInt big = InfInt(1) << 420;
+        vector<ulll> mags = {0, 1, 2, 3, 7, 10, (u1 << 32) - 1, u1 << 32, (u1 << 63) - 1, u1 << 63, (u1 << 64) - 1, u1 << 64, (u1 << 64) + 1, u1 << 65, (u1 << 96) + 7, (u1 << 127) - 1, u1 << 127, ~ulll(0)};
+        for (int t = 0; t < sz(4, 12); ++t) { mags.push_back(rng() >> ri(64)); mags.push_back(((ulll(rng()) << 64) | rng()) >> ri(64)); }
+        vector<Operand> ops; ops.push_back({InfInt(), false, 0});
+        for (size_t i = 0; i < mags.size(); ++i) {
+            for (bool neg : {false, true}) {
+                InfInt v = mags[i]; if (neg) { v = -v; }
+                if ((i + neg) % 3 == 0) { InfInt h = big; h -= big - v; v = std::move(h); }
+                ops.push_back({std::move(v), neg && mags[i], mags[i]});}}
+        auto same = [](const InfInt &x, bool neg, ulll mag) { return !x.is_inf && x.sgn == (neg && mag ? -1 : 1) && x.toLimbs<ulng>() == words128(mag) && (x.isNil() || x.n.back() != 0); };
+        for (const Operand &a : ops) {
+            for (const Operand &b : ops) {
+                if (!b.mag) { continue; }
+                ulll q = a.mag / b.mag, r = a.mag % b.mag; bool qn = a.neg != b.neg;
+                auto [dq, dr] = divMod(a.v, b.v); InfInt cq = a.v, cr = a.v; cq /= b.v; cr %= b.v; ++checks;
+                if (!same(dq, qn, q) || !same(dr, a.neg, r) || !same(a.v / b.v, qn, q) || !same(a.v % b.v, a.neg, r) || !same(cq, qn, q) || !same(cr, a.neg, r) || oadd(omul(dq, b.v), dr) != a.v || magCmp(dr, b.v) >= 0) {
+                    fail("divMod(" + std::string(a.neg ? "-" : "") + refText(words128(a.mag), 10) + ", " + (b.neg ? "-" : "") + refText(words128(b.mag), 10) + ") = (" + dq.toString() + ", " + dr.toString() + "), expected ("
+                         + (qn && q ? "-" : "") + refText(words128(q), 10) + ", " + (a.neg && r ? "-" : "") + refText(words128(r), 10) + ")");}}}}
     context = "remWord";
     for (int t = 0; t < sz(300, 3000); ++t) {
         int n = 1 + ri(t % 10 == 0 ? 200 : 8); vector<W> a(static_cast<size_t>(n)); for (W &x : a) { x = rng() >> ri(64); } if (t % 7 == 0) { a.back() = 0; }
@@ -720,16 +1106,16 @@ static void inversion() {
             require(X == V || X == V + 1, "invertExact within one above invert");
             InfInt Q = X == V ? P : P + D; require(Q <= B2 && Q + D > B2, "d x <= B^(2m) < d (x + 1)");}}
     // Quotient blocks of blk <= m words: the first block of (qn - 1) % blk + 1 words and every block below knuthGate(m, true) words by Knuth D, the linear (blk < cyclicGate(m)) and cyclic remainder paths, spectra from blk >= FFT,
-    // the shift path of an unnormalized divisor, remainders 0, 1, b - 1 and random, all-ones quotients; the dispatcher without a Divisor, a Divisor prepared without the cyclic plan (the fresh path's linear remainders) and the exact flag on odd divisors of a = q b.
+    // unnormalized divisors, remainders 0, 1, b - 1 and random, all-ones quotients; the dispatcher without a Divisor (across FRESH_DIV) and with one (across ceil(m / CACHED_RATIO)), a Divisor without the cyclic plan, the exact flag.
     context = "divBlocks";
     vector<int> dms = {2, BURNIKEL - 1, BURNIKEL, BURNIKEL + 1, CYCLIC_REM - 1, CYCLIC_REM, CYCLIC_REM + 3, FFT - 1, FFT, FFT + 1, 2 * FFT + 7, 4 * FFT + 1};
     if (full()) { dms.push_back(NEWTON_DIV + 3); dms.push_back(NEWTON_DIV - 1); }
-    for (int m : {NEWTON_LONG - 1, NEWTON_LONG, NEWTON_LONG + 1}) { if (std::find(dms.begin(), dms.end(), m) == dms.end()) { dms.push_back(m); } }
+    for (int m : {NEWTON_LONG - 1, NEWTON_LONG, NEWTON_LONG + 1, FRESH_DIV - 1, FRESH_DIV, FRESH_DIV + 1}) { if (std::find(dms.begin(), dms.end(), m) == dms.end()) { dms.push_back(m); } }
     int t = 0;
     for (int m : dms) {
         vector<int> blks, qns;
         for (int b : {1, 2, 7, knuthGate(m, true) - 1, knuthGate(m, true), cyclicGate(m) - 1, cyclicGate(m), FFT - 1, FFT, m / 3, m / 2, m - 1, m}) { if (b >= 1 && b <= m && std::find(blks.begin(), blks.end(), b) == blks.end()) { blks.push_back(b); } }
-        for (int q : {0, 1, knuthGate(m, true) - 1, knuthGate(m, true), knuthGate(m, false) - 1, knuthGate(m, false), m / 3, m / 3 + 1, m, m + 1, 2 * m, 4 * m, 4 * m + 1}) { if (std::find(qns.begin(), qns.end(), q) == qns.end()) { qns.push_back(q); } }
+        for (int q : {0, 1, knuthGate(m, true) - 1, knuthGate(m, true), knuthGate(m, false) - 1, knuthGate(m, false), m / 3, m / 3 + 1, (m - 1) / CACHED_RATIO, (m - 1) / CACHED_RATIO + 1, (m - 1) / CACHED_RATIO + 2, m, m + 1, 2 * m, 4 * m, 4 * m + 1}) { if (std::find(qns.begin(), qns.end(), q) == qns.end()) { qns.push_back(q); } }
         for (int qn : qns) {
             for (int rep = 0; rep < (m > 1000 && qn > 2 * m ? 1 : sz(1, 2)); ++rep, ++t) {
                 int dp = t % 6, qp = (t / 6) % 2, rp = (t / 12) % 4;

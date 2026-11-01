@@ -56,6 +56,8 @@ P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, C
 | `02-integration.py` | PASS, 135 standalone/aggregate headers, scalar and AVX2 multi-TU builds, workspace, `MEMORY peak=646MB` |
 | `03-consistency.py --braces` on the touched headers and testers, and `03-consistency.py` | No errors |
 
+The `03-fastio` tester in the loop below moved with its header to `96-Local Testing/01-Core/19-fastio_tester.py` (P018, 2026-11-01; [19-fastio.md](../../01-Core/Docs/19-fastio.md)).
+
 ```bash
 for c in g++ g++-14; do
   for s in 01-random 02-customhash 03-fastio 04-compression 06-bit_operations 07-permutation 08-sequence_algorithms 12-enumeration; do

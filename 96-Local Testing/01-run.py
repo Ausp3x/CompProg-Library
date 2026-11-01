@@ -13,7 +13,7 @@ import tempfile
 import time
 
 HERE = Path(__file__).resolve().parent
-QUICK = {'01-template_tester.py', '02-debug_tester.py', '03-barrett_tester.py', '04-montgomery_tester.py', '05-modint_tester.py', '06-modintmini_tester.py', '07-infint_tester.py', '08-infintmini_tester.py', '09-rational_tester.py', '16-poly_tester.py', '17-polymini_tester.py', '18-bitset_tester.py'}
+QUICK = {'01-template_tester.py', '02-debug_tester.py', '03-barrett_tester.py', '04-montgomery_tester.py', '05-modint_tester.py', '06-modintmini_tester.py', '07-infint_tester.py', '08-infintmini_tester.py', '09-rational_tester.py', '16-poly_tester.py', '17-polymini_tester.py', '18-bitset_tester.py', '19-fastio_tester.py'}
 STATS = HERE / '.run-stats.json'  # git-ignored: last peak MB and seconds per mode and suite, for scheduling only
 CAP_MB = int(os.environ.get('CP_TEST_MEMORY_MB', '4096'))
 SIGNALS = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)  # each stops every job as Ctrl-C does

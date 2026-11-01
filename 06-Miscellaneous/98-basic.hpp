@@ -2,7 +2,6 @@
 // Existing implementations only; planned coverage is listed in 00-index.md.
 #include "01-random.hpp"
 #include "02-customhash.hpp"
-#include "03-fastio.hpp"
 #include "04-compression.hpp"
 #include "06-bit_operations.hpp"
 #include "07-permutation.hpp"

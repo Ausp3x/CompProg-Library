@@ -229,7 +229,7 @@
     },
     {
       "id": "P013",
-      "label": "06-Miscellaneous — random, customhash, fastio, compression, bit operations, permutation",
+      "label": "06-Miscellaneous — random, customhash, compression, bit operations, permutation",
       "batches": [
         "MI01",
         "MI02"
@@ -241,7 +241,6 @@
       "evidence": [
         "06-Miscellaneous/Docs/01-random.md",
         "06-Miscellaneous/Docs/02-customhash.md",
-        "06-Miscellaneous/Docs/03-fastio.md",
         "06-Miscellaneous/Docs/04-compression.md",
         "06-Miscellaneous/Docs/06-bit_operations.md",
         "06-Miscellaneous/Docs/07-permutation.md"
@@ -383,9 +382,10 @@
       "model": "fable",
       "status": "verified",
       "evidence": [
-        "01-Core/Docs/07-infint.md"
+        "01-Core/Docs/07-infint.md",
+        "01-Core/Docs/19-fastio.md"
       ],
-      "note": "Stage 3 (division) closed 2026-10-31 on header b98b2642a126316b after /finish (scaled remainder tree print from SCALED_TREE in the AVX2 build, CACHED_MOD, whole-stdin Yosupo drivers; benchmark and judge pass on the same header). Follow-ups, none blocking: the scalar build never takes the tree (measured no win); the decimal judge gap is the conversion itself (leaders keep decimal limbs)."
+      "note": "Stages 1-4 and the Core fast I/O header verified (/finish 2026-11-02); the final revision is not yet submitted, so the judge side of the hex comparison is unconfirmed (07-infint.md, Limits)."
     },
     {
       "id": "P019",
@@ -1240,7 +1240,7 @@
     },
     {
       "id": "P066",
-      "label": "06-Miscellaneous — smalltolarge, hilbertorder, fast io advanced, randomized algorithms, hash families, parallelbinarysearch, cdq",
+      "label": "06-Miscellaneous — smalltolarge, hilbertorder, randomized algorithms, hash families, parallelbinarysearch, cdq",
       "batches": [
         "MI04",
         "MI05",

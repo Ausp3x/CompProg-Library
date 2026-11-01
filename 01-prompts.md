@@ -46,7 +46,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P010 — GR01, GR02** (opus, M+L): 04-Graphs — graph, traversal, toposort, dsu, shortest path, mst.
 - [x] **P011 — GR03, GR26** (opus, L+M): 04-Graphs — lca, scc, bridges articulation, euleriantrail, functionalgraph.
 - [x] **P012 — MA01, MA02** (opus, M+M): 05-Mathematics — mod arithmetic, search algorithms, equation solvers, sieve algorithms, combinatorics, segmentedsieve.
-- [x] **P013 — MI01, MI02** (opus, M+M): 06-Miscellaneous — random, customhash, fastio, compression, bit operations, permutation.
+- [x] **P013 — MI01, MI02** (opus, M+M): 06-Miscellaneous — random, customhash, compression, bit operations, permutation.
 - [x] **P014 — MI03, MI14** (opus, M+M): 06-Miscellaneous — sequence algorithms, interval algorithms, offline queries, sorting selection.
 - [x] **P015 — MI15, MI16, MI17** (opus, M+M+S): 06-Miscellaneous — enumeration, knapsack, cyclefinding.
 - [x] **P016 — ST01, ST02, ST19** (opus, S+M+S): 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength.
@@ -112,7 +112,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P073 — MI19, MI20, MI21, MI22, MI33** (opus, M+M+L+L+M): 06-Miscellaneous — meetinthemiddle, digitdp, subset dp, profile dp, interval dp, bracket sequences. Status: planned.
 - [ ] **P050 — GR35, GR36, GR37, GR38** (opus, M+M+L+M): 04-Graphs — stablematching, graphicalsequence, reachability, cactusgraph. Status: planned.
 - [ ] **P061 — MA11** (opus, L): 05-Mathematics — interpolation, matrixtree. Status: planned.
-- [ ] **P066 — MI04, MI05, MI06** (opus, M+L+M): 06-Miscellaneous — smalltolarge, hilbertorder, fast io advanced, randomized algorithms, hash families, parallelbinarysearch, cdq. Status: planned.
+- [ ] **P066 — MI04, MI05, MI06** (opus, M+L+M): 06-Miscellaneous — smalltolarge, hilbertorder, randomized algorithms, hash families, parallelbinarysearch, cdq. Status: planned.
 - [ ] **P062 — MA13** (opus, L): 05-Mathematics — game theory, probability. Status: planned.
 - [ ] **P031 — DS24** (opus, XL): 02-Data Structures — balanced bst. Status: planned.
 - [ ] **P049 — GR30, GR31, GR34** (opus, L+L+L): 04-Graphs — chordalgraph, edge coloring, graph closure. Status: planned.

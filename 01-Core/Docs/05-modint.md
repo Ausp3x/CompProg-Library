@@ -174,7 +174,7 @@ Python 3.10 execution (scripts parse under 3.10 grammar) was not run.
 
 Matrix (P020/C07, existing-unverified): its optimized modular kernels derive the modulus through an `int` cast, assume particular 32-bit ranges, and its field classification includes a compile-time use of `is_prime`. C03's wider domains and dynamic prime flags do not establish Matrix support for those domains. C07 must review full-width/64-bit modular matrices and dynamic field classification before advertising them; reconstruct matrices and cached factors after dynamic modulus changes. Start at `FastGaussian::getMod`, `Matrix::isField/is_field`, and the `is_mint32` accelerated paths: derive moduli through `T::mod()` with correct word widths, enforce each kernel's domain, and replace static field constraints with a runtime contract for dynamic types. Reproducer: `using D = DynModInt<>; static_assert(Matrix<D>::is_field);`. Generic Matrix/Poly code may constrain on `ModularInt`/`StaticModularInt`.
 
-Catalog items for other owners, reported, not changed: double factorial and inverse binomial caches (`05-Mathematics/05-combinatorics.hpp`), fast-IO `rd`/`wt` overloads for residues (`06-Miscellaneous/03-fastio.hpp`), `randgen` hash base on `ModInt61` (Strings `randomBase`).
+Catalog items for other owners, reported, not changed: double factorial and inverse binomial caches (`05-Mathematics/05-combinatorics.hpp`), fast-IO `rd`/`wt` overloads for residues (`01-Core/19-fastio.hpp`, not adopted there: [19-fastio.md](19-fastio.md#limits-and-handoffs)), `randgen` hash base on `ModInt61` (Strings `randomBase`).
 
 ## History
 

@@ -1,5 +1,7 @@
 # 06 Miscellaneous — sources
 
+Rows `03` (fast I/O) and planned `17` (advanced fast I/O) moved to `01-Core/19-fastio.hpp` on 2026-11-01 (P018); the `03` uses below are historical, and the fast I/O sources continue in [01-Core/Docs/00-sources.md](../../01-Core/Docs/00-sources.md).
+
 ## Catalog pages fetched on 2026-10-06
 
 | Source | URL | Fetched | Used for |
@@ -142,7 +144,7 @@ Codeforces blogs 61211, 146040 and 4190 (HTTP 403), the Luogu CCO 2020 "Shopping
 
 ## 2026-09 audit
 
-The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, dynamic DP, slope trick, IDA*, alpha-beta, job ordering, expression parsing, majority candidates, Garsia–Wachs and annealing, and compared cp-algorithms, CSES, Library Checker, OI Wiki navigation and the Japanese library catalogs. The Garsia–Wachs page has conflicting complexity wording (contract for `48` in [00-notes.md](00-notes.md)). Per-package source inspections with dates, page revisions and read scopes are recorded in the per-header documents [01-random.md](01-random.md), [02-customhash.md](02-customhash.md), [03-fastio.md](03-fastio.md), [04-compression.md](04-compression.md), [06-bit_operations.md](06-bit_operations.md), [07-permutation.md](07-permutation.md), [08-sequence_algorithms.md](08-sequence_algorithms.md), [09-interval_algorithms.md](09-interval_algorithms.md), [10-offline_queries.md](10-offline_queries.md), [11-sorting_selection.md](11-sorting_selection.md), [12-enumeration.md](12-enumeration.md), [13-knapsack.md](13-knapsack.md) and [14-cyclefinding.md](14-cyclefinding.md); machine-readable timestamps are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json). Code in every verified header was written independently from the mathematical recurrences; no external source text was adapted.
+The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, dynamic DP, slope trick, IDA*, alpha-beta, job ordering, expression parsing, majority candidates, Garsia–Wachs and annealing, and compared cp-algorithms, CSES, Library Checker, OI Wiki navigation and the Japanese library catalogs. The Garsia–Wachs page has conflicting complexity wording (contract for `48` in [00-notes.md](00-notes.md)). Per-package source inspections with dates, page revisions and read scopes are recorded in the per-header documents [01-random.md](01-random.md), [02-customhash.md](02-customhash.md), [19-fastio.md](../../01-Core/Docs/19-fastio.md) (row `03` until 2026-11-01), [04-compression.md](04-compression.md), [06-bit_operations.md](06-bit_operations.md), [07-permutation.md](07-permutation.md), [08-sequence_algorithms.md](08-sequence_algorithms.md), [09-interval_algorithms.md](09-interval_algorithms.md), [10-offline_queries.md](10-offline_queries.md), [11-sorting_selection.md](11-sorting_selection.md), [12-enumeration.md](12-enumeration.md), [13-knapsack.md](13-knapsack.md) and [14-cyclefinding.md](14-cyclefinding.md); machine-readable timestamps are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json). Code in every verified header was written independently from the mathematical recurrences; no external source text was adapted.
 
 ## Not adopted
 
