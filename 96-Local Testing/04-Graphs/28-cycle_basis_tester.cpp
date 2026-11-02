@@ -380,7 +380,9 @@ namespace {
         at = "";
         CsrGraph h(g);
         XorWalk xw(g), xc(h);
-        same(xc.component, xw.component, "XorWalk CsrGraph component"); same(xc.dist, xw.dist, "XorWalk CsrGraph dist"); same(xc.basis, xw.basis, "XorWalk CsrGraph basis");
+        same(xc.component, xw.component, "XorWalk CsrGraph component"); same(xc.dist, xw.dist, "XorWalk CsrGraph dist");
+        same(int(xc.basis.size()), int(xw.basis.size()), "XorWalk CsrGraph basis count");
+        for (int k = 0; k < int(xw.basis.size()) && k < int(xc.basis.size()); ++k) { same(xc.basis[k].b, xw.basis[k].b, "XorWalk CsrGraph basis"); }
         XorOracle o(g); auto f = refForest(g);
         int c; auto ids = componentIds(g, c);
         same(xw.component, ids, "XorWalk::component ids by increasing minimum vertex");
@@ -389,7 +391,7 @@ namespace {
             if (f.parent_edge[v] != -1) { auto e = g.edges[f.parent_edge[v]]; d[v] = d[e.u ^ e.v ^ v] ^ ulng(e.w); }}
         same(xw.dist, d, "XorWalk::dist along the BFS forest");
         same(int(xw.basis.size()), c, "XorWalk::basis one per component");
-        for (int k = 0; k < c && k < int(xw.basis.size()); ++k) { same(xw.basis[k], o.rref(k), "XorWalk::basis fully reduced decreasing (stack-forest RREF)"); }
+        for (int k = 0; k < c && k < int(xw.basis.size()); ++k) { same(xw.basis[k].b, o.rref(k), "XorWalk::basis fully reduced decreasing (stack-forest RREF)"); }
         auto query = [&](int u, int v) {
             at = " u=" + std::to_string(u) + " v=" + std::to_string(v);
             int k = ids[u]; ulll cnt = xw.count(u, v);

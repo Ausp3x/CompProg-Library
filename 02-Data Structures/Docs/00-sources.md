@@ -205,6 +205,17 @@ One `@researcher` sweep for row 32; the adopted operations are in that row and t
 | Catalog listings | https://maspypy.github.io/library/ ; https://nyaannyaan.github.io/library/ (first part) ; https://ei1333.github.io/library/ ; https://hitonanode.github.io/cplib-cpp/ (first part) ; https://suisen-cp.github.io/cp-library-cpp/ (first two parts) ; https://cp-algorithms.com/ (index) | 2026-11-02 | Candidate operations; nothing beyond the adopted and rejected ones. |
 | suisen, OI Wiki | https://suisen-cp.github.io/cp-library-cpp/library/range_query/static_range_xored_mex_query.hpp ; https://oi-wiki.org/ds/persistent-seg/ | 2026-11-02 | Xored mex (not adopted); persistent segment trees (k-th only; the persistent last-occurrence mex is the standard derivation, Luogu P4137 and CF 1436E named by the sweep, not fetched). |
 
+## Fetched 2026-11-02 (P032 DS50 sweep)
+
+One `@researcher` sweep for row 62; the adopted operations are in that row and the rejected ones in [00-notes.md](00-notes.md#p032-omissions). The maspypy listing was read in part (offsets 0 and 200000), the Nyaan listing to 100k characters; KACTL was not fetched, Library Checker pages rendered empty, and CF blogs 68953, 149993 and 100683 refused the fetch.
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| OI Wiki | https://oi-wiki.org/math/linear-algebra/basis/ | 2026-11-02 | Greedy and Gaussian bases, max/min/k-th, the timestamped prefix basis, intersection by tracking. |
+| maspypy | https://raw.githubusercontent.com/maspypy/library/main/linalg/xor/basis.hpp ; .../vector_space.hpp ; .../maximum_weighted_basis.hpp ; https://maspypy.github.io/library/ds/offline_query/range_xor_basis_query.hpp | 2026-11-02 | `solve` (adopted as `represent`), `get_max(x)` (the start value of `max`), `lower_bound` (`rank`), the offline range-basis callback; orthogonal space and the weighted basis (not adopted). |
+| ei1333, suisen, hitonanode | https://ei1333.github.io/library/math/matrix/binary-basis.hpp ; https://suisen-cp.github.io/cp-library-cpp/library/linear_algebra/xor_base.hpp ; https://hitonanode.github.io/cplib-cpp/linear_algebra_matrix/f2_linear_space.hpp | 2026-11-02 | `normalize`, `==`, `+`, `&`, `dim`, `f2_intersection`: the reduced basis, `merge`, `intersection`, `size`. |
+| PyRival | https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/linear_algebra/max_xor.py | 2026-11-02 | Maximum with the achieving indices (`represent` of `max()`). |
+
 ## Source keys and prior audit (condensed)
 
 Keys used in `00-index.md` status cells: **YC** Library Checker problem directories (GitHub), **CPA** cp-algorithms, **KACTL** KACTL data-structures, **OI** OI Wiki ds section, **MAS** maspypy, **NYA** Nyaan, **EI** ei1333, **SUI** suisen, **HIT** hitonanode, **TKO** tko919, **NOSHI** noshi91, **DYNAMIC** xxsds/DYNAMIC, **ODS** Open Data Structures (saved PDF, chapters 4/8/9/10/13, read 2026-09-27), **KOO** Koosaga Library/codes (read 2026-09-27).

@@ -1320,7 +1320,8 @@
         "GR01",
         "GR02",
         "MI01",
-        "DS01"
+        "DS01",
+        "DS50"
       ],
       "tiers": [
         "Advanced"

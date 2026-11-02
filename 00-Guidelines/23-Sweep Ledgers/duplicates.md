@@ -141,6 +141,8 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P032 | `PerLiChaoTree` beside `LiChaoTree` | Different domain: immutable versions by path copying, O(log(C)) nodes per line against O(1) |
 | P032 | `PersistentRangeMex` beside `rangeMex` (row 32) | Decided by the user 2026-11-02: online persistent versions in O(n * log(n)) memory against an offline sweep in O(n) |
 | P032 | `RangeMajority` beside `RangeThresholdFrequency::frequent` with `t = (r - l) / 2 + 1` (row 32) | Decided by the user 2026-11-02: a Boyer–Moore segment tree with verification in O(n) memory against wavelet rank sampling |
+| P032 | `XorBasis::rank(x)` beside `size()`; `XorBasis::intersection` beside Core `BitMatrix` `intersectSpace` (row 62) | Decided by the user 2026-11-02: `rank(x)` is the order index of `x` among the span values (the inverse of `kth`), not the dimension; `intersection` is a 64-bit word basis in O(64^2) against packed matrices. `countRepresentable` (`1ull << size()`), `reducedEchelon` (the stored basis is kept reduced) and `min` (`reduce(x)`; the smallest nonzero span value is `kth(1)`) left the row |
+| P032 | `XorBasis::contains` (`62-xorbasis.hpp`) | Named special case of `reduce` (ruling 1) |
 | P002 | `rangeMask(bits, l, r)` (`18-bitset.hpp`) | Builder: construction plus `setRange` (clarified rule) |
 | P002 | `findNext(p)` (`18-bitset.hpp`) | Accepts `p == n`, which `findFrom` rejects (clarified rule) |
 | P002 | `none()` (`18-bitset.hpp`) | Named special case (ruling 1) |
@@ -352,12 +354,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `exactCover` | row 25 | `DancingLinks` plus `addRow` plus `solve` | keep | batch builder over `DancingLinks` (clarified rule) | — | — |
-
-## P032 — 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `XorBasis::rank`, `countRepresentable`; `intersection`, `reducedEchelon` | row 62 | `size()`, `1ull << size()`; Core `BitMatrix` | ask | projections; ownership of subspace operations (`01-Core/Docs/00-notes.md`, Ownership boundaries) | — | — |
 
 ## P042 — 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor (planned)
 
@@ -997,7 +993,6 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
 - **P088** row 31 `stringFromPrefixFunction`, `stringFromZ`, `infeasible`: minimum-alphabet or lex-min witnesses?
 - **P061** `multipointEvaluateGeometric` beside `bluesteinTransform`; row 23 matrix-tree counts beside Graphs row 53: which row owns each?
-- **P032** `XorBasis::rank`, `countRepresentable`, `intersection`, `reducedEchelon` beside `size()` and Core `BitMatrix`?
 - **P042** `apspPath`, `rootTree` (children lists?), `pathRanges`, `pathVertices`: does each add a result?
 - **P066** `mergeSortedVectors`, `kWayMerge` (P205) beside `std::merge`? Row 19 `pairHash`: the same mixing as `CustomHash`'s pair overload?
 - **P077** `evaluateExpression`; **P076** `minimax` or `negamax`; **P073** `setPartitionDP`; **P087** one of `tandemRepeats`, `squares`, `repetitionsCompressed`; **P079** `huffmanCost`; **P071** `daysBetween`, `addDays`, `dayOfYear`; **P206** `StreamReservoir` (is row 18 incremental?); **P207** `alphabeticCodeLengths`: separate operations or compositions?

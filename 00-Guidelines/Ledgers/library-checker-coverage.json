@@ -1564,7 +1564,8 @@
       "judge_url": "https://judge.yosupo.jp/problem/intersection_of_f2_vector_spaces",
       "targets": [
         "01-Core/12-bitmatrix.hpp",
-        "01-Core/13-bitmatrixmini.hpp"
+        "01-Core/13-bitmatrixmini.hpp",
+        "02-Data Structures/62-xorbasis.hpp"
       ],
       "read_scopes": [
         "catalog path/name; target mapping is not problem-statement or acceptance verification"

@@ -30,7 +30,7 @@ The cycle space of a directed graph is that of its underlying undirected graph. 
 
 ### XorWalk
 
-`XorWalk(g)` treats each weight as its 64-bit pattern `ulng(w)`. Walk values are XORs along u–v walks, and edges may repeat. `component` numbers components by increasing minimum vertex. `dist[v]` is the XOR along the forest from the root, and `basis[c]` is a fully reduced basis of the chord cycle values `dist[u] ^ dist[v] ^ w`, sorted in decreasing order. The u–v walk values are exactly `dist[u] ^ dist[v] ^ span(basis)`. A walk differs from the forest path by an even subgraph plus edges walked twice, and any cycle value can be added by walking to the cycle and back.
+`XorWalk(g)` treats each weight as its 64-bit pattern `ulng(w)`. Walk values are XORs along u–v walks, and edges may repeat. `component` numbers components by increasing minimum vertex. `dist[v]` is the XOR along the forest from the root, and `basis[c]` is a Data Structures row 62 `XorBasis` of the chord cycle values `dist[u] ^ dist[v] ^ w` (`basis[c].b` fully reduced, sorted in decreasing order). The u–v walk values are exactly `dist[u] ^ dist[v] ^ span(basis)`. A walk differs from the forest path by an even subgraph plus edges walked twice, and any cycle value can be added by walking to the cycle and back.
 
 - `count(u, v)`: the number of distinct walk values, `2^rank` as `ulll`, or 0 when disconnected.
 - `contains(u, v, x)`: whether `x` is a walk value (false when disconnected).
@@ -71,20 +71,20 @@ Deleting `S` disconnects a component iff some nonempty subset of `S` is a cut, s
 
 ## Commands and results
 
-Run 2026-10-28 on the local machine (GCC 16.2 `g++`, GCC 14.4.1 `g++-14`):
+Run 2026-11-03 on the local machine (`g++` 16.0.1, `g++-14` 14.3.0), after the `XorBasis` migration:
 
 | Command | Result | Memory peak |
 |---|---|---|
-| `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode quick` | PASS, 2 configurations, 7 probes | 526 MB |
-| `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode full --seed 1` | PASS, 3 configurations | 883 MB |
-| `CXX=g++-14 python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode full --seed 2` | PASS, 3 configurations | 878 MB |
-| `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode stress --seed 3` | PASS, 3 configurations | 940 MB |
+| `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode quick` | PASS, 2 configurations, 1,297,985 checks, 7 probes | 534 MB |
+| `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode full --seed 1` | PASS, 3 configurations, 12,996,371 checks | 811 MB |
+| `CXX=g++-14 python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode full --seed 1` | PASS, 3 configurations, 12,996,371 checks | 814 MB |
+| `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode stress --seed 7` | PASS, 3 configurations, 36,137,698 checks | 964 MB |
 
 The checked build (`-O0 -D_GLIBCXX_DEBUG`) runs stress at full-mode sizes (3,000 rounds, 400 hash graphs, 200,000-vertex shapes): 42.6 s alone, 52 s under parallel load, against the runner's 180 s limit. Optimized and ASan run 15,000 rounds, 1,500 hash graphs and 300,000-vertex shapes.
 
-`python3 '96-Local Testing/02-integration.py'`: PASS, 180 standalone and aggregate headers, multi-TU, workspace (2026-10-28).
+`python3 '96-Local Testing/02-integration.py'`: PASS, 186 standalone and aggregate headers, multi-TU, workspace (2026-11-03).
 
-Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction).
+Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction). The `XorBasis` migration costs 6% on the `XorWalk` build and 25% on `disconnects` against the old mask-free basis (2026-11-03, [62-xorbasis.md](<../../02-Data Structures/Docs/62-xorbasis.md#benchmarks>)).
 
 ## Sources
 
@@ -95,10 +95,11 @@ Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction).
 - Design calls confirmed by the user (user decision 2026-10-28): the BFS forest, cycles as chord-first edge walks, `XorWalk` over walks with `ulng(w)` patterns and `count` as `ulll`, and a one-sided Monte Carlo `CutSpaceHash`.
 - The dynamic fundamental cut is planned row 90 (P249).
 - Explicit cycles and cuts cost their output size, up to O(n · m). For path XOR or parity queries use `XorWalk` or the forest fields.
-- `cycle_basis_detail::insert` and `reduce` are a fully reduced 64-bit XOR basis. When Data Structures 62 `XorBasis` (batch DS50) is verified, `XorWalk` and `CutSpaceHash` migrate to it; P032's plan note records the handoff (user decision 2026-10-28).
+- `XorWalk` and `CutSpaceHash` use Data Structures row 62 `XorBasis` (migrated by P032 DS50 on 2026-11-03, user decision 2026-10-28); the private `cycle_basis_detail::insert` and `reduce` are gone.
 - Minimum-weight cycle bases are row 72; cycle enumeration is row 68; general GF(2) linear algebra is Core 12 and Data Structures 62.
 
 ## History
 
 - 2026-10-28: new row (P048 / GR13); sweep added XorWalk and CutSpaceHash; review: 3 findings fixed (cut memory term, `disconnects` cost, tests and docs); full suite passed on g++ and g++-14, stress passed.
 - 2026-10-28: `/finish` audit: seed mixing, assert-only duplicate check, mid-size hash sets, shuffled adjacency, checked-build scaling; full suite passed on g++ and g++-14, stress passed.
+- 2026-11-03: P032 DS50 migrated `XorWalk` and `CutSpaceHash` onto Data Structures row 62 `XorBasis` (tester compares `basis[c].b`; branchless selects after the `/finish` benchmark); quick, full (seed 1) on g++ and g++-14 and stress (seed 7) passed.

@@ -4,6 +4,7 @@
 #include "01-graph.hpp"
 #include "02-traversal.hpp"
 #include "../06-Miscellaneous/02-customhash.hpp"
+#include "../02-Data Structures/62-xorbasis.hpp"
 
 namespace cycle_basis_detail {
     // T: O(n + m), M: O(n); BFS forest from each unreached vertex in increasing order, parent_edge -1 at roots; returns the BFS order.
@@ -20,19 +21,6 @@ namespace cycle_basis_detail {
                     int v = g.arcs[a].to;
                     if (depth[v] == -1) { depth[v] = depth[order[i]] + 1; parent_edge[v] = g.arcs[a].id; order.push_back(v); }}}}
         return order;}
-
-    // T: O(r), M: O(1); reduces x by a fully reduced basis b sorted by decreasing value, keeping the smaller of x and x ^ y.
-    inline ulng reduce(const vector<ulng> &b, ulng x) {
-        for (ulng y : b) { x = min(x, x ^ y); }
-        return x;}
-
-    // T: O(r), M: O(1); inserts x keeping b fully reduced and sorted decreasing; false if x is already spanned.
-    inline bool insert(vector<ulng> &b, ulng x) {
-        x = reduce(b, x);
-        if (!x) { return false; }
-        for (ulng &y : b) { y = min(y, y ^ x); }
-        b.insert(std::ranges::upper_bound(b, x, std::greater<>()), x);
-        return true;}
 
     // T: O(path), M: O(1); calls f(e, side) for each forest edge on the u-v path, climbing from u (side 0) and v (side 1).
     template<class G, class F>
@@ -119,7 +107,7 @@ bool isIndependentF2(const G &g, const vector<vector<int>> &sets) {
 struct XorWalk {
     vector<int> component;
     vector<ulng> dist;
-    vector<vector<ulng>> basis;
+    vector<XorBasis> basis;
 
     template<class G>
     explicit XorWalk(const G &g) : component(g.n), dist(g.n) {
@@ -131,27 +119,21 @@ struct XorWalk {
             component[v] = component[p]; dist[v] = dist[p] ^ ulng(e.w);}
         for (int e = 0; e < int(g.edges.size()); ++e) {
             auto [u, v, w] = g.edges[e];
-            if (parent_edge[u] != e && parent_edge[v] != e) { cycle_basis_detail::insert(basis[component[u]], dist[u] ^ dist[v] ^ ulng(w)); }}}
+            if (parent_edge[u] != e && parent_edge[v] != e) { basis[component[u]].insert(dist[u] ^ dist[v] ^ ulng(w)); }}}
 
     ulll count(int u, int v) const {
         assert(0 <= u && u < int(dist.size()) && 0 <= v && v < int(dist.size()));
         return component[u] != component[v] ? 0 : ulll(1) << basis[component[u]].size();}
     bool contains(int u, int v, ulng x) const {
-        return count(u, v) && !cycle_basis_detail::reduce(basis[component[u]], x ^ dist[u] ^ dist[v]);}
+        return count(u, v) && basis[component[u]].contains(x ^ dist[u] ^ dist[v]);}
     ulng minXorWalk(int u, int v) const {
-        assert(count(u, v)); return cycle_basis_detail::reduce(basis[component[u]], dist[u] ^ dist[v]);}
+        assert(count(u, v)); return basis[component[u]].reduce(dist[u] ^ dist[v]);}
     ulng maxXorWalk(int u, int v) const {
-        assert(count(u, v));
-        ulng x = dist[u] ^ dist[v];
-        for (ulng y : basis[component[u]]) { x = max(x, x ^ y); }
-        return x;}
+        assert(count(u, v)); return basis[component[u]].max(dist[u] ^ dist[v]);}
     ulng kth(int u, int v, ulng k) const {
         assert(k < count(u, v));
         const auto &b = basis[component[u]];
-        ulng x = cycle_basis_detail::reduce(b, dist[u] ^ dist[v]);
-        for (int i = 0; i < int(b.size()); ++i) {
-            if (k >> i & 1) { x ^= b[b.size() - 1 - i]; }}
-        return x;}
+        return b.reduce(dist[u] ^ dist[v]) ^ b.kth(k);}
 };
 
 // S: O(n + m), Q: O(min(k, 64)^2), M: O(n + m); undirected, Monte Carlo: a false true has probability below 2^(k - 64).
@@ -174,9 +156,9 @@ struct CutSpaceHash {
     bool disconnects(const vector<int> &edges) const {
         if (edges.size() > 64) { return true; }
         assert([&] { auto sorted = edges; sort(sorted.begin(), sorted.end()); return std::ranges::adjacent_find(sorted) == sorted.end(); }());
-        vector<ulng> b;
+        XorBasis b;
         for (int e : edges) {
             assert(0 <= e && e < int(label.size()));
-            if (!cycle_basis_detail::insert(b, label[e])) { return true; }}
+            if (!b.insert(label[e])) { return true; }}
         return false;}
 };

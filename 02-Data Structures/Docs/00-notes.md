@@ -215,6 +215,13 @@ Candidates from the 2026-11-02 DS28 sweep ([00-sources.md](00-sources.md#fetched
 - All-distinct test: `staticRangeCountDistinct` equals `r - l`. Xored mex (suisen), `RangeMexChange` (maspypy) and the k-th missing value: rare.
 - k-majority by Misra–Gries summaries: `RangeThresholdFrequency::frequent` with `t = (r - l) / k + 1`. Point-set range majority (Library Checker `majority_voting`): row 00 `MajorityVote` in a segment tree with row 16 `PointSetRangeFrequency`.
 
+Candidates from the 2026-11-02 DS50 sweep ([00-sources.md](00-sources.md#fetched-2026-11-02-p032-ds50-sweep)) left out of row 62 (user decision 2026-11-02; `represent` and `PrefixXorBasis::push` were added):
+
+- `countRepresentable`, `reducedEchelon`, `min`: `1ull << size()`, the stored reduced basis `b`, and `reduce(x)` or `kth(1)` (duplicates ledger, Keeps).
+- Online maximum-weight basis (maspypy `maximum_weighted_basis`): one catalog; the offline form is the greedy insertion by decreasing weight.
+- Undo of `insert` for row 63 `OfflineDeletion`: a client keeps its own pivot-indexed basis with an undo history (row 63's test client `UndoXorBasis`) or snapshots the at most 64-word `b` and `m`. Orthogonal complement (maspypy `vector_space`): Core row 12 `ker` over the basis rows.
+- A segment tree of bases: a segment tree over `merge`. Range minimum or k-th: `rangeXorBasisQuery`'s echelon basis inserted into an `XorBasis`. k-th with multiplicities over n inserted values: `kth(k >> (n - size()))` when `n - size() < 64`, else 0.
+
 ## Planned-row omissions
 
 - Row 48 `PersistentSkewHeap`: skew-heap melds are only amortized, and persistence lets an expensive version be reused, so no bound holds; `PersistentLeftistHeap` gives persistent melds in O(log n).

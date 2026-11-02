@@ -37,6 +37,7 @@
 #include "35-persistentarray.hpp"
 #include "36-fastset.hpp"
 #include "61-hashmap.hpp"
+#include "62-xorbasis.hpp"
 #include "63-offline_deletion.hpp"
 #include "64-sortedlist.hpp"
 #include "65-dsu_extensions.hpp"
