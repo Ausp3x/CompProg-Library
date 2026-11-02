@@ -126,46 +126,47 @@ namespace {
         if (profile == 3) { return std::array{3, 3, 6, 4, 7, 0, 3, 6}[r]; }
         return r;}
 
-    void checkShape(const XorBasis &x, const string &op) {
+    template<bool MASK> void checkShape(const XorBasis<MASK> &x, const string &op) {
         checkEqual(x.size(), int(x.b.size()), op + " size() == b.size()");
-        checkEqual(x.m.size(), x.b.size(), op + " m.size() == b.size()");
+        checkEqual(x.masks.size(), MASK ? x.b.size() : 0, op + " masks.size()");
         for (int i = 0; i < x.size(); ++i) {
             expect(x.b[i] != 0, true, [&] { return op + " b[" + show(i) + "] nonzero"; });
             if (i) { expect(x.b[i - 1] > x.b[i], true, [&] { return op + " b strictly decreasing at " + show(i); }); }
             for (int j = 0; j < x.size(); ++j) {
                 if (j != i && x.b[j] >> lead(x.b[i]) & 1) { checkEqual(true, false, op + " leading bit of b[" + show(i) + "] in b[" + show(j) + "] b=" + show(x.b)); }}
-            if (x.size() < 64) { expect(x.m[i] >> x.size(), ulng(0), [&] { return op + " m[" + show(i) + "] within successful inserts"; }); }}}
+            if (MASK && x.size() < 64) { expect(x.masks[i] >> x.size(), ulng(0), [&] { return op + " masks[" + show(i) + "] within successful inserts"; }); }}}
     ulng maskXor(const vector<ulng> &ins, ulng mask) {
         ulng x = 0;
         for (int j = 0; j < 64; ++j) {
             if (mask >> j & 1) { x ^= j < int(ins.size()) ? ins[j] : 0; }}
         return x;}
-    void checkBasis(const XorBasis &x, const Model &md, const string &op) {
+    template<bool MASK> void checkBasis(const XorBasis<MASK> &x, const Model &md, const string &op) {
         checkShape(x, op);
         checkEqual(x.size(), md.e.dim, op + " size() vs oracle dim");
         checkEqual(x.size(), int(md.ins.size()), op + " size() vs successful inserts");
         expect(x.b, md.e.rref(), [&] { return op + " b is the reduced echelon form of the span"; });
-        for (int i = 0; i < x.size(); ++i) { expect(maskXor(md.ins, x.m[i]), x.b[i], [&] { return op + " xor of inserts in m[" + show(i) + "]=" + show(x.m[i]); }); }}
+        for (int i = 0; i < x.size() && MASK; ++i) { expect(maskXor(md.ins, x.masks[i]), x.b[i], [&] { return op + " xor of inserts in masks[" + show(i) + "]=" + show(x.masks[i]); }); }}
 
-    void checkValue(const XorBasis &x, const Model &md, ulng v) {
+    template<bool MASK> void checkValue(const XorBasis<MASK> &x, const Model &md, ulng v) {
         expect(x.reduce(v), md.e.low(v), [&] { return "reduce(" + show(v) + ")"; });
         expect(x.contains(v), md.e.has(v), [&] { return "contains(" + show(v) + ")"; });
         expect(x.max(v), md.e.high(v), [&] { return "max(" + show(v) + ")"; });
         expect(x.rank(v), md.e.countBelow(v), [&] { return "rank(" + show(v) + ")"; });
-        ulng mask = ~ulng(0);
-        bool ok = x.represent(v, mask);
-        expect(ok, md.e.has(v), [&] { return "represent(" + show(v) + ") status"; });
-        if (ok) {
-            expect(maskXor(md.ins, mask), v, [&] { return "represent(" + show(v) + ") mask=" + show(mask); });
-            if (x.size() < 64) { expect(mask >> x.size(), ulng(0), [&] { return "represent(" + show(v) + ") mask within inserts"; }); }}
-        if (!v) { checkEqual(mask, ulng(0), "represent(0) mask"); }}
-    void checkKth(const XorBasis &x, const Model &md, ulng k) {
+        if constexpr (MASK) {
+            ulng mask = ~ulng(0);
+            bool ok = x.represent(v, mask);
+            expect(ok, md.e.has(v), [&] { return "represent(" + show(v) + ") status"; });
+            if (ok) {
+                expect(maskXor(md.ins, mask), v, [&] { return "represent(" + show(v) + ") mask=" + show(mask); });
+                if (x.size() < 64) { expect(mask >> x.size(), ulng(0), [&] { return "represent(" + show(v) + ") mask within inserts"; }); }}
+            if (!v) { checkEqual(mask, ulng(0), "represent(0) mask"); }}}
+    template<bool MASK> void checkKth(const XorBasis<MASK> &x, const Model &md, ulng k) {
         ulng v = x.kth(k);
         expect(md.e.has(v), true, [&] { return "kth(" + show(k) + ")=" + show(v) + " in span"; });
         expect(md.e.countBelow(v), k, [&] { return "oracle rank of kth(" + show(k) + ")=" + show(v); });
         expect(x.rank(v), k, [&] { return "rank(kth(" + show(k) + "))"; });}
     // Brute force over the whole span for widths <= 8; all x in [0, 2^w] when exhaustive.
-    void checkBrute(Rng &rng, const XorBasis &x, const Model &md, int w, bool exhaustive) {
+    template<bool MASK> void checkBrute(Rng &rng, const XorBasis<MASK> &x, const Model &md, int w, bool exhaustive) {
         vector<ulng> s = closure(md.ins);
         checkEqual(s.size(), size_t(bit(md.e.dim)), "brute span size is 2^dim");
         vector<ulng> xs{~ulng(0), bit(w)};
@@ -178,10 +179,11 @@ namespace {
             expect(x.max(v), hi, [&] { return "brute max(" + show(v) + ")"; });
             expect(x.contains(v), std::ranges::binary_search(s, v), [&] { return "brute contains(" + show(v) + ")"; });
             expect(x.rank(v), ulng(std::ranges::lower_bound(s, v) - s.begin()), [&] { return "brute rank(" + show(v) + ")"; });
-            ulng mask = 0;
-            if (x.represent(v, mask)) { expect(maskXor(md.ins, mask), v, [&] { return "brute represent(" + show(v) + ")"; }); }}
+            if constexpr (MASK) {
+                ulng mask = 0;
+                if (x.represent(v, mask)) { expect(maskXor(md.ins, mask), v, [&] { return "brute represent(" + show(v) + ")"; }); }}}
         for (size_t k = 0; k < s.size(); ++k) { expect(x.kth(k), s[k], [&] { return "brute kth(" + show(k) + ")"; }); }}
-    void checkQueries(Rng &rng, const XorBasis &x, const Model &md, int w) {
+    template<bool MASK> void checkQueries(Rng &rng, const XorBasis<MASK> &x, const Model &md, int w) {
         ulng M = wmask(w), c = comb(rng, md.ins);
         for (ulng v : {ulng(0), ~ulng(0), M, ulng(rng()), ulng(rng() & M), c, c ^ 1, c + 1, c - 1, x.size() ? x.b[0] : ulng(1), x.size() ? x.b.back() : ulng(2)}) { checkValue(x, md, v); }
         checkEqual(x.max(), md.e.high(0), "max() default argument");
@@ -191,11 +193,12 @@ namespace {
             if (k <= top) { checkKth(x, md, k); }}
         if (w <= 8) { checkBrute(rng, x, md, w, w <= 5); }}
 
-    // Random histories of insert, merge (other, self, empty, into empty) and queries; a fresh basis per episode.
+    // Random histories of insert, merge (other, self, empty, into empty) and queries; a fresh basis per episode, mirrored by an XorBasis<false> xu.
     void history(Rng &rng, int w, int profile, int steps) {
         for (int done = 0; done < steps;) {
             int len = int(rnd(rng, 1, 3 * w + 8));
             XorBasis x;
+            XorBasis<false> xu;
             Model md;
             for (int s = 0; s < len && done < steps; ++s, ++done) {
                 context = "history w=" + show(w) + " profile=" + show(profile) + " step=" + show(done) + " size=" + show(x.size()) + " seed=" + show(seed);
@@ -206,27 +209,32 @@ namespace {
                     bool want = !md.e.has(v);
                     name = "insert(" + show(v) + ")";
                     checkEqual(x.insert(v), want, name);
+                    checkEqual(xu.insert(v), want, "unmasked " + name);
                     if (want) { md.push(v); }}
                 else if (op < 82) {
                     XorBasis o;
+                    XorBasis<false> ou;
                     Model om;
                     for (lng k = rnd(rng, 0, w + 1); k > 0; --k) {
                         ulng v = gen(rng, w, om.ins, kindOf(rng, profile));
                         bool want = !om.e.has(v);
                         checkEqual(o.insert(v), want, "other insert(" + show(v) + ")");
+                        checkEqual(ou.insert(v), want, "unmasked other insert(" + show(v) + ")");
                         if (want) { om.push(v); }}
                     checkBasis(o, om, "other basis");
+                    checkBasis(ou, om, "unmasked other basis");
+                    xu.merge(ou);
                     for (ulng y : o.b) {
                         if (!md.e.has(y)) { md.push(y); }}
                     name = "merge(o=" + show(o.b) + ")";
                     x.merge(o);}
                 else if (op < 86) {
                     XorBasis before = x;
-                    x.merge(x);
+                    x.merge(x); xu.merge(xu);
                     name = "self merge";
-                    checkEqual(x.b, before.b, "self merge keeps b"); checkEqual(x.m, before.m, "self merge keeps m");}
+                    checkEqual(x.b, before.b, "self merge keeps b"); checkEqual(x.masks, before.masks, "self merge keeps masks");}
                 else if (op < 88) {
-                    x.merge(XorBasis{});
+                    x.merge(XorBasis{}); xu.merge(XorBasis<false>{});
                     name = "merge(empty)";}
                 else if (op < 90) {
                     XorBasis c;
@@ -238,7 +246,9 @@ namespace {
                     name = "query";}
                 else { name = "query"; }
                 checkBasis(x, md, "after " + name);
-                checkQueries(rng, x, md, w);}}}
+                checkQueries(rng, x, md, w);
+                checkBasis(xu, md, "unmasked after " + name);
+                checkQueries(rng, xu, md, w);}}}
 
     // Every insert sequence of length <= 3 over [0, 8), every merge and intersection of sequences of length <= 2.
     void exhaustive() {
@@ -254,7 +264,7 @@ namespace {
                 checkEqual(x.insert(v), want, "insert(" + show(v) + ")");
                 if (want) { md.push(v); }}
             return x;};
-        vector<XorBasis> small;
+        vector<XorBasis<>> small;
         vector<Model> models;
         for (const vector<ulng> &sq : seqs) {
             context = "exhaustive seq=" + show(sq);
@@ -369,13 +379,15 @@ namespace {
             else if (k == 5) { r = min(n, l + int(rnd(rng, 63, 65))); }
             qs.emplace_back(l, r);}
         return qs;}
-    // Runs rangeXorBasisQuery, checks each query is answered once with an echelon basis, and returns the bases.
+    // Runs rangeXorBasisQuery, checks each query is answered once, in increasing (r, index) order, with an echelon basis, and returns the bases.
     vector<vector<ulng>> runRange(const vector<ulng> &a, const vector<pair<int, int>> &qs) {
-        int q = int(qs.size());
+        int q = int(qs.size()), last = -1;
         vector<int> calls(q);
         vector<vector<ulng>> res(q);
-        XorBasis::rangeXorBasisQuery(a, qs, [&](int j, const vector<ulng> &e) {
+        XorBasisCompanion::rangeXorBasisQuery(a, qs, [&](int j, const vector<ulng> &e) {
             expect(0 <= j && j < q, true, [&] { return "callback index " + show(j); });
+            expect(last < 0 || pair(qs[last].second, last) < pair(qs[j].second, j), true, [&] { return "callback order " + show(last) + " then " + show(j); });
+            last = j;
             ++calls[j];
             res[j] = e;});
         for (int j = 0; j < q; ++j) {
@@ -503,6 +515,10 @@ namespace {
             for (ulng x : vb) { eu.add(x); }
             XorBasis res = intersection(a, b);
             checkShape(res, "intersection");
+            XorBasis<false> ua, ub;
+            for (ulng x : va) { ua.insert(x); }
+            for (ulng x : vb) { ub.insert(x); }
+            checkEqual(intersection(ua, ub).b, res.b, "unmasked intersection");
             checkEqual(res.b, echOf(res.b).rref(), "intersection b reduced echelon");
             for (ulng y : res.b) { expect(ea.has(y) && eb.has(y), true, [&] { return "intersection vector " + show(y) + " in both"; }); }
             checkEqual(res.size(), ea.dim + eb.dim - eu.dim, "intersection dimension");
@@ -553,7 +569,7 @@ namespace {
                 checkValue(x, md, v);}
             XorBasis before = x;
             x.merge(x);
-            checkEqual(x.b == before.b && x.m == before.m, true, "full rank self merge");
+            checkEqual(x.b == before.b && x.masks == before.masks, true, "full rank self merge");
             checkQueries(rng, x, md, 64);}
         // Top bit only, then a vector with bit 63 and a lower bit: the second reduces the first.
         XorBasis t;
@@ -587,7 +603,7 @@ namespace {
         XorBasis x;
         vector<ulng> a{1, 2, 3};
         PrefixXorBasis<64> p(a);
-        auto query = [&](const vector<ulng> &v, int l, int r) { XorBasis::rangeXorBasisQuery(v, {{0, 0}, {l, r}}, [](int, const vector<ulng> &) {}); };
+        auto query = [&](const vector<ulng> &v, int l, int r) { XorBasisCompanion::rangeXorBasisQuery(v, {{0, 0}, {l, r}}, [](int, const vector<ulng> &) {}); };
         if (name == "kth-empty") { (void)x.kth(1); }
         else if (name == "kth-out-of-range") { x.insert(1); x.insert(2); x.insert(4); (void)x.kth(8); }
         else if (name == "kth-size-63") {

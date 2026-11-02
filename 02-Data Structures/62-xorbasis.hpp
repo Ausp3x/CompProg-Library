@@ -10,26 +10,33 @@ namespace xorbasis_detail {
             if (!v[i]) { v[i] = x; p[i] = pos; return; }
             if (p[i] < pos) { std::swap(v[i], x); std::swap(p[i], pos); }
             x ^= v[i];}}
+    // T: O(r), M: O(1); reduces x by the r vectors of b, xoring into mask the m[i] of each vector used.
+    inline ulng reduceMasked(const ulng *b, const ulng *m, int r, ulng x, ulng &mask) {
+        for (int i = 0; i < r; ++i) {
+            ulng t = -ulng((x ^ b[i]) < x);
+            x ^= b[i] & t; mask ^= m[i] & t;}
+        return x;}
 } // namespace xorbasis_detail
 
-// GF(2) span of 64-bit words; b is fully reduced (each leading bit appears in no other vector) and sorted decreasing, m[i] the successful inserts (numbered from 0) whose xor is b[i]; kth asserts k < 2^size().
+// GF(2) span of 64-bit words; b is fully reduced (each leading bit appears in no other vector) and sorted decreasing; with MASK, masks[i] holds the successful inserts (numbered from 0) whose xor is b[i] and represent exists, else masks stays empty; kth asserts k < 2^size().
 // S: O(1), U: O(r) insert, Q: O(r), M: O(r) with r = size() <= 64
+template<bool MASK = true>
 struct XorBasis {
-    vector<ulng> b, m;
+    vector<ulng> b, masks;
 
     int size() const { return int(b.size()); }
 
     bool insert(ulng x) {
         ulng mx = 1ull << (size() & 63);
-        for (int i = 0; i < size(); ++i) {
-            ulng t = -ulng((x ^ b[i]) < x);
-            x ^= b[i] & t; mx ^= m[i] & t;}
+        x = MASK ? xorbasis_detail::reduceMasked(b.data(), masks.data(), size(), x, mx) : reduce(x);
         if (!x) { return false; }
         for (int i = 0; i < size(); ++i) {
             ulng t = -ulng((b[i] ^ x) < b[i]);
-            b[i] ^= x & t; m[i] ^= mx & t;}
+            b[i] ^= x & t;
+            if constexpr (MASK) { masks[i] ^= mx & t; }}
         int j = int(std::ranges::upper_bound(b, x, std::greater<>()) - b.begin());
-        b.insert(b.begin() + j, x); m.insert(m.begin() + j, mx);
+        b.insert(b.begin() + j, x);
+        if constexpr (MASK) { masks.insert(masks.begin() + j, mx); }
         return true;}
     // T: O(r * r_o), M: O(1) with r_o = o.size(); o's vectors become successful inserts of this basis in decreasing order.
     void merge(const XorBasis &o) {
@@ -39,12 +46,9 @@ struct XorBasis {
         for (ulng y : b) { x = std::min(x, x ^ y); }
         return x;}
     bool contains(ulng x) const { return !reduce(x); }
-    bool represent(ulng x, ulng &mask) const {
+    bool represent(ulng x, ulng &mask) const requires MASK {
         mask = 0;
-        for (int i = 0; i < size(); ++i) {
-            ulng t = -ulng((x ^ b[i]) < x);
-            x ^= b[i] & t; mask ^= m[i] & t;}
-        return !x;}
+        return !xorbasis_detail::reduceMasked(b.data(), masks.data(), size(), x, mask);}
     ulng max(ulng x = 0) const {
         for (ulng y : b) { x = std::max(x, x ^ y); }
         return x;}
@@ -62,13 +66,13 @@ struct XorBasis {
             if ((cur ^ b[i]) < x) { cur ^= b[i]; k |= 1ull << (r - 1 - i); }}
         return x ? k + 1 : 0;}
 
-    // T: O(64 * r_b), M: O(64) with r_b = b.size()
-    friend XorBasis intersection(const XorBasis &a, const XorBasis &b) {
+    // T: O(64 * r_o), M: O(64) with r_o = o.size()
+    friend XorBasis intersection(const XorBasis &a, const XorBasis &o) {
         array<ulng, 64> v{}, t{};
         for (ulng y : a.b) { v[63 - std::countl_zero(y)] = y; }
         XorBasis res;
-        // Invariant: t[i] lies in span(b) and v[i] ^ t[i] in span(a), so a vector of b reducing to 0 leaves its tag in both.
-        for (ulng y : b.b) {
+        // Invariant: t[i] lies in span(o) and v[i] ^ t[i] in span(a), so a vector of o reducing to 0 leaves its tag in both.
+        for (ulng y : o.b) {
             ulng x = y, s = y;
             for (int i = 63; i >= 0 && x; --i) {
                 if (!(x >> i & 1)) { continue; }
@@ -76,8 +80,10 @@ struct XorBasis {
                 x ^= v[i]; s ^= t[i];}
             if (!x) { res.insert(s); }}
         return res;}
+};
 
-    // T: O((n + q) * 64), M: O(n + q); calls f(i, e) for query i = [l, r) of a, e an echelon basis of a[l, r) (distinct leading bits, decreasing, not reduced).
+// T: O((n + q) * 64), M: O(n + q); calls f(i, e) for query i = [l, r) of a by increasing (r, i), e an echelon basis of a[l, r) (distinct leading bits, decreasing, not reduced).
+struct XorBasisCompanion {
     template<class F>
     static void rangeXorBasisQuery(const vector<ulng> &a, const vector<pair<int, int>> &qs, F f) {
         int n = int(a.size()), q = int(qs.size());
@@ -99,7 +105,7 @@ struct XorBasis {
 };
 
 // Prefix bases of a over B-bit words (a[i] < 2^B), built by push: pivot i of prefix r keeps the latest position p; [l, r) spans the pivots with p >= l.
-// S: O(n * B), U: O(B) amortized push, Q: O(B), M: O(n * B)
+// S: O(n * B), U: O(B) amortized push, Q: O(B), M: O(n * B) with B the word width
 template<int B = 64>
 struct PrefixXorBasis {
     static_assert(1 <= B && B <= 64);

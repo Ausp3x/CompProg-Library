@@ -1104,7 +1104,7 @@
         "04-Graphs/Docs/30-flow_with_demands.md",
         "04-Graphs/Docs/35-subgraph_enumeration.md"
       ],
-      "note": "All batches done (GR13, GR27 2026-10-28; GR32 2026-10-29). Handoffs: XorWalk/CutSpaceHash use a private reduced XOR basis, to migrate to Data Structures 62 XorBasis when DS50 is verified; row 35 Ranked has its own Batagelj-Zaversnik order, to migrate to row 42 degeneracyOrdering when verified."
+      "note": "All batches done (GR13, GR27 2026-10-28; GR32 2026-10-29). Handoff: row 35 Ranked has its own Batagelj-Zaversnik order, to migrate to row 42 degeneracyOrdering when verified."
     },
     {
       "id": "P032",

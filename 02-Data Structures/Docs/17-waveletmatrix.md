@@ -13,7 +13,7 @@ All three structures need only `T`'s `operator<` (a strict weak order whose equi
 - `access(i)`: the value at `i`, O(log k).
 - `rank(r, x)`: occurrences of `x` in `[0, r)`, 0 for an absent `x`. `countEqual(l, r, x)`: occurrences in `[l, r)`. Both descend along the rank of `x`; O(log k).
 - `select(x, k)` (asserts `k >= 0`): position of the `k`-th occurrence of `x`, or -1 when `x` occurs at most `k` times. A descent finds the bottom run of `x`, and `pos` gives the position; O(log k).
-- `descend(l, r, p, s = nullptr)` (public helper, contract by user decision 2026-11-02 for row 32 `RangeThresholdFrequency::frequent`): for a rank `p` in `[0, k]` and a range `[l, r)` of the top level, returns the number of values of rank below `p` in the range, adds their weights to `*s` when `s` is given (weights required), and leaves `[l, r)` as the bottom-level run of rank `p`, so `r - l` is the count of rank `p` (0 for `p = k`); `lowerRank(x)` gives the rank of `x`. O(log k).
+- `descend(l, r, p, s = nullptr)` (public, in the row since 2026-11-03; contract by user decision 2026-11-02 for row 32 `RangeThresholdFrequency::frequent`): for a rank `p` in `[0, k]` and a range `[l, r)` of the top level, returns the number of values of rank below `p` in the range, adds their weights to `*s` when `s` is given (weights required), and leaves `[l, r)` as the bottom-level run of rank `p`, so `r - l` is the count of rank `p` (0 for `p = k`). `lowerRank(x)`: the rank of the least value `>= x`, `k` when there is none (the rank of `x` when present). O(log k).
 - `countLess(l, r, x)`, `countRange(l, r, lo, hi)`: values below `x` or in `[lo, hi)`. `countRange` with `!(lo < hi)` returns 0 after its index assert. O(log k).
 - `kth(l, r, k)`, `kthMax(l, r, k)` (assert `0 <= k < r - l`): the `k`-th smallest or largest value; `kthMax` is `kth` at `r - l - 1 - k`. O(log k).
 - `maxLeq`, `minGeq`: one count descent with the upper (lower) rank bound of `x`, then `kth`; no `x ± 1` arithmetic, so the extremes of `T` are ordinary inputs. O(log k).
@@ -40,7 +40,7 @@ All three structures need only `T`'s `operator<` (a strict weak order whose equi
 | `cntRan(l, r, x1, x2)` (inclusive both) | `countRange(l, r + 1, x1, x2 + 1)`; at `x2 = INT64_MAX`, `(r - l + 1) - countLess(l, r + 1, x1)` (decided 2026-10-13) |
 | `kthMin(l, r, k)` (1-based, inclusive) | `kth(l, r + 1, k - 1)` |
 | `maxLeq`, `minGeq` (inclusive, sentinels `∓INF64`) | `maxLeq`, `minGeq` on `[l, r + 1)` with a `bool` status |
-| `BitVec` (`set`, `build`, `rank0`, `rank1`), `_cntLeq`, `_cntLeqOrd` | internal levels and the `descend` helper; row 40 `SuccinctBitVector` owns the bit-vector API |
+| `BitVec` (`set`, `build`, `rank0`, `rank1`), `_cntLeq`, `_cntLeqOrd` | internal levels; row 40 `SuccinctBitVector` owns the bit-vector API |
 | planned `rangeFreq`, `prevValue` (strict), `nextValue`, `pointUpdate`, `rectangleFold`, `WaveletTree` | `countRange`; `maxLeq(l, r, x - 1, res)` for integers; `minGeq`; `set`/`apply`; `prod` (row 15's name); `WaveletMatrix` and `WaveletMatrixMonoid` (decided 2026-10-13) |
 
 The legacy `cntEql`, `cntRan`, `maxLeq` and `minGeq` computed `x - 1` and overflowed at `x = INT64_MIN`. It also had no weights, `select` or rectangle forms, and returned `∓INF64`, which collides with stored values.
@@ -53,6 +53,7 @@ Tester `96-Local Testing/02-Data Structures/17-waveletmatrix_tester.cpp`, entry 
 |---|---|---|
 | `access`, `rank`, `select` | `wholeArray` | Direct scan of the array (every probe on exhaustive arrays, 20 sampled probes otherwise; `select` up to `count + 1`) |
 | `countLess`, `countRange`, `countEqual`, `kth`, `kthMax`, `maxLeq`, `minGeq`, `sumLess`, `kthSum` | `window` over every `[l, r)` of arrays up to n = 22 (full) and 40 (stress), sampled windows on n = 1000–100000 | Sorted `(value, index)` copy of the window: indexing, counts, predecessor and successor, weight sums with ties by index; untouched `res` on absence |
+| `lowerRank`, `descend` (with and without weights, `p = k`) | `wholeArray`, `window` | `lower_bound` over the sorted distinct values; in each window, the count below `x`, the run of the least distinct value `>= x` and the weight sum below `x` from a direct scan; `p = k` gives `n` and an empty run |
 | Alphabet sizes 1–64 around powers of two (level count), `int`, `string` and `lng` values, separate weights | `arrays` | Same |
 | `INT64_MIN`/`INT64_MAX` values and bounds (legacy overflow), empty structure | `extremes` | Direct values |
 | `rectangleCount`, `rectangleSum`, weighted and unweighted, duplicate and extreme coordinates, empty and reversed sides | `rectangles` | Scan over all points |
@@ -64,13 +65,13 @@ Value distributions: one value, `[-2, 1]`, `[0, 20]`, full signed range, `{INT64
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
+Latest suite runs 2026-11-03 (P032 `/merge-pr 1`), maintainer runs under `merge_pr.py run 1` (bwrap, memory cap), Intel Core i9-11900H, `g++` 16.2.1, `g++-14` 14.4.1, CPython 3.14.8, in the runner's optimized, checked and ASan/UBSan builds; memory peaks are those of a scope shared with other suites. The integration row is from 2026-10-17:
 
 | Command | Result |
 |---|---|
-| `17-waveletmatrix_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 5,061,905 checks per configuration, 22 assertion probes, MEMORY peak 572 MB |
-| `CXX=g++-14 17-waveletmatrix_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 5,061,905 checks per configuration, MEMORY peak 558 MB |
-| `17-waveletmatrix_tester.py --mode stress --seed 7` | PASS, 28,851,144 checks per configuration, MEMORY peak 683 MB |
+| `17-waveletmatrix_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 6,461,125 checks per configuration, 22 assertion probes, MEMORY peak 2439 MB (shared) |
+| `CXX=g++-14 17-waveletmatrix_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 6,461,125 checks per configuration, MEMORY peak 2439 MB (shared) |
+| `17-waveletmatrix_tester.py --mode stress --seed 7` | PASS, 36,562,191 checks per configuration, MEMORY peak 1889 MB (shared) |
 | `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
 | `03-consistency.py` | No errors |
 
@@ -103,3 +104,4 @@ Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - 2026-10-13: P029 first verification; the unchanged extraction was rewritten (MergeSortTree names, half-open ranges, `bool` status), with weights, `select`, `RectangleWaveletMatrix` and `WaveletMatrixMonoid` added. The independent review found no wavelet defects. The user renamed `rectangleFold` to `prod` and recorded `rank` and `prod` as keeps.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract for `WaveletMatrixMonoid`, stateful-monoid test added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 572/558/683 MB.
 - 2026-11-02: P032 DS28 `/finish` (user decision 2026-11-02): `descend` contract added for its use by row 32 `RangeThresholdFrequency::frequent`; code unchanged, covered through `countLess`, `countEqual`, `sumLess` (the weights path) and row 32's `frequent` tests.
+- 2026-11-03: P032 `/merge-pr 1` (review finding): `lowerRank` and `descend` listed in the row and tested directly in `wholeArray` and `window`; full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed.

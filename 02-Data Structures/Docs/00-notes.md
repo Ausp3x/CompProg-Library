@@ -219,7 +219,7 @@ Candidates from the 2026-11-02 DS50 sweep ([00-sources.md](00-sources.md#fetched
 
 - `countRepresentable`, `reducedEchelon`, `min`: `1ull << size()`, the stored reduced basis `b`, and `reduce(x)` or `kth(1)` (duplicates ledger, Keeps).
 - Online maximum-weight basis (maspypy `maximum_weighted_basis`): one catalog; the offline form is the greedy insertion by decreasing weight.
-- Undo of `insert` for row 63 `OfflineDeletion`: a client keeps its own pivot-indexed basis with an undo history (row 63's test client `UndoXorBasis`) or snapshots the at most 64-word `b` and `m`. Orthogonal complement (maspypy `vector_space`): Core row 12 `ker` over the basis rows.
+- Undo of `insert` for row 63 `OfflineDeletion`: a client keeps its own pivot-indexed basis with an undo history (row 63's test client `UndoXorBasis`) or snapshots the at most 64-word `b` and `masks`. Orthogonal complement (maspypy `vector_space`): Core row 12 `ker` over the basis rows.
 - A segment tree of bases: a segment tree over `merge`. Range minimum or k-th: `rangeXorBasisQuery`'s echelon basis inserted into an `XorBasis`. k-th with multiplicities over n inserted values: `kth(k >> (n - size()))` when `n - size() < 64`, else 0.
 
 ## Planned-row omissions

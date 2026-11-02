@@ -136,7 +136,7 @@ Latest run 2026-11-02, Linux x86-64 (AMD Ryzen AI 9 HX 370, WSL2), GNU++20, CPyt
 | `CXX=g++-14 31-radixheap_tester.py --mode full --seed 20261102` (g++-14 14.3.0, floor) | PASS, the same check counts, MEMORY peak 750 MB |
 | `31-radixheap_tester.py --mode stress --seed 7` | PASS, 3 configurations, 352,865,096 checks (optimized), 113,408,184 (checked), 113,437,110 (ASan); MEMORY peak 752 MB |
 | `02-integration.py` | PASS, 184 standalone and aggregate headers, scalar and AVX2 multi-TU, workspace; MEMORY peak 1447 MB |
-| `03-consistency.py`, `plan.py check` | No errors with the linked-worktree exemption for the 7 absent git-ignored `OLD` binaries (Limits and handoffs) |
+| `03-consistency.py`, `plan.py check` | No errors (maintainer gate `merge_pr.py gates 1`, 2026-11-03) |
 
 The memory peaks cover the whole runner scope, compiles included.
 
@@ -165,9 +165,9 @@ The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.m
 - The `NDEBUG` boundedness claims (Violated preconditions) have no tester group, because optimized builds receive only in-domain inputs (`05-testing.md`, Memory safety). The `/finish` review checked them ad hoc on 2026-11-02 with an `-DNDEBUG` ASan/UBSan fuzz of 12,000 violating histories on all four key types: all bounded, and the element count always matched the bucket totals. `top()` on an empty heap under `NDEBUG` stays undefined, as for `std::priority_queue`.
 - Sources not consulted beyond the sweep: suisen (its heap folder lists only binary and interval heaps), tko919 and ACL have no radix heap (index pages checked 2026-11-02). The bounded-gap omission rests on scrapbox, not the primary Ahuja et al. paper. AOJ GRL_1_A and yukicoder 1288 and 1320 were not fetched, and no `97-Online Testing` solution uses these structs yet.
 - Graphs row 13 `radixHeapDijkstra` (planned) consumes `RadixHeap`.
-- In this clone, `03-consistency.py` stops on 7 git-ignored `OLD` binaries recorded in `archive-map.json` but absent (for example `OLD/Team Notebook/src/algs.exe`). Its `ignored()` exempts them only in a linked worktree, so a fresh main-checkout clone always fails. Recorded in P250's plan note for the maintainer (user decision 2026-11-02); the runs here applied the worktree exemption in a scratch copy of the script.
 
 ## History
 
 - 2026-11-02: P032 DS27 first implementation; independent review, 6 findings and 2 nits fixed (`push` guard for a present id under `NDEBUG`, amortized bounds charged to push, `pop` after an intervening `decreaseKey`, payload taken by value, any 32/64-bit integer key, row status); 10/10 mutants caught; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed after the fixes.
 - 2026-11-02: `/finish` audit, 3 findings and 4 limits; user decisions recorded (bucket release above 4096 slots, the six integer key types, the omissions, `top` moving `last`, `decreaseKey` asserting a decrease); diff review, 4 findings fixed (release cost comment, cv-qualified keys rejected, benchmark medians and seed, stale results); `memoryBound` and key-domain checks added; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed.
+- 2026-11-03: maintainer `/merge-pr 1`: the real `03-consistency.py` and `plan.py check` results recorded and the clone-specific limit dropped (P250's note keeps the follow-up); the first maintainer gate (2026-11-03) passed quick and full on g++ and g++-14 and `02-integration.py --sanitizers`.

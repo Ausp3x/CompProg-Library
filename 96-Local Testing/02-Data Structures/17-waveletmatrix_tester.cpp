@@ -40,7 +40,7 @@ namespace {
 
     // Checks every operation on [l, r) against the sorted window; weights may differ from values.
     template<typename T, typename W>
-    void window(const WaveletMatrix<T, W> &wm, const vector<T> &a, const vector<W> &w, int l, int r, const vector<T> &xs, Rng &rng, bool all) {
+    void window(const WaveletMatrix<T, W> &wm, const vector<T> &a, const vector<W> &w, const vector<T> &d, int l, int r, const vector<T> &xs, Rng &rng, bool all) {
         vector<pair<T, int>> s;
         for (int i = l; i < r; ++i) { s.push_back({a[i], i}); }
         sort(s.begin(), s.end());
@@ -64,6 +64,13 @@ namespace {
             checkEqual(wm.countLess(l, r, x), less, "countLess x=" + show(x));
             checkEqual(wm.countEqual(l, r, x), eq, "countEqual x=" + show(x));
             if (!w.empty()) { checkEqual(wm.sumLess(l, r, x), sl, "sumLess x=" + show(x)); }
+            // descend leaves the run of the least distinct value >= x, empty when there is none.
+            int da = l, db = r, p = int(lower_bound(d.begin(), d.end(), x) - d.begin()), run = 0;
+            for (int i = l; i < r && p < int(d.size()); ++i) { run += a[i] == d[p]; }
+            W ds = W();
+            checkEqual(wm.descend(da, db, p, w.empty() ? nullptr : &ds), less, "descend count x=" + show(x));
+            checkEqual(db - da, run, "descend run x=" + show(x));
+            checkEqual(ds, sl, "descend sum x=" + show(x));
             T res = x, sentinel = x;
             bool ok = wm.maxLeq(l, r, x, res);
             checkEqual(ok, less + eq > 0, "maxLeq found x=" + show(x));
@@ -79,10 +86,14 @@ namespace {
 
     // rank and select for every probe, or for 20 sampled probes when not exhaustive.
     template<typename T, typename W>
-    void wholeArray(const WaveletMatrix<T, W> &wm, const vector<T> &a, const vector<T> &xs, Rng &rng, bool all) {
+    void wholeArray(const WaveletMatrix<T, W> &wm, const vector<T> &a, const vector<T> &d, const vector<T> &xs, Rng &rng, bool all) {
         int n = int(a.size());
         for (int i = 0; i < n; ++i) { checkEqual(wm.access(i), a[i], "access i=" + show(i)); }
+        int dl = 0, dr = n;
+        checkEqual(wm.descend(dl, dr, int(d.size())), n, "descend count p=k");
+        checkEqual(dr - dl, 0, "descend run p=k");
         for (const T &x : xs) {
+            checkEqual(wm.lowerRank(x), int(lower_bound(d.begin(), d.end(), x) - d.begin()), "lowerRank x=" + show(x));
             if (!all && rng() % xs.size() >= 20) { continue; }
             vector<int> at;
             for (int i = 0; i < n; ++i) { if (a[i] == x) { at.push_back(i); }}
@@ -95,16 +106,18 @@ namespace {
     void runArray(Rng &rng, const vector<T> &a, const vector<W> &w, bool exhaustive) {
         context = "array n=" + show(a.size()) + " a=" + (a.size() <= 16 ? show(a) : string("...")) + " weighted=" + show(!w.empty());
         WaveletMatrix<T, W> wm(a, w);
-        vector<T> xs = probes(a);
-        wholeArray(wm, a, xs, rng, exhaustive);
+        vector<T> xs = probes(a), d(a);
+        sort(d.begin(), d.end());
+        d.erase(unique(d.begin(), d.end()), d.end());
+        wholeArray(wm, a, d, xs, rng, exhaustive);
         int n = int(a.size());
         if (exhaustive) {
             for (int l = 0; l <= n; ++l) {
-                for (int r = l; r <= n; ++r) { window(wm, a, w, l, r, xs, rng, true); }}}
+                for (int r = l; r <= n; ++r) { window(wm, a, w, d, l, r, xs, rng, true); }}}
         else {
             for (int q = 0; q < 60; ++q) {
                 int l = int(rnd(rng, 0, n)), r = int(rnd(rng, l, n));
-                window(wm, a, w, l, r, xs, rng, false);}}}
+                window(wm, a, w, d, l, r, xs, rng, false);}}}
 
     void arrays(Rng &rng) {
         int small = mode == "quick" ? 9 : mode == "full" ? 22 : 40;

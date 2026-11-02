@@ -143,6 +143,9 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P032 | `RangeMajority` beside `RangeThresholdFrequency::frequent` with `t = (r - l) / 2 + 1` (row 32) | Decided by the user 2026-11-02: a Boyer–Moore segment tree with verification in O(n) memory against wavelet rank sampling |
 | P032 | `XorBasis::rank(x)` beside `size()`; `XorBasis::intersection` beside Core `BitMatrix` `intersectSpace` (row 62) | Decided by the user 2026-11-02: `rank(x)` is the order index of `x` among the span values (the inverse of `kth`), not the dimension; `intersection` is a 64-bit word basis in O(64^2) against packed matrices. `countRepresentable` (`1ull << size()`), `reducedEchelon` (the stored basis is kept reduced) and `min` (`reduce(x)`; the smallest nonzero span value is `kth(1)`) left the row |
 | P032 | `XorBasis::contains` (`62-xorbasis.hpp`) | Named special case of `reduce` (ruling 1) |
+| P032 | `XorBasis::merge` beside `insert` over `o.b` (row 62) | Batch form (clarified rule) |
+| P032 | `PrefixXorBasis::rangeMax`, `rangeContains` beside `XorBasisCompanion::rangeXorBasisQuery` followed by `max` or `contains` (row 62) | Different algorithm and domain: online queries in O(B) over O(n * B) memory against an offline sweep in O(n + q) memory |
+| P032 | `XorBasis<false>` beside `XorBasis<true>` (row 62) | One template: the flag drops the insert masks and `represent`, which Graphs row 28 does not use (23–36% faster there, [62-xorbasis.md](<../../02-Data Structures/Docs/62-xorbasis.md#benchmarks>)) |
 | P002 | `rangeMask(bits, l, r)` (`18-bitset.hpp`) | Builder: construction plus `setRange` (clarified rule) |
 | P002 | `findNext(p)` (`18-bitset.hpp`) | Accepts `p == n`, which `findFrom` rejects (clarified rule) |
 | P002 | `none()` (`18-bitset.hpp`) | Named special case (ruling 1) |

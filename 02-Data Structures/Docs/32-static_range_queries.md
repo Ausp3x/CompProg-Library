@@ -100,7 +100,7 @@ Latest run 2026-11-02, Linux x86-64 (AMD Ryzen AI 9 HX 370, WSL2), GNU++20, CPyt
 | `32-static_range_queries_tester.py --mode stress --seed 7` | PASS, 3 configurations; 29,103,590 checks (optimized), 21,409,440 (checked), 25,753,609 (ASan); MEMORY peak 955 MB |
 | `02-integration.py` | PASS, 185 standalone and aggregate headers, scalar and AVX2 multi-TU, workspace; MEMORY peak 1540 MB |
 | `03-consistency.py --braces` on the header and tester | No closing-brace, comment-cap or free-function violations |
-| `03-consistency.py`, `plan.py check` | No errors with the linked-worktree exemption for the 7 absent git-ignored `OLD` binaries (Limits and handoffs); `plan.py doctor --fix` declared the DS05 prerequisite for the `00-monoids.hpp` include |
+| `03-consistency.py`, `plan.py check` | No errors (maintainer gate `merge_pr.py gates 1`, 2026-11-03); `plan.py doctor --fix` declared the DS05 prerequisite for the `00-monoids.hpp` include |
 
 The memory peaks cover the whole runner scope, compiles included; the test binaries stay under 170 MB.
 
@@ -132,10 +132,10 @@ The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.m
 - The scratch mutant run (7 broken header copies), the `NDEBUG` probes and the timing table were one-off scratch runs with no committed driver.
 - API names (`count`, `mex`, `majority` with a `bool` status, `frequent` returning `(value, count)` pairs) kept by user decision 2026-11-02.
 - `00-Guidelines/Ledgers/library-checker-coverage.json`: `majority_voting` now targets rows 00, 03 and 16 and `point_set_range_frequency` row 16 only, since row 32 has no point update (user decision 2026-11-02).
-- `03-consistency.py` stops in this clone on 7 absent git-ignored `OLD` binaries (recorded in [31-radixheap.md](31-radixheap.md#limits-and-handoffs) and P250's note), and the post-edit hook reports that failure after every edit.
 - No `97-Online Testing` solution uses this header yet. The Library Checker problems named above were not submitted (`01-principles.md`).
 
 ## History
 
 - 2026-11-02: P032 DS28 first implementation; tester follow-ups fixed (type requirements of `RangeMajority` and `RangeThresholdFrequency`, `lng` rank counter in `frequent`); independent review, 6 findings and 5 nits fixed (comment cap, `NDEBUG` loop on `t <= 0`, majority proof from the bracketing invariant, pool reserve, `duplicates.md` keeps, mex type domain with an `int8_t` case; `byRight` size, `n <= 2^29`, test-mode and benchmark wording, `frequent` jumps past each block); 7/7 scratch mutants caught; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed.
 - 2026-11-02: `/finish` audit, 3 defects and 2 nits fixed (`t = INT_MIN` start rank, `n <= 2^29` wording, pool reserve only for values in `[0, n)`), limits recorded; user decisions recorded (`descend` contract in row 17, API names kept, Library Checker ledger retargeted); diff review, 4 nits fixed; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7), row 17 quick, `02-integration.py` and `03-consistency.py` passed.
+- 2026-11-03: maintainer `/merge-pr 1`: the real `03-consistency.py` and `plan.py check` results recorded and the clone-specific limit dropped (P250's note keeps the follow-up); row 17 lists and tests `descend` and `lowerRank`, which `frequent` uses; the first maintainer gate (2026-11-03) passed quick and full on g++ and g++-14 and `02-integration.py --sanitizers`.

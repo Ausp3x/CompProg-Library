@@ -107,7 +107,7 @@ bool isIndependentF2(const G &g, const vector<vector<int>> &sets) {
 struct XorWalk {
     vector<int> component;
     vector<ulng> dist;
-    vector<XorBasis> basis;
+    vector<XorBasis<false>> basis;
 
     template<class G>
     explicit XorWalk(const G &g) : component(g.n), dist(g.n) {
@@ -156,7 +156,7 @@ struct CutSpaceHash {
     bool disconnects(const vector<int> &edges) const {
         if (edges.size() > 64) { return true; }
         assert([&] { auto sorted = edges; sort(sorted.begin(), sorted.end()); return std::ranges::adjacent_find(sorted) == sorted.end(); }());
-        XorBasis b;
+        XorBasis<false> b;
         for (int e : edges) {
             assert(0 <= e && e < int(label.size()));
             if (!b.insert(label[e])) { return true; }}
