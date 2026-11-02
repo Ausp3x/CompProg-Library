@@ -84,7 +84,7 @@ The checked build (`-O0 -D_GLIBCXX_DEBUG`) runs stress at full-mode sizes (3,000
 
 `python3 '96-Local Testing/02-integration.py'`: PASS, 186 standalone and aggregate headers, multi-TU, workspace (2026-11-03).
 
-Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction). `XorBasis<false>` matches the old mask-free basis (wall time within −9% to +7%, fewer cycles on the `disconnects`-like loop); the masked `XorBasis<true>` would cost 19–35%, 2026-11-03, [62-xorbasis.md](<../../02-Data Structures/Docs/62-xorbasis.md#benchmarks>).
+Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction). `XorBasis<false>` matches the old mask-free basis (wall time within −9% to +7%, fewer cycles on the `disconnects`-like loop); the masked `XorBasis<true>` would cost 18–41%, 2026-11-03, [62-xorbasis.md](<../../02-Data Structures/Docs/62-xorbasis.md#benchmarks>).
 
 ## Sources
 

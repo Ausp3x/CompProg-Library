@@ -113,17 +113,22 @@ Mutation check (2026-11-03, quick mode, seed 3) caught all 7 mutants:
 
 ## Benchmarks
 
-Not required by the Contest profile; kept because Graphs row 28 moved from its mask-free basis to `XorBasis`, and the masks cost 19–35% there. Driver `96-Local Testing/02-Data Structures/62-xorbasis_benchmark.py` (`.cpp` beside it). It builds one binary per implementation (`-DIMPL`), so code layout is not shared, runs them in an order rotated per repetition, makes one untimed warmup pass per workload in each process, and checks that all implementations of a workload return equal checksums. Run 2026-11-03 with `g++` 16.2.1 `-O2 -DNDEBUG`, Intel Core i9-11900H, seed 1, median of 5, under `merge_pr.py run` (bwrap, memory cap); peak child RSS 358 MB. The old column is `cycle_basis_detail` at master fc8de13, copied into the driver.
+Not required by the Contest profile; kept because Graphs row 28 moved from its mask-free basis to `XorBasis`, and the masks cost 18–41% there. Driver `96-Local Testing/02-Data Structures/62-xorbasis_benchmark.py` (`.cpp` beside it). It builds one binary per implementation (`-DIMPL`), so code layout is not shared, runs them in an order rotated per repetition, makes one untimed warmup pass per workload in each process, checks that all implementations of a workload return equal checksums, and records each benchmark process's own peak RSS (`wait4`). Latest run 2026-11-03 with `g++` 16.2.1 `-O2 -DNDEBUG`, Intel Core i9-11900H, seed 1, median of 5, under `merge_pr.py run` (bwrap, memory cap), load average about 2. Peak RSS is 110 MB for each basis binary and 154 MB end to end. The old column is `cycle_basis_detail` at master fc8de13, copied into the driver.
 
 | Workload | Old (no masks) | `XorBasis<true>` | `XorBasis<false>` |
 |---|---|---|---|
-| inserts: 5 · 10^6 random 64-bit words, fresh basis every 1000 | 264 ms | 356 ms | 282 ms |
-| cycles: 10^6 random 63-bit words into one basis (`XorWalk`-like) | 57.3 ms | 68.3 ms | 57.2 ms |
-| cuts: 2 · 10^5 fresh bases of 40 words (`disconnects`-like) | 355 ms | 480 ms | 324 ms |
+| inserts: 5 · 10^6 random 64-bit words, fresh basis every 1000 | 293 ms | 356 ms | 281 ms |
+| cycles: 10^6 random 63-bit words into one basis (`XorWalk`-like) | 57.9 ms | 68.2 ms | 55.0 ms |
+| cuts: 2 · 10^5 fresh bases of 40 words (`disconnects`-like) | 359 ms | 498 ms | 333 ms |
 
-End to end through row 28, which uses `XorBasis<false>`: the `XorWalk` build on n = 2 · 10^5, m = 10^6 takes 102 ms, and `CutSpaceHash::disconnects` on 2 · 10^5 sets of 40 distinct edges takes 516 ms.
+End to end through row 28, which uses `XorBasis<false>`: the `XorWalk` build on n = 2 · 10^5, m = 10^6 takes 102 ms, and `CutSpaceHash::disconnects` on 2 · 10^5 sets of 40 distinct edges takes 469 ms.
 
-`XorBasis<false>` stays within −9% to +7% of the old basis in wall time. In cycles (`perf stat`, the review's single-implementation builds of the cuts loop, 7 repetitions), it is 8.98 · 10^9 against the old basis's 9.25 · 10^9, and `XorBasis<true>` is 12.4 · 10^9. An earlier driver timed all implementations in one binary and showed a systematic 7–10% gap on cuts; that gap came from the shared code layout, which is why the driver now builds one binary per implementation. The selects use an all-ones mask `-ulng(cond)`, because the branch `if ((x ^ b[i]) < x)` is unpredictable on random words; the `/finish` review measured the branchy first version 2–4 times slower.
+Run-to-run spread over four runs of this driver on the same machine (two by the maintainer, two by the review):
+- the mask cost of `XorBasis<true>` over the old basis is 18–41%;
+- `XorBasis<false>` is −9% to +7% against the old basis;
+- the end-to-end figures are 102–112 ms (`XorWalk` build) and 469–673 ms (`disconnects`).
+
+In cycles (`perf stat`, the review's single-implementation builds of the cuts loop, 7 repetitions), `XorBasis<false>` is 8.98 · 10^9 against the old basis's 9.25 · 10^9, and `XorBasis<true>` is 12.4 · 10^9. An earlier driver timed all implementations in one binary and showed a systematic 7–10% gap on cuts; that gap came from the shared code layout, which is why the driver now builds one binary per implementation. The selects use an all-ones mask `-ulng(cond)`, because the branch `if ((x ^ b[i]) < x)` is unpredictable on random words; the `/finish` review measured the branchy first version 2–4 times slower.
 
 ## Commands and results
 
@@ -170,4 +175,4 @@ The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.m
 
 - 2026-11-03: P032 DS50 first implementation; duplicates ask row and sweep candidates decided by the user (2026-11-02); Graphs row 28 migrated onto `XorBasis`; 7/7 mutants caught; independent review, 6 findings and 6 nits fixed (sweep correctness argument, `NDEBUG` wide values, `push` memory, `rangeContains` O(B), copy-free `merge`, integration result); quick, full (seed 1) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed after the fixes.
 - 2026-11-03: `/finish` audit, 6 defects fixed (branchless `insert` and `represent` with benchmarks, row 63 wording, stale mutant entry, decision and fetch dates, Library Checker target, nits); quick, full (seed 1) on g++ and g++-14, stress (seed 7), `28-cycle_basis` suites and `02-integration.py` passed.
-- 2026-11-03: maintainer fixes in `/merge-pr 1` (user decision 2026-11-03): `XorBasis<MASK>`, with `XorBasis<false>` for Graphs row 28 (the masks cost it 19–35%); `rangeXorBasisQuery` moved to `XorBasisCompanion`; `m` renamed `masks`; shared `reduceMasked`; `intersection(a, o)`; `B` defined; `merge`, prefix-query and `MASK` keeps; the tester covers `XorBasis<false>` and the callback order; benchmark driver committed; quick, full (seed 1) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-03: maintainer fixes in `/merge-pr 1` (user decision 2026-11-03): `XorBasis<MASK>`, with `XorBasis<false>` for Graphs row 28 (the masks cost it 18–41%); `rangeXorBasisQuery` moved to `XorBasisCompanion`; `m` renamed `masks`; shared `reduceMasked`; `intersection(a, o)`; `B` defined; `merge`, prefix-query and `MASK` keeps; the tester covers `XorBasis<false>` and the callback order; benchmark driver committed; quick, full (seed 1) on g++ and g++-14 and stress (seed 7) passed.

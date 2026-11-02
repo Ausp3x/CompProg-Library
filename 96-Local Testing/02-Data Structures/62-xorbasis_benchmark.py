@@ -5,7 +5,6 @@ import json
 import os
 from pathlib import Path
 import platform
-import resource
 import statistics
 import subprocess
 import sys
@@ -35,6 +34,19 @@ def main():
             raise RuntimeError(f'command={command!r} returncode={result.returncode}\n{result.stdout}\n{result.stderr}')
         return result.stdout
 
+    peaks = {}
+
+    def measure(binary):
+        # wait4 gives this process's own peak RSS, not the compiler's.
+        child = subprocess.Popen([str(binary), str(args.seed)], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        out, err = child.stdout.read(), child.stderr.read()
+        _, status, usage = os.wait4(child.pid, 0)
+        child.returncode = os.waitstatus_to_exitcode(status)
+        if child.returncode:
+            raise RuntimeError(f'binary={binary} returncode={child.returncode}\n{out}\n{err}')
+        peaks[binary.name] = max(peaks.get(binary.name, 0), usage.ru_maxrss // 1024)
+        return out
+
     names = ['old', 'XorBasis<true>', 'XorBasis<false>', 'header']
     rows = []
     with tempfile.TemporaryDirectory(prefix='cp-p032-benchmark-') as name:
@@ -45,10 +57,9 @@ def main():
         for rep in range(args.runs):
             for k in range(len(names)):
                 binary = binaries[(k + rep) % len(names)]
-                rows += [json.loads(line) for line in run([str(binary), str(args.seed)]).splitlines()]
+                rows += [json.loads(line) for line in measure(binary).splitlines()]
     for row in rows:
         row['impl'] = names[row['impl']]
-    peak_mb = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss // 1024
     groups = {}
     for row in rows:
         groups.setdefault((row['workload'], row['impl']), []).append(row)
@@ -63,7 +74,7 @@ def main():
     cpu = next((line.split(':', 1)[1].strip() for line in Path('/proc/cpuinfo').read_text().splitlines()
                 if line.startswith('model name')), 'unknown')
     record = dict(seed=args.seed, runs=args.runs, compiler=run([compiler, '--version']).splitlines()[0], flags=flags,
-                  platform=platform.platform(), cpu=cpu, peak_child_rss_mb=peak_mb,
+                  platform=platform.platform(), cpu=cpu, peak_rss_mb={names[int(k[-1])]: v for k, v in sorted(peaks.items())},
                   warmup='one untimed pass per workload in each process', order='rotated per repetition',
                   workload='inserts: 5e6 random 64-bit, fresh basis per 1000; cycles: 1e6 random 63-bit into one basis; '
                            'cuts: 2e5 fresh bases of 40 random words; XorWalk build: n=2e5, m=1e6 random 63-bit weights; '
@@ -72,7 +83,8 @@ def main():
     args.output.write_text(json.dumps(record, indent=2) + '\n')
     for r in summary:
         print(f"{r['workload']:14} {r['impl']:16} median={r['median_seconds']:.4f}s")
-    print(f'peak child RSS {peak_mb} MB')
+    for k, v in sorted(peaks.items()):
+        print(f'{names[int(k[-1])]:16} peak RSS {v} MB')
 
 
 if __name__ == '__main__':
