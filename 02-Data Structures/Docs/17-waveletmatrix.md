@@ -13,6 +13,7 @@ All three structures need only `T`'s `operator<` (a strict weak order whose equi
 - `access(i)`: the value at `i`, O(log k).
 - `rank(r, x)`: occurrences of `x` in `[0, r)`, 0 for an absent `x`. `countEqual(l, r, x)`: occurrences in `[l, r)`. Both descend along the rank of `x`; O(log k).
 - `select(x, k)` (asserts `k >= 0`): position of the `k`-th occurrence of `x`, or -1 when `x` occurs at most `k` times. A descent finds the bottom run of `x`, and `pos` gives the position; O(log k).
+- `descend(l, r, p, s = nullptr)` (public helper, contract by user decision 2026-11-02 for row 32 `RangeThresholdFrequency::frequent`): for a rank `p` in `[0, k]` and a range `[l, r)` of the top level, returns the number of values of rank below `p` in the range, adds their weights to `*s` when `s` is given (weights required), and leaves `[l, r)` as the bottom-level run of rank `p`, so `r - l` is the count of rank `p` (0 for `p = k`); `lowerRank(x)` gives the rank of `x`. O(log k).
 - `countLess(l, r, x)`, `countRange(l, r, lo, hi)`: values below `x` or in `[lo, hi)`. `countRange` with `!(lo < hi)` returns 0 after its index assert. O(log k).
 - `kth(l, r, k)`, `kthMax(l, r, k)` (assert `0 <= k < r - l`): the `k`-th smallest or largest value; `kthMax` is `kth` at `r - l - 1 - k`. O(log k).
 - `maxLeq`, `minGeq`: one count descent with the upper (lower) rank bound of `x`, then `kth`; no `x ± 1` arithmetic, so the extremes of `T` are ordinary inputs. O(log k).
@@ -101,3 +102,4 @@ Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 - 2026-10-13: P029 first verification; the unchanged extraction was rewritten (MergeSortTree names, half-open ranges, `bool` status), with weights, `select`, `RectangleWaveletMatrix` and `WaveletMatrixMonoid` added. The independent review found no wavelet defects. The user renamed `rectangleFold` to `prod` and recorded `rank` and `prod` as keeps.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract for `WaveletMatrixMonoid`, stateful-monoid test added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 572/558/683 MB.
+- 2026-11-02: P032 DS28 `/finish` (user decision 2026-11-02): `descend` contract added for its use by row 32 `RangeThresholdFrequency::frequent`; code unchanged, covered through `countLess`, `countEqual`, `sumLess` (the weights path) and row 32's `frequent` tests.

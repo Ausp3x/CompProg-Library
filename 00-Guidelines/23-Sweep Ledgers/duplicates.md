@@ -139,6 +139,8 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P032 | `MonotoneCHT::query` beside `queryMonotone` | Different algorithm: binary search in O(log(n)) against a pointer walk, amortized O(1) for monotone x; same results for `lng` (tie rule, user decision 2026-10-28) |
 | P032 | `MonotoneCHT`, `LineContainer` (row 22) beside `LiChaoTree` (row 21) | Different algorithms and domains: an amortized O(1) deque hull for extreme slopes, a breakpoint multiset for any slope and any x, a segment tree over an x range that also takes segments and single-crossing functions |
 | P032 | `PerLiChaoTree` beside `LiChaoTree` | Different domain: immutable versions by path copying, O(log(C)) nodes per line against O(1) |
+| P032 | `PersistentRangeMex` beside `rangeMex` (row 32) | Decided by the user 2026-11-02: online persistent versions in O(n * log(n)) memory against an offline sweep in O(n) |
+| P032 | `RangeMajority` beside `RangeThresholdFrequency::frequent` with `t = (r - l) / 2 + 1` (row 32) | Decided by the user 2026-11-02: a Boyer–Moore segment tree with verification in O(n) memory against wavelet rank sampling |
 | P002 | `rangeMask(bits, l, r)` (`18-bitset.hpp`) | Builder: construction plus `setRange` (clarified rule) |
 | P002 | `findNext(p)` (`18-bitset.hpp`) | Accepts `p == n`, which `findFrom` rejects (clarified rule) |
 | P002 | `none()` (`18-bitset.hpp`) | Named special case (ruling 1) |
@@ -263,6 +265,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P072 | `knapsackCountsFps` (`29-knapsack_advanced.hpp`) beside `KnapsackCounts<ModInt>` (`13-knapsack.hpp`) | Different algorithm: power-series log/exp O((t + 1) * log(t + 2) + n) against the O((n + 1) * (W + 1)) counting DP, same counts modulo a prime above t |
 | P048 | `cycleSpaceDimension`, `isIndependentF2` (row 28) beside `m - n + connectedComponents(g).count` and `BitMatrix` rank | Derived formula; bool form (ruling 1) |
 | P048 | `eulerCharacteristic` (row 29) beside `n - m + faces().size()` | Derived formula (clarified rule) |
+| P032 | `StaticRangeFrequency::count` (`32-static_range_queries.hpp`) beside `PointSetRangeFrequency(a).count`, `MergeSortTree::countEqual`, `WaveletMatrix::countEqual`, `PersistentValueTree::countEqual` | Constant-factor variant (ruling 4): sorted (value, position) pairs, O(n) words, needs only `<` |
 
 ## Conventions
 
@@ -354,7 +357,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `staticRangeFrequency` | row 32 | `PointSetRangeFrequency(a).count`, `MergeSortTree::countEqual` | keep | static constant-factor variant (ruling 4) | — | — |
 | `XorBasis::rank`, `countRepresentable`; `intersection`, `reducedEchelon` | row 62 | `size()`, `1ull << size()`; Core `BitMatrix` | ask | projections; ownership of subspace operations (`01-Core/Docs/00-notes.md`, Ownership boundaries) | — | — |
 
 ## P042 — 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor (planned)

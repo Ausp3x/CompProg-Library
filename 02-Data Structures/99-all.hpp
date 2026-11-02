@@ -31,6 +31,7 @@
 #include "29-weighteddsu.hpp"
 #include "30-aggregation_queue.hpp"
 #include "31-radixheap.hpp"
+#include "32-static_range_queries.hpp"
 #include "33-offline_rectangle_queries.hpp"
 #include "34-sqrttree.hpp"
 #include "35-persistentarray.hpp"

@@ -368,7 +368,9 @@
       "problem": "data_structure/majority_voting",
       "judge_url": "https://judge.yosupo.jp/problem/majority_voting",
       "targets": [
-        "02-Data Structures/32-static_range_queries.hpp"
+        "02-Data Structures/00-monoids.hpp",
+        "02-Data Structures/03-segmenttree.hpp",
+        "02-Data Structures/16-mergesorttree.hpp"
       ],
       "read_scopes": [
         "Problem catalog name/path compared; full statement/generators not audited."
@@ -469,8 +471,7 @@
       "problem": "data_structure/point_set_range_frequency",
       "judge_url": "https://judge.yosupo.jp/problem/point_set_range_frequency",
       "targets": [
-        "02-Data Structures/16-mergesorttree.hpp",
-        "02-Data Structures/32-static_range_queries.hpp"
+        "02-Data Structures/16-mergesorttree.hpp"
       ],
       "read_scopes": [
         "Problem catalog name/path compared; full statement/generators not audited."

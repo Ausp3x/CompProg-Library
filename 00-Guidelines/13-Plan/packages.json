@@ -1122,9 +1122,10 @@
       "evidence": [
         "02-Data Structures/Docs/21-lichao.md",
         "02-Data Structures/Docs/22-convexhulltrick.md",
-        "02-Data Structures/Docs/31-radixheap.md"
+        "02-Data Structures/Docs/31-radixheap.md",
+        "02-Data Structures/Docs/32-static_range_queries.md"
       ],
-      "note": "DS11 done 2026-10-28 (rows 21, 22 verified). DS27 done 2026-11-02 (row 31 verified). Next batch: DS28 (/package DS28 in a fresh session). Open in duplicates.md: XorBasis ask row (DS50). DS50 (62-xorbasis.hpp): once verified, migrate 04-Graphs/28-cycle_basis.hpp XorWalk and CutSpaceHash off the private cycle_basis_detail insert/reduce basis onto XorBasis (user decision 2026-10-28, recorded by P048 GR13; see 04-Graphs/Docs/28-cycle_basis.md, Limits and handoffs)."
+      "note": "DS11 done 2026-10-28 (rows 21, 22 verified). DS27 done 2026-11-02 (row 31 verified). DS28 done 2026-11-02 (row 32 verified; user decisions in 02-Data Structures/Docs/00-notes.md P032 omissions and duplicates.md keeps). Next batch: DS50 (/package DS50 in a fresh session). Open in duplicates.md: XorBasis ask row (DS50). DS50 (62-xorbasis.hpp): once verified, migrate 04-Graphs/28-cycle_basis.hpp XorWalk and CutSpaceHash off the private cycle_basis_detail insert/reduce basis onto XorBasis (user decision 2026-10-28, recorded by P048 GR13; see 04-Graphs/Docs/28-cycle_basis.md, Limits and handoffs)."
     },
     {
       "id": "P251",

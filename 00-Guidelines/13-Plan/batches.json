@@ -3733,7 +3733,8 @@
         "DS01",
         "DS08",
         "DS09",
-        "DS23"
+        "DS23",
+        "DS05"
       ],
       "tiers": [
         "Advanced"

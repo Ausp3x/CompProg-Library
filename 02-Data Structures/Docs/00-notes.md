@@ -209,6 +209,12 @@ Candidates from the 2026-11-02 DS27 sweep ([00-sources.md](00-sources.md#fetched
 - Rust `radix-heap` extras (start bound, `constrain`, iterators, max order, `shrink_to_fit`): no contest use; a max-heap is the complemented key.
 - hitonanode `chmin` (push or decrease): `contains` with `push`/`decreaseKey`, as for `DAryHeap`.
 
+Candidates from the 2026-11-02 DS28 sweep ([00-sources.md](00-sources.md#fetched-2026-11-02-p032-ds28-sweep)) left out of row 32 (user decision 2026-11-02; `PersistentRangeMex` was added, the threshold query lists values with count at least `t`, and the majority candidate comes from a Boyer–Moore segment tree):
+
+- Weighted distinct sum or xor (CF 703D), closest equal pair in a range (CF 522D), number of values occurring exactly `k` times (CF 220B): offline sweeps of the same shape as `staticRangeCountDistinct`, rare enough to write per problem.
+- All-distinct test: `staticRangeCountDistinct` equals `r - l`. Xored mex (suisen), `RangeMexChange` (maspypy) and the k-th missing value: rare.
+- k-majority by Misra–Gries summaries: `RangeThresholdFrequency::frequent` with `t = (r - l) / k + 1`. Point-set range majority (Library Checker `majority_voting`): row 00 `MajorityVote` in a segment tree with row 16 `PointSetRangeFrequency`.
+
 ## Planned-row omissions
 
 - Row 48 `PersistentSkewHeap`: skew-heap melds are only amortized, and persistence lets an expensive version be reused, so no bound holds; `PersistentLeftistHeap` gives persistent melds in O(log n).
