@@ -2,4 +2,4 @@
 from _00_runner import main
 
 if __name__ == '__main__':
-    raise SystemExit(main('01-dsu', ["negative-size","find-negative","find-end","empty-find","union-end","size-end","same-end"]))
+    raise SystemExit(main('01-dsu', ["negative-size","find-negative","find-end","find-past","empty-find","union-end","size-end","same-end","makeset-full"]))

@@ -104,7 +104,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P058 — MA08** (opus, L): 05-Mathematics — linear algebra.
 - [x] **P048 — GR13, GR27, GR32** (opus, L+L+M): 04-Graphs — cycle basis, planar graph, flow with demands, subgraph enumeration.
 - [ ] **P032 — DS11, DS27, DS28, DS50** (opus, L+M+L+M): 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis. Status: in-progress. Note: DS11 done 2026-10-28 (rows 21, 22 verified). Next batch: DS27 (/package DS27 in a fresh session). Open in duplicates.md: XorBasis ask row (DS50). DS50 (62-xorbasis.hpp): once verified, migrate 04-Graphs/28-cycle_basis.hpp XorWalk and CutSpaceHash off the private cycle_basis_detail insert/reduce basis onto XorBasis (user decision 2026-10-28, recorded by P048 GR13; see 04-Graphs/Docs/28-cycle_basis.md, Limits and handoffs). [evidence](<02-Data Structures/Docs/21-lichao.md>) [evidence](<02-Data Structures/Docs/22-convexhulltrick.md>)
-- [ ] **P251 — SUP20** (opus, M): Mutation testing of the testers. Status: planned.
+- [x] **P251 — SUP20** (opus, M): Mutation testing of the testers.
 - [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: planned.
 - [ ] **P063 — MA14** (opus, L): 05-Mathematics — optimization. Status: planned.
 - [ ] **P059 — MA09** (opus, L): 05-Mathematics — numerical methods, integer roots. Status: planned.

@@ -112,7 +112,7 @@
         "02-Data Structures/Docs/07-ordered_set.md",
         "02-Data Structures/Docs/08-monotone_stack.md"
       ],
-      "note": ""
+      "note": "Follow-ups from P251 (user decision 2026-11-03): (1) 01-dsu_tester.cpp unionHistories prints the depth-first history, not the smallest reproducer (CR 43 reports (0,0)(0,1)(2,0); (0,1)(2,0) suffices): switch to iterative deepening over depth limits 0..depth (~1.125x cost) and drop the 00-notes.md shrinking disclaimer for it. (2) _00_runner.py death check accepts any SIGABRT whose stderr contains 'assert', so for the four _GLIBCXX_ASSERTIONS stems a libstdc++ bounds abort passes as the header's assert: match the glibc form 'Assertion `' or the header path, then rerun the 02-Data Structures testers."
     },
     {
       "id": "P007",
@@ -1134,9 +1134,11 @@
       "phase": "Contest core",
       "size": "M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
+      "status": "verified",
+      "evidence": [
+        "96-Local Testing/Docs/00-mutation.md"
+      ],
+      "note": "mewt 4.0.0 campaign on 02-Data Structures/01-dsu.hpp only; not extended to other headers (user decision 2026-11-03, Handoff of 00-mutation.md)."
     },
     {
       "id": "P042",
