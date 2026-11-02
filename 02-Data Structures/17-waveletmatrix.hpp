@@ -45,6 +45,7 @@ struct WaveletMatrix {
     bool present(int p, const T &x) const { return p < int(vals.size()) && !(x < vals[p]); }
     // Counts ranks below p in [l, r) and adds their weights to *s; [l, r) ends as the run of rank p.
     int descend(int &l, int &r, int p, W *s = nullptr) const {
+        assert(0 <= l && l <= r && r <= n && 0 <= p && p <= int(vals.size()));
         int res = 0;
         for (int d = h - 1; d >= 0; --d) {
             int l1 = rank1(d, l), r1 = rank1(d, r);

@@ -275,6 +275,9 @@ namespace {
         else if (name == "wavelet-sum-unweighted") { (void)wm.sumLess(0, 3, 4); }
         else if (name == "wavelet-kthsum-unweighted") { (void)wm.kthSum(0, 3, 1); }
         else if (name == "wavelet-kthsum-range") { (void)ww.kthSum(0, 3, 4); }
+        else if (name == "wavelet-descend-end") { int l = 0, r = 4; (void)wm.descend(l, r, 0); }
+        else if (name == "wavelet-descend-rank") { int l = 0, r = 3; (void)wm.descend(l, r, 4); }
+        else if (name == "wavelet-descend-negative") { int l = 0, r = 3; (void)wm.descend(l, r, -1); }
         else if (name == "wavelet-weights-size") { WaveletMatrix<lng> bad(a, vector<lng>{1}); }
         else if (name == "rectangle-size") { RectangleWaveletMatrix<lng> bad(a, vector<lng>{1}); }
         else if (name == "rectangle-sum-unweighted") { (void)rc.rectangleSum(0, 9, 0, 9); }

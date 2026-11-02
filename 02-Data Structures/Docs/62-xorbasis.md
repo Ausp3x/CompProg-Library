@@ -16,7 +16,7 @@ Package P032 (batch DS50). New header: an incremental GF(2) basis of 64-bit word
 - `max(x = 0)`: the maximum of `x ^ span`. Greedy over decreasing pivots: bit p of the running value is fixed once `b` at pivot p has been considered.
 - `kth(k)`: the k-th smallest span value, 0-based; asserts `k < 2^r` (any k when r = 64). Bit `r - 1 - i` of `k` selects `b[i]`. The value is increasing in `k`: when two indices first differ at the bit of pivot p, the values agree above p (only vectors whose pivot is p or below differ, and none of them holds a bit above p), and bit p comes from `b` at pivot p alone.
 - `rank(x)`: the number of span values below `x`, for any `x`. It is a binary search over the increasing map `k ↦ kth(k)`. Fixing the bits of `k` from the top, `cur ^ b[i]` is the smallest value of the block with that bit set. So the loop finds the largest k with `kth(k) < x` (0 when `x = 0`), and the count is that k plus one. For `x` in the span, `kth(rank(x)) == x`. The count fits in `ulng`: when r = 64, the span is every word and the count equals `x`.
-- `intersection(a, o)` (friend): returns a basis of span(a) ∩ span(o) of the same `MASK`, with its own masks (inserts into the result). O(64 · r_o) with r_o = `o.size()`. Each vector y of `o` is reduced against pivot-indexed pairs (value, tag), seeded with `a`'s vectors and tag 0. The invariant: every tag lies in span(o), and every value XOR its tag lies in span(a).
+- `intersection(a, o)` (friend): returns a basis of span(a) ∩ span(o) of the same `MASK`, with its own masks (inserts into the result). O(64 · (r_o + 1)) with r_o = `o.size()`. Each vector y of `o` is reduced against pivot-indexed pairs (value, tag), seeded with `a`'s vectors and tag 0. The invariant: every tag lies in span(o), and every value XOR its tag lies in span(a).
   - A vector that reduces to 0 leaves a tag in both spaces.
   - Otherwise the pair joins the table.
   - Each kept tag is y plus earlier vectors of `o`, so the kept tags are independent.
@@ -113,33 +113,33 @@ Mutation check (2026-11-03, quick mode, seed 3) caught all 7 mutants:
 
 ## Benchmarks
 
-Not required by the Contest profile; kept because Graphs row 28 moved from its mask-free basis to `XorBasis`, and the masks cost 23–36% there. Driver `96-Local Testing/02-Data Structures/62-xorbasis_benchmark.py` (`.cpp` beside it; it checks that all implementations of a workload return equal checksums). Run 2026-11-03 with `g++` 16.2.1 `-O2 -DNDEBUG`, Intel Core i9-11900H, seed 1, median of 5, under `merge_pr.py run` (bwrap, memory cap). The old column is `cycle_basis_detail` at master fc8de13, copied into the driver.
+Not required by the Contest profile; kept because Graphs row 28 moved from its mask-free basis to `XorBasis`, and the masks cost 19–35% there. Driver `96-Local Testing/02-Data Structures/62-xorbasis_benchmark.py` (`.cpp` beside it). It builds one binary per implementation (`-DIMPL`), so code layout is not shared, runs them in an order rotated per repetition, makes one untimed warmup pass per workload in each process, and checks that all implementations of a workload return equal checksums. Run 2026-11-03 with `g++` 16.2.1 `-O2 -DNDEBUG`, Intel Core i9-11900H, seed 1, median of 5, under `merge_pr.py run` (bwrap, memory cap); peak child RSS 358 MB. The old column is `cycle_basis_detail` at master fc8de13, copied into the driver.
 
 | Workload | Old (no masks) | `XorBasis<true>` | `XorBasis<false>` |
 |---|---|---|---|
-| inserts: 5 · 10^6 random 64-bit words, fresh basis every 1000 | 284 ms | 350 ms | 261 ms |
-| cycles: 10^6 random 63-bit words into one basis (`XorWalk`-like) | 49.5 ms | 63.9 ms | 55.0 ms |
-| cuts: 2 · 10^5 fresh bases of 40 words (`disconnects`-like) | 360 ms | 491 ms | 386 ms |
+| inserts: 5 · 10^6 random 64-bit words, fresh basis every 1000 | 264 ms | 356 ms | 282 ms |
+| cycles: 10^6 random 63-bit words into one basis (`XorWalk`-like) | 57.3 ms | 68.3 ms | 57.2 ms |
+| cuts: 2 · 10^5 fresh bases of 40 words (`disconnects`-like) | 355 ms | 480 ms | 324 ms |
 
-End to end through row 28, which uses `XorBasis<false>`: the `XorWalk` build on n = 2 · 10^5, m = 10^6 takes 103 ms, and `CutSpaceHash::disconnects` on 2 · 10^5 sets of 40 distinct edges takes 508 ms.
+End to end through row 28, which uses `XorBasis<false>`: the `XorWalk` build on n = 2 · 10^5, m = 10^6 takes 102 ms, and `CutSpaceHash::disconnects` on 2 · 10^5 sets of 40 distinct edges takes 516 ms.
 
-In three more runs, old and `XorBasis<false>` swap places within the noise (cuts 319–362 ms against 340–400 ms). `perf stat -r 7` on the cuts loop counts cycles instead: old 3.58 · 10^9 instructions and 1.41 · 10^9 cycles, `XorBasis<false>` 4.01 · 10^9 instructions and 1.38 · 10^9 cycles. A variant whose second loop copies the old `min` form matched the old code's cycles exactly (1.41 · 10^9), so the branchless select stays. The selects use an all-ones mask `-ulng(cond)`, because the branch `if ((x ^ b[i]) < x)` is unpredictable on random words; the `/finish` review measured the branchy first version 2–4 times slower.
+`XorBasis<false>` stays within −9% to +7% of the old basis in wall time. In cycles (`perf stat`, the review's single-implementation builds of the cuts loop, 7 repetitions), it is 8.98 · 10^9 against the old basis's 9.25 · 10^9, and `XorBasis<true>` is 12.4 · 10^9. An earlier driver timed all implementations in one binary and showed a systematic 7–10% gap on cuts; that gap came from the shared code layout, which is why the driver now builds one binary per implementation. The selects use an all-ones mask `-ulng(cond)`, because the branch `if ((x ^ b[i]) < x)` is unpredictable on random words; the `/finish` review measured the branchy first version 2–4 times slower.
 
 ## Commands and results
 
-Latest run 2026-11-03, maintainer runs under `merge_pr.py run 1` (bwrap, memory cap), Intel Core i9-11900H, `g++` 16.2.1, `g++-14` 14.4.1, CPython 3.14.8. The full runs shared one memory scope with five other suites, so their peak is the scope's; `02-integration.py` is the contributor's run (Linux x86-64 WSL2, `g++` 16.0.1) before the `MASK` change, and the maintainer gate reruns it with `--sanitizers`:
+Latest run 2026-11-03, maintainer runs under `merge_pr.py run 1` (bwrap, memory cap), Intel Core i9-11900H, `g++` 16.2.1, `g++-14` 14.4.1, CPython 3.14.8; the quick and full rows are the maintainer gate's (`merge_pr.py gates 1`); `02-integration.py` is the contributor's run (Linux x86-64 WSL2, `g++` 16.0.1) before the `MASK` change, and the maintainer gate reruns it with `--sanitizers`:
 
 | Command | Result | Memory peak |
 |---|---|---|
-| `62-xorbasis_tester.py --mode quick` | PASS, 2 configurations, 4,162,101 checks (optimized), 17 probes | 528 MB |
-| `62-xorbasis_tester.py --mode full --seed 1` | PASS, 3 configurations; 33,177,191 checks in the last reported | 2439 MB (shared) |
-| `CXX=g++-14 62-xorbasis_tester.py --mode full --seed 1` | PASS, the same check counts | 2439 MB (shared) |
-| `62-xorbasis_tester.py --mode stress --seed 7` | PASS; 418,059,624 / 21,179,793 / 103,834,078 checks (optimized / checked / ASan) | 1889 MB (shared with two suites) |
+| `62-xorbasis_tester.py --mode quick --seed 1` | PASS, 2 configurations, 4,162,101 checks (optimized), 17 probes | 529 MB |
+| `62-xorbasis_tester.py --mode full --seed 1` | PASS, 3 configurations; 132,235,975 / 6,833,623 / 33,177,191 checks (optimized / checked / ASan) | 829 MB |
+| `CXX=g++-14 62-xorbasis_tester.py --mode full --seed 1` | PASS, the same check counts | 824 MB |
+| `62-xorbasis_tester.py --mode stress --seed 7` | PASS; 418,059,624 / 21,179,793 / 103,834,078 checks (optimized / checked / ASan) | 839 MB |
 | `02-integration.py` | PASS, 186 standalone and aggregate headers, scalar and AVX2 multi-TU, workspace | 1898 MB |
-| `04-Graphs/28-cycle_basis_tester.py` quick, full (seed 1) on g++ and g++-14, stress (seed 7), with `XorBasis<false>` | PASS ([28-cycle_basis.md](../../04-Graphs/Docs/28-cycle_basis.md#commands-and-results)) | shared |
+| `04-Graphs/28-cycle_basis_tester.py` quick, full (seed 1) on g++ and g++-14, stress (seed 7), with `XorBasis<false>` | PASS ([28-cycle_basis.md](../../04-Graphs/Docs/28-cycle_basis.md#commands-and-results)) | 881 MB |
 
 ```bash
-python3 '96-Local Testing/02-Data Structures/62-xorbasis_tester.py' --mode quick
+python3 '96-Local Testing/02-Data Structures/62-xorbasis_tester.py' --mode quick --seed 1
 python3 '96-Local Testing/02-Data Structures/62-xorbasis_tester.py' --mode full --seed 1
 CXX=g++-14 python3 '96-Local Testing/02-Data Structures/62-xorbasis_tester.py' --mode full --seed 1
 python3 '96-Local Testing/02-Data Structures/62-xorbasis_tester.py' --mode stress --seed 7
@@ -170,4 +170,4 @@ The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.m
 
 - 2026-11-03: P032 DS50 first implementation; duplicates ask row and sweep candidates decided by the user (2026-11-02); Graphs row 28 migrated onto `XorBasis`; 7/7 mutants caught; independent review, 6 findings and 6 nits fixed (sweep correctness argument, `NDEBUG` wide values, `push` memory, `rangeContains` O(B), copy-free `merge`, integration result); quick, full (seed 1) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed after the fixes.
 - 2026-11-03: `/finish` audit, 6 defects fixed (branchless `insert` and `represent` with benchmarks, row 63 wording, stale mutant entry, decision and fetch dates, Library Checker target, nits); quick, full (seed 1) on g++ and g++-14, stress (seed 7), `28-cycle_basis` suites and `02-integration.py` passed.
-- 2026-11-03: maintainer fixes in `/merge-pr 1` (user decision 2026-11-03): `XorBasis<MASK>`, with `XorBasis<false>` for Graphs row 28 (the masks cost it 23–36%); `rangeXorBasisQuery` moved to `XorBasisCompanion`; `m` renamed `masks`; shared `reduceMasked`; `intersection(a, o)`; `B` defined; `merge`, prefix-query and `MASK` keeps; the tester covers `XorBasis<false>` and the callback order; benchmark driver committed; quick, full (seed 1) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-03: maintainer fixes in `/merge-pr 1` (user decision 2026-11-03): `XorBasis<MASK>`, with `XorBasis<false>` for Graphs row 28 (the masks cost it 19–35%); `rangeXorBasisQuery` moved to `XorBasisCompanion`; `m` renamed `masks`; shared `reduceMasked`; `intersection(a, o)`; `B` defined; `merge`, prefix-query and `MASK` keeps; the tester covers `XorBasis<false>` and the callback order; benchmark driver committed; quick, full (seed 1) on g++ and g++-14 and stress (seed 7) passed.

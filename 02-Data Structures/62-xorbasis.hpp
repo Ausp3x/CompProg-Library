@@ -10,11 +10,11 @@ namespace xorbasis_detail {
             if (!v[i]) { v[i] = x; p[i] = pos; return; }
             if (p[i] < pos) { std::swap(v[i], x); std::swap(p[i], pos); }
             x ^= v[i];}}
-    // T: O(r), M: O(1); reduces x by the r vectors of b, xoring into mask the m[i] of each vector used.
-    inline ulng reduceMasked(const ulng *b, const ulng *m, int r, ulng x, ulng &mask) {
+    // T: O(r), M: O(1); reduces x by the r vectors of b, xoring into mask the masks[i] of each vector used.
+    inline ulng reduceMasked(const ulng *b, const ulng *masks, int r, ulng x, ulng &mask) {
         for (int i = 0; i < r; ++i) {
             ulng t = -ulng((x ^ b[i]) < x);
-            x ^= b[i] & t; mask ^= m[i] & t;}
+            x ^= b[i] & t; mask ^= masks[i] & t;}
         return x;}
 } // namespace xorbasis_detail
 
@@ -66,7 +66,7 @@ struct XorBasis {
             if ((cur ^ b[i]) < x) { cur ^= b[i]; k |= 1ull << (r - 1 - i); }}
         return x ? k + 1 : 0;}
 
-    // T: O(64 * r_o), M: O(64) with r_o = o.size()
+    // T: O(64 * (r_o + 1)), M: O(64) with r_o = o.size()
     friend XorBasis intersection(const XorBasis &a, const XorBasis &o) {
         array<ulng, 64> v{}, t{};
         for (ulng y : a.b) { v[63 - std::countl_zero(y)] = y; }

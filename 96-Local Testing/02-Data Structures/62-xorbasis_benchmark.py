@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""XorBasis benchmark: the old mask-free basis against XorBasis<true> and <false>, plus Graphs row 28 end to end; timings are not correctness gates."""
+"""XorBasis benchmark: the old mask-free basis against XorBasis<true> and <false>, plus Graphs row 28 end to end, one binary per implementation; timings are not correctness gates."""
 import argparse
 import json
 import os
 from pathlib import Path
 import platform
+import resource
 import statistics
 import subprocess
 import sys
@@ -34,12 +35,20 @@ def main():
             raise RuntimeError(f'command={command!r} returncode={result.returncode}\n{result.stdout}\n{result.stderr}')
         return result.stdout
 
+    names = ['old', 'XorBasis<true>', 'XorBasis<false>', 'header']
     rows = []
     with tempfile.TemporaryDirectory(prefix='cp-p032-benchmark-') as name:
-        binary = Path(name) / 'xorbasis_benchmark'
-        run([compiler, *flags, str(HERE / '62-xorbasis_benchmark.cpp'), '-o', str(binary)])
-        for _ in range(args.runs):
-            rows += [json.loads(line) for line in run([str(binary), str(args.seed)]).splitlines()]
+        binaries = [Path(name) / f'xorbasis_benchmark_{k}' for k in range(len(names))]
+        for k, binary in enumerate(binaries):
+            run([compiler, *flags, f'-DIMPL={k}', str(HERE / '62-xorbasis_benchmark.cpp'), '-o', str(binary)])
+        # Rotate the order each repetition so no implementation always runs first.
+        for rep in range(args.runs):
+            for k in range(len(names)):
+                binary = binaries[(k + rep) % len(names)]
+                rows += [json.loads(line) for line in run([str(binary), str(args.seed)]).splitlines()]
+    for row in rows:
+        row['impl'] = names[row['impl']]
+    peak_mb = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss // 1024
     groups = {}
     for row in rows:
         groups.setdefault((row['workload'], row['impl']), []).append(row)
@@ -54,7 +63,8 @@ def main():
     cpu = next((line.split(':', 1)[1].strip() for line in Path('/proc/cpuinfo').read_text().splitlines()
                 if line.startswith('model name')), 'unknown')
     record = dict(seed=args.seed, runs=args.runs, compiler=run([compiler, '--version']).splitlines()[0], flags=flags,
-                  platform=platform.platform(), cpu=cpu,
+                  platform=platform.platform(), cpu=cpu, peak_child_rss_mb=peak_mb,
+                  warmup='one untimed pass per workload in each process', order='rotated per repetition',
                   workload='inserts: 5e6 random 64-bit, fresh basis per 1000; cycles: 1e6 random 63-bit into one basis; '
                            'cuts: 2e5 fresh bases of 40 random words; XorWalk build: n=2e5, m=1e6 random 63-bit weights; '
                            'disconnects: 2e5 sets of 40 distinct edges',
@@ -62,6 +72,7 @@ def main():
     args.output.write_text(json.dumps(record, indent=2) + '\n')
     for r in summary:
         print(f"{r['workload']:14} {r['impl']:16} median={r['median_seconds']:.4f}s")
+    print(f'peak child RSS {peak_mb} MB')
 
 
 if __name__ == '__main__':

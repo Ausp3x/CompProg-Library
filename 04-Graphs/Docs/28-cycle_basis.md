@@ -71,20 +71,20 @@ Deleting `S` disconnects a component iff some nonempty subset of `S` is a cut, s
 
 ## Commands and results
 
-Run 2026-11-03 with `XorBasis<false>`, maintainer runs under `merge_pr.py run 1` (bwrap, memory cap), Intel Core i9-11900H, `g++` 16.2.1, `g++-14` 14.4.1, CPython 3.14.8; memory peaks are those of a scope shared with other suites:
+Run 2026-11-03 with `XorBasis<false>`, maintainer runs under `merge_pr.py run 1` (bwrap, memory cap), Intel Core i9-11900H, `g++` 16.2.1, `g++-14` 14.4.1, CPython 3.14.8; quick and full in the maintainer gate (`merge_pr.py gates 1`), stress in its own capped scope:
 
 | Command | Result | Memory peak |
 |---|---|---|
-| `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode quick` | PASS, 2 configurations, 1,410,851 checks, 7 probes | 808 MB |
-| `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode full --seed 1` | PASS, 3 configurations, 12,996,371 checks | 2439 MB |
-| `CXX=g++-14 python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode full --seed 1` | PASS, 3 configurations, 12,996,371 checks | 2439 MB |
-| `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode stress --seed 7` | PASS, 3 configurations; 36,137,698 / 13,038,645 / 36,137,698 checks (optimized / checked / ASan) | 1889 MB |
+| `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode quick --seed 1` | PASS, 2 configurations, 1,410,851 checks, 7 probes | 525 MB |
+| `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode full --seed 1` | PASS, 3 configurations, 12,996,371 checks | 879 MB |
+| `CXX=g++-14 python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode full --seed 1` | PASS, 3 configurations, 12,996,371 checks | 881 MB |
+| `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode stress --seed 7` | PASS, 3 configurations; 36,137,698 / 13,038,645 / 36,137,698 checks (optimized / checked / ASan) | 874 MB |
 
 The checked build (`-O0 -D_GLIBCXX_DEBUG`) runs stress at full-mode sizes (3,000 rounds, 400 hash graphs, 200,000-vertex shapes): 42.6 s alone, 52 s under parallel load, against the runner's 180 s limit. Optimized and ASan run 15,000 rounds, 1,500 hash graphs and 300,000-vertex shapes.
 
 `python3 '96-Local Testing/02-integration.py'`: PASS, 186 standalone and aggregate headers, multi-TU, workspace (2026-11-03).
 
-Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction). `XorBasis<false>` matches the old mask-free basis in cycles (perf stat; the masked `XorBasis<true>` costs 27–36%), 2026-11-03, [62-xorbasis.md](<../../02-Data Structures/Docs/62-xorbasis.md#benchmarks>).
+Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction). `XorBasis<false>` matches the old mask-free basis (wall time within −9% to +7%, fewer cycles on the `disconnects`-like loop); the masked `XorBasis<true>` would cost 19–35%, 2026-11-03, [62-xorbasis.md](<../../02-Data Structures/Docs/62-xorbasis.md#benchmarks>).
 
 ## Sources
 

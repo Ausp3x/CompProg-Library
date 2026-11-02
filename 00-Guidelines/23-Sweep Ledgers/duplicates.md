@@ -145,7 +145,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P032 | `XorBasis::contains` (`62-xorbasis.hpp`) | Named special case of `reduce` (ruling 1) |
 | P032 | `XorBasis::merge` beside `insert` over `o.b` (row 62) | Batch form (clarified rule) |
 | P032 | `PrefixXorBasis::rangeMax`, `rangeContains` beside `XorBasisCompanion::rangeXorBasisQuery` followed by `max` or `contains` (row 62) | Different algorithm and domain: online queries in O(B) over O(n * B) memory against an offline sweep in O(n + q) memory |
-| P032 | `XorBasis<false>` beside `XorBasis<true>` (row 62) | One template: the flag drops the insert masks and `represent`, which Graphs row 28 does not use (23–36% faster there, [62-xorbasis.md](<../../02-Data Structures/Docs/62-xorbasis.md#benchmarks>)) |
+| P032 | `XorBasis<false>` beside `XorBasis<true>` (row 62) | One template: the flag drops the insert masks and `represent`, which Graphs row 28 does not use (they cost 19–35% there, [62-xorbasis.md](<../../02-Data Structures/Docs/62-xorbasis.md#benchmarks>)) |
 | P002 | `rangeMask(bits, l, r)` (`18-bitset.hpp`) | Builder: construction plus `setRange` (clarified rule) |
 | P002 | `findNext(p)` (`18-bitset.hpp`) | Accepts `p == n`, which `findFrom` rejects (clarified rule) |
 | P002 | `none()` (`18-bitset.hpp`) | Named special case (ruling 1) |
