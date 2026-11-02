@@ -22,9 +22,22 @@ bool join(vector<int> &a, int u, int v) {
     if (x == y) { return false; }
     for (int &z : a) { if (z == y) { z = x; }}
     return true;}
+// Union by size: a vertex at depth k lies in a component of at least 2^k vertices; compression keeps this.
+void checkDepths(const DSU &d, const vector<int> &a) {
+    int n = int(a.size());
+    check(int(d.par.size()),n,"par size");
+    for (int u = 0; u < n; ++u) {
+        if (d.par[u] < 0 || d.par[u] >= n) { fail("par["+std::to_string(u)+"]","parent in [0,n)",std::to_string(d.par[u])); }}
+    vector<int> cnt(n);
+    for (int u = 0; u < n; ++u) { ++cnt[a[u]]; }
+    for (int u = 0; u < n; ++u) {
+        int depth = 0;
+        for (int r = u; d.par[r] != r && depth <= 30; r = d.par[r]) { ++depth; }
+        if (depth > 30 || (1 << depth) > cnt[a[u]]) {
+            fail("union by size depth("+std::to_string(u)+")","2^depth<="+std::to_string(cnt[a[u]]),std::to_string(depth));}}}
 void verify(DSU &d, const vector<int> &a) {
     int n = int(a.size());
-    check(d.n,n,"n");
+    check(d.n,n,"n"); checkDepths(d,a);
     vector<vector<int>> expected;
     vector<int> seen(n,-1);
     for (int u = 0; u < n; ++u) {
@@ -97,7 +110,11 @@ void balancedTree() {
         int r = d.findSet(i); check(d.par[i],r,"balanced compression"); check(d.getSize(i),n,"balanced size");}
     auto groups = d.groups(); check(int(groups.size()),1,"balanced groups count");
     check(int(groups[0].size()),n,"balanced members count");
-    cout << "PASS DSU balanced merges/compression n=" << n << '\n';}
+    for (int flip = 0; flip < 2; ++flip) {
+        context = "star unions n="+std::to_string(n)+(flip ? " uniteSets(0,i)" : " uniteSets(i,0)"); DSU star(n);
+        for (int i = 1; i < n; ++i) { check(flip ? star.uniteSets(0,i) : star.uniteSets(i,0),true,"star union"); }
+        checkDepths(star,vector<int>(n));}
+    cout << "PASS DSU balanced merges/compression/star depth n=" << n << '\n';}
 int main(int argc, char **argv) {
     string invalid;
     for (int i = 1; i < argc; ++i) {
@@ -112,10 +129,12 @@ int main(int argc, char **argv) {
         if (invalid == "negative-size") { DSU bad(-1); }
         else if (invalid == "find-negative") { d.findSet(-1); }
         else if (invalid == "find-end") { d.findSet(2); }
+        else if (invalid == "find-past") { d.findSet(3); }
         else if (invalid == "empty-find") { DSU().findSet(0); }
         else if (invalid == "union-end") { d.uniteSets(0,2); }
         else if (invalid == "size-end") { d.getSize(2); }
         else if (invalid == "same-end") { d.isSameSet(0,2); }
+        else if (invalid == "makeset-full") { d.n = INT_MAX; d.makeSet(); }
         else { cerr << "unknown invalid case\n"; return 2; }
         cerr << "precondition did not assert\n"; return 1;}
     if (mode != "quick" && mode != "full" && mode != "stress") { return 2; }
