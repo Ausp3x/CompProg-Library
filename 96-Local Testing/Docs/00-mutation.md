@@ -94,3 +94,4 @@ Cost: about 5.4 s per mutant for stage 1 on this header (140 mutants, 757 s) and
 ## History
 
 - 2026-11-03: P251/SUP20, tool survey, mewt 4.0.0 campaign on `01-dsu.hpp`, three test gaps (10 mutants) closed in `01-dsu_tester.cpp`, 6 equivalent survivors left; independent review, 6 findings, 7 defects fixed (`finish-log.tsv`); quick, full on g++ and g++-14, 2 stress rounds and consistency passed.
+- 2026-11-03: P251 `/merge-pr 2` review: 6 findings, 5 fixed in the evidence documents and P006's plan note; the `makeset-full` probe's coupling to the field `n` kept.
