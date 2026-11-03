@@ -22,7 +22,7 @@ The Python entry and C++ oracle suite share the stem under `96-Local Testing/02-
 | `makeSet` | `randomCases` | 150 random cases with interleaved `makeSet` (id and singleton oracle) |
 | Compression at scale | `balancedTree` | 65,536-vertex balanced merge/compression |
 | Union by size (`O(log(n))` depth) | `checkDepths`, in every `verify` and after the 65,536-vertex stars `uniteSets(i,0)` and `uniteSets(0,i)` in `balancedTree` | `par` in range; a vertex at depth `k` of `par` lies in a component of at least `2^k` vertices (P251 mutation campaign) |
-| Value semantics and preconditions | all groups | Copies/moves/reset; 9 assertion probes, including `find-past` (`u > n`) and `makeset-full` (`n == INT_MAX`; it sets the public `n` directly, a deliberate white-box exception to the no-edit rule, checked build only) |
+| Value semantics and preconditions | all groups | Copies/moves/reset; 9 assertion probes, including `find-past` (`u > n`) and `makeset-full` (`n == INT_MAX`; it sets the public `n` directly, a deliberate white-box exception to the Contracts rule that public members are not edited directly, checked build only) |
 
 Quick: n<=4, depth 3, 35 trials, 1,024 vertices (balanced and stars). Stress: history depth 6, 600 random cases. The suite reports named corpus groups instead of a scalar check count.
 
@@ -36,10 +36,9 @@ python3 '96-Local Testing/02-Data Structures/01-dsu_tester.py' --mode full --see
 CXX=g++-14 python3 '96-Local Testing/02-Data Structures/01-dsu_tester.py' --mode full --seed 20261103
 python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 2 --filter '02-Data Structures/01-dsu' --no-integration
 python3 '96-Local Testing/03-consistency.py'
-python3 '96-Local Testing/02-integration.py'
 ```
 
-All passed: quick in 2 configurations (`MEMORY peak=389MB`); full on g++ and g++-14 in the optimized, checked and ASan/UBSan builds with 9 assertion probes (peaks 539 MB and 521 MB); stress, two rounds (peaks 667 MB and 666 MB); consistency without errors in a linked worktree carrying the change (the main checkout of this clone lacks the git-ignored `OLD/Team Notebook/src/algs.exe` the validator requires there). Integration last ran 2026-10-13 with the P006 prune rerun, recorded in [02-fenwick.md](02-fenwick.md#commands-and-results); the header has not changed since. Mutation campaign (mewt 4.0.0, 140 mutants; 6 equivalent survivors): [00-mutation.md](../../96-Local%20Testing/Docs/00-mutation.md).
+All passed: quick in 2 configurations (`MEMORY peak=389MB`); full on g++ and g++-14 in the optimized, checked and ASan/UBSan builds with 9 assertion probes (peaks 539 MB and 521 MB); stress, two rounds (peaks 667 MB and 666 MB); consistency without errors. Integration last ran 2026-10-13 with the P006 prune rerun, recorded in [02-fenwick.md](02-fenwick.md#commands-and-results); the header has not changed since. Mutation campaign (mewt 4.0.0, 140 mutants; 6 equivalent survivors): [00-mutation.md](../../96-Local%20Testing/Docs/00-mutation.md).
 
 ## Sources
 
