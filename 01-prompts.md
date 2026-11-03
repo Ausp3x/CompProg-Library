@@ -203,7 +203,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P202 — MA48** (opus, XL): 05-Mathematics — multiprecision float. Status: planned.
 - [ ] **P211 — ST14** (opus, XL): 07-Strings — compressed text index. Status: planned.
 - [ ] **P212 — ST15** (opus, XL): 07-Strings — grammar compression. Status: planned.
-- [ ] **P115 — DS22, DS20, DS33, DS53** (opus, L+L+L+L): 02-Data Structures — rangetree, kineticheap, persistentqueue, ordermaintenance. Status: planned.
+- [ ] **P115 — DS22, DS20, DS33, DS53** (opus, L+L+L+L): 02-Data Structures — rangetree, kineticheap, persistentqueue, ordermaintenance. Status: planned. Note: From P028 (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): row 43 also owns k-dimensional compressed range trees (SUI), O(log^k n) per operation; P028 rewrites its omission entry to point here.
 - [ ] **P116 — DS19** (opus, XL): 02-Data Structures — retroactivequeue. Status: planned.
 - [ ] **P120 — DS36** (opus, XL): 02-Data Structures — dynamic wavelet. Status: planned.
 - [ ] **P121 — DS37** (opus, XL): 02-Data Structures — sortablesegmenttree. Status: planned.

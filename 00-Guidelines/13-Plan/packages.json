@@ -507,7 +507,7 @@
         "02-Data Structures/Docs/24-interval_set.md",
         "02-Data Structures/Docs/00-monoids.md"
       ],
-      "note": "Monoids row migration (2026-10-18): 00-monoids.hpp is row 00 of DS05 with its own tester and evidence; monoid rule in 03-cpp.md; explicit comment-cap exemption; Python row names aligned."
+      "note": "Monoids row migration (2026-10-18): 00-monoids.hpp is row 00 of DS05 with its own tester and evidence; monoid rule in 03-cpp.md; explicit comment-cap exemption; Python row names aligned. Follow-up (user decision 2026-11-04): add historic acted-monoid presets to 00-monoids (row 00): range add with historic max, historic min and historic sum (tick); regular acted monoids (no fail), so row 12 LazySegmentTree and row 13 DynamicLazySegmentTree host them, giving the generic and the dynamic (lng-key) historic trees beside row 14 HistoricSegTree (see the P028 note). Reversed omissions (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants) in row 11: (1) hash-map dynamic Fenwick over lng keys on row 61 HashMap (add, get, prefixSum, sum), benchmarked against row 13 DynamicSegmentTree; (2) dynamic 2D Fenwick (hash map, group T, point add, rectangle sum) over lng coordinates, O(log^2 U) time and entries per update, memory bound documented; (3) dual CompressedFenwick2D: rectangle add, point get on registered points, O(log^2 k) (MAS Dual_FenwickTree_2D); (4) rectangle add, rectangle sum over grid cells with corner coordinates registered up front, four compressed Fenwick arrays (1, x, y, xy weights), O(log^2 k) online. Rewrite the Docs/00-notes.md entries they resolve when they land: P027 omissions \"Hash-map dynamic Fenwick\" and \"Compressed rectangle-add/rectangle-sum, compressed dual 2D Fenwick\", P028 \"Online rectangle-apply/point-get on registered points\", P033 \"Online rectangle-add rectangle-sum\". Also reversed (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): (5) one-node-per-key dynamic segment tree (MAS dynamic_segtree_sparse), O(q) nodes instead of O(q log U), as row 13 DynamicSegmentTree's representation: benchmark against the current tree and keep the winner, keeping both with a recorded reason only if meld, split or the persistent mode cannot carry over; (6) persistent Fenwick in row 11 (SUI): time-stamped histories per slot, updates on the latest version, past prefix sums in O(log n log q), O(log n) entries per update, its trade-off against row 18 PersistentSegmentTree recorded. Rewrite the P027 omissions \"Persistent Fenwick\" and \"Dynamic tree one-node-per-key sparse variant\" when they land; \"2D dual Fenwick (rectangle add, point get)\" stays left out (four Fenwick2D corner adds plus prefixSum)."
     },
     {
       "id": "P227",
@@ -667,7 +667,7 @@
         "02-Data Structures/Docs/16-mergesorttree.md",
         "02-Data Structures/Docs/30-aggregation_queue.md"
       ],
-      "note": "Follow-up (user decision 2026-11-03): run another @researcher sweep for BeatsMonoid presets of row 14 LazySegmentTreeBeats beyond RangeAndOrRangeSumMax. Presets need the fail hook, so they stay in 14-segtreebeats.hpp, not 00-monoids. Candidates so far: chmin/chmax/add/assign with sum/min/max as an extensible base (not a new operation, 03-cpp.md one API rule), chmin/add with historic max (Luogu P6242, mirror UOJ 169), gcd-with with sum/max (yukicoder 880), a converging map f with sum/max (CF 920F, CF 1797E, SPOJ GSS4); row 45 (P115) may add a kinetic one. Adopting any revises the P028 omissions in Docs/00-notes.md."
+      "note": "Follow-up (user decision 2026-11-03): run another @researcher sweep for BeatsMonoid presets of row 14 LazySegmentTreeBeats beyond RangeAndOrRangeSumMax. Presets need the fail hook, so they stay in 14-segtreebeats.hpp, not 00-monoids. Candidates so far: chmin/chmax/add/assign with sum/min/max as an extensible base (not a new operation, 03-cpp.md one API rule), chmin/add with historic max (Luogu P6242, mirror UOJ 169), gcd-with with sum/max (yukicoder 880), a converging map f with sum/max (CF 920F, CF 1797E, SPOJ GSS4); row 45 (P115) may add a kinetic one. Adopting any revises the P028 omissions in Docs/00-notes.md. Sparse indices (user decision 2026-11-04): add one DynamicLazySegmentTreeBeats<A, D> over lng keys (row 13 node pool and fill plus the fail descent); fill must be constant on untouched ranges, and its only gain over offline compression is online queries. No dynamic SegTreeBeats or HistoricSegTree: the base preset above covers the first on that tree, and historic max/min/sum under range add are regular acted monoids, so presets for them (filed on P027, user decision 2026-11-04) serve row 12 LazySegmentTree and row 13 DynamicLazySegmentTree. Document in 14-segtreebeats.md the offline workaround: compress every endpoint, one leaf per block with len = block length (blocks stay uniform); SegTreeBeats suffices when only max/min are needed. Reversed omission (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants) in row 15: fully online 2D trees on unknown lng points: a dynamic segment tree of dynamic segment trees for a commutative monoid (point set and apply, rectangle prod), O(log^2 U) time and nodes per update with the memory bound documented, plus the hybrid with the x axis registered offline (compressed outer, dynamic inner, O(log k log U)); rewrite the Docs/00-notes.md P028 omission \"Fully online 2D trees on unknown points\" when it lands. Group-valued sums on unknown points and the registered-point Fenwick cases are P027 (row 11); rectangle apply and prod on a registered point set stay LazyKdTree. Also reversed (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): SegmentTree2DSparse searches maxUp and minDown (largest or smallest y bound for an x range under a monotone predicate) by a direct descent across the inner trees, target O(log^2 k) (fractional cascading if needed) against the O(log^3 k) binary search over prod; k-dimensional compressed trees move to row 43 (P115). Rewrite the P028 omission \"Sparse 2D maxUp/minDown searches, k-dimensional compressed trees\" when it lands."
     },
     {
       "id": "P057",
@@ -742,7 +742,7 @@
         "02-Data Structures/Docs/19-treap.md",
         "02-Data Structures/Docs/25-heap_deque.md"
       ],
-      "note": ""
+      "note": "Sparse ids (user decision 2026-11-04): DAryHeap takes ids [0, n) for decreaseKey and erase. Record in 25-heap_deque.md: map keys to ids with row 61 HashMap and n sized by the number of distinct keys pushed, or use ErasableHeap (lazy deletion, any key) or a lazy-deleted heap with stale-entry skips (Dijkstra)."
     },
     {
       "id": "P045",
@@ -791,7 +791,7 @@
         "02-Data Structures/Docs/28-disjointsparsetable.md",
         "02-Data Structures/Docs/33-offline_rectangle_queries.md"
       ],
-      "note": ""
+      "note": "Reversed omission (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): the Docs/00-notes.md P033 omission (online rectangle-add rectangle-sum and rectangle-add point-get on registered points) is implemented in row 11 by P027, which rewrites the line; row 33 itself needs no change."
     },
     {
       "id": "P056",
@@ -936,7 +936,7 @@
         "02-Data Structures/Docs/35-persistentarray.md",
         "02-Data Structures/Docs/63-offline_deletion.md"
       ],
-      "note": ""
+      "note": "Sparse keys (user decision 2026-11-04): RollbackDSU, PersistentDSU and PersistentArray take [0, n). Record in 09-rollbackdsu.md, 10-persistentdsu.md and 35-persistentarray.md: offline, compress keys with row 07 CoordinateCompression; online, map keys to ids with row 61 HashMap and size n by the distinct-key bound (at most 2 per union, 1 per set); PersistentArray over lng indices is row 13 DynamicSegmentTree<M, true> or row 18 PersistentSegmentTree. Optional: RollbackDSU::makeSet (a new singleton needs no undo entry) if the sweep finds a catalog use."
     },
     {
       "id": "P047",
@@ -1009,7 +1009,7 @@
         "02-Data Structures/Docs/65-dsu_extensions.md",
         "02-Data Structures/Docs/00-monoids.md"
       ],
-      "note": ""
+      "note": "Sparse keys (user decision 2026-11-04): WeightedDSU, ParityDSU and DualDSU take [0, n) with no makeSet; LinkedDSU and ComponentSumDSU have makeSet, so SparseDSU-style HashMap indexing already works for them. Record in 29-weighteddsu.md and 65-dsu_extensions.md: offline compress (row 07), online HashMap ids with n sized by the distinct-key bound; optional makeSet for WeightedDSU (potential 0) and DualDSU (identity action) if the sweep finds a use. FastSet takes [0, n): record in 36-fastset.md that offline keys compress into it, online 64-bit keys use row 26 BinaryTrie (next/prev via lowerBound in O(64)) or std::set, and row 42 (P114) owns the O(log log U) van Emde Boas and X/Y-fast tries."
     },
     {
       "id": "P238",
@@ -1126,7 +1126,7 @@
         "02-Data Structures/Docs/32-static_range_queries.md",
         "02-Data Structures/Docs/62-xorbasis.md"
       ],
-      "note": ""
+      "note": "Sparse ids (user decision 2026-11-04): RadixHeapArray takes ids [0, n) for its key-indexed decrease. Record in 31-radixheap.md: map keys to ids with row 61 HashMap and n sized by the number of distinct keys pushed, or use RadixHeap with payloads and skip stale entries."
     },
     {
       "id": "P059",
@@ -2413,7 +2413,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "From P028 (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): row 43 also owns k-dimensional compressed range trees (SUI), O(log^k n) per operation; P028 rewrites its omission entry to point here."
     },
     {
       "id": "P116",
