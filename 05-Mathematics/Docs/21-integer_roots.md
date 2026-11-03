@@ -101,3 +101,4 @@ No timing benchmark: every operation is O(1), or bounded by a small constant tim
 
 - 2026-11-03: P059 implementation; review found no correctness defect (one handoff added); full suite passed on g++ and g++-14.
 - 2026-11-03: /finish audit, no code defect; NDEBUG note corrected, 2 user decisions recorded; quick suite passed.
+- 2026-11-03: maintainer review in `/merge-pr 3`, no code defect; `isqrt` beside `isqrt128` kept as a larger domain (user decision, `duplicates.md`), and the user confirmed the decisions recorded as theirs.

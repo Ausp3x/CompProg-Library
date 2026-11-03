@@ -279,6 +279,11 @@ void hornerCases(int count) {
         auto [dv, ddv] = hornerDerivative(ad, DualNumber<double>(double(x), 1));
         same(dv.x, ld(v), "DualNumber ring: value"); same(dv.dx, ld(d), "DualNumber ring: dual part is p'");
         same(ddv.x, ld(d), "DualNumber ring: derivative"); same(ddv.dx, ld(dd), "DualNumber ring: derivative dual part is p''");
+        // p(x + e1 + e2) = p + p' (e1 + e2) + p'' e1 e2 over nested duals, which needs T{} rather than T = 0.
+        using DD = DualNumber<DualNumber<double>>;
+        auto [nv, nd] = hornerDerivative(vector<DD>(a.begin(), a.end()), DD(DualNumber<double>(double(x), 1), 1));
+        same(nv.x.x, ld(v), "nested DualNumber: value"); same(nv.dx.dx, ld(dd), "nested DualNumber: e1 e2 part is p''");
+        same(nd.x.x, ld(d), "nested DualNumber: derivative");
         Mod xm = Mod(randint(0, Mod::P - 1)), vm = 0, dm = 0, pm = 1;
         vector<Mod> am(a.begin(), a.end());
         for (int j = 0; j < n; ++j, pm *= xm) {
@@ -471,6 +476,12 @@ void rootCases(int count) {
     sameStatus(brentRoot(0, 3, line(1), 0), 3, false, 0, 2, "brent itr = 0 returns r");
     auto bc = brentRoot(0, 2, [](double x) { return x * x * x - 2; });
     require(bc.converged && abs(bc.value - std::cbrt(2.0)) <= 8 * EPS && bc.iterations <= 20, "brent finds cbrt(2) superlinearly", num(std::cbrt(2.0)), status(bc));
+    // Regression: c - b overflowed on brackets wider than DBL_MAX and stepped outside them.
+    bool finite = true;
+    auto bw = brentRoot(-DBL_MAX, DBL_MAX, [&](double x) { finite &= std::isfinite(x); return std::atan(x - 3); }, 3000);
+    require(finite && bw.converged && abs(bw.value - 3) <= 12 * EPS, "brent on [-DBL_MAX, DBL_MAX] stays finite", "3", status(bw));
+    auto bz = brentRoot(-1e308, 1e308, [&](double x) { finite &= std::isfinite(x); return x; });
+    require(finite && bz.converged && bz.value == 0, "brent on [-1e308, 1e308] finds 0", "0", status(bz));
     // Contract: iterations count the evaluations after the start, also when an iterate hits f = 0 exactly.
     sameStatus(newtonRoot(1, line(2), one), 2, true, 1, 0, "newton step landing on f = 0 reports one iteration");
     sameStatus(secantRoot(0, 1, line(2)), 2, true, 1, 0, "secant step landing on f = 0 reports one iteration");
@@ -621,6 +632,8 @@ void quadratureCases(int count) {
     context = "quadrature fixed cases";
     same(simpsonFixed(2, 2, [](double) { return 1.0; }), 0, "simpsonFixed l = r");
     same(simpsonFixed(0, 1, [](double x) { return x; }, 1), 0.5, "simpsonFixed n = 1 uses two intervals");
+    // Regression: n + 1 overflowed int at n = INT_MAX; the sum 3 * 2^31 is exact.
+    if (count >= 1000) { same(simpsonFixed(0, 1, [](double) { return 1.0; }, INT_MAX), 1, "simpsonFixed n = INT_MAX rounds up to 2^31 intervals"); }
     for (int n = 1; n <= 8; ++n) {
         for (int panels = 1; panels <= 3; ++panels) {
             for (auto [l, r] : vector<pair<double, double>>{{-1, 1}, {0, 2}, {1, 0}}) {

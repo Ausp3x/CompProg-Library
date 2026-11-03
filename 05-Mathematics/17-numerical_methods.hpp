@@ -85,7 +85,7 @@ inline vector<double> solveCubic(double a, double b, double c, double d) {
 // T: O(n), M: O(1); {p(x), p'(x)} for p = a[0] + a[1] x + ..., any ring T; empty a gives {0, 0}.
 template<typename T>
 pair<T, T> hornerDerivative(const vector<T> &a, T x) {
-    T v = 0, d = 0;
+    T v{}, d{};
     for (int i = int(a.size()) - 1; i >= 0; --i) { d = d * x + v; v = v * x + a[i]; }
     return {v, d};}
 
@@ -182,7 +182,7 @@ RootStatus brentRoot(double l, double r, F f, int itr = 100, double abs_tol = 0,
         if (fb == 0) { return {b, true, i, 0}; }
         if (std::signbit(fb) == std::signbit(fc)) { c = a; fc = fa; e = d = b - a; }
         if (abs(fc) < abs(fb)) { a = b; b = c; c = a; fa = fb; fb = fc; fc = fa; }
-        double t = 2 * DBL_EPSILON * abs(b) + (abs_tol + rel_tol * abs(b)) / 2 + DBL_MIN, m = (c - b) / 2;
+        double t = 2 * DBL_EPSILON * abs(b) + (abs_tol + rel_tol * abs(b)) / 2 + DBL_MIN, m = c / 2 - b / 2;
         if (abs(m) <= t) { return {b, true, i, abs(fb)}; }
         if (abs(e) >= t && abs(fa) > abs(fb)) {
             double s = fb / fa, p, q;
@@ -216,7 +216,7 @@ RootStatus fixedPointIterate(double x, G g, int itr = 100, double abs_tol = 0, d
 template<typename F>
 double simpsonFixed(double l, double r, F f, int n = 1000) {
     assert(n >= 1);
-    lng m = n + (n & 1);
+    lng m = lng(n) + (n & 1);
     double h = (r - l) / double(m), res = f(l) + f(r);
     for (lng i = 1; i < m; ++i) { res += (i & 1 ? 4 : 2) * f(l + double(i) * h); }
     return res * h / 3;}
@@ -310,6 +310,7 @@ double richardsonExtrapolate(double h, F f, int levels = 4, double t = 2, int p 
 template<typename F>
 double finiteDifference(double x, F f, int d = 1, double h = 0, bool central = true) {
     assert(std::isfinite(x) && d >= 0 && d <= 60 && std::isfinite(h) && h >= 0);
+    d = min(max(d, 0), 60);
     if (h == 0) { h = std::pow(DBL_EPSILON, 1.0 / (d + 1 + central)) * max(1.0, abs(x)); }
     double y = x + h; h = y - x;
     assert(h > 0 && std::isfinite(h));

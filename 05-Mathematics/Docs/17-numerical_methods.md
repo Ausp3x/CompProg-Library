@@ -103,6 +103,7 @@ All three take a `vector<double>` and return its sum. An empty vector gives 0.
 ### brentRoot
 
 `brentRoot(l, r, f, itr, abs_tol, rel_tol)` is Brent's zeroin as Numerical Recipes `zbrent` gives it. It combines inverse quadratic interpolation and the secant with bisection, and needs a bracket as for `bisectionRoot`.
+- The midpoint offset is `c / 2 - b / 2`, so brackets as wide as `[-DBL_MAX, DBL_MAX]` never overflow it.
 - The convergence tolerance at each step is `t = 2 eps |b| + (abs_tol + rel_tol |b|) / 2 + DBL_MIN`. The `DBL_MIN` floor guarantees progress for a root at 0 with zero tolerances, where Brent's original requires a positive tolerance.
 - It returns `b`, the best point, once the half-bracket `|c - b| / 2 <= t` or `f(b) = 0`.
 - At the default `itr = 100`, a high-multiplicity root converges slowly: on `(x - 1)^9` over `[0, 3]`, `brentRoot` reports `converged = false` after 100 steps and `newtonSafeRoot` needs 97 (measured 2026-11-03); pass a larger `itr` for such roots. The defaults (100 iterations, zero tolerances meaning machine precision through the 4-ulp floor, the `DBL_MIN` Brent floor, `simpsonAdaptive` depth 50, tanh-sinh range `|t| < 7`, a Romberg minimum of 5 levels) are a user decision 2026-11-03.
@@ -149,7 +150,7 @@ All three take a `vector<double>` and return its sum. An empty vector gives 0.
 
 ### finiteDifference
 
-`finiteDifference(x, f, d = 1, h = 0, central = true)` returns the `d`-th derivative (`0 <= d <= 60`) at a finite `x` from binomial differences.
+`finiteDifference(x, f, d = 1, h = 0, central = true)` returns the `d`-th derivative (`0 <= d <= 60` asserted; `NDEBUG` clamps `d` to that range) at a finite `x` from binomial differences.
 - Forward: `sum (-1)^(d-i) C(d, i) f(x + i h) / h^d`, with error O(h).
 - Central: the same weights at offsets `i - d / 2`, so odd `d` uses half steps. The error is O(h^2).
 - `h = 0` chooses `eps^(1 / (d + 1 + central)) max(1, |x|)`, which balances truncation against rounding.
@@ -190,11 +191,11 @@ Entry: [`17-numerical_methods_tester.py`](<../../96-Local Testing/05-Mathematics
 |---|---|
 | `solveQuadratic` | Rational roots with exact expected values; Kahan's case `(1, 1 + 2^-29)`; `b^2 >> 4 a c` cancellation; linear, no-root and zero-root cases; `±2^500` magnitudes. Regressions: roots `{-2, 1}`, `{-1, 1}` and none for `x^2 + 1`, all with coefficients scaled by `2^e`, e from -1070 to 1020. Bitwise invariance under negation, power-of-two scaling and `b -> -b`. The Python exact-discriminant and 80-digit root oracle. |
 | `solveCubic` | Integer, rational, double, triple and complex-pair cubics built from known factors. Random-root cubics. Each root is checked within its conditioning: `(64 eps M / A)^(1/m)` for multiplicity `m`, from a normwise backward-error model. `a = 0` equals `solveQuadratic`. Negation and `2^-200` scaling leave roots bitwise unchanged. Saved regressions: `x (x + 5)^2`, `(x + 2)^2 (x - 3)`, `(x - 11) (x - 19)^2`, `-10 (x + 55)^2 (x - 223)`, `5 (x + 147) (x - 52)^2`. Extreme monic coefficients: roots `2^e {1, 2, 3}` and `-cbrt(4) 2^e` for e = ±100, ±250, ±340, plus the review cases `x^3 ± 3e-110 x`, `1e-100 x^3 + 1e60`, and the near-double complex pair `(1, 0, -3 + 2.5e-13, 2 + 5e-13)` giving one root. Non-monic extremes `1e-300 x^3 + 1e300`, `1e300 x^3 - 1e-300` and `1e-170 x^3 - 1e170 x`. Spread roots `{u, v, B}` for `B` from 1e4 to 1e12, each root checked against its own magnitude. Near-double pairs: the rounded `(221, 221, 1e14)` cubic and random pairs `u, u (1 ± 1e-9)` beside a root of `1e6` to `1e13`, against `64 sqrt(eps abs(B) abs(u))`. |
-| `hornerDerivative` | Over `lng`, `DualNumber<double>`, a prime field and exact dyadic `long double`, against power-sum evaluation. |
+| `hornerDerivative` | Over `lng`, `DualNumber<double>`, nested `DualNumber<DualNumber<double>>` (value, `p'` and `p''`), a prime field and exact dyadic `long double`, against power-sum evaluation. |
 | `DualNumber` | Every operator, its compound and aliased forms, and `derivative`, exactly in a prime field against the product and quotient rules. Rational functions, and nested second derivatives. |
 | `kahanSum`, `neumaierSum`, `pairwiseSum` | Exact Python sums against each documented error bound; Neumaier exact on `[1, 1e100, 1, -1e100]`. Empty and singleton inputs. |
-| `bisectionRoot`, `newtonRoot`, `newtonSafeRoot`, `secantRoot`, `brentRoot`, `fixedPointIterate`, `RootStatus` | Random monotone functions with known roots. Evaluation counting proves that `f` is evaluated only inside the bracket and that `iterations` equals the evaluations after the start. `converged` semantics, tolerance bounds (bisection within `log2(width / tol) + 1` steps), exact double roots at zero tolerance. Zero-derivative, equal-value, two-cycle, divergence, overflow and `itr = 0` cases. Saved regressions: a step landing exactly on `f = 0` reports 1 (Newton, secant) or 0 (safe Newton, at the midpoint) iterations. |
-| `simpsonFixed`, `simpsonAdaptive` | Exact for cubics; the quartic error term of the fixed rule; odd `n` rounding; Boole's rule at depth 0; tolerance on smooth integrands; NaN and depth caps. Regressions: the rounding floor bounds `1e8 exp(x)` at the default `eps` to 8192 evaluations, and `100 sin(x)` at `eps = 1e-15` to 65536. |
+| `bisectionRoot`, `newtonRoot`, `newtonSafeRoot`, `secantRoot`, `brentRoot`, `fixedPointIterate`, `RootStatus` | Random monotone functions with known roots. Evaluation counting proves that `f` is evaluated only inside the bracket and that `iterations` equals the evaluations after the start. `converged` semantics, tolerance bounds (bisection within `log2(width / tol) + 1` steps), exact double roots at zero tolerance. Zero-derivative, equal-value, two-cycle, divergence, overflow and `itr = 0` cases; `brentRoot` on `[-DBL_MAX, DBL_MAX]` and `[-1e308, 1e308]` with every evaluation finite. Saved regressions: a step landing exactly on `f = 0` reports 1 (Newton, secant) or 0 (safe Newton, at the midpoint) iterations. |
+| `simpsonFixed`, `simpsonAdaptive` | Exact for cubics; the quartic error term of the fixed rule; odd `n` rounding, `n = INT_MAX` (full and stress modes); Boole's rule at depth 0; tolerance on smooth integrands; NaN and depth caps. Regressions: the rounding floor bounds `1e8 exp(x)` at the default `eps` to 8192 evaluations, and `100 sin(x)` at `eps = 1e-15` to 65536. |
 | `gaussLegendreNodes`, `gaussLegendreIntegrate` | Published node and weight tables for n <= 5; weight sum 2; exact moments up to degree `2 n - 1`; the analytic error on `x^(2n)`; panels. |
 | `rombergIntegrate`, `richardsonExtrapolate` | Level counts and the minimum depth; closed forms of smooth integrals; Richardson cancelling constructed error terms of each order. Regression: the rounding floor bounds Romberg on `1e6 exp(x)` at the default `eps` to 257 evaluations. |
 | `finiteDifference` | Forward and central, d = 0..6, exact on polynomials of matching degree; auto-`h` accuracy on `exp` against the stated orders. |
@@ -215,6 +216,8 @@ P059 run, 2026-11-03. GCC 16.0.1 (`g++`) and GCC 14.3.0 (`CXX=g++-14`), GNU++20,
 | `17-numerical_methods_tester.py --mode stress --seed 2` | PASS, 10,512,853 C++ checks, `MEMORY peak=768MB` |
 | `02-integration.py` (header alone, `99-all`, two translation units) | PASS, `MEMORY peak=1704MB cap=8192MB` |
 | `03-consistency.py --braces` on the header and tester | PASS |
+
+Maintainer runs 2026-11-03 (`/merge-pr 3`, after its fixes) under `merge_pr.py run 3` (bwrap, memory cap), Intel Core i9-11900H, `g++` 16.2.1, `g++-14` 14.4.1, CPython 3.14.8: `--mode full --seed 1` PASS on both compilers, 3 configurations, 7,094,311 C++ checks, `MEMORY peak=629MB` (`g++`) and `630MB` (`g++-14`).
 
 ## Benchmarks
 
@@ -242,3 +245,4 @@ No timing benchmark: the contest profile asks for optimal complexity and a direc
 
 - 2026-11-03: P059 implementation; the tester found 2 defects (cubic double roots, iteration counts on an exact zero) and the review 8 (cubic and quadratic range, cubic slack, adaptive Simpson noise floor, bounded misuse, DE at `l = r`, a parameter name, handoffs), all fixed; full suite passed on g++ and g++-14.
 - 2026-11-03: /finish audit, 8 defects fixed (non-monic cubic range, spread-root deflation, Romberg rounding floor, two assertions, sources labeled, wrong figures, duplicates keeps) and 6 from its diff review (near-double vertex fallback, finite step, doc limits), 5 user decisions recorded; full suite passed on g++ and g++-14.
+- 2026-11-03: maintainer review in `/merge-pr 3` found 4 defects, all fixed with regressions that fail on the old header: `simpsonFixed` overflowed `int` at `n = INT_MAX`, `brentRoot` overflowed `c - b` on brackets wider than `DBL_MAX`, `hornerDerivative` did not compile for nested `DualNumber` (`T{}` now), and `finiteDifference` was unbounded under `NDEBUG` for huge `d` (clamped). The user confirmed the decisions recorded as theirs; full suite passed on g++ and g++-14.
