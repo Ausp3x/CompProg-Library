@@ -43,7 +43,7 @@ Offline Tarjan returns one answer per input query, retaining order and duplicate
 
 ### Correctness
 
-The shared DFS skips exactly the parent logical edge. Every other edge must discover a new vertex; encountering a visited endpoint identifies an invalid cycle, including a loop or parallel edge. Preorder timestamps increase only on discovery, so a completed subtree occupies exactly its inclusive timestamp interval. Parent/depth/component metadata follows the chosen root orientation. Accumulated weight adds each parent edge once.
+The shared DFS skips exactly the parent logical edge. Every other edge must discover a new vertex; encountering a visited endpoint identifies an invalid cycle, including a loop or parallel edge. The entry assertion rejects it; under `NDEBUG` the arc is skipped, so the DFS still visits each vertex once and terminates in O(n + m) with a meaningless forest (P042 GR05 fix, user decision 2026-11-03; before it, a cycle looped forever). Preorder timestamps increase only on discovery, so a completed subtree occupies exactly its inclusive timestamp interval. Parent/depth/component metadata follows the chosen root orientation. Accumulated weight adds each parent edge once.
 
 Binary lifting's table stores the 2^j-th saturated ancestor by induction on `j`. Decomposing a valid ancestor offset into set bits reaches the requested ancestor. For LCA, the interval checks handle ancestor pairs immediately; descending jump sizes preserve the invariant that the current vertex is below the answer and not an ancestor of the other endpoint. The parent after the final jump is their first common ancestor.
 
@@ -82,13 +82,13 @@ Hand mutations of `LCAFold`, `pathIntersection` and the unchecked `getLCA` loop 
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, the runner's optimized, checked and ASan/UBSan builds:
+The three suite rows were rerun on 2026-11-04 after the GR05 `Forest` and `kthAncestor` fixes, with identical check counts, on GCC 16.0.1 20260322 and GCC 14.3.0 (`CXX=g++-14`); the other rows are from 2026-10-17 (P027 monoid pass). Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14, the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
-| `07-lca_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 27,128,486 checks per configuration, 20 assertion probes, MEMORY peak 1052 MB |
-| `CXX=g++-14 07-lca_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 27,128,486 checks per configuration, MEMORY peak 1201 MB |
-| `07-lca_tester.py --mode stress --seed 7` | PASS, 38,731,427 checks per configuration, MEMORY peak 1680 MB |
+| `07-lca_tester.py --mode full --seed 20261017` | PASS, 3 configurations, 27,128,486 checks per configuration, 20 assertion probes, MEMORY peak 1206 MB |
+| `CXX=g++-14 07-lca_tester.py --mode full --seed 20261017` (floor) | PASS, 27,128,486 checks per configuration, MEMORY peak 1205 MB |
+| `07-lca_tester.py --mode stress --seed 7` | PASS, 38,731,427 checks per configuration, MEMORY peak 1757 MB |
 | `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
 | `03-consistency.py` | No errors |
 
@@ -145,5 +145,6 @@ Search aliases (P263, grab --find): 倍增, 最近公共祖先, 最低共同祖�
 - 2026-10-07: re-audit, added `LCAFold::pathFold` and `pathIntersection`; 4 findings fixed (complexity lines, unchecked `getLCA` loop, `offlineLCA` naming and brace); full suite, stress, integration and benchmark passed on g++ 16; independent review: all eight package findings confirmed fixed, its own brute-force checks of every addition passed under ASan/UBSan/`_GLIBCXX_DEBUG`.
 - 2026-10-12: prune, removed the legacy `LCA(n, root, adj)` constructor and `lca_detail::fromAdjacency` (cases moved to `Graph::fromAdjacency` lists, four legacy probes replaced by `adjacency-label`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect, equivalence confirmed on its own 30,000 random forests and multigraphs.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1052/1201/1680 MB.
+- 2026-11-04: P042 GR05 `NDEBUG` fixes (user decisions 2026-11-03 and 2026-11-04): `Forest` skips a visited endpoint, and `kthAncestor` returns −1 for k < 0 instead of walking past the lifting table; full on g++ and g++-14 and stress (seed 7) passed with unchanged check counts.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>` and `template<class L = LCA>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

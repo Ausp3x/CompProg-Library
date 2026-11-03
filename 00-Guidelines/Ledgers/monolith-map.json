@@ -171,7 +171,8 @@
         "Entire struct is commented out in the source.",
         "Static Euler subtree flattening plus range-query adapter, not a dynamic Euler-tour tree.",
         "Refers to obsolete non-template SegTree and its incompatible constructor/method interface.",
-        "Historical TESTED comment is preserved, not accepted as current verification."
+        "Historical TESTED comment is preserved, not accepted as current verification.",
+        "P042 accounts the static Euler flattening as EulerTour::subtreeRange with a segment tree; see 04-Graphs/Docs/14-tree_algorithms.md, Legacy mapping. Excerpt deleted after verification."
       ],
       "source_context": null,
       "tier": "Advanced",
@@ -179,7 +180,7 @@
       "disposition": "extracted",
       "target_body_start_line": 7,
       "target_body_end_line": 75,
-      "target_sha256": "555f3566d9b3b364ce4d9a494ce9068c2614ef5ea783151b50498d6105335613"
+      "historical_target_sha256": "555f3566d9b3b364ce4d9a494ce9068c2614ef5ea783151b50498d6105335613"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
@@ -840,18 +841,17 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "issues": [
-        "Recursive connected-tree build; inclusive callback ranges; callback path segments do not encode direction for noncommutative folds.",
-        "No algorithm verification performed."
+        "P042 replaces the recursive single-tree HLD with an iterative forest build HLD(g, root) and TreeMonoid<A, COMMUTATIVE> (pathFold, pathApply, subtreeFold, subtreeApply, maxPath); processPath gives half-open ranges in path order with a direction flag. addEdge/build, getDis, kthAnc and processSubt became the constructor, distance, kthAncestor and subtreeRange (One API per operation). Source features are accounted in verification."
       ],
       "source_context": null,
       "tier": "Advanced",
       "body_sha256": "203005c60e94dae176a3cc1e35d7ffb1443babbe46847eccbc01658b5a37778b",
-      "disposition": "extracted",
-      "target_body_start_line": 9,
-      "target_body_end_line": 121,
-      "target_sha256": "779ef5f14e078573ea3f800b9f9067d27c2f263d9b346498a152da81987de56f"
+      "disposition": "audited-replacement",
+      "historical_target_sha256": "779ef5f14e078573ea3f800b9f9067d27c2f263d9b346498a152da81987de56f",
+      "relationship": "P042 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/Docs/15-hld.md"
     },
     {
       "source": "OLD/algorithms.cpp",

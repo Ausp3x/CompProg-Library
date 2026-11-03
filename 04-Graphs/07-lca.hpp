@@ -30,6 +30,7 @@ namespace lca_detail {
                     auto e = g.arcs[g[u][i++]];
                     if (e.id == parent_edge[u]) { continue; }
                     assert(component[e.to] == -1);
+                    if (component[e.to] != -1) { continue; }
                     visit(e.to, u, e.id, s, e.w);}};
             if (root != -1) { traverse(root); }
             for (int u = 0; u < n; ++u) { if (component[u] == -1) { traverse(u); }}}
@@ -55,7 +56,7 @@ struct LCA : lca_detail::Forest {
 
     int kthAncestor(int u, lng k) const {
         check(u); assert(k >= 0);
-        if (k > dep[u]) { return -1; }
+        if (k < 0 || k > dep[u]) { return -1; }
         for (int j = 0; k; ++j, k >>= 1) { if (k & 1) { u = up[u][j]; }}
         return u;}
     int getKthAncestor(int u, int k) const { return kthAncestor(u, max(0, k)); }

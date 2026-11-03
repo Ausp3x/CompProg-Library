@@ -13,6 +13,7 @@
 #include "11-functionalgraph.hpp"
 #include "12-all_pairs_shortest_path.hpp"
 #include "13-shortest_path_advanced.hpp"
+#include "14-tree_algorithms.hpp"
 #include "15-hld.hpp"
 #include "16-centroiddecomposition.hpp"
 #include "17-treeisomorphism.hpp"
