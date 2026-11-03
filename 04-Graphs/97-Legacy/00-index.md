@@ -4,4 +4,3 @@ Unchanged excerpts for future migration/audit. These `.cpp` files are reference 
 
 | File | Symbols | Why retained as a reference |
 |---|---|---|
-| [03-subtree_queries.cpp](03-subtree_queries.cpp) | EulerTourTree | Entire struct is commented out in the source. Static Euler subtree flattening plus range-query adapter, not a dynamic Euler-tour tree. Refers to obsolete non-template SegTree and its incompatible constructor/method interface. Historical TESTED comment is preserved, not accepted as current verification. |

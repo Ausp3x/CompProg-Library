@@ -197,3 +197,16 @@ The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-
 - Bidirectional BFS (NetworkX): `bidirectionalDijkstra` with unit weights.
 - Least or greatest arc count among shortest paths (CSES Investigation): a DP over `shortestPathDag`.
 - Minimum-weight cycle by Floyd and Floyd transitive closure (OI Wiki): rows 68 and 40.
+
+## P042 GR05 omissions
+
+The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)) added `BfsNumbering: levelRange, diskRanges` and `Rerooting: get(v, p)` to row 14, and `maxPath`, `TreeMonoid: get, set` and `edgeVertex` to row 15. `rootTree`, `pathVertices`, `EulerTour: pathRanges` and `treePainting` left the rows (user decision 2026-11-03; mapped in [14-tree_algorithms.md](14-tree_algorithms.md) and [15-hld.md](15-hld.md)). The other candidates stay out (user decision 2026-11-04, `/finish GR05`):
+
+- Invertible-merge rerooting (suisen): the same O(n) bound and results; it only drops the prefix and suffix products.
+- All-roots size-bounded tree DP in O(N * K) (maspypy `O_NK_rerooting_tree_dp`): one catalog, problem-specific window callbacks; `subtreeMergeDp` gives one root.
+- Online virtual tree with activate and deactivate (hitonanode): rebuild with `VirtualTree::build` per batch.
+- Long-path (deep-child) decomposition DP (OI Wiki): a planned operation `longPathDp` of row 84 (user decision 2026-11-04).
+- `subtree_diameter` (maspypy): a `Rerooting` instance.
+- `outtreeApply`, `allFold` (maspypy): the complement ranges of `rerootedSubtreeIntervals` or `seg.apply`/`seg.allProd` on `TreeMonoid::seg`.
+- HLD `jump` and median `meet(a, b, c)`: row 07 (`LCA::jump`); `meet` is filed as a row 07 follow-up in P011's plan note (user decision 2026-11-04).
+- A weighted tree center inside an edge (maspypy `tree_center`): `treeEccentricities` reports vertex centers; the point center is row 75 `absoluteCenter`.

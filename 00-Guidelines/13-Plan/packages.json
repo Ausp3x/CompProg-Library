@@ -204,7 +204,7 @@
         "04-Graphs/Docs/10-euleriantrail.md",
         "04-Graphs/Docs/11-functionalgraph.md"
       ],
-      "note": ""
+      "note": "Follow-up (user decision 2026-11-04, /finish GR05): add median meet(a, b, c) (maspypy tree.hpp) to row 07 LCA/EulerLCA; 2026-11-03 Forest NDEBUG revisit skip landed with P042 GR05."
     },
     {
       "id": "P012",
@@ -1157,9 +1157,11 @@
       "status": "in-progress",
       "evidence": [
         "04-Graphs/Docs/12-all_pairs_shortest_path.md",
-        "04-Graphs/Docs/13-shortest_path_advanced.md"
+        "04-Graphs/Docs/13-shortest_path_advanced.md",
+        "04-Graphs/Docs/14-tree_algorithms.md",
+        "04-Graphs/Docs/15-hld.md"
       ],
-      "note": "GR04 verified 2026-11-03 (rows 12, 13; apspDijkstra removed -> johnson, user decision; review findings fixed). Next batch: GR05."
+      "note": "GR04 verified 2026-11-03 (rows 12, 13; apspDijkstra removed -> johnson, user decision; review findings fixed). GR05 verified 2026-11-03 (rows 14, 15; rootTree, pathVertices, EulerTour pathRanges, treePainting removed and HLD addEdge/build -> HLD(g, root), user decisions; review findings fixed; row 07 Forest NDEBUG revisit skip, user decision). Next batch: GR70."
     },
     {
       "id": "P063",
