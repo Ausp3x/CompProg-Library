@@ -137,6 +137,13 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | Package | Item | Reason |
 |---|---|---|
 | P032 | `MonotoneCHT::query` beside `queryMonotone` | Different algorithm: binary search in O(log(n)) against a pointer walk, amortized O(1) for monotone x; same results for `lng` (tie rule, user decision 2026-10-28) |
+| P059 | `bisectionRoot` (row 17) beside `binSearchRealBracket` | Root finding with a predicate derived from f (clarified rule) |
+| P059 | `isqrtRemainder` (row 21) beside `isqrt` | Derived formula (clarified rule) |
+| P059 | `ceilKthRoot` beside `ikthRoot` (row 21) | Derived formula: floor plus one unless exact (clarified rule) |
+| P059 | `isqrt`, `icbrt` beside `ikthRoot` (row 21) | Named special cases; `icbrt` also takes signed input |
+| P059 | `isPerfectSquare` beside `isqrtRemainder` (row 21) | Named special case with a residue prefilter |
+| P059 | `kahanSum` beside `neumaierSum` (row 17) | Different recurrence (Neumaier never worse) |
+| P059 | `hornerDerivative` (row 17) beside row 14 `polyEval` | Different result: value and derivative in one pass, over any ring |
 | P032 | `MonotoneCHT`, `LineContainer` (row 22) beside `LiChaoTree` (row 21) | Different algorithms and domains: an amortized O(1) deque hull for extreme slopes, a breakpoint multiset for any slope and any x, a segment tree over an x range that also takes segments and single-crossing functions |
 | P032 | `PerLiChaoTree` beside `LiChaoTree` | Different domain: immutable versions by path copying, O(log(C)) nodes per line against O(1) |
 | P032 | `PersistentRangeMex` beside `rangeMex` (row 32) | Decided by the user 2026-11-02: online persistent versions in O(n * log(n)) memory against an offline sweep in O(n) |
@@ -399,14 +406,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `evaluateExpression` | row 37 | `evaluatePostfix(shuntingYard(tokenize(s)))` | ask | composition | — | — |
-
-## P059 — 05-Mathematics — numerical methods, integer roots (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `horner` | row 17 | `polyEval` | remove (row only) | another name | — | — |
-| `bisectionRoot` | row 17 | `binSearchRealBracket` on the sign of f | keep | root finding with a predicate derived from f (clarified rule) | — | — |
-| `isqrtRemainder` | row 21 | `s = isqrt(n), n - s * s` | keep | derived formula (clarified rule) | — | — |
 
 ## P076 — 06-Miscellaneous — state space search, game search (planned)
 

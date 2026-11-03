@@ -199,3 +199,18 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | OI Wiki linear algebra | https://oi-wiki.org/math/linear-algebra/basis/, https://oi-wiki.org/math/linear-algebra/matrix/ | Row 16 `FieldBasis` over a field, matrix product and power |
 | hitonanode Hessenberg system | https://hitonanode.github.io/cplib-cpp/linear_algebra_matrix/hessenberg_system.hpp | Left out of row 16 (row 44 candidate) |
 
+## P059 sweep (fetched 2026-11-03, `@researcher`)
+
+| Source | URL | Used for |
+|---|---|---|
+| Library Checker, kth_root_integer | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/number_theory/kth_root_integer/task.md | Row 21 `ikthRoot` domain: 0 <= A < 2^64, 1 <= K <= 64 |
+| GMP manual, Integer Roots | https://gmplib.org/manual/Integer-Roots | Row 21 `mpz_sqrtrem`, `mpz_rootrem`, `mpz_perfect_square_p`, `mpz_perfect_power_p` (0 and 1 count as powers in GMP) |
+| suisen `kth_root_round` | https://suisen-cp.github.io/cp-library-cpp/library/number/kth_root_round.hpp | Row 21 `ceilKthRoot`, `kthRootRound` |
+| Nyaan `kth-root-integral`, `isqrt` | https://nyaannyaan.github.io/library/math/kth-root-integral.hpp, https://nyaannyaan.github.io/library/math/isqrt.hpp | Row 21 floor roots |
+| maspypy `integer_kth_root`; ei1333 `kth-root-integer`; hitonanode `int_kth_root` | https://maspypy.github.io/library/nt/integer_kth_root.hpp, https://ei1333.github.io/library/math/number-theory/kth-root-integer.hpp, https://hitonanode.github.io/cplib-cpp/utilities/int_kth_root.hpp | Row 21 floor root, no further operations |
+| Numerical Recipes 3rd ed., contents of chapters 4, 5, 9 | https://numerical.recipes/book.html | Row 17 `newtonSafeRoot` (9.4 `rtsafe`), `brentRoot` (9.3 `zbrent`), `doubleExponentialIntegrate` (4.5), `gaussLegendreNodes` (4.6 `gauleg`), left-out methods |
+| KACTL numerical | https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical | Row 17 `simpsonFixed` (`Integrate.h`), `simpsonAdaptive` (`IntegrateAdaptive.h`) |
+| cp-algorithms, Newton's method; Simpson's rule | https://cp-algorithms.com/num_methods/roots_newton.html, https://cp-algorithms.com/num_methods/simpson-integration.html | Row 17 `newtonRoot`, `simpsonFixed`; row 21 integer Newton square root |
+| OI Wiki, numerical integration; Newton | https://oi-wiki.org/math/numerical/integral/, https://oi-wiki.org/math/numerical/newton/ | Row 17 adaptive Simpson and Newton |
+| maspypy `definite_integral` | https://maspypy.github.io/library/geo/definite_integral.hpp | Row 17 fixed Simpson (no further operation) |
+| hitonanode dual number | https://hitonanode.github.io/cplib-cpp/ | Row 17 `DualNumber` |
