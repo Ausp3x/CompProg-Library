@@ -3,7 +3,7 @@
 
 No test touches the network, ~/.local or the real git configuration: git runs with GIT_CONFIG_GLOBAL and
 GIT_CONFIG_SYSTEM at /dev/null in temporary repositories (initial commit on master), install reads file:// tarballs
-built here, and fake executables (`#!/bin/sh` scripts or `#!<this python>` scripts) sit in a per-test bin directory
+built here (its source build runs FAKE_CARGO), and fake executables (`#!/bin/sh` scripts or `#!<this python>` scripts) sit in a per-test bin directory
 that is the whole PATH (plus a `git` symlink), or comes first on it where a test needs systemd-run. Every test sets
 CP_MUTATION_LOCK to its own temporary path, so concurrent seeds and a real campaign holding the machine lock never
 block it. Tests needing another repository root patch the loaded module's ROOT; subprocess tests run DRIVER.
@@ -49,7 +49,14 @@ blob, record blob not in the repo, current record with untested mutants or no co
 output) -> test_scope_cases, test_fake_incomplete_record (run prints no PASS and runs a whole-file campaign);
 install (flattened regular members, modes, path traversal, symlink and directory members skipped, link replaced,
 relative prefix resolved, wrong digest, no mewt member, CLI prefix, the PATH WARNING when `mewt` on PATH is missing
-or another binary and none when it resolves to the install, also through another symlink) -> test_install_*;
+or another binary and none when it resolves to the install, also through another symlink; the cargo build: layout, mode
+755, link, argv `install --locked --path <tree> --root <tmp>/out` and the extracted tree, temporary directory removed,
+reinstall; cargo missing or below RUST_FLOOR (unparsable included) refused before any download with both install
+commands, at or above it (a three-digit minor) built; cargo failing with its exit and last 40 lines, exit 0 without a
+binary, no top-level */Cargo.lock, digest mismatch, a `..` member or an absolute link refused by the data filter, an
+absolute member name stripped into the tree: nothing installed; the CLI: the pinned asset URLs, --source or a
+platform.machine() of aarch64/arm64 choosing the source URL, digest and build, x86_64, AMD64 and armv7l the binary,
+the default prefix) -> test_install_*;
 mewt_version (missing, non-executable, version, other text, silent, stderr only) -> test_version_*;
 stage (ids files, argv, cwd, own session, logs, empty shards, every shard concurrently, deadline SIGINT, failure
 with log tail), outcomes (latest outcome over shards by time, fractions of varying length, unparsable time) and
@@ -251,6 +258,29 @@ print(cfg.get('say', ''), flush=True)
 time.sleep(cfg.get('sleep', 0))
 done()
 sys.exit(cfg.get('code', 0))
+'''
+
+# fake cargo for install --source: @CFG@ holds {version, lines, err, code, payload or null}; every call appends its argv
+# and, for install, the files of its --path tree to @LOG@; install writes payload to <--root>/bin/mewt unless null
+FAKE_CARGO = r'''import json, os, sys
+cfg = json.load(open(@CFG@))
+a = sys.argv[1:]
+rec = dict(argv=a)
+if a[:1] == ['install']:
+    tree = a[a.index('--path') + 1]
+    rec['tree'] = sorted(os.path.relpath(os.path.join(d, f), tree) for d, _, fs in os.walk(tree) for f in fs)
+with open(@LOG@, 'a') as f:
+    f.write(json.dumps(rec) + '\n')
+if a == ['--version']:
+    print(cfg['version'])
+    sys.exit(0)
+sys.stdout.write(''.join('line %d\n' % i for i in range(cfg['lines'])))
+sys.stderr.write(cfg['err'])
+if cfg['payload'] is not None:
+    os.makedirs(os.path.join(a[a.index('--root') + 1], 'bin'))
+    with open(os.path.join(a[a.index('--root') + 1], 'bin', 'mewt'), 'w') as f:
+        f.write(cfg['payload'])
+sys.exit(cfg['code'])
 '''
 
 # The end-to-end toy: hand oracle in o_stage.
@@ -788,9 +818,9 @@ class Repo(Base):
 
 
 class Install(Base):
-    def tarball(self, members):
-        path = self.tmp / f'rel-{self.rng.randrange(10 ** 9)}.tar.xz'
-        with tarfile.open(path, 'w:xz') as t:
+    def tarball(self, members, fmt='xz'):
+        path = self.tmp / f'rel-{self.rng.randrange(10 ** 9)}.tar.{fmt}'
+        with tarfile.open(path, f'w:{fmt}') as t:
             for name, data, mode in members:
                 info = tarfile.TarInfo(name)
                 info.mode = mode
@@ -867,9 +897,138 @@ class Install(Base):
                     path=path)
 
     def test_install_cli_prefix(self):
-        with patch.object(M, 'install') as fake:
+        with patch.object(M, 'install') as fake, patch.object(M.platform, 'machine', return_value='x86_64'):
             self.eq(self.main('install', '--prefix', str(self.tmp / 'p'))[0], 0)
-        fake.assert_called_once_with(self.tmp / 'p')
+        fake.assert_called_once_with(self.tmp / 'p', M.MEWT_URL, M.MEWT_SHA256, False)
+
+    def test_install_cli_build_choice(self):
+        # the pins: release assets of MEWT_VERSION, the binary only for x86-64 Linux, two distinct SHA-256 digests
+        base = f'https://github.com/trailofbits/mewt/releases/download/v{M.MEWT_VERSION}/'
+        self.eq((M.MEWT_URL, M.MEWT_SOURCE_URL), (base + 'mewt-x86_64-unknown-linux-gnu.tar.xz', base + 'source.tar.gz'))
+        self.true(all(re.fullmatch('[0-9a-f]{64}', d) for d in (M.MEWT_SHA256, M.MEWT_SOURCE_SHA256)) and M.MEWT_SHA256 != M.MEWT_SOURCE_SHA256)
+        source, binary = (M.MEWT_SOURCE_URL, M.MEWT_SOURCE_SHA256, True), (M.MEWT_URL, M.MEWT_SHA256, False)
+        for machine, flag, want in (('x86_64', [], binary), ('x86_64', ['--source'], source), ('aarch64', [], source), ('arm64', [], source),
+                                    ('aarch64', ['--source'], source), ('AMD64', [], binary), ('armv7l', [], binary)):
+            with patch.object(M, 'install') as fake, patch.object(M.platform, 'machine', return_value=machine):
+                code = self.main('install', *flag, '--prefix', str(self.tmp / 'p'))[0]
+            self.eq((code, fake.call_args_list), (0, [((self.tmp / 'p', *want),)]), machine=machine, flag=flag)
+        with patch.object(M, 'install') as fake, patch.object(M.platform, 'machine', return_value='arm64'):
+            self.eq(self.main('install')[0], 0)
+        self.eq(fake.call_args_list, [((Path.home() / '.local', *source),)], what='default prefix')
+
+    # build path: a fake cargo first on an otherwise empty PATH, source tarballs as file:// URLs, tempfile's directory
+    # moved under the fixture so leftovers are visible
+    def cargo(self, version, lines=0, err='', code=0, payload='#!/bin/sh\necho built\n'):
+        self.cfg, self.log = self.tmp / 'cargo.json', self.tmp / 'cargo.log'
+        self.cfg.write_text(json.dumps(dict(version=version, lines=lines, err=err, code=code, payload=payload)))
+        self.log.write_text('')
+        executable(self.bin / 'cargo', f'#!{sys.executable}\n' + FAKE_CARGO.replace('@CFG@', repr(str(self.cfg))).replace('@LOG@', repr(str(self.log))))
+
+    def cargo_calls(self):
+        return [json.loads(line) for line in self.log.read_text().splitlines()]
+
+    def source(self, extra=(), top='mewt-src'):
+        return self.tarball([(top, 'dir', 0o755), (f'{top}/Cargo.toml', b'[package]\nname = "mewt"\n', 0o644),
+                             (f'{top}/Cargo.lock', b'version = 4\n', 0o644), (f'{top}/src', 'dir', 0o755),
+                             (f'{top}/src/main.rs', b'fn main() {}\n', 0o644), *extra], 'gz')
+
+    def build(self, prefix, url, digest, download=True):
+        tmpdir = self.tmp / 't'
+        tmpdir.mkdir(exist_ok=True)
+        with self.path_only(), patch.object(M.tempfile, 'tempdir', str(tmpdir)), contextlib.redirect_stdout(io.StringIO()) as out, \
+                (contextlib.nullcontext() if download else patch.object(M.urllib.request, 'urlopen', side_effect=AssertionError('downloaded'))):
+            try:
+                M.install(prefix, url, digest, build=True)
+            finally:
+                self.eq(list(tmpdir.iterdir()), [], what='temporary directory removed')
+        return out.getvalue()
+
+    def refused(self, prefix, url, digest, words, errors=M.Failure, download=True, calls=(['--version'],)):
+        with self.assertRaises(errors) as e:
+            self.build(prefix, url, digest, download)
+        self.true(not (prefix / 'opt').exists() and not (prefix / 'bin').exists(), error=str(e.exception), what='nothing installed')
+        self.true(all(w in str(e.exception) for w in words), error=str(e.exception), words=words)
+        self.eq([c['argv'][:3] for c in self.cargo_calls()], list(calls), error=str(e.exception))
+        return str(e.exception)
+
+    def test_install_build_layout(self):
+        url, digest = self.source()
+        prefix = self.tmp / 'prefix'
+        dest, link = prefix / 'opt' / f'mewt-{M.MEWT_VERSION}', prefix / 'bin' / 'mewt'
+        link.parent.mkdir(parents=True)
+        link.write_text('old file')
+        for attempt, payload in enumerate(('#!/bin/sh\necho built\n', '#!/bin/sh\necho rebuilt\n')):
+            self.cargo('cargo 1.99.1 (5f94df478 2026-08-27)', payload=payload)
+            out = self.build(prefix, url, digest)
+            self.eq(out.splitlines(), [f'building mewt {M.MEWT_VERSION} from source with cargo (several minutes)',
+                                       f'installed mewt {M.MEWT_VERSION} in {dest}, linked as {link}',
+                                       f'WARNING {prefix / "bin"} is not first on PATH for mewt: add it before campaigns run, or they SKIP'], attempt=attempt)
+            self.eq({p.name: (p.read_text(), p.stat().st_mode & 0o777) for p in dest.iterdir()}, {'mewt': (payload, 0o755)}, attempt=attempt)
+            self.true(link.is_symlink() and os.readlink(link) == str(dest / 'mewt'), attempt=attempt)
+            version, install = self.cargo_calls()
+            argv = install['argv']
+            tree, root = Path(argv[3]), Path(argv[5])
+            self.eq((version['argv'], argv[:3], argv[4], tree.name, tree.parent.name, root.name, tree.parent.parent, root.parent.parent),
+                    (['--version'], ['install', '--locked', '--path'], '--root', 'mewt-src', 'src', 'out', root.parent, self.tmp / 't'), argv=argv)
+            self.true(len(argv) == 6 and root.parent.name.startswith('cp-mewt-'), argv=argv)
+            self.eq(install['tree'], ['Cargo.lock', 'Cargo.toml', 'src/main.rs'], what='the extracted tree cargo built')
+
+    def test_install_build_cargo_floor(self):
+        a, b = M.RUST_FLOOR
+        self.eq(M.RUST_FLOOR, (1, 85), what='mewt 4.0.0 is edition 2024: Rust 1.85')
+        words = (f'cargo {a}.{b} or newer', 'Ubuntu: sudo apt install cargo', 'Arch: sudo pacman -S rust', 'nothing installed')
+        url, digest = self.source()
+        with self.path_only():
+            self.true(shutil.which('cargo') is None, what='fixture: no cargo on PATH')
+        self.log = self.tmp / 'cargo.log'
+        self.log.write_text('')
+        self.refused(self.tmp / 'p-missing', url, digest, words, download=False, calls=())
+        for k, version in enumerate((f'cargo {a}.{b - 1}.9 (x 2024-11-26)', f'cargo {a - 1}.{b + 100}.0', 'cargo nightly', '', f'rustc {a}')):
+            self.cargo(version)
+            self.refused(self.tmp / f'p-low-{k}', url, digest, words, download=False)
+        # a minor of three digits compares numerically: 1.185 is above 1.85
+        for k, version in enumerate((f'cargo {a}.{b}.0 (d73d2caf9 2024-12-31)', f'cargo {a}.{b}', f'cargo {a}.{b + 100}.0', f'cargo {a + 1}.0.0')):
+            self.cargo(version)
+            prefix = self.tmp / f'p-ok-{k}'
+            self.build(prefix, url, digest)
+            self.true((prefix / f'opt/mewt-{M.MEWT_VERSION}/mewt').read_text() == '#!/bin/sh\necho built\n' and (prefix / 'bin/mewt').is_symlink(),
+                      version=version)
+
+    def test_install_build_cargo_fails(self):
+        url, digest = self.source()
+        self.cargo('cargo 1.85.0', lines=50, err='error: boom\n', code=101, payload=None)
+        calls = (['--version'], ['install', '--locked', '--path'])
+        msg = self.refused(self.tmp / 'p-exit', url, digest, (), calls=calls)
+        # the last 40 lines of stdout then stderr: line 11 .. line 49 and the error
+        self.eq(msg, 'cargo install exited 101; nothing installed\n' + '\n'.join([f'line {i}' for i in range(11, 50)] + ['error: boom']))
+        self.cargo('cargo 1.85.0', lines=2, err='warning: odd\n', code=0, payload=None)
+        msg = self.refused(self.tmp / 'p-nobinary', url, digest, (), calls=calls)
+        self.eq(msg, 'cargo install exited 0; nothing installed\nline 0\nline 1\nwarning: odd', what='exit 0 without bin/mewt')
+
+    def test_install_build_archive_refusals(self):
+        self.cargo('cargo 1.90.0')
+        url, digest = self.source()
+        bad = ('0' if digest[0] != '0' else '1') + digest[1:]
+        self.refused(self.tmp / 'p-digest', url, bad, (f'{url} has sha256 {digest}, expected {bad}', 'nothing installed'))
+        for k, members in enumerate(([('Cargo.lock', b'v\n', 0o644), ('t', 'dir', 0o755), ('t/Cargo.toml', b'p\n', 0o644)],
+                                     [('t', 'dir', 0o755), ('t/x', 'dir', 0o755), ('t/x/Cargo.lock', b'v\n', 0o644)], [])):
+            u, d = self.tarball(members, 'gz')  # Cargo.lock at the top level or two levels deep is not the tree's
+            self.cargo('cargo 1.90.0')
+            self.refused(self.tmp / f'p-nolock-{k}', u, d, (f'{u} holds no Cargo.lock', 'nothing installed'))
+        escape = self.tmp / 't' / 'escape'
+        for k, member in enumerate((('mewt-src/../../../escape', b'e', 0o644), ('mewt-src/link', 'sym', 0o777))):
+            u, d = self.source([member])  # .. out of the tree, a link to /etc/passwd: the data filter refuses the archive
+            self.cargo('cargo 1.90.0')
+            self.refused(self.tmp / f'p-unsafe-{k}', u, d, (), errors=(M.Failure, tarfile.TarError))
+            self.true(not escape.exists(), member=member)
+        # an absolute member name loses its leading slash: it lands inside the extraction, never at its own path
+        outside = self.tmp / 'outside' / 'evil'
+        u, d = self.source([(str(outside), b'e', 0o644)])
+        self.cargo('cargo 1.90.0')
+        prefix = self.tmp / 'p-absolute'
+        self.build(prefix, u, d)
+        self.true(not outside.parent.exists() and (prefix / 'bin/mewt').is_symlink(), what='absolute member stripped')
+        self.eq(self.cargo_calls()[1]['tree'], ['Cargo.lock', 'Cargo.toml', 'src/main.rs'])
 
 
 class Version(Base):

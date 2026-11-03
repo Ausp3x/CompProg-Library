@@ -21,7 +21,7 @@ each CLI row rebuilt from the fake it faked. Failures print seed, mode, round an
 
 Feature map:
 TOOLS (non-empty fields, unique names, the required executable set with mewt right after GitHub CLI, optional features,
-floors) -> test_tools_*;
+the optional Rust row right after qemu-user with literal install lines cargo/rust, floors) -> test_tools_*;
 version (the -dumpfullversion and -c PY_VERSION commands, major.minor prefix, unparsable) -> test_version_*;
 check (floors of GCC 16, GCC 14 major 14, Python, PyPy; unknown version; not found; first present alternative; probe
 problems joined and probe skipped below the floor) -> test_check_*;
@@ -29,7 +29,8 @@ probe (compiler build failure and nonzero run with flags and the 256 MB cap, rea
 memory.max; gh auth exit code; site engine; fonts; TeX packages through kpsewhich; qemu without and with a cross
 compiler and QEMU_LD_PREFIX; bwrap overlay probe (exact command in a /var/tmp/cp-setup- scratch directory removed afterwards,
 the file in the upper layer only, a failing or silent bwrap, the real bwrap); mewt exact pin from 04-mutation.py (match,
-other version, silent or missing); tools without a probe) -> test_probe_*;
+other version, silent or missing); cargo against 04-mutation.py's RUST_FLOOR (below, at, above, a three-digit minor,
+unparsable, a patched floor); tools without a probe) -> test_probe_*;
 platform_check (aarch64, AMD64, x86-64 with all flags, lacking bmi2, lacking several, no cpuinfo, this machine) ->
 test_platform_*;
 role_check (unset, contributor, maintainer, invalid, read in ROOT not the cwd) -> test_role_*;
@@ -41,7 +42,8 @@ untracked and deleted skipped, modified read from the worktree, sorted output, r
 --lint) -> test_commands_*, test_undeclared_*, test_lint_*;
 CLI (rows, labels, WARN for optional and platform, Install lines for the distribution, exit code and last line, a
 missing, off-pin or unversioned mewt as a FAIL row with its install step and exit 1 (in process and on a fake PATH), bad
-distribution exits 2, no git on PATH, random fake PATHs, this machine) -> test_cli_*;
+distribution exits 2, no git on PATH, random fake PATHs, a cargo below or at its floor as a WARN or OK row, this machine)
+-> test_cli_*;
 _triple/x86/x86_only/cpu_runs (triples, failing and missing compilers, cache per tuple, default $CXX split with shlex or
 g++, flag copies, non-x86 compiler or machine, cpuinfo flags, this machine) -> test_isa_*.
 """
@@ -96,7 +98,8 @@ def load(path, name):
 
 
 S = load(SETUP_PY, 'setup_check_under_test')
-PIN = load(MUTATION_PY, 'mutation_under_test').MEWT_VERSION  # the pin the probe must enforce exactly
+MUTATION = load(MUTATION_PY, 'mutation_under_test')
+PIN, RUST_FLOOR = MUTATION.MEWT_VERSION, MUTATION.RUST_FLOOR  # the mewt pin the probe enforces exactly; cargo's floor
 TOOL = {t.name: t for t in S.TOOLS}
 DECLARED = {e for t in S.TOOLS for e in t.exes}
 ISOLATED = {k: v for k, v in os.environ.items() if not k.startswith(('GIT_', 'CLAUDE_CODE_AGENT', 'CLAUDE_EFFORT'))} | {
@@ -325,6 +328,14 @@ class Tools(Base):
         for t in S.TOOLS:
             if t.need is not None:
                 self.assertTrue(isinstance(t.need, str) and t.need.strip(), self.info(tool=t))
+
+    def test_tools_rust(self):
+        # optional, right after qemu-user: 04-mutation.py install builds mewt with cargo where no release binary exists
+        names = [t.name for t in S.TOOLS]
+        t = TOOL['Rust']
+        self.eq((t.need, t.exes, t.floor, t.ubuntu, t.arch, names.index('Rust')),
+                ('mewt build on arm64', ('cargo',), None, 'cargo', 'rust', names.index('qemu-user') + 1))
+        self.eq(S.install([t], None), ['  ubuntu: sudo apt install cargo', '  arch: sudo pacman -S rust'])
 
     def test_tools_floors(self):
         self.eq({t.name: t.floor for t in S.TOOLS if t.floor}, FLOORS)
@@ -561,6 +572,25 @@ class Probe(Base):
             self.version_fake('mewt', output)
             with self.path_only():
                 self.eq(S.probe(TOOL['mewt'], 'mewt'), want, output=output, what='real helper on a fake mewt')
+
+    def test_probe_cargo(self):
+        # `cargo --version` against 04-mutation.py's RUST_FLOOR, compared numerically on major.minor
+        a, b = RUST_FLOOR
+        floor = f'{a}.{b}'
+        for output, want in ((f'cargo {a}.{b}.0 (d73d2caf9 2024-12-31)', []), (f'cargo {a}.{b}', []), (f'cargo {a}.{b + 14}.1 (Arch Linux rust)', []),
+                             (f'cargo {a}.{b + 100}.0', []), (f'cargo {a + 1}.0.0', []),
+                             (f'cargo {a}.{b - 1}.9 (x 2024-11-26)', [f'cargo {a}.{b - 1}, needs {floor}']),
+                             (f'cargo {a - 1}.{b + 100}.0', [f'cargo {a - 1}.{b + 100}, needs {floor}']),
+                             ('cargo nightly', [f'cargo of unknown version, needs {floor}']), ('', [f'cargo of unknown version, needs {floor}']),
+                             (f'cargo {a}', [f'cargo of unknown version, needs {floor}'])):
+            log = self.version_fake('cargo', output)
+            log.write_text('')
+            with self.path_only():
+                self.eq(S.probe(TOOL['Rust'], 'cargo'), want, output=output)
+            self.eq(log.read_text(), '--version\n', output=output)
+        with patch.object(S.module('setup_mutation', S.MUTATION), 'RUST_FLOOR', (a + 1, 3)), self.path_only():
+            self.version_fake('cargo', f'cargo {a}.{b + 14}.1')
+            self.eq(S.probe(TOOL['Rust'], 'cargo'), [f'cargo {a}.{b + 14}, needs {a + 1}.3'], what='the floor is read from 04-mutation.py')
 
     def test_probe_other_tools_none(self):
         with patch.object(S, 'out', side_effect=AssertionError('no command')), patch.object(S, 'module', side_effect=AssertionError('no module')):
@@ -830,6 +860,8 @@ class Cli(Base):
                 sh(f, 'exit 0\n' if value == 'noop' else BWRAP_OVERLAY)
             elif exe == 'mewt':
                 sh(f, f'[ "$1" = --version ] && printf "mewt %s\\n" {shlex.quote(value)}\nexit 0\n')
+            elif exe == 'cargo':
+                sh(f, f'[ "$1" = --version ] && printf "cargo %s\\n" {shlex.quote(value)}\nexit 0\n')
             else:
                 sh(f, 'exit 0\n')
         (self.bin / 'git').symlink_to(GIT)
@@ -857,6 +889,9 @@ class Cli(Base):
                 problems = [f'TeX package {n} missing' for n in sorted(kpse_missing)]
             elif exe == 'mewt' and spec[exe] != PIN:
                 problems = [f"mewt {spec[exe] if re.fullmatch(r'[0-9]+[.][0-9]+[.][0-9]+', spec[exe]) else 'of unknown version'}, needs exactly {PIN}"]
+            elif exe == 'cargo' and (len(o_version(spec[exe]) or ()) < 2 or o_version(spec[exe])[:2] < RUST_FLOOR):
+                v = o_version(spec[exe]) or ()
+                problems = [f"cargo {'.'.join(map(str, v)) if len(v) == 2 else 'of unknown version'}, needs {'.'.join(map(str, RUST_FLOOR))}"]
             elif exe == 'qemu-aarch64':
                 problems = [f'arm64 binary does not run directly (build: {BOOM}): register binfmt (qemu-user-binfmt)'
                             if 'aarch64-linux-gnu-g++' in spec else 'needs aarch64-linux-gnu-g++ to build its arm64 probe']
@@ -888,7 +923,8 @@ class Cli(Base):
         self.eq(lines[1:], want, **info)
 
     def test_cli_fake_path(self):
-        spec = {'g++': '15.2.0', 'python3': '3.11.0', 'rg': '', 'ccache': '', 'bwrap': '', 'lscpu': '', 'gh': '0', 'node': '', 'mewt': '3.9.9'}
+        spec = {'g++': '15.2.0', 'python3': '3.11.0', 'rg': '', 'ccache': '', 'bwrap': '', 'lscpu': '', 'gh': '0', 'node': '', 'mewt': '3.9.9',
+                'cargo': f'{RUST_FLOOR[0]}.{RUST_FLOOR[1] - 1}.0'}
         for choice in ('ubuntu', 'arch', ''):
             self.check_cli(spec, 'maintainer', choice)
             shutil.rmtree(self.bin)
@@ -897,11 +933,14 @@ class Cli(Base):
         _, want, code = self.expected(rows, 'maintainer', 'arch')
         self.assertTrue({'FAIL  GCC 16: g++ 15.2, needs 16', 'FAIL  GCC 14: not found', 'OK    Python: python3 3.11', 'OK    git: git',
                          'WARN  PyPy (PyPy runs): not found', 'OK    Node.js (notebook page test): node', '  arch: AUR: gcc14 gcc14-libs',
-                         f'FAIL  mewt: mewt 3.9.9, needs exactly {PIN}', MEWT_INSTALL['arch'], 'OK    role: maintainer'} <= set(want) and want[-1] == FAIL_LINE and code == 1, self.info(want=want, what='oracle sanity'))
+                         f'FAIL  mewt: mewt 3.9.9, needs exactly {PIN}', MEWT_INSTALL['arch'], 'OK    role: maintainer',
+                         f'WARN  Rust (mewt build on arm64): cargo {RUST_FLOOR[0]}.{RUST_FLOOR[1] - 1}, needs {RUST_FLOOR[0]}.{RUST_FLOOR[1]}'} <= set(want)
+                        and any(l.startswith('  arch: sudo pacman -S ') and l.endswith(' rust') for l in want) and want[-1] == FAIL_LINE and code == 1, self.info(want=want, what='oracle sanity'))
 
     def test_cli_fake_required_pass(self):
         spec = {'g++': '', 'g++-14': '', 'python3': '3.13.1', 'rg': '', 'ccache': '', 'bwrap': '', 'lscpu': '', 'gh': '0',
-                'systemd-run': '67108864', 'pypy3': '3.10.0', 'lualatex': '', 'kpsewhich': '', 'mewt': PIN}
+                'systemd-run': '67108864', 'pypy3': '3.10.0', 'lualatex': '', 'kpsewhich': '', 'mewt': PIN,
+                'cargo': '.'.join(map(str, RUST_FLOOR))}
         self.check_cli(spec, 'contributor', 'arch', kpse_missing=('xcolor',))
         shutil.rmtree(self.bin)
         self.bin.mkdir()
@@ -977,7 +1016,7 @@ class Cli(Base):
         choices = {'g++': ['15.2.0', '16.0.1', '16', '17.1.0', 'garbage'], 'g++-14': ['14.3.0', '13.2', '15.1.0', '14'],
                    'python3': ['3.10.14', '3.11.0', '3.14.2', '2.7.18', '4.0', ''], 'pypy3': ['3.9.18', '3.10.14', '3.12.1', 'x'],
                    'gh': ['0', '1'], 'systemd-run': ['67108864', 'max', '134217728', ''], 'bwrap': ['', '', 'noop'],
-                   'mewt': [PIN, PIN, '3.9.9', '']}
+                   'mewt': [PIN, PIN, '3.9.9', ''], 'cargo': ['1.85.0', '1.84.1', '1.99.1', '1.185.0', '0.99.0', 'nightly', '']}
         plain = ['rg', 'ccache', 'lscpu', 'oj-bundle', 'kpsewhich', 'lualatex', 'node', 'nodejs', 'aarch64-linux-gnu-g++', 'qemu-aarch64']
         for r in range(self.rounds()):
             shutil.rmtree(self.bin)

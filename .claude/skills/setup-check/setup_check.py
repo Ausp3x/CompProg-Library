@@ -51,6 +51,7 @@ TOOLS = [  # need: None when required, else the optional feature; exes: alternat
     Tool('arm64 cross g++', 'arm64 check', ('aarch64-linux-gnu-g++',), None, 'g++-aarch64-linux-gnu',
          'aarch64-linux-gnu-gcc'),
     Tool('qemu-user', 'arm64 check', ('qemu-aarch64',), None, 'qemu-user qemu-user-binfmt', 'qemu-user qemu-user-binfmt'),
+    Tool('Rust', 'mewt build on arm64', ('cargo',), None, 'cargo', 'rust'),  # mewt publishes no arm64 Linux binary
 ]
 LD_PREFIX = '/usr/aarch64-linux-gnu'  # arm64 sysroot of the cross packages on both distributions, for QEMU_LD_PREFIX
 PY_VERSION = 'import sys; print(*sys.version_info[:3], sep=".")'
@@ -117,6 +118,10 @@ def probe(tool, exe):
         mutation = module('setup_mutation', MUTATION)
         have = mutation.mewt_version()
         return [] if have == mutation.MEWT_VERSION else [f"mewt {have or 'of unknown version'}, needs exactly {mutation.MEWT_VERSION}"]
+    if exe == 'cargo':  # 04-mutation.py install builds mewt from source on arm64
+        floor = module('setup_mutation', MUTATION).RUST_FLOOR
+        m = re.search(r'(\d+)\.(\d+)', out(['cargo', '--version'])[1])
+        return [] if m and (int(m[1]), int(m[2])) >= floor else [f"cargo {m[0] if m else 'of unknown version'}, needs {'.'.join(map(str, floor))}"]
     if exe == 'gh':
         return [] if out(['gh', 'auth', 'status'])[0] == 0 else ['not logged in: gh auth login']
     if exe == 'bwrap':  # /merge-pr runs every gate on an overlay of the worktree, its layers under /var/tmp

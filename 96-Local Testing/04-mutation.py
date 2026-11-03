@@ -23,7 +23,8 @@
                     /restyle); --changed adds every header changed against BASE (default master), committed, uncommitted
                     or untracked. /finish and /merge-pr call stale() on their own lists of changed headers.
   install           download the pinned mewt release, verify its SHA-256, unpack it into PREFIX/opt/mewt-MEWT_VERSION and
-                    link it as PREFIX/bin/mewt (default PREFIX ~/.local).
+                    link it as PREFIX/bin/mewt (default PREFIX ~/.local); on arm64, which has no release binary, or with
+                    --source, build the pinned source archive there with cargo --locked (Rust RUST_FLOOR or newer).
 """
 import argparse
 from datetime import date
@@ -34,6 +35,7 @@ import json
 import math
 import os
 from pathlib import Path
+import platform
 import random
 import re
 import shlex
@@ -54,6 +56,9 @@ import _00_memory_cap  # noqa: E402
 MEWT_VERSION = '4.0.0'  # AGPL-3.0: installed outside the repository, never vendored
 MEWT_URL = f'https://github.com/trailofbits/mewt/releases/download/v{MEWT_VERSION}/mewt-x86_64-unknown-linux-gnu.tar.xz'
 MEWT_SHA256 = '0e30678a7d090d112b9cf4d2d620053ca9da7c458ed5c2d94010304edded728b'
+MEWT_SOURCE_URL = f'https://github.com/trailofbits/mewt/releases/download/v{MEWT_VERSION}/source.tar.gz'  # arm64 Linux: no binary
+MEWT_SOURCE_SHA256 = 'a18b9c7d56e65f426c3d0013a51199ed42eced6d745de537b01825ee9400e3d7'
+RUST_FLOOR = (1, 85)  # mewt 4.0.0 is edition 2024
 HEADER = re.compile(r'0[1-7]-[^/]+/(?!9[89]-)\d{2}-[^/]+\.hpp')  # library headers, aggregates excluded
 CORE_FULL = re.compile(r'01-Core/\d{2}-(?![^/]*mini)[^/]*\.hpp')
 SKIPPED = ('OLD/', '95-Resources/')  # never included by a tester; the rest of the working tree is copied
@@ -151,26 +156,51 @@ def changed_lines(old, new):
     return lines
 
 
-def install(prefix, url=MEWT_URL, digest=MEWT_SHA256):
-    """Download, verify and unpack the pinned release (regular files only, flattened), then link PREFIX/bin/mewt."""
+def install(prefix, url=MEWT_URL, digest=MEWT_SHA256, build=False):
+    """Download and verify the pinned release, then link PREFIX/bin/mewt: the binary archive's regular files flattened
+    into PREFIX/opt/mewt-MEWT_VERSION, or with build (arm64, which has no release binary) the source archive built there
+    by cargo --locked."""
     prefix = Path(prefix).expanduser().resolve()
     dest, link = prefix / 'opt' / f'mewt-{MEWT_VERSION}', prefix / 'bin' / 'mewt'
+    if build:
+        cargo = re.search(r'(\d+)\.(\d+)', subprocess.run(['cargo', '--version'], capture_output=True, text=True).stdout or '') \
+            if shutil.which('cargo') else None
+        if not cargo or (int(cargo[1]), int(cargo[2])) < RUST_FLOOR:
+            raise Failure(f'building mewt needs cargo {".".join(map(str, RUST_FLOOR))} or newer (Ubuntu: sudo apt install cargo; '
+                          'Arch: sudo pacman -S rust); nothing installed')
     with tempfile.TemporaryDirectory(prefix='cp-mewt-') as d:
-        archive = Path(d) / 'mewt.tar.xz'
+        archive = Path(d) / 'mewt.tar'
         with urllib.request.urlopen(url, timeout=120) as r, open(archive, 'wb') as f:
             shutil.copyfileobj(r, f)
         have = hashlib.sha256(archive.read_bytes()).hexdigest()
         if have != digest:
             raise Failure(f'{url} has sha256 {have}, expected {digest}; nothing installed')
-        with tarfile.open(archive, 'r:xz') as tar:
-            files = [m for m in tar.getmembers() if m.isfile()]
-            if 'mewt' not in {Path(m.name).name for m in files}:
-                raise Failure(f'{url} holds no mewt executable; nothing installed')
-            dest.mkdir(parents=True, exist_ok=True)
-            for m in files:
-                target = dest / Path(m.name).name
-                target.write_bytes(tar.extractfile(m).read())
-                target.chmod(0o755 if m.mode & 0o111 else 0o644)
+        with tarfile.open(archive) as tar:
+            if build:
+                try:
+                    tar.extractall(Path(d) / 'src', filter='data')  # keeps every member, link included, inside the tree
+                except tarfile.TarError as e:
+                    raise Failure(f'{url}: unsafe archive member ({e}); nothing installed') from None
+                tree = next((c.parent for c in sorted((Path(d) / 'src').glob('*/Cargo.lock'))), None)
+                if tree is None:
+                    raise Failure(f'{url} holds no Cargo.lock; nothing installed')
+                print(f'building mewt {MEWT_VERSION} from source with cargo (several minutes)', flush=True)
+                r = subprocess.run(['cargo', 'install', '--locked', '--path', str(tree), '--root', str(Path(d) / 'out')],
+                                   capture_output=True, text=True)
+                if r.returncode or not (Path(d) / 'out/bin/mewt').is_file():
+                    raise Failure(f'cargo install exited {r.returncode}; nothing installed\n{tail(r.stdout + r.stderr)}')
+                files = {'mewt': (Path(d) / 'out/bin/mewt').read_bytes()}
+            else:
+                members = [m for m in tar.getmembers() if m.isfile()]
+                files = {Path(m.name).name: tar.extractfile(m).read() for m in members}
+                modes = {Path(m.name).name: m.mode for m in members}
+                if 'mewt' not in files:
+                    raise Failure(f'{url} holds no mewt executable; nothing installed')
+        dest.mkdir(parents=True, exist_ok=True)
+        for name, data in files.items():
+            target = dest / name
+            target.write_bytes(data)
+            target.chmod(0o755 if build or modes[name] & 0o111 else 0o644)
     link.parent.mkdir(parents=True, exist_ok=True)
     if link.is_symlink() or link.is_file():
         link.unlink()
@@ -559,10 +589,12 @@ def main(argv=None):
     c.add_argument('--changed', nargs='?', const='master', metavar='BASE', help='every header changed against BASE (default master)')
     i = sub.add_parser('install', help=f'install mewt {MEWT_VERSION}')
     i.add_argument('--prefix', type=Path, default=Path.home() / '.local')
+    i.add_argument('--source', action='store_true', help='build from the pinned source with cargo (the default on arm64)')
     a = p.parse_args(argv)
     try:
         if a.cmd == 'install':
-            install(a.prefix)
+            build = a.source or platform.machine() in ('aarch64', 'arm64')
+            install(a.prefix, *((MEWT_SOURCE_URL, MEWT_SOURCE_SHA256) if build else (MEWT_URL, MEWT_SHA256)), build)
             return 0
         if a.cmd == 'check':
             headers = sorted({*map(library_path, a.headers), *(changed(ROOT, a.changed) if a.changed else ())})
