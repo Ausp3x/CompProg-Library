@@ -105,7 +105,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P048 — GR13, GR27, GR32** (opus, L+L+M): 04-Graphs — cycle basis, planar graph, flow with demands, subgraph enumeration.
 - [x] **P032 — DS11, DS27, DS28, DS50** (opus, L+M+L+M): 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis.
 - [x] **P251 — SUP20** (opus, M): Mutation testing of the testers.
-- [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: planned.
+- [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: in-progress. Note: GR04 verified 2026-11-03 (rows 12, 13; apspDijkstra removed -> johnson, user decision; review findings fixed). Next batch: GR05. [evidence](04-Graphs/Docs/12-all_pairs_shortest_path.md) [evidence](04-Graphs/Docs/13-shortest_path_advanced.md)
 - [ ] **P063 — MA14** (opus, L): 05-Mathematics — optimization. Status: planned.
 - [ ] **P059 — MA09** (opus, L): 05-Mathematics — numerical methods, integer roots. Status: planned.
 - [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.

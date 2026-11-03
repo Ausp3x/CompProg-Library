@@ -1154,9 +1154,12 @@
       "phase": "Contest core",
       "size": "L+L+S",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
+      "status": "in-progress",
+      "evidence": [
+        "04-Graphs/Docs/12-all_pairs_shortest_path.md",
+        "04-Graphs/Docs/13-shortest_path_advanced.md"
+      ],
+      "note": "GR04 verified 2026-11-03 (rows 12, 13; apspDijkstra removed -> johnson, user decision; review findings fixed). Next batch: GR05."
     },
     {
       "id": "P063",

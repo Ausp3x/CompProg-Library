@@ -183,3 +183,17 @@ The 2026-10-29 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-29-p048-g
 - NetworkX `all_triangles`: the enumeration.
 - Enumerating cliques, counting all cliques and cycles over vertex subsets: rows 49 and 53. Elementary cycles and girth: row 68. Subgraph isomorphism: row 54.
 - Connected 4-edge subgraph counts (OI Wiki, Gym 102028L) and CF 985G: problem-specific inclusion-exclusion.
+
+## P042 GR04 omissions
+
+The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)) added `top2Dijkstra` (maspypy) to row 13 and put suisen's O(n^3 / w) bitset closure behind `minimaxFloydWarshall`. `apspPath` became `AllPairsResult::path` (user decision 2026-11-03). The other candidates stay out:
+
+- NetworkX `floyd_warshall_tree`: same O(n^3) worst case; only its expected bound on random complete digraphs is better.
+- Shortest walk with at most k arcs (cp-algorithms): `fixedLengthShortestPath` on the graph with a zero-weight loop added at every vertex.
+- Fixed-length walk counts (cp-algorithms): an ordinary matrix power (Core Matrix). The min-plus product moves to Core Matrix `mulSemiring` once that row is verified.
+- All-pairs Bellman–Ford and the enumeration of all shortest paths (NetworkX): `johnson` dominates the first; the second is a bounded enumeration over `shortestPathDag`.
+- Wiener, hyper-Wiener, Schultz and Gutman indices and the harmonic diameter (NetworkX): one-line folds of the distance matrix. Resistance distance and the Kemeny constant need a Laplacian pseudo-inverse (Mathematics 16).
+- Goldberg–Radzik (NetworkX) and the SLF, LLL, stack and heap SPFA variants (OI Wiki): no better worst case than `spfa`; `desopoPape` represents the deque heuristics.
+- Bidirectional BFS (NetworkX): `bidirectionalDijkstra` with unit weights.
+- Least or greatest arc count among shortest paths (CSES Investigation): a DP over `shortestPathDag`.
+- Minimum-weight cycle by Floyd and Floyd transitive closure (OI Wiki): rows 68 and 40.

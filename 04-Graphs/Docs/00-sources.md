@@ -214,6 +214,22 @@ The header was written independently from these descriptions; no catalog code wa
 
 The header was written independently from these descriptions; no catalog code was copied.
 
+## Pages fetched on 2026-11-03 (P042 GR04)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| cp-algorithms Floyd–Warshall, fixed-length paths | https://cp-algorithms.com/graph/all-pair-shortest-path-floyd-warshall.html; https://cp-algorithms.com/graph/fixed_length_paths.html | 2026-11-03 | Negative-cycle pairs through a vertex k with d[k][k] < 0; exact-k min-plus power and the at-most-k loop reduction |
+| cp-algorithms D'Esopo–Pape | https://cp-algorithms.com/graph/desopo_pape.html | 2026-11-03 | Deque rule (never queued: back; processed and improved: front); negative weights without negative cycles; exponential worst case (hence the bellmanFord fallback) |
+| suisen minmax_floyd_warshall | https://suisen-cp.github.io/cp-library-cpp/library/graph/minmax_floyd_warshall.hpp | 2026-11-03 | Arcs in weight order with bitset closure of every new pair, O(n^3 / w); `minimaxFloydWarshall` (an explicit stack replaces its recursion) |
+| maspypy top2_dijkstra | https://maspypy.github.io/library/graph/shortest_path/top2_dijkstra.hpp | 2026-11-03 | Nearest and second-nearest distinct source; `top2Dijkstra` |
+| Koosaga graph listing | https://github.com/koosaga/olympiad/tree/master/Library/codes/graph | 2026-11-03 | File name `negative_cycle_msqrtnlogw.cpp` only (code not read): Goldberg O(m sqrt(n) log(N)) scaling in a contest catalog. `negativeSsspScaling` follows Goldberg's scheme (bit scaling, refine by layer cut or path elimination) without the paper; its proofs are in [13-shortest_path_advanced.md](13-shortest_path_advanced.md) |
+| NetworkX shortest paths, distance measures | https://networkx.org/documentation/stable/reference/algorithms/shortest_paths.html; https://networkx.org/documentation/stable/reference/algorithms/distance_measures.html | 2026-11-03 | `johnson`, `floyd_warshall_predecessor_and_distance`, `astar_path`, `bidirectional_dijkstra`, `goldberg_radzik`; eccentricity, radius, diameter, center, periphery |
+| OI Wiki shortest paths | https://oi-wiki.org/graph/shortest-path/ | 2026-11-03 | Johnson reweighting, SPFA variants (not adopted), Floyd-based minimum cycle and closure (rows 68, 40) |
+| ei1333, Nyaan, hitonanode, KACTL, maspypy indexes | https://ei1333.github.io/library/; https://nyaannyaan.github.io/library/; https://hitonanode.github.io/cplib-cpp/; https://github.com/kth-competitive-programming/kactl/tree/main/content/graph; https://maspypy.github.io/library/ | 2026-11-03 | Aliases: warshall-floyd, radix-heap Dijkstra, SPFA, Dial; ei1333 and Nyaan indexes read to 100k and 200k characters |
+| CSES problem set | https://cses.fi/problemset/ | 2026-11-03 | Investigation (count, minimum and maximum arcs over shortest paths) |
+
+The headers were written independently from these descriptions; no catalog code was copied.
+
 ## Source keys
 
 Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder. Per-family read scope and caveats of that audit are in `00-Guidelines/History/2026-09-27-inventory-audit.md`.

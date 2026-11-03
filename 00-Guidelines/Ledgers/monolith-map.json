@@ -205,8 +205,10 @@
         "start_line": 4528
       },
       "disposition": "exact-duplicate-mapped",
-      "target_body_start_line": 10,
-      "target_body_end_line": 43
+      "note": "P042 maps the legacy FloydWarshall struct to floydWarshall(g); see the OLD/algorithms.cpp:4528 record.",
+      "relationship": "P042 audited replacement; original source excerpt preserved",
+      "historical_target_sha256": "c09f5fb8666f1c5ecc627ff8863a73651384cdb6041ee996c8ee5a6954e60f6f",
+      "verification": "04-Graphs/Docs/12-all_pairs_shortest_path.md"
     },
     {
       "source": "OLD/[1] algorithms.cpp",
@@ -953,18 +955,17 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "issues": [
-        "Legacy 1-based loops and n + 1 matrices; sentinel/overflow/negative-cycle propagation require audit.",
-        "No algorithm verification performed."
+        "P042 replaces the 1-based FloydWarshall struct with floydWarshall(g) on zero-based Graph/CsrGraph input: a clamped update, -PATH_INF negative-cycle marks and AllPairsResult::path. The legacy runFloydWarshall adapter was removed (One API per operation). Source features are accounted in verification."
       ],
       "source_context": "INFERIOR VERSIONS section",
       "tier": "Advanced",
       "body_sha256": "a6011a72a37ea9c4a95c83e788ae2f7e130292f9f1adbbd67a302548aac58f77",
-      "disposition": "extracted",
-      "target_body_start_line": 10,
-      "target_body_end_line": 43,
-      "target_sha256": "c09f5fb8666f1c5ecc627ff8863a73651384cdb6041ee996c8ee5a6954e60f6f"
+      "disposition": "audited-replacement",
+      "historical_target_sha256": "c09f5fb8666f1c5ecc627ff8863a73651384cdb6041ee996c8ee5a6954e60f6f",
+      "relationship": "P042 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/Docs/12-all_pairs_shortest_path.md"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -1035,7 +1036,7 @@
       "disposition": "extracted",
       "target_body_start_line": 8,
       "target_body_end_line": 28,
-      "target_sha256": "1a30645662189e880f7f372820cc39aa00fea1b0a8ad7603601e92f46b28c85d"
+      "historical_target_sha256": "1a30645662189e880f7f372820cc39aa00fea1b0a8ad7603601e92f46b28c85d"
     },
     {
       "source": "OLD/algorithms.cpp",
@@ -1048,18 +1049,17 @@
       "dependencies": [
         "01-Core/01-template.hpp"
       ],
-      "status": "existing-unverified",
+      "status": "verified",
       "issues": [
-        "Queue-count negative-cycle detection, overflow domain, heuristic performance and witness support require audit.",
-        "No algorithm verification performed."
+        "P042 replaces the legacy SPFA struct with spfa(g, sources) returning ShortestPathResult, whose queue-count negative-cycle detection reruns bellmanFord so negative marks always match it. The SPFA::solve adapter was removed (One API per operation). Source features are accounted in verification."
       ],
       "source_context": "AI GENERATED FAST section",
       "tier": "Advanced",
       "body_sha256": "88ca539cdfed6b73e4b8c392e101882b9c7948115d33cb5e002826fa473ff722",
-      "disposition": "extracted",
-      "target_body_start_line": 10,
-      "target_body_end_line": 52,
-      "target_sha256": "c423d1c7927a3feb56838d3516d333a1fcb65012ee2fb11786ca49c24da4dcda"
+      "disposition": "audited-replacement",
+      "historical_target_sha256": "c423d1c7927a3feb56838d3516d333a1fcb65012ee2fb11786ca49c24da4dcda",
+      "relationship": "P042 audited replacement; original source excerpt preserved",
+      "verification": "04-Graphs/Docs/13-shortest_path_advanced.md"
     },
     {
       "source": "OLD/algorithms.cpp",
