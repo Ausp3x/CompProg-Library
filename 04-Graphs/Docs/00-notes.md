@@ -193,3 +193,17 @@ Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledger
 - `optimalTopologicalOrder` (tree precedence) (TKO, LC, MAS): another name for row 79 `rootedTreeMinimumInversionOrder` (an in-tree reduces to it by reversal); removed from row 79.
 - `Unicyclic: distance` (MAS): implement through row 41 `CactusDecomposition: distance` (a unicyclic component is a cactus); row 41 says so.
 - Random graph generators `randomTree` (Prüfer), `randomBinaryTree`, `randomGraph` and the other maspypy and OGDF generators (MAS, OGDF): test generators: `09-Contest Testing` plans seeded graph generators for when a task needs them (`00-index.md`, Coverage and extension inventory), so no Graphs row lists them.
+
+## P042 GR04 omissions
+
+The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)) added `top2Dijkstra` (maspypy) to row 13 and put suisen's O(n^3 / w) bitset closure behind `minimaxFloydWarshall`. `apspPath` became `AllPairsResult::path` (user decision 2026-11-03). The other candidates stay out:
+
+- NetworkX `floyd_warshall_tree`: same O(n^3) worst case; only its expected bound on random complete digraphs is better.
+- Shortest walk with at most k arcs (cp-algorithms): `fixedLengthShortestPath` on the graph with a zero-weight loop added at every vertex.
+- Fixed-length walk counts (cp-algorithms): an ordinary matrix power (Core Matrix). The min-plus product moves to Core Matrix `mulSemiring` once that row is verified.
+- All-pairs Bellman–Ford and the enumeration of all shortest paths (NetworkX): `johnson` dominates the first; the second is a bounded enumeration over `shortestPathDag`.
+- Wiener, hyper-Wiener, Schultz and Gutman indices and the harmonic diameter (NetworkX): one-line folds of the distance matrix. Resistance distance and the Kemeny constant need a Laplacian pseudo-inverse (Mathematics 16).
+- Goldberg–Radzik (NetworkX) and the SLF, LLL, stack and heap SPFA variants (OI Wiki): no better worst case than `spfa`; `desopoPape` represents the deque heuristics.
+- Bidirectional BFS (NetworkX): `bidirectionalDijkstra` with unit weights.
+- Least or greatest arc count among shortest paths (CSES Investigation): a DP over `shortestPathDag`.
+- Minimum-weight cycle by Floyd and Floyd transitive closure (OI Wiki): rows 68 and 40.

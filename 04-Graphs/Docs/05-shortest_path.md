@@ -16,7 +16,7 @@ Correctness: `ShortestPathResult` stores `dist`, `reachable`, `negative`, `paren
 
 ### bfsShortestPaths, zeroOneBfs, dijkstra and dijkstraDense
 
-`bfsShortestPaths` ignores weights, counts arcs, and has the `bfs` tie order. `zeroOneBfs` requires every weight in {0, 1}; its deque holds stale entries, so workspace is O(n + m). `dijkstra` is a lazy binary heap and requires every arc weight nonnegative, including arcs outside the reached component. `dijkstraDense` is the O(n^2) array scan over a minimum `DenseGraph` view and requires every source-graph weight nonnegative, even for discarded parallel arcs; it excludes the O(n^2 + m) view construction. One source is the list `{s}`.
+`bfsShortestPaths` ignores weights, counts arcs, and has the `bfs` tie order. `zeroOneBfs` requires every weight in {0, 1}; under `NDEBUG` another weight returns the sources-only result at once; its deque holds stale entries, so workspace is O(n + m). `dijkstra` is a lazy binary heap and requires every arc weight nonnegative, including arcs outside the reached component. A negative weight fails the entry assert. Under `NDEBUG`, `dijkstra` then returns the sources-only result at once rather than looping on a negative cycle. `dijkstraDense` is the O(n^2) array scan over a minimum `DenseGraph` view and requires every source-graph weight nonnegative, even for discarded parallel arcs; it excludes the O(n^2 + m) view construction. One source is the list `{s}`.
 
 Correctness and cost: `zeroOneBfs` deque ordering processes nondecreasing distances and stale entries avoid rescanning improved candidates. Dense construction selects the best parallel edge while retaining its original arc ID. For general multigraphs, sparse heap time is O(k+(n+m) log(n+m+1)) and workspace O(n+m), where m is the arc count and k is the source count. Dense time is O(n²+m+k) beyond dense-view construction. BFS/0-1 BFS are linear in n+m+k.
 
@@ -60,16 +60,16 @@ Surviving mutants (an n−1-step Bellman–Ford walk, zero-one BFS `push_front` 
 
 ## Commands and results
 
-2026-10-12, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
+The three suite rows and the integration row were rerun on 2026-11-03 after the GR04 `dijkstra` fix, with identical suite counts, on GCC 16.0.1 20260322 and GCC 14.3.0 (`CXX=g++-14`). The other rows are from 2026-10-12, on GCC 16.2.1 and GCC 14.4.1 20260915. Linux x86-64, CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
 | Run | Result |
 |---|---|
-| Full, seed 20261012, g++ | PASS, all three builds, 34,808 cases and 4,707,279 checks per build, 11 probes, peak 615 MB |
-| Full, seed 20261012, `CXX=g++-14` | PASS, all three builds, same counts, peak 617 MB |
-| Stress, seed 7 | PASS, all three builds, 62,491 cases and 9,698,614 checks per build, peak 749 MB |
+| Full, seed 20261012, g++ | PASS, all three builds, 34,808 cases and 4,707,279 checks per build, 11 probes, peak 627 MB |
+| Full, seed 20261012, `CXX=g++-14` | PASS, all three builds, same counts, peak 613 MB |
+| Stress, seed 7 | PASS, all three builds, 62,491 cases and 9,698,614 checks per build, peak 795 MB |
 | `00-path_mst_benchmark.cpp` after the call-site change | Compiles under `-Werror`; one capped run (seed 20260927) passed its internal result checks; the table below was not re-measured |
 | Quick runner, all sixteen graph entries, from `/tmp` | PASS |
-| `02-integration.py` (136 standalone/aggregate headers, scalar and AVX2 multi-TU linkage, workspace) | PASS, peak 647 MB |
+| `02-integration.py` (186 standalone/aggregate headers, scalar and AVX2 multi-TU linkage, workspace) | PASS, peak 2744 MB |
 | `03-consistency.py`, with `--braces` on the touched headers, testers and benchmark | No errors |
 
 ```bash
@@ -124,6 +124,7 @@ Search aliases (P263, grab --find): 0-1 BFS, single-source shortest paths, DAG s
 - 2026-09-27: original P010, full suite (seed 20260927) and benchmark passed on g++ 16 with integration and 61 package probes; stress not run.
 - 2026-10-07: re-audit, 4 findings fixed (brace rule, complexity line placement, unchecked inner-loop `relax`, overload complexity lines) and `[[maybe_unused]]` on `path`; full suite passed on g++ and g++-14, stress passed; independent review: findings 1–3, 5 and 7–14 confirmed fixed, no correctness defect, 22 own mutants (17 killed, 5 survivors equivalent or runtime-only).
 - 2026-10-12: prune, removed the legacy `Dijkstra` adapter, `dagLongestPaths` and six single-source overloads (cases moved to `dijkstra` on `Graph::fromAdjacency` input, `dagShortestPaths(g, sources, true)` and `{s}`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.
+- 2026-11-03: P042 GR04 cross-package fix (user decision 2026-11-03): `dijkstra` and `zeroOneBfs` return the sources-only result under `NDEBUG` on an out-of-domain weight instead of looping; 05 suite rerun (see Commands and results).
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

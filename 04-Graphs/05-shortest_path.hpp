@@ -64,8 +64,10 @@ ShortestPathResult bfsShortestPaths(const G &g, const vector<int> &sources) {
 // T: O(n + m + k), M: O(n + m); every weight must be 0 or 1.
 template<class G = Graph>
 ShortestPathResult zeroOneBfs(const G &g, const vector<int> &sources) {
-    for (const auto &e : g.arcs) { assert(e.w == 0 || e.w == 1); (void)e; }
     ShortestPathResult out(g.n, sources); deque<pair<lll, int>> ready;
+    bool ok = std::all_of(g.arcs.begin(), g.arcs.end(), [](const GraphArc &e) { return e.w == 0 || e.w == 1; });
+    assert(ok);
+    if (!ok) { return out; }
     for (int u = 0; u < g.n; ++u) { if (out.reachable[u]) { ready.push_back({0, u}); }}
     while (!ready.empty()) {
         auto [d, u] = ready.front(); ready.pop_front();
@@ -80,8 +82,10 @@ ShortestPathResult zeroOneBfs(const G &g, const vector<int> &sources) {
 // T: O(k + (n + m) * log(n + m + 1)), M: O(n + m); every weight must be nonnegative.
 template<class G = Graph>
 ShortestPathResult dijkstra(const G &g, const vector<int> &sources) {
-    for (const auto &e : g.arcs) { assert(e.w >= 0); (void)e; }
     ShortestPathResult out(g.n, sources);
+    bool ok = std::all_of(g.arcs.begin(), g.arcs.end(), [](const GraphArc &e) { return e.w >= 0; });
+    assert(ok);
+    if (!ok) { return out; }
     priority_queue<pair<lll, int>, vector<pair<lll, int>>, std::greater<pair<lll, int>>> ready;
     for (int u = 0; u < g.n; ++u) { if (out.reachable[u]) { ready.push({0, u}); }}
     while (!ready.empty()) {
