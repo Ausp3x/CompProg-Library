@@ -119,6 +119,7 @@ Items a reader could mistake for duplicates.
 | P048 | `localClustering`, `squareClustering`, `transitivity` and `generalizedDegree` (row 35) beside `countC3C4PerVertex`, `countTriangles` and `countTrianglesPerEdge` with degrees | Decided 2026-10-29 by the user: NetworkX `cluster.py` measures with fixed denominators and zero conventions (`squareClustering` needs P3 and the 4-cycles through v; `generalizedDegree` counts per simple pair) |
 | P048 | `averageClustering` (row 35) beside the mean of `localClustering` or `directedClustering` | Decided 2026-10-29 by the user: NetworkX `average_clustering` with `count_zeros`, dispatching on `g.directed` |
 | P072 | `kSmallestSubsetSums` (`54-kbest_enumeration.hpp`) beside `kSmallestSortedListSums` over lists `{min(0, a_i), max(0, a_i)}` | Decided 2026-10-23 by the user: named special case (subset witnesses, no list construction) |
+| P059 | `isqrt` beside `isqrt128` (row 21) | Decided 2026-11-03 (`/merge-pr 3`): larger domain, a 128-bit argument; `isqrt` keeps the one-`sqrt` 64-bit path |
 
 ### Rulings
 
@@ -278,7 +279,6 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P059 | `isPerfectSquare` beside `isqrtRemainder` (row 21) | Named special case with a residue prefilter |
 | P059 | `kahanSum` beside `neumaierSum` (row 17) | Different recurrence (Neumaier never worse) |
 | P059 | `hornerDerivative` (row 17) beside row 14 `polyEval` | Different result: value and derivative in one pass, over any ring |
-| P059 | `isqrt` beside `isqrt128` (row 21) | Decided 2026-11-03 (`/merge-pr 3`): larger domain, a 128-bit argument; `isqrt` keeps the one-`sqrt` 64-bit path |
 
 ## Conventions
 

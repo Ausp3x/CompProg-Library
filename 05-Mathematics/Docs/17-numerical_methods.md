@@ -206,18 +206,16 @@ Coverage per mode: random counts are x1, x10 and x100 for quick, full and stress
 
 ## Commands and results
 
-P059 run, 2026-11-03. GCC 16.0.1 (`g++`) and GCC 14.3.0 (`CXX=g++-14`), GNU++20, CPython 3.14.4, Linux x86-64 (WSL2), AMD Ryzen AI 9 HX 370. Every suite runs the shared runner's optimized `-O2 -DNDEBUG` and checked `-O0 -g -D_GLIBCXX_DEBUG` builds, plus ASan/UBSan outside quick mode; counts are per configuration and equal on both compilers.
+Maintainer runs 2026-11-03 (P059 `/merge-pr 3`, after its fixes) under `merge_pr.py run 3` and its gates (bwrap, memory cap): Intel Core i9-11900H, GCC 16.2.1 (`g++`) and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.8. Every suite runs the shared runner's optimized `-O2 -DNDEBUG` and checked `-O0 -g -D_GLIBCXX_DEBUG` builds, plus ASan/UBSan outside quick mode; counts are per configuration and equal on both compilers.
 
 | Command | Result |
 |---|---|
-| `17-numerical_methods_tester.py --mode quick` | PASS, 2 configurations |
-| `17-numerical_methods_tester.py --mode full --seed 1` | PASS, 3 configurations, 7,085,308 C++ checks, 20,002 Python quadratics and 602 sums, 40 assertion probes, `MEMORY peak=666MB` |
-| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=625MB` |
-| `17-numerical_methods_tester.py --mode stress --seed 2` | PASS, 10,512,853 C++ checks, `MEMORY peak=768MB` |
-| `02-integration.py` (header alone, `99-all`, two translation units) | PASS, `MEMORY peak=1704MB cap=8192MB` |
-| `03-consistency.py --braces` on the header and tester | PASS |
-
-Maintainer runs 2026-11-03 (`/merge-pr 3`, after its fixes) under `merge_pr.py run 3` (bwrap, memory cap), Intel Core i9-11900H, `g++` 16.2.1, `g++-14` 14.4.1, CPython 3.14.8: `--mode full --seed 1` PASS on both compilers, 3 configurations, 7,094,311 C++ checks, `MEMORY peak=629MB` (`g++`) and `630MB` (`g++-14`).
+| `17-numerical_methods_tester.py --mode quick` | PASS, 2 configurations, 6,702,077 C++ checks, 402 Python quadratics and 62 sums, 40 assertion probes |
+| `17-numerical_methods_tester.py --mode full --seed 1` | PASS, 3 configurations, 7,094,311 C++ checks, 20,002 Python quadratics and 602 sums, `MEMORY peak=629MB` |
+| same with `CXX=g++-14` | PASS, same counts, `MEMORY peak=630MB` |
+| `17-numerical_methods_tester.py --mode stress --seed 2` | PASS, 3 configurations, 10,602,856 C++ checks, `MEMORY peak=782MB` |
+| `02-integration.py --sanitizers` (gate) | PASS, `MEMORY peak=4886MB cap=8192MB` |
+| `03-consistency.py` (gate) | PASS |
 
 ## Benchmarks
 
@@ -245,4 +243,4 @@ No timing benchmark: the contest profile asks for optimal complexity and a direc
 
 - 2026-11-03: P059 implementation; the tester found 2 defects (cubic double roots, iteration counts on an exact zero) and the review 8 (cubic and quadratic range, cubic slack, adaptive Simpson noise floor, bounded misuse, DE at `l = r`, a parameter name, handoffs), all fixed; full suite passed on g++ and g++-14.
 - 2026-11-03: /finish audit, 8 defects fixed (non-monic cubic range, spread-root deflation, Romberg rounding floor, two assertions, sources labeled, wrong figures, duplicates keeps) and 6 from its diff review (near-double vertex fallback, finite step, doc limits), 5 user decisions recorded; full suite passed on g++ and g++-14.
-- 2026-11-03: maintainer review in `/merge-pr 3` found 4 defects, all fixed with regressions that fail on the old header: `simpsonFixed` overflowed `int` at `n = INT_MAX`, `brentRoot` overflowed `c - b` on brackets wider than `DBL_MAX`, `hornerDerivative` did not compile for nested `DualNumber` (`T{}` now), and `finiteDifference` was unbounded under `NDEBUG` for huge `d` (clamped). The user confirmed the decisions recorded as theirs; full suite passed on g++ and g++-14.
+- 2026-11-03: maintainer review in `/merge-pr 3` found 4 defects, all fixed, three with regressions that fail on the old header: `simpsonFixed` overflowed `int` at `n = INT_MAX`, `brentRoot` overflowed `c - b` on brackets wider than `DBL_MAX`, `hornerDerivative` did not compile for nested `DualNumber` (`T{}` now), and `finiteDifference` was unbounded under `NDEBUG` for huge `d` (clamped; checked by inspection, since tests keep `NDEBUG` inputs in the domain). The user confirmed the decisions recorded as theirs; full suite passed on g++ and g++-14.
