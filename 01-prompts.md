@@ -107,7 +107,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P059 — MA09** (opus, L): 05-Mathematics — numerical methods, integer roots.
 - [x] **P251 — SUP20** (opus, M): Mutation testing of the testers.
 - [ ] **P252 — SUP21** (opus, L): Mutation testing in every package. Status: planned.
-- [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: planned.
+- [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: planned. Note: Rerooting, subtreeDp and subtreeMergeDp take a tree-DP contract beyond 00-monoids (merge plus vertex and edge lifts): keep its presets in the owning row and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets.
 - [ ] **P063 — MA14** (opus, L): 05-Mathematics — optimization. Status: planned.
 - [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.
 - [ ] **P073 — MI19, MI20, MI21, MI22, MI33** (opus, M+M+L+L+M): 06-Miscellaneous — meetinthemiddle, digitdp, subset dp, profile dp, interval dp, bracket sequences. Status: planned.
@@ -186,7 +186,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P119 — DS35** (opus, XL): 02-Data Structures — dynamicbitvector. Status: planned.
 - [ ] **P162 — GR45** (opus, XL): 04-Graphs — weightedblossom. Status: planned.
 - [ ] **P112 — DS15** (opus, XL): 02-Data Structures — eulertourtree. Status: planned.
-- [ ] **P113 — DS16** (opus, XL): 02-Data Structures — toptree. Status: planned.
+- [ ] **P113 — DS16** (opus, XL): 02-Data Structures — toptree. Status: planned. Note: StaticTopTree and TopTree take a cluster contract beyond 00-monoids (rake, compress, vertex and edge leaves): keep its presets in row 39 and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets; P175 reuses them.
 - [ ] **P123 — DS42** (opus, XL): 02-Data Structures — pqtree. Status: planned.
 - [ ] **P138 — GE13** (opus, XL): 03-Geometry — halfspaceintersection3d. Status: planned.
 - [ ] **P139 — GE14, GE19, GE20** (opus, L+L+M): 03-Geometry — visibilitygraph, kinetic geometry, geometric duality. Status: planned.
@@ -241,7 +241,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P172 — GR61** (opus, XL): 04-Graphs — grouplabeledshortestpath. Status: planned.
 - [ ] **P173 — GR63, GR64, GR67** (opus, L+L+L): 04-Graphs — rankedmatching, stableroommates, extremevertexsets. Status: planned.
 - [ ] **P174 — GR66** (opus, XL): 04-Graphs — skew symmetric flow. Status: planned.
-- [ ] **P175 — GR68** (opus, XL): 04-Graphs — dynamictreedp. Status: planned.
+- [ ] **P175 — GR68** (opus, XL): 04-Graphs — dynamictreedp. Status: planned. Note: Builds on row 39 StaticTopTree (P113): reuse P113's cluster presets; presets this row adds stay in 84-dynamictreedp.hpp.
 - [ ] **P177 — MA16** (opus, L): 05-Mathematics — dirichlet series. Status: planned.
 - [ ] **P180 — MA18** (opus, XL): 05-Mathematics — integer factor advanced. Status: planned.
 - [ ] **P182 — MA25** (opus, M): 05-Mathematics — special functions. Status: planned.

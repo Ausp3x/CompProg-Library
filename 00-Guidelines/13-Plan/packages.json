@@ -667,7 +667,7 @@
         "02-Data Structures/Docs/16-mergesorttree.md",
         "02-Data Structures/Docs/30-aggregation_queue.md"
       ],
-      "note": ""
+      "note": "Follow-up (user decision 2026-11-03): run another @researcher sweep for BeatsMonoid presets of row 14 LazySegmentTreeBeats beyond RangeAndOrRangeSumMax. Presets need the fail hook, so they stay in 14-segtreebeats.hpp, not 00-monoids. Candidates so far: chmin/chmax/add/assign with sum/min/max as an extensible base (not a new operation, 03-cpp.md one API rule), chmin/add with historic max (Luogu P6242, mirror UOJ 169), gcd-with with sum/max (yukicoder 880), a converging map f with sum/max (CF 920F, CF 1797E, SPOJ GSS4); row 45 (P115) may add a kinetic one. Adopting any revises the P028 omissions in Docs/00-notes.md."
     },
     {
       "id": "P057",
@@ -1185,7 +1185,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Rerooting, subtreeDp and subtreeMergeDp take a tree-DP contract beyond 00-monoids (merge plus vertex and edge lifts): keep its presets in the owning row and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets."
     },
     {
       "id": "P063",
@@ -2182,7 +2182,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "StaticTopTree and TopTree take a cluster contract beyond 00-monoids (rake, compress, vertex and edge leaves): keep its presets in row 39 and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets; P175 reuses them."
     },
     {
       "id": "P123",
@@ -2917,7 +2917,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Builds on row 39 StaticTopTree (P113): reuse P113's cluster presets; presets this row adds stay in 84-dynamictreedp.hpp."
     },
     {
       "id": "P177",
