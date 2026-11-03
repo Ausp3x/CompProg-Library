@@ -106,7 +106,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P032 — DS11, DS27, DS28, DS50** (opus, L+M+L+M): 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis.
 - [x] **P059 — MA09** (opus, L): 05-Mathematics — numerical methods, integer roots.
 - [x] **P251 — SUP20** (opus, M): Mutation testing of the testers.
-- [ ] **P252 — SUP21** (opus, L): Mutation testing in every package. Status: planned.
+- [x] **P252 — SUP21** (opus, L): Mutation testing in every package.
 - [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: planned. Note: Rerooting, subtreeDp and subtreeMergeDp take a tree-DP contract beyond 00-monoids (merge plus vertex and edge lifts): keep its presets in the owning row and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets.
 - [ ] **P063 — MA14** (opus, L): 05-Mathematics — optimization. Status: planned.
 - [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.

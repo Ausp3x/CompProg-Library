@@ -9,7 +9,7 @@ synthetic main checkout holds copies of plan.py, worktree.py, merge_pr.py and _0
 paths (merge_pr.py computes ROOT from its own path), a stub 03-consistency.py printing {"errors": []}, and either the
 real plan (packages.json, batches.json, 01-prompts.md) or a mini plan on which the real `plan.py check` and `doctor`
 pass (two inventories, a stub 98-Team Notebook/05-dependencies.py and 01-run.py). Gate stubs (02-integration.py,
-97-Online Testing/03-workspace.py, two _tester.py files) print their mode, CXX, arguments and cgroup memory.max and
+04-mutation.py, 97-Online Testing/03-workspace.py, two _tester.py files) print their mode, CXX, arguments and cgroup memory.max and
 fail or touch files as a committed gate-control.json says. A fake `gh` (a shell wrapper around a Python script) sits
 with a `git` symlink alone on PATH for `files` and answers `pr view` from a fixture (only the --json fields asked for); the role and the rewrite of
 https://github.com/ to a local bare repository holding refs/pull/<N>/head come from GIT_CONFIG_COUNT, with global and
@@ -81,9 +81,23 @@ without XDG_RUNTIME_DIR and DBUS_SESSION_BUS_ADDRESS, cgroup memory.max and pids
 `--`; run, gates and land refuse before checkout; run leaves the worktree as it was) -> test_sandbox_*, test_run_cli, test_run_cli_mb_after_n, test_run_overlay;
 gates (all PASS with tested/master, gate order, caps and CXX per gate, CXX not leaked, failing gate, failed pre-flight
 skips full runs, one CXX failing, gates and testers writing into the tree still pass and leave it unchanged, a deleted
-tester of the package fails, dirty or unbased worktree refused), suites (found: master's plan at ROOT, changed
-inventory targets, changed testers; deleted: master's testers of the package's targets and changed testers missing from the worktree, renames ignored),
-HEADER, CORE_FULL, mb_of (MAX_MB clamp, non-UTF-8 files) -> test_gates_*, test_suites, test_mb_of.
+tester of the package fails, dirty or unbased worktree refused; mutation records: the headers the pull request adds or
+modifies (<01-07 folder>/<NN>-*.hpp, not 98-/99- aggregates, nested, deleted or master-only ones), sorted, split by the
+oracle o_mutation_gates, per header: loose (`check --existing`) when every subject of the branch commits changing it is a
+/prune or /restyle one (any package id, the subject line only; prune-only, restyle-only, both, multi-line message, a
+maintainer fix of another file) or another package of master's plan lists the header's evidence document and the pull
+request's package does not (another package beside the package's own header, no package, also for a shared document,
+an unknown package), strict (`check`) otherwise (a maintainer fix or another subject on the header, two headers with
+different histories in one pull request, near-miss subjects, empty subjects from empty messages, also under a /restyle
+commit, the package's own document, one it shares with another package, near-miss documents); the strict gate first,
+each only when its group is non-empty, at the default cap whatever the script declares, after the suites and before
+integration; the `none` line when no header changed; a failing check fails the
+gates) -> test_gates_*, test_gates_mutation_records,
+test_gates_mutation_failing, test_gates_mutation_master_only, test_gates_mutation_subjects, test_gates_mutation_owners;
+suites (found: master's plan at ROOT, changed inventory
+targets, changed testers; deleted: master's testers of the package's targets and changed testers missing from the worktree, renames ignored),
+HEADER, MUTATED (equal to 04-mutation.py HEADER), MECHANICAL, CORE_FULL, mb_of (MAX_MB clamp, non-UTF-8 files) -> test_gates_*,
+test_suites, test_mb_of.
 """
 import argparse
 import copy
@@ -323,6 +337,39 @@ def o_header(p):
         n[:1] == '_' and n[1:3].isdigit() and n[3:4] == '_' and n.endswith('.py') and len(n) > 7)
 
 
+def o_mutated(p):
+    """A header that carries a mutation record: <01-07 folder>/<NN>-<name>.hpp, not a 98- or 99- aggregate."""
+    parts = p.split('/')
+    return (len(parts) == 2 and o_numbered(parts[0]) and parts[0][1] in '1234567' and parts[1][:2].isdigit() and parts[1][2:3] == '-'
+            and parts[1][:2] not in ('98', '99') and parts[1].endswith('.hpp') and len(parts[1]) > 7)
+
+
+def o_mechanical(subject):
+    """The subject of a /prune or /restyle commit: P<three ASCII digits>: prune duplicates|restyle, nothing around it."""
+    head, sep, rest = subject.partition(': ')
+    return bool(sep) and len(head) == 4 and head[0] == 'P' and all(c in '0123456789' for c in head[1:]) and rest in ('prune duplicates', 'restyle')
+
+
+def o_mutation_gates(plan_packages, package, subjects, headers):
+    """The mutation records gates as (name, 04-mutation.py arguments) in run order. subjects maps each header to the
+    subjects of the branch commits that change it. A header is loose (existing records only) when each of those is a
+    /prune or /restyle subject (no commit counts as one empty subject), or when some package of master's plan lists its
+    evidence document <folder>/Docs/<stem>.md and the pull request's package is not among them; the rest are strict.
+    A group with no header has no gate."""
+    def mechanical(h):
+        return not [x for x in (subjects.get(h) or ['']) if not o_mechanical(x)]
+
+    def foreign(h):
+        folder, name = h.split('/')
+        doc = folder + '/Docs/' + name[:-len('.hpp')] + '.md'
+        owners = {e['id'] for e in plan_packages['packages'] if doc in e['evidence']}
+        return len(owners) > 0 and package not in owners
+    loose = [h for h in headers if mechanical(h) or foreign(h)]
+    strict = [h for h in headers if h not in loose]
+    return [(name, ['check', *flag, *group]) for name, flag, group in
+            (('mutation records', [], strict), ('mutation records (existing only)', ['--existing'], loose)) if group]
+
+
 def o_core_full(p):
     parts = p.split('/')
     return len(parts) == 2 and parts[0] == '01-Core' and parts[1][:2].isdigit() and parts[1][2:3] == '-' and parts[1].endswith('.hpp') \
@@ -501,6 +548,7 @@ sys.exit(3 if {NAME, NAME + ':' + MODE, NAME + ':' + MODE + ':' + cxx} & set(ctl
 '''
 GATE_STUBS = {'96-Local Testing/02-integration.py': ('integration', '_00_memory_cap.ensure(mb=6144)'),
               '97-Online Testing/03-workspace.py': ('workspace', ''),
+              '96-Local Testing/04-mutation.py': ('mutation', '_00_memory_cap.ensure(mb=8192)'),
               '96-Local Testing/01-Core/01-x_tester.py': ('x', '_00_memory_cap.ensure(force=True, mb=99999)')}
 D_TESTER = '96-Local Testing/02-Data Structures/01-d_tester.py'
 X_TESTER = '96-Local Testing/01-Core/01-x_tester.py'
@@ -2140,6 +2188,16 @@ class Gates(Base):
         got = sorted((g['name'], g['mode'], g['cxx'], int(g['mem']), g['args']) for g in runs)
         self.assertEqual(got, sorted(want), info)
         self.assertEqual(git(self.wt, 'status', '--porcelain'), '', info)
+        self.no_mutation(r, info)
+
+    NONE = 'mutation records: none (no changed header)'
+
+    def no_mutation(self, r, info):
+        """The pull request changes no library header: the `none` line once, after the suite gates, before integration."""
+        lines = r.stdout.splitlines()
+        self.assertEqual(lines.count(self.NONE), 1, info)
+        at, suite = lines.index(self.NONE), [k for k, l in enumerate(lines) if '_tester.py' in l]
+        self.assertTrue(lines[at + 1].startswith(('PASS integration sanitizers', 'FAIL integration sanitizers')) and all(k < at for k in suite), info)
 
     def expect_fail(self, r, result, failed, info):
         self.assertEqual(r.returncode, 1, info)
@@ -2156,6 +2214,7 @@ class Gates(Base):
         info = self.info(stdout=r.stdout, stderr=r.stderr)
         self.expect_fail(r, result, ['integration sanitizers'], info)
         self.assertEqual(len(result), 8, info)
+        self.no_mutation(r, info)
 
     def test_gates_quick_preflight(self):
         self.control({'fail': ['d:quick']})
@@ -2203,6 +2262,177 @@ class Gates(Base):
         self.assertIn(f'FAIL {X_TESTER}: the pull request deletes a tester of its package', r.stdout.splitlines(), info)
         self.assertIn('suites: 01-d_tester.py', r.stdout.splitlines(), info)
         self.assertEqual(len(result), 8, info)
+        self.no_mutation(r, info)
+
+    MASTER_HEADERS = {'02-Data Structures/05-x.hpp': '#pragma once\n', '04-Graphs/03-gone.hpp': '#pragma once\n',
+                      '02-Data Structures/98-basic.hpp': '#pragma once\n', '05-Mathematics/02-kept.hpp': '#pragma once\n',
+                      **{f'{d}/00-index.md': '# Inventory\n' for d in ('03-Geometry', '04-Graphs', '05-Mathematics', '06-Miscellaneous')}}
+
+    def header_pr(self):
+        """Master gains four headers (and inventories for plan.py); the pull request, rebased on it, modifies one and an aggregate, adds three (one nested,
+        one 99- aggregate) and deletes one. Returns the headers 04-mutation.py check must get, by the oracle o_mutated."""
+        for rel, text in self.MASTER_HEADERS.items():
+            write(self.main, rel, text)
+        commit(self.main, 'master headers')
+        git(self.wt, 'rebase', '-q', 'master')
+        edits = {'02-Data Structures/05-x.hpp': '#pragma once\n// pr\n', '03-Geometry/07-y.hpp': '#pragma once\n',
+                 '02-Data Structures/98-basic.hpp': '#pragma once\n#include "05-x.hpp"\n', '03-Geometry/99-all.hpp': '#pragma once\n',
+                 '03-Geometry/Docs/07-y.hpp': '#pragma once\n'}
+        for rel, text in edits.items():
+            write(self.wt, rel, text)
+        (self.wt / '04-Graphs/03-gone.hpp').unlink()
+        commit(self.wt, 'pr headers')
+        want = sorted(p for p in edits if o_mutated(p))
+        self.assertEqual(want, ['02-Data Structures/05-x.hpp', '03-Geometry/07-y.hpp'])
+        return want
+
+    def expect_mutation(self, r, result, runs, want, info, status='PASS'):
+        """The mutation records gates want ((name, args) in run order), each once with status, right after the last suite
+        gate and before integration, every one at the default cap (the stub declares mb=8192, which a gate must not take)."""
+        names = [n for _, n in result]
+        self.assertEqual([(s, n) for s, n in result if n.startswith('mutation records')], [(status, n) for n, _ in want], info)
+        at = names.index(want[0][0])
+        self.assertEqual(names[at:at + len(want) + 1], [n for n, _ in want] + ['integration sanitizers'], info)
+        self.assertTrue(all('_tester.py' not in n for n in names[at:]) and '_tester.py' in names[at - 1], info)
+        self.assertNotIn(self.NONE, r.stdout, info)
+        mine = sorted((g['mode'], g['cxx'], int(g['mem']), g['args']) for g in runs if g['name'] == 'mutation')
+        self.assertEqual(mine, sorted(('-', 'None', self.caps()[0], args) for _, args in want), info)
+
+    def test_gates_mutation_records(self):
+        want = self.header_pr()
+        self.state('P001')
+        r, result, runs = self.gates()
+        info = self.info(stdout=r.stdout, stderr=r.stderr)
+        suites = [X_TESTER, D_TESTER]
+        names = ['consistency', 'plan check', 'plan doctor', *(f'{s} {k}' for s in suites for k in ('quick', 'full g++', 'full g++-14')),
+                 'mutation records', 'integration sanitizers', 'workspace check']
+        self.assertEqual((r.returncode, result), (0, [('PASS', n) for n in names]), info)
+        gates = o_mutation_gates(MINI_PACKAGES, 'P001', {h: ['pr headers'] for h in want}, want)
+        self.assertEqual(gates, [('mutation records', ['check', *want])], info)
+        self.expect_mutation(r, result, runs, gates, info)
+        self.assertTrue(json.loads(self.state_file().read_text())['passed'], info)
+
+    def test_gates_mutation_failing(self):
+        want = self.header_pr()
+        self.control({'fail': ['mutation']})
+        self.state(None)
+        r, result, runs = self.gates()
+        info = self.info(stdout=r.stdout, stderr=r.stderr)
+        self.expect_fail(r, result, ['mutation records'], info)
+        self.expect_mutation(r, result, runs, [('mutation records', ['check', *want])], info, 'FAIL')  # no package, no evidence: strict
+        self.assertEqual(result[-2:], [('PASS', 'integration sanitizers'), ('PASS', 'workspace check')], info)
+
+    def test_gates_mutation_master_only(self):
+        """Headers master adds or changes after the branch point, the pull request rebased on it: not the pull request's."""
+        for rel, text in self.MASTER_HEADERS.items():
+            write(self.main, rel, text)
+        commit(self.main, 'master headers')
+        git(self.wt, 'rebase', '-q', 'master')
+        write(self.main, '02-Data Structures/05-x.hpp', '#pragma once\n// master\n')
+        write(self.main, '06-Miscellaneous/04-m.hpp', '#pragma once\n')
+        commit(self.main, 'master changes headers')
+        git(self.wt, 'rebase', '-q', 'master')
+        self.state(None)
+        r, result, runs = self.gates()
+        info = self.info(stdout=r.stdout, stderr=r.stderr)
+        self.assertEqual((r.returncode, [n for _, n in result if n.startswith('mutation records')]), (0, []), info)
+        self.no_mutation(r, info)
+        write(self.wt, '05-Mathematics/02-kept.hpp', '#pragma once\n// pr\n')
+        commit(self.wt, 'pr changes one header')
+        self.state(None)
+        r, result, runs = self.gates()
+        info = self.info(stdout=r.stdout, stderr=r.stderr)
+        self.assertEqual(r.returncode, 0, info)
+        self.expect_mutation(r, result, runs, [('mutation records', ['check', '05-Mathematics/02-kept.hpp'])], info)
+
+    def history(self, commits):
+        """Rewrites the pull request over master: the tester commit, then one commit per (message, paths), each path
+        rewritten (an empty message allowed, no path an empty commit). Returns {path: subjects of the commits changing
+        it, newest first}, checked against the raw git log -- path (unstripped: empty subjects are lines too)."""
+        git(self.wt, 'reset', '-q', '--hard', 'master')
+        write(self.wt, D_TESTER, gate_stub('d', ''))
+        commit(self.wt, 'pr adds a tester')
+        for k, (message, paths) in enumerate(commits):
+            for path in paths:
+                write(self.wt, path, f'#pragma once\n// commit {k}\n')
+            git(self.wt, 'add', '-A')
+            git(self.wt, 'commit', '-q', '--allow-empty', '--allow-empty-message', '-m', message)
+        subjects = {}
+        for message, paths in reversed(commits):
+            for path in paths:
+                subjects.setdefault(path, []).append(message.split('\n')[0])
+        for path, want in subjects.items():
+            log = git(self.wt, 'log', '--format=%s', 'master..HEAD', '--', path, check=False).stdout
+            self.assertEqual(log.split('\n')[:-1], want, path)  # fixture sanity
+        return subjects
+
+    def set_evidence(self, owners):
+        """Master's plan with the evidence lists owners ({package: [paths]}, each path written), rendered and committed, the
+        pull request rebased on it. Returns the plan."""
+        pk = copy.deepcopy(MINI_PACKAGES)
+        for e in pk['packages']:
+            e['evidence'] = owners.get(e['id'], [])
+            for path in e['evidence']:
+                write(self.main, path, 'evidence\n')
+        save_packages(self.main, pk)
+        plan_cmd(self.main, 'render')
+        if git(self.main, 'status', '--porcelain'):
+            commit(self.main, 'master: evidence')
+        git(self.wt, 'rebase', '-q', 'master')
+        return pk
+
+    def run_mutation_case(self, case, pk, package, subjects, want, expect):
+        """Gates on the pull request as it stands; the gates must be the oracle's, which must be expect (fixture sanity)."""
+        self.state(package)
+        r, result, runs = self.gates()
+        info = self.info(case=case, stdout=r.stdout, stderr=r.stderr)
+        gates = o_mutation_gates(pk, package, subjects, want)
+        self.assertEqual(gates, expect, info)
+        self.assertEqual(r.returncode, 0, info)
+        self.expect_mutation(r, result, runs, gates, info)
+
+    def test_gates_mutation_subjects(self):
+        """Per header: a header that only /prune or /restyle commits change (any package's id, the subject line only) keeps
+        existing records only, whatever other commits change other files; one other subject on it, a near miss or an empty
+        subject (an empty message, also under a /restyle commit) makes it strict."""
+        self.header_pr()
+        x, y = '02-Data Structures/05-x.hpp', '03-Geometry/07-y.hpp'  # x modified (master has it), y added
+        prune, fix = 'P001: prune duplicates', 'P059: maintainer fixes from /merge-pr 3'
+        strict, loose = [('mutation records', ['check', x, y])], [('mutation records (existing only)', ['check', '--existing', x, y])]
+        cases = (([(prune, [x, y])], loose),
+                 ([(prune, [x]), ('P250: prune duplicates', [x, y])], loose),
+                 ([('P001: restyle\n\nMoves contract comments into the evidence document.', [x, y])], loose),
+                 ([('P030: restyle', [x, y]), (prune, [y])], loose),
+                 ([(prune, [x, y]), (fix, ['notes.txt'])], loose),  # a maintainer fix of another file
+                 ([(prune, [x, y]), (fix, [x, y])], strict),  # a maintainer fix of the headers
+                 ([(prune, [x, y]), ('P001: fix review findings', [y])],
+                  [('mutation records', ['check', y]), ('mutation records (existing only)', ['check', '--existing', x])]),  # two histories
+                 ([('P001: restyle the docs', [x, y])], strict), ([('P01: prune duplicates', [x, y])], strict),
+                 ([('', [x, y])], strict), ([('', [x, y]), ('', [])], strict), ([('', [x, y]), ('P001: restyle', [x, y])], strict))
+        for commits, expect in cases:
+            subjects = self.history(commits)
+            self.run_mutation_case(commits, MINI_PACKAGES, 'P001', subjects, [x, y], expect)
+
+    def test_gates_mutation_owners(self):
+        """Ordinary subjects: a header whose evidence document another package of master's plan lists, and the pull
+        request's package does not, keeps existing records only (no package or one the plan lacks: every package is
+        another), the rest are strict; strict gate first."""
+        want = self.header_pr()
+        x, y = want  # 02-Data Structures/05-x.hpp, 03-Geometry/07-y.hpp
+        x_doc, y_doc = '02-Data Structures/Docs/05-x.md', '03-Geometry/Docs/07-y.md'
+        subjects = {h: ['pr headers'] for h in want}
+        both = [('mutation records', ['check', y]), ('mutation records (existing only)', ['check', '--existing', x])]
+        cases = (('P001', {'P030': [x_doc]}, both),  # another package's header beside the package's own
+                 ('P001', {'P001': [x_doc, y_doc]}, [('mutation records', ['check', x, y])]),  # the package's own
+                 ('P001', {'P001': [x_doc], 'P030': [x_doc]}, [('mutation records', ['check', x, y])]),  # shared: still the package's own
+                 (None, {'P001': [x_doc], 'P030': [x_doc]}, both),  # shared, no package
+                 ('P001', {'P030': ['04-Graphs/Docs/05-x.md', '02-Data Structures/Docs/05-y.md', '02-Data Structures/05-x.md']},
+                  [('mutation records', ['check', x, y])]),  # owned by no package: near misses only
+                 (None, {'P001': [x_doc]}, both),
+                 ('P999', {'P030': [x_doc], 'P250': [y_doc]}, [('mutation records (existing only)', ['check', '--existing', x, y])]))
+        for package, owners, expect in cases:
+            pk = self.set_evidence(owners)
+            self.run_mutation_case((package, owners), pk, package, subjects, want, expect)
 
     def test_run_overlay(self):
         self.state()
@@ -2315,6 +2545,16 @@ class Gates(Base):
         for p in ('01-Core/x.hpp', '01-Core/1-x.hpp', '09-x/01-a.hpp', '01-Core/Docs/01-x.hpp', '07-Strings/_4_s.py', '07-Strings/04-s.py',
                   '01-Core/01-x.hpp.bak'):
             self.assertFalse(o_header(p) or MP.HEADER.fullmatch(p), p)
+        for p in ('01-Core/01-x.hpp', '07-Strings/12-a-b.hpp', '02-Data Structures/97-x.hpp', '01-Core/98-x.hpp', '03-Geometry/99-all.hpp',
+                  '08-Python/01-x.hpp', '09-x/01-a.hpp', '01-Core/Docs/01-x.hpp', '01-Core/1-x.hpp', '01-Core/01-.hpp', '07-Strings/_04_s.py'):
+            self.assertEqual(o_mutated(p), bool(MP.MUTATED.fullmatch(p)), p)
+        mutation = load(ROOT / '96-Local Testing/04-mutation.py', 'merge_tester_mutation')
+        self.assertEqual(MP.MUTATED.pattern, mutation.HEADER.pattern, 'merge_pr.MUTATED must stay 04-mutation.py HEADER')
+        for subject in ('P001: prune duplicates', 'P252: restyle', 'P999: restyle', 'P001: restyle ', ' P001: restyle', 'P001: Restyle',
+                        'P001: prune', 'P001:restyle', 'P0001: restyle', 'P01: restyle', 'p001: restyle', 'Pabc: restyle', 'P001: restyle\nx',
+                        'P001: prune duplicates; restyle', 'P001: restyle: restyle', ''):
+            self.assertEqual(o_mechanical(subject), bool(MP.MECHANICAL.fullmatch(subject)), repr(subject))
+        self.assertEqual([o_mechanical(s) for s in ('P001: prune duplicates', 'P252: restyle', 'P001: restyle ', '')], [True, True, False, False])
         for p, core in (('01-Core/01-x.hpp', True), ('01-Core/06-modintmini.hpp', False), ('01-Core/Docs/01-x.hpp', False),
                         ('02-Data Structures/01-d.hpp', False), ('01-Core/17-polymini2.hpp', False), ('01-Core/x.hpp', False)):
             self.assertEqual((o_core_full(p), bool(MP.CORE_FULL.fullmatch(p))), (core, core), p)

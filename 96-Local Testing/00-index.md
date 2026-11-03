@@ -17,6 +17,7 @@ python3 '96-Local Testing/02-integration.py' --sanitizers         # header-alone
 python3 '96-Local Testing/01-run.py' --mode full -j 1             # one suite at a time, live output (same for 02-integration.py -j 1)
 python3 '96-Local Testing/03-consistency.py'                      # records, links, plan, brace and comment rules
 python3 '96-Local Testing/03-consistency.py' --braces <files>     # brace rule and comment cap for arbitrary files
+python3 '96-Local Testing/04-mutation.py' run <header>            # mutation campaign (05-testing.md, Mutation testing); check <header>... compares records, install fetches mewt
 python3 '96-Local Testing/_00_memory_cap.py' [--mb N] -- <cmd>    # run any other program memory-capped
 python3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/02-online_tester.py'
@@ -28,6 +29,7 @@ python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/08-plan_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/09-setup_tester.py' --mode full    # setup_check.py and the x86 target gate
 python3 '96-Local Testing/00-Tools/10-merge_tester.py' --mode full    # /merge-pr and worktree.py's packages.json merge
+python3 '96-Local Testing/00-Tools/11-mutation_tester.py' --mode full # 04-mutation.py
 python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Checker fetch, reproduce and compare (/speed-sweep)
 ```
 
@@ -48,8 +50,9 @@ python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Che
 | `01-run.py` | Suite discovery, modes, `QUICK` registration set, parallel memory-bounded jobs; `.run-stats.json` (git-ignored) keeps each suite's last peak and runtime for scheduling |
 | `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds as parallel jobs, through `ccache` when installed |
 | `03-consistency.py` | Repository record and style validator; imports `plan.py check` |
-| `Docs/` | Support-pass evidence ([00-memory-safety.md](Docs/00-memory-safety.md), P231; [00-parallel.md](Docs/00-parallel.md), P247; [00-judge.md](Docs/00-judge.md), the judge tool; [00-mutation.md](Docs/00-mutation.md), P251) |
-| `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, the notebook, the header dependency graph, the parallel runner, the documentation site, the judge tool and the plan's roles and claims |
+| `04-mutation.py` | Mutation campaigns with the pinned mewt in scratch shards, record checks for `/finish` and `/merge-pr`, mewt install ([00-mutation.md](Docs/00-mutation.md)) |
+| `Docs/` | Support-pass evidence ([00-memory-safety.md](Docs/00-memory-safety.md), P231; [00-parallel.md](Docs/00-parallel.md), P247; [00-judge.md](Docs/00-judge.md), the judge tool; [00-mutation.md](Docs/00-mutation.md), P251 and P252) |
+| `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, the notebook, the header dependency graph, the parallel runner, the documentation site, the judge tool, the plan's roles and claims, `/merge-pr` and `04-mutation.py` |
 | `00-Tools/07-judge.py` | Library Checker tool for `/speed-sweep`: fastest distinct submissions, sources and per-case times, test regeneration and judge-flag reproduction, per-case comparison; cache `.judge-cache/` (git-ignored) |
 | `01-Core/` … `07-Strings/` | Per-header testers, helper `.cpp` files and benchmark drivers |
 

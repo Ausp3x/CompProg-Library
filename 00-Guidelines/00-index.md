@@ -8,7 +8,7 @@ Rules `01`–`08` are loaded by Claude Code automatically through `.claude/rules
 | [02-structure](02-structure.md) | inventories, evidence documents, aggregates, plan | Layout, naming, stable prefixes, tiers, aggregates, inventory row format, archive |
 | [03-cpp](03-cpp.md) | `.hpp`, `.cpp`, C++ test scripts | Toolchain and judges, headers, types, contracts, one API per operation, style, comments, complexity comments |
 | [04-python](04-python.md) | `08-Python` | Baseline, PyPy idioms, style, contracts |
-| [05-testing](05-testing.md) | `96-Local Testing` | Suites, modes, memory safety, oracles, case classes, builds, benchmarks |
+| [05-testing](05-testing.md) | `96-Local Testing` | Suites, modes, memory safety, oracles, case classes, builds, mutation testing, benchmarks |
 | [06-online](06-online.md) | `97-Online Testing`, `99-Workspace` | Judge sources, expander, generated workspace template |
 | [07-notebook](07-notebook.md) | `98-Team Notebook` | Notebook selection, rendering, notes |
 | [08-contest-tools](08-contest-tools.md) | `09-Contest Testing` | Stress, interactive, scored and shrinking tools |

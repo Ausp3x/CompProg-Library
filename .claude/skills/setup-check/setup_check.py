@@ -24,6 +24,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 Tool = collections.namedtuple('Tool', 'name need exes floor ubuntu arch')
+MUTATION = '96-Local Testing/04-mutation.py'  # pins and installs mewt (AGPL-3.0, outside the repository)
 TOOLS = [  # need: None when required, else the optional feature; exes: alternatives, the first found is used
     Tool('GCC 16', None, ('g++',), (16,), 'g++-16 && mkdir -p ~/.local/bin && ln -sf /usr/bin/g++-16 ~/.local/bin/g++', 'gcc'),
     Tool('GCC 14', None, ('g++-14',), (14,), 'g++-14', 'AUR: gcc14 gcc14-libs'),
@@ -35,6 +36,7 @@ TOOLS = [  # need: None when required, else the optional feature; exes: alternat
     Tool('systemd user manager', None, ('systemd-run',), None, 'systemd', 'systemd'),
     Tool('lscpu', None, ('lscpu',), None, 'util-linux', 'util-linux'),
     Tool('GitHub CLI', None, ('gh',), None, 'gh', 'github-cli'),
+    Tool('mewt', None, ('mewt',), None, f'python3 && python3 {MUTATION!r} install', f'python && python3 {MUTATION!r} install'),  # verifying a package that changes a header needs a campaign (05-testing.md)
     Tool('LuaLaTeX', 'notebook PDF', ('lualatex',), None, 'texlive-luatex texlive-latex-recommended',
          'texlive-luatex texlive-latexrecommended'),
     Tool('kpathsea', 'notebook PDF', ('kpsewhich',), None, 'texlive-binaries', 'texlive-bin'),
@@ -111,6 +113,10 @@ def probe(tool, exe):
                           'cat "/sys/fs/cgroup$(sed -n "s/^0:://p" /proc/self/cgroup)/memory.max"'])
         return [] if text == str(64 << 20) else [f'no memory-capped user scope ({text or code}): enable a systemd user '
                                                  'session with cgroup v2 and the memory controller delegated']
+    if exe == 'mewt':  # pinned exactly: the version the evidence records were made with
+        mutation = module('setup_mutation', MUTATION)
+        have = mutation.mewt_version()
+        return [] if have == mutation.MEWT_VERSION else [f"mewt {have or 'of unknown version'}, needs exactly {mutation.MEWT_VERSION}"]
     if exe == 'gh':
         return [] if out(['gh', 'auth', 'status'])[0] == 0 else ['not logged in: gh auth login']
     if exe == 'bwrap':  # /merge-pr runs every gate on an overlay of the worktree, its layers under /var/tmp

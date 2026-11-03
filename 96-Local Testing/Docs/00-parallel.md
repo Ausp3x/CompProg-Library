@@ -60,6 +60,11 @@ The tester is [`00-Tools/05-runner_tester.py`](../00-Tools/05-runner_tester.py).
 | A signal held during the stop for a rerun is raised afterwards, and the rerun never starts | `test_signal_held_during_restart_stop` |
 | SIGHUP inherited as ignored (`nohup`) stays ignored | `test_nohup_keeps_sighup_ignored` |
 | Real capped suites (`ensure()`): pre-flight under the runner, peaks learned from real `MEMORY` lines; SIGTERM lets a 1 s cleanup finish in each scope (explicit SKIP without systemd scopes) | `test_real_scope` |
+| `supervise()` forwards SIGTERM and SIGHUP sent to the supervisor pid alone to the capped child in a real scope: the child's own status is returned and its pid is gone; the capped child is the supervisor's own child, because `systemd-run --scope` execs the command (explicit SKIP without systemd scopes) | `test_forward_sigterm`, `test_forward_sighup` |
+| The same for the pre-flight quick run, whose failure skips the full run | `test_forward_preflight` |
+| The same through the ad-hoc CLI (`_00_memory_cap.py -- <command>`), whose scope runs a reporter that forwards to the command: the command's status is returned, and neither the reporter nor the command is left behind | `test_forward_cli` |
+| SIGHUP inherited as ignored (`nohup`) is not forwarded, and the child finishes normally | `test_forward_nohup_keeps_sighup_ignored` |
+| `forwarding()` restores the previous SIGTERM and SIGHUP handlers and captures piped output | `test_forwarding_restores_handlers` |
 | `parallel()`: weight budget, oversized task alone, command lists in order with timeouts | `test_parallel_budget` |
 | `parallel()`: light tasks fill the budget beside heavy ones | `test_parallel_fills_budget` |
 | `parallel()`: nothing starts after an interrupt | `test_parallel_interrupt` |

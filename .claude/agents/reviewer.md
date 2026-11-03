@@ -15,6 +15,7 @@ Procedure:
 3. Completeness: every operation named in the inventory row exists with the documented domain; every operation has a test with an independent oracle in the feature-to-test map.
 4. Duplicates: report every wrapper or second implementation (`00-Guidelines/03-cpp.md`, One API per operation) as a finding, including ones the row lists, unless `00-Guidelines/23-Sweep Ledgers/duplicates.md` records it as kept.
 5. Rules: `00-Guidelines/03-cpp.md` or `04-python.md` and `05-testing.md` load when you open the files. Check the closing-brace rule, naming vocabulary, the `std::` qualification list, complexity comments, judge portability, aggregate inclusion and `#pragma once` with direct includes.
-6. Run the tester in quick mode and, if it takes under two minutes, full mode. Run `python3 '96-Local Testing/03-consistency.py'`.
+6. Mutation record (`00-Guidelines/05-testing.md`, Mutation testing): `python3 '96-Local Testing/04-mutation.py' check <header>` passes for every header the package added or changed, and its scope and sample follow the rule. Re-check every equivalent-mutant claim: apply the mutant to a copy of the header under `/tmp` and try to construct an input that tells it apart from the original; one that does is a finding (a test gap), as is an argument that leans on unspecified state without a user decision.
+7. Run the tester in quick mode and, if it takes under two minutes, full mode. Run `python3 '96-Local Testing/03-consistency.py'`.
 
 Report findings ordered by severity, each with file and line, a concrete failing input or rule quote, and the fix, in at most three lines; then one line naming the checks that passed. Add nothing else: no narrative, no file contents, no test logs. Do not edit any file.

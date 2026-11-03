@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Checks for the parallel suite runner 01-run.py and the build pool parallel() of 02-integration.py.
+"""Checks for the parallel suite runner 01-run.py, the build pool parallel() of 02-integration.py and the signal
+forwarding of _00_memory_cap.supervise().
 
 Fake suites are tiny Python scripts that sleep fractions of a second and record in a shared fixture directory (RT_DIR)
 their start and end instants (time.monotonic, system-wide), pid, mode, seed and environment, holding a 'busy' marker
 while they live; a flaky suite fails iff it sees another marker. 01-run.py runs from a copy in the fixture, so it
 discovers only the fake suites and keeps its .run-stats.json there.
-quick: output identity at -j 1 and -j 4, first-failure status, rerun alone, the jobs bound, parallel() budget and rerun.
-full: every test, including signals, real capped scopes, integration main() on a small fake repository and 2
+quick: output identity at -j 1 and -j 4, first-failure status, rerun alone, the jobs bound, parallel() budget and rerun,
+forwarding() handler restore.
+full: every test, including signals, real capped scopes, SIGTERM/SIGHUP sent to a supervisor pid alone (main run and
+pre-flight, and to the ad-hoc CLI's supervisor, each in a real scope; explicit SKIP without one), integration main() on a small fake repository and 2
 seeded random runs.
 stress: full with --rounds seeded random runs (default 6) of random suite counts, sleeps, failures, jobs and budgets.
 Oracles: the expected log rebuilt from the suite parameters (RUN lines in rounds x sorted-path order, each suite's known
@@ -41,7 +44,7 @@ _00_memory_cap.ensure()
 LT = Path(__file__).resolve().parents[1]
 MODE, SEED, ROUNDS = 'full', 42, 6
 QUICK = {'test_order_identity', 'test_first_failure_status', 'test_retry_alone', 'test_jobs_bound',
-         'test_parallel_budget', 'test_parallel_rerun_alone'}
+         'test_parallel_budget', 'test_parallel_rerun_alone', 'test_forwarding_restores_handlers'}
 SUITE = r'''import json, os, signal, sys, time
 d, env = os.environ['RT_DIR'], os.environ
 if P.get('deaf'): signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -71,6 +74,20 @@ finally:
     with open(f"{d}/{me}.end", 'w') as f: json.dump(dict(t1=t1, code=code), f)
 open(f"{d}/{P['name']}.done", 'w').close()
 sys.exit(code)
+'''
+SIG = r'''import json, os, signal, sys, time
+sys.path.insert(0, os.environ['RT_LT'])
+import _00_memory_cap
+_00_memory_cap.ensure()
+d, mode = os.environ['RT_DIR'], sys.argv[sys.argv.index('--mode') + 1]
+def stop(sig, _):
+    open(f"{d}/{mode}.sig", 'w').write(str(sig))
+    sys.exit(40 + sig)
+for s in (signal.SIGTERM, signal.SIGHUP): signal.signal(s, stop)  # also probes SIGHUP inherited as ignored
+with open(f"{d}/tmp", 'w') as f: json.dump(dict(pid=os.getpid(), ppid=os.getppid()), f)
+os.replace(f"{d}/tmp", f"{d}/{mode}.start")
+time.sleep(float(os.environ['RT_SLEEP']))
+open(f"{d}/{mode}.end", 'w').close()
 '''
 spec = importlib.util.spec_from_file_location('integration_under_test', LT / '02-integration.py')
 INTEGRATION = importlib.util.module_from_spec(spec)
@@ -513,6 +530,96 @@ class Integration(Base):
             INTEGRATION.parallel([(1, [self.cmd('d')]), (1, [([str(self.root / 'missing')],)])], 2, 100)
 
 
+class Forward(Base):
+    """supervise() and the CLI reporter pass SIGTERM and SIGHUP sent to the supervisor pid alone on to the capped command."""
+
+    def start(self, mode, sleep=60, hup=signal.SIG_DFL, cli=False):
+        """The supervisor of sig_tester.py: its own ensure(), or with cli the ad-hoc CLI, whose scope runs a reporter."""
+        if not _00_memory_cap.available(): self.skipTest('SKIP: no systemd user scope')
+        (self.root / 'sig_tester.py').write_text(SIG)
+        for x in self.root.glob('quick.*'): x.unlink()
+        env = {k: v for k, v in os.environ.items() if not k.startswith('CP_TEST_') and k != 'CP_MEMORY_CAPPED'} | dict(
+            RT_DIR=str(self.root), RT_LT=str(LT), RT_SLEEP=str(sleep), CP_TEST_MEMORY_MB='256', CP_TEST_PREFLIGHT_MB='256')
+        cmd = [sys.executable, self.root / 'sig_tester.py', '--mode', mode]
+        with open(self.root / 'out', 'w') as out, open(self.root / 'err', 'w') as err:  # files: an orphan holding a pipe would block
+            proc = subprocess.Popen([sys.executable, LT / '_00_memory_cap.py', '--mb', '256', '--'] * cli + cmd, env=env,
+                                    stdout=out, stderr=err, start_new_session=True,
+                                    preexec_fn=lambda: signal.signal(signal.SIGHUP, hup))
+        self.addCleanup(self.reap, proc.pid)
+        start, deadline = self.root / 'quick.start', time.monotonic() + 30
+        while not start.exists() and time.monotonic() < deadline and proc.poll() is None: time.sleep(0.02)
+        self.assertTrue(start.exists(), f'fixture premise: the capped child started; exit {proc.poll()}')
+        rec = json.loads(start.read_text())
+        scoped = int(Path(f"/proc/{rec['ppid']}/stat").read_text().rsplit(')', 1)[1].split()[1]) if cli else rec['ppid']
+        self.assertEqual(scoped, proc.pid, 'systemd-run --scope execs the command, so the capped process is the supervisor\'s own child')
+        return proc, rec
+
+    def reap(self, group):
+        """SIGKILL whatever is left of the supervisor's group, an orphaned child included."""
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(group, signal.SIGKILL)
+
+    def stopped(self, mode, sig, cli=False):
+        """Send sig to the supervisor pid alone; the child records it, exits 40 + sig, and nothing is left behind."""
+        proc, rec = self.start(mode, cli=cli)
+        os.kill(proc.pid, sig)
+        proc.wait(30)
+        err = (self.root / 'err').read_text()
+        ctx = f"{mode} {sig!r}: stdout {(self.root / 'out').read_text()!r} stderr {err!r}"
+        self.assertEqual(proc.returncode, 40 + sig, f"{ctx}: the child's status, not the supervisor's own death")
+        self.assertEqual((self.root / 'quick.sig').read_text(), str(int(sig)), ctx)
+        for pid in rec['pid'], rec['ppid']:
+            self.assertRaises(ProcessLookupError, os.kill, pid, 0)
+        return err
+
+    def test_forward_sigterm(self):
+        self.stopped('quick', signal.SIGTERM)
+
+    def test_forward_sighup(self):
+        self.stopped('quick', signal.SIGHUP)
+
+    def test_forward_cli(self):
+        for sig in signal.SIGTERM, signal.SIGHUP:
+            with self.subTest(sig=sig):
+                self.stopped('quick', sig, cli=True)
+
+    def test_forward_preflight(self):
+        for sig in signal.SIGTERM, signal.SIGHUP:
+            with self.subTest(sig=sig):
+                err = self.stopped('full', sig)
+                self.assertIn('FAIL sig_tester.py: pre-flight quick run failed', err)
+                self.assertIn('full run skipped', err)
+                self.assertFalse((self.root / 'full.start').exists(), 'the full run never starts')
+
+    def test_forward_nohup_keeps_sighup_ignored(self):
+        proc, rec = self.start('quick', sleep=2, hup=signal.SIG_IGN)
+        os.kill(proc.pid, signal.SIGHUP)
+        self.assertEqual(proc.wait(30), 0, (self.root / 'err').read_text())
+        self.assertEqual(((self.root / 'quick.sig').exists(), (self.root / 'quick.end').exists()), (False, True),
+                         'SIGHUP not forwarded; the child finished normally')
+
+    def test_forwarding_restores_handlers(self):
+        mine = lambda *_: None
+        saved = {s: signal.signal(s, h) for s, h in ((signal.SIGTERM, mine), (signal.SIGHUP, signal.SIG_IGN))}
+        self.addCleanup(lambda: [signal.signal(s, h) for s, h in saved.items()])
+        ready = self.root / 'ready'
+        child = ('import signal, sys, time\nfor s in (signal.SIGTERM, signal.SIGHUP): signal.signal(s, lambda sig, _: sys.exit(40 + sig))\n'
+                 'print("x", flush=True)\nopen(sys.argv[1], "w").close()\ntime.sleep(30)\n')
+        def send():
+            deadline = time.monotonic() + 20
+            while not ready.exists() and time.monotonic() < deadline: time.sleep(0.02)
+            os.kill(os.getpid(), signal.SIGHUP)
+            time.sleep(0.3)
+            os.kill(os.getpid(), signal.SIGTERM)
+        sender = threading.Thread(target=send)
+        sender.start()
+        r = _00_memory_cap.forwarding([sys.executable, '-c', child, str(ready)], stdout=subprocess.PIPE, text=True)
+        sender.join()
+        self.assertEqual((r.returncode, r.stdout), (40 + signal.SIGTERM, 'x\n'), 'SIGTERM forwarded, ignored SIGHUP kept ignored')
+        self.assertEqual((signal.getsignal(signal.SIGTERM), signal.getsignal(signal.SIGHUP)), (mine, signal.SIG_IGN),
+                         'handlers restored')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--mode', choices=('quick', 'full', 'stress'), default=os.environ.get('CP_TEST_MODE', 'full'))
@@ -521,7 +628,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     MODE, SEED, ROUNDS = args.mode, args.seed, args.rounds
     suite = unittest.TestSuite()
-    for case in (Runner, Integration):
+    for case in (Runner, Integration, Forward):
         suite.addTests(case(n) for n in unittest.defaultTestLoader.getTestCaseNames(case) if MODE != 'quick' or n in QUICK)
     print(f"runner checks: mode={MODE} seed={SEED} rounds={ROUNDS if MODE == 'stress' else '-'} tests={suite.countTestCases()}",
           flush=True)
