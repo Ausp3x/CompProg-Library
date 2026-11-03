@@ -1157,7 +1157,20 @@
       "evidence": [
         "96-Local Testing/Docs/00-mutation.md"
       ],
-      "note": "mewt 4.0.0 campaign on 02-Data Structures/01-dsu.hpp only; not extended to other headers (user decision 2026-11-03, Handoff of 00-mutation.md)."
+      "note": "mewt 4.0.0 campaign on 02-Data Structures/01-dsu.hpp; extension to every package planned as P252 (user decision 2026-11-03, superseding the Handoff of 00-mutation.md)."
+    },
+    {
+      "id": "P252",
+      "label": "Mutation testing in every package",
+      "batches": [
+        "SUP21"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
     },
     {
       "id": "P042",
