@@ -214,6 +214,40 @@ The header was written independently from these descriptions; no catalog code wa
 
 The header was written independently from these descriptions; no catalog code was copied.
 
+## Pages fetched on 2026-11-03 (P042 GR04)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| cp-algorithms Floyd–Warshall, fixed-length paths | https://cp-algorithms.com/graph/all-pair-shortest-path-floyd-warshall.html; https://cp-algorithms.com/graph/fixed_length_paths.html | 2026-11-03 | Negative-cycle pairs through a vertex k with d[k][k] < 0; exact-k min-plus power and the at-most-k loop reduction |
+| cp-algorithms D'Esopo–Pape | https://cp-algorithms.com/graph/desopo_pape.html | 2026-11-03 | Deque rule (never queued: back; processed and improved: front); negative weights without negative cycles; exponential worst case (hence the bellmanFord fallback) |
+| suisen minmax_floyd_warshall | https://suisen-cp.github.io/cp-library-cpp/library/graph/minmax_floyd_warshall.hpp | 2026-11-03 | Arcs in weight order with bitset closure of every new pair, O(n^3 / w); `minimaxFloydWarshall` (an explicit stack replaces its recursion) |
+| maspypy top2_dijkstra | https://maspypy.github.io/library/graph/shortest_path/top2_dijkstra.hpp | 2026-11-03 | Nearest and second-nearest distinct source; `top2Dijkstra` |
+| Koosaga graph listing | https://github.com/koosaga/olympiad/tree/master/Library/codes/graph | 2026-11-03 | File name `negative_cycle_msqrtnlogw.cpp` only (code not read): Goldberg O(m sqrt(n) log(N)) scaling in a contest catalog. `negativeSsspScaling` follows Goldberg's scheme (bit scaling, refine by layer cut or path elimination) without the paper; its proofs are in [13-shortest_path_advanced.md](13-shortest_path_advanced.md) |
+| NetworkX shortest paths, distance measures | https://networkx.org/documentation/stable/reference/algorithms/shortest_paths.html; https://networkx.org/documentation/stable/reference/algorithms/distance_measures.html | 2026-11-03 | `johnson`, `floyd_warshall_predecessor_and_distance`, `astar_path`, `bidirectional_dijkstra`, `goldberg_radzik`; eccentricity, radius, diameter, center, periphery |
+| OI Wiki shortest paths | https://oi-wiki.org/graph/shortest-path/ | 2026-11-03 | Johnson reweighting, SPFA variants (not adopted), Floyd-based minimum cycle and closure (rows 68, 40) |
+| ei1333, Nyaan, hitonanode, KACTL, maspypy indexes | https://ei1333.github.io/library/; https://nyaannyaan.github.io/library/; https://hitonanode.github.io/cplib-cpp/; https://github.com/kth-competitive-programming/kactl/tree/main/content/graph; https://maspypy.github.io/library/ | 2026-11-03 | Aliases: warshall-floyd, radix-heap Dijkstra, SPFA, Dial; ei1333 and Nyaan indexes read to 100k and 200k characters |
+| CSES problem set | https://cses.fi/problemset/ | 2026-11-03 | Investigation (count, minimum and maximum arcs over shortest paths) |
+
+The headers were written independently from these descriptions; no catalog code was copied.
+
+## Pages fetched on 2026-11-03 (P042 GR05)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| maspypy tree, tree_monoid, lazy_tree_monoid | https://maspypy.github.io/library/graph/tree.hpp; https://maspypy.github.io/library/graph/ds/tree_monoid.hpp; https://maspypy.github.io/library/graph/ds/lazy_tree_monoid.hpp | 2026-11-03 | Forward and reversed products for noncommutative path folds; edge values at child slots; `max_path` (row 15 `maxPath`); `get_path_decomposition` (ordered `processPath` ranges); rerooted subtree ranges |
+| maspypy tree DP, numbering, compress, diameter, centroid, center | https://maspypy.github.io/library/graph/tree_dp/rerooting_dp.hpp; https://maspypy.github.io/library/graph/tree_dp/O_NK_rerooting_tree_dp.hpp; https://maspypy.github.io/library/graph/tree_dp/subtree_depth_sum.hpp; https://maspypy.github.io/library/graph/ds/bfs_numbering.hpp; https://maspypy.github.io/library/graph/compress_tree.hpp; https://maspypy.github.io/library/graph/tree_diameter.hpp; https://maspypy.github.io/library/graph/find_centroid.hpp; https://maspypy.github.io/library/graph/tree_center.hpp; https://maspypy.github.io/library/graph/tree_dp/subtree_diameter.hpp | 2026-11-03 | `subtree_diameter` as a rerooting instance (not adopted); rerooting with merge, add-vertex and add-edge callbacks; `BfsNumbering` level ranges and the radius-r query (`diskRanges`); virtual tree output shape; centroid pair |
+| Nyaan HLD, rerooting, auxiliary tree | https://nyaannyaan.github.io/library/tree/heavy-light-decomposition.hpp; https://nyaannyaan.github.io/library/tree/rerooting.hpp; https://nyaannyaan.github.io/library/tree/auxiliary-tree.hpp | 2026-11-03 | Ranges in traversal order for noncommutative path queries; all-roots rerooting answers |
+| ei1333 HLD, rerooting, diameter | https://ei1333.github.io/library/graph/tree/heavy-light-decomposition.hpp; https://ei1333.github.io/library/graph/tree/rerooting.hpp; https://ei1333.github.io/library/graph/tree/tree-diameter.hpp | 2026-11-03 | Edge mode excluding the LCA; weighted diameter with a path witness |
+| suisen HLD, rerooting | https://suisen-cp.github.io/cp-library-cpp/library/tree/heavy_light_decomposition.hpp; https://suisen-cp.github.io/cp-library-cpp/library/tree/rerooting.hpp; https://suisen-cp.github.io/cp-library-cpp/library/tree/rerooting_invertible.hpp | 2026-11-03 | Forest roots; point get and set by vertex; invertible rerooting (not adopted) |
+| hitonanode HLD, rerooting, auxiliary tree, Euler tour | https://hitonanode.github.io/cplib-cpp/tree/heavy_light_decomposition.hpp; https://hitonanode.github.io/cplib-cpp/tree/rerooting.hpp; https://hitonanode.github.io/cplib-cpp/tree/auxiliary_tree.hpp; https://hitonanode.github.io/cplib-cpp/tree/euler_tour.hpp | 2026-11-03 | `get(v, p)` for a directed edge in O(1); online auxiliary tree (not adopted) |
+| tko919 HLD, rerooting | https://tko919.github.io/library/Graph/hld.hpp; https://tko919.github.io/library/Graph/rerooting.hpp | 2026-11-03 | Aliases only |
+| KACTL CompressTree | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/graph/CompressTree.h | 2026-11-03 | Virtual tree parent of the i-th preorder vertex is the LCA of it and its predecessor |
+| cp-algorithms HLD, tree painting | https://cp-algorithms.com/graph/hld.html; https://cp-algorithms.com/graph/tree_painting.html | 2026-11-03 | Heavy-first layout; legacy tree painting as an edge-mode path sum |
+| OI Wiki HLD, tree DP | https://oi-wiki.org/graph/hld/; https://oi-wiki.org/dp/tree/ | 2026-11-03 | O(n * k) bound of size-bounded tree knapsack merges; long-path decomposition (planned row 84 `longPathDp`) |
+| Library Checker problem list | https://v3.api.judge.yosupo.jp/problems | 2026-11-03 | Tree problems: vertex_add_path_sum, vertex_set_path_composite, vertex_add_subtree_sum, tree_diameter, jump_on_tree |
+
+The headers were written independently from these descriptions; no catalog code was copied. The linear Prüfer encode and decode follow the standard smallest-leaf pointer scheme; no Prüfer page was fetched in this sweep (the 2026-10-06 cp-algorithms and Nyaan index rows list it).
+
 ## Source keys
 
 Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder. Per-family read scope and caveats of that audit are in `00-Guidelines/History/2026-09-27-inventory-audit.md`.

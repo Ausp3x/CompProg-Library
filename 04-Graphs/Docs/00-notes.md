@@ -183,3 +183,30 @@ The 2026-10-29 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-29-p048-g
 - NetworkX `all_triangles`: the enumeration.
 - Enumerating cliques, counting all cliques and cycles over vertex subsets: rows 49 and 53. Elementary cycles and girth: row 68. Subgraph isomorphism: row 54.
 - Connected 4-edge subgraph counts (OI Wiki, Gym 102028L) and CF 985G: problem-specific inclusion-exclusion.
+
+## P042 GR04 omissions
+
+The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)) added `top2Dijkstra` (maspypy) to row 13 and put suisen's O(n^3 / w) bitset closure behind `minimaxFloydWarshall`. `apspPath` became `AllPairsResult::path` (user decision 2026-11-03). The other candidates stay out:
+
+- NetworkX `floyd_warshall_tree`: same O(n^3) worst case; only its expected bound on random complete digraphs is better.
+- Shortest walk with at most k arcs (cp-algorithms): `fixedLengthShortestPath` on the graph with a zero-weight loop added at every vertex.
+- Fixed-length walk counts (cp-algorithms): an ordinary matrix power (Core Matrix). The min-plus product moves to Core Matrix `mulSemiring` once that row is verified.
+- All-pairs Bellman–Ford and the enumeration of all shortest paths (NetworkX): `johnson` dominates the first; the second is a bounded enumeration over `shortestPathDag`.
+- Wiener, hyper-Wiener, Schultz and Gutman indices and the harmonic diameter (NetworkX): one-line folds of the distance matrix. Resistance distance and the Kemeny constant need a Laplacian pseudo-inverse (Mathematics 16).
+- Goldberg–Radzik (NetworkX) and the SLF, LLL, stack and heap SPFA variants (OI Wiki): no better worst case than `spfa`; `desopoPape` represents the deque heuristics.
+- Bidirectional BFS (NetworkX): `bidirectionalDijkstra` with unit weights.
+- Least or greatest arc count among shortest paths (CSES Investigation): a DP over `shortestPathDag`.
+- Minimum-weight cycle by Floyd and Floyd transitive closure (OI Wiki): rows 68 and 40.
+
+## P042 GR05 omissions
+
+The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)) added `BfsNumbering: levelRange, diskRanges` and `Rerooting: get(v, p)` to row 14, and `maxPath`, `TreeMonoid: get, set` and `edgeVertex` to row 15. `rootTree`, `pathVertices`, `EulerTour: pathRanges` and `treePainting` left the rows (user decision 2026-11-03; mapped in [14-tree_algorithms.md](14-tree_algorithms.md) and [15-hld.md](15-hld.md)). The other candidates stay out (user decision 2026-11-04, `/finish GR05`):
+
+- Invertible-merge rerooting (suisen): the same O(n) bound and results; it only drops the prefix and suffix products.
+- All-roots size-bounded tree DP in O(N * K) (maspypy `O_NK_rerooting_tree_dp`): one catalog, problem-specific window callbacks; `subtreeMergeDp` gives one root.
+- Online virtual tree with activate and deactivate (hitonanode): rebuild with `VirtualTree::build` per batch.
+- Long-path (deep-child) decomposition DP (OI Wiki): a planned operation `longPathDp` of row 84 (user decision 2026-11-04).
+- `subtree_diameter` (maspypy): a `Rerooting` instance.
+- `outtreeApply`, `allFold` (maspypy): the complement ranges of `rerootedSubtreeIntervals` or `seg.apply`/`seg.allProd` on `TreeMonoid::seg`.
+- HLD `jump` and median `meet(a, b, c)`: row 07 (`LCA::jump`); `meet` is filed as a row 07 follow-up in P011's plan note (user decision 2026-11-04).
+- A weighted tree center inside an edge (maspypy `tree_center`): `treeEccentricities` reports vertex centers; the point center is row 75 `absoluteCenter`.

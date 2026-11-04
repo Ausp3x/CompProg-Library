@@ -106,8 +106,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P032 — DS11, DS27, DS28, DS50** (opus, L+M+L+M): 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis.
 - [x] **P059 — MA09** (opus, L): 05-Mathematics — numerical methods, integer roots.
 - [x] **P251 — SUP20** (opus, M): Mutation testing of the testers.
-- [x] **P252 — SUP21** (opus, L): Mutation testing in every package.
-- [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: planned. Note: Rerooting, subtreeDp and subtreeMergeDp take a tree-DP contract beyond 00-monoids (merge plus vertex and edge lifts): keep its presets in the owning row and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets.
+- [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: in-progress. Note: GR04 verified 2026-11-03 (rows 12, 13; apspDijkstra removed -> johnson, user decision; review findings fixed). GR05 verified 2026-11-03 (rows 14, 15; rootTree, pathVertices, EulerTour pathRanges, treePainting removed and HLD addEdge/build -> HLD(g, root), user decisions; review findings fixed; row 07 Forest NDEBUG revisit skip, user decision). Next batch: GR70. [evidence](04-Graphs/Docs/12-all_pairs_shortest_path.md) [evidence](04-Graphs/Docs/13-shortest_path_advanced.md) [evidence](04-Graphs/Docs/14-tree_algorithms.md) [evidence](04-Graphs/Docs/15-hld.md)
 - [ ] **P063 — MA14** (opus, L): 05-Mathematics — optimization. Status: planned.
 - [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.
 - [ ] **P073 — MI19, MI20, MI21, MI22, MI33** (opus, M+M+L+L+M): 06-Miscellaneous — meetinthemiddle, digitdp, subset dp, profile dp, interval dp, bracket sequences. Status: planned.

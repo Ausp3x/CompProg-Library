@@ -10,6 +10,8 @@ Decided by the user since 2026-10-10; binding, and only the user changes them.
 
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
 - **P048** row 35 `triangleAggregate` is named `triangleProductSum` (decided 2026-10-29).
+- **P042** rows 14 and 15: `rootTree` (`dfs(g, {root})`), `pathVertices` (`HLD::processPath` ranges read through `order`), `EulerTour: pathRanges` (`HLD::processPath`) and `treePainting` (edge-mode `TreeMonoid<Sum>` `set` and `pathFold`) are removed; `HLD::addEdge`/`build` become the `HLD(g, root)` constructor (decided 2026-11-03).
+- **P042** row 12: the planned `apspPath` is `AllPairsResult::path`, and `apspDijkstra` is removed in favor of `johnson`, a narrowing with identical results and cost (both decided 2026-11-03).
 - **P018** `06-Miscellaneous/03-fastio.hpp` moves to `01-Core/19-fastio.hpp`, a Core full header with no forwarding header in 06, and absorbs P066's planned row 17: `MmapInput` is `FastInput<0>` (a mapped regular file under Linux, else fread), `SyscallOutput` is `FastOutput` (decided 2026-11-01).
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
 
@@ -78,6 +80,9 @@ Items a reader could mistake for duplicates.
 | P045 | `MinCostFlow::flow` (`slope(...).back()`) | Decided 2026-10-13: the family's primary operation; `slope` is its batch form over all amounts |
 | P032 | `LiChaoTree` beside `LiChaoTreeCompressed` | Different domain |
 | P042 | `HLD::reorderArray` | Only producer of the segment-tree base array |
+| P042 | `HLD::getLCA`, `distance`, `kthAncestor` (row 15) beside `LCA`, `EulerLCA` (row 07) | Different algorithm: heavy-path climbing in O(log(n)) with O(n) memory against binary lifting and Euler RMQ |
+| P042 | `TreeMonoid::pathFold` (row 15) beside `LCAFold::pathFold` (row 07) | Larger domain: point updates and path or subtree actions; `LCAFold` is static |
+| P042 | `EulerTour` (row 14) beside `lca_detail::Forest` | Public static Euler tour with half-open ranges; `Forest` is a detail helper |
 | P067 | `Mo::operator<<` | Only form |
 | P051 | row 45 pair `edgeConnectivity`, `edgeDisjointPaths`, edge `mengerCut` | Graph connectivity operations |
 | P090 | Python maximum-subarray functions | Only maximum-subarray functions in their row (renamed, see Changes) |
@@ -137,6 +142,12 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 
 | Package | Item | Reason |
 |---|---|---|
+| P042 | `widestPath` beside `minimaxPath` (`13-shortest_path_advanced.hpp`) | Mirror (ruling 3) |
+| P042 | `radius`, `diameter`, `center`, `periphery` (`12-all_pairs_shortest_path.hpp`) | Fields of the `Eccentricities` result: derived formulas (clarified rule) |
+| P042 | `floydWarshall` beside `johnson` (`12-all_pairs_shortest_path.hpp`) | Different algorithm: O(n^3) dense matrix against SCC Bellman–Ford plus n Dijkstras, same results |
+| P042 | `minimaxFloydWarshall` (row 12) beside `minimaxPath`, `widestPath` (row 13) | Different algorithm and result: bitset closure for every pair against one bottleneck Dijkstra with parents per source set |
+| P042 | `spfa`, `desopoPape`, `negativeSsspScaling` (row 13) beside `bellmanFord` (row 05) | Different algorithms: FIFO and deque label correcting, Goldberg bit scaling |
+| P042 | `dialDijkstra`, `radixHeapDijkstra`, `aStar`, `bidirectionalDijkstra` (row 13) beside `dijkstra` (row 05) | Different algorithms: bucket and radix queues; s–t searches with a heuristic or from both ends |
 | P032 | `MonotoneCHT::query` beside `queryMonotone` | Different algorithm: binary search in O(log(n)) against a pointer walk, amortized O(1) for monotone x; same results for `lng` (tie rule, user decision 2026-10-28) |
 | P032 | `MonotoneCHT`, `LineContainer` (row 22) beside `LiChaoTree` (row 21) | Different algorithms and domains: an amortized O(1) deque hull for extreme slopes, a breakpoint multiset for any slope and any x, a segment tree over an x range that also takes segments and single-crossing functions |
 | P032 | `PerLiChaoTree` beside `LiChaoTree` | Different domain: immutable versions by path copying, O(log(C)) nodes per line against O(1) |
@@ -366,16 +377,14 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 |---|---|---|---|---|---|---|
 | `exactCover` | row 25 | `DancingLinks` plus `addRow` plus `solve` | keep | batch builder over `DancingLinks` (clarified rule) | — | — |
 
-## P042 — 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor (planned)
+## P042 — 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor (in progress)
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `FloydWarshall::runFloydWarshall` | `12-all_pairs_shortest_path.hpp:21-42` | planned `floydWarshall` | remove (row only) | legacy 1-based format (pinned) | none | `99-all.hpp:14` |
-| `SPFA::solve` | `13-shortest_path_advanced.hpp:19-51` | planned `spfa` | remove (row only) | legacy format (pinned) | none | `99-all.hpp:15` |
-| `widestPath` | row 13 | `minimaxPath(…, maximum = true)` | keep | mirror of `minimaxPath` (ruling 3) | — | — |
-| `radius`, `diameter`, `center`, `periphery`; `treeRadius`, `treeCenter` | rows 12, 14 | fields of the `eccentricities`, `treeEccentricities` results | keep | derived formulas of the eccentricities (clarified rule) | — | — |
-| `apspPath`; `rootTree`; `pathRanges`; `pathVertices` | rows 12, 14 | `floydWarshall` path reconstruction; `dfs(g, root)` (no children lists); `HLD::processPath`; `path(g, v).vertices` | ask | projections unless each adds a result | — | — |
-| `HLD::addEdge`, `build` | `15-hld.hpp:17-26` | `HLD(Graph, root)` once the row names it | keep | only form today | — | — |
+| `treeRadius`, `treeCenter` | row 14 | fields of the `treeEccentricities` result | keep | derived formulas of the eccentricities (clarified rule) | — | — |
+| `rootTree`; `pathRanges`; `pathVertices` | row 14 | `dfs(g, {root})`; `HLD::processPath`; `HLD::processPath` through `order` | remove (row only) | projections (decided 2026-11-03) | — | — |
+| `treePainting` | row 15 | edge-mode `TreeMonoid<Sum>` `set` and `pathFold` | remove | narrowing (decided 2026-11-03) | legacy `TreeEdgePainting` cases reproduced in the row 15 tester | — |
+| `HLD::addEdge`, `build` | `15-hld.hpp` (legacy) | `HLD(g, root)` | remove | legacy input format a builder converts (decided 2026-11-03) | — | — |
 | `EulerTour` | row 14 | `lca_detail::Forest` | keep | public operation; build it on Forest's DFS with one range convention | — | — |
 
 ## P066 — 06-Miscellaneous — smalltolarge, hilbertorder, randomized algorithms, hash families, parallelbinarysearch, cdq (planned)
@@ -996,7 +1005,6 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P023** `berlekampMassey`: is floating T a supported SparseMatrix domain? `toCOO`, `toCSR`: distinct types?
 - **P088** row 31 `stringFromPrefixFunction`, `stringFromZ`, `infeasible`: minimum-alphabet or lex-min witnesses?
 - **P061** `multipointEvaluateGeometric` beside `bluesteinTransform`; row 23 matrix-tree counts beside Graphs row 53: which row owns each?
-- **P042** `apspPath`, `rootTree` (children lists?), `pathRanges`, `pathVertices`: does each add a result?
 - **P066** `mergeSortedVectors`, `kWayMerge` (P205) beside `std::merge`? Row 19 `pairHash`: the same mixing as `CustomHash`'s pair overload?
 - **P077** `evaluateExpression`; **P076** `minimax` or `negamax`; **P073** `setPartitionDP`; **P087** one of `tandemRepeats`, `squares`, `repetitionsCompressed`; **P079** `huffmanCost`; **P071** `daysBetween`, `addDays`, `dayOfYear`; **P206** `StreamReservoir` (is row 18 incremental?); **P207** `alphabeticCodeLengths`: separate operations or compositions?
 - **P050** `blockTree`, `isCactus`: cactus-specific results, or `blockCutTree` and lowlink?
