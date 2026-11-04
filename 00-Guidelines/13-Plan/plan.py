@@ -359,11 +359,13 @@ def launch(root, model):
 def batch_brief(root, b, inv):
     out = [f'### {b["id"]} ({b["size"]})', '', 'Focus: ' + b['focus'],
            'Batch prerequisites: ' + (', '.join(b['prerequisites']) or 'none')]
-    for t in b['targets']:
-        out += [f'- `{t}` [{"exists" if (root / t).exists() else "missing"}]', '  ' + ' — '.join(inv.get(t, (['(no inventory row)'],))[0])]
-    tests = [x for t in b['targets'] for x in tests_for(root, t)]
-    docs = [x for t in b['targets'] for x in docs_for(root, t)]
-    legacy = [x for t in b['targets'] for x in legacy_for(root, t)]
+    every = b['targets'] + b.get('support_targets', [])
+    for t in every:
+        out += [f'- `{t}` [{"exists" if (root / t).exists() else "missing"}{", support" if t not in b["targets"] else ""}]',
+                '  ' + ' — '.join(inv.get(t, (['(no inventory row)'],))[0])]
+    tests = [x for t in every for x in tests_for(root, t)]
+    docs = [x for t in every for x in docs_for(root, t)]
+    legacy = [x for t in every for x in legacy_for(root, t)]
     out += ['Tests:' if tests else 'Tests: none'] + ['- `' + x + '`' for x in tests]
     out += ['Docs:' if docs else 'Docs: none (create Docs/<NN-name>.md)'] + ['- `' + x + '`' for x in docs]
     if legacy:
@@ -455,7 +457,7 @@ def live(root, batches, packages):
     changed = set(filter(None, (git('diff', '--name-only', '-z', 'HEAD') + git('ls-files', '-oz', '--exclude-standard')).split('\0')))
     for p in packages['packages']:
         if p['status'] != 'verified' and p['id'] not in out:
-            files = set(p['evidence']) | {f for b in p['batches'] for t in bmap[b]['targets']
+            files = set(p['evidence']) | {f for b in p['batches'] for t in bmap[b]['targets'] + bmap[b].get('support_targets', [])
                                           for f in [t, *docs_for(root, t), *tests_for(root, t)]}
             if files & changed:
                 out.add(p['id'])

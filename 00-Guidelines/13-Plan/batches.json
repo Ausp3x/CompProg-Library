@@ -129,7 +129,7 @@
       ],
       "support_targets": [],
       "size": "M",
-      "focus": "Independent MatrixMini; compare shared semantics with C07.",
+      "focus": "Independent MatrixMini; compare shared semantics with C07. 2026-11-05 profile (`01-principles.md`, Profiles): every operation and domain of the full row except backend internals (named after `internals:`), with the full type's complexity in scalar code; widen the row at `/package` step 3.",
       "prerequisites": [
         "C01",
         "C07"
@@ -163,7 +163,7 @@
       ],
       "support_targets": [],
       "size": "M",
-      "focus": "Independent BitMatrixMini; compare shared semantics with C09.",
+      "focus": "Independent BitMatrixMini; compare shared semantics with C09. 2026-11-05 profile (`01-principles.md`, Profiles): every operation and domain of the full row except backend internals (named after `internals:`), with the full type's complexity in scalar code; widen the row at `/package` step 3.",
       "prerequisites": [
         "C01",
         "C09"
@@ -232,7 +232,7 @@
       ],
       "support_targets": [],
       "size": "M",
-      "focus": "Independent SparseMatrixMini; compare shared semantics with C13.",
+      "focus": "Independent SparseMatrixMini; compare shared semantics with C13. 2026-11-05 profile (`01-principles.md`, Profiles): every operation and domain of the full row except backend internals (named after `internals:`), with the full type's complexity in scalar code; widen the row at `/package` step 3.",
       "prerequisites": [
         "C01",
         "C13"
@@ -6068,9 +6068,11 @@
       "folder": "support",
       "targets": [],
       "support_targets": [],
-      "size": "S",
+      "size": "M",
       "focus": "Update selection, notes and printable source order after canonical file moves; validate generation/build/page evidence when tools are available; see [notebook](../07-notebook.md).",
-      "prerequisites": [],
+      "prerequisites": [
+        "SUP22"
+      ],
       "tiers": []
     },
     {
@@ -6861,6 +6863,198 @@
       "focus": "Mutation testing in every package (user decision 2026-11-03): a wrapper `96-Local Testing/04-mutation.py <header>` with its own tester that runs the P251 procedure (scratch `git archive` copy, mewt stage 1 on the optimized build, survivors on all builds, header diff after each stage, inside the memory cap, a time budget, SKIP without mewt); mewt as an optional tool in `TOOLS` of `.claude/skills/setup-check/setup_check.py`, installed outside the repository and pinned (AGPL-3.0, never vendored); a `/package` step between Tests and Benchmarks that runs it on every header the package adds or changes, Core full included, closing each survivor as a test or recording it as equivalent in the evidence document; `@reviewer` re-checks every equivalence claim; `/finish` and `/merge-pr` check only that the record matches the current header. Measure one Core full header and one large Contest header and record the per-header cost, so the user decides whether large headers need sampling by severity. [decisions](../10-decisions.md), 2026-11-03 Mutation testing in /package.",
       "prerequisites": [
         "SUP20"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "SUP22",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Extraction (user decisions 2026-11-05): `09-Contest Testing/10-grab.py`: `grab <names>` prints and copies the declarations those names reach, without the template and debug headers; `--into <file>` keeps one marked block above `solve` for the library names the file uses; `--find <text>` searches the index. A libclang index cached per header hash (git-ignored), both ISA configurations parsed, overload sets and specializations kept together, unused members of dependency structs pruned. `96-Local Testing/05-extraction.py`: every inventory operation extracted alone and syntax-checked on g++ and g++-14, and every C++ tester's quick mode run on its extracted build. `03-consistency.py`: no contest template default names a Core full type; a mini row lists its full row's operations plus `internals:`; an operation whose default form extracts a Core full header other than a scalar one (`03-cpp.md`, Core type parameters) has a `full-only until` record; the `Compact` check retires; support targets of open 2026-11-05 batches are reported, not failed. libclang joins `TOOLS` in `.claude/skills/setup-check/setup_check.py` (without it, SKIP and unpruned inlining). The 2026-10-24 notebook substitutes (`TESTED_MINIS`, Compact-skippable includes) retire from `98-Team Notebook/05-dependencies.py`, `01-notebook.py`, `06-site.py`, their testers, `Docs/00-dependencies.md`, `Docs/00-site.md` and `98-Team Notebook/00-index.md`, and the Compact-twin check from `96-Local Testing/Docs/00-memory-safety.md`. The index cache lives outside `99-Workspace`. `97-Online Testing/01-expander.py` bundles through grab by default, keeping `#line` directives, and `--bundler oj-bundle` reproduces the whole-header output (user decision 2026-11-05; `06-online.md` and `97-Online Testing/00-index.md` follow). Rules in `08-contest-tools.md` and `05-testing.md`; usage in `README.md`. Prototype measurements: `00-Guidelines/10-decisions.md`, 2026-11-05.",
+      "prerequisites": [],
+      "tiers": []
+    },
+    {
+      "id": "SUP23",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Completeness re-review (user decisions 2026-11-05): `/omission-sweep 02 03 04 05 06 07` under `01-principles.md` (Priority) over every verified row, including each omission recorded as dominated, subsumed or slower before 2026-11-05 (about 19 in the folders' `Docs/00-notes.md`), then `/omission-sweep apply`, which reopens the owning packages.",
+      "prerequisites": [
+        "SUP22"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "C17",
+      "folder": "01-Core",
+      "targets": [],
+      "support_targets": [
+        "01-Core/06-modintmini.hpp"
+      ],
+      "size": "L",
+      "focus": "ModIntMini parity (`01-principles.md`, Profiles, 2026-11-05): every operation and domain of the `05-modint.hpp` row (is_prime, isPrime, trySqrt, sqrt, batchInv, streams, casts, ordering and the rest), except backend internals named after `internals:`; the full type's complexity in scalar code; scaling and ratio benchmarks (`05-testing.md`, Benchmarks).",
+      "prerequisites": [
+        "C03",
+        "C16",
+        "SUP22"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "C18",
+      "folder": "01-Core",
+      "targets": [],
+      "support_targets": [
+        "01-Core/08-infintmini.hpp"
+      ],
+      "size": "XL",
+      "focus": "InfIntMini parity (`01-principles.md`, Profiles, 2026-11-05): every operation and domain of the `07-infint.hpp` row except backend internals (arena, ISA kernels and the multiplication, division, gcd and conversion backends its dispatch chooses among; the mini reaches the same bounds with backends of its own), with the full type's complexity (division, base conversion, gcd, roots); other minis allowed as dependencies.",
+      "prerequisites": [
+        "C04",
+        "C05",
+        "SUP22",
+        "C20"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "C19",
+      "folder": "01-Core",
+      "targets": [],
+      "support_targets": [
+        "01-Core/17-polymini.hpp"
+      ],
+      "size": "XL",
+      "focus": "PolyMini parity (`01-principles.md`, Profiles, 2026-11-05): every operation and coefficient domain of the `16-poly.hpp` row (double, complex, int, lng, ulng and InfIntMini included) except backend internals, with the full type's complexity; other minis allowed as dependencies.",
+      "prerequisites": [
+        "C11",
+        "C12",
+        "C17",
+        "C18",
+        "SUP22",
+        "C20"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "C20",
+      "folder": "01-Core",
+      "targets": [],
+      "support_targets": [
+        "01-Core/05-modint.hpp",
+        "01-Core/07-infint.hpp",
+        "01-Core/16-poly.hpp"
+      ],
+      "size": "M",
+      "focus": "Short aliases to minis (`03-cpp.md`, Headers, 2026-11-05): `mint`, `iint` and `FPS` move to `06-modintmini.hpp`, `08-infintmini.hpp` and `17-polymini.hpp`, replacing `mintmini` and `iintmini`; every use of a full alias becomes the struct name (`ModInt<998244353>`, `InfInt`, `Poly<T>`) in headers, testers, benchmarks, judge sources and documents, so no behavior changes. `05-modint.hpp` leaves Core Basic like the other full types with a mini (`98-basic.hpp`, the Basic column, the aggregate check in `03-consistency.py`).",
+      "prerequisites": [
+        "C17"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "MA53",
+      "folder": "05-Mathematics",
+      "targets": [],
+      "support_targets": [
+        "05-Mathematics/07-primality_factorization.hpp",
+        "05-Mathematics/08-multiplicative_functions.hpp",
+        "05-Mathematics/10-crt.hpp",
+        "05-Mathematics/11-discrete_log_root.hpp",
+        "05-Mathematics/30-modular_power_towers.hpp",
+        "05-Mathematics/33-modular_square_roots.hpp",
+        "05-Mathematics/34-quadratic_congruence.hpp"
+      ],
+      "size": "L",
+      "focus": "Mini-first retrofit (`03-cpp.md`, Core type parameters, 2026-11-05): the reducer of `07-primality_factorization.hpp` becomes a template parameter with a dependency-free default, so `isPrimeCompact`, `pollardRhoBrentCompact` and `factorizeCompact` become the default forms of `isPrime`, `pollardRhoBrent` and `factorize` (retired names mapped in the evidence documents); 08, 10, 11, 30, 33 and 34 forward it. Each default form extracts without Core full headers; tests run both reducers; rows, evidence and judge sources follow.",
+      "prerequisites": [
+        "SUP22"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "MA54",
+      "folder": "05-Mathematics",
+      "targets": [],
+      "support_targets": [
+        "05-Mathematics/05-combinatorics.hpp",
+        "05-Mathematics/09-modinverse.hpp",
+        "05-Mathematics/12-combinatorics_advanced.hpp",
+        "05-Mathematics/13-convolution.hpp",
+        "05-Mathematics/14-polynomial_algorithms.hpp",
+        "05-Mathematics/15-linear_recurrence.hpp",
+        "05-Mathematics/67-lattice_paths.hpp"
+      ],
+      "size": "L",
+      "focus": "Mini-first retrofit (`03-cpp.md`, Core type parameters, 2026-11-05): 05, 09, 12, 13, 14, 15 and 67 default to `mint` (the mini after C20), detect capabilities with `requires` instead of naming `StaticModularInt` or full types, and reach polynomials only through a parameter or the mini (12's `evalMulti`); tests run mini and full types.",
+      "prerequisites": [
+        "SUP22",
+        "C17",
+        "C20",
+        "MA53"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "GE51",
+      "folder": "03-Geometry",
+      "targets": [],
+      "support_targets": [
+        "03-Geometry/14-minimumenclosingcircle.hpp",
+        "03-Geometry/19-lattice_geometry.hpp"
+      ],
+      "size": "M",
+      "focus": "Mini-first retrofit (`03-cpp.md`, Core type parameters, 2026-11-05): `14-minimumenclosingcircle.hpp` and `19-lattice_geometry.hpp` take the exact integer type as a parameter defaulting to `iint` (the mini after C20); a change to `09-rational.hpp` needs a Fable session, so prefer a fraction of the parameter type if `Rational` would need one.",
+      "prerequisites": [
+        "SUP22",
+        "C20"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "GR76",
+      "folder": "04-Graphs",
+      "targets": [],
+      "support_targets": [
+        "04-Graphs/16-centroiddecomposition.hpp"
+      ],
+      "size": "S",
+      "focus": "Mini-first retrofit (2026-11-05): `16-centroiddecomposition.hpp` defaults its modint to `mint` (the mini) and forwards it to the convolution.",
+      "prerequisites": [
+        "MA54"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "MI35",
+      "folder": "06-Miscellaneous",
+      "targets": [],
+      "support_targets": [
+        "06-Miscellaneous/07-permutation.hpp",
+        "06-Miscellaneous/29-knapsack_advanced.hpp"
+      ],
+      "size": "M",
+      "focus": "Mini-first retrofit (2026-11-05): `07-permutation.hpp` and `29-knapsack_advanced.hpp` default to `mint` (the mini) and forward it.",
+      "prerequisites": [
+        "MA54"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "ST41",
+      "folder": "07-Strings",
+      "targets": [],
+      "support_targets": [
+        "07-Strings/21-wildcardmatching.hpp"
+      ],
+      "size": "S",
+      "focus": "Mini-first retrofit (2026-11-05): `21-wildcardmatching.hpp` defaults to `mint` (the mini) and forwards it.",
+      "prerequisites": [
+        "MA54"
       ],
       "tiers": []
     }

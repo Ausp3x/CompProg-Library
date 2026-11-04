@@ -52,6 +52,8 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P016 — ST01, ST02, ST19** (opus, S+M+S): 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength.
 - [x] **P017 — ST03** (opus, L): 07-Strings — aho, suffixarray, palindrome queries.
 - [x] **P250 — SUP17, SUP18, SUP19** (opus, M+L+M): Repository portability and contribution workflow.
+- [ ] **P253 — SUP22** (opus, L): Symbol extractor (grab), extraction harness and mini-first checks. Status: planned.
+- [ ] **P254 — SUP23** (opus, L): Completeness re-review of verified rows under the 2026-11-05 priority. Status: planned.
 
 ### Core full types
 
@@ -59,6 +61,10 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P026 — C12** (opus, M): 01-Core — polymini.
 - [x] **P018 — C04** (fable, XL): 01-Core — infint.
 - [x] **P019 — C05, C06** (fable, M+M): 01-Core — infintmini, rational.
+- [ ] **P255 — C17** (opus, L): 01-Core — modintmini parity. Status: planned.
+- [ ] **P258 — C20** (fable, M): 01-Core — short aliases to minis. Status: planned.
+- [ ] **P256 — C18** (opus, XL): 01-Core — infintmini parity. Status: planned.
+- [ ] **P257 — C19** (opus, XL): 01-Core — polymini parity. Status: planned.
 - [ ] **P020 — C07** (fable, XL): 01-Core — matrix. Status: planned.
 - [ ] **P022 — C09, C10** (fable, L+M): 01-Core — bitmatrix, bitmatrixmini. Status: planned. Note: Defects in the pinned 12-bitmatrix.hpp body, fix in the rewrite: operator*=(int) zeroes only for 0 (GF(2) needs o & 1, so a * 2 returns a); BitMatrix(string, axis) leaves fields uninitialised for an axis other than 0 or 1.
 - [ ] **P023 — C13** (fable, XL): 01-Core — sparsematrix. Status: planned.
@@ -107,7 +113,11 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P059 — MA09** (opus, L): 05-Mathematics — numerical methods, integer roots.
 - [x] **P251 — SUP20** (opus, M): Mutation testing of the testers.
 - [x] **P252 — SUP21** (opus, L): Mutation testing in every package.
-- [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: planned. Note: Rerooting, subtreeDp and subtreeMergeDp take a tree-DP contract beyond 00-monoids (merge plus vertex and edge lifts): keep its presets in the owning row and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets.
+- [ ] **P259 — MA53** (opus, L): 05-Mathematics — mini-first retrofit of the factorization family. Status: planned.
+- [ ] **P260 — MA54** (opus, L): 05-Mathematics — mini-first retrofit of the modint and polynomial dependents. Status: planned.
+- [ ] **P261 — GE51** (opus, M): 03-Geometry — mini-first retrofit. Status: planned.
+- [ ] **P262 — GR76, MI35, ST41** (opus, S+M+S): Mini-first retrofit — graphs, miscellaneous, strings. Status: planned.
+- [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: planned. Note: Rerooting, subtreeDp and subtreeMergeDp take a tree-DP contract beyond 00-monoids (merge plus vertex and edge lifts): keep its presets in the owning row and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets. 2026-11-05 rules (`01-principles.md`, Priority; `03-cpp.md`, Core type parameters): the `/merge-pr` review also checks the rows' slower-alternative decisions, which research under the old rules did not make.
 - [ ] **P063 — MA14** (opus, L): 05-Mathematics — optimization. Status: planned.
 - [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.
 - [ ] **P073 — MI19, MI20, MI21, MI22, MI33** (opus, M+M+L+L+M): 06-Miscellaneous — meetinthemiddle, digitdp, subset dp, profile dp, interval dp, bracket sequences. Status: planned.
@@ -292,7 +302,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 
 - [ ] **P224 — SUP02** (opus, S): Whole-library test-runner, aggregate and build integration audit. Status: planned.
 - [ ] **P225 — SUP03** (opus, S): Online solution coverage and expansion audit. Status: planned.
-- [ ] **P226 — SUP04** (opus, S): Curated notebook, contest notes and printable-build audit. Status: planned. Note: Also: landscape page layout; a CJK fallback font so the template's Chinese motto renders (first build 2026-10-15 showed no glyphs).
+- [ ] **P226 — SUP04** (opus, M): Curated notebook, contest notes and printable-build audit. Status: planned. Note: Also: landscape page layout; a CJK fallback font so the template's Chinese motto renders (first build 2026-10-15 showed no glyphs). 2026-11-05: select operations rather than headers through the P253 extraction index, with minis by default; `07-notebook.md` (selection) follows.
 - [ ] **P240 — SUP09** (opus, L): Site articles and practice lists: 01-Core. Status: planned.
 - [ ] **P241 — SUP10** (opus, XL): Site articles and practice lists: 02-Data Structures. Status: planned.
 - [ ] **P242 — SUP11** (opus, XL): Site articles and practice lists: 03-Geometry. Status: planned.

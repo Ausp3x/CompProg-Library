@@ -52,6 +52,7 @@ Row rules:
 
 - `Header`: the filename in a code span.
 - `Operations`: every public struct, function, operator and named variant the row must provide, as short identifier-like names separated by `;`, grouped by struct where several exist (`DSU: find, unite, same, size, count, groups`). Give a domain qualifier in parentheses only when it changes the algorithm (`kth (persistent)`). Name variants explicitly instead of writing "and extensions", "where meaningful" or "research". A planned research item lists the concrete operations it would provide or does not appear.
+- A mini row (`*mini.hpp`) lists every operation of its full type's row under the same operation names (its types, companion, concepts and detail namespace keep mini names, `03-cpp.md`, API contracts), except the full type's backend internals (ISA kernels, reduction contexts, arenas and the backend variants its dispatch chooses among), which it names after `internals:` at the end of its Operations cell.
 - `Status`: exactly one of `planned`, `partial`, `existing-unverified`, `legacy-reference`, `verified`, followed by evidence links for verified/partial rows; rows that are not verified also carry `legacy:` paths or short source keys (a verified row's archive accounting lives in `Ledgers/archive-map.json` and its evidence document). `partial` lists the missing operations after `missing:`.
 
 All-solution and enumeration APIs return compact parameterizations or explicitly bounded enumerations and are charged by output size.

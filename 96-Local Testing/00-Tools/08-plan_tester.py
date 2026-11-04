@@ -40,6 +40,7 @@ landed ('verified' lines only; 'partial' and 'branch' do not count) and batch_do
 test_syn_show_unclaimed, test_gaps_role_line, test_real_show_unclaimed, test_real_gaps_role_line;
 live (linked worktree directory name and branch only, whole tokens only (agent-a1c07e2f names nothing), a claim name
 reduced to Pxxx-<batch>, untracked evidence) -> test_syn_live_worktrees, test_syn_ready_text_reservations;
+support_targets (in a batch's brief, marked support, and in live's file set) -> test_syn_support_targets;
 ready(skip) -> test_ready_skip, test_ready_random; next/status/show next use the block set -> test_syn_next_*,
 test_syn_status_text, test_real_next_status_show_next, test_real_next_random, test_real_all_claimed;
 show (gate line; STOP; 'Claimed by you ... on <b>' ending '.' on branch b, else with the fetch-and-switch hint; for a
@@ -985,6 +986,17 @@ class Synthetic(Base):
         with self.environ():
             self.assertEqual(PLAN.live(self.root, batches, packages), {'P250', 'P030', 'P031', 'P050'},
                              'directory P050-MA01-ds02 names P050 only; its parent and user part name nothing')
+
+    def test_syn_support_targets(self):
+        b = {'id': 'SUP21', 'size': 'S', 'focus': 'f', 'prerequisites': [], 'targets': [], 'support_targets': ['07-Strings/01-s.hpp']}
+        text = '\n'.join(PLAN.batch_brief(self.root, b, {'07-Strings/01-s.hpp': (['op', 'verified'],)}))
+        self.assertIn('- `07-Strings/01-s.hpp` [missing, support]\n  op — verified', text)
+        (self.root / '07-Strings').mkdir()
+        (self.root / '07-Strings/01-s.hpp').write_text('x\n')
+        batches = {'batches': [b if x['id'] == 'SUP21' else x for x in SYN_BATCHES['batches']]}
+        with self.environ():
+            self.assertEqual(PLAN.live(self.root, SYN_BATCHES, SYN_PACKAGES), {'P250'}, 'ST01 belongs to verified P900')
+            self.assertEqual(PLAN.live(self.root, batches, SYN_PACKAGES), {'P250', 'P260'}, 'a changed support target is live')
 
     def gaps(self, *arg, role='contributor', gh=True, branch=None):
         if branch == '':

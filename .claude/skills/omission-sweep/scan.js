@@ -44,8 +44,8 @@ const items = [
 
 const COMMON = `Read-only completeness scan of the CompProg Library; edit nothing. ` +
   `First read the folder's 00-index.md (Scope), Docs/00-notes.md (ownership and recorded omissions) and the "Not adopted" list in Docs/00-sources.md. ` +
-  `Skip aliases under 00-Guidelines/03-cpp.md, One API per operation, and one-problem tricks; *mini.hpp rows and 08-Python modules are documented reductions of their full or C++ counterpart. ` +
-  `Revisit a recorded omission only with a concrete reason it fails, quoted in "recorded". List the URLs you fetched and the failed fetches; invent none (Library Checker problems: github.com/yosupo06/library-checker-problems).`
+  `Skip aliases under 00-Guidelines/03-cpp.md, One API per operation, and one-problem tricks; *mini.hpp rows mirror their full type (00-Guidelines/02-structure.md, Inventory contract) and 08-Python modules follow their C++ rows (00-Guidelines/04-python.md). In 02–07 rows, a standard slower algorithm for a row's problem is "missing" when it meets 00-Guidelines/01-principles.md, Priority; give the reason in "purpose". ` +
+  `Revisit a recorded omission only with a concrete reason it fails, quoted in "recorded"; one recorded as dominated, subsumed or slower before 2026-11-05 is revisited against Priority. List the URLs you fetched and the failed fetches; invent none (Library Checker problems: github.com/yosupo06/library-checker-problems).`
 
 const research = item => item.kind === 'rows'
   ? agent(`${COMMON}\n\nRead ${item.file} (rows with tier, owner, status, operations). For each row run the completeness sweep of 00-Guidelines/09-sources.md and report what the catalogs offer that the row lacks: ` +
@@ -57,10 +57,10 @@ const research = item => item.kind === 'rows'
       { schema: CANDIDATES, agentType: 'researcher', effort: 'high', phase: 'Research', label: item.label })
 
 const LENSES = [
-  ['library', `Library lens: omit what a row or header already provides in any form, what a recorded omission still excludes, and wrappers or second implementations (00-Guidelines/03-cpp.md, One API per operation); ` +
+  ['library', `Library lens: omit what a row or header already provides in any form, what a recorded omission still excludes, and wrappers or second implementations (00-Guidelines/03-cpp.md, One API per operation); in 02–07 a slower algorithm that meets 00-Guidelines/01-principles.md, Priority, is neither provided by the faster one nor a second implementation. ` +
     `when Docs/00-notes.md gives it to another row, owner is that row. Otherwise adopt, owner the row that should hold it or "new".`],
   ['source', `Source lens: fetch the cited sources. Adopt what a Library Checker or CSES problem needs or two independent catalogs implement. ` +
-    `A research family known only from papers or textbooks is "ask", proposed as an Esoteric row with the paper cited. Omit what the sources do not show and one-problem tricks.`],
+    `A research family known only from papers or textbooks is "ask", proposed as an Esoteric row with the paper cited. In 02–07, also adopt a standard slower algorithm the sources show that meets 00-Guidelines/01-principles.md, Priority. Omit what the sources do not show and one-problem tricks.`],
 ]
 
 const verify = (found, item) => {

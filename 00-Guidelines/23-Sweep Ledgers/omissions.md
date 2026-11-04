@@ -4,7 +4,9 @@ Completeness gaps found by `/omission-sweep`; `/omission-sweep apply` moves deci
 
 ## Recorded decisions
 
-Decided by the user; binding, and only the user changes them.
+Decided by the user, or as a slower-algorithm exception by whom `01-principles.md` (Priority) names; binding, and only the user changes them.
+
+- 2026-10-25 (Priority exception, recorded 2026-11-05): `07-infint.hpp` keeps Schönhage–Strassen as a tested multiplication backend that dispatch never selects, for completeness (`01-Core/Docs/00-notes.md`, InfInt).
 
 - 2026-10-19, suffixtree:3: `11-suffixtree.hpp` adopts a node-returning `lca` (O(1) through the LCP RMQ argmin and a split-to-node map, as ecnerwala `get_split`), rather than composing `lce` and `weightedAncestor`.
 - 2026-10-19, `07-suffixarray.hpp`: the default constructor builds through `sais` (generic `T` through `compressAlphabet`); the static builder `SuffixArray<T>::doubling(s, with_rmq)` keeps prefix doubling (a different algorithm and row 12's independent oracle); a small-input dispatch only if the package measures a real crossover.

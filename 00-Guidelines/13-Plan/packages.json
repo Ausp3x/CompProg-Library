@@ -342,6 +342,32 @@
       "note": "Follow-up from P032 DS27 /finish (user decision 2026-11-02): 96-Local Testing/03-consistency.py ignored() exempts absent git-ignored archive files only in a linked worktree, so a fresh main-checkout clone without the 7 git-ignored OLD binaries in Ledgers/archive-map.json (e.g. OLD/Team Notebook/src/algs.exe) crashes with FileNotFoundError at the archive hash check. Reproducer: clone, do not copy the binaries, run 03-consistency.py in the main checkout."
     },
     {
+      "id": "P253",
+      "label": "Symbol extractor (grab), extraction harness and mini-first checks",
+      "batches": [
+        "SUP22"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P254",
+      "label": "Completeness re-review of verified rows under the 2026-11-05 priority",
+      "batches": [
+        "SUP23"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
       "id": "P025",
       "label": "01-Core — poly",
       "batches": [
@@ -402,6 +428,58 @@
         "01-Core/Docs/08-infintmini.md",
         "01-Core/Docs/09-rational.md"
       ],
+      "note": ""
+    },
+    {
+      "id": "P255",
+      "label": "01-Core — modintmini parity",
+      "batches": [
+        "C17"
+      ],
+      "phase": "Core full types",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P258",
+      "label": "01-Core — short aliases to minis",
+      "batches": [
+        "C20"
+      ],
+      "phase": "Core full types",
+      "size": "M",
+      "model": "fable",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P256",
+      "label": "01-Core — infintmini parity",
+      "batches": [
+        "C18"
+      ],
+      "phase": "Core full types",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P257",
+      "label": "01-Core — polymini parity",
+      "batches": [
+        "C19"
+      ],
+      "phase": "Core full types",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
       "note": ""
     },
     {
@@ -1175,6 +1253,60 @@
       "note": ""
     },
     {
+      "id": "P259",
+      "label": "05-Mathematics — mini-first retrofit of the factorization family",
+      "batches": [
+        "MA53"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P260",
+      "label": "05-Mathematics — mini-first retrofit of the modint and polynomial dependents",
+      "batches": [
+        "MA54"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P261",
+      "label": "03-Geometry — mini-first retrofit",
+      "batches": [
+        "GE51"
+      ],
+      "phase": "Contest core",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
+      "id": "P262",
+      "label": "Mini-first retrofit — graphs, miscellaneous, strings",
+      "batches": [
+        "GR76",
+        "MI35",
+        "ST41"
+      ],
+      "phase": "Contest core",
+      "size": "S+M+S",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
       "id": "P042",
       "label": "04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor",
       "batches": [
@@ -1187,7 +1319,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Rerooting, subtreeDp and subtreeMergeDp take a tree-DP contract beyond 00-monoids (merge plus vertex and edge lifts): keep its presets in the owning row and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets."
+      "note": "Rerooting, subtreeDp and subtreeMergeDp take a tree-DP contract beyond 00-monoids (merge plus vertex and edge lifts): keep its presets in the owning row and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets. 2026-11-05 rules (`01-principles.md`, Priority; `03-cpp.md`, Core type parameters): the `/merge-pr` review also checks the rows' slower-alternative decisions, which research under the old rules did not make."
     },
     {
       "id": "P063",
@@ -3553,11 +3685,11 @@
         "SUP04"
       ],
       "phase": "Final support integration",
-      "size": "S",
+      "size": "M",
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Also: landscape page layout; a CJK fallback font so the template's Chinese motto renders (first build 2026-10-15 showed no glyphs)."
+      "note": "Also: landscape page layout; a CJK fallback font so the template's Chinese motto renders (first build 2026-10-15 showed no glyphs). 2026-11-05: select operations rather than headers through the P253 extraction index, with minis by default; `07-notebook.md` (selection) follows."
     },
     {
       "id": "P240",
