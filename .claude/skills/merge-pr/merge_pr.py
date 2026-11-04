@@ -5,7 +5,8 @@ Usage: merge_pr.py files N | checkout N | gates N | run N [--mb MB] -- CMD... | 
   files     fetch the pull request head as data (nothing runs) and classify every changed path as library code or
             outside it; an outside path needs the user's yes before checkout.
   checkout  add the worktree .claude/worktrees/PR<N> on the head branch and rebase it with worktree.py --sync.
-  gates     run the gates in that worktree, each in bwrap (system read-only, home and /run hidden, no network, the
+  gates     run the gates (consistency, plan, the package's suites, the mutation records of changed headers, integration,
+            workspace) in that worktree, each in bwrap (system read-only, home and /run hidden, no network, the
             worktree seen through a throwaway overlay, a private /tmp) inside a memory-capped systemd scope; logs in
             .claude/merge-pr/<N>/.
   run       one command sandboxed and capped the same way, for @reviewer and for checks of fixes.
@@ -44,6 +45,8 @@ HOST_RUN = re.compile(r'(96-Local Testing|00-Guidelines/13-Plan)/([^/]+\.(py|pyc
                       r'|98-Team Notebook/(01-notebook|05-dependencies)\.py|\.claude/skills/setup-check/setup_check\.py')
 AGENT = re.compile(r'(.+/)?\.claude/.+|(.+/)?(CLAUDE[^/]*\.md|AGENTS\.md)|\.mcp\.json')  # ... and those Claude Code loads in the worktree
 HEADER = re.compile(r'0[1-8]-[^/]+/(\d{2}-[^/]+\.hpp|_\d{2}_[^/]+\.py)')  # an inventory target
+MUTATED = re.compile(r'0[1-7]-[^/]+/(?!9[89]-)\d{2}-[^/]+\.hpp')  # 04-mutation.py HEADER (10-merge_tester compares them)
+MECHANICAL = re.compile(r'P\d{3}: (prune duplicates|restyle)')  # the commit subjects of /prune and /restyle
 CORE_FULL = re.compile(r'01-Core/\d{2}-(?![^/]*mini)[^/]*\.hpp')
 ENV = ('PATH', 'HOME', 'USER', 'LANG', 'LC_ALL', 'TERM', 'XDG_RUNTIME_DIR', 'DBUS_SESSION_BUS_ADDRESS')  # the rest stays outside
 HIDE = ('/mnt', '/media', '/srv')  # mounts hidden inside the sandbox besides /run and the home directory
@@ -279,6 +282,21 @@ def gates(n):
                 gate(f'{s} full {cxx}', [py, s, '--mode', 'full', '--seed', '1'], mb_of(wt, s), {'CXX': cxx})
         else:
             print(f'SKIP {s} full runs: the quick pre-flight failed')
+    changed = git('diff', '--name-only', '--no-renames', '-z', 'master...HEAD', cwd=wt).split('\0')
+    headers = sorted(p for p in changed if MUTATED.fullmatch(p) and (wt / p).is_file())
+    subjects = lambda h: [l[1:-1] for l in git('log', '--format=<%s>', 'master..HEAD', '--', h, cwd=wt).splitlines()]  # <>: empty ones too
+    packages = plan.load(ROOT)[1]['packages']
+    own = {d for p in packages if p['id'] == st['package'] for d in p['evidence']}
+    others = {d for p in packages if p['id'] != st['package'] for d in p['evidence']} - own
+    # 05-testing.md, Mutation testing: a header only /prune or /restyle commits changed, and another package's header, keep existing records only
+    loose = [h for h in headers if all(MECHANICAL.fullmatch(s) for s in subjects(h) or [''])
+             or f'{h.split("/")[0]}/Docs/{Path(h).stem}.md' in others]
+    for name, flag, group in (('mutation records', [], [h for h in headers if h not in loose]),
+                              ('mutation records (existing only)', ['--existing'], loose)):
+        if group:
+            gate(name, [py, TESTS + '04-mutation.py', 'check', *flag, *group])
+    if not headers:
+        print('mutation records: none (no changed header)')
     script = TESTS + '02-integration.py'
     gate('integration sanitizers', [py, script, '--sanitizers'], mb_of(wt, script))
     gate('workspace check', [py, '97-Online Testing/03-workspace.py', '--check'])

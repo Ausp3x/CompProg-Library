@@ -117,6 +117,21 @@ def sigkill_note(code, peak='MEMORY unknown'):
     return 'killed by SIGKILL (the memory cap if a MEMORY line above shows oom_kills > 0, otherwise an external kill)' if code in (-9, 137) else 'failed'
 
 
+def forwarding(command, **kw):
+    """subprocess.run that passes SIGTERM and SIGHUP on to the child: sent to this supervisor alone, they would orphan it."""
+    with subprocess.Popen(command, **kw) as p:
+        old = {s: signal.getsignal(s) for s in (signal.SIGTERM, signal.SIGHUP)}
+        for s, h in old.items():
+            if h is not signal.SIG_IGN:  # nohup keeps SIGHUP ignored
+                signal.signal(s, lambda sig, _: p.send_signal(sig))
+        try:
+            out, err = p.communicate()
+        finally:
+            for s, h in old.items():
+                signal.signal(s, h)
+        return subprocess.CompletedProcess(command, p.returncode, out, err)
+
+
 def supervise(command, mode=None, source='env', label=None):
     """Run command under the pre-flight (when mode is full/stress) and main caps; return its exit status."""
     label = label or Path(command[1] if len(command) > 1 else command[0]).name
@@ -131,7 +146,7 @@ def supervise(command, mode=None, source='env', label=None):
             quick = ['quick' if i and is_mode_flag(command[i - 1]) and '=' not in command[i - 1]
                      else command[i].split('=', 1)[0] + '=quick' if is_mode_flag(a) and '=' in a else a
                      for i, a in enumerate(command)]
-        result = subprocess.run(capped(quick, PREFLIGHT_MB), env=env, capture_output=True, text=True)
+        result = forwarding(capped(quick, PREFLIGHT_MB), env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         peak = next((l for l in result.stdout.splitlines() if l.startswith('MEMORY ')), 'MEMORY unknown')
         if result.returncode == -signal.SIGINT:  # the quick run itself died of the interrupt
             print(f'INTERRUPTED {label}: pre-flight quick run stopped by SIGINT; {mode} run skipped', file=sys.stderr, flush=True)
@@ -142,7 +157,7 @@ def supervise(command, mode=None, source='env', label=None):
                   file=sys.stderr, flush=True)
             return exit_code(result.returncode) or 1
         print(f'PREFLIGHT {label}: quick passed, {peak}', flush=True)
-    code = subprocess.run(capped(command, MAIN_MB), env=dict(base, CP_MEMORY_CAPPED=mark(MAIN_MB))).returncode
+    code = forwarding(capped(command, MAIN_MB), env=dict(base, CP_MEMORY_CAPPED=mark(MAIN_MB))).returncode
     if code in (-9, 137):
         print(f'FAIL {label}: {sigkill_note(code)} (cap {MAIN_MB} MB, exit {exit_code(code)})', file=sys.stderr, flush=True)
     return exit_code(code)
@@ -186,6 +201,6 @@ if __name__ == '__main__':
         raise SystemExit(usage)
     os.environ.pop('CP_MEMORY_CAPPED', None)
     reporter = [sys.executable, '-c', 'import signal, subprocess, sys; signal.signal(signal.SIGINT, lambda *_: None); sys.path.insert(0, sys.argv[1]); '
-                'import _00_memory_cap as m; code = subprocess.run(sys.argv[2:]).returncode; m.report(); sys.exit(m.exit_code(code))',
+                'import _00_memory_cap as m; code = m.forwarding(sys.argv[2:]).returncode; m.report(); sys.exit(m.exit_code(code))',
                 str(Path(__file__).resolve().parent), *args]
     raise SystemExit(supervise(reporter, None, 'env', Path(args[0]).name))

@@ -4,6 +4,7 @@
 Usage: gaps.py [Pxxx | batch id]. Without an argument the target comes from the batch or package id in the
 branch or worktree name (a batch id wins); with neither, the target is the branch itself.
 """
+import importlib.util
 import json
 import re
 import subprocess
@@ -155,6 +156,17 @@ def main():
     changed = sorted({p for p in committed if p} | {p for _, p in work})
     section('Branch and uncommitted changes', (git('diff', '--name-status', 'master...HEAD', cwd=root).splitlines() if has_master else [])
             + [f'uncommitted {code} {path}' for code, path in work], 60)
+    script = root / '96-Local Testing/04-mutation.py'
+    if script.is_file():
+        spec = importlib.util.spec_from_file_location('finish_mutation', script)
+        mutation = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mutation)
+        heads = [f for f in changed if mutation.HEADER.fullmatch(f) and (root / f).is_file()]
+        own = set(pkg['evidence']) if pkg else set()
+        others = {d for p in packages if not pkg or p['id'] != pkg['id'] for d in p['evidence']} - own  # their headers: existing records only
+        mine = [h for h in heads if mutation.evidence(h) not in others]
+        section('Mutation records (04-mutation.py check on changed headers; /package step 6)',
+                [f'{h}: {why}' for h, why in mutation.stale(root, mine) + mutation.stale(root, [h for h in heads if h not in mine], True)])
     section('TODO markers in changed files', [hit for f in changed if (root / f).suffix in ('.hpp', '.cpp', '.py', '.md')
                                                 for hit in grep(root / f, MARKER, root)])
     overlap = []

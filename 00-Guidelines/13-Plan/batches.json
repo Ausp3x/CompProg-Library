@@ -6853,6 +6853,18 @@
         "C04"
       ],
       "tiers": []
+    },
+    {
+      "id": "SUP21",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Mutation testing in every package (user decision 2026-11-03): a wrapper `96-Local Testing/04-mutation.py <header>` with its own tester that runs the P251 procedure (scratch `git archive` copy, mewt stage 1 on the optimized build, survivors on all builds, header diff after each stage, inside the memory cap, a time budget, SKIP without mewt); mewt as an optional tool in `TOOLS` of `.claude/skills/setup-check/setup_check.py`, installed outside the repository and pinned (AGPL-3.0, never vendored); a `/package` step between Tests and Benchmarks that runs it on every header the package adds or changes, Core full included, closing each survivor as a test or recording it as equivalent in the evidence document; `@reviewer` re-checks every equivalence claim; `/finish` and `/merge-pr` check only that the record matches the current header. Measure one Core full header and one large Contest header and record the per-header cost, so the user decides whether large headers need sampling by severity. [decisions](../10-decisions.md), 2026-11-03 Mutation testing in /package.",
+      "prerequisites": [
+        "SUP20"
+      ],
+      "tiers": []
     }
   ]
 }

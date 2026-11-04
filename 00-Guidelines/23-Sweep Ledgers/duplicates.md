@@ -124,6 +124,7 @@ Items a reader could mistake for duplicates.
 | P048 | `localClustering`, `squareClustering`, `transitivity` and `generalizedDegree` (row 35) beside `countC3C4PerVertex`, `countTriangles` and `countTrianglesPerEdge` with degrees | Decided 2026-10-29 by the user: NetworkX `cluster.py` measures with fixed denominators and zero conventions (`squareClustering` needs P3 and the 4-cycles through v; `generalizedDegree` counts per simple pair) |
 | P048 | `averageClustering` (row 35) beside the mean of `localClustering` or `directedClustering` | Decided 2026-10-29 by the user: NetworkX `average_clustering` with `count_zeros`, dispatching on `g.directed` |
 | P072 | `kSmallestSubsetSums` (`54-kbest_enumeration.hpp`) beside `kSmallestSortedListSums` over lists `{min(0, a_i), max(0, a_i)}` | Decided 2026-10-23 by the user: named special case (subset witnesses, no list construction) |
+| P059 | `isqrt` beside `isqrt128` (row 21) | Decided 2026-11-03 (`/merge-pr 3`): larger domain, a 128-bit argument; `isqrt` keeps the one-`sqrt` 64-bit path |
 
 ### Rulings
 
@@ -282,6 +283,13 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P048 | `cycleSpaceDimension`, `isIndependentF2` (row 28) beside `m - n + connectedComponents(g).count` and `BitMatrix` rank | Derived formula; bool form (ruling 1) |
 | P048 | `eulerCharacteristic` (row 29) beside `n - m + faces().size()` | Derived formula (clarified rule) |
 | P032 | `StaticRangeFrequency::count` (`32-static_range_queries.hpp`) beside `PointSetRangeFrequency(a).count`, `MergeSortTree::countEqual`, `WaveletMatrix::countEqual`, `PersistentValueTree::countEqual` | Constant-factor variant (ruling 4): sorted (value, position) pairs, O(n) words, needs only `<` |
+| P059 | `bisectionRoot` (row 17) beside `binSearchRealBracket` | Root finding with a predicate derived from f (clarified rule) |
+| P059 | `isqrtRemainder` (row 21) beside `isqrt` | Derived formula (clarified rule) |
+| P059 | `ceilKthRoot` beside `ikthRoot` (row 21) | Derived formula: floor plus one unless exact (clarified rule) |
+| P059 | `isqrt`, `icbrt` beside `ikthRoot` (row 21) | Named special cases; `icbrt` also takes signed input |
+| P059 | `isPerfectSquare` beside `isqrtRemainder` (row 21) | Named special case with a residue prefilter |
+| P059 | `kahanSum` beside `neumaierSum` (row 17) | Different recurrence (Neumaier never worse) |
+| P059 | `hornerDerivative` (row 17) beside row 14 `polyEval` | Different result: value and derivative in one pass, over any ring |
 
 ## Conventions
 
@@ -408,14 +416,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `evaluateExpression` | row 37 | `evaluatePostfix(shuntingYard(tokenize(s)))` | ask | composition | — | — |
-
-## P059 — 05-Mathematics — numerical methods, integer roots (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `horner` | row 17 | `polyEval` | remove (row only) | another name | — | — |
-| `bisectionRoot` | row 17 | `binSearchRealBracket` on the sign of f | keep | root finding with a predicate derived from f (clarified rule) | — | — |
-| `isqrtRemainder` | row 21 | `s = isqrt(n), n - s * s` | keep | derived formula (clarified rule) | — | — |
 
 ## P076 — 06-Miscellaneous — state space search, game search (planned)
 

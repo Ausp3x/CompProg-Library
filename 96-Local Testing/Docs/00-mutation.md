@@ -1,6 +1,6 @@
-# Mutation testing of the testers — evidence (P251)
+# Mutation testing — evidence (P251, P252)
 
-Batch SUP20 ([decisions](../../00-Guidelines/10-decisions.md), 2026-10-31 Model and prompt review). One campaign was run on one Contest header, to show whether a tester's oracles catch injected faults; whether to extend it is the user's decision (Handoff).
+Batches SUP20 (tool selection and the first campaign) and SUP21 (a campaign in every package, [decisions](../../00-Guidelines/10-decisions.md), 2026-11-03 Mutation testing in /package). The rule lives in `05-testing.md`, Mutation testing; `/package` step 6 runs it, `@reviewer` re-checks its equivalence claims, `/finish` (`gaps.py`, Mutation records) and `/merge-pr` (gate `mutation records`) check that each changed header's record names its current blob, and the later passes rerun it only on the lines they change.
 
 ## Tool selection
 
@@ -9,89 +9,108 @@ Batch SUP20 ([decisions](../../00-Guidelines/10-decisions.md), 2026-10-31 Model 
 | [mewt](https://github.com/trailofbits/mewt) (Trail of Bits) | 4.0.0, release commit `53b5d07` (tag `v4.0.0`, 2026-06-18) | AGPL-3.0 | Source-level: tree-sitter C++ grammar, extensions `cpp cc cxx c hpp hxx`; the test command is any shell command, so the compiler is irrelevant | Used |
 | [muton](https://github.com/trailofbits/muton) | 3.1.0, `00b4aca` | AGPL-3.0 | Same engine as mewt, targets TON (FunC/Tact/Tolk) only | Not applicable |
 | [Mull](https://github.com/mull-project/mull) | 0.36.0 (tag `095f43f`), read at main `62222ff` | Apache-2.0 | Finds mutations through the Clang AST and injects them through an LLVM IR pass plugin (`docs/HowMullWorks.rst`), so the code must be built with clang; clang is not a library target (`03-cpp.md`) and is not installed | Rejected |
-| Trail of Bits [`mutation-testing` skill](https://github.com/trailofbits/skills/tree/main/plugins/mutation-testing) | plugin 1.9.2, `trailofbits/skills@d016e08` | CC-BY-SA-4.0 | Drives mewt or muton; the skill content is Markdown (`allowed-tools: Read Write Bash Grep`), and the `tests/` and `evals/` scripts run only by hand | Read, not installed (user decision 2026-11-03); its equivalence procedure (`references/equivalent-mutants.md`) is applied by hand below |
+| Trail of Bits [`mutation-testing` skill](https://github.com/trailofbits/skills/tree/main/plugins/mutation-testing) | plugin 1.9.2, `trailofbits/skills@d016e08` | CC-BY-SA-4.0 | Drives mewt or muton; the skill content is Markdown (`allowed-tools: Read Write Bash Grep`), and the `tests/` and `evals/` scripts run only by hand | Read, not installed (user decision 2026-11-03); its equivalence procedure (`references/equivalent-mutants.md`) is the five checks of `05-testing.md` |
 
-mewt facts read at the pinned commit: `src/` opens no socket and makes no HTTP request (its only URLs are two SARIF metadata strings in `src/core/cmds/results.rs`; `Cargo.toml` has no HTTP crate, although `tokio` is built with `full` features), and the campaign uses only a local `mewt.sqlite` beside `mewt.toml`. mewt writes each mutant **into the target file in place** and restores it after each test or on Ctrl-C (`docs/how-it-works.md`), so it never runs in the checkout. The skill plugin installs no hooks; its `tests/validate_report.py`, `tests/test_validate_report.py` and `tests/smoke-test.sh` (which makes API calls), `evals/` and `agents/openai.yaml` are used only by hand. Installation (user decision 2026-11-03): the release tarball `mewt-x86_64-unknown-linux-gnu.tar.xz`, SHA-256 `0e30678a7d090d112b9cf4d2d620053ca9da7c458ed5c2d94010304edded728b` (checked against the release's `.sha256`, which shows the download is intact, not that the release binary was built from `53b5d07`), unpacked into the session scratch directory; `mewt-installer.sh`, which edits `PATH` and shell rc files, was not run. Nothing was installed system-wide and no file of the tool is in the repository.
+mewt facts read at the pinned commit: `src/` opens no socket and makes no HTTP request (its only URLs are two SARIF metadata strings in `src/core/cmds/results.rs`; `Cargo.toml` has no HTTP crate, although `tokio` is built with `full` features). mewt writes each mutant **into the target file in place** and restores it after each test or on Ctrl-C (`docs/how-it-works.md`), so it never runs in the checkout, and it creates `mewt.sqlite` in its working directory, so every call runs inside a shard. Observed with 4.0.0: `run` without targets generates no mutants (`mutate` does); `test --ids-file` runs one baseline, then each id, replacing an earlier outcome (`results --all` keeps one row per mutant); a timed-out test is killed with its whole process group (a background `sleep` in the test left no orphan); multi-line mutants print as `Lines a-b:` in `print mutants`; severity is fixed per mutation type (`print mutations`).
 
-## Procedure
+Installation (user decision 2026-11-03): `python3 '96-Local Testing/04-mutation.py' install` downloads the release tarball `mewt-x86_64-unknown-linux-gnu.tar.xz`, checks SHA-256 `0e30678a7d090d112b9cf4d2d620053ca9da7c458ed5c2d94010304edded728b` (the release's `.sha256`, which shows the download is intact, not that the binary was built from `53b5d07`), unpacks its regular files flat into `~/.local/opt/mewt-4.0.0/` and links `~/.local/bin/mewt`; `mewt-installer.sh`, which edits `PATH` and shell rc files, is never run. mewt publishes no arm64 Linux binary (its 4.0.0 assets are `x86_64-unknown-linux-gnu`, `aarch64-apple-darwin` and `source.tar.gz`), so on arm64, the macOS contributors' Ubuntu VM, or with `--source`, `install` checks the source archive's SHA-256 `a18b9c7d56e65f426c3d0013a51199ed42eced6d745de537b01825ee9400e3d7`, unpacks it with tarfile's `data` filter and builds it with `cargo install --locked` (Rust 1.85 or newer, edition 2024; the optional `/setup-check` row Rust) into the same layout (user decision 2026-11-04). No file of the tool is in the repository. `/setup-check` lists mewt as required (user decision 2026-11-04), fails unless `mewt --version` is exactly the pin in `04-mutation.py`, and prints that install command; `install` warns when its `bin` directory is not first on `PATH`. The user added `Bash(mewt *)` to `.claude/settings.json` (2026-11-03); the wrapper calls mewt through `subprocess`, so campaigns do not need it.
 
-1. `git archive HEAD | tar -x -C <scratch>/repo`, so the in-place mutation never touches the checkout.
-2. `<scratch>/repo/mewt.toml`:
+## Procedure (`04-mutation.py run <header>`)
 
-   ```toml
-   [targets]
-   include = ["02-Data Structures/01-dsu.hpp"]
+1. Header `0N-<folder>/<NN-name>.hpp` (aggregates excluded) with its tester `96-Local Testing/<folder>/<NN-name>_tester.py`; SKIP without mewt 4.0.0. The run reruns itself in a memory-capped scope (`ensure(force=True)`, with `CP_TEST_PREFLIGHT=0`, so `CP_TEST_MODE=full` starts no pre-flight campaign) and then prints PASS without work when the record names the current blob (`git hash-object`, so line-ending attributes apply) with 0 untested, unless `--workdir` holds a campaign on that blob, which it resumes.
+2. Scope: the lines changed since the record's blob (`git cat-file`, `difflib`; a pure deletion marks both neighbouring lines; a multi-line mutant counts when its span meets a changed line), every line without a record, with `--whole`, when the recorded blob is not in the repository, or when the current record leaves mutants untested. Sample: high and medium severity on a Core full header's whole-file campaign, otherwise every severity (`--severity`, `--mutations` override); then a whole-file campaign tests a uniform sample of at most `--sample` (500) mutants drawn with `--seed`.
+3. A workdir inside the checkout is refused (every shard would copy it). One campaign runs per machine: a second waits on the lock `CP_MUTATION_LOCK` (default `$XDG_RUNTIME_DIR/cp-mutation.lock`) before it reads the free memory. Copy the working tree's tracked and untracked, not ignored files (without `OLD/` and `95-Resources/`, about 12 MB) into `--jobs` shards `s0…`, run `mewt mutate` in `s0` (the listing must hold as many mutants as mewt's id list) and copy it with its database. Each stage deals its pending mutants, in an order shuffled by `--seed`, round-robin to the shards it runs, so a run the budget stops is a uniform sample; a mutant's verdict is its latest outcome over all shard databases (by mewt's UTC timestamp), so a resumed run that deals it to another shard supersedes the old one.
+4. Stages, each on the sampled mutants not yet caught: tester `--mode quick`, then `--mode full --configuration optimized`, then `--mode full --configuration all` (the 154 Contest testers, through their `_00_runner.py`); `--mode quick` then `--mode full` for the 14 Core testers, which cannot select one build. Each stage first measures its baseline alone (a failing baseline stops the campaign); each mutant's test gets the timeout and memory-capped scope of `05-testing.md`, and as many shards run at once as `--memory-mb` (default MemAvailable minus 2048) holds. The mutants that timed out are then retested one at a time on `s0` (`<stage>-alone`); those still pending at a stop are kept in `campaign.json` and retested on resume.
+5. After each stage every shard's header is compared with the checkout, and the campaign scope (the wrapper and mewt only) must show no OOM kill; either failure stops the run. `--budget` (default 480 minutes), checked before each stage's baseline as well, interrupts mewt as Ctrl-C does, and SIGTERM or SIGHUP stops the run the same way, once (`_00_memory_cap.supervise` forwards both to the capped campaign); a lock on the workdir refuses a second run on it, and a workdir whose header, blob, seed or sample differs is refused. A rerun with the same `--workdir` resyncs the tree, tests what is untested and retests the survivors from the first stage with the current tester.
+6. Output: counts, the survivors table (mutant, severity, line, change), `report.json` in the kept workdir, and only for a complete run the `Record:` line with the header's git blob, which is then written to git's object database (`git hash-object -w`) so a later diff scope finds it; a stopped run prints `No record` with its untested count and the stage that did not finish. Exit 0 complete, 3 stopped, 1 failure, 130 interrupted.
+7. `check <headers>` fails on a missing record, another blob or a nonzero untested count; `--existing` passes a header without a record, `--changed [BASE]` checks the headers changed since `BASE`.
 
-   [test]
-   cmd = "python3 '96-Local Testing/02-Data Structures/01-dsu_tester.py' --mode full --seed 1 --configuration optimized"
-   timeout = 60
-   ```
+## Feature-to-test map
 
-3. Stage 1, every mutant against the fast `-O2 -DNDEBUG` build: `python3 '96-Local Testing/_00_memory_cap.py' -- mewt run --comprehensive`. The cap wraps mewt and every test it starts (`CP_MEMORY_CAPPED` makes the nested tester skip its own scope).
-4. Stage 2, survivors against all three builds (the checked build adds the `--invalid` assertion probes): `mewt results --format ids > ids.txt`, then `python3 '96-Local Testing/_00_memory_cap.py' -- mewt test --ids-file ids.txt --test.cmd "python3 '96-Local Testing/02-Data Structures/01-dsu_tester.py' --mode full --seed 1 --configuration all" --test.timeout 240`.
-5. Classify every survivor with the five checks of the skill's procedure (type context, reachability, downstream use, semantic comparison, distinguishing input); close each test gap in the tester, copy the tester into the scratch tree and repeat stage 2 on the remaining survivors.
-6. `diff` the scratch header against the checkout after each stage (identical every time).
+| Feature | Test |
+|---|---|
+| `blob`, `current` (line-ending attributes), `evidence`, `record`, `recorded`, `library_path`, `stale` (incomplete records, `--existing`), `check` (absolute paths, `--existing`), `changed`, `changed_lines`, `scope` (a current record of an unstaged edit, a current but incomplete record) | `00-Tools/11-mutation_tester.py`: `test_blob_*`, `test_current_line_endings`, `test_evidence_path`, `test_recorded_cases`, `test_record_cases`, `test_library_path`, `test_stale_reasons`, `test_check_*`, `test_changed_sets`, `test_lines_*`, `test_scope_cases`, `test_run_record_current`, `test_fake_incomplete_record` |
+| `install` (layout, digest, missing executable, traversal names, prefix, `PATH` warning) and `mewt_version` | `test_install_*`, `test_version_cases` |
+| `install` source build (arm64 or `--source` choice, cargo floor, cargo failure, unsafe archive members, built layout) | `test_install_cli_build_choice`, `test_install_build_cargo_floor`, `test_install_build_cargo_fails`, `test_install_build_archive_refusals`, `test_install_build_layout` |
+| `stage`, `outcomes`, `interrupt`, `unchanged`, `tester_cap`, `capped`, `available_mb` (fake mewt: argv, ids files, every nonempty shard at once, deadline SIGINT, a passed deadline launching nothing, failure log; latest outcome over shards, malformed times) | `test_stage_*`, `test_outcomes_latest`, `test_interrupt_kill`, `test_unchanged_cases`, `test_memory_helpers` |
+| Stage parameters: timeout (3× baseline, 60 s floor, `--timeout`), per-mutant cap (1024 MB floor, 3× peak, the tester's own cap), fewer shards than `--jobs` under `--memory-mb` | `test_fake_stage_parameters` |
+| `--sample` (seeded uniform sample after `--severity`, record wording, never in a diff scope) | `test_fake_sample`, `test_fake_resume_recorded`, `test_e2e_sample` |
+| Timeouts retested alone in their own stage, kept across a stop, dropped when no longer a timeout | `test_fake_timeouts_alone`, `test_fake_unconfirmed_resume`, `test_e2e_timeout_alone` |
+| Resume of a recorded campaign, machine lock (`CP_MUTATION_LOCK`, `XDG_RUNTIME_DIR`, temp directory, missing directory), header changed during the wait, no pre-flight under `CP_TEST_MODE=full` | `test_fake_resume_recorded`, `test_fake_machine_lock`, `test_fake_header_changed_during_wait`, `test_fake_no_preflight` |
+| Signals: `stop()` once, nohup kept, SIGTERM or SIGHUP during a baseline and mid-stage, inside a cap and to the top-level supervisor | `test_stop_handler`, `test_fake_signal_handlers`, `test_fake_baseline_signal`, `test_e2e_signals` |
+| `run` before the campaign (non-header, missing tester, SKIP, workdir refusals including another seed or sample and a workdir in the checkout, the workdir lock, argument errors) | `test_run_*` |
+| Real mewt campaigns: three-stage escalation against a hand oracle, resume after pasting the record and strengthening the tester, diff scope, Core full default severity, a runaway mutant killed alone in its 1024 MB scope, budget stop before the baseline and mid-stage with `No record` then completion, stored blobs, campaign-cap kill and failing baseline, no file left in the caller's directory | `test_e2e_*` |
+| `_00_memory_cap` forwarding of SIGTERM and SIGHUP (supervisor, pre-flight, CLI reporter, nohup) | `00-Tools/05-runner_tester.py`: `test_forward_*`, `test_forwarding_restores_handlers` |
+| `/setup-check` mewt row: required, exact pin, other or missing version, each distribution's install line | `00-Tools/09-setup_tester.py`: `test_probe_mewt`, `test_tools_required_set`, `test_install_mewt`, `test_cli_mewt_required`, `test_cli_fake_path`, `test_cli_random` |
+| `/setup-check` optional Rust row (cargo floor from `04-mutation.py`, older or unknown version, install lines) | `00-Tools/09-setup_tester.py`: `test_tools_rust`, `test_probe_cargo`, `test_cli_fake_required_pass` |
+| `/merge-pr` gate `mutation records`: changed headers only (aggregates, deleted and master-only headers excluded), sorted, default cap, failure; a header changed only by `/prune` or `/restyle` commits (per-header subjects, empty subjects strict) or listed only by other packages' evidence gets `--existing`; its header pattern equals `04-mutation.py`'s | `00-Tools/10-merge_tester.py`: `test_gates_mutation_records`, `test_gates_mutation_failing`, `test_gates_mutation_master_only`, `test_gates_mutation_subjects`, `test_gates_mutation_owners`, `test_suites` |
+| `/finish` facts section Mutation records (`gaps.py`) | run by hand: `gaps.py P252` prints `(none)` (no header changed) |
 
-## Target and results
+## Campaigns (2026-11-03/04)
 
-Target (user decision 2026-11-03): [`02-Data Structures/01-dsu.hpp`](../../02-Data%20Structures/01-dsu.hpp) (47 lines, row verified), tester [`01-dsu_tester.cpp`](../02-Data%20Structures/01-dsu_tester.cpp). mewt generated 140 mutants from 11 of its 21 C++ operators (ER 30, CR 30, COS 55, RDV 6, AS 4, AAOS 4, IF 3, IT 3, WF 2, BL 2, LOS 1; 30 high, 42 medium, 68 low severity); `--comprehensive` tested all of them, 135 to an outcome and 5 to a timeout.
+Machine: Intel Core i9-11900H (8 cores, 16 threads), 31 GB RAM of which 5–10 GB were free (a virtual machine held 7 GB), Linux 7.2.11, g++ 16.2.1, Python 3.14.8, mewt 4.0.0, seed 1. Times are stage wall times; shard-hours are wall time times concurrent shards.
 
-| Stage | Tester | Mutants run | Wall time | Peak memory | Caught | Timeout | Survived |
-|---|---|---|---|---|---|---|---|
-| 1, optimized build | original | 140 | 757 s | 428 MB | 99 | 5 | 36 |
-| 2, all builds | original | 36 | 621 s | 545 MB | 20 | 0 | 16 |
-| 2, all builds | final (after review) | 16 | 257 s | 611 MB | 10 | 0 | 6 |
+| Header | Lines | Mutants (sampled) | Shards | Stage: tested → survived, wall | Result |
+|---|---|---|---|---|---|
+| [`02-Data Structures/01-dsu.hpp`](../../02-Data%20Structures/01-dsu.hpp) | 47 | 140 (all) | 5, 1 (alone), 5, 4 | in [01-dsu.md](../../02-Data%20Structures/Docs/01-dsu.md#mutation-testing) | Complete in 789 s on 2026-11-04 (per-mutant caps 1,089 and 1,524 MB, campaign scope peak 162 MB); the record and the six equivalent survivors are in its evidence document |
+| [`05-Mathematics/14-polynomial_algorithms.hpp`](../../05-Mathematics/14-polynomial_algorithms.hpp) | 661 | 3,268 (all) | 3 | quick 260 → 50, 2,372 s | Stopped by a 40-minute budget: 260 tested (8%), 210 caught (2 by timeout, 3 at their 2,277 MB cap), campaign scope peak 151 MB |
+| [`01-Core/07-infint.hpp`](../../01-Core/07-infint.hpp) | 3,416 | 26,200 (5,651 high or medium) | 3 | quick 122 → 16, 3,460 s | Stopped by a 60-minute budget: 122 tested (2.2%), 106 caught (7 by timeout) |
 
-Final: 129 caught, 5 timeouts, 6 survivors, all equivalent. The 20 caught in the first stage-2 run are assertion mutants on lines 12, 16 and 28, which the `-DNDEBUG` build cannot see: 4 (`CR 31`, `CR 48`, `LOS 79`, `COS 107`) fail an `--invalid` probe, and 16 tighten the assertion so that it fires during the checked build's ordinary full run. The 5 timeouts (`COS 112, 114` on line 30, `COS 115, 117, 119` on line 31) turn the root walk or the compression loop into an infinite loop at a root (`r <= par[r]` holds at `r == par[r]`; `u == r` holds when `u` is the root); the runner's 180 s subprocess timeout would fail the suite, so they count as caught.
+The 14-polynomial_algorithms run used the per-mutant scopes of step 4 before the review fixes (the same stages, scopes and caps; shard `k` then owned the ids congruent to `k`); the 07-infint run used the first design's single 4096 MB cap shared by all shards (campaign peak 2,914 MB, no kill). The survivors of both stopped runs are quick-mode survivors still to escalate, not test gaps; they stay unclassified (Handoff).
 
-### Test gaps closed
+### Cost per header
 
-| Mutants | Line | Why the original tester missed them | Closing test |
-|---|---|---|---|
-| `CR 43`, `IF 62`, `IT 65`, `COS 95`, `COS 96`, `COS 98`, `COS 99` | 23, `if (siz[u] < siz[v]) { swap(u, v); }` | Removing or inverting union by size keeps every connectivity answer right; only the documented `O(log(n))` worst case breaks, and no test looked at tree shape | `checkDepths`: `par` has `n` entries in `[0, n)`, and a vertex at depth `k` in `par` lies in a component of at least `2^k` vertices (the union-by-size invariant, kept by compression). It runs in every `verify`, before that compresses paths, and after two 65,536-vertex stars, `uniteSets(i, 0)` and `uniteSets(0, i)` for every `i`, which alone kill all seven (header depth 1; mutant depth above 65,000). Small distinguishing input: `uniteSets(0,1)`, then `uniteSets(2,0)` or `uniteSets(0,2)` on 3 vertices, in the exhaustive histories. |
-| `COS 106` | 28, `u < n` → `u != n` | Probes used only `u = -1` and `u = n`; for `u > n` the mutant passes the assertion and `_GLIBCXX_DEBUG` aborts without an assertion message | Probe `find-past`: `DSU(2).findSet(3)` |
-| `CR 35`, `COS 87` | 16, `assert(n < INT_MAX)` removed or `<=` | No probe reached `n == INT_MAX` (`2^31` vertices exceed the memory cap) | Probe `makeset-full`: sets the public `n` to `INT_MAX` on `DSU(2)` and calls `makeSet` (a white-box precondition probe; only the checked build runs it) |
+A mutant's test costs about one tester run, mostly compilation; quick-mode tests average less than the baseline because many mutants fail early. Baselines (alone, 2026-11-03/04, logged in the session scratch directory): 14-polynomial_algorithms 29.2 s quick, 63.7 s full on the optimized build, 210.0 s on all builds (peaks 737, 736 and 1,257 MB); 07-infint 136 s quick and 1,355 s full in 5 configurations (peaks 888 and 2,867 MB). Measured shard-seconds per quick-mode mutant: 9.2 (dsu on 2026-11-03, before the alone retests: 214 s × 6 / 140), 27.4 (2,372 s × 3 shards / 260), 85 (3,460 s × 3 / 122). Estimate: mutants × (quick per mutant + quick survival × later baselines), plus a fixed cost per campaign of (1 + width) baselines per stage (once alone, once per shard inside `mewt test`).
 
-### Equivalent survivors
+| Header | Quick survival | Width (5–10 GB free) | Sampled whole-file campaign (500) | Whole file, unsampled | Per changed line (all severities) | Fixed per campaign |
+|---|---|---|---|---|---|---|
+| 01-dsu (140 mutants) | 21% | 5, then 4 | Measured: 789 s wall, about 0.7 shard-hours with the alone retests (140 < 500) | same | 3 mutants, 0.8 shard-minutes | about 4 shard-minutes |
+| 14-polynomial_algorithms (3,268) | 19% | 1–3 (caps 2,277, 2,208 and 3,771 MB; the 2026-11-03 run had 3) | 3.8 + at most 7.2 = 11 shard-hours, 4–11 h wall | at most 72 shard-hours | 4.9 mutants, 6.5 shard-minutes | about 20 shard-minutes |
+| 07-infint, high and medium (5,651) | 13% | quick 1–3 (cap 2,664 MB), full 1–2 (cap 4,096 MB) | 11.8 + 24.5 = 36 shard-hours, about 16–36 h wall | 410 shard-hours | 7.7 mutants, 34 shard-minutes | about 75 shard-minutes |
 
-Four are strictly equivalent; two (`COS 97`, `CR 58`) change state the contract leaves unspecified, so they are equivalent under the contract only, and representative choice and `groups()` capacity stay unspecified rather than pinned by a test (user decision 2026-11-03).
+### 01-dsu survivors and test gaps
 
-| Mutant | Line | Why it is equivalent |
-|---|---|---|
-| `COS 86`, `n < INT_MAX` → `n != INT_MAX` | 16 | `n` is an `int`, so `n <= INT_MAX` always and the two conditions agree. |
-| `COS 97`, `siz[u] < siz[v]` → `<=` | 23 | Under the contract: on equal sizes the other root becomes the parent (`DSU d(2); d.uniteSets(0,1); d.findSet(1)` gives 1 instead of 0), but representatives are arbitrary by contract and the depth invariant holds both ways. |
-| `AS 72`, `swap(u, v)` → `swap(v, u)` | 23 | `std::swap` is symmetric. |
-| `CR 58`, `res.reserve(ncon)` removed | 40 | Under the contract: only `groups().capacity()` changes, which the contract leaves unspecified; contents and order are identical. |
-| `COS 126`, `u < n` → `u != n` | 41 | `u` starts at 0 and steps by 1, and `n >= 0`. |
-| `COS 132`, `id[r] == -1` → `id[r] <= -1` | 43 | `id` holds only `-1` or indices in `[0, n)`. |
+P251's campaign closed three test gaps (10 mutants) in [`01-dsu_tester.cpp`](../02-Data%20Structures/01-dsu_tester.cpp): `checkDepths` with two 65,536-vertex stars for union by size on line 23 (`CR 43`, `IF 62`, `IT 65`, `COS 95`, `COS 96`, `COS 98`, `COS 99`), probe `find-past` (`DSU(2).findSet(3)`) for `COS 106` on line 28, and probe `makeset-full` (`n = INT_MAX`) for `CR 35` and `COS 87` on line 16. The P252 runs found no gap beyond them. The six survivors are equivalent; their arguments and the record are in [01-dsu.md](../../02-Data%20Structures/Docs/01-dsu.md#mutation-testing) (written by P252, user decision 2026-11-04).
 
-## Commands and results (2026-11-03)
-
-Machine: AMD Ryzen AI 9 HX 370, Linux 6.18 (WSL2), g++ 16.0.1 20260322 and g++-14 14.3.0, Python 3.14.4; mewt 4.0.0. Strengthened tester (final, after review) on the unchanged header:
+## Commands and results (2026-11-04)
 
 ```bash
-python3 '96-Local Testing/02-Data Structures/01-dsu_tester.py' --mode quick
-python3 '96-Local Testing/02-Data Structures/01-dsu_tester.py' --mode full --seed 1
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/01-dsu_tester.py' --mode full --seed 20261103
-python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 2 --filter '02-Data Structures/01-dsu' --no-integration
+S=<session scratch directory>
+python3 '96-Local Testing/04-mutation.py' run '02-Data Structures/01-dsu.hpp' --whole --workdir $S/mut-dsu4 --jobs 6
+python3 '96-Local Testing/04-mutation.py' run '05-Mathematics/14-polynomial_algorithms.hpp' --workdir $S/mut-pa2 --jobs 6 --budget 40
+python3 '96-Local Testing/04-mutation.py' run '01-Core/07-infint.hpp' --workdir $S/mut-infint --jobs 6 --budget 60
+CP_TEST_PREFLIGHT=0 python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 1 --configuration optimized   # and all; quick with optimized
+python3 '96-Local Testing/00-Tools/11-mutation_tester.py' --mode quick
+python3 '96-Local Testing/00-Tools/11-mutation_tester.py' --mode full --seed 1
+python3 '96-Local Testing/00-Tools/11-mutation_tester.py' --mode stress --seed 7 --rounds 3
+python3 '96-Local Testing/00-Tools/09-setup_tester.py' --mode full --seed 4
+python3 '96-Local Testing/00-Tools/10-merge_tester.py' --mode full --seed 2
+python3 '96-Local Testing/00-Tools/05-runner_tester.py' --mode full --seed 2
+python3 '.claude/skills/setup-check/setup_check.py' --lint
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-All passed: quick (2 configurations, 9 assertion probes, peak 389 MB); full on g++ (3 configurations, peak 539 MB) and on g++-14 (peak 521 MB); stress, 2 rounds (peaks 667 and 666 MB). `03-consistency.py` reports no errors. The star cases were confirmed by a scratch driver running only `balancedTree` against each line-23 mutant (all seven fail in `star unions`; `COS 97` passes). The campaign commands and their results are in Procedure and Target and results.
+Campaigns as in Campaigns (exits 0, 3, 3; dsu 2026-11-04, the others 2026-11-03); the polynomial baselines as in Cost per header (2026-11-04). Testers (2026-11-04, after the `/finish` fixes): 11-mutation quick PASS (45 tests, 28 s, peak 71 MB), full PASS (54 tests, 167 s, real-mewt end to end included, peak 78 MB), stress PASS (54 tests, 3 random rounds, peak 78 MB); 09-setup full PASS (70 tests, peak 328 MB); 10-merge full PASS (64 tests, peak 64 MB); 05-runner full PASS (34 tests, the `supervise` and CLI signal forwarding included, peak 54 MB); `--lint` and consistency clean. After the arm64 source-build follow-up (2026-11-04): 11-mutation full PASS (59 tests, 137 s, with the source-built mewt first on `PATH`, peak 78 MB); 09-setup full PASS (72 tests, peak 326 MB); `--lint` and consistency clean. No library header changed, so the `CXX=g++-14` floor run and `02-integration.py` do not apply; the tool testers do not read `CXX`.
 
 ## Limits
 
-- One header, one seed, one tester. A survivor-free result does not show that the oracles are complete for inputs mewt's operators cannot express (wrong algorithms, missing operations).
-- Stage 1 runs only the optimized build, so assertion and sanitizer-only faults are judged in stage 2 alone; a mutant caught only by ASan/UBSan would be missed if it also passed stage 1 and stage 2 was skipped.
-- The `find-past` kill of `COS 106` depends on the runner (`_00_runner.py`) building this tester's checked build with `_GLIBCXX_DEBUG`, whose out-of-bounds message lacks the word `assert`. Under `-D_GLIBCXX_ASSERTIONS` libstdc++ prints `Assertion '__n < this->size()' failed`, which passes the runner's death check (any SIGABRT whose stderr contains `assert`), and the mutant survives. Tightening that check is a follow-up in P006's plan note (user decision 2026-11-03), with the depth-first reproducer of `unionHistories`.
-- Timeouts are counted as caught because each was traced to an infinite loop by hand, not because mewt proves it.
-- mewt is AGPL-3.0: running it on the library imposes nothing, but it must never be vendored into the repository.
+- Headers only: `08-Python` modules, the aggregates and the tools get no campaign.
+- A timeout repeated alone or a kill at the per-mutant cap counts as caught by rule; it is a large slowdown or memory blow-up, not proven nontermination.
+- `check` and the `/merge-pr` gate compare only the blob and the untested count. A record with survivors and no equivalence arguments, a narrower `--severity` or `--mutations` sample, or a tester that checks nothing (every mutant survives) still passes them; `@reviewer` (its step 6) is the only check of the arguments and the sample.
+- A sampled whole-file campaign leaves most mutants untested by design: a fault class rarer than about 0.6% of the mutants can escape the 500-mutant sample.
+- Stages run in seeded random order, so a stopped campaign samples uniformly, but its survivor rate is an estimate with sampling error (about ±3 points at 260 tested).
+- The diff scope trusts that unchanged lines keep their verdicts: a change elsewhere (a tester or a dependency) does not reopen them; `--whole` does.
+- The `find-past` kill of `COS 106` depends on the checked build using `_GLIBCXX_DEBUG`; under `-D_GLIBCXX_ASSERTIONS` the runner's death check (any SIGABRT whose stderr contains `assert`) passes and the mutant survives. Tightening that check is a follow-up in P006's plan note (user decision 2026-11-03).
+- The arm64 source build ran on x86-64 only (the same code path; cargo 1.99.1, 102 s, peak 2,742 MB, `mewt --version` 4.0.0, 2026-11-04); no arm64 machine built it, and no Rust older than 1.99.1 did (Ubuntu 26.04 ships cargo 1.93.1 on amd64 and arm64, packages.ubuntu.com, 2026-11-04; Arch ships 1.99.1). cargo fetches the crates from crates.io and checks each against the checksum in `Cargo.lock`, which the archive digest covers, so the build needs network access.
+- mewt is AGPL-3.0: running it imposes nothing, but it must never be vendored into the repository.
 
 ## Handoff
 
-Cost: about 5.4 s per mutant for stage 1 on this header (140 mutants, 757 s) and about 17 s per survivor for stage 2; of the 36 first-stage survivors, 20 were assertion mutants that only the checked build sees, 10 exposed three real test gaps (union by size never checked; `findSet` never probed with `u > n`; `makeSet` never probed at `n == INT_MAX`) and 6 are equivalent. Not extended for now (user decision 2026-11-03): no further campaign or package; this procedure stays available for a future tester overhaul. For such a run, budget per header roughly 3 mutants per source line and the tester's optimized full-mode runtime per mutant, and run it only after a tester overhaul (mewt's own guidance), never on every change.
+- The survivors of the two stopped campaigns (14-polynomial_algorithms, 07-infint) are unclassified quick-mode survivors; their packages run the sampled campaign at their next `/package`.
 
 ## History
 
-- 2026-11-03: P251/SUP20, tool survey, mewt 4.0.0 campaign on `01-dsu.hpp`, three test gaps (10 mutants) closed in `01-dsu_tester.cpp`, 6 equivalent survivors left; independent review, 6 findings, 7 defects fixed (`finish-log.tsv`); quick, full on g++ and g++-14, 2 stress rounds and consistency passed.
-- 2026-11-03: P251 `/merge-pr 2` review: 6 findings, 5 fixed in the evidence documents and P006's plan note; the `makeset-full` probe's coupling to the field `n` kept.
+- 2026-11-03: P251/SUP20, tool survey, mewt 4.0.0 campaign on `01-dsu.hpp`, three test gaps (10 mutants) closed in `01-dsu_tester.cpp`, 6 equivalent survivors; review and `/merge-pr 2` fixes recorded in `finish-log.tsv`.
+- 2026-11-03: P252/SUP21, `04-mutation.py` (shards, escalation, diff scope, Core sampling, per-mutant memory scopes, record check, install), `/setup-check`, `/package` step 6, `@reviewer`, `/finish` and `/merge-pr` hooks; testers 11-mutation (new), 09-setup and 10-merge (extended) pass; dsu reproduced P251, 14-polynomial_algorithms and 07-infint measured by budgeted samples; `@reviewer` findings (15) fixed, the tool's signal, lock, sampling, record and `--existing` handling added, dsu rerun with the final tool.
+- 2026-11-04: P252 `/finish`: full audit (4 defects, 10 limits, 8 nits) fixed; user decisions 2026-11-04 (500-mutant sample, timeouts retested alone, one campaign per machine, signal forwarding in `_00_memory_cap.py`, migrations and gate by evidence owner and commit subjects, mewt required, dsu record in `01-dsu.md`); polynomial baselines remeasured; step-5 review (4 defects, 2 evidence errors, 3 nits) fixed; dsu rerun with the alone retests; testers 11-mutation, 09-setup, 10-merge and 05-runner pass.
+- 2026-11-04: P252 follow-up: arm64 and `--source` build of mewt from the checked source archive with cargo, the optional Rust row of `/setup-check`, `mewt.sqlite` ignored, P250's contribution evidence updated (user decisions 2026-11-04); source build run on x86-64; testers 11-mutation and 09-setup pass.

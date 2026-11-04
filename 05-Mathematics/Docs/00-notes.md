@@ -11,7 +11,7 @@ The inventory lists operations; this file holds the folder-wide contracts every 
 - Approximate methods also state conditioning (`03-cpp.md`, API contracts); exact and approximate pivoting APIs are separately named in `16`.
 - Prime-field roots and logs are Advanced (`11`); prime-power/composite roots (`33`) and large-order discrete-log techniques (`54`) are separate Esoteric families.
 - Fast composition, factorization, multivariate and polynomial-matrix families stay in their own Esoteric headers rather than mixing tiers into `14`.
-- Integer roots are canonical in `21` (`17` and `55` call them); inverse tables live in `09`; divisor and multiple zeta/Möbius over [1, n] in `24`, over the divisors of one n in `08` `DivisorArray`.
+- Integer roots are canonical in `21` (`55` calls them); inverse tables live in `09`; divisor and multiple zeta/Möbius over [1, n] in `24`, over the divisors of one n in `08` `DivisorArray`.
 
 ## Ownership boundaries
 
@@ -24,7 +24,7 @@ The inventory lists operations; this file holds the folder-wide contracts every 
 
 ## Legacy obligations
 
-- `OLD/5-Mathematics/01-exgcdandmodpow.hpp`–`04-sieves.hpp` and `12-combinatorics.hpp` are accounted for by rows `01`–`06` (P012). `05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp` is accounted for by rows `11` (P053) and `33` (P178, `modRoot` modulo prime powers and composites). `14-miscellaneous.hpp` is accounted for by rows `18` and `19` (P060: `getFloorSum` by `floorSum`, the recursive `josephus` by `josephus`); `13-numericalmethods.hpp` stays pending until rows `17` and `21` (`isSquare`) account for every feature. All originals stay in `OLD`.
+- `OLD/5-Mathematics/01-exgcdandmodpow.hpp`–`04-sieves.hpp` and `12-combinatorics.hpp` are accounted for by rows `01`–`06` (P012). `05-primesandfactors.hpp`, `06-phiandinverse.hpp` and `07-chiremthmandgarner.hpp` are fully accounted for by the verified headers `07`–`10` (P052; per-legacy-name mapping in each evidence document). `08-modlogandmodroot.hpp` is accounted for by rows `11` (P053) and `33` (P178, `modRoot` modulo prime powers and composites). `14-miscellaneous.hpp` is accounted for by rows `18` and `19` (P060: `getFloorSum` by `floorSum`, the recursive `josephus` by `josephus`); `13-numericalmethods.hpp` and `OLD/Team Notebook/src/math/simpsoninteg.hpp`, `issquare.hpp` are accounted for by rows `17` and `21` (P059; mapping in their evidence documents). All originals stay in `OLD`.
 - `OLD/Team Notebook/src/math/old_gaussjordan.cpp`, `old_matrix.cpp` and the `Matrix` of `OLD/Team Notebook/src/algs.cpp` and `algsbetter.cpp` are accounted for by row `16` (P058, mapping in its evidence document); `00-matrix.hpp` is shared with Core Matrix (P020), which owns its arithmetic and `FastMatMul`.
 - `OLD/5-Mathematics/09-montgomery.hpp` is a Core reference; `10-poly.hpp` and `11-moly.hpp` are references for Core Poly.
 - Former `97-Legacy` excerpts `ModFac` (`OLD/[1] algorithms.cpp`) and `FastConv` (`OLD/algorithms.cpp`) are accounted for by rows 05 and 24; provenance in the [transfer record](../../00-Guidelines/History/2026-09-27-monolith-transfer.md).
@@ -37,8 +37,6 @@ The inventory lists operations; this file holds the folder-wide contracts every 
 
 Explanations moved out of the operation cells of rows not yet verified, one bullet per row in inventory order; verified rows keep theirs in their evidence documents.
 
-- `17-numerical_methods.hpp`: DualNumber: forward-mode.
-- `21-integer_roots.hpp`: isqrt: exact floor; icbrt: exact floor; ikthRoot: floor, remainder; isPerfectPower: smallest base and largest exponent.
 - `22-interpolation.hpp`: lagrangeInterpolate: O(n^2); lagrangeEvaluate: value at x from points; lagrangeEquidistant: points 0..n, O(n); hermiteInterpolate: repeated points, derivative jets; productOfGeometricShifts: product of f(r^k x) (named apart from row 37's `productOfLinearShifts`).
 - `23-matrixtree.hpp`: eulerianCircuitCountBest: BEST bridge.
 - `25-game_theory.hpp`: grundy: memoized game DAG; subtractionGame: period detection with proof bound; wythoff: cold positions; retrogradeAnalysis: win, lose, draw on a finite game graph.
@@ -220,3 +218,16 @@ User decisions (2026-10-28): `rref` stays and `gaussJordan` left row 16; `nullsp
 - `solveLinear2` (KACTL, determined variables): variable j is determined iff column j is zero in every `nullspace` vector.
 - `diagonalizeTriangular` (maspypy): a special case of Core Matrix `jordanForm`.
 - `mcrt` (PyRival, a different modulus per row): integer linear algebra, a candidate for row 49 `modularSolve`.
+
+## P059 research decisions (2026-11-03)
+
+Scope accepted as a user decision 2026-11-03. Adopted from the sweep: `ceilKthRoot` (suisen `kth_root_round`), `newtonSafeRoot` (Numerical Recipes `rtsafe`), `doubleExponentialIntegrate` (tanh-sinh, Numerical Recipes 4.5). `DualNumber` lists sub and neg beside add, mul and div, and `finiteDifference` takes any derivative order up to 60. `horner` left row 17 as `polyEval` of row 14 (another name, `/duplicate-sweep` 2026-10). `ikthRoot` returns the floor only (user decision 2026-11-03); the remainder of a k-th root is `n - r^k`, and `isqrtRemainder` keeps the k = 2 form (GMP `mpz_sqrtrem`). Left out, one line each:
+
+- `falsePositionRoot`, `riddersRoot` (Numerical Recipes 9.2): bracketing methods dominated by `brentRoot`.
+- Adaptive Gauss–Kronrod or Gauss–Lobatto (Numerical Recipes 4.7): `simpsonAdaptive` and panelled `gaussLegendreIntegrate` cover adaptive and high-order quadrature.
+- `trapezoidIntegrate` and the open midpoint rule (Numerical Recipes 4.2, 4.4): the base level of `rombergIntegrate`; endpoint singularities go to `doubleExponentialIntegrate`.
+- Infinite-range exp-sinh and sinh-sinh rules: substitute `x = t / (1 - t^2)` (or `x = a + t / (1 - t)`) into `doubleExponentialIntegrate`.
+- `aitkenDelta2`, `wynnEpsilon`, Euler's series transform (Numerical Recipes 5.3): sequence acceleration with no contest use beside `richardsonExtrapolate`.
+- `hornerDerivatives(k)` (Numerical Recipes `ddpoly`): higher derivatives come from nested `DualNumber<DualNumber<double>>` or row 14 `polyDerivative`.
+- Elementary functions of `DualNumber` (sin, exp, sqrt): the chain rule is one line at the call site, `{f(x), f'(x) * dx}`.
+- `kahanSum` stays beside the never-worse `neumaierSum`: a different recurrence (row operation, kept).

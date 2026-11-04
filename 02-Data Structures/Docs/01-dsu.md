@@ -38,7 +38,22 @@ python3 '96-Local Testing/01-run.py' --mode stress --seed 7 --rounds 2 --filter 
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-All passed: quick in 2 configurations (`MEMORY peak=389MB`); full on g++ and g++-14 in the optimized, checked and ASan/UBSan builds with 9 assertion probes (peaks 539 MB and 521 MB); stress, two rounds (peaks 667 MB and 666 MB); consistency without errors. Integration last ran 2026-10-13 with the P006 prune rerun, recorded in [02-fenwick.md](02-fenwick.md#commands-and-results); the header has not changed since. Mutation campaign (mewt 4.0.0, 140 mutants; 6 equivalent survivors): [00-mutation.md](../../96-Local%20Testing/Docs/00-mutation.md).
+All passed: quick in 2 configurations (`MEMORY peak=389MB`); full on g++ and g++-14 in the optimized, checked and ASan/UBSan builds with 9 assertion probes (peaks 539 MB and 521 MB); stress, two rounds (peaks 667 MB and 666 MB); consistency without errors. Integration last ran 2026-10-13 with the P006 prune rerun, recorded in [02-fenwick.md](02-fenwick.md#commands-and-results); the header has not changed since. Mutation campaign: [Mutation testing](#mutation-testing).
+
+## Mutation testing
+
+Record: mewt 4.0.0 on blob `7fcf472306554c4f232dbaa6087bfb3148c4feb3` (2026-11-04, seed 1, whole file): 140 mutants, 134 caught (5 by timeout), 6 survived, 0 untested.
+
+Written by P252 (user decision 2026-11-04); procedure, machine and cost in [00-mutation.md](../../96-Local%20Testing/Docs/00-mutation.md). Stages: quick 140 → 29 survivors on 5 shards, then its five timeouts retested alone and timing out again, 535 s together; full on the optimized build 29 → 29 in 37 s on 5; full on all builds 29 → 6 in 217 s on 4. The five timeouts (`COS 112, 114` on line 30, `COS 115, 117, 119` on line 31) make the root walk or the compression loop spin at a root. The six survivors are equivalent; `COS 97` and `CR 58` only under the contract (representatives and `groups()` capacity are unspecified, user decision 2026-11-03):
+
+| Mutant | Line | Why it is equivalent |
+|---|---|---|
+| `COS 86`, `n < INT_MAX` → `n != INT_MAX` | 16 | `n` is an `int`, so `n <= INT_MAX` always and the two conditions agree. |
+| `AS 72`, `swap(u, v)` → `swap(v, u)` | 23 | `std::swap` is symmetric. |
+| `COS 97`, `siz[u] < siz[v]` → `<=` | 23 | Under the contract: on equal sizes the other root becomes the parent (`DSU d(2); d.uniteSets(0,1); d.findSet(1)` gives 1 instead of 0), but representatives are arbitrary by contract and the depth invariant holds both ways. |
+| `CR 58`, `res.reserve(ncon)` removed | 40 | Under the contract: only `groups().capacity()` changes; contents and order are identical. |
+| `COS 126`, `u < n` → `u != n` | 41 | `u` starts at 0 and steps by 1, and `n >= 0`. |
+| `COS 132`, `id[r] == -1` → `id[r] <= -1` | 43 | `id` holds only `-1` or indices in `[0, n)`. |
 
 ## Sources
 
@@ -61,3 +76,4 @@ The old DSU at `OLD/algorithms.cpp:1402–1477` mixed connectivity, weighted dis
 - 2026-10-13: P006 prune rerun, header and tests unchanged; full suite (seed 20261013) passed on g++ and g++-14.
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-03: P251 mutation campaign, tester gained the union-by-size depth check and probes `find-past`, `makeset-full`; quick, full on g++ and g++-14, and 2 stress rounds passed.
+- 2026-11-04: P252 recorded the mutation campaign (140 mutants, 6 equivalent survivors) under Mutation testing; header and tests unchanged.
