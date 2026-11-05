@@ -210,3 +210,13 @@ The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-
 - `outtreeApply`, `allFold` (maspypy): the complement ranges of `rerootedSubtreeIntervals` or `seg.apply`/`seg.allProd` on `TreeMonoid::seg`.
 - HLD `jump` and median `meet(a, b, c)`: row 07 (`LCA::jump`); `meet` is filed as a row 07 follow-up in P011's plan note (user decision 2026-11-04).
 - A weighted tree center inside an edge (maspypy `tree_center`): `treeEccentricities` reports vertex centers; the point center is row 75 `absoluteCenter`.
+
+## P042 GR70 omissions
+
+The 2026-11-04 sweep ([sources](00-sources.md#pages-fetched-on-2026-11-04-p042-gr70)) found no operation to add to row 85. The candidates stay out:
+
+- Depth-bucket binary search (suisen, Menghani–Matani): O(n) memory and O(log n) query, the bounds of `HLD::kthAncestor`.
+- Macro-micro O(n) preprocessing (Bender–Farach-Colton): filed as row 91 `LinearLevelAncestor`, package P253, because the paper was not readable (user decision 2026-11-04); row 85 keeps jumps at long-path bottoms, O(n + l * log(n)).
+- Online leaf addition (Dietz): no catalog API; rebuild per batch.
+- O(1) path `jump` (Nyaan, maspypy, Library Checker jump_on_tree): `EulerLCA::getLCA` plus two `LevelAncestor::query` calls; row 07 keeps `LCA::jump` (user decision 2026-11-04).
+- `query(v, d)` by target depth: `query(v, dep[v] - d)`.

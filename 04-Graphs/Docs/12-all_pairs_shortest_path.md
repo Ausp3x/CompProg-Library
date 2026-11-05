@@ -64,23 +64,61 @@ Tester: [`12-all_pairs_shortest_path_tester.cpp`](../../96-Local%20Testing/04-Gr
 
 | Operation | Oracle and cases |
 |---|---|
-| `floydWarshall`, `johnson` | Per-source `lll` Bellman–Ford with negative-cycle marking (`bellmanOracle`). It is self-checked on exhaustive and random tiny graphs against walk enumeration up to a length that exposes any negative cycle. Cases: n = 0 and 1, loops with every extreme weight, an undirected negative edge, full-range chains, negative-cycle reachability, zero cycles, parallel arcs, a Johnson reweighting fixture, exhaustive n = 2 and 3, random weights (small signed, nonnegative, full range, wide, potential-feasible negative), word-boundary n = 63–200 |
-| `AllPairsResult`: `finite`, `path` | Every pair of every result: sentinel ↔ `finite`, `parent_arc` −1 exactly off finite or diagonal pairs, the path is simple and oriented, it ends with `parent_arc`, and its weight equals `dist`. Constructor, repeated, copied and moved results; probes `path-size`, `finite-range` |
+| `floydWarshall`, `johnson` | Per-source `lll` Bellman–Ford with negative-cycle marking (`bellmanOracle`). It is self-checked on exhaustive and random tiny graphs against walk enumeration up to a length that exposes any negative cycle. Cases: n = 0 and 1, loops with every extreme weight, an undirected negative edge, full-range chains, negative-cycle reachability, zero cycles, parallel arcs, a Johnson reweighting fixture, a Johnson exponential ladder (k = 40) on which Dijkstra without valid potentials improves vertex k 2^k times, exhaustive n = 2 and 3, random weights (small signed, nonnegative, full range, wide, potential-feasible negative), word-boundary n = 63–200 |
+| `AllPairsResult`: `finite`, `path` | Every pair of every result: sentinel ↔ `finite`, `parent_arc` −1 exactly off finite or diagonal pairs, the path is simple and oriented, it ends with `parent_arc`, and its weight equals `dist`. Constructor, repeated, copied and moved results; probes `path-size`, `finite-range`, `finite-row`, `finite-row-far`, `finite-column-far` |
 | `minimaxFloydWarshall` (both directions) | Threshold reachability (`thresholdOracle`), self-checked against a bottleneck Floyd; word-boundary sizes 63/64/65/127/128/129 |
-| `fixedLengthShortestPath` | Walk-length DP (`walkOracle`) for every k up to n + 2. Fixtures: k up to 10^12 on 3-cycles, k = INT64_MAX with zero weights and with no arcs, k at the 2^100 bound with INT64_MIN/MAX, k = 0 identity, k = ⌊2^100 / w⌋ with k·w = 2^100 − 2^36. Probes `fixed-negative-k`, `fixed-overflow` |
+| `fixedLengthShortestPath` | Walk-length DP (`walkOracle`) for every k up to n + 2. Fixtures: k up to 10^12 on 3-cycles, k = INT64_MAX with zero weights and with no arcs, k at the 2^100 bound with INT64_MIN/MAX, k = 0 identity, k = ⌊2^100 / w⌋ with k·w = 2^100 − 2^36. Probes `fixed-negative-k`, `fixed-overflow`, `fixed-overflow-far` |
 | `eccentricities` | Direct recomputation on every oracle matrix without −PATH_INF. Fixtures: path, n = 1, disconnected, directed, full range, negative entries, a negative diagonal. Probes `ecc-empty`, `ecc-negative-infinite`, `ecc-non-square` |
 
 ## Commands and results
 
-2026-11-03, GCC 16.0.1 20260322 (`g++`) and GCC 14.3.0 (`g++-14`). Each run builds optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the seven assertion probes) and, in full and stress, ASan+UBSan, all with `-Wall -Wextra -Wconversion -Werror`.
+2026-11-05 (after the `/finish GR70` tests; the stress and integration rows are from 2026-11-03, before them), GCC 16.0.1 20260322 (`g++`) and GCC 14.3.0 (`g++-14`). Each run builds optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the 11 assertion probes) and, in full and stress, ASan+UBSan, all with `-Wall -Wextra -Wconversion -Werror`.
 
 | Command | Result |
 |---|---|
-| `python3 '96-Local Testing/04-Graphs/12-all_pairs_shortest_path_tester.py' --mode quick` | PASS, 516 cases, 4.79·10^6 checks, peak 537 MB |
-| `… --mode full` | PASS, 30302 cases, 1.17·10^8 checks, 3 configurations, peak 1038 MB |
-| `CXX=g++-14 … --mode full` | PASS, the same counts, peak 1017 MB |
+| `python3 '96-Local Testing/04-Graphs/12-all_pairs_shortest_path_tester.py' --mode quick` | PASS, 517 cases, 5.45·10^6 checks, peak 537 MB |
+| `… --mode full --seed 1` | PASS, 30303 cases, 1.18·10^8 checks, 3 configurations, peak 1085 MB |
+| `CXX=g++-14 … --mode full --seed 1` | PASS, the same counts, peak 1089 MB |
 | `… --mode stress --seed 7` | PASS, 280958 cases, 3.01·10^8 checks, peak 984 MB, 237 s wall; the checked build alone takes about 130 s against the runner's 180 s limit, which is why stress runs two boundary rounds |
 | `python3 '96-Local Testing/02-integration.py'` | PASS: 186 standalone and aggregate headers, multi-TU scalar and AVX2, workspace; peak 2744 MB |
+
+## Mutation testing
+
+Record: mewt 4.0.0 on blob `6deb990c6048aea4daebedf4dd0d852b69854563` (2026-11-05, seed 1, whole file, uniform sample of 674): 500 mutants, 440 caught (25 by timeout), 60 survived, 0 untested.
+
+Stage seconds, over the campaign and its survivor retest together: quick 2531, full-optimized 303, full-all 4226. The first pass, run 2026-11-04 to 05 by `/finish GR70` because this header had no record, left 73 survivors. Tests were added for the real gaps, and the retest with the same workdir caught 13 of them. The new tests are the Johnson exponential ladder fixture, in which Dijkstra improves vertex k 2^k times unless the potentials are valid, so a `johnson` that loses its reweighting times out, and the probes `finite-row`, `finite-row-far`, `finite-column-far` and `fixed-overflow-far`.
+
+Each remaining survivor was checked for type context, reachability, downstream use, semantic comparison and a distinguishing input. Some arguments rest on user decisions of 2026-11-05: runtime-only mutants are recorded with their argument, a changed choice among ties or of state no caller reads is accepted as within the contract, and guards reachable only under `NDEBUG` or beyond every memory cap are untestable and kept.
+
+| Mutant | Line | Argument |
+|---|---|---|
+| `COS 386`, `COS 431`, `COS 436`, `COS 451`, `COS 466`, `COS 481`, `COS 491`, `COS 501`, `COS 531`, `COS 546`, `COS 566`, `COS 586`, `COS 591`, `COS 601`, `COS 606`, `COS 641` | 16, 26, 43, 55, 61, 67, 68, 71, 90, 97, 130, 147, 148, 151, 152, 165 | equivalent: the counter starts at 0, steps by 1 and meets its bound, which is at least 0 and fixed in the loop |
+| `COS 418` `!=` → `>` | 20 | equivalent: no entry is below -PATH_INF (Floyd-Warshall clamps there; Johnson stores exact distances) |
+| `COS 432` `<` → `<=` | 26 | equivalent: the parent arcs of a finite pair form a path of at most n - 1 arcs, so `v == u` ends the walk first |
+| `COS 464`, `COS 474`, `COS 499` | 59, 63, 70 | equivalent: no entry exceeds PATH_INF |
+| `AS 189`, `AS 215`, `AS 219`, `AS 225`, `AS 226` | 64, 140, 151, 166, 167 | equivalent: `min`, `max` and the called function are symmetric in value |
+| `COS 486` `<` → `!=` | 67 | equivalent: `d[k][k]` starts at 0 and only decreases |
+| `AS 190` `e.from, e.to` → `e.to, e.from` | 80 | equivalent: an undirected `Graph` stores both orientations of every edge, so `dg` gets the same arcs and the same components |
+| `BL 234`, `IT 172`, `IT 174` | 83, 98, 102 | equivalent: without a negative cycle `negative` stays zero; the extra BFS per source costs O(n + m) inside the bound, and a BFS from no seed visits nothing |
+| `IF 150` `(any && cyc[u])` → `(false)` | 103 | equivalent: every vertex a search from a cycle vertex reaches is reachable from that cycle, so `negative` already marks it and `fillRow` writes -PATH_INF first |
+| `COS 512`, `COS 529` | 84, 89 | equivalent: marking needs `pass == n - 1`, and the extra pass `n` marks nothing |
+| `COS 519` `==` → `>=` | 87 | equivalent: `tarjanScc` numbers components topologically, so a cross arc has `comp[from] < comp[to]` |
+| `LOS 380`, `COS 536`, `COS 537` | 92 | equivalent: the second Bellman-Ford skips cycle components, so it converges within n - 1 passes; extra passes change nothing and stay O(n * m) |
+| `CR 100`, `IT 171`, `AOS 254`, `COS 541`, `COS 543` | 91, 95 | runtime only (user decision 2026-11-05): `dijkstraPotential` corrects labels, so distances stay exact; only the potential, hence the running time, changes |
+| `AOS 262` `/` → `+` | 110 | runtime only (user decision 2026-11-05): rows get n + 127 words instead of ceil(n / 64); the extra words stay zero, so each closure step costs O(n) instead of O(n / 64) with the same result |
+| `BAOS 361` `\|=` → `^=` | 115 | equivalent: `to[u]` is zero there, so `^=` sets the same bit |
+| `BAOS 362`, `SOS 661` | 115 | equivalent: the diagonal bit of `from[u]` only makes `add` revisit the pair being closed, which it rejects, so losing it changes nothing |
+| `BAOS 367` `\|=` → `^=` | 124 | equivalent: `add` runs once per pair (the `to` bit guards it), so the `from` bit is still clear and `^=` sets it |
+| `AOS 338` `*` → `+` | 146 | equivalent: the start value only has to exceed PATH_INF / 2, the normalization threshold; finite sums stay below 2^101 |
+| `IF 152`, `COS 598`, `COS 599` | 149 | equivalent: a PATH_INF row entry gives sums of at least PATH_INF - 2^101 > PATH_INF / 2, normalized to PATH_INF (2 * PATH_INF < 2^127); no entry exceeds PATH_INF |
+| `COS 614` `>` → `>=` | 152 | equivalent: no sum equals PATH_INF / 2: finite totals are below 2^101, the others at least PATH_INF - 2^101 |
+| `COS 616` `>` → `!=` | 154 | equivalent: `k >= 0` (asserted) halves down to 0 |
+| `AS 220` `res, base` → `base, res` | 155 | equivalent: `res` and `base` are min-plus powers of one matrix, which commute |
+| `COS 621` `>` → `!=` | 156 | equivalent: `k >= 1` inside the loop |
+| `COS 624` `>` → `>=` | 156 | equivalent: one extra squaring after the last bit, never read; its entries stay below 2^102 and it costs one more O(n^3) product inside the bound |
+| `AS 221` `base, base` → `base, base` | 156 | equivalent: the mutation leaves the text unchanged |
+| `COS 639` `==` → `>=` | 163 | equivalent: `find` returns an iterator in [begin, end] |
+| `COS 659` `==` → `>=` | 170 | equivalent: `diameter` is the maximum eccentricity |
 
 ## Sources
 
@@ -94,4 +132,5 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)
 
 ## History
 
+- 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 674 mutants): the Johnson exponential ladder and four range probes closed 13 survivors; 60 recorded with arguments.
 - 2026-11-03: P042 GR04 rewrite from the pinned legacy excerpt; full suite passed on g++ and g++-14, stress seed 7; review: apspDijkstra removed (user decision), 11 findings fixed.

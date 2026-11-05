@@ -106,7 +106,8 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P032 — DS11, DS27, DS28, DS50** (opus, L+M+L+M): 02-Data Structures — lichao, convexhulltrick, radixheap, static range queries, xorbasis.
 - [x] **P059 — MA09** (opus, L): 05-Mathematics — numerical methods, integer roots.
 - [x] **P251 — SUP20** (opus, M): Mutation testing of the testers.
-- [ ] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor. Status: in-progress. Note: GR04 verified 2026-11-03 (rows 12, 13; apspDijkstra removed -> johnson, user decision; review findings fixed). GR05 verified 2026-11-03 (rows 14, 15; rootTree, pathVertices, EulerTour pathRanges, treePainting removed and HLD addEdge/build -> HLD(g, root), user decisions; review findings fixed; row 07 Forest NDEBUG revisit skip, user decision). Next batch: GR70. [evidence](04-Graphs/Docs/12-all_pairs_shortest_path.md) [evidence](04-Graphs/Docs/13-shortest_path_advanced.md) [evidence](04-Graphs/Docs/14-tree_algorithms.md) [evidence](04-Graphs/Docs/15-hld.md)
+- [x] **P252 — SUP21** (opus, L): Mutation testing in every package.
+- [x] **P042 — GR04, GR05, GR70** (opus, L+L+S): 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor.
 - [ ] **P063 — MA14** (opus, L): 05-Mathematics — optimization. Status: planned.
 - [ ] **P046 — GR25** (opus, XL): 04-Graphs — matching general. Status: planned.
 - [ ] **P073 — MI19, MI20, MI21, MI22, MI33** (opus, M+M+L+L+M): 06-Miscellaneous — meetinthemiddle, digitdp, subset dp, profile dp, interval dp, bracket sequences. Status: planned.
@@ -286,6 +287,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [ ] **P236 — GE49** (opus, M): 03-Geometry — kgon klink. Status: planned. Note: Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Area weights are not Monge (15-convex_polygon_query.md); check what AST94 requires before implementing.
 - [ ] **P237 — GE50** (opus, L): 03-Geometry — wordram geometry. Status: planned. Note: Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Expected to be slower than the comparison-model versions at contest sizes; benchmark and record.
 - [ ] **P249 — GR74, GR75** (opus, L+M): 04-Graphs — planar separator, dynamic fundamental cut. Status: planned. Note: Filed by P048 (user decision 2026-10-28, 04-Graphs/Docs/00-notes.md P048 GR13 omissions); sources in 04-Graphs/Docs/00-sources.md (P048 GR13 sweep). Run the completeness sweep first.
+- [ ] **P253 — GR76** (opus, M): 04-Graphs — linear levelancestor. Status: planned. Note: Filed by P042 (user decision 2026-11-04, 04-Graphs/Docs/00-notes.md P042 GR70 omissions); sources in 04-Graphs/Docs/00-sources.md (P042 GR70 sweep). Bender–Farach-Colton (TCS 2004) returned 403; obtain it first.
 
 ### Final support integration
 

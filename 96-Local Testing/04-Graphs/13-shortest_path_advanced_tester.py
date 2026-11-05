@@ -14,4 +14,5 @@ if __name__ == '__main__':
         'astar-negative', 'astar-range', 'bidirectional-negative', 'bidirectional-range',
         'second-negative', 'second-source-range', 'top2-negative', 'top2-source-range',
         'count-mod-zero', 'count-mod-big', 'exists-rank', 'walk-size', 'dag-size',
+        'dial-weight-max', 'astar-target-far', 'exists-negative-rank', 'walk-smaller',
     ], strict=True))

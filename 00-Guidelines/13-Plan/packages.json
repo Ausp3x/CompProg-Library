@@ -1185,14 +1185,15 @@
       "phase": "Contest core",
       "size": "L+L+S",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "04-Graphs/Docs/12-all_pairs_shortest_path.md",
         "04-Graphs/Docs/13-shortest_path_advanced.md",
         "04-Graphs/Docs/14-tree_algorithms.md",
-        "04-Graphs/Docs/15-hld.md"
+        "04-Graphs/Docs/15-hld.md",
+        "04-Graphs/Docs/85-levelancestor.md"
       ],
-      "note": "GR04 verified 2026-11-03 (rows 12, 13; apspDijkstra removed -> johnson, user decision; review findings fixed). GR05 verified 2026-11-03 (rows 14, 15; rootTree, pathVertices, EulerTour pathRanges, treePainting removed and HLD addEdge/build -> HLD(g, root), user decisions; review findings fixed; row 07 Forest NDEBUG revisit skip, user decision). Next batch: GR70."
+      "note": "GR70 verified 2026-11-04 (row 85; levelAncestorOffline renamed offlineLevelAncestor and its INT_MAX-assert mutants recorded untestable, user decisions; O(1) path jump left out, user decision; review findings fixed). GR04 and GR05 verified 2026-11-03 (user decisions recorded in their evidence); their mutation records added 2026-11-05 by /finish GR70 (survivor classes by user decision)."
     },
     {
       "id": "P063",
@@ -3524,6 +3525,19 @@
       "status": "planned",
       "evidence": [],
       "note": "Filed by P048 (user decision 2026-10-28, 04-Graphs/Docs/00-notes.md P048 GR13 omissions); sources in 04-Graphs/Docs/00-sources.md (P048 GR13 sweep). Run the completeness sweep first."
+    },
+    {
+      "id": "P253",
+      "label": "04-Graphs — linear levelancestor",
+      "batches": [
+        "GR76"
+      ],
+      "phase": "Specialist and research families",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Filed by P042 (user decision 2026-11-04, 04-Graphs/Docs/00-notes.md P042 GR70 omissions); sources in 04-Graphs/Docs/00-sources.md (P042 GR70 sweep). Bender–Farach-Colton (TCS 2004) returned 403; obtain it first."
     },
     {
       "id": "P224",

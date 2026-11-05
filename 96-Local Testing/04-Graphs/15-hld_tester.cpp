@@ -397,7 +397,15 @@ namespace {
             suite<false>("RangeAssignRangeComposite<mint>", csr, o, false, Rac{}, [] { return Rac::leaf(rmint(), rmint()); },
                 [] { return Rac::assign(rmint(), rmint()); }, eqRac, nullptr, 20);
             treeEdgePainting(g, o, 30);}
-        cout << "PASS large deep/shuffled path, star, caterpillar, binary, random, broom forest n=" << n << '\n';}
+        // 10^6 isolated vertices: each component's BFS starts at its own root, or the build rescans the earlier ones in O(n^2).
+        context = "seed=" + std::to_string(seed) + " large isolated vertices n=1000000";
+        ++cases;
+        Graph lone(1000000);
+        HLD h(lone);
+        bool ok = true;
+        for (int v = 0; v < lone.n; ++v) { ok &= h.component[v] == v && h.head[v] == v && h.tin[v] == v && h.tout[v] == v + 1 && h.parent[v] == -1; }
+        check(ok, "isolated vertices: own component, head and slot");
+        cout << "PASS large deep/shuffled path, star, caterpillar, binary, random, broom forest n=" << n << ", isolated vertices n=1000000\n";}
 
     void invalid(const string &name) {
         Graph g(3); g.addEdge(0, 1); g.addEdge(1, 2);
@@ -412,6 +420,17 @@ namespace {
         else if (name == "edge-range") { (void)HLD(g).edgeVertex(2); }
         else if (name == "path-range") { (void)TreeMonoid<Sum<lng>>(g, vector<lng>(3)).pathFold(-1, 0); }
         else if (name == "reroot-components") { (void)HLD(h).rerootedSubtreeIntervals(0, 2); }
+        else if (name == "root-far") { (void)HLD(g, 4); }
+        else if (name == "vertex-far") { (void)HLD(g).getLCA(0, 4); }
+        else if (name == "vertex-first") { (void)HLD(g).getLCA(3, 0); }
+        else if (name == "edge-far") { (void)HLD(g).edgeVertex(3); }
+        else if (name == "path-second") { (void)TreeMonoid<Sum<lng>>(g, vector<lng>(3)).pathFold(0, 3); }
+        else if (name == "subtree-range") { (void)HLD(g).subtreeRange(3); }
+        else if (name == "reroot-vertex") { (void)HLD(g).rerootedSubtreeIntervals(3, 0); }
+        else if (name == "reroot-target") { (void)HLD(g).rerootedSubtreeIntervals(0, 3); }
+        else if (name == "reorder-short") { (void)HLD(g).reorderArray(vector<int>(2)); }
+        else if (name == "reorder-long") { (void)HLD(g).reorderArray(vector<int>(4)); }
+        else if (name == "values-short") { (void)TreeMonoid<Sum<lng>>(g, vector<lng>(2)); }
         else if (name == "values-size") { (void)TreeMonoid<Sum<lng>>(g, vector<lng>(3), true); }
         else { throw std::runtime_error("unknown invalid probe " + name); }}
 } // namespace

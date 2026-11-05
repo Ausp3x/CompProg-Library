@@ -56,7 +56,7 @@ Scope: combinatorial graph and tree algorithms over the canonical `Graph`/`CsrGr
 | `43-implicit_graph.hpp` | implicitBfs; implicitDijkstra; productGraph (dimension-expanded states); complementComponents; complementBfs; complementShortestPath; intervalGraphComponents; rangeEdgeGraph (range-to-point, point-to-range, range-to-range); gridBfs; implicitBoruvka (oracle MST) | planned; sources: YC, MAS, EI, SUI, HIT, NYA |
 | `44-differenceconstraints.hpp` | differenceConstraints (feasibility, assignment, cycle witness, anchored bounds); minCostPotentials (min-cost-flow dual) | planned; sources: OI, MAS |
 | `45-graph_connectivity.hpp` | edgeConnectivity (pair/global); vertexConnectivity (pair/global, vertex splitting); edgeDisjointPaths; vertexDisjointPaths; mengerCut | planned; sources: OI, CPA, NX |
-| `85-levelancestor.hpp` | LevelAncestor (ladder decomposition, O(1) query): build, query; levelAncestorOffline (batched DFS, O(n+q)) | planned; sources: SUI, AUDIT |
+| `85-levelancestor.hpp` | LevelAncestor (ladder decomposition, O(1) query): query; offlineLevelAncestor (batched DFS, O(n+q)) | verified; [evidence](Docs/85-levelancestor.md) |
 | `88-tree_path_kth.hpp` | TreePathKth (static rooted forest, one persistent value version per vertex): kth, countLess, countEqual (path u–v) | planned; filed by P030; sources: OI (persistent segment tree), SPOJ COT |
 
 ## Esoteric
@@ -106,3 +106,4 @@ Scope: combinatorial graph and tree algorithms over the canonical `Graph`/`CsrGr
 | `87-graph_class_recognition.hpp` | isIntervalGraph (LBFS, DS 56 PQ-tree model); isPermutationGraph; isCograph (cotree); isSplitGraph (degree sequence); isThresholdGraph | planned; sources: NX, AUDIT |
 | `89-planarseparator.hpp` | PlanarSeparatorResult: separator, sides; planarSeparator (Lipton–Tarjan, row 29 embedding) | planned; sources: OGDF |
 | `90-dynamicfundamentalcut.hpp` | DynamicFundamentalCut: setOn, setOff, query (an active non-tree pair crossing a tree edge) | planned; sources: MAS |
+| `91-linearlevelancestor.hpp` | LinearLevelAncestor (macro-micro, O(n) build, O(1) query): query | planned; filed by P042; sources: WIKI (level ancestor problem), BFC04 |

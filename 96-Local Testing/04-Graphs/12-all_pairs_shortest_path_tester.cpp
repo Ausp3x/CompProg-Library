@@ -205,10 +205,16 @@ void fixtures() {
     Graph potential(4, true);
     potential.addEdge(0, 1, -5); potential.addEdge(1, 2, 3); potential.addEdge(2, 0, 3); potential.addEdge(2, 3, -4); potential.addEdge(3, 1, 9);
     checkGraph(potential, "johnson reweighting", true, upTo(6));
+    // Without valid potentials Dijkstra improves vertex k 2^k times here, so a johnson that loses its reweighting times out.
+    const int k = 40; Graph ladder(2 * k + 1, true);
+    for (int j = 1; j <= k; ++j) {
+        lng gain = lng(1) << (k - j), wide = lng(k + 1 - j) << (k + 2);
+        ladder.addEdge(j - 1, j, 0); ladder.addEdge(j - 1, k + j, wide); ladder.addEdge(k + j, j, -wide - gain);}
+    checkGraph(ladder, "johnson exponential ladder", false, {0, 1});
     auto first = floydWarshall(potential), second = floydWarshall(potential); auto copied = first; auto moved = std::move(copied);
     require(first.dist == second.dist && first.parent_arc == second.parent_arc && moved.dist == first.dist, "repeated/copied results");
     require(AllPairsResult().dist.empty() && AllPairsResult(2).dist == Matrix({{0, PATH_INF}, {PATH_INF, 0}}), "AllPairsResult constructor");
-    cout << "PASS fixtures: n=0/1, full-range loops and chains, undirected negative edge, reachability, zero cycles, parallel arcs, copies\n";}
+    cout << "PASS fixtures: n=0/1, full-range loops and chains, undirected negative edge, reachability, zero cycles, parallel arcs, exponential ladder, copies\n";}
 
 void fixedLengthFixtures() {
     context = "fixed length: large k"; current = nullptr; ++cases;
@@ -330,8 +336,12 @@ void invalid(const string &which) {
     Graph g(2, true); g.addEdge(0, 1, 2);
     if (which == "ecc-non-square") { (void)eccentricities(Matrix({{0, 1}, {0}})); }
     if (which == "finite-range") { (void)floydWarshall(g).finite(0, 2); }
+    if (which == "finite-row") { (void)floydWarshall(g).finite(2, 0); }
+    if (which == "finite-row-far") { (void)floydWarshall(g).finite(3, 0); }
+    if (which == "finite-column-far") { (void)floydWarshall(g).finite(0, 3); }
     if (which == "fixed-negative-k") { (void)fixedLengthShortestPath(g, -1); }
     if (which == "fixed-overflow") { Graph h(1, true); h.addEdge(0, 0, LMIN); (void)fixedLengthShortestPath(h, lng(1) << 37); }
+    if (which == "fixed-overflow-far") { Graph h(1, true); h.addEdge(0, 0, LMIN); (void)fixedLengthShortestPath(h, lng(1) << 38); }
     if (which == "ecc-empty") { (void)eccentricities(Matrix()); }
     if (which == "ecc-negative-infinite") { g.addEdge(1, 1, -1); (void)eccentricities(floydWarshall(g).dist); }
     if (which == "path-size") { (void)floydWarshall(g).path(Graph(3, true), 0, 1); }

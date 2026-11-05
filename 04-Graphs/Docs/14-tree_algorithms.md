@@ -104,19 +104,49 @@ Tester: [`14-tree_algorithms_tester.cpp`](../../96-Local%20Testing/04-Graphs/14-
 | `subtreeMergeDp` | Subset enumeration for n ≤ 12 (max-plus "pick j", connected sets containing the root), Pascal rows mod P, closed forms; k ∈ {0, 1, 2, 3, n − 1, n, n + 4, `INT_MAX − 1`, `INT_MAX`}; empty hook outputs on random vertex sets at k ∈ {0, 1000, `INT_MAX`} (`testEmptyMerge`, audit regression) |
 | `VirtualTree::build` | Naive pairwise-LCA closure and nearest ancestor in the set; duplicates, several components, empty and full sets |
 | `pruferEncode`, `pruferDecode` | Naive smallest-leaf encode and decode (edges in removal order), both round trips, exhaustive codes for n ≤ 6 (quick), 7 (full), 8 (stress) with injectivity, random codes including n = 2 |
-| Preconditions | 24 checked-build probes: directed, cycle, forest, empty inputs, root and vertex ranges, negative r and k, non-adjacent `get(v, p)`, Prüfer n = 1, forest and out-of-range code values |
+| Preconditions | 30 checked-build probes: directed, cycle, forest, empty inputs, root and vertex ranges, negative r and k, non-adjacent `get(v, p)`, Prüfer n = 1, forest and out-of-range code values, and values past each range: `subtreeRange` at n and n + 1, `levelRange` at −1 and n + 1, `diskRanges` and `get(v)` at n, `get(v, p)` with p = n + 1, and `pruferDecode` code values n and n + 1 |
 
 ## Commands and results
 
-2026-11-04 (after the `/finish` fixes; the stress row is from 2026-11-03, before them), GCC 16.0.1 20260322 (`g++`) and GCC 14.3.0 (`g++-14`). Each run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes); full and stress add ASan+UBSan, all with `-Wall -Wextra -Wconversion -Werror`.
+2026-11-05 (after the `/finish GR70` tests; the stress row is from 2026-11-03 and the integration row from 2026-11-04, before them), GCC 16.0.1 20260322 (`g++`) and GCC 14.3.0 (`g++-14`). Each run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes); full and stress add ASan+UBSan, all with `-Wall -Wextra -Wconversion -Werror`.
 
 | Command | Result |
 |---|---|
-| `python3 '96-Local Testing/04-Graphs/14-tree_algorithms_tester.py' --mode quick --seed 5` | PASS, 2 configurations, peak 563 MB |
-| `… --mode full --seed 1` | PASS, 3 configurations, 35,616,569 checks, 24 probes, peak 1129 MB |
-| `CXX=g++-14 … --mode full --seed 1` | PASS, same counts, peak 1154 MB |
+| `python3 '96-Local Testing/04-Graphs/14-tree_algorithms_tester.py' --mode quick --seed 5` | PASS, 2 configurations, 607 cases, 6,666,691 checks, peak 563 MB |
+| `… --mode full --seed 1` | PASS, 3 configurations, 35,616,569 checks, 30 probes, peak 1183 MB |
+| `CXX=g++-14 … --mode full --seed 1` | PASS, same counts, peak 1030 MB |
 | `… --mode stress --seed 2` | PASS, 3 configurations, peak 1177 MB |
 | `python3 '96-Local Testing/02-integration.py'` | PASS: 187 standalone and aggregate headers, multi-TU scalar and AVX2, workspace; peak 2669 MB |
+
+## Mutation testing
+
+Record: mewt 4.0.0 on blob `26214fbf238e2dc7e0ce8b5eb709dc2261fc56b8` (2026-11-05, seed 1, whole file, uniform sample of 1099): 500 mutants, 449 caught (1 by timeout), 51 survived, 0 untested.
+
+Stage seconds, over the campaign and its survivor retest together: quick 1025, full-optimized 1184, full-all 7995. The first pass, run 2026-11-04 to 05 by `/finish GR70` because this header had no record, left 58 survivors. Tests were added for the real gaps, and the retest with the same workdir caught 7 of them. The new tests are the range probes `subtree-range-far`, `level-range-far`, `disk-range`, `rerooting-get-range`, `rerooting-parent-far` and `prufer-value-far`.
+
+Each remaining survivor was checked for type context, reachability, downstream use, semantic comparison and a distinguishing input. Some arguments rest on user decisions of 2026-11-05: runtime-only mutants are recorded with their argument, a changed choice among ties or of state no caller reads is accepted as within the contract, and guards reachable only under `NDEBUG` or beyond every memory cap are untestable and kept.
+
+| Mutant | Line | Argument |
+|---|---|---|
+| `COS 736`, `COS 806`, `COS 886`, `COS 956`, `COS 961`, `COS 1006` | 76, 132, 183, 221, 222, 263 | equivalent: the counter starts at 0, steps by 1 and meets its bound, which is at least 0 and fixed in the loop |
+| `COS 682` `==` → `<=` | 13 | equivalent: with all n vertices reached, `edges + 1 >= n`, so `<=` holds only at equality |
+| `COS 704` `>` → `>=` | 42 | equivalent under the contract (user decision 2026-11-05): ties pick another equally heavy branch, possibly through zero-weight arcs; the length is unchanged |
+| `COS 708`, `COS 762`, `COS 787` | 44, 94, 128 | equivalent: the value is -1 or a nonnegative index, so the two tests agree |
+| `COS 729` `>` → `>=` | 69 | equivalent: it assigns an equal value |
+| `COS 742` `==` → `<=` | 76 | equivalent: `radius` is the minimum eccentricity |
+| `AS 313`, `AS 320`, `AS 321`, `AS 323`, `AS 365`, `AS 377` | 88, 144, 148, 151, 247, 270 | equivalent: `min`, `max` and the called function are symmetric in value |
+| `MR 1087`, `MR 1090`, `MR 1097`, `MR 1098`, `MR 1099` | 112, 113, 223, 227, 228 | equivalent: a copy instead of a move; the source is not read again |
+| `LOS 647`, `COS 797`, `COS 799` | 131 | equivalent under the simple-forest contract: one arc joins u to each child, and each condition implies the other |
+| `COS 836` `<` → `!=` | 144 | equivalent: `tin[v] < tout[v]` makes x <= y |
+| `AOS 489` `+` → `/` | 150 | equivalent: the extra level d = start.size() - 1 makes `levelRange` return {0, 0}, which is dropped |
+| `COS 876` `>=` → `!=` | 171 | equivalent under the contract (user decision 2026-11-05): only `down[root]` is skipped, which no `get` reads (`get(root)` uses `all`, and the root has no parent) |
+| `AS 341` `pre[j], lift[kids[j]]` → `lift[kids[j]], pre[j]` | 183 | equivalent: `op` is commutative over sibling results by contract (user decision 2026-11-04) |
+| `COS 894` `>=` → `>` | 184 | equivalent: `suf[0]` is never read |
+| `AOS 556` `+` → `*` | 226 | equivalent: at size k + 1 the resize to k + 1 changes nothing |
+| `CR 223` `vs.erase(unique(vs.begin(), vs.end()), vs.end());` → `/* vs.erase(unique(vs.begin(), vs.end()), vs.end()); */` | 245 | equivalent: a duplicate adds LCA(v, v) = v, removed by the second sort and unique; vs stays O(k) |
+| `AOS 592`, `AOS 593`, `COS 1012`, `COS 1018`, `AOS 599`, `AOS 601`, `AOS 605`, `COS 1063`, `AOS 624`, `COS 1076`, `COS 1083` | 265, 269, 270, 280, 285 | equivalent: the remaining tree always has two leaves above `ptr`, at most one of them n - 1, so the n - 1 bounds never bind; degrees stay at least 1 |
+| `CR 238`, `COS 1047` | 275 | untestable (user decision 2026-11-05): only codes of at least INT_MAX - 2 values, 8 GiB, reach it; the assert stays |
+| `AOS 615`, `AOS 616`, `AOS 619`, `AOS 621` | 277, 283 | untestable (user decision 2026-11-05): the clamp changes only out-of-range values, which the checked build rejects and NDEBUG tests never give; the guard stays |
 
 ## Sources
 
@@ -130,5 +160,6 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)
 
 ## History
 
+- 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 1099 mutants): six range probes closed 7 survivors; 51 recorded with arguments.
 - 2026-11-04: `/finish GR05` audit: `subtreeMergeDp` empty hook output, `pruferEncode` pointer bound under `NDEBUG`, dead `diskRanges` branch, complexity lines and evidence wording fixed; full passed on g++ and g++-14.
 - 2026-11-03: P042 GR05 first implementation (planned row); full suite passed on g++ and g++-14, stress seed 2; testing fixed two `INT_MAX` overflows (`levelRange`, `subtreeMergeDp`), review fixed loops bounded by the BFS order under `NDEBUG`, an exclusive `BfsNumbering::tout` and the `closeVertex` hook name; the row 07 `Forest` now skips revisits under `NDEBUG` (user decision).

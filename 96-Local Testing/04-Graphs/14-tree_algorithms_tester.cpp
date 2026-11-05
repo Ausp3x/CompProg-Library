@@ -687,6 +687,12 @@ namespace {
         else if (name == "prufer-single") { pruferEncode(Graph(1)); }
         else if (name == "prufer-forest") { pruferEncode(part); }
         else if (name == "prufer-value") { pruferDecode({3}); }
+        else if (name == "subtree-range-far") { EulerTour(g).subtreeRange(4); }
+        else if (name == "level-range-far") { BfsNumbering(g).levelRange(4, 0); }
+        else if (name == "disk-range") { BfsNumbering(g).diskRanges(3, 0); }
+        else if (name == "rerooting-get-range") { Rerooting<Height>(g).get(3); }
+        else if (name == "rerooting-parent-far") { Rerooting<Height>(g).get(0, 4); }
+        else if (name == "prufer-value-far") { pruferDecode({4}); }
         else if (name == "prufer-negative") { pruferDecode({0, -1}); }
         else { throw std::runtime_error("unknown invalid probe " + name); }}
 } // namespace

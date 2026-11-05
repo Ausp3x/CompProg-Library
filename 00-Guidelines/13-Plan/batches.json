@@ -6865,6 +6865,24 @@
         "SUP20"
       ],
       "tiers": []
+    },
+    {
+      "id": "GR76",
+      "folder": "04-Graphs",
+      "targets": [
+        "04-Graphs/91-linearlevelancestor.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "O(n) preprocessing and O(1) level ancestor by the Bender–Farach-Colton macro-micro scheme: jump pointers only at macro leaves, ladders over the macro tree and micro-tree tables; same forest contract and query as row 85 `LevelAncestor`, benchmarked against it.",
+      "prerequisites": [
+        "C01",
+        "GR03",
+        "GR70"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
     }
   ]
 }

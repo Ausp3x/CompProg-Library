@@ -26,4 +26,5 @@ if __name__ == '__main__':
         'diameter-empty', 'eccentricity-cycle', 'centroid-forest', 'distances-directed', 'euler-root', 'euler-cycle',
         'euler-multi-edge', 'subtree-range', 'bfs-loop', 'level-range', 'disk-negative', 'rerooting-forest',
         'rerooting-nonadjacent', 'subtree-dp-root', 'merge-negative-k', 'virtual-range', 'virtual-cycle',
-        'prufer-single', 'prufer-forest', 'prufer-value', 'prufer-negative'], strict=True))
+        'prufer-single', 'prufer-forest', 'prufer-value', 'prufer-negative',
+        'subtree-range-far', 'level-range-far', 'disk-range', 'rerooting-get-range', 'rerooting-parent-far', 'prufer-value-far'], strict=True))
