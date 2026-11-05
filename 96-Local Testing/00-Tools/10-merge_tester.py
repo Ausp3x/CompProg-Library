@@ -60,7 +60,9 @@ test_host_run_shadow;
 files (maintainer only, linked worktree refused, refused while the record's worktree exists, gh failure, STOP for
 draft, closed, merged, base not master; moved head; claim branch -> package, model, branch; non-claim and wrong-batch
 branch -> pr-N; CORE_FULL -> reviewer model fable, the CORE FULL line, `reviewer model <m or default>`; OUTSIDE,
-library and final lines; state file) -> test_files_*, test_checkout_land;
+library and final lines; state file; DECISIONS: added non-blank lines naming the user's decision or a dated one, and
+lines other than headings added under a ledger's `## Recorded decisions`, with path and line, 01-prompts.md skipped) ->
+test_files_*, test_checkout_land;
 checkout, land, drop (worktree added on the branch and synced, `created` recorded, exit 0 with the next step; exit 1
 with worktree.py's output after its stderr, another branch checked out, or a worktree not based on master; existing
 worktree and no record refused; land refuses without passed, on another head, after master moved (without asking gh),
@@ -101,6 +103,7 @@ test_suites, test_mb_of.
 """
 import argparse
 import copy
+import difflib
 import errno
 import glob
 import importlib.util
@@ -392,6 +395,59 @@ def o_outside(text):
 
 def o_kind(mode):
     return {'120000': 'link', '160000': 'gitlink', '000000': None}.get(mode, 'file')
+
+
+def o_decision(text):
+    """A word scan for DECISION: `user` within 40 characters before or after a word starting `decid` or `decision`,
+    `decided` then whitespace and a dddd-dd-dd date, or `(user`, an optional comma, whitespace and four digits and '-'."""
+    words, i, low = [], 0, text.lower()
+    while i < len(low):
+        if low[i].isalnum() or low[i] == '_':
+            j = i
+            while j < len(low) and (low[j].isalnum() or low[j] == '_'):
+                j += 1
+            words.append((i, j, low[i:j]))
+            i = j
+        else:
+            i += 1
+    users = [w for w in words if w[2] == 'user']
+    decs = [w for w in words if w[2].startswith(('decid', 'decision'))]
+    if any(0 <= d[0] - u[1] <= 40 or 0 <= u[0] - d[1] <= 40 for u in users for d in decs):
+        return True
+    for k, (a, b, w) in enumerate(words):
+        rest = text[b:]
+        if w == 'decided' and rest[:1].isspace() and k + 3 < len(words):
+            y, m, d = words[k + 1:k + 4]
+            if text[b:y[0]].isspace() and (len(y[2]), len(m[2]), len(d[2])) == (4, 2, 2) and all(x[2].isdigit() for x in (y, m, d)) \
+                    and text[y[1]] == '-' and m[0] == y[1] + 1 and text[m[1]] == '-' and d[0] == m[1] + 1:
+                return True
+        if w == 'user' and a > 0 and text[a - 1] == '(':
+            tail = rest[1:] if rest[:1] == ',' else rest
+            body = tail.lstrip()
+            if body != tail and len(body) > 4 and body[:4].isdigit() and body[4] == '-':
+                return True
+    return False
+
+
+def o_decisions(paths, base, head):
+    """Expected DECISIONS rows (path, line, text) from {path: (mode, content)} trees, paths in git's order."""
+    out = []
+    for path in paths:
+        if path == '01-prompts.md' or path not in head or not isinstance(head[path][1], str):
+            continue
+        old = base[path][1].split('\n') if path in base and isinstance(base[path][1], str) else []
+        new = head[path][1].split('\n')
+        if new and new[-1] == '':
+            new.pop()
+        if old and old[-1] == '':
+            old.pop()
+        for tag, _, _, j1, j2 in difflib.SequenceMatcher(None, old, new, autojunk=False).get_opcodes():
+            for j in range(j1, j2) if tag in ('insert', 'replace') else ():
+                heading = next((h for h in reversed(new[:j]) if h.startswith('## ')), '')
+                ledger = path.startswith('00-Guidelines/23-Sweep Ledgers/') and heading.strip() == '## Recorded decisions' and new[j][:1] != '#'
+                if new[j].strip() and (o_decision(new[j]) or ledger):
+                    out.append((path, j + 1, new[j]))
+    return out
 
 
 def o_rows(base, head, prompts=('', '')):
@@ -1584,7 +1640,12 @@ class MergePR(Base):
                   if core else []), *outside,
                 '  library: ' + (', '.join(f'{f} {k}' for f, k in sorted(folders.items())) or 'none'),
                 f'OUTSIDE LIBRARY: {len(outside)} of {len(rows)} paths; the user must say yes before checkout' if outside else 'all paths are library code']
+        dec = o_decisions(self.pr_paths, *trees)
+        if dec:
+            want += [f'DECISIONS: {len(dec)} added line(s) record a decision; the user confirms each is theirs before checkout',
+                     *(f'  {path}:{n}: {text.strip()[:200]}' for path, n, text in dec)]
         self.assertEqual(lines, want, info)
+        self.decisions = dec
         return outside
 
     def tree_entry(self, rev, path):
@@ -1625,6 +1686,23 @@ class MergePR(Base):
                 self.branch_name = branch
                 self.fixture(branch, files)
                 self.expect_files(self.mp('files', 7), branch if package else 'pr-7', package, model, batch)
+
+    def test_files_decisions(self):
+        notes = ('plain\n- user decision 2026-11-06: keep x\n- kept (user, 2026-11-06)\n- renamed (decided 2026-11-06)\n'
+                 'Decided by the user: w\nthe user wants it, and we decided later\na decision was made\n\n'
+                 '- ' + 'x' * 260 + ' user decided\n')
+        ledger = ('# Omissions\n\n## Recorded decisions\n\nDecided by whom Priority names.\n\n### Keeps\n\n- 2026-11-06, x: bob\n\n'
+                  '## Candidates\n\n- 2026-11-06, y: candidate\n')
+        self.branch_name = 'P250-SUP19-bob'
+        self.fixture(self.branch_name, {'02-Data Structures/Docs/00-notes.md': notes, '00-Guidelines/23-Sweep Ledgers/omissions.md': ledger,
+                                        'notes.txt': 'line 1\nline 2, user decision 2026-11-06\nline 3\n', '01-Core/01-x.hpp': '#pragma once\n'})
+        self.expect_files(self.mp('files', 7), 'P250-SUP19-bob', 'P250', 'opus', 'SUP19')
+        self.assertEqual([(p, n) for p, n, _ in self.decisions],
+                         [('00-Guidelines/23-Sweep Ledgers/omissions.md', 5), ('00-Guidelines/23-Sweep Ledgers/omissions.md', 9),
+                          ('02-Data Structures/Docs/00-notes.md', 2), ('02-Data Structures/Docs/00-notes.md', 3),
+                          ('02-Data Structures/Docs/00-notes.md', 4), ('02-Data Structures/Docs/00-notes.md', 5),
+                          ('02-Data Structures/Docs/00-notes.md', 6), ('02-Data Structures/Docs/00-notes.md', 9), ('notes.txt', 2)])
+        self.assertTrue(o_decision('user decision') and not o_decision('a decision was made') and not o_decision('user ' + 'y' * 41 + ' decided'))
 
     def test_files_not_claim(self):
         for branch in ('feature/x', 'P250-C01-bob', 'P999-SUP19-bob', 'P250-SUP19-'):

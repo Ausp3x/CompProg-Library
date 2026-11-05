@@ -41,6 +41,12 @@ test_syn_show_unclaimed, test_gaps_role_line, test_real_show_unclaimed, test_rea
 live (linked worktree directory name and branch only, whole tokens only (agent-a1c07e2f names nothing), a claim name
 reduced to Pxxx-<batch>, untracked evidence) -> test_syn_live_worktrees, test_syn_ready_text_reservations;
 support_targets (in a batch's brief, marked support, and in live's file set) -> test_syn_support_targets;
+waiting (push: commits ahead of the upstream, a claim branch without one; pull requests from one gh list call with
+commits: maintainer `/merge-pr N`, drafts with batch progress from `Pxxx: <batch> ... — verified` subjects (any
+verified subject for a one-batch package) and requested changes under others; contributor: own pull requests only,
+case-insensitive, `gh pr ready N` once every batch is verified, `/package <next>`, changes requested, a ready one under
+others; a full page noted; gh SKIP; /finish `ask` rows; /merge-pr records with an existing worktree; nothing; the CLI)
+-> test_syn_waiting;
 ready(skip) -> test_ready_skip, test_ready_random; next/status/show next use the block set -> test_syn_next_*,
 test_syn_status_text, test_real_next_status_show_next, test_real_next_random, test_real_all_claimed;
 show (gate line; STOP; 'Claimed by you ... on <b>' ending '.' on branch b, else with the fetch-and-switch hint; for a
@@ -997,6 +1003,60 @@ class Synthetic(Base):
         with self.environ():
             self.assertEqual(PLAN.live(self.root, SYN_BATCHES, SYN_PACKAGES), {'P250'}, 'ST01 belongs to verified P900')
             self.assertEqual(PLAN.live(self.root, batches, SYN_PACKAGES), {'P250', 'P260'}, 'a changed support target is live')
+
+    def test_syn_waiting(self):
+        def wpr(n, branch, author, draft=False, heads=None, review=''):
+            return pr(n, branch, author, draft) | {'title': 'T' + str(n), 'reviewDecision': review,
+                                                   **({'commits': [{'messageHeadline': h} for h in heads]} if heads is not None else {})}
+        def waiting(role):
+            with self.environ(role):
+                return PLAN.waiting(self.root).split('\n')
+        self.prs([])
+        self.assertEqual(waiting('maintainer'), ['Role: maintainer', 'Waiting on you: nothing'])
+        bare = self.tmp / 'remote.git'
+        git(self.tmp, 'init', '-q', '--bare', str(bare))
+        git(self.root, 'remote', 'add', 'origin', str(bare))
+        git(self.root, 'push', '-q', '-u', 'origin', 'master')
+        git(self.root, 'commit', '-q', '--allow-empty', '-m', 'local')
+        (self.root / '.claude/finish').mkdir(parents=True)
+        (self.root / '.claude/finish/SUP18.txt').write_text('a | d | f:1 | g | s | ask\nb | d | f:2 | g | s | fixed\nc | d | f:3 | g | s | ask\n')
+        (self.root / '.claude/finish/ST01.txt').write_text('a | d | f:1 | g | s | answered\n')
+        (self.root / '.claude/merge-pr').mkdir()
+        (self.tmp / 'wt5').mkdir()
+        (self.root / '.claude/merge-pr/5.json').write_text(json.dumps({'worktree': str(self.tmp / 'wt5')}))
+        (self.root / '.claude/merge-pr/9.json').write_text(json.dumps({'worktree': str(self.tmp / 'gone')}))
+        (self.root / '.claude/merge-pr/10.json').write_text('[1]')
+        self.prs([wpr(4, 'P250-SUP18-matt', 'matt', True, ['P250: claim SUP18', 'P250: SUP17 a — verified', 'P250: sup18 b — verified', 'P250: SUP19 c — partial']),
+                  wpr(5, 'P030-DS01-matt', 'matt', heads=[]), wpr(6, 'P040-GR01-carol', 'carol', review='CHANGES_REQUESTED'),
+                  wpr(7, 'feature/x', 'dan'), wpr(3, 'P050-MA01-erin', 'erin', True)])
+        self.assertEqual(waiting('maintainer'), [
+            'Role: maintainer', 'Waiting on you:', '- push: master is 1 commit(s) ahead of origin/master',
+            '- `/merge-pr 5`: #5 P030 (DS01) by @matt', '- `/merge-pr 7`: #7 "T7" by @dan', '- answer: `/finish SUP18` has 2 open question(s)',
+            f'- `/merge-pr 5`: checked out at {self.tmp / "wt5"}; land or drop it', 'Waiting on others:', '- #3 P050 (MA01) by @erin: draft',
+            '- #4 P250 (SUP18) by @matt: draft, 2 of 3 batches verified, next SUP19', '- #6 P040 (GR01) by @carol: changes requested'])
+        self.calls()
+        git(self.root, 'checkout', '-q', '-b', 'P250-SUP19-alice')
+        shutil.rmtree(self.root / '.claude')
+        self.prs([wpr(8, 'P250-SUP19-alice', 'alice', True, ['P250: SUP17 a — verified', 'P250: SUP18 b — verified', 'P250: SUP19 c — verified']),
+                  wpr(9, 'P031-DS02-alice', 'alice', True, []), wpr(12, 'P031-DS02-alice', 'alice', True, ['P031: label — verified']),
+                  wpr(10, 'P050-MA01-Alice', 'Alice', review='CHANGES_REQUESTED'), wpr(11, 'P021-C08-alice', 'alice'), wpr(5, 'P030-DS01-bob', 'bob'),
+                  wpr(13, 'feature/y', 'alice', True)])
+        self.assertEqual(waiting('contributor'), [
+            'Role: contributor', 'Waiting on you:', '- push: P250-SUP19-alice has no upstream yet', '- `gh pr ready 8`: #8 P250 (SUP19), every batch verified',
+            '- `/package DS02`: #9 P031 (DS02), 0 of 1 batches verified, next DS02', '- #10 P050 (MA01): changes requested; address the review',
+            '- `gh pr ready 12`: #12 P031 (DS02), every batch verified', '- #13 "T13": draft', 'Waiting on others:',
+            "- #11 P021 (C08): waiting for the maintainer's /merge-pr"])
+        self.assertEqual(self.calls(), [['pr', 'list', '--repo', REPO, '--state', 'open', '--limit', '30', '--json',
+                                         'number,title,headRefName,isDraft,author,reviewDecision,commits'], ['api', 'user', '--jq', '.login']])
+        self.prs([wpr(n, f'feature/{n}', 'zed') for n in range(PLAN.PR_PAGE)])
+        self.assertEqual(waiting('contributor')[-2:], ['Waiting on others:', '- only the newest 30 open pull requests are listed'])
+        self.gh_set('prs', out='not json')
+        self.assertEqual(waiting('maintainer')[2:], ['- push: P250-SUP19-alice has no upstream yet', '- pull requests: SKIP (gh pr list printed no JSON)'])
+        with self.environ('maintainer', gh=False):
+            self.assertEqual(PLAN.waiting(self.root).split('\n')[3:], ['- pull requests: SKIP (gh not installed)'])
+        self.prs([])
+        r = self.run_py(self.cli, 'waiting', cwd=self.root, role='maintainer')
+        self.assertEqual((r.returncode, r.stdout), (0, 'Role: maintainer\nWaiting on you:\n- push: P250-SUP19-alice has no upstream yet\n'), r.stderr)
 
     def gaps(self, *arg, role='contributor', gh=True, branch=None):
         if branch == '':

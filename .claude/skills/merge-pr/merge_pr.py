@@ -3,7 +3,8 @@
 
 Usage: merge_pr.py files N | checkout N | gates N | run N [--mb MB] -- CMD... | land N | drop N
   files     fetch the pull request head as data (nothing runs) and classify every changed path as library code or
-            outside it; an outside path needs the user's yes before checkout.
+            outside it; an outside path needs the user's yes before checkout, and so does each added line that records
+            a decision (DECISIONS), which the user confirms is theirs.
   checkout  add the worktree .claude/worktrees/PR<N> on the head branch and rebase it with worktree.py --sync.
   gates     run the gates (consistency, plan, the package's suites, the mutation records of changed headers, integration,
             workspace) in that worktree, each in bwrap (system read-only, home and /run hidden, no network, the
@@ -47,6 +48,8 @@ AGENT = re.compile(r'(.+/)?\.claude/.+|(.+/)?(CLAUDE[^/]*\.md|AGENTS\.md)|\.mcp\
 HEADER = re.compile(r'0[1-8]-[^/]+/(\d{2}-[^/]+\.hpp|_\d{2}_[^/]+\.py)')  # an inventory target
 MUTATED = re.compile(r'0[1-7]-[^/]+/(?!9[89]-)\d{2}-[^/]+\.hpp')  # 04-mutation.py HEADER (10-merge_tester compares them)
 MECHANICAL = re.compile(r'P\d{3}: (prune duplicates|restyle)')  # the commit subjects of /prune and /restyle
+# a line that records someone's decision: the user's, or one dated (`decided 2026-11-05`, `(user, 2026-11-05)`)
+DECISION = re.compile(r'\buser\b.{0,40}\bdeci(?:d|sion)|\bdeci(?:d|sion)\w*.{0,40}\buser\b|\bdecided\s+\d{4}-\d{2}-\d{2}|\(user,?\s+\d{4}-', re.I)
 CORE_FULL = re.compile(r'01-Core/\d{2}-(?![^/]*mini)[^/]*\.hpp')
 ENV = ('PATH', 'HOME', 'USER', 'LANG', 'LC_ALL', 'TERM', 'XDG_RUNTIME_DIR', 'DBUS_SESSION_BUS_ADDRESS')  # the rest stays outside
 HIDE = ('/mnt', '/media', '/srv')  # mounts hidden inside the sandbox besides /run and the home directory
@@ -90,6 +93,27 @@ def changes(base, head):
                + ('; runs on the host at checkout' if HOST_RUN.fullmatch(path) else '; loaded by Claude Code' if AGENT.fullmatch(path) else ''))
         res.append((status, path, why))
     return res
+
+
+def decisions(base, head):
+    """(path, line, text) of every line added from base to head that records a decision (DECISION) or sits under the
+    `## Recorded decisions` heading of a sweep ledger (headings aside); the generated 01-prompts.md is skipped, its
+    notes come from packages.json."""
+    out, path, n, texts = [], None, 0, {}
+    diff = git('-c', 'core.quotePath=false', 'diff', '-U0', '--no-color', '--no-ext-diff', '--no-renames', base, head, '--', '.', ':(exclude)01-prompts.md')
+    for line in diff.split('\n'):
+        if line.startswith('+++ '):
+            path = line[6:].removesuffix('\t') if line.startswith('+++ b/') else None  # git tabs a path with spaces
+        elif line.startswith('@@ '):
+            n = int(re.match(r'@@ -\S+ \+(\d+)', line)[1])
+        elif line.startswith('+') and path:
+            if path.startswith('00-Guidelines/23-Sweep Ledgers/') and path not in texts:
+                texts[path] = git('show', f'{head}:{path}').split('\n')
+            heading = next((h for h in reversed(texts.get(path, [])[:n - 1]) if h.startswith('## ')), '')
+            if line[1:].strip() and (DECISION.search(line) or heading.strip() == '## Recorded decisions' and not line.startswith('+#')):
+                out.append((path, n, line[1:]))
+            n += 1
+    return out
 
 
 def state(n):
@@ -159,6 +183,10 @@ def files(n):
     print('  library: ' + (', '.join(f'{f} {k}' for f, k in sorted(folders.items())) or 'none'))
     out = [r for r in rows if r[2]]
     print(f'OUTSIDE LIBRARY: {len(out)} of {len(rows)} paths; the user must say yes before checkout' if out else 'all paths are library code')
+    dec = decisions(base, head)
+    if dec:
+        print(f'DECISIONS: {len(dec)} added line(s) record a decision; the user confirms each is theirs before checkout')
+        print('\n'.join(f'  {path}:{n}: {text.strip()[:200]}' for path, n, text in dec))
     return 0
 
 

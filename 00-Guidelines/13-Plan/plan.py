@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Work-plan manifest CLI: show, status, next, set, render, rank, check, ready and doctor for packages and batches.
-show, next, status and ready also read the clone's role and the open pull requests that claim packages."""
+"""Work-plan manifest CLI: show, status, next, set, render, rank, check, ready, doctor and waiting for packages and
+batches. show, next, status, ready and waiting also read the clone's role and the open pull requests."""
 import argparse
 import collections
 import importlib.util
@@ -22,6 +22,7 @@ LEGEND = ('Legend: `[x]` verified, `[ ]` otherwise; **package — batches in ord
 TIER_RANK = {'Basic': 0, 'Core': 0, 'Advanced': 1, 'Esoteric': 2}
 REPO = 'Ausp3x/CompProg-Library'  # canonical repository; `git config compprog.repo` overrides it
 CLAIM = re.compile(r'(P\d{3})-([A-Za-z]+\d+)-(.+)')  # claim branch Pxxx-<batch>-<user>
+PR_PAGE = 30  # open pull requests `waiting` lists: their commits must stay under GitHub's GraphQL node limit
 TARGET = re.compile(r'`((?:\d{2}-[^`]+\.hpp)|(?:_\d{2}_[^`]+\.py))`')
 
 
@@ -511,6 +512,75 @@ def ready_text(root, limit):
     return '\n'.join(out)
 
 
+def waiting(root):
+    """What waits on this clone's user, then what waits on others, derived from git, gh and the skills' ledgers: the
+    current branch's unpushed commits; open pull requests (the maintainer's `/merge-pr`, a contributor's next batch,
+    `gh pr ready` once every batch has a `Pxxx: ... — verified` commit, requested changes); `ask` rows of /finish
+    ledgers; /merge-pr checkouts."""
+    r, mine, others = role(root), [], []
+    run = lambda *a: subprocess.run(['git', *a], cwd=root, capture_output=True, text=True)
+    branch, up = current(root), run('rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{upstream}')
+    ahead = run('rev-list', '--count', '@{upstream}..HEAD').stdout.strip() if up.returncode == 0 else ''
+    if ahead not in ('', '0'):
+        mine.append(f'push: {branch} is {ahead} commit(s) ahead of {up.stdout.strip()}')
+    elif up.returncode and CLAIM.fullmatch(branch or ''):
+        mine.append(f'push: {branch} has no upstream yet')
+    _, packages = load(root)
+    pmap = {p['id']: p for p in packages['packages']}
+    owner = {b: p['id'] for p in packages['packages'] for b in p['batches']}
+    out, why = gh(root, 'pr', 'list', '--repo', config(root, 'compprog.repo') or REPO, '--state', 'open', '--limit', str(PR_PAGE),
+                  '--json', 'number,title,headRefName,isDraft,author,reviewDecision,commits')
+    try:
+        prs = json.loads(out) if out is not None else None
+    except ValueError:
+        prs, why = None, 'gh pr list printed no JSON'
+    if prs is None:
+        mine.append(f'pull requests: SKIP ({why})')
+    elif len(prs) >= PR_PAGE:
+        others.append(f'only the newest {PR_PAGE} open pull requests are listed')
+    me = login(root) if prs and r == 'contributor' else ''
+    for pr in sorted(prs or [], key=lambda pr: pr['number']):
+        n, who, m = pr['number'], pr['author']['login'], CLAIM.fullmatch(pr['headRefName'])
+        p = pmap.get(m[1]) if m and owner.get(m[2].upper()) == m[1] else None
+        what, nxt, prog = f'{p["id"]} ({m[2].upper()})' if p else f'"{pr["title"]}"', None, ''
+        if p and 'commits' in pr:
+            heads = [c.get('messageHeadline', '') for c in pr['commits']]
+            done = [b for b in p['batches'] if any(h.startswith(p['id'] + ': ') and h.endswith(' — verified')
+                                                   and (len(p['batches']) == 1 or re.match(rf'{p["id"]}: {b}\b', h, re.I)) for h in heads)]
+            nxt = next((b for b in p['batches'] if b not in done), None)
+            prog = f', {len(done)} of {len(p["batches"])} batches verified' + (f', next {nxt}' if nxt else '')
+        changes = pr.get('reviewDecision') == 'CHANGES_REQUESTED'
+        if r == 'maintainer':
+            line = f'#{n} {what} by @{who}'
+            if pr['isDraft'] or changes:
+                others.append(f'{line}: ' + ('draft' + prog if pr['isDraft'] else 'changes requested'))
+            else:
+                mine.append(f'`/merge-pr {n}`: {line}')
+        elif who.lower() == me.lower():
+            line = f'#{n} {what}'
+            if changes:
+                mine.append(f'{line}: changes requested; address the review')
+            elif not pr['isDraft']:
+                others.append(f"{line}: waiting for the maintainer's /merge-pr")
+            elif prog and not nxt:
+                mine.append(f'`gh pr ready {n}`: {line}, every batch verified')
+            else:
+                mine.append(f'`/package {nxt}`: {line}{prog}' if nxt else f'{line}: draft')
+    for f in sorted((root / '.claude/finish').glob('*.txt')):
+        k = sum(l.rsplit('|', 1)[-1].strip() == 'ask' for l in f.read_text().splitlines())
+        if k:
+            mine.append(f'answer: `/finish {f.stem}` has {k} open question(s)')
+    for f in sorted((root / '.claude/merge-pr').glob('*.json'), key=lambda f: (len(f.stem), f.stem)):
+        try:
+            wt = json.loads(f.read_text()).get('worktree')
+        except (ValueError, AttributeError):
+            continue
+        if wt and Path(wt).is_dir():
+            mine.append(f'`/merge-pr {f.stem}`: checked out at {wt}; land or drop it')
+    return '\n'.join([f'Role: {r}', 'Waiting on you:' + ('' if mine else ' nothing'), *('- ' + x for x in mine)]
+                     + (['Waiting on others:', *('- ' + x for x in others)] if others else []))
+
+
 def doctor(root=ROOT, fix=False):
     """Cross-check plan, inventories, files and tests; --fix adds include-derived batch prerequisites and re-renders the
     checklist. Returns (todo lines, fixed lines)."""
@@ -586,7 +656,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest='cmd', required=True)
     sub.add_parser('show').add_argument('id')
-    for name in ('status', 'next', 'render', 'rank', 'check'):
+    for name in ('status', 'next', 'render', 'rank', 'check', 'waiting'):
         sub.add_parser(name)
     sub.add_parser('ready').add_argument('--max', type=int, default=3, help='size of the disjoint parallel set')
     sub.add_parser('doctor').add_argument('--fix', action='store_true', help='add include-derived prerequisites, re-render the checklist')
@@ -608,6 +678,8 @@ def main():
         print(p['id'])
     elif a.cmd == 'ready':
         print(ready_text(ROOT, a.max))
+    elif a.cmd == 'waiting':
+        print(waiting(ROOT))
     elif a.cmd == 'doctor':
         print(doctor_text(ROOT, a.fix))
         return bool(doctor(ROOT)[0])

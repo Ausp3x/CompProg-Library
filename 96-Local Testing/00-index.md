@@ -30,6 +30,7 @@ python3 '96-Local Testing/00-Tools/08-plan_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/09-setup_tester.py' --mode full    # setup_check.py and the x86 target gate
 python3 '96-Local Testing/00-Tools/10-merge_tester.py' --mode full    # /merge-pr and worktree.py's packages.json merge
 python3 '96-Local Testing/00-Tools/11-mutation_tester.py' --mode full # 04-mutation.py
+python3 '96-Local Testing/00-Tools/12-hooks_tester.py' --mode full    # the Bash hook shell.py and consistency.py's entry
 python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Checker fetch, reproduce and compare (/speed-sweep)
 ```
 
