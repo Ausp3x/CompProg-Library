@@ -70,7 +70,7 @@ Tester: [`15-hld_tester.cpp`](../../96-Local%20Testing/04-Graphs/15-hld_tester.c
 
 | Operation | Oracle and cases |
 |---|---|
-| `HLD` construction | Every field against the oracle; `order[tin[v]] = v`, `tout = tin + size`, nesting, the heavy child is exactly the first child of maximum size in adjacency order, head chains, contiguous heavy paths, `edge_vertex` |
+| `HLD` construction | Every field against the oracle; `order[tin[v]] = v`, `tout = tin + size`, nesting, the heavy child is exactly the first child of maximum size in adjacency order, head chains, contiguous heavy paths, `edge_vertex`; an isolated forest of 10^6 vertices (component, head, `tin`, `tout`, parent) |
 | `getLCA`, `distance`, `kthAncestor`, `edgeVertex` | Parent-walk LCA; k = dep + 1, `INT_MAX` and `INT64_MAX`; pairs across components |
 | `processPath` | Both modes: concatenated ranges equal the brute path, every call nonempty and in range, at most 2 · bit_width(n) + 2 calls, false with no calls across components |
 | `subtreeRange`, `reorderArray` | Direct checks against the oracle |
@@ -78,21 +78,46 @@ Tester: [`15-hld_tester.cpp`](../../96-Local%20Testing/04-Graphs/15-hld_tester.c
 | `TreeMonoid`: `get`, `set`, `pathFold`, `subtreeFold`, `pathApply`, `subtreeApply` | Naive arrays with ordered path walks under random update/query mixes, vertex and edge mode: `AffineComposite<mint>` and a stateful string-hash `Monoid` (noncommutative, both directions), `Sum`/`Min`/`Max` with COMMUTATIVE true and false, `RangeAssignRangeComposite<mint>`, `RangeAddRangeSum` (both), `RangeAffineRangeSum<mint>`; tin-order brute for `subtreeFold` |
 | `maxPath` | Prefix thresholds on nonnegative and signed `Sum`, `Min`, `Max` and `MaxGain` (noncommutative), both modes, single and isolated vertices; the oracle checks only paths whose prefix predicate is monotone (the contract's domain); fixed regressions `maxPathRegressions` for a search leaving the path range (path 0-1-2-3 with `{-100, 0, 0, 5}` upward, `{0, 5, -100, 0}` downward, edge mode `{-100, 0, 5}`, and n = 2 without edges) |
 | `treePainting` (removed) | `treeEdgePainting`: edge-mode `Sum<int>` paint/unpaint by id and counts from a vertex up to an ancestor, against a naive array |
-| Preconditions | 11 checked-build probes: directed, self-loop, cycle, multi-edge, root and vertex ranges, negative k, edge id, path vertex, `rerootedSubtreeIntervals` across components, values size |
+| Preconditions | 22 checked-build probes: directed, self-loop, cycle, multi-edge, root and vertex ranges, negative k, edge id, path vertex, `rerootedSubtreeIntervals` across components, values size, and out-of-range ids for the root, either `getLCA` vertex, `edgeVertex`, the second `pathFold` end, `subtreeRange` and both `rerootedSubtreeIntervals` arguments, plus `reorderArray` arrays shorter and longer than n and `TreeMonoid` values shorter than n |
 
 Large shapes: deep and shuffled paths, star, caterpillar, binary, random and a 40-tree broom forest at 2·10^4 (quick), 2·10^5 (full) and 10^6 (stress) vertices.
 
 ## Commands and results
 
-2026-11-04 (after the `/finish` fixes; the stress row is from 2026-11-03, before them), GCC 16.0.1 20260322 (`g++`) and GCC 14.3.0 (`g++-14`). Each run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes); full and stress add ASan+UBSan, all with `-Wall -Wextra -Wconversion -Werror`.
+2026-11-05 (after the `/finish GR70` tests; the stress row is from 2026-11-03 and the integration row from 2026-11-04, before them), GCC 16.0.1 20260322 (`g++`) and GCC 14.3.0 (`g++-14`). Each run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes); full and stress add ASan+UBSan, all with `-Wall -Wextra -Wconversion -Werror`.
 
 | Command | Result |
 |---|---|
-| `python3 '96-Local Testing/04-Graphs/15-hld_tester.py' --mode quick --seed 4` | PASS, 2 configurations, peak 713 MB |
-| `… --mode full --seed 1` | PASS, 3 configurations, 23,150,547 checks, 11 probes, peak 939 MB |
-| `CXX=g++-14 … --mode full --seed 1` | PASS, same counts, peak 941 MB |
+| `python3 '96-Local Testing/04-Graphs/15-hld_tester.py' --mode quick --seed 4` | PASS, 2 configurations, 4691 cases, 2,257,341 checks, peak 713 MB |
+| `… --mode full --seed 1` | PASS, 3 configurations, 23,150,548 checks, 22 probes, peak 939 MB |
+| `CXX=g++-14 … --mode full --seed 1` | PASS, same counts, peak 943 MB |
 | `… --mode stress --seed 2` | PASS, 3 configurations, peak 956 MB |
 | `python3 '96-Local Testing/02-integration.py'` | PASS: 187 standalone and aggregate headers, multi-TU scalar and AVX2, workspace; peak 2669 MB |
+
+## Mutation testing
+
+Record: mewt 4.0.0 on blob `cdf7102e7f43e4a6b5241aee22befcd7e19c3446` (2026-11-05, seed 1, whole file, uniform sample of 669): 500 mutants, 474 caught (14 by timeout), 26 survived, 0 untested.
+
+Stage seconds, over the campaign and its survivor retest together: quick 2237, full-optimized 490, full-all 3287. The first pass, run 2026-11-04 to 05 by `/finish GR70` because this header had no record, left 39 survivors. Tests were added for the real gaps, and the retest with the same workdir caught 13 of them. The new tests are an isolated forest of 10^6 vertices in the large tests (component, head, `tin`, `tout`, parent) and 11 range probes: `root-far`, `vertex-far`, `vertex-first`, `edge-far`, `path-second`, `subtree-range`, `reroot-vertex`, `reroot-target`, `reorder-short`, `reorder-long` and `values-short`.
+
+Each remaining survivor was checked for type context, reachability, downstream use, semantic comparison and a distinguishing input. Some arguments rest on user decisions of 2026-11-05: runtime-only mutants are recorded with their argument, a changed choice among ties or of state no caller reads is accepted as within the contract, and guards reachable only under `NDEBUG` or beyond every memory cap are untestable and kept.
+
+| Mutant | Line | Argument |
+|---|---|---|
+| `COS 435`, `COS 450`, `COS 635`, `COS 645` | 21, 29, 96, 133 | equivalent: the counter starts at 0, steps by 1 and meets its bound, which is at least 0 and fixed in the loop |
+| `COS 442`, `COS 447`, `COS 471`, `COS 476`, `COS 487`, `COS 512`, `COS 556` | 25, 28, 33, 35, 41, 45, 57 | equivalent: the value is -1 or a nonnegative index, so the two tests agree |
+| `COS 461` `==` → `<=` | 30 | equivalent: a spanning forest gives edges + roots >= n, so `<=` holds only at equality |
+| `COS 468` `>=` → `>` | 31 | equivalent: `bfs[0]` is a root, skipped anyway |
+| `COS 496`, `COS 506`, `COS 508` | 44 | equivalent under the simple-forest contract (asserted at line 30): one edge joins u to each child, so the two tests agree |
+| `AS 207`, `COS 546` | 53 | equivalent: on equal head depths neither head lies on the LCA's chain, so either may climb; `swap` is symmetric |
+| `COS 593` `>=` → `>` | 72 | equivalent: on equal head depths v climbing first only stores its segment in `down`; f still gets the same sequence |
+| `COS 610` `<` → `!=` | 84 | equivalent: every call has x <= y |
+| `COS 621` `<` → `<=` | 86 | equivalent: `v == r` is handled first, so `tin[v] != tin[r]` |
+| `COS 643` `==` → `>=` | 131 | equivalent: an extra value reaches `slot`, whose range assertion aborts the same way |
+| `AS 223` `0, edgeVertex(i)` → `edgeVertex(i), 0` | 129 | equivalent: `min`, `max` and the called function are symmetric in value |
+| `AS 225` `u, v` → `v, u` | 139 | equivalent: the same path slots get the action, and actions on disjoint ranges commute |
+| `COS 650` `>` → `!=` | 160 | equivalent: hi - lo starts at r - l >= 1 and bisection keeps it at least 1 |
+| `AS 250` `lo, hi` → `hi, lo` | 161 | equivalent: with hi - lo >= 2 both roundings give lo < c < hi, so the bisection finds the same last c |
 
 ## Sources
 
@@ -106,5 +131,6 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)
 
 ## History
 
+- 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 669 mutants): an isolated 10^6-vertex forest and 11 range probes closed 13 survivors; 26 recorded with arguments.
 - 2026-11-04: `/finish GR05` audit: single build assertion, `kthAncestor` takes `lng` (user decision), heavy-child tie tested; full passed on g++ and g++-14.
 - 2026-11-03: P042 GR05 rewrite of the pinned legacy excerpt; full suite passed on g++ and g++-14, stress seed 2; testing fixed an unclamped `maxPath` search, review fixed `maxPath` (search confined to the path's ranges), the heavy-child tie rule, the `TreeMonoid` argument order and the `reorderArray` complexity line.

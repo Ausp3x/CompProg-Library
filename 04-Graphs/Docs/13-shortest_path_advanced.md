@@ -92,18 +92,20 @@ Every `ShortestPathResult` gets its parent chain checked (bounded, ends at a sou
 | Operation | Cases |
 |---|---|
 | `PATH_INF`, `StPath` | Unreachable t (`exists` false, `dist` 0, empty storage), s == t one-vertex path |
-| `TopTwoPaths`: `exists`, `walk` | Every state of every result: oriented, weight equals `dist`, starts at `source`, absent states empty; probes `exists-rank`, `walk-size` |
+| `TopTwoPaths`: `exists`, `walk` | Every state of every result: oriented, weight equals `dist`, starts at `source`, absent states empty; probes `exists-rank`, `exists-negative-rank`, `walk-size`, `walk-smaller` |
 | `spfa`, `desopoPape`, `negativeSsspScaling` | Distance oracle and exact agreement with `bellmanFord` (reachable, negative marks, dist, negative-cycle report), parent forest. Fixtures: reachable and unreachable negative cycles, zero cycles, full-range loops, INT64_MIN chains, LMIN + LMAX cycles, unreachable negative parts. Random: extreme weights and potential-generated negative weights (\|h\| ≤ 50 or 2^61), n up to 300, empty, duplicate and multiple sources |
 | `desopoPape` budget | A complete DAG with arcs i → j listed by decreasing j, w = 2^(j−i), plain and potential-shifted. A copy of the pure rule in the tester confirms more than n·(m + 1) scans at every size used (n = 32 … 62); the result must equal `bellmanFord` |
-| `dialDijkstra` | Random graphs with (n + 1)·(C + 1) ≤ 4·10^6. Fixtures: C = 2^22 − 1 (2^20 − 1 in quick), C = 0 with zero cycles. Probes `dial-negative`, `dial-int-max` |
+| `dialDijkstra` | Random graphs with (n + 1)·(C + 1) ≤ 4·10^6. Fixtures: C = 2^22 − 1 (2^20 − 1 in quick), C = 0 with zero cycles. Probes `dial-negative`, `dial-int-max`, `dial-weight-max` |
 | `radixHeapDijkstra` | Random graphs with (n − 1)·C < 2^64. Fixtures: an LMAX loop, LMAX arcs at n = 2 and 3, and distance exactly 2^64 − 1 at n = 4. Probes `radix-negative`, `radix-bound` |
-| `aStar` | Every (s, t) for n ≤ 6, otherwise 8 random pairs plus s == t, with h = 0, the exact h, and a random admissible h that goes negative. h is arbitrary (±2^100, LMIN, LMAX) at t and at vertices that cannot reach t. The tester checks that h(t) is never evaluated and that no h(v) is evaluated twice. Fixture: h(t) = −100 regression. Probes `astar-negative`, `astar-range` |
+| `aStar` | Every (s, t) for n ≤ 6, otherwise 8 random pairs plus s == t, with h = 0, the exact h, and a random admissible h that goes negative. h is arbitrary (±2^100, LMIN, LMAX) at t and at vertices that cannot reach t. The tester checks that h(t) is never evaluated and that no h(v) is evaluated twice. Fixture: h(t) = −100 regression. Probes `astar-negative`, `astar-range`, `astar-target-far` |
 | `bidirectionalDijkstra` | The same pairs, directed and undirected, `CsrGraph`; probes `bidirectional-negative`, `bidirectional-range` |
 | `secondShortestPath` | Strict and non-strict against the second-shortest oracle; non-strict rank 1 is a different walk. Fixtures: zero loop, an undirected edge there and back, parallel arcs 5/5/7. Probes `second-negative`, `second-source-range` |
 | `top2Dijkstra` | Per-source oracle: rank 0 is a nearest source, rank 1 a different source at the minimum over the others. Fixtures: ties, duplicate sources (no rank 1), empty sources. Probes `top2-negative`, `top2-source-range` |
 | `shortestPathDag` | On `bellmanFord`, `negativeSsspScaling` and `dijkstra` results: `arcs` equals the oracle's tight arcs in order; `order` is exactly the vertices not reachable from a tight cycle, topological on tight arcs; `acyclic` exactly when it holds every finite vertex. Probe `dag-size` |
 | `countShortestPaths` | `paths` equals `dijkstra` or `bellmanFord` field for field; `infinite` and `count` against the oracles; mod ∈ {1, 2, 3, 7, 998244353, 2^61 − 1, 2^63 − 1, 2^63}. Closed forms 2^i on a 100-diamond chain and 3^i on 40 triple parallel arcs. Probes `count-mod-zero`, `count-mod-big` |
 | `minimaxPath`, `widestPath` | Bottleneck oracle, `negative` all false, sources at ∓`PATH_INF`, witness max/min equals `dist` |
+| Detail engines (`detailFixtures`) | `dijkstraPotential` with a random blocked set against the distance oracle on the graph without arcs into it; `refine` with weights in {−1, …, 2} returns ok exactly when the live part has no negative cycle, and then leaves every live reduced weight nonnegative; 300 / 3000 / 15000 graphs each |
+| Stale queue entries (`staleEntryFixtures`, optimized builds) | k = 300000 arcs into one vertex, each improving it, then k arcs out: closed-form results for `minimaxPath`, `widestPath`, `negativeSsspScaling`, `aStar` and `bidirectionalDijkstra`, which time out if they rescan stale entries |
 
 Common cases are `Graph` and `CsrGraph`, directed and undirected, loops, parallel arcs, n = 0 and 1, and repeated and copied calls. Exhaustive graphs come in three tiers:
 
@@ -117,15 +119,53 @@ Results reveal the `bellmanFord` fallback only through parents on ties. The fixt
 
 ## Commands and results
 
-2026-11-03, GCC 16.0.1 20260322 (`g++`) and GCC 14.3.0 (`g++-14`). Each run builds optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the 17 assertion probes) and, in full and stress, ASan+UBSan, all with `-Wall -Wextra -Wconversion -Werror`.
+2026-11-05 (after the `/finish GR70` tests; the stress and integration rows are from 2026-11-03, before them), GCC 16.0.1 20260322 (`g++`) and GCC 14.3.0 (`g++-14`). Each run builds optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the 21 assertion probes) and, in full and stress, ASan+UBSan, all with `-Wall -Wextra -Wconversion -Werror`.
 
 | Command | Result |
 |---|---|
-| `python3 '96-Local Testing/04-Graphs/13-shortest_path_advanced_tester.py' --mode quick` | PASS, 613 cases, 2.38·10^6 checks, peak 591 MB |
-| `… --mode full` | PASS, 15113 cases, 9.98·10^6 checks, 3 configurations, peak 765 MB |
-| `CXX=g++-14 … --mode full` | PASS, the same counts, peak 766 MB |
+| `python3 '96-Local Testing/04-Graphs/13-shortest_path_advanced_tester.py' --mode quick` | PASS, 1214 cases, 2.38·10^6 checks, peak 598 MB |
+| `… --mode full --seed 1` | PASS, 21114 cases, 1.03·10^7 checks, 3 configurations, peak 768 MB |
+| `CXX=g++-14 … --mode full --seed 1` | PASS, the same counts, peak 768 MB |
 | `… --mode stress --seed 7` | PASS, 62897 cases, 3.58·10^7 checks, peak 796 MB |
 | `python3 '96-Local Testing/02-integration.py'` | PASS: 186 standalone and aggregate headers, multi-TU scalar and AVX2, workspace; peak 2744 MB |
+
+## Mutation testing
+
+Record: mewt 4.0.0 on blob `9c878282421c0947f7c33b87f2ee6e0e6622541b` (2026-11-05, seed 1, whole file, uniform sample of 1330): 500 mutants, 437 caught (26 by timeout), 63 survived, 0 untested.
+
+Stage seconds, over the campaign and its two survivor retests together: quick 3303, full-optimized 702, full-all 6152. The first pass, run 2026-11-04 to 05 by `/finish GR70` because this header had no record, left 91 survivors. Tests were added for the real gaps, and the retest with the same workdir caught 28 of them. The new tests are `detailFixtures`, `staleEntryFixtures`, a fixed star case for `refine` from the review and four probes, `dial-weight-max`, `astar-target-far`, `exists-negative-rank` and `walk-smaller`. `detailFixtures` checks `dijkstraPotential` with a random blocked set against the oracle on the graph without arcs into it, and checks `refine`'s contract (ok exactly without a live negative cycle, then every live reduced weight nonnegative). `staleEntryFixtures` runs under `NDEBUG` only: k = 300000 arcs into one vertex, each improving it, then k arcs out of it, so an engine that rescans stale queue entries does k² work and times out, with closed-form results for `minimaxPath`, `widestPath`, `negativeSsspScaling`, `aStar` and `bidirectionalDijkstra`.
+
+Each remaining survivor was checked for type context, reachability, downstream use, semantic comparison and a distinguishing input. Some arguments rest on user decisions of 2026-11-05: runtime-only mutants are recorded with their argument, a changed choice among ties or of state no caller reads is accepted as within the contract, and guards reachable only under `NDEBUG`, beyond every memory cap, or by no input found are untestable and kept.
+
+| Mutant | Line | Argument |
+|---|---|---|
+| `BL 478` `false` → `true` | 133 | untestable (user decision 2026-11-05): no input reaches this round-budget exit. The frequent-layer step provably leaves k <= need, and the path step creates no new negative heads; 9.1·10^6 random graphs (review and `/finish` scratch runs, 2026-11-05) never reached it, negative cycles included. The guard stays |
+| `COS 861`, `COS 921`, `COS 976`, `COS 1016`, `COS 1146`, `COS 1226`, `COS 1236`, `COS 1266` | 63, 122, 145, 164, 263, 310, 313, 327 | equivalent: the counter starts at 0, steps by 1 and meets its bound, which is at least 0 and fixed in the loop |
+| `COS 838`, `COS 853`, `COS 988`, `COS 1187` | 25, 33, 148, 281 | equivalent: the value is -1 or a nonnegative index, so the two tests agree |
+| `COS 868`, `COS 1173` | 66, 271 | equivalent: a vertex's queue keys only decrease, so a popped key is never below its current one |
+| `IT 329`, `COS 897`, `COS 899` | 94 | equivalent: an entry pushed to a vertex with both ranks set is popped and dropped at line 89; each vertex settles at most twice, so pushes stay at most 2m |
+| `AS 406`, `AS 412` | 109, 161 | equivalent: `min`, `max` and the called function are symmetric in value |
+| `COS 939` `==` → `>=` | 130 | equivalent: `tarjanScc` numbers components topologically, so a cross arc has `comp[from] < comp[to]` |
+| `COS 942`, `COS 1232` | 132, 312 | equivalent: the count is never negative |
+| `IF 276`, `COS 938` | 130 | runtime only (user decision 2026-11-05): without the early exit, the `need` guard still returns false on a negative cycle within O(sqrt(k)) rounds |
+| `COS 962` `<` → `<=` | 140 | equivalent: a tie picks another predecessor on an equally negative path, which still has t = -min d negative arcs, all the path step needs |
+| `COS 991` `<` → `!=` | 149 | equivalent: `h` holds only arcs of reduced weight -1 or 0 |
+| `COS 1002` `<` → `<=` | 156 | equivalent: bucket t would hold label 0, which is never pushed (a push needs a label below 0) |
+| `COS 1008` `!=` → `>` | 159 | runtime only (user decision 2026-11-05): stale bucket entries are rescanned with the current label and relax nothing |
+| `AOS 627`, `AOS 628` | 165 | runtime only (user decision 2026-11-05): a looser `need` only delays the negative-cycle exit |
+| `BL 476`, `COS 968`, `COS 969`, `AOS 589`, `COS 971` | 131, 142, 144 | runtime only (user decision 2026-11-05): `refine` keeps its contract here, and any potential it leaves is corrected by the label-correcting final search or the `bellmanFord` fallback |
+| `LOS 795`, `IT 346`, `COS 1026`, `COS 1029`, `BL 481` | 177, 178, 179 | equivalent: each change only queues more vertices or falls back to `bellmanFord` sooner; results are exact and stay within the O(n * m + n + k) bound, parents among ties being any (user decision 2026-11-05) |
+| `AOS 632`, `AOS 633`, `AOS 636`, `COS 1037` | 186, 190 | equivalent: the budget only decides when to fall back to `bellmanFord`, exact inside the same O(n * m + n + k) bound, parents among ties being any (user decision 2026-11-05) |
+| `COS 1042` `==` → `<=` | 194 | equivalent: `state` is 0, 1 or 2 |
+| `CR 184` `if (!ok) { return ShortestPathResult(g.n, sources); }` → `/* if (!ok) { return ShortestPathResult(g.n, sources); } */` | 205 | untestable (user decision 2026-11-05): runs only on out-of-domain weights under NDEBUG, which no allowed test gives; the guard stays |
+| `LOS 797`, `COS 1073` | 212 | equivalent: the bucket popped at `cur` holds only entries labelled `cur` (labels in [cur, cur + c] are distinct mod c + 1), so `dist != cur` means the vertex is done |
+| `IF 302`, `COS 1114` | 245 | equivalent under the contract (user decision 2026-11-05): h replaced by 0 stays admissible, so the distance is exact and only the path among ties changes |
+| `CR 213`, `COS 1141` | 260 | equivalent: `ShortestPathResult(g.n, {s})` and `({t})` assert the same ranges before any index |
+| `AOS 679`, `COS 1162` | 268 | equivalent: the search only runs longer; `best` changes only on a strict improvement and is minimal at the original stop, within the same bound |
+| `COS 1165`, `COS 1166`, `COS 1167`, `COS 1168` | 269 | equivalent under the contract (user decision 2026-11-05): any alternation keeps bidirectional Dijkstra exact; only the meeting vertex among equal paths changes |
+| `BL 489` `true` → `false` | 307 | equivalent: `acyclic` is assigned at line 316 before it is read |
+| `IT 379`, `LOS 814` | 351 | runtime only (user decision 2026-11-05): `big` wraps to about 2^64, so the scaling runs up to 64 rounds instead of ceil(log2 N); every round keeps its invariant and results are exact. On an LMAX arc the mutant's `-(e.w + 1)` overflows; GCC folds it to `~e.w` (UBSan silent in a 2026-11-05 review scratch run), so this case rests on that code generation |
+| `COS 1286` `>=` → `!=` | 358 | equivalent: for w = 0 the negative branch gives -(0 >> t) = 0; for w < 0 the positive branch gives (w + 2^t - 1) >> t, which is ceil(w / 2^t) = -(\|w\| >> t) under the C++20 arithmetic shift |
 
 ## Benchmarks
 
@@ -176,4 +216,5 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)
 
 ## History
 
+- 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 1330 mutants): detail-engine and stale-entry fixtures and four probes closed 27 survivors, and the review's `refine` star case one more; 63 recorded with arguments.
 - 2026-11-03: P042 GR04 rewrite from the pinned legacy excerpt; `top2Dijkstra` added; tester found `aStar` with negative h(t) and the scaling's false negative cycles, both fixed; review: 11 findings fixed (NDEBUG bounded returns, complexity lines, refine reuses its round graph); full suite passed on g++ and g++-14, stress seed 7.

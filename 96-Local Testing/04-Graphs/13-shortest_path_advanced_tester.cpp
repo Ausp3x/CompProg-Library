@@ -678,6 +678,75 @@ vector<int> randomSources(int n) {
     for (int k = int(rng() % 4); k > 0; --k) { res.push_back(int(rng() % ulng(n))); }
     return res;}
 
+// Detail engines against their own contracts: dijkstraPotential skipping blocked heads, refine on reduced weights >= -1.
+void detailFixtures(const string &mode) {
+    int count = mode == "quick" ? 300 : mode == "full" ? 3000 : 15000;
+    for (int it = 0; it < count; ++it) {
+        int n = 1 + int(rng() % 8);
+        Graph g = randomGraph(n, true, int(rng() % ulng(3 * n + 3)), it % 2 ? 1 : 4), open(n, true);
+        vector<char> blocked(n);
+        for (auto &b : blocked) { b = rng() % 3 == 0; }
+        for (auto e : g.arcs) { if (!blocked[e.to]) { open.addEdge(e.from, e.to, e.w); }}
+        vector<int> src = randomSources(n);
+        describe(g, src, "dijkstraPotential with blocked heads");
+        auto res = shortest_path_advanced_detail::dijkstraPotential(g, src, vector<lll>(size_t(n)), blocked);
+        auto want = bellmanOracle(open, src);
+        for (int v = 0; v < n; ++v) {
+            require(res.reachable[v] == (want.state[v] == 1) && (!res.reachable[v] || res.dist[v] == want.dist[v]), [&] { return "dijkstraPotential blocked" + at(v); });}}
+    auto refineCase = [&](const Graph &g, const vector<int> &src) {
+        int n = g.n; vector<int> all(n);
+        iota(all.begin(), all.end(), 0);
+        vector<char> live(n);
+        for (int v : bfs(g, src).order) { live[v] = true; }
+        Graph sub(n, true);
+        for (auto e : g.arcs) { if (live[e.from]) { sub.addEdge(e.from, e.to, e.w); }}
+        auto state = bellmanOracle(sub, all).state;
+        bool cycle = std::find(state.begin(), state.end(), 2) != state.end();
+        vector<lll> p(n);
+        auto w = [&](int a) { const auto &e = g.arcs[a]; return lll(e.w) + p[e.from] - p[e.to]; };
+        describe(g, src, "refine on reduced weights >= -1");
+        bool ok = shortest_path_advanced_detail::refine(g, live, p, w);
+        require(ok == !cycle, [&] { return "refine returned " + std::to_string(ok) + " with negative cycle " + std::to_string(cycle); });
+        for (int a = 0; ok && a < int(g.arcs.size()); ++a) { require(!live[g.arcs[a].from] || w(a) >= 0, [&] { return "refine left a negative reduced arc a=" + std::to_string(a); }); }};
+    // A star of -1 arcs: cnt = {3, 2} at k = 5, so a wrong round budget gives up on a graph without negative cycles.
+    Graph star(6, true);
+    for (auto [u, v] : vector<pair<int, int>>{{0, 1}, {0, 2}, {0, 3}, {1, 4}, {1, 5}}) { star.addEdge(u, v, -1); }
+    refineCase(star, {0});
+    for (int it = 0; it < count; ++it) {
+        int n = 1 + int(rng() % 8);
+        Graph g(n, true);
+        for (int j = int(rng() % ulng(3 * n + 3)); j > 0; --j) { g.addEdge(int(rng() % ulng(n)), int(rng() % ulng(n)), lng(rng() % 4) - 1); }
+        vector<int> src = randomSources(n);
+        if (it % 2) { src.resize(size_t(n)); iota(src.begin(), src.end(), 0); }
+        refineCase(g, src);}
+    cout << "PASS detail engines: dijkstraPotential with blocked heads and refine, " << count << " graphs each\n";}
+
+// Fan: s = 0 to a_i = i, each improving v = k + 1, then v to b_j = k + 1 + j; an engine that rescans stale queue entries does k^2 work.
+// t = 2k + 2 sits behind an arc of weight 10k, and a 4k-vertex chain into t keeps the backward search of bidirectionalDijkstra busy. Optimized builds only.
+#ifdef NDEBUG
+void staleEntryFixtures() {
+    const int k = 300000, chain = 4 * k, t = 2 * k + 2;
+    for (int sign : {1, -1}) {
+        Graph g(2 * k + 3 + chain, true);
+        for (int i = 1; i <= k; ++i) { g.addEdge(0, i, sign * i); g.addEdge(i, k + 1, sign * (3 * k - 2 * i)); g.addEdge(k + 1, k + 1 + i, sign); }
+        g.addEdge(0, t, sign * 10 * k);
+        for (int i = 1; i <= chain; ++i) { g.addEdge(t + i, i == 1 ? t : t + i - 1, sign); }
+        describe(g, {0}, "stale-entry fan");
+        if (sign == -1) {
+            auto wide = widestPath(g, {0});
+            require(wide.dist[k + 1] == -k && wide.dist[k + 2] == -k && wide.dist[t] == -10 * k, "widestPath on the stale-entry fan");
+            continue;}
+        auto low = minimaxPath(g, {0});
+        require(low.dist[k + 1] == k && low.dist[k + 2] == k && low.dist[t] == 10 * k && !low.reachable[t + 1], "minimaxPath on the stale-entry fan");
+        auto sp = negativeSsspScaling(g, {0});
+        require(sp.dist[k + 1] == 2 * k && sp.dist[2 * k + 1] == 2 * k + 1 && sp.dist[t] == 10 * k && !sp.reachable[t + 1], "negativeSsspScaling on the stale-entry fan");
+        auto star = aStar(g, 0, t, [](int) { return 0; });
+        auto both = bidirectionalDijkstra(g, 0, t);
+        require(star.dist == 10 * k && star.path.vertices == vector<int>{0, t}, "aStar on the stale-entry fan");
+        require(both.dist == 10 * k && both.path.vertices == vector<int>{0, t}, "bidirectionalDijkstra on the stale-entry fan");}
+    cout << "PASS stale-entry fan k=" << k << ": negativeSsspScaling, aStar, bidirectionalDijkstra, minimaxPath, widestPath\n";}
+#endif
+
 void randomTests(const string &mode) {
     int count = mode == "quick" ? 150 : mode == "full" ? 2000 : 10000;
     for (int it = 0; it < count; ++it) {
@@ -709,6 +778,10 @@ void invalid(const string &which) {
     Graph bad = g; bad.addEdge(1, 0, -1);
     auto zero = [](int) { return 0; };
     if (which == "dial-negative") { (void)dialDijkstra(bad, {0}); }
+    if (which == "dial-weight-max") { g.addEdge(1, 0, LMAX); (void)dialDijkstra(g, {0}); }
+    if (which == "astar-target-far") { (void)aStar(g, 0, 3, zero); }
+    if (which == "exists-negative-rank") { (void)secondShortestPath(g, {0}).exists(0, -1); }
+    if (which == "walk-smaller") { (void)secondShortestPath(g, {0}).walk(Graph(1, true), 0, 0); }
     if (which == "dial-int-max") { g.addEdge(1, 0, INT_MAX); (void)dialDijkstra(g, {0}); }
     if (which == "radix-negative") { (void)radixHeapDijkstra(bad, {0}); }
     if (which == "radix-bound") { Graph h(4, true); h.addEdge(0, 1, lng(((ulll(1) << 64) - 1) / 3) + 1); (void)radixHeapDijkstra(h, {0}); }
@@ -735,7 +808,10 @@ int main(int argc, char **argv) {
         if (arg == "--mode") { mode = argv[++i]; }
         if (arg == "--seed") { seed = std::stoull(argv[++i]); }}
     rng.seed(seed);
-    fixtures(); aStarFixtures(); countFixtures(); papeFixtures(mode); dialRadixFixtures(mode); scalingFixtures();
+    fixtures(); aStarFixtures(); countFixtures(); papeFixtures(mode); dialRadixFixtures(mode); scalingFixtures(); detailFixtures(mode);
+#ifdef NDEBUG
+    staleEntryFixtures();
+#endif
     const vector<lng> signed3 = {-1, 0, 1}, signed2 = {-1, 1}, small3 = {0, 1, 2};
     if (mode == "quick") { exhaustive(2, true, true, signed3, 3); exhaustive(2, false, true, signed3, 3); }
     else {

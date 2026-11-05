@@ -22,4 +22,6 @@ from _00_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('15-hld', ['directed', 'self-loop', 'cycle', 'multi-edge', 'root-range', 'vertex-range',
-        'kth-negative', 'edge-range', 'path-range', 'reroot-components', 'values-size'], strict=True))
+        'kth-negative', 'edge-range', 'path-range', 'reroot-components', 'values-size', 'root-far', 'vertex-far',
+        'vertex-first', 'edge-far', 'path-second', 'subtree-range', 'reroot-vertex', 'reroot-target', 'reorder-short',
+        'reorder-long', 'values-short'], strict=True))

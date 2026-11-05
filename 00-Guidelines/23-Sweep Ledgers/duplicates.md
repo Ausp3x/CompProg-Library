@@ -157,6 +157,8 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P042 | `minimaxFloydWarshall` (row 12) beside `minimaxPath`, `widestPath` (row 13) | Different algorithm and result: bitset closure for every pair against one bottleneck Dijkstra with parents per source set |
 | P042 | `spfa`, `desopoPape`, `negativeSsspScaling` (row 13) beside `bellmanFord` (row 05) | Different algorithms: FIFO and deque label correcting, Goldberg bit scaling |
 | P042 | `dialDijkstra`, `radixHeapDijkstra`, `aStar`, `bidirectionalDijkstra` (row 13) beside `dijkstra` (row 05) | Different algorithms: bucket and radix queues; s–t searches with a heuristic or from both ends |
+| P042 | `LevelAncestor::query` (row 85) beside `LCA::kthAncestor` (row 07) and `HLD::kthAncestor` (row 15) | Different algorithm (clarified rule): ladders with leaf jump pointers, O(1) query |
+| P042 | `offlineLevelAncestor` (row 85) beside `LevelAncestor::query` | Batch form (clarified rule), O(n + q) without jump tables |
 | P032 | `MonotoneCHT::query` beside `queryMonotone` | Different algorithm: binary search in O(log(n)) against a pointer walk, amortized O(1) for monotone x; same results for `lng` (tie rule, user decision 2026-10-28) |
 | P032 | `MonotoneCHT`, `LineContainer` (row 22) beside `LiChaoTree` (row 21) | Different algorithms and domains: an amortized O(1) deque hull for extreme slopes, a breakpoint multiset for any slope and any x, a segment tree over an x range that also takes segments and single-crossing functions |
 | P032 | `PerLiChaoTree` beside `LiChaoTree` | Different domain: immutable versions by path copying, O(log(C)) nodes per line against O(1) |

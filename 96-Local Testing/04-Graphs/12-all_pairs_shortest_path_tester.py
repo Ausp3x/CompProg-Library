@@ -9,6 +9,7 @@ from _00_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('12-all_pairs_shortest_path', [
-        'ecc-non-square', 'finite-range', 'fixed-negative-k', 'fixed-overflow',
+        'ecc-non-square', 'finite-range', 'finite-row', 'finite-row-far', 'finite-column-far', 'fixed-negative-k',
+        'fixed-overflow', 'fixed-overflow-far',
         'ecc-empty', 'ecc-negative-infinite', 'path-size',
     ], strict=True))

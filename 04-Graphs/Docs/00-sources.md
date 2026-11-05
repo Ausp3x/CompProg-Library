@@ -437,6 +437,20 @@ The headers were written independently from these descriptions; no catalog code 
 
 The headers were written independently from these descriptions; no catalog code was copied. The linear Prüfer encode and decode follow the standard smallest-leaf pointer scheme; no Prüfer page was fetched in this sweep (the 2026-10-06 cp-algorithms and Nyaan index rows list it).
 
+## Pages fetched on 2026-11-04 (P042 GR70)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| suisen level_ancestor | https://suisen-cp.github.io/cp-library-cpp/library/tree/level_ancestor.hpp | 2026-11-04 | Depth-bucket binary search, O(log n) query (not adopted); -1 for k outside [0, depth] |
+| OI Wiki long-path decomposition, LCA | https://oi-wiki.org/graph/hld/; https://oi-wiki.org/graph/lca/ | 2026-11-04 | Ladders (long paths extended upward by their length) with 2^h jumps: O(1) k-th ancestor |
+| Wikipedia level ancestor problem | https://en.wikipedia.org/wiki/Level_ancestor_problem | 2026-11-04 | Jump-pointer and ladder algorithm; O(n) macro-micro bound (not adopted); depth form LA(v, d) |
+| Menghani–Matani | https://ar5iv.arxiv.org/html/1903.01387 | 2026-11-04 | Depth-bucket O(n) / O(log n) method (not adopted); online leaf addition (Dietz) cited (not adopted) |
+| Library Checker jump_on_tree; Nyaan and maspypy jump | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/tree/jump_on_tree/task.md; https://nyaannyaan.github.io/library/verify/verify-yosupo-graph/yosupo-jump-on-tree.test.cpp; https://maspypy.github.io/library/graph/tree.hpp | 2026-11-04 | O(1) path jump as LCA plus level ancestor (not adopted, user decision 2026-11-04) |
+| Luogu P5903 | https://www.luogu.com.cn/problem/P5903 | 2026-11-04 | Standard O(1) k-th ancestor workload (n 5e5, q 5e6) |
+| ei1333, hitonanode, KACTL, cp-algorithms binary lifting | https://ei1333.github.io/library/; https://hitonanode.github.io/cplib-cpp/; https://github.com/kth-competitive-programming/kactl/tree/main/content/graph; https://cp-algorithms.com/graph/lca_binary_lifting.html | 2026-11-04 | No level-ancestor or offline batched form beyond binary lifting |
+
+The header was written independently from these descriptions; no catalog code was copied. Storing jumps only at long-path bottoms follows the jump-pointer argument of the ladder algorithm; the Bender–Farach-Colton paper itself was not readable (403).
+
 ## Source keys
 
 Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys); this folder read under each as follows. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder. Per-family read scope and caveats of that audit are in `00-Guidelines/History/2026-09-27-inventory-audit.md`.
@@ -449,6 +463,8 @@ Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys);
 - **NYA**: Nyaan graph/tree catalog paths.
 - **EI**: ei1333 graph catalog paths.
 - **SUI**: suisen graph/tree catalog paths.
+- **WIKI**: Wikipedia article named in the row (2026-11-04: Level ancestor problem).
+- **BFC04**: Bender and Farach-Colton, The Level Ancestor Problem simplified, Theoretical Computer Science 321 (2004); not readable on 2026-11-04 (HTTP 403).
 - **HIT**: hitonanode graph/flow/tree/combinatorial_opt catalog paths.
 - **TKO**: tko919 Graph catalog paths; weighted-matching source documentation previously inspected.
 - **NOSHI**: noshi91 library index.
