@@ -92,3 +92,4 @@ Post-dominators: run on `g.reverse()` from the exit. Multiple roots: add a super
 ## History
 
 - 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; independent review: no wrong answers (own Cooper–Harvey–Kennedy oracle, overflow probes at the stated domain bounds).
+- 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).

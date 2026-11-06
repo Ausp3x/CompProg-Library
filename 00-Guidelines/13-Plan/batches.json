@@ -6877,6 +6877,18 @@
       "tiers": []
     },
     {
+      "id": "SUP24",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Concept search (user decision 2026-11-06: a planned package right after P253, part of grab, not a new tool): `grab --find <words>` ranks inventory rows, not only indexed names, so `--find shortest path`, `--find binomial` or a typo (`dijkstar`) lists the closest rows: name or `Type::op` to grab, header, tier and status, best first, `-n K` of them (default 10). An exact or substring name match still ranks first, and `grab <unknown>` adds the best concept matches below its spelling suggestions. It reads only the folders' `00-index.md` rows (header stem split at `_`, Operations entries with camelCase split, section tier, folder) and the evidence documents' `aliases`, so it needs no libclang and no cache. Ranking: standard library only, field-weighted BM25 over normalized tokens (lower case, light stemming), per-token typo tolerance, a phrase bonus, ties broken by tier (Basic first) then status (verified first); weights and cutoffs are chosen on the evaluation corpus and recorded. Abbreviations and synonyms (lca, scc, hld, crt, mst, z-function, ...) live only in the evidence documents' `aliases` lines (`/package` step 3); the ones the corpus needs are added there, each with a History line naming this package. The code lives in `10-grab.py` unless it outgrows about 150 lines, then in an importable `09-Contest Testing/_11_search.py` that grab imports; the CLI stays grab's. Oracle: a query corpus independent of the ranker, Library Checker problem titles mapped to headers by `00-Guidelines/Ledgers/library-checker-coverage.json` and cp-algorithms and OI Wiki article titles mapped by hand, plus typo and abbreviation variants; recall@5 and mean reciprocal rank recorded, with a floor the tester enforces; fixture tests for tokenization, fields, ties, typos and `-n`; every implemented row is found by its own header stem. A `@researcher` sweep collects the abbreviation and title sources. Questions for the session (recommendation first): include planned rows (yes, marked planned); search Python modules in `08-Python` (yes, marked); output columns. Rules in `08-contest-tools.md`; usage in `09-Contest Testing/00-index.md` and `README.md`; evidence in `96-Local Testing/Docs/00-extraction.md` or its own `Docs/00-search.md`, and tests in `13-grab_tester.py` or their own tester, each chosen by size.",
+      "prerequisites": [
+        "SUP22"
+      ],
+      "tiers": []
+    },
+    {
       "id": "SUP23",
       "folder": "support",
       "targets": [],

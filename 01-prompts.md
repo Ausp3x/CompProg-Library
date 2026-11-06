@@ -52,7 +52,8 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P016 — ST01, ST02, ST19** (opus, S+M+S): 07-Strings — prefixfunction, z, stringhash, trie, manacher, runlength.
 - [x] **P017 — ST03** (opus, L): 07-Strings — aho, suffixarray, palindrome queries.
 - [x] **P250 — SUP17, SUP18, SUP19** (opus, M+L+M): Repository portability and contribution workflow.
-- [ ] **P253 — SUP22** (opus, L): Symbol extractor (grab), extraction harness and mini-first checks. Status: planned.
+- [x] **P253 — SUP22** (opus, L): Symbol extractor (grab), extraction harness and mini-first checks.
+- [ ] **P263 — SUP24** (opus, M): Concept search in grab (--find over inventory rows). Status: planned.
 - [ ] **P254 — SUP23** (opus, L): Completeness re-review of verified rows under the 2026-11-05 priority. Status: planned.
 
 ### Core full types

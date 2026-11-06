@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Bundle C++ judge sources into standalone, manifest-owned submissions."""
+"""Bundle C++ judge sources into standalone, manifest-owned submissions (through 09-Contest Testing/10-grab.py by
+default, which keeps only the library declarations a source names; --bundler oj-bundle inlines whole headers)."""
 
 from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import shutil
@@ -19,6 +21,15 @@ ROOT = Path(__file__).resolve().parent
 SOURCES = ROOT / "src"
 EXPANDED = ROOT / "expanded"
 MANIFEST = ROOT / "02-expansion.json"
+GRAB = ROOT.parent / "09-Contest Testing" / "10-grab.py"
+
+
+def grab_module():
+    spec = importlib.util.spec_from_file_location("expander_grab", GRAB)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module  # forked index workers find its functions by module name
+    spec.loader.exec_module(module)
+    return module
 
 
 def digest(data: bytes) -> str:
@@ -117,7 +128,7 @@ def write_atomic(path: Path, data: bytes) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--bundler", default="oj-bundle", help="oj-bundle executable (default: oj-bundle)")
+    parser.add_argument("--bundler", default="grab", help="grab (default: 09-Contest Testing/10-grab.py in process) or an oj-bundle executable")
     cleanup = parser.add_mutually_exclusive_group()
     cleanup.add_argument("--clean", dest="clean", action="store_true", default=True, help="remove orphaned owned outputs (default)")
     cleanup.add_argument("--noclean", dest="clean", action="store_false", help="retain orphaned owned outputs")
@@ -130,9 +141,18 @@ def main() -> int:
         sources, python_count = discover()
         check_path(EXPANDED)
         bundler = args.bundler
-        if os.sep in bundler:
+        grab = index = None
+        if bundler == "grab":
+            grab = grab_module()
+            try:
+                index = grab.Index(ROOT.parent)
+            except grab.GrabError as exc:
+                raise ValueError(f"grab index: {exc}") from None
+            if index.ci is None:
+                print("SKIP libclang: python3 cannot import clang.cindex; grab inlines whole headers", file=sys.stderr)
+        elif os.sep in bundler:
             bundler = str(Path(bundler).absolute())
-        if not shutil.which(bundler):
+        if grab is None and not shutil.which(bundler):
             raise ValueError(f"{args.bundler!r} unavailable; install with: python -m pip install online-judge-verify-helper")
 
         # Validate all destinations before running the external tool or changing any file.
@@ -147,6 +167,13 @@ def main() -> int:
         bundled: dict[str, bytes] = {}
         failures = 0
         for source, path in sources:
+            if grab is not None:
+                try:
+                    bundled[source] = grab.bundle(path, ROOT.parent, index).encode()
+                except (grab.GrabError, OSError, UnicodeDecodeError) as exc:
+                    failures += 1
+                    print(f"FAILED {source}: {exc}", file=sys.stderr)
+                continue
             try:
                 result = subprocess.run([bundler, str(path)], cwd=ROOT, capture_output=True, timeout=args.timeout)
             except subprocess.TimeoutExpired:

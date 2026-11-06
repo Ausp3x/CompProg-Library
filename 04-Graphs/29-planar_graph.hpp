@@ -25,7 +25,7 @@ struct PlanarEmbedding {
     vector<int> first, next, prev, face, component, outer, genus;
     vector<vector<int>> faces;
 
-    template<class G>
+    template<class G = Graph>
     explicit PlanarEmbedding(const G &g) : n(g.n), m(int(g.edges.size())), arcs(g.arcs), first(g.n, -1), next(g.arcs.size()), prev(g.arcs.size()), face(g.arcs.size(), -1) {
         assert(!g.directed);
         auto comps = connectedComponents(g);

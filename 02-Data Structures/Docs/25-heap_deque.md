@@ -121,3 +121,4 @@ Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 - 2026-10-13: P029 first verification. The independent review led to fixes, with regression tests, for argument aliasing in `PrioritySum` and `applyAdd` and for `NDEBUG` writes on absent `DAryHeap` ids. After the benchmark, `DAryHeap` moved to a `(key, id)` pair layout with a `key(i)` accessor.
 - 2026-10-14: integration (`02-integration.py --sanitizers`) passed.
+- 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `build` renamed `ctor` for `DAryHeap`, `ErasableHeap` and `DoubleEndedPriorityQueue` (their constructors), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.

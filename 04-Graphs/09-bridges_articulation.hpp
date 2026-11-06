@@ -10,7 +10,7 @@ struct LowlinkResult {
 };
 
 // T: O(n + m), M: O(n + m) including output; undirected Graph/CsrGraph, loops and multiedges allowed.
-template<class G>
+template<class G = Graph>
 LowlinkResult lowlink(const G &g) {
     assert(!g.directed);
     LowlinkResult out; int n = g.n, m = int(g.edges.size()), timer = 0;
@@ -77,7 +77,7 @@ struct StrongOrientationResult {
 };
 
 // T: O(n + m), M: O(n + m) including output and the transient lowlink result.
-template<class G>
+template<class G = Graph>
 StrongOrientationResult strongOrientation(const G &g) {
     auto low = lowlink(g); StrongOrientationResult out;
     if (!low.bridges.empty()) { out.ok = false; out.bridge = low.bridges[0]; }

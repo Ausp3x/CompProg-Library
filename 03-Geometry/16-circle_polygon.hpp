@@ -46,7 +46,7 @@ template<typename T> long double diskRingsAreaApprox(CircleApprox c, const vecto
     return s;}
 
 // T: O(n * log(n)), M: O(n), n total vertices. r > 0; nonzero winding counts as inside; CCW arcs (begin, end), begin in [-pi, pi), begin < end <= begin + 2 * pi.
-template<typename Polygon> vector<pair<long double, long double>> circleArcsInPolygonApprox(CircleApprox c, const Polygon &p) {
+template<typename Polygon = vector<point>> vector<pair<long double, long double>> circleArcsInPolygonApprox(CircleApprox c, const Polygon &p) {
     assert(c.r > 0);
     const long double PI = std::numbers::pi_v<long double>, r2 = c.r * c.r;
     // Winding steps from shared vertex statuses (on the circle counts as inside r + eps); touches are zero steps.

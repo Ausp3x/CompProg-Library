@@ -137,3 +137,12 @@ The user asked for each after comparing a published Claude Code memory setup wit
 - **Decision provenance.** Recorded decisions bind and only the user changes them, yet any session can write a line saying the user decided. `/merge-pr` lists every decision line a pull request adds for the user to confirm, and a ledger line names its decider when it is not the user.
 - **Waiting list.** `plan.py waiting` derives what waits on the user from git, gh and the skills' ledgers, so it cannot go stale as a hand-kept list would; the maintainer had read a contributor's draft as finished.
 - **Rules out of auto-memory.** Two rules learned from incidents lived only in one machine's Claude memory, unseen by a contributor's sessions: A/B cycle and instruction evidence for speed changes (P018, 2026-11-01 and 2026-11-02) and at most six heavy compiles (72 parallel InfInt builds exhausted the 31 GB host on 2026-11-01). Both moved to `05-testing.md`; a correction that changes how the project works now goes to its owning file (`CLAUDE.md`).
+
+## 2026-11-06 Extraction follow-ups
+
+The user decided each point during P253's `/finish`, after trying grab on contest code.
+
+- **Library-type defaults.** `grab dijkstra` left out `Graph`: a deduced `template<class G>` names no type, so nothing reached it, and the same held in about 74 graph and geometry templates. Defaulting the parameter to the library struct (`G = Graph`, `P = point`) makes the name carry its type, lets the extraction probes instantiate the function, and leaves calls deducing as before; grab also infers a missing default from the members used, in case a new header omits one ([03-cpp.md](03-cpp.md), Headers).
+- **`--into` keeps whole roots.** Pruning a file's roots to the members it used made `--into` differ from `grab <names>` and broke as soon as the solution called one more member; whole is the default, `--min` keeps the pruned form, and bundles stay pruned for the judges' source limits ([`00-extraction.md`](<../96-Local Testing/Docs/00-extraction.md>), Contracts).
+- **No `#define` in library headers.** Extraction copies declarations, never macros, so a header macro would vanish from an extraction silently ([03-cpp.md](03-cpp.md), Headers).
+- **Concept search.** Finding a header by what it does (`--find` over inventory operations and contracts) is a package of its own, P263, rather than part of P253's extractor.

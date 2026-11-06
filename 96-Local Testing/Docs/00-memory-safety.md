@@ -1,6 +1,6 @@
-# Memory-safe test execution and the Compact rule — evidence (P231)
+# Memory-safe test execution — evidence (P231)
 
-Scope: memory-capped execution of every test entry point and its consistency check, plus the Compact-twin check for contest headers that use Core Barrett or Montgomery (P231, support batch SUP06; reason: [decision log](../../00-Guidelines/10-decisions.md), Memory cap).
+Scope: memory-capped execution of every test entry point and its consistency check (P231, support batch SUP06; reason: [decision log](../../00-Guidelines/10-decisions.md), Memory cap). The Compact-twin check P231 also added retired on 2026-11-05 with the Compact rule (P253; the mini-first checks replacing it: [05-testing.md](../../00-Guidelines/05-testing.md), Extraction).
 
 ## Design
 
@@ -16,9 +16,9 @@ Wiring: the folder runners and `01-Core/_05_modint_test_runner.py` call `ensure(
 
 ## Rules
 
-P231's rules are owned by [05-testing.md](../../00-Guidelines/05-testing.md) (Memory safety), [03-cpp.md](../../00-Guidelines/03-cpp.md) (Toolchain and judges: bounded precondition failures under `NDEBUG`; Headers: Compact twins) and [01-principles.md](../../00-Guidelines/01-principles.md) (Profiles).
+P231's rules are owned by [05-testing.md](../../00-Guidelines/05-testing.md) (Memory safety), [03-cpp.md](../../00-Guidelines/03-cpp.md) (Toolchain and judges: bounded precondition failures under `NDEBUG`) and [01-principles.md](../../00-Guidelines/01-principles.md) (Profiles).
 
-`03-consistency.py` enforces the cap and the Compact rule. An entry point without `_00_memory_cap.ensure()` (directly or through a capped runner) is an error. A verified contest header that uses Barrett or Montgomery without a `Compact` definition is an error. So is any `*Compact` body that names `Montgomery*`, `Barrett*` or a `mont*` helper. The check cannot tell which fast functions need a twin; `@reviewer` enforces that. Unverified ones are listed under `compact_pending`.
+`03-consistency.py` enforces the cap: an entry point without `_00_memory_cap.ensure()` (directly or through a capped runner) is an error.
 
 ## Verification
 
@@ -33,7 +33,7 @@ P231's rules are owned by [05-testing.md](../../00-Guidelines/05-testing.md) (Me
 | CLI with `--mb=128` and no command, `--mb 128` and no command, `--mb=128 -- true` | usage message, usage message, pass with the 128 MB cap |
 | Demo tester allocating only in full/stress | pre-flight passes; main run's child killed at the main cap; FAIL reported, runner survives |
 | Consistency negative test (a temporary tester without the guard) | rejected as `Uncapped test entry point` |
-| Consistency on the repository | no errors; `compact_pending` empty after the P052 rerun |
+| Consistency on the repository | no errors |
 | Whole-library quick run with every suite self-capped | 79 suites PASS, every one reports its peak, no kills |
 
 ## Commands and results (2026-10-09)
@@ -41,7 +41,7 @@ P231's rules are owned by [05-testing.md](../../00-Guidelines/05-testing.md) (Me
 ```bash
 python3 '96-Local Testing/01-run.py' --mode quick --no-integration   # PASS, 79 suites, each self-capped: 79 MEMORY lines, oom_kills=0; largest peaks 1267 MB (01-Core/16-poly), 1027 MB (05-dynmodint64), 968 MB (11-sorting_selection)
 python3 '96-Local Testing/02-integration.py'                         # PASS, 112 headers, self-capped, peak 654 MB
-python3 '96-Local Testing/03-consistency.py'                         # no errors, compact_pending empty
+python3 '96-Local Testing/03-consistency.py'                         # no errors
 ```
 
 ## Limits
@@ -59,3 +59,4 @@ python3 '96-Local Testing/03-consistency.py'                         # no errors
   - An interrupted pre-flight prints `INTERRUPTED` instead of a FAIL.
   - A second `ensure()` in one process prints its `MEMORY` line once.
 - 2026-11-04: P252 `/finish` (user decision 2026-11-04): `supervise()` forwards SIGTERM and SIGHUP to the capped child through `forwarding()` in both the pre-flight and the main run, so a signal sent to a capped entry point's top-level pid no longer kills only the supervisor and orphans the capped run. A signal inherited as ignored stays ignored (`nohup`), the previous handlers are restored when the child exits, and SIGINT handling is unchanged. `systemd-run --scope` (systemd 262) execs the command, so the forwarded signal reaches the capped process itself. The CLI reporter also runs its command through `forwarding()`, so `_00_memory_cap.py -- <command>` no longer orphans the command either. Tests in [`05-runner_tester.py`](../00-Tools/05-runner_tester.py): `test_forward_sigterm`, `test_forward_sighup`, `test_forward_preflight`, `test_forward_cli`, `test_forward_nohup_keeps_sighup_ignored`, `test_forwarding_restores_handlers`. Each of seven seeded defects failed at least one of them: the old `subprocess.run` (in either run, or in the CLI reporter), forwarding an ignored SIGHUP, no restore, SIGTERM only.
+- 2026-11-05: P253 retired the Compact-twin check with the Compact rule.

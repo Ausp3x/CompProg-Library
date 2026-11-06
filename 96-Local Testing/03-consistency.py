@@ -249,28 +249,52 @@ for p in [*tests_root.glob('*/*_tester.py'), *tests_root.glob('*/*_benchmark.py'
     require('_00_memory_cap.ensure(' in text or bool(via & capped_runners),
             'Uncapped test entry point (call _00_memory_cap.ensure()): ' + str(p.relative_to(ROOT)))
 
-# Compact twins: a contest header that uses Core Barrett/Montgomery defines *Compact versions (03-cpp.md, Headers).
-compact_pending = []
+# Mini first (03-cpp.md, Headers; 02-structure.md, Inventory contract): findings on support targets of open 2026-11-05
+# batches and on rows or packages not yet verified are reported in mini_first_pending; the rest are errors.
+spec = importlib.util.spec_from_file_location('library_extraction_check', ROOT / '96-Local Testing/05-extraction.py')
+extraction = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(extraction)
+strict, core_full = extraction.final(ROOT), extraction.core_full(ROOT)
+mini_first_pending = []
+
+def mini_first(target, message):
+    errors, pending = extraction.mini_first_split([(target, message)], strict)
+    for e in errors:
+        require(False, e)
+    mini_first_pending.extend(pending)
+
+full_names = extraction.full_type_names(ROOT, core_full)
+for target in inventories:
+    if re.match(r'0[2-7]-', target) and target.endswith('.hpp') and (ROOT / target).is_file():
+        for name in extraction.full_defaults((ROOT / target).read_text(), full_names):
+            mini_first(target, f'Template default names a Core full type: {target}: {name} ({full_names[name.split("::")[-1]]})')
+operation_names = extraction.operation_names
+
 for target, parts in inventories.items():
-    path = ROOT / target
-    if target.startswith('01-Core/') or not target.endswith('.hpp') or not path.is_file():
-        continue
-    raw = path.read_text()
-    code = strip_cpp(raw)
-    if not deps.uses_reduction(raw):
-        continue
-    twins = list(deps.TWIN.finditer(code))
-    for m in twins:
-        depth, i = 1, m.end()
-        while depth and i < len(code):
-            depth += {'{': 1, '}': -1}.get(code[i], 0); i += 1
-        require(not re.search(r'\b(Montgomery\w*|Barrett\w*|mont\w+)\b', code[m.end():i]),
-                'Compact twin uses a Core reduction: ' + target + ': ' + m.group(1))
-    if twins:
-        continue
-    compact_pending.append(target)
-    require(not (parts[-1].startswith('verified') and package_status.get(owner.get(target)) == 'verified'),
-            'Verified contest header uses Barrett/Montgomery without Compact twins: ' + target)
+    m = re.fullmatch(r'01-Core/\d\d-(\w+)mini\.hpp', target)
+    full = next((t for t in inventories if m and re.fullmatch(rf'01-Core/\d\d-{m[1]}\.hpp', t)), None)
+    lacking = sorted(operation_names(inventories[full][-2]) - operation_names(parts[-2], parts[-1])) if full else []
+    if lacking:
+        mini_first(target, f'Mini row lacks operations of {full} (list them, after internals: or missing:): {target}: ' + ', '.join(lacking))
+
+# An operation whose default form extracts a Core full header records `full-only until` (03-cpp.md, Core type
+# parameters); checked from the cached grab index only, since building it takes minutes (05-extraction.py builds it).
+ix = extraction.grab.Index(ROOT, quiet=True, build=False)
+if ix.ci is None:
+    counts['full_only_check'] = 'SKIP: no libclang'
+else:
+    found = [(t, inventories[t][-2]) for t in inventories if re.match(r'0[2-7]-', t) and t.endswith('.hpp') and (ROOT / t).is_file()]
+    fresh = [(t, c) for t, c in found if not ix.closures.get(t, {t}) & set(ix.stale)]  # rows whose include closure is indexed
+    for header, op, reached in extraction.full_only(ix, fresh, core_full):
+        mini_first(header, f'Default form extracts a Core full header without a `full-only until` record: {header}: {op} ({", ".join(reached)})')
+    counts['full_only_check'] = 'checked' if len(fresh) == len(found) else \
+        f'checked {len(fresh)} of {len(found)} rows; {len(found) - len(fresh)} wait for unindexed headers (run 09-Contest Testing/10-grab.py once)'
+
+# grab never emits a header's #define or #undef (03-cpp.md, Headers)
+for target in inventories:
+    if re.match(r'0[1-7]-', target) and target.endswith('.hpp') and target not in extraction.grab.EXCLUDED and (ROOT / target).is_file():
+        for k, line in enumerate((ROOT / target).read_text().splitlines(), 1):
+            require(not re.match(r'\s*#\s*(define|undef)\b', line), f'#define or #undef in a library header (03-cpp.md, Headers): {target}:{k}')
 
 coverage = read_json('00-Guidelines/Ledgers/library-checker-coverage.json')
 require(len(coverage['records']) == coverage['problem_families'], 'Judge family count')
@@ -441,5 +465,5 @@ for path in tracked:
     if path and not path.startswith(('OLD/', '95-Resources/')) and p.is_file() and b'\0' not in (data := p.read_bytes()):
         require(not re.search(rb'/home/\w[\w.-]*/', data), 'Absolute home path in ' + path)
 
-print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'absent_ignored_archive': len(absent_archive), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'compact_pending': compact_pending, 'errors': errors}, indent=2))
+print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'absent_ignored_archive': len(absent_archive), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'mini_first_pending': mini_first_pending, 'errors': errors}, indent=2))
 raise SystemExit(bool(errors))

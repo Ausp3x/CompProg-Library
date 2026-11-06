@@ -68,8 +68,8 @@ template<typename T> constexpr auto dot(Point3<T> a, Point3<T> b) {
 template<typename T> constexpr auto cross(Point3<T> a, Point3<T> b) {
     using W = geometry_detail::Wide<T>;
     return Point3<W>{W(a.y) * b.z - W(a.z) * b.y, W(a.z) * b.x - W(a.x) * b.z, W(a.x) * b.y - W(a.y) * b.x};}
-template<typename P> constexpr auto norm2(P a) { return dot(a, a); }
-template<typename P> constexpr auto dist2(P a, P b) {
+template<typename P = point> constexpr auto norm2(P a) { return dot(a, a); }
+template<typename P = point> constexpr auto dist2(P a, P b) {
     using W = geometry_detail::Wide<decltype(a.x)>;
     return norm2(a.template cast<W>() - b.template cast<W>());}
 template<typename T> constexpr int orient(Point2<T> a, Point2<T> b, Point2<T> c) {
@@ -84,9 +84,9 @@ template<typename T> constexpr auto tetraVolume6(Point3<T> a, Point3<T> b, Point
     return triple(b.template cast<W>() - p, c.template cast<W>() - p, d.template cast<W>() - p);}
 
 // T: O(1), M: O(1). Rounded long double; unit and angle forms assert nonzero vectors; angles in [0, pi] or (-pi, pi].
-template<typename P> long double normApprox(P a) { return std::sqrt(static_cast<long double>(norm2(a))); }
-template<typename P> long double distanceApprox(P a, P b) { return std::sqrt(static_cast<long double>(dist2(a, b))); }
-template<typename P> auto unitApprox(P a) {
+template<typename P = point> long double normApprox(P a) { return std::sqrt(static_cast<long double>(norm2(a))); }
+template<typename P = point> long double distanceApprox(P a, P b) { return std::sqrt(static_cast<long double>(dist2(a, b))); }
+template<typename P = point> auto unitApprox(P a) {
     long double n = normApprox(a); assert(n > 0);
     return a.template cast<long double>() / n;}
 template<typename T> long double argApprox(Point2<T> a) {

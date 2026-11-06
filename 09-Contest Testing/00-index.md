@@ -37,6 +37,20 @@ The helper validates the original before probing it, accepts only strictly short
 python3 08-shrink.py failing.in --propose my_proposer.py --valid my_input_validator.py --probe my_failure_probe.py --max-steps 100
 ```
 
+## Extraction
+
+`10-grab.py` pastes only the library code a solution needs, without the template and debug headers that `99-Workspace/template.cpp` already holds:
+
+```bash
+python3 10-grab.py bellTable DSU          # print and copy the declarations these names reach
+python3 10-grab.py ModInt::sqrt           # one member, its struct pruned to what it needs
+python3 10-grab.py --into a.cpp           # one block between "// grab begin:" and "// grab end" above the first use
+python3 10-grab.py --into a.cpp --min     # the same, each struct cut to the members a.cpp calls
+python3 10-grab.py --find binomial        # indexed names containing the text
+```
+
+`--into` reads the identifiers of `a.cpp` outside the block (`#define` bodies included), takes the library names among them (not the names `a.cpp` declares or `#define`s itself, nor names it uses only as locals, parameters or members, so a local `rng` stays local) and rewrites the block with what `grab` prints for those names, so rerun it after using another library name (`--min` keeps only the members `a.cpp` calls; rerun it after calling another member too). A function such as `dijkstra(g, ...)` brings the type it takes (`Graph`) whole. An unknown name lists the closest names grab accepts (`DUS`: did you mean `DSU`?). It needs libclang (`/setup-check` prints the install command). The first run indexes the library in a few minutes into the git-ignored `.grab-cache`, and later runs take under a second. Without libclang it prints SKIP and inlines whole headers. Copying uses `wl-copy`, `xclip`, `xsel` or `pbcopy`; `--no-copy` only prints. Rules: [08-contest-tools.md](../00-Guidelines/08-contest-tools.md); evidence: [00-extraction.md](<../96-Local Testing/Docs/00-extraction.md>).
+
 ## Coverage and extension inventory
 
 P001 evidence (contracts, feature-to-test map, latest commands and results, limits): [00-verification.md](Docs/00-verification.md). The examples remain small demonstrations, not a comprehensive generator/checker library for every algorithm family.
@@ -48,6 +62,7 @@ P001 evidence (contracts, feature-to-test map, latest commands and results, limi
 | `01-stress.py`, `06-validator.py`, `07-scorer.py` | Validity versus tool errors, finite Decimal scores, both objectives, optional reference, permutation example | **Verified**; same evidence |
 | `08-shrink.py` | Valid baseline, shorter valid proposals, exact signatures, skip/errors/timeouts, bounded attempts, preserved progress | **Verified**; same evidence |
 | `02-gen.py`, `03-gen.cpp`, `04-checker.py` | Reproducible complete integer-array inputs; exact token checker without float conversion | **Verified**; same evidence |
+| `10-grab.py` | Index cached per closure hash in both ISA configurations, pruned extraction, `--into`, `--find`, `#line` output, whole-header fallback | See [P253 evidence](<../96-Local Testing/Docs/00-extraction.md>) |
 
 Both generators emit `1 <= n <= 20` and `n` integers in `[-100,100]`. Python accepts signed integer seeds; the C++ example accepts decimal seeds in `[0,2^64-1]`. Repeating a seed in the same generator reproduces its case; the two generators need not agree. The checker compares tokens exactly. The scored example treats the first input token as nonnegative `n`, validates a permutation of `1..n` (empty is valid when `n=0`), then counts increasing adjacent pairs.
 

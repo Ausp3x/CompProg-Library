@@ -11,7 +11,7 @@ namespace lca_detail {
         vector<int> parent, parent_edge, component, dep, t_in, t_out, order, postorder;
         vector<lll> weight;
 
-        template<class G>
+        template<class G = Graph>
         explicit Forest(const G &g, int r) : n(g.n), root(r), parent(n, -1), parent_edge(n, -1),
             component(n, -1), dep(n), t_in(n), t_out(n), weight(n) {
             assert(!g.directed && -1 <= r && r < n);
@@ -46,7 +46,7 @@ struct LCA : lca_detail::Forest {
     int l;
     vector<vector<int>> up;
 
-    template<class G>
+    template<class G = Graph>
     explicit LCA(const G &g, int root = -1) : Forest(g, root), l(int(std::bit_width(uint(max(1, n)))) - 1),
         up(n, vector<int>(l + 1)) {
         for (int u : order) {
@@ -92,7 +92,7 @@ struct LCAFold : LCA {
     [[no_unique_address]] M m;
     vector<vector<S>> rise, fall;
 
-    template<class G>
+    template<class G = Graph>
     LCAFold(const G &g, const vector<S> &values, M mon = {}, int root = -1) : LCA(g, root), m(std::move(mon)), rise(n), fall(n) {
         assert(values.size() == size_t(n));
         for (int u : order) {
@@ -119,7 +119,7 @@ struct EulerLCA : lca_detail::Forest {
     vector<vector<int>> table;
     vector<vector<uint8_t>> micro;
 
-    template<class G>
+    template<class G = Graph>
     explicit EulerLCA(const G &g, int root = -1) : Forest(g, root), first(n) {
         assert(n <= (INT_MAX - 1) / 2); tour.reserve(2 * n + 1); tour.push_back(-1);
         int cur = -1;
@@ -179,7 +179,7 @@ struct EulerLCA : lca_detail::Forest {
 
 // Same forest contract as LCA; answers keep query order, -1 across components.
 // T: O((n + q) * alpha(n)) amortized, M: O(n + q); alpha is inverse Ackermann.
-template<class G>
+template<class G = Graph>
 vector<int> offlineLCA(const G &g, const vector<pair<int, int>> &queries, int root = -1) {
     assert(queries.size() <= size_t(INT_MAX)); lca_detail::Forest f(g, root);
     vector<vector<pair<int, int>>> adj(g.n); vector<int> res(queries.size(), -1), ancestor(g.n);
@@ -197,7 +197,7 @@ vector<int> offlineLCA(const G &g, const vector<pair<int, int>> &queries, int ro
 
 // Endpoints of path(a, b) & path(c, d), nearest c first, for LCA or EulerLCA; empty is {-1, -1}.
 // T: O(1) LCA queries, M: O(1).
-template<class L>
+template<class L = LCA>
 pair<int, int> pathIntersection(const L &t, int a, int b, int c, int d) {
     auto meet = [&](int x, int y, int z) { return t.getLCA(x, y) ^ t.getLCA(x, z) ^ t.getLCA(y, z); };
     t.check(a); t.check(b); t.check(c); t.check(d);

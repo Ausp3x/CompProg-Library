@@ -15,7 +15,7 @@ namespace subgraph_enumeration_detail {
         vector<int> vertex, start, split, to, arc, pid, mult, pair_of;
         vector<uint8_t> dir;
 
-        template<class G>
+        template<class G = Graph>
         explicit Ranked(const G &g, bool full = false) : n(g.n), vertex(n), start(size_t(n) + 1) {
             assert(!g.directed || g.arcs.size() <= size_t(INT_MAX / 2));
             vector<int> off(size_t(n) + 1), seen(n, -1), deg(n), pos(n), bin(size_t(n) + 1), where(full ? n : 0), ka, kp;
@@ -168,7 +168,7 @@ namespace subgraph_enumeration_detail {
                             if (ulng x = ra[q] & rb[q]) { f(u, a, b, q, x); }}}}}}}
 
     // T: O(m), M: O(m); per pair of a full Ranked, the sum of cbrt(w / max w) over its arcs (max over every edge, loops included, 1 without edges).
-    template<class G>
+    template<class G = Graph>
     vector<double> cubeRoots(const G &g, const Ranked &h) {
         lng top = g.edges.empty() ? 1 : std::ranges::max(g.edges, {}, &GraphEdge::w).w;
         assert(top != 0);
@@ -184,14 +184,14 @@ namespace subgraph_enumeration_detail {
 } // namespace subgraph_enumeration_detail
 
 // T: O(n + m * d + out), M: O(n + m), d the degeneracy (d <= sqrt(2 * m)); undirected, loops and parallel edges ignored; f(a, b, c) once per triangle.
-template<class G, class F>
+template<class G = Graph, class F>
 void enumerateTriangles(const G &g, F f) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g);
     subgraph_enumeration_detail::triangles(h, [&](int u, int v, int w, int, int, int) { f(h.vertex[u], h.vertex[v], h.vertex[w]); });}
 
 // T: O(n + m * d + out), M: O(n + m), d the degeneracy; undirected multigraph, f(a, b, c, x, y, z) once per triangle of edges x = ab, y = bc, z = ca.
-template<class G, class F>
+template<class G = Graph, class F>
 void enumerateTriangleEdges(const G &g, F f) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g, true);
@@ -208,14 +208,14 @@ void enumerateTriangleEdges(const G &g, F f) {
                 for (int z = off[h.pid[k]]; z < off[h.pid[k] + 1]; ++z) { f(h.vertex[u], h.vertex[v], h.vertex[w], ids[x], ids[y], ids[z]); }}}});}
 
 // T: O(n + m * d), M: O(n + m) (bitset workspace at most 2^22 words), d the degeneracy; undirected simple-graph count, bitset over the densest rank suffix when cheaper.
-template<class G>
+template<class G = Graph>
 lng countTriangles(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g);
     return subgraph_enumeration_detail::triangleCount(h);}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; undirected simple graph, sum over triangles {a, b, c} of x[a] * x[b] * x[c]; T() is zero, x.size() == n.
-template<class G, class T>
+template<class G = Graph, class T>
 T triangleProductSum(const G &g, const vector<T> &x) {
     assert(!g.directed && int(x.size()) == g.n);
     subgraph_enumeration_detail::Ranked h(g);
@@ -227,7 +227,7 @@ T triangleProductSum(const G &g, const vector<T> &x) {
     return res;}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; undirected multigraph, res[e] = triangles (edge sets) through edge e, 0 for loops.
-template<class G>
+template<class G = Graph>
 vector<lng> countTrianglesPerEdge(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g, true);
@@ -239,7 +239,7 @@ vector<lng> countTrianglesPerEdge(const G &g) {
     return res;}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; undirected simple graph, res[v][k] = neighbours u of v whose pair {u, v} lies in exactly k triangles, size 1 + max k (empty if isolated).
-template<class G>
+template<class G = Graph>
 vector<vector<int>> generalizedDegree(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g, true);
@@ -255,7 +255,7 @@ vector<vector<int>> generalizedDegree(const G &g) {
     return res;}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; undirected simple graph, 4-cycles (vertex sets with a cyclic order), each counted once.
-template<class G>
+template<class G = Graph>
 lng countC4(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g);
@@ -271,7 +271,7 @@ lng countC4(const G &g) {
     return res;}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; undirected multigraph, res[e] = 4-cycles (edge sets) through edge e, 0 for loops; exact for simple graphs and m <= 6 * 10^6, else mod 2^64.
-template<class G>
+template<class G = Graph>
 vector<lng> countC4PerEdge(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g, true);
@@ -293,7 +293,7 @@ vector<lng> countC4PerEdge(const G &g) {
     return res;}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; undirected simple graph, {triangles, 4-cycles} containing each vertex.
-template<class G>
+template<class G = Graph>
 pair<vector<lng>, vector<lng>> countC3C4PerVertex(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g);
@@ -303,7 +303,7 @@ pair<vector<lng>, vector<lng>> countC3C4PerVertex(const G &g) {
     return res;}
 
 // T: O(n + m + min(n^2, m * d)), M: O(n + m), d the degeneracy; undirected, closed walk over 4 distinct vertices back to the first with arc IDs of g, empty when the simple graph has no 4-cycle.
-template<class G>
+template<class G = Graph>
 CycleWitness findC4(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g, true);
@@ -322,7 +322,7 @@ CycleWitness findC4(const G &g) {
     return res;}
 
 // T: O(n + m * d + out), M: O(n + m), d the degeneracy; undirected simple graph, f(a, b, c, e) once per 4-cycle a-b-c-e-a.
-template<class G, class F>
+template<class G = Graph, class F>
 void enumerateC4(const G &g, F f) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g);
@@ -342,7 +342,7 @@ void enumerateC4(const G &g, F f) {
         seen.clear();}}
 
 // T: O(n + m * d + m * d^2 / w), M: O(n + m), d the degeneracy; undirected simple graph, 4-cliques.
-template<class G>
+template<class G = Graph>
 lng countK4(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g);
@@ -351,7 +351,7 @@ lng countK4(const G &g) {
     return res;}
 
 // T: O(n + m * d + m * d^2 / w + out), M: O(n + m), d the degeneracy; undirected simple graph, f(a, b, c, e) once per 4-clique.
-template<class G, class F>
+template<class G = Graph, class F>
 void enumerateK4(const G &g, F f) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g);
@@ -360,7 +360,7 @@ void enumerateK4(const G &g, F f) {
         for (; x; x &= x - 1) { f(h.vertex[u], h.vertex[h.to[s + a]], h.vertex[h.to[s + b]], h.vertex[h.to[s + 64 * t + std::countr_zero(x)]]); }});}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; undirected simple graph, res[k][v] = simple paths with k + 3 vertices starting at v.
-template<class G>
+template<class G = Graph>
 array<vector<lng>, 3> countPathsP3P4P5(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g);
@@ -381,7 +381,7 @@ array<vector<lng>, 3> countPathsP3P4P5(const G &g) {
     return res;}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; undirected simple graph, 2 t(v) / (deg(v) (deg(v) - 1)) with t(v) the triangles at v, 0 when that is 0 / 0.
-template<class G>
+template<class G = Graph>
 vector<double> localClustering(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g);
@@ -394,7 +394,7 @@ vector<double> localClustering(const G &g) {
     return res;}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; undirected, no parallel edges, max weight != 0; NetworkX weighted clustering 2 * sum over triangles at v of cbrt(product of w / max w) / (deg(v) (deg(v) - 1)).
-template<class G>
+template<class G = Graph>
 vector<double> weightedClustering(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g, true);
@@ -408,7 +408,7 @@ vector<double> weightedClustering(const G &g) {
     return res;}
 
 // T: O(n + m * d), M: O(n + m) (bitset workspace at most 2^22 words), d the degeneracy; undirected simple graph, 3 * triangles / 2-paths, 0 without triangles.
-template<class G>
+template<class G = Graph>
 double transitivity(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g);
@@ -417,7 +417,7 @@ double transitivity(const G &g) {
     return t ? double(3 * t) / double(paths) : 0;}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; undirected simple graph, NetworkX square clustering q(v) / ((deg(v) - 1) P3(v) - 2 t(v) - q(v)), 0 when the denominator is not positive.
-template<class G>
+template<class G = Graph>
 vector<double> squareClustering(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g);
@@ -430,7 +430,7 @@ vector<double> squareClustering(const G &g) {
     return res;}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; directed, loops and parallel arcs ignored, C(n, 3) < 2^63; counts in NetworkX order 003, 012, 102, 021D, 021U, 021C, 111D, 111U, 030T, 030C, 201, 120D, 120U, 120C, 210, 300.
-template<class G>
+template<class G = Graph>
 array<lng, 16> triadicCensus(const G &g) {
     assert(g.directed && lll(g.n) * (g.n - 1) * (g.n - 2) / 6 <= LLONG_MAX);
     subgraph_enumeration_detail::Ranked h(g, true);
@@ -460,7 +460,7 @@ array<lng, 16> triadicCensus(const G &g) {
     return res;}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy of the underlying graph; directed, loops and parallel arcs ignored, NetworkX directed clustering T(v) / (2 (dt (dt - 1) - 2 db)), 0 without directed triangles.
-template<class G>
+template<class G = Graph>
 vector<double> directedClustering(const G &g) {
     assert(g.directed);
     subgraph_enumeration_detail::Ranked h(g, true);
@@ -476,7 +476,7 @@ vector<double> directedClustering(const G &g) {
     return res;}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy of the underlying graph; directed, no parallel arcs, max weight != 0; NetworkX weighted directed clustering, cube roots of w / max w in place of arc counts.
-template<class G>
+template<class G = Graph>
 vector<double> weightedDirectedClustering(const G &g) {
     assert(g.directed);
     subgraph_enumeration_detail::Ranked h(g, true);
@@ -491,7 +491,7 @@ vector<double> weightedDirectedClustering(const G &g) {
     return res;}
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; mean of localClustering (directedClustering when directed) over all vertices, or over the nonzero ones if !count_zeros; 0 when nothing is averaged.
-template<class G>
+template<class G = Graph>
 double averageClustering(const G &g, bool count_zeros = true) {
     vector<double> c = g.directed ? directedClustering(g) : localClustering(g);
     double sum = 0;

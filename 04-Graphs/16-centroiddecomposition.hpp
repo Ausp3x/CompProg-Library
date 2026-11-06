@@ -11,7 +11,7 @@ struct CentroidDecomposition {
     vector<int> parent, level, size, tin, order;
     vector<W> dist;
 
-    template<class G>
+    template<class G = Graph>
     explicit CentroidDecomposition(const G &g, bool weighted = false) : n(g.n), L(int(std::bit_width(uint(n)))),
         parent(n, -1), level(n, -1), size(n, 1), tin(n), order(n), dist(size_t(n) * L) {
         assert(!g.directed && n <= 1 << 24);
@@ -59,7 +59,7 @@ struct NearestMarked {
     vector<std::priority_queue<pair<W, int>, vector<pair<W, int>>, std::greater<>>> heap;
     vector<char> marked;
 
-    template<class G>
+    template<class G = Graph>
     explicit NearestMarked(const G &g, bool weighted = false) : cd(g, weighted), heap(cd.n), marked(cd.n) {
         assert(!weighted || std::ranges::all_of(g.edges, [](const GraphEdge &e) { return e.w >= 0; }));}
 
@@ -88,7 +88,7 @@ struct DistanceSum {
     CentroidDecomposition<W> cd;
     vector<T> cnt, own, rel;
 
-    template<class G>
+    template<class G = Graph>
     explicit DistanceSum(const G &g, bool weighted = false) : cd(g, weighted), cnt(cd.n), own(cd.n), rel(cd.n) {}
 
     void add(int v, T x) {
@@ -116,7 +116,7 @@ namespace centroid_detail {
         vector<int> off;
         vector<T> bit;
 
-        template<class G>
+        template<class G = Graph>
         explicit Contour(const G &g) : cd(g), off(cd.n + 1) {
             for (int c = 0; c < cd.n; ++c) { off[c + 1] = off[c] + 2 * (cd.size[c] + 1); }
             bit.assign(off[cd.n], T());}
@@ -132,7 +132,7 @@ namespace centroid_detail {
     };
 
     // T: O(n), M: O(n); real vertices [0, n) of a forest, child lists chained through virtual vertices by 0-weight edges; degrees <= 3.
-    template<class G>
+    template<class G = Graph>
     Graph binarize(const G &g) {
         assert(!g.directed);
         int n = g.n, m = n, comps = 0;
@@ -163,7 +163,7 @@ namespace centroid_detail {
         CentroidDecomposition<int> cd;
         vector<int> off, dv, at;
 
-        template<class G>
+        template<class G = Graph>
         explicit Layout(const G &g) : n(g.n), cd(binarize(g), true), off(cd.n + 1), at(size_t(n) * cd.L) {
             vector<int> cnt;
             for (int c = 0; c < cd.n; ++c) {
@@ -196,7 +196,7 @@ struct ContourSum : centroid_detail::Contour<T> {
     using B = centroid_detail::Contour<T>;
     using B::cd, B::bit, B::base, B::add, B::prefix;
 
-    template<class G>
+    template<class G = Graph>
     ContourSum(const G &g, const vector<T> &a) : B(g) {
         assert(int(a.size()) == cd.n);
         for (int v = 0; v < cd.n; ++v) {
@@ -233,7 +233,7 @@ struct ContourAdd : centroid_detail::Contour<T> {
     using B::cd, B::add, B::prefix;
     vector<T> a;
 
-    template<class G>
+    template<class G = Graph>
     ContourAdd(const G &g, vector<T> init) : B(g), a(std::move(init)) {
         assert(int(a.size()) == cd.n);}
 
@@ -263,7 +263,7 @@ struct ContourFold : centroid_detail::Layout {
     [[no_unique_address]] M m;
     vector<S> val, seg;
 
-    template<class G>
+    template<class G = Graph>
     ContourFold(const G &g, const vector<S> &a, M mon = {}) : Layout(g), m(std::move(mon)), val(a), seg(2 * size_t(off.back()), m.e()) {
         assert(int(a.size()) == n);
         for (int v = 0; v < n; ++v) {
@@ -302,7 +302,7 @@ struct ContourApply : centroid_detail::Layout {
     [[no_unique_address]] A m;
     vector<F> self, tag;
 
-    template<class G>
+    template<class G = Graph>
     explicit ContourApply(const G &g, A mon = {}) : Layout(g), m(std::move(mon)), self(n, m.id()), tag(2 * size_t(off.back()), m.id()) {}
 
     void rangeContourApply(int v, int l, int r, F f) {
@@ -328,7 +328,7 @@ struct ContourApply : centroid_detail::Layout {
 };
 
 // T: O(n * log(n)^2), M: O(n * log(n)); n < 2^24; res[d] = unordered vertex pairs d edges apart, d in [0, n), res[0] = 0.
-template<class G>
+template<class G = Graph>
 vector<lng> treeDistanceFrequency(const G &g) {
     assert(g.n < 1 << 24);
     CentroidDecomposition<int> cd(g);
@@ -353,7 +353,7 @@ vector<lng> treeDistanceFrequency(const G &g) {
     return res;}
 
 // T: O(n * log(n)^2), M: O(n * log(n)); weighted, path sums in [-2^62, 2^62); unordered pairs u != v with dist <= k.
-template<class G>
+template<class G = Graph>
 lng countPathsWithin(const G &g, lng k) {
     CentroidDecomposition<lng> cd(g, true);
     vector<lng> d;

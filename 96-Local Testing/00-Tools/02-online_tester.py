@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fixture checks for online expansion and explicit workspace generation."""
+"""Fixture checks for online expansion (a fake --bundler and the default grab bundler) and explicit workspace generation."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ _00_memory_cap.ensure()
 
 ROOT = Path(__file__).resolve().parents[2]
 ONLINE = ROOT / "97-Online Testing"
+GRAB_CACHE = "09-Contest Testing/.grab-cache"
 
 
 def require(condition: bool, message: str) -> None:
@@ -119,6 +120,50 @@ def test_expander(temp: Path) -> None:
     print("PASS online: symlinks and unsafe manifest paths")
 
 
+def test_expander_grab(temp: Path) -> None:
+    """The default grab bundler on a temporary library holding the expander, grab, the dependency scanner, the template,
+    debug and DSU headers and a copy of the grab cache (current entries for those headers are reused unchanged)."""
+    library = temp / "grab library"
+    online = library / "97-Online Testing"
+    for rel in ("97-Online Testing/01-expander.py", "09-Contest Testing/10-grab.py", "98-Team Notebook/05-dependencies.py",
+                "01-Core/01-template.hpp", "01-Core/02-debug.hpp", "02-Data Structures/01-dsu.hpp"):
+        (library / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / rel, library / rel)
+    if (ROOT / GRAB_CACHE).is_dir():
+        shutil.copytree(ROOT / GRAB_CACHE, library / GRAB_CACHE)
+    source = online / "src" / "judge" / "dsu.cpp"
+    source.parent.mkdir(parents=True)
+    text = ('#include "../../../02-Data Structures/01-dsu.hpp"\n\nint main() {\n    int n, q;\n    cin >> n >> q;\n    DSU d(n);\n'
+            '    while (q--) { int a, b; cin >> a >> b; d.uniteSets(a, b); }\n    cout << d.count() << " " << d.isSameSet(0, 2) << "\\n";\n}\n')
+    source.write_text(text, encoding="utf-8")
+    script = online / "01-expander.py"
+    result = subprocess.run([sys.executable, str(script)], cwd=temp, capture_output=True, text=True, timeout=600)
+    require(result.returncode == 0, f"grab expansion: {result.stdout}{result.stderr}")
+    output = online / "expanded" / "judge" / "dsu.expanded.cpp"
+    bundled = output.read_text(encoding="utf-8")
+    require(bundled.startswith('#line 1 "01-Core/01-template.hpp"\n') and '#line 2 "97-Online Testing/src/judge/dsu.cpp"' in bundled
+            and "struct DSU {" in bundled and '#include "' not in bundled and "#pragma once" not in bundled,
+            f"grab output lacks the template, #line directives or DSU, or keeps a local include:\n{bundled[:600]}")
+    require(source.read_text(encoding="utf-8") == text, "canonical source changed")
+    cxx = os.environ.get("CXX", "g++")
+    exe = temp / "dsu-grab"
+    build = subprocess.run(_00_memory_cap.capped([cxx, "-std=gnu++20", "-O2", "-Wall", "-Wextra", "-x", "c++", str(output), "-o", str(exe)], 2048),
+                           capture_output=True, text=True, timeout=600)
+    require(build.returncode == 0 and exe.exists(), f"bundled output does not compile with {cxx}: {build.stderr[-2000:]}")
+    run_result = subprocess.run(_00_memory_cap.capped([str(exe)], 512), input="5 3\n0 1\n1 2\n3 4\n", capture_output=True, text=True, timeout=60)
+    require(run_result.returncode == 0 and run_result.stdout == "2 1\n", f"bundled DSU printed {run_result.stdout!r}, expected '2 1'")
+    manifest = online / "02-expansion.json"
+    previous = (manifest.read_bytes(), output.read_bytes())
+    (source.parent / "local.hpp").write_text("#pragma once\n", encoding="utf-8")
+    bad = source.with_name("bad.cpp")
+    bad.write_text('#include "../../../02-Data Structures/01-dsu.hpp"\n#include "local.hpp"\nint main() {}\n', encoding="utf-8")
+    result = subprocess.run([sys.executable, str(script)], cwd=temp, capture_output=True, text=True, timeout=600)
+    require(result.returncode != 0 and "97-Online Testing/src/judge/bad.cpp:2: local.hpp is not a library header" in result.stderr
+            and not (output.parent / "bad.expanded.cpp").exists(), f"non-library include not refused: {result.stderr}")
+    require((manifest.read_bytes(), output.read_bytes()) == previous, "failed grab expansion changed prior outputs")
+    print("PASS online: default grab bundler (template, #line, compiled DSU run, non-library include refused atomically)")
+
+
 def test_workspace(temp: Path) -> None:
     library = temp / "workspace fixture with spaces"
     core = library / "01-Core"
@@ -174,6 +219,7 @@ def main() -> int:
         with tempfile.TemporaryDirectory(prefix="online-tools-test-") as directory:
             temp = Path(directory)
             test_expander(temp)
+            test_expander_grab(temp)
             test_workspace(temp)
         return 0
     except (AssertionError, OSError, subprocess.TimeoutExpired) as exc:

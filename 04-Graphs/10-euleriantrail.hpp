@@ -11,7 +11,7 @@ struct EulerTrailResult {
 
 // Directed or undirected, loops/multiedges allowed; start=-1 picks the smallest valid start.
 // T: O(n + m), O(n + m * log(m + 1)) lexicographic (smallest vertex sequence), M: O(n + m).
-template<class G>
+template<class G = Graph>
 EulerTrailResult eulerianTrail(const G &g, int start = -1, bool lexicographic = false) {
     assert(-1 <= start && start < g.n);
     if (!g.n) { return {}; }

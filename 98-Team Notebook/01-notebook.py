@@ -135,8 +135,7 @@ def with_dependencies(selected: list[str], available: dict[str, Path]) -> tuple[
 
 def needs(graph: dict[str, list[str]], item: str, selected: list[str]) -> str:
     """Direct includes of a source, the template only when it is not selected; unselected ones are marked."""
-    skip = set(DEPS.plan(ROOT, graph, item)["optional"]) if item in graph else set()
-    return ", ".join(d + (" (not for the Compact twins)" if d in skip else "") + ("" if d in selected else " (not selected)")
+    return ", ".join(d + ("" if d in selected else " (not selected)")
                      for d in graph.get(item, []) if d != DEPS.TEMPLATE or d not in selected)
 
 

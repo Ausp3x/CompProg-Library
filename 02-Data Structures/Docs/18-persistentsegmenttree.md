@@ -142,6 +142,7 @@ References fetched 2026-10-27 by the completeness sweep ([00-sources.md](00-sour
 
 ## History
 
+- 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `PersistentSegmentTree` `build` renamed `ctor` (the empty, fill and vector constructors), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
 - 2026-10-27: P030 rewrite and first verification; legacy `PerSegTree` and `KSPerSegTree` replaced.
 - 2026-10-27: independent review (P030), 6 findings fixed (`NDEBUG` termination, `lng` positions by user decision, cost and memory wording, loop index type, ledger records); full (seed 20261027) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1559/1586/1556 MB.
 - 2026-10-27: `/finish` pass: audit (4 defects, 4 decisions) and diff review (5 findings) fixed; by user decision added `reset`, `copyRange` with an action, dual `toVector`, `countLess`, `sumLess`, `kthMax` and `AffineComposite` `operator==`, filed P248; full (seed 20261027) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 2047/2002/2048 MB.

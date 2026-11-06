@@ -53,7 +53,7 @@ struct BlockCutTree {
 };
 
 // T: O(n + m), M: O(n + m); undirected, loops and multiedges allowed; loop-only and isolated vertices get singleton blocks.
-template<class G>
+template<class G = Graph>
 BlockCutTree blockCutTree(const G &g) {
     auto low = lowlink(g);
     vector<vector<int>> blocks;
@@ -97,7 +97,7 @@ struct BridgeTree {
 };
 
 // T: O(n + m), M: O(n + m); undirected, loops and multiedges allowed; bridges in ascending ID order.
-template<class G>
+template<class G = Graph>
 BridgeTree bridgeTree(const G &g) {
     auto low = lowlink(g);
     Graph t(int(low.components.size()));
@@ -108,7 +108,7 @@ BridgeTree bridgeTree(const G &g) {
     return BridgeTree(std::move(t), std::move(low.component), std::move(edge), std::move(tree_edge));}
 
 // T: O(n + m), M: O(n + m); undirected; ceil(p / 2) + q vertex pairs for p leaves and q isolated nodes of the bridge forest, none if one node.
-template<class G>
+template<class G = Graph>
 vector<pair<int, int>> twoEdgeConnectivityAugmentation(const G &g) {
     auto bt = bridgeTree(g);
     int k = bt.tree.n;

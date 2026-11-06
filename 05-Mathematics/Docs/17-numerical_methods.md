@@ -241,6 +241,7 @@ No timing benchmark: the contest profile asks for optimal complexity and a direc
 
 ## History
 
+- 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `DualNumber` `add, sub, neg, mul, div` written as the operators they are (`+, - (binary, unary), *, /`), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
 - 2026-11-03: P059 implementation; the tester found 2 defects (cubic double roots, iteration counts on an exact zero) and the review 8 (cubic and quadratic range, cubic slack, adaptive Simpson noise floor, bounded misuse, DE at `l = r`, a parameter name, handoffs), all fixed; full suite passed on g++ and g++-14.
 - 2026-11-03: /finish audit, 8 defects fixed (non-monic cubic range, spread-root deflation, Romberg rounding floor, two assertions, sources labeled, wrong figures, duplicates keeps) and 6 from its diff review (near-double vertex fallback, finite step, doc limits), 5 user decisions recorded; full suite passed on g++ and g++-14.
 - 2026-11-03: maintainer review in `/merge-pr 3` found 4 defects, all fixed, three with regressions that fail on the old header: `simpsonFixed` overflowed `int` at `n = INT_MAX`, `brentRoot` overflowed `c - b` on brackets wider than `DBL_MAX`, `hornerDerivative` did not compile for nested `DualNumber` (`T{}` now), and `finiteDifference` was unbounded under `NDEBUG` for huge `d` (clamped; checked by inspection, since tests keep `NDEBUG` inputs in the domain). The user confirmed the decisions recorded as theirs; full suite passed on g++ and g++-14.

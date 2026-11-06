@@ -254,7 +254,7 @@ class NotebookTests(unittest.TestCase):
     A, B, C = "05-Mathematics/01-mod_a.hpp", "05-Mathematics/02-b.hpp", "05-Mathematics/03-c.hpp"
 
     def dependency_fixture(self) -> None:
-        """b -> a -> modint -> barrett -> template; c is a Compact header whose barrett include is optional."""
+        """b -> a -> modint -> barrett -> template; c includes barrett and defines a `*Compact` function, which marks nothing."""
         inc = lambda *names: "".join(f'#include "{n}"\n' for n in names)
         self.source(self.TEMPLATE, "#pragma once\n")
         self.source(self.BARRETT, inc("01-template.hpp"))
@@ -294,16 +294,15 @@ class NotebookTests(unittest.TestCase):
                 self.assertLess(pos[dep], pos[item], (dep, item, out))
         NOTEBOOK.validate(self.config(out), NOTEBOOK.sources())
 
-    def test_needs_marks_unselected_template_and_optional(self) -> None:
+    def test_needs_marks_unselected_and_template(self) -> None:
         self.dependency_fixture()
         graph = NOTEBOOK.DEPS.headers(self.root)
         t, m, r, a, b, c = self.TEMPLATE, self.MODINT, self.BARRETT, self.A, self.B, self.C
         self.assertEqual(NOTEBOOK.needs(graph, b, [t, a, b]), a)
         self.assertEqual(NOTEBOOK.needs(graph, b, [b]), f"{t} (not selected), {a} (not selected)")
         self.assertEqual(NOTEBOOK.needs(graph, m, [t, m]), f"{r} (not selected)")
-        self.assertEqual(NOTEBOOK.needs(graph, c, [t, r, c]), f"{r} (not for the Compact twins)")
-        self.assertEqual(NOTEBOOK.needs(graph, c, [c]),
-                         f"{t} (not selected), {r} (not for the Compact twins) (not selected)")
+        self.assertEqual(NOTEBOOK.needs(graph, c, [t, r, c]), r)
+        self.assertEqual(NOTEBOOK.needs(graph, c, [c]), f"{t} (not selected), {r} (not selected)")
         self.assertEqual(NOTEBOOK.needs(graph, r, [t, r]), "")
         self.assertEqual(NOTEBOOK.needs(graph, t, [t]), "")
         self.assertEqual(NOTEBOOK.needs(graph, "08-Python/x.py", ["08-Python/x.py"]), "")
@@ -326,9 +325,10 @@ class NotebookTests(unittest.TestCase):
                 self.assertTrue(lines[i + 1].startswith(r"\lstinputlisting"), lines[i + 1])
         prefix, suffix = r"{\footnotesize\textcolor{muted}{Needs: ", r"}\par}"
         self.assertEqual(needs, {
-            self.C: prefix + r"01-Core/03-barrett.hpp (not for the Compact twins)" + suffix,
+            self.C: prefix + r"01-Core/03-barrett.hpp" + suffix,
             self.B: prefix + r"05-Mathematics/01-mod\_a.hpp (not selected)" + suffix,
         })
+        self.assertNotIn("Compact", tex)
 
     def test_page_dependency_attributes_and_script(self) -> None:
         self.dependency_fixture()

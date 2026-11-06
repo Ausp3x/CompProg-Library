@@ -97,7 +97,7 @@ struct IncrementalBridgeConnectivity {
 };
 
 // T: O(n + m * log(m) * alpha(n) + q * log(m)), M: O(n + m + q), alpha inverse Ackermann; undirected; components of (V, edges l..r-1) for each [l, r).
-template<class G>
+template<class G = Graph>
 vector<int> rangeEdgeComponentCount(const G &g, const vector<pair<int, int>> &queries) {
     assert(!g.directed);
     int n = g.n, m = int(g.edges.size());

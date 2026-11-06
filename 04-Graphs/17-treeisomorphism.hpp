@@ -6,7 +6,7 @@
 
 namespace treeiso_detail {
     // T: O(n), M: O(n); BFS parents (-1 at r) and top-down order of the tree g rooted at r.
-    template<class G>
+    template<class G = Graph>
     pair<vector<int>, vector<int>> rooted(const G &g, int r) {
         assert(!g.directed && 0 <= r && r < g.n && g.arcs.size() == 2 * size_t(g.n - 1));
         auto t = bfs(g, {r});
@@ -14,7 +14,7 @@ namespace treeiso_detail {
         return {std::move(t.parent), std::move(t.order)};}
 
     // T: O(n), M: O(n); rooted at the center, or at a virtual vertex n joined to both centers.
-    template<class G>
+    template<class G = Graph>
     pair<vector<int>, vector<int>> centered(const G &g) {
         auto [par, order] = rooted(g, rooted(g, 0).se.back());
         vector<int> path{order.back()};
@@ -79,13 +79,13 @@ namespace treeiso_detail {
 } // namespace treeiso_detail
 
 // T: O(n), M: O(n); tree g, root in [0, n); ids in [0, K) equal iff subtrees are isomorphic, ordered as Classes.
-template<class G>
+template<class G = Graph>
 vector<int> rootedTreeClassification(const G &g, int root) {
     auto [par, order] = treeiso_detail::rooted(g, root);
     return treeiso_detail::Classes(par, order).id;}
 
 // T: O(n), M: O(n); Monte Carlo prod(x[height] + child) mod 2^61 - 1, x from seed; a non-isomorphic pair collides w.p. <= n / (2^61 - 1).
-template<class G>
+template<class G = Graph>
 vector<ulng> rootedTreeHash(const G &g, int root, ulng seed = CustomHash::rnd) {
     constexpr ulng P = (ulng(1) << 61) - 1;
     auto [par, order] = treeiso_detail::rooted(g, root);
@@ -102,7 +102,7 @@ vector<ulng> rootedTreeHash(const G &g, int root, ulng seed = CustomHash::rnd) {
     return res;}
 
 // T: O(n), M: O(n); tree g; ids in [0, K) equal iff g rooted at u and at v are isomorphic (automorphism orbits).
-template<class G>
+template<class G = Graph>
 vector<int> allRootsClassification(const G &g) {
     auto [par, order] = treeiso_detail::centered(g);
     treeiso_detail::Classes cl(par, order);
@@ -119,18 +119,18 @@ vector<int> allRootsClassification(const G &g) {
     return orbit;}
 
 // T: O(n), M: O(n); trees g rooted at r and h rooted at s; res[v] in h for each v of g, empty when not isomorphic.
-template<class G, class H>
+template<class G = Graph, class H = Graph>
 vector<int> rootedTreeIsomorphism(const G &g, int r, const H &h, int s) {
     return treeiso_detail::match(treeiso_detail::rooted(g, r), treeiso_detail::rooted(h, s), g.n);}
 
 // T: O(n), M: O(n); trees g and h; res[v] in h for each v of g, empty when not isomorphic.
-template<class G, class H>
+template<class G = Graph, class H = Graph>
 vector<int> unrootedTreeIsomorphism(const G &g, const H &h) {
     if (g.n != h.n) { return {}; }
     return treeiso_detail::match(treeiso_detail::centered(g), treeiso_detail::centered(h), g.n);}
 
 // T: O(n), M: O(n); tree g; root = -1 is unrooted: the center's string, or both halves' strings for two centers.
-template<class G>
+template<class G = Graph>
 string treeCanonicalString(const G &g, int root = -1) {
     auto [par, order] = root == -1 ? treeiso_detail::centered(g) : treeiso_detail::rooted(g, root);
     treeiso_detail::Classes cl(par, order);
@@ -143,7 +143,7 @@ string treeCanonicalString(const G &g, int root = -1) {
     return res;}
 
 // T: O(n), M: O(n); tree g; root = -1 counts all automorphisms, else those fixing root; M needs M(int) and *=.
-template<class M, class G>
+template<class M, class G = Graph>
 M automorphismCount(const G &g, int root = -1) {
     auto [par, order] = root == -1 ? treeiso_detail::centered(g) : treeiso_detail::rooted(g, root);
     treeiso_detail::Classes cl(par, order);

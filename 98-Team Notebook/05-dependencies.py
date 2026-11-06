@@ -11,13 +11,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = "01-Core/01-template.hpp"
-REDUCTION = ("01-Core/03-barrett.hpp", "01-Core/04-montgomery.hpp")
 INCLUDE = re.compile(r'^[ \t]*#[ \t]*include[ \t]*"([^"\n]+)"')
 CONDITION = re.compile(r"^[ \t]*#[ \t]*(if|ifdef|ifndef|endif)\b")
-TWIN = re.compile(r"\b(?:inline|struct)\b[^;{]*?\b(\w+Compact)\b[^;{]*\{")  # a Compact twin definition (03-cpp.md, Headers)
-# Header -> {full Core type: mini} it is tested with; add a pair only once that header's tester passes with the swap.
-# Until then a closure only notes that the mini exists.
-TESTED_MINIS: dict[str, dict[str, str]] = {}
 
 
 def strip_cpp(text: str, directives: bool = False) -> str:
@@ -94,13 +89,6 @@ def includes(text: str) -> list[tuple[str, bool]]:
     return out
 
 
-def uses_reduction(text: str) -> bool:
-    """Whether a header includes or names Core Barrett or Montgomery (the Compact-twin rule, 03-cpp.md, Headers)."""
-    code = strip_cpp(text, directives=True)
-    return bool(re.search(r'^[ \t]*#[ \t]*include[ \t]*"[^"\n]*0[34]-(barrett|montgomery)\.hpp"', code, re.M)
-                or re.search(r"\b(Montgomery|Barrett)\w*", code))
-
-
 def scan(root: Path = ROOT) -> dict[str, list[tuple[str, bool]]]:
     """Repository-relative header -> its `includes`, as repository-relative paths, for 01-07 outside 97-Legacy."""
     out = {}
@@ -122,59 +110,25 @@ def lines(root: Path, header: str) -> int:
     return data.count(b"\n") + (data[-1:] not in (b"", b"\n"))
 
 
-def compact(root: Path, header: str) -> bool:
-    text = (root / header).read_text(encoding="utf-8")
-    return not header.startswith("01-Core/") and uses_reduction(text) and bool(TWIN.search(strip_cpp(text)))
-
-
-def minis(graph: dict[str, list[str]]) -> dict[str, str]:
-    """Full Core type -> its existing mini (`NN-stem.hpp` -> `MM-stemmini.hpp`)."""
-    stems = {re.sub(r"^\d{2}-|\.hpp$", "", h.split("/")[1]): h for h in graph if h.startswith("01-Core/")}
-    return {stems[s[:-4]]: h for s, h in stems.items() if s.endswith("mini") and s[:-4] in stems}
-
-
-def closure(graph: dict[str, list[str]], header: str, skip: set[tuple[str, str]] = frozenset(),
-            swap: dict[str, str] | None = None) -> list[str]:
-    """Header and its transitive includes, each after its own includes (typing order), skipping `skip` edges and
-    replacing each key of `swap` by its value."""
-    swap, order, seen = swap or {}, [], set()
+def closure(graph: dict[str, list[str]], header: str) -> list[str]:
+    """Header and its transitive includes, each after its own includes (typing order)."""
+    order, seen = [], set()
 
     def visit(h: str) -> None:
-        h = swap.get(h, h)
         if h not in seen:
             seen.add(h)
             for d in graph.get(h, []):
-                if (h, d) not in skip:
-                    visit(d)
+                visit(d)
             order.append(h)
     visit(header)
     return order
 
 
-def plan(root: Path, graph: dict[str, list[str]], header: str) -> dict:
-    """Preferred typing list for one header: tested minis swapped in, Compact-only reduction includes skipped, and the
-    untested minis that would shorten it."""
-    swap = TESTED_MINIS.get(header, {})
-    skip = {(header, d) for d in graph[header] if d in REDUCTION} if compact(root, header) else set()
-    full, order = closure(graph, header, swap=swap), closure(graph, header, skip, swap)
-    size = lambda hs: sum(lines(root, h) for h in hs)
-    untested = {f: (m, size(closure(graph, header, skip, {**swap, f: m}))) for f, m in minis(graph).items()
-                if f in order and f != header and m not in order}
-    return {"order": order, "optional": [h for h in full if h not in order],
-            "minis": {f: x for f, x in untested.items() if x[1] < size(order)}}
-
-
 def describe(root: Path, graph: dict[str, list[str]], header: str) -> str:
-    p = plan(root, graph, header)
-    total = sum(lines(root, h) for h in p["order"])
-    out = [f"{header}: {len(p['order'])} files, {total} lines"] + [f"{lines(root, h):6}  {h}" for h in p["order"]]
-    if p["optional"]:
-        out.append("Skippable when typing only the *Compact twins and code that needs no Core reduction: "
-                   + ", ".join(f"{h} ({lines(root, h)} lines)" for h in p["optional"])
-                   + f"; {total + sum(lines(root, h) for h in p['optional'])} lines in total with them")
-    for full, (mini, swapped) in p["minis"].items():
-        out.append(f"Mini exists, not tested with this header: {mini} for {full} ({swapped} lines in total with it)")
-    return "\n".join(out)
+    order = closure(graph, header)
+    out = [f"{header}: {len(order)} files, {sum(lines(root, h) for h in order)} lines"]
+    out += [f"{lines(root, h):6}  {h}" for h in order]
+    return "\n".join(out + ["Extract only what a name reaches: python3 '09-Contest Testing/10-grab.py' <name>"])
 
 
 def chart(graph: dict[str, list[str]], folder: str) -> str:

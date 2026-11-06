@@ -70,13 +70,13 @@ struct FunctionalGraph {
                 else { int v = children[u][i++]; tin[v] = timer++; path.push_back({v, 0}); }}}}
 
     // T: O(n); directed outdegree at most one.
-    template<class G>
+    template<class G = Graph>
     static vector<int> successors(const G &g) {
         assert(g.directed); vector<int> next(g.n, -1);
         for (int u = 0; u < g.n; ++u) {
             assert(g[u].size() <= 1); if (!g[u].empty()) { next[u] = g.arcs[g[u][0]].to; }}
         return next;}
-    template<class G>
+    template<class G = Graph>
     explicit FunctionalGraph(const G &g) : FunctionalGraph(successors(g)) {}
 
     void check(int u) const { assert(0 <= u && u < n); (void)u; }

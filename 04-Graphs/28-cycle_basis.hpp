@@ -8,7 +8,7 @@
 
 namespace cycle_basis_detail {
     // T: O(n + m), M: O(n); BFS forest from each unreached vertex in increasing order, parent_edge -1 at roots; returns the BFS order.
-    template<class G>
+    template<class G = Graph>
     vector<int> bfsForest(const G &g, vector<int> &parent_edge, vector<int> &depth) {
         assert(!g.directed);
         parent_edge.assign(g.n, -1); depth.assign(g.n, -1);
@@ -23,7 +23,7 @@ namespace cycle_basis_detail {
         return order;}
 
     // T: O(path), M: O(1); calls f(e, side) for each forest edge on the u-v path, climbing from u (side 0) and v (side 1).
-    template<class G, class F>
+    template<class G = Graph, class F>
     void forestPath(const G &g, const vector<int> &parent_edge, const vector<int> &depth, int u, int v, F f) {
         while (u != v) {
             bool side = depth[v] > depth[u];
@@ -39,7 +39,7 @@ struct CycleBasis {
 };
 
 // T: O(n + m + out), M: O(n + out); undirected, out = total cycle length.
-template<class G>
+template<class G = Graph>
 CycleBasis fundamentalCycleBasis(const G &g) {
     CycleBasis res;
     cycle_basis_detail::bfsForest(g, res.parent_edge, res.depth);
@@ -63,7 +63,7 @@ struct CutBasis {
 };
 
 // T: O(n + m + out), M: O(n + m + out); undirected, same forest as fundamentalCycleBasis, out = total cut size.
-template<class G>
+template<class G = Graph>
 CutBasis fundamentalCuts(const G &g) {
     CutBasis res;
     cycle_basis_detail::bfsForest(g, res.parent_edge, res.depth);
@@ -80,12 +80,12 @@ CutBasis fundamentalCuts(const G &g) {
     return res;}
 
 // T: O(n + m), M: O(n); undirected, m - n + (number of components).
-template<class G>
+template<class G = Graph>
 int cycleSpaceDimension(const G &g) {
     return int(g.edges.size()) - g.n + connectedComponents(g).count;}
 
 // T: O(k * r * m / 64 + s), M: O(r * m / 64); k sets of total size s, r = min(k, m); repeated IDs cancel.
-template<class G>
+template<class G = Graph>
 bool isIndependentF2(const G &g, const vector<vector<int>> &sets) {
     int m = int(g.edges.size()), words = (m + 63) / 64;
     if (sets.size() > size_t(m)) { return false; }
@@ -109,7 +109,7 @@ struct XorWalk {
     vector<ulng> dist;
     vector<XorBasis<false>> basis;
 
-    template<class G>
+    template<class G = Graph>
     explicit XorWalk(const G &g) : component(g.n), dist(g.n) {
         vector<int> parent_edge, depth;
         for (int v : cycle_basis_detail::bfsForest(g, parent_edge, depth)) {
@@ -140,7 +140,7 @@ struct XorWalk {
 struct CutSpaceHash {
     vector<ulng> label;
 
-    template<class G>
+    template<class G = Graph>
     explicit CutSpaceHash(const G &g, ulng seed = CustomHash::rnd) : label(g.edges.size()) {
         vector<int> parent_edge, depth;
         auto order = cycle_basis_detail::bfsForest(g, parent_edge, depth);

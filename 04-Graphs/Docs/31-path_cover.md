@@ -107,3 +107,4 @@ The bitset Hopcroft–Karp layering and the split-DAG cut argument are this pack
 ## History
 
 - 2026-10-18: verified (P047); new row; `maximumAntichain` returned as the chain cover's certificate; independent review: no correctness findings, arc checks added to the 200,000-vertex path cover; 3 planted mutants killed, 1 complexity-only mutant survived; quick, full and stress passed on g++, full on g++-14.
+- 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).

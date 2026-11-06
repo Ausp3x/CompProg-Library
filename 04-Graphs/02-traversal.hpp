@@ -20,7 +20,7 @@ struct TraversalResult {
 
 namespace traversal_detail {
     // T: O(n), M: O(n); tree path from the LCA of arc a's ends to a.from, then a, then back.
-    template<class G>
+    template<class G = Graph>
     CycleWitness treeCycle(const G &g, const vector<int> &parent_arc,
                            const vector<int> &depth, int a) {
         int u = g.arcs[a].from, v = g.arcs[a].to;
@@ -39,7 +39,7 @@ namespace traversal_detail {
 } // namespace traversal_detail
 
 // T: O(n + m + k), M: O(n); k sources seeded first in order, ties follow source then arc order.
-template<class G>
+template<class G = Graph>
 TraversalResult bfs(const G &g, const vector<int> &sources) {
     TraversalResult out(g.n);
     for (int s : sources) {
@@ -57,7 +57,7 @@ TraversalResult bfs(const G &g, const vector<int> &sources) {
     return out;}
 
 // T: O(n + m + k), M: O(n); iterative recursive-order DFS from each unreached source in turn.
-template<class G>
+template<class G = Graph>
 TraversalResult dfs(const G &g, const vector<int> &sources) {
     TraversalResult out(g.n);
     vector<int> pos(g.n), path; vector<uint8_t> state(g.n);
@@ -84,7 +84,7 @@ TraversalResult dfs(const G &g, const vector<int> &sources) {
     return out;}
 
 // T: O(n + m), M: O(n); DFS from every vertex in order, and its first cycle.
-template<class G>
+template<class G = Graph>
 TraversalResult dfsForest(const G &g) {
     vector<int> sources(g.n); iota(sources.begin(), sources.end(), 0);
     return dfs(g, sources);}
@@ -97,7 +97,7 @@ struct ComponentsResult {
 };
 
 // T: O(n + m), M: O(n); undirected only.
-template<class G>
+template<class G = Graph>
 ComponentsResult connectedComponents(const G &g) {
     assert(!g.directed);
     ComponentsResult out; out.id.assign(g.n, -1);
@@ -119,7 +119,7 @@ struct BipartiteResult {
 };
 
 // T: O(n + m), M: O(n); undirected only.
-template<class G>
+template<class G = Graph>
 BipartiteResult bipartiteCheck(const G &g) {
     assert(!g.directed);
     BipartiteResult out; out.color.assign(g.n, -1);

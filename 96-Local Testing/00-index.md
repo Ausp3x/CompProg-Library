@@ -18,6 +18,7 @@ python3 '96-Local Testing/01-run.py' --mode full -j 1             # one suite at
 python3 '96-Local Testing/03-consistency.py'                      # records, links, plan, brace and comment rules
 python3 '96-Local Testing/03-consistency.py' --braces <files>     # brace rule and comment cap for arbitrary files
 python3 '96-Local Testing/04-mutation.py' run <header>            # mutation campaign (05-testing.md, Mutation testing); check <header>... compares records, install fetches mewt
+python3 '96-Local Testing/05-extraction.py' --mode full           # every operation extracted alone and every C++ tester on its extracted build (05-testing.md, Extraction)
 python3 '96-Local Testing/_00_memory_cap.py' [--mb N] -- <cmd>    # run any other program memory-capped
 python3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/02-online_tester.py'
@@ -31,6 +32,7 @@ python3 '96-Local Testing/00-Tools/09-setup_tester.py' --mode full    # setup_ch
 python3 '96-Local Testing/00-Tools/10-merge_tester.py' --mode full    # /merge-pr and worktree.py's packages.json merge
 python3 '96-Local Testing/00-Tools/11-mutation_tester.py' --mode full # 04-mutation.py
 python3 '96-Local Testing/00-Tools/12-hooks_tester.py' --mode full    # the Bash hook shell.py and consistency.py's entry
+python3 '96-Local Testing/00-Tools/13-grab_tester.py' --mode full     # 10-grab.py and 05-extraction.py's functions
 python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Checker fetch, reproduce and compare (/speed-sweep)
 ```
 

@@ -114,4 +114,5 @@ Fetched 2026-10-23 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 ## History
 
+- 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `MergeHistoryForest` `build` renamed `ctor` (its constructor), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves it; no code changed.
 - 2026-10-23: P035 first implementation (user decisions on `SparseDSU` and `MergeHistoryForest`); `DualDSU` added after the completeness sweep; independent review, 7 findings fixed across the package (here: the direct `CustomHash` include, complexity symbols, three probes, `MergeHistoryForest` rebuilt on heavy paths with O(n) memory instead of binary lifting, deep and shallow forest shapes); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed.

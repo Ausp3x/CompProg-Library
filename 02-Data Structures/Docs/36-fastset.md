@@ -88,3 +88,4 @@ Fetched 2026-10-23 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 - 2026-10-23: P035 first implementation; independent review, 7 findings fixed across the package (here: the negative-size `NDEBUG` note, a reversed `DecrementalSet::enumerate` probe, predicate-order and insert-ahead tests); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-10-24: `/finish` review, 4 findings fixed (here: `enumerate` loops to `min(r, n)`, so `r > n` under `NDEBUG` terminates; identical on the asserted domain); quick passed.
+- 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `build` renamed `ctor` (the predicate constructor), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves it; no code changed.

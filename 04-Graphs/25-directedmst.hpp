@@ -17,7 +17,7 @@ struct DirectedMst {
     vector<Arc> arcs;
     vector<int> fa, nxt, ed;
 
-    template<class G> requires requires(const G &x) { x.edges; x.directed; }
+    template<class G = Graph> requires requires(const G &x) { x.edges; x.directed; }
     explicit DirectedMst(const G &g) : DirectedMst(g.n, [&] {
         assert(g.directed); vector<Arc> res;
         for (int i = 0; i < int(g.edges.size()); ++i) { res.push_back({g.edges[i].u, g.edges[i].v, i, lll(g.edges[i].w)}); }
@@ -65,7 +65,7 @@ struct DirectedMst {
 };
 
 // T: O(n + m * log(m)), M: O(n + m); directed, weights of any sign, only positive arcs are chosen; ok is always true.
-template<class G>
+template<class G = Graph>
 DirectedMstResult maximumBranching(const G &g) {
     assert(g.directed);
     vector<DirectedMst::Arc> arcs;

@@ -817,20 +817,15 @@ class Site:
         return out
 
     def dependencies(self, target: str, page: str) -> str:
-        plan = DEPS.plan(self.root, self.graph, target)
+        order = DEPS.closure(self.graph, target)
         lines = lambda h: DEPS.lines(self.root, h)
-        name = lambda h, *more: self.link(f"`{h}`", h, page) + (
-            f" ({', '.join(([self.status(h)] if h in self.rows else []) + list(more))})" if h in self.rows or more else "")
+        name = lambda h: self.link(f"`{h}`", h, page) + (f" ({self.status(h)})" if h in self.rows else "")
         direct = self.graph[target]
         out = ["## Dependencies", "", "Includes: " + (", ".join(name(h) for h in direct) if direct else "nothing") + ".", "",
-               f"Typing order (each file after the files it includes): {len(plan['order'])} files, "
-               f"{sum(map(lines, plan['order']))} lines.", "", "| Lines | File |", "|---|---|"]
-        out += [f"| {lines(h)} | {name(h)} |" for h in plan["order"]]
-        if plan["optional"]:
-            out += ["", "Skippable when typing only the `*Compact` twins and code that needs no Core reduction: "
-                    + ", ".join(name(h, f"{lines(h)} lines") for h in plan["optional"]) + "."]
-        out += [f"\nA mini exists but is not tested with this header: {name(m)} for {name(f)} ({n} lines in total with it)."
-                for f, (m, n) in plan["minis"].items()]
+               f"Typing order (each file after the files it includes): {len(order)} files, "
+               f"{sum(map(lines, order))} lines.", "", "| Lines | File |", "|---|---|"]
+        out += [f"| {lines(h)} | {name(h)} |" for h in order]
+        out += ["", f"Extract only the declarations a name reaches with {name('09-Contest Testing/10-grab.py')}."]
         users = [h for h, ds in self.graph.items() if target in ds and not re.search(r"/9[89]-", h)]
         out += ["", "Included by: " + (", ".join(name(h) for h in users) if users else "no header") + "."]
         return "\n".join(out)

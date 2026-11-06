@@ -31,7 +31,7 @@ The checked-in [selection](02-selection.json) starts with contest notes, the cor
 
 Source IDs must match a discovered regular C++ or Python file inside a numbered `01`–`08` source folder. `OLD`, topic-local `97-Legacy`, `build` and `__pycache__` subtrees are skipped. A selected path outside those folders, a symlink, or a stale ID is rejected. This avoids accidental inclusion of test programs, workspace files, archived notebook material, and arbitrary filesystem paths. Only the fixed notebook artifact paths are written.
 
-Code listings are for reference; the notebook is a source collection, not a C++ compilation unit. Under each heading a `Needs:` line names the header's direct includes (the template only when it is not selected), marking unselected ones and the reduction headers that only the non-`Compact` functions need.
+Code listings are for reference; the notebook is a source collection, not a C++ compilation unit. Under each heading a `Needs:` line names the header's direct includes (the template only when it is not selected), marking unselected ones.
 
 ## Dependency graph
 
@@ -42,7 +42,7 @@ python3 05-dependencies.py closure '05-Mathematics/12-combinatorics_advanced.hpp
 python3 05-dependencies.py chart '07-Strings'                                       # Mermaid include chart without template edges; no argument: every folder
 ```
 
-Contracts, including which mini and `Compact` substitutes a listing offers, and evidence: [Docs/00-dependencies.md](Docs/00-dependencies.md).
+Contracts and evidence: [Docs/00-dependencies.md](Docs/00-dependencies.md). To type only what one name needs, extract it with [10-grab.py](<../09-Contest Testing/10-grab.py>).
 
 Some sources contain non-ASCII comment characters (`rg -l '[^\x00-\x7F]' -g '*.{hpp,cpp,py}' 0[1-8]-*/` from the repository root lists them). The first build (2026-10-15) rendered the set then present except the template's Chinese motto, which shows no glyphs because Inter and JetBrains Mono have none (P226 adds a CJK fallback font).
 

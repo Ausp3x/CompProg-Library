@@ -7,7 +7,7 @@
 #include "21-matching_bipartite.hpp"
 
 // T: O(n + m * sqrt(n)), M: O(n + m); directed acyclic (asserted), multiedges allowed; paths by first vertex, each along original arcs.
-template<class G>
+template<class G = Graph>
 vector<vector<int>> dagMinimumPathCover(const G &g) {
     assert(g.directed && topologicalSort(g).acyclic);
     vector<pair<int, int>> es;
@@ -24,7 +24,7 @@ vector<vector<int>> dagMinimumPathCover(const G &g) {
 struct ChainCoverResult { vector<vector<int>> chains; vector<int> antichain; };
 
 // T: O(n + m * n / w + n^2 * sqrt(n) / w), M: O(n^2 / w); directed acyclic (asserted); chains by first vertex.
-template<class G>
+template<class G = Graph>
 ChainCoverResult dagMinimumChainCover(const G &g) {
     auto topo = topologicalSort(g);
     assert(g.directed && topo.acyclic);
@@ -84,7 +84,7 @@ ChainCoverResult dagMinimumChainCover(const G &g) {
 struct WeightedAntichainResult { lll weight = 0; vector<int> antichain; };
 
 // T: O(n^2 * (n + m)), M: O(n + m); directed acyclic (asserted), w[v] >= 0; min cut of the split DAG, no transitive closure.
-template<class G>
+template<class G = Graph>
 WeightedAntichainResult maximumWeightedAntichain(const G &g, const vector<lng> &w) {
     assert(g.directed && int(w.size()) == g.n && topologicalSort(g).acyclic);
     int n = g.n; lll total = 0;

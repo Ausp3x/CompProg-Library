@@ -26,7 +26,7 @@ struct ShortestPathResult {
     bool finite(int v) const {
         assert(0 <= v && v < int(dist.size())); return reachable[v] && !negative[v];}
     bool relax(const GraphArc &e, int a, bool longest = false);
-    template<class G>
+    template<class G = Graph>
     PathWitness path([[maybe_unused]] const G &g, int v) const {
         assert(g.n == int(dist.size()));
         if (!finite(v)) { return {}; }
@@ -54,7 +54,7 @@ inline bool ShortestPathResult::relax(const GraphArc &e, int a, bool longest) {
     return shortest_path_detail::relax(*this, e, a, longest);}
 
 // T: O(n + m + k), M: O(n); weights ignored, distances count arcs, ties as in bfs.
-template<class G>
+template<class G = Graph>
 ShortestPathResult bfsShortestPaths(const G &g, const vector<int> &sources) {
     auto walk = bfs(g, sources); ShortestPathResult out(g.n);
     out.parent = std::move(walk.parent); out.parent_arc = std::move(walk.parent_arc);
@@ -62,7 +62,7 @@ ShortestPathResult bfsShortestPaths(const G &g, const vector<int> &sources) {
     return out;}
 
 // T: O(n + m + k), M: O(n + m); every weight must be 0 or 1.
-template<class G>
+template<class G = Graph>
 ShortestPathResult zeroOneBfs(const G &g, const vector<int> &sources) {
     for (const auto &e : g.arcs) { assert(e.w == 0 || e.w == 1); (void)e; }
     ShortestPathResult out(g.n, sources); deque<pair<lll, int>> ready;
@@ -78,7 +78,7 @@ ShortestPathResult zeroOneBfs(const G &g, const vector<int> &sources) {
     return out;}
 
 // T: O(k + (n + m) * log(n + m + 1)), M: O(n + m); every weight must be nonnegative.
-template<class G>
+template<class G = Graph>
 ShortestPathResult dijkstra(const G &g, const vector<int> &sources) {
     for (const auto &e : g.arcs) { assert(e.w >= 0); (void)e; }
     ShortestPathResult out(g.n, sources);
@@ -116,7 +116,7 @@ struct DagPathResult {
 };
 
 // T: O(n + m + k), M: O(n); directed, signed weights, longest picks maximum weight paths.
-template<class G>
+template<class G = Graph>
 DagPathResult dagShortestPaths(const G &g, const vector<int> &sources, bool longest = false) {
     ShortestPathResult out(g.n, sources); auto topo = topologicalSort(g);
     if (!topo.acyclic) { return {false, ShortestPathResult(g.n), std::move(topo.cycle)}; }
@@ -125,7 +125,7 @@ DagPathResult dagShortestPaths(const G &g, const vector<int> &sources, bool long
     return {true, std::move(out), {}};}
 
 // T: O(n * m + n + k), M: O(n); signed weights, negative marks vertices reachable from a negative cycle.
-template<class G>
+template<class G = Graph>
 ShortestPathResult bellmanFord(const G &g, const vector<int> &sources) {
     ShortestPathResult out(g.n, sources); vector<int> ready; int last = -1;
     for (int i = 0; i < g.n; ++i) {
@@ -154,7 +154,7 @@ ShortestPathResult bellmanFord(const G &g, const vector<int> &sources) {
     return out;}
 
 // T: O(n * m + n), M: O(n); a negative directed arc-cycle anywhere in g, empty if none.
-template<class G>
+template<class G = Graph>
 CycleWitness findNegativeCycle(const G &g) {
     vector<int> sources(g.n); iota(sources.begin(), sources.end(), 0);
     return bellmanFord(g, sources).negative_cycle;}

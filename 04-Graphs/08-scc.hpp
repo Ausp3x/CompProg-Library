@@ -10,7 +10,7 @@ struct SccResult {
 
 // Directed Graph/CsrGraph, loops and multiedges allowed; iterative Tarjan.
 // T: O(n + m), M: O(n) including output.
-template<class G>
+template<class G = Graph>
 SccResult tarjanScc(const G &g) {
     assert(g.directed);
     SccResult out{vector<int>(g.n, -1), {}};
@@ -40,7 +40,7 @@ SccResult tarjanScc(const G &g) {
     reverse(out.groups.begin(), out.groups.end()); return out;}
 
 // T: O(n + m), M: O(n + m) including transpose; same contract as tarjanScc, iterative two-pass Kosaraju.
-template<class G>
+template<class G = Graph>
 SccResult kosarajuScc(const G &g) {
     assert(g.directed);
     vector<uint8_t> seen(g.n);
@@ -70,7 +70,7 @@ SccResult kosarajuScc(const G &g) {
 
 // scc is a valid SCC result for g; returns the simple unit-weight DAG on component IDs.
 // T: O(n + m), M: O(k + d) for k components and d returned edges.
-template<class G>
+template<class G = Graph>
 Graph condensationDag(const G &g, const SccResult &scc) {
     assert(g.directed && scc.component.size() == size_t(g.n));
     int k = int(scc.groups.size()); Graph dag(k, true); vector<int> seen(k, -1);

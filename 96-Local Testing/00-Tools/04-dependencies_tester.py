@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Checks for 98-Team Notebook/05-dependencies.py and the include-edge rules of 00-Guidelines/13-Plan/plan.py.
 
-quick: every fixture test (strip_cpp, includes, scan, closure, compact, minis, plan, describe, chart, CLI), the
-compiler oracles (`$CXX -MM` closure; the closure concatenated in typing order, quoted includes removed, compiles with
-`-fsyntax-only`) on a fixed sample of 15 headers, every other repository oracle (scanner graph, typing order, line
-counts, plan invariants) on all headers, the plan.py checks on a copy of the working tree, and 20 seeded random DAGs.
+quick: every fixture test (strip_cpp, includes, scan, closure, describe, chart, CLI), the compiler oracles (`$CXX -MM`
+closure; the closure concatenated in typing order, quoted includes removed, compiles with `-fsyntax-only`) on a fixed
+sample of 15 headers, every other repository oracle (scanner graph, typing order, line counts, describe text) on all
+headers, the plan.py checks on a copy of the working tree, and 20 seeded random DAGs.
 full: quick with both compiler oracles on every 01-07 header (thread pool; the compile oracle skips the 98/99
 aggregates) and 100 random DAGs.
-stress: full with --rounds random DAGs (default 1000), each also written to disk and checked through plan().
+stress: full with --rounds random DAGs (default 1000), each also written to disk and checked through headers(),
+closure() and describe().
 Oracles: an os.walk/line scanner for the include graph, the preprocessor's own dependency list for closures, an
 iterative post-order and a fixed-point reachability set for random graphs, a newline count for line counts, and an
 independent owner/edge computation for plan.py. Modes/seeds also come from CP_TEST_MODE/CP_TEST_SEED; CXX picks the
@@ -16,8 +17,7 @@ compiler (default g++). Failing tests print the seed, mode and retained fixture 
 Feature map: headers -> test_headers_scan_*, test_repo_graph_matches_scanner; closure -> test_closure_*,
 test_repo_mm_closure, test_repo_typing_order, test_random_dags; lines -> test_lines_count, test_repo_line_counts;
 strip_cpp/includes -> test_strip_cpp_*, test_includes_*; scan/headers(found) -> test_headers_conditional_*;
-uses_reduction -> test_uses_reduction; compact -> test_compact_detection; minis -> test_minis_mapping; plan -> test_plan_*, test_repo_plan_invariants,
-test_random_dags (stress: on disk); describe -> test_describe_text; chart -> test_chart_*; CLI -> test_cli_*;
+describe -> test_describe_text, test_repo_describe, test_random_dags (stress: on disk); chart -> test_chart_*; CLI -> test_cli_*;
 plan.py include_edges -> test_plan_include_edges_*; set re-ranks -> test_plan_set_reranks; check (undeclared edges, late prerequisites, batch cycles) ->
 test_plan_check_*; doctor -> test_plan_doctor_fix_*; rank -> test_plan_rank_*. The notebook page's JS tick handler is
 run under node in 03-notebook_tester.py (explicit SKIP when node is absent).
@@ -39,7 +39,6 @@ import tempfile
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
 
@@ -114,18 +113,13 @@ def count_lines(path: Path) -> int:
     return data.count(b"\n") + (bool(data) and not data.endswith(b"\n"))
 
 
-def post_order(graph, root, skip=frozenset(), swap=None):
-    """Iterative DFS post-order oracle with the same skip/swap semantics."""
-    swap, seen, order = swap or {}, set(), []
-    start = swap.get(root, root)
-    stack = [(start, iter(graph.get(start, [])))]
-    seen.add(start)
+def post_order(graph, root):
+    """Iterative DFS post-order oracle."""
+    seen, order = {root}, []
+    stack = [(root, iter(graph.get(root, [])))]
     while stack:
         node, it = stack[-1]
         for d in it:
-            if (node, d) in skip:
-                continue
-            d = swap.get(d, d)
             if d not in seen:
                 seen.add(d)
                 stack.append((d, iter(graph.get(d, []))))
@@ -136,19 +130,24 @@ def post_order(graph, root, skip=frozenset(), swap=None):
     return order
 
 
-def reach(graph, root, skip=frozenset(), swap=None):
+def reach(graph, root):
     """Fixed-point reachability oracle."""
-    swap = swap or {}
-    found, changed = {swap.get(root, root)}, True
+    found, changed = {root}, True
     while changed:
         changed = False
         for u in list(found):
             for d in graph.get(u, []):
-                v = swap.get(d, d)
-                if (u, d) not in skip and v not in found:
-                    found.add(v)
+                if d not in found:
+                    found.add(d)
                     changed = True
     return found
+
+
+def describe_lines(root: Path, order: list[str]) -> list[str]:
+    """Expected `describe` lines for a typing order: header line, one line per file, the extraction pointer."""
+    total = sum(count_lines(root / h) for h in order)
+    return ([f"{order[-1]}: {len(order)} files, {total} lines"] + [f"{count_lines(root / h):6}  {h}" for h in order]
+            + ["Extract only what a name reaches: python3 '09-Contest Testing/10-grab.py' <name>"])
 
 
 def mm(header: str) -> set[str]:
@@ -184,16 +183,13 @@ class Base(unittest.TestCase):
         else:
             shutil.rmtree(self.root)
 
-    def assert_typing_order(self, graph, order, skip=frozenset(), swap=None, ctx=""):
-        swap = swap or {}
+    def assert_typing_order(self, graph, order, ctx=""):
         self.assertEqual(len(order), len(set(order)), f"duplicates {ctx}: {order}")
         pos = {h: i for i, h in enumerate(order)}
         for h in order:
             for d in graph.get(h, []):
-                if (h, d) not in skip:
-                    d2 = swap.get(d, d)
-                    self.assertIn(d2, pos, f"{ctx}: {h} includes {d2}, missing from {order}")
-                    self.assertLess(pos[d2], pos[h], f"{ctx}: {d2} not before {h} in {order}")
+                self.assertIn(d, pos, f"{ctx}: {h} includes {d}, missing from {order}")
+                self.assertLess(pos[d], pos[h], f"{ctx}: {d} not before {h} in {order}")
 
 
 CORE = {"01-Core/01-template.hpp": "#pragma once\n#include <bits/stdc++.h>\n",
@@ -250,16 +246,6 @@ class Fixtures(Base):
         self.assertEqual(DEPS.closure({"a": ["x"]}, "a"), ["x", "a"])  # unknown include is a leaf
         self.assertEqual(DEPS.closure({}, "z"), ["z"])
 
-    def test_closure_skip_and_swap(self):
-        g = {"a": ["r", "m"], "m": ["r", "t"], "r": ["t"], "t": [], "mm": ["t"], "q": ["a"]}
-        self.assertEqual(DEPS.closure(g, "a", {("a", "r")}), ["t", "r", "m", "a"])  # still required via m
-        self.assertEqual(DEPS.closure(g, "a", {("a", "r"), ("m", "r")}), ["t", "m", "a"])
-        self.assertEqual(DEPS.closure(g, "a", swap={"m": "mm"}), ["t", "r", "mm", "a"])
-        self.assertEqual(DEPS.closure(g, "m", swap={"m": "mm"}), ["t", "mm"])  # swap applies to the root
-        self.assertEqual(DEPS.closure(g, "q", {("a", "m")}, {"m": "mm"}), ["t", "r", "a", "q"])
-        self.assertEqual(DEPS.closure(g, "q", {("q", "a")}), ["q"])
-        self.assertEqual(DEPS.closure(g, "q", {("r", "t")}), ["r", "t", "m", "a", "q"])
-
     def test_lines_count(self):
         for name, text, n in (("e.hpp", "", 0), ("one.hpp", "x", 1), ("nl.hpp", "x\n", 1), ("two.hpp", "x\n\ny", 3),
                               ("crlf.hpp", "a\r\nb\r\n", 2), ("blank.hpp", "\n\n", 2), ("nonl.hpp", "a\nb", 2),
@@ -269,43 +255,6 @@ class Fixtures(Base):
             write(self.root, {name: text})
             self.assertEqual(DEPS.lines(self.root, name), n, name)
             self.assertEqual(count_lines(self.root / name), n, name)
-
-    def test_compact_detection(self):
-        red = '#include "../01-Core/03-barrett.hpp"\n'
-        cases = {
-            "05-Mathematics/01-struct.hpp": (red + "template <class T>\nstruct ModCompact {\n};\n", True),
-            "05-Mathematics/02-inline.hpp": (red + "inline unsigned long long mulCompact(int a,\n int b) {\n return a; }\n", True),
-            "05-Mathematics/03-comment.hpp": (red + "// inline int fCompact() {\nint f() { return 0; }\n", False),
-            "05-Mathematics/04-trailing.hpp": (red + "int g(); // struct XCompact { }\n", False),
-            "05-Mathematics/05-decl.hpp": (red + "struct FooCompact;\ninline int hCompact(int);\n", False),
-            "05-Mathematics/06-plain.hpp": (red + "inline int f() { return 0; }\nstruct Foo {};\n", False),
-            "05-Mathematics/07-member.hpp": (red + "struct S { int xCompact; };\n", False),
-            "05-Mathematics/08-block.hpp": (red + "/* struct XCompact { }; */\nint f();\n", False),
-            "05-Mathematics/09-block-lines.hpp": (red + "/*\ninline int fCompact() {\n return 0;\n}\n*/\nstruct S {};\n", False),
-            "05-Mathematics/10-block-then-twin.hpp": (red + "/* a */ int g(); /* b\n */ struct GCompact { };\n", True),
-            "05-Mathematics/11-line-comment-of-block.hpp": (red + "// /*\nstruct HCompact {};\n// */\n", True),
-            "05-Mathematics/12-define-trick.hpp": (red + '#define S "/*"\nstruct ICompact {};\n// */\n', True),
-            "05-Mathematics/13-string.hpp": (red + 'const char *s = "struct JCompact {";\n', False),
-            "05-Mathematics/14-no-reduction.hpp": ("struct KCompact { int n; };\ninline int mCompact() { return 0; }\n", False),
-            "05-Mathematics/15-names-montgomery.hpp": ("Montgomery64 m;\nstruct LCompact {};\n", True),
-            "05-Mathematics/16-reduction-in-comment.hpp": ('// #include "../01-Core/04-montgomery.hpp" Barrett\n'
-                                                           "struct NCompact {};\n", False),
-            "01-Core/05-core.hpp": ('#include "03-barrett.hpp"\ninline int mulCompact() { return 1; }\nstruct ACompact {};\n', False),
-            "02-Data Structures/01-ds.hpp": ('#include "../01-Core/04-montgomery.hpp"\nstruct DsuCompact { int n; };\n', True),
-        }
-        write(self.root, {k: v for k, (v, _) in cases.items()})
-        for rel, (_, want) in cases.items():
-            self.assertIs(DEPS.compact(self.root, rel), want, rel)
-
-    def test_uses_reduction(self):
-        for text, want in (('#include "../01-Core/03-barrett.hpp"\n', True), ('#include "04-montgomery.hpp"\n', True),
-                           ("BarrettReduction b;\n", True), ("using M = Montgomery64;\n", True),
-                           ("// Montgomery\n/* Barrett */\n", False), ('const char *s = "Montgomery";\n', False),
-                           ('/* #include "../01-Core/03-barrett.hpp" */\n', False), ("struct Barret {};\n", False),
-                           ('#include "../01-Core/05-modint.hpp"\nint x;\n', False), ("", False),
-                           ('#include "../01-Core/13-barrett.hpp"\n', False), ("int notMontgomery;\n", False),
-                           ('  #  include "../01-Core/04-montgomery.hpp"\n', True), ('#include"03-barrett.hpp"\n', True)):
-            self.assertIs(DEPS.uses_reduction(text), want, text)
 
     def test_strip_cpp_keeps_layout_and_directives(self):
         text = ('#include "a.hpp" // keep\nint x = 1; // gone\n/* block\n spans */ int y;\nconst char *s = "/* no";\n'
@@ -351,10 +300,10 @@ class Fixtures(Base):
             "05-Mathematics/02-define.hpp": '#include "../01-Core/03-barrett.hpp"\n#define S "/*"\nstruct YCompact {};\n',
             "05-Mathematics/03-both.hpp": '#include "../01-Core/03-barrett.hpp" /* old\nstruct XCompact {};\n*/\n'
                                           "struct ZCompact {};\n"})
-        self.assertFalse(DEPS.compact(self.root, "05-Mathematics/01-hidden.hpp"))
-        self.assertTrue(DEPS.compact(self.root, "05-Mathematics/02-define.hpp"))
-        self.assertTrue(DEPS.compact(self.root, "05-Mathematics/03-both.hpp"))
-        self.assertEqual(DEPS.TWIN.findall(DEPS.strip_cpp((self.root / "05-Mathematics/03-both.hpp").read_text())), ["ZCompact"])
+        code = {h: DEPS.strip_cpp((self.root / h).read_text()) for h in DEPS.headers(self.root)}
+        self.assertEqual({h: re.findall(r"\b\w+Compact\b", c) for h, c in code.items()},
+                         {"05-Mathematics/01-hidden.hpp": [], "05-Mathematics/02-define.hpp": ["YCompact"],
+                          "05-Mathematics/03-both.hpp": ["ZCompact"]})
 
     def test_includes_comments_literals_and_depth(self):
         text = ('#include "a.hpp"\n/* #include "b.hpp" */\n/*\n#include "c.hpp"\n*/\n// #include "d.hpp"\n'
@@ -388,16 +337,7 @@ class Fixtures(Base):
         write(self.root / "97-Legacy" / "copy", {"03-Geometry/97-Legacy/01-x.hpp": ""})
         self.assertNotIn("03-Geometry/97-Legacy/01-x.hpp", DEPS.headers(self.root / "97-Legacy" / "copy"))
 
-    def test_minis_mapping(self):
-        g = dict.fromkeys(["01-Core/05-modint.hpp", "01-Core/06-modintmini.hpp", "01-Core/07-infint.hpp",
-                           "01-Core/09-ratmini.hpp", "01-Core/16-poly.hpp", "01-Core/17-polymini.hpp",
-                           "02-Data Structures/01-x.hpp", "02-Data Structures/02-xmini.hpp", "01-Core/01-template.hpp"], [])
-        self.assertEqual(DEPS.minis(g), {"01-Core/05-modint.hpp": "01-Core/06-modintmini.hpp",
-                                         "01-Core/16-poly.hpp": "01-Core/17-polymini.hpp"})
-        self.assertEqual(DEPS.minis({"01-Core/06-modintmini.hpp": []}), {})
-        self.assertEqual(DEPS.minis({}), {})
-
-    def compact_fixture(self):
+    def describe_fixture(self):
         write(self.root, {
             **CORE,
             "05-Mathematics/01-x.hpp": inc("../01-Core/01-template.hpp", "../01-Core/03-barrett.hpp",
@@ -410,76 +350,16 @@ class Fixtures(Base):
         })
         return DEPS.headers(self.root)
 
-    def test_plan_compact_optional_and_required_through_other_path(self):
-        g = self.compact_fixture()
-        t, b, m, mi = "01-Core/01-template.hpp", "01-Core/03-barrett.hpp", "01-Core/04-montgomery.hpp", "01-Core/05-modint.hpp"
-        p = DEPS.plan(self.root, g, "05-Mathematics/01-x.hpp")
-        self.assertEqual(p["order"], [t, "05-Mathematics/01-x.hpp"])
-        self.assertEqual(p["optional"], [b, m])
-        p = DEPS.plan(self.root, g, "05-Mathematics/02-y.hpp")  # barrett and montgomery still needed through modint
-        self.assertEqual(p["order"], [t, b, m, mi, "05-Mathematics/02-y.hpp"])
-        self.assertEqual(p["optional"], [])
-        p = DEPS.plan(self.root, g, "05-Mathematics/03-z.hpp")  # no twin: nothing skipped
-        self.assertEqual((p["order"], p["optional"]), ([t, b, "05-Mathematics/03-z.hpp"], []))
-        p = DEPS.plan(self.root, g, "05-Mathematics/04-w.hpp")  # skip covers only the header's own includes
-        self.assertEqual(p["order"], [t, b, m, "05-Mathematics/01-x.hpp", "05-Mathematics/04-w.hpp"])
-        self.assertEqual(p["optional"], [])
-        p = DEPS.plan(self.root, g, mi)  # Core header is never compact
-        self.assertEqual((p["order"], p["optional"]), ([t, b, m, mi], []))
-        for h in g:
-            p, full = DEPS.plan(self.root, g, h), DEPS.closure(g, h)
-            self.assertEqual(set(p["order"]) | set(p["optional"]), set(full), h)
-            self.assertFalse(set(p["order"]) & set(p["optional"]), h)
-            self.assertEqual(p["optional"], [x for x in full if x not in p["order"]], h)
-
-    def test_plan_minis_untested_and_tested(self):
-        g = self.compact_fixture()
-        v, mi, mm_ = "05-Mathematics/05-v.hpp", "01-Core/05-modint.hpp", "01-Core/06-modintmini.hpp"
-        size = lambda hs: sum(count_lines(self.root / h) for h in hs)
-        swapped = ["01-Core/01-template.hpp", mm_, v]
-        p = DEPS.plan(self.root, g, v)
-        self.assertEqual(p["minis"], {mi: (mm_, size(swapped))})
-        self.assertLess(size(swapped), size(p["order"]))
-        self.assertEqual(DEPS.plan(self.root, g, "05-Mathematics/03-z.hpp")["minis"], {})  # full type not in order
-        text = DEPS.describe(self.root, g, v)
-        self.assertIn(f"Mini exists, not tested with this header: {mm_} for {mi} ({size(swapped)} lines in total with it)", text)
-        with patch.dict(DEPS.TESTED_MINIS, {v: {mi: mm_}}):
-            p = DEPS.plan(self.root, g, v)
-            self.assertEqual((p["order"], p["optional"], p["minis"]), (swapped, [], {}))
-            self.assertIn(f"{v}: 3 files, {size(swapped)} lines", DEPS.describe(self.root, g, v))
-        # A mini that does not strictly shorten the closure is not noted.
-        target = size(DEPS.closure(g, v))
-        for extra in (0, 1):
-            body = "#pragma once\n" + inc("01-template.hpp") + "// m\n" * 2
-            need = target - size(["01-Core/01-template.hpp", v]) - len(body.splitlines()) + extra
-            write(self.root, {mm_: body + "// pad\n" * need})
-            self.assertEqual(size(swapped) - target, extra)
-            self.assertEqual(DEPS.plan(self.root, g, v)["minis"], {}, f"extra={extra}")
-            self.assertNotIn("Mini exists", DEPS.describe(self.root, g, v))
-
-    def test_plan_minis_not_self_or_present(self):
-        g = self.compact_fixture()
-        write(self.root, {"05-Mathematics/06-both.hpp": inc("../01-Core/05-modint.hpp", "../01-Core/06-modintmini.hpp")})
-        g = DEPS.headers(self.root)
-        self.assertEqual(DEPS.plan(self.root, g, "01-Core/05-modint.hpp")["minis"], {})  # not for the full type itself
-        self.assertEqual(DEPS.plan(self.root, g, "05-Mathematics/06-both.hpp")["minis"], {})  # mini already typed
-        self.assertNotIn("Mini exists", DEPS.describe(self.root, g, "01-Core/05-modint.hpp"))
-        self.assertIn("01-Core/05-modint.hpp", DEPS.plan(self.root, g, "05-Mathematics/05-v.hpp")["minis"])
-
     def test_describe_text(self):
-        g = self.compact_fixture()
-        x = "05-Mathematics/01-x.hpp"
-        order = ["01-Core/01-template.hpp", x]
-        lines = DEPS.describe(self.root, g, x).splitlines()
-        total = sum(count_lines(self.root / h) for h in order)
-        self.assertEqual(lines[0], f"{x}: 2 files, {total} lines")
-        self.assertEqual(lines[1:3], [f"{count_lines(self.root / h):6}  {h}" for h in order])
-        self.assertEqual(lines[3], "Skippable when typing only the *Compact twins and code that needs no Core reduction: "
-                         f"01-Core/03-barrett.hpp ({count_lines(self.root / '01-Core/03-barrett.hpp')} lines), "
-                         f"01-Core/04-montgomery.hpp ({count_lines(self.root / '01-Core/04-montgomery.hpp')} lines)"
-                         f"; {total + count_lines(self.root / '01-Core/03-barrett.hpp') + count_lines(self.root / '01-Core/04-montgomery.hpp')}"
-                         " lines in total with them")
-        self.assertEqual(len(lines), 4)
+        g = self.describe_fixture()
+        t, b, m, mi = "01-Core/01-template.hpp", "01-Core/03-barrett.hpp", "01-Core/04-montgomery.hpp", "01-Core/05-modint.hpp"
+        for h, order in (("05-Mathematics/01-x.hpp", [t, b, m, "05-Mathematics/01-x.hpp"]),  # a `*Compact` twin skips nothing
+                         ("05-Mathematics/04-w.hpp", [t, b, m, "05-Mathematics/01-x.hpp", "05-Mathematics/04-w.hpp"]),
+                         ("05-Mathematics/05-v.hpp", [t, b, m, mi, "05-Mathematics/05-v.hpp"]),  # no mini note
+                         (t, [t])):
+            with self.subTest(header=h):
+                self.assertEqual(DEPS.closure(g, h), order)
+                self.assertEqual(DEPS.describe(self.root, g, h).split("\n"), describe_lines(self.root, order))
 
     def chart_fixture(self):
         write(self.root, {
@@ -589,55 +469,34 @@ class Fixtures(Base):
             names = [f"h{i}" for i in range(n)]
             graph = {names[i]: [names[rng.randrange(i)] for _ in range(rng.randint(0, min(i, 5)) if i else 0)]
                      for i in range(n)}
-            swap = {}
-            for i in rng.sample(range(n), rng.randint(0, n // 3)):  # mini of h_i includes only lower nodes
-                graph[f"m{i}"] = [names[rng.randrange(i)] for _ in range(rng.randint(0, min(i, 3)) if i else 0)]
-                swap[names[i]] = f"m{i}"
-            edges = [(u, d) for u, ds in graph.items() for d in ds]
-            skip = set(rng.sample(edges, rng.randint(0, len(edges) // 2))) if edges else set()
-            root = names[rng.randrange(n)] if rng.random() < 0.9 else f"m{rng.randrange(n)}"
-            for sk, sw in ((frozenset(), None), (skip, None), (frozenset(), swap), (skip, swap)):
-                with self.subTest(seed=SEED, case=case, graph=graph, root=root, skip=sorted(sk), swap=sw):
-                    got = DEPS.closure(graph, root, sk, sw)
-                    self.assertEqual(set(got), reach(graph, root, sk, sw))
-                    self.assertEqual(got, post_order(graph, root, sk, sw))
-                    self.assertEqual(got[-1], (sw or {}).get(root, root))
-                    self.assert_typing_order(graph, got, sk, sw, f"case {case}")
+            root = names[rng.randrange(n)]
+            with self.subTest(seed=SEED, case=case, graph=graph, root=root):
+                got = DEPS.closure(graph, root)
+                self.assertEqual(set(got), reach(graph, root))
+                self.assertEqual(got, post_order(graph, root))
+                self.assertEqual(got[-1], root)
+                self.assert_typing_order(graph, got, f"case {case}")
             if MODE == "stress":
-                self.random_plan(rng, case)
+                self.random_disk(rng, case)
 
-    def random_plan(self, rng, case):
-        """Random on-disk fixture: plan() against a brute-force recomputation from the oracles above."""
+    def random_disk(self, rng, case):
+        """Random on-disk fixture: headers(), closure() and describe() against the oracles above."""
         base = self.root / f"r{case}"
-        names = ["01-Core/01-template.hpp", "01-Core/03-barrett.hpp", "01-Core/04-montgomery.hpp",  # minis precede fulls
-                 "01-Core/06-modintmini.hpp", "01-Core/05-modint.hpp", "01-Core/08-infintmini.hpp", "01-Core/07-infint.hpp"]
+        names = ["01-Core/01-template.hpp", "01-Core/03-barrett.hpp", "01-Core/05-modint.hpp", "01-Core/06-modintmini.hpp"]
         names += [f"0{rng.choice('2345')}-F/{i:02}-h.hpp" for i in range(10, 10 + rng.randint(1, 8))]
         files = {}
         for i, h in enumerate(names):
             deps = sorted({names[rng.randrange(i)] for _ in range(rng.randint(0, min(i, 4)))}) if i else []
-            twin = not h.startswith("01-Core/") and rng.random() < 0.5
             body = "".join(f'#include "{os.path.relpath(d, os.path.dirname(h))}"\n' for d in deps)
-            files[h] = body + "// pad\n" * rng.randint(0, 30) + ("inline int fCompact() { return 0; }\n" if twin else "")
+            files[h] = body + "// pad\n" * rng.randint(0, 30) + ("inline int fCompact() { return 0; }\n" if rng.random() < 0.5 else "")
         write(base, files)
         g = DEPS.headers(base)
         self.assertEqual(g, scan(base))
-        self.assertEqual(DEPS.minis(g), {"01-Core/05-modint.hpp": "01-Core/06-modintmini.hpp",
-                                         "01-Core/07-infint.hpp": "01-Core/08-infintmini.hpp"})
-        size = lambda hs: sum(count_lines(base / h) for h in hs)
-        mini = {"01-Core/05-modint.hpp": "01-Core/06-modintmini.hpp", "01-Core/07-infint.hpp": "01-Core/08-infintmini.hpp"}
         for h in g:
-            tested = {f: m for f, m in mini.items() if rng.random() < 0.3}
-            with self.subTest(seed=SEED, case=case, header=h, tested=tested, fixture=str(base)), \
-                    patch.dict(DEPS.TESTED_MINIS, {h: tested}):
-                twin = "fCompact" in files[h] and any(d in DEPS.REDUCTION for d in g[h])
-                skip = {(h, d) for d in g[h] if twin and d in DEPS.REDUCTION}
-                order, full = post_order(g, h, skip, tested), post_order(g, h, frozenset(), tested)
-                want = {f: (m, size(post_order(g, h, skip, {**tested, f: m}))) for f, m in mini.items()
-                        if f in order and f != h and m not in order}
-                p = DEPS.plan(base, g, h)
-                self.assertIs(DEPS.compact(base, h), twin)
-                self.assertEqual(p, {"order": order, "optional": [x for x in full if x not in order],
-                                     "minis": {f: x for f, x in want.items() if x[1] < size(order)}})
+            with self.subTest(seed=SEED, case=case, header=h, fixture=str(base)):
+                order = post_order(g, h)
+                self.assertEqual(DEPS.closure(g, h), order)
+                self.assertEqual(DEPS.describe(base, g, h).split("\n"), describe_lines(base, order))
 
 
 class Repository(Base):
@@ -671,7 +530,7 @@ class Repository(Base):
         hs = [h for h in hs if not re.search(r"/9[89]-", h)]
 
         def run(h):
-            order = DEPS.closure(self.graph, h, swap=DEPS.TESTED_MINIS.get(h, {}))
+            order = DEPS.closure(self.graph, h)
             tu = "".join(f'#line 1 "{x}"\n' + re.sub(r'^[ \t]*#[ \t]*(include[ \t]*"[^"\n]+"|pragma[ \t]+once\b).*$', "",
                                                     (ROOT / x).read_text(encoding="utf-8"), flags=re.M) + "\n"
                          for x in order)
@@ -703,27 +562,11 @@ class Repository(Base):
         for h in self.graph:
             self.assertEqual(DEPS.lines(ROOT, h), count_lines(ROOT / h), h)
 
-    def test_repo_plan_invariants(self):
-        minis = DEPS.minis(self.graph)
-        self.assertEqual(minis, {"01-Core/05-modint.hpp": "01-Core/06-modintmini.hpp",
-                                 "01-Core/07-infint.hpp": "01-Core/08-infintmini.hpp",
-                                 "01-Core/16-poly.hpp": "01-Core/17-polymini.hpp"})
-        size = lambda hs: sum(count_lines(ROOT / h) for h in hs)
+    def test_repo_describe(self):
         for h in self.graph:
             with self.subTest(header=h):
-                p, tested = DEPS.plan(ROOT, self.graph, h), DEPS.TESTED_MINIS.get(h, {})
-                full = post_order(self.graph, h, swap=tested)
-                skip = {(h, d) for d in self.graph[h] if d in DEPS.REDUCTION} if DEPS.compact(ROOT, h) else set()
-                order = post_order(self.graph, h, skip, tested)
-                self.assertEqual(p["order"], order)
-                self.assertEqual(p["optional"], [x for x in full if x not in order])
-                self.assertTrue(set(p["optional"]) <= set(DEPS.REDUCTION))
-                want = {f: (m, size(post_order(self.graph, h, skip, {**tested, f: m}))) for f, m in minis.items()
-                        if f in order and f != h and m not in order}
-                self.assertEqual(p["minis"], {f: x for f, x in want.items() if x[1] < size(order)})
-        p = DEPS.plan(ROOT, self.graph, "05-Mathematics/07-primality_factorization.hpp")
-        self.assertEqual(p["optional"], ["01-Core/04-montgomery.hpp"])
-        self.assertNotIn("01-Core/04-montgomery.hpp", p["order"])
+                self.assertEqual(DEPS.describe(ROOT, self.graph, h).split("\n"),
+                                 describe_lines(ROOT, post_order(self.graph, h)))
 
 
 def copy_tree(dst: Path) -> None:

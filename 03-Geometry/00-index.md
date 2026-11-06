@@ -46,7 +46,7 @@ Scope: planar and solid geometry with exact integral predicates and explicitly a
 | `33-linearrangement.hpp` | Arrangement: vertices, edges, faces, buildLines, buildSegments, faceOf, toPlanarGraph; zone | planned; CGAL, CPALG |
 | `34-pointlocation.hpp` | LocationResult: face, edge, vertex; offlinePointLocation (sweep); SlabLocator: build, locate (persistent); TrapezoidalMap: build (randomized incremental), locate | planned; CPALG, CGAL |
 | `35-visibilitypolygon.hpp` | visibilityPolygon (point in simple polygon, rotational sweep); visibilityPolygonTriangulated (expansion); visibilityWithObstacles; boundaryPointVisibility | planned; CGAL |
-| `54-fixed_radius_queries.hpp` | GridHash: build (cell size r), neighbours, pairsWithin (output-sensitive), diskCoverCounts; SortedGrid (deterministic, radix-sorted cells): build, neighbours, pairsWithin, diskCoverCounts; maxPointsInDisk (exact angular sweep, centre witness) | verified; [evidence](Docs/54-fixed_radius_queries.md) |
+| `54-fixed_radius_queries.hpp` | GridHash: ctor (cell size r), neighbours, pairsWithin (output-sensitive), diskCoverCounts; SortedGrid (deterministic, radix-sorted cells): ctor, neighbours, pairsWithin, diskCoverCounts; maxPointsInDisk (exact angular sweep, centre witness) | verified; [evidence](Docs/54-fixed_radius_queries.md) |
 
 ## Esoteric
 

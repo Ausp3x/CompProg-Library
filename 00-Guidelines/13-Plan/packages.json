@@ -350,6 +350,21 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "opus",
+      "status": "verified",
+      "evidence": [
+        "96-Local Testing/Docs/00-extraction.md"
+      ],
+      "note": "Follow-ups outside P253: 126 identifier-like Operations entries name nothing their header declares (05-extraction.py ops -v), all in rows not yet verified except kLargest (kept 2026-10-23), e.g. aStar in 04-Graphs/13, hankelSolve in 01-Core/10, build in 04-Graphs/16 (its ctor); 236 templates no probe candidate instantiates; 194 full-only and 205 consistency mini-first findings stay pending for the open 2026-11-05 batches; 06-divisionmini TLEs on 9 of 26 Library Checker tests (mini division speed, P255-P257)."
+    },
+    {
+      "id": "P263",
+      "label": "Concept search in grab (--find over inventory rows)",
+      "batches": [
+        "SUP24"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "M",
+      "model": "opus",
       "status": "planned",
       "evidence": [],
       "note": ""

@@ -89,4 +89,5 @@ Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 ## History
 
+- 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `build` renamed `ctor` (the vector and fill constructors), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
 - 2026-10-17: P034 first implementation and verification; the fill build shrank to one shared node after a mutation check; independent review: an empty vector build now holds one chunk, the default-arity wording matches the benchmark.

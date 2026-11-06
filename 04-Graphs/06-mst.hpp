@@ -9,12 +9,12 @@ struct SpanningForest { lll weight = 0; int components = 0; vector<int> edges; }
 
 namespace mst_detail {
     // T: O(1) edgeLess, O(m * log(m + 1)) edgeOrder, M: O(m); by weight (descending if maximum), then ID.
-    template<class G>
+    template<class G = Graph>
     bool edgeLess(const G &g, int a, int b, bool maximum = false) {
         if (g.edges[a].w != g.edges[b].w) {
             return maximum ? g.edges[a].w > g.edges[b].w : g.edges[a].w < g.edges[b].w;}
         return a < b;}
-    template<class G>
+    template<class G = Graph>
     vector<int> edgeOrder(const G &g, bool maximum = false) {
         vector<int> order(g.edges.size()); iota(order.begin(), order.end(), 0);
         sort(order.begin(), order.end(), [&](int a, int b) { return edgeLess(g, a, b, maximum); });
@@ -22,7 +22,7 @@ namespace mst_detail {
 } // namespace mst_detail
 
 // T: O(n + m * log(m + 1)), M: O(n + m); undirected, maximum builds a maximum-weight forest.
-template<class G>
+template<class G = Graph>
 SpanningForest kruskal(const G &g, bool maximum = false) {
     assert(!g.directed); DSU dsu(g.n); SpanningForest res; res.components = g.n;
     for (int id : mst_detail::edgeOrder(g, maximum)) {
@@ -32,7 +32,7 @@ SpanningForest kruskal(const G &g, bool maximum = false) {
     return res;}
 
 // T: O((n + m) * log(n + 1)), M: O(n); one queued candidate per unused vertex.
-template<class G>
+template<class G = Graph>
 SpanningForest primSparse(const G &g, bool maximum = false) {
     assert(!g.directed); SpanningForest res;
     vector<bool> used(g.n); vector<int> best(g.n, -1);
@@ -71,7 +71,7 @@ inline SpanningForest primDense(const DenseGraph &dense) {
     return res;}
 
 // T: O((n + m) * log(n + 1)), M: O(n); representatives cached per phase, components halve.
-template<class G>
+template<class G = Graph>
 SpanningForest boruvka(const G &g, bool maximum = false) {
     assert(!g.directed); DSU dsu(g.n); SpanningForest res; res.components = g.n;
     vector<int> component(g.n), best(g.n);
@@ -104,7 +104,7 @@ struct KruskalReconstruction {
     vector<lng> value;
     vector<vector<int>> up;
 
-    template<class G>
+    template<class G = Graph>
     explicit KruskalReconstruction(const G &g, bool maximum = false) : n(g.n), maximum(maximum) {
         assert(!g.directed && 0 <= n && 2 * lng(n) <= lng(INT_MAX) + 1);
         child.assign(n, {-1, -1}); parent.assign(n, -1); edge.assign(n, -1);

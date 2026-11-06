@@ -134,7 +134,7 @@ struct DenseGraph {
 struct Subgraph { Graph graph; vector<int> edge; };
 
 // T: O(n + m + out), M: O(m + out); vertex i is edge i, out = sum of indeg * outdeg or C(deg, 2) per vertex.
-template<class G>
+template<class G = Graph>
 Graph lineGraph(const G &g) {
     Graph res(int(g.edges.size()), g.directed);
     if (g.directed) {
@@ -151,7 +151,7 @@ Graph lineGraph(const G &g) {
     return res;}
 
 // T: O(n + k + d), M: O(n + k + d); new vertex i is vs[i] (distinct), d = degree sum of vs.
-template<class G>
+template<class G = Graph>
 Subgraph inducedSubgraph(const G &g, const vector<int> &vs) {
     vector<int> id(g.n, -1);
     for (int i = 0; i < int(vs.size()); ++i) {
@@ -165,7 +165,7 @@ Subgraph inducedSubgraph(const G &g, const vector<int> &vs) {
     return res;}
 
 // T: O(n + k + m), M: O(k + m); edge i joins label[u], label[v] of source edge i, loops and multiedges kept.
-template<class G>
+template<class G = Graph>
 Graph contract(const G &g, const vector<int> &label, int k) {
     assert(int(label.size()) == g.n && k >= 0);
     assert(std::ranges::all_of(label, [&](int x) { return 0 <= x && x < k; }));
@@ -174,7 +174,7 @@ Graph contract(const G &g, const vector<int> &label, int k) {
     return res;}
 
 // T: O(n + m), M: O(n + m); drops loops, keeps the lightest then earliest edge per pair, in ID order.
-template<class G>
+template<class G = Graph>
 Subgraph simplify(const G &g) {
     vector<int> seen(g.n, -1), best(g.n);
     vector<char> keep(g.edges.size());

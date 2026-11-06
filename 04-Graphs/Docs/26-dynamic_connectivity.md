@@ -127,3 +127,4 @@ The bottleneck-forest compression is this package's derivation from Kruskal's in
 ## History
 
 - 2026-10-18: verified (P047); pinned `OnlineBridges` excerpt replaced and removed from the row (recorded prune); `find` from the completeness sweep; LCT-free `rangeEdgeComponentCount` with a stamped union-find (measured 28% faster than a per-call `DSU`); independent review: monolith ledger entry completed, setup bound and `NDEBUG` vertex clamp corrected, CSR and empty-input tests added; 6 planted mutants killed; quick, full and stress passed on g++, full on g++-14.
+- 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).

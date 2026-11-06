@@ -89,6 +89,7 @@ TOOL = ROOT / "98-Team Notebook" / "06-site.py"
 SCRIPTS = ("98-Team Notebook/06-site.py", "98-Team Notebook/05-dependencies.py", "00-Guidelines/13-Plan/plan.py")
 ARTICLES = "98-Team Notebook/Articles"
 REPO = "https://github.com/u/r"
+GRAB = "09-Contest Testing/10-grab.py"
 MODE, SEED, ROUNDS = "full", 42, 200
 FULL_ONLY = {"test_repo_strict_build_and_ids"}
 LINK = re.compile(r"\[([^\]]+)\]\((<[^>]+>|[^\s)]+)\)")
@@ -731,6 +732,7 @@ def fixture(root: Path) -> None:
         "| `_02_y.py` | y | planned |\n",
         "08-Python/_01_x.py": 'DOC = """\n````\n"""\n\n   \ndef readInts():\n    return 1\n',
         "08-Python/Docs/01-x.md": "# _01_x.py — evidence\n\n## Contracts\n\n- readInts returns [ints](../_01_x.py).\n",
+        "09-Contest Testing/10-grab.py": "",
         "96-Local Testing/02-Data Structures/01-dsu_tester.py": "",
         "96-Local Testing/02-Data Structures/01-dsu_tester.cpp": "",
         "96-Local Testing/02-Data Structures/02-adv_tester.py": "",
@@ -1408,18 +1410,20 @@ class Fixture(Base):
         order = post_order(graph, adv)
         self.assertEqual(order, ["01-Core/01-template.hpp", "02-Data Structures/01-dsu.hpp", "01-Core/03-barrett.hpp",
                                  "01-Core/05-thing.hpp", adv])
-        mini = sum(map(n, ["01-Core/01-template.hpp", "02-Data Structures/01-dsu.hpp", "01-Core/06-thingmini.hpp", adv]))
+        grab = f"Extract only the declarations a name reaches with [`{GRAB}`]({REPO}/blob/master/{quote(GRAB)})."
         want = ("## Dependencies\n\nIncludes: " + ", ".join(name(h) for h in graph[adv]) + ".\n\nTyping order (each file after "
                 f"the files it includes): 5 files, {sum(map(n, order))} lines.\n\n| Lines | File |\n|---|---|\n"
                 + "".join(f"| {n(h)} | {name(h)} |\n" for h in order)
-                + f"\nA mini exists but is not tested with this header: {name('01-Core/06-thingmini.hpp')} for "
-                f"{name('01-Core/05-thing.hpp')} ({mini} lines in total with it).\n\nIncluded by: no header.\n\n")
+                + f"\n{grab}\n\nIncluded by: no header.\n\n")
         self.assertIn(want, files["docs/02-data-structures/02-adv.md"])
         red = files["docs/02-data-structures/03-red.md"]
-        self.assertIn("Typing order (each file after the files it includes): 2 files, "
-                      f"{n('01-Core/01-template.hpp') + n('02-Data Structures/03-red.hpp')} lines.", red)
-        self.assertIn("\n\nSkippable when typing only the `*Compact` twins and code that needs no Core reduction: "
-                      f"[`01-Core/03-barrett.hpp`](../01-core/03-barrett.md) (verified, 3 lines).\n\nIncluded by: no header.", red)
+        red_order = ["01-Core/01-template.hpp", "01-Core/03-barrett.hpp", "02-Data Structures/03-red.hpp"]
+        self.assertIn(f"Typing order (each file after the files it includes): 3 files, {sum(map(n, red_order))} lines.\n\n"
+                      "| Lines | File |\n|---|---|\n" + "".join(f"| {n(h)} | {link[h]} (verified) |\n" for h in red_order), red)
+        self.assertIn(f"\n\n{grab}\n\nIncluded by: no header.", red)  # a `*Compact` header gets no reduction note
+        self.assertNotIn("Compact", red.partition("## Dependencies")[2].partition("## Source")[0])
+        _, plain = self.site(repo=None)
+        self.assertIn(f"\n\nExtract only the declarations a name reaches with `{GRAB}`.\n\n", plain["docs/02-data-structures/03-red.md"])
         self.assertIn(f"Included by: {name(adv)}.", files["docs/02-data-structures/01-dsu.md"])
         tpl = files["docs/01-core/01-template.md"]
         self.assertIn("Includes: nothing.", tpl)
@@ -1909,15 +1913,15 @@ class Repository(Base):
                 m = re.search(r"^Typing order \(each file after the files it includes\): (\d+) files, (\d+) lines\.$", dep, re.M)
                 rows = [(int(a), b) for a, b in re.findall(r"^\| (\d+) \| [^`]*`([^`]+)`", dep, re.M)]
                 order = [h for _, h in rows]
-                self.assertEqual(order, DEPS.plan(ROOT, graph, t)["order"])
+                self.assertEqual(order, DEPS.closure(graph, t))
                 self.assertEqual([n for n, _ in rows], [count_lines(ROOT / h) for h in order])
                 self.assertEqual((int(m[1]), int(m[2])), (len(order), sum(n for n, _ in rows)))
-                skip = re.search(r"^Skippable [^:]*: (.*)\.$", dep, re.M)
-                skipped = set(re.findall(r"`([^`]+)`", skip[1])) if skip else set()
                 pos = {h: i for i, h in enumerate(order)}
                 for h in order:
                     for d in self.graph[h]:
-                        self.assertTrue(d in skipped or pos.get(d, len(order)) < pos[h], f"{d} not before {h}")
+                        self.assertLess(pos.get(d, len(order)), pos[h], f"{d} not before {h}")
+                g, url = re.escape(f"`{GRAB}`"), re.escape(f"{self.repo}/blob/master/{quote(GRAB)}")
+                self.assertRegex(dep, rf"(?m)^Extract only the declarations a name reaches with ({g}|\[{g}\]\({url}\))\.$")
                 by = re.search(r"^Included by: (.*)\.$", dep, re.M)[1]
                 self.assertEqual(sorted(re.findall(r"`([^`]+)`", by) if by != "no header" else []), sorted(users[t]))
 

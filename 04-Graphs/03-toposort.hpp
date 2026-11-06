@@ -12,7 +12,7 @@ struct TopologicalResult {
 
 namespace toposort_detail {
     // T: O(n + m), M: O(n); a complete order is the only one iff arcs join all consecutive vertices.
-    template<class G>
+    template<class G = Graph>
     TopologicalResult ordered(const G &g, vector<int> order) {
         vector<int> pos(g.n); vector<char> linked(g.n);
         for (int i = 0; i < g.n; ++i) { pos[order[i]] = i; }
@@ -23,7 +23,7 @@ namespace toposort_detail {
 } // namespace toposort_detail
 
 // T: O(n + m), M: O(n); directed only, reverse DFS finishing order.
-template<class G>
+template<class G = Graph>
 TopologicalResult topologicalSortDfs(const G &g) {
     assert(g.directed);
     auto traversal = dfsForest(g);
@@ -32,7 +32,7 @@ TopologicalResult topologicalSortDfs(const G &g) {
     return toposort_detail::ordered(g, std::move(traversal.postorder));}
 
 // T: O(n + m) FIFO, O(m + n * log(n + 1)) lexicographic, M: O(n); directed only, Kahn.
-template<class G>
+template<class G = Graph>
 TopologicalResult topologicalSort(const G &g, bool lexicographic = false) {
     assert(g.directed);
     vector<int> degree(g.n), ready, order;

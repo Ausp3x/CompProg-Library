@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Checks for .claude/skills/setup-check/setup_check.py and the ISA helpers of 96-Local Testing/_00_cpp_test_runner.py.
 
-No test touches the network or the real git configuration except the real-machine CLI runs of full mode. Fake
+No test touches the network or the real git configuration except the real-machine CLI runs of full mode, which also read
+the grab alias lines of the real shell startup file; every other alias test uses a temporary HOME. Fake
 executables (`#!/bin/sh` scripts using only shell builtins, or `#!<this python>` scripts) sit in a per-test temporary
 bin directory that is the whole PATH (plus a `git` symlink where the role is read); they print chosen versions for
 `-dumpfullversion` and `-c <code>`, fail builds, build programs that exit nonzero or check their environment, and log
@@ -34,13 +35,20 @@ unparsable, a patched floor); tools without a probe) -> test_probe_*;
 platform_check (aarch64, AMD64, x86-64 with all flags, lacking bmi2, lacking several, no cpuinfo, this machine) ->
 test_platform_*;
 role_check (unset, contributor, maintainer, invalid, read in ROOT not the cwd) -> test_role_*;
+rc_file/alias_line/alias_target/alias_check/write_alias (bash, zsh with and without ZDOTDIR, fish, sh, no $SHELL; the
+written line run by bash for paths needing quotes; absent, empty, exact, $HOME, ${HOME}, single-quoted, indented,
+commented, ~ unquoted and quoted, other script, extra word, other interpreter, unterminated quote, last definition
+wins, random files, unreadable file; --alias appends with a newline, replaces the last definition keeping indentation,
+leaves a working alias untouched, second run unchanged, zsh ZDOTDIR, unknown shell and unwritable directory exit 1
+with the line, the real script on this clone) -> test_alias_* (oracle: bash expanding the file's alias lines with a fake
+python3);
 distro (explicit choice, arch, ubuntu, ID_LIKE ubuntu/debian, ID_LIKE arch, fedora, unreadable) -> test_distro_*;
 install (exact, the mewt step naming each distribution's Python package (python3 on Ubuntu, python on Arch, literal
 lines), empty, random subsets and distributions) -> test_install_*;
 commands/undeclared (positive and negative call forms, basename of absolute names, OLD/ and 95-Resources/ skipped,
 untracked and deleted skipped, modified read from the worktree, sorted output, random repositories, real repository and
 --lint) -> test_commands_*, test_undeclared_*, test_lint_*;
-CLI (rows, labels, WARN for optional and platform, Install lines for the distribution, exit code and last line, a
+CLI (rows, labels, WARN for optional, platform and the grab alias, Install lines for the distribution, exit code and last line, a
 missing, off-pin or unversioned mewt as a FAIL row with its install step and exit 1 (in process and on a fake PATH), bad
 distribution exits 2, no git on PATH, random fake PATHs, a cargo below or at its floor as a WARN or OK row, this machine)
 -> test_cli_*;
@@ -208,6 +216,45 @@ def role_env(role):
     if role is not None:
         e |= {'GIT_CONFIG_COUNT': '1', 'GIT_CONFIG_KEY_0': 'compprog.role', 'GIT_CONFIG_VALUE_0': role}
     return e
+
+
+ALIAS_NEED = 'grab from any folder'
+ALIAS_FIX = f"python3 {shlex.quote(str(SETUP_PY))} --alias"
+BASH = shutil.which('bash', path=ISOLATED.get('PATH'))  # the alias oracle; its tests SKIP without it
+
+
+def o_alias_line(grab):
+    text = str(grab)
+    if any(c in text for c in '\'"$`\\!'):
+        return 'alias grab=' + shlex.quote('python3 ' + shlex.quote(text))
+    return "alias grab='python3 \"" + text + "\"'"
+
+
+def o_alias_runs(text, home):
+    """(has a definition, the one argument bash hands a fake python3 for `grab` after text's alias lines, else None)."""
+    defs = [l for l in text.splitlines() if l.split(None, 1)[:1] == ['alias'] and l.split(None, 1)[1:2] and l.split(None, 1)[1].startswith('grab=')]
+    if not defs:
+        return False, None
+    with tempfile.TemporaryDirectory(prefix='setup-alias-') as d:
+        sh(Path(d) / 'python3', 'printf "%s\\n" "$#" "$@"\n')
+        r = REAL_RUN([BASH, '--norc', '--noprofile', '-c', 'shopt -s expand_aliases\n' + '\n'.join(defs) + '\ngrab\n'],
+                     capture_output=True, text=True, env={'PATH': d, 'HOME': str(home)})
+    out = r.stdout.splitlines()
+    return True, Path(out[1]).resolve() if r.returncode == 0 and out[:1] == ['1'] else None
+
+
+def o_alias(env, grab=None):
+    """Expected (ok, detail) of the grab alias row under env (HOME, SHELL, ZDOTDIR) for the script grab."""
+    grab = Path(grab or ROOT / '09-Contest Testing/10-grab.py')
+    home, shell = Path(env['HOME']), env.get('SHELL', '').rsplit('/', 1)[-1]
+    rc = home / '.bashrc' if shell == 'bash' else Path(env.get('ZDOTDIR') or home) / '.zshrc' if shell == 'zsh' else None
+    if rc is None:
+        return False, f'{env.get("SHELL") or "no $SHELL"}: add to its startup file: {o_alias_line(grab)}'
+    where = '~/' + str(rc.relative_to(home)) if str(rc).startswith(str(home) + '/') else str(rc)
+    has, runs = o_alias_runs(rc.read_text() if rc.exists() else '', home)
+    if not has:
+        return False, f'not in {where}; add it: {ALIAS_FIX}'
+    return (True, f'in {where}') if runs == grab.resolve() else (False, f'{where} defines grab differently; replace it: {ALIAS_FIX}')
 
 
 def git(cwd, *args):
@@ -661,6 +708,140 @@ class Role(Base):
             os.chdir(cwd)
 
 
+class Alias(Base):
+    def setUp(self):
+        super().setUp()
+        if not BASH:
+            self.skipTest('SKIP: bash not found (the alias oracle)')
+        self.home = self.tmp / 'home'
+        self.home.mkdir()
+        self.grab = self.home / 'lib' / '09-Contest Testing' / '10-grab.py'
+
+    def env(self, shell='/bin/bash', **kw):
+        return {k: v for k, v in ISOLATED.items() if k not in ('ZDOTDIR', 'SHELL')} | {'HOME': str(self.home)} | ({'SHELL': shell} if shell is not None else {}) | kw
+
+    def call(self, f, env, grab=None):
+        with patch.dict(os.environ, env, clear=True), patch.object(S, 'GRAB', Path(grab or self.grab)):
+            return f()
+
+    def test_alias_rc_file(self):
+        z = self.tmp / 'z'
+        for shell, kw, want in (('/bin/bash', {}, self.home / '.bashrc'), ('bash', {}, self.home / '.bashrc'),
+                                ('/usr/bin/zsh', {}, self.home / '.zshrc'), ('/usr/bin/zsh', {'ZDOTDIR': str(z)}, z / '.zshrc'),
+                                ('/usr/bin/zsh', {'ZDOTDIR': ''}, self.home / '.zshrc'), ('/usr/bin/fish', {}, None),
+                                ('/bin/sh', {}, None), ('', {}, None), (None, {}, None), ('/bin/bash', {'ZDOTDIR': str(z)}, self.home / '.bashrc')):
+            self.eq(self.call(S.rc_file, self.env(shell, **kw)), want, shell=shell, kw=kw)
+
+    def test_alias_line_runs(self):
+        # the written line runs exactly the clone's script in bash, for plain paths and paths needing quotes
+        for name in ('09-Contest Testing', "it's", '$x "q"', 'back\\slash!', '`tick`', 'a  b'):
+            grab = self.tmp / name / '10-grab.py'
+            line = self.call(S.alias_line, self.env(), grab)
+            self.eq((line, o_alias_runs(line, self.home), S.alias_target(line)), (o_alias_line(grab), (True, grab.resolve()), grab.resolve()), name=name)
+        self.eq(self.call(S.alias_line, self.env(), S.GRAB), o_alias_line(S.GRAB), what='this clone')
+
+    def cases(self):
+        g, rel = self.grab, self.grab.relative_to(self.home)
+        other = self.tmp / 'other' / '10-grab.py'
+        good = [o_alias_line(g), f"alias grab='python3 \"$HOME/{rel}\"'", f"alias grab='python3 \"${{HOME}}/{rel}\"'",
+                f'alias grab="python3 \'{g}\'"', f"  alias grab='python3 \"{g}\"'  # grab",
+                f"alias grab='python3 ~/lib/09-Contest\\ Testing/10-grab.py'"]
+        bad = [o_alias_line(other), f"alias grab='python3 \"{g}\" --into'", f"alias grab='pypy3 \"{g}\"'", f"alias grab='python3 \"~/{rel}\"'",
+               f"alias grab='python3 \"{g}'", "alias grab='python3'"]
+        noise = ['# alias grab=x', 'export X=1', 'alias grabber=ls', "alias g='python3 x'", '']
+        return good, bad, noise
+
+    def test_alias_check_cases(self):
+        good, bad, noise = self.cases()
+        rc = self.home / '.bashrc'
+        texts = [None, '', *noise, *good, *bad, *(f'{b}\n{a}' for a in good for b in bad[:2]), *(f'{a}\n{b}' for a in good[:2] for b in bad)]
+        for _ in range(self.rounds() * 20):
+            texts.append('\n'.join(self.rng.choice(good + bad + noise) for _ in range(self.rng.randint(0, 5))))
+        for text in texts:
+            rc.unlink(missing_ok=True)
+            if text is not None:
+                rc.write_text(text)
+            want = o_alias(self.env(), self.grab)
+            self.eq(self.call(S.alias_check, self.env(), self.grab), want, text=text)
+        for line in good:
+            rc.write_text(line)
+            self.eq(o_alias(self.env(), self.grab)[0], True, line=line, what='oracle sanity')
+        for line in bad:
+            rc.write_text(line)
+            self.eq(o_alias(self.env(), self.grab)[0], False, line=line, what='oracle sanity')
+
+    def test_alias_check_shells(self):
+        z = self.tmp / 'z'
+        z.mkdir()
+        (z / '.zshrc').write_text(o_alias_line(self.grab))
+        for shell, kw in (('/usr/bin/zsh', {'ZDOTDIR': str(z)}), ('/usr/bin/zsh', {}), ('/usr/bin/fish', {}), (None, {}), ('', {})):
+            env = self.env(shell, **kw)
+            self.eq(self.call(S.alias_check, env), o_alias(env, self.grab), shell=shell, kw=kw)
+        self.eq(self.call(S.alias_check, self.env('/usr/bin/zsh', ZDOTDIR=str(z)))[0], True, what='ZDOTDIR read')
+        if os.geteuid():
+            rc = self.home / '.bashrc'
+            rc.write_text(o_alias_line(self.grab))
+            rc.chmod(0)
+            self.addCleanup(rc.chmod, 0o644)
+            self.eq(self.call(S.alias_check, self.env()), (False, '~/.bashrc unreadable: Permission denied'))
+
+    def write(self, env, grab=None):
+        import contextlib
+        import io
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = self.call(S.write_alias, env, grab)
+        return code, out.getvalue(), err.getvalue()
+
+    def test_alias_write(self):
+        # --alias: appends (newline added when missing), replaces the last definition in place keeping its indentation and
+        # every other line, leaves an alias already running this clone untouched, and then the check reports OK
+        good, bad, noise = self.cases()
+        rc, env, line = self.home / '.bashrc', self.env(), o_alias_line(self.grab)
+        texts = [None, '', 'x=1', 'x=1\n', *(f'a=1\n{b}\nb=2' for b in bad), f'  {bad[0]}\n', f'{bad[0]}\n{bad[1]}\nz=3\n',
+                 *good, f'{good[1]}\n{bad[0]}\n', f'{bad[0]}\n{good[1]}\n', *noise]
+        for _ in range(self.rounds() * 10):
+            texts.append('\n'.join(self.rng.choice(good + bad + noise) for _ in range(self.rng.randint(0, 5))) + self.rng.choice(['', '\n']))
+        for text in texts:
+            rc.unlink(missing_ok=True)
+            if text is not None:
+                rc.write_text(text)
+            has, runs = o_alias_runs(text or '', self.home)
+            lines = (text or '').splitlines(keepends=True)
+            if runs == self.grab.resolve():
+                want = text
+            elif has:
+                k = max(i for i, l in enumerate(lines) if l.split(None, 1)[:1] == ['alias'] and l.split(None, 1)[1].startswith('grab='))
+                lines[k] = lines[k][:len(lines[k]) - len(lines[k].lstrip())] + line + '\n'
+                want = ''.join(lines)
+            else:
+                want = (text or '') + ('\n' if text and not text.endswith('\n') else '') + line + '\n'
+            code, out, err = self.write(env)
+            self.eq((code, err, rc.read_text()), (0, '', want), text=text, out=out)
+            self.eq(self.call(S.alias_check, env), (True, 'in ~/.bashrc'), text=text)
+            self.eq((self.write(env), rc.read_text()), ((0, f'{rc} already runs {self.grab} as grab\n', ''), want), text=text, what='second run')
+
+    def test_alias_write_shells(self):
+        z = self.tmp / 'z'
+        z.mkdir()
+        code, out, err = self.write(self.env('/usr/bin/zsh', ZDOTDIR=str(z)))
+        self.eq((code, err, (z / '.zshrc').read_text(), (self.home / '.zshrc').exists()), (0, '', o_alias_line(self.grab) + '\n', False))
+        for shell in ('/usr/bin/fish', None):
+            code, out, err = self.write(self.env(shell))
+            self.eq((code, out, err), (1, '', f'{shell or "no $SHELL"}: unknown startup file; add this line to it:\n{o_alias_line(self.grab)}\n'), shell=shell)
+        code, out, err = self.write(self.env('/usr/bin/zsh', ZDOTDIR=str(self.tmp / 'missing')))
+        self.eq((code, out, err.endswith(f'add this line to it:\n{o_alias_line(self.grab)}\n')), (1, '', True), err=err)
+        self.eq(sorted(p.name for p in self.home.iterdir()), [], what='nothing written to HOME')
+
+    def test_alias_cli(self):
+        # the real script on this clone: --alias in a temporary HOME, then the row reads OK
+        env = self.env()
+        r = REAL_RUN([sys.executable, str(SETUP_PY), '--alias'], capture_output=True, text=True, timeout=60, env=env)
+        line = o_alias_line(ROOT / '09-Contest Testing/10-grab.py')
+        self.eq((r.returncode, r.stderr, (self.home / '.bashrc').read_text()), (0, '', line + '\n'), stdout=r.stdout)
+        self.eq(o_alias_runs(line, self.home), (True, (ROOT / '09-Contest Testing/10-grab.py').resolve()))
+
+
 class Distro(Base):
     def distro(self, choice, text=None, error=None):
         with patch.object(S, 'Path', fake_path('/etc/os-release', text, error)):
@@ -902,7 +1083,8 @@ class Cli(Base):
         ok_platform = o_platform()
         role_row = (True, role or 'contributor') if role in (None, '', 'contributor', 'maintainer') else \
             (False, f'git config compprog.role is {role!r}; set contributor or maintainer')
-        lines = [o_row(t.name, t.need, *rows[t.name]) for t in S.TOOLS] + [o_row('role', None, *role_row)]
+        lines = [o_row(t.name, t.need, *rows[t.name]) for t in S.TOOLS] + [o_row('role', None, *role_row),
+                                                                         o_row('grab alias', ALIAS_NEED, *o_alias(self.alias_env()))]
         # a failed gh or systemd-run probe (login, delegation) is configuration: install lines only when absent
         missing = [t for t in S.TOOLS if not rows[t.name][0] and (rows[t.name][1] == 'not found' or t.exes[0] not in ('gh', 'systemd-run'))]
         if missing:
@@ -910,9 +1092,12 @@ class Cli(Base):
         failed = not role_row[0] or any(not rows[t.name][0] and t.need is None for t in S.TOOLS)
         return ok_platform, lines + [FAIL_LINE if failed else PASS_LINE], int(failed)
 
+    def alias_env(self):
+        return {'HOME': str(self.tmp), 'SHELL': '/bin/bash'}
+
     def check_cli(self, spec, role, choice, kpse_missing=(), **kw):
         rows = self.fake_bin(spec, kpse_missing)
-        env = role_env(role) | {'PATH': str(self.bin)}
+        env = role_env(role) | {'PATH': str(self.bin)} | self.alias_env()
         where = choice or o_distro(REAL_PATH('/etc/os-release').read_text())
         ok_platform, want, code = self.expected(rows, role, where)
         r = self.run_cli(*([choice] if choice else []), env=env)
@@ -958,20 +1143,22 @@ class Cli(Base):
                                 ((True, 'x86'), (True, 'maintainer'), {'mewt', 'PyPy'})):
             # failure kinds: every failed row gets an install line except a probe problem of gh or systemd-run (configuration)
             rows = {t.name: (True, f'detail {t.name}') for t in S.TOOLS}
+            alias = (len(bad) % 2 == 0, f'alias detail {len(bad)}')  # never FAILs, never an install line
             for k, n in enumerate(sorted(bad)):
                 rows[n] = (False, ['not found', 'x 1.0, needs 9', f'probe problem {n}'][k % 3])
             buf = io.StringIO()
             with patch.object(S, 'platform_check', return_value=plat), patch.object(S, 'role_check', return_value=role), \
+                    patch.object(S, 'alias_check', return_value=alias), \
                     patch.object(S, 'check', side_effect=lambda t: rows[t.name]), patch.object(sys, 'argv', ['setup_check.py', 'arch']), \
                     contextlib.redirect_stdout(buf):
                 code = S.main()
             failed = not role[0] or any(TOOL[n].need is None for n in bad)
             missing = [t for t in S.TOOLS if t.name in bad
                        and not (rows[t.name][1].startswith('probe problem') and t.exes[0] in ('systemd-run', 'gh'))]
-            want = [o_row('platform', None, *plat), *(o_row(t.name, t.need, *rows[t.name]) for t in S.TOOLS), o_row('role', None, *role),
+            want = [o_row('platform', None, *plat), *(o_row(t.name, t.need, *rows[t.name]) for t in S.TOOLS), o_row('role', None, *role), o_row('grab alias', ALIAS_NEED, *alias),
                     *(['Install:', *o_install(missing, 'arch')] if missing else []), FAIL_LINE if failed else PASS_LINE]
             self.eq((code, buf.getvalue().splitlines()), (int(failed), want), platform=plat, role=role, bad=bad)
-        self.eq(o_row('platform', None, False, 'arm')[:4], 'WARN', what='oracle sanity')
+        self.eq((o_row('platform', None, False, 'arm')[:4], o_row('grab alias', ALIAS_NEED, False, 'x')[:4]), ('WARN', 'WARN'), what='oracle sanity')
 
     def test_cli_mewt_required(self):
         # main() with every other row OK: a missing or off-pin mewt is a FAIL row, an install step and exit 1; the pin passes
@@ -986,18 +1173,19 @@ class Cli(Base):
             rows = {t.name: (True, f'detail {t.name}') for t in S.TOOLS} | {'mewt': row}
             buf = io.StringIO()
             with patch.object(S, 'platform_check', return_value=(True, 'x86')), patch.object(S, 'role_check', return_value=(True, 'maintainer')), \
+                    patch.object(S, 'alias_check', return_value=(True, 'in ~/.bashrc')), \
                     patch.object(S, 'check', side_effect=lambda t: rows[t.name]), patch.object(sys, 'argv', ['setup_check.py', 'ubuntu']), \
                     contextlib.redirect_stdout(buf):
                 code = S.main()
             lines = buf.getvalue().splitlines()
-            got = (code, [l for l in lines if l.startswith(('OK    mewt', 'FAIL  mewt', 'WARN  mewt'))], lines[len(S.TOOLS) + 2:])
+            got = (code, [l for l in lines if l.startswith(('OK    mewt', 'FAIL  mewt', 'WARN  mewt'))], lines[len(S.TOOLS) + 3:])
             self.eq(got, (want_code, [line], install + [last]), row=row, stdout=lines)
         for spec_mewt, line in ((None, 'FAIL  mewt: not found'), ('3.9.9', f'FAIL  mewt: mewt 3.9.9, needs exactly {PIN}'), (PIN, f'OK    mewt: mewt')):
             shutil.rmtree(self.bin)
             self.bin.mkdir()
             spec = {'python3': '3.13.1', 'gh': '0'} | ({'mewt': spec_mewt} if spec_mewt else {})
             self.check_cli(spec, 'maintainer', 'arch')
-            r = self.run_cli('arch', env=role_env('maintainer') | {'PATH': str(self.bin)})
+            r = self.run_cli('arch', env=role_env('maintainer') | {'PATH': str(self.bin)} | self.alias_env())
             self.assertTrue(line in r.stdout.splitlines() and r.returncode == 1, self.info(stdout=r.stdout, mewt=spec_mewt, what='fake PATH'))
 
     def test_cli_bad_distro(self):
@@ -1017,7 +1205,7 @@ class Cli(Base):
                    'python3': ['3.10.14', '3.11.0', '3.14.2', '2.7.18', '4.0', ''], 'pypy3': ['3.9.18', '3.10.14', '3.12.1', 'x'],
                    'gh': ['0', '1'], 'systemd-run': ['67108864', 'max', '134217728', ''], 'bwrap': ['', '', 'noop'],
                    'mewt': [PIN, PIN, '3.9.9', ''], 'cargo': ['1.85.0', '1.84.1', '1.99.1', '1.185.0', '0.99.0', 'nightly', '']}
-        plain = ['rg', 'ccache', 'lscpu', 'oj-bundle', 'kpsewhich', 'lualatex', 'node', 'nodejs', 'aarch64-linux-gnu-g++', 'qemu-aarch64']
+        plain = ['bash', 'rg', 'ccache', 'lscpu', 'oj-bundle', 'kpsewhich', 'lualatex', 'node', 'nodejs', 'aarch64-linux-gnu-g++', 'qemu-aarch64']
         for r in range(self.rounds()):
             shutil.rmtree(self.bin)
             self.bin.mkdir()
@@ -1032,9 +1220,9 @@ class Cli(Base):
         lines = r.stdout.splitlines()
         self.assertTrue(lines and lines[-1] in (PASS_LINE, FAIL_LINE), self.info(stdout=r.stdout))
         self.eq(r.returncode, int(lines[-1] == FAIL_LINE), stdout=r.stdout, stderr=r.stderr)
-        rows, rest = lines[:len(S.TOOLS) + 2], lines[len(S.TOOLS) + 2:-1]
-        names = ['platform'] + [t.name for t in S.TOOLS] + ['role']
-        needs = [None] + [t.need for t in S.TOOLS] + [None]
+        rows, rest = lines[:len(S.TOOLS) + 3], lines[len(S.TOOLS) + 3:-1]
+        names = ['platform'] + [t.name for t in S.TOOLS] + ['role', 'grab alias']
+        needs = [None] + [t.need for t in S.TOOLS] + [None, ALIAS_NEED]
         failed = False
         for line, name, need in zip(rows, names, needs):
             label, head = line[:6].rstrip(), line[6:]
@@ -1045,7 +1233,9 @@ class Cli(Base):
         self.eq(len(rows), len(names), stdout=r.stdout)
         self.eq(failed, lines[-1] == FAIL_LINE, stdout=r.stdout)
         self.eq(rows[0].startswith('OK'), o_platform(), line=rows[0])
-        missing = [t for t, line in zip(S.TOOLS, rows[1:-1]) if not line.startswith('OK')
+        if BASH:
+            self.eq(rows[-1], o_row('grab alias', ALIAS_NEED, *o_alias(ISOLATED)), what='alias row read-only from the real HOME')
+        missing = [t for t, line in zip(S.TOOLS, rows[1:]) if not line.startswith('OK')
                    and (line.endswith(': not found') or t.exes[0] not in ('gh', 'systemd-run'))]
         return missing, rows, rest
 
@@ -1055,7 +1245,7 @@ class Cli(Base):
         where = o_distro(REAL_PATH('/etc/os-release').read_text()) if REAL_PATH('/etc/os-release').exists() else None
         self.eq(rest, ['Install:', *o_install(missing, where)] if missing else [], stdout=r.stdout, distro=where)
         path = ISOLATED.get('PATH', '')
-        for t, line in zip(S.TOOLS, rows[1:-1]):
+        for t, line in zip(S.TOOLS, rows[1:]):
             present = [e for e in t.exes if o_which(e, path)]
             self.eq(line.endswith(': not found'), not present, line=line, present=present)
             if line.startswith('OK') and t.floor:

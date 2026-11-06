@@ -35,7 +35,7 @@ struct DominatorTree {
         assert(0 <= u && u < int(idom.size()) && 0 <= v && v < int(idom.size()));
         return tin[v] != -1 && tin[u] != -1 && tin[u] <= tin[v] && tin[v] < tout[u];}
     // T: O(V + E + out), M: O(V + out); g is the graph the tree was built from; lists in no particular order.
-    template<class G>
+    template<class G = Graph>
     vector<vector<int>> dominanceFrontier(const G &g) const {
         assert(g.directed && g.n == int(idom.size()));
         vector<vector<int>> res(g.n);
@@ -53,7 +53,7 @@ struct DominatorTree {
 };
 
 // T: O((V + E) * alpha(E, V)), M: O(V + E); Lengauer-Tarjan with balanced linking on a directed Graph/CsrGraph.
-template<class G>
+template<class G = Graph>
 DominatorTree dominatorTree(const G &g, int root) {
     assert(g.directed && 0 <= root && root < g.n);
     int n = g.n;
@@ -108,7 +108,7 @@ DominatorTree dominatorTree(const G &g, int root) {
     return DominatorTree(root, std::move(idom));}
 
 // T: O(V * (V + E)), M: O(V + E); vertex deletion: d strictly dominates w iff deleting d cuts w off; idom has fewest dominatees.
-template<class G>
+template<class G = Graph>
 DominatorTree dominatorTreeSimple(const G &g, int root) {
     assert(g.directed && 0 <= root && root < g.n);
     int n = g.n;

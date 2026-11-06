@@ -33,15 +33,15 @@ template<typename T> auto signedArea2(const vector<vector<Point2<T>>> &rings) {
     geometry_detail::Wide<T> a = 0; lng n = 0;
     for (const auto &p : rings) { assert(lng(p.size()) <= INT_MAX - n); n += p.size(); a += signedArea2(p); }
     return a;}
-template<typename Polygon> long double signedAreaApprox(const Polygon &p) { return static_cast<long double>(signedArea2(p)) / 2; }
+template<typename Polygon = vector<point>> long double signedAreaApprox(const Polygon &p) { return static_cast<long double>(signedArea2(p)) / 2; }
 
 // T: O(n + r), plus O(log(n * C^3)) exact normalization, M: O(1), n total vertices, r rings, C = max(1, |coordinate|). False on zero area, out unchanged.
-template<typename Polygon> bool centroidExact(const Polygon &p, RationalPoint2 &out) {
+template<typename Polygon = vector<point>> bool centroidExact(const Polygon &p, RationalPoint2 &out) {
     auto m = polygonMoments(p); static_assert(std::is_integral_v<decltype(m.area2)>);
     if (m.area2 == 0) { return false; }
     out = RationalPoint2(m.x6, m.y6, 3 * m.area2);
     return true;}
-template<typename Polygon> bool centroidApprox(const Polygon &p, dpoint &out) {
+template<typename Polygon = vector<point>> bool centroidApprox(const Polygon &p, dpoint &out) {
     auto m = polygonMoments(p);
     if (m.area2 == 0) { return false; }
     long double d = 3 * static_cast<long double>(m.area2);
@@ -75,7 +75,7 @@ template<typename T> WindingResult polygonWinding(const vector<vector<Point2<T>>
         if (s.boundary) { return s; }
         r.winding += s.winding;}
     return r;}
-template<typename Polygon, typename T> PolygonLocation polygonContains(const Polygon &p, Point2<T> q) {
+template<typename Polygon = vector<point>, typename T> PolygonLocation polygonContains(const Polygon &p, Point2<T> q) {
     auto r = polygonWinding(p, q);
     return r.boundary ? PolygonLocation::Boundary : r.winding ? PolygonLocation::Inside : PolygonLocation::Outside;}
 

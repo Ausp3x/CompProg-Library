@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Checks this machine for the tools the repository runs: setup_check.py [ubuntu | arch] [--lint].
+"""Checks this machine for the tools the repository runs: setup_check.py [ubuntu | arch] [--lint | --alias].
 
 TOOLS declares each tool once: what needs it (required, or the optional feature), its executables, its floor, and its
 Ubuntu 26.04 and Arch packages. Probes compile, link and run where a version proves nothing (sanitizers, static libc,
 the systemd memory cap, the arm64 emulator). A required failure exits 1; an optional one warns. Both print the install
 command for this distribution (the argument, else /etc/os-release). --lint lists every executable a tracked Python script
 runs by a literal name (the first item of a subprocess command, or a shutil.which argument) that TOOLS does not declare,
-and exits 1 when there is one; 03-consistency.py runs it.
+and exits 1 when there is one; 03-consistency.py runs it. A last WARN row says whether the login shell's startup file
+($SHELL: ~/.bashrc for bash, $ZDOTDIR or ~ /.zshrc for zsh) defines a grab alias running this clone's
+09-Contest Testing/10-grab.py (its last definition counts, as in the shell); --alias writes that alias there, replacing the
+last grab alias in place, and leaves the file untouched when the alias already runs this clone (user decision 2026-11-06).
 """
 import argparse
 import ast
@@ -16,6 +19,7 @@ import importlib.util
 import os
 import platform
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -24,6 +28,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 Tool = collections.namedtuple('Tool', 'name need exes floor ubuntu arch')
+GRAB = ROOT / '09-Contest Testing/10-grab.py'
+ALIAS = re.compile(r'\s*alias\s+grab=')
 MUTATION = '96-Local Testing/04-mutation.py'  # pins and installs mewt (AGPL-3.0, outside the repository)
 TOOLS = [  # need: None when required, else the optional feature; exes: alternatives, the first found is used
     Tool('GCC 16', None, ('g++',), (16,), 'g++-16 && mkdir -p ~/.local/bin && ln -sf /usr/bin/g++-16 ~/.local/bin/g++', 'gcc'),
@@ -47,6 +53,9 @@ TOOLS = [  # need: None when required, else the optional feature; exes: alternat
          'python-pipx && pipx install zensical'),
     Tool('oj-bundle', 'online expansion', ('oj-bundle',), None, 'pipx && pipx install online-judge-verify-helper',
          'python-pipx && pipx install online-judge-verify-helper'),
+    Tool('libclang', 'grab pruning and extraction checks', ('python3',), None, 'python3-clang', 'clang'),  # import clang.cindex (09-Contest Testing/10-grab.py)
+    Tool('clipboard', 'grab copying', ('wl-copy', 'xclip', 'xsel', 'pbcopy'), None, 'wl-clipboard xclip', 'wl-clipboard xclip'),
+    Tool('bash', 'grab alias tests', ('bash',), None, 'bash', 'bash'),  # oracle of 09-setup_tester.py's alias tests
     Tool('PyPy', 'PyPy runs', ('pypy3',), (3, 10), 'pypy3', 'pypy3'),
     Tool('arm64 cross g++', 'arm64 check', ('aarch64-linux-gnu-g++',), None, 'g++-aarch64-linux-gnu',
          'aarch64-linux-gnu-gcc'),
@@ -109,6 +118,9 @@ def probe(tool, exe):
     if tool.exes[0] in ('g++', 'g++-14'):
         return [f'{label} {why}' for label, flags in (('ASan/UBSan', ['-fsanitize=address,undefined']), ('static', ['-static']))
                 if (why := compiles(exe, flags))]
+    if tool.name == 'libclang':  # the bindings must import and find libclang.so
+        code, text = out([exe, '-c', 'import clang.cindex as c; c.Index.create()'])
+        return [] if code == 0 else ['python3 cannot load clang.cindex: ' + ((text or '').splitlines() or ['failed'])[-1]]
     if exe == 'systemd-run':  # the scope must apply MemoryMax: cgroup v2 with the memory controller delegated
         code, text = out(['systemd-run', '--user', '--scope', '--quiet', '--expand-environment=no', '-p', 'MemoryMax=64M', 'sh', '-c',
                           'cat "/sys/fs/cgroup$(sed -n "s/^0:://p" /proc/self/cgroup)/memory.max"'])
@@ -184,6 +196,76 @@ def role_check():
         return False, str(e)
 
 
+def rc_file():
+    """The login shell's startup file: ~/.bashrc for bash, $ZDOTDIR/.zshrc (else ~/.zshrc) for zsh, else None."""
+    shell, home = Path(os.environ.get('SHELL', '')).name, Path.home()
+    return home / '.bashrc' if shell == 'bash' else Path(os.environ.get('ZDOTDIR') or home) / '.zshrc' if shell == 'zsh' else None
+
+
+def alias_line():
+    path = str(GRAB)
+    if re.fullmatch(r'[^\'"$`\\!]*', path):
+        return "alias grab='python3 \"" + path + "\"'"
+    return 'alias grab=' + shlex.quote('python3 ' + shlex.quote(path))
+
+
+def alias_target(line):
+    """The script an `alias grab=...` line hands python3, else None: $NAME and ${NAME} expanded unless the value holds a
+    single quote, a leading ~ unless quoted. Forms it does not model ($(...), backquotes, a variable beside a single quote)
+    keep their text, so the check warns where it cannot tell."""
+    try:
+        value = shlex.split(line, comments=True)[1].partition('=')[2]
+        words = shlex.split(value)
+    except (ValueError, IndexError):
+        return None
+    if len(words) != 2 or words[0] != 'python3':
+        return None
+    path = words[1] if "'" in value else os.path.expandvars(words[1])
+    return Path(os.path.expanduser(path) if not re.search('[\'"]~', value) else path).resolve()
+
+
+def alias_check():
+    rc, fix = rc_file(), f'python3 {shlex.quote(str(Path(__file__).resolve()))} --alias'
+    if rc is None:
+        return False, f'{os.environ.get("SHELL") or "no $SHELL"}: add to its startup file: {alias_line()}'
+    where = '~/' + str(rc.relative_to(Path.home())) if rc.is_relative_to(Path.home()) else str(rc)
+    try:
+        defs = [l for l in rc.read_text(errors='replace').splitlines() if ALIAS.match(l)] if rc.exists() else []
+    except OSError as e:
+        return False, f'{where} unreadable: {e.strerror}'
+    if not defs:
+        return False, f'not in {where}; add it: {fix}'
+    if alias_target(defs[-1]) != GRAB.resolve():
+        return False, f'{where} defines grab differently; replace it: {fix}'
+    return True, f'in {where}'
+
+
+def write_alias():
+    """Writes alias_line() into rc_file(): replaces the last grab alias, keeping its indentation, or appends it."""
+    rc, line = rc_file(), alias_line()
+    if rc is None:
+        print(f'{os.environ.get("SHELL") or "no $SHELL"}: unknown startup file; add this line to it:\n{line}', file=sys.stderr)
+        return 1
+    try:
+        text = rc.read_text() if rc.exists() else ''
+        lines = text.splitlines(keepends=True)
+        hits = [i for i, l in enumerate(lines) if ALIAS.match(l)]
+        if hits and alias_target(lines[hits[-1]]) == GRAB.resolve():
+            print(f'{rc} already runs {GRAB} as grab')
+            return 0
+        if hits:
+            old = lines[hits[-1]]
+            lines[hits[-1]] = old[:len(old) - len(old.lstrip())] + line + '\n'
+            rc.write_text(''.join(lines))
+        else:
+            rc.write_text(text + ('\n' if text and not text.endswith('\n') else '') + line + '\n')
+    except OSError as e:
+        print(f'{rc}: {e.strerror}; add this line to it:\n{line}', file=sys.stderr)
+        return 1
+    print(f'{"replaced the grab alias in" if hits else "added to"} {rc}: {line}\nOpen a new terminal, or run: source {shlex.quote(str(rc))}')
+    return 0
+
+
 def distro(choice):
     if choice:
         return choice
@@ -248,6 +330,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('distro', nargs='?', default='', help='ubuntu or arch: install hints for it (default: detected)')
     parser.add_argument('--lint', action='store_true', help='list tools scripts run that TOOLS does not declare')
+    parser.add_argument('--alias', action='store_true', help="write the grab alias into the login shell's startup file")
     args = parser.parse_args()
     if args.distro not in ('', 'ubuntu', 'arch'):
         parser.error(f'distribution must be ubuntu or arch, not {args.distro!r}')
@@ -256,9 +339,11 @@ def main():
         for f, name in found:
             print(f'UNDECLARED {name} in {f}')
         return int(bool(found))
+    if args.alias:
+        return write_alias()
     missing, failed = [], False
     rows = [(None, 'platform', None, platform_check()), *((t, t.name, t.need, check(t)) for t in TOOLS),
-            (None, 'role', None, role_check())]
+            (None, 'role', None, role_check()), (None, 'grab alias', 'grab from any folder', alias_check())]
     for tool, name, need, (ok, detail) in rows:
         label = 'OK' if ok else 'WARN' if need or name == 'platform' else 'FAIL'
         failed |= label == 'FAIL'
