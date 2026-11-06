@@ -5,7 +5,8 @@
            operation, base members and operators included; a nested struct or enum that spells it whole) and compiled
            with -fsyntax-only after the template and debug headers, on $CXX (default g++) and g++-14, with probes that
            instantiate each template it reaches with the first candidate arguments compiling after the whole header;
-           identical extractions compile once; a public 02-07 function template whose type parameter grab must
+           identical extractions compile once; an extraction keeping code outside its header's include closure
+           fails (no root needs what its header cannot see); a public 02-07 function template whose type parameter grab must
            infer fails (03-cpp.md, Headers: it takes a default), and -v lists templates no candidate instantiates
   testers  every C++ tester's quick mode on its extracted build: a scratch tree where every library header except the
            template and debug headers is replaced by the declarations the tester's files name (grab's --into --min rule), so
@@ -380,6 +381,11 @@ def check_ops(ix, a, work):
             tasks.append((None, names, 'extraction keeps a quoted include', None))
         tasks += [(cxx, names, None, str(path)) for cxx in compilers]
     failures = 0
+    for header, label, roots in entries:
+        far = beyond(ix, header, roots)
+        if far:
+            failures += 1
+            print(f'{RED}FAIL{RESET} {label}: extraction keeps code of {", ".join(far)}, outside its header\'s include closure')
     with concurrent.futures.ThreadPoolExecutor(a.jobs) as pool:
         futures = {pool.submit(compile_check, cxx, p): (cxx, names) for cxx, names, err, p in tasks if p}
         failures += sum(1 for cxx, names, err, p in tasks if err and not print(f'{RED}FAIL{RESET} {names[0]}: {err}'))
@@ -407,6 +413,12 @@ def check_ops(ix, a, work):
     if a.verbose:
         print('\n'.join(['  unresolved ' + u for u in unresolved] + ['  unprobed ' + u for u in unprobed]))
     return failures
+
+
+def beyond(ix, header, roots):
+    """Headers whose code the extraction of roots (units of header) keeps outside header's include closure: none, since a
+    root never needs what its header cannot see."""
+    return sorted(set(grab.select(ix, roots)) - ix.closures[header] - {header})
 
 
 def cpp_testers(root):

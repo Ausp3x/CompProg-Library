@@ -67,7 +67,14 @@ a type lacking one skipped; sequences, monoids, detail templates and non-templat
 and pruned by a pruned one; undefaulted in the harness) -> test_input_types; file mode keeping members called on structs
 the file never names and no type the file declares, however reached (--into and --min; on the repository, dijkstra(...).path)
 -> test_into_called_members_and_own_types, test_repo_into_cli; a using-declaration of a dependent base's members keeping
-them -> test_using_declaration_members;
+them -> test_using_declaration_members; no over-reach (an out-of-line member only with its class, `C::mul` through a
+template parameter and an unqualified call in one detail namespace keeping no other namespace's function, while
+argument-dependent lookup and a using-directive still reach one) -> test_no_over_reach;
+lookup rules (enum ADL, out-of-line namespace members by their declaration and namespace, namespace aliases, `::name`,
+namespace-scope and block-scope using-declarations, out-of-line class members only with their in-class declaration,
+nested namespaces, `ns::template f`, explicit specializations in and out of their namespace and of class members,
+aliases per include closure and in chains, ADL in a type's innermost namespace only, no out-of-line definition as a
+command-line name, names in member access or trailing return types) and the harness's out-of-closure check -> test_lookup_rules;
 harness: split (template brackets), operations (operators, operator()), rows, targets (bases, nested structs and enums,
 operators; test_targets_nested_enum_bases_operators), core_full (fixture and repository), final, full_only, cpp_testers,
 scratch (per-header stubs under their quoted includes, copies, compiled use), own_names (prose excluded), aggregate
@@ -1013,6 +1020,168 @@ NET_USE_HPP = ('#pragma once\n#include "../01-Core/01-template.hpp"\n#include "0
                'struct Gr {\n    int n = 2, at[2] = {7, 8};\n    int operator[](int k) const { return at[k]; }\n};\n'
                'template<class G> int netLast(const G &g) { return g[g.n - 1]; }\n'
                'template<class G> int derivedSum(const G &g) { return g.extra + g.n; }\n')
+REACH_HPP = ('#pragma once\n#include "../01-Core/01-template.hpp"\n#include "09-net.hpp"\n\n'
+             'struct Holder {\n    int f(const NetStat &s) const;\n};\n'
+             'inline int Holder::f(const NetStat &s) const { return s.a + 1000; }\n'
+             'namespace reach_detail {\n    template<class T> T mul(T a, T b) { return a * b + 1000; }\n'
+             '    template<class T> T key(T x) { return x + 1000; }\n    struct Box { int v; };\n'
+             '    inline int open(Box b) { return b.v; }\n    template<class T> T twice(T x) { return 2 * x; }\n'
+             '} // namespace reach_detail\n')
+REACH_USE_HPP = ('#pragma once\n#include "../01-Core/01-template.hpp"\n#include "11-reach.hpp"\n\n'
+                 'template<class C> struct Ctx {\n    static int twice(int a) { return C::mul(a, 2); }\n};\n'
+                 'struct M2 {\n    static int mul(int a, int b) { return a * b; }\n};\n'
+                 'inline int useCtx(int a) { return Ctx<M2>::twice(a); }\n'
+                 'namespace use_detail {\n    template<class T> T key(T x) { return x + 1; }\n'
+                 '    template<class T> T run(T x) { return key(x); }\n} // namespace use_detail\n'
+                 'inline int useKey(int x) { return use_detail::run(x); }\n'
+                 'template<class B> int peekBox(B b) { return open(b); }\n'
+                 'inline int useBox() { return peekBox(reach_detail::Box{9}); }\n'
+                 'template<class T> T viaUsing(T x) { using namespace reach_detail; return twice(x); }\n')
+LOOKUP_HPP = ('#pragma once\n#include "../01-Core/01-template.hpp"\n\n'
+              'namespace e_detail {\n'
+              '    enum class Color { R, G };\n'
+              '    inline int code(Color c) { return int(c) + 7; }\n'
+              '} // namespace e_detail\n'
+              'template<class T> int codeOf(T t) { return code(t); }\n'
+              'inline int useColor() { return codeOf(e_detail::Color::G); }\n'
+              'namespace q_detail {\n'
+              '    template<class T> T helper(T x) { return x + 1; }\n'
+              '    template<class T> T g(T x);\n'
+              '} // namespace q_detail\n'
+              'template<class T> T q_detail::g(T x) { return helper(x); }\n'
+              'inline int useG() { return q_detail::g(3); }\n'
+              'namespace al_detail {\n'
+              '    template<class T> T af(T x) { return x * 5; }\n'
+              '    template<class T> T af(T x, T y) { return x * y; }\n'
+              '} // namespace al_detail\n'
+              'namespace al = al_detail;\n'
+              'template<class T> T callAl(T x) { return al::af(x); }\n'
+              'inline int useAl() { return callAl(2); }\n'
+              'template<class T> T gf(T x) { return x + 5; }\n'
+              'template<class T> T gf(T x, T y) { return x + y; }\n'
+              'template<class T> T callGf(T x) { return ::gf(x); }\n'
+              'inline int useGf() { return callGf(2); }\n'
+              'namespace ud_detail {\n'
+              '    template<class T> T uf(T x) { return x * 3; }\n'
+              '    template<class T> T uf(T x, T y) { return x - y; }\n'
+              '} // namespace ud_detail\n'
+              'using ud_detail::uf;\n'
+              'template<class T> T callUf(T x) { return uf(x); }\n'
+              'inline int useUf() { return callUf(2); }\n'
+              'namespace inner_ns {\n'
+              '    template<class T> T callUf2(T x) { using ud_detail::uf; return uf(x, x + 1); }\n'
+              '} // namespace inner_ns\n'
+              'inline int useUf2() { return inner_ns::callUf2(2); }\n'
+              'struct Other { int v = 4; };\n'
+              'template<class T> struct A {\n'
+              '    T x{};\n'
+              '    T f() const;\n'
+              '    template<class U> U g(U u) const;\n'
+              '    static int cnt;\n'
+              '    int unused() const;\n'
+              '};\n'
+              'template<class T> T A<T>::f() const { return x + 1; }\n'
+              'template<class T> template<class U> U A<T>::g(U u) const { return u + U(x); }\n'
+              'template<class T> int A<T>::cnt = 11;\n'
+              'template<class T> int A<T>::unused() const { return 99; }\n'
+              'struct B {\n'
+              '    int v;\n'
+              '    explicit B(int x);\n'
+              '    struct Inner { int h() const; };\n'
+              '    int take(const Other &o) const;\n'
+              '};\n'
+              'inline B::B(int x) : v(x) {}\n'
+              'inline int B::Inner::h() const { return 21; }\n'
+              'inline int B::take(const Other &o) const { return o.v + v; }\n'
+              'inline int useOther() { return Other{}.v; }\n'
+              'inline int useA() { return A<int>{}.f() + A<int>{}.g(2) + A<int>::cnt; }\n'
+              'inline int useB() { return B(3).v + B::Inner{}.h(); }\n'
+              'namespace outer {\n'
+              '    template<class T> T nf(T x) { return x + 100; }\n'
+              '    template<class T> T nf(T x, T y) { return x + y; }\n'
+              '    namespace mid {\n'
+              '        template<class T> T mf(T x) { return x + 200; }\n'
+              '        template<class T> T mf(T x, T y) { return x + y; }\n'
+              '        template<class T> T callNf(T x) { return nf(x); }\n'
+              '    } // namespace mid\n'
+              '    template<class T> T callMf(T x) { return mid::mf(x); }\n'
+              '} // namespace outer\n'
+              'inline int useNest() { return outer::mid::callNf(1) + outer::callMf(1); }\n'
+              'namespace tk_detail {\n'
+              '    template<int K, class T> T tf(T x) { return x + K; }\n'
+              '    template<int K, class T> T tf(T x, T y) { return x + y + K; }\n'
+              '} // namespace tk_detail\n'
+              'template<class T> T callTk(T x) { return tk_detail::template tf<3>(x); }\n'
+              'inline int useTk() { return callTk(2); }\n'
+              'namespace r_detail {\n'
+              '    template<int J> int digit(int x) { return x + J; }\n'
+              '    template<class T> T rg(T x);\n'
+              '    template<class T> T rg(T x, T y) { return x + y; }\n'
+              '    template<int K> int sum(int x);\n'
+              '} // namespace r_detail\n'
+              'template<class T> T r_detail::rg(T x) { return x * 7; }\n'
+              'template<int K> int r_detail::sum(int x) { return digit<K>(x); }\n'
+              'template<class T> T callRg(T x) { return r_detail::rg(x); }\n'
+              'inline int useRg() { return callRg(2); }\n'
+              'inline int useSum() { using namespace r_detail; return sum<3>(4); }\n')
+LOOKUP2_HPP = ('#pragma once\n#include "../01-Core/01-template.hpp"\n\n'
+              'namespace ov_detail {\n'
+              '    struct Heavy { int v = 42; int unusedHeavy() const { return 1; } };\n'
+              '    template<class T> T twice(T x);\n'
+              '} // namespace ov_detail\n'
+              'template<class T> T ov_detail::twice(T x) { return x * Heavy{}.v; }\n'
+              'inline int twice(int x) { return 2 * x; }\n'
+              'namespace cc_detail {\n'
+              '    template<class T> T step(T x) { return x * 3; }\n'
+              '} // namespace cc_detail\n'
+              'namespace c1 = cc_detail;\n'
+              'namespace c2 = c1;\n'
+              'template<class T> T useC(T x) { return c2::step(x); }\n'
+              'inline int runC() { return useC(2); }\n'
+              'template<class T> T useD(T x) { using namespace c1; return step(x); }\n'
+              'inline int runD() { return useD(2); }\n'
+              'namespace ao_detail {\n'
+              '    namespace deep {\n'
+              '        struct Far { int v = 5; };\n'
+              '    } // namespace deep\n'
+              '    template<class T> T far(T x) { return x + 900; }\n'
+              '} // namespace ao_detail\n'
+              'template<class T> struct W {\n'
+              '    T far(T x) const { return x; }\n'
+              '    T go(T x) const { return far(x); }\n'
+              '};\n'
+              'inline int runFar() { ao_detail::deep::Far f; return W<int>{}.go(f.v); }\n'
+              'namespace fd_detail {\n'
+              '    struct Tok { int v; friend int peek(Tok t); };\n'
+              '    inline int peek(Tok t);\n'
+              '} // namespace fd_detail\n'
+              'inline int usePeek() { return fd_detail::peek(fd_detail::Tok{6}); }\n'
+              'inline int fd_detail::peek(Tok t) { return t.v + 1; }\n'
+              'namespace es_detail {\n'
+              '    template<class T> int f(T) { return 1; }\n'
+              '} // namespace es_detail\n'
+              'template<> inline int es_detail::f<int>(int) { return 2; }\n'
+              'inline int useEs() { return es_detail::f(5) * 10 + es_detail::f(1.5); }\n'
+              'template<class T> int callEs(T x) { return es_detail::f(x); }\n'
+              'inline int useEs2() { return callEs(5); }\n')
+SPEC_HPP = ('#pragma once\n#include "../01-Core/01-template.hpp"\n\n'
+            'struct Sel { template<int K> int get() const { return K; } };\n'
+            'template<> inline int Sel::get<1>() const { return 100; }\n'
+            'template<class T> struct Bx { int f() const { return 1; } };\n'
+            'template<> inline int Bx<int>::f() const { return 2; }\n'
+            'inline int f(int) { return 0; }\n')
+ALIAS_A_HPP = ('#pragma once\n#include "../01-Core/01-template.hpp"\n\n'
+              'namespace aa_detail {\n'
+              '    template<class T> T pick(T x) { return x + 1; }\n'
+              '} // namespace aa_detail\n'
+              'namespace h = aa_detail;\n'
+              'template<class T> T useA(T x) { return h::pick(x); }\n'
+              'inline int runA() { return useA(1); }\n')
+ALIAS_B_HPP = ('#pragma once\n#include "../01-Core/01-template.hpp"\n\n'
+              'namespace bb_detail {\n'
+              '    template<class T> T pick(T x) { return x + 2; }\n'
+              '} // namespace bb_detail\n'
+              'namespace h = bb_detail;\n')
 GR_LINE = 'int operator[](int k) const { return at[k]; }'
 NET_LINES = ['void link(int v) { adj[n++] = v; }', 'int unusedNet() const { return 1; }', 'int operator[](int v) const { return adj[v]; }']
 
@@ -1023,6 +1192,10 @@ class Extras(Base):
     W = '02-Data Structures/05-wrap.hpp'
     MODE, Y, FOLD = '02-Data Structures/06-mode.hpp', '02-Data Structures/07-ytype.hpp', '02-Data Structures/08-folder.hpp'
     NET, NET_USE = '02-Data Structures/09-net.hpp', '02-Data Structures/10-netuse.hpp'
+    REACH, REACH_USE = '02-Data Structures/11-reach.hpp', '02-Data Structures/12-reachuse.hpp'
+    LOOKUP = '02-Data Structures/13-lookup.hpp'
+    LOOKUP2, ALIAS_A, ALIAS_B = '02-Data Structures/14-lookup2.hpp', '02-Data Structures/15-alias_a.hpp', '02-Data Structures/16-alias_b.hpp'
+    SPEC = '02-Data Structures/17-spec.hpp'
 
     def setUp(self):
         super().setUp()
@@ -1031,7 +1204,10 @@ class Extras(Base):
         self.root = write_tree(self.tmp / 'extras', {T: FILES[T] + 'using ulng = uint64_t;\n', D: FILES[D], self.W: WRAP,
                                                      '02-Data Structures/98-basic.hpp': '#pragma once\n#include "05-wrap.hpp"\n',
                                                      self.MODE: MODE_HPP, self.Y: Y_HPP, self.FOLD: FOLD_HPP, H.MONOIDS: MONOIDS_HPP,
-                                                     self.NET: NET_HPP, self.NET_USE: NET_USE_HPP})
+                                                     self.NET: NET_HPP, self.NET_USE: NET_USE_HPP,
+                                                     self.REACH: REACH_HPP, self.REACH_USE: REACH_USE_HPP, self.LOOKUP: LOOKUP_HPP,
+                                                     self.LOOKUP2: LOOKUP2_HPP, self.ALIAS_A: ALIAS_A_HPP, self.ALIAS_B: ALIAS_B_HPP,
+                                                     self.SPEC: SPEC_HPP})
         self.ix = built(self.root)
 
     def run_with(self, out, main, want, flags=()):
@@ -1176,6 +1352,54 @@ class Extras(Base):
         self.true('int unusedNet() const { return 1; }' not in pruned and 'struct Net {' in pruned, out=pruned, what='a pruned root keeps its input pruned')
         self.eq(sorted(H.undefaulted(self.ix, [self.NET, self.NET_USE])),
                 [(self.NET, 'netFirst', ['Net']), (self.NET_USE, 'derivedSum', ['DerivedG']), (self.NET_USE, 'netLast', ['Gr'])])
+
+    def test_no_over_reach(self):
+        out = G.grab(['netStat'], self.root, self.ix)
+        self.true('Holder' not in out, out=out, what='an out-of-line member comes with its class only, never with a type it takes')
+        for names, gone, main, want in (
+                (['useCtx'], 'a * b + 1000', 'int main() { printf("%d\\n", useCtx(3)); }\n', '6\n'),
+                (['useKey'], 'x + 1000', 'int main() { printf("%d\\n", useKey(3)); }\n', '4\n'),
+                (['useBox', 'viaUsing'], None, 'int main() { printf("%d %d\\n", useBox(), viaUsing(4)); }\n', '9 8\n')):
+            out = G.grab(names, self.root, self.ix)
+            if gone:
+                self.true(gone not in out, names=names, out=out,
+                          what="C::mul through a template parameter and an unqualified call in one detail namespace never keep another namespace's function")
+            else:
+                self.true('inline int open(Box b)' in out and 'T twice(T x) { return 2 * x; }' in out, names=names, out=out,
+                          what='argument-dependent lookup and a using-directive still reach a detail namespace')
+            self.run_with(out, main, want)
+
+    def test_lookup_rules(self):
+        for name, want in (('useColor', 8), ('useG', 4), ('useAl', 10), ('useGf', 7), ('useUf', 6), ('useUf2', -1), ('useA', 14),
+                           ('useB', 24), ('useOther', 4), ('useNest', 302), ('useTk', 5), ('useRg', 14), ('useSum', 7)):
+            out = G.grab([name], self.root, self.ix)
+            self.run_with(out, f'int main() {{ printf("%d\\n", {name}()); }}\n', f'{want}\n')
+            if name == 'useA':
+                self.true('unused' not in out, out=out, what='an out-of-line member comes only when its in-class declaration does')
+            if name == 'useOther':
+                self.true('take' not in out, out=out, what='an out-of-line member never comes with a type it takes')
+        for name, want in (('runA', 2), ('runC', 6), ('runD', 6), ('runFar', 5), ('usePeek', 7), ('useEs', 21), ('useEs2', 2)):
+            out = G.grab([name], self.root, self.ix)
+            self.run_with(out, f'int main() {{ printf("%d\\n", {name}()); }}\n', f'{want}\n')
+            if name == 'runFar':
+                self.true('x + 900' not in out, out=out, what='argument-dependent lookup looks only in a type\'s innermost namespace')
+        self.eq([self.ix.units[i]['header'] for i in self.ix.resolve('twice') if self.ix.units[i]['header'] == self.LOOKUP2], [self.LOOKUP2],
+                what='an out-of-line namespace member is no command-line name of its own')
+        out = G.grab_text('int main() { printf("%d\\n", twice(3)); }\n', self.root, self.ix)[0]
+        self.true('Heavy' not in out and 'inline int twice(int x)' in out, out=out,
+                  what='a global function and an out-of-line namespace member of one name are no overload set')
+        text = 'struct Edge {\n    int u;\n    operator YT() const { return YT{u}; }\n};\nvoid solve() { Edge e{1}; printf("%d\\n", int(sizeof e) + YT(e).y); }\nint main() { solve(); }\n'
+        self.eq(G.lines_of(self.ix, text)[1], ['YT'], what='a conversion operator or sizeof naming a library type declares nothing')
+        self.eq(G.lines_of(self.ix, 'struct S { int twice() const { return 2; } };\nint main() { S s; printf("%d\\n", s.twice()); }\n')[1], [],
+                what='a name spelled only in member access roots no free function')
+        main = 'int main() { Sel s; Bx<int> b; printf("%d %d\\n", s.get<1>(), b.f()); }\n'
+        for out in (G.grab(['Sel', 'Bx'], self.root, self.ix), G.grab_text(main, self.root, self.ix)[0]):
+            self.run_with(out, main, '100 2\n')
+        self.true('Bx<int>::f' not in G.grab(['f'], self.root, self.ix), what="a class member's explicit specialization pairs with no free function")
+        text = 'void solve() { auto g = [&](int x) -> YT { return YT{x}; }; printf("%d\\n", g(3).y); }\nint main() { solve(); }\n'
+        self.eq(G.lines_of(self.ix, text)[1], ['YT'], what='a trailing return type is no member access')
+        self.eq(H.beyond(self.ix, self.NET, self.ix.resolve('netStat')), [])
+        self.eq(H.beyond(self.ix, self.NET, self.ix.resolve('useCtx')), [self.REACH_USE], what='code outside the include closure is reported')
 
     def test_using_declaration_members(self):
         out = G.grab(['UsesBase::twiceAdd'], self.root, self.ix)

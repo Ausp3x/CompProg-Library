@@ -212,17 +212,35 @@ def analyze(root: str, header: str, flags: list[str]) -> tuple[list[dict], list[
             unit['attach'] = 'refs'  # free operator or std specialization: kept with a library type it names
         elif c.kind in (K.STATIC_ASSERT, K.USING_DIRECTIVE, K.USING_DECLARATION) or name.startswith('<deduction'):
             unit['attach'] = 'refs'
+        elif sem is not None and sem.kind == K.NAMESPACE and c.lexical_parent is not None and sem != c.lexical_parent and c.kind not in TYPES:
+            unit['attach'] = 'owner'  # out-of-line namespace member (`T ns::f(...) {...}`): kept with its declaration
+        if c.kind == K.ENUM_DECL:
+            unit['enum'] = True  # argument-dependent lookup looks into its namespace
+        if sem is not None and c.lexical_parent is not None and sem != c.lexical_parent:
+            scope, s = [], sem  # the namespaces it belongs to, not those it is written in
+            while s is not None and s.kind != K.TRANSLATION_UNIT:
+                if s.kind == K.NAMESPACE:
+                    scope.append(s.spelling)
+                s = s.semantic_parent
+            unit['scope'] = scope[::-1]
+            unit['detail'] = unit['detail'] or any(s.endswith('_detail') for s in scope)
         if unit['kind'] != 'leaf':
             unit['head'] = [c.extent.start.line, brace(c)]
         units.append(unit)
         me = len(units) - 1
         if unit['kind'] == 'leaf':
             references(c, unit, set())
-            if unit['attach'] == 'owner':  # its class and its in-class declaration
-                for d in (sem, c.canonical):
+            if unit['attach'] == 'owner':  # it needs its class and declaration; only the declaration brings it
+                unit['owner'] = []
+                here = lambda d: (d.location.file.name if d.location.file else None, d.location.line, d.location.column)
+                own = c.canonical if here(c.canonical) != here(c) else sem if sem.kind in TYPES else None  # an explicit specialization is its own canonical declaration
+                for d in ((sem, c.canonical) if sem.kind in TYPES else (c.canonical,)):
                     f = os.path.normpath(d.location.file.name) if d.location.file else None
                     if f in lib:
-                        unit['refs'].add((str(Path(f).relative_to(root)), d.location.line, d.location.column))
+                        r = (str(Path(f).relative_to(root)), d.location.line, d.location.column)
+                        unit['refs'].add(r)
+                        if d == own:
+                            unit['owner'].append(r)
             return
         children = [x for x in c.get_children() if x.location.file and x.location.file.name == path and x.kind not in SKIP]
         for x in children:
@@ -353,6 +371,7 @@ class Index:
         self.attached = [i for i, u in enumerate(self.units) if u['attach'] and u['kind'] != 'ns']
         self._lines: dict[str, dict[int, list[int]]] = {}
         self._targets: dict[int, list[int]] = {}
+        self._aliases: dict[str, dict[str, str]] | None = None
 
     def covering(self, header: str) -> dict[int, list[int]]:
         """Line -> units of header whose extent covers it (built once per header)."""
@@ -379,6 +398,31 @@ class Index:
             found = {self.at(h, l, c) for h, l, c in self.units[i]['refs'] if h in self.where}
             self._targets[i] = sorted(found - {None, i})
         return self._targets[i]
+
+    def namespace_aliases(self, header: str) -> dict[str, str]:
+        """Namespace alias visible in header (declared in its include closure) -> the innermost namespace it names, through
+        further aliases (`namespace cd = convolution_detail;`)."""
+        if self._aliases is None:
+            pat = re.compile(r'\bnamespace\s+(\w+)\s*=\s*(?:::)?\s*((?:\w+\s*::\s*)*\w+)\s*;')
+            self._aliases = {h: {m[1]: re.split(r'\s*::\s*', m[2])[-1] for m in pat.finditer(DEPS.strip_cpp('\n'.join(self.text(h))))}
+                             for h in self.where}
+        own = {}
+        for h in [*self.closures.get(header, ()), header]:
+            own.update(self._aliases.get(h, {}))
+        out = {}
+        for a in own:
+            q, seen = a, set()
+            while q in own and q not in seen:
+                seen.add(q); q = own[q]
+            out[a] = q
+        return out
+
+    def anchors(self, i: int) -> list[int]:
+        """Units whose keeping keeps attached unit i: an out-of-line member's declaration (in its class or namespace), the
+        library types a free operator, std specialization or using-declaration names."""
+        if self.units[i]['attach'] == 'owner':
+            return sorted({self.at(h, l, c) for h, l, c in self.units[i].get('owner', ()) if h in self.where} - {None, i})
+        return [t for t in self.targets(i) if self.units[t]['kind'] == 'type']
 
     def code(self, i: int) -> list[int]:
         """Lines unit i keeps of its own code: a leaf's extent, a container's head and closing line."""
@@ -417,7 +461,8 @@ class Index:
         """Units a CLI name means: an exact qualified name, else a qualified suffix, namespace-scope units first;
         Alias::member names the member of the type the alias names, through further aliases."""
         parts = name.split('::')
-        hits = [i for i in self.by_name.get(parts[-1], []) if self.units[i]['qual'].split('::')[-len(parts):] == parts]
+        hits = [i for i in self.by_name.get(parts[-1], []) if self.units[i]['qual'].split('::')[-len(parts):] == parts
+                and self.units[i]['attach'] != 'owner']  # an out-of-line definition is reached through its declaration
         exact = [i for i in hits if self.units[i]['qual'] == name]
         top = [i for i in hits if self.toplevel(i)]
         if hits or len(parts) < 2:
@@ -536,6 +581,66 @@ def inputs(ix: Index, i: int, inferred_only: bool = False) -> list[int]:
     return list(dict.fromkeys(out))
 
 
+def scopes(ix: Index, i: int) -> tuple[str, ...]:
+    """The namespaces unit i belongs to, outermost first (an out-of-line definition's are its declaration's)."""
+    if 'scope' in ix.units[i]:
+        return tuple(ix.units[i]['scope'])
+    out, p = [], ix.units[i]['parent']
+    while p is not None:
+        if ix.units[p]['kind'] == 'ns':
+            out.append(ix.units[p]['name'])
+        p = ix.units[p]['parent']
+    return tuple(reversed(out))
+
+
+def home(ix: Index, i: int) -> tuple:
+    """Where unit i's name lives, for overload sets and specializations: its class (`in`), its namespaces (`ns`), or
+    nowhere (`def`, an out-of-line class member's definition, which comes with its declaration)."""
+    U = ix.units
+    p = U[i]['parent']
+    if p is not None and U[p]['kind'] == 'type':
+        return ('in', p)
+    if U[i]['attach'] == 'owner' and any(U[a]['kind'] == 'type' or (U[a]['parent'] is not None and U[U[a]['parent']]['kind'] == 'type')
+                                         for a in ix.anchors(i)):
+        return ('def', i)
+    return ('ns', scopes(ix, i))
+
+
+def findable(ix: Index, j: int, name: str, callers: set, kept: set[int]) -> bool:
+    """Whether namespace-scope unit j can be what name means in one of the kept units spelling it (callers; None: an
+    unparsed branch, any scope): written `ns::name` with ns enclosing j, or unqualified where ordinary lookup (j's
+    namespace encloses the caller's, or a `using namespace` the caller spells names it) or argument-dependent lookup (a
+    kept type lives in j's namespace; the argument may come from the instantiating code) reaches it. So `C::mul`
+    through a template parameter is a member, never `x_detail::mul`, and an unqualified `key` in one detail namespace
+    is never another's."""
+    U, nj = ix.units, scopes(ix, j)
+    for c in callers:
+        if c is None:
+            return True
+        sl, _, el, _ = U[c]['ext']
+        code = DEPS.strip_cpp('\n'.join(ix.text(U[c]['header'])[sl - 1:el]))
+        real = lambda q, aliases=ix.namespace_aliases(U[c]['header']): aliases.get(q, q)
+        spots = [m.start() for m in re.finditer(rf'\b{re.escape(name)}\b', code)]
+        if not spots:
+            return True
+        for k, s in enumerate(spots):
+            before = re.sub(r'\btemplate\s*$', '', code[:s].rstrip()).rstrip()  # ns::template f<3>(x)
+            if before.endswith('.') or before.endswith('->'):
+                continue
+            if before.endswith('::'):  # qualified: the qualifier names j's namespace (`::name`: the global one)
+                q = re.search(r'(\w*)\s*$', before[:-2])[1]
+                q = '' if q in RESERVED else real(q)
+                if q == (nj[-1] if nj else '') and not before[:-2].rstrip().endswith('>'):
+                    return True
+                continue
+            if k == 0 and name == U[c]['name']:
+                continue  # its own declarator
+            if scopes(ix, c)[:len(nj)] == nj or nj[-1] in {real(m[1]) for m in re.finditer(r'\busing\s+namespace\s+(?:\w+\s*::\s*)*(\w+)\s*;', code)} or any(
+                    (U[k2]['kind'] == 'type' or U[k2].get('enum')) and scopes(ix, k2) == nj for k2 in kept):  # ADL: a type's innermost namespace
+                return True
+    return False
+
+
 def select(ix: Index, roots: list[int], member_names: set[str] | None = None, visible: set[str] = frozenset(),
            partial: list[int] = (), whole_roots: bool | None = None, exclude: set[str] = frozenset()) -> dict[str, set[int]]:
     """Header -> kept lines for roots and everything they reach. member_names (a file's identifiers) keeps the members
@@ -547,7 +652,7 @@ def select(ix: Index, roots: list[int], member_names: set[str] | None = None, vi
     with kept code and in visible (the headers a bundled source includes), as ADL at instantiation would."""
     U = ix.units
     whole, kept = set(), set()
-    names: set[str] = set()  # dependent names to look up
+    names: dict[str, set] = {}  # dependent name -> the kept units spelling it, None for an unparsed branch
     members = set(member_names or ())
     work = []
 
@@ -569,7 +674,7 @@ def select(ix: Index, roots: list[int], member_names: set[str] | None = None, vi
                 if i in whole or U[c]['always']:
                     keep(c, i in whole)
         for j in ix.by_name.get(u['name'], ()):
-            if j != i and U[j]['parent'] == u['parent'] and U[j]['kind'] == u['kind'] and (u['parent'] is not None or U[j]['header'] in ix.closures[u['header']] or u['header'] in ix.closures[U[j]['header']]):
+            if j != i and U[j]['kind'] == u['kind'] and home(ix, j) == home(ix, i) and (home(ix, i)[0] == 'in' or U[j]['header'] in ix.closures[u['header']] or u['header'] in ix.closures[U[j]['header']]):
                 keep(j, i in whole)  # overload set or specialization
         for t in ix.targets(i):
             keep(t, i in whole and bool(u.get('alias')))  # a whole alias keeps the type it names whole
@@ -586,12 +691,13 @@ def select(ix: Index, roots: list[int], member_names: set[str] | None = None, vi
             m = re.match(r'\s*using\s+(?!namespace\b)([^=;]*::[^=;]*);', text)  # using B::add, B::prefix; (a dependent base)
             if m:
                 members.update(q.rsplit('::', 1)[1].strip() for q in m[1].split(',') if '::' in q)
-        names.update(u['names'])
+        for n in u['names']:
+            names.setdefault(n, set()).add(i)
         members.update(u['members'])
 
     def lookup():
         seen = set(visible).union(*(ix.closures[h] for h in {U[k]['header'] for k in kept}))
-        for n in names:
+        for n, callers in names.items():
             for j in ix.by_name.get(n, ()):
                 if j in kept:
                     continue
@@ -599,7 +705,7 @@ def select(ix: Index, roots: list[int], member_names: set[str] | None = None, vi
                 if p is not None and U[p]['kind'] == 'type':
                     if p in kept:
                         keep(j)
-                elif U[j]['header'] in seen:
+                elif U[j]['attach'] != 'owner' and U[j]['header'] in seen and findable(ix, j, n, callers, kept):
                     keep(j, True)
         for n in members:
             for j in ix.by_name.get(n, ()):
@@ -607,7 +713,7 @@ def select(ix: Index, roots: list[int], member_names: set[str] | None = None, vi
                 if j not in kept and p is not None and p in kept and U[p]['kind'] == 'type':
                     keep(j)
         for j in ix.attached:
-            if j not in kept and any(t in kept and (U[t]['kind'] == 'type' or U[j]['attach'] == 'owner') for t in ix.targets(j)):
+            if j not in kept and any(t in kept for t in ix.anchors(j)):  # not a parameter type: relax(GraphArc) is no Graph code
                 keep(j, U[j]['kind'] == 'type')
 
     for r in roots:
@@ -627,7 +733,7 @@ def select(ix: Index, roots: list[int], member_names: set[str] | None = None, vi
             return out
         looked |= new  # identifiers of branches no configuration parsed are looked up like dependent names
         for n, h in new:
-            names.add(n)
+            names.setdefault(n, set()).add(None)
             members.add(n)
         lookup()
         if not work:
@@ -894,12 +1000,15 @@ def roots_of(ix: Index, text: str, allowed: set[str] | None = None, raw: bool = 
              own: set[str] | None = None) -> tuple[list[int], set[str]]:
     """Library units a file's identifiers name (namespace-scope, public or qualified through a detail namespace),
     except names it declares itself (own, else declared() of its code), #defines, or uses only as locals, parameters
-    or members (local_names); with allowed, only units of those headers."""
+    or members (local_names), or spells only in member access (`s.twice()` roots no free `twice`); with allowed, only
+    units of those headers."""
     ids, pairs = tokens(text, raw)
     pub = ix.public()
     code = DEPS.strip_cpp(text)
     own = (declared(code) if own is None else own) | local_names(code) | macros(text)[0]
-    roots = {i for n in ids - own for i in pub.get(n, ())}
+    access, scan = r'(?:\.|->)\s*(?:template\s+)?([A-Za-z_]\w*)', (text if raw else code) + '\n' + '\n'.join(macros(text)[1])
+    accessed = set(re.findall(access, scan)) - set(IDENT.findall(re.sub(access, ' ', scan)))  # `-> mint` may be a trailing return type
+    roots = {i for n in ids - own for i in pub.get(n, ()) if n not in accessed or ix.units[i]['kind'] == 'type' or ix.units[i].get('alias')}
     for a, b in pairs:
         roots |= {i for i in ix.by_name.get(b, ()) if ix.toplevel(i) and ix.units[i]['qual'].split('::')[-2:] == [a, b]}
     return sorted(i for i in roots if allowed is None or ix.units[i]['header'] in allowed), ids
@@ -1055,7 +1164,7 @@ def suggest(ix: Index, name: str) -> list[str]:
     top-level names for a bare name, qualified names (members included) for one with ::; detail names never."""
     key, spelt = 'qual' if '::' in name else 'name', {}
     for i, u in enumerate(ix.units):
-        if u['name'] and u['kind'] != 'ns' and not u['detail'] and (key == 'qual' or ix.toplevel(i)):
+        if u['name'] and u['kind'] != 'ns' and not u['detail'] and u['attach'] != 'owner' and (key == 'qual' or ix.toplevel(i)):
             spelt.setdefault(u[key].lower(), set()).add(u[key])
     return [s for m in difflib.get_close_matches(name.lower(), spelt, n=5, cutoff=0.6) for s in sorted(spelt[m])][:5]
 
@@ -1064,7 +1173,7 @@ def find(ix: Index, text: str) -> list[str]:
     t = text.lower()
     out = []
     for i, u in enumerate(ix.units):
-        if u['name'] and t in u['qual'].lower() and u['kind'] != 'ns':
+        if u['name'] and t in u['qual'].lower() and u['kind'] != 'ns' and u['attach'] != 'owner':
             out.append(f"{u['qual']:40} {u['header']}:{u['ext'][0]}")
     return sorted(set(out))
 
