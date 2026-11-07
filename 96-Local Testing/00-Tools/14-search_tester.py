@@ -118,10 +118,10 @@ T2S = ROOT / '09-Contest Testing/_11_search_t2s.tsv'
 CORPUS = ROOT / '96-Local Testing/00-Tools/14-search_corpus.json'
 LEDGER = ROOT / '00-Guidelines/Ledgers/library-checker-coverage.json'
 FLOORS = {'lc': (0.88, 0.79), 'cp': (0.96, 0.86), 'oi': (0.81, 0.68), 'abbr': (0.89, 0.86), 'typo': (0.90, 0.90),
-          'simple': (0.92, 0.83), 'py': (0.94, 0.78), 'generated': (0.88, 0.79), 'zh': (0.69, 0.66), 'zhs': (0.87, 0.84),
-          'zht': (0.84, 0.81)}
-# (recall@5, MRR@10) per corpus source: the 2026-11-08 full-mode results (--seed 1) after the third run's retune minus
-# 0.02, rounded down; typo and generated keep their fixed floors
+          'simple': (0.98, 0.88), 'py': (0.94, 0.78), 'generated': (0.88, 0.79), 'zh': (0.69, 0.66), 'zhs': (0.87, 0.84),
+          'zht': (0.85, 0.82)}
+# (recall@5, MRR@10) per corpus source: the 2026-11-08 full-mode results (--seed 1) after the third run's retune and
+# the four aliases the user asked for, minus 0.02, rounded down; typo and generated keep their fixed floors
 TUNED = {  # the 00-search.md table; the formula tests read the module, this pins its values
     'WEIGHTS': {'stem': 1.0, 'ident': 1.0, 'ops': 1.0, 'qual': 0.5, 'aliases': 1.5, 'folder': 4.5}, 'B': 0.5, 'K1': 1.2,
     'TYPO': {1: 0.85, 2: 0.8}, 'PREFIX': 1.0, 'PHRASE': 1.0,
@@ -1434,7 +1434,9 @@ class Real(unittest.TestCase):
         first = lambda q, k=1: [(x.header, x.tier, x.status) for x in self.s.find(q, k)]
         self.assertEqual(first('bipartite')[0][0], '04-Graphs/02-traversal.hpp')
         self.assertEqual(first('binary search')[0][0], '05-Mathematics/02-search_algorithms.hpp')
-        self.assertEqual([x[1:] for x in first('hash', 3)], [('Basic', 'verified')] * 3, first('hash', 3))
+        top = first('hash', 3)  # the user's example: Basic rows, the most finished first (whatever their statuses now)
+        self.assertEqual([(x[1], M.STATUSES.index(x[2])) for x in top],
+                         sorted([('Basic', M.STATUSES.index(x[2])) for x in top], key=lambda y: y[1]), top)
         self.assertEqual(first('debug')[0][0], '01-Core/02-debug.hpp')
 
     def test_repo_chinese(self):  # metamorphic: one query in Simplified and in Traditional (Taiwan words) ranks alike

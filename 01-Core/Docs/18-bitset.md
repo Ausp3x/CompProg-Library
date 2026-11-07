@@ -112,7 +112,7 @@ The 2026-10-06 catalog sweep ([00-sources.md](00-sources.md), [00-notes.md](00-n
 
 ## Aliases
 
-Search aliases (P263, grab --find): bitset; 压位, 压位优化, 位集, 位集合, 动态位集.
+Search aliases (P263, grab --find): bitset; 压位, 压位优化, 位集, 比特集, 位集合, 动态位集.
 
 ## History
 
@@ -125,3 +125,4 @@ Search aliases (P263, grab --find): bitset; 压位, 压位优化, 位集, 位集
 - 2026-10-12: re-audit fix (`findFrom` contract and direct tests, header unchanged), quick and full (seed 1) on g++ and g++-14, stress (seed 3) and `02-integration.py --sanitizers` passed.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `Reference: bool, =, flip, copy` moved to its own `Bitset::Reference` group with `copy` as `ctor (copy)`, which also puts `set` … `==` back in the `Bitset` group, so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-08: P263 user request added `比特集` to the search aliases (`grab --find`) for a held-out corpus query the search missed (00-search.md, Evaluation); no code or test change.

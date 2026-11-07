@@ -141,10 +141,11 @@ GMP `mpq` and FLINT `fmpq` (canonical form, Knuth addition, cross-cancelled prod
 
 ## Aliases
 
-Search aliases (P263, grab --find): 分数类, 有理数, 分数运算, 有理数取模, 小数转分数.
+Search aliases (P263, grab --find): fraction, 分数类, 有理数, 分数运算, 有理数取模, 小数转分数.
 
 ## History
 
 - 2026-10-17: P019 new header, tester and benchmark verified; 13 mutants killed; the review's findings (NDEBUG narrowing, unsupported `T`, floating arguments, doc bounds, test gaps) fixed, the base-prime cancellation in `read` and the `lng` comparison and `toDouble` fast paths added; full suites passed on g++ and g++-14, two stress rounds passed.
 - 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the `long double` rounding model reads the target's format from the compiler's `__LDBL_*` macros (x87 64-bit, binary128 113-bit significand), its overflow and denormal boundary cases derive from it, and the C++ mantissa printer follows `numeric_limits<long double>::digits`; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-08: P263 user request added `fraction` to the search aliases (`grab --find`) for a held-out corpus query the search missed (00-search.md, Evaluation); no code or test change.

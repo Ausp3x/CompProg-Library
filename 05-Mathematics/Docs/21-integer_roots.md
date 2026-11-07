@@ -99,7 +99,7 @@ No timing benchmark: every operation is O(1), or bounded by a small constant tim
 
 ## Aliases
 
-Search aliases (P263, grab --find): 开方, 整数平方根, 开平方, 开根号, 开立方, 完全平方数, 完全幂.
+Search aliases (P263, grab --find): integer sqrt, 开方, 整数平方根, 开平方, 开根号, 开立方, 完全平方数, 完全幂.
 
 ## History
 
@@ -107,3 +107,4 @@ Search aliases (P263, grab --find): 开方, 整数平方根, 开平方, 开根�
 - 2026-11-03: /finish audit, no code defect; NDEBUG note corrected, 2 user decisions recorded; quick suite passed.
 - 2026-11-03: maintainer review in `/merge-pr 3`, no code defect; `isqrt` beside `isqrt128` kept as a larger domain (user decision, `duplicates.md`), and the user confirmed the decisions recorded as theirs.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-08: P263 user request added `integer sqrt` to the search aliases (`grab --find`) for a held-out corpus query the search missed (00-search.md, Evaluation); no code or test change.
