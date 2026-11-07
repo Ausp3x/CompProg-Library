@@ -136,6 +136,10 @@ No local suffix-array implementation was found in the inspected original noteboo
 
 SA-IS itself belongs to ST06/`12-sais.hpp`; DC3 and a small-input dispatch are not adopted ([00-notes.md](00-notes.md)); generalized indexes and common-substring queries across arbitrary numbers of inputs belong to ST11/`28-multiple_string.hpp`. Distinct-substring counting and kth applications retain ST04/`10-suffixautomaton.hpp` and ST09/`22-lexicographic_queries.hpp` ownership. Suffix trees and dynamic indexing also retain their separate inventory owners. No missing Basic suffix-array feature is deferred to those packages.
 
+## Aliases
+
+Search aliases (P263, grab --find): 后缀数组简介, 最长公共子串, 最长重复子串, 不可重叠最长重复子串, 最长公共前缀, 高度数组, 后缀排序, 最长共同子字符串.
+
 ## History
 
 - 2026-09-28: verified under the previous system (P017).
@@ -144,3 +148,4 @@ SA-IS itself belongs to ST06/`12-sais.hpp`; DC3 and a small-input dispatch are n
 - 2026-10-13: prune, the inline Kasai loop replaced by `lcpArray` from `12-sais.hpp` (construction 4–7% slower at `n = 10^6`, accepted); full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (the `Min<int>` preset replaces the nested `Minimum`; `rmq.prod` calls; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 694/686/895 MB.
 - 2026-10-19: P017 omission-sweep apply: SA-IS default construction with dense-range coding, `doubling` static builder, `longestCommonSubstring` through the same coding (`O(n + m)` for bytes); construction benchmark added, no size dispatch; full passed on g++ and g++-14, stress passed, dependents rerun; independent review: 1 evidence defect and 6 low findings fixed (code-range cutoff measured and set to `4n`, confirmed by the user).
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

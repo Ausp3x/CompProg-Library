@@ -137,7 +137,7 @@ Adopted from the P052 sweep: `factorizeTrial` (legacy `getPrimeFacSlow`), `divis
 
 ## Aliases
 
-Search aliases (P263, grab --find): primality test, prime test, Miller-Rabin, Pollard rho, integer factorization.
+Search aliases (P263, grab --find): primality test, prime test, Miller-Rabin, Pollard rho, integer factorization; 素数, 分解质因数, 质因数分解, 素性测试, 米勒-拉宾, 判断素数, 枚举约数, 约数个数, 试除法.
 
 ## History
 
@@ -145,3 +145,4 @@ Search aliases (P263, grab --find): primality test, prime test, Miller-Rabin, Po
 - 2026-10-09: P052 rerun for the Compact rule (P231), algorithm templates with product functors and four Compact twins, review found 1 defect, fixed; full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `millerRabin64`, `millerRabin64Compact`, `primeFactors` (Legacy mapping) and the witness loop's unreachable base-skip branch, review found no defect, 6 evidence findings fixed; full passed on g++ and g++-14, stress on g++.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

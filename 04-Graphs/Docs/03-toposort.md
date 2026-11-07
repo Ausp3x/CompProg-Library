@@ -60,9 +60,14 @@ The completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetche
 
 None.
 
+## Aliases
+
+Search aliases (P263, grab --find): 拓扑排序, 有向无环图, 拓扑序, 字典序最小拓扑序, 有向图判环.
+
 ## History
 
 - 2026-09-27: original P010, full suite (seed 20260927) passed on g++ 16 with integration and 61 package probes; stress not run.
 - 2026-10-07: re-audit, added `TopologicalResult::unique`; 2 findings fixed (brace rule, complexity line placement); full suite passed on g++ and g++-14, stress passed; independent review: findings 1–3, 5 and 7–14 confirmed fixed, no correctness defect, 22 own mutants (17 killed, 5 survivors equivalent or runtime-only).
 - 2026-10-12: P010 prune, the cyclic result takes its witness from `dfsForest(g).cycle` (`findCycle` removed); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

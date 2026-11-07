@@ -60,6 +60,8 @@ Faces of other components get no flow. O((n + m) log(n + m)).
 - OGDF `MinSTCutDijkstra` over `DualGraph` and `MaxFlowSTPlanarDigraph` are `planarMinCutDual` (cut and flow).
 - Row name `primalDualTraversal` became `treeCotree` (decided 2026-10-28). `faceOf(a)` left the row in review: it was `face[a]` behind a range assert (One API per operation).
 
+Search aliases (P263, grab --find): 平面图, 对偶图, 平面图最小割, 平面图转对偶图, 平面嵌入, 欧拉公式, 欧拉示性数, 亏格, 余树.
+
 ## Feature-to-test map
 
 `96-Local Testing/04-Graphs/29-planar_graph_tester.py` (shared graph runner with `-Werror` warnings; optimized, checked with 17 assertion probes, ASan/UBSan in full and stress).
@@ -109,3 +111,4 @@ Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction).
 - 2026-10-28: new row (P048 / GR13); `primalDualTraversal` → `treeCotree`; sweep added fromDrawing, outer, commonFace, directed capacities and the flow witness; review: 8 findings fixed (NDEBUG bounds, drawing preconditions, `faceOf` removed, cost lines, tests); full suite passed on g++ and g++-14, stress passed.
 - 2026-10-28: `/finish` audit: per-component `genus` and O(1) genus check, `NDEBUG`-bounded directed input, F defined, docs and provenance; full suite passed on g++ and g++-14, stress passed.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -152,9 +152,14 @@ The implementation was written independently. The legacy notebook routine was re
 - Polygons with holes have no kernel API. The intersection of all ring edge halfplanes is available directly through `halfplaneIntersection`.
 - Convex polygon queries such as `contains`, `tangents` and `convexIntersection` belong to row 15. The 3D halfspace intersection belongs to row 38.
 
+## Aliases
+
+Search aliases (P263, grab --find): 半平面交, 多边形的核, 凸多边形裁剪, 多边形最大内切圆, 切比雪夫中心.
+
 ## History
 
 - 2026-10-11: first implementation (P036). Independent review: one finding (out-of-bounds read on non-simple input in `polygonKernelLinear`, spike assertion incomplete) fixed with new probes and checked-build cases.
 - 2026-10-12: P007 prune migrated `onSegment` call sites in the tester; full suite passed ([02-line_segment.md](02-line_segment.md)).
 - 2026-10-18: P037 factored the edge rotation of `clipConvex` into `halfplane_detail::edges` for `convexIntersection`; full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19: P037 re-audit rerun (row 15 changed), header unchanged; full suite passed on g++ and g++-14, stress passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

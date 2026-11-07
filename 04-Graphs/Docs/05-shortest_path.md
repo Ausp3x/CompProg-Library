@@ -117,7 +117,7 @@ Fractional/custom-weight domains are not claimed. All-pairs, advanced, implicit,
 
 ## Aliases
 
-Search aliases (P263, grab --find): 0-1 BFS, single-source shortest paths, DAG shortest path.
+Search aliases (P263, grab --find): 0-1 BFS, single-source shortest paths, DAG shortest path; DAG 上的 DP, 最短路, 有向无环图, 单源最短路, 负环, 迪杰斯特拉, 贝尔曼福特, 双端队列广搜, 最长路, 最短路径, 戴克斯特拉.
 
 ## History
 
@@ -126,3 +126,4 @@ Search aliases (P263, grab --find): 0-1 BFS, single-source shortest paths, DAG s
 - 2026-10-12: prune, removed the legacy `Dijkstra` adapter, `dagLongestPaths` and six single-source overloads (cases moved to `dijkstra` on `Graph::fromAdjacency` input, `dagShortestPaths(g, sources, true)` and `{s}`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

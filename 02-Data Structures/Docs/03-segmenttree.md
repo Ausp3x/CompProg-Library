@@ -74,7 +74,7 @@ Lazy and dual segment trees are row 12, dynamic ones row 13 and persistent ones 
 
 ## Aliases
 
-Search aliases (P263, grab --find): segtree, seg (OI Wiki 线段树); Library Checker `point_set_range_composite`.
+Search aliases (P263, grab --find): segtree, seg (OI Wiki: 线段树); Library Checker `point_set_range_composite`; 线段树基础, RMQ, zkw线段树, 非递归线段树, 单点修改区间查询, 线段树上二分, 区间最值查询, 区间求和.
 
 ## History
 
@@ -85,3 +85,4 @@ Search aliases (P263, grab --find): segtree, seg (OI Wiki 线段树); Library Ch
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 473/487/522 MB.
 - 2026-10-18: `fold` and `foldRight` added; independent review, 5 findings fixed (two test gaps, three document corrections); full (seed 20261018) on g++ and g++-14, stress (seed 7) and integration passed, MEMORY peak 514/531/578 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

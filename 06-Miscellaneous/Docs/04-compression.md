@@ -88,7 +88,7 @@ Interval sweeps belong to `09-interval_algorithms.hpp`. No benchmark: no tuned t
 
 ## Aliases
 
-Search aliases (P263, grab --find): discretization (OI Wiki 离散化), coordinate compression.
+Search aliases (P263, grab --find): discretization (OI Wiki: 离散化), coordinate compression, 坐标压缩, 区间端点离散化.
 
 ## History
 
@@ -96,3 +96,4 @@ Search aliases (P263, grab --find): discretization (OI Wiki 离散化), coordina
 - 2026-10-07: P013 re-audit, bulk `ranks` and `stableRanks` added, 2 findings fixed, contracts moved out of code comments; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.
 - 2026-10-12: prune, removed `Compression` (`ranks` and `pointRange` moved into `CoordinateCompression`, its cases to `07-ordered_set_tester.cpp`; `compressEndpoints` returns `CoordinateCompression`; `08-sequence_algorithms.hpp` migrated); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

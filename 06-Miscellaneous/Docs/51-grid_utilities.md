@@ -61,6 +61,11 @@ Catalog sweep by `@researcher` on 2026-10-08 (ledger in [00-sources.md](00-sourc
 - Not adopted (reasons in [00-notes.md](00-notes.md)): dice orientation graph, multidimensional index, Manhattan walk, grid BFS/parsing (Graphs `43`), Chebyshev/Manhattan conversions and king distance (Geometry `21`), bounded-board knight distance (BFS).
 - Face labels are `int`; `index` assumes `n * m` fits an `int`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 方向数组, 网格, 矩阵旋转, 矩阵转置, 骰子旋转, 骰子模拟, 马的最少步数, 八方向.
+
 ## History
 
 - 2026-10-08: created and verified (P229).
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

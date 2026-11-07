@@ -72,8 +72,13 @@ Targeted path/symbol searches in `OLD/algorithms.cpp`, `OLD/[1] algorithms.cpp`,
 - Not adopted (reason in [00-notes.md](00-notes.md)): suisen-style `pushBack`/`popBack` on an encoding (single unverified source; two-line caller idioms on the run vector).
 - Miscellaneous retains Huffman coding; Lempel–Ziv (`42`) and run-length BWT (`46`) remain separate Strings owners; streaming merge state is not part of these static contracts.
 
+## Aliases
+
+Search aliases (P263, grab --find): 游程编码, 行程编码, 行程长度编码.
+
 ## History
 
 - 2026-09-28: verified under the previous system (P016).
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
 - 2026-10-08: re-audit, 2 findings fixed, contracts moved out of the header, behavior unchanged; quick, full and stress passed on g++, full on g++-14, integration with sanitizers passed.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

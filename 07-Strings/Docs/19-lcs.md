@@ -104,6 +104,11 @@ Code is independently implemented from the recurrences above.
 - Not adopted (reasons in [00-notes.md](00-notes.md)): longest common increasing subsequence, an exposed full LCS table, counting LCS strings, the lexicographically smallest LCS, range distinct-subsequence counting.
 - Edit distance and alignment are `18`; subsequence automata and pattern-as-subsequence counting `20`; prefix–substring (semi-local) LCS `48`; longest common substring `07`/`28`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 最长公共子序列, 最长共同子序列, 最短公共超序列, 最长回文子序列, 本质不同子序列, 回文子序列计数, 最短编辑脚本, 文本差异比较.
+
 ## History
 
 - 2026-10-10: implemented and verified (P083), independent review found 2 issues, fixed.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

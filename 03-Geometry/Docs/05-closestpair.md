@@ -104,7 +104,7 @@ Range-restricted closest pair belongs to row 29 (`29-point_set_queries.hpp`).
 
 ## Aliases
 
-Search aliases (P263, grab --find): nearest pair of points, nearest points (OI Wiki 平面最近点对), closest pair.
+Search aliases (P263, grab --find): nearest pair of points, nearest points (OI Wiki: 平面最近点对), closest pair, 三维最近点对, 分治求最近点对.
 
 ## History
 
@@ -112,3 +112,4 @@ Search aliases (P263, grab --find): nearest pair of points, nearest points (OI W
 - 2026-10-07: re-audit, implemented `closestPair3`; 4 findings fixed; full suite, stress and benchmark passed on g++ 16; independent review: reproduced every full count and probe, confirmed one package defect (in `06-circle.hpp`).
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

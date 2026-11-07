@@ -230,7 +230,7 @@ The implementation was written independently. Sources of the completeness sweep 
 
 ## Aliases
 
-Search aliases (P263, grab --find): sweep line, scanning line (OI Wiki 扫描线), union of rectangles (Klee).
+Search aliases (P263, grab --find): sweep line, scanning line (OI Wiki: 扫描线), union of rectangles (Klee), 矩形面积并, 矩形周长并, 线段覆盖长度, 矩形覆盖k次面积, 矩形最大重叠, 正交线段交点, 矩形轮廓.
 
 ## History
 
@@ -238,3 +238,4 @@ Search aliases (P263, grab --find): sweep line, scanning line (OI Wiki 扫描线
 - 2026-10-19: P037 re-audit added `rectangleUnionBoundaryGuting`. Independent review: page references unified, the ASan cap documented. Full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19 (round 3): floating coordinates for every rectangle and orthogonal operation, a square-root-decomposition coverage path with `O(n)` memory beside a compact tree, and `rectangleUnionContours`. Güting moved to rank space at unchanged speed. Full suite passed on g++ and g++-14, stress passed. Independent review: the half-scale exactness guard lowered to `2^30`; independent real-coordinate perimeter, boundary and orthogonal oracles added; benchmark wording corrected. Final full suite passed on g++ and g++-14, stress passed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

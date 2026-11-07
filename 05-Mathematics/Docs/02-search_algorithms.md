@@ -120,7 +120,7 @@ Inspected on 2026-09-27, plus the 2026-10-07 completeness sweep:
 
 ## Aliases
 
-Search aliases (P263, grab --find): binary search (二分), ternary search, golden section search.
+Search aliases (P263, grab --find): binary search (二分), ternary search, golden section search, 二分查找, 二分答案, 二分搜索, 三分法, 实数二分, 黄金分割法, 斐波那契查找, 指数搜索.
 
 ## History
 
@@ -129,3 +129,4 @@ Search aliases (P263, grab --find): binary search (二分), ternary search, gold
 - 2026-10-07: P012 re-audit, added `fibSearch` and `expSearch`, 2 findings fixed; after `@reviewer` (which probed `fibSearch` on 151,280 shapes), full, stress (seed 1) and integration passed.
 - 2026-10-12: prune, removed `binSearchReal`, `ternSearchReal` and `goldenSearchReal` (probes and the binary default-argument case moved to the bracket forms); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

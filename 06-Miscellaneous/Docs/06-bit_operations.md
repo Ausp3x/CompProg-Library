@@ -119,8 +119,13 @@ external source code was copied.
 
 Omitted candidates: `countOnesUpTo(n)` (total popcount over `[0, n]`) needs more than `W` bits for full-range inputs and is digit-DP territory (`31-digitdp.hpp`). `bitReverse` appeared in none of the swept catalogs. General combination generation and dynamic bitsets have separate owners.
 
+## Aliases
+
+Search aliases (P263, grab --find): 格雷码, 位操作, 二进制集合操作, 位运算, 位运算技巧, 比特运算, 枚举子集, 枚举超集, 奇偶校验, 下一个组合.
+
 ## History
 
 - 2026-09-28: P013 first verification, full and stress suites passed.
 - 2026-10-07: P013 re-audit, `parity`, `grayCode`, `grayDecode` and `nextSupermask` added, contracts moved out of code comments, brace style normalized; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.
 - 2026-10-12: prune, removed `count`, `width`, `leadingZeros`, `trailingZeros`, `single`, `floor`, `rotateLeft`, `rotateRight` (cases moved to their `<bit>` replacements; `12-enumeration.hpp` migrated); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

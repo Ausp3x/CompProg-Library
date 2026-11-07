@@ -156,10 +156,11 @@ Legacy material inspected:
 
 ## Aliases
 
-Search aliases (P263, grab --find): maximum flow, max flow, Dinic, Edmonds-Karp, Ford-Fulkerson, push-relabel.
+Search aliases (P263, grab --find): maximum flow, max flow, Dinic, Edmonds-Karp, Ford-Fulkerson, push-relabel; 最大流, 最小割, 网络流简介, 增广路, 预流推进, 最高标号预流推进, 最大流最小割定理.
 
 ## History
 
 - 2026-10-10: original P044; full suites (seed 20260927, 23,926,841 checks, 22 probes) passed on g++ and g++-14, stress (seed 1), benchmark and integration with sanitizers passed; independent review, 6 findings fixed.
 - 2026-10-12: prune, removed the `EdmondsKarp` legacy adapter (cases moved to `MaxFlow` on `Graph::fromMatrix` and to `augmentPath`, four legacy probes replaced) and added `edmondsKarp` and `augmentPath`; full suite passed on g++ and g++-14, stress passed; independent review: no code defect, 4 evidence findings fixed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

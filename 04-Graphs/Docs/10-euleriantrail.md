@@ -66,9 +66,14 @@ Legacy: the `EulerPath` sections of `OLD/Team Notebook/src/algsbetter.cpp` (line
 
 Euler-tour counting belongs to `53-graph_counting.hpp`, and Chinese postman/route augmentation to `69-tjoin.hpp`; mixed directed/undirected Euler circuits need max flow and belong with rows 19/30/69. These are not claimed here.
 
+## Aliases
+
+Search aliases (P263, grab --find): 欧拉图, 欧拉回路, 欧拉路径, 一笔画, 欧拉通路, 字典序最小欧拉路径.
+
 ## History
 
 - 2026-09-27: original P011, full suite (seed 20260927, 3,390 cases, 14,683,272 checks, 3 probes) and integration passed on g++ 16; stress not run.
 - 2026-10-07: re-audit, added the lexicographic option; no findings for this header; full suite, stress and integration passed on g++ 16; independent review: all eight package findings confirmed fixed, its own brute-force checks of every addition passed under ASan/UBSan/`_GLIBCXX_DEBUG`.
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -89,8 +89,13 @@ Code is independently implemented.
 - Not adopted (reasons in [00-notes.md](00-notes.md)): appending to a built hash (`push_back`; reversed prefixes cannot extend in O(1), row `23` owns appendable and deque hashes), a field-generic `StringHashField<F>`, several Mersenne bases, `std::hash` for digests, lexicographic substring comparison (row `22`), Rabin–Karp windows (row `16`).
 - Hash answers stay Monte Carlo; `08-palindrome_queries.hpp` `maybePalindrome` takes `StringHash<KIND>` (its template parameter changed from `bool` because `bool` cannot be deduced from an `int` parameter) and is tested on all three fields.
 
+## Aliases
+
+Search aliases (P263, grab --find): 字符串哈希, 滚动哈希, 多项式哈希, 自然溢出哈希, 双哈希, 二分哈希, 子串哈希.
+
 ## History
 
 - 2026-09-28: double-prime and word variants verified under the previous system (P016).
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
 - 2026-10-08: re-audit, template parameter `bool WRAP64` became `int KIND`, `StringHash61`, `hashOf` and Digest ordering added, 5 findings fixed, contracts moved out of the header; quick, full and stress passed on g++, full on g++-14, integration with sanitizers passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

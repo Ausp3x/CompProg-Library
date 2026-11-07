@@ -63,7 +63,7 @@ Dynamic balanced and persistent ordered trees are rows 19, 20 and 58, not gaps o
 
 ## Aliases
 
-Search aliases (P263, grab --find): discretization (OI Wiki 离散化), coordinate compression, order statistic tree.
+Search aliases (P263, grab --find): discretization (OI Wiki: 离散化), coordinate compression, order statistic tree, 坐标压缩, 平板电视, 名次树, 顺序统计树, 有序集合, 查询排名.
 
 ## History
 
@@ -72,3 +72,4 @@ Search aliases (P263, grab --find): discretization (OI Wiki 离散化), coordina
 - 2026-10-12: P013 prune moved `ranks` and `pointRange` into CoordinateCompression with linear-count oracles, the moved `Compression` cases and the `range-order` probe; full suite passed on g++ and g++-14.
 - 2026-10-13: P006 prune rerun, header and tests unchanged; full suite (seed 20261013) passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

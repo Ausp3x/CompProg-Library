@@ -85,7 +85,7 @@ SCCs belong to `08-scc.hpp`; cycle enumeration and odd-cycle extensions belong t
 
 ## Aliases
 
-Search aliases (P263, grab --find): BFS (breadth-first search), DFS (depth-first search), bipartite graph check (OI Wiki 二分图), cycle detection; Library Checker `cycle_detection`, `cycle_detection_undirected`.
+Search aliases (P263, grab --find): BFS (breadth-first search), DFS (depth-first search), bipartite graph check (OI Wiki: 二分图), cycle detection; Library Checker `cycle_detection`, `cycle_detection_undirected`; 深度优先搜索, 广度优先搜索, 深搜, 广搜, 连通分量, 连通块, 二分图判定, 二分图染色, 判环, 连通组件.
 
 ## History
 
@@ -94,3 +94,4 @@ Search aliases (P263, grab --find): BFS (breadth-first search), DFS (depth-first
 - 2026-10-12: prune, removed `findCycle` and the single-source `bfs`/`dfs` overloads (cases moved to `dfsForest(g).cycle` and `{s}`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

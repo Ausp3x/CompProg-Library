@@ -62,6 +62,10 @@ All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64, with 
 
 No concurrency safety is claimed. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug").
 
+## Aliases
+
+Search aliases (P263, grab --find): 平衡树, 缺省源, 万能头文件, 平板电视, 名次树, 比赛模板.
+
 ## History
 
 - 2026-09-27: original P002 verification, full (seed 335597) and stress (seed 42) passed on GCC 16.2.1.
@@ -71,3 +75,4 @@ No concurrency safety is claimed. Items not adopted from the catalog sweep are l
 - 2026-10-06: re-audit, full (seed 335597) and stress (seed 1) passed on g++, closing-brace check and workspace check passed.
 - 2026-10-06: closing-brace checker built in `03-consistency.py` (P002 re-audit), calibrated: the eight P002 files report nothing after normalization (160 true positives before), a probe file reports exactly the four real violations; the bitset review's edge cases fixed ([18-bitset.md](18-bitset.md)).
 - 2026-10-08: restyle, full suite (seed 20261008) passed on g++ and g++-14, integration, consistency and workspace check passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

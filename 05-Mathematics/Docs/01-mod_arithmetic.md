@@ -104,7 +104,7 @@ Inspected on 2026-09-27, plus the 2026-10-07 completeness sweep in [00-sources.m
 
 ## Aliases
 
-Search aliases (P263, grab --find): binary exponentiation, fast power (快速幂), GCD (greatest common divisor), LCM (least common multiple), Euclidean algorithm, extended Euclid, Bezout identity.
+Search aliases (P263, grab --find): binary exponentiation, fast power (快速幂), GCD (greatest common divisor), LCM (least common multiple), Euclidean algorithm, extended Euclid, Bezout identity; 最大公约数, 裴蜀定理 & 一次不定方程, 模算术简介, 扩展欧几里得, 扩欧, 最小公倍数, 辗转相除法, 最大公因数, 快速乘, 龟速乘, 光速乘.
 
 ## History
 
@@ -113,3 +113,4 @@ Search aliases (P263, grab --find): binary exponentiation, fast power (快速幂
 - 2026-10-07: P012 re-audit, added `checkedAdd`, `checkedMul`, `saturatingAdd`, `saturatingMul` and `invMod2p64`, 3 findings fixed; after `@reviewer` (which probed every odd `a < 2 * 10^6` for `invMod2p64`), full, stress (seed 1) and integration passed.
 - 2026-10-12: prune, removed `exGcd` and the `modPow` default modulus (cases moved to `extendedGcd` and op `p` with modulus `INF64`); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `龟速乘` and `光速乘` name related methods for the same problem, kept as search synonyms (user decision 2026-11-07).

@@ -119,6 +119,10 @@ Legacy accounting: the unchanged original is [OLD/5-Mathematics/09-montgomery.hp
 
 The AVX2 kernels are 32-bit only (no 64x64 vector multiply in AVX2). Residue inverses stay with `05-modint.hpp`, whose 64-bit `pow` uses each context's cached `Montgomery64` for odd non-Mersenne moduli below `2^62` ([05-modint.md](05-modint.md#context-mul-red-canon-montgomery-reduction-norm-power)). Left-out candidates (`neg`, `one`, lazy equality, `square`, 64-bit/AVX-512/IFMA/signed lanes) are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
 
+## Aliases
+
+Search aliases (P263, grab --find): 蒙哥马利模乘, 蒙哥马利约减, 蒙哥马利乘法, 快速取模, 取模优化.
+
 ## History
 
 - 2026-09-27: original P004 completion, quick, full, stress (8,889,119 checks per configuration) and integration passed; first benchmark (seed 20260927, 4,412 verified measurements).
@@ -128,3 +132,4 @@ The AVX2 kernels are 32-bit only (no 64x64 vector multiply in AVX2). Residue inv
 - 2026-10-08: restyle (comments only), full suite passed on g++ and g++-14, integration and consistency passed.
 - 2026-10-12: prune (`powMont`/`pow` exponents widened to 128 bits; Barrett's `div` and `multiplier` removed, `fold61` added), full suites passed on g++ and g++-14, 9,116 benchmark measurements verified.
 - 2026-10-12 (cached contexts): constructor `constexpr` with compile-time `static_assert`s, `powMont` loops on the unchecked `redc`; full suites passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

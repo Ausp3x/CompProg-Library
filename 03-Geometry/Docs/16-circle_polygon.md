@@ -91,8 +91,13 @@ Written independently. Sources of the completeness sweep are in [00-sources.md](
 - Unions of circles belong to row 23.
 - Perimeter of a polygon inside a disk, and circle–polygon intersection point listing: `06-circle` `circleSegmentIntersectionApprox` applied per edge.
 
+## Aliases
+
+Search aliases (P263, grab --find): 圆与多边形面积交, 圆与三角形面积交, 圆与多边形交.
+
 ## History
 
 - 2026-10-11: first implementation (P036). Independent review: three findings fixed (exactness range of touch classification narrowed, sliver claim limited to single simple rings, a two-line body comment).
 - 2026-10-12: P007 prune migrated `onSegment` call sites in the tester; full suite passed ([02-line_segment.md](02-line_segment.md)).
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<typename Polygon = vector<point>>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 03-Geometry` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

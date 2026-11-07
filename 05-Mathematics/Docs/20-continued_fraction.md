@@ -88,6 +88,8 @@ No archived implementation existed. Before implementation, the planned row's `St
 
 Aliases: KACTL `fracBS`, maspypy `rational_binary_search`, Nyaan `binary_search_on_stern_brocot_tree` (`fractionBinarySearch`); cp-algorithms `middle` (`rationalInInterval`); Nyaan `go_parent`, suisen `move_up` (`sternBrocotAncestor`); Library Checker `rational_approximation` (`bestRationalApproximation`); maspypy `range_rational_count` count and kth (`countRationalsInRange`, `fareyKth`); the rank in `F_n` (`countRationalsInRange(n, 0, 1, p, q)`).
 
+Search aliases (P263, grab --find): 连分数, Stern–Brocot 树与 Farey 序列, 最佳有理逼近, 法里数列, 法里序列, 渐近分数, 循环连分数.
+
 ## Feature-to-test map
 
 Entry: [`20-continued_fraction_tester.py`](<../../96-Local Testing/05-Mathematics/20-continued_fraction_tester.py>).
@@ -144,3 +146,4 @@ Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep)
 
 - 2026-10-18: P060 initial implementation; `@reviewer` found 8 issues, all fixed (precondition checks, `-DNDEBUG` termination, complexity statements, the `n <= 10^13` bound); full suite passed on g++ and g++-14, stress seed 7 passed.
 - 2026-10-19: P037 round-3 rerun (included `18-floorsum.hpp` changed), header unchanged; full passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

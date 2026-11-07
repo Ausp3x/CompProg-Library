@@ -137,8 +137,13 @@ The code was written independently from these algorithms; no source code was cop
 - `child` binary-searches the children. Under `-D_GLIBCXX_DEBUG`, `std::lower_bound` also checks that the range is partitioned, which costs `O(deg)` per call in that checked build only.
 - Ukkonen's online construction is `33`, generalized (multi-document) trees are `28`, and suffix-array queries are `07`/`22`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 后缀树, 极大重复子串, 本质不同子串.
+
 ## History
 
 - 2026-10-19: implemented and verified (P082); independent review found 0 defects and 8 low or nit findings (`n < 2^30` domain, RMQ memory note, local naming, range asserts, row `dfsOrder` mapping, provenance, fixed regressions), all fixed; full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19: omission-sweep reopening (P082): `O(1)` `lca` (split map, window RMQ), `O(1)` precomputed `suffixLink` and offline `weightedAncestors` added, plus a benchmark. 25 of 27 mutants were caught (both survivors equivalent). The independent review found 1 evidence defect, 3 low and 5 nit findings, all fixed (NDEBUG clamp, naming, evidence wording). Quick, full (g++ and g++-14), stress, integration and the folder suite passed.
 - 2026-10-19: P017, `SuffixArray` construction moved to SA-IS (text constructors `O(n)` for bytes and dense ranges, complexity comment tightened, no API change); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

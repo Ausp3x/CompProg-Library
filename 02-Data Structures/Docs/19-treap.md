@@ -88,10 +88,11 @@ Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 ## Aliases
 
-Search aliases (P263, grab --find): implicit treap, Cartesian tree with implicit keys; Library Checker `dynamic_sequence_range_affine_range_sum`, `range_reverse_range_sum`.
+Search aliases (P263, grab --find): implicit treap, Cartesian tree with implicit keys; Library Checker `dynamic_sequence_range_affine_range_sum`, `range_reverse_range_sum`; 二叉搜索树 & 平衡树, Treap, 无旋Treap, 树堆, 普通平衡树, 文艺平衡树, 区间翻转, 二元搜索树.
 
 ## History
 
 - 2026-10-13: P029 first verification. The independent review led to three fixes, each with a regression test: `insert` with a key referencing the growing pool, `kth`/`at` loops that were unbounded under `NDEBUG`, and the missing `ImplicitTreap` seed test.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 740/749/781 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

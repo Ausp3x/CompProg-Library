@@ -66,7 +66,7 @@ Row names: `biconnectedQuery` left the row (`sameBlock`, decided 2026-10-18). `c
 - maspypy `edge_to_block` and OGDF `bcproper` are `lowlink`'s `edge_block`; OGDF `bComponent` is `sameBlock`.
 - NetworkX `k_edge_augmentation` with k = 2 is `twoEdgeConnectivityAugmentation`. OI Wiki 必经点 counts and APIO 2018 Duathlon path vertices are `mandatoryVertexCount` and `simplePathVertexCount`.
 
-Search aliases (P263, grab --find): BCC (biconnected components), round-square tree (圆方树, OI Wiki block forest).
+Search aliases (P263, grab --find): BCC (biconnected components), round-square tree (圆方树, OI Wiki: block forest); 双连通分量, 广义圆方树, 块割树, 边双缩点, 点双缩点, 删点连通性.
 
 ## Feature-to-test map
 
@@ -136,3 +136,4 @@ Not inspected: the Eswaran–Tarjan and Westbrook–Tarjan papers. The augmentat
 - 2026-10-18: verified (P047); Team Notebook reference replaced; user decisions applied (`bridgeTree` kept, `biconnectedQuery` removed, pair removal queries); size, mandatory, simple-path and augmentation queries from the completeness sweep; independent review: missing vertex checks in `connectedAfterRemovingVertex` added, singleton-block wording corrected, CSR tests added; 6 planted mutants killed; quick, full and stress passed on g++, full on g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

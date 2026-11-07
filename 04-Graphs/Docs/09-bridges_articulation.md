@@ -107,7 +107,7 @@ Block-cut and bridge-tree queries and two-edge-connectivity augmentation are row
 
 ## Aliases
 
-Search aliases (P263, grab --find): BCC (biconnected components), 2-edge-connected components, bridges, articulation points, cut vertices (OI Wiki 割点和桥); Library Checker `biconnected_components`, `two_edge_connected_components`.
+Search aliases (P263, grab --find): BCC (biconnected components), 2-edge-connected components, bridges, articulation points, cut vertices (OI Wiki: 割点和桥); Library Checker `biconnected_components`, `two_edge_connected_components`; 双连通分量, 割边, 点双连通分量, 边双连通分量, 点双, 边双, 关节点, 双连通组件.
 
 ## History
 
@@ -116,3 +116,4 @@ Search aliases (P263, grab --find): BCC (biconnected components), 2-edge-connect
 - 2026-10-12: prune, removed `Tarjan`, `BridgeAlgo` and `lowlink_detail::graph` (cases moved to `lowlink` on `Graph::fromAdjacency` lists, five legacy probes replaced by `adjacency-endpoint`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect, equivalence confirmed on its own 30,000 random forests and multigraphs.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

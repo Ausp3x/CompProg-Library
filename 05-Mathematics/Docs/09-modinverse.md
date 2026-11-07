@@ -74,9 +74,10 @@ None required: the scalar paths use `extendedGcd`/`modPow` and the vector paths 
 
 ## Aliases
 
-Search aliases (P263, grab --find): modular inverse, modular multiplicative inverse.
+Search aliases (P263, grab --find): modular inverse, modular multiplicative inverse; 模逆元, 费马小定理 & 欧拉定理, 乘法逆元, 线性求逆元, 批量求逆元, 模反元素, 模倒数.
 
 ## History
 
 - 2026-10-09: P052 initial implementation and verification, `@reviewer` found no defect; quick, full and stress passed on g++, full on g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -120,6 +120,8 @@ So `z c` beats every longer candidate exactly when `d(z) < c`. The new maximal s
 
 maspypy `lcp_range` is `occurrenceRange`; maspypy `sort_substrings` (dense IDs) is `sortSubstrings`; maspypy `Many_String_Compare` `ST_TS_comp3` is `comparePieces` on two orders; suisen `compare_substring` is `compareSubstrings`; suisen `SubstringSet::kth_element` is `SubstringOrder::kthDistinctSubstring`; maspypy `lex_min_suffix_for_all_prefix` and `lex_max_suffix_for_all_prefix` are the per-prefix functions (lengths there, starts here); the CSES 2110 output is `distinctSubstringsByLength` entries `1..n`.
 
+Search aliases (P263, grab --find): 子串比较, 子串字典序, 第k小子串, 本质不同子串, 子串排序, 最短唯一子串, 最小缺失词, 子串排名.
+
 ## Feature-to-test map
 
 Runner: [`22-lexicographic_queries_tester.py`](<../../96-Local Testing/07-Strings/22-lexicographic_queries_tester.py>). Oracle: brute enumeration of every substring (occurrence lists, sorted distinct and multiset orders, sorted suffixes), brute scans for prefixes and suffixes, a brute MAW construction from the substring set (every `a u b` absent with `a u` and `u b` occurring, plus the absent symbols of `[0, sigma)`), and brute per-prefix sets and extrema. Large texts: the suffix automaton (`10`, verified independently) and counting identities.
@@ -193,3 +195,4 @@ Code is independently implemented from the cited descriptions; catalog sweep in 
 - 2026-10-19: P085 omission-sweep follow-up: `distinctSubstringsByLength` added (re-sweep found nothing else), independent review found 1 overflow edge and 3 nits, fixed; quick, full (seed 20261019) on g++ and g++-14, stress (seed 7) and integration passed, MEMORY peak 734/740/734 MB.
 - 2026-10-19: P017 dependent rerun after `07` moved to SA-IS (no change here): full on g++ before the final code-range cutoff and quick on the final code passed (recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results)).
 - 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `DictionaryOfBasicFactors` `build` renamed `ctor` (its constructor), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves it; no code changed.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

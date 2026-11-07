@@ -104,7 +104,12 @@ Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Left out with reasons in [00-notes.md](00-notes.md#p034-omissions): range assignment, generator build, the fixed three-layer layout.
 - Row 28 owns static O(1) products with n log(n) memory and the offline `staticRangeProducts`; row 12 owns range actions.
 
+## Aliases
+
+Search aliases (P263, grab --find): Sqrt Tree; 根号树.
+
 ## History
 
 - 2026-10-17: P034 first implementation and verification; independent review: no valid-input defect; added the four-layer configuration to stress, the threshold benchmark driver and corrected test-size statements.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract, `query` renamed `prod`, block-count field `nb`, stateful-monoid test added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 724/684/1479 MB.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -74,6 +74,11 @@ Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - `uniteTime` is kept beside row 65 `MergeHistoryForest::earliestConnectTime` as a different algorithm (`duplicates.md`, Kept by the sweep).
 - Left out with reasons in [00-notes.md](00-notes.md#p034-omissions): `groups(version)`, `dump`, the offline version-tree DFS.
 
+## Aliases
+
+Search aliases (P263, grab --find): 可持久化并查集, 部分可持久化并查集, 持久化并查集.
+
 ## History
 
 - 2026-10-17: P034 first implementation and verification; `PartiallyPersistentDSU::findSet` bounded at roots for any time under `NDEBUG`; independent review: `PersistentDSU::findSet` asserts the vertex and caps its climb (a union through an out-of-range vertex could loop under `NDEBUG`), `getSize` evaluates `findSet` first, direct template include, depth-10 tree test.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

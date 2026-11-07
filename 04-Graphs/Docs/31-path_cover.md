@@ -45,6 +45,8 @@ No legacy code. The row's `maximumAntichain` is the certificate field `dagMinimu
 - NetworkX `antichain_width` and maspypy `maximum_antichain` (on a closed relation) are `antichain.size()` and `antichain`.
 - maspypy `maximum_weighted_antichain` (min cut on a closed relation) is `maximumWeightedAntichain` on the original arcs.
 
+Search aliases (P263, grab --find): 序理论, 最小路径覆盖, 最小不相交路径覆盖, 最小可相交路径覆盖, 最小链覆盖, 最长反链, 狄尔沃斯定理, 偏序集, 最大权反链.
+
 ## Feature-to-test map
 
 `96-Local Testing/04-Graphs/31-path_cover_tester.py` (shared graph runner with `-Werror` warnings; optimized, checked with probes, ASan/UBSan in full/stress). Oracles:
@@ -108,3 +110,4 @@ The bitset Hopcroft–Karp layering and the split-DAG cut argument are this pack
 
 - 2026-10-18: verified (P047); new row; `maximumAntichain` returned as the chain cover's certificate; independent review: no correctness findings, arc checks added to the 200,000-vertex path cover; 3 planted mutants killed, 1 complexity-only mutant survived; quick, full and stress passed on g++, full on g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

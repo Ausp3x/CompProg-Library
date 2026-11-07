@@ -80,8 +80,13 @@ Code is independently implemented from the cited descriptions.
 - Not adopted (reasons in [00-notes.md](00-notes.md)): extended BWT of a string collection and its inverse, the sort transform, the run count `r`, dynamic BWT updates, move-to-front.
 - `36` builds FM-index backward search on `bwt` and `lfMapping`; `46` counts runs of `bwt` or `bwtPrimary`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 伯罗斯-惠勒变换, 块排序, 循环移位排序.
+
 ## History
 
 - 2026-10-11: implemented and verified (P084), no review findings; full (seed 1), `CXX=g++-14` full (seed 2), stress and integration passed; sanitizer integration failed outside this package.
 - 2026-10-12: the tester includes `07-suffixarray.hpp` itself, since `14-lyndon.hpp` no longer does; quick, full and `CXX=g++-14` full passed.
 - 2026-10-19: P017, the large oracles moved to `SuffixArray<int>::doubling` (the `07` constructors now run SA-IS, as `bwt` does); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

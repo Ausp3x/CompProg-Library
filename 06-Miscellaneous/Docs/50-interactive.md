@@ -67,7 +67,12 @@ Catalog sweep by `@researcher` on 2026-10-08 (ledger in [00-sources.md](00-sourc
 - Open, also for the next audit: `std::istream`/`std::ostream` qualification, and a C-style cast in the tester.
 - `\r` stripping covers Windows line endings that reach the stream untranslated.
 
+## Aliases
+
+Search aliases (P263, grab --find): 交互题.
+
 ## History
 
 - 2026-10-08: created and verified (P229), `@reviewer` found 1 defect, fixed; quick, full on g++ and g++-14, stress seed 3 and integration with sanitizers passed.
 - 2026-10-13: prune, removed `flushNow` (case moved to `io.out.flush()`); full suite passed on g++ and g++-14, integration and consistency clean; `@reviewer` found no correctness defect, 4 findings fixed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

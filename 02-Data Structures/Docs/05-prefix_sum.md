@@ -65,7 +65,7 @@ Online range-update/query structures are rows 11 and 12; difference arrays recon
 
 ## Aliases
 
-Search aliases (P263, grab --find): cumulative sum, difference array (OI Wiki 前缀和 & 差分); Library Checker `static_range_sum`.
+Search aliases (P263, grab --find): cumulative sum, difference array (OI Wiki: 前缀和 & 差分); Library Checker `static_range_sum`, 二维前缀和, 二维差分, 差分数组, 子矩阵和, 静态区间和.
 
 ## History
 
@@ -73,3 +73,4 @@ Search aliases (P263, grab --find): cumulative sum, difference array (OI Wiki �
 - 2026-10-07: P006 re-audit, findings 3, 4, 10–12, 13, 14, 15, 17, 19, 20, 23, 24 (of 24 package findings) addressed in this header, full and stress passed on g++; independent review: confirmed findings 2–24 fixed, accepted the contract-based resolution of finding 1, raised five findings, all fixed.
 - 2026-10-13: prune, removed the four `rebuild` methods (cases moved to reconstruction by assignment); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

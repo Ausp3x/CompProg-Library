@@ -80,10 +80,11 @@ Adopted by the P052 sweep: `omega`, `bigOmega`, `DivisorArray` `setMultiplicativ
 
 ## Aliases
 
-Search aliases (P263, grab --find): Euler's totient function (phi), multiplicative function.
+Search aliases (P263, grab --find): Euler's totient function (phi), multiplicative function; 欧拉函数, 筛法, 狄利克雷卷积, 莫比乌斯反演, 莫比乌斯函数, 积性函数, 约数个数函数, 约数和函数, 卡迈克尔函数, 刘维尔函数, 狄利克雷逆.
 
 ## History
 
 - 2026-10-09: P052 initial implementation and verification, `@reviewer` found no defect; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: P052 prune rerun (included `07-primality_factorization.hpp` changed), header unchanged; full passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

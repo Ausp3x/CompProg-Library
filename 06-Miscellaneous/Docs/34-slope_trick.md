@@ -150,6 +150,8 @@ Adopted from the 2026-10-13 sweep: `addLinear` (all three), `size`, `restrictDom
 
 Aliases in the fetched libraries:
 
+Search aliases (P263, grab --find): Slope Trick 优化, 凸函数优化, 分段线性凸函数, 凸函数维护, 最小加卷积.
+
 | This header | Other libraries |
 |---|---|
 | `addConst` | `add_all` (EI), `add_const`, `shift_y` (NYA) |
@@ -177,3 +179,4 @@ Aliases in the fetched libraries:
 ## History
 
 - 2026-10-13: implemented and verified (P075), `@reviewer` found 5 defects, fixed before the recorded runs.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -77,7 +77,7 @@ Inspected on 2026-09-27; written independently with no code copied.
 
 ## Aliases
 
-Search aliases (P263, grab --find): sieve of Eratosthenes, linear sieve; Library Checker `enumerate_primes`.
+Search aliases (P263, grab --find): sieve of Eratosthenes, linear sieve; Library Checker `enumerate_primes`; 欧拉函数, 筛法, 莫比乌斯反演, 线性筛, 埃氏筛, 欧拉筛, 素数筛, 质数筛, 埃拉托斯特尼筛法, 最小质因子, 莫比乌斯函数.
 
 ## History
 
@@ -86,3 +86,4 @@ Search aliases (P263, grab --find): sieve of Eratosthenes, linear sieve; Library
 - 2026-10-07: P012 re-audit, 2 findings and 3 brace-style issues fixed; after `@reviewer`, full, stress (seed 1) and integration passed.
 - 2026-10-12: P012 prune rerun, header unchanged; full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -95,8 +95,13 @@ Code is independently implemented from the invariants above.
 - Not adopted (reasons in [00-notes.md](00-notes.md)): Lyndon-word rank/unrank and k-th word (exponential counts need big integers; no competitive-programming catalog has them).
 - Runs (`26`) can consume `lyndonArray`/`lyndonTree` under both orders; de Bruijn sequences (`41`) can consume `nextLyndonWord`; per-prefix lexicographically minimal suffixes (`22`) are `IncrementalLyndon::minSuffix`.
 
+## Aliases
+
+Search aliases (P263, grab --find): Lyndon 分解, Duval算法, 最小后缀.
+
 ## History
 
 - 2026-10-10: implemented and verified (P083), independent review found 4 issues, fixed.
 - 2026-10-12: `lyndonArray` moved from prefix doubling to `12` SA-IS (O(n) on bytes), byte-order, non-byte and large suffix-array checks added, the unused `07-suffixarray.hpp` include dropped; full suite passed on g++ and g++-14.
 - 2026-10-19: P017, the large oracle is now `SuffixArray<int>::doubling` (the `07` constructors call SA-IS); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -61,6 +61,8 @@ Common domain: paths use unit steps right (E, x + 1) and up (N, y + 1), plus dia
 
 Aliases: Library Checker `number_of_increasing_sequences_between_two_sequences`; maspypy `count_grid_path`, `catalan_convolution`; hitonanode `NorthEastLatticePathsInRectangle`, `NorthEastLatticePathsBounded`; Fuss–Catalan and k-ary Dyck paths (`ballotGeneral`); rational Catalan numbers (`bizleyPaths`).
 
+Search aliases (P263, grab --find): 卡特兰数, LGV 引理, 格路计数, 反射容斥, 折线法, 网格路径计数, 默慈金数, 施罗德数, 德拉诺依数.
+
 ## Feature-to-test map
 
 Entry: [`67-lattice_paths_tester.py`](<../../96-Local Testing/05-Mathematics/67-lattice_paths_tester.py>).
@@ -129,3 +131,4 @@ Fetched 2026-10-19 by `@researcher` and the package session ([00-sources.md](00-
 
 - 2026-10-19: P054 initial implementation; `@reviewer` found a misplaced detail namespace, the Bizley cost statement and do-while braces in the tester, all fixed; full suite passed on g++ and g++-14, stress seed 7 passed.
 - 2026-10-19: P054 follow-up: 64-bit prime coverage through row 13's generalized convolution; full and stress passed on g++, full on g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

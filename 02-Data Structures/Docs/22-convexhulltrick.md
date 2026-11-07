@@ -88,8 +88,13 @@ Fetched 2026-10-28 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Geometry row 41 `lowerEnvelope` against this row is an open question of P139 (`duplicates.md`).
 - On aarch64 `long double` is already binary128, so the `_Float128` brute force for `long double` lines has no extra precision there; the `8 eps (1 + mag)` tolerance was calibrated on x87 and passed the aarch64 quick run.
 
+## Aliases
+
+Search aliases (P263, grab --find): 斜率优化, 凸包优化, 凸壳优化, 凸包技巧, 动态凸壳.
+
 ## History
 
 - 2026-10-28: P032 DS11 first implementation; the tester found the `LLONG_MIN` query defect and the independent review the narrow value domain of the negated side (both fixed, `boundary` group added) and two style findings; full (seed 20261028) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-10-28: `/finish` DS11: floating `T` with an asserted magnitude domain, the front-most tie rule for `lng` (user decisions), tolerance tightened to `8 eps (1 + mag)`; floating stress seed 7 failed when two hull lines with slopes `3e-10` apart evaluated to the same `double`, fixed by comparing neighbours through slope and intercept differences (`notWorse`); quick, full on g++ and g++-14 and stress (seeds 1 to 5 and 7) passed.
 - 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the floating oracle type `__float128` became `_Float128`, which aarch64 g++ also provides; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

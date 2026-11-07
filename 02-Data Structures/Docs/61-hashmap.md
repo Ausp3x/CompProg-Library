@@ -102,6 +102,11 @@ References inspected 2026-10-09 by the completeness sweep ([00-sources.md](00-so
 - Omissions with reasons in [00-notes.md](00-notes.md#p227-omissions): `count`, `forEach`, erase by iterator, `emplace`, shrinking.
 - Iteration is O(cap), so iterating a large table that was cleared or mostly erased pays for its peak capacity.
 
+## Aliases
+
+Search aliases (P263, grab --find): 哈希表, 无序关联式容器, 手写哈希表, 散列表, 开放寻址, 线性探测, 哈希集合.
+
 ## History
 
 - 2026-10-09: P227 first verification; independent review, 5 findings fixed; the floor check fixed `06-Miscellaneous/02-customhash.hpp` on GCC 14 with the user's approval; full (seed 20261009) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

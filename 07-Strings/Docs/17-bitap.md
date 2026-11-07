@@ -79,6 +79,11 @@ Code is independently implemented from the cited descriptions.
 - `BitsetText` memory is `S * n / 8` bytes; for byte texts (`S = 256`) that is `32 n` bytes.
 - `BitsetText::scan` has no direct test; it is exercised only through `count` and `occurrences` (open item).
 
+## Aliases
+
+Search aliases (P263, grab --find): 位并行匹配, 近似匹配, 模糊匹配, 近似字符串匹配, 汉明距离匹配.
+
 ## History
 
 - 2026-10-11: implemented and verified (P084), independent review found 1 defect, fixed.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

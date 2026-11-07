@@ -84,7 +84,7 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 
 ## Aliases
 
-Search aliases (P263, grab --find): ODT (old driver tree), Chtholly tree (珂朵莉树), color segments (颜色段均摊).
+Search aliases (P263, grab --find): ODT (old driver tree), Chtholly tree (珂朵莉树), color segments (颜色段均摊); 珂朵莉树/颜色段均摊, 老司机树, 区间推平, 区间赋值, 区间集合, 区间并, 区间合并.
 
 ## History
 
@@ -95,3 +95,4 @@ Search aliases (P263, grab --find): ODT (old driver tree), Chtholly tree (珂朵
 - 2026-10-13: prune, removed `IntervalSet::mex` (cases moved to `find(x).second`); full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (headers and tests unchanged; rerun for the memory-peak record); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 515/521/558 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -112,7 +112,12 @@ Fetched 2026-10-23 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Left out with reasons in [00-notes.md](00-notes.md#p035-omissions): component sums under component actions, monoid-only component actions, delete and move element, grid adapters, batch merge steps.
 - Kept beside other rows by the user's decisions of 2026-10-23 (`duplicates.md`, Keeps): `SparseDSU` beside `HashMap` plus `DSU::makeSet`; `MergeHistoryForest` beside Graphs `06-mst.hpp` `KruskalReconstruction` and row 10 `PartiallyPersistentDSU::uniteTime`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 哈希并查集, 连通块和, 连通块枚举, 并查集重构树, 最早连通时间.
+
 ## History
 
 - 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `MergeHistoryForest` `build` renamed `ctor` (its constructor), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves it; no code changed.
 - 2026-10-23: P035 first implementation (user decisions on `SparseDSU` and `MergeHistoryForest`); `DualDSU` added after the completeness sweep; independent review, 7 findings fixed across the package (here: the direct `CustomHash` include, complexity symbols, three probes, `MergeHistoryForest` rebuilt on heavy paths with O(n) memory instead of binary lifting, deep and shallow forest shapes); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

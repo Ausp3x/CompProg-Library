@@ -81,7 +81,7 @@ Algorithms, both `O(log(m))`; the extrema recurse at most `log2(m) + 1` levels a
 
 Aliases: ACL `floor_sum`; KACTL `divsum`, `modsum`; maspypy `floor_sum_of_linear`, `mod_sum_of_linear`, `range_freq_of_linear`, `min_of_linear`, `max_of_linear`, `first_mod_range_of_linear`, `floor_range`; Nyaan `sum_of_floor`, `mod_affine_range_counting`, `enumerate_quotient`; hitonanode `get_quotients`; suisen `enumerate_quotients`, `quotient_ranges`, `multiple_quotients_ranges`; ei1333 `sum_of_floor_of_linear`; Library Checker `sum_of_floor_of_linear`, `min_of_mod_of_linear`, `enumerate_quotients`.
 
-Search aliases (P263, grab --find): Euclidean-like algorithm (类欧几里得), floor sum, quotient blocks, number-theoretic sqrt decomposition (数论分块).
+Search aliases (P263, grab --find): Euclidean-like algorithm (类欧几里得), floor sum, quotient blocks, number-theoretic sqrt decomposition (数论分块); 类欧几里得算法, 整除分块, 除法分块.
 
 ## Feature-to-test map
 
@@ -159,3 +159,4 @@ Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep)
 - 2026-10-19: P037 added `floorSumWide` for geometry row 19; review fixes (coefficient reduction modulo `2^128`, direct division when the numerator fits 128 bits) and a tester overflow caught by the stress run; full suite passed on g++ and g++-14, stress seed 7 passed.
 - 2026-10-19 (round 3): `divStep` became one Knuth D word step with at most one correction (mutation checks on a private copy caught four planted faults); review found a 128-bit shift reachable by a negative modulus under `NDEBUG` (split, UB-free) and pinned shift-62 moduli; final full suite passed on g++ and g++-14, stress seed 7 and row 20 full passed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

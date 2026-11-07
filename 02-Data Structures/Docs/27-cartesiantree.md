@@ -70,6 +70,11 @@ Fetched 2026-10-14 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Left out with reasons in [00-notes.md](00-notes.md#p033-omissions): weighted subarray counts by minimum, depth or traversal arrays.
 - Row 08 owns nearest smaller values and the histogram rectangle, row 19 the linear treap build, row 54 linear and ±1 RMQ, row 55 the permutation tree, Graphs `07-lca.hpp` `EulerLCA`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 笛卡尔树, RMQ, 笛卡儿树, 欧拉序.
+
 ## History
 
 - 2026-10-14: P033 first implementation and verification; independent review, 1 finding fixed; full (seed 20261014) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

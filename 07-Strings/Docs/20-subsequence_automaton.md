@@ -80,6 +80,11 @@ Code is independently implemented from the cited descriptions.
 - Not adopted (reasons in [00-notes.md](00-notes.md)): distinct common subsequences and shortest uncommon subsequence of two texts (product-automaton DPs), lexicographically smallest subsequence of length k (monotone stack), lexicographic rank of a subsequence, a persistent-segment-tree transition table.
 - The whole-text distinct count is `countDistinctSubsequences()[0]`; subtract one for the nonempty convention used by Nyaan, suisen and Library Checker `number_of_subsequences`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 序列自动机, 子序列自动机, 判断子序列, 本质不同子序列, 最短非子序列, 第k小子序列, 子序列出现次数.
+
 ## History
 
 - 2026-10-11: implemented and verified (P084), independent review found 3 issues, fixed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

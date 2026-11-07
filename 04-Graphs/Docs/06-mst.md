@@ -99,7 +99,7 @@ Fractional/custom-weight domains are not claimed. Directed MSTs, sensitivity/sec
 
 ## Aliases
 
-Search aliases (P263, grab --find): MST (minimum spanning tree), minimum spanning forest; Library Checker `minimum_spanning_tree`.
+Search aliases (P263, grab --find): MST (minimum spanning tree), minimum spanning forest; Library Checker `minimum_spanning_tree`; 最小生成树, 克鲁斯卡尔重构树, 最小瓶颈路, 克鲁斯卡尔, 普里姆, 最大生成树, 最小生成森林, 普林算法.
 
 ## History
 
@@ -109,3 +109,4 @@ Search aliases (P263, grab --find): MST (minimum spanning tree), minimum spannin
 - 2026-10-12: P010 prune rerun, header and tests unchanged; full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

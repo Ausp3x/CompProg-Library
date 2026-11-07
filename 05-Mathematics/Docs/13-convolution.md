@@ -245,10 +245,11 @@ Adopted by the P055 sweep: `convolution` (dispatcher), `nttDoubling` and `convol
 
 ## Aliases
 
-Search aliases (P263, grab --find): FFT (fast Fourier transform), NTT (number-theoretic transform), polynomial multiplication.
+Search aliases (P263, grab --find): FFT (fast Fourier transform), NTT (number-theoretic transform), polynomial multiplication; 快速傅里叶变换, 快速数论变换, 多项式乘法, 卷积, 任意模数多项式乘法, 循环卷积, 二维卷积, 差卷积.
 
 ## History
 
 - 2026-10-09: P055 initial implementation and verification, `@reviewer` found 2 defects, fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-19: P054 follow-up: CRT over one to six primes chosen from the coefficient bound (every 64-bit modulus; `convolutionLong` modulo 2^64 and `convolutionU128` modulo 2^128 for any inputs), every length below 2^31 through `convolutionLarge`, aliased squares with one transform per prime, naive wrapping paths for short Long and U128 products; `@reviewer` found no defect, a missing six-prime test and stale texts, fixed; full and stress passed on g++, full on g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -54,6 +54,8 @@ Under `NDEBUG`: with `lo >= hi` every segment is empty, and insertions stop wher
 
 Catalog aliases: `chmin_line`, `update`, `add` → `addLine`; `get`, `get_val`, `getmin`, `operator()` → `query`; ei1333 `persistent-dynamic-li-chao-tree`, maspypy `PERSISTENT` flag → `PerLiChaoTree`; Nyaan `li-chao-tree-abstruct`, maspypy `FUNC` → the `F` parameter; Library Checker `line_add_get_min`, `segment_add_get_min` → `LiChaoTree` or `LiChaoTreeCompressed` (half-open segments).
 
+Search aliases (P263, grab --find): 斜率优化, 李超线段树, 李超树, 李超树合并, 可持久化李超树, 插入线段求最值, 一次函数最值.
+
 ## Feature-to-test map
 
 Tester `96-Local Testing/02-Data Structures/21-lichao_tester.cpp`, entry `21-lichao_tester.py` (driver `_00_runner.py`; three builds; 20 assertion probes). Function types: lines, integer parabolas `a (x - p)^2 + c` with one `a` per tree, and double parabolas `0.5 (x - p)^2 + c` compared exactly against the same doubles. Every generated function is checked in `__int128` against the value domain, so the `-DNDEBUG` build stays inside the contract.
@@ -110,3 +112,4 @@ Fetched 2026-10-28 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 - 2026-10-28: P032 DS11 rewrite; independent review, 3 findings fixed here (degenerate-domain leaf test `md == l`, lowercase constructor parameters, the merge cost note); full (seed 20261028) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-10-28: `/finish` DS11: `PerLiChaoTree::reserve`, the same-line tie rule, kept small-to-large merge (user decisions), compressed exhausted-undo probe, documentation and citation fixes; quick, full on g++ and g++-14 and stress (seed 7) rerun and passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

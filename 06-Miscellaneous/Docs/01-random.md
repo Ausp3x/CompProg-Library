@@ -62,9 +62,14 @@ P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, C
 - Advanced random sampling belongs to `18`; `randomPermutation(n)` is `iota` plus `shuffle` (see [00-notes.md](00-notes.md)).
 - No benchmark: no reduction backend or tuned threshold exists.
 
+## Aliases
+
+Search aliases (P263, grab --find): 随机函数, 随机数, 随机数生成, 随机打乱, 洗牌算法, 梅森旋转, 乱数.
+
 ## History
 
 - 2026-09-27: P013 first verification, full and stress suites passed.
 - 2026-10-07: P013 re-audit, URBG interface and `randDouble` added, contracts moved out of code comments, brace style normalized; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.
 - 2026-10-12: prune, removed `seed(x)` and `randInt` (cases moved to assignment reseeding and `randLng`); full suite passed on g++ and g++-14.
 - 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the tester builds with `-ffp-contract=off` (a new per-tester flag of the `06-Miscellaneous` runner), so the exact `randDouble(l, r)` oracle holds where g++ would fuse the multiply-add (aarch64); x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

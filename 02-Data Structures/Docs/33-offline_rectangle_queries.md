@@ -83,6 +83,11 @@ Fetched 2026-10-14 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Left out with reasons in [00-notes.md](00-notes.md#p033-omissions): higher-order coefficient queries, online registered-rectangle engines, K-dimensional and dynamic compressed Fenwick trees, block-decomposed Fenwick.
 - Miscellaneous `21-cdq.hpp` (planned) owns the generic time divide and conquer and 3D dominance; this header keeps its own run-based recursion because its sweep shares the corner list and Fenwick across levels. Geometry `13-segment_union.hpp` owns rectangle-union area and Geometry `29` triangle counting.
 
+## Aliases
+
+Search aliases (P263, grab --find): 二维数点, 单点加矩形求和, 矩形加矩形求和, 矩形加单点查询, 离线扫描线, 二维偏序, 矩形求和.
+
 ## History
 
 - 2026-10-14: P033 first implementation and verification; independent review: no defects, 3 assertion probes added, `std::midpoint` split.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

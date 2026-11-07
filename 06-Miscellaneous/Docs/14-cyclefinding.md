@@ -70,7 +70,12 @@ Inspected on 2026-09-28 (catalog sweep 2026-10-08 in [00-sources.md](00-sources.
 - The budgeted `step` and `failed` lambdas are repeated in `floydCycle` and `brentCycle` on purpose: a shared detail helper needs its own complexity line, which would push the header over the 8% comment cap.
 - Determinism and equivalence/congruence are semantic preconditions that cannot be checked in general.
 
+## Aliases
+
+Search aliases (P263, grab --find): 判圈算法, Floyd判圈, 弗洛伊德判圈, 龟兔赛跑算法, 布伦特判圈, 循环节.
+
 ## History
 
 - 2026-09-28: Floyd and Brent verified (P015, previous system).
 - 2026-10-08: re-audit, `orbitTerm` added, comment cap and closing braces restyled, budget helper inlined, 2 findings fixed; full suites, g++-14 full and benchmarks passed.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

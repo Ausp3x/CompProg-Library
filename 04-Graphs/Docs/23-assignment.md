@@ -111,10 +111,11 @@ Min-cost flow is row 20 and general weighted matching row 64. Incremental row ad
 
 ## Aliases
 
-Search aliases (P263, grab --find): Hungarian algorithm, KM (Kuhn-Munkres), bipartite weighted matching (OI Wiki 二分图最大权匹配), assignment problem.
+Search aliases (P263, grab --find): Hungarian algorithm, KM (Kuhn-Munkres), bipartite weighted matching (OI Wiki: 二分图最大权匹配), assignment problem, KM算法, 带权二分图匹配, 指派问题, 二分图最大权完美匹配, 分配问题, 匈牙利算法.
 
 ## History
 
 - 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; independent review: no wrong answers (own Bellman–Ford min-cost-flow oracle, overflow probes at the stated domain bounds).
 - 2026-10-13: prune, removed the `Hungarian` adapter (Legacy mapping); its hand-checked matrices moved to `hungarian` with the enumeration oracle, the `legacy-range` probe was deleted. The review found that the default-result check could not fail on value-initialized vector elements; it now default-initializes over volatile-poisoned storage. Full passed on g++ and g++-14, stress on g++.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

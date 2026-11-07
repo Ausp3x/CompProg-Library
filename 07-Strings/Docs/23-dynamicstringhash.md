@@ -89,6 +89,8 @@ All operations are `O(1)` amortized, and memory is `O(max size)`.
 
 maspypy `Monoid_Rolling_Hash` and suisen's `DynamicRollingHash` node are `HashMonoid`; maspypy `combine` is `HashMonoid::op` (or `StringHash::concat`); Nyaan `RollingHashOnSegmentTree::same` is digest equality; maspypy `deque_rolling_hash` is `DequeHash`; suisen push/pop at the ends of a dynamic sequence are `insert`/`erase` at `0` and `size`.
 
+Search aliases (P263, grab --find): 字符串哈希, 带修改字符串哈希, 动态字符串哈希, 带修哈希, 线段树维护哈希, 平衡树维护哈希, 树状数组维护哈希.
+
 ## Feature-to-test map
 
 Runner: [`23-dynamicstringhash_tester.py`](<../../96-Local Testing/07-Strings/23-dynamicstringhash_tester.py>). Oracle: an independent polynomial hash of a mirrored `vector`/`deque` (per-KIND arithmetic written in the tester), brute prefix/suffix scans and brute lexicographic comparison; `StringHash<KIND>` agreement is supporting evidence. All three KINDs; default and random bases.
@@ -143,3 +145,4 @@ Code is independently implemented from the cited descriptions; catalog sweep in 
 
 - 2026-10-16: implemented and verified (P085), independent review found 4 rule and test-gap findings, fixed; full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (`ImplicitTreap` stores `HashMonoid` as an empty object; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 551/558/554 MB.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

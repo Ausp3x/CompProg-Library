@@ -98,7 +98,7 @@ Implementation independently written; no code copied.
 - [CSES Pattern Positions](https://cses.fi/problemset/task/2104) (read 2026-10-19): first occurrence of every pattern, adopted as `firstOccurrences`; `forEachMatch` would cost `O(out)`, up to `n * sqrt(L)` matches.
 - Aliases (2026-10-19 sweep): KACTL `find` is the first (longest) ID of `forEachOutput` per boundary and `findAll` is `forEachMatch` grouped by start; suisen `count_suffix_matching`, Nyaan `count`, hitonanode `match` are `matchCount`/`countPatterns`; CSES Finding Patterns and Counting Patterns are `countPatterns`; the OI Wiki word-length bitmask is `suffixAggregate` with OR; the failure tree is `link` plus `order`.
 
-Search aliases (P263, grab --find): AC automaton (AC 自动机), Aho-Corasick.
+Search aliases (P263, grab --find): AC automaton (AC 自动机), Aho-Corasick, 多模式匹配, 多模式串匹配, 失配指针, 字典图, 阿霍-科拉西克算法.
 
 The preserved `OLD` headers contain no Aho-Corasick implementation.
 
@@ -115,3 +115,4 @@ The preserved `OLD` headers contain no Aho-Corasick implementation.
 - 2026-10-13: prune, removed `sparseStep` (its checks were already made on `step`); full suite passed on g++ and g++-14.
 - 2026-10-19: P017 re-sweep, `firstOccurrences` added (CSES Pattern Positions); full passed on g++ and g++-14, stress passed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

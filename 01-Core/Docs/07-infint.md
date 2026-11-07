@@ -779,7 +779,7 @@ Stages: (1) representation and memory: 64-bit limbs with four inline words, allo
 
 ## Aliases
 
-Search aliases (P263, grab --find): big integer, bignum, arbitrary-precision arithmetic, high-precision arithmetic (OI Wiki 高精度计算); Library Checker `addition_of_big_integers`, `multiplication_of_big_integers`, `division_of_big_integers`.
+Search aliases (P263, grab --find): big integer, bignum, arbitrary-precision arithmetic, high-precision arithmetic (OI Wiki: 高精度计算); Library Checker `addition_of_big_integers`, `multiplication_of_big_integers`, `division_of_big_integers`, 大整数, 大数运算, 高精度乘法, 高精度除法, 高精度开方, 进制转换, 压位高精度.
 
 ## History
 
@@ -797,3 +797,4 @@ Search aliases (P263, grab --find): big integer, bignum, arbitrary-precision ari
 - 2026-11-02: `/finish P018` (Opus 5.5 at xhigh by the user's decision): one `@reviewer` audit (14 findings, no wrong result or undefined behavior) and two diff reviews, every finding fixed or decided by the user; the whole-file member order (UInt in InfInt's) and six kernel renames, with identical machine code; `spectrumChunk` prices `transformMul`'s NTT past `fftPlan`'s limit once its root tables cover the length (`nttWork`, measured on 22 shapes); the recorded stage-4 residues and hex gaps re-measured on the final header and found closed locally; quick, full and stress suites passed on GCC 16 and full on GCC 14 (7.06 M checks per full configuration), consumers, sanitized integration, sanitized and valgrind driver runs passed; every judge case AC locally.
 - 2026-11-02: judge submissions of the final revision (#414594–#414603): every case AC, but hex division's `length_ratio_integer_00`–`03` 6–11 ms slower than the revision before at an unchanged division path and 5% fewer instructions; `HUGE_FROM` back to 2 MiB (user decision; #414610–#414614 restore those cases and keep the stage-4 gains, sum 279–295 ms against 395390's 325); quick suite and the six drivers passed on the final header; its best runs (#414637, #414636, #414628: 5, 16 and 28 ms) lead the three hex judge lists.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

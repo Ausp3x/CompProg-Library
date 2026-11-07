@@ -165,9 +165,14 @@ Adopted by the P057 sweep: `findLinearRecurrenceHalfGcd`.
 - The state at a large index `l` (`sliceRationalFps`, `consecutiveTerms`) comes from `polyPowMod` with a precomputed reversed inverse, which is optimal at `O(M(d) log l)`. A Graeffe-based slice (Bostan–Mori on `1 / Q`, OI Wiki "slice coefficients") would have a smaller constant and is the natural next optimization.
 - Rejected candidates are in [00-notes.md](00-notes.md), under P057 research decisions.
 
+## Aliases
+
+Search aliases (P263, grab --find): Berlekamp–Massey 算法, 常系数齐次线性递推, BM算法, 线性递推数列, 有理生成函数.
+
 ## History
 
 - 2026-10-10: P057 initial implementation and verification, `@reviewer` found 2 defects in this header, fixed.
 - 2026-10-11: verification run, quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: P057 prune rerun (row 14 `polyMod` removed), header and tests unchanged; full suite passed on g++ and g++-14.
 - 2026-10-19: P054 follow-up rerun (included `13-convolution.hpp` changed), header unchanged; full passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

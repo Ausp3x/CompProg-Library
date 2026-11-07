@@ -135,6 +135,10 @@ Sources for `LCAFold` and `pathIntersection` (fetched 2026-10-07) are in [00-sou
 
 Ancestor/path binary search by predicate belongs to row 15 (HLD); tree/HLD aggregates and dynamic-tree APIs remain with their separate owners (see [00-notes.md](00-notes.md#placement-decisions-recorded)).
 
+## Aliases
+
+Search aliases (P263, grab --find): 倍增, 最近公共祖先, 最低共同祖先, 树上倍增, k级祖先, 树上距离, 欧拉序, 树上路径交.
+
 ## History
 
 - 2026-09-27: original P011, full suite (seed 20260927, 25,537,081 checks, 20 probes), integration and benchmark passed on g++ 16.
@@ -142,3 +146,4 @@ Ancestor/path binary search by predicate belongs to row 15 (HLD); tree/HLD aggre
 - 2026-10-12: prune, removed the legacy `LCA(n, root, adj)` constructor and `lca_detail::fromAdjacency` (cases moved to `Graph::fromAdjacency` lists, four legacy probes replaced by `adjacency-label`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect, equivalence confirmed on its own 30,000 random forests and multigraphs.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1052/1201/1680 MB.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>` and `template<class L = LCA>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

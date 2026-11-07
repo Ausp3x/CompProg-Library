@@ -128,8 +128,13 @@ The implementation was written independently from the geometric identities. Note
 
 Other planned packages own adaptive and exact floating predicates (P128 / GE11) and segment intersection sweeps (P129 / GE04). General rational-lattice counts are row 19 (`19-lattice_geometry.hpp`).
 
+## Aliases
+
+Search aliases (P263, grab --find): 二维计算几何基础, 线段相交, 直线交点, 点到直线距离, 点到线段距离, 线段间距离, 点到直线投影, 中垂线, 线段上整点.
+
 ## History
 
 - 2026-09-27: original P007, full suite (seed 20260927, 1,152,578 checks) passed on g++ 16.
 - 2026-10-07: re-audit, implemented the seven missing line operations plus `canonicalLine`; 5 findings fixed (complexity comments, explicit `approx` casts, `LinearIntersection2` comment, braces, comment cap); full suite and stress passed on g++ 16; two-translation-unit GE01 smoke and a `-Wall -Wextra -Wconversion` sweep over all eight `T` passed, `02-integration.py --sanitizers` passed; independent review: confirmed three package defects, all fixed (none in this header).
 - 2026-10-12: prune, removed `onSegment` (cases moved to `contains` on `Linear2::segment`; call sites in `segmentDistanceApprox`, `17-polygon_distance.hpp` and the 10 and 16 testers migrated); full suite passed on g++ and g++-14, stress passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

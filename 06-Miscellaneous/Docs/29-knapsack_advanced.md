@@ -150,7 +150,12 @@ Fetched 2026-10-23 by `@researcher` ([00-sources.md](00-sources.md), P072 sweep)
 - Meet in the middle and subset-sum counts by cardinality (maspypy `subset_sum_count_by_size`) are leads for row `30`; Boolean bitset subset sum is row `22`.
 - Not adopted in the 2026-10-23 sweep: see [00-notes.md](00-notes.md), P072 package record.
 
+## Aliases
+
+Search aliases (P263, grab --find): 背包 DP 基础, 背包 DP 进阶, 单调队列优化多重背包, 分组背包, 二维费用背包, 有依赖的背包, 树上背包, 退背包, 背包第k优解, 背包最优方案数, 子集和.
+
 ## History
 
 - 2026-10-23: implemented, independent review (tree memory, branch-and-bound copies and depth, complexity symbols, probes, round counts; 5 findings fixed) and verified (P072).
 - 2026-10-24: `/finish` audit, five review rounds (bounded multiplicities and unlimited zero-weight items in `kthBestKnapsack` and `countOptimalSelections`, chain monotone queue in `twoDimensionalKnapsack`, `NDEBUG` limits, renames, 14 probes, mutation check; user decisions 2026-10-23 and 2026-10-24); ASan stress runs as full; `[[maybe_unused]]` on the assert-only `check` parameters; full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

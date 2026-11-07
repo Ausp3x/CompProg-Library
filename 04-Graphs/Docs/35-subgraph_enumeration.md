@@ -147,7 +147,7 @@ Time O(n + m · d), memory O(n + m). No fetched contest catalog has a triad cens
 - `triadicCensus`: NetworkX `triadic_census`.
 - `localClustering`, `directedClustering`, `weightedClustering`, `weightedDirectedClustering`: NetworkX `clustering` (unweighted, directed, weighted). `transitivity`, `squareClustering`, `averageClustering`, `generalizedDegree`: NetworkX `transitivity`, `square_clustering`, `average_clustering`, `generalized_degree`.
 
-Search aliases (P263, grab --find): cycle counting (OI Wiki 环计数问题, rings count), triangle counting, 4-cycle counting.
+Search aliases (P263, grab --find): cycle counting (OI Wiki: 环计数问题, rings count), triangle counting, 4-cycle counting, 三角形计数, 聚类系数, 子图计数.
 
 ## Feature-to-test map
 
@@ -273,3 +273,4 @@ On graphs where the sparse loop runs alone (`r0 = n`), `denseStart` costs 0.2–
 - 2026-10-29: new row (P048 / GR32); review: 2 medium and 9 low findings fixed (payload-free `Ranked` for seven operations, undefined `d`, shared wedge scan, provenance row, extended keeps, row 42 handoff, signed-`T` contract, bounded `NDEBUG` read, domain-edge tests at m = 6 · 10^6, bound wording, `swap`); full suite passed on g++ and g++-14, stress passed, benchmark rerun.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

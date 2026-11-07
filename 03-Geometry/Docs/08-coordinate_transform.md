@@ -73,8 +73,13 @@ The implementation is independently derived. It was compared with KACTL `Point::
 
 3D frames belong to GE31. No claim of universally certified floating geometry is made.
 
+## Aliases
+
+Search aliases (P263, grab --find): 坐标变换, 仿射变换, 点的旋转, 平移变换, 缩放变换, 反射变换, 齐次坐标, 变换矩阵.
+
 ## History
 
 - 2026-09-27: original P008, full suite (seed 20260927, 265,418 checks) and stress passed on g++ 16.
 - 2026-10-07: re-audit, 1 finding fixed, contract comments moved to this document; full suite and stress passed on g++ 16; independent review: reproduced every full count and probe, confirmed one package defect (in `06-circle.hpp`).
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

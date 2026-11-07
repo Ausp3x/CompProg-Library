@@ -55,6 +55,8 @@ Ranges are zero-based and half-open, `0 <= l <= r <= n`, asserted once per query
 - k-majority and Misra–Gries frequent elements: `frequent` with `t = (r - l) / k + 1`. All-distinct test: `staticRangeCountDistinct == r - l`.
 - Online distinct count: row 18 `PersistentDistinctCount` (online, kept by user decision 2026-10-27).
 
+Search aliases (P263, grab --find): 主元素问题, 线段树与离线询问, 区间数颜色, 区间不同数个数, 区间出现次数, 区间mex, 区间绝对众数, 区间频率.
+
 ## Feature-to-test map
 
 Tester `96-Local Testing/02-Data Structures/32-static_range_queries_tester.cpp`, entry `32-static_range_queries_tester.py` (driver `_00_runner.py`; optimized, checked and ASan/UBSan builds; 24 assertion probes). BF means a brute force over the range with an ordered map or a direct count; the literal hand cases check the brute forces themselves. Seven deliberately broken scratch copies of the header (truncated mex values, an off-by-one majority test, wrong `frequent` ranks and others) all failed the tester.
@@ -139,3 +141,4 @@ The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.m
 - 2026-11-02: P032 DS28 first implementation; tester follow-ups fixed (type requirements of `RangeMajority` and `RangeThresholdFrequency`, `lng` rank counter in `frequent`); independent review, 6 findings and 5 nits fixed (comment cap, `NDEBUG` loop on `t <= 0`, majority proof from the bracketing invariant, pool reserve, `duplicates.md` keeps, mex type domain with an `int8_t` case; `byRight` size, `n <= 2^29`, test-mode and benchmark wording, `frequent` jumps past each block); 7/7 scratch mutants caught; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed.
 - 2026-11-02: `/finish` audit, 3 defects and 2 nits fixed (`t = INT_MIN` start rank, `n <= 2^29` wording, pool reserve only for values in `[0, n)`), limits recorded; user decisions recorded (`descend` contract in row 17, API names kept, Library Checker ledger retargeted); diff review, 4 nits fixed; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7), row 17 quick, `02-integration.py` and `03-consistency.py` passed.
 - 2026-11-03: maintainer `/merge-pr 1`: the real `03-consistency.py` and `plan.py check` results recorded and the clone-specific limit dropped (P250's note keeps the follow-up); row 17 lists and tests `descend` and `lowerRank`, which `frequent` uses; the first maintainer gate (2026-11-03) passed quick and full on g++ and g++-14 and `02-integration.py --sanitizers`.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

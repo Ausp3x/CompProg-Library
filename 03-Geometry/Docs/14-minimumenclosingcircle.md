@@ -147,8 +147,13 @@ The implementation was written independently. Sources of the completeness sweep 
 - `minimumEnclosingCircleApprox` is exact only up to rounding, and only where every decision survives rounding (see its contract).
 - Megiddo's deterministic linear algorithm, the enclosing circle of circles and the smallest circle covering `k` points are planned as row 57 `minimumEnclosingCircleDeterministic` and `minimumEnclosingCircleOfCircles` (P234) and row 56 `smallestDiskCoveringK` (P233). Incremental insertion and the rectangular p-centre (row 21) stay not adopted. The 3D ball belongs to row 42.
 
+## Aliases
+
+Search aliases (P263, grab --find): 最小圆覆盖, 随机增量法, 最小覆盖圆, 最小包围圆, 最小外接圆.
+
 ## History
 
 - 2026-10-18: first implementation (P037). Independent review: the comment share was reduced, empty input under `NDEBUG` returns an empty result, and `10^9` sets gained the hull criterion and a 256-bit side oracle. Full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19: P037 re-audit rerun, header unchanged; full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19 (round 3): exact `radius2` as `Rational<InfInt>`; `minimumEnclosingCircleApprox`; budgeted move-to-front (1.07–2.4× faster in the serial benchmark); `center` defined on an empty support under `NDEBUG`; six probes, a Python exact oracle and 26 mutants (22 caught, 4 equivalent or runtime only). Full suite passed on g++ and g++-14, stress passed. Independent review: `locate` on an empty support returns 1 under `NDEBUG`, `n < INT_MAX` stated and asserted, the Python oracle seeded from `--seed`, benchmark ratios corrected. Final full suite passed on g++ and g++-14, stress passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -51,9 +51,14 @@ P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, C
 - Universal/tabulation/adversarial-resistant hash families belong to `19`.
 - No benchmark: no reduction backend or tuned threshold exists.
 
+## Aliases
+
+Search aliases (P263, grab --find): 哈希表, 无序关联式容器, 自定义哈希, 防卡哈希, 哈希函数, 防哈希攻击.
+
 ## History
 
 - 2026-09-27: P013 first verification, full and stress suites passed.
 - 2026-10-07: P013 re-audit, `safe_gp_hash_table` added, 3 findings fixed, contracts moved out of code comments; full, stress and integration passed.
 - 2026-10-09: P227 fixed the process seed initializer for GCC 14; full suite passed on g++ 16.2.1 and g++-14 14.4.1.
 - 2026-10-12: P013 prune run (header unchanged), full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

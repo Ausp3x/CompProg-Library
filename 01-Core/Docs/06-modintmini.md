@@ -123,6 +123,10 @@ The 2026-10-07 sweep of minimal modints (KACTL, ACL, Nyaan, maspypy, ei1333, ecn
 
 Python 3.10 execution (the tester parses under 3.10 grammar) was not run. The mini stays independent of the full type's `ModInt61` fold path.
 
+## Aliases
+
+Search aliases (P263, grab --find): 取模类, 自动取模, 乘法逆元, 快速幂, 动态模数.
+
 ## History
 
 - 2026-09-27: original C16 verification, full suite passed (176,384 cases per configuration); benchmark record.
@@ -131,3 +135,4 @@ Python 3.10 execution (the tester parses under 3.10 grammar) was not run. The mi
 - 2026-10-07 (run): full (seed 20260927, 176,384 cases per configuration, 85.61 s) passed; P005 stress round passed 1,044,573 cases per configuration.
 - 2026-10-08: restyle (header unchanged), full suite passed on g++ and g++-14, integration and consistency passed.
 - 2026-10-12: the 64-bit structs' per-call Montgomery power helper removed (slower than the native remainder from about `2^63` upward on distinct bases, even below), the benchmark moved to 4096 distinct bases; full suites passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

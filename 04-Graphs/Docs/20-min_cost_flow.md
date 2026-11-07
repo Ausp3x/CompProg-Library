@@ -86,6 +86,8 @@ Owned by package P045 / GR09. The header implements `MinCostFlow<Cap, Cost>`, su
   - ei1333 `min_cost_flow(s, t, f)` returning -1 → `flow(s, t, f).first < f`;
   - max-gain flow → negated costs.
 
+Search aliases (P263, grab --find): 费用流, 网络流简介, 最小费用最大流, 最小费用流, 凸费用流, 原始对偶, 最小花费最大流, 最小成本流, zkw费用流.
+
 ## Feature-to-test map
 
 `96-Local Testing/04-Graphs/20-min_cost_flow_tester.py` uses the shared graph driver with three builds, all with `-Wall -Wextra -Wconversion -Werror`:
@@ -255,3 +257,4 @@ Convex edges follow the row's piecewise-linear wording; no catalog has a convex-
 
 - 2026-10-13: P045 implementation; independent review, 6 findings fixed; mutation check (22 of 22 killed), benchmark and `NDEBUG` probe.
 - 2026-10-14: verified (P045) after the rebase onto master; full (seed 20261013) passed on g++ and g++-14, stress (seed 7), integration and consistency passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `zkw费用流` names a related method for the same problem, kept as a search synonym (user decision 2026-11-07).

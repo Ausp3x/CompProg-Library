@@ -53,6 +53,8 @@ Deleting `S` disconnects a component iff some nonempty subset of `S` is a cut, s
 - `XorWalk::maxXorWalk`: Luogu P4151 maximum XOR path; `minXorWalk`: CF 845G, ABC451 G.
 - `CutSpaceHash::disconnects`: BZOJ 3569 "DZY Loves Chinese II".
 
+Search aliases (P263, grab --find): 环基, 环空间, 圈空间, 最大异或和路径, 最小异或路径, 基本回路, 基本割集, 割空间.
+
 ## Feature-to-test map
 
 `96-Local Testing/04-Graphs/28-cycle_basis_tester.py` (shared graph runner with `-Werror` warnings; optimized, checked with 7 assertion probes, ASan/UBSan in full and stress). Oracle self-tests on hand cases cover every brute force below.
@@ -105,3 +107,4 @@ Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction).
 - 2026-11-03: P032 DS50 migrated `XorWalk` and `CutSpaceHash` onto Data Structures row 62 `XorBasis` (tester compares `basis[c].b`; branchless selects after the `/finish` benchmark); quick, full (seed 1) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-11-03: P032 `/merge-pr 1`: `XorWalk` and `CutSpaceHash` use `XorBasis<false>`, removing the mask cost; quick, full (seed 1) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

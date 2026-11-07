@@ -88,7 +88,12 @@ Fetched 2026-10-23 by `@researcher` ([00-sources.md](00-sources.md), P072 sweep)
 - Lawler's oracle must be exact; an approximate oracle breaks the order guarantee.
 - Under `NDEBUG`, any violated asserted precondition may read or write out of bounds; `03-cpp.md` requires only termination without a hang or unbounded allocation (user decisions 2026-10-23 and 2026-10-24).
 
+## Aliases
+
+Search aliases (P263, grab --find): 前k小和, 第k小子集和, 前k小子段和, 序列合并, k优解, 第k小组合.
+
 ## History
 
 - 2026-10-23: implemented, independent review (complexity comments, probes; 2 findings fixed) and verified (P072).
 - 2026-10-24: `/finish` audit, five review rounds (`min_len`/`max_len`, Lawler equal-value assert and bound, per-name seeds, 1 probe, `NDEBUG` limit, `kLargest` kept by user decision); ASan stress runs as full; full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

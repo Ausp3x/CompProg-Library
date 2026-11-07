@@ -47,8 +47,13 @@ The code was written independently from the recurrences and proofs in the packag
 - The code uses no `long` or POSIX-only calls.
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): offline set intersection, RMQ, range k-th and arithmetic-progression adds.
 
+## Aliases
+
+Search aliases (P263, grab --find): 离线处理, 离线查询, 离线排序, 区间小于k的数个数, 二维数点.
+
 ## History
 
 - 2026-09-28: first implementation and audit (MI03, P014); full suite passed.
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes.
 - 2026-10-08: re-audit, no operation missing, 10 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

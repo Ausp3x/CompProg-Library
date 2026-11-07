@@ -94,7 +94,7 @@ Algorithm/proof references; the implementation was written independently without
 
 ## Aliases
 
-Search aliases (P263, grab --find): binary set operations (OI Wiki 二进制集合操作), bitmask subsets, submask enumeration.
+Search aliases (P263, grab --find): binary set operations (OI Wiki: 二进制集合操作), bitmask subsets, submask enumeration; 格雷码, 枚举, 组合枚举, 子集枚举, 超集枚举, 格雷码枚举, 整数划分枚举, 集合划分枚举, 可重组合枚举, 穷举.
 
 ## History
 
@@ -103,3 +103,4 @@ Search aliases (P263, grab --find): binary set operations (OI Wiki 二进制集�
 - 2026-10-08: re-audit, four missing operations and `forEachSupermask` added, comment cap and closing braces restyled, 4 findings fixed; full suites and g++-14 full passed.
 - 2026-10-12: P013 prune migrated `forEachGrayMask` to `std::countr_zero`; full suite (seed 20260927, 28 probes) passed on g++ and g++-14 (recorded in [04-compression.md](04-compression.md)).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

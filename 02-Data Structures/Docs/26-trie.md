@@ -84,6 +84,11 @@ Fetched 2026-10-14 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Left out with reasons in [00-notes.md](00-notes.md#p033-omissions): trie meld, the LSB-first global +1 trie, kth xor pair and pair counting, range xored mex, index payloads, ordered enumeration.
 - Literal-prefix and radix tries are Strings `04-trie.hpp` and `25-radixtrie.hpp`; xor bases are row 62; row 17 (`WaveletMatrix`) defers range xor queries to `PersistentBinaryTrie`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 字典树 (Trie), 可持久化字典树, 01字典树, 01Trie, 可持久化01字典树, 最大异或对, 异或最大值, 异或最小值, 全局异或.
+
 ## History
 
 - 2026-10-14: P033 first implementation and verification; the independent review found no header defects and 11 missing assertion probes, now added.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

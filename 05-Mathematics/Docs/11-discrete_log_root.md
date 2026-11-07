@@ -103,7 +103,7 @@ The other code names are `hq` for `H`, `ex` for the digit exponent and `qt = q^(
 
 `bsgs`, `exBsgs`, `modLog`, `mod_log`, `discrete_log` (`discreteLogEx`); `discrete_log_acted`, `discrete_log_monoid`, `DiscreteLogarithm` (`discreteLogMonoid`); `order`, `ord` (`multiplicativeOrder`); `primitive_root`, `getPrimRoot` (`primitiveRoot`); `jacobi` (`kroneckerSymbol`); `sqrt_mod`, `mod_sqrt` (`sqrtModPrimeCipolla`); `kth_root`, `mod_kth_root`, `discreteRoot` (`kthRootModPrime`); `primitive nth root of unity` (`unitRootModPrime`).
 
-Search aliases (P263, grab --find): discrete logarithm, BSGS (baby-step giant-step), quadratic residue (Legendre symbol, Cipolla), k-th residue, k-th root mod p.
+Search aliases (P263, grab --find): baby-step giant-step, quadratic residue (Legendre symbol, Cipolla), k-th residue, k-th root mod p; 二次剩余, 阶 & 原根, 离散对数, 高次剩余 & 单位根, 大步小步算法, 乘法阶, 勒让德符号, 雅可比符号, 欧拉判别法.
 
 ### Legacy mapping
 
@@ -184,3 +184,4 @@ Adopted by the P053 sweep: `discreteLogMonoid`. Rejected candidates are in [00-n
 
 - 2026-10-16: P053 initial implementation, duplicates settled with the user (Legacy mapping), `discreteLogMonoid` adopted from the sweep, review found 6 issues, all fixed; full passed on g++ and g++-14, stress on g++.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

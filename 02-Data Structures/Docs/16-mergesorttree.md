@@ -83,8 +83,13 @@ Fetched 2026-10-10 by the completeness sweep ([00-sources.md](00-sources.md)); t
 - Left out with reasons in [00-notes.md](00-notes.md#p028-omissions): `sumLeq`/`countSumLeq` (row 17 `sumLess`), count wrappers `countGreater`/`countGeq`/`countLeq` (`r - l - countLess` and `countLess` of the next value), Fenwick-of-value-trees dynamic kth.
 - `MergeSortTree::countRange` on the points `(i, a_i)` overlaps row 43's `RangeTree.count`; this row covers arrays, row 43 general point sets.
 
+## Aliases
+
+Search aliases (P263, grab --find): 划分树, 线段树套平衡树, 树状数组套权值线段树, 归并树, 归并排序树, 区间第k小, 区间排名, 区间前驱后继, 带修区间第k小, 分散层叠, 区间小于k的个数.
+
 ## History
 
 - 2026-10-10: P028 first verification; `DynMergeSortTree` split into `MergeSortTree` (static) and `DynamicMergeSortTree`, `PointSetRangeFrequency` added, `97-Legacy/05-mergesorttree_older.cpp` retired.
 - 2026-10-10: independent review (P028): no wrong answers; guarded `set` on an empty slot under `NDEBUG` and corrected the memory term of the complexity line.
 - 2026-10-12: re-audit fix: `countRange` asserts its index range before the `lo < hi` shortcut in both trees (2 new probes); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `划分树`, `线段树套平衡树` and `树状数组套权值线段树` name related structures answering the same queries, kept as search synonyms (user decision 2026-11-07).

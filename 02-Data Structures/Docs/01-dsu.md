@@ -71,7 +71,7 @@ The old DSU at `OLD/algorithms.cpp:1402–1477` mixed connectivity, weighted dis
 
 ## Aliases
 
-Search aliases (P263, grab --find): union-find, union find, disjoint set union; Library Checker `unionfind`.
+Search aliases (P263, grab --find): union-find, disjoint set union; Library Checker `unionfind`; 并查集, 并查集复杂度, 并查集应用, 不相交集合, 路径压缩, 按秩合并, 连通块.
 
 ## History
 
@@ -82,3 +82,4 @@ Search aliases (P263, grab --find): union-find, union find, disjoint set union; 
 - 2026-11-03: P251 mutation campaign, tester gained the union-by-size depth check and probes `find-past`, `makeset-full`; quick, full on g++ and g++-14, and 2 stress rounds passed.
 - 2026-11-04: P252 recorded the mutation campaign (140 mutants, 6 equivalent survivors) under Mutation testing; header and tests unchanged.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -305,7 +305,7 @@ Thresholds set from this run: `SCHOOLBOOK` 16 under AVX2 (NTT and schoolbook tie
 
 ## Aliases
 
-Search aliases (P263, grab --find): FPS (formal power series); CZT (chirp z-transform).
+Search aliases (P263, grab --find): FPS (formal power series); CZT (chirp z-transform); 插值, Berlekamp–Massey 算法, 快速傅里叶变换, 快速数论变换, Chirp Z 变换, 多项式牛顿迭代, 多项式多点求值/快速插值, 多项式初等函数, 常系数齐次线性递推, 多项式平移/连续点值平移, Lagrange 反演, 形式幂级数复合/复合逆, 指数生成函数, 斯特林数, 伯努利数, Eulerian Number, 分拆数, 多项式与生成函数简介, 普通生成函数, 多项式全家桶, 多项式乘法, 多项式求逆, 多项式对数函数, 多项式指数函数, 多项式开根, 多项式除法, 任意模数多项式乘法, 半在线卷积.
 
 ## History
 
@@ -316,3 +316,4 @@ Search aliases (P263, grab --find): FPS (formal power series); CZT (chirp z-tran
 - 2026-10-13: prune (`/prune P025`, seven operations removed, `### Legacy mapping`), review: 3 documentation findings fixed, no code defect; quick, full on g++ and g++-14, integration and consistency passed.
 - 2026-10-26: P018 stage-1 handoff applied by P018 (recorded call-site migration): the `BigInt` concept reads `n.size()`/`n.data()` as `int`/`ulng *` and `kronecker` packs 64-bit words; the quick suite was rerun under P018 ([07-infint.md](07-infint.md), Commands).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

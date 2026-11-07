@@ -121,9 +121,14 @@ Read on 2026-09-27; the completeness sweep was added on 2026-10-07. The implemen
 
 The row covers planar single-triangle measurements, coordinates, the angle kind and the named centers and circles above. Arbitrary catalogs of named triangle centers are not implied. Triangle and polygon clipping, triangulation, geometric medians and the Fermat point, 3D line-triangle intersection, spherical triangles and certified predicates belong to their later inventory rows.
 
+## Aliases
+
+Search aliases (P263, grab --find): 海伦公式, 海龙公式, 三角形面积, 重心坐标, 三角形重心, 垂心, 旁切圆, 九点圆.
+
 ## History
 
 - 2026-09-27: original P009, full suite (seed 20260927, 560,820 checks, 16 probes) passed on g++ 16.
 - 2026-10-07: re-audit, added `angleKind`; 4 findings fixed (excircle gap cancellation, Heron oracle misclassifying dyadic degenerate sides, `; }` closings, excircle contract conditioning); full suite passed on g++ and g++-14.
 - 2026-10-13: prune, removed `TriangleApprox` circumcircle, incircle, circumcenter, incenter, circumradius and inradius (cases moved to `circumcircleApprox` and `incircleApprox`); full suite passed on g++ and g++-14.
 - 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): excircle references printed to 40 digits instead of 30, which binary128 `long double` needs; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

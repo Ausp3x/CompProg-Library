@@ -121,6 +121,10 @@ The completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetche
 
 Dynamic graphs are owned by their separate inventory rows.
 
+## Aliases
+
+Search aliases (P263, grab --find): 图的存储, 邻接表, 邻接矩阵, 前向星, 邻接串列, 线图, 导出子图, 诱导子图.
+
 ## History
 
 - 2026-09-27: original P010, full suite (seed 20260927) passed on g++ 16 with integration and 61 package probes; stress not run.
@@ -128,3 +132,4 @@ Dynamic graphs are owned by their separate inventory rows.
 - 2026-10-07: re-audit, implemented `lineGraph`, `inducedSubgraph`, `contract`, `simplify`; 5 findings fixed (missing operations, evidence claim, complexity lines, brace rule, T/M placement); full suite passed on g++ and g++-14, stress passed; independent review: findings 1–3, 5 and 7–14 confirmed fixed, no correctness defect, 22 own mutants (17 killed, 5 survivors equivalent or runtime-only).
 - 2026-10-12: prune, added `Graph::fromAdjacency` and `fromMatrix`, removed `GraphLabels` (cases moved to `CoordinateCompression`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -81,7 +81,7 @@ Code is independently implemented from the invariants above.
 
 ## Aliases
 
-Search aliases (P263, grab --find): minimum representation (最小表示法, OI Wiki minimal string), lexicographically minimal string rotation.
+Search aliases (P263, grab --find): minimum representation (最小表示法, OI Wiki: minimal string), lexicographically minimal string rotation, 最小循环表示, 循环同构, 最小循环移位, 最大表示法.
 
 ## History
 
@@ -89,3 +89,4 @@ Search aliases (P263, grab --find): minimum representation (最小表示法, OI 
 - 2026-10-13: prune, removed `minRotation(s)` (cases moved to `minRotationIndices(s).first`); full suite passed on g++ and g++-14.
 - 2026-10-19: P017, the suffix-array variant's construction cost restated for SA-IS (no API change); full on g++ before the final code-range cutoff and quick on the final code passed (recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results)).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

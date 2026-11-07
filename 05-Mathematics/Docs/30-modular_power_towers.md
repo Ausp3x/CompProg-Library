@@ -41,6 +41,8 @@ Edge cases follow from the recursion: m = 1 gives 0; a base 0 gives 0^E = [E = 0
 
 Aliases: Library Checker `tetration_mod`; maspypy `tetration`; Nyaan `tetration`; ei1333 `mod_tetration`; suisen `tetration_mod`, `saturation_pow`, `saturation_tetration`; Codeforces 906D power tower queries; SPOJ POWTOW; Project Euler 188 (hyperexponentiation).
 
+Search aliases (P263, grab --find): 费马小定理 & 欧拉定理, 欧拉降幂, 扩展欧拉定理, 幂塔, 迭代幂次.
+
 ## Feature-to-test map
 
 Entry: [`30-modular_power_towers_tester.py`](<../../96-Local Testing/05-Mathematics/30-modular_power_towers_tester.py>).
@@ -89,3 +91,4 @@ Fetched 2026-10-19 by `@researcher` ([00-sources.md](00-sources.md), P054 sweep)
 
 - 2026-10-19: P054 initial implementation; `@reviewer` found 1 bug in this header (exponent overflow at m = 2^64 - 59) and a cost statement for `powerTowerCapped`, both fixed with a regression; full suite passed on g++ and g++-14, stress seed 7 passed.
 - 2026-10-19: P054 follow-up: shared Pollard rho moved into the folder runner, limits section reduced to handoffs; full and stress passed on g++, full on g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

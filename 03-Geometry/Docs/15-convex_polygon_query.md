@@ -207,8 +207,13 @@ The implementation was written independently. Sources of the completeness sweep 
 - Degenerate hulls with `n <= 2` are rejected; use `02-line_segment.hpp`.
 - Common tangents of two convex polygons belong to row 53; the minimum enclosing triangle and parallelogram are planned as `57-enclosing_shapes.hpp` (P234); circumscribing k-gons, inscribed homothets and axis rectangles are not adopted (see 00-notes).
 
+## Aliases
+
+Search aliases (P263, grab --find): 点在凸多边形内, 凸包切线, 直线与凸多边形交, 凸多边形切割, 凸多边形交, 最大内接三角形, 最大内接四边形, 最大内接多边形.
+
 ## History
 
 - 2026-10-18: first implementation (P037). Independent review: the false inverse-Monge argument for areas was replaced by a monotonicity proof and the tie break removed; `k < 3` under `NDEBUG` is raised to 3; `extreme` asserts its direction bound; the constructor rejects pentagrams; `10^9` line, cut and prefix tests were added; the comment share was reduced. Full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19: P037 re-audit added the `Smawk` k-gons, the interleaving proof and Keikha et al.'s counterexamples. Independent review: a `k`-sized array was allocated before the `k >= n` return (now after it, with a `k = 2^31 − 1` regression). Full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19 (round 3): the cited interleaving lemmas replaced by a proof (vertex and exchange lemmas; checked by an independent reviewer and an exact-integer probe), with Boyce et al.'s Fig. 10 and Fig. 12 as regressions; k-gon memory `O(n + k * log(n))` through a Hirschberg pass beyond a `2^23`-entry table; SMAWK with cached values and one workspace per layer; linear `maxAreaInscribedTriangle` (Jin–Zhu–Luo) and `maxAreaInscribedQuadrilateral` (Rote); galloping `batchedLocate`; exact `pointDistance2` and `areaLeftOfLine2`; a tie corpus and a cubic-scan stress phase. A stress run found that the first transcription of Jin et al.'s Algorithm 4 could stop at an unstable triangle (fixed; 19-gon regression). Independent review: the quadrilateral loop bounded under `NDEBUG`, the Hirschberg buffers freed before recursing, SMAWK's per-level allocations removed, the exchange-lemma wording and the stabilising-pass bound corrected, ledgers updated. Final full suite passed on g++ and g++-14, stress passed.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

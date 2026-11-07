@@ -101,7 +101,7 @@ Adaptive and exact floating predicates belong to P128 / GE11.
 
 ## Aliases
 
-Search aliases (P263, grab --find): basic geometry, vector, cross product, argument sort; Library Checker `sort_points_by_argument`.
+Search aliases (P263, grab --find): basic geometry, vector, cross product, argument sort; Library Checker `sort_points_by_argument`; 距离, 内积和外积, 二维计算几何基础, 三维计算几何基础, 叉积, 点积, 极角排序, 叉乘, 点乘, 混合积.
 
 ## History
 
@@ -110,3 +110,4 @@ Search aliases (P263, grab --find): basic geometry, vector, cross product, argum
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<typename P = point>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 03-Geometry` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -118,7 +118,7 @@ Cost: `O(m^(1/4) * log(m) + w * log(m)^2 + out * w * log(m))` expected.
 
 `sqrt_mod_prime_power`, `n_sqrtmod_primepow` (`sqrtModPrimePower`); `n_sqrtmod_2pow` (`sqrtMod2k`); `n_sqrtmodn`, `sqrt_mod_composite` (`sqrtModComposite`, `sqrtModAll`); `kth_roots_mod_pe`, `mod_kth_root` (prime powers) (`kthRootModPrimePower`); `kth_roots_mod_m` (`kthRootModComposite`); `QuadraticEquation`, `solve_quadratic_mod` (`quadraticCongruenceMod`); `fmpz_mod_poly_roots_factored`, `poly_roots_mod` (`polynomialCongruenceRoots`).
 
-Search aliases (P263, grab --find): quadratic residue (二次剩余), square root modulo prime powers and composites, Hensel lifting.
+Search aliases (P263, grab --find): quadratic residue (二次剩余), square root modulo prime powers and composites, Hensel lifting; 同余方程, 高次剩余 & 单位根, 模平方根, 亨泽尔引理, 多项式同余方程.
 
 ### Legacy mapping
 
@@ -206,3 +206,4 @@ Research decisions (adopted and rejected) are in [00-notes.md](00-notes.md), P17
 
 - 2026-10-17: P178 initial implementation, sweep added no operation (five candidates rejected), UBSan audit found no class enumeration in the header, review found no header defect, test coverage and style issues fixed; full suite passed on g++ and g++-14, stress on g++.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

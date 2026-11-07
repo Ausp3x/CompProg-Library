@@ -129,6 +129,8 @@ For a = (a_0..a_n), prime modulus > n:
 
 Aliases: Library Checker `binomial_coefficient`, `binomial_coefficient_prime_mod`, `stirling_number_of_the_first_kind`, `..._fixed_k`, `..._small_p_large_n`, `stirling_number_of_the_second_kind` (same three forms), `bell_number`, `partition_function`, `q_binomial_coefficient_prime_mod`, `sharp_p_subset_sum`; maspypy `prefix_sum_of_binom`, `stirling_number_query`, `bell_number_large`, `q_analogue`, `surjection`; suisen `binomial_coefficient_enumeration`, `binomial_coefficient_sum`; Nyaan `stirling_matrix` (transforms), `pascal_matrix` (binomial transform); OEIS A000111 (zigzag), A003319 (indecomposable permutations).
 
+Search aliases (P263, grab --find): 阶乘取模, 卢卡斯定理, 排列组合, 容斥原理, 斐波那契数列, 斯特林数, 贝尔数, Entringer Number, Eulerian Number, 分拆数, 扩展卢卡斯, 第二类斯特林数, 第一类斯特林数, 二项式反演, 组合数取模, 斯特林反演.
+
 ## Feature-to-test map
 
 Entry: [`12-combinatorics_advanced_tester.py`](<../../96-Local Testing/05-Mathematics/12-combinatorics_advanced_tester.py>).
@@ -211,3 +213,4 @@ Fetched 2026-10-19 by `@researcher` and the package session ([00-sources.md](00-
 
 - 2026-10-19: P054 initial implementation; `@reviewer` found 1 bug in this header (`stirling2` start index wrapping near n = 2^64), unbounded `-DNDEBUG` loops for p <= 1 and Pisano beyond its domain, two cost statements and a memory figure, all fixed with regressions; full suite passed on g++ and g++-14, stress seed 7 passed.
 - 2026-10-19: P054 follow-up: prime powers capped at 2^27, `BinomialCompositeMod`, `binomialRowCompositeMod` and `pisanoPeriod` widened to every 64-bit modulus, r = -1 in Mo's queries, a weighted block table, product-tree `stirling1Row` for other moduli, Core Poly `evalMulti` replacing the private remainder tree, 64-bit moduli through row 13's generalized convolution; full and stress passed on g++, full on g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -68,6 +68,8 @@ No legacy source. Graphs row 28's private `cycle_basis_detail::insert` and `redu
 | k-th with multiplicities over n inserted values | `kth(k >> (n - size()))` when `n - size() < 64` (each value `2^(n - size())` times), 0 otherwise |
 | Prefix-basis online append | `PrefixXorBasis::push` |
 
+Search aliases (P263, grab --find): 线性基, 异或线性基, 前缀线性基, 区间线性基, 线性基求交, 线性基合并, 最大异或和, 第k小异或和.
+
 ## Feature-to-test map
 
 Tester `96-Local Testing/02-Data Structures/62-xorbasis_tester.cpp`, entry `62-xorbasis_tester.py` (driver `_00_runner.py`; optimized, checked and ASan/UBSan builds; 17 assertion probes).
@@ -177,3 +179,4 @@ The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.m
 - 2026-11-03: P032 DS50 first implementation; duplicates ask row and sweep candidates decided by the user (2026-11-02); Graphs row 28 migrated onto `XorBasis`; 7/7 mutants caught; independent review, 6 findings and 6 nits fixed (sweep correctness argument, `NDEBUG` wide values, `push` memory, `rangeContains` O(B), copy-free `merge`, integration result); quick, full (seed 1) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed after the fixes.
 - 2026-11-03: `/finish` audit, 6 defects fixed (branchless `insert` and `represent` with benchmarks, row 63 wording, stale mutant entry, decision and fetch dates, Library Checker target, nits); quick, full (seed 1) on g++ and g++-14, stress (seed 7), `28-cycle_basis` suites and `02-integration.py` passed.
 - 2026-11-03: maintainer fixes in `/merge-pr 1` (user decision 2026-11-03): `XorBasis<MASK>`, with `XorBasis<false>` for Graphs row 28 (the masks cost it 18–41%); `rangeXorBasisQuery` moved to `XorBasisCompanion`; `m` renamed `masks`; shared `reduceMasked`; `intersection(a, o)`; `B` defined; `merge`, prefix-query and `MASK` keeps; the tester covers `XorBasis<false>` and the callback order; benchmark driver committed; quick, full (seed 1) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

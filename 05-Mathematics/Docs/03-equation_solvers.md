@@ -84,9 +84,14 @@ Inspected on 2026-09-27; implemented independently from the proofs, with no exte
 - The 2026-10-07 completeness sweep left out two candidates, recorded in [00-notes.md](00-notes.md): `firstModInRange` (maspypy `first_mod_range_of_linear`) is handed to `18-floorsum.hpp`, and a named linear-objective helper is unnecessary because the endpoint rule above is O(1).
 - The previously active header exposed only a particular solution and one modular progression. `solveDioEq` and `solveModEq` keep their names, with the signed-minimum and normalization overflows removed; the reference-output overload maps as in Legacy mapping. `OLD` material is unchanged.
 
+## Aliases
+
+Search aliases (P263, grab --find): 线性同余方程, 同余方程, 一次不定方程, 二元一次不定方程, 丢番图方程, 不定方程.
+
 ## History
 
 - 2026-09-27: initial P012 evidence; full mode with seed `20260927` passed on all configurations.
 - 2026-10-07: P012 re-audit baseline, full suite passed on all six headers before any change.
 - 2026-10-07: P012 re-audit, 2 findings fixed; after `@reviewer`, full, stress (seed 1) and integration passed.
 - 2026-10-12: prune, removed the reference-output `solveDioEq` overload (its `g` and `y` overflow inputs now checked on the result overload); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

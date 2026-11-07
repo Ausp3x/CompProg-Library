@@ -166,8 +166,13 @@ The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.m
 - Sources not consulted beyond the sweep: suisen (its heap folder lists only binary and interval heaps), tko919 and ACL have no radix heap (index pages checked 2026-11-02). The bounded-gap omission rests on scrapbox, not the primary Ahuja et al. paper. AOJ GRL_1_A and yukicoder 1288 and 1320 were not fetched, and no `97-Online Testing` solution uses these structs yet.
 - Graphs row 13 `radixHeapDijkstra` (planned) consumes `RadixHeap`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 基数堆.
+
 ## History
 
 - 2026-11-02: P032 DS27 first implementation; independent review, 6 findings and 2 nits fixed (`push` guard for a present id under `NDEBUG`, amortized bounds charged to push, `pop` after an intervening `decreaseKey`, payload taken by value, any 32/64-bit integer key, row status); 10/10 mutants caught; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed after the fixes.
 - 2026-11-02: `/finish` audit, 3 findings and 4 limits; user decisions recorded (bucket release above 4096 slots, the six integer key types, the omissions, `top` moving `last`, `decreaseKey` asserting a decrease); diff review, 4 findings fixed (release cost comment, cv-qualified keys rejected, benchmark medians and seed, stale results); `memoryBound` and key-domain checks added; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed.
 - 2026-11-03: maintainer `/merge-pr 1`: the real `03-consistency.py` and `plan.py check` results recorded and the clone-specific limit dropped (P250's note keeps the follow-up); the first maintainer gate (2026-11-03) passed quick and full on g++ and g++-14 and `02-integration.py --sanitizers`.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

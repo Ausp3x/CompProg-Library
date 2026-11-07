@@ -180,9 +180,10 @@ Peak memory 22 MB. Core `10-matrix.hpp` is the fast path for large products.
 
 ## Aliases
 
-Search aliases (P263, grab --find): Gaussian elimination, Gauss-Jordan, system of linear equations, determinant, matrix rank.
+Search aliases (P263, grab --find): Gaussian elimination, Gauss-Jordan, system of linear equations, determinant, matrix rank; 高斯消元, 矩阵, 行列式, 线性基, 线性代数简介, 初等变换, 矩阵快速幂, 矩阵求逆, 线性方程组, 矩阵的秩, 追赶法, 高斯消去法, 反矩阵.
 
 ## History
 
 - 2026-10-28: P058 initial implementation and verification; the tester found 2 header defects (`-DNDEBUG` unused variables, `lowRankUpdateInverse` with n = 0 < k) and `@reviewer` 8 findings (unbounded `rollback`, unchecked ragged rows, output terms in complexity lines, `FieldBasis` floating guard, aliasing, `determinantInteger` limit tests, 3 keeps recorded), all fixed; quick, full and stress passed on g++, full on g++-14, integration passed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

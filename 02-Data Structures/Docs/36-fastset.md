@@ -86,7 +86,7 @@ Fetched 2026-10-23 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 ## Aliases
 
-Search aliases (P263, grab --find): 64-ary bitset tree, word-level van Emde Boas set; Library Checker `predecessor_problem`.
+Search aliases (P263, grab --find): 64-ary bitset tree, word-level van Emde Boas set; Library Checker `predecessor_problem`; 压位Trie, 64叉树, 前驱后继, 区间染色.
 
 ## History
 
@@ -94,3 +94,4 @@ Search aliases (P263, grab --find): 64-ary bitset tree, word-level van Emde Boas
 - 2026-10-24: `/finish` review, 4 findings fixed (here: `enumerate` loops to `min(r, n)`, so `r > n` under `NDEBUG` terminates; identical on the asserted domain); quick passed.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `build` renamed `ctor` (the predicate constructor), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves it; no code changed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

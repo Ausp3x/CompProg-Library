@@ -79,7 +79,7 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 
 ## Aliases
 
-Search aliases (P263, grab --find): segment tree merge and split (OI Wiki 线段树合并 & 分裂), dynamic segment tree.
+Search aliases (P263, grab --find): segment tree merge and split (OI Wiki: 线段树合并 & 分裂), dynamic segment tree; 线段树基础, 动态开点线段树, 动态开点, 线段树分裂, 权值线段树, 值域线段树.
 
 ## History
 
@@ -88,3 +88,4 @@ Search aliases (P263, grab --find): segment tree merge and split (OI Wiki 线段
 - 2026-10-08: P027 re-audit pass (second session), 1 finding fixed (in `00-monoids.hpp`, row 12) and the `M` comment corrected; full (seed 20261008) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 593/609/593 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

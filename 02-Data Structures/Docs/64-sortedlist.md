@@ -92,7 +92,12 @@ References inspected 2026-10-09 by the completeness sweep ([00-sources.md](00-so
 - For O(log(n)) worst-case updates use `OrderedMultiSet` (row 07); the benchmark shows SortedList 1.8–3.2 times faster on the mixed workload up to 1e6 elements.
 - The Python mirror is planned as `08-Python/_31_ordered_multiset.py` (row status `planned`).
 
+## Aliases
+
+Search aliases (P263, grab --find): 有序列表, 有序容器, 有序多重集, 块状链表.
+
 ## History
 
 - 2026-10-09: P227 first verification, full passed on g++ and g++-14, stress (seed 7) on g++, integration on both, `BMIN`/`RATIO` benchmark sweep; independent review, 5 findings fixed.
 - 2026-10-13: prune, removed `next(x)` and `operator[](k)` (their checks already ran on `lowerBound` and `kth` against the same oracle); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

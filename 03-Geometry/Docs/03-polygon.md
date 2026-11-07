@@ -115,7 +115,7 @@ Other planned packages own simple-polygon validation and intersection sweeps (P1
 
 ## Aliases
 
-Search aliases (P263, grab --find): Pick's theorem, shoelace formula, polygon area.
+Search aliases (P263, grab --find): Pick's theorem, shoelace formula, polygon area; Pick 定理, 二维计算几何基础, 多边形面积, 点在多边形内, 鞋带公式, 皮克定理, 多边形重心, 环绕数, 凸多边形判定, 多边形切割.
 
 ## History
 
@@ -124,3 +124,4 @@ Search aliases (P263, grab --find): Pick's theorem, shoelace formula, polygon ar
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<typename Polygon = vector<point>>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 03-Geometry` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

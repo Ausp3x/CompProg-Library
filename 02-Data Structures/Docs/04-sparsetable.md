@@ -75,7 +75,7 @@ The printed diagnostic format remains available. Disjoint sparse tables (row 28)
 
 ## Aliases
 
-Search aliases (P263, grab --find): ST table (OI Wiki ST 表), RMQ (range minimum query); Library Checker `staticrmq`.
+Search aliases (P263, grab --find): ST table (OI Wiki: ST 表), RMQ (range minimum query); Library Checker `staticrmq`; 倍增, 稀疏表, 静态区间最值, 区间最值查询, 二维ST表, 可重复贡献.
 
 ## History
 
@@ -84,3 +84,4 @@ Search aliases (P263, grab --find): ST table (OI Wiki ST 表), RMQ (range minimu
 - 2026-10-13: prune, removed `queryFast` and `querySlow` (cases moved to `query` and `fold`); full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract, `query`/`fold` renamed `prod`/`associativeProd`, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 540/548/573 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

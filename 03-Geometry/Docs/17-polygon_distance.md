@@ -100,7 +100,12 @@ Written independently. Sources of the completeness sweep are in [00-sources.md](
 - **Exact rational squared distance between convex polygons.** Not provided: comparing candidates exceeds 128 bits at `|coordinate| <= 10^9`.
 - **Convex point queries.** `O(log(n))` point distance and containment belong to row 15.
 
+## Aliases
+
+Search aliases (P263, grab --find): 凸包间距离, 凸多边形距离, 多边形间距离, 点到多边形距离, 多边形相交判定, 分离轴定理, 凸包最远点对.
+
 ## History
 
 - 2026-10-11: first implementation (P036). Independent review: one finding (ring overload memory) fixed; full suite passed on g++ and g++-14, stress passed; `02-integration.py --sanitizers` stopped at an unrelated P025 failure, so the header-alone, aggregate and two-translation-unit checks ran directly and passed.
 - 2026-10-12: prune, removed the `convexSeparated(p, q)` wrapper (its cases and the `clockwise` probe moved to the `axis` form); the P007 prune migrated the `onSegment` call site in `polygon_distance_detail::touch` ([02-line_segment.md](02-line_segment.md)); full suite passed on g++ and g++-14, stress passed.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

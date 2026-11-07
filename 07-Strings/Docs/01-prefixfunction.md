@@ -98,9 +98,14 @@ Code is independently implemented from the algorithmic invariants.
 - Validity of `pi` for the border, period and count helpers is a caller precondition; it is not rechecked.
 - Online append-only Z, minimum-alphabet reconstruction, substring period indexing and runs remain with their own rows (`30`, `31`, `27`, `26`). Distinct-substring counting belongs to suffix structures; the quadratic prefix-function reduction is not duplicated. Gray-string DP over `prefixAutomaton` is problem-specific and not added.
 
+## Aliases
+
+Search aliases (P263, grab --find): 前缀函数与 KMP 算法, KMP算法, 字符串匹配, 最长公共前后缀, 最小循环节, 字符串周期, KMP自动机, 失败函数.
+
 ## History
 
 - 2026-09-28: verified under the previous system (P016).
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
 - 2026-10-08: re-audit, `kmpNext` added, the matcher switched to strong failure links, the witness overload of `validPrefixFunction` replaced `prefix_detail::witness`, 3 findings and 1 review defect fixed, contracts moved out of the header; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `validPrefixFunction(pi)` (Legacy mapping), review found 1 defect, fixed; full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

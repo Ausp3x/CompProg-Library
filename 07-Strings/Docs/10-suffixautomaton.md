@@ -82,10 +82,11 @@ The code was written independently from the algorithm; no source code was copied
 
 ## Aliases
 
-Search aliases (P263, grab --find): SAM (suffix automaton, 后缀自动机).
+Search aliases (P263, grab --find): SAM (suffix automaton, 后缀自动机); 本质不同子串, 第k小子串, 最长公共子串, 后缀链接树, 子串出现次数, 最短未出现子串.
 
 ## History
 
 - 2026-10-09: implemented and verified (P081), independent review found 1 defect and 1 naming issue, fixed.
 - 2026-10-19: P017 dependent rerun after `07` moved to SA-IS (no change here): full on g++ before the final code-range cutoff and quick on the final code passed (recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results)).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

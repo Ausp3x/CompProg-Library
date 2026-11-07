@@ -114,8 +114,13 @@ Inspected on 2026-09-27:
 
 Other packages own convex polygon queries (GE05), two-polygon distance, separation and farthest pair (row 17, GE25) and hull bridges (row 53); inner and outer common tangents, the widest separating strip and Grenander distance are not adopted ([00-notes.md](00-notes.md#p036-completeness-decisions-2026-10-10)).
 
+## Aliases
+
+Search aliases (P263, grab --find): 旋转卡壳, 旋转卡尺, 凸包直径, 平面最远点对, 最小矩形覆盖, 最小外接矩形, 凸包宽度, 对踵点.
+
 ## History
 
 - 2026-09-27: original P008, full suite (seed 20260927, 626,364 checks) passed on g++ 16; `farthestPair` missing, degenerate witnesses untested.
 - 2026-10-07: re-audit, implemented `farthestPair`; 4 findings fixed; full suite, stress and benchmark passed on g++ 16; independent review: reproduced every full count and probe, confirmed one package defect (in `06-circle.hpp`).
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

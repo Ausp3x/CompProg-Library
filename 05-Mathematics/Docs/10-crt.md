@@ -90,10 +90,11 @@ Adopted by the P052 sweep: `crtMod` and the `CrtResult.overflow` flag.
 
 ## Aliases
 
-Search aliases (P263, grab --find): CRT (Chinese remainder theorem), Garner.
+Search aliases (P263, grab --find): CRT (Chinese remainder theorem), Garner; 中国剩余定理, 扩展中国剩余定理, 孙子定理, 同余方程组, 中国余数定理, 韩信点兵.
 
 ## History
 
 - 2026-10-09: P052 initial implementation and verification, review found 1 defect, fixed; full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `superChiRemThm` (Legacy mapping); full passed on g++ and g++-14, stress on g++.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

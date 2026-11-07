@@ -69,6 +69,8 @@ The value is carried by two arcs `t → s` and `s → t`, each of capacity `W`. 
 - `minCostCirculationAdapter`: 上下界最小费用可行流 (OI Wiki), hitonanode `B_Flow`, maspypy `Min_Cost_B_Flow`.
 - `infeasibleCut`: the violated set of Hoffman's circulation theorem.
 
+Search aliases (P263, grab --find): 上下界网络流, 循环流, 上下界最小费用流.
+
 ## Legacy mapping
 
 `FlowWithDemands<T>` (`OLD/Team Notebook/src/algs.cpp:1754`, `algsbetter.cpp:2010`, `test.cpp:640`; the three copies are the same apart from formatting):
@@ -149,3 +151,4 @@ Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction).
 
 - 2026-10-28: new row (P048 / GR27); review: 5 findings fixed (infinite-bound rule at s and t, out-of-range supply write under `NDEBUG`, infeasible-shape test, engine complexity comment, unread LEMON aliases); full suite passed on g++ and g++-14, stress passed.
 - 2026-10-29: `/finish` audit: 5 defects fixed (order-dependent cost assertion, cost-bound probe, excess wording, adapter memory term, split subsections) and test gaps closed (int/lng, large-capacity costed, large `lll`/`int`); user decisions: design calls confirmed, `feasibleFlow`, `stCut` and `potentials` added; full suite passed on g++ and g++-14, stress passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

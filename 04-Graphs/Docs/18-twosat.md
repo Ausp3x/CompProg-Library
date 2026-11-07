@@ -92,7 +92,12 @@ Legacy: `OLD/algorithms.cpp:4641-4700` (recursive Kosaraju with `addClause(a, na
 
 Incremental 2-SAT, lexicographically smallest assignment, solution counting (#P-hard) and Horn-SAT are outside this row (see [00-notes.md](00-notes.md#p043-omissions)). The Python twin `08-Python/_33_twosat.py` is a separate row.
 
+## Aliases
+
+Search aliases (P263, grab --find): 2-SAT; 二元可满足性.
+
 ## History
 
 - 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; independent review: no wrong answers (own brute-force 2-SAT oracle, overflow probes at the stated domain bounds).
 - 2026-10-13: prune, removed `addClause(a, na, b, nb)` and `solve()` (Legacy mapping); the two-call-style dimension of the tests collapsed into the literal form and the legacy section became a re-solve and copy check; full passed on g++ and g++-14, stress on g++.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -87,7 +87,7 @@ Range-add and multidimensional Fenwick are row 11 (`11-fenwick_tree_advanced.hpp
 
 ## Aliases
 
-Search aliases (P263, grab --find): BIT (binary indexed tree), Fenwick tree; Library Checker `point_add_range_sum`.
+Search aliases (P263, grab --find): BIT (binary indexed tree), Fenwick tree; Library Checker `point_add_range_sum`; 树状数组, 二叉索引树, 二元索引树, 芬威克树, 单点修改区间查询, 树状数组上二分, 树状数组倍增.
 
 ## History
 
@@ -95,3 +95,4 @@ Search aliases (P263, grab --find): BIT (binary indexed tree), Fenwick tree; Lib
 - 2026-10-07: P006 re-audit, findings 1, 3, 4, 10–12, 14, 17, 19, 20, 23, 24 (of 24 package findings) addressed in this header, added `get`, `set`, `values`, `upperBound`, `maxRight`, `minLeft`, full and stress passed on g++; independent review: confirmed findings 2–24 fixed, accepted the contract-based resolution of finding 1, raised five findings, all fixed (here the `maxRight` skip guard, restated contract comments, the domain line).
 - 2026-10-13: prune, removed `add1`, `prefixSum1`, `sum1` and `lowerBound1` (cases moved to the zero-based operations); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

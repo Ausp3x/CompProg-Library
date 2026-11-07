@@ -109,8 +109,13 @@ Fetched 2026-10-10 by the completeness sweep ([00-sources.md](00-sources.md)); J
 - Left out with reasons in [00-notes.md](00-notes.md#p028-omissions): historic values under assignment or chmin (CPU monitor, UOJ 169, Luogu P6242), historic-max sum, range gcd with max, chmin callbacks, change counters, two-array sums, max-plus tags, historic sums of squares, generic searches.
 - Kinetic segment trees belong to row 45, which may build on `LazySegmentTreeBeats`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 区间最值操作 & 区间历史最值, 吉司机线段树, 吉老师线段树, 势能线段树, 区间取最值, 区间历史和, 区间开平方, 区间取模.
+
 ## History
 
 - 2026-10-10: P028 first verification; legacy `SegTreeBeats` replaced (half-open ranges, shared max/min sides, no assignment tag, value-domain updates, historic and generic trees added).
 - 2026-10-10: independent review (P028): no wrong answers in the domain; fixed a walk that never ended for chmin/chmax with the `lng min` sentinel (entry assert plus leaf guard), the skipped range assert for `q = 1`, and the node size in this document.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 542/566/541 MB.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

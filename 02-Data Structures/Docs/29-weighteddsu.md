@@ -101,6 +101,11 @@ Fetched 2026-10-23 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Left out with reasons in [00-notes.md](00-notes.md#p035-omissions): a persistent weighted DSU.
 - Row 09 owns the generic undo substrate, row 63 drives rollback structures for offline deletion, and Graphs `26-dynamic_connectivity.hpp` owns bipartiteness under deletions. Component-wide actions with point reads are row 65 `DualDSU`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 并查集, 并查集应用, 带权并查集, 边带权并查集, 种类并查集, 扩展域并查集, 奇偶并查集, 可撤销带权并查集, 二分图判定.
+
 ## History
 
 - 2026-10-23: P035 first implementation (user decisions: `ParityDSU` as a 2n-node DSU, `inv` on row 00 `Sum`/`Xor`); independent review, 7 findings fixed across the package (here: `findSet` split from the recursive `root`, a negative `ParityDSU` probe); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

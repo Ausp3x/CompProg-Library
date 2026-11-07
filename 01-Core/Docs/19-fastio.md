@@ -186,6 +186,10 @@ Shared-host observations, not timing gates. The whole-stream reader costs its `f
 - When the room left in the block lies between `toChars`' early lower bound and the exact length (in base 10 one digit below 152,234 bits and at most two within the default block, one more per about 217K bits beyond; about 1% of the digits in base 3), InfInt's `toCharsRest` converts and then refuses, and `writeText` converts again after its drain: a long value at a block boundary can cost two conversions.
 - No Barrett or Montgomery reduction is involved.
 
+## Aliases
+
+Search aliases (P263, grab --find): 读入、输出优化, 快读, 快写, 读入优化, 快速读入, 快速输出, 读入挂, 输入挂.
+
 ## History
 
 - 2026-09-27: P013 first verification as `06-Miscellaneous/03-fastio.hpp`, full and stress suites and benchmark passed.
@@ -193,3 +197,4 @@ Shared-host observations, not timing gates. The whole-stream reader costs its `f
 - 2026-10-12: P013 prune run (header unchanged), full suite passed on g++ and g++-14.
 - 2026-11-01: P018 stage 4: moved to `01-Core/19-fastio.hpp` as a Core full header (no forwarding header in 06; P066's planned `MmapInput`/`SyscallOutput` row absorbed as `FastInput<0>` and `FastOutput`) with AVX2 and SWAR token kernels, the base as a template argument, `readText`/`writeText` for InfInt and the other text types, read-error tokens reported as `Error`, `parseInt`'s status set on success, `HUGE_PAGE`; `00-bigio.hpp` retired (drivers at or below it on every judge problem in cycles); new tester and Python protocols (one-unit sanitizer smoke subset under integration); `@reviewer` (Opus 5.5 at xhigh) findings fixed or kept by the user's decision; quick, full and stress suites passed on GCC 16 and full on GCC 14, sanitized integration and the benchmark passed.
 - 2026-11-02: P018 `/finish` (Opus 5.5 at xhigh): the kernel renames `dec8`, `dec8Chars` and `dec16Chars` (identical machine code), Limits for the room gap of InfInt's out-of-line conversion and for the text types `readText` reads but `writeText` cannot print, Sources records for the man pages and Möller–Granlund; quick, full and stress suites passed on GCC 16 and full on GCC 14, sanitized integration, the six drivers and the judge reproduction passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -93,7 +93,7 @@ No legacy SA-IS implementation exists in `OLD` (archive map and text search).
 
 ## Aliases
 
-Search aliases (P263, grab --find): SA-IS, suffix array; Library Checker `suffixarray`.
+Search aliases (P263, grab --find): SA-IS, suffix array; Library Checker `suffixarray`; 后缀数组简介, 诱导排序, 线性后缀数组, 高度数组, 后缀排序.
 
 ## History
 
@@ -101,3 +101,4 @@ Search aliases (P263, grab --find): SA-IS, suffix array; Library Checker `suffix
 - 2026-10-13: P017 prune, `07` `SuffixArray` now builds its LCP with `lcpArray`, so the large `lcpArray` check moved from `SuffixArray::lcp` to an exact block-name lifting oracle; full suite passed on g++ and g++-14, checked stress passed, benchmark rerun.
 - 2026-10-19: P017, `07`'s constructors now call `sais`, so the large suffix-order oracle and the benchmark's `doubling` column use `SuffixArray<int>::doubling`; full suite passed on g++ and g++-14, benchmark rerun.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

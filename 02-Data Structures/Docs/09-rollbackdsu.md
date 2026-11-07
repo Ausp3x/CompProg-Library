@@ -86,7 +86,12 @@ Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Left out with reasons in [00-notes.md](00-notes.md#p034-omissions): `makeSet`, reporting `undo`, union by rank, history-clearing `snapshot`, `reset`.
 - Row 29 owns potential and parity DSUs and their rollback variant; row 63 drives this structure for offline deletion; Graphs `26-dynamic_connectivity.hpp` owns connectivity orchestration.
 
+## Aliases
+
+Search aliases (P263, grab --find): 并查集, 可撤销并查集, 可回滚并查集, 撤销并查集.
+
 ## History
 
 - 2026-10-17: P034 first implementation and verification (user decisions on `snapshot`, `edgeCount`); `rollback(t)` bounded for `t < 0` under `NDEBUG`; independent review: no defect in this header, `rollback` cost added to the complexity line.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract for `RollbackDSUAggregate`, stateful-monoid test added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 502/525/824 MB.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

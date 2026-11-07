@@ -73,6 +73,11 @@ The implementation was written independently. Sources of the completeness sweep 
 - Exact sums of nonconvex polygons (decomposition plus union, or reduced convolution) need rows 18 and 30. A disk-offset buffer is row 48.
 - Point-in-sum queries are row 15 `contains` applied to the sum or difference.
 
+## Aliases
+
+Search aliases (P263, grab --find): 闵可夫斯基和, 闵科夫斯基和, 明可夫斯基和, 闵氏和, 闵可夫斯基差.
+
 ## History
 
 - 2026-10-11: first implementation (P036). Independent review: one finding (edge vectors must also fit `T`) fixed in the contract.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

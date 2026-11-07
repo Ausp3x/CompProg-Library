@@ -135,8 +135,13 @@ Omitted candidates: `permute`/`inversePermute` on value arrays (one loop; `permu
 
 - Scalar distinct ranks need n ≤ 20; Lehmer digits and `kthNextPermutation` scale to any n; multiset ranks need the multinomial to fit `ulng`; `permutationOrder` reports overflow, `permutationOrderMod` reduces into the caller's type.
 
+## Aliases
+
+Search aliases (P263, grab --find): 置换和排列, 康托展开, 逆康托展开, 置换环, 排列奇偶性, 逆排列, 置换的幂, 第k个排列, 排列的阶.
+
 ## History
 
 - 2026-09-28: P013 first verification, full and stress suites passed.
 - 2026-10-07: P013 re-audit, `kthNextPermutation`, cycles, sign, order and `permutationOrderMod` added, 2 findings fixed, contracts moved out of code comments; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.
 - 2026-10-12: prune, removed `nextPermutation`, `previousPermutation` and `multisetPermutationCount` (cases moved to `std::next_permutation`/`prev_permutation` and `multinomialExact`); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

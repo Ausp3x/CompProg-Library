@@ -56,6 +56,8 @@ Let edge `i` join `a` and `b`, and let `b(i)` be the least `j > i` such that `a`
 - Nyaan `run(add, del, query)`, ei1333 component count and cp-algorithms "deleting in O(log n)" are `run` callbacks (`count()`, `isSameSet`); hitonanode's Begins/Ends schedule is Data Structures 63.
 - ei1333/hitonanode `find` and cp-algorithms `find_2ecc` are `find`; maspypy `range_edge_connected_component_query` is `rangeEdgeComponentCount` (link-cut forest there, bottleneck divide and conquer here).
 
+Search aliases (P263, grab --find): 动态图连通性, 线段树分治, 离线动态连通性, 动态二分图, 加边求桥, 区间连通块数.
+
 ## Feature-to-test map
 
 `96-Local Testing/04-Graphs/26-dynamic_connectivity_tester.py` (shared graph runner with `-Werror` warnings; optimized, checked with probes, ASan/UBSan in full/stress).
@@ -128,3 +130,4 @@ The bottleneck-forest compression is this package's derivation from Kruskal's in
 
 - 2026-10-18: verified (P047); pinned `OnlineBridges` excerpt replaced and removed from the row (recorded prune); `find` from the completeness sweep; LCT-free `rangeEdgeComponentCount` with a stamped union-find (measured 28% faster than a per-call `DSU`); independent review: monolith ledger entry completed, setup bound and `NDEBUG` vertex clamp corrected, CSR and empty-input tests added; 6 planted mutants killed; quick, full and stress passed on g++, full on g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

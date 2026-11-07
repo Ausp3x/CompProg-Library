@@ -139,10 +139,11 @@ The 2026-10-17 completeness sweep (`@researcher`) read cp-algorithms, OI Wiki, K
 
 ## Aliases
 
-Search aliases (P263, grab --find): big integer, bignum, arbitrary-precision arithmetic, high-precision arithmetic (OI Wiki 高精度计算); Library Checker `addition_of_big_integers`, `multiplication_of_big_integers`, `division_of_big_integers`.
+Search aliases (P263, grab --find): big integer, bignum, arbitrary-precision arithmetic, high-precision arithmetic (OI Wiki: 高精度计算); Library Checker `addition_of_big_integers`, `multiplication_of_big_integers`, `division_of_big_integers`, 大整数, 大数运算, 高精度乘法, 高精度除法, 压位高精度.
 
 ## History
 
 - 2026-10-17: P019 rewrite verified: new header (513 to 252 lines), tester, mixed full/mini program and benchmark; 6 mutants killed and 3 equivalent ones simplified away; the review's findings (backend preconditions, cost-bound wording, the unbalanced crossover and loop orientation, doc limits) fixed; full suites passed on g++ and g++-14, two stress rounds passed.
 - 2026-10-26: the P025 handoff line updated by the P018 `/finish` audit: `poly_detail::BigInt` now requires base-2^64 words, so the mini no longer matches it (user decision 2026-10-26).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

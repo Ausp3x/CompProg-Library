@@ -98,6 +98,10 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 - `FenwickRangeArithmeticAdd` with floating `T` is exact only up to rounding of the three coefficient sums.
 - Fenwick01 is single-word-select only; a `pdep`-based select is an ISA kernel and stays out of the contest profile.
 
+## Aliases
+
+Search aliases (P263, grab --find): 树状数组, 树状数组区间修改, 区间加区间求和, 二维树状数组, 三维树状数组, 权值树状数组, 树状数组求第k小, 区间加等差数列, 区间修改单点查询.
+
 ## History
 
 - 2026-10-08: P027 first verification; legacy `FenTreeRangeAdd1D`/`FenTree` replaced.
@@ -106,3 +110,4 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 - 2026-10-12: re-audit fix: `update` on `FenwickRangeAdd`, `DualFenwick` and `FenwickRangeArithmeticAdd` asserts `0 <= i <= n`, with direct oracle tests and 6 new probes; full suite passed on g++ and g++-14.
 - 2026-10-13: prune, removed `Fenwick01::contains` (its checks were the `get` checks on the same inputs); full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract for `FenwickPrefixMonoid`, stateful-monoid test added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 551/551/551 MB.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -287,9 +287,14 @@ The code was written independently.
 - The other-moduli cutoffs were measured before row 13's 2026-10-19 change (prime count chosen from the coefficient bound, aliased squares); re-measure them at the next P057 run.
 - Rejected candidates are in [00-notes.md](00-notes.md), under P057 research decisions.
 
+## Aliases
+
+Search aliases (P263, grab --find): 多项式牛顿迭代, 多项式初等函数, 多项式平移/连续点值平移, Lagrange 反演, 形式幂级数复合/复合逆, 指数生成函数, 多项式与生成函数简介, 多项式全家桶, 多项式求逆, 多项式除法, 多项式开根, 多项式对数函数, 多项式指数函数, 多项式快速幂, 多项式复合逆, 结式, 分圆多项式.
+
 ## History
 
 - 2026-10-10: P057 initial implementation and verification, `@reviewer` found 4 defects and 2 minor issues, all fixed.
 - 2026-10-11: verification run, quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `polyMod` (Legacy mapping; its cases are covered by the `divSuite` identity); full suite passed on g++ and g++-14.
 - 2026-10-19: P054 follow-up rerun (included `13-convolution.hpp` changed), header unchanged; full passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

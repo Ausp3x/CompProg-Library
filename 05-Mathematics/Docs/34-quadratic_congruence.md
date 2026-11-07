@@ -145,6 +145,8 @@ The operations:
 - `three_square` (`threeSquares`), `four_square` (`fourSquares`), `three_triangular` (`threeTriangular`), `enumerate_pythagorean_triple` (`pythagoreanTriples`);
 - class number (`reducedForms(D).size()`).
 
+Search aliases (P263, grab --find): Pell 方程, 佩尔方程, 两平方和, 费马平方和定理, 四平方和定理, 三平方和定理, 勾股数, 二元二次型, 高斯圆问题, 毕氏三元数.
+
 ## Feature-to-test map
 
 Entry: [`34-quadratic_congruence_tester.py`](<../../96-Local Testing/05-Mathematics/34-quadratic_congruence_tester.py>).
@@ -244,3 +246,4 @@ Research decisions (adopted and rejected) are in [00-notes.md](00-notes.md), P17
 ## History
 
 - 2026-10-17: P178 initial implementation, `reducedForms` adopted from the sweep, `fourSquares` made deterministic through `threeSquares`, UBSan found 2 overflows (fixed, with regressions), review found 7 issues, all fixed; full suite passed on g++ and g++-14, stress on g++.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

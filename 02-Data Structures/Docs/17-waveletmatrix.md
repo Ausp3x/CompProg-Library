@@ -101,7 +101,7 @@ Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 ## Aliases
 
-Search aliases (P263, grab --find): partition tree (划分树), range k-th smallest; Library Checker `range_kth_smallest`.
+Search aliases (P263, grab --find): partition tree (划分树), range k-th smallest; Library Checker `range_kth_smallest`, 小波矩阵, 区间第k小, 区间第k大, 区间排名, 区间前k小和, 二维数点, 矩形求和, 小波树.
 
 ## History
 
@@ -110,3 +110,4 @@ Search aliases (P263, grab --find): partition tree (划分树), range k-th small
 - 2026-11-02: P032 DS28 `/finish` (user decision 2026-11-02): `descend` contract added for its use by row 32 `RangeThresholdFrequency::frequent`; code unchanged, covered through `countLess`, `countEqual`, `sumLess` (the weights path) and row 32's `frequent` tests.
 - 2026-11-03: P032 `/merge-pr 1` (review findings; user decision 2026-11-03 to fix every problem the pull request raised): `lowerRank` and `descend` listed in the row and tested directly in `wholeArray` and `window`; `descend` asserts its range and rank, with 3 new probes; full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change; `partition tree` names a related structure answering the same range k-th queries, kept as a search synonym (user decision 2026-11-07).
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `小波树` names a related structure answering the same queries, kept as a search synonym (user decision 2026-11-07).

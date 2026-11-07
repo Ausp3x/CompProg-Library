@@ -88,7 +88,7 @@ Fetched 2026-10-10 by the completeness sweep ([00-sources.md](00-sources.md)); t
 
 ## Aliases
 
-Search aliases (P263, grab --find): 2D segment tree, segment tree of segment trees (OI Wiki 线段树套线段树).
+Search aliases (P263, grab --find): 2D segment tree, segment tree of segment trees (OI Wiki: 线段树套线段树), 二维线段树, 树套树, KD树, 矩形区域查询, 矩形区域修改.
 
 ## History
 
@@ -96,3 +96,4 @@ Search aliases (P263, grab --find): 2D segment tree, segment tree of segment tre
 - 2026-10-10: independent review (P028): no wrong answers; replaced two `size_t` loop counters; the reviewer's kd scaling probe on a 64 x 64 grid with heavy duplicates took 448, 1022 and 2245 ms for k = 2^16, 2^18, 2^20, about 2.2x per 4x, consistent with O(sqrt(k)).
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 553/542/552 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

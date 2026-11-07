@@ -75,8 +75,13 @@ The implementation was written independently from the algorithms below. Notebook
 
 Higher-dimensional hulls belong to P137 / GE12. Chan's output-sensitive hull is a separately scoped variant in row 41.
 
+## Aliases
+
+Search aliases (P263, grab --find): 凸包, 二维凸包, 求凸包, 安德鲁算法, 单调链, 格雷厄姆扫描, 葛立恒扫描法.
+
 ## History
 
 - 2026-09-27: original P007, full suite (seed 20260927, 1,151,038 checks) and benchmark passed on g++ 16.
 - 2026-10-07: re-audit, added `convexHullIndices` and the shared `hull_detail::chain`; 3 findings fixed; full suite, stress and benchmark rerun on g++ 16; independent review: confirmed three package defects, all fixed (none in this header).
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

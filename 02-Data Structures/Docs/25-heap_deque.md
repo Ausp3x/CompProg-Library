@@ -119,7 +119,7 @@ Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 ## Aliases
 
-Search aliases (P263, grab --find): binary heap, leftist tree (左偏树), leftist heap, skew heap, pairing heap, Fibonacci heap, mergeable heap.
+Search aliases (P263, grab --find): binary heap, leftist tree (左偏树), leftist heap, skew heap, pairing heap, Fibonacci heap, mergeable heap; 二叉堆, 配对堆, 堆, 堆简介, 优先队列, 可并堆, 斜堆, 斐波那契堆, 可删除堆, 双端优先队列, 对顶堆, 堆积.
 
 ## History
 
@@ -127,3 +127,4 @@ Search aliases (P263, grab --find): binary heap, leftist tree (左偏树), lefti
 - 2026-10-14: integration (`02-integration.py --sanitizers`) passed.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `build` renamed `ctor` for `DAryHeap`, `ErasableHeap` and `DoubleEndedPriorityQueue` (their constructors), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

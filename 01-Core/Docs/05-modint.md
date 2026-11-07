@@ -176,6 +176,10 @@ Matrix (P020/C07, existing-unverified): its optimized modular kernels derive the
 
 Catalog items for other owners, reported, not changed: double factorial and inverse binomial caches (`05-Mathematics/05-combinatorics.hpp`), fast-IO `rd`/`wt` overloads for residues (`01-Core/19-fastio.hpp`, not adopted there: [19-fastio.md](19-fastio.md#limits-and-handoffs)), `randgen` hash base on `ModInt61` (Strings `randomBase`).
 
+## Aliases
+
+Search aliases (P263, grab --find): 模算术简介, 取模类, 自动取模, 乘法逆元, 模反元素, 快速幂, 二次剩余, 动态模数, 线性求逆元.
+
 ## History
 
 - 2026-09-27: original P005 verification, full suites (35,811/55,323 oracle cases per configuration) and integration passed; first benchmark record.
@@ -186,3 +190,4 @@ Catalog items for other owners, reported, not changed: double factorial and inve
 - 2026-10-08: restyle (one trailing comment removed), full suites passed on g++ and g++-14, integration passed.
 - 2026-10-12: prune (`/prune P005`): `init`, the integral `operator=`, `operator!`, `modint_detail::MERSENNE61`/`fold61` and the `powerMontgomery` loop removed, `Context::canon` added, the 512 Montgomery threshold re-measured and retained; full suites on g++ and g++-14, the mini and poly suites, integration and the benchmark (8,192 measurements) passed.
 - 2026-10-12 (cached contexts): `Context::montgomery` replaced `powerMontgomery`, power workloads moved to 4096 distinct bases, dispatch set to odd moduli below `2^62` from exponent 5, `canon` made branch-free; two independent reviews, 3 findings fixed; full suites on g++ and g++-14, the mini suites, poly quick, integration and the benchmark (11,808 measurements) passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

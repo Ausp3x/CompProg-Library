@@ -97,8 +97,13 @@ No timing benchmark: every operation is O(1), or bounded by a small constant tim
 - The `isqrt` helpers inside `20-continued_fraction.hpp`, `34-quadratic_congruence.hpp`, Geometry `19-lattice_geometry.hpp` and `05-closestpair.hpp`, and Data Structures `14-segtreebeats.hpp`, plus the floor k-th root `primality_detail::kthRoot` in `07-primality_factorization.hpp`, are detail copies owned by their packages. Migrating them to this header is a follow-up for those packages.
 - Roots of `InfInt` values belong to Core.
 
+## Aliases
+
+Search aliases (P263, grab --find): 开方, 整数平方根, 开平方, 开根号, 开立方, 完全平方数, 完全幂.
+
 ## History
 
 - 2026-11-03: P059 implementation; review found no correctness defect (one handoff added); full suite passed on g++ and g++-14.
 - 2026-11-03: /finish audit, no code defect; NDEBUG note corrected, 2 user decisions recorded; quick suite passed.
 - 2026-11-03: maintainer review in `/merge-pr 3`, no code defect; `isqrt` beside `isqrt128` kept as a larger domain (user decision, `duplicates.md`), and the user confirmed the decisions recorded as theirs.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

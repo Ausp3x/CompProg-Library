@@ -90,9 +90,14 @@ The abstract/metadata of Karl Bringmann, [*A Near-Linear Pseudopolynomial Time A
 - Advanced knapsack variants belong to row `29` (MI18), Boolean bitset subset sum to `22` and meet-in-the-middle to `30`; see [00-notes.md](00-notes.md), Advanced and Esoteric contracts.
 - Not adopted in the 2026-10-08 sweep: see [00-notes.md](00-notes.md), Basic contracts (Knapsack); the swept sources are in [00-sources.md](00-sources.md).
 
+## Aliases
+
+Search aliases (P263, grab --find): 背包 DP 基础, 背包 DP 进阶, 01背包, 完全背包, 多重背包, 背包问题, 混合背包, 背包方案数, 背包输出方案.
+
 ## History
 
 - 2026-09-28: verified (P015, previous system).
 - 2026-10-08: re-audit, comment cap and closing braces restyled, 3 findings fixed, no behavior change; full suites, g++-14 full and benchmarks passed.
 - 2026-10-23: `KnapsackItem::weight` widened to `lng` (P072, replacing `largeWeightSmallValueKnapsack`), width tests added; full suites, g++-14 full, stress and benchmarks passed.
 - 2026-10-24: P072 `/finish` (user decision 2026-10-24): `knapsack_detail::validate` marks its assert-only parameter and loop variable `[[maybe_unused]]`, so `-DNDEBUG -Wall -Wextra` builds are warning-free; quick and full passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

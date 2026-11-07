@@ -64,7 +64,7 @@ Fetch dates and URLs: [00-sources.md](00-sources.md) (2026-10-08 section; the 20
 
 ## Aliases
 
-Search aliases (P263, grab --find): lazy segtree, lazy propagation; Library Checker `range_affine_range_sum`, `range_set_range_composite`.
+Search aliases (P263, grab --find): lazy segtree, lazy propagation; Library Checker `range_affine_range_sum`, `range_set_range_composite`; 线段树基础, 懒标记线段树, 懒标记, 懒惰标记, 延迟标记, 区间修改区间查询, 区间加区间和, 区间修改单点查询, 区间仿射, 标记永久化.
 
 ## History
 
@@ -75,3 +75,4 @@ Search aliases (P263, grab --find): lazy segtree, lazy propagation; Library Chec
 - 2026-10-18: presets moved to row 00 and their tests to its tester; full (seed 20261018) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 540/558/540 MB.
 - 2026-10-18: `fold` and `foldRight` added, boundary pushes shared in `pushBounds`; independent review, 5 findings fixed (two test gaps, three document corrections); full (seed 20261018) on g++ and g++-14, stress (seed 7) and integration passed, MEMORY peak 671/720/888 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

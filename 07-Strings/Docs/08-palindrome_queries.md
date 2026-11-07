@@ -62,9 +62,14 @@ Targeted searches of preserved `OLD/algorithms.cpp`, `OLD/[1] algorithms.cpp`, `
 
 Hash palindrome answers remain Monte Carlo: the suite demonstrates a known unsigned-word false positive while exact Manacher rejects it. Eertree/partitioning (ST07), arbitrary-subrange longest/count palindrome queries and other advanced static queries (ST16) and dynamic edits (ST28) are separate planned owners, not functionality of these adapters.
 
+## Aliases
+
+Search aliases (P263, grab --find): Manacher; 回文判断, 回文串判定, 回文子串计数, 最长回文子串.
+
 ## History
 
 - 2026-09-28: verified under the previous system (P017).
 - 2026-10-08: re-audit baseline, full suite seed 1 passed before any change.
 - 2026-10-08: re-audit, `countPalindromes` added, all three hash kinds tested, 1 finding fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-19: P017 re-sweep, `countPalindromesByEndpoint` added; full passed on g++ and g++-14, stress passed.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

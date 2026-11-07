@@ -92,7 +92,12 @@ Fetched 2026-10-23 by `@researcher` ([00-sources.md](00-sources.md), P072 sweep)
 - Under `NDEBUG`, any violated asserted precondition may read or write out of bounds; `03-cpp.md` requires only termination without a hang or unbounded allocation (user decisions 2026-10-23 and 2026-10-24).
 - Not adopted in the 2026-10-23 sweep: see [00-notes.md](00-notes.md), P072 package record.
 
+## Aliases
+
+Search aliases (P263, grab --find): 分数规划, 01分数规划, 最优比率, 最优比率背包.
+
 ## History
 
 - 2026-10-23: implemented, independent review (unbounded loop under `NDEBUG`, the iteration bound, complexity symbols, a probe; 3 findings fixed) and verified (P072).
 - 2026-10-24: `/finish` audit, five review rounds: `zeroOneFractionalSelect` rebuilt on Eppstein–Hirschberg after 8 Dinkelbach tests (user decision 2026-10-24) with tangent families, a benchmark and a mutation check; `dinkelbach` 256-call cap, `ratioKnapsack` `lng` weights (user decision), the `NDEBUG` domain gate, 5 probes, brute force to `n = 14`, ASan stress run as full; full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -116,8 +116,13 @@ The implementation is written from geometric identities (2026-09-27, extended 20
 
 No claim of universally certified floating geometry is made. Other packages own adaptive and exact floating predicates (GE11), algebraic circle constructions including the Apollonian circle (row 24 / GE29), minimum enclosing circles (GE05), and circle unions and circle-polygon operations (GE10 and GE24).
 
+## Aliases
+
+Search aliases (P263, grab --find): 圆的切线, 公切线, 两圆交点, 圆与直线交点, 外接圆, 内切圆, 两圆相交面积, 圆的位置关系.
+
 ## History
 
 - 2026-09-27: original P008, full suite (seed 20260927, 146,311 checks) passed on g++ 16; segment, power and radical axis missing.
 - 2026-10-07: re-audit, implemented `circleSegmentIntersectionApprox`, `powerApprox`, `radicalAxisApprox`, `circleRelation`; 7 findings fixed; full suite and stress passed on g++ 16; independent review: reproduced every full count and probe, confirmed one defect (the `circleRelation` domain assert), fixed.
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

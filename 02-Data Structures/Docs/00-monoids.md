@@ -93,6 +93,8 @@ Earlier legacy names: `MonAlg -> RangeAffineRangeSumMinMaxIndex`, `MonBin -> Ran
 
 Catalog names covered by the presets above (sweeps of 2026-10-17): maspypy `minidx`/`maxidx`/`minmincnt`/`minmax`/`affine`/`monoid_reverse`/`add_pair`/`summax`/`summin` (`MinIndex`, `MaxIndex`, `MinCount`, `MinMax`, `AffineComposite`, `Opposite`, `PairMonoid`), `sum_mul`, `min_assign`, `max_assign`, `minmax_add`, `summax_assign`, `summin_add`, `cntsum_add`, `cntsum_affine` (the affine presets), `max_max`/`min_min` (`MonoidAction<Max>`/`<Min>` on a dual tree, `RangeAddChminChmaxRangeMinMax` on a lazy tree), `add_array` (`ArrayMonoid<Sum>`), `from_monoid` (`MonoidAction`); ei1333 `LambdaMonoid`, `LambdaActedMonoid`, `Act` (`Monoid`, `ActedMonoid`, `MonoidAction{Monoid{...}}`); suisen `AffineClamp` (`AffineComposite` then `AddChminChmax`); Nyaan `Update*` presets and KACTL's add/set/max node (assign through the affine presets), `Range_Weighted_Add_Range_Sum` (`RangeAddRangeSum` with weighted `len`); Library Checker `range_set` (assign); `Min2` (`Max2` on negated values); ABC357F's sum of products (`RangeLinearRangeSum<T, 4>`).
 
+Search aliases (P263, grab --find): 幺半群, 半群, 幺半群作用, 区间信息合并, 区间最大子段和, 区间仿射变换.
+
 ### Correctness
 
 - Sums under affine maps use `len`; sums of squares expand `(a x + b)^2`; min/max under affine maps swap on a negative scale; `RangeLinearRangeSum` is exact because a matrix action is linear and commutes with summation.
@@ -162,3 +164,4 @@ Fetch dates, URLs and failed fetches: [00-sources.md](00-sources.md) (2026-10-08
 - 2026-10-18: own row 00 (split from row 12), with its own tester and evidence, the monoid rule in `03-cpp.md` and an explicit comment-cap exemption; full (seed 20261018) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1377/1400/1376 MB.
 - 2026-10-23: P035 (the user's yes to editing this row): `inv` on `Sum` and `Xor`, the group contract, inverse checks in `plain` and at the domain edges in `contract` (added after the P035 independent review); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1371/1387/1370 MB.
 - 2026-10-27: P030 (user decision 2026-10-27 to edit this row): defaulted `operator==` on `AffineComposite<T>::S`; full (seed 20261027) on g++ and g++-14 passed for rows 00 and 12, MEMORY peak 1366/1384 MB (row 00) and 678/716 MB (row 12).
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

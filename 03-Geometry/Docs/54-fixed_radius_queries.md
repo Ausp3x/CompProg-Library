@@ -155,9 +155,14 @@ The implementation was written independently. Sources of the completeness sweep 
 - Radius queries around arbitrary points belong to row 28 `KdTree: radius`. Unit-disk graph components belong to row 22 (`euclideanBottleneck`).
 - Weighted and coloured disks, two disks and the smallest disk covering `k` points are row 56 (`56-circle_placement.hpp`, P233, planned).
 
+## Aliases
+
+Search aliases (P263, grab --find): 圆覆盖最多点, 单位圆覆盖最多点, 网格哈希, 固定半径近邻, 半径内点对, 网格划分.
+
 ## History
 
 - 2026-10-18: first implementation (P037). Independent review: the per-query `GridHash` bound and the centre contract were corrected, `r2` is clamped under `NDEBUG`, and the comment share was reduced. Full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19: P037 re-audit widened `maxPointsInDisk` to `r2 <= 4 * 10^18` with an `I512` comparator. Independent review: the benchmark left the coordinate domain (side now capped), threshold tests added. Full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19 (round 3): 384-bit comparator instead of `I512` (4.4–5.1× faster), `lll` threshold raised to `r2 <= 2^30` with a proof, bound restated as `O(n * K * log(K + 1))`, deterministic `SortedGrid` added and used by `maxPointsInDisk`; Core `UInt` measured and rejected (1.6–2.6× slower); near-diameter, cocircular and acute-triangle tests; 15 mutants, one practically equivalent. Full suite passed on g++ and g++-14, stress passed. Independent review: the benchmark compares the full cover-count vectors; the private 128 × 128-bit product kept after Core `u256` measured 4.7× slower; stale wording fixed. Final full suite passed on g++ and g++-14, stress passed.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `build` renamed `ctor` for `GridHash` and `SortedGrid` (their constructors), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

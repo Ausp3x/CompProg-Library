@@ -81,8 +81,13 @@ Fetched 2026-10-10 by the completeness sweep ([00-sources.md](00-sources.md)); t
 - Left out with reasons in [00-notes.md](00-notes.md#p028-omissions): random access `operator[]`, separate front/back folds (`lprod`/`rprod`), pop returning the value, iterator constructors, separate value and product types.
 - `08-monotone_stack.hpp` keeps the idempotent sliding minimum; `47-persistentqueue.hpp` and `63-offline_deletion.hpp` (queue undo) are separate rows.
 
+## Aliases
+
+Search aliases (P263, grab --find): 双栈模拟队列, 双栈队列, 滑动窗口聚合, 双栈双端队列.
+
 ## History
 
 - 2026-10-10: P028 first implementation and verification.
 - 2026-10-10: independent review (P028): no defects; the deque's per-side helper folds were renamed `frFold`/`bkFold` to mark them as internal.
 - 2026-10-17: P027 monoid pass (stored-object contract, `allProd` name, stateful tests; review fix: `SWAGQueue::push` read its argument after `push_back` could reallocate, so `push(back())` used freed memory (ASan); it now combines first, with a regression test, and the constructors stay implicit so default members still copy-list-initialize); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 463/473/640 MB.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

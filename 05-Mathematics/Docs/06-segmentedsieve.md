@@ -113,9 +113,14 @@ Inspected 2026-09-27:
 - The `SegmentedSieve` excerpt in `OLD/5-Mathematics/04-sieves.hpp` and the mechanical-split statement in `00-Guidelines/History/2026-09-27-migration.md` were reviewed. Prime flags/lists, exposed base primes, residual workspace and all four table methods are accounted for; the archive remains preserved.
 - The 2026-10-07 completeness sweep found no missing operation: cp-algorithms range sieve, KACTL FastEratosthenes, maspypy `factor_interval`/`prime_table` and Library Checker `enumerate_primes` are covered by `prms`, `forEachPrime` and `forEachFactor`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 筛法, 区间筛, 分段筛, 区间素数.
+
 ## History
 
 - 2026-09-27: initial P012 evidence.
 - 2026-10-07: P012 re-audit baseline, full suite passed on all six headers before any change.
 - 2026-10-07: P012 re-audit, 5 findings and 1 reviewer evidence finding fixed; after `@reviewer` (which probed `[INT64_MAX - 3000, INT64_MAX)` against Miller–Rabin), full, stress (seed 1) and integration passed.
 - 2026-10-12: prune, removed both `fromClosed` overloads (cases moved to the half-open constructors); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

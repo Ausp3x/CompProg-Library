@@ -142,7 +142,7 @@ References fetched 2026-10-27 by the completeness sweep ([00-sources.md](00-sour
 
 ## Aliases
 
-Search aliases (P263, grab --find): persistent seg, chairman tree (主席树), persistent segment tree.
+Search aliases (P263, grab --find): persistent seg, chairman tree (主席树), persistent segment tree; 线段树合并 & 分裂, 划分树, 可持久化线段树, 函数式线段树, 静态区间第k小, 可持久化权值线段树, 在线区间数颜色.
 
 ## History
 
@@ -151,3 +151,4 @@ Search aliases (P263, grab --find): persistent seg, chairman tree (主席树), p
 - 2026-10-27: independent review (P030), 6 findings fixed (`NDEBUG` termination, `lng` positions by user decision, cost and memory wording, loop index type, ledger records); full (seed 20261027) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1559/1586/1556 MB.
 - 2026-10-27: `/finish` pass: audit (4 defects, 4 decisions) and diff review (5 findings) fixed; by user decision added `reset`, `copyRange` with an action, dual `toVector`, `countLess`, `sumLess`, `kthMax` and `AffineComposite` `operator==`, filed P248; full (seed 20261027) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 2047/2002/2048 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `划分树` names a related structure answering the same queries, kept as a search synonym (user decision 2026-11-07).

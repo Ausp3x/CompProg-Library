@@ -30,6 +30,8 @@ Bytes; the whole text must match. `star` matches any run, including the empty on
 
 Library Checker `wildcard_pattern_matching` (0/1 per start): set entries from the returned starts. maspypy `wildcard_pattern_matching` (`vc<bool>`), Nyaan/ei1333 `WildcardPatternMatching` (`vector<int>`), cp-algorithms FFT matching with pattern wildcards: `wildcardMatch` or `wildcardMatchDeterministic`. Glob DP ("variable-length star DP", LeetCode 44): `globMatch` for one text, `GlobAutomaton` for per-prefix answers.
 
+Search aliases (P263, grab --find): 通配符匹配, 带通配符匹配, 通配符.
+
 ## Feature-to-test map
 
 Runner: [`21-wildcardmatching_tester.py`](<../../96-Local Testing/07-Strings/21-wildcardmatching_tester.py>). Oracles: brute window scans at every start, and the glob DP over (text prefix, pattern prefix), itself checked against exponential backtracking on tiny inputs.
@@ -108,3 +110,4 @@ Code is independently implemented from the cited descriptions; catalog sweep in 
 
 - 2026-10-16: implemented and verified (P085), independent review found 1 defect and 5 rule findings, fixed; full suite passed on g++ and g++-14.
 - 2026-10-19: dependent rerun after the P054 follow-up changed `05-Mathematics/13-convolution.hpp` (no change here): full mode passed (recorded in [13-convolution.md](../../05-Mathematics/Docs/13-convolution.md#commands-and-results)).
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

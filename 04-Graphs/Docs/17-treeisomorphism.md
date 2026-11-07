@@ -98,6 +98,8 @@ The string is canonical but not the lexicographically smallest encoding.
 - Nyaan `rooted-tree-hash` is `rootedTreeHash`.
 - CSES Tree Isomorphism I and II are the rooted (at vertex 1) and unrooted mappings, or canonical strings.
 
+Search aliases (P263, grab --find): AHU 算法, 树哈希, 树同构, 有根树同构, 无根树同构, 树的最小表示, 树自同构.
+
 ## Feature-to-test map
 
 `96-Local Testing/04-Graphs/17-treeisomorphism_tester.py` uses the shared graph runner with `-Werror` warnings, in optimized, checked (`_GLIBCXX_DEBUG`, with probes) and ASan/UBSan (full and stress) builds.
@@ -184,3 +186,4 @@ The per-height trie with `mark` sharing is this library's formulation of the lin
 
 - 2026-10-16: verified (P056); new row; completeness sweep added `allRootsClassification` and `rootedTreeIsomorphism`; independent review: 1 finding fixed (`rootedTreeHash` read past the BFS order under `NDEBUG` on non-trees), BFS reused from row 02; 8 planted mutants killed; quick, full and stress passed on g++, full on g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph, class H = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

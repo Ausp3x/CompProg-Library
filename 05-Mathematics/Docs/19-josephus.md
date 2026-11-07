@@ -54,6 +54,8 @@ Labels stay below `k n < 2^126` in `ulll`.
 
 Aliases: cp-algorithms `josephus`; OI Wiki 约瑟夫问题 (linear and `O(k log n)` forms); CSES Josephus Queries (`josephusKth` with `k = 2`, one-based); Library Checker has no Josephus problem.
 
+Search aliases (P263, grab --find): 约瑟夫环, 约瑟夫斯问题.
+
 ## Feature-to-test map
 
 Entry: [`19-josephus_tester.py`](<../../96-Local Testing/05-Mathematics/19-josephus_tester.py>).
@@ -109,3 +111,4 @@ Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep)
 ## History
 
 - 2026-10-18: P060 initial implementation; `@reviewer` found 8 issues, all fixed, and `josephusLarge` was merged into `josephus` by user decision; full suite passed on g++ and g++-14, stress seed 7 passed.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

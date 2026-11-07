@@ -70,9 +70,14 @@ References inspected on 2026-09-27.
 
 Legacy `maxZeroSubmatrix` keeps its arbitrary-nonzero blocker semantics and widens area from int to `lng`; the new binary API additionally returns a witness. General sliding-window aggregation is row 30 (`30-aggregation_queue.hpp`), not a gap of this row.
 
+## Aliases
+
+Search aliases (P263, grab --find): 单调队列/单调栈优化, 单调栈, 单调队列, 悬线法, 滑动窗口最值, 直方图最大矩形, 最大子矩形, 最大全零子矩阵, 下一个更大元素, 单调堆栈.
+
 ## History
 
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
 - 2026-10-07: P006 re-audit, 11 findings fixed, full and stress passed on g++; independent review: confirmed findings 2–24 fixed, accepted the contract-based resolution of finding 1, raised five findings, all fixed.
 - 2026-10-13: P006 prune rerun, header and tests unchanged; full suite (seed 20261013) passed on g++ and g++-14.
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `悬线法` names a related technique answering the same queries, kept as a search synonym (user decision 2026-11-07).

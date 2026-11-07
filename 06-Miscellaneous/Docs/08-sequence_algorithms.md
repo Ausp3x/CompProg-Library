@@ -133,7 +133,7 @@ The code was written independently from the recurrences and proofs in the packag
 
 ## Aliases
 
-Search aliases (P263, grab --find): LIS (longest increasing subsequence), two pointers (双指针), sliding window, maximum subarray (Kadane).
+Search aliases (P263, grab --find): LIS (longest increasing subsequence), two pointers (双指针), sliding window, maximum subarray (Kadane); 主元素问题, 最长上升子序列, 最长递增子序列, 逆序对, 最大子段和, 最长不下降子序列, 最大子矩阵和, 摩尔投票, 尺取法.
 
 ## History
 
@@ -145,3 +145,4 @@ Search aliases (P263, grab --find): LIS (longest increasing subsequence), two po
 - 2026-10-13: prune, removed `kadane` (cases moved to `maximumSubarray`); full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (`SegmentTree` over the `Monoid` adapter; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 709/742/710 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

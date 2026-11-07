@@ -124,7 +124,7 @@ All pages below were retrieved and their cited sections read on 2026-09-27. Code
 
 ## Aliases
 
-Search aliases (P263, grab --find): binomial coefficient, nCr, derangement (Montmort number); Library Checker `montmort_number_mod`.
+Search aliases (P263, grab --find): binomial coefficient, nCr, derangement (Montmort number); Library Checker `montmort_number_mod`; 卢卡斯定理, 排列组合, 斐波那契数列, 错位排列, 卡特兰数, 组合数, 错排, 杨辉三角, 插板法, 隔板法, 卡塔兰数, 巴斯卡三角形.
 
 ## History
 
@@ -133,3 +133,4 @@ Search aliases (P263, grab --find): binomial coefficient, nCr, derangement (Mont
 - 2026-10-07: P012 re-audit, added `combiLarge`, `binomialTable` and `derangementTable`, 1 finding and 3 reviewer notes fixed; after `@reviewer`, full, stress (seed 1) and integration passed.
 - 2026-10-12: prune, removed `fibonacci<T>` (`fibonacciExact` and the tests use `fibonacciPair<T>(n).first`); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

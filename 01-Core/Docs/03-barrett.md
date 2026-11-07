@@ -115,6 +115,10 @@ The 2026-10-07 catalog sweep is in [00-sources.md](00-sources.md) ("Fetched 2026
 
 The `Multiplier` has no quotient. Signed-dividend reduction and residue inverses stay with `05-modint.hpp`. Lazy Barrett outputs, a divisibility test and the other left-out candidates are listed with reasons in [00-notes.md](00-notes.md#reduction-and-modular-types).
 
+## Aliases
+
+Search aliases (P263, grab --find): 快速取模, 取模优化, 巴雷特约减, 模乘.
+
 ## History
 
 - 2026-09-27: original P004 completion, full and stress (91,538,696 checks per configuration) and integration passed; first benchmark (seed 20260927, 4,412 verified measurements).
@@ -123,3 +127,4 @@ The `Multiplier` has no quotient. Signed-dividend reduction and residue inverses
 - 2026-10-07 (run): full (seed 20261007, 53,657,153 checks per configuration) and stress (seed 1, 146,158,229) passed, `02-integration.py --sanitizers` passed, independent `@reviewer` differential (8.13 million cases) and mutants found no defect, benchmark (seed 20261007, 8,912 verified measurements).
 - 2026-10-08: restyle (comments only), full suite passed on g++ and g++-14, integration and consistency passed.
 - 2026-10-12: prune (div and multiplier removed, fold61 added), full suite (seed 20261012) passed on g++ and g++-14, benchmark verified 9,116 measurements.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -76,9 +76,10 @@ Code is independently implemented from the invariants above.
 
 ## Aliases
 
-Search aliases (P263, grab --find): PAM (palindromic automaton), eertree, palindrome tree (回文树); Library Checker `eertree`.
+Search aliases (P263, grab --find): PAM (palindromic automaton), eertree, palindrome tree (回文树); Library Checker `eertree`, 回文自动机, 本质不同回文子串, 最小回文划分, 回文分解, 最长回文后缀, 回文子串出现次数.
 
 ## History
 
 - 2026-10-10: implemented and verified (P083), independent review found no wrong answers and 3 robustness issues, fixed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

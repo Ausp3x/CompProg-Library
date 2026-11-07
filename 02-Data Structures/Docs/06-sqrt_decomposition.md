@@ -73,7 +73,7 @@ The legacy `SqrtDecomp` (`OLD/algorithms.cpp:1864–1966`) had invalid construct
 
 ## Aliases
 
-Search aliases (P263, grab --find): sqrt decomposition, block decomposition, block array (OI Wiki 分块, 块状数组).
+Search aliases (P263, grab --find): sqrt decomposition, block decomposition, block array (OI Wiki: 分块, 块状数组); 分块思想, 平方分割, 根号分块, 序列分块.
 
 ## History
 
@@ -82,3 +82,4 @@ Search aliases (P263, grab --find): sqrt decomposition, block decomposition, blo
 - 2026-10-13: prune, removed `SqrtDecomp::setUpdate` and `SqrtRangeSum::rebuild` (cases moved to `set` and the vector constructor); full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract, `opeUpdate`/`query` renamed `apply`/`prod`, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 509/520/509 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

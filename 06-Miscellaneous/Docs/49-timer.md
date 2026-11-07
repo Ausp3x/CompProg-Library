@@ -52,6 +52,11 @@ Catalog sweep by `@researcher` on 2026-10-08 (ledger in [00-sources.md](00-sourc
 - Not adopted (reasons in [00-notes.md](00-notes.md)): throttled cached expiry check, `measure(f)`, `elapsed<Unit>()`, `operator()`, iteration-count budgets, laps.
 - `elapsedUs` truncates; `elapsedMs`/`elapsedSec` are exact to clock resolution. `expired` uses `>=`, so `expired(0)` is always true.
 
+## Aliases
+
+Search aliases (P263, grab --find): 卡时, 计时器, 计时, 运行时间.
+
 ## History
 
 - 2026-10-08: created and verified (P229).
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

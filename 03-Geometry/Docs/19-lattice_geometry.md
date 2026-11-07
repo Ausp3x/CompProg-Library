@@ -176,8 +176,13 @@ The implementation was written independently. Sources of the completeness sweep 
 - A bounded halfplane intersection must lie within `|coordinate| <= 10^18` (128-bit floor sums); widening was declined on 2026-10-19.
 - `latticeInDiskFast` keeps `O(r^(2/3) * log(r))` as its proven bound although the measured tests per edge are flat; see the hull walk above.
 
+## Aliases
+
+Search aliases (P263, grab --find): 格点计数, 整点计数, 直线下整点数, 多边形内整点, 圆内整点.
+
 ## History
 
 - 2026-10-18: first implementation (P037). Independent review: `isqrt` of a negative value looped under `NDEBUG` (now 0); the line-constant bound became `8 * 10^36`; `latticeInDiskFast` has its own complexity line; large-denominator cases were added; the comment share was reduced. Full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19: P037 re-audit widened rational polygons to `V * D <= 4 * 10^18` (primitive directions, floored constants, 256-bit products, `floorSumWide`) with a Python `Fraction` oracle. Independent review: the edge sum overflowed `lll` on spirals (now modulo `2^128`, with a spiral regression), complexity comments fixed. Full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19 (round 3): unbounded halfplane sets return 0 or `-1` (Meyer's dichotomy, window-scan oracle); the hull-walk stack became `O(log(r))` runs with identical counts and fewer tests (at most 8 runs where the former stack reached 44,721 entries); Core `u256` replaced the private 256-bit helpers (+2–9% measured); the steepness-stop mutant is caught by the full-mode timeout; the unbounded probe became an out-of-domain bounded probe. Full suite passed on g++ and g++-14, stress passed, Mathematics row 20 full passed. Independent review: counts refreshed, the steepness-mutant growth figure corrected; strips with redundant parallel planes added to the unbounded tests. Final full suite passed on g++ and g++-14, stress passed.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

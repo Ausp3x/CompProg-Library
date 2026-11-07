@@ -133,7 +133,7 @@ It counts unordered pairs `u ≠ v` in the same tree with `dist(u, v) <= k`. For
 - Xenia and Tree (CF 342E) and QTREE5 map to `NearestMarked`; POJ 1741 and Luogu P4178 map to `countPathsWithin`.
 - suisen `point_set_range_contour_sum` and `point_get_range_contour_operate` are `ContourFold` and `ContourApply`.
 
-Search aliases (P263, grab --find): tree divide and conquer (点分治, OI Wiki tree divide), dynamic tree divide (动态点分治), centroid tree.
+Search aliases (P263, grab --find): tree divide and conquer (点分治, OI Wiki: tree divide), dynamic tree divide (动态点分治), centroid tree; 树分治, 动态树分治, 点分树, 淀粉质, 重心分解, 树上路径统计, 重心剖分, 边分治.
 
 ## Feature-to-test map
 
@@ -261,3 +261,4 @@ The binarization, the two-bank subtraction identity and the per-centroid squarin
 - 2026-10-19: P054 follow-up, `treeDistanceFrequency` contract updated for row 13's any-length `convolutionLong`; full suite passed as a row 13 dependent ([13-convolution.md](../../05-Mathematics/Docs/13-convolution.md#commands-and-results)).
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `边分治` names a related method for the same problem, kept as a search synonym (user decision 2026-11-07).

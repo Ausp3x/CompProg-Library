@@ -93,8 +93,13 @@ The code was written independently from the recurrences and proofs in the packag
 - The code uses no `long` or POSIX-only calls.
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): k-machine schedules; interval jump queries; circular arc cover; ConstantIntervals.
 
+## Aliases
+
+Search aliases (P263, grab --find): 区间合并, 区间选点, 区间调度, 区间覆盖, 区间分组, 最大不相交区间数, 带权区间调度, 最大区间重叠.
+
 ## History
 
 - 2026-09-28: first implementation and audit (MI03, P014); full suite passed.
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes.
 - 2026-10-08: re-audit, added `intervalCover`, `intervalPartitionAssignment`, `removeNestedIntervals` and `nestedIntervalCounts`, 11 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

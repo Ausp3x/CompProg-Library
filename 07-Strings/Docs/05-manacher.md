@@ -75,7 +75,7 @@ Code is independently implemented.
 
 ## Aliases
 
-Search aliases (P263, grab --find): palindromes, longest palindromic substring; Library Checker `enumerate_palindromes`.
+Search aliases (P263, grab --find): palindromes, longest palindromic substring; Library Checker `enumerate_palindromes`; Manacher; 马拉车, 最长回文子串, 回文子串, 回文串, 回文半径, 最长回文子字符串.
 
 ## History
 
@@ -84,3 +84,4 @@ Search aliases (P263, grab --find): palindromes, longest palindromic substring; 
 - 2026-10-08: re-audit, predicate constructor, `centerEnd`, `longestEnding` and `longestStarting` added, 2 findings and 1 review note fixed, contracts moved out of the header; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `oddInclusive` and `evenInclusive` (cases covered by the half-open interval checks), review found 1 defect, fixed; full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -99,6 +99,10 @@ All passed on GCC 16.2.1 and GCC 14.4.1 (20260915), GNU++20, Linux x86-64, with 
 
 Wide/UTF string types, arbitrary reflection, pointer-pointee traversal and format customization beyond hooks/streaming are outside this convenience layer; callers use hooks where needed. The bit-proxy rule treats any class convertible to bool with a `flip()` member as a proxy (a `debugString` hook overrides it); long double output is the 80-bit x87 shortest text on x86-64; `__float128` has no `to_chars` and is outside the domain; a user `operator<<` for a byte-wide unscoped enum that prints exactly the raw byte is indistinguishable from promotion and yields the number. Items not adopted from the catalog sweep are listed in [00-notes.md](00-notes.md) ("Template and debug"). Workspace regeneration stays coordinated with SUP05/P003.
 
+## Aliases
+
+Search aliases (P263, grab --find): 调试, 调试输出, 调试宏.
+
 ## History
 
 - 2026-09-27: original P002 verification, full (seed 335597) and stress (seed 42) passed on GCC 16.2.1, including `_GLIBCXX_DEBUG`.
@@ -108,3 +112,4 @@ Wide/UTF string types, arbitrary reflection, pointer-pointee traversal and forma
 - 2026-10-06 (run): full (seed 335597) and stress (seed 1) passed on g++, Workspace regenerated.
 - 2026-10-08: restyle (slice comment reworded, behavior unchanged), full suite (seed 20261008, 16/16 steps) passed on g++ and g++-14, integration, consistency and workspace check passed.
 - 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the `1.0L / 3` expectation now follows the target's `long double` format (x87, binary128, binary64); x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

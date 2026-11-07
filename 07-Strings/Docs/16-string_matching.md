@@ -124,7 +124,12 @@ Code is independently implemented from the cited descriptions.
 - Not adopted (reasons in [00-notes.md](00-notes.md)): simplified bad-character-only Boyer–Moore, the b5s/BMHBNFS hybrid, Turbo-BM and Breslauer's two-way variant (`49`/`43`), last occurrence and range-restricted searches, multi-pattern Rabin–Karp.
 - Coded algorithms need symbols in `[0, S)`; callers with sparse integer alphabets compress first or use `twoWay`.
 
+## Aliases
+
+Search aliases (P263, grab --find): 字符串匹配, Boyer–Moore 算法, 模式匹配, 单模式匹配, 子串查找, 暴力匹配, 子串出现次数, 字符串搜索.
+
 ## History
 
 - 2026-10-11: implemented and verified (P084), independent review found 3 issues, fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `allOccurrences` (its checks moved to `boyerMoore` at the default `S` and to `twoWay`) and the Rabin–Karp copies of the `StringHash61` arithmetic; full suite passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

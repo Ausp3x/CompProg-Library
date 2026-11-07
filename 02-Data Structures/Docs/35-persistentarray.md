@@ -87,7 +87,12 @@ Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Decided 2026-10-17 (`duplicates.md`, Keeps): k-ary path copying, kept beside row 18's binary `PersistentSegmentTree` get/set as a different time and memory tradeoff.
 - Left out with reasons in [00-notes.md](00-notes.md#p034-omissions): in-place set, `size`, node pools and garbage collection, the persistent block array.
 
+## Aliases
+
+Search aliases (P263, grab --find): 可持久化块状数组, 可持久化数组, 持久化数组, 路径复制.
+
 ## History
 
 - 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `build` renamed `ctor` (the vector and fill constructors), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
 - 2026-10-17: P034 first implementation and verification; the fill build shrank to one shared node after a mutation check; independent review: an empty vector build now holds one chunk, the default-arity wording matches the benchmark.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

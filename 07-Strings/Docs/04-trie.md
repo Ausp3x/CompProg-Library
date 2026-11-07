@@ -82,9 +82,14 @@ Code is independently implemented.
 - Not adopted (reasons in [00-notes.md](00-notes.md)): kth key and rank by multiplicity (no catalog source; Data Structures binary trie and row `24` own ranking), per-key id lists (Aho–Corasick `06` owns pattern ids), parent links.
 - Radix/compressed and persistent tries remain row `25`; binary integer/XOR tries remain Data Structures; `06` `fromTrie` may consume this node cursor.
 
+## Aliases
+
+Search aliases (P263, grab --find): 字典树 (Trie), 前缀树, 单词查找树, 最长前缀匹配.
+
 ## History
 
 - 2026-09-28: map `Trie` verified under the previous system (P016).
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
 - 2026-10-08: re-audit, one `BasicTrie` template now provides `Trie` and `TrieDense`, `step`, `forEachPrefixOf` and `longestPrefix` added, 3 findings fixed, contracts moved out of the header; quick, full and stress passed on g++, full on g++-14, integration with sanitizers passed.
 - 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the tester silences, inside `special()` only, a `-Warray-bounds` false positive of aarch64 g++ 16 on the inlined `emplace_back` of a full one-node vector; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

@@ -142,7 +142,12 @@ Independently written from the algorithms in the cited references; no code copie
 
 The mini has no transform-limit fallback: products beyond `2^v` terms for `2^v || p - 1` assert, where the full type switches to its block product.
 
+## Aliases
+
+Search aliases (P263, grab --find): Berlekamp–Massey 算法, 快速数论变换, 多项式牛顿迭代, 多项式多点求值/快速插值, 多项式初等函数, 常系数齐次线性递推, 多项式平移/连续点值平移, 多项式全家桶, 多项式乘法, 多项式求逆, 多项式对数函数, 多项式指数函数, 多项式快速幂, 多项式除法.
+
 ## History
 
 - 2026-10-10: P026 implementation and verification: quick (seed 1, 26,591 checks), full (seed 20261010, 133,760 checks, 4 configurations, 589.6 s on GCC 16.2.1 and 684.0 s on GCC 14.4.1), integration (126 headers), plus the stress and benchmark runs still listed above.
 - 2026-10-13: prune (`/prune P026`): `convolution(a, b)` removed (`### Legacy mapping`), its body is now `operator*`; its two tester checks repeated `a * b` checks on the same inputs and were deleted; review found no defect; quick, full, floor check, integration and consistency as recorded above.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

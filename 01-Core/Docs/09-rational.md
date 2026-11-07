@@ -139,7 +139,12 @@ GMP `mpq` and FLINT `fmpq` (canonical form, Knuth addition, cross-cancelled prod
 - P025 (`16-poly.hpp`): `Poly<Frac>` compiles and its product, `divMod`, `eval` and `deriv` match hand results (this tester's consumer step); overflow in `Frac` coefficients asserts. Rational coefficients are outside Poly's row domain until P025 adds them with Poly-suite tests ([16-poly.md](16-poly.md#limits-and-handoffs)).
 - `Rational<InfInt>` costs the InfInt gcd per operation; long sums of InfInt rationals are dominated by gcds as in GMP.
 
+## Aliases
+
+Search aliases (P263, grab --find): 分数类, 有理数, 分数运算, 有理数取模, 小数转分数.
+
 ## History
 
 - 2026-10-17: P019 new header, tester and benchmark verified; 13 mutants killed; the review's findings (NDEBUG narrowing, unsupported `T`, floating arguments, doc bounds, test gaps) fixed, the base-prime cancellation in `read` and the `lng` comparison and `toDouble` fast paths added; full suites passed on g++ and g++-14, two stress rounds passed.
 - 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the `long double` rounding model reads the target's format from the compiler's `__LDBL_*` macros (x87 64-bit, binary128 113-bit significand), its overflow and denormal boundary cases derive from it, and the C++ mantissa printer follows `numeric_limits<long double>::digits`; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
+- 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

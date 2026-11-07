@@ -103,6 +103,10 @@ Static all-vertex queries, ordered cycle/walk aggregates and one-orbit constant-
 
 The checked `-O0` stress build exceeds the runner's 180 s timeout, so stress runs the optimized configuration only.
 
+## Aliases
+
+Search aliases (P263, grab --find): 倍增, 基环树, 内向基环树, 函数图, 基环森林, 内向树, 判圈算法, 龟兔赛跑算法.
+
 ## History
 
 - 2026-09-27: original P011, full suite (seed 20260927, 9,178 cases, 8,243,815 checks, 28 probes) and integration passed on g++ 16; stress not run.
@@ -110,3 +114,4 @@ The checked `-O0` stress build exceeds the runner's 180 s timeout, so stress run
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 805/835/407 MB.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

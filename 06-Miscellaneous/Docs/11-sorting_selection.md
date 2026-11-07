@@ -97,7 +97,7 @@ The code was written independently from the recurrences and proofs in the packag
 
 ## Aliases
 
-Search aliases (P263, grab --find): k-th order statistic, selection, median of medians.
+Search aliases (P263, grab --find): k-th order statistic, selection, median of medians; 基数排序, 计数排序, 快速排序, 三路划分, 荷兰国旗问题, 中位数的中位数, 线性时间选择, 第k小元素.
 
 ## History
 
@@ -106,3 +106,4 @@ Search aliases (P263, grab --find): k-th order statistic, selection, median of m
 - 2026-10-08: re-audit, added `medianOfMedians` and `threeWayPartition`, 12 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 and the benchmark passed, integration and consistency clean.
 - 2026-10-13: prune, removed `stablePartition` and `quickSelect` (cases moved to `std::stable_partition` and `std::nth_element`, `select-*` probes dropped); full suite passed on g++ and g++-14; benchmark rebuilt warning-free, outputs verified.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.

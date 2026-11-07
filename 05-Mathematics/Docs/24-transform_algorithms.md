@@ -170,10 +170,11 @@ Adopted by the P055 sweep: `kroneckerPowerTransform` widened from a 2 x 2 to any
 
 ## Aliases
 
-Search aliases (P263, grab --find): FWT (fast Walsh transform), FWHT (fast Walsh-Hadamard transform), SOS DP (sum over subsets), zeta transform, Mobius transform, subset convolution.
+Search aliases (P263, grab --find): FWT (fast Walsh transform), FWHT (fast Walsh-Hadamard transform), SOS DP (sum over subsets), zeta transform, Mobius transform, subset convolution; 莫比乌斯反演, 快速沃尔什变换, 快速莫比乌斯变换, 子集卷积, 高维前缀和, 异或卷积, 或卷积, 与卷积, 狄利克雷前缀和.
 
 ## History
 
 - 2026-10-09: P055 initial implementation and verification, legacy `FastConv` migrated to wrappers, `@reviewer` found 2 defects, fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `FastConv::fctOr`, `fctAnd` and `fctXor` (cases already covered by the zeta/Möbius and Walsh–Hadamard checks; explicit `inverse = false` forward check added); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
+- 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
