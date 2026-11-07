@@ -97,6 +97,10 @@ The completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetche
 
 Fractional/custom-weight domains are not claimed. Directed MSTs, sensitivity/second-best MSTs, spanning-tree counting and fully dynamic MSTs belong to their separate inventory rows. Reconstruction-tree bottleneck queries belong here; general LCA and dynamic-tree APIs retain their separate owners.
 
+## Aliases
+
+Search aliases (P263, grab --find): MST (minimum spanning tree), minimum spanning forest; Library Checker `minimum_spanning_tree`.
+
 ## History
 
 - 2026-09-27: original P010, full suite (seed 20260927) and benchmark passed on g++ 16 with integration and 61 package probes; stress not run.
@@ -104,3 +108,4 @@ Fractional/custom-weight domains are not claimed. Directed MSTs, sensitivity/sec
 - 2026-10-07: re-audit, implemented maximum-weight `kruskal`, `primSparse`, `primDense`, `boruvka` and `KruskalReconstruction::leafRange`; 6 findings fixed (missing maximum engines, evidence claim, brace rule, complexity line placement and coverage); full suite passed on g++ and g++-14, stress passed; independent review: findings 1–3, 5 and 7–14 confirmed fixed, no correctness defect, 22 own mutants (17 killed, 5 survivors equivalent or runtime-only).
 - 2026-10-12: P010 prune rerun, header and tests unchanged; full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

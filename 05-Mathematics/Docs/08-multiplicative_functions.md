@@ -78,7 +78,12 @@ Adopted by the P052 sweep: `omega`, `bigOmega`, `DivisorArray` `setMultiplicativ
 - The row's original `divisorCountFn` and `divisorSumFn` were replaced by `divisorCountTable` and `divisorSumTable`, because point values already exist as `07` `divisorCount` and `divisorSum`.
 - Rejected candidates are in [00-notes.md](00-notes.md).
 
+## Aliases
+
+Search aliases (P263, grab --find): Euler's totient function (phi), multiplicative function.
+
 ## History
 
 - 2026-10-09: P052 initial implementation and verification, `@reviewer` found no defect; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: P052 prune rerun (included `07-primality_factorization.hpp` changed), header unchanged; full passed on g++ and g++-14.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

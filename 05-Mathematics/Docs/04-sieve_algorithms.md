@@ -75,9 +75,14 @@ Inspected on 2026-09-27; written independently with no code copied.
 - `OLD/5-Mathematics/04-sieves.hpp` is unchanged, and every ordinary-sieve legacy operation is kept.
 - The 2026-10-07 completeness sweep left out four candidates (reasons in [00-notes.md](00-notes.md)): a prime-counting table is `upper_bound` on `prms`; factoring values above `n` is owned by `07` `factorize`; the completely multiplicative `i^K` table is handed to `08` `multiplicativeTable`; an lcm of a list is caller-side work on top of `getPrimeFac`.
 
+## Aliases
+
+Search aliases (P263, grab --find): sieve of Eratosthenes, linear sieve; Library Checker `enumerate_primes`.
+
 ## History
 
 - 2026-09-27: initial P012 evidence; full mode with seed `20260927` passed on all configurations.
 - 2026-10-07: P012 re-audit baseline, full suite passed on all six headers before any change.
 - 2026-10-07: P012 re-audit, 2 findings and 3 brace-style issues fixed; after `@reviewer`, full, stress (seed 1) and integration passed.
 - 2026-10-12: P012 prune rerun, header unchanged; full suite passed on g++ and g++-14.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

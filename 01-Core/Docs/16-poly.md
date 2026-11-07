@@ -303,6 +303,10 @@ Thresholds set from this run: `SCHOOLBOOK` 16 under AVX2 (NTT and schoolbook tie
 - Mathematics keeps its scalar duplicates (`13`, `22`, `40`, `46`, `52`, `65`) under its own rows.
 - AVX-512 is not used (`-mno-avx512f` in the benchmark).
 
+## Aliases
+
+Search aliases (P263, grab --find): FPS (formal power series); CZT (chirp z-transform).
+
 ## History
 
 - 2026-10-07/08: P025 implementation in chunks (kernels and convolution family, division and series, DFT variants, evaluation/interpolation, algebra, advanced), scratch-tested before the formal suite.
@@ -311,3 +315,4 @@ Thresholds set from this run: `SCHOOLBOOK` 16 under AVX2 (NTT and schoolbook tie
 - 2026-10-12: re-audit, 2 findings fixed; quick (seed 1, 51,278 checks) and full (63,201 checks) passed on g++ and g++-14.
 - 2026-10-13: prune (`/prune P025`, seven operations removed, `### Legacy mapping`), review: 3 documentation findings fixed, no code defect; quick, full on g++ and g++-14, integration and consistency passed.
 - 2026-10-26: P018 stage-1 handoff applied by P018 (recorded call-site migration): the `BigInt` concept reads `n.size()`/`n.data()` as `int`/`ulng *` and `kronecker` packs 64-bit words; the quick suite was rerun under P018 ([07-infint.md](07-infint.md), Commands).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

@@ -62,6 +62,10 @@ Fetch dates and URLs: [00-sources.md](00-sources.md) (2026-10-08 section; the 20
 
 - Left out with reasons in [00-notes.md](00-notes.md#p027-omissions): rollback lazy tree, xor-index range apply, run-based range-assignment tree.
 
+## Aliases
+
+Search aliases (P263, grab --find): lazy segtree, lazy propagation; Library Checker `range_affine_range_sum`, `range_set_range_composite`.
+
 ## History
 
 - 2026-10-08: P027 first verification; legacy `SegTree` replaced.
@@ -70,3 +74,4 @@ Fetch dates and URLs: [00-sources.md](00-sources.md) (2026-10-08 section; the 20
 - 2026-10-17: P027 monoid pass: the trees store their acted monoid; full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1434/1437/1434 MB.
 - 2026-10-18: presets moved to row 00 and their tests to its tester; full (seed 20261018) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 540/558/540 MB.
 - 2026-10-18: `fold` and `foldRight` added, boundary pushes shared in `pushBounds`; independent review, 5 findings fixed (two test gaps, three document corrections); full (seed 20261018) on g++ and g++-14, stress (seed 7) and integration passed, MEMORY peak 671/720/888 MB.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

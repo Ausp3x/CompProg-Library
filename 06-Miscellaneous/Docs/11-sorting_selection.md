@@ -95,9 +95,14 @@ The code was written independently from the recurrences and proofs in the packag
 - The code uses no `long` or POSIX-only calls.
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): partial sort, k-way merge and multikey radix.
 
+## Aliases
+
+Search aliases (P263, grab --find): k-th order statistic, selection, median of medians.
+
 ## History
 
 - 2026-09-28: first implementation and audit (MI14, P014); full suite passed.
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes.
 - 2026-10-08: re-audit, added `medianOfMedians` and `threeWayPartition`, 12 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 and the benchmark passed, integration and consistency clean.
 - 2026-10-13: prune, removed `stablePartition` and `quickSelect` (cases moved to `std::stable_partition` and `std::nth_element`, `select-*` probes dropped); full suite passed on g++ and g++-14; benchmark rebuilt warning-free, outputs verified.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

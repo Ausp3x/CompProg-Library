@@ -122,9 +122,14 @@ All pages below were retrieved and their cited sections read on 2026-09-27. Code
 - The 2026-10-07 sweep's `combiNegative` and `combiInverse` were not adopted: `C(-n, k) = (-1)^k * combiWR(n, k)` and `1 / C(a, b) = inv_fac[a] * fac[b] * fac[a-b]` are one-line identities over the existing API (also in [00-notes.md](00-notes.md)).
 - Inverse tables, CRT and primality/factorization are rows 09, 10 and 07.
 
+## Aliases
+
+Search aliases (P263, grab --find): binomial coefficient, nCr, derangement (Montmort number); Library Checker `montmort_number_mod`.
+
 ## History
 
 - 2026-09-27: initial P012 implementation and evidence.
 - 2026-10-07: P012 re-audit baseline, full suite passed on all six headers before any change.
 - 2026-10-07: P012 re-audit, added `combiLarge`, `binomialTable` and `derangementTable`, 1 finding and 3 reviewer notes fixed; after `@reviewer`, full, stress (seed 1) and integration passed.
 - 2026-10-12: prune, removed `fibonacci<T>` (`fibonacciExact` and the tests use `fibonacciPair<T>(n).first`); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

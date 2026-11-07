@@ -228,8 +228,13 @@ The implementation was written independently. Sources of the completeness sweep 
 - `rectangleUnionBoundary` is `O((n + out) * log(n))`. `rectangleUnionBoundaryGuting` and `rectangleUnionContours` reach the optimal `O(n * log(n) + out)` at `O(n * log(n))` working memory. A linear-memory contour sweep (Güting's contracted segment tree) is row 58 `rectangleUnionBoundaryLinearMemory` (P235, planned).
 - Floating coordinates are exact in structure and rounded in sums; there is no tolerance-based merging of nearly equal coordinates. Online anchored unions (maspypy `incremental_rectangle_union`) are not adopted ([00-notes.md](00-notes.md#p037-completeness-decisions-2026-10-18)).
 
+## Aliases
+
+Search aliases (P263, grab --find): sweep line, scanning line (OI Wiki 扫描线), union of rectangles (Klee).
+
 ## History
 
 - 2026-10-18: first implementation (P037). Independent review: the documented `4 * 10^18` bounds for segments were removed (lengths are taken in `lll`), `k` is raised to 1 under `NDEBUG`, and the order check of the report test was tightened. Full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19: P037 re-audit added `rectangleUnionBoundaryGuting`. Independent review: page references unified, the ASan cap documented. Full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19 (round 3): floating coordinates for every rectangle and orthogonal operation, a square-root-decomposition coverage path with `O(n)` memory beside a compact tree, and `rectangleUnionContours`. Güting moved to rank space at unchanged speed. Full suite passed on g++ and g++-14, stress passed. Independent review: the half-scale exactness guard lowered to `2^30`; independent real-coordinate perimeter, boundary and orthogonal oracles added; benchmark wording corrected. Final full suite passed on g++ and g++-14, stress passed.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

@@ -243,7 +243,12 @@ Adopted by the P055 sweep: `convolution` (dispatcher), `nttDoubling` and `convol
 - Root tables are static and grow monotonically; they are not thread-safe. The CRT path keeps one pair per prime it used, sized by its largest transform (up to `2^27` entries for 2013265921 when `n + m - 1` exceeds `2^24`).
 - Rejected candidates are in [00-notes.md](00-notes.md), P055 research decisions. Core Poly owns FPS operations; rows 14, 52, 53 and 65 own product trees, relaxed, semiring and specialized convolutions.
 
+## Aliases
+
+Search aliases (P263, grab --find): FFT (fast Fourier transform), NTT (number-theoretic transform), polynomial multiplication.
+
 ## History
 
 - 2026-10-09: P055 initial implementation and verification, `@reviewer` found 2 defects, fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-19: P054 follow-up: CRT over one to six primes chosen from the coefficient bound (every 64-bit modulus; `convolutionLong` modulo 2^64 and `convolutionU128` modulo 2^128 for any inputs), every length below 2^31 through `convolutionLarge`, aliased squares with one transform per prime, naive wrapping paths for short Long and U128 products; `@reviewer` found no defect, a missing six-prime test and stale texts, fixed; full and stress passed on g++, full on g++-14.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

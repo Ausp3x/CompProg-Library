@@ -168,7 +168,12 @@ Adopted by the P055 sweep: `kroneckerPowerTransform` widened from a 2 x 2 to any
 - Möbius transforms and inverses need additive inverses. Max/min (semigroup) zeta is a call-site loop or a Kronecker kernel over a semiring type; see the rejected candidates in [00-notes.md](00-notes.md).
 - Set power series (exp, log, composition, power projection) are row 66. Online subset transforms were handed off there or to row 52.
 
+## Aliases
+
+Search aliases (P263, grab --find): FWT (fast Walsh transform), FWHT (fast Walsh-Hadamard transform), SOS DP (sum over subsets), zeta transform, Mobius transform, subset convolution.
+
 ## History
 
 - 2026-10-09: P055 initial implementation and verification, legacy `FastConv` migrated to wrappers, `@reviewer` found 2 defects, fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `FastConv::fctOr`, `fctAnd` and `fctXor` (cases already covered by the zeta/Möbius and Walsh–Hadamard checks; explicit `inverse = false` forward check added); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

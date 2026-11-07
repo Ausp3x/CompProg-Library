@@ -117,8 +117,13 @@ Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - The file name keeps its planned stem although the deque structures left the row (renaming is a separately scoped task, `02-structure.md`).
 - Row 31 owns radix heaps, row 45 kinetic heaps, row 48 persistent leftist heaps; Graphs Dijkstra and Miscellaneous optimal merge consume these heaps.
 
+## Aliases
+
+Search aliases (P263, grab --find): binary heap, leftist tree (左偏树), leftist heap, skew heap, pairing heap, Fibonacci heap, mergeable heap.
+
 ## History
 
 - 2026-10-13: P029 first verification. The independent review led to fixes, with regression tests, for argument aliasing in `PrioritySum` and `applyAdd` and for `NDEBUG` writes on absent `DAryHeap` ids. After the benchmark, `DAryHeap` moved to a `(key, id)` pair layout with a `key(i)` accessor.
 - 2026-10-14: integration (`02-integration.py --sanitizers`) passed.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `build` renamed `ctor` for `DAryHeap`, `ErasableHeap` and `DoubleEndedPriorityQueue` (their constructors), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

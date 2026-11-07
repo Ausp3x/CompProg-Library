@@ -118,9 +118,14 @@ Inspected on 2026-09-27, plus the 2026-10-07 completeness sweep:
 - Root finding beyond predicate bisection belongs to `17-numerical_methods.hpp`, and batched parallel binary search to Miscellaneous `20-parallelbinarysearch.hpp`.
 - The researcher's log-scale real bisection candidate was not adopted; the reason is in [00-notes.md](00-notes.md).
 
+## Aliases
+
+Search aliases (P263, grab --find): binary search (二分), ternary search, golden section search.
+
 ## History
 
 - 2026-09-27: initial P012 evidence; full mode with seed `20260927` passed before `fibSearch` and `expSearch` existed.
 - 2026-10-07: P012 re-audit baseline, full suite passed on all six headers before any change.
 - 2026-10-07: P012 re-audit, added `fibSearch` and `expSearch`, 2 findings fixed; after `@reviewer` (which probed `fibSearch` on 151,280 shapes), full, stress (seed 1) and integration passed.
 - 2026-10-12: prune, removed `binSearchReal`, `ternSearchReal` and `goldenSearchReal` (probes and the binary default-argument case moved to the bracket forms); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

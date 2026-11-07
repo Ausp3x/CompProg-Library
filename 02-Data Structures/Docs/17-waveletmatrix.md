@@ -99,9 +99,14 @@ Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - `08-Python/00-index.md` row `_56_wavelet_matrix.py` still lists `prevValue`, `nextValue` and `rangeFreq`; its package should adopt this row's names (`04-python.md`).
 - `WaveletMatrixMonoid` keeps `prod` beside row 15's `SegmentTree2DSparse::prod` as a different algorithm, and `WaveletMatrix::rank` stays beside `countEqual` (both recorded keeps, decided 2026-10-13). It needs a commutative monoid; noncommutative rectangle folds have no order to follow. Its memory is `2n` values of `S` per level.
 
+## Aliases
+
+Search aliases (P263, grab --find): partition tree (划分树), range k-th smallest; Library Checker `range_kth_smallest`.
+
 ## History
 
 - 2026-10-13: P029 first verification; the unchanged extraction was rewritten (MergeSortTree names, half-open ranges, `bool` status), with weights, `select`, `RectangleWaveletMatrix` and `WaveletMatrixMonoid` added. The independent review found no wavelet defects. The user renamed `rectangleFold` to `prod` and recorded `rank` and `prod` as keeps.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract for `WaveletMatrixMonoid`, stateful-monoid test added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 572/558/683 MB.
 - 2026-11-02: P032 DS28 `/finish` (user decision 2026-11-02): `descend` contract added for its use by row 32 `RangeThresholdFrequency::frequent`; code unchanged, covered through `countLess`, `countEqual`, `sumLess` (the weights path) and row 32's `frequent` tests.
 - 2026-11-03: P032 `/merge-pr 1` (review findings; user decision 2026-11-03 to fix every problem the pull request raised): `lowerRank` and `descend` listed in the row and tested directly in `wholeArray` and `window`; `descend` asserts its range and rank, with 3 new probes; full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change; `partition tree` names a related structure answering the same range k-th queries, kept as a search synonym (user decision 2026-11-07).

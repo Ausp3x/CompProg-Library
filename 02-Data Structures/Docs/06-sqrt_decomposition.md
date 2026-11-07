@@ -71,9 +71,14 @@ References inspected on 2026-09-27.
 
 The legacy `SqrtDecomp` (`OLD/algorithms.cpp:1864–1966`) had invalid constructor defaults, silently clamped inclusive ranges, an unused generic lazy array with no public range mutator, and diagnostic stream output. The new monoid API asserts half-open ranges and repairs construction (renames under Legacy mapping). Unreachable lazy bookkeeping and the diagnostic printer remain archived (only the printer is unported); explicit `values` exposes the actual sequence. Scalar affine blocks supply working range actions with a stated algebra. Mo (row 23) and the sqrt tree (row 34) are separate rows, not gaps of this row. Left out of the 2026-10-07 sweep, with reasons in [00-notes.md](00-notes.md#p006-re-audit-omissions): range actions and block policies, `maxRight`/`minLeft`, `reset`/`build`, O(1)-update group block sums.
 
+## Aliases
+
+Search aliases (P263, grab --find): sqrt decomposition, block decomposition, block array (OI Wiki 分块, 块状数组).
+
 ## History
 
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
 - 2026-10-07: P006 re-audit, findings 2, 3, 4, 6, 7, 10–12, 14, 16, 17, 18, 19, 20, 23, 24 (of 24 package findings) addressed in this header, full and stress passed on g++; independent review: confirmed findings 2–24 fixed, accepted the contract-based resolution of finding 1, raised five findings, all fixed.
 - 2026-10-13: prune, removed `SqrtDecomp::setUpdate` and `SqrtRangeSum::rebuild` (cases moved to `set` and the vector constructor); full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract, `opeUpdate`/`query` renamed `apply`/`prod`, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 509/520/509 MB.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

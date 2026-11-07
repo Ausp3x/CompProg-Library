@@ -99,9 +99,14 @@ The implementation was written independently from the geometric identities. Note
 
 Adaptive and exact floating predicates belong to P128 / GE11.
 
+## Aliases
+
+Search aliases (P263, grab --find): basic geometry, vector, cross product, argument sort; Library Checker `sort_points_by_argument`.
+
 ## History
 
 - 2026-09-27: original P007, full suite (seed 20260927, 242,646 checks) and stress passed on g++ 16.
 - 2026-10-07: re-audit, implemented `canonicalDirection`, `angleApprox`, `signedAngleApprox`, `unitApprox`, `argApprox`; 6 findings fixed; full suite and stress passed on g++ 16; independent review: confirmed three package defects, all fixed (here the `signedAngleApprox` negative-zero case).
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<typename P = point>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 03-Geometry` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

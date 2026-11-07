@@ -135,8 +135,13 @@ Adopted from the P052 sweep: `factorizeTrial` (legacy `getPrimeFacSlow`), `divis
 - Under `-DNDEBUG`, `n = 0` stops the loops of `factorize`, `factorizeTrial` and `coprimeBase` instead of growing memory without bound.
 - Rejected candidates are in [00-notes.md](00-notes.md), P052 research decisions.
 
+## Aliases
+
+Search aliases (P263, grab --find): primality test, prime test, Miller-Rabin, Pollard rho, integer factorization.
+
 ## History
 
 - 2026-10-09: P052 initial implementation and verification; full passed (3,678,282 checks) and integration passed (112 headers).
 - 2026-10-09: P052 rerun for the Compact rule (P231), algorithm templates with product functors and four Compact twins, review found 1 defect, fixed; full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `millerRabin64`, `millerRabin64Compact`, `primeFactors` (Legacy mapping) and the witness loop's unreachable base-skip branch, review found no defect, 6 evidence findings fixed; full passed on g++ and g++-14, stress on g++.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

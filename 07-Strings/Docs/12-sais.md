@@ -91,8 +91,13 @@ No legacy SA-IS implementation exists in `OLD` (archive map and text search).
 - `upper` drives bucket memory; sparse integer alphabets should use the generic overload. Prefix doubling, RMQ, LCE and pattern search stay in `07`, which builds through `sais` and `lcpArray`; `29` can derive a BWT from `sais`.
 - The checked stress run (700,000 symbols) passes on g++ (157 s) but exceeds the runner's 180 s limit on g++-14 (187 s).
 
+## Aliases
+
+Search aliases (P263, grab --find): SA-IS, suffix array; Library Checker `suffixarray`.
+
 ## History
 
 - 2026-10-09: implemented and verified (P081), independent review found 2 issues, fixed.
 - 2026-10-13: P017 prune, `07` `SuffixArray` now builds its LCP with `lcpArray`, so the large `lcpArray` check moved from `SuffixArray::lcp` to an exact block-name lifting oracle; full suite passed on g++ and g++-14, checked stress passed, benchmark rerun.
 - 2026-10-19: P017, `07`'s constructors now call `sais`, so the large suffix-order oracle and the benchmark's `doubling` column use `SuffixArray<int>::doubling`; full suite passed on g++ and g++-14, benchmark rerun.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

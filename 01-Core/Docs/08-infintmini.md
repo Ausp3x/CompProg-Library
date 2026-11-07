@@ -137,7 +137,12 @@ The 2026-10-17 completeness sweep (`@researcher`) read cp-algorithms, OI Wiki, K
 - P025 (`16-poly.hpp`): since P018 stage 1 (2026-10-26) `poly_detail::BigInt` requires `n.size() -> int` and `n.data() -> ulng *` (base-2^64 words), which `InfIntMini`'s `vector<uint> n` of base-10^5 limbs does not satisfy, so `Poly<InfIntMini>` takes Poly's generic `karatsuba` path and the earlier concern about a wrong `kronecker` product is closed (user decision 2026-10-26, recorded by the P018 `/finish` audit).
 - The judge wrappers `97-Online Testing/src/01-Yosupo/02-Big Integers/02-additionmini.cpp`, `04-multiplicationmini.cpp` and `06-divisionmini.cpp` use only `>>`, `+=`, `*=`, `divMod` and `<<`, which keep their meaning.
 
+## Aliases
+
+Search aliases (P263, grab --find): big integer, bignum, arbitrary-precision arithmetic, high-precision arithmetic (OI Wiki 高精度计算); Library Checker `addition_of_big_integers`, `multiplication_of_big_integers`, `division_of_big_integers`.
+
 ## History
 
 - 2026-10-17: P019 rewrite verified: new header (513 to 252 lines), tester, mixed full/mini program and benchmark; 6 mutants killed and 3 equivalent ones simplified away; the review's findings (backend preconditions, cost-bound wording, the unbalanced crossover and loop orientation, doc limits) fixed; full suites passed on g++ and g++-14, two stress rounds passed.
 - 2026-10-26: the P025 handoff line updated by the P018 `/finish` audit: `poly_detail::BigInt` now requires base-2^64 words, so the mini no longer matches it (user decision 2026-10-26).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

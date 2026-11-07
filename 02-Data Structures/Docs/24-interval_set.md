@@ -82,6 +82,10 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 - Dynamic mex over a *set of values* (the `DynamicMex` legacy note) is `IntervalSet::find(0).second` with `insert(x, x + 1)`.
 - `IntervalMap` with a monoid-weighted segment tree gives `O(log n)` amortised range-assign/range-composite, the alternative to row 00's `RangeAssignRangeComposite`.
 
+## Aliases
+
+Search aliases (P263, grab --find): ODT (old driver tree), Chtholly tree (珂朵莉树), color segments (颜色段均摊).
+
 ## History
 
 - 2026-10-08: P027 first verification.
@@ -90,3 +94,4 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 - 2026-10-12: re-audit, 1 finding fixed, full suite passed on g++ and g++-14.
 - 2026-10-13: prune, removed `IntervalSet::mex` (cases moved to `find(x).second`); full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (headers and tests unchanged; rerun for the memory-peak record); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 515/521/558 MB.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

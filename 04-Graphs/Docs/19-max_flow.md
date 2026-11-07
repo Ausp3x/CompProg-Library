@@ -154,7 +154,12 @@ Legacy material inspected:
 - Floating-point capacities, push-relabel with `limit`, residual export and the fewest-edge min cut are documented reductions or omissions in the notes.
 - Lower bounds and circulations: row 30. Min-cost flow: row 20. Matching wrappers: rows 21 and 82. Gomory–Hu: row 46. Global min cut: row 47. Edge- and vertex-disjoint path extraction: row 45 (it can use `pathDecomposition` with unit capacities).
 
+## Aliases
+
+Search aliases (P263, grab --find): maximum flow, max flow, Dinic, Edmonds-Karp, Ford-Fulkerson, push-relabel.
+
 ## History
 
 - 2026-10-10: original P044; full suites (seed 20260927, 23,926,841 checks, 22 probes) passed on g++ and g++-14, stress (seed 1), benchmark and integration with sanitizers passed; independent review, 6 findings fixed.
 - 2026-10-12: prune, removed the `EdmondsKarp` legacy adapter (cases moved to `MaxFlow` on `Graph::fromMatrix` and to `augmentPath`, four legacy probes replaced) and added `edmondsKarp` and `augmentPath`; full suite passed on g++ and g++-14, stress passed; independent review: no code defect, 4 evidence findings fixed.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

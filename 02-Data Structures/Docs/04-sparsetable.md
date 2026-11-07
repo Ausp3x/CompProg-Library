@@ -73,9 +73,14 @@ References inspected on 2026-09-27. Bibliographic mentions of Fischer–Heun are
 
 The printed diagnostic format remains available. Disjoint sparse tables (row 28), Cartesian trees (row 27) and linear-preprocessing RMQ (row 54) are separate rows, not gaps of this row; no claim is made that ordinary sparse-table preprocessing is the theoretical minimum for RMQ. `maxRight`/`minLeft` were left out of the 2026-10-07 sweep ([00-notes.md](00-notes.md#p006-re-audit-omissions)).
 
+## Aliases
+
+Search aliases (P263, grab --find): ST table (OI Wiki ST 表), RMQ (range minimum query); Library Checker `staticrmq`.
+
 ## History
 
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
 - 2026-10-07: P006 re-audit, findings 5, 10–12, 14, 17, 19, 20, 23, 24 (of 24 package findings) addressed in this header, full and stress passed on g++; independent review: confirmed findings 2–24 fixed, accepted the contract-based resolution of finding 1, raised five findings, all fixed (here `SparseTable2D` ragged rows with an empty first row).
 - 2026-10-13: prune, removed `queryFast` and `querySlow` (cases moved to `query` and `fold`); full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract, `query`/`fold` renamed `prod`/`associativeProd`, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 540/548/573 MB.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

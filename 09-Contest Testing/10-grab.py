@@ -4,10 +4,12 @@
   10-grab.py NAME...        print the declarations NAME... reach (Type::member names one member) and copy them
   10-grab.py --into FILE    keep one marked block above solve in FILE holding what grab prints for the library names
                             FILE uses (--min: those names pruned to the members FILE calls)
-  10-grab.py --find TEXT    list the indexed names containing TEXT
+  10-grab.py --find WORDS   list the inventory rows closest to WORDS (a name, a concept, an abbreviation; typos are
+                            tolerated) with the name to grab, header, tier and status, best first (-n K of them)
 
 The index (libclang, both ISA configurations) is cached per header and include-closure hash in .grab-cache beside this
-script. Without libclang, whole headers are inlined instead (SKIP). Rules: 00-Guidelines/08-contest-tools.md.
+script. Without libclang, whole headers are inlined instead (SKIP); --find reads only the inventories (_11_search.py).
+Rules: 00-Guidelines/08-contest-tools.md.
 """
 from __future__ import annotations
 
@@ -48,6 +50,10 @@ RESERVED = KEYWORDS | set('''alignas alignof asm auto bitand bitor bool break ca
 _spec = importlib.util.spec_from_file_location('grab_dependencies', ROOT / '98-Team Notebook/05-dependencies.py')
 DEPS = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(DEPS)
+_spec = importlib.util.spec_from_file_location('grab_search', Path(__file__).resolve().parent / '_11_search.py')
+SEARCH = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(SEARCH)
+CONCEPTS = 3  # inventory rows an unknown name's error lists
 
 
 class GrabError(Exception):
@@ -1020,14 +1026,14 @@ def grab(names: list[str], root: Path = ROOT, ix: Index | None = None, directive
     if ix.ci is None:
         hits = [h for h in ix.graph if h not in EXCLUDED and any(p in provides(root, h) for n in names for p in n.split('::'))]
         if not hits:
-            raise GrabError('no header defines ' + ', '.join(names))
+            raise GrabError('no header defines ' + ', '.join(names) + concepts(root, ' '.join(names)))
         return whole(root, ix.graph, hits, directives)
     roots, via = [], []
     for n in names:
         found = ix.resolve(n)
         if not found:
             near = suggest(ix, n)
-            raise GrabError(f"unknown name {n!r} ({'did you mean ' + ', '.join(near) + '? ' if near else ''}try --find)")
+            raise GrabError(f"unknown name {n!r} ({'did you mean ' + ', '.join(near) + '? ' if near else ''}try --find)" + concepts(root, n))
         roots += found
         if '::' in n:  # Alias::member: the alias the code will spell comes too
             via += [a for a in ix.resolve(n.rsplit('::', 1)[0]) if ix.units[a].get('alias')]
@@ -1169,13 +1175,10 @@ def suggest(ix: Index, name: str) -> list[str]:
     return [s for m in difflib.get_close_matches(name.lower(), spelt, n=5, cutoff=0.6) for s in sorted(spelt[m])][:5]
 
 
-def find(ix: Index, text: str) -> list[str]:
-    t = text.lower()
-    out = []
-    for i, u in enumerate(ix.units):
-        if u['name'] and t in u['qual'].lower() and u['kind'] != 'ns' and u['attach'] != 'owner':
-            out.append(f"{u['qual']:40} {u['header']}:{u['ext'][0]}")
-    return sorted(set(out))
+def concepts(root: Path, text: str) -> str:
+    """The inventory rows closest to text, one indented line each after a heading line, or '' when none matches."""
+    rows = SEARCH.show(SEARCH.Search(root).find(text, CONCEPTS), EXCLUDED)
+    return ''.join(f'\n  {l}' for l in ['closest rows (name, header, tier, status):'] + rows) if rows else ''
 
 
 def copy(text: str) -> str | None:
@@ -1192,27 +1195,28 @@ def copy(text: str) -> str | None:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0], formatter_class=argparse.RawDescriptionHelpFormatter,
-                                epilog='\n'.join(__doc__.splitlines()[2:6]))
+                                epilog='\n'.join(__doc__.splitlines()[2:7]))
     p.add_argument('names', nargs='*', help='library names (Type::member for one member)')
     p.add_argument('--into', metavar='FILE', type=Path, help='keep the marked block above solve in FILE current')
     p.add_argument('--min', action='store_true', help='with --into, keep only the members FILE calls')
-    p.add_argument('--find', metavar='TEXT', help='search the index')
+    p.add_argument('--find', metavar='WORDS', nargs='+', help='list the inventory rows closest to WORDS')
+    p.add_argument('-n', type=int, metavar='K', help='with --find, list K rows (default 10)')
     p.add_argument('--no-copy', action='store_true', help='print only')
     p.add_argument('--lines', action='store_true', help='emit #line directives naming the source headers')
     a = p.parse_args(argv)
     if sum(map(bool, (a.names, a.into, a.find))) != 1:
-        p.error('give names, --into FILE or --find TEXT')
+        p.error('give names, --into FILE or --find WORDS')
     if a.min and not a.into:
         p.error('--min needs --into')
+    if a.n is not None and (a.n < 1 or a.find is None):
+        p.error('-n K needs --find and K >= 1')
     try:
+        if a.find is not None:
+            print('\n'.join(SEARCH.show(SEARCH.Search(ROOT).find(' '.join(a.find), a.n or 10), EXCLUDED)) or 'no match')
+            return 0
         ix = Index()
         if ix.ci is None:
             print('SKIP libclang: python3 cannot import clang.cindex; inlining whole headers (/setup-check prints the install command)', file=sys.stderr)
-        if a.find is not None:
-            if ix.ci is None:
-                raise GrabError('--find needs libclang')
-            print('\n'.join(find(ix, a.find)) or 'no match')
-            return 0
         if a.into:
             names = into(a.into, ROOT, ix, a.min)
             print(f'{a.into}: block holds ' + (', '.join(names) if names else 'nothing (no library names used)'), file=sys.stderr)

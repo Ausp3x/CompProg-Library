@@ -32,6 +32,8 @@ No legacy code. The planned row name `directedMst(g, root)` became `DirectedMst(
 - KACTL `dmst` (−1 when unreachable), ei1333/maspypy edge-list or edge-ID outputs, Koosaga single-root contraction and hitonanode O(NM) Chu–Liu/Edmonds are `arborescence`.
 - NetworkX `maximum_branching` is `maximumBranching`; `minimum_branching` is it on negated weights; `minimum_spanning_arborescence` without a root is the minimum over `arborescence(r)` (see [00-notes.md](00-notes.md#p047-omissions)).
 
+Search aliases (P263, grab --find): DMST (directed minimum spanning tree), arborescence, Chu-Liu/Edmonds (最小树形图).
+
 ## Feature-to-test map
 
 `96-Local Testing/04-Graphs/25-directedmst_tester.py` (shared graph runner with `-Werror` warnings; optimized, checked with probes, ASan/UBSan in full/stress). Oracles: exhaustive enumeration of one in-arc per non-root vertex (one or none for branchings) with acyclicity by parent walks, and an independent O(V·E) Chu–Liu/Edmonds with explicit contraction. Every returned witness is checked: arcs enter their vertex, parent walks reach the root or a branching root, and the weight is the arc sum.
@@ -95,3 +97,4 @@ Not inspected: Tarjan (1977), Camerini–Fratta–Maffioli (1979) and Gabow–Ga
 
 - 2026-10-18: verified (P047); new row; all-roots contraction tree from the completeness sweep; independent review: 1 correctness finding fixed (the builder now asserts `|w| < 2^64`, where the `INF` ring is sound; builder tests with `lll` extremes and custom IDs added) and the meld-count wording corrected; 4 planted mutants killed; quick, full and stress passed on g++, full on g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

@@ -69,6 +69,10 @@ References inspected on 2026-09-27. Bibliographic mentions of Tarjan are not cla
 
 The old DSU at `OLD/algorithms.cpp:1402–1477` mixed connectivity, weighted distances, parity/bipartiteness and edge counts; its distance getter also narrowed `lng` to `int`. Basic connectivity names and `n/ncon/par/siz` remain; weighted three-argument unions, `dis`, `esz`, `is_bip`, `getDis`, `getEsiz` and `isBipartite` are not Basic APIs. No maintained consumers were found. The weighted and parity semantics are `WeightedDSU` and `ParityDSU` in `29-weighteddsu.hpp` ([29-weighteddsu.md](29-weighteddsu.md#legacy-mapping), P035); the component edge counts `esz`/`getEsiz` are `RollbackDSUAggregate::edgeCount` in `09-rollbackdsu.hpp` ([09-rollbackdsu.md](09-rollbackdsu.md), P034), and Graphs owns dynamic-connectivity orchestration. Rollback, persistent and weighted DSU are separate rows, not gaps of this row. DSU grid adapters and delete/move element are left out with reasons in [00-notes.md](00-notes.md#p006-re-audit-omissions).
 
+## Aliases
+
+Search aliases (P263, grab --find): union-find, union find, disjoint set union; Library Checker `unionfind`.
+
 ## History
 
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
@@ -77,3 +81,4 @@ The old DSU at `OLD/algorithms.cpp:1402–1477` mixed connectivity, weighted dis
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-03: P251 mutation campaign, tester gained the union-by-size depth check and probes `find-past`, `makeset-full`; quick, full on g++ and g++-14, and 2 stress rounds passed.
 - 2026-11-04: P252 recorded the mutation campaign (140 mutants, 6 equivalent survivors) under Mutation testing; header and tests unchanged.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

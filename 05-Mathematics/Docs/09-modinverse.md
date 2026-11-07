@@ -72,6 +72,11 @@ None required: the scalar paths use `extendedGcd`/`modPow` and the vector paths 
 - `powerTable` is the completely multiplicative `i^k` table. Powers `a^i` of one base are a running product at the call site.
 - Rejected candidates (O(1) inverse queries, Euler-theorem inverse) are in [00-notes.md](00-notes.md).
 
+## Aliases
+
+Search aliases (P263, grab --find): modular inverse, modular multiplicative inverse.
+
 ## History
 
 - 2026-10-09: P052 initial implementation and verification, `@reviewer` found no defect; quick, full and stress passed on g++, full on g++-14.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

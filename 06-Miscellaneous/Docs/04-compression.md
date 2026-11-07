@@ -86,8 +86,13 @@ Not adopted in the 2026-10-07 sweep, with reasons: incremental `add`/`build` bui
 
 Interval sweeps belong to `09-interval_algorithms.hpp`. No benchmark: no tuned threshold or reduction backend.
 
+## Aliases
+
+Search aliases (P263, grab --find): discretization (OI Wiki 离散化), coordinate compression.
+
 ## History
 
 - 2026-09-28: P013 first verification, full and stress suites passed.
 - 2026-10-07: P013 re-audit, bulk `ranks` and `stableRanks` added, 2 findings fixed, contracts moved out of code comments; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.
 - 2026-10-12: prune, removed `Compression` (`ranks` and `pointRange` moved into `CoordinateCompression`, its cases to `07-ordered_set_tester.cpp`; `compressEndpoints` returns `CoordinateCompression`; `08-sequence_algorithms.hpp` migrated); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

@@ -42,68 +42,13 @@ _spec = importlib.util.spec_from_file_location('extraction_grab', ROOT / '09-Con
 grab = importlib.util.module_from_spec(_spec)
 sys.modules[_spec.name] = grab  # forked index workers find grab's functions by module name
 _spec.loader.exec_module(grab)
+cells, operations, split = grab.SEARCH.cells, grab.SEARCH.operations, grab.SEARCH.split  # the one inventory-row parser
 GREEN, RED, RESET = '\033[1;32m', '\033[1;31m', '\033[0m'
 COMPILE_MB = 2048
 PRELUDE = '#include "{root}/01-Core/01-template.hpp"\n#include "{root}/01-Core/02-debug.hpp"\n'
 MONOIDS = '02-Data Structures/00-monoids.hpp'  # its presets are candidate arguments of monoid templates
 PRESETS = ('Sum', 'RangeAddRangeSum')
 INTS = {'int', 'unsigned', 'uint', 'lng', 'ulng', 'size_t', 'char', 'unsigned char', 'long long', 'auto'}
-
-
-def cells(line):
-    return [x.strip() for x in re.split(r'(?<!\\)\|', line.strip())[1:-1]]
-
-
-def split(text, sep, angle=False):
-    """text split at sep outside parentheses and brackets, a half-open [l, r) included, and with angle outside template
-    brackets (a `<` right after a name other than `operator`)."""
-    out, depth, angles, cur = [], 0, 0, ''
-    for ch in text:
-        depth += (ch in '([') - (ch in ')]')
-        if angle and ch == '<' and re.search(r'\w$', cur) and not re.search(r'\boperator$', cur):
-            angles += 1
-        elif angle and ch == '>' and angles:
-            angles -= 1
-        if ch == sep and depth <= 0 and not angles:
-            out.append(cur)
-            cur = ''
-        else:
-            cur += ch
-    return [x.strip() for x in out + [cur] if x.strip()]
-
-
-def unqualified(text):
-    """text without its parenthesized qualifiers (balanced, brackets counted as in split)."""
-    out, depth = '', 0
-    for ch in text:
-        depth += ch in '(['
-        if depth <= 0:
-            out += ch
-        depth -= ch in ')]'
-    return re.sub(r'\s+(?=[,:]|$)', '', out)
-
-
-def depths(text):
-    """Bracket depth before each character (parentheses and brackets, as in split)."""
-    out, depth = [], 0
-    for ch in text:
-        out.append(depth)
-        depth += (ch in '([') - (ch in ')]')
-    return out
-
-
-def operations(cell):
-    """(group types, operation) pairs of an Operations cell: 'A, B: x, y; z' -> ([A, B], x), ([A, B], y), ([], z)."""
-    out = []
-    for item in split(cell.replace('internals:', ';'), ';'):
-        cut = next((k for k, d in enumerate(depths(item)) if d == 0 and item.startswith(': ', k)), None)
-        head, ops = (item[:cut], item[cut + 2:]) if cut is not None and re.fullmatch(r'[\w:<>, ]+', unqualified(item[:cut])) else ('', item)
-        types = [re.sub(r'<.*', '', unqualified(t)).strip() for t in split(head, ',', True)] if head else []
-        for op in split(ops, ',', True):
-            op = op.replace('\\|', '|')
-            sym = re.match(r'operator\s*(\(\)|\[\]|[^\w\s(\[]+)|([^\w\s(\[]+)(?:\s|$)', op)  # operator(), +=, ==
-            out.append(([t for t in types if re.fullmatch(r'[\w:]+', t)], 'operator' + (sym[1] or sym[2]) if sym else re.sub(r'\s*\(.*', '', op).strip()))
-    return out
 
 
 def rows(root, status=False):

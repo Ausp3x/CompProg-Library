@@ -365,9 +365,11 @@
       "phase": "Foundations re-audit",
       "size": "M",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
+      "status": "verified",
+      "evidence": [
+        "96-Local Testing/Docs/00-search.md"
+      ],
+      "note": "Decisions (user, 2026-11-07) are listed in 00-search.md, Decisions."
     },
     {
       "id": "P254",

@@ -113,9 +113,14 @@ The implementation was written independently from the geometric identities. Note
 
 Other planned packages own simple-polygon validation and intersection sweeps (P129 / GE04) and adaptive and exact floating predicates (P128 / GE11). General rational-lattice counts are row 19 (`19-lattice_geometry.hpp`).
 
+## Aliases
+
+Search aliases (P263, grab --find): Pick's theorem, shoelace formula, polygon area.
+
 ## History
 
 - 2026-09-27: original P007, full suite (seed 20260927, 289,431 checks) passed on g++ 16.
 - 2026-10-07: re-audit, added `polygonCutApprox`; 5 findings fixed; full suite and stress passed on g++ 16; independent review: confirmed three package defects, all fixed (here pre-existing `-Wsign-compare` warnings in five polygon asserts).
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<typename Polygon = vector<point>>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 03-Geometry` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

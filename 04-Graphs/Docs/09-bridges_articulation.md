@@ -105,9 +105,14 @@ Sources for `cut_components` (fetched 2026-10-07) are in [00-sources.md](00-sour
 
 Block-cut and bridge-tree queries and two-edge-connectivity augmentation are row 27, incremental bridge maintenance is row 26, and dominators, st-numbering/ear decomposition, triconnectivity/SPQR and three-edge components are rows 24, 60, 61 and 74; none is implied by static lowlink.
 
+## Aliases
+
+Search aliases (P263, grab --find): BCC (biconnected components), 2-edge-connected components, bridges, articulation points, cut vertices (OI Wiki 割点和桥); Library Checker `biconnected_components`, `two_edge_connected_components`.
+
 ## History
 
 - 2026-09-27: original P011, full suite (seed 20260927, 3,643 cases, 1,450,632 checks, 9 probes) and integration passed on g++ 16; stress not run.
 - 2026-10-07: re-audit, added `LowlinkResult::cut_components`; 3 findings fixed (independent oracle for legacy `t_in`/`low`, lone closing braces, `lowlink_detail::graph` complexity line); full suite, stress and integration passed on g++ 16; independent review: all eight package findings confirmed fixed, its own brute-force checks of every addition passed under ASan/UBSan/`_GLIBCXX_DEBUG`.
 - 2026-10-12: prune, removed `Tarjan`, `BridgeAlgo` and `lowlink_detail::graph` (cases moved to `lowlink` on `Graph::fromAdjacency` lists, five legacy probes replaced by `adjacency-endpoint`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect, equivalence confirmed on its own 30,000 random forests and multigraphs.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

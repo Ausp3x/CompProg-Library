@@ -133,6 +133,8 @@ It counts unordered pairs `u ≠ v` in the same tree with `dist(u, v) <= k`. For
 - Xenia and Tree (CF 342E) and QTREE5 map to `NearestMarked`; POJ 1741 and Luogu P4178 map to `countPathsWithin`.
 - suisen `point_set_range_contour_sum` and `point_get_range_contour_operate` are `ContourFold` and `ContourApply`.
 
+Search aliases (P263, grab --find): tree divide and conquer (点分治, OI Wiki tree divide), dynamic tree divide (动态点分治), centroid tree.
+
 ## Feature-to-test map
 
 `96-Local Testing/04-Graphs/16-centroiddecomposition_tester.py` uses the shared graph runner with `-Werror` warnings, in optimized, checked (`_GLIBCXX_DEBUG`, with probes) and ASan/UBSan (full and stress) builds.
@@ -258,3 +260,4 @@ The binarization, the two-bank subtraction identity and the per-centroid squarin
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 964/952/1560 MB.
 - 2026-10-19: P054 follow-up, `treeDistanceFrequency` contract updated for row 13's any-length `convolutionLong`; full suite passed as a row 13 dependent ([13-convolution.md](../../05-Mathematics/Docs/13-convolution.md#commands-and-results)).
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

@@ -40,11 +40,11 @@ rendering (typing order across headers, one contiguous run per header, blank lin
 --lines runs equal the header lines, a static_assert diagnostic at its header line) -> test_render_order,
 test_render_lines, test_lines_diagnostic;
 resolve (exact qualified, qualified suffix, top-level first, Type::member, unknown; Alias::member keeps the alias,
-test_alias_member_and_whole) and find -> test_resolve, test_find, test_grab_unknown;
+test_alias_member_and_whole) -> test_resolve, test_grab_unknown;
 suggest (did you mean: case ignored, closest first, at most five, resolvable, top-level for bare names, members for
 qualified ones, no detail or far names) -> test_grab_suggest, test_grab_unknown;
-CLI (names to stdout, --lines, unknown name exit 1, --find and no match, --into, mutually exclusive arguments,
---no-copy, a fake wl-copy receiving the text, no clipboard tool) -> test_cli_*;
+CLI (names to stdout, --lines, unknown name exit 1, --find on a library without inventories, --into, mutually
+exclusive arguments, --no-copy, a fake wl-copy receiving the text, no clipboard tool) -> test_cli_*;
 token mode (declared, every comma declarator, no type at a line end, roots_of with and without allowed, qualified
 detail pairs, names a file declares at namespace scope but not members or typename X<..>::y, #define names excluded and
 #define bodies counted, names used only as locals, parameters or members excluded, structs pruned by the file's
@@ -56,7 +56,7 @@ bundle (template and debug whole with #line, extraction emitted at the include t
 includes acting on the same code, an include under #if refused, source numbering restored and checked by a compile
 error's line, an include adding nothing blanked, non-library include, no includes unchanged, template-only include,
 aggregates) -> test_bundle_*;
-fallback without libclang (whole closures, unknown name, grab_text, bundle, SKIP message, --find error) ->
+fallback without libclang (whole closures, unknown name, grab_text, bundle, SKIP message, --find without the index) ->
 test_fallback_*;
 cache (first build writes one file per header and builds each once, reuse builds nothing, an edit rebuilds exactly the
 headers whose closure holds it, a corrupt file rebuilds that header, build=False reports stale and builds nothing,
@@ -650,14 +650,6 @@ class Resolve(FixtureBase):
         self.eq(self.quals('helperA'), [('helperA', A, L(HELPER_A[2])), ('helperA', A, L(HELPER_A[3]))])
         self.eq([self.quals(n) for n in ('nosuch', 'Point::nosuch', 'inner::isOdd', 'Box::norm')], [[]] * 4)
 
-    def test_find(self):
-        L = lambda t: self.lineno(A, t)
-        want = sorted([f"{'Point::isOdd':40} {A}:{L(POINT_METHODS['isOdd'])}", f"{'isOdd':40} {A}:{L('inline bool isOdd(int v) { return v & 1; }')}"])
-        self.eq(G.find(self.ix, 'odd'), want)
-        self.eq(G.find(self.ix, 'ODD'), want, what='case-insensitive')
-        self.eq([l.split()[0] for l in G.find(self.ix, 'alpha_detail')], ['alpha_detail::thrice', 'alpha_detail::twice'], what='namespaces not listed')
-        self.eq(G.find(self.ix, 'zzzz'), [])
-
     def test_grab_unknown(self):
         with self.assertRaises(G.GrabError) as e:
             self.grab('helperA', 'nosuch')
@@ -708,16 +700,14 @@ class Cli(FixtureBase):
         self.eq((code, out, err), (1, '', "grab: unknown name 'nosuch' (try --find)\n"))
 
     def test_cli_find(self):
-        code, out, err = self.main('--find', 'odd')
-        self.eq((code, [l.split()[0] for l in out.splitlines()], err), (0, ['Point::isOdd', 'isOdd'], ''))
-        self.eq(self.main('--find', 'zzzz'), (0, 'no match\n', ''))
+        self.eq(self.main('--find', 'odd'), (0, 'no match\n', ''), what='--find reads inventory rows (14-search_tester.py), never the index')
 
     def test_cli_arguments(self):
         f = self.tmp / 'a.cpp'
         f.write_text('void solve(int t) {}\n')
         for argv in ([], ['--no-copy'], ['x', '--find', 'y'], ['--into', str(f), '--find', 'y'], ['x', '--into', str(f)]):
             code, out, err = self.main(*argv)
-            self.true(code == 2 and 'give names, --into FILE or --find TEXT' in err and out == '', argv=argv, err=err)
+            self.true(code == 2 and 'give names, --into FILE or --find WORDS' in err and out == '', argv=argv, err=err)
         self.eq(f.read_text(), 'void solve(int t) {}\n', what='argument errors leave --into files alone')
 
     def test_cli_into(self):
@@ -1477,8 +1467,8 @@ class Fallback(FixtureBase):
                 patch.object(G, 'ROOT', self.fx):
             codes = [G.main(['--no-copy', 'helperA']), G.main(['--find', 'odd'])]
         lines = err.getvalue().splitlines()
-        self.eq((codes, lines[0].split(':')[0], lines[2:], out.getvalue()), ([0, 1], 'SKIP libclang', ['grab: --find needs libclang'], self.whole(A)))
-        self.eq(lines[0], lines[1])
+        self.eq((codes, [l.split(':')[0] for l in lines], out.getvalue()), ([0, 0], ['SKIP libclang'], self.whole(A) + 'no match\n'),
+                what='--find needs no libclang')
 
 
 class Cache(Base):
@@ -1507,7 +1497,7 @@ class Cache(Base):
         self.eq(sorted(json.loads(f.read_text())['record']['header'] for f in self.cache.glob('*.json')), sorted([A, B, U]))
         ix, built_, err = self.index()
         self.eq((built_, err, plain(ix.records), ix.stale), ([], '', want, []))
-        self.eq([l.split()[0] for l in G.find(ix, 'odd')], ['Point::isOdd', 'isOdd'])
+        self.eq([ix.units[i]['qual'] for i in ix.resolve('Point::isOdd')], ['Point::isOdd'], what='the reused index resolves')
 
     def test_cache_edit_rebuilds_closure(self):
         self.index()

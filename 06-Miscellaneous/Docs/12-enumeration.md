@@ -92,9 +92,14 @@ Algorithm/proof references; the implementation was written independently without
 - Not adopted in the 2026-10-08 sweep: see [00-notes.md](00-notes.md), Basic contracts (Enumeration).
 - No enumeration implementation exists in the legacy index or `OLD`. Permutation ranking stays in MI02; constrained search keeps its own owner.
 
+## Aliases
+
+Search aliases (P263, grab --find): binary set operations (OI Wiki 二进制集合操作), bitmask subsets, submask enumeration.
+
 ## History
 
 - 2026-09-28: nine traversals verified (P015, previous system).
 - 2026-10-06: completeness sweep added partitions and rank/unrank to the row.
 - 2026-10-08: re-audit, four missing operations and `forEachSupermask` added, comment cap and closing braces restyled, 4 findings fixed; full suites and g++-14 full passed.
 - 2026-10-12: P013 prune migrated `forEachGrayMask` to `std::countr_zero`; full suite (seed 20260927, 28 probes) passed on g++ and g++-14 (recorded in [04-compression.md](04-compression.md)).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

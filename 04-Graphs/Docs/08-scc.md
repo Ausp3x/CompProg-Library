@@ -77,9 +77,14 @@ Legacy: `OLD/Team Notebook/src/graph/old_kosaraju.cpp` was inspected; its two DF
 
 Incremental SCC belongs to `70-incrementalscc.hpp`; SCC-based transitive closure/reduction belongs to `40-reachability.hpp`; fully dynamic SCC has no row. These are not claimed here.
 
+## Aliases
+
+Search aliases (P263, grab --find): SCC (strongly connected components), condensation graph.
+
 ## History
 
 - 2026-09-27: original P011, full suite (seed 20260927, 3,772,582 checks), integration and benchmark passed on g++ 16; stress not run.
 - 2026-10-07: re-audit, no findings for this header; brace rule and comment cap applied; full suite, stress, integration and benchmark passed on g++ 16; independent review: all eight package findings confirmed fixed.
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

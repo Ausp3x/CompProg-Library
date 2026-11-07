@@ -102,8 +102,13 @@ At n = 2,048, 2D random takes 0.31 ms against 4.96 ms for brute force, and 3D ra
 
 Range-restricted closest pair belongs to row 29 (`29-point_set_queries.hpp`).
 
+## Aliases
+
+Search aliases (P263, grab --find): nearest pair of points, nearest points (OI Wiki 平面最近点对), closest pair.
+
 ## History
 
 - 2026-09-27: original P008, full suite (seed 20260927, 55,373 checks) passed on g++ 16; `closestPair3` missing.
 - 2026-10-07: re-audit, implemented `closestPair3`; 4 findings fixed; full suite, stress and benchmark passed on g++ 16; independent review: reproduced every full count and probe, confirmed one package defect (in `06-circle.hpp`).
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

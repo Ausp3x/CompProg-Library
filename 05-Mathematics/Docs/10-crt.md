@@ -88,7 +88,12 @@ Adopted by the P052 sweep: `crtMod` and the `CrtResult.overflow` flag.
 - Exact CRT answers above `LLONG_MAX` are not materialized. `crt` reports overflow; use `crtMod` or `garner` with a target, or the digits with `InfInt`.
 - Rejected candidates (fixed-prime CRT, big-integer Garner) are in [00-notes.md](00-notes.md).
 
+## Aliases
+
+Search aliases (P263, grab --find): CRT (Chinese remainder theorem), Garner.
+
 ## History
 
 - 2026-10-09: P052 initial implementation and verification, review found 1 defect, fixed; full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `superChiRemThm` (Legacy mapping); full passed on g++ and g++-14, stress on g++.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

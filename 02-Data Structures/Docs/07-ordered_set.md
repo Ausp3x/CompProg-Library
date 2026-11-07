@@ -61,9 +61,14 @@ References inspected on 2026-09-27.
 
 Dynamic balanced and persistent ordered trees are rows 19, 20 and 58, not gaps of this row. Left out of the 2026-10-07 sweep, with reasons in [00-notes.md](00-notes.md#p006-re-audit-omissions): OrderedMultiSet `split`/`join` (`OrderedSet` keeps the native PBDS API, including both), CoordinateCompression distinct-by-position encoding and counting-sort mode.
 
+## Aliases
+
+Search aliases (P263, grab --find): discretization (OI Wiki 离散化), coordinate compression, order statistic tree.
+
 ## History
 
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
 - 2026-10-07: P006 re-audit, 11 findings fixed, CoordinateCompression `decode`, OrderedMultiSet `prev` and the `OrderedMap` alias added, full and stress passed on g++; independent review: confirmed findings 2–24 fixed, accepted the contract-based resolution of finding 1, raised five findings, all fixed.
 - 2026-10-12: P013 prune moved `ranks` and `pointRange` into CoordinateCompression with linear-count oracles, the moved `Compression` cases and the `range-order` probe; full suite passed on g++ and g++-14.
 - 2026-10-13: P006 prune rerun, header and tests unchanged; full suite (seed 20261013) passed on g++ and g++-14.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

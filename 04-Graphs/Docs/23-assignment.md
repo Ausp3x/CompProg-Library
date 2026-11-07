@@ -109,7 +109,12 @@ Legacy: `OLD/algorithms.cpp:4797-4862` and `OLD/Team Notebook/src/algsbetter.cpp
 
 Min-cost flow is row 20 and general weighted matching row 64. Incremental row addition, dynamic cost updates, bottleneck assignment and the auction algorithm are omitted with reasons in [00-notes.md](00-notes.md#p043-omissions).
 
+## Aliases
+
+Search aliases (P263, grab --find): Hungarian algorithm, KM (Kuhn-Munkres), bipartite weighted matching (OI Wiki 二分图最大权匹配), assignment problem.
+
 ## History
 
 - 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; independent review: no wrong answers (own Bellman–Ford min-cost-flow oracle, overflow probes at the stated domain bounds).
 - 2026-10-13: prune, removed the `Hungarian` adapter (Legacy mapping); its hand-checked matrices moved to `hungarian` with the enumeration oracle, the `legacy-range` probe was deleted. The review found that the default-result check could not fail on value-initialized vector elements; it now default-initializes over volatile-poisoned storage. Full passed on g++ and g++-14, stress on g++.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

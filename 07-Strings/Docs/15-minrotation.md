@@ -79,8 +79,13 @@ Code is independently implemented from the invariants above.
 - Booth's algorithm is not used: the two-pointer minimum expression has the same O(n) bound and O(1) space and is what KACTL and OI Wiki use.
 - Sorting all cyclic shifts belongs to `29` `sortCyclicRotations`; cyclic-shift occurrence counting to `10`.
 
+## Aliases
+
+Search aliases (P263, grab --find): minimum representation (最小表示法, OI Wiki minimal string), lexicographically minimal string rotation.
+
 ## History
 
 - 2026-10-10: implemented and verified (P083), independent review found 1 defect, fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `minRotation(s)` (cases moved to `minRotationIndices(s).first`); full suite passed on g++ and g++-14.
 - 2026-10-19: P017, the suffix-array variant's construction cost restated for SA-IS (no API change); full on g++ before the final code-range cutoff and quick on the final code passed (recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results)).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

@@ -86,7 +86,12 @@ Fetched 2026-10-13 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Persistent treaps belong to row 58, splay trees and RBSTs to row 20; ordered maps with order statistics without split/merge are row 07.
 - Bounds are expected; a caller who fixes the seed and lets an adversary see it loses the expected-depth guarantee.
 
+## Aliases
+
+Search aliases (P263, grab --find): implicit treap, Cartesian tree with implicit keys; Library Checker `dynamic_sequence_range_affine_range_sum`, `range_reverse_range_sum`.
+
 ## History
 
 - 2026-10-13: P029 first verification. The independent review led to three fixes, each with a regression test: `insert` with a key referencing the growing pool, `kth`/`at` loops that were unbounded under `NDEBUG`, and the missing `ImplicitTreap` seed test.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 740/749/781 MB.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

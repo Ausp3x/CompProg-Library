@@ -83,9 +83,14 @@ Legacy: the old Team Notebook `old_cycle-find-dfs.cpp` was inspected; its recurs
 
 SCCs belong to `08-scc.hpp`; cycle enumeration and odd-cycle extensions belong to `68-cycle_enumeration.hpp` (see [00-notes.md](00-notes.md#p010-re-audit-omissions)).
 
+## Aliases
+
+Search aliases (P263, grab --find): BFS (breadth-first search), DFS (depth-first search), bipartite graph check (OI Wiki 二分图), cycle detection; Library Checker `cycle_detection`, `cycle_detection_undirected`.
+
 ## History
 
 - 2026-09-27: original P010, full suite (seed 20260927) passed on g++ 16 with integration and 61 package probes; stress not run.
 - 2026-10-07: re-audit, 5 findings fixed; full suite passed on g++ and g++-14, stress passed; independent review: findings 1–3, 5 and 7–14 confirmed fixed, no correctness defect, 22 own mutants (17 killed, 5 survivors equivalent or runtime-only).
 - 2026-10-12: prune, removed `findCycle` and the single-source `bfs`/`dfs` overloads (cases moved to `dfsForest(g).cycle` and `{s}`); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

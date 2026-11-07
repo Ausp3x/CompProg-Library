@@ -74,6 +74,11 @@ Code is independently implemented from the invariants above.
 - Row `39` lists `palindromicLength (per prefix)`, which is this operation; the P209 duplicate sweep marks it for removal from row 39 (`duplicates.md`, pending `/prune`).
 - Double-ended and rollback eertrees are `45`; range palindrome queries and palindromic characteristics are `39`.
 
+## Aliases
+
+Search aliases (P263, grab --find): PAM (palindromic automaton), eertree, palindrome tree (回文树); Library Checker `eertree`.
+
 ## History
 
 - 2026-10-10: implemented and verified (P083), independent review found no wrong answers and 3 robustness issues, fixed.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

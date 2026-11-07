@@ -73,9 +73,14 @@ Code is independently implemented.
 - Exact substring palindrome checks and longest-palindrome extraction stay in `08`; eertree in `13`; inverse Manacher in `31`.
 - The `n < 2^30` assertions of `centerEnd`, `longestEnding` and `longestStarting` have no probe: an object that violates them holds at least 8 GB of radii, above the 4 GB test cap. Their placement rests on the bound above: with `n < 2^30` every doubled center, loop bound and length (`2n - 2`, `2r - c + 1`, `c - 2l + 1`) stays below `2^31`.
 
+## Aliases
+
+Search aliases (P263, grab --find): palindromes, longest palindromic substring; Library Checker `enumerate_palindromes`.
+
 ## History
 
 - 2026-09-28: verified under the previous system (P016).
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
 - 2026-10-08: re-audit, predicate constructor, `centerEnd`, `longestEnding` and `longestStarting` added, 2 findings and 1 review note fixed, contracts moved out of the header; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `oddInclusive` and `evenInclusive` (cases covered by the half-open interval checks), review found 1 defect, fixed; full suite passed on g++ and g++-14.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

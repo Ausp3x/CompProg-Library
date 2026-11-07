@@ -89,7 +89,12 @@ Fetched 2026-10-14 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Left out with reasons in [00-notes.md](00-notes.md#p033-omissions): `maxRight`/`minLeft`, the blocked online variant with naive in-block queries, the xor-indexed table, the 2D product on a segment tree, Alon–Schieber.
 - Row 04 owns the idempotent sparse table, row 34 the sqrt tree, row 54 linear RMQ, row 30 sliding-window aggregation.
 
+## Aliases
+
+Search aliases (P263, grab --find): cat tree (猫树).
+
 ## History
 
 - 2026-10-14: P033 first implementation and verification; independent review: the table no longer calls `e()` (semigroups work for `query`), the empty-query note corrected.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract, `query`/`fold` merged into `prod`, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 693/653/1250 MB.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change; `cat tree` is OI Wiki's name for this structure in heap layout (table above), kept as a search synonym (user decision 2026-11-07).

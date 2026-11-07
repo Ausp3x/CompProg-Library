@@ -77,9 +77,14 @@ References inspected 2026-10-08 by the completeness sweep ([00-sources.md](00-so
 - Queries on the lazy tree allocate; a read-mostly workload on a huge universe should prefer the plain tree or offline compression.
 - Persistent split/meld and `copyRange` stay with row 18.
 
+## Aliases
+
+Search aliases (P263, grab --find): segment tree merge and split (OI Wiki 线段树合并 & 分裂), dynamic segment tree.
+
 ## History
 
 - 2026-10-08: P027 first verification; legacy `DynSegTree` reference deleted.
 - 2026-10-08: independent review (P027), 5 findings fixed.
 - 2026-10-08: P027 re-audit pass (second session), 1 finding fixed (in `00-monoids.hpp`, row 12) and the `M` comment corrected; full (seed 20261008) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 593/609/593 MB.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

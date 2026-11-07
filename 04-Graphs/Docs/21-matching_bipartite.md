@@ -133,7 +133,12 @@ Legacy: `OLD/Team Notebook/src/graph/old_kuhn.cpp` was inspected. It returns aft
 
 Weighted assignment is row 23; general matching is rows 22/64; maximum antichain, DAG path and chain covers are row 31; bipartite edge colouring is row 34. Lexicographically extremal matchings or covers, rank-maximal matching and automatic bipartition are omitted with reasons in [00-notes.md](00-notes.md#p043-omissions).
 
+## Aliases
+
+Search aliases (P263, grab --find): bipartite matching, Kuhn, Hopcroft-Karp, MIS (maximum independent set) of a bipartite graph, Konig.
+
 ## History
 
 - 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; engine benchmark recorded; independent review: no wrong answers (own remove/contract matching-number oracle, overflow probes at the stated domain bounds).
 - 2026-10-13: prune, `bMatching` runs on `MaxFlow<int>` instead of its own Dinic (complexity argument and old-versus-new timing above); min-cut and doubled-graph Hopcroft–Karp oracles added. Follow-up the same day: `addEdge`, `eraseEdge`, `bipartiteMatchingDense` and `bMatching` stay in bounds under `NDEBUG`, checked by the ad-hoc probe. Full passed on g++ and g++-14, stress on g++; independent review: `bMatching` correct, including against its own Ford–Fulkerson probe, complexity argument confirmed against `MaxFlow::dinic`.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

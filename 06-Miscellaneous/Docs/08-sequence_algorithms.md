@@ -131,6 +131,10 @@ The code was written independently from the recurrences and proofs in the packag
 - Legacy `OLD/Team Notebook/src/misc/old_kadane.cpp` is accounted for by `maximumSubarray(a).sum` (Legacy mapping).
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): rotation and all-range inversions; subarray-sum counting; three- and four-sum. Value-distinct LIS counts, all-LIS enumeration and subcubic rectangle methods remain unowned research items.
 
+## Aliases
+
+Search aliases (P263, grab --find): LIS (longest increasing subsequence), two pointers (双指针), sliding window, maximum subarray (Kadane).
+
 ## History
 
 - 2026-09-28: first implementation and audit (MI03, P014); full suite passed.
@@ -140,3 +144,4 @@ The code was written independently from the recurrences and proofs in the packag
 - 2026-10-12: P013 prune migrated `Compression` to `CoordinateCompression`; full suite (seed 20260927) passed on g++ and g++-14 (recorded in [04-compression.md](04-compression.md)).
 - 2026-10-13: prune, removed `kadane` (cases moved to `maximumSubarray`); full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (`SegmentTree` over the `Monoid` adapter; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 709/742/710 MB.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

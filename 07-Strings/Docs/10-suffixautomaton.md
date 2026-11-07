@@ -80,7 +80,12 @@ The code was written independently from the algorithm; no source code was copied
 - Byte alphabets only; integer alphabets would need a `map<int, int>` instantiation that this row does not promise. Generalized (multi-string) automata are `28`; rollback, persistence and sliding windows are `44`.
 - The map variant costs about 48 bytes per transition plus the node; the dense variant `4S` bytes per state.
 
+## Aliases
+
+Search aliases (P263, grab --find): SAM (suffix automaton, 后缀自动机).
+
 ## History
 
 - 2026-10-09: implemented and verified (P081), independent review found 1 defect and 1 naming issue, fixed.
 - 2026-10-19: P017 dependent rerun after `07` moved to SA-IS (no change here): full on g++ before the final code-range cutoff and quick on the final code passed (recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results)).
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

@@ -178,6 +178,11 @@ Peak memory 22 MB. Core `10-matrix.hpp` is the fast path for large products.
 - `tridiagonalSolve`, `cyclicTridiagonalSolve` and `bandedSolve` do not pivot; a nonsingular matrix with a zero leading minor returns `false`, and the caller uses `solveLinear` instead.
 - Rejected candidates are in [00-notes.md](00-notes.md), under P058 research decisions.
 
+## Aliases
+
+Search aliases (P263, grab --find): Gaussian elimination, Gauss-Jordan, system of linear equations, determinant, matrix rank.
+
 ## History
 
 - 2026-10-28: P058 initial implementation and verification; the tester found 2 header defects (`-DNDEBUG` unused variables, `lowRankUpdateInverse` with n = 0 < k) and `@reviewer` 8 findings (unbounded `rollback`, unchecked ragged rows, output terms in complexity lines, `FieldBasis` floating guard, aliasing, `determinantInteger` limit tests, 3 keeps recorded), all fixed; quick, full and stress passed on g++, full on g++-14, integration passed.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

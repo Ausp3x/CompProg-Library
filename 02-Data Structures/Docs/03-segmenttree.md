@@ -72,6 +72,10 @@ References inspected on 2026-09-27; the fold sources were fetched on 2026-10-18 
 
 Lazy and dual segment trees are row 12, dynamic ones row 13 and persistent ones row 18. The presets and adapters (`Sum`, `Min`, `Monoid`, and so on) live in row 00, `00-monoids.hpp`, included by `98-basic.hpp`; this header does not include it. Left out of the 2026-10-07 sweep, with reasons in [00-notes.md](00-notes.md#p006-re-audit-omissions): `reset`/`build`.
 
+## Aliases
+
+Search aliases (P263, grab --find): segtree, seg (OI Wiki 线段树); Library Checker `point_set_range_composite`.
+
 ## History
 
 - 2026-09-27: original P006 verification, full suites, quick discovery run, integration and consistency passed.
@@ -80,3 +84,4 @@ Lazy and dual segment trees are row 12, dynamic ones row 13 and persistent ones 
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 473/487/522 MB.
 - 2026-10-18: `fold` and `foldRight` added; independent review, 5 findings fixed (two test gaps, three document corrections); full (seed 20261018) on g++ and g++-14, stress (seed 7) and integration passed, MEMORY peak 514/531/578 MB.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

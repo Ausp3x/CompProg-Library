@@ -88,6 +88,11 @@ Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Left out with reasons in [00-notes.md](00-notes.md#p034-omissions): priority-queue undo and deque undo.
 - Graphs `26-dynamic_connectivity.hpp` owns edge-interval connectivity orchestration and may build on `OfflineDeletion` with row 09; Miscellaneous row 42 owns generic undo logs.
 
+## Aliases
+
+Search aliases (P263, grab --find): deleting from a data structure, segment tree divide and conquer (线段树分治), offline deletion.
+
 ## History
 
 - 2026-10-17: P034 first implementation and verification; independent review: `n <= 2^29` asserted before allocation, in-place `popFront` that recovers after an empty call, `QueueUndo` `size`/`empty` added to the row, `insert`/`erase` recorded as kept, the amortized bound stated with its evidence, unordered-key test.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

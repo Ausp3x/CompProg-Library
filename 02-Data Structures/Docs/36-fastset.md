@@ -84,8 +84,13 @@ Fetched 2026-10-23 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - Left out with reasons in [00-notes.md](00-notes.md#p035-omissions): `clear`/`reset`, `fillOne`, `toString`, `any`, range erase, counting and k-th.
 - Planned row 42 (van Emde Boas) lists `WAryTreeSet` as another name for this row's `FastSet` (`duplicates.md`, P114).
 
+## Aliases
+
+Search aliases (P263, grab --find): 64-ary bitset tree, word-level van Emde Boas set; Library Checker `predecessor_problem`.
+
 ## History
 
 - 2026-10-23: P035 first implementation; independent review, 7 findings fixed across the package (here: the negative-size `NDEBUG` note, a reversed `DecrementalSet::enumerate` probe, predicate-order and insert-ahead tests); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-10-24: `/finish` review, 4 findings fixed (here: `enumerate` loops to `min(r, n)`, so `r > n` under `NDEBUG` terminates; identical on the asserted domain); quick passed.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `build` renamed `ctor` (the predicate constructor), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves it; no code changed.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

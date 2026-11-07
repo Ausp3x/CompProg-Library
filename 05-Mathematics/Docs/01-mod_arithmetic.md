@@ -102,9 +102,14 @@ Inspected on 2026-09-27, plus the 2026-10-07 completeness sweep in [00-sources.m
 
 `OLD/5-Mathematics/01-exgcdandmodpow.hpp` is unchanged. `modPow` keeps its legacy name and negative-power behavior; `exGcd` and the default modulus map as in Legacy mapping. Researcher candidates that were left out are listed with reasons in [00-notes.md](00-notes.md).
 
+## Aliases
+
+Search aliases (P263, grab --find): binary exponentiation, fast power (快速幂), GCD (greatest common divisor), LCM (least common multiple), Euclidean algorithm, extended Euclid, Bezout identity.
+
 ## History
 
 - 2026-09-27: initial P012 evidence; full mode with seed `20260927` passed before `checkedAdd`, `checkedMul`, `saturatingAdd`, `saturatingMul` and `invMod2p64` existed.
 - 2026-10-07: P012 re-audit baseline, full suite passed on all six headers before any change.
 - 2026-10-07: P012 re-audit, added `checkedAdd`, `checkedMul`, `saturatingAdd`, `saturatingMul` and `invMod2p64`, 3 findings fixed; after `@reviewer` (which probed every odd `a < 2 * 10^6` for `invMod2p64`), full, stress (seed 1) and integration passed.
 - 2026-10-12: prune, removed `exGcd` and the `modPow` default modulus (cases moved to `extendedGcd` and op `p` with modulus `INF64`); full suite passed on g++ and g++-14.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.

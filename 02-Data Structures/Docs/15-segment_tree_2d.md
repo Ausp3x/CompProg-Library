@@ -86,8 +86,13 @@ Fetched 2026-10-10 by the completeness sweep ([00-sources.md](00-sources.md)); t
 - Left out with reasons in [00-notes.md](00-notes.md#p028-omissions): sparse `maxUp`/`minDown` searches, online rectangle-apply/point-get on registered points, fully online 2D trees, k-dimensional compressed trees, a pluggable range tree.
 - Geometry `28-spatial_index.hpp` keeps point-facing kd-tree queries (nearest, kNearest, radius, box reporting); `LazyKdTree` is the rectangle fold/apply engine.
 
+## Aliases
+
+Search aliases (P263, grab --find): 2D segment tree, segment tree of segment trees (OI Wiki 线段树套线段树).
+
 ## History
 
 - 2026-10-10: P028 first verification; legacy `SegTree2D` replaced by `SegmentTree2DDense`, dual dense, sparse and lazy kd-tree added.
 - 2026-10-10: independent review (P028): no wrong answers; replaced two `size_t` loop counters; the reviewer's kd scaling probe on a 64 x 64 grid with heavy duplicates took 448, 1022 and 2245 ms for k = 2^16, 2^18, 2^20, about 2.2x per 4x, consistent with O(sqrt(k)).
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 553/542/552 MB.
+- 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
