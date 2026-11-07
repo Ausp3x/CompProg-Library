@@ -385,6 +385,19 @@
       "note": ""
     },
     {
+      "id": "P274",
+      "label": "Test speed: build cache, shared runner, quick bound",
+      "batches": [
+        "SUP25"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
       "id": "P025",
       "label": "01-Core — poly",
       "batches": [

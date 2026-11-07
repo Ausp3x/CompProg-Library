@@ -147,3 +147,13 @@ The user decided each point during P253's `/finish`, after trying grab on contes
 - **No `#define` in library headers.** Extraction copies declarations, never macros, so a header macro would vanish from an extraction silently ([03-cpp.md](03-cpp.md), Headers).
 - **Extraction checks per package** (2026-11-07). `grab bipartiteCheck` emitted `ShortestPathResult` from a header traversal does not include, and the harness that would have caught it ran only when grab changed; three reviews of the fix then found lookup forms no fixture held. A package that adds or changes a header now runs the harness on it, so a form grab mishandles fails with the package that brings it ([05-testing.md](05-testing.md), Extraction).
 - **Concept search.** Finding a header by what it does (`--find` over inventory operations and contracts) is a package of its own, P263, rather than part of P253's extractor.
+
+## 2026-11-08 Test speed
+
+The user found the tests slow. Measurements showed that compiling, not running, takes most of the time: 81% of quick mode across the contest suites, with each build compiled again by the full run's pre-flight and by every rerun. Planned as P274 (SUP25), right after P254; none of its changes weakens a test.
+
+- **Build cache.** Every tester build compiles with `-c` through ccache, as the integration build has done since 2026-10-25, so an unchanged build compiles once. If the cache needs more than ccache's 5 GB default, the limit is raised to the measured need.
+- **Pre-flight kept, quick not repeated.** The memory pre-flight stays. Since it is a complete quick run, the skills take its line as the quick run instead of running quick separately before full.
+- **Quick bound.** Each build's quick run takes at most 10 s alone, as "smoke subset, seconds" intended. Cheaper oracles with the same checks come first, then smaller quick inputs; full and stress stay unchanged.
+- **Parallel builds in Core suites only.** Core suites compile up to three builds at once, as `19-fastio` already did. Contest suites have only two or three builds, so they stay sequential and keep their memory peaks.
+- **Existing tests included.** P274 also fixes the existing testers and runners of other packages, verified ones included. Each change is recorded in the owning header's evidence, and a tester whose owning package is live is changed only after that package lands.

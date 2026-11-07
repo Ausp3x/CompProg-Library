@@ -55,6 +55,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P253 — SUP22** (opus, L): Symbol extractor (grab), extraction harness and mini-first checks.
 - [x] **P263 — SUP24** (opus, M): Concept search in grab (--find over inventory rows).
 - [ ] **P254 — SUP23** (opus, L): Completeness re-review of verified rows under the 2026-11-05 priority. Status: planned.
+- [ ] **P274 — SUP25** (opus, L): Test speed: build cache, shared runner, quick bound. Status: planned.
 
 ### Core full types
 
