@@ -174,3 +174,10 @@ The P254 omission sweep (SUP23) adopted wrappers and compositions that One API p
 - **Held until P275 (`/finish P254`).** The `duplicates.md` package sections were written under the old rule, so `/prune` and `/package` apply none of their `remove` or `ask` items until P275 has re-classified them. Labelled and unlabelled constructions are separate contexts. The brace and type-header checks stay keyed on a verified row and package: the 29 reopened packages re-run them when they are verified again, and their verified rows are unchanged until then.
 - **Keys and members (`/finish P254`).** A row without an evidence link carries source keys or `legacy:` paths; a `partial` row reopened from verified keeps its provenance in its evidence document, so the 49 rows the sweep reopened need none, and `03-consistency.py` reports keyless rows in `unsourced_rows` without failing. A struct member may reuse a name from `01-template.hpp` (`AddChminChmax::chmin`): it collides at no namespace scope. Data Structures rows 05 and 06 list their braced-list builds as `ctor (initializer_list)`, as rows 02 and 03 do, with no code change.
 - **One source key list.** Status cells take their keys from one library list ([09-sources.md](09-sources.md), Source keys), which the validator enforces. Each folder's own spellings (YC, CPALG, OIW, MASPYPY and the others) were rewritten mechanically.
+
+## 2026-11-09 `/merge-pr` gates
+
+The P254 sweep reopened 19 packages and left 32 verified rows that `plan.py doctor` reports, so every `/merge-pr` landing refused.
+
+- **Doctor compared with master.** The `plan doctor` gate fails only on a problem master's own doctor does not report under the same package heading. `plan.py` and its rule stay as they were, because exempting reopened packages would also hide a row marked verified too early. Doctor stays red on master until those packages finish.
+- **mewt in the sandbox.** The sandbox binds the directory of the mewt that `PATH` links to, read-only, so a `/merge-pr` fix can rerun a campaign through `merge_pr.py run`.

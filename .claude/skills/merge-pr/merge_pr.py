@@ -9,7 +9,7 @@ Usage: merge_pr.py files N | checkout N | gates N | run N [--mb MB] -- CMD... | 
   gates     run the gates (consistency, plan, the package's suites, the mutation records of changed headers, integration,
             workspace) in that worktree, each in bwrap (system read-only, home and /run hidden, no network, the
             worktree seen through a throwaway overlay, a private /tmp) inside a memory-capped systemd scope; logs in
-            .claude/merge-pr/<N>/.
+            .claude/merge-pr/<N>/. `plan doctor` fails only on a line master's own doctor does not report.
   run       one command sandboxed and capped the same way, for @reviewer and for checks of fixes.
   land      once the gates passed on the current head over the current master and the pull request still has that
             head: worktree.py --finish (fast-forward master, remove the worktree), then print the push and close
@@ -207,14 +207,17 @@ def checkout(n):
 
 
 def sandbox(cmd, wt, tmp):
-    """cmd under bwrap: / read-only; /run, /mnt, /media, /srv and the home directory hidden, its PATH directories and
-    the repository's git directory back read-only with the other worktrees' git directories hidden; no network, IPC,
+    """cmd under bwrap: / read-only; /run, /mnt, /media, /srv and the home directory hidden, its PATH directories, the
+    directory of the mewt that PATH links to, and the repository's git directory back read-only with the other worktrees' git directories hidden; no network, IPC,
     PID or UTS sharing; the worktree through an overlay whose writes land in `tmp`/upper, and `tmp`/tmp as /tmp. So
     nothing the command writes reaches the real worktree, where host code (the next --sync) would use it."""
     home = str(Path.home())
     common = git('rev-parse', '--path-format=absolute', '--git-common-dir', cwd=wt)
     own = git('rev-parse', '--absolute-git-dir', cwd=wt)
     keep = [d for d in os.environ.get('PATH', '').split(':') if d.startswith(home + '/') and Path(d).is_dir()]
+    tool = shutil.which('mewt')  # installed as a link into PREFIX/opt, which would dangle under the hidden home
+    if tool and str(Path(tool).resolve().parent).startswith(home + '/'):
+        keep.append(str(Path(tool).resolve().parent))
     res = ['bwrap', '--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--tmpfs', '/run', '--tmpfs', home]
     res += [x for d in HIDE if Path(d).is_dir() for x in ('--tmpfs', d)] + ['--bind', str(tmp / 'tmp'), '/tmp']
     for d in [*keep, common]:
@@ -256,6 +259,17 @@ def sandboxed(cmd, wt, mb, log=None, env=None):
         remove(tmp)
 
 
+def doctor_lines(text):
+    """The problems `plan.py doctor` lists in its output, each with its package heading, since a line may not name one."""
+    res, heading = set(), ''
+    for line in text.splitlines():
+        if line.startswith('## '):
+            heading = line
+        elif line.startswith('- '):
+            res.add((heading, line))
+    return res
+
+
 def mb_of(wt, script):
     """The cap an entry point declares with ensure(mb=...), at most MAX_MB, else the default."""
     m = re.search(r'ensure\([^)]*mb=(\d+)', (wt / script).read_text(errors='replace'))
@@ -288,17 +302,20 @@ def gates(n):
     logs.mkdir(parents=True)
     py, ok = sys.executable, True
 
-    def gate(name, cmd, mb=cap.MAIN_MB, env=None):
+    def gate(name, cmd, mb=cap.MAIN_MB, env=None, known=frozenset()):
         nonlocal ok
         log, t = logs / (re.sub(r'[^\w.-]+', '_', name) + '.log'), time.time()
         code = sandboxed(cmd, wt, mb, log, env)
-        ok &= code == 0
-        print(f'{"PASS" if code == 0 else "FAIL"} {name} ({time.time() - t:.0f} s, exit {code}, log {log.relative_to(ROOT)})', flush=True)
-        return code == 0
+        text = log.read_text(errors='replace') if known else ''
+        passed = code == 0 or code == 1 and 'Traceback' not in text and bool(doctor_lines(text)) and doctor_lines(text) <= known
+        ok &= passed
+        print(f'{"PASS" if passed else "FAIL"} {name} ({time.time() - t:.0f} s, exit {code}, log {log.relative_to(ROOT)})', flush=True)
+        return passed
 
     gate('consistency', [py, TESTS + '03-consistency.py'])
     gate('plan check', [py, plan.PLAN + '/plan.py', 'check'])
-    gate('plan doctor', [py, plan.PLAN + '/plan.py', 'doctor'])
+    master_doctor = subprocess.run([py, str(ROOT / plan.PLAN / 'plan.py'), 'doctor'], cwd=ROOT, capture_output=True, text=True).stdout
+    gate('plan doctor', [py, plan.PLAN + '/plan.py', 'doctor'], known=doctor_lines(master_doctor))
     found, deleted = suites(wt, st)
     for t in deleted:
         ok = False

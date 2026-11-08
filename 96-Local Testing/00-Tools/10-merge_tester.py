@@ -81,7 +81,7 @@ directory removed after, 0111 directories and symlinks to directories included; 
 without XDG_RUNTIME_DIR and DBUS_SESSION_BUS_ADDRESS, cgroup memory.max and pids.max, cap kill, exit status, TIMEOUT
 -> 124, missing bwrap, a worktree under /tmp; `run N --mb MB -- CMD` with MB clamped to MAX_MB, the command only after
 `--`; run, gates and land refuse before checkout; run leaves the worktree as it was) -> test_sandbox_*, test_run_cli, test_run_cli_mb_after_n, test_run_overlay;
-gates (all PASS with tested/master, gate order, caps and CXX per gate, CXX not leaked, failing gate, failed pre-flight
+gates (all PASS with tested/master, gate order, caps and CXX per gate, CXX not leaked, failing gate, plan doctor passing on lines master's doctor reports and failing on a new line or a crash, failed pre-flight
 skips full runs, one CXX failing, gates and testers writing into the tree still pass and leave it unchanged, a deleted
 tester of the package fails, dirty or unbased worktree refused; mutation records: the headers the pull request adds or
 modifies (<01-07 folder>/<NN>-*.hpp, not 98-/99- aggregates, nested, deleted or master-only ones), sorted, split by the
@@ -1977,6 +1977,8 @@ class Sandbox(Base):
     def test_sandbox_probe(self):
         home = str(Path.home())
         keep = [d for d in os.environ.get('PATH', '').split(':') if d.startswith(home + '/') and Path(d).is_dir()]
+        mewt = shutil.which('mewt')  # linked into a directory the sandbox must bring back
+        keep += [str(Path(mewt).resolve().parent)] if mewt and str(Path(mewt).resolve().parent).startswith(home + '/') else []
         hidden = [p for p in (f'{home}/.config', f'{home}/.ssh', f'{home}/.gitconfig', f'{home}/.cache', f'{home}/.claude', str(ROOT))
                   if os.path.lexists(p) and not any(k == p or k.startswith(p + '/') for k in keep)]
         marker = f'merge-probe-{os.getpid()}-{time.monotonic_ns()}'
@@ -2293,6 +2295,52 @@ class Gates(Base):
         self.expect_fail(r, result, ['integration sanitizers'], info)
         self.assertEqual(len(result), 8, info)
         self.no_mutation(r, info)
+
+    def doctor_problem(self, root, index=0):
+        """Package `index` in progress without a note: a line only `plan.py doctor` reports."""
+        path = root / PLAN_REL / 'packages.json'
+        doc = json.loads(path.read_text())
+        doc['packages'][index] |= {'status': 'in-progress', 'note': ''}
+        path.write_text(json.dumps(doc, indent=2) + '\n')
+        plan_cmd(root, 'render')
+        commit(root, 'plan problem')
+
+    def test_gates_doctor_known(self):
+        self.doctor_problem(self.main)
+        git(self.wt, 'rebase', 'master')
+        self.state()
+        r, result, _ = self.gates()
+        info = self.info(stdout=r.stdout, stderr=r.stderr)
+        self.assertEqual(('PASS', 'plan doctor'), result[2], info)
+        self.assertEqual([n for s, n in result if s == 'FAIL'], [], info)
+        self.assertEqual(r.returncode, 0, info)
+        self.assertIn('exit 1', next(l for l in r.stdout.splitlines() if l.startswith('PASS plan doctor')), info)
+
+    def test_gates_doctor_new(self):
+        self.doctor_problem(self.wt)
+        self.state()
+        r, result, _ = self.gates()
+        self.expect_fail(r, result, ['plan doctor'], self.info(stdout=r.stdout, stderr=r.stderr))
+
+    def test_gates_doctor_new_beside_known(self):
+        self.doctor_problem(self.main)
+        git(self.wt, 'rebase', 'master')
+        self.doctor_problem(self.wt, 1)
+        self.state()
+        r, result, _ = self.gates()
+        self.expect_fail(r, result, ['plan doctor'], self.info(stdout=r.stdout, stderr=r.stderr))
+
+    def test_gates_doctor_crash(self):
+        self.doctor_problem(self.main)
+        git(self.wt, 'rebase', 'master')
+        path = self.wt / PLAN_REL / 'plan.py'
+        path.write_text('raise RuntimeError("broken")\n')
+        commit(self.wt, 'pr breaks plan.py')
+        self.state()
+        r, result, _ = self.gates()
+        info = self.info(stdout=r.stdout, stderr=r.stderr)
+        self.assertEqual(('FAIL', 'plan doctor'), result[2], info)
+        self.assertEqual(r.returncode, 1, info)
 
     def test_gates_quick_preflight(self):
         self.control({'fail': ['d:quick']})
