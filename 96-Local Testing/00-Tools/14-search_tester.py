@@ -358,9 +358,9 @@ def o_lone(fields, c):
     return math.log(1 + (len(fields) - df + 0.5) / (df + 0.5))
 
 
-def o_show(name, header, tier, status, held=()):
-    return (name.ljust(30) + ' ' + header.ljust(46) + ' ' + tier.ljust(9) + ' ' + status + ('  Python' if header.endswith('.py') else '')
-            + ('  in template' if header in held else ''))
+def o_show(name, header, tier, status, held=(), w=(30, 46, 9, 0)):
+    return (('-' if name == header else name).ljust(w[0]) + ' ' + header.ljust(w[1]) + ' ' + tier.ljust(w[2]) + ' ' + status.ljust(w[3]) + ('  Python' if header.endswith('.py') else '')
+            + ('  in template' if header in held else '')).rstrip()
 
 
 FLAT_S = {k: 1.0 for k in ('verified', 'partial', 'existing-unverified', 'legacy-reference', 'planned')}
@@ -922,13 +922,22 @@ class Units(Fixtures):
     def test_show(self):
         hits = [M.Hit('Fenwick::sum', f'{DS}/01-fenwick.hpp', 'Basic', 'verified', 1.5),
                 M.Hit('x' * 40, '08-Python/_06_dsu.py', 'Esoteric', 'planned', 0.1)]
-        self.assertEqual(M.show(hits), [o_show(*h[:4]) for h in hits])
-        self.assertTrue(M.show(hits)[1].endswith('planned  Python'))
+        w = (40, 46, 9, 8)
+        self.assertEqual(M.show(hits), [o_show(*h[:4], w=w) for h in hits])
+        self.assertTrue(M.show(hits)[1].endswith('planned   Python'))
         self.assertEqual(M.show([]), [])
+        wide = M.Hit('a', f'{DS}/' + 'y' * 60 + '.hpp', 'Advanced', 'existing-unverified', 0.5)
+        rows = M.show([*hits, wide])
+        self.assertEqual(rows, [o_show(*h[:4], w=(40, len(wide.header), 9, 19)) for h in [*hits, wide]])
+        self.assertEqual(len({l.index(h.tier) for l, h in zip(rows, [*hits, wide])}), 1)
+        self.assertTrue(all(l == l.rstrip() for l in rows))
+        path = M.Hit(wide.header, wide.header, 'Advanced', 'verified', 0.5)
+        self.assertEqual(M.show([path]), [o_show(*path[:4], w=(30, len(path.header), 9, 8))])
+        self.assertTrue(M.show([path])[0].startswith('-' + ' ' * 30 + wide.header))
         held = ('01-Core/01-template.hpp', '08-Python/_06_dsu.py')
         hits.append(M.Hit('chmin', '01-Core/01-template.hpp', 'Basic', 'verified', 2.0))
-        self.assertEqual(M.show(hits, held), [o_show(*h[:4], held) for h in hits])
-        self.assertEqual([l.endswith('planned  Python  in template') for l in M.show(hits, held)], [False, True, False])
+        self.assertEqual(M.show(hits, held), [o_show(*h[:4], held, w) for h in hits])
+        self.assertEqual([l.endswith('planned   Python  in template') for l in M.show(hits, held)], [False, True, False])
         self.assertTrue(M.show(hits, held)[2].endswith('verified  in template'))
 
 
