@@ -358,7 +358,7 @@ def o_lone(fields, c):
     return math.log(1 + (len(fields) - df + 0.5) / (df + 0.5))
 
 
-def o_show(name, header, tier, status, held=(), w=(30, 46, 9, 0)):
+def o_show(name, header, tier, status, held=(), w=(0, 0, 0, 0)):
     return (('-' if name == header else name).ljust(w[0]) + ' ' + header.ljust(w[1]) + ' ' + tier.ljust(w[2]) + ' ' + status.ljust(w[3]) + ('  Python' if header.endswith('.py') else '')
             + ('  in template' if header in held else '')).rstrip()
 
@@ -922,18 +922,18 @@ class Units(Fixtures):
     def test_show(self):
         hits = [M.Hit('Fenwick::sum', f'{DS}/01-fenwick.hpp', 'Basic', 'verified', 1.5),
                 M.Hit('x' * 40, '08-Python/_06_dsu.py', 'Esoteric', 'planned', 0.1)]
-        w = (40, 46, 9, 8)
+        w = (40, len(hits[0].header), 8, 8)
         self.assertEqual(M.show(hits), [o_show(*h[:4], w=w) for h in hits])
         self.assertTrue(M.show(hits)[1].endswith('planned   Python'))
         self.assertEqual(M.show([]), [])
         wide = M.Hit('a', f'{DS}/' + 'y' * 60 + '.hpp', 'Advanced', 'existing-unverified', 0.5)
         rows = M.show([*hits, wide])
-        self.assertEqual(rows, [o_show(*h[:4], w=(40, len(wide.header), 9, 19)) for h in [*hits, wide]])
+        self.assertEqual(rows, [o_show(*h[:4], w=(40, len(wide.header), 8, 19)) for h in [*hits, wide]])
         self.assertEqual(len({l.index(h.tier) for l, h in zip(rows, [*hits, wide])}), 1)
         self.assertTrue(all(l == l.rstrip() for l in rows))
         path = M.Hit(wide.header, wide.header, 'Advanced', 'verified', 0.5)
-        self.assertEqual(M.show([path]), [o_show(*path[:4], w=(30, len(path.header), 9, 8))])
-        self.assertTrue(M.show([path])[0].startswith('-' + ' ' * 30 + wide.header))
+        self.assertEqual(M.show([path]), [o_show(*path[:4], w=(1, len(path.header), 8, 8))])
+        self.assertTrue(M.show([path])[0].startswith('- ' + wide.header))
         held = ('01-Core/01-template.hpp', '08-Python/_06_dsu.py')
         hits.append(M.Hit('chmin', '01-Core/01-template.hpp', 'Basic', 'verified', 2.0))
         self.assertEqual(M.show(hits, held), [o_show(*h[:4], held, w) for h in hits])
@@ -1307,16 +1307,16 @@ class Cli(Fixtures):
         root = self.tree(CLI_FX)
         want = M.show(M.Search(root).find('dijkstra', 10), G.EXCLUDED)
         self.assertEqual(len(want), 4)
-        self.assertTrue(want[0].startswith(o_show('dijkstra', f'{GR}/05-shortest_path.hpp', 'Basic', 'verified')))
+        self.assertEqual(want[0].split()[:4], o_show('dijkstra', f'{GR}/05-shortest_path.hpp', 'Basic', 'verified').split())
         self.assertEqual(self.run_main(['--find', 'dijkstra'], root), (0, '\n'.join(want) + '\n', ''))
         self.assertEqual(self.run_main(['--find', 'dijkstra', '-n', '2'], root), (0, '\n'.join(want[:2]) + '\n', ''))
         self.assertEqual(self.run_main(['--find', 'zzzzqq'], root), (0, 'no match\n', ''))
         two = M.show(M.Search(root).find('shortest path', 10), G.EXCLUDED)
-        self.assertTrue(two and two[0].startswith(o_show('dijkstra', f'{GR}/05-shortest_path.hpp', 'Basic', 'verified')), two)
+        self.assertTrue(two and two[0].split()[:4] == o_show('dijkstra', f'{GR}/05-shortest_path.hpp', 'Basic', 'verified').split(), two)
         self.assertEqual(self.run_main(['--find', 'shortest', 'path'], root), (0, '\n'.join(two) + '\n', ''))
         tpl = self.tree(TPL_FX)
         marked = M.show(M.Search(tpl).find('chmin', 10), G.EXCLUDED)
-        self.assertIn(o_show('chmin', '01-Core/01-template.hpp', 'Basic', 'verified', G.EXCLUDED), marked)
+        self.assertIn(o_show('chmin', '01-Core/01-template.hpp', 'Basic', 'verified', G.EXCLUDED).split(), [l.split() for l in marked])
         self.assertEqual([l.endswith('  in template') for l in marked], [l.startswith('chmin ') for l in marked])
         self.assertEqual(self.run_main(['--find', 'chmin'], tpl), (0, '\n'.join(marked) + '\n', ''))
         many = self.tree(MANY_FX)
@@ -1336,7 +1336,7 @@ class Cli(Fixtures):
         rows = M.show(M.Search(root).find('dijkstar', 3), G.EXCLUDED)
         block = '\n  closest rows (name, header, tier, status):' + ''.join('\n  ' + l for l in rows)
         self.assertEqual(len(rows), 3)
-        self.assertTrue(rows[0].startswith(o_show('dijkstra', f'{GR}/05-shortest_path.hpp', 'Basic', 'verified')))
+        self.assertEqual(rows[0].split()[:4], o_show('dijkstra', f'{GR}/05-shortest_path.hpp', 'Basic', 'verified').split())
         for ix, head in ((stub, "unknown name 'dijkstar'"), (types.SimpleNamespace(ci=None, graph={}), 'no header defines dijkstar')):
             with self.assertRaises(G.GrabError) as cm:
                 G.grab(['dijkstar'], root, ix)
@@ -1345,14 +1345,14 @@ class Cli(Fixtures):
             self.assertEqual(msg.count('\n'), 4, msg)
             if ix.ci is None:  # the fallback searches all the names: only the second matches a row
                 two = M.show(M.Search(root).find('qqqzz dijkstar', 3), G.EXCLUDED)
-                self.assertTrue(two and two[0].startswith(rows[0][:77]), two)
+                self.assertTrue(two and two[0].split()[:2] == rows[0].split()[:2], two)
                 with self.assertRaises(G.GrabError) as cm:
                     G.grab(['qqqzz', 'dijkstar'], root, ix)
                 self.assertEqual(str(cm.exception), 'no header defines qqqzz, dijkstar\n  closest rows (name, header, tier, status):'
                                  + ''.join('\n  ' + l for l in two))
             tpl = self.tree(TPL_FX)
             marked = M.show(M.Search(tpl).find('chmn', 3), G.EXCLUDED)
-            self.assertIn(o_show('chmin', '01-Core/01-template.hpp', 'Basic', 'verified', G.EXCLUDED), marked)
+            self.assertIn(o_show('chmin', '01-Core/01-template.hpp', 'Basic', 'verified', G.EXCLUDED).split(), [l.split() for l in marked])
             with self.assertRaises(G.GrabError) as cm:
                 G.grab(['chmn'], tpl, ix)
             self.assertTrue(str(cm.exception).endswith(''.join('\n  ' + l for l in marked)) and 'in template' in str(cm.exception))

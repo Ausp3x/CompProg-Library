@@ -559,9 +559,9 @@ class Search:
 
 def show(hits, held=()):
     """One line per hit: name (- for a row no name of which matched, whose name is its header), header, tier, status, in
-    columns as wide as their longest entry (at least 30, 46 and 9); a Python module also says Python, a header in held
-    (the ones the contest template already holds) says in template."""
+    columns as wide as their longest entry; a Python module also says Python, a header in held (the ones the contest
+    template already holds) says in template."""
     hits = [h._replace(name='-') if h.name == h.header else h for h in hits]
-    w = [max([m, *(len(h[i]) for h in hits)]) for i, m in enumerate((30, 46, 9, 0))]
+    w = [max(map(len, c)) for c in zip(*(h[:4] for h in hits))]
     return [(f"{h.name:{w[0]}} {h.header:{w[1]}} {h.tier:{w[2]}} {h.status:{w[3]}}" + ('  Python' if h.header.endswith('.py') else '')
              + ('  in template' if h.header in held else '')).rstrip() for h in hits]
