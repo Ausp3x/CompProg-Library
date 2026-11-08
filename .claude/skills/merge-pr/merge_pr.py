@@ -9,7 +9,9 @@ Usage: merge_pr.py files N | checkout N | gates N | run N [--mb MB] -- CMD... | 
   gates     run the gates (consistency, plan, the package's suites, the mutation records of changed headers, integration,
             workspace) in that worktree, each in bwrap (system read-only, home and /run hidden, no network, the
             worktree seen through a throwaway overlay, a private /tmp) inside a memory-capped systemd scope; logs in
-            .claude/merge-pr/<N>/. `plan doctor` fails only on a line master's own doctor does not report.
+            .claude/merge-pr/<N>/. `plan doctor` fails only on a line master's own doctor does not report. When only
+            evidence documents (0[1-8]-*/Docs/*.md) changed since the suites and integration passed, over the same
+            master, those two carry over and the other gates run.
   run       one command sandboxed and capped the same way, for @reviewer and for checks of fixes.
   land      once the gates passed on the current head over the current master and the pull request still has that
             head: worktree.py --finish (fast-forward master, remove the worktree), then print the push and close
@@ -43,10 +45,12 @@ HIDDEN = re.compile(r'\..*|CLAUDE.*\.md|AGENTS\.md|__pycache__|.*\.(pyc|so)')
 # Outside paths checkout's --sync runs on the host: 03-consistency.py and what it loads, plan.py rank and render, and any
 # module or package beside them, since their folders are on the import path and can shadow standard modules ...
 HOST_RUN = re.compile(r'(96-Local Testing|00-Guidelines/13-Plan)/([^/]+\.(py|pyc|so)|[A-Za-z_]\w*/.+)'
-                      r'|98-Team Notebook/(01-notebook|05-dependencies)\.py|\.claude/skills/setup-check/setup_check\.py')
+                      r'|09-Contest Testing/(10-grab|_11_search)\.py|98-Team Notebook/(01-notebook|05-dependencies)\.py'
+                      r'|\.claude/skills/setup-check/setup_check\.py')
 AGENT = re.compile(r'(.+/)?\.claude/.+|(.+/)?(CLAUDE[^/]*\.md|AGENTS\.md)|\.mcp\.json')  # ... and those Claude Code loads in the worktree
 HEADER = re.compile(r'0[1-8]-[^/]+/(\d{2}-[^/]+\.hpp|_\d{2}_[^/]+\.py)')  # an inventory target
 MUTATED = re.compile(r'0[1-7]-[^/]+/(?!9[89]-)\d{2}-[^/]+\.hpp')  # 04-mutation.py HEADER (10-merge_tester compares them)
+DOCS = re.compile(r'0[1-8]-[^/]+/Docs/[^/]+\.md')  # read by the gates that always run, by no suite or sanitizer build
 MECHANICAL = re.compile(r'P\d{3}: (prune duplicates|restyle)')  # the commit subjects of /prune and /restyle
 # a line that records someone's decision: the user's, or one dated (`decided 2026-11-05`, `(user, 2026-11-05)`)
 DECISION = re.compile(r'\buser\b.{0,40}\bdeci(?:d|sion)|\bdeci(?:d|sion)\w*.{0,40}\buser\b|\bdecided\s+\d{4}-\d{2}-\d{2}|\(user,?\s+\d{4}-', re.I)
@@ -93,6 +97,12 @@ def changes(base, head):
                + ('; runs on the host at checkout' if HOST_RUN.fullmatch(path) else '; loaded by Claude Code' if AGENT.fullmatch(path) else ''))
         res.append((status, path, why))
     return res
+
+
+def docs_only(base, head):
+    """Whether base to head changes library evidence documents and nothing else."""
+    found = changes(base, head)
+    return bool(found) and all(DOCS.fullmatch(path) and not why for _, path, why in found)
 
 
 def decisions(base, head):
@@ -300,17 +310,21 @@ def gates(n):
     if git('merge-base', '--is-ancestor', 'master', 'HEAD', cwd=wt, check=False).returncode:
         raise SystemExit(f'#{n} is not based on master: run worktree.py \'{wt}\' --sync first')
     head, master, logs = git('rev-parse', 'HEAD', cwd=wt), git('rev-parse', 'master'), STATE / str(n)
-    shutil.rmtree(logs, ignore_errors=True)
-    logs.mkdir(parents=True)
-    py, ok = sys.executable, True
+    passed_at = st.get('suites')  # [head, master] where the suites and integration last passed
+    carry = bool(passed_at) and passed_at[1] == master and docs_only(passed_at[0], head)
+    if not carry:
+        shutil.rmtree(logs, ignore_errors=True)
+    logs.mkdir(parents=True, exist_ok=True)
+    py, ok, slow_ok = sys.executable, True, True
 
-    def gate(name, cmd, mb=cap.MAIN_MB, env=None, known=frozenset()):
-        nonlocal ok
+    def gate(name, cmd, mb=cap.MAIN_MB, env=None, known=frozenset(), slow=False):
+        nonlocal ok, slow_ok
         log, t = logs / (re.sub(r'[^\w.-]+', '_', name) + '.log'), time.time()
         code = sandboxed(cmd, wt, mb, log, env)
         text = log.read_text(errors='replace') if known else ''
         passed = code == 0 or code == 1 and 'Traceback' not in text and bool(doctor_lines(text)) and doctor_lines(text) <= known
         ok &= passed
+        slow_ok &= passed or not slow
         print(f'{"PASS" if passed else "FAIL"} {name} ({time.time() - t:.0f} s, exit {code}, log {log.relative_to(ROOT)})', flush=True)
         return passed
 
@@ -318,17 +332,20 @@ def gates(n):
     gate('plan check', [py, plan.PLAN + '/plan.py', 'check'])
     master_doctor = subprocess.run([py, str(ROOT / plan.PLAN / 'plan.py'), 'doctor'], cwd=ROOT, capture_output=True, text=True).stdout
     gate('plan doctor', [py, plan.PLAN + '/plan.py', 'doctor'], known=doctor_lines(master_doctor))
-    found, deleted = suites(wt, st)
-    for t in deleted:
-        ok = False
-        print(f'FAIL {t}: the pull request deletes a tester of its package')
-    print(f'suites: {", ".join(Path(s).name for s in found)}' if found else 'suites: none (no package targets and no changed tester)')
-    for s in found:
-        if gate(f'{s} quick', [py, s, '--mode', 'quick', '--seed', '1'], cap.PREFLIGHT_MB):
-            for cxx in ('g++', 'g++-14'):
-                gate(f'{s} full {cxx}', [py, s, '--mode', 'full', '--seed', '1'], mb_of(wt, s), {'CXX': cxx})
-        else:
-            print(f'SKIP {s} full runs: the quick pre-flight failed')
+    if carry:
+        print(f'suites and integration: carried over from {passed_at[0][:12]}, only evidence documents changed since')
+    else:
+        found, deleted = suites(wt, st)
+        for t in deleted:
+            ok = slow_ok = False
+            print(f'FAIL {t}: the pull request deletes a tester of its package')
+        print(f'suites: {", ".join(Path(s).name for s in found)}' if found else 'suites: none (no package targets and no changed tester)')
+        for s in found:
+            if gate(f'{s} quick', [py, s, '--mode', 'quick', '--seed', '1'], cap.PREFLIGHT_MB, slow=True):
+                for cxx in ('g++', 'g++-14'):
+                    gate(f'{s} full {cxx}', [py, s, '--mode', 'full', '--seed', '1'], mb_of(wt, s), {'CXX': cxx}, slow=True)
+            else:
+                print(f'SKIP {s} full runs: the quick pre-flight failed')
     changed = git('diff', '--name-only', '--no-renames', '-z', 'master...HEAD', cwd=wt).split('\0')
     headers = sorted(p for p in changed if MUTATED.fullmatch(p) and (wt / p).is_file())
     subjects = lambda h: [l[1:-1] for l in git('log', '--format=<%s>', 'master..HEAD', '--', h, cwd=wt).splitlines()]  # <>: empty ones too
@@ -345,9 +362,10 @@ def gates(n):
     if not headers:
         print('mutation records: none (no changed header)')
     script = TESTS + '02-integration.py'
-    gate('integration sanitizers', [py, script, '--sanitizers'], mb_of(wt, script))
+    if not carry:
+        gate('integration sanitizers', [py, script, '--sanitizers'], mb_of(wt, script), slow=True)
     gate('workspace check', [py, '97-Online Testing/03-workspace.py', '--check'])
-    save(n, st | dict(tested=head, master=master, passed=ok))
+    save(n, st | dict(tested=head, master=master, passed=ok, suites=passed_at if carry else [head, master] if slow_ok else None))
     print(f'{"PASS" if ok else "FAIL"}: gates on {head[:12]} over master {master[:12]}')
     return 0 if ok else 1
 

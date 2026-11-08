@@ -181,3 +181,4 @@ The P254 sweep reopened 19 packages and left 32 verified rows that `plan.py doct
 
 - **Doctor compared with master.** The `plan doctor` gate fails only on a problem master's own doctor does not report under the same package heading. `plan.py` and its rule stay as they were, because exempting reopened packages would also hide a row marked verified too early. Doctor stays red on master until those packages finish.
 - **mewt in the sandbox.** The sandbox binds the directory of the mewt that `PATH` links to, read-only, so a `/merge-pr` fix can rerun a campaign through `merge_pr.py run`.
+- **Docs-only re-gate.** A commit that changes only evidence documents keeps the suites and integration that passed over the same master and reruns the gates that read those documents. `M land` still needs gates on the current head: accepting any head with unchanged code would land a broken record or inventory row unchecked.

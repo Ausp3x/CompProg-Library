@@ -81,7 +81,7 @@ directory removed after, 0111 directories and symlinks to directories included; 
 without XDG_RUNTIME_DIR and DBUS_SESSION_BUS_ADDRESS, cgroup memory.max and pids.max, cap kill, exit status, TIMEOUT
 -> 124, missing bwrap, a worktree under /tmp; `run N --mb MB -- CMD` with MB clamped to MAX_MB, the command only after
 `--`; run, gates and land refuse before checkout; run leaves the worktree as it was) -> test_sandbox_*, test_run_cli, test_run_cli_mb_after_n, test_run_overlay;
-gates (all PASS with tested/master, gate order, caps and CXX per gate, CXX not leaked, failing gate, plan doctor passing on lines master's doctor reports and failing on a new line or a crash, failed pre-flight
+gates (all PASS with tested/master, a re-gate that carries the suites and integration over when only regular evidence documents changed since they passed over the same master, and runs everything otherwise, gate order, caps and CXX per gate, CXX not leaked, failing gate, plan doctor passing on lines master's doctor reports and failing on a new line or a crash, failed pre-flight
 skips full runs, one CXX failing, gates and testers writing into the tree still pass and leave it unchanged, a deleted
 tester of the package fails, dirty or unbased worktree refused; mutation records: the headers the pull request adds or
 modifies (<01-07 folder>/<NN>-*.hpp, not 98-/99- aggregates, nested, deleted or master-only ones), sorted, split by the
@@ -303,7 +303,8 @@ def o_hidden(c):
 
 
 O_HOST_RUN = {'96-Local Testing/03-consistency.py', '96-Local Testing/02-integration.py', '96-Local Testing/_00_memory_cap.py',
-              '96-Local Testing/_00_cpp_test_runner.py', '98-Team Notebook/01-notebook.py', '98-Team Notebook/05-dependencies.py',
+              '96-Local Testing/_00_cpp_test_runner.py', '09-Contest Testing/10-grab.py', '09-Contest Testing/_11_search.py',
+              '98-Team Notebook/01-notebook.py', '98-Team Notebook/05-dependencies.py',
               '00-Guidelines/13-Plan/plan.py', '.claude/skills/setup-check/setup_check.py'}
 
 
@@ -2268,7 +2269,7 @@ class Gates(Base):
         head, master = git(self.wt, 'rev-parse', 'HEAD'), git(self.main, 'rev-parse', 'master')
         self.assertEqual(r.stdout.splitlines()[-1], f'PASS: gates on {head[:12]} over master {master[:12]}', info)
         self.assertIn('suites: 01-x_tester.py, 01-d_tester.py', r.stdout, info)
-        self.assertEqual(json.loads(self.state_file().read_text()), st | {'tested': head, 'master': master, 'passed': True}, info)
+        self.assertEqual(json.loads(self.state_file().read_text()), st | {'tested': head, 'master': master, 'passed': True, 'suites': [head, master]}, info)
         main_cap, pre = self.caps()
         want = [('d', 'full', 'g++', main_cap, ['--mode', 'full', '--seed', '1']), ('d', 'full', 'g++-14', main_cap, ['--mode', 'full', '--seed', '1']),
                 ('d', 'quick', 'None', pre, ['--mode', 'quick', '--seed', '1']),
@@ -2305,6 +2306,110 @@ class Gates(Base):
         self.expect_fail(r, result, ['integration sanitizers'], info)
         self.assertEqual(len(result), 8, info)
         self.no_mutation(r, info)
+
+    FAST = ['consistency', 'plan check', 'plan doctor', 'workspace check']
+    DOC = '01-Core/Docs/01-x.md'
+
+    def names(self, result):
+        return [n for _, n in result]
+
+    def record(self):
+        return json.loads(self.state_file().read_text())
+
+    def rerun(self, rel, text='# doc\n'):
+        """Commits rel and reruns the gates; (result, info, return code, new head)."""
+        write(self.wt, rel, text)
+        head = commit(self.wt, 'fix')
+        r, result, _ = self.gates()
+        return result, self.info(rel=rel, stdout=r.stdout, stderr=r.stderr), r.returncode, head
+
+    def test_gates_docs_only_carry(self):
+        """Evidence documents alone: the suites and integration carry over, the rest reruns, and land's record names the new head."""
+        self.state()
+        first = self.gates()[0]
+        self.assertEqual(first.returncode, 0, first.stdout)
+        gated = git(self.wt, 'rev-parse', 'HEAD')
+        master = git(self.main, 'rev-parse', 'master')
+        logs = sorted(p.name for p in (self.main / '.claude/merge-pr/7').glob('*_tester*.log'))
+        self.assertTrue(logs)
+        for k in range(2):  # a second document fix still measures from the head the suites passed on
+            result, info, code, head = self.rerun(self.DOC, f'# doc {k}\n')
+            self.assertEqual((code, result), (0, [('PASS', n) for n in self.FAST]), info)
+            self.assertIn(f'carried over from {gated[:12]}', info, info)
+            st = self.record()
+            self.assertEqual((st['tested'], st['master'], st['passed'], st['suites']), (head, master, True, [gated, master]), info)
+            self.assertEqual(sorted(p.name for p in (self.main / '.claude/merge-pr/7').glob('*_tester*.log')), logs, info)
+
+    def test_gates_docs_only_rechecks_records(self):
+        """The mutation records live in the evidence documents, so a document fix reruns their gate."""
+        want = self.header_pr()
+        self.state('P001')
+        self.assertEqual(self.gates()[0].returncode, 0)
+        result, info, code, _ = self.rerun(self.DOC)
+        self.assertEqual((code, self.names(result)), (0, ['consistency', 'plan check', 'plan doctor', 'mutation records', 'workspace check']), info)
+        self.assertTrue(want, info)
+
+    def test_gates_docs_only_after_a_fast_failure(self):
+        """The suites passed but a gate that reads the documents failed: fixing the document does not cost the suites again."""
+        self.state()
+        self.gates()
+        gated, st = git(self.wt, 'rev-parse', 'HEAD'), self.record()
+        self.state_file().write_text(json.dumps(st | {'passed': False}))
+        result, info, code, head = self.rerun(self.DOC)
+        self.assertEqual((code, self.names(result), self.record()['passed'], self.record()['tested'], self.record()['suites'][0]),
+                         (0, self.FAST, True, head, gated), info)
+
+    def test_gates_records_suites_beside_a_fast_failure(self):
+        self.control({'fail': ['workspace']})
+        self.state()
+        r, result, _ = self.gates()
+        info = self.info(stdout=r.stdout, stderr=r.stderr)
+        self.expect_fail(r, result, ['workspace check'], info)
+        self.assertEqual(self.record()['suites'], [git(self.wt, 'rev-parse', 'HEAD'), git(self.main, 'rev-parse', 'master')], info)
+
+    def test_gates_docs_only_refused(self):
+        """Anything but a regular evidence document runs everything; each case starts from suites passed on the previous head."""
+        self.state()
+        self.gates()
+        full = len(self.gates()[1])  # the same head again: nothing changed, so nothing carries
+        self.assertEqual(full, 11)
+        for rel, text in (('01-Core/00-index.md', '# i\n'), ('01-Core/Docs/sub/x.md', '# s\n'), ('01-Core/Docs/x.txt', 't\n'),
+                          ('01-Core/Docs/CLAUDE.md', '# c\n'), ('01-Core/Docs/.x.md', '# h\n'), ('09-Contest Testing/Docs/x.md', '# o\n'),
+                          ('96-Local Testing/01-Core/Docs/x.md', '# t\n'), ('01-Core/01-x.hpp', '#pragma once\n')):
+            result, info, code, head = self.rerun(rel, text)
+            self.assertIn('integration sanitizers', self.names(result), info)
+            self.assertEqual(self.record()['suites'][0], head, info)
+        write(self.wt, self.DOC, '# with code\n')
+        result, info, code, head = self.rerun('notes.txt', 'changed\n')
+        self.assertIn('integration sanitizers', self.names(result), info)
+        (self.wt / '01-Core/Docs/link.md').symlink_to('01-x.md')
+        result, info, code, head = self.rerun(self.DOC, '# beside a symlink\n')
+        self.assertIn('integration sanitizers', self.names(result), info)
+
+    def test_gates_docs_only_needs_same_master(self):
+        """master moved, even by a document alone: the rebased head differs from the gated one only in documents, and still runs everything."""
+        self.state()
+        self.gates()
+        write(self.main, '01-Core/Docs/02-m.md', '# m\n')
+        commit(self.main, 'master doc')
+        git(self.wt, 'rebase', '-q', 'master')
+        r, result, _ = self.gates()
+        self.assertIn('integration sanitizers', self.names(result), self.info(stdout=r.stdout))
+
+    def test_gates_docs_only_needs_suites_passed(self):
+        """A failed suite or integration records nothing to carry, so the document fix runs them again."""
+        self.control({'fail': ['integration']})
+        self.state()
+        r, result, _ = self.gates()
+        self.expect_fail(r, result, ['integration sanitizers'], self.info(stdout=r.stdout))
+        self.assertIsNone(self.record()['suites'])
+        result, info, code, head = self.rerun(self.DOC)
+        self.assertEqual((code, [n for s, n in result if s == 'FAIL']), (1, ['integration sanitizers']), info)
+        self.control({'fail': ['d']})
+        r, result, _ = self.gates()
+        self.assertIsNone(self.record()['suites'], self.info(stdout=r.stdout))
+        result, info, code, head = self.rerun(self.DOC, '# again\n')
+        self.assertTrue(any('_tester.py' in n for n in self.names(result)), info)
 
     def doctor_problem(self, root, index=0):
         """Package `index` in progress without a note: a line only `plan.py doctor` reports."""
