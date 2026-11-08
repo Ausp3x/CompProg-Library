@@ -198,7 +198,7 @@ Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledger
 
 In the P042 records, a "contributor proposal" is mattblferrer's call, on which the maintainer has not ruled (`/merge-pr 4`, 2026-11-09): it does not bind.
 
-The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)) added `top2Dijkstra` (maspypy) to row 13 and put suisen's O(n^3 / w) bitset closure behind `minimaxFloydWarshall`. `apspPath` became `AllPairsResult::path` (contributor proposal 2026-11-03). The other candidates stay out:
+The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)) added `top2Dijkstra` (maspypy) to row 13 and put suisen's O(n^3 / w) bitset closure behind `minimaxFloydWarshall`. `apspPath` became `AllPairsResult::path` (user decision 2026-11-09). The other candidates stay out:
 
 - NetworkX `floyd_warshall_tree`: same O(n^3) worst case; only its expected bound on random complete digraphs is better.
 - Shortest walk with at most k arcs (cp-algorithms): `fixedLengthShortestPath` on the graph with a zero-weight loop added at every vertex.
@@ -211,7 +211,7 @@ The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-
 
 ## P042 GR05 omissions
 
-The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)) added `BfsNumbering: levelRange, diskRanges` and `Rerooting: get(v, p)` to row 14, and `maxPath`, `TreeMonoid: get, set` and `edgeVertex` to row 15.md](14-tree_algorithms.md) and [15-hld.md](15-hld.md)). The other candidates stay out (contributor proposal 2026-11-04, `/finish GR05`):
+The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)) added `BfsNumbering: levelRange, diskRanges` and `Rerooting: get(v, p)` to row 14, and `maxPath`, `TreeMonoid: get, set` and `edgeVertex` to row 15. The other candidates stay out (contributor proposal 2026-11-04, `/finish GR05`):
 
 - Invertible-merge rerooting (suisen): the same O(n) bound and results; it only drops the prefix and suffix products.
 - HLD `jump` and median `meet(a, b, c)`: row 07 (`LCA::jump`); `meet` is filed as a row 07 follow-up in P011's plan note (user decision 2026-11-09).

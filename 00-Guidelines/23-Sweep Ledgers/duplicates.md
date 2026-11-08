@@ -389,6 +389,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | `treeRadius`, `treeCenter` | row 14 | fields of the `treeEccentricities` result | keep | derived formulas of the eccentricities (clarified rule) | — | — |
 | `HLD::addEdge`, `build` | `15-hld.hpp` (legacy) | `HLD(g, root)` | remove | legacy input format a builder converts (user decision 2026-11-09) | — | — |
 | `apspPath`; `apspDijkstra` | row 12 | `AllPairsResult::path`; `johnson` | remove | a member of the result, and a narrowing with identical results and cost (user decision 2026-11-09) | — | — |
+| `runFloydWarshall`; `SPFA::solve` | rows 12, 13 (legacy) | `floydWarshall(g)`; `spfa` | remove | legacy forms (user decision 2026-11-09) | — | — |
 | `HLD::getLCA`, `distance`, `kthAncestor` (row 15) beside `LCA`, `EulerLCA` (row 07) | P042 rows | — | keep | Different algorithm: heavy-path climbing in O(log(n)) with O(n) memory against binary lifting and Euler RMQ (contributor proposal) | — | — |
 | `TreeMonoid::pathFold` (row 15) beside `LCAFold::pathFold` (row 07) | P042 rows | — | keep | Larger domain: point updates and path or subtree actions; `LCAFold` is static (contributor proposal) | — | — |
 | `EulerTour` (row 14) beside `lca_detail::Forest` | P042 rows | — | keep | Public static Euler tour with half-open ranges; `Forest` is a detail helper (contributor proposal) | — | — |

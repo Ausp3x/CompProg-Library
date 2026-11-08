@@ -75,10 +75,11 @@ namespace shortest_path_advanced_detail {
         const auto &e = g.arcs[a];
         return sp.reachable[e.from] && !sp.negative[e.from] && sp.reachable[e.to] && !sp.negative[e.to] && sp.dist[e.from] + e.w == sp.dist[e.to];}
 
-    // T: O(n + (k + m) * log(k + m + 1)), M: O(n + m + k); accept(out, x, d, s) decides whether an entry beside rank-0 state x becomes rank 1.
+    // T: O(n), M: O(n); the result with every state absent.
     inline TopTwoPaths noTopTwo(int n) {
         return {vector<lll>(2 * size_t(n)), vector<int>(2 * size_t(n), -1), vector<int>(2 * size_t(n), -1), vector<int>(2 * size_t(n), -1)};}
 
+    // T: O(n + (k + m) * log(k + m + 1)), M: O(n + m + k); accept(out, x, d, s) decides whether an entry beside rank-0 state x becomes rank 1.
     template<class G = Graph, class F>
     TopTwoPaths topTwo(const G &g, const vector<int> &sources, F accept) {
         TopTwoPaths out = noTopTwo(g.n);

@@ -60,6 +60,8 @@ struct TreeEccentricities {
 // T: O(n), M: O(n); undirected tree, n >= 1, full-range lng weights.
 template<class G = Graph>
 TreeEccentricities treeEccentricities(const G &g) {
+    assert(g.n >= 1);
+    if (g.n == 0) { return {}; }
     auto t = tree_detail::rooted(g, 0);
     vector<lll> first(g.n), second(g.n), up(g.n);
     vector<int> best(g.n, -1);

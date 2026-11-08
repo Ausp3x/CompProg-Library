@@ -773,7 +773,7 @@ void largeTests(const string &mode) {
         checkGraph(g, src, "large", it % 3 == 0, false);}
     cout << "PASS large graphs: " << count << " with n in [" << low << "," << low + span - 1 << "]\n";}
 
-// Only parents on ties reveal the bellmanFord fallback; both engines finish these graphs without it.
+// White-box, not contract: tie parents are free, but only they reveal the bellmanFord fallback, which these graphs never reach.
 void fallbackTieFixtures() {
     for (bool cycle : {false, true}) {
         Graph g(4, true); g.addEdge(2, 3, 1); g.addEdge(1, 3, 1); g.addEdge(0, 1, 1); g.addEdge(0, 2, 1);

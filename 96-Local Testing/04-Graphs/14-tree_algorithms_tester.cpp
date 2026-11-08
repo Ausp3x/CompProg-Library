@@ -670,6 +670,7 @@ namespace {
         else if (name == "diameter-empty") { treeDiameter(Graph(0)); }
         else if (name == "centroid-empty") { treeCentroid(Graph(0)); }
         else if (name == "eccentricity-cycle") { treeEccentricities(cyc); }
+        else if (name == "eccentricity-empty") { treeEccentricities(Graph(0)); }
         else if (name == "centroid-forest") { treeCentroid(part); }
         else if (name == "distances-directed") { sumOfDistances(Graph(2, true)); }
         else if (name == "euler-root") { EulerTour(g, 3); }
