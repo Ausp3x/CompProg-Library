@@ -8,7 +8,7 @@
 struct LevelAncestor : lca_detail::Forest {
     vector<int> bottom, pos, jump_start, ladder, jumps;
 
-    template<class G>
+    template<class G = Graph>
     explicit LevelAncestor(const G &g, int root = -1) : Forest(g, root), bottom(n), pos(n), jump_start(n) {
         vector<int> deep(n, -1), height(n, 1), path(n);
         for (int u : postorder) {
@@ -37,8 +37,8 @@ struct LevelAncestor : lca_detail::Forest {
 };
 
 // T: O(n + q), M: O(n + q); queries (u, k) as LevelAncestor::query, answers in query order.
-template<class G>
-vector<int> offlineLevelAncestor(const G &g, const vector<pair<int, lng>> &queries, int root = -1) {
+template<class G = Graph>
+vector<int> levelAncestorOffline(const G &g, const vector<pair<int, lng>> &queries, int root = -1) {
     assert(queries.size() <= size_t(INT_MAX)); lca_detail::Forest f(g, root);
     int q = int(queries.size());
     vector<int> res(q, -1), head(g.n + 1), ids(q), path(g.n);

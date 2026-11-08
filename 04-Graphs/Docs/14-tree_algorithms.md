@@ -36,7 +36,7 @@ Fields `tin` and `tout` are the forest's DFS preorder, `tout` exclusive as in `E
 
 ### Rerooting
 
-Tree-only inputs for `Rerooting`, `subtreeDp` and `subtreeMergeDp`, the commutative op of `Rerooting` and vertex-only centers in `treeEccentricities` are accepted contracts (user decision 2026-11-04).
+Tree-only inputs for `Rerooting`, `subtreeDp` and `subtreeMergeDp`, the commutative op of `Rerooting` and vertex-only centers in `treeEccentricities` are accepted contracts (user decision 2026-11-09).
 
 
 `Rerooting<R>(g, mon)` takes a tree. R supplies `S`, `op` and `e`, a commutative monoid over sibling results, plus `addEdge(x, e)` and `addVertex(x, v)`. `addEdge(x, e)` lifts the result x of the part rooted at `e.to` across arc `e`, where `e.from` is the merging parent and `e.w`, `e.id` are available. `addVertex(x, v)` closes v over the product x of its neighbours' lifted results.
@@ -82,8 +82,6 @@ Both run in O(n), and the two are mutually inverse over the n^(n − 2) labelled
   - Subtree add, set, max, min and sum queries become a segment tree over `order` (`02-Data Structures/03-segmenttree.hpp`, `12-lazysegmenttree.hpp`) on `subtreeRange(v)`; `u_only` is the single slot `tin[v]`.
   - For values that follow HLD order, `TreeMonoid` `subtreeFold` and `subtreeApply` (row 15) do the same.
 - `TreeEdgePainting` (`OLD/Team Notebook/src/algs.cpp`, `algsbetter.cpp`): row 15, see [15-hld.md](15-hld.md#legacy-mapping).
-- `rootTree` (planned; removed 2026-11-03, user decision): `dfs(g, {root})` or `bfs(g, {root})` gives `parent`, `parent_arc`, `depth` and `order`. Children lists take one pass over `parent`.
-- `pathVertices` (planned; removed, user decision): `HLD::processPath(u, v, false, f)` gives ranges; read `order[l..r)`, reversed when `up`. Without an HLD, use `bfsShortestPaths(g, {u}).path(g, v).vertices`.
 - `bfsNumbering` (planned name): the `BfsNumbering` struct.
 
 ## Feature-to-test map
@@ -103,7 +101,7 @@ Tester: [`14-tree_algorithms_tester.cpp`](../../96-Local%20Testing/04-Graphs/14-
 | `subtreeMergeDp` | Subset enumeration for n ≤ 12 (max-plus "pick j", connected sets containing the root), Pascal rows mod P, closed forms; k ∈ {0, 1, 2, 3, n − 1, n, n + 4, `INT_MAX − 1`, `INT_MAX`}; empty hook outputs on random vertex sets at k ∈ {0, 1000, `INT_MAX`} (`testEmptyMerge`, audit regression) |
 | `VirtualTree::build` | Naive pairwise-LCA closure and nearest ancestor in the set; duplicates, several components, empty and full sets |
 | `pruferEncode`, `pruferDecode` | Naive smallest-leaf encode and decode (edges in removal order), both round trips, exhaustive codes for n ≤ 6 (quick), 7 (full), 8 (stress) with injectivity, random codes including n = 2 |
-| Preconditions | 30 checked-build probes: directed, cycle, forest, empty inputs, root and vertex ranges, negative r and k, non-adjacent `get(v, p)`, Prüfer n = 1, forest and out-of-range code values, and values past each range: `subtreeRange` at n and n + 1, `levelRange` at −1 and n + 1, `diskRanges` and `get(v)` at n, `get(v, p)` with p = n + 1, and `pruferDecode` code values n and n + 1 |
+| Preconditions | 31 checked-build probes: directed, cycle, forest, empty inputs, root and vertex ranges, negative r and k, non-adjacent `get(v, p)`, Prüfer n = 1, forest and out-of-range code values, and values past each range: `subtreeRange` at n and n + 1, `levelRange` at −1 and n + 1, `diskRanges` and `get(v)` at n, `get(v, p)` with p = n + 1, and `pruferDecode` code values n and n + 1 |
 
 ## Commands and results
 
@@ -117,35 +115,44 @@ Tester: [`14-tree_algorithms_tester.cpp`](../../96-Local%20Testing/04-Graphs/14-
 | `… --mode stress --seed 2` | PASS, 3 configurations, peak 1177 MB |
 | `python3 '96-Local Testing/02-integration.py'` | PASS: 187 standalone and aggregate headers, multi-TU scalar and AVX2, workspace; peak 2669 MB |
 
+2026-11-09: `python3 '96-Local Testing/05-extraction.py' ops --filter 04-Graphs/14-tree_algorithms.hpp` passed (23 operations, 0 failures on `g++` and `g++-14`), and `testers --filter 14-tree_algorithms` passed (1 quick run on an extracted build, 0 failures).
+
 ## Mutation testing
 
-Record: mewt 4.0.0 on blob `26214fbf238e2dc7e0ce8b5eb709dc2261fc56b8` (2026-11-05, seed 1, whole file, uniform sample of 1099): 500 mutants, 449 caught (1 by timeout), 51 survived, 0 untested.
+Record: mewt 4.0.0 on blob `42bbd8e51487d60819019e19fb329ac972d7e1b5` (2026-11-09, seed 1, 17 lines changed since blob `26214fbf238e`): 32 mutants, 23 caught (0 by timeout), 9 survived, 0 untested.
+
+Stage seconds of that campaign: quick 99, full-optimized 220, full-all 1119.
+
+Earlier campaign: mewt 4.0.0 on blob `26214fbf238e2dc7e0ce8b5eb709dc2261fc56b8` (2026-11-05, seed 1, whole file, uniform sample of 1099): 500 mutants, 449 caught (1 by timeout), 51 survived, 0 untested.
 
 Stage seconds, over the campaign and its survivor retest together: quick 1025, full-optimized 1184, full-all 7995. The first pass, run 2026-11-04 to 05 by `/finish GR70` because this header had no record, left 58 survivors. Tests were added for the real gaps, and the retest with the same workdir caught 7 of them. The new tests are the range probes `subtree-range-far`, `level-range-far`, `disk-range`, `rerooting-get-range`, `rerooting-parent-far` and `prufer-value-far`.
 
-Each remaining survivor was checked for type context, reachability, downstream use, semantic comparison and a distinguishing input. Some arguments rest on user decisions of 2026-11-05: runtime-only mutants are recorded with their argument, a changed choice among ties or of state no caller reads is accepted as within the contract, and guards reachable only under `NDEBUG` or beyond every memory cap are untestable and kept.
+Closed 2026-11-09 by the checked probe `centroid-empty`, verified by rebuilding the mutant: `CR 160`.
+
+Each remaining survivor was checked for type context, reachability, downstream use, semantic comparison and a distinguishing input. Some arguments rest on user decisions of 2026-11-09 (`/merge-pr 4`): a changed choice among ties or of state no caller reads is accepted as within the contract, and guards reachable only under `NDEBUG` or beyond every memory cap are untestable and kept. Runtime-only mutants are recorded with their argument but stay open, since no ruling accepts that class: each needs a test or an equivalence argument.
 
 | Mutant | Line | Argument |
 |---|---|---|
-| `COS 736`, `COS 806`, `COS 886`, `COS 956`, `COS 961`, `COS 1006` | 76, 132, 183, 221, 222, 263 | equivalent: the counter starts at 0, steps by 1 and meets its bound, which is at least 0 and fixed in the loop |
+| `COS 736`, `COS 806`, `COS 886`, `COS 956`, `COS 961`, `COS 1006` | 78, 136, 187, 225, 226, 267 | equivalent: the counter starts at 0, steps by 1 and meets its bound, which is at least 0 and fixed in the loop |
 | `COS 682` `==` → `<=` | 13 | equivalent: with all n vertices reached, `edges + 1 >= n`, so `<=` holds only at equality |
-| `COS 704` `>` → `>=` | 42 | equivalent under the contract (user decision 2026-11-05): ties pick another equally heavy branch, possibly through zero-weight arcs; the length is unchanged |
-| `COS 708`, `COS 762`, `COS 787` | 44, 94, 128 | equivalent: the value is -1 or a nonnegative index, so the two tests agree |
-| `COS 729` `>` → `>=` | 69 | equivalent: it assigns an equal value |
-| `COS 742` `==` → `<=` | 76 | equivalent: `radius` is the minimum eccentricity |
-| `AS 313`, `AS 320`, `AS 321`, `AS 323`, `AS 365`, `AS 377` | 88, 144, 148, 151, 247, 270 | equivalent: `min`, `max` and the called function are symmetric in value |
-| `MR 1087`, `MR 1090`, `MR 1097`, `MR 1098`, `MR 1099` | 112, 113, 223, 227, 228 | equivalent: a copy instead of a move; the source is not read again |
-| `LOS 647`, `COS 797`, `COS 799` | 131 | equivalent under the simple-forest contract: one arc joins u to each child, and each condition implies the other |
-| `COS 836` `<` → `!=` | 144 | equivalent: `tin[v] < tout[v]` makes x <= y |
-| `AOS 489` `+` → `/` | 150 | equivalent: the extra level d = start.size() - 1 makes `levelRange` return {0, 0}, which is dropped |
-| `COS 876` `>=` → `!=` | 171 | equivalent under the contract (user decision 2026-11-05): only `down[root]` is skipped, which no `get` reads (`get(root)` uses `all`, and the root has no parent) |
-| `AS 341` `pre[j], lift[kids[j]]` → `lift[kids[j]], pre[j]` | 183 | equivalent: `op` is commutative over sibling results by contract (user decision 2026-11-04) |
-| `COS 894` `>=` → `>` | 184 | equivalent: `suf[0]` is never read |
-| `AOS 556` `+` → `*` | 226 | equivalent: at size k + 1 the resize to k + 1 changes nothing |
-| `CR 223` `vs.erase(unique(vs.begin(), vs.end()), vs.end());` → `/* vs.erase(unique(vs.begin(), vs.end()), vs.end()); */` | 245 | equivalent: a duplicate adds LCA(v, v) = v, removed by the second sort and unique; vs stays O(k) |
-| `AOS 592`, `AOS 593`, `COS 1012`, `COS 1018`, `AOS 599`, `AOS 601`, `AOS 605`, `COS 1063`, `AOS 624`, `COS 1076`, `COS 1083` | 265, 269, 270, 280, 285 | equivalent: the remaining tree always has two leaves above `ptr`, at most one of them n - 1, so the n - 1 bounds never bind; degrees stay at least 1 |
-| `CR 238`, `COS 1047` | 275 | untestable (user decision 2026-11-05): only codes of at least INT_MAX - 2 values, 8 GiB, reach it; the assert stays |
-| `AOS 615`, `AOS 616`, `AOS 619`, `AOS 621` | 277, 283 | untestable (user decision 2026-11-05): the clamp changes only out-of-range values, which the checked build rejects and NDEBUG tests never give; the guard stays |
+| `COS 704` `>` → `>=` | 44 | equivalent under the contract (user decision 2026-11-09): ties pick another equally heavy branch, possibly through zero-weight arcs; the length is unchanged |
+| `COS 708`, `COS 762`, `COS 787` | 46, 98, 132 | equivalent: the value is -1 or a nonnegative index, so the two tests agree |
+| `COS 729` `>` → `>=` | 71 | equivalent: it assigns an equal value |
+| `COS 742` `==` → `<=` | 78 | equivalent: `radius` is the minimum eccentricity |
+| `AS 313`, `AS 320`, `AS 321`, `AS 323`, `AS 365`, `AS 377` | 92, 148, 152, 155, 251, 274 | equivalent: `min`, `max` and the called function are symmetric in value |
+| `MR 1087`, `MR 1090`, `MR 1097`, `MR 1098`, `MR 1099` | 116, 117, 227, 231, 232 | equivalent: a copy instead of a move; the source is not read again |
+| `LOS 647`, `COS 797`, `COS 799` | 135 | equivalent under the simple-forest contract: one arc joins u to each child, and each condition implies the other |
+| `COS 836` `<` → `!=` | 148 | equivalent: `tin[v] < tout[v]` makes x <= y |
+| `AOS 489` `+` → `/` | 154 | equivalent: the extra level d = start.size() - 1 makes `levelRange` return {0, 0}, which is dropped |
+| `COS 876` `>=` → `!=` | 175 | equivalent under the contract (user decision 2026-11-09): only `down[root]` is skipped, which no `get` reads (`get(root)` uses `all`, and the root has no parent) |
+| `AS 341` `pre[j], lift[kids[j]]` → `lift[kids[j]], pre[j]` | 187 | equivalent: `op` is commutative over sibling results by contract (user decision 2026-11-09) |
+| `COS 894` `>=` → `>` | 188 | equivalent: `suf[0]` is never read |
+| `AOS 556` `+` → `*` | 230 | equivalent: at size k + 1 the resize to k + 1 changes nothing |
+| `CR 223` `vs.erase(unique(vs.begin(), vs.end()), vs.end());` → `/* vs.erase(unique(vs.begin(), vs.end()), vs.end()); */` | 249 | equivalent: a duplicate adds LCA(v, v) = v, removed by the second sort and unique; vs stays O(k) |
+| `AOS 592`, `AOS 593`, `COS 1012`, `COS 1018`, `AOS 599`, `AOS 601`, `AOS 605`, `COS 1063`, `AOS 624`, `COS 1076`, `COS 1083` | 269, 273, 274, 284, 289 | equivalent: the remaining tree always has two leaves above `ptr`, at most one of them n - 1, so the n - 1 bounds never bind; degrees stay at least 1 |
+| `CR 238`, `COS 1047` | 279 | untestable (user decision 2026-11-09): only codes of at least INT_MAX - 2 values, 8 GiB, reach it; the assert stays |
+| `CR 135`, `IF 258`, `COS 708`, `COS 709`, `CR 161`, `IF 264`, `COS 773`, `COS 774` | 34, 85 | untestable (user decision 2026-11-09): these `n = 0` guards run only under `NDEBUG`, outside the `n >= 1` contract |
+| `AOS 615`, `AOS 616`, `AOS 619`, `AOS 621` | 281, 287 | untestable (user decision 2026-11-09): the clamp changes only out-of-range values, which the checked build rejects and NDEBUG tests never give; the guard stays |
 
 ## Sources
 
@@ -154,12 +161,13 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)
 ## Limits and handoffs
 
 - `Rerooting` and `subtreeMergeDp` take trees only; for a forest, run them per component (`connectedComponents` and `inducedSubgraph`).
-- Invertible-merge rerooting and the online virtual tree are recorded omissions ([notes](00-notes.md#p042-gr05-omissions)).
+- Invertible-merge rerooting is a recorded omission ([notes](00-notes.md#p042-gr05-omissions)).
 - `meet(a, b, c)` is a follow-up for row 07.
 
 ## History
 
 - 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 1099 mutants): six range probes closed 7 survivors; 51 recorded with arguments.
 - 2026-11-04: `/finish GR05` audit: `subtreeMergeDp` empty hook output, `pruferEncode` pointer bound under `NDEBUG`, dead `diskRanges` branch, complexity lines and evidence wording fixed; full passed on g++ and g++-14.
-- 2026-11-03: P042 GR05 first implementation (planned row); full suite passed on g++ and g++-14, stress seed 2; testing fixed two `INT_MAX` overflows (`levelRange`, `subtreeMergeDp`), review fixed loops bounded by the BFS order under `NDEBUG`, an exclusive `BfsNumbering::tout` and the `closeVertex` hook name; the row 07 `Forest` now skips revisits under `NDEBUG` (user decision).
+- 2026-11-03: P042 GR05 first implementation (planned row); full suite passed on g++ and g++-14, stress seed 2; testing fixed two `INT_MAX` overflows (`levelRange`, `subtreeMergeDp`), review fixed loops bounded by the BFS order under `NDEBUG`, an exclusive `BfsNumbering::tout` and the `closeVertex` hook name; the row 07 `Forest` now skips revisits under `NDEBUG` (user decision 2026-11-09).
 - 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.
+- 2026-11-08: `/merge-pr 4` review fixes: `G = Graph` defaults, `n = 0` guards in `treeDiameter` and `treeCentroid`, `rootTree` and `pathVertices` back as planned.

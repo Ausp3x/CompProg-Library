@@ -11,7 +11,7 @@ struct HLD {
     int n;
     vector<int> parent, parent_edge, component, dep, size, head, tin, tout, order, edge_vertex;
 
-    template<class G>
+    template<class G = Graph>
     explicit HLD(const G &g, int root = -1) : n(g.n), parent(n, -1), parent_edge(n, -1), component(n, -1), dep(n),
         size(n, 1), head(n), tin(n), tout(n), edge_vertex(g.edges.size(), -1) {
         assert(!g.directed && -1 <= root && root < n);
@@ -116,7 +116,7 @@ struct TreeMonoid : HLD {
     bool edges;
     hld_detail::Tree<A, COMMUTATIVE> seg;
 
-    template<class G>
+    template<class G = Graph>
     TreeMonoid(const G &g, const vector<S> &values, bool edges = false, int root = -1, A mon = {}) : HLD(g, root), edges(edges),
         seg(layout(values, mon), B{mon}) {}
 

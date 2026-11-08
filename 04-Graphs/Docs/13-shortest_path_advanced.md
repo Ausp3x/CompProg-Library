@@ -43,7 +43,7 @@ Nonnegative weights. Two lazy Dijkstras run, from s over g and from t over the r
 Nonnegative weights, O(n + (k + m)·log(k + m + 1)). One engine pops heap entries (weight, vertex, parent state, arc, source) in nondecreasing order. The first entry at v becomes rank 0. A later entry becomes rank 1 when `accept` allows it. Pushes from v stop once v has rank 1, so there are at most 2·m + k entries.
 
 - `secondShortestPath(g, sources, strict = true)`: rank 0 is the shortest walk from any source. With `strict`, rank 1 is the least walk weight strictly above rank 0. Otherwise it is the second element of the multiset of all walk weights (distinct arc sequences), so it equals rank 0 when two shortest walks exist. A source's zero walk is a walk, so its rank 1 is the lighter of its lightest closed walk and its lightest walk from another source, each of positive weight when strict. Correctness: the i-th lightest walk to v, for i ≤ 2, ends with an arc from u, and its prefix is among the two lightest walks to u, or the lightest walk strictly above u's rank 0 in the strict case. Replacing a heavier prefix would give a walk strictly between the first two at v.
-- `top2Dijkstra(g, sources)`: rank 0 is the nearest source, and rank 1 the nearest source different from rank 0's source, each with its distance and a walk witness. Ties between sources pick any minimizer. A walk to v from source s uses only states labelled s, and each vertex keeps the two best distinct sources, which is enough because a best-two-distinct-sources prefix extends.
+- `top2Dijkstra(g, sources)` (the 2026-11-08 sweep's `nearestTwoSources`): rank 0 is the nearest source, and rank 1 the nearest source different from rank 0's source, each with its distance and a walk witness. Ties between sources pick any minimizer. A walk to v from source s uses only states labelled s, and each vertex keeps the two best distinct sources, which is enough because a best-two-distinct-sources prefix extends.
 
 ### shortestPathDag
 
@@ -129,43 +129,49 @@ Results reveal the `bellmanFord` fallback only through parents on ties. The fixt
 | `… --mode stress --seed 7` | PASS, 62897 cases, 3.58·10^7 checks, peak 796 MB |
 | `python3 '96-Local Testing/02-integration.py'` | PASS: 186 standalone and aggregate headers, multi-TU scalar and AVX2, workspace; peak 2744 MB |
 
+2026-11-09: `python3 '96-Local Testing/05-extraction.py' ops --filter 04-Graphs/13-shortest_path_advanced.hpp` passed (19 operations, 0 failures on `g++` and `g++-14`), and `testers --filter 13-shortest_path_advanced` passed (1 quick run on an extracted build, 0 failures).
+
 ## Mutation testing
 
-Record: mewt 4.0.0 on blob `9c878282421c0947f7c33b87f2ee6e0e6622541b` (2026-11-05, seed 1, whole file, uniform sample of 1330): 500 mutants, 437 caught (26 by timeout), 63 survived, 0 untested.
+Record: mewt 4.0.0 on blob `29d01ccc70d999dcc426cec79b507726b477e188` (2026-11-09, seed 1, 26 lines changed since blob `9c878282421c`): 33 mutants, 33 caught (0 by timeout), 0 survived, 0 untested.
+
+Stage seconds of that campaign: quick 130, full-optimized 42, full-all 252.
+
+Earlier campaign: mewt 4.0.0 on blob `9c878282421c0947f7c33b87f2ee6e0e6622541b` (2026-11-05, seed 1, whole file, uniform sample of 1330): 500 mutants, 437 caught (26 by timeout), 63 survived, 0 untested.
 
 Stage seconds, over the campaign and its two survivor retests together: quick 3303, full-optimized 702, full-all 6152. The first pass, run 2026-11-04 to 05 by `/finish GR70` because this header had no record, left 91 survivors. Tests were added for the real gaps, and the retest with the same workdir caught 28 of them. The new tests are `detailFixtures`, `staleEntryFixtures`, a fixed star case for `refine` from the review and four probes, `dial-weight-max`, `astar-target-far`, `exists-negative-rank` and `walk-smaller`. `detailFixtures` checks `dijkstraPotential` with a random blocked set against the oracle on the graph without arcs into it, and checks `refine`'s contract (ok exactly without a live negative cycle, then every live reduced weight nonnegative). `staleEntryFixtures` runs under `NDEBUG` only: k = 300000 arcs into one vertex, each improving it, then k arcs out of it, so an engine that rescans stale queue entries does k² work and times out, with closed-form results for `minimaxPath`, `widestPath`, `negativeSsspScaling`, `aStar` and `bidirectionalDijkstra`.
 
-Each remaining survivor was checked for type context, reachability, downstream use, semantic comparison and a distinguishing input. Some arguments rest on user decisions of 2026-11-05: runtime-only mutants are recorded with their argument, a changed choice among ties or of state no caller reads is accepted as within the contract, and guards reachable only under `NDEBUG`, beyond every memory cap, or by no input found are untestable and kept.
+Closed 2026-11-08 by new fixtures, each checked by rebuilding the mutant: `IT 346`, `LOS 795` and the `*` → `/` form of the budget at line 189 (`fallbackTieFixtures`); `IF 302`, `COS 1114` (`aStarCallFixture`); `BL 476`, the `+`, `/`, `<`, `<=` and `==` forms of the frequent-layer test at line 147 and `COS 1008` (`scalingScaleFixtures`, by timeout).
+
+Each remaining survivor was checked for type context, reachability, downstream use, semantic comparison and a distinguishing input. Some arguments rest on user decisions of 2026-11-09 (`/merge-pr 4`): a changed choice among ties or of state no caller reads is accepted as within the contract, and guards reachable only under `NDEBUG` or beyond every memory cap are untestable and kept. Runtime-only mutants are recorded with their argument but stay open, since no ruling accepts that class: each needs a test or an equivalence argument.
 
 | Mutant | Line | Argument |
 |---|---|---|
-| `BL 478` `false` → `true` | 133 | untestable (user decision 2026-11-05): no input reaches this round-budget exit. The frequent-layer step provably leaves k <= need, and the path step creates no new negative heads; 9.1·10^6 random graphs (review and `/finish` scratch runs, 2026-11-05) never reached it, negative cycles included. The guard stays |
-| `COS 861`, `COS 921`, `COS 976`, `COS 1016`, `COS 1146`, `COS 1226`, `COS 1236`, `COS 1266` | 63, 122, 145, 164, 263, 310, 313, 327 | equivalent: the counter starts at 0, steps by 1 and meets its bound, which is at least 0 and fixed in the loop |
-| `COS 838`, `COS 853`, `COS 988`, `COS 1187` | 25, 33, 148, 281 | equivalent: the value is -1 or a nonnegative index, so the two tests agree |
-| `COS 868`, `COS 1173` | 66, 271 | equivalent: a vertex's queue keys only decrease, so a popped key is never below its current one |
-| `IT 329`, `COS 897`, `COS 899` | 94 | equivalent: an entry pushed to a vertex with both ranks set is popped and dropped at line 89; each vertex settles at most twice, so pushes stay at most 2m |
-| `AS 406`, `AS 412` | 109, 161 | equivalent: `min`, `max` and the called function are symmetric in value |
-| `COS 939` `==` → `>=` | 130 | equivalent: `tarjanScc` numbers components topologically, so a cross arc has `comp[from] < comp[to]` |
-| `COS 942`, `COS 1232` | 132, 312 | equivalent: the count is never negative |
-| `IF 276`, `COS 938` | 130 | runtime only (user decision 2026-11-05): without the early exit, the `need` guard still returns false on a negative cycle within O(sqrt(k)) rounds |
-| `COS 962` `<` → `<=` | 140 | equivalent: a tie picks another predecessor on an equally negative path, which still has t = -min d negative arcs, all the path step needs |
-| `COS 991` `<` → `!=` | 149 | equivalent: `h` holds only arcs of reduced weight -1 or 0 |
-| `COS 1002` `<` → `<=` | 156 | equivalent: bucket t would hold label 0, which is never pushed (a push needs a label below 0) |
-| `COS 1008` `!=` → `>` | 159 | runtime only (user decision 2026-11-05): stale bucket entries are rescanned with the current label and relax nothing |
-| `AOS 627`, `AOS 628` | 165 | runtime only (user decision 2026-11-05): a looser `need` only delays the negative-cycle exit |
-| `BL 476`, `COS 968`, `COS 969`, `AOS 589`, `COS 971` | 131, 142, 144 | runtime only (user decision 2026-11-05): `refine` keeps its contract here, and any potential it leaves is corrected by the label-correcting final search or the `bellmanFord` fallback |
-| `LOS 795`, `IT 346`, `COS 1026`, `COS 1029`, `BL 481` | 177, 178, 179 | equivalent: each change only queues more vertices or falls back to `bellmanFord` sooner; results are exact and stay within the O(n * m + n + k) bound, parents among ties being any (user decision 2026-11-05) |
-| `AOS 632`, `AOS 633`, `AOS 636`, `COS 1037` | 186, 190 | equivalent: the budget only decides when to fall back to `bellmanFord`, exact inside the same O(n * m + n + k) bound, parents among ties being any (user decision 2026-11-05) |
-| `COS 1042` `==` → `<=` | 194 | equivalent: `state` is 0, 1 or 2 |
-| `CR 184` `if (!ok) { return ShortestPathResult(g.n, sources); }` → `/* if (!ok) { return ShortestPathResult(g.n, sources); } */` | 205 | untestable (user decision 2026-11-05): runs only on out-of-domain weights under NDEBUG, which no allowed test gives; the guard stays |
-| `LOS 797`, `COS 1073` | 212 | equivalent: the bucket popped at `cur` holds only entries labelled `cur` (labels in [cur, cur + c] are distinct mod c + 1), so `dist != cur` means the vertex is done |
-| `IF 302`, `COS 1114` | 245 | equivalent under the contract (user decision 2026-11-05): h replaced by 0 stays admissible, so the distance is exact and only the path among ties changes |
-| `CR 213`, `COS 1141` | 260 | equivalent: `ShortestPathResult(g.n, {s})` and `({t})` assert the same ranges before any index |
-| `AOS 679`, `COS 1162` | 268 | equivalent: the search only runs longer; `best` changes only on a strict improvement and is minimal at the original stop, within the same bound |
-| `COS 1165`, `COS 1166`, `COS 1167`, `COS 1168` | 269 | equivalent under the contract (user decision 2026-11-05): any alternation keeps bidirectional Dijkstra exact; only the meeting vertex among equal paths changes |
-| `BL 489` `true` → `false` | 307 | equivalent: `acyclic` is assigned at line 316 before it is read |
-| `IT 379`, `LOS 814` | 351 | runtime only (user decision 2026-11-05): `big` wraps to about 2^64, so the scaling runs up to 64 rounds instead of ceil(log2 N); every round keeps its invariant and results are exact. On an LMAX arc the mutant's `-(e.w + 1)` overflows; GCC folds it to `~e.w` (UBSan silent in a 2026-11-05 review scratch run), so this case rests on that code generation |
-| `COS 1286` `>=` → `!=` | 358 | equivalent: for w = 0 the negative branch gives -(0 >> t) = 0; for w < 0 the positive branch gives (w + 2^t - 1) >> t, which is ceil(w / 2^t) = -(\|w\| >> t) under the C++20 arithmetic shift |
+| `BL 478` `false` → `true` | 136 | untestable (user decision 2026-11-09): no input reaches this round-budget exit. The frequent-layer step provably leaves k <= need, and the path step creates no new negative heads; 9.1·10^6 random graphs (review and `/finish` scratch runs, 2026-11-05) never reached it, negative cycles included. The guard stays |
+| `COS 861`, `COS 921`, `COS 976`, `COS 1016`, `COS 1146`, `COS 1226`, `COS 1236`, `COS 1266` | 63, 125, 148, 167, 266, 313, 316, 330 | equivalent: the counter starts at 0, steps by 1 and meets its bound, which is at least 0 and fixed in the loop |
+| `COS 838`, `COS 853`, `COS 988`, `COS 1187` | 25, 33, 151, 284 | equivalent: the value is -1 or a nonnegative index, so the two tests agree |
+| `COS 868`, `COS 1173` | 66, 274 | equivalent: a vertex's queue keys only decrease, so a popped key is never below its current one |
+| `IT 329`, `COS 897`, `COS 899` | 97 | equivalent: an entry pushed to a vertex with both ranks set is popped and dropped at line 89; each vertex settles at most twice, so pushes stay at most 2m |
+| `AS 406`, `AS 412` | 112, 164 | equivalent: `min`, `max` and the called function are symmetric in value |
+| `COS 939` `==` → `>=` | 133 | equivalent: `tarjanScc` numbers components topologically, so a cross arc has `comp[from] < comp[to]` |
+| `COS 942`, `COS 1232` | 135, 315 | equivalent: the count is never negative |
+| `IF 276`, `COS 938` | 133 | runtime only (contributor proposal 2026-11-05): without the early exit, the `need` guard still returns false on a negative cycle within O(sqrt(k)) rounds |
+| `COS 962` `<` → `<=` | 143 | equivalent: a tie picks another predecessor on an equally negative path, which still has t = -min d negative arcs, all the path step needs |
+| `COS 991` `<` → `!=` | 152 | equivalent: `h` holds only arcs of reduced weight -1 or 0 |
+| `COS 1002` `<` → `<=` | 159 | equivalent: bucket t would hold label 0, which is never pushed (a push needs a label below 0) |
+| `AOS 627`, `AOS 628` | 168 | runtime only (contributor proposal 2026-11-05): a looser `need` only delays the negative-cycle exit |
+| `COS 968`, `COS 969`, `AOS 589`, `COS 971` | 134, 145, 147 | runtime only (contributor proposal 2026-11-05): `refine` keeps its contract here, and any potential it leaves is corrected by the label-correcting final search or the `bellmanFord` fallback |
+| `COS 1026`, `COS 1029`, `BL 481` | 180, 181, 182 | equivalent: each change only queues more vertices or falls back to `bellmanFord` sooner; results are exact and stay within the O(n * m + n + k) bound, parents among ties being any (user decision 2026-11-09) |
+| `AOS 632`, `AOS 633`, `AOS 636`, `COS 1037` | 189, 193 | equivalent: the budget only decides when to fall back to `bellmanFord`, exact inside the same O(n * m + n + k) bound, parents among ties being any (user decision 2026-11-09) |
+| `COS 1042` `==` → `<=` | 197 | equivalent: `state` is 0, 1 or 2 |
+| `CR 184` `if (!ok) { return ShortestPathResult(g.n, sources); }` → `/* if (!ok) { return ShortestPathResult(g.n, sources); } */` | 208 | untestable (user decision 2026-11-09): runs only on out-of-domain weights under NDEBUG, which no allowed test gives; the guard stays |
+| `LOS 797`, `COS 1073` | 215 | equivalent: the bucket popped at `cur` holds only entries labelled `cur` (labels in [cur, cur + c] are distinct mod c + 1), so `dist != cur` means the vertex is done |
+| `CR 213`, `COS 1141` | 263 | equivalent: `ShortestPathResult(g.n, {s})` and `({t})` assert the same ranges before any index |
+| `AOS 679`, `COS 1162` | 271 | equivalent: the search only runs longer; `best` changes only on a strict improvement and is minimal at the original stop, within the same bound |
+| `COS 1165`, `COS 1166`, `COS 1167`, `COS 1168` | 272 | equivalent under the contract (user decision 2026-11-09): any alternation keeps bidirectional Dijkstra exact; only the meeting vertex among equal paths changes |
+| `BL 489` `true` → `false` | 310 | equivalent: `acyclic` is assigned at line 316 before it is read |
+| `IT 379`, `LOS 814` | 354 | runtime only (contributor proposal 2026-11-05): `big` wraps to about 2^64, so the scaling runs up to 64 rounds instead of ceil(log2 N); every round keeps its invariant and results are exact. On an LMAX arc the mutant's `-(e.w + 1)` overflows; GCC folds it to `~e.w` (UBSan silent in a 2026-11-05 review scratch run), so this case rests on that code generation |
+| `COS 1286` `>=` → `!=` | 361 | equivalent: for w = 0 the negative branch gives -(0 >> t) = 0; for w < 0 the positive branch gives (w + 2^t - 1) >> t, which is ceil(w / 2^t) = -(\|w\| >> t) under the C++20 arithmetic shift |
 
 ## Benchmarks
 
@@ -219,3 +225,4 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)
 - 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 1330 mutants): detail-engine and stale-entry fixtures and four probes closed 27 survivors, and the review's `refine` star case one more; 63 recorded with arguments.
 - 2026-11-03: P042 GR04 rewrite from the pinned legacy excerpt; `top2Dijkstra` added; tester found `aStar` with negative h(t) and the scaling's false negative cycles, both fixed; review: 11 findings fixed (NDEBUG bounded returns, complexity lines, refine reuses its round graph); full suite passed on g++ and g++-14, stress seed 7.
 - 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.
+- 2026-11-08: `/merge-pr 4` review fixes: `G = Graph` defaults, correctly sized `NDEBUG` results for `secondShortestPath` and `top2Dijkstra`, survivors closed by fixtures.

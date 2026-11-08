@@ -23,7 +23,7 @@ from _00_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('14-tree_algorithms', ['diameter-directed', 'diameter-cycle', 'diameter-forest',
-        'diameter-empty', 'eccentricity-cycle', 'centroid-forest', 'distances-directed', 'euler-root', 'euler-cycle',
+        'diameter-empty', 'eccentricity-cycle', 'centroid-forest', 'centroid-empty', 'distances-directed', 'euler-root', 'euler-cycle',
         'euler-multi-edge', 'subtree-range', 'bfs-loop', 'level-range', 'disk-negative', 'rerooting-forest',
         'rerooting-nonadjacent', 'subtree-dp-root', 'merge-negative-k', 'virtual-range', 'virtual-cycle',
         'prufer-single', 'prufer-forest', 'prufer-value', 'prufer-negative',

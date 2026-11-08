@@ -445,7 +445,7 @@ The headers were written independently from these descriptions; no catalog code 
 | OI Wiki long-path decomposition, LCA | https://oi-wiki.org/graph/hld/; https://oi-wiki.org/graph/lca/ | 2026-11-04 | Ladders (long paths extended upward by their length) with 2^h jumps: O(1) k-th ancestor |
 | Wikipedia level ancestor problem | https://en.wikipedia.org/wiki/Level_ancestor_problem | 2026-11-04 | Jump-pointer and ladder algorithm; O(n) macro-micro bound (not adopted); depth form LA(v, d) |
 | Menghani–Matani | https://ar5iv.arxiv.org/html/1903.01387 | 2026-11-04 | Depth-bucket O(n) / O(log n) method (not adopted); online leaf addition (Dietz) cited (not adopted) |
-| Library Checker jump_on_tree; Nyaan and maspypy jump | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/tree/jump_on_tree/task.md; https://nyaannyaan.github.io/library/verify/verify-yosupo-graph/yosupo-jump-on-tree.test.cpp; https://maspypy.github.io/library/graph/tree.hpp | 2026-11-04 | O(1) path jump as LCA plus level ancestor (not adopted, user decision 2026-11-04) |
+| Library Checker jump_on_tree; Nyaan and maspypy jump | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/tree/jump_on_tree/task.md; https://nyaannyaan.github.io/library/verify/verify-yosupo-graph/yosupo-jump-on-tree.test.cpp; https://maspypy.github.io/library/graph/tree.hpp | 2026-11-04 | O(1) path jump as LCA plus level ancestor (row 85 `jump`, adopted by the 2026-11-08 sweep) |
 | Luogu P5903 | https://www.luogu.com.cn/problem/P5903 | 2026-11-04 | Standard O(1) k-th ancestor workload (n 5e5, q 5e6) |
 | ei1333, hitonanode, KACTL, cp-algorithms binary lifting | https://ei1333.github.io/library/; https://hitonanode.github.io/cplib-cpp/; https://github.com/kth-competitive-programming/kactl/tree/main/content/graph; https://cp-algorithms.com/graph/lca_binary_lifting.html | 2026-11-04 | No level-ancestor or offline batched form beyond binary lifting |
 
@@ -490,3 +490,15 @@ Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys);
 - NetworkX Voronoi cells: already expressed by multi-source Dijkstra parents in row 05.
 - OGDF GraphReduction and planar SPQR variants: embedding-aware SPQR is beyond the row 61 contract.
 - Koosaga LP simplex/bigint: Mathematics 28.
+
+## Pages fetched on 2026-11-08 (P042 tree-DP presets)
+
+Read through a summarizing fetch, so code quotes are not byte-checked; catalog indexes were truncated at 100,000 to 200,000 characters.
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| maspypy presets | https://maspypy.github.io/library/graph/tree_dp/subtree_depth_sum.hpp; https://maspypy.github.io/library/graph/tree_dp/subtree_hash.hpp | 2026-11-08 | The only shipped presets on a rerooting contract: `subtreeDepthSum` (row 14), `subtreeHash` (row 17) |
+| Generic rerooting templates | https://maspypy.github.io/library/graph/tree_dp/rerooting_dp.hpp; https://nyaannyaan.github.io/library/tree/rerooting.hpp; https://ei1333.github.io/library/graph/tree/rerooting.hpp; https://suisen-cp.github.io/cp-library-cpp/library/tree/rerooting.hpp; https://tko919.github.io/library/Graph/rerooting.hpp | 2026-11-08 | No preset in the header |
+| suisen tests | https://suisen-cp.github.io/cp-library-cpp/test/src/tree/rerooting/edpc_v.test.cpp; https://suisen-cp.github.io/cp-library-cpp/test/src/tree/rerooting/abc160_f.test.cpp; https://suisen-cp.github.io/cp-library-cpp/test/src/tree/rerooting/abc222_f.test.cpp | 2026-11-08 | Instances in tests, not shipped |
+| hitonanode, OI Wiki | https://hitonanode.github.io/cplib-cpp/tree/rerooting.hpp; https://oi-wiki.org/dp/tree/ | 2026-11-08 | Worked examples, not shipped |
+| Library Checker | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/tree/tree_path_composite_sum/task.md | 2026-11-08 | Row 84's `pathCompositeSum` |

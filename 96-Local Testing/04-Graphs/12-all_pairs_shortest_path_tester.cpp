@@ -332,6 +332,13 @@ void boundaryTests(const string &mode) {
             checkGraph(reversed, "boundary reversed undirected chain", false, {0, 1});}}
     cout << "PASS word-boundary graphs sizes=" << sizes.size() << " rounds=" << rounds << '\n';}
 
+// A size at which rows of n + 127 words instead of ceil(n / 64) cost the closure its word-parallel factor.
+void minimaxScaleFixture() {
+    int n = 4000; Graph g(n, true);
+    for (int i = 0; i + 1 < n; ++i) { g.addEdge(i, i + 1, i); }
+    describe(g, "minimax long path");
+    require(minimaxFloydWarshall(g)[0][n - 1] == n - 2, "minimax closure on a long path");}
+
 void invalid(const string &which) {
     Graph g(2, true); g.addEdge(0, 1, 2);
     if (which == "ecc-non-square") { (void)eccentricities(Matrix({{0, 1}, {0}})); }
@@ -364,4 +371,7 @@ int main(int argc, char **argv) {
         if (mode == "full") { exhaustive(3, true, true, signed2, 7, upTo(4)); }
         else { exhaustive(3, true, true, signed3, 11, upTo(4)); }}
     randomTests(mode); boundaryTests(mode);
+#ifdef NDEBUG
+    if (mode != "quick") { minimaxScaleFixture(); }
+#endif
     cout << "PASS all-pairs shortest paths mode=" << mode << " seed=" << seed << " cases=" << cases << " checks=" << checks << '\n';}

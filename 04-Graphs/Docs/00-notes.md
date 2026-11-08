@@ -196,31 +196,33 @@ Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledger
 
 ## P042 GR04 omissions
 
-The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)) added `top2Dijkstra` (maspypy) to row 13 and put suisen's O(n^3 / w) bitset closure behind `minimaxFloydWarshall`. `apspPath` became `AllPairsResult::path` (user decision 2026-11-03). The other candidates stay out:
+In the P042 records, a "contributor proposal" is mattblferrer's call, on which the maintainer has not ruled (`/merge-pr 4`, 2026-11-09): it does not bind.
+
+The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)) added `top2Dijkstra` (maspypy) to row 13 and put suisen's O(n^3 / w) bitset closure behind `minimaxFloydWarshall`. `apspPath` became `AllPairsResult::path` (contributor proposal 2026-11-03). The other candidates stay out:
 
 - NetworkX `floyd_warshall_tree`: same O(n^3) worst case; only its expected bound on random complete digraphs is better.
 - Shortest walk with at most k arcs (cp-algorithms): `fixedLengthShortestPath` on the graph with a zero-weight loop added at every vertex.
 - Fixed-length walk counts (cp-algorithms): an ordinary matrix power (Core Matrix). The min-plus product moves to Core Matrix `mulSemiring` once that row is verified.
-- All-pairs Bellman–Ford and the enumeration of all shortest paths (NetworkX): `johnson` dominates the first; the second is a bounded enumeration over `shortestPathDag`.
+- All-pairs Bellman–Ford and the enumeration of all shortest paths (NetworkX): the first is not lighter, wider or more capable than `floydWarshall`, which takes the same negative weights; the second is a bounded enumeration over `shortestPathDag`.
 - Wiener, hyper-Wiener, Schultz and Gutman indices and the harmonic diameter (NetworkX): one-line folds of the distance matrix. Resistance distance and the Kemeny constant need a Laplacian pseudo-inverse (Mathematics 16).
-- Goldberg–Radzik (NetworkX) and the SLF, LLL, stack and heap SPFA variants (OI Wiki): no better worst case than `spfa`; `desopoPape` represents the deque heuristics.
+- Goldberg–Radzik (NetworkX) and the SLF, LLL, stack and heap SPFA variants (OI Wiki): none is lighter, wider, measured faster or more capable than `spfa` (`01-principles.md`, Priority); `desopoPape` represents the deque heuristics.
 - Least or greatest arc count among shortest paths (CSES Investigation): a DP over `shortestPathDag`.
 - Minimum-weight cycle by Floyd and Floyd transitive closure (OI Wiki): rows 68 and 40.
 
 ## P042 GR05 omissions
 
-The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)) added `BfsNumbering: levelRange, diskRanges` and `Rerooting: get(v, p)` to row 14, and `maxPath`, `TreeMonoid: get, set` and `edgeVertex` to row 15. `rootTree`, `pathVertices` and `treePainting` left the rows (user decision 2026-11-03; mapped in [14-tree_algorithms.md](14-tree_algorithms.md) and [15-hld.md](15-hld.md)). The other candidates stay out (user decision 2026-11-04, `/finish GR05`):
+The 2026-11-03 sweeps ([sources](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)) added `BfsNumbering: levelRange, diskRanges` and `Rerooting: get(v, p)` to row 14, and `maxPath`, `TreeMonoid: get, set` and `edgeVertex` to row 15.md](14-tree_algorithms.md) and [15-hld.md](15-hld.md)). The other candidates stay out (contributor proposal 2026-11-04, `/finish GR05`):
 
 - Invertible-merge rerooting (suisen): the same O(n) bound and results; it only drops the prefix and suffix products.
-- Online virtual tree with activate and deactivate (hitonanode): rebuild with `VirtualTree::build` per batch.
-- `outtreeApply`, `allFold` (maspypy): the complement ranges of `rerootedSubtreeIntervals` or `seg.apply`/`seg.allProd` on `TreeMonoid::seg`.
-- HLD `jump` and median `meet(a, b, c)`: row 07 (`LCA::jump`); `meet` is filed as a row 07 follow-up in P011's plan note (user decision 2026-11-04).
+- HLD `jump` and median `meet(a, b, c)`: row 07 (`LCA::jump`); `meet` is filed as a row 07 follow-up in P011's plan note (user decision 2026-11-09).
 - A weighted tree center inside an edge (maspypy `tree_center`): `treeEccentricities` reports vertex centers; the point center is row 75 `absoluteCenter`.
+
+Tree-DP presets, swept 2026-11-08 ([sources](00-sources.md#pages-fetched-on-2026-11-08-p042-tree-dp-presets)): `subtreeDepthSum` (maspypy) is the only shipped preset row 14 owns. `subtreeHash` (maspypy) is row 17's, and the static `tree_path_composite_sum` is row 84's `pathCompositeSum`. Connected-set counts, linear-extension counts, vertex-offset eccentricities, tour lengths and weighted independent sets appear only in catalog tests or documentation, as single `Rerooting` instances.
 
 ## P042 GR70 omissions
 
 The 2026-11-04 sweep ([sources](00-sources.md#pages-fetched-on-2026-11-04-p042-gr70)) found no operation to add to row 85. The candidates stay out:
 
-- Macro-micro O(n) preprocessing (Bender–Farach-Colton): filed as row 94 `LinearLevelAncestor`, package P277, because the paper was not readable (user decision 2026-11-04); row 85 keeps jumps at long-path bottoms, O(n + l * log(n)).
-- Online leaf addition (Dietz): no catalog API; rebuild per batch.
+- Macro-micro O(n) preprocessing (Bender–Farach-Colton): filed as row 94 `LinearLevelAncestor`, package P277, because the paper was not readable (user decision 2026-11-09); row 85 keeps jumps at long-path bottoms, O(n + l * log(n)).
+- Online leaf addition (Dietz): no swept catalog ships it, so it is not a standard alternative under `01-principles.md`, Priority.
 - `query(v, d)` by target depth: `query(v, dep[v] - d)`.

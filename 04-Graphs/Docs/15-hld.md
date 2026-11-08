@@ -37,7 +37,7 @@ Every light edge at least halves the subtree size, so a root path crosses at mos
 - **get, set:** `get(i)` and `set(i, x)` address a vertex, or an edge id when `edges`.
 - **pathFold:** `pathFold(u, v)` returns `{true, product along u → v}` or `{false, e()}` across components.
 - **pathApply:** `pathApply(u, v, f)` (acted A only) applies f to every slot on the path and returns false across components.
-- **subtree operations:** `subtreeFold(v)` and `subtreeApply(v, f)` cover v's subtree, without v's own edge slot when `edges`. The fold multiplies in `tin` order, a heavy-first preorder, so it is meaningful for commutative A (accepted contract, user decision 2026-11-04).
+- **subtree operations:** `subtreeFold(v)` and `subtreeApply(v, f)` cover v's subtree, without v's own edge slot when `edges`. The fold multiplies in `tin` order, a heavy-first preorder, so it is meaningful for commutative A (accepted contract, contributor proposal 2026-11-04).
 - **maxPath:** `maxPath(u, v, pred)` requires `pred(e())` and pred monotone along the path, true then false. It returns the last vertex x on u → v with `pred(pathFold(u, x))`:
   - It returns −1 across components, or in vertex mode when u alone fails; in edge mode x = u always qualifies.
   - Each range of `processPath` is first tested whole with one `seg.prod`. The first range that fails is searched by binary search on its accepted length, with `seg.prod` of the prefix (downward) or suffix (upward) inside the range, and the walk stops there. Searching the whole array with `minLeft`/`maxRight` would be wrong: pred is monotone only along the path, and the tree's nodes mix in off-path slots.
@@ -57,7 +57,7 @@ Costs: set, get, subtreeFold and subtreeApply are O(log n); pathFold and pathApp
 - `processPath(u, v, is_edge, f)` with inclusive f(l, r) in arbitrary direction → `processPath(u, v, edges, f)` with half-open ranges in path order and an `up` flag. It returns false across components.
 - `in`, `out`, `rev`, `par` → `tin`, `tout` (exclusive), `order`, `parent`.
 - `reorderArray`: kept.
-- `TreeEdgePainting` (`algs.cpp`, `algsbetter.cpp`; removed 2026-11-03, user decision, a narrowing): `TreeMonoid<Sum<int>, true> t(g, vector<int>(m), true)`.
+- `TreeEdgePainting` (`algs.cpp`, `algsbetter.cpp`; planned as `treePainting`, until then): `TreeMonoid<Sum<int>, true> t(g, vector<int>(m), true)`.
   - Map the legacy edge ids onto `Graph` edge ids.
   - `paintEdge(id, paint)` becomes `t.set(id, paint)`.
   - `queryAncPath(anc, dec, …)` becomes `t.pathFold(dec, anc).second`.
@@ -94,13 +94,17 @@ Large shapes: deep and shuffled paths, star, caterpillar, binary, random and a 4
 | `… --mode stress --seed 2` | PASS, 3 configurations, peak 956 MB |
 | `python3 '96-Local Testing/02-integration.py'` | PASS: 187 standalone and aggregate headers, multi-TU scalar and AVX2, workspace; peak 2669 MB |
 
+2026-11-09: `python3 '96-Local Testing/05-extraction.py' ops --filter 04-Graphs/15-hld.hpp` passed (19 operations, 0 failures on `g++` and `g++-14`), and `testers --filter 15-hld` passed (1 quick run on an extracted build, 0 failures).
+
 ## Mutation testing
 
-Record: mewt 4.0.0 on blob `cdf7102e7f43e4a6b5241aee22befcd7e19c3446` (2026-11-05, seed 1, whole file, uniform sample of 669): 500 mutants, 474 caught (14 by timeout), 26 survived, 0 untested.
+Record: mewt 4.0.0 on blob `d96064c0e508cbf107ebdc00644b591840ff7db5` (2026-11-09, seed 1, 2 lines changed since blob `cdf7102e7f43`): 0 mutants, 0 caught (0 by timeout), 0 survived, 0 untested.
+
+Earlier campaign: mewt 4.0.0 on blob `cdf7102e7f43e4a6b5241aee22befcd7e19c3446` (2026-11-05, seed 1, whole file, uniform sample of 669): 500 mutants, 474 caught (14 by timeout), 26 survived, 0 untested.
 
 Stage seconds, over the campaign and its survivor retest together: quick 2237, full-optimized 490, full-all 3287. The first pass, run 2026-11-04 to 05 by `/finish GR70` because this header had no record, left 39 survivors. Tests were added for the real gaps, and the retest with the same workdir caught 13 of them. The new tests are an isolated forest of 10^6 vertices in the large tests (component, head, `tin`, `tout`, parent) and 11 range probes: `root-far`, `vertex-far`, `vertex-first`, `edge-far`, `path-second`, `subtree-range`, `reroot-vertex`, `reroot-target`, `reorder-short`, `reorder-long` and `values-short`.
 
-Each remaining survivor was checked for type context, reachability, downstream use, semantic comparison and a distinguishing input. Some arguments rest on user decisions of 2026-11-05: runtime-only mutants are recorded with their argument, a changed choice among ties or of state no caller reads is accepted as within the contract, and guards reachable only under `NDEBUG` or beyond every memory cap are untestable and kept.
+Each remaining survivor was checked for type context, reachability, downstream use, semantic comparison and a distinguishing input. Some arguments rest on user decisions of 2026-11-09 (`/merge-pr 4`): a changed choice among ties or of state no caller reads is accepted as within the contract, and guards reachable only under `NDEBUG` or beyond every memory cap are untestable and kept. Runtime-only mutants are recorded with their argument but stay open, since no ruling accepts that class: each needs a test or an equivalence argument.
 
 | Mutant | Line | Argument |
 |---|---|---|
@@ -132,6 +136,7 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)
 ## History
 
 - 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 669 mutants): an isolated 10^6-vertex forest and 11 range probes closed 13 survivors; 26 recorded with arguments.
-- 2026-11-04: `/finish GR05` audit: single build assertion, `kthAncestor` takes `lng` (user decision), heavy-child tie tested; full passed on g++ and g++-14.
+- 2026-11-04: `/finish GR05` audit: single build assertion, `kthAncestor` takes `lng` (ratified by the maintainer at `/merge-pr 4`, 2026-11-08), heavy-child tie tested; full passed on g++ and g++-14.
 - 2026-11-03: P042 GR05 rewrite of the pinned legacy excerpt; full suite passed on g++ and g++-14, stress seed 2; testing fixed an unclamped `maxPath` search, review fixed `maxPath` (search confined to the path's ranges), the heavy-child tie rule, the `TreeMonoid` argument order and the `reorderArray` complexity line.
 - 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.
+- 2026-11-08: `/merge-pr 4` review fixes: `G = Graph` defaults, `treePainting` back as planned.

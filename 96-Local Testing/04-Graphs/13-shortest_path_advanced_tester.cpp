@@ -773,6 +773,40 @@ void largeTests(const string &mode) {
         checkGraph(g, src, "large", it % 3 == 0, false);}
     cout << "PASS large graphs: " << count << " with n in [" << low << "," << low + span - 1 << "]\n";}
 
+// Only parents on ties reveal the bellmanFord fallback; both engines finish these graphs without it.
+void fallbackTieFixtures() {
+    for (bool cycle : {false, true}) {
+        Graph g(4, true); g.addEdge(2, 3, 1); g.addEdge(1, 3, 1); g.addEdge(0, 1, 1); g.addEdge(0, 2, 1);
+        if (cycle) { g.addEdge(3, 0, 5); }
+        describe(g, {0}, "fallback tie");
+        require(spfa(g, {0}).parent[3] == 1, "spfa fell back to bellmanFord");
+        require(desopoPape(g, {0}).parent[3] == 1, "desopoPape fell back to bellmanFord");}}
+
+// h is evaluated once, at discovery, and never for t or an undiscovered vertex.
+void aStarCallFixture() {
+    Graph g(6, true); g.addEdge(0, 1, 1); g.addEdge(1, 2, 1); g.addEdge(0, 3, 1); g.addEdge(3, 4, 1); g.addEdge(4, 5, 1);
+    describe(g, {0}, "aStar calls");
+    vector<int> calls(6);
+    auto r = aStar(g, 0, 2, [&](int v) { ++calls[v]; return v == 0 ? 2 : v == 1 ? 1 : 1000000; });
+    require(r.dist == 2, "aStar call fixture distance");
+    require(calls == vector<int>{1, 1, 0, 1, 0, 0}, "aStar evaluated h on the wrong vertices");}
+
+// Sizes at which a lost layer selection, or a rescan of stale bucket entries, turns near-linear into quadratic.
+void scalingScaleFixtures() {
+    for (int d : {1, 3}) {
+        int L = 200000; Graph g(d * L + 1, true);
+        for (int i = 0; i < L; ++i) {
+            g.addEdge(0, 1 + i, -1);
+            for (int j = 1; j < d; ++j) { g.addEdge(1 + (j - 1) * L + i, 1 + j * L + i, -1); }}
+        describe(g, {0}, "scaling star");
+        require(negativeSsspScaling(g, {0}).dist[d * L] == -d, "scaling star distance");}
+    int t = 200000, T = 90000, D = 200000, hub = t + 1; Graph g(t + 2 + D, true);
+    for (int i = 1; i <= t; ++i) { g.addEdge(i - 1, i, -1); }
+    for (int i = 0; i < T; ++i) { g.addEdge(t - i, hub, 2 * (T - i)); }
+    for (int i = 0; i < D; ++i) { g.addEdge(hub, t + 2 + i, 1); }
+    describe(g, {0}, "scaling hub");
+    require(negativeSsspScaling(g, {0}).dist[hub] == T + 1 - t, "scaling hub distance");}
+
 void invalid(const string &which) {
     Graph g(2, true); g.addEdge(0, 1, 2);
     Graph bad = g; bad.addEdge(1, 0, -1);
@@ -808,9 +842,9 @@ int main(int argc, char **argv) {
         if (arg == "--mode") { mode = argv[++i]; }
         if (arg == "--seed") { seed = std::stoull(argv[++i]); }}
     rng.seed(seed);
-    fixtures(); aStarFixtures(); countFixtures(); papeFixtures(mode); dialRadixFixtures(mode); scalingFixtures(); detailFixtures(mode);
+    fixtures(); aStarFixtures(); countFixtures(); papeFixtures(mode); dialRadixFixtures(mode); scalingFixtures(); fallbackTieFixtures(); aStarCallFixture(); detailFixtures(mode);
 #ifdef NDEBUG
-    staleEntryFixtures();
+    staleEntryFixtures(); scalingScaleFixtures();
 #endif
     const vector<lng> signed3 = {-1, 0, 1}, signed2 = {-1, 1}, small3 = {0, 1, 2};
     if (mode == "quick") { exhaustive(2, true, true, signed3, 3); exhaustive(2, false, true, signed3, 3); }

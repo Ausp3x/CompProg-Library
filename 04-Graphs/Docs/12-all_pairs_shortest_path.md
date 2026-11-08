@@ -10,7 +10,7 @@ Every function takes `Graph` or `CsrGraph`, directed or undirected, with loops a
 
 ### AllPairsResult
 
-`dist[u][v]` is `PATH_INF` when v is unreachable from u, and `-PATH_INF` when some u→v walk passes through a negative cycle (the distance is unbounded below). Otherwise it is the exact minimum walk weight. The diagonal is 0 unless u lies on or reaches a negative cycle that returns to u. `parent_arc[u][v]` is the last arc of a shortest u→v path for finite off-diagonal pairs and −1 elsewhere. `finite(u, v)` excludes both sentinels. `path(g, u, v)` needs the graph that produced the result and returns an oriented `PathWitness` from u to v whose arc weights sum to `dist[u][v]`, with one vertex when u == v and `exists = false` for a pair that is not finite. It replaces the removed `apspPath` (user decision 2026-11-03).
+`dist[u][v]` is `PATH_INF` when v is unreachable from u, and `-PATH_INF` when some u→v walk passes through a negative cycle (the distance is unbounded below). Otherwise it is the exact minimum walk weight. The diagonal is 0 unless u lies on or reaches a negative cycle that returns to u. `parent_arc[u][v]` is the last arc of a shortest u→v path for finite off-diagonal pairs and −1 elsewhere. `finite(u, v)` excludes both sentinels. `path(g, u, v)` needs the graph that produced the result and returns an oriented `PathWitness` from u to v whose arc weights sum to `dist[u][v]`, with one vertex when u == v and `exists = false` for a pair that is not finite. It replaces the removed `apspPath` (contributor proposal 2026-11-03).
 
 Correctness of `path`: every engine fills `parent_arc` from strict improvements, so for finite pairs, following `parent_arc[u][·]` back from v gives a chain of tight arcs (`dist[u][from] + w = dist[u][to]`). Without negative cycles on u's finite part, such a chain cannot close a cycle: a cycle of tight arcs has weight 0, and a strict improvement never closes one. The loop is also capped at n steps.
 
@@ -56,7 +56,7 @@ Legacy matrices use `INF64` for an absent arc, so a 0 entry is a real zero-weigh
 - `floyd_warshall()` (`OLD/Team Notebook/src/graph/old_floyd-warshall.cpp`; globals, no negative-cycle handling): `floydWarshall(g)`.
 - `minPlusMatrixExp(a, k)` (`algs.cpp`, `algsbetter.cpp`; `INF64` entries absent): `fixedLengthShortestPath(g, k)`.
 - `apspPath` (planned name): `AllPairsResult::path(g, u, v)`.
-- `apspDijkstra` (removed 2026-11-03, user decision: a narrowing of `johnson` with identical `dist` and `parent_arc` and the same cost): `johnson(g)`. Its nonnegative test cases run through `johnson` on every graph.
+- `apspDijkstra` (removed 2026-11-03, user decision 2026-11-09: a narrowing of `johnson` with identical `dist` and `parent_arc` and the same cost): `johnson(g)`. Its nonnegative test cases run through `johnson` on every graph.
 
 ## Feature-to-test map
 
@@ -82,13 +82,19 @@ Tester: [`12-all_pairs_shortest_path_tester.cpp`](../../96-Local%20Testing/04-Gr
 | `… --mode stress --seed 7` | PASS, 280958 cases, 3.01·10^8 checks, peak 984 MB, 237 s wall; the checked build alone takes about 130 s against the runner's 180 s limit, which is why stress runs two boundary rounds |
 | `python3 '96-Local Testing/02-integration.py'` | PASS: 186 standalone and aggregate headers, multi-TU scalar and AVX2, workspace; peak 2744 MB |
 
+2026-11-09: `python3 '96-Local Testing/05-extraction.py' ops --filter 04-Graphs/12-all_pairs_shortest_path.hpp` passed (8 operations, 0 failures on `g++` and `g++-14`), and `testers --filter 12-all_pairs_shortest_path` passed (1 quick run on an extracted build, 0 failures).
+
 ## Mutation testing
 
-Record: mewt 4.0.0 on blob `6deb990c6048aea4daebedf4dd0d852b69854563` (2026-11-05, seed 1, whole file, uniform sample of 674): 500 mutants, 440 caught (25 by timeout), 60 survived, 0 untested.
+Record: mewt 4.0.0 on blob `35a1ae0ab936391e9fba96f03ff35ec938797a1a` (2026-11-09, seed 1, 5 lines changed since blob `6deb990c6048`): 0 mutants, 0 caught (0 by timeout), 0 survived, 0 untested.
+
+Earlier campaign: mewt 4.0.0 on blob `6deb990c6048aea4daebedf4dd0d852b69854563` (2026-11-05, seed 1, whole file, uniform sample of 674): 500 mutants, 440 caught (25 by timeout), 60 survived, 0 untested.
 
 Stage seconds, over the campaign and its survivor retest together: quick 2531, full-optimized 303, full-all 4226. The first pass, run 2026-11-04 to 05 by `/finish GR70` because this header had no record, left 73 survivors. Tests were added for the real gaps, and the retest with the same workdir caught 13 of them. The new tests are the Johnson exponential ladder fixture, in which Dijkstra improves vertex k 2^k times unless the potentials are valid, so a `johnson` that loses its reweighting times out, and the probes `finite-row`, `finite-row-far`, `finite-column-far` and `fixed-overflow-far`.
 
-Each remaining survivor was checked for type context, reachability, downstream use, semantic comparison and a distinguishing input. Some arguments rest on user decisions of 2026-11-05: runtime-only mutants are recorded with their argument, a changed choice among ties or of state no caller reads is accepted as within the contract, and guards reachable only under `NDEBUG` or beyond every memory cap are untestable and kept.
+Closed 2026-11-08 by a new fixture, checked by rebuilding the mutant: `AOS 262` (`minimaxScaleFixture`, by timeout).
+
+Each remaining survivor was checked for type context, reachability, downstream use, semantic comparison and a distinguishing input. Some arguments rest on user decisions of 2026-11-09 (`/merge-pr 4`): a changed choice among ties or of state no caller reads is accepted as within the contract, and guards reachable only under `NDEBUG` or beyond every memory cap are untestable and kept. Runtime-only mutants are recorded with their argument but stay open, since no ruling accepts that class: each needs a test or an equivalence argument.
 
 | Mutant | Line | Argument |
 |---|---|---|
@@ -104,8 +110,7 @@ Each remaining survivor was checked for type context, reachability, downstream u
 | `COS 512`, `COS 529` | 84, 89 | equivalent: marking needs `pass == n - 1`, and the extra pass `n` marks nothing |
 | `COS 519` `==` → `>=` | 87 | equivalent: `tarjanScc` numbers components topologically, so a cross arc has `comp[from] < comp[to]` |
 | `LOS 380`, `COS 536`, `COS 537` | 92 | equivalent: the second Bellman-Ford skips cycle components, so it converges within n - 1 passes; extra passes change nothing and stay O(n * m) |
-| `CR 100`, `IT 171`, `AOS 254`, `COS 541`, `COS 543` | 91, 95 | runtime only (user decision 2026-11-05): `dijkstraPotential` corrects labels, so distances stay exact; only the potential, hence the running time, changes |
-| `AOS 262` `/` → `+` | 110 | runtime only (user decision 2026-11-05): rows get n + 127 words instead of ceil(n / 64); the extra words stay zero, so each closure step costs O(n) instead of O(n / 64) with the same result |
+| `CR 100`, `IT 171`, `AOS 254`, `COS 541`, `COS 543` | 91, 95 | runtime only (contributor proposal 2026-11-05): `dijkstraPotential` corrects labels, so distances stay exact; only the potential, hence the running time, changes |
 | `BAOS 361` `\|=` → `^=` | 115 | equivalent: `to[u]` is zero there, so `^=` sets the same bit |
 | `BAOS 362`, `SOS 661` | 115 | equivalent: the diagonal bit of `from[u]` only makes `add` revisit the pair being closed, which it rejects, so losing it changes nothing |
 | `BAOS 367` `\|=` → `^=` | 124 | equivalent: `add` runs once per pair (the `to` bit guards it), so the `from` bit is still clear and `^=` sets it |
@@ -133,5 +138,6 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)
 ## History
 
 - 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 674 mutants): the Johnson exponential ladder and four range probes closed 13 survivors; 60 recorded with arguments.
-- 2026-11-03: P042 GR04 rewrite from the pinned legacy excerpt; full suite passed on g++ and g++-14, stress seed 7; review: apspDijkstra removed (user decision), 11 findings fixed.
+- 2026-11-03: P042 GR04 rewrite from the pinned legacy excerpt; full suite passed on g++ and g++-14, stress seed 7; review: apspDijkstra removed (user decision 2026-11-09), 11 findings fixed.
 - 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.
+- 2026-11-08: `/merge-pr 4` review fixes: `G = Graph` defaults, `AOS 262` closed by a fixture.

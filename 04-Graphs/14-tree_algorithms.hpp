@@ -6,7 +6,7 @@
 
 namespace tree_detail {
     // T: O(n), M: O(n); BFS of an undirected tree from root, parent_arc[v] runs parent -> v.
-    template<class G>
+    template<class G = Graph>
     TraversalResult rooted(const G &g, int root) {
         assert(!g.directed && 0 <= root && root < g.n);
         TraversalResult t = bfs(g, {root});
@@ -14,7 +14,7 @@ namespace tree_detail {
         return t;}
 
     // T: O(deg(u)), M: O(1); calls f(child, arc parent -> child) in adjacency order.
-    template<class G, class F>
+    template<class G = Graph, class F>
     void children(const G &g, const TraversalResult &t, int u, F f) {
         for (int a : g[u]) {
             int v = g.arcs[a].to;
@@ -28,8 +28,10 @@ struct TreeDiameter {
 };
 
 // T: O(n), M: O(n); undirected tree, n >= 1, full-range lng weights; the heaviest simple path, a single vertex when no edge helps.
-template<class G>
+template<class G = Graph>
 TreeDiameter treeDiameter(const G &g) {
+    assert(g.n >= 1);
+    if (g.n == 0) { return {}; }
     auto t = tree_detail::rooted(g, 0);
     vector<lll> down(g.n); vector<int> next(g.n, -1);
     TreeDiameter res{0, {0}, {}};
@@ -56,7 +58,7 @@ struct TreeEccentricities {
 };
 
 // T: O(n), M: O(n); undirected tree, n >= 1, full-range lng weights.
-template<class G>
+template<class G = Graph>
 TreeEccentricities treeEccentricities(const G &g) {
     auto t = tree_detail::rooted(g, 0);
     vector<lll> first(g.n), second(g.n), up(g.n);
@@ -77,8 +79,10 @@ TreeEccentricities treeEccentricities(const G &g) {
     return res;}
 
 // T: O(n), M: O(n); undirected tree, n >= 1; the one or two vertices whose removal leaves components of at most n / 2 vertices, ascending.
-template<class G>
+template<class G = Graph>
 vector<int> treeCentroid(const G &g) {
+    assert(g.n >= 1);
+    if (g.n == 0) { return {}; }
     auto t = tree_detail::rooted(g, 0);
     vector<int> size(g.n, 1), heavy(g.n), res;
     for (int i = int(t.order.size()) - 1; i > 0; --i) {
@@ -89,7 +93,7 @@ vector<int> treeCentroid(const G &g) {
     return res;}
 
 // T: O(n), M: O(n); undirected tree, full-range lng weights; res[v] = sum over u of dist(v, u), exact in lll.
-template<class G>
+template<class G = Graph>
 vector<lll> sumOfDistances(const G &g) {
     if (g.n == 0) { return {}; }
     auto t = tree_detail::rooted(g, 0);
@@ -106,7 +110,7 @@ vector<lll> sumOfDistances(const G &g) {
 struct EulerTour {
     vector<int> tin, tout, order, parent, dep;
 
-    template<class G>
+    template<class G = Graph>
     explicit EulerTour(const G &g, int root = -1) {
         lca_detail::Forest f(g, root);
         tin = std::move(f.t_in); tout = std::move(f.t_out); order = std::move(f.order);
@@ -122,7 +126,7 @@ struct EulerTour {
 struct BfsNumbering {
     vector<int> order, id, parent, dep, start, tin, tout, key;
 
-    template<class G>
+    template<class G = Graph>
     explicit BfsNumbering(const G &g, int root = -1) : id(g.n) {
         lca_detail::Forest f(g, root);
         for (int v : f.order) { if (f.parent[v] == -1) { order.push_back(v); }}
@@ -163,7 +167,7 @@ struct Rerooting {
     vector<int> parent;
     vector<S> down, up, all;
 
-    template<class G>
+    template<class G = Graph>
     explicit Rerooting(const G &g, R mon = {}) : m(std::move(mon)) {
         auto t = tree_detail::rooted(g, 0);
         vector<S> lift(g.n, m.e()), pre, suf;
@@ -193,7 +197,7 @@ struct Rerooting {
 };
 
 // T: O(n) calls of R, M: O(n); undirected tree, R as Rerooting (op may be noncommutative: children in adjacency order); res[v] is v's subtree under root.
-template<class G, class R>
+template<class G = Graph, class R>
 vector<typename R::S> subtreeDp(const G &g, int root, R mon = {}) {
     auto t = tree_detail::rooted(g, root);
     vector<typename R::S> res(g.n, mon.e());
@@ -205,7 +209,7 @@ vector<typename R::S> subtreeDp(const G &g, int root, R mon = {}) {
 
 // Undirected tree, k >= 0; R has S, add, zero, mul, one and closeVertex(v, dp), dp[j] = add over child choices of total j of the mul of their entries.
 // T: O(n * (min(n, k) + 1)) calls of R when closeVertex leaves at most min(size(v), k) + 1 entries, M: O(n); returns the root's vector, every vector cut to k + 1 entries.
-template<class G, class R>
+template<class G = Graph, class R>
 vector<typename R::S> subtreeMergeDp(const G &g, int root, int k, R mon = {}) {
     assert(k >= 0);
     using S = typename R::S;
@@ -236,7 +240,7 @@ struct VirtualTreeResult {
 struct VirtualTree {
     EulerLCA lca;
 
-    template<class G>
+    template<class G = Graph>
     explicit VirtualTree(const G &g, int root = -1) : lca(g, root) {}
 
     VirtualTreeResult build(vector<int> vs) const {
@@ -255,7 +259,7 @@ struct VirtualTree {
 };
 
 // T: O(n), M: O(n); undirected tree, n >= 2; repeatedly removes the smallest leaf and records its neighbour.
-template<class G>
+template<class G = Graph>
 vector<int> pruferEncode(const G &g) {
     assert(g.n >= 2);
     auto t = tree_detail::rooted(g, g.n - 1);

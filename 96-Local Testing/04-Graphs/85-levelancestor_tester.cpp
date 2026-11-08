@@ -3,11 +3,6 @@
 static ulng seed = 20260927;
 static lng checks = 0;
 static string context;
-#ifdef NDEBUG
-static constexpr bool UNCHECKED = true;
-#else
-static constexpr bool UNCHECKED = false;
-#endif
 static const array<lng, 3> HUGE_K{lng(INT_MAX), lng(1) << 40, std::numeric_limits<lng>::max()};
 
 void require(bool ok, const string &op, const string &want = "true", const string &got = "false") {
@@ -123,22 +118,18 @@ void verify(const Graph &g, int root, bool wide = false, const string &name = ""
         for (lng k : HUGE_K) {
             expectAt(la.query(u, k), -1, "huge query", u, k); queries.push_back({u, k}); answers.push_back(-1);}
         if (wide) { expectAt(la.query(u, g.n + 1), -1, "query beyond n", u, g.n + 1); }
-        if (UNCHECKED) {
-            expectAt(la.query(u, -1), -1, "NDEBUG negative k", u, -1);
-            expectAt(la.query(u, std::numeric_limits<lng>::min()), -1, "NDEBUG minimum k", u, std::numeric_limits<lng>::min());}}
+    }
     require(o.batch(queries) == answers, "oracle DFS batch against parent walks");
-    require(offlineLevelAncestor(g, queries, root) == answers, "offline all pairs");
-    require(offlineLevelAncestor(CsrGraph(g), queries, root) == answers, "offline CSR all pairs");
+    require(levelAncestorOffline(g, queries, root) == answers, "offline all pairs");
+    require(levelAncestorOffline(CsrGraph(g), queries, root) == answers, "offline CSR all pairs");
     std::mt19937_64 rng(seed ^ (ulng(g.n) * 1000003 + ulng(root + 1)));
     vector<size_t> perm(queries.size()); iota(perm.begin(), perm.end(), size_t(0)); std::shuffle(perm.begin(), perm.end(), rng);
     for (size_t i = 0; i < queries.size() / 4; ++i) { perm.push_back(perm[rng() % perm.size()]); }
     vector<pair<int, lng>> mixed; vector<int> expected;
     for (size_t i : perm) { mixed.push_back(queries[i]); expected.push_back(answers[i]); }
-    require(offlineLevelAncestor(g, mixed, root) == expected, "offline shuffled with duplicates");
-    require(offlineLevelAncestor(g, {}, root).empty(), "offline empty query list");
-    if (UNCHECKED && g.n) {
-        require(offlineLevelAncestor(g, {{0, -1}, {g.n - 1, std::numeric_limits<lng>::min()}, {0, 0}}, root) == vector<int>{-1, -1, 0},
-            "NDEBUG offline negative k");}}
+    require(levelAncestorOffline(g, mixed, root) == expected, "offline shuffled with duplicates");
+    require(levelAncestorOffline(g, {}, root).empty(), "offline empty query list");
+}
 
 void exhaustive(const string &mode) {
     int bound = mode == "quick" ? 4 : mode == "full" ? 6 : 7; lng cases = 0;
@@ -220,13 +211,13 @@ void sampled(const Graph &g, int root, const string &name, int samples, std::mt1
         array<lng, 8> ks{lng(rng() % ulng(d + 2)), (lng(1) << h) - 1, lng(1) << h, (lng(1) << h) + 1,
             max(lng(0), d - (lng(1) << h)), d, d + 1, HUGE_K[rng() % 3]};
         queries.push_back({u, ks[rng() % ks.size()]});}
-    vector<int> want = o.batch(queries), off = offlineLevelAncestor(g, queries, root);
+    vector<int> want = o.batch(queries), off = levelAncestorOffline(g, queries, root);
     for (size_t i = 0; i < queries.size(); ++i) {
         auto [u, k] = queries[i];
         expectAt(la.query(u, k), want[i], "sampled query", u, k); expectAt(off[i], want[i], "sampled offline", u, k);
         if (name == "path" && (root == -1 || root == 0)) { expectAt(want[i], k <= u ? int(u - k) : -1, "closed-form path", u, k); }
         if (name == "path" && root == g.n - 1) { expectAt(want[i], k < g.n - u ? int(u + k) : -1, "closed-form reversed path", u, k); }}
-    require(offlineLevelAncestor(CsrGraph(g), queries, root) == want, "offline CSR sampled");}
+    require(levelAncestorOffline(CsrGraph(g), queries, root) == want, "offline CSR sampled");}
 
 void large(const string &mode) {
     std::mt19937_64 rng(seed + 2); int samples = mode == "quick" ? 20000 : 200000;
@@ -247,20 +238,20 @@ void boundary() {
     context = "n=0";
     LevelAncestor empty(Graph(0)), csr(CsrGraph(Graph(0)), -1);
     require(empty.n == 0 && empty.ladder.empty() && empty.jumps.empty() && csr.ladder.empty(), "empty forest fields");
-    require(offlineLevelAncestor(Graph(0), {}).empty() && offlineLevelAncestor(Graph(0), {}, -1).empty(), "offline on n=0");
+    require(levelAncestorOffline(Graph(0), {}).empty() && levelAncestorOffline(Graph(0), {}, -1).empty(), "offline on n=0");
     context = "n=1";
     for (int r : {-1, 0}) {
         LevelAncestor one(Graph(1), r);
         expect(one.query(0, 0), 0, "single vertex k=0"); expect(one.query(0, 1), -1, "single vertex k=1");
         expect(one.query(0, std::numeric_limits<lng>::max()), -1, "single vertex huge k");
         require(one.ladder == vector<int>{0} && one.jumps.empty(), "single vertex ladder");
-        require(offlineLevelAncestor(Graph(1), {{0, 1}, {0, 0}, {0, std::numeric_limits<lng>::max()}, {0, 0}}, r)
+        require(levelAncestorOffline(Graph(1), {{0, 1}, {0, 0}, {0, std::numeric_limits<lng>::max()}, {0, 0}}, r)
             == vector<int>{-1, 0, -1, 0}, "single vertex offline");}
     context = "many queries on one vertex, path n=60 root=0";
     Graph g(60); for (int u = 1; u < 60; ++u) { g.addEdge(u, u - 1); }
     std::mt19937_64 rng(seed + 3); vector<pair<int, lng>> queries; vector<int> want;
     for (int i = 0; i < 5000; ++i) { lng k = lng(rng() % 64); queries.push_back({59, k}); want.push_back(k <= 59 ? int(59 - k) : -1); }
-    require(offlineLevelAncestor(g, queries) == want, "offline many queries on one vertex");
+    require(levelAncestorOffline(g, queries) == want, "offline many queries on one vertex");
     LevelAncestor la(g);
     for (auto [u, k] : queries) { expectAt(la.query(u, k), k <= 59 ? int(59 - k) : -1, "query many on one vertex", u, k); }
     context = "lifetime";
@@ -276,20 +267,20 @@ void invalid(const string &probe) {
     Graph g(3); g.addEdge(0, 1); g.addEdge(1, 2);
     Graph directed(2, true); directed.addEdge(0, 1);
     if (probe == "directed") { LevelAncestor x(directed); }
-    else if (probe == "offline-directed") { (void)offlineLevelAncestor(directed, {}); }
+    else if (probe == "offline-directed") { (void)levelAncestorOffline(directed, {}); }
     else if (probe == "root-negative") { LevelAncestor x(g, -2); }
     else if (probe == "root-end") { LevelAncestor x(g, 3); }
     else if (probe == "empty-root") { LevelAncestor x(Graph(0), 0); }
-    else if (probe == "offline-root-end") { (void)offlineLevelAncestor(g, {}, 3); }
+    else if (probe == "offline-root-end") { (void)levelAncestorOffline(g, {}, 3); }
     else if (probe == "cycle" || probe == "offline-cycle") {
         g.addEdge(2, 0);
         if (probe == "cycle") { LevelAncestor x(g); }
-        else { (void)offlineLevelAncestor(g, {{0, 0}}); }}
+        else { (void)levelAncestorOffline(g, {{0, 0}}); }}
     else if (probe == "loop") { g.addEdge(1, 1); LevelAncestor x(g); }
     else if (probe == "parallel") { g.addEdge(2, 1); LevelAncestor x(g); }
-    else if (probe == "offline-query-negative") { (void)offlineLevelAncestor(g, {{0, 0}, {-1, 0}}); }
-    else if (probe == "offline-query-end") { (void)offlineLevelAncestor(g, {{3, 0}}); }
-    else if (probe == "offline-k-negative") { (void)offlineLevelAncestor(g, {{2, 1}, {0, -1}}); }
+    else if (probe == "offline-query-negative") { (void)levelAncestorOffline(g, {{0, 0}, {-1, 0}}); }
+    else if (probe == "offline-query-end") { (void)levelAncestorOffline(g, {{3, 0}}); }
+    else if (probe == "offline-k-negative") { (void)levelAncestorOffline(g, {{2, 1}, {0, -1}}); }
     else {
         LevelAncestor x(g);
         if (probe == "query-negative") { (void)x.query(-1, 0); }
@@ -309,6 +300,5 @@ int main(int argc, char **argv) {
             else { throw std::runtime_error("unknown argument " + arg); }}
         boundary(); exhaustive(mode); randomized(mode, mode == "quick" ? 60 : mode == "full" ? 600 : 4000);
         shapes(mode); large(mode);
-        if (UNCHECKED) { std::cout << "PASS NDEBUG negative k returns -1 (query and offline)\n"; }
         std::cout << "PASS 85-levelancestor mode=" << mode << " seed=" << seed << " checks=" << checks << '\n';} catch (const std::exception &e) {
         std::cerr << "FAIL 85-levelancestor seed=" << seed << " " << e.what() << '\n'; return 1;}}

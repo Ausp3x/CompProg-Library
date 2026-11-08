@@ -18,7 +18,7 @@ struct AllPairsResult {
     bool finite(int u, int v) const {
         assert(0 <= u && u < int(dist.size()) && 0 <= v && v < int(dist.size()));
         return dist[u][v] != PATH_INF && dist[u][v] != -PATH_INF;}
-    template<class G>
+    template<class G = Graph>
     PathWitness path(const G &g, int u, int v) const {
         assert(g.n == int(dist.size()));
         if (!finite(u, v)) { return {}; }
@@ -46,7 +46,7 @@ namespace all_pairs_detail {
 } // namespace all_pairs_detail
 
 // T: O(n^3 + m), M: O(n^2); signed weights, pairs joined through a negative cycle are -PATH_INF.
-template<class G>
+template<class G = Graph>
 AllPairsResult floydWarshall(const G &g) {
     int n = g.n; AllPairsResult res(n); auto &d = res.dist; auto &par = res.parent_arc;
     for (int a = 0; a < int(g.arcs.size()); ++a) {
@@ -73,7 +73,7 @@ AllPairsResult floydWarshall(const G &g) {
     return res;}
 
 // T: O(n * m + n * (n + m) * log(n + m + 1)), M: O(n^2); signed weights, the floydWarshall contract.
-template<class G>
+template<class G = Graph>
 AllPairsResult johnson(const G &g) {
     int n = g.n; AllPairsResult res(n);
     Graph dg(g.directed ? 0 : n, true);
@@ -105,7 +105,7 @@ AllPairsResult johnson(const G &g) {
     return res;}
 
 // T: O(n^3 / w + n^2 + m * log(m + 1)), M: O(n^2); least maximum arc weight (greatest minimum when maximum), unreachable worst and diagonal best sentinel.
-template<class G>
+template<class G = Graph>
 vector<vector<lll>> minimaxFloydWarshall(const G &g, bool maximum = false) {
     int n = g.n, words = (n + 63) / 64;
     vector<vector<lll>> res(n, vector<lll>(n, maximum ? -PATH_INF : PATH_INF));
@@ -133,7 +133,7 @@ vector<vector<lll>> minimaxFloydWarshall(const G &g, bool maximum = false) {
     return res;}
 
 // T: O(n^3 * log(k + 1) + m), M: O(n^2); least weight of a walk with exactly k arcs, PATH_INF when none, k * max |w| < 2^100.
-template<class G>
+template<class G = Graph>
 vector<vector<lll>> fixedLengthShortestPath(const G &g, lng k) {
     int n = g.n; lll big = 0;
     assert(k >= 0);

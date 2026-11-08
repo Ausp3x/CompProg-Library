@@ -23,7 +23,7 @@ struct TopTwoPaths {
 
     bool exists(int v, int r) const {
         assert(0 <= v && 2 * v < int(source.size()) && (r == 0 || r == 1)); return source[2 * v + r] != -1;}
-    template<class G>
+    template<class G = Graph>
     PathWitness walk([[maybe_unused]] const G &g, int v, int r) const {
         assert(2 * g.n == int(source.size()));
         if (!exists(v, r)) { return {}; }
@@ -50,13 +50,13 @@ struct PathCountResult {
 
 namespace shortest_path_advanced_detail {
     // T: O(m), M: O(1); asserts every weight >= 0 and reports it for the bounded NDEBUG return.
-    template<class G>
+    template<class G = Graph>
     bool nonnegative(const G &g) {
         bool ok = std::all_of(g.arcs.begin(), g.arcs.end(), [](const GraphArc &e) { return e.w >= 0; });
         assert(ok); return ok;}
 
     // T: O(k + (n + m) * log(n + m + 1)), M: O(n + m); reduced weights w + p[from] - p[to] >= 0 on arcs that avoid blocked heads.
-    template<class G>
+    template<class G = Graph>
     ShortestPathResult dijkstraPotential(const G &g, const vector<int> &sources, const vector<lll> &p, const vector<char> &blocked = {}) {
         ShortestPathResult out(g.n, sources);
         priority_queue<pair<lll, int>, vector<pair<lll, int>>, std::greater<pair<lll, int>>> ready;
@@ -70,15 +70,18 @@ namespace shortest_path_advanced_detail {
         return out;}
 
     // T: O(1), M: O(1); arc a joins finite vertices and is tight.
-    template<class G>
+    template<class G = Graph>
     bool tight(const G &g, const ShortestPathResult &sp, int a) {
         const auto &e = g.arcs[a];
         return sp.reachable[e.from] && !sp.negative[e.from] && sp.reachable[e.to] && !sp.negative[e.to] && sp.dist[e.from] + e.w == sp.dist[e.to];}
 
     // T: O(n + (k + m) * log(k + m + 1)), M: O(n + m + k); accept(out, x, d, s) decides whether an entry beside rank-0 state x becomes rank 1.
-    template<class G, class F>
+    inline TopTwoPaths noTopTwo(int n) {
+        return {vector<lll>(2 * size_t(n)), vector<int>(2 * size_t(n), -1), vector<int>(2 * size_t(n), -1), vector<int>(2 * size_t(n), -1)};}
+
+    template<class G = Graph, class F>
     TopTwoPaths topTwo(const G &g, const vector<int> &sources, F accept) {
-        TopTwoPaths out{vector<lll>(2 * size_t(g.n)), vector<int>(2 * size_t(g.n), -1), vector<int>(2 * size_t(g.n), -1), vector<int>(2 * size_t(g.n), -1)};
+        TopTwoPaths out = noTopTwo(g.n);
         using Entry = tuple<lll, int, int, int, int>;
         priority_queue<Entry, vector<Entry>, std::greater<Entry>> ready;
         for (int s : sources) { assert(0 <= s && s < g.n); ready.push({0, s, -1, -1, s}); }
@@ -95,7 +98,7 @@ namespace shortest_path_advanced_detail {
         return out;}
 
     // T: O(k + (n + m) * log(n + m + 1)), M: O(n + m); maximum maximizes the minimum arc weight, sources hold the empty-walk sentinel.
-    template<class G>
+    template<class G = Graph>
     ShortestPathResult bottleneck(const G &g, const vector<int> &sources, bool maximum) {
         ShortestPathResult out(g.n, sources);
         priority_queue<pair<lll, int>, vector<pair<lll, int>>, std::greater<pair<lll, int>>> ready;
@@ -113,7 +116,7 @@ namespace shortest_path_advanced_detail {
         return out;}
 
     // T: O(sqrt(n) * (n + m)), M: O(n + m); turns reduced weights >= -1 into >= 0 by changing p, false on a negative cycle.
-    template<class G, class W>
+    template<class G = Graph, class W>
     bool refine(const G &g, const vector<char> &live, vector<lll> &p, W w) {
         int n = g.n, need = INT_MAX; Graph h(n, true);
         while (true) {
@@ -166,7 +169,7 @@ namespace shortest_path_advanced_detail {
 } // namespace shortest_path_advanced_detail
 
 // T: O(n * m + n + k), M: O(n); FIFO label correcting, signed weights; a vertex queued more than n times reruns bellmanFord.
-template<class G>
+template<class G = Graph>
 ShortestPathResult spfa(const G &g, const vector<int> &sources) {
     ShortestPathResult out(g.n, sources); queue<int> ready; vector<char> queued(g.n); vector<int> cnt(g.n);
     for (int u = 0; u < g.n; ++u) { if (out.reachable[u]) { ready.push(u); queued[u] = true; cnt[u] = 1; }}
@@ -180,7 +183,7 @@ ShortestPathResult spfa(const G &g, const vector<int> &sources) {
     return out;}
 
 // T: O(n * m + n + k), M: O(n); D'Esopo-Pape deque order, signed weights; past n * (m + 1) arc scans it reruns bellmanFord.
-template<class G>
+template<class G = Graph>
 ShortestPathResult desopoPape(const G &g, const vector<int> &sources) {
     ShortestPathResult out(g.n, sources); deque<int> ready; vector<char> state(g.n);
     lng budget = lng(g.n) * (lng(g.arcs.size()) + 1);
@@ -197,7 +200,7 @@ ShortestPathResult desopoPape(const G &g, const vector<int> &sources) {
     return out;}
 
 // T: O(k + m + n * C) for maximum weight C, M: O(n + m + C); weights in [0, 2^31 - 1).
-template<class G>
+template<class G = Graph>
 ShortestPathResult dialDijkstra(const G &g, const vector<int> &sources) {
     lng c = 0; bool ok = true;
     for (const auto &e : g.arcs) { ok &= 0 <= e.w && e.w < INT_MAX; c = max(c, e.w); }
@@ -217,7 +220,7 @@ ShortestPathResult dialDijkstra(const G &g, const vector<int> &sources) {
     return out;}
 
 // T: O(k + m + n * b), b = 64, M: O(n + b); nonnegative weights with (n - 1) * max weight < 2^64.
-template<class G>
+template<class G = Graph>
 ShortestPathResult radixHeapDijkstra(const G &g, const vector<int> &sources) {
     lng c = 0; bool ok = true;
     for (const auto &e : g.arcs) { ok &= e.w >= 0; c = max(c, e.w); }
@@ -236,7 +239,7 @@ ShortestPathResult radixHeapDijkstra(const G &g, const vector<int> &sources) {
     return out;}
 
 // T: O((n + m) * log(n + m + 1)) for consistent h, exponential for admissible h, M: O(n + m); weights >= 0, h(v) <= dist(v, t).
-template<class G, class H>
+template<class G = Graph, class H>
 StPath aStar(const G &g, int s, int t, H h) {
     assert(0 <= s && s < g.n && 0 <= t && t < g.n);
     if (!shortest_path_advanced_detail::nonnegative(g)) { return {}; }
@@ -255,7 +258,7 @@ StPath aStar(const G &g, int s, int t, H h) {
     return {};}
 
 // T: O((n + m) * log(n + m + 1)), M: O(n + m); weights >= 0, searches from s on g and from t on the reversed arcs.
-template<class G>
+template<class G = Graph>
 StPath bidirectionalDijkstra(const G &g, int s, int t) {
     assert(0 <= s && s < g.n && 0 <= t && t < g.n);
     if (!shortest_path_advanced_detail::nonnegative(g)) { return {}; }
@@ -285,9 +288,9 @@ StPath bidirectionalDijkstra(const G &g, int s, int t) {
     return out;}
 
 // T: O(n + (k + m) * log(k + m + 1)), M: O(n + m); weights >= 0; rank 1 is the second shortest walk, strictly longer when strict.
-template<class G>
+template<class G = Graph>
 TopTwoPaths secondShortestPath(const G &g, const vector<int> &sources, bool strict = true) {
-    if (!shortest_path_advanced_detail::nonnegative(g)) { return {}; }
+    if (!shortest_path_advanced_detail::nonnegative(g)) { return shortest_path_advanced_detail::noTopTwo(g.n); }
     vector<int> unique; vector<char> seen(g.n);
     for (int s : sources) {
         assert(0 <= s && s < g.n);
@@ -295,13 +298,13 @@ TopTwoPaths secondShortestPath(const G &g, const vector<int> &sources, bool stri
     return shortest_path_advanced_detail::topTwo(g, unique, [&](const TopTwoPaths &r, int x, lll d, int) { return !strict || d > r.dist[x]; });}
 
 // T: O(n + (k + m) * log(k + m + 1)), M: O(n + m + k); weights >= 0; rank 1 is the nearest source distinct from the rank-0 source.
-template<class G>
+template<class G = Graph>
 TopTwoPaths top2Dijkstra(const G &g, const vector<int> &sources) {
-    if (!shortest_path_advanced_detail::nonnegative(g)) { return {}; }
+    if (!shortest_path_advanced_detail::nonnegative(g)) { return shortest_path_advanced_detail::noTopTwo(g.n); }
     return shortest_path_advanced_detail::topTwo(g, sources, [](const TopTwoPaths &r, int x, lll, int s) { return s != r.source[x]; });}
 
 // T: O(n + m), M: O(n + m); sp from a sum-weight engine on g, tight arcs join finite vertices.
-template<class G>
+template<class G = Graph>
 ShortestPathDag shortestPathDag(const G &g, const ShortestPathResult &sp) {
     assert(int(sp.dist.size()) == g.n);
     ShortestPathDag out{true, {}, {}}; vector<int> indeg(g.n); int finite = 0;
@@ -317,7 +320,7 @@ ShortestPathDag shortestPathDag(const G &g, const ShortestPathResult &sp) {
     return out;}
 
 // T: O(k + (n + m) * log(n + m + 1)) for weights >= 0, O(n * m + n + k) otherwise, M: O(n + m); mod in [1, 2^63].
-template<class G>
+template<class G = Graph>
 PathCountResult countShortestPaths(const G &g, const vector<int> &sources, ulng mod) {
     assert(1 <= mod && mod <= ulng(1) << 63);
     bool nonnegative = std::all_of(g.arcs.begin(), g.arcs.end(), [](const GraphArc &e) { return e.w >= 0; });
@@ -334,17 +337,17 @@ PathCountResult countShortestPaths(const G &g, const vector<int> &sources, ulng 
     return out;}
 
 // T: O(k + (n + m) * log(n + m + 1)), M: O(n + m); signed weights, dist is the least maximum arc weight, -PATH_INF at sources.
-template<class G>
+template<class G = Graph>
 ShortestPathResult minimaxPath(const G &g, const vector<int> &sources) {
     return shortest_path_advanced_detail::bottleneck(g, sources, false);}
 
 // T: O(k + (n + m) * log(n + m + 1)), M: O(n + m); signed weights, dist is the greatest minimum arc weight, PATH_INF at sources.
-template<class G>
+template<class G = Graph>
 ShortestPathResult widestPath(const G &g, const vector<int> &sources) {
     return shortest_path_advanced_detail::bottleneck(g, sources, true);}
 
 // T: O(sqrt(n) * (n + m) * log(N) + (n + m) * log(n + m + 1) + k), plus O(n * m) with a reachable negative cycle, N = 2 + max |w| of a reachable negative arc, M: O(n + m).
-template<class G>
+template<class G = Graph>
 ShortestPathResult negativeSsspScaling(const G &g, const vector<int> &sources) {
     auto walk = bfs(g, sources); vector<char> live(g.n); ulng big = 0;
     for (int v : walk.order) { live[v] = true; }

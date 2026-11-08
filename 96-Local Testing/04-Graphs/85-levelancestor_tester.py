@@ -1,4 +1,4 @@
-"""LevelAncestor and offlineLevelAncestor against independent BFS parent-walk and root-path DFS oracles.
+"""LevelAncestor and levelAncestorOffline against independent BFS parent-walk and root-path DFS oracles.
 
 Every checked graph also verifies the Forest fields (parent, dep, root), that each bottom is a deepest
 leaf, the ladder tiling with ladder.size() <= 2n, and jumps.size() = sum of bit_width(dep) over leaves.
@@ -13,7 +13,7 @@ Full: labeled forests through n=6, 600 random forests, shapes through n=513 (ext
 path above n=128), 200000 sampled queries on 200000-vertex path, caterpillar, recursive, deep-random,
 path-binary, comb and forest. Stress: labeled forests through n=7, 4000 random forests, two rounds per
 large random shape, plus a 500000-vertex path (three roots), caterpillar and recursive.
-Builds: optimized (-DNDEBUG, also negative k returns -1), checked, and ASan/UBSan in full/stress.
+Builds: optimized (-DNDEBUG), checked, and ASan/UBSan in full/stress.
 """
 from _00_runner import main
 
