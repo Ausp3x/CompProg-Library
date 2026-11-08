@@ -31,6 +31,7 @@ A row without an evidence link names the sources of its operations in its Status
 | AST94 | Aggarwal, Schieber, Tokuyama, minimum-weight k-link paths with the concave Monge property, DCG (1994) |
 | AUDIT | Candidate list supplied with the Graphs rewrite task of 2026-10-06 (`04-Graphs/Docs/00-sources.md`) |
 | BENDER02 | Bender, Cole, Demaine, Farach-Colton, Zito, order maintenance, ESA 2002 |
+| BFC04 | Bender, Farach-Colton, The Level Ancestor Problem simplified, TCS (2004) |
 | BKPR21 | Belazzougui, Kosolobov, Puglisi, Raman, Weighted Ancestors in Suffix Trees Revisited, CPM 2021 |
 | BPR17 | Barbay, Pérez-Lantero, Rojas-Ledesma, depth distribution in high dimensions, arXiv 1705.10022 |
 | CF | [Codeforces](https://codeforces.com/) problems and editorials |

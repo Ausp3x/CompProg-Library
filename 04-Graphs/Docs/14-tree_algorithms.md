@@ -84,7 +84,6 @@ Both run in O(n), and the two are mutually inverse over the n^(n − 2) labelled
 - `TreeEdgePainting` (`OLD/Team Notebook/src/algs.cpp`, `algsbetter.cpp`): row 15, see [15-hld.md](15-hld.md#legacy-mapping).
 - `rootTree` (planned; removed 2026-11-03, user decision): `dfs(g, {root})` or `bfs(g, {root})` gives `parent`, `parent_arc`, `depth` and `order`. Children lists take one pass over `parent`.
 - `pathVertices` (planned; removed, user decision): `HLD::processPath(u, v, false, f)` gives ranges; read `order[l..r)`, reversed when `up`. Without an HLD, use `bfsShortestPaths(g, {u}).path(g, v).vertices`.
-- `EulerTour: pathRanges` (planned; removed, user decision): `HLD::processPath`.
 - `bfsNumbering` (planned name): the `BfsNumbering` struct.
 
 ## Feature-to-test map
@@ -155,7 +154,7 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)
 ## Limits and handoffs
 
 - `Rerooting` and `subtreeMergeDp` take trees only; for a forest, run them per component (`connectedComponents` and `inducedSubgraph`).
-- Invertible-merge rerooting, all-roots O(N · K) knapsack and the online virtual tree are recorded omissions; long-path decomposition DP is the planned row 84 operation `longPathDp` ([notes](00-notes.md#p042-gr05-omissions), user decision 2026-11-04).
+- Invertible-merge rerooting and the online virtual tree are recorded omissions ([notes](00-notes.md#p042-gr05-omissions)).
 - `meet(a, b, c)` is a follow-up for row 07.
 
 ## History
@@ -163,3 +162,4 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)
 - 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 1099 mutants): six range probes closed 7 survivors; 51 recorded with arguments.
 - 2026-11-04: `/finish GR05` audit: `subtreeMergeDp` empty hook output, `pruferEncode` pointer bound under `NDEBUG`, dead `diskRanges` branch, complexity lines and evidence wording fixed; full passed on g++ and g++-14.
 - 2026-11-03: P042 GR05 first implementation (planned row); full suite passed on g++ and g++-14, stress seed 2; testing fixed two `INT_MAX` overflows (`levelRange`, `subtreeMergeDp`), review fixed loops bounded by the BFS order under `NDEBUG`, an exclusive `BfsNumbering::tout` and the `closeVertex` hook name; the row 07 `Forest` now skips revisits under `NDEBUG` (user decision).
+- 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.

@@ -218,3 +218,4 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)
 
 - 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 1330 mutants): detail-engine and stale-entry fixtures and four probes closed 27 survivors, and the review's `refine` star case one more; 63 recorded with arguments.
 - 2026-11-03: P042 GR04 rewrite from the pinned legacy excerpt; `top2Dijkstra` added; tester found `aStar` with negative h(t) and the scaling's false negative cycles, both fixed; review: 11 findings fixed (NDEBUG bounded returns, complexity lines, refine reuses its round graph); full suite passed on g++ and g++-14, stress seed 7.
+- 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.

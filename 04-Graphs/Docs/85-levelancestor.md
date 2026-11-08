@@ -104,8 +104,9 @@ None is required (Contest profile, no reduction, no threshold). A scratch timing
 
 - Depths are `int`; `n <= INT_MAX / 2` keeps `ladder` indexable and `jumps.size() <= INT_MAX` keeps `jump_start` exact (a caterpillar passes it near n = 1.7e8, about 9 GB of tables). Neither is asserted.
 - Under `NDEBUG` an out-of-range `u` reads (`query`) or writes (`offlineLevelAncestor`) out of bounds, as row 07's `LCA` and `offlineLCA` do; no guard branch is added to the O(1) query (user decision 2026-11-04).
-- The O(n)-preprocessing macro-micro variant is planned row 94 (package P277); online leaf addition and an O(1) path `jump` stay out ([00-notes.md](00-notes.md#p042-gr70-omissions)).
+- The O(n)-preprocessing macro-micro variant is planned row 94 (package P277); online leaf addition stays out ([00-notes.md](00-notes.md#p042-gr70-omissions)).
 
 ## History
 
 - 2026-11-04: P042 GR70, new header; review: no correctness defect, 8 findings fixed (jumps store ladder positions, `offlineLevelAncestor` rename, stale counts, integration row, mutation wording, row `build`, duplicates keeps, wording); quick, full on g++ and g++-14, stress (seed 2), integration and mutation passed.
+- 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.

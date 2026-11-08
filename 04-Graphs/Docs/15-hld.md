@@ -134,3 +134,4 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)
 - 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 669 mutants): an isolated 10^6-vertex forest and 11 range probes closed 13 survivors; 26 recorded with arguments.
 - 2026-11-04: `/finish GR05` audit: single build assertion, `kthAncestor` takes `lng` (user decision), heavy-child tie tested; full passed on g++ and g++-14.
 - 2026-11-03: P042 GR05 rewrite of the pinned legacy excerpt; full suite passed on g++ and g++-14, stress seed 2; testing fixed an unclamped `maxPath` search, review fixed `maxPath` (search confined to the path's ranges), the heavy-child tie rule, the `TreeMonoid` argument order and the `reorderArray` complexity line.
+- 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.

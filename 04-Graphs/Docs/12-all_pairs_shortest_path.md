@@ -134,3 +134,4 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)
 
 - 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 674 mutants): the Johnson exponential ladder and four range probes closed 13 survivors; 60 recorded with arguments.
 - 2026-11-03: P042 GR04 rewrite from the pinned legacy excerpt; full suite passed on g++ and g++-14, stress seed 7; review: apspDijkstra removed (user decision), 11 findings fixed.
+- 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.

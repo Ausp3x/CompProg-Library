@@ -10,7 +10,7 @@ Decided by the user since 2026-10-10; binding, and only the user changes them.
 
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
 - **P048** row 35 `triangleAggregate` is named `triangleProductSum` (decided 2026-10-29).
-- **P042** rows 14 and 15: `rootTree` (`dfs(g, {root})`), `pathVertices` (`HLD::processPath` ranges read through `order`), `EulerTour: pathRanges` (`HLD::processPath`) and `treePainting` (edge-mode `TreeMonoid<Sum>` `set` and `pathFold`) are removed; `HLD::addEdge`/`build` become the `HLD(g, root)` constructor (decided 2026-11-03).
+- **P042** rows 14 and 15: `rootTree` (`dfs(g, {root})`), `pathVertices` (`HLD::processPath` ranges read through `order`), `treePainting` (edge-mode `TreeMonoid<Sum>` `set` and `pathFold`) are removed; `HLD::addEdge`/`build` become the `HLD(g, root)` constructor (decided 2026-11-03).
 - **P042** row 12: the planned `apspPath` is `AllPairsResult::path`, and `apspDijkstra` is removed in favor of `johnson`, a narrowing with identical results and cost (both decided 2026-11-03).
 - **P018** `06-Miscellaneous/03-fastio.hpp` moves to `01-Core/19-fastio.hpp`, a Core full header with no forwarding header in 06, and absorbs P066's planned row 17: `MmapInput` is `FastInput<0>` (a mapped regular file under Linux, else fread), `SyscallOutput` is `FastOutput` (decided 2026-11-01).
 - **P061, P191** Mathematics row 23 owns the matrix-tree counts (`countSpanningTrees`, `countArborescences`, `countRootedForests`, `eulerianCircuitCountBest`); Graphs row 53 drops `countSpanningTrees`, `countArborescences`, `countSpanningForests` and `countEulerianCircuits` (decided 2026-11-08).
@@ -392,7 +392,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `treeRadius`, `treeCenter` | row 14 | fields of the `treeEccentricities` result | keep | derived formulas of the eccentricities (clarified rule) | — | — |
-| `rootTree`; `pathRanges`; `pathVertices` | row 14 | `dfs(g, {root})`; `HLD::processPath`; `HLD::processPath` through `order` | remove (row only) | projections (decided 2026-11-03) | — | — |
+| `rootTree`; `pathVertices` | row 14 | `dfs(g, {root})`; `HLD::processPath` through `order` | remove (row only) | projections (decided 2026-11-03) | — | — |
 | `treePainting` | row 15 | edge-mode `TreeMonoid<Sum>` `set` and `pathFold` | remove | narrowing (decided 2026-11-03) | legacy `TreeEdgePainting` cases reproduced in the row 15 tester | — |
 | `HLD::addEdge`, `build` | `15-hld.hpp` (legacy) | `HLD(g, root)` | remove | legacy input format a builder converts (decided 2026-11-03) | — | — |
 | `EulerTour` | row 14 | `lca_detail::Forest` | keep | public operation; build it on Forest's DFS with one range convention | — | — |
