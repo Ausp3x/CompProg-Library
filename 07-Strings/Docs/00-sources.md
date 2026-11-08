@@ -1,6 +1,6 @@
 # 07 Strings — sources
 
-Source keys used in `00-index.md` status cells are defined under "Prior source keys and audit narrative" below.
+Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys).
 
 ## Catalog pages fetched 2026-10-06
 
@@ -44,7 +44,7 @@ Per-row research for `21`, `22`, `23`; pages fetched 2026-10-16 by the completen
 
 | Row | Pages | Outcome |
 |---|---|---|
-| `21` | https://ics.uci.edu/~goodrich/teach/cs262P/notes/StringMatchingWithFFT.pdf (pp. 1–3), https://github.com/yosupo06/library-checker-problems/blob/master/string/wildcard_pattern_matching/task.md, https://nyaannyaan.github.io/library/string/wildcard-pattern-matching.hpp, https://ei1333.github.io/library/string/wildcard-pattern-matching.hpp, https://maspypy.github.io/library/string/wildcard_pattern_matching.hpp, https://en.wikipedia.org/wiki/Matching_wildcards, https://research.swtch.com/glob, https://cp-algorithms.com/algebra/fft.html; OI Wiki `/string/wildcard/` returned 404 and `/string/match/`, `/math/poly/fft/` do not cover it (the row's `OI-STR` key was dropped) | Clifford–Clifford (random symbol values) and the Fischer–Paterson bitwise decomposition adopted; glob by greedy leftmost segments plus a bit-parallel NFA; no catalog has a glob routine |
+| `21` | https://ics.uci.edu/~goodrich/teach/cs262P/notes/StringMatchingWithFFT.pdf (pp. 1–3), https://github.com/yosupo06/library-checker-problems/blob/master/string/wildcard_pattern_matching/task.md, https://nyaannyaan.github.io/library/string/wildcard-pattern-matching.hpp, https://ei1333.github.io/library/string/wildcard-pattern-matching.hpp, https://maspypy.github.io/library/string/wildcard_pattern_matching.hpp, https://en.wikipedia.org/wiki/Matching_wildcards, https://research.swtch.com/glob, https://cp-algorithms.com/algebra/fft.html; OI Wiki `/string/wildcard/` returned 404 and `/string/match/`, `/math/poly/fft/` do not cover it (the row's `OI` key was dropped) | Clifford–Clifford (random symbol values) and the Fischer–Paterson bitwise decomposition adopted; glob by greedy leftmost segments plus a bit-parallel NFA; no catalog has a glob routine |
 | `22` | https://cp-algorithms.com/string/suffix-array.html, https://oi-wiki.org/string/sa/, https://suisen-cp.github.io/cp-library-cpp/library/string/compare_substring.hpp, https://suisen-cp.github.io/cp-library-cpp/library/string/substring_set.hpp, maspypy `string/{all_pairs_lcp, many_string_compare, sort_substrings, lex_max_suffix_for_all_prefix, lex_min_suffix_for_all_prefix, non_dominated_suffix, suffix_lcp_change, substring_abundant_string, basic_substring_structure, enumerate_occurrences, suffix_tree}.hpp` (raw GitHub), Nyaan `string-search.hpp`, ei1333 `suffix-array.hpp`, hitonanode `longest_common_prefix.hpp`, https://arxiv.org/abs/1312.2738, https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2017.24; Barton et al. 2014 and CMR 1998 seen in search results only | KMR `lcp`, many-string `lce`/`comparePieces`, both substring ranks adopted; `allPairsLcp` defined as per-suffix LCP sums (`lcpSums`), `frequencyStatistics` as the histogram by occurrence count; the rest in the notes |
 | `23` | https://raw.githubusercontent.com/maspypy/library/main/alg/monoid/rolling_hash.hpp, https://raw.githubusercontent.com/maspypy/library/main/string/deque_rolling_hash.hpp, https://raw.githubusercontent.com/maspypy/library/main/string/rolling_hash.hpp, https://suisen-cp.github.io/cp-library-cpp/library/string/dynamic_rolling_hash.hpp, https://nyaannyaan.github.io/library/string/rolling-hash-on-segment-tree.hpp, https://hitonanode.github.io/cplib-cpp/string/rolling_hash_1d.hpp, https://oi-wiki.org/string/hash/, https://cp-algorithms.com/string/string-hashing.html; CF 580E and BZOJ 1014 write-ups; CSES Palindrome Queries from search results only | `reverseGet`, `lcs`, `compare` on the point-update and sequence hashes and range assignment in `HashMonoid` adopted; `mutableLcp` became `SequenceHash::lcp` |
 
@@ -65,7 +65,7 @@ Per-row research for `16`, `17`, `20`, `29`; pages fetched 2026-10-10 by the com
 | `16` | https://www-igm.univ-eiffel.fr/~lecroq/string/ (index, node4, node5, node14, node19, node26), https://cp-algorithms.com/string/rabin-karp.html, https://oi-wiki.org/string/match/, https://oi-wiki.org/string/bm/, https://nyaannyaan.github.io/library/string/string-search.hpp (a suffix-array wrapper, `07`), https://raw.githubusercontent.com/maspypy/library/main/string/is_substring.hpp, https://raw.githubusercontent.com/maspypy/library/main/string/enumerate_occurrences.hpp (multi-pattern, `06`), KACTL `KMP.h`, https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/strings/kmp.py | Galil rule inside `boyerMoore`, `isSubstring`, disjoint mode of `countOccurrences` adopted; Rabin–Karp named as verified hits; `sunday` named Quick Search |
 | `17` | https://www-igm.univ-eiffel.fr/~lecroq/string/node6.html, https://en.wikipedia.org/wiki/Bitap_algorithm, https://oi-wiki.org/string/match/, https://users.dcc.uchile.cl/~gnavarro/ps/jstat04.pdf (pp. 1–6, 8–13); Codeforces 914F/963D returned 403 (technique from search results) | Character-class `patternMasks`, masks overloads for every search, `BitsetText` adopted; multiword support for the k-error searches |
 | `20` | https://oi-wiki.org/string/seq-automaton/, https://github.com/maspypy/library/tree/main/string, https://raw.githubusercontent.com/maspypy/library/main/string/count_subsequence.hpp, https://raw.githubusercontent.com/maspypy/library/main/string/is_subsequence.hpp, https://nyaannyaan.github.io/library/string/number-of-subsequences.hpp, https://suisen-cp.github.io/cp-library-cpp/library/dp/number_of_subsequences.hpp, https://atcoder.jp/contests/arc081/tasks/arc081_c, https://atcoder.jp/contests/abc214/tasks/abc214_f, https://atcoder.jp/contests/typical90/tasks/typical90_f, https://www.cnblogs.com/BlankAo/p/15826647.html, https://www.luogu.com.cn/article/v381e762; Library Checker `number_of_subsequences` page body empty | Sparse (position-list) variant, per-state counts, range `isSubsequence`, lexicographically smallest absent witness adopted |
-| `29` | https://en.wikipedia.org/wiki/Burrows%E2%80%93Wheeler_transform, https://www.cs.princeton.edu/courses/archive/fall20/cos226/assignments/burrows/specification.php, https://rosalind.info/problems/list-view/?location=bioinformatics-textbook-track, https://arxiv.org/abs/0908.0239 and https://arxiv.org/abs/2106.11191 (abstracts); https://oi-wiki.org/string/bwt/ returned 404 and cp-algorithms has no BWT page, so the row's `OI-STR` key has no BWT page behind it; SPOJ BWHEELER returned 403 | `bijectiveBwt`/`inverseBijectiveBwt` and `inverseBwtPrimary` (named inverse per representation) adopted |
+| `29` | https://en.wikipedia.org/wiki/Burrows%E2%80%93Wheeler_transform, https://www.cs.princeton.edu/courses/archive/fall20/cos226/assignments/burrows/specification.php, https://rosalind.info/problems/list-view/?location=bioinformatics-textbook-track, https://arxiv.org/abs/0908.0239 and https://arxiv.org/abs/2106.11191 (abstracts); https://oi-wiki.org/string/bwt/ returned 404 and cp-algorithms has no BWT page, so the row's `OI` key has no BWT page behind it; SPOJ BWHEELER returned 403 | `bijectiveBwt`/`inverseBijectiveBwt` and `inverseBwtPrimary` (named inverse per representation) adopted |
 
 ## P083 sweeps (2026-10-10)
 
@@ -128,9 +128,86 @@ Scope `07`, `11`; decisions are in the rows, the P017/P082/P085/P232 plan notes 
 | https://api.github.com/repos/{maspypy/library/contents/string, NyaanNyaan/library/contents/string, ei1333/library/contents/string, suisen-cp/cp-library-cpp/contents/library/string, hitonanode/cplib-cpp/contents/string} (full listings; the generated index pages truncate) and the suffix-array/LCP files they list | No suffix-tree or weighted-ancestor file outside maspypy; maspypy `suffix_lcp_change` and `basic_substring_structure` stay as decided under P085 in [00-notes.md](00-notes.md); the rest are aliases of `07`, `12`, `22`, `31` |
 | https://arxiv.org/abs/1406.7716, https://arxiv.org/abs/2103.00462, https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2021.8 | `51`: GLN14 O(n) extra space, O(1) query; BKPR21 O(1) query with linear construction (irreducible LCP values) |
 
-## Prior source keys and audit narrative (2026-09-27 and 2026-09-28, condensed)
+## Fetched 2026-11-08 (omission sweep)
 
-Keys used in status cells: KACTL, CPALG (cp-algorithms), OI-STR (OI Wiki string section), MASPYPY, NYAAN, SUISEN, HITONANODE, TKO919, YOSUPO (Library Checker), CSES, LECROQ, RUNS (arXiv 1406.0263), RINDEX (arXiv 1705.10382), DYNAMICSTRINGS (arXiv 1511.02612, Gawrychowski et al., Optimal Dynamic Strings), SEMILOCAL (arXiv 0707.3619, Tiskin, Semi-local string comparison), GLN14 (arXiv 1406.7716, Gawrychowski, Lewenstein, Nicholson, Weighted ancestors in suffix trees, ESA 2014), BKPR21 (LIPIcs CPM 2021.8, Belazzougui, Kosolobov, Puglisi, Raman, Weighted Ancestors in Suffix Trees Revisited).
+Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
+
+| URL | Used for |
+|---|---|
+| https://raw.githubusercontent.com/maspypy/library/main/string/periods.hpp | 01: `borders`, `periods`; 27: `primitiveRoot` |
+| https://cp-algorithms.com/string/z-function.html | 02: `DistinctSubstringsDeque`, `distinctSubstrings` |
+| https://cp-algorithms.com/string/prefix-function.html | 02: `DistinctSubstringsDeque`, `distinctSubstrings` |
+| https://oi-wiki.org/string/kmp/ | 02: `DistinctSubstringsDeque`, `distinctSubstrings` |
+| https://oi-wiki.org/string/hash/ | 03: `longestCommonSubstringHash` |
+| https://cp-algorithms.com/string/string-hashing.html | 03: `longestCommonSubstringHash` |
+| https://oi-wiki.org/string/pam/ | 08: `minPalindromePartition`; 13: `palindromicLength` |
+| https://curiouscoding.nl/posts/approximate-string-matching/ | 17: `myersSearch`; 18: `bandedMyersBitVector`, `optimalStringAlignmentBitVector` |
+| https://en.wikipedia.org/wiki/Bitap_algorithm | 17: `myersSearch` |
+| https://en.wikipedia.org/wiki/Approximate_string_matching | 17: `myersSearch`; 38: `hammingDistances`, `kMismatch`, `approximateOccurrences` |
+| https://www.mi.fu-berlin.de/en/inf/groups/abi/teaching/theses/master_dipl/langner_bitvector/dipl_thesis_langner.pdf | 18: `bandedMyersBitVector`, `optimalStringAlignmentBitVector` |
+| https://cses.fi/problemset/task/3404 | 19: `huntSzymanskiWitness` |
+| https://cses.fi/problemset/ | 19: `huntSzymanskiWitness` |
+| https://oi-wiki.org/string/seq-automaton/ | 20: `shortestUncommonSubsequence` |
+| https://oi-wiki.org/dp/dp-of-dp/ | 24: `Dfa`, `fromDp` |
+| https://oi-wiki.org/misc/ | 24: `Dfa`, `fromDp` |
+| https://en.wikipedia.org/wiki/DFA_minimization | 24: `Dfa`, `minimize`, `Dfa`, `isEmpty` |
+| https://en.wikipedia.org/wiki/Regular_language | 24: `Dfa`, `star`, `Dfa`, `isEmpty`, `Dfa`, `countAccepted` |
+| https://en.wikipedia.org/wiki/Glushkov%27s_construction_algorithm | 24: `Nfa`, `fromRegex` |
+| https://en.wikipedia.org/wiki/Thompson%27s_construction | 24: `Nfa`, `fromRegex`, `Nfa`, `search` |
+| https://en.wikipedia.org/wiki/Radix_tree | 25: `RadixTrie`, `predecessor`, `RadixTrie`, `split` |
+| https://oi-wiki.org/string/trie/ | 25: `RadixTrie`, `split` |
+| https://cp-algorithms.com/string/main_lorentz.html | 26: `countSquares`, `longestSquare` |
+| https://oi-wiki.org/string/main-lorentz/ | 26: `countSquares`, `longestSquare` |
+| https://www.luogu.com/article/qfa1j1dh | 27: `borderProgressions` |
+| https://arxiv.org/abs/1406.0263 | 27: `isSquareFree`, `isOverlapFree` |
+| https://en.wikipedia.org/wiki/Square-free_word | 27: `isSquareFree`; 50: `squareFreeTernaryWord`, `morphismFixedPoint` |
+| https://en.wikipedia.org/wiki/Combinatorics_on_words | 27: `isOverlapFree`; 50: `squareFreeTernaryWord`, `morphismFixedPoint` |
+| https://raw.githubusercontent.com/maspypy/library/main/string/generalized_suffix_automaton.hpp | 28: `GeneralizedSuffixAutomaton`, `build`, `GeneralizedSuffixAutomaton`, `step` |
+| https://oi-wiki.org/string/general-sam/ | 28: `GeneralizedSuffixAutomaton`, `build`, `GeneralizedSuffixAutomaton`, `step` |
+| https://nyaannyaan.github.io/library/string/rolling-hash-2d.hpp | 32: `Hash2D`, `hashOf` |
+| https://hitonanode.github.io/cplib-cpp/string/rolling_hash_2d.hpp | 32: `Hash2D`, `hashOf` |
+| https://raw.githubusercontent.com/maspypy/library/main/string/rolling_hash_2d.hpp | 32: `Hash2D`, `hashOf` |
+| https://arxiv.org/html/2409.19576 | 33: `popFront` |
+| https://arxiv.org/abs/2409.19576 | 33: `popFront` |
+| https://arxiv.org/abs/1801.07449 | 33: `popFront`; 44: `SlidingWindowSuffixAutomaton`, `isSubstring` |
+| https://oi-wiki.org/string/suffix-tree/ | 33: `step`, `suffixLink` |
+| https://topic.alibabacloud.com/a/codeforces-163ee-government-ac-automaton-dfs-sequence--tree-array_8_8_30244620.html | 34: `ToggleAhoCorasick`, `activate` |
+| https://oi-wiki.org/string/ac-automaton/ | 34: `ToggleAhoCorasick`, `activate` |
+| https://hitonanode.github.io/cplib-cpp/string/incremental_matching.hpp | 34: `OnlineAhoCorasick`, `countPatterns` |
+| https://hitonanode.github.io/cplib-cpp/string/aho_corasick_online.hpp | 34: `OnlineAhoCorasick`, `countPatterns` |
+| https://oi-wiki.org/string/suffix-bst/ | 35: `SuffixBalancedTree`, `occurrenceCount` |
+| https://github.com/xxsds/DYNAMIC | 36: `DynamicFmIndex`, `pushFront`; 46: `RlBwt`, `access` |
+| https://arxiv.org/abs/2310.13174 | 38: `hammingDistances` |
+| https://arxiv.org/abs/2210.02292v1 | 39: `shortestAbsentPalindromeInRange` |
+| https://arxiv.org/abs/2210.02292 | 39: `shortestAbsentPalindromeInRange` |
+| https://arxiv.org/abs/1905.08974 | 40: `cartesianTreeMatch` |
+| https://en.wikipedia.org/wiki/De_Bruijn_sequence | 41: `deBruijnDecode` |
+| https://arxiv.org/abs/1510.02637 | 41: `deBruijnDecode` |
+| https://en.wikipedia.org/wiki/LZ77_and_LZ78 | 42: `lzwDecode` |
+| https://www-igm.univ-eiffel.fr/~lecroq/string/node26.html | 43: `breslauerTwoWay` |
+| https://oi-wiki.org/string/sa-optimal-inplace/ | 43: `inPlaceSuffixSort` |
+| https://maspypy.github.io/library/string/double_ended_palindromic_tree.hpp | 45: `DoubleEndedPalindromicTree`, `size` |
+| https://gist.github.com/NachiaVivias/6ccf981deb58a53497bffd28b45acf88 | 45: `DoubleEndedPalindromicTree`, `size` |
+| https://github.com/yosupo06/library-checker-problems/blob/master/string/palindromes_in_deque/task.md | 45: `DoubleEndedPalindromicTree`, `size` |
+| https://arxiv.org/abs/1809.02792 | 46: `RIndex`, `saAccess` |
+| https://arxiv.org/abs/2006.05104 | 46: `MoveStructure`, `build` |
+| https://arxiv.org/abs/2112.04271 | 46: `MoveStructure`, `build` |
+| https://arxiv.org/abs/1802.05906 | 46: `RIndex`, `matchingStatistics` |
+| https://arxiv.org/abs/2205.01576 | 46: `RIndex`, `matchingStatistics`, `RIndex`, `maximalUniqueMatches` |
+| https://arxiv.org/abs/1705.10382 | 46: `RlBwt`, `countLess` |
+| https://arxiv.org/abs/1511.02612 | 47: `DynamicString`, `occurrences` |
+| https://arxiv.org/abs/1605.09558 | 47: `DynamicString`, `occurrences` |
+| https://arxiv.org/abs/0707.3619 | 48: `maxCliqueCircleGraph` |
+| https://en.wikipedia.org/wiki/Fibonacci_word | 50: `fibonacciBit`, `morphismFixedPoint` |
+| https://en.wikipedia.org/wiki/Sturmian_word | 50: `standardWord`, `isBalancedWord` |
+| https://en.wikipedia.org/wiki/Multi-key_quicksort | 52: `multikeyQuicksort`, `TernarySearchTree` |
+| https://en.wikipedia.org/wiki/Ternary_search_tree | 52: `multikeyQuicksort`, `TernarySearchTree` |
+| https://sedgewick.io/ | 52: `multikeyQuicksort`, `TernarySearchTree` |
+| https://en.wikipedia.org/wiki/CYK_algorithm | 53: `Cfg`, `addRule` |
+| https://oi-wiki.org/misc/fsm/ | 53: `Cfg`, `addRule` |
+| https://en.wikipedia.org/wiki/Suffix_automaton | 54: `Cdawg`, `build` |
+
+## Prior source keys and audit narrative (2026-09-27 and 2026-09-28, condensed)
 
 - The 2026-09-27 cross-library audit (`00-Guidelines/History/2026-09-27-inventory-audit.md`, records in `Ledgers/research-sources.json`) compared catalog navigation and selected API comments, not source correctness; it grew this folder from 35 to 49 rows (14 added). Paper abstracts identified advanced variants (dynamic strings, semi-local LCS, runs, r-index); their proofs remain implementation-time reading.
 - Targeted pages read then: maspypy `inverse_manacher.hpp` (odd-only radii), `online_z_algorithm.hpp`, `double_ended_palindromic_tree.hpp`, `prefix_substring_LCS.hpp` (wavelet-matrix dependency); OI Wiki navigation including suffix balanced tree, in-place suffix sorting, subsequence automaton and Main–Lorentz; Lecroq's complete table of contents (the univ-mlv hostname had a certificate mismatch; the univ-eiffel successor was used).

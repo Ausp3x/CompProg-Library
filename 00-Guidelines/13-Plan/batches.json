@@ -1427,7 +1427,7 @@
       ],
       "support_targets": [],
       "size": "XL",
-      "focus": "Graph-facing matrix-tree/all-minors/BEST/LGV counts, matching-count adapters to MA32, then exponential small-graph/subset and Tutte/reliability research stages. Keep mathematical kernels canonical in Mathematics.",
+      "focus": "Graph-facing LGV and subset spanning-tree counts (matrix-tree, all-minors and BEST counts are Mathematics row 23, user decision 2026-11-08), matching-count adapters to MA32, then exponential small-graph/subset and Tutte/reliability research stages. Keep mathematical kernels canonical in Mathematics.",
       "prerequisites": [
         "C01",
         "GR01",
@@ -7081,6 +7081,399 @@
       "focus": "Mini-first retrofit (2026-11-05): `21-wildcardmatching.hpp` defaults to `mint` (the mini) and forwards it.",
       "prerequisites": [
         "MA54"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "DS54",
+      "folder": "02-Data Structures",
+      "targets": [
+        "02-Data Structures/67-dynamicrlestring.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Dynamic run-length string (DYNAMIC rle_string): insert-only access, rank and select over runs on the row 49 dynamic bitvectors.",
+      "prerequisites": [
+        "C01",
+        "DS01",
+        "DS35"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "DS55",
+      "folder": "02-Data Structures",
+      "targets": [
+        "02-Data Structures/68-intervaltree.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Dynamic interval stabbing and overlap reporting (augmented balanced BST over intervals; CGAL interval skip list as the reference contract).",
+      "prerequisites": [
+        "C01",
+        "DS01"
+      ],
+      "tiers": [
+        "Advanced"
+      ]
+    },
+    {
+      "id": "DS56",
+      "folder": "02-Data Structures",
+      "targets": [
+        "02-Data Structures/69-binarygrouping.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Binary grouping: the static-to-dynamic transformation over a mergeable static structure, with deletions by paired groups.",
+      "prerequisites": [
+        "C01",
+        "DS01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE52",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/61-segment_intersection_optimal.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Balaban's optimal segment-intersection reporting, O(n log n + k) time and O(n) space, benchmarked against row 12 Bentley–Ottmann.",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE53",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/62-convexdecomposition3d.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Convex decomposition of a polyhedron by vertical facets through reflex edges (CGAL), O(r^2) pieces.",
+      "prerequisites": [
+        "C01",
+        "GE01",
+        "GE31"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE54",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/63-geometric_spanners.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Fair split tree and well-separated pair decomposition with their applications, and the Yao, Theta and half-Theta cone graphs.",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE55",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/64-disk_hull.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Convex hull of disks by divide and conquer over angular support functions (koosaga convex_hull_circle), with perimeter and area.",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Advanced"
+      ]
+    },
+    {
+      "id": "GE56",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/65-point_set_symmetry.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Symmetry and congruence of 2D point sets and polygons by cyclic string matching (Highnam 1985; Kim and Rote 2016).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Advanced"
+      ]
+    },
+    {
+      "id": "GE57",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/66-polyhedral_geodesic.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Exact shortest paths on triangulated polyhedral surfaces (CGAL Surface_mesh_shortest_path).",
+      "prerequisites": [
+        "C01",
+        "GE01",
+        "GE31"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE58",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/67-convexhulld.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Convex hull in any fixed dimension d by randomized incremental construction, with d-dimensional Delaunay and farthest-point Delaunay by the lifting map.",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GR77",
+      "folder": "04-Graphs",
+      "targets": [
+        "04-Graphs/91-incrementalplanarity.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Incremental planarity testing under edge arrival (La Poutré), benchmarked against binary search over arrival prefixes with row 62 isPlanar.",
+      "prerequisites": [
+        "C01",
+        "GR01",
+        "GR43"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GR78",
+      "folder": "04-Graphs",
+      "targets": [
+        "04-Graphs/92-modulardecomposition.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Linear-time modular decomposition (McConnell–Spinrad, Tedder et al.) and transitive orientation; candidate engine for row 87 cograph and permutation-graph recognition.",
+      "prerequisites": [
+        "C01",
+        "GR01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GR79",
+      "folder": "04-Graphs",
+      "targets": [
+        "04-Graphs/93-spanner.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Graph spanners: greedy t-spanner and the Baswana–Sen randomized (2k-1)-spanner (NetworkX, OGDF).",
+      "prerequisites": [
+        "C01",
+        "GR01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA55",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/68-ode_solvers.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "ODE integrators (Numerical Recipes): RK4, adaptive Dormand–Prince, Bulirsch–Stoer, Störmer–Verlet, Rosenbrock for stiff systems, and shooting for two-point boundary value problems.",
+      "prerequisites": [
+        "C01",
+        "MA01",
+        "MA08",
+        "MA09"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA56",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/69-continuous_optimization.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Multidimensional minimization and nonlinear systems (Numerical Recipes): Nelder–Mead, Powell, conjugate gradient, BFGS, globally convergent Newton, Levenberg–Marquardt.",
+      "prerequisites": [
+        "C01",
+        "MA01",
+        "MA08",
+        "MA09"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA57",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/70-trigonometric_transforms.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Discrete sine and cosine transforms on the row 13 FFT, and Haar and Daubechies D4 wavelets (Numerical Recipes).",
+      "prerequisites": [
+        "C01",
+        "MA01",
+        "MA06"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA58",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/71-elliptic_curves.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Elliptic curves over prime fields: group law, scalar multiplication, point counting (naive, baby-step giant-step, Schoof) and point order.",
+      "prerequisites": [
+        "C01",
+        "MA01",
+        "MA03",
+        "MA17"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI36",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/56-coin_systems.hpp"
+      ],
+      "support_targets": [],
+      "size": "S",
+      "focus": "Coin systems: greedy change, the smallest greedy counterexample (Kozen–Zaks bound) and the canonical-system test.",
+      "prerequisites": [
+        "C01",
+        "MI01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "ST42",
+      "folder": "07-Strings",
+      "targets": [
+        "07-Strings/52-ternarysearchtree.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Ternary search tree (Bentley–Sedgewick) with partial-match and Hamming near-neighbour search; the dictionary counterpart of Miscellaneous row 11 multikeyQuicksort.",
+      "prerequisites": [
+        "C01",
+        "ST01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "ST43",
+      "folder": "07-Strings",
+      "targets": [
+        "07-Strings/53-context_free_grammar.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Context-free grammars: Chomsky normal form and CYK membership, parse witness and weighted parse.",
+      "prerequisites": [
+        "C01",
+        "ST01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "ST44",
+      "folder": "07-Strings",
+      "targets": [
+        "07-Strings/54-cdawg.hpp"
+      ],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Compact directed acyclic word graph (Crochemore–Vérin), benchmarked against the row 10 suffix automaton.",
+      "prerequisites": [
+        "C01",
+        "ST01",
+        "ST04"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "SUP26",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Duplicate re-review (user decisions 2026-11-08) under `03-cpp.md`, One API per operation, as relaxed on 2026-11-08 (a wrapper in another context and a composition any source names are operations): `/duplicate-sweep` re-classifies every pending item of `00-Guidelines/23-Sweep Ledgers/duplicates.md` (`remove`, `remove (row only)`, `ask`), and the same pass re-reviews the removals of the 25 `Pxxx: prune duplicates` commits (each evidence document maps the removed names). Legacy guard: an item returns only if (a) the rule keeps it, (b) a current catalog, judge problem or standard text names it (`OLD` and legacy code alone never count) and (c) it returns as a call to its owner under a name that follows `02-structure.md` (Operation names), never the legacy name or signature. The same pass re-reads every omission recorded before 2026-11-08 (the folders' `Docs/00-notes.md` omission sections, the Not adopted lists of `Docs/00-sources.md` and `omissions.md`, about 470; about 60 cite a composition, one-liner, same answer or one problem, such as `SparseTable` `maxRight`, `ImplicitTreap` `rotate`, `floorDivStrict`, `divisorProduct`, NetworkX Voronoi cells, k-best arborescences and nonconvex Minkowski sums) under the same guard, and with it every standalone one-problem algorithm a catalog names, now an Esoteric operation (`01-principles.md`, Completeness; user decisions 2026-11-08). A returning item is added to its row as `/omission-sweep apply` adds one (a verified row and its package reopen); the rest stay removed or omitted.",
+      "prerequisites": [
+        "SUP23"
+      ],
+      "tiers": []
+    },
+    {
+      "id": "SUP27",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "L",
+      "focus": "Operation-name renames (user decision 2026-11-08): rename the existing names that break `02-structure.md` (Operation names), each as the scoped rename that rule requires (rows, code, tests, call sites, `08-Python` mirrors, judge sources, notebook selection and evidence mappings together): the `get` prefixes (`getSize`, `getLCA` (Graphs `GlobalBalancedTree` already says `lca`), `getPhi`, `getMu`, `getNumDiv`, `getSumDiv`, `getLpf`, `getPrimeFac`, `getAllFac`, `getTables`, `getDis`, `getEdge`, `getKthAncestor`, `getManhattanMSTEdges`, `getBaseId`; `getHilOrd` leaves with P067), floating-point `Real` names that mean `Approx` (`determinantReal`, `solveLinearReal`, `matrixRankReal`, Core `invReal`, `rankReal`, `solveReal`), `Brute`, `Slow` and `Fast` suffixes (`reportIntersectionsBrute`, `divModSlow`, `fctGcdSlow`, `fctLcmSlow`, `latticeInDiskFast`, `gaussCircleFast`, `interpolateFast`), and every other outlier the package's own scan finds. Core renames need a Fable session; list them and hand them to their Core packages.",
+      "prerequisites": [
+        "SUP23"
       ],
       "tiers": []
     }

@@ -28,7 +28,7 @@ paths:
 
 - Keep a feature-to-test map in the evidence document: every operation in the inventory row maps to at least one test.
 - Call every operation as user code does: `friend` functions unqualified through ADL, `static` builders as `Type<T>::name`, companion functions as `TypeCompanion::name`.
-- Before a wrapper or second implementation (`03-cpp.md`, One API per operation) is deleted, its test cases are reproduced against the kept operation and mapped in the feature-to-test map.
+- Before a same-context form or second implementation (`03-cpp.md`, One API per operation) is deleted, its test cases are reproduced against the kept operation and mapped in the feature-to-test map.
 - Oracles in priority order: independent brute force, bounded exhaustive small domains, algebraic or metamorphic identities, deterministic seeded random stress, saved regressions. Agreement between full and mini or between C++ and Python is supporting evidence only, never the sole oracle. Validate the brute force itself.
 - A contest operation generic over a Core type runs its cases with the mini default and with the full type. A slower algorithm and its faster counterpart check each other on their shared domain, and each keeps an independent oracle of its own.
 - Cases: empty and singleton, boundaries of every documented domain, extreme magnitudes, zero and negative values, duplicates and degeneracies, disconnected graphs, self-loops and multi-edges where allowed, threshold and alignment neighbours, aliasing of inputs and outputs, repeated calls, reset and cache changes, valid no-answer inputs, and each documented precondition failure under a checked build.

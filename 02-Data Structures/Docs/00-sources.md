@@ -216,11 +216,147 @@ One `@researcher` sweep for row 62; the adopted operations are in that row and t
 | ei1333, suisen, hitonanode | https://ei1333.github.io/library/math/matrix/binary-basis.hpp ; https://suisen-cp.github.io/cp-library-cpp/library/linear_algebra/xor_base.hpp ; https://hitonanode.github.io/cplib-cpp/linear_algebra_matrix/f2_linear_space.hpp | 2026-11-02 | `normalize`, `==`, `+`, `&`, `dim`, `f2_intersection`: the reduced basis, `merge`, `intersection`, `size`. |
 | PyRival | https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/linear_algebra/max_xor.py | 2026-11-02 | Maximum with the achieving indices (`represent` of `max()`). |
 
+## Fetched 2026-11-08 (omission sweep)
+
+Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
+
+| URL | Used for |
+|---|---|
+| https://api.github.com/repos/maspypy/library/contents/alg/acted_monoid | 00: `leaf`, `affine` |
+| https://oi-wiki.org/ds/seg-beats/ | 00: `RangeAddAssignRangeMaxHistoricMax`; 14: `RangeChminChmaxAddAssignRangeSumMinMax`, `chmin`, `RangeChminChmaxAddRangeChangeCount`, `TwoArrayChminAddRangeMaxSum` |
+| https://oi-wiki.org/ds/fenwick/ | 02: `ctor`; 11: `FenwickRangeMax`, `prod` |
+| https://cp-algorithms.com/data_structures/segment_tree.html | 03: `ctor` |
+| https://oi-wiki.org/ds/block-array/ | 06: `SortedBlocks`, `assign` |
+| https://cp-algorithms.com/data_structures/sqrt_decomposition.html | 06: `SortedBlocks`, `assign` |
+| https://nyaannyaan.github.io/library/data-structure/square-root-decomposition.hpp | 06: `BlockDecomp`, `apply` |
+| https://nyaannyaan.github.io/library/ | 06: `BlockDecomp`, `apply`; 20: `RBST`, `build`; 39: `StaticTopTree`, `edgeUpdate` |
+| https://oi-wiki.org/ds/block-list/ | 06: `BlockList`, `insert`; 20: `Rope` |
+| https://oi-wiki.org/ds/ | 06: `BlockList`, `insert` |
+| https://suisen-cp.github.io/cp-library-cpp/ | 08: `largestBinarySquare`; 20: `OrderedMonoidMap`, `insert`, `ImplicitSplay`, `build` |
+| https://suisen-cp.github.io/cp-library-cpp/library/algorithm/maximum_square.hpp | 08: `largestBinarySquare` |
+| https://suisen-cp.github.io/cp-library-cpp/library/algorithm/maximum_rectangle.hpp | 08: `maximalHistogramRectangles`, `maximalBinaryRectangles` |
+| https://tko919.github.io/library/Algorithm/maximalrect.hpp | 08: `maximalHistogramRectangles`, `maximalBinaryRectangles` |
+| https://tko919.github.io/library/ | 08: `maximalHistogramRectangles`, `maximalBinaryRectangles` |
+| https://cses.fi/problemset/ | 08: `countBinaryRectangles` |
+| https://cses.fi/problemset/task/1148 | 08: `countBinaryRectangles` |
+| https://hitonanode.github.io/cplib-cpp/segmenttree/range-add-range-min.hpp | 12: `StarrySkyTree` |
+| https://github.com/hitonanode/cplib-cpp/tree/master/segmenttree | 12: `StarrySkyTree` |
+| https://github.com/yosupo06/library-checker-problems/tree/master/data_structure | 12: `StarrySkyTree`; 14: `RangeChminChmaxAddAssignRangeSumMinMax`, `chmin` |
+| https://raw.githubusercontent.com/maspypy/library/main/ds/segtree/dynamic_lazy_segtree.hpp | 13: `DynamicLazySegmentTree`, `enumerate` |
+| https://github.com/maspypy/library/tree/main/ds/segtree | 14: `RangeChminChmaxAddAssignRangeSumMinMax`, `chmin` |
+| https://github.com/hitonanode/cplib-cpp/tree/master/segmenttree/trees | 14: `RangeChminChmaxAddAssignRangeSumMinMax`, `chmin`, `RangeGcdAssignRangeMaxSum` |
+| https://www.luogu.com.cn/problem/P6242 | 14: `RangeChminAddRangeSumMaxHistoricMax` |
+| https://www.luogu.com.cn/problem/CF920F | 14: `RangeConvergingMapRangeSumMax` |
+| https://oi-wiki.org/ds/kdt/ | 15: `DynamicKdTree`, `insert` |
+| https://oi-wiki.org/ds/seg-in-bit/ | 16: `FenwickValueTrees`, `countLess` |
+| https://suisen-cp.github.io/cp-library-cpp/library/datastructure/range_foldable_map.hpp | 20: `OrderedMonoidMap`, `insert` |
+| https://suisen-cp.github.io/cp-library-cpp/library/datastructure/lazy_eval_map.hpp | 20: `OrderedMonoidMap`, `insert` |
+| https://ei1333.github.io/library/structure/bbst/lazy-red-black-tree.hpp | 20: `implicit`, `variants` |
+| https://ei1333.github.io/library/structure/bbst/lazy-weight-balanced-tree.hpp | 20: `implicit`, `variants`, `WeightBalancedTree` |
+| https://maspypy.github.io/library/ds/weight_balanced_tree/wbt_base.hpp | 20: `implicit`, `variants` |
+| https://ei1333.github.io/library/ | 20: `implicit`, `variants`; 39: `Diameter`; 44: `PartiallyRetroactivePriorityQueue` |
+| https://maspypy.github.io/library/ds/splaytree/splaytree.hpp | 20: `ImplicitSplay`, `build` |
+| https://maspypy.github.io/library/ds/randomized_bst/rbst_acted_monoid.hpp | 20: `RBST`, `build` |
+| https://maspypy.github.io/library/ | 20: `RBST`, `build`; 59: `staticRangeInversionsFenwick` |
+| https://oi-wiki.org/ds/wblt/ | 20: `WeightBalancedTree` |
+| https://en.algorithmica.org/hpc/data-structures/ | 20: `BTree`, `insert` |
+| https://en.algorithmica.org/hpc/data-structures/b-tree/ | 20: `BTree`, `insert` |
+| https://en.algorithmica.org/hpc/data-structures/s-tree/ | 20: `BTree`, `insert` |
+| https://raw.githubusercontent.com/maspypy/library/main/ds/offline_query/mo.hpp | 23: `Mo`, `solve` |
+| https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/data-structures/MoQueries.h | 23: `Mo`, `solve`, `TreeMo`, `addPathQuery` |
+| https://maspypy.github.io/library/ds/point_set_range_sum_sqrt.hpp | 23: `SqrtBlockSum`, `prefix` |
+| https://oi-wiki.org/misc/mo-algo-secondary-offline/ | 23: `SqrtBlockSum`, `prefix`, `MoSecondaryOffline`, `addQuery`; 59: `staticRangeInversions` |
+| https://oi-wiki.org/misc/mo-algo-on-tree/ | 23: `TreeMo`, `addUpdate` |
+| https://oi-wiki.org/misc/modifiable-mo-algo/ | 23: `TreeMo`, `addUpdate` |
+| https://oi-wiki.org/misc/mo-algo-2dimen/ | 23: `Mo2D`, `addQuery` |
+| https://api.github.com/repos/yosupo06/library-checker-problems/contents/data_structure | 23: `MoSecondaryOffline`, `addQuery` |
+| https://hitonanode.github.io/cplib-cpp/data_structure/static_range_inversion.hpp | 23: `MoSecondaryOffline`, `addQuery`; 59: `OnlineRangeInversions`, `count` |
+| https://www.luogu.com.cn/problem/CF1044D | 29: `WeightedDSU`, `makeSet` |
+| https://cp-algorithms.com/data_structures/disjoint_set_union.html | 29: `WeightedDSU`, `makeSet` |
+| https://cp-algorithms.com/data_structures/sqrt-tree.html | 34: `SqrtTree`, `assign` |
+| https://oi-wiki.org/ds/sqrt-tree/ | 34: `SqrtTree`, `assign` |
+| https://nyaannyaan.github.io/library/data-structure/w-ary-tree.hpp | 36: `WAryTreeSet` |
+| https://noshi91.github.io/Library/ | 36: `WAryTreeSet`; 45: `ParametricHeap`, `insert`; 47: `PersistentQueue` |
+| https://nyaannyaan.github.io/library/lct/link-cut-base.hpp | 37: `parent` |
+| https://maspypy.github.io/library/graph/ds/link_cut_tree.hpp | 37: `parent`, `depth`, `pathMaxRight`, `ctor` |
+| https://ei1333.github.io/library/structure/dynamic-tree/link-cut-tree.hpp | 37: `pathMaxRight`, `ctor` |
+| https://oi-wiki.org/ds/lct/ | 37: `pathMaxRight` |
+| https://oi-wiki.org/ds/ett/ | 38: `componentSize`, `componentFold`, `vertexGet` |
+| https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/graph/dynamic_graph_vertex_add_component_sum/task.md | 38: `componentSize`, `componentFold` |
+| https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/data_structures/HDLT.cpp | 38: `setMark`, `findMarked` |
+| https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/tree/dynamic_tree_subtree_add_subtree_sum/task.md | 38: `subtreeFold`, `subtreeApply` |
+| https://github.com/yosupo06/library-checker-problems/tree/master/tree | 38: `subtreeFold`, `subtreeApply`; 39: `SubtreeAddSubtreeSum` |
+| https://ei1333.github.io/library/structure/dynamic-tree/top-tree.hpp | 39: `TopTree`, `evert` |
+| https://ei1333.github.io/library/structure/dynamic-tree/lazy-top-tree.hpp | 39: `TopTree`, `evert` |
+| https://oi-wiki.org/ds/top-tree/ | 39: `TopTree`, `search` |
+| https://ei1333.github.io/library/graph/tree/static-top-tree-dp.hpp | 39: `StaticTopTree`, `edgeUpdate` |
+| https://ei1333.github.io/library/structure/dynamic-tree/subtree-add-subtree-sum.hpp | 39: `SubtreeAddSubtreeSum` |
+| https://github.com/yosupo06/library-checker-problems/blob/master/tree/dynamic_tree_subtree_add_subtree_sum/task.md | 39: `SubtreeAddSubtreeSum` |
+| https://ei1333.github.io/library/structure/dynamic-tree/diameter.hpp | 39: `Diameter` |
+| https://noshi91.github.io/Library/data_structure/bit_vector.cpp | 40: `select0`, `select1` |
+| https://suisen-cp.github.io/cp-library-cpp/library/datastructure/bit_vector.hpp | 40: `select0`, `select1` |
+| https://arxiv.org/pdf/1601.06939 | 41: `rmqMax`, `BalancedParenthesesTree`, `levelAncestor`, `SuccinctRMQ`, `build` |
+| https://arxiv.org/abs/1601.06939 | 41: `rmqMax` |
+| https://nyaannyaan.github.io/library/data-structure/van-emde-boas-tree.hpp | 42: `VanEmdeBoas`, `empty` |
+| https://ei1333.github.io/library/structure/heap/partially-retroactive-priority-queue.hpp | 44: `PartiallyRetroactivePriorityQueue` |
+| https://arxiv.org/abs/2508.09892 | 44: `FullyRetroactivePriorityQueue`, `insertPush` |
+| https://erikdemaine.org/papers/Retroactive_TALG/ | 44: `FullyRetroactivePriorityQueue`, `insertPush` |
+| https://noshi91.github.io/Library/data_structure/parametric_heap.hpp | 45: `ParametricHeap`, `insert` |
+| https://winter-2521.github.io/cp-library/data_structure/linear_add_min_segment_tree.hpp | 45: `LinearAddMinSegmentTree`, `applyLinear` |
+| https://github.com/yosupo06/library-checker-problems/blob/master/data_structure/range_linear_add_range_min/task.md | 45: `LinearAddMinSegmentTree`, `applyLinear` |
+| https://maspypy.github.io/library/ds/segtree/beats_kinetic.hpp | 45: `LinearAddMinSegmentTree`, `applyLinear` |
+| https://www.cnblogs.com/zltzlt-blog/p/18089260 | 45: `KineticMaxSubarray`, `maxSubarray` |
+| https://shanlunjiajian.github.io/2022/04/13/matroid/ | 46: `CographicMatroid`, `independent` |
+| https://oi-wiki.org/math/matroid/ | 46: `CographicMatroid`, `independent`, `maxWeightBasis` |
+| https://hitonanode.github.io/cplib-cpp/ | 46: `GraphicMatroid`, `TransversalMatroid`; 59: `OnlineRangeInversions`, `count` |
+| https://tko919.github.io/library/Algorithm/matroid.hpp | 46: `GraphicMatroid`, `TransversalMatroid` |
+| https://noshi91.github.io/Library/data_structure/realtime_queue.cpp | 47: `PersistentQueue` |
+| https://nyaannyaan.github.io/library/data-structure/persistent-queue.hpp | 47: `PersistentJumpQueue` |
+| https://hitonanode.github.io/cplib-cpp/data_structure/persistent_queue.hpp | 47: `PersistentJumpQueue` |
+| https://maspypy.github.io/library/ds/meldable_heap.hpp | 48: `PersistentLeftistHeap`, `size` |
+| https://ei1333.github.io/library/structure/heap/persistent-leftist-heap.hpp | 48: `PersistentLeftistHeap`, `left` |
+| https://oi-wiki.org/ds/persistent-heap/ | 48: `PersistentLeftistHeap`, `left` |
+| https://github.com/xxsds/DYNAMIC/blob/master/include/dynamic/internal/succinct_bitvector.hpp | 49: `DynamicBitVector`, `ctor` |
+| https://github.com/xxsds/DYNAMIC | 49: `DynamicBitVector`, `ctor`; 50: `DynamicHuffmanWaveletTree`, `access`; 60: `GapEncodedBitVector`, `DynamicSparseVector`, `GapEncodedBitVector`, `access`, `DynamicSparseVector`, `insert`; 67: `DynamicRleString`, `access` |
+| https://github.com/xxsds/DYNAMIC/blob/master/include/dynamic/internal/wt_string.hpp | 50: `DynamicWaveletTree`, `ctor` |
+| https://maspypy.github.io/library/ds/segtree/sortable_segtree.hpp | 51: `allProd`, `values`, `ctor` |
+| https://suisen-cp.github.io/cp-library-cpp/library/datastructure/segment_tree/sortable_segment_tree.hpp | 51: `values`, `maxRight`, `minLeft`, `SortableSequence` |
+| https://maspypy.github.io/library/ds/sortable_array.hpp | 51: `SortableArray` |
+| https://github.com/yosupo06/library-checker-problems/blob/master/data_structure/point_set_range_sort_range_composite/task.md | 51: `SortableArray`, `ctor` |
+| https://tko919.github.io/library/DataStructure/sortablesegtree.hpp | 51: `ctor` |
+| https://maspypy.github.io/library/ds/unionfind/parallel_unionfind.hpp | 52: `count` |
+| https://nyaannyaan.github.io/library/data-structure/parallel-union-find.hpp | 52: `getSize` |
+| https://tko919.github.io/library/DataStructure/rangeparalleluf.hpp | 52: `getSize` |
+| https://oi-wiki.org/topic/rmq/ | 54: `LinearRMQ` |
+| https://ei1333.github.io/library/structure/others/linear-rmq.hpp | 54: `LinearRMQ` |
+| https://maspypy.github.io/library/ds/rmq/static_rmq.hpp | 54: `LinearRMQ` |
+| https://cp-algorithms.com/sequences/rmq.html | 54: `LinearRMQ` |
+| https://oi-wiki.org/ds/divide-combine/ | 55: `minimalInterval`, `build` |
+| https://ei1333.github.io/library/structure/others/permutation-tree.hpp | 55: `nodes`, `build` |
+| https://suisen-cp.github.io/cp-library-cpp/library/datastructure/permutation_tree.hpp | 55: `nodes` |
+| https://github.com/yosupo06/library-checker-problems/blob/master/tree/common_interval_decomposition_tree/task.md | 55: `nodes` |
+| https://oi-wiki.org/ds/pq-tree/ | 56: `SplitPQTree`, `reduce` |
+| https://oi-wiki.org/ds/finger-tree/ | 57: `front`, `back`, `ctor`, `toVector` |
+| https://suisen-cp.github.io/cp-library-cpp/library/datastructure/bbst/persistent_red_black_reversible_lazy_segment_tree.hpp | 58: `copyRange`, `rebuild`, `build`, `values` |
+| https://oi-wiki.org/ds/persistent-balanced/ | 58: `copyRange`, `same`, `names` |
+| https://ei1333.github.io/library/structure/bbst/persistent-weight-balanced-tree.hpp | 58: `rebuild`, `build`, `values` |
+| https://ei1333.github.io/library/structure/bbst/persistent-lazy-weight-balanced-tree.hpp | 58: `rebuild` |
+| https://tko919.github.io/library/DataStructure/persistentrbstset.hpp | 58: `rebuild`, `build`, `values`, `same`, `names` |
+| https://github.com/yosupo06/library-checker-problems/blob/master/data_structure/static_range_inversions_query/task.md | 59: `staticRangeInversions` |
+| https://maspypy.github.io/library/test/2_library_checker/data_structure/static_range_inversions_mo_3.test.cpp | 59: `staticRangeInversionsFenwick` |
+| https://raw.githubusercontent.com/xxsds/DYNAMIC/master/include/dynamic/internal/gap_bitvector.hpp | 60: `GapEncodedBitVector`, `DynamicSparseVector`, `GapEncodedBitVector`, `access` |
+| https://raw.githubusercontent.com/xxsds/DYNAMIC/master/include/dynamic/internal/sparse_vector.hpp | 60: `GapEncodedBitVector`, `DynamicSparseVector`, `DynamicSparseVector`, `insert` |
+| https://nyaannyaan.github.io/library/data-structure/range-union-find.hpp | 65: `IntervalDSU`, `uniteInterval` |
+| https://en.wikipedia.org/wiki/Order-maintenance_problem | 66: `SingleLevelOrderMaintenance`, `OrderMaintenance`, `label` |
+| https://erikdemaine.org/papers/DietzSleator_ESA2002/paper.pdf | 66: `SingleLevelOrderMaintenance`, `OrderMaintenance`, `label` |
+| https://doc.cgal.org/latest/Manual/packages.html | 68: `IntervalTree`, `insert` |
+| https://www.cnblogs.com/TianMeng-hyl/p/14989441.html | 69: `BinaryGrouping`, `insert` |
+
 ## Source keys and prior audit (condensed)
 
-Keys used in `00-index.md` status cells: **YC** Library Checker problem directories (GitHub), **CPA** cp-algorithms, **KACTL** KACTL data-structures, **OI** OI Wiki ds section, **MAS** maspypy, **NYA** Nyaan, **EI** ei1333, **SUI** suisen, **HIT** hitonanode, **TKO** tko919, **NOSHI** noshi91, **DYNAMIC** xxsds/DYNAMIC, **ODS** Open Data Structures (saved PDF, chapters 4/8/9/10/13, read 2026-09-27), **KOO** Koosaga Library/codes (read 2026-09-27).
+Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys). Here OI is the OI Wiki data-structure section and KACTL its data-structures directory; ODS was read from the saved PDF (chapters 4/8/9/10/13) and KOO from Library/codes on 2026-09-27; the CNBLOGS, WIKI and BENDER02 URLs are in [Fetched 2026-11-08](#fetched-2026-11-08-omission-sweep).
 
-The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guidelines/History/2026-09-27-inventory-audit.md)) compared named families and public-operation catalogs, not source correctness; it introduced rows 28–60 as planned from YC, OI, MAS, NYA, EI, SUI, HIT, TKO, DYNAMIC, ODS, KOO and the saved KACTL/Stanford notebooks. The OI Wiki merge/split entry and the ei1333 Fibonacci-heap entry were recorded as source leads whose proofs remain implementation work. Machine-readable read-scope records are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json) and the Library Checker family map in [library-checker-coverage.json](../../00-Guidelines/Ledgers/library-checker-coverage.json) (snapshot 2026-09-27; `associative_array` and `area_of_union_of_rectangles` postdate it). P006 verification sources for rows 01–08 are listed in the Sources section of each per-header document ([01-dsu.md](01-dsu.md) … [08-monotone_stack.md](08-monotone_stack.md)).
+The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guidelines/History/2026-09-27-inventory-audit.md)) compared named families and public-operation catalogs, not source correctness; it introduced rows 28–60 as planned from LC, OI, MAS, NYA, EI, SUI, HIT, TKO, DYNAMIC, ODS, KOO and the saved KACTL/Stanford notebooks. The OI Wiki merge/split entry and the ei1333 Fibonacci-heap entry were recorded as source leads whose proofs remain implementation work. Machine-readable read-scope records are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json) and the Library Checker family map in [library-checker-coverage.json](../../00-Guidelines/Ledgers/library-checker-coverage.json) (snapshot 2026-09-27; `associative_array` and `area_of_union_of_rectangles` postdate it). P006 verification sources for rows 01–08 are listed in the Sources section of each per-header document ([01-dsu.md](01-dsu.md) … [08-monotone_stack.md](08-monotone_stack.md)).
 
 ## Not adopted
 
@@ -238,7 +374,7 @@ The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guid
 - xor-indexed segment/sparse tables, sparse table on segtree, prefix-max/greedy-subtract/make-increasing segment trees, range max/min/mex change, slide split sum, sum over bit positions, power query, doubling (MAS): problem-specific wrappers; their underlying structures are rows 03, 04, 12, 14, 25, 28; doubling is Graphs functional graph.
 - rollback lazy segment tree, dual 2D dense segment tree variants beyond row 15, offline set intersection, mo_3d naming (MAS): covered by rows 12, 15, 23 operations or too problem-specific.
 - xor linked list, light forward list, linked list, stream (NOSHI, HIT, TKO): no operation beyond the standard library.
-- randomized queue, ternary treap (NOSHI): no contest family; ternary search tries belong to Strings if ever needed.
+- randomized queue, ternary treap (NOSHI): no contest family; ternary search tries were adopted on 2026-11-08 into a new Strings Esoteric row as `TernarySearchTree`.
 - dynamic/static bitset utilities (NYA, SUI, HIT, MAS bit_array): Core `18-bitset.hpp`.
 - fenwick-tree-on-wavelet-matrix as a separate header (NYA): folded into row 17 as WaveletMatrixMonoid.
 - union-find lazy/dual (MAS, SUI): semantics not identifiable from the catalog name; revisit when a motivating problem appears.

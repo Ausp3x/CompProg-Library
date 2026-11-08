@@ -101,7 +101,7 @@
       "phase": "Foundations re-audit",
       "size": "M+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "02-Data Structures/Docs/01-dsu.md",
         "02-Data Structures/Docs/02-fenwick.md",
@@ -112,7 +112,7 @@
         "02-Data Structures/Docs/07-ordered_set.md",
         "02-Data Structures/Docs/08-monotone_stack.md"
       ],
-      "note": "Follow-ups from P251 (user decision 2026-11-03): (1) 01-dsu_tester.cpp unionHistories prints the depth-first history, not the smallest reproducer (CR 43 reports (0,0)(0,1)(2,0); (0,1)(2,0) suffices): switch to iterative deepening over depth limits 0..depth (~1.125x cost) and drop the 00-notes.md shrinking disclaimer for it. (2) _00_runner.py death check accepts any SIGABRT whose stderr contains 'assert', so for the four _GLIBCXX_ASSERTIONS stems a libstdc++ bounds abort passes as the header's assert: match the glibc form 'Assertion `' or the header path, then rerun the 02-Data Structures testers; that also stops the tester's own fallback message 'precondition did not assert' (01-dsu_tester.cpp) from passing a probe that returns and then aborts (merge-pr 2 review)."
+      "note": "Follow-ups from P251 (user decision 2026-11-03): (1) 01-dsu_tester.cpp unionHistories prints the depth-first history, not the smallest reproducer (CR 43 reports (0,0)(0,1)(2,0); (0,1)(2,0) suffices): switch to iterative deepening over depth limits 0..depth (~1.125x cost) and drop the 00-notes.md shrinking disclaimer for it. (2) _00_runner.py death check accepts any SIGABRT whose stderr contains 'assert', so for the four _GLIBCXX_ASSERTIONS stems a libstdc++ bounds abort passes as the header's assert: match the glibc form 'Assertion `' or the header path, then rerun the 02-Data Structures testers; that also stops the tester's own fallback message 'precondition did not assert' (01-dsu_tester.cpp) from passing a probe that returns and then aborts (merge-pr 2 review). Omission sweep 2026-11-08: implement SortedBlocks, BlockDecomp, BlockList in `06-sqrt_decomposition.hpp`; largestBinarySquare, maximalHistogramRectangles, maximalBinaryRectangles, countBinaryRectangles in `08-monotone_stack.hpp`. Rows `02-fenwick.hpp`, `03-segmenttree.hpp`, `05-prefix_sum.hpp` and the verified operations of `06-sqrt_decomposition.hpp` were reworded only (ctor names; rows 05 and 06 by user decision 2026-11-08, /finish P254) and stay verified."
     },
     {
       "id": "P007",
@@ -123,14 +123,14 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "03-Geometry/Docs/01-point.md",
         "03-Geometry/Docs/02-line_segment.md",
         "03-Geometry/Docs/03-polygon.md",
         "03-Geometry/Docs/04-convexhull.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement convexHullSorted, convexHullMelkman, convexHullJarvis in `04-convexhull.hpp`."
     },
     {
       "id": "P008",
@@ -141,14 +141,14 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "03-Geometry/Docs/05-closestpair.md",
         "03-Geometry/Docs/06-circle.md",
         "03-Geometry/Docs/07-rotatingcalipers.md",
         "03-Geometry/Docs/08-coordinate_transform.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement closestPairRandomized, closestPairApprox in `05-closestpair.hpp`."
     },
     {
       "id": "P009",
@@ -175,7 +175,7 @@
       "phase": "Foundations re-audit",
       "size": "M+L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "04-Graphs/Docs/01-graph.md",
         "04-Graphs/Docs/02-traversal.md",
@@ -184,7 +184,7 @@
         "04-Graphs/Docs/05-shortest_path.md",
         "04-Graphs/Docs/06-mst.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement edgeSubgraph, complementGraph, disjointUnion, cartesianProduct, tensorProduct, strongProduct, lexicographicProduct, graphPower in `01-graph.hpp`; topologicalSort (lexicographically smallest inverse permutation), allTopologicalSorts in `03-toposort.hpp`."
     },
     {
       "id": "P011",
@@ -196,7 +196,7 @@
       "phase": "Foundations re-audit",
       "size": "L+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "04-Graphs/Docs/07-lca.md",
         "04-Graphs/Docs/08-scc.md",
@@ -204,7 +204,7 @@
         "04-Graphs/Docs/10-euleriantrail.md",
         "04-Graphs/Docs/11-functionalgraph.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement SparseTableLCA in `07-lca.hpp`; strongConnectivityAugmentation in `08-scc.hpp`."
     },
     {
       "id": "P012",
@@ -216,7 +216,7 @@
       "phase": "Foundations re-audit",
       "size": "M+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "05-Mathematics/Docs/01-mod_arithmetic.md",
         "05-Mathematics/Docs/02-search_algorithms.md",
@@ -225,7 +225,7 @@
         "05-Mathematics/Docs/05-combinatorics.md",
         "05-Mathematics/Docs/06-segmentedsieve.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement brentSearchRealBracket in `02-search_algorithms.hpp`; residueShortestPath, frobeniusNumber, countRepresentable in `03-equation_solvers.hpp`; LogCombinatorics in `05-combinatorics.hpp`."
     },
     {
       "id": "P013",
@@ -237,7 +237,7 @@
       "phase": "Foundations re-audit",
       "size": "M+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "06-Miscellaneous/Docs/01-random.md",
         "06-Miscellaneous/Docs/02-customhash.md",
@@ -245,26 +245,7 @@
         "06-Miscellaneous/Docs/06-bit_operations.md",
         "06-Miscellaneous/Docs/07-permutation.md"
       ],
-      "note": ""
-    },
-    {
-      "id": "P014",
-      "label": "06-Miscellaneous — sequence algorithms, interval algorithms, offline queries, sorting selection",
-      "batches": [
-        "MI03",
-        "MI14"
-      ],
-      "phase": "Foundations re-audit",
-      "size": "M+M",
-      "model": "opus",
-      "status": "verified",
-      "evidence": [
-        "06-Miscellaneous/Docs/08-sequence_algorithms.md",
-        "06-Miscellaneous/Docs/09-interval_algorithms.md",
-        "06-Miscellaneous/Docs/10-offline_queries.md",
-        "06-Miscellaneous/Docs/11-sorting_selection.md"
-      ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement BitOps::select, BitOps::xorRangeBlocks in `06-bit_operations.hpp`; permutationRankMod in `07-permutation.hpp`."
     },
     {
       "id": "P015",
@@ -296,7 +277,7 @@
       "phase": "Foundations re-audit",
       "size": "S+M+S",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "07-Strings/Docs/01-prefixfunction.md",
         "07-Strings/Docs/02-z.md",
@@ -305,24 +286,7 @@
         "07-Strings/Docs/05-manacher.md",
         "07-Strings/Docs/09-runlength.md"
       ],
-      "note": ""
-    },
-    {
-      "id": "P017",
-      "label": "07-Strings — aho, suffixarray, palindrome queries",
-      "batches": [
-        "ST03"
-      ],
-      "phase": "Foundations re-audit",
-      "size": "L",
-      "model": "opus",
-      "status": "verified",
-      "evidence": [
-        "07-Strings/Docs/06-aho.md",
-        "07-Strings/Docs/07-suffixarray.md",
-        "07-Strings/Docs/08-palindrome_queries.md"
-      ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement DistinctSubstringsDeque in `02-z.hpp`; longestCommonSubstringHash in `03-stringhash.hpp`."
     },
     {
       "id": "P250",
@@ -380,9 +344,11 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
+      "status": "verified",
+      "evidence": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-omission-sweep.md"
+      ],
+      "note": "Sweep 02–07 applied 2026-11-08: 243 row edits and 21 new rows (batches DS54–56, GE52–58, GR77–79, MA55–58, MI36, ST42–44; packages P264–P273), 48 verified rows reopened as partial and 29 packages reopened (P027, P028 partial; P029, P032 in-progress with rows verified for their doc-only notes; P034, P035 for those notes and their partial rows; P033's reversed omission lands in P027's row 11; P115 widened; P014 and P017 moved to Contest core); omissions in the folders' `Docs/00-notes.md` (Omission sweep 2026-11-08), sources in `Docs/00-sources.md` (Fetched 2026-11-08). User follow-ups the same day (`10-decisions.md`, 2026-11-08 One API by context): One API per context, wrappers, named compositions and catalogued one-problem algorithms; operation-name vocabulary and the collision check, with the clashes fixed; one library source key list. Re-review planned as P275, renames as P276. /finish P254 (2026-11-08): evidence in `00-Guidelines/23-Sweep Ledgers/Docs/00-omission-sweep.md`."
     },
     {
       "id": "P274",
@@ -396,6 +362,32 @@
       "status": "planned",
       "evidence": [],
       "note": ""
+    },
+    {
+      "id": "P275",
+      "label": "Duplicate re-review under the 2026-11-08 One API rule",
+      "batches": [
+        "SUP26"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "The 2026-11-08 scan skipped one-problem tricks (`.claude/skills/omission-sweep/scan.js`), so one-problem algorithms that no omission records were never surveyed; after P275, plan a one-problem `/omission-sweep` pass over 02–07 with the user."
+    },
+    {
+      "id": "P276",
+      "label": "Operation-name renames under the 2026-11-08 vocabulary",
+      "batches": [
+        "SUP27"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Sweep additions that break `02-structure.md` (Operation names), found by /finish P254: `RangeParallelDSU::getSize`, `reportIntersectionsBrute`, `SparseTableLCA::getLCA`; a variant word placed first (`offlineRangeSum`, `offlineSetIntersection`, `onlineFpsSqrt`, the four `offline…WordRam` of Geometry 60, `weightedMinimumEnclosingCircle`, `weightedAlphaShape2`/`3`, `weightedVoronoiLocate`); `phiTrial` (a lighter algorithm, `Simple`); `primitiveRoot` means a word's root in Strings 27 and a group generator in Mathematics 11."
     },
     {
       "id": "P025",
@@ -607,7 +599,7 @@
       "phase": "Contest core",
       "size": "M+L+L+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "02-Data Structures/Docs/11-fenwick_tree_advanced.md",
         "02-Data Structures/Docs/12-lazysegmenttree.md",
@@ -615,7 +607,26 @@
         "02-Data Structures/Docs/24-interval_set.md",
         "02-Data Structures/Docs/00-monoids.md"
       ],
-      "note": "Monoids row migration (2026-10-18): 00-monoids.hpp is row 00 of DS05 with its own tester and evidence; monoid rule in 03-cpp.md; explicit comment-cap exemption; Python row names aligned. Follow-up (user decision 2026-11-04): add historic acted-monoid presets to 00-monoids (row 00): range add with historic max, historic min and historic sum (tick); regular acted monoids (no fail), so row 12 LazySegmentTree and row 13 DynamicLazySegmentTree host them, giving the generic and the dynamic (lng-key) historic trees beside row 14 HistoricSegTree (see the P028 note). Reversed omissions (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants) in row 11: (1) hash-map dynamic Fenwick over lng keys on row 61 HashMap (add, get, prefixSum, sum), benchmarked against row 13 DynamicSegmentTree; (2) dynamic 2D Fenwick (hash map, group T, point add, rectangle sum) over lng coordinates, O(log^2 U) time and entries per update, memory bound documented; (3) dual CompressedFenwick2D: rectangle add, point get on registered points, O(log^2 k) (MAS Dual_FenwickTree_2D); (4) rectangle add, rectangle sum over grid cells with corner coordinates registered up front, four compressed Fenwick arrays (1, x, y, xy weights), O(log^2 k) online. Rewrite the Docs/00-notes.md entries they resolve when they land: P027 omissions \"Hash-map dynamic Fenwick\" and \"Compressed rectangle-add/rectangle-sum, compressed dual 2D Fenwick\", P028 \"Online rectangle-apply/point-get on registered points\", P033 \"Online rectangle-add rectangle-sum\". Also reversed (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): (5) one-node-per-key dynamic segment tree (MAS dynamic_segtree_sparse), O(q) nodes instead of O(q log U), as row 13 DynamicSegmentTree's representation: benchmark against the current tree and keep the winner, keeping both with a recorded reason only if meld, split or the persistent mode cannot carry over; (6) persistent Fenwick in row 11 (SUI): time-stamped histories per slot, updates on the latest version, past prefix sums in O(log n log q), O(log n) entries per update, its trade-off against row 18 PersistentSegmentTree recorded. Rewrite the P027 omissions \"Persistent Fenwick\" and \"Dynamic tree one-node-per-key sparse variant\" when they land; \"2D dual Fenwick (rectangle add, point get)\" stays left out (four Fenwick2D corner adds plus prefixSum)."
+      "note": "Monoids row migration (2026-10-18): 00-monoids.hpp is row 00 of DS05 with its own tester and evidence; monoid rule in 03-cpp.md; explicit comment-cap exemption; Python row names aligned. Follow-up (user decision 2026-11-04): add historic acted-monoid presets to 00-monoids (row 00): range add with historic max, historic min and historic sum (tick); regular acted monoids (no fail), so row 12 LazySegmentTree and row 13 DynamicLazySegmentTree host them, giving the generic and the dynamic (lng-key) historic trees beside row 14 HistoricSegTree (see the P028 note). Reversed omissions (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants) in row 11: (1) hash-map dynamic Fenwick over lng keys on row 61 HashMap (add, get, prefixSum, sum), benchmarked against row 13 DynamicSegmentTree; (2) dynamic 2D Fenwick (hash map, group T, point add, rectangle sum) over lng coordinates, O(log^2 U) time and entries per update, memory bound documented; (3) dual CompressedFenwick2D: rectangle add, point get on registered points, O(log^2 k) (MAS Dual_FenwickTree_2D); (4) rectangle add, rectangle sum over grid cells with corner coordinates registered up front, four compressed Fenwick arrays (1, x, y, xy weights), O(log^2 k) online. Rewrite the Docs/00-notes.md entries they resolve when they land: P027 omissions \"Hash-map dynamic Fenwick\" and \"Compressed rectangle-add/rectangle-sum, compressed dual 2D Fenwick\", P028 \"Online rectangle-apply/point-get on registered points\", P033 \"Online rectangle-add rectangle-sum\". Also reversed (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): (5) one-node-per-key dynamic segment tree (MAS dynamic_segtree_sparse), O(q) nodes instead of O(q log U), as row 13 DynamicSegmentTree's representation: benchmark against the current tree and keep the winner, keeping both with a recorded reason only if meld, split or the persistent mode cannot carry over; (6) persistent Fenwick in row 11 (SUI): time-stamped histories per slot, updates on the latest version, past prefix sums in O(log n log q), O(log n) entries per update, its trade-off against row 18 PersistentSegmentTree recorded. Rewrite the P027 omissions \"Persistent Fenwick\" and \"Dynamic tree one-node-per-key sparse variant\" when they land; \"2D dual Fenwick (rectangle add, point get)\" stays left out (four Fenwick2D corner adds plus prefixSum). Omission sweep 2026-11-08: implement RangeAddRangeHistoricMax, RangeAddRangeHistoricMin, RangeAddRangeHistoricSum, RangeAddAssignRangeMaxHistoricMax in `00-monoids.hpp`; DualCompressedFenwick2D, CompressedFenwick2DRangeAdd, DynamicFenwick, DynamicFenwick2D, PersistentFenwick, FenwickRangeMax in `11-fenwick_tree_advanced.hpp`; StarrySkyTree in `12-lazysegmenttree.hpp`; DynamicLazySegmentTree::enumerate in `13-dynamicsegmenttree.hpp`."
+    },
+    {
+      "id": "P014",
+      "label": "06-Miscellaneous — sequence algorithms, interval algorithms, offline queries, sorting selection",
+      "batches": [
+        "MI03",
+        "MI14"
+      ],
+      "phase": "Contest core",
+      "size": "M+M",
+      "model": "opus",
+      "status": "in-progress",
+      "evidence": [
+        "06-Miscellaneous/Docs/08-sequence_algorithms.md",
+        "06-Miscellaneous/Docs/09-interval_algorithms.md",
+        "06-Miscellaneous/Docs/10-offline_queries.md",
+        "06-Miscellaneous/Docs/11-sorting_selection.md"
+      ],
+      "note": "Omission sweep 2026-11-08: implement maximumAverageSubarrayLengths in `08-sequence_algorithms.hpp`; bucketSort, multikeyQuicksort, binaryInsertionSort, mergeInsertionSort, tournamentSelect in `11-sorting_selection.hpp`; offlineRangeSum in `10-offline_queries.hpp` (user decision 2026-11-08, /finish P254). Moved from Foundations re-audit to Contest core on reopening (2026-11-08) because its batches depend on reopened P027 (DS05) and, for P017, P081 (ST06)."
     },
     {
       "id": "P227",
@@ -643,14 +654,14 @@
       "phase": "Contest core",
       "size": "L+L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "05-Mathematics/Docs/07-primality_factorization.md",
         "05-Mathematics/Docs/08-multiplicative_functions.md",
         "05-Mathematics/Docs/09-modinverse.md",
         "05-Mathematics/Docs/10-crt.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement nextPrime, prevPrime in `07-primality_factorization.hpp`; phiTrial, phiTableSimple, dirichletConvolutionTableMultiplicative in `08-multiplicative_functions.hpp`; inverseO1 in `09-modinverse.hpp`."
     },
     {
       "id": "P231",
@@ -678,13 +689,30 @@
       "phase": "Contest core",
       "size": "L+L+L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "07-Strings/Docs/10-suffixautomaton.md",
         "07-Strings/Docs/12-sais.md",
         "07-Strings/Docs/18-editdistance.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement bandedMyersBitVector, optimalStringAlignmentBitVector in `18-editdistance.hpp`."
+    },
+    {
+      "id": "P017",
+      "label": "07-Strings — aho, suffixarray, palindrome queries",
+      "batches": [
+        "ST03"
+      ],
+      "phase": "Contest core",
+      "size": "L",
+      "model": "opus",
+      "status": "in-progress",
+      "evidence": [
+        "07-Strings/Docs/06-aho.md",
+        "07-Strings/Docs/07-suffixarray.md",
+        "07-Strings/Docs/08-palindrome_queries.md"
+      ],
+      "note": "Omission sweep 2026-11-08: implement minPalindromePartition in `08-palindrome_queries.hpp`. Moved from Foundations re-audit to Contest core on reopening (2026-11-08) because its batches depend on reopened P027 (DS05) and, for P017, P081 (ST06)."
     },
     {
       "id": "P044",
@@ -712,14 +740,14 @@
       "phase": "Contest core",
       "size": "M+L+L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "04-Graphs/Docs/18-twosat.md",
         "04-Graphs/Docs/21-matching_bipartite.md",
         "04-Graphs/Docs/23-assignment.md",
         "04-Graphs/Docs/24-dominatortree.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement graphPathGame in `21-matching_bipartite.hpp`; dominatorTreeDag in `24-dominatortree.hpp`."
     },
     {
       "id": "P055",
@@ -748,14 +776,14 @@
       "phase": "Contest core",
       "size": "L+L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "07-Strings/Docs/13-palindromictree.md",
         "07-Strings/Docs/14-lyndon.md",
         "07-Strings/Docs/15-minrotation.md",
         "07-Strings/Docs/19-lcs.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement huntSzymanskiWitness in `19-lcs.hpp`."
     },
     {
       "id": "P028",
@@ -768,14 +796,14 @@
       "phase": "Contest core",
       "size": "L+L+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "02-Data Structures/Docs/14-segtreebeats.md",
         "02-Data Structures/Docs/15-segment_tree_2d.md",
         "02-Data Structures/Docs/16-mergesorttree.md",
         "02-Data Structures/Docs/30-aggregation_queue.md"
       ],
-      "note": "Follow-up (user decision 2026-11-03): run another @researcher sweep for BeatsMonoid presets of row 14 LazySegmentTreeBeats beyond RangeAndOrRangeSumMax. Presets need the fail hook, so they stay in 14-segtreebeats.hpp, not 00-monoids. Candidates so far: chmin/chmax/add/assign with sum/min/max as an extensible base (not a new operation, 03-cpp.md one API rule), chmin/add with historic max (Luogu P6242, mirror UOJ 169), gcd-with with sum/max (yukicoder 880), a converging map f with sum/max (CF 920F, CF 1797E, SPOJ GSS4); row 45 (P115) may add a kinetic one. Adopting any revises the P028 omissions in Docs/00-notes.md. Sparse indices (user decision 2026-11-04): add one DynamicLazySegmentTreeBeats<A, D> over lng keys (row 13 node pool and fill plus the fail descent); fill must be constant on untouched ranges, and its only gain over offline compression is online queries. No dynamic SegTreeBeats or HistoricSegTree: the base preset above covers the first on that tree, and historic max/min/sum under range add are regular acted monoids, so presets for them (filed on P027, user decision 2026-11-04) serve row 12 LazySegmentTree and row 13 DynamicLazySegmentTree. Document in 14-segtreebeats.md the offline workaround: compress every endpoint, one leaf per block with len = block length (blocks stay uniform); SegTreeBeats suffices when only max/min are needed. Reversed omission (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants) in row 15: fully online 2D trees on unknown lng points: a dynamic segment tree of dynamic segment trees for a commutative monoid (point set and apply, rectangle prod), O(log^2 U) time and nodes per update with the memory bound documented, plus the hybrid with the x axis registered offline (compressed outer, dynamic inner, O(log k log U)); rewrite the Docs/00-notes.md P028 omission \"Fully online 2D trees on unknown points\" when it lands. Group-valued sums on unknown points and the registered-point Fenwick cases are P027 (row 11); rectangle apply and prod on a registered point set stay LazyKdTree. Also reversed (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): SegmentTree2DSparse searches maxUp and minDown (largest or smallest y bound for an x range under a monotone predicate) by a direct descent across the inner trees, target O(log^2 k) (fractional cascading if needed) against the O(log^3 k) binary search over prod; k-dimensional compressed trees move to row 43 (P115). Rewrite the P028 omission \"Sparse 2D maxUp/minDown searches, k-dimensional compressed trees\" when it lands."
+      "note": "Follow-up (user decision 2026-11-03): run another @researcher sweep for BeatsMonoid presets of row 14 LazySegmentTreeBeats beyond RangeAndOrRangeSumMax. Presets need the fail hook, so they stay in 14-segtreebeats.hpp, not 00-monoids. Candidates so far: chmin/chmax/add/assign with sum/min/max as an extensible base (not a new operation, 03-cpp.md one API rule), chmin/add with historic max (Luogu P6242, mirror UOJ 169), gcd-with with sum/max (yukicoder 880), a converging map f with sum/max (CF 920F, CF 1797E, SPOJ GSS4); row 45 (P115) may add a kinetic one. Adopting any revises the P028 omissions in Docs/00-notes.md. Sparse indices (user decision 2026-11-04): add one DynamicLazySegmentTreeBeats<A, D> over lng keys (row 13 node pool and fill plus the fail descent); fill must be constant on untouched ranges, and its only gain over offline compression is online queries. No dynamic SegTreeBeats or HistoricSegTree: the base preset above covers the first on that tree, and historic max/min/sum under range add are regular acted monoids, so presets for them (filed on P027, user decision 2026-11-04) serve row 12 LazySegmentTree and row 13 DynamicLazySegmentTree. Document in 14-segtreebeats.md the offline workaround: compress every endpoint, one leaf per block with len = block length (blocks stay uniform); SegTreeBeats suffices when only max/min are needed. Reversed omission (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants) in row 15: fully online 2D trees on unknown lng points: a dynamic segment tree of dynamic segment trees for a commutative monoid (point set and apply, rectangle prod), O(log^2 U) time and nodes per update with the memory bound documented, plus the hybrid with the x axis registered offline (compressed outer, dynamic inner, O(log k log U)); rewrite the Docs/00-notes.md P028 omission \"Fully online 2D trees on unknown points\" when it lands. Group-valued sums on unknown points and the registered-point Fenwick cases are P027 (row 11); rectangle apply and prod on a registered point set stay LazyKdTree. Also reversed (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): SegmentTree2DSparse searches maxUp and minDown (largest or smallest y bound for an x range under a monotone predicate) by a direct descent across the inner trees, target O(log^2 k) (fractional cascading if needed) against the O(log^3 k) binary search over prod; k-dimensional compressed trees move to row 43 (P115). Rewrite the P028 omission \"Sparse 2D maxUp/minDown searches, k-dimensional compressed trees\" when it lands. Omission sweep 2026-11-08: implement DynamicLazySegmentTreeBeats, RangeChminChmaxAddAssignRangeSumMinMax, RangeChminAddRangeSumMaxHistoricMax, RangeGcdAssignRangeMaxSum, RangeConvergingMapRangeSumMax, RangeChminChmaxAddRangeChangeCount, TwoArrayChminAddRangeMaxSum in `14-segtreebeats.hpp`; SegmentTree2DSparse::maxUp, SegmentTree2DSparse::minDown, DynamicSegmentTree2D, HybridSegmentTree2D, DynamicKdTree in `15-segment_tree_2d.hpp`; FenwickValueTrees in `16-mergesorttree.hpp`."
     },
     {
       "id": "P057",
@@ -786,12 +814,12 @@
       "phase": "Contest core",
       "size": "L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "05-Mathematics/Docs/14-polynomial_algorithms.md",
         "05-Mathematics/Docs/15-linear_recurrence.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement fpsNewton, mobiusSubstitution in `14-polynomial_algorithms.hpp`."
     },
     {
       "id": "P084",
@@ -804,14 +832,14 @@
       "phase": "Contest core",
       "size": "L+L+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "07-Strings/Docs/16-string_matching.md",
         "07-Strings/Docs/17-bitap.md",
         "07-Strings/Docs/20-subsequence_automaton.md",
         "07-Strings/Docs/29-bwt.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement myersSearch in `17-bitap.hpp`; shortestUncommonSubsequence in `20-subsequence_automaton.hpp`."
     },
     {
       "id": "P036",
@@ -824,14 +852,14 @@
       "phase": "Contest core",
       "size": "L+M+L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "03-Geometry/Docs/10-halfplaneintersection.md",
         "03-Geometry/Docs/11-minkowskisum.md",
         "03-Geometry/Docs/16-circle_polygon.md",
         "03-Geometry/Docs/17-polygon_distance.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement halfplaneIntersectionSorted, chebyshevCenterLpApprox in `10-halfplaneintersection.hpp`."
     },
     {
       "id": "P029",
@@ -844,13 +872,13 @@
       "phase": "Contest core",
       "size": "L+L+L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "02-Data Structures/Docs/17-waveletmatrix.md",
         "02-Data Structures/Docs/19-treap.md",
         "02-Data Structures/Docs/25-heap_deque.md"
       ],
-      "note": "Sparse ids (user decision 2026-11-04): DAryHeap takes ids [0, n) for decreaseKey and erase. Record in 25-heap_deque.md: map keys to ids with row 61 HashMap and n sized by the number of distinct keys pushed, or use ErasableHeap (lazy deletion, any key) or a lazy-deleted heap with stale-entry skips (Dijkstra)."
+      "note": "Sparse ids (user decision 2026-11-04): DAryHeap takes ids [0, n) for decreaseKey and erase. Record in 25-heap_deque.md: map keys to ids with row 61 HashMap and n sized by the number of distinct keys pushed, or use ErasableHeap (lazy deletion, any key) or a lazy-deleted heap with stale-entry skips (Dijkstra). Omission sweep 2026-11-08 (user decision): reopened only for the sparse-id documentation above; rows stay verified."
     },
     {
       "id": "P045",
@@ -910,12 +938,12 @@
       "phase": "Contest core",
       "size": "L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "04-Graphs/Docs/16-centroiddecomposition.md",
         "04-Graphs/Docs/17-treeisomorphism.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement MarkedDiameter in `16-centroiddecomposition.hpp`."
     },
     {
       "id": "P053",
@@ -941,12 +969,12 @@
       "phase": "Contest core",
       "size": "L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "05-Mathematics/Docs/33-modular_square_roots.md",
         "05-Mathematics/Docs/34-quadratic_congruence.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement BinaryQuadraticForm::pow, BinaryQuadraticForm::principal, BinaryQuadraticForm::inverse, BinaryQuadraticForm::primeForm, BinaryQuadraticForm::order in `34-quadratic_congruence.hpp`."
     },
     {
       "id": "P085",
@@ -994,13 +1022,13 @@
       "phase": "Contest core",
       "size": "L+M+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "05-Mathematics/Docs/12-combinatorics_advanced.md",
         "05-Mathematics/Docs/30-modular_power_towers.md",
         "05-Mathematics/Docs/67-lattice_paths.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement BinomialMod2p64, factorialValuationComposite, stirling1Table, stirling2Table, bellTriangle, eulerianTable, partitionsExactPartsTable, distinctPartsExactPartsTable, standardTableauTotal in `12-combinatorics_advanced.hpp`."
     },
     {
       "id": "P037",
@@ -1013,7 +1041,7 @@
       "phase": "Contest core",
       "size": "L+L+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "03-Geometry/Docs/13-segment_union.md",
         "03-Geometry/Docs/14-minimumenclosingcircle.md",
@@ -1022,7 +1050,7 @@
         "03-Geometry/Docs/54-fixed_radius_queries.md",
         "05-Mathematics/Docs/18-floorsum.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement maxAreaInscribedTriangleQuadratic in `15-convex_polygon_query.hpp`; latticePolynomialSumInHalfplanePolygon in `19-lattice_geometry.hpp`."
     },
     {
       "id": "P034",
@@ -1036,7 +1064,7 @@
       "phase": "Contest core",
       "size": "L+M+L+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "02-Data Structures/Docs/09-rollbackdsu.md",
         "02-Data Structures/Docs/10-persistentdsu.md",
@@ -1044,7 +1072,7 @@
         "02-Data Structures/Docs/35-persistentarray.md",
         "02-Data Structures/Docs/63-offline_deletion.md"
       ],
-      "note": "Sparse keys (user decision 2026-11-04): RollbackDSU, PersistentDSU and PersistentArray take [0, n). Record in 09-rollbackdsu.md, 10-persistentdsu.md and 35-persistentarray.md: offline, compress keys with row 07 CoordinateCompression; online, map keys to ids with row 61 HashMap and size n by the distinct-key bound (at most 2 per union, 1 per set); PersistentArray over lng indices is row 13 DynamicSegmentTree<M, true> or row 18 PersistentSegmentTree. Optional: RollbackDSU::makeSet (a new singleton needs no undo entry) if the sweep finds a catalog use."
+      "note": "Sparse keys (user decision 2026-11-04): RollbackDSU, PersistentDSU and PersistentArray take [0, n). Record in 09-rollbackdsu.md, 10-persistentdsu.md and 35-persistentarray.md: offline, compress keys with row 07 CoordinateCompression; online, map keys to ids with row 61 HashMap and size n by the distinct-key bound (at most 2 per union, 1 per set); PersistentArray over lng indices is row 13 DynamicSegmentTree<M, true> or row 18 PersistentSegmentTree. Optional: RollbackDSU::makeSet (a new singleton needs no undo entry) if the sweep finds a catalog use. Omission sweep 2026-11-08: implement SqrtTree::assign in `34-sqrttree.hpp`. The sparse-key documentation above is part of this reopening (user decision 2026-11-08)."
     },
     {
       "id": "P047",
@@ -1057,14 +1085,14 @@
       "phase": "Contest core",
       "size": "L+L+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "04-Graphs/Docs/25-directedmst.md",
         "04-Graphs/Docs/26-dynamic_connectivity.md",
         "04-Graphs/Docs/27-blockcuttree.md",
         "04-Graphs/Docs/31-path_cover.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement chuLiuEdmonds, directedMstDense in `25-directedmst.hpp`; OfflineDynamicConnectivityLct in `26-dynamic_connectivity.hpp`."
     },
     {
       "id": "P082",
@@ -1110,14 +1138,14 @@
       "phase": "Contest core",
       "size": "M+M+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "02-Data Structures/Docs/29-weighteddsu.md",
         "02-Data Structures/Docs/36-fastset.md",
         "02-Data Structures/Docs/65-dsu_extensions.md",
         "02-Data Structures/Docs/00-monoids.md"
       ],
-      "note": "Sparse keys (user decision 2026-11-04): WeightedDSU, ParityDSU and DualDSU take [0, n) with no makeSet; LinkedDSU and ComponentSumDSU have makeSet, so SparseDSU-style HashMap indexing already works for them. Record in 29-weighteddsu.md and 65-dsu_extensions.md: offline compress (row 07), online HashMap ids with n sized by the distinct-key bound; optional makeSet for WeightedDSU (potential 0) and DualDSU (identity action) if the sweep finds a use. FastSet takes [0, n): record in 36-fastset.md that offline keys compress into it, online 64-bit keys use row 26 BinaryTrie (next/prev via lowerBound in O(64)) or std::set, and row 42 (P114) owns the O(log log U) van Emde Boas and X/Y-fast tries."
+      "note": "Sparse keys (user decision 2026-11-04): WeightedDSU, ParityDSU and DualDSU take [0, n) with no makeSet; LinkedDSU and ComponentSumDSU have makeSet, so SparseDSU-style HashMap indexing already works for them. Record in 29-weighteddsu.md and 65-dsu_extensions.md: offline compress (row 07), online HashMap ids with n sized by the distinct-key bound; optional makeSet for WeightedDSU (potential 0) and DualDSU (identity action) if the sweep finds a use. FastSet takes [0, n): record in 36-fastset.md that offline keys compress into it, online 64-bit keys use row 26 BinaryTrie (next/prev via lowerBound in O(64)) or std::set, and row 42 (P114) owns the O(log log U) van Emde Boas and X/Y-fast tries. Omission sweep 2026-11-08: implement WeightedDSU::makeSet in `29-weighteddsu.hpp`; IntervalDSU in `65-dsu_extensions.hpp`. The sparse-key documentation above is part of this reopening (user decision 2026-11-08); `WeightedDSU::makeSet` settles the makeSet question for row 29."
     },
     {
       "id": "P238",
@@ -1226,7 +1254,7 @@
       "phase": "Contest core",
       "size": "L+M+L+M",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "02-Data Structures/Docs/21-lichao.md",
         "02-Data Structures/Docs/22-convexhulltrick.md",
@@ -1234,7 +1262,7 @@
         "02-Data Structures/Docs/32-static_range_queries.md",
         "02-Data Structures/Docs/62-xorbasis.md"
       ],
-      "note": "Sparse ids (user decision 2026-11-04): RadixHeapArray takes ids [0, n) for its key-indexed decrease. Record in 31-radixheap.md: map keys to ids with row 61 HashMap and n sized by the number of distinct keys pushed, or use RadixHeap with payloads and skip stale entries."
+      "note": "Sparse ids (user decision 2026-11-04): RadixHeapArray takes ids [0, n) for its key-indexed decrease. Record in 31-radixheap.md: map keys to ids with row 61 HashMap and n sized by the number of distinct keys pushed, or use RadixHeap with payloads and skip stale entries. Omission sweep 2026-11-08 (user decision): reopened only for the sparse-id documentation above; rows stay verified."
     },
     {
       "id": "P059",
@@ -1245,12 +1273,12 @@
       "phase": "Contest core",
       "size": "L",
       "model": "opus",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "05-Mathematics/Docs/21-integer_roots.md",
         "05-Mathematics/Docs/17-numerical_methods.md"
       ],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement falsePositionRoot in `17-numerical_methods.hpp`; floorLog, ceilLog in `21-integer_roots.hpp`."
     },
     {
       "id": "P251",
@@ -1349,7 +1377,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Rerooting, subtreeDp and subtreeMergeDp take a tree-DP contract beyond 00-monoids (merge plus vertex and edge lifts): keep its presets in the owning row and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets. 2026-11-05 rules (`01-principles.md`, Priority; `03-cpp.md`, Core type parameters): the `/merge-pr` review also checks the rows' slower-alternative decisions, which research under the old rules did not make."
+      "note": "Rerooting, subtreeDp and subtreeMergeDp take a tree-DP contract beyond 00-monoids (merge plus vertex and edge lifts): keep its presets in the owning row and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets. 2026-11-05 rules (`01-principles.md`, Priority; `03-cpp.md`, Core type parameters): the `/merge-pr` review also checks the rows' slower-alternative decisions, which research under the old rules did not make. Omission sweep 2026-11-08: implement apspBfs, barycenter in `12-all_pairs_shortest_path.hpp`; bidirectionalBfs, nearestTwoSources, mandatoryOnShortestPaths in `13-shortest_path_advanced.hpp`; treeDiameter, subtreeCentroids, subtreeDiameter, treeMaximumMatching, EulerTour::pathRanges, Rerooting::get, Rerooting::dpParent, subtreeMergeDp, LongPathDecomposition in `14-tree_algorithms.hpp`; maxPath, TreeGroup, pathAddOffline, pathSumStatic, GlobalBalancedTree in `15-hld.hpp`; LevelAncestor::jump, PreorderLevelAncestor, TreeWeightedAncestor in `85-levelancestor.hpp`."
     },
     {
       "id": "P063",
@@ -1362,7 +1390,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement partitionDpKnuth, monotoneDecisionQueueDp, larschSimplified, onlineOfflineDp, mongeShortestPath, mongeShortestPathAllEdgeCounts, mongeMinPlusProduct, minConvexSumUnderLinearConstraint in `27-optimization.hpp`."
     },
     {
       "id": "P046",
@@ -1375,7 +1403,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement perfectMatchingAllowedEdges in `22-matching_general.hpp`."
     },
     {
       "id": "P073",
@@ -1392,7 +1420,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement subsetSumCountBySize, knapsackMitm in `30-meetinthemiddle.hpp`; bijectiveBaseEncode, bijectiveBaseDecode, negativeBaseEncode, negativeBaseDecode, balancedTernaryEncode, balancedTernaryDecode in `31-digitdp.hpp`; binPackingDP in `32-subset_dp.hpp`; brokenProfileTiling, dominoTilingCount, rowMaskDP, PlugDP::bestCycle, PlugDP::bestPath, PolygonGridStates, ColoredGridStates in `33-profile_dp.hpp`; IntervalDP::solve, huShing in `52-interval_dp.hpp`; countBalanced, rankBalanced, unrankBalanced, bracketForest in `53-bracket_sequences.hpp`."
     },
     {
       "id": "P050",
@@ -1408,7 +1436,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement topTradingCycles in `38-stablematching.hpp`; isMultigraphical, isPseudographical, treeFromDegreeSequence, kleitmanWang, tournamentFromScores in `39-graphicalsequence.hpp`; warshallClosure, countReachable in `40-reachability.hpp`; isCactus, CactusDecomposition::distance, cactusDiameter in `41-cactusgraph.hpp`. Omission sweep 2026-11-08 handoff: `Unicyclic` distance queries go through `CactusDecomposition: distance` (`04-Graphs/Docs/00-notes.md`, Omission sweep 2026-11-08); no separate operation."
     },
     {
       "id": "P061",
@@ -1421,7 +1449,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement NewtonInterpolator, multipointEvaluate in `22-interpolation.hpp`; countSpanningTrees, countArborescences, countRootedForestsByTreeCount, spanningTreeWeightSum, effectiveResistance in `23-matrixtree.hpp`. Row 23 owns the matrix-tree counts Graphs row 53 used to list too (user decision 2026-11-08)."
     },
     {
       "id": "P066",
@@ -1436,7 +1464,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement blockMoOrder in `16-hilbertorder.hpp`; overallBinarySearch in `20-parallelbinarysearch.hpp`; cdqDivideAndConquer, longestChain3D in `21-cdq.hpp`."
     },
     {
       "id": "P062",
@@ -1449,7 +1477,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement grundySum, nimWin, fibonacciNim, retrogradeAnalysis in `25-game_theory.hpp`; MarkovChain::expectedHittingTimeSparse, MarkovChain::hittingTimeMatrix in `26-probability.hpp`."
     },
     {
       "id": "P031",
@@ -1462,7 +1490,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement SplayTree::lowerBound, SplayTree::upperBound, ImplicitSplay::build, ImplicitSplay::at, ImplicitSplay::set, ImplicitSplay::maxRight, ImplicitSplay::minLeft, ImplicitSplay::values, OrderedMonoidMap, WeightBalancedTree::build, WeightBalancedTree::split, WeightBalancedTree::join, ImplicitRedBlackTree, ImplicitWeightBalancedTree, BTree, Rope in `20-balanced_bst.hpp`."
     },
     {
       "id": "P049",
@@ -1477,7 +1505,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement completeToChordal, chordalMaximalCliques, chordalMinimumCliqueCover in `33-chordalgraph.hpp`; bipartiteEdgeColoring in `34-edge_coloring.hpp`; binarySubmodularMinimization, ternarySubmodularTerm, allOrNothingPenalty in `37-graph_closure.hpp`."
     },
     {
       "id": "P064",
@@ -1490,7 +1518,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement revisedSimplex in `28-simplex.hpp`."
     },
     {
       "id": "P079",
@@ -1504,7 +1532,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement unitJobProfitSchedule, kMachineIntervalSchedule in `39-scheduling.hpp`; huffmanCostSorted, lengthLimitedHuffman in `40-optimal_merge.hpp`."
     },
     {
       "id": "P065",
@@ -1530,7 +1558,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement KdTree::insert, KdTree::erase, KdTree::nearestIncremental, KdTree::farthest, KdTree::kFarthest, boxIntersections in `28-spatial_index.hpp`."
     },
     {
       "id": "P038",
@@ -1543,7 +1571,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement IncrementalHull::area2, HullSegtree, DecrementalUpperHull, DynamicUpperHull in `20-convex_hull_updates.hpp`."
     },
     {
       "id": "P088",
@@ -1557,7 +1585,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement borderProgressions, isOverlapFree in `27-string_periodicity.hpp`; GeneralizedSuffixAutomaton::build in `28-multiple_string.hpp`."
     },
     {
       "id": "P068",
@@ -1570,7 +1598,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement bitsetSubsetSum, bitsetSubsetSumWitness, bitsetModularSubsetSum, offlineSetIntersection, bitsetDominanceCount in `22-bitset_optimization.hpp`."
     },
     {
       "id": "P086",
@@ -1585,7 +1613,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement Nfa::fromRegex, Nfa::search, Dfa::fromDp, Dfa::size, Dfa::next, Dfa::accepting, Dfa::minimize, Dfa::star, Dfa::reverse, Dfa::isEmpty, Dfa::includes, Dfa::countAccepted, Dfa::countByState in `24-regular_language.hpp`; RadixTrie::predecessor, RadixTrie::successor, RadixTrie::forEach, RadixTrie::split, RadixTrie::merge in `25-radixtrie.hpp`."
     },
     {
       "id": "P069",
@@ -1598,7 +1626,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement repeatedCover in `25-exactcover.hpp`."
     },
     {
       "id": "P067",
@@ -1611,7 +1639,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement Mo::solve, TreeMo::addPathQuery, TreeMo::addUpdate, Mo2D, MoSecondaryOffline, SqrtBlockSum in `23-range_query_offline.hpp`."
     },
     {
       "id": "P077",
@@ -1624,7 +1652,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement recursiveDescent, Ast::toPrefix, Ast::toPostfix, Ast::toInfix in `37-expression_parser.hpp`."
     },
     {
       "id": "P076",
@@ -1638,7 +1666,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement nQueensCount, slidingPuzzleConstruct in `35-state_space_search.hpp`."
     },
     {
       "id": "P051",
@@ -1654,7 +1682,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Handoffs from P048 (user decision 2026-10-29): row 42 owns trussDecomposition (per-edge trussness by peeling triangle counts, NetworkX k_truss; row 35 countTrianglesPerEdge gives the initial supports); 04-Graphs/35-subgraph_enumeration.hpp subgraph_enumeration_detail::Ranked has its own Batagelj-Zaversnik core order, to migrate to row 42 degeneracyOrdering when verified, keeping sorted rank lists without an extra pass."
+      "note": "Handoffs from P048 (user decision 2026-10-29): row 42 owns trussDecomposition (per-edge trussness by peeling triangle counts, NetworkX k_truss; row 35 countTrianglesPerEdge gives the initial supports); 04-Graphs/35-subgraph_enumeration.hpp subgraph_enumeration_detail::Ranked has its own Batagelj-Zaversnik core order, to migrate to row 42 degeneracyOrdering when verified, keeping sorted rank lists without an extra pass. Omission sweep 2026-11-08: implement onionLayers, completeGraphDecomposition in `42-graph_decomposition.hpp`; implicitZeroOneBfs, implicitScc, implicitTopologicalSort, implicitBoruvka in `43-implicit_graph.hpp`; isKEdgeConnected, isKVertexConnected, minimumEdgeCut, minimumVertexCut, allMinimumVertexCuts in `45-graph_connectivity.hpp`."
     },
     {
       "id": "P087",
@@ -1667,7 +1695,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement countSquares, longestSquare in `26-runs.hpp`."
     },
     {
       "id": "P039",
@@ -1682,7 +1710,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement circleUnionAreaPower in `23-circleunion.hpp`; toSphericalApprox, fromSphericalApprox, sphericalCircleIntersectionApprox in `27-spherical_geometry.hpp`."
     },
     {
       "id": "P074",
@@ -1695,7 +1723,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement steinerTree, steinerTreeDense, metricClosureApproximation in `36-steiner_tree.hpp`."
     },
     {
       "id": "P089",
@@ -1708,7 +1736,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement Hash2D::hashOf in `32-multidimensional_matching.hpp`."
     },
     {
       "id": "P071",
@@ -1721,7 +1749,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement daysFromJulian, julianFromDays, isoWeekFromCivil, civilFromIsoWeek, dayOfWeek, nthWeekdayOfMonth, lastWeekdayOfMonth in `27-calendar_time.hpp`; base64EncodeArray, base64DecodeArray in `28-encoding.hpp`."
     },
     {
       "id": "P078",
@@ -1734,7 +1762,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement SimulatedAnnealing::run, SimulatedAnnealing::geometricCooling, SimulatedAnnealing::linearTimeCooling, MultipointAnnealing, restartSearch, beamOptimize1D, beamOptimize2D, MultiArmedBandit in `38-heuristic_optimization.hpp`."
     },
     {
       "id": "P070",
@@ -1760,7 +1788,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement countPointsOnSegment, halfplaneCount, angularSweep, slopeSelection in `29-point_set_queries.hpp`."
     },
     {
       "id": "P248",
@@ -1773,7 +1801,34 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Filed by P030 (user decision 2026-10-27, 02-Data Structures/Docs/00-notes.md P030 omissions); sources in 02-Data Structures/Docs/00-sources.md (P030 sweep). SPOJ COT was not fetched; read it first."
+      "note": "Filed by P030 (user decision 2026-10-27, 02-Data Structures/Docs/00-notes.md P030 omissions); sources in 02-Data Structures/Docs/00-sources.md (P030 sweep). SPOJ COT was not fetched; read it first. Omission sweep 2026-11-08: implement TreePathKth::countEqual, TreePathKth::sumLess, TreePathKth::kthSum, TreeWaveletMatrix in `88-tree_path_kth.hpp`."
+    },
+    {
+      "id": "P264",
+      "label": "02-Data Structures — intervaltree",
+      "batches": [
+        "DS55"
+      ],
+      "phase": "Contest core",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Created by the 2026-11-08 omission sweep (P254)."
+    },
+    {
+      "id": "P266",
+      "label": "03-Geometry — disk hull, point set symmetry",
+      "batches": [
+        "GE55",
+        "GE56"
+      ],
+      "phase": "Contest core",
+      "size": "M+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Created by the 2026-11-08 omission sweep (P254)."
     },
     {
       "id": "P128",
@@ -1786,7 +1841,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement Expansion::sum, Expansion::estimate in `36-exact_predicates.hpp`."
     },
     {
       "id": "P130",
@@ -1799,7 +1854,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement optimalConvexPartition in `18-polygontriangulation.hpp`."
     },
     {
       "id": "P129",
@@ -1812,7 +1867,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement reportIntersections, reportIntersectionsBrute, intersectionPoints, countIntersections in `12-segmentintersection.hpp`."
     },
     {
       "id": "P131",
@@ -1827,7 +1882,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement apollonianCircle in `24-circle_constructions.hpp`; Arrangement::insert, Arrangement::overlay in `33-linearrangement.hpp`; visibilityPolygon, visibilityWithObstacles in `35-visibilitypolygon.hpp`."
     },
     {
       "id": "P134",
@@ -1840,7 +1895,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement Delaunay::insert, Delaunay::remove, triangulatePoints in `31-delaunay.hpp`."
     },
     {
       "id": "P132",
@@ -1853,7 +1908,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement Line3, intersectLines3, sphereSphereIntersectionApprox, threeSphereIntersectionApprox in `26-geometry3d.hpp`."
     },
     {
       "id": "P135",
@@ -1867,7 +1922,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement ManhattanFarthest, rectangularPCenter in `21-manhattan_geometry.hpp`; Voronoi::locate in `32-voronoi.hpp`."
     },
     {
       "id": "P133",
@@ -1880,7 +1935,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement polygonComplement, segmentInPolygon, polygonLineIntersection, diskPolygonIntersectionApprox in `30-polygon_boolean.hpp`."
     },
     {
       "id": "P136",
@@ -1893,7 +1948,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement SlabLocator::rayShootUp, SlabLocator::rayShootDown, TrapezoidalMap::rayShootUp, TrapezoidalMap::rayShootDown in `34-pointlocation.hpp`."
     },
     {
       "id": "P137",
@@ -1906,7 +1961,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement Hull3::extreme, convexHull3, convexHull3Quadratic, hulls3Intersect in `37-convexhull3d.hpp`."
     },
     {
       "id": "P117",
@@ -1921,7 +1976,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement PersistentLeftistHeap::size, PersistentLeftistHeap::values, PersistentLeftistHeap::left, PersistentLeftistHeap::right in `48-persistentheap.hpp`; RangeParallelDSU::getSize, RangeParallelDSU::count in `52-rangeparallelunionfind.hpp`."
     },
     {
       "id": "P118",
@@ -1934,7 +1989,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: `kShortestWalksSimple`'s contract states its per-vertex output (k-pop Dijkstra yields the k shortest walks to every vertex), which replaces a separate `kShortestWalksAll` (`04-Graphs/Docs/00-notes.md`)."
     },
     {
       "id": "P090",
@@ -2255,7 +2310,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement BalancedParenthesesTree::findClose, BalancedParenthesesTree::findOpen, BalancedParenthesesTree::enclose, BalancedParenthesesTree::excess, BalancedParenthesesTree::fwdSearch, BalancedParenthesesTree::bwdSearch, BalancedParenthesesTree::rmq, BalancedParenthesesTree::rmqMax, BalancedParenthesesTree::minCount, BalancedParenthesesTree::minSelect, BalancedParenthesesTree::levelAncestor, BalancedParenthesesTree::isAncestor, BalancedParenthesesTree::isLeaf, BalancedParenthesesTree::degree, BalancedParenthesesTree::child, BalancedParenthesesTree::childRank, BalancedParenthesesTree::lastChild, BalancedParenthesesTree::prevSibling, BalancedParenthesesTree::preorderSelect, BalancedParenthesesTree::postorder, BalancedParenthesesTree::postorderSelect, BalancedParenthesesTree::leafRank, BalancedParenthesesTree::leafSelect, BalancedParenthesesTree::numLeaves, BalancedParenthesesTree::height, BalancedParenthesesTree::deepestNode, BalancedParenthesesTree::levelNext, BalancedParenthesesTree::levelPrev, BalancedParenthesesTree::levelLeftmost, BalancedParenthesesTree::levelRightmost, SuccinctRMQ in `41-succincttree.hpp`; VanEmdeBoas::empty in `42-vanemdeboas.hpp`; CographicMatroid, maxWeightBasis in `46-matroid_oracle.hpp`."
     },
     {
       "id": "P185",
@@ -2268,7 +2323,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement GFpk::pthRoot, GFpk::sqrt, GFpk::isSquare, GFpkZech, findSparseIrreducible in `42-finite_fields.hpp`."
     },
     {
       "id": "P179",
@@ -2281,20 +2336,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P111",
-      "label": "02-Data Structures — lct",
-      "batches": [
-        "DS14"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement lllReduce, lllReduceWithRemoval, isLllReduced, lllReduceExact, gramSchmidt in `35-lattice_reduction.hpp`."
     },
     {
       "id": "P119",
@@ -2307,7 +2349,20 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement DynamicBitVector::ctor in `49-dynamicbitvector.hpp`."
+    },
+    {
+      "id": "P111",
+      "label": "02-Data Structures — lct",
+      "batches": [
+        "DS14"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement LinkCutTree::ctor, LinkCutTree::parent, LinkCutTree::depth, LinkCutTree::pathMaxRight in `37-lct.hpp`."
     },
     {
       "id": "P162",
@@ -2320,7 +2375,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement maximumWeightMatching, minimumWeightMatching, weightedBlossomSparse in `64-weightedblossom.hpp`."
     },
     {
       "id": "P112",
@@ -2333,7 +2388,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement EulerTourTree::vertexGet, EulerTourTree::subtreeFold, EulerTourTree::subtreeApply, EulerTourTree::componentSize, EulerTourTree::componentFold, EulerTourTree::setMark, EulerTourTree::findMarked in `38-eulertourtree.hpp`."
     },
     {
       "id": "P113",
@@ -2346,7 +2401,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "StaticTopTree and TopTree take a cluster contract beyond 00-monoids (rake, compress, vertex and edge leaves): keep its presets in row 39 and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets; P175 reuses them."
+      "note": "StaticTopTree and TopTree take a cluster contract beyond 00-monoids (rake, compress, vertex and edge leaves): keep its presets in row 39 and have @researcher sweep catalogs for them, as noted for P028 BeatsMonoid presets; P175 reuses them. Omission sweep 2026-11-08: implement StaticTopTree::edgeUpdate, TopTree::evert, TopTree::connected, TopTree::lca, TopTree::set, TopTree::search, cluster presets in `39-toptree.hpp`."
     },
     {
       "id": "P123",
@@ -2359,7 +2414,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement SplitPQTree in `56-pqtree.hpp`."
     },
     {
       "id": "P138",
@@ -2387,7 +2442,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement visibilityGraph, visibilityGraphOutputSensitive, tangentVisibilityGraph, shortestPathAmongObstacles, shortestPathAmongObstaclesContinuous, geodesicPath, shortestPathTree, ShortestPathQuery in `39-visibilitygraph.hpp`; KineticSort::insert, KineticSort::erase, KineticSort::setMotion, kineticDelaunay in `40-kinetic_geometry.hpp`; lowerEnvelope, upperEnvelope, lowerEnvelope3, upperEnvelope3 in `41-geometric_duality.hpp`."
     },
     {
       "id": "P140",
@@ -2400,7 +2455,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement minimumEnclosingBall, polytopeDistance in `42-randomizedlp.hpp`."
     },
     {
       "id": "P143",
@@ -2413,7 +2468,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement powerCellsHalfplane, nearestPowerSite, weightedVoronoiLocate, convexPolygonEdgeVoronoi in `46-weighted_voronoi.hpp`."
     },
     {
       "id": "P145",
@@ -2426,7 +2481,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement Delaunay3::nearestVertex, Delaunay3::remove, Delaunay3::move, regularTriangulation3 in `47-delaunay3d.hpp`."
     },
     {
       "id": "P152",
@@ -2441,7 +2496,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Planned operation (user decision 2026-10-24, from P072): minimumRatioSpanningTree (POJ 2728), 06-Miscellaneous/55 dinkelbach over a dense Prim (06-mst primDense) oracle with weights a - t * b, exact rational result and tree witness; add it to the row 56 operations beside minimumRatioCycle and update 06-Miscellaneous/Docs/00-notes.md (Ownership boundaries) when implemented."
+      "note": "Planned operation (user decision 2026-10-24, from P072): minimumRatioSpanningTree (POJ 2728), 06-Miscellaneous/55 dinkelbach over a dense Prim (06-mst primDense) oracle with weights a - t * b, exact rational result and tree witness; add it to the row 56 operations beside minimumRatioCycle and update 06-Miscellaneous/Docs/00-notes.md (Ownership boundaries) when implemented. Omission sweep 2026-11-08: implement GomoryHuTree::kEdgeComponents in `46-gomoryhutree.hpp`; stoerWagnerDense, stoerWagnerSparse in `47-stoerwagner.hpp`; vertexCoverAtMost, cliqueCover in `49-maximumclique.hpp`."
     },
     {
       "id": "P158",
@@ -2457,7 +2512,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement stNumbering in `60-stnumbering.hpp`; boundedSimpleCycles, weightedGirth, shortestCycleThroughVertex, findOddCycle, findChordlessCycle in `68-cycle_enumeration.hpp`."
     },
     {
       "id": "P176",
@@ -2470,7 +2525,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement primeCountTable, lmoPrimeCount, delegliseRivatPrimeCount in `31-summatory_functions.hpp`."
     },
     {
       "id": "P181",
@@ -2483,7 +2538,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement pFreeFactorialModPrime in `37-fastfactorial.hpp`; bernoulliTableSimple, bernoulliPolynomial, bernoulliDenominator, powerSumsAllExponents, eulerPolynomial in `38-bernoulli.hpp`."
     },
     {
       "id": "P183",
@@ -2496,7 +2551,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement fpsComposeExp, bivariateRationalCoefficient, countLabeledGraphs in `40-generating_functions.hpp`."
     },
     {
       "id": "P188",
@@ -2509,7 +2564,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement kaltofenShoupFactor in `46-polynomial_factorization.hpp`."
     },
     {
       "id": "P190",
@@ -2535,7 +2590,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement BigFloat::floor, BigFloat::ceil, BigFloat::trunc, BigFloat::round, BigFloat::toInfInt, BigFloat::mul2exp, BigFloat::frexp, fromInfInt, fromRational, toRational, bigLog1p, bigExpm1, bigPow, bigPowInt, bigRoot, bigSum, DoubleDouble::sub, DoubleDouble::neg, DoubleDouble::compare, DoubleDouble::sign, DoubleDouble::floor, DoubleDouble::ceil, DoubleDouble::trunc, DoubleDouble::exp, DoubleDouble::log, DoubleDouble::powInt, DoubleDouble::ldexp, DoubleDouble::isFinite, DoubleDouble::toDouble in `63-multiprecision_float.hpp`."
     },
     {
       "id": "P211",
@@ -2548,331 +2603,13 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement DynamicFmIndex in `36-compressed_text_index.hpp`."
     },
     {
       "id": "P212",
       "label": "07-Strings — grammar compression",
       "batches": [
         "ST15"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P115",
-      "label": "02-Data Structures — rangetree, kineticheap, persistentqueue, ordermaintenance",
-      "batches": [
-        "DS22",
-        "DS20",
-        "DS33",
-        "DS53"
-      ],
-      "phase": "Specialist and research families",
-      "size": "L+L+L+L",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": "From P028 (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): row 43 also owns k-dimensional compressed range trees (SUI), O(log^k n) per operation; P028 rewrites its omission entry to point here."
-    },
-    {
-      "id": "P116",
-      "label": "02-Data Structures — retroactivequeue",
-      "batches": [
-        "DS19"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P120",
-      "label": "02-Data Structures — dynamic wavelet",
-      "batches": [
-        "DS36"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P121",
-      "label": "02-Data Structures — sortablesegmenttree",
-      "batches": [
-        "DS37"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P122",
-      "label": "02-Data Structures — linearrmq, commonintervaltree",
-      "batches": [
-        "DS40",
-        "DS41"
-      ],
-      "phase": "Specialist and research families",
-      "size": "L+L",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P124",
-      "label": "02-Data Structures — fingertree",
-      "batches": [
-        "DS43"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P125",
-      "label": "02-Data Structures — persistent bst",
-      "batches": [
-        "DS44"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P126",
-      "label": "02-Data Structures — range sequence queries",
-      "batches": [
-        "DS45"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P127",
-      "label": "02-Data Structures — succinct sequence",
-      "batches": [
-        "DS46"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P141",
-      "label": "03-Geometry — algebraic geometry",
-      "batches": [
-        "GE22"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P142",
-      "label": "03-Geometry — constraineddelaunay",
-      "batches": [
-        "GE35"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P144",
-      "label": "03-Geometry — minimumwidthannulus",
-      "batches": [
-        "GE21"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P146",
-      "label": "03-Geometry — polygonoffset",
-      "batches": [
-        "GE38"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P147",
-      "label": "03-Geometry — minimumenclosingellipse",
-      "batches": [
-        "GE39"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P148",
-      "label": "03-Geometry — alphashape",
-      "batches": [
-        "GE40"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P149",
-      "label": "03-Geometry — polyhedron boolean",
-      "batches": [
-        "GE41"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P150",
-      "label": "03-Geometry — curve distance",
-      "batches": [
-        "GE42"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P151",
-      "label": "03-Geometry — dynamicconvexhull",
-      "batches": [
-        "GE43"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P153",
-      "label": "04-Graphs — matroidintersection",
-      "batches": [
-        "GR15"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P154",
-      "label": "04-Graphs — treedecomposition",
-      "batches": [
-        "GR17"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P155",
-      "label": "04-Graphs — lct, sensitivity analysis, temporal graph, maximumdensitysubgraph",
-      "batches": [
-        "GR18",
-        "GR21",
-        "GR24"
-      ],
-      "phase": "Specialist and research families",
-      "size": "L+L+M",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P156",
-      "label": "04-Graphs — graph isomorphism",
-      "batches": [
-        "GR20"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P157",
-      "label": "04-Graphs — kshortestsimplepaths",
-      "batches": [
-        "GR40"
-      ],
-      "phase": "Specialist and research families",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
-    },
-    {
-      "id": "P159",
-      "label": "04-Graphs — triconnectivity",
-      "batches": [
-        "GR42"
       ],
       "phase": "Specialist and research families",
       "size": "XL",
@@ -2892,7 +2629,325 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement planarEmbeddingDmp in `62-planarity.hpp`."
+    },
+    {
+      "id": "P115",
+      "label": "02-Data Structures — rangetree, kineticheap, persistentqueue, ordermaintenance",
+      "batches": [
+        "DS22",
+        "DS20",
+        "DS33",
+        "DS53"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "From P028 (user decision 2026-11-04: unconditional, implement as optimally as possible, benchmark and record constants): row 43 also owns k-dimensional compressed range trees (SUI), O(log^k n) per operation; P028 rewrites its omission entry to point here. Omission sweep 2026-11-08: implement RangeTreeK in `43-rangetree.hpp`; ParametricHeap, LinearAddMinSegmentTree, KineticMaxSubarray in `45-kineticheap.hpp`; PersistentJumpQueue in `47-persistentqueue.hpp`; OrderMaintenance::label, SingleLevelOrderMaintenance in `66-ordermaintenance.hpp`."
+    },
+    {
+      "id": "P116",
+      "label": "02-Data Structures — retroactivequeue",
+      "batches": [
+        "DS19"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement PartiallyRetroactivePriorityQueue::sum, FullyRetroactivePriorityQueue::insertPush, FullyRetroactivePriorityQueue::insertPop, FullyRetroactivePriorityQueue::erase, FullyRetroactivePriorityQueue::min in `44-retroactivequeue.hpp`."
+    },
+    {
+      "id": "P120",
+      "label": "02-Data Structures — dynamic wavelet",
+      "batches": [
+        "DS36"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement DynamicWaveletTree::ctor, DynamicHuffmanWaveletTree in `50-dynamic_wavelet.hpp`."
+    },
+    {
+      "id": "P121",
+      "label": "02-Data Structures — sortablesegmenttree",
+      "batches": [
+        "DS37"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement SortableSegmentTree::ctor, SortableSegmentTree::set, SortableSegmentTree::allProd, SortableSegmentTree::maxRight, SortableSegmentTree::minLeft, SortableSegmentTree::values, SortableSequence, SortableArray in `51-sortablesegmenttree.hpp`."
+    },
+    {
+      "id": "P122",
+      "label": "02-Data Structures — linearrmq, commonintervaltree",
+      "batches": [
+        "DS40",
+        "DS41"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement CommonIntervalTree::build, CommonIntervalTree::nodes, CommonIntervalTree::minimalInterval in `55-commonintervaltree.hpp`. Omission sweep 2026-11-08 (user decision): `PlusMinusOneRMQ` stays public in row 54 (duplicates.md, Keeps); once it lands, migrate the `EulerLCA` kernel in `04-Graphs/07-lca.hpp` to call it."
+    },
+    {
+      "id": "P124",
+      "label": "02-Data Structures — fingertree",
+      "batches": [
+        "DS43"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement FingerTree::ctor, FingerTree::front, FingerTree::back, FingerTree::toVector in `57-fingertree.hpp`."
+    },
+    {
+      "id": "P125",
+      "label": "02-Data Structures — persistent bst",
+      "batches": [
+        "DS44"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement PersistentTreap::build, PersistentTreap::find, PersistentTreap::lowerBound, PersistentTreap::upperBound, PersistentTreap::prev, PersistentTreap::next, PersistentTreap::rank, PersistentTreap::values, PersistentImplicitTreap::build, PersistentImplicitTreap::at, PersistentImplicitTreap::set, PersistentImplicitTreap::split, PersistentImplicitTreap::values, PersistentRedBlackTree::build, PersistentRedBlackTree::insert, PersistentRedBlackTree::erase, PersistentRedBlackTree::at, PersistentRedBlackTree::set, PersistentRedBlackTree::prod, PersistentRedBlackTree::apply, PersistentRedBlackTree::reverse, PersistentRedBlackTree::copyRange, PersistentRedBlackTree::values, PersistentWeightBalancedTree::build, PersistentWeightBalancedTree::insert, PersistentWeightBalancedTree::erase, PersistentWeightBalancedTree::at, PersistentWeightBalancedTree::set, PersistentWeightBalancedTree::prod, PersistentWeightBalancedTree::apply, PersistentWeightBalancedTree::reverse, PersistentWeightBalancedTree::copyRange, PersistentWeightBalancedTree::values in `58-persistent_bst.hpp`."
+    },
+    {
+      "id": "P126",
+      "label": "02-Data Structures — range sequence queries",
+      "batches": [
+        "DS45"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement staticRangeInversions, staticRangeInversionsFenwick, OnlineRangeInversions in `59-range_sequence_queries.hpp`."
+    },
+    {
+      "id": "P127",
+      "label": "02-Data Structures — succinct sequence",
+      "batches": [
+        "DS46"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement GapEncodedBitVector, DynamicSparseVector in `60-succinct_sequence.hpp`."
+    },
+    {
+      "id": "P141",
+      "label": "03-Geometry — algebraic geometry",
+      "batches": [
+        "GE22"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement ConicArc2, CircularArc2, Bezier2, xMonotoneSplit in `44-algebraic_geometry.hpp`."
+    },
+    {
+      "id": "P142",
+      "label": "03-Geometry — constraineddelaunay",
+      "batches": [
+        "GE35"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement ConstrainedDelaunay, conformingGabriel in `45-constraineddelaunay.hpp`."
+    },
+    {
+      "id": "P144",
+      "label": "03-Geometry — minimumwidthannulus",
+      "batches": [
+        "GE21"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement minimumAreaAnnulus in `43-minimumwidthannulus.hpp`."
+    },
+    {
+      "id": "P146",
+      "label": "03-Geometry — polygonoffset",
+      "batches": [
+        "GE38"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement polygonErode, outwardOffset, extrudeSkeleton in `48-polygonoffset.hpp`."
+    },
+    {
+      "id": "P147",
+      "label": "03-Geometry — minimumenclosingellipse",
+      "batches": [
+        "GE39"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement EnclosingEllipse, EllipsoidApprox in `49-minimumenclosingellipse.hpp`."
+    },
+    {
+      "id": "P148",
+      "label": "03-Geometry — alphashape",
+      "batches": [
+        "GE40"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement AlphaClass, alphaClassify, FixedAlphaShape3, weightedAlphaShape2, weightedAlphaShape3, findOptimalAlpha, findAlphaSolid in `50-alphashape.hpp`."
+    },
+    {
+      "id": "P149",
+      "label": "03-Geometry — polyhedron boolean",
+      "batches": [
+        "GE41"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement polyhedronIntersection, polyhedronSymmetricDifference, polyhedronComplement, minkowskiSumHull3, minkowskiSum3 in `51-polyhedron_boolean.hpp`."
+    },
+    {
+      "id": "P150",
+      "label": "03-Geometry — curve distance",
+      "batches": [
+        "GE42"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement discreteFrechetSubquadratic, frechetNearCurves, simplifyPolylinePathHull, simplifyPolylineMinCount, simplifyPolylineTopological in `52-curve_distance.hpp`."
+    },
+    {
+      "id": "P151",
+      "label": "03-Geometry — dynamicconvexhull",
+      "batches": [
+        "GE43"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement DynamicHull::extreme, DynamicHull::neighbours, DynamicHull::intersectsLine, DynamicHull::vertices, DynamicHullLogarithmic, DynamicHullRebuild, DynamicHullBrodalJacob in `53-dynamicconvexhull.hpp`."
+    },
+    {
+      "id": "P153",
+      "label": "04-Graphs — matroidintersection",
+      "batches": [
+        "GR15"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement matroidIntersection, weightedMatroidIntersection, matroidUnion in `48-matroidintersection.hpp`."
+    },
+    {
+      "id": "P154",
+      "label": "04-Graphs — treedecomposition",
+      "batches": [
+        "GR17"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement treeDecompositionMinDegree, treeDecompositionMinFillIn in `50-treedecomposition.hpp`."
+    },
+    {
+      "id": "P155",
+      "label": "04-Graphs — lct, sensitivity analysis, temporal graph, maximumdensitysubgraph",
+      "batches": [
+        "GR18",
+        "GR21",
+        "GR24"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement DynamicForest::findRoot, DynamicForest::pointSet, DynamicForest::pointGet, DynamicForest::subtreeFold, DynamicForest::subtreeApply in `51-lct.hpp`; replacementPaths, secondBestMst, kBestSpanningTrees in `52-sensitivity_analysis.hpp`; earliestArrival, fastestPath, shortestTemporalPath in `55-temporal_graph.hpp`; densestSubgraphPeeling in `57-maximumdensitysubgraph.hpp`."
+    },
+    {
+      "id": "P156",
+      "label": "04-Graphs — graph isomorphism",
+      "batches": [
+        "GR20"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement isomorphism, subgraphIsomorphism, subgraphMonomorphism, allIsomorphisms, canonicalForm in `54-graph_isomorphism.hpp`."
+    },
+    {
+      "id": "P157",
+      "label": "04-Graphs — kshortestsimplepaths",
+      "batches": [
+        "GR40"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement kShortestSimplePaths in `59-kshortestsimplepaths.hpp`."
+    },
+    {
+      "id": "P159",
+      "label": "04-Graphs — triconnectivity",
+      "batches": [
+        "GR42"
+      ],
+      "phase": "Specialist and research families",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement separationPairCount, separationPairs, SpqrTree::typeOf, SpqrTree::nodesOfType, SpqrTree::nodeOfEdge, SpqrTree::rootAt, SpqrTree::pertinentGraph, IncrementalSpqrTree in `61-triconnectivity.hpp`."
     },
     {
       "id": "P161",
@@ -2905,7 +2960,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement FullyDynamicConnectivity::insertEdge, FullyDynamicConnectivity::eraseEdge, FullyDynamicConnectivity::addValue, FullyDynamicConnectivity::componentFold in `63-fully_dynamic_connectivity.hpp`."
     },
     {
       "id": "P163",
@@ -2931,7 +2986,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement minCostCirculation, minCostBFlow, capacityScalingMinCostFlow in `65-costscalingflow.hpp`."
     },
     {
       "id": "P165",
@@ -2944,7 +2999,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement NetworkSimplex::addEdge, NetworkSimplex::supplyType, NetworkSimplex::totalCost in `66-networksimplex.hpp`."
     },
     {
       "id": "P166",
@@ -2959,7 +3014,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement minimumCycleBasis in `72-minimumcyclebasis.hpp`; countHamiltonianPaths, minimumHamiltonianPath, metricTspApproximation, knightsTour in `73-hamiltonian.hpp`."
     },
     {
       "id": "P167",
@@ -3000,7 +3055,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement cutPairs, threeEdgeConnectivityCertificate in `74-threeedgecomponents.hpp`; treeBroadcastTime, treeBroadcastCenter in `79-tree_ordering.hpp`."
     },
     {
       "id": "P170",
@@ -3027,7 +3082,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement outerplanarHamiltonianCycle, tournamentHamiltonianCycle in `77-structured_graph.hpp`."
     },
     {
       "id": "P172",
@@ -3040,7 +3095,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement nonzeroGroupProductShortestPath in `78-grouplabeledshortestpath.hpp`."
     },
     {
       "id": "P173",
@@ -3055,7 +3110,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement ExtremeVertexSets, extremeVertexSets in `83-extremevertexsets.hpp`."
     },
     {
       "id": "P174",
@@ -3081,7 +3136,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Builds on row 39 StaticTopTree (P113): reuse P113's cluster presets; presets this row adds stay in 84-dynamictreedp.hpp."
+      "note": "Builds on row 39 StaticTopTree (P113): reuse P113's cluster presets; presets this row adds stay in 84-dynamictreedp.hpp. Omission sweep 2026-11-08: implement DynamicRerootingDp, dynamicDp in `84-dynamictreedp.hpp`."
     },
     {
       "id": "P177",
@@ -3094,7 +3149,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement DirichletCharacter::ctor, DirichletCharacter::order, DirichletCharacter::parity, DirichletCharacter::isReal, DirichletCharacter::isPrimitive, DirichletCharacter::mul, DirichletCharacter::pow, DirichletCharacter::lower, DirichletCharacter::lift, characterValues, enumerateCharacters, primitiveCharacterCount in `32-dirichlet_series.hpp`."
     },
     {
       "id": "P180",
@@ -3107,7 +3162,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement oneLineFactor, lehmanFactor, siqs, morrisonTest, pseudosquarePrimality, aprcl, factorSmooth, divisorInResidueClass, isPrime128, factorize128 in `36-integer_factor_advanced.hpp`."
     },
     {
       "id": "P182",
@@ -3120,7 +3175,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement expIntegral, logIntegral, sinIntegral, cosIntegral, sinhIntegral, coshIntegral, erfcInverse, erfi, fresnelS, fresnelC, airyAi, airyBi, legendreP, chebyshevT, chebyshevU, laguerreL, hermiteH, jacobiP, gegenbauerC, hypergeometric0F1, hypergeometricPFQ, tricomiU in `39-special_functions.hpp`."
     },
     {
       "id": "P184",
@@ -3146,7 +3201,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement bareissDeterminant, bareissRref, hessenbergSolve in `44-determinant_advanced.hpp`."
     },
     {
       "id": "P187",
@@ -3159,7 +3214,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement contourIntegrate, cauchyBound in `45-contourintegral.hpp`."
     },
     {
       "id": "P189",
@@ -3172,7 +3227,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement nimMul, nimSquare, nimIsPrimitiveRoot in `47-nimber.hpp`."
     },
     {
       "id": "P191",
@@ -3185,7 +3240,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement countSpanningTreesAllSubsets, countDagPaths in `53-graph_counting.hpp`. Matrix-tree, all-minors and BEST counts moved to Mathematics row 23 (P061, user decision 2026-11-08)."
     },
     {
       "id": "P192",
@@ -3198,7 +3253,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement hermiteNormalFormModular, elementaryDivisors, rationalSolve, howellForm, strongEchelonForm in `49-integer_linear_algebra.hpp`."
     },
     {
       "id": "P193",
@@ -3211,7 +3266,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement MPoly::pow, MPoly::compose, mpolyDivides, mpolyGcd, discriminantInVariable, multivariateExp2d, multivariateLog2d, multivariatePow2d, compositionalInverse2d in `50-multivariate_polynomial.hpp`."
     },
     {
       "id": "P194",
@@ -3224,7 +3279,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement PolyMatrix::kernel, PolyMatrix::pow, multipointPrefixProductEval in `51-polynomial_matrix.hpp`."
     },
     {
       "id": "P195",
@@ -3238,7 +3293,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Migration (user decision 2026-10-23, from P072): once 53-semiring_convolution.hpp provides maxPlusConvolutionConcaveArbitrary, 06-Miscellaneous/29-knapsack_advanced.hpp smallWeightKnapsack calls it instead of its knapsack_advanced_detail SMAWK; update Docs/29-knapsack_advanced.md and rerun the 29 tester."
+      "note": "Migration (user decision 2026-10-23, from P072): once 53-semiring_convolution.hpp provides maxPlusConvolutionConcaveArbitrary, 06-Miscellaneous/29-knapsack_advanced.hpp smallWeightKnapsack calls it instead of its knapsack_advanced_detail SMAWK; update Docs/29-knapsack_advanced.md and rerun the 29 tester. Omission sweep 2026-11-08: implement onlineFpsSqrt, newtonDifferentialEquation in `52-relaxed_convolution.hpp`; minPlusConvolutionConvexArbitrarySimple, minPlusConvolutionConcaveArbitrary in `53-semiring_convolution.hpp`."
     },
     {
       "id": "P196",
@@ -3253,7 +3308,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement indexCalculus, DiscreteLogTable, discreteLogVector in `54-discrete_log_advanced.hpp`; GaussianInteger::extGcd, GaussianInteger::pow, EisensteinInteger::extGcd, EisensteinInteger::factor, EisensteinInteger::isPrime, HurwitzQuaternion::add, HurwitzQuaternion::sub, HurwitzQuaternion::leftDivmod, HurwitzQuaternion::rightDivmod in `57-quadratic_integer.hpp`; SidonSequence in `59-zero_sum.hpp`."
     },
     {
       "id": "P197",
@@ -3266,7 +3321,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement floorSumPolynomialExponential in `55-floor_sum_polynomial.hpp`."
     },
     {
       "id": "P198",
@@ -3292,7 +3347,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement DyadicRational::sub, DyadicRational::negate, DyadicRational::simplestAbove, DyadicRational::simplestBelow, NumberAndStar, solvePartizanGame in `58-partizan_games.hpp`."
     },
     {
       "id": "P200",
@@ -3307,7 +3362,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement rsk, kLisPrefixQueries in `60-tableau_algorithms.hpp`; convolutionGf2, fpsInverseGf2, karyXorConvolution, karyMaxConvolution, karyMinConvolution in `65-convolution_specialized.hpp`."
     },
     {
       "id": "P201",
@@ -3320,7 +3375,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement AlgebraicNumber::pow, AlgebraicNumber::root, AlgebraicNumber::compareAbs, AlgebraicNumber::isReal, AlgebraicNumber::isRational, AlgebraicNumber::isInteger, AlgebraicNumber::isAlgebraicInteger, AlgebraicNumber::conj, AlgebraicNumber::abs, AlgebraicNumber::abs2, AlgebraicNumber::floor, AlgebraicNumber::ceil, AlgebraicNumber::toRational, AlgebraicNumber::numerator, AlgebraicNumber::denominator, algebraicRoots, conjugates, rootOfUnity, cosPi, sinPi, algebraicGuess, NumberFieldElement::div, NumberFieldElement::pow, NumberFieldElement::gen, NumberFieldElement::representationMatrix in `61-algebraic_numbers.hpp`."
     },
     {
       "id": "P203",
@@ -3333,7 +3388,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement RealInterval::sqr, RealInterval::neg, RealInterval::abs, RealInterval::atan, RealInterval::overlaps, Ball::sin, Ball::cos, Ball::atan, Ball::pow, Ball::containsZero, Ball::overlaps, Ball::midpoint, Ball::addError, Ball::relAccuracyBits, Ball::hull, Ball::intersect, Ball::rationalInInterval, toBall, toRealInterval, uniqueInteger, certifiedFloor, certifiedCeil, ballDot, ballPi in `62-ball_arithmetic.hpp`."
     },
     {
       "id": "P204",
@@ -3346,7 +3401,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement PermutationGroup::schreierSims, cyclicElementOrder, cyclicGeneratorCount, toddCoxeter in `64-group_algorithms.hpp`."
     },
     {
       "id": "P205",
@@ -3360,7 +3415,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement RollbackArray in `42-rollback_framework.hpp`; PersistentArena::clone in `43-persistentallocator.hpp`; sortMergeJoin, listRanking, LruCache, beladyEviction, simulateEviction in `44-external_memory.hpp`."
     },
     {
       "id": "P206",
@@ -3373,7 +3428,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement MinHashDistinct, KmvSketch, AmsSketch in `45-probabilistic_sketches.hpp`; pessimisticIndependentSet, colorCoding, PerfectHashFamily::build in `47-derandomization.hpp`."
     },
     {
       "id": "P207",
@@ -3386,7 +3441,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement garsiaWachsQuadratic, approximateAlphabeticTree in `48-alphabetic_tree.hpp`."
     },
     {
       "id": "P208",
@@ -3399,7 +3454,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement UkkonenSuffixTree::popFront, UkkonenSuffixTree::step, UkkonenSuffixTree::suffixLink in `33-onlinesuffixtree.hpp`."
     },
     {
       "id": "P209",
@@ -3414,7 +3469,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement ToggleAhoCorasick, OnlineAhoCorasick::countPatterns in `34-dynamicaho.hpp`; hammingDistances, kMismatch, approximateOccurrences in `38-approximate_matching.hpp`; shortestAbsentPalindromeInRange in `39-palindrome_advanced.hpp`."
     },
     {
       "id": "P210",
@@ -3427,7 +3482,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement SuffixBalancedTree::occurrenceCount, SuffixBalancedTree::sa in `35-dynamicsuffixarray.hpp`."
     },
     {
       "id": "P213",
@@ -3443,7 +3498,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement cartesianTreeMatch in `40-stringisomorphism.hpp`; deBruijnDecode, permutationUniversalCycle, fixedWeightUniversalCycle in `41-debruijn.hpp`; lzw, lzwDecode in `42-zivlempel.hpp`; breslauerTwoWay, inPlaceSuffixSort in `43-linear_string_algorithms.hpp`; fibonacciBit, standardWord, isBalancedWord, squareFreeTernaryWord, morphismFixedPoint in `50-combinatorial_words.hpp`."
     },
     {
       "id": "P214",
@@ -3456,7 +3511,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement SlidingWindowSuffixAutomaton::isSubstring, SlidingWindowSuffixAutomaton::occurrences in `44-dynamic_suffix_automaton.hpp`."
     },
     {
       "id": "P215",
@@ -3469,7 +3524,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement DoubleEndedPalindromicTree::size in `45-dynamicpalindrome.hpp`."
     },
     {
       "id": "P216",
@@ -3482,7 +3537,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement RlBwt::access, RlBwt::select, RlBwt::countLess, MoveStructure, RIndex::saAccess, RIndex::isaAccess, RIndex::lcpAccess, RIndex::matchingStatistics, RIndex::maximalExactMatches, RIndex::maximalUniqueMatches in `46-rindex.hpp`."
     },
     {
       "id": "P217",
@@ -3495,7 +3550,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement DynamicString::occurrences in `47-dynamiclce.hpp`."
     },
     {
       "id": "P218",
@@ -3508,7 +3563,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "Omission sweep 2026-11-08: implement maxCliqueCircleGraph in `48-semilocallcs.hpp`."
     },
     {
       "id": "P219",
@@ -3588,7 +3643,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "geometric partition theorems"
+      "note": "geometric partition theorems Omission sweep 2026-11-08: implement tukeyMedian, tukeyDepthRegions, simplicialDepth, regressionDepth, deepestRegression in `55-ham_sandwich.hpp`."
     },
     {
       "id": "P232",
@@ -3627,7 +3682,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Megiddo, OAMB86 and STVWE95 were not read yet; obtain them first."
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Megiddo and OAMB86 were not read yet; obtain them first. Omission sweep 2026-11-08: implement weightedMinimumEnclosingCircle, minimumWidth3, minimumVolumeBoundingBox3 in `57-enclosing_shapes.hpp`. The minimum enclosing parallelogram left row 57: row 07 `minimumAreaParallelogramApprox` already runs Rote's linear algorithm (/finish P254, 2026-11-08)."
     },
     {
       "id": "P235",
@@ -3640,7 +3695,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Güting's J. Algorithms 1984 paper was not readable (paywalled); obtain it first."
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Güting's J. Algorithms 1984 paper was not readable (paywalled); obtain it first. Omission sweep 2026-11-08: implement rectangleDepthDistributionQuadratic, boxDepthDistribution, boxUnionVolume, boxUnionVolumeSweep, maxBoxDepth in `58-rectangle_depth.hpp`."
     },
     {
       "id": "P236",
@@ -3653,7 +3708,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Area weights are not Monge (15-convex_polygon_query.md); check what AST94 requires before implementing."
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Area weights are not Monge (15-convex_polygon_query.md); check what AST94 requires before implementing. Omission sweep 2026-11-08: implement minAreaEnclosingKgon in `59-kgon_klink.hpp`."
     },
     {
       "id": "P237",
@@ -3666,7 +3721,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Expected to be slower than the comparison-model versions at contest sizes; benchmark and record."
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Expected to be slower than the comparison-model versions at contest sizes; benchmark and record. Omission sweep 2026-11-08: implement offlineRectangleCountWordRam, offlineBoxCountWordRam, slopeSelectionWordRam, inversionCountWordRam, PointLocationWordRam, offlinePointLocationWordRam, convexHull3WordRam, voronoiWordRam, offlineNearestNeighbourWordRam, segmentIntersectionWordRam, triangulateWordRam in `60-wordram_geometry.hpp`."
     },
     {
       "id": "P249",
@@ -3680,7 +3735,121 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Filed by P048 (user decision 2026-10-28, 04-Graphs/Docs/00-notes.md P048 GR13 omissions); sources in 04-Graphs/Docs/00-sources.md (P048 GR13 sweep). Run the completeness sweep first."
+      "note": "Filed by P048 (user decision 2026-10-28, 04-Graphs/Docs/00-notes.md P048 GR13 omissions); sources in 04-Graphs/Docs/00-sources.md (P048 GR13 sweep). Run the completeness sweep first. Omission sweep 2026-11-08: implement cycleSeparator, fundamentalCycleSeparator, refineSeparator in `89-planarseparator.hpp`."
+    },
+    {
+      "id": "P265",
+      "label": "02-Data Structures — dynamicrlestring, binarygrouping",
+      "batches": [
+        "DS54",
+        "DS56"
+      ],
+      "phase": "Specialist and research families",
+      "size": "M+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Created by the 2026-11-08 omission sweep (P254)."
+    },
+    {
+      "id": "P267",
+      "label": "03-Geometry — segment intersection optimal, geometric spanners",
+      "batches": [
+        "GE52",
+        "GE54"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Created by the 2026-11-08 omission sweep (P254)."
+    },
+    {
+      "id": "P268",
+      "label": "03-Geometry — convexdecomposition3d, polyhedral geodesic, convexhulld",
+      "batches": [
+        "GE53",
+        "GE57",
+        "GE58"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Created by the 2026-11-08 omission sweep (P254)."
+    },
+    {
+      "id": "P269",
+      "label": "04-Graphs — incrementalplanarity, modulardecomposition, spanner",
+      "batches": [
+        "GR77",
+        "GR78",
+        "GR79"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L+L+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Created by the 2026-11-08 omission sweep (P254)."
+    },
+    {
+      "id": "P270",
+      "label": "05-Mathematics — ode solvers, continuous optimization, trigonometric transforms",
+      "batches": [
+        "MA55",
+        "MA56",
+        "MA57"
+      ],
+      "phase": "Specialist and research families",
+      "size": "M+M+M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Created by the 2026-11-08 omission sweep (P254)."
+    },
+    {
+      "id": "P271",
+      "label": "05-Mathematics — elliptic curves",
+      "batches": [
+        "MA58"
+      ],
+      "phase": "Specialist and research families",
+      "size": "L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Created by the 2026-11-08 omission sweep (P254)."
+    },
+    {
+      "id": "P272",
+      "label": "06-Miscellaneous — coin systems",
+      "batches": [
+        "MI36"
+      ],
+      "phase": "Specialist and research families",
+      "size": "S",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Created by the 2026-11-08 omission sweep (P254)."
+    },
+    {
+      "id": "P273",
+      "label": "07-Strings — ternarysearchtree, context free grammar, cdawg",
+      "batches": [
+        "ST42",
+        "ST43",
+        "ST44"
+      ],
+      "phase": "Specialist and research families",
+      "size": "M+M+L",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Created by the 2026-11-08 omission sweep (P254)."
     },
     {
       "id": "P224",

@@ -89,7 +89,7 @@ The code was written independently from the recurrences and proofs in the packag
 - Vector sizes beyond `INT_MAX` are reviewed, not allocated.
 - Comparator, callback and window-validity obligations are the caller's responsibility and are not asserted.
 - Checked builds cap the large interval fixtures (and the sequence fixtures) at 2000, because debug-STL partition checks make repeated `lower_bound` calls linear.
-- `39-scheduling.hpp`'s planned `intervalPartitionMachines` is to be removed as the projected `.first` of `intervalPartitionAssignment` (P079); Geometry `13`'s `segmentUnionLength` stays beside `intervalUnionMeasure` by decision (2026-10-18, P037). Both are in [duplicates.md](<../../00-Guidelines/23-Sweep Ledgers/duplicates.md>).
+- `39-scheduling.hpp`'s planned `intervalPartitionMachines` left its row as the projected `.first` of `intervalPartitionAssignment` (P079, applied by P254 2026-11-08); Geometry `13`'s `segmentUnionLength` stays beside `intervalUnionMeasure` by decision (2026-10-18, P037, [duplicates.md](<../../00-Guidelines/23-Sweep Ledgers/duplicates.md>)).
 - The code uses no `long` or POSIX-only calls.
 - Omitted candidates, with reasons in [00-notes.md](00-notes.md) ("P014 omissions"): k-machine schedules; interval jump queries; circular arc cover; ConstantIntervals.
 

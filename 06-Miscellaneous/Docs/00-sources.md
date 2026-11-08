@@ -38,7 +38,7 @@ Rows `03` (fast I/O) and planned `17` (advanced fast I/O) moved to `01-Core/19-f
 | Algorithmica HPC | https://en.algorithmica.org/hpc/ | 2026-10-06 | External memory (external sorting, list ranking, cache-oblivious), binary search/Eytzinger and static B-trees (`44`), SIMD and arithmetic chapters (Core profile) |
 | AtCoder Library documentation | https://atcoder.github.io/ac-library/production/document_en/ | 2026-10-06 | No miscellaneous component; all twelve components are owned by other folders |
 
-Short keys used in `00-index.md` status cells: CPA cp-algorithms, OIW OI Wiki, KACTL, LC Library Checker, CSES, CF Codeforces practice, NYA Nyaan, MAS maspypy, EI ei1333, SUI suisen, HIT hitonanode, TKO tko919, NOS noshi91, ALG Algorithmica.
+Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys).
 
 ## P013 re-audit sweep (2026-10-07)
 
@@ -74,7 +74,7 @@ Fetched by `@researcher` for rows `12`–`14`; adoption decisions are in [00-not
 
 | Source | URL | Used for |
 |---|---|---|
-| maspypy `enumerate` (partition, bits, multiset, xor_range, labeled_tree) | https://maspypy.github.io/library/enumerate/partition.hpp, https://maspypy.github.io/library/enumerate/bits.hpp, https://maspypy.github.io/library/enumerate/multiset.hpp | `12` partition order and part cap, set-partition practicality; set bits, compositions, xor ranges and trees not adopted |
+| maspypy `enumerate` (partition, bits, multiset, xor_range, labeled_tree) | https://maspypy.github.io/library/enumerate/partition.hpp, https://maspypy.github.io/library/enumerate/bits.hpp, https://maspypy.github.io/library/enumerate/multiset.hpp | `12` partition order and part cap, set-partition practicality; set bits, compositions and trees not adopted; xor ranges adopted on 2026-11-08 into `06` (`xorRangeBlocks`) |
 | suisen `util/subset_iterator` | https://suisen-cp.github.io/cp-library-cpp/library/util/subset_iterator.hpp | `12` set-bit and fixed-popcount submask iteration, not adopted |
 | Nyaan `set-function/enumerate-set` | https://nyaannyaan.github.io/library/set-function/enumerate-set.hpp | `12` `forEachSupermask` |
 | hitonanode `number/enumerate_partitions` | https://hitonanode.github.io/cplib-cpp/number/enumerate_partitions.hpp | `12` alternative partition interface (all `m <= N`), not adopted |
@@ -142,6 +142,94 @@ Fetched by `@researcher` for rows `29`, `54` and `55`; adoption decisions are in
 
 Codeforces blogs 61211, 146040 and 4190 (HTTP 403), the Luogu CCO 2020 "Shopping Plans" article (HTTP 523), poj.org and usaco.guide fractional programming (unreachable) were not read; `kSmallestFixedSizeSubsetSums` is derived and proved in its evidence document, not taken from them.
 
+## Fetched 2026-11-08 (omission sweep)
+
+Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
+
+| URL | Used for |
+|---|---|
+| https://maspypy.github.io/library/enumerate/xor_range.hpp | 06: `xorRangeBlocks` |
+| https://hitonanode.github.io/cplib-cpp/utilities/xor_of_interval.hpp | 06: `xorRangeBlocks` |
+| https://noshi91.github.io/Library/ | 06: `select` |
+| https://noshi91.github.io/Library/other/select64.cpp | 06: `select` |
+| https://oi-wiki.org/math/permutation/ | 07: `permutationRankMod` |
+| https://www.luogu.com.cn/problem/P5367 | 07: `permutationRankMod` |
+| https://cses.fi/problemset/ | 08: `maximumAverageSubarrayLengths`; 32: `binPackingDP`; 35: `nQueensCount`; 39: `kMachineIntervalSchedule` |
+| https://cses.fi/problemset/task/3301 | 08: `maximumAverageSubarrayLengths` |
+| https://cp-algorithms.com/schedules/schedule-with-completion-duration.html | 09: `intervalPartitionMachines` |
+| https://github.com/yosupo06/library-checker-problems/tree/master/data_structure | 10: `offlineRangeSum` |
+| https://github.com/yosupo06/library-checker-problems/blob/master/data_structure/static_range_sum_with_upper_bound/task.md | 10: `offlineRangeSum` |
+| https://oi-wiki.org/basic/bucket-sort/ | 11: `bucketSort` |
+| https://oi-wiki.org/basic/sort-intro/ | 11: `bucketSort` |
+| https://atcoder.jp/contests/language-test-202001/tasks/practice_2 | 11: `binaryInsertionSort`, `mergeInsertionSort` |
+| https://cses.fi/problemset/task/3139 | 11: `binaryInsertionSort`, `mergeInsertionSort` |
+| https://oi-wiki.org/basic/tournament-sort/ | 11: `binaryInsertionSort`, `mergeInsertionSort` |
+| https://cp-algorithms.com/data_structures/sqrt_decomposition.html | 16: `blockMoOrder` |
+| https://oi-wiki.org/misc/parallel-binsearch/ | 20: `overallBinarySearch` |
+| https://oi-wiki.org/misc/cdq-divide/ | 21: `cdqDivideAndConquer`, `longestChain3D` |
+| https://ei1333.github.io/library/dp/online-offline-dp.hpp | 21: `cdqDivideAndConquer` |
+| https://oi-wiki.org/lang/csl/bitset/ | 22: `bitsetDominanceCount` |
+| https://maspypy.github.io/library/knapsack/subset_sum.hpp | 22: `bitsetSubsetSum` |
+| https://maspypy.github.io/library/ds/offline_query/offline_set_intersection.hpp | 22: `offlineSetIntersection` |
+| https://maspypy.github.io/library/mod/modular_subset_sum.hpp | 22: `bitsetModularSubsetSum` |
+| https://oi-wiki.org/search/dlx/ | 25: `repeatedCover` |
+| https://howardhinnant.github.io/date_algorithms.html | 27: `nthWeekdayOfMonth`, `lastWeekdayOfMonth`, `isoWeekFromCivil`, `civilFromIsoWeek`, `daysFromJulian`, `julianFromDays`, `dayOfWeek` |
+| https://nyaannyaan.github.io/library/misc/base64.hpp | 28: `base64EncodeArray`, `base64DecodeArray` |
+| https://nyaannyaan.github.io/library/ | 28: `base64EncodeArray`, `base64DecodeArray`; 38: `MultipointAnnealing`, `MultiArmedBandit`, `play` |
+| https://maspypy.github.io/library/knapsack/knapsack01.hpp | 30: `knapsackMitm` |
+| https://nyaannyaan.github.io/library/dp/knapsack01.hpp | 30: `knapsackMitm` |
+| https://maspypy.github.io/library/knapsack/subset_sum_count.hpp | 30: `subsetSumCountBySize` |
+| https://oi-wiki.org/math/numeral-sys/base/ | 31: `bijectiveBaseEncode`, `bijectiveBaseDecode`, `negativeBaseEncode`, `negativeBaseDecode`, `balancedTernaryEncode`, `balancedTernaryDecode` |
+| https://cp-algorithms.com/algebra/balanced-ternary.html | 31: `balancedTernaryEncode`, `balancedTernaryDecode` |
+| https://cses.fi/problemset/task/1653 | 32: `binPackingDP` |
+| https://oi-wiki.org/dp/state/ | 33: `rowMaskDP` |
+| https://oi-wiki.org/dp/plug/ | 33: `dominoTilingCount`, `brokenProfileTiling`, `PlugDP`, `bestCycle`, `ColoredGridStates`, `encode` |
+| https://maspypy.github.io/library/other/connected_dp.hpp | 33: `PolygonGridStates` |
+| https://oi-wiki.org/search/astar/ | 35: `aStar` |
+| https://oi-wiki.org/search/ | 35: `aStar` |
+| https://maspypy.github.io/library/other/sliding_puzzle_solver.hpp | 35: `slidingPuzzleConstruct` |
+| https://cses.fi/problemset/task/1624 | 35: `nQueensCount` |
+| https://oi-wiki.org/misc/expression/ | 37: `recursiveDescent`, `Ast`, `toPrefix` |
+| https://github.com/maspypy/library/blob/main/other/構文解析.txt | 37: `recursiveDescent` |
+| https://nyaannyaan.github.io/library/marathon/sa-manager.hpp | 38: `MultipointAnnealing` |
+| https://oi-wiki.org/misc/simulated-annealing/ | 38: `restartSearch`, `SimulatedAnnealing`, `schedule` |
+| https://oi-wiki.org/misc/hill-climbing/ | 38: `restartSearch` |
+| https://github.com/maspypy/library/tree/main/other | 38: `beamOptimize1D`, `beamOptimize2D` |
+| https://github.com/maspypy/library/blob/main/other/optimize_1d_beam.hpp | 38: `beamOptimize1D`, `beamOptimize2D` |
+| https://github.com/maspypy/library/blob/main/other/optimize_2d.hpp | 38: `beamOptimize1D`, `beamOptimize2D` |
+| https://cp-algorithms.com/num_methods/simulated_annealing.html | 38: `SimulatedAnnealing`, `schedule` |
+| https://nyaannyaan.github.io/library/marathon/simulated-annealing.hpp | 38: `SimulatedAnnealing`, `schedule` |
+| https://nyaannyaan.github.io/library/marathon/multi-armed-bandit.hpp.html | 38: `MultiArmedBandit`, `play` |
+| https://cses.fi/problemset/task/1632 | 39: `kMachineIntervalSchedule` |
+| https://oi-wiki.org/basic/greedy/ | 39: `unitJobProfitSchedule` |
+| https://en.wikipedia.org/wiki/Huffman_coding | 40: `huffmanCostSorted`, `lengthLimitedHuffman`, `huffmanCost` |
+| https://researchwith.njit.edu/en/publications/finding-a-minimum-weight-k-link-path-in-graphs-with-monge-propert/ | 40: `lengthLimitedHuffman` |
+| https://maspypy.github.io/library/ | 42: `RollbackArray`, `checkpoint`; 53: `bracketForest`, `spans`; 56: `greedyChange`, `greedyCounterexample` |
+| https://maspypy.github.io/library/ds/rollback_array.hpp | 42: `RollbackArray`, `checkpoint` |
+| https://maspypy.github.io/library/ds/segtree/rollback_lazy_segtree.hpp | 42: `RollbackArray`, `checkpoint` |
+| https://maspypy.github.io/library/ds/node_pool.hpp | 43: `PersistentArena`, `clone` |
+| https://suisen-cp.github.io/cp-library-cpp/library/datastructure/segment_tree/persistent_segment_tree.hpp | 43: `PersistentArena`, `clone` |
+| https://en.algorithmica.org/hpc/external-memory/list-ranking/ | 44: `listRanking` |
+| https://en.algorithmica.org/hpc/ | 44: `listRanking`, `beladyEviction`, `simulateEviction` |
+| https://en.algorithmica.org/hpc/external-memory/sorting/ | 44: `sortMergeJoin` |
+| https://en.algorithmica.org/hpc/external-memory/policies/ | 44: `LruCache`, `beladyEviction`, `simulateEviction` |
+| https://oi-wiki.org/misc/rand-technique/ | 45: `MinHashDistinct`, `estimate`, `KmvSketch`, `estimate` |
+| https://en.wikipedia.org/wiki/Streaming_algorithm | 45: `AmsSketch`, `secondMoment`, `KmvSketch`, `estimate` |
+| https://en.wikipedia.org/wiki/K-independent_hashing | 45: `AmsSketch`, `secondMoment` |
+| https://en.wikipedia.org/wiki/Color-coding | 47: `colorCoding`, `PerfectHashFamily`, `build` |
+| https://en.wikipedia.org/wiki/Method_of_conditional_probabilities | 47: `pessimisticIndependentSet` |
+| https://cplib.tifa-233.com/src/edh/garsia_wachs/lib.hpp | 48: `garsiaWachsQuadratic` |
+| https://oi-wiki.org/misc/garsia-wachs/ | 48: `garsiaWachsQuadratic` |
+| https://en.wikipedia.org/wiki/Optimal_binary_search_tree | 48: `approximateAlphabeticTree` |
+| https://en.wikipedia.org/wiki/Matrix_chain_multiplication | 52: `huShing` |
+| https://github.com/koosaga/olympiad/tree/master/Library/codes/ad_hoc | 52: `huShing` |
+| https://oi-wiki.org/dp/interval/ | 52: `IntervalDP`, `solve` |
+| https://cp-algorithms.com/combinatorics/bracket_sequences.html | 53: `rankBalanced`, `unrankBalanced`, `countBalanced` |
+| https://oi-wiki.org/topic/bracket/ | 53: `rankBalanced`, `unrankBalanced`, `countBalanced` |
+| https://cses.fi/problemset/task/2187 | 53: `countBalanced` |
+| https://maspypy.github.io/library/graph/bracket_graph.hpp | 53: `bracketForest`, `spans` |
+| https://maspypy.github.io/library/other/greedy_coin_counter_example.hpp | 56: `greedyChange`, `greedyCounterexample` |
+
 ## 2026-09 audit
 
 The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, dynamic DP, slope trick, IDA*, alpha-beta, job ordering, expression parsing, majority candidates, Garsia–Wachs and annealing, and compared cp-algorithms, CSES, Library Checker, OI Wiki navigation and the Japanese library catalogs. The Garsia–Wachs page has conflicting complexity wording (contract for `48` in [00-notes.md](00-notes.md)). Per-package source inspections with dates, page revisions and read scopes are recorded in the per-header documents [01-random.md](01-random.md), [02-customhash.md](02-customhash.md), [19-fastio.md](../../01-Core/Docs/19-fastio.md) (row `03` until 2026-11-01), [04-compression.md](04-compression.md), [06-bit_operations.md](06-bit_operations.md), [07-permutation.md](07-permutation.md), [08-sequence_algorithms.md](08-sequence_algorithms.md), [09-interval_algorithms.md](09-interval_algorithms.md), [10-offline_queries.md](10-offline_queries.md), [11-sorting_selection.md](11-sorting_selection.md), [12-enumeration.md](12-enumeration.md), [13-knapsack.md](13-knapsack.md) and [14-cyclefinding.md](14-cyclefinding.md); machine-readable timestamps are in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json). Code in every verified header was written independently from the mathematical recurrences; no external source text was adapted.
@@ -152,7 +240,7 @@ The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, 
 - Library Checker `find_linear_recurrence`, `kth_term_of_linearly_recurrent_sequence`, `sum_of_exponential_times_polynomial`: Mathematics `15-linear_recurrence.hpp` and generating functions.
 - Library Checker `two_sat`: Graphs `18-twosat.hpp`.
 - cp-algorithms RMQ, Josephus, Stern–Brocot, games on graphs, Sprague–Grundy: Data Structures and Mathematics owners.
-- cp-algorithms largest zero submatrix; Nyaan/ei1333/suisen/tko919 maximal rectangle and maximum square: Data Structures `08-monotone_stack.hpp`.
+- cp-algorithms largest zero submatrix; Nyaan/ei1333/suisen/tko919 maximal rectangle and maximum square: Data Structures `08-monotone_stack.hpp` (`maximalHistogramRectangles`, `maximalBinaryRectangles` and `largestBinarySquare`, adopted there on 2026-11-08).
 - KACTL DivideAndConquerDP, KnuthDP, TernarySearch: Mathematics `27`/`02`. KACTL SIMD, Unrolling, FastMod: Core profile.
 - OI Wiki Mo variants, 珂朵莉树, 悬线法: Data Structures. 有限状态自动机, 计算理论基础, 字节顺序, 空间优化简介: expository, no API. Kahan summation: Mathematics numerics.
 - OI Wiki 倍增 (doubling) and Nyaan/hitonanode doubling/binary_lifting: Graphs `11-functionalgraph.hpp`.
@@ -162,7 +250,7 @@ The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, 
 - maspypy random_graph/random_polygon/random_matrix/random_monge: test generators for `09-Contest Testing`.
 - suisen project_selection_problem, k_project_selection_problem; hitonanode combinatorial_opt (matroids, simplex, assignment); tko919 projectselection: Graphs and Mathematics.
 - hitonanode tsp (Held–Karp, LKH): Graphs `73-hamiltonian.hpp`. hitonanode run_length_encoding, suisen run_length_encoder: Strings `09`.
-- Nyaan bitset-find-prev, noshi91 select64/popcount/bit_width: Core `18-bitset` and `06` already cover scalar scans.
+- Nyaan bitset-find-prev, noshi91 popcount/bit_width: Core `18-bitset` and `06` already cover scalar scans; noshi91 select64 was adopted on 2026-11-08 into row `06` as `BitOps::select`.
 - Nyaan/ei1333 cumulative sums, 2D cumulative sums, suisen cumulative_sum: Data Structures `05-prefix_sum.hpp`.
 - noshi91 monoid/action adapters: Data Structures segment-tree policies.
 - Algorithmica SIMD argmin, prefix sum, matrix multiplication, Montgomery: Core full profile.

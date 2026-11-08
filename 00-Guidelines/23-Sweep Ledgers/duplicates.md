@@ -1,6 +1,6 @@
 # Duplicates
 
-Wrappers and second implementations under `00-Guidelines/03-cpp.md`, One API per operation. `/duplicate-sweep` writes the package sections and `/prune Pxxx` consumes them.
+Same-context forms and second implementations under `00-Guidelines/03-cpp.md`, One API per operation. `/duplicate-sweep` writes the package sections and `/prune Pxxx` consumes them. The package sections predate the 2026-11-08 rule: P275 re-classifies them, and until it lands `/prune` and `/package` apply none of their `remove` or `ask` items (user decision 2026-11-08).
 
 ## Recorded decisions
 
@@ -11,6 +11,9 @@ Decided by the user since 2026-10-10; binding, and only the user changes them.
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
 - **P048** row 35 `triangleAggregate` is named `triangleProductSum` (decided 2026-10-29).
 - **P018** `06-Miscellaneous/03-fastio.hpp` moves to `01-Core/19-fastio.hpp`, a Core full header with no forwarding header in 06, and absorbs P066's planned row 17: `MmapInput` is `FastInput<0>` (a mapped regular file under Linux, else fread), `SyscallOutput` is `FastOutput` (decided 2026-11-01).
+- **P061, P191** Mathematics row 23 owns the matrix-tree counts (`countSpanningTrees`, `countArborescences`, `countRootedForests`, `eulerianCircuitCountBest`); Graphs row 53 drops `countSpanningTrees`, `countArborescences`, `countSpanningForests` and `countEulerianCircuits` (decided 2026-11-08).
+- **P028** row 14 `RangeChminChmaxAddAssignRangeSumMinMax` stays a BeatsMonoid preset with no builder operations; `SegTreeBeats` keeps chmin, chmax, add and set (decided 2026-11-08).
+- **P122** row 54 `LinearRMQ` takes bitmask microblocks instead of Cartesian (Farach-Colton–Bender) ones: the same bound and results with less code (decided 2026-11-08).
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
 
 ### Keeps
@@ -120,6 +123,12 @@ Items a reader could mistake for duplicates.
 | P048 | `averageClustering` (row 35) beside the mean of `localClustering` or `directedClustering` | Decided 2026-10-29 by the user: NetworkX `average_clustering` with `count_zeros`, dispatching on `g.directed` |
 | P072 | `kSmallestSubsetSums` (`54-kbest_enumeration.hpp`) beside `kSmallestSortedListSums` over lists `{min(0, a_i), max(0, a_i)}` | Decided 2026-10-23 by the user: named special case (subset witnesses, no list construction) |
 | P059 | `isqrt` beside `isqrt128` (row 21) | Decided 2026-11-03 (`/merge-pr 3`): larger domain, a 128-bit argument; `isqrt` keeps the one-`sqrt` 64-bit path |
+| P122 | `PlusMinusOneRMQ` (row 54) beside the `EulerLCA` kernel (Graphs row 07) | Decided 2026-11-08 by the user (P254 omission sweep): row 54 keeps it public and `EulerLCA` calls it instead of a copy of its own |
+| P121 | `SortableArray` (duplicate keys, no monoid) beside `SortableSegmentTree` (distinct keys) | Decided 2026-11-08 by the user: larger domain |
+| P183 | `coefficientExtraction` beside `bostanMori` | Decided 2026-11-08 by the user (P254 omission sweep): a wrapper in another row stays and calls its owner |
+| P183 | `labelledSequence` beside `unlabelledSequence` | Decided 2026-11-08 by the user: labelled and unlabelled constructions are separate contexts (`03-cpp.md`, One API per operation); the labelled form calls the unlabelled one |
+| P185 | `GF2k::carrylessMultiply` beside row 65 `carrylessMultiply` | Decided 2026-11-08 by the user (P254 omission sweep): a wrapper on another type, calling row 65 |
+| P186 | `determinantPolynomialMatrix` (row 44) beside row 51 `PolyMatrix::det` | Decided 2026-11-08 by the user (P254 omission sweep): a wrapper in another row, calling row 51 |
 
 ### Rulings
 
@@ -358,7 +367,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `multipointEvaluateGeometric` | row 22 | row 65 `bluesteinTransform` | ask | same chirp-z; one owner | — | — |
-| row 23 matrix-tree counts (`countSpanningTrees`, `countArborescences`, forests, BEST) | row 23 | Graphs row 53 | ask | one owner (Mathematics `Docs/00-notes.md`, Ownership boundaries, gives graph-facing counts to Graphs) | — | — |
 
 ## P069 — 06-Miscellaneous — exactcover (planned)
 
@@ -398,7 +406,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `mex` | row 25 | `06-Miscellaneous/08-sequence_algorithms.hpp:206-214` `mex(a)` | remove (row only) | second implementation | — | `06-Miscellaneous/Docs/00-notes.md`, Ownership boundaries (mex of game states) |
 | `grundySum` | row 25 | `nimSum` | ask | `nimSum` of Grundy values (remove) or of whole games (keep) | — | — |
 | `nimWin` | row 25 | `nimSum != 0` | keep | named special case (ruling 1) | — | — |
 
@@ -440,7 +447,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `primitiveRoot` | row 26 | row 27 entry | remove (row only) | listed twice | — | — |
 | `tandemRepeats`, `squares`, `repetitionsCompressed` | row 26 | one compact form | ask | three names for all squares | — | — |
 
 ## P039 — 03-Geometry — circleunion, geometric median, spherical geometry (planned)
@@ -461,7 +467,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `intervalPartitionMachines` | row 39 | `intervalPartitionAssignment` | remove (row only) | projected `.first` (`Docs/00-notes.md`, Basic contracts) | — | `Docs/09-interval_algorithms.md`, Limits and handoffs |
 | `optimalMergePattern` | row 40 | `huffmanTree` (internal nodes in merge order) | remove (row only) | same algorithm | — | — |
 | `huffmanCost` | row 40 | the tree's cost | ask | projection | — | — |
 
@@ -660,18 +665,6 @@ Stdlib functions are existing operations (`04-python.md:15`).
 |---|---|---|---|---|---|---|
 | `maxIndependentSet` | `_59` (:65) | `maxClique` on the complement | keep | separate operation (ruling 2) | — | — |
 
-## P113 — 02-Data Structures — toptree (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `pathCompositeSum` | row 39 | Graphs row 84 (owner, fixed or any root) | remove (row only) | listed twice | — | — |
-
-## P114 — 02-Data Structures — succinctbitvector, succincttree, vanemdeboas, matroid oracle (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `WAryTreeSet` | row 42 | row 36 `FastSet` | remove (row only) | another name | — | — |
-
 ## P115 — 02-Data Structures — rangetree, kineticheap, persistentqueue, ordermaintenance (planned)
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
@@ -684,7 +677,6 @@ Stdlib functions are existing operations (`04-python.md:15`).
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `strongIntervals` | row 55 | the tree's `nodes` | remove (row only) | projection | — | — |
-| `PlusMinusOneRMQ` | row 54 | `04-Graphs/07-lca.hpp:146-178` `EulerLCA` kernel | ask | expose it for `EulerLCA`, or drop it | — | — |
 
 ## P138 — 03-Geometry — halfspaceintersection3d (planned)
 
@@ -741,7 +733,6 @@ Stdlib functions are existing operations (`04-python.md:15`).
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `GraphicMatroid`, `TransversalMatroid`, `PartitionMatroid`, `LinearMatroid` | row 48 | DS row 46 types of the same names | remove (row only) | Graphs 48 consumes row 46 | — | — |
 | `matroidUnion` beside `matroidPartition`; row 42 `forestDecomposition` | rows 48, 42 | each other | ask | same algorithm | — | — |
 
 ## P155 — 04-Graphs — lct, sensitivity analysis, temporal graph, maximumdensitysubgraph (planned)
@@ -800,7 +791,6 @@ Stdlib functions are existing operations (`04-python.md:15`).
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `StaticTopTree` (`build`, `pointUpdate`, `query`) | row 84 | DS row 39 `StaticTopTree` (`rootFold`) | remove (row only) | same type | — | — |
 | `dynamicDiameter` | row 84 | DS row 39 `TopTree::diameter` | ask | weight updates or link/cut | — | — |
 
 ## P177 — 05-Mathematics — dirichlet series (planned)
@@ -813,7 +803,7 @@ Stdlib functions are existing operations (`04-python.md:15`).
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `factorialPrimePowerValuation`; `wilsonBlock` | row 37 | row 12 `factorialValuation`; `factorialBlockTable` | ask | same quantity in two rows | — | — |
+| `pFreeFactorialModPrime` (named `factorialPrimePowerValuation` until the 2026-11-08 omission sweep); `wilsonBlock` | row 37 | row 12 `factorialValuation`; `factorialBlockTable` | ask | same quantity in two rows | — | — |
 | `faulhaber(k)`; `bernoulliNumber` | row 38 | row 14 `prefixSumOfPolynomial(x^k)`; `bernoulliTable` | ask | same Bernoulli algorithm; single entry of the table | — | — |
 
 ## P182 — 05-Mathematics — special functions (planned)
@@ -826,9 +816,6 @@ Stdlib functions are existing operations (`04-python.md:15`).
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `unlabelledMultiset` | row 40 | `eulerTransform` (multiset construction) | remove (row only) | another name | — | — |
-| `labelledSequence` | row 40 | `unlabelledSequence` (1/(1 − A); with counts, through `ogfToEgf`, `egfToOgf`) | ask | the same as `unlabelledSequence` on series (remove), or on counts through the EGF conversions (keep) | — | — |
-| `coefficientExtraction` | row 40 | `bostanMori` (`Docs/00-notes.md`, P057 research decisions) | remove (row only) | another name | — | — |
 | `labelledSet`, `labelledCycle`, `logarithmicTransform` | row 40 | row 14 `fpsExp`, `fpsLog` with the EGF conversions | ask | wrappers if the constructions take counts | — | — |
 | `burnsideCount` | row 40 | — | keep | reuses the caller's fixed-point counts; see P204 | — | — |
 
@@ -836,7 +823,6 @@ Stdlib functions are existing operations (`04-python.md:15`).
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `GF2k::carrylessMultiply` | row 42 | row 65 `carrylessMultiply` | ask | same kernel in two rows | — | — |
 | `isIrreducible` | row 42 | — | keep | owner; see P188 | — | — |
 
 ## P186 — 05-Mathematics — determinant advanced (planned)
@@ -844,7 +830,6 @@ Stdlib functions are existing operations (`04-python.md:15`).
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `circulantMultiply`, `toeplitzMultiply` | row 44 | `13-convolution.hpp:295,317` `cyclicConvolution`, `middleProduct` | remove (row only) | existing operations | — | — |
-| `determinantPolynomialMatrix` | row 44 | row 51 `PolyMatrix::det` | remove (row only) | same algorithm, argument shape | — | — |
 | `hankelSolve`, `vandermondeSolve` | row 44 | `toeplitzSolve` on reversed rows; row 22 interpolation | ask | builders unless the pivot conditions differ | — | — |
 
 ## P188 — 05-Mathematics — polynomial factorization (planned)
@@ -854,17 +839,10 @@ Stdlib functions are existing operations (`04-python.md:15`).
 | `isIrreducibleModPrime` | row 46 | row 42 `isIrreducible` | remove (row only) | same test and domain | — | — |
 | `composedSum`, `composedProduct` | row 46 | row 61 `*Arithmetic` | keep | mod-p power sums against exact arithmetic over Z; annotate both domains | — | — |
 
-## P190 — 05-Mathematics — combinatorial linear algebra (planned)
-
-| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
-|---|---|---|---|---|---|---|
-| `matrixTreeBridge` | row 48 | row 23 | remove (row only) | second include path ("bridge") | — | — |
-
 ## P191 — 04-Graphs — graph counting (planned)
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| directed `countSpanningTrees` | row 53 | `countArborescences` (Mathematics row 23 name) | remove (row only) | same matrix-tree count; narrow `countSpanningTrees` to undirected | — | — |
 | `countWalks` | row 53 | Core `Matrix::pow`; Mathematics 15 `matrixPowerVector` | ask | builder | — | — |
 
 ## P192 — 05-Mathematics — integer linear algebra (planned)
@@ -954,7 +932,6 @@ Stdlib functions are existing operations (`04-python.md:15`).
 |---|---|---|---|---|---|---|
 | `deBruijnCyclic` | row 41 | `deBruijnSequence` | remove (row only) | another name | — | — |
 | `deBruijnLinear` | row 41 | `deBruijnSequence` plus its first n − 1 symbols | keep | different result: the linear sequence (clarified rule) | — | — |
-| `isSquareFree` | row 50 | row 27 entry (next to `isCubeFree`) | remove (row only) | listed twice | — | — |
 | `injectiveRenamingMatch` | row 40 | `parameterizedMatch` | ask | same query? | — | — |
 
 ## P216 — 07-Strings — rindex (planned)
@@ -1010,14 +987,13 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P129** `countIntersections`; **P130** `triangulateSimple`, `trapezoidalDecomposition`; **P131** `tangentCircles`, `apolloniusCircles` cases; **P135** `manhattanClosestPair`, `euclideanBottleneck` (largest MST edge or a threshold test?), `euclideanMstDense`, `Voronoi::adjacency`: own algorithms or wrappers?
 - **P090** `modInv`: `None` for non-units (a `tryX` form) or a precondition? `binarySearchInt`: the `binSearch` mirror (renamed) or `firstTrue`? `argminUnimodal`: Fibonacci search or `ternaryMinInt`?
 - **P092** `dijkstraPath`; **P096** `primePi` beside `countPrimes`; **P101** `weightedChoice` (alias method?); **P094** `farthestPair`; **P104** `setFalse` (merge into `setValue`?); **P105** `floydPath`; **P106** `kthRootMod` beside `discreteRoot`; **P222** `necklaceCountColors`; **P223** `bisectionRoot`: separate operations?
-- **P115** `PersistentDeque`: a finger tree? `RangeTree::count`, `prod`: the merge-sort tree and 2D sparse segment tree after a point-set builder, or a separate structure? **P122** `PlusMinusOneRMQ`: expose it for `EulerLCA`, or drop it?
+- **P115** `PersistentDeque`: a finger tree? `RangeTree::count`, `prod`: the merge-sort tree and 2D sparse segment tree after a point-set builder, or a separate structure?
 - **P138** `feasiblePoint3`, `removeRedundant3`; **P140** `lp2d`, `lp3d`, `minimumEnclosingBall` (d = 2); **P148** `alphaShape2`, `criticalAlphas`; **P149** `convexPolyhedronIntersection`, `bspBoolean`'s operation flag; **P150** `continuousFrechet`; **P139** `lowerEnvelope` beside DS row 22, `geodesicPath` beside `funnel`: own algorithms or views?
 - **P153** `matroidUnion`, `matroidPartition`, `forestDecomposition`: one algorithm?
 - **P155** `DynamicForest`: keep it as an edge-ID adapter or use `LinkCutTree`? MST sensitivity formulas over `mstEdgeSensitivity`?
 - **P158** `earDecomposition`, `minimumCostCycle`; **P162** perfect-matching pair, dense and sparse forms, Gabow (P163); **P166** `eulerize`; **P168** `mstWeightChange`; **P175** `dynamicDiameter`; **P191** `countWalks`: own algorithms or wrappers?
-- **P181** `factorialPrimePowerValuation`, `wilsonBlock`, `faulhaber`, `bernoulliNumber`; **P182** the `std::` special functions; **P183** `labelledSet`, `labelledCycle`, `logarithmicTransform`; **P185** `carrylessMultiply` (one owner with row 65); **P186** `hankelSolve`, `vandermondeSolve`; **P198** `locatorBerlekampMassey`; **P200** `SetPowerSeries::mul`, `spsComposition`: distinct, or reuse?
+- **P181** `pFreeFactorialModPrime`, `wilsonBlock`, `faulhaber`, `bernoulliNumber`; **P182** the `std::` special functions; **P183** `labelledSet`, `labelledCycle`, `logarithmicTransform`; **P186** `hankelSolve`, `vandermondeSolve`; **P198** `locatorBerlekampMassey`; **P200** `SetPowerSeries::mul`, `spsComposition`: distinct, or reuse?
 - **P211** and **P216** `count` beside `FmIndex::count`, `RlFmIndex::count`; **P213** `injectiveRenamingMatch`; **P218** `prefixSubstringLcs`: the same queries?
 - **P073** `countBalanced`: Catalan under another name, or counted by length with 0 for odd lengths?
 - **P160** `planarEmbedding`: converts `isPlanar`'s embedding to the row 29 half-edge structure; a result shape (remove) or a builder (keep)?
 - **P062** `grundySum`: `nimSum` of Grundy values (remove) or of whole games (keep)?
-- **P183** `labelledSequence`: on series it equals `unlabelledSequence`; do the row 40 constructions take series or counts?

@@ -148,7 +148,7 @@ Fetched by the row 25, 26, 27 and 31 completeness sweeps. Code was written from 
 | maspypy directed_mst, dag_path_cover, maximum_antichain, maximum_weighted_antichain | https://maspypy.github.io/library/graph/directed_mst.hpp | 2026-10-18 | Edge-ID output; flow-based chain cover without closure (not adopted); antichain routines on a closed relation (here the closure is internal or avoided) |
 | maspypy block_cut, remove_one_vertex_connectivity, remove_one_edge_connectivity, incremental_bridge_connectivity, range_edge_connected_component_query, grid_decremental_connectivity | https://maspypy.github.io/library/graph/block_cut.hpp | 2026-10-18 | Extended numbering (vertices then blocks), pair and size queries after one removal (O(log deg) vertex, O(1) edge), range edge components by link-cut forest plus Fenwick (replaced by bottleneck-forest divide and conquer), grid decremental connectivity (not adopted) |
 | ei1333 directed-mst, block-cut-tree, incremental-bridge-connectivity, offline-dynamic-connectivity | https://ei1333.github.io/library/graph/connected-components/incremental-bridge-connectivity.hpp | 2026-10-18 | `find` of the 2-edge-connected representative, component count member, super-vertex trick for a free root |
-| hitonanode directed_mst, extended_block_cut_trees, incremental_bridge_connectivity, offline_dynamic_connectivity | https://hitonanode.github.io/cplib-cpp/graph/extended_block_cut_trees.hpp | 2026-10-18 | O(NM) Chu–Liu/Edmonds (dominated), singleton blocks for isolated vertices, `find`, Begins/Ends schedule (DS row 63) |
+| hitonanode directed_mst, extended_block_cut_trees, incremental_bridge_connectivity, offline_dynamic_connectivity | https://hitonanode.github.io/cplib-cpp/graph/extended_block_cut_trees.hpp | 2026-10-18 | O(NM) Chu–Liu/Edmonds (adopted on 2026-11-08 into row 25 as `chuLiuEdmonds`), singleton blocks for isolated vertices, `find`, Begins/Ends schedule (DS row 63) |
 | Koosaga directed_mst | https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/directed_mst.cpp | 2026-10-18 | Single-root contraction without an unreachable check |
 | Nyaan block-cut-tree, offline-dynamic-connectivity | https://nyaannyaan.github.io/library/graph/offline-dynamic-connectivity.hpp | 2026-10-18 | Cut-vertex numbering, `run(add, del, query)` callback form (`run`) |
 | tko919 blockcut | https://tko919.github.io/library/Graph/blockcut.hpp | 2026-10-18 | Block-cut tree catalog comparison |
@@ -214,11 +214,200 @@ The header was written independently from these descriptions; no catalog code wa
 
 The header was written independently from these descriptions; no catalog code was copied.
 
+## Fetched 2026-11-08 (omission sweep)
+
+Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
+
+| URL | Used for |
+|---|---|
+| https://networkx.org/documentation/stable/reference/functions.html | 01: `edgeSubgraph` |
+| https://networkx.org/documentation/stable/reference/algorithms/operators.html | 01: `complementGraph` |
+| https://ogdf.github.io/doc/ogdf/group__graph-generators.html | 01: `complementGraph` |
+| https://maspypy.github.io/library/graph/toposort.hpp | 03: `topologicalSort` |
+| https://networkx.org/documentation/stable/reference/algorithms/dag.html | 03: `allTopologicalSorts`; 40: `warshallClosure` |
+| https://ei1333.github.io/library/structure/others/plus-minus-one-rmq.hpp | 07: `PlusMinusOneRMQ` |
+| https://cp-algorithms.com/graph/rmq_linear.html | 07: `PlusMinusOneRMQ` |
+| https://oi-wiki.org/graph/lca/ | 07: `SparseTableLCA`, `getLCA` |
+| https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/graph/LCA.h | 07: `SparseTableLCA`, `getLCA` |
+| https://maspypy.github.io/library/graph/fast_lca.hpp | 07: `SparseTableLCA`, `getLCA` |
+| https://ei1333.github.io/library/graph/tree/rmq-lowest-common-ancestor.hpp | 07: `SparseTableLCA`, `getLCA` |
+| https://cses.fi/problemset/task/1685 | 08: `strongConnectivityAugmentation` |
+| https://cses.fi/problemset/ | 08: `strongConnectivityAugmentation`; 13: `nearestTwoSources`, `mandatoryOnShortestPaths`; 14: `LongPathDecomposition`, `build`, `treeMaximumMatching`; 53: `countDagPaths`; 73: `countHamiltonianPaths`, `knightsTour` |
+| https://networkx.org/documentation/stable/reference/algorithms/shortest_paths.html | 12: `apspBfs`; 13: `bidirectionalBfs` |
+| https://networkx.org/documentation/stable/reference/algorithms/distance_measures.html | 12: `barycenter` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.distance_measures.centroid.html | 12: `barycenter` |
+| https://maspypy.github.io/library/graph/shortest_path/top2_dijkstra.hpp | 13: `nearestTwoSources` |
+| https://maspypy.github.io/library/ | 13: `nearestTwoSources`; 14: `subtreeDiameter`, `subtreeMergeDp`; 39: `tournamentFromScores`; 43: `implicitTopologicalSort`; 49: `vertexCoverAtMost`; 53: `countSpanningTreesAllSubsets`; 68: `findOddCycle`; 77: `outerplanarHamiltonianCycle` |
+| https://cses.fi/problemset/task/3303 | 13: `nearestTwoSources` |
+| https://cses.fi/problemset/task/1203 | 13: `mandatoryOnShortestPaths` |
+| https://oi-wiki.org/graph/tree-diameter/ | 14: `treeDiameter` |
+| https://oi-wiki.org/graph/hld/ | 14: `LongPathDecomposition`, `build`; 85: `LevelAncestor`, `jump` |
+| https://oi-wiki.org/graph/tree-centroid/ | 14: `subtreeCentroids` |
+| https://maspypy.github.io/library/graph/tree_dp/subtree_diameter.hpp | 14: `subtreeDiameter` |
+| https://maspypy.github.io/library/graph/tree_dp/O_NK_rerooting_tree_dp.hpp | 14: `subtreeMergeDp` |
+| https://cses.fi/problemset/task/1130 | 14: `treeMaximumMatching` |
+| https://maspypy.github.io/library/graph/tree_dp/rerooting_dp.hpp | 14: `Rerooting`, `dpParent` |
+| https://maspypy.github.io/library/graph/tree_dp/subtree_depth_sum.hpp | 14: `Rerooting`, `dpParent` |
+| https://nyaannyaan.github.io/library/tree/euler-tour.hpp | 14: `EulerTour`, `pathRanges`; 15: `TreeGroup`, `pathSum` |
+| https://suisen-cp.github.io/cp-library-cpp/library/tree/euler_tour.hpp | 14: `EulerTour`, `pathRanges` |
+| https://oi-wiki.org/ds/ | 15: `GlobalBalancedTree`, `getLCA` |
+| https://oi-wiki.org/ds/global-bst/ | 15: `GlobalBalancedTree`, `getLCA` |
+| https://maspypy.github.io/library/graph/tree.hpp | 15: `maxPath` |
+| https://maspypy.github.io/library/graph/ds/tree_abeliangroup.hpp | 15: `TreeGroup`, `pathSum` |
+| https://github.com/yosupo06/library-checker-problems/tree/master/tree | 15: `TreeGroup`, `pathSum`; 51: `DynamicForest`, `pointSet`, `DynamicForest`, `subtreeFold`; 84: `pathCompositeSum`, `DynamicRerootingDp`, `setEdge`; 85: `LevelAncestor`, `jump` |
+| https://oi-wiki.org/basic/prefix-sum/ | 15: `pathAddOffline`, `pathSumStatic` |
+| https://cses.fi/problemset/task/1136 | 15: `pathAddOffline`, `pathSumStatic` |
+| https://oi-wiki.org/graph/dynamic-tree-divide/ | 16: `MarkedDiameter`, `toggle` |
+| https://oi-wiki.org/math/game-theory/impartial-game/ | 21: `graphPathGame` |
+| https://maspypy.github.io/library/game/graph_path_game.hpp | 21: `graphPathGame` |
+| https://oi-wiki.org/graph/graph-matching/general-match/ | 22: `perfectMatchingAllowedEdges` |
+| https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/graph/GeneralMatching.h | 22: `perfectMatchingAllowedEdges` |
+| https://hitonanode.github.io/cplib-cpp/graph/general_matching.hpp | 22: `perfectMatchingAllowedEdges` |
+| https://oi-wiki.org/graph/dominator-tree/ | 24: `dominatorTreeDag` |
+| https://oi-wiki.org/graph/dmst/ | 25: `chuLiuEdmonds` |
+| https://hitonanode.github.io/cplib-cpp/graph/directed_mst.hpp | 25: `chuLiuEdmonds` |
+| https://arxiv.org/abs/2208.02590 | 25: `directedMstDense` |
+| https://www.cnblogs.com/xiao-ju-ruo-xjr/p/6699488.html | 26: `OfflineDynamicConnectivityLct` |
+| https://oi-wiki.org/ds/lct/ | 26: `OfflineDynamicConnectivityLct`; 51: `DynamicForest`, `pointSet`, `DynamicForest`, `findRoot`, `DynamicForest`, `subtreeFold` |
+| https://oi-wiki.org/graph/kth-path/ | 32: `kShortestWalksAll` |
+| https://oi-wiki.org/graph/chord/ | 33: `chordalMaximalCliques`, `chordalMinimumCliqueCover` |
+| https://networkx.org/documentation/stable/reference/algorithms/chordal.html | 33: `chordalMaximalCliques`, `completeToChordal` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.chordal.chordal_graph_cliques.html | 33: `chordalMaximalCliques` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.chordal.complete_to_chordal_graph.html | 33: `completeToChordal` |
+| https://oi-wiki.org/graph/color/ | 34: `bipartiteEdgeColoring` |
+| https://github.com/kth-competitive-programming/kactl/blob/main/content/graph/EdgeColoring.h | 34: `bipartiteEdgeColoring` |
+| https://ei1333.github.io/library/graph/others/bipartite-graph-edge-coloring.hpp | 34: `bipartiteEdgeColoring` |
+| https://maspypy.github.io/library/graph/bipartite_edge_coloring.hpp | 34: `bipartiteEdgeColoring` |
+| https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/edgecolor_bipartite.cpp | 34: `bipartiteEdgeColoring` |
+| https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/graph/bipartite_edge_coloring/task.md | 34: `bipartiteEdgeColoring` |
+| https://hitonanode.github.io/cplib-cpp/graph/minimum_steiner_tree.hpp | 36: `steinerTreeDense` |
+| https://maspypy.github.io/library/graph/steiner_tree.hpp | 36: `steinerTree` |
+| https://oi-wiki.org/graph/steiner-tree/ | 36: `steinerTree` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.approximation.steinertree.steiner_tree.html | 36: `metricClosureApproximation` |
+| https://networkx.org/documentation/stable/reference/algorithms/approximation.html | 36: `metricClosureApproximation`; 50: `treeDecompositionMinDegree`, `treeDecompositionMinFillIn`; 57: `densestSubgraphPeeling`; 73: `metricTspApproximation` |
+| https://maspypy.github.io/library/flow/binary_optimization.hpp | 37: `ternarySubmodularTerm` |
+| https://hitonanode.github.io/cplib-cpp/flow/submodular_optimization_via_graph_cut.hpp | 37: `ternarySubmodularTerm`, `allOrNothingPenalty`, `binarySubmodularMinimization` |
+| https://oi-wiki.org/graph/graph-matching/stable-match/ | 38: `topTradingCycles` |
+| https://maspypy.github.io/library/graph/degree_sequence.hpp | 39: `treeFromDegreeSequence` |
+| https://networkx.org/documentation/stable/reference/generators.html | 39: `treeFromDegreeSequence` |
+| https://maspypy.github.io/library/graph/tournament.hpp | 39: `tournamentFromScores` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.graphical.is_digraphical.html | 39: `kleitmanWang` |
+| https://networkx.org/documentation/stable/reference/generated/networkx.generators.degree_seq.directed_havel_hakimi_graph.html | 39: `kleitmanWang` |
+| https://networkx.org/documentation/stable/reference/algorithms/graphical.html | 39: `kleitmanWang`, `isMultigraphical`, `isPseudographical` |
+| https://maspypy.github.io/library/graph/reachability.hpp | 40: `countReachable` |
+| https://maspypy.github.io/library/graph/bitset/transitive_reduction.hpp | 40: `warshallClosure` |
+| https://immortalco.blog.uoj.ac/blog/1955 | 41: `CactusDecomposition`, `distance`, `cactusDiameter` |
+| https://oi-wiki.org/graph/block-forest/ | 41: `CactusDecomposition`, `distance` |
+| https://github.com/maspypy/library/blob/main/graph/is_cactus.hpp | 41: `isCactus` |
+| https://github.com/maspypy/library/blob/main/graph/unicyclic_graph.hpp | 41: `Unicyclic`, `distance` |
+| https://networkx.org/documentation/stable/reference/algorithms/core.html | 42: `onionLayers` |
+| https://github.com/maspypy/library/blob/main/graph/decompose_complete.hpp | 42: `completeGraphDecomposition` |
+| https://github.com/maspypy/library/tree/main/graph | 42: `completeGraphDecomposition` |
+| https://github.com/maspypy/library/blob/main/graph/blackbox/scc.hpp | 43: `implicitScc` |
+| https://github.com/maspypy/library/tree/main/graph/blackbox | 43: `implicitScc` |
+| https://github.com/maspypy/library/blob/main/graph/blackbox/toposort.hpp | 43: `implicitTopologicalSort` |
+| https://maspypy.github.io/library/graph/blackbox/toposort.hpp | 43: `implicitTopologicalSort` |
+| https://hitonanode.github.io/cplib-cpp/graph/grid_graph_template.hpp | 43: `implicitZeroOneBfs` |
+| https://hitonanode.github.io/cplib-cpp/graph/segment_edge_shortest_path.hpp | 43: `implicitZeroOneBfs` |
+| https://nyaannyaan.github.io/library/graph/dimension-expanded-graph.hpp | 43: `implicitZeroOneBfs` |
+| https://github.com/maspypy/library/blob/main/graph/blackbox/mst.hpp | 43: `implicitBoruvka` |
+| https://networkx.org/documentation/stable/reference/algorithms/connectivity.html | 45: `isKEdgeConnected`, `isKVertexConnected`, `allMinimumVertexCuts`, `minimumEdgeCut`, `minimumVertexCut`; 46: `GomoryHuTree`, `kEdgeComponents` |
+| https://cp-algorithms.com/graph/edge_vertex_connectivity.html | 45: `minimumEdgeCut`, `minimumVertexCut` |
+| https://networkx.org/documentation/stable/reference/algorithms/flow.html | 46: `GomoryHuTree`, `kEdgeComponents`; 65: `capacityScalingMinCostFlow`, `minCostBFlow`; 66: `NetworkSimplex`, `totalCost` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.connectivity.stoerwagner.stoer_wagner.html | 47: `stoerWagnerSparse`, `stoerWagnerDense` |
+| https://oi-wiki.org/graph/stoer-wagner/ | 47: `stoerWagnerSparse`, `stoerWagnerDense` |
+| https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/graph/GlobalMinCut.h | 47: `stoerWagnerSparse`, `stoerWagnerDense` |
+| https://hitonanode.github.io/cplib-cpp/combinatorial_opt/matroid_union.hpp | 48: `matroidUnion` |
+| https://hitonanode.github.io/cplib-cpp/ | 48: `matroidUnion`; 68: `shortestCycleThroughVertex` |
+| https://tko919.github.io/library/Algorithm/matroid.hpp | 48: `weightedMatroidIntersection` |
+| https://oi-wiki.org/math/matroid/ | 48: `weightedMatroidIntersection` |
+| https://maspypy.github.io/library/graph/find_vertex_cover.hpp | 49: `vertexCoverAtMost` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.approximation.treewidth.treewidth_min_fill_in.html | 50: `treeDecompositionMinDegree`, `treeDecompositionMinFillIn` |
+| https://networkx.org/documentation/stable/reference/algorithms/index.html | 50: `treeDecompositionMinDegree`, `treeDecompositionMinFillIn`; 67: `cliqueCover` |
+| https://cp-algorithms.com/graph/second_best_mst.html | 52: `secondBestMst` |
+| https://oi-wiki.org/graph/mst/ | 52: `secondBestMst` |
+| https://tko919.github.io/library/Graph/shortestpathremedge.hpp | 52: `replacementPaths` |
+| https://tko919.github.io/library/ | 52: `replacementPaths`; 88: `TreeWaveletMatrix`, `countRange` |
+| https://networkx.org/documentation/stable/reference/algorithms/tree.html | 52: `kBestSpanningTrees` |
+| https://maspypy.github.io/library/graph/count/count_tree_subgraph.hpp | 53: `countSpanningTreesAllSubsets` |
+| https://networkx.org/documentation/stable/reference/algorithms/isomorphism.html | 54: `subgraphMonomorphism`, `allIsomorphisms`, `isomorphism`, `subgraphIsomorphism`, `canonicalForm` |
+| https://networkx.org/documentation/stable/reference/algorithms/graph_hashing.html | 54: `canonicalForm` |
+| https://www.vldb.org/pvldb/vol7/p721-wu.pdf | 55: `fastestPath`, `shortestTemporalPath`, `earliestArrival` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.approximation.density.densest_subgraph.html | 57: `densestSubgraphPeeling` |
+| https://sites.cs.ucsb.edu/~suri/psdir/alenex03.pdf | 59: `kShortestSimplePaths` |
+| https://arxiv.org/html/1512.02157v2 | 59: `kShortestSimplePaths` |
+| https://github.com/yosupo06/library-checker-problems/tree/master/graph | 60: `stNumbering`; 63: `FullyDynamicConnectivity`, `addValue` |
+| https://github.com/yosupo06/library-checker-problems/blob/master/graph/st_numbering/task.md | 60: `stNumbering` |
+| https://maspypy.github.io/library/graph/st_numbering.hpp | 60: `stNumbering` |
+| https://ogdf.github.io/doc/ogdf/classogdf_1_1_s_p_q_r_tree.html | 61: `SpqrTree`, `typeOf`, `SpqrTree`, `nodeOfEdge` |
+| https://en.wikipedia.org/wiki/SPQR_tree | 61: `SpqrTree`, `typeOf`, `separationPairCount`, `separationPairs` |
+| https://ogdf.github.io/doc/ogdf/classogdf_1_1_dynamic_s_p_q_r_tree.html | 61: `SpqrTree`, `nodeOfEdge`, `IncrementalSpqrTree`, `addEdge` |
+| https://ogdf.github.io/doc/ogdf/group__decomp.html | 61: `IncrementalSpqrTree`, `addEdge` |
+| https://www.mathe2.uni-bayreuth.de/EWS/demoucron.pdf | 62: `planarEmbeddingDmp` |
+| https://en.wikipedia.org/wiki/Planarity_testing | 62: `planarEmbeddingDmp`; 91: `IncrementalPlanarity`, `addEdge` |
+| https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/graph/dynamic_graph_vertex_add_component_sum/task.md | 63: `FullyDynamicConnectivity`, `addValue`, `FullyDynamicConnectivity`, `insertEdge` |
+| https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/data_structures/HDLT.cpp | 63: `FullyDynamicConnectivity`, `insertEdge` |
+| https://networkx.org/documentation/stable/reference/algorithms/matching.html | 64: `maximumWeightMatching`, `minimumWeightMatching` |
+| https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/combinatorial_optimization/matching_weighted_sparse.cpp | 64: `weightedBlossomSparse` |
+| https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/combinatorial_optimization/matching_weighted_dense.cpp | 64: `weightedBlossomSparse` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.flow.capacity_scaling.html | 65: `capacityScalingMinCostFlow`, `minCostBFlow` |
+| https://oi-wiki.org/graph/flow/min-cost/ | 65: `capacityScalingMinCostFlow`, `minCostCirculation` |
+| https://maspypy.github.io/library/flow/min_cost_b_flow.hpp | 65: `minCostBFlow` |
+| https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/graph/min_cost_b_flow/task.md | 65: `minCostBFlow`; 66: `NetworkSimplex`, `addEdge` |
+| https://tko919.github.io/library/Graph/mincostflow.hpp | 65: `minCostBFlow` |
+| https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/combinatorial_optimization/flow_cost_cubic.cpp | 65: `minCostBFlow` |
+| https://hitonanode.github.io/cplib-cpp/flow/mcf_costscaling.hpp | 65: `minCostBFlow` |
+| https://hitonanode.github.io/cplib-cpp/flow/networksimplex.hpp | 66: `NetworkSimplex`, `addEdge`, `NetworkSimplex`, `supplyType`, `NetworkSimplex`, `totalCost` |
+| https://github.com/kth-competitive-programming/kactl/tree/main/content/graph | 67: `cliqueCover` |
+| https://oi-wiki.org/graph/max-clique/ | 67: `cliqueCover` |
+| https://maspypy.github.io/library/graph/find_odd_cycle.hpp | 68: `findOddCycle` |
+| https://maspypy.github.io/library/graph/find_cycle.hpp | 68: `findChordlessCycle` |
+| https://networkx.org/documentation/stable/reference/algorithms/cycles.html | 68: `findChordlessCycle`, `boundedSimpleCycles`; 72: `minimumCycleBasis` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.cycles.simple_cycles.html | 68: `boundedSimpleCycles` |
+| https://oi-wiki.org/graph/min-cycle/ | 68: `weightedGirth` |
+| https://hitonanode.github.io/cplib-cpp/graph/shortest_cycle01.hpp | 68: `shortestCycleThroughVertex` |
+| https://hitonanode.github.io/cplib-cpp/graph/shortest_cycle.hpp | 68: `shortestCycleThroughVertex` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.cycles.minimum_cycle_basis.html | 72: `minimumCycleBasis` |
+| https://cses.fi/problemset/task/1690 | 73: `countHamiltonianPaths` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.approximation.traveling_salesman.traveling_salesman_problem.html | 73: `minimumHamiltonianPath`, `metricTspApproximation` |
+| https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.approximation.traveling_salesman.christofides.html | 73: `metricTspApproximation` |
+| https://cses.fi/problemset/task/1689 | 73: `knightsTour` |
+| https://arxiv.org/abs/2002.04727 | 74: `cutPairs`, `threeEdgeConnectivityCertificate` |
+| https://oi-wiki.org/graph/hamilton/ | 77: `tournamentHamiltonianCycle` |
+| https://maspypy.github.io/library/graph/outerplanar.hpp | 77: `outerplanarHamiltonianCycle` |
+| https://maspypy.github.io/library/graph/shortest_path/nonzero_group_product_shortest_path.hpp | 78: `nonzeroGroupProductShortestPath` |
+| https://hitonanode.github.io/cplib-cpp/graph/nonzero_path_of_group_labeled_graph.hpp | 78: `nonzeroGroupProductShortestPath` |
+| https://ei1333.github.io/library/graph/shortest-path/shortest-nonzero-path.hpp | 78: `nonzeroGroupProductShortestPath` |
+| https://tko919.github.io/library/Graph/opttoposort.hpp | 79: `optimalTopologicalOrder` |
+| https://github.com/yosupo06/library-checker-problems/blob/master/tree/rooted_tree_topological_order_with_minimum_inversions/task.md | 79: `optimalTopologicalOrder` |
+| https://maspypy.github.io/library/graph/optimal_product_on_tree.hpp | 79: `optimalTopologicalOrder` |
+| https://networkx.org/documentation/stable/reference/algorithms/broadcasting.html | 79: `treeBroadcastTime`, `treeBroadcastCenter` |
+| https://ei1333.github.io/library/graph/others/extreme-vertex-set.hpp | 83: `ExtremeVertexSets`, `parent` |
+| https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/graph/extreme_vertex_sets.cpp | 83: `ExtremeVertexSets`, `parent` |
+| https://ei1333.github.io/library/graph/flow/global-minimum-cut-of-dynamic-star-augmented-graph.hpp | 83: `ExtremeVertexSets`, `parent` |
+| https://maspypy.github.io/library/graph/ds/static_toptree.hpp | 84: `pathCompositeSum` |
+| https://maspypy.github.io/library/graph/ds/dynamic_rerooting_tree_dp.hpp | 84: `pathCompositeSum`, `DynamicRerootingDp`, `setEdge` |
+| https://nyaannyaan.github.io/library/tree/dynamic-rerooting.hpp | 84: `DynamicRerootingDp`, `setEdge` |
+| https://ei1333.github.io/library/graph/tree/static-top-tree-dp.hpp | 84: `DynamicRerootingDp`, `setEdge` |
+| https://oi-wiki.org/dp/dynamic/ | 84: `dynamicDp` |
+| https://github.com/yosupo06/library-checker-problems/blob/master/tree/jump_on_tree/task.md | 85: `LevelAncestor`, `jump` |
+| https://suisen-cp.github.io/cp-library-cpp/library/tree/level_ancestor.hpp | 85: `PreorderLevelAncestor`, `build` |
+| https://ar5iv.labs.arxiv.org/html/1406.7716 | 85: `TreeWeightedAncestor`, `build` |
+| https://arxiv.org/abs/2103.00462 | 85: `TreeWeightedAncestor`, `build` |
+| https://maspypy.github.io/library/graph/ds/tree_wavelet_matrix.hpp | 88: `TreePathKth`, `sumLess`, `TreePathKth`, `TreeWaveletMatrix`, `countRange` |
+| https://ogdf.github.io/doc/ogdf/classogdf_1_1_separator_har_peled.html | 89: `cycleSeparator` |
+| https://ogdf.github.io/doc/ogdf/classogdf_1_1_planar_separator_module.html | 89: `cycleSeparator`, `fundamentalCycleSeparator`, `refineSeparator` |
+| https://ogdf.github.io/doc/ogdf/classogdf_1_1_separator_dual_f_c.html | 89: `fundamentalCycleSeparator` |
+| https://ogdf.github.io/doc/ogdf/namespaceogdf_1_1planar__separators.html | 89: `refineSeparator` |
+| https://en.wikipedia.org/wiki/Modular_decomposition | 92: `ModularDecomposition`, `build` |
+| https://networkx.org/documentation/stable/reference/algorithms/sparsifiers.html | 93: `greedySpanner`, `baswanaSenSpanner` |
+| https://ogdf.github.io/doc/ogdf/group__ga-spanner.html | 93: `greedySpanner`, `baswanaSenSpanner` |
+
 ## Source keys
 
-Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder. Per-family read scope and caveats of that audit are in `00-Guidelines/History/2026-09-27-inventory-audit.md`.
+Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys); this folder read under each as follows. Earlier audits (2026-09-27) inspected the same catalogs at navigation level; the 2026-10-06 sweep above supersedes those read scopes for this folder. Per-family read scope and caveats of that audit are in `00-Guidelines/History/2026-09-27-inventory-audit.md`.
 
-- **YC**: Library Checker problem repository (graph and tree directories) — independently testable operations.
+- **LC**: Library Checker problem repository (graph and tree directories) — independently testable operations.
 - **CPA**: cp-algorithms graph section — article-level operation names; implementation-time article review still required.
 - **KACTL**: KACTL `content/graph` headers.
 - **OI**: OI Wiki graph navigation.
@@ -228,21 +417,23 @@ Keys used in inventory status cells. Earlier audits (2026-09-27) inspected the s
 - **SUI**: suisen graph/tree catalog paths.
 - **HIT**: hitonanode graph/flow/tree/combinatorial_opt catalog paths.
 - **TKO**: tko919 Graph catalog paths; weighted-matching source documentation previously inspected.
-- **NOS**: noshi91 library index.
+- **NOSHI**: noshi91 library index.
 - **KOO**: Koosaga `Library/codes/graph` and `combinatorial_optimization` file lists; focused skew-symmetric-flow comments, extreme-set function and tree-packing code inspected in the 2026-09-27 audit.
 - **NX**: NetworkX algorithm reference headings; planarity, cycles and eulerize API documentation inspected in the 2026-09-27 audit (eulerize is unweighted; the Edmonds–Johnson reference motivates weighted T-joins).
 - **OGDF**: OGDF class and group documentation (graph decomposition, planar embedding, flow, separators).
 - **CSES**: CSES problem set titles (functional graphs, Hamiltonian flights), 2026-09-27 audit.
+- **SPOJ**: problem COT (k-th smallest on a tree path), named by the P030 sweep (`02-Data Structures/Docs/00-notes.md`, P030 omissions); not fetched, P248 reads it first.
 - **HDT**: https://github.com/tomtseng/dynamic-connectivity-hdt — README scope and Holm/de Lichtenberg/Thorup 2001 citation, 2026-09-27 audit; connectivity only.
 - **AUDIT**: candidate list supplied with the 2026-10-06 rewrite task (level ancestor, linear extensions, exact vertex cover/dominating set, feedback sets, minimum ratio cycle, widest path, shortest-path counting/DAG, planar dual cut, Tutte-matrix matching, convex-cost flow, Hao–Orlin, tree knapsack, Hall violator, graph-class recognition, pseudoforests, degree-constrained MST, Wilson sampling, line graphs, weighted girth); each verified against at least one catalog or standard reference before adoption.
+- **WIKI**: English Wikipedia articles; URLs in [Fetched 2026-11-08](#fetched-2026-11-08-omission-sweep).
 
 ## Not adopted
 
 - OI Wiki random walks on trees/graphs: expectation computations belong to Mathematics probability.
 - maspypy annulus/tree walk generating functions, characteristic polynomial of tree adjacency, count labeled graph classes, count unlabeled trees: Mathematics generating-function and polynomial work.
-- maspypy bracket_graph, decompose_complete, find_path_through_specified, maximum_matching_between_vertex_edge, all_cycle_common_vertices, restore_euler_tour: problem-specific constructions without a reusable family.
+- maspypy find_path_through_specified, maximum_matching_between_vertex_edge, all_cycle_common_vertices, restore_euler_tour: problem-specific constructions without a reusable family. maspypy decompose_complete was adopted on 2026-11-08 into row 42 as `completeGraphDecomposition`, and bracket_graph into Miscellaneous row 53 as `bracketForest`.
 - maspypy flow/longest_shortest_path, min_cost_matching_on_line, unbalanced_transportation: specialized LP/MCF reductions without contest-general contracts.
-- maspypy graph/ds/tree_wavelet_matrix and mo_on_tree: Data Structures 17 composition and Data Structures 23 (`TreeMo`).
+- maspypy mo_on_tree: Data Structures 23 (`TreeMo`). (graph/ds/tree_wavelet_matrix was adopted on 2026-11-08 into row 88 as `TreeWaveletMatrix`.)
 - Nyaan inclusion-tree: nested-interval tree construction, Miscellaneous interval ownership.
 - hitonanode basepolyhedron and convex_sum: submodular-function machinery beyond graph contracts.
 - NetworkX centrality, communities, link analysis, similarity, summarization, assortativity, rich club, small-world, s-metric, structural holes, swap, planar drawing, D-separation, moral graphs, node classification, asteroidal (AT-free) and perfect-graph tests: not contest algorithms or lack a reusable exact engine.

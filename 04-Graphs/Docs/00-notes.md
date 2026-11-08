@@ -16,7 +16,7 @@
 ## Ownership boundaries
 
 - Data Structures owns DSU (01, 09 rollback, 29 weighted), link-cut trees (37), Euler-tour trees (38), top trees (39), radix heaps (31), persistent leftist heaps (48), PQ-trees (56), matroid oracles (46) and Mo's algorithm including Mo on trees (`23-range_query_offline.hpp`, `TreeMo`). `04-dsu.hpp` and `51-lct.hpp` are adapters keyed by graph vertices and edge IDs.
-- Mathematics owns determinants and matrix-tree (23), permanent/Pfaffian/hafnian (48), convolution (13), polynomial and generating-function kernels (14, 40) and linear algebra (16). `53-graph_counting.hpp` adapts graphs to them; `16-centroiddecomposition.hpp` uses Mathematics convolution for the all-distance histogram. Labeled graph-class counts by vertex count (connected, biconnected, DAG, Eulerian, forest, strong digraph, tree, unicyclic) are Mathematics generating-function work, not graph rows.
+- Mathematics owns determinants and the matrix-tree counts (23: spanning trees, arborescences, rooted forests and BEST Eulerian circuits, user decision 2026-11-08), permanent/Pfaffian/hafnian (48), convolution (13), polynomial and generating-function kernels (14, 40) and linear algebra (16). `53-graph_counting.hpp` adapts graphs to the other kernels; `16-centroiddecomposition.hpp` uses Mathematics convolution for the all-distance histogram. Labeled graph-class counts by vertex count (connected, biconnected, DAG, Eulerian, forest, strong digraph, tree, unicyclic) are Mathematics generating-function work, not graph rows.
 - Miscellaneous owns small-to-large/DSU-on-tree merging (`15-smalltolarge.hpp`), generic Floyd/Brent cycle finding (`14-cyclefinding.hpp`), exchange-rule scheduling (39) and subset DP scaffolding (32). `14-tree_algorithms.hpp` supplies Euler-tour layouts to Miscellaneous 15 and does not duplicate its container merging.
 - Geometry owns Manhattan MST (`21-manhattan_geometry.hpp`) and geometric graph construction (`22-geometricmst.hpp`). Geometric arrangements and point location stay in Geometry; `29-planar_graph.hpp` works on a given combinatorial embedding, and its `fromDrawing` builds one from a straight-line drawing (cp-algorithms faces, decided 2026-10-28) without resolving nested components.
 - Walks versus simple paths (`32` vs `59`), cardinality versus weighted general matching (`22` vs `64`), given planar embedding versus recognition (`29` vs `62`), offline versus online fully dynamic connectivity (`26` vs `63`), fundamental versus minimum cycle basis (`28` vs `72`), and edge connectivity versus vertex triconnectivity (`74` vs `61`) are separate rows.
@@ -57,11 +57,11 @@ The 2026-10-07 completeness sweep ([sources](00-sources.md#pages-fetched-on-2026
 - `edgeId(u, v)` lookup by endpoints: an adjacency scan or `DenseGraph::best` gives it; a hashed endpoint index is a caller choice with its own memory trade-off.
 - Vertex path to edge path (maspypy `vs_to_es`): every path witness here already returns arc IDs.
 - DFS entry/exit times and edge classification: positions in `order` and `postorder` are the entry and exit ranks; tree, back, forward and cross arcs follow from `parent_arc` and those ranks in O(n + m).
-- Chordless (minimal) cycle witness (maspypy `find_cycle` with minimality): rarely needed; a candidate for `68-cycle_enumeration.hpp`.
-- Directed odd cycle (maspypy `find_odd_cycle`): belongs with `68-cycle_enumeration.hpp`.
+- Chordless (minimal) cycle witness (maspypy `find_cycle` with minimality): adopted on 2026-11-08 into row 68 as `findChordlessCycle`.
+- Directed odd cycle (maspypy `find_odd_cycle`): adopted on 2026-11-08 into row 68 as `findOddCycle (directed)`.
 - Vertices and edges on some shortest s–t path: the shortest-path DAG of `13-shortest_path_advanced.hpp`.
 - Lexicographically largest topological order: run the lexicographic sort on the graph relabelled by `v -> n - 1 - v` (`contract` with that labelling) and map the order back.
-- Congruence shortest path (OI Wiki 同余最短路): a modelling reduction to Dijkstra over residues, not a separate operation.
+- Congruence shortest path (OI Wiki 同余最短路): adopted on 2026-11-08 into Mathematics row 03 as `residueShortestPath` (round robin, no Dijkstra) with `frobeniusNumber` and `countRepresentable`.
 - 0/c-weight BFS (hitonanode `zero_one_bfs` with a constant): divide the weights by c and use `zeroOneBfs`.
 - Fibonacci-heap or skew-heap Dijkstra and Prim (ei1333, Nyaan): no practical gain over the binary heap in contest sizes.
 
@@ -69,8 +69,8 @@ The 2026-10-07 completeness sweep ([sources](00-sources.md#pages-fetched-on-2026
 
 The 2026-10-07 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-07-p011-re-audit)) added `LCAFold: pathFold`, `pathIntersection`, the lexicographic `eulerianTrail` option, `LowlinkResult: cut_components`, `FunctionalGraph: jumpAll` and `FunctionalGraphFold: maxStep`. The other candidates stay out:
 
-- Ancestor or path binary search by predicate (hitonanode `max_length`, maspypy `max_path`): path search belongs to row 15 (HLD).
-- DFS-order LCA (OI Wiki): a constant-factor alternative to `EulerLCA` with the same contract.
+- Ancestor or path binary search by predicate (hitonanode `max_length`, maspypy `max_path`): adopted on 2026-11-08 into row 15 as `maxPath`.
+- DFS-order LCA (OI Wiki): adopted on 2026-11-08 into row 07 as `SparseTableLCA` (lighter than `EulerLCA` under Priority).
 - Mixed directed/undirected Euler circuits: need max flow, so they belong with rows 19/30/69.
 - Two-edge-connectivity augmentation and extended block-cut trees: row 27 (block-cut and bridge trees).
 - Exporting the functional graph's reverse forest as a tree: `successor`, `depth` and `tin`/`tout` already describe it.
@@ -89,7 +89,7 @@ The 2026-10-09 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-09-p043)
 - Maximum antichain, DAG path and chain covers: row 31. Bipartite edge colouring: row 34.
 - Incremental row addition and dynamic Hungarian cost updates (hitonanode `augment`, OI Wiki): the internal single-row `search` exists, but a public stateful solver with update semantics is not part of any contest catalog interface fetched; rerun `hungarian` or use `kBestAssignments`.
 - Bottleneck assignment and the auction algorithm: in no fetched catalog; bottleneck assignment is a binary search over `hopcroftKarp` or `bipartiteMatchingDense`.
-- DAG dominator tree by LCA (OI Wiki): Lengauer–Tarjan covers DAGs with a better bound; online vertex appending is not part of this row.
+- DAG dominator tree by LCA (OI Wiki): adopted on 2026-11-08 into row 24 as `dominatorTreeDag` (online vertex appends in topological order).
 - Dominated counts (OI Wiki P5180): `tout[v] − tin[v]` of `DominatorTree`.
 - Post-dominators, multiple roots and edge dominators: reverse graph, super-source and edge subdivision. Exposed semidominators (internal in Koosaga) and iterated dominance frontiers (SSA construction) are outside contest use.
 
@@ -115,7 +115,7 @@ The 2026-10-13 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-13-p045-m
 - Dense O(n^2) Dijkstra (OI Wiki footnote): measured slower than the heap on every benchmarked workload, including a 300-vertex half-dense graph.
 - Primal–dual blocking flow on the zero-reduced-cost network (zkw style): same worst case; one path per Dijkstra as ACL.
 - Changing an edge's capacity or cost after a flow: no SSP catalog has it; rebuild, or cancel with row 65.
-- Convex costs given by a callable over a large capacity (capacity scaling, Ahuja–Magnanti–Orlin): piecewise lists only; scaling belongs with row 65.
+- Convex costs given by a callable over a large capacity (capacity scaling, Ahuja–Magnanti–Orlin): piecewise lists only here; capacity scaling was adopted on 2026-11-08 into row 65 as `minCostBFlow (capacity scaling)` and `capacityScalingMinCostFlow`.
 - Floating-point capacities or costs (legacy `old_mcmf.cpp`): integers only; scale.
 - Multi-source/sink, supplies and negative cycles: rows 30 and 65.
 
@@ -183,3 +183,13 @@ The 2026-10-29 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-29-p048-g
 - NetworkX `all_triangles`: the enumeration.
 - Enumerating cliques, counting all cliques and cycles over vertex subsets: rows 49 and 53. Elementary cycles and girth: row 68. Subgraph isomorphism: row 54.
 - Connected 4-edge subgraph counts (OI Wiki, Gym 102028L) and CF 985G: problem-specific inclusion-exclusion.
+
+## Omission sweep 2026-11-08
+
+Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledgers/omissions.md`, Recorded decisions): exact duplicates, second implementations and items another row owns. Handoff notes name where a candidate is implemented instead.
+
+- `PlusMinusOneRMQ` in row 07 (EI, CPA): Data Structures row 54 keeps it public (duplicates.md, Keeps); `EulerLCA` calls it instead of keeping a copy of its own.
+- `kShortestWalksAll` (k-pop Dijkstra, every target) (OI): the same k-pop Dijkstra as row 32 `kShortestWalksSimple`, which row 32 lists for every target.
+- `optimalTopologicalOrder` (tree precedence) (TKO, LC, MAS): another name for row 79 `rootedTreeMinimumInversionOrder` (an in-tree reduces to it by reversal); removed from row 79.
+- `Unicyclic: distance` (MAS): implement through row 41 `CactusDecomposition: distance` (a unicyclic component is a cactus); row 41 says so.
+- Random graph generators `randomTree` (Prüfer), `randomBinaryTree`, `randomGraph` and the other maspypy and OGDF generators (MAS, OGDF): test generators: `09-Contest Testing` plans seeded graph generators for when a task needs them (`00-index.md`, Coverage and extension inventory), so no Graphs row lists them.

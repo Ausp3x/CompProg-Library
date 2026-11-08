@@ -37,7 +37,7 @@
 
 ## Source keys
 
-Keys in the status cells of rows not yet verified name the catalogs above whose Used-for entry names that row or one of its operations: LC (the Library Checker directories), CPA (cp-algorithms), KACTL, OI (OI Wiki), NYA (Nyaan), MAS (maspypy), EI (ei1333), SUI (suisen), HIT (hitonanode), TKO (tko919), NOSHI (noshi91), GMP, FLINT, NTL.
+Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys); a row's keys name the catalogs above whose Used-for entry names that row or one of its operations.
 
 ## P012 re-audit sweep (fetched 2026-10-07)
 
@@ -197,7 +197,7 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | KACTL numerical | https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical | Row 16 `solveLinearReal`, `tridiagonalSolve`, `determinantMod` contracts; `SolveLinear2` left out |
 | maspypy linalg | https://maspypy.github.io/library/linalg/solve_linear_lower.hpp, https://maspypy.github.io/library/linalg/basis.hpp | Row 16 `luSolve`, `FieldBasis` |
 | OI Wiki linear algebra | https://oi-wiki.org/math/linear-algebra/basis/, https://oi-wiki.org/math/linear-algebra/matrix/ | Row 16 `FieldBasis` over a field, matrix product and power |
-| hitonanode Hessenberg system | https://hitonanode.github.io/cplib-cpp/linear_algebra_matrix/hessenberg_system.hpp | Left out of row 16 (row 44 candidate) |
+| hitonanode Hessenberg system | https://hitonanode.github.io/cplib-cpp/linear_algebra_matrix/hessenberg_system.hpp | Left out of row 16; adopted 2026-11-08 as row 44 `hessenbergSolve` |
 
 ## P059 sweep (fetched 2026-11-03, `@researcher`)
 
@@ -214,3 +214,157 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | OI Wiki, numerical integration; Newton | https://oi-wiki.org/math/numerical/integral/, https://oi-wiki.org/math/numerical/newton/ | Row 17 adaptive Simpson and Newton |
 | maspypy `definite_integral` | https://maspypy.github.io/library/geo/definite_integral.hpp | Row 17 fixed Simpson (no further operation) |
 | hitonanode dual number | https://hitonanode.github.io/cplib-cpp/ | Row 17 `DualNumber` |
+
+## Fetched 2026-11-08 (omission sweep)
+
+Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission sweep 2026-11-08) and `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions).
+
+| URL | Used for |
+|---|---|
+| https://numerical.recipes/book.html | 02: `brentSearchRealBracket`; 17: `falsePositionRoot`, `newtonSystem`; 39: `legendreP`, `chebyshevT`; 68: `rungeKutta4`, `rungeKuttaAdaptive`; 69: `nelderMead`, `powellMinimize`; 70: `dst1`, `dct1` |
+| https://oi-wiki.org/graph/mod-shortest-path/ | 03: `residueShortestPath`, `frobeniusNumber` |
+| https://dansesacrale.wordpress.com/2010/09/20/frobenius-numbers-round-robin-algorithm/ | 03: `residueShortestPath`, `frobeniusNumber` |
+| https://nyaannyaan.github.io/library/math/float-binomial.hpp | 05: `LogCombinatorics`, `reset` |
+| https://hitonanode.github.io/cplib-cpp/number/big_combination_logarithm.hpp | 05: `LogCombinatorics`, `reset` |
+| https://nyaannyaan.github.io/library/ | 05: `LogCombinatorics`, `reset`; 14: `fpsNewton`; 22: `multipointEvaluate`; 27: `mongeShortestPathAllEdgeCounts`, `mongeShortestPath`; 40: `fpsComposeExp` |
+| https://gmplib.org/manual/Number-Theoretic-Functions | 07: `nextPrime`, `prevPrime` |
+| https://flintlib.org/doc/ulong_extras/index.html | 07: `nextPrime`; 21: `floorLog`, `ceilLog`; 36: `lehmanFactor`, `oneLineFactor`, `pseudosquarePrimality`, `factorSmooth`, `isPrime128`, `factorize128` |
+| https://cses.fi/problemset/ | 07: `nextPrime` |
+| https://cp-algorithms.com/algebra/phi-function.html | 08: `phiTrial`, `phiTableSimple` |
+| https://github.com/kth-competitive-programming/kactl/tree/main/content/number-theory | 08: `phiTableSimple` |
+| https://oi-wiki.org/math/number-theory/dirichlet/ | 08: `dirichletConvolutionTableMultiplicative` |
+| https://maspypy.github.io/library/mod/O1_inverse.hpp | 09: `inverseO1` |
+| https://cp-algorithms.com/algebra/factorial-modulo.html | 12: `BinomialPrimePower`, `unitFactorial`; 37: `pFreeFactorialModPrime` |
+| https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/math/number-theory/factorial.md | 12: `BinomialPrimePower`, `unitFactorial` |
+| https://maspypy.github.io/library/mod/binomial_u64.hpp | 12: `BinomialMod2p64`, `ctor` |
+| https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/math/combinatorics/stirling.md | 12: `stirling1Table`, `stirling2Table` |
+| https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/math/combinatorics/eulerian.md | 12: `eulerianTable` |
+| https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/math/combinatorics/bell.md | 12: `bellTriangle` |
+| https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/math/combinatorics/partition.md | 12: `partitionsExactPartsTable`, `distinctPartsExactPartsTable` |
+| https://cp-algorithms.com/algebra/factorial-divisors.html | 12: `factorialValuationComposite` |
+| https://oi-wiki.org/math/young-tableau/ | 12: `standardTableauTotal`; 60: `kLisPrefixQueries` |
+| https://nyaannyaan.github.io/library/fps/newton-method.hpp | 14: `fpsNewton` |
+| https://oi-wiki.org/math/poly/newton/ | 14: `fpsNewton` |
+| https://cp-algorithms.com/algebra/polynomial.html | 14: `fpsNewton` |
+| https://maspypy.github.io/library/poly/composition_f_a_plus_bx_div_c_plus_dx.hpp | 14: `mobiusSubstitution` |
+| https://tko919.github.io/library/FPS/mobius.hpp | 14: `mobiusSubstitution` |
+| https://maspypy.github.io/library/ | 15: `coefficientExtraction`; 23: `countSpanningTrees`; 40: `fpsComposeExp`, `countLabeledGraphs`; 52: `RelaxedConvolution`; 55: `floorSumPolynomialExponential`; 64: `toddCoxeter` |
+| https://flintlib.org/doc/arb/index.html | 20: `rationalInInterval`; 62: `Ball`, `hull`, `RealInterval`, `atan`, `toBall`, `toRealInterval`, `certifiedFloor`, `certifiedCeil`, `ballDot`, `ballPi` |
+| https://nyaannyaan.github.io/library/fps/fast-multieval.hpp | 22: `multipointEvaluate` |
+| https://nyaannyaan.github.io/library/fps/fast-interpolate.hpp | 22: `multipointEvaluate` |
+| https://oi-wiki.org/math/numerical/interp/ | 22: `NewtonInterpolator`, `evaluate` |
+| https://oi-wiki.org/graph/matrix-tree/ | 23: `countRootedForestsByTreeCount`, `spanningTreeWeightSum`, `countSpanningTrees` |
+| https://maspypy.github.io/library/graph/count/count_spanning_tree.hpp | 23: `countSpanningTrees` |
+| https://cp-algorithms.com/graph/kirchhoff-theorem.html | 23: `effectiveResistance` |
+| https://oi-wiki.org/math/game-theory/impartial-game/ | 25: `fibonacciNim`, `retrogradeAnalysis` |
+| https://maspypy.github.io/library/game/graph_game.hpp | 25: `retrogradeAnalysis` |
+| https://nyaannyaan.github.io/library/game/impartial-game.hpp | 25: `nimWin`, `grundySum` |
+| https://cp-algorithms.com/game_theory/sprague-grundy-nim.html | 25: `nimWin`, `grundySum` |
+| https://oi-wiki.org/graph/graph-random-walk/ | 26: `expectedHittingTimeSparse`, `hittingTimeMatrix` |
+| https://oi-wiki.org/dp/opt/quadrangle/ | 27: `monotoneDecisionQueueDp`, `larschSimplified`, `partitionDpKnuth` |
+| https://hitonanode.github.io/cplib-cpp/other_algorithms/monge_shortest_path.hpp | 27: `larschSimplified`, `mongeShortestPath` |
+| https://ei1333.github.io/library/dp/online-offline-dp.hpp | 27: `onlineOfflineDp` |
+| https://ei1333.github.io/library/ | 27: `onlineOfflineDp`; 51: `multipointPrefixProductEval` |
+| https://maspypy.github.io/library/convex/monge/monge_matrix_product.hpp | 27: `mongeMinPlusProduct` |
+| https://github.com/maspypy/library/tree/main/convex/monge | 27: `mongeMinPlusProduct` |
+| https://hitonanode.github.io/cplib-cpp/other_algorithms/monge_d_edge_shortest_paths_enum.hpp | 27: `mongeShortestPathAllEdgeCounts` |
+| https://hitonanode.github.io/cplib-cpp/combinatorial_opt/convex_sum.hpp | 27: `minConvexSumUnderLinearConstraint` |
+| https://hitonanode.github.io/cplib-cpp/ | 27: `minConvexSumUnderLinearConstraint`; 44: `hessenbergSolve` |
+| https://oi-wiki.org/math/simplex/ | 28: `revisedSimplex` |
+| https://oi-wiki.org/math/number-theory/prime-counting/ | 31: `primeCountTable`, `lmoPrimeCount`, `delegliseRivatPrimeCount` |
+| https://flintlib.org/doc/dirichlet/index.html | 32: `DirichletCharacter`, `ctor`, `DirichletCharacter`, `order`, `DirichletCharacter`, `DirichletCharacter`, `lower`, `characterValues`, `enumerateCharacters`, `primitiveCharacterCount` |
+| https://flintlib.org/doc/qfb/index.html | 34: `BinaryQuadraticForm`, `BinaryQuadraticForm`, `principal`, `BinaryQuadraticForm`, `primeForm`, `BinaryQuadraticForm`, `order`, `BinaryQuadraticForm`, `compose` |
+| https://libntl.org/doc/LLL.cpp.html | 35: `gramSchmidt`, `lllReduceExact` |
+| https://flintlib.org/doc/fmpz_lll/index.html | 35: `isLllReduced`, `lllReduceWithRemoval` |
+| https://flintlib.org/doc/qsieve/index.html | 36: `siqs` |
+| https://flintlib.org/doc/fmpz/index.html | 36: `morrisonTest`, `pseudosquarePrimality`, `aprcl`, `divisorInResidueClass` |
+| https://flintlib.org/doc/aprcl/index.html | 36: `aprcl` |
+| https://flintlib.org/doc/fmpz_factor/index.html | 36: `factorSmooth` |
+| https://oi-wiki.org/math/number-theory/factorial/ | 37: `pFreeFactorialModPrime` |
+| https://oi-wiki.org/math/combinatorics/bernoulli/ | 38: `bernoulliTableSimple` |
+| https://hitonanode.github.io/cplib-cpp/utilities/kth_power_sum.hpp | 38: `bernoulliTableSimple` |
+| https://flintlib.org/doc/arith/index.html | 38: `bernoulliTableSimple`, `bernoulliPolynomial`, `eulerPolynomial`, `bernoulliDenominator` |
+| https://tko919.github.io/library/FPS/prefixsumofpowers.hpp | 38: `powerSumPrefixTable` |
+| https://github.com/maspypy/library/blob/main/seq/famous/faulhaber.hpp | 38: `powerSumPrefixTable` |
+| https://flintlib.org/doc/arb_hypgeom/index.html | 39: `expIntegral`, `sinIntegral`, `cosIntegral`, `logIntegral`, `erfi`, `erfcInverse`, `airyAi`, `airyBi`, `legendreP`, `chebyshevT`, `hypergeometricPFQ`, `hypergeometric0F1` |
+| https://flintlib.org/doc/ | 39: `legendreP`, `chebyshevT`; 71: `EllipticCurve`, `isOnCurve` |
+| https://suisen-cp.github.io/cp-library-cpp/library/polynomial/compose_exp.hpp | 40: `fpsComposeExp` |
+| https://tko919.github.io/library/FPS/compexp.hpp | 40: `fpsComposeExp` |
+| https://maspypy.github.io/library/graph/count/count_labeled_biconnected.hpp | 40: `countLabeledGraphs` |
+| https://maspypy.github.io/library/graph/count/count_labeled_bridgeless.hpp | 40: `countLabeledGraphs` |
+| https://maspypy.github.io/library/graph/count/count_labeled_unicyclic.hpp | 40: `countLabeledGraphs` |
+| https://maspypy.github.io/library/graph/count/count_labeled_strong_tournament.hpp | 40: `countLabeledGraphs` |
+| https://maspypy.github.io/library/poly/coef_of_rational_fps_2d.hpp | 40: `bivariateRationalCoefficient`; 50: `coefOfRationalFps2d` |
+| https://oi-wiki.org/math/poly/symbolic-method/ | 40: `unlabelledMultiset` |
+| https://tko919.github.io/library/FPS/eulertransform.hpp | 40: `unlabelledMultiset` |
+| https://flintlib.org/doc/fq/index.html | 42: `GFpk`, `sqrt` |
+| https://flintlib.org/doc/fq_zech/index.html | 42: `GFpk`, `sqrt`, `GFpkZech` |
+| https://libntl.org/doc/GF2XFactoring.cpp.html | 42: `findSparseIrreducible` |
+| https://libntl.org/doc/tour-modules.html | 42: `findSparseIrreducible`; 49: `hermiteNormalFormModular` |
+| https://hitonanode.github.io/cplib-cpp/linear_algebra_matrix/hessenberg_system.hpp | 44: `hessenbergSolve` |
+| https://flintlib.org/doc/nmod_poly_mat/index.html | 44: `bareissDeterminant`, `bareissRref`; 51: `PolyMatrix`, `kernel`, `determinantPolynomialMatrix` |
+| https://flintlib.org/doc/acb_calc/index.html | 45: `contourIntegrate`, `cauchyBound` |
+| https://flintlib.org/doc/nmod_poly_factor/index.html | 46: `kaltofenShoupFactor` |
+| https://nyaannyaan.github.io/library/math/nimber.hpp | 47: `nimIsPrimitiveRoot`, `nimMul` |
+| https://github.com/maspypy/library/blob/main/nt/nimber/nimber_impl.hpp | 47: `nimSquare`, `nimMul` |
+| https://github.com/maspypy/library/blob/main/nt/nimber/base.hpp | 47: `nimSquare` |
+| https://github.com/yosupo06/library-checker-problems/tree/master/linear_algebra | 48: `matrixTreeBridge` |
+| https://libntl.org/doc/HNF.cpp.html | 49: `hermiteNormalFormModular` |
+| https://flintlib.org/doc/fmpz_mat/index.html | 49: `hermiteNormalFormModular`, `rationalSolve`, `strongEchelonForm`, `elementaryDivisors` |
+| https://libntl.org/doc/mat_ZZ.cpp.html | 49: `rationalSolve` |
+| https://flintlib.org/doc/nmod_mat/index.html | 49: `strongEchelonForm` |
+| https://github.com/maspypy/library/tree/main/poly/2d | 50: `multivariateExp2d`, `multivariateLog2d` |
+| https://maspypy.github.io/library/poly/2d/compositional_inverse_2d.hpp | 50: `compositionalInverse2d` |
+| https://github.com/maspypy/library/tree/main/poly | 50: `coefOfRationalFps2d`; 51: `multipointPrefixProductEval` |
+| https://flintlib.org/doc/nmod_mpoly/index.html | 50: `mpolyGcd`, `mpolyDivides`, `MPoly`, `compose` |
+| https://maspypy.github.io/library/poly/multipoint_evaluation_for_prefix_product.hpp | 51: `multipointPrefixProductEval` |
+| https://github.com/NyaanNyaan/library/tree/master/matrix | 51: `determinantPolynomialMatrix` |
+| https://suisen-cp.github.io/cp-library-cpp/library/polynomial/formal_power_series_relaxed.hpp | 52: `onlineFpsSqrt` |
+| https://maspypy.github.io/library/poly/online/online_convolution_garner.hpp | 52: `RelaxedConvolution` |
+| https://nyaannyaan.github.io/library/fps/differential-equation.hpp | 52: `newtonDifferentialEquation` |
+| https://github.com/yosupo06/library-checker-problems/tree/master/convolution | 53: `minPlusConvolutionConcaveArbitrary` |
+| https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/convolution/min_plus_convolution_concave_arbitrary/task.md | 53: `minPlusConvolutionConcaveArbitrary` |
+| https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/convolution/min_plus_convolution_concave_arbitrary/info.toml | 53: `minPlusConvolutionConcaveArbitrary` |
+| https://github.com/yosupo06/library-checker-problems/blob/master/convolution/min_plus_convolution_concave_arbitrary/sol/correct.cpp | 53: `minPlusConvolutionConcaveArbitrary` |
+| https://hitonanode.github.io/cplib-cpp/other_algorithms/smawk.hpp | 53: `minPlusConvolutionConcaveArbitrary` |
+| https://suisen-cp.github.io/cp-library-cpp/library/convolution/min_plus_convolution.hpp | 53: `minPlusConvolutionConvexArbitrarySimple` |
+| https://maspypy.github.io/library/convex/minplus_convolution.hpp | 53: `minPlusConvolutionConvexArbitrarySimple` |
+| https://nyaannyaan.github.io/library/dp/concave-min-plus-convolution.hpp | 53: `minPlusConvolutionConvexArbitrarySimple` |
+| https://suisen-cp.github.io/cp-library-cpp/library/number/fast_discrete_logarithm.hpp | 54: `indexCalculus` |
+| https://suisen-cp.github.io/cp-library-cpp/ | 54: `indexCalculus` |
+| https://github.com/yosupo06/library-checker-problems/tree/master/number_theory | 54: `DiscreteLogTable`, `build` |
+| https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/number_theory/discrete_logarithm_fixed_mod/task.md | 54: `DiscreteLogTable`, `build` |
+| https://flintlib.org/doc/dlog/index.html | 54: `DiscreteLogTable`, `build`, `discreteLogVector` |
+| https://flintlib.org/doc/nmod/index.html | 54: `DiscreteLogTable`, `build` |
+| https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/math/number-theory/discrete-logarithm.md | 54: `DiscreteLogTable`, `build` |
+| https://api.github.com/repos/yosupo06/library-checker-problems/contents/number_theory | 54: `DiscreteLogTable`, `build` |
+| https://maspypy.github.io/library/mod/floor_sum_of_linear_polynomial_pq.hpp | 55: `floorSumPolynomialExponential` |
+| https://maspypy.github.io/library/nt/gaussian_integers.hpp | 57: `GaussianInteger`, `extGcd` |
+| https://nyaannyaan.github.io/library/math/gaussian-integer.hpp | 57: `GaussianInteger`, `extGcd` |
+| https://oi-wiki.org/math/number-theory/quadratic/ | 57: `GaussianInteger`, `extGcd`, `EisensteinInteger`, `factor` |
+| https://maspypy.github.io/library/nt/hurwitz.hpp | 57: `HurwitzQuaternion`, `leftDivmod` |
+| https://nyaannyaan.github.io/library/game/surreal-number.hpp | 58: `DyadicRational`, `negate` |
+| https://maspypy.github.io/library/game/dyadic_rational.hpp | 58: `DyadicRational`, `negate` |
+| https://nyaannyaan.github.io/library/game/partisan-game.hpp | 58: `solvePartizanGame` |
+| https://maspypy.github.io/library/game/solve_partizan_game.hpp | 58: `solvePartizanGame` |
+| https://maspypy.github.io/library/game/number_and_star.hpp | 58: `NumberAndStar`, `fromOptions` |
+| https://maspypy.github.io/library/seq/sidon_sequence.hpp | 59: `SidonSequence`, `ctor` |
+| https://maspypy.github.io/library/seq/rsk_correspondence.hpp | 60 |
+| https://github.com/maspypy/library/tree/main/seq | 60 |
+| https://flintlib.org/doc/qqbar/index.html | 61: `AlgebraicNumber`, `floor`, `AlgebraicNumber`, `conj`, `AlgebraicNumber`, `root`, `AlgebraicNumber`, `isRational`, `conjugates`, `algebraicRoots`, `rootOfUnity`, `cosPi`, `algebraicGuess` |
+| https://flintlib.org/doc/nf_elem/index.html | 61: `NumberFieldElement`, `representationMatrix` |
+| https://flintlib.org/doc/double_interval/index.html | 62: `RealInterval`, `atan`, `toBall`, `toRealInterval` |
+| https://libntl.org/doc/RR.cpp.html | 63: `BigFloat`, `floor`, `fromInfInt`, `fromRational`, `BigFloat`, `mul2exp`, `bigPowInt`, `bigRoot` |
+| https://flintlib.org/doc/arf/index.html | 63: `BigFloat`, `floor`, `fromInfInt`, `fromRational`, `BigFloat`, `mul2exp`, `bigPowInt`, `bigRoot`, `bigSum` |
+| https://libntl.org/doc/quad_float.cpp.html | 63: `DoubleDouble`, `compare` |
+| https://oi-wiki.org/math/algebra/schreier-sims/ | 64: `PermutationGroup`, `schreierSims`, `permutationGroupBasis` |
+| https://maspypy.github.io/library/seq/permutation_group_basis.hpp | 64: `permutationGroupBasis` |
+| https://oi-wiki.org/math/algebra/group-theory/ | 64: `cyclicElementOrder`, `cyclicGeneratorCount` |
+| https://maspypy.github.io/library/nt/GF2.hpp | 65: `carrylessMultiply` |
+| https://maspypy.github.io/library/poly/convolution_mod_2.hpp | 65: `convolutionGf2` |
+| https://maspypy.github.io/library/poly/mod_2/convolution.hpp | 65: `convolutionGf2` |
+| https://github.com/maspypy/library/tree/main/poly/mod_2 | 65: `fpsInverseGf2` |
+| https://oi-wiki.org/math/poly/fwt/ | 65: `karyXorConvolution`, `karyMaxConvolution`, `karyMinConvolution` |
+| https://nyaannyaan.github.io/library/set-function/exp-of-set-power-series.hpp | 66: `spsExpDivideConquer` |
+| https://maspypy.github.io/library/setfunc/sps_exp.hpp | 66: `spsExpDivideConquer` |
+| https://en.wikipedia.org/wiki/Counting_points_on_elliptic_curves | 71: `EllipticCurve`, `isOnCurve` |

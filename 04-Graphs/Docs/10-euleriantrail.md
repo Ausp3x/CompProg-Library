@@ -64,7 +64,7 @@ Legacy: the `EulerPath` sections of `OLD/Team Notebook/src/algsbetter.cpp` (line
 
 ## Limits and handoffs
 
-Euler-tour counting belongs to `53-graph_counting.hpp`, and Chinese postman/route augmentation to `69-tjoin.hpp`; mixed directed/undirected Euler circuits need max flow and belong with rows 19/30/69. These are not claimed here.
+Euler-tour counting belongs to Mathematics `23-matrixtree.hpp` (`eulerianCircuitCountBest`), and Chinese postman/route augmentation to `69-tjoin.hpp`; mixed directed/undirected Euler circuits need max flow and belong with rows 19/30/69. These are not claimed here.
 
 ## Aliases
 

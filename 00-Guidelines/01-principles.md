@@ -6,7 +6,7 @@ Every implementation satisfies all four requirements, and none is optional; Prio
 |---|---|
 | Correctness | Right answer for every input in the stated domain, including boundaries, with no undefined behavior. A violated precondition (assert) and a valid input with no answer (sentinel/status) are different cases. |
 | Optimality | Each family reaches the best asymptotic bound for its domain, and each operation the best bound and practical constant its algorithm and profile allow. Choose thresholds for real workloads and record them. Compilation time never matters. |
-| Completeness | Every public operation of the family is named in the folder inventory and either implemented or marked planned. Python is a documented subset, never a silent one. Wrappers and second implementations are not separate operations (`03-cpp.md`, One API per operation). |
+| Completeness | Every public operation of the family is named in the folder inventory and either implemented or marked planned. Python is a documented subset, never a silent one. A wrapper in another context, a named composition and a one-problem algorithm a Completeness-sweep catalog (`09-sources.md`) names are operations; another form in the same context and a second implementation are not (`03-cpp.md`, One API per operation). |
 | Elegance | Direct control flow, short meaningful names, few variables, no duplication or gratuitous abstraction. Compression never hides an invariant or repeats expensive work. |
 
 ## Priority

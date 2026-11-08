@@ -277,6 +277,48 @@ for target, parts in inventories.items():
     if lacking:
         mini_first(target, f'Mini row lacks operations of {full} (list them, after internals: or missing:): {target}: ' + ', '.join(lacking))
 
+# Status cells (02-structure.md, Inventory contract) start with a status word; every other entry is a link, a `missing:`
+# operation, a `legacy:` path or one of the library's source keys (00-Guidelines/09-sources.md, Source keys) with an
+# optional parenthesized detail. A row with neither a link nor a key or path is reported in unsourced_rows.
+sources_text = (ROOT / '00-Guidelines/09-sources.md').read_text()
+source_keys = set(re.findall(r'^\| ([A-Z][A-Z0-9]*) \|', sources_text.split('## Source keys', 1)[1].split('\n## ', 1)[0], re.M))
+unsourced_rows = []
+for target, parts in inventories.items():
+    items = extraction.split(parts[-1], ';')
+    if all(item.startswith('missing:') for item in items[1:]):
+        unsourced_rows.append(target)
+    require(bool(items) and items[0] in ('planned', 'partial', 'existing-unverified', 'legacy-reference', 'verified'),
+            f'Status cell must start with a status word: {target}: {parts[-1]}')
+    for item in items[1:]:
+        if item.startswith('missing:'):
+            continue
+        legacy = item.startswith('legacy:')
+        for entry in extraction.split(item, ','):
+            if legacy:
+                require(bool(re.search(r'/|\.\w+`?$', re.sub(r' \(.*\)$', '', entry))), f'Status legacy: entry is not a path: {target}: {entry}')
+            elif not re.fullmatch(r'(?:see )?\[[^\]]*\]\([^)]*\)', entry):
+                m = re.fullmatch(r'([A-Z][A-Z0-9]*)(?: \([^()]*\))?', entry)
+                require(bool(m) and m[1] in source_keys, f'Unknown source key (00-Guidelines/09-sources.md, Source keys): {target}: {entry}')
+
+# Operation names (02-structure.md): a type name, or a name of the template every header includes, in two rows is an
+# error; a free function in two rows is reported in name_collisions. Core functions are members or hidden friends, and a
+# mini row repeats its full row's operation names, so Core rows give only their type names (`mint (alias ...)` included).
+name_rows, type_names = collections.defaultdict(set), set()
+for target, parts in inventories.items():
+    if re.match(r'0[1-7]-', target) and target.endswith('.hpp'):
+        for n, q in extraction.grab.SEARCH.entries(parts[-2]):
+            if n[0].isupper() or q.startswith('alias'):
+                type_names.add(n)
+            if '::' not in n and n != 'ctor' and not n.startswith('operator') and (
+                    n in type_names or not target.startswith('01-Core/') or target == '01-Core/01-template.hpp'):
+                name_rows[n].add(target)
+name_collisions = []
+for n, rows in sorted(name_rows.items()):
+    if len(rows) > 1 and (n in type_names or '01-Core/01-template.hpp' in rows):
+        require(False, f'Type or template name in two inventory rows (02-structure.md, Operation names): {n}: ' + ', '.join(sorted(rows)))
+    elif len(rows) > 1:
+        name_collisions.append(f'{n}: ' + ', '.join(sorted(rows)))
+
 # An operation whose default form extracts a Core full header records `full-only until` (03-cpp.md, Core type
 # parameters); checked from the cached grab index only, since building it takes minutes (05-extraction.py builds it).
 ix = extraction.grab.Index(ROOT, quiet=True, build=False)
@@ -465,5 +507,5 @@ for path in tracked:
     if path and not path.startswith(('OLD/', '95-Resources/')) and p.is_file() and b'\0' not in (data := p.read_bytes()):
         require(not re.search(rb'/home/\w[\w.-]*/', data), 'Absolute home path in ' + path)
 
-print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'absent_ignored_archive': len(absent_archive), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'mini_first_pending': mini_first_pending, 'errors': errors}, indent=2))
+print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'absent_ignored_archive': len(absent_archive), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'mini_first_pending': mini_first_pending, 'name_collisions': name_collisions, 'unsourced_rows': unsourced_rows, 'errors': errors}, indent=2))
 raise SystemExit(bool(errors))

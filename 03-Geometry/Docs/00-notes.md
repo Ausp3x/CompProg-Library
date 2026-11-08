@@ -53,10 +53,9 @@ Rows 05–08 (`05-closestpair.hpp`, `06-circle.hpp`, `07-rotatingcalipers.hpp`, 
 
 ## 2026-09-27 audit: not adopted
 
-Industrial CAD, molecular surfaces, remeshing/visualization and machine-learning reconstruction remain outside this contest inventory. Catalog items of the [2026-09-27 audit](00-sources.md#2026-09-27-audit-provenance) left out:
+This audit kept industrial CAD, molecular surfaces, remeshing and visualization, and machine-learning reconstruction outside the inventory; the 2026-11-08 omission sweep dropped that exclusion (user decision, `00-Guidelines/23-Sweep Ledgers/omissions.md`), so an application area no longer excludes a family and `01-principles.md` (Priority) decides as for any other. Catalog items of the [2026-09-27 audit](00-sources.md#2026-09-27-audit-provenance) left out:
 
 - maspypy `minimum_three_distance_sum`: single-problem curiosity without a reusable family.
-- maspypy `convex_polygon_edge_voronoi`: nearest-edge diagram of a convex polygon; no contest use case beyond `15` distance queries.
 - maspypy `definite_integral`, `modint_real`: numerical integration is Mathematics `17-numerical_methods.hpp`; modular reals are not geometry.
 - hitonanode `point2d_w_error` as a public type: absorbed as the `IntervalPoint2` filter inside row 36 rather than a separate header.
 - KACTL `Angle` class: `polarLess` and `canonicalDirection` cover its use; no separate angle type.
@@ -68,15 +67,15 @@ Industrial CAD, molecular surfaces, remeshing/visualization and machine-learning
 
 ## P007 completeness decisions (2026-10-07)
 
-- Not adopted for `01-point.hpp`: `normalApprox` (it is `unitApprox(perp(v))` or `unitApprox(cross(u, v))`); 3D `phi`/`theta` (spherical coordinates belong to the 3D rows); `operator!=` (synthesized from `==`); clockwise rotation (`-perp`); epsilon `sgn`/`eq` (contradicts the exact-first policy; row 36 owns robust predicates); rotation by an angle (row 08).
+- Not adopted for `01-point.hpp`: `normalApprox` (it is `unitApprox(perp(v))` or `unitApprox(cross(u, v))`); 3D `phi`/`theta` (adopted on 2026-11-08 into row 27 as `toSphericalApprox` and `fromSphericalApprox`); `operator!=` (synthesized from `==`); clockwise rotation (`-perp`); epsilon `sgn`/`eq` (contradicts the exact-first policy; row 36 owns robust predicates); rotation by an angle (row 08).
 - Not adopted for `02-line_segment.hpp`: a line from equation coefficients (integral `Linear2` endpoints need not exist inside the coordinate domain; `canonicalLine` gives the equation in the other direction); five-way `ccw` (`orient` plus `contains` on a ray or segment answers it); epsilon `sideOf` (use `orient` or `signedLineDistanceApprox`).
-- Not adopted for `03-polygon.hpp`: `segmentInPolygon` and nonconvex polygon-line pieces (rare and maspypy-only; candidates for the arrangement row 30); `makeCCW` (`signedArea2` plus `reverse`).
-- Not adopted for `04-convexhull.hpp`: separate lower/upper hull (internal passes of `convexHull`; row 20 owns range hulls); presorted O(n) hull (the sort is not the bottleneck for one call); Melkman's simple-chain hull (needs a simple input chain, rare in contests); Jarvis, Quickhull and Akl–Toussaint (no better contest bound).
+- Not adopted for `03-polygon.hpp`: `segmentInPolygon` and nonconvex polygon-line pieces (adopted on 2026-11-08 into row 30 as `segmentInPolygon` and `polygonLineIntersection`); `makeCCW` (`signedArea2` plus `reverse`).
+- Not adopted for `04-convexhull.hpp`: separate lower/upper hull (internal passes of `convexHull`; row 20 owns range hulls); Quickhull and Akl–Toussaint (no better contest bound). The presorted O(n) hull, Melkman's simple-chain hull and Jarvis were adopted on 2026-11-08 into row 04 (`convexHullSorted`, `convexHullMelkman`, `convexHullJarvis`).
 
 ## P008 completeness decisions (2026-10-07)
 
-- Not adopted for `05-closestpair.hpp`: the minimum-perimeter triangle (a rare extension of the same recursion); the randomized expected-linear grid (it needs floor-hashing, its runtime is hackable with a fixed seed, and the deterministic O(n * log(n)) bound is optimal for comparison-based algorithms); floating-coordinate closest pair (the exact-first policy scales or rounds inputs to integers).
-- Not adopted for `06-circle.hpp`: the Apollonian ratio-locus circle (a construction for `24-circle_constructions.hpp`).
+- Not adopted for `05-closestpair.hpp`: the minimum-perimeter triangle (a rare extension of the same recursion). The randomized expected-linear grid and floating-coordinate closest pair were adopted on 2026-11-08 into row 05 (`closestPairRandomized`, `closestPairApprox`).
+- Not adopted for `06-circle.hpp`: the Apollonian ratio-locus circle (adopted on 2026-11-08 into row 24 as `apollonianCircle`).
 - Not adopted for `07-rotatingcalipers.hpp`: two-polygon calipers problems (maximum distance between convex polygons, hull merge bridges, critical support lines, widest separating strip, Grenander distance). Row 17 owns the maximum distance (`convexPolygonMaxDistance`) and row 53 the bridges; the others are not adopted (P036 decisions for row 17).
 - Not adopted for `08-coordinate_transform.hpp`: line and direction images (apply the map to two points or use `applyVector`), map equality and how-built predicates (field comparison), and exact rational transforms (no contest need, and they conflict with the `Approx` contract).
 
@@ -94,12 +93,12 @@ Industrial CAD, molecular surfaces, remeshing/visualization and machine-learning
 - **Not adopted for `16-circle_polygon.hpp`:**
   - circle boundary length inside a polygon (sum of the returned arcs times `r`);
   - polygon perimeter inside a disk and intersection point listing (`06-circle` per edge);
-  - region-valued disk ∩ polygon (row 30).
+  - region-valued disk ∩ polygon (adopted on 2026-11-08 into row 30 as `diskPolygonIntersectionApprox`).
 - **Not adopted for `17-polygon_distance.hpp`:**
   - widest separating strip (it is the closest pair's bisector strip, from the witnesses);
   - inner and outer common tangents of two convex polygons, and Grenander distance (rare calipers applications);
   - exact rational squared distance (exceeds 128 bits);
-  - distance between hulls of point sets (`convexHull` composition);
+  - distance between hulls of point sets (`convexHull` composition; the fixed-dimension `polytopeDistance` was adopted on 2026-11-08 into row 42);
   - polygons with holes and ranges of polygons in `polygonsIntersect` (CGAL breadth).
 - **General `polygonsIntersect` and `polygonDistanceApprox` stay `O(n * m)`** by decision on 2026-10-10. Rows 12 and 45/46 own the optimal sweeps; see the handoff in [17-polygon_distance.md](17-polygon_distance.md).
 
@@ -115,20 +114,20 @@ Five `@researcher` passes, one per row; sources in [00-sources.md](00-sources.md
   - `segmentUnionLength`, `orthogonalIntersectionCount`, `latticeUnderLine`, `latticeInHalfplanePolygon`, `convexIntersection`, `cut` and `maxPointsInDisk` stay.
 - **Not adopted for `13-segment_union.hpp`:**
   - the incremental anchored rectangle union (an online staircase map that maspypy and ei1333 file under data structures);
-  - anchored and general box union volume in 3D (one problem, CF 815D; Klee's measure is Esoteric);
-  - the all-depth rectangle distribution (filed in round 3 as `58-rectangle_depth.hpp`, P235);
+  - anchored and general box union volume in 3D (adopted on 2026-11-08 into Esoteric row 58 as `boxUnionVolume` and `boxUnionVolumeSweep`);
+  - the all-depth rectangle distribution (filed in round 3 as `58-rectangle_depth.hpp`, P235; its quadratic plain-array sweep was adopted on 2026-11-08 into row 58 as `rectangleDepthDistributionQuadratic`);
   - orthogonal any-intersection with collinear overlaps (CSES 1742 only).
 - **Not adopted for `14-minimumenclosingcircle.hpp`:**
   - the enclosing circle of circles (filed in round 3 as `57-enclosing_shapes.hpp`, P234);
   - incremental insertion (`O(n)` worst case per point);
   - Megiddo's deterministic linear algorithm (filed in round 3, P234);
   - the smallest circle covering `k` points (filed in round 3 as `56-circle_placement.hpp`, P233);
-  - the rectangular p-centre (row 21);
+  - the rectangular p-centre (adopted on 2026-11-08 into row 21 as `rectangularPCenter`);
   - extreme-point seeding (Smolik–Skala; measured in round 3).
 - **Not adopted for `15-convex_polygon_query.hpp`** (the linear largest triangle and quadrilateral were adopted in round 3, and the minimum enclosing triangle filed as P234):
-  - circumscribing k-gons, largest inscribed homothets and axis rectangles (no contest catalog);
+  - circumscribing k-gons (the minimum-area k-gon on polygon edges was adopted on 2026-11-08 into row 59 as `minAreaEnclosingKgon`), largest inscribed homothets and axis rectangles (no contest catalog);
   - common tangents of two convex polygons (row 53 bridges).
-- **Not adopted for `19-lattice_geometry.hpp`:** the generic convex-region lattice count, the lattice hull under a line and polynomial lattice sums. Mathematics row 55 owns the engines (`convexLatticeHull`, `convexFloorSum`, `floorSumPolynomial`).
+- **Not adopted for `19-lattice_geometry.hpp`:** the generic convex-region lattice count and the lattice hull under a line. Mathematics row 55 owns the engines (`convexLatticeHull`, `convexFloorSum`, `floorSumPolynomial`). Polynomial lattice sums over halfplane polygons were adopted on 2026-11-08 into row 19 (`latticePolynomialSumInHalfplanePolygon`).
 - **Not adopted for `54-fixed_radius_queries.hpp`:**
   - approximation schemes (papers only); the weighted, coloured and two-disk variants, Chazelle–Lee's `O(n^2)` sweep and the smallest disk covering `k` points were filed in round 3 as `56-circle_placement.hpp` (P233);
   - unit-disk components (row 22 `euclideanBottleneck`) and hop distances (Esoteric, not filed).
@@ -150,7 +149,7 @@ A user-requested audit compared every operation of rows 13, 14, 15, 19 and 54 (a
 
 - **Filed as Esoteric packages** (limits that are impractical now, and scope items the user asked to track):
   - `56-circle_placement.hpp` (P233): Chazelle–Lee O(n^2), output-sensitive O(n K), batched unit-disk counting, the smallest disk covering k points, weighted, coloured and two-disk coverage;
-  - `57-enclosing_shapes.hpp` (P234): Megiddo's deterministic linear enclosing circle, the enclosing circle of circles, the minimum enclosing triangle and parallelogram;
+  - `57-enclosing_shapes.hpp` (P234): Megiddo's deterministic linear enclosing circle, the enclosing circle of circles, the minimum enclosing triangle (row 07 owns the minimum-area parallelogram);
   - `58-rectangle_depth.hpp` (P235): the all-depth distribution (Barbay et al.) and Güting's linear-memory contour sweep;
   - `59-kgon_klink.hpp` (P236): large-k inscribed polygons through k-link paths;
   - `60-wordram_geometry.hpp` (P237): word-RAM bounds (Chan–Pătraşcu), filed by user decision although expected to be slower at contest sizes.
@@ -160,3 +159,11 @@ A user-requested audit compared every operation of rows 13, 14, 15, 19 and 54 (a
 
 - Beside the `05-testing.md` oracles, check topology against independent constructions and area/volume conservation.
 - Always include repeated/collinear/coplanar points, vertical/coincident segments, cocircular/cospherical sets, exact boundary contacts, holes, reversed orientation, huge coordinates and zero-area/volume results.
+
+## Omission sweep 2026-11-08
+
+Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledgers/omissions.md`, Recorded decisions): exact duplicates, second implementations and items another row owns. Handoff notes name where a candidate is implemented instead.
+
+- `minimumEnclosingParallelogram` (CGAL): row 07 `minimumAreaParallelogramApprox` already computes it by Rote's linear algorithm with exact selection, so row 57 dropped its planned copy too.
+- `yaoGraph`, `thetaGraph` in row 22 (CGAL): row 63 `geometric_spanners` owns them.
+- `gaussCircleFast (convex hull)` in row 19: found in the library, no catalog source; Mathematics row 55 owns it; row 19 keeps `latticeInDiskFast`.
