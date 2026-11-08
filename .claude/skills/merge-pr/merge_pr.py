@@ -293,6 +293,8 @@ def suites(wt, st):
 
 def gates(n):
     st, wt = checked_out(n)
+    if git('symbolic-ref', '--short', 'HEAD') != 'master' or git('status', '--porcelain'):
+        raise SystemExit('the gates compare with master: run from a clean main checkout with master checked out')
     if git('status', '--porcelain', cwd=wt):
         raise SystemExit(f'{wt} has uncommitted changes')
     if git('merge-base', '--is-ancestor', 'master', 'HEAD', cwd=wt, check=False).returncode:

@@ -1974,6 +1974,16 @@ class Sandbox(Base):
             code = MP.sandboxed(cmd, self.wt, mb, log, **kw)
         return code, log.read_text()
 
+    def test_sandbox_binds_only_mewt_directory(self):
+        mewt = shutil.which('mewt')
+        real = Path(mewt).resolve().parent if mewt else None
+        if real is None or not str(real).startswith(str(Path.home()) + '/'):
+            self.skipTest('no mewt linked under the home directory')
+        cmd = MP.sandbox(['true'], self.wt, self.tmp)
+        binds = [cmd[i + 1] for i, x in enumerate(cmd) if x == '--ro-bind']
+        self.assertIn(str(real), binds, self.info())
+        self.assertNotIn(str(real.parent), binds, self.info())
+
     def test_sandbox_probe(self):
         home = str(Path.home())
         keep = [d for d in os.environ.get('PATH', '').split(':') if d.startswith(home + '/') and Path(d).is_dir()]
@@ -2341,6 +2351,35 @@ class Gates(Base):
         info = self.info(stdout=r.stdout, stderr=r.stderr)
         self.assertEqual(('FAIL', 'plan doctor'), result[2], info)
         self.assertEqual(r.returncode, 1, info)
+
+    def doctor_answers(self, tail):
+        """A pull request whose plan.py prints master's real doctor lines, then runs tail: the known lines must not excuse it."""
+        self.doctor_problem(self.main)
+        git(self.wt, 'rebase', 'master')
+        lines = REAL_RUN([sys.executable, str(self.main / PLAN_REL / 'plan.py'), 'doctor'], cwd=self.main, env=ISOLATED, capture_output=True, text=True).stdout
+        (self.wt / PLAN_REL / 'plan.py').write_text(f'import sys\nprint({lines!r})\n{tail}\n')
+        commit(self.wt, 'pr plan.py')
+        self.state()
+        r, result, _ = self.gates()
+        info = self.info(stdout=r.stdout, stderr=r.stderr)
+        self.assertEqual(('FAIL', 'plan doctor'), result[2], info)
+        self.assertEqual(r.returncode, 1, info)
+
+    def test_gates_doctor_known_lines_then_crash(self):
+        self.doctor_answers('raise RuntimeError("broken")')
+
+    def test_gates_doctor_known_lines_other_exit(self):
+        self.doctor_answers('sys.exit(2)')
+
+    def test_gates_need_clean_master(self):
+        for setup in (lambda: write(self.main, 'dirty.txt', 'x'), lambda: git(self.main, 'checkout', '-q', '-b', 'side')):
+            setup()
+            self.state()
+            r = self.mp('gates', 7, full_path=True, cfg=())
+            info = self.info(stdout=r.stdout, stderr=r.stderr)
+            self.assertEqual(r.returncode, 1, info)
+            self.assertIn('clean main checkout', r.stderr + r.stdout, info)
+            (self.main / 'dirty.txt').unlink(missing_ok=True)
 
     def test_gates_quick_preflight(self):
         self.control({'fail': ['d:quick']})
