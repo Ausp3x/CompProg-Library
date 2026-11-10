@@ -57,7 +57,7 @@ Re-audit research outcomes (sources in [00-sources.md](00-sources.md)); operatio
 - `03`: appending to a built hash breaks O(1) reversed prefixes and is owned by `23` (DequeHash, PointUpdateHash); `StringHashField<F>` adds a policy layer for modint types without a new guarantee; several Mersenne bases are unnecessary at `(L-1)/2^61` per comparison; `std::hash` for digests is left to callers (ordering covers `set`/`map`); lexicographic substring comparison is `22` `compareSubstrings` and needs the text; Rabin–Karp windows are `16`.
 - `04`: kth key and rank by multiplicity have no catalog source and belong to the Data Structures binary trie and `24` ranking; per-key id lists belong to `06` pattern ids; parent links are unnecessary for the cursor (`fromTrie` in `06` can rebuild them by BFS).
 - `05`: the Library Checker `2n - 1` combined length array is left out as a radius conversion; `enumeratePalindromes` is a loop over `oddInterval`/`evenInterval`; an odd-only switch saves one linear pass only.
-- `09`: suisen `RunLengthEncoder` push/pop has one unverified source and is a two-line idiom on `vector<pair<T, lng>>`.
+- `09`: suisen `RunLengthEncoder` push/pop has one unverified source and is a two-line idiom on `vector<pair<T, lng>>`. (returned by P275 2026-11-10 into row 09)
 
 Future-owner handoff: `31` owns minimum-alphabet reconstruction, `25` compressed dictionaries.
 
@@ -127,3 +127,18 @@ Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledger
 
 - `GeneralizedSuffixAutomaton`: step, suffixLinkTree, distinctSubstrings (MAS, OI): row 10 `BasicSuffixAutomaton` owns them and row 28 generalizes it.
 - `palindromicLength` (per prefix) (OI): verified row 13 owns it; P209 drops the row 39 copy.
+
+## P275 re-review 2026-11-10
+
+P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines/03-cpp.md` (One API per operation, 2026-11-08), its legacy guard and the user decisions of 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`). The items below returned to rows and supersede the earlier bullets that name them; every other omission recorded here stands ([evidence](../../00-Guidelines/23-Sweep%20Ledgers/Docs/00-duplicate-rereview.md)).
+
+- `08-palindrome_queries.hpp`: shortestPalindrome (prepend or append).
+- `09-runlength.hpp`: RunLengthEncoder: pushBack, popBack, length.
+- `11-suffixtree.hpp`: maximalPairs (O(n + z)).
+- `20-subsequence_automaton.hpp`: countDistinctCommonSubsequences (texts).
+- `22-lexicographic_queries.hpp`: SubstringOrder::distinctSubstringRank (pattern), SubstringOrder::distinctSubstringCountLeq (pattern), SubstringOrder::minGeq (pattern), SubstringOrder::maxLess (pattern).
+- `39-palindrome_advanced.hpp`: longestDoublePalindrome.
+- `50-combinatorial_words.hpp`: substringAbundantString.
+- new Esoteric row `55-suffix_problems.hpp`: nonDominatedSuffixes; suffixLcpChanges; BasicSubstringStructure: build, position, rectangle, blockCount, shape; grayStringOccurrenceCount (MAS, CPA).
+- new Esoteric row `56-alignment_advanced.hpp`: concaveGapAlignment; levenshteinAutomaton (w, k) (WIKI).
+- maspypy `borders` and `periods` map to row 27, not row 01; `suffix_lcp_change` lists how the LCP with each rank changes, not a compact form of rank-0 LCPs; LCIS and the lexicographically smallest length-k subsequence go to Miscellaneous row 08, move-to-front to Miscellaneous row 28.

@@ -379,3 +379,26 @@ The 2026-09-27 completeness audit ([2026-09-27-inventory-audit.md](../../00-Guid
 - fenwick-tree-on-wavelet-matrix as a separate header (NYA): folded into row 17 as WaveletMatrixMonoid.
 - union-find lazy/dual (MAS, SUI): semantics not identifiable from the catalog name; revisit when a motivating problem appears.
 - hash-map-variable-length (NYA): row 61 covers resizing; the fixed-capacity variant is HashMapFixed.
+
+## Fetched 2026-11-10 (P275 re-review)
+
+Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md` (P275 re-review 2026-11-10).
+
+- <https://raw.githubusercontent.com/maspypy/library/main/ds/sparse_table/sparse_table.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/ds/segtree/range_assignment_segtree.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/alg/monoid/add_divide.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/ds/segtree/rollback_lazy_segtree.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/ds/wavelet_matrix/wavelet_matrix.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/ds/fastset.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/linalg/xor/vector_space.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/convex/extended_lichao_1.hpp>
+- <https://raw.githubusercontent.com/suisen-cp/cp-library-cpp/main/library/union_find/union_find_lazy.hpp>
+- <https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/unionfind/grid_unionfind.hpp>
+- <https://judge.yosupo.jp/problem/majority_voting>
+- <https://miti-7.hatenablog.com/entry/2018/04/28/152259>
+- <https://oi-wiki.org/ds/fenwick/>
+- <https://oi-wiki.org/basic/prefix-sum/>
+- <https://cp-algorithms.com/data_structures/treap.html>
+- <https://grantjenks.com/docs/sortedcontainers/sortedlist.html>
+- <https://yukicoder.me/problems/no/2977>
+- <https://uoj.ac/problem/164>

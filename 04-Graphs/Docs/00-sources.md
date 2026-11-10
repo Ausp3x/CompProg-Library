@@ -481,13 +481,13 @@ Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys);
 
 - OI Wiki random walks on trees/graphs: expectation computations belong to Mathematics probability.
 - maspypy annulus/tree walk generating functions, characteristic polynomial of tree adjacency, count labeled graph classes, count unlabeled trees: Mathematics generating-function and polynomial work.
-- maspypy find_path_through_specified, maximum_matching_between_vertex_edge, all_cycle_common_vertices, restore_euler_tour: problem-specific constructions without a reusable family. maspypy decompose_complete was adopted on 2026-11-08 into row 42 as `completeGraphDecomposition`, and bracket_graph into Miscellaneous row 53 as `bracketForest`.
-- maspypy flow/longest_shortest_path, min_cost_matching_on_line, unbalanced_transportation: specialized LP/MCF reductions without contest-general contracts.
+- maspypy find_path_through_specified, maximum_matching_between_vertex_edge, all_cycle_common_vertices, restore_euler_tour: problem-specific constructions without a reusable family. maspypy decompose_complete was adopted on 2026-11-08 into row 42 as `completeGraphDecomposition`, and bracket_graph into Miscellaneous row 53 as `bracketForest`. (returned by P275 2026-11-10 into row 95)
+- maspypy flow/longest_shortest_path, min_cost_matching_on_line, unbalanced_transportation: specialized LP/MCF reductions without contest-general contracts. (returned by P275 2026-11-10 into row 96)
 - maspypy mo_on_tree: Data Structures 23 (`TreeMo`). (graph/ds/tree_wavelet_matrix was adopted on 2026-11-08 into row 88 as `TreeWaveletMatrix`.)
-- Nyaan inclusion-tree: nested-interval tree construction, Miscellaneous interval ownership.
-- hitonanode basepolyhedron and convex_sum: submodular-function machinery beyond graph contracts.
-- NetworkX centrality, communities, link analysis, similarity, summarization, assortativity, rich club, small-world, s-metric, structural holes, swap, planar drawing, D-separation, moral graphs, node classification, asteroidal (AT-free) and perfect-graph tests: not contest algorithms or lack a reusable exact engine.
-- NetworkX Voronoi cells: already expressed by multi-source Dijkstra parents in row 05.
+- Nyaan inclusion-tree: nested-interval tree construction, Miscellaneous interval ownership. (returned by P275 2026-11-10 into Miscellaneous row 09 `inclusionTree`)
+- hitonanode basepolyhedron and convex_sum: submodular-function machinery beyond graph contracts. (an Open question of P275: `00-Guidelines/23-Sweep Ledgers/omissions.md`)
+- NetworkX centrality, communities, link analysis, similarity, summarization, assortativity, rich club, small-world, s-metric, structural holes, swap, planar drawing, D-separation, moral graphs, node classification, asteroidal (AT-free) and perfect-graph tests: not contest algorithms or lack a reusable exact engine. (returned by P275 2026-11-10 into row 97 (user decision 2026-11-10))
+- NetworkX Voronoi cells: already expressed by multi-source Dijkstra parents in row 05. (returned by P275 2026-11-10 into row 05 `voronoiCells`)
 - OGDF GraphReduction and planar SPQR variants: embedding-aware SPQR is beyond the row 61 contract.
 - Koosaga LP simplex/bigint: Mathematics 28.
 
@@ -502,3 +502,26 @@ Read through a summarizing fetch, so code quotes are not byte-checked; catalog i
 | suisen tests | https://suisen-cp.github.io/cp-library-cpp/test/src/tree/rerooting/edpc_v.test.cpp; https://suisen-cp.github.io/cp-library-cpp/test/src/tree/rerooting/abc160_f.test.cpp; https://suisen-cp.github.io/cp-library-cpp/test/src/tree/rerooting/abc222_f.test.cpp | 2026-11-08 | Instances in tests, not shipped |
 | hitonanode, OI Wiki | https://hitonanode.github.io/cplib-cpp/tree/rerooting.hpp; https://oi-wiki.org/dp/tree/ | 2026-11-08 | Worked examples, not shipped |
 | Library Checker | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/tree/tree_path_composite_sum/task.md | 2026-11-08 | Row 84's `pathCompositeSum` |
+
+## Fetched 2026-11-10 (P275 re-review)
+
+Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md` (P275 re-review 2026-11-10).
+
+- <https://networkx.org/documentation/stable/reference/algorithms/voronoi.html>
+- <https://networkx.org/documentation/stable/reference/algorithms/wiener.html>
+- <https://networkx.org/documentation/stable/reference/algorithms/tree.html>
+- <https://networkx.org/documentation/stable/reference/algorithms/dag.html>
+- <https://networkx.org/documentation/stable/reference/algorithms/distance_measures.html>
+- <https://networkx.org/documentation/stable/reference/algorithms/edge_connectivity.html>
+- <https://raw.githubusercontent.com/maspypy/library/main/graph/base.hpp>
+- <https://oi-wiki.org/graph/topo/>
+- <https://oi-wiki.org/graph/block-forest/>
+- <https://oi-wiki.org/graph/tree-divide/>
+- <https://cp-algorithms.com/graph/depth-first-search.html>
+- <https://cp-algorithms.com/graph/breadth-first-search.html>
+- <https://cp-algorithms.com/graph/fixed_length_paths.html>
+- <https://en.wikipedia.org/wiki/Linear_bottleneck_assignment_problem>
+- <https://en.wikipedia.org/wiki/Dominator_(graph_theory)>
+- <https://en.wikipedia.org/wiki/Arboricity>
+- <https://www.boost.org/doc/libs/1_86_0/libs/graph/doc/table_of_contents.html>
+- <https://arxiv.org/abs/1310.5037>

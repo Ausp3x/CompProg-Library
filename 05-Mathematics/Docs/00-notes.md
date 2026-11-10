@@ -79,8 +79,8 @@ Explanations moved out of the operation cells of rows not yet verified, one bull
 
 Left out, one line each:
 
-- `floorDivStrict`/`ceilDivStrict` (Nyaan `int_div`): the largest integer strictly below `a / b` is `ceilDiv(a, b) - 1` and the smallest strictly above is `floorDiv(a, b) + 1`; one-liners at the call site.
-- `divMod` (maspypy): `floorDiv` plus `a - b * q` at the call site; the compiler merges the two divisions.
+- `floorDivStrict`/`ceilDivStrict` (Nyaan `int_div`): the largest integer strictly below `a / b` is `ceilDiv(a, b) - 1` and the smallest strictly above is `floorDiv(a, b) + 1`; one-liners at the call site. (returned by P275 2026-11-10 into row 01)
+- `divMod` (maspypy): `floorDiv` plus `a - b * q` at the call site; the compiler merges the two divisions. (returned by P275 2026-11-10 into row 01 `divMod`)
 - `gcd128` (maspypy): GNU `std::gcd` accepts `__int128` directly; no wrapper needed.
 - Binary gcd (hitonanode, Nyaan): the installed libstdc++ `std::gcd` is already Stein's algorithm, and `gcd64` uses it.
 - `binSearchRealRelative` (maspypy): logarithmic-scale bisection is `binSearch` over the order-preserving bit pattern of nonnegative doubles (64 steps); not a separate API.
@@ -90,7 +90,7 @@ Left out, one line each:
 - Factorization above the sieve bound (hitonanode `Sieve::factorize`): owned by `07-primality_factorization.hpp` `factorize`.
 - `powTable`, the completely multiplicative i^K table (hitonanode `enumerate_kth_pows`): handed off to `08-multiplicative_functions.hpp` `multiplicativeTable`.
 - `lcmOfList` (maspypy `all_lcm`): caller-side maximum of `getPrimeFac` exponents.
-- `combiNegative` and `combiInverse` (maspypy `C_negative`, `C_inv`): `(-1)^k * combiWR(n, k)` and the product `inverseFactorial(a) * factorial(b) * factorial(a - b)` from the existing tables.
+- `combiNegative` and `combiInverse` (maspypy `C_negative`, `C_inv`): `(-1)^k * combiWR(n, k)` and the product `inverseFactorial(a) * factorial(b) * factorial(a - b)` from the existing tables. (returned by P275 2026-11-10 into row 05)
 
 ## P052 research decisions (2026-10-09)
 
@@ -103,7 +103,7 @@ Left out, one line each:
 - `countByFactorType` (maspypy): needs prime counting; belongs with the Lucy/Meissel row.
 - `DivisorArray` with a user semigroup (product-form Möbius): `T` with `+`/`-` covers the transforms; product form is `exp`/`log` of a modint table at the call site.
 - `divisorProduct` (CSES): `n^(d(n)/2)` from `divisorCount` and `modPow` with the square-root case; problem-specific.
-- `coprimePairCount` (OI Wiki Möbius): a floor-sum over `prefixMobiusTable`; belongs to the Möbius-sum row `31`.
+- `coprimePairCount` (OI Wiki Möbius): a floor-sum over `prefixMobiusTable`; belongs to the Möbius-sum row `31`. (returned by P275 2026-11-10 into row 31)
 - `inverseO1` (Nyaan, maspypy): adopted on 2026-11-08 into row 09 (user decision): O(1) online queries on arbitrary values, against O(log p) for `inverseXgcd` and `inverseFermat`.
 - `inverseEuler`: `a^(phi(m) - 1)` needs a factorization and is dominated by `inverseXgcd`.
 - `crtFixedPrimes` (maspypy `crt3`): owned by the arbitrary-modulus convolution in Core and row `13`.
@@ -115,12 +115,12 @@ Left out, one line each:
 Left out, one line each:
 
 - `convolutionSquare` (Nyaan, maspypy): `convolutionNtt(a, a)` detects the aliasing and does one forward transform.
-- `convolutionLeq` (maspypy, sum over i <= j): problem-specific divide and conquer on top of `convolution`.
+- `convolutionLeq` (maspypy, sum over i <= j): problem-specific divide and conquer on top of `convolution`. (returned by P275 2026-11-10 into row 65)
 - Transposed `nttDoubling`, 64-bit-prime NTT products, `convolution_all`: owned by Core Poly, row 65 and row 14 `productTree`.
 - Split-FFT arbitrary modulus (KACTL `convMod`) and the real two-for-one trick: implementation alternatives of `convolutionArbitraryMod` and `convolutionFft`; the latter is used inside `convolutionFft`.
 - Many-operand pointwise product (suisen) and 2-D stencil translation (hitonanode): implementation detail and problem-specific.
 - Online subset zeta / online OR convolution (maspypy): an online set-function family; handed to row 66 (set power series) or row 52 (relaxed).
-- `transformPolynomialEval` (suisen): transform, pointwise `f`, inverse at the call site.
+- `transformPolynomialEval` (suisen): transform, pointwise `f`, inverse at the call site. (returned by P275 2026-11-10 into row 24)
 - Sparse divisor Mobius on a divisor-closed key set (hitonanode): row 08 `DivisorArray` covers the divisors of one n; a general sparse key set is niche.
 - Zeta with a custom semigroup (max/min over subsets): a two-line loop at the call site or `kroneckerPowerTransform` over a semiring type with `+` and `*` redefined.
 - XNOR convolution: `xorConvolution` with complemented indices; `xor_submask_lower_bound` is a bit trick for Miscellaneous.
@@ -159,11 +159,11 @@ Left out, one line each:
 Adopted: `BinaryQuadraticForm::reducedForms` (class-group enumeration; `classNumber` is its size). `fourSquares` reduces to `threeSquares` (maspypy), replacing the planned randomized Rabin–Shallit four-square search: same O(log(n)) expected primality tests, deterministic. Left out, one line each:
 
 - `unitRootMod` (an element of exact order k modulo a composite, OI Wiki): the unit group is not cyclic; row 54 `compositeGroupDecompose` owns generators and orders.
-- `kthPowerResidueCount` (OI Wiki): phi(p^e) / gcd(k, phi(p^e)) per odd prime power, a call-site formula; residuosity of one value is `rootCount > 0`.
+- `kthPowerResidueCount` (OI Wiki): phi(p^e) / gcd(k, phi(p^e)) per odd prime power, a call-site formula; residuosity of one value is `rootCount > 0`. (returned by P275 2026-11-10 into row 33)
 - All k-th roots modulo a composite (OI Wiki `kth_roots_mod_m`): a coset of the k-torsion, not a union of residue classes; `kthRootModComposite` and `rootCount`, and for a cyclic unit group the coset `x0 * (g^(phi / d))^i` with row 11 `primitiveRoot`.
 - Factorization-taking overloads (FLINT `n_sqrtmod_primepow`, `n_sqrtmodn`): the prime-power operations already take (p, e).
-- `quadraticDiophantine` (SymPy `diop_quadratic`): completing the square reduces it to `pellGeneralized` plus congruence filtering of the classes; a full conic solver is research-level.
-- `legendreTernary` (SymPy `diop_ternary_quadratic`): needs square roots modulo |abc| and lattice reduction (row 35); no contest catalog entry.
+- `quadraticDiophantine` (SymPy `diop_quadratic`): completing the square reduces it to `pellGeneralized` plus congruence filtering of the classes; a full conic solver is research-level. (returned by P275 2026-11-10 into row 73)
+- `legendreTernary` (SymPy `diop_ternary_quadratic`): needs square roots modulo |abc| and lattice reduction (row 35); no contest catalog entry. (returned by P275 2026-11-10 into row 73)
 - `pellFour` (x^2 - D y^2 = +-4, OI Wiki): `pellGeneralized(D, +-4)`.
 - Stern–Brocot Pell search (maspypy `pell_equation`): the same continued-fraction path found by comparisons.
 - Brute-force and PQa generalized Pell (SymPy `diop_bf_DN`, OI Wiki): Lagrange–Matthews–Mollin is polynomial in the period and the root count, with no Nagell-bound scan.
@@ -176,7 +176,7 @@ Adopted: `BinaryQuadraticForm::reducedForms` (class-group enumeration; `classNum
 
 Adopted: `maxOfModOfLinear` (maspypy; a ruling 3 mirror), `forEachJointQuotientBlock` (OI Wiki multi-dimensional blocks, suisen), `josephusTime` (Concrete Mathematics 3.3 renumbering), `continuedFractionQuadratic` (cp-algorithms) and `fareyKth` (maspypy, OI Wiki). Removed by user decision: `floorSumUnsigned` (`ulng(floorSum(n, m, a, b))`), `josephusZeroBased`/`josephusOneBased` (index base) and `josephusLarge` (2026-10-18: `josephus` itself became the run-skipping survivor, no slower than the plain loop it replaced, [19-josephus.md](19-josephus.md)). Left out, one line each:
 
-- `forEachCeilQuotientBlock` (maspypy `ceil_range`): ceil(N / x) = floor((N - 1) / x) + 1 for N >= 1, so its blocks are those of `forEachQuotientBlock(N - 1)` plus x >= N with quotient 1.
+- `forEachCeilQuotientBlock` (maspypy `ceil_range`): ceil(N / x) = floor((N - 1) / x) + 1 for N >= 1, so its blocks are those of `forEachQuotientBlock(N - 1)` plus x >= N with quotient 1. (returned by P275 2026-11-10 into row 18)
 - `quotientCount` (suisen): `enumerateQuotients(n).size()`, or 2 isqrt(n) - [isqrt(n)^2 + isqrt(n) > n].
 - `minOfLinearSegments` (maspypy): the prefix-minimum structure behind its `min_of_linear`; `minOfModOfLinear` exposes the value and least argument.
 - Minimum by binary search with floor sums (suisen, O(log(m)^2)): dominated by `minOfModOfLinear`.
@@ -184,7 +184,7 @@ Adopted: `maxOfModOfLinear` (maspypy; a ruling 3 mirror), `forEachJointQuotientB
 - Josephus with k = 2 by halving (CSES 2164): `josephusKth` is already O(log(n)) at k = 2; a start position s adds s mod n.
 - Josephus with a variable step, k = 3 closed forms, the Halbeisen–Hungerbühler matrix method: no contest catalog, high-precision constants, or an unproven running time.
 - `convergentAt` (cp-algorithms, k-th convergent of a periodic expansion): the period's 2 x 2 matrices raised with Core Matrix; row 34 `pellSolutions` covers Pell.
-- `compareContinuedFractions` (cp-algorithms): compare the convergents' rationals at the call site.
+- `compareContinuedFractions` (cp-algorithms): compare the convergents' rationals at the call site. (returned by P275 2026-11-10 into row 20)
 - Linear fractional transformations and Gosper arithmetic (cp-algorithms): no contest library implements them.
 - `approximateReal` (KACTL `approximate`): a decimal input is the exact rational x / 10^k; take the nearer side of `bestRationalApproximation`.
 - Stern–Brocot depth, distance, isAncestor, moveTo, order comparisons and auxiliary trees (suisen, maspypy, Nyaan): depth is the sum of the encoded counts; the rest combine `sternBrocotRange`, `sternBrocotLca` and `sternBrocotAncestor`.
@@ -227,9 +227,9 @@ Scope accepted as a user decision 2026-11-03. Adopted from the sweep: `ceilKthRo
 - Adaptive Gauss–Kronrod or Gauss–Lobatto (Numerical Recipes 4.7): `simpsonAdaptive` and panelled `gaussLegendreIntegrate` cover adaptive and high-order quadrature.
 - `trapezoidIntegrate` and the open midpoint rule (Numerical Recipes 4.2, 4.4): the base level of `rombergIntegrate`; endpoint singularities go to `doubleExponentialIntegrate`.
 - Infinite-range exp-sinh and sinh-sinh rules: substitute `x = t / (1 - t^2)` (or `x = a + t / (1 - t)`) into `doubleExponentialIntegrate`.
-- `aitkenDelta2`, `wynnEpsilon`, Euler's series transform (Numerical Recipes 5.3): sequence acceleration with no contest use beside `richardsonExtrapolate`.
-- `hornerDerivatives(k)` (Numerical Recipes `ddpoly`): higher derivatives come from nested `DualNumber<DualNumber<double>>` or row 14 `polyDerivative`.
-- Elementary functions of `DualNumber` (sin, exp, sqrt): the chain rule is one line at the call site, `{f(x), f'(x) * dx}`.
+- `aitkenDelta2`, `wynnEpsilon`, Euler's series transform (Numerical Recipes 5.3): sequence acceleration with no contest use beside `richardsonExtrapolate`. (returned by P275 2026-11-10 into row 74)
+- `hornerDerivatives(k)` (Numerical Recipes `ddpoly`): higher derivatives come from nested `DualNumber<DualNumber<double>>` or row 14 `polyDerivative`. (returned by P275 2026-11-10 into row 17 `hornerDerivativeTable`)
+- Elementary functions of `DualNumber` (sin, exp, sqrt): the chain rule is one line at the call site, `{f(x), f'(x) * dx}`. (returned by P275 2026-11-10 into row 17)
 - `kahanSum` stays beside the never-worse `neumaierSum`: a different recurrence (row operation, kept).
 
 ## Omission sweep 2026-11-08
@@ -239,3 +239,40 @@ Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledger
 - `newtonSystem` in row 17 (NR): moved to row 69 `continuous_optimization`, which lists it; row 17 stays scalar (user decision 2026-11-03).
 - `BinaryQuadraticForm: compose (NUCOMP), square (NUDUPL)` (FLINT): a second implementation of row 34 `compose` with the same results, which already covers the whole `lng` domain through `__int128`.
 - `coefOfRationalFps2d` in row 50 (MAS): the same operation as row 40 `bivariateRationalCoefficient`, which owns it.
+
+## P275 re-review 2026-11-10
+
+P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines/03-cpp.md` (One API per operation, 2026-11-08), its legacy guard and the user decisions of 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`). The items below returned to rows and supersede the earlier bullets that name them; every other omission recorded here stands ([evidence](../../00-Guidelines/23-Sweep%20Ledgers/Docs/00-duplicate-rereview.md)).
+
+- `01-mod_arithmetic.hpp`: floorDivStrict, ceilDivStrict; divMod.
+- `02-search_algorithms.hpp`: binSearchRealGeometric (geometric-mean bisection).
+- `03-equation_solvers.hpp`: solveDioMinLinear (minimum x + y).
+- `04-sieve_algorithms.hpp`: SieveOfErath::primeCount, LinearSieve::primeCount.
+- `05-combinatorics.hpp`: PrimeCombinatorics::combiNegative, PrimeCombinatorics::combiInverse; primorial (caller-passed big integer).
+- `07-primality_factorization.hpp`: lcmMod (values, m); divisorProductMod; coprimeFactorization (basis with exponents).
+- `10-crt.hpp`: garnerExact (caller-passed big integer).
+- `11-discrete_log_root.hpp`: kthRootModPrimeAll.
+- `16-linear_algebra.hpp`: solveLinearDetermined (determined variables).
+- `17-numerical_methods.hpp`: doubleExponentialIntegrateInfinite (exp-sinh, sinh-sinh); hornerDerivativeTable; DualNumber::sqrt, DualNumber::exp, DualNumber::log, DualNumber::sin, DualNumber::cos.
+- `18-floorsum.hpp`: forEachCeilQuotientBlock; enumerateQuotientsCount; floorSumInRange, minOfModOfLinearInRange; minOfModOfLinearSegments.
+- `20-continued_fraction.hpp`: PeriodicContinuedFraction::convergent (k); compareContinuedFractions; bestRationalApproximationReal; sternBrocotDepth, sternBrocotDistance, sternBrocotIsAncestor, sternBrocotMove, sternBrocotComparePreOrder, sternBrocotComparePostOrder; fareySequenceCount; calkinWilfParent, calkinWilfChildren, sternDiatomic.
+- `24-transform_algorithms.hpp`: transformPolynomialEval.
+- `30-modular_power_towers.hpp`: infiniteTetrationMod.
+- `67-lattice_paths.hpp`: bizleyPrimitivePaths.
+- `31-summatory_functions.hpp`: coprimePairCount (Möbius floor sum).
+- `33-modular_square_roots.hpp`: kthPowerResidueCount; kthRootModCompositeAll.
+- `34-quadratic_congruence.hpp`: eisensteinNormCount; sumOfSquaresAll (n, k).
+- `36-integer_factor_advanced.hpp`: nextPrimeBig, prevPrimeBig (big integer).
+- `39-special_functions.hpp`: harmonicNumberApprox.
+- `40-generating_functions.hpp`: fpsComposeExpMinusOne, fpsComposeOneMinusExp, fpsComposeLogOneMinusX; simplePermutationTable.
+- `48-combinatorial_linear_algebra.hpp`: matrixRankAllColumnSubsets.
+- `52-relaxed_convolution.hpp`: orConvolutionOnline (online subset zeta).
+- `62-ball_arithmetic.hpp`: partitionCountExact (Hardy–Ramanujan–Rademacher).
+- `63-multiprecision_float.hpp`: XDouble: +, -, *, /, <, ==, sqrt, log, exp, power, mulAdd.
+- `65-convolution_specialized.hpp`: convolutionLeq; divisorMobiusSparse; convolutiveTranslation2d.
+- new Esoteric row `72-continued_fraction_arithmetic.hpp`: continuedFractionLinearFractional; continuedFractionBihomographic (Gosper) (OI).
+- new Esoteric row `73-quadratic_diophantine.hpp`: quadraticDiophantine (binary quadratic); legendreTernary (SYMPY).
+- new Esoteric row `74-sequence_acceleration.hpp`: aitkenDelta2; wynnEpsilon; eulerSeriesTransform (NR).
+- new Esoteric row `75-number_theory_problems.hpp`: CoprimePairFinder: enumerate, remove; placingBishopsCount (MAS, CPA, CF).
+- maspypy `all_lcm` and `find_coprime_pair` were not folded into rows 08 and 34: they return as row 07 `lcmMod` and row 75 `CoprimePairFinder`; NTL `xdouble` is an extended-exponent double, not `DoubleDouble` (row 63 `XDouble`); maspypy's relative real search bisects by the geometric mean (`binSearchRealGeometric`); `simplePermutations` is its own online-convolution algorithm.
+- Not returned after the P275 review: `findPrimeFactor` (`pollardRhoBrent` with `isPrime` answers it, a form between two operations), `xnorConvolution` (the index complement of `xorConvolution`); `divMod` and `orConvolutionOnline` replace the proposed `divModFloor` and `onlineOrConvolution`.

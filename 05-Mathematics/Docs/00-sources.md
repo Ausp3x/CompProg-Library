@@ -368,3 +368,26 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://nyaannyaan.github.io/library/set-function/exp-of-set-power-series.hpp | 66: `spsExpDivideConquer` |
 | https://maspypy.github.io/library/setfunc/sps_exp.hpp | 66: `spsExpDivideConquer` |
 | https://en.wikipedia.org/wiki/Counting_points_on_elliptic_curves | 71: `EllipticCurve`, `isOnCurve` |
+
+## Fetched 2026-11-10 (P275 re-review)
+
+Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md` (P275 re-review 2026-11-10).
+
+- <https://raw.githubusercontent.com/maspypy/library/main/nt/all_lcm.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/nt/find_coprime_pair.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/mod/min_of_linear_segments.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/poly/composition_f_ex_minus_1.hpp>
+- <https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/number/zeta_moebius_transform.hpp>
+- <https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/convolution/convolutive_translation_2d.hpp>
+- <https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/math/poly/fwt.md>
+- <https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/math/number-theory/continued-fraction.md>
+- <https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/math/number-theory/stern-brocot.md>
+- <https://cp-algorithms.com/others/stern_brocot_tree_farey_sequences.html>
+- <https://cp-algorithms.com/combinatorics/bishops-on-chessboard.html>
+- <https://docs.sympy.org/latest/modules/solvers/diophantine.html>
+- <https://flintlib.org/doc/partitions/index.html>
+- <https://libntl.org/doc/xdouble.cpp.html>
+- <https://www.boost.org/doc/libs/1_84_0/libs/math/doc/html/math_toolkit/autodiff.html>
+- <https://www.luogu.com.cn/problem/P4139>
+- <https://cses.fi/problemset/task/2182>
+- <https://gmplib.org/manual/Number-Theoretic-Functions>

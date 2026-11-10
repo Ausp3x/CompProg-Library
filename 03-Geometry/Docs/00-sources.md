@@ -266,3 +266,30 @@ Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys).
 ## 2026-09-27 audit provenance
 
 The 2026-09-27 cross-library audit ([2026-09-27-inventory-audit.md](../../00-Guidelines/History/2026-09-27-inventory-audit.md), metadata in [research-sources.json](../../00-Guidelines/Ledgers/research-sources.json)) inspected catalogs, selected API/comments and named paper abstracts. Package-level provenance for the verified rows (KACTL PDF pp. 16–20, Stanford notebook pp. 6–7, cp-algorithms hull/area/Pick/closest-pair/circle pages, KACTL CircleTangents/HullDiameter/ClosestPair, CGAL min_quadrilateral_2, MathWorld circle/triangle pages, Kahan's needle-triangle paper) is recorded with read scope in the per-header evidence documents [01-point.md](01-point.md) through [09-triangle.md](09-triangle.md). Items not adopted are in [00-notes.md](00-notes.md#2026-09-27-audit-not-adopted).
+
+## Fetched 2026-11-10 (P275 re-review)
+
+Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md` (P275 re-review 2026-11-10).
+
+- <https://doc.cgal.org/latest/Manual/packages.html>
+- <https://doc.cgal.org/latest/Snap_rounding_2/group__PkgSnapRounding2Ref.html>
+- <https://doc.cgal.org/latest/Polygon_repair/group__PkgPolygonRepairRef.html>
+- <https://doc.cgal.org/latest/Spatial_sorting/group__PkgSpatialSortingRef.html>
+- <https://doc.cgal.org/latest/Mesh_2/group__PkgMesh2Ref.html>
+- <https://doc.cgal.org/latest/Set_movable_separability_2/group__PkgSetMovableSeparability2Ref.html>
+- <https://doc.cgal.org/latest/Interpolation/group__PkgInterpolation2Ref.html>
+- <https://doc.cgal.org/latest/Periodic_3_triangulation_3/group__PkgPeriodic3Triangulation3Ref.html>
+- <https://doc.cgal.org/latest/Hyperbolic_triangulation_2/group__PkgHyperbolicTriangulation2Ref.html>
+- <https://doc.cgal.org/latest/Mesh_3/group__PkgMesh3Ref.html>
+- <https://doc.cgal.org/latest/Polygon_mesh_processing/group__PkgPolygonMeshProcessingRef.html>
+- <https://doc.cgal.org/latest/Point_set_processing_3/group__PkgPointSetProcessing3Ref.html>
+- <https://doc.cgal.org/latest/Minkowski_sum_2/index.html>
+- <https://doc.cgal.org/latest/Boolean_set_operations_2/group__boolean__do__intersect.html>
+- <https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/Angle.h>
+- <https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/Point.h>
+- <https://raw.githubusercontent.com/maspypy/library/main/geo/minimum_three_distance_sum.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/ds/incremental_rectangle_union.hpp>
+- <https://en.wikipedia.org/wiki/Rotating_calipers>
+- <https://atcoder.jp/contests/abc189/tasks/abc189_e>
+- <https://cses.fi/problemset/task/1742>
+- <https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=CGL_1_C>

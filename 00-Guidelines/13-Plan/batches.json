@@ -7496,6 +7496,469 @@
         "SUP23"
       ],
       "tiers": []
+    },
+    {
+      "id": "DS57",
+      "folder": "02-Data Structures",
+      "targets": [
+        "02-Data Structures/70-problem_monoids.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "One-problem monoids and acted-monoid presets (dihedral group, Fibonacci add, elementary symmetric sums under add and negate) for the segment trees.",
+      "prerequisites": [
+        "C01",
+        "DS05"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "DS58",
+      "folder": "02-Data Structures",
+      "targets": [
+        "02-Data Structures/71-problem_segment_trees.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "One-problem segment trees named by maspypy, Luogu and UOJ: free blocks, prefix maxima, greedy subtraction, increasing repair, range change counts, multiset chmin, historic maxima under max-plus tags and splay-backed piecewise-constant slides.",
+      "prerequisites": [
+        "C01",
+        "DS01",
+        "DS05",
+        "DS07",
+        "DS10"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "DS59",
+      "folder": "02-Data Structures",
+      "targets": [
+        "02-Data Structures/72-xor_indexed_structures.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Xor-indexed segment trees and sparse tables, the LSB-first trie with global increment, the k-th xor pair and the online maximum-weight xor basis.",
+      "prerequisites": [
+        "C01",
+        "DS01",
+        "DS05",
+        "DS13",
+        "DS50"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "DS60",
+      "folder": "02-Data Structures",
+      "targets": [
+        "02-Data Structures/73-offline_range_problems.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "One-problem offline range sweeps (CF 703D, 522D, 220B), range xored mex and bit-position sums.",
+      "prerequisites": [
+        "C01",
+        "DS01",
+        "DS12"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "DS61",
+      "folder": "02-Data Structures",
+      "targets": [
+        "02-Data Structures/74-lichao_advanced.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Li Chao trees with lazy additive tags (CF 1120F) and the monotone hull over single-crossing functions.",
+      "prerequisites": [
+        "C01",
+        "DS11"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE59",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/68-movable_separability.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Casting and movable separability of a polygon: top edges with their pullout direction cones (CGAL Set_movable_separability_2).",
+      "prerequisites": [
+        "C01",
+        "GE01"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE60",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/69-natural_neighbour.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Natural and regular neighbour coordinates and scattered-data interpolation (CGAL Interpolation).",
+      "prerequisites": [
+        "C01",
+        "GE07",
+        "GE08",
+        "GE36",
+        "GE37"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE61",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/70-periodic_triangulation.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Delaunay and regular triangulations of the flat torus in 2D and 3D (CGAL Periodic_2 and Periodic_3 triangulations).",
+      "prerequisites": [
+        "C01",
+        "GE07",
+        "GE11",
+        "GE37"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE62",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/71-hyperbolic_triangulation.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Delaunay triangulations of the Poincaré disk and of the Bolza surface (CGAL Hyperbolic and Periodic_4_hyperbolic triangulations).",
+      "prerequisites": [
+        "C01",
+        "GE02",
+        "GE07",
+        "GE11"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE63",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/72-mesh3.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Tetrahedral mesh generation of polyhedral and labelled domains with refinement and optimization (CGAL Mesh_3).",
+      "prerequisites": [
+        "C01",
+        "GE17",
+        "GE31",
+        "GE37"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE64",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/73-surface_reconstruction.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Surface reconstruction from point sets: advancing front, scale space and Poisson (CGAL).",
+      "prerequisites": [
+        "C01",
+        "GE37",
+        "GE40",
+        "GE63",
+        "GE66"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE65",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/74-polygon_mesh_processing.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Triangle-mesh processing: intersection tests, normals, components, inside tests, Hausdorff distance, curvature, remeshing (CGAL Polygon_mesh_processing).",
+      "prerequisites": [
+        "C01",
+        "GE17",
+        "GE26",
+        "GE31",
+        "GE41"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE66",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/75-point_set_processing.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Point-set processing: spacing, simplification, outliers, normal estimation and orientation, smoothing and clustering (CGAL Point_set_processing_3).",
+      "prerequisites": [
+        "C01",
+        "GE17",
+        "GE44"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GE67",
+      "folder": "03-Geometry",
+      "targets": [
+        "03-Geometry/76-polygon_distance_advanced.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Grenander distance between convex polygons by rotating calipers; the completeness research also checks shortest and thinnest-strip transversals (Wikipedia, Rotating calipers).",
+      "prerequisites": [
+        "C01",
+        "GE25"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GR81",
+      "folder": "04-Graphs",
+      "targets": [
+        "04-Graphs/95-graph_problems.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "One-problem graph algorithms named by maspypy, OI Wiki, NetworkX and judges: incremental centroids, grid decremental connectivity, edge centroid decomposition, shortest paths through required vertices, vertex-edge matching, cycle-common vertices, trees from Euler tours, 4-edge subgraph counts, outer-face multi-terminal cuts (Luogu P7916) and antichain enumeration.",
+      "prerequisites": [
+        "C01",
+        "GR01",
+        "GR02",
+        "GR05",
+        "GR06",
+        "GR13"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GR82",
+      "folder": "04-Graphs",
+      "targets": [
+        "04-Graphs/96-flow_problems.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "One-problem flow algorithms from maspypy: cyclic b-flow, longest shortest path (QOJ 7737), min-cost matching on a line and unbalanced transportation.",
+      "prerequisites": [
+        "C01",
+        "GR08",
+        "GR09"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "GR83",
+      "folder": "04-Graphs",
+      "targets": [
+        "04-Graphs/97-network_measures.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Network measures NetworkX names: electrical resistance and Kemeny constant (Mathematics linear algebra), Brandes betweenness, closeness and harmonic centrality, d-separation and moral graphs, AT-free and perfect-graph tests, rich club, s-metric and assortativity, communities and modularity, PageRank and HITS, similarity, summarization, small-world coefficients, structural holes, degree-preserving swaps and node classification (user decision 2026-11-10); floating results carry Approx; the completeness research verifies each name.",
+      "prerequisites": [
+        "C01",
+        "GR01",
+        "GR02",
+        "GR04"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA59",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/72-continued_fraction_arithmetic.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Continued-fraction arithmetic: a linear fractional transform of a continued fraction and Gosper bihomographic sums and products.",
+      "prerequisites": [
+        "C01",
+        "MA10"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA60",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/73-quadratic_diophantine.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "General binary quadratic Diophantine equations and Legendre ternary forms (SymPy diop_quadratic, diop_ternary_quadratic).",
+      "prerequisites": [
+        "C01",
+        "MA17",
+        "MA24"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA61",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/74-sequence_acceleration.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Series acceleration: Aitken delta-squared, Wynn epsilon and the Euler series transform (Numerical Recipes 5.3).",
+      "prerequisites": [
+        "C01",
+        "MA09"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MA62",
+      "folder": "05-Mathematics",
+      "targets": [
+        "05-Mathematics/75-number_theory_problems.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "One-problem number theory and counting: removable coprime-pair finder (CF 1148G) and bishop placements (cp-algorithms).",
+      "prerequisites": [
+        "C01",
+        "MA02",
+        "MA03",
+        "MA04"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI37",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/57-misc_problems.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "One-problem utilities from maspypy: independent-set knapsack, Manhattan walks, odd magic squares, poker hand values and cryptarithms.",
+      "prerequisites": [
+        "C01",
+        "MI16",
+        "MI18"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "MI38",
+      "folder": "06-Miscellaneous",
+      "targets": [
+        "06-Miscellaneous/58-tree_enumeration.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Enumeration of unlabelled and asymmetric unlabelled trees (OEIS A000055, A000220).",
+      "prerequisites": [
+        "C01",
+        "MI15"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "ST45",
+      "folder": "07-Strings",
+      "targets": [
+        "07-Strings/55-suffix_problems.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "One-problem suffix structures from maspypy (non-dominated suffixes, LCP changes, the basic substring structure, arXiv 2312.11873) and cp-algorithms Gray-string occurrences.",
+      "prerequisites": [
+        "C01",
+        "ST01",
+        "ST02",
+        "ST03",
+        "ST07"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
+    },
+    {
+      "id": "ST46",
+      "folder": "07-Strings",
+      "targets": [
+        "07-Strings/56-alignment_advanced.hpp"
+      ],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Alignment with concave gap penalties and Levenshtein automata for dictionary search (Wikipedia).",
+      "prerequisites": [
+        "C01",
+        "ST02",
+        "ST33"
+      ],
+      "tiers": [
+        "Esoteric"
+      ]
     }
   ]
 }

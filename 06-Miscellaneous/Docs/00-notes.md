@@ -74,7 +74,7 @@ Omitted in the 2026-10-13 sweep, one reason each:
 - `clear` (NYA): assign a default-constructed object.
 - Floating-point `WeightedSlopeTrick`: splitting real weights at a real `wl` is ill-conditioned under rounding. `SlopeTrick<double>` covers real positions with unit slopes.
 - `DualSlopeTrick::evaluate` and `min`: conjugate evaluation costs `O(n)`. Use `shift` with `atZero`, or `WeightedSlopeTrick`.
-- `DualSlopeTrick::addAbs`: `addXMinusA` plus `addAMinusX`, same cost. `DualSlopeTrick::restrictDomain`: it deletes the extreme slopes, the far ends of the binary heaps. `DualSlopeTrick::merge`: the conjugate of a sum is the infimal convolution of the conjugates, which binary heaps cannot form. `WeightedSlopeTrick` provides all three.
+- `DualSlopeTrick::addAbs`: `addXMinusA` plus `addAMinusX`, same cost. `DualSlopeTrick::restrictDomain`: it deletes the extreme slopes, the far ends of the binary heaps. `DualSlopeTrick::merge`: the conjugate of a sum is the infimal convolution of the conjugates, which binary heaps cannot form. `WeightedSlopeTrick` provides all three. (returned by P275 2026-11-10 into row 34 `DualSlopeTrick::addAbs`)
 - TKO negative-argument sliding maximum: not convexity-preserving.
 
 ## P072 package record (MI18, MI34)
@@ -96,3 +96,23 @@ Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledger
 
 - `intervalPartitionMachines` in row 39 (CPA): row 09 `intervalPartitionAssignment` owns it; removed from row 39.
 - `aStar` (consistent heuristic, implicit states) in row 35 (OI): Graphs row 13 `aStar` owns it.
+
+## P275 re-review 2026-11-10
+
+P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines/03-cpp.md` (One API per operation, 2026-11-08), its legacy guard and the user decisions of 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`). The items below returned to rows and supersede the earlier bullets that name them; every other omission recorded here stands ([evidence](../../00-Guidelines/23-Sweep%20Ledgers/Docs/00-duplicate-rereview.md)).
+
+- `08-sequence_algorithms.hpp`: inversionCountRotations; subarraySumCount, subarraySumDivisibleCount; threeSum, fourSum; longestCommonIncreasingSubsequence (witness); lexicographicMinSubsequence (length k, monotone stack).
+- `09-interval_algorithms.hpp`: maximumIntervalScheduleInRange; circularIntervalCover (reach); inclusionTree (laminar intervals).
+- `12-enumeration.hpp`: forEachSetBit; forEachCombinationSubmask; forEachSubmaskPair; forEachLabeledTree; forEachGrayCombination.
+- `13-knapsack.hpp`: minimumCoins; compositionCountTable.
+- `49-timer.hpp`: Timer::measure (f).
+- `51-grid_utilities.hpp`: Dice::orientationGraph.
+- `28-encoding.hpp`: moveToFrontEncode, moveToFrontDecode.
+- `29-knapsack_advanced.hpp`: connectedSetKnapsack; modularSubsetSum (Potępa, witness).
+- `34-slope_trick.hpp`: WeightedSlopeTrick::fromPoints, WeightedSlopeTrick::minPlusConvolutionSegment, WeightedSlopeTrick::merge (batch); DualSlopeTrick::addAbs.
+- `54-kbest_enumeration.hpp`: kSmallestSortedMatrix; kSmallestSortedLists; kSmallestSubarrayXors; kthSmallestPairProduct.
+- `55-fractional_programming.hpp`: linearFractionalProgramming (Charnes–Cooper, simplex).
+- new Esoteric row `57-misc_problems.hpp`: independentSetKnapsack; manhattanWalk (s, t, d); magicSquare (odd n); pokerHandValue; cryptarithmAll (a, b, c) (MAS).
+- new Esoteric row `58-tree_enumeration.hpp`: forEachUnlabeledTree; forEachAsymmetricUnlabeledTree (MAS).
+- maspypy's ancestor-closed knapsack is row 29 `treeKnapsack`; maspypy enumerates unlabelled trees (row 58); AtCoder ABC155 D names the k-th pair product (row 54).
+- Not returned after the P275 review: row 29 `knapsack01` (dispatcher) waits with the legacy-name question (`omissions.md`, Open questions, P072).

@@ -54,7 +54,7 @@ Applies to `01-graph.hpp` through `06-mst.hpp`. Every algorithm accepts `Graph` 
 The 2026-10-07 completeness sweep ([sources](00-sources.md#pages-fetched-on-2026-10-07-p010-re-audit)) added `TopologicalResult: unique` and `KruskalReconstruction: leafRange`. The other candidates stay out:
 
 - Degree arrays (maspypy `deg_array`, `deg_array_inout`): `g[u].size()` is the out-degree, and an in-degree array is one pass over `g.arcs`.
-- `edgeId(u, v)` lookup by endpoints: an adjacency scan or `DenseGraph::best` gives it; a hashed endpoint index is a caller choice with its own memory trade-off.
+- `edgeId(u, v)` lookup by endpoints: an adjacency scan or `DenseGraph::best` gives it; a hashed endpoint index is a caller choice with its own memory trade-off. (returned by P275 2026-11-10 into row 01)
 - Vertex path to edge path (maspypy `vs_to_es`): every path witness here already returns arc IDs.
 - DFS entry/exit times and edge classification: positions in `order` and `postorder` are the entry and exit ranks; tree, back, forward and cross arcs follow from `parent_arc` and those ranks in O(n + m).
 - Chordless (minimal) cycle witness (maspypy `find_cycle` with minimality): adopted on 2026-11-08 into row 68 as `findChordlessCycle`.
@@ -62,7 +62,7 @@ The 2026-10-07 completeness sweep ([sources](00-sources.md#pages-fetched-on-2026
 - Vertices and edges on some shortest s–t path: the shortest-path DAG of `13-shortest_path_advanced.hpp`.
 - Lexicographically largest topological order: run the lexicographic sort on the graph relabelled by `v -> n - 1 - v` (`contract` with that labelling) and map the order back.
 - Congruence shortest path (OI Wiki 同余最短路): adopted on 2026-11-08 into Mathematics row 03 as `residueShortestPath` (round robin, no Dijkstra) with `frobeniusNumber` and `countRepresentable`.
-- 0/c-weight BFS (hitonanode `zero_one_bfs` with a constant): divide the weights by c and use `zeroOneBfs`.
+- 0/c-weight BFS (hitonanode `zero_one_bfs` with a constant): divide the weights by c and use `zeroOneBfs`. (returned by P275 2026-11-10 into row 05)
 - Fibonacci-heap or skew-heap Dijkstra and Prim (ei1333, Nyaan): no practical gain over the binary heap in contest sizes.
 
 ## P011 re-audit omissions
@@ -90,7 +90,7 @@ The 2026-10-09 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-09-p043)
 - Incremental row addition and dynamic Hungarian cost updates (hitonanode `augment`, OI Wiki): the internal single-row `search` exists, but a public stateful solver with update semantics is not part of any contest catalog interface fetched; rerun `hungarian` or use `kBestAssignments`.
 - Bottleneck assignment and the auction algorithm: in no fetched catalog; bottleneck assignment is a binary search over `hopcroftKarp` or `bipartiteMatchingDense`.
 - DAG dominator tree by LCA (OI Wiki): adopted on 2026-11-08 into row 24 as `dominatorTreeDag` (online vertex appends in topological order).
-- Dominated counts (OI Wiki P5180): `tout[v] − tin[v]` of `DominatorTree`.
+- Dominated counts (OI Wiki P5180): `tout[v] − tin[v]` of `DominatorTree`. (returned by P275 2026-11-10 into row 24 `DominatorTree::dominatedCount`)
 - Post-dominators, multiple roots and edge dominators: reverse graph, super-source and edge subdivision. Exposed semidominators (internal in Koosaga) and iterated dominance frontiers (SSA construction) are outside contest use.
 
 ## P044 max flow omissions
@@ -98,7 +98,7 @@ The 2026-10-09 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-09-p043)
 The 2026-10-10 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-10-p044-max-flow)) added the reverse capacity of `addEdge`, `MaxFlow(Graph)`, `changeCapacity` (increase and decrease with repair), `minCutEdges` and `pathDecomposition` to row 19. The other candidates stay out:
 
 - Residual-graph export: `g` is public and `edges()`/`getEdge` give every arc pair; a copied adjacency adds nothing.
-- Fewest-edge minimum cut: a reduction, not an engine. Scale capacities to `c * (m + 1) + 1` (with `lll` if needed); the cut value is `res / (m + 1)` and its edge count `res % (m + 1)`.
+- Fewest-edge minimum cut: a reduction, not an engine. Scale capacities to `c * (m + 1) + 1` (with `lll` if needed); the cut value is `res / (m + 1)` and its edge count `res % (m + 1)`. (returned by P275 2026-11-10 into row 19 `MaxFlow::minCutFewestEdges`)
 - Super source/sink and vertex capacities: modelling reductions (one extra vertex with arcs; split v into v_in -> v_out carrying the vertex capacity). Row 45 owns vertex-disjoint path extraction.
 - MPM, ISAP and plain Ford–Fulkerson: no better bound than Dinic or push-relabel; `flow(s, t, limit)` already costs O(F * (n + m)) for a small flow value F.
 - Floating-point capacities: `MaxFlow` requires a signed integer `Cap`; scale to integers.
@@ -136,7 +136,7 @@ The 2026-10-16 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-16-p056)
 The 2026-10-18 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-18-p047)) added the all-roots `DirectedMst`, `IncrementalBridgeConnectivity: find`, `componentSizeAfterRemovingVertex`/`Edge`, `mandatoryVertexCount`, `simplePathVertexCount` and `twoEdgeConnectivityAugmentation`. The other candidates stay out:
 
 - k-best arborescences (NetworkX `ArborescenceIterator`): O(k) constrained Edmonds runs over forced/forbidden arcs; in no contest catalog.
-- Minimum arborescence with a free root: the minimum of `arborescence(r)` over roots, or a super-root with arcs heavier than `n` times the largest weight spread while that stays below 2^64; maximum arborescence: `DirectedMst(n, arcs)` with negated `lll` weights; forced or forbidden arcs: drop the other in-arcs of the head, or the arc.
+- Minimum arborescence with a free root: the minimum of `arborescence(r)` over roots, or a super-root with arcs heavier than `n` times the largest weight spread while that stays below 2^64; maximum arborescence: `DirectedMst(n, arcs)` with negated `lll` weights; forced or forbidden arcs: drop the other in-arcs of the head, or the arc. (returned by P275 2026-11-10 into row 25)
 - Gabow–Galil–Spencer–Tarjan O(m + n log n): Fibonacci heaps, no catalog implementation, no contest gain over O(m log m).
 - Grid decremental connectivity (maspypy, CF 1864I): a grid-only dual technique from one catalog. Component counts per time and XOR-path presets: `run` callbacks over `count()` or a weighted DSU (Data Structures 29).
 - Offline 2-edge-connectivity over time: in no catalog.
@@ -226,3 +226,33 @@ The 2026-11-04 sweep ([sources](00-sources.md#pages-fetched-on-2026-11-04-p042-g
 - Macro-micro O(n) preprocessing (Bender–Farach-Colton): filed as row 94 `LinearLevelAncestor`, package P277, because the paper was not readable (user decision 2026-11-09); row 85 keeps jumps at long-path bottoms, O(n + l * log(n)).
 - Online leaf addition (Dietz): no swept catalog ships it, so it is not a standard alternative under `01-principles.md`, Priority.
 - `query(v, d)` by target depth: `query(v, dep[v] - d)`.
+
+## P275 re-review 2026-11-10
+
+P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines/03-cpp.md` (One API per operation, 2026-11-08), its legacy guard and the user decisions of 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`). The items below returned to rows and supersede the earlier bullets that name them; every other omission recorded here stands ([evidence](../../00-Guidelines/23-Sweep%20Ledgers/Docs/00-duplicate-rereview.md)).
+
+- `01-graph.hpp`: inDegrees; edgeId (u, v).
+- `02-traversal.hpp`: classifyArcs (tree, back, forward, cross).
+- `03-toposort.hpp`: topologicalSortLargest; topologicalGenerations (Kahn layers, Mirsky).
+- `05-shortest_path.hpp`: zeroOneBfs ({0, c} weights); voronoiCells (centers).
+- `12-all_pairs_shortest_path.hpp`: fixedLengthShortestPathAtMost; wienerIndex, hyperWienerIndex, schultzIndex, gutmanIndex; harmonicDiameter.
+- `13-shortest_path_advanced.hpp`: onSomeShortestPath (s, t); shortestPathsAll (bounded); shortestPathArcExtremes.
+- `14-tree_algorithms.hpp`: connectedSubtreeCounts; treeLinearExtensionCounts; treeEccentricities (vertex offsets); treeMaximumWeightIndependentSet.
+- `18-twosat.hpp`: TwoSat::addNand.
+- `19-max_flow.hpp`: MaxFlow::minCutFewestEdges.
+- `21-matching_bipartite.hpp`: maximumMatchingLexicographic; konigVertexCoverLexicographic (order).
+- `23-assignment.hpp`: bottleneckAssignment (threshold search over hopcroftKarp).
+- `24-dominatortree.hpp`: DominatorTree::dominatedCount; postDominatorTree (g, exit).
+- `25-directedmst.hpp`: kBestArborescences; maximumArborescence; DirectedMst::arborescenceAnyRoot.
+- `27-blockcuttree.hpp`: BlockCutTree::mandatoryVertexCount (vertex set).
+- `28-cycle_basis.hpp`: CycleBasis::inCycleSpace, CycleBasis::cycleSpaceCoordinates, CycleBasis::enumerateCycleSpace.
+- `30-flow_with_demands.hpp`: mixedEulerCircuit (mixed directed and undirected edges, by feasibleFlow).
+- `31-path_cover.hpp`: minimumChainCover (digraph with cycles).
+- `35-subgraph_enumeration.hpp`: weightedAverageClustering.
+- `62-planarity.hpp`: planarCanonicalOrdering; straightLineDrawing; isStraightLineDrawing; makeBiconnectedPlanar; makeMaximalPlanar.
+- new Esoteric row `95-graph_problems.hpp`: IncrementalCentroid: addLeaf, centroid; GridDecrementalConnectivity: erase (cell), isSameSet, count; EdgeCentroidDecomposition: build; shortestPathThroughVertices; maximumVertexEdgeMatching; cycleCommonVertices; treeFromEulerTour; countFourEdgeSubgraphs; outerFaceMultiTerminalCut; antichains (bounded enumeration) (MAS, OI, CF, NX).
+- new Esoteric row `96-flow_problems.hpp`: cyclicMinCostBFlow; longestShortestPath; minCostMatchingOnLine; unbalancedTransportation (MAS).
+- new Esoteric row `97-network_measures.hpp`: effectiveResistanceApprox, kemenyConstantApprox, effectiveGraphResistanceApprox; betweennessCentralityApprox, closenessCentralityApprox, harmonicCentralityApprox; isDSeparator, moralGraph; isAtFree, isPerfectGraph; richClubCoefficientApprox, sMetric, degreeAssortativityApprox; louvainCommunities, labelPropagationCommunities, modularityApprox; pageRankApprox, hitsApprox; jaccardCoefficientApprox, simRankApprox; snapAggregation (summarization); smallWorldSigmaApprox, smallWorldOmegaApprox; effectiveSizeApprox, constraintApprox (structural holes); doubleEdgeSwap (degree-preserving); harmonicFunction, localAndGlobalConsistency (node classification) (NX).
+- Fixed-length walk counts are row 53 `countWalks`; lexicographic bipartite matching is row 21; NetworkX has no vertex-connectivity augmentation (only `k_edge_augmentation`); the GR13, GR27 and GR32 confirmations of 2026-10-28/29 yield to the 2026-11-08 adoption (user decision 2026-11-10).
+- Not returned after the P275 review: `TwoSat::answerLexicographic` and `maxCostFlow` wait for their source questions (`omissions.md`, Open questions, P043 and P045); `effectiveResistanceApprox` takes Mathematics row 23's word.
+- Not returned after the P275 review: `TwoSat::answerLexicographic` and `maxCostFlow` wait for their source questions (`omissions.md`, Open questions, P043 and P045); `effectiveResistanceApprox` takes Mathematics row 23's word. Row 97 also takes the NetworkX families `Docs/00-sources.md` left out as "not contest algorithms" (user decision 2026-11-10).

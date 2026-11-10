@@ -55,10 +55,10 @@ Rows 05–08 (`05-closestpair.hpp`, `06-circle.hpp`, `07-rotatingcalipers.hpp`, 
 
 This audit kept industrial CAD, molecular surfaces, remeshing and visualization, and machine-learning reconstruction outside the inventory; the 2026-11-08 omission sweep dropped that exclusion (user decision, `00-Guidelines/23-Sweep Ledgers/omissions.md`), so an application area no longer excludes a family and `01-principles.md` (Priority) decides as for any other. Catalog items of the [2026-09-27 audit](00-sources.md#2026-09-27-audit-provenance) left out:
 
-- maspypy `minimum_three_distance_sum`: single-problem curiosity without a reusable family.
+- maspypy `minimum_three_distance_sum`: single-problem curiosity without a reusable family. (returned by P275 2026-11-10 into row 25)
 - maspypy `definite_integral`, `modint_real`: numerical integration is Mathematics `17-numerical_methods.hpp`; modular reals are not geometry.
 - hitonanode `point2d_w_error` as a public type: absorbed as the `IntervalPoint2` filter inside row 36 rather than a separate header.
-- KACTL `Angle` class: `polarLess` and `canonicalDirection` cover its use; no separate angle type.
+- KACTL `Angle` class: `polarLess` and `canonicalDirection` cover its use; no separate angle type. (returned by P275 2026-11-10 into row 01)
 - cp-algorithms "Finding faces of a planar graph": Graphs `29-planar_graph.hpp`.
 - CGAL 2D Snap Rounding, Polygon Repair, Movable Separability, Interval Skip List, natural-neighbour Interpolation, Spatial Sorting, periodic/hyperbolic triangulations, mesh generation, shape reconstruction, polygon mesh processing, point set processing: no contest algorithmic use case.
 - CGAL Linear and Quadratic Programming Solver: Mathematics `28-simplex.hpp`.
@@ -67,21 +67,21 @@ This audit kept industrial CAD, molecular surfaces, remeshing and visualization,
 
 ## P007 completeness decisions (2026-10-07)
 
-- Not adopted for `01-point.hpp`: `normalApprox` (it is `unitApprox(perp(v))` or `unitApprox(cross(u, v))`); 3D `phi`/`theta` (adopted on 2026-11-08 into row 27 as `toSphericalApprox` and `fromSphericalApprox`); `operator!=` (synthesized from `==`); clockwise rotation (`-perp`); epsilon `sgn`/`eq` (contradicts the exact-first policy; row 36 owns robust predicates); rotation by an angle (row 08).
-- Not adopted for `02-line_segment.hpp`: a line from equation coefficients (integral `Linear2` endpoints need not exist inside the coordinate domain; `canonicalLine` gives the equation in the other direction); five-way `ccw` (`orient` plus `contains` on a ray or segment answers it); epsilon `sideOf` (use `orient` or `signedLineDistanceApprox`).
+- Not adopted for `01-point.hpp`: `normalApprox` (it is `unitApprox(perp(v))` or `unitApprox(cross(u, v))`); 3D `phi`/`theta` (adopted on 2026-11-08 into row 27 as `toSphericalApprox` and `fromSphericalApprox`); `operator!=` (synthesized from `==`); clockwise rotation (`-perp`); epsilon `sgn`/`eq` (contradicts the exact-first policy; row 36 owns robust predicates); rotation by an angle (row 08). (returned by P275 2026-11-10: `normalApprox`)
+- Not adopted for `02-line_segment.hpp`: a line from equation coefficients (integral `Linear2` endpoints need not exist inside the coordinate domain; `canonicalLine` gives the equation in the other direction); five-way `ccw` (`orient` plus `contains` on a ray or segment answers it); epsilon `sideOf` (use `orient` or `signedLineDistanceApprox`). (returned by P275 2026-11-10: `ccw`)
 - Not adopted for `03-polygon.hpp`: `segmentInPolygon` and nonconvex polygon-line pieces (adopted on 2026-11-08 into row 30 as `segmentInPolygon` and `polygonLineIntersection`); `makeCCW` (`signedArea2` plus `reverse`).
-- Not adopted for `04-convexhull.hpp`: separate lower/upper hull (internal passes of `convexHull`; row 20 owns range hulls); Quickhull and Akl–Toussaint (no better contest bound). The presorted O(n) hull, Melkman's simple-chain hull and Jarvis were adopted on 2026-11-08 into row 04 (`convexHullSorted`, `convexHullMelkman`, `convexHullJarvis`).
+- Not adopted for `04-convexhull.hpp`: separate lower/upper hull (internal passes of `convexHull`; row 20 owns range hulls; returned by P275 2026-11-10 as `lowerHull`, `upperHull`); Quickhull and Akl–Toussaint (no better contest bound). The presorted O(n) hull, Melkman's simple-chain hull and Jarvis were adopted on 2026-11-08 into row 04 (`convexHullSorted`, `convexHullMelkman`, `convexHullJarvis`).
 
 ## P008 completeness decisions (2026-10-07)
 
-- Not adopted for `05-closestpair.hpp`: the minimum-perimeter triangle (a rare extension of the same recursion). The randomized expected-linear grid and floating-coordinate closest pair were adopted on 2026-11-08 into row 05 (`closestPairRandomized`, `closestPairApprox`).
+- Not adopted for `05-closestpair.hpp`: the minimum-perimeter triangle (a rare extension of the same recursion). The randomized expected-linear grid and floating-coordinate closest pair were adopted on 2026-11-08 into row 05 (`closestPairRandomized`, `closestPairApprox`). (returned by P275 2026-11-10 into row 05)
 - Not adopted for `06-circle.hpp`: the Apollonian ratio-locus circle (adopted on 2026-11-08 into row 24 as `apollonianCircle`).
 - Not adopted for `07-rotatingcalipers.hpp`: two-polygon calipers problems (maximum distance between convex polygons, hull merge bridges, critical support lines, widest separating strip, Grenander distance). Row 17 owns the maximum distance (`convexPolygonMaxDistance`) and row 53 the bridges; the others are not adopted (P036 decisions for row 17).
 - Not adopted for `08-coordinate_transform.hpp`: line and direction images (apply the map to two points or use `applyVector`), map equality and how-built predicates (field comparison), and exact rational transforms (no contest need, and they conflict with the `Approx` contract).
 
 ## P009 completeness decisions (2026-10-07)
 
-- Not adopted for `09-triangle.hpp`: an approximate angle kind (a right angle is not decidable from rounded coordinates; use the exact type); vertex angles (`angleApprox` in `01-point.hpp`); altitude and median lengths and feet (one projection or `area2 / side`); orientation, bounded side and transforms of a triangle (rows 02, 03 and 08); Fermat point (row 25).
+- Not adopted for `09-triangle.hpp`: an approximate angle kind (a right angle is not decidable from rounded coordinates; use the exact type); vertex angles (`angleApprox` in `01-point.hpp`); altitude and median lengths and feet (one projection or `area2 / side`); orientation, bounded side and transforms of a triangle (rows 02, 03 and 08); Fermat point (row 25). (returned by P275 2026-11-10 into row 09)
 
 ## P036 completeness decisions (2026-10-10)
 
@@ -167,3 +167,35 @@ Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledger
 - `minimumEnclosingParallelogram` (CGAL): row 07 `minimumAreaParallelogramApprox` already computes it by Rote's linear algorithm with exact selection, so row 57 dropped its planned copy too.
 - `yaoGraph`, `thetaGraph` in row 22 (CGAL): row 63 `geometric_spanners` owns them.
 - `gaussCircleFast (convex hull)` in row 19: found in the library, no catalog source; Mathematics row 55 owns it; row 19 keeps `latticeInDiskFast`.
+
+## P275 re-review 2026-11-10
+
+P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines/03-cpp.md` (One API per operation, 2026-11-08), its legacy guard and the user decisions of 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`). The items below returned to rows and supersede the earlier bullets that name them; every other omission recorded here stands ([evidence](../../00-Guidelines/23-Sweep%20Ledgers/Docs/00-duplicate-rereview.md)).
+
+- `01-point.hpp`: Angle: operator+, operator-, operator<, angleDiff, segmentAngles (turn count); normalApprox.
+- `02-line_segment.hpp`: ccw (five-way: orient and contains).
+- `04-convexhull.hpp`: lowerHull, upperHull.
+- `05-closestpair.hpp`: minimumPerimeterTriangleApprox (divide and conquer).
+- `08-coordinate_transform.hpp`: rotateApprox (Affine2Approx::rotation); Affine2: applyPoint, applyVector, operator*, determinant, inverse (exact rational).
+- `09-triangle.hpp`: TriangleApprox::angles, TriangleApprox::transform (Affine2Approx); Triangle2::orient, Triangle2::locate.
+- `11-minkowskisum.hpp`: minkowskiSumReducedConvolution (nonconvex polygons, holes).
+- `12-segmentintersection.hpp`: firstSelfIntersection (polyline prefixes, collinear overlaps).
+- `13-segment_union.hpp`: IncrementalRectangleUnion: add (anchored [0, x] × [0, y]), area.
+- `17-polygon_distance.hpp`: widestSeparatingStripApprox; commonTangents (two convex polygons, outer and inner); polygonsIntersect (rings).
+- `25-geometric_median.hpp`: minimumThreeDistanceSumApprox (fermatPoint).
+- `28-spatial_index.hpp`: hilbertSort (2D, 3D; median, middle); spatialSort (BRIO); hilbertSortOnSphere.
+- `30-polygon_boolean.hpp`: FillRule (nonzero, evenodd, union, intersection); polygonRepair; polygonUnion (family), polygonIntersection (family); polygonsIntersect (MultiPolygon).
+- `33-linearrangement.hpp`: snapRounding; snapRoundingIterated; hotPixels.
+- `45-constraineddelaunay.hpp`: refine (size bound); lloydOptimizeMesh2Approx.
+- new Esoteric row `68-movable_separability.hpp`: castingTopEdges; pulloutDirections; isPulloutDirection (CGAL).
+- new Esoteric row `69-natural_neighbour.hpp`: naturalNeighbourCoordinatesApprox; regularNeighbourCoordinatesApprox; linearInterpolationApprox; quadraticInterpolationApprox; sibsonC1InterpolationApprox; farinC1InterpolationApprox; sibsonGradientFittingApprox; surfaceNeighbours3; surfaceNeighbourCoordinates3Approx (CGAL).
+- new Esoteric row `70-periodic_triangulation.hpp`: PeriodicOffset2, PeriodicOffset3; PeriodicDelaunay2: insert, remove, locate, nearestVertex, voronoiDual; PeriodicDelaunay3: insert, remove, locate, nearestVertex, voronoiDual; PeriodicRegular3: insert, remove, locate (CGAL).
+- new Esoteric row `71-hyperbolic_triangulation.hpp`: HyperbolicDelaunay2: insert, remove, locate, voronoiDualApprox; BolzaDelaunay2: insert, remove, locate, voronoiDualApprox; HyperbolicTranslation (CGAL).
+- new Esoteric row `72-mesh3.hpp`: PolyhedralMeshDomain3; LabeledMeshDomain3; makeMesh3Approx; refineMesh3Approx; exudeMesh3; perturbMesh3Approx; lloydOptimizeMesh3Approx; odtOptimizeMesh3Approx (CGAL).
+- new Esoteric row `73-surface_reconstruction.hpp`: advancingFrontReconstruction; scaleSpaceSmoothApprox; scaleSpaceReconstruction; PoissonFunctionApprox: evaluate; poissonReconstructionApprox (CGAL).
+- new Esoteric row `74-polygon_mesh_processing.hpp`: selfIntersections; meshesIntersect; faceNormalsApprox, vertexNormalsApprox; meshComponents; SideOfTriangleMesh: locate; meshHausdorffDistanceApprox; gaussianCurvaturesApprox, meanCurvaturesApprox; isotropicRemeshingApprox; triangulateFaces (CGAL).
+- new Esoteric row `75-point_set_processing.hpp`: averageSpacingApprox; gridSimplify; hierarchySimplify; removeOutliers; pcaEstimateNormalsApprox; jetEstimateNormalsApprox; mstOrientNormals; jetSmoothApprox; bilateralSmoothApprox; clusterPointSet (CGAL).
+- new Esoteric row `76-polygon_distance_advanced.hpp`: grenanderDistanceApprox (inner common tangents and boundary chains) (WIKI).
+- The 2026-09-27 exclusion of CGAL packages for no contest use is lifted (user decision 2026-11-10): rows 28, 30, 33 and 45 take Spatial Sorting, Polygon Repair, Snap Rounding and 2D mesh refinement, and rows 68–75 the other families; Interval Skip List is Data Structures row 68 `contains`.
+- maspypy `minimum_three_distance_sum` is the sum at `fermatPoint` (row 25); the incremental anchored rectangle union is row 13 (no Data Structures row owned it); common tangents of two convex polygons are row 17 (row 53 lists only `DynamicHull::bridge`).
+- Not returned after the P275 review: `TriangleApprox::circumcircle` and `incircle` (the P009 prune removed these exact names; `omissions.md` Open questions, with P013's `multisetPermutationCount`).

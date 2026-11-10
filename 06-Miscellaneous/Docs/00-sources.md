@@ -254,3 +254,21 @@ The 2026-09 audit read OI Wiki pages for knapsack, digit DP, state DP, plug DP, 
 - Nyaan/ei1333 cumulative sums, 2D cumulative sums, suisen cumulative_sum: Data Structures `05-prefix_sum.hpp`.
 - noshi91 monoid/action adapters: Data Structures segment-tree policies.
 - Algorithmica SIMD argmin, prefix sum, matrix multiplication, Montgomery: Core full profile.
+
+## Fetched 2026-11-10 (P275 re-review)
+
+Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md` (P275 re-review 2026-11-10).
+
+- <https://raw.githubusercontent.com/maspypy/library/main/convex/slope_trick/slope_trick_super.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/knapsack/knapsack01.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/knapsack/connected_set_knapsack.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/mod/modular_subset_sum.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/convex/nth_element_from_sorted_matrix.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/other/dice.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/enumerate/unlabeled_tree.hpp>
+- <https://raw.githubusercontent.com/suisen-cp/cp-library-cpp/main/library/util/timer.hpp>
+- <https://cp-algorithms.com/combinatorics/generating_combinations.html>
+- <https://cses.fi/problemset/list/>
+- <https://atcoder.jp/contests/abc155/tasks/abc155_d>
+- <https://www.luogu.com.cn/problem/P5283>
+- <https://en.wikipedia.org/wiki/Linear-fractional_programming>

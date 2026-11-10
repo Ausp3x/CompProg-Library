@@ -33,6 +33,7 @@ A row without an evidence link names the sources of its operations in its Status
 | BENDER02 | Bender, Cole, Demaine, Farach-Colton, Zito, order maintenance, ESA 2002 |
 | BFC04 | Bender, Farach-Colton, The Level Ancestor Problem simplified, TCS (2004) |
 | BKPR21 | Belazzougui, Kosolobov, Puglisi, Raman, Weighted Ancestors in Suffix Trees Revisited, CPM 2021 |
+| BOOST | [Boost C++ Libraries documentation](https://www.boost.org/doc/libs/) (Graph, Math) |
 | BPR17 | Barbay, Pérez-Lantero, Rojas-Ledesma, depth distribution in high dimensions, arXiv 1705.10022 |
 | CF | [Codeforces](https://codeforces.com/) problems and editorials |
 | CGAL | [CGAL packages](https://doc.cgal.org/latest/Manual/packages.html) |
@@ -84,6 +85,7 @@ A row without an evidence link names the sources of its operations in its Status
 | STDLIB | [Python standard library](https://docs.python.org/3/library/) |
 | STVWE95 | Schwarz, Teich, Vainshtein, Welzl, Evans, minimal enclosing parallelogram, SoCG 1995 |
 | SUI | [suisen](https://suisen-cp.github.io/cp-library-cpp/) |
+| SYMPY | [SymPy documentation](https://docs.sympy.org/latest/) |
 | TKO | [tko919](https://tko919.github.io/library/) |
 | VERN | [verngutz](https://github.com/verngutz/cp-library) |
 | WANG22 | Wang, unit-disk range searching, arXiv 2204.08992 |

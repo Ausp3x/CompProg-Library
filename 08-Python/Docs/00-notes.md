@@ -59,3 +59,10 @@ Rules here bind every module in the folder; operation lists live in the index.
 
 - Testing follows `05-testing.md`; Python tests add singular and composite-modulus algebra and exact/approximate pairs, and cross-check C++ variants without copying their assumptions. External oracles may use third-party packages.
 - Deliberate omissions (add only with a concrete Python use case and an inventory update): Python Barrett/Montgomery/modint/bigint wrappers, ISA kernels, weighted blossom, dynamic planarity, segment tree beats, link-cut and Euler-tour trees, implicit treap sequence operations (range reverse), persistent union-find, high-dimensional geometry, multivariate symbolic algebra, large-FPS composition, Min_25/Meissel–Lehmer beyond Lucy, k-shortest walks, min-cost b-flow, Dirichlet series, nim product, research string indexes beyond the explicit rows.
+
+## P275 re-review 2026-11-10
+
+P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines/03-cpp.md` (One API per operation, 2026-11-08), its legacy guard and the user decisions of 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`, where low PyPy value stays a reason); see [the re-review](../../00-Guidelines/23-Sweep%20Ledgers/Docs/00-duplicate-rereview.md).
+
+- `_10_strings.py`: rabinKarp (RollingHash.get), a composition cp-algorithms names (Rabin-Karp); it supersedes the cp-algorithms exclusion in `Docs/00-sources.md`.
+- The other Python omissions stay: the PyRival, Library Checker and cp-algorithms items excluded for low PyPy value, and the one-problem items, which the Python subset leaves out by design (`00-Guidelines/04-python.md`: a deliberate subset).

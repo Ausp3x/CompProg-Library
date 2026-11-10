@@ -229,3 +229,20 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 - Lecroq Brute Force and DFA pages: naive scan and `dfaSearch` appear in `16`, `prefixAutomaton` in `01`; no historical row entry.
 - KACTL/ACL: no item excluded; every entry maps to an existing row.
 - Library Checker `enumerative_combinatorics/number_of_subsequences`: already mapped to row `20`.
+
+## Fetched 2026-11-10 (P275 re-review)
+
+Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md` (P275 re-review 2026-11-10).
+
+- <https://raw.githubusercontent.com/maspypy/library/main/string/basic_substring_structure.hpp>
+- <https://raw.githubusercontent.com/maspypy/library/main/string/substring_abundant_string.hpp>
+- <https://suisen-cp.github.io/cp-library-cpp/library/string/substring_set.hpp>
+- <https://raw.githubusercontent.com/suisen-cp/cp-library-cpp/main/library/util/run_length_encoder.hpp>
+- <https://cp-algorithms.com/string/prefix-function.html>
+- <https://en.wikipedia.org/wiki/Maximal_pair>
+- <https://en.wikipedia.org/wiki/Gap_penalty>
+- <https://en.wikipedia.org/wiki/Levenshtein_automaton>
+- <https://en.wikipedia.org/wiki/Move-to-front_transform>
+- <https://www.luogu.com.cn/problem/P4555>
+- <https://www.luogu.com.cn/problem/P1819>
+- <https://www.luogu.com.cn/problem/CF10D>
