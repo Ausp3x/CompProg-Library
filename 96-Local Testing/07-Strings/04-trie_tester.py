@@ -13,10 +13,13 @@ Full/stress add ASan/UBSan to optimized NDEBUG and checked builds. Checked build
 execute eight count-domain/overflow/dense-alphabet assertion probes. All oracles
 survive NDEBUG.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
     raise SystemExit(main('04-trie', [
         'insert-zero', 'insert-negative', 'insert-overflow',
-        'erase-zero', 'erase-negative', 'dense-symbol-high', 'dense-symbol-low', 'dense-overflow'], strict=True))
+        'erase-zero', 'erase-negative', 'dense-symbol-high', 'dense-symbol-low', 'dense-overflow'], extra=('-Wshadow',)))

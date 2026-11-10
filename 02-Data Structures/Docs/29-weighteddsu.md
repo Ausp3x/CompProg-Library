@@ -53,7 +53,7 @@ Under `NDEBUG`, an out-of-range vertex reads outside the arrays, `diff` across c
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/29-weighteddsu_tester.cpp`, entry `29-weighteddsu_tester.py` (driver `_00_runner.py`; three builds; 13 assertion probes). Groups: `Sum<lng>`, `Xor<bool>`, `Perm` (S5 under composition, non-commutative) and `ModAdd` (runtime modulus chosen by the seed from 7, 10^9+7 and 998244353). History groups run 300 rounds each in full mode (30 quick, 1000 stress; `ModAdd` and the rollback `Xor<bool>` half, the n <= 40 group a tenth).
+Tester `96-Local Testing/02-Data Structures/29-weighteddsu_tester.cpp`, entry `29-weighteddsu_tester.py` (driver `_00_contest_runner.py`; three builds; 13 assertion probes). Groups: `Sum<lng>`, `Xor<bool>`, `Perm` (S5 under composition, non-commutative) and `ModAdd` (runtime modulus chosen by the seed from 7, 10^9+7 and 998244353). History groups run 300 rounds each in full mode (30 quick, 1000 stress; `ModAdd` and the rollback `Xor<bool>` half, the n <= 40 group a tenth).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -67,6 +67,8 @@ Tester `96-Local Testing/02-Data Structures/29-weighteddsu_tester.cpp`, entry `2
 Mutation check (2026-10-23, quick mode, seed 3): eight seeded faults were each caught: union orientation, compression order, the missing inverse on a swapped union, lost contradiction counts on merge and on `undo`, a rollback potential stored unoriented, `climb` composing in reverse, and `parity` preferring odd chains.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 872 MB; optimized 0.2 s compile + 10.8 s run, checked 23.9 s compile + 21.2 s run, ASan-UBSan 33.4 s compile + 93.9 s run; MEMORY peak 1074 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 938 MB; optimized 0.2 s compile + 13.4 s run, checked 30.3 s compile + 21.5 s run, ASan-UBSan 37.5 s compile + 85.8 s run; MEMORY peak 1050 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 51.0 s compile + 1.5 s run, checked 26.5 s compile + 12.4 s run; MEMORY peak 869 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 887 MB; optimized 0.1 s compile + 18.2 s run, checked 10.1 s compile + 41.6 s run, ASan-UBSan 13.3 s compile + 166.7 s run; MEMORY peak 1176 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-10-23, Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
@@ -109,3 +111,4 @@ Search aliases (P263, grab --find): 并查集, 并查集应用, 带权并查集,
 
 - 2026-10-23: P035 first implementation (user decisions: `ParityDSU` as a 2n-node DSU, `inv` on row 00 `Sum`/`Xor`); independent review, 7 findings fixed across the package (here: `findSet` split from the recursive `root`, a negative `ParityDSU` probe); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

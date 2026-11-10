@@ -35,6 +35,8 @@ Error sentinel: `error` is `std::optional<lng>`, default `-1`. When set, a signe
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 737 MB; optimized 0.1 s compile + 0.3 s run, checked 13.3 s compile + 0.5 s run, ASan-UBSan 14.6 s compile + 3.0 s run; MEMORY peak 866 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 764 MB; optimized 0.3 s compile + 0.4 s run, checked 17.1 s compile + 0.6 s run, ASan-UBSan 19.4 s compile + 2.2 s run; MEMORY peak 907 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 17.8 s compile + 0.1 s run, checked 12.5 s compile + 0.2 s run; MEMORY peak 714 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 738 MB; optimized 0.1 s compile + 0.5 s run, checked 4.9 s compile + 0.8 s run, ASan-UBSan 5.3 s compile + 5.5 s run; MEMORY peak 461 MB. Dated rows below stay those commands' latest results.
+
 P229 prune run, 2026-10-13: Linux x86-64, i9-11900H, GCC 16.2.1 20260810 and GCC 14.4.1 20260915, CPython 3.14.7. Configurations as in [49-timer.md](49-timer.md).
 
 ```bash
@@ -76,3 +78,4 @@ Search aliases (P263, grab --find): 交互题.
 - 2026-10-08: created and verified (P229), `@reviewer` found 1 defect, fixed; quick, full on g++ and g++-14, stress seed 3 and integration with sanitizers passed.
 - 2026-10-13: prune, removed `flushNow` (case moved to `io.out.flush()`); full suite passed on g++ and g++-14, integration and consistency clean; `@reviewer` found no correctness defect, 4 findings fixed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.

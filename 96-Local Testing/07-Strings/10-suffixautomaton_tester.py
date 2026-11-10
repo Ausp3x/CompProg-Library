@@ -13,10 +13,13 @@ texts of 3000/200000/700000 symbols are checked against SuffixArray (distinct
 count, total length, kth distinct, occurrence counts and positions).
 Full/stress add ASan/UBSan; checked adds 10 death probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
     raise SystemExit(main('10-suffixautomaton', [
         'dense-domain', 'unbuilt-count', 'unbuilt-last', 'unbuilt-occurrences', 'unbuilt-endpos',
-        'unbuilt-kth', 'unbuilt-kth-multi', 'unbuilt-cyclic', 'unbuilt-absent', 'stale-after-extend'], strict=True))
+        'unbuilt-kth', 'unbuilt-kth-multi', 'unbuilt-cyclic', 'unbuilt-absent', 'stale-after-extend'], extra=('-Wshadow',)))

@@ -21,7 +21,10 @@ and by the reversal symmetry of maximal repeats. Every mode first checks
 hand-derived repeats and counts (banana, mississippi, abab, xabxac, aaaa, empty).
 Full/stress add ASan/UBSan; checked adds 18 death probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
@@ -29,4 +32,4 @@ if __name__ == '__main__':
         'edge-root', 'link-root', 'ancestor-deep', 'ancestor-negative', 'ancestor-node',
         'step-root-length', 'step-noncanonical', 'step-deep', 'leaf-range', 'occurrences-range',
         'depth-range', 'children-range', 'child-range', 'lca-range', 'lca-negative',
-        'ancestors-deep', 'ancestors-negative', 'ancestors-node'], strict=True))
+        'ancestors-deep', 'ancestors-negative', 'ancestors-node'], extra=('-Wshadow',)))

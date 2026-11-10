@@ -120,6 +120,8 @@ Oracles:
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1510 MB; optimized 0.1 s compile + 20.0 s run, checked 69.1 s compile + 16.4 s run, ASan-UBSan 67.0 s compile + 59.1 s run; MEMORY peak 2328 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1371 MB; optimized 0.3 s compile + 33.5 s run, checked 107.7 s compile + 28.2 s run, ASan-UBSan 124.9 s compile + 93.3 s run; MEMORY peak 2275 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 76.0 s compile + 3.3 s run, checked 55.0 s compile + 25.4 s run; MEMORY peak 1501 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 83 MB; optimized 0.1 s compile + 27.4 s run, checked 33.9 s compile + 11.5 s run, ASan-UBSan 35.1 s compile + 30.7 s run; MEMORY peak 1323 MB. Dated rows below stay those commands' latest results.
+
 P057 prune run, 2026-10-13: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`); this header is unchanged, and the run covers the `polyMod` removal in row 14, which it includes. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`.
 
 ```bash
@@ -131,7 +133,7 @@ python3 '96-Local Testing/02-integration.py'                                    
 - Mode coverage:
   - Quick uses GF(2) up to `n = 7`, GF(3) up to `n = 4`, and reduced repetitions.
   - Full adds the exhaustive GF(2) `n <= 10` and GF(3) `n <= 6` searches, orders up to 1500, and the `cut(BM)` neighbours (the 1e9+7 ones in the optimized build).
-  - Stress repeats every random loop four times in the optimized build. The checked builds rerun the full sizes with a new seed and stay below the 180 s limit.
+  - Stress repeats every random loop four times in the optimized build. The checked builds rerun the full sizes with a new seed and stay below the former 180 s limit.
 - Test programs peak below 10 MB; the reported peaks are the compiler.
 - 2026-10-19 rerun after the row 13 change: full PASS ([13-convolution.md](13-convolution.md#commands-and-results)); counts not recorded.
 
@@ -176,3 +178,4 @@ Search aliases (P263, grab --find): Berlekamp–Massey 算法, 常系数齐次�
 - 2026-10-13: P057 prune rerun (row 14 `polyMod` removed), header and tests unchanged; full suite passed on g++ and g++-14.
 - 2026-10-19: P054 follow-up rerun (included `13-convolution.hpp` changed), header unchanged; full passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

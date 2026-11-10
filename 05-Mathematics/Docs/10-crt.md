@@ -55,6 +55,8 @@ Entry: [`10-crt_tester.py`](<../../96-Local Testing/05-Mathematics/10-crt_tester
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 765 MB; optimized 0.3 s compile + 6.4 s run, checked 13.8 s compile + 28.9 s run, ASan-UBSan 15.3 s compile + 36.0 s run; MEMORY peak 893 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 808 MB; optimized 0.1 s compile + 5.2 s run, checked 13.0 s compile + 26.2 s run, ASan-UBSan 13.4 s compile + 24.8 s run; MEMORY peak 975 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 18.1 s compile + 0.8 s run, checked 18.7 s compile + 7.8 s run; MEMORY peak 758 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 770 MB; optimized 0.1 s compile + 9.1 s run, checked 5.8 s compile + 33.0 s run, ASan-UBSan 5.7 s compile + 27.7 s run; MEMORY peak 575 MB. Dated rows below stay those commands' latest results.
+
 P052 prune run, 2026-10-13, same conditions as [07-primality_factorization.md](07-primality_factorization.md). Counts are per configuration and equal on both compilers.
 
 | Command | Result |
@@ -98,3 +100,4 @@ Search aliases (P263, grab --find): CRT (Chinese remainder theorem), Garner; 中
 - 2026-10-13: prune, removed `superChiRemThm` (Legacy mapping); full passed on g++ and g++-14, stress on g++.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

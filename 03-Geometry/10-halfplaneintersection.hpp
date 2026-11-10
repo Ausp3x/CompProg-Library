@@ -175,7 +175,7 @@ template<typename T> HalfplaneResult polygonKernelLinear(const vector<Point2<T>>
     if (area < 0) { reverse(v.begin(), v.end()); }
     int n = int(v.size()), size = 4, k = 0; lng x0 = v[0].x, x1 = x0, y0 = v[0].y, y1 = y0;
     for (int i = 0; i < n; ++i) {
-        point q = v[i], a = q - v[(i + n - 1) % n], b = v[(i + 1) % n] - q; assert(cross(a, b) != 0 || dot(a, b) > 0);
+        [[maybe_unused]] point q = v[i], a = q - v[(i + n - 1) % n], b = v[(i + 1) % n] - q; assert(cross(a, b) != 0 || dot(a, b) > 0);
         x0 = min(x0, q.x); x1 = max(x1, q.x); y0 = min(y0, q.y); y1 = max(y1, q.y);}
     vector<Halfplane> line{{{x0, y0}, {x1, y0}}, {{x1, y0}, {x1, y1}}, {{x1, y1}, {x0, y1}}, {{x0, y1}, {x0, y0}}}, flat;
     vector<int> nxt{1, 2, 3, 0}, prv{3, 0, 1, 2}; vector<char> dead(4, 0);

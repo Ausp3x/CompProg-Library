@@ -4,8 +4,11 @@ import math
 import os
 from pathlib import Path
 import random
-import subprocess
-from _00_runner import main
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
+from _00_cpp_test_runner import compiler_command
 
 LIMIT = (1 << 64) - 1
 
@@ -85,9 +88,9 @@ def fib_matrix(n, mod):
 def oracle(binary, args, env):
     if not getattr(args, '_narrow_checked', False):
         header = Path(__file__).resolve().parents[2] / '05-Mathematics/05-combinatorics.hpp'
-        command = [os.environ.get('CXX','g++'),'-std=gnu++20','-x','c++','-','-fsyntax-only']
+        command = [*compiler_command(),'-std=gnu++20','-x','c++','-','-fsyntax-only']
         source = f'#include "{header}"\nint main() {{ fibonacciPair<uint16_t>(8); }}\n'
-        failure = subprocess.run(command,input=source,text=True,capture_output=True,env=env,timeout=180)
+        failure = timed_run('05-combinatorics narrow-integer rejection compile', command,input=source,text=True,capture_output=True,env=env,timeout=180)
         if failure.returncode == 0 or 'static assertion failed' not in failure.stderr:
             raise RuntimeError(f'narrow integer rejection expected static assertion command={command} returncode={failure.returncode}\n{failure.stderr}')
         args._narrow_checked = True
@@ -231,7 +234,7 @@ def oracle(binary, args, env):
         exact('em',(len(parts),*parts),multinomial(parts))
     command = [str(binary),'--oracle']
     payload = ''.join(op+' '+' '.join(map(str,values))+'\n' for op,values,_ in cases)
-    result = subprocess.run(command,input=payload,text=True,capture_output=True,env=env,timeout=180)
+    result = timed_run(f'05-combinatorics oracle {Path(command[0]).name}', command,input=payload,text=True,capture_output=True,env=env,timeout=180)
     if result.returncode:
         raise RuntimeError(f'command={command} returncode={result.returncode}\n{result.stderr}')
     lines = result.stdout.splitlines()

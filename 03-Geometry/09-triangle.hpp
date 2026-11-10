@@ -32,7 +32,7 @@ struct TriangleApprox {
         out = {cross(b - p, c - p) / d, cross(c - p, a - p) / d, cross(a - p, b - p) / d};
         return true;}
     bool fromBarycentric(array<long double, 3> w, dpoint &out) const {
-        for (long double x : w) { assert(std::isfinite(x)); }
+        for ([[maybe_unused]] long double x : w) { assert(std::isfinite(x)); }
         long double d = w[0] + w[1] + w[2];
         if (d == 0) { return false; }
         out = a + (b - a) * (w[1] / d) + (c - a) * (w[2] / d); return true;}

@@ -57,7 +57,7 @@ Search aliases (P263, grab --find): 环基, 环空间, 圈空间, 最大异或�
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/28-cycle_basis_tester.py` (shared graph runner with `-Werror` warnings; optimized, checked with 7 assertion probes, ASan/UBSan in full and stress). Oracle self-tests on hand cases cover every brute force below.
+`96-Local Testing/04-Graphs/28-cycle_basis_tester.py` (shared contest runner with `-Werror` warnings; optimized, checked with 7 assertion probes, ASan/UBSan in full and stress). Oracle self-tests on hand cases cover every brute force below.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -73,6 +73,8 @@ Search aliases (P263, grab --find): 环基, 环空间, 圈空间, 最大异或�
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 943 MB; optimized 0.2 s compile + 6.7 s run, checked 26.0 s compile + 39.3 s run, ASan-UBSan 28.5 s compile + 42.8 s run; MEMORY peak 1203 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 954 MB; optimized 0.3 s compile + 11.8 s run, checked 45.8 s compile + 63.0 s run, ASan-UBSan 50.4 s compile + 76.1 s run; MEMORY peak 1183 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 29.3 s compile + 0.6 s run, checked 26.4 s compile + 19.8 s run; MEMORY peak 944 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 55 MB; optimized 0.1 s compile + 8.5 s run, checked 12.6 s compile + 21.3 s run, ASan-UBSan 13.7 s compile + 57.3 s run; MEMORY peak 853 MB. Dated rows below stay those commands' latest results.
+
 Run 2026-11-03 with `XorBasis<false>`, maintainer runs under `merge_pr.py run 1` (bwrap, memory cap), Intel Core i9-11900H, `g++` 16.2.1, `g++-14` 14.4.1, CPython 3.14.8; quick and full in the maintainer gate (`merge_pr.py gates 1`), stress in its own capped scope:
 
 | Command | Result | Memory peak |
@@ -82,7 +84,7 @@ Run 2026-11-03 with `XorBasis<false>`, maintainer runs under `merge_pr.py run 1`
 | `CXX=g++-14 python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode full --seed 1` | PASS, 3 configurations, 12,996,371 checks | 881 MB |
 | `python3 '96-Local Testing/04-Graphs/28-cycle_basis_tester.py' --mode stress --seed 7` | PASS, 3 configurations; 36,137,698 / 13,038,645 / 36,137,698 checks (optimized / checked / ASan) | 874 MB |
 
-The checked build (`-O0 -D_GLIBCXX_DEBUG`) runs stress at full-mode sizes (3,000 rounds, 400 hash graphs, 200,000-vertex shapes): 42.6 s alone, 52 s under parallel load, against the runner's 180 s limit. Optimized and ASan run 15,000 rounds, 1,500 hash graphs and 300,000-vertex shapes.
+The checked build (`-O1 -D_GLIBCXX_DEBUG`) runs stress at full-mode sizes (3,000 rounds, 400 hash graphs, 200,000-vertex shapes), a cap chosen when `-O0` took 42.6 s alone against a 180 s limit. Optimized and ASan run 15,000 rounds, 1,500 hash graphs and 300,000-vertex shapes.
 
 `python3 '96-Local Testing/02-integration.py'`: PASS, 186 standalone and aggregate headers, multi-TU, workspace (2026-11-03).
 
@@ -108,3 +110,4 @@ Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction).
 - 2026-11-03: P032 `/merge-pr 1`: `XorWalk` and `CutSpaceHash` use `XorBasis<false>`, removing the mask cost; quick, full (seed 1) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

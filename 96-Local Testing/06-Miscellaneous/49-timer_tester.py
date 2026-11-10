@@ -11,7 +11,10 @@ ScopedTimer format (label, three fixed decimals, " ms"), its bracket, untouched
 stream flags/precision, nested destruction order and the cerr default.
 progress with a non-positive limit is an assertion probe.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':

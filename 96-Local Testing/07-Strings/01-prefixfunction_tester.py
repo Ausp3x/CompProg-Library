@@ -10,8 +10,11 @@ Fibonacci-word stream, bytes, wide integer alphabets, accepting/empty states,
 reset and copying. Builds use -Wall -Wextra -Wshadow -Wconversion -Werror.
 Full/stress run optimized NDEBUG, checked assertions and ASan/UBSan.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('01-prefixfunction', ['size-large', 'border-negative', 'border-large',
-        'alphabet-negative', 'symbol-negative', 'symbol-large', 'stream-overflow'], strict=True))
+        'alphabet-negative', 'symbol-negative', 'symbol-large', 'stream-overflow'], extra=('-Wshadow',)))

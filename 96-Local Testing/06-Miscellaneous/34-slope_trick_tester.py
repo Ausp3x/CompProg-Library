@@ -22,11 +22,14 @@ int/double instantiations) of up to 16 operations; classics 10 rounds; balance 4
 doublings; ping-pong 2000; cross-check 20000. full: adds ASan/UBSan; 8x the sequences, up to 48
 operations; classics 80 rounds; balance 16000 merges and 12 doublings; ping-pong 50000; cross-check
 200000. stress: full-mode counts with up to 96 operations, ping-pong 200000, cross-check 10^6 (the
--O0 _GLIBCXX_DEBUG build verifies the whole heap on every push/pop, so more rounds exceed the runner
+_GLIBCXX_DEBUG build verifies the whole heap on every push/pop, so more rounds exceed the runner
 timeout; stress volume comes from several seeds).
 The checked build runs 20 assertion probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':

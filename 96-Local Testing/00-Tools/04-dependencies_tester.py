@@ -26,12 +26,14 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
 import importlib.util
 import io
 import json
 import os
 import random
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -41,6 +43,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import cache_env, cached
 
 _00_memory_cap.ensure()
 
@@ -152,7 +155,7 @@ def describe_lines(root: Path, order: list[str]) -> list[str]:
 
 def mm(header: str) -> set[str]:
     """Repository files the preprocessor reads for one header (`-MM`, Make escapes undone)."""
-    r = subprocess.run([CXX, "-std=gnu++20", "-MM", "-MT", "x", "-x", "c++", header], cwd=ROOT,
+    r = subprocess.run([*shlex.split(CXX), "-std=gnu++20", "-MM", "-MT", "x", "-x", "c++", header], cwd=ROOT,
                        capture_output=True, text=True, timeout=120)
     if r.returncode:
         raise AssertionError(f"{CXX} -MM {header} exited {r.returncode}: {r.stderr[-800:]}")
@@ -509,7 +512,7 @@ class Repository(Base):
             self.assertIn(h, self.graph)
 
     def check_mm(self, hs):
-        if not shutil.which(CXX):
+        if not shutil.which((shlex.split(CXX) or [""])[0]):
             self.skipTest(f"SKIP compiler {CXX} not found")
         with ThreadPoolExecutor(min(8, os.cpu_count() or 1)) as pool:
             for h, files in zip(hs, pool.map(mm, hs)):
@@ -525,7 +528,7 @@ class Repository(Base):
         self.check_mm(sorted(set(self.graph) - set(SAMPLE)))
 
     def check_compile(self, hs):
-        if not shutil.which(CXX):
+        if not shutil.which((shlex.split(CXX) or [""])[0]):
             self.skipTest(f"SKIP compiler {CXX} not found")
         hs = [h for h in hs if not re.search(r"/9[89]-", h)]
 
@@ -534,14 +537,15 @@ class Repository(Base):
             tu = "".join(f'#line 1 "{x}"\n' + re.sub(r'^[ \t]*#[ \t]*(include[ \t]*"[^"\n]+"|pragma[ \t]+once\b).*$', "",
                                                     (ROOT / x).read_text(encoding="utf-8"), flags=re.M) + "\n"
                          for x in order)
-            r = subprocess.run([CXX, "-std=gnu++20", "-fsyntax-only", "-x", "c++", "-"], input=tu, cwd=self.root,
-                               capture_output=True, text=True, timeout=600)
-            return order, r
+            name = hashlib.sha1(tu.encode()).hexdigest()[:20] + ".cpp"  # named by content, so an unchanged TU hits ccache
+            Path(self.root, name).write_text(tu, encoding="utf-8")
+            command = [*cached(shlex.split(CXX)), "-std=gnu++20", "-fsyntax-only", "-x", "c++", name]
+            return order, command, subprocess.run(command, cwd=self.root, capture_output=True, text=True, timeout=600, env=cache_env())
         with ThreadPoolExecutor(min(4, os.cpu_count() or 1)) as pool:  # about 400 MB per compiler; stays under the 2048 MB pre-flight cap
-            for h, (order, r) in zip(hs, pool.map(run, hs)):
+            for h, (order, command, r) in zip(hs, pool.map(run, hs)):
                 with self.subTest(header=h, CXX=CXX):
                     self.assertEqual(r.returncode, 0, f"typing order {order} does not compile as one TU "
-                                     f"({CXX} -std=gnu++20 -fsyntax-only -x c++ -):\n{r.stderr[-1500:]}")
+                                     f"(in {self.root}: {shlex.join(command)}):\n{r.stderr[-1500:]}")
         print(f"compile oracle: {len(hs)} TUs with {CXX}", file=sys.stderr, flush=True)
 
     def test_repo_compile_closure_sample(self):
@@ -786,6 +790,7 @@ class PlanRules(Base):
         self.dump("batches.json", batches)
 
     def cycle_nodes(self, errors):
+        errors = [e for e in errors if "cycle" in e]  # the injected edge may also be scheduled late
         self.assertEqual(len(errors), 1, errors)
         m = re.fullmatch(r"Batch prerequisite cycle: (.+)", errors[0])
         self.assertIsNotNone(m, errors)

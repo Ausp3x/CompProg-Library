@@ -7,7 +7,10 @@ graphs with <=10 edges, all two-node edge multiplicities 0..2, 200000-edge
 chains/cycles in optimized, checked and ASan/UBSan builds. stress extends
 random to 10000 cases and chains/cycles to 500000 edges.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('10-euleriantrail', ['negative-start', 'high-start', 'empty-start']))

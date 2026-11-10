@@ -58,7 +58,7 @@ Search aliases (P263, grab --find): 斜率优化, 李超线段树, 李超树, �
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/21-lichao_tester.cpp`, entry `21-lichao_tester.py` (driver `_00_runner.py`; three builds; 20 assertion probes). Function types: lines, integer parabolas `a (x - p)^2 + c` with one `a` per tree, and double parabolas `0.5 (x - p)^2 + c` compared exactly against the same doubles. Every generated function is checked in `__int128` against the value domain, so the `-DNDEBUG` build stays inside the contract.
+Tester `96-Local Testing/02-Data Structures/21-lichao_tester.cpp`, entry `21-lichao_tester.py` (driver `_00_contest_runner.py`; three builds; 20 assertion probes). Function types: lines, integer parabolas `a (x - p)^2 + c` with one `a` per tree, and double parabolas `0.5 (x - p)^2 + c` compared exactly against the same doubles. Every generated function is checked in `__int128` against the value domain, so the `-DNDEBUG` build stays inside the contract.
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -71,6 +71,8 @@ Tester `96-Local Testing/02-Data Structures/21-lichao_tester.cpp`, entry `21-lic
 Quick runs 40 steps, 2 tiny rounds and n = 2000 at scale.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1200 MB; optimized 0.1 s compile + 6.0 s run, checked 42.4 s compile + 18.1 s run, ASan-UBSan 54.1 s compile + 52.3 s run; MEMORY peak 1776 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1208 MB; optimized 0.3 s compile + 12.3 s run, checked 92.3 s compile + 26.8 s run, ASan-UBSan 113.0 s compile + 105.8 s run; MEMORY peak 1739 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 77.4 s compile + 0.3 s run, checked 49.0 s compile + 4.5 s run; MEMORY peak 1195 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1202 MB; optimized 0.1 s compile + 11.8 s run, checked 28.0 s compile + 21.6 s run, ASan-UBSan 31.1 s compile + 81.2 s run; MEMORY peak 1050 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-10-28, Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.8, in the runner's optimized, checked and ASan/UBSan builds:
 
@@ -113,3 +115,4 @@ Fetched 2026-10-28 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 - 2026-10-28: P032 DS11 rewrite; independent review, 3 findings fixed here (degenerate-domain leaf test `md == l`, lowercase constructor parameters, the merge cost note); full (seed 20261028) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-10-28: `/finish` DS11: `PerLiChaoTree::reserve`, the same-line tie rule, kept small-to-large merge (user decisions), compressed exhausted-undo probe, documentation and citation fixes; quick, full on g++ and g++-14 and stress (seed 7) rerun and passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

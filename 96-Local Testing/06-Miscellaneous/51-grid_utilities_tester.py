@@ -20,7 +20,10 @@ closed form validated on the same box, then 2000/100000/2000000 random and
 extreme coordinates up to 2^62 against that form and board symmetries.
 Precondition probes: bad direction/roll letters, ragged grids, negative pad.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':

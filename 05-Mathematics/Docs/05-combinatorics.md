@@ -90,6 +90,8 @@ A compile-fail fixture checks, on every run, that narrow unsigned Fibonacci type
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 840 MB; optimized 0.2 s compile + 7.2 s run, checked 20.5 s compile + 2.8 s run, ASan-UBSan 22.7 s compile + 3.4 s run; MEMORY peak 1024 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 897 MB; optimized 0.2 s compile + 12.4 s run, checked 31.4 s compile + 3.6 s run, ASan-UBSan 35.1 s compile + 3.7 s run; MEMORY peak 1076 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 28.4 s compile + 14.9 s run, checked 27.8 s compile + 13.9 s run; MEMORY peak 847 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 836 MB; optimized 0.1 s compile + 4.7 s run, checked 7.5 s compile + 3.4 s run, ASan-UBSan 8.8 s compile + 4.0 s run; MEMORY peak 655 MB. Dated rows below stay those commands' latest results.
+
 P012 prune run, 2026-10-12, recorded once for all six headers `01-mod_arithmetic.hpp` … `06-segmentedsieve.hpp`. GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Every suite runs the shared runner's optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and ASan/UBSan configurations; counts are per configuration and equal on both compilers.
 
 | Command | Result |
@@ -134,3 +136,4 @@ Search aliases (P263, grab --find): binomial coefficient, nCr, derangement (Mont
 - 2026-10-12: prune, removed `fibonacci<T>` (`fibonacciExact` and the tests use `fibonacciPair<T>(n).first`); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

@@ -92,13 +92,16 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import copy
 import contextlib
 import importlib.util
+import hashlib
 import io
 import json
 import os
 import random
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -108,6 +111,7 @@ from pathlib import Path
 from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import Builder
 
 _00_memory_cap.ensure()
 
@@ -355,42 +359,51 @@ def write_tree(root: Path, files: dict[str, str]) -> Path:
     return root
 
 
+RECORDS: dict[tuple[str, str], dict] = {}  # (header, grab's content key) -> record: an identical closure analyzes once
+
+
 def built(root: Path, cache: Path | None = None):
     """Index of root whose stale records are built here (two threads), not by Index's own build step."""
     ix = G.Index(root, cache, quiet=True, build=False)
+    keys = {h: (h, G.key(root, ix.graph, h)) for h in ix.stale}
+    todo = [h for h in ix.stale if keys[h] not in RECORDS]
     with concurrent.futures.ThreadPoolExecutor(2) as pool:
-        for h, rec in zip(ix.stale, pool.map(lambda h: G.index_header(root, h), ix.stale)):
-            ix.records[h] = rec
+        RECORDS.update((keys[h], rec) for h, rec in zip(todo, pool.map(lambda h: G.index_header(root, h), todo)))
+    for h in ix.stale:
+        ix.records[h] = copy.deepcopy(RECORDS[keys[h]])
     ix.link()
     return ix
 
 
 def compilers():
     want = [CXX] if MODE == 'quick' else list(dict.fromkeys([CXX, 'g++-14']))
-    return [c for c in want if shutil.which(c)], [c for c in want if not shutil.which(c)]
+    return [c for c in want if shutil.which((shlex.split(c) or [''])[0])], [c for c in want if not shutil.which((shlex.split(c) or [''])[0])]
 
 
 def prelude(root: Path) -> str:
-    return f'#include "{root}/{T}"\n'
+    """The include of a fixture tree's template, relative to the tree's parent (where its oracle sources build, so they hit
+    the build cache across runs); the repository's stays absolute."""
+    return f'#include "{root}/{T}"\n' if root == ROOT else f'#include "{root.name}/{T}"\n'
 
 
-def compile_cmd(cxx, cpp, out=None, flags=(), opt='-O0'):
-    cmd = [cxx, '-std=gnu++20', opt, '-Wall', '-Wextra', *flags, str(cpp)]
-    return _00_memory_cap.capped(cmd + (['-o', str(out)] if out else ['-fsyntax-only']), COMPILE_MB)
+def unit(tmp: Path, source: str) -> Path:
+    """source as a file named by its content, so an unchanged oracle source hits the build cache in every run."""
+    tmp.mkdir(parents=True, exist_ok=True)
+    cpp = tmp / f'{hashlib.sha1(source.encode()).hexdigest()[:20]}.cpp'
+    if not cpp.exists():
+        fd, name = tempfile.mkstemp(suffix='.part', dir=tmp)
+        with os.fdopen(fd, 'w', encoding='utf-8') as f:
+            f.write(source)
+        os.replace(name, cpp)  # concurrent writers of one content never expose a partial file
+    return cpp
 
 
 def build_run(tmp: Path, source: str, cxx: str, flags=(), stdin='', opt='-O0') -> str:
-    """Compile source and run it; stdout, or AssertionError with the command and diagnostics."""
-    tmp.mkdir(parents=True, exist_ok=True)
-    fd, name = tempfile.mkstemp(suffix='.cpp', dir=tmp)
+    """Compile source through Builder and run it; stdout, or AssertionError with the command and diagnostics."""
+    cpp = unit(tmp, source)
+    fd, exe = tempfile.mkstemp(suffix='.out', dir=tmp)
     os.close(fd)
-    cpp = Path(name)
-    cpp.write_text(source, encoding='utf-8')
-    exe = cpp.with_suffix('.out')
-    cmd = compile_cmd(cxx, cpp, exe, flags, opt)
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
-    if r.returncode or not exe.exists():
-        raise AssertionError(f'compile failed (exit {r.returncode}): {" ".join(cmd)}\n{r.stderr[-4000:]}')
+    Builder(shlex.split(cxx), tmp, failure=AssertionError).build('grab oracle', ['-std=gnu++20', opt, '-Wall', '-Wextra', *flags], [cpp], exe, 900)
     run = subprocess.run(_00_memory_cap.capped([str(exe)], RUN_MB), input=stdin, capture_output=True, text=True, timeout=120)
     if run.returncode:
         raise AssertionError(f'{exe} exited {run.returncode}: {run.stderr[-2000:]}')
@@ -398,11 +411,10 @@ def build_run(tmp: Path, source: str, cxx: str, flags=(), stdin='', opt='-O0') -
 
 
 def syntax(tmp: Path, source: str, cxx: str, flags=()) -> subprocess.CompletedProcess:
-    tmp.mkdir(parents=True, exist_ok=True)
-    fd, name = tempfile.mkstemp(suffix='.cpp', dir=tmp)
-    os.close(fd)
-    Path(name).write_text(source, encoding='utf-8')
-    return subprocess.run(compile_cmd(cxx, name, None, flags), capture_output=True, text=True, timeout=900)
+    """A rejection probe: a plain -fsyntax-only command whose diagnostics the test reads (ccache stores no failure)."""
+    cpp = unit(tmp, source)
+    return subprocess.run(_00_memory_cap.capped([*shlex.split(cxx), '-std=gnu++20', '-O0', '-Wall', '-Wextra', *flags, cpp.name, '-fsyntax-only'], COMPILE_MB),
+                          cwd=tmp, capture_output=True, text=True, timeout=900)
 
 
 def stripped(text: str) -> set[str]:
@@ -561,13 +573,13 @@ class Selection(FixtureBase):
                 self.eq(DECL in lines, DEF in lines, root=root, what='out-of-line member and its declaration together', out=out)
                 self.eq(o_line_problems(self.grab(root, directives=True), texts), [], root=root)
                 for cxx in cxxs:
-                    got = build_run(self.tmp / root.replace(':', '_'), prelude(self.fx) + out + f'int main() {{\n{main}\n}}\n', cxx)
+                    got = build_run(self.fx.parent, prelude(self.fx) + out + f'int main() {{\n{main}\n}}\n', cxx)
                     self.eq(got, want, root=root, cxx=cxx, out=out)
 
     def test_unparsed_branch_compiles(self):
         out = self.grab('useNorm')
         for cxx in self.compilers():
-            got = build_run(self.tmp, prelude(self.fx) + out + 'int main() {\n' + SELECTION['useNorm'][2] + '\n}\n', cxx,
+            got = build_run(self.fx.parent, prelude(self.fx) + out + 'int main() {\n' + SELECTION['useNorm'][2] + '\n}\n', cxx,
                             ['-DSOME_UNDEFINED_MACRO'])
             self.eq(got, '25 1\n7\n', cxx=cxx, out=out)
 
@@ -580,8 +592,8 @@ class Selection(FixtureBase):
         self.eq(body, '#ifdef __AVX2__\ninline int simdSum(int a, int b) { return a + b + 0; }\n#else\n'
                       'inline int simdSum(int a, int b) { return b + a; }\n#endif', out=out)
         for cxx in self.compilers():
-            r = syntax(self.tmp, prelude(self.fx) + out + 'int main() { return simdSum(1, 2) - 3; }\n', cxx, ['-mavx2'])
-            self.eq(r.returncode, 0, cxx=cxx, err=r.stderr[-2000:])
+            src = unit(self.fx.parent, prelude(self.fx) + out + 'int main() { return simdSum(1, 2) - 3; }\n')
+            Builder(shlex.split(cxx), self.fx.parent, failure=AssertionError).syntax('simdSum -mavx2', ['-std=gnu++20', '-O0', '-Wall', '-Wextra', '-mavx2'], src, 900)
 
     def test_std_hash_with_type(self):
         for root in ('Point', 'useNorm', 'betaPoint'):
@@ -629,7 +641,7 @@ class Render(FixtureBase):
         out = self.grab('boom', directives=True)
         line = self.lineno(U, 'static_assert(sizeof(T) == 0, "boom fired");')
         for cxx in self.compilers():
-            r = syntax(self.tmp, prelude(self.fx) + out + 'int main() { return boom(1); }\n', cxx)
+            r = syntax(self.fx.parent, prelude(self.fx) + out + 'int main() { return boom(1); }\n', cxx)
             hits = re.findall(rf'^{re.escape(U)}:(\d+):\d+: error', r.stderr, re.M)
             self.true(r.returncode != 0 and hits and int(hits[0]) == line, cxx=cxx, want=line, hits=hits, err=r.stderr[-2000:])
 
@@ -826,7 +838,7 @@ class Into(FixtureBase):
         self.true({'inline int thrice(int x) { return 3 * x; }', 'inline int twice(int x) { return 2 * x; }', HELPER_A[2]} <= block
                   and 'inline int unusedA(int x) { return x * 7; }' not in block, text=text)
         for cxx in self.compilers():
-            self.eq(build_run(self.tmp, prelude(self.fx) + text, cxx), '3 9 6\n', cxx=cxx, text=text)
+            self.eq(build_run(self.fx.parent, prelude(self.fx) + text, cxx), '3 9 6\n', cxx=cxx, text=text)
         self.eq(self.into(f), ['alpha_detail::thrice', 'helperA', 'useAlias'])
         self.eq(f.read_text(), text, what='rerun is identical')
 
@@ -840,7 +852,7 @@ class Into(FixtureBase):
         self.true(text.count('// grab begin:') == 1 and '// grab begin: lonely\n' in text and 'useAlias' not in text.split('// grab end')[0]
                   and 'inline int lonely(int x) { return x; }' in text, text=text)
         for cxx in self.compilers():
-            self.eq(build_run(self.tmp, prelude(self.fx) + text, cxx), '2 2 2\n', cxx=cxx, text=text)
+            self.eq(build_run(self.fx.parent, prelude(self.fx) + text, cxx), '2 2 2\n', cxx=cxx, text=text)
         f.write_text(text.replace('lonely(t), t, t', 't, t, t'))
         self.eq(self.into(f), [])
         self.eq(f.read_text(), self.SOL.replace('helperA(t), useAlias(t), alpha_detail::thrice(t)', 't, t, t'))
@@ -855,7 +867,7 @@ class Into(FixtureBase):
             block = stripped(text.split('// grab end')[0])
             self.eq(([k for k in kept if k not in block], [d for d in dropped if d in block]), ([], []), prune=prune, text=text)
             for cxx in self.compilers():
-                self.eq(build_run(self.tmp, prelude(self.fx) + text, cxx), '5\n', cxx=cxx, prune=prune, text=text)
+                self.eq(build_run(self.fx.parent, prelude(self.fx) + text, cxx), '5\n', cxx=cxx, prune=prune, text=text)
 
     def test_into_errors(self):
         f = self.tmp / 'sol.cpp'
@@ -1202,7 +1214,7 @@ class Extras(Base):
 
     def run_with(self, out, main, want, flags=()):
         for cxx in self.compilers():
-            self.eq(build_run(self.tmp, prelude(self.root) + out + main, cxx, flags), want, cxx=cxx, out=out)
+            self.eq(build_run(self.root.parent, prelude(self.root) + out + main, cxx, flags), want, cxx=cxx, out=out)
 
     def test_alias_member_and_whole(self):
         self.eq([self.ix.units[i]['qual'] for i in self.ix.resolve('Wrap::sqrt')], ['wrap_detail::Value::sqrt'])
@@ -1231,7 +1243,7 @@ class Extras(Base):
         self.eq(lines.index('// grab begin: Base'), 3, what='above the comment of the first declaration using it', text=f.read_text())
         self.eq(lines[lines.index('// grab end') + 1], '// counts')
         for cxx in self.compilers():
-            self.eq(build_run(self.tmp, prelude(self.root) + f.read_text(), cxx), '3\n', cxx=cxx)
+            self.eq(build_run(self.root.parent, prelude(self.root) + f.read_text(), cxx), '3\n', cxx=cxx)
         self.eq(G.into(f, self.root, self.ix), ['Base'])
         self.eq(f.read_text().split('\n'), lines, what='rerun is identical')
 
@@ -1299,7 +1311,7 @@ class Extras(Base):
         lines = f.read_text().split('\n')
         self.eq((lines.index('// grab begin: Base'), lines[lines.index('// grab end') + 1]), (1, 'namespace sol {'), what='above the namespace, never inside it')
         for cxx in self.compilers():
-            self.eq(build_run(self.tmp, prelude(self.root) + f.read_text(), cxx), '3\n', cxx=cxx)
+            self.eq(build_run(self.root.parent, prelude(self.root) + f.read_text(), cxx), '3\n', cxx=cxx)
 
     def test_bundle_directives_between_includes(self):
         src = self.root / '97-Online Testing/src/j/mode.cpp'
@@ -1440,7 +1452,7 @@ class Fallback(FixtureBase):
         out = G.grab(['betaUse'], self.fx, self.ixn)
         self.eq(out, self.whole(A, B))
         for cxx in self.compilers():
-            self.eq(build_run(self.tmp, prelude(self.fx) + out + 'int main() { printf("%d\\n", betaUse(3)); }\n', cxx), '8\n', cxx=cxx)
+            self.eq(build_run(self.fx.parent, prelude(self.fx) + out + 'int main() { printf("%d\\n", betaUse(3)); }\n', cxx), '8\n', cxx=cxx)
         self.eq(G.grab(['lonely'], self.fx, self.ixn, True), f'#line 1 "{U}"\n' + self.whole(U))
         with self.assertRaises(G.GrabError) as e:
             G.grab(['nosuch'], self.fx, self.ixn)
@@ -2147,7 +2159,7 @@ class Stress(Base):
                        ''.join(f', (long long)({c})' for c, _ in exprs) + '); } }\n'
                 want = ''.join(' '.join(str(f(x)) for _, f in exprs) + '\n' for x in xs)
                 for cxx in cxxs:
-                    self.eq(build_run(self.tmp / f'b{r}', prelude(root) + out + main, cxx), want, cxx=cxx, out=out, **ctx)
+                    self.eq(build_run(root.parent, prelude(root) + out + main, cxx), want, cxx=cxx, out=out, **ctx)
 
 
 if __name__ == '__main__':

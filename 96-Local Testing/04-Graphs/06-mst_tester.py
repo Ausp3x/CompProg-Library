@@ -6,10 +6,13 @@ multigraphs, and a 1000-vertex chain. Full uses n=4, 400 random graphs, and a
 Every small graph uses forest-subset enumeration, minimax/maximin Floyd and
 threshold transitive closure. Full/stress add ASan/UBSan through the driver.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('06-mst', ['directed-kruskal', 'directed-prim-sparse',
         'directed-prim-dense', 'directed-boruvka', 'directed-reconstruction',
         'too-many-nodes', 'bottleneck-negative', 'bottleneck-end', 'lca-negative',
-        'lca-end', 'threshold-negative', 'threshold-end', 'leaf-range-negative', 'leaf-range-end'], strict=True))
+        'lca-end', 'threshold-negative', 'threshold-end', 'leaf-range-negative', 'leaf-range-end']))

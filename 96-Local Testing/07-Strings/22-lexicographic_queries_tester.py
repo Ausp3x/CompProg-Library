@@ -21,12 +21,15 @@ texts of 20000/50000/300000 symbols checked against the suffix automaton
 MAW), distinct windows of sampled lengths and counting identities. Builds use -Wall -Wextra -Wshadow -Wconversion -Werror;
 full/stress add ASan/UBSan; the checked and ASan/UBSan builds run stress at
 full-mode sizes (the brute oracles allocate heavily and stress there exceeds
-the 180 s limit); checked builds run eleven precondition probes.
+the former 180 s limit); checked builds run eleven precondition probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
     raise SystemExit(main('22-lexicographic_queries', ['compare-range', 'suffix-range', 'collection-range', 'collection-index',
                                                        'dbf-name', 'dbf-range', 'occurrence-range', 'no-rmq', 'maw-symbol',
-                                                       'maw-sigma', 'order-range'], strict=True))
+                                                       'maw-sigma', 'order-range'], extra=('-Wshadow',)))

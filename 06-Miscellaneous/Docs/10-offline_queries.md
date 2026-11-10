@@ -23,6 +23,8 @@ Each query `{l, r, key, inclusive}` counts the values in `a[l, r)` that pass its
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1032 MB; optimized 0.3 s compile + 0.6 s run, checked 42.6 s compile + 3.2 s run, ASan-UBSan 48.1 s compile + 4.1 s run; MEMORY peak 1540 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1078 MB; optimized 0.3 s compile + 0.8 s run, checked 59.5 s compile + 8.8 s run, ASan-UBSan 60.4 s compile + 12.4 s run; MEMORY peak 1563 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 57.0 s compile + 0.1 s run, checked 41.8 s compile + 1.4 s run; MEMORY peak 1043 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1045 MB; optimized 0.1 s compile + 1.5 s run, checked 19.2 s compile + 8.8 s run, ASan-UBSan 26.8 s compile + 20.9 s run; MEMORY peak 854 MB. Dated rows below stay those commands' latest results.
+
 GCC 16.2.1 20260810, Python 3.14.7, Linux x86-64, i9-11900H, 2026-10-08. The P014 integration and consistency checks of that date also passed: `python3 '96-Local Testing/02-integration.py'` (102 standalone and aggregate headers, multi-TU builds, workspace) and `python3 '96-Local Testing/03-consistency.py'` with `--braces` on the four P014 headers and testers.
 
 - Full: `python3 '96-Local Testing/06-Miscellaneous/10-offline_queries_tester.py' --mode full --seed 20261008`: PASS (table below); with `CXX=g++-14` (GCC 14.4.1): PASS in all three configurations.
@@ -57,3 +59,4 @@ Search aliases (P263, grab --find): 离线处理, 离线查询, 离线排序, �
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes.
 - 2026-10-08: re-audit, no operation missing, 10 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

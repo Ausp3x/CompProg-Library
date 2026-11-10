@@ -14,7 +14,11 @@ import random
 import shlex
 import subprocess
 
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 
 def reference(points):
@@ -61,8 +65,8 @@ def check(binary, args, env, dim):
         data.append(str(len(p)))
         data.extend(' '.join(map(str, q)) for q in p)
     try:
-        result = subprocess.run(command, input='\n'.join(data) + '\n', text=True,
-                                capture_output=True, env=env, timeout=180)
+        result = timed_run(f'05-closestpair oracle {Path(command[0]).name}', command, input='\n'.join(data) + '\n', text=True,
+                                                    capture_output=True, env=env, timeout=180)
     except subprocess.TimeoutExpired as error:
         raise RuntimeError(f'Python oracle timeout=180s seed={args.seed} '
                            f'command={shlex.join(command)}') from error

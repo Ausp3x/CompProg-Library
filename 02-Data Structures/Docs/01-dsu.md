@@ -28,6 +28,8 @@ Quick: n<=4, depth 3, 35 trials, 1,024 vertices (balanced and stars). Stress: hi
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 723 MB; optimized 0.3 s compile + 2.8 s run, checked 16.4 s compile + 5.1 s run, ASan-UBSan 17.8 s compile + 62.8 s run; MEMORY peak 829 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 759 MB; optimized 0.2 s compile + 2.2 s run, checked 18.9 s compile + 3.5 s run, ASan-UBSan 15.3 s compile + 35.9 s run; MEMORY peak 845 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 24.1 s compile + 0.6 s run, checked 19.7 s compile + 10.7 s run; MEMORY peak 706 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 723 MB; optimized 0.1 s compile + 3.7 s run, checked 5.1 s compile + 6.9 s run, ASan-UBSan 5.1 s compile + 89.0 s run; MEMORY peak 652 MB. Dated rows below stay those commands' latest results.
+
 Latest result of each command, 2026-11-03, after P251 strengthened the tester (header unchanged; g++ 16.0.1 20260322 and g++-14 14.3.0, Python 3.14.4, Linux 6.18 WSL2, AMD Ryzen AI 9 HX 370):
 
 ```bash
@@ -42,9 +44,9 @@ All passed: quick in 2 configurations (`MEMORY peak=389MB`); full on g++ and g++
 
 ## Mutation testing
 
-Record: mewt 4.0.0 on blob `7fcf472306554c4f232dbaa6087bfb3148c4feb3` (2026-11-04, seed 1, whole file): 140 mutants, 134 caught (5 by timeout), 6 survived, 0 untested.
+Record: mewt 4.0.0 on blob `7fcf472306554c4f232dbaa6087bfb3148c4feb3` (2026-11-10, seed 1, whole file): 140 mutants, 134 caught (5 by timeout), 6 survived, 0 untested.
 
-Written by P252 (user decision 2026-11-04); procedure, machine and cost in [00-mutation.md](../../96-Local%20Testing/Docs/00-mutation.md). Stages: quick 140 → 29 survivors on 5 shards, then its five timeouts retested alone and timing out again, 535 s together; full on the optimized build 29 → 29 in 37 s on 5; full on all builds 29 → 6 in 217 s on 4. The five timeouts (`COS 112, 114` on line 30, `COS 115, 117, 119` on line 31) make the root walk or the compression loop spin at a root. The six survivors are equivalent; `COS 97` and `CR 58` only under the contract (representatives and `groups()` capacity are unspecified, user decision 2026-11-03):
+Written by P252 (user decision 2026-11-04), rerun by P274 through the build cache (`--whole --jobs 6`, 2026-11-10, warm; the cold run's seconds in parentheses); procedure, machine and cost in [00-mutation.md](../../96-Local%20Testing/Docs/00-mutation.md). Stages: quick 140 → 29 survivors on 6 shards, then its five timeouts retested on 5 and timing out again, 207 s together (256); full on the optimized build 29 → 29 in 11 s on 6 (11); full on the checked and ASan-UBSan builds 29 → 6 in 103 s on 6 (140). The five timeouts (`COS 112, 114` on line 30, `COS 115, 117, 119` on line 31) make the root walk or the compression loop spin at a root. The six survivors are equivalent; `COS 97` and `CR 58` only under the contract (representatives and `groups()` capacity are unspecified, user decision 2026-11-03):
 
 | Mutant | Line | Why it is equivalent |
 |---|---|---|
@@ -83,3 +85,4 @@ Search aliases (P263, grab --find): union-find, disjoint set union; Library Chec
 - 2026-11-04: P252 recorded the mutation campaign (140 mutants, 6 equivalent survivors) under Mutation testing; header and tests unchanged.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

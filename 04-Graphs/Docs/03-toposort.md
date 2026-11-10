@@ -12,7 +12,7 @@ A topological order is unique exactly when every consecutive pair is joined by a
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/03-toposort_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. The full corpus is 4,697 exhaustive graphs (loopless through four vertices, looped through three) and 1,200 random graphs, each with a parallel-edge variant when it has an edge. Quick uses smaller exhaustive domains, 100 random cases and 20,000-vertex chains; stress extends random counts to 10,000 and chains to 500,000. Exact mode coverage is also stated in the runnable entry.
+`96-Local Testing/04-Graphs/03-toposort_tester.py` uses the shared contest runner, which builds optimized `-O2 -DNDEBUG`, checked `-g -D_GLIBCXX_DEBUG` (`-O0` in quick, `-O1` in full and stress), and full/stress `-O1` ASan/UBSan variants. The full corpus is 4,697 exhaustive graphs (loopless through four vertices, looped through three) and 1,200 random graphs, each with a parallel-edge variant when it has an edge. Quick uses smaller exhaustive domains, 100 random cases and 20,000-vertex chains; stress extends random counts to 10,000 and chains to 500,000. Exact mode coverage is also stated in the runnable entry.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -25,6 +25,8 @@ A topological order is unique exactly when every consecutive pair is joined by a
 The all-ready heap fixture uses 2,000 vertices, because checked libstdc++ validates the entire heap on each operation; the 200,000-vertex deep cases remain. A planted `unique` off-by-one mutation (temporary copy, full mode) was killed.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 771 MB; optimized 0.2 s compile + 2.2 s run, checked 16.7 s compile + 11.6 s run, ASan-UBSan 16.9 s compile + 34.6 s run; MEMORY peak 952 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 819 MB; optimized 0.3 s compile + 4.0 s run, checked 26.4 s compile + 15.3 s run, ASan-UBSan 31.7 s compile + 42.2 s run; MEMORY peak 942 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 23.7 s compile + 0.4 s run, checked 21.8 s compile + 3.5 s run; MEMORY peak 766 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 774 MB; optimized 0.1 s compile + 3.6 s run, checked 6.7 s compile + 21.6 s run, ASan-UBSan 7.0 s compile + 48.0 s run; MEMORY peak 897 MB. Dated rows below stay those commands' latest results.
 
 2026-10-12, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
@@ -71,3 +73,4 @@ Search aliases (P263, grab --find): 拓扑排序, 有向无环图, 拓扑序, �
 - 2026-10-12: P010 prune, the cyclic result takes its witness from `dfsForest(g).cycle` (`findCycle` removed); full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

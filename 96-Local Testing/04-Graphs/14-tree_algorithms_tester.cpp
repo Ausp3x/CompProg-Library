@@ -507,7 +507,7 @@ namespace {
         checkDecode(code);}
 
     void small() {
-        int rounds = mode == "quick" ? 300 : mode == "full" ? (CHECKED ? 1000 : ASAN ? 1500 : 3000) : CHECKED || ASAN ? 2000 : 12000;
+        int rounds = mode == "quick" ? 80 : mode == "full" ? (CHECKED ? 1000 : ASAN ? 1500 : 3000) : CHECKED || ASAN ? 2000 : 12000;
         for (int t = 0; t < rounds; ++t) {
             int n = t < 8 ? t + 1 : 1 + rnd(t % 10 == 0 ? 120 : 40), kind = t % 6;
             Graph g = forest(n, rnd(6), 1, kind);
@@ -537,7 +537,7 @@ namespace {
         cout << "PASS random trees n<=120 (6 shapes, unit/signed/nonnegative/nonpositive/full-range/extreme weights) and forests n<=120 (1-4 trees) rounds=" << rounds << '\n';}
 
     void prufer() {
-        int top = mode == "quick" ? 6 : mode == "full" ? 7 : 8;
+        int top = mode == "quick" ? 5 : mode == "full" ? 7 : 8;
         for (int n = 2; n <= top; ++n) {
             context = "prufer exhaustive n=" + std::to_string(n);
             lng total = 1;
@@ -550,7 +550,7 @@ namespace {
                 checkDecode(code);
                 trees.insert(edgeSet(pruferDecode(code)));}
             check(lng(trees.size()) == total, "pruferDecode is injective over all n^(n-2) codes");}
-        for (int t = 0; t < (mode == "quick" ? 300 : 3000); ++t) {
+        for (int t = 0; t < (mode == "quick" ? 80 : 3000); ++t) {
             int n = 2 + rnd(t % 10 ? 30 : 300);
             vector<int> code(n - 2);
             for (int &v : code) { v = rnd(t % 3 ? n : min(n, 3)); }
@@ -648,7 +648,7 @@ namespace {
         largeCommon(g, Brute(g), !shuffled);}
 
     void large() {
-        int n = mode == "quick" ? 20000 : mode == "full" ? 200000 : 500000;
+        int n = mode == "quick" ? 8000 : mode == "full" ? 200000 : 500000;
         int deep = CHECKED ? min(n, 50000) : ASAN ? min(n, 200000) : n, other = CHECKED || ASAN ? min(n, 50000) : n;
         deepPath(deep, false); deepPath(deep, true);
         for (int shape : {0, 2, 3, 4, 5}) {

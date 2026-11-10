@@ -5,14 +5,13 @@ import contextlib
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import sys
 import tempfile
 import threading
 sys.path.insert(0, str(Path(__file__).resolve().parents[0]))
 import _00_memory_cap
-from _00_cpp_test_runner import cpu_runs, x86, x86_only
+from _00_cpp_test_runner import cached, cache_env, compiler_command, cpu_runs, timed_run, x86, x86_only
 
 _00_memory_cap.ensure(mb=8192)
 
@@ -21,8 +20,16 @@ ROOT = HERE.parent
 LIGHT, HEAVY = 512, 1664  # MB reserved by a syntax check and by a linked build (measured peaks: Docs/00-parallel.md)
 
 
-def run(command, timeout=180):
-    result = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
+def label(command):
+    """What an OVERHALF line names: a compile's or syntax check's source, a link's output, a run's binary."""
+    sources = [Path(a).name for a in command if str(a).endswith('.cpp')]
+    if sources:
+        return sources[-1] + (' -DLOCAL' if '-DLOCAL' in command else '')
+    return f'link {Path(command[command.index("-o") + 1]).name}' if '-o' in command else f'run {Path(command[0]).name}'
+
+
+def run(command, timeout=360):
+    result = timed_run(label(command), command, capture_output=True, text=True, timeout=timeout)
     if result.returncode:
         raise RuntimeError('Command failed: '+repr(command)+'\n'+result.stdout+'\n'+result.stderr)
 
@@ -77,18 +84,12 @@ def main():
     workspace = ROOT/'99-Workspace/template.cpp'
     if not workspace.is_file():
         raise RuntimeError('Required workspace snapshot missing: '+str(workspace)+'; run 97-Online Testing/03-workspace.py explicitly')
-    cxx = os.environ.get('CXX', 'g++')
-    compiler = [*(['ccache'] if shutil.which('ccache') else []), cxx]
-    os.environ.setdefault('CCACHE_NOHASHDIR', '1')  # the build directory differs per run; -g would hash it
+    os.environ.update(cache_env())  # the build directory differs per run; -g would hash it
+    cxx, compiler = compiler_command(), cached(compiler_command())
     headers = sorted(p for d in ROOT.iterdir() if d.is_dir() and d.name[:2] in ('01','02','03','04','05','06','07') for p in d.rglob('*.hpp'))
     flags = ['-std=gnu++20']
     with tempfile.TemporaryDirectory(prefix='cp-integration-') as name, contextlib.chdir(name):
         build = Path(name)  # generated sources keep relative names, so their preprocessed text is the same every run
-        Path('probe.cpp').write_text('int main() {}\n')
-        probe = subprocess.run([*compiler, *flags, '-fsyntax-only', 'probe.cpp'], capture_output=True, text=True)
-        if compiler[0] == 'ccache' and probe.returncode:
-            print('SKIP ccache: ' + ((probe.stderr.strip().splitlines() or ['probe failed'])[0]))
-            compiler = [cxx]
         def linked(output, units, options, *runs):
             """Compile each unit to an object (ccache caches -c and -fsyntax-only, never a compile-and-link), link, then run.
 
@@ -96,7 +97,7 @@ def main():
             """
             objects = [f'{output}-{k}.o' for k in range(len(units))]
             return (HEAVY, [([*compiler, *options, '-c', str(unit), '-o', o],) for unit, o in zip(units, objects)]
-                    + [([cxx, *options, *objects, '-o', str(output)],), *runs], sum(u.stat().st_size for u in units))
+                    + [([*cxx, *options, *objects, '-o', str(output)],), *runs], sum(u.stat().st_size for u in units))
         tasks = []
         for header in headers:
             unit = Path(header.relative_to(ROOT).with_suffix('.cpp').as_posix().replace('/', '__').replace(' ', '_'))
@@ -106,9 +107,9 @@ def main():
         a,b = Path('a.cpp'),Path('b.cpp')
         a.write_text(includes+'int other(); int main() { return other(); }\n')
         b.write_text(includes+'int other() { return 0; }\n')
-        variants = [('scalar', x86_only(['-mno-avx2'], [cxx]))]
-        if cpu_runs({'avx2'}, [cxx]): variants.append(('avx2', ['-mavx2']))
-        else: print('SKIP AVX2 integration: ' + ('hardware support not detected' if x86([cxx]) else 'target is not x86-64'))
+        variants = [('scalar', x86_only(['-mno-avx2'], cxx))]
+        if cpu_runs({'avx2'}, cxx): variants.append(('avx2', ['-mavx2']))
+        else: print('SKIP AVX2 integration: ' + ('hardware support not detected' if x86(cxx) else 'target is not x86-64'))
         for label,target in variants:
             output = build/f'all-{label}'
             tasks.append(linked(output, [a, b], [*flags, *target], ([str(output)],)))

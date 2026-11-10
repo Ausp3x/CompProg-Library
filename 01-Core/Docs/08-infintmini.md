@@ -80,6 +80,8 @@ Quick runs the small corpus (about 800 protocol cases); full adds the sanitizer 
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 778 MB; optimized 0.1 s compile + 86.2 s run, checked 0.2 s compile + 87.5 s run, sanitized 20.2 s compile + 120.0 s run; MEMORY peak 528 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 780 MB; optimized 0.3 s compile + 138.0 s run, checked 0.4 s compile + 137.9 s run, sanitized 31.0 s compile + 194.6 s run; MEMORY peak 505 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 11.9 s compile + 0.1 s run, checked 13.2 s compile + 0.2 s run; MEMORY peak 753 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 779 MB; optimized 0.1 s compile + 1228.3 s run, checked 0.1 s compile + 1182.3 s run, sanitized 10.7 s compile + 45.2 s run; MEMORY peak 561 MB. Compile limit 1200 s instead of 400 or 600 s: `16-poly`'s sanitized compile passed 400 s on a cold full run beside the other suites (about 100 s alone). Dated rows below stay those commands' latest results.
+
 Final header, 2026-10-17 (GCC 16.2.1 and GCC 14.4.1, CPython 3.14, Intel Core i9-11900H; other worktrees' suites ran on the machine at the same time):
 
 ```bash
@@ -147,3 +149,4 @@ Search aliases (P263, grab --find): big integer, bignum, arbitrary-precision ari
 - 2026-10-26: the P025 handoff line updated by the P018 `/finish` audit: `poly_detail::BigInt` now requires base-2^64 words, so the mini no longer matches it (user decision 2026-10-26).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, the 10 s quick bound, a raised limit (above); full and stress inputs and checks unchanged; every library-wide run above passed.

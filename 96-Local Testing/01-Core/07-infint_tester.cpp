@@ -681,7 +681,7 @@ static vector<W> patterned(int n, int pattern, int k = 20, int phase = 0) {
 // residue identity modulo BIG_PRIMES with the exact bit length.
 static void expectProduct(const InfInt &got, const vector<W> &x, const vector<W> &y, bool ones, const std::string &what) {
     InfInt a = ofWords(x), b = ofWords(y); int n = int(x.size()), m = int(y.size());
-    if (4.0 * n * m <= (full() ? 1.2e8 : 4e7)) { expect(got, omul(a, b), what + " against the schoolbook product"); return; }
+    if (4.0 * n * m <= (full() ? 1.2e8 : 1.5e7)) { expect(got, omul(a, b), what + " against the schoolbook product"); return; }
     if (ones) { InfInt one = 1; expect(got, (one << (64 * (n + m))) - (one << (64 * n)) - (one << (64 * m)) + 1, what + " against the all-ones closed form"); return; }
     require(bitLength(got) == bitLength(a) + bitLength(b) || bitLength(got) == bitLength(a) + bitLength(b) - 1, what + ": bit length of the product");
     residues(wordsOf(got), x, y, BIG_PRIMES, 3, what);}
@@ -773,7 +773,7 @@ static void transforms() {
                 if (n == m) { expectProduct(nttProduct(g == 1, x, x, max(8, int(std::bit_ceil(uint(4 * n))))), x, x, pattern == 1, "limb convolution square (b == a)"); }}}}
     context = "fftPlan";
     for (bool cyclic : {false, true}) { FftPlan h = fftPlan(1 << 27, 1 << 27, cyclic ? 1 << 27 : 1 << 28, cyclic); require(h.lg == 0 && h.r == 0 && h.k == 0 && h.len == 0, std::string(cyclic ? "cyclic" : "full") + " plan of 2^27 x 2^27 words is lg = 0 with every field 0"); }
-    const int maxLg = full() ? 18 : 15;
+    const int maxLg = full() ? 18 : 13;
     vector<pair<int, int>> range(6 * 25, {0, 0}); vector<bool> seen(6 * 25, false);
     for (int n = 1; n <= 450000; n = n < 2000 ? n + 1 : n + n / 64) {
         FftPlan p = fftPlan(n, n, 2 * n, false); require(p.lg >= FFT_MIN_LOG && p.lg <= FFT_MAX_LOG && (p.r == 1 || p.r == 3 || p.r == 5), "a full plan for " + std::to_string(n) + " x " + std::to_string(n) + " words");
@@ -808,7 +808,7 @@ static void transforms() {
     for (int n = 1; n <= 8; ++n) { for (int m = 1; m <= n; ++m) { for (int pattern : {0, 1, 2, 3}) { shape(n, m, pattern, pattern, false); } } shape(n, n, 0, -1, false); shape(n, n, 1, -1, false); }
     for (int lg = FFT_MIN_LOG; lg <= maxLg; ++lg) {
         for (int r : {1, 3, 5}) {
-            auto [lo, hi] = range[size_t(r * 25 + lg)]; bool heavy = lg >= (full() ? 16 : 14);
+            auto [lo, hi] = range[size_t(r * 25 + lg)]; bool heavy = lg >= (full() ? 16 : 12);
             for (int pattern = 0; pattern < 5; ++pattern) { if (!heavy || pattern == 0 || pattern == 1 || pattern == 4) { shape(lo, lo, pattern, pattern, heavy); } }
             shape(lo, lo, 0, -1, heavy); shape(lo, lo, 4, -1, heavy); shape(lo, lo / 2 + 1, 0, 4, heavy); shape(lo, 1, 4, 0, heavy);
             if (!heavy) { int mid = std::midpoint(lo, hi); shape(mid, mid, 0, 0, false); shape(mid, mid, 4, 4, false); shape(hi, hi, 4, 4, false); }
@@ -1116,7 +1116,8 @@ static void inversion() {
         vector<int> blks, qns;
         for (int b : {1, 2, 7, knuthGate(m, true) - 1, knuthGate(m, true), cyclicGate(m) - 1, cyclicGate(m), FFT - 1, FFT, m / 3, m / 2, m - 1, m}) { if (b >= 1 && b <= m && std::find(blks.begin(), blks.end(), b) == blks.end()) { blks.push_back(b); } }
         for (int q : {0, 1, knuthGate(m, true) - 1, knuthGate(m, true), knuthGate(m, false) - 1, knuthGate(m, false), m / 3, m / 3 + 1, (m - 1) / CACHED_RATIO, (m - 1) / CACHED_RATIO + 1, (m - 1) / CACHED_RATIO + 2, m, m + 1, 2 * m, 4 * m, 4 * m + 1}) { if (std::find(qns.begin(), qns.end(), q) == qns.end()) { qns.push_back(q); } }
-        for (int qn : qns) {
+        for (size_t at = 0; at < qns.size(); at += !full() && m > 1000 ? 3 : 1) {
+            int qn = qns[at];
             for (int rep = 0; rep < (m > 1000 && qn > 2 * m ? 1 : sz(1, 2)); ++rep, ++t) {
                 int dp = t % 6, qp = (t / 6) % 2, rp = (t / 12) % 4;
                 vector<W> y = divisor(m, dp); if (rp == 0 && dp != 2) { y[0] |= 1; }

@@ -112,7 +112,7 @@
         "02-Data Structures/Docs/07-ordered_set.md",
         "02-Data Structures/Docs/08-monotone_stack.md"
       ],
-      "note": "Follow-ups from P251 (user decision 2026-11-03): (1) 01-dsu_tester.cpp unionHistories prints the depth-first history, not the smallest reproducer (CR 43 reports (0,0)(0,1)(2,0); (0,1)(2,0) suffices): switch to iterative deepening over depth limits 0..depth (~1.125x cost) and drop the 00-notes.md shrinking disclaimer for it. (2) _00_runner.py death check accepts any SIGABRT whose stderr contains 'assert', so for the four _GLIBCXX_ASSERTIONS stems a libstdc++ bounds abort passes as the header's assert: match the glibc form 'Assertion `' or the header path, then rerun the 02-Data Structures testers; that also stops the tester's own fallback message 'precondition did not assert' (01-dsu_tester.cpp) from passing a probe that returns and then aborts (merge-pr 2 review). Omission sweep 2026-11-08: implement SortedBlocks, BlockDecomp, BlockList in `06-sqrt_decomposition.hpp`; largestBinarySquare, maximalHistogramRectangles, maximalBinaryRectangles, countBinaryRectangles in `08-monotone_stack.hpp`. Rows `02-fenwick.hpp`, `03-segmenttree.hpp`, `05-prefix_sum.hpp` and the verified operations of `06-sqrt_decomposition.hpp` were reworded only (ctor names; rows 05 and 06 by user decision 2026-11-08, /finish P254) and stay verified."
+      "note": "Follow-ups from P251 (user decision 2026-11-03): (1) 01-dsu_tester.cpp unionHistories prints the depth-first history, not the smallest reproducer (CR 43 reports (0,0)(0,1)(2,0); (0,1)(2,0) suffices): switch to iterative deepening over depth limits 0..depth (~1.125x cost) and drop the 00-notes.md shrinking disclaimer for it. (2) _00_contest_runner.py death check accepts any SIGABRT whose stderr contains 'assert', so for the four _GLIBCXX_ASSERTIONS stems a libstdc++ bounds abort passes as the header's assert: match the glibc form 'Assertion `' or the header path, then rerun the 02-Data Structures testers; that also stops the tester's own fallback message 'precondition did not assert' (01-dsu_tester.cpp) from passing a probe that returns and then aborts (merge-pr 2 review). Omission sweep 2026-11-08: implement SortedBlocks, BlockDecomp, BlockList in `06-sqrt_decomposition.hpp`; largestBinarySquare, maximalHistogramRectangles, maximalBinaryRectangles, countBinaryRectangles in `08-monotone_stack.hpp`. Rows `02-fenwick.hpp`, `03-segmenttree.hpp`, `05-prefix_sum.hpp` and the verified operations of `06-sqrt_decomposition.hpp` were reworded only (ctor names; rows 05 and 06 by user decision 2026-11-08, /finish P254) and stay verified."
     },
     {
       "id": "P007",
@@ -359,9 +359,11 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
+      "status": "verified",
+      "evidence": [
+        "96-Local Testing/Docs/00-parallel.md"
+      ],
+      "note": "Decisions to review: 00-parallel.md."
     },
     {
       "id": "P275",

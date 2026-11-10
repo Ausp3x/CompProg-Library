@@ -42,7 +42,7 @@ All three take any `ulng n` and `k >= 1` (asserted). When `NDEBUG` removes the a
 
 ## Feature-to-test map
 
-Entry: [`21-integer_roots_tester.py`](<../../96-Local Testing/05-Mathematics/21-integer_roots_tester.py>), which drives the C++ suite `21-integer_roots_tester.cpp` in the shared runner's optimized `-O2 -DNDEBUG` and checked `-O0 -g -D_GLIBCXX_DEBUG` builds, plus an ASan/UBSan build outside quick mode. A Python exact-integer oracle (`math.isqrt`, integer binary search, the exact `2^k n >= (2 r + 1)^k` rounding test, brute-force power decomposition) is first validated against linear scans, a table of perfect powers and 60-digit `Decimal` roots.
+Entry: [`21-integer_roots_tester.py`](<../../96-Local Testing/05-Mathematics/21-integer_roots_tester.py>), which drives the C++ suite `21-integer_roots_tester.cpp` in the shared runner's optimized `-O2 -DNDEBUG` and checked `-g -D_GLIBCXX_DEBUG` (`-O0` in quick, `-O1` in full and stress) builds, plus an ASan/UBSan build outside quick mode. A Python exact-integer oracle (`math.isqrt`, integer binary search, the exact `2^k n >= (2 r + 1)^k` rounding test, brute-force power decomposition) is first validated against linear scans, a table of perfect powers and 60-digit `Decimal` roots.
 
 | Feature | Independent verification |
 |---|---|
@@ -64,6 +64,8 @@ Coverage per mode (the runner has no `--rounds`; stress uses fixed larger sizes 
 | C++ checks per build | 1.5M | 114M | 240M |
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 735 MB; optimized 0.1 s compile + 33.7 s run, checked 10.1 s compile + 41.2 s run, ASan-UBSan 11.8 s compile + 115.7 s run; MEMORY peak 830 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 767 MB; optimized 0.3 s compile + 48.0 s run, checked 22.1 s compile + 54.6 s run, ASan-UBSan 21.2 s compile + 221.7 s run; MEMORY peak 882 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 12.8 s compile + 15.8 s run, checked 11.5 s compile + 20.1 s run; MEMORY peak 732 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 47 MB; optimized 0.1 s compile + 33.0 s run, checked 5.1 s compile + 43.8 s run, ASan-UBSan 4.8 s compile + 134.5 s run; MEMORY peak 851 MB. Dated rows below stay those commands' latest results.
 
 P059 run, 2026-11-03. GCC 16.0.1 (`g++`) and GCC 14.3.0 (`CXX=g++-14`), GNU++20, CPython 3.14.4, Linux x86-64 (WSL2), AMD Ryzen AI 9 HX 370. Every suite runs the shared runner's optimized `-O2 -DNDEBUG` and checked `-O0 -g -D_GLIBCXX_DEBUG` builds, plus ASan/UBSan outside quick mode; counts are per configuration and equal on both compilers.
 
@@ -108,3 +110,4 @@ Search aliases (P263, grab --find): integer sqrt, 开方, 整数平方根, 开�
 - 2026-11-03: maintainer review in `/merge-pr 3`, no code defect; `isqrt` beside `isqrt128` kept as a larger domain (user decision, `duplicates.md`), and the user confirmed the decisions recorded as theirs.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-08: P263 user request added `integer sqrt` to the search aliases (`grab --find`) for a held-out corpus query the search missed (00-search.md, Evaluation); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

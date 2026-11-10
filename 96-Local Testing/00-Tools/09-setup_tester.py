@@ -85,7 +85,7 @@ MUTATION_PY = ROOT / '96-Local Testing/04-mutation.py'
 MODE, SEED, ROUNDS = 'full', 42, 6
 FULL = {'test_probe_real_compilers', 'test_cli_real', 'test_cli_real_ubuntu', 'test_install_random', 'test_commands_random',
         'test_cli_random'}
-REQUIRED = {'g++', 'g++-14', 'python3', 'git', 'rg', 'ccache', 'bwrap', 'systemd-run', 'lscpu', 'gh', 'mewt'}
+REQUIRED = {'g++', 'g++-14', 'python3', 'git', 'rg', 'bwrap', 'systemd-run', 'lscpu', 'gh', 'mewt'}
 # the mewt install step per distribution: that distribution's Python package, then 04-mutation.py install
 MEWT_INSTALL = {'ubuntu': "  ubuntu: sudo apt install python3 && python3 '96-Local Testing/04-mutation.py' install",
                 'arch': "  arch: sudo pacman -S python && python3 '96-Local Testing/04-mutation.py' install"}

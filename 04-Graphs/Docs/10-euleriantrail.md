@@ -18,7 +18,7 @@ The undirected degree condition is zero or two odd vertices; in the latter case 
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/10-euleriantrail_tester.py` reuses the graph test driver, which compiles GNU++20 optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and `-O1 -g` ASan/UBSan with leak detection. Quick/full/stress coverage is documented in the runnable entry; quick omits sanitizers, and stress expands random corpora to 10,000 rounds and chain/cycle sizes to 500,000.
+`96-Local Testing/04-Graphs/10-euleriantrail_tester.py` uses the shared contest runner, which compiles GNU++20 optimized `-O2 -DNDEBUG`, checked `-g -D_GLIBCXX_DEBUG` (`-O0` in quick, `-O1` in full and stress), and `-O1 -g` ASan/UBSan with leak detection. Quick/full/stress coverage is documented in the runnable entry; quick omits sanitizers, and stress expands random corpora to 10,000 rounds and chain/cycle sizes to 500,000.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -28,6 +28,8 @@ The undirected degree condition is zero or two odd vertices; in the latter case 
 | Preconditions | Three checked assertion probes | Expected assertion failure |
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 795 MB; optimized 0.2 s compile + 1.4 s run, checked 22.2 s compile + 8.0 s run, ASan-UBSan 22.3 s compile + 33.9 s run; MEMORY peak 1014 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 841 MB; optimized 0.3 s compile + 2.1 s run, checked 29.9 s compile + 12.9 s run, ASan-UBSan 28.9 s compile + 43.2 s run; MEMORY peak 1036 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 24.6 s compile + 0.1 s run, checked 28.4 s compile + 4.9 s run; MEMORY peak 793 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 806 MB; optimized 0.1 s compile + 1.5 s run, checked 8.1 s compile + 9.0 s run, ASan-UBSan 7.8 s compile + 35.0 s run; MEMORY peak 1051 MB. Dated rows below stay those commands' latest results.
 
 2026-10-07, GCC 16.2.1, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
@@ -78,3 +80,4 @@ Search aliases (P263, grab --find): Euler path, 欧拉图, 欧拉回路, 欧拉�
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-08: P263 user request added `Euler path` to the search aliases (`grab --find`) for a held-out corpus query the search missed (00-search.md, Evaluation); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

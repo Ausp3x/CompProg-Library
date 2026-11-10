@@ -16,7 +16,10 @@ rank/unrank exhaustive n<=9/13/15 against recursive combinations, plus
 boundaries. The shared runner covers optimized NDEBUG and checked builds;
 full/stress add ASan/UBSan with leak checking. Checked builds run 28 probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':

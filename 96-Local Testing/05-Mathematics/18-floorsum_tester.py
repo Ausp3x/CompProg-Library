@@ -17,8 +17,11 @@ binary search on the prefix count; the oracle is validated against brute force f
 import math
 import random
 import shlex
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 LO, HI = -(1 << 63), (1 << 63) - 1
 P = 998244353
@@ -148,8 +151,8 @@ def oracle(binary, args, env):
         r = rng.randint(l, m)
         rows.append((n, m, a, b, l, r))
     command = [str(binary), '--oracle']
-    result = subprocess.run(command, input=''.join(' '.join(map(str, row)) + '\n' for row in rows),
-                            text=True, capture_output=True, env=env, timeout=180)
+    result = timed_run(f'18-floorsum oracle {Path(command[0]).name}', command, input=''.join(' '.join(map(str, row)) + '\n' for row in rows),
+                                             text=True, capture_output=True, env=env, timeout=180)
     if result.returncode:
         raise RuntimeError(f'Python oracle returncode={result.returncode} command={shlex.join(command)}\n{result.stderr}')
     actual = result.stdout.splitlines()
@@ -168,8 +171,8 @@ def oracle(binary, args, env):
         a, b = (rng.choice([-(1 << 127), (1 << 127) - 1, -1, 0, 1]) if rng.random() < 0.15 else rng.randint(-(1 << 127), (1 << 127) - 1) >> rng.randint(0, 126) for _ in range(2))
         wide.append((n, m, a, b))
     command = [str(binary), '--oracle-wide']
-    result = subprocess.run(command, input=''.join(' '.join(map(str, row)) + '\n' for row in wide),
-                            text=True, capture_output=True, env=env, timeout=180)
+    result = timed_run(f'18-floorsum oracle {Path(command[0]).name}', command, input=''.join(' '.join(map(str, row)) + '\n' for row in wide),
+                                             text=True, capture_output=True, env=env, timeout=180)
     if result.returncode:
         raise RuntimeError(f'Python wide oracle returncode={result.returncode} command={shlex.join(command)}\n{result.stderr}')
     actual = result.stdout.splitlines()

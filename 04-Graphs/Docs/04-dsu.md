@@ -10,7 +10,7 @@ Returns the canonical P006 `DSU` after uniting the ends of every edge: connected
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/04-dsu_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. Quick uses three vertices/50 random cases, full four vertices/500 cases and stress four vertices/4,000 cases. Exact mode coverage is also stated in the runnable entry.
+`96-Local Testing/04-Graphs/04-dsu_tester.py` uses the shared contest runner, which builds optimized `-O2 -DNDEBUG`, checked `-g -D_GLIBCXX_DEBUG` (`-O0` in quick, `-O1` in full and stress), and full/stress `-O1` ASan/UBSan variants. Quick uses three vertices/50 random cases, full four vertices/500 cases and stress four vertices/4,000 cases. Exact mode coverage is also stated in the runnable entry.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -19,6 +19,8 @@ Returns the canonical P006 `DSU` after uniting the ends of every edge: connected
 | Preconditions | Three assertion probes | Expected assertion failure |
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 754 MB; optimized 0.2 s compile + 1.3 s run, checked 13.2 s compile + 3.7 s run, ASan-UBSan 12.8 s compile + 46.5 s run; MEMORY peak 892 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 802 MB; optimized 0.2 s compile + 1.2 s run, checked 14.8 s compile + 2.4 s run, ASan-UBSan 14.2 s compile + 27.8 s run; MEMORY peak 942 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 21.9 s compile + 0.0 s run, checked 17.4 s compile + 0.8 s run; MEMORY peak 744 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 758 MB; optimized 0.1 s compile + 0.7 s run, checked 6.0 s compile + 2.4 s run, ASan-UBSan 6.0 s compile + 27.2 s run; MEMORY peak 621 MB. Dated rows below stay those commands' latest results.
 
 2026-10-12, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
@@ -59,3 +61,4 @@ Search aliases (P263, grab --find): 弱连通分量, 弱连通组件, 连通分�
 - 2026-10-12: P010 prune rerun, header and tests unchanged; full suite passed on g++ and g++-14, stress passed; independent review: no correctness defect.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

@@ -37,6 +37,8 @@ Quick uses the optimized configuration and 500 random histories; full runs 5,000
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 350 MB; optimized-NDEBUG 0.3 s compile + 0.1 s run, checked 8.0 s compile + 1.1 s run, ASan-UBSan 20.0 s compile + 2.3 s run; MEMORY peak 727 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 362 MB; optimized-NDEBUG 0.2 s compile + 0.2 s run, checked 14.8 s compile + 1.8 s run, ASan-UBSan 31.5 s compile + 5.7 s run; MEMORY peak 753 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized-NDEBUG 11.8 s compile + 0.0 s run; MEMORY peak 353 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 28 MB; optimized-NDEBUG 0.1 s compile + 0.4 s run, checked 3.8 s compile + 3.3 s run, ASan-UBSan 10.1 s compile + 8.9 s run; MEMORY peak 731 MB. Dated rows below stay those commands' latest results.
+
 Harness: [`05-testing.md`](../../00-Guidelines/05-testing.md); flags `--mode` and `--seed` (or `CP_TEST_MODE`/`CP_TEST_SEED`). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_ASSERTIONS` (PBDS under `_GLIBCXX_DEBUG` is impractically slow), and `-O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-pie -no-pie` with leak detection, plus a standalone build.
 
 Restyle, 2026-10-08:
@@ -76,3 +78,4 @@ Search aliases (P263, grab --find): 平衡树, 缺省源, 万能头文件, 平�
 - 2026-10-06: closing-brace checker built in `03-consistency.py` (P002 re-audit), calibrated: the eight P002 files report nothing after normalization (160 true positives before), a probe file reports exactly the four real violations; the bitset review's edge cases fixed ([18-bitset.md](18-bitset.md)).
 - 2026-10-08: restyle, full suite (seed 20261008) passed on g++ and g++-14, integration, consistency and workspace check passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

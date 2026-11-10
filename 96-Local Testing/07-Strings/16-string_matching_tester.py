@@ -18,9 +18,12 @@ without the Galil rule; verified Rabin-Karp only where hits * m <= 1e8). Builds 
 -Werror. Full/stress add ASan/UBSan (the checked _GLIBCXX_DEBUG build runs
 stress at full-mode sizes); checked builds run five precondition probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
     raise SystemExit(main('16-string_matching', ['boyer-moore-symbol', 'horspool-text-symbol', 'bad-character-length',
-                                                 'dfa-text-symbol', 'dfa-pattern-symbol'], strict=True))
+                                                 'dfa-text-symbol', 'dfa-pattern-symbol'], extra=('-Wshadow',)))

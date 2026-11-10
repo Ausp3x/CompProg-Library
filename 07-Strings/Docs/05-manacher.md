@@ -40,7 +40,9 @@ Checked builds run twelve precondition probes: ten center/radius probes on the i
 
 ## Commands and results
 
-P016 prune follow-up run, 2026-10-13 (after the `n < 2^30` assertions): GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 702 MB; optimized 0.2 s compile + 0.3 s run, checked 13.5 s compile + 0.8 s run, ASan-UBSan 13.6 s compile + 11.5 s run; MEMORY peak 828 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 752 MB; optimized 0.2 s compile + 0.3 s run, checked 20.0 s compile + 0.6 s run, ASan-UBSan 24.5 s compile + 8.0 s run; MEMORY peak 858 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 19.4 s compile + 0.1 s run, checked 14.9 s compile + 0.6 s run; MEMORY peak 706 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 707 MB; optimized 0.0 s compile + 0.6 s run, checked 4.8 s compile + 0.9 s run, ASan-UBSan 5.1 s compile + 20.1 s run; MEMORY peak 606 MB. Dated rows below stay those commands' latest results.
+
+P016 prune follow-up run, 2026-10-13 (after the `n < 2^30` assertions): GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/05-manacher_tester.py' --mode full --seed 20261013
@@ -85,3 +87,4 @@ Search aliases (P263, grab --find): palindromes, longest palindromic substring; 
 - 2026-10-13: prune, removed `oddInclusive` and `evenInclusive` (cases covered by the half-open interval checks), review found 1 defect, fixed; full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

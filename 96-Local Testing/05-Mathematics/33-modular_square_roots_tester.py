@@ -20,8 +20,11 @@ and its total size matches the constructed count; least square roots modulo odd 
 """
 import math
 import random
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 HI = (1 << 63) - 1
 SMALLP = [p for p in range(2, 1000) if all(p % d for d in range(2, int(p ** 0.5) + 1))]
@@ -234,7 +237,7 @@ def oracle(binary, args, env):
     assert all(-(1 << 63) <= v <= HI for _, a, _ in rows for v in a), 'payload outside the signed 64-bit range'
     payload = ''.join(op + ' ' + ' '.join(map(str, a)) + '\n' for op, a, _ in rows)
     command = [str(binary), '--oracle']
-    proc = subprocess.run(command, input=payload, capture_output=True, text=True, env=env, timeout=300)
+    proc = timed_run(f'33-modular_square_roots oracle {Path(command[0]).name}', command, input=payload, capture_output=True, text=True, env=env, timeout=300)
     if proc.returncode: raise RuntimeError(f'command={command} returncode={proc.returncode}\n{proc.stderr}')
     lines = proc.stdout.splitlines()
     if len(lines) != len(rows): raise RuntimeError(f'expected {len(rows)} lines, got {len(lines)}')

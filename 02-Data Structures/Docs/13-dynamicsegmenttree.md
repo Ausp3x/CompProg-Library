@@ -26,7 +26,7 @@ Ownership: the plain tree never aliases nodes between roots (every node belongs 
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/13-dynamicsegmenttree_tester.cpp`, entry `13-dynamicsegmenttree_tester.py` (driver `_00_runner.py`; three builds; 23 assertion probes).
+Tester `96-Local Testing/02-Data Structures/13-dynamicsegmenttree_tester.cpp`, entry `13-dynamicsegmenttree_tester.py` (driver `_00_contest_runner.py`; three builds; 23 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -41,6 +41,8 @@ Tester `96-Local Testing/02-Data Structures/13-dynamicsegmenttree_tester.cpp`, e
 Quick: 3 universes, 120 steps. Full: 10 universes, 900 steps, three builds. Stress: 1400 steps (sized so the `-O0` debug-iterator build with per-root verification stays inside the runner's 180 s limit). Mutation check (2026-10-08, quick mode, temporary copies): 9 of 9 injected faults detected (meld operand order, split boundary, lazy push to one child, dual composition order, right-first search descent, persistence without copying, split leaving the right child shared, `minLeft` leaf result, `get` stopping one level early).
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 940 MB; optimized 0.1 s compile + 12.4 s run, checked 20.7 s compile + 37.8 s run, ASan-UBSan 31.2 s compile + 160.0 s run; MEMORY peak 1129 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 958 MB; optimized 0.3 s compile + 19.2 s run, checked 35.2 s compile + 43.4 s run, ASan-UBSan 47.5 s compile + 100.2 s run; MEMORY peak 1116 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 34.1 s compile + 0.2 s run, checked 28.9 s compile + 2.1 s run; MEMORY peak 931 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 949 MB; optimized 0.1 s compile + 8.2 s run, checked 10.2 s compile + 31.9 s run, ASan-UBSan 14.6 s compile + 97.3 s run; MEMORY peak 616 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
@@ -89,3 +91,4 @@ Search aliases (P263, grab --find): segment tree merge and split (OI Wiki: çº¿æ®
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 593/609/593 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

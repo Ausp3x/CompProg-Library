@@ -85,6 +85,8 @@ Entry: [`67-lattice_paths_tester.py`](<../../96-Local Testing/05-Mathematics/67-
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1207 MB; optimized 0.3 s compile + 37.1 s run, checked 52.1 s compile + 61.1 s run, ASan-UBSan 55.1 s compile + 63.3 s run; MEMORY peak 1635 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1204 MB; optimized 0.3 s compile + 34.7 s run, checked 48.1 s compile + 71.3 s run, ASan-UBSan 56.2 s compile + 73.4 s run; MEMORY peak 1620 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 61.4 s compile + 5.9 s run, checked 43.9 s compile + 12.4 s run; MEMORY peak 1188 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1191 MB; optimized 0.0 s compile + 63.1 s run, checked 20.2 s compile + 66.1 s run, ASan-UBSan 21.2 s compile + 71.3 s run; MEMORY peak 909 MB. Dated rows below stay those commands' latest results.
+
 Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H. The shared runner builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and (full, stress) ASan/UBSan configurations. With `-Wall -Wextra -Wconversion`, the header compiles without warnings on both compilers.
 
 | Command | Result |
@@ -132,3 +134,4 @@ Fetched 2026-10-19 by `@researcher` and the package session ([00-sources.md](00-
 - 2026-10-19: P054 initial implementation; `@reviewer` found a misplaced detail namespace, the Bizley cost statement and do-while braces in the tester, all fixed; full suite passed on g++ and g++-14, stress seed 7 passed.
 - 2026-10-19: P054 follow-up: 64-bit prime coverage through row 13's generalized convolution; full and stress passed on g++, full on g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

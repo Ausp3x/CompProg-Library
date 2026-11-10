@@ -75,7 +75,7 @@ Returns false unless the intersection is a `Polygon`. In that case it returns tr
 
 ## Feature-to-test map
 
-`96-Local Testing/03-Geometry/10-halfplaneintersection_tester.py` runs quick, full and stress modes in the geometry runner's optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan builds ([`_00_runner.py`](<../../96-Local Testing/03-Geometry/_00_runner.py>)), with ten assertion probes.
+`96-Local Testing/03-Geometry/10-halfplaneintersection_tester.py` runs quick, full and stress modes in the geometry runner's optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan builds ([`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>)), with ten assertion probes.
 
 **Oracle.** Vertices come from Cramer intersections of every pair of input boundaries, written from `A x + B y <= C` and independent of the header's formulas. A vertex survives if it passes an exact membership test against every input plane. Survivors go through an exact rational hull. The recession cone is compared on a witness set: every candidate direction plus one strictly interior direction per angular gap. Equality of membership on that set decides equality of two planar cones. A parallel-only family gets a 1-D offset test. Each `planes` field is re-run through the oracle and must reproduce the same intersection and cone. At `|coordinate| = 10^9` the rational hull would overflow. There, Helly triples certify `Empty` (some three planes already have empty intersection), and boundary certificates check `Polygon` results: every vertex is feasible, each edge lies on its plane, edges have positive length, and the planes turn left once around. Scaling and translation metamorphic tests carry small exact cases up to `10^9`.
 
@@ -89,6 +89,8 @@ Returns false unless the intersection is a `Polygon`. In that case it returns tr
 | `chebyshevCenterApprox` | Square (exact 2), rectangle, 3-4-5 triangle, false on unbounded input, random planes | Brute-force maximum over plane triples of the 3×3 tangent-circle systems (the vertices of the 3D LP), relative tolerance `1e-9`; the center keeps the radius to every line |
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 890 MB; optimized 0.1 s compile + 4.2 s run, checked 25.0 s compile + 31.1 s run, ASan-UBSan 25.3 s compile + 44.8 s run; MEMORY peak 1126 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 933 MB; optimized 0.3 s compile + 5.5 s run, checked 39.4 s compile + 64.2 s run, ASan-UBSan 46.9 s compile + 93.2 s run; MEMORY peak 1073 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 37.1 s compile + 0.7 s run, checked 25.7 s compile + 13.4 s run; MEMORY peak 875 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 890 MB; optimized 0.1 s compile + 15.6 s run, checked 11.8 s compile + 137.5 s run, ASan-UBSan 12.4 s compile + 160.5 s run; MEMORY peak 843 MB. Dated rows below stay those commands' latest results.
 
 2026-10-19, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
 
@@ -163,3 +165,4 @@ Search aliases (P263, grab --find): 半平面交, 多边形的核, 凸多边形�
 - 2026-10-18: P037 factored the edge rotation of `clipConvex` into `halfplane_detail::edges` for `convexIntersection`; full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19: P037 re-audit rerun (row 15 changed), header unchanged; full suite passed on g++ and g++-14, stress passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.

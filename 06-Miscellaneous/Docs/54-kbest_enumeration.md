@@ -55,11 +55,13 @@ A child is pushed with its optimum value and solved again when popped, so memory
 | Element types | `int` subset sums, `double` pair and list sums. |
 | Preconditions | 16 probes: negative `k` for each operation, `min_len = 0`, `min_len > max_len`, `m < 0`, out-of-range `subset` and `choice` indices on both sides, `n < 0`, a Lawler oracle that fails to re-solve its own output, and one whose re-solve reports another value. |
 
-Exhaustive cases use the alphabet `{-2, 0, 1, 1, 3}` (duplicates and zero included) through `n = 3/4/5` (quick/full/stress) with every `k` (`n = 5`: `k <= 6` and `31..33`, since outputs for smaller `k` are prefixes of `k = 2^n`), every `m` and every `L <= R`. Seeded rounds run 150/2000/12000 per standard comparator and 37/500/3000 per stateful one (`n <= 10`, Lawler `n <= 6`, values to `1e12`); large fixtures use `n = k = 2000/100000/300000`. The `-O0` debug-container build caps large fixtures at `n = 1000` and runs stress as full, because its heaps validate the whole range on every push and pop.
+Exhaustive cases use the alphabet `{-2, 0, 1, 1, 3}` (duplicates and zero included) through `n = 3/4/5` (quick/full/stress) with every `k` (`n = 5`: `k <= 6` and `31..33`, since outputs for smaller `k` are prefixes of `k = 2^n`), every `m` and every `L <= R`. Seeded rounds run 150/2000/12000 per standard comparator and 37/500/3000 per stateful one (`n <= 10`, Lawler `n <= 6`, values to `1e12`); large fixtures use `n = k = 2000/100000/300000`. The debug-container build caps large fixtures at `n = 1000` and runs stress as full, because its heaps validate the whole range on every push and pop.
 
 ## Commands and results
 
-Run 2026-10-24: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>); MEMORY peaks include the compiler.
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1100 MB; optimized 0.1 s compile + 2.8 s run, checked 45.3 s compile + 35.8 s run, ASan-UBSan 44.8 s compile + 36.8 s run; MEMORY peak 1693 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1177 MB; optimized 0.2 s compile + 4.1 s run, checked 79.3 s compile + 63.7 s run, ASan-UBSan 82.7 s compile + 82.1 s run; MEMORY peak 1687 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 45.9 s compile + 0.4 s run, checked 33.8 s compile + 26.1 s run; MEMORY peak 1140 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 56 MB; optimized 0.1 s compile + 7.2 s run, checked 22.4 s compile + 18.1 s run, ASan-UBSan 25.3 s compile + 19.4 s run; MEMORY peak 977 MB. Dated rows below stay those commands' latest results.
+
+Run 2026-10-24: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>); MEMORY peaks include the compiler.
 
 ```bash
 python3 '96-Local Testing/06-Miscellaneous/54-kbest_enumeration_tester.py' --mode quick --seed 1               # PASS, 2 configurations, 16 probes, peak 643 MB
@@ -70,7 +72,7 @@ python3 '96-Local Testing/02-integration.py'    # PASS, 174 standalone/aggregate
 python3 '96-Local Testing/03-consistency.py'    # no errors
 ```
 
-Per configuration, full ran 638,930 cases / 11.4 million checks (the checked build 10.8 million checks) and optimized stress 3,145,180 cases / 63.8 million checks; the debug-container and ASan builds run stress as full: alone, ASan stress took 93 s of the runner's 180 s per-binary limit and 172 s under parallel load (ASan full: about 34 s).
+Per configuration, full ran 638,930 cases / 11.4 million checks (the checked build 10.8 million checks) and optimized stress 3,145,180 cases / 63.8 million checks; the debug-container and ASan builds run stress as full: alone, ASan stress took 93 s of the runner's former 180 s per-binary limit and 172 s under parallel load (ASan full: about 34 s).
 
 ## Sources
 
@@ -97,3 +99,4 @@ Search aliases (P263, grab --find): 前k小和, 第k小子集和, 前k小子段�
 - 2026-10-23: implemented, independent review (complexity comments, probes; 2 findings fixed) and verified (P072).
 - 2026-10-24: `/finish` audit, five review rounds (`min_len`/`max_len`, Lawler equal-value assert and bound, per-name seeds, 1 probe, `NDEBUG` limit, `kLargest` kept by user decision); ASan stress runs as full; full suite passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

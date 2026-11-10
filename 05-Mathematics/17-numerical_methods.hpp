@@ -11,7 +11,7 @@ struct RootStatus {
 
 namespace numerical_detail {
     // T: O(1) (pairwise: O(n), O(log(n)) recursion), M: O(1); tol floors abs_tol + rel_tol |x| at 4 ulp of x.
-    inline void validate(int itr, double abs_tol, double rel_tol) {
+    inline void validate([[maybe_unused]] int itr, [[maybe_unused]] double abs_tol, [[maybe_unused]] double rel_tol) {
         assert(itr >= 0 && std::isfinite(abs_tol) && abs_tol >= 0 && std::isfinite(rel_tol) && rel_tol >= 0);}
     inline double tol(double x, double abs_tol, double rel_tol) {
         return max(abs_tol + rel_tol * abs(x), 4 * DBL_EPSILON * abs(x));}

@@ -17,7 +17,7 @@ PolygonLocation cellLocation(const Cells &c, int x2, int y2) {
     int count = 0;
     for (int dx : {-1, 1}) { for (int dy : {-1, 1}) {
         int x = int(std::floor((4.L * x2 + dx) / 8)), y = int(std::floor((4.L * y2 + dy) / 8));
-        count += c.count({x, y});}}
+        count += int(c.count({x, y}));}}
     return count == 4 ? PolygonLocation::Inside : count ? PolygonLocation::Boundary : PolygonLocation::Outside;}
 vector<point> histogram(const vector<int> &h) {
     int n = int(h.size()); vector<point> p{{0, 0}, {n, 0}, {n, h.back()}};
@@ -68,7 +68,7 @@ template<typename Polygon> void verifyCells(const Polygon &p, const Cells &cells
     require(signedArea2(p) == 2 * area && near(signedAreaApprox(p), (long double)area), "signed area");
     RationalPoint2 exact; dpoint approximate;
     require(centroidExact(p, exact) && exact == RationalPoint2(sx, sy, 2 * area), "exact cell centroid");
-    require(centroidApprox(p, approximate) && near(approximate.x, (long double)sx / (2 * area)) && near(approximate.y, (long double)sy / (2 * area)), "approx cell centroid");
+    require(centroidApprox(p, approximate) && near(approximate.x, (long double)sx / (long double)(2 * area)) && near(approximate.y, (long double)sy / (long double)(2 * area)), "approx cell centroid");
     require(near(polygonPerimeter(p), perimeter), "exposed cell perimeter");
     auto scaled = p;
     if constexpr (std::is_same_v<Polygon, vector<point>>) { for (auto &q : scaled) { q *= lng(2); } }

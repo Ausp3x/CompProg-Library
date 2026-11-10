@@ -23,7 +23,7 @@ struct Interactive {
             out << x; first = false;}}
     template<class... A>
     void writeLine(const A &...a) {
-        bool first = true;
+        [[maybe_unused]] bool first = true;
         (put(a, first), ...);
         out << '\n';}
     template<class R = lng, class... A>

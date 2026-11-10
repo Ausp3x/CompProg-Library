@@ -18,7 +18,10 @@ Phi_m(x^p) / Phi_m(x) with 128-bit division, plus large n. Moduli: 998244353, 1e
 prime, the 64-bit NTT prime 29 * 2^57 + 1 and small primes 3, 5, 7, 97 at the n <= mod edges.
 28 assertion probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('14-polynomial_algorithms', ['inverse-zero', 'sparse-inverse-zero', 'log-constant',

@@ -9,7 +9,10 @@ stress: additionally loopless n=6, 12000 random cases, 500000-vertex shapes.
 Independent oracles enumerate maximal vertex subsets surviving every vertex
 removal, delete each edge/vertex, and close the returned orientation's reachability.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('09-bridges_articulation', ['lowlink-directed',

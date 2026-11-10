@@ -62,7 +62,7 @@ No legacy source. Catalog names: Nyaan `union-find-enumerate` and suisen `linked
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/65-dsu_extensions_tester.cpp`, entry `65-dsu_extensions_tester.py` (driver `_00_runner.py`; three builds; 14 assertion probes). Runtime moduli are chosen by the seed from 7, 10^9+7 and 998244353. History groups run 300 rounds each in full mode (30 quick, 2000 stress; some groups a half or a tenth).
+Tester `96-Local Testing/02-Data Structures/65-dsu_extensions_tester.cpp`, entry `65-dsu_extensions_tester.py` (driver `_00_contest_runner.py`; three builds; 14 assertion probes). Runtime moduli are chosen by the seed from 7, 10^9+7 and 998244353. History groups run 300 rounds each in full mode (30 quick, 2000 stress; some groups a half or a tenth).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -79,6 +79,8 @@ Tester `96-Local Testing/02-Data Structures/65-dsu_extensions_tester.cpp`, entry
 Mutation check (2026-10-23, quick mode, seed 3): faults in the cycle splice, the cancelling tag and its compression order, the leaf block offsets, the heavy-path lengths, the binary search comparison and result, the light-edge stop of `componentAt`, the deeper-head and shallower-vertex choices of `earliestConnectTime`, the absorbing-root value, the untouched-key size and the `-1` of `mergeTime` were each caught (14 mutants).
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 950 MB; optimized 0.3 s compile + 4.2 s run, checked 27.3 s compile + 10.4 s run, ASan-UBSan 35.7 s compile + 29.6 s run; MEMORY peak 1212 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 946 MB; optimized 0.3 s compile + 5.3 s run, checked 49.7 s compile + 14.7 s run, ASan-UBSan 53.0 s compile + 40.8 s run; MEMORY peak 1201 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 41.3 s compile + 0.2 s run, checked 31.0 s compile + 3.4 s run; MEMORY peak 939 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 945 MB; optimized 0.1 s compile + 7.1 s run, checked 12.8 s compile + 27.4 s run, ASan-UBSan 14.6 s compile + 64.6 s run; MEMORY peak 909 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-10-23, Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
@@ -121,3 +123,4 @@ Search aliases (P263, grab --find): 哈希并查集, 连通块和, 连通块枚�
 - 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `MergeHistoryForest` `build` renamed `ctor` (its constructor), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves it; no code changed.
 - 2026-10-23: P035 first implementation (user decisions on `SparseDSU` and `MergeHistoryForest`); `DualDSU` added after the completeness sweep; independent review, 7 findings fixed across the package (here: the direct `CustomHash` include, complexity symbols, three probes, `MergeHistoryForest` rebuilt on heavy paths with O(n) memory instead of binary lifting, deep and shallow forest shapes); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

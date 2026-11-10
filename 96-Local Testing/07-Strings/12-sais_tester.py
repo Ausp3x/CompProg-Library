@@ -15,8 +15,11 @@ pair of half-block names (lcpArray; the lifting oracle is itself checked against
 direct LCP on the exhaustive ternary and random integer texts).
 Full/stress add ASan/UBSan; checked adds 4 death probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
-    raise SystemExit(main('12-sais', ['negative-upper', 'symbol-above', 'negative-symbol', 'lcp-size'], strict=True))
+    raise SystemExit(main('12-sais', ['negative-upper', 'symbol-above', 'negative-symbol', 'lcp-size'], extra=('-Wshadow',)))

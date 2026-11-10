@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Convex polygon queries, cuts, intersection and inscribed k-gons against exhaustive and clipConvex oracles; quick/full/stress."""
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('15-convex_polygon_query', ['clockwise', 'collinear', 'small', 'tangent-inside', 'extreme-zero',

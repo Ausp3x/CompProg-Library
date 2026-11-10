@@ -18,7 +18,7 @@ inline constexpr char DIG[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 inline constexpr lll LLL_MAX = lll(~ulll(0) >> 1), LLL_MIN = -LLL_MAX - 1;
 inline constexpr ulll ULLL_MAX = ~ulll(0);
 inline constexpr ulng ULNG_MAX = ~0ULL;
-inline constexpr int CANARY = 0x5EED, PARTS = 5;
+inline constexpr int CANARY = 0x5EED, PARTS = 10;
 inline const string WS = " \t\n\v\f\r", BAD = string("\0\x01\x08\x0E\x10\x19\x1F", 7) + "!+-/.:@GgZz[`{\x7F\x80\xC0\xFF";
 inline string DATA, mode = "full", section;
 inline ulng seed = 1, digest = 0;
@@ -1574,7 +1574,7 @@ template<int N> int protoInt() {
     FastOutput<1 << 16> out;
     int code = 0, base = 0;
     for (lng k = 0; in.readInt(code) && in.readInt(base); ++k) {
-        bool done = protoIntPart<1, N>(code, base, in, out, k) || protoIntPart<2, N>(code, base, in, out, k) || protoIntPart<3, N>(code, base, in, out, k) || protoIntPart<4, N>(code, base, in, out, k) || protoIntPart<5, N>(code, base, in, out, k);
+        bool done = [&]<int... P>(std::integer_sequence<int, P...>) { return (protoIntPart<P + 1, N>(code, base, in, out, k) || ...); }(std::make_integer_sequence<int, PARTS>{});
         if (!done) { cerr << "unsupported record " << code << ' ' << base << '\n'; return 2; }}
     out.write("END mapped=");
     out.writeInt(in.mapped, ' ');
@@ -1668,7 +1668,7 @@ int main(int argc, char **argv) {
     spaces(); kernels(); tokenGrid(); tokenStreams(); printForms(); bytes(); lines(); variadic(); faults(); lifetime(); writeForms();
 #else
     oracles(); spaces(); kernels(); tokenGrid(); tokenStreams();
-    intPart<1>(); intPart<2>(); intPart<3>(); intPart<4>(); intPart<5>();
+    []<int... P>(std::integer_sequence<int, P...>) { (intPart<P + 1>(), ...); }(std::make_integer_sequence<int, PARTS>{});
     textAllBases(std::make_integer_sequence<int, 35>{});
     textSuite<InfIntMini, 2, 7, 10, 16, 23, 24, 36>(InfIntMini(-777));
     textSuite<Rational<lng>, 2, 7, 10, 16, 23, 24, 36>(Rational<lng>(-7, 3));

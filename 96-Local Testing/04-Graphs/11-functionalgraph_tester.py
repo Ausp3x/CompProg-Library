@@ -8,7 +8,10 @@ stress: all maps through n=6, 5000 random maps and 500000-node chains/cycles.
 All modes test full unsigned-64 jump/fold counts, noncommutative string and
 matrix folds, cycle rotations, Graph/CSR adapters and assertion contracts.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('11-functionalgraph', [
@@ -19,4 +22,4 @@ if __name__ == '__main__':
         'orbit-high', 'aggregate-size', 'rotated-size',
         'rotated-high', 'fold-size', 'fold-negative', 'fold-high', 'fold-cycle-high',
         'segment-negative', 'segment-high', 'segment-unavailable',
-        'step-high', 'step-identity']))
+        'step-high', 'step-identity'], timeout=1500))

@@ -14,11 +14,11 @@ built-in modular pow are independent of the C++ reduction implementation.
 from __future__ import annotations
 
 import argparse
+import functools
 import math
 import os
 from pathlib import Path
 import random
-import resource
 import shlex
 import shutil
 import signal
@@ -28,7 +28,7 @@ import tempfile
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
-from _00_cpp_test_runner import cpu_runs, x86, x86_only
+from _00_cpp_test_runner import Builder, cpu_runs, timed_run, x86, x86_only
 
 _00_memory_cap.ensure()
 
@@ -52,10 +52,10 @@ def execute(command: list[str], label: str, env: dict[str, str], *, data: str | 
     if sys.stdout.isatty():
         print(f"\r\033[KRUN {label}", end="", flush=True)
     try:
-        result = subprocess.run(command, cwd="/tmp", env=env, input=data, text=True,
-                                capture_output=True, timeout=300)
+        result = timed_run(label, command, cwd="/tmp", env=env, input=data, text=True,
+                                  capture_output=True, timeout=600)
     except subprocess.TimeoutExpired as error:
-        raise Failure(f"{label}: timeout=300s command={shlex.join(command)}\n"
+        raise Failure(f"{label}: timeout=600s command={shlex.join(command)}\n"
                       f"stdout={error.stdout!r}\nstderr={error.stderr!r}") from error
     okay = result.returncode == 0
     if death:
@@ -164,7 +164,6 @@ def run_suite(entry: Path, args: argparse.Namespace, *, kind: str, wide: bool, d
         return 1
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1",
                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow"]
     scalar = x86_only(["-march=x86-64", "-mno-avx", "-mno-avx2"], compiler)
     vector = x86_only(["-march=x86-64", "-mavx2"], compiler)
@@ -199,10 +198,12 @@ def run_suite(entry: Path, args: argparse.Namespace, *, kind: str, wide: bool, d
         report("PASS", f"generated {len(requests)} exact Python oracle cases")
         with tempfile.TemporaryDirectory(prefix=f"cp-{label}-tests-") as directory:
             temp = Path(directory)
-            for name, options in variants:
-                binary = str(temp / name)
+            builder = Builder(compiler, temp, env=env, failure=Failure)
+            compiled = builder.build_all([(name, f"compile {label}/{name} mode={args.mode} seed={args.seed}", [*flags, "-Wconversion", "-Werror", *options], [fixture], str(temp / name), 600,
+                                           1500 if name.startswith("sanitized") else 1100) for name, options in variants])
+            def one(name, options):
+                binary, mark = str(temp / name), builder.stopwatch()
                 config = f"{label}/{name} mode={args.mode} seed={args.seed}"
-                execute([*compiler, *flags, "-Wconversion", "-Werror", *options, str(fixture), "-o", binary], "compile " + config, env)
                 report("PASS", f"{name} compilation")
                 output = execute([binary, "--mode", args.mode, "--seed", str(args.seed)], config, env)
                 for line in output.splitlines():
@@ -221,12 +222,12 @@ def run_suite(entry: Path, args: argparse.Namespace, *, kind: str, wide: bool, d
                     for case in deaths:
                         execute([binary, "--death", case], config + " precondition " + case, env, death=True)
                     report("PASS", f"{name} preconditions ({len(deaths)})")
+                builder.report(mark, f"{label} {name}", args.mode, compiled[name])
+            builder.concurrently([(1 << 40 if args.mode == "stress" else 500, functools.partial(one, name, options)) for name, options in variants])
             if not dynamic and not wide and args.mode != "quick":
                 for name, target in [("scalar", scalar)] + ([("avx2", vector)] if accelerated else []):
                     binary = str(temp / ("consumers-" + name))
-                    execute([*compiler, *flags, "-O2", *target,
-                             str(entry.with_name("05-modint_consumers.cpp")), "-o", binary],
-                            "Matrix/ModFac existing consumer smoke compile " + name, env)
+                    builder.build("Matrix/ModFac existing consumer smoke compile " + name, [*flags, "-O2", *target], [entry.with_name("05-modint_consumers.cpp")], binary, 600)
                     execute([binary], "Matrix/ModFac existing consumer smoke execute " + name, env)
                 report("PASS", "existing Matrix/ModFac consumer smoke scalar/available AVX2")
             if dynamic and args.mode != "quick":
@@ -247,8 +248,7 @@ def run_suite(entry: Path, args: argparse.Namespace, *, kind: str, wide: bool, d
                              "ulng fromOther(){return global_custom.val();}\n")
                 for first, second in [(a, b), (b, a)]:
                     binary = str(temp / "cross-tu")
-                    execute([*compiler, *flags, "-O2", str(first), str(second), "-o", binary],
-                            "cross-TU globals and same-ID cross-width contexts compile", env)
+                    builder.build("cross-TU globals and same-ID cross-width contexts compile", [*flags, "-O2"], [first, second], binary, 600)
                     execute([binary], "cross-TU globals and same-ID cross-width contexts execute", env)
                 report("PASS", "cross-TU default/custom global initialization, both link orders, width independence")
             # Invalid static moduli must be diagnosed even when assertions are removed.

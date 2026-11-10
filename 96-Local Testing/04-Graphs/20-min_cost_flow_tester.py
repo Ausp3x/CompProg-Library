@@ -22,11 +22,14 @@ libstdc++ debug mode re-validates the whole heap on every push and pop, so the c
 build runs the large chain at n = 20000, the cyclic network at n = 300, the convex
 comparison at n = 80 and the assignment at k = 25 in full and stress modes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('20-min_cost_flow', ['negative-size', 'addEdge-range', 'addEdge-negative',
         'addEdge-cost-high', 'addEdge-cost-low', 'convex-range', 'convex-length', 'convex-order',
         'convex-overflow', 'convex-cost', 'getEdge-range', 'flow-same', 'flow-range', 'flow-limit',
         'slope-same', 'slope-limit', 'negative-cycle', 'negative-loop', 'negative-cycle-after-flow',
-        'potentials-cycle', 'path-bound', 'total-bound', 'total-sum-bound', 'potentials-bound'], strict=True))
+        'potentials-cycle', 'path-bound', 'total-bound', 'total-sum-bound', 'potentials-bound']))

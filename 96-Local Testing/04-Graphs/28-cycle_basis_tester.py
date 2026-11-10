@@ -44,12 +44,15 @@ m<=119), 40 mid-size hash graphs, 3000-vertex shapes; optimized and checked
 builds. full: every simple graph n<=5, 3000 random rounds, 400 hash graphs,
 200000-vertex shapes, plus ASan/UBSan. stress: 15000 rounds, 1500 hash graphs,
 300000-vertex shapes in the optimized and ASan/UBSan builds; the checked build
-(-O0 -D_GLIBCXX_DEBUG) keeps full-mode rounds and shapes in stress so it stays
-far below the runner's 180 s limit. The checked build runs the 7 assertion
+(-D_GLIBCXX_DEBUG) keeps full-mode rounds and shapes in stress so it stays
+far below the runner's former 180 s limit. The checked build runs the 7 assertion
 probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('28-cycle_basis', ['directed', 'independent-range', 'max-disconnected', 'kth-range',
-        'disconnects-duplicate', 'disconnects-range', 'count-range'], strict=True))
+        'disconnects-duplicate', 'disconnects-range', 'count-range']))

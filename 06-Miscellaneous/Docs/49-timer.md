@@ -23,7 +23,9 @@
 
 ## Commands and results
 
-Run 2026-10-08: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 659 MB; optimized 0.1 s compile + 0.6 s run, checked 10.3 s compile + 0.6 s run, ASan-UBSan 14.4 s compile + 0.9 s run; MEMORY peak 735 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 708 MB; optimized 0.2 s compile + 0.6 s run, checked 14.0 s compile + 0.6 s run, ASan-UBSan 13.7 s compile + 0.8 s run; MEMORY peak 800 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 11.4 s compile + 0.1 s run, checked 13.3 s compile + 0.1 s run; MEMORY peak 643 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 675 MB; optimized 0.1 s compile + 6.9 s run, checked 3.5 s compile + 6.9 s run, ASan-UBSan 4.1 s compile + 6.9 s run; MEMORY peak 389 MB. Dated rows below stay those commands' latest results.
+
+Run 2026-10-08: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>).
 
 ```bash
 python3 '96-Local Testing/06-Miscellaneous/49-timer_tester.py' --mode quick --seed 1             # PASS, 2 configurations, 100,989 checks
@@ -60,3 +62,4 @@ Search aliases (P263, grab --find): 卡时, 计时器, 计时, 运行时间.
 
 - 2026-10-08: created and verified (P229).
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

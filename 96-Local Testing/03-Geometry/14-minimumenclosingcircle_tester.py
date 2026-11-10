@@ -8,8 +8,11 @@ minimumEnclosingCircleApprox within 1e-12 of the coordinate scale.
 from fractions import Fraction
 import random
 import shlex
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 CIRCLE = [(x, y) for x in range(-1105, 1106) for y in range(-1105, 1106) if x * x + y * y == 1105 * 1105]
 
@@ -59,7 +62,7 @@ def oracle(binary, args, env):
         rows.append(('F', pts))
     text = ''.join(f'{k} {len(p)} ' + ' '.join(f'{x!r} {y!r}' for x, y in p) + '\n' for k, p in rows)
     command = [str(binary), '--seed', str(args.seed), '--oracle']
-    result = subprocess.run(command, input=text, text=True, capture_output=True, env=env, timeout=600)
+    result = timed_run(f'14-minimumenclosingcircle oracle {Path(command[0]).name}', command, input=text, text=True, capture_output=True, env=env, timeout=600)
     if result.returncode:
         raise RuntimeError(f'Python oracle returncode={result.returncode} command={shlex.join(command)}\n{result.stderr}')
     got = result.stdout.splitlines()

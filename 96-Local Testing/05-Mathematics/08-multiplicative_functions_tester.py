@@ -16,9 +16,12 @@ Mobius against trial factors). Python oracle: n built from known primes, checked
 closed forms. 10 assertion probes run in the checked build.
 """
 import random
-import subprocess
 from math import lcm
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 MOD = 998244353
 
@@ -60,7 +63,7 @@ def oracle(binary, args, env):
     cases.append((1, {}))
     payload = ''.join(f'{n}\n' for n, _ in cases)
     command = [str(binary), '--oracle']
-    p = subprocess.run(command, input=payload, capture_output=True, text=True, env=env, timeout=180)
+    p = timed_run(f'08-multiplicative_functions oracle {Path(command[0]).name}', command, input=payload, capture_output=True, text=True, env=env, timeout=180)
     if p.returncode: raise RuntimeError(f'command={command} returncode={p.returncode}\n{p.stderr}')
     lines = p.stdout.splitlines()
     if len(lines) != len(cases): raise RuntimeError(f'expected {len(cases)} lines, got {len(lines)}')

@@ -53,7 +53,9 @@ Runnable entry: [07-suffixarray_tester.py](<../../96-Local Testing/07-Strings/07
 
 ## Commands and results
 
-Latest run 2026-10-19 (P017 omission-sweep apply), Linux x86-64 (Intel Core i9-11900H), GNU++20, GCC 16.2.1 and the floor GCC 14.4.1 (`CXX=g++-14`), CPython 3.14.7, the optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan configurations built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>):
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1085 MB; optimized 0.1 s compile + 2.5 s run, checked 45.2 s compile + 10.2 s run, ASan-UBSan 52.6 s compile + 42.9 s run; MEMORY peak 1565 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1148 MB; optimized 0.3 s compile + 3.5 s run, checked 82.0 s compile + 23.9 s run, ASan-UBSan 87.7 s compile + 56.5 s run; MEMORY peak 1563 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 69.5 s compile + 0.9 s run, checked 53.1 s compile + 11.7 s run; MEMORY peak 1081 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1099 MB; optimized 0.1 s compile + 3.8 s run, checked 18.8 s compile + 19.8 s run, ASan-UBSan 19.4 s compile + 55.8 s run; MEMORY peak 1085 MB. Dated rows below stay those commands' latest results.
+
+Latest run 2026-10-19 (P017 omission-sweep apply), Linux x86-64 (Intel Core i9-11900H), GNU++20, GCC 16.2.1 and the floor GCC 14.4.1 (`CXX=g++-14`), CPython 3.14.7, the optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan configurations built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>):
 
 | Command | Result |
 |---|---|
@@ -149,3 +151,4 @@ Search aliases (P263, grab --find): 后缀数组简介, 最长公共子串, 最�
 - 2026-10-17: P027 monoid pass (the `Min<int>` preset replaces the nested `Minimum`; `rmq.prod` calls; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 694/686/895 MB.
 - 2026-10-19: P017 omission-sweep apply: SA-IS default construction with dense-range coding, `doubling` static builder, `longestCommonSubstring` through the same coding (`O(n + m)` for bytes); construction benchmark added, no size dispatch; full passed on g++ and g++-14, stress passed, dependents rerun; independent review: 1 evidence defect and 6 low findings fixed (code-range cutoff measured and set to `4n`, confirmed by the user).
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

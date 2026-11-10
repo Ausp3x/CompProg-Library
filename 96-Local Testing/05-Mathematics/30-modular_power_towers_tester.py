@@ -18,8 +18,12 @@ from functools import lru_cache
 import math
 import random
 import shlex
-import subprocess
-from _00_runner import factor, is_prime, main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
+from _00_factor import factor, is_prime
 
 U64 = (1 << 64) - 1
 
@@ -217,7 +221,7 @@ def oracle(binary, args, env):
             t = max((x for _, x in factor(m)), default=0)
             want.append(tuple(map(str, e)) + ('|',) + tuple(map(str, c)) + ('|', t))
     command = [str(binary), '--oracle']
-    result = subprocess.run(command, input='\n'.join(rows) + '\n', text=True, capture_output=True, env=env, timeout=180)
+    result = timed_run(f'30-modular_power_towers oracle {Path(command[0]).name}', command, input='\n'.join(rows) + '\n', text=True, capture_output=True, env=env, timeout=180)
     if result.returncode:
         raise RuntimeError(f'Python oracle returncode={result.returncode} command={shlex.join(command)}\n{result.stderr}')
     actual = result.stdout.splitlines()

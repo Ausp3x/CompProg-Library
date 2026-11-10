@@ -23,6 +23,7 @@ import atexit
 import os
 from pathlib import Path
 import re
+import resource
 import shutil
 import signal
 import subprocess
@@ -107,8 +108,8 @@ def honours_mode_env(main):
     """True when the entry point or a shared runner it imports reads CP_TEST_MODE."""
     text = main.read_text()
     runners = re.findall(r'^from (_\w*runner\w*) import', text, re.M)
-    return 'CP_TEST_MODE' in text or any('CP_TEST_MODE' in (main.parent / (r + '.py')).read_text()
-                                          for r in runners if (main.parent / (r + '.py')).is_file())
+    return 'CP_TEST_MODE' in text or any('CP_TEST_MODE' in (d / (r + '.py')).read_text()
+                                          for r in runners for d in (main.parent, main.parent.parent) if (d / (r + '.py')).is_file())
 
 
 def sigkill_note(code, peak='MEMORY unknown'):
@@ -156,7 +157,9 @@ def supervise(command, mode=None, source='env', label=None):
             print(f'{tail}\nFAIL {label}: pre-flight quick run {sigkill_note(result.returncode, peak)} ({peak}); {mode} run skipped',
                   file=sys.stderr, flush=True)
             return exit_code(result.returncode) or 1
-        print(f'PREFLIGHT {label}: quick passed, {peak}', flush=True)
+        timings = [l if l.startswith('TIMING ') else 'OVERHALF pre-flight quick ' + l.removeprefix('OVERHALF ')  # for 01-run.py's NOTEs
+                   for l in result.stdout.splitlines() if l.startswith(('TIMING ', 'OVERHALF '))]
+        print('\n'.join([f'PREFLIGHT {label}: quick passed, {peak}', *timings]), flush=True)
     code = forwarding(capped(command, MAIN_MB), env=dict(base, CP_MEMORY_CAPPED=mark(MAIN_MB))).returncode
     if code in (-9, 137):
         print(f'FAIL {label}: {sigkill_note(code)} (cap {MAIN_MB} MB, exit {exit_code(code)})', file=sys.stderr, flush=True)
@@ -172,6 +175,9 @@ def ensure(force=False, mb=None):
     if mb and 'CP_TEST_MEMORY_MB' not in os.environ:
         MAIN_MB = mb
     if os.environ.get('CP_MEMORY_CAPPED'):
+        hard = resource.getrlimit(resource.RLIMIT_CORE)[1]
+        if hard == resource.RLIM_INFINITY or hard >= 1:  # at 1 the kernel skips a piped core_pattern: 190 ms per death probe under systemd-coredump
+            resource.setrlimit(resource.RLIMIT_CORE, (1, hard))
         if os.environ['CP_MEMORY_CAPPED'] != 'none':
             atexit.unregister(report)  # a second ensure() (an imported entry point) reports once
             atexit.register(report)

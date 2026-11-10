@@ -60,6 +60,8 @@ Quick mode covers every public operation with smaller exhaustive/random corpora.
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1109 MB; 6 builds, 39.0 s compiling, 3.9 s running, longest run 1.0 s; MEMORY peak 1061 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1051 MB; 6 builds, 53.8 s compiling, 4.5 s running, longest run 1.5 s; MEMORY peak 1045 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized-scalar 18.8 s compile + 0.1 s run, checked-scalar 15.4 s compile + 0.3 s run, optimized-avx2 21.0 s compile + 0.1 s run, checked-avx2 10.7 s compile + 0.3 s run; MEMORY peak 1218 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 49 MB; 6 builds, 15.8 s compiling, 3.9 s running, longest run 1.3 s; MEMORY peak 1073 MB. Dated rows below stay those commands' latest results.
+
 Cached contexts, 2026-10-12 (constructor `constexpr`, so `05-modint.hpp` keeps one context per modulus; `powMont` loops on the unchecked `redc`; the same-day prune widened the exponents and pruned `03-barrett.hpp`):
 
 ```bash
@@ -133,3 +135,4 @@ Search aliases (P263, grab --find): 蒙哥马利模乘, 蒙哥马利约减, 蒙�
 - 2026-10-12: prune (`powMont`/`pow` exponents widened to 128 bits; Barrett's `div` and `multiplier` removed, `fold61` added), full suites passed on g++ and g++-14, 9,116 benchmark measurements verified.
 - 2026-10-12 (cached contexts): constructor `constexpr` with compile-time `static_assert`s, `powMont` loops on the unchecked `redc`; full suites passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

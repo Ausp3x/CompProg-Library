@@ -15,10 +15,13 @@ path-binary, comb and forest. Stress: labeled forests through n=7, 4000 random f
 large random shape, plus a 500000-vertex path (three roots), caterpillar and recursive.
 Builds: optimized (-DNDEBUG), checked, and ASan/UBSan in full/stress.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('85-levelancestor', ['directed', 'cycle', 'loop', 'parallel',
         'root-negative', 'root-end', 'empty-root', 'query-negative', 'query-end', 'k-negative',
         'offline-directed', 'offline-cycle', 'offline-root-end', 'offline-query-negative',
-        'offline-query-end', 'offline-k-negative'], strict=True))
+        'offline-query-end', 'offline-k-negative']))

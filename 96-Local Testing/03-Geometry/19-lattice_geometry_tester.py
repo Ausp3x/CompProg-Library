@@ -8,8 +8,11 @@ from fractions import Fraction
 import math
 import random
 import shlex
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 
 def under(p, q):
@@ -46,7 +49,7 @@ def polygon(v, closed):
 
 def oracle(binary, args, env):
     rng = random.Random(args.seed)
-    count = {'quick': 40, 'full': 400, 'stress': 4000}[args.mode]
+    count = {'quick': 28, 'full': 400, 'stress': 4000}[args.mode]
     rows, want = [], []
     for i in range(count):
         den = [rng.randint(1, 10 ** rng.randint(1, 15)) for _ in range(2)]
@@ -80,7 +83,7 @@ def oracle(binary, args, env):
             rows.append(f'P {closed} {k} ' + ' '.join(body))
             want.append(str(polygon(v, closed)))
     command = [str(binary), '--oracle']
-    result = subprocess.run(command, input=''.join(r + '\n' for r in rows), text=True, capture_output=True, env=env, timeout=600)
+    result = timed_run(f'19-lattice_geometry oracle {Path(command[0]).name}', command, input=''.join(r + '\n' for r in rows), text=True, capture_output=True, env=env, timeout=600)
     if result.returncode:
         raise RuntimeError(f'Python oracle returncode={result.returncode} command={shlex.join(command)}\n{result.stderr}')
     got = result.stdout.splitlines()

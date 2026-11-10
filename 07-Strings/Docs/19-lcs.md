@@ -50,11 +50,13 @@ Runner: [`19-lcs_tester.py`](<../../96-Local Testing/07-Strings/19-lcs_tester.py
 | longestPalindromicSubsequence | Enumeration (lengths up to 12), interval DP on medium strings, unary closed form at length up to 6 * 10^4. |
 | countDistinctSubsequences, countPalindromicSubsequences | Enumeration with `lng` and mod 998244353 (lengths up to 12, binary exhaustively through 5/6/7, extreme `int` symbols); the distinct palindromic count against an independent per-letter recurrence `F = sum_c (1 + [two occurrences](1 + F(inner)))` on medium strings; unary closed form. |
 
-The checked (`-O0`, `_GLIBCXX_DEBUG`) build divides the random count and the medium and large sizes by 4, because the debug library validates every binary-search range in linear time; the optimized and sanitizer builds run the full sizes. The checked build runs one precondition probe (`lcs3` with a table above `INT_MAX`); the remaining preconditions are sizes near `INT_MAX`.
+The checked (`_GLIBCXX_DEBUG`) build divides the random count and the medium and large sizes by 4, because the debug library validates every binary-search range in linear time; the optimized and sanitizer builds run the full sizes. The checked build runs one precondition probe (`lcs3` with a table above `INT_MAX`); the remaining preconditions are sizes near `INT_MAX`.
 
 ## Commands and results
 
-Run 2026-10-10 on the final code. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>). The checked build uses the size divisor described above.
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 877 MB; optimized 0.3 s compile + 6.3 s run, checked 28.3 s compile + 20.1 s run, ASan-UBSan 29.2 s compile + 61.5 s run; MEMORY peak 1070 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 942 MB; optimized 0.2 s compile + 6.9 s run, checked 39.6 s compile + 34.5 s run, ASan-UBSan 43.2 s compile + 59.6 s run; MEMORY peak 1058 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 41.6 s compile + 1.6 s run, checked 25.7 s compile + 17.8 s run; MEMORY peak 864 MB. `python3 '96-Local Testing/07-Strings/19-lcs_tester.py' --mode stress --seed 42` (three suites at a time) PASS: pre-flight quick peak 54 MB; optimized 0.0 s compile + 5.8 s run, checked 10.2 s compile + 9.5 s run, ASan-UBSan 10.9 s compile + 63.7 s run; MEMORY peak 641 MB. Dated rows below stay those commands' latest results.
+
+Run 2026-10-10 on the final code. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>). The checked build uses the size divisor described above.
 
 ```bash
 python3 '96-Local Testing/07-Strings/19-lcs_tester.py' --mode quick --seed 1  # PASS, 2 configurations, 1 assertion probe
@@ -112,3 +114,4 @@ Search aliases (P263, grab --find): 最长公共子序列, 最长共同子序列
 
 - 2026-10-10: implemented and verified (P083), independent review found 2 issues, fixed.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

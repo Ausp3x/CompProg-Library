@@ -33,7 +33,7 @@ M walkDp(int n, int h1, int h2, const vector<int> &S, int H) {
     for (int i = 0; i < n; ++i) {
         vector<M> e(H + 1, 0);
         for (int h = 0; h <= H; ++h) { for (int s : S) { if (h + s >= 0 && h + s <= H) { e[h + s] += d[h]; } } }
-        d = e;}
+        swap(d, e);}
     return h2 <= H ? d[h2] : M(0);}
 
 void small(const ModFac &pc, std::mt19937_64 &rng, bool quick) {

@@ -41,7 +41,7 @@ The legacy dynamic tree reserved 2.5 million nodes up front, searched `kth` over
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp`, entry `16-mergesorttree_tester.py` (driver `_00_runner.py`; three builds; 18 assertion probes; the checked build uses `-D_GLIBCXX_ASSERTIONS` because GCC's PBDS debug mode validates whole trees on every operation and the full corpus exceeded the runner's 180 s limit, while `-O0` with assertions finishes in about 1 s).
+Tester `96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp`, entry `16-mergesorttree_tester.py` (driver `_00_contest_runner.py`; three builds; 18 assertion probes; the checked build uses `-D_GLIBCXX_ASSERTIONS` because GCC's PBDS debug mode validates whole trees on every operation and the full corpus exceeded the runner's former 180 s limit, while assertions alone finish in about 1 s).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -55,6 +55,8 @@ Tester `96-Local Testing/02-Data Structures/16-mergesorttree_tester.cpp`, entry 
 Sizes 0–129 (plus 513 and 1000 in stress) with value spans 0, 3 and 10^12. Mutation check (2026-10-10, quick mode, temporary copies): 9 of 9 injected faults detected (cascade at a full node, cascade counter, `kth` bound, `maxLeq` rank bound, erase of a different value, `countEqual` bound, frequency window end, `minGeq` bound, dynamic `kth` bound).
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 806 MB; optimized 0.2 s compile + 1.3 s run, checked 20.8 s compile + 0.9 s run, ASan-UBSan 39.9 s compile + 10.0 s run; MEMORY peak 1001 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 804 MB; optimized 0.3 s compile + 1.2 s run, checked 31.2 s compile + 1.3 s run, ASan-UBSan 53.9 s compile + 8.5 s run; MEMORY peak 998 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 31.7 s compile + 0.1 s run, checked 21.9 s compile + 0.4 s run; MEMORY peak 812 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 807 MB; optimized 0.1 s compile + 2.9 s run, checked 8.8 s compile + 3.1 s run, ASan-UBSan 17.2 s compile + 25.3 s run; MEMORY peak 727 MB. Dated rows below stay those commands' latest results.
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/16-mergesorttree_tester.py' --mode quick --seed 1
@@ -93,3 +95,4 @@ Search aliases (P263, grab --find): 划分树, 线段树套平衡树, 树状数�
 - 2026-10-10: independent review (P028): no wrong answers; guarded `set` on an empty slot under `NDEBUG` and corrected the memory term of the complexity line.
 - 2026-10-12: re-audit fix: `countRange` asserts its index range before the `lo < hi` shortcut in both trees (2 new probes); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `划分树`, `线段树套平衡树` and `树状数组套权值线段树` name related structures answering the same queries, kept as search synonyms (user decision 2026-11-07).
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

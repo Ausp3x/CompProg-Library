@@ -35,7 +35,7 @@ Optimality: no linear algorithm is expected. Take a graph whose vertices split i
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/18-twosat_tester.py` (shared graph runner, `-Wall -Wextra -Wconversion -Werror`, optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with assertion probes, ASan/UBSan `-O1` in full/stress). The oracle enumerates all assignments of the user variables against semantic predicates (clause, implication, xor, equivalence, unit, at-most-one count) that never use the clause encoding. Where at most 16 variables exist in total, it also enumerates full assignments of the clause list including auxiliaries.
+`96-Local Testing/04-Graphs/18-twosat_tester.py` (shared contest runner, `-Wall -Wextra -Wconversion -Werror`, optimized `-O2 -DNDEBUG`, checked `-g -D_GLIBCXX_DEBUG` (`-O0` in quick, `-O1` in full and stress) with assertion probes, ASan/UBSan `-O1` in full/stress). The oracle enumerates all assignments of the user variables against semantic predicates (clause, implication, xor, equivalence, unit, at-most-one count) that never use the clause encoding. Where at most 16 variables exist in total, it also enumerates full assignments of the clause list including auxiliaries.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -49,6 +49,8 @@ Optimality: no linear algorithm is expected. Take a graph whose vertices split i
 Planted mutants (temporary copies, quick suite): flipped assignment polarity, flipped forced polarity, dropped prefix implication, unreversed witness clauses, skipped mask propagation — all 5 killed.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 760 MB; optimized 0.1 s compile + 0.6 s run, checked 11.3 s compile + 5.1 s run, ASan-UBSan 10.9 s compile + 9.6 s run; MEMORY peak 924 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 793 MB; optimized 0.2 s compile + 0.8 s run, checked 20.1 s compile + 7.2 s run, ASan-UBSan 19.9 s compile + 12.8 s run; MEMORY peak 1009 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 20.3 s compile + 0.1 s run, checked 18.7 s compile + 3.0 s run; MEMORY peak 764 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 765 MB; optimized 0.1 s compile + 8.8 s run, checked 6.2 s compile + 48.9 s run, ASan-UBSan 6.5 s compile + 148.4 s run; MEMORY peak 1060 MB. Dated rows below stay those commands' latest results.
 
 P043 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H, GNU++20. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with the assertion probes, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` (full and stress); every build adds `-Wall -Wextra -Wconversion -Werror`. The suites ran one after another; times are indicative.
 
@@ -101,3 +103,4 @@ Search aliases (P263, grab --find): 2-SAT; 二元可满足性.
 - 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; independent review: no wrong answers (own brute-force 2-SAT oracle, overflow probes at the stated domain bounds).
 - 2026-10-13: prune, removed `addClause(a, na, b, nb)` and `solve()` (Legacy mapping); the two-call-style dimension of the tests collapsed into the literal form and the legacy section became a re-solve and copy check; full passed on g++ and g++-14, stress on g++.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

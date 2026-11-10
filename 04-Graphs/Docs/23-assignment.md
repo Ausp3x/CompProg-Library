@@ -52,7 +52,7 @@ Domain: `16·(min(nl, nr) + 1)·K ≤ max(T)`. Reached potentials are shortest d
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/23-assignment_tester.py` (shared graph runner with `-Werror` warnings, optimized, checked with probes, ASan/UBSan in full/stress; UBSan traps any signed overflow at the domain bounds). The oracle enumerates every injective assignment of the smaller side (exact `lll` sums) and every matching of a sparse edge list. Under `_GLIBCXX_DEBUG` only, the large dense/sparse section is capped at 30×40 and 200 vertices, because debug `priority_queue` re-validates the whole heap on each operation; the other sections and all domains are unchanged.
+`96-Local Testing/04-Graphs/23-assignment_tester.py` (shared contest runner with `-Werror` warnings, optimized, checked with probes, ASan/UBSan in full/stress; UBSan traps any signed overflow at the domain bounds). The oracle enumerates every injective assignment of the smaller side (exact `lll` sums) and every matching of a sparse edge list. Under `_GLIBCXX_DEBUG` only, the large dense/sparse section is capped at 30×40 and 200 vertices, because debug `priority_queue` re-validates the whole heap on each operation; the other sections and all domains are unchanged.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -64,6 +64,8 @@ Domain: `16·(min(nl, nr) + 1)·K ≤ max(T)`. Reached potentials are shortest d
 Planted mutants (quick suite): row potential off by one, missing ban of the parent column, fixed rows not blocked, missing virtual-row potential update, uncapped Johnson update, maximize potentials not negated, virtual row not relaxed — all 7 killed. 2026-10-13: removing the `feasible` and `cost` member initializers of `AssignmentResult` fails the `-Werror` build (`maybe-uninitialized`). Without `-Werror` it fails the default-result check in the optimized and checked builds, and UBSan reports the invalid `bool` load.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 992 MB; optimized 0.4 s compile + 1.3 s run, checked 33.1 s compile + 5.3 s run, ASan-UBSan 38.8 s compile + 13.6 s run; MEMORY peak 1355 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1002 MB; optimized 0.4 s compile + 1.6 s run, checked 54.9 s compile + 8.8 s run, ASan-UBSan 63.2 s compile + 21.3 s run; MEMORY peak 1321 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 37.3 s compile + 0.2 s run, checked 32.4 s compile + 16.8 s run; MEMORY peak 991 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 57 MB; optimized 0.1 s compile + 6.4 s run, checked 15.4 s compile + 6.4 s run, ASan-UBSan 17.7 s compile + 66.2 s run; MEMORY peak 779 MB. Dated rows below stay those commands' latest results.
 
 P043 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H, GNU++20. Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with the assertion probes, and `-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all` (full and stress); every build adds `-Wall -Wextra -Wconversion -Werror`. The suites ran one after another; times are indicative.
 
@@ -119,3 +121,4 @@ Search aliases (P263, grab --find): Hungarian algorithm, KM (Kuhn-Munkres), bipa
 - 2026-10-13: prune, removed the `Hungarian` adapter (Legacy mapping); its hand-checked matrices moved to `hungarian` with the enumeration oracle, the `legacy-range` probe was deleted. The review found that the default-result check could not fail on value-initialized vector elements; it now default-initializes over volatile-poisoned storage. Full passed on g++ and g++-14, stress on g++.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

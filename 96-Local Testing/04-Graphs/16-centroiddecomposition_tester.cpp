@@ -196,7 +196,7 @@ namespace {
         check(countPathsWithin(g, LLONG_MAX) == all && countPathsWithin(g, LLONG_MIN) == 0, "countPathsWithin extremes");}
 
     void small() {
-        int rounds = mode == "quick" ? 150 : mode == "full" ? 1500 : 8000;
+        int rounds = mode == "quick" ? 60 : mode == "full" ? 1500 : 8000;
         for (int t = 0; t < rounds; ++t) {
             int n = t < 6 ? t : 1 + rnd(t % 10 == 0 ? 120 : 40), shape = rnd(6), comps = rng() % 4 ? 1 : 1 + rnd(4);
             lng w = t % 4 == 0 ? 1 : t % 4 == 1 ? 1000 : t % 4 == 2 ? lng(1) << 40 : ((lng(1) << 62) - 1) / max(1, n - 1);
@@ -241,7 +241,7 @@ namespace {
 #else
         int cap = INT_MAX;
 #endif
-        int n = min(cap, mode == "quick" ? 20000 : CHECKED ? 50000 : mode == "full" ? 200000 : 1000000);
+        int n = min(cap, mode == "quick" ? 8000 : CHECKED ? 50000 : mode == "full" ? 200000 : 1000000);
         {
             Graph path(n);
             for (int v = 1; v < n; ++v) { path.addEdge(v - 1, v); }

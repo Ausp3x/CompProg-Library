@@ -10,6 +10,7 @@ void require(bool ok, const char *what) {
 bool near(long double a, long double b, long double scale = 1) {
     return std::abs(a - b) <= 2e-12L * max({scale, std::abs(a), std::abs(b)});}
 long double length(dpoint p) { return std::sqrt(p.x * p.x + p.y * p.y); }
+static dpoint dp(int x, int y) { return dpoint{(long double)x, (long double)y}; }
 void record(CircleApprox a, CircleApprox b) {
     std::ostringstream s; s << std::setprecision(22) << "a=(" << a.c.x << ',' << a.c.y << ',' << a.r
         << ") b=(" << b.c.x << ',' << b.c.y << ',' << b.r << ')'; input = s.str();}
@@ -134,7 +135,7 @@ void exhaustive(int bound) {
     for (int x = -bound; x <= bound; ++x) { for (int y = -bound; y <= bound; ++y) {
         for (int r = 0; r <= bound; ++r) { for (int s = 0; s <= bound; ++s) {
             int q = x * x + y * y, lo = (r - s) * (r - s), hi = (r + s) * (r + s);
-            CircleApprox a({0, 0}, r), b({x, y}, s);
+            CircleApprox a({0, 0}, r), b(dp(x, y), s);
             int count = q == 0 ? (r != s ? 0 : r ? -1 : 1) : q < lo || q > hi ? 0 : q == lo || q == hi ? 1 : 2;
             verifyIntersections(a, b, count);
             for (bool inner : {false, true}) {
@@ -147,16 +148,16 @@ void exhaustive(int bound) {
         for (int bx = -bound; bx <= bound; ++bx) { for (int by = -bound; by <= bound; ++by) {
             for (int r = 0; r <= bound; ++r) {
                 input = "a=" + std::to_string(ax) + "," + std::to_string(ay) + " b=" + std::to_string(bx) + "," + std::to_string(by) + " r=" + std::to_string(r);
-                verifySegment(CircleApprox({}, r), {ax, ay}, {bx, by}, segmentCount({ax, ay}, {bx, by}, r));
-                CircleApprox c({ax, ay}, r);
-                require(powerApprox(c, {bx, by}) == (bx - ax) * (bx - ax) + (by - ay) * (by - ay) - r * r, "exact integer power");
+                verifySegment(CircleApprox({}, r), dp(ax, ay), dp(bx, by), segmentCount({ax, ay}, {bx, by}, r));
+                CircleApprox c(dp(ax, ay), r);
+                require(powerApprox(c, dp(bx, by)) == (bx - ax) * (bx - ax) + (by - ay) * (by - ay) - r * r, "exact integer power");
                 if (r == 0) { continue; }
                 for (int s = 1; s <= bound; ++s) {
                     lll q = (bx - ax) * (bx - ax) + (by - ay) * (by - ay), sum = (r + s) * (r + s), diff = (r - s) * (r - s);
                     int want = q == 0 && diff == 0 ? -1 : 2 * (q > diff) + (q == diff && q > 0) + 2 * (q > sum) + (q == sum);
                     int got = circleRelation(point{ax, ay}, lng(r), point{bx, by}, lng(s));
                     require(got == want, "relation from tangent-count formula");
-                    CircleApprox d({bx, by}, s);
+                    CircleApprox d(dp(bx, by), s);
                     if (want >= 0) { require(commonTangentsApprox(c, d).count + commonTangentsApprox(c, d, true).count == want, "relation equals both tangent families"); }
                     auto z = circleIntersectionApprox(c, d); array<dpoint, 2> axis;
                     require(radicalAxisApprox(c, d, axis) == (q > 0), "radical axis exists iff centers differ");
@@ -168,7 +169,7 @@ void exhaustive(int bound) {
             for (int r = 1; r <= 2 * bound; ++r) {
                 lll q = lll(dx) * ay - lll(dy) * ax, disc = lll(r) * r * (dx * dx + dy * dy) - q * q;
                 if (disc > 0 && (ax + ay) % 5) { continue; }
-                dpoint a{ax, ay}, b{ax + dx, ay + dy};
+                dpoint a = dp(ax, ay), b = dp(ax + dx, ay + dy);
                 input = "a=" + std::to_string(ax) + "," + std::to_string(ay) + " d=" + std::to_string(dx) + "," + std::to_string(dy) + " r=" + std::to_string(r);
                 auto z = circleLineIntersectionApprox(CircleApprox({}, r), a, b);
                 require(z.count == (disc < 0 ? 0 : disc == 0 ? 1 : 2), "non-axis line count from integer discriminant");
@@ -180,7 +181,7 @@ void exhaustive(int bound) {
         for (int dx = -2; dx <= 2; ++dx) { for (int dy = -2; dy <= 2; ++dy) {
             if (dx == 0 && dy == 0) { continue; }
             for (int r = 0; r <= bound; ++r) {
-                dpoint a{ax, ay}, b{ax + dx, ay + dy}; CircleApprox c({}, r);
+                dpoint a = dp(ax, ay), b = dp(ax + dx, ay + dy); CircleApprox c({}, r);
                 int q = dx * ay - dy * ax, disc = r * r * (dx * dx + dy * dy) - q * q;
                 auto z = circleLineIntersectionApprox(c, a, b);
                 input = "a=" + std::to_string(ax) + "," + std::to_string(ay) + " d=" + std::to_string(dx) + "," + std::to_string(dy) + " r=" + std::to_string(r);

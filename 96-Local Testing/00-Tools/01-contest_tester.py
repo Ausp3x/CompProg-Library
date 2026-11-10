@@ -29,6 +29,7 @@ import time
 import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import Builder
 
 _00_memory_cap.ensure()
 
@@ -486,7 +487,7 @@ class ContestTools(unittest.TestCase):
         compiler = shutil.which("g++")
         if compiler:
             binary = self.dir / "generator executable"
-            self.run_raw([compiler, "-std=gnu++20", "-O2", TOOLS / "03-gen.cpp", "-o", binary])
+            Builder([compiler], self.dir, failure=AssertionError).build("03-gen.cpp", ["-std=gnu++20", "-O2"], [TOOLS / "03-gen.cpp"], binary, 120)
             commands.append([binary])
         for command in commands:
             for seed in (0, 1, 42, 2**64 - 1):

@@ -59,6 +59,8 @@ Entry: [`30-modular_power_towers_tester.py`](<../../96-Local Testing/05-Mathemat
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 748 MB; optimized 0.3 s compile + 1.7 s run, checked 12.4 s compile + 2.1 s run, ASan-UBSan 12.5 s compile + 4.2 s run; MEMORY peak 883 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 797 MB; optimized 0.2 s compile + 2.0 s run, checked 16.9 s compile + 3.6 s run, ASan-UBSan 17.9 s compile + 5.6 s run; MEMORY peak 935 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 22.6 s compile + 0.3 s run, checked 18.1 s compile + 1.7 s run; MEMORY peak 740 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 751 MB; optimized 0.1 s compile + 2.1 s run, checked 4.9 s compile + 3.5 s run, ASan-UBSan 5.3 s compile + 6.3 s run; MEMORY peak 541 MB. Dated rows below stay those commands' latest results.
+
 Run 2026-10-19 on GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64, Intel Core i9-11900H. The shared runner builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` and (full, stress) ASan/UBSan configurations. With `-Wall -Wextra -Wconversion`, the header compiles without warnings on both compilers.
 
 | Command | Result |
@@ -92,3 +94,4 @@ Fetched 2026-10-19 by `@researcher` ([00-sources.md](00-sources.md), P054 sweep)
 - 2026-10-19: P054 initial implementation; `@reviewer` found 1 bug in this header (exponent overflow at m = 2^64 - 59) and a cost statement for `powerTowerCapped`, both fixed with a regression; full suite passed on g++ and g++-14, stress seed 7 passed.
 - 2026-10-19: P054 follow-up: shared Pollard rho moved into the folder runner, limits section reduced to handoffs; full and stress passed on g++, full on g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

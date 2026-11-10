@@ -3,7 +3,6 @@ import argparse
 import os
 from pathlib import Path
 import re
-import resource
 import signal
 import shlex
 import shutil
@@ -12,7 +11,7 @@ import sys
 import tempfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
-from _00_cpp_test_runner import scaled
+from _00_cpp_test_runner import Builder, compiler_command, scaled, timed_run
 
 _00_memory_cap.ensure()
 
@@ -25,9 +24,8 @@ def run_suite(name, sources, compile_check=None):
     parser.add_argument("--mode", choices=("quick", "full", "stress"), default=os.getenv("CP_TEST_MODE", "full"))
     parser.add_argument("--seed", type=int, default=int(os.getenv("CP_TEST_SEED", "335597")))
     args = parser.parse_args()
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    compiler = shutil.which(os.getenv("CXX", "g++"))
-    if not compiler:
+    compiler = compiler_command()
+    if not compiler or shutil.which(compiler[0]) is None:
         parser.error("CXX compiler not found")
     configs = [("optimized-NDEBUG", ["-O2", "-DNDEBUG"])]
     if args.mode != "quick":
@@ -51,9 +49,11 @@ def run_suite(name, sources, compile_check=None):
         command = list(map(str, cmd))
         if terminal:
             print(f"\r[{done}/{total}] {label}\033[K", end="", flush=True)
-        result = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, timeout=scaled(180))
+        result = timed_run(label, command, cwd=ROOT, env=env, capture_output=True, text=True, timeout=scaled(180))
         if (expected == 0 and result.returncode != 0) or (expected != 0 and (result.returncode != expected or "assert" not in result.stderr.lower())):
             raise RuntimeError(f"{label}: exit={result.returncode}, expected={expected} (assertion message required for aborts)\n{result.stdout}{result.stderr}")
+        for over in re.findall(r"^OVERHALF .*$", result.stdout, re.M):  # a nested tester's own (02-debug_compile_tester.py), for 01-run.py
+            print(("\r\033[K" if terminal else "") + over, flush=True)
         done += 1
         line = status(f"PASS {name}: [{done}/{total}] {label}")
         print(("\r" if terminal else "") + line + ("\033[K" if terminal else ""), end="" if terminal else "\n", flush=True)
@@ -61,14 +61,19 @@ def run_suite(name, sources, compile_check=None):
     print(f"{name}: mode={args.mode} seed={args.seed} iterations={env['CP_TEST_ITERATIONS']}", flush=True)
     try:
         with tempfile.TemporaryDirectory(prefix="p002-c01-") as temp:
+            builder = Builder(compiler, temp, env=env, failure=RuntimeError)
+            warnings = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
+            compiled = builder.build_all([((config, source), f"{config} compile {source}", [*warnings, *flags], [HERE / source], Path(temp) / f"{Path(source).stem}-{config}", scaled(180),
+                                           800 if config == "ASan-UBSan" else 500) for config, flags in configs for source in sources])
+            done += len(compiled)
             for config, flags in configs:
                 for source in sources:
-                    binary = Path(temp) / f"{Path(source).stem}-{config}"
-                    execute([compiler, "-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror", *flags, HERE / source, "-o", binary], f"{config} compile {source}")
+                    binary, mark = Path(temp) / f"{Path(source).stem}-{config}", builder.stopwatch()
                     execute([binary], f"{config} run {source}")
                     if source == "02-debug_tester.cpp" and config == "checked":
                         for case in ("negative-start", "inverted-range", "tracer-depth"):
                             execute([binary, case], f"{config} precondition {case}", expected=-signal.SIGABRT)
+                    builder.report(mark, f"{Path(source).stem} {config}", args.mode, compiled[config, source])
             if compile_check:
                 execute([sys.executable, HERE / compile_check], "standalone/multiple-TU/macro compilation")
     except (OSError, RuntimeError, subprocess.TimeoutExpired) as error:

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('02-fenwick', ["negative-size","add-negative","add-end","prefix-negative","prefix-end","sum-negative","sum-reversed","sum-end","get-end","set-end","max-right-end","max-right-false","min-left-end","min-left-false"]))

@@ -6,7 +6,7 @@ constexpr bool DEBUG_CONTAINERS = true;  // debug heaps validate the whole range
 constexpr bool DEBUG_CONTAINERS = false;
 #endif
 #ifdef __SANITIZE_ADDRESS__
-constexpr bool SANITIZED = true;  // ASan stress would exceed the runner's 180 s limit, so it runs as full
+constexpr bool SANITIZED = true;  // ASan stress would exceed the runner's former 180 s limit, so it runs as full
 #else
 constexpr bool SANITIZED = false;
 #endif

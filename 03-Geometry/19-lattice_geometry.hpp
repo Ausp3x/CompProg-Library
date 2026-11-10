@@ -193,7 +193,7 @@ inline lll latticeInRationalPolygon(const vector<RationalPoint2> &v, bool closed
 inline lll latticeInHalfplanePolygon(const vector<Halfplane> &h, bool closed) {
     HalfplaneResult r = halfplaneIntersection(h);
     if (r.kind == HalfplaneKind::Ray || r.kind == HalfplaneKind::Line || r.kind == HalfplaneKind::Unbounded) { return lattice_detail::unbounded(r, closed); }
-    for (const auto &p : r.vertices) { assert(abs(p.x) <= 1000000000000000000LL * p.d && abs(p.y) <= 1000000000000000000LL * p.d); }
+    for ([[maybe_unused]] const auto &p : r.vertices) { assert(abs(p.x) <= 1000000000000000000LL * p.d && abs(p.y) <= 1000000000000000000LL * p.d); }
     if (r.kind == HalfplaneKind::Empty || (!closed && r.kind != HalfplaneKind::Polygon)) { return 0; }
     if (r.kind == HalfplaneKind::Point) { return r.vertices[0].d == 1; }
     auto edge = [](const Halfplane &s, const RationalPoint2 &p, const RationalPoint2 &q) {

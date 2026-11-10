@@ -47,7 +47,9 @@ The C++ oracle recursively enumerates original item multiplicities rather than r
 
 ## Commands and results
 
-Run 2026-10-23 (P072, after `KnapsackItem::weight` became `lng`): Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>); MEMORY peaks include the compiler.
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 829 MB; optimized 0.3 s compile + 0.7 s run, checked 22.2 s compile + 1.3 s run, ASan-UBSan 23.3 s compile + 11.0 s run; MEMORY peak 1024 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 883 MB; optimized 0.2 s compile + 0.4 s run, checked 27.5 s compile + 1.5 s run, ASan-UBSan 26.9 s compile + 8.7 s run; MEMORY peak 1077 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 29.7 s compile + 0.1 s run, checked 21.9 s compile + 1.4 s run; MEMORY peak 805 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 830 MB; optimized 0.1 s compile + 1.0 s run, checked 7.8 s compile + 2.1 s run, ASan-UBSan 8.0 s compile + 25.4 s run; MEMORY peak 840 MB. Dated rows below stay those commands' latest results.
+
+Run 2026-10-23 (P072, after `KnapsackItem::weight` became `lng`): Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>); MEMORY peaks include the compiler.
 
 ```bash
 python3 '96-Local Testing/06-Miscellaneous/13-knapsack_tester.py' --mode quick --seed 1                 # PASS, 2 configurations, 37 probes, peak 444 MB
@@ -101,3 +103,4 @@ Search aliases (P263, grab --find): 背包 DP 基础, 背包 DP 进阶, 01背包
 - 2026-10-23: `KnapsackItem::weight` widened to `lng` (P072, replacing `largeWeightSmallValueKnapsack`), width tests added; full suites, g++-14 full, stress and benchmarks passed.
 - 2026-10-24: P072 `/finish` (user decision 2026-10-24): `knapsack_detail::validate` marks its assert-only parameter and loop variable `[[maybe_unused]]`, so `-DNDEBUG -Wall -Wextra` builds are warning-free; quick and full passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

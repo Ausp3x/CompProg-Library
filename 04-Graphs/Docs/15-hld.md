@@ -84,6 +84,8 @@ Large shapes: deep and shuffled paths, star, caterpillar, binary, random and a 4
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1166 MB; optimized 0.2 s compile + 12.0 s run, checked 38.3 s compile + 16.9 s run, ASan-UBSan 52.0 s compile + 92.3 s run; MEMORY peak 1604 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1187 MB; optimized 0.3 s compile + 19.6 s run, checked 63.2 s compile + 34.2 s run, ASan-UBSan 93.5 s compile + 181.6 s run; MEMORY peak 1582 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 51.0 s compile + 1.4 s run, checked 38.9 s compile + 26.0 s run; MEMORY peak 1175 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 130 MB; optimized 0.1 s compile + 40.9 s run, checked 23.0 s compile + 20.9 s run, ASan-UBSan 31.2 s compile + 177.0 s run; MEMORY peak 1013 MB. Dated rows below stay those commands' latest results.
+
 2026-11-05 (after the `/finish GR70` tests; the stress row is from 2026-11-03 and the integration row from 2026-11-04, before them), GCC 16.0.1 20260322 (`g++`) and GCC 14.3.0 (`g++-14`). Each run builds optimized (`-O2 -DNDEBUG`) and checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the assertion probes); full and stress add ASan+UBSan, all with `-Wall -Wextra -Wconversion -Werror`.
 
 | Command | Result |
@@ -140,3 +142,4 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)
 - 2026-11-03: P042 GR05 rewrite of the pinned legacy excerpt; full suite passed on g++ and g++-14, stress seed 2; testing fixed an unclamped `maxPath` search, review fixed `maxPath` (search confined to the path's ranges), the heavy-child tie rule, the `TreeMonoid` argument order and the `reorderArray` complexity line.
 - 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.
 - 2026-11-08: `/merge-pr 4` review fixes: `G = Graph` defaults, `treePainting` back as planned.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

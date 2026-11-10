@@ -45,7 +45,7 @@ Package P029 (batch DS48). New header; no legacy source. Every heap is a min-hea
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/25-heap_deque_tester.cpp`, entry `25-heap_deque_tester.py` (driver `_00_runner.py`; three builds; 31 assertion probes).
+Tester `96-Local Testing/02-Data Structures/25-heap_deque_tester.cpp`, entry `25-heap_deque_tester.py` (driver `_00_contest_runner.py`; three builds; 31 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -64,6 +64,8 @@ Tester `96-Local Testing/02-Data Structures/25-heap_deque_tester.cpp`, entry `25
 Mutation check (2026-10-13, quick mode, temporary copies): 11 of 11 injected faults detected. They covered a larger child chosen in `down`, `erase` without `up`, an inverted `clean`, a leftist meld ignoring ranks, a missing skew size update, three equal binomial degrees linked wrongly, a pairing `detach` keeping `prev`, a Fibonacci decrease keeping the old minimum, an interval pair left unordered, `PrioritySum` routing a boundary tie to `out` and a missing randomized size update.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 940 MB; optimized 0.1 s compile + 6.6 s run, checked 30.1 s compile + 44.1 s run, ASan-UBSan 38.3 s compile + 44.0 s run; MEMORY peak 1312 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 974 MB; optimized 0.2 s compile + 5.9 s run, checked 33.6 s compile + 69.2 s run, ASan-UBSan 45.6 s compile + 42.3 s run; MEMORY peak 1276 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 29.8 s compile + 0.7 s run, checked 24.1 s compile + 21.3 s run; MEMORY peak 965 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 57 MB; optimized 0.1 s compile + 5.4 s run, checked 13.5 s compile + 47.4 s run, ASan-UBSan 20.3 s compile + 42.0 s run; MEMORY peak 747 MB. Dated rows below stay those commands' latest results.
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/25-heap_deque_tester.py' --mode quick --seed 1
@@ -128,3 +130,4 @@ Search aliases (P263, grab --find): binary heap, leftist tree (左偏树), lefti
 - 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `build` renamed `ctor` for `DAryHeap`, `ErasableHeap` and `DoubleEndedPriorityQueue` (their constructors), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

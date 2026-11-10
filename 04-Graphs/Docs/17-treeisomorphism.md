@@ -102,7 +102,7 @@ Search aliases (P263, grab --find): AHU 算法, 树哈希, 树同构, 有根树�
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/17-treeisomorphism_tester.py` uses the shared graph runner with `-Werror` warnings, in optimized, checked (`_GLIBCXX_DEBUG`, with probes) and ASan/UBSan (full and stress) builds.
+`96-Local Testing/04-Graphs/17-treeisomorphism_tester.py` uses the shared contest runner with `-Werror` warnings, in optimized, checked (`_GLIBCXX_DEBUG`, with probes) and ASan/UBSan (full and stress) builds.
 
 Oracles:
 
@@ -112,10 +112,10 @@ Oracles:
 
 | Operation | Test | Oracle |
 |---|---|---|
-| `rootedTreeClassification` | Every labelled tree via Prüfer codes, n ≤ 6 (quick) or 7 (full) at every root (r = 0 above 6); symmetric families (copies of a random tree on a center or across an edge); large path (ids are heights) and complete binary tree | Partition equals naive subtree strings; ids contiguous; `id[u] < id[v]` iff `(height, sorted child ids)` is smaller |
+| `rootedTreeClassification` | Every labelled tree via Prüfer codes, n ≤ 5 (quick) or 7 (full) at every root (r = 0 above 6); symmetric families (copies of a random tree on a center or across an edge); large path (ids are heights) and complete binary tree | Partition equals naive subtree strings; ids contiguous; `id[u] < id[v]` iff `(height, sorted child ids)` is smaller |
 | `rootedTreeHash` | Same cases, two seeds, Graph and CSR; root hashes compared across all labelled trees of each n; saved 7-vertex regression where child hash sums coincide; large relabelled roots | Partition equals naive strings; equal across trees iff naive strings are equal |
 | `allRootsClassification` | Every labelled tree; symmetric families; large path; large relabelled copies | Partition equals naive strings at every root; orbits map onto orbits under the found isomorphism |
-| `rootedTreeIsomorphism` | 300 (quick) or 3000 (full) random pairs per n, half relabelled, random roots; families against a tree one vertex larger; large relabelled copies | Mapping valid iff naive rooted strings are equal; empty when sizes differ |
+| `rootedTreeIsomorphism` | 100 (quick) or 3000 (full) random pairs per n, half relabelled, random roots; families against a tree one vertex larger; large relabelled copies | Mapping valid iff naive rooted strings are equal; empty when sizes differ |
 | `unrootedTreeIsomorphism` | Same pairs (second graph as CSR); symmetric families relabelled and against a tree one vertex larger; large relabelled copies; large degree-changing non-isomorphic pairs (5 in full) | Mapping valid iff naive unrooted strings (minimum over roots) are equal; empty when sizes differ or the degree multiset changes |
 | `treeCanonicalString` | Every labelled tree, rooted at every vertex and unrooted; families; large copies | Bijection with naive strings over all trees of each n; length `2n`; relabelling invariance |
 | `automorphismCount` | Every labelled tree n ≤ 6, plus 1 in 16 trees at n = 7 (`lll`, rooted and unrooted); families n ≤ 9; large star `(n-1)!`, path 2 and 1, complete binary tree `2^(2^(d-1)-1)` (`mint`) | Brute-force permutations; closed forms |
@@ -134,6 +134,8 @@ Planted mutants were each compiled against the quick suite on 2026-10-16. All 8 
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 950 MB; optimized 0.1 s compile + 15.7 s run, checked 15.8 s compile + 83.6 s run, ASan-UBSan 18.2 s compile + 123.4 s run; MEMORY peak 1324 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 947 MB; optimized 0.3 s compile + 36.2 s run, checked 39.2 s compile + 194.9 s run, ASan-UBSan 40.9 s compile + 288.1 s run; MEMORY peak 1308 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 22.8 s compile + 0.5 s run, checked 22.1 s compile + 27.0 s run; MEMORY peak 944 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 56 MB; optimized 0.1 s compile + 99.3 s run, checked 11.0 s compile + 50.4 s run, ASan-UBSan 11.7 s compile + 78.2 s run; MEMORY peak 921 MB. Dated rows below stay those commands' latest results.
+
 2026-10-16, GCC 16.2.1 and GCC 14.4.1, Linux x86-64, GNU++20, 11th Gen Intel Core i9-11900H.
 
 | Command | Result |
@@ -145,7 +147,7 @@ Planted mutants were each compiled against the quick suite on 2026-10-16. All 8 
 | `02-integration.py --sanitizers` | PASS 144 standalone/aggregate headers (each header alone, `99-all`), multi-TU, workspace, sanitizer self-tests; MEMORY peak 2,763 MB |
 | `03-consistency.py` | No errors |
 
-The checked build (`-O0 -D_GLIBCXX_DEBUG`) runs full and stress at n ≤ 7, 2,000 families and 50,000-vertex shapes; the ASan/UBSan build runs stress at n ≤ 7, 2,000 families and 200,000-vertex shapes. Both caps keep each run inside the runner's 180 s timeout.
+The checked build (`-O1 -D_GLIBCXX_DEBUG`) runs full and stress at n ≤ 7, 2,000 families and 50,000-vertex shapes; the ASan/UBSan build runs stress at n ≤ 7, 2,000 families and 200,000-vertex shapes. Both caps keep each run inside the runner's former 180 s timeout.
 
 ```bash
 python3 '96-Local Testing/04-Graphs/17-treeisomorphism_tester.py' --mode quick
@@ -187,3 +189,4 @@ The per-height trie with `mark` sharing is this library's formulation of the lin
 - 2026-10-16: verified (P056); new row; completeness sweep added `allRootsClassification` and `rootedTreeIsomorphism`; independent review: 1 finding fixed (`rootedTreeHash` read past the BFS order under `NDEBUG` on non-trees), BFS reused from row 02; 8 planted mutants killed; quick, full and stress passed on g++, full on g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph, class H = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

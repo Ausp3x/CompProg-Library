@@ -8,7 +8,7 @@ struct FunctionalOrbit { int entry, tail, cycle_length; };
 // Constant-memory Floyd; next[u] is -1 or a vertex (not checked per step), -1 terminates.
 // T: O(tail + cycle_length + 1), M: O(1).
 inline FunctionalOrbit functionalOrbit(const vector<int> &next, int start) {
-    assert(next.size() <= size_t(INT_MAX)); int n = int(next.size());
+    assert(next.size() <= size_t(INT_MAX)); [[maybe_unused]] int n = int(next.size());
     assert(0 <= start && start < n);
     auto step = [&](int u) { return u == -1 ? -1 : next[u]; };
     int a = step(start), b = step(step(start));

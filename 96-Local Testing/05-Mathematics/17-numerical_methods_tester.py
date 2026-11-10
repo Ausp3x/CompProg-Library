@@ -19,8 +19,11 @@ from fractions import Fraction
 import math
 import random
 import shlex
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 U = Fraction(1, 2 ** 53)
 EPS = 2 * U
@@ -131,7 +134,7 @@ def oracle(binary, args, env):
     lines = [f'q {a.hex()} {b.hex()} {c.hex()}\n' for a, b, c in quads]
     lines += [f's {len(xs)} ' + ' '.join(x.hex() for x in xs) + '\n' for xs in sums]
     command = [str(binary), '--oracle']
-    result = subprocess.run(command, input=''.join(lines), text=True, capture_output=True, env=env, timeout=180)
+    result = timed_run(f'17-numerical_methods oracle {Path(command[0]).name}', command, input=''.join(lines), text=True, capture_output=True, env=env, timeout=180)
     if result.returncode:
         raise RuntimeError(f'Python oracle returncode={result.returncode} command={shlex.join(command)}\n{result.stderr}')
     out = result.stdout.splitlines()

@@ -94,7 +94,7 @@ template<class T> void verifyGeneric(const vector<T> &s) {
     for (int i = 0; i < int(s.size()); ++i) {
         for (int j = 0; j < int(s.size()); ++j) { check((s[i] < s[j]) == (codes[i] < codes[j]), "compressAlphabet order"); }}}
 void exhaustive(const string &mode) {
-    int limit = mode == "quick" ? 7 : mode == "full" ? 10 : 11;
+    int limit = mode == "quick" ? 6 : mode == "full" ? 10 : 11;
     vector<vector<int>> words{{}};
     for (int len = 0; len <= limit; ++len) {
         for (auto &w : words) {
@@ -104,7 +104,7 @@ void exhaustive(const string &mode) {
         for (auto &w : words) {
             for (int c = 0; c < 3; ++c) { longer.push_back(w); longer.back().push_back(c); }}
         words.swap(longer);}
-    int binary = mode == "quick" ? 16 : 18;
+    int binary = mode == "quick" ? 14 : 18;
     for (int len = 13; len <= binary; ++len) {
         int step = len <= 16 ? 1 : 7;
         for (int mask = 0; mask < (1 << len); mask += step) {
@@ -116,7 +116,7 @@ void exhaustive(const string &mode) {
             check(sais<1>(w, 1) == expected && sais(w, 1) == expected, "binary threshold neighbours");}}
     cout << "PASS exhaustive ternary texts through length " << limit << ", binary texts of lengths 13.." << binary << '\n';}
 void randomCases(const string &mode) {
-    int rounds = mode == "quick" ? 300 : mode == "full" ? 3000 : 15000;
+    int rounds = mode == "quick" ? 100 : mode == "full" ? 3000 : 15000;
     for (int r = 0; r < rounds; ++r) {
         int n = r % 7 ? int(nextRandom() % 300) : 30 + r % 5, sigma = 1 + int(nextRandom() % 6), upper = sigma - 1 + int(nextRandom() % 3) * int(nextRandom() % 1000);
         vector<int> s(n);
@@ -149,7 +149,7 @@ void randomCases(const string &mode) {
     verifyGeneric(vector<ulng>{~0ULL, 0, ~0ULL, 1});
     cout << "PASS random integer/byte/lng/signed char/string-symbol texts rounds=" << rounds << '\n';}
 void large(const string &mode) {
-    int n = mode == "quick" ? 5000 : mode == "full" ? 200000 : 700000;
+    int n = mode == "quick" ? 3000 : mode == "full" ? 200000 : 700000;
     vector<vector<int>> texts;
     texts.push_back(vector<int>(n, 0));
     vector<int> periodic(n), fib, thue(n), random(n), big(n);

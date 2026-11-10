@@ -17,9 +17,12 @@ Builds use -Wall -Wextra -Wshadow -Wconversion -Werror. Full/stress add
 ASan/UBSan (the checked _GLIBCXX_DEBUG build runs stress at full-mode sizes);
 checked builds run nine precondition probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
     raise SystemExit(main('17-bitap', ['shift-and-long', 'shift-or-long', 'text-symbol', 'pattern-symbol', 'class-symbol',
-                                       'negative-k', 'bitset-set', 'bitset-range', 'bitset-negative-r'], strict=True))
+                                       'negative-k', 'bitset-set', 'bitset-range', 'bitset-negative-r'], extra=('-Wshadow',)))

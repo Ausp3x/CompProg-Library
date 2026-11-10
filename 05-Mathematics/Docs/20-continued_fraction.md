@@ -108,6 +108,8 @@ Entry: [`20-continued_fraction_tester.py`](<../../96-Local Testing/05-Mathematic
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 823 MB; optimized 0.1 s compile + 51.0 s run, checked 19.0 s compile + 79.6 s run, ASan-UBSan 24.2 s compile + 87.1 s run; MEMORY peak 1030 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 896 MB; optimized 0.2 s compile + 64.6 s run, checked 22.6 s compile + 109.9 s run, ASan-UBSan 28.1 s compile + 128.4 s run; MEMORY peak 1070 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 25.5 s compile + 5.1 s run, checked 17.9 s compile + 22.2 s run; MEMORY peak 821 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 51 MB; optimized 0.0 s compile + 87.9 s run, checked 7.5 s compile + 93.8 s run, ASan-UBSan 9.8 s compile + 112.3 s run; MEMORY peak 1021 MB. Dated rows below stay those commands' latest results.
+
 Full runs 2026-10-19 (after the row 18 change, recorded in [18-floorsum.md](18-floorsum.md)), stress 2026-10-18; conditions as in [18-floorsum.md](18-floorsum.md).
 
 | Command | Result |
@@ -147,3 +149,4 @@ Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep)
 - 2026-10-18: P060 initial implementation; `@reviewer` found 8 issues, all fixed (precondition checks, `-DNDEBUG` termination, complexity statements, the `n <= 10^13` bound); full suite passed on g++ and g++-14, stress seed 7 passed.
 - 2026-10-19: P037 round-3 rerun (included `18-floorsum.hpp` changed), header unchanged; full passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

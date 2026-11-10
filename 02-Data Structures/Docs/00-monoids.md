@@ -108,7 +108,7 @@ Search aliases (P263, grab --find): 幺半群, 半群, 幺半群作用, 区间�
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/00-monoids_tester.cpp`, entry `00-monoids_tester.py` (driver `_00_runner.py`; three builds; no assertion probes, because the presets have no preconditions of their own). The consumers are the harness: `LazySegmentTree`, `SegmentTree` and the dual trees. The runtime modulus of the stateful groups is chosen from `{1000000007, 998244353, 10007, 97}` by the seed.
+Tester `96-Local Testing/02-Data Structures/00-monoids_tester.cpp`, entry `00-monoids_tester.py` (driver `_00_contest_runner.py`; three builds; no assertion probes, because the presets have no preconditions of their own). The consumers are the harness: `LazySegmentTree`, `SegmentTree` and the dual trees. The runtime modulus of the stateful groups is chosen from `{1000000007, 998244353, 10007, 97}` by the seed.
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -120,6 +120,8 @@ Tester `96-Local Testing/02-Data Structures/00-monoids_tester.cpp`, entry `00-mo
 Every consumer tester also runs a stateful monoid (runtime modulus, key array or comparator flag) next to its static presets, as its own evidence records.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1254 MB; optimized 0.1 s compile + 11.3 s run, checked 91.8 s compile + 18.7 s run, ASan-UBSan 101.6 s compile + 105.6 s run; MEMORY peak 2787 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1190 MB; optimized 0.2 s compile + 16.2 s run, checked 94.7 s compile + 25.7 s run, ASan-UBSan 123.1 s compile + 140.3 s run; MEMORY peak 2640 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 130.8 s compile + 1.3 s run, checked 101.9 s compile + 5.8 s run; MEMORY peak 1967 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1254 MB; optimized 0.1 s compile + 13.3 s run, checked 46.2 s compile + 20.4 s run, ASan-UBSan 54.1 s compile + 139.8 s run; MEMORY peak 1695 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-10-23 (P035 `inv` on `Sum` and `Xor`), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
@@ -165,3 +167,4 @@ Fetch dates, URLs and failed fetches: [00-sources.md](00-sources.md) (2026-10-08
 - 2026-10-23: P035 (the user's yes to editing this row): `inv` on `Sum` and `Xor`, the group contract, inverse checks in `plain` and at the domain edges in `contract` (added after the P035 independent review); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 1371/1387/1370 MB.
 - 2026-10-27: P030 (user decision 2026-10-27 to edit this row): defaulted `operator==` on `AffineComposite<T>::S`; full (seed 20261027) on g++ and g++-14 passed for rows 00 and 12, MEMORY peak 1366/1384 MB (row 00) and 678/716 MB (row 12).
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

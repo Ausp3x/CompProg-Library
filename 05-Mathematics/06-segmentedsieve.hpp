@@ -12,7 +12,7 @@ namespace segmented_sieve_detail {
         while (lll(s) * s > n) { --s; }
         return s;}
     inline lll firstMultiple(lng l, lng p) { return lll(l / p + (l % p != 0)) * p; }
-    inline void validate(lng l, lng r, int block, SegmentedSieveMode mode) {
+    inline void validate([[maybe_unused]] lng l, [[maybe_unused]] lng r, [[maybe_unused]] int block, [[maybe_unused]] SegmentedSieveMode mode) {
         assert(l <= r && block > 0);
         assert(mode == SegmentedSieveMode::Plain || mode == SegmentedSieveMode::Odd || mode == SegmentedSieveMode::Wheel30);}
     template<typename F>
@@ -148,7 +148,7 @@ struct SegmentedSieve {
     void getTables() {
         lng n = lng(is_prime.size()); num_div.resize(n); sum_div.resize(n); phi.resize(n); mu.resize(n);
         for (lng i = 0; i < n; ++i) {
-            lng x = lng(lll(l) + i); num_div[i] = sum_div[i] = x > 0; mu[i] = x > 0; phi[i] = max(lng(0), x);}
+            lng x = lng(lll(l) + i); num_div[i] = x > 0; sum_div[i] = x > 0; mu[i] = x > 0; phi[i] = max(lng(0), x);}
         forEachFactor([&](lng i, lng p, int e) {
             num_div[i] *= e + 1; phi[i] -= phi[i] / p; mu[i] = int8_t(e > 1 ? 0 : -mu[i]);
             lll power_sum = 1; for (int j = 0; j < e; ++j) { power_sum = power_sum * p + 1; }

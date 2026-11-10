@@ -120,7 +120,9 @@ Seeded rounds for quick/full/stress are 300/3000/20000 per family, except group 
 
 ## Commands and results
 
-Run 2026-10-24: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>); MEMORY peaks include the compiler.
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1335 MB; optimized 0.1 s compile + 15.9 s run, checked 47.5 s compile + 15.9 s run, ASan-UBSan 53.7 s compile + 141.4 s run; MEMORY peak 1970 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1365 MB; optimized 0.2 s compile + 24.9 s run, checked 75.3 s compile + 21.5 s run, ASan-UBSan 91.1 s compile + 182.8 s run; MEMORY peak 1880 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 58.1 s compile + 2.3 s run, checked 49.6 s compile + 29.4 s run; MEMORY peak 1359 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 83 MB; optimized 0.1 s compile + 17.8 s run, checked 27.9 s compile + 7.0 s run, ASan-UBSan 28.5 s compile + 60.9 s run; MEMORY peak 1211 MB. Dated rows below stay those commands' latest results.
+
+Run 2026-10-24: Linux x86-64, i9-11900H, GCC 16.2.1 and GCC 14.4.1, CPython 3.14. Configurations: optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>); MEMORY peaks include the compiler.
 
 ```bash
 python3 '96-Local Testing/06-Miscellaneous/29-knapsack_advanced_tester.py' --mode quick --seed 1               # PASS, 2 configurations, 59 probes, peak 836 MB
@@ -131,7 +133,7 @@ python3 '96-Local Testing/02-integration.py'    # PASS, 174 standalone/aggregate
 python3 '96-Local Testing/03-consistency.py'    # no errors
 ```
 
-Per configuration, full ran 122,042 cases / 21.2 million checks (the checked build 121,961 / 21.1 million) and optimized stress 494,833 cases / 129.8 million checks; the debug-container and ASan builds run stress as full: alone, ASan stress took 119 s of the runner's 180 s per-binary limit and exceeded it under parallel load (ASan full: about 87 s). The full-mode caterpillar and star keep the peak far below the 4.8 GB a heavy-first order or kept light-child tables would need.
+Per configuration, full ran 122,042 cases / 21.2 million checks (the checked build 121,961 / 21.1 million) and optimized stress 494,833 cases / 129.8 million checks; the debug-container and ASan builds run stress as full: alone, ASan stress took 119 s of the runner's former 180 s per-binary limit and exceeded it under parallel load (ASan full: about 87 s). The full-mode caterpillar and star keep the peak far below the 4.8 GB a heavy-first order or kept light-child tables would need.
 
 ## Sources
 
@@ -159,3 +161,4 @@ Search aliases (P263, grab --find): 背包 DP 基础, 背包 DP 进阶, 单调�
 - 2026-10-23: implemented, independent review (tree memory, branch-and-bound copies and depth, complexity symbols, probes, round counts; 5 findings fixed) and verified (P072).
 - 2026-10-24: `/finish` audit, five review rounds (bounded multiplicities and unlimited zero-weight items in `kthBestKnapsack` and `countOptimalSelections`, chain monotone queue in `twoDimensionalKnapsack`, `NDEBUG` limits, renames, 14 probes, mutation check; user decisions 2026-10-23 and 2026-10-24); ASan stress runs as full; `[[maybe_unused]]` on the assert-only `check` parameters; full suite passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

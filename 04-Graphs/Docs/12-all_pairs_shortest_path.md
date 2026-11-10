@@ -72,6 +72,8 @@ Tester: [`12-all_pairs_shortest_path_tester.cpp`](../../96-Local%20Testing/04-Gr
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 938 MB; optimized 0.1 s compile + 7.5 s run, checked 22.9 s compile + 34.2 s run, ASan-UBSan 24.9 s compile + 62.0 s run; MEMORY peak 1212 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 946 MB; optimized 0.3 s compile + 11.4 s run, checked 37.1 s compile + 53.2 s run, ASan-UBSan 43.0 s compile + 91.8 s run; MEMORY peak 1174 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 41.4 s compile + 0.2 s run, checked 29.8 s compile + 12.7 s run; MEMORY peak 928 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 944 MB; optimized 0.1 s compile + 10.8 s run, checked 14.1 s compile + 72.7 s run, ASan-UBSan 15.8 s compile + 152.8 s run; MEMORY peak 917 MB. Dated rows below stay those commands' latest results.
+
 2026-11-05 (after the `/finish GR70` tests; the stress and integration rows are from 2026-11-03, before them), GCC 16.0.1 20260322 (`g++`) and GCC 14.3.0 (`g++-14`). Each run builds optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the 11 assertion probes) and, in full and stress, ASan+UBSan, all with `-Wall -Wextra -Wconversion -Werror`.
 
 | Command | Result |
@@ -79,7 +81,7 @@ Tester: [`12-all_pairs_shortest_path_tester.cpp`](../../96-Local%20Testing/04-Gr
 | `python3 '96-Local Testing/04-Graphs/12-all_pairs_shortest_path_tester.py' --mode quick` | PASS, 517 cases, 5.45·10^6 checks, peak 537 MB |
 | `… --mode full --seed 1` | PASS, 30303 cases, 1.18·10^8 checks, 3 configurations, peak 1085 MB |
 | `CXX=g++-14 … --mode full --seed 1` | PASS, the same counts, peak 1089 MB |
-| `… --mode stress --seed 7` | PASS, 280958 cases, 3.01·10^8 checks, peak 984 MB, 237 s wall; the checked build alone takes about 130 s against the runner's 180 s limit, which is why stress runs two boundary rounds |
+| `… --mode stress --seed 7` | PASS, 280958 cases, 3.01·10^8 checks, peak 984 MB, 237 s wall; the checked build alone takes about 130 s against the runner's former 180 s limit, which is why stress runs two boundary rounds |
 | `python3 '96-Local Testing/02-integration.py'` | PASS: 186 standalone and aggregate headers, multi-TU scalar and AVX2, workspace; peak 2744 MB |
 
 2026-11-09: `python3 '96-Local Testing/05-extraction.py' ops --filter 04-Graphs/12-all_pairs_shortest_path.hpp` passed (8 operations, 0 failures on `g++` and `g++-14`), and `testers --filter 12-all_pairs_shortest_path` passed (1 quick run on an extracted build, 0 failures).
@@ -141,3 +143,4 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)
 - 2026-11-03: P042 GR04 rewrite from the pinned legacy excerpt; full suite passed on g++ and g++-14, stress seed 7; review: apspDijkstra removed (user decision 2026-11-09), 11 findings fixed.
 - 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.
 - 2026-11-08: `/merge-pr 4` review fixes: `G = Graph` defaults, `AOS 262` closed by a fixture.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

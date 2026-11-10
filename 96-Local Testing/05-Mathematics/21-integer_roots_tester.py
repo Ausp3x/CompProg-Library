@@ -27,8 +27,11 @@ from decimal import Decimal, ROUND_FLOOR, getcontext
 import math
 import random
 import shlex
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 TOP = (1 << 64) - 1
 LO, HI = -(1 << 63), (1 << 63) - 1
@@ -171,8 +174,8 @@ def oracle(binary, args, env):
     count = {'quick': 300, 'full': 3000, 'stress': 20000}[args.mode]
     rows = [make_row(rng) for _ in range(count)]
     command = [str(binary), '--oracle']
-    result = subprocess.run(command, input=''.join(' '.join(map(str, row)) + '\n' for row in rows),
-                            text=True, capture_output=True, env=env, timeout=180)
+    result = timed_run(f'21-integer_roots oracle {Path(command[0]).name}', command, input=''.join(' '.join(map(str, row)) + '\n' for row in rows),
+                                                  text=True, capture_output=True, env=env, timeout=180)
     if result.returncode:
         raise RuntimeError(f'Python oracle returncode={result.returncode} command={shlex.join(command)}\n{result.stderr}')
     actual = result.stdout.splitlines()

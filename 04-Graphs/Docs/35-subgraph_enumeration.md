@@ -151,7 +151,7 @@ Search aliases (P263, grab --find): cycle counting (OI Wiki: 环计数问题, ri
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/35-subgraph_enumeration_tester.py` (`.cpp` beside it) uses the shared graph runner with three builds: optimized `-O2 -DNDEBUG`, checked (`-O0 -D_GLIBCXX_DEBUG`, with 32 assertion probes) and, outside quick, ASan/UBSan. All builds use `-Wall -Wextra -Wconversion -Werror`. Every operation runs on both `Graph` and `CsrGraph`.
+`96-Local Testing/04-Graphs/35-subgraph_enumeration_tester.py` (`.cpp` beside it) uses the shared contest runner with three builds: optimized `-O2 -DNDEBUG`, checked (`-D_GLIBCXX_DEBUG`, `-O0` in quick and `-O1` in full and stress, with 32 assertion probes) and, outside quick, ASan/UBSan. All builds use `-Wall -Wextra -Wconversion -Werror`. Every operation runs on both `Graph` and `CsrGraph`.
 
 Oracles, each validated before use:
 - Brute force: an adjacency-matrix count over vertex triples and over quadruples in their three cyclic orders. Per-edge values are multiplicity products over distinct vertices, and paths come from DFS enumeration.
@@ -184,7 +184,7 @@ Oracles, each validated before use:
 | Purity | Every operation is called twice | Identical results |
 
 Modes (optimized build):
-- quick: exhaustive simple graphs with n ≤ 5 and digraphs with n ≤ 3; 300 tiny and 40 medium random rounds; K_n up to 130; dense graphs to n = 300 plus the 16384/16385 boundary and the dispatch cores; large shapes and census at n = 3000.
+- quick: exhaustive simple graphs with n ≤ 5 and digraphs with n ≤ 3; 100 tiny and 15 medium random rounds; K_n up to 25; dense graphs to n = 300 plus the 16384/16385 boundary and the dispatch cores; large shapes and census at n = 1200.
 - full: exhaustive n ≤ 6 and digraphs n ≤ 4; 3000 and 400 rounds; K_n up to 200 (all operations); K300, K1000, K2000 and random dense n = 1000 and 3000; closed forms at n = 2 · 10^5 and K2,50000; large shapes at n = 2 · 10^5 and m = 5 · 10^5 (uniform multigraph, dense blocks, a hub adjacent to every vertex); the census boundary.
 - stress: 20000 and 2000 rounds; K2,100000 and closed forms at n = 3 · 10^5; n = m = 3 · 10^5 and n = 2 · 10^5, m = 10^6; census at m = 10^6.
 
@@ -192,7 +192,11 @@ The checked build (about 50× slower) and the ASan/UBSan build (about 10×) run 
 
 Inclusion through `99-all.hpp` and two translation units are covered by `02-integration.py`.
 
+Moved from quick to full and stress by the 10 s quick bound (P274), in the optimized build: K_n at n = 40, 63..66 and 127..130, the bipartite shape 40 × 60, and the domain edge at unscaled weights (`w^3` past 2^63); quick checks the same edge at weights scaled by 1000, as the checked build always has.
+
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 670 MB; optimized 0.1 s compile + 179.6 s run, checked 31.2 s compile + 62.7 s run, ASan-UBSan 61.2 s compile + 449.3 s run; MEMORY peak 1726 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 685 MB; optimized 0.2 s compile + 201.0 s run, checked 52.0 s compile + 137.4 s run, ASan-UBSan 91.0 s compile + 537.0 s run; MEMORY peak 1692 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 51.3 s compile + 20.2 s run, checked 34.1 s compile + 28.0 s run; MEMORY peak 668 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 237 MB; optimized 0.1 s compile + 169.9 s run, checked 18.8 s compile + 35.5 s run, ASan-UBSan 29.6 s compile + 183.6 s run; MEMORY peak 1798 MB. Command limit 2400 s instead of the shared runner's 720 s: its ASan-UBSan full run passed 720 s on a cold full run beside the other suites. Dated rows below stay those commands' latest results.
 
 Run 2026-10-29 on the local machine (GCC 16.2 `g++`, GCC 14.4.1 `g++-14`), after the last header change:
 
@@ -274,3 +278,4 @@ On graphs where the sparse loop runs alone (`r0 = n`), `denseStart` costs 0.2–
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound, a raised limit (above); full and stress inputs and checks unchanged; every library-wide run above passed.

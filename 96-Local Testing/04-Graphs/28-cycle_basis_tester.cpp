@@ -4,7 +4,7 @@ namespace {
     ulng seed = 20260927;
     string mode = "full", context, at;
     lng checks = 0, cases = 0;
-    // libstdc++ debug mode at -O0 is about 20x slower, so its stress run keeps full-mode rounds and shapes.
+    // libstdc++ debug mode is about 20x slower, so its stress run keeps full-mode rounds and shapes.
 #ifdef _GLIBCXX_DEBUG
     const bool CHECKED = true;
 #else

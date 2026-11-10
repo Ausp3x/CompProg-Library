@@ -9,7 +9,7 @@ namespace {
     lng checks = 0, cases = 0;
     // Weights for the weighted clustering checks, seeded from --seed in main.
     std::mt19937_64 wrng;
-    // libstdc++ debug mode at -O0 is about 50x and ASan/UBSan about 10x slower: both keep full-mode rounds in stress and shrink the large shapes.
+    // libstdc++ debug mode is about 50x and ASan/UBSan about 10x slower: both keep full-mode rounds in stress and shrink the large shapes.
 #ifdef _GLIBCXX_DEBUG
     const bool CHECKED = true;
 #else
@@ -998,7 +998,7 @@ namespace {
         cout << "PASS exhaustive " << graphs << " simple graphs n<=" << top << ", " << digraphs << " digraphs n<=" << dtop << elapsed() << '\n';}
     // Tiny multigraphs with loops and parallel edges: edge-subset enumeration validates the brute force, which checks the header.
     void randomSmall(std::mt19937_64 &rng) {
-        int rounds = pick(300, 3000, 20000);
+        int rounds = pick(100, 3000, 20000);
         for (int r = 0; r < rounds; ++r) {
             int n = rnd(rng, 8), m = n ? rnd(rng, 13) : 0;
             Graph g = build(n, randomEdges(rng, n, m, 15, 25));
@@ -1022,7 +1022,7 @@ namespace {
         cout << "PASS random small " << rounds << " multigraphs n<=7 m<=12 (loops, parallel edges) and digraphs" << elapsed() << '\n';}
     // Medium graphs of every density: both oracles, both graph types, repeated calls, relabelling, multiplicity and symmetrised census.
     void medium(std::mt19937_64 &rng) {
-        int rounds = pick(40, 400, 2000);
+        int rounds = pick(15, 400, 2000);
         const double P[] = {0.05, 0.15, 0.3, 0.5, 0.8, 1.0};
         for (int r = 0; r < rounds; ++r) {
             double p = P[rnd(rng, 6)];
@@ -1070,9 +1070,9 @@ namespace {
         return x;}
     // Closed forms: complete, complete bipartite, cycles, paths, stars (also with doubled spokes and loops) and grids.
     void closedForms(std::mt19937_64 &rng) {
-        vector<int> ks = {0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 20, 40};
-        if (!CHECKED) { ks.insert(ks.end(), {63, 64, 65, 66}); }
-        if (SHRINK == 1) { ks.insert(ks.end(), {127, 128, 129, 130}); }
+        vector<int> ks = {0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 20, quick() ? 25 : 40};
+        if (!CHECKED && !quick()) { ks.insert(ks.end(), {63, 64, 65, 66}); }
+        if (SHRINK == 1 && !quick()) { ks.insert(ks.end(), {127, 128, 129, 130}); }
         if (!quick() && SHRINK == 1) { ks.push_back(200); }
         for (int n : ks) {
             Graph g = build(n, completeEdges(rng, n));
@@ -1082,8 +1082,8 @@ namespace {
             same(y.lc, x.lc, "K_n NetworkX clustering = 1"); same(y.sq, x.sq, "K_n NetworkX square_clustering");
             same(y.tr, x.tr, "K_n NetworkX transitivity = 1"); same(y.gd, x.gd, "K_n NetworkX generalized_degree");
             verifyBoth(g, x, rng);}
-        vector<array<int, 2>> bip = {{1, 1}, {2, 2}, {2, 3}, {3, 3}, {1, 50}, {7, 9}, {40, 60}};
-        bip.push_back({2, pick(2000, 50000, 100000) / (CHECKED ? 25 : SHRINK)});
+        vector<array<int, 2>> bip = {{1, 1}, {2, 2}, {2, 3}, {3, 3}, {1, 50}, {7, 9}, {quick() ? 12 : 40, quick() ? 20 : 60}};
+        bip.push_back({2, pick(800, 50000, 100000) / (CHECKED ? 25 : SHRINK)});
         for (auto [a, b] : bip) {
             vector<Edge> es;
             for (int u = 0; u < a; ++u) {
@@ -1106,7 +1106,7 @@ namespace {
                 same(y.lc, x.lc, "K_a,b NetworkX clustering = 0"); same(y.sq, x.sq, "K_a,b NetworkX square_clustering = 1 for a, b >= 2");
                 same(y.tr, x.tr, "K_a,b NetworkX transitivity = 0"); same(y.gd, x.gd, "K_a,b NetworkX generalized_degree");}
             verifyBoth(g, x, rng);}
-        int big = pick(3000, 200000, 300000) / (CHECKED ? 50 : SHRINK);
+        int big = pick(1200, 200000, 300000) / (CHECKED ? 50 : SHRINK);
         for (int n : {3, 4, 5, 6, 7, big}) {
             vector<Edge> cyc, path;
             for (int i = 0; i < n; ++i) { cyc.push_back({i, (i + 1) % n}); }
@@ -1187,7 +1187,7 @@ namespace {
         ++cases;}
     // Pair multiplicities near and past the documented m <= 6 * 10^6 domain of countC4PerEdge, on Graph then CsrGraph; ASan runs the first two cases at full size.
     void domainEdge() {
-        lng s = CHECKED ? 1000 : 1, top = 0;
+        lng s = CHECKED || quick() ? 1000 : 1, top = 0;
         auto run = [&](const string &name, int n, const vector<Edge> &pairs, const vector<lng> &count, const vector<lll> &te, const vector<lll> &qe, lng t, lng c4, bool exact = true) {
             Graph g = blockGraph(n, pairs, count);
             context = "domain edge " + name + show(g);
@@ -1200,7 +1200,7 @@ namespace {
             {b, a, d, c, a * b + c * d}, {b * c * d, a * c * d, a * b * d, a * b * c, 0}, 2, 1);
         // Past the domain: one test edge plus 2.1 * 10^6 copies of each other pair, m = 6300001, test edge k^3 > 2^63 wraps.
         lll w = 2100000 / s;
-        check(CHECKED || w * w * w > LLONG_MAX, "past-the-domain case exceeds 2^63");
+        check(CHECKED || quick() || w * w * w > LLONG_MAX, "past-the-domain case exceeds 2^63");
         run("4-cycle past the domain (1, 2.1e6, 2.1e6, 2.1e6)", 4, {{0, 1}, {1, 2}, {2, 3}, {3, 0}}, {1, lng(w), lng(w), lng(w)},
             {0, 0, 0, 0}, {w * w * w, w * w, w * w, w * w}, 0, 1, false);
         s *= ASAN ? 4 : 1;
@@ -1322,8 +1322,8 @@ namespace {
 
     // Large shapes against the codegree oracle (paths at sampled starts), both graph types.
     void large(std::mt19937_64 &rng) {
-        int n = pick(3000, 200000, 300000) / SHRINK, hub = min(n, CHECKED ? 1500 : ASAN ? 3000 : 5000);
-        lng m = pick(10000, 500000, 300000) / SHRINK;
+        int n = pick(1200, 200000, 300000) / SHRINK, hub = min(n, CHECKED ? 1500 : ASAN ? 3000 : 5000);
+        lng m = pick(4000, 500000, 300000) / SHRINK;
         vector<pair<string, Graph>> shapes;
         shapes.push_back({"uniform multigraph (loops, parallel edges)", build(n, randomEdges(rng, n, m, 1, 3))});
         shapes.push_back({"dense blocks plus uniform edges", build(n, blockEdges(rng, n, 0.6, m / 4, false))});
@@ -1371,8 +1371,8 @@ namespace {
         e[15] = choose(n, 3);
         context = "census complete symmetric n=60";
         sameCensus(build(n, both, true), e, "complete symmetric digraph is all 300");
-        int big = pick(3000, 200000, 300000) / SHRINK;
-        lng m = pick(10000, 500000, 1000000) / SHRINK;
+        int big = pick(1200, 200000, 300000) / SHRINK;
+        lng m = pick(4000, 500000, 1000000) / SHRINK;
         vector<pair<string, Graph>> shapes;
         shapes.push_back({"uniform (loops, parallel and antiparallel arcs)", build(big, randomEdges(rng, big, m, 1, 20), true)});
         shapes.push_back({"dense directed blocks", build(big, blockEdges(rng, big, 0.4, m / 4, true), true)});

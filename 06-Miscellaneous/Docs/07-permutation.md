@@ -95,7 +95,9 @@ Quick exhausts distinct permutations through n=6, three-symbol multiplicities 0.
 
 ## Commands and results
 
-P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 834 MB; optimized 0.1 s compile + 2.2 s run, checked 19.6 s compile + 16.8 s run, ASan-UBSan 20.5 s compile + 77.7 s run; MEMORY peak 1047 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 885 MB; optimized 0.1 s compile + 2.7 s run, checked 29.4 s compile + 27.6 s run, ASan-UBSan 29.3 s compile + 73.0 s run; MEMORY peak 1061 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 24.3 s compile + 0.2 s run, checked 23.9 s compile + 2.4 s run; MEMORY peak 834 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 827 MB; optimized 0.1 s compile + 7.7 s run, checked 8.0 s compile + 61.5 s run, ASan-UBSan 8.9 s compile + 251.6 s run; MEMORY peak 849 MB. Dated rows below stay those commands' latest results.
+
+P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>).
 
 | Command | Result |
 |---|---|
@@ -145,3 +147,4 @@ Search aliases (P263, grab --find): 置换和排列, 康托展开, 逆康托展�
 - 2026-10-07: P013 re-audit, `kthNextPermutation`, cycles, sign, order and `permutationOrderMod` added, 2 findings fixed, contracts moved out of code comments; full, stress and integration passed; `@reviewer` (2026-10-08) found no defects.
 - 2026-10-12: prune, removed `nextPermutation`, `previousPermutation` and `multisetPermutationCount` (cases moved to `std::next_permutation`/`prev_permutation` and `multinomialExact`); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

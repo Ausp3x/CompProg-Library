@@ -60,7 +60,7 @@ Search aliases (P263, grab --find): 动态图连通性, 线段树分治, 离线�
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/26-dynamic_connectivity_tester.py` (shared graph runner with `-Werror` warnings; optimized, checked with probes, ASan/UBSan in full/stress).
+`96-Local Testing/04-Graphs/26-dynamic_connectivity_tester.py` (shared contest runner with `-Werror` warnings; optimized, checked with probes, ASan/UBSan in full/stress).
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -73,6 +73,8 @@ Search aliases (P263, grab --find): 动态图连通性, 线段树分治, 离线�
 Planted mutants (quick suite, optimized build), all killed: a wrong terminal representative after a `compress` union, an off-by-one leaf bottleneck, a prefix instead of a range Fenwick count, a path collapse that runs past the LCA, a missing odd-edge count, and dropped value events.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 919 MB; optimized 0.2 s compile + 4.0 s run, checked 26.0 s compile + 14.7 s run, ASan-UBSan 32.1 s compile + 47.0 s run; MEMORY peak 1110 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 953 MB; optimized 0.3 s compile + 4.3 s run, checked 27.5 s compile + 17.6 s run, ASan-UBSan 34.2 s compile + 51.5 s run; MEMORY peak 1093 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 39.5 s compile + 0.1 s run, checked 29.7 s compile + 3.6 s run; MEMORY peak 910 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 919 MB; optimized 0.1 s compile + 5.7 s run, checked 10.3 s compile + 21.1 s run, ASan-UBSan 14.9 s compile + 60.4 s run; MEMORY peak 1609 MB. Dated rows below stay those commands' latest results.
 
 2026-10-18, GCC 16.2.1 and GCC 14.4.1 (floor), CPython 3.14.8, Linux x86-64 (Intel Core i9-11900H), GNU++20, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds.
 
@@ -131,3 +133,4 @@ The bottleneck-forest compression is this package's derivation from Kruskal's in
 - 2026-10-18: verified (P047); pinned `OnlineBridges` excerpt replaced and removed from the row (recorded prune); `find` from the completeness sweep; LCT-free `rangeEdgeComponentCount` with a stamped union-find (measured 28% faster than a per-call `DSU`); independent review: monolith ledger entry completed, setup bound and `NDEBUG` vertex clamp corrected, CSR and empty-input tests added; 6 planted mutants killed; quick, full and stress passed on g++, full on g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

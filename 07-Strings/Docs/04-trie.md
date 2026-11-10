@@ -41,7 +41,9 @@ Checked builds run eight assertion probes (nonpositive insert/erase counts, tota
 
 ## Commands and results
 
-Run 2026-10-08. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 894 MB; optimized 0.1 s compile + 2.7 s run, checked 22.6 s compile + 10.7 s run, ASan-UBSan 32.2 s compile + 52.0 s run; MEMORY peak 1036 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 960 MB; optimized 0.3 s compile + 5.8 s run, checked 30.1 s compile + 14.6 s run, ASan-UBSan 47.8 s compile + 57.1 s run; MEMORY peak 1038 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 33.5 s compile + 0.4 s run, checked 32.5 s compile + 5.3 s run; MEMORY peak 921 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 901 MB; optimized 0.1 s compile + 5.7 s run, checked 10.1 s compile + 23.4 s run, ASan-UBSan 14.4 s compile + 67.5 s run; MEMORY peak 663 MB. Dated rows below stay those commands' latest results.
+
+Run 2026-10-08. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/04-trie_tester.py' --mode quick --seed 1  # PASS, 2 configurations
@@ -93,3 +95,4 @@ Search aliases (P263, grab --find): 字典树 (Trie), 前缀树, 单词查找树
 - 2026-10-08: re-audit, one `BasicTrie` template now provides `Trie` and `TrieDense`, `step`, `forEachPrefixOf` and `longestPrefix` added, 3 findings fixed, contracts moved out of the header; quick, full and stress passed on g++, full on g++-14, integration with sanitizers passed.
 - 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the tester silences, inside `special()` only, a `-Warray-bounds` false positive of aarch64 g++ 16 on the inlined `emplace_back` of a full one-node vector; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

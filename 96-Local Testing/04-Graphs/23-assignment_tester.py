@@ -8,8 +8,11 @@ dense with dual certificates, 2000-vertex sparse, k-best 8x8 (400 best of
 40320), in optimized, checked and ASan/UBSan builds. stress: 20000 random
 cases per type, 400x533 dense, 8000-vertex sparse.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('23-assignment', ['ragged', 'mask-shape', 'k-negative',
-        'sparse-range'], strict=True))
+        'sparse-range']))

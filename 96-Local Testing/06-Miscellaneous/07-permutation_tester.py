@@ -9,8 +9,11 @@ unranking independently of Fenwick, including totals on both sides of 2^64.
 from collections import Counter
 import math
 import random
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 MAX = (1 << 64) - 1
 
@@ -99,8 +102,8 @@ def oracle(binary, args, env):
         extra.append(('O', conj, 0))
     text = ''.join(f'{mode} {len(a)} ' + ' '.join(map(str, a)) + f' {request % (1 << 64)}\n'
                    for mode, a, request in cases + extra)
-    run = subprocess.run([str(binary), '--oracle'], input=text, capture_output=True, text=True,
-                         timeout=180, env=env)
+    run = timed_run(f'07-permutation oracle {Path(binary).name}', [str(binary), '--oracle'], input=text, capture_output=True, text=True,
+                                             timeout=180, env=env)
     if run.returncode:
         raise RuntimeError(f'command={binary} --oracle returncode={run.returncode}\n{run.stderr}')
     lines = run.stdout.splitlines()

@@ -48,7 +48,8 @@ python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Che
 
 | Path | Contents |
 |---|---|
-| `_00_cpp_test_runner.py` | Shared compile-and-run infrastructure, progress output, PASS/FAIL/SKIP reporting |
+| `_00_cpp_test_runner.py` | Shared build helper (`Builder`: every C++ test build through ccache), architecture probes, per-build `TIMING` lines |
+| `_00_contest_runner.py` | The one driver of the `02`–`07` C++ suites; per-suite differences (`extra`, `timeout`, `checked`, oracle callbacks) are parameters |
 | `_00_memory_cap.py` | Memory-capped execution: `ensure()` for entry points, CLI `-- <command>` for ad-hoc programs. Rules: [05-testing.md](../00-Guidelines/05-testing.md), Memory safety |
 | `01-run.py` | Suite discovery, modes, `QUICK` registration set, parallel memory-bounded jobs; `.run-stats.json` (git-ignored) keeps each suite's last peak and runtime for scheduling |
 | `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds as parallel jobs, through `ccache` when installed |

@@ -6,7 +6,7 @@ namespace {
     lng checks = 0, cases = 0;
     std::mt19937_64 rng;
     const lll BIG = lll(1) << 125;
-    // libstdc++ debug mode (checked build, -O0) shrinks the large sections.
+    // libstdc++ debug mode (checked build) shrinks the large sections.
 #ifdef _GLIBCXX_DEBUG
     const int SHRINK = 10;
 #else

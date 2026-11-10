@@ -20,8 +20,11 @@ boundaries) checked with a separate
 factorization. 10 assertion probes run in the checked build.
 """
 import random
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 BASES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41)
 
@@ -78,7 +81,7 @@ def oracle(binary, args, env):
         rows.append(('d', a * b if a * b <= top else b))
     payload = ''.join(f'{op} {n}\n' for op, n in rows)
     command = [str(binary), '--oracle']
-    p = subprocess.run(command, input=payload, capture_output=True, text=True, env=env, timeout=180)
+    p = timed_run(f'07-primality_factorization oracle {Path(command[0]).name}', command, input=payload, capture_output=True, text=True, env=env, timeout=180)
     if p.returncode: raise RuntimeError(f'command={command} returncode={p.returncode}\n{p.stderr}')
     lines = p.stdout.splitlines()
     if len(lines) != len(rows): raise RuntimeError(f'expected {len(rows)} lines, got {len(lines)}')

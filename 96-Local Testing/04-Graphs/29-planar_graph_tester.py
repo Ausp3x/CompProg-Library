@@ -39,10 +39,13 @@ checked build runs 17 assertion probes; the genus probes (K3,3, genus-1 K4,
 and s, t inside the K3,3 of a triangle + K3,3 graph) die on the genus of s's
 component.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('29-planar_graph', ['directed', 'common-same', 'common-range',
         'cut-same', 'cut-range', 'cut-genus-k33', 'cut-genus-k4', 'cut-genus-mixed', 'cut-no-common-face', 'cut-negative',
         'cut-negative-weight', 'cut-cap-size', 'drawing-loop', 'drawing-parallel', 'drawing-coincident',
-        'drawing-range', 'drawing-size'], strict=True))
+        'drawing-range', 'drawing-size']))

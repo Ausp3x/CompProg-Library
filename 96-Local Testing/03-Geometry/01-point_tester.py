@@ -6,7 +6,8 @@ import random
 import sys
 import tempfile
 
-from _00_runner import main
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 def option(name, fallback):

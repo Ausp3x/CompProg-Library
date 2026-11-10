@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
     phase = "random hulls and cyclic/rigid/scale metamorphisms";
     int rounds = mode == "quick" ? 50 : mode == "full" ? 1000 : 8000;
     for (int t = 0; t < rounds; ++t) {
-        vector<point> p; int n = 3 + rng() % 45; lng c = t % 3 ? 30 : 1000000000;
+        vector<point> p; int n = int(3 + rng() % 45); lng c = t % 3 ? 30 : 1000000000;
         for (int k = 0; k < n; ++k) { p.push_back({lng(rng() % (2 * c + 1)) - c, lng(rng() % (2 * c + 1)) - c}); }
         p = convexHull(p); verify(p);
         if (!p.empty()) { std::rotate(p.begin(), p.begin() + rng() % p.size(), p.end()); verify(p); }

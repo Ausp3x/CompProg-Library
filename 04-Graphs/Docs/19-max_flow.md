@@ -46,7 +46,7 @@ The removed adapter `EdmondsKarp` (`OLD/[1] algorithms.cpp:348-469`) maps to `Ma
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/19-max_flow_tester.py` uses the shared graph driver: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and ASan/UBSan `-O1 -g` with leak detection, all with `-Wall -Wextra -Wconversion -Werror`. The oracles:
+`96-Local Testing/04-Graphs/19-max_flow_tester.py` uses the shared contest runner: optimized `-O2 -DNDEBUG`, checked `-g -D_GLIBCXX_DEBUG` (`-O0` in quick, `-O1` in full and stress), and ASan/UBSan `-O1 -g` with leak detection, all with `-Wall -Wextra -Wconversion -Werror`. The oracles:
 - **Brute force:** the minimum over every s-side vertex subset (max-flow min-cut theorem), validated against the exhaustive three-vertex corpus.
 - **Certificate:** a feasible, conserving flow of the returned value plus a residual cut of equal capacity. This is independent of the engines.
 
@@ -73,6 +73,8 @@ Mutation checks (scratch copies under `/tmp`, quick mode, not part of the suite)
 - The survivor sets gap-lifted labels to `old + 1`. That changes labels only for vertices that cannot reach `t`, so it affects performance, not the result. Removing the dead-end pruning or the reroute in `changeCapacity` also survives, as expected for optimizations.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 947 MB; optimized 0.1 s compile + 5.7 s run, checked 23.9 s compile + 21.0 s run, ASan-UBSan 27.9 s compile + 77.3 s run; MEMORY peak 1162 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 934 MB; optimized 0.4 s compile + 9.3 s run, checked 38.9 s compile + 30.4 s run, ASan-UBSan 47.4 s compile + 125.3 s run; MEMORY peak 1109 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 34.3 s compile + 0.2 s run, checked 28.0 s compile + 3.6 s run; MEMORY peak 928 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 938 MB; optimized 0.1 s compile + 8.7 s run, checked 12.0 s compile + 30.2 s run, ASan-UBSan 13.9 s compile + 113.8 s run; MEMORY peak 1064 MB. Dated rows below stay those commands' latest results.
 
 2026-10-12, i9-11900H, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), CPython 3.14, Linux x86-64, GNU++20.
 
@@ -164,3 +166,4 @@ Search aliases (P263, grab --find): maximum flow, max flow, Dinic, Edmonds-Karp,
 - 2026-10-12: prune, removed the `EdmondsKarp` legacy adapter (cases moved to `MaxFlow` on `Graph::fromMatrix` and to `augmentPath`, four legacy probes replaced) and added `edmondsKarp` and `augmentPath`; full suite passed on g++ and g++-14, stress passed; independent review: no code defect, 4 evidence findings fixed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

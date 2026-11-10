@@ -39,6 +39,8 @@ Quick: n<=4, 35 trials, n<=1,025. Stress: 600 trials, boundaries through n<=262,
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 734 MB; optimized 0.3 s compile + 3.6 s run, checked 14.2 s compile + 6.7 s run, ASan-UBSan 16.4 s compile + 104.5 s run; MEMORY peak 842 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 799 MB; optimized 0.2 s compile + 2.7 s run, checked 15.8 s compile + 6.9 s run, ASan-UBSan 16.5 s compile + 52.8 s run; MEMORY peak 920 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 30.3 s compile + 0.4 s run, checked 21.4 s compile + 5.4 s run; MEMORY peak 733 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 742 MB; optimized 0.1 s compile + 2.0 s run, checked 5.4 s compile + 7.7 s run, ASan-UBSan 5.5 s compile + 60.2 s run; MEMORY peak 505 MB. Dated rows below stay those commands' latest results.
+
 P006 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H.
 
 ```bash
@@ -96,3 +98,4 @@ Search aliases (P263, grab --find): BIT (binary indexed tree), Fenwick tree; Lib
 - 2026-10-13: prune, removed `add1`, `prefixSum1`, `sum1` and `lowerBound1` (cases moved to the zero-based operations); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

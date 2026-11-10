@@ -18,8 +18,11 @@ square, k-th and unit roots checked with Python pow. 14 assertion probes.
 """
 import math
 import random
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 HI = (1 << 63) - 1
 LO = -(1 << 63)
@@ -286,7 +289,7 @@ def oracle(binary, args, env):
         rows.append(('U', (n, p), ('unit', n, p, set(f))))
     payload = ''.join(op + ' ' + ' '.join(map(str, a)) + '\n' for op, a, _ in rows)
     command = [str(binary), '--oracle']
-    proc = subprocess.run(command, input=payload, capture_output=True, text=True, env=env, timeout=180)
+    proc = timed_run(f'11-discrete_log_root oracle {Path(command[0]).name}', command, input=payload, capture_output=True, text=True, env=env, timeout=180)
     if proc.returncode: raise RuntimeError(f'command={command} returncode={proc.returncode}\n{proc.stderr}')
     lines = proc.stdout.splitlines()
     if len(lines) != len(rows): raise RuntimeError(f'expected {len(rows)} lines, got {len(lines)}')

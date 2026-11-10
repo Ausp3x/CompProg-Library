@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('06-sqrt_decomposition', ["generic-negative-size","generic-negative-block","generic-get-negative","generic-get-end","generic-set-end","generic-apply-end","generic-prod-negative","generic-prod-reversed","generic-prod-end","generic-rebuild-block","lazy-negative-size","lazy-negative-block","lazy-get-end","lazy-set-end","lazy-sum-negative","lazy-sum-reversed","lazy-sum-end","lazy-affine-negative","lazy-affine-reversed","lazy-affine-end","lazy-vector-negative-block"]))

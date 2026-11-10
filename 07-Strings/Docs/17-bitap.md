@@ -39,15 +39,17 @@ Runner: [`17-bitap_tester.py`](<../../96-Local Testing/07-Strings/17-bitap_teste
 | patternMasks (both), PatternMasks::accepts | Every case, every position and symbol against the class lists. |
 | shiftAnd, shiftOr | Every case with `m <= 64`, masks and pattern overloads; byte strings; large binary texts at `m` = 1, 63, 64. |
 | shiftOrMultiword | Every case (up to 200 symbols, four words); large binary text at `m` = 1, 63, 64, 65, 130, 1000; unary 300-symbol pattern over a unary text. |
-| bitapHamming, bitapEdit | Every case for `k` in {0, 1, 2, 3, m/2, m-1, m, m+2} (deduplicated), both overloads; brute Levenshtein on exhaustive cases; large binary text (50000/100000/500000 symbols) at `m <= 130`. |
+| bitapHamming, bitapEdit | Every case for `k` in {0, 1, 2, 3, m/2, m-1, m, m+2} (deduplicated), both overloads; brute Levenshtein on exhaustive cases; large binary text (20000/100000/500000 symbols) at `m <= 130`. |
 | Character classes | Exhaustive ternary class patterns (each position any of the 8 subsets, including empty and wildcard) and random class patterns. |
-| BitsetText (get, set, count, occurrences; `scan` only through `count` and `occurrences`) | 100/500/5000 random texts (quick/full/stress) up to 400 symbols, alphabets 1..3 and 256, 30 interleaved `set`/`get`/range queries each, patterns up to 150 symbols, default ranges, foreign symbols (`-1`, `S`), byte-string construction; a 20000/200000-symbol binary text with updates. |
+| BitsetText (get, set, count, occurrences; `scan` only through `count` and `occurrences`) | 40/500/5000 random texts (quick/full/stress) up to 400 symbols, alphabets 1..3 and 256, 30 interleaved `set`/`get`/range queries each, patterns up to 150 symbols, default ranges, foreign symbols (`-1`, `S`), byte-string construction; a 20000/200000-symbol binary text with updates. |
 
-Exhaustive: binary patterns through length 3/4/5 against binary texts through 5/7/8; ternary class patterns through length 2 against texts through 4/4/5. Random: 300/1500/6000 cases, alphabets 1..4 and 256, half with `m < 70` and half up to 200, a third periodic. Checked builds run nine precondition probes (Shift-And/Shift-Or with `m = 65`, text, pattern and class symbols outside the alphabet, negative `k`, `BitsetText::set` out of range, `l > r`, `r = -5`).
+Exhaustive: binary patterns through length 3/4/5 against binary texts through 5/7/8; ternary class patterns through length 2 against texts through 4/4/5. Random: 100/1500/6000 cases, alphabets 1..4 and 256, half with `m < 70` and half up to 200, a third periodic. Checked builds run nine precondition probes (Shift-And/Shift-Or with `m = 65`, text, pattern and class symbols outside the alphabet, negative `k`, `BitsetText::set` out of range, `l > r`, `r = -5`).
 
 ## Commands and results
 
-Run 2026-10-11 on the final code. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>). The checked build runs stress at full sizes.
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 739 MB; optimized 0.3 s compile + 2.5 s run, checked 16.6 s compile + 47.2 s run, ASan-UBSan 19.0 s compile + 40.4 s run; MEMORY peak 918 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 806 MB; optimized 0.2 s compile + 3.6 s run, checked 20.1 s compile + 88.4 s run, ASan-UBSan 20.1 s compile + 70.5 s run; MEMORY peak 997 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 21.2 s compile + 0.7 s run, checked 14.5 s compile + 33.9 s run; MEMORY peak 744 MB. `python3 '96-Local Testing/07-Strings/17-bitap_tester.py' --mode stress --seed 42` (three suites at a time) PASS: pre-flight quick peak 48 MB; optimized 0.1 s compile + 3.7 s run, checked 5.8 s compile + 19.2 s run, ASan-UBSan 6.1 s compile + 63.5 s run; MEMORY peak 895 MB. Dated rows below stay those commands' latest results.
+
+Run 2026-10-11 on the final code. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>). The checked build runs stress at full sizes.
 
 ```bash
 python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 20 suites (this one: 2 configurations, 9 assertion probes)
@@ -87,3 +89,4 @@ Search aliases (P263, grab --find): 位并行匹配, 近似匹配, 模糊匹配,
 
 - 2026-10-11: implemented and verified (P084), independent review found 1 defect, fixed.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

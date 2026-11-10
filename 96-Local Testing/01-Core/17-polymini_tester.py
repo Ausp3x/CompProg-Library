@@ -17,9 +17,9 @@ Kitamasa; Poly<T> agreement is supporting evidence only.
 from __future__ import annotations
 
 import argparse
+import functools
 import os
 from pathlib import Path
-import resource
 import shlex
 import shutil
 import signal
@@ -29,7 +29,7 @@ import tempfile
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
-from _00_cpp_test_runner import cpu_runs, x86, x86_only
+from _00_cpp_test_runner import Builder, cpu_runs, timed_run, x86, x86_only
 
 _00_memory_cap.ensure()
 
@@ -84,8 +84,8 @@ def progress(message: str) -> None:
 def execute(command: list[str], label: str, timeout: int,
             env: dict[str, str], expected_death: bool = False) -> str:
     try:
-        result = subprocess.run(command, cwd="/tmp", env=env, text=True,
-                                capture_output=True, timeout=timeout)
+        result = timed_run(label, command, cwd="/tmp", env=env, text=True,
+                                  capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:
         raise Failure(f"{label}: timeout={timeout}s\ncommand={shlex.join(command)}\n"
                       f"stdout={error.stdout!r}\nstderr={error.stderr!r}") from error
@@ -134,7 +134,6 @@ def main() -> int:
         return 1
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1",
                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
     scalar = x86_only(["-march=x86-64", "-mno-avx", "-mno-avx2", "-mno-fma", "-mno-bmi2", "-mno-pclmul"], compiler)
     vector = x86_only(["-march=x86-64", "-mavx2", "-mfma", "-mbmi2", "-mpclmul"], compiler)
@@ -155,30 +154,30 @@ def main() -> int:
     try:
         with tempfile.TemporaryDirectory(prefix="cp-polymini-tests-") as directory:
             temp = Path(directory)
+            builder = Builder(compiler, temp, env=env, failure=Failure)
             alone = temp / "alone.cpp"
             alone.write_text(f'#include "{HEADER}"\n#include "{ROOT / "01-Core/06-modintmini.hpp"}"\n'
                              'int main() { PolyMini<ModIntMini<998244353>> a = {1, 2}; return (a * a).size() == 3 ? 0 : 1; }\n')
-            execute([*compiler, *flags, "-fsyntax-only", str(alone)], "header-alone compile", 180, env)
+            builder.syntax("header-alone compile", flags, alone, 180)
             for aggregate in ("98-basic.hpp", "99-all.hpp"):
                 path = temp / f"{aggregate}.cpp"
                 path.write_text(f'#include "{ROOT / "01-Core" / aggregate}"\n#include "{HEADER}"\n'
                                 'int main() { PolyMini<mint> a = {1, 2}; return int((a * a).size()) - 3; }\n')
-                execute([*compiler, "-std=gnu++20", "-fsyntax-only", str(path)],
-                        f"{aggregate} aggregate compile (unverified siblings are not warning-clean)", 180, env)
+                builder.syntax(f"{aggregate} aggregate compile (unverified siblings are not warning-clean)", ["-std=gnu++20"], path, 180)
             text = HEADER.read_text() + "\n" + (ROOT / "01-Core/06-modintmini.hpp").read_text()
             copy = temp / "copy.cpp"
             copy.write_text("#include <bits/stdc++.h>\n#include <cassert>\nusing namespace std;\nusing uint = uint32_t;\nusing lng = int64_t;\n"
                             "using ulng = uint64_t;\nusing lll = __int128_t;\nusing ulll = __uint128_t;\n"
                             + extract_struct(text, "ModIntMini") + "\n" + extract_struct(text, "PolyMini") + COPY_PROGRAM)
-            execute([*compiler, *flags, "-O2", str(copy), "-o", str(temp / "copy")], "extracted-copy compile", 180, env)
+            builder.build("extracted-copy compile", [*flags, "-O2"], [copy], str(temp / "copy"), 180)
             execute([str(temp / "copy")], "extracted-copy execute", 60, env)
             report("PASS", "header-alone, 98-basic, 99-all and extracted-copy builds")
-            for name, options in variants:
-                executable = str(temp / name)
+            progress(f"compile {len(variants)} configurations")
+            compiled = builder.build_all([(name, f"compile {name} mode={args.mode} seed={args.seed}", [*flags, *options], [SOURCE, SECOND], str(temp / name), 1200,
+                                           1800 if name.startswith("sanitized") else 1450) for name, options in variants])
+            def one(name, options):
+                executable, mark = str(temp / name), builder.stopwatch()
                 label = f"{name} mode={args.mode} seed={args.seed}"
-                progress(f"compile {label}")
-                execute([*compiler, *flags, *options, str(SOURCE), str(SECOND), "-o", executable],
-                        f"compile {label}", 600, env)
                 report("PASS", f"{name} compilation (two translation units)")
                 run_mode = "full" if args.mode == "stress" and name.startswith("sanitized") else args.mode
                 for round_index in range(rounds):
@@ -196,6 +195,8 @@ def main() -> int:
                         progress(f"precondition {case}")
                         execute([executable, "--invalid", case], f"precondition {case} seed={args.seed}", 60, env, True)
                     report("PASS", f"checked-scalar preconditions ({len(INVALID_CASES)} cases)")
+                builder.report(mark, f"PolyMini {name}", args.mode, compiled[name])
+            builder.concurrently([(1 << 40 if args.mode == "stress" else 1300 if name.startswith("sanitized") else 300, functools.partial(one, name, options)) for name, options in variants])
     except (Failure, OSError) as error:
         report("FAIL", f"PolyMini mode={args.mode} seed={args.seed}: {error}")
         return 1

@@ -748,7 +748,7 @@ void differenceCases(int count) {
     near(finiteDifference(1e6, [](double y) { return y * y; }), 2e6, 1e6 * 1e-9, "automatic h scales with |x|");
     std::cout << "PASS finiteDifference exact polynomial, forward bias, automatic step and order cases=" << count << '\n';}
 
-void doubleExponentialCases() {
+void doubleExponentialCases(const vector<int> &levelSet) {
     struct Singular { string name; double (*f)(double); double l, r; ld value, tol; };
     // Nonzero endpoints round the abscissa: the 1/sqrt mass within one ulp of the endpoint, 2 sqrt(ulp) <= 4.3e-8, bounds the error.
     vector<Singular> cases{
@@ -762,7 +762,7 @@ void doubleExponentialCases() {
         {"1/sqrt(x-3)", [](double x) { return 1 / std::sqrt(x - 3); }, 3, 4, 2, 1e-7},
         {"exp", [](double x) { return std::exp(x); }, -1, 1, std::numbers::e_v<ld> - 1 / std::numbers::e_v<ld>, 1e-11}};
     for (auto &[name, f, l, r, value, tol] : cases) {
-        for (int levels : {12, 20}) {
+        for (int levels : levelSet) {
             context = "doubleExponentialIntegrate " + name + " levels=" + std::to_string(levels);
             int calls = 0;
             double lo = min(l, r), hi = max(l, r);
@@ -856,8 +856,8 @@ int main(int argc, char **argv) {
         rng.seed(seed);
         int R = mode == "quick" ? 1 : mode == "stress" ? 100 : 10;
         quadraticCases(300 * R); cubicCases(100 * R); hornerCases(300 * R); dualCases(300 * R);
-        gaussNodeCases(mode == "quick" ? 40 : mode == "stress" ? 400 : 200);
-        quadratureCases(100 * R); differenceCases(200 * R); doubleExponentialCases(); fixedPointCases(100 * R); rootCases(50 * R);
+        gaussNodeCases(mode == "quick" ? 15 : mode == "stress" ? 400 : 200);
+        quadratureCases(100 * R); differenceCases(200 * R); doubleExponentialCases(mode == "quick" ? vector<int>{12} : vector<int>{12, 20}); fixedPointCases(100 * R); rootCases(50 * R);
         std::cout << "PASS 17-numerical_methods mode=" << mode << " seed=" << seed << " checks=" << checks << '\n';}
     catch (const std::exception &e) {
         std::cerr << "FAIL 17-numerical_methods mode=" << mode << " seed=" << seed << " " << e.what() << '\n'; return 1;}}

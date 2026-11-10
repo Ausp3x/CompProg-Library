@@ -47,7 +47,7 @@ The originals of the removed adapters (bridge/articulation lowlink, not SCC) sta
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/09-bridges_articulation_tester.py` uses the shared graph runner. Exhaustive cases run in increasing graph size, followed by reproducible random cases and named large shapes.
+`96-Local Testing/04-Graphs/09-bridges_articulation_tester.py` uses the shared contest runner. Exhaustive cases run in increasing graph size, followed by reproducible random cases and named large shapes.
 
 | Feature | Independent verification |
 |---|---|
@@ -68,6 +68,8 @@ Quick covers all looped simple graphs through three vertices, all multiplicity-a
 The sanitizer configuration (`-O1 -g -D_GLIBCXX_ASSERTIONS`) also enables leak detection, `-fno-sanitize-recover=all`, frame pointers and non-PIE linking. Hand mutations of `cut_components` fail the quick suites.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 842 MB; optimized 0.2 s compile + 0.9 s run, checked 21.2 s compile + 3.1 s run, ASan-UBSan 24.5 s compile + 18.0 s run; MEMORY peak 1045 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 904 MB; optimized 0.3 s compile + 1.2 s run, checked 35.9 s compile + 4.5 s run, ASan-UBSan 39.4 s compile + 24.0 s run; MEMORY peak 1055 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 27.7 s compile + 0.2 s run, checked 21.1 s compile + 1.4 s run; MEMORY peak 828 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 842 MB; optimized 0.1 s compile + 3.0 s run, checked 8.9 s compile + 9.2 s run, ASan-UBSan 10.8 s compile + 46.8 s run; MEMORY peak 1050 MB. Dated rows below stay those commands' latest results.
 
 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20.
 
@@ -117,3 +119,4 @@ Search aliases (P263, grab --find): BCC (biconnected components), 2-edge-connect
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

@@ -18,7 +18,7 @@ The lazy tree is the ACL algorithm: push along both boundary paths before touchi
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.cpp`, entry `12-lazysegmenttree_tester.py` (driver `_00_runner.py`; three builds; 27 assertion probes). Row 00's tester runs every preset through this tree as well.
+Tester `96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.cpp`, entry `12-lazysegmenttree_tester.py` (driver `_00_contest_runner.py`; three builds; 27 assertion probes). Row 00's tester runs every preset through this tree as well.
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -28,6 +28,8 @@ Tester `96-Local Testing/02-Data Structures/12-lazysegmenttree_tester.cpp`, entr
 | Preconditions | `invalid` | 27 probes: negative/oversize sizes, `checkedSize`, out-of-range points and ranges, reversed ranges, searches with a false identity predicate, fold and foldRight ranges, dual variants |
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 932 MB; optimized 0.2 s compile + 2.6 s run, checked 24.9 s compile + 4.0 s run, ASan-UBSan 28.9 s compile + 29.4 s run; MEMORY peak 1125 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 974 MB; optimized 0.2 s compile + 3.6 s run, checked 35.2 s compile + 4.8 s run, ASan-UBSan 45.9 s compile + 28.4 s run; MEMORY peak 1049 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 34.9 s compile + 0.1 s run, checked 31.4 s compile + 0.8 s run; MEMORY peak 922 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 931 MB; optimized 0.1 s compile + 2.8 s run, checked 10.5 s compile + 3.3 s run, ASan-UBSan 12.1 s compile + 33.1 s run; MEMORY peak 911 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-10-18, Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
@@ -76,3 +78,4 @@ Search aliases (P263, grab --find): lazy segtree, lazy propagation; Library Chec
 - 2026-10-18: `fold` and `foldRight` added, boundary pushes shared in `pushBounds`; independent review, 5 findings fixed (two test gaps, three document corrections); full (seed 20261018) on g++ and g++-14, stress (seed 7) and integration passed, MEMORY peak 671/720/888 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

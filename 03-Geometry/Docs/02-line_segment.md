@@ -74,7 +74,7 @@ Correctness: a disjoint segment pair attains its minimum distance at an endpoint
 
 ## Feature-to-test map
 
-`96-Local Testing/03-Geometry/02-line_segment_tester.py` runs the geometry runner's optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan builds ([`_00_runner.py`](<../../96-Local Testing/03-Geometry/_00_runner.py>)). Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
+`96-Local Testing/03-Geometry/02-line_segment_tester.py` runs the geometry runner's optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan builds ([`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>)). Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -92,6 +92,8 @@ Correctness: a disjoint segment pair attains its minimum distance at an endpoint
 Approximate checks use scale-aware tolerances on the specified fixtures. They do not establish a universal error bound for ill-conditioned floating inputs.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 713 MB; optimized 0.2 s compile + 2.1 s run, checked 13.8 s compile + 1.6 s run, ASan-UBSan 16.6 s compile + 16.6 s run; MEMORY peak 845 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 747 MB; optimized 0.2 s compile + 1.5 s run, checked 14.3 s compile + 1.7 s run, ASan-UBSan 16.3 s compile + 7.4 s run; MEMORY peak 905 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 14.9 s compile + 0.3 s run, checked 15.5 s compile + 1.1 s run; MEMORY peak 704 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 712 MB; optimized 0.1 s compile + 1.1 s run, checked 5.1 s compile + 1.3 s run, ASan-UBSan 6.1 s compile + 9.0 s run; MEMORY peak 539 MB. Dated rows below stay those commands' latest results.
 
 2026-10-12, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), Python 3.14.7, GNU++20.
 
@@ -138,3 +140,4 @@ Search aliases (P263, grab --find): 二维计算几何基础, 线段相交, 直�
 - 2026-10-07: re-audit, implemented the seven missing line operations plus `canonicalLine`; 5 findings fixed (complexity comments, explicit `approx` casts, `LinearIntersection2` comment, braces, comment cap); full suite and stress passed on g++ 16; two-translation-unit GE01 smoke and a `-Wall -Wextra -Wconversion` sweep over all eight `T` passed, `02-integration.py --sanitizers` passed; independent review: confirmed three package defects, all fixed (none in this header).
 - 2026-10-12: prune, removed `onSegment` (cases moved to `contains` on `Linear2::segment`; call sites in `segmentDistanceApprox`, `17-polygon_distance.hpp` and the 10 and 16 testers migrated); full suite passed on g++ and g++-14, stress passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.

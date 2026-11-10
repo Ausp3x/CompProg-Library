@@ -80,7 +80,7 @@ Search aliases (P263, grab --find): 上下界网络流, 循环流, 上下界最�
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/30-flow_with_demands_tester.py` uses the shared graph runner: optimized `-O2 -DNDEBUG`, checked, and ASan/UBSan outside quick, all with `-Wall -Wextra -Wconversion -Werror`.
+`96-Local Testing/04-Graphs/30-flow_with_demands_tester.py` uses the shared contest runner: optimized `-O2 -DNDEBUG`, checked, and ASan/UBSan outside quick, all with `-Wall -Wextra -Wconversion -Werror`.
 - It runs 21 assertion probes and the `Cap`/`Cost` type pairs int/int, lng/lng, lll/lll, lng/int and int/lng.
 - Every result is certified independently of the header. A feasible result passes a witness check (bounds, conservation, value and cost recomputed in `lll`) plus an optimality certificate. An infeasible result must give a strict Hoffman cut.
 - The integer brute force is validated on 13 hand-derived cases.
@@ -112,6 +112,8 @@ Modes:
 The checked build runs the large sections at a tenth of the size. Inclusion through `99-all.hpp` and two translation units are covered by `02-integration.py`.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1413 MB; optimized 0.1 s compile + 13.8 s run, checked 41.2 s compile + 7.8 s run, ASan-UBSan 47.1 s compile + 114.0 s run; MEMORY peak 1973 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1376 MB; optimized 0.3 s compile + 20.1 s run, checked 72.6 s compile + 17.7 s run, ASan-UBSan 99.2 s compile + 198.2 s run; MEMORY peak 1964 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 76.0 s compile + 1.2 s run, checked 64.8 s compile + 4.9 s run; MEMORY peak 1367 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1389 MB; optimized 0.1 s compile + 35.4 s run, checked 27.3 s compile + 19.1 s run, ASan-UBSan 33.4 s compile + 207.2 s run; MEMORY peak 1240 MB. Dated rows below stay those commands' latest results.
 
 Run 2026-10-29 on the local machine (GCC 16.2 `g++`, GCC 14.4.1 `g++-14`):
 
@@ -152,3 +154,4 @@ Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction).
 - 2026-10-28: new row (P048 / GR27); review: 5 findings fixed (infinite-bound rule at s and t, out-of-range supply write under `NDEBUG`, infeasible-shape test, engine complexity comment, unread LEMON aliases); full suite passed on g++ and g++-14, stress passed.
 - 2026-10-29: `/finish` audit: 5 defects fixed (order-dependent cost assertion, cost-bound probe, excess wording, adapter memory term, split subsections) and test gaps closed (int/lng, large-capacity costed, large `lll`/`int`); user decisions: design calls confirmed, `feasibleFlow`, `stCut` and `potentials` added; full suite passed on g++ and g++-14, stress passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

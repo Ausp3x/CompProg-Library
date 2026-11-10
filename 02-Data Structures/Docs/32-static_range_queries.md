@@ -59,7 +59,7 @@ Search aliases (P263, grab --find): 主元素问题, 线段树与离线询问, �
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/32-static_range_queries_tester.cpp`, entry `32-static_range_queries_tester.py` (driver `_00_runner.py`; optimized, checked and ASan/UBSan builds; 24 assertion probes). BF means a brute force over the range with an ordered map or a direct count; the literal hand cases check the brute forces themselves. Seven deliberately broken scratch copies of the header (truncated mex values, an off-by-one majority test, wrong `frequent` ranks and others) all failed the tester.
+Tester `96-Local Testing/02-Data Structures/32-static_range_queries_tester.cpp`, entry `32-static_range_queries_tester.py` (driver `_00_contest_runner.py`; optimized, checked and ASan/UBSan builds; 24 assertion probes). BF means a brute force over the range with an ordered map or a direct count; the literal hand cases check the brute forces themselves. Seven deliberately broken scratch copies of the header (truncated mex values, an off-by-one majority test, wrong `frequent` ranks and others) all failed the tester.
 
 | Operation | Groups | Oracle |
 |---|---|---|
@@ -91,6 +91,8 @@ Scratch timing only, not a gate. Conditions: 2026-11-02, AMD Ryzen AI 9 HX 370 (
 The `PersistentRangeMex` and `frequent` rows were rerun after the review changes (pool reserve, block jump). Peak memory was 132 MB. The Library Checker limit for both problems is 5 s.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1292 MB; optimized 0.2 s compile + 13.4 s run, checked 60.1 s compile + 12.9 s run, ASan-UBSan 51.9 s compile + 65.1 s run; MEMORY peak 1962 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1279 MB; optimized 0.1 s compile + 13.4 s run, checked 62.7 s compile + 16.3 s run, ASan-UBSan 64.0 s compile + 85.6 s run; MEMORY peak 1941 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 72.9 s compile + 0.2 s run, checked 57.3 s compile + 9.0 s run; MEMORY peak 1284 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1290 MB; optimized 0.1 s compile + 17.7 s run, checked 29.2 s compile + 15.6 s run, ASan-UBSan 30.4 s compile + 49.6 s run; MEMORY peak 1243 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-11-02, Linux x86-64 (AMD Ryzen AI 9 HX 370, WSL2), GNU++20, CPython 3.14.4:
 
@@ -142,3 +144,4 @@ The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.m
 - 2026-11-02: `/finish` audit, 3 defects and 2 nits fixed (`t = INT_MIN` start rank, `n <= 2^29` wording, pool reserve only for values in `[0, n)`), limits recorded; user decisions recorded (`descend` contract in row 17, API names kept, Library Checker ledger retargeted); diff review, 4 nits fixed; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7), row 17 quick, `02-integration.py` and `03-consistency.py` passed.
 - 2026-11-03: maintainer `/merge-pr 1`: the real `03-consistency.py` and `plan.py check` results recorded and the clone-specific limit dropped (P250's note keeps the follow-up); row 17 lists and tests `descend` and `lowerRank`, which `frequent` uses; the first maintainer gate (2026-11-03) passed quick and full on g++ and g++-14 and `02-integration.py --sanitizers`.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

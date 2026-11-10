@@ -45,7 +45,9 @@ Checked builds run two precondition probes: an odd-length suffix array and one w
 
 ## Commands and results
 
-P083 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 803 MB; optimized 0.3 s compile + 1.8 s run, checked 24.8 s compile + 7.8 s run, ASan-UBSan 24.6 s compile + 28.0 s run; MEMORY peak 1001 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 869 MB; optimized 0.3 s compile + 1.3 s run, checked 34.3 s compile + 9.6 s run, ASan-UBSan 26.8 s compile + 20.2 s run; MEMORY peak 1038 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 20.2 s compile + 0.2 s run, checked 21.4 s compile + 4.8 s run; MEMORY peak 801 MB. `python3 '96-Local Testing/07-Strings/15-minrotation_tester.py' --mode stress --seed 42` (three suites at a time) PASS: pre-flight quick peak 808 MB; optimized 0.0 s compile + 2.0 s run, checked 7.1 s compile + 2.6 s run, ASan-UBSan 6.3 s compile + 40.2 s run; MEMORY peak 790 MB. Dated rows below stay those commands' latest results.
+
+P083 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/15-minrotation_tester.py' --mode full --seed 20261013
@@ -90,3 +92,4 @@ Search aliases (P263, grab --find): minimum representation (最小表示法, OI 
 - 2026-10-19: P017, the suffix-array variant's construction cost restated for SA-IS (no API change); full on g++ before the final code-range cutoff and quick on the final code passed (recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results)).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

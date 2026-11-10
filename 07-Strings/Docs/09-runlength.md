@@ -40,7 +40,9 @@ Quick/full/stress enumerate ternary strings through lengths 5/8/10, run 300/4,00
 
 ## Commands and results
 
-Run 2026-10-08. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 880 MB; optimized 0.1 s compile + 0.6 s run, checked 22.3 s compile + 2.2 s run, ASan-UBSan 26.3 s compile + 8.0 s run; MEMORY peak 1029 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 927 MB; optimized 0.3 s compile + 0.6 s run, checked 29.3 s compile + 2.9 s run, ASan-UBSan 34.1 s compile + 7.6 s run; MEMORY peak 1051 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 33.3 s compile + 0.1 s run, checked 22.2 s compile + 0.8 s run; MEMORY peak 850 MB. `python3 '96-Local Testing/07-Strings/09-runlength_tester.py' --mode stress --seed 42` (three suites at a time) PASS: pre-flight quick peak 877 MB; optimized 0.1 s compile + 1.0 s run, checked 7.7 s compile + 3.5 s run, ASan-UBSan 8.4 s compile + 13.6 s run; MEMORY peak 758 MB. Dated rows below stay those commands' latest results.
+
+Run 2026-10-08. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/09-runlength_tester.py' --mode quick --seed 1  # PASS, 2 configurations
@@ -82,3 +84,4 @@ Search aliases (P263, grab --find): 游程编码, 行程编码, 行程长度编�
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before any change.
 - 2026-10-08: re-audit, 2 findings fixed, contracts moved out of the header, behavior unchanged; quick, full and stress passed on g++, full on g++-14, integration with sanitizers passed.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

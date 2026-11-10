@@ -1,6 +1,6 @@
 """Linear algebra against Leibniz expansion, brute force over GF(p), own Gauss-Jordan, block powers and residuals.
 
-C++ (optimized -O2 -DNDEBUG, checked -O0 _GLIBCXX_DEBUG and, outside quick, ASan/UBSan; every mode):
+C++ (optimized -O2 -DNDEBUG, checked _GLIBCXX_DEBUG and, outside quick, ASan/UBSan; every mode):
 oracle validation (Leibniz fixtures, own Gauss determinant and rank against Leibniz and GF(3) span
 enumeration, no-pivot elimination against leading minors); identityMatrix and matrixProduct over mint,
 Z/12, ulng mod 2^64 and double with empty and n x 0 shapes; rref (RREF shape, pivots, row space),
@@ -36,8 +36,12 @@ import shlex
 import subprocess
 import sys
 import tempfile
-from _00_runner import HERE, main
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
+from _00_cpp_test_runner import Builder, compiler_command
 
+HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 INCLUDES = (f'#include "{ROOT / "05-Mathematics" / "16-linear_algebra.hpp"}"\n'
             f'#include "{ROOT / "01-Core" / "05-modint.hpp"}"\n')
@@ -77,7 +81,6 @@ static int useAll() {
 
 def builds():
     """Header alone and two translation units, after every variant and probe passed."""
-    compiler = os.environ.get('CXX', 'g++')
     warn = ['-std=gnu++20', '-Wall', '-Wextra', '-Wconversion', '-Werror']
     color = sys.stdout.isatty() and 'NO_COLOR' not in os.environ
     try:
@@ -86,14 +89,14 @@ def builds():
             (tmp / 'alone.cpp').write_text(INCLUDES.splitlines()[0] + '\nint main() {}\n')
             (tmp / 'tu1.cpp').write_text(INCLUDES + USE_ALL + 'int other();\nint main() { return useAll() * 10 + other(); }\n')
             (tmp / 'tu2.cpp').write_text(INCLUDES + USE_ALL + 'int other() { return useAll(); }\n')
-            commands = [[compiler, *warn, '-fsyntax-only', str(tmp / 'alone.cpp')]]
+            builder = Builder(compiler_command(), tmp, failure=RuntimeError)
+            builder.syntax('header alone', warn, tmp / 'alone.cpp', 180)
             for label, flags in (('asserts', ['-O2']), ('ndebug', ['-O2', '-DNDEBUG'])):
                 out = str(tmp / label)
-                commands += [[compiler, *warn, *flags, str(tmp / 'tu1.cpp'), str(tmp / 'tu2.cpp'), '-o', out], [out]]
-            for command in commands:
-                result = subprocess.run(command, capture_output=True, text=True, timeout=180)
+                builder.build(f'two translation units {label}', [*warn, *flags], [tmp / 'tu1.cpp', tmp / 'tu2.cpp'], out, 180)
+                result = timed_run(f'16-linear_algebra two-TU run {label}', [out], capture_output=True, text=True, timeout=180)
                 if result.returncode:
-                    raise RuntimeError(f'returncode={result.returncode} command={shlex.join(command)}\n{result.stdout}\n{result.stderr}')
+                    raise RuntimeError(f'returncode={result.returncode} command={out}\n{result.stdout}\n{result.stderr}')
     except (OSError, RuntimeError, subprocess.TimeoutExpired) as error:
         print(('\033[31m' if color else '') + f'FAIL 16-linear_algebra builds: {error}' + ('\033[0m' if color else ''),
               file=sys.stderr, flush=True)

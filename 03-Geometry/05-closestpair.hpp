@@ -10,7 +10,7 @@ struct ClosestPair {
 
 namespace closest_detail {
     inline void fits(std::initializer_list<ulll> spans) {
-        ulll room = (ulll(1) << 127) - 1;
+        [[maybe_unused]] ulll room = (ulll(1) << 127) - 1;
         for (ulll s : spans) {
             assert(s * s <= room);
             room -= s * s;}}

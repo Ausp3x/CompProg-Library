@@ -20,12 +20,14 @@ alone counts. Without libclang it prints SKIP and exits 0. Exit 0 pass, 1 failur
 import argparse
 import ast
 import concurrent.futures
+import hashlib
 import importlib.util
 import itertools
 import json
 import os
 import random
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -37,6 +39,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
 import _00_memory_cap  # noqa: E402
+from _00_cpp_test_runner import cache_env, cached  # noqa: E402
 
 _spec = importlib.util.spec_from_file_location('extraction_grab', ROOT / '09-Contest Testing/10-grab.py')
 grab = importlib.util.module_from_spec(_spec)
@@ -245,10 +248,18 @@ def preset_roots(ix, ps):
     return [i for n in PRESETS if any(re.search(rf'\b{n}<', p) for p in ps) for i in ix.resolve(n) if ix.units[i]['header'] == MONOIDS]
 
 
+def write_source(work, text):
+    """Write text to a file named by its content in work, so an unchanged extraction hits ccache in every run."""
+    path = work / (hashlib.sha1(text.encode()).hexdigest()[:20] + '.cpp')
+    path.write_text(text)
+    return path
+
+
 def compile_check(cxx, source):
-    """None when source passes -fsyntax-only, else the first error lines."""
-    cmd = _00_memory_cap.capped([cxx, '-std=gnu++20', '-fsyntax-only', '-x', 'c++', source], COMPILE_MB)
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+    """None when source (a file of write_source) passes -fsyntax-only through ccache, else the first error lines."""
+    source = Path(source)
+    cmd = _00_memory_cap.capped([*cached(shlex.split(cxx)), '-std=gnu++20', '-fsyntax-only', '-x', 'c++', source.name], COMPILE_MB)
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=600, cwd=source.parent, env=cache_env())
     if r.returncode == 0:
         return None
     errs = [l for l in r.stderr.splitlines() if 'error' in l] or r.stderr.splitlines()
@@ -262,9 +273,8 @@ def control(compilers, wanted, work, jobs):
     chosen, r = {}, 0
     monoids = f'#include "{ROOT}/{MONOIDS}"\n' if (ROOT / MONOIDS).is_file() else ''
 
-    def run(h, ps, k):
-        path = work / f'control{k}.cpp'
-        path.write_text(PRELUDE.format(root=ROOT) + monoids + f'#include "{ROOT}/{h}"\n' + probe_text(ps))
+    def run(h, ps):
+        path = write_source(work, PRELUDE.format(root=ROOT) + monoids + f'#include "{ROOT}/{h}"\n' + probe_text(ps))
         return compile_check(compilers[0], str(path)) is None
     while compilers:
         batch = {key: c[r] for key, c in wanted.items() if key not in chosen and r < len(c)}
@@ -275,13 +285,13 @@ def control(compilers, wanted, work, jobs):
             by_header.setdefault(h, []).append(((h, k), p))
         retry = []
         with concurrent.futures.ThreadPoolExecutor(jobs) as pool:
-            whole = {pool.submit(run, h, [p for _, p in kp], f'r{r}h{n}'): kp for n, (h, kp) in enumerate(sorted(by_header.items()))}
+            whole = {pool.submit(run, h, [p for _, p in kp]): kp for h, kp in sorted(by_header.items())}
             for f in concurrent.futures.as_completed(whole):
                 if f.result():
                     chosen.update(whole[f])
                 else:
                     retry += whole[f]
-            single = {pool.submit(run, key[0], [p], f'r{r}p{n}'): (key, p) for n, (key, p) in enumerate(sorted(retry))}
+            single = {pool.submit(run, key[0], [p]): (key, p) for key, p in sorted(retry)}
             chosen.update(single[f] for f in concurrent.futures.as_completed(single) if f.result())
         r += 1
     return chosen
@@ -308,9 +318,11 @@ def check_ops(ix, a, work):
                 unresolved.append(f'{header}: {op}')
             else:
                 entries.append((header, f'{header}: {"::".join(types[:1] + [op]) if types else op}', roots))
-    compilers = [c for c in dict.fromkeys([os.environ.get('CXX', 'g++'), 'g++-14']) if shutil.which(c)]
+    compilers = [c for c in dict.fromkeys([os.environ.get('CXX', 'g++'), 'g++-14']) if shutil.which((shlex.split(c) or [''])[0])]
     for c in {os.environ.get('CXX', 'g++'), 'g++-14'} - set(compilers):
         print(f'SKIP {c}: not installed')
+    for c in compilers:
+        cached(shlex.split(c))  # any SKIP line once, before the worker threads
     wanted = {(h, k): candidates(ix, k) for h, _, roots in entries for k in probe_units(ix, roots)}
     chosen = control(compilers[:1], {key: c for key, c in wanted.items() if c}, work, a.jobs) if compilers else {}
     jobs = {}
@@ -318,10 +330,9 @@ def check_ops(ix, a, work):
         ps = sorted({chosen[(header, k)] for k in probe_units(ix, roots) if (header, k) in chosen})
         jobs.setdefault((grab.render(ix, grab.select(ix, roots + preset_roots(ix, ps))), tuple(ps)), []).append(label)
     tasks, probed = [], 0
-    for k, ((text, ps), names) in enumerate(jobs.items()):
-        path = work / f'op{k}.cpp'
+    for (text, ps), names in jobs.items():
         probed += bool(ps)
-        path.write_text(PRELUDE.format(root=ROOT) + text + probe_text(ps))
+        path = write_source(work, PRELUDE.format(root=ROOT) + text + probe_text(ps))
         if '#include "' in text:
             tasks.append((None, names, 'extraction keeps a quoted include', None))
         tasks += [(cxx, names, None, str(path)) for cxx in compilers]

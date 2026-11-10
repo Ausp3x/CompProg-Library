@@ -10,6 +10,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 HERE = Path(__file__).resolve().parent
@@ -17,6 +18,8 @@ QUICK = {'01-template_tester.py', '02-debug_tester.py', '03-barrett_tester.py', 
 STATS = HERE / '.run-stats.json'  # git-ignored: last peak MB and seconds per mode and suite, for scheduling only
 CAP_MB = int(os.environ.get('CP_TEST_MEMORY_MB', '4096'))
 SIGNALS = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)  # each stops every job as Ctrl-C does
+OVERHALF = re.compile(rb'^OVERHALF (.+)$', re.M)  # printed by _00_cpp_test_runner.over_half
+QUICK_SECONDS = 10.0  # a build's quick run alone (05-testing.md, Layout and modes); here measured beside other suites, so a NOTE only
 
 
 def available_mb():
@@ -64,26 +67,61 @@ def stop(procs):
                 proc.wait()
 
 
-def call(command):
-    """Exit status of command, run as its own process group that a signal to the runner stops."""
-    proc = subprocess.Popen(command, start_new_session=True)
+def merged():
+    """Whether stdout and stderr are one file, so a child's stderr must keep its place among its stdout lines."""
     try:
-        return proc.wait()
+        return os.path.samestat(os.fstat(1), os.fstat(2))
+    except OSError:
+        return False
+
+
+def call(command, flagged):
+    """Exit status of command, run as its own process group that a signal to the runner stops; its over-half lines join flagged.
+
+    A thread relays the child's output, so an interrupted child's cleanup output still prints and never blocks on a full pipe.
+    """
+    proc = subprocess.Popen(command, start_new_session=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT if merged() else None,
+                            env=dict(os.environ, PYTHONUNBUFFERED='1'))
+    def relay():
+        for line in proc.stdout:
+            sys.stdout.buffer.write(line)
+            sys.stdout.flush()
+            flagged.extend(m[1].decode() for m in OVERHALF.finditer(line))
+    thread = threading.Thread(target=relay, daemon=True)
+    thread.start()
+    try:
+        code = proc.wait()
     except BaseException:
         stop([proc])
+        thread.join()
         raise
+    thread.join()
+    return code
 
 
-def run(tasks, mode, jobs, budget, stats):
-    """Run (key, seed, suite) tasks, longest first, each reserving 5/4 of its last peak plus 256 MB (the cap when unmeasured).
+def worst(lines):
+    """One line per subject (the text before its last ': '), the one with the most seconds: stress rounds repeat them."""
+    best = {}
+    for line in lines:
+        subject, _, rest = line.rpartition(': ')
+        seconds = float(rest.split()[0]) if rest[:1].isdigit() else 0.0
+        if subject not in best or seconds > best[subject][0]:
+            best[subject] = (seconds, line)
+    return [line for _, line in best.values()]
+
+
+def run(tasks, mode, jobs, budget, stats, slow=None, flagged=None):
+    """Run (key, seed, suite) tasks, longest first, each reserving 11/10 of its last peak plus 64 MB (the cap when unmeasured);
+    a smaller task may start past one that does not fit.
 
     A task that fails after running beside others reruns alone, and later running tasks restart after it, so only a
     failure alone counts. Logs print in task order (in task order and live when jobs is 1); the status is that of the
-    first failing task, as in a sequential run.
+    first failing task, as in a sequential run. Builds whose quick run took over QUICK_SECONDS join slow; a suite that
+    passed only on its rerun, and a command that took over half its limit, join flagged.
     """
     def need(i):
         peak = stats.get(tasks[i][0], (0, 0))[0]
-        return peak * 5 // 4 + 256 if peak else CAP_MB
+        return peak * 11 // 10 + 64 if peak else CAP_MB
     running, codes, alone, crowded, head, failed, reader = {}, {}, {}, set(), 0, len(tasks), None
     rank = lambda i: (i not in alone, (i in alone) * i, -stats.get(tasks[i][0], (0, float('inf')))[1])  # reruns in task order
     queue = sorted(range(len(tasks)), key=rank) if jobs > 1 else list(range(len(tasks)))
@@ -94,8 +132,11 @@ def run(tasks, mode, jobs, budget, stats):
         try:
             while head < failed or head in codes:
                 queue = [i for i in queue if i < failed]
-                while queue and fits(queue[0]):
-                    i = queue.pop(0)
+                while queue:
+                    i = queue[0] if queue[0] in alone else next((j for j in queue if fits(j)), queue[0])  # a rerun waits to be alone
+                    if not fits(i):
+                        break
+                    queue.remove(i)
                     with open(log(i), 'wb') as out, held():  # recorded in running before an interrupt can land
                         running[i] = subprocess.Popen([sys.executable, str(tasks[i][2])], stdin=subprocess.DEVNULL, stdout=out,
                                                       stderr=subprocess.STDOUT, start_new_session=True,
@@ -119,6 +160,13 @@ def run(tasks, mode, jobs, budget, stats):
                     if not proc.returncode:
                         peaks = re.findall(rb'MEMORY peak=(\d+)MB', log(i).read_bytes())
                         stats[tasks[i][0]] = [max(map(int, peaks), default=0), round(time.monotonic() - start, 1)]
+                        if slow is not None:
+                            slow += [(float(m[2]), m[1].decode()) for m in re.finditer(rb'^TIMING (.+?) mode=quick compile=[\d.]+s run=([\d.]+)s', log(i).read_bytes(), re.M)
+                                     if float(m[2]) > QUICK_SECONDS]
+                        if flagged is not None:
+                            if i in alone:
+                                flagged.append(f'{tasks[i][0]}: exited {alone[i]} beside other suites, passed alone')
+                            flagged += [m[1].decode() for m in OVERHALF.finditer(log(i).read_bytes())]
                     else:
                         failed = i
                 if reader is None and (head in codes or jobs == 1 and head in running):
@@ -172,18 +220,27 @@ def main():
     except (OSError, ValueError, TypeError, AttributeError, IndexError, KeyError):
         stats = {}
     tasks = [(f'{a.mode} {s.relative_to(HERE).as_posix()}', a.seed + i, s) for i in range(runs) for s in suites]
+    slow, flagged = [], []
     try:
-        code = run(tasks, a.mode, a.jobs, a.memory_mb or available_mb() - 2048, stats)
+        code = run(tasks, a.mode, a.jobs, a.memory_mb or available_mb() - 2048, stats, slow, flagged)  # full and stress: the pre-flights' quick TIMING lines
     finally:
         temporary = STATS.with_name(f'{STATS.name}.{os.getpid()}')
         temporary.write_text(json.dumps(stats, indent=0, sort_keys=True) + '\n')
         temporary.replace(STATS)
     if code: return code
+    slow = sorted({name: seconds for seconds, name in sorted(slow)}.items(), key=lambda item: -item[1])  # each round's pre-flight repeats them
+    if slow:
+        print(f'NOTE {len(slow)} quick build(s) over {QUICK_SECONDS:.0f} s, timed beside other suites (05-testing.md, Layout and modes):\n'
+              + ''.join(f'  {seconds:.1f} s {name}\n' for name, seconds in slow), end='', flush=True)
     if not a.no_integration:
         command = [sys.executable, str(HERE / '02-integration.py'), '--jobs', str(a.jobs)]
         if a.mode != 'quick': command.append('--sanitizers')
-        code = call(command) or call([sys.executable, str(HERE / '03-consistency.py')])
+        code = call(command, flagged) or call([sys.executable, str(HERE / '03-consistency.py')], flagged)
         if code: return code
+    flagged = worst(flagged)
+    if flagged:
+        print(f'NOTE {len(flagged)} problem(s) to fix, each within a passing run (05-testing.md, Layout and modes):\n'
+              + ''.join(f'  {line}\n' for line in flagged), end='', flush=True)
     print(f'PASS: {len(suites)} available suites x {runs} round(s); see 00-index.md for coverage gaps')
     return 0
 

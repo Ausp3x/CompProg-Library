@@ -1,12 +1,12 @@
 #include "../../06-Miscellaneous/55-fractional_programming.hpp"
 
 #ifdef _GLIBCXX_DEBUG
-constexpr bool DEBUG_CONTAINERS = true;  // -O0 debug containers: stress runs as full
+constexpr bool DEBUG_CONTAINERS = true;  // debug containers: stress runs as full
 #else
 constexpr bool DEBUG_CONTAINERS = false;
 #endif
 #ifdef __SANITIZE_ADDRESS__
-constexpr bool SANITIZED = true;  // ASan stress runs as full, well inside the runner's 180 s limit
+constexpr bool SANITIZED = true;  // ASan stress runs as full, well inside the runner's former 180 s limit
 #else
 constexpr bool SANITIZED = false;
 #endif

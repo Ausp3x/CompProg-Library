@@ -25,8 +25,12 @@ of every pi / q (Pollard rho factorization of pi).
 from math import comb
 import random
 import shlex
-import subprocess
-from _00_runner import factor, is_prime, main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
+from _00_factor import factor, is_prime
 
 P = 998244353
 SMALL = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113]
@@ -160,7 +164,7 @@ def oracle(binary, args, env):
                 m = big
             elif u < 0.55:
                 m = 2 * 5 ** 27
-            pi = int(subprocess.run([str(binary), '--oracle'], input=f'pisano {m}\n', text=True, capture_output=True, env=env, timeout=60).stdout.split()[0])
+            pi = int(timed_run(f'12-combinatorics_advanced pisano oracle {Path(binary).name}', [str(binary), '--oracle'], input=f'pisano {m}\n', text=True, capture_output=True, env=env, timeout=60).stdout.split()[0])
             ok = 1 <= pi <= 6 * m and fib(pi, m) == (0, 1 % m) and all(fib(pi // q, m) != (0, 1 % m) for q, _ in factor(pi))
             if not ok:
                 raise RuntimeError(f'Pisano certificate failed m={m} pi={pi} seed={args.seed}')
@@ -175,7 +179,7 @@ def oracle(binary, args, env):
             rows.append(f'surj {n} {k}')
             want.append((st[n][k],))
     command = [str(binary), '--oracle']
-    result = subprocess.run(command, input='\n'.join(rows) + '\n', text=True, capture_output=True, env=env, timeout=180)
+    result = timed_run(f'12-combinatorics_advanced oracle {Path(command[0]).name}', command, input='\n'.join(rows) + '\n', text=True, capture_output=True, env=env, timeout=180)
     if result.returncode:
         raise RuntimeError(f'Python oracle returncode={result.returncode} command={shlex.join(command)}\n{result.stderr}')
     actual = result.stdout.splitlines()

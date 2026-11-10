@@ -93,7 +93,7 @@ No legacy code exists for this header.
 - Per-column rational floors for `latticeUnderLine`.
 - Pick counts from 03 `latticeInterior` and `latticeBoundary`, and `gaussCircleCount` from Mathematics row 34.
 - Closed-form floor sums for two large polygons.
-- A Python oracle with exact `Fraction` column scans for segments and convex polygons with denominators up to `10^15` (quick 40, full 400, stress 4,000 segment rows plus polygons).
+- A Python oracle with exact `Fraction` column scans for segments and convex polygons with denominators up to `10^15` (quick 28, full 400, stress 4,000 segment rows plus polygons).
 - A tester-local 256-bit location test for polygons with denominators up to `2 * 10^18`.
 - Pick's formula from a tester-local shoelace sum and edge gcds for a 25-vertex unit-width spiral with coordinates below `4 * 10^18` in magnitude.
 - Agreement between the halfplane and rational-vertex paths, and invariance under integral translation and transposition.
@@ -113,11 +113,13 @@ Mutation checks (2026-10-19, quick, optimized, each on a private copy of the tre
 - Caught, runs: the boundary direction `g` taken from the fitting side of a popped run; the push-side binary search stopping one step early.
 - Caught: the floor of a negative 256-bit quotient rounding toward zero.
 - Caught by UBSan only (full, ASan/UBSan, spiral phase): accumulating `S` in signed `lll`. Optimized builds wrap to the same count.
-- Caught by the runner's 180 s timeout in full mode: removing the steepness stop. Without it the tests per edge grow about 4.7× per tenfold radius (219 at `r = 10^4`, 1,044 at `10^5`, 4,867 at `10^6`) and the time about 21× (1.3 s per call at `10^6`), and the `n = 4 * 10^18` case cannot finish. Quick mode, which skips that case, does not catch it.
+- Caught by the runner's former 180 s timeout in full mode: removing the steepness stop. Without it the tests per edge grow about 4.7× per tenfold radius (219 at `r = 10^4`, 1,044 at `10^5`, 4,867 at `10^6`) and the time about 21× (1.3 s per call at `10^6`), and the `n = 4 * 10^18` case cannot finish. Quick mode, which skips that case, does not catch it.
 - Equivalent, not caught: a popped run keeping one direction that no longer fits. That costs one wasted refinement, and the next walk takes no step and drops it. Also equivalent: `crossSign` returning 1 for 0. Zero arises only at a straight vertex, where both cone tests agree, and never at the lexicographically lowest vertex.
 - `floorSumWide` losing the carry of `b` passes this suite, which rarely reaches that carry, and is caught by Mathematics row 18's suite.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1024 MB; optimized 0.1 s compile + 619.0 s run, checked 26.0 s compile + 637.4 s run, ASan-UBSan 30.8 s compile + 636.7 s run; MEMORY peak 1257 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1080 MB; optimized 0.2 s compile + 732.4 s run, checked 29.2 s compile + 809.1 s run, ASan-UBSan 34.0 s compile + 822.5 s run; MEMORY peak 1264 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 27.7 s compile + 31.5 s run, checked 25.6 s compile + 33.5 s run; MEMORY peak 1024 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 54 MB; optimized 0.1 s compile + 909.6 s run, checked 12.3 s compile + 877.5 s run, ASan-UBSan 15.2 s compile + 945.6 s run; MEMORY peak 723 MB. Dated rows below stay those commands' latest results.
 
 2026-10-19, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
 
@@ -186,3 +188,4 @@ Search aliases (P263, grab --find): 格点计数, 整点计数, 直线下整点�
 - 2026-10-19: P037 re-audit widened rational polygons to `V * D <= 4 * 10^18` (primitive directions, floored constants, 256-bit products, `floorSumWide`) with a Python `Fraction` oracle. Independent review: the edge sum overflowed `lll` on spirals (now modulo `2^128`, with a spiral regression), complexity comments fixed. Full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19 (round 3): unbounded halfplane sets return 0 or `-1` (Meyer's dichotomy, window-scan oracle); the hull-walk stack became `O(log(r))` runs with identical counts and fewer tests (at most 8 runs where the former stack reached 44,721 entries); Core `u256` replaced the private 256-bit helpers (+2–9% measured); the steepness-stop mutant is caught by the full-mode timeout; the unbounded probe became an out-of-domain bounded probe. Full suite passed on g++ and g++-14, stress passed, Mathematics row 20 full passed. Independent review: counts refreshed, the steepness-mutant growth figure corrected; strips with redundant parallel planes added to the unbounded tests. Final full suite passed on g++ and g++-14, stress passed.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.

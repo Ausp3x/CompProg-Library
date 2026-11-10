@@ -20,11 +20,14 @@ independent prefix-doubling suffix array (next smaller suffix by sparse table). 
 -Werror. Full/stress add ASan/UBSan (the checked _GLIBCXX_DEBUG build runs stress at full-mode sizes); checked builds run twelve precondition
 probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
     raise SystemExit(main('14-lyndon', [
         'standard-single', 'standard-not-lyndon', 'tree-zero-length', 'tree-overflow',
         'suffix-negative', 'suffix-high', 'suffix-zero-length', 'min-suffix-high', 'factorize-negative',
-        'next-empty', 'next-too-long', 'words-negative'], strict=True))
+        'next-empty', 'next-too-long', 'words-negative'], extra=('-Wshadow',)))

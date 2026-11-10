@@ -6,11 +6,12 @@
                     without a record, or with --whole), high and medium severity only on a Core full header's whole-file
                     campaign, then a seeded uniform --sample of a whole-file campaign. Each stage tests the sampled
                     mutants not yet caught: tester quick mode on the optimized build, then full mode on the optimized
-                    build, then full mode on all builds (quick then full when the tester cannot select a build). A test
+                    build, then full mode on the builds not yet run in full (quick then full when the tester cannot select a build). A test
                     gets 3x its stage baseline's time (at least 60 s) and runs in its own memory-capped scope (3x the
                     baseline's peak, at least 1024 MB, at most the tester's cap); as many shards run at once as
                     --memory-mb holds, each taking every width-th mutant of a seeded shuffle, and a mutant that timed out
-                    is retested alone before its timeout counts. One campaign runs per machine (a lock in
+                    is retested before its timeout counts, side by side only as far as each test keeps its own cores
+                    (the shards, at most half the logical CPUs, divided by the builds a test runs at once). One campaign runs per machine (a lock in
                     $XDG_RUNTIME_DIR, or CP_MUTATION_LOCK). Every shard's header is compared with the checkout after each
                     stage. A complete run prints the
                     counts, the survivors and the record line for the evidence document and stores the header's blob in
@@ -241,13 +242,13 @@ def sync(root, shard):
         shutil.copy2(src, dst, follow_symlinks=False)
 
 
-def measured(cmd, cwd):
+def measured(cmd, cwd, env=None):
     """(seconds, exit status, output, peak MB of its largest process) of one run of cmd."""
     with tempfile.NamedTemporaryFile('r', prefix='cp-mutation-rss-') as rss:
         probe = [sys.executable, '-c', 'import resource, subprocess, sys; c = subprocess.run(sys.argv[2:]).returncode; '
                  'open(sys.argv[1], "w").write(str(resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss)); sys.exit(c)', rss.name, *cmd]
         start = time.monotonic()
-        p = subprocess.Popen(probe, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=True)
+        p = subprocess.Popen(probe, cwd=cwd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, start_new_session=True)
         try:
             output = p.communicate()[0]
         except BaseException:  # a stopped campaign takes the capped tester down with it
@@ -457,7 +458,7 @@ def campaign(a):
     two = '--configuration' in subprocess.run([sys.executable, tester, '--help'], cwd=shards[0], capture_output=True, text=True).stdout
     run = lambda mode, *rest: [sys.executable, tester, '--mode', mode, '--seed', str(a.seed), *rest]
     stages = ([('quick', run('quick', '--configuration', 'optimized')), ('full-optimized', run('full', '--configuration', 'optimized')),
-               ('full-all', run('full', '--configuration', 'all'))] if two else [('quick', run('quick')), ('full', run('full'))])
+               ('full-rest', run('full', '--configuration', 'checked,ASan-UBSan'))] if two else [('quick', run('quick')), ('full', run('full'))])
     if meta is None:
         (shards[0] / 'mewt.toml').write_text(f'[targets]\ninclude = [{json.dumps(header)}]\n\n[test]\n'
                                              f'cmd = {json.dumps(shlex.join(stages[0][1]))}\ntimeout = 600\n')
@@ -489,7 +490,7 @@ def campaign(a):
         if time.monotonic() >= deadline:
             complete, stopped = False, name
             break
-        seconds, code, output, peak = measured(capped(cmd, own), shards[0])
+        seconds, code, output, peak = measured(capped(cmd, own), shards[0], dict(os.environ, CCACHE_RECACHE='1'))  # a mutant compiles, so its limits must cover a compile
         if code:
             raise Failure(f'{name} baseline failed (exit {code}): {shlex.join(cmd)}\n{tail(output)}')
         timeout = a.timeout or max(60, math.ceil(3 * seconds))
@@ -497,11 +498,12 @@ def campaign(a):
         width = max(1, min(len(shards), budget // mb))
         start = time.monotonic()
         for part in ('', '-alone'):
-            if part:  # a timeout among concurrent tests may be a slow survivor: it counts once it recurs alone in its stage
+            if part:  # a timeout among concurrent tests may be a slow survivor: it counts once it recurs with the CPU to itself
                 seen = outcomes(shards)
                 ids = [i for i in order if meta['unconfirmed'].get(str(i)) == name and seen[i][0] == 'Timeout']
                 meta['unconfirmed'] = {k: v for k, v in meta['unconfirmed'].items() if v != name or int(k) in ids}
-            ids, w = (ids, 1) if part else (pending, width)
+            builds = (1 if name != 'full-rest' else 2) if two else 3  # a test's builds run at once
+            ids, w = (ids, max(1, min(width, len(ids)) // builds)) if part else (pending, width)
             if not ids:
                 continue
             print(f'{name}{part}: {len(ids)} mutants on {w} of {len(shards)} shards; baseline {seconds:.1f} s, peak {peak} MB; per mutant '

@@ -20,8 +20,11 @@ independent of SA-IS). Builds use
 checked _GLIBCXX_DEBUG build runs stress at full-mode sizes); checked builds
 run five precondition probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
-    raise SystemExit(main('29-bwt', ['sentinel-in-text', 'no-sentinel', 'two-sentinels', 'primary-range', 'suffix-array-size'], strict=True))
+    raise SystemExit(main('29-bwt', ['sentinel-in-text', 'no-sentinel', 'two-sentinels', 'primary-range', 'suffix-array-size'], extra=('-Wshadow',)))

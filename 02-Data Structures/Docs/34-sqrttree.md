@@ -34,7 +34,7 @@ No legacy code. `query` was renamed `prod` in the P027 monoid pass (2026-10-17).
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/34-sqrttree_tester.cpp`, entry `34-sqrttree_tester.py` (driver `_00_runner.py`; three builds; 5 assertion probes).
+Tester `96-Local Testing/02-Data Structures/34-sqrttree_tester.cpp`, entry `34-sqrttree_tester.py` (driver `_00_contest_runner.py`; three builds; 5 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -48,6 +48,8 @@ Tester `96-Local Testing/02-Data Structures/34-sqrttree_tester.cpp`, entry `34-s
 | Preconditions | `invalid` | Reversed, out-of-range and negative `prod` (probes `prod-reversed`, `prod-range`, `prod-negative`); out-of-range and negative `set` |
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 850 MB; optimized 0.3 s compile + 3.1 s run, checked 22.4 s compile + 4.2 s run, ASan-UBSan 27.0 s compile + 38.2 s run; MEMORY peak 1020 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 918 MB; optimized 0.3 s compile + 5.0 s run, checked 34.7 s compile + 5.0 s run, ASan-UBSan 43.5 s compile + 28.9 s run; MEMORY peak 1042 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 31.2 s compile + 0.3 s run, checked 30.2 s compile + 0.9 s run; MEMORY peak 879 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 858 MB; optimized 0.1 s compile + 12.6 s run, checked 10.1 s compile + 19.9 s run, ASan-UBSan 10.8 s compile + 138.6 s run; MEMORY peak 1446 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
@@ -113,3 +115,4 @@ Search aliases (P263, grab --find): Sqrt Tree; 根号树.
 - 2026-10-17: P034 first implementation and verification; independent review: no valid-input defect; added the four-layer configuration to stress, the threshold benchmark driver and corrected test-size statements.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract, `query` renamed `prod`, block-count field `nb`, stateful-monoid test added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 724/684/1479 MB.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

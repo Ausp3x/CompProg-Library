@@ -44,7 +44,7 @@ Under `NDEBUG` a reversed rectangle contributes with the opposite sign and `INT6
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/33-offline_rectangle_queries_tester.cpp`, entry `33-offline_rectangle_queries_tester.py` (driver `_00_runner.py`; three builds, the checked build with `_GLIBCXX_ASSERTIONS` because debug `lower_bound` checks partitioning in O(n) per call and the engine searches the compressed y once or twice per event; 8 assertion probes).
+Tester `96-Local Testing/02-Data Structures/33-offline_rectangle_queries_tester.cpp`, entry `33-offline_rectangle_queries_tester.py` (driver `_00_contest_runner.py`; three builds, the checked build with `_GLIBCXX_ASSERTIONS` because debug `lower_bound` checks partitioning in O(n) per call and the engine searches the compressed y once or twice per event; 8 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -59,6 +59,8 @@ Tester `96-Local Testing/02-Data Structures/33-offline_rectangle_queries_tester.
 Mutation check (2026-10-14, quick mode, temporary copies): 8 of 8 injected faults detected (updates before queries at equal x, a wrong four-coefficient sign, all events in one run, an unbalanced split, the dual kernel chosen for rectangle queries, no clearing after a sweep, non-strict y dominance, stopping when either half has one run). Clearing is invisible in exact rings, because stale cells cancel between the paired x corners of every query (primal) or update (dual). It is caught by the `magnitude` group.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 830 MB; optimized 0.2 s compile + 3.9 s run, checked 22.3 s compile + 5.4 s run, ASan-UBSan 40.1 s compile + 25.4 s run; MEMORY peak 995 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 846 MB; optimized 0.2 s compile + 5.8 s run, checked 33.5 s compile + 7.8 s run, ASan-UBSan 57.7 s compile + 44.5 s run; MEMORY peak 1003 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 36.9 s compile + 0.1 s run, checked 24.5 s compile + 0.8 s run; MEMORY peak 833 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 834 MB; optimized 0.1 s compile + 11.3 s run, checked 8.6 s compile + 12.3 s run, ASan-UBSan 16.2 s compile + 59.4 s run; MEMORY peak 699 MB. Dated rows below stay those commands' latest results.
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/33-offline_rectangle_queries_tester.py' --mode full --seed 20261014
@@ -91,3 +93,4 @@ Search aliases (P263, grab --find): 二维数点, 单点加矩形求和, 矩形�
 
 - 2026-10-14: P033 first implementation and verification; independent review: no defects, 3 assertion probes added, `std::midpoint` split.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

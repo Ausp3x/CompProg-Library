@@ -181,6 +181,8 @@ Oracles:
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 912 MB; optimized 0.1 s compile + 57.0 s run, checked 46.9 s compile + 10.6 s run, ASan-UBSan 40.4 s compile + 12.3 s run; MEMORY peak 2550 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 875 MB; optimized 0.2 s compile + 72.2 s run, checked 73.3 s compile + 7.6 s run, ASan-UBSan 51.8 s compile + 12.8 s run; MEMORY peak 2882 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 79.7 s compile + 2.1 s run, checked 53.5 s compile + 34.9 s run; MEMORY peak 1402 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 86 MB; optimized 0.1 s compile + 46.4 s run, checked 36.2 s compile + 11.0 s run, ASan-UBSan 35.7 s compile + 18.0 s run; MEMORY peak 1588 MB. Dated rows below stay those commands' latest results.
+
 Latest run 2026-10-19 (P054 follow-up), GCC 16.2.1 and GCC 14.4.1, configurations optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`.
 
 ```bash
@@ -253,3 +255,4 @@ Search aliases (P263, grab --find): FFT (fast Fourier transform), NTT (number-th
 - 2026-10-19: P054 follow-up: CRT over one to six primes chosen from the coefficient bound (every 64-bit modulus; `convolutionLong` modulo 2^64 and `convolutionU128` modulo 2^128 for any inputs), every length below 2^31 through `convolutionLarge`, aliased squares with one transform per prime, naive wrapping paths for short Long and U128 products; `@reviewer` found no defect, a missing six-prime test and stale texts, fixed; full and stress passed on g++, full on g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

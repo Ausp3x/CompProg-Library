@@ -43,6 +43,8 @@ Tester: [85-levelancestor_tester.cpp](<../../96-Local Testing/04-Graphs/85-level
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 832 MB; optimized 0.1 s compile + 9.4 s run, checked 16.5 s compile + 25.6 s run, ASan-UBSan 19.8 s compile + 105.1 s run; MEMORY peak 1032 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 907 MB; optimized 0.2 s compile + 12.8 s run, checked 19.8 s compile + 49.5 s run, ASan-UBSan 22.1 s compile + 199.8 s run; MEMORY peak 1119 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 28.6 s compile + 0.8 s run, checked 22.7 s compile + 15.5 s run; MEMORY peak 845 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 849 MB; optimized 0.1 s compile + 20.4 s run, checked 8.0 s compile + 59.1 s run, ASan-UBSan 9.1 s compile + 275.7 s run; MEMORY peak 1316 MB. Dated rows below stay those commands' latest results.
+
 2026-11-04, Linux x86-64 (AMD Ryzen AI 9 HX 370), GCC 16.0.1 20260322 and GCC 14.3.0 (`CXX=g++-14`), GNU++20, CPython 3.14, the runner's optimized, checked and ASan/UBSan builds with `-Werror`:
 
 | Command | Result |
@@ -54,7 +56,7 @@ Tester: [85-levelancestor_tester.cpp](<../../96-Local Testing/04-Graphs/85-level
 | `02-integration.py` | PASS: 190 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, MEMORY peak 1715 MB |
 | `03-consistency.py` (linked worktree) | No errors |
 
-The ASan/UBSan stress binary takes about 140 s alone against the runner's 180 s limit, so the 500,000-vertex stress round runs the path, caterpillar and recursive shapes only.
+The ASan/UBSan stress binary takes about 140 s alone against the runner's former 180 s limit, so the 500,000-vertex stress round runs the path, caterpillar and recursive shapes only.
 
 ```bash
 python3 '96-Local Testing/04-Graphs/85-levelancestor_tester.py' --mode quick
@@ -115,3 +117,4 @@ None is required (Contest profile, no reduction, no threshold). A scratch timing
 - 2026-11-04: P042 GR70, new header; review: no correctness defect, 8 findings fixed (jumps store ladder positions, stale counts, integration row, mutation wording, row `build`, duplicates keeps, wording); quick, full on g++ and g++-14, stress (seed 2), integration and mutation passed.
 - 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.
 - 2026-11-08: `/merge-pr 4` review fixes: `G = Graph` defaults, `levelAncestorOffline` name restored, out-of-domain `NDEBUG` tests removed.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

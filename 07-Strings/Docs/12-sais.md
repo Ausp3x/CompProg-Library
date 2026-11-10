@@ -31,7 +31,7 @@ Runnable entry: [12-sais_tester.py](<../../96-Local Testing/07-Strings/12-sais_t
 
 | Feature/domain | Independent verification |
 |---|---|
-| `sais(vector<int>, upper)` | Comparison-sorted suffixes for every ternary text through lengths 7/10/11 (quick/full/stress, also `upper = 4` with unused symbols through length 6), every binary text of lengths 13–16 and every 7th of lengths 17–18 in full/stress, random texts up to 300 symbols (every seventh round of length 30–34, the default threshold neighbours) with `upper` up to about 2,000 and periodic overrides; at `NAIVE` = default, 1 (pure SA-IS at every recursion level) and 4. |
+| `sais(vector<int>, upper)` | Comparison-sorted suffixes for every ternary text through lengths 6/10/11 (quick/full/stress, also `upper = 4` with unused symbols through length 6), every binary text of lengths 13–14 in quick, of lengths 13–16 and every 7th of lengths 17–18 in full/stress, random texts up to 300 symbols (every seventh round of length 30–34, the default threshold neighbours) with `upper` up to about 2,000 and periodic overrides; at `NAIVE` = default, 1 (pure SA-IS at every recursion level) and 4. |
 | `sais(string_view)` / `string` | Unsigned byte order oracle on random bytes, ternary bytes, the full ascending/descending byte alphabet, 50 NULs and the empty string. |
 | `sais(vector<T>)`, `compressAlphabet` | Comparison-sorted suffixes and sorted-unique rank oracle for `int`, `lng` extremes, `ulng` extremes, `signed char` (negative symbols) and `string` symbols; pairwise order preservation. |
 | `lcpArray` | Direct character-by-character LCP for every overload; large texts against binary lifting over exact names of power-of-two blocks (`blockLcp`: a hash map keyed by the pair of half-block names, so equal names mean equal blocks; itself checked against direct LCP on the exhaustive ternary and random integer texts). `SuffixArray::lcp` is no oracle: `07` computes it with `lcpArray` since the P017 prune. |
@@ -40,7 +40,9 @@ Runnable entry: [12-sais_tester.py](<../../96-Local Testing/07-Strings/12-sais_t
 
 ## Commands and results
 
-P017 run, 2026-10-19 (the large suffix-order oracle is now `SuffixArray<int>::doubling`, since `07`'s constructors call `sais`; the stress line is from the 2026-10-13 prune): 11th Gen Intel Core i9-11900H, GCC 16.2.1 (`g++`) and the floor compiler GCC 14.4.1 (`CXX=g++-14`), Python 3.14.7. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 946 MB; optimized 0.1 s compile + 4.7 s run, checked 29.1 s compile + 48.7 s run, ASan-UBSan 31.4 s compile + 70.1 s run; MEMORY peak 1263 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 942 MB; optimized 0.3 s compile + 7.8 s run, checked 48.7 s compile + 95.8 s run, ASan-UBSan 44.2 s compile + 121.6 s run; MEMORY peak 1198 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 32.6 s compile + 0.2 s run, checked 37.3 s compile + 10.7 s run; MEMORY peak 956 MB. `python3 '96-Local Testing/07-Strings/12-sais_tester.py' --mode stress --seed 42` (three suites at a time) PASS: pre-flight quick peak 951 MB; optimized 0.1 s compile + 8.7 s run, checked 12.3 s compile + 55.1 s run, ASan-UBSan 13.0 s compile + 86.7 s run; MEMORY peak 956 MB. Dated rows below stay those commands' latest results.
+
+P017 run, 2026-10-19 (the large suffix-order oracle is now `SuffixArray<int>::doubling`, since `07`'s constructors call `sais`; the stress line is from the 2026-10-13 prune): 11th Gen Intel Core i9-11900H, GCC 16.2.1 (`g++`) and the floor compiler GCC 14.4.1 (`CXX=g++-14`), Python 3.14.7. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/12-sais_tester.py' --mode full --seed 20261019  # PASS, 3 configurations, 283,735 cases and 10,115,167 checks each, 4 assertion probes, MEMORY peak=814MB
@@ -49,7 +51,7 @@ CP_TEST_PREFLIGHT=0 python3 '96-Local Testing/07-Strings/12-sais_tester.py' --mo
 python3 '96-Local Testing/07-Strings/12-sais_benchmark.py' --reps 5  # PASS, every checksum equal, MEMORY peak=358MB
 ```
 
-The checked build is the slowest: at full size it runs in 70 s on g++-14, under the runner's 180 s limit. A mutation capping `lcpArray` at 1000 passes every small case and fails the large block-name check in quick mode. Integration and consistency are recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results).
+In the 2026-11-10 full runs (above) ASan-UBSan is the slowest build, 121.6 s on g++-14 beside the other suites, within the contest runner's 720 s limit. A mutation capping `lcpArray` at 1000 passes every small case and fails the large block-name check in quick mode. Integration and consistency are recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results).
 
 ## Benchmarks
 
@@ -89,7 +91,7 @@ No legacy SA-IS implementation exists in `OLD` (archive map and text search).
 ## Limits and handoffs
 
 - `upper` drives bucket memory; sparse integer alphabets should use the generic overload. Prefix doubling, RMQ, LCE and pattern search stay in `07`, which builds through `sais` and `lcpArray`; `29` can derive a BWT from `sais`.
-- The checked stress run (700,000 symbols) passes on g++ (157 s) but exceeds the runner's 180 s limit on g++-14 (187 s).
+- The checked stress run (700,000 symbols) once took 157 s on g++ and 187 s on g++-14, over the former 180 s limit; on 2026-11-10 g++'s took 55.1 s (above), within the 720 s limit, and no g++-14 stress run is recorded since.
 
 ## Aliases
 
@@ -102,3 +104,4 @@ Search aliases (P263, grab --find): SA-IS, suffix array; Library Checker `suffix
 - 2026-10-19: P017, `07`'s constructors now call `sais`, so the large suffix-order oracle and the benchmark's `doubling` column use `SuffixArray<int>::doubling`; full suite passed on g++ and g++-14, benchmark rerun.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

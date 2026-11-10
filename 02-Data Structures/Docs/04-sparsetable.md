@@ -42,6 +42,8 @@ The Python entry and C++ oracle suite share the stem under `96-Local Testing/02-
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 862 MB; optimized 0.3 s compile + 4.2 s run, checked 23.3 s compile + 4.8 s run, ASan-UBSan 25.5 s compile + 48.2 s run; MEMORY peak 1067 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 935 MB; optimized 0.2 s compile + 3.6 s run, checked 21.9 s compile + 4.1 s run, ASan-UBSan 23.1 s compile + 18.5 s run; MEMORY peak 1044 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 25.8 s compile + 0.3 s run, checked 22.7 s compile + 1.9 s run; MEMORY peak 864 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 871 MB; optimized 0.1 s compile + 4.4 s run, checked 9.7 s compile + 5.5 s run, ASan-UBSan 9.7 s compile + 59.3 s run; MEMORY peak 564 MB. Dated rows below stay those commands' latest results.
+
 Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
@@ -85,3 +87,4 @@ Search aliases (P263, grab --find): ST table (OI Wiki: ST 表), RMQ (range minim
 - 2026-10-17: P027 monoid pass (stored-object monoid contract, `query`/`fold` renamed `prod`/`associativeProd`, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 540/548/573 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

@@ -2,7 +2,7 @@
 """FastInput/FastOutput oracle suite: quick smoke, full feature coverage, extended seeded stress.
 
 Every mode builds optimized scalar, checked scalar and (when the CPU has it) optimized AVX2
-configurations of the C++ tester, split into six translation units (FASTIO_PART 0-5) that also
+configurations of the C++ tester, split into eleven translation units (FASTIO_PART 0-10) that also
 link the header into several TUs; full and stress add ASan/UBSan scalar and AVX2 builds. Quick
 builds define FASTIO_QUICK (bases 2, 7, 10, 16, 36 and buffer sizes 0, 7, 64, 160 in the type
 matrices); full and stress cover every base 2-36 and every buffer size. Each binary runs its
@@ -23,11 +23,11 @@ from __future__ import annotations
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor
+import functools
 import math
 import os
 from pathlib import Path
 import random
-import resource
 import shlex
 import shutil
 import signal
@@ -39,7 +39,7 @@ import threading
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
-from _00_cpp_test_runner import cpu_runs, x86, x86_only
+from _00_cpp_test_runner import Builder, cpu_runs, timed_run, x86, x86_only
 
 _00_memory_cap.ensure()
 if hasattr(sys, "set_int_max_str_digits"):
@@ -48,7 +48,7 @@ if hasattr(sys, "set_int_max_str_digits"):
 SOURCE = Path(__file__).resolve().with_suffix(".cpp")
 ROOT = SOURCE.parents[2]
 HEADER = ROOT / "01-Core/19-fastio.hpp"
-PARTS = 6
+PARTS = 11
 INVALID_CASES = ("null-input", "null-input-0", "null-output", "precision-negative", "precision-large", "precision-field")
 DIGITS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 KEY_BASES = (2, 10, 16, 36)
@@ -91,7 +91,7 @@ def progress(message: str) -> None:
 def execute(command: list[str], label: str, timeout: int, env: dict[str, str], expected_death: bool = False,
             stdin=None, expect_failure: str | None = None) -> str:
     try:
-        result = subprocess.run(command, cwd="/tmp", env=env, text=True, stdin=stdin, capture_output=True, timeout=timeout)
+        result = timed_run(label, command, cwd="/tmp", env=env, text=True, stdin=stdin, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:
         raise Failure(f"{label}: timeout={timeout}s\ncommand={shlex.join(command)}\n"
                       f"stdout={str(error.stdout)[-2000:]!r}\nstderr={str(error.stderr)[-2000:]!r}") from error
@@ -272,10 +272,10 @@ def protocol(executable: str, args: list[str], data: bytes, regular: bool, label
         path = Path(directory) / f"stdin-{threading.get_ident()}"
         path.write_bytes(data)
         with open(path, "rb") as f:
-            result = subprocess.run(command, cwd="/tmp", env=env, stdin=f, capture_output=True, timeout=timeout)
+            result = timed_run(label, command, cwd="/tmp", env=env, stdin=f, capture_output=True, timeout=timeout)
         path.unlink()
     else:
-        result = subprocess.run(command, cwd="/tmp", env=env, input=data, capture_output=True, timeout=timeout)
+        result = timed_run(label, command, cwd="/tmp", env=env, input=data, capture_output=True, timeout=timeout)
     if result.returncode:
         raise Failure(f"{label}: exit={result.returncode}\ncommand={shlex.join(command)} stdin={'file' if regular else 'pipe'}\nstderr:\n{result.stderr.decode(errors='replace')[-3000:]}")
     return result.stdout
@@ -362,14 +362,14 @@ def run_protocols(executable: str, label: str, seed: int, mode: str, types: list
     return cases + len(rows)
 
 
-def static_checks(compiler: list[str], flags: list[str], env, directory: str) -> None:
+def static_checks(builder: Builder, compiler: list[str], flags: list[str], env, directory: str) -> None:
     alone = Path(directory) / "alone.cpp"
     alone.write_text(f'#include "{HEADER}"\nint main() {{ FastInput<> in; FastOutput<> out; int x = 0; in.read(x); return out.print(x) && out.flush() ? 0 : 1; }}\n')
-    execute([*compiler, *flags, "-fsyntax-only", str(alone)], "header-alone compile", 180, env)
+    builder.syntax("header-alone compile", flags, alone, 180)
     for name in ("98-basic.hpp", "99-all.hpp"):
         aggregate = Path(directory) / f"aggregate-{name}.cpp"
         aggregate.write_text(f'#include "{ROOT / "01-Core" / name}"\n#include "{HEADER}"\nint main() {{ FastOutput<> out; return out.print(1) ? 0 : 1; }}\n')
-        execute([*compiler, "-std=gnu++20", "-fsyntax-only", str(aggregate)], f"{name} aggregate compile (unverified siblings are not warning-clean)", 180, env)
+        builder.syntax(f"{name} aggregate compile (unverified siblings are not warning-clean)", ["-std=gnu++20"], aggregate, 180)
     report("PASS", "header-alone, 98-basic and 99-all aggregate compilation")
     for name, body, word in REJECTIONS:
         probe = Path(directory) / "reject.cpp"
@@ -378,46 +378,30 @@ def static_checks(compiler: list[str], flags: list[str], env, directory: str) ->
     report("PASS", f"compile-time rejections ({len(REJECTIONS)} probes)")
 
 
-class Builder:
-    """Compiles the parts of every configuration, at most three at a time and fewer when their memory estimates exceed the budget."""
+def build_parts(builder: Builder, flags: list[str], variants: list[tuple[str, list[str], tuple[int, int]]]) -> tuple[dict[str, str | Failure], dict[str, float]]:
+    """Executable path or compile Failure, and compile seconds, per configuration; the parts compile at most three at a time, fewer when their memory estimates exceed the cap."""
+    seconds = {name: 0.0 for name, _, _ in variants}
 
-    def __init__(self, compiler: list[str], flags: list[str], env, directory: str):
-        self.compiler, self.flags, self.env, self.directory = compiler, flags, env, directory
-        capped = os.environ.get("CP_MEMORY_CAPPED", "")
-        self.budget = int(capped) - 400 if capped.isdigit() else 1 << 30
-        self.used, self.running, self.cond = 0, 0, threading.Condition()
-
-    def compile_part(self, name: str, options: list[str], part: int, need: int) -> str:
-        with self.cond:
-            self.cond.wait_for(lambda: self.running < 3 and (self.running == 0 or self.used + need <= self.budget))
-            self.used += need
-            self.running += 1
-        try:
-            obj = str(Path(self.directory) / f"{name}-{part}.o")
-            execute([*self.compiler, *self.flags, *options, f"-DFASTIO_PART={part}", "-c", str(SOURCE), "-o", obj], f"compile {name} part {part}", 1200, self.env)
+    def compile_part(name: str, options: list[str], part: int, need: int) -> str:
+        with builder.admitted(need):
+            obj, start = str(Path(builder.directory) / f"{name}-{part}.o"), time.monotonic()
+            builder.compile_unit(f"compile {name} part {part}", [*flags, *options, f"-DFASTIO_PART={part}"], SOURCE, obj, 1200)
+            seconds[name] += time.monotonic() - start
             return obj
-        finally:
-            with self.cond:
-                self.used -= need
-                self.running -= 1
-                self.cond.notify_all()
-
-    def build(self, variants: list[tuple[str, list[str], int]]) -> dict[str, str | Failure]:
-        """Executable path, or the compile Failure, per configuration."""
-        with ThreadPoolExecutor(max_workers=3) as pool:
-            jobs = {name: [pool.submit(self.compile_part, name, options, part, need) for part in range(PARTS)] for name, options, need in variants}
-            done: dict[str, str | Failure] = {}
-            for name, options, _ in variants:
-                try:
-                    objects = [job.result() for job in jobs[name]]
-                    executable = str(Path(self.directory) / name)
-                    execute([*self.compiler, *options, *objects, "-o", executable], f"link {name}", 600, self.env)
-                    done[name] = executable
-                    report("PASS", f"{name} compilation ({PARTS} translation units)")
-                except (Failure, OSError) as error:
-                    done[name] = error if isinstance(error, Failure) else Failure(str(error))
-                    report("FAIL", f"{name} compilation: {error}")
-        return done
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        jobs = {name: [pool.submit(compile_part, name, options, part, need[part > 4]) for part in range(PARTS)] for name, options, need in variants}
+        done: dict[str, str | Failure] = {}
+        for name, options, _ in variants:
+            try:
+                objects = [job.result() for job in jobs[name]]
+                executable = str(Path(builder.directory) / name)
+                builder.link(f"link {name}", options, objects, executable, 600)
+                done[name] = executable
+                report("PASS", f"{name} compilation ({PARTS} translation units)")
+            except (Failure, OSError) as error:
+                done[name] = error if isinstance(error, Failure) else Failure(str(error))
+                report("FAIL", f"{name} compilation: {error}")
+    return done, seconds
 
 
 def main() -> int:
@@ -437,14 +421,13 @@ def main() -> int:
         report("FAIL", f"C++ compiler unavailable: {compiler!r}")
         return 1
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1", UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
     scalar = x86_only(["-march=x86-64", "-mno-avx", "-mno-avx2"], compiler)
     vector = x86_only(["-march=x86-64", "-mavx2"], compiler)
     quick = ["-DFASTIO_QUICK"] if args.mode == "quick" else []
     checked = ["-O1", "-g1", "-D_GLIBCXX_ASSERTIONS"]
     sanitizer = [*checked, "-fno-omit-frame-pointer", "-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-no-pie"]
-    plain = 1000 if quick else 1150   # estimated compiler MB per part, measured peaks plus a margin
+    plain = (1040, 600) if quick else (1200, 850)   # compiler MB of parts 0-4 and of the rest: measured peaks plus a margin
     variants = [("optimized-scalar", ["-O2", "-DNDEBUG", *quick, *scalar], plain), ("checked-scalar", [*checked, *quick, *scalar], plain)]
     accelerated = not args.scalar_only and cpu_runs({"avx2"}, compiler)
     if accelerated:
@@ -452,22 +435,22 @@ def main() -> int:
     else:
         report("SKIP", "AVX2 execution: " + ("requested --scalar-only" if args.scalar_only else "CPU lacks AVX2" if x86(compiler) else "target is not x86-64"))
     if args.mode != "quick":
-        variants.append(("sanitized-scalar", [*sanitizer, *scalar], 1850))
+        variants.append(("sanitized-scalar", [*sanitizer, *scalar], (1800, 1000)))
         if accelerated:
-            variants.append(("sanitized-avx2", [*sanitizer, *vector], 1850))
+            variants.append(("sanitized-avx2", [*sanitizer, *vector], (1800, 1000)))
     report("RUN", f"FastIO mode={args.mode} seed={args.seed}; digit-loop/from_chars/strtod/printf/byte-model oracles, fault injection and the Python protocols")
     start = time.monotonic()
     failures: list[str] = []
     with tempfile.TemporaryDirectory(prefix="cp-fastio-tests-") as directory:
+        builder = Builder(compiler, directory, env=env, failure=Failure)
         try:
-            static_checks(compiler, flags, env, directory)
+            static_checks(builder, compiler, flags, env, directory)
         except (Failure, OSError) as error:
             failures.append(f"static checks: {error}")
             report("FAIL", f"static checks: {error}")
         progress(f"compile {len(variants)} configurations x {PARTS} parts")
-        built = Builder(compiler, flags, env, directory).build(variants)
+        built, compiled = build_parts(builder, flags, variants)
         digests: dict[int, tuple[str, dict[str, str]]] = {}
-        types: list[tuple[int, bool]] = []
 
         def step(name: str, action) -> None:
             """Runs one check of a configuration; a failure is recorded and the configuration's other checks still run."""
@@ -482,7 +465,7 @@ def main() -> int:
             progress(label)
             command = [executable, "--mode", args.mode, "--seed", str(seed)]
             try:
-                result = subprocess.run(command, cwd="/tmp", env=env, text=True, capture_output=True, timeout=limit)
+                result = timed_run(label, command, cwd="/tmp", env=env, text=True, capture_output=True, timeout=limit)
             except subprocess.TimeoutExpired as error:
                 raise Failure(f"{label}: timeout={limit}s\ncommand={shlex.join(command)}") from error
             if sys.stdout.isatty():
@@ -503,7 +486,7 @@ def main() -> int:
                 raise Failure(f"{label}: {'; '.join(problems)}; failing sections: {failed}\ncommand={shlex.join(command)}\nstderr:\n{result.stderr[-3000:]}")
             report("PASS", f"{label} ({len(sections)} sections, digests equal to {first[0]})")
 
-        def protocols(name: str, executable: str, seed: int, limit: int) -> None:
+        def protocols(name: str, executable: str, seed: int, limit: int, types: list[tuple[int, bool]]) -> None:
             label = f"{name} mode={args.mode} seed={seed}"
             progress(f"{label} protocols")
             report("PASS", f"{label} protocols ({run_protocols(executable, label, seed, args.mode, types, env, directory, limit)} Python-oracle cases)")
@@ -514,25 +497,28 @@ def main() -> int:
                 execute([executable, "--invalid", case], f"precondition {case}", 60, env, True)
             report("PASS", f"checked-scalar preconditions ({len(INVALID_CASES)} cases)")
 
-        def identity(name: str, executable: str) -> None:
+        def identity(name: str, executable: str, types: list[tuple[int, bool]]) -> None:
             isa = execute([executable, "--isa"], f"{name} --isa", 60, env).strip()
             if isa != ("avx2" if "avx2" in name else "scalar"):
                 raise Failure(f"--isa reports {isa!r}")
             types[:] = [(int(b), s == "1") for b, s in (line.split() for line in execute([executable, "--types"], f"{name} --types", 60, env).splitlines())]
 
-        for name, _, _ in variants:
-            executable = built[name]
+        def one(name: str) -> None:
+            executable, types = built[name], []
             if isinstance(executable, Failure):
                 failures.append(f"{name} compilation: {executable}")
-                continue
+                return
             limit = 3600 if args.mode == "stress" or name.startswith("sanitized") else 1200
-            step(name, lambda: identity(name, executable))
+            mark = builder.stopwatch()
+            step(name, lambda: identity(name, executable, types))
             for round_index in range(rounds):
                 seed = (args.seed + round_index) % 2**64
                 step(name, lambda: self_test(name, executable, seed, limit))
-                step(name, lambda: protocols(name, executable, seed, limit))
+                step(name, lambda: protocols(name, executable, seed, limit, types))
             if name == "checked-scalar":
                 step(name, lambda: probes(executable))
+            builder.report(mark, f"FastIO {name}", args.mode, compiled[name])
+        builder.concurrently([(1 << 40 if args.mode == "stress" else 1000 if name.startswith("sanitized") else 150, functools.partial(one, name)) for name, _, _ in variants])
     elapsed = time.monotonic() - start
     if failures:
         report("FAIL", f"FastIO mode={args.mode} seed={args.seed}: {len(failures)} failed checks over {len(variants)} configurations in {elapsed:.2f}s: "

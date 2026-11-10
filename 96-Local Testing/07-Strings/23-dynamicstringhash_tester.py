@@ -16,10 +16,13 @@ symbols with 2000/20000/20000 long-prefix queries and point edits. Builds use
 around 06-Miscellaneous/02-customhash.hpp and 02-Data Structures/19-treap.hpp);
 full/stress add ASan/UBSan; checked builds run ten precondition probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
     raise SystemExit(main('23-dynamicstringhash', ['point-set', 'point-range', 'point-symbol', 'point-lcp', 'base-small',
                                                    'base-even', 'deque-pop', 'deque-range', 'sequence-range',
-                                                   'sequence-symbol'], strict=True))
+                                                   'sequence-symbol'], extra=('-Wshadow',)))

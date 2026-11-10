@@ -1,9 +1,12 @@
 """Stable integer sorts, partition and selection against independent references."""
 import os
 from pathlib import Path
-import subprocess
 import tempfile
-from _00_runner import main
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
+from _00_cpp_test_runner import compiler_command
 
 
 def compile_rejections(binary, args, env):
@@ -23,8 +26,8 @@ def compile_rejections(binary, args, env):
         for label, body in cases.items():
             source = Path(directory) / (label + '.cpp')
             source.write_text(f'#include "{header}"\nint main() {{ {body} }}\n')
-            command = [os.environ.get('CXX', 'g++'), '-std=gnu++20', '-fsyntax-only', str(source)]
-            result = subprocess.run(command, capture_output=True, text=True, env=env, timeout=180)
+            command = [*compiler_command(), '-std=gnu++20', '-fsyntax-only', str(source)]
+            result = timed_run(f'11-sorting_selection rejection compile {label}', command, capture_output=True, text=True, env=env, timeout=180)
             if result.returncode == 0:
                 raise RuntimeError(f'compile rejection={label} expected=nonzero actual=0 command={command}')
             if not any(marker in result.stderr for marker in ('static assertion', 'constraints', 'make_unsigned')):

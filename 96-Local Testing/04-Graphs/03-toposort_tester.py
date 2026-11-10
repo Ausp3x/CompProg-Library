@@ -6,8 +6,11 @@ full: loopless n<=4, looped n<=3, 1200 random n<=7 graphs and 200000-vertex
 chains in optimized, checked and ASan/UBSan builds; stress extends random to
 10000 cases, looped n<=4 and chains to 500000 vertices.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('03-toposort', ['kahn-undirected',
-        'lexicographic-undirected', 'dfs-undirected'], strict=True))
+        'lexicographic-undirected', 'dfs-undirected']))

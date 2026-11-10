@@ -48,7 +48,9 @@ Exhaustive strings over alphabets 1..3 through length 6/7/8 (ternary one shorter
 
 ## Commands and results
 
-Run 2026-10-11 on the final code. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>). The checked build runs stress at full sizes.
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 781 MB; optimized 0.3 s compile + 3.1 s run, checked 16.4 s compile + 8.5 s run, ASan-UBSan 18.2 s compile + 63.8 s run; MEMORY peak 969 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 847 MB; optimized 0.2 s compile + 3.9 s run, checked 22.9 s compile + 11.6 s run, ASan-UBSan 25.2 s compile + 68.4 s run; MEMORY peak 1047 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 26.9 s compile + 0.7 s run, checked 21.8 s compile + 15.1 s run; MEMORY peak 782 MB. `python3 '96-Local Testing/07-Strings/20-subsequence_automaton_tester.py' --mode stress --seed 42` (three suites at a time) PASS: pre-flight quick peak 785 MB; optimized 0.1 s compile + 3.3 s run, checked 6.6 s compile + 3.1 s run, ASan-UBSan 6.7 s compile + 61.8 s run; MEMORY peak 681 MB. Dated rows below stay those commands' latest results.
+
+Run 2026-10-11 on the final code. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>). The checked build runs stress at full sizes.
 
 ```bash
 python3 '96-Local Testing/01-run.py' --mode quick --filter 07-Strings --seed 1 --no-integration  # PASS, 20 suites (this one: 2 configurations, 6 assertion probes)
@@ -88,3 +90,4 @@ Search aliases (P263, grab --find): 序列自动机, 子序列自动机, 判断�
 
 - 2026-10-11: implemented and verified (P084), independent review found 3 issues, fixed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

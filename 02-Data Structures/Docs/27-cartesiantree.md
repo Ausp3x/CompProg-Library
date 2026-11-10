@@ -33,7 +33,7 @@ The size limits are not reachable in memory tests (`2^30` vertices need more tha
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/27-cartesiantree_tester.cpp`, entry `27-cartesiantree_tester.py` (driver `_00_runner.py`; three builds; no assertion probes, see above).
+Tester `96-Local Testing/02-Data Structures/27-cartesiantree_tester.cpp`, entry `27-cartesiantree_tester.py` (driver `_00_contest_runner.py`; three builds; no assertion probes, see above).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -46,6 +46,8 @@ Tester `96-Local Testing/02-Data Structures/27-cartesiantree_tester.cpp`, entry 
 Mutation check (2026-10-14, quick mode, temporary copies): 5 of 5 injected faults detected (tie rule flipped, `range` left end off by one, root taken from the stack top, `first` overwritten on every visit, the bridge skipping a right child after its left child).
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 735 MB; optimized 0.2 s compile + 3.6 s run, checked 14.9 s compile + 7.5 s run, ASan-UBSan 19.9 s compile + 17.5 s run; MEMORY peak 892 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 790 MB; optimized 0.1 s compile + 3.0 s run, checked 16.9 s compile + 7.9 s run, ASan-UBSan 24.1 s compile + 29.3 s run; MEMORY peak 950 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 26.5 s compile + 0.2 s run, checked 15.9 s compile + 2.1 s run; MEMORY peak 737 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 741 MB; optimized 0.1 s compile + 4.0 s run, checked 5.9 s compile + 9.6 s run, ASan-UBSan 8.0 s compile + 30.5 s run; MEMORY peak 714 MB. Dated rows below stay those commands' latest results.
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/27-cartesiantree_tester.py' --mode full --seed 20261014
@@ -78,3 +80,4 @@ Search aliases (P263, grab --find): 笛卡尔树, RMQ, 笛卡儿树, 欧拉序.
 
 - 2026-10-14: P033 first implementation and verification; independent review, 1 finding fixed; full (seed 20261014) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

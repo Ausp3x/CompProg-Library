@@ -54,6 +54,8 @@ Entry: [`08-multiplicative_functions_tester.py`](<../../96-Local Testing/05-Math
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 780 MB; optimized 0.2 s compile + 7.4 s run, checked 16.6 s compile + 9.0 s run, ASan-UBSan 19.1 s compile + 12.9 s run; MEMORY peak 948 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 840 MB; optimized 0.2 s compile + 7.4 s run, checked 20.9 s compile + 16.7 s run, ASan-UBSan 24.6 s compile + 20.4 s run; MEMORY peak 1003 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 24.1 s compile + 2.1 s run, checked 19.1 s compile + 8.8 s run; MEMORY peak 770 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 775 MB; optimized 0.1 s compile + 13.1 s run, checked 6.0 s compile + 16.1 s run, ASan-UBSan 7.6 s compile + 21.1 s run; MEMORY peak 546 MB. Dated rows below stay those commands' latest results.
+
 P052 prune rerun, 2026-10-13, same conditions as [07-primality_factorization.md](07-primality_factorization.md). The prune changed only the included `07-primality_factorization.hpp`; this header is unchanged.
 
 ```bash
@@ -88,3 +90,4 @@ Search aliases (P263, grab --find): Euler's totient function (phi), multiplicati
 - 2026-10-13: P052 prune rerun (included `07-primality_factorization.hpp` changed), header unchanged; full passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

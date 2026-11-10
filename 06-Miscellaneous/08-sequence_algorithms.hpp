@@ -73,7 +73,7 @@ template<typename T>
 SubrectangleSum maximumSubrectangle(const vector<vector<T>> &a, bool allow_empty = false) {
     sequence_detail::checkInteger<T>(); int n = sequence_detail::checkedSize(a.size());
     int m = n ? sequence_detail::checkedSize(a[0].size()) : 0;
-    for (const auto &row : a) { assert(row.size() == size_t(m)); }
+    for ([[maybe_unused]] const auto &row : a) { assert(row.size() == size_t(m)); }
     SubrectangleSum res;
     if (allow_empty) { res = {0, 0, 0, 0, 0}; }
     if (!n || !m) { return res; }
@@ -220,7 +220,7 @@ vector<int> monotoneWindowEnds(int n, CanAdd can_add, Add add, Remove remove) {
 template<typename T>
 vector<int> nonnegativeSumWindowEnds(const vector<T> &a, lll limit) {
     sequence_detail::checkInteger<T>(); int n = sequence_detail::checkedSize(a.size()); assert(limit >= 0);
-    for (const auto &x : a) { assert(x >= 0); }
+    for ([[maybe_unused]] const auto &x : a) { assert(x >= 0); }
     lll sum = 0;
     return monotoneWindowEnds(n, [&](int r) { return lll(a[r]) <= limit - sum; }, [&](int r) { sum += a[r]; }, [&](int l) { sum -= a[l]; });}
 

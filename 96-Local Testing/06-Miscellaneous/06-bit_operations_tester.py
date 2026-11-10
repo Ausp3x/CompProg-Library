@@ -8,10 +8,13 @@ import os
 from pathlib import Path
 import random
 import shlex
-import subprocess
 import tempfile
 
-from _00_runner import main
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
+from _00_cpp_test_runner import compiler_command
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -64,8 +67,8 @@ def oracle(binary, args, env):
                              str(int(more)), f'{next_value:x}', f'{left:x}', f'{right:x}',
                              str(x.bit_count() % 2), f'{gray:x}', f'{decoded:x}'])
     command = [str(binary), '--oracle']
-    result = subprocess.run(command, input='\n'.join(fixtures) + '\n', text=True,
-                            capture_output=True, env=env, timeout=180)
+    result = timed_run(f'06-bit_operations oracle {Path(command[0]).name}', command, input='\n'.join(fixtures) + '\n', text=True,
+                                                   capture_output=True, env=env, timeout=180)
     if result.returncode:
         raise RuntimeError(f'command={shlex.join(command)} exit={result.returncode}\n{result.stderr}')
     lines = result.stdout.splitlines()
@@ -84,8 +87,8 @@ def compile_domains():
         source = Path(name) / 'types.cpp'
         for typ in ('int', 'lng', 'lll', 'bool', 'const uint', 'char8_t'):
             source.write_text(f'#include "{header}"\nBitOps<{typ}> invalid;\n')
-            command = [os.environ.get('CXX', 'g++'), '-std=gnu++20', '-fsyntax-only', str(source)]
-            result = subprocess.run(command, text=True, capture_output=True, timeout=180)
+            command = [*compiler_command(), '-std=gnu++20', '-fsyntax-only', str(source)]
+            result = timed_run(f'06-bit_operations rejection compile {typ}', command, text=True, capture_output=True, timeout=180)
             if result.returncode == 0 or 'constraint' not in result.stderr.lower():
                 raise RuntimeError(f'compile rejection type={typ} command={shlex.join(command)}'
                                    f' expected=constraint failure actual={result.returncode}\n{result.stderr}')

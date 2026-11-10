@@ -70,7 +70,7 @@ Search aliases (P263, grab --find): BCC (biconnected components), round-square t
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/27-blockcuttree_tester.py` (shared graph runner with `-Werror` warnings; optimized, checked with probes, ASan/UBSan in full/stress). Oracles: BFS labels after deleting a vertex or an edge; blocks as the union classes of the edges of every simple cycle (2-cycles of parallel edges included) plus singletons; simple-path enumeration; and a direct bridgelessness check for augmentation, with exhaustive multisets for minimality.
+`96-Local Testing/04-Graphs/27-blockcuttree_tester.py` (shared contest runner with `-Werror` warnings; optimized, checked with probes, ASan/UBSan in full/stress). Oracles: BFS labels after deleting a vertex or an edge; blocks as the union classes of the edges of every simple cycle (2-cycles of parallel edges included) plus singletons; simple-path enumeration; and a direct bridgelessness check for augmentation, with exhaustive multisets for minimality.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -85,6 +85,8 @@ Search aliases (P263, grab --find): BCC (biconnected components), round-square t
 Planted mutants (quick suite, optimized build), all killed: an edge-removal size that ignores the side, `simplePathVertexCount` off by one, a missing parent update for merged incremental blocks, an augmentation pairing offset of `⌈p/2⌉`, a path test without the LCA condition, and `sameBlock` without the parent-vertex case.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 887 MB; optimized 0.1 s compile + 2.7 s run, checked 22.4 s compile + 9.3 s run, ASan-UBSan 24.4 s compile + 44.7 s run; MEMORY peak 1092 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 951 MB; optimized 0.4 s compile + 4.3 s run, checked 36.5 s compile + 15.1 s run, ASan-UBSan 40.6 s compile + 61.1 s run; MEMORY peak 1072 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 30.7 s compile + 0.3 s run, checked 24.7 s compile + 4.5 s run; MEMORY peak 877 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 890 MB; optimized 0.1 s compile + 4.7 s run, checked 10.9 s compile + 16.6 s run, ASan-UBSan 11.2 s compile + 62.2 s run; MEMORY peak 974 MB. Dated rows below stay those commands' latest results.
 
 2026-10-18, GCC 16.2.1 and GCC 14.4.1 (floor), CPython 3.14.8, Linux x86-64 (Intel Core i9-11900H), GNU++20, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds.
 
@@ -137,3 +139,4 @@ Not inspected: the Eswaran–Tarjan and Westbrook–Tarjan papers. The augmentat
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

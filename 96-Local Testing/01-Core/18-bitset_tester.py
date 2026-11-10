@@ -10,9 +10,9 @@ Every build uses -Werror, so a new warning in the header or tester is a failure.
 from __future__ import annotations
 
 import argparse
+import functools
 import os
 from pathlib import Path
-import resource
 import shlex
 import shutil
 import signal
@@ -22,7 +22,7 @@ import tempfile
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
-from _00_cpp_test_runner import cpu_runs, x86, x86_only
+from _00_cpp_test_runner import Builder, cpu_runs, timed_run, x86, x86_only
 
 _00_memory_cap.ensure()
 
@@ -60,8 +60,8 @@ def progress(message: str) -> None:
 def execute(command: list[str], label: str, timeout: int,
             env: dict[str, str], expected_death: bool = False) -> str:
     try:
-        result = subprocess.run(command, cwd="/tmp", env=env, text=True,
-                                capture_output=True, timeout=timeout)
+        result = timed_run(label, command, cwd="/tmp", env=env, text=True,
+                                  capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:
         raise Failure(f"{label}: timeout={timeout}s\ncommand={shlex.join(command)}\n"
                       f"stdout={error.stdout!r}\nstderr={error.stderr!r}") from error
@@ -96,7 +96,6 @@ def main() -> int:
         return 1
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1",
                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
     scalar = x86_only(["-march=x86-64", "-mno-avx", "-mno-avx2", "-mno-popcnt"], compiler)
     vector = x86_only(["-march=x86-64", "-mavx2", "-mpopcnt"], compiler)
@@ -119,12 +118,13 @@ def main() -> int:
     start = time.monotonic()
     try:
         with tempfile.TemporaryDirectory(prefix="cp-bitset-tests-") as directory:
-            for name, options in variants:
-                executable = str(Path(directory) / name)
+            builder = Builder(compiler, directory, env=env, failure=Failure)
+            progress(f"compile {len(variants)} configurations")
+            compiled = builder.build_all([(name, f"compile {name} mode={args.mode} seed={args.seed} scope={scope}", [*flags, *options], [SOURCE], str(Path(directory) / name), 180,
+                                           950 if name.startswith("sanitized") else 700) for name, options in variants])
+            def one(name, options):
+                executable, mark = str(Path(directory) / name), builder.stopwatch()
                 label = f"{name} mode={args.mode} seed={args.seed} scope={scope}"
-                progress(f"compile {label}")
-                execute([*compiler, *flags, *options, str(SOURCE), "-o", executable],
-                        f"compile {label}", 180, env)
                 report("PASS", f"{name} compilation")
                 command = [executable, "--mode", args.mode, "--seed", str(args.seed)]
                 if args.counts_only:
@@ -143,6 +143,8 @@ def main() -> int:
                         execute([executable, "--death", case],
                                 f"precondition {case} seed={args.seed}", 10, env, True)
                     report("PASS", f"checked-scalar preconditions ({len(DEATH_CASES)} cases)")
+                builder.report(mark, f"Bitset {name}", args.mode, compiled[name])
+            builder.concurrently([(1 << 40 if args.mode == "stress" else 950 if name.startswith("sanitized") else 150, functools.partial(one, name, options)) for name, options in variants])
     except (Failure, OSError) as error:
         report("FAIL", f"Bitset mode={args.mode} seed={args.seed}: {error}")
         return 1

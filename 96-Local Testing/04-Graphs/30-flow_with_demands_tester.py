@@ -28,10 +28,13 @@ with supplies, planted circulation, forced chain), costed n = 150/1500/3000
 Optimized, checked (21 assertion probes) and, outside quick, ASan/UBSan builds
 through the driver.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('30-flow_with_demands', ['size-negative', 'lo-greater-hi', 'cost-lo-greater-hi',
         'supply-size', 'supply-sum', 'cost-supply-sum', 'vertex-range', 'vertex-negative', 's-equals-t',
         's-range', 't-range', 'w-overflow', 'w-overflow-negative', 'w-overflow-supply', 'w-overflow-lll',
-        'w-overflow-cost', 'cap-min-cost', 'cost-min', 'cost-min-lng', 'cost-bound', 'cost-bound-exact'], strict=True))
+        'w-overflow-cost', 'cap-min-cost', 'cost-min', 'cost-min-lng', 'cost-bound', 'cost-bound-exact']))

@@ -36,7 +36,7 @@ All four structures combine values with an operation that must be commutative: a
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/15-segment_tree_2d_tester.cpp`, entry `15-segment_tree_2d_tester.py` (driver `_00_runner.py`; three builds; 17 assertion probes).
+Tester `96-Local Testing/02-Data Structures/15-segment_tree_2d_tester.cpp`, entry `15-segment_tree_2d_tester.py` (driver `_00_contest_runner.py`; three builds; 17 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -51,6 +51,8 @@ Tester `96-Local Testing/02-Data Structures/15-segment_tree_2d_tester.cpp`, entr
 Mutation check (2026-10-10, quick mode, temporary copies): 7 of 8 injected faults detected (column path skipped in `set`, skipped root-row propagation in `values`, sparse position ignoring index ties, wrong `firstX` bound, closed rectangle edge in `cover`, kd tag overwrite, missing root push); the survivor (`rowProd(xr - 1)` without decrementing `xr`) is equivalent, because the next `xr >>= 1` discards the low bit.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 873 MB; optimized 0.1 s compile + 0.3 s run, checked 24.8 s compile + 1.3 s run, ASan-UBSan 28.2 s compile + 3.2 s run; MEMORY peak 1094 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 935 MB; optimized 0.3 s compile + 0.5 s run, checked 29.8 s compile + 1.6 s run, ASan-UBSan 35.5 s compile + 3.2 s run; MEMORY peak 1051 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 34.8 s compile + 0.0 s run, checked 29.3 s compile + 0.4 s run; MEMORY peak 879 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 879 MB; optimized 0.1 s compile + 0.7 s run, checked 10.4 s compile + 3.4 s run, ASan-UBSan 11.8 s compile + 7.0 s run; MEMORY peak 574 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
@@ -97,3 +99,4 @@ Search aliases (P263, grab --find): 2D segment tree, segment tree of segment tre
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 553/542/552 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

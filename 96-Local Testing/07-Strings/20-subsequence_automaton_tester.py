@@ -22,8 +22,11 @@ distinct symbols. Builds use -Wall -Wextra -Wshadow
 build runs stress at full-mode sizes); checked builds run six precondition
 probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
-    raise SystemExit(main('20-subsequence_automaton', ['build-symbol', 'next-index', 'prev-symbol', 'range', 'range-negative', 'step-state'], strict=True))
+    raise SystemExit(main('20-subsequence_automaton', ['build-symbol', 'next-index', 'prev-symbol', 'range', 'range-negative', 'step-state'], extra=('-Wshadow',)))

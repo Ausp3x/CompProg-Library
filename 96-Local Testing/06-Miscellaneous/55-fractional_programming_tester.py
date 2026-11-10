@@ -16,7 +16,10 @@ large instances (zeroOne n=2000/200000/1000000 over random, duplicate, concurren
 tangent families, ratioKnapsack n=60/250) by the zero-optimum certificate computed
 independently. The debug-container and ASan builds run stress as full.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':

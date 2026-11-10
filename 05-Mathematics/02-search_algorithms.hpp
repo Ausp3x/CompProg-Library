@@ -66,7 +66,7 @@ struct RealSearchResult {
 
 // T: O(1), M: O(1); validate asserts finite inputs and nonnegative limits, done is the converged predicate.
 namespace search_detail {
-    inline void validate(double l, double r, int itr, double abs_tol, double rel_tol) {
+    inline void validate([[maybe_unused]] double l, [[maybe_unused]] double r, [[maybe_unused]] int itr, [[maybe_unused]] double abs_tol, [[maybe_unused]] double rel_tol) {
         assert(std::isfinite(l) && std::isfinite(r) && itr >= 0);
         assert(std::isfinite(abs_tol) && abs_tol >= 0 && std::isfinite(rel_tol) && rel_tol >= 0);}
     inline bool done(double l, double r, double abs_tol, double rel_tol) {

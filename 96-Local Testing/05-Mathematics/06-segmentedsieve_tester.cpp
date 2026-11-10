@@ -20,7 +20,7 @@ vector<pair<lng, int>> trial(lng n) {
     if (n > 1) { out.push_back({n, 1}); } return out;}
 // Independent seven-base deterministic 64-bit Miller-Rabin; no production primality header.
 ulng power(ulng a, ulng e, ulng m) {
-    ulng v = 1; while (e) { if (e & 1) { v = ulll(v) * a % m; } a = ulll(a) * a % m; e >>= 1; } return v;}
+    ulng v = 1; while (e) { if (e & 1) { v = ulng(ulll(v) * a % m); } a = ulng(ulll(a) * a % m); e >>= 1; } return v;}
 bool prime(lng n) {
     if (n < 2) { return false; }
     for (int p : {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}) { if (n % p == 0) { return n == p; }}
@@ -28,7 +28,7 @@ bool prime(lng n) {
     for (ulng a : {2ULL, 325ULL, 9375ULL, 28178ULL, 450775ULL, 9780504ULL, 1795265022ULL}) {
         if (!(a %= ulng(n))) { continue; } ulng x = power(a, d, ulng(n));
         if (x == 1 || x == ulng(n - 1)) { continue; } bool pass = false;
-        for (int j = 1; j < s; ++j) { x = ulll(x) * x % ulng(n); if (x == ulng(n - 1)) { pass = true; break; }}
+        for (int j = 1; j < s; ++j) { x = ulng(ulll(x) * x % ulng(n)); if (x == ulng(n - 1)) { pass = true; break; }}
         if (!pass) { return false; }} return true;}
 
 struct Values { lng tau = 0, phi = 0; lll sigma = 0; int mu = 0; };

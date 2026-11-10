@@ -20,9 +20,12 @@ continued-fraction formulas; interval and approximation certificates; Farey brut
 import math
 import random
 import shlex
-import subprocess
 from fractions import Fraction
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 LO, HI = -(1 << 63), (1 << 63) - 1
 
@@ -232,8 +235,8 @@ def oracle(binary, args, env):
                 a, b, c, d = c, d, a, b
             rows.append(('farey', n, rng.randrange(size), a, b, c, d))
     command = [str(binary), '--oracle']
-    result = subprocess.run(command, input=''.join(' '.join(map(str, row)) + '\n' for row in rows),
-                            text=True, capture_output=True, env=env, timeout=180)
+    result = timed_run(f'20-continued_fraction oracle {Path(command[0]).name}', command, input=''.join(' '.join(map(str, row)) + '\n' for row in rows),
+                                                       text=True, capture_output=True, env=env, timeout=180)
     if result.returncode:
         raise RuntimeError(f'Python oracle returncode={result.returncode} command={shlex.join(command)}\n{result.stderr}')
     actual = result.stdout.splitlines()

@@ -155,7 +155,8 @@ The user found the tests slow. Measurements showed that compiling, not running, 
 - **Build cache.** Every tester build compiles with `-c` through ccache, as the integration build has done since 2026-10-25, so an unchanged build compiles once. If the cache needs more than ccache's 5 GB default, the limit is raised to the measured need.
 - **Pre-flight kept, quick not repeated.** The memory pre-flight stays. Since it is a complete quick run, the skills take its line as the quick run instead of running quick separately before full.
 - **Quick bound.** Each build's quick run takes at most 10 s alone, as "smoke subset, seconds" intended. Cheaper oracles with the same checks come first, then smaller quick inputs; full and stress stay unchanged.
-- **Parallel builds in Core suites only.** Core suites compile up to three builds at once, as `19-fastio` already did. Contest suites have only two or three builds, so they stay sequential and keep their memory peaks.
+- **Parallel builds in every suite (2026-11-09, replacing Core only).** A suite's builds compile and run up to three at once within its cap, since with compiles cached a single package's full run is the sum of its build runs. Stress stays one build at a time because its peaks are unmeasured.
+- **Checked build `-O1` outside quick (2026-11-09, replacing `-O0` everywhere).** With compiles cached, ten slow contest suites ran their checked builds in 155 s at `-O1` against 531 s at `-O0` (cold compiles 164 s against 76 s). Quick mode keeps `-O0`, so every pre-flight still runs each suite unoptimized; the user chose this over `-O1` in every mode.
 - **Existing tests included.** P274 also fixes the existing testers and runners of other packages, verified ones included. Each change is recorded in the owning header's evidence, and a tester whose owning package is live is changed only after that package lands.
 
 ## 2026-11-08 One API by context, operation names, source keys

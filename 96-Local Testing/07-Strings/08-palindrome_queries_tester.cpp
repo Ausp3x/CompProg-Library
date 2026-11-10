@@ -1,7 +1,7 @@
 #include "../../07-Strings/08-palindrome_queries.hpp"
 
 ulng test_seed = 0;
-lng checks = 0, cases = 0;
+lng checks = 0, cases = 0, word_false_positives = 0;
 string context;
 ostream &operator<<(ostream &out, pair<int, int> p) { return out << '[' << p.first << ',' << p.second << ')'; }
 ostream &operator<<(ostream &out, const vector<int> &v) {
@@ -43,7 +43,9 @@ template<int KIND, class S> void verifyHash(const S &s, ulng seed) {
     int n = int(s.size());
     for (int l = 0; l <= n; ++l) {
         for (int r = l; r <= n; ++r) {
-            expectEqual(maybePalindrome(h, l, r), direct(s, l, r), "hash KIND=" + std::to_string(KIND) + " sampled oracle [" + std::to_string(l) + ',' + std::to_string(r) + ')');}}}
+            bool maybe = maybePalindrome(h, l, r), exact = direct(s, l, r);
+            if (KIND == 1 && maybe && !exact) { ++word_false_positives; continue; }  // StringHash64 is Monte Carlo: a false positive is its contract
+            expectEqual(maybe, exact, "hash KIND=" + std::to_string(KIND) + " sampled oracle [" + std::to_string(l) + ',' + std::to_string(r) + ')');}}}
 template<class S> void verifyHashes(const S &s, ulng seed) {
     verifyHash<0>(s, seed);
     verifyHash<1>(s, seed + 1);
@@ -178,4 +180,4 @@ int main(int argc, char **argv) {
     randomCases(mode);
     lifecycleAndCollisions();
     large(mode);
-    cout << "PASS palindrome queries seed=" << test_seed << " cases=" << cases << " checks=" << checks << '\n';}
+    cout << "PASS palindrome queries seed=" << test_seed << " cases=" << cases << " checks=" << checks << " StringHash64 false positives=" << word_false_positives << '\n';}

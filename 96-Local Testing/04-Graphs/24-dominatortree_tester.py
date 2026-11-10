@@ -7,8 +7,11 @@ vertex deletion. full: every looped digraph n<=4, 4000 random multigraphs,
 200000-vertex shapes, 3000-vertex comparison, in optimized, checked and
 ASan/UBSan builds. stress: 30000 random multigraphs, 1000000-vertex shapes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('24-dominatortree', ['undirected', 'root-range', 'simple-root',
-        'frontier-size', 'query-range', 'tree-root', 'tree-range'], strict=True))
+        'frontier-size', 'query-range', 'tree-root', 'tree-range']))

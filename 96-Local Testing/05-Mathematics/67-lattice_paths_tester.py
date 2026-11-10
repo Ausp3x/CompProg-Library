@@ -22,8 +22,11 @@ from fractions import Fraction
 from math import comb
 import random
 import shlex
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 P = 998244353
 
@@ -174,7 +177,7 @@ def oracle(binary, args, env):
             rows.append(f'line {a} {b} {cc} {d} {mu}')
             want.append((grid(a, b, cc, d, lambda x, y: x >= mu * y) % P,))
     command = [str(binary), '--oracle']
-    result = subprocess.run(command, input='\n'.join(rows) + '\n', text=True, capture_output=True, env=env, timeout=180)
+    result = timed_run(f'67-lattice_paths oracle {Path(command[0]).name}', command, input='\n'.join(rows) + '\n', text=True, capture_output=True, env=env, timeout=180)
     if result.returncode:
         raise RuntimeError(f'Python oracle returncode={result.returncode} command={shlex.join(command)}\n{result.stderr}')
     actual = result.stdout.splitlines()

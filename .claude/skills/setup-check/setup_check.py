@@ -37,7 +37,7 @@ TOOLS = [  # need: None when required, else the optional feature; exes: alternat
     Tool('Python', None, ('python3',), (3, 11), 'python3', 'python'),  # the scripts' floor: tomllib (07-judge.py)
     Tool('git', None, ('git',), None, 'git', 'git'),
     Tool('ripgrep', None, ('rg',), None, 'ripgrep', 'ripgrep'),
-    Tool('ccache', None, ('ccache',), None, 'ccache', 'ccache'),
+    Tool('ccache', 'test build cache', ('ccache',), None, 'ccache', 'ccache'),
     Tool('bubblewrap', None, ('bwrap',), None, 'bubblewrap', 'bubblewrap'),
     Tool('systemd user manager', None, ('systemd-run',), None, 'systemd', 'systemd'),
     Tool('lscpu', None, ('lscpu',), None, 'util-linux', 'util-linux'),

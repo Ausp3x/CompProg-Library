@@ -48,7 +48,9 @@ Runnable entry: [10-suffixautomaton_tester.py](<../../96-Local Testing/07-String
 
 ## Commands and results
 
-Run 2026-10-09 on an 11th Gen Intel Core i9-11900H with GCC 16.2.1 (`g++`) and the floor compiler GCC 14.4.1 (`CXX=g++-14`). Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 960 MB; optimized 0.1 s compile + 3.7 s run, checked 34.6 s compile + 13.4 s run, ASan-UBSan 48.3 s compile + 71.3 s run; MEMORY peak 1383 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 990 MB; optimized 0.3 s compile + 6.0 s run, checked 46.9 s compile + 15.9 s run, ASan-UBSan 65.9 s compile + 65.7 s run; MEMORY peak 1373 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 65.6 s compile + 0.6 s run, checked 40.3 s compile + 7.4 s run; MEMORY peak 961 MB. `python3 '96-Local Testing/07-Strings/10-suffixautomaton_tester.py' --mode stress --seed 42` (three suites at a time) PASS: pre-flight quick peak 962 MB; optimized 0.1 s compile + 8.2 s run, checked 13.9 s compile + 20.3 s run, ASan-UBSan 19.1 s compile + 118.5 s run; MEMORY peak 1195 MB. Dated rows below stay those commands' latest results.
+
+Run 2026-10-09 on an 11th Gen Intel Core i9-11900H with GCC 16.2.1 (`g++`) and the floor compiler GCC 14.4.1 (`CXX=g++-14`). Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/10-suffixautomaton_tester.py' --mode quick --seed 20261009  # PASS, 2 configurations, 952 cases and 550,940 checks each, 10 assertion probes
@@ -90,3 +92,4 @@ Search aliases (P263, grab --find): SAM (suffix automaton, 后缀自动机); 本
 - 2026-10-19: P017 dependent rerun after `07` moved to SA-IS (no change here): full on g++ before the final code-range cutoff and quick on the final code passed (recorded in [07-suffixarray.md](07-suffixarray.md#commands-and-results)).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

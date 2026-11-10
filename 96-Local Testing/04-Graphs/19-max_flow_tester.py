@@ -15,7 +15,10 @@ builds its network from a dense matrix through Graph::fromMatrix; medium rounds
 (30/300/1500) certify n in [20, 200).
 Full/stress add ASan/UBSan through the driver.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('19-max_flow', ['negative-size', 'addEdge-range', 'addEdge-negative',
@@ -23,4 +26,4 @@ if __name__ == '__main__':
         'augmentpath-same', 'augmentpath-range', 'scaling-same', 'pushrelabel-same',
         'pushrelabel-supply', 'getEdge-range', 'changeEdge-flow', 'changeEdge-reverse',
         'changeCapacity-negative', 'changeCapacity-same', 'minCut-range', 'decomposition-same',
-        'graph-negative', 'graph-undirected-overflow'], strict=True))
+        'graph-negative', 'graph-undirected-overflow']))

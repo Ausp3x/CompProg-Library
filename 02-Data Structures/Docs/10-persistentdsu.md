@@ -37,7 +37,7 @@ No legacy code. Catalog forms: ei1333 `find(t, x)`, `size(t, x)`, `unite(t, ...)
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/10-persistentdsu_tester.cpp`, entry `10-persistentdsu_tester.py` (driver `_00_runner.py`; three builds; 10 assertion probes).
+Tester `96-Local Testing/02-Data Structures/10-persistentdsu_tester.cpp`, entry `10-persistentdsu_tester.py` (driver `_00_contest_runner.py`; three builds; 10 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -50,6 +50,8 @@ Tester `96-Local Testing/02-Data Structures/10-persistentdsu_tester.cpp`, entry 
 | Preconditions | `invalid` | Future and negative times, out-of-range vertices, bad `count` time, out-of-range `uniteTime`, negative size; bad versions in `findSet`, `uniteSets`, `count`; out-of-range persistent vertex |
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 755 MB; optimized 0.3 s compile + 0.9 s run, checked 14.1 s compile + 23.3 s run, ASan-UBSan 15.1 s compile + 8.8 s run; MEMORY peak 891 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 800 MB; optimized 0.2 s compile + 0.8 s run, checked 22.6 s compile + 35.0 s run, ASan-UBSan 23.0 s compile + 10.9 s run; MEMORY peak 963 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 22.6 s compile + 0.0 s run, checked 19.7 s compile + 0.2 s run; MEMORY peak 750 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 756 MB; optimized 0.1 s compile + 0.7 s run, checked 5.9 s compile + 34.7 s run, ASan-UBSan 6.2 s compile + 13.6 s run; MEMORY peak 935 MB. Dated rows below stay those commands' latest results.
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/10-persistentdsu_tester.py' --mode full --seed 20261017
@@ -82,3 +84,4 @@ Search aliases (P263, grab --find): 可持久化并查集, 部分可持久化并
 
 - 2026-10-17: P034 first implementation and verification; `PartiallyPersistentDSU::findSet` bounded at roots for any time under `NDEBUG`; independent review: `PersistentDSU::findSet` asserts the vertex and caps its climb (a union through an out-of-range vertex could loop under `NDEBUG`), `getSize` evaluates `findSet` first, direct template include, depth-10 tree test.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

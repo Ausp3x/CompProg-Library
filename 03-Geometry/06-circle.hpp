@@ -3,8 +3,8 @@
 #include "01-point.hpp"
 
 namespace circle_detail {
-    inline void valid(dpoint p) { assert(std::isfinite(p.x) && std::isfinite(p.y)); }
-    inline void tolerance(long double e) { assert(std::isfinite(e) && e >= 0); }
+    inline void valid([[maybe_unused]] dpoint p) { assert(std::isfinite(p.x) && std::isfinite(p.y)); }
+    inline void tolerance([[maybe_unused]] long double e) { assert(std::isfinite(e) && e >= 0); }
     inline long double length(dpoint p) { return std::hypot(p.x, p.y); }
     inline long double chord(long double r, long double x) { return std::sqrt(max(0.L, (r - x) * (r + x))); }
     inline long double angleMinusSin(long double x) {
@@ -103,7 +103,7 @@ inline long double diskOverlapAreaApprox(CircleApprox a, CircleApprox b) {
 // T: O(1), M: O(1). Exact for integral T, |coordinates|, radii <= 10^18, radii > 0: common tangent count 4..0, -1 if identical.
 template<typename T> int circleRelation(Point2<T> a, T ra, Point2<T> b, T rb) {
     static_assert(std::is_integral_v<T> && std::is_signed_v<T> && sizeof(T) <= sizeof(lng));
-    auto ok = [](T v) { return lll(v) >= -1000000000000000000LL && lll(v) <= 1000000000000000000LL; };
+    [[maybe_unused]] auto ok = [](T v) { return lll(v) >= -1000000000000000000LL && lll(v) <= 1000000000000000000LL; };
     assert(ra > 0 && rb > 0 && ok(a.x) && ok(a.y) && ok(b.x) && ok(b.y) && ok(ra) && ok(rb));
     lll d = dist2(a, b), s = (lll(ra) + rb) * (lll(ra) + rb), t = (lll(ra) - rb) * (lll(ra) - rb);
     if (d == 0 && t == 0) { return -1; }

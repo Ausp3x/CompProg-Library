@@ -32,7 +32,7 @@ Under `NDEBUG`, popping an empty structure is a no-op (the pops are guarded so t
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/30-aggregation_queue_tester.cpp`, entry `30-aggregation_queue_tester.py` (driver `_00_runner.py`; three builds; 9 assertion probes).
+Tester `96-Local Testing/02-Data Structures/30-aggregation_queue_tester.cpp`, entry `30-aggregation_queue_tester.py` (driver `_00_contest_runner.py`; three builds; 9 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -46,6 +46,8 @@ Tester `96-Local Testing/02-Data Structures/30-aggregation_queue_tester.cpp`, en
 Mutation check (2026-10-10, quick mode, temporary copies): 5 of 5 injected faults detected (reversed product order in the queue transfer, deque `pushFront` and queue `allProd`, stack `push`; a rebuild that gives the empty side nothing).
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 751 MB; optimized 0.3 s compile + 0.8 s run, checked 17.4 s compile + 2.0 s run, ASan-UBSan 21.4 s compile + 9.4 s run; MEMORY peak 902 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 797 MB; optimized 0.2 s compile + 1.0 s run, checked 20.5 s compile + 1.7 s run, ASan-UBSan 26.2 s compile + 7.2 s run; MEMORY peak 935 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 24.8 s compile + 0.0 s run, checked 20.8 s compile + 0.2 s run; MEMORY peak 743 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 751 MB; optimized 0.1 s compile + 3.4 s run, checked 6.4 s compile + 14.6 s run, ASan-UBSan 7.0 s compile + 34.9 s run; MEMORY peak 618 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
@@ -91,3 +93,4 @@ Search aliases (P263, grab --find): 双栈模拟队列, 双栈队列, 滑动窗�
 - 2026-10-10: independent review (P028): no defects; the deque's per-side helper folds were renamed `frFold`/`bkFold` to mark them as internal.
 - 2026-10-17: P027 monoid pass (stored-object contract, `allProd` name, stateful tests; review fix: `SWAGQueue::push` read its argument after `push_back` could reallocate, so `push(back())` used freed memory (ASan); it now combines first, with a regression test, and the constructors stay implicit so default members still copy-list-initialize); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 463/473/640 MB.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

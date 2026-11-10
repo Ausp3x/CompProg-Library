@@ -16,7 +16,9 @@ from pathlib import Path
 import random
 import tempfile
 
-from _00_runner import main
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 def equation(s):

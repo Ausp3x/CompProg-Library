@@ -47,7 +47,7 @@ The legacy `cntEql`, `cntRan`, `maxLeq` and `minGeq` computed `x - 1` and overfl
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/17-waveletmatrix_tester.cpp`, entry `17-waveletmatrix_tester.py` (driver `_00_runner.py`; three builds; 25 assertion probes; the checked build uses `-D_GLIBCXX_ASSERTIONS`, because debug-mode `lower_bound` validates partitioning in O(n) per call and every query binary-searches the alphabet).
+Tester `96-Local Testing/02-Data Structures/17-waveletmatrix_tester.cpp`, entry `17-waveletmatrix_tester.py` (driver `_00_contest_runner.py`; three builds; 25 assertion probes; the checked build uses `-D_GLIBCXX_ASSERTIONS`, because debug-mode `lower_bound` validates partitioning in O(n) per call and every query binary-searches the alphabet).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -64,6 +64,8 @@ Tester `96-Local Testing/02-Data Structures/17-waveletmatrix_tester.cpp`, entry 
 Value distributions: one value, `[-2, 1]`, `[0, 20]`, full signed range, `{INT64_MIN, INT64_MIN + 1, -1, 0, 1, INT64_MAX - 1, INT64_MAX}`, and `k` exact distinct values. Query probes are every present value, its neighbours and the type extremes. Mutation check (2026-10-13, quick mode, temporary copies): 10 of 10 injected faults detected. They covered the zero-side descent, `bit_width(k - 1)` levels, the `kth` boundary, the dropped final `kthSum` run, the `select` bound, `maxLeq` with the lower rank, `present` without equality, the rectangle `x` upper bound, the dropped rank-`a` run and a segment-tree update that skips the root.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 791 MB; optimized 0.1 s compile + 5.5 s run, checked 21.2 s compile + 5.9 s run, ASan-UBSan 37.5 s compile + 52.6 s run; MEMORY peak 986 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 803 MB; optimized 0.3 s compile + 6.1 s run, checked 27.4 s compile + 8.9 s run, ASan-UBSan 43.1 s compile + 46.5 s run; MEMORY peak 1005 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 39.4 s compile + 1.6 s run, checked 20.2 s compile + 3.2 s run; MEMORY peak 793 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 797 MB; optimized 0.1 s compile + 11.8 s run, checked 8.8 s compile + 13.0 s run, ASan-UBSan 16.9 s compile + 111.4 s run; MEMORY peak 687 MB. Dated rows below stay those commands' latest results.
 
 Latest suite runs 2026-11-03 (P032 `/merge-pr 1`), maintainer runs under `merge_pr.py run 1` (bwrap, memory cap), Intel Core i9-11900H, `g++` 16.2.1, `g++-14` 14.4.1, CPython 3.14.8, in the runner's optimized, checked and ASan/UBSan builds, each suite in its own capped scope. The integration row is from 2026-10-17:
 
@@ -111,3 +113,4 @@ Search aliases (P263, grab --find): partition tree (划分树), range k-th small
 - 2026-11-03: P032 `/merge-pr 1` (review findings; user decision 2026-11-03 to fix every problem the pull request raised): `lowerRank` and `descend` listed in the row and tested directly in `wholeArray` and `window`; `descend` asserts its range and rank, with 3 new probes; full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change; `partition tree` names a related structure answering the same range k-th queries, kept as a search synonym (user decision 2026-11-07).
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `小波树` names a related structure answering the same queries, kept as a search synonym (user decision 2026-11-07).
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

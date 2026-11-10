@@ -22,8 +22,11 @@ planted globs). Builds use -Wall -Wextra -Wshadow -Wconversion -Werror
 (-Wshadow is suppressed only around 06-Miscellaneous/02-customhash.hpp).
 Full/stress add ASan/UBSan; checked builds run three precondition probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
-    raise SystemExit(main('21-wildcardmatching', ['pattern-limit', 'deterministic-limit', 'glob-limit'], strict=True))
+    raise SystemExit(main('21-wildcardmatching', ['pattern-limit', 'deterministic-limit', 'glob-limit'], extra=('-Wshadow',)))

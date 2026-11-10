@@ -44,7 +44,9 @@ Compression quick uses length 0–4 exhaustive arrays over five values, 100 rand
 
 ## Commands and results
 
-P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/06-Miscellaneous/_00_runner.py>).
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 891 MB; optimized 0.3 s compile + 1.9 s run, checked 25.8 s compile + 2.7 s run, ASan-UBSan 26.8 s compile + 5.1 s run; MEMORY peak 1136 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 924 MB; optimized 0.2 s compile + 1.7 s run, checked 33.4 s compile + 3.5 s run, ASan-UBSan 37.4 s compile + 6.9 s run; MEMORY peak 1097 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 27.4 s compile + 25.2 s run, checked 27.9 s compile + 0.8 s run; MEMORY peak 912 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 917 MB; optimized 0.1 s compile + 4.0 s run, checked 10.6 s compile + 8.6 s run, ASan-UBSan 9.6 s compile + 15.5 s run; MEMORY peak 634 MB. Dated rows below stay those commands' latest results.
+
+P013 prune run, 2026-10-12, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64, Intel Core i9-11900H. Configurations: optimized, checked and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>).
 
 | Command | Result |
 |---|---|
@@ -97,3 +99,4 @@ Search aliases (P263, grab --find): discretization (OI Wiki: 离散化), coordin
 - 2026-10-12: prune, removed `Compression` (`ranks` and `pointRange` moved into `CoordinateCompression`, its cases to `07-ordered_set_tester.cpp`; `compressEndpoints` returns `CoordinateCompression`; `08-sequence_algorithms.hpp` migrated); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

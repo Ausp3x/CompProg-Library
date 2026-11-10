@@ -4,7 +4,10 @@ Quick exhausts graphs through n=3 and uses 50 random cases; full/stress exhaust
 through n=4 and use 500/4000 random cases. Large chains check sparse scaling.
 The canonical DSU's richer standalone suite remains owned by Data Structures.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
-    raise SystemExit(main('04-dsu', ['negative-size', 'negative-vertex', 'end-vertex'], strict=True))
+    raise SystemExit(main('04-dsu', ['negative-size', 'negative-vertex', 'end-vertex']))

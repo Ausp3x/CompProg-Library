@@ -85,6 +85,8 @@ Entry: [`07-primality_factorization_tester.py`](<../../96-Local Testing/05-Mathe
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 789 MB; optimized 0.2 s compile + 30.0 s run, checked 17.2 s compile + 43.7 s run, ASan-UBSan 18.8 s compile + 76.8 s run; MEMORY peak 1026 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 858 MB; optimized 0.3 s compile + 41.4 s run, checked 28.3 s compile + 73.4 s run, ASan-UBSan 26.1 s compile + 100.1 s run; MEMORY peak 1108 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 22.8 s compile + 4.3 s run, checked 17.1 s compile + 19.0 s run; MEMORY peak 788 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 50 MB; optimized 0.1 s compile + 71.1 s run, checked 6.8 s compile + 105.9 s run, ASan-UBSan 7.7 s compile + 156.8 s run; MEMORY peak 727 MB. Dated rows below stay those commands' latest results.
+
 P052 prune run, 2026-10-13: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14, Linux x86-64 (i9-11900H). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG` with the assertion probes, ASan/UBSan `-O1` (full and stress). Counts are per configuration and equal on both compilers.
 
 | Command | Result |
@@ -103,7 +105,7 @@ CXX=g++-14 python3 '96-Local Testing/05-Mathematics/07-primality_factorization_t
 python3 '96-Local Testing/05-Mathematics/07-primality_factorization_tester.py' --mode stress --seed 1
 ```
 
-The checked build's stress `--oracle` is the suite's slowest step and comes close to the runner's 180 s limit on a loaded machine.
+The checked build's stress `--oracle` is the suite's slowest step and comes close to the runner's former 180 s limit on a loaded machine.
 
 Warnings: the header, the tester and a two-translation-unit build with `10-crt.hpp` compile with no warnings under `-Wall -Wextra -Wconversion -Werror` on both compilers.
 
@@ -146,3 +148,4 @@ Search aliases (P263, grab --find): primality test, prime test, Miller-Rabin, Po
 - 2026-10-13: prune, removed `millerRabin64`, `millerRabin64Compact`, `primeFactors` (Legacy mapping) and the witness loop's unreachable base-skip branch, review found no defect, 6 evidence findings fixed; full passed on g++ and g++-14, stress on g++.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

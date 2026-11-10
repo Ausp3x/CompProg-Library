@@ -13,9 +13,9 @@ All builds use -Wall -Wextra -Wshadow -Wconversion -Werror.
 from __future__ import annotations
 
 import argparse
+import functools
 import os
 from pathlib import Path
-import resource
 import shlex
 import shutil
 import signal
@@ -25,7 +25,7 @@ import tempfile
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
-from _00_cpp_test_runner import cpu_runs, x86, x86_only
+from _00_cpp_test_runner import Builder, cpu_runs, timed_run, x86, x86_only
 
 _00_memory_cap.ensure()
 
@@ -67,8 +67,8 @@ def progress(message: str) -> None:
 def execute(command: list[str], label: str, timeout: int,
             env: dict[str, str], death: bool = False) -> str:
     try:
-        result = subprocess.run(command, cwd="/tmp", env=env, text=True,
-                                capture_output=True, timeout=timeout)
+        result = timed_run(label, command, cwd="/tmp", env=env, text=True,
+                                  capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:
         raise Failure(f"{label}: timeout={timeout}s command={shlex.join(command)}\n"
                       f"stdout={error.stdout!r}\nstderr={error.stderr!r}") from error
@@ -97,7 +97,6 @@ def main() -> int:
         return 1
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1",
                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
     scalar = x86_only(["-march=x86-64", "-mno-avx", "-mno-avx2"], compiler)
     vector = x86_only(["-march=x86-64", "-mavx2"], compiler)
@@ -120,12 +119,13 @@ def main() -> int:
     start = time.monotonic()
     try:
         with tempfile.TemporaryDirectory(prefix="cp-montgomery-tests-") as directory:
-            for name, options in variants:
-                executable = str(Path(directory) / name)
+            builder = Builder(compiler, directory, env=env, failure=Failure)
+            progress(f"compile {len(variants)} configurations")
+            compiled = builder.build_all([(name, f"compile {name} mode={args.mode} seed={args.seed}", [*flags, *options], [SOURCE], str(Path(directory) / name), 180,
+                                           700 if name.startswith("sanitized") else 620) for name, options in variants])
+            def one(name, options):
+                executable, mark = str(Path(directory) / name), builder.stopwatch()
                 label = f"{name} mode={args.mode} seed={args.seed}"
-                progress(f"compile {label}")
-                execute([*compiler, *flags, *options, str(SOURCE), "-o", executable],
-                        f"compile {label}", 180, env)
                 report("PASS", f"{name} compilation")
                 progress(label)
                 output = execute([executable, "--mode", args.mode, "--seed", str(args.seed)],
@@ -142,14 +142,15 @@ def main() -> int:
                             execute([executable, f"--death{width}", case],
                                     f"{label} precondition {width}/{case}", 10, env, True)
                     report("PASS", f"{name} preconditions ({2 * len(DEATH_CASES)} cases)")
+                builder.report(mark, f"Montgomery {name}", args.mode, compiled[name])
+            builder.concurrently([(1 << 40 if args.mode == "stress" else 100, functools.partial(one, name, options)) for name, options in variants])
             if args.mode != "quick":
                 include = '#include "01-Core/04-montgomery.hpp"\n'
                 a, b = Path(directory) / "a.cpp", Path(directory) / "b.cpp"
                 a.write_text(include + "ulng other(); int main(){return Montgomery(17).pow(123,456)!=other();}\n")
                 b.write_text(include + "ulng other(){return Montgomery64(17).pow(123,456);}\n")
                 executable = str(Path(directory) / "multiple-tu")
-                execute([*compiler, *flags, "-O2", "-I", str(ROOT), str(a), str(b), "-o", executable],
-                        "standalone header and multiple-TU compile", 180, env)
+                builder.build("standalone header and multiple-TU compile", [*flags, "-O2", "-I", str(ROOT)], [a, b], executable, 180)
                 execute([executable], "multiple-TU execute", 60, env)
                 report("PASS", "standalone/multiple-TU compile and execute")
     except (Failure, OSError) as error:

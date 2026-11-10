@@ -98,8 +98,8 @@ template<typename I>
 void integerType(const string &name, std::mt19937_64 &gen, int rounds) {
     using U = std::make_unsigned_t<I>;
     I lo = std::numeric_limits<I>::min(), hi = std::numeric_limits<I>::max();
-    vector<I> fixed{lo, hi, I(0), I(1), lo, hi, I(hi - 1), I(lo + 1)};
-    if constexpr (std::is_signed_v<I>) { fixed.push_back(I(-1)); }
+    array<I, 9> values{lo, hi, I(0), I(1), lo, hi, I(hi - 1), I(lo + 1), I(-1)};
+    vector<I> fixed(values.begin(), values.end() - !std::is_signed_v<I>);
     for (int round = -1; round < rounds; ++round) {
         vector<I> a = round < 0 ? fixed : vector<I>(size_t(gen() % 101));
         if (round >= 0) {

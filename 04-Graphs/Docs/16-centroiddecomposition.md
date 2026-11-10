@@ -137,7 +137,7 @@ Search aliases (P263, grab --find): tree divide and conquer (点分治, OI Wiki:
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/16-centroiddecomposition_tester.py` uses the shared graph runner with `-Werror` warnings, in optimized, checked (`_GLIBCXX_DEBUG`, with probes) and ASan/UBSan (full and stress) builds.
+`96-Local Testing/04-Graphs/16-centroiddecomposition_tester.py` uses the shared contest runner with `-Werror` warnings, in optimized, checked (`_GLIBCXX_DEBUG`, with probes) and ASan/UBSan (full and stress) builds.
 
 The independent oracle is a DFS distance matrix from every vertex, weighted and unweighted, together with tree ids, validated through the closed forms on paths and stars. It is used with random forests of six shapes:
 
@@ -180,6 +180,8 @@ Planted mutants were each compiled against the quick suite on 2026-10-16. All 12
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1157 MB; optimized 0.1 s compile + 9.3 s run, checked 29.3 s compile + 34.9 s run, ASan-UBSan 32.1 s compile + 79.3 s run; MEMORY peak 1560 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1160 MB; optimized 0.2 s compile + 19.7 s run, checked 58.2 s compile + 54.5 s run, ASan-UBSan 69.6 s compile + 146.3 s run; MEMORY peak 1537 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 38.3 s compile + 0.6 s run, checked 32.1 s compile + 33.6 s run; MEMORY peak 1139 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 57 MB; optimized 0.1 s compile + 36.9 s run, checked 18.6 s compile + 30.7 s run, ASan-UBSan 21.4 s compile + 69.1 s run; MEMORY peak 1546 MB. Dated rows below stay those commands' latest results.
+
 Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
@@ -198,7 +200,7 @@ python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-The checked build (`-O0 -D_GLIBCXX_DEBUG`) runs full and stress at frequency n ≤ 3000 and 50,000-vertex shapes; the ASan/UBSan build runs stress at 200,000-vertex shapes. Both caps keep each run inside the runner's 180 s timeout, and the optimized build runs the full sizes.
+The checked build (`-O1 -D_GLIBCXX_DEBUG`) runs full and stress at frequency n ≤ 3000 and 50,000-vertex shapes; the ASan/UBSan build runs stress at 200,000-vertex shapes. Both caps keep each run inside the runner's former 180 s timeout, and the optimized build runs the full sizes.
 
 On 2026-10-19 the P054 follow-up reran this suite in full mode as a dependent of row 13's new `convolutionLong`; [13-convolution.md](../../05-Mathematics/Docs/13-convolution.md#commands-and-results) records the PASS.
 
@@ -262,3 +264,4 @@ The binarization, the two-bank subtraction identity and the per-centroid squarin
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `边分治` names a related method for the same problem, kept as a search synonym (user decision 2026-11-07).
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

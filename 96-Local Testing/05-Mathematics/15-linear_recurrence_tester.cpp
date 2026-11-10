@@ -132,7 +132,7 @@ void findSuite(const string &name) {
 
 template<typename M>
 void termSuite(const string &name) {
-    for (int rep = 0; rep < (quick ? 40 : (stress && fast ? 4 : 1) * 250); ++rep) {
+    for (int rep = 0; rep < (quick ? 28 : (stress && fast ? 4 : 1) * 250); ++rep) {
         int d = int(rng() % (rep % 4 ? 12 : 70));
         auto c = rnd<M>(d), a = rnd<M>(d + int(rng() % 3));
         if (rep % 6 == 0) { for (auto &x : c) { x = M(rng() % 2); } }

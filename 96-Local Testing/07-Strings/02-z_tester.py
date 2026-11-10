@@ -8,7 +8,10 @@ cases), index-only sequences, bytes/NUL, wide integers, aliasing and clearing.
 Builds use -Wall -Wextra -Wshadow -Wconversion -Werror. Full/stress run
 optimized NDEBUG, checked assertions and ASan/UBSan; three assertion probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
-    raise SystemExit(main('02-z', ['length', 'pattern-length', 'text-length'], strict=True))
+    raise SystemExit(main('02-z', ['length', 'pattern-length', 'text-length'], extra=('-Wshadow',)))

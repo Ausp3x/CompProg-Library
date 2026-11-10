@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -12,6 +13,7 @@ import tempfile
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import Builder, compiler_command
 
 _00_memory_cap.ensure()
 
@@ -125,7 +127,7 @@ def test_expander_grab(temp: Path) -> None:
     debug and DSU headers and a copy of the grab cache (current entries for those headers are reused unchanged)."""
     library = temp / "grab library"
     online = library / "97-Online Testing"
-    for rel in ("97-Online Testing/01-expander.py", "09-Contest Testing/10-grab.py", "98-Team Notebook/05-dependencies.py",
+    for rel in ("97-Online Testing/01-expander.py", "09-Contest Testing/10-grab.py", "09-Contest Testing/_11_search.py", "98-Team Notebook/05-dependencies.py",
                 "01-Core/01-template.hpp", "01-Core/02-debug.hpp", "02-Data Structures/01-dsu.hpp"):
         (library / rel).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / rel, library / rel)
@@ -145,11 +147,11 @@ def test_expander_grab(temp: Path) -> None:
             and "struct DSU {" in bundled and '#include "' not in bundled and "#pragma once" not in bundled,
             f"grab output lacks the template, #line directives or DSU, or keeps a local include:\n{bundled[:600]}")
     require(source.read_text(encoding="utf-8") == text, "canonical source changed")
-    cxx = os.environ.get("CXX", "g++")
     exe = temp / "dsu-grab"
-    build = subprocess.run(_00_memory_cap.capped([cxx, "-std=gnu++20", "-O2", "-Wall", "-Wextra", "-x", "c++", str(output), "-o", str(exe)], 2048),
-                           capture_output=True, text=True, timeout=600)
-    require(build.returncode == 0 and exe.exists(), f"bundled output does not compile with {cxx}: {build.stderr[-2000:]}")
+    try:
+        Builder(compiler_command(), temp).build("bundled DSU compile", ["-std=gnu++20", "-O2", "-Wall", "-Wextra"], [output], exe, 600)
+    except Exception as error:
+        require(False, f"bundled output does not compile with {shlex.join(compiler_command())}: {str(error)[-2000:]}")
     run_result = subprocess.run(_00_memory_cap.capped([str(exe)], 512), input="5 3\n0 1\n1 2\n3 4\n", capture_output=True, text=True, timeout=60)
     require(run_result.returncode == 0 and run_result.stdout == "2 1\n", f"bundled DSU printed {run_result.stdout!r}, expected '2 1'")
     manifest = online / "02-expansion.json"

@@ -44,6 +44,8 @@ Correctness: the implementation follows multiplication of homogeneous 3x3 affine
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 670 MB; optimized 0.3 s compile + 1.2 s run, checked 10.1 s compile + 1.0 s run, ASan-UBSan 13.8 s compile + 3.2 s run; MEMORY peak 740 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 739 MB; optimized 0.3 s compile + 1.0 s run, checked 13.0 s compile + 1.0 s run, ASan-UBSan 15.8 s compile + 3.7 s run; MEMORY peak 811 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 14.9 s compile + 0.0 s run, checked 13.3 s compile + 0.1 s run; MEMORY peak 664 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 681 MB; optimized 0.1 s compile + 2.3 s run, checked 3.6 s compile + 2.3 s run, ASan-UBSan 4.6 s compile + 7.2 s run; MEMORY peak 573 MB. Dated rows below stay those commands' latest results.
+
 2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
 | Command | Result |
@@ -83,3 +85,4 @@ Search aliases (P263, grab --find): 坐标变换, 仿射变换, 点的旋转, �
 - 2026-10-07: re-audit, 1 finding fixed, contract comments moved to this document; full suite and stress passed on g++ 16; independent review: reproduced every full count and probe, confirmed one package defect (in `06-circle.hpp`).
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

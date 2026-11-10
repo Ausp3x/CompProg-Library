@@ -135,6 +135,8 @@ Oracles:
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1593 MB; optimized 0.1 s compile + 0.5 s run, checked 58.7 s compile + 2.8 s run, ASan-UBSan 61.2 s compile + 5.0 s run; MEMORY peak 2579 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1481 MB; optimized 0.2 s compile + 1.2 s run, checked 90.0 s compile + 4.9 s run, ASan-UBSan 99.3 s compile + 9.4 s run; MEMORY peak 2416 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 144.2 s compile + 0.2 s run, checked 79.5 s compile + 3.8 s run; MEMORY peak 1597 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1609 MB; optimized 0.1 s compile + 1.4 s run, checked 42.5 s compile + 8.1 s run, ASan-UBSan 44.9 s compile + 16.4 s run; MEMORY peak 1598 MB. Dated rows below stay those commands' latest results.
+
 2026-10-28, GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan.
 
 ```bash
@@ -187,3 +189,4 @@ Search aliases (P263, grab --find): Gaussian elimination, Gauss-Jordan, system o
 - 2026-10-28: P058 initial implementation and verification; the tester found 2 header defects (`-DNDEBUG` unused variables, `lowRankUpdateInverse` with n = 0 < k) and `@reviewer` 8 findings (unbounded `rollback`, unchecked ragged rows, output terms in complexity lines, `FieldBasis` floating guard, aliasing, `determinantInteger` limit tests, 3 keeps recorded), all fixed; quick, full and stress passed on g++, full on g++-14, integration passed.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

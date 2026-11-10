@@ -39,7 +39,7 @@ Under `NDEBUG` an out-of-range `prod`, or an empty one on a semigroup, is undefi
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/28-disjointsparsetable_tester.cpp`, entry `28-disjointsparsetable_tester.py` (driver `_00_runner.py`; three builds; 6 assertion probes).
+Tester `96-Local Testing/02-Data Structures/28-disjointsparsetable_tester.cpp`, entry `28-disjointsparsetable_tester.py` (driver `_00_contest_runner.py`; three builds; 6 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -54,6 +54,8 @@ Tester `96-Local Testing/02-Data Structures/28-disjointsparsetable_tester.cpp`, 
 Mutation check (2026-10-14, quick mode, temporary copies): 6 of 6 injected faults detected (wrong level, reversed suffix order, reversed final combine, dyadic right end off by one, prefix products crossing blocks, the empty-range path returning an element).
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 834 MB; optimized 0.1 s compile + 3.7 s run, checked 22.9 s compile + 4.5 s run, ASan-UBSan 22.8 s compile + 41.9 s run; MEMORY peak 1039 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 893 MB; optimized 0.3 s compile + 4.9 s run, checked 34.7 s compile + 5.6 s run, ASan-UBSan 40.0 s compile + 33.5 s run; MEMORY peak 1044 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 26.8 s compile + 0.5 s run, checked 24.7 s compile + 1.9 s run; MEMORY peak 831 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 838 MB; optimized 0.1 s compile + 8.8 s run, checked 9.7 s compile + 10.7 s run, ASan-UBSan 9.4 s compile + 82.5 s run; MEMORY peak 1273 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
@@ -99,3 +101,4 @@ Search aliases (P263, grab --find): cat tree (猫树); ST 表, 猫树分治, 不
 - 2026-10-17: P027 monoid pass (stored-object monoid contract, `query`/`fold` merged into `prod`, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 693/653/1250 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change; `cat tree` is OI Wiki's name for this structure in heap layout (table above), kept as a search synonym (user decision 2026-11-07).
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

@@ -45,7 +45,7 @@ Correctness: dividing by the gcd leaves a primitive vector. Two primitive vector
 
 ## Feature-to-test map
 
-`96-Local Testing/03-Geometry/01-point_tester.py` runs the geometry runner's optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan builds ([`_00_runner.py`](<../../96-Local Testing/03-Geometry/_00_runner.py>)). Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
+`96-Local Testing/03-Geometry/01-point_tester.py` runs the geometry runner's optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan builds ([`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>)). Quick mode omits the sanitizers and shrinks the exhaustive and random corpora; stress mode extends them.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -62,6 +62,8 @@ Correctness: dividing by the gcd leaves a primitive vector. Two primitive vector
 Approximate checks use scale-aware tolerances on the specified fixtures. They do not establish a universal error bound for ill-conditioned floating inputs.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 841 MB; optimized 0.1 s compile + 0.6 s run, checked 26.7 s compile + 0.7 s run, ASan-UBSan 43.9 s compile + 5.7 s run; MEMORY peak 1033 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 905 MB; optimized 0.2 s compile + 0.7 s run, checked 39.2 s compile + 0.7 s run, ASan-UBSan 55.8 s compile + 4.4 s run; MEMORY peak 1064 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 37.6 s compile + 0.2 s run, checked 21.5 s compile + 0.7 s run; MEMORY peak 850 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 843 MB; optimized 0.1 s compile + 0.8 s run, checked 10.0 s compile + 1.0 s run, ASan-UBSan 17.6 s compile + 6.9 s run; MEMORY peak 653 MB. Dated rows below stay those commands' latest results.
 
 2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
@@ -85,7 +87,7 @@ python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/0[1-4]*.hpp '9
 python3 '96-Local Testing/03-consistency.py'
 ```
 
-The shared geometry runner compiles without warning flags, so the explicit sweep is the warning evidence.
+The shared contest runner compiles with `-Wall -Wextra -Wconversion -Werror`.
 
 ## Sources
 
@@ -111,3 +113,4 @@ Search aliases (P263, grab --find): basic geometry, vector, cross product, argum
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<typename P = point>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 03-Geometry` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: explicit `T(...)` assignments in `operator/=`; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.

@@ -38,7 +38,7 @@ The legacy tree compared lazy tags with `!=` (equality on `F` required) and sile
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/19-treap_tester.cpp`, entry `19-treap_tester.py` (driver `_00_runner.py`; three builds; 18 assertion probes).
+Tester `96-Local Testing/02-Data Structures/19-treap_tester.cpp`, entry `19-treap_tester.py` (driver `_00_contest_runner.py`; three builds; 18 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -51,6 +51,8 @@ Tester `96-Local Testing/02-Data Structures/19-treap_tester.cpp`, entry `19-trea
 Mutation check (2026-10-13, quick mode, temporary copies): 10 of 10 injected faults detected. They covered equal keys sent left by `split`, a missing `pull` in `erase`, swapped `unite` halves, a strict `upperRank`, a skipped reverse hook, a `push` that flips one child, the composition order, `maxRight` skipping a left subtree, `minLeft` keeping its boundary and a strict `lowerBound`.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1089 MB; optimized 0.1 s compile + 5.8 s run, checked 40.7 s compile + 8.4 s run, ASan-UBSan 53.2 s compile + 59.9 s run; MEMORY peak 1538 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1108 MB; optimized 0.3 s compile + 11.3 s run, checked 54.5 s compile + 12.2 s run, ASan-UBSan 64.5 s compile + 53.2 s run; MEMORY peak 1559 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 49.4 s compile + 0.4 s run, checked 41.2 s compile + 2.8 s run; MEMORY peak 1096 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1086 MB; optimized 0.1 s compile + 18.2 s run, checked 18.1 s compile + 23.3 s run, ASan-UBSan 25.5 s compile + 167.2 s run; MEMORY peak 849 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
@@ -96,3 +98,4 @@ Search aliases (P263, grab --find): implicit treap, Cartesian tree with implicit
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 740/749/781 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

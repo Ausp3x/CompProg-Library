@@ -19,8 +19,11 @@ range and full 64-bit inputs, modulo 2^64 and 2^128) and every 64-bit modulus at
 against exact big-integer convolution. 17 assertion probes.
 """
 import random
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 P = 754974721 * 167772161 * 469762049
 
@@ -64,7 +67,7 @@ def oracle(binary, args, env):
     payload = ''.join((f'{op} {mod} ' if mod else f'{op} ') + f'{len(a)} {len(b)} ' + ' '.join(map(str, a + b)) + '\n'
                       for op, mod, a, b, _ in rows)
     command = [str(binary), '--oracle']
-    p = subprocess.run(command, input=payload, capture_output=True, text=True, env=env, timeout=180)
+    p = timed_run(f'13-convolution oracle {Path(command[0]).name}', command, input=payload, capture_output=True, text=True, env=env, timeout=180)
     if p.returncode: raise RuntimeError(f'command={command} returncode={p.returncode}\n{p.stderr}')
     lines = p.stdout.splitlines()
     if len(lines) != len(rows): raise RuntimeError(f'expected {len(rows)} lines, got {len(lines)}')
@@ -77,4 +80,4 @@ def oracle(binary, args, env):
 if __name__ == '__main__':
     raise SystemExit(main('13-convolution', ['root-one', 'table-rank', 'ntt-size', 'intt-size', 'transposed-size',
         'ntt-rank', 'doubling-rank', 'fft-size', 'ifft-size', 'middle-zero', 'cyclic-size',
-        'negacyclic-size', 'truncated-negative', 'tensor-rank', 'tensor-size', 'tensor-negative', '2d-ragged'], oracle))
+        'negacyclic-size', 'truncated-negative', 'tensor-rank', 'tensor-size', 'tensor-negative', '2d-ragged'], oracle, memory=1800))

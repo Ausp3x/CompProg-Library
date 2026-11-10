@@ -35,7 +35,7 @@ A final pass sets `dom[w] = dom[dom[w]]` where `dom[w] ≠ semi[w]`. `eval` and 
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/24-dominatortree_tester.py` (shared graph runner with `-Werror` warnings, optimized, checked with probes, ASan/UBSan in full/stress). Oracle: the dataflow fixpoint `Dom(v) = {v} ∪ ⋂ Dom(p)` over reachable predecessors with bitmask sets, independent of both algorithms; `idom(v)` is the strict dominator whose set has one element fewer, and the frontier is evaluated from its definition.
+`96-Local Testing/04-Graphs/24-dominatortree_tester.py` (shared contest runner with `-Werror` warnings, optimized, checked with probes, ASan/UBSan in full/stress). Oracle: the dataflow fixpoint `Dom(v) = {v} ∪ ⋂ Dom(p)` over reachable predecessors with bitmask sets, independent of both algorithms; `idom(v)` is the strict dominator whose set has one element fewer, and the frontier is evaluated from its definition.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -47,6 +47,8 @@ A final pass sets `dom[w] = dom[dom[w]]` where `dom[w] ≠ semi[w]`. `eval` and 
 Planted mutants (quick suite): `eval` returning `v` instead of `label[v]` at virtual roots, a missing final idom pass, unstamped frontier walks, an inverted vertex-deletion comparison, and an inclusive Euler bound, all killed. Removing the balancing swap in `link` survived; it changes only the balance, and so the α bound, not results.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 766 MB; optimized 0.1 s compile + 7.7 s run, checked 13.1 s compile + 28.0 s run, ASan-UBSan 14.8 s compile + 139.5 s run; MEMORY peak 914 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 823 MB; optimized 0.2 s compile + 8.4 s run, checked 16.2 s compile + 32.8 s run, ASan-UBSan 17.6 s compile + 151.1 s run; MEMORY peak 985 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 22.2 s compile + 0.2 s run, checked 18.2 s compile + 3.2 s run; MEMORY peak 762 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 767 MB; optimized 0.1 s compile + 5.5 s run, checked 6.2 s compile + 26.5 s run, ASan-UBSan 6.9 s compile + 104.7 s run; MEMORY peak 979 MB. Dated rows below stay those commands' latest results.
 
 2026-10-09, GCC 16.2.1 and GCC 14.4.1, CPython 3.14, Linux x86-64, GNU++20.
 
@@ -98,3 +100,4 @@ Search aliases (P263, grab --find): 支配树, 必经点, 支配点, 最近支�
 - 2026-10-09: verified (P043); quick, full and stress passed on g++, full on g++-14; independent review: no wrong answers (own Cooper–Harvey–Kennedy oracle, overflow probes at the stated domain bounds).
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

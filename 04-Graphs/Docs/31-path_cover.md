@@ -49,7 +49,7 @@ Search aliases (P263, grab --find): 序理论, 最小路径覆盖, 最小不相�
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/31-path_cover_tester.py` (shared graph runner with `-Werror` warnings; optimized, checked with probes, ASan/UBSan in full/stress). Oracles:
+`96-Local Testing/04-Graphs/31-path_cover_tester.py` (shared contest runner with `-Werror` warnings; optimized, checked with probes, ASan/UBSan in full/stress). Oracles:
 - path covers: backtracking over successor choices (distinct successors along arcs);
 - width and weighted antichains: subset enumeration over a BFS closure;
 - large instances: self-checking Dilworth certificates by BFS and a tester-side Kuhn matching.
@@ -64,6 +64,8 @@ Search aliases (P263, grab --find): 序理论, 最小路径覆盖, 最小不相�
 Planted mutants (quick suite, optimized build): a closure missing direct successors, a cut read without the in-copy condition, and an antichain read without the right-copy condition were killed. Removing the BFS stop after the first free layer survived. It keeps every augmenting path valid and only loosens the shortest-path phase bound, so it changes complexity, not results.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 900 MB; optimized 0.2 s compile + 1.7 s run, checked 25.4 s compile + 6.1 s run, ASan-UBSan 27.2 s compile + 14.7 s run; MEMORY peak 1084 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 918 MB; optimized 0.3 s compile + 2.8 s run, checked 33.1 s compile + 7.0 s run, ASan-UBSan 36.5 s compile + 17.5 s run; MEMORY peak 1073 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 27.9 s compile + 0.1 s run, checked 25.4 s compile + 1.4 s run; MEMORY peak 876 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 898 MB; optimized 0.1 s compile + 2.6 s run, checked 10.1 s compile + 9.8 s run, ASan-UBSan 10.8 s compile + 16.2 s run; MEMORY peak 1266 MB. Dated rows below stay those commands' latest results.
 
 2026-10-18, GCC 16.2.1 and GCC 14.4.1 (floor), CPython 3.14.8, Linux x86-64 (Intel Core i9-11900H), GNU++20, `-Wall -Wextra -Wconversion -Werror` in the runner's optimized, checked and ASan/UBSan builds.
 
@@ -111,3 +113,4 @@ The bitset Hopcroft–Karp layering and the split-DAG cut argument are this pack
 - 2026-10-18: verified (P047); new row; `maximumAntichain` returned as the chain cover's certificate; independent review: no correctness findings, arc checks added to the 200,000-vertex path cover; 3 planted mutants killed, 1 complexity-only mutant survived; quick, full and stress passed on g++, full on g++-14.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

@@ -21,7 +21,7 @@ template<typename T = lng> struct Point2 {
     constexpr Point2 &operator+=(Point2 p) { x += p.x; y += p.y; return *this; }
     constexpr Point2 &operator-=(Point2 p) { x -= p.x; y -= p.y; return *this; }
     constexpr Point2 &operator*=(T k) { x *= k; y *= k; return *this; }
-    constexpr Point2 &operator/=(T k) { assert(k != 0); x /= k; y /= k; return *this; }
+    constexpr Point2 &operator/=(T k) { assert(k != 0); x = T(x / k); y = T(y / k); return *this; }
     friend constexpr Point2 operator+(Point2 a, Point2 b) { return a += b; }
     friend constexpr Point2 operator-(Point2 a, Point2 b) { return a -= b; }
     friend constexpr Point2 operator*(Point2 a, T k) { return a *= k; }
@@ -44,7 +44,7 @@ template<typename T = lng> struct Point3 {
     constexpr Point3 &operator+=(Point3 p) { x += p.x; y += p.y; z += p.z; return *this; }
     constexpr Point3 &operator-=(Point3 p) { x -= p.x; y -= p.y; z -= p.z; return *this; }
     constexpr Point3 &operator*=(T k) { x *= k; y *= k; z *= k; return *this; }
-    constexpr Point3 &operator/=(T k) { assert(k != 0); x /= k; y /= k; z /= k; return *this; }
+    constexpr Point3 &operator/=(T k) { assert(k != 0); x = T(x / k); y = T(y / k); z = T(z / k); return *this; }
     friend constexpr Point3 operator+(Point3 a, Point3 b) { return a += b; }
     friend constexpr Point3 operator-(Point3 a, Point3 b) { return a -= b; }
     friend constexpr Point3 operator*(Point3 a, T k) { return a *= k; }

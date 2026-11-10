@@ -16,7 +16,10 @@ and boolean semirings; matrixPowerVector against binary matrix powering on rando
 identity, low-rank and block matrices; composite modulus 12 status and generic routines.
 Moduli: 998244353, 1e9+7, the 64-bit NTT prime 29 * 2^57 + 1, 2, 3, 5, 7. 13 assertion probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('15-linear_recurrence', ['bm-composite', 'kitamasa-short', 'semiring-short', 'bostan-zero',

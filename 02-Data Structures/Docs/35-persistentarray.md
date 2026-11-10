@@ -29,7 +29,7 @@ No legacy code. Catalog forms of the same operations: Nyaan `update(root, k, v)`
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/35-persistentarray_tester.cpp`, entry `35-persistentarray_tester.py` (driver `_00_runner.py`; three builds; 7 assertion probes).
+Tester `96-Local Testing/02-Data Structures/35-persistentarray_tester.cpp`, entry `35-persistentarray_tester.py` (driver `_00_contest_runner.py`; three builds; 7 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -41,6 +41,8 @@ Tester `96-Local Testing/02-Data Structures/35-persistentarray_tester.cpp`, entr
 | Preconditions | `invalid` | Bad versions in `get`, `set`, `toVector`; out-of-range and negative positions; negative fill size |
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 814 MB; optimized 0.2 s compile + 3.9 s run, checked 24.1 s compile + 5.7 s run, ASan-UBSan 29.6 s compile + 16.6 s run; MEMORY peak 1022 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 882 MB; optimized 0.3 s compile + 5.0 s run, checked 36.2 s compile + 11.8 s run, ASan-UBSan 42.8 s compile + 24.4 s run; MEMORY peak 1035 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 48.2 s compile + 2.8 s run, checked 27.3 s compile + 8.5 s run; MEMORY peak 809 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 820 MB; optimized 0.1 s compile + 3.7 s run, checked 9.9 s compile + 9.1 s run, ASan-UBSan 11.6 s compile + 23.2 s run; MEMORY peak 1030 MB. Dated rows below stay those commands' latest results.
 
 ```bash
 python3 '96-Local Testing/02-Data Structures/35-persistentarray_tester.py' --mode full --seed 20261017
@@ -96,3 +98,4 @@ Search aliases (P263, grab --find): 可持久化块状数组, 可持久化数组
 - 2026-11-06: P253 /finish (user decision 2026-11-06, fix here): inventory `build` renamed `ctor` (the vector and fill constructors), so the extraction harness (`96-Local Testing/05-extraction.py ops`) resolves them; no code changed.
 - 2026-10-17: P034 first implementation and verification; the fill build shrank to one shared node after a mutation check; independent review: an empty vector build now holds one chunk, the default-arity wording matches the benchmark.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

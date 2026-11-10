@@ -37,7 +37,7 @@ struct LinearIntersection2 {
 };
 
 namespace linear_detail {
-    inline void check(point p) { assert(-1000000000 <= p.x && p.x <= 1000000000 && -1000000000 <= p.y && p.y <= 1000000000); }
+    inline void check([[maybe_unused]] point p) { assert(-1000000000 <= p.x && p.x <= 1000000000 && -1000000000 <= p.y && p.y <= 1000000000); }
     inline void check(Linear2 s) {
         check(s.a); check(s.b);
         assert(s.kind == LinearKind::Segment || s.kind == LinearKind::Ray || s.kind == LinearKind::Line);}

@@ -32,7 +32,7 @@ Correctness: the bipartite algorithm returns an odd cycle when an edge joins equ
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/02-traversal_tester.py` uses the shared graph driver, which builds optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, and full/stress `-O1` ASan/UBSan variants. The corpus is 4,160 exhaustive/random graph cases; quick uses smaller exhaustive domains, 100 random cases and 20,000-vertex chains; full uses the stated corpus, and stress extends random counts to 12,000 and chains to 500,000. Exact mode coverage is also stated in the runnable entry.
+`96-Local Testing/04-Graphs/02-traversal_tester.py` uses the shared contest runner, which builds optimized `-O2 -DNDEBUG`, checked `-g -D_GLIBCXX_DEBUG` (`-O0` in quick, `-O1` in full and stress), and full/stress `-O1` ASan/UBSan variants. The corpus is 4,160 exhaustive/random graph cases; quick uses smaller exhaustive domains, 100 random cases and 20,000-vertex chains; full uses the stated corpus, and stress extends random counts to 12,000 and chains to 500,000. Exact mode coverage is also stated in the runnable entry.
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -46,6 +46,8 @@ Correctness: the bipartite algorithm returns an odd cycle when an edge joins equ
 Mutation checks (planted in a temporary copy, full mode) killed reversed BFS adjacency and duplicate BFS sources (keep-duplicate-sources). A surviving mutant (`treeCycle` `>=` vs `>`) is equivalent or changes only runtime.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 781 MB; optimized 0.1 s compile + 1.3 s run, checked 19.1 s compile + 4.6 s run, ASan-UBSan 22.2 s compile + 19.5 s run; MEMORY peak 985 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 853 MB; optimized 0.3 s compile + 1.9 s run, checked 26.9 s compile + 5.7 s run, ASan-UBSan 26.8 s compile + 26.2 s run; MEMORY peak 1087 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 24.2 s compile + 0.2 s run, checked 17.4 s compile + 2.6 s run; MEMORY peak 778 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 783 MB; optimized 0.1 s compile + 3.6 s run, checked 7.1 s compile + 12.0 s run, ASan-UBSan 8.5 s compile + 53.6 s run; MEMORY peak 1006 MB. Dated rows below stay those commands' latest results.
 
 2026-10-12, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
 
@@ -95,3 +97,4 @@ Search aliases (P263, grab --find): BFS (breadth-first search), DFS (depth-first
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

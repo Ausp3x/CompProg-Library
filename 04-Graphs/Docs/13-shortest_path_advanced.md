@@ -119,6 +119,8 @@ Results reveal the `bellmanFord` fallback only through parents on ties. The fixt
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1083 MB; optimized 0.1 s compile + 6.6 s run, checked 36.6 s compile + 17.3 s run, ASan-UBSan 51.9 s compile + 72.5 s run; MEMORY peak 1519 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1085 MB; optimized 0.4 s compile + 11.1 s run, checked 58.7 s compile + 32.7 s run, ASan-UBSan 82.8 s compile + 74.7 s run; MEMORY peak 1547 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 50.7 s compile + 4.3 s run, checked 28.7 s compile + 22.2 s run; MEMORY peak 1049 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 525 MB; optimized 0.1 s compile + 7.0 s run, checked 20.5 s compile + 55.3 s run, ASan-UBSan 27.2 s compile + 125.9 s run; MEMORY peak 877 MB. Dated rows below stay those commands' latest results.
+
 2026-11-05 (after the `/finish GR70` tests; the stress and integration rows are from 2026-11-03, before them), GCC 16.0.1 20260322 (`g++`) and GCC 14.3.0 (`g++-14`). Each run builds optimized (`-O2 -DNDEBUG`), checked (`-O0 -g -D_GLIBCXX_DEBUG`, plus the 21 assertion probes) and, in full and stress, ASan+UBSan, all with `-Wall -Wextra -Wconversion -Werror`.
 
 | Command | Result |
@@ -229,3 +231,4 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr04)
 - 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.
 - 2026-11-08: `/merge-pr 4` review fixes: `G = Graph` defaults, correctly sized `NDEBUG` results for `secondShortestPath` and `top2Dijkstra`, survivors closed by fixtures.
 - 2026-11-09: `/merge-pr 4` second review round: comments of `noTopTwo` and `topTwo` only in the header, tie fixture labelled white-box, mutation campaign recorded above (0 mutants on the changed lines); `/merge-pr` gates passed on d4c47fc.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

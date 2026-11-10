@@ -67,7 +67,9 @@ Checked builds run five precondition probes: a pattern symbol and a text symbol 
 
 ## Commands and results
 
-P084 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>).
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 776 MB; optimized 0.3 s compile + 6.4 s run, checked 18.1 s compile + 19.3 s run, ASan-UBSan 21.2 s compile + 82.2 s run; MEMORY peak 995 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 848 MB; optimized 0.1 s compile + 7.8 s run, checked 28.5 s compile + 26.8 s run, ASan-UBSan 34.9 s compile + 75.3 s run; MEMORY peak 1050 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 23.3 s compile + 1.9 s run, checked 17.3 s compile + 32.4 s run; MEMORY peak 774 MB. `python3 '96-Local Testing/07-Strings/16-string_matching_tester.py' --mode stress --seed 42` (three suites at a time) PASS: pre-flight quick peak 49 MB; optimized 0.1 s compile + 4.3 s run, checked 6.4 s compile + 8.3 s run, ASan-UBSan 7.9 s compile + 63.3 s run; MEMORY peak 662 MB. Dated rows below stay those commands' latest results.
+
+P084 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. Configurations: optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan, as built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>).
 
 ```bash
 python3 '96-Local Testing/07-Strings/16-string_matching_tester.py' --mode full --seed 20261013
@@ -133,3 +135,4 @@ Search aliases (P263, grab --find): 字符串匹配, Boyer–Moore 算法, 模�
 - 2026-10-11: implemented and verified (P084), independent review found 3 issues, fixed; quick, full and stress passed on g++, full on g++-14.
 - 2026-10-13: prune, removed `allOccurrences` (its checks moved to `boyerMoore` at the default `S` and to `twoWay`) and the Rabin–Karp copies of the `StringHash61` arithmetic; full suite passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

@@ -27,6 +27,7 @@ import json
 import os
 from pathlib import Path
 import random
+import shlex
 import shutil
 import signal
 import subprocess
@@ -37,6 +38,7 @@ import time
 import unittest
 from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import _00_cpp_test_runner as CPP
 import _00_memory_cap
 
 _00_memory_cap.ensure()
@@ -154,7 +156,9 @@ class Fixture:
                         'rerun alone:\n' + ''.join(f'| {line}\n' for line in body(P, s, False)) if i in notes else '')
                        + f'RUN {rel} mode={mode} seed={s}\n' + ''.join(f'{line}\n' for line in body(P, s, True))
                        for i, (rel, P, s) in enumerate(tasks)) + ('' if upto is not None else
-            f'PASS: {len(order)} available suites x {len(seeds)} round(s); see 00-index.md for coverage gaps\n')
+            (f'NOTE {len(notes)} problem(s) to fix, each within a passing run (05-testing.md, Layout and modes):\n'
+             + ''.join(f"  {mode} {tasks[i][0]}: exited {tasks[i][1].get('code') or 3} beside other suites, passed alone\n" for i in sorted(notes)) if notes else '')
+            + f'PASS: {len(order)} available suites x {len(seeds)} round(s); see 00-index.md for coverage gaps\n')
 
 
 class Base(unittest.TestCase):
@@ -329,10 +333,20 @@ class Runner(Base):
         self.check(f.run('-j', '8'), 0, f.expect())
         stats = json.loads((f.root / '.run-stats.json').read_text())
         self.assertEqual({k: v[0] for k, v in stats.items()}, {f'full {rel}': 1000 for rel in f.suites})
-        for budget, most in (3011, 1), (3012, 2):  # each reserves 1000 * 5 // 4 + 256 = 1506 MB
+        for budget, most in (2327, 1), (2328, 2):  # each reserves 1000 * 11 // 10 + 64 = 1164 MB
             for s in f.root.glob('*.start'): s.unlink()
             self.check(f.run('-j', '8', '--memory-mb', str(budget)), 0, f.expect(), f'budget {budget}')
             self.assertEqual(f.span(), most, f'budget {budget}')
+
+    def test_smaller_suite_passes_one_that_does_not_fit(self):
+        f = self.f
+        f.add(dict(sleep=1.2, mem=1000), dict(sleep=0.6, mem=1000), dict(sleep=0.1, mem=100))
+        self.check(f.run('-j', '8'), 0, f.expect())
+        for s in f.root.glob('*.start'): s.unlink()
+        self.check(f.run('-j', '8', '--memory-mb', str(1164 + 174)), 0, f.expect())  # 1000 MB reserves 1164, 100 MB 174
+        recs = {r['name']: r for r in f.recs()}
+        self.assertLess(recs['02-s']['t0'], recs['00-s']['t1'], 'the small suite starts beside the first big one')
+        self.assertGreaterEqual(recs['01-s']['t0'], recs['00-s']['t1'], 'the second big one waits for memory')
 
     def test_unmeasured_reservation(self):
         self.f.add(*[dict(sleep=0.3)] * 3)
@@ -366,6 +380,75 @@ class Runner(Base):
             f.suites = {k: v for k, v in full.items() if k.startswith(keep)}
             self.check(f.run('-j', '2', '--mode', mode, *extra), 0, f.expect(mode), f'{mode} {extra}')
         self.assertEqual(f.recs(compiled['name']), [])
+
+    def test_quick_bound_note(self):
+        f = self.f
+        (f.root / '02-Data Structures').mkdir(exist_ok=True)
+        (f.root / '02-Data Structures/01-a_tester.py').write_text("print('TIMING a optimized mode=quick compile=1.00s run=12.50s longest=12.50s limit=180s')\n"
+                                                                  "print('TIMING a checked mode=quick compile=99.00s run=10.00s')\n")
+        (f.root / '02-Data Structures/02-b_tester.py').write_text("print('TIMING b optimized mode=quick compile=0.10s run=30.25s')\n")
+        (f.root / '02-Data Structures/03-c_tester.py').write_text("print('TIMING c optimized mode=full compile=0.10s run=99.00s')\n")
+        code, out, err = f.run('--mode', 'quick', '-j', '2')
+        self.assertEqual(code, 0, err)
+        self.assertIn('NOTE 2 quick build(s) over 10 s, timed beside other suites (05-testing.md, Layout and modes):\n'
+                      '  30.2 s b optimized\n  12.5 s a optimized\nPASS:', out, 'sorted, exactly over the bound, never a failure')
+        if not _00_memory_cap.available(): self.skipTest('SKIP: no systemd user scope for the pre-flight half')
+        child = ("import os\nif os.environ['CP_TEST_MODE'] == 'quick':\n    print('TIMING d optimized mode=quick compile=0.10s run=11.00s')\n"
+                 "    print('OVERHALF d run: 70 s of its 120 s limit')\n")
+        for name in ('01-a', '02-b', '03-c'): (f.root / f'02-Data Structures/{name}_tester.py').unlink()
+        (f.root / '02-Data Structures/04-d_tester.py').write_text(  # a real pre-flight, as ensure() runs it
+            f"import os, sys\nsys.path.insert(0, {str(LT)!r})\nimport _00_memory_cap\n"
+            f"sys.exit(_00_memory_cap.supervise([sys.executable, '-c', {child!r}], os.environ['CP_TEST_MODE']))\n")
+        for mode in ('full', 'stress'):
+            code, out, err = f.run('--mode', mode, '--rounds', '2', '-j', '2', CP_MEMORY_CAPPED='', CP_TEST_MEMORY_MB='256')
+            self.assertEqual(code, 0, err)
+            self.assertIn('NOTE 1 quick build(s) over 10 s, timed beside other suites (05-testing.md, Layout and modes):\n  11.0 s d optimized\n', out,
+                          f'{mode}: from the pre-flight, once though every stress round runs one')
+            self.assertIn('NOTE 1 problem(s) to fix, each within a passing run (05-testing.md, Layout and modes):\n'
+                          '  pre-flight quick d run: 70 s of its 120 s limit\n', out, f'{mode}: labelled as the pre-flight, once')
+
+    def test_problems_note(self):
+        f = self.f
+        (f.root / '02-Data Structures').mkdir(exist_ok=True)
+        (f.root / '02-Data Structures/01-a_tester.py').write_text("print('TIMING a ASan-UBSan mode=full compile=1.00s run=400.00s longest=400.50s limit=720s oracle=0.00s')\nprint('OVERHALF a ASan-UBSan: 400 s of its 720 s limit')\n"
+                                                                  "print('TIMING a checked mode=full compile=1.00s run=360.00s longest=360.00s limit=720s oracle=0.00s')\n"
+                                                                  "print('TIMING a optimized mode=full compile=1.00s run=9.00s')\n"
+                                                                  "import time; time.sleep(1.5)\n")
+        mark = f.root / 'flaky-mark'
+        (f.root / '02-Data Structures/02-f_tester.py').write_text(f"import pathlib, sys, time\nm = pathlib.Path({str(mark)!r})\n"
+                                                                  "if m.exists(): sys.exit(0)\nm.touch(); time.sleep(0.5); sys.exit(3)\n")
+        code, out, err = f.run('--mode', 'full', '-j', '2', '--memory-mb', '99999')
+        self.assertEqual(code, 0, err)
+        self.assertIn('NOTE 2 problem(s) to fix, each within a passing run (05-testing.md, Layout and modes):\n', out)
+        problems = out[out.index('NOTE 2 problem'):out.index('PASS:')].splitlines()[1:]
+        self.assertEqual(sorted(problems), ['  a ASan-UBSan: 400 s of its 720 s limit',
+                                            '  full 02-Data Structures/02-f_tester.py: exited 3 beside other suites, passed alone'],
+                         'a rerun and a command over half its limit')
+        mark.unlink()
+        (f.root / '02-Data Structures/01-a_tester.py').write_text("print('TIMING a checked mode=full compile=1.00s run=360.00s longest=360.00s limit=720s oracle=0.00s')\n")
+        (f.root / '02-Data Structures/02-f_tester.py').write_text('pass\n')
+        code, out, err = f.run('--mode', 'full', '-j', '2', '--memory-mb', '99999')
+        self.assertEqual((code, 'problem(s)' in out), (0, False), 'nothing to report')
+
+    def test_integration_over_half(self):
+        f = self.f
+        (f.root / '02-Data Structures').mkdir(exist_ok=True)
+        (f.root / '02-Data Structures/01-a_tester.py').write_text('pass\n')
+        (f.root / '02-integration.py').write_text("print('OVERHALF x.o: 100 s of its 180 s limit')\n")
+        (f.root / '03-consistency.py').write_text('pass\n')
+        r = subprocess.run([sys.executable, f.root / '01-run.py', '--mode', 'quick', '-j', '1', '--memory-mb', '999'],
+                           env=f.env(), capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('NOTE 1 problem(s) to fix, each within a passing run (05-testing.md, Layout and modes):\n  x.o: 100 s of its 180 s limit\n', r.stdout)
+
+    def test_over_half(self):
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            CPP.over_half('exact', 360.0, 720)
+            CPP.over_half('above', 360.5, 720)
+            CPP.timed_run('fast', [sys.executable, '-c', 'pass'], timeout=60)
+            CPP.timed_run('slow', [sys.executable, '-c', 'import time; time.sleep(1.6)'], timeout=3)
+        self.assertEqual([l.split(':')[0] for l in out.getvalue().splitlines()], ['OVERHALF above', 'OVERHALF slow'], 'exactly half is not over')
 
     def test_sigint_stops(self):
         f = self.f
@@ -481,7 +564,8 @@ class Integration(Base):
                  patch.object(INTEGRATION, 'parallel', lambda t, j, b: (budgets.append(b), real(t, j, b))), \
                  patch.object(sys, 'argv', ['02-integration.py', *args]), contextlib.redirect_stdout(out), \
                  patch.dict(os.environ, {'PATH': f"{stub.parent}:{os.environ['PATH']}" if ccache else os.environ['PATH'], **env}), \
-                 patch.object(INTEGRATION.shutil, 'which', lambda name: str(stub) if ccache else None):
+                 patch.object(CPP.shutil, 'which', lambda name: str(stub) if ccache else None):
+                CPP._ccache_prefix.cache_clear()
                 self.assertEqual(INTEGRATION.main(), 0)
             return out.getvalue(), log.read_text().splitlines() if log.exists() else []
         out, calls = run('--sanitizers', '-j', '4', ccache='ok', CP_MEMORY_CAPPED='3000')
@@ -528,6 +612,429 @@ class Integration(Base):
             INTEGRATION.parallel([(1, [self.cmd('t', 0.5, sleep=20)])], 1, 100)
         with self.assertRaises(OSError):
             INTEGRATION.parallel([(1, [self.cmd('d')]), (1, [([str(self.root / 'missing')],)])], 2, 100)
+
+
+class Build(Base):
+    """The shared build helper: ccache only for -c and -fsyntax-only, probes once, admission, hits across copies of the tree."""
+
+    def setUp(self):
+        super().setUp()
+        CPP._ccache_prefix.cache_clear()
+        self.addCleanup(CPP._ccache_prefix.cache_clear)
+        self.bin, self.log = self.root / 'bin', self.root / 'ccache.log'
+        self.bin.mkdir()
+        self.cxx = os.environ.get('CXX', 'g++')
+
+    def stub(self, broken=False):
+        """A logging ccache on PATH, broken or passing through to the compiler."""
+        path = self.bin / 'ccache'
+        path.write_text(f'#!/bin/sh\necho "$PWD|$CCACHE_NOHASHDIR|$CCACHE_BASEDIR|$*" >> "{self.log}"\n' + ('exit 1\n' if broken else 'exec "$@"\n'))
+        path.chmod(0o755)
+        return patch.dict(os.environ, {'PATH': f"{self.bin}:{os.environ['PATH']}"})
+
+    def calls(self):
+        return [line.split('|', 3) for line in self.log.read_text().splitlines()] if self.log.exists() else []
+
+    def test_units_through_ccache_link_not(self):
+        tree = self.root / 'tree'
+        (tree / 'src').mkdir(parents=True)
+        (tree / 'src/lib.cpp').write_text('int lib() { return 3; }\n')
+        build = self.root / 'build'
+        build.mkdir()
+        (build / 'gen.cpp').write_text('int lib(); int main() { return lib() - 3; }\n')
+        with self.stub(), patch.object(CPP, 'ROOT', tree):
+            builder = CPP.Builder([self.cxx], build)
+            seconds = builder.build('b', ['-std=gnu++20'], [build / 'gen.cpp', tree / 'src/lib.cpp'], build / 'out', 60)
+            builder.syntax('s', ['-std=gnu++20'], build / 'gen.cpp', 60)
+        self.assertGreater(seconds, 0)
+        self.assertEqual(subprocess.run([build / 'out']).returncode, 0, 'the two objects link into a working binary')
+        probe, gen, lib, syntax = self.calls()
+        self.assertIn('-fsyntax-only probe.cpp', probe[3], 'one probe')
+        self.assertEqual(gen[0], str(build), 'a generated unit compiles where it lives')
+        self.assertIn(' -c gen.cpp ', gen[3], 'under its relative name')
+        self.assertEqual(lib[0], str(tree), 'a tree unit compiles from the root')
+        self.assertIn(f' -c {tree}/src/lib.cpp ', lib[3])
+        self.assertIn('-fsyntax-only gen.cpp', syntax[3])
+        for call in (gen, lib, syntax):
+            self.assertEqual(call[1:3], ['1', str(tree)], 'CCACHE_NOHASHDIR and CCACHE_BASEDIR on every compile')
+        self.assertEqual(len(self.calls()), 4, 'the link never goes through ccache')
+
+    def test_failure_reports_command_and_output(self):
+        class Custom(RuntimeError):
+            pass
+        build = self.root / 'build'
+        build.mkdir()
+        (build / 'bad.cpp').write_text('int main() { return x; }\n')
+        with patch.object(CPP.shutil, 'which', lambda name: None):
+            CPP._ccache_prefix.cache_clear()
+            builder = CPP.Builder([self.cxx], build, failure=Custom)
+            with self.assertRaises(Custom) as caught:
+                builder.build('bad build', ['-std=gnu++20'], [build / 'bad.cpp'], build / 'out', 60)
+        text = str(caught.exception)
+        for piece in ('bad build: exit=', 'command=', 'bad.cpp', 'was not declared'):
+            self.assertIn(piece, text)
+
+    def test_timeout_is_a_failure(self):
+        slow = self.bin / 'slow'
+        slow.write_text('#!/bin/sh\nsleep 30\n')
+        slow.chmod(0o755)
+        with patch.object(CPP.shutil, 'which', lambda name: None):
+            builder = CPP.Builder([str(slow)], self.root)
+            with self.assertRaises(CPP.TestFailure) as caught:
+                builder.syntax('slow step', [], self.root / 'x.cpp', 1)
+        self.assertIn('slow step: timeout=1s', str(caught.exception))
+
+    def test_fallback_reported_once(self):
+        out = io.StringIO()
+        with self.stub(broken=True), contextlib.redirect_stdout(out):
+            self.assertEqual(CPP.cached([self.cxx]), [self.cxx], 'a broken ccache is bypassed')
+            self.assertEqual(CPP.cached([self.cxx]), [self.cxx])
+        self.assertEqual(out.getvalue().count('SKIP ccache:'), 1)
+        self.assertEqual(len(self.calls()), 1, 'probed once')
+        CPP._ccache_prefix.cache_clear()
+        out = io.StringIO()
+        with patch.object(CPP.shutil, 'which', lambda name: None), contextlib.redirect_stdout(out):
+            self.assertEqual(CPP.cached([self.cxx]), [self.cxx])
+            CPP.cached([self.cxx])
+        self.assertEqual(out.getvalue(), 'SKIP ccache: not installed; plain builds\n')
+        CPP._ccache_prefix.cache_clear()
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(CPP.cached(['/usr/bin/ccache', self.cxx]), ['/usr/bin/ccache', self.cxx], 'a CXX naming ccache is not wrapped twice')
+        self.assertEqual(out.getvalue(), '')
+
+    def test_compiler_command_splits(self):
+        for value, want in (('g++-14', ['g++-14']), ('ccache "g++ x" -O1', ['ccache', 'g++ x', '-O1']), ('', ['g++']), (' ', ['g++'])):
+            with patch.dict(os.environ, {'CXX': value}):
+                self.assertEqual(CPP.compiler_command(), want)
+        env = {k: v for k, v in os.environ.items() if k != 'CXX'}
+        with patch.dict(os.environ, env, clear=True):
+            self.assertEqual(CPP.compiler_command(), ['g++'])
+
+    def fake_compiler(self, seconds, failing=()):
+        """A compiler recording each -c interval; a source named in failing exits 1 after its sleep."""
+        path, spans = self.bin / 'fake', self.root / 'spans'
+        spans.mkdir()
+        path.write_text(f"""#!{sys.executable}
+import pathlib, sys, time, uuid
+a = sys.argv[1:]
+if '-c' in a:
+    start = time.monotonic()
+    time.sleep({seconds})
+    pathlib.Path({str(spans)!r}, uuid.uuid4().hex).write_text(f'{{start}} {{time.monotonic()}}')
+    sys.exit(1 if a[a.index('-c') + 1] in {list(failing)!r} else 0)
+""")
+        path.chmod(0o755)
+        return [str(path)], spans
+
+    def intervals(self, spans):
+        return [tuple(map(float, f.read_text().split())) for f in spans.iterdir()]
+
+    def builds(self, n, need=100):
+        return [(f'b{k}', f'build {k}', [], [f'u{k}.cpp'], str(self.root / f'o{k}'), 60, need) for k in range(n)]
+
+    def test_build_all_three_at_once(self):
+        compiler, spans = self.fake_compiler(0.3)
+        with patch.object(CPP.shutil, 'which', lambda name: None), patch.dict(os.environ, {'CP_MEMORY_CAPPED': 'none'}):
+            CPP._ccache_prefix.cache_clear()
+            seconds = CPP.Builder(compiler, self.root).build_all(self.builds(7))
+        self.assertEqual(sorted(seconds), [f'b{k}' for k in range(7)])
+        self.assertEqual(overlap(self.intervals(spans)), 3, 'exactly three of seven at once without a memory limit')
+
+    def test_build_all_within_the_cap(self):
+        compiler, spans = self.fake_compiler(0.2)
+        with patch.object(CPP.shutil, 'which', lambda name: None), patch.dict(os.environ, {'CP_MEMORY_CAPPED': '1000'}):  # budget 600 MB
+            CPP._ccache_prefix.cache_clear()
+            CPP.Builder(compiler, self.root).build_all(self.builds(4, 300))  # 300 + 300 fits exactly
+        self.assertEqual(overlap(self.intervals(spans)), 2)
+        compiler, spans = self.fake_compiler_again(0.2)
+        with patch.object(CPP.shutil, 'which', lambda name: None), patch.dict(os.environ, {'CP_MEMORY_CAPPED': '1000'}):
+            CPP._ccache_prefix.cache_clear()
+            CPP.Builder(compiler, self.root).build_all(self.builds(3, 301))
+        self.assertEqual(overlap(self.intervals(spans)), 1, 'one MB more than fits runs them one at a time')
+        compiler, spans = self.fake_compiler_again(0.05)
+        with patch.object(CPP.shutil, 'which', lambda name: None), patch.dict(os.environ, {'CP_MEMORY_CAPPED': '1000'}):
+            CPP._ccache_prefix.cache_clear()
+            CPP.Builder(compiler, self.root).build_all(self.builds(2, 5000))
+        self.assertEqual(len(self.intervals(spans)), 2, 'a build larger than the budget still runs, alone')
+
+    def test_interrupt_stops_builds_and_jobs(self):
+        """SIGINT during build_all or concurrently, to the process alone or as Ctrl-C twice to its group (the dying commands
+        race the main thread's handler): the three running commands die, no queued build or job starts a command, and
+        KeyboardInterrupt ends the process at once."""
+        starts = self.root / 'starts'
+        fake = self.bin / 'slow'
+        fake.write_text(f"#!/bin/sh\n: > {shlex.quote(str(starts))}/$$\nsleep 30\nfor a; do last=$a; done\n: > \"$last\"\n")  # dies at once on SIGINT
+        fake.chmod(0o755)
+        child = f"""import functools, subprocess, sys
+sys.path.insert(0, {str(Path(CPP.__file__).parent)!r})
+import _00_cpp_test_runner as CPP
+CPP.shutil.which = lambda name: None
+b = CPP.Builder([{str(fake)!r}], {str(self.root)!r})
+def job(k):
+    for step in range(3):
+        try:
+            CPP.timed_run('job', [{str(fake)!r}, str(k)], timeout=60)
+        except Exception:
+            pass
+if sys.argv[1] == 'builds':
+    b.build_all([(f'b{{k}}', 'build', [], [f'u{{k}}.cpp'], {str(self.root)!r} + f'/o{{k}}', 60, 1) for k in range(6)])
+else:
+    b.concurrently([(1, functools.partial(job, k)) for k in range(5)])
+"""
+        for kind, group in (('builds', False), ('jobs', False), ('builds', True), ('jobs', True)):
+            with self.subTest(kind=kind, group=group):
+                shutil.rmtree(starts, ignore_errors=True)
+                starts.mkdir()
+                proc = subprocess.Popen([sys.executable, '-c', child, kind], env=dict(os.environ, CP_MEMORY_CAPPED='none'),
+                                        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, start_new_session=True, cwd=self.root)
+                self.addCleanup(self.kill_group, proc.pid)  # a failed check leaves no fake running to finish its work
+                deadline = time.monotonic() + 20
+                while len(list(starts.iterdir())) < 3 and time.monotonic() < deadline:
+                    time.sleep(0.05)
+                start = time.monotonic()
+                if group:
+                    os.killpg(proc.pid, signal.SIGINT)
+                    time.sleep(0.15)
+                    with contextlib.suppress(ProcessLookupError):
+                        os.killpg(proc.pid, signal.SIGINT)
+                else:
+                    os.kill(proc.pid, signal.SIGINT)
+                _, err = proc.communicate(timeout=20)
+                elapsed = time.monotonic() - start
+                time.sleep(0.3)
+                self.assertIn('KeyboardInterrupt', err)
+                self.assertLess(elapsed, 5, 'the process ends at once')
+                self.assertEqual(len(list(starts.iterdir())), 3, 'nothing starts after the interrupt')
+
+    @staticmethod
+    def kill_group(pid):
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(pid, signal.SIGKILL)
+
+    def fake_compiler_again(self, seconds):
+        shutil.rmtree(self.root / 'spans')
+        (self.bin / 'fake').unlink()
+        return self.fake_compiler(seconds)
+
+    def test_build_all_first_failure_in_order(self):
+        compiler, spans = self.fake_compiler(0.1, ['u1.cpp', 'u3.cpp'])
+        with patch.object(CPP.shutil, 'which', lambda name: None):
+            CPP._ccache_prefix.cache_clear()
+            with self.assertRaises(CPP.TestFailure) as caught:
+                CPP.Builder(compiler, self.root).build_all(self.builds(5))
+        self.assertIn('build 1:', str(caught.exception), 'the first failure in build order, not in time')
+        self.assertEqual(len(self.intervals(spans)), 5, 'every build finished first')
+
+    def test_report_counts_builds_as_compile(self):
+        build = self.root / 'build'
+        build.mkdir()
+        (build / 'a.cpp').write_text('int main() {}\n')
+        out = io.StringIO()
+        with patch.object(CPP.shutil, 'which', lambda name: None), contextlib.redirect_stdout(out):
+            CPP._ccache_prefix.cache_clear()
+            builder = CPP.Builder([self.cxx], build)
+            mark = builder.stopwatch()
+            spent = builder.build('a', ['-std=gnu++20'], [build / 'a.cpp'], build / 'out', 60)
+            time.sleep(0.2)
+            builder.report(mark, 'name config', 'quick', 1.5)
+        line = next(l for l in out.getvalue().splitlines() if l.startswith('TIMING'))
+        fields = dict(x.split('=') for x in line.split()[3:])
+        self.assertTrue(line.startswith('TIMING name config mode=quick '), line)
+        self.assertAlmostEqual(float(fields['compile'].rstrip('s')), 1.5 + spent, delta=0.05)
+        self.assertLess(float(fields['run'].rstrip('s')), 0.5, 'the nested build is not run time')
+        self.assertGreater(float(fields['run'].rstrip('s')), 0.15)
+
+    def real_cache(self):
+        if not shutil.which('ccache'):
+            self.skipTest('SKIP ccache not installed')
+        return patch.dict(os.environ, {'CCACHE_DIR': str(self.root / 'cache'), 'CCACHE_MAXSIZE': '200M'})
+
+    def hits(self):
+        out = subprocess.run(['ccache', '--print-stats'], capture_output=True, text=True).stdout
+        return {k: int(v) for k, v in (line.split('\t')[:2] for line in out.splitlines())}
+
+    def test_real_hits_across_copies_of_the_tree(self):
+        with self.real_cache():
+            subprocess.run(['ccache', '-z'], capture_output=True)
+            objects = {}
+            for name, value in (('s0', 1), ('s1', 1), ('s2', 2)):
+                tree = self.root / name
+                (tree / 'dir').mkdir(parents=True)
+                (tree / 'dir/h.hpp').write_text(f'inline int f() {{ return {value}; }}\n')
+                (tree / 'dir/x.cpp').write_text('#include "h.hpp"\nint main() { return f(); }\n')
+                build = self.root / (name + '-build')
+                build.mkdir()
+                time.sleep(2.1)  # past ccache's too-new window, as a header written before a run is in a later stage
+                with patch.object(CPP, 'ROOT', tree):
+                    builder = CPP.Builder([self.cxx], build)
+                    builder.compile_unit('x', ['-std=gnu++20', '-O1', '-g'], tree / 'dir/x.cpp', build / 'x.o', 60)
+                objects[name] = (build / 'x.o').read_bytes()
+            self.assertEqual(objects['s0'], objects['s1'], 'the shard copy reuses the same object')
+            self.assertNotEqual(objects['s0'], objects['s2'], 'a changed header misses')
+            stats = self.hits()
+            self.assertGreaterEqual(stats['direct_cache_hit'] + stats['preprocessed_cache_hit'], 1, stats)
+            self.assertEqual(stats['cache_miss'], 3, 'probe, the first tree and the changed header each compile; the copy hits')
+
+    def contest_tree(self, flags_check=''):
+        """A tree with the real shared runners and one contest suite whose C++ reports its build flags."""
+        lt = self.root / 'tree/96-Local Testing'
+        suite = lt / '02-Data Structures'
+        suite.mkdir(parents=True)
+        for name in ('_00_memory_cap.py', '_00_cpp_test_runner.py', '_00_contest_runner.py'):
+            shutil.copy2(LT / name, lt / name)
+        (suite / '01-t_tester.cpp').write_text("""#include <cassert>
+#include <cstdio>
+#include <cstring>
+int main(int argc, char **argv) {
+#ifdef NDEBUG
+    std::puts("NDEBUG");
+#endif
+#ifdef _GLIBCXX_DEBUG
+    std::puts("DEBUG");
+#endif
+#ifdef EXTRA_FLAG
+    std::puts("EXTRA");
+#endif
+#ifdef __OPTIMIZE__
+    std::puts("OPTIMIZED");
+#endif
+#ifdef __SANITIZE_ADDRESS__
+    std::puts("ASAN");
+#endif
+    if (argc > 2 && !std::strcmp(argv[1], "--invalid")) { assert(false); }
+    return 0; }
+""")
+        return suite / '01-t_tester.py'
+
+    def contest(self, tester, call, *args):
+        tester.write_text('import sys\nfrom pathlib import Path\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\n'
+                          f'from _00_contest_runner import main\nraise SystemExit({call})\n')
+        return subprocess.run([sys.executable, str(tester), *args], capture_output=True, text=True,
+                              env=dict(os.environ, CP_MEMORY_CAPPED='none', CCACHE_DIR=str(self.root / 'cache')))
+
+    def test_contest_runner_parameters(self):
+        tester = self.contest_tree()
+        r = self.contest(tester, "main('01-t', ['p'])", '--mode', 'quick')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('NDEBUG', r.stdout)
+        self.assertIn('DEBUG', r.stdout.replace('NDEBUG', ''), 'the checked build defaults to _GLIBCXX_DEBUG')
+        self.assertIn('PASS 01-t 1 assertion probes', r.stdout)
+        self.assertIn('PASS 01-t: 2 configurations', r.stdout)
+        self.assertEqual(sum(l.startswith('TIMING 01-t ') for l in r.stdout.splitlines()), 2, r.stdout)
+        self.assertRegex(r.stdout, r'TIMING 01-t optimized mode=quick compile=[\d.]+s run=[\d.]+s longest=[\d.]+s limit=720s')
+        r = self.contest(tester, "main('01-t', ['p'], extra=('-DEXTRA_FLAG',), timeout=77, checked='-D_GLIBCXX_ASSERTIONS')", '--mode', 'quick')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('EXTRA', r.stdout)
+        self.assertNotIn('DEBUG', r.stdout.replace('NDEBUG', ''), 'checked replaces the default standard-library mode')
+        self.assertIn('limit=77s', r.stdout)
+
+    def test_contest_runner_checked_level(self):
+        tester = self.contest_tree()
+        for mode, optimized in (('quick', False), ('full', True), ('stress', True)):
+            r = self.contest(tester, "main('01-t', [])", '--mode', mode, '--configuration', 'checked')
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertEqual('OPTIMIZED' in r.stdout, optimized, mode)
+
+    def test_contest_runner_configurations(self):
+        tester = self.contest_tree()
+        ran = lambda r: [l.split('configuration=')[1].split()[0] for l in r.stdout.splitlines() if l.startswith('RUN ')]
+        r = self.contest(tester, "main('01-t', [])", '--mode', 'full', '--configuration', 'checked,ASan-UBSan')
+        self.assertEqual((r.returncode, ran(r)), (0, ['checked', 'ASan-UBSan']), r.stderr)
+        self.assertIn('ASAN', r.stdout)
+        r = self.contest(tester, "main('01-t', [])", '--mode', 'quick', '--configuration', 'ASan-UBSan')
+        self.assertEqual((r.returncode, ran(r)), (0, ['ASan-UBSan']), r.stderr)
+        r = self.contest(tester, "main('01-t', [])", '--mode', 'quick')
+        self.assertEqual(ran(r), ['optimized', 'checked'], 'quick builds no sanitizer unless asked')
+        r = self.contest(tester, "main('01-t', [])", '--mode', 'full')
+        self.assertEqual(ran(r), ['optimized', 'checked', 'ASan-UBSan'])
+        r = self.contest(tester, "main('01-t', [])", '--configuration', 'nonsense')
+        self.assertEqual(r.returncode, 2, 'an unknown configuration is a usage error')
+
+    def test_contest_runner_warnings_are_errors(self):
+        tester = self.contest_tree()
+        tester.with_suffix('.cpp').write_text('int main() { int unused; return 0; }\n')
+        r = self.contest(tester, "main('01-t', [])", '--mode', 'quick')
+        self.assertEqual(r.returncode, 1, 'every suite compiles with -Werror')
+        self.assertIn('FAIL 01-t', r.stderr)
+        self.assertIn('unused', r.stderr)
+
+    def test_bypasses(self):
+        self.assertEqual(CPP.bypasses('from _00_contest_runner import main\n', True), [])
+        self.assertEqual(CPP.bypasses('print(1)\n', True), ['no _00_contest_runner'])
+        self.assertEqual(CPP.bypasses('print(1)\n', False), [])
+        for allowed in ('run([*compiler, "-fsyntax-only", bad])', 'run([*compiler, "-dumpversion"])', 'run([*compiler, "-dM", "-E"])',
+                        'compiler = shlex.split(os.environ.get("CXX", "g++"))'):
+            self.assertEqual(CPP.bypasses(allowed, False), [], allowed)
+        for direct in ('run([*compiler, "-O2", src])', 'run(["g++", src])', "run(['clang++', src])", 'run([cxx, src])', 'cmd += ["-o", out]', "cmd = [tool, '-c', src]"):
+            self.assertEqual(CPP.bypasses(direct, False), [direct], direct)
+
+    def test_runs_in_order(self):
+        self.assertTrue(CPP.runs_in_order('builder.build_all(x)\nfor name in x: run(name)\n'))
+        self.assertFalse(CPP.runs_in_order('builder.build_all(x)\nbuilder.concurrently(y)\n'))
+        self.assertFalse(CPP.runs_in_order('from _00_contest_runner import main\n'))
+
+    def test_concurrently_runs_together_in_job_order(self):
+        builder, barrier = CPP.Builder([self.cxx], self.root), threading.Barrier(3, timeout=30)
+
+        def job(k, delay):
+            def run():
+                print(f'a{k}')
+                barrier.wait()
+                time.sleep(delay)
+                print(f'b{k}')
+            return run
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            builder.concurrently([(1, job(0, 0.2)), (1, job(1, 0)), (1, job(2, 0.05))])
+        self.assertEqual(out.getvalue().split(), ['a0', 'b0', 'a1', 'b1', 'a2', 'b2'])
+
+    def test_concurrently_holds_the_cap(self):
+        builder, lock, now, most = CPP.Builder([self.cxx], self.root), threading.Lock(), [0], [0]
+        builder.budget = 300
+
+        def job():
+            with lock:
+                now[0] += 1
+                most[0] = max(most[0], now[0])
+            time.sleep(0.05)
+            with lock:
+                now[0] -= 1
+        builder.concurrently([(200, job)] * 4 + [(10**6, job)])  # 200 MB each: one at a time; a lone oversized job still runs
+        self.assertEqual(most[0], 1)
+
+    def test_concurrently_stops_at_the_first_failure(self):
+        builder, started, skipped = CPP.Builder([self.cxx], self.root), threading.Event(), []
+
+        def long():
+            process = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+            started.set()
+            process.wait()
+
+        def fail():
+            self.assertTrue(started.wait(30))
+            time.sleep(0.1)  # the sibling's process exists
+            raise RuntimeError('first failure')
+        start = time.monotonic()
+        with self.assertRaisesRegex(RuntimeError, 'first failure'):
+            builder.concurrently([(1, long), (1, fail), (1, lambda: time.sleep(0.4)), (1, lambda: skipped.append(1))])
+        self.assertLess(time.monotonic() - start, 20, 'the running sibling was killed')
+        self.assertFalse(skipped, 'a job not yet started is skipped')
+
+    def test_capped_process_skips_core_dumps(self):
+        code = (f'import resource, sys; sys.path.insert(0, {str(LT)!r}); import _00_memory_cap; _00_memory_cap.ensure(); '
+                'print(resource.getrlimit(resource.RLIMIT_CORE)[0])')
+        result = subprocess.run([sys.executable, '-c', code], env=dict(os.environ, CP_MEMORY_CAPPED='none'), capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.stdout.strip(), '1', result.stderr)  # 1 makes the kernel skip a piped core_pattern; 0 would not
+
+    def test_memory_cap_sees_the_shared_runner(self):
+        d = self.root / 'lt/02-X'
+        d.mkdir(parents=True)
+        main = d / '01-t_tester.py'
+        main.write_text('from _00_contest_runner import main\n')
+        self.assertFalse(_00_memory_cap.honours_mode_env(main), 'no runner file')
+        (d.parent / '_00_contest_runner.py').write_text("os.environ.get('CP_TEST_MODE')\n")
+        self.assertTrue(_00_memory_cap.honours_mode_env(main), 'the shared runner in the parent directory')
 
 
 class Forward(Base):
@@ -591,6 +1098,21 @@ class Forward(Base):
                 self.assertIn('full run skipped', err)
                 self.assertFalse((self.root / 'full.start').exists(), 'the full run never starts')
 
+    def test_preflight_echoes_timing(self):
+        """The PREFLIGHT line carries the quick run's TIMING and OVERHALF lines, so 01-run.py's NOTEs see them in a full run."""
+        child = ('import os\nif os.environ["CP_TEST_MODE"] == "quick":\n'
+                 '    print("noise\\nTIMING a optimized mode=quick compile=1.00s run=12.00s\\nOVERHALF a run: 70 s of its 120 s limit")\n'
+                 'else:\n    print("FULL")\n')
+        driver = f'import sys\nsys.path.insert(0, {str(LT)!r})\nimport _00_memory_cap\nsys.exit(_00_memory_cap.supervise([sys.executable, "-c", {child!r}], "full"))\n'
+        env = {k: v for k, v in os.environ.items() if k not in ('CP_MEMORY_CAPPED', 'CP_TEST_PREFLIGHT')}
+        r = subprocess.run([sys.executable, '-c', driver], env=dict(env, CP_TEST_MODE='full'), capture_output=True, text=True, timeout=120)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        lines = r.stdout.splitlines()
+        at = next(i for i, line in enumerate(lines) if line.startswith('PREFLIGHT '))
+        self.assertEqual(lines[at + 1:at + 3], ['TIMING a optimized mode=quick compile=1.00s run=12.00s', 'OVERHALF pre-flight quick a run: 70 s of its 120 s limit'])
+        self.assertNotIn('noise', r.stdout)
+        self.assertIn('FULL', lines[at + 3:])
+
     def test_forward_nohup_keeps_sighup_ignored(self):
         proc, rec = self.start('quick', sleep=2, hup=signal.SIG_IGN)
         os.kill(proc.pid, signal.SIGHUP)
@@ -628,7 +1150,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     MODE, SEED, ROUNDS = args.mode, args.seed, args.rounds
     suite = unittest.TestSuite()
-    for case in (Runner, Integration, Forward):
+    for case in (Runner, Integration, Build, Forward):
         suite.addTests(case(n) for n in unittest.defaultTestLoader.getTestCaseNames(case) if MODE != 'quick' or n in QUICK)
     print(f"runner checks: mode={MODE} seed={SEED} rounds={ROUNDS if MODE == 'stress' else '-'} tests={suite.countTestCases()}",
           flush=True)

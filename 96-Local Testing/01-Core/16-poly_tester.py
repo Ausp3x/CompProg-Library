@@ -14,9 +14,9 @@ small prime fields and algebraic identities; every check survives -DNDEBUG.
 from __future__ import annotations
 
 import argparse
+import functools
 import os
 from pathlib import Path
-import resource
 import shlex
 import shutil
 import signal
@@ -26,7 +26,7 @@ import tempfile
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
-from _00_cpp_test_runner import cpu_runs, x86, x86_only
+from _00_cpp_test_runner import Builder, cpu_runs, timed_run, x86, x86_only
 
 _00_memory_cap.ensure()
 
@@ -68,8 +68,8 @@ def progress(message: str) -> None:
 def execute(command: list[str], label: str, timeout: int,
             env: dict[str, str], expected_death: bool = False) -> str:
     try:
-        result = subprocess.run(command, cwd="/tmp", env=env, text=True,
-                                capture_output=True, timeout=timeout)
+        result = timed_run(label, command, cwd="/tmp", env=env, text=True,
+                                  capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:
         raise Failure(f"{label}: timeout={timeout}s\ncommand={shlex.join(command)}\n"
                       f"stdout={error.stdout!r}\nstderr={error.stderr!r}") from error
@@ -107,7 +107,6 @@ def main() -> int:
         return 1
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1",
                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
     scalar = x86_only(["-march=x86-64", "-mno-avx", "-mno-avx2", "-mno-fma", "-mno-bmi2", "-mno-pclmul"], compiler)
     vector = x86_only(["-march=x86-64", "-mavx2", "-mfma", "-mbmi2", "-mpclmul"], compiler)
@@ -129,19 +128,20 @@ def main() -> int:
     start = time.monotonic()
     try:
         with tempfile.TemporaryDirectory(prefix="cp-poly-tests-") as directory:
+            builder = Builder(compiler, directory, env=env, failure=Failure)
             alone = Path(directory) / "alone.cpp"
             alone.write_text(f'#include "{ROOT / "01-Core/16-poly.hpp"}"\nint main() {{ Poly<mint> a = {{1, 2}}; return (a * a).size() == 3 ? 0 : 1; }}\n')
-            execute([*compiler, *flags, "-fsyntax-only", str(alone)], "header-alone compile", 180, env)
+            builder.syntax("header-alone compile", flags, alone, 180)
             aggregate = Path(directory) / "aggregate.cpp"
             aggregate.write_text(f'#include "{ROOT / "01-Core/99-all.hpp"}"\n#include "{ROOT / "01-Core/16-poly.hpp"}"\nint main() {{ return 0; }}\n')
-            execute([*compiler, "-std=gnu++20", "-fsyntax-only", str(aggregate)], "99-all aggregate compile (unverified siblings are not warning-clean)", 180, env)
+            builder.syntax("99-all aggregate compile (unverified siblings are not warning-clean)", ["-std=gnu++20"], aggregate, 180)
             report("PASS", "header-alone and 99-all aggregate compilation")
-            for name, options in variants:
-                executable = str(Path(directory) / name)
+            progress(f"compile {len(variants)} configurations")
+            compiled = builder.build_all([(name, f"compile {name} mode={args.mode} seed={args.seed}", [*flags, *options], [SOURCE, SECOND], str(Path(directory) / name), 1200,
+                                           1950 if name.startswith("sanitized") else 1400) for name, options in variants])
+            def one(name, options):
+                executable, mark = str(Path(directory) / name), builder.stopwatch()
                 label = f"{name} mode={args.mode} seed={args.seed}"
-                progress(f"compile {label}")
-                execute([*compiler, *flags, *options, str(SOURCE), str(SECOND), "-o", executable],
-                        f"compile {label}", 400, env)
                 report("PASS", f"{name} compilation (two translation units)")
                 run_mode = "full" if args.mode == "stress" and name.startswith("sanitized") else args.mode
                 for round_index in range(rounds):
@@ -162,6 +162,8 @@ def main() -> int:
                         execute([executable, "--invalid", case],
                                 f"precondition {case} seed={args.seed}", 60, env, True)
                     report("PASS", f"checked-scalar preconditions ({len(INVALID_CASES)} cases)")
+                builder.report(mark, f"Poly {name}", args.mode, compiled[name])
+            builder.concurrently([(1 << 40 if args.mode == "stress" else 1600 if name.startswith("sanitized") else 500, functools.partial(one, name, options)) for name, options in variants])
     except (Failure, OSError) as error:
         report("FAIL", f"Poly mode={args.mode} seed={args.seed}: {error}")
         return 1

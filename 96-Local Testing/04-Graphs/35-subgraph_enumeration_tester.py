@@ -75,7 +75,7 @@ hub), census large n=3000. full: exhaustive n<=6 and digraphs n<=4, 3000 tiny,
 3000 (triangle kernels), K2,50000, shapes n=2*10^5 m=5*10^5 (hub n=5000),
 census n=2*10^5 m=5*10^5 and blocks, the census boundary. stress: 20000 tiny,
 2000 medium, n=m=3*10^5 (Library Checker counting_c4 scale) plus n=2*10^5
-m=10^6, census m=10^6. The checked build (-O0 -D_GLIBCXX_DEBUG, about 50x
+m=10^6, census m=10^6. The checked build (-D_GLIBCXX_DEBUG, about 50x
 slower) runs stress at full size, exhaustive n<=5, K_n up to 40, a tenth of
 the large shapes and only the K200 + 5000 dense cores and n<=300 dense graphs;
 the ASan/UBSan build (about 10x slower) runs stress at full size, exhaustive
@@ -83,7 +83,10 @@ n<=5, K_n up to 66, an eighth of the large shapes and dense graphs up to
 n=1000 with the boundary; the optimized build covers the rest. The checked
 build runs the 32 assertion probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('35-subgraph_enumeration', ['directed-enumerate', 'directed-count', 'directed-count-csr',
@@ -94,4 +97,4 @@ if __name__ == '__main__':
         'directed-square-clustering', 'directed-generalized-degree', 'undirected-directed-clustering',
         'undirected-directed-clustering-csr', 'directed-enumerate-triangle-edges', 'directed-weighted-clustering',
         'undirected-weighted-directed-clustering', 'weighted-parallel', 'weighted-directed-parallel',
-        'weighted-max-zero', 'weighted-directed-max-zero'], strict=True))
+        'weighted-max-zero', 'weighted-directed-max-zero'], memory=2000, timeout=2400))

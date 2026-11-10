@@ -73,6 +73,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import time
 import unicodedata
 import unittest
 from html.parser import HTMLParser
@@ -559,9 +560,22 @@ def parse_yaml(text: str):
 
 
 def build(exe: str, out: Path) -> subprocess.CompletedProcess:
-    """The strict build 06-site.py runs, in `out` (the privacy plugin caches under the working directory)."""
-    return subprocess.run([exe, "build", "-f", str(out / "mkdocs.yml"), "--strict"], cwd=out, capture_output=True,
-                          text=True, timeout=900, env={**os.environ, "NO_MKDOCS_2_WARNING": "1"})
+    """The strict build 06-site.py runs, in `out` (the privacy plugin caches under the working directory, so a retry
+    fetches only what failed). A build whose only warnings are lost downloads retries; a network failure that persists
+    is offline, a SKIP as in online(), and any other failure (a dead URL, a broken link beside a lost download) is the
+    build's."""
+    for attempt in range(4):
+        if attempt:
+            time.sleep(2 * attempt)
+        r = subprocess.run([exe, "build", "-f", str(out / "mkdocs.yml"), "--strict"], cwd=out, capture_output=True,
+                           text=True, timeout=900, env={**os.environ, "NO_MKDOCS_2_WARNING": "1"})
+        text = plain(r)
+        other = [line for line in text.splitlines() if re.search(r"\b(WARNING|ERROR)\b", line) and "Couldn't retrieve" not in line]
+        if not r.returncode or other or not any(lost in text for lost in ("NameResolutionError", "Couldn't retrieve")):
+            return r
+    if any(net in plain(r) for net in ("NameResolutionError", "ConnectionError", "ConnectTimeout", "ReadTimeout", "timed out", "Temporary failure", "Max retries")):
+        raise unittest.SkipTest("SKIP: offline (the privacy plugin's downloads kept failing)")
+    return r  # a failure that is not the network (a dead URL) fails the test
 
 
 def plain(r: subprocess.CompletedProcess) -> str:
@@ -2263,6 +2277,26 @@ class Random(Base):
         if venv_python():
             for d, got in zip(pm_docs, pm_ids(pm_docs)):
                 self.assertEqual(set(got), SITE.anchors(d), f"seed={SEED} Python-Markdown ids: {d[:200]!r}")
+
+
+class BuildRetry(unittest.TestCase):
+    def outcome(self, output):
+        done = subprocess.CompletedProcess([], 1, output, "")
+        with patch.object(subprocess, "run", return_value=done) as run, patch.object(time, "sleep"):
+            try:
+                return build("zensical", Path("/nonexistent")), run.call_count
+            except unittest.SkipTest:
+                return "skip", run.call_count
+
+    def test_persistent_network_failure_skips(self):
+        self.assertEqual(self.outcome("Couldn't retrieve https://x/f.css: read timed out"), ("skip", 4))
+
+    def test_dead_url_fails(self):
+        result, calls = self.outcome("Couldn't retrieve https://x/f.css: 404")
+        self.assertEqual((result.returncode, calls), (1, 4))
+
+    def test_other_failure_is_not_retried(self):
+        self.assertEqual(self.outcome("Aborted with a BuildError")[1], 1)
 
 
 if __name__ == "__main__":

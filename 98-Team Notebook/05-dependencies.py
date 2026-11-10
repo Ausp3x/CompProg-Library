@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from functools import lru_cache
 import posixpath
 import re
 import sys
@@ -13,8 +14,10 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = "01-Core/01-template.hpp"
 INCLUDE = re.compile(r'^[ \t]*#[ \t]*include[ \t]*"([^"\n]+)"')
 CONDITION = re.compile(r"^[ \t]*#[ \t]*(if|ifdef|ifndef|endif)\b")
+PLAIN = re.compile(r"""[^\n/"']+""")
 
 
+@lru_cache(maxsize=None)  # the validator and grab strip the same texts tens of thousands of times
 def strip_cpp(text: str, directives: bool = False) -> str:
     """Blank comments, string/character literals and, unless `directives`, preprocessor lines; keep every newline and
     column. Shared with `96-Local Testing/03-consistency.py`."""
@@ -50,6 +53,10 @@ def strip_cpp(text: str, directives: bool = False) -> str:
                         continue
                     out.append(''.join('\n' if ch == '\n' else ' ' for ch in text[i:j])); i = j
                 continue
+        if c not in '/"\'':  # nothing below starts here; off a line's blank prefix, the whole run is plain code
+            j = PLAIN.match(text, i).end() if not line_start else i + 1
+            out.append(text[i:j]); i = j
+            continue
         if text.startswith('//', i):
             j = text.find('\n', i); j = n if j < 0 else j
             out.append(' ' * (j - i)); i = j
@@ -64,7 +71,7 @@ def strip_cpp(text: str, directives: bool = False) -> str:
             out.append(''.join('\n' if ch == '\n' else ' ' for ch in text[i:k])); i = k
             continue
         k = i
-        while k > 0 and (text[k - 1].isalnum() or text[k - 1] == '_'):
+        while c == "'" and k > 0 and (text[k - 1].isalnum() or text[k - 1] == '_'):  # only a digit separator needs it
             k -= 1
         separator = c == "'" and k < i and text[k].isdigit() and i + 1 < n and text[i + 1].isalnum()
         if c in '"\'' and not separator:

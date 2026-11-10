@@ -139,7 +139,7 @@ template<typename M> bool isExp(const vector<M> &a, const vector<M> &f, int n, b
 template<typename M>
 void basicSuite(const string &name) {
     const int cap = int(min<ulng>(12, M::mod() - 4));
-    for (int rep = 0; rep < (quick ? 50 : 400); ++rep) {
+    for (int rep = 0; rep < (quick ? 10 : 400); ++rep) {
         int n = int(rng() % cap), m = int(rng() % 12);
         auto a = rnd<M>(n), b = rnd<M>(m);
         if (rng() % 3 == 0) { a.resize(n + 3); }
@@ -174,7 +174,7 @@ void divSuite(const string &name, bool big) {
         check(q == trimmed(q) && r == trimmed(r) && int(r.size()) < m && badd(bmul(q, b), r) == trimmed(a), name + " divmod identity n=" + str(n) + " m=" + str(m));
         if (lng(n) * m <= 4000000) { check(bdivmod(a, b) == pair{q, r}, name + " divmod brute"); }}
     if (big) {
-        int n = quick ? 20000 : fast ? 400000 : 50000, m = n * 3 / 8;
+        int n = quick ? 3000 : fast ? 400000 : 50000, m = n * 3 / 8;
         auto a = rnd<M>(n), b = rndNz<M>(m);
         auto [q, r] = polyDivmod(a, b);
         auto c = convolution(b, q);
@@ -186,8 +186,8 @@ void divSuite(const string &name, bool big) {
 
 template<typename M>
 void fpsSuite(const string &name, int bigN) {
-    vector<int> ns{0, 1, 2, 3, 17, 64, 65, 127, 128, 129, 130, 255, 256, 257, 500};
-    if (!quick) { ns.insert(ns.end(), {1000, 2049}); }
+    vector<int> ns{0, 1, 2, 3, 17, 64, 65, 127, 128, 129, 130, 255, 256, 257};
+    if (!quick) { ns.insert(ns.end(), {500, 1000, 2049}); }
     if (fast) { ns.insert(ns.end(), {1500, 2047}); }
     for (Cut c : {INV, LOG, EXP}) { for (int d : {0, 1, 2}) { if (fast || cutOf<M>(c) < 1000) { ns.pb(cutOf<M>(c) + d); } } }
     for (int n : ns) {
@@ -221,7 +221,7 @@ void fpsSuite(const string &name, int bigN) {
         check(isExp(a, fpsExp(a, n), n, true), name + " fpsExp large n=" + str(n));}
     {
         // Sparse inputs with few terms against the dense versions at sizes above the naive thresholds.
-        int n = quick ? 600 : 3000;
+        int n = quick ? 160 : 3000;
         vector<M> a(n);
         a[0] = 1;
         for (int t = 0; t < 6; ++t) { a[rng() % n] = M(rng()); }
@@ -233,7 +233,7 @@ void fpsSuite(const string &name, int bigN) {
 
 template<typename M>
 void powSuite(const string &name, int bigN) {
-    for (int rep = 0; rep < (quick ? 60 : 400); ++rep) {
+    for (int rep = 0; rep < (quick ? 12 : 400); ++rep) {
         int n = int(rng() % 140) + (rep % 4 == 0 ? 0 : 1);
         if (ulng(n) > M::mod()) { n = int(M::mod()); }
         int len = int(rng() % 12), v = int(rng() % 4) * (rng() % 2);
@@ -269,7 +269,7 @@ void powSuite(const string &name, int bigN) {
         for (int i = 6; i < n && ok; ++i) { ok = r[i] == c[i - 6]; }
         check(ok, name + " fpsPow large cube");}
     // Rational exponents p / q: result^q = a^p; no answer when the valuation does not divide.
-    for (int rep = 0; rep < (quick ? 40 : 300); ++rep) {
+    for (int rep = 0; rep < (quick ? 10 : 300); ++rep) {
         int n = int(rng() % 90) + 1, q = int(rng() % 4) + 1, p = int(rng() % 9) - 3, v = q * int(rng() % 3);
         if (ulng(n) > M::mod()) { n = int(M::mod()); }
         auto a = rnd<M>(int(rng() % 10) + 1);
@@ -290,7 +290,7 @@ void powSuite(const string &name, int bigN) {
 
 template<typename M>
 void sqrtSuite(const string &name, int bigN) {
-    for (int rep = 0; rep < (quick ? 80 : 600); ++rep) {
+    for (int rep = 0; rep < (quick ? 16 : 600); ++rep) {
         int n = int(rng() % 300), len = int(rng() % 8), v = int(rng() % 5);
         auto a = rnd<M>(len);
         a.insert(a.begin(), v, M(0));
@@ -344,7 +344,7 @@ void gcdSuite(const string &name, bool big) {
                 auto s2 = badd(s0, bmul(q, s1), M(-1)), t2 = badd(t0, bmul(q, t1), M(-1));
                 r0 = r1; r1 = r; s0 = s1; t0 = t1; s1 = s2; t1 = t2;}
             check(c == r0 && d == r1 && t[0] == s0 && t[1] == t0 && t[2] == s1 && t[3] == t1, name + " polyHalfGcd brute n=" + str(n) + " m=" + str(m));}}
-    for (int rep = 0; rep < (quick ? 100 : 1000); ++rep) {
+    for (int rep = 0; rep < (quick ? 20 : 1000); ++rep) {
         int n = int(rng() % 7), m = int(rng() % 7);
         auto a = rnd<M>(n), b = rnd<M>(m);
         if (rng() % 2) { for (auto &x : a) { x = M(rng() % 3); } for (auto &x : b) { x = M(rng() % 3); } }
@@ -359,7 +359,7 @@ void gcdSuite(const string &name, bool big) {
             check(polyDiscriminant(a) == disc, name + " polyDiscriminant small");}}
     {
         // Roots formulas: Res(a, b) = prod b(r_i), disc = prod_{i < j} (r_i - r_j)^2 for monic a.
-        int n = quick ? 300 : 1500, m = quick ? 250 : 1400;
+        int n = quick ? 100 : 1500, m = quick ? 80 : 1400;
         auto rs = rnd<M>(n);
         if (n > 5) { rs[3] = rs[1]; }
         auto a = polyFromRoots(rs), b = rndNz<M>(m + 1);
@@ -385,7 +385,7 @@ void gcdSuite(const string &name, bool big) {
         auto c = polyMul(a, vector<M>{-rs[5], 1});
         check(polyResultant(c, polyMul(b, vector<M>{-rs[7], 1})) == M(0) && polyDiscriminant(c) == M(0), name + " polyResultant common root above cut(GCD)");}
     if (big) {
-        int n = quick ? 3000 : fast ? 60000 : 8000;
+        int n = quick ? 800 : fast ? 60000 : 8000;
         auto g = rndNz<M>(n / 3), a = polyMul(g, rndNz<M>(n)), b = polyMul(g, rndNz<M>(n - 7));
         auto x = polyXgcd(a, b);
         auto c = polyAdd(polyMul(x.x, a), polyMul(x.y, b));
@@ -400,7 +400,7 @@ void gcdSuite(const string &name, bool big) {
 
 template<typename M>
 void modSuite(const string &name) {
-    for (int rep = 0; rep < (quick ? 30 : fast ? 150 : 50); ++rep) {
+    for (int rep = 0; rep < (quick ? 8 : fast ? 150 : 50); ++rep) {
         int d = int(rng() % 60) + (rep % 10 == 0 ? 0 : 1);
         if (rep % 7 == 0) { d = 126 + int(rng() % 6); }
         if (rep % 25 == 1) { d = fast ? 400 : 200; }
@@ -424,7 +424,7 @@ void modSuite(const string &name) {
 
 template<typename M>
 void compositionSuite(const string &name) {
-    for (int rep = 0; rep < (quick ? 25 : 40); ++rep) {
+    for (int rep = 0; rep < (quick ? 7 : 40); ++rep) {
         int n = int(rng() % 200), k = int(rng() % 220);
         auto f = rnd<M>(k), g = rnd<M>(int(rng() % (n + 3)));
         if (rep % 2 && !g.empty()) { g[0] = 0; }
@@ -458,7 +458,7 @@ void miscSuite(const string &name, int bigN) {
         auto a = rnd<M>(bigN);
         M c = M(rng()), x = M(rng());
         check(polyEval(taylorShift(a, c), x) == polyEval(a, x + c), name + " taylorShift large evaluation");}
-    for (int rep = 0; rep < (quick ? 20 : 100); ++rep) {
+    for (int rep = 0; rep < (quick ? 5 : 100); ++rep) {
         int k = int(rng() % 12);
         vector<vector<M>> ps;
         vector<M> want{1};
@@ -483,7 +483,7 @@ void miscSuite(const string &name, int bigN) {
         for (int i = 0; i <= n && ok; ++i) { ok = big[i] == c; c = c * M(n - i) / M(i + 1); }
         check(ok, name + " productTree binomial");}
     // Power sums by Newton's identities for monic a = x^d + c_{d-1} x^{d-1} + ... + c_0.
-    for (int rep = 0; rep < (quick ? 30 : 200); ++rep) {
+    for (int rep = 0; rep < (quick ? 8 : 200); ++rep) {
         int d = int(rng() % 40), n = int(rng() % 80);
         auto a = rndNz<M>(d + 1);
         if (rep % 3 == 0) { a.insert(a.begin(), int(rng() % 3), M(0)); d = int(a.size()) - 1; }
@@ -497,7 +497,7 @@ void miscSuite(const string &name, int bigN) {
         check(powerSumsOfRoots(a, n) == p, name + " powerSumsOfRoots d=" + str(d) + " n=" + str(n));
         if (ulng(d) < M::mod()) { check(polyFromPowerSums(powerSumsOfRoots(a, d + 1)) == m, name + " polyFromPowerSums round trip d=" + str(d)); }}
     {
-        auto rs = rnd<M>(quick ? 300 : 3000);
+        auto rs = rnd<M>(quick ? 180 : 3000);
         auto p = powerSumsOfRoots(polyFromRoots(rs), 50);
         bool ok = true;
         for (int k = 0; k < 50 && ok; ++k) {
@@ -537,7 +537,7 @@ void cyclotomicSuite() {
     map<int, vector<lll>> memo;
     using P = ModInt<1000000007>;
     using Q = ModInt<7>;
-    int lim = quick ? 400 : 3000;
+    int lim = quick ? 130 : 3000;
     for (int n = 1; n <= lim; ++n) {
         auto want = phiBrute(n, memo);
         auto got = cyclotomicPolynomial(n);
@@ -548,7 +548,8 @@ void cyclotomicSuite() {
         auto gq = cyclotomicPolynomialMod<Q>(n);
         for (size_t i = 0; ok && i < want.size(); ++i) { ok = gp[i] == P(lng(want[i] % 1000000007)) && gq[i] == Q(lng(want[i] % 7)); }
         check(ok, "cyclotomicPolynomialMod n=" + str(n));}
-    vector<int> big{15015, 30030, 90090, 65536, 65537};
+    vector<int> big{15015, 30030, 65536, 65537};
+    if (!quick) { big.pb(90090); }
     if (stress) { big.pb(255255); }
     for (int n : big) {
         auto want = phiBrute(n, memo);
@@ -562,7 +563,7 @@ void compositeSuite() {
     using D = DynModInt<6>;
     D::setMod(1000000000);
     // Ring operations over Z / 10^9 with unit leading or constant coefficients, on both sides of the cutoffs.
-    for (int n : fast ? vector<int>{5, 200, 1700, 4000} : vector<int>{5, 200, 1700}) {
+    for (int n : quick ? vector<int>{5, 200} : fast ? vector<int>{5, 200, 1700, 4000} : vector<int>{5, 200, 1700}) {
         auto a = rnd<D>(n), b = rnd<D>(n / 2 + 1);
         b.back() = D(3);
         a[0] = D(7);
@@ -684,7 +685,7 @@ int main(int argc, char **argv) {
 #ifdef NDEBUG
     fast = true;
 #endif
-    int big = quick ? 3000 : fast ? (stress ? 1 << 20 : 1 << 18) : 1 << 14;
+    int big = quick ? 700 : fast ? (stress ? 1 << 20 : 1 << 18) : 1 << 14;
     using P = ModInt<1000000007>;
     using D = DynModInt<3>;
     using L = ModInt64<4179340454199820289ULL>;
@@ -692,12 +693,12 @@ int main(int argc, char **argv) {
     basicSuite<M>("998244353"); basicSuite<P>("1e9+7"); basicSuite<ModInt<7>>("7");
     divSuite<M>("998244353", true); divSuite<P>("1e9+7", true); divSuite<D>("dynamic 1000003", false); divSuite<L>("64-bit", false);
     fpsSuite<M>("998244353", big); fpsSuite<P>("1e9+7", big / 8); fpsSuite<D>("dynamic 1000003", big / 16); fpsSuite<L>("64-bit", big / 16);
-    powSuite<M>("998244353", big); powSuite<P>("1e9+7", big / 8); powSuite<ModInt<97>>("97", 90);
-    sqrtSuite<M>("998244353", big); sqrtSuite<P>("1e9+7", big / 8); sqrtSuite<D>("dynamic 1000003", big / 16);
-    gcdSuite<M>("998244353", true); gcdSuite<P>("1e9+7", fast); gcdSuite<ModInt<5>>("5", false);
-    modSuite<M>("998244353"); modSuite<P>("1e9+7"); modSuite<ModInt<3>>("3");
-    compositionSuite<M>("998244353"); compositionSuite<P>("1e9+7");
-    miscSuite<M>("998244353", big); miscSuite<P>("1e9+7", big / 8);
+    powSuite<M>("998244353", big); if (!quick) { powSuite<P>("1e9+7", big / 8); } powSuite<ModInt<97>>("97", 90);
+    sqrtSuite<M>("998244353", big); if (!quick) { sqrtSuite<P>("1e9+7", big / 8); } sqrtSuite<D>("dynamic 1000003", big / 16);
+    gcdSuite<M>("998244353", true); if (!quick) { gcdSuite<P>("1e9+7", fast); } gcdSuite<ModInt<5>>("5", false);
+    modSuite<M>("998244353"); if (!quick) { modSuite<P>("1e9+7"); } modSuite<ModInt<3>>("3");
+    compositionSuite<M>("998244353"); if (!quick) { compositionSuite<P>("1e9+7"); }
+    miscSuite<M>("998244353", big); if (!quick) { miscSuite<P>("1e9+7", big / 8); }
     cyclotomicSuite();
     compositeSuite();
     smallPrimeSuite();

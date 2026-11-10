@@ -45,6 +45,8 @@ Correctness: the same recursion maintains two merged orders, by y and by z. At a
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 905 MB; optimized 0.2 s compile + 3.5 s run, checked 33.5 s compile + 12.0 s run, ASan-UBSan 37.3 s compile + 10.9 s run; MEMORY peak 1178 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 963 MB; optimized 0.2 s compile + 3.8 s run, checked 36.4 s compile + 18.1 s run, ASan-UBSan 44.1 s compile + 16.8 s run; MEMORY peak 1136 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 33.6 s compile + 0.3 s run, checked 26.2 s compile + 1.0 s run; MEMORY peak 890 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 903 MB; optimized 0.1 s compile + 8.0 s run, checked 12.5 s compile + 36.4 s run, ASan-UBSan 14.1 s compile + 29.9 s run; MEMORY peak 751 MB. Dated rows below stay those commands' latest results.
+
 2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
 | Command | Result |
@@ -113,3 +115,4 @@ Search aliases (P263, grab --find): nearest pair of points, nearest points (OI W
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.

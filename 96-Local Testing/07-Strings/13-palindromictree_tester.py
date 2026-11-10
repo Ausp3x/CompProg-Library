@@ -18,11 +18,14 @@ Builds use -Wall -Wextra -Wshadow -Wconversion -Werror. Full/stress add
 ASan/UBSan (the checked _GLIBCXX_DEBUG build runs stress at full-mode sizes);
 checked builds run ten precondition probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
     raise SystemExit(main('13-palindromictree', [
         'palindrome-root', 'palindrome-high', 'suffix-negative', 'suffix-high',
         'substring-reversed', 'substring-high', 'counts-high', 'counts-reversed',
-        'dense-below', 'dense-above'], strict=True))
+        'dense-below', 'dense-above'], extra=('-Wshadow',)))

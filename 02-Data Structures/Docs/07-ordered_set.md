@@ -36,6 +36,8 @@ The Python entry and C++ oracle suite share the stem under `96-Local Testing/02-
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 876 MB; optimized 0.1 s compile + 0.1 s run, checked 24.0 s compile + 0.2 s run, ASan-UBSan 54.6 s compile + 3.0 s run; MEMORY peak 1059 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 911 MB; optimized 0.3 s compile + 0.2 s run, checked 31.6 s compile + 0.4 s run, ASan-UBSan 64.1 s compile + 2.3 s run; MEMORY peak 1023 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 37.2 s compile + 0.0 s run, checked 21.9 s compile + 0.2 s run; MEMORY peak 864 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 877 MB; optimized 0.1 s compile + 0.4 s run, checked 9.9 s compile + 0.5 s run, ASan-UBSan 22.9 s compile + 8.1 s run; MEMORY peak 740 MB. Dated rows below stay those commands' latest results.
+
 P006 prune rerun, 2026-10-13: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`), GNU++20, CPython 3.14.7, Linux x86-64 (Intel Core i9-11900H).
 
 ```bash
@@ -73,3 +75,4 @@ Search aliases (P263, grab --find): discretization (OI Wiki: 离散化), coordin
 - 2026-10-13: P006 prune rerun, header and tests unchanged; full suite (seed 20261013) passed on g++ and g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

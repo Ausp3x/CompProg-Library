@@ -12,8 +12,11 @@ Python checks polynomial values by arbitrary-precision weighted power sums.
 Full/stress add ASan/UBSan with leak checking; assertions run in checked builds.
 """
 import random
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 
 def oracle(binary, args, env):
@@ -28,8 +31,8 @@ def oracle(binary, args, env):
         for symbols in samples:
             command = [str(binary), '--oracle', kind]
             payload = f'{args.seed} {len(symbols)}\n' + ' '.join(map(str, symbols)) + '\n'
-            result = subprocess.run(command, input=payload, capture_output=True, text=True,
-                                    env=env, timeout=30)
+            result = timed_run(f'03-stringhash oracle {kind} {Path(command[0]).name}', command, input=payload, capture_output=True, text=True,
+                                                       env=env, timeout=30)
             if result.returncode:
                 raise RuntimeError(f'command={command} returncode={result.returncode} '
                                    f'input={payload!r}\n{result.stdout}\n{result.stderr}')
@@ -54,4 +57,4 @@ def oracle(binary, args, env):
 if __name__ == '__main__':
     raise SystemExit(main('03-stringhash', ['base-low', 'base-high', 'base64-low',
         'base64-even', 'base61-low', 'base61-high', 'alphabet', 'hashof-alphabet', 'build-negative', 'left', 'order', 'right', 'concat-base',
-        'lcp-base', 'lcs-range', 'power', 'length-overflow'], oracle, strict=True))
+        'lcp-base', 'lcs-range', 'power', 'length-overflow'], oracle, extra=('-Wshadow',)))

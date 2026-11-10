@@ -184,7 +184,7 @@ Moduli: 998244353, 1e9+7, dynamic 1000003, the 64-bit NTT prime `29 * 2^57 + 1`,
 | polyResultant | `gcdSuite`: Sylvester determinant (both orders, total degree up to 600), small inputs over `p = 5`, `prod b(r_i)` for 1500 roots, and above `cut(GCD)` (half-GCD quotient log): `prod b(r_i)` with `cut + 400` roots in both orders and a common-root zero (998244353 in every build, 1e9+7 optimized) |
 | polyDiscriminant | `gcdSuite`: formal-degree Sylvester determinant (catches characteristic-dividing degrees over `p = 5`) and `prod (r_i - r_j)^2` with and without a repeated root, below and above `cut(GCD)` |
 | polyPowMod, polyInverseMod, polyComposeMod | `modSuite`: repeated long division over degrees 0 to 400 across the reducer cutoff, 64-bit exponents, no-inverse inputs (multiples of `m`, zero), `0^0` and constant-modulus edges |
-| fpsInverse, fpsDiv, fpsLog, fpsExp | `fpsSuite`: uniqueness identities with schoolbook checks to `n = 2049` and the cutoff neighbours, log(exp) round trips, transform-checked identities to `2^18` (optimized) or `2^20` (stress); `n = p` over `p = 7` |
+| fpsInverse, fpsDiv, fpsLog, fpsExp | `fpsSuite`: uniqueness identities with schoolbook checks to `n = 2049` (`257` quick) and the cutoff neighbours, log(exp) round trips, transform-checked identities to `2^18` (optimized) or `2^20` (stress); `n = p` over `p = 7` |
 | fpsPow | `powSuite`: binary powering with truncated schoolbook products (valuations, zero coefficients, 62-bit `k`, negative `k`, `LLONG_MIN`, cutoff neighbours, a large cube); rational exponents by `r^q = a^p`, branch and no-answer cases; `p = 7` and `p = 97` length edges |
 | fpsSqrt | `sqrtSuite`: squaring, Euler-criterion existence, smaller-`val` branch, odd valuations, cutoff neighbours, large inputs; `p = 7` residue/nonresidue, branch `3` over `4`, and the Newton path at `n = 300, 1000 > p` |
 | fpsSparseInverse, fpsSparseLog, fpsSparseExp, fpsSparsePow, fpsSparseSqrt | same suites (equality with the dense results, which use Newton above the cutoffs) plus sparse inputs of 3000 coefficients |
@@ -193,12 +193,16 @@ Moduli: 998244353, 1e9+7, dynamic 1000003, the 64-bit NTT prime `29 * 2^57 + 1`,
 | taylorShift | `miscSuite`: `sum a_i (x + c)^i` by Horner across `cut(SHIFT)`, large evaluation identity `a(x + c)`; `p = 7` with `n > p`; `p = 113` (cutoff 112) at `n = 112, 113, 114`; composite modulus |
 | productTree, polyFromRoots | `miscSuite`: sequential products (empty list, empty factors), `(1 + x)^n` binomials to 20000 factors |
 | egfConvolution | `miscSuite`: Pascal-triangle brute; `p = 7` at `n = p` |
-| cyclotomicPolynomial, cyclotomicPolynomialMod | `cyclotomicSuite`: every `n <= 3000` (`<= 400` quick) against the exact 128-bit identities, residues mod 1e9+7 and 7, and `n = 15015, 30030, 90090, 65536, 65537` (and 255255 in stress) |
+| cyclotomicPolynomial, cyclotomicPolynomialMod | `cyclotomicSuite`: every `n <= 3000` (`<= 130` quick) against the exact 128-bit identities, residues mod 1e9+7 and 7, and `n = 15015, 30030, 65536, 65537` (and 90090 in full and stress, 255255 in stress) |
 | powerSumsOfRoots, polyFromPowerSums | `miscSuite`: Newton's identities (zero roots via low zero coefficients, non-monic), round trips, direct power sums of 3000 explicit roots |
 | prefixSumOfPolynomial | `miscSuite` and `p = 7`: `g(x)` equals the running sum of `f(i)` for `x <= deg f + 2` |
 | assertion probes | 28 checked-build probes: zero constants, non-unit `q`, long lengths over `p = 7`, even modulus, zero divisor or modulus, degree preconditions, negative sizes |
 
+Moved from quick to full and stress by the 10 s quick bound (P274): the `1e9+7` instances of `powSuite`, `sqrtSuite`, `gcdSuite`, `modSuite`, `compositionSuite` and `miscSuite`, and `n = 1700` (and `n = 4000` in the optimized build) in `compositeSuite`; by `/finish` P274 (checked quick 10.0 s alone) `n = 500` of `fpsSuite` and `n = 90090` of `cyclotomicSuite`. Every suite with a 998244353 instance keeps it in quick.
+
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1818 MB; optimized 0.1 s compile + 62.3 s run, checked 65.3 s compile + 13.5 s run, ASan-UBSan 78.2 s compile + 28.1 s run; MEMORY peak 2864 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1730 MB; optimized 0.2 s compile + 176.7 s run, checked 149.0 s compile + 24.4 s run, ASan-UBSan 183.4 s compile + 88.5 s run; MEMORY peak 2730 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 106.1 s compile + 4.4 s run, checked 59.6 s compile + 41.3 s run; MEMORY peak 1811 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 99 MB; optimized 0.1 s compile + 55.8 s run, checked 45.7 s compile + 13.7 s run, ASan-UBSan 51.5 s compile + 27.9 s run; MEMORY peak 1754 MB. After `/finish` cut its quick inputs (above), alone: `python3 '96-Local Testing/05-Mathematics/14-polynomial_algorithms_tester.py' --mode full --seed 42` PASS: pre-flight quick peak 1816 MB; optimized 0.1 s compile + 42.3 s run, checked 41.3 s compile + 8.7 s run, ASan-UBSan 45.5 s compile + 22.1 s run; MEMORY peak 2889 MB; pre-flight quick runs optimized 1.2 s, checked 8.9 s; with `CXX=g++-14` PASS: pre-flight quick peak 1749 MB; optimized 0.1 s compile + 47.3 s run, checked 38.9 s compile + 6.9 s run, ASan-UBSan 46.2 s compile + 20.0 s run; MEMORY peak 2736 MB; pre-flight quick runs optimized 1.2 s, checked 8.7 s. Dated rows below stay those commands' latest results.
 
 P057 prune run, 2026-10-13: GCC 16.2.1 and GCC 14.4.1 (`CXX=g++-14`). Configurations: optimized `-O2 -DNDEBUG`, checked `-O0 -g -D_GLIBCXX_DEBUG`, ASan+UBSan `-O1`.
 
@@ -222,7 +226,7 @@ python3 '96-Local Testing/03-consistency.py'                                    
     - transform-checked FPS identities at `2^18` (optimized) or `2^14` (checked builds);
     - cyclotomic polynomials for every `n <= 3000`.
   - Stress adds `2^20` FPS sizes and `Phi_255255`.
-  - The checked builds use the smaller sizes so that each run stays below the runner's 180 s limit; it takes about 100 s unloaded.
+  - The checked builds use the smaller sizes so that each run stays below the runner's former 180 s limit; it takes about 100 s unloaded.
 - The headers build with `-Wall -Wextra -Wconversion` without warnings, alone and through `99-all.hpp`.
 
 ## Benchmarks
@@ -298,3 +302,4 @@ Search aliases (P263, grab --find): 多项式牛顿迭代, 多项式初等函数
 - 2026-10-13: prune, removed `polyMod` (Legacy mapping; its cases are covered by the `divSuite` identity); full suite passed on g++ and g++-14.
 - 2026-10-19: P054 follow-up rerun (included `13-convolution.hpp` changed), header unchanged; full passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged, quick inputs cut in `/finish` (above); every run above passed.

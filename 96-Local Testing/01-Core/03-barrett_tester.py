@@ -14,9 +14,9 @@ ASan/UBSan and the standalone/multiple-TU build. All builds use
 from __future__ import annotations
 
 import argparse
+import functools
 import os
 from pathlib import Path
-import resource
 import shlex
 import shutil
 import signal
@@ -26,7 +26,7 @@ import tempfile
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
-from _00_cpp_test_runner import cpu_runs, x86, x86_only
+from _00_cpp_test_runner import Builder, cpu_runs, timed_run, x86, x86_only
 
 _00_memory_cap.ensure()
 
@@ -51,8 +51,8 @@ def execute(command: list[str], label: str, env: dict[str, str], death: bool = F
     if sys.stdout.isatty():
         print(f"\r\033[KRUN {label}", end="", flush=True)
     try:
-        result = subprocess.run(command, cwd="/tmp", env=env, capture_output=True,
-                                text=True, timeout=300)
+        result = timed_run(label, command, cwd="/tmp", env=env, capture_output=True,
+                                  text=True, timeout=300)
     except subprocess.TimeoutExpired as error:
         raise RuntimeError(f"{label} timeout=300s\ncommand={shlex.join(command)}\n"
                            f"stdout={error.stdout!r}\nstderr={error.stderr!r}") from error
@@ -77,7 +77,6 @@ def main() -> int:
         return 1
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1",
                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
     scalar = x86_only(["-march=x86-64", "-mno-avx", "-mno-avx2"], compiler)
     vector = x86_only(["-march=x86-64", "-mavx2"], compiler)
@@ -104,10 +103,12 @@ def main() -> int:
             raise RuntimeError(f"GNU compiler GCC 14+ required; CXX reports {version}")
         with tempfile.TemporaryDirectory(prefix="cp-barrett-tests-") as directory:
             temp = Path(directory)
-            for name, options in variants:
-                binary = str(temp / name)
+            builder = Builder(compiler, temp, env=env, failure=RuntimeError)
+            compiled = builder.build_all([(name, f"compile {name} mode={args.mode} seed={args.seed}", [*flags, *options], [SOURCE], str(temp / name), 300,
+                                           650 if name.startswith("sanitized") else 600) for name, options in variants])
+            def one(name, options):
+                binary, mark = str(temp / name), builder.stopwatch()
                 label = f"{name} mode={args.mode} seed={args.seed}"
-                execute([*compiler, *flags, *options, str(SOURCE), "-o", binary], f"compile {label}", env)
                 report("PASS", f"{name} compilation")
                 output = execute([binary, "--mode", args.mode, "--seed", str(args.seed)], label, env)
                 for line in output.splitlines():
@@ -117,14 +118,15 @@ def main() -> int:
                     for case in DEATH_CASES:
                         execute([binary, "--death", case], f"{name} precondition {case}", env, True)
                     report("PASS", f"{name}: {len(DEATH_CASES)} checked preconditions")
+                builder.report(mark, f"Barrett {name}", args.mode, compiled[name])
+            builder.concurrently([(1 << 40 if args.mode == "stress" else 500, functools.partial(one, name, options)) for name, options in variants])
             if args.mode != "quick":
                 include = '#include "01-Core/03-barrett.hpp"\n'
                 a, b = temp / "a.cpp", temp / "b.cpp"
                 a.write_text(include + "ulng other(); int main(){return Barrett(17).mul(123,456)!=other();}\n")
                 b.write_text(include + "ulng other(){return Barrett64(17).mul(123,456);}\n")
                 binary = str(temp / "multiple-tu")
-                execute([*compiler, *flags, "-O2", "-I", str(ROOT), str(a), str(b), "-o", binary],
-                        "standalone header and multiple-TU compile", env)
+                builder.build("standalone header and multiple-TU compile", [*flags, "-O2", "-I", str(ROOT)], [a, b], binary, 300)
                 execute([binary], "multiple-TU execute", env)
                 report("PASS", "standalone/multiple-TU compile and execute")
     except (OSError, RuntimeError, ValueError) as error:

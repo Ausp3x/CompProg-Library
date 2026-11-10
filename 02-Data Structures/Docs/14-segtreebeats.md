@@ -41,7 +41,7 @@ Package P028 (batch DS07). Replaces the unchanged extraction `SegTreeBeats` (`OL
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/14-segtreebeats_tester.cpp`, entry `14-segtreebeats_tester.py` (driver `_00_runner.py`; three builds; 24 assertion probes).
+Tester `96-Local Testing/02-Data Structures/14-segtreebeats_tester.cpp`, entry `14-segtreebeats_tester.py` (driver `_00_contest_runner.py`; three builds; 24 assertion probes).
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -59,6 +59,8 @@ Tester `96-Local Testing/02-Data Structures/14-segtreebeats_tester.cpp`, entry `
 Sizes 0–100 in full mode (plus 257 and 1000 in stress), 1500 steps per family and size. Mutation check (2026-10-10, quick mode, temporary copies): 9 of 11 injected faults detected (no uniform overwrite on push, missing second-minimum update in `cap`, monotone flag on mod, truncating division, historic peak tag, historic-sum sign, ignored `fail`, and/or uniformity test, second-maximum merge); the two survivors are equivalent: accepting `x == v2` as a tag leaves a node whose max equals its second max, which no later tag can touch before a recompute, and testing `<` instead of `!=` on the shifts is the same test because `f(x) - x` is nonincreasing.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 894 MB; optimized 0.1 s compile + 1.9 s run, checked 23.1 s compile + 3.0 s run, ASan-UBSan 24.2 s compile + 17.3 s run; MEMORY peak 1096 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 940 MB; optimized 0.3 s compile + 2.4 s run, checked 27.9 s compile + 3.5 s run, ASan-UBSan 31.7 s compile + 15.6 s run; MEMORY peak 1046 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 27.0 s compile + 0.1 s run, checked 28.9 s compile + 0.7 s run; MEMORY peak 904 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 910 MB; optimized 0.1 s compile + 4.2 s run, checked 10.5 s compile + 7.2 s run, ASan-UBSan 10.4 s compile + 35.3 s run; MEMORY peak 577 MB. Dated rows below stay those commands' latest results.
 
 Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
@@ -119,3 +121,4 @@ Search aliases (P263, grab --find): 区间最值操作 & 区间历史最值, 吉
 - 2026-10-10: independent review (P028): no wrong answers in the domain; fixed a walk that never ended for chmin/chmax with the `lng min` sentinel (entry assert plus leaf guard), the skipped range assert for `q = 1`, and the node size in this document.
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 542/566/541 MB.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

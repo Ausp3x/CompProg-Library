@@ -64,7 +64,7 @@ Search aliases (P263, grab --find): 平面图, 对偶图, 平面图最小割, �
 
 ## Feature-to-test map
 
-`96-Local Testing/04-Graphs/29-planar_graph_tester.py` (shared graph runner with `-Werror` warnings; optimized, checked with 17 assertion probes, ASan/UBSan in full and stress).
+`96-Local Testing/04-Graphs/29-planar_graph_tester.py` (shared contest runner with `-Werror` warnings; optimized, checked with 17 assertion probes, ASan/UBSan in full and stress).
 
 | Operation | Test | Oracle |
 |---|---|---|
@@ -78,6 +78,8 @@ Search aliases (P263, grab --find): 平面图, 对偶图, 平面图最小割, �
 | Assertion probes | `--invalid` | directed input, `commonFace(u, u)` and range, `s = t`, range, genus-1 rotations (K3,3, K4, and s, t inside the K3,3 of a mixed graph), no common face, negative capacity or weight, `cap` size, `xy` size, drawing loop, parallel edge, coincident points, coordinate 2^62 |
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 949 MB; optimized 0.3 s compile + 9.7 s run, checked 28.1 s compile + 37.4 s run, ASan-UBSan 32.6 s compile + 109.4 s run; MEMORY peak 1201 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 944 MB; optimized 0.2 s compile + 11.3 s run, checked 39.7 s compile + 51.4 s run, ASan-UBSan 42.2 s compile + 146.2 s run; MEMORY peak 1196 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 30.6 s compile + 0.8 s run, checked 22.8 s compile + 34.1 s run; MEMORY peak 931 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 55 MB; optimized 0.1 s compile + 17.5 s run, checked 13.2 s compile + 29.4 s run, ASan-UBSan 15.8 s compile + 78.3 s run; MEMORY peak 887 MB. Dated rows below stay those commands' latest results.
 
 Run 2026-10-28 on the local machine (GCC 16.2 `g++`, GCC 14.4.1 `g++-14`):
 
@@ -112,3 +114,4 @@ Benchmarks: none required (Contest profile, no Barrett or Montgomery reduction).
 - 2026-10-28: `/finish` audit: per-component `genus` and O(1) genus check, `NDEBUG`-bounded directed input, F defined, docs and provenance; full suite passed on g++ and g++-14, stress passed.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

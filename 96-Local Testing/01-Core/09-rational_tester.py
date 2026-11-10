@@ -19,13 +19,13 @@ from __future__ import annotations
 
 import argparse
 from fractions import Fraction as Q
+import functools
 import math
 import os
 from pathlib import Path
 import queue
 import random
 import re
-import resource
 import shlex
 import shutil
 import signal
@@ -36,6 +36,7 @@ import threading
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import Builder, over_half, timed_run
 
 _00_memory_cap.ensure()
 if hasattr(sys, "set_int_max_str_digits"):
@@ -73,7 +74,7 @@ def execute(command: list[str], label: str, timeout: int, env: dict[str, str], d
     if sys.stdout.isatty():
         print(f"\r\033[KRUN {label}", end="", flush=True)
     try:
-        result = subprocess.run(command, cwd="/tmp", env=env, text=True, capture_output=True, timeout=timeout)
+        result = timed_run(label, command, cwd="/tmp", env=env, text=True, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:
         raise Failure(f"{label}: timeout={timeout}s command={shlex.join(command)}") from error
     okay = result.returncode == -signal.SIGABRT and "assert" in result.stderr.lower() if death else result.returncode == 0
@@ -414,6 +415,7 @@ def run_protocol(executable: str, label: str, seed: int, mode: str, env: dict[st
         feeder.join(timeout=60)
         stderr = proc.stderr.read()
         code = proc.wait(timeout=60)
+        over_half(label, time.monotonic() - start, timeout)
         if errors:
             raise Failure(f"{label}: case generation failed: {errors[0]!r}")
         left = pending.get() if not pending.empty() else None
@@ -444,7 +446,6 @@ def main() -> int:
     ld = {k: int(v) for k, v in re.findall(r"#define __LDBL_(MANT_DIG|MIN_EXP|MAX_EXP)__ \(?(-?\d+)", macros)}
     LONG_DOUBLE = (ld["MANT_DIG"], ld["MIN_EXP"] - ld["MANT_DIG"], ld["MAX_EXP"])
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1:quarantine_size_mb=64", UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
     variants = [("optimized", ["-O2", "-DNDEBUG"]), ("checked", ["-O1", "-g", "-D_GLIBCXX_ASSERTIONS"])]
     if args.mode != "quick":
@@ -455,32 +456,34 @@ def main() -> int:
     try:
         with tempfile.TemporaryDirectory(prefix="cp-rational-tests-") as name:
             directory = Path(name)
+            builder = Builder(compiler, directory, env=env, failure=Failure)
             alone = directory / "alone.cpp"
             alone.write_text(f'#include "{HEADER}"\nint main() {{ Frac a(1, 3); Rational<lll> b(2, 3); a += 1; b *= 3;\n'
                              '    return a == Frac(4, 3) && b.num == 2 && a.toDecimal(2) == "1.33" ? 0 : 1; }\n')
-            execute([*compiler, *flags, "-O2", str(alone), "-o", str(directory / "alone")], "header-alone compile without InfInt", 180, env)
+            builder.build("header-alone compile without InfInt", [*flags, "-O2"], [alone], str(directory / "alone"), 180)
             execute([str(directory / "alone")], "header-alone run", 60, env)
             aggregate = directory / "all.cpp"
             aggregate.write_text(f'#include "{ROOT / "01-Core/99-all.hpp"}"\nint main() {{ return Rational<InfInt>(3).toString() == "3" ? 0 : 1; }}\n')
-            execute([*compiler, "-std=gnu++20", "-fsyntax-only", str(aggregate)], "99-all compile (unverified siblings are not warning-clean)", 180, env)
+            builder.syntax("99-all compile (unverified siblings are not warning-clean)", ["-std=gnu++20"], aggregate, 180)
             for label, body in (("floating constructor", "Frac x(0.5);"), ("floating second argument", "Frac x(1, 2.5);"),
                                 ("floating operand", "Frac x(1); x = x + 0.5;"), ("floating comparison", "bool b = Frac(0) == 0.5; (void)b;"),
                                 ("unsupported T", "Rational<int> x(1, 2); (void)x;")):
                 bad = directory / "bad.cpp"
                 bad.write_text(f'#include "{HEADER}"\nint main() {{ {body} return 0; }}\n')
-                result = subprocess.run([*compiler, "-std=gnu++20", "-fsyntax-only", str(bad)], cwd="/tmp", env=env, text=True, capture_output=True, timeout=180)
+                result = timed_run(f"rejection compile {label}", [*compiler, "-std=gnu++20", "-fsyntax-only", str(bad)], cwd="/tmp", env=env, text=True, capture_output=True, timeout=180)
                 if result.returncode == 0:
                     raise Failure(f"compile-fail check '{label}' compiled: {body}")
             poly = directory / "poly.cpp"
             poly.write_text(f'#include "{ROOT / "01-Core/16-poly.hpp"}"\n#include "{HEADER}"\n'
                             'int main() { Poly<Frac> a({Frac(1, 2), Frac(-1, 3), Frac(2)}), b({Frac(3), Frac(1, 5)}); auto c = a * b; auto [q, r] = divMod(c, b);\n'
                             '    return q == a && r.isNil() && c[1] == Frac(-9, 10) && c[3] == Frac(2, 5) && eval(a, Frac(3, 2)) == Frac(9, 2) && deriv(a)[1] == Frac(4) ? 0 : 1; }\n')
-            execute([*compiler, "-std=gnu++20", "-O2", str(poly), "-o", str(directory / "poly")], "Poly<Frac> consumer compile", 600, env)
+            builder.build("Poly<Frac> consumer compile", ["-std=gnu++20", "-O2"], [poly], str(directory / "poly"), 600)
             execute([str(directory / "poly")], "Poly<Frac> consumer run", 60, env)
             report("PASS", "header-alone (no InfInt), 99-all, compile-fail checks and the Poly<Frac> consumer")
-            for variant, options in variants:
-                executable = str(directory / variant)
-                execute([*compiler, *flags, *options, str(SOURCE), str(SECOND), "-o", executable], f"compile {variant}", 400, env)
+            compiled = builder.build_all([(variant, f"compile {variant}", [*flags, *options], [SOURCE, SECOND], str(directory / variant), 1200,
+                                           800 if variant == "sanitized" else 620) for variant, options in variants])
+            def one(variant, options):
+                executable, mark = str(directory / variant), builder.stopwatch()
                 report("PASS", f"{variant} compilation (two translation units)")
                 for round_index in range(rounds):
                     seed = (args.seed + round_index) % 2 ** 64
@@ -496,6 +499,8 @@ def main() -> int:
                     for case in INVALID_CASES:
                         execute([executable, "--invalid", case], f"precondition {case}", 60, env, death=True)
                     report("PASS", f"checked preconditions ({len(INVALID_CASES)} cases)")
+                builder.report(mark, f"Rational {variant}", args.mode, compiled[variant])
+            builder.concurrently([(1 << 40 if args.mode == "stress" else 300, functools.partial(one, variant, options)) for variant, options in variants])
     except (Failure, OSError) as error:
         report("FAIL", f"Rational mode={args.mode} seed={args.seed}: {error}")
         return 1

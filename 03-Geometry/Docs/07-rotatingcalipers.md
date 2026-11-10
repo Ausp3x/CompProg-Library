@@ -60,6 +60,8 @@ Correctness:
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 815 MB; optimized 0.2 s compile + 0.5 s run, checked 16.2 s compile + 0.5 s run, ASan-UBSan 18.2 s compile + 1.0 s run; MEMORY peak 1005 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 856 MB; optimized 0.3 s compile + 0.5 s run, checked 28.0 s compile + 0.9 s run, ASan-UBSan 28.5 s compile + 2.3 s run; MEMORY peak 1049 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 20.4 s compile + 0.1 s run, checked 23.1 s compile + 0.3 s run; MEMORY peak 811 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 822 MB; optimized 0.1 s compile + 2.5 s run, checked 8.4 s compile + 7.9 s run, ASan-UBSan 8.6 s compile + 25.3 s run; MEMORY peak 611 MB. Dated rows below stay those commands' latest results.
+
 2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
 
 | Command | Result |
@@ -124,3 +126,4 @@ Search aliases (P263, grab --find): 旋转卡壳, 旋转卡尺, 凸包直径, �
 - 2026-10-07: re-audit, implemented `farthestPair`; 4 findings fixed; full suite, stress and benchmark passed on g++ 16; independent review: reproduced every full count and probe, confirmed one package defect (in `06-circle.hpp`).
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

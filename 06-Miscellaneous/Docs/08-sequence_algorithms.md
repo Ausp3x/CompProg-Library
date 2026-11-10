@@ -96,6 +96,8 @@ Mutation probes (2026-10-08, quick mode) detected changes to the hull pop, lengt
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1055 MB; optimized 0.1 s compile + 0.9 s run, checked 40.0 s compile + 3.2 s run, ASan-UBSan 41.6 s compile + 16.3 s run; MEMORY peak 1554 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1087 MB; optimized 0.2 s compile + 1.2 s run, checked 57.0 s compile + 5.5 s run, ASan-UBSan 64.1 s compile + 20.6 s run; MEMORY peak 1515 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 52.2 s compile + 0.1 s run, checked 33.5 s compile + 2.8 s run; MEMORY peak 1028 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1057 MB; optimized 0.1 s compile + 1.8 s run, checked 17.4 s compile + 3.8 s run, ASan-UBSan 19.7 s compile + 28.2 s run; MEMORY peak 864 MB. Dated rows below stay those commands' latest results.
+
 Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
@@ -146,3 +148,4 @@ Search aliases (P263, grab --find): LIS (longest increasing subsequence), two po
 - 2026-10-17: P027 monoid pass (`SegmentTree` over the `Monoid` adapter; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 709/742/710 MB.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.

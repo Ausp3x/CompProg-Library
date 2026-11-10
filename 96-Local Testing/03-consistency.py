@@ -248,6 +248,16 @@ for p in [*tests_root.glob('*/*_tester.py'), *tests_root.glob('*/*_benchmark.py'
     via = set(re.findall(r'^from (\w+) import', text, re.M))
     require('_00_memory_cap.ensure(' in text or bool(via & capped_runners),
             'Uncapped test entry point (call _00_memory_cap.ensure()): ' + str(p.relative_to(ROOT)))
+# Every C++ test build goes through Builder (05-testing.md, Layout and modes); benchmarks time their own builds.
+spec = importlib.util.spec_from_file_location('library_test_builds', tests_root / '_00_cpp_test_runner.py')
+test_builds = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(test_builds)
+for p in [*tests_root.glob('0[1-7]-*/*_tester.py'), *tests_root.glob('0[1-7]-*/_*.py')]:
+    text = p.read_text()
+    for reason in test_builds.bypasses(text, p.name.endswith('_tester.py') and not p.is_relative_to(tests_root / '01-Core')):
+        require(False, f'Test build outside Builder in {p.relative_to(ROOT)}: {reason}')
+    require(not test_builds.runs_in_order(text) or p.name == '_00_foundation_runner.py',
+            f'Builds compiled at once but run one at a time (Builder.concurrently): {p.relative_to(ROOT)}')
 
 # Mini first (03-cpp.md, Headers; 02-structure.md, Inventory contract): findings on support targets of open 2026-11-05
 # batches and on rows or packages not yet verified are reported in mini_first_pending; the rest are errors.

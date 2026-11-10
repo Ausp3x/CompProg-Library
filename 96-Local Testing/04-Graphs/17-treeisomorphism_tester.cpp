@@ -149,7 +149,7 @@ namespace {
         check(samePartition(h1, sub) && samePartition(h2, sub), "rootedTreeHash partition");}
 
     void exhaustive() {
-        int bound = mode == "quick" ? 6 : mode == "full" || CHECKED ? 7 : 8;
+        int bound = mode == "quick" ? 5 : mode == "full" || CHECKED ? 7 : 8;
         for (int n = 1; n <= bound; ++n) {
             map<string, string> unrootedA, unrootedB, rootedA, rootedB;
             map<string, lng> autCount;
@@ -185,7 +185,7 @@ namespace {
                 if (j < 0) { break; }
                 ++seq[j];}
             // Pairs: random pairs of labelled trees, mapping exists iff naive strings agree.
-            int pairs = mode == "quick" ? 300 : 3000;
+            int pairs = mode == "quick" ? 100 : 3000;
             for (int t = 0; t < pairs && n >= 1; ++t) {
                 auto &a = all[rnd(int(all.size()))], &b = rng() % 2 ? all[rnd(int(all.size()))] : a;
                 vector<int> perm;
@@ -203,7 +203,7 @@ namespace {
 
     // Symmetric families: copies of one rooted tree on a center or across a central edge.
     void randomCases() {
-        int rounds = mode == "quick" ? 200 : mode == "full" || CHECKED ? 2000 : 10000;
+        int rounds = mode == "quick" ? 80 : mode == "full" || CHECKED ? 2000 : 10000;
         // Saved regression: child hash sums agree here ({1 leaf, 3 leaves} against {2 leaves, 2 leaves}); products differ.
         Graph a = build(7, {{0, 1}, {1, 2}, {0, 3}, {3, 4}, {3, 5}, {3, 6}}), b = build(7, {{0, 1}, {1, 2}, {1, 3}, {0, 4}, {4, 5}, {4, 6}});
         context = "regression additive hash collision";
@@ -241,7 +241,7 @@ namespace {
         cout << "PASS symmetric families rounds=" << rounds << '\n';}
 
     void large() {
-        int n = mode == "quick" ? 20000 : CHECKED ? min(LARGE, mode == "full" ? 200000 : 1000000) : mode == "full" ? 200000 : 1000000;
+        int n = mode == "quick" ? 8000 : CHECKED ? min(LARGE, mode == "full" ? 200000 : 1000000) : mode == "full" ? 200000 : 1000000;
         vector<pair<int, int>> path;
         for (int v = 1; v < n; ++v) { path.push_back({v - 1, v}); }
         Graph p = build(n, path);

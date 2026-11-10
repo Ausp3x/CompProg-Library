@@ -14,12 +14,15 @@ random roots, exhaustive Pruefer codes n<=6 and 300 random codes,
 random/star/caterpillar/binary/broom trees. full: 3000 rounds, Pruefer n<=7
 and 3000 codes, 200000-vertex shapes, in optimized, checked and ASan/UBSan
 builds. stress: 12000 rounds, Pruefer n<=8, 500000-vertex shapes. To stay
-within the timeout the checked (_GLIBCXX_DEBUG, -O0) build caps full at 1000
+within the timeout the checked (_GLIBCXX_DEBUG) build caps full at 1000
 rounds, stress at 2000 rounds and all shapes at 50000 vertices; the ASan/UBSan
 build caps full at 1500 rounds, stress at 2000 rounds, the deep paths at
 200000 vertices and the other shapes at 50000 vertices.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('14-tree_algorithms', ['diameter-directed', 'diameter-cycle', 'diameter-forest',
@@ -27,4 +30,4 @@ if __name__ == '__main__':
         'euler-multi-edge', 'subtree-range', 'bfs-loop', 'level-range', 'disk-negative', 'rerooting-forest',
         'rerooting-nonadjacent', 'subtree-dp-root', 'merge-negative-k', 'virtual-range', 'virtual-cycle',
         'prufer-single', 'prufer-forest', 'prufer-value', 'prufer-negative',
-        'subtree-range-far', 'level-range-far', 'disk-range', 'rerooting-get-range', 'rerooting-parent-far', 'prufer-value-far'], strict=True))
+        'subtree-range-far', 'level-range-far', 'disk-range', 'rerooting-get-range', 'rerooting-parent-far', 'prufer-value-far']))

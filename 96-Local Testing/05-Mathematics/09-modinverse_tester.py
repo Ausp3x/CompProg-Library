@@ -10,8 +10,11 @@ prime and composite moduli and modulus 1, against direct powers. Python oracle: 
 63-bit operands and moduli, and random primes up to 2^63. 8 assertion probes.
 """
 import random
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 
 def is_prime(n):
@@ -45,7 +48,7 @@ def oracle(binary, args, env):
         rows.append(('f', p * rng.randint(-3, 3) if abs(p * 3) <= hi else 0, p))
     payload = ''.join(f'{op} {a} {m}\n' for op, a, m in rows)
     command = [str(binary), '--oracle']
-    p = subprocess.run(command, input=payload, capture_output=True, text=True, env=env, timeout=180)
+    p = timed_run(f'09-modinverse oracle {Path(command[0]).name}', command, input=payload, capture_output=True, text=True, env=env, timeout=180)
     if p.returncode: raise RuntimeError(f'command={command} returncode={p.returncode}\n{p.stderr}')
     lines = p.stdout.splitlines()
     if len(lines) != len(rows): raise RuntimeError(f'expected {len(rows)} lines, got {len(lines)}')

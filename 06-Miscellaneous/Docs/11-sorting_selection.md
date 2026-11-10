@@ -50,6 +50,8 @@ Mutation probes (2026-10-08, quick mode): a group-minimum pivot in `medianOfMedi
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1579 MB; optimized 0.1 s compile + 29.8 s run, checked 92.3 s compile + 59.4 s run, ASan-UBSan 91.9 s compile + 77.4 s run; MEMORY peak 2495 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1591 MB; optimized 0.3 s compile + 54.5 s run, checked 156.9 s compile + 159.4 s run, ASan-UBSan 150.2 s compile + 101.1 s run; MEMORY peak 2475 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 105.2 s compile + 0.1 s run, checked 80.4 s compile + 3.4 s run; MEMORY peak 1596 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 1603 MB; optimized 0.1 s compile + 13.6 s run, checked 42.9 s compile + 46.5 s run, ASan-UBSan 41.8 s compile + 88.8 s run; MEMORY peak 1509 MB. Dated rows below stay those commands' latest results.
+
 P014 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H. `02-integration.py` (135 standalone and aggregate headers, scalar and available AVX2 multi-TU builds, workspace) and `03-consistency.py` passed that date (record moved from the superseded 08-sequence_algorithms.md run).
 
 - Quick: `python3 '96-Local Testing/06-Miscellaneous/11-sorting_selection_tester.py' --mode quick --seed 1`: PASS, 2 configurations, 13 probes.
@@ -107,3 +109,4 @@ Search aliases (P263, grab --find): k-th order statistic, selection, median of m
 - 2026-10-13: prune, removed `stablePartition` and `quickSelect` (cases moved to `std::stable_partition` and `std::nth_element`, `select-*` probes dropped); full suite passed on g++ and g++-14; benchmark rebuilt warning-free, outputs verified.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

@@ -14,12 +14,12 @@ ISA-specific paths. Only Python's standard library and GCC 14+ are required.
 from __future__ import annotations
 
 import argparse
+import functools
 import math
 import os
 from pathlib import Path
 import random
 import re
-import resource
 import shlex
 import shutil
 import signal
@@ -29,7 +29,7 @@ import tempfile
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
-from _00_cpp_test_runner import x86_only
+from _00_cpp_test_runner import Builder, timed_run, x86_only
 
 _00_memory_cap.ensure()
 
@@ -53,8 +53,8 @@ def execute(command: list[str], label: str, env: dict[str, str], *, data: str | 
     if sys.stdout.isatty():
         print(f"\r\033[KRUN {label}", end="", flush=True)
     try:
-        result = subprocess.run(command, cwd="/tmp", env=env, input=data, text=True,
-                                capture_output=True, timeout=300)
+        result = timed_run(label, command, cwd="/tmp", env=env, input=data, text=True,
+                                  capture_output=True, timeout=300)
     except subprocess.TimeoutExpired as error:
         raise Failure(f"{label}: timeout=300s command={shlex.join(command)}\n"
                       f"stdout={error.stdout!r}\nstderr={error.stderr!r}") from error
@@ -246,7 +246,6 @@ def main() -> int:
         return 1
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1",
                UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", *x86_only(["-march=x86-64", "-mno-avx", "-mno-avx2"], compiler)]
     variants = [("optimized-scalar", ["-O3", "-DNDEBUG"]),
                 ("checked-scalar", ["-O1", "-g", "-D_GLIBCXX_ASSERTIONS"])]
@@ -270,11 +269,12 @@ def main() -> int:
             temp = Path(directory)
             copies = standalone_sources(temp, header)
             a, b = cross_tu_sources(temp, header)
-            for name, options in variants:
-                binary = str(temp / name)
+            builder = Builder(compiler, temp, env=env, failure=Failure)
+            compiled = builder.build_all([(name, f"compile {context}/{name}", [*flags, *options], [entry.with_suffix('.cpp')], str(temp / name), 300,
+                                           800 if name.startswith("sanitized") else 600) for name, options in variants])
+            def one(name, options):
+                binary, mark = str(temp / name), builder.stopwatch()
                 config = f"{context}/{name}"
-                execute([*compiler, *flags, *options, str(entry.with_suffix('.cpp')), "-o", binary],
-                        "compile " + config, env)
                 report("PASS", f"{name} compilation")
                 output = execute([binary], config + " API fixtures", env)
                 for line in output.splitlines():
@@ -297,17 +297,17 @@ def main() -> int:
                             execute([binary, "--death", str(kind), case], config + f" precondition {kind}/{case}", env, death=True)
                     report("PASS", "checked-scalar all 18 declared-precondition deaths")
                 for source in copies:
-                    target = str(source.with_suffix(""))
-                    execute([*compiler, *flags, *options, str(source), "-o", target],
-                            config + " extracted-struct compile " + source.stem, env)
+                    target = str(temp / f"{source.stem}-{name}")
+                    builder.build(config + " extracted-struct compile " + source.stem, [*flags, *options], [source], target, 300)
                     execute([target], config + " extracted-struct execute " + source.stem, env)
                 report("PASS", f"{name} all four individually copied structs (standard headers/aliases only)")
                 for first, second in [(a, b), (b, a)]:
-                    target = str(temp / "cross-tu")
-                    execute([*compiler, *flags, *options, str(first), str(second), "-o", target],
-                            config + " cross-TU compile " + first.name, env)
+                    target = str(temp / f"cross-tu-{name}")
+                    builder.build(config + " cross-TU compile " + first.name, [*flags, *options], [first, second], target, 300)
                     execute([target], config + " cross-TU execute " + first.name, env)
                 report("PASS", f"{name} default/custom globals in both link orders and width independence")
+                builder.report(mark, f"modintmini {name}", args.mode, compiled[name])
+            builder.concurrently([(1 << 40 if args.mode == "stress" else 800 if name.startswith("sanitized") else 600, functools.partial(one, name, options)) for name, options in variants])
             for kind in ["ModIntMini", "ModInt64Mini"]:
                 source = temp / "bad.cpp"
                 source.write_text(f'#include "{header}"\n{kind}<0> invalid;\n')

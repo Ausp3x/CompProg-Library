@@ -319,7 +319,7 @@ int main(int argc, char **argv) {
     auto frame = rectangleUnionContours({{0, 0, 3, 1}, {0, 2, 3, 3}, {0, 0, 1, 3}, {2, 0, 3, 3}});
     require(frame == vector<vector<point>>{{{0, 0}, {3, 0}, {3, 3}, {0, 3}}, {{1, 1}, {1, 2}, {2, 2}, {2, 1}}}, "frame: outer counterclockwise, hole clockwise");
     orthogonalCase({}, {}); orthogonalCase({{0, 0, 4}}, {{4, 0, 3}, {5, 0, 3}, {2, -1, -1}, {2, 0, 0}});
-    int rounds = quick ? 300 : stress ? 40000 : 2000;
+    int rounds = quick ? 100 : stress ? 40000 : 2000;
     phase = "rectangles exhaustive";
     vector<Rect> cells;
     for (lng x1 = 0; x1 < 3; ++x1) { for (lng x2 = x1 + 1; x2 <= 3; ++x2) { for (lng y1 = 0; y1 < 3; ++y1) { for (lng y2 = y1 + 1; y2 <= 3; ++y2) { cells.push_back({x1, y1, x2, y2}); } } } }
@@ -335,9 +335,9 @@ int main(int argc, char **argv) {
     phase = "rectangles small";
     for (int t = 0; t < rounds; ++t) { rectangleCase(randomRects(rng, t % 3 ? 5 : 12, int(rng() % 9))); }
     phase = "rectangles deep";
-    for (int t = 0; t < (checked ? 50 : rounds / 10); ++t) { rectangleCase(randomRects(rng, t % 2 ? 4 : 20, 13 + int(rng() % 28))); }
+    for (int t = 0; t < (quick ? 12 : checked ? 50 : rounds / 10); ++t) { rectangleCase(randomRects(rng, t % 2 ? 4 : 20, 13 + int(rng() % 28))); }
     phase = "coverage blocks";
-    for (int t = 0; t < (checked ? 5 : rounds / 20); ++t) {
+    for (int t = 0; t < (quick ? 3 : checked ? 5 : rounds / 20); ++t) {
         int n = 64 + int(rng() % (checked ? 137 : 537)); lng c = 1000000, side = t % 2 ? c : 3 * c / 10; vector<Rect> a(n);
         for (auto &r : a) {
             lng x = lng(rng() % ulng(c)), y = lng(rng() % ulng(c));
@@ -366,7 +366,7 @@ int main(int argc, char **argv) {
         for (auto &x : v) { x = {r(), r(), r()}; }
         orthogonalCase(h, v);}
     phase = "large";
-    int n = quick ? 2000 : stress ? 400000 : 100000; vector<Rect> a;
+    int n = quick ? 400 : stress ? 400000 : 100000; vector<Rect> a;
     if (checked) { n = min(n, 1500); }
 #ifdef __SANITIZE_ADDRESS__
     asan = true; // ASan redzones and quarantine multiply the contour trees' memory: smaller large cases; domains are unchanged.
@@ -383,14 +383,14 @@ int main(int argc, char **argv) {
     // n nested squares [i, 2n - i)^2: area at least k is (2 (n - k + 1))^2, through both coverage paths.
     context = "nested squares"; vector<Rect> nest; int depth = min(n, checked ? 1000 : asan ? 5000 : 20000);
     for (int i = 0; i < depth; ++i) { nest.push_back({lng(i), lng(i), 2 * lng(depth) - i, 2 * lng(depth) - i}); }
-    for (int k : {1, 2, 16, 17, 100, depth / 2, depth, depth + 1}) {
+    for (int k : quick ? vector<int>{1, 17, depth} : vector<int>{1, 2, 16, 17, 100, depth / 2, depth, depth + 1}) {
         auto sq = [&](lng j) { return j > depth ? lll(0) : 4 * lll(depth - j + 1) * (depth - j + 1); };
         pair<lll, lll> want{sq(k) - sq(k + 1), sq(k)};
         require(rectangleCoverageArea(nest, k) == want && rectangle_detail::coverageBlocks(nest, k) == want, "nested squares coverage");
         if (k <= 64) { require(rectangle_detail::coverageTree(nest, k) == want, "nested squares coverage tree"); }}
     require(maxRectangleOverlap(nest).first == depth && rectangleUnionContours(nest).size() == 1, "nested squares depth and ring");
     // A lattice of g thin horizontal and g thin vertical bars: Theta(g^2) boundary segments and (g - 1)^2 holes.
-    int bars = quick ? 60 : checked ? 100 : asan ? 200 : 400; vector<Rect> lattice;
+    int bars = quick ? 30 : checked ? 100 : asan ? 200 : 400; vector<Rect> lattice;
     for (int i = 0; i < bars; ++i) { lattice.push_back({0, 4 * lng(i), 4 * lng(bars), 4 * lng(i) + 1}); lattice.push_back({4 * lng(i), 0, 4 * lng(i) + 1, 4 * lng(bars)}); }
     auto lb = rectangleUnionBoundary(lattice), lg = rectangleUnionBoundaryGuting(lattice);
     require(lb.size() == lg.size() && lg.size() >= size_t(4) * (bars - 1) * (bars - 1), "bar lattice boundary sizes agree");
@@ -401,7 +401,7 @@ int main(int argc, char **argv) {
     for (auto &r : lr) { corners += r.size(); }
     require(lr.size() == size_t(bars - 1) * (bars - 1) + 1 && corners == lg.size(), "bar lattice rings: one outer and (g - 1)^2 holes");
     // A g x g grid of crossing segments plus n disjoint short ones: g^2 reported pairs.
-    vector<array<lng, 3>> h, v; int g = quick || n < 100000 ? 300 : 2000;
+    vector<array<lng, 3>> h, v; int g = quick ? 120 : n < 100000 ? 300 : 2000;
     for (int i = 0; i < g; ++i) { h.push_back({lng(i), 0, lng(g)}); v.push_back({lng(i), 0, lng(g)}); }
     for (int i = 0; i < n; ++i) { h.push_back({-1 - lng(i), 0, 1}); v.push_back({lng(g) + 1 + i, 0, 1}); }
     require(orthogonalIntersectionCount(h, v) == lng(g) * g && lng(orthogonalIntersections(h, v).size()) == lng(g) * g, "dense grid of segments");

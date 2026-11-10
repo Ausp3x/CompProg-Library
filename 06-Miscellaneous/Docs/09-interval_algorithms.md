@@ -67,6 +67,8 @@ Mutation probes (2026-10-08, quick mode): 9 of 9 changed headers were detected (
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 939 MB; optimized 0.3 s compile + 1.8 s run, checked 31.1 s compile + 11.4 s run, ASan-UBSan 36.3 s compile + 35.0 s run; MEMORY peak 1179 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 958 MB; optimized 0.3 s compile + 1.9 s run, checked 46.8 s compile + 17.2 s run, ASan-UBSan 47.1 s compile + 32.5 s run; MEMORY peak 1170 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 32.3 s compile + 0.2 s run, checked 35.3 s compile + 5.9 s run; MEMORY peak 943 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 949 MB; optimized 0.1 s compile + 2.6 s run, checked 11.0 s compile + 23.4 s run, ASan-UBSan 13.6 s compile + 58.6 s run; MEMORY peak 674 MB. Dated rows below stay those commands' latest results.
+
 GCC 16.2.1 20260810, Python 3.14.7, Linux x86-64, i9-11900H, 2026-10-08. The P014 integration and consistency checks of that date also passed: `python3 '96-Local Testing/02-integration.py'` (102 standalone and aggregate headers, multi-TU builds, workspace) and `python3 '96-Local Testing/03-consistency.py'` with `--braces` on the four P014 headers and testers.
 
 - Full: `python3 '96-Local Testing/06-Miscellaneous/09-interval_algorithms_tester.py' --mode full --seed 20261008`: PASS (table below); with `CXX=g++-14` (GCC 14.4.1): PASS in all three configurations.
@@ -103,3 +105,4 @@ Search aliases (P263, grab --find): 区间合并, 区间选点, 区间调度, �
 - 2026-10-08: re-audit baseline, full suite seed 1 passed in 3 configurations before changes.
 - 2026-10-08: re-audit, added `intervalCover`, `intervalPartitionAssignment`, `removeNestedIntervals` and `nestedIntervalCounts`, 11 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

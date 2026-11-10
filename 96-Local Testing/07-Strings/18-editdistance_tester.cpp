@@ -115,14 +115,15 @@ template<class S> int tableLevenshtein(const S &a, const S &b) {
     for (int i = 0; i <= n; ++i) {
         for (int j = 0; j <= m; ++j) { d[i][j] = !i || !j ? i + j : min({d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + !(a[i - 1] == b[j - 1])}); }}
     return d[n][m];}
-lng tableNw(const string &a, const string &b, const Scoring &sc) {
-    int n = int(a.size()), m = int(b.size());
-    vector<vector<lng>> d(n + 1, vector<lng>(m + 1));
+lng tableNw(string_view a, string_view b, const Scoring &sc) {
+    int n = int(a.size()), m = int(b.size()), w = m + 1;
+    static vector<lng> d;
+    d.resize(size_t(n + 1) * w);
     for (int i = 0; i <= n; ++i) {
         for (int j = 0; j <= m; ++j) {
-            if (!i || !j) { d[i][j] = sc.gap * (i + j); }
-            else { d[i][j] = max({d[i - 1][j] + sc.gap, d[i][j - 1] + sc.gap, d[i - 1][j - 1] + sc(a[i - 1], b[j - 1])}); }}}
-    return d[n][m];}
+            if (!i || !j) { d[i * w + j] = sc.gap * (i + j); }
+            else { d[i * w + j] = max({d[(i - 1) * w + j] + sc.gap, d[i * w + j - 1] + sc.gap, d[(i - 1) * w + j - 1] + sc(a[i - 1], b[j - 1])}); }}}
+    return d[n * w + m];}
 template<class S> void checkUnitWitness(const S &a, const S &b, const pair<int, Columns> &w, int distance, const string &op) {
     check(validColumns(w.second, int(a.size()), int(b.size())), op + " columns valid");
     expectEqual(w.first, distance, op + " distance");
@@ -173,14 +174,14 @@ void verifySmall(const string &a, const string &b, const Scoring &sc, const map<
         for (int rb = 0; rb <= m; ++rb) {
             lng here = 0;
             for (int la = 0; la <= ra; ++la) {
-                for (int lb = 0; lb <= rb; ++lb) { here = max(here, tableNw(a.substr(la, ra - la), b.substr(lb, rb - lb), local)); }}
+                for (int lb = 0; lb <= rb; ++lb) { here = max(here, tableNw(string_view(a).substr(la, ra - la), string_view(b).substr(lb, rb - lb), local)); }}
             if (here > best) { best = here; end = {ra, rb}; }}}
     auto [sw, la, ra, lb, rb] = smithWaterman(a, b, local, local.gap);
     expectEqual(sw, best, "smithWaterman score");
     if (best > 0) {
         check(pair<int, int>{ra, rb} == end, "smithWaterman first row-major end");
         check(0 <= la && la <= ra && 0 <= lb && lb <= rb, "smithWaterman region bounds");
-        expectEqual(tableNw(a.substr(la, ra - la), b.substr(lb, rb - lb), local), sw, "smithWaterman region is optimal");}
+        expectEqual(tableNw(string_view(a).substr(la, ra - la), string_view(b).substr(lb, rb - lb), local), sw, "smithWaterman region is optimal");}
     else { check(tuple<lng, int, int, int, int>{sw, la, ra, lb, rb} == tuple<lng, int, int, int, int>{0, 0, 0, 0, 0}, "smithWaterman empty"); }}
 Scoring fixedScoring() {
     Scoring sc{};

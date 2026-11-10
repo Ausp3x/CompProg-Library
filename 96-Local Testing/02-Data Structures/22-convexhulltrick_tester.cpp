@@ -712,7 +712,7 @@ int main(int argc, char **argv) {
         if (!probe.empty()) { invalid(probe); }
         Rng rng(seed);
         bool quick = mode == "quick", full = mode == "full";
-        // Stress keeps the checked -O0 debug build under the runner's 180 s timeout; its exhaustive part uses a larger box at depth 3.
+        // Stress keeps the checked debug build under the runner's former 180 s timeout; its exhaustive part uses a larger box at depth 3.
         int scale = quick ? 3000 : full ? 200000 : 300000, monoDepth = quick ? 3 : full ? 4 : 3, contDepth = quick ? 2 : 3;
         int runs = quick ? 300 : full ? 5000 : 6000, bigN = quick ? 40 : full ? 200 : 220;
         lng box = quick || full ? 2 : 3;

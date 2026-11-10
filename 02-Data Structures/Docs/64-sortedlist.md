@@ -31,7 +31,7 @@ Buckets are globally sorted: insertion goes to the first bucket whose maximum is
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/64-sortedlist_tester.cpp`, entry `64-sortedlist_tester.py` (driver `_00_runner.py`; three builds; 7 assertion probes). The oracle is a vector kept sorted by stable insertion at `upper_bound`, independent of the bucket logic; the structural checker runs after every operation.
+Tester `96-Local Testing/02-Data Structures/64-sortedlist_tester.cpp`, entry `64-sortedlist_tester.py` (driver `_00_contest_runner.py`; three builds; 7 assertion probes). The oracle is a vector kept sorted by stable insertion at `upper_bound`, independent of the bucket logic; the structural checker runs after every operation.
 
 | Operation | Group | Oracle |
 |---|---|---|
@@ -44,6 +44,8 @@ Tester `96-Local Testing/02-Data Structures/64-sortedlist_tester.cpp`, entry `64
 Mutation check (2026-10-09, quick mode, temporary copies of the pre-review header): 12 of 13 injected faults detected (split threshold, no merge, single-bucket `erase`, lower-bucket insert, `prev` via `lowerBound`, unstable sort, no growth rebuild, `kth` scan bound, merge index at the last bucket, missing second `fix`, lower-bound insert position, no shrink rebuild). The survivor (`erase` compacting from `b + 1` instead of `b`) is equivalent: `fix(b)` drops an empty bucket at `b`.
 
 ## Commands and results
+
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1079 MB; optimized 0.1 s compile + 8.3 s run, checked 36.4 s compile + 58.5 s run, ASan-UBSan 35.8 s compile + 106.5 s run; MEMORY peak 1540 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1142 MB; optimized 0.3 s compile + 13.8 s run, checked 65.8 s compile + 85.6 s run, ASan-UBSan 57.2 s compile + 125.3 s run; MEMORY peak 1498 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 40.1 s compile + 1.8 s run, checked 32.4 s compile + 27.0 s run; MEMORY peak 1090 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 58 MB; optimized 0.1 s compile + 8.5 s run, checked 21.9 s compile + 52.2 s run, ASan-UBSan 19.5 s compile + 113.8 s run; MEMORY peak 892 MB. Dated rows below stay those commands' latest results.
 
 P227 prune run, 2026-10-13: GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H.
 
@@ -101,3 +103,4 @@ Search aliases (P263, grab --find): 有序列表, 有序容器, 有序多重集,
 - 2026-10-09: P227 first verification, full passed on g++ and g++-14, stress (seed 7) on g++, integration on both, `BMIN`/`RATIO` benchmark sweep; independent review, 5 findings fixed.
 - 2026-10-13: prune, removed `next(x)` and `operator[](k)` (their checks already ran on `lowerBound` and `kth` against the same oracle); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

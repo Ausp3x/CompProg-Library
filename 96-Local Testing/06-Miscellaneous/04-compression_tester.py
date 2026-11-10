@@ -2,9 +2,12 @@
 import os
 from pathlib import Path
 import random
-import subprocess
 import tempfile
-from _00_runner import main
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
+from _00_cpp_test_runner import Builder, compiler_command
 
 
 def oracle(binary, args, env):
@@ -36,7 +39,7 @@ def oracle(binary, args, env):
         ends = sorted({x for interval in intervals for x in interval})
         rows.append(('compressEndpoints', intervals)); expected.append([len(ends), *ends])
     command = [str(binary), '--oracle']
-    result = subprocess.run(command, input=''.join(payload), text=True, capture_output=True, env=env, timeout=180)
+    result = timed_run(f'04-compression oracle {Path(command[0]).name}', command, input=''.join(payload), text=True, capture_output=True, env=env, timeout=180)
     if result.returncode:
         raise RuntimeError(f'command={command} returncode={result.returncode}\n{result.stderr}')
     actual = [list(map(int, line.split())) for line in result.stdout.splitlines()]
@@ -61,15 +64,14 @@ int main() {
 '''
         with tempfile.TemporaryDirectory(prefix='cp-compression-includes-') as name:
             directory = Path(name)
+            builder = Builder(compiler_command(), directory, env=env, failure=RuntimeError)
             for order in [headers, headers[::-1]]:
                 source = directory / 'test.cpp'
                 source.write_text(''.join('#include "' + str(header) + '"\n' for header in order) + body)
-                commands = [[os.environ.get('CXX', 'g++'), '-std=gnu++20', '-O2', '-DNDEBUG',
-                             str(source), '-o', str(directory / 'test')], [str(directory / 'test')]]
-                for cmd in commands:
-                    p = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=180)
-                    if p.returncode:
-                        raise RuntimeError(f'command={cmd} returncode={p.returncode}\n{p.stdout}\n{p.stderr}')
+                builder.build('both header orders', ['-std=gnu++20', '-O2', '-DNDEBUG'], [source], directory / 'test', 180)
+                p = timed_run('04-compression header-order run', [str(directory / 'test')], capture_output=True, text=True, env=env, timeout=180)
+                if p.returncode:
+                    raise RuntimeError(f'command={directory / "test"} returncode={p.returncode}\n{p.stdout}\n{p.stderr}')
         print('PASS compressEndpoints returns CoordinateCompression: both header orders', flush=True)
 
 

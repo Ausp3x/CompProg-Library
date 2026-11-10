@@ -34,8 +34,8 @@ namespace {
             require(got.p == want.p, "exact rational crossing", show(want.p), show(got.p));
             require(got.p.d > 0 && std::gcd(std::gcd(got.p.x < 0 ? -got.p.x : got.p.x, got.p.y < 0 ? -got.p.y : got.p.y), got.p.d) == 1,
                     "canonical rational normalization");
-            close(got.p.approx().x, static_cast<long double>(want.p.x) / want.p.d, "rational approximate x");
-            close(got.p.approx().y, static_cast<long double>(want.p.y) / want.p.d, "rational approximate y"); return;}
+            close(got.p.approx().x, static_cast<long double>(want.p.x) / static_cast<long double>(want.p.d), "rational approximate x");
+            close(got.p.approx().y, static_cast<long double>(want.p.y) / static_cast<long double>(want.p.d), "rational approximate y"); return;}
         LinearKind kind = want.kind == Kind::Line ? LinearKind::Line : want.kind == Kind::Ray ? LinearKind::Ray : LinearKind::Segment;
         require(got.overlap.kind == kind, "overlap kind");
         if (want.kind != Kind::Line) { require(got.overlap.a == want.a, "overlap origin",show(want.a),show(got.overlap.a)); }

@@ -24,7 +24,11 @@ import random
 import subprocess
 import threading
 
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 SCENARIOS = {
     'error-int': ('5\n-1\n', '? 1\n? 2\n'),
@@ -40,8 +44,8 @@ SCENARIOS = {
 
 def run_scenarios(binary, env):
     for name, (stdin, expected) in SCENARIOS.items():
-        result = subprocess.run([str(binary), '--scenario', name], input=stdin, capture_output=True,
-                                text=True, env=env, timeout=30)
+        result = timed_run(f'50-interactive scenario {name} {Path(binary).name}', [str(binary), '--scenario', name], input=stdin, capture_output=True,
+                                                    text=True, env=env, timeout=30)
         if result.returncode != 0 or result.stdout != expected:
             raise RuntimeError(f'scenario={name} input={stdin!r} expected status 0 and {expected!r}, '
                                f'got status {result.returncode} and {result.stdout!r} stderr={result.stderr!r}')

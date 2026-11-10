@@ -10,8 +10,11 @@ every root, 3000-vertex witness checks. full: every simple digraph n<=4,
 cycle, in optimized, checked and ASan/UBSan builds. stress: 30000 random,
 20000 builder, 600 medium, 300000-vertex shapes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('25-directedmst', ['undirected', 'root-range', 'branching-undirected',
-        'arc-range', 'arc-weight', 'arc-weight-64', 'negative-n'], strict=True))
+        'arc-range', 'arc-weight', 'arc-weight-64', 'negative-n']))

@@ -105,7 +105,9 @@ Runner: [`23-dynamicstringhash_tester.py`](<../../96-Local Testing/07-Strings/23
 
 ## Commands and results
 
-Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, the optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan configurations built by [`_00_runner.py`](<../../96-Local Testing/07-Strings/_00_runner.py>):
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 941 MB; optimized 0.2 s compile + 2.4 s run, checked 32.7 s compile + 7.0 s run, ASan-UBSan 37.1 s compile + 28.7 s run; MEMORY peak 1124 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 936 MB; optimized 0.1 s compile + 3.0 s run, checked 36.8 s compile + 6.3 s run, ASan-UBSan 50.2 s compile + 40.0 s run; MEMORY peak 1103 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 38.9 s compile + 0.5 s run, checked 29.0 s compile + 5.6 s run; MEMORY peak 926 MB. `python3 '96-Local Testing/07-Strings/23-dynamicstringhash_tester.py' --mode stress --seed 42` (three suites at a time) PASS: pre-flight quick peak 942 MB; optimized 0.1 s compile + 2.5 s run, checked 9.3 s compile + 2.6 s run, ASan-UBSan 12.4 s compile + 22.4 s run; MEMORY peak 651 MB. Dated rows below stay those commands' latest results.
+
+Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, the optimized, checked (`-D_GLIBCXX_DEBUG`) and ASan/UBSan configurations built by [`_00_contest_runner.py`](<../../96-Local Testing/_00_contest_runner.py>):
 
 | Command | Result |
 |---|---|
@@ -146,3 +148,4 @@ Code is independently implemented from the cited descriptions; catalog sweep in 
 - 2026-10-16: implemented and verified (P085), independent review found 4 rule and test-gap findings, fixed; full suite passed on g++ and g++-14.
 - 2026-10-17: P027 monoid pass (`ImplicitTreap` stores `HashMonoid` as an empty object; no API change); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 551/558/554 MB.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

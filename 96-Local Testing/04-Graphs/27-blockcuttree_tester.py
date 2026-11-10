@@ -10,8 +10,11 @@ BFS, the incremental structure and lowlink. full: every simple graph n<=5,
 3000 random rounds, 100000-vertex shapes, in optimized, checked and
 ASan/UBSan builds. stress: 15000 rounds, 300000-vertex shapes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('27-blockcuttree', ['directed', 'bridge-directed', 'vertex-range',
-        'removed-endpoint', 'size-removed', 'edge-range', 'incremental-range'], strict=True))
+        'removed-endpoint', 'size-removed', 'edge-range', 'incremental-range']))

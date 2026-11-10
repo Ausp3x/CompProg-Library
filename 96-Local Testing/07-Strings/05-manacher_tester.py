@@ -10,7 +10,10 @@ unary/alternating lengths 5000/300000/1000000. Builds use -Wall -Wextra
 -Wshadow -Wconversion -Werror. Full/stress add ASan/UBSan to optimized NDEBUG
 and checked builds; checked builds execute twelve precondition probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':
@@ -18,4 +21,4 @@ if __name__ == '__main__':
         'odd-negative-center', 'odd-end-center', 'odd-empty',
         'even-negative-center', 'even-large-center', 'odd-zero-radius',
         'odd-negative-radius', 'odd-large-radius', 'even-negative-radius',
-        'even-large-radius', 'center-end-negative', 'center-end-high'], strict=True))
+        'even-large-radius', 'center-end-negative', 'center-end-high'], extra=('-Wshadow',)))

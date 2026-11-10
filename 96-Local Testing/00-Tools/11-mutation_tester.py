@@ -88,8 +88,9 @@ test_fake_stage_parameters;
 candidates/selected in campaign.json and `uniform sample of <candidates>` in the Record; 0 or at least the
 candidates: all and no sample wording; No record names stage quick on a stop before it) -> test_fake_sample; diff
 scope never samples -> test_fake_resume_recorded;
-timeouts retested alone (only s0, width 1, same timeout; a repeat timeout stays caught, a pass alone survives that
+timeouts retested (same timeout; a repeat timeout stays caught, a pass alone survives that
 stage and escalates, a fail alone is caught; in quick and in full; unconfirmed emptied) -> test_fake_timeouts_alone;
+retests side by side as far as each test keeps its own cores (shards divided by a test's concurrent builds) -> test_fake_retest_width;
 unconfirmed ({id: stage} kept across a budget stop of a stage's alone pass, No record with 0 untested naming it;
 on resume retested alone only in that stage, for quick and for full, with no quick-alone even when quick runs
 again for a survivor, a stage with nothing pending still running its baseline and alone pass; an entry no longer
@@ -144,7 +145,7 @@ MUTATION_PY = ROOT / '96-Local Testing/04-mutation.py'
 MODE, SEED, ROUNDS = 'full', 42, 6
 FULL = {'test_e2e_campaign_and_resume', 'test_e2e_diff_scope', 'test_e2e_core_severity', 'test_e2e_sample', 'test_e2e_budget_stop',
         'test_e2e_runaway_alone', 'test_e2e_timeout_alone', 'test_e2e_stage_failures', 'test_e2e_signals'}
-STAGES3 = ['quick', 'full-optimized', 'full-all']
+STAGES3 = ['quick', 'full-optimized', 'full-rest']
 EMPTY_BLOB = 'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391'
 
 
@@ -290,7 +291,7 @@ TOY_TESTER = r'''import argparse, pathlib, subprocess, sys, tempfile
 p = argparse.ArgumentParser()
 p.add_argument('--mode', default='full')
 p.add_argument('--seed', type=int, default=1)
-p.add_argument('--configuration', choices=('optimized', 'all'), default='all')
+p.add_argument('--configuration', default='all')
 a = p.parse_args()
 header = pathlib.Path(__file__).resolve().parents[2] / '@HEADER@'
 driver = ('#include "' + str(header) + '"\n'
@@ -309,7 +310,7 @@ with tempfile.TemporaryDirectory() as d:
 checks = [v[0] == 2]
 if a.mode == 'full':
     checks.append(v[1] == 5)
-    if a.configuration == 'all':
+    if a.configuration != 'optimized':
         checks += [v[2] == 3, v[3] == 1]
 @EXTRA@
 sys.exit(0 if all(checks) else 'check failed')
@@ -457,9 +458,9 @@ def o_stage(line, slug, new):
     if line == 2:
         return 'full-optimized' if (slug, new) == ('AOS', '-') else 'quick'
     if line == 4:
-        return None if (slug, new) == ('COS', '>=') else 'full-all'
+        return None if (slug, new) == ('COS', '>=') else 'full-rest'
     if line == 5:
-        return 'quick' if slug == 'CR' else 'full-all'
+        return 'quick' if slug == 'CR' else 'full-rest'
     raise AssertionError(f'unexpected toy mutant on line {line}: {slug} {new!r}')
 
 
@@ -1291,15 +1292,16 @@ class Fake(Base):
         return root
 
     def go(self, root, *argv, seconds=None, peak=50):
-        """main('run', ...) with the fake first on PATH and stage()'s poll shortened to 0.05 s (deadlines unchanged); seconds
+        """main('run', ...) with the fake first on PATH and stage()'s poll shortened to 0.005 s (deadlines unchanged); seconds
         (with peak) replaces the baseline measurement, whose commands go to self.baselines. The mewt call log restarts."""
-        self.baselines = []
+        self.baselines, self.baseline_envs = [], []
         self.log.unlink(missing_ok=True)
 
-        def measured(cmd, cwd):
+        def measured(cmd, cwd, env=None):
             self.baselines.append(cmd)
+            self.baseline_envs.append(env)
             return seconds, 0, '', peak
-        fast = type('FastTime', (), {'monotonic': staticmethod(time.monotonic), 'sleep': staticmethod(lambda s: time.sleep(min(s, 0.05)))})
+        fast = type('FastTime', (), {'monotonic': staticmethod(time.monotonic), 'sleep': staticmethod(lambda s: time.sleep(min(s, 0.005)))})
         with patch.dict(os.environ, {'PATH': self.path}), patch.object(M, 'time', fast), (
                 patch.object(M, 'measured', measured) if seconds is not None else contextlib.nullcontext()):
             return self.main('run', str(root / self.H), '--jobs', '2', '--memory-mb', '4096', *argv, root=root)
@@ -1350,6 +1352,7 @@ class Fake(Base):
             if seconds is not None:
                 self.true(all(c[c.index('--mb') + 1] == str(own) and c[-4:] in (['--mode', 'quick', '--seed', '1'], ['--mode', 'full', '--seed', '1'])
                               for c in self.baselines) and self.baselines, baselines=self.baselines, case=k, what='baselines under the own cap')
+                self.true(all(e['CCACHE_RECACHE'] == '1' for e in self.baseline_envs), case=k, what='a baseline pays a real compile, as each mutant does')
 
     def test_fake_sample(self):
         root, every = self.repo(), list(range(1, 21))
@@ -1403,6 +1406,17 @@ class Fake(Base):
         self.true(self.stage_line(out, 'quick-alone') == (3, 1, 2, 5, 1024) and self.stage_line(out, 'full-alone') == (2, 1, 2, 5, 1024), out=out)
         self.true(self.record_line(out).endswith(': 8 mutants, 6 caught (2 by timeout), 2 survived, 0 untested.') and self.meta(work)['unconfirmed'] == {}
                   and f'| `COS {a}` (low) | 3 | `old {a}` → `new {a}` |' in out and f'| `CR {e}` (medium) | 3 |' in out, out=out)
+
+    def test_fake_retest_width(self):
+        # retests run side by side up to the shards, or half of them where a test runs two builds at once
+        a, b, c, d, e = 1, 2, 3, 4, 5
+        again = {'quick': 'Uncaught', 'full-optimized': 'Uncaught', 'full-rest': 'Timeout', 'full-rest-alone': 'Timeout'}
+        self.configure(self.mutants(6), {a: {'*': 'Timeout'}, b: {'*': 'Timeout'}, c: {'*': 'Timeout'}, d: again, e: again})
+        root, work = self.repo(tester='print("--configuration")\n'), self.tmp / 'work'
+        code, out, err = self.go(root, '--workdir', str(work), '--timeout', '5', seconds=0.1)
+        self.eq(code, 0, out=out, err=err)
+        self.eq(self.stage_line(out, 'quick-alone')[:3], (3, 2, 2), out=out)
+        self.eq(self.stage_line(out, 'full-rest-alone')[:3], (2, 1, 2), out=out)
 
     def test_fake_unconfirmed_resume(self):
         # unconfirmed maps each timeout to the stage it timed out in; a budget stop of that stage's alone pass keeps it in

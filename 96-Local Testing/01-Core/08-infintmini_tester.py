@@ -17,12 +17,12 @@ quarantine), operands up to 133000 digits and NTT products up to 2^15 limbs. str
 from __future__ import annotations
 
 import argparse
+import functools
 import math
 import os
 from pathlib import Path
 import queue
 import random
-import resource
 import shlex
 import shutil
 import signal
@@ -33,6 +33,7 @@ import threading
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
+from _00_cpp_test_runner import Builder, over_half, timed_run
 
 _00_memory_cap.ensure()
 if hasattr(sys, "set_int_max_str_digits"):
@@ -65,7 +66,7 @@ def execute(command: list[str], label: str, timeout: int, env: dict[str, str], d
     if sys.stdout.isatty():
         print(f"\r\033[KRUN {label}", end="", flush=True)
     try:
-        result = subprocess.run(command, cwd="/tmp", env=env, text=True, capture_output=True, timeout=timeout)
+        result = timed_run(label, command, cwd="/tmp", env=env, text=True, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as error:
         raise Failure(f"{label}: timeout={timeout}s command={shlex.join(command)}") from error
     okay = result.returncode == -signal.SIGABRT and "assert" in result.stderr.lower() if death else result.returncode == 0
@@ -299,6 +300,7 @@ def run_protocol(executable: str, label: str, seed: int, mode: str, env: dict[st
         feeder.join(timeout=60)
         stderr = proc.stderr.read()
         code = proc.wait(timeout=60)
+        over_half(label, time.monotonic() - start, timeout)
         if errors:
             raise Failure(f"{label}: case generation failed: {errors[0]!r}")
         left = pending.get() if not pending.empty() else None
@@ -335,7 +337,6 @@ def main() -> int:
         report("FAIL", f"C++ compiler unavailable: {compiler!r}")
         return 1
     env = dict(os.environ, ASAN_OPTIONS="detect_leaks=1:halt_on_error=1:quarantine_size_mb=64", UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     flags = ["-std=gnu++20", "-Wall", "-Wextra", "-Wshadow", "-Wconversion", "-Werror"]
     variants = [("optimized", ["-O2", "-DNDEBUG"]), ("checked", ["-O1", "-g", "-D_GLIBCXX_ASSERTIONS"])]
     if args.mode != "quick":
@@ -346,24 +347,26 @@ def main() -> int:
     try:
         with tempfile.TemporaryDirectory(prefix="cp-infintmini-tests-") as name:
             directory = Path(name)
+            builder = Builder(compiler, directory, env=env, failure=Failure)
             alone = directory / "alone.cpp"
             alone.write_text(f'#include "{HEADER}"\nint main() {{ iintmini a("12345678901234567890"); return (a * a) % 7 == InfIntMini(2) ? 0 : 1; }}\n')
-            execute([*compiler, *flags, "-fsyntax-only", str(alone)], "header-alone compile", 180, env)
+            builder.syntax("header-alone compile", flags, alone, 180)
             copy = standalone_source(directory)
-            execute([*compiler, *flags, "-O2", str(copy), "-o", str(directory / "copy")], "standalone copy compile", 180, env)
+            builder.build("standalone copy compile", [*flags, "-O2"], [copy], str(directory / "copy"), 180)
             execute([str(directory / "copy")], "standalone copy run", 60, env)
             for aggregate in ("98-basic.hpp", "99-all.hpp"):
                 source = directory / f"{aggregate}.cpp"
                 source.write_text(f'#include "{ROOT / "01-Core" / aggregate}"\nint main() {{ return iintmini(7).toString() == "7" ? 0 : 1; }}\n')
-                execute([*compiler, "-std=gnu++20", "-fsyntax-only", str(source)], f"{aggregate} compile (unverified siblings are not warning-clean)", 180, env)
+                builder.syntax(f"{aggregate} compile (unverified siblings are not warning-clean)", ["-std=gnu++20"], source, 180)
             mixed = directory / "mixed"
-            execute([*compiler, *flags, "-O2", str(MIXED), "-o", str(mixed)], "mixed full and mini compile", 400, env)
+            builder.build("mixed full and mini compile", [*flags, "-O2"], [MIXED], str(mixed), 400)
             for line in execute([str(mixed), str(args.seed), str({"quick": 100, "full": 600, "stress": 2000}[args.mode])], "mixed full and mini run", 600, env).splitlines():
                 print(f"  [mixed] {line}", flush=True)
             report("PASS", "header-alone, standalone copy, aggregate and mixed full/mini compilation")
-            for variant, options in variants:
-                executable = str(directory / variant)
-                execute([*compiler, *flags, *options, str(SOURCE), str(SECOND), "-o", executable], f"compile {variant}", 400, env)
+            compiled = builder.build_all([(variant, f"compile {variant}", [*flags, *options], [SOURCE, SECOND], str(directory / variant), 1200,
+                                           600 if variant == "sanitized" else 520) for variant, options in variants])
+            def one(variant, options):
+                executable, mark = str(directory / variant), builder.stopwatch()
                 report("PASS", f"{variant} compilation (two translation units)")
                 for round_index in range(rounds):
                     seed = (args.seed + round_index) % 2 ** 64
@@ -379,6 +382,8 @@ def main() -> int:
                     for case in INVALID_CASES:
                         execute([executable, "--invalid", case], f"precondition {case}", 60, env, death=True)
                     report("PASS", f"checked preconditions ({len(INVALID_CASES)} cases)")
+                builder.report(mark, f"InfIntMini {variant}", args.mode, compiled[variant])
+            builder.concurrently([(1 << 40 if args.mode == "stress" else 600, functools.partial(one, variant, options)) for variant, options in variants])
     except (Failure, OSError) as error:
         report("FAIL", f"InfIntMini mode={args.mode} seed={args.seed}: {error}")
         return 1

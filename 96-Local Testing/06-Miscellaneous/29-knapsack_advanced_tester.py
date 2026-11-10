@@ -25,10 +25,13 @@ leave every int-capacity table unchanged (50/300/1000 rounds). Quick/full/stress
 300/3000/20000 seeded rounds per family (group/2D and tree 200/2000/12000,
 counting 60/500/3000, Pisinger 500/5000/30000) and grow the large
 fixtures (path n=5000/200000/300000, FPS t=2000/30000/100000, Pisinger n up to
-10000); the -O0 debug-container build shrinks large fixtures and runs stress as
-full, and the ASan build runs stress as full (the runner's 180 s limit); 59 probes.
+10000); the debug-container build shrinks large fixtures and runs stress as
+full, and the ASan build runs stress as full (the runner's former 180 s limit); 59 probes.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 
 if __name__ == '__main__':

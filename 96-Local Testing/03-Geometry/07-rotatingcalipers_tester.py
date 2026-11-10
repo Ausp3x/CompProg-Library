@@ -7,9 +7,12 @@ quick: regressions, 64 small sets, 50 random hulls/clouds and 100-vertex chain.
 full: all 512 3x3 sets, 1000 random hulls/clouds, 10000-vertex chain, all builds.
 stress: all 65536 4x4 sets, 8000 random hulls/clouds, 30000-vertex chain, all builds.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 import random
-import subprocess
 
 
 def oracle(binary, args, env):
@@ -20,8 +23,8 @@ def oracle(binary, args, env):
     cases += [tuple(rng.getrandbits(128) | 1 for _ in range(4))
               for _ in range({'quick': 200, 'full': 2000, 'stress': 20000}[args.mode])]
     command = [str(binary), '--fractions']
-    result = subprocess.run(command, input=''.join(' '.join(map(str, q)) + '\n' for q in cases),
-                            text=True, capture_output=True, env=env, timeout=180)
+    result = timed_run(f'07-rotatingcalipers oracle {Path(command[0]).name}', command, input=''.join(' '.join(map(str, q)) + '\n' for q in cases),
+                                                     text=True, capture_output=True, env=env, timeout=180)
     lines = result.stdout.splitlines()
     if result.returncode or len(lines) != len(cases):
         raise RuntimeError(f'fraction oracle command={command} returncode={result.returncode} '

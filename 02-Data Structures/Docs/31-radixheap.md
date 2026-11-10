@@ -68,7 +68,7 @@ No legacy source. Catalog names:
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/31-radixheap_tester.cpp`, entry `31-radixheap_tester.py` (driver `_00_runner.py`; three builds; 22 assertion probes).
+Tester `96-Local Testing/02-Data Structures/31-radixheap_tester.cpp`, entry `31-radixheap_tester.py` (driver `_00_contest_runner.py`; three builds; 22 assertion probes).
 
 The oracles never use the heap: a `multiset<pair<K, int>>` for `RadixHeap`, and a `set<pair<K, int>>` with a per-id key array and a present/absent partition for `RadixHeapArray`. The expected `last` is computed by subtraction from the least `K` and checked after every step.
 
@@ -127,6 +127,8 @@ On these Dijkstra runs the heap is 3–4% slower, the array from 14% faster to 4
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1072 MB; optimized 0.1 s compile + 18.3 s run, checked 30.8 s compile + 23.7 s run, ASan-UBSan 36.6 s compile + 131.3 s run; MEMORY peak 1515 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1121 MB; optimized 0.2 s compile + 27.7 s run, checked 40.1 s compile + 32.7 s run, ASan-UBSan 50.0 s compile + 180.0 s run; MEMORY peak 1512 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 37.4 s compile + 1.5 s run, checked 30.7 s compile + 28.9 s run; MEMORY peak 1086 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 58 MB; optimized 0.1 s compile + 74.2 s run, checked 17.9 s compile + 29.7 s run, ASan-UBSan 20.7 s compile + 243.7 s run; MEMORY peak 848 MB. Dated rows below stay those commands' latest results.
+
 Latest run 2026-11-02, Linux x86-64 (AMD Ryzen AI 9 HX 370, WSL2), GNU++20, CPython 3.14.4, in the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
@@ -176,3 +178,4 @@ Search aliases (P263, grab --find): 基数堆.
 - 2026-11-02: `/finish` audit, 3 findings and 4 limits; user decisions recorded (bucket release above 4096 slots, the six integer key types, the omissions, `top` moving `last`, `decreaseKey` asserting a decrease); diff review, 4 findings fixed (release cost comment, cv-qualified keys rejected, benchmark medians and seed, stale results); `memoryBound` and key-domain checks added; quick, full (seed 20261102) on g++ and g++-14, stress (seed 7) and `02-integration.py` passed.
 - 2026-11-03: maintainer `/merge-pr 1`: the real `03-consistency.py` and `plan.py check` results recorded and the clone-specific limit dropped (P250's note keeps the follow-up); the first maintainer gate (2026-11-03) passed quick and full on g++ and g++-14 and `02-integration.py --sanitizers`.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

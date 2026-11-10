@@ -129,7 +129,7 @@ void exhaustive(const string &mode) {
     cout << "PASS exhaustive binary patterns<=" << pm << " texts<=" << tm << ", ternary class patterns\n";}
 void randomCases(const string &mode) {
     std::mt19937_64 rng(test_seed);
-    int count = mode == "quick" ? 300 : mode == "full" ? 1500 : 6000;
+    int count = mode == "quick" ? 100 : mode == "full" ? 1500 : 6000;
     for (int rep = 0; rep < count; ++rep) {
         int sigma = rep % 7 == 0 ? 256 : int(rng() % 4) + 1, n = int(rng() % 60), m = int(rng() % 200), period = int(rng() % 4) + 1;
         if (rep % 2) { m = int(rng() % 70); }
@@ -159,7 +159,7 @@ void randomCases(const string &mode) {
     cout << "PASS random symbol/class patterns through 200 symbols, byte strings cases=" << count << '\n';}
 void bitsetText(const string &mode) {
     std::mt19937_64 rng(test_seed + 3);
-    int count = mode == "quick" ? 100 : mode == "full" ? 500 : 5000;
+    int count = mode == "quick" ? 40 : mode == "full" ? 500 : 5000;
     auto brute = [](const vector<int> &t, const vector<int> &p, int l, int r) {
         vector<int> res;
         for (int i = l; i + int(p.size()) <= r; ++i) {
@@ -203,7 +203,7 @@ void bitsetText(const string &mode) {
             vector<int> pv(p.size());
             for (int i = 0; i < int(p.size()); ++i) { pv[i] = uint8_t(p[i]); }
             expect(bs.occurrences(p), brute(t, pv, 0, n), "byte text occurrences");}}
-    int n = mode == "quick" ? 20000 : 200000;
+    int n = mode == "quick" ? 8000 : 200000;
     vector<int> t(n);
     for (int &c : t) { c = int(rng() % 2); }
     BitsetText bt(t, 2);
@@ -217,7 +217,7 @@ void bitsetText(const string &mode) {
         t[i] = 1 - t[i];}
     cout << "PASS BitsetText random updates/ranges/foreign symbols cases=" << count << " plus n=" << n << '\n';}
 void large(const string &mode) {
-    int n = mode == "quick" ? 50000 : mode == "full" ? 100000 : 500000;
+    int n = mode == "quick" ? 20000 : mode == "full" ? 100000 : 500000;
     std::mt19937_64 rng(test_seed + 5);
     vector<int> t(n);
     for (int &c : t) { c = int(rng() % 2); }

@@ -96,6 +96,8 @@ Mutation checks (2026-10-19, quick, optimized and checked builds, on a copy of t
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 929 MB; optimized 0.2 s compile + 6.3 s run, checked 27.6 s compile + 9.1 s run, ASan-UBSan 38.4 s compile + 17.8 s run; MEMORY peak 1160 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 981 MB; optimized 0.2 s compile + 6.3 s run, checked 30.9 s compile + 9.8 s run, ASan-UBSan 43.3 s compile + 16.3 s run; MEMORY peak 1153 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 50.4 s compile + 0.7 s run, checked 32.8 s compile + 1.9 s run; MEMORY peak 938 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 930 MB; optimized 0.1 s compile + 19.6 s run, checked 12.4 s compile + 24.9 s run, ASan-UBSan 17.5 s compile + 37.1 s run; MEMORY peak 885 MB. Dated rows below stay those commands' latest results.
+
 2026-10-19, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14.8, GNU++20.
 
 | Command | Result |
@@ -157,3 +159,4 @@ Search aliases (P263, grab --find): 最小圆覆盖, 随机增量法, 最小覆�
 - 2026-10-19: P037 re-audit rerun, header unchanged; full suite passed on g++ and g++-14, stress passed.
 - 2026-10-19 (round 3): exact `radius2` as `Rational<InfInt>`; `minimumEnclosingCircleApprox`; budgeted move-to-front (1.07–2.4× faster in the serial benchmark); `center` defined on an empty support under `NDEBUG`; six probes, a Python exact oracle and 26 mutants (22 caught, 4 equivalent or runtime only). Full suite passed on g++ and g++-14, stress passed. Independent review: `locate` on an empty support returns 1 under `NDEBUG`, `n < INT_MAX` stated and asserted, the Python oracle seeded from `--seed`, benchmark ratios corrected. Final full suite passed on g++ and g++-14, stress passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

@@ -47,6 +47,8 @@ Entry: [`09-modinverse_tester.py`](<../../96-Local Testing/05-Mathematics/09-mod
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 745 MB; optimized 0.3 s compile + 2.6 s run, checked 16.2 s compile + 2.6 s run, ASan-UBSan 14.9 s compile + 22.5 s run; MEMORY peak 869 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 789 MB; optimized 0.3 s compile + 2.8 s run, checked 19.4 s compile + 2.2 s run, ASan-UBSan 22.2 s compile + 13.4 s run; MEMORY peak 923 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 18.1 s compile + 0.2 s run, checked 18.6 s compile + 0.8 s run; MEMORY peak 748 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 747 MB; optimized 0.1 s compile + 3.2 s run, checked 5.1 s compile + 4.1 s run, ASan-UBSan 5.3 s compile + 34.2 s run; MEMORY peak 660 MB. Dated rows below stay those commands' latest results.
+
 P052 run (2026-10-09), same conditions as [07-primality_factorization.md](07-primality_factorization.md). MEMORY peaks not recorded.
 
 ```bash
@@ -81,3 +83,4 @@ Search aliases (P263, grab --find): modular inverse, modular multiplicative inve
 - 2026-10-09: P052 initial implementation and verification, `@reviewer` found no defect; quick, full and stress passed on g++, full on g++-14.
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

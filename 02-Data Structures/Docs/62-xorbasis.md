@@ -72,7 +72,7 @@ Search aliases (P263, grab --find): 线性基, 异或线性基, 前缀线性基,
 
 ## Feature-to-test map
 
-Tester `96-Local Testing/02-Data Structures/62-xorbasis_tester.cpp`, entry `62-xorbasis_tester.py` (driver `_00_runner.py`; optimized, checked and ASan/UBSan builds; 17 assertion probes).
+Tester `96-Local Testing/02-Data Structures/62-xorbasis_tester.cpp`, entry `62-xorbasis_tester.py` (driver `_00_contest_runner.py`; optimized, checked and ASan/UBSan builds; 17 assertion probes).
 
 The tester's own oracles never call the header:
 
@@ -134,6 +134,8 @@ In cycles (`perf stat`, the review's single-implementation builds of the cuts lo
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 941 MB; optimized 0.2 s compile + 49.0 s run, checked 32.7 s compile + 4.4 s run, ASan-UBSan 44.6 s compile + 34.6 s run; MEMORY peak 1299 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 971 MB; optimized 0.3 s compile + 57.8 s run, checked 41.4 s compile + 5.6 s run, ASan-UBSan 55.2 s compile + 40.6 s run; MEMORY peak 1349 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 44.0 s compile + 2.2 s run, checked 20.1 s compile + 21.1 s run; MEMORY peak 930 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 54 MB; optimized 0.1 s compile + 60.9 s run, checked 13.3 s compile + 6.0 s run, ASan-UBSan 17.5 s compile + 44.0 s run; MEMORY peak 978 MB. Dated rows below stay those commands' latest results.
+
 Latest run 2026-11-03, maintainer runs under `merge_pr.py run 1` (bwrap, memory cap), Intel Core i9-11900H, `g++` 16.2.1, `g++-14` 14.4.1, CPython 3.14.8; the quick and full rows are the maintainer gate's (`merge_pr.py gates 1`); `02-integration.py` is the contributor's run (Linux x86-64 WSL2, `g++` 16.0.1) before the `MASK` change, and the maintainer gate reruns it with `--sanitizers`:
 
 | Command | Result | Memory peak |
@@ -180,3 +182,4 @@ The completeness sweep fetched these on 2026-11-02 ([00-sources.md](00-sources.m
 - 2026-11-03: `/finish` audit, 6 defects fixed (branchless `insert` and `represent` with benchmarks, row 63 wording, stale mutant entry, decision and fetch dates, Library Checker target, nits); quick, full (seed 1) on g++ and g++-14, stress (seed 7), `28-cycle_basis` suites and `02-integration.py` passed.
 - 2026-11-03: maintainer fixes in `/merge-pr 1` (user decision 2026-11-03): `XorBasis<MASK>`, with `XorBasis<false>` for Graphs row 28 (the masks cost it 18–41%); `rangeXorBasisQuery` moved to `XorBasisCompanion`; `m` renamed `masks`; shared `reduceMasked`; `intersection(a, o)`; `B` defined; `merge`, prefix-query and `MASK` keeps; the tester covers `XorBasis<false>` and the callback order; benchmark driver committed; quick, full (seed 1) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.

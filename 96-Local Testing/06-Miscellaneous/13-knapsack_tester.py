@@ -14,8 +14,11 @@ the test-only big integer implementation used when Boost is unavailable.
 """
 import random
 import shlex
-import subprocess
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
+from _00_cpp_test_runner import timed_run
 
 
 def oracle(binary, args, env):
@@ -55,7 +58,7 @@ def oracle(binary, args, env):
     text = ''.join(f'{len(items)} {cap}\n' + ''.join(f'{w} {c}\n' for w, c in items)
                    for items, cap in fixtures)
     command = [str(binary), '--oracle-counts']
-    run = subprocess.run(command, input=text, capture_output=True, text=True, timeout=180, env=env)
+    run = timed_run(f'13-knapsack oracle {Path(command[0]).name}', command, input=text, capture_output=True, text=True, timeout=180, env=env)
     if run.returncode:
         raise RuntimeError(f'command={shlex.join(command)} returncode={run.returncode}\n{run.stdout}\n{run.stderr}')
     rows = run.stdout.splitlines()

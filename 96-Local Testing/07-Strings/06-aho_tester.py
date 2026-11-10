@@ -11,9 +11,12 @@ and 15 asserted preconditions. Large cases: nested unary patterns (depth
 temporary dense link computation (spines 500/5000/20000, small cases m = 3, 20).
 Full/stress add ASan/UBSan.
 """
-from _00_runner import main
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('06-aho', ['unbuilt', 'unbuilt-sink', 'unbuilt-first', 'trie-duplicate-label',
         'trie-unreachable', 'trie-parent-range', 'trie-end-range', 'trie-label-size', 'add-built', 'negative-state',
-        'large-state', 'large-step-state', 'aggregate-size', 'safe-state', 'output-state'], strict=True))
+        'large-state', 'large-step-state', 'aggregate-size', 'safe-state', 'output-state'], extra=('-Wshadow',)))

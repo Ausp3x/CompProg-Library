@@ -46,7 +46,7 @@ Floyd's two-speed pointers either encounter termination or meet on a cycle. Rese
 
 ## Feature-to-test map
 
-[11-functionalgraph_tester.py](<../../96-Local Testing/04-Graphs/11-functionalgraph_tester.py>) runs the actual header through the shared graph driver, with [independent C++ oracles](<../../96-Local Testing/04-Graphs/11-functionalgraph_tester.cpp>).
+[11-functionalgraph_tester.py](<../../96-Local Testing/04-Graphs/11-functionalgraph_tester.py>) runs the actual header through the shared contest runner, with [independent C++ oracles](<../../96-Local Testing/04-Graphs/11-functionalgraph_tester.cpp>).
 
 | Features | Independent verification |
 |---|---|
@@ -67,13 +67,15 @@ Quick exhausts maps through n=3, adds 80 random cases and 20,000-vertex fixtures
 
 ## Commands and results
 
+Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 903 MB; optimized 0.2 s compile + 4.8 s run, checked 28.1 s compile + 10.0 s run, ASan-UBSan 34.8 s compile + 104.9 s run; MEMORY peak 1127 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 969 MB; optimized 0.2 s compile + 6.0 s run, checked 34.9 s compile + 13.8 s run, ASan-UBSan 43.4 s compile + 86.0 s run; MEMORY peak 1113 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 33.8 s compile + 0.3 s run, checked 25.6 s compile + 3.8 s run; MEMORY peak 909 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 919 MB; optimized 0.1 s compile + 27.8 s run, checked 11.3 s compile + 58.3 s run, ASan-UBSan 14.3 s compile + 685.2 s run; MEMORY peak 1281 MB. Command limit 1500 s instead of 720 s: its ASan-UBSan stress run took 685 s in the stress round beside the other suites. Dated rows below stay those commands' latest results.
+
 Latest run 2026-10-17 (P027 monoid pass), Linux x86-64 (Intel Core i9-11900H), GNU++20, CPython 3.14.7, the runner's optimized, checked and ASan/UBSan builds:
 
 | Command | Result |
 |---|---|
 | `11-functionalgraph_tester.py --mode full --seed 20261017` (GCC 16.2.1) | PASS, 3 configurations, 12,806,455 checks per configuration, 29 assertion probes, MEMORY peak 805 MB |
 | `CXX=g++-14 11-functionalgraph_tester.py --mode full --seed 20261017` (GCC 14.4.1, floor) | PASS, 12,806,455 checks per configuration, MEMORY peak 835 MB |
-| `11-functionalgraph_tester.py --mode stress --seed 7 --configuration optimized` | PASS, 222,137,296 checks (optimized build; the checked build exceeds the runner limit at stress size), MEMORY peak 407 MB |
+| `11-functionalgraph_tester.py --mode stress --seed 7 --configuration optimized` | PASS, 222,137,296 checks (optimized build; the checked build then exceeded the former 180 s limit at stress size), MEMORY peak 407 MB |
 | `02-integration.py --sanitizers` | PASS: 156 standalone/aggregate headers, scalar/available AVX2 multi-TU, workspace, sanitizer self-tests, MEMORY peak 1834 MB |
 | `03-consistency.py` | No errors |
 
@@ -101,8 +103,6 @@ Sources for `jumpAll` and `maxStep` (fetched 2026-10-07) are in [00-sources.md](
 
 Static all-vertex queries, ordered cycle/walk aggregates and one-orbit constant-memory analysis are complete scope here. Successor updates and fully dynamic functional-graph maintenance require a separate dynamic-tree design; they are outside this static batch. Constant-query-time level-ancestor constructions and arbitrary-speed/collision schedules are distinct specialized extensions, not claimed by these APIs. No original Floyd paper was independently reviewed.
 
-The checked `-O0` stress build exceeds the runner's 180 s timeout, so stress runs the optimized configuration only.
-
 ## Aliases
 
 Search aliases (P263, grab --find): 倍增, 基环树, 内向基环树, 函数图, 基环森林, 内向树, 判圈算法, 龟兔赛跑算法.
@@ -115,3 +115,4 @@ Search aliases (P263, grab --find): 倍增, 基环树, 内向基环树, 函数�
 - 2026-10-17: P027 monoid pass (stored-object monoid contract and `prod`/`allProd` names, stateful-monoid tests added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 805/835/407 MB.
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
+- 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound, a raised limit (above); full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.

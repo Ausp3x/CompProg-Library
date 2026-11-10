@@ -294,7 +294,7 @@ struct ConvexPolygonQuery {
 // T: O(n + m), M: O(n + m). Two convex CCW polygons (collinear vertices allowed, positive area), integral |coordinate| <= 10^9; exact, as clipConvex.
 template<typename T> HalfplaneResult convexIntersection(const vector<Point2<T>> &p, const vector<Point2<T>> &q) {
     static_assert(std::is_integral_v<T>);
-    for (const auto *r : {&p, &q}) { assert(r->size() >= 3 && r->size() <= INT_MAX / 2 && polygonConvex(*r, false) && signedArea2(*r) > 0); }
+    for ([[maybe_unused]] const auto *r : {&p, &q}) { assert(r->size() >= 3 && r->size() <= INT_MAX / 2 && polygonConvex(*r, false) && signedArea2(*r) > 0); }
     auto e = halfplane_detail::edges(p), f = halfplane_detail::edges(q);
     vector<Halfplane> all(e.size() + f.size());
     std::merge(e.begin(), e.end(), f.begin(), f.end(), all.begin(), halfplane_detail::less);
