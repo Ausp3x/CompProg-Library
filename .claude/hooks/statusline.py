@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
-"""Status line: model, effort, context against the auto-compact window, prompt cache, plan usage and session cost
-(a list-price estimate). Reads Claude Code's status JSON on stdin; a missing field is left out."""
+"""Status line: model, effort, context against the auto-compact window, prompt cache, the experiment id, plan usage,
+session cost (a list-price estimate) and the harness warnings of harness.py. Reads Claude Code's status JSON on stdin;
+a missing field is left out."""
 import datetime
 import json
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 
 def field(d, keys):
@@ -41,6 +44,12 @@ def main():
     if cache:
         until = clock(cache.get('expires_at'))
         parts.append(f'cache {cache.get("ttl") or ""} ' + (('warm to ' + until if until else 'warm') if cache.get('warm') else 'cold'))
+    try:
+        import harness
+        exp, warnings = harness.status(d)
+    except Exception:  # The warnings must not take the status line down with them.
+        exp, warnings = '', ['harness error']
+    parts.append(exp)
     for label, key in (('5h', 'five_hour'), ('7d', 'seven_day')):
         pct = field(d, ('rate_limits', key, 'used_percentage'))
         if isinstance(pct, (int, float)):
@@ -48,7 +57,8 @@ def main():
     cost = field(d, ('cost', 'total_cost_usd'))
     if isinstance(cost, (int, float)):
         parts.append(f'${cost:.2f}')
-    print(' · '.join(p.replace('  ', ' ').strip() for p in parts))
+    parts += [f'⚠ {w}' for w in warnings]
+    print(' · '.join(p.replace('  ', ' ').strip() for p in parts if p))
 
 
 if __name__ == '__main__':

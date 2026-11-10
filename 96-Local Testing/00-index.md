@@ -33,6 +33,7 @@ python3 '96-Local Testing/00-Tools/10-merge_tester.py' --mode full    # /merge-p
 python3 '96-Local Testing/00-Tools/11-mutation_tester.py' --mode full # 04-mutation.py
 python3 '96-Local Testing/00-Tools/12-hooks_tester.py' --mode full    # the Bash hook shell.py and consistency.py's entry
 python3 '96-Local Testing/00-Tools/13-grab_tester.py' --mode full     # 10-grab.py and 05-extraction.py's functions
+python3 '96-Local Testing/00-Tools/15-harness_tester.py' --mode full  # the model guard harness.py, its status line warnings and launch.py
 python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Checker fetch, reproduce and compare (/speed-sweep)
 ```
 

@@ -1,0 +1,12 @@
+{
+  "models": ["claude-haiku-5-5"],
+  "audited_version": "2.1.322",
+  "request": {
+    "fields": ["betas", "context_management", "max_tokens", "model", "output_config", "thinking"],
+    "expect": {
+      "thinking": {"type": "adaptive"},
+      "context_management": {"edits": [{"keep": "all"}]}
+    }
+  },
+  "accepted_texts": []
+}

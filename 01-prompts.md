@@ -8,6 +8,7 @@ Start one fresh session per task with the preset of its work:
 
 - Core full types (`01-Core` non-mini headers, packages tagged `fable`): `claude --agent core-session --effort xhigh`
 - Everything else, sweeps included: `claude --agent contest-session --effort high`
+- To start without the cached experiment ids (user decision 2026-11-11), put `python3 .claude/launch.py` in place of `claude` in either command ([00-harness-audit.md](00-Guidelines/13-Plan/Docs/00-harness-audit.md), Launcher).
 - Parallel packages: `python3 '00-Guidelines/13-Plan/plan.py' ready --max 3` picks ready packages from different folders; launch each with `--worktree <name>` added. New worktrees branch from `origin/master` by default (`worktree.baseRef`), so push `master` before launching them.
 - Packages with several batches run one batch per session under its batch id (`/package`, Batches); `/package Pxxx` names the next one.
 - Contributors (`CLAUDE.md`, Git) claim a package before `/package` with the commands its brief prints.
@@ -56,7 +57,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P274 — SUP25** (opus, L): Test speed: build cache, shared runner, quick bound.
 - [x] **P275 — SUP26** (opus, L): Duplicate re-review under the 2026-11-08 One API rule.
 - [x] **P276 — SUP27** (opus, L): Operation-name renames under the 2026-11-08 vocabulary.
-- [ ] **P287 — SUP28, SUP29** (opus, XL): Harness audit: model guard, experiment ids, weekly scan. Status: planned. Note: Two batches, one session each: SUP28 (trace, guard, status line, package record), then SUP29 (scan, weekly trigger, opt-in canary).
+- [ ] **P287 — SUP28, SUP29** (opus, XL): Harness audit: model guard, experiment ids, weekly scan. Status: in-progress. Note: SUP28 finished and landed (2026-11-11, /finish): harness.py guard, status line, self-test, experiment record, launcher, trace and strip test; audit 15 findings, 25 defects fixed, 9 decisions recorded; 15-harness_tester.py full, CXX=g++-14 full and stress --seed 1 and 2 pass (64 tests). Next: SUP29 (weekly scan, trigger, opt-in canary). [evidence](00-Guidelines/13-Plan/Docs/00-harness-audit.md)
 
 ### Core full types
 

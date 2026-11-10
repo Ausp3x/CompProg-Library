@@ -6,7 +6,8 @@ Per session: model calls, peak context, input tokens processed (every call re-re
 tokens, compactions, and subagents with their input. The replay estimates the input a session would have
 processed under an auto-compact window: the context grows by the same per-call steps and drops to 60k tokens
 whenever it would exceed the window. --split groups the calls by model and effort (subagents also by type) and
-summarizes finish-log.tsv by model and effort, the measure for the effort setting. The model ignores the session's own drops (compactions, rewinds) and the files
+summarizes finish-log.tsv by model, effort and experiment id, the measure for the effort setting and for rework
+under a server-side experiment. The model ignores the session's own drops (compactions, rewinds) and the files
 re-read after a compaction, so each window is compared with the same model at the default window (DEFAULT, about
 967k on a 1M-context model), never with the actual input. The totals
 include the clangd sign-conversion diagnostics attached to the sessions.
@@ -88,11 +89,11 @@ def print_split(sessions):
     rows = list(csv.DictReader(open(log), delimiter='\t')) if log.is_file() else []
     groups = collections.defaultdict(list)
     for r in rows:
-        groups[(r['model'], r['effort'])].append(r)
-    print('\nfinish-log.tsv by model and effort: landings, mean review findings, defects fixed, decisions asked')
-    for (model, effort), rs in sorted(groups.items()):
+        groups[(r['model'], r['effort'], ((r.get('experiment') or '').split() or ['?'])[0])].append(r)
+    print('\nfinish-log.tsv by model, effort and experiment: landings, mean review findings, defects fixed, decisions asked')
+    for (model, effort, exp), rs in sorted(groups.items()):
         mean = lambda k: sum(float(r[k] or 0) for r in rs) / len(rs)
-        print(f'  {model[:16]:16} {effort:6} {len(rs):4} {mean("review_findings"):6.1f} {mean("defects_fixed"):6.1f} {mean("decisions"):6.1f}')
+        print(f'  {model[:16]:16} {effort:6} {exp[:16]:16} {len(rs):4} {mean("review_findings"):6.1f} {mean("defects_fixed"):6.1f} {mean("decisions"):6.1f}')
     if not groups:
         print('  (no landings logged yet)')
 
@@ -116,7 +117,7 @@ def main():
     parser.add_argument('--skill', default='/package', help="first command of the session; '' for all sessions")
     parser.add_argument('--top', type=int, default=15)
     parser.add_argument('--windows', default='600000,400000,250000')
-    parser.add_argument('--split', action='store_true', help='also group calls by model and effort, and summarize finish-log.tsv')
+    parser.add_argument('--split', action='store_true', help='also group calls by model and effort, and summarize finish-log.tsv by model, effort and experiment')
     args = parser.parse_args()
     listing = subprocess.run(['git', 'worktree', 'list', '--porcelain'], capture_output=True, text=True, check=True).stdout
     main_root = listing.split('\n', 1)[0].split(' ', 1)[1]
