@@ -396,6 +396,20 @@
       "note": "Core renames handed off: P258 (getBaseId -> baseId, divModSlow -> divModQuadratic or divModKnuth, Poly::sparseMul), P256 (getBaseId), P023 (sparseGauss), P020 (rref<1>; invReal, rankReal, solveReal remove row-only items)."
     },
     {
+      "id": "P287",
+      "label": "Harness audit: model guard, experiment ids, weekly scan",
+      "batches": [
+        "SUP28",
+        "SUP29"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Two batches, one session each: SUP28 (trace, guard, status line, package record), then SUP29 (scan, weekly trigger, opt-in canary)."
+    },
+    {
       "id": "P025",
       "label": "01-Core — poly",
       "batches": [
