@@ -643,7 +643,7 @@ namespace {
             for (auto &a : h.arcs) {
                 if (a.id == 0) { a.w = 3; }}}
         return h;}
-    // weightedClustering and weightedDirectedClustering on all three weight modes, Graph and CsrGraph; unit weights exactly equal the unweighted values.
+    // localClusteringWeighted and directedClusteringWeighted on all three weight modes, Graph and CsrGraph; unit weights exactly equal the unweighted values.
     // The checked and ASan builds run one rotating weight mode per graph.
     void weightedChecks(const Graph &g) {
         for (int t = 0, first = int(wrng() % 3); t < (SHRINK > 1 ? 1 : 3); ++t) {
@@ -651,13 +651,13 @@ namespace {
             Graph h = weighted(g, wm);
             auto e = h.directed ? nxWeightedDirected(h) : nxWeighted(h);
             if (h.directed) {
-                closeTo(weightedDirectedClustering(h), e, "weightedDirectedClustering (NetworkX weighted directed clustering)");
-                closeTo(weightedDirectedClustering(CsrGraph(h)), e, "weightedDirectedClustering CsrGraph");
-                if (wm == 0) { same(weightedDirectedClustering(h), directedClustering(h), "unit weights: weightedDirectedClustering = directedClustering"); }}
+                closeTo(directedClusteringWeighted(h), e, "directedClusteringWeighted (NetworkX weighted directed clustering)");
+                closeTo(directedClusteringWeighted(CsrGraph(h)), e, "directedClusteringWeighted CsrGraph");
+                if (wm == 0) { same(directedClusteringWeighted(h), directedClustering(h), "unit weights: directedClusteringWeighted = directedClustering"); }}
             else {
-                closeTo(weightedClustering(h), e, "weightedClustering (NetworkX weighted clustering)");
-                closeTo(weightedClustering(CsrGraph(h)), e, "weightedClustering CsrGraph");
-                if (wm == 0) { same(weightedClustering(h), localClustering(h), "unit weights: weightedClustering = localClustering"); }}}}
+                closeTo(localClusteringWeighted(h), e, "localClusteringWeighted (NetworkX weighted clustering)");
+                closeTo(localClusteringWeighted(CsrGraph(h)), e, "localClusteringWeighted CsrGraph");
+                if (wm == 0) { same(localClusteringWeighted(h), localClustering(h), "unit weights: localClusteringWeighted = localClustering"); }}}}
     void verifyBoth(const Graph &g, const Expect &x, std::mt19937_64 &rng) {
         verify(g, g, x, rng);
         verify(CsrGraph(g), g, x, rng);
@@ -1422,12 +1422,12 @@ namespace {
         else if (name == "undirected-directed-clustering") { (void)directedClustering(u); }
         else if (name == "undirected-directed-clustering-csr") { (void)directedClustering(CsrGraph(u)); }
         else if (name == "directed-enumerate-triangle-edges") { enumerateTriangleEdges(d, [](int, int, int, int, int, int) {}); }
-        else if (name == "directed-weighted-clustering") { (void)weightedClustering(d); }
-        else if (name == "undirected-weighted-directed-clustering") { (void)weightedDirectedClustering(u); }
-        else if (name == "weighted-parallel") { u.addEdge(1, 0, 2); (void)weightedClustering(u); }
-        else if (name == "weighted-directed-parallel") { d.addEdge(0, 1, 2); (void)weightedDirectedClustering(d); }
-        else if (name == "weighted-max-zero") { Graph z(3); z.addEdge(0, 1, 0); z.addEdge(1, 2, -4); (void)weightedClustering(z); }
-        else if (name == "weighted-directed-max-zero") { Graph z(3, true); z.addEdge(0, 1, 0); z.addEdge(1, 2, -4); (void)weightedDirectedClustering(z); }
+        else if (name == "directed-weighted-clustering") { (void)localClusteringWeighted(d); }
+        else if (name == "undirected-weighted-directed-clustering") { (void)directedClusteringWeighted(u); }
+        else if (name == "weighted-parallel") { u.addEdge(1, 0, 2); (void)localClusteringWeighted(u); }
+        else if (name == "weighted-directed-parallel") { d.addEdge(0, 1, 2); (void)directedClusteringWeighted(d); }
+        else if (name == "weighted-max-zero") { Graph z(3); z.addEdge(0, 1, 0); z.addEdge(1, 2, -4); (void)localClusteringWeighted(z); }
+        else if (name == "weighted-directed-max-zero") { Graph z(3, true); z.addEdge(0, 1, 0); z.addEdge(1, 2, -4); (void)directedClusteringWeighted(z); }
         else { throw std::runtime_error("unknown invalid probe " + name); }}
 } // namespace
 

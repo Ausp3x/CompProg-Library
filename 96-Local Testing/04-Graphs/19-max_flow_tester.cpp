@@ -53,7 +53,7 @@ namespace {
             check(f > 0 && !ids.empty(), "decomposition amount positive");
             int u = net.s; vector<char> seen(net.n); seen[u] = true;
             for (int id : ids) {
-                auto e = mf.getEdge(id);
+                auto e = mf.edge(id);
                 int v = e.flow > 0 && e.from == u ? e.to : e.flow < 0 && e.to == u ? e.from : -1;
                 check(v >= 0, "decomposition follows flow direction");
                 used[id] += f;
@@ -68,9 +68,9 @@ namespace {
         auto all = mf.edges();
         equal(lll(net.es.size()), lll(all.size()), "edges size");
         for (int i = 0; i < int(net.es.size()); ++i) {
-            auto e = mf.getEdge(i); auto x = net.es[i];
-            check(e.from == x.u && e.to == x.v && lll(e.cap) == x.cap, "getEdge endpoints and capacity");
-            check(all[i].from == e.from && all[i].to == e.to && all[i].cap == e.cap && all[i].flow == e.flow, "edges matches getEdge");
+            auto e = mf.edge(i); auto x = net.es[i];
+            check(e.from == x.u && e.to == x.v && lll(e.cap) == x.cap, "edge endpoints and capacity");
+            check(all[i].from == e.from && all[i].to == e.to && all[i].cap == e.cap && all[i].flow == e.flow, "edges matches edge");
             check(-x.rcap <= e.flow && e.flow <= x.cap, "flow within [-rcap, cap]");
             bal[x.u] -= e.flow; bal[x.v] += e.flow;}
         for (int v = 0; v < net.n; ++v) {
@@ -143,7 +143,7 @@ namespace {
             certify(mf, net, value, true);}
         if (net.es.empty()) { return; }
         int i = int(rng() % net.es.size()); lng c = lng(rand(0, 9)), f = lng(rand(-net.es[i].rcap, c));
-        mf.changeEdge(i, c, f); auto e = mf.getEdge(i);
+        mf.changeEdge(i, c, f); auto e = mf.edge(i);
         check(e.cap == c && e.flow == f && e.from == net.es[i].u && e.to == net.es[i].v, "changeEdge raw set");}
     // Arbitrary valid flows (s-t paths, t-s paths, cycles through any vertex) set by changeEdge.
     void randomFlowCase() {
@@ -168,7 +168,7 @@ namespace {
     lll augmentStep(MaxFlow<Cap> &mf, const Net &net) {
         int m = int(net.es.size());
         vector<lll> before(m);
-        for (int i = 0; i < m; ++i) { before[i] = mf.getEdge(i).flow; }
+        for (int i = 0; i < m; ++i) { before[i] = mf.edge(i).flow; }
         auto residual = [&](int i, bool forward) { return forward ? net.es[i].cap - before[i] : net.es[i].rcap + before[i]; };
         vector<int> dist(net.n, -1), q{net.s};
         dist[net.s] = 0;
@@ -181,7 +181,7 @@ namespace {
         vector<int> next(net.n, -1);
         int len = 0;
         for (int i = 0; i < m; ++i) {
-            lll d = lll(mf.getEdge(i).flow) - before[i];
+            lll d = lll(mf.edge(i).flow) - before[i];
             if (d == 0) { continue; }
             check(d == f || d == -f, "augmentPath moves each path edge by the amount");
             int x = d > 0 ? net.es[i].u : net.es[i].v, y = d > 0 ? net.es[i].v : net.es[i].u;
@@ -333,7 +333,7 @@ namespace {
         else if (name == "scaling-same") { mf.capacityScalingDinic(2, 2); }
         else if (name == "pushrelabel-same") { mf.pushRelabel(0, 0); }
         else if (name == "pushrelabel-supply") { mf.addEdge(0, 2, std::numeric_limits<lng>::max()); mf.pushRelabel(0, 2); }
-        else if (name == "getEdge-range") { mf.getEdge(1); }
+        else if (name == "edge-range") { mf.edge(1); }
         else if (name == "changeEdge-flow") { mf.changeEdge(0, 2, 3); }
         else if (name == "changeEdge-reverse") { mf.changeEdge(0, 2, -1); }
         else if (name == "changeCapacity-negative") { mf.changeCapacity(0, -1, 0, 1); }

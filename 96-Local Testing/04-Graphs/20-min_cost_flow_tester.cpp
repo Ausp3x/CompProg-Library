@@ -234,11 +234,11 @@ namespace {
         lll cost = 0, w = 0, top = 0;
         equal(m, lll(all.size()), "edges size");
         for (int i = 0; i < m; ++i) {
-            auto e = mf.getEdge(i); auto &me = net.es[i];
-            check(e.from == me.u && e.to == me.v && lll(e.cap) == capOf(me), "getEdge endpoints and capacity");
-            check(all[i].from == e.from && all[i].to == e.to && all[i].cap == e.cap && all[i].flow == e.flow && all[i].cost == e.cost, "edges matches getEdge");
+            auto e = mf.edge(i); auto &me = net.es[i];
+            check(e.from == me.u && e.to == me.v && lll(e.cap) == capOf(me), "edge endpoints and capacity");
+            check(all[i].from == e.from && all[i].to == e.to && all[i].cap == e.cap && all[i].flow == e.flow && all[i].cost == e.cost, "edges matches edge");
             check(0 <= e.flow && e.flow <= e.cap, "flow within [0, cap]");
-            equal(unitAt(me, e.flow > 0 ? lll(e.flow) - 1 : 0), e.cost, "getEdge cost is the unit cost of the last unit");
+            equal(unitAt(me, e.flow > 0 ? lll(e.flow) - 1 : 0), e.cost, "edge cost is the unit cost of the last unit");
             x[i] = e.flow; bal[me.u] -= e.flow; bal[me.v] += e.flow; cost += costOf(me, e.flow);
             lll c = me.u == me.v || capOf(me) == 0 ? 0 : max(mag(me.pieces[0].second), mag(me.pieces.back().second));
             w += c; top = max(top, c);}
@@ -446,14 +446,14 @@ namespace {
         check(sl.size() == 1 && sl[0].first == 0 && sl[0].second == 0, "no edges: slope is (0, 0)");
         check(empty.flow(1, 0) == pair<lng, lll>{0, 0} && empty.potentials() == vector<lng>{0, 0}, "no edges: flow 0, potentials 0");
         equal(0, z.addConvexEdge(0, 1, {}), "empty pieces: edge id");
-        auto e = z.getEdge(0);
+        auto e = z.edge(0);
         check(e.from == 0 && e.to == 1 && e.cap == 0 && e.flow == 0 && e.cost == 0 && z.flow(0, 1).first == 0, "empty pieces: zero-capacity edge of cost 0");
         one.addEdge(0, 1, 5, 3); one.addEdge(1, 2, 5, -1); one.addEdge(2, 2, 4, 0);
         check(one.flow(0, 2, 0) == pair<lng, lll>{0, 0}, "limit 0 adds nothing");
         check(one.flow(0, 2, 5, 2) == pair<lng, lll>{0, 0}, "below equal to the path cost adds nothing");
         check(one.flow(0, 2, 3, 3) == pair<lng, lll>{3, 6}, "below above the path cost, limited");
         check(one.flow(0, 2) == pair<lng, lll>{2, 4} && one.flow(0, 2) == pair<lng, lll>{0, 0}, "resume to the maximum, then nothing");
-        check(one.getEdge(2).flow == 0 && one.flow(2, 0) == pair<lng, lll>{5, -10}, "loop unused; reverse residual flow");
+        check(one.edge(2).flow == 0 && one.flow(2, 0) == pair<lng, lll>{5, -10}, "loop unused; reverse residual flow");
         cases += 4;
         cout << "PASS degenerate networks\n";}
 
@@ -556,7 +556,7 @@ namespace {
         else if (name == "convex-order") { mf.addConvexEdge(0, 1, {{1, 2}, {1, 1}}); }
         else if (name == "convex-overflow") { mf.addConvexEdge(0, 1, {{M::MAX, 0}, {1, 1}}); }
         else if (name == "convex-cost") { mf.addConvexEdge(0, 1, {{1, 0}, {1, M::LIM + 1}}); }
-        else if (name == "getEdge-range") { mf.getEdge(1); }
+        else if (name == "edge-range") { mf.edge(1); }
         else if (name == "flow-same") { mf.flow(1, 1); }
         else if (name == "flow-range") { mf.flow(0, 3); }
         else if (name == "flow-limit") { mf.flow(0, 1, -1); }

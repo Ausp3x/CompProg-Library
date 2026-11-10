@@ -2,7 +2,7 @@
 
 #include "../01-Core/01-template.hpp"
 
-// S: O(n + m), U: O(1) amortized addEdge, Q: O(1) getEdge, O(m) edges, M: O(n + m); Cap is a signed integer type, capacities >= 0.
+// S: O(n + m), U: O(1) amortized addEdge, Q: O(1) edge, O(m) edges, M: O(n + m); Cap is a signed integer type, capacities >= 0.
 template<class Cap = lng>
 struct MaxFlow {
     static_assert(std::numeric_limits<Cap>::is_integer && std::numeric_limits<Cap>::is_signed);
@@ -34,13 +34,13 @@ struct MaxFlow {
         auto [u, k] = pos[i]; auto &a = g[u][k];
         a.cap = cap - flow; g[a.to][a.rev].cap = rcap[i] + flow;}
 
-    Edge getEdge(int i) const {
+    Edge edge(int i) const {
         assert(0 <= i && i < int(pos.size()));
         auto [u, k] = pos[i]; auto &a = g[u][k]; Cap f = g[a.to][a.rev].cap - rcap[i];
         return {u, a.to, a.cap + f, f};}
     vector<Edge> edges() const {
         vector<Edge> res;
-        for (int i = 0; i < int(pos.size()); ++i) { res.push_back(getEdge(i)); }
+        for (int i = 0; i < int(pos.size()); ++i) { res.push_back(edge(i)); }
         return res;}
 
     // T: O(n^2 * m), M: O(n); adds min(remaining max flow, limit) to the current flow and returns it.
@@ -160,7 +160,7 @@ struct MaxFlow {
         auto side = minCut(s);
         vector<int> res;
         for (int i = 0; i < int(pos.size()); ++i) {
-            auto e = getEdge(i);
+            auto e = edge(i);
             if ((side[e.from] && !side[e.to] && e.cap > 0) || (side[e.to] && !side[e.from] && rcap[i] > 0)) { res.push_back(i); }}
         return res;}
     // T: O(n * m), M: O(n + m + out); valid flow as (amount, edge IDs from s to t) paths summing to its value, cycles dropped.
@@ -173,7 +173,7 @@ struct MaxFlow {
         lll need = 0;
         if (s == t) { return res; }
         for (int i = 0; i < int(pos.size()); ++i) {
-            auto e = getEdge(i);
+            auto e = edge(i);
             int tail = e.flow < 0 ? e.to : e.from;
             rem[i] = e.flow < 0 ? -e.flow : e.flow;
             head[i] = e.flow < 0 ? e.from : e.to;

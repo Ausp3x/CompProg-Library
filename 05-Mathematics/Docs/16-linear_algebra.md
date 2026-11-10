@@ -17,7 +17,7 @@ Common conventions:
 - **Shapes.** `Mat<T>` is row-major; every row of a matrix has the same length (asserted at entry of every elimination and product). A `Mat` without rows is 0 x 0, so an n x 0 matrix needs n empty rows.
 - **Scalar domains.** "Exact field" means `T` with `+ - * /`, `==`, `T(0)`, `T(1)` and exact arithmetic: Core modints with a prime modulus, rationals. Exact-field operations reject floating `T` at compile time (`static_assert`), and the `Real` operations and `luDecompose` accept only floating `T`, so exact and approximate pivoting are separately named (`03-cpp.md`, API contracts). "Any ring" needs only `+ *` and `T(0)`, `T(1)`.
 - **Pivoting.** Exact operations pivot on the first nonzero entry of the column. Floating operations pivot on the largest `|x|` in the column (partial pivoting) and treat `|x| <= eps` as zero; `eps` is absolute (default `1e-9`), so scale inputs to magnitude about 1.
-- **Status results.** A no-answer is a `bool` `false` (structured solves, inverses, `FieldBasis`) or an empty `Mat` (`solveLinear`, `solveLinearReal`), which never collides with a solution: a solvable system returns at least one row. After `false`, in-place outputs are unspecified unless the function says untouched.
+- **Status results.** A no-answer is a `bool` `false` (structured solves, inverses, `FieldBasis`) or an empty `Mat` (`solveLinear`, `solveLinearApprox`), which never collides with a solution: a solvable system returns at least one row. After `false`, in-place outputs are unspecified unless the function says untouched.
 - **Aliasing.** Inputs are taken by value or read completely before an output is written, so an output may share storage with any input (`solveLinearMultiRhs(a, b, b)`, `tridiagonalSolve(v, v, v, v)`, `lowRankUpdateInverse(a, a, a)`).
 - **Violated preconditions** (non-square input, mismatched sizes, `mod < 1`, bad `rollback` size) are asserted at entry. Under `NDEBUG` the result is unspecified; no operation loops or allocates beyond its normal bounds.
 
@@ -72,11 +72,11 @@ Common conventions:
 - **`cyclicTridiagonalSolve(a, b, c, d)`** adds `a[0]` at column n-1 of row 0 and `c[n-1]` at column 0 of row n-1. For n >= 3 it eliminates with the last column carried as a fill vector and the last row's fill walking along the diagonal, about twice Thomas. `false` iff a leading principal minor of order 1 .. n-1 or the determinant is zero. n = 1 folds to `(a0 + b0 + c0) x0 = d0` and n = 2 to `[[b0, a0 + c0], [a1 + c1, b1]]`. This matches Thomas's condition, unlike Sherman–Morrison, whose modified diagonal can break down on a matrix Thomas solves.
 - **`bandedSolve(band, p, q, d)`** takes `band[i][j - i + p] = A[i][j]` for `-p <= j - i <= q` (rows of p + q + 1, entries outside the matrix ignored) and eliminates without pivoting, so the fill stays inside the band: `O(n p q)`. Same breakdown condition as Thomas.
 
-### solveLinearReal, matrixRankReal, determinantReal
+### solveLinearApprox, matrixRankApprox, determinantApprox
 
-- **`solveLinearReal(a, b, eps)`**: partial-pivoting Gauss–Jordan; columns whose best pivot has `|x| <= eps` are free; inconsistent when a remaining right-hand side has `|r| > eps`. Result shape of `solveLinear`.
-- **`matrixRankReal(a, eps)`**: number of pivots above `eps`; the numerical rank depends on `eps` and the scaling.
-- **`determinantReal(a)`**: partial pivoting with no tolerance (0 only when a whole remaining column is exactly 0). The relative error grows with the condition number.
+- **`solveLinearApprox(a, b, eps)`**: partial-pivoting Gauss–Jordan; columns whose best pivot has `|x| <= eps` are free; inconsistent when a remaining right-hand side has `|r| > eps`. Result shape of `solveLinear`.
+- **`matrixRankApprox(a, eps)`**: number of pivots above `eps`; the numerical rank depends on `eps` and the scaling.
+- **`determinantApprox(a)`**: partial pivoting with no tolerance (0 only when a whole remaining column is exactly 0). The relative error grows with the condition number.
 
 ### FieldBasis
 
@@ -93,7 +93,7 @@ Common conventions:
 
 | Legacy | Replacement |
 |---|---|
-| `old_gaussjordan.cpp` `gaussJordan(vector<vector<double>>&)` (EPS pivots, singular flag) | `solveLinearReal`, `matrixRankReal` (partial pivoting; the original took the first entry above EPS) |
+| `old_gaussjordan.cpp` `gaussJordan(vector<vector<double>>&)` (EPS pivots, singular flag) | `solveLinearApprox`, `matrixRankApprox` (partial pivoting; the original took the first entry above EPS) |
 | `old_matrix.cpp` `Matrix` (n x n `ll` mod `MOD`), `power` | `Mat<mint>`, `matrixProduct`, `matrixPower` |
 | `algs.cpp`, `algsbetter.cpp` `Matrix`: `eye`, `operator*`, `pow` | `identityMatrix`, `matrixProduct`, `matrixPower` |
 | `algs.cpp`, `algsbetter.cpp` `Matrix::det` (field branch; Euclid branch for non-field `T`) | `determinant`; `determinantMod`, `determinantInteger` |
@@ -101,7 +101,10 @@ Common conventions:
 | `algsbetter.cpp` `minPlusMatrixExp` | not adopted here: a semiring power, Core Matrix `mulSemiring` |
 | `00-matrix.hpp` `Matrix` arithmetic, `concat`, `FastMatMul` | Core `10-matrix.hpp` (P020); this row keeps `matrixProduct` only |
 | row 16 `gaussJordan` (planned name) | `rref` (user decision 2026-10-28) |
-| row 16 `rank`, `rankReal` (planned names) | `matrixRank`, `matrixRankReal` (`std::rank` clash) |
+| row 16 `rank`, `rankReal` (planned names) | `matrixRank`, `matrixRankApprox` (`std::rank` clash) |
+| `solveLinearReal` (P276 rename, 2026-11-10) | `solveLinearApprox` |
+| `matrixRankReal` (P276 rename, 2026-11-10) | `matrixRankApprox` |
+| `determinantReal` (P276 rename, 2026-11-10) | `determinantApprox` |
 
 ## Feature-to-test map
 
@@ -123,7 +126,7 @@ Oracles:
 | determinantInteger | `integerSuite` (`int`, `lng`, `lll`), `integerKnown`: Leibniz in `lll`, P L U products, zero pivots needing swaps |
 | matrixPower, matrixPowerSum | `powerSuite` (mint, GF(2), Z/12, `ulng`): repeated products for e <= 20, own block-matrix power up to e = 2^64 - 1 |
 | tridiagonalSolve, cyclicTridiagonalSolve, bandedSolve | `bandSuite` (GF(2..7), mint, double; n <= 30; p, q <= 3): success iff every required leading minor is nonzero, exact `A x = d`; diagonally dominant residuals over doubles; cyclic n = 1, 2 folds |
-| solveLinearReal, matrixRankReal, determinantReal, luDecompose, luSolve | `realSuite`: Leibniz with a stated relative tolerance, rank-r products, residuals and kernels, LU reconstruction with `perm`, singular inputs and `eps` |
+| solveLinearApprox, matrixRankApprox, determinantApprox, luDecompose, luSolve | `realSuite`: Leibniz with a stated relative tolerance, rank-r products, residuals and kernels, LU reconstruction with `perm`, singular inputs and `eps` |
 | lowRankUpdateInverse | `lowRankSuite` (998244353, GF(2), GF(3), GF(5)): own inverse of `A + U V`, n <= 8, k <= 4 including k = 0 and n = 0, singular updates leave `ainv` untouched |
 | FieldBasis: insert, represent, rollback | `basisSuite`: random interleavings against a model list, brute spans or own ranks, coefficients reconstruct v |
 | freivaldsProductCheck | `freivaldsSuite`: exact products always pass, single-entry perturbations caught (GF(2) with 40 rounds), empty shapes, seed reproducibility |
@@ -165,7 +168,7 @@ Contest profile: no benchmark is required (no Barrett/Montgomery). Ad-hoc probe 
 | `adjugate` n = 500, 998244353 | 195 |
 | `matrixProduct` n = 1024, 998244353 | 1147 |
 | `matrixPower` / `matrixPowerSum` n = 200, e = 1e18 | 692 / 1176 |
-| `luDecompose` / `solveLinearReal` n = 500, double | 33 / 27 |
+| `luDecompose` / `solveLinearApprox` n = 500, double | 33 / 27 |
 
 Peak memory 22 MB. Core `10-matrix.hpp` is the fast path for large products.
 
@@ -182,6 +185,8 @@ Peak memory 22 MB. Core `10-matrix.hpp` is the fast path for large products.
 
 ## Aliases
 
+Renamed aliases (P276, 2026-11-10): `solveLinearReal`, `matrixRankReal`, `determinantReal`.
+
 Search aliases (P263, grab --find): Gaussian elimination, Gauss-Jordan, system of linear equations, determinant, matrix rank; 高斯消元, 矩阵, 行列式, 线性基, 线性代数简介, 初等变换, 矩阵快速幂, 矩阵求逆, 线性方程组, 矩阵的秩, 追赶法, 高斯消去法, 反矩阵.
 
 ## History
@@ -190,3 +195,4 @@ Search aliases (P263, grab --find): Gaussian elimination, Gauss-Jordan, system o
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`…Real` → `…Approx`); full on g++ and g++-14, stress and extraction passed.

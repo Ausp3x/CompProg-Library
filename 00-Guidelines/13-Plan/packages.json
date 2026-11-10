@@ -389,9 +389,11 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": "Sweep additions that break `02-structure.md` (Operation names), found by /finish P254: `RangeParallelDSU::getSize`, `reportIntersectionsBrute`, `SparseTableLCA::getLCA`; a variant word placed first (`offlineRangeSum`, `offlineSetIntersection`, `onlineFpsSqrt`, the four `offline…WordRam` of Geometry 60, `weightedMinimumEnclosingCircle`, `weightedAlphaShape2`/`3`, `weightedVoronoiLocate`); `phiTrial` (a lighter algorithm, `Simple`); `primitiveRoot` means a word's root in Strings 27 and a group generator in Mathematics 11. P275 handoff 2026-11-10: rename list in `00-Guidelines/23-Sweep Ledgers/Docs/00-duplicate-rereview.md` (Limits and handoffs); Core `invReal`, `rankReal`, `solveReal` are now remove (row only) in P020's `duplicates.md` section."
+      "status": "verified",
+      "evidence": [
+        "00-Guidelines/23-Sweep Ledgers/Docs/00-operation-renames.md"
+      ],
+      "note": "Core renames handed off: P258 (getBaseId -> baseId, divModSlow -> divModQuadratic or divModKnuth, Poly::sparseMul), P256 (getBaseId), P023 (sparseGauss), P020 (rref<1>; invReal, rankReal, solveReal remove row-only items)."
     },
     {
       "id": "P025",
@@ -480,7 +482,7 @@
       "model": "fable",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "P276 handoff 2026-11-10 (Core renames need Fable): `InfInt::getBaseId` -> `baseId` and `divModSlow` (Knuth D only) -> `divModQuadratic` or `divModKnuth`, with rows, testers and evidence mappings (`02-structure.md`, Operation names). Also `Poly::sparseMul` puts the variant word first (`02-structure.md`, Operation names; P276 decision 2026-11-10): rename it, as `mulSparse` for example."
     },
     {
       "id": "P256",
@@ -493,7 +495,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "P276 handoff 2026-11-10 (Core renames need Fable): `InfIntMini::getBaseId` -> `baseId` with its tester and evidence mapping, matching P258."
     },
     {
       "id": "P257",
@@ -519,7 +521,7 @@
       "model": "fable",
       "status": "planned",
       "evidence": [],
-      "note": "P275 handoff 2026-11-10: `Matrix<ModInt<MOD>>` with MOD >= 2^31 under AVX2 recovers MOD through the checked `int(T(-1))` (`10-matrix.hpp:127,295,306,353,659`): `+=`, `-=` and scalar `*=` abort at `05-modint.hpp:106`, the matrix product fails constant evaluation; `is_mint32` admits any 32-bit ModInt."
+      "note": "P275 handoff 2026-11-10: `Matrix<ModInt<MOD>>` with MOD >= 2^31 under AVX2 recovers MOD through the checked `int(T(-1))` (`10-matrix.hpp:127,295,306,353,659`): `+=`, `-=` and scalar `*=` abort at `05-modint.hpp:106`, the matrix product fails constant evaluation; `is_mint32` admits any 32-bit ModInt. P276 handoff 2026-11-10 (Core renames need Fable): P275 found `rref<1>` beside `BitMatrix::ref`; give it a conforming name or fold it, and the Core `invReal`, `rankReal`, `solveReal` stay this package's remove (row only) items."
     },
     {
       "id": "P022",
@@ -546,7 +548,7 @@
       "model": "fable",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "P276 handoff 2026-11-10 (Core renames need Fable): row `sparseGauss` puts the variant word first; rename it, as `gaussSparse` for example (`02-structure.md`, Operation names; `10-decisions.md`, 2026-11-10 P276)."
     },
     {
       "id": "P021",
@@ -630,7 +632,7 @@
         "06-Miscellaneous/Docs/10-offline_queries.md",
         "06-Miscellaneous/Docs/11-sorting_selection.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement maximumAverageSubarrayLengths in `08-sequence_algorithms.hpp`; bucketSort, multikeyQuicksort, binaryInsertionSort, mergeInsertionSort, tournamentSelect in `11-sorting_selection.hpp`; offlineRangeSum in `10-offline_queries.hpp` (user decision 2026-11-08, /finish P254). Moved from Foundations re-audit to Contest core on reopening (2026-11-08) because its batches depend on reopened P027 (DS05) and, for P017, P081 (ST06). P275 re-review 2026-11-10: implement inversionCountRotations, subarraySumCount, subarraySumDivisibleCount, threeSum, fourSum, longestCommonIncreasingSubsequence, lexicographicMinSubsequence in `08-sequence_algorithms.hpp`; maximumIntervalScheduleInRange, circularIntervalCover, inclusionTree in `09-interval_algorithms.hpp`."
+      "note": "Omission sweep 2026-11-08: implement maximumAverageSubarrayLengths in `08-sequence_algorithms.hpp`; bucketSort, multikeyQuicksort, binaryInsertionSort, mergeInsertionSort, tournamentSelect in `11-sorting_selection.hpp`; rangeSumOffline in `10-offline_queries.hpp` (user decision 2026-11-08, /finish P254). Moved from Foundations re-audit to Contest core on reopening (2026-11-08) because its batches depend on reopened P027 (DS05) and, for P017, P081 (ST06). P275 re-review 2026-11-10: implement inversionCountRotations, subarraySumCount, subarraySumDivisibleCount, threeSum, fourSum, longestCommonIncreasingSubsequence, lexicographicMinSubsequence in `08-sequence_algorithms.hpp`; maximumIntervalScheduleInRange, circularIntervalCover, inclusionTree in `09-interval_algorithms.hpp`."
     },
     {
       "id": "P227",
@@ -1266,7 +1268,7 @@
         "04-Graphs/Docs/30-flow_with_demands.md",
         "04-Graphs/Docs/35-subgraph_enumeration.md"
       ],
-      "note": "All batches done (GR13, GR27 2026-10-28; GR32 2026-10-29). Handoff: row 35 Ranked has its own Batagelj-Zaversnik order, to migrate to row 42 degeneracyOrdering when verified. P275 re-review 2026-11-10: implement CycleBasis::inCycleSpace, CycleBasis::cycleSpaceCoordinates, CycleBasis::enumerateCycleSpace in `28-cycle_basis.hpp`; mixedEulerCircuit in `30-flow_with_demands.hpp`; weightedAverageClustering in `35-subgraph_enumeration.hpp`."
+      "note": "All batches done (GR13, GR27 2026-10-28; GR32 2026-10-29). Handoff: row 35 Ranked has its own Batagelj-Zaversnik order, to migrate to row 42 degeneracyOrdering when verified. P275 re-review 2026-11-10: implement CycleBasis::inCycleSpace, CycleBasis::cycleSpaceCoordinates, CycleBasis::enumerateCycleSpace in `28-cycle_basis.hpp`; mixedEulerCircuit in `30-flow_with_demands.hpp`; averageClusteringWeighted in `35-subgraph_enumeration.hpp`."
     },
     {
       "id": "P059",
@@ -1621,7 +1623,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement bitsetSubsetSum, bitsetSubsetSumWitness, bitsetModularSubsetSum, offlineSetIntersection, bitsetDominanceCount in `22-bitset_optimization.hpp`."
+      "note": "Omission sweep 2026-11-08: implement bitsetSubsetSum, bitsetSubsetSumWitness, bitsetModularSubsetSum, setIntersectionOffline, bitsetDominanceCount in `22-bitset_optimization.hpp`."
     },
     {
       "id": "P086",
@@ -1877,7 +1879,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement reportIntersections, reportIntersectionsBrute, intersectionPoints, countIntersections in `12-segmentintersection.hpp`. P275 re-review 2026-11-10: implement firstSelfIntersection in `12-segmentintersection.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing."
+      "note": "Omission sweep 2026-11-08: implement reportIntersections, reportIntersectionsNaive, intersectionPoints, countIntersections in `12-segmentintersection.hpp`. P275 re-review 2026-11-10: implement firstSelfIntersection in `12-segmentintersection.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing."
     },
     {
       "id": "P134",
@@ -1986,7 +1988,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement PersistentLeftistHeap::size, PersistentLeftistHeap::values, PersistentLeftistHeap::left, PersistentLeftistHeap::right in `48-persistentheap.hpp`; RangeParallelDSU::getSize, RangeParallelDSU::count in `52-rangeparallelunionfind.hpp`."
+      "note": "Omission sweep 2026-11-08: implement PersistentLeftistHeap::size, PersistentLeftistHeap::values, PersistentLeftistHeap::left, PersistentLeftistHeap::right in `48-persistentheap.hpp`; RangeParallelDSU::size, RangeParallelDSU::count in `52-rangeparallelunionfind.hpp`."
     },
     {
       "id": "P118",
@@ -2411,7 +2413,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement maximumWeightMatching, minimumWeightMatching, weightedBlossomSparse in `64-weightedblossom.hpp`."
+      "note": "Omission sweep 2026-11-08: implement maximumWeightMatching (O(nm log n) heap-driven blossom, which absorbed weightedBlossomSparse in P276), minimumWeightMatching in `64-weightedblossom.hpp`."
     },
     {
       "id": "P143",
@@ -2424,7 +2426,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement powerCellsHalfplane, nearestPowerSite, weightedVoronoiLocate, convexPolygonEdgeVoronoi in `46-weighted_voronoi.hpp`."
+      "note": "Omission sweep 2026-11-08: implement powerCellsHalfplane, nearestPowerSite, voronoiLocateWeighted, convexPolygonEdgeVoronoi in `46-weighted_voronoi.hpp`."
     },
     {
       "id": "P149",
@@ -2665,7 +2667,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement AlphaClass, alphaClassify, FixedAlphaShape3, weightedAlphaShape2, weightedAlphaShape3, findOptimalAlpha, findAlphaSolid in `50-alphashape.hpp`."
+      "note": "Omission sweep 2026-11-08: implement AlphaClass, alphaClassify, FixedAlphaShape3, alphaShape2Weighted, alphaShape3Weighted, findOptimalAlpha, findAlphaSolid in `50-alphashape.hpp`."
     },
     {
       "id": "P282",
@@ -3317,7 +3319,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Migration (user decision 2026-10-23, from P072): once 53-semiring_convolution.hpp provides maxPlusConvolutionConcaveArbitrary, 06-Miscellaneous/29-knapsack_advanced.hpp smallWeightKnapsack calls it instead of its knapsack_advanced_detail SMAWK; update Docs/29-knapsack_advanced.md and rerun the 29 tester. Omission sweep 2026-11-08: implement onlineFpsSqrt, newtonDifferentialEquation in `52-relaxed_convolution.hpp`; minPlusConvolutionConvexArbitrarySimple, minPlusConvolutionConcaveArbitrary in `53-semiring_convolution.hpp`. P275 re-review 2026-11-10: implement orConvolutionOnline in `52-relaxed_convolution.hpp`."
+      "note": "Migration (user decision 2026-10-23, from P072): once 53-semiring_convolution.hpp provides maxPlusConvolutionConcaveArbitrary, 06-Miscellaneous/29-knapsack_advanced.hpp smallWeightKnapsack calls it instead of its knapsack_advanced_detail SMAWK; update Docs/29-knapsack_advanced.md and rerun the 29 tester. Omission sweep 2026-11-08: implement fpsSqrtOnline, newtonDifferentialEquation in `52-relaxed_convolution.hpp`; minPlusConvolutionConvexArbitrarySimple, minPlusConvolutionConcaveArbitrary in `53-semiring_convolution.hpp`. P275 re-review 2026-11-10: implement orConvolutionOnline in `52-relaxed_convolution.hpp`."
     },
     {
       "id": "P196",
@@ -3706,7 +3708,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Megiddo and OAMB86 were not read yet; obtain them first. Omission sweep 2026-11-08: implement weightedMinimumEnclosingCircle, minimumWidth3, minimumVolumeBoundingBox3 in `57-enclosing_shapes.hpp`. The minimum enclosing parallelogram left row 57: row 07 `minimumAreaParallelogramApprox` already runs Rote's linear algorithm (/finish P254, 2026-11-08)."
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Megiddo and OAMB86 were not read yet; obtain them first. Omission sweep 2026-11-08: implement minimumEnclosingCircleWeighted, minimumWidth3, minimumVolumeBoundingBox3 in `57-enclosing_shapes.hpp`. The minimum enclosing parallelogram left row 57: row 07 `minimumAreaParallelogramApprox` already runs Rote's linear algorithm (/finish P254, 2026-11-08)."
     },
     {
       "id": "P235",
@@ -3745,7 +3747,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Expected to be slower than the comparison-model versions at contest sizes; benchmark and record. Omission sweep 2026-11-08: implement offlineRectangleCountWordRam, offlineBoxCountWordRam, slopeSelectionWordRam, inversionCountWordRam, PointLocationWordRam, offlinePointLocationWordRam, convexHull3WordRam, voronoiWordRam, offlineNearestNeighbourWordRam, segmentIntersectionWordRam, triangulateWordRam in `60-wordram_geometry.hpp`."
+      "note": "Filed by P037 round 3 (user decision 2026-10-19, 03-Geometry/Docs/00-notes.md); sources in 03-Geometry/Docs/00-sources.md (P037 round-3 audit sources). Expected to be slower than the comparison-model versions at contest sizes; benchmark and record. Omission sweep 2026-11-08: implement rectangleCountOfflineWordRam, boxCountOfflineWordRam, slopeSelectionWordRam, inversionCountWordRam, PointLocationWordRam, pointLocationOfflineWordRam, convexHull3WordRam, voronoiWordRam, nearestNeighbourOfflineWordRam, segmentIntersectionWordRam, triangulateWordRam in `60-wordram_geometry.hpp`."
     },
     {
       "id": "P249",

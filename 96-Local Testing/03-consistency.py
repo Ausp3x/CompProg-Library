@@ -322,6 +322,14 @@ for target, parts in inventories.items():
             if '::' not in n and n != 'ctor' and not n.startswith('operator') and (
                     n in type_names or not target.startswith('01-Core/') or target == '01-Core/01-template.hpp'):
                 name_rows[n].add(target)
+py_type_rows = collections.defaultdict(set)  # an 08-Python type mirrors a C++ row and belongs to one module
+for target, parts in inventories.items():
+    if target.startswith('08-Python/') and target.endswith('.py'):
+        for n, q in extraction.grab.SEARCH.entries(parts[-2]):
+            if n[0].isupper() and '::' not in n:
+                py_type_rows[n].add(target)
+for n, rows in sorted(py_type_rows.items()):
+    require(len(rows) == 1, f'Python type name in two modules (02-structure.md, Operation names): {n}: ' + ', '.join(sorted(rows)))
 name_collisions = []
 for n, rows in sorted(name_rows.items()):
     if len(rows) > 1 and (n in type_names or '01-Core/01-template.hpp' in rows):

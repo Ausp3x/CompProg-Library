@@ -22,17 +22,21 @@ Correctness: every composite has a prime factor at most its square root. Even co
 
 `LinearSieve(n)` and `reset(n)` build `spf[0..n]` and `prms` in `O(n)` time. `spf[0] = spf[1] = -1` where those indices exist, and `spf[p] = p` for a prime `p`. The optional tables `lpf`, `num_div`, `sum_div`, `phi` and `mu` stay empty until their `get...()` call, and `reset` clears them. Each builder takes `O(n)` time, may be called repeatedly in any order, and recomputes only its own table.
 
-- `getLpf()` builds the largest prime factor, with `lpf[0] = lpf[1] = -1`.
-- `getNumDiv()` builds `num_div[a] = tau(a)`, the number of divisors, using `O(n)` temporary integers for the smallest-prime exponent.
-- `getSumDiv()` builds `sum_div[a] = sigma(a)` as `lng`, using `O(n)` temporary `lng` values for `1 + p + ... + p^e`.
-- `getPhi()` and `getMu()` build Euler's totient and the Möbius function. `mu` is `int8_t`.
+- `lpfTable()` builds the largest prime factor, with `lpf[0] = lpf[1] = -1`.
+- `divisorCountTable()` builds `num_div[a] = tau(a)`, the number of divisors, using `O(n)` temporary integers for the smallest-prime exponent.
+- `divisorSumTable()` builds `sum_div[a] = sigma(a)` as `lng`, using `O(n)` temporary `lng` values for `1 + p + ... + p^e`.
+- `phiTable()` and `mobiusTable()` build Euler's totient and the Möbius function. `mu` is `int8_t`.
 - In all four arithmetic tables, entry 0 is a convenience 0 (it says nothing about divisors of zero) and entry 1 is 1.
-- `getPrimeFac(a) const` asserts `1 <= a <= n` and returns ascending `(prime, exponent)` pairs, empty for 1, in `O(log(a))`.
-- `getAllFac(a) const` has the same domain and returns every positive divisor once, in unspecified order, with `{1}` for 1. It takes `O(log(a) + out)` time and `O(out)` returned storage.
+- `factorize(a) const` asserts `1 <= a <= n` and returns ascending `(prime, exponent)` pairs, empty for 1, in `O(log(a))`.
+- `divisors(a) const` has the same domain and returns every positive divisor once, in unspecified order, with `{1}` for 1. It takes `O(log(a) + out)` time and `O(out)` returned storage.
 
-Fresh linear state uses `4 * (n + 1)` bytes of SPF plus the prime list. LPF, divisor counts and totients each add `4 * (n + 1)` bytes, divisor sums `8 * (n + 1)`, and Möbius `n + 1`. Building every table therefore takes `25 * (n + 1) + 4 * pi(n)` logical bytes, plus up to `8 * (n + 1)` temporary bytes during `getSumDiv`.
+Fresh linear state uses `4 * (n + 1)` bytes of SPF plus the prime list. LPF, divisor counts and totients each add `4 * (n + 1)` bytes, divisor sums `8 * (n + 1)`, and Möbius `n + 1`. Building every table therefore takes `25 * (n + 1) + 4 * pi(n)` logical bytes, plus up to `8 * (n + 1)` temporary bytes during `divisorSumTable`.
 
-Correctness: every composite `x` has a unique decomposition `x = p * i` with `p = spf[x] <= spf[i]`; iterating primes only up to `spf[i]` builds each once, which sets the correct SPF in linear time, and removing the SPF repeatedly yields the factorization. `lpf[i] = max(spf[i], lpf[i / spf[i]])`, with the sentinel at 1 as the empty maximum. `getAllFac` multiplies each existing divisor by each power of a new prime, so unique factorization gives every divisor exactly once. For the multiplicative tables write `i = p * j` with `p = spf[i]`. If `p` divides `j`, only that exponent grows: the divisor count replaces `e + 1` by `e + 2`, the divisor sum replaces `1 + ... + p^e` by `1 + ... + p^(e + 1)`, the totient multiplies by `p`, and Möbius becomes 0. Otherwise a new coprime prime appears: the count doubles, the sum multiplies by `1 + p`, the totient by `p - 1`, and Möbius changes sign. Induction from entry 1 proves each table, and the recurrences use exact divisions.
+Correctness: every composite `x` has a unique decomposition `x = p * i` with `p = spf[x] <= spf[i]`; iterating primes only up to `spf[i]` builds each once, which sets the correct SPF in linear time, and removing the SPF repeatedly yields the factorization. `lpf[i] = max(spf[i], lpf[i / spf[i]])`, with the sentinel at 1 as the empty maximum. `divisors` multiplies each existing divisor by each power of a new prime, so unique factorization gives every divisor exactly once. For the multiplicative tables write `i = p * j` with `p = spf[i]`. If `p` divides `j`, only that exponent grows: the divisor count replaces `e + 1` by `e + 2`, the divisor sum replaces `1 + ... + p^e` by `1 + ... + p^(e + 1)`, the totient multiplies by `p`, and Möbius becomes 0. Otherwise a new coprime prime appears: the count doubles, the sum multiplies by `1 + p`, the totient by `p - 1`, and Möbius changes sign. Induction from entry 1 proves each table, and the recurrences use exact divisions.
+
+### Legacy mapping
+
+- P276 rename, 2026-11-10: `getLpf` → `lpfTable`; `getNumDiv` → `divisorCountTable`; `getSumDiv` → `divisorSumTable`; `getPhi` → `phiTable`; `getMu` → `mobiusTable`; `getPrimeFac` → `factorize`; `getAllFac` → `divisors`.
 
 ## Feature-to-test map
 
@@ -40,10 +44,10 @@ Entry: [`04-sieve_algorithms_tester.py`](<../../96-Local Testing/05-Mathematics/
 
 | Feature | Oracle and edge classes |
 |---|---|
-| `SieveOfErath` (`is_prime`, `prms`), `LinearSieve` (`spf`, `prms`, `getLpf`) | Trial division for every integer through 50,000 and every prefix through 128. The known prime count at one million. Random larger trial factorizations. Zero, one, prime endpoints and prime squares. |
-| `getPrimeFac`, `getAllFac` | Trial factorization, and a separate square-root divisor enumeration sorted to check set equality and duplicates. Covers prime powers and squarefree products. |
-| `getNumDiv`, `getSumDiv` | An independent divisor-multiple enumeration. |
-| `getPhi`, `getMu` | Inversion of `sum(phi(d)) = n` and `sum(mu(d)) = [n = 1]` over divisors. Totients also by gcd counting through 300, Möbius also by trial-factor exponents. |
+| `SieveOfErath` (`is_prime`, `prms`), `LinearSieve` (`spf`, `prms`, `lpfTable`) | Trial division for every integer through 50,000 and every prefix through 128. The known prime count at one million. Random larger trial factorizations. Zero, one, prime endpoints and prime squares. |
+| `factorize`, `divisors` | Trial factorization, and a separate square-root divisor enumeration sorted to check set equality and duplicates. Covers prime powers and squarefree products. |
+| `divisorCountTable`, `divisorSumTable` | An independent divisor-multiple enumeration. |
+| `phiTable`, `mobiusTable` | Inversion of `sum(phi(d)) = n` and `sum(mu(d)) = [n = 1]` over divisors. Totients also by gcd counting through 300, Möbius also by trial-factor exponents. |
 | `reset`, state and lifetime | Randomized builder order, repeated calls, lazy tables, copy and copy assignment, move construction, reset after a move, grow and shrink resets. |
 | Preconditions | 14 checked-build probes: negative and `INT_MAX` constructor and reset arguments, and out-of-range factor queries. |
 
@@ -75,9 +79,11 @@ Inspected on 2026-09-27; written independently with no code copied.
 ## Limits and handoffs
 
 - `OLD/5-Mathematics/04-sieves.hpp` is unchanged, and every ordinary-sieve legacy operation is kept.
-- The 2026-10-07 completeness sweep left out four candidates (reasons in [00-notes.md](00-notes.md)): a prime-counting table is `upper_bound` on `prms`; factoring values above `n` is owned by `07` `factorize`; the completely multiplicative `i^K` table is handed to `08` `multiplicativeTable`; an lcm of a list is caller-side work on top of `getPrimeFac`.
+- The 2026-10-07 completeness sweep left out four candidates (reasons in [00-notes.md](00-notes.md)): a prime-counting table is `upper_bound` on `prms`; factoring values above `n` is owned by `07` `factorize`; the completely multiplicative `i^K` table is handed to `08` `multiplicativeTable`; an lcm of a list is caller-side work on top of `factorize`.
 
 ## Aliases
+
+Renamed aliases (P276, 2026-11-10): `getLpf`, `getNumDiv`, `getSumDiv`, `getPhi`, `getMu`, `getPrimeFac`, `getAllFac`.
 
 Search aliases (P263, grab --find): sieve of Eratosthenes, linear sieve; Library Checker `enumerate_primes`; 欧拉函数, 筛法, 莫比乌斯反演, 线性筛, 埃氏筛, 欧拉筛, 素数筛, 质数筛, 埃拉托斯特尼筛法, 最小质因子, 莫比乌斯函数.
 
@@ -90,3 +96,4 @@ Search aliases (P263, grab --find): sieve of Eratosthenes, linear sieve; Library
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`LinearSieve` `get…` builders → `…Table`, `getPrimeFac`/`getAllFac` → `factorize`/`divisors`); full on g++ and g++-14, stress and extraction passed.

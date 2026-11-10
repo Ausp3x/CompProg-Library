@@ -256,5 +256,5 @@ inline vector<int> bMatching(int nl, int nr, const vector<pair<int, int>> &edges
     g.flow(s, t);
     vector<int> res;
     for (int e = 0; e < m; ++e) {
-        if (g.getEdge(e).flow) { res.push_back(e); }}
+        if (g.edge(e).flow) { res.push_back(e); }}
     return res;}

@@ -137,7 +137,7 @@ Weighted assignment is row 23; general matching is rows 22/64; maximum antichain
 
 ## Aliases
 
-Search aliases (P263, grab --find): bipartite matching, Kuhn, Hopcroft-Karp, MIS (maximum independent set) of a bipartite graph, Konig; 二分图最大匹配, 图匹配, 二分图匹配, 匈牙利算法, 最小点覆盖, 最大独立集, 柯尼希定理, 霍尔定理, 最小边覆盖, 二部图匹配, 二分图多重匹配.
+Search aliases (P263, grab --find): matching, bipartite matching, Kuhn, Hopcroft-Karp, MIS (maximum independent set) of a bipartite graph, Konig; 二分图最大匹配, 图匹配, 二分图匹配, 匈牙利算法, 最小点覆盖, 最大独立集, 柯尼希定理, 霍尔定理, 最小边覆盖, 二部图匹配, 二分图多重匹配.
 
 ## History
 
@@ -146,3 +146,5 @@ Search aliases (P263, grab --find): bipartite matching, Kuhn, Hopcroft-Karp, MIS
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (call sites of `edge`); full on g++ and g++-14, stress and extraction passed.
+- 2026-11-10: /finish P276 (user decision 2026-11-10): search alias `matching` restores the `simple` corpus rank that rows added by P254 and P275 had taken; `14-search_tester.py --mode quick` passed.

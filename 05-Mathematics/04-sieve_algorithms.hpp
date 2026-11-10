@@ -37,10 +37,10 @@ struct LinearSieve {
                 spf[i * p] = p;
                 if (p == spf[i]) { break; }}}}
 
-    void getLpf() {
+    void lpfTable() {
         lpf.assign(n + 1, -1);
         for (int i = 2; i <= n; ++i) { lpf[i] = max(spf[i], lpf[i / spf[i]]); }}
-    void getNumDiv() {
+    void divisorCountTable() {
         num_div.assign(n + 1, 0); vector<int> exponent(n + 1, 0);
         if (n >= 1) { num_div[1] = 1; }
         for (int i = 2; i <= n; ++i) {
@@ -49,7 +49,7 @@ struct LinearSieve {
                 exponent[i] = exponent[j] + 1;
                 num_div[i] = num_div[j] / (exponent[j] + 1) * (exponent[i] + 1);}
             else { exponent[i] = 1; num_div[i] = 2 * num_div[j]; }}}
-    void getSumDiv() {
+    void divisorSumTable() {
         sum_div.assign(n + 1, 0); vector<lng> prime_sum(n + 1, 0);
         if (n >= 1) { sum_div[1] = prime_sum[1] = 1; }
         for (int i = 2; i <= n; ++i) {
@@ -58,13 +58,13 @@ struct LinearSieve {
                 prime_sum[i] = prime_sum[j] * p + 1;
                 sum_div[i] = sum_div[j] / prime_sum[j] * prime_sum[i];}
             else { prime_sum[i] = lng(p) + 1; sum_div[i] = sum_div[j] * prime_sum[i]; }}}
-    void getPhi() {
+    void phiTable() {
         phi.assign(n + 1, 0);
         if (n >= 1) { phi[1] = 1; }
         for (int i = 2; i <= n; ++i) {
             int p = spf[i], j = i / p;
             phi[i] = phi[j] * (j % p == 0 ? p : p - 1);}}
-    void getMu() {
+    void mobiusTable() {
         mu.assign(n + 1, 0);
         if (n >= 1) { mu[1] = 1; }
         for (int i = 2; i <= n; ++i) {
@@ -72,7 +72,7 @@ struct LinearSieve {
             mu[i] = j % p == 0 ? 0 : -mu[j];}}
 
     // Q: O(log(a)), M: O(log(a)) returned; 1 <= a <= n, ascending prime powers.
-    vector<pair<int, int>> getPrimeFac(int a) const {
+    vector<pair<int, int>> factorize(int a) const {
         assert(1 <= a && a <= n);
         vector<pair<int, int>> res;
         while (a > 1) {
@@ -81,8 +81,8 @@ struct LinearSieve {
             res.pb({p, count});}
         return res;}
     // Q: O(log(a) + out), M: O(out); 1 <= a <= n, unsorted positive divisors.
-    vector<int> getAllFac(int a) const {
-        auto factors = getPrimeFac(a);
+    vector<int> divisors(int a) const {
+        auto factors = factorize(a);
         vector<int> res{1};
         for (auto [p, count] : factors) {
             int len = int(res.size()), power = 1;

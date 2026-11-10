@@ -13,7 +13,7 @@ Owned by package P045 / GR09. The header implements `MinCostFlow<Cap, Cost>`, su
   - The edge takes one ID and one arc pair. The forward arc exposes the remaining length of the first piece that is not full, at that piece's cost. The reverse arc exposes the flow in the piece holding the last unit, at minus its cost.
   - After every augmentation, `refresh` re-reads the edge's flow `x` from its forward arc and re-exposes the pieces around `x`. One push stays inside one exposed piece, so `x` moves by at most one piece boundary per augmentation.
   - An empty list adds a zero-capacity edge of cost 0.
-- **`getEdge(i)`, `edges()`.** `getEdge(i)` returns `{from, to, cap, flow, cost}` with `0 <= flow <= cap`. For a linear edge `cost` is its unit cost. For a convex edge `cap` is the total length and `cost` is the unit cost of the piece holding the last unit of flow (the first piece's at flow 0), so a linear edge reads as a one-piece convex edge. `edges()` returns every `getEdge(i)` in ID order.
+- **`edge(i)`, `edges()`.** `edge(i)` returns `{from, to, cap, flow, cost}` with `0 <= flow <= cap`. For a linear edge `cost` is its unit cost. For a convex edge `cap` is the total length and `cost` is the unit cost of the piece holding the last unit of flow (the first piece's at flow 0), so a linear edge reads as a one-piece convex edge. `edges()` returns every `edge(i)` in ID order.
 - **`flow(s, t, limit = MAX, below = INF)`.** Requires `s != t` and `limit >= 0`. It augments along successive cheapest residual `s -> t` paths and returns `{added flow, added cost}`, the cost in `lll`. It stops when:
   - the added flow reaches `limit`,
   - `t` becomes unreachable, or
@@ -67,7 +67,7 @@ Owned by package P045 / GR09. The header implements `MinCostFlow<Cap, Cost>`, su
   - `add_edge(u, v, cap, cost)` → `addEdge(u, v, cap, cost)`.
   - `max_flow(do_bellman_ford)`, which returned `{cost, flow}` → `flow(s, t)`, which returns `{flow, cost}`. Negative-cost initialisation is automatic.
   - `bellman_ford()` → automatic (`initPotentials`).
-  - `get_flow(u, v)` → the net flow: the sum of `getEdge(i).flow` over the IDs `addEdge` returned for `u -> v`, minus the same sum for `v -> u`. The legacy index under the key `{u, v}` held the `u -> v` edges and the reverse arcs of the `v -> u` edges, whose flow is negated.
+  - `get_flow(u, v)` → the net flow: the sum of `edge(i).flow` over the IDs `addEdge` returned for `u -> v`, minus the same sum for `v -> u`. The legacy index under the key `{u, v}` held the `u -> v` edges and the reverse arcs of the `v -> u` edges, whose flow is negated.
   - Its SPFA stopped on a vertex visited `n` times (a negative cycle) and returned the partial result; that is now an asserted precondition.
   - The trailing note about updating the back edge's cost has no counterpart: there is no cost update, so build a new network.
 - **Matrix copies** (`MinCostMaxFlow<T, C>` in `OLD/Team Notebook/src/algsbetter.cpp:2040-2118` and `algs.cpp:1770-1807`, `MaxFlowMinCut<T, C>` in `test.cpp:670-748`).
@@ -78,6 +78,7 @@ Owned by package P045 / GR09. The header implements `MinCostFlow<Cap, Cost>`, su
   - `minCostMaxFlow` → `flow(s, t)`;
   - `bellmanFordPotentials` → automatic inside `flow`, `slope` and `potentials` (`initPotentials` is the public helper);
   - `pathReconstruction` → the `MaxFlow::pathDecomposition` recipe above.
+- P276 rename, 2026-11-10: `getEdge` → `edge`.
 - **Aliases elsewhere:**
   - ACL `mcf_graph::add_edge`, `flow`, `slope`, `get_edge`, `edges`;
   - KACTL `MCMF::maxflow` with `setpi`;
@@ -85,6 +86,8 @@ Owned by package P045 / GR09. The header implements `MinCostFlow<Cap, Cost>`, su
   - suisen `min_cost_arbitrary_flow` → `flow(s, t, MAX, 0)`;
   - ei1333 `min_cost_flow(s, t, f)` returning -1 → `flow(s, t, f).first < f`;
   - max-gain flow → negated costs.
+
+Renamed aliases (P276, 2026-11-10): `getEdge`.
 
 Search aliases (P263, grab --find): 费用流, 网络流简介, 最小费用最大流, 最小费用流, 凸费用流, 原始对偶, 最小花费最大流, 最小成本流, zkw费用流.
 
@@ -107,7 +110,7 @@ libstdc++ debug mode re-validates the whole heap on every `push_heap`/`pop_heap`
 Quick mode uses its own sizes in every build. The optimized and ASan/UBSan builds run every section at its listed size.
 
 Every library call is compared with an oracle and then certified:
-- **Edge reads:** `getEdge` and `edges` endpoints, capacity, `0 <= flow <= cap`, and `cost` equal to the unit cost of the last unit.
+- **Edge reads:** `edge` and `edges` endpoints, capacity, `0 <= flow <= cap`, and `cost` equal to the unit cost of the last unit.
 - **Conservation** to the tracked divergence.
 - **Cost:** the sum of the edges' convex costs equals the sum of the returned costs.
 - **Potentials:** `potentials()` within `[-3B, 2B]` and complementary slackness on every residual arc of the model, computed from the model's own pieces.
@@ -128,7 +131,7 @@ Every library call is compared with an oracle and then certified:
 | Assignment workloads | Dense k × (k + 0..5) bipartite networks, costs ±1e9, min and max; sparse quarter-density bipartite networks, `slope` | `hungarian(a).cost`, `-hungarian(a, true).cost`; `linearSumAssignment(...).curve[j]` equal to the slope interpolated at every j |
 | `pathReconstruction` recipe | First call on every linear small network and every family network | `MaxFlow<lll>::pathDecomposition` paths' summed cost equals the returned cost |
 | Degenerate | 0 vertices, no edges, empty piece list, limit 0, `below` at and above the path cost, resume to maximum then nothing, loop unused, reverse residual flow from `t` to `s` | Hand values |
-| Preconditions | 24 probes in the checked build: size, ranges, negative capacity, cost above and below `LIM`, convex range, length, order, overflow, cost, `getEdge` range, `s == t` and negative limit for `flow` and `slope`, a negative cycle, a negative loop, a negative residual cycle after flow, `potentials` on a negative cycle and on a path above `LIM`, a path above `LIM` for `flow`, a single product above 2^126 and two products summing to 2^126 | Expected assertion abort |
+| Preconditions | 24 probes in the checked build: size, ranges, negative capacity, cost above and below `LIM`, convex range, length, order, overflow, cost, `edge` range, `s == t` and negative limit for `flow` and `slope`, a negative cycle, a negative loop, a negative residual cycle after flow, `potentials` on a negative cycle and on a path above `LIM`, a path above `LIM` for `flow`, a single product above 2^126 and two products summing to 2^126 | Expected assertion abort |
 
 Mutation check (2026-10-13, after the review fixes; scratch copies under `/tmp`; not part of the suite): 22 mutants, all killed. 19 were killed by quick mode:
 - the potential update without the `-dist[t]` shift, or applied to unsettled vertices;
@@ -139,7 +142,7 @@ Mutation check (2026-10-13, after the review fixes; scratch copies under `/tmp`;
 - no re-anchoring, or canonical seeds at 0;
 - `below` inclusive;
 - collinear segments not merged;
-- convex `getEdge` read as linear;
+- convex `edge` read as linear;
 - one Bellman–Ford round, or the Bellman–Ford clamp above the domain;
 - the `NDEBUG` early return taken on success;
 - loops and zero-capacity edges counted in `B`;
@@ -261,3 +264,4 @@ Convex edges follow the row's piecewise-linear wording; no catalog has a convex-
 - 2026-10-14: verified (P045) after the rebase onto master; full (seed 20261013) passed on g++ and g++-14, stress (seed 7), integration and consistency passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `zkw费用流` names a related method for the same problem, kept as a search synonym (user decision 2026-11-07).
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`getEdge` → `edge`); full on g++ and g++-14, stress and extraction passed.

@@ -61,7 +61,7 @@ Workloads:
 - `array-mixed`: half `set` and half `get` on random versions.
 - `array-chain`: q sets on the latest version, then q gets on random versions.
 - `dsu-checker`: the Library Checker shape; query i acts on a random earlier version, half `uniteSets`, half `isSameSet`.
-- `dsu-chain`: q unions on the latest version, then q `isSameSet` + `getSize` on random versions.
+- `dsu-chain`: q unions on the latest version, then q `isSameSet` + `size` on random versions.
 
 Each cell is median seconds / pool MB.
 

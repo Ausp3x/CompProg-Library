@@ -46,7 +46,7 @@ struct HLD {
 
     void check(int u) const { assert(0 <= u && u < n); (void)u; }
     int edgeVertex(int id) const { assert(0 <= id && id < int(edge_vertex.size())); return edge_vertex[id]; }
-    int getLCA(int u, int v) const {
+    int lca(int u, int v) const {
         check(u); check(v);
         if (component[u] != component[v]) { return -1; }
         while (head[u] != head[v]) {
@@ -54,7 +54,7 @@ struct HLD {
             u = parent[head[u]];}
         return dep[u] < dep[v] ? u : v;}
     int distance(int u, int v) const {
-        int a = getLCA(u, v); return a == -1 ? -1 : dep[u] + dep[v] - 2 * dep[a];}
+        int a = lca(u, v); return a == -1 ? -1 : dep[u] + dep[v] - 2 * dep[a];}
     int kthAncestor(int u, lng x) const {
         check(u); assert(x >= 0);
         if (x < 0 || x > dep[u]) { return -1; }

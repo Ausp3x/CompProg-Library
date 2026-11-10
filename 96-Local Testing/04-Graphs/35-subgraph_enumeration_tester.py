@@ -52,8 +52,8 @@ localClustering, transitivity, squareClustering, generalizedDegree and
 averageClustering (both count_zeros), compared exactly because both sides divide
 the same integers (or the same reals for transitivity, 6T / sum d(d-1) versus
 3T / P); directedClustering against _directed_triangles_and_degree_iter, equal
-to localClustering on the symmetrised digraph; weightedClustering and
-weightedDirectedClustering against the weighted NetworkX iterators with
+to localClustering on the symmetrised digraph; localClusteringWeighted and
+directedClusteringWeighted against the weighted NetworkX iterators with
 |difference| <= 1e-10 * the same sum over |terms| (weights 1, random in
 [1, 10^6], random in [-5, 5] with max != 0; unit weights exactly equal the
 unweighted values). Hand values on paper for K4, C4, K2,3, bowtie, Petersen and

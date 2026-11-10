@@ -6,19 +6,18 @@ Owned by package P011 / GR03 (static forest LCA); omissions are in [00-notes.md]
 
 ### lca_detail::Forest, LCA and EulerLCA
 
-`LCA(g, root=-1)`, `EulerLCA(g, root=-1)` and `offlineLCA(g, queries, root=-1)` accept the canonical `Graph` or `CsrGraph`. Input must be an undirected forest: loops, parallel edges and cycles violate preconditions. All vertices, including isolated vertices, participate. Explicit roots orient their own component first; remaining components use their smallest vertex as root. The default roots every component at its smallest vertex. Empty forests are valid with `root=-1` and no queries.
+`LCA(g, root=-1)`, `EulerLCA(g, root=-1)` and `lcaOffline(g, queries, root=-1)` accept the canonical `Graph` or `CsrGraph`. Input must be an undirected forest: loops, parallel edges and cycles violate preconditions. All vertices, including isolated vertices, participate. Explicit roots orient their own component first; remaining components use their smallest vertex as root. The default roots every component at its smallest vertex. Empty forests are valid with `root=-1` and no queries.
 
 Preprocessing owns its state and remains valid after the input graph changes or dies. Rebuild through construction/assignment; ordinary copies and moves are independent values. Exposed metadata and implementation helpers must not be mutated. Roots have `parent=-1`; `component[u]` is the component root; `parent_edge[u]` retains the original graph's logical edge identity. `dep` counts edges. `t_in`/`t_out` retain the historical inclusive DFS subtree interval convention. Canonical vertex labels are `[0,n)`.
 
 | Operation | Result / domain | Binary LCA | Euler LCA |
 |---|---|---|---|
-| `getLCA(u,v)` | Vertex ID, or `-1` for different components | O(log(n)) | O(1) |
+| `lca(u,v)` | Vertex ID, or `-1` for different components | O(log(n)) | O(1) |
 | `isAncestor(u,v)` | Reflexive ancestor relation; false across components | O(1) | O(1) |
 | `distance(u,v)` | Number of edges, or `-1` across components | O(log(n)) | O(1) |
-| `weightedDistance(u,v,out)` | Connected status; exact signed `lll` sum written only if connected | O(log(n)) | O(1) |
+| `distanceWeighted(u,v,out)` | Connected status; exact signed `lll` sum written only if connected | O(log(n)) | O(1) |
 | `rerootedLCA(u,v,r)` | LCA when rooted at `r`; `-1` unless all three are connected | O(log(n)) | O(1) |
 | `kthAncestor(u,k)` | `k >= 0`; ID or `-1` above the root; signed 64-bit `k` accepted | O(log(n)) | Use binary variant |
-| `getKthAncestor(u,k)` | Signed-`int` form that also accepts `k <= 0` (returns `u`) | O(log(n)) | Use binary variant |
 | `jump(u,v,k)` | Vertex at zero-based edge offset `k >= 0` along `u` to `v`; `-1` if disconnected or beyond endpoint | O(log(n)) | Use binary variant |
 
 Self paths are legitimate zero-edge, zero-weight paths: LCA and zero-offset jump return the vertex. Graph weights span all `lng` values, including negatives. Distances are sums along the unique simple forest path, with no optimization over walks. At most `INT_MAX-1` edges of signed 64-bit magnitude fit in `lll`, including the temporary expressions in weighted queries.
@@ -27,9 +26,9 @@ Binary lifting takes O(n log(n)) preprocessing/storage. Its vertex-major `up[u][
 
 Euler LCA implements Farach-Colton–Bender ±1 RMQ in O(n) preprocessing/storage and O(1) query time. Its tour includes a virtual super-root, represented internally by `-1`, to preserve ±1 adjacent depths between disconnected components. Same-component queries cannot return this virtual root. Its signed-int Euler positions require `2*n+1 <= INT_MAX`; the binary/offline variants retain the Graph vertex-count domain. Component checks distinguish no answer before the RMQ.
 
-`lca_detail::Forest` is the shared iterative DFS: one global preorder timer runs across all components, so the inclusive intervals `[t_in, t_out]` of different components are disjoint and `covers(u, v)` (the unchecked interval test used inside `getLCA`'s lifting loop) is exactly the ancestor relation without a component comparison. `isAncestor` keeps the vertex-range assertions; `getLCA` validates its two arguments once at entry. `Forest` costs O(n) time and memory; `isAncestor` is O(1).
+`lca_detail::Forest` is the shared iterative DFS: one global preorder timer runs across all components, so the inclusive intervals `[t_in, t_out]` of different components are disjoint and `covers(u, v)` (the unchecked interval test used inside `lca`'s lifting loop) is exactly the ancestor relation without a component comparison. `isAncestor` keeps the vertex-range assertions; `lca` validates its two arguments once at entry. `Forest` costs O(n) time and memory; `isAncestor` is O(1).
 
-### offlineLCA
+### lcaOffline
 
 Offline Tarjan returns one answer per input query, retaining order and duplicates. The query count fits `int`. Empty batches, self pairs and disconnected pairs are valid. It uses the canonical Data Structures `DSU`, with O((n+q) alpha(n)) amortized time, O(n+q) auxiliary storage and O(q) output. All forest traversals and union-find searches are iterative.
 
@@ -56,6 +55,7 @@ A path from `u` to `v` climbs to `a=LCA(u,v)` and descends to `v`. Subtracting t
 ### Legacy mapping
 
 - `LCA(n, root, adj)` and `lca_detail::fromAdjacency(n, adj)` → `LCA(Graph::fromAdjacency(adj), root)`. The vertex count is `adj.size()`, so the one-based form (`n + 1` lists) keeps vertex 0 as an isolated vertex. `Graph::fromAdjacency` adds the edges in the same increasing `(min, max)` order as the removed builder, so `t_in`, `order` and every answer are unchanged for any list order (compared with the removed builder on 20,000 random forests with shuffled lists before its removal). Out-of-range, unmirrored, duplicate and loop entries still fail a checked precondition: `fromAdjacency`'s range and symmetry checks, or the forest check on the parallel edge or loop they become.
+- P276 rename, 2026-11-10: `getLCA` → `lca`; `getKthAncestor` → `kthAncestor` (asserts `k >= 0`; the clamp of negative `k` is gone); `offlineLCA` → `lcaOffline`; `weightedDistance` → `distanceWeighted`.
 
 ## Feature-to-test map
 
@@ -63,9 +63,9 @@ Tester: [07-lca_tester.py](<../../96-Local Testing/04-Graphs/07-lca_tester.py>),
 
 | Features | Independent evidence |
 |---|---|
-| `LCA`, `EulerLCA`: `getLCA`; `offlineLCA`; CSR parity | Enumerated labeled simple forests through n=6, every preferred root/default, every vertex pair; independently rooted BFS parent-chain intersection |
-| `isAncestor`, `kthAncestor`, inclusive timestamps | BFS depths/parents, explicit parent walks, all valid offsets and one-past-root, signed-64 maximum and legacy negative offsets |
-| `distance`, `weightedDistance`, `jump` | Independent BFS between each pair reconstructs the unique path and its exact `lll` sum; every path position plus one-past-end |
+| `LCA`, `EulerLCA`: `lca`; `lcaOffline`; CSR parity | Enumerated labeled simple forests through n=6, every preferred root/default, every vertex pair; independently rooted BFS parent-chain intersection |
+| `isAncestor`, `kthAncestor`, inclusive timestamps | BFS depths/parents, explicit parent walks, all valid offsets and one-past-root, signed-64 maximum |
+| `distance`, `distanceWeighted`, `jump` | Independent BFS between each pair reconstructs the unique path and its exact `lll` sum; every path position plus one-past-end |
 | `rerootedLCA` | Independently BFS-root each small component at every possible vertex; compare every triple, including cross-component roots |
 | Empty/singleton/isolated/disconnected forests | Exhaustive enumeration from n=0; empty batches, self paths, missing result/status semantics and unchanged weighted output |
 | Full signed weight domain | 350 seeded random forests using `LNG_MIN`, `LNG_MAX`, negative/zero/positive edges; 200000-vertex all-maximum chain |
@@ -73,12 +73,12 @@ Tester: [07-lca_tester.py](<../../96-Local Testing/04-Graphs/07-lca_tester.py>),
 | Stack safety and large indices | 200000-vertex chain; binary/Euler queries, rerooted median identity and offline Tarjan endpoints |
 | Query order, duplicates, repeated calls | Reverse/duplicate offline batches, empty batches and repeated queries on each fixture |
 | Construction, lifetime, copy/move/reset | Graph/CSR constructors, copied/moved/assigned preprocessors, mutated input graph with unchanged snapshots, rebuild by assignment |
-| Adjacency lists through `Graph::fromAdjacency` (the removed constructor's cases); `getKthAncestor` | Unsorted zero- and one-based lists, vertex count equal to the list count, unused vertex 0 isolated, empty lists; nonpositive `getKthAncestor` offsets return the vertex |
+| Adjacency lists through `Graph::fromAdjacency` (the removed constructor's cases); `kthAncestor` on them | Unsorted zero- and one-based lists, vertex count equal to the list count, unused vertex 0 isolated, empty lists |
 | `LCAFold::pathFold` (vertex and edge modes) | Noncommutative string concatenation over every ordered pair of every enumerated forest through n=4 with every root, enumerated n=5..6 forests with roots -1, 0 and n-1, and every random forest, against the label sequence of the independent BFS path (edge labels keyed by endpoint pair at the BFS child); Graph and CSR builds; 2000 random sum folds with `Sum<lng>` on the 200000-vertex chain and 500 per modulus with a capturing-lambda sum modulo 7 and 10^9+7 through `Monoid` (closed-form path sums) |
 | `pathIntersection` | All n^4 quadruples of every enumerated forest through n=5 (default root); 100 random quadruples for other default-root cases and 10 per explicit root (the answer does not depend on the rooting); binary and Euler variants, against the common vertices of the two BFS paths in c-to-d order; interval-overlap identity on the 200000-vertex chain |
 | Invalid preconditions | 20 assertion subprocesses: directed/cyclic/loop/parallel input, invalid roots/endpoints/offsets, an out-of-range entry in undirected lists through `Graph::fromAdjacency` (`adjacency-label`); binary/Euler/offline paths; `pathIntersection` endpoint, `LCAFold` label count and query endpoint. Unmirrored lists and a loop listed once are `01-graph_tester` probes |
 
-Hand mutations of `LCAFold`, `pathIntersection` and the unchecked `getLCA` loop fail the quick suites.
+Hand mutations of `LCAFold`, `pathIntersection` and the unchecked `lca` loop fail the quick suites.
 
 ## Commands and results
 
@@ -127,7 +127,7 @@ The algorithms were independently implemented from the invariants above; externa
 - [cp-algorithms, Lowest Common Ancestor — Tarjan's off-line algorithm](https://cp-algorithms.com/graph/lca_tarjan.html): union/completed-subtree ancestor invariant. Its simplified linear-time claim is not adopted for an ordinary DSU implementation.
 - [OI Wiki, 最近公共祖先](https://oi-wiki.org/graph/lca/): independently reviewed binary lifting, Euler/RMQ and offline Tarjan sections. Its warning that ordinary union-find retains an inverse-Ackermann factor supports the stated offline bound. It identifies a separate specialized linear-time union-tree technique in Gabow–Tarjan (1983), [DOI 10.1145/800061.808753](https://doi.org/10.1145/800061.808753); the primary PDF request returned HTTP 403, so no primary-paper inspection is claimed. That specialized DSU variant is not claimed by this implementation.
 
-The archived `LCA` in `OLD/algorithms.cpp:4563-4637` and `OLD/[1] algorithms.cpp:583-657` supplied the previous public constructor/query names, binary table orientation and inclusive timestamp convention. Both archives remain unchanged. Their `LCA(n,root,adj)` constructor maps to `LCA(Graph::fromAdjacency(adj), root)` (Legacy mapping). Legacy nonpositive `getKthAncestor` remains identity. Historical recursive `init` was a construction helper and is superseded by constructing/assigning a fresh object; direct metadata mutation is outside the maintained contract.
+The archived `LCA` in `OLD/algorithms.cpp:4563-4637` and `OLD/[1] algorithms.cpp:583-657` supplied the previous public constructor/query names, binary table orientation and inclusive timestamp convention. Both archives remain unchanged. Their `LCA(n,root,adj)` constructor maps to `LCA(Graph::fromAdjacency(adj), root)` (Legacy mapping). Legacy `getKthAncestor` maps to `kthAncestor`, which asserts `k >= 0` (its nonpositive-offset identity is gone, P276). Historical recursive `init` was a construction helper and is superseded by constructing/assigning a fresh object; direct metadata mutation is outside the maintained contract.
 
 `OLD/Team Notebook/src/algs.cpp:878` / `:931` and corresponding `algsbetter.cpp` sections contain `LcaO1` and `LcaLog`. Their linear-preprocessing constant-query Euler RMQ and logarithmic binary LCA capabilities are accounted for by `EulerLCA` and `LCA`; archived names/bodies remain preserved. The new versions add empty forests, stack safety, disconnected results, weighted sums, rerooting and offline queries.
 
@@ -138,6 +138,8 @@ Sources for `LCAFold` and `pathIntersection` (fetched 2026-10-07) are in [00-sou
 Ancestor/path binary search by predicate belongs to row 15 (HLD); tree/HLD aggregates and dynamic-tree APIs remain with their separate owners (see [00-notes.md](00-notes.md#placement-decisions-recorded)).
 
 ## Aliases
+
+Renamed aliases (P276, 2026-11-10): `getLCA`, `getKthAncestor`, `offlineLCA`, `weightedDistance`.
 
 Search aliases (P263, grab --find): 倍增, 最近公共祖先, 最低共同祖先, 树上倍增, k级祖先, 树上距离, 欧拉序, 树上路径交.
 
@@ -151,3 +153,4 @@ Search aliases (P263, grab --find): 倍增, 最近公共祖先, 最低共同祖�
 - 2026-11-06: P253 /finish (user decision 2026-11-06, `03-cpp.md`, Headers): template parameters taking a library type default to it (`template<class G = Graph>` and `template<class L = LCA>`), so `grab` of a function brings that type; calls deduce as before. `01-run.py --filter 04-Graphs` quick, full and `CXX=g++-14` full and `02-integration.py` passed; no mutation record, so no campaign (`05-testing.md`, Mutation testing).
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound, a raised limit (above); full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`getLCA` → `lca`, `offlineLCA` → `lcaOffline`, `weightedDistance` → `distanceWeighted`, `getKthAncestor` merged into `kthAncestor` (user decision)); full on g++ and g++-14, stress and extraction passed.

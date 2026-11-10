@@ -6,7 +6,7 @@ Owned by package P048 / GR32; omissions are in [00-notes.md](00-notes.md#p048-gr
 
 ### Common domain
 
-- `G` is `Graph` or `CsrGraph` (only `n`, `directed`, `edges` and `arcs` are read). `triadicCensus`, `directedClustering` and `weightedDirectedClustering` assert a directed graph, `averageClustering` takes either, and every other operation asserts an undirected one. Loops are ignored everywhere. `n = 0`, isolated vertices and disconnected graphs are allowed.
+- `G` is `Graph` or `CsrGraph` (only `n`, `directed`, `edges` and `arcs` are read). `triadicCensus`, `directedClustering` and `directedClusteringWeighted` assert a directed graph, `averageClustering` takes either, and every other operation asserts an undirected one. Loops are ignored everywhere. `n = 0`, isolated vertices and disconnected graphs are allowed.
 - Two semantics, fixed per operation:
   - **Simple graph** (every operation not listed below): parallel edges collapse, so a subgraph is a set of vertices with the required adjacencies. A triangle is 3 pairwise adjacent vertices, a 4-cycle is 4 distinct vertices with a cyclic order of 4 adjacencies (K4 contains 3), and a 4-clique is 4 pairwise adjacent vertices.
   - **Multigraph** (`enumerateTriangleEdges`, `countTrianglesPerEdge`, `countC4PerEdge`): a subgraph is a set of edges of g. Parallel copies are distinct, so a triangle through edge `e = {u, v}` is a choice of one edge for each of the pairs `{v, w}` and `{w, u}`. Each copy of a pair gets the same count, and loops get 0. On simple graphs both semantics agree.
@@ -107,7 +107,7 @@ These are NetworkX `clustering`, `transitivity`, `square_clustering` and `averag
 - `localClustering(g)[v] = 2 t(v) / (d(v)(d(v) − 1))`, and 0 when `t(v) = 0`.
 - `transitivity(g) = 3T / Σ_v C(d(v), 2)`, and 0 without triangles. It reuses the `countTriangles` dispatch.
 - `squareClustering(g)[v] = q(v) / ((d(v) − 1) P3(v) − 2 t(v) − q(v))`, and 0 when the denominator is ≤ 0. NetworkX computes `uw_degrees − uw_count − triangles − squares`; here `uw_degrees − uw_count = (d − 1) P3(v)`, `triangles = 2 t(v)` and `squares = q(v)`, the 4-cycles through `v`. The documented formula with `a_v(u, w)` differs from that code, and the code is followed.
-- `averageClustering(g, count_zeros = true)` is the mean of `localClustering`, or of `directedClustering` when g is directed. With `count_zeros` false it averages only the nonzero values. It returns 0 when nothing is averaged, where NetworkX divides by zero. A weighted average would need a flag choosing between operations; it is the mean of `weightedClustering`.
+- `averageClustering(g, count_zeros = true)` is the mean of `localClustering`, or of `directedClustering` when g is directed. With `count_zeros` false it averages only the nonzero values. It returns 0 when nothing is averaged, where NetworkX divides by zero. A weighted average would need a flag choosing between operations; it is the mean of `localClusteringWeighted`.
 
 Each is O(n + m · d) time and O(n + m) memory, averageClustering included.
 
@@ -115,12 +115,12 @@ Each is O(n + m · d) time and O(n + m) memory, averageClustering included.
 
 `directedClustering(g)[v] = T(v) / (2 (dt(dt − 1) − 2 db))`, and 0 when `T(v) = 0` (NetworkX unweighted directed clustering). Here `dt` is the in-degree plus the out-degree and `db` is the number of reciprocal neighbours, all on the simple digraph. NetworkX's `T(v)` sums `(a_vj + a_jv)(a_vk + a_kv)(a_jk + a_kj)` over ordered pairs `(j, k)`. That equals `2 Σ` over the triangles at `v` of the product of the three dyad arc counts, which the direction bits give. Time O(n + m · d), memory O(n + m).
 
-### weightedClustering, weightedDirectedClustering
+### localClusteringWeighted, directedClusteringWeighted
 
 These are NetworkX weighted clustering (Saramäki et al.), undirected and directed.
 - Weights are normalized as `ŵ = w / max w`, where `max w` is taken over every edge, loops included, and is 1 without edges. The maximum must be nonzero (asserted). Negative weights are allowed, and their cube roots are negative.
 - The real cube root is multiplicative, so NetworkX's `cbrt(ŵ_ij ŵ_jk ŵ_ki)` equals the product of per-pair values `S`. For a directed graph, `S` of a pair is the sum of `cbrt(ŵ)` over its arcs, which reproduces NetworkX's eight direction terms. `subgraph_enumeration_detail::cubeRoots` computes `S` per pair.
-- Values: `weightedClustering(g)[v] = 2 Σ_{triangles at v} S S S / (d(d − 1))`, and `weightedDirectedClustering` divides the same sum by `2 (dt(dt − 1) − 2 db)`. Both give 0 when the sum is 0.
+- Values: `localClusteringWeighted(g)[v] = 2 Σ_{triangles at v} S S S / (d(d − 1))`, and `directedClusteringWeighted` divides the same sum by `2 (dt(dt − 1) − 2 db)`. Both give 0 when the sum is 0.
 - Parallel edges, or two arcs in the same direction, are asserted absent, because NetworkX graphs cannot hold them. Under `NDEBUG` their cube roots add up.
 - Rounding differs from NetworkX's order of operations by a few ulps.
 
@@ -136,7 +136,13 @@ Time O(n + m · d), memory O(n + m).
 
 Time O(n + m · d), memory O(n + m). No fetched contest catalog has a triad census; the decomposition above was derived for this header and is checked against the NetworkX code table.
 
+### Legacy mapping
+
+- P276 rename, 2026-11-10: `weightedClustering` → `localClusteringWeighted`; `weightedDirectedClustering` → `directedClusteringWeighted`.
+
 ## Aliases
+
+Renamed aliases (P276, 2026-11-10): `weightedClustering`, `weightedDirectedClustering`.
 
 - `enumerateTriangles`: ei1333 `enumerate_triangles`, suisen `enumerate_triangles`, hitonanode `EnumerateTriangles`, OI Wiki 三元环计数, NetworkX `all_triangles`.
 - `enumerateTriangleEdges`: tko919 `EnumTriangle` (passes the edge indices).
@@ -145,7 +151,7 @@ Time O(n + m · d), memory O(n + m). No fetched contest catalog has a triad cens
 - `countC4PerEdge`: Library Checker `counting_c4`, Koosaga `count_4_cycles`.
 - `countC3C4PerVertex`: maspypy `count_C3_C4_pointwise`. `countPathsP3P4P5`: maspypy `count_P3_P4_P5`. `countK4`: maspypy `count_K4`. `findC4`: maspypy `find_C4`.
 - `triadicCensus`: NetworkX `triadic_census`.
-- `localClustering`, `directedClustering`, `weightedClustering`, `weightedDirectedClustering`: NetworkX `clustering` (unweighted, directed, weighted). `transitivity`, `squareClustering`, `averageClustering`, `generalizedDegree`: NetworkX `transitivity`, `square_clustering`, `average_clustering`, `generalized_degree`.
+- `localClustering`, `directedClustering`, `localClusteringWeighted`, `directedClusteringWeighted`: NetworkX `clustering` (unweighted, directed, weighted). `transitivity`, `squareClustering`, `averageClustering`, `generalizedDegree`: NetworkX `transitivity`, `square_clustering`, `average_clustering`, `generalized_degree`.
 
 Search aliases (P263, grab --find): cycle counting (OI Wiki: 环计数问题, rings count), triangle counting, 4-cycle counting, 三角形计数, 聚类系数, 子图计数.
 
@@ -169,7 +175,7 @@ Oracles, each validated before use:
 | `enumerateC4`, `enumerateK4` | Every section; K_n, K_a,b | Brute-force or codegree lists in canonical rotation and direction, exact up to 2 · 10^6 each, else count, validity and no repeats among the first 10^6 |
 | `localClustering`, `transitivity`, `squareClustering`, `generalizedDegree`, `averageClustering` (both `count_zeros`) | Every section; hand values K4, C4, K2,3, bowtie (4/12, 12/20), Petersen, loops only; closed forms K_n, K_a,b, C_n, P_n, stars; generalizedDegree rows sum to the degree and Σ k · row = 2 t(v) | NetworkX `cluster.py` transliteration, exact |
 | `directedClustering` | Every digraph section; hand values: 3-cycle 0.5, transitive 0.5, complete symmetric 1, one mutual edge 0; `averageClustering` on digraphs | `_directed_triangles_and_degree_iter` transliteration; equals `localClustering` on symmetrised digraphs |
-| `weightedClustering`, `weightedDirectedClustering` | Every section with weights 1, random in [1, 10^6] and random in [−5, 5] with max ≠ 0 (the checked and ASan builds rotate one per graph); unit weights equal the unweighted values exactly | Weighted NetworkX iterators transliterated, relative `1e-10` |
+| `localClusteringWeighted`, `directedClusteringWeighted` | Every section with weights 1, random in [1, 10^6] and random in [−5, 5] with max ≠ 0 (the checked and ASan builds rotate one per graph); unit weights equal the unweighted values exactly | Weighted NetworkX iterators transliterated, relative `1e-10` |
 | `triangleProductSum` | `lng`, wrapping `ulng`, `ModInt<998244353>`, constant x (T · c^3 mod 2^64), x = 1 | Oracle triangle list |
 | `countTrianglesPerEdge` | Every multigraph section; k parallel copies scale by k^2; loops give 0; relabelling permutes; Σ = 3T on simple graphs | Brute force, edge subsets, codegree oracle |
 | `countC4` | Every section | Brute force, codegree oracle; K_n 3 C(n, 4), K_a,b C(a, 2) C(b, 2), grids (a − 1)(b − 1) |
@@ -279,3 +285,4 @@ On graphs where the sparse loop runs alone (`r0 = n`), `denseStart` costs 0.2–
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound, a raised limit (above); full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`weightedClustering`, `weightedDirectedClustering` → `localClusteringWeighted`, `directedClusteringWeighted`); full on g++ and g++-14, stress and extraction passed.

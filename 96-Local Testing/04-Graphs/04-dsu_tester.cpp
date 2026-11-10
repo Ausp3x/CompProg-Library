@@ -32,7 +32,7 @@ void verify(const Graph &g) {
             for (int j = 0; j < g.n; ++j) {
                 require(dsu.isSameSet(i, j) == reachable[i][j], "weak connectivity pair=" + std::to_string(i) + "," + std::to_string(j));
                 count += reachable[i][j];}
-            require(dsu.getSize(i) == count, "canonical component size");
+            require(dsu.size(i) == count, "canonical component size");
             require(dsu.findSet(i) == dsu.findSet(dsu.findSet(i)), "canonical representative idempotence");}
         auto copy = dsu;
         if (g.n) {
@@ -64,11 +64,11 @@ void large(const string &mode) {
     context = "two oppositely oriented directed chains n=" + std::to_string(n); Graph g(n, true);
     for (int i = 1; i < n; ++i) { if (i != n / 2) { g.addEdge((i & 1) ? i : i - 1, (i & 1) ? i - 1 : i); } }
     auto dsu = graphComponents(g);
-    require(dsu.count() == 2 && dsu.getSize(0) == n / 2 && dsu.getSize(n - 1) == n - n / 2,
+    require(dsu.count() == 2 && dsu.size(0) == n / 2 && dsu.size(n - 1) == n - n / 2,
         "large weak components from alternating edge directions");
     require(!dsu.isSameSet(0, n - 1), "large disconnected components");
     g.addEdge(0, n - 1); auto joined = graphComponents(CsrGraph(g));
-    require(joined.count() == 1 && joined.getSize(0) == n && dsu.count() == 2, "repeated construction and snapshot independence");
+    require(joined.count() == 1 && joined.size(0) == n && dsu.count() == 2, "repeated construction and snapshot independence");
     std::cout << "PASS graph DSU sparse chain n=" << n << '\n';}
 int main(int argc, char **argv) {
     string mode = "full";

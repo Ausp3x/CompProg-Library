@@ -108,7 +108,7 @@ None is required (Contest profile, no reduction, no threshold). A scratch timing
 ## Limits and handoffs
 
 - Depths are `int`; `n <= INT_MAX / 2` keeps `ladder` indexable and `jumps.size() <= INT_MAX` keeps `jump_start` exact (a caterpillar passes it near n = 1.7e8, about 9 GB of tables). Neither is asserted.
-- Under `NDEBUG` an out-of-range `u` reads (`query`) or writes (`levelAncestorOffline`) out of bounds, as row 07's `LCA` and `offlineLCA` do; no guard branch is added to the O(1) query (user decision 2026-11-09).
+- Under `NDEBUG` an out-of-range `u` reads (`query`) or writes (`levelAncestorOffline`) out of bounds, as row 07's `LCA` and `lcaOffline` do; no guard branch is added to the O(1) query (user decision 2026-11-09).
 - `query` and `levelAncestorOffline` keep their `k < 0` checks so that a negative `k` stays bounded under `NDEBUG` (`03-cpp.md`, user decision 2026-11-09); it is outside the domain, so no test reaches them.
 - The O(n)-preprocessing macro-micro variant is planned row 94 (package P277); online leaf addition stays out ([00-notes.md](00-notes.md#p042-gr70-omissions)).
 

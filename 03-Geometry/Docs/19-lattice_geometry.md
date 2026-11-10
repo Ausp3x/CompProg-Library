@@ -48,13 +48,13 @@ Input: halfplanes as in `halfplaneIntersection`. The result is `-1` when the set
 
 `O(m * log(m) + k * log(C))` for `m` halfplanes and `k` result edges; `O(m * log(m))` for unbounded sets. Kept by decision (2026-10-18) beside `latticeInRationalPolygon(halfplaneIntersection(h).vertices)`, which overflows on these denominators.
 
-### latticeInDisk, latticeInDiskFast
+### latticeInDisk, latticeInDiskHull
 
 Both count lattice points `(x, y)` of the closed disk `(q x − a)^2 + (q y − b)^2 <= n`: centre `(a / q, b / q)`, squared radius `n / q^2`. Write `r = sqrt(n) / q`.
 
 `latticeInDisk` scans the columns with `(q x − a)^2 <= n` and adds the height of each column from an exact integer square root: `O(r + 1)` time, `O(1)` memory.
 
-`latticeInDiskFast` gives the same count:
+`latticeInDiskHull` gives the same count:
 - **Decomposition.** The lattice points are split by the diagonals through the centre into the centre point, two caps with `|u| <= v` (top and bottom) and two with `|u| < v` (left and right, by transposition), where `u = x − a / q` and `v = y − b / q`. The asymmetric tie keeps the partition disjoint.
 - **One cap.** Each cap is `Σ (top(x) − low(x) + 1)` over the columns with `2 (q x − a)^2 <= n`. `low` is an arithmetic series, because the diagonal has slope ±1. `top` is the floor of the arc. On each side of the centre column the arc is concave with slope in `[−1, 0]`, the left side by mirroring.
 - **The hull walk.** It walks the upper convex hull of the lattice points under the arc, with directions ordered from the sentinel `(1, 1)` (feasible because the slope is at least −1) to the shallowest. It takes repeated steps by doubling and closed-form sums along each edge. A new direction is refined by mediants between a fitting direction `f` and a failing, shallower one `g`. Refinement stops when the arc at `x + m.x` is at least as steep as `f`: then no mediant between `m` and `f` can fit, since the points `P + m + j f` stay above a concave arc. The slope test is the exact inequality `U^2 f.x^2 >= (n − U^2) f.y^2` with `U = q x − a >= 0`.
@@ -80,9 +80,13 @@ Measured on instrumented copies (2026-10-19, origin, `q = 1`; the stack peak is 
 
 Tests per edge stay flat, so the observed time grows like `r^(2/3)`. The proven bound keeps the logarithm: no published proof removes it for this walk (Sladkey proves `O(n^(1/3))` for the hyperbola with a different, tangent-based recursion). The centre `(12345, −6789) / 7` gives the same tests per edge (9.14–9.39) and at most 8 runs.
 
-Both disk counts are kept by decision (2026-10-18) beside `gaussCircleCount` (Mathematics row 34, origin) and the planned `gaussCircleFast` (Mathematics row 55): the rational centre and radius are a larger domain.
+Both disk counts are kept by decision (2026-10-18) beside `gaussCircleCount` (Mathematics row 34, origin) and the planned `gaussCircleCountHull` (Mathematics row 55): the rational centre and radius are a larger domain.
 
 No legacy code exists for this header.
+
+### Legacy mapping
+
+- P276 rename, 2026-11-10: `latticeInDiskFast` → `latticeInDiskHull`.
 
 ## Feature-to-test map
 
@@ -102,7 +106,7 @@ No legacy code exists for this header.
 | Operation | Test | Oracle |
 |---|---|---|
 | `latticeInDisk` | Exhaustive `q <= 4`, centre numerators within `2q`, `n <= 70`; random `q <= 12`, centres within `10^3`, radius up to 30; origin `n` up to `10^6` | Enumeration; `gaussCircleCount` |
-| `latticeInDiskFast` | The same, plus radius up to 1,000 with centres up to `10^9` and `q <= 1000`; radius 300,000–1,000,000 with `q <= 9`; origin and integral centres up to `n = 10^12`; known values `r = 10^3, 10^4, 10^6`; `n = 4 * 10^18`; `q = 10^18` | `latticeInDisk`; enumeration; `gaussCircleCount`; published Gauss counts |
+| `latticeInDiskHull` | The same, plus radius up to 1,000 with centres up to `10^9` and `q <= 1000`; radius 300,000–1,000,000 with `q <= 9`; origin and integral centres up to `n = 10^12`; known values `r = 10^3, 10^4, 10^6`; `n = 4 * 10^18`; `q = 10^18` | `latticeInDisk`; enumeration; `gaussCircleCount`; published Gauss counts |
 | `latticeUnderLine` | Random rational endpoints, denominators 1–7, both orders; a `2 * 10^9`-wide segment; Python rows with denominators up to `10^15` | Per-column floors; closed form; `Fraction` column sums |
 | `latticeInRationalPolygon` | Random simple polygons (3–9 vertices, denominators 1, 2 and up to 6, checked simple exactly); convex polygons near a circle of radius 1.9 with denominators up to `10^6`, and with denominators up to `2 * 10^18` at the domain edge `V * D = 4 * 10^18`; Python convex polygons with denominators up to `10^14`; vertices of random halfplane polygons (denominators up to about `10^12`), translated and transposed; rectilinear L-shapes with vertical edges through lattice and half-lattice points; a unit-width rectilinear spiral with three turns with coordinates below `4 * 10^18` in magnitude; random lattice polygons; a `±10^9` lattice triangle; a half-integer triangle of width `10^9` | Enumeration, both orientations; 256-bit enumeration; Pick (03 functions; shoelace and gcds for the spiral); `floorSum` closed form; `Fraction` column scans; `latticeInHalfplanePolygon`; invariance |
 | `latticeInHalfplanePolygon` | Random halfplanes inside a box, with doubled lines making segments and points; a thin triangle reaching `(10^18 − 10^9, 10^9)`. Unbounded sets: 0–3 random halfplanes within `±5`, plus doubled lines and antiparallel pairs making rays, lines, strips and half-strips; fixed cases: the whole plane, a halfplane, strips of lattice width 1 and 2 (axis-parallel and along `(2, 1)`, one given by a non-primitive direction), half-strips of width 1 and 2, half-strips and strips with redundant parallel planes in either order, a wedge, a ray and a line | Enumeration, closed and strict; `floorSum` and `ceilSum` closed form and exact boundary count; window column scans and fixed values for unbounded sets |
@@ -145,7 +149,7 @@ python3 '96-Local Testing/03-Geometry/19-lattice_geometry_tester.py' --mode stre
 
 `19-lattice_geometry_benchmark.py --seed 20260927` (2026-10-19, run serially on the final code; other sessions kept the load average near 2.6 on the 8-core CPU; Intel Core i9-11900H, GCC 16.2.1 `-O2 -DNDEBUG`, one warmup, median of five; input generation excluded; both disk counts agree wherever the row scan runs). Rows with `r = 10^9` and `q = 7` are capped at `n = 4 * 10^18`, so their effective radius is about `2.9 * 10^8`.
 
-| Centre | r | `latticeInDiskFast` (µs) | `latticeInDisk` (µs) |
+| Centre | r | `latticeInDiskHull` (µs) | `latticeInDisk` (µs) |
 |---|---|---|---|
 | origin | 10^4 | 128 | 575 |
 | origin | 10^5 | 590 | 5,641 |
@@ -176,9 +180,11 @@ The implementation was written independently. Sources of the completeness sweep 
 
 - The generic oracle walk over any convex region (`latticeInConvexRegion`), the lattice hull under a line, and polynomial lattice sums belong to Mathematics row 55 (`convexLatticeHull`, `convexFloorSum`, `floorSumPolynomial`); see 00-notes.
 - A bounded halfplane intersection must lie within `|coordinate| <= 10^18` (128-bit floor sums); widening was declined on 2026-10-19.
-- `latticeInDiskFast` keeps `O(r^(2/3) * log(r))` as its proven bound although the measured tests per edge are flat; see the hull walk above.
+- `latticeInDiskHull` keeps `O(r^(2/3) * log(r))` as its proven bound although the measured tests per edge are flat; see the hull walk above.
 
 ## Aliases
+
+Renamed aliases (P276, 2026-11-10): `latticeInDiskFast`.
 
 Search aliases (P263, grab --find): 格点计数, 整点计数, 直线下整点数, 多边形内整点, 圆内整点.
 
@@ -189,3 +195,4 @@ Search aliases (P263, grab --find): 格点计数, 整点计数, 直线下整点�
 - 2026-10-19 (round 3): unbounded halfplane sets return 0 or `-1` (Meyer's dichotomy, window-scan oracle); the hull-walk stack became `O(log(r))` runs with identical counts and fewer tests (at most 8 runs where the former stack reached 44,721 entries); Core `u256` replaced the private 256-bit helpers (+2–9% measured); the steepness-stop mutant is caught by the full-mode timeout; the unbounded probe became an out-of-domain bounded probe. Full suite passed on g++ and g++-14, stress passed, Mathematics row 20 full passed. Independent review: counts refreshed, the steepness-mutant growth figure corrected; strips with redundant parallel planes added to the unbounded tests. Final full suite passed on g++ and g++-14, stress passed.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.
+- 2026-11-10: P276 rename (`latticeInDiskFast` → `latticeInDiskHull`); full on g++ and g++-14, stress and extraction passed.

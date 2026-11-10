@@ -32,7 +32,7 @@ struct BlockCutTree {
         return u == v || (a != -1 && (a == b || lca.parent[a] == v)) || (b != -1 && lca.parent[b] == u);}
     bool connectedAfterRemovingVertex(int u, int v, int x) const {
         check(u); check(v); check(x); assert(x != u && x != v);
-        int l = lca.getLCA(u, v);
+        int l = lca.lca(u, v);
         return l != -1 && !(lca.covers(l, x) && (lca.covers(x, u) || lca.covers(x, v)));}
     int componentSizeAfterRemovingVertex(int v, int x) const {
         check(v); check(x); assert(v != x);
@@ -48,7 +48,7 @@ struct BlockCutTree {
         return d <= 0 ? d : d / 2 - 1;}
     int simplePathVertexCount(int u, int v) const {
         check(u); check(v); lll w = 0;
-        if (!lca.weightedDistance(u, v, w)) { return 0; }
+        if (!lca.distanceWeighted(u, v, w)) { return 0; }
         return int(w / 2) - lca.distance(u, v) / 2 + 1;}
 };
 
@@ -147,7 +147,7 @@ struct IncrementalBlockCutTree {
         check(u); check(v);
         if (u == v) { return; }
         if (!comp.isSameSet(u, v)) {
-            if (comp.getSize(u) > comp.getSize(v)) { swap(u, v); }
+            if (comp.size(u) > comp.size(v)) { swap(u, v); }
             for (int x = u, last = -1; x != -1;) { int p = up(x); par[x] = last; last = x; x = p; }
             par[u] = n + blocks; par[n + blocks++] = v; comp.uniteSets(u, v);
             return;}

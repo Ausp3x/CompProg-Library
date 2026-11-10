@@ -110,9 +110,9 @@ struct SparseDSU {
         int i = id.get(k, -1);
         return i < 0 ? k : key[d.findSet(i)];}
     bool isSameSet(const K &a, const K &b) { return findSet(a) == findSet(b); }
-    int getSize(const K &k) {
+    int size(const K &k) {
         int i = id.get(k, -1);
-        return i < 0 ? 1 : d.getSize(i);}
+        return i < 0 ? 1 : d.size(i);}
 };
 
 // Leaves [0, n), n <= 2^30; the k-th merging union, union i of the sequence, makes node n + k with time i + 1; -1 means never.

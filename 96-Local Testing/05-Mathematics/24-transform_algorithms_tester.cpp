@@ -110,10 +110,10 @@ void numberSuite(const string &name, int maxN, int big) {
         FastConv<T>::fctLcm(x, true, sv); check(x == a, "fctLcm inverse " + tag);
         x = a; FastConv<T>::fctGcd(x, false, sv); check(x == bruteDivisor(a, true), "fctGcd " + tag);
         FastConv<T>::fctGcd(x, true, sv); check(x == a, "fctGcd inverse " + tag);
-        x = a; FastConv<T>::fctLcmSlow(x, false); check(x == bruteDivisor(a, false), "fctLcmSlow " + tag);
-        FastConv<T>::fctLcmSlow(x, true); check(x == a, "fctLcmSlow inverse " + tag);
-        x = a; FastConv<T>::fctGcdSlow(x, false); check(x == bruteDivisor(a, true), "fctGcdSlow " + tag);
-        FastConv<T>::fctGcdSlow(x, true); check(x == a, "fctGcdSlow inverse " + tag);
+        x = a; FastConv<T>::fctLcmSimple(x, false); check(x == bruteDivisor(a, false), "fctLcmSimple " + tag);
+        FastConv<T>::fctLcmSimple(x, true); check(x == a, "fctLcmSimple inverse " + tag);
+        x = a; FastConv<T>::fctGcdSimple(x, false); check(x == bruteDivisor(a, true), "fctGcdSimple " + tag);
+        FastConv<T>::fctGcdSimple(x, true); check(x == a, "fctGcdSimple inverse " + tag);
         for (int m : {0, 1, 2, max(n + 1, 0), n + 7, max(3 * n + 2, 0)}) {
             auto b = rnd<T>(m);
             int sa = int(a.size());

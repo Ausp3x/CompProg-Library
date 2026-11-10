@@ -185,7 +185,7 @@ namespace {
             qu = u; qv = v;
             int c = o.lca(u, v), k = rnd(o.dep[u] + 2);
             bool e = t & 1;
-            checkEq(h.getLCA(u, v), c, "getLCA");
+            checkEq(h.lca(u, v), c, "lca");
             checkEq(h.distance(u, v), c == -1 ? -1 : o.dep[u] + o.dep[v] - 2 * o.dep[c], "distance");
             checkEq(h.kthAncestor(u, k), o.ancestor(u, k), "kthAncestor"); checkEq(h.kthAncestor(u, o.dep[u]), o.comp[u], "kthAncestor to the root");
             check(h.kthAncestor(u, o.dep[u] + 1) == -1 && h.kthAncestor(u, INT_MAX) == -1 && h.kthAncestor(u, INT64_MAX) == -1, "kthAncestor beyond the root");
@@ -415,14 +415,14 @@ namespace {
         else if (name == "cycle") { Graph c = g; c.addEdge(2, 0); (void)HLD(c); }
         else if (name == "multi-edge") { Graph c = g; c.addEdge(1, 0); (void)HLD(CsrGraph(c)); }
         else if (name == "root-range") { (void)HLD(g, 3); }
-        else if (name == "vertex-range") { (void)HLD(g).getLCA(0, 3); }
+        else if (name == "vertex-range") { (void)HLD(g).lca(0, 3); }
         else if (name == "kth-negative") { (void)HLD(g).kthAncestor(2, -1); }
         else if (name == "edge-range") { (void)HLD(g).edgeVertex(2); }
         else if (name == "path-range") { (void)TreeMonoid<Sum<lng>>(g, vector<lng>(3)).pathFold(-1, 0); }
         else if (name == "reroot-components") { (void)HLD(h).rerootedSubtreeIntervals(0, 2); }
         else if (name == "root-far") { (void)HLD(g, 4); }
-        else if (name == "vertex-far") { (void)HLD(g).getLCA(0, 4); }
-        else if (name == "vertex-first") { (void)HLD(g).getLCA(3, 0); }
+        else if (name == "vertex-far") { (void)HLD(g).lca(0, 4); }
+        else if (name == "vertex-first") { (void)HLD(g).lca(3, 0); }
         else if (name == "edge-far") { (void)HLD(g).edgeVertex(3); }
         else if (name == "path-second") { (void)TreeMonoid<Sum<lng>>(g, vector<lng>(3)).pathFold(0, 3); }
         else if (name == "subtree-range") { (void)HLD(g).subtreeRange(3); }

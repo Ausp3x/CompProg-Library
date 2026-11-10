@@ -18,7 +18,7 @@ Vertices `[0, n)`, `0 <= n <= INT_MAX`. Union by size (on equal sizes the first 
 - `potential(u)`: `x_r^-1 x_u` for `r = findSet(u)`. It changes when the root changes. Returns `vector<S>::const_reference`, valid until the next `uniteSets` or `findSet`-based call.
 - `diff(u, v)`: asserts that `u` and `v` are connected.
 - `contradictions(u)`: number of contradicting `uniteSets` calls inside `u`'s component, summed through merges. `contradictions(u) == 0` means the accepted relations are the only ones recorded (bipartiteness for `Xor<bool>` with `w = true` on every edge).
-- `findSet`, `isSameSet`, `getSize`, `count`, `groups` as row 01 `DSU` (`groups` in O(n), groups and members ordered by smallest vertex).
+- `findSet`, `isSameSet`, `size`, `count`, `groups` as row 01 `DSU` (`groups` in O(n), groups and members ordered by smallest vertex).
 - A root's stored potential is always `e`. A union costs two `op` and one or two `inv`; compressing a node costs one `op`. Bounds: O(alpha(n)) amortized group operations per call, O(n) memory of `S`.
 - `Sum<T>` over a signed `T` needs every value and every sum along a chain of relations to be representable, and no value equal to the lowest `T` (negation).
 
@@ -36,7 +36,7 @@ Vertices `[0, n)`, `0 <= n <= INT_MAX / 2`. A row 01 `DSU` over `2n` nodes: node
 
 `RollbackDSU` (row 09) plus `WeightedDSU`'s relation contract, without path compression. Depth stays at most `floor(log2(n))`, so every query and `uniteSets` costs O(log(n)) worst case, and `undo` costs O(1) plus one integer copy. Memory O(n + q) for q live records.
 
-- It inherits `findSet`, `isSameSet`, `getSize`, `count`, `groups` and `snapshot`. It defines its own `uniteSets(u, v, w)`, `undo` and `rollback`, which keep the contradiction counts. Never call `RollbackDSU::uniteSets`, `undo` or `rollback` on it (qualified, or through a base reference).
+- It inherits `findSet`, `isSameSet`, `size`, `count`, `groups` and `snapshot`. It defines its own `uniteSets(u, v, w)`, `undo` and `rollback`, which keep the contradiction counts. Never call `RollbackDSU::uniteSets`, `undo` or `rollback` on it (qualified, or through a base reference).
 - History: as row 09, every `uniteSets` call is one record, merging, consistent-redundant or contradicting. `undo` reverts the latest record and restores its component's contradiction count; `rollback(t)` undoes down to `snapshot() == t`. Tokens are counts.
 - `climb(u)`: the root of `u` and `x_root^-1 x_u` in one walk. `potential(u)` is its second part, `diff(u, v)` asserts a common root and `contradictions(u)` reads the root.
 - A root's stored potential is never read, so `undo` leaves a separated root's stale value in place.
@@ -50,6 +50,7 @@ Under `NDEBUG`, an out-of-range vertex reads outside the arrays, `diff` across c
 - `OLD/algorithms.cpp:1402–1477` and `OLD/Team Notebook/src/graph/dsu.cpp` `DSU`: `uniteSets(u, v, w)` recorded `x_u - x_v = w`, which is `WeightedDSU<Sum<lng>>::uniteSets(v, u, w)`; `dis` and `getDis` (narrowed to `int`) → `potential`; `is_bip` and `isBipartite` with the default `w = 1` → `ParityDSU::uniteSets(u, v, true)` and `isBipartite`, or `WeightedDSU<Xor<bool>>::contradictions(u) == 0`; `esz` and `getEsiz` → row 09 `RollbackDSUAggregate::edgeCount`.
 - Planned `NoncommutativeWeightedDSU` → `WeightedDSU<G>` with a non-commutative `G` (decision recorded in `duplicates.md`, Kept by the sweep).
 - Catalog names: maspypy `get(v)` → `findSet` and `potential`; maspypy `get_path`, noshi91 `distance`, Nyaan and suisen `diff` → `diff`; ei1333 `weight` → `potential`; Nyaan and hitonanode `unite`/`merge` returning `false` on conflict → `isSameSet` and `diff` before `uniteSets`, or `contradictions`; ei1333 `BipartiteGraph` and cp-algorithms parity DSU → `ParityDSU`; OI Wiki extended-domain DSU (k copies, NOI2011 food chain) → `WeightedDSU` over Z/k (`Sum<ModInt>` or a runtime `ModAdd`); maspypy `time()`/`rollback(t)` → `snapshot`/`rollback`.
+- P276 rename, 2026-11-10: `getSize` → `size`.
 
 ## Feature-to-test map
 
@@ -57,7 +58,7 @@ Tester `96-Local Testing/02-Data Structures/29-weighteddsu_tester.cpp`, entry `2
 
 | Operation | Group | Oracle |
 |---|---|---|
-| `WeightedDSU` `uniteSets` (return value), `findSet`, `potential`, `diff`, `isSameSet`, `getSize`, `count`, `groups`, `contradictions` | `weightedHistories` over all four groups (n <= 12, 60 steps; `Perm` also n <= 40 with 150 steps), relations true to hidden values 3 times in 4 and random otherwise; half the rounds check after every step, the rest every 16 steps (deeper uncompressed paths) | Brute force: BFS over the accepted relations composes edge labels in chain order (`d[b] = op(d[a], w)`); a relation is accepted when its endpoints were unreachable, and contradiction events are counted per BFS component; `findSet` must be a member and the same vertex for the whole component; exact `groups` order |
+| `WeightedDSU` `uniteSets` (return value), `findSet`, `potential`, `diff`, `isSameSet`, `size`, `count`, `groups`, `contradictions` | `weightedHistories` over all four groups (n <= 12, 60 steps; `Perm` also n <= 40 with 150 steps), relations true to hidden values 3 times in 4 and random otherwise; half the rounds check after every step, the rest every 16 steps (deeper uncompressed paths) | Brute force: BFS over the accepted relations composes edge labels in chain order (`d[b] = op(d[a], w)`); a relation is accepted when its endpoints were unreachable, and contradiction events are counted per BFS component; `findSet` must be a member and the same vertex for the whole component; exact `groups` order |
 | `ParityDSU` `uniteSets` (return value), `parity`, `isBipartite` | `parityHistories` (n <= 10, 40 steps, every pair after every step; relations true to hidden colours 5 times in 6) | Brute force: BFS over (vertex, parity) states using every relation |
 | `RollbackWeightedDSU` `uniteSets`, `undo`, `snapshot`, `rollback` (random targets and reused tokens), `climb` through `potential` and `diff`, `contradictions`, inherited queries | `rollbackHistories` over `Sum<lng>`, `Perm`, `Xor<bool>` (n <= 10, 50 steps) | The brute force rebuilt from the live record list after every operation; the `uniteSets` return value against the rebuilt brute force before the call |
 | Scale, depth bound | `large`: n = 2 * 10^5 and 2^16 with 4 * 10^5 and 3 * 10^5 operations (full); n = 10^6 with 3 * 10^6 (stress) | Hidden potentials `x` with wrong relations only inside components: `diff == x_v - x_u`; row 01 `DSU` (weighted) and row 09 `RollbackDSU` driven in parallel (rollback) for connectivity, sizes, counts and per-component contradiction counts from a replay of the live records; rollback depth at most `floor(log2(n))`; `ParityDSU` against hidden colours and per-component odd flags |
@@ -93,7 +94,7 @@ python3 '00-Guidelines/13-Plan/plan.py' check
 
 | Source | Actual reading and use |
 |---|---|
-| maspypy `potentialized_unionfind.hpp`, `rollback_potentialized_unionfind.hpp`; ei1333 `weighted-union-find.hpp`, `bipartite-graph.hpp`; Nyaan `union-find-with-potential.hpp`; suisen `weighted_union_find.hpp`; hitonanode `potentialized_unionfind.hpp`; tko919 `weightedunionfind.hpp`; noshi91 `potentialized_union_find.cpp` | Potentials over groups and their orientation, `getSize`/`count`/`groups`, rollback by time token, the 2n-node parity DSU. |
+| maspypy `potentialized_unionfind.hpp`, `rollback_potentialized_unionfind.hpp`; ei1333 `weighted-union-find.hpp`, `bipartite-graph.hpp`; Nyaan `union-find-with-potential.hpp`; suisen `weighted_union_find.hpp`; hitonanode `potentialized_unionfind.hpp`; tko919 `weightedunionfind.hpp`; noshi91 `potentialized_union_find.cpp` | Potentials over groups and their orientation, `size`/`count`/`groups`, rollback by time token, the 2n-node parity DSU. |
 | cp-algorithms *Disjoint Set Union*, OI Wiki *并查集* | Distance to the representative, online bipartiteness by parity, extended-domain DSU. |
 
 Fetched 2026-10-23 by the completeness sweep ([00-sources.md](00-sources.md#fetched-2026-10-23-p035-sweep)); the implementation was written from the contract. The Library Checker statements `unionfind_with_potential` and `unionfind_with_potential_non_commutative_group` were not read (the pages render client-side).
@@ -105,6 +106,8 @@ Fetched 2026-10-23 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 ## Aliases
 
+Renamed aliases (P276, 2026-11-10): `getSize`.
+
 Search aliases (P263, grab --find): 并查集, 并查集应用, 带权并查集, 边带权并查集, 种类并查集, 扩展域并查集, 奇偶并查集, 可撤销带权并查集, 二分图判定.
 
 ## History
@@ -112,3 +115,4 @@ Search aliases (P263, grab --find): 并查集, 并查集应用, 带权并查集,
 - 2026-10-23: P035 first implementation (user decisions: `ParityDSU` as a 2n-node DSU, `inv` on row 00 `Sum`/`Xor`); independent review, 7 findings fixed across the package (here: `findSet` split from the recursive `root`, a negative `ParityDSU` probe); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`getSize` → `size`); full on g++ and g++-14, stress and extraction passed.

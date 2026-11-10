@@ -14,6 +14,8 @@ Decided by the user since 2026-10-10; binding, and only the user changes them.
 - **P061, P191** Mathematics row 23 owns the matrix-tree counts (`countSpanningTrees`, `countArborescences`, `countRootedForests`, `eulerianCircuitCountBest`); Graphs row 53 drops `countSpanningTrees`, `countArborescences`, `countSpanningForests` and `countEulerianCircuits` (decided 2026-11-08).
 - **P028** row 14 `RangeChminChmaxAddAssignRangeSumMinMax` stays a BeatsMonoid preset with no builder operations; `SegTreeBeats` keeps chmin, chmax, add and set (decided 2026-11-08).
 - **P122** row 54 `LinearRMQ` takes bitmask microblocks instead of Cartesian (Farach-Colton–Bender) ones: the same bound and results with less code (decided 2026-11-08).
+- **P011, P276** Graphs row 07 `getKthAncestor` (clamped negative `k`) merges into `kthAncestor`, which asserts `k >= 0` (user decision 2026-11-10).
+- **P276** `08-Python` mirrors C++ (user decision 2026-11-10, `04-python.md` Style): `_56` drops its public `BitVector` (C++ row 32 keeps it internal; `_45` `SuccinctBitVector` is the public type); `_25` drops the free `numberOfSubstrings` beside `SuffixAutomaton::distinctSubstrings`; `_38` `crtGeneral` folds into `crt`, which takes noncoprime moduli; `_15` `BoundedFlow` becomes the free `feasibleFlow` and `maxFlowWithLowerBounds` of Graphs row 30; `_18` `ParityDSU` drops `findSet` and `isSameSet`, which C++ lacks (`parity(u, v) >= 0` is the same test); `_43` `digitDp` and `digitDpRange` fold into `DigitDP::count` (closed interval).
 - **P067** `02-Data Structures/23-range_query_offline.hpp` (pinned): `Mo::getHilOrd` leaves row 23 (decided 2026-10-11); Mo orders queries with Miscellaneous row 16 `hilbertIndex2D` (P066, a prerequisite).
 
 ### Keeps
@@ -36,13 +38,12 @@ Items a reader could mistake for duplicates.
 | P010 | `findNegativeCycle`, `bfsShortestPaths` | Named special case (all-vertex seeding); BFS form of `ShortestPathResult` |
 | P011 | `lca_detail::Forest` inclusive `t_in`/`t_out` | Only form |
 | P011 | `functionalOrbit`, `condensationDag` | Different domain (walks that stop); replacement differs in weights, order and memory |
-| P011 | `getKthAncestor` | Accepts k < 0 |
 | P011, P043 | `kosarajuScc`, `kuhn` | Different algorithms from `tarjanScc`, `hopcroftKarp` |
 | P012 | `ternSearch`, `ternSearchRealBracket` | Different algorithms from `fibSearch`, `goldenSearchRealBracket` |
 | P012 | `binSearch(ok, ng, f)` | Decided 2026-10-11: one orientation-free call for the common ok/ng idiom; the replacement needs `lastTrue` or `firstTrue` by orientation plus a result mapping |
-| P012 | `LinearSieve::getPhi`, `getMu`, `getNumDiv`, `getSumDiv` | Reuse the sieve's `spf` table |
+| P012 | `LinearSieve::phiTable`, `mobiusTable`, `divisorCountTable`, `divisorSumTable` | Reuse the sieve's `spf` table |
 | P012 | `PrimeCombinatorics` fields `fac`, `inv_fac` | Data, direct indexing |
-| P012 | `SegmentedSieve::getPrimeFac()`, `getTables()`, constructor without a base | Named table; batch form; one-call form beside the base-reuse form |
+| P012 | `SegmentedSieve::factorize()`, `tables()`, constructor without a base | Named table; batch form; one-call form beside the base-reuse form |
 | P012 | `permuWR`; the `ballot` and `ballotExact` `strict` flag | Named count (0 for negative b); variant inside one operation |
 | P012, P052 | `solveModEq` `{-1, -1}`, `garner` and `crtMod` returning -1 | Only form |
 | P013 | global `rng`; `CustomHash` convertible and enum overload | Only shared instance; only hash for those types |
@@ -66,7 +67,7 @@ Items a reader could mistake for duplicates.
 | P043 | `addImplication`, `addEquivalent` | Named special cases, as `setValue`; `addNand` stays omitted (decided 2026-10-11) |
 | P043 | `hallViolator` | Named certificate (Hall violator) |
 | P055 | `FastConv::fctGcd`, `fctLcm` | Reuse a caller's `LinearSieve` |
-| P055 | `FastConv::fctGcdSlow`, `fctLcmSlow` | Different algorithm (harmonic loops) |
+| P055 | `FastConv::fctGcdSimple`, `fctLcmSimple` | Different algorithm (harmonic loops) |
 | P083 | `countDistinctSubsequences` (`19-lcs.hpp`) | Different domain from P084's member |
 | P057 | `polynomial_detail::inverses`, `factorials` | Internal helpers |
 | P084 | `bwt(s, sentinel)`, `dfaSearch(pattern, text, sigma)` | Headline operation; only form taking a `char` pattern |
@@ -99,7 +100,7 @@ Items a reader could mistake for duplicates.
 | P037 | `segmentUnionLength`, `orthogonalIntersectionCount` (row 13) beside `intervalUnionMeasure`, row 33 `OfflineRectangleSweep` | Decided 2026-10-18: geometry entry points; the union length also takes floating endpoints, the count needs no point and rectangle builder |
 | P037 | `latticeUnderLine` (row 19) beside `floorSum` | Decided 2026-10-18: lattice points under a segment with rational endpoints |
 | P037 | `latticeInHalfplanePolygon` (row 19) beside `latticeInRationalPolygon(halfplaneIntersection(h).vertices)` | Decided 2026-10-18: larger domain; it counts from the integral line equations, while the composition overflows on vertex denominators up to 8 * 10^18 |
-| P037 | `latticeInDisk`, `latticeInDiskFast` (row 19) beside `gaussCircleCount`, row 55 `gaussCircleFast` | Decided 2026-10-18: larger domain, a rational centre and squared radius |
+| P037 | `latticeInDisk`, `latticeInDiskHull` (row 19) beside `gaussCircleCount`, row 55 `gaussCircleCountHull` | Decided 2026-10-18: larger domain, a rational centre and squared radius |
 | P037 | `convexIntersection`, `cut`, `batchedLocate` (row 15) beside `clipConvex`, `polygonCutApprox`, `contains` | Decided 2026-10-18: better bounds, O(n + m), O(log(n) + out) and O(q log(2 + n / q)) for angle-sorted queries (galloping since round 3) |
 | P037 | `maxPointsInDisk` (row 54) beside row 23 `maxDiskDepth` | Decided 2026-10-18: named special case, equal radii |
 | P037 | `maxAreaInscribedKgonSmawk`, `maxPerimeterInscribedKgonSmawkApprox` (row 15) beside `maxAreaInscribedKgon`, `maxPerimeterInscribedKgonApprox` | Decided 2026-10-19: different algorithm (SMAWK layers, O(k n + n log n)); both kept even where one is faster |
@@ -194,7 +195,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P011 | `FunctionalGraph::reachable` (`11-functionalgraph.hpp`) | Named special case (ruling 1) |
 | P011 | `FunctionalGraphFold::segment` (`11-functionalgraph.hpp`) | Helper of `fold`, `cycleAggregate`, `maxStep`; dropped from the row 2026-10-12 |
 | P012 | `starsBars`, `starsBarsExact` (`05-combinatorics.hpp`) | The positive variant is a derived formula with a guard (clarified rule) |
-| P012 | `fibonacciExact`, `LinearSieve::getAllFac` (`05-combinatorics.hpp`; `04-sieve_algorithms.hpp`) | Larger domain (n = 93); reuses `spf`, unsorted |
+| P012 | `fibonacciExact`, `LinearSieve::divisors` (`05-combinatorics.hpp`; `04-sieve_algorithms.hpp`) | Larger domain (n = 93); reuses `spf`, unsorted |
 | P013 | `compressEndpoints` (`04-compression.hpp`) | Builder over interval endpoints (clarified rule) |
 | P013 | `randBelow(n)` (`01-random.hpp`) | Helper of `randUlng`, `randLng`, `shuffle`; dropped from the row 2026-10-12 |
 | P013 | `permutationRank`, `permutationUnrank` (`07-permutation.hpp`) | Named special case |
@@ -267,7 +268,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P047 | `OfflineDynamicConnectivity::insertEdge`, `eraseEdge` beside `addEdge` (`26-dynamic_connectivity.hpp`) | Larger domain: unpaired per-pair events with multiplicities, as P034 `OfflineDeletion::insert`, `erase` |
 | P047 | `OfflineDynamicConnectivity` (`26-dynamic_connectivity.hpp`) | Named special case of Data Structures row 63 `OfflineDeletion` with `RollbackDSU` (Data Structures `Docs/00-notes.md`, Ownership boundaries, reworded) |
 | P060 | `ceilSum` (`18-floorsum.hpp`) | Named special case (ruling 3) |
-| P060 | `enumerateQuotients` (`18-floorsum.hpp`) | Stored form beside the callback `forEachQuotientBlock`, as the kept `getPrimeFac()` (clarified rule) |
+| P060 | `enumerateQuotients` (`18-floorsum.hpp`) | Stored form beside the callback `forEachQuotientBlock`, as the kept `factorize()` (clarified rule) |
 | P060 | `maxOfModOfLinear` (`18-floorsum.hpp`) beside `minOfModOfLinear` | Mirror (ruling 3) |
 | P060 | `josephus` (`19-josephus.hpp`), `josephusKth` at `t = n - 1`; `josephusK2` | Named special case (the survivor); `josephusK2` is a different algorithm (O(1) closed form). The plain O(n) loop and `josephusLarge` were merged into `josephus` by user decision 2026-10-18 |
 | P060 | `continuedFractionSqrt` (`20-continued_fraction.hpp`), `continuedFractionQuadratic(0, D, 1)` | Named special case |
@@ -315,7 +316,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P061 | `multipointEvaluateGeometric` (row 22) | Wrapper in another row: row 22 owns the general chirp-z (LC `multipoint_evaluation_on_geometric_sequence`); row 65 `bluesteinTransform` calls it with a = 1 |
 | P069 | `exactCover` (row 25) | Batch builder over `DancingLinks` (clarified rule) |
 | P042 | `TreeEccentricities` fields `radius`, `center` (row 14) | Derived formulas of the eccentricities (no `treeRadius`, `treeCenter` functions exist) |
-| P042 | `HLD::getLCA`, `distance`, `kthAncestor` (row 15) beside `LCA`, `EulerLCA` (row 07) (P042 rows) | Different algorithm: heavy-path climbing in O(log(n)) with O(n) memory against binary lifting and Euler RMQ (contributor proposal) |
+| P042 | `HLD::lca`, `distance`, `kthAncestor` (row 15) beside `LCA`, `EulerLCA` (row 07) (P042 rows) | Different algorithm: heavy-path climbing in O(log(n)) with O(n) memory against binary lifting and Euler RMQ (contributor proposal) |
 | P042 | `TreeMonoid::pathFold` (row 15) beside `LCAFold::pathFold` (row 07) (P042 rows) | Larger domain: point updates and path or subtree actions; `LCAFold` is static (contributor proposal) |
 | P042 | `EulerTour` (row 14) beside `lca_detail::Forest` (P042 rows) | Public static Euler tour with half-open ranges; `Forest` is a detail helper (contributor proposal) |
 | P066 | `vectorHash` (row 19) | Different algorithm: random-base polynomial hash (clarified rule) |
@@ -338,29 +339,29 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P071 | `daysBetween`, `addDays`, `dayOfYear` (row 27) | Named compositions (Python `datetime`): call `daysFromCivil`, `civilFromDays` |
 | P038 | `DynamicUpperHull` (row 20) | Separate operation: fixed universe with active flags, upper hull only (MAS `dynamic_upper_hull`) |
 | P041 | `halfplaneCount`; `manhattanNearestNeighbour` (row 29) | `halfplaneCount`: offline angular sweep, or a row 29 wrapper of row 41 `halfspaceRangeCount`; `manhattanNearestNeighbour`: bipartite domain (MAS `manhattan_nns`), not row 21's one-set sweep |
-| P128 | `orient2dInt` (row 36) | Larger domain: exact past about 2^62, where row 01 `orient` overflows (SHEWCHUK); the `Int` suffix is P276's rename |
+| P128 | `orient2d` `lll` overload (row 36, formerly `orient2dInt`) | Larger domain: exact past about 2^62, where row 01 `orient` overflows (SHEWCHUK) |
 | P129 | `countIntersections` (row 12) | `Count` variant, cheaper than the pair list (ruling 4; CPALG, CGAL) |
-| P130 | `triangulateSimple`; `trapezoidalDecomposition` (row 18) | `triangulateSimple`: named composition of `monotonePartition`, `triangulateMonotone` (MAS), renamed `triangulatePolygon` (P276); `trapezoidalDecomposition`: row 18 wrapper of row 34 `TrapezoidalMap::build` |
+| P130 | `triangulatePolygon`; `trapezoidalDecomposition` (row 18) | `triangulatePolygon` (formerly `triangulateSimple`, renamed P276): named composition of `monotonePartition`, `triangulateMonotone` (MAS); `trapezoidalDecomposition`: row 18 wrapper of row 34 `TrapezoidalMap::build` |
 | P131 | `tangentCircles(point, point, r)`; point and line cases of `apolloniusCircles` (row 24) | Wrappers in row 24 calling `circleCentersApprox`, `circumcircleApprox`, `incircleApprox` and the excircles (HIT `problem_of_apollonius`) |
 | P135 | `manhattanMst`; `manhattanFarthestPair` (row 21) | Builders over the edges and the Chebyshev transform (clarified rule) |
 | P135 | `euclideanBottleneck` (rows 21, 22, 32) | Separate operation: unit-disk components at a threshold, composed over `euclideanMst` |
-| P135 | `euclideanMstDense` (rows 21, 22, 32) | Lighter O(n^2) Prim (Priority); renamed `euclideanMstQuadratic` (P276) |
+| P135 | `euclideanMstQuadratic` (rows 21, 22, 32) | Lighter O(n^2) Prim (Priority); formerly `euclideanMstDense`, renamed P276 |
 | P135 | `Voronoi::adjacency` (rows 21, 22, 32) | Wrapper on another type calling row 31 `Delaunay::adjacency` |
 | P132 | `Plane3::distanceApprox` (row 26) | A type's members are their own context (2026-11-08); calls the free `distanceApprox` |
 | P137 | `hull3SurfaceArea`, `hull3Volume` (row 37) | Computed from the hull itself (clarified rule) |
 | P090 | `countRange` (`_02_search` (`00-index.md:10`)) | Derived: the difference of two bisects (clarified rule) |
-| P090 | `lisLength` (`_05` (:13)) | Different result: the length only (clarified rule) |
+| P090 | `longestIncreasingSubsequenceLength` (`_05` (:13)) | Different result: the length only (clarified rule) |
 | P090 | `binarySearchInt`; `argminUnimodal` (`_02`) | `binarySearchInt`: the endpoint-independent `binSearch(ok, ng, f)` C++ keeps beside `firstTrue`, renamed `binSearch`; `argminUnimodal`: Fibonacci search, renamed `fibSearch` |
 | P091 | inlined `SegmentTreeMin`, `SegmentTreeMax`, `SegmentTreeSum`, `SparseTableGcd` (and `_29` range-add variants, P102) (`_08`, `_13`) | PyPy constant-factor variants (ruling 4) |
-| P092 | `dijkstraPath` (`_09` (:17)) | Named composition (LC `shortest_path`): `dijkstra`, then `restorePath`; named `dijkstraWitness` |
-| P093 | `kmpCount` (`_10` (:18)) | Derived count (clarified rule) |
+| P092 | `dijkstraWitness` (`_09` (:17)) | Named composition (LC `shortest_path`): `dijkstra`, then `restorePath`; named `dijkstraWitness` |
+| P093 | `countOccurrences` (`_10` (:18)) | Derived count (clarified rule) |
 | P095 | `rodCutting` (`_12` (:20)) | Builder over lengths and prices (clarified rule) |
 | P098 | `rangeKthSmallest` (`_19` (:34)) | One-shot form of the persistent tree (clarified rule) |
 | P101 | `randomPermutation` (`_27` (:42)) | Derived: a sample of `range(n)` (clarified rule) |
 | P102 | `fold` (`_61` (:67)) | Mirrors the kept C++ `IntervalMap::fold` |
 | P094 | `farthestPair` (`_55` (:61)) | Composition (LC `furthest_pair`) mirroring C++ `farthestPair`: `convexHull`, then `convexDiameter` |
 | P110 | `nimSum` (`_58` (:64)) | Named special case (clarified rule) |
-| P230 | `maxIndependentSet` (`_59` (:65)) | Separate operation (ruling 2) |
+| P230 | `maximumIndependentSet` (`_59` (:65)) | Separate operation (ruling 2) |
 | P115 | `RangeTree::count`, `prod` (row 43) | Wrapper in another row (43) calling row 16 `MergeSortTree::countRange` and row 15 `SegmentTree2DSparse::prod` (NYA abstract range tree) |
 | P138 | `feasiblePoint3` (row 38) | Wrapper in row 38 calling row 42 `seidelLp` (CGAL `halfspace_intersection_interior_point_3`); named `halfspaceInteriorPoint3` |
 | P139 | `upperEnvelope` (row 41) | Named special case (ruling 3) |
@@ -378,10 +379,10 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P155 | `secondBestMst`, `mstForcedEdge`, `mstForbiddenEdge`, `isMstUnique` (row 52) | Named special cases and bool tests (ruling 1) over `mstEdgeSensitivity` (CPALG `second_best_mst`, CF 160D, OIW) |
 | P158 | `bipolarOrientation` (row 60) | Derived orientation (clarified rule) |
 | P158 | `earDecomposition` (rows 60, 68) | Named composition (NetworkX chains): calls `chainDecomposition` |
-| P162 | minimum and maximum perfect matching pair; `maximumWeightMatching` dense and sparse; row 58 `gabowWeightedMatching` (P163) (rows 64, 58) | The min/max pair is a sign mirror (ruling 3), dense and sparse are different algorithms, Gabow is a third; names to `maximumWeightMatching`, `maximumWeightMatchingDense`, `maximumWeightMatchingGabow` (P276) |
+| P162 | minimum and maximum perfect matching pair; `maximumWeightMatching` dense and sparse; row 58 `maximumWeightMatchingGabow` (P163) (rows 64, 58) | The min/max pair is a sign mirror (ruling 3), dense and sparse are different algorithms, Gabow is a third; names to `maximumWeightMatching`, `maximumWeightMatchingDense`, `maximumWeightMatchingGabow` (P276) |
 | P166 | `cycleBasisWeight` (row 72) | Derived sum (clarified rule) |
 | P166 | `eulerize` (row 69) | Named composition (NetworkX `eulerize`): calls `minimumTJoin` |
-| P173 | `globalMinCutFromExtremeSets` (row 83) | Derived minimum (clarified rule) |
+| P173 | `globalMinCutExtremeSets` (row 83) | Derived minimum (clarified rule) |
 | P175 | `dynamicDiameter` (row 84) | Wrapper in another folder over DS row 39 `TopTree` with its `Diameter` preset (CEOI 2019 "Dynamic Diameter") |
 | P177 | `dirichletConvolutionPrefix`, `dirichletInversePrefix` (row 32) | Free functions calling `DirichletSeries::mul`, `inv`, another context (user decision 2026-11-10) |
 | P181 | `pFreeFactorialModPrime` (row 37) | Separate operation: the unit part of n! mod a large prime by Wilson blocks, not row 12 `factorialValuation` (CPALG, OIW) |
@@ -400,7 +401,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P195 | `maxPlusConvolutionConcave*` (row 53) | Named special case (ruling 3) |
 | P198 | `locatorBerlekampMassey` (row 56) | Member of another type and a different algorithm beside `locatorEuclidean`; errors only call row 15 `berlekampMassey` |
 | P200 | `SetPowerSeries::mul` (row 66) | Wrapper on another type (LC `subset_convolution`) calling row 24 `subsetConvolution` |
-| P201 | `composedSumArithmetic`, `composedProductArithmetic` (row 61) | Exact over Z (see P188) |
+| P201 | `composedSumExact`, `composedProductExact` (row 61) | Exact over Z (see P188) |
 | P204 | `burnsideOrbitCount` (row 64) | One-shot form from a group; `burnsideCount` takes the counts (clarified rule) |
 | P208 | `isSubstring` (row 33) | Named special case (ruling 1) |
 | P211 | `BidirectionalFmIndex::count` (row 36) | Wrapper on another type calling `FmIndex::count`, or its own synchronized-interval search if it holds no `FmIndex` |
@@ -449,7 +450,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `primitiveRoot` | row 27 | `prefixBorders`, `prefixPeriods`, `prefixPeriod(pi, true)`, `prefixOccurrences(pi)` over `prefixFunction(s)` | ask | row 27 wrapper of `prefixPeriod(pi, true)` (wrapper clause) or the same function listed twice (`omissions.md`, 2026-11-08: keep only the owner)? The word also names Mathematics row 11 `primitiveRoot` | — | `Docs/00-notes.md` (row 27 `primitiveRoot`) |
+| `wordRoot` | row 27 | `prefixBorders`, `prefixPeriods`, `prefixPeriod(pi, true)`, `prefixOccurrences(pi)` over `prefixFunction(s)` | ask | row 27 wrapper of `prefixPeriod(pi, true)` (wrapper clause) or the same function listed twice (`omissions.md`, 2026-11-08: keep only the owner)? | — | `Docs/00-notes.md` (row 27 `wordRoot`) |
 | `borderOccurrenceCounts` | row 27 | `prefixBorders`, `prefixPeriods`, `prefixPeriod(pi, true)`, `prefixOccurrences(pi)` over `prefixFunction(s)` | ask | row 01 `prefixOccurrences(s, s)` gives the same result; the owner name would clash with the `(pi)` overload for `vector<int>` strings | — | `Docs/00-notes.md` (row 27 `primitiveRoot`) |
 | `infeasible` | row 31 | `validPrefixFunction(pi, s)`, `zToPrefix` | remove (row only) | a result convention of row 31 (status), not an operation; it goes to the contracts | — | — |
 
@@ -457,7 +458,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `count2D` | row 32 | size of `match2D` | ask | a `Count` variant (name `match2DCount`) only if it counts without building the occurrence list; else it is `match2D(...).size()` and goes | — | — |
+| `match2DCount` | row 32 | size of `match2D` | ask | a `Count` variant (name `match2DCount`) only if it counts without building the occurrence list; else it is `match2D(...).size()` and goes | — | — |
 
 ## P068 — 06-Miscellaneous — bitset optimization, contestallocator, memoization (planned)
 
@@ -548,9 +549,9 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 |---|---|---|---|---|---|---|
 | `lowerBound`, `upperBound`, `bisectKey` | `_02_search` (`00-index.md:10`) | `bisect_left`, `bisect_right` with `key=` | remove (row only) | stdlib under another name | — | — |
 | `modPow`, `isqrt`, `floorDiv`, `floorMod`, `divmodFloor` | `_03` (:11) | `pow(a, e, m)`, `math.isqrt`, `//`, `%`, `divmod` | remove (row only) | stdlib under another name | — | `Docs/00-notes.md`, Numeric policy |
-| `comb`, `perm`; `fibonacci` | `_04` (:12) | `math.comb`, `math.perm`; `fibPair(n)[0]` | remove (row only) | stdlib; projection | — | — |
+| `comb`, `perm`; `fibonacci` | `_04` (:12) | `math.comb`, `math.perm`; `fibonacciPair(n)[0]` | remove (row only) | stdlib; projection | — | — |
 | `prefixSums` | `_05` (:13) | `accumulate(a, initial=0)` | remove (row only) | stdlib under another name | — | — |
-| `modInv` | `_03` | `pow(a, -1, m)` | ask | `None` for non-units makes it a `tryX` form (name it after Core `tryInv`); a unit precondition makes it stdlib `pow(a, -1, m)`, which goes | — | `Docs/00-notes.md`, Legacy migration |
+| `inverseXgcd` (formerly `modInv`) | `_03` | `pow(a, -1, m)` | keep | mirrors C++ Mathematics row 09 `inverseXgcd`, -1 for a nonunit, which stdlib `pow(a, -1, m)` does not give (user decision 2026-11-10, P276 mirror rule) | — | `Docs/00-notes.md`, Legacy migration |
 
 ## P091 — 08-Python — dsu, fenwick, segmenttree, sparsetable, heaps (planned)
 
@@ -563,7 +564,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `primeFactors` | `_14` (:29) | `factorize` flattened | remove (row only) | projection | — | — |
-| `primePi` beside `countPrimes` | `_14` | each other | remove | both would be Lucy (Meissel–Lehmer and Min_25 are omitted): a second implementation; the survivor takes the C++ name `primeCount` | — | — |
+| `primePi` beside `primeCount` | `_14` | each other | remove | both would be Lucy (Meissel–Lehmer and Min_25 are omitted): a second implementation; the survivor takes the C++ name `primeCount` | — | — |
 
 ## P097 — 08-Python — flow, matching (planned)
 
@@ -576,7 +577,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `popcount`, `highbit` | `_22` (:37) | `int.bit_count()`, `bit_length() - 1` | remove (row only) | stdlib | — | — |
-| `countRange` | `_56` (:62) | `rangeFreq` | remove (row only) | another name | — | — |
+| `rangeFreq` | `_56` (:62) | `countRange` | remove (row only) | another name; `countRange` is the C++ Data Structures row 17 name (user decision 2026-11-10, P276) | — | — |
 
 ## P100 — 08-Python — trie, aho, suffix, eertree, lyndon (planned)
 
@@ -597,7 +598,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `solve` | `_33` (:48) | `satisfiable` | remove (row only) | mirrors the C++ removal | — | — |
-| `setFalse(x)` | `_33` | `setTrue(~x)` | remove (row only) | argument shape (`~x`) of `setTrue`, which becomes `setValue(lit)` as in C++ | — | — |
+| `setFalse(x)` | `_33` | `setValue(~x)` | remove (row only) | argument shape (`~x`) of `setValue`, which becomes `setValue(lit)` as in C++ | — | — |
 
 ## P105 — 08-Python — shortest paths, mincostflow (planned)
 
@@ -610,7 +611,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `limitDenominator` | `_57` (:63) | `Fraction(x).limit_denominator(N)` | remove (row only) | stdlib | — | — |
-| `kthRootMod` beside `discreteRoot` | `_38` (:53) | each other | remove (row only) | two names for one operation: the module keeps one, `kthRootModPrime` (C++ 05 row 11) | — | — |
+| `kthRootMod` beside `kthRootModPrime` | `_38` (:53) | each other | remove (row only) | two names for one operation: the module keeps one, `kthRootModPrime` (C++ 05 row 11) | — | — |
 
 ## P109 — 08-Python — geometry float (planned)
 
@@ -688,7 +689,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `mstWeightChange` | row 71 | `offlineDynamicMst` | ask | independent single-change queries: a separate operation; cumulative changes: another name for `offlineDynamicMst` | — | — |
+| `mstWeightChange` | row 71 | `dynamicMstOffline` | ask | independent single-change queries: a separate operation; cumulative changes: another name for `dynamicMstOffline` | — | — |
 
 ## P181 — 05-Mathematics — fastfactorial, bernoulli (planned)
 
@@ -746,7 +747,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `necklaceCountColors` | `_48` (:77) | `polyaNecklace` | remove | the same count as `polyaNecklace` in the same module | — | — |
+| `necklaceCountColors` | `_48` (:77) | `necklaceCount` | remove | the same count as `necklaceCount` in the same module | — | — |
 
 ## Open questions
 
@@ -756,14 +757,14 @@ Every remaining `ask` above, with the fact the user decides. `/package` and `/pr
 - **P022** GF(2) `-=`, `-`, unary `-`: must `BitMatrix` offer the full ring operator set for generic code?
 - **P020** `Matrix(vector<T>, bool axis)`: accept the empty-`v` shape change (0×0 against 1×0 or 0×1) and remove it, or keep it?
 - **P023** `berlekampMassey`: is floating T a supported domain (recommended: no), and is the exact-field copy of Poly `findLinearRecurrence` kept with a recorded reason? `toCOO`, `toCSR`, `toCSC`: are COO and CSC distinct types? `steadyState`: rename it `powNaive` or fold it into `pow` as a small-k branch?
-- **P088** row 27 `primitiveRoot`: a wrapper of row 01 `prefixPeriod` (keep) or the same function listed twice (owner only), given that Mathematics row 11 uses the word for a number-theory root? `borderOccurrenceCounts`: a row 27 wrapper, or dropped in favour of row 01 `prefixOccurrences(s, s)`?
+- **P088** row 27 `wordRoot`: a wrapper of row 01 `prefixPeriod` (keep) or the same function listed twice (owner only)? (The name clash with Mathematics row 11 `primitiveRoot` ended with the P276 rename.) `borderOccurrenceCounts`: a row 27 wrapper, or dropped in favour of row 01 `prefixOccurrences(s, s)`?
 - **P079** `huffmanCost`: is a constant-factor gain over `huffmanTree` measured (keep), or does it fold in?
 - **P068** `BitsetDP::shiftOr` stays (user decision 2026-11-10): which name other than bitap's `shiftOr`?
 - **P076** `minimax`: does row 36 support non-zero-sum evaluation?
 - **P051** `complementShortestPath`: a weighted complement problem, or a path from `complementBfs`?
 - **P063** the CHT "bridges": one DP driver, two (monotone and Li Chao), or none?
-- **P089** `count2D`: does it count without building the occurrence list (`match2DCount`), or is it `match2D(...).size()`?
-- **P090** `modInv`: `None` for non-units (a `tryX` form) or a unit precondition?
+- **P089** `match2DCount`: does it count without building the occurrence list (`match2DCount`), or is it `match2D(...).size()`?
+- **P090** `modInv`: answered 2026-11-10 by the user's P276 mirror rule: `inverseXgcd`, -1 for a nonunit (row above).
 - **P115** `PersistentDeque`: which current source names it, and is it a `FingerTree` wrapper or its own algorithm?
 - **P158** `minimumCostCycle`: does it accept negative arcs without a negative cycle?
 - **P166** `minimumHamiltonianCycle`: does the graph form have a larger domain than `travelingSalesman`?

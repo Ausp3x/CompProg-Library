@@ -32,7 +32,7 @@ Kernel arithmetic: block ends are formed in 128 bits. Each base prime's start co
 
 `SegmentedSieve(L, R, block, mode)` materializes the **half-open** interval `[L, R)` with its own base. The overload `(L, R, const SegmentedSieveBase &, block, mode)` reuses an existing base. Fields `l`, `r`, `is_prime`, `prms` and `bprms` are kept. Offset `i` means the integer `l + i`, `is_prime.size() == r - l`, and `prms` is sorted. Any signed endpoints are valid when `r - l` fits `vector::max_size` and memory allows.
 
-A materialized object **copies** only the base primes it can read: those with `p <= floor(sqrt(r - 1))`. That is all that `forEachFactor` (which stops at `p * p >= r`) and `getPrimeFac(x)` (`x < r`) use. So the object stays valid after the source base is reset or destroyed, and its memory is `O(n + pi(sqrt(r)))`. For many queries whose results need not persist, use streaming instead.
+A materialized object **copies** only the base primes it can read: those with `p <= floor(sqrt(r - 1))`. That is all that `forEachFactor` (which stops at `p * p >= r`) and `factorize(x)` (`x < r`) use. So the object stays valid after the source base is reset or destroyed, and its memory is `O(n + pi(sqrt(r)))`. For many queries whose results need not persist, use streaming instead.
 
 Empty half-open intervals at either signed extreme stay valid without building huge bases.
 
@@ -43,8 +43,8 @@ Empty half-open intervals at either signed extreme stay valid without building h
 The following number-theory operations concern **positive integers**, not absolute values of signed integers:
 
 - `forEachFactor(f)` calls `f(lng offset, lng prime, int exponent)` for every distinct prime factor of each positive value greater than one, in increasing prime order for each offset. Nonpositive values and 1 emit no factor. The offset is `lng` because intervals may exceed `2^31`. `rem` stores the per-entry residual after small-prime division; final residual primes are reported without overwriting that legacy workspace convention.
-- `getPrimeFac()` returns sorted factor lists for the whole interval; it requires a positive interval (`l >= 1`) or an empty interval. One has an empty factorization. `getPrimeFac(x)` requires `1 <= x` and `l <= x < r` and returns one sorted factorization.
-- `getNumDiv`, `getSumDiv`, `getPhi`, and `getMu` populate only the named table plus the shared residual workspace. Repeated calls are valid and replace that table. `getTables()` computes all four in one factor traversal when all are needed.
+- `factorize()` returns sorted factor lists for the whole interval; it requires a positive interval (`l >= 1`) or an empty interval. One has an empty factorization. `factorize(x)` requires `1 <= x` and `l <= x < r` and returns one sorted factorization.
+- `divisorCountTable`, `divisorSumTable`, `phiTable`, and `mobiusTable` populate only the named table plus the shared residual workspace. Repeated calls are valid and replace that table. `tables()` computes all four in one factor traversal when all are needed.
 - For table offsets representing `x <= 0`, all four values are **zero sentinels outside the positive domain**. At `x = 1`, all four are one. No mathematical claim about the divisors of zero or the factorization of negative integers is implied.
 
 `num_div` and `phi` use `lng`, `mu` uses `vector<int8_t>`, and `sum_div` is deliberately widened from `vector<lng>` to **`vector<lll>`**. A positive signed-64-bit integer can have a divisor sum exceeding `INT64_MAX`. The recurrence `1 + p + ... + p^e` and products use signed 128-bit arithmetic throughout. For `x <= INT64_MAX`, `sigma(x) <= x*(x+1)/2 < 2^125`, so all intermediate positive partial products fit; `tau(x) <= x` and `phi(x) <= x` fit `lng`.
@@ -56,6 +56,12 @@ Correctness: the interval factor engine initializes residuals once, divides mult
 | Removed (prune, 2026-10-12) | Replacement |
 |---|---|
 | `SegmentedSieve::fromClosed(L, R[, base], block, mode)` | `SegmentedSieve(L, R + 1[, base], block, mode)`; the caller checks `R < INT64_MAX` before adding one, since a closed interval ending at `INT64_MAX` has no representable exclusive end |
+| `getPrimeFac` (P276 rename, 2026-11-10) | `factorize` |
+| `getNumDiv` (P276 rename, 2026-11-10) | `divisorCountTable` |
+| `getSumDiv` (P276 rename, 2026-11-10) | `divisorSumTable` |
+| `getPhi` (P276 rename, 2026-11-10) | `phiTable` |
+| `getMu` (P276 rename, 2026-11-10) | `mobiusTable` |
+| `getTables` (P276 rename, 2026-11-10) | `tables` |
 
 ## Feature-to-test map
 
@@ -66,7 +72,7 @@ Runnable entry: [`06-segmentedsieve_tester.py`](<../../96-Local Testing/05-Mathe
 | `SegmentedSieveBase` (`reset`, `bprms`, `forEachPrime`): base generation and reuse | Exhaust base limits through 4096; independently enumerate trial/Miller–Rabin primes through each square-root boundary. Repeated queries, base reset/shrink, materialized snapshot lifetime (exactly the needed base prefix `p * p <= r - 1` after the source base is reset), copy and move. |
 | `SegmentedSieveMode` (`Plain`, `Odd`, `Wheel30`), `SegmentedSieve` (`is_prime`, `prms`): all three modes and arbitrary block boundaries | Exhaust all half-open endpoint pairs in `[-6,64]` with block spans `1,2,7,30,31,64`; compare each flag, stored list and streamed list with independent primality. |
 | Signed/empty/singleton intervals | Negative-only intervals near `INT64_MIN`, huge negative streaming ranges, empty `INT64_MAX`, zero/one, prime singleton `[97, 98)`, `[0, 98)` on a shared base equal to its own-base twin and including `r - 1 = 97`, and the materialized width overflow probe. |
-| `forEachFactor`, `getPrimeFac`, `getNumDiv`, `getSumDiv`, `getPhi`, `getMu`, `getTables` | Independent trial factorization and direct divisor-pair count/sum; individual/combined parity and repeated calls. Full positive interval factor output, callback output (`lng` offset), one and nonpositive table sentinels. |
+| `forEachFactor`, `factorize`, `divisorCountTable`, `divisorSumTable`, `phiTable`, `mobiusTable`, `tables` | Independent trial factorization and direct divisor-pair count/sum; individual/combined parity and repeated calls. Full positive interval factor output, callback output (`lng` offset), one and nonpositive table sentinels. |
 | High endpoints and arithmetic | Short intervals near `10^9`, `10^12`, and a large prime square; independent deterministic 64-bit Miller–Rabin, validated first against trial division for every integer through 10000. Independent divisor/factor checks around `10^12`. Exact square inequalities and first-multiple invariants at `INT64_MAX`. |
 | Broad/adversarial inputs | 500 seeded intervals in the full suite; known prime counts `pi(10^5)=9592`, `pi(10^6)=78498`; tiny blocks and all wheel alignment residues. |
 | Preconditions | 13 assertion subprocess probes for negative base limits, invalid blocks/modes/order, insufficient bases, oversized materialization and invalid factorization domains. |
@@ -111,11 +117,13 @@ Inspected 2026-09-27:
 
 - The constructor consistently means half-open `[L, R)`; old closed intervals map as in Legacy mapping. Divisor sums use `lll`. There were no active dependent call sites to migrate.
 - Enormous segmented queries still require square-root base-prime storage; the contracts above report that cost and the tested high-endpoint limits.
-- `getTables` (`06-segmentedsieve.hpp:151`) raises a `-Wconversion` warning (`__int128` to `lng` in the chained table initialization), reported by the `99-all.hpp` builds of rows 11, 13, 33 and 34; it is to be fixed in a P012 rerun.
+- `tables` (`06-segmentedsieve.hpp:151`) raises a `-Wconversion` warning (`__int128` to `lng` in the chained table initialization), reported by the `99-all.hpp` builds of rows 11, 13, 33 and 34; it is to be fixed in a P012 rerun.
 - The `SegmentedSieve` excerpt in `OLD/5-Mathematics/04-sieves.hpp` and the mechanical-split statement in `00-Guidelines/History/2026-09-27-migration.md` were reviewed. Prime flags/lists, exposed base primes, residual workspace and all four table methods are accounted for; the archive remains preserved.
 - The 2026-10-07 completeness sweep found no missing operation: cp-algorithms range sieve, KACTL FastEratosthenes, maspypy `factor_interval`/`prime_table` and Library Checker `enumerate_primes` are covered by `prms`, `forEachPrime` and `forEachFactor`.
 
 ## Aliases
+
+Renamed aliases (P276, 2026-11-10): `getPrimeFac`, `getNumDiv`, `getSumDiv`, `getPhi`, `getMu`, `getTables`.
 
 Search aliases (P263, grab --find): 筛法, 区间筛, 分段筛, 区间素数.
 
@@ -127,3 +135,4 @@ Search aliases (P263, grab --find): 筛法, 区间筛, 分段筛, 区间素数.
 - 2026-10-12: prune, removed both `fromClosed` overloads (cases moved to the half-open constructors); full suite passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses and a chained assignment split in two; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.
+- 2026-11-10: P276 rename (`get…` → `factorize`, `…Table`, `tables`); full on g++ and g++-14, stress and extraction passed.

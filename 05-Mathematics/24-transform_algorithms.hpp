@@ -158,17 +158,17 @@ vector<T> subsetConvolution(const vector<T> &a, const vector<T> &b) {
     transform_detail::rankedMul(f, rankedZeta(b));
     return rankedMobius(std::move(f));}
 
-// S: NA, U: NA, Q: O(n * log(log(n))) with a sieve covering n, O(n * log(n)) Slow, M: O(1); legacy in-place names.
+// S: NA, U: NA, Q: O(n * log(log(n))) with a sieve covering n, O(n * log(n)) Simple, M: O(1); legacy in-place names.
 template<typename T>
 struct FastConv {
-    static void fctGcdSlow(vector<T> &a, bool is_inv) {
+    static void fctGcdSimple(vector<T> &a, bool is_inv) {
         int n = int(a.size()) - 1;
         if (is_inv) { for (int i = n; i >= 1; --i) { for (int j = 2 * i; j <= n; j += i) { a[i] -= a[j]; } } }
         else { for (int i = 1; i <= n; ++i) { for (int j = 2 * i; j <= n; j += i) { a[i] += a[j]; } } }}
     static void fctGcd(vector<T> &a, bool is_inv, const LinearSieve &sv) {
         assert(lng(sv.n) >= lng(a.size()) - 1);
         transform_detail::multipleStep(a, sv.prms, is_inv);}
-    static void fctLcmSlow(vector<T> &a, bool is_inv) {
+    static void fctLcmSimple(vector<T> &a, bool is_inv) {
         int n = int(a.size()) - 1;
         if (is_inv) { for (int i = 1; i <= n; ++i) { for (int j = 2 * i; j <= n; j += i) { a[j] -= a[i]; } } }
         else { for (int i = n; i >= 1; --i) { for (int j = 2 * i; j <= n; j += i) { a[j] += a[i]; } } }}

@@ -21,17 +21,17 @@ int main(int argc, char **argv) {
             LCA binary(g); EulerLCA euler(g);
             vector<int> expected;
             for (auto [u, v] : queries) {
-                int a = binary.getLCA(u, v);
-                if (a != euler.getLCA(u, v)) { std::abort(); } expected.push_back(a); }
+                int a = binary.lca(u, v);
+                if (a != euler.lca(u, v)) { std::abort(); } expected.push_back(a); }
             for (int run = 0; run < 5; ++run) {
                 std::optional<LCA> a; std::optional<EulerLCA> b;
                 double sa = measure([&] { a.emplace(g); });
                 double sb = measure([&] { b.emplace(g); });
                 vector<int> x(q), y(q);
                 double qa = measure([&] { for (int i = 0; i < q; ++i) {
-                    x[i] = a->getLCA(queries[i].first, queries[i].second); }});
+                    x[i] = a->lca(queries[i].first, queries[i].second); }});
                 double qb = measure([&] { for (int i = 0; i < q; ++i) {
-                    y[i] = b->getLCA(queries[i].first, queries[i].second); }});
+                    y[i] = b->lca(queries[i].first, queries[i].second); }});
                 if (x != expected || y != expected) { std::abort(); }
                 lng checksum = accumulate(x.begin(), x.end(), lng(0));
                 std::cout << "lca " << n << ' ' << g.edges.size() << ' ' << q << ' ' << shape

@@ -163,7 +163,7 @@ namespace {
 
         explicit BellmanBackend(int N) : n(N) {}
         int addEdge(int u, int v, Cap cap, Cost cost) { es.push_back({u, v, cap, 0, cost}); return int(es.size()) - 1; }
-        Edge getEdge(int i) const { return es[i]; }
+        Edge edge(int i) const { return es[i]; }
         vector<Edge> edges() const { return es; }
         pair<Cap, lll> flow(int s, int t) {
             Cap total = 0;

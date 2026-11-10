@@ -1840,7 +1840,7 @@ class Repo(Base):
         main = ('int main() { int n, q; cin >> n >> q; DSU d(n); while (q--) { char c; cin >> c;\n'
                 '    if (c == \'u\') { int a, b; cin >> a >> b; cout << d.uniteSets(a, b) << "\\n"; }\n'
                 '    else if (c == \'s\') { int a, b; cin >> a >> b; cout << d.isSameSet(a, b) << "\\n"; }\n'
-                '    else if (c == \'z\') { int a; cin >> a; cout << d.getSize(a) << "\\n"; }\n'
+                '    else if (c == \'z\') { int a; cin >> a; cout << d.size(a) << "\\n"; }\n'
                 '    else { cout << d.count() << "\\n"; } } }\n')
         for r in range(4):
             n = self.rng.randint(1, 40)

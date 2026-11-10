@@ -10,16 +10,20 @@ Common rules: see [00-notes.md](00-notes.md), Basic contracts.
 
 A strict threshold accepts update keys `u` with `cmp(u, key)`. An inclusive threshold also accepts keys equivalent to `key`. Keys need only `cmp`: no arithmetic or equality. The sweep sorts updates by `(key, index)` and queries by `(key, strict before inclusive, index)`. It calls `apply(update index)` and then `answer(query index)`, with exactly the eligible updates applied. Equal-key updates keep input order. Each update is applied at most once. Updates beyond the last answered query are never applied. With no queries, no callback runs. Callbacks must not mutate keys or the comparator's order, and `answer` must not change the accumulated state. Captured state belongs to the caller and is not reset. It costs O(n * log(n + 1) + q * log(q + 1)) time and O(n + q) space, plus callbacks. Correctness: the applied updates are always exactly the eligible prefix of the sorted updates for the current query; strict queries at a tied key run before the updates at that key, inclusive ones after.
 
-### `OfflineRangeThreshold<K>` and `offlineRangeCount(a, queries, cmp)`
+### `OfflineRangeThreshold<K>` and `rangeCountOffline(a, queries, cmp)`
 
 Each query `{l, r, key, inclusive}` counts the values in `a[l, r)` that pass its threshold. The domain is `0 <= l <= r <= n` (asserted), and empty ranges are valid. Answers come back in query order. Each eligible index is activated once in a `Fenwick<int>`, so counts fit `int`.
+
+### Legacy mapping
+
+- P276 rename, 2026-11-10: `offlineRangeCount` → `rangeCountOffline`.
 
 ## Feature-to-test map
 
 | Operation | Oracle and cases |
 |---|---|
 | `OfflineThreshold`, `offlineSweep` | Repeated-minimum reference order; noncommutative state compared with direct eligibility at each answer; callback order; state unchanged after the last answer; ascending, descending, stateful and opaque comparators; 64/128-bit keys; exceptions; repeated calls |
-| `OfflineRangeThreshold`, `offlineRangeCount` | Every subrange of exhaustive ternary arrays scanned directly in both comparator directions; random and full-width arrays; five range asserts; large duplicate and reverse fixtures |
+| `OfflineRangeThreshold`, `rangeCountOffline` | Every subrange of exhaustive ternary arrays scanned directly in both comparator directions; random and full-width arrays; five range asserts; large duplicate and reverse fixtures |
 
 ## Commands and results
 
@@ -51,6 +55,8 @@ The code was written independently from the recurrences and proofs in the packag
 
 ## Aliases
 
+Renamed aliases (P276, 2026-11-10): `offlineRangeCount`.
+
 Search aliases (P263, grab --find): 离线处理, 离线查询, 离线排序, 区间小于k的数个数, 二维数点.
 
 ## History
@@ -60,3 +66,4 @@ Search aliases (P263, grab --find): 离线处理, 离线查询, 离线排序, �
 - 2026-10-08: re-audit, no operation missing, 10 findings fixed; full suite seed 20261008 passed on g++ and g++-14, stress seed 7 passed, integration and consistency clean.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`offlineRangeCount` → `rangeCountOffline`); full on g++ and g++-14, stress and extraction passed.

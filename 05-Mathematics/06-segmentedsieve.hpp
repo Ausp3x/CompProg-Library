@@ -114,10 +114,10 @@ struct SegmentedSieve {
         for (lng i = 0; i < lng(rem.size()); ++i) { if (rem[i] > 1) { f(i, rem[i], 1); }}}
 
     // T: O(n * log(R) + pi(sqrt(R))), M: O(n + out); sorted lists for l >= 1, single x in [l, r) in O(pi(sqrt(x)) + log(x)).
-    vector<vector<pair<lng, int>>> getPrimeFac() {
+    vector<vector<pair<lng, int>>> factorize() {
         assert(l >= 1 || l == r); vector<vector<pair<lng, int>>> factors(is_prime.size());
         forEachFactor([&](lng i, lng p, int e) { factors[i].push_back({p, e}); }); return factors;}
-    vector<pair<lng, int>> getPrimeFac(lng x) const {
+    vector<pair<lng, int>> factorize(lng x) const {
         assert(1 <= x && l <= x && x < r); vector<pair<lng, int>> factors;
         for (lng p : bprms) {
             if (p > x / p) { break; }
@@ -127,25 +127,25 @@ struct SegmentedSieve {
         if (x > 1) { factors.push_back({x, 1}); }
         return factors;}
 
-    void getNumDiv() {
+    void divisorCountTable() {
         num_div.resize(is_prime.size());
         for (lng i = 0; i < lng(num_div.size()); ++i) { num_div[i] = lll(l) + i > 0; }
         forEachFactor([&](lng i, lng, int e) { num_div[i] *= e + 1; });}
-    void getSumDiv() {
+    void divisorSumTable() {
         sum_div.resize(is_prime.size());
         for (lng i = 0; i < lng(sum_div.size()); ++i) { sum_div[i] = lll(l) + i > 0; }
         forEachFactor([&](lng i, lng p, int e) {
             lll power_sum = 1; for (int j = 0; j < e; ++j) { power_sum = power_sum * p + 1; }
             sum_div[i] *= power_sum;});}
-    void getPhi() {
+    void phiTable() {
         phi.resize(is_prime.size());
         for (lng i = 0; i < lng(phi.size()); ++i) { phi[i] = max(lng(0), lng(lll(l) + i)); }
         forEachFactor([&](lng i, lng p, int) { phi[i] -= phi[i] / p; });}
-    void getMu() {
+    void mobiusTable() {
         mu.resize(is_prime.size());
         for (lng i = 0; i < lng(mu.size()); ++i) { mu[i] = lll(l) + i > 0; }
         forEachFactor([&](lng i, lng, int e) { mu[i] = int8_t(e > 1 ? 0 : -mu[i]); });}
-    void getTables() {
+    void tables() {
         lng n = lng(is_prime.size()); num_div.resize(n); sum_div.resize(n); phi.resize(n); mu.resize(n);
         for (lng i = 0; i < n; ++i) {
             lng x = lng(lll(l) + i); num_div[i] = x > 0; sum_div[i] = x > 0; mu[i] = x > 0; phi[i] = max(lng(0), x);}

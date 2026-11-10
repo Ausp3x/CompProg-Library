@@ -16,7 +16,7 @@ The build is iterative and recursion-free:
 
 Every light edge at least halves the subtree size, so a root path crosses at most ⌊log2 n⌋ light edges and at most ⌊log2 n⌋ + 1 heavy paths.
 
-- `getLCA(u, v)`, `distance(u, v)` (edge count) and `kthAncestor(u, k)` (k a `lng`, as in row 07) run in O(log n) and return −1 across components or when k > dep[u]. These are the O(n)-memory HLD algorithm beside row 07's binary lifting and Euler RMQ (a different algorithm; same names as row 07).
+- `lca(u, v)`, `distance(u, v)` (edge count) and `kthAncestor(u, k)` (k a `lng`, as in row 07) run in O(log n) and return −1 across components or when k > dep[u]. These are the O(n)-memory HLD algorithm beside row 07's binary lifting and Euler RMQ (a different algorithm; same names as row 07).
 - `edgeVertex(id)` returns the child endpoint of tree edge id.
 - `processPath(u, v, edges, f)` makes O(log n) calls f(l, r, up). Read in call order, `order[l..r)` (taken from r − 1 down to l when `up`) spells the path u → v. With `edges` the LCA is omitted, so each slot stands for the edge to its parent. It returns false, making no calls, across components. Ranges on u's side are emitted while climbing; v's side is buffered in a 64-entry array, which holds the ≤ 32 heavy paths of n < 2^31, and emitted in reverse.
 - `subtreeRange(v, edges)` = `{tin[v] + edges, tout[v]}`.
@@ -63,6 +63,7 @@ Costs: set, get, subtreeFold and subtreeApply are O(log n); pathFold and pathApp
   - `queryAncPath(anc, dec, …)` becomes `t.pathFold(dec, anc).second`.
 
   The tester's `painting` case reproduces it against a naive array.
+- P276 rename, 2026-11-10: `getLCA` → `lca`.
 
 ## Feature-to-test map
 
@@ -71,14 +72,14 @@ Tester: [`15-hld_tester.cpp`](../../96-Local%20Testing/04-Graphs/15-hld_tester.c
 | Operation | Oracle and cases |
 |---|---|
 | `HLD` construction | Every field against the oracle; `order[tin[v]] = v`, `tout = tin + size`, nesting, the heavy child is exactly the first child of maximum size in adjacency order, head chains, contiguous heavy paths, `edge_vertex`; an isolated forest of 10^6 vertices (component, head, `tin`, `tout`, parent) |
-| `getLCA`, `distance`, `kthAncestor`, `edgeVertex` | Parent-walk LCA; k = dep + 1, `INT_MAX` and `INT64_MAX`; pairs across components |
+| `lca`, `distance`, `kthAncestor`, `edgeVertex` | Parent-walk LCA; k = dep + 1, `INT_MAX` and `INT64_MAX`; pairs across components |
 | `processPath` | Both modes: concatenated ranges equal the brute path, every call nonempty and in range, at most 2 · bit_width(n) + 2 calls, false with no calls across components |
 | `subtreeRange`, `reorderArray` | Direct checks against the oracle |
 | `rerootedSubtreeIntervals` | BFS reroot; ranges nonempty, disjoint and covering exactly the subtree, both modes |
 | `TreeMonoid`: `get`, `set`, `pathFold`, `subtreeFold`, `pathApply`, `subtreeApply` | Naive arrays with ordered path walks under random update/query mixes, vertex and edge mode: `AffineComposite<mint>` and a stateful string-hash `Monoid` (noncommutative, both directions), `Sum`/`Min`/`Max` with COMMUTATIVE true and false, `RangeAssignRangeComposite<mint>`, `RangeAddRangeSum` (both), `RangeAffineRangeSum<mint>`; tin-order brute for `subtreeFold` |
 | `maxPath` | Prefix thresholds on nonnegative and signed `Sum`, `Min`, `Max` and `MaxGain` (noncommutative), both modes, single and isolated vertices; the oracle checks only paths whose prefix predicate is monotone (the contract's domain); fixed regressions `maxPathRegressions` for a search leaving the path range (path 0-1-2-3 with `{-100, 0, 0, 5}` upward, `{0, 5, -100, 0}` downward, edge mode `{-100, 0, 5}`, and n = 2 without edges) |
 | `treePainting` (planned; legacy cases) | `treeEdgePainting`: edge-mode `Sum<int>` paint/unpaint by id and counts from a vertex up to an ancestor, against a naive array |
-| Preconditions | 22 checked-build probes: directed, self-loop, cycle, multi-edge, root and vertex ranges, negative k, edge id, path vertex, `rerootedSubtreeIntervals` across components, values size, and out-of-range ids for the root, either `getLCA` vertex, `edgeVertex`, the second `pathFold` end, `subtreeRange` and both `rerootedSubtreeIntervals` arguments, plus `reorderArray` arrays shorter and longer than n and `TreeMonoid` values shorter than n |
+| Preconditions | 22 checked-build probes: directed, self-loop, cycle, multi-edge, root and vertex ranges, negative k, edge id, path vertex, `rerootedSubtreeIntervals` across components, values size, and out-of-range ids for the root, either `lca` vertex, `edgeVertex`, the second `pathFold` end, `subtreeRange` and both `rerootedSubtreeIntervals` arguments, plus `reorderArray` arrays shorter and longer than n and `TreeMonoid` values shorter than n |
 
 Large shapes: deep and shuffled paths, star, caterpillar, binary, random and a 40-tree broom forest at 2·10^4 (quick), 2·10^5 (full) and 10^6 (stress) vertices.
 
@@ -100,7 +101,11 @@ Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 4
 
 ## Mutation testing
 
-Record: mewt 4.0.0 on blob `d96064c0e508cbf107ebdc00644b591840ff7db5` (2026-11-09, seed 1, 2 lines changed since blob `cdf7102e7f43`): 0 mutants, 0 caught (0 by timeout), 0 survived, 0 untested.
+Record: mewt 4.0.0 on blob `23736757753c1afe553728a93eead750ed0bfa01` (2026-11-10, seed 1, 2 lines changed since blob `d96064c0e508`): 23 mutants, 21 caught (0 by timeout), 2 survived, 0 untested.
+
+Stage seconds of that campaign (P276 rename of `getLCA`): quick 70, full-optimized 11, full-rest 157. Its survivors are `COS 556`, listed below, and `AS 208`.
+
+Earlier campaign: mewt 4.0.0 on blob `d96064c0e508cbf107ebdc00644b591840ff7db5` (2026-11-09, seed 1, 2 lines changed since blob `cdf7102e7f43`): 0 mutants, 0 caught (0 by timeout), 0 survived, 0 untested.
 
 Earlier campaign: mewt 4.0.0 on blob `cdf7102e7f43e4a6b5241aee22befcd7e19c3446` (2026-11-05, seed 1, whole file, uniform sample of 669): 500 mutants, 474 caught (14 by timeout), 26 survived, 0 untested.
 
@@ -122,6 +127,7 @@ Each remaining survivor was checked for type context, reachability, downstream u
 | `COS 643` `==` → `>=` | 131 | equivalent: an extra value reaches `slot`, whose range assertion aborts the same way |
 | `AS 223` `0, edgeVertex(i)` → `edgeVertex(i), 0` | 129 | equivalent: `min`, `max` and the called function are symmetric in value |
 | `AS 225` `u, v` → `v, u` | 139 | equivalent: the same path slots get the action, and actions on disjoint ranges commute |
+| `AS 208` `u, v` → `v, u` (P276) | 57 | equivalent: `lca(u, v)` is symmetric in its arguments |
 | `COS 650` `>` → `!=` | 160 | equivalent: hi - lo starts at r - l >= 1 and bisection keeps it at least 1 |
 | `AS 250` `lo, hi` → `hi, lo` | 161 | equivalent: with hi - lo >= 2 both roundings give lo < c < hi, so the bisection finds the same last c |
 
@@ -135,6 +141,10 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)
 - HLD `jump` and `meet` stay in row 07 (`LCA::jump`); `meet` is a follow-up there.
 - Point update tree DP and path composite under link and cut belong to rows 84 and Data Structures 37–39.
 
+## Aliases
+
+Renamed aliases (P276, 2026-11-10): `getLCA`.
+
 ## History
 
 - 2026-11-05: `/finish GR70` mutation record (whole file, 500 of 669 mutants): an isolated 10^6-vertex forest and 11 range probes closed 13 survivors; 26 recorded with arguments.
@@ -143,3 +153,4 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)
 - 2026-11-08: `/merge-pr 4` rebase on master: row set to `partial`, since the P254 omission sweep of 2026-11-08 added operations after this work (`missing:` in the inventory row); no code or test change.
 - 2026-11-08: `/merge-pr 4` review fixes: `G = Graph` defaults, `treePainting` back as planned.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`getLCA` → `lca`); full on g++ and g++-14, stress and extraction passed; changed-line mutation campaign recorded.

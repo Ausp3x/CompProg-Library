@@ -54,19 +54,19 @@ void checkInterval(lng l, lng r, const SegmentedSieveBase &base, int block, Segm
     streamed.clear(); base.forEachPrime(l, r, [&](lng x) { streamed.push_back(x); }, block, mode);
     require(streamed == want && base.bprms == bases_before, "repeated query leaves base intact");
     if (!tables) { return; }
-    s.getTables();
+    s.tables();
     for (lng x = l; x < r; ++x) {
         size_t i = size_t(x - l); Values v = arithmetic(x);
         expect(s.num_div[i], v.tau, "tau x=" + show(x)); expect(s.sum_div[i], v.sigma, "sigma x=" + show(x));
         expect(s.phi[i], v.phi, "phi x=" + show(x)); expect(s.mu[i], v.mu, "mu x=" + show(x));
-        if (x >= 1) { require(s.getPrimeFac(x) == trial(x), "single factorization x=" + show(x)); }}
+        if (x >= 1) { require(s.factorize(x) == trial(x), "single factorization x=" + show(x)); }}
     auto tau = s.num_div, phi = s.phi; auto sigma = s.sum_div; auto mu = s.mu;
-    s.getMu(); s.getPhi(); s.getNumDiv(); s.getSumDiv();
+    s.mobiusTable(); s.phiTable(); s.divisorCountTable(); s.divisorSumTable();
     require(s.num_div == tau && s.sum_div == sigma && s.phi == phi && s.mu == mu, "individual and combined table values");
     vector<vector<pair<lng, int>>> factors(s.is_prime.size());
     s.forEachFactor([&](lng i, lng p, int e) { factors[i].push_back({p, e}); });
     for (lng x = l; x < r; ++x) { require(factors[size_t(x - l)] == trial(max(lng(1), x)), "streamed factors x=" + show(x)); }
-    if (l >= 1 || l == r) { require(s.getPrimeFac() == factors, "whole positive interval factorization"); }}
+    if (l >= 1 || l == r) { require(s.factorize() == factors, "whole positive interval factorization"); }}
 
 void exhaustive(const string &mode) {
     int lower = mode == "quick" ? -4 : mode == "stress" ? -8 : -6;
@@ -88,11 +88,11 @@ void stateAndBoundaries() {
     SegmentedSieve shared(0, 98, base), fresh(0, 98);
     require(shared.prms == fresh.prms && shared.is_prime == fresh.is_prime && shared.prms.back() == 97, "shared base matches own base, includes r - 1");
     require(SegmentedSieve(97, 98).prms == vector<lng>{97}, "singleton prime interval");
-    shared.getTables(); auto copy = shared; SegmentedSieve moved = std::move(copy);
+    shared.tables(); auto copy = shared; SegmentedSieve moved = std::move(copy);
     require(moved.prms == shared.prms && moved.sum_div == shared.sum_div, "copy and move populated tables");
     shared.reset(-7, 9, base, 2, SegmentedSieveMode::Wheel30);
     require(shared.num_div.empty() && shared.sum_div.empty() && shared.phi.empty() && shared.mu.empty() && shared.rem.empty(), "reset clears optional state");
-    shared.getTables(); expect(shared.num_div[8], 1, "one tau"); expect(shared.sum_div[8], 1, "one sigma");
+    shared.tables(); expect(shared.num_div[8], 1, "one tau"); expect(shared.sum_div[8], 1, "one sigma");
     expect(shared.phi[8], 1, "one phi"); expect(shared.mu[8], 1, "one mu");
     for (int i = 0; i < 8; ++i) { require(!shared.num_div[i] && !shared.sum_div[i] && !shared.phi[i] && !shared.mu[i], "nonpositive table sentinel"); }
     vector<lng> needed;
@@ -141,10 +141,10 @@ void invalid(const string &probe) {
     else if (probe == "base-short") { base.forEachPrime(0,12,f); }
     else if (probe == "constructor-order") { SegmentedSieve s(1,0); }
     else if (probe == "material-size") { SegmentedSieve s(LO,HI,base); }
-    else if (probe == "factor-zero") { SegmentedSieve s(0,3); s.getPrimeFac(0); }
-    else if (probe == "factor-left") { SegmentedSieve s(5,8); s.getPrimeFac(4); }
-    else if (probe == "factor-right") { SegmentedSieve s(5,8); s.getPrimeFac(8); }
-    else if (probe == "factor-interval-negative") { SegmentedSieve s(-1,3); s.getPrimeFac(); }
+    else if (probe == "factor-zero") { SegmentedSieve s(0,3); s.factorize(0); }
+    else if (probe == "factor-left") { SegmentedSieve s(5,8); s.factorize(4); }
+    else if (probe == "factor-right") { SegmentedSieve s(5,8); s.factorize(8); }
+    else if (probe == "factor-interval-negative") { SegmentedSieve s(-1,3); s.factorize(); }
     else if (probe == "reset-order") { SegmentedSieve s(0,3); s.reset(4,2,base); }
     else { throw std::runtime_error("unknown assertion probe=" + probe); }}
 

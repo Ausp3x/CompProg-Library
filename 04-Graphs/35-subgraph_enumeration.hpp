@@ -395,7 +395,7 @@ vector<double> localClustering(const G &g) {
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy; undirected, no parallel edges, max weight != 0; NetworkX weighted clustering 2 * sum over triangles at v of cbrt(product of w / max w) / (deg(v) (deg(v) - 1)).
 template<class G = Graph>
-vector<double> weightedClustering(const G &g) {
+vector<double> localClusteringWeighted(const G &g) {
     assert(!g.directed);
     subgraph_enumeration_detail::Ranked h(g, true);
     vector<double> c = subgraph_enumeration_detail::cubeRoots(g, h), t(h.n), res(h.n);
@@ -477,7 +477,7 @@ vector<double> directedClustering(const G &g) {
 
 // T: O(n + m * d), M: O(n + m), d the degeneracy of the underlying graph; directed, no parallel arcs, max weight != 0; NetworkX weighted directed clustering, cube roots of w / max w in place of arc counts.
 template<class G = Graph>
-vector<double> weightedDirectedClustering(const G &g) {
+vector<double> directedClusteringWeighted(const G &g) {
     assert(g.directed);
     subgraph_enumeration_detail::Ranked h(g, true);
     vector<double> c = subgraph_enumeration_detail::cubeRoots(g, h), t(h.n), res(h.n);

@@ -167,7 +167,7 @@ Candidates from the 2026-10-17 sweep ([00-sources.md](00-sources.md#fetched-2026
 - SqrtTree range assignment (CPA, OI `massUpdate`): adopted on 2026-11-08 into row 34 as `SqrtTree::assign`; tags sit on layer-1 nodes and each assignment builds the power table x^1..x^B in O(sqrt(n)) op calls, so `prod` stays O(1). The O(sqrt(n)) update with O(log(log(n))) queries is the same operation by another algorithm.
 - SqrtTree generator build and fixed three-layer layout (MAS): construction from a vector; row 34 already stops layering at segments of at most 8 elements, which a direct fold answers.
 - PersistentArray in-place set (SUI `mut_set`, MAS `make_copy = false`): writes into nodes shared with other versions. `size` (SUI): the public `n`. Node pools, reset and garbage collection (SUI, MAS): Miscellaneous row 43 owns persistent arenas. Fat-node partially persistent array (EI internals): `PartiallyPersistentDSU` keeps its own attach times. Persistent block array (OI): O(sqrt(n)) per operation.
-- RollbackDSU `makeSet` and an `undo` reporting what it reverted: no catalog has them. Union by rank (CPA): `getSize` needs sizes. History-clearing `snapshot` (EI, SUI) and `reset` (MAS, HIT): `rollback` to a token and `rollback(0)`.
+- RollbackDSU `makeSet` and an `undo` reporting what it reverted: no catalog has them. Union by rank (CPA): `size` needs sizes. History-clearing `snapshot` (EI, SUI) and `reset` (MAS, HIT): `rollback` to a token and `rollback(0)`.
 - PersistentDSU `groups(version)` and `dump` (SUI): `findSet` over every vertex; debug output. Offline persistent DSU by DFS over the version tree (the usual Library Checker solution): a use of rows 09 and 63.
 - Priority-queue undo (Codeforces blog 111117) and deque undo (blog 154645): both tutorials returned 403, so neither algorithm nor its amortized proof could be checked; `OfflineDeletion` covers deletions with known times and `QueueUndo` the FIFO case.
 
@@ -237,7 +237,7 @@ Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledger
 
 - `RBST` (acted monoid, implicit): build, at, set, apply (range), prod, reverse, maxRight, values (MAS, NYA): a second implementation of row 19 `ImplicitTreap` with the same operations, domain and expected bounds; persistence is row 58.
 - `select0`, `select1` by binary search over block ranks (NOSHI, SUI): a second implementation of row 40's `select0`/`select1` with the same results and a worse bound.
-- `RollbackWeightedDSU`: findSet, isSameSet, getSize, count, groups: found in the library, no catalog source; inherited from row 09 `RollbackDSU`, which owns them; row 29 lists only what the class defines.
+- `RollbackWeightedDSU`: findSet, isSameSet, size, count, groups: found in the library, no catalog source; inherited from row 09 `RollbackDSU`, which owns them; row 29 lists only what the class defines.
 - `rebuild` (pool compaction) for row 58 (EI, SUI, TKO): Miscellaneous row 43 `PersistentArena` owns persistent node pools.
 
 ## P275 re-review 2026-11-10
@@ -266,7 +266,7 @@ P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines
 - `36-fastset.hpp`: FastSet::anyInRange, FastSet::erase (range).
 - `62-xorbasis.hpp`: XorBasis::orthogonalComplement (Core BitMatrix ker).
 - `64-sortedlist.hpp`: SortedList::eraseRange, SortedList::insertAll, SortedList::operator==.
-- `65-dsu_extensions.hpp`: MergeHistoryForest: ctor (union batches); MovableDSU: uniteSets, move, findSet, getSize; LazyDSU: uniteSets, apply (component), get, set, componentValue.
+- `65-dsu_extensions.hpp`: MergeHistoryForest: ctor (union batches); MovableDSU: uniteSets, move, findSet, size; LazyDSU: uniteSets, apply (component), get, set, componentValue.
 - `68-intervaltree.hpp`: IntervalTree (augmented balanced BST over dynamic intervals): insert, erase, stab, stabCount, overlap, anyOverlap, contains (some interval holds the point; CGAL Interval_skip_list is_contained).
 - new Esoteric row `70-problem_monoids.hpp`: Dihedral: op, inv; RangeFibonacciAddRangeSum; RangeAddNegateRangeElementarySymmetric (MAS, CF).
 - new Esoteric row `71-problem_segment_trees.hpp`: firstFreeBlock (k free cells); PrefixMaxSegmentTree: set, prefixMaxCount (range); GreedySubtractSegmentTree: set, subtract (range, greedy from the left), prod; RangeAddMakeIncreasing; SparseTableOnSegmentTree: set, prod; RangeMaxChange, RangeMinChange, RangeMexChange; RangeChminAssignMultiset; RangeAddChminChmaxHistoricMax; PiecewiseConstantSlide: shift, slideMin, slideMax, apply (range), values (MAS, OI, CF).
@@ -275,4 +275,4 @@ P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines
 - new Esoteric row `74-lichao_advanced.hpp`: ExtendedLiChaoTree: addLine, addSegment, addLinear (range), query, addConstant (range), prod (range min); MonotoneCHTFunction (single-crossing functions): addFunction, query (MAS, CF).
 - `PersistentFenwick` (P027 and P032 bullets) and the bullets that left out `DynamicFenwick`, `DynamicFenwick2D`, `DualCompressedFenwick2D`, `CompressedFenwick2DRangeAdd` and `SegmentTree2DSparse` `maxUp`, `minDown` were adopted into rows 11 and 15 on 2026-11-08.
 - suisen `union_find_lazy` states its semantics (returned as row 65 `LazyDSU`); hitonanode's monotone hull merge is verified there (row 22 `MonotoneCHT::merge`).
-- Not returned after the P275 review: `offlineSetIntersection` (Miscellaneous row 22 owns it, from the same maspypy file), `GridDSU` (a grid vertex is `r * w + c`, an argument form); `LazySegmentTree` point combine waits for its name (`omissions.md`, Open questions, P027).
+- Not returned after the P275 review: `setIntersectionOffline` (Miscellaneous row 22 owns it, from the same maspypy file), `GridDSU` (a grid vertex is `r * w + c`, an argument form); `LazySegmentTree` point combine waits for its name (`omissions.md`, Open questions, P027).

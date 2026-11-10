@@ -81,16 +81,16 @@ void thresholds(const string &mod, bool ntt) {
         auto a = rnd<M>(n);
         int k = max(1, 8192 / n);
         a[0] = 1;
-        pairRow(mod + " inverse n=" + std::to_string(n) + " (x" + std::to_string(k) + ")", [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = fpsSparseInverse(a, n); } return r; },
+        pairRow(mod + " inverse n=" + std::to_string(n) + " (x" + std::to_string(k) + ")", [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = fpsInverseSparse(a, n); } return r; },
             [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = polynomial_detail::invNewton(a, n); } return r; }, "naive", "newton");
-        pairRow(mod + " log n=" + std::to_string(n) + " (x" + std::to_string(k) + ")", [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = fpsSparseLog(a, n); } return r; },
+        pairRow(mod + " log n=" + std::to_string(n) + " (x" + std::to_string(k) + ")", [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = fpsLogSparse(a, n); } return r; },
             [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = polynomial_detail::logNewton(a, n); } return r; }, "naive", "newton");
-        pairRow(mod + " sqrt n=" + std::to_string(n) + " (x" + std::to_string(k) + ")", [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = fpsSparseSqrt(a, n); } return r; },
+        pairRow(mod + " sqrt n=" + std::to_string(n) + " (x" + std::to_string(k) + ")", [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = fpsSqrtSparse(a, n); } return r; },
             [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = polynomial_detail::sqrtNewton(a, M(1), n); } return r; }, "naive", "newton");
-        pairRow(mod + " pow k=1e18 n=" + std::to_string(n) + " (x" + std::to_string(k) + ")", [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = fpsSparsePow(a, lng(1e18), n); } return r; },
+        pairRow(mod + " pow k=1e18 n=" + std::to_string(n) + " (x" + std::to_string(k) + ")", [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = fpsPowSparse(a, lng(1e18), n); } return r; },
             [&] { vector<M> r; for (int i = 0; i < k; ++i) { auto l = fpsLog(a, n); for (auto &x : l) { x *= M(lng(1e18)); } r = fpsExp(l, n); } return r; }, "naive", "logexp");
         a[0] = 0;
-        pairRow(mod + " exp n=" + std::to_string(n) + " (x" + std::to_string(k) + ")", [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = fpsSparseExp(a, n); } return r; },
+        pairRow(mod + " exp n=" + std::to_string(n) + " (x" + std::to_string(k) + ")", [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = fpsExpSparse(a, n); } return r; },
             [&] { vector<M> r; for (int i = 0; i < k; ++i) { r = polynomial_detail::expNewton(a, n); } return r; }, "naive", "newton");}
     for (int n : pick({16, 32, 48, 64, 96, 128}, {64, 96, 128, 192, 256})) {
         auto a = rnd<M>(n);

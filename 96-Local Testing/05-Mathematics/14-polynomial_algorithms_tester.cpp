@@ -197,7 +197,7 @@ void fpsSuite(const string &name, int bigN) {
         if (a.empty() || a[0] == M(0)) { a.resize(max(len, 1)); a[0] = 1; }
         auto g = fpsInverse(a, n);
         check(isInverse(a, g, n, false), name + " fpsInverse n=" + str(n));
-        check(fpsSparseInverse(a, n) == g, name + " fpsSparseInverse n=" + str(n));
+        check(fpsInverseSparse(a, n) == g, name + " fpsInverseSparse n=" + str(n));
         auto f = rnd<M>(int(rng() % (n + 3)));
         auto d = fpsDiv(f, a, n);
         check(int(d.size()) == n && bmulT(d, a, n) == bmulT(f, unit<M>(1), n), name + " fpsDiv n=" + str(n));
@@ -205,12 +205,12 @@ void fpsSuite(const string &name, int bigN) {
         u[0] = 1;
         auto l = fpsLog(u, n);
         check(isLog(u, l, n, false), name + " fpsLog n=" + str(n));
-        check(fpsSparseLog(u, n) == l, name + " fpsSparseLog n=" + str(n));
+        check(fpsLogSparse(u, n) == l, name + " fpsLogSparse n=" + str(n));
         auto z = rnd<M>(int(rng() % (n + 3)));
         if (!z.empty()) { z[0] = 0; }
         auto e = fpsExp(z, n);
         check(isExp(z, e, n, false), name + " fpsExp n=" + str(n));
-        check(fpsSparseExp(z, n) == e, name + " fpsSparseExp n=" + str(n));
+        check(fpsExpSparse(z, n) == e, name + " fpsExpSparse n=" + str(n));
         check(fpsLog(e.empty() ? vector<M>{1} : e, n) == polyTruncate(z, n), name + " log(exp) n=" + str(n));}
     for (int n : {bigN / 3, bigN}) {
         auto a = rnd<M>(n);
@@ -226,9 +226,9 @@ void fpsSuite(const string &name, int bigN) {
         a[0] = 1;
         for (int t = 0; t < 6; ++t) { a[rng() % n] = M(rng()); }
         a[0] = 1;
-        check(fpsSparseInverse(a, n) == fpsInverse(a, n) && fpsSparseLog(a, n) == fpsLog(a, n), name + " sparse inverse/log dense agreement");
+        check(fpsInverseSparse(a, n) == fpsInverse(a, n) && fpsLogSparse(a, n) == fpsLog(a, n), name + " sparse inverse/log dense agreement");
         a[0] = 0;
-        check(fpsSparseExp(a, n) == fpsExp(a, n), name + " sparse exp dense agreement");}
+        check(fpsExpSparse(a, n) == fpsExp(a, n), name + " sparse exp dense agreement");}
     cout << "PASS " << name << ": fpsInverse, fpsDiv, fpsLog, fpsExp and sparse inverse/log/exp\n";}
 
 template<typename M>
@@ -247,7 +247,7 @@ void powSuite(const string &name, int bigN) {
         bool fits = vv == int(a.size()) || k == 0 || lll(vv) * k >= n || n - vv * k <= lng(M::mod());
         if (!fits) { continue; }
         check(fpsPow(a, k, n) == want, name + " fpsPow n=" + str(n) + " k=" + str(k) + " v=" + str(vv));
-        check(fpsSparsePow(a, k, n) == want, name + " fpsSparsePow n=" + str(n) + " k=" + str(k));
+        check(fpsPowSparse(a, k, n) == want, name + " fpsPowSparse n=" + str(n) + " k=" + str(k));
         if (vv == 0 && !a.empty()) {
             lng kn = -(lng(rng() % 30) + 1);
             check(fpsPow(a, kn, n) == bpowT(binvT(a, n), ulng(-kn), n), name + " fpsPow negative k=" + str(kn));}}
@@ -255,7 +255,7 @@ void powSuite(const string &name, int bigN) {
         int n = cutOf<M>(POW) + d;
         if (ulng(n) > M::mod()) { continue; }
         auto a = rnd<M>(n);
-        for (lng k : {lng(3), lng(rng() % 1000)}) { check(fpsPow(a, k, n) == bpowT(a, ulng(k), n) && fpsSparsePow(a, k, n) == bpowT(a, ulng(k), n), name + " fpsPow cut neighbour n=" + str(n)); }}
+        for (lng k : {lng(3), lng(rng() % 1000)}) { check(fpsPow(a, k, n) == bpowT(a, ulng(k), n) && fpsPowSparse(a, k, n) == bpowT(a, ulng(k), n), name + " fpsPow cut neighbour n=" + str(n)); }}
     check(fpsPow(vector<M>{}, 0, 3) == unit<M>(3) && fpsPow(vector<M>{0, 0}, 5, 3) == vector<M>(3) && fpsPow(vector<M>{1}, 7, 0).empty(), name + " fpsPow zero cases");
     check(fpsPow(vector<M>{2, 3}, LLONG_MIN, 2) == vector<M>{bpow(M(1) / M(2), ulng(1) << 63), M(3) * M(LLONG_MIN) * bpow(M(1) / M(2), (ulng(1) << 63) + 1)}, name + " fpsPow LLONG_MIN");
     {
@@ -286,7 +286,7 @@ void powSuite(const string &name, int bigN) {
         check(lead && (s >= n || r[s] == M(1)), name + " fpsPow rational branch");}
     check(fpsPow(vector<M>{0, 1}, 1, 2, 4).empty() && fpsPow(vector<M>{0, 1}, -2, 1, 4).empty() && fpsPow(vector<M>{}, -1, 2, 3).empty(), name + " fpsPow rational no answer");
     check(fpsPow(vector<M>{}, 0, 3, 3) == unit<M>(3) && fpsPow(vector<M>{0}, 2, 3, 2) == vector<M>(2) && fpsPow(vector<M>{0, 0, 1}, 3, 2, 3) == vector<M>(3), name + " fpsPow rational zero cases");
-    cout << "PASS " << name << ": fpsPow (integer, negative, rational), fpsSparsePow\n";}
+    cout << "PASS " << name << ": fpsPow (integer, negative, rational), fpsPowSparse\n";}
 
 template<typename M>
 void sqrtSuite(const string &name, int bigN) {
@@ -296,7 +296,7 @@ void sqrtSuite(const string &name, int bigN) {
         a.insert(a.begin(), v, M(0));
         if (rep % 4 == 0 && len) { a[v] = bpow(M(rng() % 1000 + 1), 2); }
         auto r = fpsSqrt(a, n);
-        check(fpsSparseSqrt(a, n) == r, name + " fpsSparseSqrt n=" + str(n));
+        check(fpsSqrtSparse(a, n) == r, name + " fpsSqrtSparse n=" + str(n));
         int vv = 0;
         while (vv < int(a.size()) && a[vv] == M(0)) { ++vv; }
         bool zero = vv == int(a.size());
@@ -309,13 +309,13 @@ void sqrtSuite(const string &name, int bigN) {
         auto a = rnd<M>(n);
         a[0] = 9;
         auto r = fpsSqrt(a, n);
-        check(r == fpsSparseSqrt(a, n) && bmulT(r, r, n) == a && r[0] == M(3), name + " fpsSqrt cut neighbour n=" + str(n));}
+        check(r == fpsSqrtSparse(a, n) && bmulT(r, r, n) == a && r[0] == M(3), name + " fpsSqrt cut neighbour n=" + str(n));}
     {
         auto a = rnd<M>(bigN);
         a[0] = 4;
         auto r = fpsSqrt(a, bigN);
         check(truncatedConvolution(r, r, bigN) == a && r[0] == M(2), name + " fpsSqrt large");}
-    cout << "PASS " << name << ": fpsSqrt, fpsSparseSqrt\n";}
+    cout << "PASS " << name << ": fpsSqrt, fpsSqrtSparse\n";}
 
 template<typename M>
 void gcdSuite(const string &name, bool big) {
@@ -599,7 +599,7 @@ void smallPrimeSuite() {
     using S = ModInt<7>;
     // Domain edges at n = mod: log/exp/pow need n <= p, taylorShift falls back to O(n^2) for n > p.
     auto a = vector<S>{1, 3, 2, 6, 5, 1, 4};
-    check(isLog(a, fpsLog(a, 7), 7, false) && fpsSparseLog(a, 7) == fpsLog(a, 7), "p=7 fpsLog n=p");
+    check(isLog(a, fpsLog(a, 7), 7, false) && fpsLogSparse(a, 7) == fpsLog(a, 7), "p=7 fpsLog n=p");
     a[0] = 0;
     check(isExp(a, fpsExp(a, 7), 7, false), "p=7 fpsExp n=p");
     a[0] = 1;
@@ -648,17 +648,17 @@ int main(int argc, char **argv) {
         string s = argv[2];
         using S = ModInt<7>;
         if (s == "inverse-zero") { fpsInverse(vector<M>{0, 1}, 3); }
-        if (s == "sparse-inverse-zero") { fpsSparseInverse(vector<M>{0, 1}, 3); }
+        if (s == "sparse-inverse-zero") { fpsInverseSparse(vector<M>{0, 1}, 3); }
         if (s == "log-constant") { fpsLog(vector<M>{2, 1}, 3); }
-        if (s == "sparse-log-constant") { fpsSparseLog(vector<M>{2, 1}, 3); }
+        if (s == "sparse-log-constant") { fpsLogSparse(vector<M>{2, 1}, 3); }
         if (s == "log-long") { fpsLog(vector<S>{1, 1}, 8); }
         if (s == "exp-constant") { fpsExp(vector<M>{1}, 3); }
-        if (s == "sparse-exp-constant") { fpsSparseExp(vector<M>{1}, 3); }
+        if (s == "sparse-exp-constant") { fpsExpSparse(vector<M>{1}, 3); }
         if (s == "pow-negative-valuation") { fpsPow(vector<M>{0, 1}, -1, 3); }
         if (s == "pow-long") { fpsPow(vector<S>{1, 1}, 3, 9); }
         if (s == "pow-rational-constant") { fpsPow(vector<M>{2, 1}, 1, 2, 3); }
         if (s == "pow-rational-q") { fpsPow(vector<M>{1, 1}, 1, 0, 3); }
-        if (s == "sparse-pow-negative") { fpsSparsePow(vector<M>{1, 1}, -1, 3); }
+        if (s == "sparse-pow-negative") { fpsPowSparse(vector<M>{1, 1}, -1, 3); }
         if (s == "sqrt-even-modulus") { fpsSqrt(vector<ModInt<2>>{1, 1}, 3); }
         if (s == "divmod-zero") { polyDivmod(vector<M>{1}, vector<M>{0}); }
         if (s == "halfgcd-degree") { polyHalfGcd(vector<M>{1, 1}, vector<M>{1, 1}); }

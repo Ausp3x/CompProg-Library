@@ -73,7 +73,7 @@ def main():
                   platform=platform.platform(), cpu=cpu, library=f'B={current[1]}', results=summary,
                   workload='array-mixed: q ops half set, half get on random versions; array-chain: q sets on the latest version '
                            'then q gets on random versions; dsu-checker: query i on a random earlier version, half uniteSets, '
-                           'half isSameSet; dsu-chain: q unions on the latest version then q isSameSet + getSize on random versions')
+                           'half isSameSet; dsu-chain: q unions on the latest version then q isSameSet + size on random versions')
     args.output.write_text(json.dumps(record, indent=2) + '\n')
     for r in summary:
         print(f"{r['workload']:12} n={r['n']:>8} q={r['q']:>8} {r['variant']:4} median={r['median_seconds']:.4f}s pool={r['pool_mb']}MB")

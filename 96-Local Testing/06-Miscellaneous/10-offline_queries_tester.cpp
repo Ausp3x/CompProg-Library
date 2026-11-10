@@ -62,7 +62,7 @@ void checkRanges(const vector<K> &a, const vector<OfflineRangeThreshold<K>> &que
             bool equal = !cmp(a[i], query.key) && !cmp(query.key, a[i]);
             count += cmp(a[i], query.key) || (query.inclusive && equal);}
         expected.push_back(count);}
-    checkIndices(offlineRangeCount(a, queries, cmp), expected, "range counts vs direct scan");}
+    checkIndices(rangeCountOffline(a, queries, cmp), expected, "range counts vs direct scan");}
 
 void checkIntegerArray(const vector<lng> &a, bool exhaustive) {
     context = "array=["; for (lng x : a) { context += std::to_string(x) + ','; } context += ']';
@@ -155,7 +155,7 @@ void customCases() {
                      [&](int) { ++accumulated; }, [&](int i) {
             check(i == 0 && accumulated == 3 * run, "state lifetime across invocations"); ++answers;});}
     check(answers == 2, "exactly one answer per invocation");
-    checkIndices(offlineRangeCount(vector<int>{2, 1, 2}, vector<OfflineRangeThreshold<int>>{{0, 3, 2}, {0, 3, 2, false}}),
+    checkIndices(rangeCountOffline(vector<int>{2, 1, 2}, vector<OfflineRangeThreshold<int>>{{0, 3, 2}, {0, 3, 2, false}}),
                  vector<int>{3, 1}, "default comparator and default inclusive aggregate");
     context = "callback exceptions propagate and preserve already accumulated state";
     accumulated = 0; bool caught = false;
@@ -204,7 +204,7 @@ void largeCases(const string &mode) {
     context = "large equal keys n=" + std::to_string(n);
     vector<int> a(n, 7); vector<OfflineRangeThreshold<int>> queries; queries.reserve(n);
     for (int i = 0; i < n; ++i) { queries.push_back({i / 2, n - i / 2, 7, bool(i % 2)}); }
-    auto result = offlineRangeCount(a, queries);
+    auto result = rangeCountOffline(a, queries);
     check(int(result.size()) == n, "large output size");
     for (int i = 0; i < n; ++i) {
         check(result[i] == (i % 2 ? n - 2 * (i / 2) : 0), "large equal-key range count query=" + std::to_string(i));}
@@ -225,11 +225,11 @@ int main(int argc, char **argv) {
         if (arg == "--seed") { test_seed = std::stoull(argv[++i]); }
         if (arg == "--invalid") {
             string probe = argv[++i]; vector<int> a{1, 2};
-            if (probe == "negative-left") { offlineRangeCount(a, vector<OfflineRangeThreshold<int>>{{-1, 1, 0}}); }
-            if (probe == "reversed-range") { offlineRangeCount(a, vector<OfflineRangeThreshold<int>>{{2, 1, 0}}); }
-            if (probe == "right-past-end") { offlineRangeCount(a, vector<OfflineRangeThreshold<int>>{{0, 3, 0}}); }
-            if (probe == "empty-past-end") { offlineRangeCount(vector<int>{}, vector<OfflineRangeThreshold<int>>{{0, 1, 0}}); }
-            if (probe == "left-past-end") { offlineRangeCount(a, vector<OfflineRangeThreshold<int>>{{3, 3, 0}}); }
+            if (probe == "negative-left") { rangeCountOffline(a, vector<OfflineRangeThreshold<int>>{{-1, 1, 0}}); }
+            if (probe == "reversed-range") { rangeCountOffline(a, vector<OfflineRangeThreshold<int>>{{2, 1, 0}}); }
+            if (probe == "right-past-end") { rangeCountOffline(a, vector<OfflineRangeThreshold<int>>{{0, 3, 0}}); }
+            if (probe == "empty-past-end") { rangeCountOffline(vector<int>{}, vector<OfflineRangeThreshold<int>>{{0, 1, 0}}); }
+            if (probe == "left-past-end") { rangeCountOffline(a, vector<OfflineRangeThreshold<int>>{{3, 3, 0}}); }
             return 1;}}
     int bound = mode == "quick" ? 4 : mode == "full" ? 6 : 7, arrays = 0;
     for (int n = 0, count = 1; n <= bound; ++n, count *= 3) {

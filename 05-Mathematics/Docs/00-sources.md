@@ -194,7 +194,7 @@ Miller-Rabin base sets: the 7-base set {2, 325, 9375, 28178, 450775, 9780504, 17
 | Source | URL | Used for |
 |---|---|---|
 | Library Checker, linear_algebra | https://github.com/yosupo06/library-checker-problems/tree/master/linear_algebra | Row 16 problem set (determinant, arbitrary-mod determinant, inverse, system of linear equations, matrix product, power, rank, adjugate) |
-| KACTL numerical | https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical | Row 16 `solveLinearReal`, `tridiagonalSolve`, `determinantMod` contracts; `SolveLinear2` left out |
+| KACTL numerical | https://github.com/kth-competitive-programming/kactl/tree/main/content/numerical | Row 16 `solveLinearApprox`, `tridiagonalSolve`, `determinantMod` contracts; `SolveLinear2` left out |
 | maspypy linalg | https://maspypy.github.io/library/linalg/solve_linear_lower.hpp, https://maspypy.github.io/library/linalg/basis.hpp | Row 16 `luSolve`, `FieldBasis` |
 | OI Wiki linear algebra | https://oi-wiki.org/math/linear-algebra/basis/, https://oi-wiki.org/math/linear-algebra/matrix/ | Row 16 `FieldBasis` over a field, matrix product and power |
 | hitonanode Hessenberg system | https://hitonanode.github.io/cplib-cpp/linear_algebra_matrix/hessenberg_system.hpp | Left out of row 16; adopted 2026-11-08 as row 44 `hessenbergSolve` |
@@ -319,7 +319,7 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://flintlib.org/doc/nmod_mpoly/index.html | 50: `mpolyGcd`, `mpolyDivides`, `MPoly`, `compose` |
 | https://maspypy.github.io/library/poly/multipoint_evaluation_for_prefix_product.hpp | 51: `multipointPrefixProductEval` |
 | https://github.com/NyaanNyaan/library/tree/master/matrix | 51: `determinantPolynomialMatrix` |
-| https://suisen-cp.github.io/cp-library-cpp/library/polynomial/formal_power_series_relaxed.hpp | 52: `onlineFpsSqrt` |
+| https://suisen-cp.github.io/cp-library-cpp/library/polynomial/formal_power_series_relaxed.hpp | 52: `fpsSqrtOnline` |
 | https://maspypy.github.io/library/poly/online/online_convolution_garner.hpp | 52: `RelaxedConvolution` |
 | https://nyaannyaan.github.io/library/fps/differential-equation.hpp | 52: `newtonDifferentialEquation` |
 | https://github.com/yosupo06/library-checker-problems/tree/master/convolution | 53: `minPlusConvolutionConcaveArbitrary` |

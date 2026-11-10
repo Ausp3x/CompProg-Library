@@ -157,8 +157,8 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://cses.fi/problemset/ | 08: `maximumAverageSubarrayLengths`; 32: `binPackingDP`; 35: `nQueensCount`; 39: `kMachineIntervalSchedule` |
 | https://cses.fi/problemset/task/3301 | 08: `maximumAverageSubarrayLengths` |
 | https://cp-algorithms.com/schedules/schedule-with-completion-duration.html | 09: `intervalPartitionMachines` |
-| https://github.com/yosupo06/library-checker-problems/tree/master/data_structure | 10: `offlineRangeSum` |
-| https://github.com/yosupo06/library-checker-problems/blob/master/data_structure/static_range_sum_with_upper_bound/task.md | 10: `offlineRangeSum` |
+| https://github.com/yosupo06/library-checker-problems/tree/master/data_structure | 10: `rangeSumOffline` |
+| https://github.com/yosupo06/library-checker-problems/blob/master/data_structure/static_range_sum_with_upper_bound/task.md | 10: `rangeSumOffline` |
 | https://oi-wiki.org/basic/bucket-sort/ | 11: `bucketSort` |
 | https://oi-wiki.org/basic/sort-intro/ | 11: `bucketSort` |
 | https://atcoder.jp/contests/language-test-202001/tasks/practice_2 | 11: `binaryInsertionSort`, `mergeInsertionSort` |
@@ -170,7 +170,7 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://ei1333.github.io/library/dp/online-offline-dp.hpp | 21: `cdqDivideAndConquer` |
 | https://oi-wiki.org/lang/csl/bitset/ | 22: `bitsetDominanceCount` |
 | https://maspypy.github.io/library/knapsack/subset_sum.hpp | 22: `bitsetSubsetSum` |
-| https://maspypy.github.io/library/ds/offline_query/offline_set_intersection.hpp | 22: `offlineSetIntersection` |
+| https://maspypy.github.io/library/ds/offline_query/offline_set_intersection.hpp | 22: `setIntersectionOffline` |
 | https://maspypy.github.io/library/mod/modular_subset_sum.hpp | 22: `bitsetModularSubsetSum` |
 | https://oi-wiki.org/search/dlx/ | 25: `repeatedCover` |
 | https://howardhinnant.github.io/date_algorithms.html | 27: `nthWeekdayOfMonth`, `lastWeekdayOfMonth`, `isoWeekFromCivil`, `civilFromIsoWeek`, `daysFromJulian`, `julianFromDays`, `dayOfWeek` |

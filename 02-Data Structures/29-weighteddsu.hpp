@@ -41,7 +41,7 @@ struct WeightedDSU {
         assert(same);
         return m.op(m.inv(pot[u]), pot[v]);}
     bool isSameSet(int u, int v) { return findSet(u) == findSet(v); }
-    int getSize(int u) { return siz[findSet(u)]; }
+    int size(int u) { return siz[findSet(u)]; }
     int count() const { return ncon; }
     int contradictions(int u) { return bad[findSet(u)]; }
     // T: O(n), M: O(n); groups and members ordered by smallest vertex.

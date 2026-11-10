@@ -17,7 +17,7 @@ namespace continued_fraction_detail {
         vector<int> small;
         vector<lng> large;
         explicit Mertens(lng n) : n(n), lim(min({n, lng(std::pow(double(n), 2.0 / 3)) + 1, lng(INT_MAX) - 1})) {
-            LinearSieve sieve{int(lim)}; sieve.getMu();
+            LinearSieve sieve{int(lim)}; sieve.mobiusTable();
             small.assign(lim + 1, 0);
             for (int i = 1; i <= lim; ++i) { small[i] = small[i - 1] + sieve.mu[i]; }
             lng top = n / (lim + 1);

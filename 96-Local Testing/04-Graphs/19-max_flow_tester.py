@@ -24,6 +24,6 @@ if __name__ == '__main__':
     raise SystemExit(main('19-max_flow', ['negative-size', 'addEdge-range', 'addEdge-negative',
         'addEdge-overflow', 'flow-same', 'flow-range', 'flow-limit', 'edmondskarp-same', 'edmondskarp-limit',
         'augmentpath-same', 'augmentpath-range', 'scaling-same', 'pushrelabel-same',
-        'pushrelabel-supply', 'getEdge-range', 'changeEdge-flow', 'changeEdge-reverse',
+        'pushrelabel-supply', 'edge-range', 'changeEdge-flow', 'changeEdge-reverse',
         'changeCapacity-negative', 'changeCapacity-same', 'minCut-range', 'decomposition-same',
         'graph-negative', 'graph-undirected-overflow']))

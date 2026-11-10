@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""latticeInDiskFast versus latticeInDisk; no timing gates."""
+"""latticeInDiskHull versus latticeInDisk; no timing gates."""
 import argparse
 import hashlib
 import json

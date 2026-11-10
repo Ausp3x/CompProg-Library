@@ -121,7 +121,11 @@ Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 4
 
 ## Mutation testing
 
-Record: mewt 4.0.0 on blob `3023a3ba8e4575086bdc0b9339b41b0eca010413` (2026-11-09, seed 1, 2 lines changed since blob `42bbd8e51487`): 16 mutants, 12 caught (0 by timeout), 4 survived, 0 untested.
+Record: mewt 4.0.0 on blob `c1dde2ce8e79a252ef086c617fc7239dda77664e` (2026-11-10, seed 1, 2 lines changed since blob `3023a3ba8e45`): 25 mutants, 23 caught (0 by timeout), 2 survived, 0 untested.
+
+Stage seconds of that campaign (P276 rename of `getLCA`): quick 91, full-optimized 56, full-rest 185.
+
+Earlier campaign: mewt 4.0.0 on blob `3023a3ba8e4575086bdc0b9339b41b0eca010413` (2026-11-09, seed 1, 2 lines changed since blob `42bbd8e51487`): 16 mutants, 12 caught (0 by timeout), 4 survived, 0 untested.
 
 Stage seconds of that campaign: quick 54, full-optimized 118, full-all 725.
 
@@ -146,6 +150,7 @@ Each remaining survivor was checked for type context, reachability, downstream u
 | `COS 729` `>` → `>=` | 73 | equivalent: it assigns an equal value |
 | `COS 742` `==` → `<=` | 80 | equivalent: `radius` is the minimum eccentricity |
 | `AS 313`, `AS 320`, `AS 321`, `AS 323`, `AS 365`, `AS 377` | 94, 150, 154, 157, 253, 276 | equivalent: `min`, `max` and the called function are symmetric in value |
+| `AS 383`, `AS 389` (P276) | 253, 258 | equivalent: `lca(u, v)` is symmetric in its arguments |
 | `MR 1087`, `MR 1090`, `MR 1097`, `MR 1098`, `MR 1099` | 118, 119, 229, 233, 234 | equivalent: a copy instead of a move; the source is not read again |
 | `LOS 647`, `COS 797`, `COS 799` | 137 | equivalent under the simple-forest contract: one arc joins u to each child, and each condition implies the other |
 | `COS 836` `<` → `!=` | 150 | equivalent: `tin[v] < tout[v]` makes x <= y |
@@ -179,3 +184,4 @@ See [the 2026-11-03 ledger](00-sources.md#pages-fetched-on-2026-11-03-p042-gr05)
 - 2026-11-08: `/merge-pr 4` review fixes: `G = Graph` defaults, `n = 0` guards in `treeDiameter` and `treeCentroid`, `rootTree` and `pathVertices` back as planned.
 - 2026-11-09: `/merge-pr 4` second review round: `n = 0` guard in `treeEccentricities` with the probe `eccentricity-empty`, mutation campaign recorded above; `/merge-pr` gates passed on d4c47fc.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (call sites of `lca`); full on g++ and g++-14, stress and extraction passed; changed-line mutation campaign recorded.

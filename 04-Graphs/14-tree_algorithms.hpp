@@ -250,12 +250,12 @@ struct VirtualTree {
         auto byTin = [&](int u, int v) { return lca.t_in[u] < lca.t_in[v]; };
         sort(vs.begin(), vs.end(), byTin); vs.erase(unique(vs.begin(), vs.end()), vs.end());
         for (int i = 0, k = int(vs.size()); i + 1 < k; ++i) {
-            if (lca.component[vs[i]] == lca.component[vs[i + 1]]) { vs.push_back(lca.getLCA(vs[i], vs[i + 1])); }}
+            if (lca.component[vs[i]] == lca.component[vs[i + 1]]) { vs.push_back(lca.lca(vs[i], vs[i + 1])); }}
         sort(vs.begin(), vs.end(), byTin); vs.erase(unique(vs.begin(), vs.end()), vs.end());
         VirtualTreeResult res{vs, vector<int>(vs.size(), -1)};
         for (int i = 1; i < int(vs.size()); ++i) {
             if (lca.component[vs[i - 1]] != lca.component[vs[i]]) { continue; }
-            int a = lca.getLCA(vs[i - 1], vs[i]);
+            int a = lca.lca(vs[i - 1], vs[i]);
             res.parent[i] = int(lower_bound(vs.begin(), vs.end(), a, byTin) - vs.begin());}
         return res;}
 };

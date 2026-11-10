@@ -6,11 +6,15 @@ Common contracts for rows 01–08 (indices, preconditions, algebra, moved-from s
 
 ### DSU
 
-Vertices `[0, n)` with `0 <= n <= INT_MAX`. Public `n`, `ncon`, `par` and `siz` must not be edited directly. Representatives are arbitrary and can change after a union. `findSet`, `getSize`, `isSameSet` and `groups` compress paths, so they are non-const. `uniteSets` returns whether two distinct components merged. `count` is the number of components. `groups` returns the components ordered by smallest vertex, each with members ascending, in O(n) time, workspace and output. `makeSet` appends the singleton vertex `n` and returns its id; it requires `n < INT_MAX`. Union by size gives O(log(n)) worst-case and inverse-Ackermann amortized find and unite.
+Vertices `[0, n)` with `0 <= n <= INT_MAX`. Public `n`, `ncon`, `par` and `siz` must not be edited directly. Representatives are arbitrary and can change after a union. `findSet`, `size`, `isSameSet` and `groups` compress paths, so they are non-const. `uniteSets` returns whether two distinct components merged. `count` is the number of components. `groups` returns the components ordered by smallest vertex, each with members ascending, in O(n) time, workspace and output. `makeSet` appends the singleton vertex `n` and returns its id; it requires `n < INT_MAX`. Union by size gives O(log(n)) worst-case and inverse-Ackermann amortized find and unite.
 
 ### Correctness and cost
 
 Union by size bounds uncompressed depth by `log(n)`; compression preserves the root equivalence relation. Sizes and component count change only on successful unions. Amortized inverse-Ackermann union/find, O(n) initialization/storage. With no unions during grouping, each non-root edge is bypassed at most once, giving O(n) grouping including output. `makeSet` is a one-line composition of verified operations.
+
+### Legacy mapping
+
+- P276 rename, 2026-11-10: `getSize` → `size`.
 
 ## Feature-to-test map
 
@@ -18,7 +22,7 @@ The Python entry and C++ oracle suite share the stem under `96-Local Testing/02-
 
 | Operation | Test (`01-dsu_tester.cpp` group) | Oracle |
 |---|---|---|
-| `findSet`, `uniteSets`, `isSameSet`, `getSize`, `count`, `groups` | `graphSubsets`, `unionHistories` | Every simple graph through 6 vertices, self/duplicate unions, every length-5 union history on 3 vertices; independent relabeling connectivity/size/group oracle |
+| `findSet`, `uniteSets`, `isSameSet`, `size`, `count`, `groups` | `graphSubsets`, `unionHistories` | Every simple graph through 6 vertices, self/duplicate unions, every length-5 union history on 3 vertices; independent relabeling connectivity/size/group oracle |
 | `makeSet` | `randomCases` | 150 random cases with interleaved `makeSet` (id and singleton oracle) |
 | Compression at scale | `balancedTree` | 65,536-vertex balanced merge/compression |
 | Union by size (`O(log(n))` depth) | `checkDepths`, in every `verify` and after the 65,536-vertex stars `uniteSets(i,0)` and `uniteSets(0,i)` in `balancedTree` | `par` in range; a vertex at depth `k` of `par` lies in a component of at least `2^k` vertices (P251 mutation campaign) |
@@ -44,7 +48,11 @@ All passed: quick in 2 configurations (`MEMORY peak=389MB`); full on g++ and g++
 
 ## Mutation testing
 
-Record: mewt 4.0.0 on blob `7fcf472306554c4f232dbaa6087bfb3148c4feb3` (2026-11-10, seed 1, whole file): 140 mutants, 134 caught (5 by timeout), 6 survived, 0 untested.
+Record: mewt 4.0.0 on blob `2192e593eea929c2bcd293464782e62d0be01ed6` (2026-11-10, seed 1, 1 lines changed since blob `7fcf47230655`): 3 mutants, 3 caught (0 by timeout), 0 survived, 0 untested.
+
+Stage seconds of that campaign (P276 rename of `getSize`): quick 6.
+
+Earlier campaign: mewt 4.0.0 on blob `7fcf472306554c4f232dbaa6087bfb3148c4feb3` (2026-11-10, seed 1, whole file): 140 mutants, 134 caught (5 by timeout), 6 survived, 0 untested.
 
 Written by P252 (user decision 2026-11-04), rerun by P274 through the build cache (`--whole --jobs 6`, 2026-11-10, warm; the cold run's seconds in parentheses); procedure, machine and cost in [00-mutation.md](../../96-Local%20Testing/Docs/00-mutation.md). Stages: quick 140 → 29 survivors on 6 shards, then its five timeouts retested on 5 and timing out again, 207 s together (256); full on the optimized build 29 → 29 in 11 s on 6 (11); full on the checked and ASan-UBSan builds 29 → 6 in 103 s on 6 (140). The five timeouts (`COS 112, 114` on line 30, `COS 115, 117, 119` on line 31) make the root walk or the compression loop spin at a root. The six survivors are equivalent; `COS 97` and `CR 58` only under the contract (representatives and `groups()` capacity are unspecified, user decision 2026-11-03):
 
@@ -73,6 +81,8 @@ The old DSU at `OLD/algorithms.cpp:1402–1477` mixed connectivity, weighted dis
 
 ## Aliases
 
+Renamed aliases (P276, 2026-11-10): `getSize`.
+
 Search aliases (P263, grab --find): union-find, disjoint set union; Library Checker `unionfind`; 并查集, 并查集复杂度, 并查集应用, 不相交集合, 路径压缩, 按秩合并, 连通块.
 
 ## History
@@ -86,3 +96,4 @@ Search aliases (P263, grab --find): union-find, disjoint set union; Library Chec
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`getSize` → `size`); full on g++ and g++-14, stress and extraction passed; changed-line mutation campaign recorded.

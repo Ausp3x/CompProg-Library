@@ -95,7 +95,7 @@ namespace {
             for (int e : b.events) { bad += seen[e]; }
             auto [rs, rd] = b.reach(r);
             checkEqual(S(d.potential(u)), S(rd[u]), "potential(" + show(u) + ")");
-            checkEqual(d.getSize(u), size, "getSize(" + show(u) + ")");
+            checkEqual(d.size(u), size, "size(" + show(u) + ")");
             checkEqual(d.contradictions(u), bad, "contradictions(" + show(u) + ")");}
         checkEqual(d.count(), ncomp, "count");
         checkEqual(d.groups(), groups, "groups");}
@@ -215,7 +215,7 @@ namespace {
                     int a = int(rnd(rng, 0, n - 1)), b = rng() % 2 ? int(rnd(rng, 0, n - 1)) : c.findSet(a);
                     checkEqual(d.isSameSet(a, b), c.isSameSet(a, b), "isSameSet");
                     if (c.isSameSet(a, b)) { checkEqual(d.diff(a, b), x[b] - x[a], "diff"); }
-                    checkEqual(d.getSize(a), c.getSize(a), "getSize");
+                    checkEqual(d.size(a), c.size(a), "size");
                     checkEqual(d.contradictions(a), bad[c.findSet(a)], "contradictions");}}}
 
         context = "large RollbackWeightedDSU n=" + show(n) + " seed=" + show(seed);
@@ -246,7 +246,7 @@ namespace {
                     int a = int(rnd(rng, 0, n - 1)), b = rng() % 2 ? int(rnd(rng, 0, n - 1)) : e.findSet(a);
                     checkEqual(r.isSameSet(a, b), e.isSameSet(a, b), "isSameSet");
                     if (e.isSameSet(a, b)) { checkEqual(r.diff(a, b), x[b] - x[a], "diff"); checkEqual(r.potential(b) - r.potential(a), x[b] - x[a], "potential"); }
-                    checkEqual(r.getSize(a), e.getSize(a), "getSize");
+                    checkEqual(r.size(a), e.size(a), "size");
                     checkEqual(r.contradictions(a), cnt[e.findSet(a)], "contradictions");
                     maxDepth = max(maxDepth, depthOf(r, a));}}}
         checkEqual(maxDepth <= bound, true, "depth <= floor(log2(n))");

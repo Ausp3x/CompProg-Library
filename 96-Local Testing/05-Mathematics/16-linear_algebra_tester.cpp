@@ -565,17 +565,17 @@ void realSuite() {
     for (int it = 0; it < reps(200); ++it) {
         int n = rnd(0, 7);
         auto a = genMat<R>(n, n);
-        R want = leibniz(a), got = determinantReal(a);
-        check(abs(got - want) <= 1e-11 * rowNormProduct(a), [&] { return "determinantReal a=" + show(a) + " expected=" + show(want) + " got=" + show(got); });
+        R want = leibniz(a), got = determinantApprox(a);
+        check(abs(got - want) <= 1e-11 * rowNormProduct(a), [&] { return "determinantApprox a=" + show(a) + " expected=" + show(want) + " got=" + show(got); });
         n = rnd(0, 10);
         int m = n ? rnd(0, 10) : 0, r = rnd(0, min(n, m));
         a = lowRank<R>(n, m, r);
-        int rk = matrixRankReal(a);
-        check(rk == r, [&] { return "matrixRankReal a=" + show(a) + " expected=" + std::to_string(r) + " got=" + std::to_string(rk); });
+        int rk = matrixRankApprox(a);
+        check(rk == r, [&] { return "matrixRankApprox a=" + show(a) + " expected=" + std::to_string(r) + " got=" + std::to_string(rk); });
         bool consistent = r == n || rnd(0, 1);
         auto b = consistent ? mulVec(a, rvec<R>(m)) : rvec<R>(n);
-        auto res = solveLinearReal(a, b);
-        auto msg = [&] { return "solveLinearReal a=" + show(a) + " b=" + show(b) + " got=" + show(res) + " rank=" + std::to_string(r); };
+        auto res = solveLinearApprox(a, b);
+        auto msg = [&] { return "solveLinearApprox a=" + show(a) + " b=" + show(b) + " got=" + show(res) + " rank=" + std::to_string(r); };
         check(res.empty() != consistent, msg);
         if (!res.empty()) {
             check(int(res.size()) == m - r + 1, msg);
@@ -616,13 +616,13 @@ void realSuite() {
                 check(!luDecompose(lu, perm), [&] { return "luDecompose singular a=" + show(a); });}
             lu = randMat<R>(n, n);
             check(!luDecompose(lu, perm, 2.0), [&] { return string("luDecompose eps = 2"); });}}
-    check(matrixRankReal(Mat<R>{{1e-12}}) == 0 && matrixRankReal(Mat<R>{{1e-12}}, 1e-15) == 1 && matrixRankReal(Mat<R>{{1, 0}, {0, 1e-6}}) == 2 && matrixRankReal(Mat<R>{}) == 0, [] { return string("matrixRankReal eps fixtures"); });
-    check(determinantReal(Mat<R>{}) == 1 && determinantReal(Mat<R>{{0, 2}, {3, 0}}) == -6, [] { return string("determinantReal fixtures"); });
-    check(solveLinearReal(Mat<R>{}, vector<R>{}) == Mat<R>{{}} && solveLinearReal(Mat<R>{{1e-12}}, vector<R>{1e-12}) == Mat<R>{{0}, {1}}, [] { return string("solveLinearReal empty and eps fixtures"); });
+    check(matrixRankApprox(Mat<R>{{1e-12}}) == 0 && matrixRankApprox(Mat<R>{{1e-12}}, 1e-15) == 1 && matrixRankApprox(Mat<R>{{1, 0}, {0, 1e-6}}) == 2 && matrixRankApprox(Mat<R>{}) == 0, [] { return string("matrixRankApprox eps fixtures"); });
+    check(determinantApprox(Mat<R>{}) == 1 && determinantApprox(Mat<R>{{0, 2}, {3, 0}}) == -6, [] { return string("determinantApprox fixtures"); });
+    check(solveLinearApprox(Mat<R>{}, vector<R>{}) == Mat<R>{{}} && solveLinearApprox(Mat<R>{{1e-12}}, vector<R>{1e-12}) == Mat<R>{{0}, {1}}, [] { return string("solveLinearApprox empty and eps fixtures"); });
     Mat<long double> ld{{2, 1, 0}, {1, 3, 1}, {0, 1, 4}};
     vector<int> perm;
-    check(abs(determinantReal(ld) - 18) < 1e-15L && luDecompose(ld, perm), [] { return string("long double instantiation"); });
-    cout << "PASS determinantReal (Leibniz, tolerance 1e-11 * product of row sums), matrixRankReal (rank-r products), solveLinearReal (residuals, kernel), luDecompose/luSolve (reconstruction, residuals, singular and eps), n <= " << (quick ? 12 : 30) << "\n";}
+    check(abs(determinantApprox(ld) - 18) < 1e-15L && luDecompose(ld, perm), [] { return string("long double instantiation"); });
+    cout << "PASS determinantApprox (Leibniz, tolerance 1e-11 * product of row sums), matrixRankApprox (rank-r products), solveLinearApprox (residuals, kernel), luDecompose/luSolve (reconstruction, residuals, singular and eps), n <= " << (quick ? 12 : 30) << "\n";}
 
 // lowRankUpdateInverse against the own inverse of A + U V.
 template<typename T> void lowRankSuite(const string &name) {
@@ -762,8 +762,8 @@ int main(int argc, char **argv) {
         if (s == "banded-width") { vector<M> d(2); bandedSolve(Mat<M>(2, vector<M>(3)), 1, 0, d); }
         if (s == "banded-negative") { vector<M> d(2); bandedSolve(Mat<M>(2, vector<M>(1)), -1, 1, d); }
         if (s == "banded-rows") { vector<M> d(3); bandedSolve(Mat<M>(2, vector<M>(1)), 0, 0, d); }
-        if (s == "solvereal-size") { solveLinearReal(Mat<double>{{1}}, dv); }
-        if (s == "detreal-nonsquare") { determinantReal(r); }
+        if (s == "solvereal-size") { solveLinearApprox(Mat<double>{{1}}, dv); }
+        if (s == "detreal-nonsquare") { determinantApprox(r); }
         if (s == "lowrank-shape") { Mat<M> a{{1}}; lowRankUpdateInverse(a, Mat<M>{{1}, {1}}, Mat<M>{{1}}); }
         if (s == "basis-length") { FieldBasis<M> b(2); b.insert(vector<M>(3)); }
         if (s == "basis-represent-length") { FieldBasis<M> b(2); vector<M> c; b.represent(vector<M>(1), c); }

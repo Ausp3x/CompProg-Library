@@ -57,13 +57,13 @@ namespace flow_with_demands_detail {
             auto p = net.potentials();
             res.potentials.assign(p.begin(), p.begin() + n);}
         else if (s >= 0) {
-            res.value = net.getEdge(m).flow - net.getEdge(m + 1).flow;
+            res.value = net.edge(m).flow - net.edge(m + 1).flow;
             net.changeEdge(m, 0, 0); net.changeEdge(m + 1, 0, 0);
             if (dir) {
                 res.value += dir > 0 ? net.flow(s, t) : -net.flow(t, s);
                 res.stCut = reach(dir > 0 ? s : t);
                 if (dir < 0) { res.stCut.flip(); }}}
-        for (int i = 0; i < m; ++i) { res.flow.push_back(std::get<2>(es[i]) + net.getEdge(i).flow); }
+        for (int i = 0; i < m; ++i) { res.flow.push_back(std::get<2>(es[i]) + net.edge(i).flow); }
         return res;}
 } // namespace flow_with_demands_detail
 

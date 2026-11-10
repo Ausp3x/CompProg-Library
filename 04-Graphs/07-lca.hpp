@@ -59,8 +59,7 @@ struct LCA : lca_detail::Forest {
         if (k < 0 || k > dep[u]) { return -1; }
         for (int j = 0; k; ++j, k >>= 1) { if (k & 1) { u = up[u][j]; }}
         return u;}
-    int getKthAncestor(int u, int k) const { return kthAncestor(u, max(0, k)); }
-    int getLCA(int u, int v) const {
+    int lca(int u, int v) const {
         check(u); check(v);
         if (component[u] != component[v]) { return -1; }
         if (covers(u, v)) { return u; }
@@ -68,20 +67,20 @@ struct LCA : lca_detail::Forest {
         for (int j = l; j >= 0; --j) { if (!covers(up[u][j], v)) { u = up[u][j]; }}
         return parent[u];}
     int distance(int u, int v) const {
-        int a = getLCA(u, v); return a == -1 ? -1 : (dep[u] - dep[a]) + (dep[v] - dep[a]);}
-    bool weightedDistance(int u, int v, lll &out) const {
-        int a = getLCA(u, v);
+        int a = lca(u, v); return a == -1 ? -1 : (dep[u] - dep[a]) + (dep[v] - dep[a]);}
+    bool distanceWeighted(int u, int v, lll &out) const {
+        int a = lca(u, v);
         if (a == -1) { return false; }
         out = weight[u] + weight[v] - 2 * weight[a]; return true;}
     int jump(int u, int v, lng k) const {
-        assert(k >= 0); int a = getLCA(u, v);
+        assert(k >= 0); int a = lca(u, v);
         if (a == -1) { return -1; }
         int left = dep[u] - dep[a], length = left + dep[v] - dep[a];
         return k > length ? -1 : k <= left ? kthAncestor(u, k) : kthAncestor(v, length - k);}
     int rerootedLCA(int u, int v, int r) const {
-        check(r); int a = getLCA(u, v);
+        check(r); int a = lca(u, v);
         if (a == -1 || component[u] != component[r]) { return -1; }
-        int b = getLCA(u, r), c = getLCA(v, r);
+        int b = lca(u, r), c = lca(v, r);
         return dep[a] >= dep[b] && dep[a] >= dep[c] ? a : dep[b] >= dep[c] ? b : c;}
 };
 
@@ -103,7 +102,7 @@ struct LCAFold : LCA {
                 rise[u][j] = m.op(rise[u][j - 1], rise[v][j - 1]); fall[u][j] = m.op(fall[v][j - 1], fall[u][j - 1]);}}}
 
     pair<bool, S> pathFold(int u, int v, bool edges = false) const {
-        int a = getLCA(u, v);
+        int a = lca(u, v);
         if (a == -1) { return {false, m.e()}; }
         S left = m.e(), right = m.e();
         for (int k = dep[u] - dep[a], j = 0; k; ++j, k >>= 1) { if (k & 1) { left = m.op(left, rise[u][j]); u = up[u][j]; }}
@@ -154,7 +153,7 @@ struct EulerLCA : lca_detail::Forest {
     int height(int i) const { return tour[i] == -1 ? -1 : dep[tour[i]]; }
     int better(int i, int j) const { return height(i) <= height(j) ? i : j; }
     int inside(int b, int l, int r) const { return b * block_size + micro[mask[b]][l * block_size + r]; }
-    int getLCA(int u, int v) const {
+    int lca(int u, int v) const {
         check(u); check(v);
         if (component[u] != component[v]) { return -1; }
         int l = first[u], r = first[v]; if (l > r) { swap(l, r); }
@@ -166,22 +165,22 @@ struct EulerLCA : lca_detail::Forest {
             best = better(best, better(table[j][a + 1], table[j][b - (1 << j)]));}
         return tour[best];}
     int distance(int u, int v) const {
-        int a = getLCA(u, v); return a == -1 ? -1 : (dep[u] - dep[a]) + (dep[v] - dep[a]);}
-    bool weightedDistance(int u, int v, lll &out) const {
-        int a = getLCA(u, v);
+        int a = lca(u, v); return a == -1 ? -1 : (dep[u] - dep[a]) + (dep[v] - dep[a]);}
+    bool distanceWeighted(int u, int v, lll &out) const {
+        int a = lca(u, v);
         if (a == -1) { return false; }
         out = weight[u] + weight[v] - 2 * weight[a]; return true;}
     int rerootedLCA(int u, int v, int r) const {
-        check(r); int a = getLCA(u, v);
+        check(r); int a = lca(u, v);
         if (a == -1 || component[u] != component[r]) { return -1; }
-        int b = getLCA(u, r), c = getLCA(v, r);
+        int b = lca(u, r), c = lca(v, r);
         return dep[a] >= dep[b] && dep[a] >= dep[c] ? a : dep[b] >= dep[c] ? b : c;}
 };
 
 // Same forest contract as LCA; answers keep query order, -1 across components.
 // T: O((n + q) * alpha(n)) amortized, M: O(n + q); alpha is inverse Ackermann.
 template<class G = Graph>
-vector<int> offlineLCA(const G &g, const vector<pair<int, int>> &queries, int root = -1) {
+vector<int> lcaOffline(const G &g, const vector<pair<int, int>> &queries, int root = -1) {
     assert(queries.size() <= size_t(INT_MAX)); lca_detail::Forest f(g, root);
     vector<vector<pair<int, int>>> adj(g.n); vector<int> res(queries.size(), -1), ancestor(g.n);
     vector<bool> done(g.n); DSU dsu(g.n); iota(ancestor.begin(), ancestor.end(), 0);
@@ -200,7 +199,7 @@ vector<int> offlineLCA(const G &g, const vector<pair<int, int>> &queries, int ro
 // T: O(1) LCA queries, M: O(1).
 template<class L = LCA>
 pair<int, int> pathIntersection(const L &t, int a, int b, int c, int d) {
-    auto meet = [&](int x, int y, int z) { return t.getLCA(x, y) ^ t.getLCA(x, z) ^ t.getLCA(y, z); };
+    auto meet = [&](int x, int y, int z) { return t.lca(x, y) ^ t.lca(x, z) ^ t.lca(y, z); };
     t.check(a); t.check(b); t.check(c); t.check(d);
     int k = t.component[a];
     if (t.component[b] != k || t.component[c] != k || t.component[d] != k) { return {-1, -1}; }

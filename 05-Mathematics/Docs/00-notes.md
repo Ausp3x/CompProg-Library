@@ -41,7 +41,7 @@ Explanations moved out of the operation cells of rows not yet verified, one bull
 - `23-matrixtree.hpp`: eulerianCircuitCountBest: BEST bridge.
 - `25-game_theory.hpp`: grundy: memoized game DAG; subtractionGame: period detection with proof bound; wythoff: cold positions; retrogradeAnalysis: win, lose, draw on a finite game graph.
 - `27-optimization.hpp`: divideConquerDp: monotone opt; knuthDp: quadrangle inequality; smawk: totally monotone row minima; larsch: online Monge; aliensTrick: Lagrangian relaxation, integer penalty, count tie rule; mongeCheck: quadrangle inequality on small instances; mongeShortestPath: unconstrained O(n log n) with predecessors and edge count, exactly d edges or a count in [L, R] by penalty binary search; convexHullTrickDp: bridge to Data Structures `22-convexhulltrick.hpp`; liChaoDp: bridge.
-- `29-polynomial_roots.hpp`: sturmCount: real roots in an interval; realRootIsolate: rational intervals, square-free; realRootsApprox: tolerance; polyRootsComplex: residual.
+- `29-polynomial_roots.hpp`: sturmCount: real roots in an interval; realRootIsolate: rational intervals, square-free; realRootsApprox, realRootsApproxSimple: tolerance; polyRootsApprox: residual.
 - `31-summatory_functions.hpp`: FloorBlockTable: quotient-indexed memo; dujiaoSieve: prefix of f from a Dirichlet relation; mobiusSum: Mertens; min25Sieve: prime prefix sums then multiplicative prefix; lucyHedgehog: prime counting O(n^(3/4)); primeCount: Meissel–Lehmer, practical to about 1e13 (OI Wiki gives O~(n^(2/3)) only to LMO); primeCountTable: the whole pi(n / i) table, O(n^(2/3) log^(1/3) n); lmoPrimeCount: O(n^(2/3) log^(1/3) n) time, O~(n^(1/3)) space segmented; delegliseRivatPrimeCount: the LMO refinement with a smaller log factor; divisorSummatory: sum of d(i).
 - `32-dirichlet_series.hpp`: DirichletSeries: truncated prefix representation on quotient blocks; eulerProduct: from prime-power coefficients.
 - `35-lattice_reduction.hpp`: gramDeterminant: the Gram determinant (squared covolume) that Gram–Schmidt yields; row 49 owns `latticeDeterminant`; lllReduce: delta parameter; bkz: block size parameter; pslq: integer relation, precision parameter.
@@ -63,7 +63,7 @@ Explanations moved out of the operation cells of rows not yet verified, one bull
 - `52-relaxed_convolution.hpp`: SemiRelaxedConvolution: one operand known; dcDifferentialEquation: divide and conquer f' = g(f); powerProjection: weighted coefficients of f^k for all k; powerEnumerate: coefficients of f^k.
 - `53-semiring_convolution.hpp`: minPlusConvolutionConvexConvex: merge, O(n); minPlusConvolutionBoundedRange: small value range.
 - `54-discrete_log_advanced.hpp`: pollardRhoLog: randomized, expected sqrt; compositeGroupDecompose: unit group of Z/m as product of cyclic groups.
-- `55-floor_sum_polynomial.hpp`: floorSumPolynomial: sum of i^a floor((p i + q)/m)^b for all a, b up to a bound; floorProduct: Euclidean product sums; floorMonoidProduct: noncommutative monoid of U and R steps, generic Euclidean; latticePointGeneratingFunction: rational generating function of lattice points under a line; convexFloorSum: sum of floor of a convex function; convexLatticeHull: convex hull of lattice points under a curve; gaussCircleFast: O(r^(2/3)).
+- `55-floor_sum_polynomial.hpp`: floorSumPolynomial: sum of i^a floor((p i + q)/m)^b for all a, b up to a bound; floorProduct: Euclidean product sums; floorMonoidProduct: noncommutative monoid of U and R steps, generic Euclidean; latticePointGeneratingFunction: rational generating function of lattice points under a line; convexFloorSum: sum of floor of a convex function; convexLatticeHull: convex hull of lattice points under a curve; gaussCircleCountHull: O(r^(2/3)).
 - `56-coding_theory.hpp`: listDecodeGuruswamiSudan: radius and list-size parameters.
 - `58-partizan_games.hpp`: zeroSumMatrixGame: mixed strategy by LP, value; misereOutcome: small game graph search.
 - `59-zero_sum.hpp`: egzWitness: n of 2n - 1 elements summing to 0 mod n, constructive; zeroSumSubsequence: from any n elements, prefix sums; SidonSequence: n terms below p(p - 1) by CRT, O(p) build; query maps a sum to its index pair in O(1).
@@ -89,14 +89,14 @@ Left out, one line each:
 - `primePi` table (hitonanode `bs_sieve`): `upper_bound(prms, x)` on the existing prime list.
 - Factorization above the sieve bound (hitonanode `Sieve::factorize`): owned by `07-primality_factorization.hpp` `factorize`.
 - `powTable`, the completely multiplicative i^K table (hitonanode `enumerate_kth_pows`): handed off to `08-multiplicative_functions.hpp` `multiplicativeTable`.
-- `lcmOfList` (maspypy `all_lcm`): caller-side maximum of `getPrimeFac` exponents.
+- `lcmOfList` (maspypy `all_lcm`): caller-side maximum of `factorize` exponents.
 - `combiNegative` and `combiInverse` (maspypy `C_negative`, `C_inv`): `(-1)^k * combiWR(n, k)` and the product `inverseFactorial(a) * factorial(b) * factorial(a - b)` from the existing tables. (returned by P275 2026-11-10 into row 05)
 
 ## P052 research decisions (2026-10-09)
 
 Left out, one line each:
 
-- `factorizeSpf`/`divisorsSpf` hybrids (maspypy): `LinearSieve::getPrimeFac` below the table, `factorize` above; `isPrimeSpf` is the only hybrid worth a name.
+- `factorizeSpf`/`divisorsSpf` hybrids (maspypy): `LinearSieve::factorize` below the table, `factorize` above; `isPrimeSpf` is the only hybrid worth a name.
 - `findPrimeFactor` (maspypy): `factorize(n)[0].fi`.
 - `fermatFactor` (cp-algorithms): only fast for close factors; rho dominates.
 - `fermatProbablePrime` (OI Wiki): Monte Carlo and strictly weaker than deterministic Miller–Rabin.

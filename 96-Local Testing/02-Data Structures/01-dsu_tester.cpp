@@ -45,7 +45,7 @@ void verify(DSU &d, const vector<int> &a) {
         for (int v = 0; v < n; ++v) {
             bool same = a[u] == a[v]; count += same;
             check(d.isSameSet(u,v),same,"isSameSet("+std::to_string(u)+","+std::to_string(v)+")");}
-        check(d.getSize(u),count,"getSize("+std::to_string(u)+")");
+        check(d.size(u),count,"size("+std::to_string(u)+")");
         int r = d.findSet(u);
         if (r < 0 || r >= n) { fail("findSet","representative in [0,n)",std::to_string(r)); }
         check(a[r],a[u],"representative membership"); check(d.par[u],r,"full compression");
@@ -107,7 +107,7 @@ void balancedTree() {
         for (int u = 0; u < n; u += 2*step) { check(d.uniteSets(u,u+step),true,"balanced merge"); }}
     check(d.count(),1,"balanced count");
     for (int i = n-1; i >= 0; --i) {
-        int r = d.findSet(i); check(d.par[i],r,"balanced compression"); check(d.getSize(i),n,"balanced size");}
+        int r = d.findSet(i); check(d.par[i],r,"balanced compression"); check(d.size(i),n,"balanced size");}
     auto groups = d.groups(); check(int(groups.size()),1,"balanced groups count");
     check(int(groups[0].size()),n,"balanced members count");
     for (int flip = 0; flip < 2; ++flip) {
@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
         else if (invalid == "find-past") { d.findSet(3); }
         else if (invalid == "empty-find") { DSU().findSet(0); }
         else if (invalid == "union-end") { d.uniteSets(0,2); }
-        else if (invalid == "size-end") { d.getSize(2); }
+        else if (invalid == "size-end") { d.size(2); }
         else if (invalid == "same-end") { d.isSameSet(0,2); }
         else if (invalid == "makeset-full") { d.n = INT_MAX; d.makeSet(); }
         else { cerr << "unknown invalid case\n"; return 2; }

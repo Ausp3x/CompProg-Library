@@ -106,7 +106,7 @@ Inspected on 2026-09-27, plus the 2026-10-07 completeness sweep in [00-sources.m
 
 ## Aliases
 
-Search aliases (P263, grab --find): binary exponentiation, fast power (快速幂), GCD (greatest common divisor), LCM (least common multiple), Euclidean algorithm, extended Euclid, Bezout identity; 最大公约数, 裴蜀定理 & 一次不定方程, 模算术简介, 扩展欧几里得, 扩欧, 最小公倍数, 辗转相除法, 最大公因数, 快速乘, 龟速乘, 光速乘.
+Search aliases (P263, grab --find): modular exponentiation, binary exponentiation, fast power (快速幂), GCD (greatest common divisor), LCM (least common multiple), Euclidean algorithm, extended Euclid, Bezout identity; 最大公约数, 裴蜀定理 & 一次不定方程, 模算术简介, 扩展欧几里得, 扩欧, 最小公倍数, 辗转相除法, 最大公因数, 快速乘, 龟速乘, 光速乘.
 
 ## History
 
@@ -117,3 +117,4 @@ Search aliases (P263, grab --find): binary exponentiation, fast power (快速幂
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change; `龟速乘` and `光速乘` name related methods for the same problem, kept as search synonyms (user decision 2026-11-07).
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: /finish P276 (user decision 2026-11-10): search alias `modular exponentiation` restores the `simple` corpus rank that rows added by P254 and P275 had taken; `14-search_tester.py --mode quick` passed.

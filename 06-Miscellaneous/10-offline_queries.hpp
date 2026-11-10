@@ -34,7 +34,7 @@ void offlineSweep(const vector<K> &updates, const vector<OfflineThreshold<K>> &q
 template<typename K>
 struct OfflineRangeThreshold { int l, r; K key; bool inclusive = true; };
 template<typename K, typename Compare = std::less<K>>
-vector<int> offlineRangeCount(const vector<K> &a, const vector<OfflineRangeThreshold<K>> &queries,
+vector<int> rangeCountOffline(const vector<K> &a, const vector<OfflineRangeThreshold<K>> &queries,
                               Compare cmp = {}) {
     assert(a.size() <= size_t(INT_MAX) && queries.size() <= size_t(INT_MAX));
     int n = int(a.size()), q = int(queries.size());

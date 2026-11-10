@@ -40,7 +40,7 @@ namespace {
             checkEqual(c[r], c[u], where + " findSet member u=" + show(u));
             if (rep[c[u]] < 0) { rep[c[u]] = r; }
             checkEqual(r, rep[c[u]], where + " findSet canonical u=" + show(u));
-            checkEqual(size(u), sz[c[u]], where + " getSize u=" + show(u));
+            checkEqual(size(u), sz[c[u]], where + " size u=" + show(u));
             int v = (u * 5 + 1) % n;
             checkEqual(same(u, v), c[u] == c[v], where + " isSameSet u=" + show(u) + " v=" + show(v));}}
 
@@ -58,7 +58,7 @@ namespace {
                 es.push_back({u, v}); lab.push_back(labels(n, es));}
             checkEqual(d.now, q, "now");
             for (int t = 0; t <= q; ++t) {
-                checkState(n, lab[t], [&](int u) { return d.findSet(t, u); }, [&](int u) { return d.getSize(t, u); },
+                checkState(n, lab[t], [&](int u) { return d.findSet(t, u); }, [&](int u) { return d.size(t, u); },
                            [&](int u, int v) { return d.isSameSet(t, u, v); }, d.count(t), "t=" + show(t));}
             for (int u = 0; u < n; ++u) {
                 for (int v = 0; v < n; ++v) {
@@ -79,7 +79,7 @@ namespace {
                 checkEqual(d.uniteSets(t, u, v), int(es.size()), "uniteSets version id");
                 es.push_back(es[t]); es.back().push_back({u, v});}
             for (int t = 0; t < int(es.size()); ++t) {
-                checkState(n, labels(n, es[t]), [&](int u) { return d.findSet(t, u); }, [&](int u) { return d.getSize(t, u); },
+                checkState(n, labels(n, es[t]), [&](int u) { return d.findSet(t, u); }, [&](int u) { return d.size(t, u); },
                            [&](int u, int v) { return d.isSameSet(t, u, v); }, d.count(t), "version=" + show(t));}}}
 
     // Large partially persistent: an offline time sweep with a path-compressed DSU (row 01) answers sampled queries,
@@ -94,7 +94,7 @@ namespace {
         for (int k = 0; k < samples; ++k) {
             int t = int(rnd(rng, 0, q)), u = int(rnd(rng, 0, n - 1)), v = int(rnd(rng, 0, n - 1));
             qs.push_back({t, u, v, 0, int(d.isSameSet(t, u, v))});
-            qs.push_back({t, u, v, 1, d.getSize(t, u)});
+            qs.push_back({t, u, v, 1, d.size(t, u)});
             qs.push_back({t, u, v, 2, d.count(t)});
             int w = d.uniteTime(u, v);
             if (w >= 0) { qs.push_back({w, u, v, 0, 1}); }
@@ -106,7 +106,7 @@ namespace {
             if (t) { ref.uniteSets(es[t - 1].first, es[t - 1].second); }
             for (; j < qs.size() && qs[j].t == t; ++j) {
                 auto &x = qs[j];
-                int got = x.kind == 0 ? int(ref.isSameSet(x.u, x.v)) : x.kind == 1 ? ref.getSize(x.u) : ref.count();
+                int got = x.kind == 0 ? int(ref.isSameSet(x.u, x.v)) : x.kind == 1 ? ref.size(x.u) : ref.count();
                 checkEqual(x.want, got, "sweep kind=" + show(x.kind) + " t=" + show(t) + " u=" + show(x.u) + " v=" + show(x.v));}}
         int depthBound = int(std::bit_width(uint(n))) - 1, maxDepth = 0;
         for (int u = 0; u < n; ++u) {
@@ -133,7 +133,7 @@ namespace {
             for (int k = 0; k < 300; ++k) {
                 int u = int(rnd(rng, 0, n - 1)), v = int(rnd(rng, 0, n - 1));
                 checkEqual(d.isSameSet(t, u, v), ref.isSameSet(u, v), "isSameSet version=" + show(t));
-                checkEqual(d.getSize(t, u), ref.getSize(u), "getSize version=" + show(t));}}}
+                checkEqual(d.size(t, u), ref.size(u), "size version=" + show(t));}}}
 
     void edges() {
         context = "edges";
@@ -145,7 +145,7 @@ namespace {
         checkEqual(d.uniteSets(2, 2), false, "self loop"); checkEqual(d.now, 1, "self loop advances time");
         d.uniteSets(0, 1); d.uniteSets(2, 3); d.uniteSets(1, 3);
         checkEqual(d.uniteTime(0, 3), 4, "uniteTime"); checkEqual(d.uniteTime(2, 2), 0, "uniteTime same vertex");
-        checkEqual(d.getSize(3, 0), 2, "size at time 3"); checkEqual(d.getSize(4, 0), 4, "size at time 4"); checkEqual(d.count(1), 4, "count at time 1");
+        checkEqual(d.size(3, 0), 2, "size at time 3"); checkEqual(d.size(4, 0), 4, "size at time 4"); checkEqual(d.count(1), 4, "count at time 1");
         PersistentDSU p(3);
         int v1 = p.uniteSets(0, 0, 1), v2 = p.uniteSets(0, 1, 2), v3 = p.uniteSets(v1, 1, 0);
         checkEqual(p.isSameSet(v1, 0, 1), true, "branch 1"); checkEqual(p.isSameSet(v2, 0, 1), false, "branch 2");
@@ -154,10 +154,10 @@ namespace {
         int dt = 0;
         for (int w = 1; w < 1024; w *= 2) { for (int i = 0; i < 1024; i += 2 * w) { dt = deep.uniteSets(dt, i, i + w); } }
         for (int u = 0; u < 1024; ++u) { checkEqual(deep.findSet(dt, u), 0, "depth-10 tree root u=" + show(u)); }
-        checkEqual(deep.getSize(dt, 1023), 1024, "depth-10 tree size");
+        checkEqual(deep.size(dt, 1023), 1024, "depth-10 tree size");
         PersistentDSU big(1000000000);
         int b1 = big.uniteSets(0, 999999999, 0);
-        checkEqual(big.getSize(b1, 0), 2, "huge n"); checkEqual(big.count(b1), 999999999, "huge n count");}
+        checkEqual(big.size(b1, 0), 2, "huge n"); checkEqual(big.count(b1), 999999999, "huge n count");}
 
     void invalid(const string &name) {
         PartiallyPersistentDSU d(3);

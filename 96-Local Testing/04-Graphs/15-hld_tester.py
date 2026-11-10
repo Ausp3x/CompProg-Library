@@ -3,7 +3,7 @@
 
 quick: 150 random forests (n<=120, six shapes, one to six trees with isolated
 vertices, root=-1 and explicit roots, Graph and CsrGraph) checking the rooting
-fields, heavy-first preorder and head chains against a DFS oracle, getLCA,
+fields, heavy-first preorder and head chains against a DFS oracle, lca,
 distance, kthAncestor, processPath (both modes, call count), subtreeRange,
 rerootedSubtreeIntervals and reorderArray, then every TreeMonoid configuration
 in vertex and edge mode (AffineComposite<mint>, a stateful string-hash

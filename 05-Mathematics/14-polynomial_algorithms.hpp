@@ -295,7 +295,7 @@ template<typename M> vector<M> polyNormalize(vector<M> a) { return polynomial_de
 
 // T: O(n * k), M: O(n); k = nonzero coefficients of a below x^n; dense contracts of fpsInverse, fpsLog, fpsExp, fpsPow (k >= 0), fpsSqrt.
 template<typename M>
-vector<M> fpsSparseInverse(const vector<M> &a, int n) {
+vector<M> fpsInverseSparse(const vector<M> &a, int n) {
     assert(n >= 0 && !a.empty() && a[0] != M(0));
     auto t = polynomial_detail::terms(a, 0, n, M(1));
     M c = inv(a[0]);
@@ -308,7 +308,7 @@ vector<M> fpsSparseInverse(const vector<M> &a, int n) {
         g[i] = s * c;}
     return g;}
 template<typename M>
-vector<M> fpsSparseLog(const vector<M> &a, int n) {
+vector<M> fpsLogSparse(const vector<M> &a, int n) {
     assert(n >= 0 && ulng(n) <= M::mod() && !a.empty() && a[0] == M(1));
     auto t = polynomial_detail::terms(a, 0, n, M(1));
     auto iv = polynomial_detail::inverses<M>(n);
@@ -322,7 +322,7 @@ vector<M> fpsSparseLog(const vector<M> &a, int n) {
         b[i] = s * iv[i];}
     return b;}
 template<typename M>
-vector<M> fpsSparseExp(const vector<M> &a, int n) {
+vector<M> fpsExpSparse(const vector<M> &a, int n) {
     assert(n >= 0 && ulng(n) <= M::mod() && (a.empty() || a[0] == M(0)));
     auto t = polynomial_detail::terms(a, 0, n, M(1));
     for (auto &[j, x] : t) { x *= M(j); }
@@ -336,7 +336,7 @@ vector<M> fpsSparseExp(const vector<M> &a, int n) {
         f[i] *= iv[i];}
     return f;}
 template<typename M>
-vector<M> fpsSparsePow(const vector<M> &a, lng k, int n) {
+vector<M> fpsPowSparse(const vector<M> &a, lng k, int n) {
     assert(n >= 0 && k >= 0);
     vector<M> res(n);
     int v = 0;
@@ -350,25 +350,25 @@ vector<M> fpsSparsePow(const vector<M> &a, lng k, int n) {
     auto u = polynomial_detail::powUnit(polynomial_detail::terms(a, v, len, inv(a[v])), M(k), pow(a[v], ulng(k)), len);
     std::copy(u.begin(), u.end(), res.begin() + (n - len));
     return res;}
-template<typename M> vector<M> fpsSparseSqrt(const vector<M> &a, int n) { return polynomial_detail::sqrtImpl(a, n, true); }
+template<typename M> vector<M> fpsSqrtSparse(const vector<M> &a, int n) { return polynomial_detail::sqrtImpl(a, n, true); }
 
 // T: O(n * log(n)), M: O(n); n >= 0, a[0] a unit; exactly n coefficients of 1 / a.
 template<typename M>
 vector<M> fpsInverse(const vector<M> &a, int n) {
     assert(n >= 0 && !a.empty() && a[0] != M(0));
-    return n <= polynomial_detail::cut<M>(polynomial_detail::INV) ? fpsSparseInverse(a, n) : polynomial_detail::invNewton(a, n);}
+    return n <= polynomial_detail::cut<M>(polynomial_detail::INV) ? fpsInverseSparse(a, n) : polynomial_detail::invNewton(a, n);}
 // T: O(n * log(n)), M: O(n); g[0] a unit; exactly n coefficients of f / g.
 template<typename M> vector<M> fpsDiv(const vector<M> &f, const vector<M> &g, int n) { return truncatedConvolution(f, fpsInverse(g, n), n); }
 // T: O(n * log(n)), M: O(n); a[0] = 1, n <= mod prime; exactly n coefficients of log(a).
 template<typename M>
 vector<M> fpsLog(const vector<M> &a, int n) {
     assert(n >= 0 && ulng(n) <= M::mod() && !a.empty() && a[0] == M(1));
-    return n <= polynomial_detail::cut<M>(polynomial_detail::LOG) ? fpsSparseLog(a, n) : polynomial_detail::logNewton(a, n);}
+    return n <= polynomial_detail::cut<M>(polynomial_detail::LOG) ? fpsLogSparse(a, n) : polynomial_detail::logNewton(a, n);}
 // T: O(n * log(n)), M: O(n); a[0] = 0, n <= mod prime; exactly n coefficients of exp(a).
 template<typename M>
 vector<M> fpsExp(const vector<M> &a, int n) {
     assert(n >= 0 && ulng(n) <= M::mod() && (a.empty() || a[0] == M(0)));
-    return n <= polynomial_detail::cut<M>(polynomial_detail::EXP) ? fpsSparseExp(a, n) : polynomial_detail::expNewton(a, n);}
+    return n <= polynomial_detail::cut<M>(polynomial_detail::EXP) ? fpsExpSparse(a, n) : polynomial_detail::expNewton(a, n);}
 // T: O(n * log(n)), M: O(n); a^k mod x^n, k < 0 needs a[0] != 0, 0^0 = 1, n - v * k <= mod prime for the valuation v.
 template<typename M>
 vector<M> fpsPow(const vector<M> &a, lng k, int n) {

@@ -2,7 +2,7 @@
 
 #include "../01-Core/01-template.hpp"
 
-// S: O(n), U: O(1) amortized addEdge, O(p) addConvexEdge, Q: O(1) getEdge, O(m) edges, M: O(n + m + q); p pieces, q all convex pieces.
+// S: O(n), U: O(1) amortized addEdge, O(p) addConvexEdge, Q: O(1) edge, O(m) edges, M: O(n + m + q); p pieces, q all convex pieces.
 template<class Cap = lng, class Cost = lng>
 struct MinCostFlow {
     static_assert(std::numeric_limits<Cap>::is_integer && std::numeric_limits<Cap>::is_signed);
@@ -49,7 +49,7 @@ struct MinCostFlow {
         cv[id] = int(conv.size()); conv.push_back({id, l, l + k, l});
         return id;}
 
-    Edge getEdge(int i) const {
+    Edge edge(int i) const {
         assert(0 <= i && i < int(pos.size()));
         auto [u, k] = pos[i]; auto &a = g[u][k]; auto &b = g[a.to][a.rev];
         if (cv[i] < 0) { return {u, a.to, a.cap + b.cap, b.cap, -b.cost}; }
@@ -57,7 +57,7 @@ struct MinCostFlow {
         return {u, a.to, pc[c.r].first, pc[min(c.j + 1, c.r)].first - a.cap, -b.cost};}
     vector<Edge> edges() const {
         vector<Edge> res;
-        for (int i = 0; i < int(pos.size()); ++i) { res.push_back(getEdge(i)); }
+        for (int i = 0; i < int(pos.size()); ++i) { res.push_back(edge(i)); }
         return res;}
     // T: O(n) when valid, else O(n * m); p with cost + p[u] - p[v] >= 0 on every arc of positive residual capacity.
     vector<Cost> potentials() {
@@ -153,7 +153,7 @@ struct MinCostFlow {
         bool ok = true;
         auto mag = [](Cost c) { return c < 0 ? -lll(c) : lll(c); };
         for (int i = 0; i < int(pos.size()); ++i) {
-            auto e = getEdge(i);
+            auto e = edge(i);
             if (e.from == e.to || e.cap == 0) { continue; }
             lll c = cv[i] < 0 ? mag(e.cost) : max(mag(pc[conv[cv[i]].l].second), mag(pc[conv[cv[i]].r].second));
             w = min(w + c, lll(LIM) + 1); top = max(top, c);

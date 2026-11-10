@@ -8,7 +8,7 @@ Package P034 (batch DS03). New header. It carries the row 01 legacy handoff ([01
 
 Vertices `[0, n)`, `0 <= n <= INT_MAX`. Union by size; on equal sizes the first argument's root stays the root. Representatives are arbitrary.
 
-- No path compression: `findSet` follows parents. Union by size keeps every depth at most `floor(log2(n))`, because each step up at least doubles the subtree size. So `findSet`, `isSameSet`, `getSize` and `uniteSets` cost O(log(n)) worst case. That worst-case bound is what keeps rollback sound: path compression's amortized bound does not survive undo.
+- No path compression: `findSet` follows parents. Union by size keeps every depth at most `floor(log2(n))`, because each step up at least doubles the subtree size. So `findSet`, `isSameSet`, `size` and `uniteSets` cost O(log(n)) worst case. That worst-case bound is what keeps rollback sound: path compression's amortized bound does not survive undo.
 - History: every `uniteSets` call appends exactly one record, merging or redundant (self-loops included).
   - `undo()` reverts the latest record in O(1) and asserts a nonempty history.
   - `snapshot()` is the record count, used as a token.
@@ -22,10 +22,10 @@ Vertices `[0, n)`, `0 <= n <= INT_MAX`. Union by size; on equal sizes the first 
 
 `M` provides `S` and `op(a, b)`, commutative and associative, under the stored-object contract of [00-monoids.md](00-monoids.md#monoid-contract): `RollbackDSUAggregate(a, mon = {})` keeps it as `m` (static presets, stateful structs and `Monoid` lambdas all work; no `e` is needed). Commutativity is needed because which root absorbs the other depends on sizes, not on argument order. `e()` is not used. The constructor takes the initial vertex values `a`; `n = a.size()`.
 
-- Inherits `findSet`, `isSameSet`, `getSize`, `count`, `groups` and `snapshot`. Defines its own `uniteSets`, `undo` and `rollback`, which also maintain the aggregates. Never call `RollbackDSU::uniteSets`, `undo` or `rollback` on an aggregate (qualified, or through a base reference): they skip the aggregate state.
+- Inherits `findSet`, `isSameSet`, `size`, `count`, `groups` and `snapshot`. Defines its own `uniteSets`, `undo` and `rollback`, which also maintain the aggregates. Never call `RollbackDSU::uniteSets`, `undo` or `rollback` on an aggregate (qualified, or through a base reference): they skip the aggregate state.
 - `componentValue(u)`: `op` over `a[w]` for every member `w`, and over every live `addValue` on the component. Returns `vector<S>::const_reference`, valid until the next mutation.
 - `addValue(u, x)`: records one entry (counted by `snapshot`, reverted by `undo`) and folds `x` into `u`'s component. History is LIFO, so an `addValue` is reverted before any union that formed its component. That makes it the same as folding `x` into `u`'s own value.
-- `edgeCount(u)`: number of live `uniteSets` records whose endpoints lie in `u`'s component, merging and redundant, self-loops included. This is the legacy `esz`. `edgeCount(u) - getSize(u) + 1` is the component's cycle rank, so `edgeCount(u) >= getSize(u)` exactly when the component has a cycle (multi-edges and self-loops count).
+- `edgeCount(u)`: number of live `uniteSets` records whose endpoints lie in `u`'s component, merging and redundant, self-loops included. This is the legacy `esz`. `edgeCount(u) - size(u) + 1` is the component's cycle rank, so `edgeCount(u) >= size(u)` exactly when the component has a cycle (multi-edges and self-loops count).
 - Each record saves the touched root's value and edge count, and `undo` restores them, so `M` needs no inverse. Memory O(n + q) values of `S`.
 - `uniteSets` and `addValue` cost O(log(n)) plus one `op`; `undo` costs O(1) plus one copy of `S`. Edge counts are `int`: at most `INT_MAX` live records.
 
@@ -39,6 +39,7 @@ Under `NDEBUG`, an out-of-range vertex reads outside the arrays and `undo` on an
 - `RollbackDSUAggregate::contradictions` (planned row) became `edgeCount` by the user's decision of 2026-10-17. Potential and parity contradictions belong to row 29.
 - `esz`, `getEsiz` (`OLD/algorithms.cpp`) → `edgeCount`.
 - Catalog names: KACTL `time()`/`rollback(t)`, Nyaan `get_state()`/`rollback(state)`, tko919 `get()` and maspypy `time()` → `snapshot`/`rollback`; ACL `leader` → `findSet`; hitonanode `set_weight` → `addValue` (folding instead of overwriting); maspypy and hitonanode `reset()` → `rollback(0)`.
+- P276 rename, 2026-11-10: `getSize` → `size`.
 
 ## Feature-to-test map
 
@@ -46,7 +47,7 @@ Tester `96-Local Testing/02-Data Structures/09-rollbackdsu_tester.cpp`, entry `0
 
 | Operation | Group | Oracle |
 |---|---|---|
-| `uniteSets` (return value), `undo`, `snapshot`, `rollback`, `findSet`, `isSameSet`, `getSize`, `count`, `groups` | `baseHistories` (n <= 12 with 60 steps, n <= 60 with 200 steps; self-loops, redundant unions, tokens reused after undos) | Brute force from the live record list: BFS components; `findSet` must be a member and the same vertex for the whole component; exact `groups` order |
+| `uniteSets` (return value), `undo`, `snapshot`, `rollback`, `findSet`, `isSameSet`, `size`, `count`, `groups` | `baseHistories` (n <= 12 with 60 steps, n <= 60 with 200 steps; self-loops, redundant unions, tokens reused after undos) | Brute force from the live record list: BFS components; `findSet` must be a member and the same vertex for the whole component; exact `groups` order |
 | `componentValue`, `addValue`, `edgeCount`, aggregate `uniteSets`, `undo`, `rollback` | `aggregateHistories<SumMax>` (sum mod 1e9+7, maximum and its multiplicity), `<Or>` (`bool` storage); final `rollback(0)` | Brute force: per-component fold of initial values and `addValue` operands; edge counts from unite records |
 | Depth bound and large histories | `large`: n = 2 * 10^5 and 2^16 with up to 4 * 10^5 steps of unions and batch rollbacks (full); n = 10^6 with 3 * 10^6 steps (stress) | Checkpoints rebuild row 01's path-compressed `DSU` from the live edges (count, sizes, 2000 random pairs); maximum depth at most `floor(log2(n))` |
 | Empty structure, copies, self-loops, redundant counts, `bool` aggregate; runtime monoid state | `edges` | Direct values; component sums modulo a member modulus (5 and 10^9+7) through unions, `addValue` and `rollback` |
@@ -90,6 +91,8 @@ Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 ## Aliases
 
+Renamed aliases (P276, 2026-11-10): `getSize`.
+
 Search aliases (P263, grab --find): 并查集, 可撤销并查集, 可回滚并查集, 撤销并查集.
 
 ## History
@@ -98,3 +101,4 @@ Search aliases (P263, grab --find): 并查集, 可撤销并查集, 可回滚并�
 - 2026-10-17: P027 monoid pass (stored-object monoid contract for `RollbackDSUAggregate`, stateful-monoid test added); full (seed 20261017) on g++ and g++-14 and stress (seed 7) passed, MEMORY peak 502/525/824 MB.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`getSize` → `size`); full on g++ and g++-14, stress and extraction passed.

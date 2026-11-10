@@ -105,17 +105,15 @@ void verify(const Graph &g, int root, bool exhaustive_reroot = true) {
     if (exhaustive_reroot) { for (int r = 0; r < g.n; ++r) { reroots.emplace_back(g, r); }}
     for (int u = 0; u < g.n; ++u) {
         for (int k = 0; k <= oracle.depth[u] + 1; ++k) {
-            expect(binary.kthAncestor(u, k), oracle.ancestor(u, k), "kthAncestor u=" + std::to_string(u) + " k=" + std::to_string(k));
-            expect(binary.getKthAncestor(u, k), oracle.ancestor(u, k), "legacy getKthAncestor");}
-        expect(binary.getKthAncestor(u, INT_MIN), u, "legacy negative ancestor is identity");
+            expect(binary.kthAncestor(u, k), oracle.ancestor(u, k), "kthAncestor u=" + std::to_string(u) + " k=" + std::to_string(k));}
         expect(binary.kthAncestor(u, std::numeric_limits<lng>::max()), -1, "huge missing ancestor");
         for (int v = 0; v < g.n; ++v) {
             string pair = " u=" + std::to_string(u) + " v=" + std::to_string(v);
             int want = oracle.lca(u, v); queries.push_back({u, v}); answers.push_back(want);
-            expect(binary.getLCA(u, v), want, "binary LCA" + pair);
-            expect(euler.getLCA(u, v), want, "Euler LCA" + pair);
-            expect(csr_binary.getLCA(u, v), want, "CSR binary LCA" + pair);
-            expect(csr_euler.getLCA(u, v), want, "CSR Euler LCA" + pair);
+            expect(binary.lca(u, v), want, "binary LCA" + pair);
+            expect(euler.lca(u, v), want, "Euler LCA" + pair);
+            expect(csr_binary.lca(u, v), want, "CSR binary LCA" + pair);
+            expect(csr_euler.lca(u, v), want, "CSR Euler LCA" + pair);
             require(binary.isAncestor(u, v) == (want == u) && euler.isAncestor(u, v) == (want == u), "ancestor relation" + pair);
             require((binary.component[u] == binary.component[v] && binary.t_in[u] <= binary.t_in[v] && binary.t_in[v] <= binary.t_out[u])
                 == (want == u), "inclusive subtree interval" + pair);
@@ -123,10 +121,10 @@ void verify(const Graph &g, int root, bool exhaustive_reroot = true) {
             expect(binary.distance(u, v), length, "binary edge distance" + pair);
             expect(euler.distance(u, v), length, "Euler edge distance" + pair);
             lll out = 123456789;
-            require(binary.weightedDistance(u, v, out) == !path.empty(), "binary weighted connection status" + pair);
+            require(binary.distanceWeighted(u, v, out) == !path.empty(), "binary weighted connection status" + pair);
             require(out == (path.empty() ? lll(123456789) : weight), "binary exact weight/unchanged missing", show(weight), show(out));
             out = 123456789;
-            require(euler.weightedDistance(u, v, out) == !path.empty(), "Euler weighted connection status" + pair);
+            require(euler.distanceWeighted(u, v, out) == !path.empty(), "Euler weighted connection status" + pair);
             require(out == (path.empty() ? lll(123456789) : weight), "Euler exact weight/unchanged missing", show(weight), show(out));
             for (int k = 0; k <= int(path.size()); ++k) {
                 expect(binary.jump(u, v, k), k < int(path.size()) ? path[k] : -1, "path jump" + pair + " k=" + std::to_string(k));}
@@ -136,18 +134,18 @@ void verify(const Graph &g, int root, bool exhaustive_reroot = true) {
                 expect(binary.rerootedLCA(u, v, r), expected, "binary reroot" + pair + " r=" + std::to_string(r));
                 expect(euler.rerootedLCA(u, v, r), expected, "Euler reroot" + pair + " r=" + std::to_string(r));}}}}
     paths(g, root, binary, euler, oracle);
-    require(offlineLCA(g, queries, root) == answers && offlineLCA(CsrGraph(g), queries, root) == answers,
+    require(lcaOffline(g, queries, root) == answers && lcaOffline(CsrGraph(g), queries, root) == answers,
         "offline Tarjan all pairs vs independent ancestor intersections");
     reverse(queries.begin(), queries.end()); reverse(answers.begin(), answers.end());
     if (!queries.empty()) { queries.push_back(queries[0]); answers.push_back(answers[0]); }
-    require(offlineLCA(g, queries, root) == answers, "offline reordered/duplicated queries");
-    require(offlineLCA(g, {}, root).empty(), "offline empty query batch");
+    require(lcaOffline(g, queries, root) == answers, "offline reordered/duplicated queries");
+    require(lcaOffline(g, {}, root).empty(), "offline empty query batch");
     LCA copied = binary; EulerLCA ecopied = euler;
     LCA moved = std::move(copied); EulerLCA emoved = std::move(ecopied);
     copied = moved; ecopied = emoved;
     if (g.n) {
-        expect(copied.getLCA(0, g.n - 1), oracle.lca(0, g.n - 1), "binary copy/move assignment");
-        expect(ecopied.getLCA(0, g.n - 1), oracle.lca(0, g.n - 1), "Euler copy/move assignment");}}
+        expect(copied.lca(0, g.n - 1), oracle.lca(0, g.n - 1), "binary copy/move assignment");
+        expect(ecopied.lca(0, g.n - 1), oracle.lca(0, g.n - 1), "Euler copy/move assignment");}}
 
 void exhaustive(const string &mode) {
     int bound = mode == "quick" ? 4 : 6, cases = 0;
@@ -173,15 +171,15 @@ void adjacency() {
     context = "unsorted adjacency lists through Graph::fromAdjacency";
     vector<vector<int>> zero{{1}, {2, 0}, {1}}, one{{}, {2}, {3, 1}, {2}};
     LCA a(Graph::fromAdjacency(zero), 0), b(Graph::fromAdjacency(one), 1), empty(Graph::fromAdjacency(vector<vector<int>>{}));
-    expect(a.getLCA(0, 2), 0, "zero-based lists"); expect(a.getKthAncestor(2, 2), 0, "zero-based kth ancestor");
-    expect(b.getLCA(2, 3), 2, "one-based lists"); expect(b.getKthAncestor(3, 2), 1, "one-based kth ancestor");
-    expect(b.getLCA(0, 3), -1, "one-based unused vertex 0 isolated"); expect(b.n, 4, "vertex count is the list count");
+    expect(a.lca(0, 2), 0, "zero-based lists"); expect(a.kthAncestor(2, 2), 0, "zero-based kth ancestor");
+    expect(b.lca(2, 3), 2, "one-based lists"); expect(b.kthAncestor(3, 2), 1, "one-based kth ancestor");
+    expect(b.lca(0, 3), -1, "one-based unused vertex 0 isolated"); expect(b.n, 4, "vertex count is the list count");
     expect(empty.n, 0, "empty lists");
     Graph g(3); g.addEdge(0, 1); LCA snapshot(g); EulerLCA esnapshot(g); g.addEdge(1, 2);
-    expect(snapshot.getLCA(0, 2), -1, "binary owning snapshot after input mutation");
-    expect(esnapshot.getLCA(0, 2), -1, "Euler owning snapshot after input mutation");
+    expect(snapshot.lca(0, 2), -1, "binary owning snapshot after input mutation");
+    expect(esnapshot.lca(0, 2), -1, "Euler owning snapshot after input mutation");
     snapshot = LCA(g); esnapshot = EulerLCA(g);
-    expect(snapshot.getLCA(0, 2), 0, "binary rebuild by assignment"); expect(esnapshot.getLCA(0, 2), 0, "Euler rebuild by assignment");
+    expect(snapshot.lca(0, 2), 0, "binary rebuild by assignment"); expect(esnapshot.lca(0, 2), 0, "Euler rebuild by assignment");
     std::cout << "PASS adjacency lists, snapshot lifetime and rebuild\n";}
 void randomized(const string &mode) {
     std::mt19937_64 rng(seed); int count = mode == "quick" ? 40 : mode == "full" ? 350 : 2500;
@@ -206,19 +204,19 @@ void shapes(const string &mode) {
             vector<pair<int, int>> queries; vector<int> answers;
             for (int i = 0; i < 1000; ++i) {
                 int u = int(rng() % n), v = int(rng() % n), want = oracle.lca(u, v);
-                expect(binary.getLCA(u, v), want, "binary boundary oracle"); expect(euler.getLCA(u, v), want, "Euler boundary oracle");
+                expect(binary.lca(u, v), want, "binary boundary oracle"); expect(euler.lca(u, v), want, "Euler boundary oracle");
                 queries.push_back({u, v}); answers.push_back(want);}
-            require(offlineLCA(g, queries) == answers, "Tarjan boundary oracle");}}
+            require(lcaOffline(g, queries) == answers, "Tarjan boundary oracle");}}
     int n = mode == "quick" ? 2000 : mode == "full" ? 200000 : 500000;
     Graph g(n); for (int u = 1; u < n; ++u) { g.addEdge(u - 1, u, std::numeric_limits<lng>::max()); }
     LCA binary(g); EulerLCA euler(g); context = "deep chain n=" + std::to_string(n);
     for (int i = 0; i < 20000; ++i) {
         int u = int(rng() % n), v = int(rng() % n), r = int(rng() % n);
-        expect(binary.getLCA(u, v), min(u, v), "deep binary LCA"); expect(euler.getLCA(u, v), min(u, v), "deep Euler LCA");
+        expect(binary.lca(u, v), min(u, v), "deep binary LCA"); expect(euler.lca(u, v), min(u, v), "deep Euler LCA");
         array<int, 3> points{u, v, r}; sort(points.begin(), points.end());
         expect(binary.rerootedLCA(u, v, r), points[1], "deep binary reroot median");
         expect(euler.rerootedLCA(u, v, r), points[1], "deep Euler reroot median");}
-    lll out = 0; require(binary.weightedDistance(0, n - 1, out) && out == lll(n - 1) * std::numeric_limits<lng>::max(), "deep exact wide sum");
+    lll out = 0; require(binary.distanceWeighted(0, n - 1, out) && out == lll(n - 1) * std::numeric_limits<lng>::max(), "deep exact wide sum");
     expect(binary.jump(n - 1, 0, n - 1), 0, "deep jump to endpoint");
     LCAFold fold(g, vector<lng>(n, 1), Sum<lng>{});
     for (int i = 0; i < 2000; ++i) {
@@ -226,7 +224,7 @@ void shapes(const string &mode) {
         require(fold.pathFold(u, v) == std::pair<bool, lng>{true, abs(u - v) + 1}, "deep vertex pathFold");
         require(fold.pathFold(u, v, true) == std::pair<bool, lng>{true, abs(u - v)}, "deep edge pathFold");
         require((pathIntersection(euler, u, v, n - 1 - u, n - 1 - v).first != -1) == (max(u, v) >= min(n - 1 - u, n - 1 - v) && min(u, v) <= max(n - 1 - u, n - 1 - v)), "deep interval intersection");}
-    require(offlineLCA(g, {{0, n - 1}, {n - 1, n - 1}, {n / 2, n - 1}}) == vector<int>({0, n - 1, n / 2}), "deep Tarjan stack safety");
+    require(lcaOffline(g, {{0, n - 1}, {n - 1, n - 1}, {n / 2, n - 1}}) == vector<int>({0, n - 1, n / 2}), "deep Tarjan stack safety");
     // Runtime state: path counts modulo a captured modulus on the chain (vertex i holds i).
     for (lng mod : {lng(7), lng(1000000007)}) {
         vector<lng> w(n); std::iota(w.begin(), w.end(), lng(0));
@@ -246,18 +244,18 @@ void invalid(const string &probe) {
         g.addEdge(2, 0);
         if (probe == "cycle") { LCA x(g); }
         if (probe == "euler-cycle") { EulerLCA x(g); }
-        if (probe == "offline-cycle") { (void)offlineLCA(g, {}); }}
+        if (probe == "offline-cycle") { (void)lcaOffline(g, {}); }}
     else if (probe == "loop") { g.addEdge(0, 0); LCA x(g); }
     else if (probe == "parallel") { g.addEdge(0, 1); LCA x(g); }
     else {
         LCA x(g); EulerLCA y(g);
-        if (probe == "query-negative") { (void)x.getLCA(-1, 0); }
+        if (probe == "query-negative") { (void)x.lca(-1, 0); }
         else if (probe == "query-end") { (void)x.distance(0, 3); }
         else if (probe == "ancestor-negative") { (void)x.kthAncestor(0, -1); }
         else if (probe == "jump-negative") { (void)x.jump(0, 1, -1); }
         else if (probe == "reroot-end") { (void)x.rerootedLCA(0, 1, 3); }
-        else if (probe == "euler-query-end") { (void)y.getLCA(0, 3); }
-        else if (probe == "offline-query-end") { (void)offlineLCA(g, {{0, 3}}); }
+        else if (probe == "euler-query-end") { (void)y.lca(0, 3); }
+        else if (probe == "offline-query-end") { (void)lcaOffline(g, {{0, 3}}); }
         else if (probe == "intersection-end") { (void)pathIntersection(y, 0, 1, 2, 3); }
         else if (probe == "fold-size") { LCAFold z(g, vector<int>(2), Sum<int>{}); }
         else if (probe == "fold-query-end") { LCAFold z(g, vector<int>(3), Sum<int>{}); (void)z.pathFold(0, 3); }

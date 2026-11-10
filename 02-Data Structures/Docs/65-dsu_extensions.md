@@ -1,6 +1,6 @@
 # 65-dsu_extensions.hpp — evidence
 
-Package P035 (batch DS52). New header. It depends on row 01 `DSU`, row 61 `HashMap` and Miscellaneous `02-customhash.hpp` (the default hash) only. `LinkedDSU` and `ComponentSumDSU` extend `DSU` and inherit its `findSet`, `isSameSet`, `getSize`, `count` and `groups`; `SparseDSU` holds a `DSU`, and `MergeHistoryForest` builds with a local one. `DualDSU` keeps its own arrays, because its path compression must update tags. Groups and monoids follow row 00 ([00-monoids.md](00-monoids.md#group-contract)). Preconditions are `assert`s checked once per call; `DualDSU::findSet` asserts and calls the recursive `root`, whose depth is at most `floor(log2(n)) + 1` under union by size.
+Package P035 (batch DS52). New header. It depends on row 01 `DSU`, row 61 `HashMap` and Miscellaneous `02-customhash.hpp` (the default hash) only. `LinkedDSU` and `ComponentSumDSU` extend `DSU` and inherit its `findSet`, `isSameSet`, `size`, `count` and `groups`; `SparseDSU` holds a `DSU`, and `MergeHistoryForest` builds with a local one. `DualDSU` keeps its own arrays, because its path compression must update tags. Groups and monoids follow row 00 ([00-monoids.md](00-monoids.md#group-contract)). Preconditions are `assert`s checked once per call; `DualDSU::findSet` asserts and calls the recursive `root`, whose depth is at most `floor(log2(n)) + 1` under union by size.
 
 ## Contracts
 
@@ -36,7 +36,7 @@ Values in a group `G` (`S`, `op`, `e`, `inv`), not necessarily commutative. The 
 Keys of any type `K` that `H` (default `CustomHash`) hashes and `==` compares: integers of any width, strings, pairs, tuples. `index(k)` maps a key to a dense id, creating it with `DSU::makeSet` on first use; `key[id]` maps back. Only `uniteSets` creates keys.
 
 - `uniteSets(a, b)`: as `DSU::uniteSets` on the keys' ids.
-- `findSet(k)`: the representative key of `k`'s component; `k` itself for a key never united. `isSameSet`, `getSize` (1 for a key never united) read without allocating.
+- `findSet(k)`: the representative key of `k`'s component; `k` itself for a key never united. `isSameSet`, `size` (1 for a key never united) read without allocating.
 - O(alpha(k)) amortized plus O(1) expected hashing per call, memory O(k) for `k` distinct united keys. The hash's process seed and adversarial behaviour are row 61's ([61-hashmap.md](61-hashmap.md)).
 
 ### MergeHistoryForest
@@ -59,6 +59,7 @@ Under `NDEBUG`, out-of-range vertices or nodes read outside the arrays, and a ne
 ### Legacy mapping
 
 No legacy source. Catalog names: Nyaan `union-find-enumerate` and suisen `linked_union_find` `enumerate`/`connected_component`, noshi91 `union_enumerate::enumerate` → `LinkedDSU::members`; Nyaan `unite(x, y, f)` merge callbacks → `unionEnumerate` for the newly connected pairs, or `members` before `uniteSets`; suisen `union_find_component_sum` `sum` → `ComponentSumDSU::componentValue`; maspypy `dual_unionfind` `apply`/`get` → `DualDSU`; Nyaan `dynamic-union-find` → `SparseDSU`; suisen `merge_history_forest` and maspypy `tree_of_unionfind` → `MergeHistoryForest`, whose `same(u, v, t)` is `earliestConnectTime(u, v) <= t` (connected: not `-1`) and `group(i, t)` is `leafRange(componentAt(i, t))`.
+- P276 rename, 2026-11-10: `getSize` → `size`.
 
 ## Feature-to-test map
 
@@ -67,9 +68,9 @@ Tester `96-Local Testing/02-Data Structures/65-dsu_extensions_tester.cpp`, entry
 | Operation | Group | Oracle |
 |---|---|---|
 | `LinkedDSU` `uniteSets`, `makeSet`, `members`, `unionEnumerate`; inherited `count`, `groups` | `linkedHistories` (n <= 10 growing by `makeSet`, 40 steps, every vertex after every step) | BFS components of the union edges: `members` sorted equals the component, starts at `u`, and the second member's list is its rotation; `unionEnumerate` pairs sorted equal `A x B` |
-| `ComponentSumDSU` `componentValue`, `addValue`, `uniteSets`, `makeSet`, inherited `getSize` | `sumHistories<SumMax>` (sum mod 10^9+7, maximum and its count), `<Or<bool>>` (`bool` storage), `<ModSum>` (runtime modulus) | BFS components folding each vertex's own value, into which `addValue` operands are folded |
+| `ComponentSumDSU` `componentValue`, `addValue`, `uniteSets`, `makeSet`, inherited `size` | `sumHistories<SumMax>` (sum mod 10^9+7, maximum and its count), `<Or<bool>>` (`bool` storage), `<ModSum>` (runtime modulus) | BFS components folding each vertex's own value, into which `addValue` operands are folded |
 | `DualDSU` `apply`, `get`, `uniteSets`, `findSet`, `isSameSet` | `dualHistories` over `Sum<lng>`, `Perm` (S5, non-commutative; also n <= 60 with 300 steps), `Xor<bool>`, `ModAdd`; half the rounds check every step | Explicit values: `apply` multiplies every member of the BFS component on the right |
-| `SparseDSU` `uniteSets`, `findSet`, `isSameSet`, `getSize` | `sparseHistories` over `lng` (full-range and small keys), `string`, `pair<int, int>` | BFS components over key indices; untouched keys are their own roots and allocate nothing |
+| `SparseDSU` `uniteSets`, `findSet`, `isSameSet`, `size` | `sparseHistories` over `lng` (full-range and small keys), `string`, `pair<int, int>` | BFS components over key indices; untouched keys are their own roots and allocate nothing |
 | `MergeHistoryForest` build, `nodeTime`, `mergeTime`, `earliestConnectTime`, `componentAt`, `leafRange` | `forestCases` (n <= 9 with q <= 16, n <= 30 with q <= 80; times 0, q/2, q, q + 1, `INT_MAX`) | BFS components of every prefix of the union sequence: node ids and times from the merging unions, member sets, first time of growth, first connected prefix, lifetime of `componentAt` |
 | `MergeHistoryForest` on deep and shallow trees | `forestShapes` (n = 300 quick, 4096 otherwise): a chain in increasing and in decreasing vertex order and a star (one heavy path with a light leaf per level; the growing component is the first argument in the chains and the second in the star), and a balanced tree (`log2(n)` light edges per leaf), each with `n / 4` redundant unions inserted; 4000 queries each | As in `large` below |
 | Scale | `large`: n = 2 * 10^5 and 2^16 with 4 * 10^5 and 3 * 10^5 operations (full); n = 10^6 with 3 * 10^6 (stress); `dualMedium` n = 3000 with 3 * 10^4 steps (full), n = 5000 with 10^5 (stress) | Row 01 `DSU` with per-root sums (16 checkpoints, 64 vertices each) and member lists (4 vertices: as many distinct members as the size, all in the component); row 10 `PartiallyPersistentDSU::uniteTime` for `earliestConnectTime`, and for `componentAt` 20,000 queries sorted by time against a row 01 `DSU` replaying the unions (size and a random leaf of the range); a key pool indexed by `std::unordered_map` with a `DSU` for `SparseDSU`; explicit member lists for `DualDSU` |
@@ -116,6 +117,8 @@ Fetched 2026-10-23 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 ## Aliases
 
+Renamed aliases (P276, 2026-11-10): `getSize`.
+
 Search aliases (P263, grab --find): 哈希并查集, 连通块和, 连通块枚举, 并查集重构树, 最早连通时间.
 
 ## History
@@ -124,3 +127,4 @@ Search aliases (P263, grab --find): 哈希并查集, 连通块和, 连通块枚�
 - 2026-10-23: P035 first implementation (user decisions on `SparseDSU` and `MergeHistoryForest`); `DualDSU` added after the completeness sweep; independent review, 7 findings fixed across the package (here: the direct `CustomHash` include, complexity symbols, three probes, `MergeHistoryForest` rebuilt on heavy paths with O(n) memory instead of binary lifting, deep and shallow forest shapes); full (seed 20261023) on g++ and g++-14 and stress (seed 7) passed.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`getSize` → `size`); full on g++ and g++-14, stress and extraction passed.

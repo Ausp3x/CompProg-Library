@@ -30,7 +30,7 @@ struct DSU {
         while (r != par[r]) { r = par[r]; }
         while (u != r) { int p = par[u]; par[u] = r; u = p; }
         return r;}
-    int getSize(int u) { return siz[findSet(u)]; }
+    int size(int u) { return siz[findSet(u)]; }
     bool isSameSet(int u, int v) { return findSet(u) == findSet(v); }
     int count() const { return ncon; }
     // T: O(n), M: O(n); groups and members ordered by smallest vertex.

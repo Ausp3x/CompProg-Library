@@ -4,8 +4,8 @@ C++: basic operations against coefficient loops; polyDivmod by the division iden
 division across the naive/Newton threshold (up to 4e5 coefficients optimized); fpsInverse,
 fpsDiv, fpsLog, fpsExp and the sparse variants by the identities a g = 1, a b' = a', f' = f a'
 (O(n^2) checks to n = 2049, transform-checked to 2^18 optimized, 2^20 stress) and log(exp)
-round trips; fpsPow (integer, negative, LLONG_MIN, rational) and fpsSparsePow against binary
-powering with truncated schoolbook products; fpsSqrt and fpsSparseSqrt by squaring, branch
+round trips; fpsPow (integer, negative, LLONG_MIN, rational) and fpsPowSparse against binary
+powering with truncated schoolbook products; fpsSqrt and fpsSqrtSparse by squaring, branch
 choice and Euler-criterion existence; polyGcd, polyXgcd and polyHalfGcd against an extended
 Euclid by long division across the half-GCD threshold, with a 6e4-degree identity check;
 polyResultant and polyDiscriminant against Sylvester determinants (formal degree n - 1 for the

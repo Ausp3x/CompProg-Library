@@ -166,7 +166,7 @@ Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledger
 
 - `minimumEnclosingParallelogram` (CGAL): row 07 `minimumAreaParallelogramApprox` already computes it by Rote's linear algorithm with exact selection, so row 57 dropped its planned copy too.
 - `yaoGraph`, `thetaGraph` in row 22 (CGAL): row 63 `geometric_spanners` owns them.
-- `gaussCircleFast (convex hull)` in row 19: found in the library, no catalog source; Mathematics row 55 owns it; row 19 keeps `latticeInDiskFast`.
+- `gaussCircleCountHull (convex hull)` in row 19: found in the library, no catalog source; Mathematics row 55 owns it; row 19 keeps `latticeInDiskHull`.
 
 ## P275 re-review 2026-11-10
 

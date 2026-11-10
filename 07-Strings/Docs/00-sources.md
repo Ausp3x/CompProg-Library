@@ -134,7 +134,7 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 
 | URL | Used for |
 |---|---|
-| https://raw.githubusercontent.com/maspypy/library/main/string/periods.hpp | 01: `borders`, `periods`; 27: `primitiveRoot` |
+| https://raw.githubusercontent.com/maspypy/library/main/string/periods.hpp | 01: `borders`, `periods`; 27: `wordRoot` |
 | https://cp-algorithms.com/string/z-function.html | 02: `DistinctSubstringsDeque`, `distinctSubstrings` |
 | https://cp-algorithms.com/string/prefix-function.html | 02: `DistinctSubstringsDeque`, `distinctSubstrings` |
 | https://oi-wiki.org/string/kmp/ | 02: `DistinctSubstringsDeque`, `distinctSubstrings` |

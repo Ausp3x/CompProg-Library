@@ -30,6 +30,6 @@ from _00_contest_runner import main
 if __name__ == '__main__':
     raise SystemExit(main('20-min_cost_flow', ['negative-size', 'addEdge-range', 'addEdge-negative',
         'addEdge-cost-high', 'addEdge-cost-low', 'convex-range', 'convex-length', 'convex-order',
-        'convex-overflow', 'convex-cost', 'getEdge-range', 'flow-same', 'flow-range', 'flow-limit',
+        'convex-overflow', 'convex-cost', 'edge-range', 'flow-same', 'flow-range', 'flow-limit',
         'slope-same', 'slope-limit', 'negative-cycle', 'negative-loop', 'negative-cycle-after-flow',
         'potentials-cycle', 'path-bound', 'total-bound', 'total-sum-bound', 'potentials-bound']))

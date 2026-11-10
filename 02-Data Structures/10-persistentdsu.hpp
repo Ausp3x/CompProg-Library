@@ -30,7 +30,7 @@ struct PartiallyPersistentDSU {
         while (par[u] != u && tim[u] <= t) { u = par[u]; }
         return u;}
     bool isSameSet(int t, int u, int v) const { return findSet(t, u) == findSet(t, v); }
-    int getSize(int t, int u) const {
+    int size(int t, int u) const {
         u = findSet(t, u);
         auto it = upper_bound(siz[u].begin(), siz[u].end(), pair{t, INT_MAX});
         return it == siz[u].begin() ? 1 : prev(it)->second;}
@@ -69,6 +69,6 @@ struct PersistentDSU {
         for (int d = 0, p = a.get(ver[t], u); p >= 0 && d < 31; p = a.get(ver[t], u), ++d) { u = p; }
         return u;}
     bool isSameSet(int t, int u, int v) const { return findSet(t, u) == findSet(t, v); }
-    int getSize(int t, int u) const { u = findSet(t, u); return -a.get(ver[t], u); }
+    int size(int t, int u) const { u = findSet(t, u); return -a.get(ver[t], u); }
     int count(int t) const { assert(0 <= t && t < int(ver.size())); return ncon[t]; }
 };

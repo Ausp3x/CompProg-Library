@@ -117,7 +117,7 @@ namespace {
                     S want = mon.e();
                     for (int v : c.sets[c.comp[u]]) { want = mon.op(want, own[v]); }
                     checkEqual(S(d.componentValue(u)), want, "componentValue(" + show(u) + ")");
-                    checkEqual(d.getSize(u), int(c.sets[c.comp[u]].size()), "getSize");}
+                    checkEqual(d.size(u), int(c.sets[c.comp[u]].size()), "size");}
                 int kind = int(rng() % 8);
                 if (kind == 0 && n < maxN + 3) {
                     S x = value(rng, mon);
@@ -201,7 +201,7 @@ namespace {
                     int j = int(lower_bound(keys.begin(), keys.end(), r) - keys.begin());
                     checkEqual(j < pool && keys[j] == r && c.comp[j] == c.comp[i], true, "findSet in component");
                     if (!touched[i]) { checkEqual(r == keys[i], true, "untouched key is its own root"); }
-                    checkEqual(d.getSize(keys[i]), int(c.sets[c.comp[i]].size()), "getSize");
+                    checkEqual(d.size(keys[i]), int(c.sets[c.comp[i]].size()), "size");
                     for (int k = 0; k < pool; ++k) { checkEqual(d.isSameSet(keys[i], keys[k]), c.comp[i] == c.comp[k], "isSameSet"); }}
                 checkEqual(int(d.key.size()), int(std::count(touched.begin(), touched.end(), 1)), "only united keys allocate");
                 int a = int(rnd(rng, 0, pool - 1)), b = int(rnd(rng, 0, pool - 1));
@@ -276,7 +276,7 @@ namespace {
         for (auto [t, u] : at) {
             for (; done < t; ++done) { replay.uniteSets(unions[done].first, unions[done].second); }
             auto [lo, hi] = f.leafRange(f.componentAt(u, t));
-            checkEqual(hi - lo, replay.getSize(u), "componentAt size");
+            checkEqual(hi - lo, replay.size(u), "componentAt size");
             checkEqual(replay.isSameSet(u, f.leaves[int(rnd(rng, lo, hi - 1))]), true, "componentAt member");}}
 
     // Deep and shallow merge trees: chains in both orders, a star, a balanced tree, each with redundant unions mixed in.
@@ -319,7 +319,7 @@ namespace {
                     vector<int> m = l.members(a);
                     int good = 0;
                     for (int x : m) { good += mark[x] != k && c.isSameSet(x, a); mark[x] = k; }
-                    checkEqual(pair(int(m.size()), good), pair(c.getSize(a), c.getSize(a)), "members");}}}
+                    checkEqual(pair(int(m.size()), good), pair(c.size(a), c.size(a)), "members");}}}
 
         std::cout << "PASS large LinkedDSU/ComponentSumDSU n=" << n << '\n';
         context = "large MergeHistoryForest n=" + show(n) + " seed=" + show(seed);
@@ -343,7 +343,7 @@ namespace {
             if (step % 64 == 0) {
                 int i = int(rnd(rng, 0, m - 1));
                 checkEqual(e.isSameSet(index.at(sp.findSet(pool[i])), i), true, "findSet");
-                checkEqual(sp.getSize(pool[i]), e.getSize(i), "getSize");}}
+                checkEqual(sp.size(pool[i]), e.size(i), "size");}}
         std::cout << "PASS large SparseDSU n=" << n << '\n';}
 
     // DualDSU at moderate size: explicit member lists as the brute force.
@@ -393,12 +393,12 @@ namespace {
         dp.apply(0, a); dp.uniteSets(1, 0); dp.apply(0, b);
         checkEqual(dp.get(0), Perm::op(a, b), "noncommutative order"); checkEqual(dp.get(1), b, "merged after apply");
         SparseDSU<string> ss;
-        checkEqual(ss.findSet("x"), string("x"), "unknown key"); checkEqual(ss.getSize("x"), 1, "unknown size"); checkEqual(int(ss.key.size()), 0, "queries allocate nothing");
+        checkEqual(ss.findSet("x"), string("x"), "unknown key"); checkEqual(ss.size("x"), 1, "unknown size"); checkEqual(int(ss.key.size()), 0, "queries allocate nothing");
         ss.uniteSets("a", "b");
         checkEqual(ss.isSameSet("b", "a"), true, "string keys");
         SparseDSU<pair<int, int>> sq;
         sq.uniteSets({1, 2}, {INT_MIN, INT_MAX});
-        checkEqual(sq.getSize({INT_MIN, INT_MAX}), 2, "pair keys");
+        checkEqual(sq.size({INT_MIN, INT_MAX}), 2, "pair keys");
         MergeHistoryForest e0(0, {});
         checkEqual(int(e0.tim.size()), 0, "empty forest");
         MergeHistoryForest e1(1, {{0, 0}, {0, 0}});

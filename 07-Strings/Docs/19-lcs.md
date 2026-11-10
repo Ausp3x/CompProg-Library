@@ -108,10 +108,11 @@ Code is independently implemented from the recurrences above.
 
 ## Aliases
 
-Search aliases (P263, grab --find): 最长公共子序列, 最长共同子序列, 最短公共超序列, 最长回文子序列, 本质不同子序列, 回文子序列计数, 最短编辑脚本, 文本差异比较.
+Search aliases (P263, grab --find): longest common subsequence; 最长公共子序列, 最长共同子序列, 最短公共超序列, 最长回文子序列, 本质不同子序列, 回文子序列计数, 最短编辑脚本, 文本差异比较.
 
 ## History
 
 - 2026-10-10: implemented and verified (P083), independent review found 2 issues, fixed.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: /finish P276 (user decision 2026-11-10): search alias `longest common subsequence` restores the `simple` corpus rank that rows added by P254 and P275 had taken; `14-search_tester.py --mode quick` passed.

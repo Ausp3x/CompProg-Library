@@ -29,9 +29,9 @@ lll diskBrute(lng a, lng b, lng q, lng n) {
     return res;}
 void diskCase(lng a, lng b, lng q, lng n, bool brute) {
     context = "a=" + std::to_string(a) + " b=" + std::to_string(b) + " q=" + std::to_string(q) + " n=" + std::to_string(n);
-    lll slow = latticeInDisk(a, b, q, n), fast = latticeInDiskFast(a, b, q, n);
+    lll slow = latticeInDisk(a, b, q, n), fast = latticeInDiskHull(a, b, q, n);
     if (brute) { require(slow == diskBrute(a, b, q, n), "latticeInDisk equals enumeration"); }
-    require(fast == slow, "latticeInDiskFast equals latticeInDisk");}
+    require(fast == slow, "latticeInDiskHull equals latticeInDisk");}
 
 // Exact location of the lattice point (x, y) against a polygon with rational vertices: -1 inside, 0 boundary, 1 outside.
 int locateRational(const vector<RationalPoint2> &v, lll x, lll y) {
@@ -129,7 +129,7 @@ bool simpleNonzero(const vector<RationalPoint2> &v) {
     return signedArea2(w) != 0;}
 void invalid(const string &name) {
     if (name == "disk-q") { (void)latticeInDisk(0, 0, 0, 5); }
-    if (name == "disk-n") { (void)latticeInDiskFast(0, 0, 1, -1); }
+    if (name == "disk-n") { (void)latticeInDiskHull(0, 0, 1, -1); }
     if (name == "under-vertical") { (void)latticeUnderLine(RationalPoint2(1, 0), RationalPoint2(1, 5)); }
     if (name == "polygon-small") { (void)latticeInRationalPolygon({RationalPoint2(0, 0), RationalPoint2(1, 0)}, true); }
     if (name == "polygon-flat") { (void)latticeInRationalPolygon({RationalPoint2(0, 0), RationalPoint2(1, 0), RationalPoint2(2, 0)}, true); }
@@ -209,17 +209,17 @@ int main(int argc, char **argv) {
     phase = "disk origin";
     for (lng n : {0LL, 1LL, 2LL, 25LL, 1000000LL, 999999937LL, 1000000000000LL}) {
         context = "n=" + std::to_string(n);
-        require(latticeInDiskFast(0, 0, 1, n) == gaussCircleCount(n), "latticeInDiskFast equals gaussCircleCount at the origin");
-        require(latticeInDiskFast(7 * 3, -5 * 3, 3, 9 * n) == gaussCircleCount(n), "integral centre equals a translated origin count");
+        require(latticeInDiskHull(0, 0, 1, n) == gaussCircleCount(n), "latticeInDiskHull equals gaussCircleCount at the origin");
+        require(latticeInDiskHull(7 * 3, -5 * 3, 3, 9 * n) == gaussCircleCount(n), "integral centre equals a translated origin count");
         if (n <= 1000000) { require(latticeInDisk(0, 0, 1, n) == gaussCircleCount(n), "latticeInDisk equals gaussCircleCount"); }}
     for (auto [r, want] : vector<pair<lng, lll>>{{1000, 3141549}, {10000, 314159053}, {1000000, 3141592649625LL}}) {
         context = "r=" + std::to_string(r);
-        require(latticeInDiskFast(0, 0, 1, r * r) == want, "known Gauss circle values");}
+        require(latticeInDiskHull(0, 0, 1, r * r) == want, "known Gauss circle values");}
     if (!quick) {
         context = "extreme";
         lng n = 4000000000000000000LL;
-        require(latticeInDiskFast(0, 0, 1, n) == gaussCircleCount(n), "n = 4 * 10^18 at the origin");
-        require(latticeInDiskFast(1000000000000000000LL - 1, -1000000000000000000LL + 3, 1000000000000000000LL, n) == latticeInDisk(1000000000000000000LL - 1, -1000000000000000000LL + 3, 1000000000000000000LL, n), "extreme denominator");}
+        require(latticeInDiskHull(0, 0, 1, n) == gaussCircleCount(n), "n = 4 * 10^18 at the origin");
+        require(latticeInDiskHull(1000000000000000000LL - 1, -1000000000000000000LL + 3, 1000000000000000000LL, n) == latticeInDisk(1000000000000000000LL - 1, -1000000000000000000LL + 3, 1000000000000000000LL, n), "extreme denominator");}
 
     phase = "under line";
     for (int t = 0; t < rounds; ++t) {

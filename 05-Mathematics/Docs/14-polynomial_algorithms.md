@@ -17,7 +17,7 @@ Common rules:
 - **Domains.** "Any modint" means every Core `ModInt`/`ModInt64`/`DynModInt`/`DynModInt64`, including composite moduli. Products go through `convolution` (NTT for static NTT primes, CRT over one to six primes otherwise). "Prime field" means the modulus is prime, so every nonzero element is invertible. Operations that divide by `i` (log, exp, integral, power, factorials) need those `i` to be below the modulus; each contract states the bound.
 - **Cutoffs.** `polynomial_detail::cut<M>({ntt, other})` selects the O(n^2) path up to a measured size. The pair holds one value for NTT primes and one for the other moduli (see Benchmarks). Both paths compute the same function, so the cutoff changes speed only.
 - **Purity.** Every function returns a new value. Inputs are never mutated and never aliased with outputs. There are no caches.
-- **Violated preconditions** are asserted. Under `NDEBUG`, `fpsPow`, `fpsSparsePow`, `polyDivmod`, `polyHalfGcd` and `fpsCompositionalInverse` return early with an unspecified result instead of looping or reading out of bounds.
+- **Violated preconditions** are asserted. Under `NDEBUG`, `fpsPow`, `fpsPowSparse`, `polyDivmod`, `polyHalfGcd` and `fpsCompositionalInverse` return early with an unspecified result instead of looping or reading out of bounds.
 
 ### polyAdd, polySub, polyMul, polyDerivative, polyIntegral, polyEval, polyShift, polyTruncate, polyNormalize
 
@@ -79,7 +79,7 @@ Each returns exactly `n` coefficients, with `n >= 0` asserted.
 - **`fpsDiv(f, g, n)`** is `f / g`.
 - **`fpsLog(a, n)`** requires `a[0] = 1` and `n <= mod` (asserted), prime field. It computes `integral(a' / a)`, with the sparse recurrence up to `cut(LOG)`.
 - **`fpsExp(a, n)`** requires `a[0] = 0` and `n <= mod`, prime field.
-  - Up to `cut(EXP)` it uses the recurrence `i f_i = sum j a_j f_{i-j}`, which is `fpsSparseExp`.
+  - Up to `cut(EXP)` it uses the recurrence `i f_i = sum j a_j f_{i-j}`, which is `fpsExpSparse`.
   - Above it, Newton keeps `g = 1 / f` alongside `f`. A step from precision `m` to `2m`:
     1. Lift `g` to precision `m`.
     2. Form `r = f' - f a' mod x^(2m - 1)`, which vanishes below `x^(m - 1)`, from one length-`m` cyclic product.
@@ -105,12 +105,12 @@ Each returns exactly `n` coefficients, with `n >= 0` asserted.
   - Above it, Newton keeps `g` and `h = 1 / g` together, with two cyclic products for `g` and two for `h` per doubling. This path needs no `n <= mod`.
 - For `n = 0` the result is empty. The sqrt and rational-power "no answer" result is empty too, so callers with `n = 0` know the answer is empty anyway.
 
-### fpsSparseInverse, fpsSparseLog, fpsSparseExp, fpsSparsePow, fpsSparseSqrt
+### fpsInverseSparse, fpsLogSparse, fpsExpSparse, fpsPowSparse, fpsSqrtSparse
 
 These run the O(n k) recurrences over the `k` nonzero coefficients below `x^n`, with the dense contracts.
 
-- `fpsSparsePow` takes `k >= 0` (asserted).
-- `fpsSparseSqrt` asserts `len <= mod`.
+- `fpsPowSparse` takes `k >= 0` (asserted).
+- `fpsSqrtSparse` asserts `len <= mod`.
 - They are also the dense functions' small-size paths, so for those sizes the identity tests below are the oracle.
 
 ### fpsComposition, fpsCompositionalInverse
@@ -157,6 +157,11 @@ These run the O(n k) recurrences over the `k` nonzero coefficients below `x^n`, 
 | Removed (prune, 2026-10-13) | Replacement |
 |---|---|
 | `polyMod(a, b)` | `polyDivmod(a, b).second` |
+| `fpsSparseInverse` (P276 rename, 2026-11-10) | `fpsInverseSparse` |
+| `fpsSparseLog` (P276 rename, 2026-11-10) | `fpsLogSparse` |
+| `fpsSparseExp` (P276 rename, 2026-11-10) | `fpsExpSparse` |
+| `fpsSparsePow` (P276 rename, 2026-11-10) | `fpsPowSparse` |
+| `fpsSparseSqrt` (P276 rename, 2026-11-10) | `fpsSqrtSparse` |
 
 ## Feature-to-test map
 
@@ -187,7 +192,7 @@ Moduli: 998244353, 1e9+7, dynamic 1000003, the 64-bit NTT prime `29 * 2^57 + 1`,
 | fpsInverse, fpsDiv, fpsLog, fpsExp | `fpsSuite`: uniqueness identities with schoolbook checks to `n = 2049` (`257` quick) and the cutoff neighbours, log(exp) round trips, transform-checked identities to `2^18` (optimized) or `2^20` (stress); `n = p` over `p = 7` |
 | fpsPow | `powSuite`: binary powering with truncated schoolbook products (valuations, zero coefficients, 62-bit `k`, negative `k`, `LLONG_MIN`, cutoff neighbours, a large cube); rational exponents by `r^q = a^p`, branch and no-answer cases; `p = 7` and `p = 97` length edges |
 | fpsSqrt | `sqrtSuite`: squaring, Euler-criterion existence, smaller-`val` branch, odd valuations, cutoff neighbours, large inputs; `p = 7` residue/nonresidue, branch `3` over `4`, and the Newton path at `n = 300, 1000 > p` |
-| fpsSparseInverse, fpsSparseLog, fpsSparseExp, fpsSparsePow, fpsSparseSqrt | same suites (equality with the dense results, which use Newton above the cutoffs) plus sparse inputs of 3000 coefficients |
+| fpsInverseSparse, fpsLogSparse, fpsExpSparse, fpsPowSparse, fpsSqrtSparse | same suites (equality with the dense results, which use Newton above the cutoffs) plus sparse inputs of 3000 coefficients |
 | fpsComposition | `compositionSuite`: Horner with truncated products, `g[0] != 0` and `= 0`, `n` up to 200, `len(f)` up to 220, empty inputs |
 | fpsCompositionalInverse | `compositionSuite`: `f(g) = x` by Horner, `n = 0, 1` edges |
 | taylorShift | `miscSuite`: `sum a_i (x + c)^i` by Horner across `cut(SHIFT)`, large evaluation identity `a(x + c)`; `p = 7` with `n > p`; `p = 113` (cutoff 112) at `n = 112, 113, 114`; composite modulus |
@@ -293,6 +298,8 @@ The code was written independently.
 
 ## Aliases
 
+Renamed aliases (P276, 2026-11-10): `fpsSparseInverse`, `fpsSparseLog`, `fpsSparseExp`, `fpsSparsePow`, `fpsSparseSqrt`.
+
 Search aliases (P263, grab --find): 多项式牛顿迭代, 多项式初等函数, 多项式平移/连续点值平移, Lagrange 反演, 形式幂级数复合/复合逆, 指数生成函数, 多项式与生成函数简介, 多项式全家桶, 多项式求逆, 多项式除法, 多项式开根, 多项式对数函数, 多项式指数函数, 多项式快速幂, 多项式复合逆, 结式, 分圆多项式.
 
 ## History
@@ -303,3 +310,4 @@ Search aliases (P263, grab --find): 多项式牛顿迭代, 多项式初等函数
 - 2026-10-19: P054 follow-up rerun (included `13-convolution.hpp` changed), header unchanged; full passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged, quick inputs cut in `/finish` (above); every run above passed.
+- 2026-11-10: P276 rename (`fpsSparse…` → `fps…Sparse`); full on g++ and g++-14, stress and extraction passed.

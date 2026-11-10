@@ -218,7 +218,7 @@ inline lll latticeInDisk(lng a, lng b, lng q, lng n) {
         res += lattice_detail::floorDiv(b + t, q) - lattice_detail::ceilDiv(b - t, q) + 1;}
     return res;}
 // T: O(r^(2/3) * log(r) + 1), M: O(log(r)), r = sqrt(n) / q. Same count by diagonal caps and Stern–Brocot hull walks.
-inline lll latticeInDiskFast(lng a, lng b, lng q, lng n) {
+inline lll latticeInDiskHull(lng a, lng b, lng q, lng n) {
     assert(abs(a) <= 1000000000000000000LL && abs(b) <= 1000000000000000000LL && 1 <= q && q <= 1000000000000000000LL && 0 <= n && n <= 4000000000000000000LL);
     return (a % q == 0 && b % q == 0) + lattice_detail::cap(a, b, q, n, false) + lattice_detail::cap(a, -lll(b), q, n, false)
          + lattice_detail::cap(b, a, q, n, true) + lattice_detail::cap(b, -lll(a), q, n, true);}

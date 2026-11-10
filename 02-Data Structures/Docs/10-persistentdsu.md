@@ -11,7 +11,7 @@ Vertices `[0, n)`, `0 <= n <= INT_MAX`. Time `t` is the state after the first `t
 - `uniteSets(u, v)` acts on the latest state: union by size, the first argument's root kept on ties. It returns whether a merge happened and advances `now` either way. An attached root `v` stores `par[v]` and its attach time `tim[v] = now`; roots keep `tim = INT_MAX`. Each merge appends `(now, new size)` to the surviving root's size history.
 - No path compression, so depths stay at most `floor(log2(n))`. Attach times strictly increase along every path to a root, because a vertex's new parent was a root when it attached.
 - `findSet(t, u)`: climbs while the attach time is at most `t`, O(log(n)), for `0 <= t <= now`. The root found is the representative at time `t`. `isSameSet(t, u, v)` compares representatives.
-- `getSize(t, u)`: binary search in the representative's size history (size 1 before its first merge), O(log(n)).
+- `size(t, u)`: binary search in the representative's size history (size 1 before its first merge), O(log(n)).
 - `count(t)`: components at time `t`, O(1) from per-call counts.
 - `uniteTime(u, v)`: the least `t` with `isSameSet(t, u, v)`, or -1 if they are not connected at `now`; 0 when `u == v`. The walk always moves the endpoint with the smaller attach time. Both paths have increasing times, so the moved times never decrease and the walk meets at the lowest common ancestor. The answer is the last moved time, the largest on either path below it: connected then, and one step earlier that edge is absent. O(log(n)).
 - Memory O(n + q). Copies are independent snapshots.
@@ -21,7 +21,7 @@ Vertices `[0, n)`, `0 <= n <= INT_MAX`. Time `t` is the state after the first `t
 Vertices `[0, n)`, `0 <= n <= INT_MAX`. A `PersistentArray<int>` (row 35, default `k = 8`) holds `-size` at roots and the parent elsewhere. `ver[t]` maps DSU version `t` to an array version. Version 0 has no edges, and every `uniteSets` call creates one version.
 
 - `uniteSets(t, u, v)`: union by size on version `t` (any version), returns the new version id. A merge makes two array sets (size, then parent). A redundant call reuses the array version, so it costs no memory beyond the id.
-- `findSet(t, u)`, `isSameSet(t, u, v)`, `getSize(t, u)`: O(log(n)) parent steps of one O(log_k(n)) `get` each; `uniteSets` adds two O(k log_k(n)) sets. `count(t)`: O(1). `findSet` asserts the version and the vertex. Its climb stops after 31 steps; union by size keeps depths at or below 30, so the cap only matters for a violated precondition.
+- `findSet(t, u)`, `isSameSet(t, u, v)`, `size(t, u)`: O(log(n)) parent steps of one O(log_k(n)) `get` each; `uniteSets` adds two O(k log_k(n)) sets. `count(t)`: O(1). `findSet` asserts the version and the vertex. Its climb stops after 31 steps; union by size keeps depths at or below 30, so the cap only matters for a violated precondition.
 - Construction uses row 35's shared fill build: O(k + log_k(n)), so `n = 10^9` is fine (tested). Each merge stores `2 * (h * k + k)` ints, where `h` is the array height.
 - Copies are independent snapshots.
 
@@ -33,7 +33,8 @@ Under `NDEBUG`:
 
 ### Legacy mapping
 
-No legacy code. Catalog forms: ei1333 `find(t, x)`, `size(t, x)`, `unite(t, ...)` (explicit nondecreasing times) are `findSet`, `getSize` and `uniteSets` with the implicit call counter. noshi91 `now()` is the public `now`. hitonanode's fully persistent `count(t, x)` is `getSize`. suisen `merge` returning a new structure and maspypy `merge(np, x, y)` returning a root are `uniteSets` returning a version id.
+No legacy code. Catalog forms: ei1333 `find(t, x)`, `size(t, x)`, `unite(t, ...)` (explicit nondecreasing times) are `findSet`, `size` and `uniteSets` with the implicit call counter. noshi91 `now()` is the public `now`. hitonanode's fully persistent `count(t, x)` is `size`. suisen `merge` returning a new structure and maspypy `merge(np, x, y)` returning a root are `uniteSets` returning a version id.
+- P276 rename, 2026-11-10: `getSize` → `size`.
 
 ## Feature-to-test map
 
@@ -41,10 +42,10 @@ Tester `96-Local Testing/02-Data Structures/10-persistentdsu_tester.cpp`, entry 
 
 | Operation | Group | Oracle |
 |---|---|---|
-| `PartiallyPersistentDSU`: `uniteSets` (return value), `findSet`, `isSameSet`, `getSize`, `count` at every time | `partialSmall` (n <= 10 with q <= 25, n <= 40 with q <= 120; self-loops) | BFS labels of each edge prefix; `findSet` must be a member and the same vertex for the whole component |
+| `PartiallyPersistentDSU`: `uniteSets` (return value), `findSet`, `isSameSet`, `size`, `count` at every time | `partialSmall` (n <= 10 with q <= 25, n <= 40 with q <= 120; self-loops) | BFS labels of each edge prefix; `findSet` must be a member and the same vertex for the whole component |
 | `uniteTime` | `partialSmall`, every pair | Least prefix with equal labels, by scan |
 | Large partially persistent | `partialLarge`: n = 10^5, q = 2 * 10^5, 20000 sampled queries (full); n = 1.5 * 10^5, q = 3 * 10^5, 30000 samples (stress) | Offline time sweep with row 01's path-compressed `DSU`. Each `uniteTime` answer is confirmed connected at its time and disconnected one step earlier (or at `now` when -1). Depth at most `floor(log2(n))`. |
-| `PersistentDSU`: `uniteSets` (version ids), `findSet`, `isSameSet`, `getSize`, `count` | `persistentSmall`: random version trees, every version checked | BFS labels of each version's ancestor edges |
+| `PersistentDSU`: `uniteSets` (version ids), `findSet`, `isSameSet`, `size`, `count` | `persistentSmall`: random version trees, every version checked | BFS labels of each version's ancestor edges |
 | Large persistent | `persistentLarge`: n = 10^5 and 2 * 10^5 with 2 * 10^5 unions on random or latest versions (full); n = 1.2 * 10^5 with 2.4 * 10^5 (stress) | Sampled versions rebuilt from their ancestor edges with row 01's `DSU` |
 | Empty structures, self-loops, branches, redundant versions, `n = 10^9` | `edges` | Direct values |
 | Preconditions | `invalid` | Future and negative times, out-of-range vertices, bad `count` time, out-of-range `uniteTime`, negative size; bad versions in `findSet`, `uniteSets`, `count`; out-of-range persistent vertex |
@@ -78,6 +79,8 @@ Fetched 2026-10-17 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 ## Aliases
 
+Renamed aliases (P276, 2026-11-10): `getSize`.
+
 Search aliases (P263, grab --find): 可持久化并查集, 部分可持久化并查集, 持久化并查集.
 
 ## History
@@ -85,3 +88,4 @@ Search aliases (P263, grab --find): 可持久化并查集, 部分可持久化并
 - 2026-10-17: P034 first implementation and verification; `PartiallyPersistentDSU::findSet` bounded at roots for any time under `NDEBUG`; independent review: `PersistentDSU::findSet` asserts the vertex and caps its climb (a union through an out-of-range vertex could loop under `NDEBUG`), `getSize` evaluates `findSet` first, direct template include, depth-10 tree test.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`getSize` → `size`); full on g++ and g++-14, stress and extraction passed.

@@ -23,7 +23,7 @@
 | AtCoder Library docs | https://atcoder.github.io/ac-library/production/document_en/ | 2026-10-06 | no geometry module |
 | CSES problem set | https://cses.fi/problemset/ | 2026-10-06 | Geometry section: point location test, segment intersection, polygon area, point in polygon, polygon lattice points, minimum Euclidean distance, convex hull, maximum/all Manhattan distances, intersection points, line segments trace I/II, lines and queries I/II, area of rectangles, robot path |
 | CGAL package overview | https://doc.cgal.org/latest/Manual/packages.html | 2026-10-06 | Contest-relevant packages: kernels, 2D/3D/dD hulls, polygons (partition, straight skeleton, Minkowski, polyline simplification, Fréchet, visibility), arrangements/envelopes, triangulations (2D/3D, constrained, alpha shapes), Voronoi (segment, L-infinity, Apollonius), spatial searching, bounding volumes/optimization, kinetic data structures |
-| Shewchuk robust predicates | https://www.cs.cmu.edu/~quake/robust.html | 2026-10-06 | orient2d/orient3d/incircle/insphere families, extended-precision register caveat (row 36) |
+| Shewchuk robust predicates | https://www.cs.cmu.edu/~quake/robust.html | 2026-10-06 | orient2d/orient3d/incircle (`sideOfOrientedCircle`)/insphere families, extended-precision register caveat (row 36) |
 
 ## P007 completeness sweep, fetched 2026-10-07
 
@@ -160,8 +160,8 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://doc.cgal.org/latest/Manual/packages.html | 07: `minimumEnclosingParallelogram`; 21: `rectangularPCenter`; 22: `yaoGraph`, `thetaGraph`; 28: `boxIntersections`; 41: `lowerEnvelope`, `upperEnvelope`; 42: `polytopeDistance`, `minimumEnclosingBall`; 52: `simplifyPolylineTopological`; 57: `minimumWidth3`, `minimumVolumeBoundingBox3`; 63: `SplitTree`, `ctor`; 66: `SurfaceShortestPath`, `ctor`; 67: `HullD`, `facets` |
 | https://en.wikipedia.org/wiki/Chebyshev_center | 10: `chebyshevCenterLpApprox` |
 | https://cp-algorithms.com/geometry/halfplane-intersection.html | 10: `chebyshevCenterLpApprox`, `halfplaneIntersectionSorted` |
-| https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm | 12: `reportIntersectionsBrute`; 61: `reportIntersectionsBalaban` |
-| https://cp-algorithms.com/geometry/intersecting_segments.html | 12: `reportIntersectionsBrute`, `reportIntersections`, `countIntersections` |
+| https://en.wikipedia.org/wiki/Bentley%E2%80%93Ottmann_algorithm | 12: `reportIntersectionsNaive`; 61: `reportIntersectionsBalaban` |
+| https://cp-algorithms.com/geometry/intersecting_segments.html | 12: `reportIntersectionsNaive`, `reportIntersections`, `countIntersections` |
 | https://doc.cgal.org/latest/Surface_sweep_2/index.html | 12: `reportIntersections`, `countIntersections` |
 | https://arxiv.org/abs/1705.11035 | 15: `maxAreaInscribedTriangleQuadratic` |
 | https://doc.cgal.org/latest/Partition_2/index.html | 18: `optimalConvexPartition` |
@@ -193,13 +193,13 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://maspypy.github.io/library/geo/count_points_in_triangles.hpp | 29: `countPointsOnSegment` |
 | https://github.com/yosupo06/library-checker-problems/tree/master/geo | 29: `angularSweep` |
 | https://en.wikipedia.org/wiki/Theil%E2%80%93Sen_estimator | 29: `slopeSelection`; 60: `slopeSelectionWordRam` |
-| https://people.csail.mit.edu/mip/papers/invs/paper.pdf | 29: `slopeSelection`; 60: `offlineRectangleCountWordRam`, `offlineBoxCountWordRam`, `slopeSelectionWordRam`, `inversionCountWordRam` |
+| https://people.csail.mit.edu/mip/papers/invs/paper.pdf | 29: `slopeSelection`; 60: `rectangleCountOfflineWordRam`, `boxCountOfflineWordRam`, `slopeSelectionWordRam`, `inversionCountWordRam` |
 | https://maspypy.github.io/library/geo/polygon.hpp | 30: `segmentInPolygon`, `polygonLineIntersection` |
 | https://maspypy.github.io/library/geo/inside_polygon.hpp | 30: `segmentInPolygon` |
 | https://doc.cgal.org/latest/Boolean_set_operations_2/group__PkgBooleanSetOperations2Ref.html | 30: `diskPolygonIntersectionApprox`, `polygonComplement` |
 | https://doc.cgal.org/latest/Triangulation_2/index.html | 31: `triangulatePoints`; 45: `removeConstraint`, `ConstrainedDelaunay`, `triangles` |
 | https://doc.cgal.org/latest/Triangulation_2/classCGAL_1_1Delaunay__triangulation__2.html | 31: `Delaunay`, `insert`, `Delaunay`, `remove` |
-| https://doc.cgal.org/latest/Voronoi_diagram_2/index.html | 32: `Voronoi`, `locate`; 46: `weightedVoronoiLocate` |
+| https://doc.cgal.org/latest/Voronoi_diagram_2/index.html | 32: `Voronoi`, `locate`; 46: `voronoiLocateWeighted` |
 | https://doc.cgal.org/latest/Arrangement_on_surface_2/index.html | 33: `Arrangement`, `overlay`, `Arrangement`, `insert`; 34: `rayShootUp`, `rayShootDown` |
 | https://cp-algorithms.com/geometry/point-location.html | 34: `rayShootUp`, `rayShootDown` |
 | https://doc.cgal.org/latest/Visibility_2/index.html | 35: `visibilityPolygon`, `visibilityWithObstacles` |
@@ -222,16 +222,16 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://doc.cgal.org/latest/Circular_kernel_2/index.html | 44: `CircularArc2`, `ctor` |
 | https://doc.cgal.org/latest/Triangulation_2/classCGAL_1_1Constrained__triangulation__2.html | 45: `removeConstraint`, `ConstrainedDelaunay`, `triangles` |
 | https://doc.cgal.org/latest/Mesh_2/index.html | 45: `conformingGabriel` |
-| https://doc.cgal.org/latest/Triangulation_2/classCGAL_1_1Regular__triangulation__2.html | 46: `weightedVoronoiLocate` |
-| https://doc.cgal.org/latest/Apollonius_graph_2/index.html | 46: `weightedVoronoiLocate` |
+| https://doc.cgal.org/latest/Triangulation_2/classCGAL_1_1Regular__triangulation__2.html | 46: `voronoiLocateWeighted` |
+| https://doc.cgal.org/latest/Apollonius_graph_2/index.html | 46: `voronoiLocateWeighted` |
 | https://maspypy.github.io/library/geo/convex_polygon_edge_voronoi.hpp | 46: `convexPolygonEdgeVoronoi` |
 | https://doc.cgal.org/latest/Triangulation_3/index.html | 47: `Delaunay3`, `nearestVertex`, `Delaunay3`, `remove`, `regularTriangulation3` |
 | https://doc.cgal.org/latest/Straight_skeleton_2/index.html | 48: `outwardOffset`, `extrudeSkeleton` |
 | https://doc.cgal.org/latest/Minkowski_sum_2/index.html | 48: `polygonErode` |
 | https://doc.cgal.org/latest/Bounding_volumes/classCGAL_1_1Min__ellipse__2.html | 49: `EnclosingEllipse`, `coefficientsApprox` |
 | https://doc.cgal.org/latest/Bounding_volumes/classCGAL_1_1Approximate__min__ellipsoid__d.html | 49: `EllipsoidApprox`, `quadratic` |
-| https://doc.cgal.org/latest/Alpha_shapes_2/index.html | 50: `weightedAlphaShape2`, `weightedAlphaShape3`, `findOptimalAlpha`, `findAlphaSolid`, `AlphaClass`, `alphaClassify` |
-| https://doc.cgal.org/latest/Alpha_shapes_3/index.html | 50: `weightedAlphaShape2`, `weightedAlphaShape3`, `findOptimalAlpha`, `findAlphaSolid`, `AlphaClass`, `alphaClassify`, `FixedAlphaShape3`, `ctor` |
+| https://doc.cgal.org/latest/Alpha_shapes_2/index.html | 50: `alphaShape2Weighted`, `alphaShape3Weighted`, `findOptimalAlpha`, `findAlphaSolid`, `AlphaClass`, `alphaClassify` |
+| https://doc.cgal.org/latest/Alpha_shapes_3/index.html | 50: `alphaShape2Weighted`, `alphaShape3Weighted`, `findOptimalAlpha`, `findAlphaSolid`, `AlphaClass`, `alphaClassify`, `FixedAlphaShape3`, `ctor` |
 | https://doc.cgal.org/latest/Nef_3/index.html | 51: `polyhedronIntersection`, `polyhedronSymmetricDifference` |
 | https://doc.cgal.org/latest/Minkowski_sum_3/index.html | 51: `minkowskiSumHull3`, `minkowskiSum3` |
 | https://doc.cgal.org/latest/Frechet_distance/index.html | 52: `frechetNearCurves` |
@@ -241,7 +241,7 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://doc.cgal.org/latest/Polyline_simplification_2/index.html | 52: `simplifyPolylineTopological` |
 | https://arxiv.org/abs/2604.00271 | 53: `DynamicHullLogarithmic` |
 | https://arxiv.org/pdf/1508.03828 | 55: `simplicialDepth`, `tukeyMedian`, `tukeyDepthRegions`, `regressionDepth`, `deepestRegression` |
-| https://en.wikipedia.org/wiki/Smallest-circle_problem | 57: `weightedMinimumEnclosingCircle` |
+| https://en.wikipedia.org/wiki/Smallest-circle_problem | 57: `minimumEnclosingCircleWeighted` |
 | https://doc.cgal.org/latest/Polytope_distance_d/index.html | 57: `minimumWidth3` |
 | https://doc.cgal.org/latest/Optimal_bounding_box/index.html | 57: `minimumVolumeBoundingBox3` |
 | https://oi-wiki.org/geometry/scanning/ | 58: `rectangleDepthDistributionQuadratic` |
@@ -249,7 +249,7 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://arxiv.org/html/1705.10022v3 | 58: `boxDepthDistribution`, `boxUnionVolume`, `maxBoxDepth` |
 | https://en.wikipedia.org/wiki/Klee%27s_measure_problem | 58: `boxUnionVolume`, `boxUnionVolumeSweep` |
 | https://researchwith.njit.edu/en/publications/finding-a-minimum-weight-k-link-path-in-graphs-with-monge-propert/ | 59: `minAreaEnclosingKgon` |
-| https://arxiv.org/abs/1010.1948 | 60: `convexHull3WordRam`, `voronoiWordRam`, `offlineNearestNeighbourWordRam`, `segmentIntersectionWordRam`, `triangulateWordRam`, `PointLocationWordRam`, `build` |
+| https://arxiv.org/abs/1010.1948 | 60: `convexHull3WordRam`, `voronoiWordRam`, `nearestNeighbourOfflineWordRam`, `segmentIntersectionWordRam`, `triangulateWordRam`, `PointLocationWordRam`, `build` |
 | https://doc.cgal.org/latest/Convex_decomposition_3/index.html | 62: `convexDecomposition3` |
 | https://doc.cgal.org/latest/Cone_spanners_2/index.html | 63: `SplitTree`, `ctor` |
 | https://en.wikipedia.org/wiki/Well-separated_pair_decomposition | 63: `SplitTree`, `ctor` |

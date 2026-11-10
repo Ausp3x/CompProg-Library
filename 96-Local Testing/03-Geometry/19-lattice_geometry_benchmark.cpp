@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
             lng n = r <= 285000000 ? r * r * q * q : 4000000000000000000LL;
             string name = rational ? "centre (a, b) / 7" : "origin", size = "r=" + std::to_string(r);
             lll fast = 0, slow = 0;
-            row(name, size, "latticeInDiskFast", median([&] { fast = latticeInDiskFast(a, b, q, n); }));
+            row(name, size, "latticeInDiskHull", median([&] { fast = latticeInDiskHull(a, b, q, n); }));
             if (r <= 10000000) {
                 row(name, size, "latticeInDisk", median([&] { slow = latticeInDisk(a, b, q, n); }));
                 if (fast != slow) { std::cerr << "disk mismatch at r=" << r << '\n'; return 1; }}

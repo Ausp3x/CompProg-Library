@@ -392,18 +392,18 @@ bool bandedSolve(Mat<T> a, int p, int q, vector<T> &d) {
 
 // T: O(n * m * min(n, m)), M: O(n * m + m * (m - r)); floating T, numerical rank r, partial pivoting, |x| <= eps counts as zero; result shape of solveLinear.
 template<typename T>
-Mat<T> solveLinearReal(Mat<T> a, const vector<T> &b, T eps = T(1e-9)) {
+Mat<T> solveLinearApprox(Mat<T> a, const vector<T> &b, T eps = T(1e-9)) {
     static_assert(std::is_floating_point_v<T>);
     return linear_algebra_detail::solve(a, b, eps);}
 
 // T: O(n * m * min(n, m)), M: O(n * m); floating T, partial pivoting; pivots with |x| <= eps count as zero, determinant without tolerance.
 template<typename T>
-int matrixRankReal(Mat<T> a, T eps = T(1e-9)) {
+int matrixRankApprox(Mat<T> a, T eps = T(1e-9)) {
     static_assert(std::is_floating_point_v<T>);
     T det;
     return int(linear_algebra_detail::echelon(a, linear_algebra_detail::cols(a), false, det, eps).size());}
 template<typename T>
-T determinantReal(Mat<T> a) {
+T determinantApprox(Mat<T> a) {
     static_assert(std::is_floating_point_v<T>);
     for (int i = 0; i < int(a.size()); ++i) { assert(a[i].size() == a.size()); }
     T det;

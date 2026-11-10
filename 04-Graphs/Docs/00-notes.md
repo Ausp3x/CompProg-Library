@@ -97,7 +97,7 @@ The 2026-10-09 sweeps ([sources](00-sources.md#pages-fetched-on-2026-10-09-p043)
 
 The 2026-10-10 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-10-p044-max-flow)) added the reverse capacity of `addEdge`, `MaxFlow(Graph)`, `changeCapacity` (increase and decrease with repair), `minCutEdges` and `pathDecomposition` to row 19. The other candidates stay out:
 
-- Residual-graph export: `g` is public and `edges()`/`getEdge` give every arc pair; a copied adjacency adds nothing.
+- Residual-graph export: `g` is public and `edges()`/`edge` give every arc pair; a copied adjacency adds nothing.
 - Fewest-edge minimum cut: a reduction, not an engine. Scale capacities to `c * (m + 1) + 1` (with `lll` if needed); the cut value is `res / (m + 1)` and its edge count `res % (m + 1)`. (returned by P275 2026-11-10 into row 19 `MaxFlow::minCutFewestEdges`)
 - Super source/sink and vertex capacities: modelling reductions (one extra vertex with arcs; split v into v_in -> v_out carrying the vertex capacity). Row 45 owns vertex-disjoint path extraction.
 - MPM, ISAP and plain Ford–Fulkerson: no better bound than Dinic or push-relabel; `flow(s, t, limit)` already costs O(F * (n + m)) for a small flow value F.
@@ -173,13 +173,13 @@ The 2026-10-28 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-28-p048-g
 The 2026-10-29 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-29-p048-gr32)) and the `/finish` audit led to these additions to row 35, all by user decision 2026-10-29:
 - `countC4PerEdge` (Library Checker `counting_c4`), `countC3C4PerVertex` (maspypy pointwise counts), `countTrianglesPerEdge` (OI Wiki) and `triadicCensus` (NetworkX);
 - `countPathsP3P4P5` fixed as per-vertex counts;
-- `localClustering`, `directedClustering`, `weightedClustering`, `weightedDirectedClustering`, `averageClustering`, `transitivity`, `squareClustering` and `generalizedDegree` (NetworkX `cluster.py`);
+- `localClustering`, `directedClustering`, `localClusteringWeighted`, `directedClusteringWeighted`, `averageClustering`, `transitivity`, `squareClustering` and `generalizedDegree` (NetworkX `cluster.py`);
 - `enumerateC4` and `enumerateK4` (no catalog source; enumeration counterparts of the counts);
 - `enumerateTriangleEdges` beside `enumerateTriangles`, with the edge IDs of every combination of parallel copies (tko919 `EnumTriangle` passes edge indices).
 
 `trussDecomposition` (NetworkX `k_truss`) became a planned operation of row 42 (package P051, same decision). The other candidates stay out (user decision 2026-10-29):
 
-- Totals of the path counts (`sum / 2`) and other pointwise sums of the per-vertex and per-edge counts: projections. The C4 total is kept as `countC4`. A weighted `averageClustering` would need a flag choosing between operations; it is the mean of `weightedClustering`.
+- Totals of the path counts (`sum / 2`) and other pointwise sums of the per-vertex and per-edge counts: projections. The C4 total is kept as `countC4`. A weighted `averageClustering` would need a flag choosing between operations; it is the mean of `localClusteringWeighted`.
 - NetworkX `all_triangles`: the enumeration.
 - Enumerating cliques, counting all cliques and cycles over vertex subsets: rows 49 and 53. Elementary cycles and girth: row 68. Subgraph isomorphism: row 54.
 - Connected 4-edge subgraph counts (OI Wiki, Gym 102028L) and CF 985G: problem-specific inclusion-exclusion.
@@ -248,7 +248,7 @@ P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines
 - `28-cycle_basis.hpp`: CycleBasis::inCycleSpace, CycleBasis::cycleSpaceCoordinates, CycleBasis::enumerateCycleSpace.
 - `30-flow_with_demands.hpp`: mixedEulerCircuit (mixed directed and undirected edges, by feasibleFlow).
 - `31-path_cover.hpp`: minimumChainCover (digraph with cycles).
-- `35-subgraph_enumeration.hpp`: weightedAverageClustering.
+- `35-subgraph_enumeration.hpp`: averageClusteringWeighted.
 - `62-planarity.hpp`: planarCanonicalOrdering; straightLineDrawing; isStraightLineDrawing; makeBiconnectedPlanar; makeMaximalPlanar.
 - new Esoteric row `95-graph_problems.hpp`: IncrementalCentroid: addLeaf, centroid; GridDecrementalConnectivity: erase (cell), isSameSet, count; EdgeCentroidDecomposition: build; shortestPathThroughVertices; maximumVertexEdgeMatching; cycleCommonVertices; treeFromEulerTour; countFourEdgeSubgraphs; outerFaceMultiTerminalCut; antichains (bounded enumeration) (MAS, OI, CF, NX).
 - new Esoteric row `96-flow_problems.hpp`: cyclicMinCostBFlow; longestShortestPath; minCostMatchingOnLine; unbalancedTransportation (MAS).

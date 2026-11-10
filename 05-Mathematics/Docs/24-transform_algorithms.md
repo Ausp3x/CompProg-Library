@@ -89,7 +89,7 @@ The rank product overwrites `f[k] = sum over i of f[i] g[k - i]` in descending `
 These are the legacy static in-place methods with their original names and signatures:
 
 - `fctGcd`/`fctLcm` are the multiple/divisor transforms using the primes of a caller's `LinearSieve`, asserted to cover `a.size() - 1`.
-- `fctGcdSlow`/`fctLcmSlow` are the sieve-free harmonic loops in `O(n log(n))`.
+- `fctGcdSimple`/`fctLcmSimple` are the sieve-free harmonic loops in `O(n log(n))`.
 
 The legacy forms had no assertion on the sieve size; a smaller sieve silently gave wrong answers.
 
@@ -100,6 +100,8 @@ The legacy forms had no assertion on the sieve size; a smaller sieve silently ga
 | `FastConv<T>::fctOr(a, inv)` | `subsetZeta(a)`, or `subsetMobius(a)` when `inv` |
 | `FastConv<T>::fctAnd(a, inv)` | `supersetZeta(a)`, or `supersetMobius(a)` when `inv` |
 | `FastConv<T>::fctXor(a, inv)` | `walshHadamard(a, inv)` |
+| `fctGcdSlow` (P276 rename, 2026-11-10) | `fctGcdSimple` |
+| `fctLcmSlow` (P276 rename, 2026-11-10) | `fctLcmSimple` |
 
 ## Feature-to-test map
 
@@ -126,7 +128,7 @@ The types are `lng` (values ±30), 998244353 and 1e9+7, plus double, `__int128` 
 | `subsetConvolution` | Submask brute at every tested size; at `2^16`/`2^20` submask brute on 12 masks with up to 14 bits. |
 | `disjointUnionConvolution` | `q = 1` identity, `q = 2` and `q = 3` against iterated submask brute. |
 | `kroneckerPowerTransform` | Dense Kronecker power for `D = 1..4` and every `k` up to `9 / D` (`D = 1` with `N = 1`), random kernels; the subset and Hadamard kernels against their brute forms. |
-| `FastConv` (`fctGcd`, `fctLcm`, `fctGcdSlow`, `fctLcmSlow`) | The divisor-scan definitions and round trips for every `n` above; `fctGcd`/`fctLcm` with an exactly fitting `LinearSieve`, including `n = 0`. |
+| `FastConv` (`fctGcd`, `fctLcm`, `fctGcdSimple`, `fctLcmSimple`) | The divisor-scan definitions and round trips for every `n` above; `fctGcd`/`fctLcm` with an exactly fitting `LinearSieve`, including `n = 0`. |
 | Preconditions | 14 checked-build probes: non-power-of-two and empty sizes; size mismatches in or/xor/subset/disjoint-union; non-square, empty and non-power kernels; ranked size and rank-count mismatch; no operands; a sieve smaller than the array for `fctGcd` and `fctLcm`. |
 
 ## Commands and results
@@ -172,6 +174,8 @@ Adopted by the P055 sweep: `kroneckerPowerTransform` widened from a 2 x 2 to any
 
 ## Aliases
 
+Renamed aliases (P276, 2026-11-10): `fctGcdSlow`, `fctLcmSlow`.
+
 Search aliases (P263, grab --find): FWT (fast Walsh transform), FWHT (fast Walsh-Hadamard transform), SOS DP (sum over subsets), zeta transform, Mobius transform, subset convolution; 莫比乌斯反演, 快速沃尔什变换, 快速莫比乌斯变换, 子集卷积, 高维前缀和, 异或卷积, 或卷积, 与卷积, 狄利克雷前缀和.
 
 ## History
@@ -181,3 +185,4 @@ Search aliases (P263, grab --find): FWT (fast Walsh transform), FWHT (fast Walsh
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (`fctGcdSlow`, `fctLcmSlow` → `fctGcdSimple`, `fctLcmSimple`); full on g++ and g++-14, stress and extraction passed.

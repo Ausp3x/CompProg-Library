@@ -93,7 +93,7 @@ Fetched by the row 19 completeness sweep. Code was written from the algorithms; 
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
-| ACL maxflow document | https://github.com/atcoder/ac-library/blob/master/document_en/maxflow.md | 2026-10-10 | `MaxFlow` API shape: `addEdge`, `flow(s, t, limit)` resumable, `minCut`, `getEdge`, `edges`, `changeEdge`; multi-push blocking DFS from t |
+| ACL maxflow document | https://github.com/atcoder/ac-library/blob/master/document_en/maxflow.md | 2026-10-10 | `MaxFlow` API shape: `addEdge`, `flow(s, t, limit)` resumable, `minCut`, `edge`, `edges`, `changeEdge`; multi-push blocking DFS from t |
 | KACTL Dinic, PushRelabel, MinCut, EdmondsKarp | https://github.com/kth-competitive-programming/kactl/tree/master/content/graph | 2026-10-10 | Reverse capacity on `addEdge` (`rev_cap`), scaling inside Dinic, highest-label push-relabel with gap; unit-capacity bound |
 | cp-algorithms Edmonds–Karp, Dinic, MPM, push-relabel (faster) | https://cp-algorithms.com/graph/dinic.html | 2026-10-10 | Dinic phase/blocking-flow bounds, highest-label O(V^2 sqrt(E)) |
 | OI Wiki 最大流, 最小割 | https://oi-wiki.org/graph/flow/max-flow/ | 2026-10-10 | HLPP with BFS initial labels, gap and global relabel; fewest-edge min cut reduction (notes) |
@@ -108,7 +108,7 @@ Fetched by the row 20 completeness sweep. Code was written from the algorithms; 
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
-| ACL mincostflow document and source | https://github.com/atcoder/ac-library/blob/master/document_en/mincostflow.md | 2026-10-13 | `addEdge`, `flow(s, t, limit)`, `slope`, `getEdge`, `edges`; dual bound `-(n-1)C <= dual <= 0`; the documented ban on repeated `flow`/`slope` calls, which a member potential removes |
+| ACL mincostflow document and source | https://github.com/atcoder/ac-library/blob/master/document_en/mincostflow.md | 2026-10-13 | `addEdge`, `flow(s, t, limit)`, `slope`, `edge`, `edges`; dual bound `-(n-1)C <= dual <= 0`; the documented ban on repeated `flow`/`slope` calls, which a member potential removes |
 | KACTL MinCostMaxFlow | https://github.com/kth-competitive-programming/kactl/blob/main/content/graph/MinCostMaxFlow.h | 2026-10-13 | `setpi` Bellman–Ford initial potentials for negative costs, no negative cycles |
 | maspypy min_cost_flow, min_cost_b_flow, dual_mcf, cyclic_b_flow | https://github.com/maspypy/library/tree/main/flow | 2026-10-13 | `get_potentials` (`potentials`), `DAG=true` initial potentials, `path_decomposition` (row 19's `pathDecomposition`); b-flow and dual variants belong to rows 65 and 44 |
 | hitonanode mincostflow, mincostflow_nonegativeloop, b-flow | https://hitonanode.github.io/cplib-cpp/flow/mincostflow.hpp | 2026-10-13 | Linear-time DAG initial potentials; nonnegative-cost contract; pre-saturating negative arcs (b-flow, row 65) |
@@ -209,7 +209,7 @@ The header was written independently from these descriptions; no catalog code wa
 | NetworkX triads | https://networkx.org/documentation/stable/reference/algorithms/triads.html | 2026-10-29 | `triadicCensus`: the 16 triad names and their order |
 | NetworkX triads.py | https://raw.githubusercontent.com/networkx/networkx/main/networkx/algorithms/triads.py | 2026-10-29 | `TRICODES`, `TRIAD_NAMES` and the `_tricode` bit order, embedded verbatim in the tester as the census oracle |
 | tko919 enumtriangle | https://raw.githubusercontent.com/tko919/library/main/Graph/enumtriangle.hpp | 2026-10-29 | `EnumTriangle(n, es, query)`: degree-ordered orientation, `query(u, v, w, i, j, k)` with the three edge indices; alias of `enumerateTriangleEdges` |
-| NetworkX cluster.py | https://raw.githubusercontent.com/networkx/networkx/main/networkx/algorithms/cluster.py | 2026-10-29 | `clustering` (undirected and unweighted directed), `transitivity`, `square_clustering` (the `potential` formula of the current code), `generalized_degree`: contracts and oracles of `localClustering`, `directedClustering`, `transitivity`, `squareClustering`, `generalizedDegree`; weighted clustering (undirected and directed) and `average_clustering`: contracts and oracles of `weightedClustering`, `weightedDirectedClustering`, `averageClustering` |
+| NetworkX cluster.py | https://raw.githubusercontent.com/networkx/networkx/main/networkx/algorithms/cluster.py | 2026-10-29 | `clustering` (undirected and unweighted directed), `transitivity`, `square_clustering` (the `potential` formula of the current code), `generalized_degree`: contracts and oracles of `localClustering`, `directedClustering`, `transitivity`, `squareClustering`, `generalizedDegree`; weighted clustering (undirected and directed) and `average_clustering`: contracts and oracles of `localClusteringWeighted`, `directedClusteringWeighted`, `averageClustering` |
 | Nyaan, KACTL, cp-algorithms | https://nyaannyaan.github.io/library/; https://github.com/kth-competitive-programming/kactl/tree/main/content/graph; https://cp-algorithms.com/ | 2026-10-29 | Nothing in scope. Nyaan index read to 100k characters |
 
 The header was written independently from these descriptions; no catalog code was copied.
@@ -227,10 +227,10 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://networkx.org/documentation/stable/reference/algorithms/dag.html | 03: `allTopologicalSorts`; 40: `warshallClosure` |
 | https://ei1333.github.io/library/structure/others/plus-minus-one-rmq.hpp | 07: `PlusMinusOneRMQ` |
 | https://cp-algorithms.com/graph/rmq_linear.html | 07: `PlusMinusOneRMQ` |
-| https://oi-wiki.org/graph/lca/ | 07: `SparseTableLCA`, `getLCA` |
-| https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/graph/LCA.h | 07: `SparseTableLCA`, `getLCA` |
-| https://maspypy.github.io/library/graph/fast_lca.hpp | 07: `SparseTableLCA`, `getLCA` |
-| https://ei1333.github.io/library/graph/tree/rmq-lowest-common-ancestor.hpp | 07: `SparseTableLCA`, `getLCA` |
+| https://oi-wiki.org/graph/lca/ | 07: `SparseTableLCA`, `lca` |
+| https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/graph/LCA.h | 07: `SparseTableLCA`, `lca` |
+| https://maspypy.github.io/library/graph/fast_lca.hpp | 07: `SparseTableLCA`, `lca` |
+| https://ei1333.github.io/library/graph/tree/rmq-lowest-common-ancestor.hpp | 07: `SparseTableLCA`, `lca` |
 | https://cses.fi/problemset/task/1685 | 08: `strongConnectivityAugmentation` |
 | https://cses.fi/problemset/ | 08: `strongConnectivityAugmentation`; 13: `nearestTwoSources`, `mandatoryOnShortestPaths`; 14: `LongPathDecomposition`, `build`, `treeMaximumMatching`; 53: `countDagPaths`; 73: `countHamiltonianPaths`, `knightsTour` |
 | https://networkx.org/documentation/stable/reference/algorithms/shortest_paths.html | 12: `apspBfs`; 13: `bidirectionalBfs` |
@@ -250,8 +250,8 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://maspypy.github.io/library/graph/tree_dp/subtree_depth_sum.hpp | 14: `Rerooting`, `dpParent` |
 | https://nyaannyaan.github.io/library/tree/euler-tour.hpp | 14: `EulerTour`, `pathRanges`; 15: `TreeGroup`, `pathSum` |
 | https://suisen-cp.github.io/cp-library-cpp/library/tree/euler_tour.hpp | 14: `EulerTour`, `pathRanges` |
-| https://oi-wiki.org/ds/ | 15: `GlobalBalancedTree`, `getLCA` |
-| https://oi-wiki.org/ds/global-bst/ | 15: `GlobalBalancedTree`, `getLCA` |
+| https://oi-wiki.org/ds/ | 15: `GlobalBalancedTree`, `lca` |
+| https://oi-wiki.org/ds/global-bst/ | 15: `GlobalBalancedTree`, `lca` |
 | https://maspypy.github.io/library/graph/tree.hpp | 15: `maxPath` |
 | https://maspypy.github.io/library/graph/ds/tree_abeliangroup.hpp | 15: `TreeGroup`, `pathSum` |
 | https://github.com/yosupo06/library-checker-problems/tree/master/tree | 15: `TreeGroup`, `pathSum`; 51: `DynamicForest`, `pointSet`, `DynamicForest`, `subtreeFold`; 84: `pathCompositeSum`, `DynamicRerootingDp`, `setEdge`; 85: `LevelAncestor`, `jump` |
@@ -348,8 +348,8 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/graph/dynamic_graph_vertex_add_component_sum/task.md | 63: `FullyDynamicConnectivity`, `addValue`, `FullyDynamicConnectivity`, `insertEdge` |
 | https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/data_structures/HDLT.cpp | 63: `FullyDynamicConnectivity`, `insertEdge` |
 | https://networkx.org/documentation/stable/reference/algorithms/matching.html | 64: `maximumWeightMatching`, `minimumWeightMatching` |
-| https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/combinatorial_optimization/matching_weighted_sparse.cpp | 64: `weightedBlossomSparse` |
-| https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/combinatorial_optimization/matching_weighted_dense.cpp | 64: `weightedBlossomSparse` |
+| https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/combinatorial_optimization/matching_weighted_sparse.cpp | 64: `maximumWeightMatching` |
+| https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/combinatorial_optimization/matching_weighted_dense.cpp | 64: `maximumWeightMatchingDense` |
 | https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.flow.capacity_scaling.html | 65: `capacityScalingMinCostFlow`, `minCostBFlow` |
 | https://oi-wiki.org/graph/flow/min-cost/ | 65: `capacityScalingMinCostFlow`, `minCostCirculation` |
 | https://maspypy.github.io/library/flow/min_cost_b_flow.hpp | 65: `minCostBFlow` |

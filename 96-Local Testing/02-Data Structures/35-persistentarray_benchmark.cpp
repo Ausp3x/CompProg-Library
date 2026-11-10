@@ -50,7 +50,7 @@ namespace {
             else { sum = sum * 3 + d.isSameSet(k, u, v); }}
         emit("dsu-checker", n, q, std::chrono::duration<double>(Clock::now() - t0).count(), sum, poolBytes(d.a));}
 
-    // q unions on the latest version, then q isSameSet and getSize on random versions.
+    // q unions on the latest version, then q isSameSet and size on random versions.
     void dsuChain(ulng seed, int n, int q) {
         std::mt19937_64 rng(seed);
         auto t0 = Clock::now();
@@ -60,7 +60,7 @@ namespace {
         for (int i = 0; i < q; ++i) { t = d.uniteSets(t, int(rng() % ulng(n)), int(rng() % ulng(n))); }
         for (int i = 0; i < q; ++i) {
             int k = int(rng() % ulng(t + 1)), u = int(rng() % ulng(n));
-            sum = sum * 3 + d.isSameSet(k, u, int(rng() % ulng(n))) + ulng(d.getSize(k, u));}
+            sum = sum * 3 + d.isSameSet(k, u, int(rng() % ulng(n))) + ulng(d.size(k, u));}
         emit("dsu-chain", n, q, std::chrono::duration<double>(Clock::now() - t0).count(), sum, poolBytes(d.a));}
 } // namespace
 

@@ -17,9 +17,9 @@ lll with zero rows/columns and forced swaps plus P L U products (n <= 10); matri
 matrixPowerSum over mint, GF(2), Z/12 and ulng for e <= 20 by repeated products and e up to 2^64 - 1
 by [[A, I], [0, I]]^e; tridiagonalSolve, cyclicTridiagonalSolve (n = 1, 2 folds) and bandedSolve
 (p, q <= 3, junk outside the band) for n <= 30 over GF(2..7) and mint (success iff every leading minor
-is nonzero, exact A x = d) and over diagonally dominant doubles (residuals); determinantReal (Leibniz,
-tolerance 1e-11 * product of row sums), matrixRankReal (rank-r products, eps fixtures),
-solveLinearReal (residuals, kernel size and independence, inconsistent systems), luDecompose and
+is nonzero, exact A x = d) and over diagonally dominant doubles (residuals); determinantApprox (Leibniz,
+tolerance 1e-11 * product of row sums), matrixRankApprox (rank-r products, eps fixtures),
+solveLinearApprox (residuals, kernel size and independence, inconsistent systems), luDecompose and
 luSolve (reconstruction of row perm[i], residuals, singular inputs and eps); lowRankUpdateInverse
 (k <= 4, k = 0, singular updates leave ainv untouched) against own inverses of A + U V over mint and
 GF(2..5); FieldBasis insert/represent/rollback/size random interleavings against a model list (brute
@@ -68,7 +68,7 @@ static int useAll() {
     one = {4};
     bad += !bandedSolve(Mat<mint>{{2}}, 0, 0, one) || one != vector<mint>{2};
     bad += !luDecompose(lu, perm) || abs(luSolve(lu, perm, vector<double>{5, 5})[0] - 1) > 1e-12;
-    bad += abs(solveLinearReal(d, vector<double>{5, 5})[0][1] - 1) > 1e-12 || matrixRankReal(d) != 2 || abs(determinantReal(d) - 10) > 1e-12;
+    bad += abs(solveLinearApprox(d, vector<double>{5, 5})[0][1] - 1) > 1e-12 || matrixRankApprox(d) != 2 || abs(determinantApprox(d) - 10) > 1e-12;
     e = ainv;
     bad += !lowRankUpdateInverse(e, Mat<mint>{{1}, {0}}, Mat<mint>{{0, 0}});
     bad += !fb.insert(vector<mint>{1, 1}) || !fb.represent(vector<mint>{2, 2}, coef) || coef != vector<mint>{2};

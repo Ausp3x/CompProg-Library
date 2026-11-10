@@ -81,7 +81,7 @@ namespace {
             checkEqual(b.comp[r], b.comp[u], "findSet member u=" + show(u));
             if (rep[b.comp[u]] < 0) { rep[b.comp[u]] = r; }
             checkEqual(r, rep[b.comp[u]], "findSet canonical u=" + show(u));
-            checkEqual(d.getSize(u), b.size[b.comp[u]], "getSize u=" + show(u));}
+            checkEqual(d.size(u), b.size[b.comp[u]], "size u=" + show(u));}
         for (int k = 0; k < 2 * b.n; ++k) {
             int u = k % b.n, v = (k * 7 + 3) % b.n;
             checkEqual(d.isSameSet(u, v), b.comp[u] == b.comp[v], "isSameSet u=" + show(u) + " v=" + show(v));}}
@@ -173,7 +173,7 @@ namespace {
                     int depth = 0;
                     for (int x = u; d.par[x] != x; x = d.par[x]) { ++depth; }
                     maxDepth = max(maxDepth, depth);
-                    if (u % 97 == 0) { checkEqual(d.getSize(u), ref.getSize(u), "getSize u=" + show(u)); }}
+                    if (u % 97 == 0) { checkEqual(d.size(u), ref.size(u), "size u=" + show(u)); }}
                 checkEqual(maxDepth <= depthBound, true, "depth <= log2(n): " + show(maxDepth));
                 for (int j = 0; j < 2000; ++j) {
                     int u = int(rnd(rng, 0, n - 1)), v = int(rnd(rng, 0, n - 1));

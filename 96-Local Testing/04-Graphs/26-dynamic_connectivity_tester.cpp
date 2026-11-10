@@ -79,7 +79,7 @@ namespace {
                     if (lab.f(v) == lab.f(u)) { ++size; }}
                 for (auto &x : vals) { if (x.l <= t && t < x.r && lab.f(x.u) == lab.f(u)) { sum = mon.op(sum, S(x.x)); }}
                 for (auto [a, b] : es) { edges += lab.f(a) == lab.f(u); }
-                check(dsu.getSize(u) == size && dsu.componentValue(u) == sum && dsu.edgeCount(u) == edges, "run size, componentValue, edgeCount");}});
+                check(dsu.size(u) == size && dsu.componentValue(u) == sum && dsu.edgeCount(u) == edges, "run size, componentValue, edgeCount");}});
         check(got == asked, "run answers every queried time once, increasing");
         got.clear();
         odc.bipartiteness([&](int t, bool bip) {

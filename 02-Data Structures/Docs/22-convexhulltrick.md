@@ -92,7 +92,7 @@ Fetched 2026-10-28 by the completeness sweep ([00-sources.md](00-sources.md#fetc
 
 ## Aliases
 
-Search aliases (P263, grab --find): 斜率优化, 凸包优化, 凸壳优化, 凸包技巧, 动态凸壳.
+Search aliases (P263, grab --find): convex hull trick, CHT; 斜率优化, 凸包优化, 凸壳优化, 凸包技巧, 动态凸壳.
 
 ## History
 
@@ -101,3 +101,4 @@ Search aliases (P263, grab --find): 斜率优化, 凸包优化, 凸壳优化, �
 - 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the floating oracle type `__float128` became `_Float128`, which aarch64 g++ also provides; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: /finish P276 (user decision 2026-11-10): search alias `convex hull trick`, `CHT` restores the `simple` corpus rank that rows added by P254 and P275 had taken; `14-search_tester.py --mode quick` passed.

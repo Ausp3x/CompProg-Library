@@ -16,21 +16,21 @@ vector<pair<int,int>> trial(int a) {
 void load(LinearSieve &s, std::mt19937_64 &rng) {
     array<int,5> order{0,1,2,3,4}; std::shuffle(order.begin(),order.end(),rng);
     for (int op : order) {
-        if (op == 0) { s.getNumDiv(); }
-        if (op == 1) { s.getSumDiv(); }
-        if (op == 2) { s.getPhi(); }
-        if (op == 3) { s.getMu(); }
-        if (op == 4) { s.getLpf(); }}}
+        if (op == 0) { s.divisorCountTable(); }
+        if (op == 1) { s.divisorSumTable(); }
+        if (op == 2) { s.phiTable(); }
+        if (op == 3) { s.mobiusTable(); }
+        if (op == 4) { s.lpfTable(); }}}
 void factorCheck(const LinearSieve &s, int a, bool check_phi) {
     context = "n=" + std::to_string(s.n) + " factor=" + std::to_string(a);
     auto factors = trial(a);
-    need(s.getPrimeFac(a) == factors, "prime powers versus trial division");
+    need(s.factorize(a) == factors, "prime powers versus trial division");
     vector<int> divisors;
     for (int d = 1; lng(d)*d <= a; ++d) {
         if (a%d) { continue; }
         divisors.pb(d); if (d != a/d) { divisors.pb(a/d); }}
     sort(divisors.begin(),divisors.end());
-    auto got = s.getAllFac(a); sort(got.begin(),got.end());
+    auto got = s.divisors(a); sort(got.begin(),got.end());
     need(got == divisors, "all divisors versus sqrt enumeration");
     need(s.spf[a] == (a == 1 ? -1 : factors.front().first), "smallest prime factor");
     need(s.lpf[a] == (a == 1 ? -1 : factors.back().first), "largest prime factor");
@@ -77,7 +77,7 @@ void compareTables(int n, std::mt19937_64 &rng) {
     copy = s; ecopy = e;
     auto moved = std::move(copy); auto emoved = std::move(ecopy);
     need(moved.spf == s.spf && moved.sum_div == s.sum_div && moved.lpf == s.lpf && emoved.is_prime == e.is_prime, "copy assignment and move construction");
-    copy.reset(1); ecopy.reset(1); copy.getPhi();
+    copy.reset(1); ecopy.reset(1); copy.phiTable();
     need(copy.phi == vector<int>({0,1}) && !ecopy.is_prime[1], "reset moved-from objects");
     s.reset(5); e.reset(5); load(s,rng);
     need(s.prms == vector<int>({2,3,5}) && e.prms == s.prms && s.lpf[4] == 2 && s.phi[5] == 4, "grow or shrink reset");}
@@ -97,8 +97,8 @@ int main(int argc,char **argv) {
         else {
             const LinearSieve s(10);
             int a = invalid.find("end") != string::npos ? 11 : invalid.find("zero") != string::npos ? 0 : -1;
-            if (invalid.starts_with("primefac")) { s.getPrimeFac(a); }
-            else if (invalid.starts_with("allfac")) { s.getAllFac(a); }
+            if (invalid.starts_with("primefac")) { s.factorize(a); }
+            else if (invalid.starts_with("allfac")) { s.divisors(a); }
             else { return 2; }}
         return 0;}
     std::mt19937_64 rng(seed);

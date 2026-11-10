@@ -7,7 +7,7 @@
 - the Stern–Brocot tree;
 - Farey sequences, including the k-th term and rational counting.
 
-It depends on `01-mod_arithmetic.hpp` (`floorDiv`, `modNorm`, `extendedGcd`), on `04-sieve_algorithms.hpp` (`LinearSieve::getMu`) and on `18-floorsum.hpp` (`floorSum`, `forEachQuotientBlock`). Fractions are `pair<lng, lng>` `{p, q}`. `1/0` stands for `+infinity` where stated.
+It depends on `01-mod_arithmetic.hpp` (`floorDiv`, `modNorm`, `extendedGcd`), on `04-sieve_algorithms.hpp` (`LinearSieve::mobiusTable`) and on `18-floorsum.hpp` (`floorSum`, `forEachQuotientBlock`). Fractions are `pair<lng, lng>` `{p, q}`. `1/0` stands for `+infinity` where stated.
 
 ## Contracts
 
@@ -150,3 +150,4 @@ Fetched 2026-10-18 by `@researcher` ([00-sources.md](00-sources.md), P060 sweep)
 - 2026-10-19: P037 round-3 rerun (included `18-floorsum.hpp` changed), header unchanged; full passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-10: P276 rename (call site of `mobiusTable`); full on g++ and g++-14, stress and extraction passed.
