@@ -21,6 +21,7 @@ Start one fresh session per task with the preset of its work:
 | `/duplicate-sweep [02 04 …]` | After many new headers: list same-context forms and second implementations in `duplicates.md` | Answer its `ask` items, then `/prune` each verified package it names (`/package` handles planned ones) |
 | `/omission-sweep [02 04 … or paths]` | When a folder's packages are mostly done (Mathematics early): list completeness gaps in `omissions.md`. A whole folder starts about 50 agents, so raise "Dynamic workflow size" in `/config` first | `/omission-sweep apply`, then `/package` the packages it reopened or created |
 | `/speed-sweep Pxxx [verify]` (or a header path) | In a core-session, for a Core full type: compare it against the fastest Library Checker submissions and write its "Optimality gap" section; `verify` after each package stage that targets the gap | `/package` the targets it names, then commit |
+| `/harness-audit [canary]` | When the status line shows `audit N new` (a scan starts by itself at the first startup after seven days) or after a client update: what changed in Claude Code's records, prompts, experiments, flags and settings, explained and marked reviewed. The canary is opt-in per clone: `git config compprog.canary true` | Re-audit P287 when it says so |
 | `/pause [hours]` | Before stepping away from an open session: a handoff plus keep-alive pings (default 2 hours) | Come back and type; a new session loads the handoff |
 | `/tidy [scope]` | Every ten or so packages, or after a guideline change: remove stale, restated and superseded text | Answer its questions, then commit |
 | `/restyle Pxxx` | Only after the comment cap or closing-brace rule changes | Commit |
@@ -57,7 +58,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P274 — SUP25** (opus, L): Test speed: build cache, shared runner, quick bound.
 - [x] **P275 — SUP26** (opus, L): Duplicate re-review under the 2026-11-08 One API rule.
 - [x] **P276 — SUP27** (opus, L): Operation-name renames under the 2026-11-08 vocabulary.
-- [ ] **P287 — SUP28, SUP29** (opus, XL): Harness audit: model guard, experiment ids, weekly scan. Status: in-progress. Note: SUP28 finished and landed (2026-11-11, /finish): harness.py guard, status line, self-test, experiment record, launcher, trace and strip test; audit 15 findings, 25 defects fixed, 9 decisions recorded; 15-harness_tester.py full, CXX=g++-14 full and stress --seed 1 and 2 pass (64 tests). Next: SUP29 (weekly scan, trigger, opt-in canary). [evidence](00-Guidelines/13-Plan/Docs/00-harness-audit.md)
+- [x] **P287 — SUP28, SUP29** (opus, XL): Harness audit: model guard, experiment ids, weekly scan.
 
 ### Core full types
 

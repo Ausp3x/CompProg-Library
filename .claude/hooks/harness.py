@@ -10,10 +10,12 @@ session, read from the client's own files (evidence and limits: 00-Guidelines/13
 
 Read-only and never on the network: it reads file tails only, writes nothing but its own state under
 .claude/hooks/.state/harness/ (heartbeats, Stop records, the session's warned, hide-text and /effort lists, the newest
-subagent replies with those refused, errors.log), never opens .credentials.json, and prints no token, account or
-organization id, e-mail address or message text. The allowed models are read at every check: `models` in packages.json, the `model:` of the
-agent files and skill front matter, and `models` in .claude/harness.json. Detectors match by shape (model ids, hex
-experiment ids, objects mapping model ids to model ids); nothing here names a model, effort, flag or experiment."""
+subagent replies with those refused, errors.log) and, for the weekly audit scan (SUP29), the plan usage of the status
+line in .claude/harness-audit/usage.json; the startup SessionStart hook starts that scan detached when it is due. It
+never opens .credentials.json, and prints no token, account or organization id, e-mail address or message text. The
+allowed models are read at every check: `models` in packages.json, the `model:` of the agent files and skill front
+matter, and `models` in .claude/harness.json. Detectors match by shape (model ids, hex experiment ids, objects mapping
+model ids to model ids); nothing here names a model, effort, flag or experiment."""
 import argparse
 import hashlib
 import json
@@ -39,6 +41,9 @@ def main_checkout(root):
 
 
 STATE = main_checkout(ROOT) / '.claude/hooks/.state/harness'  # one state for every checkout: hooks and --selftest agree
+AUDIT = main_checkout(ROOT) / '.claude/harness-audit'  # the weekly scan's output (SUP29), git-ignored: account data
+SCAN = ROOT / '.claude/skills/harness-audit/harness_audit.py'
+WEEK = 7 * 86400
 CONF = ROOT / '.claude/harness.json'
 TAIL = 1 << 20
 DEEP = 16 << 20  # read this far back when a record over TAIL (a large tool result) hides the newest reply
@@ -51,8 +56,11 @@ HIDE = re.compile(rf"\b{NOT}\s+(?:mention|reveal|disclose|share|bring\s+up)\b[^.
                   r"|\bwithout\s+(?:telling|informing|notifying|alerting|letting)\s+the\s+user\b"
                   r"|\b(?:hide|conceal|withhold|keep)\b[^.\n]{0,40}?\bfrom\s+the\s+user\b"
                   r"|\bthe\s+user\s+(?:must|should)\s+(?:not|never)\s+(?:know|see|learn|find\s+out|be\s+told)\b", re.I)
-SECRET = re.compile(r'[\w.+-]+@[\w-]+(?:\.[\w-]+)+|\b[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\b|\bsk-[\w-]{8,}'
-                    r'|\b(?:msg|req|toolu|srvtoolu)_\w{8,}', re.I)
+SECRET = re.compile(r'[\w.+-]+@[\w-]+(?:\.[\w-]+)+|(?<![0-9a-f])[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}(?![0-9a-f])|\bsk-[\w-]{8,}'
+                    r'|\b(?:msg|req|toolu|srvtoolu)_\w{8,}'
+                    # credentials of other services (user decision 2026-11-11): GitHub, AWS key ids, Slack, JWTs
+                    r'|\b(?:gh[pousr]_\w{20,}|github_pat_\w{20,}|(?-i:(?:AKIA|ASIA)[0-9A-Z]{16})\b|xox[abposr]-[\w-]{10,}'
+                    r'|(?-i:eyJ)[\w-]{8,}\.[\w-]{8,}\.[\w-]{8,})', re.I)  # AWS ids and JWTs are case-sensitive
 CTRL = re.compile(r'[\x00-\x1f\x7f-\x9f\u2028\u2029]')
 SOURCE_KEYS = {'path', 'displayPath', 'filename', 'filePath', 'file_path', 'outputFilePath', 'file', 'files', 'prompt',
                'hookName', 'hookEvent'}  # an attachment holding a file, a typed prompt or a local hook's output
@@ -779,6 +787,11 @@ def hook(data):
     event, session = data.get('hook_event_name'), data.get('session_id')
     path = transcript(data)
     if event == 'SessionStart':
+        if data.get('source') == 'startup':
+            try:  # the weekly audit scan, detached: startup never waits for it
+                start_audit()
+            except Exception as exc:
+                log_error(exc)
         r = inspect(path, session, live=True)
         if r['issues'] and (r['entry'] or 'cli') != 'cli':
             return {'systemMessage': redact('Harness: ' + '; '.join(t for _, _, t in r['issues']))}
@@ -827,6 +840,46 @@ def hook(data):
         which = which if any(not t.startswith('subagent ') for t in bad) else 'a subagent reply'
         return {'systemMessage': redact(f'Model guard: {which} failed the model check: ' + '; '.join(bad) + '.' + slipped(r) + ' ' + HOW)}
     return None
+
+
+def audit_due(now=None):
+    """True when the last audit scan is over a week old (or absent) or a skipped canary's retry time has passed."""
+    st, now = load(AUDIT / 'status.json'), now or time.time()
+    t, retry = st.get('time'), st.get('canary_retry')
+    return not isinstance(t, (int, float)) or now - t > WEEK or isinstance(retry, (int, float)) and now >= retry
+
+
+def start_audit():
+    """Start harness_audit.py scan --due detached when due, never inside a canary's own session; True when started."""
+    if os.environ.get('CP_HARNESS_AUDIT_CHILD') or not SCAN.is_file() or not audit_due():
+        return False
+    import subprocess
+    subprocess.Popen([sys.executable, str(SCAN), 'scan', '--due'], cwd=ROOT, stdin=subprocess.DEVNULL,
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    return True
+
+
+def audit_label():
+    """`audit N new` while the newest scan has findings not yet reviewed, `audit error` after a failed scan, else ''."""
+    st = load(AUDIT / 'status.json')
+    n = st.get('new')
+    return 'audit error' if st.get('error') else f'audit {n} new' if isinstance(n, int) and not isinstance(n, bool) and n > 0 else ''
+
+
+def record_usage(limits):
+    """Keep the status JSON's plan usage in AUDIT/usage.json (rewritten on a change or after 5 minutes) for the
+    canary's usage check: headless runs have no status line."""
+    wins = {w: {'pct': obj(obj(limits).get(w)).get('used_percentage'), 'resets_at': obj(obj(limits).get(w)).get('resets_at')}
+            for w in ('five_hour', 'seven_day')}
+    if not any(isinstance(v['pct'], (int, float)) for v in wins.values()) or not AUDIT.parent.is_dir():
+        return
+    f, old = AUDIT / 'usage.json', load(AUDIT / 'usage.json')
+    if {k: old.get(k) for k in wins} == wins and time.time() - (old.get('time') or 0) < 300:
+        return
+    AUDIT.mkdir(exist_ok=True)
+    tmp = f.with_name(f'.usage.{os.getpid()}')
+    tmp.write_text(json.dumps({'time': time.time(), **wins}))
+    os.replace(tmp, f)
 
 
 def log_error(exc):

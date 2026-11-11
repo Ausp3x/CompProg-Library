@@ -8,5 +8,19 @@
       "context_management": {"edits": [{"keep": "all"}]}
     }
   },
-  "accepted_texts": []
+  "accepted_texts": [],
+  "canary": {
+    "model": "claude-opus-5-5",
+    "effort": "high",
+    "max_five_hour": 50,
+    "max_seven_day": 80,
+    "usage_max_age": 3600,
+    "budget_usd": 3,
+    "timeout": 1200,
+    "tolerance": 1.5,
+    "tasks": [
+      {"id": "dsu", "remove": "02-Data Structures/01-dsu.hpp", "test": ["96-Local Testing/02-Data Structures/01-dsu_tester.py", "--mode", "full"]},
+      {"id": "manacher", "remove": "07-Strings/05-manacher.hpp", "test": ["96-Local Testing/07-Strings/05-manacher_tester.py", "--mode", "full"]}
+    ]
+  }
 }

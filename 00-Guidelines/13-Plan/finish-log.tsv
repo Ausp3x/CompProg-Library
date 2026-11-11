@@ -32,3 +32,4 @@ date	key	model	effort	review_findings	defects_fixed	decisions	result	experiment
 2026-11-10	P275	claude-opus-5-5	high	13	9	6	verified
 2026-11-11	P276	claude-opus-5-5	high	10	21	5	verified
 2026-11-11	SUP28	claude-opus-5-5	xhigh	15	25	9	verified	none
+2026-11-11	SUP29	claude-opus-5-5	high	14	13	5	verified	none

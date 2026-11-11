@@ -405,11 +405,11 @@
       "phase": "Foundations re-audit",
       "size": "XL",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "00-Guidelines/13-Plan/Docs/00-harness-audit.md"
       ],
-      "note": "SUP28 finished and landed (2026-11-11, /finish): harness.py guard, status line, self-test, experiment record, launcher, trace and strip test; audit 15 findings, 25 defects fixed, 9 decisions recorded; 15-harness_tester.py full, CXX=g++-14 full and stress --seed 1 and 2 pass (64 tests). Next: SUP29 (weekly scan, trigger, opt-in canary)."
+      "note": ""
     },
     {
       "id": "P025",
