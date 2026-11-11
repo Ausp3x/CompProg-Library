@@ -379,7 +379,8 @@ class Reader:
                 for tag in scanned([H.CLIENT.sub(H.blank, body)]):  # the client's own wrapper is no sighting
                     self.see('directives', f'result {tool} {tag}', self.st['ts'])
             hi, lo, p, cut = self.s['metrics']['tools'].get(tool, [None, None, 0, 0])
-            big = re.search(r'Output too large \(([\d.]+)\s*(K|M)?B\)', body) if '<persisted-output>' in body else None
+            big = re.match(r'\s*<persisted-output>\s*Output too large \(([\d.]+)\s*(K|M)?B\)', body)  # the client's wrapper opens
+            # the result; one quoted inside a file or command output is content
             if big:
                 lo, p = extreme(min, lo, float(big.group(1)) * {'K': 1024, 'M': 1 << 20}.get(big.group(2), 1)), p + 1
             elif re.search(r'\[\d+ characters truncated\]', body):

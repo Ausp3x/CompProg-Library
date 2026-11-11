@@ -1867,7 +1867,7 @@ class Harness(Fixture):
         self.post('WebFetch', {'result': B}, tool_use_id='toolu_e')
         kept = '<persisted-output>\nOutput too large (2KB).\nPreview (first 2KB):\nerror: you should pass --mode\n</persisted-output>'
         for content, missed in ((B, True), ('&lt;system-reminder&gt;x&lt;/system-reminder&gt;', False), ([{'type': 'text', 'text': B}], True),
-                                (kept, False)):
+                                (kept, False), ('quoted: ' + kept, True)):  # the wrapper counts only where it opens the result
             self.records(request(), reply(tools=(('toolu_e', 'WebFetch', {'url': 'https://x.example'}),)), result('toolu_e', content), reply(mid='msg_02'))
             self.assertEqual(('blind', 'integrity escape') in self.labels(self.check()), missed, content)
         self.records(request(), reply())
@@ -2564,8 +2564,9 @@ class Audit(Fixture):
         self.ascan()
         self.assertEqual(self.found('cache'), [], 'no bytes read since the last scan')
         big = lambda kb: f'<persisted-output>\nOutput too large ({kb}KB). Full output saved to: /tmp/x.txt\n</persisted-output>'
-        self.tx('s2.jsonl', answer('mC', T0 + DAY, h1=995, m5=5, tools=(('tb2', 'Bash'), ('tr2', 'Read'))),
-                tool_out('tb2', big('30.0'), T0 + DAY), tool_out('tr2', big('46'), T0 + DAY))
+        self.tx('s2.jsonl', answer('mC', T0 + DAY, h1=995, m5=5, tools=(('tb2', 'Bash'), ('tr2', 'Read'), ('tq2', 'Read'))),
+                tool_out('tb2', big('30.0'), T0 + DAY), tool_out('tr2', big('46'), T0 + DAY),
+                tool_out('tq2', "12\tfixture = '" + big('2') + "'", T0 + DAY))  # a quoted wrapper inside a file is content
         self.ascan()
         self.assertEqual(self.found('cache'), [], '99.5% is not below 99%')
         self.assertEqual([f['title'][:40] for f in self.found('toolcap')], ['Bash output cap lowered: a 30.0 KB resul'],
