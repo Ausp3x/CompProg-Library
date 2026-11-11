@@ -2416,7 +2416,9 @@ class Audit(Fixture):
         return (fp or self.fp())['snapshot'].get(sec, {})
 
     def report(self):
-        return (self.out / 'report.md').read_text()
+        text = (self.out / 'report.md').read_text()
+        self.assertEqual([n for n, x in enumerate(text.split('\n'), 1) if x != x.rstrip()], [], 'no trailing whitespace (03-consistency.py)')
+        return text
 
     def table(self):
         """{(experiment, model, effort, thread): (replies, output/reply, thinking/reply, vs none)} of the report."""
@@ -2646,9 +2648,9 @@ class Audit(Fixture):
         V1, V2 = '2.1.330', '2.1.331'
         P1, P2, P2b, P3 = 'Be concise in every reply.', 'Use the tools you have.', 'Use the tools you have, and only those.', 'Check your work before you finish.'
 
-        def shape(h, v, t, *paras):
+        def shape(h, v, t, *paras, schema={'type': 'object'}):
             return R('api-request-shape', t, version=v, shapeHash=h, shape={'system': [{'text': '\n\n'.join(paras)}],
-                     'tools': [{'name': 'Bash', 'description': 'Run a command.', 'input_schema': {'type': 'object'}}]})
+                     'tools': [{'name': 'Bash', 'description': 'Run a command.', 'input_schema': schema}]})
         note = lambda i: R('attachment', T0, attachment={'type': 'session_note', 'content': f'Session note {chr(97 + i // 26)}{chr(97 + i % 26)}.'})
         gb = lambda text, rate: {'tengu_prompt': {'text': text}, 'tengu_amber_tally': {'creditsPerMillionTokens': {OPUS: rate}}}
         G1, G2 = 'Please summarize the work so far in a few short lines.', 'Please summarize the work so far in one short paragraph.'
@@ -2660,11 +2662,14 @@ class Audit(Fixture):
         self.ascan()
         self.assertEqual([f['kind'] for f in self.found()], [], 'a baseline')
         self.gconf(slot(note=S1, hint=S2), cachedGrowthBookFeatures=gb(G2, 12))
-        self.tx('s1.jsonl', shape('b' * 16, V1, T0 + 3600, P1, P2b), shape('b' * 16, V1, T0 + 3600, P1, P2b),
+        schema2 = {'type': 'object', 'properties': {}}  # a schema carries no text: its report line ends at the colon
+        self.tx('s1.jsonl', shape('b' * 16, V1, T0 + 3600, P1, P2b, schema=schema2), shape('b' * 16, V1, T0 + 3600, P1, P2b, schema=schema2),
                 R('attachment', T0 + 3600, attachment={'type': 'nudge', 'content': 'Keep the new plan in mind.'}), note(20), append=True)
         self.ascan()
         self.assertEqual([(f['title'], f['lines']) for f in self.found('prompts')],
-                         [(f'prompt texts changed within client {V1}: 1 new paragraph(s) or schema(s)', [f'+ system {digest(P2b)}: {P2b}'])])
+                         [(f'prompt texts changed within client {V1}: 2 new paragraph(s) or schema(s)',
+                           [f'+ schema Bash {digest(json.dumps(schema2, sort_keys=True))}: ', f'+ system {digest(P2b)}: {P2b}'])])
+        self.report()  # checks the report for trailing whitespace
         self.assertEqual([(f['title'], f['lines']) for f in self.found('injected')],
                          [('new injected text of attachment type nudge', ['Keep the new plan in mind.'])], 'session_note: 21 texts, session data')
         self.assertEqual(sorted((f['title'], f['lines']) for f in self.found('texts')),
@@ -2675,8 +2680,9 @@ class Audit(Fixture):
         self.tx('s1.jsonl', shape('c' * 16, V2, T0 + 7200, P1, P3), append=True)
         self.ascan()
         self.assertEqual([(f['title'], sorted(f['lines'])) for f in self.found('prompts')],
-                         [(f'client {V2}: 1 prompt paragraph(s) or schema(s) new and 2 gone against {V1}',
-                           sorted([f'+ system {digest(P3)}: {P3}', f'- system {digest(P2)}: {P2}', f'- system {digest(P2b)}: {P2b}']))])
+                         [(f'client {V2}: 1 prompt paragraph(s) or schema(s) new and 3 gone against {V1}',
+                           sorted([f'+ system {digest(P3)}: {P3}', f'- system {digest(P2)}: {P2}', f'- system {digest(P2b)}: {P2b}',
+                                   f'- schema Bash {digest(json.dumps(schema2, sort_keys=True))}: ']))])
         self.assertEqual([(f['title'], f['lines']) for f in self.found('client')],
                          [(f'client {V1} -> {V2}: changelog entries since the last scan', ['## 2.1.331', '- Added a thing.'])])
         self.assertEqual(self.found('injected') + self.found('texts') + self.found('tally'), [])

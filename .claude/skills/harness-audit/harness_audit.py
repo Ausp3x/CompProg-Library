@@ -735,7 +735,7 @@ def write_report(fp, found, reviewed, stats, canary_lines, texts):
     out += [f'| {t} | {"" if hi is None else f"{hi / 1024:.1f} KB"} | {"" if lo is None else f"{lo / 1024:.1f} KB"} | {p} | {c} |'
             for t, (hi, lo, p, c) in sorted(fp['metrics']['tools'].items())]
     out += ['', '## Canary', ''] + (canary_lines or ['- off (enable: `git config compprog.canary true`)'])
-    (AUDIT / 'report.md').write_text('\n'.join(H.redact(x) for x in out) + '\n')
+    (AUDIT / 'report.md').write_text('\n'.join(H.redact(x).rstrip() for x in out) + '\n')  # an empty quoted text leaves no trailing space
     return new
 
 
