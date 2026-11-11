@@ -22,6 +22,12 @@ namespace {
         long double error = 2e-15L * max({1.L, std::abs(want), scale});
         std::ostringstream a, b; a << std::setprecision(22) << got; b << std::setprecision(22) << want;
         require(std::isfinite(got) && std::abs(got - want) <= error, operation, b.str(), a.str());}
+    void relative(long double got, long double want, const string &operation) {
+        // Correctly rounded toLongDouble, then sqrt: about one ulp in all.
+        long double error = 4 * std::numeric_limits<long double>::epsilon() * want;
+        std::ostringstream a, b; a << std::setprecision(22) << got; b << std::setprecision(22) << want;
+        require(std::isfinite(got) && std::abs(got - want) <= error, operation, b.str(), a.str());}
+    Linear2 make(point a, point b, int kind) { return kind == 0 ? Linear2::segment(a,b) : kind == 1 ? Linear2::ray(a,b) : Linear2::line(a,b); }
     lll readWide(istream &in) {
         string s; in >> s; bool neg = !s.empty() && s[0] == '-'; lll x = 0;
         for (int i = neg; i < int(s.size()); ++i) { x = 10 * x + s[i] - '0'; }
@@ -49,7 +55,6 @@ namespace {
     void intersectionFixture(istream &in) {
         Linear2 s,t; int sk,tk,k,bits; Reference want{};
         in >> s.a.x >> s.a.y >> s.b.x >> s.b.y >> sk >> t.a.x >> t.a.y >> t.b.x >> t.b.y >> tk >> k;
-        auto make = [](point a, point b, int kind) { return kind == 0 ? Linear2::segment(a,b) : kind == 1 ? Linear2::ray(a,b) : Linear2::line(a,b); };
         s = make(s.a,s.b,sk); t = make(t.a,t.b,tk); want.kind = Kind(k);
         want.p.x = readWide(in); want.p.y = readWide(in); want.p.d = readWide(in);
         in >> want.a.x >> want.a.y >> want.b.x >> want.b.y >> bits;
@@ -66,6 +71,49 @@ namespace {
             require((k == l) == collinear(s,t), "canonical line keys equal iff same supporting line");
             require(std::gcd(k[0],k[1]) == 1 && (k[1] > 0 || (k[1] == 0 && k[0] > 0)), "canonical line normalization");
             for (point p : {s.a,s.b}) { require(lll(k[0]) * p.x + lll(k[1]) * p.y == k[2], "canonical line passes through endpoints"); }}}
+    void ccwFixture(istream &in) {
+        point a,b,c; int code;
+        in >> a.x >> a.y >> b.x >> b.y >> c.x >> c.y >> code;
+        context = "a=" + show(a) + " b=" + show(b) + " c=" + show(c);
+        require(ccw(a,b,c) == code,"five-way ccw",std::to_string(code),std::to_string(ccw(a,b,c)));
+        require(ccw(b,a,c) == -code,"ccw reversal negates every code",std::to_string(-code),std::to_string(ccw(b,a,c)));}
+    template<typename T> void lineCase(Point2<T> a, Point2<T> b, Point2<T> c, Point2<T> d, int kind, long double x, long double y, const string &type) {
+        long double scale = max(std::abs(x),std::abs(y));
+        for (Point2<T> p : {a,b,c,d}) { scale = max({scale,std::abs(static_cast<long double>(p.x)),std::abs(static_cast<long double>(p.y))}); }
+        for (auto [p,q,r,s] : {array{a,b,c,d},array{c,d,a,b},array{b,a,d,c}}) {
+            auto [k,z] = lineIntersectionApprox(p,q,r,s);
+            require(int(k) == kind,type + " line intersection kind",std::to_string(kind),std::to_string(int(k)));
+            if (k == Kind::Point) { close(z.x,x,type + " line crossing x",scale); close(z.y,y,type + " line crossing y",scale); }
+            else { require(z == dpoint{},type + " parallel result carries the zero point"); }}}
+    void lineFixture(istream &in) {
+        point a,b,c,d; int kind; long double x,y;
+        in >> a.x >> a.y >> b.x >> b.y >> c.x >> c.y >> d.x >> d.y >> kind >> x >> y;
+        context = "a=" + show(a) + " b=" + show(b) + " c=" + show(c) + " d=" + show(d);
+        lineCase(a,b,c,d,kind,x,y,"lng");
+        lineCase(a.cast<int>(),b.cast<int>(),c.cast<int>(),d.cast<int>(),kind,x,y,"int");
+        lineCase(a.cast<double>(),b.cast<double>(),c.cast<double>(),d.cast<double>(),kind,x,y,"double");
+        lineCase(a.cast<long double>(),b.cast<long double>(),c.cast<long double>(),d.cast<long double>(),kind,x,y,"long double");}
+    void realLineFixture(istream &in) {
+        Point2<double> a,b,c,d; int kind; long double x,y;
+        in >> a.x >> a.y >> b.x >> b.y >> c.x >> c.y >> d.x >> d.y >> kind >> x >> y;
+        std::ostringstream os; os << std::setprecision(17);
+        for (Point2<double> p : {a,b,c,d}) { os << "(" << p.x << "," << p.y << ")"; }
+        context = "real " + os.str();
+        lineCase(a,b,c,d,kind,x,y,"double");
+        lineCase(a.cast<long double>(),b.cast<long double>(),c.cast<long double>(),d.cast<long double>(),kind,x,y,"long double");}
+    void distanceFixture(istream &in) {
+        Linear2 s,t; int sk,tk; long double root;
+        in >> s.a.x >> s.a.y >> s.b.x >> s.b.y >> sk >> t.a.x >> t.a.y >> t.b.x >> t.b.y >> tk;
+        lll num = readWide(in), den = readWide(in); in >> root;
+        s = make(s.a,s.b,sk); t = make(t.a,t.b,tk);
+        context = "s=" + show(s) + " t=" + show(t);
+        Rational<lll> q = linearDistance2(s,t);
+        require(q.num == num && q.den == den,"exact squared linear distance",show(num) + "/" + show(den),show(q.num) + "/" + show(q.den));
+        require(q.den > 0 && std::gcd(q.num < 0 ? -q.num : q.num,q.den) == 1,"reduced squared distance");
+        require((q.num == 0) == (intersect(s,t).kind != Kind::Empty),"zero distance exactly on contact");
+        require(linearDistance2<Rational<lll>>(t,s) == q,"squared distance symmetry");
+        if (s.kind != LinearKind::Ray) { require(linearDistance2(make(s.b,s.a,sk),t) == q,"squared distance endpoint reversal"); }
+        relative(linearDistanceApprox(s,t),root,"rounded linear distance");}
     void metricFixture(istream &in) {
         point p,a,b,c; long double pd,sd,px,py,rx,ry,ld;
         in >> p.x >> p.y >> a.x >> a.y >> b.x >> b.y >> c.x >> c.y >> pd >> sd >> px >> py >> rx >> ry >> ld;
@@ -119,20 +167,43 @@ namespace {
         e = unitApprox(angleBisectorApprox(aa,pp,bb)[1] - pp);
         close(e.x,wx,"floating angle bisector x",conditioning); close(e.y,wy,"floating angle bisector y",conditioning);
         r = reflectDirectionApprox(pp,aa,bb); close(r.x,rx,"floating reflected direction x",scale); close(r.y,ry,"floating reflected direction y",scale);}
+    bool equationFixture(istream &in) {
+        lng a,b,c; int ok; point p,q; Linear2 res;
+        in >> a >> b >> c >> ok >> p.x >> p.y >> q.x >> q.y;
+        context = "a=" + show(lll(a)) + " b=" + show(lll(b)) + " c=" + show(lll(c));
+        bool got = lineFromEquation(a,b,c,res);
+        require(got == bool(ok),"line from equation has two box lattice points",std::to_string(ok),std::to_string(got));
+        if (!ok) { return false; }
+        require(res.kind == LinearKind::Line && res.a == p && res.b == q,"two lexicographically smallest box lattice points",show(Linear2::line(p,q)),show(res));
+        lll g = gcd64(a,b), x = a / g, y = b / g, k = c / g;
+        if (y < 0 || (y == 0 && x < 0)) { x = -x; y = -y; k = -k; }
+        auto key = canonicalLine(res);
+        require(key[0] == x && key[1] == y && key[2] == k,"canonical line round trip",show(x) + "," + show(y) + "," + show(k),
+                show(key[0]) + "," + show(key[1]) + "," + show(key[2]));
+        require(contains(res,p) && contains(res,q),"equation line contains its points");
+        return true;}
     void fixtures() {
         const char *path = std::getenv("CP_LINE_ORACLE");
         require(path,"Python oracle fixture supplied"); std::ifstream in(path); require(bool(in),"open Python oracle");
-        string tag; lng intersections = 0, metrics = 0, grids = 0, constructions = 0;
+        string tag; lng intersections = 0, metrics = 0, grids = 0, constructions = 0, ccws = 0, lines = 0, reals = 0, distances = 0, equations = 0, solvable = 0;
         while (in >> tag) {
             if (tag == "I") { intersectionFixture(in); ++intersections; }
+            else if (tag == "C") { ccwFixture(in); ++ccws; }
+            else if (tag == "L") { lineFixture(in); ++lines; }
+            else if (tag == "R") { realLineFixture(in); ++reals; }
+            else if (tag == "D") { distanceFixture(in); ++distances; }
             else if (tag == "M") { metricFixture(in); ++metrics; }
             else if (tag == "G") { gridFixture(in); ++grids; }
             else if (tag == "X") { constructionFixture(in); ++constructions; }
+            else if (tag == "E") { solvable += equationFixture(in); ++equations; }
             else { throw std::runtime_error("unknown fixture tag " + tag); }
             require(bool(in),"complete Python fixture");}
-        require(in.eof() && intersections && metrics && grids && constructions,"nonempty complete oracle corpus");
+        require(in.eof() && intersections && metrics && grids && constructions && ccws && lines && reals && distances && solvable && solvable < equations,"nonempty complete oracle corpus");
         std::cout << "PASS Python Fraction exact topology fixtures=" << intersections << ", 80-digit Decimal metric fixtures=" << metrics
-                  << ", enumerated lattice/cell fixtures=" << grids << ", Decimal construction fixtures=" << constructions << '\n';}
+                  << ", enumerated lattice/cell fixtures=" << grids << ", Decimal construction fixtures=" << constructions << '\n';
+        std::cout << "PASS implicit-equation ccw fixtures=" << ccws << ", Cramer line fixtures=" << lines << " integral and " << reals
+                  << " floating, KKT Fraction distance fixtures=" << distances << '\n';
+        std::cout << "PASS modular-inverse equation fixtures=" << equations << " (" << solvable << " with two box lattice points, canonical round trip)\n";}
     void values() {
         context = "rational normalization";
         require(RationalPoint2{} == RationalPoint2(0,0,-5),"zero rational");
@@ -153,6 +224,12 @@ namespace {
         dpoint p{.5L,1.25L}, x{-1.5L,.25L}, y{2.5L,.25L};
         close(projectLineApprox(p,x,y).x,.5L,"fractional projection"); close(reflectLineApprox(p,x,y).y,-.75L,"fractional reflection");
         close(signedLineDistanceApprox(p,x,y),1,"fractional signed distance"); close(pointSegmentDistanceApprox(p,x,y),1,"fractional segment distance");
+        // Pinned rounding (Contracts): inputs where the other endpoint order or the height formula rounds differently.
+        point rp{-71,790}, ra{-333,-150}, rb{697,-756};
+        require(reflectLineApprox(rp,ra,rb) == projectLineApprox(rp,ra,rb) * 2.L - rp.cast<long double>(),"reflection rounds through the projection from a");
+        point ep{377001817,-651932428}, ea{-981287,-928068}, eb{379445,-141800};
+        require(dot(ep - ea,eb - ea) == norm2(eb - ea),"pinned endpoint input projects onto b");
+        require(pointSegmentDistanceApprox(ep,ea,eb) == normApprox((ep - eb).cast<long double>()),"distance at the far endpoint is the endpoint distance");
         auto metricType = []<typename T>(T) {
             Point2<T> p{3,7}, a{-5,-2}, b{10,4};
             dpoint q = projectLineApprox(p,a,b), r = reflectLineApprox(p,a,b);
@@ -170,6 +247,11 @@ namespace {
         require(canonicalLine(Linear2::segment({-1000000000,1000000000},{1000000000,999999999})) == array<lng,3>{1,2000000000,1999999999000000000},"extreme canonical constant");
         require(lineDistanceApprox(point{0,0},point{2,0},point{5,3},point{5,3}) == 3,"point-to-line through singleton second line");
         require(lineDistanceApprox(point{0,0},point{2,0},point{5,3},point{4,3}) == 3,"antiparallel lines");
+        point lo{-1000000000,1000000000}, hi{1000000000,-1000000000}, top{1000000000,1000000000};
+        require(linearDistance2(Linear2::segment(lo,hi),Linear2::segment(top,top)) == Rational<lll>(2000000000000000000),"extreme cross squared before reduction");
+        require(linearDistance2(Linear2::ray(top,{999999999,1000000000}),Linear2::line(lo,{-999999999,1000000000})) == Rational<lll>(0),"rays meet lines on contact");
+        require(linearDistanceApprox(Linear2::line(lo,hi),Linear2::line({-1000000000,-1000000000},top)) == 0,"crossing diagonals");
+        require(ccw(lo,hi,lo) == 0 && ccw(lo,hi,hi) == 0 && ccw(lo,hi,top) == 1 && ccw(hi,lo,top) == -1,"ccw extreme endpoints and sides");
         std::cout << "PASS rational normalization, value semantics and fractional floating inputs\n";}
     void invalid(const string &name) {
         point a{}, b{1,1};
@@ -180,6 +262,10 @@ namespace {
         else if (name == "large-coordinate") { (void)intersect(Linear2::line(a,{1000000001,0}),Linear2::line(a,b)); }
         else if (name == "small-coordinate") { (void)contains(Linear2::segment(a,b),{0,-1000000001}); }
         else if (name == "invalid-kind") { (void)contains({a,b,LinearKind(3)},a); }
+        else if (name == "invalid-kind-negative") { (void)contains({a,b,LinearKind(-1)},a); }
+        else if (name == "parallel-large") { (void)parallel(Linear2::segment(a,{1000000001,0}),Linear2::segment(a,b)); }
+        else if (name == "orthogonal-large") { (void)orthogonal(Linear2::segment(a,{1000000001,0}),Linear2::segment(a,b)); }
+        else if (name == "collinear-large") { (void)collinear(Linear2::segment(a,b),Linear2::segment(a,{0,1000000001})); }
         else if (name == "projection-singleton") { (void)projectLineApprox(a,a,a); }
         else if (name == "reflection-singleton") { (void)reflectLineApprox(a,a,a); }
         else if (name == "distance-singleton") { (void)signedLineDistanceApprox(a,a,a); }
@@ -196,6 +282,18 @@ namespace {
         else if (name == "angle-bisector-singleton") { (void)angleBisectorApprox(a,a,b); }
         else if (name == "reflect-direction-singleton") { (void)reflectDirectionApprox(b,a,a); }
         else if (name == "metric-underflow") { (void)pointSegmentDistanceApprox(dpoint{},dpoint{},dpoint{std::numeric_limits<long double>::min(),0}); }
+        else if (name == "ccw-singleton") { (void)ccw(b,b,a); }
+        else if (name == "ccw-large-coordinate") { (void)ccw(a,{1000000001,0},{2,0}); }
+        else if (name == "ccw-large-turn") { (void)ccw(a,{1000000001,0},{0,5}); }
+        else if (name == "line-intersection-singleton") { (void)lineIntersectionApprox(a,a,a,b); }
+        else if (name == "line-intersection-second-singleton") { (void)lineIntersectionApprox(a,b,b,b); }
+        else if (name == "line-intersection-large") { (void)lineIntersectionApprox(a,b,a,point{0,-1000000001}); }
+        else if (name == "line-intersection-nan") { (void)lineIntersectionApprox(dpoint{},dpoint{1,1},dpoint{std::numeric_limits<long double>::quiet_NaN(),0},dpoint{0,1}); }
+        else if (name == "line-intersection-underflow") { (void)lineIntersectionApprox(dpoint{},dpoint{1e-2500L,0},dpoint{},dpoint{0,1e-2500L}); }
+        else if (name == "line-intersection-overflow") { (void)lineIntersectionApprox(dpoint{},dpoint{1e3000L,1},dpoint{0,1e3000L},dpoint{1,0}); }
+        else if (name == "line-intersection-far") { (void)lineIntersectionApprox(dpoint{},dpoint{1,0},dpoint{1e3000L,1e3000L},dpoint{1e3000L,1e3000L+1}); }
+        else if (name == "linear-distance-large") { (void)linearDistance2(Linear2::segment(a,b),Linear2::ray({1000000001,0},a)); }
+        else if (name == "line-equation-zero") { Linear2 res; (void)lineFromEquation(0,0,1,res); }
         else { throw std::runtime_error("unknown probe " + name); }
         throw std::runtime_error("precondition survived " + name);}
 } // namespace

@@ -683,7 +683,9 @@
       "size": "L",
       "focus": "Point, intersection, polygon and convex hull foundations; settle exact/floating policy.",
       "prerequisites": [
-        "C01"
+        "C01",
+        "C06",
+        "MA01"
       ],
       "tiers": [
         "Basic"

@@ -293,3 +293,24 @@ Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md
 - <https://atcoder.jp/contests/abc189/tasks/abc189_e>
 - <https://cses.fi/problemset/task/1742>
 - <https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=CGL_1_C>
+
+## P007 re-audit, fetched 2026-11-11
+
+Four `@researcher` passes, one per GE01 row; decisions in [00-notes.md](00-notes.md#p007-re-audit-decisions-2026-11-11).
+
+| Source | URL | Used for |
+|---|---|---|
+| KACTL Angle.h | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/Angle.h | `Angle` (`v`, `t`, `half`, `t90`, `t180`, `t360`, `+`, `-`, `<`, `angleDiff`, `segmentAngles`) |
+| KACTL Point.h, Point3D.h | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/Point.h, https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/Point3D.h | `normalApprox` (2D and 3D `normal`) |
+| cp-algorithms, basic geometry | https://cp-algorithms.com/geometry/basic-geometry.html | `scalarProjectionApprox` (`proj`); `lineIntersectionApprox` (point-direction `intersect`) |
+| Library Checker sort_points_by_argument | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/geo/sort_points_by_argument/task.md | `argumentSort` order: `(-pi, pi]`, origin at angle 0 |
+| Nyaan integer-geometry.hpp, maspypy geo/angle_sort.hpp | https://nyaannyaan.github.io/library/geometry/integer-geometry.hpp, https://maspypy.github.io/library/geo/angle_sort.hpp | `argumentSort` (`ArgumentSort`, `angle_sort`); `lowerHull`, `upperHull` (left to right, both ends) |
+| ei1333 ccw.hpp | https://ei1333.github.io/library/geometry/ccw.hpp | `ccw` codes: +1, -1, +2 back, -2 front, 0 on segment |
+| AOJ CGL_1_C | https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=CGL_1_C | `ccw` (p0 != p1, endpoints on the segment) |
+| KACTL lineIntersection.h | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/geometry/lineIntersection.h | `lineIntersectionApprox` (unique, none, infinite) |
+| CGAL squared_distance | https://doc.cgal.org/latest/Kernel_23/group__squared__distance__grp.html | `linearDistance2`, `linearDistanceApprox` (every point, segment, ray and line pair) |
+| CGAL ch_melkman, ch_jarvis, ch_graham_andrew sources | https://raw.githubusercontent.com/CGAL/cgal/master/Convex_hull_2/include/CGAL/Convex_hull_2/ch_melkman_impl.h, https://raw.githubusercontent.com/CGAL/cgal/master/Convex_hull_2/include/CGAL/Convex_hull_2/ch_jarvis_impl.h, https://raw.githubusercontent.com/CGAL/cgal/master/Convex_hull_2/include/CGAL/Convex_hull_2/ch_graham_andrew_impl.h | `convexHullMelkman` (strongly convex CCW output, collinear prefix collapsed), `convexHullJarvis` (farthest collinear first), `lowerHull`, `upperHull` |
+| CGAL Convex_hull_2 functions and subsequences | https://doc.cgal.org/latest/Convex_hull_2/group__PkgConvexHull2Functions.html, https://doc.cgal.org/latest/Convex_hull_2/group__PkgConvexHull2Subsequence.html | lower/upper hull conventions (CGAL omits one end; this row keeps both, as maspypy and Nyaan) |
+| maspypy geo/convex_hull.hpp | https://maspypy.github.io/library/geo/convex_hull.hpp | `convexHullSorted` (presorted mode), `lowerHull`, `upperHull` |
+| OI Wiki 计算几何基础, 凸包 | https://oi-wiki.org/geometry/2d/, https://oi-wiki.org/geometry/convex-hull/ | row 03 aliases (even-odd and nonzero rules); no new operation |
+| ei1333, Nyaan, maspypy and KACTL catalog indexes | https://ei1333.github.io/library/, https://nyaannyaan.github.io/library/, https://maspypy.github.io/library/, https://github.com/kth-competitive-programming/kactl/tree/main/content/geometry | rows 01–04 checked; row 03 complete |

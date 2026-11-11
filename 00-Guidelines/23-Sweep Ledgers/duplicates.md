@@ -181,6 +181,8 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P007 | `signedAreaApprox` (`03-polygon.hpp`) | Another scale: half the doubled area (clarified rule) |
 | P007 | `polygonContains`, `PolygonLocation` (`03-polygon.hpp`) | Derived classification of the winding number (clarified rule) |
 | P007 | `convexHull` (`04-convexhull.hpp`) | Constant-factor variant (ruling 4) |
+| P007 | `lowerHull`, `upperHull` beside `lowerHullIndices`, `upperHullIndices` (`04-convexhull.hpp`) | Constant-factor variant (ruling 4): points without the index sort and lookups, as `convexHull` beside `convexHullIndices` (P007 /finish review 2026-11-12) |
+| P007 | `segmentDistanceApprox` beside `linearDistanceApprox` on two segments (`02-line_segment.hpp`) | Constant-factor variant (ruling 4): long double from the exact topology, no `Rational` normalization (P007 review 2026-11-11); measured 16.2 to 18.5 times faster on random segment pairs (`04-convexhull.md`, Benchmarks, 2026-11-12) |
 | P007 | `projectLineApprox`, `reflectLineApprox`, `reflectDirectionApprox` (`02-line_segment.hpp`) | Different computation (one division, exact 0.5 where the factory gives 0.4999…) and domain (any `Point2<T>`) |
 | P008 | `Affine2Approx::orientation()` (`08-coordinate_transform.hpp`) | Derived formula: sign of `determinant()` (clarified rule) |
 | P008 | `CircleApprox::onBoundary`, `contains(dpoint)` (`06-circle.hpp`) | Named special case (ruling 1) |

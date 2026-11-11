@@ -123,14 +123,14 @@
       "phase": "Foundations re-audit",
       "size": "L",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "03-Geometry/Docs/01-point.md",
         "03-Geometry/Docs/02-line_segment.md",
         "03-Geometry/Docs/03-polygon.md",
         "03-Geometry/Docs/04-convexhull.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement convexHullSorted, convexHullMelkman, convexHullJarvis in `04-convexhull.hpp`. P275 re-review 2026-11-10: implement Angle, normalApprox in `01-point.hpp`; ccw in `02-line_segment.hpp`; lowerHull, upperHull in `04-convexhull.hpp`."
+      "note": "canonicalDirection's INT_MIN assert survivors (CR 212, COS 811) are masked in the checked build by libstdc++'s debug gcd assertion; the shared runner accepts any assertion, so a probe cannot require the header's own (user decision 2026-11-12: record as masked). /finish 2026-11-12, decided and logged while the user was away (their instruction): convexHullMelkman keep_collinear, adopted by user decision, measured 1.1-1.3x slower than convexHull(p, true); kept with its exception in omissions.md, open for the user's review. Follow-ups outside GE01 in 03-Geometry/Docs/00-notes.md (P007 re-audit decisions)."
     },
     {
       "id": "P008",

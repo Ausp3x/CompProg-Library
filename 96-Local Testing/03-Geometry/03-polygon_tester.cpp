@@ -89,6 +89,8 @@ template<typename Polygon> void verifyCells(const Polygon &p, const Cells &cells
             point a{lng(rng() % (bound + 5)) - 2, lng(rng() % (bound + 5)) - 2}, b{lng(rng() % (bound + 5)) - 2, lng(rng() % (bound + 5)) - 2};
             if (a != b) { verifyCut(p, cells, a, b); verifyCut(p, cells, b, a); }}
         verifyCut(p, cells, {0, 1}, {1, 1}); verifyCut(p, cells, {1, 0}, {1, 1});}}
+template<typename X> concept Orientable = requires(X x) { makeCCW(x); };
+static_assert(Orientable<vector<point>> && Orientable<vector<dpoint>> && !Orientable<vector<vector<point>>>);
 void basic() {
     phase = "degenerate"; vector<point> p;
     require(signedArea2(p) == 0 && polygonPerimeter(p) == 0 && latticeBoundary(p) == 0, "empty scalar outputs");
@@ -109,10 +111,18 @@ void basic() {
     p.insert(p.begin() + 1, p[0]); require(!polygonConvex(p, false), "zero edge");
     p = {{0, 0}, {2, 0}, {1, 0}, {2, 2}, {0, 2}}; require(!polygonConvex(p, false), "backtracking");
     p = {{0, 0}, {3, 0}, {3, 1}, {1, 1}, {1, 3}, {0, 3}}; require(!polygonConvex(p) && !polygonConvex(p, false), "concave");
+    p = {{0, 0}, {-1, -1}, {0, -2}, {3, 1}, {0, 4}, {-1, 3}, {2, 0}, {3, 0}}; require(!polygonConvex(p, false), "collinear backtrack between consistent turns");
+    p = {{0, 0}, {2, 0}, {0, 2}}; require(polygonConvex(p) && polygonConvex(p, false), "strict triangle");
+    reverse(p.begin(), p.end()); require(polygonConvex(p) && polygonConvex(p, false), "clockwise triangle");
     phase = "signed winding"; p = {{0, 0}, {2, 0}, {2, 2}, {0, 2}};
     auto m = polygonMoments(p); reverse(p.begin(), p.end()); auto r = polygonMoments(p);
     require(m.area2 == -r.area2 && m.x6 == -r.x6 && m.y6 == -r.y6, "reversed signed moments");
     require(polygonWinding(p, point{1, 1}).winding == -1 && latticeInterior(p) == 1, "reversed winding/Pick");
+    require(centroidApprox(p, approximate) && approximate == dpoint(1, 1) && centroidExact(p, exact) && exact == RationalPoint2(1, 1), "clockwise centroid");
+    vector<vector<point>> holed{{{0, 0}, {6, 0}, {6, 6}, {0, 6}}, {{1, 1}, {1, 4}, {4, 1}}};
+    int open = 0;
+    for (int x = 1; x <= 5; ++x) { for (int y = 1; y <= 5; ++y) { open += x + y > 5; }}
+    require(latticeInterior(holed) == open && latticeBoundary(holed) == 33, "triangle hole Pick against enumeration");
     auto twice = p; twice.insert(twice.end(), p.begin(), p.end());
     require(polygonWinding(twice, point{1, 1}).winding == -2 && polygonContains(twice, point{1, 1}) == PolygonLocation::Inside, "nonzero winding fill");
     phase = "floating dyadic"; vector<dpoint> f{{0, 0}, {1.5L, 0}, {1.5L, .5L}, {0, .5L}};
@@ -138,11 +148,57 @@ void basic() {
     require(std::abs(signedAreaApprox(u) - 4) <= 1e-15L && u.size() == 8, "nonconvex cut keeps zero-width bridge and exact area");
     vector<Point2<double>> fp{{0, 0}, {2, 0}, {2, 2}, {0, 2}};
     require(std::abs(signedAreaApprox(polygonCutApprox(fp, Point2<double>{0, 0.5}, Point2<double>{1, 0.5})) - 3) <= 1e-15L, "floating cut");}
+// Independent orientation oracle: exact trapezoid sum, -2 * area in quarter units for floating rings.
+template<typename T> lll fixed(T v) {
+    if constexpr (std::is_integral_v<T>) { return lll(v); }
+    else { return lll(v * 4); }}
+template<typename T> lll trapezoid(const vector<Point2<T>> &p) {
+    lll s = 0; int n = int(p.size());
+    for (int i = 0; i < n; ++i) {
+        auto a = p[i], b = p[i + 1 == n ? 0 : i + 1];
+        s += (fixed(b.x) - fixed(a.x)) * (fixed(b.y) + fixed(a.y));}
+    return s;}
+template<typename T> void verifyCCW(const vector<Point2<T>> &p) {
+    input.clear();
+    for (auto q : p) { input.push_back({lng(fixed(q.x)), lng(fixed(q.y))}); }
+    auto want = p, got = makeCCW(p);
+    if (trapezoid(p) > 0) { reverse(want.begin(), want.end()); }
+    require(got == want, "makeCCW reverses exactly the negative trapezoid rings");
+    require(makeCCW(got) == got, "makeCCW idempotent");
+    require(trapezoid(got) <= 0 && signedArea2(got) >= 0, "makeCCW nonnegative area");}
+template<typename T> vector<Point2<T>> randomRing(std::mt19937_64 &rng, lng bound, T unit) {
+    vector<Point2<T>> p(rng() % 9);
+    for (auto &q : p) { q = {T(lng(rng() % ulng(2 * bound + 1)) - bound) / unit, T(lng(rng() % ulng(2 * bound + 1)) - bound) / unit}; }
+    return p;}
+template<typename T> void orientationRounds(std::mt19937_64 &rng, int rounds, lng bound, T unit) {
+    for (int t = 0; t < rounds; ++t) {
+        for (lng b : {lng(2), bound}) {
+            auto p = randomRing<T>(rng, b, unit); verifyCCW(p);
+            auto back = p; back.insert(back.end(), p.rbegin(), p.rend()); verifyCCW(back);
+            reverse(p.begin(), p.end()); verifyCCW(p);}}}
+void orientation(int rounds) {
+    phase = "orientation cases"; const lng c = 1000000000; std::mt19937_64 rng(~seed);
+    input = {{0, 0}, {0, 1}, {1, 0}}; require(makeCCW(vector<point>{{0, 0}, {0, 1}, {1, 0}}) == vector<point>{{1, 0}, {0, 1}, {0, 0}}, "makeCCW point ring");
+    vector<vector<point>> cases{{}, {{2, 3}}, {{0, 0}, {3, 4}}, {{3, 4}, {0, 0}}, {{0, 0}, {1, 0}, {2, 0}, {5, 0}}, {{0, 0}, {5, 0}, {1, 0}, {3, 0}},
+        {{0, 0}, {0, 2}, {2, 2}, {2, 0}}, {{0, 0}, {2, 0}, {2, 2}, {0, 2}}, {{0, 0}, {2, 2}, {2, 0}, {0, 2}}, {{0, 0}, {4, 4}, {4, 0}, {0, 2}},
+        {{0, 0}, {0, 1}, {1, 1}, {1, 0}, {0, 0}, {0, 1}, {1, 1}, {1, 0}}, {{1, 1}, {1, 1}, {1, 1}}, {{-c, -c}, {-c, c}, {c, c}, {c, -c}},
+        {{-c, -c}, {c, c}, {c - 1, c - 1}}, {{-c, -c}, {c, c}, {c, c - 1}}, {{-c, -c}, {c, c - 1}, {c, c}}, {{c, -c}, {-c, c}, {c, c}, {-c, -c}}};
+    for (auto &p : cases) { verifyCCW(p); }
+    require(trapezoid(cases[9]) > 0 && trapezoid(cases[8]) == 0 && makeCCW(cases[8]) == cases[8] && makeCCW(cases[9]) != cases[9], "self-intersecting zero and negative rings");
+    vector<Point2<int>> ci{{int(c), int(-c)}, {int(-c), int(-c)}, {int(-c), int(c)}}; verifyCCW(ci);
+    vector<dpoint> cf{{0, 0}, {.25L, 1.5L}, {.5L, 0}}; verifyCCW(cf);
+    require(makeCCW(cf) == vector<dpoint>{{.5L, 0}, {.25L, 1.5L}, {0, 0}}, "floating clockwise reversed");
+    phase = "orientation random lng"; orientationRounds<lng>(rng, 8 * rounds, c, 1);
+    phase = "orientation random int"; orientationRounds<int>(rng, 8 * rounds, c, 1);
+    phase = "orientation random long double quarters"; orientationRounds<long double>(rng, 8 * rounds, lng(1) << 22, 4);}
 void invalid(const string &name) {
     if (name == "pick-empty") { (void)latticeInterior(vector<point>{}); }
     if (name == "pick-collinear") { (void)latticeInterior(vector<point>{{0, 0}, {1, 0}, {2, 0}}); }
     if (name == "holes-empty") { (void)latticeInterior(vector<vector<point>>{}); }
     if (name == "holes-orientation") { (void)latticeInterior(vector<vector<point>>{{{0, 0}, {0, 4}, {4, 4}, {4, 0}}}); }
+    if (name == "holes-flat") { (void)latticeInterior(vector<vector<point>>{{{0, 0}, {4, 0}, {4, 4}, {0, 4}}, {{1, 1}, {2, 2}, {3, 3}}}); }
+    if (name == "holes-zero-total") { (void)latticeInterior(vector<vector<point>>{{{0, 0}, {2, 0}, {2, 2}, {0, 2}}, {{0, 2}, {2, 2}, {2, 0}, {0, 0}}}); }
+    if (name == "holes-negative-total") { (void)latticeInterior(vector<vector<point>>{{{0, 0}, {2, 0}, {2, 2}, {0, 2}}, {{0, 4}, {4, 4}, {4, 0}, {0, 0}}}); }
     if (name == "cut-singleton") { (void)polygonCutApprox(vector<point>{{0, 0}, {1, 0}, {0, 1}}, point{}, point{}); }
     if (name == "lattice-bound") { (void)latticeBoundary(vector<point>{{1000000001, 0}}); }
     std::exit(2);}
@@ -154,6 +210,7 @@ int main(int argc, char **argv) {
         else if (a == "--invalid") { invalid(argv[++i]); }}
     basic(); std::mt19937_64 rng(seed);
     int rounds = mode == "quick" ? 15 : mode == "full" ? 180 : 1400;
+    orientation(rounds);
     phase = "histogram cells";
     for (int t = 0; t < rounds; ++t) {
         int n = 1 + int(rng() % 8); vector<int> h(n); Cells cells;

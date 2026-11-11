@@ -34,6 +34,10 @@ template<typename T> auto signedArea2(const vector<vector<Point2<T>>> &rings) {
     for (const auto &p : rings) { assert(lng(p.size()) <= INT_MAX - n); n += p.size(); a += signedArea2(p); }
     return a;}
 template<typename Polygon = vector<point>> long double signedAreaApprox(const Polygon &p) { return static_cast<long double>(signedArea2(p)) / 2; }
+// T: O(n), M: O(1) beyond the returned ring. One ring, reversed when its signed area is negative, otherwise unchanged.
+template<typename T> vector<Point2<T>> makeCCW(vector<Point2<T>> p) {
+    if (signedArea2(p) < 0) { reverse(p.begin(), p.end()); }
+    return p;}
 
 // T: O(n + r), plus O(log(n * C^3)) exact normalization, M: O(1), n total vertices, r rings, C = max(1, |coordinate|). False on zero area, out unchanged.
 template<typename Polygon = vector<point>> bool centroidExact(const Polygon &p, RationalPoint2 &out) {
@@ -129,8 +133,7 @@ template<typename T> lll latticeInterior(const vector<vector<Point2<T>>> &rings)
     assert(a > 0);
     return (a - latticeBoundary(rings)) / 2 + 2 - lll(rings.size());}
 
-// T: O(n), M: O(n), output size <= 2 * n. Keeps p within the closed left half-plane of a -> b, a != b.
-// The result may hold collinear or zero-width pieces; its signed area is that of the clipped region.
+// T: O(n), M: O(n), output size <= 2 * n. Keeps p within the closed left half-plane of a -> b, a != b; collinear or zero-width pieces may remain, the signed area is the clipped region's.
 template<typename T> vector<dpoint> polygonCutApprox(const vector<Point2<T>> &p, Point2<T> a, Point2<T> b) {
     assert(p.size() <= INT_MAX && a != b); int n = int(p.size()); vector<dpoint> res;
     dpoint s = a.template cast<long double>(), u = b.template cast<long double>() - s;
