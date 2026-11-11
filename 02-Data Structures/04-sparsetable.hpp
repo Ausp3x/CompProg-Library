@@ -36,6 +36,28 @@ struct SparseTable {
             i = std::bit_width(uint(r - l)) - 1;
             acc = m.op(acc, v[i][l]); l += 1 << i;}
         return acc;}
+    // Q: O(log(n + 1)); largest r in [l, n] with r == l or pred(associativeProd(l, r)); pred stays false once false, never sees an empty range.
+    template<typename G>
+    int maxRight(int l, G pred) const {
+        assert(0 <= l && l <= n);
+        int r = l;
+        std::optional<S> acc;
+        for (int i = h; i-- > 0;) {
+            if ((1 << i) <= n - r) {
+                S next = acc ? m.op(*acc, v[i][r]) : v[i][r];
+                if (pred(next)) { acc = std::move(next); r += 1 << i; }}}
+        return r;}
+    // Q: O(log(n + 1)); smallest l in [0, r] with l == r or pred(associativeProd(l, r)); pred stays false once false, never sees an empty range.
+    template<typename G>
+    int minLeft(int r, G pred) const {
+        assert(0 <= r && r <= n);
+        int l = r;
+        std::optional<S> acc;
+        for (int i = h; i-- > 0;) {
+            if ((1 << i) <= l) {
+                S next = acc ? m.op(v[i][l - (1 << i)], *acc) : v[i][l - (1 << i)];
+                if (pred(next)) { acc = std::move(next); l -= 1 << i; }}}
+        return l;}
 
     // T: O(n * log(n + 1)); legacy diagnostic format with inclusive blocks.
     friend ostream &operator<<(ostream &os, const SparseTable &a) {

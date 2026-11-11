@@ -33,7 +33,11 @@ struct DSU {
     int size(int u) { return siz[findSet(u)]; }
     bool isSameSet(int u, int v) { return findSet(u) == findSet(v); }
     int count() const { return ncon; }
-    // T: O(n), M: O(n); groups and members ordered by smallest vertex.
+    // T: O(n), M: O(n); leaders()[u] is findSet(u); groups and members ordered by smallest vertex.
+    vector<int> leaders() {
+        vector<int> res(n);
+        for (int u = 0; u < n; ++u) { res[u] = findSet(u); }
+        return res;}
     vector<vector<int>> groups() {
         vector<int> id(n, -1);
         vector<vector<int>> res;

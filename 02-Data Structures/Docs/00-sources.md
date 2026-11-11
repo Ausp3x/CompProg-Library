@@ -402,3 +402,19 @@ Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md
 - <https://grantjenks.com/docs/sortedcontainers/sortedlist.html>
 - <https://yukicoder.me/problems/no/2977>
 - <https://uoj.ac/problem/164>
+
+## Fetched 2026-11-11 (DS01 sweep)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| maspypy segtree | https://raw.githubusercontent.com/maspypy/library/main/ds/segtree/segtree.hpp | 2026-11-11 | `set_many_sorted` and `prod_ids` (row 03 `SegmentTree::setManySorted`, `SegmentTree::prodIds`). |
+| maspypy sparse_table | https://raw.githubusercontent.com/maspypy/library/main/ds/sparse_table/sparse_table.hpp | 2026-11-11 | `max_right`/`min_left` by binary search over the idempotent `prod`, asserting `check(e)`; row 04 descends the levels instead, which needs neither idempotence nor `e`. |
+| maspypy unionfind | https://maspypy.github.io/library/ds/unionfind/unionfind.hpp | 2026-11-11 | `get_all` (row 01 `DSU::leaders`). |
+| Rows 01–04 catalogs | https://cp-algorithms.com/data_structures/disjoint_set_union.html ; https://cp-algorithms.com/data_structures/fenwick.html ; https://cp-algorithms.com/data_structures/sparse-table.html ; https://cp-algorithms.com/data_structures/segment_tree.html ; https://oi-wiki.org/ds/fenwick/ ; https://oi-wiki.org/ds/sparse-table/ ; https://raw.githubusercontent.com/atcoder/ac-library/master/document_en/dsu.md ; https://atcoder.github.io/ac-library/production/document_en/segtree.html ; https://nyaannyaan.github.io/library/data-structure/sparse-table.hpp ; https://nyaannyaan.github.io/library/segment-tree/segment-tree.hpp ; https://suisen-cp.github.io/cp-library-cpp/library/datastructure/sparse_table.hpp ; https://hitonanode.github.io/cplib-cpp/sparse_table/sparse_table.hpp ; https://hitonanode.github.io/cplib-cpp/unionfind/unionfind.hpp ; https://hitonanode.github.io/cplib-cpp/segmenttree/binary_indexed_tree.hpp ; https://ei1333.github.io/library/structure/others/sparse-table.hpp ; https://ei1333.github.io/library/structure/segment-tree/segment-tree.hpp ; https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/data-structures/RMQ.h ; https://maspypy.github.io/library/ds/fenwicktree/fenwicktree.hpp ; https://github.com/cheran-senthil/PyRival/blob/master/pyrival/data_structures/FenwickTree.py | 2026-11-11 | Nothing else is absent from rows 01–04; the rest are aliases or owned by other rows. OI Wiki Fenwick and the Nyaan, suisen and hitonanode indexes were read to their first 100k characters only. |
+
+## Fetched 2026-11-12 (DS01 /finish)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| OI Wiki Fenwick, 时间戳优化 | https://oi-wiki.org/ds/fenwick/ (characters 100,000 to the end) | 2026-11-12 | A `tag` per node, stale nodes reset in `add` and skipped in `getsum`, O(1) `reset` by incrementing `Tag`: row 02 `FenwickTimestamp`. |
+| OI Wiki 并查集, 带删除并查集 and UVa 11987 | https://oi-wiki.org/ds/dsu/ | 2026-11-12 | Virtual node per element so elements stay leaves; delete gives the element a new virtual node, move re-parents it under the target root (SPOJ JMFILTER, UVa 11987). Row 65 `MovableDSU` (P035) owns it; row 01 keeps none. |

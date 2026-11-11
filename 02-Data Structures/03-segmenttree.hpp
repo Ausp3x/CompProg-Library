@@ -31,8 +31,20 @@ struct SegmentTree {
     void set(int p, const S &x) {
         assert(0 <= p && p < n);
         p += base; tree[p] = x;
-        while (p >>= 1) { tree[p] = m.op(tree[2 * p], tree[2 * p + 1]); }}
+        while ((p >>= 1) > 0) { tree[p] = m.op(tree[2 * p], tree[2 * p + 1]); }}
     void apply(int p, const S &x) { assert(0 <= p && p < n); set(p, m.op(tree[base + p], x)); }
+    // U: O(k + m * log(2 * n / m)) for k pairs (p, x), p nondecreasing over m distinct positions; a repeated p keeps its last x.
+    void setManySorted(const vector<pair<int, S>> &a) {
+        assert(a.empty() || (0 <= a[0].first && a.back().first < n));
+        assert(std::ranges::adjacent_find(a, [](const auto &x, const auto &y) { return x.first > y.first; }) == a.end());
+        vector<int> q; q.reserve(a.size());
+        for (const auto &[p, x] : a) { tree[base + p] = x; q.push_back(base + p); }
+        while (!q.empty() && q[0] > 1) {
+            int k = 0;
+            for (int u : q) {
+                if (!k || q[k - 1] != u >> 1) { q[k++] = u >> 1; }}
+            q.resize(k);
+            for (int u : q) { tree[u] = m.op(tree[2 * u], tree[2 * u + 1]); }}}
 
     S prod(int l, int r) const {
         assert(0 <= l && l <= r && r <= n);
@@ -41,6 +53,14 @@ struct SegmentTree {
             if (l & 1) { left = m.op(left, tree[l++]); }
             if (r & 1) { right = m.op(tree[--r], right); }}
         return m.op(left, right);}
+    vector<int> prodIds(int l, int r) const {
+        assert(0 <= l && l <= r && r <= n);
+        vector<int> res, right;
+        for (l += base, r += base; l < r; l >>= 1, r >>= 1) {
+            if (l & 1) { res.push_back(l++); }
+            if (r & 1) { right.push_back(--r); }}
+        res.insert(res.end(), right.rbegin(), right.rend());
+        return res;}
     template<typename X, typename G>
     X fold(int l, int r, X x, G act) const {
         assert(0 <= l && l <= r && r <= n);

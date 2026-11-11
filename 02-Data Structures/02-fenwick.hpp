@@ -28,7 +28,7 @@ struct Fenwick {
 
     void add(int i, T x) {
         assert(0 <= i && i < n);
-        for (; i < n; i |= i + 1) { v[i] += x; }}
+        for (; uint(i) < uint(n); i |= i + 1) { v[i] += x; }}
     void set(int i, T x) { add(i, x - get(i)); }
 
     T prefixSum(int r) const {
@@ -68,4 +68,35 @@ struct Fenwick {
         for (int d = int(std::bit_floor(uint(n))); d > 0; d >>= 1) {
             if (d <= n - i && below(v[i + d - 1], x)) { x -= v[i + d - 1]; i += d; }}
         return i;}
+};
+
+// 0 <= n <= INT_MAX; T is an additive commutative group; clear() empties every value.
+// S: O(n), U: O(log(n)), Q: O(log(n)), M: O(n)
+template<typename T>
+struct FenwickTimestamp {
+    int n;
+    uint cur = 0;
+    vector<T> v;
+    vector<uint> stamp;
+
+    explicit FenwickTimestamp(int N = 0) : n(N) { assert(n >= 0); v.assign(n, T(0)); stamp.assign(n, 0); }
+
+    void add(int i, T x) {
+        assert(0 <= i && i < n);
+        for (; uint(i) < uint(n); i |= i + 1) {
+            if (stamp[i] != cur) { stamp[i] = cur; v[i] = T(0); }
+            v[i] += x;}}
+    // T: O(1), and O(n) once per 2^32 calls.
+    void clear() {
+        if (++cur == 0) { std::ranges::fill(v, T(0)); }}
+
+    T prefixSum(int r) const {
+        assert(0 <= r && r <= n);
+        T res = T(0);
+        for (; r > 0; r &= r - 1) {
+            if (stamp[r - 1] == cur) { res += v[r - 1]; }}
+        return res;}
+    T sum(int l, int r) const {
+        assert(0 <= l && l <= r && r <= n);
+        return prefixSum(r) - prefixSum(l);}
 };

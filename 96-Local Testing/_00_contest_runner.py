@@ -61,7 +61,8 @@ def main(stem, invalid, oracle=None, extra=(), timeout=720, checked='-D_GLIBCXX_
             raise RuntimeError(f'timeout={limit}s command={shlex.join(command)}\n{error.stdout}\n{error.stderr}') from error
         longest[0] = max(longest[0], time.monotonic() - start)
         if death:
-            ok = result.returncode == -signal.SIGABRT and 'assert' in result.stderr.lower()
+            # glibc's assert prints "Assertion `"; libstdc++'s bounds checks print "Assertion '" and do not count.
+            ok = result.returncode == -signal.SIGABRT and 'Assertion `' in result.stderr
         else:
             ok = result.returncode == 0
         if not ok:

@@ -38,6 +38,11 @@ void checkDepths(const DSU &d, const vector<int> &a) {
 void verify(DSU &d, const vector<int> &a) {
     int n = int(a.size());
     check(d.n,n,"n"); checkDepths(d,a);
+    // leaders runs first, on paths not yet compressed by the checks below.
+    vector<int> leaders = d.leaders();
+    check(int(leaders.size()),n,"leaders size");
+    for (int u = 0; u < n; ++u) {
+        check(leaders[u],d.findSet(u),"leaders["+std::to_string(u)+"]"); check(a[leaders[u]],a[u],"leaders membership");}
     vector<vector<int>> expected;
     vector<int> seen(n,-1);
     for (int u = 0; u < n; ++u) {
@@ -72,15 +77,16 @@ void graphSubsets() {
     cout << "PASS DSU exhaustive graph subsets n<=" << limit << '\n';}
 void unionHistories() {
     int depth = mode == "quick" ? 3 : mode == "full" ? 5 : 6;
-    context = "exhaustive n=3 union histories depth="+std::to_string(depth); history.clear();
+    // Iterative deepening: pass k verifies only length-k histories, so the first failure is a shortest one.
     auto rec = [&] (auto &&self, DSU d, vector<int> a, int left) -> void {
-        verify(d,a);
-        if (!left) { return; }
+        if (!left) { verify(d,a); return; }
         for (int u = 0; u < 3; ++u) { for (int v = 0; v < 3; ++v) {
             DSU next = d; auto b = a; history.push_back({u,v});
             check(next.uniteSets(u,v),join(b,u,v),"history uniteSets");
             self(self,std::move(next),std::move(b),left-1); history.pop_back();}}};
-    rec(rec,DSU(3),vector<int>{0,1,2},depth);
+    for (int k = 0; k <= depth; ++k) {
+        context = "exhaustive n=3 union histories length="+std::to_string(k); history.clear();
+        rec(rec,DSU(3),vector<int>{0,1,2},k);}
     cout << "PASS DSU exhaustive union histories depth=" << depth << '\n';}
 void randomCases() {
     std::mt19937_64 rng(seed);

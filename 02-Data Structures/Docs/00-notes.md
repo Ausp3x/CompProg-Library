@@ -44,7 +44,7 @@ Candidates from the 2026-10-07 sweep ([00-sources.md](00-sources.md)) left out o
 
 - SparseTable `maxRight`/`minLeft` (MAS): the table has no identity; a binary search over `query` gives the same O(log(n)) bound. (returned by P275 2026-11-10 into row 04)
 - SegmentTree/SqrtDecomp/Fenwick `reset`/`build` (MAS, HIT): constructing a new object does the same.
-- Fenwick timestamp clearing (OI): a per-problem multi-test trick, not a structure operation.
+- Fenwick timestamp clearing (OI): a per-problem multi-test trick, not a structure operation. (returned by P275 2026-11-10 into row 02)
 - Prefix product over a noncommutative or xor group (MAS `Static_Range_Product_Group`): a custom T with `+`/`-` covers commutative groups; noncommutative prefix products are rare.
 - 3D prefix sums and difference arrays (OI): rare; apply the 2D axis-by-axis method one more time.
 - Tree prefix sums and path differences (OI): need LCA, so they belong to Graphs tree algorithms.
@@ -53,7 +53,7 @@ Candidates from the 2026-10-07 sweep ([00-sources.md](00-sources.md)) left out o
 - O(1)-update / O(sqrt(n))-query group block sums (MAS): adopted on 2026-11-08 into row 23 as `SqrtBlockSum`, the Mo value-domain tool.
 - OrderedMultiSet `split`/`join` (OI pb_ds): rare; `OrderedSet` keeps the native PBDS API, including both. (returned by P275 2026-11-10 into row 07)
 - CoordinateCompression distinct-by-position encoding and counting-sort mode (MAS, NYA): an argsort rank, not compression.
-- DSU grid adapters, delete/move element (HIT, OI): left out by P035 ([P035 omissions](#p035-omissions)).
+- DSU delete/move element (OI): planned as row 65 `MovableDSU` (P275 re-review 2026-11-10, package P035). DSU grid adapters (HIT): left out, a grid vertex is `r * w + c`, an argument form (user decision 2026-11-12; earlier reasons in [P035 omissions](#p035-omissions)).
 
 ## Foundations rows 01–08 (P006)
 
@@ -67,7 +67,7 @@ A moved-from structure may only be assigned to or destroyed. Its size fields kee
 
 ### Test infrastructure
 
-Failure reporting follows `05-testing.md`; invalid probes require SIGABRT with assertion diagnostics. Exhaustive enumerations stop on the first discovered failing case; no automatic shrinking claim is made.
+Failure reporting follows `05-testing.md`; invalid probes require SIGABRT with assertion diagnostics. Exhaustive enumerations stop on the first discovered failing case. The DSU union histories and the `FenwickTimestamp` add/clear histories run by iterative deepening, so their first failure is a shortest history; the other enumerations make no shrinking claim.
 
 Quick modes reduce enumeration lengths/history depths/random counts and run optimized plus checked builds. Full runs every feature in optimized (`-O2 -DNDEBUG`), checked (`-O1 -g -D_GLIBCXX_DEBUG`; the ordered suite uses `_GLIBCXX_ASSERTIONS`, see [07-ordered_set.md](07-ordered_set.md)), and sanitizer (`-O1 -g -D_GLIBCXX_ASSERTIONS -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-pie -no-pie`) builds, with leak checking enabled. Every configuration compiles with `-Wall -Wextra -Wconversion -Werror`. Stress modes extend the enumerations/random counts; each suite's source records its concrete mode limits. Declared algebra/monotonicity/representability conditions and impractically large allocations are justified contracts, not runtime proof by finite tests.
 
@@ -177,7 +177,7 @@ Candidates from the 2026-10-23 sweep ([00-sources.md](00-sources.md#fetched-2026
 
 - Persistent weighted DSU: no catalog has one.
 - Component sums under a component-wide action (suisen `UnionFindLazy`): needs an action on sums that merges can cancel; rare. `DualDSU` reads single values, `ComponentSumDSU` folds without actions. Monoid-only component actions (chmax) are left out too: `DualDSU` cancels the absorbing root's tag with `inv`.
-- Delete and move element (OI Wiki virtual nodes, UVa 11987) and grid adapters with a border merge (hitonanode `grid_unionfind`): a move needs a group to remove the old value from its component; a grid is `r * w + c` and a loop.
+- Delete and move element (OI Wiki virtual nodes, UVa 11987) and grid adapters with a border merge (hitonanode `grid_unionfind`): a move needs a group to remove the old value from its component; a grid is `r * w + c` and a loop. (Superseded: see the DSU line of the P006 omissions above.)
 - Merges of one batch as a single time step (suisen `merge_simultaneously`): `MergeHistoryForest` stamps each union with its index; a caller maps indices to steps.
 - FastSet `clear`/`reset` (maspypy, hitonanode): constructing a new set does the same. `fillOne`: `build` with a true predicate. `toString`: debug output. `any(l, r)`: `next(l) < r`. Range erase: `enumerate` with `erase` in the callback. Counting and k-th: Fenwick `lowerBound` (row 02).
 - Arpa's offline RMQ (cp-algorithms, a DSU over next-smaller links): rows 04 and 28 answer the same queries online.
@@ -276,3 +276,7 @@ P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines
 - `PersistentFenwick` (P027 and P032 bullets) and the bullets that left out `DynamicFenwick`, `DynamicFenwick2D`, `DualCompressedFenwick2D`, `CompressedFenwick2DRangeAdd` and `SegmentTree2DSparse` `maxUp`, `minDown` were adopted into rows 11 and 15 on 2026-11-08.
 - suisen `union_find_lazy` states its semantics (returned as row 65 `LazyDSU`); hitonanode's monotone hull merge is verified there (row 22 `MonotoneCHT::merge`).
 - Not returned after the P275 review: `setIntersectionOffline` (Miscellaneous row 22 owns it, from the same maspypy file), `GridDSU` (a grid vertex is `r * w + c`, an argument form); `LazySegmentTree` point combine waits for its name (`omissions.md`, Open questions, P027).
+
+## DS01 sweep 2026-11-11
+
+The DS01 completeness sweep ([00-sources.md](00-sources.md)) added `DSU::leaders` (MAS `get_all`, a batch form of `findSet`), `SegmentTree::setManySorted` (MAS `set_many_sorted`) and `SegmentTree::prodIds` (MAS `prod_ids`, a node-index result no other operation returns) to rows 01 and 03 (`03-cpp.md`, One API per operation); it left nothing out.
