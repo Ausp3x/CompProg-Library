@@ -6,7 +6,7 @@
     "verified"
   ],
   "models": {
-    "fable": "claude-fable-5-1",
+    "fable": "claude-fable-5-2",
     "opus": "claude-opus-5-5"
   },
   "packages": [

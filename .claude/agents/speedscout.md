@@ -2,8 +2,8 @@
 name: speedscout
 description: Optimality analysis of a Core full type against the fastest judge submissions of its problems (Library Checker first) for /speed-sweep. Reads the leaders' cached sources and per-case tables and returns, per problem, how each leader works and the ranked differences from our header. Read-only.
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
-model: claude-fable-5-1
-effort: xhigh
+model: claude-fable-5-2
+effort: high
 ---
 
 You explain why the fastest judge submissions beat a Core full header of a competitive-programming library (`00-Guidelines/01-principles.md`, Profiles: Core full). The caller gives the header, our solution sources, the problems, the `07-judge.py compare` tables, the leaders' submission ids with their cached source paths, and any archive or write-up URLs.

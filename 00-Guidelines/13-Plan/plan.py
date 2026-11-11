@@ -340,14 +340,15 @@ def batch_done(b, inv, done=frozenset()):
     return all(row_status(inv.get(t, ([''],))[0]) == 'verified' for t in b['targets'])
 
 
-def launch(root, model):
+def launch(root, model, xl=False):
     """(launch command, session check) for a package model id: the `*-session` agent preset in `.claude/agents` with
-    that model, compared with the running session's preset and effort when Claude Code exports them."""
+    that model, at effort `xhigh` for a Core XL package (`xl`; CLAUDE.md, Models and delegation), compared with the
+    running session's preset and effort when Claude Code exports them."""
     preset = None
     for f in sorted((root / '.claude/agents').glob('*-session.md')):
         meta = dict(re.findall(r'^(\w+):[ \t]*(.+)$', f.read_text().split('---')[1], re.M))
         if meta.get('model') == model:
-            preset = (meta.get('name', f.stem), meta.get('effort', '?'))
+            preset = (meta.get('name', f.stem), 'xhigh' if xl else meta.get('effort', '?'))
     if not preset:
         return f'no session preset uses {model}', ''
     agent, effort = os.environ.get('CLAUDE_CODE_AGENT'), os.environ.get('CLAUDE_EFFORT')
@@ -394,7 +395,7 @@ def show(root, ident):
         shown = [] if len(p['batches']) > 1 and open_ and p['status'] != 'verified' else p['batches']
     else:
         raise SystemExit(f'Unknown package or batch: {ident}')
-    command, check = launch(root, packages['models'][p['model']])
+    command, check = launch(root, packages['models'][p['model']], p['model'] == 'fable' and p['size'] == 'XL')
     out = [f'{p["id"]} — {p["label"]} | {p["phase"]} | {p["size"]} | {p["status"]} | '
            f'model: {p["model"]} ({packages["models"][p["model"]]}) | launch: {command}' + (f' | {check}' if check else ''), line]
     batch = shown[0] if len(shown) == 1 else next((b for b in p['batches'] if not batch_done(bmap[b], inv, fin)), p['batches'][0])

@@ -3,8 +3,8 @@ name: speed-sweep
 description: Optimality research for Core full types against the fastest judge submissions of their problems (Library Checker first). `scout` (default) ranks the leaders, reproduces our solutions with the judge's flags, has @speedscout explain the gaps and writes an "Optimality gap" section; `verify` refreshes the numbers after a package stage.
 disable-model-invocation: true
 argument-hint: "Pxxx | <header path> [scout | verify]"
-model: claude-fable-5-1
-effort: xhigh
+model: claude-fable-5-2
+effort: high
 ---
 
 `$ARGUMENTS` is a package id or a header path, optionally followed by `scout` (the default) or `verify`. `J` stands for `python3 '96-Local Testing/00-Tools/07-judge.py'` (usage: `J --help`; endpoints and judge recipe: `00-Guidelines/09-sources.md`, Fastest submissions). The sweep writes only the evidence and sources documents named below. Findings become `/package` work, never code edits here; the tool never submits.
@@ -53,4 +53,5 @@ effort: xhigh
 
    Rerun `--untrusted` only for the leader ids the section already records with the user's yes.
 3. **Append.** Add one row per problem to the `Verify runs` table, with the date and the header's commit (`git log -1 --format=%h -- <header>`). Note any leader newer than the section's table, and any case whose gap grew by more than 10%. Add a `## History` line.
-4. **Report** the changes in standing and gaps, and give the commit command of Scout step 8.
+4. **Escalate.** A problem escalates when a package stage took its targets (the header's commit is newer than the section's tests commit), it still has a case with a gap above 1.5, and the section's ranked causes no longer account for that gap. For each such problem, rerun Scout step 6 with one `@speedscout` at Agent `effort: xhigh`, giving it the refreshed tables and the section's causes. Replace that problem's causes and targets in the section, and mark the `## History` line `(xhigh scout)`. A problem whose xhigh rerun explains nothing new is reported, not rerun.
+5. **Report** the changes in standing and gaps and any escalation, and give the commit command of Scout step 8.
