@@ -400,7 +400,8 @@
       "label": "Harness audit: model guard, experiment ids, weekly scan",
       "batches": [
         "SUP28",
-        "SUP29"
+        "SUP29",
+        "SUP30"
       ],
       "phase": "Foundations re-audit",
       "size": "XL",

@@ -52,7 +52,29 @@
         ]
       }
     ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/harness.py\" hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/harness.py\" hook",
+            "timeout": 10
+          }
+        ]
+      },
       {
         "matcher": "Edit|Write",
         "hooks": [

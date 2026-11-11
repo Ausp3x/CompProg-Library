@@ -4,7 +4,9 @@
 Usage: merge_pr.py files N | checkout N | gates N | run N [--mb MB] -- CMD... | land N | drop N
   files     fetch the pull request head as data (nothing runs) and classify every changed path as library code or
             outside it; an outside path needs the user's yes before checkout, and so does each added line that records
-            a decision (DECISIONS), which the user confirms is theirs.
+            a decision (DECISIONS), which the user confirms is theirs, and each added line inside instruction-like
+            content (INSTRUCTIONS: harness.py's blocks and unwrapped directives), which the user confirms is meant,
+            since files in the checkout are trusted context once landed.
   checkout  add the worktree .claude/worktrees/PR<N> on the head branch and rebase it with worktree.py --sync.
   gates     run the gates (consistency, plan, the package's suites, the mutation records of changed headers, integration,
             workspace) in that worktree, each in bwrap (system read-only, home and /run hidden, no network, the
@@ -19,6 +21,7 @@ Usage: merge_pr.py files N | checkout N | gates N | run N [--mb MB] -- CMD... | 
   drop      remove the worktree, the branch checkout created and the fetched head without landing.
 """
 import argparse
+import bisect
 import contextlib
 import importlib.util
 import json
@@ -105,24 +108,69 @@ def docs_only(base, head):
     return bool(found) and all(DOCS.fullmatch(path) and not why for _, path, why in found)
 
 
+def added(base, head):
+    """(path, line, text) of every line added from base to head, the generated 01-prompts.md skipped. The diff is read
+    as bytes split at newlines only (a lone carriage return or a non-UTF-8 byte moves no count) and by the hunk
+    headers' counts, so an added line starting with '++ ' is no file header; a path git quotes (a quote, backslash or
+    control character in it) is unquoted, and the prefixes are fixed whatever the user's diff.noprefix."""
+    import codecs
+    r = subprocess.run(['git', '-c', 'core.quotePath=false', 'diff', '-U0', '--no-color', '--no-ext-diff', '--no-renames',
+                        '--src-prefix=a/', '--dst-prefix=b/', base, head, '--', '.', ':(exclude)01-prompts.md'], cwd=ROOT, capture_output=True)
+    if r.returncode:
+        raise SystemExit(f'git diff failed:\n{r.stderr.decode(errors="replace").strip()}')
+    diff = r.stdout
+    path, n, old, new = None, 0, 0, 0
+    for line in diff.split(b'\n'):
+        if old > 0 or new > 0:
+            if line.startswith(b'+'):
+                if path:
+                    yield path, n, line[1:].decode(errors='replace')
+                n, new = n + 1, new - 1
+            elif line.startswith(b'-'):
+                old -= 1
+        elif line.startswith(b'+++ '):
+            p = line[4:].removesuffix(b'\t')  # git tabs a path with spaces
+            p = codecs.escape_decode(p[1:-1])[0] if p.startswith(b'"') else p
+            path = os.fsdecode(p[2:]) if p.startswith(b'b/') else None
+        elif m := re.match(rb'@@ -\d+(?:,(\d+))? \+(\d+)(?:,(\d+))? @@', line):
+            old, n, new = int(m[1] or 1), int(m[2]), int(m[3] or 1)
+
+
 def decisions(base, head):
     """(path, line, text) of every line added from base to head that records a decision (DECISION) or sits under the
     `## Recorded decisions` heading of a sweep ledger (headings aside); the generated 01-prompts.md is skipped, its
     notes come from packages.json."""
-    out, path, n, texts = [], None, 0, {}
-    diff = git('-c', 'core.quotePath=false', 'diff', '-U0', '--no-color', '--no-ext-diff', '--no-renames', base, head, '--', '.', ':(exclude)01-prompts.md')
-    for line in diff.split('\n'):
-        if line.startswith('+++ '):
-            path = line[6:].removesuffix('\t') if line.startswith('+++ b/') else None  # git tabs a path with spaces
-        elif line.startswith('@@ '):
-            n = int(re.match(r'@@ -\S+ \+(\d+)', line)[1])
-        elif line.startswith('+') and path:
-            if path.startswith('00-Guidelines/23-Sweep Ledgers/') and path not in texts:
-                texts[path] = git('show', f'{head}:{path}').split('\n')
-            heading = next((h for h in reversed(texts.get(path, [])[:n - 1]) if h.startswith('## ')), '')
-            if line[1:].strip() and (DECISION.search(line) or heading.strip() == '## Recorded decisions' and not line.startswith('+#')):
-                out.append((path, n, line[1:]))
-            n += 1
+    out, texts = [], {}
+    for path, n, text in added(base, head):
+        if path.startswith('00-Guidelines/23-Sweep Ledgers/') and path not in texts:
+            texts[path] = git('show', f'{head}:{path}').split('\n')
+        heading = next((h for h in reversed(texts.get(path, [])[:n - 1]) if h.startswith('## ')), '')
+        if text.strip() and (DECISION.search(text) or heading.strip() == '## Recorded decisions' and not text.startswith('#')):
+            out.append((path, n, text))
+    return out
+
+
+def instructions(base, head):
+    """(path, line, label) of every instruction-like block or unwrapped directive (harness.py's scan, uncapped) of a
+    text file changed from base to head whose lines include an added one; the generated 01-prompts.md is skipped."""
+    H = module('merge_harness', ROOT / '.claude/hooks/harness.py')
+    lines = {}
+    for path, n, _ in added(base, head):
+        lines.setdefault(path, set()).add(n)
+    out = []
+    for path, nums in lines.items():
+        raw = subprocess.run(['git', 'show', f'{head}:{path}'], cwd=ROOT, capture_output=True).stdout
+        if b'\0' in raw[:8000]:  # git's own rule for a binary file
+            continue
+        text = raw.decode(errors='replace')
+        breaks = [i for i, c in enumerate(text) if c == '\n']
+        at = lambda i: bisect.bisect_left(breaks, i) + 1  # the line of offset i
+        blocks, prose = H.scan(text, cap=False)
+        spans = [(a, b, f'{tag} ({kind})') for a, b, tag, kind in blocks] + [(a, b, f'prose {kind}') for a, b, kind in prose]
+        for a, b, label in sorted(spans):
+            hit = next((k for k in range(at(a), at(max(b - 1, a)) + 1) if k in nums), None)
+            if hit is not None:
+                out.append((path, hit, label))
     return out
 
 
@@ -197,6 +245,10 @@ def files(n):
     if dec:
         print(f'DECISIONS: {len(dec)} added line(s) record a decision; the user confirms each is theirs before checkout')
         print('\n'.join(f'  {path}:{n}: {text.strip()[:200]}' for path, n, text in dec))
+    ins = instructions(base, head)
+    if ins:
+        print(f'INSTRUCTIONS: {len(ins)} added block(s) or line(s) read as instructions to Claude; the user confirms each is meant before checkout')
+        print('\n'.join(f'  {path}:{n}: {label}' for path, n, label in ins))
     return 0
 
 

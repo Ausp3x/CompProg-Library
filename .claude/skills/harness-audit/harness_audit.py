@@ -49,10 +49,10 @@ HEXRUN = re.compile(r'\b(?=[0-9a-f]*\d)[0-9a-f]{8,}\b', re.I)
 RECORD = ('record_types', 'attachment_types', 'system_subtypes', 'record_keys', 'message_keys', 'model_attachment_keys', 'usage_keys',
           'input_transformations', 'cache_miss_reasons', 'stop_reasons', 'betas', 'request_params', 'request_values',
           'query_sources', 'served_models', 'requested_models', 'efforts', 'latches', 'versions', 'shapes', 'prompts',
-          'injected', 'parse_errors')
+          'injected', 'directives', 'parse_errors')
 SNAPSHOT = ('global_keys', 'growthbook', 'gb_texts', 'hide', 'tally', 'experiments', 'slot_fields', 'slot_keys', 'slot_texts',
-            'files', 'env_names', 'managed', 'catalog', 'aliases')
-OWN = {'prompts', 'injected', 'shapes', 'versions', 'tally', 'managed', 'gb_texts', 'slot_texts', 'hide'}  # findings of their own
+            'files', 'env_names', 'managed', 'catalog', 'aliases', 'memory')
+OWN = {'prompts', 'injected', 'directives', 'memory', 'shapes', 'versions', 'tally', 'managed', 'gb_texts', 'slot_texts', 'hide'}  # findings of their own
 NEEDED = {  # what a SUP28 check reads (harness.py); its removal is listed first
     'record_types': {'assistant', 'user', 'attachment', 'system', 'api-request', 'atis-latch'},
     # keys every record of the type carries (user decision 2026-11-11): an optional one, such as attributionSkill on
@@ -70,6 +70,7 @@ NEEDED = {  # what a SUP28 check reads (harness.py); its removal is listed first
 }
 ITEMS = {'backups', 'debug', 'downloads', 'file-history', 'ide', 'jobs', 'paste-cache', 'session-env', 'sessions',
          'shell-snapshots', 'tasks', 'todos'}  # config folders of per-session or per-item files with random names
+FILE_KEYS = H.SOURCE_KEYS - {'prompt', 'hookName', 'hookEvent'}  # an attachment holding a file
 OVERRIDE = {'model', 'effortLevel', 'availableModels', 'modelSettings', 'alwaysThinkingEnabled', 'hooks', 'agent'}
 PROMPT = ('The header `{remove}` is missing from this library. Write it so that it provides every operation of its row in '
           "the folder's `00-index.md`, with the contracts of the row's evidence document under the folder's `Docs/` and "
@@ -109,6 +110,20 @@ def hide_matches(s):
         return []
     masked = H.SECRET.sub(lambda x: '\x01' * len(x.group()), s)
     return [(digest(H.sentence(s, m)), re.sub('\x01+', '<redacted>', H.sentence(masked, m))[:300]) for m in ms]
+
+
+def scanned(texts):
+    """The tags of harness.py's instruction-like blocks and the `prose:<kind>` of its unwrapped directives in texts,
+    one per occurrence, within harness.py's per-response budget."""
+    out, left = [], H.SCAN_CAP
+    for s in texts:
+        if left <= 0:
+            break
+        if isinstance(s, str):
+            blocks, lines = H.scan(s[:left])
+            left -= len(s)
+            out += [b[2] for b in blocks] + [f'prose:{x[2]}' for x in lines]
+    return out
 
 
 def text_of(v):
@@ -228,6 +243,11 @@ class Reader:
         if t == 'attachment':
             a = H.obj(e.get('attachment'))
             self.see('attachment_types', str(a.get('type')), ts)
+            for tool, tag in H.integrity_items(a):  # the PostToolUse context-integrity notes (SUP30)
+                self.see('directives', f'note {tool} {tag}', ts)
+            if any(k in FILE_KEYS for d in H.parts(a) for k in d):  # an @-mentioned or loaded file, as the model read it
+                for tag in scanned(H.strings(a)):
+                    self.see('directives', f'file {a.get("type")} {tag}', ts)
             if a.get('type') == 'model':  # harness.py reads its identity.modelId
                 for p in paths(a):
                     self.see('model_attachment_keys', p, ts)
@@ -355,6 +375,9 @@ class Reader:
             body = b.get('content')
             body = text_of(body) if not isinstance(body, list) else '\n'.join(text_of(H.obj(x).get('text')) for x in body)
             tool = self.st['tools'].get(digest(str(b.get('tool_use_id'))), '?')
+            if tool not in H.TRUSTED and tool not in H.FILE_TOOLS:  # untrusted output as the model saw it (SUP30)
+                for tag in scanned([H.CLIENT.sub(H.blank, body)]):  # the client's own wrapper is no sighting
+                    self.see('directives', f'result {tool} {tag}', self.st['ts'])
             hi, lo, p, cut = self.s['metrics']['tools'].get(tool, [None, None, 0, 0])
             big = re.search(r'Output too large \(([\d.]+)\s*(K|M)?B\)', body) if '<persisted-output>' in body else None
             if big:
@@ -462,6 +485,12 @@ def snapshot(texts):
         for k, v in d.items():
             snap['slot_keys'][k] = type(v).__name__
             strings('slot_texts', v, k)
+    for folder in project_folders():  # the clone's auto-memory, which Claude writes and reads back (SUP30)
+        for f in sorted((folder / 'memory').glob('*.md')):
+            with contextlib.suppress(OSError):
+                for tag in scanned([f.read_text(errors='replace')]):
+                    item = f'{f.name} {tag}'
+                    snap['memory'][item] = snap['memory'].get(item, 0) + 1
     cfg = H.config_dir()
     snap['files'] = {**names(cfg, 'config'), **names(MAIN / '.claude', 'project')}
     ls = H.layers(MAIN)
@@ -620,6 +649,12 @@ def findings(prev, cur, delta, texts, conf, ids):
         new_v = max(cur['record'].get('versions', {}) or ['0'], key=H.vtuple)
         if H.vtuple(new_v) > H.vtuple(old_v):
             add('client', f'client {old_v} -> {new_v}: changelog entries since the last scan', changelog(old_v, new_v))
+    got = delta['record'].get('directives', {})
+    mem = sorted(set(cur['snapshot'].get('memory', {})) - set(prev['snapshot'].get('memory', {}) if prev else ()))
+    if got or mem:  # one finding per scan that read new sightings: hook notes, unescaped results, files, memory
+        add('integrity', f'instruction-like content since the last scan: {sum(v[0] for v in got.values())} sighting(s) in '
+            f'{len(got)} source, tool and tag group(s), {len(mem)} new in memory files',
+            [f'{k}: {v[0]}' for k, v in sorted(got.items())][:30] + [f'memory {k}' for k in mem][:10])
     accepted = {x for x in conf.get('accepted_texts') or () if isinstance(x, str)}
     for h, (where, sentence) in sorted({**cur['snapshot']['hide'], **cur['metrics']['hide']}.items()):
         if h not in accepted:

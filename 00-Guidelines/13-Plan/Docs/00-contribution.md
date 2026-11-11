@@ -192,6 +192,7 @@ Kept by user decision 2026-11-01:
 
 ## History
 
+- 2026-11-12: `/finish SUP30` (P287) fixed `merge_pr.py` `decisions()` here (user decision 2026-11-11): it now reads the diff through SUP30's `added()`, by hunk counts, so an added line starting with `++ ` is no longer taken for a file header and a path git quotes is no longer skipped; `test_files_decisions` covers both, and `10-merge_tester.py` reads the pull request's paths with `-z`; full mode passed.
 - 2026-11-09: docs-only re-gate in `gates N` (user decision 2026-11-09); tested on the stubbed gates of `10-merge_tester.py`, `--mode full --seed 1`: 80 tests pass. The suites and integration carry over only under the rule above.
 - 2026-11-09: `HOST_RUN` names `09-Contest Testing/10-grab.py` and `_11_search.py`, which `03-consistency.py` loads through `05-extraction.py`, so a change to them is tagged `runs on the host at checkout`; `10-merge_tester.py --mode full --seed 1`: `test_host_run_coverage` passes.
 - 2026-11-06: P253 /finish (user decisions 2026-11-05 and 2026-11-06) recorded its changes here: optional libclang, clipboard and bash in TOOLS, the `grab alias` row and `--alias`; setup tester quick, full, stress and g++-14 full passed.
