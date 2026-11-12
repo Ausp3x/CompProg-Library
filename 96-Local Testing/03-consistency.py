@@ -394,7 +394,8 @@ markdown_count = 0
 links = 0
 UNSCANNED = {'.git', '.agents', '.codex', '.judge-cache'}  # .judge-cache: fetched judge data of 07-judge.py, git-ignored
 for p in sorted(ROOT.rglob('*.md')):
-    if UNSCANNED & set(p.relative_to(ROOT).parts) or p.is_relative_to(ROOT / '98-Team Notebook/site'):  # generated site: 06-site_tester.py
+    rel = p.relative_to(ROOT)  # once per file, not per line: the loop below names about 190,000 lines
+    if UNSCANNED & set(rel.parts) or p.is_relative_to(ROOT / '98-Team Notebook/site'):  # generated site: 06-site_tester.py
         continue
     markdown_count += 1
     lines = p.read_text().splitlines()
@@ -407,7 +408,7 @@ for p in sorted(ROOT.rglob('*.md')):
             continue
         if fence:
             continue
-        where = str(p.relative_to(ROOT)) + ':' + str(i + 1)
+        where = f'{rel}:{i + 1}'
         require(line == line.rstrip(), 'Trailing whitespace: ' + where)
         if re.match(r'^#+ ', line):
             require(i == 0 or not lines[i-1], 'No blank before heading: ' + where)
@@ -513,7 +514,7 @@ with tempfile.TemporaryDirectory(prefix='cp-consistency-') as name:
 spec = importlib.util.spec_from_file_location('library_setup_check', ROOT / '.claude/skills/setup-check/setup_check.py')
 setup = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(setup)
-for path, name in setup.undeclared(ROOT):
+for path, name in setup.undeclared(ROOT, ROOT / '96-Local Testing/.setup-lint-cache.json'):  # git-ignored; parses changed scripts only
     require(False, f'Undeclared tool {name} in {path}: declare it in setup_check.py TOOLS')
 # LICENSE is the CC0-1.0 legal code verbatim (creativecommons.org legalcode.txt, identical in SPDX).
 require(hashlib.sha256((ROOT / 'LICENSE').read_bytes()).hexdigest() == 'a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499',

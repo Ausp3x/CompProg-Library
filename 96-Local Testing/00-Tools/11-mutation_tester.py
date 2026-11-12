@@ -63,7 +63,9 @@ with log tail), outcomes (latest outcome over shards by time, fractions of varyi
 interrupt (SIGKILL after the grace period) -> test_stage_*, test_outcomes_latest, test_interrupt_kill;
 unchanged (identical shards, a mutated shard named) -> test_unchanged_*;
 tester_cap/capped/available_mb (ensure(mb=...) or the default, the per-test scope command, MemAvailable) ->
-test_memory_helpers;
+test_memory_helpers; ccache_dir (under XDG_CACHE_HOME, else ~/.cache; one directory per workdir path, named by it;
+those of deleted workdirs and of empty or relative owner files removed, live ones, foreign directories and a workdir
+file that is a directory kept, an unreadable owner file passed by, an unusable XDG_CACHE_HOME a Failure) -> test_ccache_dir;
 stop (a real SIGTERM or SIGHUP raises KeyboardInterrupt once, then both are ignored) -> test_stop_handler; campaign
 installs it for both unless a signal was left ignored -> test_fake_signal_handlers;
 run CLI before and around the campaign (non-header, missing tester, SKIP without mewt or another version before any
@@ -82,8 +84,8 @@ CP_TEST_PREFLIGHT=0 (CP_TEST_MODE=full under the real supervisor: one MUTATION l
 the negative control shows two and a PREFLIGHT line) -> test_fake_no_preflight;
 stage parameters (timeout max(60, ceil(3 x baseline)) and --timeout, cap min(own, max(1024, 3 x peak)) with the
 floor, 3 x peak, the tester's own ensure(mb=...) cap and an own cap below the floor, fewer shards than --jobs by
---memory-mb // cap and at least one, baselines under the own cap; from the stage lines and the fake's argv) ->
-test_fake_stage_parameters;
+--memory-mb // cap and at least one, baselines under the own cap, every test and baseline through the campaign's own
+ccache directory; from the stage lines and the fake's argv) -> test_fake_stage_parameters;
 --sample (whole file: a seeded uniform sample of N of more than N candidates, after --severity, with
 candidates/selected in campaign.json and `uniform sample of <candidates>` in the Record; 0 or at least the
 candidates: all and no sample wording; No record names stage quick on a stop before it) -> test_fake_sample; diff
@@ -392,7 +394,7 @@ cfg = json.load(open(@CFG@))
 argv = sys.argv[1:]
 argv = argv[:-2] if argv[-2:] == ['--log.color', 'off'] else argv
 with open(@LOG@, 'a') as f:
-    f.write(json.dumps(dict(argv=argv, cwd=os.getcwd())) + '\n')
+    f.write(json.dumps(dict(argv=argv, cwd=os.getcwd(), ccache=os.environ.get('CCACHE_DIR'))) + '\n')
 mutants = cfg['mutants']
 def load():
     return json.load(open('fake-results.json')) if os.path.exists('fake-results.json') else {}
@@ -472,6 +474,7 @@ class Base(unittest.TestCase):
         env.start()
         self.addCleanup(env.stop)
         os.environ['CP_MUTATION_LOCK'] = str(self.tmp / 'machine.lock')  # never the default: a real campaign may hold it for hours
+        os.environ['XDG_CACHE_HOME'] = str(self.tmp / 'xdg-cache')  # campaign caches stay in the fixture
         self.bin = self.tmp / 'bin'
         self.bin.mkdir()
         (self.bin / 'git').symlink_to(GIT)
@@ -558,6 +561,37 @@ class Pure(Base):
         self.eq(M.capped(['py', 'a b'], 1500), [sys.executable, str(M.HERE / '_00_memory_cap.py'), '--mb', '1500', '--', 'py', 'a b'])
         line = next(l for l in Path('/proc/meminfo').read_text().splitlines() if l.startswith('MemAvailable:'))
         self.true(abs(M.available_mb() - (int(line.split()[1]) >> 10)) < 512, line=line, got=M.available_mb())
+
+    def test_ccache_dir(self):
+        base = self.tmp / 'xdg-cache/cp-mutation'
+        name = lambda w: hashlib.sha256(str(w).encode()).hexdigest()[:16]  # the spec: the workdir path's SHA-256, 16 digits
+        live, gone, other = (self.tmp / x for x in ('live', 'gone', 'other'))
+        live.mkdir()
+        gone.mkdir()
+        got = M.ccache_dir(live)
+        self.eq((got, (got / 'workdir').read_text()), (base / name(live), str(live)))
+        self.eq(M.ccache_dir(live), got, what='the same workdir reuses its directory')
+        (got / 'kept').write_text('x')
+        self.eq(M.ccache_dir(gone), base / name(gone))
+        foreign = base / 'foreign'
+        (foreign / 'workdir').mkdir(parents=True)  # a directory, not an owner file: never read, never removed
+        for d, owner in (('empty', ''), ('relative', 'live')):  # a cut write or a path not absolute: gone
+            (base / d).mkdir()
+            (base / d / 'workdir').write_text(owner)
+        gone.rmdir()
+        self.eq(M.ccache_dir(other), base / name(other), what='a workdir that does not exist yet still gets one')
+        self.eq(sorted(d.name for d in base.iterdir()), sorted([name(live), name(other), 'foreign']), what='the gone, empty and relative owners pruned')
+        self.true((got / 'kept').is_file(), what="a live workdir's cache keeps its contents")
+        with patch.dict(os.environ, {'HOME': str(self.tmp / 'home')}):
+            del os.environ['XDG_CACHE_HOME']
+            self.eq(M.ccache_dir(live), self.tmp / 'home/.cache/cp-mutation' / name(live), what='without XDG_CACHE_HOME')
+        (got / 'workdir').chmod(0)  # an unreadable owner file stays and ends only the pruning
+        self.eq(M.ccache_dir(gone), base / name(gone), what='unreadable entry')
+        (got / 'workdir').chmod(0o644)
+        (self.tmp / 'file').write_text('')
+        with patch.dict(os.environ, {'XDG_CACHE_HOME': str(self.tmp / 'file')}):
+            with self.assertRaisesRegex(M.Failure, r'^cannot create the campaign cache .*/file/cp-mutation/'):
+                M.ccache_dir(live)
 
     def test_stop_handler(self):
         both = (signal.SIGTERM, signal.SIGHUP)
@@ -1349,6 +1383,11 @@ class Fake(Base):
             self.eq((len(runs), sorted(i for _, ids, _, _ in runs for i in ids)), (width, list(range(1, 7))), runs=runs, case=k)
             for _, _, t, cmd in runs:
                 self.eq((t, cmd[cmd.index('--mb') + 1], cmd[-4:]), (timeout, str(cap), ['--mode', 'quick', '--seed', '1']), cmd=cmd, case=k)
+            # user decision 2026-11-12: mutant builds stay out of the shared cache, in one named by the workdir's path
+            own_cache = str(self.tmp / 'xdg-cache/cp-mutation' / hashlib.sha256(str(work.resolve()).encode()).hexdigest()[:16])
+            tests = [c for c in map(json.loads, self.log.read_text().splitlines()) if c['argv'][0] == 'test']
+            self.eq({c['ccache'] for c in tests}, {own_cache}, case=k, what="every mutant test compiles through the campaign's own cache")
+            self.true(all(e['CCACHE_DIR'] == own_cache for e in self.baseline_envs), case=k, what='so does every baseline')
             if seconds is not None:
                 self.true(all(c[c.index('--mb') + 1] == str(own) and c[-4:] in (['--mode', 'quick', '--seed', '1'], ['--mode', 'full', '--seed', '1'])
                               for c in self.baselines) and self.baselines, baselines=self.baselines, case=k, what='baselines under the own cap')

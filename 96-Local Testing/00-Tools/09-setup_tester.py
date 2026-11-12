@@ -967,6 +967,60 @@ def main(cmd, var, name):
         with patch.dict(os.environ, ISOLATED, clear=True):
             self.eq(S.undeclared(repo), want, files=files)
 
+    def test_undeclared_cache(self):
+        """undeclared(root, cache) equals the uncached lint whatever the cache holds (user decision 2026-11-12): a hit
+        parses nothing, a changed script is parsed again, entries of removed scripts are dropped, and a damaged (deeply
+        nested JSON included), foreign or unwritable cache costs only the speed-up."""
+        repo, cache = init_repo(self.tmp / 'repo'), self.tmp / 'lint.json'
+        files = {'a.py': ['git', 'undecl1'], 'b.py': ['undecl2'], 'same.py': ['undecl1', 'git']}
+        for f, names in files.items():
+            (repo / f).write_text(HEADER + ''.join(f"subprocess.run(['{n}'])\n" for n in names))
+        (repo / 'same2.py').write_text((repo / 'same.py').read_text())  # equal bytes share one entry
+        git(repo, 'add', '-A')
+        git(repo, 'commit', '-q', '-m', 'init')
+        parsed = []
+        real = S.commands
+
+        def counting(path, data=None):
+            parsed.append(Path(path).name)
+            return real(path, data)
+        with patch.dict(os.environ, ISOLATED, clear=True), patch.object(S, 'commands', counting):
+            plain = S.undeclared(repo)
+            self.eq(plain, [('a.py', 'undecl1'), ('b.py', 'undecl2'), ('same.py', 'undecl1'), ('same2.py', 'undecl1')])
+            parsed.clear()
+            self.eq(S.undeclared(repo, cache), plain, what='cold cache')
+            self.eq(sorted(parsed), ['a.py', 'b.py', 'same.py', 'same2.py'])
+            entries = json.loads(cache.read_text())['entries']
+            self.eq(len(entries), 3, what='one entry per distinct content')
+            parsed.clear()
+            self.eq(S.undeclared(repo, cache), plain, what='warm cache')
+            self.eq(parsed, [], what='a hit parses nothing')
+            (repo / 'b.py').write_text(HEADER + "shutil.which('undecl3')\n")
+            (repo / 'a.py').unlink()
+            git(repo, 'rm', '-q', '--cached', 'a.py')
+            parsed.clear()
+            self.eq(S.undeclared(repo, cache), [('b.py', 'undecl3'), ('same.py', 'undecl1'), ('same2.py', 'undecl1')], what='changed script')
+            self.eq(parsed, ['b.py'])
+            self.eq(len(json.loads(cache.read_text())['entries']), 2, what="the removed script's entry is dropped")
+            want = S.undeclared(repo)
+            data = json.loads(cache.read_text())
+            poisoned = {k: ['undecl9'] for k in data['entries']}
+            for bad in ('{', '[]', json.dumps({'analysis': 'other', 'entries': poisoned}),
+                        json.dumps({'analysis': data['analysis'], 'entries': {k: 5 for k in data['entries']}}),
+                        json.dumps({'analysis': data['analysis'], 'entries': 'x'}), '[' * 200000):  # the last: json's RecursionError
+                cache.write_text(bad)
+                self.eq(S.undeclared(repo, cache), want, what='damaged or foreign cache', cache=bad[:80])
+                self.eq(json.loads(cache.read_text())['entries'], data['entries'], what='rewritten', cache=bad[:80])
+            cache.write_text(json.dumps({'analysis': data['analysis'], 'entries': poisoned}))
+            self.eq(S.undeclared(repo, cache)[0][1], 'undecl9', what='a hit is trusted: the key is the content digest, so only a forged entry misleads')
+            cache.unlink()
+            self.tmp.chmod(0o555)
+            try:
+                self.eq(S.undeclared(repo, cache), want, what='an unwritable cache')
+            finally:
+                self.tmp.chmod(0o755)
+            self.assertFalse(cache.exists() or any(p.name.startswith('.lint.json.') for p in self.tmp.iterdir()), self.info(what='no temporary file left'))
+
     def test_commands_random(self):
         pool = [f'tool{c}' for c in string.ascii_lowercase[:8]] + ['/opt/q/toolz', '/usr/bin/git', 'git', 'g++-14', 'node', 'qemu-aarch64']
         for r in range(self.rounds()):

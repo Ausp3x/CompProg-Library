@@ -14,8 +14,11 @@ last grab alias in place, and leaves the file untouched when the alias already r
 import argparse
 import ast
 import collections
+import contextlib
 import functools
+import hashlib
 import importlib.util
+import json
 import os
 import platform
 import re
@@ -290,10 +293,11 @@ def install(tools, where):
     return lines
 
 
-def commands(path):
+def commands(path, data=None):
     """Executables a Python file runs by a literal name: subprocess command heads (first argument or args=; an
-    os.environ.get or os.getenv default counts) and shutil.which arguments, through any import alias."""
-    tree = ast.parse(path.read_bytes())
+    os.environ.get or os.getenv default counts) and shutil.which arguments, through any import alias. data: the file's
+    bytes when the caller has read them."""
+    tree = ast.parse(path.read_bytes() if data is None else data)
     names, alias = set(), {}  # alias: local name -> 'subprocess' or 'shutil' (modules), or 'subprocess.run' (functions)
     for n in ast.walk(tree):
         if isinstance(n, ast.Import):
@@ -317,13 +321,45 @@ def commands(path):
     return {n.value for n in names if isinstance(n, ast.Constant) and isinstance(n.value, str)}
 
 
-def undeclared(root=ROOT):
-    """(file, executable) pairs for tracked scripts outside OLD and 95-Resources running a tool TOOLS lacks."""
+def cached_commands(root, files, cache):
+    """{file: commands()} for files under root, read through the JSON file cache: each script's result is kept under the
+    SHA-256 of its bytes, valid while this module's source and the Python version are unchanged, so a repeated lint (the
+    consistency validator after every edit) parses only changed scripts (user decision 2026-11-12). The cache is
+    rewritten atomically with the current scripts only; an unreadable or foreign one is ignored and replaced, and an
+    unwritable one costs only the speed-up."""
+    analysis = hashlib.sha256(Path(__file__).read_bytes() + sys.version.encode()).hexdigest()
+    try:
+        old = json.loads(Path(cache).read_text())
+        old = old['entries'] if old.get('analysis') == analysis and isinstance(old.get('entries'), dict) else {}
+    except (OSError, ValueError, AttributeError, RecursionError):  # RecursionError: deeply nested JSON
+        old = {}
+    out, keep = {}, {}
+    for f in files:
+        data = (root / f).read_bytes()
+        key = hashlib.sha256(data).hexdigest()
+        hit = old.get(key)
+        names = set(hit) if isinstance(hit, list) and all(isinstance(x, str) for x in hit) else commands(root / f, data)
+        out[f], keep[key] = names, sorted(names)
+    if keep != old:
+        tmp = Path(cache).with_name(f'.{Path(cache).name}.{os.getpid()}')
+        try:
+            tmp.write_text(json.dumps({'analysis': analysis, 'entries': keep}))
+            os.replace(tmp, cache)
+        except OSError:
+            with contextlib.suppress(OSError):
+                tmp.unlink(missing_ok=True)
+    return out
+
+
+def undeclared(root=ROOT, cache=None):
+    """(file, executable) pairs for tracked scripts outside OLD and 95-Resources running a tool TOOLS lacks; cache: a
+    JSON file for cached_commands(), None to parse every script."""
     files = subprocess.run(['git', 'ls-files', '-z', '--', '*.py'], cwd=root, capture_output=True, text=True,
                            check=True).stdout.split('\0')
+    files = [f for f in sorted(files) if f and not f.startswith(('OLD/', '95-Resources/')) and (root / f).is_file()]
+    found = cached_commands(root, files, cache) if cache else {f: commands(root / f) for f in files}
     declared = {e for t in TOOLS for e in t.exes}
-    return [(f, name) for f in sorted(files) if f and not f.startswith(('OLD/', '95-Resources/')) and (root / f).is_file()
-            for name in sorted(commands(root / f)) if Path(name).name not in declared]
+    return [(f, name) for f in files for name in sorted(found[f]) if Path(name).name not in declared]
 
 
 def main():

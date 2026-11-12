@@ -112,15 +112,17 @@ def hide_matches(s):
     return [(digest(H.sentence(s, m)), re.sub('\x01+', '<redacted>', H.sentence(masked, m))[:300]) for m in ms]
 
 
-def scanned(texts):
+def scanned(texts, prompt=None):
     """The tags of harness.py's instruction-like blocks and the `prose:<kind>` of its unwrapped directives in texts,
-    one per occurrence, within harness.py's per-response budget."""
+    one per occurrence, within harness.py's per-response budget; with the prompt of a WebFetch call, its self-quotes
+    are skipped as the hook skips them (H.fetch_blocks())."""
     out, left = [], H.SCAN_CAP
     for s in texts:
         if left <= 0:
             break
         if isinstance(s, str):
             blocks, lines = H.scan(s[:left])
+            blocks = H.fetch_blocks(s[:left], blocks, prompt) if prompt is not None else blocks
             left -= len(s)
             out += [b[2] for b in blocks] + [f'prose:{x[2]}' for x in lines]
     return out
@@ -215,6 +217,8 @@ class Reader:
 
     def __init__(self, st, sub, latch, texts):  # latch: the session's, for a subagent transcript (it has none)
         self.st, self.sub, self.latch, self.texts, self.s = st, sub, latch, texts, empty()
+        self.fetch = {}  # WebFetch prompts by call id, for its result's self-quotes; never stored, so a result read in a later
+        # scan than its call is scanned without its prompt (sightings at most added, never lost)
         self.now = time.time() + 300  # a record time past the scan (5 minutes for clock skew) is not one
 
     def see(self, sec, item, ts):
@@ -245,6 +249,8 @@ class Reader:
             self.see('attachment_types', str(a.get('type')), ts)
             for tool, tag in H.integrity_items(a):  # the PostToolUse context-integrity notes (SUP30)
                 self.see('directives', f'note {tool} {tag}', ts)
+            for why in H.outward_items(a):  # an outward call that ran after a flag (user decision 2026-11-12)
+                self.see('directives', f'outward {why}', ts)
             if any(k in FILE_KEYS for d in H.parts(a) for k in d):  # an @-mentioned or loaded file, as the model read it
                 for tag in scanned(H.strings(a)):
                     self.see('directives', f'file {a.get("type")} {tag}', ts)
@@ -341,6 +347,8 @@ class Reader:
         for b in m.get('content') or () if isinstance(m.get('content'), list) else ():
             if isinstance(b, dict) and b.get('type') == 'tool_use' and isinstance(b.get('id'), str):
                 st['tools'][digest(b['id'])] = clean(str(b.get('name')))  # ids are stored as digests
+                if b.get('name') == 'WebFetch':
+                    self.fetch[b['id']] = H.obj(b.get('input')).get('prompt')
         if len(st['tools']) > 200:
             st['tools'] = dict(list(st['tools'].items())[-200:])
         if m.get('model') == '<synthetic>' or not isinstance(m.get('id'), str) or not u:
@@ -376,7 +384,8 @@ class Reader:
             body = text_of(body) if not isinstance(body, list) else '\n'.join(text_of(H.obj(x).get('text')) for x in body)
             tool = self.st['tools'].get(digest(str(b.get('tool_use_id'))), '?')
             if tool not in H.TRUSTED and tool not in H.FILE_TOOLS:  # untrusted output as the model saw it (SUP30)
-                for tag in scanned([H.CLIENT.sub(H.blank, body)]):  # the client's own wrapper is no sighting
+                prompt = self.fetch.pop(str(b.get('tool_use_id')), '') if tool == 'WebFetch' else None
+                for tag in scanned([H.CLIENT.sub(H.blank, body)], prompt):  # the client's own wrapper is no sighting
                     self.see('directives', f'result {tool} {tag}', self.st['ts'])
             hi, lo, p, cut = self.s['metrics']['tools'].get(tool, [None, None, 0, 0])
             big = re.match(r'\s*<persisted-output>\s*Output too large \(([\d.]+)\s*(K|M)?B\)', body)  # the client's wrapper opens

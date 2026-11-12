@@ -9,7 +9,7 @@ Start one fresh session per task with the preset of its work:
 - Core full types (`01-Core` non-mini headers, packages tagged `fable`): `claude --agent core-session --effort high`, or `--effort xhigh` for a package of size XL (the brief prints the command)
 - Everything else, sweeps included: `claude --agent contest-session --effort high`
 - To start without the cached experiment ids (user decision 2026-11-11), put `python3 .claude/launch.py` in place of `claude` in either command ([00-harness-audit.md](00-Guidelines/13-Plan/Docs/00-harness-audit.md), Launcher).
-- Parallel packages: `python3 '00-Guidelines/13-Plan/plan.py' ready --max 3` picks ready packages from different folders; launch each with `--worktree <name>` added. New worktrees branch from `origin/master` by default (`worktree.baseRef`), so push `master` before launching them.
+- Parallel packages: `python3 '00-Guidelines/13-Plan/plan.py' ready --max 3` picks ready packages from different folders; launch each with `--worktree <name>` added. New worktrees branch from `origin/master` by default (`worktree.baseRef`), so push `master` before launching them. Only one session at a time is in a testing or mutation step (`/package` steps 5 and 6, `/finish` step 5); the others implement, document or wait (user decision 2026-11-12, `00-Guidelines/10-decisions.md`).
 - Packages with several batches run one batch per session under its batch id (`/package`, Batches); `/package Pxxx` names the next one.
 - Contributors (`CLAUDE.md`, Git) claim a package before `/package` with the commands its brief prints.
 

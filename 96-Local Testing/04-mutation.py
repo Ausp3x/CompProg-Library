@@ -13,7 +13,9 @@
                     is retested before its timeout counts, side by side only as far as each test keeps its own cores
                     (the shards, at most half the logical CPUs, divided by the builds a test runs at once). One campaign runs per machine (a lock in
                     $XDG_RUNTIME_DIR, or CP_MUTATION_LOCK). Every shard's header is compared with the checkout after each
-                    stage. A complete run prints the
+                    stage. Every compile of the campaign goes through its own ccache directory under
+                    $XDG_CACHE_HOME/cp-mutation (ccache_dir()), so mutant objects stay out of the shared cache (user
+                    decision 2026-11-12); the first campaign after its workdir is gone deletes it. A complete run prints the
                     counts, the survivors and the record line for the evidence document and stores the header's blob in
                     git's object store (for later diff scopes). The run stays within --budget minutes; the shards stay in
                     --workdir (locked while a run uses it), and a rerun with the same --workdir tests what is untested and
@@ -28,6 +30,7 @@
                     --source, build the pinned source archive there with cargo --locked (Rust RUST_FLOOR or newer).
 """
 import argparse
+import contextlib
 from datetime import date
 import difflib
 import fcntl
@@ -274,6 +277,25 @@ def tester_cap(tester):
     return int(m[1]) if m else _00_memory_cap.MAIN_MB
 
 
+def ccache_dir(work):
+    """The campaign's own ccache directory, XDG_CACHE_HOME/cp-mutation/<hash of the workdir's path>, on disk because a workdir
+    often lies on tmpfs, where a Core campaign's objects would hold up to ccache's 5 GiB default of memory; first deletes
+    every such directory whose workdir is gone (user decision 2026-11-12)."""
+    base = Path(os.environ.get('XDG_CACHE_HOME') or Path.home() / '.cache') / 'cp-mutation'
+    with contextlib.suppress(OSError):  # housekeeping: an unreadable directory or entry ends it, never the campaign
+        for d in base.glob('*/workdir'):
+            w = Path(d.read_text(errors='replace')) if d.is_file() else None
+            if w is not None and not (w.is_absolute() and w.is_dir()):  # an empty or cut owner file counts as gone
+                shutil.rmtree(d.parent, ignore_errors=True)
+    cache = base / hashlib.sha256(str(work).encode()).hexdigest()[:16]
+    try:
+        cache.mkdir(parents=True, exist_ok=True)
+        (cache / 'workdir').write_text(str(work))
+    except OSError as e:
+        raise Failure(f'cannot create the campaign cache {cache}: {e.strerror or e}') from None
+    return cache
+
+
 def capped(cmd, mb):
     """cmd in its own memory-capped scope."""
     return [sys.executable, str(HERE / '_00_memory_cap.py'), '--mb', str(mb), '--', *cmd]
@@ -447,6 +469,7 @@ def campaign(a):
         fcntl.flock(machine, fcntl.LOCK_EX)
     if current(ROOT, header) != now:
         raise Failure(f'{header} changed while this run waited for the campaign lock: run it again')
+    os.environ['CCACHE_DIR'] = str(ccache_dir(work))  # mutant objects, which only this campaign reuses, filled and evicted the shared cache
     budget = a.memory_mb or available_mb() - 2048
     own = tester_cap(ROOT / tester)
     shards = [work / f's{k}' for k in range(meta['jobs'] if meta else a.jobs)]
