@@ -28,11 +28,14 @@ edits a command also commits (validator, block with 'amend or revert', excerpt d
 restore commands (git restore from the old HEAD for tracked, rm for untracked, shell quoting) -> test_old, test_quoting;
 state (no snapshot -> nothing, malformed input and unknown mode exit 0 silently, snapshot removed after post, separate
 tool_use_id files, stale snapshots pruned on pre) -> test_state;
-consistency.py Edit/Write entry (watched paths only, failure as additionalContext) -> test_consistency_edit;
+consistency.py PostToolBatch entry (one run per batch with an Edit or Write call on a watched path, relative or absolute;
+other tools, other paths, paths outside the root (also through ..) and malformed calls run nothing; input without a
+tool_calls list, a PostToolUse payload included, gets a notice and no run; unreadable input is silent; failure as
+additionalContext) -> test_consistency_batch;
 git push in command position refused by pre without a snapshot (after separators, newlines, subshells, assignments and
 env/sudo prefixes, git options and -C/-c values between, after a heredoc or here-string ends), quoted text, heredoc
 bodies (quoted, <<- with tabs, two on one line), other git subcommands and unparsable commands allowed -> test_push;
-the real settings wire shell.py pre/post to Bash beside guard.py and consistency.py -> test_settings;
+the real settings wire shell.py pre/post to Bash beside guard.py, and consistency.py to PostToolBatch only -> test_settings;
 random command sequences against the oracle -> test_random.
 """
 import argparse
@@ -267,16 +270,40 @@ class Hooks(unittest.TestCase):
         self.hook('shell.py', 'pre', payload=a)
         self.assertEqual(sorted(p.name for p in state.iterdir()), ['toolu_a.json', 'young.json'])
 
-    def test_consistency_edit(self):
-        for rel, ran in (('05-M/00-index.md', True), ('05-M/01-a.hpp', True), ('notes.txt', False), (str(self.tmp / 'outside.md'), False)):
+    def test_consistency_batch(self):
+        def batch(*calls):
+            return {'hook_event_name': 'PostToolBatch', 'tool_calls': [
+                {'tool_name': tool, 'tool_input': {'file_path': p if p.startswith('/') else str(self.repo / p)}, 'tool_use_id': f'toolu_{k}',
+                 'tool_response': ''} for k, (tool, p) in enumerate(calls)]}
+
+        def runs(payload=None, raw=None, out=None):
             self.log.unlink(missing_ok=True)
-            path = rel if rel.startswith('/') else str(self.repo / rel)
-            self.assertIsNone(self.hook('consistency.py', payload={'tool_input': {'file_path': path}}))
-            self.assertEqual(self.log.exists(), ran, rel)
+            self.assertEqual(self.hook('consistency.py', payload=payload, raw=raw), out, (payload, raw))
+            return self.log.read_text().count('validate') if self.log.exists() else 0
+        outside, escaping = str(self.tmp / 'outside.md'), str(self.repo / '..' / 'outside.md')  # the second leaves the root only once resolved
+        for calls, n in (((('Edit', '05-M/00-index.md'),), 1), ((('Write', '05-M/01-a.hpp'),), 1),
+                         ((('Edit', '00-Guidelines/13-Plan/packages.json'),), 1), ((('Write', '08-Python/_01_a.py'),), 1),
+                         ((('Edit', 'notes.txt'), ('Write', 'tools/t.py'), ('Edit', outside), ('Write', escaping)), 0),
+                         ((('Read', '05-M/00-index.md'), ('NotebookEdit', '05-M/00-index.md'), ('Bash', '05-M/01-a.hpp')), 0),
+                         ((('Edit', 'notes.txt'), ('Edit', '05-M/00-index.md'), ('Write', '05-M/02-b.md'), ('Edit', '05-M/01-a.hpp')), 1)):
+            self.assertEqual(runs(batch(*calls)), n, calls)
+        relative = {'tool_calls': [{'tool_name': 'Edit', 'tool_input': {'file_path': '05-M/00-index.md'}}]}
+        self.assertEqual(runs(relative), 1, 'a relative path is under the root')
+        malformed = [None, 'Edit', {'tool_name': 'Edit'}, {'tool_name': 'Edit', 'tool_input': {'file_path': 5}}, {'tool_input': {'file_path': 'x.md'}}]
+        self.assertEqual(runs({'tool_calls': malformed + batch(('Edit', '05-M/00-index.md'))['tool_calls']}), 1, 'malformed calls skipped')
+        self.assertEqual((runs({'tool_calls': malformed}), runs({'tool_calls': []})), (0, 0))
+        notice = {'hookSpecificOutput': {'hookEventName': 'PostToolBatch', 'additionalContext': (
+            "Consistency hook: its input carries no tool_calls list, so the validator did not run; run python3 "
+            "'96-Local Testing/03-consistency.py' and check the PostToolBatch input (.claude/hooks/consistency.py).")}}
+        for payload in ({'tool_calls': {'tool_name': 'Edit', 'tool_input': {'file_path': '05-M/00-index.md'}}}, {'tool_calls': 5},
+                        {'tool_calls': None}, {'tool_calls': '05-M/00-index.md'}, {'tool_call': []}, {}, [], 'x', 5,
+                        {'tool_input': {'file_path': '05-M/00-index.md'}}):  # the last is a PostToolUse payload
+            self.assertEqual(runs(payload, out=notice), 0, payload)
+        for raw in ('', '[', '{"tool_calls": [', 'not json'):  # unreadable input: silent
+            self.assertEqual(runs(raw=raw), 0, raw)
         self.fail.write_text('F\n')
-        self.assertEqual(self.hook('consistency.py', payload={'tool_input': {'file_path': '05-M/00-index.md'}}),
-                         {'hookSpecificOutput': {'hookEventName': 'PostToolUse', 'additionalContext': 'Consistency validator FAILED:\nF'}})
-        self.assertIsNone(self.hook('consistency.py', raw='{}'))
+        self.assertEqual(self.hook('consistency.py', payload=batch(('Edit', 'notes.txt'), ('Edit', '05-M/00-index.md'))),
+                         {'hookSpecificOutput': {'hookEventName': 'PostToolBatch', 'additionalContext': 'Consistency validator FAILED:\nF'}})
 
     def test_push(self):
         deny = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
@@ -301,11 +328,13 @@ class Hooks(unittest.TestCase):
 
     def test_settings(self):
         hooks = json.loads((ROOT / '.claude/settings.json').read_text())['hooks']
-        cmds = {ev: {(h['matcher'], x['command']) for h in hooks[ev] for x in h['hooks']} for ev in ('PreToolUse', 'PostToolUse')}
+        cmds = {ev: {(h.get('matcher'), x['command']) for h in hooks[ev] for x in h['hooks']} for ev in ('PreToolUse', 'PostToolUse', 'PostToolBatch')}
         self.assertIn(('Bash', 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/shell.py" pre'), cmds['PreToolUse'])
         self.assertIn(('Bash', 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/shell.py" post'), cmds['PostToolUse'])
         self.assertIn(('Edit|Write|Read|NotebookEdit', 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/guard.py"'), cmds['PreToolUse'])
-        self.assertIn(('Edit|Write', 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/consistency.py"'), cmds['PostToolUse'])
+        validator = 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/consistency.py"'
+        self.assertEqual(cmds['PostToolBatch'], {(None, validator)}, 'PostToolBatch takes no matcher')
+        self.assertFalse(any(c == validator for ev in ('PreToolUse', 'PostToolUse') for _, c in cmds[ev]), 'one run per batch, not per edit')
 
     def test_random(self):
         rounds = 0 if MODE == 'quick' else 40 if MODE == 'full' else ROUNDS

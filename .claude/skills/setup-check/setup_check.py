@@ -3,8 +3,9 @@
 
 TOOLS declares each tool once: what needs it (required, or the optional feature), its executables, its floor, and its
 Ubuntu 26.04 and Arch packages. Probes compile, link and run where a version proves nothing (sanitizers, static libc,
-the systemd memory cap, the arm64 emulator). A required failure exits 1; an optional one warns. Both print the install
-command for this distribution (the argument, else /etc/os-release). --lint lists every executable a tracked Python script
+the systemd memory cap, the arm64 emulator); ccache warns once its cache holds at least 90% of its limit (user decision
+2026-11-12). A required failure exits 1; an optional one warns. Both print the install command for this distribution (the
+argument, else /etc/os-release), except for a probe that found configuration (CONFIGURED). --lint lists every executable a tracked Python script
 runs by a literal name (the first item of a subprocess command, or a shutil.which argument) that TOOLS does not declare,
 and exits 1 when there is one; 03-consistency.py runs it. A last WARN row says whether the login shell's startup file
 ($SHELL: ~/.bashrc for bash, $ZDOTDIR or ~ /.zshrc for zsh) defines a grab alias running this clone's
@@ -67,7 +68,7 @@ TOOLS = [  # need: None when required, else the optional feature; exes: alternat
 ]
 LD_PREFIX = '/usr/aarch64-linux-gnu'  # arm64 sysroot of the cross packages on both distributions, for QEMU_LD_PREFIX
 PY_VERSION = 'import sys; print(*sys.version_info[:3], sep=".")'
-CONFIGURED = ('systemd-run', 'gh')  # their probes check configuration (delegation, login), which no package fixes
+CONFIGURED = ('systemd-run', 'gh', 'ccache')  # their probes check configuration (delegation, login, cache limit), which no package fixes
 SUBPROCESS = {'run', 'Popen', 'call', 'check_call', 'check_output'}
 
 
@@ -139,6 +140,14 @@ def probe(tool, exe):
         return [] if m and (int(m[1]), int(m[2])) >= floor else [f"cargo {m[0] if m else 'of unknown version'}, needs {'.'.join(map(str, floor))}"]
     if exe == 'gh':
         return [] if out(['gh', 'auth', 'status'])[0] == 0 else ['not logged in: gh auth login']
+    if exe == 'ccache':  # a full cache evicts what parallel sessions and reruns would hit; limit 0 is unlimited
+        stats = dict(line.partition('\t')[::2] for line in (out(['ccache', '--print-stats'])[1] or '').splitlines())
+        try:
+            size, limit = int(stats['cache_size_kibibyte']), int(stats['max_cache_size_kibibyte'])
+        except (KeyError, ValueError):
+            return []
+        return [f'{size / 2**20:.1f} of {limit / 2**20:.1f} GiB used: raise the limit to the measured need, ccache -M <GiB>Gi '
+                '(96-Local Testing/Docs/00-parallel.md, Cache footprint)'] if limit > 0 and 10 * size >= 9 * limit else []
     if exe == 'bwrap':  # /merge-pr runs every gate on an overlay of the worktree, its layers under /var/tmp
         with tempfile.TemporaryDirectory(prefix='cp-setup-', dir='/var/tmp') as d:
             for x in ('lower', 'upper', 'work'):
@@ -324,7 +333,7 @@ def commands(path, data=None):
 def cached_commands(root, files, cache):
     """{file: commands()} for files under root, read through the JSON file cache: each script's result is kept under the
     SHA-256 of its bytes, valid while this module's source and the Python version are unchanged, so a repeated lint (the
-    consistency validator after every edit) parses only changed scripts (user decision 2026-11-12). The cache is
+    consistency validator after each batch of edits) parses only changed scripts (user decision 2026-11-12). The cache is
     rewritten atomically with the current scripts only; an unreadable or foreign one is ignored and replaced, and an
     unwritable one costs only the speed-up."""
     analysis = hashlib.sha256(Path(__file__).read_bytes() + sys.version.encode()).hexdigest()

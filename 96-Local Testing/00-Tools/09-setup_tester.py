@@ -27,7 +27,8 @@ version (the -dumpfullversion and -c PY_VERSION commands, major.minor prefix, un
 check (floors of GCC 16, GCC 14 major 14, Python, PyPy; unknown version; not found; first present alternative; probe
 problems joined and probe skipped below the floor) -> test_check_*;
 probe (compiler build failure and nonzero run with flags and the 256 MB cap, real compilers; systemd-run exact
-memory.max; gh auth exit code; site engine; fonts; TeX packages through kpsewhich; qemu without and with a cross
+memory.max; gh auth exit code; ccache --print-stats against its limit (below, at and over 90% by exact fractions, unlimited,
+garbled, partial or empty stats, an unrunnable or failing ccache, CONFIGURED); site engine; fonts; TeX packages through kpsewhich; qemu without and with a cross
 compiler and QEMU_LD_PREFIX; bwrap overlay probe (exact command in a /var/tmp/cp-setup- scratch directory removed afterwards,
 the file in the upper layer only, a failing or silent bwrap, the real bwrap); mewt exact pin from 04-mutation.py (match,
 other version, silent or missing); cargo against 04-mutation.py's RUST_FLOOR (below, at, above, a three-digit minor,
@@ -50,7 +51,8 @@ untracked and deleted skipped, modified read from the worktree, sorted output, r
 --lint) -> test_commands_*, test_undeclared_*, test_lint_*;
 CLI (rows, labels, WARN for optional, platform and the grab alias, Install lines for the distribution, exit code and last line, a
 missing, off-pin or unversioned mewt as a FAIL row with its install step and exit 1 (in process and on a fake PATH), bad
-distribution exits 2, no git on PATH, random fake PATHs, a cargo below or at its floor as a WARN or OK row, this machine)
+distribution exits 2, no git on PATH, random fake PATHs, a cargo below or at its floor as a WARN or OK row, a full ccache
+as a WARN row without an install line, this machine)
 -> test_cli_*;
 _triple/x86/x86_only/cpu_runs (triples, failing and missing compilers, cache per tuple, default $CXX split with shlex or
 g++, flag copies, non-x86 compiler or machine, cpuinfo flags, this machine) -> test_isa_*.
@@ -70,6 +72,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from fractions import Fraction
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -93,6 +96,14 @@ FLOORS = {'GCC 16': (16,), 'GCC 14': (14,), 'Python': (3, 11), 'PyPy': (3, 10)}
 PASS_LINE, FAIL_LINE = 'PASS: every required tool works', 'FAIL: a required tool is missing or below its floor'
 SCOPE_HINT = 'enable a systemd user session with cgroup v2 and the memory controller delegated'
 OVERLAY_HINT = 'needs bubblewrap 0.10 or later and unprivileged overlayfs (Linux 5.11 or later)'
+CACHE_HINT = 'raise the limit to the measured need, ccache -M <GiB>Gi (96-Local Testing/Docs/00-parallel.md, Cache footprint)'
+# ccache --print-stats texts (fields tab-separated, as ccache 4.14 prints them): 9 of 10 GiB is exactly 90%
+STATS = {'roomy': 'cache_size_kibibyte\t6025508\ncleanups_performed\t928\nmax_cache_size_kibibyte\t31457280\n',
+         'at90': 'max_cache_size_kibibyte\t10485760\ncache_size_kibibyte\t9437184\n',
+         'below90': 'max_cache_size_kibibyte\t10485760\ncache_size_kibibyte\t9437183\n',
+         'over': 'cache_size_kibibyte\t5368709\nmax_cache_size_kibibyte\t5242880\n',
+         'unlimited': 'cache_size_kibibyte\t99999999\nmax_cache_size_kibibyte\t0\n',
+         'garbled': 'cache_size_kibibyte\tlots\nmax_cache_size_kibibyte\t5242880\n', 'partial': 'cache_size_kibibyte\t5368709\n'}
 # a fake bwrap that does what the overlay probe needs: the file lands in the upper layer (shell builtins only)
 BWRAP_OVERLAY = 'while [ $# -gt 0 ]; do [ "$1" = --overlay ] && upper=$2; shift; done\n: > "$upper/probe"\n'
 BOOM = 'fatal: boom'
@@ -201,6 +212,15 @@ def o_which(exe, path):
 def o_row(name, need, ok, detail, label=None):
     label = label or ('OK' if ok else 'WARN' if need or name == 'platform' else 'FAIL')
     return label.ljust(4) + '  ' + name + (f' ({need})' if need else '') + ': ' + detail
+
+
+def o_ccache(text):
+    """The ccache probe's problems for a --print-stats text: a fill of at least 90% of a nonzero limit, by exact fractions."""
+    f = dict(re.findall(r'^(cache_size_kibibyte|max_cache_size_kibibyte)\t([0-9]+)$', text or '', re.M))
+    if len(f) < 2 or not int(f['max_cache_size_kibibyte']):
+        return []
+    size, limit = Fraction(int(f['cache_size_kibibyte']), 1 << 20), Fraction(int(f['max_cache_size_kibibyte']), 1 << 20)
+    return [f'{float(size):.1f} of {float(limit):.1f} GiB used: {CACHE_HINT}'] if size / limit >= Fraction(9, 10) else []
 
 
 def o_platform():
@@ -516,6 +536,20 @@ class Probe(Base):
                 self.eq(S.probe(TOOL['GitHub CLI'], 'gh'), want, out=result)
             self.eq(out.call_args[0][0], ['gh', 'auth', 'status'])
 
+    def test_probe_ccache(self):
+        want = {'roomy': [], 'at90': [f'9.0 of 10.0 GiB used: {CACHE_HINT}'], 'below90': [], 'over': [f'5.1 of 5.0 GiB used: {CACHE_HINT}'],
+                'unlimited': [], 'garbled': [], 'partial': []}
+        self.eq(sorted(want), sorted(STATS), what='every stats text has an expectation')
+        results = [(0, STATS[k].strip()) for k in STATS] + [(None, 'No such file or directory'), (1, 'ccache: error: unknown option'), (0, '')]
+        for result in results:
+            with patch.object(S, 'out', return_value=result) as out:
+                got = S.probe(TOOL['ccache'], 'ccache')
+            self.eq(got, o_ccache(result[1] if result[0] is not None else ''), out=result)
+            self.eq(out.call_args[0][0], ['ccache', '--print-stats'])
+        for k, w in want.items():
+            self.eq(o_ccache(STATS[k]), w, stats=k, what='oracle sanity')
+        self.assertIn('ccache', S.CONFIGURED, 'a full cache is configuration: no install line')
+
     def test_probe_site(self):
         for found, want in ((('zensical', '/x/zensical'), []), ('zensical not found; mkdocs not found', ['zensical not found; mkdocs not found'])):
             site = SimpleNamespace(engine=lambda: found)
@@ -641,7 +675,7 @@ class Probe(Base):
 
     def test_probe_other_tools_none(self):
         with patch.object(S, 'out', side_effect=AssertionError('no command')), patch.object(S, 'module', side_effect=AssertionError('no module')):
-            for name in ('git', 'ripgrep', 'ccache', 'lscpu', 'kpathsea', 'Node.js', 'oj-bundle', 'PyPy', 'arm64 cross g++'):
+            for name in ('git', 'ripgrep', 'lscpu', 'kpathsea', 'Node.js', 'oj-bundle', 'PyPy', 'arm64 cross g++'):
                 t = TOOL[name]
                 self.eq(S.probe(t, t.exes[0]), [], tool=name)
 
@@ -1097,6 +1131,8 @@ class Cli(Base):
                 sh(f, f'[ "$1" = --version ] && printf "mewt %s\\n" {shlex.quote(value)}\nexit 0\n')
             elif exe == 'cargo':
                 sh(f, f'[ "$1" = --version ] && printf "cargo %s\\n" {shlex.quote(value)}\nexit 0\n')
+            elif exe == 'ccache':  # value: a STATS key, or '' for a ccache that prints nothing
+                sh(f, f'[ "$1" = --print-stats ] && printf "%s" {shlex.quote(STATS.get(value, ""))}\nexit 0\n')
             else:
                 sh(f, 'exit 0\n')
         (self.bin / 'git').symlink_to(GIT)
@@ -1130,6 +1166,8 @@ class Cli(Base):
             elif exe == 'qemu-aarch64':
                 problems = [f'arm64 binary does not run directly (build: {BOOM}): register binfmt (qemu-user-binfmt)'
                             if 'aarch64-linux-gnu-g++' in spec else 'needs aarch64-linux-gnu-g++ to build its arm64 probe']
+            elif exe == 'ccache':
+                problems = o_ccache(STATS.get(spec[exe], ''))
             rows[t.name] = (not problems, '; '.join(problems) or exe + (' ' + '.'.join(map(str, have)) if have else ''))
         return rows
 
@@ -1139,8 +1177,8 @@ class Cli(Base):
             (False, f'git config compprog.role is {role!r}; set contributor or maintainer')
         lines = [o_row(t.name, t.need, *rows[t.name]) for t in S.TOOLS] + [o_row('role', None, *role_row),
                                                                          o_row('grab alias', ALIAS_NEED, *o_alias(self.alias_env()))]
-        # a failed gh or systemd-run probe (login, delegation) is configuration: install lines only when absent
-        missing = [t for t in S.TOOLS if not rows[t.name][0] and (rows[t.name][1] == 'not found' or t.exes[0] not in ('gh', 'systemd-run'))]
+        # a failed gh, systemd-run or ccache probe (login, delegation, cache limit) is configuration: install lines only when absent
+        missing = [t for t in S.TOOLS if not rows[t.name][0] and (rows[t.name][1] == 'not found' or t.exes[0] not in ('gh', 'systemd-run', 'ccache'))]
         if missing:
             lines += ['Install:', *o_install(missing, where)]
         failed = not role_row[0] or any(not rows[t.name][0] and t.need is None for t in S.TOOLS)
@@ -1162,7 +1200,7 @@ class Cli(Base):
         self.eq(lines[1:], want, **info)
 
     def test_cli_fake_path(self):
-        spec = {'g++': '15.2.0', 'python3': '3.11.0', 'rg': '', 'ccache': '', 'bwrap': '', 'lscpu': '', 'gh': '0', 'node': '', 'mewt': '3.9.9',
+        spec = {'g++': '15.2.0', 'python3': '3.11.0', 'rg': '', 'ccache': 'over', 'bwrap': '', 'lscpu': '', 'gh': '0', 'node': '', 'mewt': '3.9.9',
                 'cargo': f'{RUST_FLOOR[0]}.{RUST_FLOOR[1] - 1}.0'}
         for choice in ('ubuntu', 'arch', ''):
             self.check_cli(spec, 'maintainer', choice)
@@ -1173,11 +1211,13 @@ class Cli(Base):
         self.assertTrue({'FAIL  GCC 16: g++ 15.2, needs 16', 'FAIL  GCC 14: not found', 'OK    Python: python3 3.11', 'OK    git: git',
                          'WARN  PyPy (PyPy runs): not found', 'OK    Node.js (notebook page test): node', '  arch: AUR: gcc14 gcc14-libs',
                          f'FAIL  mewt: mewt 3.9.9, needs exactly {PIN}', MEWT_INSTALL['arch'], 'OK    role: maintainer',
-                         f'WARN  Rust (mewt build on arm64): cargo {RUST_FLOOR[0]}.{RUST_FLOOR[1] - 1}, needs {RUST_FLOOR[0]}.{RUST_FLOOR[1]}'} <= set(want)
+                         f'WARN  Rust (mewt build on arm64): cargo {RUST_FLOOR[0]}.{RUST_FLOOR[1] - 1}, needs {RUST_FLOOR[0]}.{RUST_FLOOR[1]}',
+                         f'WARN  ccache (test build cache): 5.1 of 5.0 GiB used: {CACHE_HINT}'} <= set(want)
+                        and not any(l.startswith('  arch:') and ' ccache' in l for l in want)
                         and any(l.startswith('  arch: sudo pacman -S ') and l.endswith(' rust') for l in want) and want[-1] == FAIL_LINE and code == 1, self.info(want=want, what='oracle sanity'))
 
     def test_cli_fake_required_pass(self):
-        spec = {'g++': '', 'g++-14': '', 'python3': '3.13.1', 'rg': '', 'ccache': '', 'bwrap': '', 'lscpu': '', 'gh': '0',
+        spec = {'g++': '', 'g++-14': '', 'python3': '3.13.1', 'rg': '', 'ccache': 'at90', 'bwrap': '', 'lscpu': '', 'gh': '0',
                 'systemd-run': '67108864', 'pypy3': '3.10.0', 'lualatex': '', 'kpsewhich': '', 'mewt': PIN,
                 'cargo': '.'.join(map(str, RUST_FLOOR))}
         self.check_cli(spec, 'contributor', 'arch', kpse_missing=('xcolor',))
@@ -1194,8 +1234,9 @@ class Cli(Base):
                                 ((True, 'x86'), (True, 'contributor'), {'git', 'Node.js', 'GitHub CLI', 'PyPy'}),
                                 ((True, 'x86'), (True, 'contributor'), {'GCC 14', 'GCC 16', 'GitHub CLI'}),
                                 ((True, 'x86'), (True, 'contributor'), {'ccache', 'git', 'systemd user manager'}),
+                                ((True, 'x86'), (True, 'contributor'), {'Node.js', 'PyPy', 'ccache'}),  # sorted, ccache gets the probe problem
                                 ((True, 'x86'), (True, 'maintainer'), {'mewt', 'PyPy'})):
-            # failure kinds: every failed row gets an install line except a probe problem of gh or systemd-run (configuration)
+            # failure kinds: every failed row gets an install line except a probe problem of gh, systemd-run or ccache (configuration)
             rows = {t.name: (True, f'detail {t.name}') for t in S.TOOLS}
             alias = (len(bad) % 2 == 0, f'alias detail {len(bad)}')  # never FAILs, never an install line
             for k, n in enumerate(sorted(bad)):
@@ -1208,7 +1249,7 @@ class Cli(Base):
                 code = S.main()
             failed = not role[0] or any(TOOL[n].need is None for n in bad)
             missing = [t for t in S.TOOLS if t.name in bad
-                       and not (rows[t.name][1].startswith('probe problem') and t.exes[0] in ('systemd-run', 'gh'))]
+                       and not (rows[t.name][1].startswith('probe problem') and t.exes[0] in ('systemd-run', 'gh', 'ccache'))]
             want = [o_row('platform', None, *plat), *(o_row(t.name, t.need, *rows[t.name]) for t in S.TOOLS), o_row('role', None, *role), o_row('grab alias', ALIAS_NEED, *alias),
                     *(['Install:', *o_install(missing, 'arch')] if missing else []), FAIL_LINE if failed else PASS_LINE]
             self.eq((code, buf.getvalue().splitlines()), (int(failed), want), platform=plat, role=role, bad=bad)
@@ -1258,8 +1299,9 @@ class Cli(Base):
         choices = {'g++': ['15.2.0', '16.0.1', '16', '17.1.0', 'garbage'], 'g++-14': ['14.3.0', '13.2', '15.1.0', '14'],
                    'python3': ['3.10.14', '3.11.0', '3.14.2', '2.7.18', '4.0', ''], 'pypy3': ['3.9.18', '3.10.14', '3.12.1', 'x'],
                    'gh': ['0', '1'], 'systemd-run': ['67108864', 'max', '134217728', ''], 'bwrap': ['', '', 'noop'],
-                   'mewt': [PIN, PIN, '3.9.9', ''], 'cargo': ['1.85.0', '1.84.1', '1.99.1', '1.185.0', '0.99.0', 'nightly', '']}
-        plain = ['bash', 'rg', 'ccache', 'lscpu', 'oj-bundle', 'kpsewhich', 'lualatex', 'node', 'nodejs', 'aarch64-linux-gnu-g++', 'qemu-aarch64']
+                   'mewt': [PIN, PIN, '3.9.9', ''], 'cargo': ['1.85.0', '1.84.1', '1.99.1', '1.185.0', '0.99.0', 'nightly', ''],
+                   'ccache': ['', *STATS]}
+        plain = ['bash', 'rg', 'lscpu', 'oj-bundle', 'kpsewhich', 'lualatex', 'node', 'nodejs', 'aarch64-linux-gnu-g++', 'qemu-aarch64']
         for r in range(self.rounds()):
             shutil.rmtree(self.bin)
             self.bin.mkdir()
@@ -1290,7 +1332,7 @@ class Cli(Base):
         if BASH:
             self.eq(rows[-1], o_row('grab alias', ALIAS_NEED, *o_alias(ISOLATED)), what='alias row read-only from the real HOME')
         missing = [t for t, line in zip(S.TOOLS, rows[1:]) if not line.startswith('OK')
-                   and (line.endswith(': not found') or t.exes[0] not in ('gh', 'systemd-run'))]
+                   and (line.endswith(': not found') or t.exes[0] not in ('gh', 'systemd-run', 'ccache'))]
         return missing, rows, rest
 
     def test_cli_real(self):
