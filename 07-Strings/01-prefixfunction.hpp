@@ -52,6 +52,16 @@ struct KmpMatcher {
         pi = prefixFunction(pattern);
         next = kmpNext(pattern, pi);}
     void reset() { state = 0; processed = 0; }
+    // T: O(1) amortized over the pushes (O(m) worst), M: O(1) amortized.
+    void pushBack(T c) {
+        assert(pattern.size() + 1 < INT_MAX);
+        int m = int(pattern.size()), j = m ? pi[m - 1] : 0;
+        pattern.push_back(c);
+        while (j && !(c == pattern[j])) { j = pi[j - 1]; }
+        pi.push_back(m && c == pattern[j] ? j + 1 : 0);
+        if (m) { next[m] = c == pattern[pi[m - 1]] ? next[pi[m - 1]] : pi[m - 1]; }
+        next.push_back(pi[m]);
+        reset();}
     template<class A, class B> static bool same(const A &a, const B &b) {
         if constexpr (std::is_same_v<A, B> || !std::is_integral_v<A> || !std::is_integral_v<B>) { return a == b; }
         else {
@@ -107,7 +117,7 @@ inline vector<int> prefixBorders(const vector<int> &pi, int len = -1, bool inclu
     if (len == -1) { len = int(pi.size()); }
     assert(0 <= len && len <= int(pi.size()));
     vector<int> res;
-    for (int k = include_full ? len : (len ? pi[len - 1] : 0); k; k = pi[k - 1]) { res.push_back(k); }
+    for (int k = include_full ? len : (len ? pi[len - 1] : 0); 0 < k && k <= len; k = min(k - 1, pi[k - 1])) { res.push_back(k); }
     reverse(res.begin(), res.end());
     return res;}
 
@@ -125,7 +135,7 @@ inline vector<int> prefixPeriods(const vector<int> &pi) {
     int n = int(pi.size());
     vector<int> res;
     if (!n) { return res; }
-    for (int k = pi.back(); k; k = pi[k - 1]) { res.push_back(n - k); }
+    for (int k = pi.back(); 0 < k && k < n; k = min(k - 1, pi[k - 1])) { res.push_back(n - k); }
     res.push_back(n);
     return res;}
 

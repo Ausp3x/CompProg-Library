@@ -246,3 +246,23 @@ Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md
 - <https://www.luogu.com.cn/problem/P4555>
 - <https://www.luogu.com.cn/problem/P1819>
 - <https://www.luogu.com.cn/problem/CF10D>
+
+## ST01 re-sweep (2026-11-12)
+
+Rows `01` and `02` (batch ST01): nothing missing beyond `DistinctSubstringsDeque`; no catalog defines a double-ended distinct-substring counter with more operations or a better bound than one Z pass per update (cp-algorithms and OI Wiki give the append formula and say the other ends work alike). Naive O(n^3)/O(n^2) prefix functions, naive Z and Z by hash with binary search are dominated slower forms.
+
+| URL | Used for |
+|---|---|
+| https://cp-algorithms.com/string/z-function.html, https://oi-wiki.org/string/z-func/ | 02: `DistinctSubstringsDeque` contract (non-empty substrings, length minus max z) |
+| https://cp-algorithms.com/string/prefix-function.html, https://oi-wiki.org/string/kmp/ | 01: every application section; aliases |
+| https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/strings/KMP.h, https://github.com/kth-competitive-programming/kactl/tree/main/content/strings | 01, 02: aliases only |
+| https://atcoder.github.io/ac-library/production/document_en/string.html | 01: ACL has no prefix function |
+| https://raw.githubusercontent.com/maspypy/library/main/string/kmp.hpp, https://maspypy.github.io/library/string/z_algorithm.hpp | 01, 02: aliases only |
+| https://hitonanode.github.io/cplib-cpp/string/mp_algorithm.hpp, https://hitonanode.github.io/cplib-cpp/string/z_algorithm.hpp | 01, 02: aliases only |
+| https://nyaannyaan.github.io/library/, https://ei1333.github.io/library/, https://suisen-cp.github.io/cp-library-cpp/ | 01, 02: no further operation (index pages, first 100k characters) |
+| https://github.com/cheran-senthil/PyRival/tree/master/pyrival/strings | 01, 02: aliases only; `string_find` is row `16` |
+| https://github.com/yosupo06/library-checker-problems/tree/master/string | 02: `zalgorithm` covered; no deque distinct-substring problem |
+| https://api.github.com/repos/ei1333/library/contents/string, https://api.github.com/repos/ei1333/library/git/trees/master?recursive=1, https://raw.githubusercontent.com/ei1333/library/master/string/z-algorithm.hpp | `/finish` follow-up 2026-11-13: ei1333 has no KMP/MP file; its `ZAlgorithm` is incremental Z (row `30`) |
+| https://api.github.com/repos/NyaanNyaan/library/contents/string, https://raw.githubusercontent.com/NyaanNyaan/library/master/string/z-algorithm.hpp, https://raw.githubusercontent.com/NyaanNyaan/library/master/string/string-search.hpp | `/finish` follow-up: `z_algorithm` is `zFunction`; no KMP/MP file; `string-search` is suffix-array search |
+| https://api.github.com/repos/suisen-cp/cp-library-cpp/contents/library/string, https://raw.githubusercontent.com/suisen-cp/cp-library-cpp/main/library/string/morris_pratt.hpp | `/finish` follow-up: `morris_pratt` is `prefixFunction` (n + 1 entries, `-1` first), `all_periods` is `prefixPeriods` (with a divisor filter), `min_period` is `prefixPeriod`, `MatcherMP` is `kmpOccurrences` |
+| https://raw.githubusercontent.com/emthrm/cp-library/master/include/emthrm/string/morris-pratt.hpp, https://raw.githubusercontent.com/emthrm/cp-library/master/include/emthrm/string/knuth-morris-pratt.hpp, https://raw.githubusercontent.com/emthrm/cp-library/master/include/emthrm/string/z_algorithm.hpp | `/finish` follow-up: `border`/`match` are `prefixFunction`/`kmpNext`/`kmpOccurrences`; `period(idx)` is `idx - pi[idx - 1]`; `MorrisPratt::add` (append to the pattern, amortized O(1)) is the one candidate absent from row `01` |

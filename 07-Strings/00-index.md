@@ -6,8 +6,8 @@ Scope: this folder owns string matching, string indexes (prefix/Z, hashes, suffi
 
 | Header | Operations | Status |
 |---|---|---|
-| `01-prefixfunction.hpp` | prefixFunction; validPrefixFunction; kmpNext; KmpMatcher: reset, step, matched, same; kmpOccurrences; prefixOccurrences (from pi); prefixOccurrences (pattern in text); prefixBorders; prefixPeriod; prefixPeriods; prefixAutomaton | verified; [evidence](Docs/01-prefixfunction.md) |
-| `02-z.hpp` | zFunction; extendedZ; zOccurrences; zBorders; zPeriods; zPeriod; prefixToZ; zToPrefix; DistinctSubstringsDeque: pushBack, pushFront, popBack, popFront, distinctSubstrings | partial; [evidence](Docs/02-z.md); missing: DistinctSubstringsDeque |
+| `01-prefixfunction.hpp` | prefixFunction; validPrefixFunction; kmpNext; KmpMatcher: reset, pushBack, step, matched, same; kmpOccurrences; prefixOccurrences (from pi); prefixOccurrences (pattern in text); prefixBorders; prefixPeriod; prefixPeriods; prefixAutomaton | verified; [evidence](Docs/01-prefixfunction.md) |
+| `02-z.hpp` | zFunction; extendedZ; zOccurrences; zBorders; zPeriods; zPeriod; prefixToZ; zToPrefix; DistinctSubstringsDeque: pushBack, pushFront, popBack, popFront, distinctSubstrings | verified; [evidence](Docs/02-z.md) |
 | `03-stringhash.hpp` | StringHash<KIND>: Digest (ordered), defaultBase, randomBase, encode, add, subtract, multiply, build, size, get, reverseGet, hashOf, power, concat, lcp, lcs; StringHash64; StringHash61 (Mersenne 2^61-1 field); longestCommonSubstringHash (binary search) | partial; [evidence](Docs/03-stringhash.md); missing: longestCommonSubstringHash |
 | `04-trie.hpp` | BasicTrie as Trie (map transitions) and TrieDense (fixed-alphabet array transitions): Node, clear, size, empty, newNode, step, findNode, count, countPrefix, search, insert, erase, forEach (prefix), forEach (all), forEachPrefixOf, longestPrefix | verified; [evidence](Docs/04-trie.md) |
 | `05-manacher.hpp` | Manacher: odd, even, size, Manacher (predicate), oddInterval, evenInterval, centerEnd, longestEnding, longestStarting | verified; [evidence](Docs/05-manacher.md) |

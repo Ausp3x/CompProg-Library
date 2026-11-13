@@ -286,7 +286,7 @@
         "07-Strings/Docs/05-manacher.md",
         "07-Strings/Docs/09-runlength.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement DistinctSubstringsDeque in `02-z.hpp`; longestCommonSubstringHash in `03-stringhash.hpp`. P275 re-review 2026-11-10: implement RunLengthEncoder in `09-runlength.hpp`."
+      "note": "ST01 verified 2026-11-13 (/finish: KmpMatcher::pushBack added, DistinctSubstringsDeque, rows 01/02 verified, mutation records on both headers). Next batch ST02: implement longestCommonSubstringHash in 03-stringhash.hpp (omission sweep 2026-11-08). Still open: RunLengthEncoder in 09-runlength.hpp (P275 re-review 2026-11-10)."
     },
     {
       "id": "P250",

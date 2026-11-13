@@ -2,7 +2,8 @@
 #include "01-prefix_z_test_support.hpp"
 
 struct OversizedSequence {
-    size_t size() const { return INT_MAX; }
+    size_t size_ = INT_MAX;
+    size_t size() const { return size_; }
     char operator[](int) const { return 'a'; }
 };
 
@@ -26,6 +27,12 @@ void testString(const vector<int> &s) {
     check(kmpNext(s), next, "kmpNext");
     check(kmpNext(s, pi), next, "kmpNext-with-pi");
     check(KmpMatcher(s).next, next, "matcher-next");
+    for (int h = 0; h <= int(s.size()); h += max(1, int(s.size()) / 2)) {
+        KmpMatcher grown(vector<int>(s.begin(), s.begin() + h));
+        grown.step(-1); grown.step(s.empty() ? 0 : s[0]);
+        for (int i = h; i < int(s.size()); ++i) { grown.pushBack(s[i]); }
+        if (h < int(s.size())) { check(grown.state, 0, "pushBack-reset-state"); check(grown.processed, lng(0), "pushBack-reset-processed"); }
+        check(grown.pattern, s, "pushBack-pattern"); check(grown.pi, pi, "pushBack-pi"); check(grown.next, next, "pushBack-next");}
     check(prefixOccurrences(pi), naiveCounts(s, s), "prefixOccurrences-self");
     check(prefixPeriods(pi), periods, "prefixPeriods");
     check(prefixPeriod(pi), periods.empty() ? 0 : periods[0], "prefixPeriod");
@@ -66,7 +73,16 @@ void testMatch(const vector<int> &p, const vector<int> &s) {
     check(found, naiveMatches(p, s), "stream-matches");
     matcher.reset(); check(matcher.state, 0, "reset-state"); check(matcher.processed, lng(0), "reset-processed");
     for (int c : s) { matcher.step(c); }
-    check(matcher.state, naiveState(p, s), "reset-replay");}
+    check(matcher.state, naiveState(p, s), "reset-replay");
+    int h = int(s.size()) / 2; vector<int> grown_p = p, rest(s.begin() + h, s.end()), grown_found;
+    KmpMatcher<int> grown; for (int c : p) { grown.pushBack(c); }
+    for (int i = 0; i < h; ++i) { grown.step(s[i]); }
+    int x = s.empty() ? 1 : s[h] ^ 1;
+    grown.pushBack(x); grown_p.push_back(x);
+    check(grown.state, 0, "pushBack-midstream-reset");
+    for (int i = 0; i < int(rest.size()); ++i) {
+        if (grown.step(rest[i])) { grown_found.push_back(i + 1 - int(grown_p.size())); }}
+    check(grown_found, naiveMatches(grown_p, rest), "pushBack-midstream-matches");}
 void validation() {
     for (int n = 0; n <= limit(5, 8, 9); ++n) {
         set<vector<int>> valid;
@@ -90,11 +106,17 @@ int main(int argc, char **argv) {
     if (argc > 2 && string(argv[1]) == "--invalid") {
         string probe = argv[2];
         if (probe == "size-large") { prefixFunction(OversizedSequence{}); }
+        if (probe == "size-huge") { prefixFunction(OversizedSequence{size_t(INT_MAX) + 1}); }
+        if (probe == "occurrences-text-large") { kmpOccurrences(string("a"), OversizedSequence{}); }
+        if (probe == "occurrences-text-huge") { kmpOccurrences(string("a"), OversizedSequence{size_t(INT_MAX) + 1}); }
+        if (probe == "counts-text-large") { prefixOccurrences(string("a"), OversizedSequence{}); }
+        if (probe == "counts-text-huge") { prefixOccurrences(string("a"), OversizedSequence{size_t(INT_MAX) + 1}); }
         if (probe == "border-negative") { prefixBorders({}, -2); }
         if (probe == "border-large") { prefixBorders({0}, 2); }
         if (probe == "alphabet-negative") { prefixAutomaton({}, -1); }
         if (probe == "symbol-negative") { prefixAutomaton({-1}, 3); }
         if (probe == "symbol-large") { prefixAutomaton({3}, 3); }
+        if (probe == "symbol-far") { prefixAutomaton({9}, 3); }
         if (probe == "stream-overflow") { KmpMatcher<> m; m.processed = std::numeric_limits<lng>::max(); m.step('a'); }
         return 2;}
     words(limit(5, 8, 9), 2, testString);
@@ -116,6 +138,20 @@ int main(int argc, char **argv) {
     KmpMatcher matcher(vector<int>(1000, 7));
     for (int c : large) { matcher.step(c); } check(matcher.state, 1000, "large-stream-overlaps");
     large.back() = 9; check(prefixFunction(large).back(), 0, "large-fallback");
+    for (int n = 1; n <= 40; ++n) {
+        KmpMatcher<int> self_grown; self_grown.pushBack(5); vector<int> expected_p{5};
+        for (int i = 1; i < n; ++i) {
+            self_grown.pattern.shrink_to_fit(); self_grown.pi.shrink_to_fit(); self_grown.next.shrink_to_fit();
+            int k = i % 3; expected_p.push_back(k == 0 ? expected_p[i / 2] : k == 1 ? self_grown.pi.back() : self_grown.next.back());
+            self_grown.pushBack(k == 0 ? self_grown.pattern[i / 2] : k == 1 ? self_grown.pi.back() : self_grown.next.back());}
+        context = "pushBack-aliasing n=" + std::to_string(n);
+        check(self_grown.pattern, expected_p, "pushBack-alias-pattern"); check(self_grown.pi, naivePi(expected_p), "pushBack-alias-pi");}
+    KmpMatcher<int> grown; for (int c : large) { grown.pushBack(c); }
+    check(grown.pi, prefixFunction(large), "large-pushBack-pi"); check(grown.next, kmpNext(large), "large-pushBack-next");
+    vector<int> fib_grow{0}, fib_prev{1};
+    while (int(fib_grow.size()) < limit(2000, 50000, 300000)) { auto x = fib_grow; x.insert(x.end(), fib_prev.begin(), fib_prev.end()); fib_prev = fib_grow; fib_grow = x; }
+    KmpMatcher<int> fib_matcher; for (int c : fib_grow) { fib_matcher.pushBack(c); }
+    check(fib_matcher.pi, prefixFunction(fib_grow), "fibonacci-pushBack-pi"); check(fib_matcher.next, kmpNext(fib_grow), "fibonacci-pushBack-next");
     context = "mixed-signedness regressions";
     check(kmpOccurrences(vector<uint>{UINT_MAX}, vector<int>{-1}), vector<int>{}, "uint-int-no-match");
     check(kmpOccurrences(vector<ulng>{~0ULL}, vector<int>{-1}), vector<int>{}, "ulng-int-no-match");

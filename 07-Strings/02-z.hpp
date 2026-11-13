@@ -1,4 +1,5 @@
 #pragma once
+#include "../01-Core/01-template.hpp"
 #include "01-prefixfunction.hpp"
 
 // T: O(n), M: O(n) returned; random-access/equality sequence, n < INT_MAX; z[0] = n.
@@ -81,3 +82,33 @@ inline bool zToPrefix(const vector<int> &z, vector<int> &pi) {
     if (!validPrefixFunction(p, s) || zFunction(s) != z) { pi.clear(); return false; }
     pi = std::move(p);
     return true;}
+
+// S: O(1), U: O(n), Q: O(1), M: O(n); n < INT_MAX symbols, exact count of distinct non-empty substrings.
+template<class T = char>
+struct DistinctSubstringsDeque {
+    deque<T> s;
+    lng total = 0;
+
+    struct Reversed {
+        const deque<T> &d;
+        size_t size() const { return d.size(); }
+        const T &operator[](int i) const { return d[d.size() - 1 - size_t(i)]; }
+    };
+    // Substrings occurring only as a prefix of v: |v| minus the longest prefix that recurs.
+    template<class V> static lng fresh(const V &v) {
+        auto z = zFunction(v);
+        int n = int(z.size()), best = 0;
+        for (int i = 1; i < n; ++i) { best = max(best, z[i]); }
+        return n - best;}
+
+    lng distinctSubstrings() const { return total; }
+
+    void pushBack(const T &c) { s.push_back(c); total += fresh(Reversed{s}); }
+    void pushFront(const T &c) { s.push_front(c); total += fresh(s); }
+    void popBack() {
+        assert(!s.empty());
+        if (!s.empty()) { total -= fresh(Reversed{s}); s.pop_back(); }}
+    void popFront() {
+        assert(!s.empty());
+        if (!s.empty()) { total -= fresh(s); s.pop_front(); }}
+};
