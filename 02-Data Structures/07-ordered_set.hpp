@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../01-Core/01-template.hpp"
+#include "02-fenwick.hpp"
 
 // S: O(n * log(n + 1)), U: rebuild O(n * log(n + 1)), Q: O(log(n + 1)), M: O(n)
 template<typename T, typename C = std::less<T>>
@@ -99,6 +100,17 @@ struct OrderedMultiSet {
     void rebuild(const vector<T> &a) {
         assert(a.size() <= INT_MAX && a.size() <= size_t(LLONG_MAX - next_id));
         clear(); for (const T &x : a) { insert(x); }}
+    // T: O(n * log(n + 1)) worst case observed (PBDS splits node by node), polylogarithmic on random shapes with GCC 16; moves every key > x into other, replacing it.
+    void split(const T &x, OrderedMultiSet &other) {
+        assert(&other != this);
+        tree.split(Key(x, LLONG_MAX), other.tree);
+        other.next_id = max(other.next_id, next_id);}
+    void join(OrderedMultiSet &other) {
+        assert(&other != this);
+        [[maybe_unused]] const C &cmp = tree.get_cmp_fn().cmp;
+        assert(empty() || other.empty() || cmp(std::prev(end())->first, other.begin()->first) || cmp(std::prev(other.end())->first, begin()->first));
+        tree.join(other.tree);
+        next_id = max(next_id, other.next_id);}
 
     Iterator lowerBound(const T &x) const { return tree.lower_bound(Key(x, 0)); }
     Iterator upperBound(const T &x) const { return tree.lower_bound(Key(x, LLONG_MAX)); }
@@ -107,4 +119,39 @@ struct OrderedMultiSet {
     int upperRank(const T &x) const { return int(tree.order_of_key(Key(x, LLONG_MAX))); }
     int count(const T &x) const { return upperRank(x) - rank(x); }
     Iterator findByOrder(int k) const { return k < 0 ? end() : tree.find_by_order(k); }
+};
+
+// The universe is fixed at construction and insert asserts a key of it; findByOrder asserts 0 <= k < size; bounds return false when absent.
+// S: O(u * log(u + 1)), U: O(log(m + 1)), Q: O(log(m + 1)), M: O(u), u = universe.size(), m = distinct keys; clear O(m)
+template<typename T, typename C = std::less<T>>
+struct OrderedMultiSetOffline {
+    CoordinateCompression<T, C> keys;
+    Fenwick<int> cnt;
+    int n = 0;
+
+    explicit OrderedMultiSetOffline(vector<T> universe = {}, C cmp = C()) : keys(std::move(universe), std::move(cmp)), cnt(keys.size()) {}
+
+    int size() const { return n; }
+    bool empty() const { return n == 0; }
+
+    void insert(const T &x) {
+        int i = keys.index(x);
+        assert(i >= 0 && n < INT_MAX);
+        cnt.add(i, 1); ++n;}
+    bool eraseOne(const T &x) {
+        int i = keys.index(x);
+        if (i < 0 || cnt.get(i) == 0) { return false; }
+        cnt.add(i, -1); --n; return true;}
+    void clear() { cnt = Fenwick<int>(keys.size()); n = 0; }
+
+    int count(const T &x) const { int i = keys.index(x); return i < 0 ? 0 : cnt.get(i); }
+    int rank(const T &x) const { return cnt.prefixSum(keys.rank(x)); }
+    int upperRank(const T &x) const { return cnt.prefixSum(keys.upperRank(x)); }
+    typename vector<T>::const_reference findByOrder(int k) const { assert(0 <= k && k < n); return keys.decode(cnt.upperBound(k)); }
+    bool lowerBound(const T &x, T &res) const { return pick(rank(x), res); }
+    bool upperBound(const T &x, T &res) const { return pick(upperRank(x), res); }
+    bool prev(const T &x, T &res) const { return pick(upperRank(x) - 1, res); }
+    bool pick(int k, T &res) const {
+        if (k < 0 || k >= n) { return false; }
+        res = findByOrder(k); return true;}
 };

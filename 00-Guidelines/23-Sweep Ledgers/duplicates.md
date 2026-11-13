@@ -175,6 +175,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P006 | Fenwick `lowerBound`, `upperBound`, `descend` (`02-fenwick.hpp`) | Named special case; larger domain (`x <= 0`); 11% faster (`Docs/02-fenwick.md`) |
 | P006 | `SegmentTree::apply` (`03-segmenttree.hpp`) | As the recorded keep `SqrtDecomp::apply` |
 | P006 | `DifferenceArray(2D)::clear` (`05-prefix_sum.hpp`) | Named special case, in place |
+| P006 | `PrefixSum` beside `PrefixProduct<Sum<T>>` (`05-prefix_sum.hpp`) | Named special case: the same results for an additive group, taken as a plain `T` with `+` and `-` instead of a group struct, with `prefixSum` and the braced-list constructor; `PrefixProduct` serves noncommutative groups (DS02 review, 2026-11-12) |
 | P006 | Braced-list constructors (`02-fenwick.hpp`, `03-segmenttree.hpp`, `05-prefix_sum.hpp`, `06-sqrt_decomposition.hpp`) | Without them `Fenwick<lng> f{7}` picks the size constructor (`Docs/00-notes.md`, Common foundation contracts) |
 | P006 | `CoordinateCompression::decode` (`07-ordered_set.hpp`) | Named inverse of `encode`; replaces P013's `value` |
 | P006 | `previousGreater`, `nextGreater`, `slidingMaximum` (`08-monotone_stack.hpp`) | Named special cases |

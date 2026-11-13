@@ -9,6 +9,7 @@ Folder-wide contracts, ownership boundaries, migration obligations and per-packa
 - State static versus online/offline, update/query memory, amortized versus worst-case bounds, and whether balancing is randomized or deterministic. Amortized bounds must be re-proved under persistence and rollback; ephemeral amortization does not transfer.
 - Generic arithmetic must keep every stored value and intermediate representable or be explicitly modular; `lng` is a convenient sum type, not an overflow check.
 - Public storage is exposed for contest use but must not be mutated behind an algorithm's invariants. Structures own their storage and copy as independent snapshots.
+- The capacity of a public vector member or a returned vector is unspecified; only its size and values are part of the contract (user decisions 2026-11-12, `SparseTable::v`, then DS02 for every row).
 - Handles (heap nodes, multiset tokens, versions) state their invalidation rules; tokens from other histories must never be passed back.
 
 ## Numeric and algebraic policies
@@ -280,3 +281,10 @@ P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines
 ## DS01 sweep 2026-11-11
 
 The DS01 completeness sweep ([00-sources.md](00-sources.md)) added `DSU::leaders` (MAS `get_all`, a batch form of `findSet`), `SegmentTree::setManySorted` (MAS `set_many_sorted`) and `SegmentTree::prodIds` (MAS `prod_ids`, a node-index result no other operation returns) to rows 01 and 03 (`03-cpp.md`, One API per operation); it left nothing out.
+
+## DS02 sweep 2026-11-12
+
+The DS02 completeness sweep ([00-sources.md](00-sources.md#fetched-2026-11-12-ds02-sweep)) settled its candidates under the recorded decisions of 2026-11-08 and 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`; user decision 2026-11-12 after the DS02 review): compositions and derived counts joined rows 05, 06 and 08 (`DifferenceArray::addArithmetic` (hitonanode), `StepSum`, `SortedBlocks::countGeq`, `countGreater`, `countEqual`, and in row 08 `countBinaryRectanglesAreaAtMost` (ABC420 F), `maxMinTimesSum` (UVa 1619), `maxMinTimesSum2D` (ABC311 G), `largestCheckerboardSquare` and `largestCheckerboardRectangle` (P1169), `nextGreaterDistanceSum` (POJ 3250), and `countBinarySquares` and `countBinaryRectanglesTotal` (CSES 3413, 3414), the total as its own algorithm since summing `countBinaryRectangles` needs its O(n * m) table where the stack count keeps O(m)); the standalone one-problem `CounterBlocks` (EI) joined planned Esoteric row 71 and `slidingLargestHistogramRectangle` (CSES 3227) planned row 73; row 07 owns the offline Fenwick multiset, built in the DS02 `/finish` as `OrderedMultiSetOffline` (user decision 2026-11-12, `omissions.md`). Left out:
+
+- Prefix-sum constructors from `(n, f(i))` and clamped `sum<true>` (MAS), `add` then `build` (EI, NYA): argument forms of the vector constructors and `sum`.
+- `BlockList` set, range reverse, split and merge (OI): `at` returns a mutable reference; sequence split, merge and reverse are rows 19 and 20.
