@@ -7995,6 +7995,16 @@
         "SUP29"
       ],
       "tiers": []
+    },
+    {
+      "id": "SUP31",
+      "folder": "support",
+      "targets": [],
+      "support_targets": [],
+      "size": "M",
+      "focus": "Expected-assert death probes (user decisions 2026-11-13, from the P006 follow-ups). Today a death probe passes on any glibc \"Assertion `\" message (`96-Local Testing/_00_contest_runner.py`, `_00_foundation_runner.py`) and twelve Core death checks accept any 'assert' text, so a libstdc++ abort also passes (01-Core/03-barrett_tester.py:59, 04-montgomery_tester.py:75, _05_modint_test_runner.py:62, 06-modintmini_tester.py:63, 07-infint_tester.py:83, 08-infintmini_tester.py:72, 09-rational_tester.py:80, 16-poly_tester.py:77, 17-polymini_tester.py:93, 18-bitset_tester.py:69, 19-fastio_tester.py:99, _00_foundation_runner.py:53; folded in here instead of a Core package, user decision 2026-11-13). (1) Let every probe require the header's own assertion: glibc's message names the file and the asserted expression, so a probe names the expected header and expression (not a line number, which edits shift) and fails on any other abort; keep one declaration per probe in each tester's existing probe list. (2) Migrate every contest and Core tester, record the rule in `05-testing.md`, and keep `03-consistency.py` checking it. (3) Revisit the survivors recorded as masked by the any-assert probe, each checked against the mutant applied by hand: Fenwick `LOS 302`, `COS 343`, `COS 344` (`02-Data Structures/Docs/02-fenwick.md`), sparse table `COS 528` (`04-sparsetable.md`), sqrt decomposition `COS 1295`, `COS 1296` (`06-sqrt_decomposition.md`), ordered set `COS 403`, `COS 404` (`07-ordered_set.md`) and point `CR 212`, `COS 811` (`03-Geometry/Docs/01-point.md`, masked by libstdc++'s debug gcd assertion in the checked build); reclassify each in its evidence document, and keep the headers unchanged unless a probe finds a defect.",
+      "prerequisites": [],
+      "tiers": []
     }
   ]
 }

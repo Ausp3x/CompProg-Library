@@ -89,7 +89,7 @@ That campaign (DS01 `/finish`: `set` stops at `(p >>= 1) > 0`, so `p < -base` un
 
 | Mutant | Line | Why it survives |
 |---|---|---|
-| `COS 411` `(p >>= 1) > 0` → `!= 0` | 34 | untestable (Claude's call while the user was away, 2026-11-12, logged for review): both stop for every `p >= -base`, so for every valid `p`; they differ only for `p < -base` with the assert compiled out, where the mutant restores the endless loop that `03-cpp.md` forbids, an input `05-testing.md` (Memory safety) keeps from the `NDEBUG` build |
+| `COS 411` `(p >>= 1) > 0` → `!= 0` | 34 | untestable (user decision 2026-11-13, confirming Claude's call of 2026-11-12): both stop for every `p >= -base`, so for every valid `p`; they differ only for `p < -base` with the assert compiled out, where the mutant restores the endless loop that `03-cpp.md` forbids, an input `05-testing.md` (Memory safety) keeps from the `NDEBUG` build |
 
 Earlier campaign: mewt 4.0.0 on blob `396624cfa6a3a9b49b5f9c5ae497f5409adf669e` (2026-11-12, seed 1, whole file, uniform sample of 619): 500 mutants, 481 caught (23 by timeout), 19 survived, 0 untested. Line numbers below are that blob's.
 

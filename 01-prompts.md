@@ -327,7 +327,8 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 
 ### Final support integration
 
-- [ ] **P224 — SUP02** (opus, S): Whole-library test-runner, aggregate and build integration audit. Status: planned.
+- [ ] **P288 — SUP31** (opus, M): Expected-assert death probes across contest and Core testers. Status: planned.
+- [ ] **P224 — SUP02** (opus, S): Whole-library test-runner, aggregate and build integration audit. Status: planned. Note: Handoff from P006 (2026-11-13): `96-Local Testing/00-Tools/15-harness_tester.py` `test_effort_launch` failed beside other suites in a 01-run quick run on 2026-11-12 and passed alone; find the shared state or timing it depends on and fix it, since a suite that passes only alone is not passing (05-testing.md, Layout and modes).
 - [ ] **P225 — SUP03** (opus, S): Online solution coverage and expansion audit. Status: planned.
 - [ ] **P226 — SUP04** (opus, M): Curated notebook, contest notes and printable-build audit. Status: planned. Note: Also: landscape page layout; a CJK fallback font so the template's Chinese motto renders (first build 2026-10-15 showed no glyphs). 2026-11-05: select operations rather than headers through the P253 extraction index, with minis by default; `07-notebook.md` (selection) follows.
 - [ ] **P240 — SUP09** (opus, L): Site articles and practice lists: 01-Core. Status: planned.
