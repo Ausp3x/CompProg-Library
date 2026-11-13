@@ -225,7 +225,7 @@
         "05-Mathematics/Docs/05-combinatorics.md",
         "05-Mathematics/Docs/06-segmentedsieve.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement brentSearchRealBracket in `02-search_algorithms.hpp`; residueShortestPath, frobeniusNumber, countRepresentable in `03-equation_solvers.hpp`; LogCombinatorics in `05-combinatorics.hpp`. P275 re-review 2026-11-10: implement floorDivStrict, ceilDivStrict, divMod in `01-mod_arithmetic.hpp`; binSearchRealGeometric in `02-search_algorithms.hpp`; solveDioMinLinear in `03-equation_solvers.hpp`; SieveOfErath::primeCount, LinearSieve::primeCount in `04-sieve_algorithms.hpp`; PrimeCombinatorics::combiNegative, PrimeCombinatorics::combiInverse, primorial in `05-combinatorics.hpp`."
+      "note": "MA01 finished (2026-11-13, reopened by user decisions of 2026-11-12): rows 01-03 verified with current mutation records; next batch MA02. MA02 open: SieveOfErath::primeCount, LinearSieve::primeCount, LogCombinatorics, PrimeCombinatorics::combiNegative, combiInverse, primorial. Follow-ups for other rows: row 18 countRepresentableSylvester, row 49 solveDioEqMulti, row 69 bracketMinimum (all planned); row 54 table pow through the discrete log (maspypy ModFast); row 20 check sternBrocotRange against maspypy farey_lr; Miscellaneous row 44 Nyaan fast_lb, if adopted."
     },
     {
       "id": "P013",

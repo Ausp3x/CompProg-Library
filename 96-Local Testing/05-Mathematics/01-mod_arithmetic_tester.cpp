@@ -21,13 +21,29 @@ int main(int argc, char **argv) {
         if (s == "mul64-zero") { modMul64(2, 3, 0); }
         if (s == "pow-zero") { modPow(2, -1, 0); }
         if (s == "pow64-zero") { modPow64(2, 3, 0); }
+        if (s == "pow64-zero-exponent") { modPow64(2, 0, 0); }
         if (s == "inv-even") { invMod2p64(6); }
+        if (s == "floor-strict-zero") { floorDivStrict(1, 0); }
+        if (s == "ceil-strict-zero") { ceilDivStrict(1, 0); }
+        if (s == "floor-strict-overflow") { floorDivStrict(std::numeric_limits<lll>::min(), 1); }
+        if (s == "ceil-strict-overflow") { ceilDivStrict(std::numeric_limits<lll>::max(), 1); }
+        if (s == "ceil-strict-overflow-negative") { ceilDivStrict(-std::numeric_limits<lll>::max(), -1); }
+        if (s == "divmod-zero") { divModFloor(1, 0); }
+        if (s == "divmod-overflow") { divModFloor(std::numeric_limits<lll>::min(), -1); }
+        if (s == "power-mod-zero") { FixedBasePower(2, 0, 5).get(0); }
+        if (s == "power-mod-negative") { FixedBasePower(2, -7, 5).get(0); }
+        if (s == "power-n-negative") { FixedBasePower(2, 7, -1).get(0); }
+        if (s == "power-get-negative") { FixedBasePower(2, 7, 5).get(-1); }
+        if (s == "power-get-past") { FixedBasePower f(2, 7, 10); f.get(f.n + 1); }
+        if (s == "power-levels-one") { FixedBasePower(2, 7, 5, 1).get(0); }
         return 0;}
     if (argc < 2 || string(argv[1]) != "--oracle") {
         lng out = 7;
         if (!intPow(-2, 63, out) || out != LLONG_MIN || intPow(2, 63, out) || out != LLONG_MIN) { return 1; }
         auto [g, x, y] = extendedGcd(LLONG_MIN, 0);
         if (g != lll(1) << 63 || lll(LLONG_MIN) * x + 0 * y != g) { return 1; }
+        auto z = extendedGcd(0, 0);
+        if (z.g != 0 || z.x != 1 || z.y != 0) { return 1; }
         cout << "PASS arithmetic boundary regressions\n"; return 0;}
     string op;
     while (cin >> op) {
@@ -35,6 +51,14 @@ int main(int argc, char **argv) {
             lng a, b; cin >> a >> b; auto r = extendedGcd(a,b);
             cout << gcd64(a,b) << ' ' << show(lcmWide(a,b)) << ' ' << show(r.g) << ' ' << show(r.x) << ' ' << show(r.y);}
         if (op == "d") { lll a = readWide(), b = readWide(); cout << show(floorDiv(a,b)) << ' ' << show(ceilDiv(a,b)); }
+        if (op == "s") { lll a = readWide(), b = readWide(); cout << show(floorDivStrict(a,b)); }
+        if (op == "t") { lll a = readWide(), b = readWide(); cout << show(ceilDivStrict(a,b)); }
+        if (op == "r") { lll a = readWide(), b = readWide(); auto [q, r] = divModFloor(a,b); cout << show(q) << ' ' << show(r); }
+        if (op == "f") {
+            lng a, m, n; int levels, k; cin >> a >> m >> n >> levels >> k;
+            FixedBasePower f = levels == 2 && k % 2 ? FixedBasePower(a, m, n) : FixedBasePower(a, m, n, levels);
+            cout << f.base << ' ' << f.pw.size();
+            for (lng e; k--;) { cin >> e; cout << ' ' << f.get(e); }}
         if (op == "n") { lll a = readWide(); lng m; cin >> m; cout << modNorm(a,m); }
         if (op == "m") { lng a,b,m; cin >> a >> b >> m; cout << modMul(a,b,m); }
         if (op == "u") { ulng a,b,m; cin >> a >> b >> m; cout << modMul64(a,b,m); }

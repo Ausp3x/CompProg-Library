@@ -478,10 +478,11 @@ def campaign(a):
         if s.is_dir():
             sync(ROOT, s)
     print(f'MUTATION {header} blob {now[:12]} tester {tester} (cap {own} MB) workdir {work}; memory budget {budget} MB', flush=True)
-    two = '--configuration' in subprocess.run([sys.executable, tester, '--help'], cwd=shards[0], capture_output=True, text=True).stdout
+    usage = subprocess.run([sys.executable, tester, '--help'], cwd=shards[0], capture_output=True, text=True, env=dict(os.environ, COLUMNS='1000')).stdout
+    two, rest = '--configuration' in usage, 'checked,ASan-UBSan' + (',native' if 'ASan-UBSan and native' in ' '.join(usage.split()) else '')
     run = lambda mode, *rest: [sys.executable, tester, '--mode', mode, '--seed', str(a.seed), *rest]
     stages = ([('quick', run('quick', '--configuration', 'optimized')), ('full-optimized', run('full', '--configuration', 'optimized')),
-               ('full-rest', run('full', '--configuration', 'checked,ASan-UBSan'))] if two else [('quick', run('quick')), ('full', run('full'))])
+               ('full-rest', run('full', '--configuration', rest))] if two else [('quick', run('quick')), ('full', run('full'))])
     if meta is None:
         (shards[0] / 'mewt.toml').write_text(f'[targets]\ninclude = [{json.dumps(header)}]\n\n[test]\n'
                                              f'cmd = {json.dumps(shlex.join(stages[0][1]))}\ntimeout = 600\n')

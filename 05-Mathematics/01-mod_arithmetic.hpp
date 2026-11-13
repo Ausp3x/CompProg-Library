@@ -20,15 +20,21 @@ inline ExtendedGcd extendedGcd(lng a, lng b) {
     if (u < 0) { u = -u; x = -x; y = -y; }
     return {u, x, y};}
 
-// T: O(1), M: O(1); b != 0 and quotient fits lll, m > 0; checked false leaves out unchanged.
+// T: O(1), M: O(1); b != 0, quotient and strict bound fit lll, divModFloor r = a - b * q has b's sign, m > 0; checked false leaves out unchanged.
 inline lll floorDiv(lll a, lll b) {
     assert(b && !(a == std::numeric_limits<lll>::min() && b == -1));
     lll q = a / b, r = a % b; return q - (r && ((r < 0) != (b < 0)));}
 inline lll ceilDiv(lll a, lll b) {
     assert(b && !(a == std::numeric_limits<lll>::min() && b == -1));
     lll q = a / b, r = a % b; return q + (r && ((r < 0) == (b < 0)));}
+inline lll floorDivStrict(lll a, lll b) {
+    assert(!(a == std::numeric_limits<lll>::min() && b == 1)); return ceilDiv(a, b) - 1;}
+inline lll ceilDivStrict(lll a, lll b) {
+    assert(!(a == std::numeric_limits<lll>::max() && b == 1) && !(a == -std::numeric_limits<lll>::max() && b == -1)); return floorDiv(a, b) + 1;}
+inline pair<lll, lll> divModFloor(lll a, lll b) {
+    lll q = floorDiv(a, b); return {q, lll(ulll(a) - ulll(q) * ulll(b))};}
 inline lng modNorm(lll a, lng m) {
-    assert(m > 0); lng r = lng(a % m); return r < 0 ? r + m : r;}
+    assert(m > 0); lng r = lng(a % m); return r < 0 ? lng(ulng(r) + ulng(m)) : r;}
 inline lng modMul(lng a, lng b, lng m) { return lng(lll(modNorm(a, m)) * modNorm(b, m) % m); }
 inline ulng modMul64(ulng a, ulng b, ulng m) { assert(m); return ulng(ulll(a) * b % m); }
 inline bool checkedAdd(lng a, lng b, lng &out) {
@@ -75,3 +81,26 @@ inline ulng modPow64(ulng a, ulng e, ulng m) {
         if (e & 1) { r = modMul64(r, a, m); }
         e >>= 1; if (e) { a = modMul64(a, a, m); }}
     return r;}
+
+// S: O(k * B), U: NA, Q: O(k), M: O(k * B); a^e mod m for one base, k tables of base-B digits, B = least B >= 2 with B^k > n.
+// m > 0, k >= 2 (2 is the sqrt form; 4 serves every lng exponent), exponents 0 <= e <= n, 0^0 = 1 % m.
+struct FixedBasePower {
+    lng mod, n, base; int k;
+    vector<lng> pw;
+    FixedBasePower(lng a, lng m, lng N, int K = 2) : mod(m), n(max<lng>(N, 0)), k(max(K, 2)) {
+        assert(m > 0 && N >= 0 && K >= 2); a = modNorm(a, m);
+        auto covers = [&](lng b) { lll p = 1; for (int j = 0; j < k && p <= n; ++j) { p *= b; } return p > n; };
+        lng below = 1;
+        for (lng s = lng(1) << 32; s; s >>= 1) { if (!covers(below + s)) { below += s; } }
+        base = below + 1;
+        pw.resize(size_t(k * base));
+        for (int j = 0; j < k; ++j) {
+            lng *t = pw.data() + j * base; t[0] = 1 % m;
+            for (lng d = 1; d < base; ++d) { t[d] = lng(lll(t[d - 1]) * a % m); }
+            a = lng(lll(t[base - 1]) * a % m);}}
+    lng get(lng e) const {
+        assert(0 <= e && e <= n);
+        ulng u = ulng(e), b = ulng(base); lll res = pw[size_t(u % b)];
+        for (int j = 1; j < k; ++j) { u /= b; res = res * pw[size_t(lng(j) * base + lng(u % b))] % mod; }
+        return lng(res);}
+};

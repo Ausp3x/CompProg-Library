@@ -1457,6 +1457,18 @@ class Fake(Base):
         self.eq(self.stage_line(out, 'quick-alone')[:3], (3, 2, 2), out=out)
         self.eq(self.stage_line(out, 'full-rest-alone')[:3], (2, 1, 2), out=out)
 
+    def test_fake_native_rest(self):
+        # full-rest adds native exactly when the tester's --configuration help lists it, whatever width argparse would wrap to
+        tester = ("import argparse\np = argparse.ArgumentParser()\np.add_argument('--configuration', help='all, or a "
+                  "comma-separated subset of optimized, checked, ASan-UBSan@')\np.parse_known_args()\n")
+        self.configure(self.mutants(2), {1: {'*': 'Uncaught'}, 2: {'*': 'Uncaught'}})
+        for k, (extra, want) in enumerate(((' and native', 'checked,ASan-UBSan,native'), ('', 'checked,ASan-UBSan'))):
+            root = self.repo(f'repo{k}', tester.replace('@', extra))
+            with patch.dict(os.environ, {'COLUMNS': '20'}):
+                code, out, err = self.go(root, '--workdir', str(self.tmp / f'work{k}'), seconds=0.1)
+            cmds = [c for *_, c in self.calls('full-rest')]
+            self.true(code == 0 and cmds and all(c[c.index('--configuration') + 1] == want for c in cmds), case=k, cmds=cmds, out=out, err=err)
+
     def test_fake_unconfirmed_resume(self):
         # unconfirmed maps each timeout to the stage it timed out in; a budget stop of that stage's alone pass keeps it in
         # campaign.json, and the rerun retests it alone in that stage only (a stage with nothing pending still runs its

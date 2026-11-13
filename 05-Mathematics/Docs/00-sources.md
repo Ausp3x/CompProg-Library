@@ -52,6 +52,27 @@ Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys);
 | ei1333 `montmort.hpp`; Library Checker `montmort_number_mod` statement | https://ei1333.github.io/library/math/combinatorics/montmort.hpp, https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/enumerative_combinatorics/montmort_number_mod/task.md | 2026-10-07 | `derangementTable` (any modulus) |
 | Sources checked with nothing adopted | ACL `internal_math.hpp`, KACTL number-theory and numerical, Nyaan `misc/int_div.hpp`, maspypy `my_template.hpp`, hitonanode `binary_gcd.hpp`, `sieve.hpp`, `bs_sieve.hpp`, maspypy `nt/all_lcm.hpp`, `mod/modint_common.hpp`, `mod/first_mod_range_of_linear.hpp`, PyRival numerical and combinatorics, OI Wiki sieve | 2026-10-07 | reasons in [00-notes.md](00-notes.md) |
 
+## P012 MA01 sweep (fetched 2026-11-12)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| OI Wiki, 快速幂 (光速幂) | https://oi-wiki.org/math/binary-exponentiation/ | 2026-11-12 | row 01 `FixedBasePower` |
+| maspypy `power_query.hpp` | https://maspypy.github.io/library/ds/power_query.hpp | 2026-11-12 | row 01 `FixedBasePower` (base-B digit tables, any exponent; adopted as the `k`-level form) |
+| Wikipedia, IEEE 754 (total-ordering predicate; sorting by the encoding) | https://en.wikipedia.org/wiki/IEEE_754 | 2026-11-12 | row 02 `binSearchRealBits`: sign-magnitude encodings sort as integers once negative patterns are reflected |
+| Nyaan `int_div.hpp` | https://nyaannyaan.github.io/library/misc/int_div.hpp | 2026-11-12 | row 01 `floorDivStrict`, `ceilDivStrict` (`under`, `over`) |
+| maspypy `my_template.hpp` | https://raw.githubusercontent.com/maspypy/library/main/my_template.hpp | 2026-11-12 | row 01 `divModFloor` (floor quotient; widened to either divisor sign) |
+| KACTL `ModMulLL.h` | https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/number-theory/ModMulLL.h | 2026-11-12 | not adopted, reason in [00-notes.md](00-notes.md) |
+| Numerical Recipes in C, 2nd ed., 10.2 | https://www2.denizyuret.com/bib/press/www.library.cornell.edu/nr/bookcpdf/c10-2.pdf | 2026-11-12 | row 02 `brentSearchRealBracket` (`brent`: CGOLD, tol1, parabolic acceptance) |
+| maspypy `binary_search_real_abs_rel.hpp` | https://raw.githubusercontent.com/maspypy/library/main/other/binary_search_real_abs_rel.hpp | 2026-11-12 | row 02 `binSearchRealGeometric` (geometric-mean step) |
+| OI Wiki, 同余最短路 | https://oi-wiki.org/graph/mod-shortest-path/ | 2026-11-12 | row 03 `residueShortestPath`, `residueShortestPathDijkstra`, `countRepresentable` |
+| dansesacrale, round-robin Frobenius | https://dansesacrale.wordpress.com/2010/09/20/frobenius-numbers-round-robin-algorithm/ | 2026-11-12 | row 03 round robin from the cycle minimum, `frobeniusNumber` |
+| cp-algorithms, Linear Diophantine Equation | https://cp-algorithms.com/algebra/linear-diophantine-equation.html | 2026-11-12 | row 03 `solveDioMinLinear` (minimum x + y by the slope's sign) |
+| OI Wiki, 裴蜀定理; Wikipedia, Coin problem | https://oi-wiki.org/math/number-theory/bezouts/, https://en.wikipedia.org/wiki/Coin_problem | 2026-11-12 | row 03 `frobeniusNumberSylvester`, `countNonRepresentableSylvester` (user decision 2026-11-12); n-variable Bézout planned in row 49, reasons in [00-notes.md](00-notes.md) |
+| Numerical Recipes in C, 2nd ed., 10.3 `dbrent` (pp. 405–408); ANSI listing `dbrent.c`; NR3 `mins.h` `Dbrent`, `Bracketmethod` | https://www.cec.uchile.cl/cinetica/pcordero/MC_libros/NumericalRecipesinC.pdf, https://accserv.classe.cornell.edu/svn/packages/num_recipes/recipes_c-ansi/recipes/dbrent.c, https://pages.astro.umd.edu/~ricotti/NEWWEB/teaching/ASTR415/InClassExamples/NR3/code/mins.h | 2026-11-12 | row 02 `brentSearchRealBracketDerivative` (secant steps, downhill bisection, strict `v` update); row 69 `bracketMinimum` constants |
+| Ramírez Alfonsín and Rødseth, Numerical semigroups: Apéry sets and Hilbert series, eqs. (2), (3), (11) | https://imag.umontpellier.fr/~ramirez/Frobenius-Hilbert.pdf | 2026-11-12 | row 03 `countNonRepresentable` (Selmer's gap count over the Apéry set, which is the round-robin table), Sylvester's two-coin forms |
+| The number of solutions to ax + by = n, Corollary 12 | https://arxiv.org/pdf/1910.03079 | 2026-11-12 | row 18 `countRepresentableSylvester` (planned): at most one representation below `a * b` |
+| Böcker and Lipták, The Money Changing Problem Revisited: Computing the Frobenius Number in Time O(ka1), COCOON 2005, LNCS 3595, pp. 965–974 (journal version Algorithmica 48 (2007) 413–432 not reachable: Springer login) | https://www.yumpu.com/en/document/view/37799071/the-money-changing-problem-revisited-universitat-bielefeld | 2026-11-13 | row 03 `residueShortestPath`: Theorem 1 (Θ(k a1) time, O(1) extra memory), Section 3 (cycles from a minimal entry); earlier Dijkstra methods O(k a1 log a1) |
+
 ## P052 sweep (fetched 2026-10-09)
 
 | Source | URL | Fetched | Used for |
@@ -222,7 +243,7 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | URL | Used for |
 |---|---|
 | https://numerical.recipes/book.html | 02: `brentSearchRealBracket`; 17: `falsePositionRoot`, `newtonSystem`; 39: `legendreP`, `chebyshevT`; 68: `rungeKutta4`, `rungeKuttaAdaptive`; 69: `nelderMead`, `powellMinimize`; 70: `dst1`, `dct1` |
-| https://oi-wiki.org/graph/mod-shortest-path/ | 03: `residueShortestPath`, `frobeniusNumber` |
+| https://oi-wiki.org/graph/mod-shortest-path/ | 03: `residueShortestPath`, `residueShortestPathDijkstra`, `frobeniusNumber` |
 | https://dansesacrale.wordpress.com/2010/09/20/frobenius-numbers-round-robin-algorithm/ | 03: `residueShortestPath`, `frobeniusNumber` |
 | https://nyaannyaan.github.io/library/math/float-binomial.hpp | 05: `LogCombinatorics`, `reset` |
 | https://hitonanode.github.io/cplib-cpp/number/big_combination_logarithm.hpp | 05: `LogCombinatorics`, `reset` |

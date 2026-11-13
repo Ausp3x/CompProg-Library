@@ -12,21 +12,23 @@ import tempfile
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _00_memory_cap
-from _00_cpp_test_runner import Builder, compiler_command, scaled, timed_run, timing
+from _00_cpp_test_runner import Builder, compiler_command, cpu_runs, scaled, timed_run, timing
 
 _00_memory_cap.ensure()
 
 WARNINGS = ['-Wall', '-Wextra', '-Wconversion', '-Werror']
 
 
-def main(stem, invalid, oracle=None, extra=(), timeout=720, checked='-D_GLIBCXX_DEBUG', memory=1200):
+def main(stem, invalid, oracle=None, extra=(), timeout=720, checked='-D_GLIBCXX_DEBUG', memory=1200, native=False):
     """Build <stem>_tester.cpp beside the calling tester in each configuration and run it.
 
     oracle(binary, args, env) runs after each build's self-test; invalid names the checked build's --invalid death probes;
     extra holds further compiler flags; timeout is the limit of each compile and run in seconds; checked is the checked
     build's standard-library mode, -D_GLIBCXX_ASSERTIONS where debug iterators' own checks would change a suite's cost;
     memory is the MB one build needs in full mode, compile or run (quick: 800 unless the suite needs more), by which the
-    builds run at once within the cap; stress runs them one at a time, its peak being unmeasured.
+    builds run at once within the cap; stress runs them one at a time, its peak being unmeasured. native adds, outside quick
+    mode, an optimized -march=native build for a suite whose results depend on floating-point contraction (AtCoder's
+    flags), with a SKIP line where the CPU lacks FMA.
     """
     here = Path(sys.modules['__main__'].__file__).resolve().parent
     parser = argparse.ArgumentParser(description=__doc__)
@@ -34,9 +36,9 @@ def main(stem, invalid, oracle=None, extra=(), timeout=720, checked='-D_GLIBCXX_
                         default=os.environ.get('CP_TEST_MODE', 'full'))
     parser.add_argument('--seed', type=int, default=int(os.environ.get('CP_TEST_SEED', '20260927')))
     parser.add_argument('--configuration', default='all', type=lambda text: text.split(','),
-                        help='all, or a comma-separated subset of optimized, checked and ASan-UBSan')
+                        help='all, or a comma-separated subset of optimized, checked, ASan-UBSan' + (' and native' if native else ''))
     args = parser.parse_args()
-    names = ('optimized', 'checked', 'ASan-UBSan')
+    names = ('optimized', 'checked', 'ASan-UBSan') + (('native',) if native else ())
     if args.configuration != ['all'] and not set(args.configuration) <= set(names):
         parser.error(f'--configuration takes all or a comma-separated subset of {", ".join(names)}')
     compiler = compiler_command()
@@ -46,6 +48,11 @@ def main(stem, invalid, oracle=None, extra=(), timeout=720, checked='-D_GLIBCXX_
         variants.append(('ASan-UBSan', ['-O1', '-g', '-D_GLIBCXX_ASSERTIONS',
                          '-fsanitize=address,undefined', '-fno-sanitize-recover=all',
                          '-fno-omit-frame-pointer', '-fno-pie', '-no-pie']))
+    if native and (args.mode != 'quick' or 'native' in args.configuration):
+        if cpu_runs({'fma'}, compiler):
+            variants.append(('native', ['-O2', '-DNDEBUG', '-march=native']))
+        else:
+            print(f'SKIP {stem} native: the CPU or target lacks FMA', flush=True)
     if args.configuration != ['all']:
         variants = [(label, flags) for label, flags in variants if label in args.configuration]
     env = dict(os.environ, ASAN_OPTIONS='detect_leaks=1:halt_on_error=1',

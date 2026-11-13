@@ -8,6 +8,7 @@ Decided by the user since 2026-10-10; binding, and only the user changes them.
 
 ### Changes
 
+- **P012** Mathematics row 01 `divMod` is named `divModFloor`, as Core's flooring `InfInt::divModFloor`, since Core's `divMod` truncates; this reverses P275's `divModFloor` → `divMod` rename (`Docs/00-duplicate-rereview.md`) (user decision 2026-11-12).
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
 - **P048** row 35 `triangleAggregate` is named `triangleProductSum` (decided 2026-10-29).
 - **P018** `06-Miscellaneous/03-fastio.hpp` moves to `01-Core/19-fastio.hpp`, a Core full header with no forwarding header in 06, and absorbs P066's planned row 17: `MmapInput` is `FastInput<0>` (a mapped regular file under Linux, else fread), `SyscallOutput` is `FastOutput` (decided 2026-11-01).
@@ -39,6 +40,7 @@ Items a reader could mistake for duplicates.
 | P011 | `lca_detail::Forest` inclusive `t_in`/`t_out` | Only form |
 | P011 | `functionalOrbit`, `condensationDag` | Different domain (walks that stop); replacement differs in weights, order and memory |
 | P011, P043 | `kosarajuScc`, `kuhn` | Different algorithms from `tarjanScc`, `hopcroftKarp` |
+| P012 | `floorDiv` beside `divModFloor` (`01-mod_arithmetic.hpp`) | User decision 2026-11-12: the quotient alone is the common call; `divModFloor` adds the floored remainder for either sign of `b` |
 | P012 | `ternSearch`, `ternSearchRealBracket` | Different algorithms from `fibSearch`, `goldenSearchRealBracket` |
 | P012 | `binSearch(ok, ng, f)` | Decided 2026-10-11: one orientation-free call for the common ok/ng idiom; the replacement needs `lastTrue` or `firstTrue` by orientation plus a result mapping |
 | P012 | `LinearSieve::phiTable`, `mobiusTable`, `divisorCountTable`, `divisorSumTable` | Reuse the sieve's `spf` table |
@@ -551,7 +553,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `lowerBound`, `upperBound`, `bisectKey` | `_02_search` (`00-index.md:10`) | `bisect_left`, `bisect_right` with `key=` | remove (row only) | stdlib under another name | — | — |
-| `modPow`, `isqrt`, `floorDiv`, `floorMod`, `divmodFloor` | `_03` (:11) | `pow(a, e, m)`, `math.isqrt`, `//`, `%`, `divmod` | remove (row only) | stdlib under another name | — | `Docs/00-notes.md`, Numeric policy |
+| `modPow`, `isqrt`, `floorDiv`, `floorMod`, `divModFloor` | `_03` (:11) | `pow(a, e, m)`, `math.isqrt`, `//`, `%`, `divmod` | remove (row only) | stdlib under another name | — | `Docs/00-notes.md`, Numeric policy |
 | `comb`, `perm`; `fibonacci` | `_04` (:12) | `math.comb`, `math.perm`; `fibonacciPair(n)[0]` | remove (row only) | stdlib; projection | — | — |
 | `prefixSums` | `_05` (:13) | `accumulate(a, initial=0)` | remove (row only) | stdlib under another name | — | — |
 | `inverseXgcd` (formerly `modInv`) | `_03` | `pow(a, -1, m)` | keep | mirrors C++ Mathematics row 09 `inverseXgcd`, -1 for a nonunit, which stdlib `pow(a, -1, m)` does not give (user decision 2026-11-10, P276 mirror rule) | — | `Docs/00-notes.md`, Legacy migration |

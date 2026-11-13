@@ -950,6 +950,15 @@ int main(int argc, char **argv) {
         self.assertEqual(ran(r), ['optimized', 'checked', 'ASan-UBSan'])
         r = self.contest(tester, "main('01-t', [])", '--configuration', 'nonsense')
         self.assertEqual(r.returncode, 2, 'an unknown configuration is a usage error')
+        r = self.contest(tester, "main('01-t', [])", '--configuration', 'native')
+        self.assertEqual(r.returncode, 2, 'native is a usage error unless the suite asks for it')
+        fma = CPP.cpu_runs({'fma'})
+        r = self.contest(tester, "main('01-t', [], native=True)", '--mode', 'quick')
+        self.assertEqual((r.returncode, ran(r)), (0, ['optimized', 'checked']), 'quick builds no native unless asked')
+        for args, want in ((('--mode', 'full'), ['optimized', 'checked', 'ASan-UBSan']), (('--mode', 'quick', '--configuration', 'native'), [])):
+            r = self.contest(tester, "main('01-t', [], native=True)", *args)
+            self.assertEqual((r.returncode, ran(r)), (0, want + ['native'] if fma else want), (args, r.stderr))
+            self.assertEqual('SKIP 01-t native' in r.stdout, not fma, args)
 
     def test_contest_runner_warnings_are_errors(self):
         tester = self.contest_tree()

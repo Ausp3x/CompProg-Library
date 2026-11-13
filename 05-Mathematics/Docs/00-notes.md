@@ -79,18 +79,34 @@ Explanations moved out of the operation cells of rows not yet verified, one bull
 
 Left out, one line each:
 
-- `floorDivStrict`/`ceilDivStrict` (Nyaan `int_div`): the largest integer strictly below `a / b` is `ceilDiv(a, b) - 1` and the smallest strictly above is `floorDiv(a, b) + 1`; one-liners at the call site. (returned by P275 2026-11-10 into row 01)
-- `divMod` (maspypy): `floorDiv` plus `a - b * q` at the call site; the compiler merges the two divisions. (returned by P275 2026-11-10 into row 01 `divMod`)
 - `gcd128` (maspypy): GNU `std::gcd` accepts `__int128` directly; no wrapper needed.
 - Binary gcd (hitonanode, Nyaan): the installed libstdc++ `std::gcd` is already Stein's algorithm, and `gcd64` uses it.
-- `binSearchRealRelative` (maspypy): logarithmic-scale bisection is `binSearch` over the order-preserving bit pattern of nonnegative doubles (64 steps); not a separate API.
 - `firstModInRange` (maspypy `first_mod_range_of_linear`): belongs with `18-floorsum.hpp` beside `minOfModOfLinear`, where that row now lists it.
-- `dioMinLinear` (cp-algorithms "minimum x + y"): a linear objective over `DioBox` is evaluated at its two endpoint parameters `l` and `r - 1`; no extra API.
 - `primePi` table (hitonanode `bs_sieve`): `upper_bound(prms, x)` on the existing prime list.
 - Factorization above the sieve bound (hitonanode `Sieve::factorize`): owned by `07-primality_factorization.hpp` `factorize`.
 - `powTable`, the completely multiplicative i^K table (hitonanode `enumerate_kth_pows`): handed off to `08-multiplicative_functions.hpp` `multiplicativeTable`.
 - `lcmOfList` (maspypy `all_lcm`): caller-side maximum of `factorize` exponents.
 - `combiNegative` and `combiInverse` (maspypy `C_negative`, `C_inv`): `(-1)^k * combiWR(n, k)` and the product `inverseFactorial(a) * factorial(b) * factorial(a - b)` from the existing tables. (returned by P275 2026-11-10 into row 05)
+
+## P012 MA01 research decisions (2026-11-12)
+
+Adopted: `FixedBasePower` into row 01 (OI Wiki 光速幂, sqrt tables; maspypy `Power_Query`, base-B digit tables for any exponent), as one type with `k` digit levels, `k = 2` the sqrt form. Adopted after `@reviewer`: `binSearchRealBits` into row 02, bisection on the order-preserving integer image of the doubles (the 2026-10-07 bullet had mapped it to `binSearch`). It takes any finite bracket, zero and mixed signs included, and at most 64 reductions; geometric bisection needs one sign and takes from 51 fewer to 2 more reductions (up to 51 fewer on `[denorm_min, DBL_MAX]` and 38 fewer on `[denorm_min, 1e-310]`, where the bit pattern is linear in the subnormals; at most 2 more elsewhere; a `@reviewer` scratch run of 20,000 thresholds per bracket, not kept as a command), so both stay: Bits is wider, Geometric faster on ranges reaching into the subnormals. Left out, one line each:
+
+- `modMulLongDouble` (KACTL `ModMulLL`): a floating-point Barrett reduction (`01-principles.md`, Profiles: 20% benchmark rule outside Core), valid only for `m < 2^63` with an 80-bit `long double`; Core `03-barrett.hpp` and `04-montgomery.hpp` own fast fixed-modulus products.
+- Cubic interpolation of values and derivatives (Davidon; NR 10.3 discusses and rejects it, with no routine): not lighter, wider or more capable than `brentSearchRealBracketDerivative`, and no measured crossover.
+- maspypy `binary_search_real_abs_rel` (mixed absolute/relative): `binSearchRealGeometric` with a `denorm_min` endpoint and `abs_tol` covers it.
+
+Changed by the user on 2026-11-12, after the batch was first finished:
+
+- Adopted into row 02: `brentSearchRealBracketDerivative` (NR `dbrent`), fewer evaluations when `f'` is cheap.
+- Adopted into row 03: `countNonRepresentable` (Selmer's gap count over the round-robin table) and the two-coin closed forms `frobeniusNumberSylvester`, `countNonRepresentableSylvester`.
+- Planned in row 18 (MA10): `countRepresentableSylvester(a, b, x)`, the representable `t` in `[0, x]` for two coins in O(log). For coprime `a, b` and `x < a * b` each `t` has at most one form `a * i + b * j` (arXiv 1910.03079, Corollary 12), so the count is `sum over i <= x / a of floor((x - a * i) / b) + 1`, one `floorSum`; for `x >= a * b - a - b` it is `x + 1 - (a - 1) * (b - 1) / 2`; a common `g = gcd(a, b)` divides out with `x / g`. Row 03 cannot include `18-floorsum.hpp`: MA10 depends on MA01.
+- Planned in row 69: `bracketMinimum` (NR `mnbrak`, NR3 `Bracketmethod`: `GOLD = 1.618034`, `GLIMIT = 100`, `TINY = 1e-20`), downhill bracketing on an unbounded domain for the closed-bracket minimizers.
+- Planned in row 49: `solveDioEqMulti` (OI Wiki, n-variable Bézout): its solution set is a rank `n - 1` lattice, and chained `extendedGcd` coefficients overflow 128 bits without HNF size reduction.
+
+A supplementary `@researcher` sweep the same day read what the first left unread (maspypy `mod/`, `nt/`, `other/` in full, Nyaan and ei1333 past their first 100k characters, Library Checker `number_theory`, NR3 `mins.h`) and found nothing missing for rows 01–03. Follow-ups for other rows' owners: row 54, a table `pow(a, e)` through the discrete log (maspypy `ModFast`); row 20, confirm `sternBrocotRange` gives maspypy `farey_lr`'s Farey neighbours; Miscellaneous row 44, Nyaan's branch-light `fast_lb` on a sorted array, if adopted at all.
+
+Changed by the user on 2026-11-13, in `/finish`: adopted into row 03 `residueShortestPathDijkstra` (OI Wiki 同余最短路), Dijkstra on the residues in O(k * m * log(k * m)), slower and lighter than the round robin: 14 lines against 18, short of the half-the-lines test of `01-principles.md` (Priority), so it is a recorded exception (`23-Sweep Ledgers/omissions.md`).
 
 ## P052 research decisions (2026-10-09)
 
@@ -244,7 +260,7 @@ Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledger
 
 P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines/03-cpp.md` (One API per operation, 2026-11-08), its legacy guard and the user decisions of 2026-11-10 (`00-Guidelines/23-Sweep Ledgers/omissions.md`). The items below returned to rows and supersede the earlier bullets that name them; every other omission recorded here stands ([evidence](../../00-Guidelines/23-Sweep%20Ledgers/Docs/00-duplicate-rereview.md)).
 
-- `01-mod_arithmetic.hpp`: floorDivStrict, ceilDivStrict; divMod.
+- `01-mod_arithmetic.hpp`: floorDivStrict, ceilDivStrict; divMod (named `divModFloor` since 2026-11-12, user decision).
 - `02-search_algorithms.hpp`: binSearchRealGeometric (geometric-mean bisection).
 - `03-equation_solvers.hpp`: solveDioMinLinear (minimum x + y).
 - `04-sieve_algorithms.hpp`: SieveOfErath::primeCount, LinearSieve::primeCount.
@@ -275,4 +291,4 @@ P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines
 - new Esoteric row `74-sequence_acceleration.hpp`: aitkenDelta2; wynnEpsilon; eulerSeriesTransform (NR).
 - new Esoteric row `75-number_theory_problems.hpp`: CoprimePairFinder: enumerate, remove; placingBishopsCount (MAS, CPA, CF).
 - maspypy `all_lcm` and `find_coprime_pair` were not folded into rows 08 and 34: they return as row 07 `lcmMod` and row 75 `CoprimePairFinder`; NTL `xdouble` is an extended-exponent double, not `DoubleDouble` (row 63 `XDouble`); maspypy's relative real search bisects by the geometric mean (`binSearchRealGeometric`); `simplePermutations` is its own online-convolution algorithm.
-- Not returned after the P275 review: `findPrimeFactor` (`pollardRhoBrent` with `isPrime` answers it, a form between two operations), `xnorConvolution` (the index complement of `xorConvolution`); `divMod` and `orConvolutionOnline` replace the proposed `divModFloor` and `onlineOrConvolution`.
+- Not returned after the P275 review: `findPrimeFactor` (`pollardRhoBrent` with `isPrime` answers it, a form between two operations), `xnorConvolution` (the index complement of `xorConvolution`); `orConvolutionOnline` replaces the proposed `onlineOrConvolution`; the proposed `divModFloor`, named `divMod` by P275, is `divModFloor` again since 2026-11-12 (user decision).

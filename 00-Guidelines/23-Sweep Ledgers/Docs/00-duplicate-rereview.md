@@ -160,7 +160,7 @@ Before, `duplicates.md` held 176 rows in 98 package sections.
 
   | Proposed | Now |
   |---|---|
-  | `divModFloor` | `divMod` |
+  | `divModFloor` | `divMod` (`divModFloor` again since P012, user decision 2026-11-12) |
   | `onlineOrConvolution` | `orConvolutionOnline` |
   | `resistanceDistanceApprox` | `effectiveResistanceApprox` |
   | `allShortestPaths` | `shortestPathsAll` |
