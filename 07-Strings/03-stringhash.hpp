@@ -4,6 +4,7 @@
 // S: O(n), U: NA, Q: O(1), M: O(n); n < INT_MAX; KIND 0 primes 1e9+7 and 1e9+9, 1 wraps mod 2^64, 2 is mod 2^61-1.
 // Monte Carlo fingerprints; codes reduce mod the field; byte/uint symbols encode x + 1, KIND 0 needs x < 1000000006.
 template<int KIND = 0> struct StringHash {
+    static_assert(0 <= KIND && KIND <= 2);
     using Word = std::conditional_t<KIND != 0, ulng, array<uint, 2>>;
     static constexpr array<uint, 2> MOD{1000000007, 1000000009};
     static constexpr ulng P61 = (1ULL << 61) - 1;
@@ -130,3 +131,39 @@ template<int KIND = 0> struct StringHash {
 };
 using StringHash64 = StringHash<1>;
 using StringHash61 = StringHash<2>;
+
+// T: O(n + (n + m) * log(min(n, m) + 1)) expected, M: O(n); n = a.size(), m = b.size(), equal bases, Monte Carlo.
+// {start in a, start in b, length} of a longest common substring: earliest start in b, then in a; {0, 0, 0} if none.
+template<int KIND = 0> tuple<int, int, int> longestCommonSubstringHash(const StringHash<KIND> &a, const StringHash<KIND> &b) {
+    using H = StringHash<KIND>;
+    assert(a.base == b.base);
+    int n = a.size(), m = b.size();
+    assert(n >= 0 && m >= 0);
+    int bits = std::bit_width(2 * uint(max(n, 1)) - 1);
+    uint mask = uint((1ULL << bits) - 1);
+    vector<ulng> keys(mask + 1ULL);
+    vector<int> at(keys.size());
+    auto key = [](auto v) {
+        if constexpr (KIND == 0) { return (ulng(v[0]) << 32) | v[1]; }
+        else { return v; }};
+    auto window = [&](const H &h, int i, int len) { return key(H::subtract(h.prefix[i + len], H::multiply(h.prefix[i], h.powers[len]))); };
+    auto slot = [&](ulng k) { return uint(k * 0x9E3779B97F4A7C15ULL >> (64 - bits)); };
+    auto find = [&](int len) -> pair<int, int> {
+        std::ranges::fill(at, -1);
+        for (int i = 0; i + len <= n; ++i) {
+            ulng k = window(a, i, len);
+            uint s = slot(k);
+            while (at[s] >= 0 && keys[s] != k) { s = (s + 1) & mask; }
+            if (at[s] < 0) { keys[s] = k; at[s] = i; }}
+        for (int j = 0; j + len <= m; ++j) {
+            ulng k = window(b, j, len);
+            for (uint s = slot(k); at[s] >= 0; s = (s + 1) & mask) {
+                if (keys[s] == k) { return {at[s], j}; }}}
+        return {-1, -1};};
+    int lo = 0, hi = min(n, m);
+    pair<int, int> best{0, 0};
+    while (lo < hi) {
+        int mid = std::midpoint(lo, hi) + 1;
+        if (auto p = find(mid); p.first >= 0) { lo = mid; best = p; }
+        else { hi = mid - 1; }}
+    return {best.first, best.second, lo};}

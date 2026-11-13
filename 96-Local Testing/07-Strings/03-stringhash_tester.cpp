@@ -1,5 +1,7 @@
 #include "../../07-Strings/03-stringhash.hpp"
+#include "../../07-Strings/07-suffixarray.hpp"
 #include "01-prefix_z_test_support.hpp"
+#include <sys/mman.h>
 
 constexpr ulng P61 = (1ULL << 61) - 1;
 template<int K> using Word = typename StringHash<K>::Word;
@@ -45,6 +47,7 @@ template<int K> void values(const vector<uint> &s, Word<K> base) {
             check(d.length, r - l, "length-tag"); check(d.base == base, true, "base-tag");
             vector<uint> sub(s.begin() + l, s.begin() + r), rev(sub.rbegin(), sub.rend());
             check(parts<K>(h.reverseGet(l, r).value), reference<K>(rev, 0, int(rev.size()), base), "reverse-arithmetic");
+            check(h.reverseGet(l, r) == h.hashOf(rev), true, "reverseGet-digest-tags");
             check(h.hashOf(sub) == d, true, "hashOf-vector");
             int m = (l + r) / 2;
             check(h.concat(h.get(l, m), h.get(m, r)) == d, true, "concatenation");
@@ -136,6 +139,25 @@ template<int K> void contexts() {
         for (int j = 0; j < int(b.size()); ++j) {
             check(b[j] >= 257 && (K == 1 ? b[j] % 2 == 1 : ulll(b[j]) <= mods[j] - (K == 2 ? 2 : 1)), true, "randomBase-range");}}
     check(H::randomBase(seed) == H::randomBase(seed), true, "seed-repeatability");
+    // Documented draw: uniform_int_distribution over the stated range from mt19937_64(seed).
+    for (int i = 0; i < 64; ++i) {
+        ulng s = rng();
+        std::mt19937_64 g(s);
+        auto draw = [&](ulng hi) { return std::uniform_int_distribution<ulng>(257, hi)(g); };
+        Word<K> expected;
+        if constexpr (K == 0) {
+            ulng x = draw(ulng(mods[0] - 1));
+            expected = {uint(x), uint(draw(ulng(mods[1] - 1)))};}
+        else if constexpr (K == 1) {
+            do { expected = g() | 1; } while (expected < 257);}
+        else { expected = draw(P61 - 2); }
+        check(H::randomBase(s) == expected, true, "randomBase-draw");}
+    H one("a");
+    auto piece = one.get(0, 1), total = one.get(0, 0);
+    for (int i = 0; i < 31; ++i) {
+        total = one.concat(total, piece);
+        if (i < 30) { piece = one.concat(piece, piece); }}
+    check(total.length, INT_MAX, "concat-reaches-INT_MAX");
     string bytes;
     vector<uint> encoded;
     for (int i = 0; i < 256; ++i) { bytes += char(i); encoded.push_back(uint(i)); }
@@ -185,6 +207,78 @@ template<int K> void large() {
     H changed(s);
     check(h.lcp(changed, 0, n, 0, n), n / 2, "large-middle-mismatch");
     check(h.lcs(changed, 0, n, 0, n), n - 1 - n / 2, "large-middle-mismatch-suffix");}
+// Longest common substring by direct comparison of every window pair; validates naiveCommon.
+vector<int> directCommon(const vector<uint> &s, const vector<uint> &t) {
+    int n = int(s.size()), m = int(t.size());
+    for (int len = min(n, m); len > 0; --len) {
+        for (int j = 0; j + len <= m; ++j) {
+            for (int i = 0; i + len <= n; ++i) {
+                if (std::equal(s.begin() + i, s.begin() + i + len, t.begin() + j)) { return {i, j, len}; }}}}
+    return {0, 0, 0};}
+// Longest common substring: O(n * m) suffix-length DP, earliest start in t, then in s.
+vector<int> naiveCommon(const vector<uint> &s, const vector<uint> &t) {
+    int n = int(s.size()), m = int(t.size()), best = 0;
+    vector<vector<int>> dp(n + 1, vector<int>(m + 1));
+    for (int i = 1; i <= n; ++i) {
+        for (int j = 1; j <= m; ++j) {
+            if (s[i - 1] == t[j - 1]) { dp[i][j] = dp[i - 1][j - 1] + 1; best = max(best, dp[i][j]); }}}
+    if (!best) { return {0, 0, 0}; }
+    for (int j = best; j <= m; ++j) {
+        for (int i = best; i <= n; ++i) {
+            if (dp[i][j] >= best) { return {i - best, j - best, best}; }}}
+    return {-1, -1, -1};}
+template<int K> vector<int> common(const StringHash<K> &h, const StringHash<K> &g) {
+    auto [x, y, len] = longestCommonSubstringHash(h, g);
+    return {x, y, len};}
+template<int K> void commonPairs(const vector<uint> &s, const vector<uint> &t) {
+    using H = StringHash<K>;
+    auto base = H::randomBase(rng());
+    H h(s, base), g(t, base);
+    context = name(K) + " s=" + show(s) + " t=" + show(t);
+    check(common<K>(h, g), naiveCommon(s, t), "longestCommonSubstringHash");
+    if constexpr (K == 0) { check(std::get<2>(longestCommonSubstring(s, t)), naiveCommon(s, t)[2], "suffix-array-cross-length"); }
+    check(common<K>(g, h), naiveCommon(t, s), "longestCommonSubstringHash-swapped");
+    check(common<K>(h, h), vector<int>{0, 0, int(s.size())}, "longestCommonSubstringHash-self");}
+template<int K> void commonSubstrings() {
+    vector<vector<uint>> small;
+    words(limit(4, 6, 7), 2, [&](const auto &s) { small.emplace_back(s.begin(), s.end()); });
+    for (const auto &s : small) {
+        for (const auto &t : small) {
+            if constexpr (K == 0) { check(naiveCommon(s, t), directCommon(s, t), "naiveCommon-validation"); }
+            commonPairs<K>(s, t);}}
+    for (int i = 0; i < limit(200, 2000, 10000); ++i) {
+        int sigma = 1 + int(rng() % 4);
+        vector<uint> s(rng() % 60), t(rng() % 60);
+        for (auto &x : s) { x = uint(rng() % uint(sigma)); }
+        for (auto &x : t) { x = uint(rng() % uint(sigma)); }
+        commonPairs<K>(s, t);}
+    using H = StringHash<K>;
+    int n = limit(10000, 200000, 1000000), len = n / 10, x = n / 3, y = n / 2;
+    string s(n, 'a'), t(n, 'a');
+    for (auto &c : s) { c = char('a' + rng() % 26); }
+    for (auto &c : t) { c = char('a' + rng() % 26); }
+    t.replace(size_t(y), size_t(len), s, size_t(x), size_t(len));
+    t[size_t(y - 1)] = char(s[size_t(x - 1)] == 'a' ? 'b' : 'a');
+    t[size_t(y + len)] = char(s[size_t(x + len)] == 'a' ? 'b' : 'a');
+    context = name(K) + " planted n=" + std::to_string(n);
+    auto [i, j, got] = longestCommonSubstringHash(H(s), H(t));
+    check(got, len, "large-planted-length");
+    if constexpr (K == 0) { check(std::get<2>(longestCommonSubstring(s, t)), len, "large-planted-suffix-array-cross"); }
+    check(s.compare(size_t(i), size_t(len), t, size_t(j), size_t(len)), 0, "large-planted-witness");
+    string unary(n, 'a'), cut = unary;
+    cut[size_t(n / 2)] = 'b';
+    check(common<K>(H(unary), H(cut)), vector<int>{0, 0, n / 2}, "large-unary-middle-mismatch");
+    if constexpr (K == 0) { check(std::get<2>(longestCommonSubstring(unary, cut)), n / 2, "large-unary-suffix-array-cross"); }
+    check(common<K>(H(unary), H("b")), vector<int>{0, 0, 0}, "large-no-common-symbol");
+    // n = 2^k - 2 distinct symbols fill every short length's table to half; a table of n + 2 slots would be nearly full.
+    int d = (1 << limit(16, 18, 20)) - 2;
+    vector<uint> lo(d), hi(d);
+    iota(lo.begin(), lo.end(), 0u); iota(hi.begin(), hi.end(), uint(d));
+    std::shuffle(lo.begin(), lo.end(), rng); std::shuffle(hi.begin(), hi.end(), rng);
+    context = name(K) + " distinct n=" + std::to_string(d);
+    check(common<K>(H(lo), H(hi)), vector<int>{0, 0, 0}, "large-distinct-disjoint");
+    if constexpr (K == 0) { check(std::get<2>(longestCommonSubstring(lo, hi)), 0, "large-distinct-suffix-array-cross"); }
+    check(common<K>(H(lo), H(lo)), vector<int>{0, 0, d}, "large-distinct-self");}
 template<int K> void suite() {
     words(limit(4, 7, 9), 2, [&](const auto &s) { values<K>(vector<uint>(s.begin(), s.end()), StringHash<K>::defaultBase()); });
     for (int i = 0; i < limit(20, 150, 1000); ++i) {
@@ -199,7 +293,7 @@ template<int K> void suite() {
         for (ulng base : {ulng(257), ulng(~0ULL)}) { values<1>({0, UINT_MAX, 256, 1}, base); }}
     else {
         for (ulng base : {ulng(257), P61 - 1}) { values<2>({0, UINT_MAX, 256, 1}, base); }}
-    helpers<K>(); contexts<K>(); large<K>();}
+    helpers<K>(); contexts<K>(); large<K>(); commonSubstrings<K>();}
 int main(int argc, char **argv) {
     if (argc == 3 && string(argv[1]) == "--oracle") {
         string k = argv[2];
@@ -216,15 +310,29 @@ int main(int argc, char **argv) {
         if (op == "base64-even") { StringHash64 bad("", 258); }
         if (op == "base61-low") { StringHash61 bad("", 256); }
         if (op == "base61-high") { StringHash61 bad("", P61); }
+        if (op == "base61-above") { StringHash61 bad("", ~0ULL); }
         if (op == "alphabet") { StringHash<> bad(vector<uint>{1000000006}); }
         if (op == "hashof-alphabet") { h.hashOf(vector<uint>{1, 1000000006}); }
         if (op == "build-negative") { h.build(-1, [](int) { return 1ULL; }); }
+        if (op == "build-max") { h.build(INT_MAX, [](int) { return 1ULL; }); }
+        if (op == "hashof-length") {
+            // Address space only: untouched anonymous pages cost no memory under the cap.
+            void *p = mmap(nullptr, size_t(INT_MAX), PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0);
+            if (p == MAP_FAILED) { return 4; }
+            h.hashOf(string_view(static_cast<const char *>(p), size_t(INT_MAX)));}
         if (op == "left") { h.get(-1, 1); }
         if (op == "order") { h.get(2, 1); }
         if (op == "right") { h.reverseGet(0, 4); }
         if (op == "concat-base") { h.concat(h.get(0, 0), other.get(0, 0)); }
+        if (op == "concat-base-left") {
+            StringHash<> big("x", {1000000000, 1000000000});
+            h.concat(big.get(0, 0), h.get(0, 0));}
         if (op == "lcp-base") { h.lcp(other, 0, 1, 0, 1); }
         if (op == "lcs-range") { h.lcs(h, 0, 3, 0, 4); }
+        if (op == "lcsubstring-base") { longestCommonSubstringHash(h, other); }
+        if (op == "lcsubstring-moved") {
+            StringHash<> taken(std::move(h));
+            longestCommonSubstringHash(h, taken);}
         if (op == "power") { h.power(-1); }
         if (op == "length-overflow") {
             auto x = h.get(0, 1), y = h.get(0, 0);

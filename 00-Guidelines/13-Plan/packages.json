@@ -286,7 +286,7 @@
         "07-Strings/Docs/05-manacher.md",
         "07-Strings/Docs/09-runlength.md"
       ],
-      "note": "ST01 verified 2026-11-13 (/finish: KmpMatcher::pushBack added, DistinctSubstringsDeque, rows 01/02 verified, mutation records on both headers). Next batch ST02: implement longestCommonSubstringHash in 03-stringhash.hpp (omission sweep 2026-11-08). Still open: RunLengthEncoder in 09-runlength.hpp (P275 re-review 2026-11-10)."
+      "note": "ST01 verified 2026-11-13; ST02 verified 2026-11-14 (longestCommonSubstringHash, two strings; user decision 2026-11-14: the k-string hash form is row 28, batch ST11 now waits on ST02; review fixed 2 medium and 8 low findings; mutation record current, AOS 454 closed by a distinct-symbol fixture, COS 590 and COS 751 untestable by the 2026-11-12/13 INT_MAX size-assert decisions, confirmed by the user 2026-11-14). Next batch ST19: RunLengthEncoder in 09-runlength.hpp (P275 re-review 2026-11-10)."
     },
     {
       "id": "P250",
@@ -410,19 +410,6 @@
       "evidence": [
         "00-Guidelines/13-Plan/Docs/00-harness-audit.md"
       ],
-      "note": ""
-    },
-    {
-      "id": "P288",
-      "label": "Expected-assert death probes across contest and Core testers",
-      "batches": [
-        "SUP31"
-      ],
-      "phase": "Final support integration",
-      "size": "M",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
       "note": ""
     },
     {
@@ -748,7 +735,7 @@
         "07-Strings/Docs/07-suffixarray.md",
         "07-Strings/Docs/08-palindrome_queries.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement minPalindromePartition in `08-palindrome_queries.hpp`. Moved from Foundations re-audit to Contest core on reopening (2026-11-08) because its batches depend on reopened P027 (DS05) and, for P017, P081 (ST06). P275 re-review 2026-11-10: implement shortestPalindrome in `08-palindrome_queries.hpp`."
+      "note": "Omission sweep 2026-11-08: implement minPalindromePartition in `08-palindrome_queries.hpp`. Moved from Foundations re-audit to Contest core on reopening (2026-11-08) because its batches depend on reopened P027 (DS05) and, for P017, P081 (ST06). P275 re-review 2026-11-10: implement shortestPalindrome in `08-palindrome_queries.hpp`. P016 ST02 /finish 2026-11-14 (user decision): decide under 01-principles.md Priority (lighter) whether row 07 keeps the exact O(n*m) DP for longest common substring (the `OLD/Team Notebook/src/misc/old_lcssubstr.py` form) beside the suffix-array form, or records its omission in 07-Strings/Docs/00-notes.md."
     },
     {
       "id": "P044",
@@ -4038,6 +4025,19 @@
       "status": "planned",
       "evidence": [],
       "note": "Created by the P275 re-review (2026-11-10)."
+    },
+    {
+      "id": "P288",
+      "label": "Expected-assert death probes across contest and Core testers",
+      "batches": [
+        "SUP31"
+      ],
+      "phase": "Final support integration",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
     },
     {
       "id": "P224",

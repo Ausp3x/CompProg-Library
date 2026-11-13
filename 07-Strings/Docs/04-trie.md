@@ -77,7 +77,7 @@ Code is independently implemented.
 - [suisen `trie_array` / `trie_map`](https://suisen-cp.github.io/cp-library-cpp/) and [Nyaan `string/trie.hpp`](https://nyaannyaan.github.io/library/string/trie.hpp) (fetched 2026-10-08): fixed-alphabet arrays and a node cursor (`move`/`find`).
 - [ei1333 `structure/trie/trie.hpp`](https://ei1333.github.io/library/structure/trie/trie.hpp) (fetched 2026-10-08): `query(str, f)` visiting stored prefixes of a query, the basis of `forEachPrefixOf`; parity with the planned Python `longestPrefix`.
 - Preserved `OLD/Team Notebook/src/algs.cpp` lines 2374–2397 and `algsbetter.cpp` lines 3332–3402 (lowercase-26 trie with terminal/pass counters and erase-one) are accounted for by `TrieDense<26, 'a'>`; original bytes unchanged.
-- Catalog sweep 2026-10-08 in [00-sources.md](00-sources.md).
+- Catalog sweep 2026-10-08 and ST02 re-sweep 2026-11-14 in [00-sources.md](00-sources.md#st02-re-sweep-2026-11-14).
 
 ## Limits and handoffs
 
@@ -96,3 +96,4 @@ Search aliases (P263, grab --find): 字典树 (Trie), 前缀树, 单词查找树
 - 2026-10-30: SUP18 arm64 portability (user decision 2026-10-30, fixed in P250): the tester silences, inside `special()` only, a `-Warray-bounds` false positive of aarch64 g++ 16 on the inlined `emplace_back` of a full one-node vector; x86-64 output unchanged; quick passed on x86-64 and on aarch64 under qemu-user, full passed on g++ and g++-14.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-14: ST02 (P016) re-sweep: no operation added; recorded in `00-sources.md` and `00-notes.md`; no code or test change.

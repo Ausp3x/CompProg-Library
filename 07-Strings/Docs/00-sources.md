@@ -138,7 +138,7 @@ Scope `02`–`07` (P254); decisions are in the rows, the folder notes (Omission 
 | https://cp-algorithms.com/string/z-function.html | 02: `DistinctSubstringsDeque`, `distinctSubstrings` |
 | https://cp-algorithms.com/string/prefix-function.html | 02: `DistinctSubstringsDeque`, `distinctSubstrings` |
 | https://oi-wiki.org/string/kmp/ | 02: `DistinctSubstringsDeque`, `distinctSubstrings` |
-| https://oi-wiki.org/string/hash/ | 03: `longestCommonSubstringHash` |
+| https://oi-wiki.org/string/hash/ | 03: `longestCommonSubstringHash`; 28: `longestCommonSubstringHash` (k strings, added 2026-11-14) |
 | https://cp-algorithms.com/string/string-hashing.html | 03: `longestCommonSubstringHash` |
 | https://oi-wiki.org/string/pam/ | 08: `minPalindromePartition`; 13: `palindromicLength` |
 | https://curiouscoding.nl/posts/approximate-string-matching/ | 17: `myersSearch`; 18: `bandedMyersBitVector`, `optimalStringAlignmentBitVector` |
@@ -266,3 +266,19 @@ Rows `01` and `02` (batch ST01): nothing missing beyond `DistinctSubstringsDeque
 | https://api.github.com/repos/NyaanNyaan/library/contents/string, https://raw.githubusercontent.com/NyaanNyaan/library/master/string/z-algorithm.hpp, https://raw.githubusercontent.com/NyaanNyaan/library/master/string/string-search.hpp | `/finish` follow-up: `z_algorithm` is `zFunction`; no KMP/MP file; `string-search` is suffix-array search |
 | https://api.github.com/repos/suisen-cp/cp-library-cpp/contents/library/string, https://raw.githubusercontent.com/suisen-cp/cp-library-cpp/main/library/string/morris_pratt.hpp | `/finish` follow-up: `morris_pratt` is `prefixFunction` (n + 1 entries, `-1` first), `all_periods` is `prefixPeriods` (with a divisor filter), `min_period` is `prefixPeriod`, `MatcherMP` is `kmpOccurrences` |
 | https://raw.githubusercontent.com/emthrm/cp-library/master/include/emthrm/string/morris-pratt.hpp, https://raw.githubusercontent.com/emthrm/cp-library/master/include/emthrm/string/knuth-morris-pratt.hpp, https://raw.githubusercontent.com/emthrm/cp-library/master/include/emthrm/string/z_algorithm.hpp | `/finish` follow-up: `border`/`match` are `prefixFunction`/`kmpNext`/`kmpOccurrences`; `period(idx)` is `idx - pi[idx - 1]`; `MorrisPratt::add` (append to the pattern, amortized O(1)) is the one candidate absent from row `01` |
+
+## ST02 re-sweep (2026-11-14)
+
+Rows `03`, `04` and `05` (batch ST02): nothing missing beyond `longestCommonSubstringHash`. The omissions and dominated forms are listed in [00-notes.md](00-notes.md) (P016 package record).
+
+| URL | Used for |
+|---|---|
+| https://oi-wiki.org/string/hash/, https://cp-algorithms.com/string/string-hashing.html | 03: `longestCommonSubstringHash` (two strings); k strings to `28`; dominated hash applications |
+| https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/strings/Hashing.h | 03: the modulo `2^64 - 1` ring, dominated |
+| https://raw.githubusercontent.com/maspypy/library/main/string/rolling_hash.hpp, https://raw.githubusercontent.com/maspypy/library/main/string/rolling_hash_field.hpp, https://raw.githubusercontent.com/maspypy/library/main/string/longest_common_substring.hpp | 03: aliases; the suffix-array LCS is row `07` |
+| https://raw.githubusercontent.com/maspypy/library/main/graph/ds/rolling_hash_on_tree.hpp | 03: tree-path hash, the unowned handoff |
+| https://nyaannyaan.github.io/library/string/rolling-hash.hpp, https://ei1333.github.io/library/string/rolling-hash.hpp, https://suisen-cp.github.io/cp-library-cpp/library/string/rolling_hash.hpp, https://hitonanode.github.io/cplib-cpp/string/rolling_hash_1d.hpp | 03: aliases only |
+| https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/strings/hashing.py | 03: single-prime two-base hashing, dominated |
+| https://oi-wiki.org/string/trie/, https://raw.githubusercontent.com/maspypy/library/main/string/trie.hpp, https://nyaannyaan.github.io/library/string/trie.hpp, https://ei1333.github.io/library/structure/trie/trie.hpp, https://hitonanode.github.io/cplib-cpp/string/trie_light.hpp | 04: aliases only; binary-trie applications are Data Structures `26`/`72` |
+| https://cp-algorithms.com/string/manacher.html, https://oi-wiki.org/string/manacher/, https://raw.githubusercontent.com/maspypy/library/main/string/manacher.hpp, https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/strings/LPSubstr.py | 05: aliases; dominated radius methods |
+| https://github.com/yosupo06/library-checker-problems/tree/master/string | 03–05: no further problem |

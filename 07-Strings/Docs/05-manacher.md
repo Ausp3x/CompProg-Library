@@ -67,7 +67,7 @@ Code is independently implemented.
 - [KACTL Manacher.h](https://github.com/kth-competitive-programming/kactl/blob/main/content/strings/Manacher.h): compact two-parity form; KACTL's odd half-length excludes the center, this API includes it.
 - [maspypy `string/manacher.hpp`](https://github.com/maspypy/library/blob/main/string/manacher.hpp) (fetched 2026-10-08): predicate form `manacher(n, match)`.
 - [Nyaan `string/manacher.hpp`](https://github.com/NyaanNyaan/library/blob/master/string/manacher.hpp) (fetched 2026-10-08): `enumerate_leftmost_palindromes`, the per-end longest palindrome.
-- Catalog sweep 2026-10-08 in [00-sources.md](00-sources.md). No legacy Manacher implementation exists in `OLD`.
+- Catalog sweep 2026-10-08 and ST02 re-sweep 2026-11-14 in [00-sources.md](00-sources.md#st02-re-sweep-2026-11-14). No legacy Manacher implementation exists in `OLD`.
 
 ## Limits and handoffs
 
@@ -88,3 +88,4 @@ Search aliases (P263, grab --find): palindromes, longest palindromic substring; 
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-14: ST02 (P016) re-sweep: no operation added; recorded in `00-sources.md` and `00-notes.md`; no code or test change.
