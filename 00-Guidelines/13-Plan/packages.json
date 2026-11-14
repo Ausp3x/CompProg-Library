@@ -277,7 +277,7 @@
       "phase": "Foundations re-audit",
       "size": "S+M+S",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "07-Strings/Docs/01-prefixfunction.md",
         "07-Strings/Docs/02-z.md",
@@ -286,7 +286,7 @@
         "07-Strings/Docs/05-manacher.md",
         "07-Strings/Docs/09-runlength.md"
       ],
-      "note": "ST01 verified 2026-11-13; ST02 verified 2026-11-14 (longestCommonSubstringHash, two strings; user decision 2026-11-14: the k-string hash form is row 28, batch ST11 now waits on ST02; review fixed 2 medium and 8 low findings; mutation record current, AOS 454 closed by a distinct-symbol fixture, COS 590 and COS 751 untestable by the 2026-11-12/13 INT_MAX size-assert decisions, confirmed by the user 2026-11-14). Next batch ST19: RunLengthEncoder in 09-runlength.hpp (P275 re-review 2026-11-10)."
+      "note": ""
     },
     {
       "id": "P250",

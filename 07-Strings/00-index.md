@@ -14,7 +14,7 @@ Scope: this folder owns string matching, string indexes (prefix/Z, hashes, suffi
 | `06-aho.hpp` | AhoCorasick: Node (next, ids, link, out, count), terminal, length, order, clear, size, patterns, add, build (sparse), build (dense), fromTrie (failure/output links over an external labelled trie), step, matchCount, forbidden, safeStep, avoids, suffixAggregate, forEachOutput, forEachMatch, stateCounts, countPatterns, firstOccurrences, countPositions, countMatches | verified; [evidence](Docs/06-aho.md) |
 | `07-suffixarray.hpp` | SuffixArray<T>: text, sa, rank, lcp, build (SA-IS), doubling (prefix doubling), buildRmq, size, lce, substringLce, patternRange (vector), patternRange (initializer_list), patternRange (string_view), longestRepeated (at least k occurrences), longestRepeatedDisjoint; longestCommonSubstring (vector); longestCommonSubstring (string_view) | verified; [evidence](Docs/07-suffixarray.md) |
 | `08-palindrome_queries.hpp` | isPalindrome (Manacher); maybePalindrome (hash); longestPalindrome; countPalindromes; countPalindromesByEndpoint; minPalindromePartition (quadratic DP over Manacher); shortestPalindrome (prepend or append) | partial; [evidence](Docs/08-palindrome_queries.md); missing: minPalindromePartition, shortestPalindrome |
-| `09-runlength.hpp` | runLengthEncode; runLengthSize; runLengthDecode; runLengthSpans; RunLengthEncoder: pushBack, popBack, length | partial; [evidence](Docs/09-runlength.md); missing: RunLengthEncoder |
+| `09-runlength.hpp` | runLengthEncode; runLengthSize; runLengthDecode; runLengthSpans; RunLengthEncoder: ctor (sequence), pushBack, popBack, length | verified; [evidence](Docs/09-runlength.md) |
 
 ## Advanced
 
