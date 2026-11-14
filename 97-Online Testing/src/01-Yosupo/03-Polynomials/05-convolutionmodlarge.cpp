@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/convolution_mod_large
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417075, cpp, 2026-11-14 UTC, 2106 ms; the expanded bundle of commit 5765edd, SHA-256 8e288a25bbe0ddb6); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: Poly<mint> operator* beyond the NTT length limit (dispatcher: block product of length nttMaxLength / 2); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

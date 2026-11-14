@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/find_linear_recurrence
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417082, cpp, 2026-11-14 UTC, 93 ms; the expanded bundle of commit 5765edd, SHA-256 37abdbbdbdd25cc5); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: Poly::findLinearRecurrence (Berlekamp–Massey); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

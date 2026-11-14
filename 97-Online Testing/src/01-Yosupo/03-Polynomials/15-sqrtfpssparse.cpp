@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/sqrt_of_formal_power_series_sparse
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417062, cpp, 2026-11-14 UTC, 89 ms; the expanded bundle of commit 5765edd, SHA-256 5ab9ad303115eb2c); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: sqrtSparse (valuation, constant square root, O(n * k) recurrence); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

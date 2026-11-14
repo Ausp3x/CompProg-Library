@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/partition_function
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417088, cpp, 2026-11-14 UTC, 62 ms; the expanded bundle of commit 5765edd, SHA-256 acd9485f2f4fe06c); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: Poly::partitionNumbers (inverse of the pentagonal series); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

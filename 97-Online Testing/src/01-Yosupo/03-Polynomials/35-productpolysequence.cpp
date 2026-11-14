@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/product_of_polynomial_sequence
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417086, cpp, 2026-11-14 UTC, 315 ms; the expanded bundle of commit 5765edd, SHA-256 71d3a7591a4595a7); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: productOfSequence (shortest pair first); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

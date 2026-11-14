@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/sharp_p_subset_sum
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417094, cpp, 2026-11-14 UTC, 147 ms; the expanded bundle of commit 5765edd, SHA-256 437aab0ca682dd67); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: exp of the harmonic log sum_s c_s log(1 + x^s); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

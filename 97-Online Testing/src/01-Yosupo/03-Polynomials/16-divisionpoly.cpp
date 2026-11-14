@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/division_of_polynomials
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417063, cpp, 2026-11-14 UTC, 97 ms; the expanded bundle of commit 5765edd, SHA-256 27220b1ad30869d3); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: divMod (Newton division over a field); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

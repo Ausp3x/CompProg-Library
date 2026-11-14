@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/pow_of_formal_power_series_sparse
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417061, cpp, 2026-11-14 UTC, 85 ms; the expanded bundle of commit 5765edd, SHA-256 4482682affe72cbd); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: powSparse with a 64-bit exponent (valuation shift, O(n * k) recurrence); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

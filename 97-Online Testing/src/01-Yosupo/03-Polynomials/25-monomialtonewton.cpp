@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/conversion_from_monomial_basis_to_newton_basis
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417073, cpp, 2026-11-14 UTC, 148 ms; the expanded bundle of commit 5765edd, SHA-256 5f823099734ed002); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: monomialToNewton (subproduct tree remainders); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

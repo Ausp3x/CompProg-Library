@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/composition_of_formal_power_series_large
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417077, cpp, 2026-11-14 UTC, 363 ms; the expanded bundle of commit 5765edd, SHA-256 e1d43f9eede5ed1c); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: compose (Kinoshita–Li bivariate Bostan–Mori) up to 2^17 terms; FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

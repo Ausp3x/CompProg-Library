@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/factorization_of_polynomials
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417083, cpp, 2026-11-14 UTC, 404 ms; the expanded bundle of commit 5765edd, SHA-256 6d49b75cebb49789); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: factor over Poly<DynModInt<>> with a runtime prime (square-free, distinct-degree, Cantor–Zassenhaus); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

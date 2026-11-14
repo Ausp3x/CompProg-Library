@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/polynomial_taylor_shift
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417070, cpp, 2026-11-14 UTC, 67 ms; the expanded bundle of commit 5765edd, SHA-256 0963f85b4b9c8d9a); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: taylorShift (binomial convolution); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

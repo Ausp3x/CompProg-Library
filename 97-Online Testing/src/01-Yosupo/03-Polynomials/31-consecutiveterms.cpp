@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/consecutive_terms_of_linear_recurrent_sequence
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417081, cpp, 2026-11-14 UTC, 678 ms; the expanded bundle of commit 5765edd, SHA-256 a9126b124bdd1db1); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: Poly::consecutiveTerms (sliceRationalFps: Bostan–Mori to k, then one product); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

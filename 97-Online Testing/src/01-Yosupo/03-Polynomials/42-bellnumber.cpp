@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/bell_number
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417093, cpp, 2026-11-14 UTC, 120 ms; the expanded bundle of commit 5765edd, SHA-256 c2a269a499c1056f); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: ogfToEgf, exp and egfToOgf: B_n = n! [x^n] exp(e^x - 1); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

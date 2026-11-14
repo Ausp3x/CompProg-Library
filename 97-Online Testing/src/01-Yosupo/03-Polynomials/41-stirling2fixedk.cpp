@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/stirling_number_of_the_second_kind_fixed_k
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417092, cpp, 2026-11-14 UTC, 202 ms; the expanded bundle of commit 5765edd, SHA-256 34258964a9839a0e); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: ogfToEgf, pow (valuation k) and egfToOgf: S(n, k) = n! [x^n] (e^x - 1)^k / k!; FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

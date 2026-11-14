@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/inv_of_formal_power_series_2d
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417097, cpp, 2026-11-14 UTC, 270 ms; the expanded bundle of commit 5765edd, SHA-256 723338b648fcf184); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: Poly::inv2d (Newton in x over F_p[y] / y^m); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

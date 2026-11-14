@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/sqrt_of_formal_power_series
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417057, cpp, 2026-11-14 UTC, 74 ms; the expanded bundle of commit 5765edd, SHA-256 b93ac790f31b7ef9); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: trySqrt (even valuation, Tonelli constant, Newton); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

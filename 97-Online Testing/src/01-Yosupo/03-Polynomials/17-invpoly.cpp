@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/inv_of_polynomials
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417064, cpp, 2026-11-14 UTC, 144 ms; the expanded bundle of commit 5765edd, SHA-256 5688b01298f1ec68); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: tryInvMod (half-GCD extended Euclid, -1 when gcd(f, g) is not constant; a constant g answered as 0 in the driver); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

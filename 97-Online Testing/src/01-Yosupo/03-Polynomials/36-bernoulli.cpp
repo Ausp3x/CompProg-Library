@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/bernoulli_number
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417087, cpp, 2026-11-14 UTC, 63 ms; the expanded bundle of commit 5765edd, SHA-256 a75501f0650b0870); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: Poly::bernoulliNumbers (inverse of (e^x - 1) / x); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

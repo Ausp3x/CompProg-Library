@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/compositional_inverse_of_formal_power_series
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417078, cpp, 2026-11-14 UTC, 18 ms; the expanded bundle of commit 5765edd, SHA-256 13f735da1af0ff88); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: compositionalInverse (Lagrange inversion through power projection); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

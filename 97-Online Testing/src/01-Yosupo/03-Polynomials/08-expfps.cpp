@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/exp_of_formal_power_series
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417055, cpp, 2026-11-14 UTC, 110 ms; the expanded bundle of commit 5765edd, SHA-256 e8ebbf46e6d25791); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: exp (Newton with the inverse lifted once per doubling); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"

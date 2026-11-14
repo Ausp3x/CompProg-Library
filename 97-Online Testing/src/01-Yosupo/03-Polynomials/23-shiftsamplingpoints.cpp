@@ -1,5 +1,5 @@
 // PROBLEM: https://judge.yosupo.jp/problem/shift_of_sampling_points_of_polynomial
-// Status: locally compiled and run against the regenerated judge tests (2026-11-15); online acceptance not verified.
+// Status: accepted online (#417071, cpp, 2026-11-14 UTC, 107 ms; the expanded bundle of commit 5765edd, SHA-256 b82132755f16bd09); locally run against the regenerated judge tests (2026-11-15).
 // Exercises: Poly::shiftSamplingPoints (one middle product); FastInput<0>, FastOutput.
 #include "../../../../01-Core/16-poly.hpp"
 #include "../../../../01-Core/19-fastio.hpp"
