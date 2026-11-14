@@ -53,14 +53,14 @@ Applies to `01-graph.hpp` through `06-mst.hpp`. Every algorithm accepts `Graph` 
 
 The 2026-10-07 completeness sweep ([sources](00-sources.md#pages-fetched-on-2026-10-07-p010-re-audit)) added `TopologicalResult: unique` and `KruskalReconstruction: leafRange`. The other candidates stay out:
 
-- Degree arrays (maspypy `deg_array`, `deg_array_inout`): `g[u].size()` is the out-degree, and an in-degree array is one pass over `g.arcs`.
+- Degree arrays (maspypy `deg_array`, `deg_array_inout`): `g[u].size()` is the out-degree, and an in-degree array is one pass over `g.arcs`. (returned by P275 2026-11-10 into row 01 `inDegrees`)
 - `edgeId(u, v)` lookup by endpoints: an adjacency scan or `DenseGraph::best` gives it; a hashed endpoint index is a caller choice with its own memory trade-off. (returned by P275 2026-11-10 into row 01)
 - Vertex path to edge path (maspypy `vs_to_es`): every path witness here already returns arc IDs.
-- DFS entry/exit times and edge classification: positions in `order` and `postorder` are the entry and exit ranks; tree, back, forward and cross arcs follow from `parent_arc` and those ranks in O(n + m).
+- DFS entry/exit times and edge classification: positions in `order` and `postorder` are the entry and exit ranks; tree, back, forward and cross arcs follow from `parent_arc` and those ranks in O(n + m). (returned by P275 2026-11-10 into row 02 `classifyArcs`)
 - Chordless (minimal) cycle witness (maspypy `find_cycle` with minimality): adopted on 2026-11-08 into row 68 as `findChordlessCycle`.
 - Directed odd cycle (maspypy `find_odd_cycle`): adopted on 2026-11-08 into row 68 as `findOddCycle (directed)`.
 - Vertices and edges on some shortest s–t path: the shortest-path DAG of `13-shortest_path_advanced.hpp`.
-- Lexicographically largest topological order: run the lexicographic sort on the graph relabelled by `v -> n - 1 - v` (`contract` with that labelling) and map the order back.
+- Lexicographically largest topological order: `topologicalSortSmallest` on the graph relabelled by `v -> n - 1 - v` (`contract` with that labelling), mapped back. (returned by P275 2026-11-10 into row 03 `topologicalSortLargest`)
 - Congruence shortest path (OI Wiki 同余最短路): adopted on 2026-11-08 into Mathematics row 03 as `residueShortestPath` (round robin, no Dijkstra) with `frobeniusNumber` and `countRepresentable`.
 - 0/c-weight BFS (hitonanode `zero_one_bfs` with a constant): divide the weights by c and use `zeroOneBfs`. (returned by P275 2026-11-10 into row 05)
 - Fibonacci-heap or skew-heap Dijkstra and Prim (ei1333, Nyaan): no practical gain over the binary heap in contest sizes.
@@ -256,3 +256,9 @@ P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines
 - Fixed-length walk counts are row 53 `countWalks`; lexicographic bipartite matching is row 21; NetworkX has no vertex-connectivity augmentation (only `k_edge_augmentation`); the GR13, GR27 and GR32 confirmations of 2026-10-28/29 yield to the 2026-11-08 adoption (user decision 2026-11-10).
 - Not returned after the P275 review: `TwoSat::answerLexicographic` and `maxCostFlow` wait for their source questions (`omissions.md`, Open questions, P043 and P045); `effectiveResistanceApprox` takes Mathematics row 23's word.
 - Not returned after the P275 review: `TwoSat::answerLexicographic` and `maxCostFlow` wait for their source questions (`omissions.md`, Open questions, P043 and P045); `effectiveResistanceApprox` takes Mathematics row 23's word. Row 97 also takes the NetworkX families `Docs/00-sources.md` left out as "not contest algorithms" (user decision 2026-11-10).
+
+## P010 GR01 omissions (2026-11-14)
+
+The GR01 sweeps ([sources](00-sources.md#fetched-2026-11-14-p010-gr01)) left nothing out of rows 01–04 (user decision 2026-11-14: every candidate is adopted). Placed elsewhere: `egoGraphWeighted` and `criticalPath` in row 05 (a Dijkstra radius and the AOE longest-path passes); `attractingComponents` and `isSemiconnected` in row 08; the one-problem `inverseLineGraph`, `pathCycleDecomposition` and `bipartiteAfterEdgeRemoval` in row 95; `stochasticGraphApprox` (floating-point arc weights, which `Graph` cannot hold) in row 97. Aliases only: NetworkX `contracted_nodes`, `quotient_graph` (`contract`, `simplify`), `non_edges` (`complementGraph`), `union`/`disjoint_union` (`disjointUnion`), the `*_all` forms (repeated binary calls), `create_empty_copy` (the constructor), maspypy `rearrange` (`inducedSubgraph`).
+
+Copied code (`03-cpp.md`, One API per operation): `egoGraph` runs its own radius-bounded BFS instead of calling `bfs`, so that it costs O(n + d) for the degree sum `d` of the ball rather than a scan of the whole component. `graphPower` keeps its own bounded BFS for the same reason.

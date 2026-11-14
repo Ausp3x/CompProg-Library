@@ -7,10 +7,31 @@ namespace {
     void check(bool ok, const string &operation) {
         ++checks;
         if (!ok) { throw std::runtime_error(context + " operation=" + operation + " expected=true actual=false"); }}
-    string show(const Graph &g) {
+    template<class G>
+    string show(const G &g) {
         std::ostringstream out; out << "n=" << g.n << " directed=" << g.directed << " edges=";
         for (auto e : g.edges) { out << '(' << e.u << ',' << e.v << ',' << e.w << ')'; }
         return out.str();}
+    template<class T>
+    void same(const vector<T> &actual, const vector<T> &expected, const string &operation) {
+        ++checks;
+        if (actual == expected) { return; }
+        auto text = [](const vector<T> &xs) { string res; for (T x : xs) { res += std::to_string(int(x)) + ','; } return res; };
+        throw std::runtime_error(context + " operation=" + operation + " expected=" + text(expected) + " actual=" + text(actual));}
+    struct Fifo { vector<int> order, parent, parent_arc, root; };
+    // Plain FIFO queue: sources in list order, duplicates skipped, arcs in adjacency order.
+    template<class G>
+    Fifo fifo(const G &g, const vector<int> &sources) {
+        Fifo f{{}, vector<int>(g.n, -1), vector<int>(g.n, -1), vector<int>(g.n, -1)};
+        queue<int> q;
+        for (int s : sources) {
+            if (f.root[s] == -1) { f.root[s] = s; q.push(s); }}
+        while (!q.empty()) {
+            int u = q.front(); q.pop(); f.order.push_back(u);
+            for (int a : g[u]) {
+                int v = g.arcs[a].to;
+                if (f.root[v] == -1) { f.root[v] = f.root[u]; f.parent[v] = u; f.parent_arc[v] = a; q.push(v); }}}
+        return f;}
     template<class G>
     void witness(const G &g, const CycleWitness &c, bool exists, bool odd = false) {
         check(!c.arcs.empty() == exists, "cycle existence");
@@ -27,12 +48,13 @@ namespace {
     template<class G>
     void traversal(const G &g, const TraversalResult &r, const vector<int> &sources,
                    const vector<vector<int>> &distance, bool breadth) {
-        vector<int> visited(g.n), source(g.n);
+        vector<int> visited(g.n), source(g.n), hops(g.n, 1000000);
         for (int s : sources) { source[s] = 1; }
         for (int u : r.order) { check(0 <= u && u < g.n && !visited[u]++, "discovery uniqueness"); }
         for (int u = 0; u < g.n; ++u) {
             int best = 1000000;
             for (int s : sources) { best = min(best, distance[s][u]); }
+            hops[u] = best;
             check(visited[u] == (best < 1000000), "reachability closure");
             if (!visited[u]) {
                 check(r.parent[u] == -1 && r.parent_arc[u] == -1 && r.depth[u] == -1 && r.root[u] == -1,
@@ -50,39 +72,74 @@ namespace {
             check(r.postorder.empty() && r.cycle.arcs.empty(), "BFS unused DFS fields");
             for (int i = 1; i < int(r.order.size()); ++i) {
                 check(r.depth[r.order[i - 1]] <= r.depth[r.order[i]], "BFS layer order");}
-            // Plain FIFO queue: sources in list order, duplicates skipped, arcs in adjacency order.
-            queue<int> fifo; vector<int> order, parent(g.n, -1), parent_arc(g.n, -1), root(g.n, -1);
-            for (int s : sources) {
-                if (root[s] == -1) { root[s] = s; fifo.push(s); }}
-            while (!fifo.empty()) {
-                int u = fifo.front(); fifo.pop(); order.push_back(u);
-                for (int a : g[u]) {
-                    int v = g.arcs[a].to;
-                    if (root[v] == -1) { root[v] = root[u]; parent[v] = u; parent_arc[v] = a; fifo.push(v); }}}
-            check(r.order == order && r.parent == parent && r.parent_arc == parent_arc && r.root == root,
+            auto f = fifo(g, sources);
+            check(r.order == f.order && r.parent == f.parent && r.parent_arc == f.parent_arc && r.root == f.root,
                   "FIFO BFS order/parent/root tie oracle");
+            // Tree edges by ID from the FIFO tree, other arcs by Floyd hop distance from the source set.
+            vector<int> tree(g.edges.size());
+            for (int a : f.parent_arc) { if (a != -1) { tree[g.arcs[a].id] = 1; }}
+            vector<BfsArcKind> kind(g.arcs.size(), BfsArcKind::None);
+            for (int a = 0; a < int(g.arcs.size()); ++a) {
+                auto e = g.arcs[a]; int du = hops[e.from], dv = hops[e.to];
+                if (du == 1000000) { continue; }
+                kind[a] = tree[e.id] ? BfsArcKind::Tree : dv == du ? BfsArcKind::Level
+                        : dv > du ? BfsArcKind::Forward : BfsArcKind::Reverse;}
+            same(classifyBfsArcs(g, r), kind, "classifyBfsArcs Floyd-depth/FIFO-tree oracle");
             return;}
-        // Recursive traversal is independent of the library's explicit frame state.
-        vector<int> seen(g.n), parent(g.n, -1), parent_arc(g.n, -1), pre, post;
+        // Recursive white/gray/black traversal is independent of the library's explicit frame state;
+        // it labels each arc when examined, the reverse of an undirected tree arc (same edge ID) as Tree.
+        vector<int> seen(g.n), parent(g.n, -1), parent_arc(g.n, -1), discovery(g.n), pre, post;
+        vector<ArcKind> kind(g.arcs.size(), ArcKind::None);
         auto visit = [&](auto &&visit, int u) -> void {
-            seen[u] = 1; pre.push_back(u);
+            seen[u] = 1; discovery[u] = int(pre.size()); pre.push_back(u);
             for (int a : g[u]) {
                 int v = g.arcs[a].to;
-                if (!seen[v]) { parent[v] = u; parent_arc[v] = a; visit(visit, v); }}
-            post.push_back(u);};
+                if (parent_arc[u] != -1 && g.arcs[a].id == g.arcs[parent_arc[u]].id) { kind[a] = ArcKind::Tree; }
+                else if (!seen[v]) { kind[a] = ArcKind::Tree; parent[v] = u; parent_arc[v] = a; visit(visit, v); }
+                else if (seen[v] == 1) { kind[a] = ArcKind::Back; }
+                else { kind[a] = discovery[v] > discovery[u] ? ArcKind::Forward : ArcKind::Cross; }}
+            seen[u] = 2; post.push_back(u);};
         for (int s : sources) { if (!seen[s]) { visit(visit, s); }}
         check(r.order == pre && r.postorder == post && r.parent == parent && r.parent_arc == parent_arc,
-              "recursive DFS discovery/finish/parent oracle");}
+              "recursive DFS discovery/finish/parent oracle");
+        same(classifyArcs(g, r), kind, "classifyArcs recursive-colour-DFS oracle");}
+    // Floyd radius filter of the FIFO order from center; kept edges are those with both ends inside.
+    template<class G>
+    void ego(const G &g, const vector<vector<int>> &distance) {
+        for (int center = 0; center < g.n; ++center) {
+            auto order = fifo(g, {center}).order;
+            for (int radius : {0, 1, 2, INT_MAX}) {
+                auto sub = egoGraph(g, center, radius);
+                auto inside = [&](int v) { return distance[center][v] < 1000000 && distance[center][v] <= radius; };
+                vector<int> vs, ids;
+                for (int v : order) { if (inside(v)) { vs.push_back(v); }}
+                for (int v : vs) {
+                    for (int id = 0; id < int(g.edges.size()); ++id) {
+                        if (g.edges[id].u == v && inside(g.edges[id].v)) { ids.push_back(id); }}}
+                string where = " center=" + std::to_string(center) + " radius=" + std::to_string(radius);
+                same(sub.vertex, vs, "egoGraph vertices = FIFO order within Floyd radius" + where);
+                check(sub.graph.n == int(vs.size()) && sub.graph.directed == g.directed
+                      && sub.edge.size() == sub.graph.edges.size(), "egoGraph dimensions" + where);
+                same(sub.edge, ids, "egoGraph exact edge sequence" + where);
+                for (int i = 0; i < int(sub.edge.size()); ++i) {
+                    auto e = sub.graph.edges[i], s = g.edges[sub.edge[i]];
+                    check(sub.vertex[e.u] == s.u && sub.vertex[e.v] == s.v && e.w == s.w,
+                          "egoGraph edge endpoints/orientation/weight" + where);}}}}
     template<class G>
     void graphCase(const G &g, const vector<vector<int>> &distance, bool cyclic, bool bipartite) {
         vector<int> all(g.n); iota(all.begin(), all.end(), 0);
         vector<vector<int>> seeds{{}, all};
         if (g.n) { seeds.push_back({0}); seeds.push_back({g.n - 1}); seeds.push_back({g.n - 1, 0, g.n - 1}); }
+        string graph = show(g) + (std::is_same_v<G, CsrGraph> ? " csr" : "");
         for (const auto &sources : seeds) {
+            context = graph + " sources=";
+            for (int s : sources) { context += std::to_string(s) + ','; }
             auto b = bfs(g, sources), d = dfs(g, sources);
             traversal(g, b, sources, distance, true); traversal(g, d, sources, distance, false);
             if (!d.cycle.arcs.empty()) { witness(g, d.cycle, true); }}
+        context = graph + " dfsForest";
         auto forest = dfsForest(g); traversal(g, forest, all, distance, false);
+        context = graph; ego(g, distance);
         witness(g, forest.cycle, cyclic);
         if (g.directed) { return; }
         auto components = connectedComponents(g); vector<int> seen(g.n); int previous_min = -1;
@@ -103,7 +160,7 @@ namespace {
             for (int c : b.color) { check(c == 0 || c == 1, "color domain"); }
             for (auto e : g.edges) { check(b.color[e.u] != b.color[e.v], "proper coloring"); }}}
     void runCase(const Graph &g) {
-        ++cases; context = show(g);
+        ++cases;
         vector<vector<int>> distance(g.n, vector<int>(g.n, 1000000));
         for (const auto &a : g.arcs) { distance[a.from][a.to] = 1; }
         // Preserve positive path diagonal for cycle detection before reflexive closure.
@@ -153,11 +210,36 @@ namespace {
                 g.addEdge(u, v, w);}
             runCase(g);}
         cout << "PASS random multigraphs/ignored extreme weights rounds=" << rounds << '\n';}
+    // Hand-derived labels that also validate the recursive and Floyd oracles.
+    void explicitKinds() {
+        using K = ArcKind; using B = BfsArcKind;
+        Graph twin(2), d(4, true);
+        twin.addEdge(0, 1); twin.addEdge(0, 1);
+        for (auto [u, v] : vector<pair<int, int>>{{0, 1}, {1, 2}, {0, 2}, {0, 3}, {3, 1}, {2, 2}, {2, 0}}) { d.addEdge(u, v); }
+        auto run = [&](const auto &twin, const auto &d) {
+            context = "explicit twin parallel edges / directed forward-cross-loop graph";
+            same(classifyArcs(twin, dfs(twin, {0})), {K::Tree, K::Tree, K::Forward, K::Back}, "twin DFS kinds");
+            same(classifyBfsArcs(twin, bfs(twin, {0})), {B::Tree, B::Tree, B::Forward, B::Reverse}, "twin BFS kinds");
+            same(classifyArcs(d, dfs(d, {0})), {K::Tree, K::Tree, K::Forward, K::Tree, K::Cross, K::Back, K::Back}, "d DFS from 0");
+            same(classifyArcs(d, dfs(d, {3})), {K::Back, K::Tree, K::Back, K::Back, K::Tree, K::Back, K::Tree}, "d DFS from 3");
+            same(classifyArcs(d, dfs(d, {})), vector<K>(7, K::None), "d DFS no sources");
+            same(classifyBfsArcs(d, bfs(d, {0})), {B::Tree, B::Level, B::Tree, B::Tree, B::Level, B::Level, B::Reverse}, "d BFS from 0");
+            auto sub = egoGraph(d, 1, 1);
+            same(sub.vertex, {1, 2}, "d egoGraph(1, 1) vertices"); same(sub.edge, {1, 5}, "d egoGraph(1, 1) edges");
+            check(sub.graph.edges[0].u == 0 && sub.graph.edges[0].v == 1 && sub.graph.edges[1].u == 1 && sub.graph.edges[1].v == 1,
+                  "d egoGraph(1, 1) relabelled edges");};
+        run(twin, d); run(CsrGraph(twin), CsrGraph(d));}
     template<class G>
     void longGraph(const G &g) {
         vector<int> all(g.n); iota(all.begin(), all.end(), 0);
         auto b = bfs(g, {0}), d = dfsForest(g);
         check(d.order == all && b.order == all, "long chain preorder/BFS");
+        auto sub = egoGraph(g, 0, g.n / 2);
+        check(sub.vertex == vector<int>(all.begin(), all.begin() + g.n / 2 + 1) && int(sub.edge.size()) == g.n / 2,
+              "long chain egoGraph prefix");
+        check(std::ranges::all_of(classifyArcs(g, d), [](ArcKind k) { return k == ArcKind::Tree; })
+              && std::ranges::all_of(classifyBfsArcs(g, b), [](BfsArcKind k) { return k == BfsArcKind::Tree; }),
+              "long chain all arcs Tree");
         reverse(all.begin(), all.end()); check(d.postorder == all, "long chain postorder");
         for (int i = 0; i < g.n; ++i) { check(b.depth[i] == i && d.depth[i] == i, "long chain depth"); }
         witness(g, d.cycle, false);
@@ -171,7 +253,17 @@ namespace {
             context = "long chain n=" + std::to_string(n) + " directed=" + std::to_string(directed);
             longGraph(g); longGraph(CsrGraph(g));
             g.addEdge(n - 1, 0); CsrGraph csr(g);
-            witness(g, dfsForest(g).cycle, true); witness(csr, dfsForest(csr).cycle, true);}
+            witness(g, dfsForest(g).cycle, true); witness(csr, dfsForest(csr).cycle, true);
+            // Closing edge n-1 -> 0: Back from n-1; undirected, its arc out of 0 is Forward.
+            for (const auto &kinds : {classifyArcs(g, dfsForest(g)), classifyArcs(csr, dfsForest(csr))}) {
+                int last = directed ? n - 1 : 2 * (n - 1);
+                check(kinds[last] == ArcKind::Back && (directed || kinds[last + 1] == ArcKind::Forward)
+                      && std::count(kinds.begin(), kinds.end(), ArcKind::Tree) == int(kinds.size()) - (directed ? 1 : 2),
+                      "closed chain closing-edge kinds");}}
+        // A repeated source is skipped; later new sources are still seeded.
+        for (const auto &t : {bfs(Graph(3), {0, 0, 2, 1}), dfs(Graph(3), {0, 0, 2, 1})}) {
+            same(t.order, {0, 2, 1}, "repeated source order"); same(t.root, {0, 1, 2}, "repeated source roots");}
+        explicitKinds();
         Graph g(7); g.addEdge(5, 2); g.addEdge(2, 3); g.addEdge(3, 5);
         runCase(g);
         auto copied = dfsForest(g); auto moved = std::move(copied);
@@ -182,11 +274,24 @@ namespace {
         if (name == "result-negative") { TraversalResult r(-1); }
         else if (name == "bfs-negative") { bfs(g, {-1}); }
         else if (name == "bfs-large") { bfs(g, vector<int>{0, 2}); }
+        else if (name == "bfs-past-end") { bfs(g, {3}); }
         else if (name == "bfs-empty-source") { bfs(Graph(0), {0}); }
         else if (name == "dfs-negative") { dfs(g, vector<int>{0, -1}); }
         else if (name == "dfs-large") { dfs(g, {2}); }
+        else if (name == "dfs-past-end") { dfs(g, {3}); }
         else if (name == "components-directed") { connectedComponents(directed); }
         else if (name == "bipartite-directed") { bipartiteCheck(directed); }
+        else if (name == "classify-size") { classifyArcs(g, dfsForest(Graph(3))); }
+        else if (name == "classify-bfs-result") { classifyArcs(g, bfs(g, {0})); }
+        else if (name == "classify-bfs-size") { classifyBfsArcs(g, bfs(Graph(3), {0})); }
+        else if (name == "classify-small") { classifyArcs(g, dfsForest(Graph(1))); }
+        else if (name == "classify-order-short") { auto t = dfsForest(g); t.order.pop_back(); classifyArcs(g, t); }
+        else if (name == "classify-bfs-small") { classifyBfsArcs(g, bfs(Graph(1), {0})); }
+        else if (name == "classify-bfs-dfs-result") { classifyBfsArcs(g, dfs(g, {0})); }
+        else if (name == "ego-negative-radius") { egoGraph(g, 0, -1); }
+        else if (name == "ego-center-large") { egoGraph(CsrGraph(g), 2, 0); }
+        else if (name == "ego-center-past-end") { egoGraph(g, 3, 0); }
+        else if (name == "ego-center-negative") { egoGraph(g, -1, 0); }
         else { throw std::runtime_error("unknown invalid probe " + name); }}
 } // namespace
 

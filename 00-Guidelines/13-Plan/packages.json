@@ -184,7 +184,7 @@
         "04-Graphs/Docs/05-shortest_path.md",
         "04-Graphs/Docs/06-mst.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement edgeSubgraph, complementGraph, disjointUnion, cartesianProduct, tensorProduct, strongProduct, lexicographicProduct, graphPower in `01-graph.hpp`; topologicalSort (lexicographically smallest inverse permutation), allTopologicalSorts in `03-toposort.hpp`. P275 re-review 2026-11-10: implement inDegrees, edgeId in `01-graph.hpp`; classifyArcs in `02-traversal.hpp`; topologicalSortLargest, topologicalGenerations in `03-toposort.hpp`; zeroOneBfs ({0, c} weights), voronoiCells in `05-shortest_path.hpp`."
+      "note": "GR01 done 2026-11-14 (rows 01-04 verified: graph, traversal, toposort, dsu adapter; @reviewer 8 findings fixed; mutation records current; user decisions 2026-11-14: named mirrors for flags, topologicalSortEarliest, comment share excludes // T:/S: lines, lineGraph edge order). Next: GR02 (05-shortest_path, 06-mst). Flag ruling renames for rows 05, 06, 10 (duplicates.md Changes) and GR02's new operations zeroOneBfs ({0, c} weights), voronoiCells, egoGraphWeighted, criticalPath in 05-shortest_path.hpp."
     },
     {
       "id": "P011",

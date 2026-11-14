@@ -88,7 +88,7 @@ paths:
 - Inside a body, a comment is one line and appears only where the code's trick or invariant is not evident from the code itself. No restated contracts, no history, no references to other documents.
 - A file may open with one comment line. No block comments.
 - Everything else (full contracts, staleness and invalidation rules, sentinel policies, proofs, provenance) goes to the header's evidence document under `## Contracts`, one subsection per struct or free function (a type's `friend` algorithms and `static` builders go under the type's subsection or in their own subsections), linked from the inventory row.
-- The validator rejects a verified header with more than two consecutive comment-only lines or with comment-only lines above 8% of its non-blank lines; one comment line is always allowed, so a one-function header keeps its complexity line. `02-Data Structures/00-monoids.hpp`, one complexity line per struct, is exempt from the 8% share.
+- The validator rejects a verified header with more than two consecutive comment-only lines or with comment-only lines beyond its complexity lines (`// T:`, `// S:`) above 8% of its non-blank lines (user decision 2026-11-14: required lines never count); one such line is always allowed. `02-Data Structures/00-monoids.hpp` is exempt from the 8% share.
 
 ## Complexity comments
 

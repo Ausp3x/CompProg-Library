@@ -138,3 +138,52 @@ BipartiteResult bipartiteCheck(const G &g) {
                     out.ok = false; out.cycle = traversal_detail::treeCycle(g, parent_arc, depth, a);
                     return out;}}}}
     return out;}
+
+enum class ArcKind { None = -1, Tree, Back, Forward, Cross };
+
+// T: O(n + m), M: O(n + m); t from dfs or dfsForest of g; both arcs of an undirected tree edge are Tree, a loop is Back.
+template<class G = Graph>
+vector<ArcKind> classifyArcs(const G &g, const TraversalResult &t) {
+    assert(int(t.parent_arc.size()) == g.n && t.order.size() == t.postorder.size());
+    vector<int> pre(g.n, -1), post(g.n);
+    for (int i = 0; i < int(t.order.size()); ++i) { pre[t.order[i]] = i; post[t.postorder[i]] = i; }
+    auto ancestor = [&](int u, int v) { return pre[u] <= pre[v] && post[v] <= post[u]; };
+    vector<ArcKind> res(g.arcs.size(), ArcKind::None);
+    for (int a = 0; a < int(g.arcs.size()); ++a) {
+        auto e = g.arcs[a];
+        if (pre[e.from] == -1) { continue; }
+        if (t.parent_arc[e.to] == a || (e.rev != -1 && t.parent_arc[e.from] == e.rev)) { res[a] = ArcKind::Tree; }
+        else if (ancestor(e.to, e.from)) { res[a] = ArcKind::Back; }
+        else if (ancestor(e.from, e.to)) { res[a] = ArcKind::Forward; }
+        else { res[a] = ArcKind::Cross; }}
+    return res;}
+
+enum class BfsArcKind { None = -1, Tree, Level, Forward, Reverse };
+
+// T: O(n + m), M: O(m); t from bfs of g; both arcs of an undirected tree edge are Tree, a loop is Level.
+template<class G = Graph>
+vector<BfsArcKind> classifyBfsArcs(const G &g, const TraversalResult &t) {
+    assert(int(t.depth.size()) == g.n && t.postorder.empty());
+    vector<BfsArcKind> res(g.arcs.size(), BfsArcKind::None);
+    for (int a = 0; a < int(g.arcs.size()); ++a) {
+        auto e = g.arcs[a]; int du = t.depth[e.from], dv = t.depth[e.to];
+        if (du == -1) { continue; }
+        if (t.parent_arc[e.to] == a || (e.rev != -1 && t.parent_arc[e.from] == e.rev)) { res[a] = BfsArcKind::Tree; }
+        else if (dv == du) { res[a] = BfsArcKind::Level; }
+        else if (dv > du) { res[a] = BfsArcKind::Forward; }
+        else { res[a] = BfsArcKind::Reverse; }}
+    return res;}
+
+// T: O(n + d), M: O(n + d); radius >= 0, induced on the vertices within radius hops of center (out-arcs), in BFS order; d = degree sum of those vertices.
+template<class G = Graph>
+Subgraph egoGraph(const G &g, int center, int radius) {
+    assert(0 <= center && center < g.n && radius >= 0);
+    vector<int> depth(g.n, -1), vs{center};
+    depth[center] = 0;
+    for (int i = 0; i < int(vs.size()); ++i) {
+        int u = vs[i];
+        if (depth[u] == radius) { continue; }
+        for (int a : g[u]) {
+            int v = g.arcs[a].to;
+            if (depth[v] == -1) { depth[v] = depth[u] + 1; vs.push_back(v); }}}
+    return inducedSubgraph(g, vs);}

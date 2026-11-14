@@ -34,7 +34,7 @@ Catalog inspection establishes operation names and testable families, never impl
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
-| maspypy graph base | https://maspypy.github.io/library/graph/base.hpp | 2026-10-07 | Degree arrays, endpoint edge lookup and `rearrange` with kept edge IDs (row 01; `inducedSubgraph` keeps an edge map, the rest omitted in [00-notes.md](00-notes.md#p010-re-audit-omissions)) |
+| maspypy graph base | https://maspypy.github.io/library/graph/base.hpp | 2026-10-07 | Degree arrays, endpoint edge lookup and `rearrange` with kept edge IDs (row 01; `inducedSubgraph` keeps an edge map; `inDegrees` and `edgeId` adopted by P275 on 2026-11-10 and implemented in P010 GR01) |
 | maspypy find_cycle, find_odd_cycle | https://maspypy.github.io/library/graph/find_cycle.hpp | 2026-10-07 | Minimal cycle and directed odd cycle candidates, omitted for row 68 |
 | Nyaan graph template and utility | https://nyaannyaan.github.io/library/graph/graph-template.hpp | 2026-10-07 | Row 01 storage comparison; tree utilities belong to row 14 |
 | cp-algorithms, Depth-first search | https://cp-algorithms.com/graph/depth-first-search.html | 2026-10-07 | Entry/exit times and edge classification, derivable from `order`/`postorder` |
@@ -525,3 +525,37 @@ Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md
 - <https://en.wikipedia.org/wiki/Arboricity>
 - <https://www.boost.org/doc/libs/1_86_0/libs/graph/doc/table_of_contents.html>
 - <https://arxiv.org/abs/1310.5037>
+
+## Fetched 2026-11-14 (P010 GR01)
+
+Completeness sweeps of rows 01–04 (three `@researcher` passes and a gap recheck of the whole graph sections of MAS, NYA, EI, SUI and HIT, LC's graph directory, KACTL, CPA, ACL and OI). Adopted with the user's confirmation (2026-11-14): row 01 `addPath`, `addCycle`, `addStar`, `restrictedView`, `graphJoin`, `graphUnion`, `graphIntersection`, `graphDifference`, `graphSymmetricDifference`, `rootedProduct`, `coronaProduct`, `modularProduct`, `mycielskian`, `toUndirected`, `toDirected`, `subdivideEdges`; row 02 `classifyBfsArcs`, `egoGraph`; row 05 `egoGraphWeighted`, `criticalPath`; row 08 `attractingComponents`, `isSemiconnected`; row 95 `inverseLineGraph`, `pathCycleDecomposition`, `bipartiteAfterEdgeRemoval`; row 97 `stochasticGraphApprox`.
+
+- <https://networkx.org/documentation/stable/reference/algorithms/operators.html> — 01: compose, intersection, difference, symmetric_difference, full_join, products (cartesian, tensor, strong, lexicographic, rooted, corona, modular), power
+- <https://networkx.org/documentation/stable/reference/algorithms/minors.html> — 01: `contract` aliases
+- <https://networkx.org/documentation/stable/reference/generators.html> — 01: mycielskian; 02: ego_graph; 95: inverse_line_graph; 97: stochastic_graph
+- <https://networkx.org/documentation/stable/reference/functions.html> — 01: add_path, add_cycle, add_star, restricted_view, to_directed, to_undirected, edge_subgraph
+- <https://networkx.org/documentation/stable/reference/algorithms/traversal.html> — 02: bfs_labeled_edges, dfs_labeled_edges
+- <https://networkx.org/documentation/stable/reference/algorithms/component.html> — 08: attracting_components, is_semiconnected
+- <https://networkx.org/documentation/stable/reference/algorithms/dag.html> — 03: topological_generations, all_topological_sorts, lexicographical_topological_sort
+- <https://maspypy.github.io/library/graph/toposort.hpp> — 03: lex_min_toposort with inverse permutation (`topologicalSortEarliest`)
+- <https://maspypy.github.io/library/graph/path_cycle_decomposition.hpp> — 95: pathCycleDecomposition
+- <https://maspypy.github.io/library/graph/bipartite_vertex_coloring_ng1.hpp> — 95: bipartiteAfterEdgeRemoval
+- <https://maspypy.github.io/library/graph/base.hpp> — 01: get_eid (`edgeId`), deg_array_inout (`inDegrees`)
+- <https://oi-wiki.org/graph/topo/> — 03: max-heap order (`topologicalSortLargest`); 05: AOE critical path
+- <https://oi-wiki.org/graph/concept/> — 01: edge subdivision
+- <https://oi-wiki.org/graph/dfs/>, <https://oi-wiki.org/graph/bfs/>, <https://cp-algorithms.com/graph/depth-first-search.html> — 02: DFS arc classification
+
+Gap recheck pages (2026-11-14), each read for graph storage, traversal, ordering and DSU-adapter operations absent from rows 01–04:
+
+- <https://maspypy.github.io/library/> (index; its test-file tail unread), <https://maspypy.github.io/library/graph/decompose_complete.hpp>, <https://maspypy.github.io/library/graph/bracket_graph.hpp>, <https://maspypy.github.io/library/graph/bipartite_vertex_coloring_ng1.hpp>, <https://maspypy.github.io/library/graph/tree_of_unionfind.hpp>, <https://maspypy.github.io/library/graph/path_cycle_decomposition.hpp>
+- <https://nyaannyaan.github.io/library/>, <https://nyaannyaan.github.io/library/graph/graph-template.hpp>, <https://nyaannyaan.github.io/library/graph/graph-utility.hpp>, <https://nyaannyaan.github.io/library/graph/topological-sort.hpp>
+- <https://ei1333.github.io/library/>, <https://ei1333.github.io/library/graph/graph-template.hpp>
+- <https://suisen-cp.github.io/cp-library-cpp/>, <https://suisen-cp.github.io/cp-library-cpp/library/graph/topological_sort.hpp>
+- <https://hitonanode.github.io/cplib-cpp/>
+- <https://judge.yosupo.jp/>, <https://v3.api.judge.yosupo.jp/problems>, <https://github.com/yosupo06/library-checker-problems/tree/master/graph> (GitHub listing possibly partial)
+- <https://github.com/kth-competitive-programming/kactl/tree/main/content/graph> (GitHub listing possibly partial), <https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/graph/TopoSort.h>
+- <https://cp-algorithms.com/>, <https://cp-algorithms.com/graph/depth-first-search.html>, <https://cp-algorithms.com/graph/breadth-first-search.html>, <https://cp-algorithms.com/graph/topological-sort.html>
+- <https://atcoder.github.io/ac-library/production/document_en/index.html>
+- <https://oi-wiki.org/graph/>, <https://oi-wiki.org/graph/concept/>, <https://oi-wiki.org/graph/save/>, <https://oi-wiki.org/graph/dfs/>, <https://oi-wiki.org/graph/bfs/>, <https://oi-wiki.org/graph/topo/>, <https://oi-wiki.org/graph/dag/>
+
+Not fetched: Varol–Rotem enumeration (`allTopologicalSorts`, user decision 2026-11-14): Y. L. Varol and D. Rotem, "An algorithm to generate all topological sorting arrangements", The Computer Journal 24(1), 1981, as Algorithm V in Knuth, TAOCP 4A, 7.2.1.2 (not fetched; the algorithm was reconstructed and is checked against permutation enumeration)

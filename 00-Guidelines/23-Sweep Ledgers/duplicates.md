@@ -8,6 +8,7 @@ Decided by the user since 2026-10-10; binding, and only the user changes them.
 
 ### Changes
 
+- **P010** flags choosing between operations become named mirrors (user decision 2026-11-14): `topologicalSort(g, true)` → `topologicalSortSmallest` (GR01, done), `dagShortestPaths(g, s, true)` → `dagLongestPathsFrom` (`dagLongestPaths` stays retired), `kruskal`/`primSparse`/`boruvka(g, true)` → `kruskalMaximum`/`primSparseMaximum`/`boruvkaMaximum`, `eulerianTrail(g, start, true)` → `eulerianTrailSmallest`; `KruskalReconstruction(g, maximum)` keeps its constructor parameter. Row 03's lexicographically smallest inverse permutation is `topologicalSortEarliest`.
 - **P012** Mathematics row 01 `divMod` is named `divModFloor`, as Core's flooring `InfInt::divModFloor`, since Core's `divMod` truncates; this reverses P275's `divModFloor` → `divMod` rename (`Docs/00-duplicate-rereview.md`) (user decision 2026-11-12).
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
 - **P048** row 35 `triangleAggregate` is named `triangleProductSum` (decided 2026-10-29).
@@ -194,7 +195,7 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P008 | `farthestPair` (`07-rotatingcalipers.hpp`) | Larger domain (any cloud, index ties) |
 | P009 | `Triangle2::areaApprox` (`09-triangle.hpp`) | Derived formula: half the absolute doubled area (clarified rule) |
 | P009 | `TriangleApprox::area()` (`09-triangle.hpp`) | Derived formula: half the absolute doubled area (clarified rule) |
-| P010 | `Graph::read` flags, `CsrGraph::reverse`, `dfsForest`, `KruskalReconstruction::bottleneck` (`01-graph.hpp`, `02-traversal.hpp`, `06-mst.hpp`; the `maximum` flags are in P010's ask) | Only forms, named special cases |
+| P010 | `Graph::read` flags, `CsrGraph::reverse`, `dfsForest`, `KruskalReconstruction::bottleneck` (`01-graph.hpp`, `02-traversal.hpp`, `06-mst.hpp`; the `maximum` flags become named mirrors, Changes) | Only forms, named special cases |
 | P011 | `StrongOrientationResult`, `strongOrientation` (`09-bridges_articulation.hpp`) | Derived `ok` flag and Robbins obstruction witness (clarified rule) |
 | P011 | `FunctionalGraph(const G &g)` (`11-functionalgraph.hpp`) | Builds from a `Graph`, not a legacy format (clarified rule) |
 | P011 | `FunctionalGraph::reachable` (`11-functionalgraph.hpp`) | Named special case (ruling 1) |
@@ -475,7 +476,7 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `dagShortestPaths(g, sources, longest)` flag; `topologicalSort(g, lexicographic)` flag; `06-mst.hpp` `maximum` flags; `eulerianTrail(g, start, lexicographic)` flag | rows 05, 03, 06, 10 | named mirrors (ruling 3) | ask | a flag choosing between operations is a removable form, but the longest-path name the P010 prune removed, `dagLongestPaths`, may not return under its legacy name (P275 guard): one ruling for all four (user decision 2026-11-10): which names replace the flags (`dagLongestPaths`, `topologicalSortLexicographic`), or do the flags stay? | — | — |
+| `dagShortestPaths(g, sources, longest)` flag; `06-mst.hpp` `maximum` flags of `kruskal`, `primSparse`, `boruvka`; `eulerianTrail(g, start, lexicographic)` flag | rows 05, 06, 10 | `dagLongestPathsFrom`; `kruskalMaximum`, `primSparseMaximum`, `boruvkaMaximum`; `eulerianTrailSmallest` (named mirrors, ruling 3) | remove (user decision 2026-11-14) | a flag choosing between operations is a removable form; `dagLongestPaths` stays retired (P275 guard), `KruskalReconstruction` keeps its constructor parameter; GR01 applied row 03 (`topologicalSortSmallest`), the rest waits for the runs owning rows 05, 06 and 10 | the flag cases | callers of the flags |
 
 ## P042 — 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor (in progress)
 
@@ -758,7 +759,6 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 
 Every remaining `ask` above, with the fact the user decides. `/package` and `/prune` put a package's `ask` rows to the user before changing anything (user decision 2026-11-10).
 
-- **P010** the flags choosing between operations, settled under one ruling (user decision 2026-11-10): `dagShortestPaths` `longest`, `topologicalSort` `lexicographic`, the MST `maximum` flags and `eulerianTrail` `lexicographic`: named mirrors (which names, given that `dagLongestPaths` is a removed legacy name) or flags kept?
 - **P022** GF(2) `-=`, `-`, unary `-`: must `BitMatrix` offer the full ring operator set for generic code?
 - **P020** `Matrix(vector<T>, bool axis)`: accept the empty-`v` shape change (0×0 against 1×0 or 0×1) and remove it, or keep it?
 - **P023** `berlekampMassey`: is floating T a supported domain (recommended: no), and is the exact-field copy of Poly `findLinearRecurrence` kept with a recorded reason? `toCOO`, `toCSR`, `toCSC`: are COO and CSC distinct types? `steadyState`: rename it `powNaive` or fold it into `pow` as a small-k branch?
