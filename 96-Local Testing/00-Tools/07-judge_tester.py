@@ -2,7 +2,7 @@
 """Network-free checks for 07-judge.py, the Library Checker tool of /speed-sweep.
 
 The API is a fake `fetch` serving fixed JSON (four fastest users, two of them the same code under a header comment and
-other whitespace, a pending submission that finishes on the second fetch, a user's WA/AC history); the problem repository
+other whitespace, a pending submission that passes WJ, -, Fetching, Compiling and 3/10 before AC, a user's WA/AC history); the problem repository
 is a fixture `sample/aplusb` (two .in examples, a seeded generator using params.h, a reference solution, a token checker)
 plus `sample/tiny` (one example, 0.2 s limit). Oracles: generator inputs and params.h recomputed in Python, the
 statuses each fixture solution must get, hand-computed similarities and table cells, fetch counters for caching.
@@ -99,7 +99,7 @@ def gen_oracle(s):
 
 class Api:
     def __init__(self):
-        self.urls, self.pending = [], True
+        self.urls, self.pending = [], ['WJ', '-', 'Fetching', 'Compiling', '3/10']
 
     def fetch(self, url):
         self.urls.append(url)
@@ -120,7 +120,7 @@ class Api:
             o = next((s for s in LIST + MINE if s['id'] == sid), dict(id=sid, user_name='Late', lang='cpp', time=0.001, memory=0))
             status = o.get('status', 'AC')
             if sid == 30:
-                status, self.pending = 'WJ' if self.pending else 'AC', False
+                status = self.pending.pop(0) if self.pending else 'AC'
             res = {'overview': dict(o, status=status, problem_name='aplusb', submission_time='2026-09-26T04:52:02Z'),
                    'source': SOURCES[sid], 'case_results': [dict(case=c, time=t, memory=1 << 20, status='AC') for c, t in CASES[sid].items()]}
         return json.dumps(res).encode()
@@ -214,10 +214,11 @@ class Judge(unittest.TestCase):
         self.assertEqual(rows(text)[1:], [['example_00', '2', '1.0', 'AC'], ['random_00', '2', '1.0', 'AC'],
                                           ['random_01', '10', '1.0', 'AC'], ['judge_only_00', '3', '1.0', 'AC']])
         self.assertTrue((J.submission(14)[1]).name == '14.py')
-        self.assertEqual(J.submission(30)[0]['overview']['status'], 'WJ')
-        self.assertEqual(J.submission(30)[0]['overview']['status'], 'AC', 'a pending submission is refetched')
+        for status in ('WJ', '-', 'Fetching', 'Compiling', '3/10', 'AC'):
+            self.assertEqual(J.submission(30)[0]['overview']['status'], status, 'a pending submission is refetched')
         J.submission(30)
-        self.assertEqual(sum(u.endswith('/30') for u in self.api.urls), 2, 'then cached')
+        self.assertEqual(sum(u.endswith('/30') for u in self.api.urls), 6, 'then cached')
+        self.assertEqual([J.pending(s) for s in ('WJ', '-', '12/31', 'AC', 'WA', 'CE', 'IE', '1/x')], [True] * 3 + [False] * 5)
 
     def test_offline(self):
         J.submission(13)

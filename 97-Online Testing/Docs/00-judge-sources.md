@@ -77,8 +77,8 @@ Each source reads with `FastInput<0>` and writes with `FastOutput` (`19-fastio.h
 | `03-Polynomials/44-multivariatecyclic.cpp` | [multivariate_convolution_cyclic](https://judge.yosupo.jp/problem/multivariate_convolution_cyclic) | `Poly<DynModInt<>>::multivariateCyclic` (per-axis DFTs of lengths dividing p - 1) with a runtime prime | 24/24 | 557 | [#417095](https://judge.yosupo.jp/submission/417095), 349 |
 | `03-Polynomials/45-multivariate.cpp` | [multivariate_convolution](https://judge.yosupo.jp/problem/multivariate_convolution) | Poly::multivariate (truncated product by the chi-graded Kronecker trick) | 17/17 | 937 | [#417096](https://judge.yosupo.jp/submission/417096), 562 |
 | `03-Polynomials/46-inv2d.cpp` | [inv_of_formal_power_series_2d](https://judge.yosupo.jp/problem/inv_of_formal_power_series_2d) | Poly::inv2d (Newton in x over F_p[y] / y^m) | 28/28 | 763 | [#417097](https://judge.yosupo.jp/submission/417097), 270 |
-| `04-Number Theory/01-primalitytest.cpp` | [primality_test](https://judge.yosupo.jp/problem/primality_test) | Montgomery64 (redc, init) as the reducer of isPrime (deterministic Miller-Rabin, 05-Mathematics/07-primality_factorization.hpp) | 13/13 | 335 | [#417098](https://judge.yosupo.jp/submission/417098), 164 |
-| `04-Number Theory/02-factorize.cpp` | [factorize](https://judge.yosupo.jp/problem/factorize) | Montgomery64 (redc, init) as the reducer of factorize (Miller-Rabin and batched Pollard-Brent rho, 05-Mathematics/07-primality_factorization.hpp) | 31/31 | 137 | [#417099](https://judge.yosupo.jp/submission/417099), 36 |
+| `04-Number Theory/01-primalitytest.cpp` | [primality_test](https://judge.yosupo.jp/problem/primality_test) | Montgomery64 (redc, init) as the reducer of isPrime (deterministic Miller-Rabin, 05-Mathematics/07-primality_factorization.hpp) | 13/13 | 335 | [#417105](https://judge.yosupo.jp/submission/417105), 165 |
+| `04-Number Theory/02-factorize.cpp` | [factorize](https://judge.yosupo.jp/problem/factorize) | Montgomery64 (redc, init) as the reducer of factorize (Miller-Rabin and batched Pollard-Brent rho, 05-Mathematics/07-primality_factorization.hpp) | 31/31 | 137 | [#417103](https://judge.yosupo.jp/submission/417103), 35 |
 
 ## Commands and results (2026-11-15)
 
@@ -97,6 +97,34 @@ The first run of `inv_of_polynomials` failed `example_01`, where `g = 7` is a co
 
 The grab bundler (default) expanded all 68 sources. No bundle keeps a quoted library include. The 48 new bundles range from 37 KB (`01-primalitytest`) to 134 KB (`33-polyfactorization`), since Poly's closure is large. Each new bundle was rerun on its problem's tests with the judge's flags, one run per test, while another session kept the machine loaded (load average 8 to 12). The checker accepted 1319 of the 1327 tests. The other 8 are `convolution_F_2_64` tests that ran past 10 s, which the tool reports as TLE without checking them. Run by hand, the checker accepts all 8 outputs. Run back to back on `random_01` under the same load, the source took 12.8 to 14.3 s and the bundle 11.7 to 12.2 s, with byte-identical outputs, so the load caused the excess, not the bundle. Bundle timings from this run are not benchmarks.
 
+## Submission tool
+
+[`04-submit.py`](../04-submit.py) is the maintainer's; Claude never runs it, and the shell hook refuses it (decision log, 2026-11-15 Judge submissions).
+
+- Login: `login` reads the Firebase web key from the judge's public frontend configuration, signs in with email and password through Firebase's REST API, checks `/auth/current_user`, and saves only `{api_key, refresh_token, user}` in `~/.config/compprog/yosupo.json` (directory 0700, file 0600; `CP_SUBMIT_CONFIG` overrides). Each run trades the refresh token for an ID token, saves a rotated refresh token, and stops when no login is saved or the login names another user, so it never submits anonymously.
+- Selection: `list` numbers every Yosupo source under `src/`. A selection takes numbers, ranges, problem names, file names (`primalitytest`, `01-primalitytest` or `01-primalitytest.cpp`), src-relative paths or globs, and `new`, `stale` or `all`, in the order given and without repeats; with none, the list is shown and the selection asked for. A confirmation (`--yes` skips it) precedes any submission.
+- States: `new` has no `accepted online (#ID` record; `current` means the recorded submission's source (fetched through `07-judge.py`'s cache) equals today's bundle with Status lines, CR and trailing whitespace ignored; `stale` otherwise. Writing a record therefore never makes its source stale.
+- Submission: every run expands first (`01-expander.py`, about 3 s when nothing changed) and stops without submitting if expansion fails. It sends today's bundle with `lang` `cpp` (C++23, GCC 15.2 at the judge) one source at a time, polls every 2 s up to 30 min (a network error is retried within that limit), prints each verdict with its link (AC green, any other red, on a terminal only), renews the ID token after 45 min (Firebase's expire after an hour), and on AC rewrites the source's Status line as `06-online.md` specifies. An earlier record or a "not verified" clause is replaced; other text is kept. The commit is HEAD with `+dirty` when the source or a library folder has uncommitted changes. Non-AC verdicts write nothing and make the exit status nonzero.
+- Classification of this repository on 2026-11-15 (the script's own functions, from the API cache): 48 `current` (this slice), 14 `new` (the linear algebra and mini big-integer sources), 6 `stale` (the big-integer sources, whose records name a revision from before their review).
+
+| Feature | Test (`96-Local Testing/00-Tools/16-submit_tester.py`) |
+|---|---|
+| Login saves no password, modes 0700/0600; wrong password and unregistered user refused | `test_login` |
+| Refresh token traded and rotated; missing login and user mismatch refused | `test_refresh` |
+| Yosupo sources only; new, current, stale; Status lines, CR and trailing spaces ignored | `test_states` |
+| Numbers, ranges, problem and file names, globs, paths, words; order and repeats; bad selections refused | `test_pick`, `test_random_pick` (stress) |
+| Submit body and bearer, wait through `-`, a stage and `k/n` progress, exact record, current afterwards | `test_submit_ac` |
+| No submission without a yes or with an empty selection; WA writes nothing and fails | `test_submit_wa_and_confirm` |
+| `+dirty`; Status line inserted when missing | `test_dirty` |
+| Record rewrites (migrated, earlier record, old-format sentence kept, bare clause) | `test_record_rewrites` |
+| Failing expander: nothing submitted | `test_expander_failure` |
+| Green AC and red verdicts and totals on a terminal, plain when redirected; record note only after an AC | `test_colors` |
+| ID token renewed by age before a submission | `test_token_age`, `test_submit_ac` (one token while young) |
+| Network errors while waiting retried; wait limit while unreachable; unreachable judge or Firebase exits without a traceback | `test_wait_retries` |
+| Hook refusal of the script in every command position, reading, staging and testing allowed | `12-hooks_tester.py` `test_submit` |
+
+The tester serves the judge, Firebase and the frontend configuration from a local HTTP server, so it needs no network. Results on 2026-11-15: quick 6 tests PASS (peak 21 MB), full 13 tests PASS (23 MB), stress `--seed 7 --rounds 3` PASS (23 MB), `CXX=g++-14` quick PASS; nine hand mutations of the script (no token renewal, no retry, colors never, always or inverted, the record note always, tracebacks from `state` and `request`, file names only with their prefix) were each caught; `12-hooks_tester.py --mode full` 16 tests PASS (27 MB). The maintainer's first live run (`factorize`, #417103 as Ausp3x, AC 35 ms) proved the login and the authorized submission, and showed that the judge reports a queued submission as `-`, which the fake did not serve and the tool took for a verdict; `07-judge.py`'s `pending` now covers it and `k/n` progress, the fake serves both, and the record was written afterwards with the script's own `record` from the judge-held source, which equals today's bundle.
+
 ## Open limits
 
 - `convolution_mod` also offers a function-style (grader) submission. `07-judge.py` used to refuse every problem with a grader; with the maintainer's yes (2026-11-15) it now refuses only a problem without `sol/correct.cpp`, since Library Checker accepts stdin solutions beside function submissions ([judge tool evidence](<../../96-Local Testing/Docs/00-judge.md>)). Source and bundle then passed all 53 tests through the tool itself.
@@ -106,5 +134,7 @@ The grab bundler (default) expanded all 68 sources. No bundle keeps a quoted lib
 
 ## History
 
+- 2026-11-15: first live `04-submit.py` run (`factorize`, #417103, AC): login and submission worked; the queued status `-` was read as a verdict, fixed in `07-judge.py` (`pending`); record written; a selection now also matches source file names (the maintainer's `primalitytest` matched nothing, the problem being `primality_test`); the maintainer's rerun (`primalitytest`, #417105, AC) passed through the queue and wrote its record; a recheck then added colored verdicts (user's request), token renewal for runs past an hour and retries of network errors while waiting; both testers passed in quick, full, stress and g++-14.
+- 2026-11-15: `04-submit.py` (maintainer-only submission with records), its tester and the shell hook refusal; tester quick, full, stress and hooks full passed.
 - 2026-11-15: all 48 accepted online (submissions #417048–#417099, 2026-11-14 UTC, by hand); records written to the sources' Status lines and the table.
 - 2026-11-15: Poly, Bitset, Rational, Barrett and Montgomery slice: 48 sources written (46 Poly, 2 Montgomery64); every test of all 48 problems accepted locally; expander run on 68 sources, every new bundle rerun with every output accepted by its checker; one driver fix (`inv_of_polynomials`, constant modulus); `07-judge.py` now runs grader problems that ship `sol/correct.cpp` (user's yes), and `convolution_mod` passed through it.

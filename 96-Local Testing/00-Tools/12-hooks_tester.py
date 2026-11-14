@@ -35,6 +35,9 @@ additionalContext) -> test_consistency_batch;
 git push in command position refused by pre without a snapshot (after separators, newlines, subshells, assignments and
 env/sudo prefixes, git options and -C/-c values between, after a heredoc or here-string ends), quoted text, heredoc
 bodies (quoted, <<- with tabs, two on one line), other git subcommands and unparsable commands allowed -> test_push;
+04-submit.py refused by pre without a snapshot when run directly or through python/pypy (versioned, by path, with options
+and -X/-W values between, after separators, prefixes and assignments); reading, staging, compiling or testing it, other
+scripts, quoted text and heredoc bodies allowed -> test_submit;
 the real settings wire shell.py pre/post to Bash beside guard.py, and consistency.py to PostToolBatch only -> test_settings;
 random command sequences against the oracle -> test_random.
 """
@@ -324,6 +327,26 @@ class Hooks(unittest.TestCase):
             payload = {'session_id': 's', 'tool_use_id': 'toolu_q', 'tool_name': 'Bash', 'tool_input': {'command': cmd}}
             self.assertIsNone(self.hook('shell.py', 'pre', payload=payload), cmd)
             self.assertTrue((state / 'toolu_q.json').exists(), cmd)
+            self.assertIsNone(self.hook('shell.py', 'post', payload=payload), cmd)
+
+    def test_submit(self):
+        deny = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
+                                       "Submitting is the user's (01-principles.md, Scope discipline): ask them to run 04-submit.py themselves, "
+                                       "for example with `! python3 '97-Online Testing/04-submit.py'`."}}
+        state = self.repo / '.claude/hooks/.state'
+        script = "'97-Online Testing/04-submit.py'"
+        for cmd in (f'python3 {script}', f'python3 {script} list', f'python3 -I -u {script} all --yes', f'python3 -X dev {script}',
+                    f'/usr/bin/python3.14 {script} login', f'pypy3 {script}', f'cd x && python3 {script}', f'env A=1 python3 {script}',
+                    f'CP=1 python3 {script}', './04-submit.py stale', f'"/abs/97-Online Testing/04-submit.py"', f'true; python {script}',
+                    f"cat <<'EOF'\nx\nEOF\npython3 {script}", f'(python3 {script})'):
+            payload = {'session_id': 's', 'tool_use_id': 'toolu_s', 'tool_name': 'Bash', 'tool_input': {'command': cmd}}
+            self.assertEqual(self.hook('shell.py', 'pre', payload=payload), deny, cmd)
+            self.assertFalse((state / 'toolu_s.json').exists(), cmd)
+        for cmd in (f'cat {script}', f'git add {script}', f'python3 -m py_compile {script}', f'sed -n 1,5p {script}',
+                    "python3 '96-Local Testing/00-Tools/16-submit_tester.py'", f'echo python3 {script}', f'grep -n submit {script}',
+                    f"python3 - <<'EOF'\npython3 {script}\nEOF", 'python3 03-submitted.py', f'python3 -c "import x" {script}'):
+            payload = {'session_id': 's', 'tool_use_id': 'toolu_t', 'tool_name': 'Bash', 'tool_input': {'command': cmd}}
+            self.assertIsNone(self.hook('shell.py', 'pre', payload=payload), cmd)
             self.assertIsNone(self.hook('shell.py', 'post', payload=payload), cmd)
 
     def test_settings(self):

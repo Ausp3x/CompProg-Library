@@ -41,7 +41,7 @@ REPO = 'https://github.com/yosupo06/library-checker-problems'
 FLAGS = ['-O2', '-std=c++23', '-DEVAL', '-DONLINE_JUDGE', *x86_only(['-march=native'])]  # the judge's x86 command
 JUDGE_FACTOR = 1.3  # Library Checker (Zen3) wall time over the i9-11900H's
 SIMILAR = 0.9       # line-multiset Jaccard index above which two sources count as one
-PENDING = {'WJ', 'Fetching', 'Compiling', 'Executing'}
+PENDING = {'WJ', '-', 'Fetching', 'Compiling', 'Executing'}  # with 'k/n' progress, the judge's statuses before a verdict
 CACHE = Path(os.environ.get('CP_JUDGE_CACHE', Path(__file__).resolve().parents[1] / '.judge-cache')).resolve()
 OFFLINE = False
 LAUNCHER = r'''#include <fcntl.h>
@@ -87,9 +87,14 @@ def get(path, keep=None, **query):
     return data
 
 
+def pending(status):
+    """Whether a submission status is still before its verdict (queued '-', a stage, or 'k/n' tests done)."""
+    return status in PENDING or bool(re.fullmatch(r'\d+/\d+', status))
+
+
 def submission(sid):
     """(details, cached source path) of a submission."""
-    d = get(f'/submissions/{sid}', keep=lambda d: d['overview']['status'] not in PENDING)
+    d = get(f'/submissions/{sid}', keep=lambda d: not pending(d['overview']['status']))
     lang = d['overview']['lang']
     ext = '.cpp' if lang.startswith('cpp') else '.py' if lang.startswith(('python', 'pypy')) else '.rs' if lang == 'rust' else '.txt'
     path = CACHE / 'sources' / f'{sid}{ext}'

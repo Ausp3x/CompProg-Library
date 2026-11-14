@@ -10,8 +10,10 @@ content at the old HEAD is blocked with the restore commands, as is a 99-Workspa
 Results are checked, not the command text, so no spelling of a command escapes; staging changes no content and runs
 nothing. A background command is compared when it starts, so edits it makes later are not checked. `pre` also refuses a
 `git push` in command position (after a separator, variable assignments and env/sudo/command/exec/nohup/time, with git's
-own options between), since pushing is the user's (CLAUDE.md, Git); quoted text and heredoc bodies are not commands, and an encoded
-command can still get past this check, which only stops the plain spellings."""
+own options between), since pushing is the user's (CLAUDE.md, Git), and `97-Online Testing/04-submit.py` run in command position
+(directly or after a python or pypy interpreter and its options), since submitting is the user's (01-principles.md, Scope
+discipline); quoted text and heredoc bodies are not commands, and an encoded command can still get past these checks, which
+only stop the plain spellings."""
 import hashlib
 import json
 import os
@@ -28,6 +30,7 @@ import consistency  # noqa: E402
 ROOT = consistency.ROOT
 STATE = ROOT / '.claude/hooks/.state'
 TEMPLATE = '99-Workspace/template.cpp'
+SUBMIT = '04-submit.py'
 
 
 def git(*args):
@@ -87,29 +90,51 @@ def code(command):
     return '\n'.join(out)
 
 
-def pushes(command):
-    """True when command runs `git push` in command position; unparsable text never counts."""
+def words(command):
+    """The shell words of command without heredoc bodies, separators as their own words; None when unparsable."""
     try:
         lex = shlex.shlex(code(command).replace('\n', ' ; '), posix=True, punctuation_chars=True)
         lex.whitespace_split = True
-        words = list(lex)
+        return list(lex)
     except ValueError:
-        return False
-    start = True
-    for i, w in enumerate(words):
+        return None
+
+
+def commands(command):
+    """(index, word) of each word in command position, after separators, prefixes and variable assignments."""
+    ws, start = words(command) or [], True
+    for i, w in enumerate(ws):
         if w in SEPARATORS:
             start = True
         elif start and (w in PREFIXES or re.fullmatch(r'[A-Za-z_]\w*=.*', w)):
             continue
-        elif start and (w == 'git' or w.endswith('/git')):
+        elif start:
+            start = False
+            yield ws, i, w
+
+
+def pushes(command):
+    """True when command runs `git push` in command position; unparsable text never counts."""
+    for ws, i, w in commands(command):
+        if w == 'git' or w.endswith('/git'):
             j = i + 1
-            while j < len(words) and words[j].startswith('-'):
-                j += 1 + (words[j] in ('-C', '-c') and j + 1 < len(words))
-            if j < len(words) and words[j] == 'push':
+            while j < len(ws) and ws[j].startswith('-'):
+                j += 1 + (ws[j] in ('-C', '-c') and j + 1 < len(ws))
+            if j < len(ws) and ws[j] == 'push':
                 return True
-            start = False
-        else:
-            start = False
+    return False
+
+
+def submits(command):
+    """True when command runs 04-submit.py itself or through a python or pypy interpreter (options between)."""
+    for ws, i, w in commands(command):
+        if re.fullmatch(r'(python|pypy)[\d.]*', w.rsplit('/', 1)[-1]):
+            i += 1
+            while i < len(ws) and ws[i].startswith('-') and ws[i] != '-':
+                i += 1 + (ws[i] in ('-X', '-W') and i + 1 < len(ws))
+            w = ws[i] if i < len(ws) else ''
+        if w.rsplit('/', 1)[-1] == SUBMIT:
+            return True
     return False
 
 
@@ -122,6 +147,11 @@ def pre(data):
     if pushes(str((data.get('tool_input') or {}).get('command', ''))):
         print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
                           'Pushing is the user\'s (CLAUDE.md, Git): print the push command for them to run instead.'}}))
+        return
+    if submits(str((data.get('tool_input') or {}).get('command', ''))):
+        print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
+                          "Submitting is the user's (01-principles.md, Scope discipline): ask them to run 04-submit.py themselves, "
+                          "for example with `! python3 '97-Online Testing/04-submit.py'`."}}))
         return
     STATE.mkdir(parents=True, exist_ok=True)
     for old in STATE.glob('*.json'):  # snapshots of commands that never finished

@@ -242,3 +242,10 @@ The P254 sweep reopened 19 packages and left 32 verified rows that `plan.py doct
   - one turns the linear sieve's `break` into `continue`, giving `n log log n` work, 2.30 to 2.57 times the inner iterations and 1.94 to 2.92 times the cycles at `10^6` to `10^8`.
 
   The bound is part of the contract, so such a mutant is not equivalent. The user accepted recording it as runtime only, with its work argument and measured ratio (user decision 2026-11-14).
+
+## 2026-11-15 Judge submissions (P225)
+
+- **Who submits.** Claude never submits to an online judge. The maintainer submits by hand or with `97-Online Testing/04-submit.py`, which `.claude/hooks/shell.py` refuses in Claude's shell. The rule lives in `01-principles.md` (Scope discipline) and `06-online.md`.
+- **Why a script.** Copying bundles into the judge's form by hand is slow and the acceptance records were written afterwards. Library Checker's REST API accepts `POST /submit` with a Firebase ID token (anonymous without one), so the script logs in once with email and password (never stored), keeps only the refresh token outside the repository, refuses anonymous submissions, and writes each AC into the source's Status line itself. The libraries whose "verified" badges are often cited run online-judge-verify-helper, which regenerates the tests locally in CI and never submits; `07-judge.py reproduce` is that check here.
+- **Owner.** P225 (SUP03), which owns `97-Online Testing` and its acceptance records, rather than a new package.
+- **Grader problems.** `07-judge.py` refuses only a problem without `sol/correct.cpp`, since Library Checker accepts stdin solutions beside function submissions (`96-Local Testing/Docs/00-judge.md`).

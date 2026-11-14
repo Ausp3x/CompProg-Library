@@ -40,7 +40,7 @@ Scope: [`07-judge.py`](../00-Tools/07-judge.py) fetches the fastest submissions,
 |---|---|
 | Comment and whitespace normalisation, string literals kept, similarity values | `test_similarity`, `test_similarity_random` (50 seeded cases; `--rounds` × 50 in stress) |
 | `fastest`: distinct-code merge, table, details fetched once, lists refetched, entries without `submission_time` | `test_fastest_dedupe` |
-| `submission`: cached source outside the tracked tree, per-case table, pending status refetched | `test_submission_cache` |
+| `submission`: cached source outside the tracked tree, per-case table, pending statuses (`WJ`, `-`, a stage, `k/n` progress) refetched, `pending` | `test_submission_cache` |
 | `--offline`, `problems` | `test_offline`, `test_problems` |
 | `mine`, newest AC past a newer WA | `test_mine` |
 | `compare`: columns, cells, non-AC marks, judge-only cases, gaps, max and sum, estimate, `--user` | `test_compare` |
@@ -68,9 +68,9 @@ Mutation checks on 2026-10-25 (a copy outside `/tmp`), each caught by the named 
 | Command | Result |
 |---|---|
 | `python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode quick` | 8 tests, 3.1 s, PASS, peak 70 MB |
-| `python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode full` | 12 tests, 17.0 s, PASS, peak 79 MB |
+| `python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode full` | 12 tests, 9.8 s, PASS, peak 79 MB |
 | `python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode stress --seed 7 --rounds 3` | PASS, peak 82 MB |
-| `CXX=g++-14 python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode full` | PASS, peak 69 MB |
+| `CXX=g++-14 python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode full` | PASS, peak 71 MB |
 | `CXX=aarch64-linux-gnu-g++ QEMU_LD_PREFIX=/usr/aarch64-linux-gnu python3 '96-Local Testing/00-Tools/07-judge_tester.py' --mode quick` | PASS, peak 70 MB (qemu-user) |
 | live: `fastest addition_of_hex_big_integers`, `mine Ausp3x …`, `reproduce … '97-Online Testing/src/01-Yosupo/02-Big Integers/07-additionhex.cpp' --label ours`, `compare … --user Ausp3x --top 3` | 29 distinct entries with the copy merged; 24 tests AC, local max 50 ms (`small_00`), reproduction peak 548 MB; judge gap 4.89 on `small_00` |
 
@@ -84,6 +84,7 @@ The launcher and a direct Python spawn timed the same binary within noise: `smal
 
 ## History
 
+- 2026-11-15: the queued status `-` and `k/n` progress count as pending (`pending`), so neither is cached as a verdict; found by the maintainer's first live `04-submit.py` run (#417103 printed as `-`), recorded here per scope discipline; quick, full, stress and g++-14 full passed.
 - 2026-11-15: a grader problem that ships `sol/correct.cpp` is no longer refused (stdin solutions are accepted there; found by P225 on `convolution_mod`, user's yes, recorded here per scope discipline); the tester adds the case; quick, full, stress and g++-14 passed, and `convolution_mod` reproduced 53/53.
 - 2026-10-30: SUP18 portability: `-march=native` only for an x86-64 target, the RSS bound widened under qemu-user; quick, full, stress, g++-14 and arm64 quick passed.
 - 2026-10-25: tool, tester and sandbox built from the P018 re-check prototypes; the launcher replaced Python-side `wait4` after the live run showed the inherited RSS; tester passed in quick, full, stress and on g++-14.

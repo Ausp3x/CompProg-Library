@@ -6066,7 +6066,7 @@
       "targets": [],
       "support_targets": [],
       "size": "S",
-      "focus": "Expand maintained judge solutions and exercise the C++ expander after canonical APIs stabilize; record local run versus genuine acceptance separately; see [online/workspace](../06-online.md). No automatic submissions.",
+      "focus": "Expand maintained judge solutions and exercise the C++ expander after canonical APIs stabilize; record local run versus genuine acceptance separately; see [online/workspace](../06-online.md). Claude never submits; the maintainer submits with `04-submit.py`, which records each acceptance.",
       "prerequisites": [],
       "tiers": []
     },
