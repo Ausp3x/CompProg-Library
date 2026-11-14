@@ -1,4 +1,7 @@
 #include "../../03-Geometry/08-coordinate_transform.hpp"
+#include "../../01-Core/07-infint.hpp"
+
+static_assert(std::same_as<Affine2<>, Affine2<Rational<lll>>>, "Affine2 defaults to Rational<lll>");
 
 namespace test {
     ulng seed = 20260927, checks = 0;
@@ -15,6 +18,8 @@ namespace test {
         close(got.x, want.x, op + " x", tol, point_scale); close(got.y, want.y, op + " y", tol, point_scale);}
     void readMap(std::istream &in, Affine2Approx &f) { in >> f.a >> f.b >> f.c >> f.d >> f.t.x >> f.t.y; }
     dpoint readPoint(std::istream &in) { dpoint p; in >> p.x >> p.y; return p; }
+    bool bitwise(dpoint x, dpoint y) {
+        return x.x == y.x && x.y == y.y && std::signbit(x.x) == std::signbit(y.x) && std::signbit(x.y) == std::signbit(y.y);}
 
     void fractions() {
         const char *path = std::getenv("CP_TRANSFORM_ORACLE"); require(path, "fixture environment");
@@ -83,6 +88,12 @@ namespace test {
             close(rotation.applyPoint(center), center, "rotation fixes center", 2e-12L);
             close(rotation.determinant(), 1, "rotation determinant");
             close((Affine2Approx::rotation(-angle, center) * rotation).applyPoint(p), p, "inverse rotation", 2e-12L);
+            auto turned = rotateApprox(p, angle, center), around = rotateApprox(p, angle);
+            require(bitwise(turned, rotation.applyPoint(p)), "rotateApprox equals rotation bitwise");
+            close(turned, center + dpoint{radius * std::cos(phase), radius * std::sin(phase)}, "rotateApprox polar oracle", 2e-12L);
+            require(bitwise(around, Affine2Approx::rotation(angle).applyPoint(p)), "rotateApprox default center bitwise");
+            long double r0 = std::hypot(p.x, p.y), phase0 = std::atan2(p.y, p.x) + angle;
+            close(around, {r0 * std::cos(phase0), r0 * std::sin(phase0)}, "rotateApprox origin polar oracle", 2e-12L);
             auto reflection = Affine2Approx::reflection(center, center + v);
             auto projection = Affine2Approx::projection(center, center + v);
             // Implicit normal equation gives an independent point-projection oracle.
@@ -112,6 +123,84 @@ namespace test {
         Affine2Approx tiny{1, 0, 0, 1e-30L}, inverse;
         require(tiny.inverse(inverse), "nonzero small determinant not suppressed"); close(inverse.d, 1e30L, "small inverse");
         cout << "PASS geometric cases=" << rounds << '\n';}
+
+    // Exact Affine2 over Rational<lng>, Rational<lll> (the default R) and Rational<InfInt> against Python Fraction 3x3
+    // matrices built pointwise from the definitions; every coefficient and image is compared exactly.
+    template<typename R> using Exact = std::conditional_t<std::same_as<R, Rational<lll>>, Affine2<>, Affine2<R>>;
+    template<typename R> R token(std::istream &in) {
+        string s; in >> s; R x; require(bool(in) && x.read(s), "exact token " + s); return x;}
+    template<typename R> array<R, 6> coefficients(const Affine2<R> &f) { return {f.a, f.b, f.c, f.d, f.tx, f.ty}; }
+    template<typename R, size_t N> void same(const array<R, N> &got, const array<R, N> &want, const char *op) {
+        for (size_t i = 0; i < N; ++i) {
+            if (!(got[i] == want[i])) {
+                std::ostringstream s; s << op << " index=" << i << " expected=" << want[i] << " actual=" << got[i];
+                require(false, s.str());}}
+        require(true, op);}
+
+    template<typename R> Exact<R> exactMap(std::istream &in, string &op, vector<array<R, 2>> &marks) {
+        using A = Exact<R>; using P = array<R, 2>;
+        auto x = [&] { return token<R>(in); };
+        auto pt = [&] { R u = x(); R v = x(); return P{u, v}; };
+        in >> op; marks.clear();
+        if (op == "id") { return A{}; }
+        if (op == "raw") { array<R, 6> v; for (auto &y : v) { y = x(); } return A{v[0], v[1], v[2], v[3], v[4], v[5]}; }
+        if (op == "tr") { return A::translation(pt()); }
+        if (op == "sc") { R s = x(), t = x(); return A::scaling(s, t); }
+        if (op == "scc") { R s = x(), t = x(); P c = pt(); return A::scaling(s, t, c); }
+        if (op == "ro") { R co = x(), si = x(); marks = {P{}}; return A::rotation(co, si); }
+        if (op == "roc") { R co = x(), si = x(); P c = pt(); marks = {c}; return A::rotation(co, si, c); }
+        if (op == "pr" || op == "re") { P p = pt(), q = pt(); return op == "pr" ? A::projection(p, q) : A::reflection(p, q); }
+        if (op == "si") { P p = pt(), q = pt(), u = pt(), v = pt(); marks = {p, q, u, v}; return A::similarity(p, q, u, v); }
+        require(false, "exact map op " + op); return A{};}
+
+    template<typename R> void exactRecord(std::istream &in) {
+        using A = Exact<R>; using P = array<R, 2>; using C = array<R, 6>;
+        string fop, gop; vector<P> marks, unused;
+        A f = exactMap<R>(in, fop, marks), g = exactMap<R>(in, gop, unused);
+        auto x = [&] { return token<R>(in); };
+        auto pt = [&] { R u = x(); R v = x(); return P{u, v}; };
+        auto map = [&] { C r; for (auto &y : r) { y = x(); } return r; };
+        P p = pt(), u = pt(), v = pt();
+        C fw = map(), gw = map(); P pw = pt(), vw = pt(); R dw = x();
+        C fixw = map(), fgw = map(), gfw = map(); P fgpw = pt(); int flag = -1; in >> flag; C invw = map();
+        string rest; require(bool(in) && !(in >> rest), "exact record shape");
+        const C identity{R(1), R(), R(), R(1), R(), R()};
+        same(coefficients(f), fw, "factory f vs Fraction"); same(coefficients(g), gw, "factory g vs Fraction");
+        same(A{}.applyPoint(p), p, "default identity");
+        same(f.applyPoint(p), pw, "applyPoint vs Fraction"); same(f.applyVector(v), vw, "applyVector vs Fraction");
+        same(array<R, 1>{f.determinant()}, array<R, 1>{dw}, "determinant vs Fraction");
+        auto fixed = f.fixing(p, u);
+        same(coefficients(fixed), fixw, "fixing vs Fraction"); same(fixed.applyPoint(p), u, "fixing maps p to u");
+        same(coefficients(f * g), fgw, "f * g vs Fraction (g first)"); same(coefficients(g * f), gfw, "g * f vs Fraction");
+        same((f * g).applyPoint(p), fgpw, "composed point"); same(f.applyPoint(g.applyPoint(p)), fgpw, "g then f point");
+        const A sentinel{R(2), R(3), R(5), R(7), R(11), R(13)};
+        A out = sentinel, alias = f;
+        require(f.inverse(out) == (flag == 1) && (flag == 0 || flag == 1), "inverse existence");
+        if (flag == 1) {
+            same(coefficients(out), invw, "inverse vs Fraction");
+            same(coefficients(f * out), identity, "f * inverse is identity"); same(coefficients(out * f), identity, "inverse * f is identity");
+            require(alias.inverse(alias), "self-aliased inverse exists"); same(coefficients(alias), invw, "self-aliased inverse");}
+        else {
+            same(coefficients(out), coefficients(sentinel), "singular inverse leaves out unchanged");
+            require(!alias.inverse(alias), "self-aliased singular inverse"); same(coefficients(alias), fw, "singular self alias unchanged");}
+        if (fop == "pr") { same(coefficients(f * f), fw, "projection idempotence"); }
+        if (fop == "re") { same(coefficients(f * f), identity, "reflection involution"); same(array<R, 1>{dw}, array<R, 1>{R(-1)}, "reflection determinant"); }
+        if (fop == "ro" || fop == "roc") { same(f.applyPoint(marks[0]), marks[0], "rotation fixes center"); same(array<R, 1>{dw}, array<R, 1>{R(1)}, "rotation determinant"); }
+        if (fop == "si") { same(f.applyPoint(marks[0]), marks[2], "similarity maps p to u"); same(f.applyPoint(marks[1]), marks[3], "similarity maps q to v"); }}
+
+    void exact() {
+        const char *path = std::getenv("CP_TRANSFORM_EXACT"); require(path, "exact fixture environment");
+        std::ifstream in(path); require(bool(in), "exact fixture opened");
+        string line; int count = 0, types[3] = {};
+        while (std::getline(in, line)) {
+            context = "exact fixture " + std::to_string(count++) + " " + line;
+            std::istringstream row(line); string type; row >> type;
+            if (type == "L") { exactRecord<Rational<lng>>(row); ++types[0]; }
+            else if (type == "X") { exactRecord<Rational<lll>>(row); ++types[1]; }
+            else if (type == "I") { exactRecord<Rational<InfInt>>(row); ++types[2]; }
+            else { require(false, "exact record type"); }}
+        require(types[0] > 0 && types[1] > 0 && types[2] > 0, "every exact type has records");
+        cout << "PASS exact Affine2 records=" << count << " lng=" << types[0] << " lll=" << types[1] << " InfInt=" << types[2] << '\n';}
 } // namespace test
 
 int main(int argc, char **argv) {
@@ -125,5 +214,15 @@ int main(int argc, char **argv) {
             if (probe == "projection-point") { Affine2Approx::projection({1, 2}, {1, 2}); }
             if (probe == "reflection-point") { Affine2Approx::reflection({1, 2}, {1, 2}); }
             if (probe == "similarity-point") { Affine2Approx::similarity({1, 2}, {1, 2}, {}, {3, 4}); }
+            using Q = Rational<lll>; using P = array<Q, 2>;
+            if (probe == "rotate-approx-nan") { rotateApprox({1, 2}, std::numeric_limits<long double>::quiet_NaN()); }
+            if (probe == "exact-rotation-nonunit") { Affine2<>::rotation(Q(3, 5), Q(3, 5)); }
+            if (probe == "exact-rotation-over") { Affine2<>::rotation(Q(4, 5), Q(4, 5)); }
+            if (probe == "projection-infinite") { long double m = std::numeric_limits<long double>::max(); Affine2Approx::projection({-m, 0}, {m, 0}); }
+            if (probe == "similarity-infinite") { long double m = std::numeric_limits<long double>::max(); Affine2Approx::similarity({-m, 0}, {m, 0}, {}, {1, 0}); }
+            if (probe == "exact-projection-point") { Affine2<>::projection(P{Q(1), Q(2)}, P{Q(1), Q(2)}); }
+            if (probe == "exact-reflection-point") { Affine2<>::reflection(P{Q(1), Q(2)}, P{Q(1), Q(2)}); }
+            if (probe == "exact-similarity-point") { Affine2<>::similarity(P{Q(1), Q(2)}, P{Q(1), Q(2)}, P{}, P{Q(3), Q(4)}); }
+            if (probe == "exact-overflow") { auto big = Affine2<>::scaling(Q(lll(1) << 100), Q(1)); auto square = big * big; cout << square.a << '\n'; }
             cerr << "FAIL assertion probe returned: " << probe << '\n'; return 1;}}
-    test::fractions(); test::geometry(); cout << "PASS checks=" << test::checks << " seed=" << test::seed << '\n';}
+    test::fractions(); test::geometry(); test::exact(); cout << "PASS checks=" << test::checks << " seed=" << test::seed << '\n';}

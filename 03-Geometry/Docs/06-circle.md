@@ -25,7 +25,7 @@ The GE02 numeric policy in [00-notes.md](00-notes.md#ge02-numeric-policy-p008) a
 ### circleLineIntersectionApprox, circleSegmentIntersectionApprox
 
 - `circleLineIntersectionApprox(c, a, b)` intersects the circle boundary with the infinite line through `a != b` (asserted). With `w = b - a`, `z = cross(w, a - c.c)` and `D = r^2 |w|^2 - z^2`, the count is 0, 1 or 2 by the computed sign of `D`. The foot is `c.c + perp(w) * z / |w|^2`, and the points are `foot -+ w * sqrt(D) / |w|^2`, in `a`-to-`b` order. Nothing is normalized first, so each classification quantity is rounded once. For integer-valued inputs with `|coordinates|, r <= 2^14`, every product is below `2^64`, and the classification, including tangency, is exact. Without normalization, `r^2 |w|^2` overflows sooner, near `1e1200`; that is within the finite-intermediate precondition.
-- `circleSegmentIntersectionApprox(c, a, b)` intersects the boundary with the closed segment `[a, b]`. It returns the subset of the line points (same values and order) whose parameter lies in `[0, 1]`. With `g(t) = power(a + t w) = A t^2 + 2 B t + C`, the smaller root is in `[0, 1]` iff `B0 <= 0`, `C0 >= 0` and (`B1 >= 0` or `C1 <= 0`), and the larger root iff (`B0 <= 0` or `C0 <= 0`), `B1 >= 0` and `C1 >= 0`. Here `B0 = dot(a - c, w)`, `C0 = power(a)`, `B1 = dot(b - c, w)` and `C1 = power(b)`. The derivation compares `-B -+ sqrt(D)` with `0` and `A`, using `B1 = A + B0` and `(A + B0)^2 - D = A * C1`, so no square root is involved. In the same integer domain, the endpoint decisions are exact. `a == b` is a singleton, giving one point iff the computed power of `a` is zero.
+- `circleSegmentIntersectionApprox(c, a, b)` intersects the boundary with the closed segment `[a, b]`. It returns the subset of the line points (same values and order) whose parameter lies in `[0, 1]`. With `g(t) = power(a + t w) = A t^2 + 2 B t + C`, the smaller root is in `[0, 1]` iff `B0 <= 0`, `C0 >= 0` and (`B1 >= 0` or `C1 <= 0`), and the larger root iff (`B0 <= 0` or `C0 <= 0`), `B1 >= 0` and `C1 >= 0`. Here `B0 = dot(a - c, w)`, `C0 = power(a)`, `B1 = dot(b - c, w)` and `C1 = power(b)`. The derivation compares `-B -+ sqrt(D)` with `0` and `A`, using `B1 = A + B0` and `(A + B0)^2 - D = A * C1`, so no square root is involved. In the same integer domain, the endpoint decisions are exact. Outside it, rounding is pinned (user decision 2026-11-14): the computed signs of these four quantities and of the line's `D` decide independently, even where they disagree with exact geometry; at a rounded tangency the segment can then keep a second line point that the exact segment misses (the tester's `computed signs decide the second root` regression). `a == b` is a singleton, giving one point iff the computed power of `a` is zero.
 
 ### circleIntersectionApprox, circleCentersApprox
 
@@ -40,6 +40,7 @@ These intersect two boundaries. Nested disjoint circles give zero points. Coinci
 - `CircleTangentApprox` holds the contact points `a` (on the first circle) and `b` (on the second) and the unit `direction` of the tangent line. The direction stays meaningful when the two contacts coincide.
 - `CircleTangentsApprox` holds at most two lines of the requested family; `count == -1` means infinitely many distinct lines.
 - `commonTangentsApprox(a, b, inner)` gives the outer family (`inner == false`, centers on the same side) or the inner family (centers on opposite sides). Tangent normals solve `dot(n, c2 - c1) = r1 - signed r2`. A radius-zero circle denotes a point, and every line through it is tangent. The two families therefore coincide when either radius is zero: two distinct points give one line, and identical points give `-1`.
+- With two lines, `lines[0]` is the right-hand tangent and `lines[1]` the left-hand one, seen from `a.c` toward `b.c`: each line's unit normal `n = rotateCW(direction)` (the direction from `a.c` toward its contact on `a`) satisfies `cross(b.c - a.c, n) < 0` for `lines[0]` and `> 0` for `lines[1]` (user decision 2026-11-14, P008).
 - `pointTangentsApprox(c, p)` is `commonTangentsApprox(c, CircleApprox(p, 0))`. The contact on `c` is in `.a`; `p` is in `.b`.
 
 ### circumcircleApprox, incircleApprox
@@ -62,46 +63,59 @@ This is the area of the intersection of the two filled disks. Disjoint or tangen
 | Operation | Test | Oracle |
 |---|---|---|
 | `circleLineIntersectionApprox` | Exhaustive integer discriminant counts with axis directions; Pythagorean directions `(3,4)`, `(4,3)`, `(-3,4)`, `(5,12)`, `(12,5)`, `(8,15)`, `(-15,8)` with `\|a\| <= 75` (full): every tangent and missing line and every fifth secant; boundary and line residuals; `a`-to-`b` order; regressions `(-7,-4)-(-3,-1)` and `(-53,-41)-(-49,-38)`; reversal | Exact integer discriminant; random algebraic quadratic oracle |
-| `circleSegmentIntersectionApprox` | Exhaustive integer segments (endpoints in `[-5,5]^2`, radii `0..5`, full) and all Pythagorean-direction segments; residuals, closed-segment membership, `a`-to-`b` order, reversal reverses the points; singleton, inside, outside-on-secant and chord-endpoint regressions | Exact root-placement oracle that squares `0 <= -B -+ sqrt(D) <= A` directly |
+| `circleSegmentIntersectionApprox` | Exhaustive integer segments (endpoints in `[-5,5]^2`, radii `0..5`, full) and all Pythagorean-direction segments; residuals, closed-segment membership, `a`-to-`b` order, reversal reverses the points; singleton, inside, outside-on-secant, chord-endpoint and endpoint-tangency (both orders) regressions; the pinned second root at a rounded tangency | Exact root-placement oracle that squares `0 <= -B -+ sqrt(D) <= A` directly |
 | `CircleIntersectionApprox`, `circleIntersectionApprox` | Point-set symmetry; both radial residuals; empty, nested, concentric, coincident, zero-radius and tangent cases | Exhaustive integer squared-distance classification |
 | `circleRelation` | Exhaustive grid; regressions for every value, `10^18` coordinates and `int`; the `relation-bound` probe | Tangent-count formula `2[q > (r-s)^2] + [q = (r-s)^2 > 0] + 2[q > (r+s)^2] + [q = (r+s)^2]`; supporting check that it equals the outer plus inner `commonTangentsApprox` counts |
-| `CircleTangentApprox`, `CircleTangentsApprox`, `commonTangentsApprox`, `pointTangentsApprox` | Contacts on both boundaries, unit direction, perpendicular radii, collinear contacts, center sides and distinct lines; random point-tangent right angles; point-circle cases | Exhaustive exact squared-distance tangent counts |
+| `CircleTangentApprox`, `CircleTangentsApprox`, `commonTangentsApprox`, `pointTangentsApprox` | Contacts on both boundaries, unit direction, perpendicular radii, collinear contacts, center sides, distinct lines and the right-hand line first; random point-tangent right angles; point-circle cases | Exhaustive exact squared-distance tangent counts |
 | `circleCentersApprox` | Diameter, impossible, repeated-point and zero-radius cases | Constructed 3-4-5 geometry |
 | `circumcircleApprox`, `incircleApprox` | Collinear/repeated inputs return false with `out` unchanged; 1,600 random triangles checked for equal distances, interior incenters and permutation invariance | 3-4-5 answers; geometric properties; triangle cases in `09-triangle_tester` |
-| `CircleApprox`: `locate`, `onBoundary`, `contains` (point, disk), `area`, `perimeter`, `arcLength`, `sectorArea`, `segmentArea` | Inside/boundary/outside, tolerance band, internal tangency; zero/half/quarter/full sweeps, negative sweeps, repeated revolutions | Exhaustive disk containment against exact squared distances; closed forms |
-| `segmentArea` series switch | Relative error `<= 4e-18` on 1,436 geometric sweeps from `1e-6` to `1.6`, across the `0.5` switch | Direct alternating Taylor summation, accurate to `3.1e-19` against `__float128` |
-| `diskOverlapAreaApprox` | 75 lenses; containment, zero-radius, disjoint and touching cases; symmetry, rigid motion and scale covariance; small external-lens asymptotics | Independent midpoint integration of vertical slices; unit-lens closed form |
+| `CircleApprox`: `locate`, `onBoundary`, `contains` (point, disk), `area`, `perimeter`, `arcLength`, `sectorArea`, `segmentArea` | Inside/boundary/outside (`onBoundary` false inside and outside), tolerance band, internal tangency; zero/half/quarter/full sweeps, negative sweeps, repeated revolutions | Exhaustive disk containment against exact squared distances; closed forms |
+| `segmentArea` series switch | Relative error `<= 4e-18` on 1,436 geometric sweeps from `1e-6` to `1.6`, across the `0.5` switch; `segmentArea(0.5)` equals `(0.5 - sin(0.5)) / 2` exactly, the direct form | Direct alternating Taylor summation, accurate to `3.1e-19` against `__float128` |
+| `diskOverlapAreaApprox` | 75 lenses; containment (seven off-centre nested pairs equal the inner `area()` exactly), disks disjoint by `6e-20` giving exactly 0, zero-radius, disjoint and touching cases; symmetry, rigid motion and scale covariance; small external-lens asymptotics | Independent midpoint integration of vertical slices; unit-lens closed form |
 | `powerApprox` | Exhaustive grid; random exterior points | Exact integer power; squared tangent length |
 | `radicalAxisApprox` | Exists iff the centers differ; concentric leaves `out` unchanged; the left side has smaller power to `a`; lens-chord regression | Intersection points lie on the axis (exhaustive); equal powers at four points along random axes |
 | Floating scale | Constructions at scales `1e-100` through `1e100`; external tangency gaps `1e-4`, `1e-8`, `1e-12` | Scaled residuals |
-| Preconditions | Thirteen checked-build probes: negative or NaN radius, infinite center, repeated line endpoints, negative tolerance, NaN point, infinite sweep, out-of-range segment sweeps, NaN segment endpoint, NaN power point, zero relation radius, relation coordinate above `10^18` | Expected assertion failure |
+| Preconditions | Fourteen checked-build probes: negative or NaN radius, infinite center, repeated line endpoints, NaN first line point, negative tolerance, NaN point, infinite sweep, out-of-range segment sweeps, NaN segment endpoint, NaN power point, zero relation radius, relation coordinate above `10^18` | Expected assertion failure |
 
 ## Commands and results
 
 Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 703 MB; optimized 0.2 s compile + 2.3 s run, checked 13.0 s compile + 2.7 s run, ASan-UBSan 14.2 s compile + 35.6 s run; MEMORY peak 835 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 759 MB; optimized 0.2 s compile + 2.9 s run, checked 17.5 s compile + 3.6 s run, ASan-UBSan 18.6 s compile + 24.9 s run; MEMORY peak 884 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 20.3 s compile + 0.1 s run, checked 15.6 s compile + 0.4 s run; MEMORY peak 700 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 718 MB; optimized 0.1 s compile + 7.5 s run, checked 4.5 s compile + 10.1 s run, ASan-UBSan 6.0 s compile + 134.1 s run; MEMORY peak 528 MB. Dated rows below stay those commands' latest results.
 
-2026-10-07, Linux x86-64, Intel Core i9-11900H, GCC 16.2.1, Python 3.14.7, GNU++20; the floor-check row ran on 2026-10-14 with GCC 14.4.1.
+2026-11-14 (P008; experiment none), Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and 14.4.1, Python 3.14.8, GNU++20, beside other sessions' mutation campaigns. The header is unchanged since 2026-10-07; P008 added tests for the survivors of its first mutation campaign.
 
 | Command | Result |
 |---|---|
-| `06-circle_tester.py --mode full --seed 20260927` (optimized, checked, ASan/UBSan) | PASS, 7,256,308 checks per configuration; 13 assertion probes |
-| `CXX=g++-14 06-circle_tester.py --mode full --seed 20261014` (GCC 14.4.1, 2026-10-14) | PASS, 7,256,208 checks per configuration; 13 assertion probes; `MEMORY peak=421MB` |
-| `06-circle_tester.py --mode stress --seed 42 --configuration optimized` | PASS, 80,626,052 checks |
-| Mutation checks, optimized full suite per mutant | Caught: the normalized line formula, the `0.01` series switch, two segment root conditions, the radical-axis sign, the relation's tangent case |
-| Warning sweep, every exact operation for `int8_t`, `int16_t`, `int`, `lng` plus every approximate operation, `-Wall -Wextra -Wconversion` | No header warnings (the tester has `-Wnarrowing` warnings from integer literals in braced `dpoint` initializers) |
-| Two-translation-unit program mixing all four GE02 headers (optimized, ASan/UBSan); standalone header | PASS |
-| `02-integration.py --sanitizers`, geometry quick run, `03-consistency.py` (with `--braces`) | PASS, no errors |
-| `@reviewer`: 6.7M integer segments in 11 directions against an exact root-placement oracle; 100k radical-axis side checks | No mismatch |
+| `06-circle_tester.py --mode full --seed 20261114` (optimized, checked, ASan/UBSan; GCC 16.2.1) | PASS, 7,261,398 checks per configuration; 14 assertion probes; `MEMORY peak=828MB` |
+| `CXX=g++-14 06-circle_tester.py --mode full --seed 20261114` (GCC 14.4.1) | PASS, the same counts; `MEMORY peak=882MB` |
+| `06-circle_tester.py --mode stress --seed 42` (all three configurations) | PASS, 80,654,252 checks per configuration; `MEMORY peak=528MB` |
+| `05-extraction.py testers --filter 03-Geometry/0` | PASS, 20 names for this tester, quick on the extracted build |
+| `04-mutation.py run 03-Geometry/06-circle.hpp` | See Mutation testing |
 
 ```bash
-python3 '96-Local Testing/03-Geometry/06-circle_tester.py' --mode full --seed 20260927
-CXX=g++-14 python3 '96-Local Testing/03-Geometry/06-circle_tester.py' --mode full --seed 20261014
-python3 '96-Local Testing/03-Geometry/06-circle_tester.py' --mode stress --seed 42 --configuration optimized
-python3 '96-Local Testing/01-run.py' --mode quick --filter 03-Geometry --seed 20260927 --no-integration
+python3 '96-Local Testing/03-Geometry/06-circle_tester.py' --mode full --seed 20261114
+CXX=g++-14 python3 '96-Local Testing/03-Geometry/06-circle_tester.py' --mode full --seed 20261114
+python3 '96-Local Testing/03-Geometry/06-circle_tester.py' --mode stress --seed 42
+python3 '96-Local Testing/05-extraction.py' testers --filter 03-Geometry/0
+python3 '96-Local Testing/04-mutation.py' run 03-Geometry/06-circle.hpp
 python3 '96-Local Testing/02-integration.py' --sanitizers
-python3 '96-Local Testing/03-consistency.py' --braces 03-Geometry/0[5-8]*.hpp '96-Local Testing/03-Geometry/'0[5-8]-*.cpp
 python3 '96-Local Testing/03-consistency.py'
 ```
+
+## Mutation testing
+
+`python3 '96-Local Testing/04-mutation.py' run 03-Geometry/06-circle.hpp --whole` (`/finish P008`, the whole file again after its regressions were added; the header is unchanged since the first campaign):
+
+Record: mewt 4.0.0 on blob `6a8811de0672f1a044906f720dd4b06685ca67c5` (2026-11-15, seed 1, whole file, uniform sample of 1177): 500 mutants, 487 caught (0 by timeout), 13 survived, 0 untested.
+
+Stage seconds: quick 382, full-optimized 14, full-rest 125 (baselines 3.8 s, 4.3 s and 15.7 s).
+
+The first campaign (2026-11-14, same blob and sample) left 22 survivors; nine are now caught by tests added since: `!c.onBoundary({7, 2})` (COS 909, line 28); the documented right-hand-first order of `commonTangentsApprox` (AOS 748, line 131; user decision 2026-11-14); the probe `nan-line` (CR 139, line 65); `segmentArea(0.5)` equal to `(0.5 - sin(0.5)) / 2` exactly (COS 889, line 11); off-centre nested disks equal to the inner disk's `area()` (COS 1050, line 98); two disks disjoint by `6e-20` whose overlap must be exactly 0 (IF 221, COS 1045, line 97); and the two pinned near-tangent segments whose second root `circleSegmentIntersectionApprox` must report (COS 982 and 994, line 76; rounding pinned by user decision 2026-11-14, Contracts). The 13 survivors are equivalent:
+
+- Commuted symmetric arguments: `dot(a - c.c, w)` on line 75 (AS 253) and the exact `dist2(a, b)` on line 108 (AS 265).
+- Lines 9 and 127, `max(0.L, y)` → `max(y, 0.L)` (AS 246, 266): the two orders differ only for a NaN or a negative zero `y`. Inputs are finite, and `(r - x) * (r + x)` with `r >= 0` and `(1 - x) * (1 + x)` are never `-0`: a zero factor is `+0` (a difference of equal values rounds to `+0`), and the other factor is then `2r` or 2, not negative.
+- Comparisons with zero of a value that is never negative, `==` → `<=` or `>=`: the squared norm `d` on line 59 (COS 932), the length `d` on line 124 (COS 1112), the square root `h` on line 129 (COS 1137) and the absolute value `z` on line 146 (COS 1152).
+- Line 90, `d == a.r + b.r` → `>=` and `d == abs(a.r - b.r)` → `<=` (COS 1039, 1042): line 87 already returned unless `abs(a.r - b.r) <= d <= a.r + b.r`. Line 110, `d == s` → `d >= s` (COS 1109): `d > s` returned before.
+- Line 138, the removed validity assertions of `a` and `b` in `circumcircleApprox` (CR 192, 193): a NaN or infinite `a` or `b` makes the centre `a + w` NaN or infinite, so the checked build still aborts, in the `CircleApprox` constructor's assertion; `NDEBUG` builds differ only past the violated precondition, in O(1) (`05-testing.md`, user decision 2026-11-12).
 
 ## Sources
 
@@ -129,3 +143,5 @@ Search aliases (P263, grab --find): 圆的切线, 公切线, 两圆交点, 圆�
 - 2026-10-14: floor check, full suite (seed 20261014) passed with g++-14.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.
+- 2026-11-14: P008 re-audit (experiment none): the completeness sweep found no operation missing from the row; the alternatives it named are recorded in `00-notes.md` (P008 re-audit decisions); first mutation campaign; five tests closed its test gaps (`onBoundary`, the right-hand-first order of `commonTangentsApprox`, now documented by user decision, the `nan-line` probe, the exact `segmentArea` switch at 0.5 and exact nested-disk areas), and an endpoint-tangency segment regression was added; no header change; full on g++ and g++-14, stress, extraction and `02-integration.py --sanitizers` passed; independent review found no defect in this header.
+- 2026-11-15: `/finish P008` (experiment none): the independent review showed four survivors recorded as equivalent were distinguishable (IF 221 and COS 1045 by disks disjoint by `6e-20`, COS 982 and 994 by near-tangent segments); each is now a regression, and the computed signs those segments depend on are pinned in Contracts (user decision 2026-11-14); second whole-file campaign: 487 of 500 caught, 13 equivalent survivors; no header change; full on g++ and g++-14, stress, extraction and `02-integration.py` passed.

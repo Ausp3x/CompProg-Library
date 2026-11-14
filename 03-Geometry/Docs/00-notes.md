@@ -19,7 +19,7 @@ Rows 01–04 (`01-point.hpp`, `02-line_segment.hpp`, `03-polygon.hpp`, `04-conve
 
 ### GE02 numeric policy (P008)
 
-Rows 05–08 (`05-closestpair.hpp`, `06-circle.hpp`, `07-rotatingcalipers.hpp`, `08-coordinate_transform.hpp`): the exact APIs are `closestPair`, `closestPair3`, `circleRelation`, every support/optimum choice of `ConvexCalipers` and `farthestPair`, on signed integral coordinates; every other API is an `Approx` API under the policy above.
+Rows 05–08 (`05-closestpair.hpp`, `06-circle.hpp`, `07-rotatingcalipers.hpp`, `08-coordinate_transform.hpp`): the exact APIs are `closestPair`, `closestPairRandomized`, `closestPair3`, `circleRelation`, `Affine2` (over its field `R`), every support/optimum choice of `ConvexCalipers` and `farthestPair`, on signed integral coordinates; every other API is an `Approx` API under the policy above.
 
 ## Topology and domains
 
@@ -77,7 +77,7 @@ This audit kept industrial CAD, molecular surfaces, remeshing and visualization,
 - Not adopted for `05-closestpair.hpp`: the minimum-perimeter triangle (a rare extension of the same recursion). The randomized expected-linear grid and floating-coordinate closest pair were adopted on 2026-11-08 into row 05 (`closestPairRandomized`, `closestPairApprox`). (returned by P275 2026-11-10 into row 05)
 - Not adopted for `06-circle.hpp`: the Apollonian ratio-locus circle (adopted on 2026-11-08 into row 24 as `apollonianCircle`).
 - Not adopted for `07-rotatingcalipers.hpp`: two-polygon calipers problems (maximum distance between convex polygons, hull merge bridges, critical support lines, widest separating strip, Grenander distance). Row 17 owns the maximum distance (`convexPolygonMaxDistance`) and row 53 the bridges; the others are not adopted (P036 decisions for row 17).
-- Not adopted for `08-coordinate_transform.hpp`: line and direction images (apply the map to two points or use `applyVector`), map equality and how-built predicates (field comparison), and exact rational transforms (no contest need, and they conflict with the `Approx` contract).
+- Not adopted for `08-coordinate_transform.hpp`: line and direction images (apply the map to two points or use `applyVector`), map equality and how-built predicates (field comparison), and exact rational transforms (no contest need, and they conflict with the `Approx` contract). (exact rational transforms returned by P275 2026-11-10 into row 08 as `Affine2`)
 
 ## P009 completeness decisions (2026-10-07)
 
@@ -199,6 +199,17 @@ P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines
 - The 2026-09-27 exclusion of CGAL packages for no contest use is lifted (user decision 2026-11-10): rows 28, 30, 33 and 45 take Spatial Sorting, Polygon Repair, Snap Rounding and 2D mesh refinement, and rows 68–75 the other families; Interval Skip List is Data Structures row 68 `contains`.
 - maspypy `minimum_three_distance_sum` is the sum at `fermatPoint` (row 25); the incremental anchored rectangle union is row 13 (no Data Structures row owned it); common tangents of two convex polygons are row 17 (row 53 lists only `DynamicHull::bridge`).
 - Not returned after the P275 review: `TriangleApprox::circumcircle` and `incircle` (the P009 prune removed these exact names; `omissions.md` Open questions, with P013's `multisetPermutationCount`).
+
+## P008 re-audit decisions (2026-11-14)
+
+Four `@researcher` passes, one per GE02 row; sources in [00-sources.md](00-sources.md#p008-re-audit-fetched-2026-11-14). Rows 05 and 06 had no missing operation.
+
+- **Added to `07-rotatingcalipers.hpp`:** `ConvexCalipers::expectedBoxAreaApprox` (OI Wiki's calipers exercise CF 1578F), a one-problem algorithm: its own `atan2` event sweep over the struct's hull, kept as a `ConvexCalipers` member in Basic row 07 rather than an Esoteric header (user decision 2026-11-14).
+- **Added to `08-coordinate_transform.hpp`:** the `Affine2` coefficients and its exact factories `translation`, `scaling`, `rotation` (rational cosine and sine), `projection`, `reflection`, `similarity` (CGAL `Aff_transformation_2`; the exact counterparts of the `Affine2Approx` factories).
+- **Not adopted, dominated (Priority):** KACTL's ordered-set sweep for `closestPair` (with the row's index tie rule and span checks it is not half the lines of the shared divide and conquer); the incremental randomized grid (Khuller–Matias, maspypy `closest_pair`), suisen's bottom-up divide and conquer and the ternary-search diameter (same bounds, no wider domain); Freeman–Shapira's quadratic rectangle (not lighter by half once ties and witnesses are kept); Nyaan's `acos` circle intersection.
+- **Not adopted:** CGAL's rational rotation approximating a direction to a given error (no contest use).
+- **Added, all-pairs scans (a Priority exception, user decision 2026-11-14, recorded in `omissions.md`):** `closestPairNaive`, `closestPair3Naive` and `minimumPerimeterTriangleApproxNaive` in row 05 and `farthestPairNaive` in row 07, each a short scan beside the divide and conquer or the hull and calipers it shadows, with the same domain, result and tie rule (row 12's `reportIntersectionsNaive` is the precedent).
+- **Follow-ups outside GE02 (user decisions):** `fromPolarApprox` (OI Wiki 坐标系; row 01 would own it beside `argApprox` and `normApprox`); the onion and spiral triangulations, quadrangulation, art gallery guarding and wedge placement of the Wikipedia calipers list (no row owns them); the thinnest-strip and shortest transversals are already listed under Limits in `00-Guidelines/23-Sweep Ledgers/Docs/00-duplicate-rereview.md`.
 
 ## P007 re-audit decisions (2026-11-11)
 

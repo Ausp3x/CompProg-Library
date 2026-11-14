@@ -37,7 +37,8 @@ void verifyTangents(CircleApprox a, CircleApprox b, bool inner, int expected) {
             require(near(dot(t.a - a.c, t.b - b.c), (inner ? -1 : 1) * a.r * b.r), "inner/outer center sides");}}
     if (z.count == 2) {
         auto p = z.lines[0], q = z.lines[1];
-        require(!near(cross(p.direction, q.direction), 0) || !near(cross(q.a - p.a, p.direction), 0), "distinct tangent lines");}}
+        require(!near(cross(p.direction, q.direction), 0) || !near(cross(q.a - p.a, p.direction), 0), "distinct tangent lines");
+        require(cross(b.c - a.c, rotateCW(q.direction) - rotateCW(p.direction)) >= 0, "right-hand tangent first");}}
 // Independent exact root placement for g(t) = A t^2 + 2 B t + C: t = (-B -+ sqrt(D)) / A is in [0, 1] iff
 // 0 <= -B -+ sqrt(D) <= A, decided by squaring each side of the square root comparison.
 bool rootAtLeast(lll d, lll k) { return k <= 0 || d >= k * k; }
@@ -71,7 +72,7 @@ void basic() {
     CircleApprox z, c({1, 2}, 5); long double pi = std::numbers::pi_v<long double>;
     require(z.c == dpoint{} && z.r == 0 && z.contains(dpoint{}) && z.onBoundary(dpoint{}), "default singleton disk");
     require(c.locate({1, 2}) == -1 && c.locate({6, 2}) == 0 && c.locate({7, 2}) == 1, "inside/boundary/outside");
-    require(c.contains(dpoint{4, 6}) && c.onBoundary({4, 6}) && !c.onBoundary(c.c), "closed versus boundary");
+    require(c.contains(dpoint{4, 6}) && c.onBoundary({4, 6}) && !c.onBoundary(c.c) && !c.onBoundary({7, 2}), "closed versus boundary");
     require(c.locate({6.01L, 2}, .02L) == 0 && c.contains(dpoint{6.01L, 2}, .02L), "explicit length tolerance");
     require(c.contains(CircleApprox({4, 2}, 2)) && !c.contains(CircleApprox({4, 2}, 3)), "closed disk containment");
     require(c.contains(CircleApprox({4, 2}, 2.01L), .02L), "disk containment tolerance");
@@ -101,6 +102,14 @@ void basic() {
     require(incircleApprox({}, {4, 0}, {0, 3}, out) && out.c == dpoint(1, 1) && out.r == 1, "3-4-5 incircle");
     require(diskOverlapAreaApprox(c, c) == c.area() && diskOverlapAreaApprox(c, CircleApprox(c.c, 2)) == 4 * pi, "coincident/nested disks");
     require(diskOverlapAreaApprox(c, z) == 0 && diskOverlapAreaApprox(z, z) == 0, "point disk area");
+    for (int k = 1; k <= 7; ++k) { require(diskOverlapAreaApprox({{}, 5}, {{1, static_cast<long double>(k % 3)}, k / 2.L}) == CircleApprox({}, k / 2.L).area(), "off-centre nested disk gives the inner area() exactly"); }
+    require(CircleApprox({}, 1).segmentArea(.5L) == (.5L - std::sin(.5L)) / 2, "segmentArea switches to x - sin(x) at 0.5");
+    require(diskOverlapAreaApprox({{}, 0xd.ad8f8b30a802781p-4L}, {{0xd.afc94135921e1d1p-4L, 0}, 0x8.e6d813a86e93b7cp-14L}) == 0, "disjoint by 6e-20 gives exactly 0");
+    long double pu = -0xb.5b73bp-27L, pv = -0x8.c4a03p-5L;
+    auto pinned = circleSegmentIntersectionApprox({{}, std::sqrt(pu * pu + pv * pv)}, {pu + pv, pv - pu}, {pu, pv});
+    require(pinned.count == 2, "computed signs decide the second root at a rounded tangency (user decision 2026-11-14)");
+    dpoint pa{-0xe.502da57595d3a5bp-4L, 0xb.895c5fb6d7e8821p-5L}, pw{-0xe.406a5b63b4bb067p-4L, -0x8.d74277d57a36acbp-2L};
+    require(circleSegmentIntersectionApprox({{}, 0xf.6e8aef211edap-4L}, pa, pa + pw).count == 2, "computed zero B0 keeps the second root (user decision 2026-11-14)");
     require(diskOverlapAreaApprox({{}, 1}, {{2, 0}, 1}) == 0 && diskOverlapAreaApprox({{}, 1}, {{3, 0}, 1}) == 0, "tangent/disjoint disk area");
     require(near(diskOverlapAreaApprox({{}, 1}, {{1, 0}, 1}), 2 * pi / 3 - std::sqrt(3.L) / 2), "unit lens closed form");
     phase = "small-angle segment series switch";
@@ -121,6 +130,8 @@ void basic() {
     require(circleSegmentIntersectionApprox({{}, 5}, {6, 0}, {9, 0}).count == 0, "segment outside on secant line");
     require(circleSegmentIntersectionApprox({{}, 5}, {3, 4}, {3, 4}).count == 1 && circleSegmentIntersectionApprox({{}, 5}, {3, 3}, {3, 3}).count == 0, "singleton segment");
     require(circleSegmentIntersectionApprox({{}, 5}, {3, 4}, {-3, 4}).count == 2 && circleSegmentIntersectionApprox({{}, 5}, {3, 4}, {0, 4}).count == 1, "chord endpoints on boundary");
+    auto ta = circleSegmentIntersectionApprox({{}, 5}, {5, 0}, {5, 3}), tb = circleSegmentIntersectionApprox({{}, 5}, {5, 3}, {5, 0});
+    require(ta.count == 1 && ta.points[0] == dpoint{5, 0} && tb.count == 1 && tb.points[0] == dpoint{5, 0}, "tangent segment touching at an endpoint");
     require(powerApprox(c, {1, 2}) == -25 && powerApprox(c, {4, 6}) == 0 && powerApprox(c, {8, 2}) == 24, "power inside/on/outside");
     array<dpoint, 2> axis{dpoint(7, 7), dpoint(8, 8)};
     require(!radicalAxisApprox(c, CircleApprox(c.c, 2), axis) && axis[0] == dpoint(7, 7) && axis[1] == dpoint(8, 8), "concentric radical axis unchanged");
@@ -269,6 +280,7 @@ void invalid(const string &name) {
     if (name == "infinite-center") { (void)CircleApprox({inf, 0}, 1); }
     if (name == "nan-radius") { (void)CircleApprox({}, nan); }
     if (name == "same-line-points") { (void)circleLineIntersectionApprox(c, {}, {}); }
+    if (name == "nan-line") { (void)circleLineIntersectionApprox(c, {nan, 0}, {1, 1}); }
     if (name == "nan-segment") { (void)circleSegmentIntersectionApprox(c, {nan, 0}, {1, 1}); }
     if (name == "nan-power") { (void)powerApprox(c, {0, nan}); }
     if (name == "relation-bound") { (void)circleRelation(point{-1000000000000000001LL, 0}, lng(1), point{0, 0}, lng(1)); }

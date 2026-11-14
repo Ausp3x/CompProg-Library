@@ -314,3 +314,21 @@ Four `@researcher` passes, one per GE01 row; decisions in [00-notes.md](00-notes
 | maspypy geo/convex_hull.hpp | https://maspypy.github.io/library/geo/convex_hull.hpp | `convexHullSorted` (presorted mode), `lowerHull`, `upperHull` |
 | OI Wiki 计算几何基础, 凸包 | https://oi-wiki.org/geometry/2d/, https://oi-wiki.org/geometry/convex-hull/ | row 03 aliases (even-odd and nonzero rules); no new operation |
 | ei1333, Nyaan, maspypy and KACTL catalog indexes | https://ei1333.github.io/library/, https://nyaannyaan.github.io/library/, https://maspypy.github.io/library/, https://github.com/kth-competitive-programming/kactl/tree/main/content/geometry | rows 01–04 checked; row 03 complete |
+
+## P008 re-audit, fetched 2026-11-14
+
+Four `@researcher` passes, one per GE02 row; decisions in [00-notes.md](00-notes.md#p008-re-audit-decisions-2026-11-14).
+
+| Source | URL | Used for |
+|---|---|---|
+| OI Wiki 平面最近点对 | https://oi-wiki.org/geometry/nearest-points/ | 05: `closestPair`, `closestPairRandomized`, `minimumPerimeterTriangleApprox` (divide and conquer, expected-linear grid); the set sweep and incremental grid not adopted |
+| cp-algorithms, nearest points | https://cp-algorithms.com/geometry/nearest_points.html | 05: Rabin's sampled grid (`closestPairRandomized`), the minimum-perimeter triangle extension |
+| KACTL ClosestPair.h | https://github.com/kth-competitive-programming/kactl/blob/main/content/geometry/ClosestPair.h | 05: ordered-set sweep, not adopted |
+| maspypy geo/closest_pair.hpp, suisen geom/closest_pair.hpp | https://maspypy.github.io/library/geo/closest_pair.hpp, https://suisen-cp.github.io/cp-library-cpp/library/geom/closest_pair.hpp | 05: incremental grid and bottom-up divide and conquer, not adopted; `closestPairApprox` (complex long double) |
+| KACTL, maspypy, Nyaan, ei1333, hitonanode circle files | https://github.com/kth-competitive-programming/kactl/tree/main/content/geometry, https://maspypy.github.io/library/geo/cross_point.hpp, https://nyaannyaan.github.io/library/geometry/circle.hpp, https://ei1333.github.io/library/geometry/circle.hpp, https://hitonanode.github.io/cplib-cpp/geometry/geometry.hpp | 06: every operation already in the row or owned elsewhere |
+| AOJ CGL_7_I | https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=CGL_7_I | 06: `diskOverlapAreaApprox` |
+| OI Wiki 旋转卡壳 | https://oi-wiki.org/geometry/rotating-calipers/ | 07: `expectedBoxAreaApprox` (exercise CF 1578F "Framing Pictures") |
+| Wikipedia, Rotating calipers; Toussaint 1983 | https://en.wikipedia.org/wiki/Rotating_calipers, https://www.cs.swarthmore.edu/~adanner/cs97/s08/pdf/calipers.pdf | 07: problem list checked; Freeman–Shapira quadratic rectangle not adopted; transversal and triangulation problems are follow-ups |
+| CGAL Aff_transformation_2 | https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Aff__transformation__2.html | 08: `Affine2` translation, scaling, reflection, rotation from a rational sine and cosine; the rational rotation approximation not adopted |
+| KACTL linearTransformation.h | https://github.com/kth-competitive-programming/kactl/blob/main/content/geometry/linearTransformation.h | 08: alias of `similarity` then `applyPoint` |
+| OI Wiki 坐标系 | https://oi-wiki.org/math/coordinate/ | `fromPolarApprox`, a follow-up for row 01 |

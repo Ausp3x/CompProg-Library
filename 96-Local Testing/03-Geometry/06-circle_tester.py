@@ -14,6 +14,6 @@ from _00_contest_runner import main
 
 if __name__ == '__main__':
     raise SystemExit(main('06-circle', ['negative-radius', 'infinite-center',
-        'nan-radius', 'same-line-points', 'negative-tolerance', 'nan-point',
+        'nan-radius', 'same-line-points', 'nan-line', 'negative-tolerance', 'nan-point',
         'infinite-sweep', 'negative-segment', 'large-segment', 'nan-segment', 'nan-power',
         'relation-radius', 'relation-bound']))

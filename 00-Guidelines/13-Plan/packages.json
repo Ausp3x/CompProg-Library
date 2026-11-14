@@ -133,39 +133,6 @@
       "note": "canonicalDirection's INT_MIN assert survivors (CR 212, COS 811) are masked in the checked build by libstdc++'s debug gcd assertion; the shared runner accepts any assertion, so a probe cannot require the header's own (user decision 2026-11-12: record as masked). /finish 2026-11-12, decided and logged while the user was away (their instruction): convexHullMelkman keep_collinear, adopted by user decision, measured 1.1-1.3x slower than convexHull(p, true); kept with its exception in omissions.md, open for the user's review. Follow-ups outside GE01 in 03-Geometry/Docs/00-notes.md (P007 re-audit decisions)."
     },
     {
-      "id": "P008",
-      "label": "03-Geometry — closestpair, circle, rotatingcalipers, coordinate transform",
-      "batches": [
-        "GE02"
-      ],
-      "phase": "Foundations re-audit",
-      "size": "L",
-      "model": "opus",
-      "status": "in-progress",
-      "evidence": [
-        "03-Geometry/Docs/05-closestpair.md",
-        "03-Geometry/Docs/06-circle.md",
-        "03-Geometry/Docs/07-rotatingcalipers.md",
-        "03-Geometry/Docs/08-coordinate_transform.md"
-      ],
-      "note": "Omission sweep 2026-11-08: implement closestPairRandomized, closestPairApprox in `05-closestpair.hpp`. P275 re-review 2026-11-10: implement minimumPerimeterTriangleApprox in `05-closestpair.hpp`; rotateApprox, Affine2 in `08-coordinate_transform.hpp`."
-    },
-    {
-      "id": "P009",
-      "label": "03-Geometry — triangle",
-      "batches": [
-        "GE23"
-      ],
-      "phase": "Foundations re-audit",
-      "size": "M",
-      "model": "opus",
-      "status": "in-progress",
-      "evidence": [
-        "03-Geometry/Docs/09-triangle.md"
-      ],
-      "note": "P275 re-review 2026-11-10: implement TriangleApprox::angles, TriangleApprox::transform, Triangle2::orient, Triangle2::locate in `09-triangle.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing."
-    },
-    {
       "id": "P010",
       "label": "04-Graphs — graph, traversal, toposort, dsu, shortest path, mst",
       "batches": [
@@ -246,6 +213,39 @@
         "06-Miscellaneous/Docs/07-permutation.md"
       ],
       "note": "Omission sweep 2026-11-08: implement BitOps::select, BitOps::xorRangeBlocks in `06-bit_operations.hpp`; permutationRankMod in `07-permutation.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing."
+    },
+    {
+      "id": "P008",
+      "label": "03-Geometry — closestpair, circle, rotatingcalipers, coordinate transform",
+      "batches": [
+        "GE02"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "L",
+      "model": "opus",
+      "status": "verified",
+      "evidence": [
+        "03-Geometry/Docs/05-closestpair.md",
+        "03-Geometry/Docs/06-circle.md",
+        "03-Geometry/Docs/07-rotatingcalipers.md",
+        "03-Geometry/Docs/08-coordinate_transform.md"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P009",
+      "label": "03-Geometry — triangle",
+      "batches": [
+        "GE23"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "M",
+      "model": "opus",
+      "status": "in-progress",
+      "evidence": [
+        "03-Geometry/Docs/09-triangle.md"
+      ],
+      "note": "P275 re-review 2026-11-10: implement TriangleApprox::angles, TriangleApprox::transform, Triangle2::orient, Triangle2::locate in `09-triangle.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing."
     },
     {
       "id": "P015",

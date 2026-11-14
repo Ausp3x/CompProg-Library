@@ -705,7 +705,9 @@
       "focus": "Closest pair, circle, calipers and transforms, including minimum enclosing rectangles/parallelograms and support-event ties.",
       "prerequisites": [
         "C01",
-        "GE01"
+        "GE01",
+        "MI01",
+        "C06"
       ],
       "tiers": [
         "Basic"
