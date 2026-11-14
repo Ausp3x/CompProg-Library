@@ -14,5 +14,7 @@ from _00_contest_runner import main
 if __name__ == '__main__':
     raise SystemExit(main('06-mst', ['directed-kruskal', 'directed-prim-sparse',
         'directed-prim-dense', 'directed-boruvka', 'directed-reconstruction',
-        'too-many-nodes', 'bottleneck-negative', 'bottleneck-end', 'lca-negative',
-        'lca-end', 'threshold-negative', 'threshold-end', 'leaf-range-negative', 'leaf-range-end']))
+        'too-many-nodes', 'bottleneck-negative', 'bottleneck-end', 'bottleneck-first-end',
+        'bottleneck-past', 'bottleneck-first-past', 'lca-negative', 'lca-end', 'lca-first-end',
+        'lca-past', 'lca-first-past', 'threshold-negative', 'threshold-end', 'leaf-range-negative',
+        'leaf-range-end', 'leaf-range-past']))

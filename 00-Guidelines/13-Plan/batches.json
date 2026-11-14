@@ -1108,7 +1108,8 @@
       "focus": "Single-source shortest paths and MST; GR01.",
       "prerequisites": [
         "C01",
-        "GR01"
+        "GR01",
+        "DS01"
       ],
       "tiers": [
         "Basic"

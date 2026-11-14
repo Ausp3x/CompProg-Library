@@ -11,7 +11,7 @@ struct PathWitness {
     vector<int> vertices, arcs;
 };
 
-// S: O(n + k), U: O(1) relax, Q: O(1) finite, O(path) path, M: O(n); dist is exact only where finite.
+// S: O(n + k), U: O(1) relax, Q: O(1) finite, O(p) path with p the path's vertices, M: O(n); dist exact where finite.
 struct ShortestPathResult {
     vector<lll> dist;
     vector<char> reachable, negative;
@@ -61,11 +61,13 @@ ShortestPathResult bfsShortestPaths(const G &g, const vector<int> &sources) {
     for (int v : walk.order) { out.reachable[v] = true; out.dist[v] = walk.depth[v]; }
     return out;}
 
-// T: O(n + m + k), M: O(n + m); every weight must be 0 or 1.
+// T: O(n + m + k), M: O(n + m); every weight is 0 or one common c > 0.
 template<class G = Graph>
 ShortestPathResult zeroOneBfs(const G &g, const vector<int> &sources) {
-    ShortestPathResult out(g.n, sources); deque<pair<lll, int>> ready;
-    bool ok = std::all_of(g.arcs.begin(), g.arcs.end(), [](const GraphArc &e) { return e.w == 0 || e.w == 1; });
+    ShortestPathResult out(g.n, sources); deque<pair<lll, int>> ready; lng c = 0;
+    bool ok = std::all_of(g.arcs.begin(), g.arcs.end(), [&](const GraphArc &e) {
+        if (!c) { c = e.w; }
+        return e.w == 0 || (e.w == c && c > 0);});
     assert(ok);
     if (!ok) { return out; }
     for (int u = 0; u < g.n; ++u) { if (out.reachable[u]) { ready.push_back({0, u}); }}
@@ -79,22 +81,70 @@ ShortestPathResult zeroOneBfs(const G &g, const vector<int> &sources) {
                 else { ready.push_back({out.dist[e.to], e.to}); }}}}
     return out;}
 
+namespace shortest_path_detail {
+    // T: O(n + d * log(d + 1)), M: O(n + d), d = arcs scanned; lazy heap from out's sources. If bounded, settles
+    // the vertices within limit into order by nondecreasing distance, false at the first negative scanned arc.
+    template<bool bounded, class G = Graph>
+    bool dijkstra(const G &g, ShortestPathResult &out, lll limit, vector<int> &order) {
+        priority_queue<pair<lll, int>, vector<pair<lll, int>>, std::greater<pair<lll, int>>> ready;
+        for (int u = 0; u < g.n; ++u) { if (out.reachable[u]) { ready.push({0, u}); }}
+        while (!ready.empty() && (!bounded || ready.top().first <= limit)) {
+            auto [d, u] = ready.top(); ready.pop();
+            if (d != out.dist[u]) { continue; }
+            if constexpr (bounded) { order.push_back(u); }
+            for (int a : g[u]) {
+                const auto &e = g.arcs[a];
+                if constexpr (bounded) { if (e.w < 0) { return false; }}
+                if (relax(out, e, a)) { ready.push({out.dist[e.to], e.to}); }}}
+        return true;}
+} // namespace shortest_path_detail
+
 // T: O(k + (n + m) * log(n + m + 1)), M: O(n + m); every weight must be nonnegative.
 template<class G = Graph>
 ShortestPathResult dijkstra(const G &g, const vector<int> &sources) {
-    ShortestPathResult out(g.n, sources);
+    ShortestPathResult out(g.n, sources); vector<int> order;
     bool ok = std::all_of(g.arcs.begin(), g.arcs.end(), [](const GraphArc &e) { return e.w >= 0; });
     assert(ok);
-    if (!ok) { return out; }
-    priority_queue<pair<lll, int>, vector<pair<lll, int>>, std::greater<pair<lll, int>>> ready;
-    for (int u = 0; u < g.n; ++u) { if (out.reachable[u]) { ready.push({0, u}); }}
-    while (!ready.empty()) {
-        auto [d, u] = ready.top(); ready.pop();
-        if (d != out.dist[u]) { continue; }
-        for (int a : g[u]) {
-            const auto &e = g.arcs[a];
-            if (shortest_path_detail::relax(out, e, a)) { ready.push({out.dist[e.to], e.to}); }}}
+    if (ok) { shortest_path_detail::dijkstra<false>(g, out, 0, order); }
     return out;}
+
+// T: O(1), M: O(n); center[v] is v's cell, -1 when unreached.
+struct VoronoiResult {
+    ShortestPathResult paths;
+    vector<int> center;
+};
+
+// T: O(k + (n + m) * log(n + m + 1)), M: O(n + m); weights nonnegative, ties to the smallest nearest center.
+template<class G = Graph>
+VoronoiResult voronoiCells(const G &g, const vector<int> &centers) {
+    VoronoiResult res{ShortestPathResult(g.n, centers), vector<int>(g.n, -1)};
+    auto &out = res.paths; auto &cell = res.center;
+    for (int c : centers) { cell[c] = c; }
+    bool ok = std::all_of(g.arcs.begin(), g.arcs.end(), [](const GraphArc &e) { return e.w >= 0; });
+    assert(ok);
+    if (!ok) { return res; }
+    using Key = tuple<lll, int, int>;
+    priority_queue<Key, vector<Key>, std::greater<Key>> ready;
+    for (int u = 0; u < g.n; ++u) { if (cell[u] == u) { ready.push({0, u, u}); }}
+    while (!ready.empty()) {
+        auto [d, c, u] = ready.top(); ready.pop();
+        if (d != out.dist[u] || c != cell[u]) { continue; }
+        for (int a : g[u]) {
+            const auto &e = g.arcs[a]; int v = e.to; lll x = d + e.w;
+            if (out.reachable[v] && pair(x, c) >= pair(out.dist[v], cell[v])) { continue; }
+            out.reachable[v] = true; out.dist[v] = x; cell[v] = c;
+            out.parent[v] = u; out.parent_arc[v] = a; ready.push({x, c, v});}}
+    return res;}
+
+// T: O(n + d * log(d + 1)), M: O(n + d), d = arcs scanned; radius >= 0, weights nonnegative (scanned arcs checked),
+// induced on the vertices within weighted distance radius of center (out-arcs), by nondecreasing distance.
+template<class G = Graph>
+Subgraph egoGraphWeighted(const G &g, int center, lll radius) {
+    assert(0 <= center && center < g.n && radius >= 0);
+    ShortestPathResult out(g.n, {center}); vector<int> order;
+    bool ok = shortest_path_detail::dijkstra<true>(g, out, radius, order);
+    assert(ok);
+    return inducedSubgraph(g, ok ? order : vector<int>{center});}
 
 // T: O(n^2 + m + k), M: O(n); minimum view, every weight of the source graph nonnegative.
 inline ShortestPathResult dijkstraDense(const DenseGraph &dense, const vector<int> &sources) {
@@ -114,19 +164,83 @@ inline ShortestPathResult dijkstraDense(const DenseGraph &dense, const vector<in
 
 // T: O(1), M: O(n); if acyclic is false, paths reaches nothing and cycle is a witness.
 struct DagPathResult {
-    bool acyclic;
+    bool acyclic = false;
     ShortestPathResult paths;
     CycleWitness cycle;
 };
 
-// T: O(n + m + k), M: O(n); directed, signed weights, longest picks maximum weight paths.
+namespace shortest_path_detail {
+    // T: O(n + m + k), M: O(n); relaxation in topological order, maximum weight paths when longest.
+    template<class G = Graph>
+    DagPathResult dagPaths(const G &g, const vector<int> &sources, bool longest) {
+        ShortestPathResult out(g.n, sources); auto topo = topologicalSort(g);
+        if (!topo.acyclic) { return {false, ShortestPathResult(g.n), std::move(topo.cycle)}; }
+        for (int u : topo.order) {
+            if (out.reachable[u]) { for (int a : g[u]) { relax(out, g.arcs[a], a, longest); }}}
+        return {true, std::move(out), {}};}
+} // namespace shortest_path_detail
+
+// T: O(n + m + k), M: O(n); directed, signed weights, minimum weight paths.
 template<class G = Graph>
-DagPathResult dagShortestPaths(const G &g, const vector<int> &sources, bool longest = false) {
-    ShortestPathResult out(g.n, sources); auto topo = topologicalSort(g);
-    if (!topo.acyclic) { return {false, ShortestPathResult(g.n), std::move(topo.cycle)}; }
+DagPathResult dagShortestPaths(const G &g, const vector<int> &sources) {
+    return shortest_path_detail::dagPaths(g, sources, false);}
+
+// T: O(n + m + k), M: O(n); directed, signed weights, maximum weight paths.
+template<class G = Graph>
+DagPathResult dagLongestPathsFrom(const G &g, const vector<int> &sources) {
+    return shortest_path_detail::dagPaths(g, sources, true);}
+
+// T: O(1), M: O(n); if acyclic is false, cycle is a witness; path is absent only then or when n == 0.
+struct DagLongestPathResult {
+    bool acyclic = false;
+    lll length = 0;
+    PathWitness path;
+    CycleWitness cycle;
+};
+
+// T: O(n + m), M: O(n); directed, signed weights, a maximum weight path from any start, ties to the smallest end.
+template<class G = Graph>
+DagLongestPathResult dagLongestPath(const G &g) {
+    vector<int> sources(g.n); iota(sources.begin(), sources.end(), 0);
+    auto res = dagLongestPathsFrom(g, sources);
+    if (!res.acyclic) { return {false, 0, {}, std::move(res.cycle)}; }
+    if (!g.n) { return {true, 0, {}, {}}; }
+    const auto &dist = res.paths.dist;
+    int v = int(std::max_element(dist.begin(), dist.end()) - dist.begin());
+    return {true, dist[v], res.paths.path(g, v), {}};}
+
+// T: O(1), M: O(n + m); if acyclic is false, only cycle is set; critical lists arc IDs in increasing order.
+struct CriticalPathResult {
+    bool acyclic = false;
+    lll length = 0;
+    vector<lll> earliest, latest;
+    vector<int> critical;
+    CycleWitness cycle;
+};
+
+// T: O(n + m), M: O(n + m); directed AOE network, arcs are activities with signed durations.
+template<class G = Graph>
+CriticalPathResult criticalPath(const G &g) {
+    auto topo = topologicalSort(g);
+    if (!topo.acyclic) { return {false, 0, {}, {}, {}, std::move(topo.cycle)}; }
+    CriticalPathResult res{true, 0, vector<lll>(g.n), vector<lll>(g.n), {}, {}};
+    vector<char> seen(g.n);
     for (int u : topo.order) {
-        if (out.reachable[u]) { for (int a : g[u]) { shortest_path_detail::relax(out, g.arcs[a], a, longest); }}}
-    return {true, std::move(out), {}};}
+        for (int a : g[u]) {
+            const auto &e = g.arcs[a]; lll x = res.earliest[u] + e.w;
+            if (!seen[e.to] || x > res.earliest[e.to]) { res.earliest[e.to] = x; seen[e.to] = true; }}}
+    bool sink = false;
+    for (int v = 0; v < g.n; ++v) {
+        if (g[v].empty() && (!sink || res.earliest[v] > res.length)) { res.length = res.earliest[v]; sink = true; }}
+    for (int i = g.n - 1; i >= 0; --i) {
+        int u = topo.order[i]; bool first = true; res.latest[u] = res.length;
+        for (int a : g[u]) {
+            const auto &e = g.arcs[a]; lll x = res.latest[e.to] - e.w;
+            if (first || x < res.latest[u]) { res.latest[u] = x; first = false; }}}
+    for (int a = 0; a < int(g.arcs.size()); ++a) {
+        const auto &e = g.arcs[a];
+        if (res.earliest[e.from] + e.w == res.latest[e.to]) { res.critical.push_back(a); }}
+    return res;}
 
 // T: O(n * m + n + k), M: O(n); signed weights, negative marks vertices reachable from a negative cycle.
 template<class G = Graph>
@@ -162,3 +276,13 @@ template<class G = Graph>
 CycleWitness findNegativeCycle(const G &g) {
     vector<int> sources(g.n); iota(sources.begin(), sources.end(), 0);
     return bellmanFord(g, sources).negative_cycle;}
+
+// T: O(n * m + n + k) with a negative weight, O(n + m + k) with weights in {0, c}, else as dijkstra; M: O(n + m).
+template<class G = Graph>
+ShortestPathResult shortestPaths(const G &g, const vector<int> &sources) {
+    lng c = 0; bool negative = false, uniform = true;
+    for (const auto &e : g.arcs) {
+        negative |= e.w < 0;
+        if (e.w) { c = c ? c : e.w; uniform &= e.w == c; }}
+    if (negative) { return bellmanFord(g, sources); }
+    return uniform ? zeroOneBfs(g, sources) : dijkstra(g, sources);}

@@ -142,7 +142,7 @@
       "phase": "Foundations re-audit",
       "size": "M+L",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "04-Graphs/Docs/01-graph.md",
         "04-Graphs/Docs/02-traversal.md",
@@ -151,7 +151,7 @@
         "04-Graphs/Docs/05-shortest_path.md",
         "04-Graphs/Docs/06-mst.md"
       ],
-      "note": "GR01 done 2026-11-14 (rows 01-04 verified: graph, traversal, toposort, dsu adapter; @reviewer 8 findings fixed; mutation records current; user decisions 2026-11-14: named mirrors for flags, topologicalSortEarliest, comment share excludes // T:/S: lines, lineGraph edge order). Next: GR02 (05-shortest_path, 06-mst). Flag ruling renames for rows 05, 06, 10 (duplicates.md Changes) and GR02's new operations zeroOneBfs ({0, c} weights), voronoiCells, egoGraphWeighted, criticalPath in 05-shortest_path.hpp."
+      "note": "Follow-ups: cost-oracle Prim (row 43), XOR MST (row 43 or 95), Held-Karp 1-tree (row 73)."
     },
     {
       "id": "P011",

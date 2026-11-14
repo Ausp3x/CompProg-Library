@@ -8,7 +8,7 @@ Decided by the user since 2026-10-10; binding, and only the user changes them.
 
 ### Changes
 
-- **P010** flags choosing between operations become named mirrors (user decision 2026-11-14): `topologicalSort(g, true)` → `topologicalSortSmallest` (GR01, done), `dagShortestPaths(g, s, true)` → `dagLongestPathsFrom` (`dagLongestPaths` stays retired), `kruskal`/`primSparse`/`boruvka(g, true)` → `kruskalMaximum`/`primSparseMaximum`/`boruvkaMaximum`, `eulerianTrail(g, start, true)` → `eulerianTrailSmallest`; `KruskalReconstruction(g, maximum)` keeps its constructor parameter. Row 03's lexicographically smallest inverse permutation is `topologicalSortEarliest`.
+- **P010** flags choosing between operations become named mirrors (user decision 2026-11-14): `topologicalSort(g, true)` → `topologicalSortSmallest` (GR01, done), `dagShortestPaths(g, s, true)` → `dagLongestPathsFrom` (`dagLongestPaths` stays retired; GR02, done), `kruskal`/`primSparse`/`boruvka(g, true)` → `kruskalMaximum`/`primSparseMaximum`/`boruvkaMaximum` (GR02, done), `eulerianTrail(g, start, true)` → `eulerianTrailSmallest`; `KruskalReconstruction(g, maximum)` keeps its constructor parameter. Kept as well (user decision 2026-11-15): `ShortestPathResult::relax(e, a, longest)`, a member helper for hand-written relaxation loops whose caller already fixes the direction, and `primDense`'s `DenseGraph::maximum` view, which already chose each pair's minimum or maximum parallel arc. Row 03's lexicographically smallest inverse permutation is `topologicalSortEarliest`.
 - **P012** Mathematics row 01 `divMod` is named `divModFloor`, as Core's flooring `InfInt::divModFloor`, since Core's `divMod` truncates; this reverses P275's `divModFloor` → `divMod` rename (`Docs/00-duplicate-rereview.md`) (user decision 2026-11-12).
 - **P090** `08-Python` row `_05_sequences`: `kadane` and `kadaneCircular` are named `maximumSubarray` and `circularMaximumSubarray`, as in C++ (`04-python.md` naming).
 - **P048** row 35 `triangleAggregate` is named `triangleProductSum` (decided 2026-10-29).
@@ -472,11 +472,11 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 |---|---|---|---|---|---|---|
 | `BitsetDP::shiftOr` | row 22 | Core `Bitset::combineShift<Op::Or>(dp, k)` | ask | kept as a `BitsetDP` member calling Core `combineShift<Op::Or>` (user decision 2026-11-10); `shiftOr` means bitap in Strings row 17, so it needs another name | — | — |
 
-## P010 — 04-Graphs — graph, traversal, toposort, dsu, shortest path, mst (in progress)
+## P010 — 04-Graphs — graph, traversal, toposort, dsu, shortest path, mst (verified; the row 10 item waits for its package)
 
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
-| `dagShortestPaths(g, sources, longest)` flag; `06-mst.hpp` `maximum` flags of `kruskal`, `primSparse`, `boruvka`; `eulerianTrail(g, start, lexicographic)` flag | rows 05, 06, 10 | `dagLongestPathsFrom`; `kruskalMaximum`, `primSparseMaximum`, `boruvkaMaximum`; `eulerianTrailSmallest` (named mirrors, ruling 3) | remove (user decision 2026-11-14) | a flag choosing between operations is a removable form; `dagLongestPaths` stays retired (P275 guard), `KruskalReconstruction` keeps its constructor parameter; GR01 applied row 03 (`topologicalSortSmallest`), the rest waits for the runs owning rows 05, 06 and 10 | the flag cases | callers of the flags |
+| `dagShortestPaths(g, sources, longest)` flag; `06-mst.hpp` `maximum` flags of `kruskal`, `primSparse`, `boruvka`; `eulerianTrail(g, start, lexicographic)` flag | rows 05, 06, 10 | `dagLongestPathsFrom`; `kruskalMaximum`, `primSparseMaximum`, `boruvkaMaximum`; `eulerianTrailSmallest` (named mirrors, ruling 3) | remove (user decision 2026-11-14) | a flag choosing between operations is a removable form; `dagLongestPaths` stays retired (P275 guard), `KruskalReconstruction` keeps its constructor parameter; GR01 applied row 03 (`topologicalSortSmallest`), GR02 rows 05 and 06; row 10 waits for the run owning it | the flag cases | callers of the flags |
 
 ## P042 — 04-Graphs — all pairs shortest path, shortest path advanced, tree algorithms, hld, levelancestor (in progress)
 

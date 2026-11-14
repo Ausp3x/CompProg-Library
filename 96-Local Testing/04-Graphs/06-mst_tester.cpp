@@ -151,8 +151,8 @@ void verify(const Graph &g) {
     Oracle oracle = brute(g); CsrGraph csr(g); DenseGraph dense(g), heavy(g, true);
     for (auto result : {kruskal(g), primSparse(g), primDense(dense), boruvka(g), kruskal(csr), primSparse(csr), boruvka(csr)}) {
         forest(g, result, oracle);}
-    for (auto result : {kruskal(g, true), primSparse(g, true), primDense(heavy), boruvka(g, true), kruskal(csr, true),
-                        primSparse(csr, true), boruvka(csr, true)}) {
+    for (auto result : {kruskalMaximum(g), primSparseMaximum(g), primDense(heavy), boruvkaMaximum(g), kruskalMaximum(csr),
+                        primSparseMaximum(csr), boruvkaMaximum(csr)}) {
         forest(g, result, oracle, true);}
     reconstruction(g, oracle, false); reconstruction(g, oracle, true);}
 void exhaustive(const string &mode) {
@@ -175,6 +175,7 @@ void fixtures() {
     mixed.addEdge(0, 3, low); mixed.addEdge(1, 1, low); mixed.addEdge(0, 1, high); verify(mixed);
     KruskalReconstruction tree(mixed); auto copied = tree; auto moved = std::move(copied);
     context = "union-tree copy/move/owning snapshot";
+    require(!tree.maximum && tree.value == KruskalReconstruction(mixed, false).value, "default union tree is minimum");
     require(moved.bottleneck(0, 2).value == tree.bottleneck(0, 2).value && moved.child == tree.child,
         "copy/move preserves queries and nodes");
     auto before = tree.bottleneck(1, 2); mixed.addEdge(1, 2, low);
@@ -183,8 +184,8 @@ void fixtures() {
     for (auto [u, v] : vector<pair<int, int>>{{2, 3}, {0, 1}, {1, 2}, {0, 3}, {0, 1}, {2, 2}}) {
         tied.addEdge(u, v, 0);}
     context = "all-zero cycle/parallel/loop tie fixture edges=(2,3),(0,1),(1,2),(0,3),(0,1),(2,2)";
-    for (auto result : {kruskal(tied), primSparse(tied), primDense(DenseGraph(tied)), boruvka(tied), kruskal(tied, true),
-                        primSparse(tied, true), primDense(DenseGraph(tied, true)), boruvka(tied, true)}) {
+    for (auto result : {kruskal(tied), primSparse(tied), primDense(DenseGraph(tied)), boruvka(tied), kruskalMaximum(tied),
+                        primSparseMaximum(tied), primDense(DenseGraph(tied, true)), boruvkaMaximum(tied)}) {
         sort(result.edges.begin(), result.edges.end());
         require(result.edges == vector<int>({0, 1, 2}), "canonical edge-ID tie breaking across all minimum/maximum engines");}
     for (bool maximum : {false, true}) {
@@ -207,7 +208,7 @@ void large(const string &mode) {
     for (int i = 1; i < n; ++i) { g.addEdge(i - 1, i, i - n / 2); }
     context = "long increasing-weight chain n=" + std::to_string(n);
     lll expected = lll(n - 1) * n / 2 - lll(n - 1) * (n / 2);
-    for (auto result : {kruskal(g), primSparse(g), boruvka(g), kruskal(g, true), primSparse(g, true), boruvka(g, true)}) {
+    for (auto result : {kruskal(g), primSparse(g), boruvka(g), kruskalMaximum(g), primSparseMaximum(g), boruvkaMaximum(g)}) {
         require(result.components == 1 && int(result.edges.size()) == n - 1 && result.weight == expected,
             "large sparse forest exact total");}
     for (bool maximum : {false, true}) {
@@ -221,7 +222,7 @@ void large(const string &mode) {
     for (int i = 2; i < n; i += 2) {
         lighter += min(lll(0), -lll(i - n / 2)); heavier += max(lll(0), -lll(i - 1 - n / 2));}
     for (auto [result, want] : vector<pair<SpanningForest, lll>>{{kruskal(g), lighter}, {primSparse(g), lighter}, {boruvka(g), lighter},
-            {kruskal(g, true), heavier}, {primSparse(g, true), heavier}, {boruvka(g, true), heavier}}) {
+            {kruskalMaximum(g), heavier}, {primSparseMaximum(g), heavier}, {boruvkaMaximum(g), heavier}}) {
         require(result.components == 1 && result.weight == want, "large triangle-chain minimum/maximum totals", show(want), show(result.weight));}
     std::cout << "PASS sparse minimum/maximum algorithms, triangle chain and deep reconstruction forest n=" << n << '\n';}
 void invalid(const string &probe) {
@@ -232,17 +233,25 @@ void invalid(const string &probe) {
     if (probe == "directed-boruvka") { (void)boruvka(directed); }
     if (probe == "directed-reconstruction") { KruskalReconstruction bad(directed); }
     if (probe == "too-many-nodes") {
-        struct OversizedGraph { int n = INT_MAX; bool directed = false; vector<GraphEdge> edges; } g;
+        struct OversizedGraph { int n = INT_MAX / 2 + 2; bool directed = false; vector<GraphEdge> edges; } g;
         KruskalReconstruction bad(g);}
-    KruskalReconstruction tree(Graph(2));
+    Graph path(3); path.addEdge(0, 1); path.addEdge(1, 2);
+    KruskalReconstruction tree(path); // n = 3 leaves, 5 nodes: vertex and node bounds differ.
     if (probe == "bottleneck-negative") { (void)tree.bottleneck(-1, 0); }
-    if (probe == "bottleneck-end") { (void)tree.bottleneck(0, 2); }
+    if (probe == "bottleneck-end") { (void)tree.bottleneck(0, 3); }
+    if (probe == "bottleneck-first-end") { (void)tree.bottleneck(3, 0); }
+    if (probe == "bottleneck-past") { (void)tree.bottleneck(0, 4); }
+    if (probe == "bottleneck-first-past") { (void)tree.bottleneck(4, 0); }
     if (probe == "lca-negative") { (void)tree.lca(-1, 0); }
-    if (probe == "lca-end") { (void)tree.lca(0, 2); }
+    if (probe == "lca-end") { (void)tree.lca(0, 5); }
+    if (probe == "lca-first-end") { (void)tree.lca(5, 0); }
+    if (probe == "lca-past") { (void)tree.lca(0, 6); }
+    if (probe == "lca-first-past") { (void)tree.lca(6, 0); }
     if (probe == "threshold-negative") { (void)tree.componentAt(-1, 0); }
-    if (probe == "threshold-end") { (void)tree.componentAt(2, 0); }
+    if (probe == "threshold-end") { (void)tree.componentAt(3, 0); }
     if (probe == "leaf-range-negative") { (void)tree.leafRange(-1); }
-    if (probe == "leaf-range-end") { (void)tree.leafRange(2); }
+    if (probe == "leaf-range-end") { (void)tree.leafRange(5); }
+    if (probe == "leaf-range-past") { (void)tree.leafRange(6); }
     throw std::runtime_error("unknown or unasserted precondition=" + probe);}
 int main(int argc, char **argv) {
     string mode = "full";

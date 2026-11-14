@@ -262,3 +262,16 @@ P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines
 The GR01 sweeps ([sources](00-sources.md#fetched-2026-11-14-p010-gr01)) left nothing out of rows 01–04 (user decision 2026-11-14: every candidate is adopted). Placed elsewhere: `egoGraphWeighted` and `criticalPath` in row 05 (a Dijkstra radius and the AOE longest-path passes); `attractingComponents` and `isSemiconnected` in row 08; the one-problem `inverseLineGraph`, `pathCycleDecomposition` and `bipartiteAfterEdgeRemoval` in row 95; `stochasticGraphApprox` (floating-point arc weights, which `Graph` cannot hold) in row 97. Aliases only: NetworkX `contracted_nodes`, `quotient_graph` (`contract`, `simplify`), `non_edges` (`complementGraph`), `union`/`disjoint_union` (`disjointUnion`), the `*_all` forms (repeated binary calls), `create_empty_copy` (the constructor), maspypy `rearrange` (`inducedSubgraph`).
 
 Copied code (`03-cpp.md`, One API per operation): `egoGraph` runs its own radius-bounded BFS instead of calling `bfs`, so that it costs O(n + d) for the degree sum `d` of the ball rather than a scan of the whole component. `graphPower` keeps its own bounded BFS for the same reason.
+
+## P010 GR02 omissions
+
+The GR02 sweeps ([sources](00-sources.md#fetched-2026-11-14-p010-gr02)) added `shortestPaths` and `dagLongestPath` to row 05 (user decision 2026-11-14). `shortestPaths` dispatches to `bellmanFord`, `zeroOneBfs` or `dijkstra` only: Dial belongs to row 13, which includes row 05, and the recorded benchmark ([05-shortest_path.md](05-shortest_path.md#benchmarks)) found no density threshold for `dijkstraDense`. The other candidates stay out:
+
+- Prim on a cost oracle (maspypy `mst_prim(N, cost)`, hitonanode `mst_edges`): an implicit-graph engine, a follow-up for row 43 beside `implicitBoruvka`.
+- XOR minimum spanning tree (CF888G, named by OI Wiki): a one-problem `implicitBoruvka` instance, a follow-up for row 43 or 95.
+- Camerini's O(m) minimum bottleneck spanning tree, Filter-Kruskal, presorted Kruskal and reverse-delete: only Wikipedia names them, no swept catalog; any MST is a bottleneck tree, and `KruskalReconstruction` answers bottleneck queries.
+- Held–Karp 1-tree (hitonanode `minimum_one_tree`): a TSP bound, a follow-up for row 73.
+- Segment-tree and `std::set` Dijkstra, two-vector 0-1 BFS: the bounds of the binary heap and the deque with no wider domain; SPFA, D'Esopo–Pape, Dial and radix-heap Dijkstra stay in row 13.
+- Hop-limited Bellman–Ford (at most k arcs): no catalog names it; row 12 owns at-most-k-arc paths.
+
+Copied code (`03-cpp.md`, One API per operation): `voronoiCells` runs its own Dijkstra over (distance, center) keys, since `dijkstra` breaks distance ties by settle order and cannot give the smallest nearest center. `dijkstra` and `egoGraphWeighted` share `shortest_path_detail::dijkstra`, whose bounded form stops at the radius, so the ball costs O(n + d * log(d + 1)) rather than a whole Dijkstra. `criticalPath` repeats the forward relaxation of `dagLongestPathsFrom` because its backward pass needs the same topological order: composing would sort twice and build parent arrays and a `PathWitness`-ready result it never reads.

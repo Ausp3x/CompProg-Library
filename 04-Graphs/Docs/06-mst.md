@@ -8,13 +8,13 @@ Owned by package P010 / GR02 (graph foundations, with `01-graph.hpp` through `05
 
 All engines use exact signed-integer weights from the full `lng` range and `lll` accumulated costs. Status fields distinguish absent and present answers without reserving a numeric weight. Fractional/custom-weight instantiations of archived notebook templates remain outside this specified integer API.
 
-### SpanningForest, kruskal, primSparse, primDense and boruvka
+### SpanningForest, kruskal, primSparse, primDense, boruvka and their maximum mirrors
 
-All require an undirected graph, ignore loops and accept parallel and negative edges. `maximum = true` (or a maximum `DenseGraph` view for `primDense`) builds a maximum-weight spanning forest; the comparator reverses the weight order instead of negating weights, since `-w` overflows for `lng` minimum. `SpanningForest` holds the exact `lll` weight, the component count including isolated vertices, and the original logical edge IDs; an empty graph has zero components, weight zero and no edges. Ties compare weights, then edge IDs. Returned edge order follows each algorithm. `primSparse` keys its set by `~w` for maximum, which is an order-reversing bijection on `lng`.
+All require an undirected graph, ignore loops and accept parallel and negative edges. `kruskalMaximum`, `primSparseMaximum` and `boruvkaMaximum` (and `primDense` on a maximum `DenseGraph` view) build a maximum-weight spanning forest; each pair shares one engine in `mst_detail` that takes the order as a flag, so the mirrors differ from their minimum forms only in that flag; the comparator reverses the weight order instead of negating weights, since `-w` overflows for `lng` minimum. `SpanningForest` holds the exact `lll` weight, the component count including isolated vertices, and the original logical edge IDs; an empty graph has zero components, weight zero and no edges. Ties compare weights, then edge IDs. Returned edge order follows each algorithm and is otherwise unspecified (user decision 2026-11-15). `primDense` takes the order from its `DenseGraph` view, which already chose the minimum or maximum parallel arc of each pair, so it keeps that view rather than a mirror (user decision 2026-11-15). `primSparseMaximum` keys its set by `~w`, which is an order-reversing bijection on `lng`.
 
 Correctness and cost: a forest contains exactly n−components edges, so its full-range signed sum fits comfortably in `lll`. Kruskal adds sorted edges only across distinct components. Prim repeatedly chooses the minimum crossing edge; its sparse set keeps one candidate per unused vertex, and its dense form scans the already-built minimum-edge matrix. Both restart at isolated/disconnected components. Borůvka caches phase-start representatives and chooses each active component's minimum outgoing edge; union guards suppress duplicates/cycles. The cut property justifies every accepted edge. Active components halve per phase until each original connected component is merged. Bounds are O(n+m log(m+1)) for Kruskal, O((n+m) log(n+1)) for sparse Prim/Borůvka, and O(n²) for dense Prim with O(n²+m) dense-view setup charged separately.
 
-Maximum-weight forests reuse the same engines with the comparator reversed on weight and edge-ID ties kept ascending; `primSparse` keys its set by `~w = -w - 1`, a bijection that reverses the order on all of `lng` without the overflow of `-w`. The cut property holds for maximum forests with the inequalities reversed.
+Maximum-weight forests reuse the same engines with the comparator reversed on weight and edge-ID ties kept ascending; `primSparseMaximum` keys its set by `~w = -w - 1`, a bijection that reverses the order on all of `lng` without the overflow of `-w`. The cut property holds for maximum forests with the inequalities reversed.
 
 ### BottleneckResult and KruskalReconstruction
 
@@ -26,6 +26,7 @@ Correctness: `KruskalReconstruction` stores a binary union forest. Leaves are or
 
 - `Kruskal<T>(n, E).solve()` (`OLD/Team Notebook/src/algs.cpp:1603`, `algsbetter.cpp:1742`, `test.cpp:481`) → `kruskal(g)` on a `Graph` with one `addEdge(u, v, w)` per entry of `E`: `weight` is its cost and `edges` the chosen edge IDs.
 - `PrimDense<T>(n, adj).solve()` (`algs.cpp:1632`, `algsbetter.cpp:1798`, `test.cpp:505`) → `primDense` on a minimum `DenseGraph`. A disconnected graph gives a spanning forest (`components > 1`) instead of the `-1` sentinel, and the empty-graph bug is not inherited.
+- `kruskal(g, true)`, `primSparse(g, true)` and `boruvka(g, true)` (flags removed by GR02, user decision 2026-11-14) → `kruskalMaximum(g)`, `primSparseMaximum(g)` and `boruvkaMaximum(g)`; `KruskalReconstruction(g, maximum)` keeps its constructor parameter.
 
 ## Feature-to-test map
 
@@ -33,52 +34,80 @@ Correctness: `KruskalReconstruction` stores a binary union forest. Leaves are or
 
 | Operation | Test | Oracle |
 |---|---|---|
-| `SpanningForest`, `kruskal`, `primSparse`, `primDense`, `boruvka` (minimum) | Graph and CSR, minimum `DenseGraph` view; explicit tie IDs; full-range weights/totals; copy/move/snapshots; 100,000-vertex chains | Independent forest-subset minimum |
-| `kruskal`, `primSparse`, `primDense`, `boruvka` (maximum) | Graph and CSR, maximum `DenseGraph` view; explicit tie IDs for both orders; a triangle chain with closed-form minimum and maximum totals | Independent forest-subset maximum (`oracle.maximum`) |
+| `SpanningForest`, `kruskal`, `primSparse`, `primDense`, `boruvka` (minimum) | Graph and CSR, minimum `DenseGraph` view (`primDense` has no CSR form); explicit tie IDs; full-range weights/totals; copy/move/snapshots; 100,000-vertex chains for the sparse engines (`primDense` is quadratic and runs on the small and random graphs only) | Independent forest-subset minimum |
+| `kruskalMaximum`, `primSparseMaximum`, `primDense` (maximum view), `boruvkaMaximum` | Graph and CSR, maximum `DenseGraph` view; explicit tie IDs for both orders; a triangle chain with closed-form minimum and maximum totals | Independent forest-subset maximum (`oracle.maximum`) |
 | `BottleneckResult`, `KruskalReconstruction: bottleneck` (minimax/maximin) | Merge-edge certificates | Floyd minimax/maximin closures |
 | `KruskalReconstruction: componentAt` (threshold) | Every threshold | Floyd threshold closures |
 | `KruskalReconstruction: lca` | Every node | Ancestor sets |
 | `KruskalReconstruction: leafRange` | Every node | Explicit subtree leaf sets |
-| Preconditions | 14 assertion probes, including `leaf-range-negative` and `leaf-range-end` | Expected assertion failure |
+| Preconditions | 21 assertion probes: each index bound of `bottleneck`, `lca` and `leafRange` at the end and past it in either argument, on a path whose 3 vertices and 5 nodes separate the vertex and node bounds; `too-many-nodes` at n = 2^30 + 1 | Expected assertion failure |
 
-Mutation checks (planted in a temporary copy, full mode) killed: `-w` instead of `~w` keys, Kruskal/primDense/Borůvka ignoring `maximum`, and a wrong second-child leaf offset.
+## Mutation testing
+
+Record: mewt 4.0.0 on blob `4db8d7d8bd2d3aa65192e2e583f9878cc4c41f36` (2026-11-15, seed 1, 1 lines changed since blob `0d06a53bb94c`): 0 mutants, 0 caught (0 by timeout), 0 survived, 0 untested.
+
+The changed line is /finish's direct `DSU` include. Before it, mewt 4.0.0 on blob `0d06a53bb94c3f3203c33bf30ddb256db3cdaf84` (5 lines changed since blob `a591f640d4e6`: the review's comment split and the removal of the unused `edgeLess`/`edgeOrder` defaults) generated no mutant either.
+
+Whole-file campaign (GR02): mewt 4.0.0 on blob `a591f640d4e6bd9f29377d598e8201ffab2f47f7` (2026-11-15, seed 1, whole file, uniform sample of 681): 500 mutants, 470 caught (1 by timeout), 30 survived, 0 untested. Stage seconds: quick 889, full on the optimized build 23, full on the checked and ASan-UBSan builds 619; it left 40 survivors. The retest with the extended tester (same `--workdir`; quick 943, full optimized 31, full rest 855 seconds) closed ten:
+- `BL 276` (line 132, the constructor's `maximum = false` default): the check that `KruskalReconstruction(g)` is the minimum union tree.
+- `CR 140` (line 167, `bottleneck`'s assertion removed), `COS 602`, `COS 612`, `COS 613` (its bounds as `!=` or `<=`): the `bottleneck-end`, `-first-end`, `-past` and `-first-past` probes on a tree with more nodes than vertices, where `lca` alone accepts the index.
+- `COS 552`, `COS 553`, `COS 562` (line 157, `lca`'s bounds) and `COS 662` (line 178, `leafRange`'s): the `lca-first-end`, `lca-past`, `lca-first-past` and `leaf-range-past` probes.
+- `AOS 281` (line 133, `2 * n` → `2 + n`): `too-many-nodes` now asks for n = 2^30 + 1, the smallest rejected size.
+
+The 30 left are equivalent, except four that differ only at an input no test can build:
+
+| Mutant | Line | Why it survives |
+|---|---|---|
+| `BL 261`, `BL 262`, the `edgeLess`/`edgeOrder` `maximum = false` defaults → `true` | 13, 18 | Every call passes `maximum`; the defaults are removed in the current blob. |
+| `COS 385`, `COS 388`, `>`/`<` → `>=`/`<=` | 15 | Reached only when the two weights differ. |
+| `AS 211`, `uniteSets(e.u, e.v)` → `(e.v, e.u)` | 29 | Kruskal reads only whether the sets merged. |
+| `AS 229`, the same in Borůvka | 70 | Borůvka also indexes `best` by representative, so the order of `edges` can change (422 of 40,000 random graphs in the /finish review), never the set or the weight. Equivalent by user decision 2026-11-15: the order is unspecified. |
+| `COS 404`, `COS 409`, `COS 414`, `COS 464`, `!= -1` → `> -1` | 45, 48, 49, 98 | Edge IDs are `-1` or nonnegative. |
+| `COS 433`, `COS 443`, `COS 483`, `COS 513`, `COS 518`, `COS 623`, `== -1` → `<= -1` | 64, 68, 105, 149, 170 | Edge IDs, arc IDs, parents and `lca` results are `-1` or nonnegative. |
+| `COS 422`, `COS 447`, `COS 477`, `COS 542`, `<` → `!=` | 61, 95, 103, 154 | The counter steps by 1 from a value not above the bound (`levels >= 1`). |
+| `AS 251`, `max(1, b)` → `max(b, 1)` | 144 | `max` of two ints is symmetric. |
+| `IT 193`, `COS 538`, `u < n` → `true` / `u <= n` | 153 | Descending IDs visit every inner node before any leaf; an inner node's write to `leaves[start[u]]` (inside [0, n)) is overwritten by the leftmost leaf of its subtree, which shares that start. |
+| `AS 253`, `swap(u, v)` → `swap(v, u)` | 159 | `swap` is symmetric. |
+| `COS 573`, `depth[u] < depth[v]` → `<=` | 159 | Swapping equal depths leaves `delta = 0`, and the lifting and the returned common parent are symmetric in u and v. |
+| `AOS 319`, `int(up.size()) - 1` → `/ 1` | 161 | The extra first iteration tests bit `levels` of `delta`, which is 0 since `delta < count < 2^levels`, so `up[levels]` is never read. |
+| `AOS 285`, `AOS 286`, `AOS 287`, `COS 498`, the size bound tightened to `2n <= INT_MAX - 1`, `<= INT_MAX`, `< INT_MAX + 1` | 133 | Not equivalent: each rejects only n = 2^30, the largest valid size, whose union tree needs over 8 GiB for `child` alone, beyond the tester's 4 GiB cap and any judge. The rejected side is tested at 2^30 + 1. |
 
 ## Commands and results
 
-Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 914 MB; optimized 0.1 s compile + 0.6 s run, checked 24.5 s compile + 3.9 s run, ASan-UBSan 28.0 s compile + 10.8 s run; MEMORY peak 1120 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 957 MB; optimized 0.3 s compile + 0.6 s run, checked 35.4 s compile + 6.9 s run, ASan-UBSan 38.9 s compile + 13.2 s run; MEMORY peak 1113 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 27.7 s compile + 0.1 s run, checked 25.7 s compile + 1.4 s run; MEMORY peak 907 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 912 MB; optimized 0.1 s compile + 0.8 s run, checked 11.8 s compile + 4.6 s run, ASan-UBSan 13.0 s compile + 12.2 s run; MEMORY peak 857 MB. Dated rows below stay those commands' latest results.
-
-2026-10-12, Linux x86-64, GCC 16.2.1 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20. Every P010 build adds `-Wall -Wextra -Wconversion -Werror` (opt-in `strict=True` in the shared runner).
+2026-11-15 (P010 GR02; experiment: none), Linux x86-64, Intel Core i9-11900H shared with other sessions, GCC 16.2.1 20260810 and GCC 14.4.1 20260915 (`CXX=g++-14`), CPython 3.14, GNU++20, `-Wall -Wextra -Wconversion -Werror`. Each full run's pre-flight quick passed. Runs after the review fixes and the removal of the unused `edgeLess`/`edgeOrder` defaults.
 
 | Run | Result |
 |---|---|
-| Full, seed 20261012, g++ | PASS, all three builds, 866,962 checks per build, 14 probes, peak 553 MB |
-| Full, seed 20261012, `CXX=g++-14` | PASS, all three builds, same counts, peak 571 MB |
-| Stress, seed 7 | PASS, all three builds, 2,052,048 checks per build, peak 849 MB |
-| Quick runner, all sixteen graph entries, from `/tmp` | PASS |
-| `02-integration.py` (136 standalone/aggregate headers, scalar and AVX2 multi-TU linkage, workspace) | PASS, peak 647 MB |
-| `03-consistency.py` | No errors |
+| Full, seed 20261115, g++ (/finish, direct `DSU` include) | PASS, all three builds, 866,337 checks per build, 21 probes; optimized 0.7 s, checked 3.0 s, ASan-UBSan 8.6 s beside a mutation campaign; peak 1,127 MB |
+| Full, seed 20261115, `CXX=g++-14` | PASS, all three builds, same counts; peak 1,103 MB |
+| Stress, seed 7 | PASS, all three builds, 2,052,049 checks per build; optimized 1.3 s, checked 7.9 s, ASan-UBSan 21.3 s beside a mutation campaign; peak 862 MB |
+| `05-extraction.py ops --filter 06-mst.hpp`; `testers --filter 06-mst_tester` | PASS on g++ and g++-14 (14 operations in 13 extractions); PASS |
+| `02-integration.py` | PASS, 190 standalone and aggregate headers, multi-TU, workspace |
 
 ```bash
-python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261012
-CXX=g++-14 python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261012
+python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261115
+CXX=g++-14 python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode full --seed 20261115
 python3 '96-Local Testing/04-Graphs/06-mst_tester.py' --mode stress --seed 7
-python3 '/path/to/library/96-Local Testing/01-run.py' --mode quick --filter 04-Graphs --seed 42 --no-integration   # from /tmp
+python3 '96-Local Testing/05-extraction.py' ops --filter 06-mst.hpp
+python3 '96-Local Testing/05-extraction.py' testers --filter 06-mst_tester
+python3 '96-Local Testing/04-mutation.py' run 04-Graphs/06-mst.hpp
 python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
 
 ## Benchmarks
 
-The [driver](<../../96-Local Testing/04-Graphs/00-path_mst_benchmark.py>) and `96-Local Testing/04-Graphs/00-path_mst_benchmark.json` compare sparse/dense Prim (and Dijkstra, recorded in `05-shortest_path.md`) on chains, random sparse multigraphs, complete graphs and disconnected blocks of at most eight vertices. Sizes are 24, 200 and 800; weights are uniformly drawn from [0,10^6], with seed 20260927. Five samples follow checked warmups, with repeated runs for smaller cases. All forest totals/component counts are compared, with Kruskal providing the forest baseline. Allocation and result checking are included; input construction is excluded and dense-view setup is measured separately.
+The [driver](<../../96-Local Testing/04-Graphs/00-path_mst_benchmark.py>) and `96-Local Testing/04-Graphs/00-path_mst_benchmark.json` compare sparse/dense Prim (and Dijkstra, recorded in `05-shortest_path.md`) on chains, random sparse multigraphs, complete graphs, an adversarial complete graph and disconnected blocks of at most eight vertices. Sizes are 24, 200 and 800; weights are uniformly drawn from [0,10^6], with seed 20260927, except the adversarial graph: chain arcs u to u + 1 weigh 1 and every other arc u-v (u < v) weighs 2n - 2u, so vertices settle in index order and each one improves every later one (Θ(n^2) heap pushes for the sparse form). Five samples follow checked warmups, with repeated runs for smaller cases. All forest totals/component counts are compared, with Kruskal providing the forest baseline. Allocation and result checking are included; input construction is excluded and dense-view setup is measured separately.
 
 | 800-vertex workload | Prim sparse/dense median ms | Dense setup ms |
 |---|---|---|
-| Chain | 0.021 / 1.216 | 0.216 |
-| Random sparse | 0.464 / 2.660 | 0.319 |
-| Complete | 9.410 / 8.044 | 4.537 |
-| Disconnected blocks | 0.018 / 1.053 | 0.174 |
+| Chain | 0.062 / 1.954 | 0.499 |
+| Random sparse | 0.801 / 4.284 | 0.626 |
+| Complete | 28.824 / 23.111 | 9.896 |
+| Adversarial complete | 59.470 / 8.690 | 9.553 |
+| Disconnected blocks | 0.044 / 1.828 | 0.385 |
 
-These shared-host observations support keeping workload-specific choices explicit. Dense setup can outweigh its traversal saving for a single call. No automatic density threshold, universal superiority or timing gate is claimed. Conditions from the git-ignored `00-path_mst_benchmark.json` log, which also holds memory accounting and every sample: 11th Gen Intel Core i9-11900H, GCC 16.2.1 20260810, `-std=gnu++20 -O2 -DNDEBUG -mno-avx2`.
+Run 2026-11-15 beside a mutation campaign, so absolute times are inflated; the ratios stand. The adversarial row is the case the dense form exists for (`01-principles.md`, Priority: faster below a measured crossover). These shared-host observations support keeping workload-specific choices explicit. Dense setup can outweigh its traversal saving for a single call. No automatic density threshold, universal superiority or timing gate is claimed. Conditions from the git-ignored `00-path_mst_benchmark.json` log, which also holds memory accounting and every sample: 11th Gen Intel Core i9-11900H, GCC 16.2.1 20260810, `-std=gnu++20 -O2 -DNDEBUG -mno-avx2`.
 
 ```bash
 python3 '96-Local Testing/04-Graphs/00-path_mst_benchmark.py'
@@ -94,6 +123,8 @@ Retrieved and inspected on 2026-09-27; no source code was copied.
 | [cp-algorithms, Prim](https://cp-algorithms.com/graph/mst_prim.html) | Dense quadratic and sparse priority-queue alternatives. |
 
 The completeness sweep sources are in [00-sources.md](00-sources.md#pages-fetched-on-2026-10-07-p010-re-audit); omitted candidates are in [00-notes.md](00-notes.md#p010-re-audit-omissions).
+
+The GR02 sweep (2026-11-14) sources are in [00-sources.md](00-sources.md#fetched-2026-11-14-p010-gr02); omitted candidates and the copied-code reasons are in [00-notes.md](00-notes.md#p010-gr02-omissions).
 
 ## Limits and handoffs
 
@@ -113,3 +144,6 @@ Search aliases (P263, grab --find): MST (minimum spanning tree), minimum spannin
 - 2026-11-07: P263 added the search aliases above (`grab --find`); no code or test change.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-14: P010 GR02, the `maximum` flags of `kruskal`, `primSparse` and `boruvka` became the named mirrors `kruskalMaximum`, `primSparseMaximum` and `boruvkaMaximum` over shared `mst_detail` engines (flag ruling, user decision 2026-11-14); completeness sweep added nothing; full suite passed on g++ and g++-14, stress passed, extraction passed.
+- 2026-11-15: P010 GR02 mutation campaign and review: seven index-bound probes, the default union-tree check and the 2^30 + 1 size probe added; unused `edgeLess`/`edgeOrder` defaults removed.
+- 2026-11-15: /finish GR02: the header includes `02-Data Structures/01-dsu.hpp` directly (it uses only `DSU`), batch prerequisite DS01 declared; Borůvka edge order and the `primDense` view recorded as user decisions; benchmark gained an adversarial complete graph.

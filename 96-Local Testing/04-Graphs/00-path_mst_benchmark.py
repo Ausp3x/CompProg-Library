@@ -45,7 +45,7 @@ def main():
     record = dict(seed=args.seed, cpu=cpu, platform=platform.platform(),
                   compiler=subprocess.check_output([compiler, '--version'], text=True).splitlines()[0],
                   flags=flags, warmup='one checked run of each algorithm', samples=5,
-                  workload='Undirected lng weights uniform [0,10^6]; chains, sparse random multigraphs, complete graphs and disconnected blocks of at most eight vertices.',
+                  workload='Undirected lng weights uniform [0,10^6]; chains, sparse random multigraphs, complete graphs, an adversarial complete graph (chain arcs 1, arc u-v 2n-2u otherwise, so every settled vertex improves all later ones: Theta(n^2) heap pushes) and disconnected blocks of at most eight vertices.',
                   setup='Input graph construction excluded; DenseGraph owning conversion timed separately. Algorithm allocation, global domain checks and result comparison included.',
                   memory='Input Graph O(n+m); additional owning DenseGraph O(n^2+m); Dijkstra sparse O(n+m) and dense O(n) auxiliary, both Prim variants O(n).',
                   interpretation='Shared-machine medians; explicit variants, no automatic threshold or portable timing gate.',

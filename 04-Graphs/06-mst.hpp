@@ -2,54 +2,93 @@
 
 #include "../01-Core/01-template.hpp"
 #include "01-graph.hpp"
-#include "04-dsu.hpp"
+#include "../02-Data Structures/01-dsu.hpp"
 
 // T: O(1), M: O(n); exact total weight, component count and source edge IDs of a spanning forest.
 struct SpanningForest { lll weight = 0; int components = 0; vector<int> edges; };
 
 namespace mst_detail {
-    // T: O(1) edgeLess, O(m * log(m + 1)) edgeOrder, M: O(m); by weight (descending if maximum), then ID.
+    // T: O(1), M: O(1); by weight (descending if maximum), then ID.
     template<class G = Graph>
-    bool edgeLess(const G &g, int a, int b, bool maximum = false) {
+    bool edgeLess(const G &g, int a, int b, bool maximum) {
         if (g.edges[a].w != g.edges[b].w) {
             return maximum ? g.edges[a].w > g.edges[b].w : g.edges[a].w < g.edges[b].w;}
         return a < b;}
+
+    // T: O(m * log(m + 1)), M: O(m); edge IDs sorted by edgeLess.
     template<class G = Graph>
-    vector<int> edgeOrder(const G &g, bool maximum = false) {
+    vector<int> edgeOrder(const G &g, bool maximum) {
         vector<int> order(g.edges.size()); iota(order.begin(), order.end(), 0);
         sort(order.begin(), order.end(), [&](int a, int b) { return edgeLess(g, a, b, maximum); });
         return order;}
+
+    // T: O(n + m * log(m + 1)), M: O(n + m); undirected, maximum builds a maximum-weight forest.
+    template<class G = Graph>
+    SpanningForest kruskal(const G &g, bool maximum) {
+        assert(!g.directed); DSU dsu(g.n); SpanningForest res; res.components = g.n;
+        for (int id : edgeOrder(g, maximum)) {
+            auto e = g.edges[id];
+            if (dsu.uniteSets(e.u, e.v)) {
+                res.weight += lll(e.w); res.edges.push_back(id); --res.components;}}
+        return res;}
+
+    // T: O((n + m) * log(n + 1)), M: O(n); one queued candidate per unused vertex.
+    template<class G = Graph>
+    SpanningForest primSparse(const G &g, bool maximum) {
+        assert(!g.directed); SpanningForest res;
+        vector<bool> used(g.n); vector<int> best(g.n, -1);
+        auto key = [&](int id, int v) { lng w = g.edges[id].w; return tuple<lng, int, int>(maximum ? ~w : w, id, v);};
+        set<tuple<lng, int, int>> queue;
+        for (int s = 0; s < g.n; ++s) {
+            if (used[s]) { continue; }
+            ++res.components; queue.emplace(0, -1, s);
+            while (!queue.empty()) {
+                auto [w, id, u] = *queue.begin(); queue.erase(queue.begin()); used[u] = true;
+                if (id != -1) { res.weight += lll(g.edges[id].w); res.edges.push_back(id); }
+                for (int a : g[u]) {
+                    auto e = g.arcs[a]; int v = e.to;
+                    if (used[v] || (best[v] != -1 && !edgeLess(g, e.id, best[v], maximum))) { continue; }
+                    if (best[v] != -1) { queue.erase(key(best[v], v)); }
+                    best[v] = e.id; queue.insert(key(e.id, v));}}}
+        return res;}
+
+    // T: O((n + m) * log(n + 1)), M: O(n); representatives cached per phase, components halve.
+    template<class G = Graph>
+    SpanningForest boruvka(const G &g, bool maximum) {
+        assert(!g.directed); DSU dsu(g.n); SpanningForest res; res.components = g.n;
+        vector<int> component(g.n), best(g.n);
+        while (true) {
+            fill(best.begin(), best.end(), -1);
+            for (int u = 0; u < g.n; ++u) { component[u] = dsu.findSet(u); }
+            for (int id = 0; id < int(g.edges.size()); ++id) {
+                auto e = g.edges[id]; int u = component[e.u], v = component[e.v];
+                if (u == v) { continue; }
+                if (best[u] == -1 || edgeLess(g, id, best[u], maximum)) { best[u] = id; }
+                if (best[v] == -1 || edgeLess(g, id, best[v], maximum)) { best[v] = id; }}
+            bool changed = false;
+            for (int id : best) {
+                if (id == -1) { continue; }
+                auto e = g.edges[id];
+                if (dsu.uniteSets(e.u, e.v)) {
+                    changed = true; res.weight += lll(e.w); res.edges.push_back(id); --res.components;}}
+            if (!changed) { return res; }}}
 } // namespace mst_detail
 
-// T: O(n + m * log(m + 1)), M: O(n + m); undirected, maximum builds a maximum-weight forest.
+// T: O(n + m * log(m + 1)), M: O(n + m); undirected, minimum-weight spanning forest.
 template<class G = Graph>
-SpanningForest kruskal(const G &g, bool maximum = false) {
-    assert(!g.directed); DSU dsu(g.n); SpanningForest res; res.components = g.n;
-    for (int id : mst_detail::edgeOrder(g, maximum)) {
-        auto e = g.edges[id];
-        if (dsu.uniteSets(e.u, e.v)) {
-            res.weight += lll(e.w); res.edges.push_back(id); --res.components;}}
-    return res;}
+SpanningForest kruskal(const G &g) { return mst_detail::kruskal(g, false); }
 
-// T: O((n + m) * log(n + 1)), M: O(n); one queued candidate per unused vertex.
+// T: O(n + m * log(m + 1)), M: O(n + m); undirected, maximum-weight spanning forest.
 template<class G = Graph>
-SpanningForest primSparse(const G &g, bool maximum = false) {
-    assert(!g.directed); SpanningForest res;
-    vector<bool> used(g.n); vector<int> best(g.n, -1);
-    auto key = [&](int id, int v) { lng w = g.edges[id].w; return tuple<lng, int, int>(maximum ? ~w : w, id, v);};
-    set<tuple<lng, int, int>> queue;
-    for (int s = 0; s < g.n; ++s) {
-        if (used[s]) { continue; }
-        ++res.components; queue.emplace(0, -1, s);
-        while (!queue.empty()) {
-            auto [w, id, u] = *queue.begin(); queue.erase(queue.begin()); used[u] = true;
-            if (id != -1) { res.weight += lll(g.edges[id].w); res.edges.push_back(id); }
-            for (int a : g[u]) {
-                auto e = g.arcs[a]; int v = e.to;
-                if (used[v] || (best[v] != -1 && !mst_detail::edgeLess(g, e.id, best[v], maximum))) { continue; }
-                if (best[v] != -1) { queue.erase(key(best[v], v)); }
-                best[v] = e.id; queue.insert(key(e.id, v));}}}
-    return res;}
+SpanningForest kruskalMaximum(const G &g) { return mst_detail::kruskal(g, true); }
+
+// T: O((n + m) * log(n + 1)), M: O(n); undirected, minimum-weight spanning forest.
+template<class G = Graph>
+SpanningForest primSparse(const G &g) { return mst_detail::primSparse(g, false); }
+
+// T: O((n + m) * log(n + 1)), M: O(n); undirected, maximum-weight spanning forest.
+template<class G = Graph>
+SpanningForest primSparseMaximum(const G &g) { return mst_detail::primSparse(g, true); }
 
 // T: O(n^2), M: O(n); maximum-weight forest exactly when dense.maximum.
 inline SpanningForest primDense(const DenseGraph &dense) {
@@ -70,26 +109,13 @@ inline SpanningForest primDense(const DenseGraph &dense) {
             if (best[v] == -1 || mst_detail::edgeLess(g, id, best[v], maximum)) { best[v] = id; }}}
     return res;}
 
-// T: O((n + m) * log(n + 1)), M: O(n); representatives cached per phase, components halve.
+// T: O((n + m) * log(n + 1)), M: O(n); undirected, minimum-weight spanning forest.
 template<class G = Graph>
-SpanningForest boruvka(const G &g, bool maximum = false) {
-    assert(!g.directed); DSU dsu(g.n); SpanningForest res; res.components = g.n;
-    vector<int> component(g.n), best(g.n);
-    while (true) {
-        fill(best.begin(), best.end(), -1);
-        for (int u = 0; u < g.n; ++u) { component[u] = dsu.findSet(u); }
-        for (int id = 0; id < int(g.edges.size()); ++id) {
-            auto e = g.edges[id]; int u = component[e.u], v = component[e.v];
-            if (u == v) { continue; }
-            if (best[u] == -1 || mst_detail::edgeLess(g, id, best[u], maximum)) { best[u] = id; }
-            if (best[v] == -1 || mst_detail::edgeLess(g, id, best[v], maximum)) { best[v] = id; }}
-        bool changed = false;
-        for (int id : best) {
-            if (id == -1) { continue; }
-            auto e = g.edges[id];
-            if (dsu.uniteSets(e.u, e.v)) {
-                changed = true; res.weight += lll(e.w); res.edges.push_back(id); --res.components;}}
-        if (!changed) { return res; }}}
+SpanningForest boruvka(const G &g) { return mst_detail::boruvka(g, false); }
+
+// T: O((n + m) * log(n + 1)), M: O(n); undirected, maximum-weight spanning forest.
+template<class G = Graph>
+SpanningForest boruvkaMaximum(const G &g) { return mst_detail::boruvka(g, true); }
 
 // T: O(1), M: O(1); value and edge are meaningful only when connected and not empty.
 struct BottleneckResult { bool connected = false, empty = false; lng value = 0; int edge = -1; };

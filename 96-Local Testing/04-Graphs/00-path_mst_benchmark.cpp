@@ -5,11 +5,14 @@ int main(int argc, char **argv) {
     ulng seed = argc > 1 ? std::stoull(argv[1]) : 20260927;
     std::mt19937_64 rng(seed);
     for (int n : {24, 200, 800}) {
-        for (string shape : {"chain", "sparse", "dense", "disconnected"}) {
+        for (string shape : {"chain", "sparse", "dense", "adversarial", "disconnected"}) {
             Graph g(n);
             if (shape == "dense") {
                 for (int u = 0; u < n; ++u) { for (int v = u + 1; v < n; ++v) {
                     g.addEdge(u, v, lng(rng() % 1000001));}}}
+            else if (shape == "adversarial") {  // vertices settle in index order and each one improves every later one
+                for (int u = 0; u < n; ++u) { for (int v = u + 1; v < n; ++v) {
+                    g.addEdge(u, v, v == u + 1 ? 1 : 2 * lng(n) - 2 * u);}}}
             else {
                 for (int v = 1; v < n; ++v) {
                     if (shape != "disconnected" || v % 8) { g.addEdge(v - 1, v, lng(rng() % 1000001)); }}
