@@ -82,11 +82,11 @@ Left out, one line each:
 - `gcd128` (maspypy): GNU `std::gcd` accepts `__int128` directly; no wrapper needed.
 - Binary gcd (hitonanode, Nyaan): the installed libstdc++ `std::gcd` is already Stein's algorithm, and `gcd64` uses it.
 - `firstModInRange` (maspypy `first_mod_range_of_linear`): belongs with `18-floorsum.hpp` beside `minOfModOfLinear`, where that row now lists it.
-- `primePi` table (hitonanode `bs_sieve`): `upper_bound(prms, x)` on the existing prime list.
+- `primePi` table (hitonanode `bs_sieve`): returned by P275 2026-11-10 as `SieveOfErath::primeCount` and `LinearSieve::primeCount`, implemented by P012 MA02.
 - Factorization above the sieve bound (hitonanode `Sieve::factorize`): owned by `07-primality_factorization.hpp` `factorize`.
 - `powTable`, the completely multiplicative i^K table (hitonanode `enumerate_kth_pows`): handed off to `08-multiplicative_functions.hpp` `multiplicativeTable`.
 - `lcmOfList` (maspypy `all_lcm`): caller-side maximum of `factorize` exponents.
-- `combiNegative` and `combiInverse` (maspypy `C_negative`, `C_inv`): `(-1)^k * combiWR(n, k)` and the product `inverseFactorial(a) * factorial(b) * factorial(a - b)` from the existing tables. (returned by P275 2026-11-10 into row 05)
+- `combiNegative` and `combiInverse` (maspypy `C_negative`, `C_inv`): returned by P275 2026-11-10 into row 05 and implemented by P012 MA02.
 
 ## P012 MA01 research decisions (2026-11-12)
 
@@ -255,6 +255,21 @@ Left out by the 2026-11-08 sweep (user decisions, `00-Guidelines/23-Sweep Ledger
 - `newtonSystem` in row 17 (NR): moved to row 69 `continuous_optimization`, which lists it; row 17 stays scalar (user decision 2026-11-03).
 - `BinaryQuadraticForm: compose (NUCOMP), square (NUDUPL)` (FLINT): a second implementation of row 34 `compose` with the same results, which already covers the whole `lng` domain through `__int128`.
 - `coefOfRationalFps2d` in row 50 (MAS): the same operation as row 40 `bivariateRationalCoefficient`, which owns it.
+
+## P012 MA02 research decisions (2026-11-14)
+
+Adopted into row 05: `doubleFactorial` and `doubleFactorialExact` (GMP `mpz_2fac_ui`; the Core modint evidence hands double factorial to this row) and `circularPermutation` (OI Wiki 圆排列), under the adopt-all policy of 2026-11-08. `combiNegative` follows GMP's signed `C(-n, k) = (-1)^k * C(n + k - 1, k)`, the form P275 returned; maspypy's unsigned `C_negative` is `combiWR`.
+
+User decisions at `/finish` (2026-11-14), on omissions the package session had made without the user:
+
+- Adopted into row 05: `multiFactorial` and `multiFactorialExact` (GMP `mpz_mfac_uiui`; `doubleFactorialExact` wraps the exact form), `combiNonAdjacent` (OI Wiki 不相邻的排列), the table-free `logFactorialLarge`, `logBinomialLarge` and `logPermutationLarge` (`lgammal`, the wider form beyond any table), and `FieldCombinatorics` (Nyaan `Binomial_rational`: factorial tables over any field where `1..n` are units, `Rational` included).
+- Adopted into row 04: `SieveOfErathSpf` (maspypy `spf_table`, suisen `Sieve`), the SPF table by Eratosthenes, kept beside `LinearSieve` as faster below a measured crossover (23–35% fewer cycles from `n = 1000` to 5e4, a tie near 2e6, 6% more at 5e6) and again from 1e7 (24% fewer at 1e8); and `OddBitSieve` (cp-algorithms, suisen, Nyaan, PyRival bit sieves), odd-only bit-packed primality with block prime counts beside the byte `SieveOfErath`, wider by its 16 times smaller table (`n` below `2^32`).
+- `LogCombinatorics` builds its table by a Kahan-compensated sum of `logl(i)` instead of one `lgammal` call per entry: the same accuracy class in 45% of the cycles ([benchmarks](05-combinatorics.md#benchmarks); user decision 2026-11-14); keeping both would be a second implementation of the same operation (`03-cpp.md`, One API per operation).
+- `circularPermutation(a, 0)` follows `permuNR(a, 0)` and asserts `a <= n`, so the operation composes `permuNR` instead of repeating its guards.
+
+`FieldCombinatorics` repeats `PrimeCombinatorics`' selection guards and products instead of sharing them: `PrimeCombinatorics` checks its dynamic modulus before every early return and needs `n < mod`, and sharing the bodies would put a check hook into every operation of both structs.
+
+Left out: wheel-30 bit storage (cp-algorithms, Nyaan) has `OddBitSieve`'s operations and its domain below `2^32` with a smaller constant, so it would be a second implementation (`03-cpp.md`, One API per operation).
 
 ## P275 re-review 2026-11-10
 

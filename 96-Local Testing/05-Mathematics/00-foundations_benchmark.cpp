@@ -71,12 +71,27 @@ void materialize(lng top, int objects) {
             cout << "materialize shared_base " << top << ' ' << objects << " 32768 " << rep << ' '
                  << std::chrono::duration<double, std::milli>(end - start).count() << ' '
                  << count << ' ' << checksum << '\n';}}}
+void measureBits(int n, const vector<int> &expected) {
+    ulng expected_sum = 0;
+    for (int p : expected) { expected_sum = expected_sum * 31 + ulng(p); }
+    for (int rep = -1; rep < 5; ++rep) {
+        auto start = Clock::now(); OddBitSieve sieve(n); auto end = Clock::now();
+        ulng checksum = 0;
+        for (int x = 0; x <= n; ++x) { if (sieve.isPrime(x)) { checksum = checksum * 31 + ulng(x); }}
+        if (checksum != expected_sum || sieve.primeCount(n) != int(expected.size())) { throw std::runtime_error("odd bit sieve mismatch"); }
+        sink = checksum;
+        if (rep >= 0) {
+            cout << "dense odd_bit " << 0 << ' ' << n << ' ' << 0 << ' ' << rep << ' '
+                 << std::chrono::duration<double, std::milli>(end - start).count() << ' '
+                 << expected.size() << ' ' << checksum << '\n';}}}
 int main() {
-    for (int n : {32, 50000, 2000000}) {
+    for (int n : {32, 50000, 2000000, 5000000, 10000000, 100000000}) {
         auto expected = PackedSieve(n).prms;
         measure<PackedSieve>("packed_eratosthenes", n, expected);
         measure<SieveOfErath>("byte_eratosthenes", n, expected);
-        measure<LinearSieve>("linear_spf", n, expected);}
+        measure<LinearSieve>("linear_spf", n, expected);
+        measure<SieveOfErathSpf>("eratosthenes_spf", n, expected);
+        measureBits(n, expected);}
     for (lng top : {lng(2000000), lng(1000002000000)}) { baseSetup(top); }
     for (lng l : {lng(0), lng(1000000000000)}) {
         for (int n : {32, 50000, 2000000}) { stream(l, n, 32768); }}

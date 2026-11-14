@@ -1,6 +1,7 @@
 #pragma once
 #include "../01-Core/01-template.hpp"
 #include "../01-Core/05-modint.hpp"
+#include "04-sieve_algorithms.hpp"
 
 // T: O(n), M: O(n); D_0..D_n in any ring T, no inverses.
 template<typename T>
@@ -9,7 +10,7 @@ vector<T> derangementTable(int n) {
     for (int i = 2; i <= n; ++i) { d[i] = T(i - 1) * (d[i - 1] + d[i - 2]); }
     return d;}
 
-// S: O(n + log(mod)), Q: O(1), M: O(n); prime mod, 0 <= n < min(mod, INT_MAX); any setMod needs reset, negative selections give 0.
+// S: O(n + log(mod)), Q: O(1), M: O(n); prime mod, 0 <= n < min(mod, INT_MAX); any setMod needs reset, negative selections give 0, combiInverse asserts 0 <= b <= a.
 template<typename M = mint>
 struct PrimeCombinatorics {
     int n;
@@ -28,6 +29,10 @@ struct PrimeCombinatorics {
     M factorial(int k) const { check(); assert(0 <= k && k <= n); return fac[k]; }
     M inverseFactorial(int k) const { check(); assert(0 <= k && k <= n); return inv_fac[k]; }
     M derangement(int k) const { check(); assert(0 <= k && k <= n); return der[k]; }
+    // Q: O(log(2 + k)), M: O(1); 0 <= k <= n, k!! = k (k - 2) ... with 0!! = 1.
+    M doubleFactorial(int k) const {
+        check(); assert(0 <= k && k <= n);
+        return k & 1 ? fac[k] * inv_fac[k / 2] * pow(M((M::mod() + 1) / 2), k / 2) : fac[k / 2] * pow(M(2), k / 2);}
 
     M combiNR(int a, int b) const {
         check(); assert(a >= 0);
@@ -39,10 +44,19 @@ struct PrimeCombinatorics {
         if (b == 0) { return 1; }
         if (a == 0) { return 0; }
         assert(lng(a) + b - 1 <= n); return combiNR(a + b - 1, b);}
+    M combiNegative(int a, int b) const { M r = combiWR(a, b); return b & 1 ? -r : r; }
+    M combiInverse(int a, int b) const {
+        check(); assert(0 <= b && b <= a && a <= n); return inv_fac[a] * fac[b] * fac[a - b];}
     M permuNR(int a, int b) const {
         check(); assert(a >= 0);
         if (b < 0 || b > a) { return 0; }
         assert(a <= n); return fac[a] * inv_fac[a - b];}
+    M circularPermutation(int a, int b) const { M r = permuNR(a, b); return 1 <= b && b <= a ? r * fac[b - 1] * inv_fac[b] : r; }
+    M combiNonAdjacent(int a, int b) const {
+        check(); assert(a >= 0);
+        lng t = lng(a) - b + 1;
+        if (b < 0 || b > t) { return 0; }
+        return combiNR(int(t), b);}
     // Q: O(log(2 + b)), M: O(1); no table bound.
     M permuWR(int a, int b) const {
         check(); assert(a >= 0); return b < 0 ? M(0) : pow(M(a), b);}
@@ -74,6 +88,76 @@ struct PrimeCombinatorics {
         return r;}
 };
 using ModFac = PrimeCombinatorics<mint>;
+
+// S: O(n) field operations and one division, Q: O(1), M: O(n); field F with F(int), *, / and 1..n units (characteristic 0 or above n), negative selections give 0.
+template<typename F>
+struct FieldCombinatorics {
+    int n;
+    vector<F> fac, inv_fac;
+
+    explicit FieldCombinatorics(int N = 0) { reset(N); }
+    void reset(int N) {
+        assert(0 <= N && N < INT_MAX); n = N; fac.assign(n + 1, F(1)); inv_fac.assign(n + 1, F(1));
+        for (int i = 1; i <= n; ++i) { fac[i] = fac[i - 1] * F(i); }
+        inv_fac[n] = F(1) / fac[n];
+        for (int i = n; i > 0; --i) { inv_fac[i - 1] = inv_fac[i] * F(i); }}
+
+    F factorial(int k) const { assert(0 <= k && k <= n); return fac[k]; }
+    F inverseFactorial(int k) const { assert(0 <= k && k <= n); return inv_fac[k]; }
+    F combiNR(int a, int b) const {
+        assert(a >= 0);
+        if (b < 0 || b > a) { return F(0); }
+        assert(a <= n); return fac[a] * inv_fac[b] * inv_fac[a - b];}
+    F combiWR(int a, int b) const {
+        assert(a >= 0);
+        if (b <= 0 || a == 0) { return F(b == 0); }
+        assert(lng(a) + b - 1 <= n); return combiNR(a + b - 1, b);}
+    F permuNR(int a, int b) const {
+        assert(a >= 0);
+        if (b < 0 || b > a) { return F(0); }
+        assert(a <= n); return fac[a] * inv_fac[a - b];}
+    // Q: O(k), M: O(1); k = parts.size(), sum(parts) <= n.
+    F multinomial(const vector<int> &parts) const {
+        int total = 0; F r = F(1);
+        for (int k : parts) { assert(k >= 0 && k <= n - total); total += k; r = r * inv_fac[k]; }
+        return fac[total] * r;}
+};
+
+// S: O(n), Q: O(1), M: O(n); 0 <= n < INT_MAX, natural logs as long double, impossible selections give -inf.
+struct LogCombinatorics {
+    int n;
+    vector<long double> lf;
+
+    explicit LogCombinatorics(int N = 0) { reset(N); }
+    void reset(int N) {
+        assert(0 <= N && N < INT_MAX); n = N; lf.assign(n + 1, 0);
+        long double carry = 0;
+        for (int i = 2; i <= n; ++i) {
+            // Kahan summation keeps the running sum within a few ulp of ln(i!).
+            long double y = std::log(i + 0.0L) - carry, t = lf[i - 1] + y;
+            carry = (t - lf[i - 1]) - y; lf[i] = t;}}
+
+    long double logFactorial(int k) const { assert(0 <= k && k <= n); return lf[k]; }
+    long double logBinomial(int a, int b) const {
+        assert(a >= 0);
+        if (b < 0 || b > a) { return -std::numeric_limits<long double>::infinity(); }
+        assert(a <= n); return lf[a] - lf[b] - lf[a - b];}
+    long double logPermutation(int a, int b) const {
+        assert(a >= 0);
+        if (b < 0 || b > a) { return -std::numeric_limits<long double>::infinity(); }
+        assert(a <= n); return lf[a] - lf[a - b];}
+};
+
+// T: O(1), M: O(1); 0 <= a < 2^63 without a table by lgammal, absolute error a few ulp of ln(a!), impossible selections give -inf.
+inline long double logFactorialLarge(lng k) { assert(k >= 0); return std::lgamma(k + 1.0L); }
+inline long double logBinomialLarge(lng a, lng b) {
+    assert(a >= 0);
+    if (b < 0 || b > a) { return -std::numeric_limits<long double>::infinity(); }
+    return logFactorialLarge(a) - logFactorialLarge(b) - logFactorialLarge(a - b);}
+inline long double logPermutationLarge(lng a, lng b) {
+    assert(a >= 0);
+    if (b < 0 || b > a) { return -std::numeric_limits<long double>::infinity(); }
+    return logFactorialLarge(a) - logFactorialLarge(a - b);}
 
 // T: O(log(2 + n)) ring operations, M: O(1); (F_n, F_n+1) and L_n in a commutative ring T, unsigned builtins wrap, L_0 = 2.
 template<typename T>
@@ -112,6 +196,12 @@ inline bool permuExact(ulng a, ulng b, ulng &out) {
     for (ulng i = 0; i < b; ++i) { if (__builtin_mul_overflow(r, a - i, &r)) { return false; } }
     out = r; return true;}
 inline bool factorialExact(ulng n, ulng &out) { return permuExact(n, n, out); }
+// T: O(1) (at most 64 factors above 1 fit), M: O(1); m >= 1, n (n - m) (n - 2m) ... over positive terms, 0 gives 1, false above UINT64_MAX.
+inline bool multiFactorialExact(ulng n, ulng m, ulng &out) {
+    assert(m >= 1); ulng r = 1;
+    for (; n > 1; n = m && n > m ? n - m : 0) { if (__builtin_mul_overflow(r, n, &r)) { return false; } }
+    out = r; return true;}
+inline bool doubleFactorialExact(ulng n, ulng &out) { return multiFactorialExact(n, 2, out); }
 inline bool combiRepExact(ulng a, ulng b, ulng &out) {
     if (b == 0) { out = 1; return true; }
     if (a == 0) { out = 0; return true; }
@@ -180,3 +270,25 @@ inline bool fibonacciExact(ulng n, ulng &out) {
 inline bool lucasExact(ulng n, ulng &out) {
     if (n > 92) { return false; }
     out = ulng(lucas<ulll>(n)); return true;}
+
+// T: O(1 + n / m) ring operations, M: O(1); m >= 1, n (n - m) (n - 2m) ... over positive terms in a T(ulng) ring, unsigned builtins wrap, signed ones need the product to fit.
+template<typename T>
+T multiFactorial(ulng n, ulng m) {
+    assert(m >= 1); T r = T(1);
+    for (; n > 1; n = m && n > m ? n - m : 0) { r *= T(n); }
+    return r;}
+
+// T: O(n * log(log(3 + n))) plus O(log(n)) levels of balanced T products over b = O(n) total bits, M: O(n); 0 <= n < INT_MAX, any T(ulng) ring with *, signed builtins need n# to fit (n <= 52 for lng).
+template<typename T>
+T primorial(int n) {
+    vector<T> f; ulng w = 1;
+    for (int p : SieveOfErath(n).prms) {
+        if (w > UINT64_MAX / ulng(p)) { f.pb(T(w)); w = 1; }
+        w *= ulng(p);}
+    f.pb(T(w));
+    while (f.size() > 1) {
+        int h = int(f.size()) / 2;
+        for (int i = 0; i < h; ++i) { f[i] = f[2 * i] * f[2 * i + 1]; }
+        if (f.size() & 1) { f[h++] = std::move(f.back()); }
+        f.resize(h);}
+    return f[0];}

@@ -73,6 +73,26 @@ Status-cell keys are the library's (`00-Guidelines/09-sources.md`, Source keys);
 | The number of solutions to ax + by = n, Corollary 12 | https://arxiv.org/pdf/1910.03079 | 2026-11-12 | row 18 `countRepresentableSylvester` (planned): at most one representation below `a * b` |
 | Böcker and Lipták, The Money Changing Problem Revisited: Computing the Frobenius Number in Time O(ka1), COCOON 2005, LNCS 3595, pp. 965–974 (journal version Algorithmica 48 (2007) 413–432 not reachable: Springer login) | https://www.yumpu.com/en/document/view/37799071/the-money-changing-problem-revisited-universitat-bielefeld | 2026-11-13 | row 03 `residueShortestPath`: Theorem 1 (Θ(k a1) time, O(1) extra memory), Section 3 (cycles from a minimal entry); earlier Dijkstra methods O(k a1 log a1) |
 
+## P012 MA02 sweep (fetched 2026-11-14, `@researcher`)
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| hitonanode `bs_sieve.hpp` (`prime_counting`) | https://hitonanode.github.io/cplib-cpp/number/bs_sieve.hpp | 2026-11-14 | row 04 `primeCount` (primes <= x by `upper_bound`, asserted bound) |
+| ei1333 `prime-count.hpp`; suisen `linear_sieve.hpp` (`prime_num`) | https://ei1333.github.io/library/math/number-theory/prime-count.hpp, https://suisen-cp.github.io/cp-library-cpp/library/number/linear_sieve.hpp | 2026-11-14 | row 04 `primeCount` conventions (pi(0) = pi(1) = 0) |
+| Library Checker `enumerate_primes` | https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/number_theory/enumerate_primes/task.md | 2026-11-14 | row 04 `primeCount` (pi(N)) |
+| cp-algorithms, Sieve of Eratosthenes (bit and wheel storage, segmented sieve) | https://cp-algorithms.com/algebra/sieve-of-eratosthenes.html | 2026-11-14 | row 04 `OddBitSieve` (odd-only bits, user decision 2026-11-14) and the cache segments of `SieveOfErath`; wheel storage not adopted, reason in [00-notes.md](00-notes.md) |
+| maspypy `nt/lpf_table.hpp`, `nt/prime_table.hpp` | https://maspypy.github.io/library/nt/lpf_table.hpp, https://maspypy.github.io/library/nt/prime_table.hpp | 2026-11-14 | row 04 `SieveOfErathSpf` (Eratosthenes SPF table, -1 at 0 and 1); `prime_table`'s segmented odd-only sieve (blocks of 32768) |
+| suisen `sieve_of_eratosthenes.hpp` (`SimpleSieve`, `Sieve`) | https://raw.githubusercontent.com/suisen-cp/cp-library-cpp/main/library/number/sieve_of_eratosthenes.hpp | 2026-11-14 | row 04: bit-packed wheel flags and a wheel SPF table, precedents for `OddBitSieve` and `SieveOfErathSpf` |
+| Nyaan `prime/prime-enumerate.hpp` | https://raw.githubusercontent.com/NyaanNyaan/library/master/prime/prime-enumerate.hpp | 2026-11-14 | row 04: mod-6 wheel bits in `vector<bool>`, a precedent for `OddBitSieve` |
+| PyRival `algebra/sieve.py` | https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/algebra/sieve.py | 2026-11-14 | row 04: 6k±1 bits in a `bytearray`, a precedent for `OddBitSieve` |
+| Nyaan `math/rational-binomial.hpp` (`Binomial_rational`) | https://raw.githubusercontent.com/NyaanNyaan/library/master/math/rational-binomial.hpp | 2026-11-14 | row 05 `FieldCombinatorics` (`fac`, `finv`, `C`, `P`, `H`, `multinomial` over a rational type; user decision 2026-11-14) |
+| maspypy `modint_common.hpp` (`C_negative`, `C_inv`) | https://raw.githubusercontent.com/maspypy/library/main/mod/modint_common.hpp | 2026-11-14 | row 05 `combiInverse`; `C_negative` is `combiWR` (an alias, no sign) |
+| GMP, Number Theoretic Functions (`mpz_bin_ui` with negative n, `mpz_2fac_ui`, `mpz_mfac_uiui`, `mpz_primorial_ui`) | https://gmplib.org/manual/Number-Theoretic-Functions.html | 2026-11-14 | row 05 `combiNegative` (signed C(-n, k)), `doubleFactorial`, `doubleFactorialExact`, `multiFactorial`, `multiFactorialExact` (`mpz_mfac_uiui`, user decision 2026-11-14), `primorial` |
+| FLINT `fmpz_primorial` | https://flintlib.org/doc/fmpz/index.html | 2026-11-14 | row 05 `primorial` (product of primes <= n; balanced product over word-size factors) |
+| Nyaan `float-binomial.hpp` | https://raw.githubusercontent.com/NyaanNyaan/library/master/math/float-binomial.hpp | 2026-11-14 | row 05 `LogCombinatorics` (`logfac`, `logC`, `logP`) |
+| hitonanode `big_combination_logarithm.hpp` | https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/number/big_combination_logarithm.hpp | 2026-11-14 | row 05 `LogCombinatorics` (a `double` running-sum table; no `lgamma`) |
+| OI Wiki, 排列组合 (圆排列, 不相邻的排列) | https://raw.githubusercontent.com/OI-wiki/OI-wiki/master/docs/math/combinatorics/combination.md | 2026-11-14 | row 05 `circularPermutation`, `combiNonAdjacent` (user decision 2026-11-14) |
+
 ## P052 sweep (fetched 2026-10-09)
 
 | Source | URL | Fetched | Used for |

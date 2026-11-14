@@ -234,3 +234,11 @@ The P254 sweep reopened 19 packages and left 32 verified rows that `plan.py doct
 ## 2026-11-13 Native build for contracted floating point (P012)
 
 - **`-march=native`.** AtCoder compiles with `-march=native`, so GCC contracts `std::lerp` into FMA and some splits round once: Brent's golden start moves by a few ulps, and ternary search's first split lands on `l` at negative binade edges. No build of the suite saw that, and a mutant that differs only there survived. A contest suite whose results depend on contraction now adds an optimized native build (`native=True`), and the mutation campaign runs it among its full-mode builds.
+
+## 2026-11-14 Runtime-only mutants (P012)
+
+- **Runtime only.** A mutant can leave every result and state identical, raise the work past the operation's stated bound, and still stay under the mutation timeout (three times the stage baseline). No test can kill it, since `05-testing.md` forbids fixed timing gates across machines. Two sieve mutants show it:
+  - one keeps composite base primes in Eratosthenes, giving `n log n` marking work, 1.22 to 1.44 times the loop work and 1.29 to 1.53 times the cycles at `10^6` to `10^8`;
+  - one turns the linear sieve's `break` into `continue`, giving `n log log n` work, 2.30 to 2.57 times the inner iterations and 1.94 to 2.92 times the cycles at `10^6` to `10^8`.
+
+  The bound is part of the contract, so such a mutant is not equivalent. The user accepted recording it as runtime only, with its work argument and measured ratio (user decision 2026-11-14).

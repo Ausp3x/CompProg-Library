@@ -216,7 +216,7 @@
       "phase": "Foundations re-audit",
       "size": "M+M",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "05-Mathematics/Docs/01-mod_arithmetic.md",
         "05-Mathematics/Docs/02-search_algorithms.md",
@@ -225,7 +225,7 @@
         "05-Mathematics/Docs/05-combinatorics.md",
         "05-Mathematics/Docs/06-segmentedsieve.md"
       ],
-      "note": "MA01 finished (2026-11-13, reopened by user decisions of 2026-11-12): rows 01-03 verified with current mutation records; next batch MA02. MA02 open: SieveOfErath::primeCount, LinearSieve::primeCount, LogCombinatorics, PrimeCombinatorics::combiNegative, combiInverse, primorial. Follow-ups for other rows: row 18 countRepresentableSylvester, row 49 solveDioEqMulti, row 69 bracketMinimum (all planned); row 54 table pow through the discrete log (maspypy ModFast); row 20 check sternBrocotRange against maspypy farey_lr; Miscellaneous row 44 Nyaan fast_lb, if adopted."
+      "note": "MA02 finished 2026-11-14 by /finish: rows 04 and 05 verified. The user decisions of 2026-11-14 are recorded in 05-Mathematics/Docs/00-notes.md (P012 MA02): every sweep omission implemented (combiNonAdjacent, multiFactorial, multiFactorialExact, the large log forms, SieveOfErathSpf, FieldCombinatorics), OddBitSieve beside the byte SieveOfErath, the Kahan-compensated LogCombinatorics table, circularPermutation composing permuNR, and runtime-only mutants (00-Guidelines/05-testing.md). Follow-ups for other rows are in the notes of P060, P192, P196, P205, P270 and P288. The PrimeCombinatorics M = mint default stays for P258/P260."
     },
     {
       "id": "P013",
@@ -1032,7 +1032,7 @@
         "05-Mathematics/Docs/19-josephus.md",
         "05-Mathematics/Docs/20-continued_fraction.md"
       ],
-      "note": "P275 re-review 2026-11-10: implement forEachCeilQuotientBlock, enumerateQuotientsCount, floorSumInRange, minOfModOfLinearInRange, minOfModOfLinearSegments in `18-floorsum.hpp`; PeriodicContinuedFraction::convergent, compareContinuedFractions, bestRationalApproximationReal, sternBrocotDepth, sternBrocotDistance, sternBrocotIsAncestor, sternBrocotMove, sternBrocotComparePreOrder, sternBrocotComparePostOrder, fareySequenceCount, calkinWilfParent, calkinWilfChildren, sternDiatomic in `20-continued_fraction.hpp`."
+      "note": "P275 re-review 2026-11-10: implement forEachCeilQuotientBlock, enumerateQuotientsCount, floorSumInRange, minOfModOfLinearInRange, minOfModOfLinearSegments in `18-floorsum.hpp`; PeriodicContinuedFraction::convergent, compareContinuedFractions, bestRationalApproximationReal, sternBrocotDepth, sternBrocotDistance, sternBrocotIsAncestor, sternBrocotMove, sternBrocotComparePreOrder, sternBrocotComparePostOrder, fareySequenceCount, calkinWilfParent, calkinWilfChildren, sternDiatomic in `20-continued_fraction.hpp`. P012 handoffs (user decision 2026-11-14): row 18 countRepresentableSylvester (planned in MA01; at most one representation below a * b, arXiv 1910.03079 Corollary 12); row 20, confirm sternBrocotRange gives maspypy farey_lr's Farey neighbours (05-Mathematics/Docs/00-notes.md, P012 MA01 supplementary sweep)."
     },
     {
       "id": "P054",
@@ -3296,7 +3296,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement hermiteNormalFormModular, elementaryDivisors, rationalSolve, howellForm, strongEchelonForm in `49-integer_linear_algebra.hpp`."
+      "note": "Omission sweep 2026-11-08: implement hermiteNormalFormModular, elementaryDivisors, rationalSolve, howellForm, strongEchelonForm in `49-integer_linear_algebra.hpp`. P012 handoff (user decision 2026-11-14): row 49 solveDioEqMulti, n-variable Bezout planned by P012 MA01 (reasons in 05-Mathematics/Docs/00-notes.md)."
     },
     {
       "id": "P193",
@@ -3351,7 +3351,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement indexCalculus, DiscreteLogTable, discreteLogVector in `54-discrete_log_advanced.hpp`; GaussianInteger::extGcd, GaussianInteger::pow, EisensteinInteger::extGcd, EisensteinInteger::factor, EisensteinInteger::isPrime, HurwitzQuaternion::add, HurwitzQuaternion::sub, HurwitzQuaternion::leftDivmod, HurwitzQuaternion::rightDivmod in `57-quadratic_integer.hpp`; SidonSequence in `59-zero_sum.hpp`."
+      "note": "Omission sweep 2026-11-08: implement indexCalculus, DiscreteLogTable, discreteLogVector in `54-discrete_log_advanced.hpp`; GaussianInteger::extGcd, GaussianInteger::pow, EisensteinInteger::extGcd, EisensteinInteger::factor, EisensteinInteger::isPrime, HurwitzQuaternion::add, HurwitzQuaternion::sub, HurwitzQuaternion::leftDivmod, HurwitzQuaternion::rightDivmod in `57-quadratic_integer.hpp`; SidonSequence in `59-zero_sum.hpp`. P012 handoff (user decision 2026-11-14): row 54, a table pow(a, e) through the discrete log (maspypy ModFast), from the P012 MA01 supplementary sweep."
     },
     {
       "id": "P197",
@@ -3458,7 +3458,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement RollbackArray in `42-rollback_framework.hpp`; PersistentArena::clone in `43-persistentallocator.hpp`; sortMergeJoin, listRanking, LruCache, beladyEviction, simulateEviction in `44-external_memory.hpp`."
+      "note": "Omission sweep 2026-11-08: implement RollbackArray in `42-rollback_framework.hpp`; PersistentArena::clone in `43-persistentallocator.hpp`; sortMergeJoin, listRanking, LruCache, beladyEviction, simulateEviction in `44-external_memory.hpp`. P012 handoff (user decision 2026-11-14): Miscellaneous row 44, Nyaan's branch-light fast_lb on a sorted array, if adopted at all (P012 MA01 supplementary sweep)."
     },
     {
       "id": "P206",
@@ -3864,7 +3864,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Created by the 2026-11-08 omission sweep (P254)."
+      "note": "Created by the 2026-11-08 omission sweep (P254). P012 handoff (user decision 2026-11-14): row 69 bracketMinimum, planned by P012 MA01 (Numerical Recipes 10.1 and NR3 mins.h Bracketmethod constants, 05-Mathematics/Docs/00-sources.md)."
     },
     {
       "id": "P271",
@@ -4037,7 +4037,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": ""
+      "note": "P012 MA02 kill list (user decision 2026-11-14): once death probes name the expected assertion, 05-combinatorics.hpp survivors COS 1045 (`ulng(N) < M::mod()` -> `!=` in PrimeCombinatorics::reset, probe n-above-mod) AOS 612/613 (`lng(a) + b - 1 <= n` in PrimeCombinatorics::combiWR, probe replacement-bound), and CR 327 and AOS 877/878/880/881 (the same assert in FieldCombinatorics::combiWR, line 114, probe field-replacement-bound) must die; see 05-Mathematics/Docs/05-combinatorics.md, Mutation testing."
     },
     {
       "id": "P224",
