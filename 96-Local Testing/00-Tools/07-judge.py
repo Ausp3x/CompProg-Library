@@ -197,8 +197,8 @@ def prepare(root, pdir):
     """Regenerate the judge's tests and reference answers once per info.toml; ([(case, in, ans)], time limit, checker)."""
     text = (pdir / 'info.toml').read_text()
     info, tdir = tomllib.loads(text), CACHE / 'tests' / pdir.name
-    if (pdir / 'grader').exists() or any(s.get('function') for s in info.get('solutions', [])):
-        raise SystemExit(f'{pdir.name}: function-style (grader) problems are not supported')
+    if not (pdir / 'sol' / 'correct.cpp').exists():   # a grader problem with a stdin reference also accepts stdin solutions
+        raise SystemExit(f'{pdir.name}: no sol/correct.cpp; function-only (grader) problems are not supported')
     cases = [(f'{Path(t["name"]).stem}_{i:02d}', t['name'], i) for t in info['tests'] for i in range(t['number'])]
     files = [(c, tdir / f'{c}.in', tdir / f'{c}.ans') for c, _, _ in cases]
     stamp = hashlib.sha1(text.encode()).hexdigest()

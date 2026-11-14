@@ -4027,6 +4027,21 @@
       "note": "Created by the P275 re-review (2026-11-10)."
     },
     {
+      "id": "P225",
+      "label": "Online solution coverage and expansion audit",
+      "batches": [
+        "SUP03"
+      ],
+      "phase": "Final support integration",
+      "size": "S",
+      "model": "opus",
+      "status": "in-progress",
+      "evidence": [
+        "97-Online Testing/Docs/00-judge-sources.md"
+      ],
+      "note": "2026-11-15 slice done (work order A1): 48 Library Checker sources for the Core full headers poly (46, src/01-Yosupo/03-Polynomials) and montgomery used directly (primality_test, factorize via 05-Mathematics/07-primality_factorization, src/01-Yosupo/04-Number Theory); every test accepted locally with 07-judge.py reproduce (which now runs grader problems that ship sol/correct.cpp, user's yes); expander run on 68 sources and every new bundle rerun. Bitset, Rational and Barrett used directly have no bottleneck problem (listed in the evidence). Open: judge sources for matrix, bitmatrix and sparsematrix (A25) and the contest folders; hand submission of the expanded files."
+    },
+    {
       "id": "P288",
       "label": "Expected-assert death probes across contest and Core testers",
       "batches": [
@@ -4051,19 +4066,6 @@
       "status": "planned",
       "evidence": [],
       "note": "Handoff from P006 (2026-11-13): `96-Local Testing/00-Tools/15-harness_tester.py` `test_effort_launch` failed beside other suites in a 01-run quick run on 2026-11-12 and passed alone; find the shared state or timing it depends on and fix it, since a suite that passes only alone is not passing (05-testing.md, Layout and modes)."
-    },
-    {
-      "id": "P225",
-      "label": "Online solution coverage and expansion audit",
-      "batches": [
-        "SUP03"
-      ],
-      "phase": "Final support integration",
-      "size": "S",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": ""
     },
     {
       "id": "P226",

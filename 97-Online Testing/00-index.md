@@ -1,6 +1,6 @@
 # Online testing
 
-`src/` holds canonical judge solutions under `src/<Judge>/<Topic>/` (Title Case directories). The `expanded/` outputs and the `02-expansion.json` manifest are git-ignored artifacts of `01-expander.py`; none exist until the expander runs. The current set has **20 Yosupo C++ sources**: 11 linear algebra and 9 big integer programs. They were migrated from the earlier library layout; online acceptance has not been verified. Source comments identify their problems.
+`src/` holds canonical judge solutions under `src/<Judge>/<Topic>/` (Title Case directories). The `expanded/` outputs and the `02-expansion.json` manifest are git-ignored artifacts of `01-expander.py`; none exist until the expander runs. The current set has **68 Yosupo C++ sources**: 11 linear algebra, 9 big integer, 46 polynomial and 2 number theory programs. The linear algebra and big integer programs were migrated from the earlier library layout; the polynomial and number theory programs were written and run locally against the regenerated judge tests ([judge sources](Docs/00-judge-sources.md)). Online acceptance has not been verified except where a source comment records it. Source comments identify their problems and the features they exercise.
 
 Run the C++ expander from any directory:
 

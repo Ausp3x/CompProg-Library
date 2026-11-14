@@ -302,7 +302,12 @@ class Judge(unittest.TestCase):
         (self.repo / 'sample/grader/info.toml').write_text('[[tests]]\nname = "a.in"\nnumber = 1\n[[solutions]]\nname = "c.cpp"\nfunction = true\n')
         with self.assertRaises(SystemExit) as caught:
             self.reproduce('ok.cpp', 'grader')
-        self.assertIn('not supported', str(caught.exception))
+        self.assertIn('not supported', str(caught.exception), 'a function-only problem has no stdin reference')
+        both = self.repo / 'sample/both'
+        shutil.copytree(self.repo / 'sample/tiny', both)
+        (both / 'grader').mkdir(); (both / 'grader/grader.cpp').write_text('')
+        (both / 'info.toml').write_text((both / 'info.toml').read_text() + '[[solutions]]\n    name = "f.cpp"\n    function = true\n')
+        self.assertEqual(self.reproduce('ok.cpp', 'both', runs=1)[0], 0, 'a grader problem with sol/correct.cpp runs stdin solutions')
 
     def test_regeneration_stamp(self):
         self.reproduce('ok.cpp', runs=1)
