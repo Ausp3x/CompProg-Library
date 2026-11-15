@@ -52,8 +52,8 @@ struct Oracle {
         reverse(result.begin(), result.end()); return {result, weight[v]};}
 };
 
-// Noncommutative string folds and path intersections against explicit BFS paths.
-void paths(const Graph &g, int root, const LCA &binary, const EulerLCA &euler, const Oracle &oracle) {
+// Noncommutative string folds, path intersections, medians and set LCAs against explicit BFS paths and parent walks.
+void paths(const Graph &g, int root, const LCA &binary, const EulerLCA &euler, const SparseTableLCA &sparse, const Oracle &oracle) {
     auto key = [](int u, int v) { return std::to_string(min(u, v)) + "-" + std::to_string(max(u, v)) + ","; };
     vector<string> label(g.n), edge(g.n);
     for (int u = 0; u < g.n; ++u) {
@@ -83,18 +83,51 @@ void paths(const Graph &g, int root, const LCA &binary, const EulerLCA &euler, c
         for (int x : q) { if (std::find(p.begin(), p.end(), x) != p.end()) { common.push_back(x); }}
         if (!common.empty()) { want = {common.front(), common.back()}; }
         string quad = " a=" + std::to_string(a) + " b=" + std::to_string(b) + " c=" + std::to_string(c) + " d=" + std::to_string(d);
-        require(pathIntersection(binary, a, b, c, d) == want && pathIntersection(euler, a, b, c, d) == want,
-            "pathIntersection" + quad, std::to_string(want.first) + "," + std::to_string(want.second));}}
+        require(pathIntersection(binary, a, b, c, d) == want && pathIntersection(euler, a, b, c, d) == want
+            && pathIntersection(sparse, a, b, c, d) == want,
+            "pathIntersection" + quad, std::to_string(want.first) + "," + std::to_string(want.second));}
+    // Vertex bitmasks (n <= 18 here) of every explicit path and of every parent-walk ancestor chain.
+    vector<vector<ulng>> on(g.n, vector<ulng>(g.n)); vector<ulng> above(g.n);
+    for (int u = 0; u < g.n; ++u) {
+        for (int x = u; x != -1; x = oracle.parent[x]) { above[u] |= 1ULL << x; }
+        for (int v = 0; v < g.n; ++v) { for (int x : path[u][v]) { on[u][v] |= 1ULL << x; }}}
+    for (int a = 0; a < g.n; ++a) { for (int b = 0; b < g.n; ++b) { for (int c = 0; c < g.n; ++c) {
+        string triple = " a=" + std::to_string(a) + " b=" + std::to_string(b) + " c=" + std::to_string(c);
+        ulng common = on[a][b] & on[b][c] & on[a][c]; int want = -1;
+        if (!path[a][b].empty() && !path[b][c].empty()) {
+            require(std::popcount(common) == 1, "median oracle unique common vertex" + triple); want = std::countr_zero(common);}
+        expect(meet(binary, a, b, c), want, "binary meet" + triple); expect(meet(vertex, a, b, c), want, "fold meet" + triple);
+        expect(meet(euler, a, b, c), want, "Euler meet" + triple); expect(meet(sparse, a, b, c), want, "sparse-table meet" + triple);}}}
+    int sets = g.n <= 6 ? 1 << g.n : 200;
+    for (int i = 0; i < sets; ++i) {
+        vector<int> vs;
+        if (g.n <= 6) { for (int u = 0; u < g.n; ++u) { if (i >> u & 1) { vs.push_back(u); }}}
+        else { for (int k = int(rng() % 6); k--;) { vs.push_back(int(rng() % ulng(g.n))); }}
+        ulng common = ~0ULL; int want = -1;
+        for (int u : vs) { common &= above[u]; }
+        for (int x = 0; x < g.n && !vs.empty(); ++x) {
+            if (common >> x & 1 && (want == -1 || oracle.depth[x] > oracle.depth[want])) { want = x; }}
+        vector<int> twisted(vs.rbegin(), vs.rend());
+        if (!vs.empty()) { twisted.push_back(vs.back()); }
+        string set = " vs=";
+        for (int u : vs) { set += std::to_string(u) + ","; }
+        for (const auto &w : {vs, twisted}) {
+            expect(lcaSet(binary, w), want, "binary lcaSet" + set); expect(lcaSet(vertex, w), want, "fold lcaSet" + set);
+            expect(lcaSet(euler, w), want, "Euler lcaSet" + set); expect(lcaSet(sparse, w), want, "sparse-table lcaSet" + set);}}}
 
 void verify(const Graph &g, int root, bool exhaustive_reroot = true) {
     context = "n=" + std::to_string(g.n) + " root=" + std::to_string(root) + " edges=";
     for (auto e : g.edges) { context += "(" + std::to_string(e.u) + "," + std::to_string(e.v) + "," + show(e.w) + ")"; }
     LCA binary(g, root), csr_binary(CsrGraph(g), root); EulerLCA euler(g, root), csr_euler(CsrGraph(g), root);
+    SparseTableLCA sparse(g, root), csr_sparse(CsrGraph(g), root);
     Oracle oracle(g, root); vector<pair<int, int>> queries; vector<int> answers;
     require(binary.parent == oracle.parent && binary.dep == oracle.depth && binary.component == oracle.component,
         "rooted metadata against BFS");
     require(euler.parent == binary.parent && euler.dep == binary.dep && euler.component == binary.component,
         "Euler rooted metadata");
+    require(sparse.parent == binary.parent && sparse.dep == binary.dep && sparse.component == binary.component
+        && sparse.t_in == binary.t_in && sparse.root == binary.root, "sparse-table rooted metadata");
+    require(csr_sparse.order == sparse.order && csr_sparse.parent == sparse.parent, "CSR sparse-table metadata parity");
     require(binary.parent == csr_binary.parent && euler.tour == csr_euler.tour, "CSR metadata parity");
     expect(binary.n, g.n, "n metadata"); expect(binary.timer, g.n, "timer covers forest");
     expect(binary.root, root == -1 && g.n ? 0 : root, "preferred root metadata");
@@ -114,38 +147,47 @@ void verify(const Graph &g, int root, bool exhaustive_reroot = true) {
             expect(euler.lca(u, v), want, "Euler LCA" + pair);
             expect(csr_binary.lca(u, v), want, "CSR binary LCA" + pair);
             expect(csr_euler.lca(u, v), want, "CSR Euler LCA" + pair);
-            require(binary.isAncestor(u, v) == (want == u) && euler.isAncestor(u, v) == (want == u), "ancestor relation" + pair);
+            expect(sparse.lca(u, v), want, "sparse-table LCA" + pair);
+            expect(csr_sparse.lca(u, v), want, "CSR sparse-table LCA" + pair);
+            require(binary.isAncestor(u, v) == (want == u) && euler.isAncestor(u, v) == (want == u)
+                && sparse.isAncestor(u, v) == (want == u), "ancestor relation" + pair);
             require((binary.component[u] == binary.component[v] && binary.t_in[u] <= binary.t_in[v] && binary.t_in[v] <= binary.t_out[u])
                 == (want == u), "inclusive subtree interval" + pair);
             auto [path, weight] = oracle.path(u, v); int length = path.empty() ? -1 : int(path.size()) - 1;
             expect(binary.distance(u, v), length, "binary edge distance" + pair);
             expect(euler.distance(u, v), length, "Euler edge distance" + pair);
+            expect(sparse.distance(u, v), length, "sparse-table edge distance" + pair);
             lll out = 123456789;
             require(binary.distanceWeighted(u, v, out) == !path.empty(), "binary weighted connection status" + pair);
             require(out == (path.empty() ? lll(123456789) : weight), "binary exact weight/unchanged missing", show(weight), show(out));
             out = 123456789;
             require(euler.distanceWeighted(u, v, out) == !path.empty(), "Euler weighted connection status" + pair);
             require(out == (path.empty() ? lll(123456789) : weight), "Euler exact weight/unchanged missing", show(weight), show(out));
+            out = 123456789;
+            require(sparse.distanceWeighted(u, v, out) == !path.empty(), "sparse-table weighted connection status" + pair);
+            require(out == (path.empty() ? lll(123456789) : weight), "sparse-table exact weight/unchanged missing", show(weight), show(out));
             for (int k = 0; k <= int(path.size()); ++k) {
                 expect(binary.jump(u, v, k), k < int(path.size()) ? path[k] : -1, "path jump" + pair + " k=" + std::to_string(k));}
             expect(binary.jump(u, v, std::numeric_limits<lng>::max()), -1, "huge missing path jump");
             if (exhaustive_reroot) { for (int r = 0; r < g.n; ++r) {
                 int expected = oracle.component[u] == oracle.component[r] ? reroots[r].lca(u, v) : -1;
                 expect(binary.rerootedLCA(u, v, r), expected, "binary reroot" + pair + " r=" + std::to_string(r));
-                expect(euler.rerootedLCA(u, v, r), expected, "Euler reroot" + pair + " r=" + std::to_string(r));}}}}
-    paths(g, root, binary, euler, oracle);
+                expect(euler.rerootedLCA(u, v, r), expected, "Euler reroot" + pair + " r=" + std::to_string(r));
+                expect(sparse.rerootedLCA(u, v, r), expected, "sparse-table reroot" + pair + " r=" + std::to_string(r));}}}}
+    paths(g, root, binary, euler, sparse, oracle);
     require(lcaOffline(g, queries, root) == answers && lcaOffline(CsrGraph(g), queries, root) == answers,
         "offline Tarjan all pairs vs independent ancestor intersections");
     reverse(queries.begin(), queries.end()); reverse(answers.begin(), answers.end());
     if (!queries.empty()) { queries.push_back(queries[0]); answers.push_back(answers[0]); }
     require(lcaOffline(g, queries, root) == answers, "offline reordered/duplicated queries");
     require(lcaOffline(g, {}, root).empty(), "offline empty query batch");
-    LCA copied = binary; EulerLCA ecopied = euler;
-    LCA moved = std::move(copied); EulerLCA emoved = std::move(ecopied);
-    copied = moved; ecopied = emoved;
+    LCA copied = binary; EulerLCA ecopied = euler; SparseTableLCA scopied = sparse;
+    LCA moved = std::move(copied); EulerLCA emoved = std::move(ecopied); SparseTableLCA smoved = std::move(scopied);
+    copied = moved; ecopied = emoved; scopied = smoved;
     if (g.n) {
         expect(copied.lca(0, g.n - 1), oracle.lca(0, g.n - 1), "binary copy/move assignment");
-        expect(ecopied.lca(0, g.n - 1), oracle.lca(0, g.n - 1), "Euler copy/move assignment");}}
+        expect(ecopied.lca(0, g.n - 1), oracle.lca(0, g.n - 1), "Euler copy/move assignment");
+        expect(scopied.lca(0, g.n - 1), oracle.lca(0, g.n - 1), "sparse-table copy/move assignment");}}
 
 void exhaustive(const string &mode) {
     int bound = mode == "quick" ? 4 : 6, cases = 0;
@@ -175,12 +217,22 @@ void adjacency() {
     expect(b.lca(2, 3), 2, "one-based lists"); expect(b.kthAncestor(3, 2), 1, "one-based kth ancestor");
     expect(b.lca(0, 3), -1, "one-based unused vertex 0 isolated"); expect(b.n, 4, "vertex count is the list count");
     expect(empty.n, 0, "empty lists");
-    Graph g(3); g.addEdge(0, 1); LCA snapshot(g); EulerLCA esnapshot(g); g.addEdge(1, 2);
+    Graph g(3); g.addEdge(0, 1); LCA snapshot(g); EulerLCA esnapshot(g); SparseTableLCA ssnapshot(g); g.addEdge(1, 2);
     expect(snapshot.lca(0, 2), -1, "binary owning snapshot after input mutation");
     expect(esnapshot.lca(0, 2), -1, "Euler owning snapshot after input mutation");
-    snapshot = LCA(g); esnapshot = EulerLCA(g);
+    expect(ssnapshot.lca(0, 2), -1, "sparse-table owning snapshot after input mutation");
+    snapshot = LCA(g); esnapshot = EulerLCA(g); ssnapshot = SparseTableLCA(g);
     expect(snapshot.lca(0, 2), 0, "binary rebuild by assignment"); expect(esnapshot.lca(0, 2), 0, "Euler rebuild by assignment");
-    std::cout << "PASS adjacency lists, snapshot lifetime and rebuild\n";}
+    expect(ssnapshot.lca(0, 2), 0, "sparse-table rebuild by assignment");
+    context = "named lcaSet/meet cases on edges (0,1),(1,2),(3,4) rooted at 2";
+    Graph h(6); h.addEdge(0, 1); h.addEdge(1, 2); h.addEdge(3, 4); SparseTableLCA t(h, 2), none{Graph(0)}, single{Graph(1)};
+    expect(lcaSet(t, {}), -1, "empty set"); expect(lcaSet(none, {}), -1, "empty set on empty forest");
+    expect(lcaSet(t, {0}), 0, "singleton set"); expect(lcaSet(single, {0, 0}), 0, "singleton forest duplicates");
+    expect(lcaSet(t, {0, 0, 1, 0}), 1, "duplicates"); expect(lcaSet(t, {0, 4}), -1, "cross-component pair");
+    expect(lcaSet(t, {5, 5}), 5, "isolated vertex duplicates"); expect(lcaSet(t, {0, 1, 3}), -1, "cross-component tail");
+    expect(meet(t, 0, 2, 1), 1, "median on a path"); expect(meet(t, 0, 0, 2), 0, "repeated median vertex");
+    expect(meet(t, 0, 1, 3), -1, "cross-component median"); expect(meet(single, 0, 0, 0), 0, "singleton median");
+    std::cout << "PASS adjacency lists, snapshot lifetime, rebuild and named set/median cases\n";}
 void randomized(const string &mode) {
     std::mt19937_64 rng(seed); int count = mode == "quick" ? 40 : mode == "full" ? 350 : 2500;
     array<lng, 7> weights{std::numeric_limits<lng>::min(), std::numeric_limits<lng>::max(), -100, -1, 0, 1, 100};
@@ -199,31 +251,42 @@ void shapes(const string &mode) {
                 if (shape == 4 && u % 7 == 0) { continue; }
                 int p = shape == 0 ? u - 1 : shape == 1 ? 0 : shape == 2 ? (u - 1) / 2 : int(rng() % u);
                 g.addEdge(u, p, u % 2 ? std::numeric_limits<lng>::max() : std::numeric_limits<lng>::min());}
-            LCA binary(g); EulerLCA euler(g); Oracle oracle(g);
+            LCA binary(g); EulerLCA euler(g); SparseTableLCA sparse(g); Oracle oracle(g);
             context = "FCB boundary n=" + std::to_string(n) + " shape=" + std::to_string(shape);
             vector<pair<int, int>> queries; vector<int> answers;
             for (int i = 0; i < 1000; ++i) {
                 int u = int(rng() % n), v = int(rng() % n), want = oracle.lca(u, v);
                 expect(binary.lca(u, v), want, "binary boundary oracle"); expect(euler.lca(u, v), want, "Euler boundary oracle");
+                expect(sparse.lca(u, v), want, "sparse-table boundary oracle");
                 queries.push_back({u, v}); answers.push_back(want);}
             require(lcaOffline(g, queries) == answers, "Tarjan boundary oracle");}}
     int n = mode == "quick" ? 2000 : mode == "full" ? 200000 : 500000;
     Graph g(n); for (int u = 1; u < n; ++u) { g.addEdge(u - 1, u, std::numeric_limits<lng>::max()); }
-    LCA binary(g); EulerLCA euler(g); context = "deep chain n=" + std::to_string(n);
+    LCA binary(g); EulerLCA euler(g); SparseTableLCA sparse(g); context = "deep chain n=" + std::to_string(n);
     for (int i = 0; i < 20000; ++i) {
         int u = int(rng() % n), v = int(rng() % n), r = int(rng() % n);
         expect(binary.lca(u, v), min(u, v), "deep binary LCA"); expect(euler.lca(u, v), min(u, v), "deep Euler LCA");
+        expect(sparse.lca(u, v), min(u, v), "deep sparse-table LCA"); expect(sparse.distance(u, v), abs(u - v), "deep sparse-table distance");
         array<int, 3> points{u, v, r}; sort(points.begin(), points.end());
         expect(binary.rerootedLCA(u, v, r), points[1], "deep binary reroot median");
-        expect(euler.rerootedLCA(u, v, r), points[1], "deep Euler reroot median");}
+        expect(euler.rerootedLCA(u, v, r), points[1], "deep Euler reroot median");
+        expect(sparse.rerootedLCA(u, v, r), points[1], "deep sparse-table reroot median");
+        expect(meet(binary, u, v, r), points[1], "deep binary meet"); expect(meet(euler, r, u, v), points[1], "deep Euler meet");
+        expect(meet(sparse, v, r, u), points[1], "deep sparse-table meet");
+        vector<int> vs{u, v, r, int(rng() % n)}; vs.resize(1 + rng() % 4); int low = *min_element(vs.begin(), vs.end());
+        expect(lcaSet(binary, vs), low, "deep binary lcaSet"); expect(lcaSet(euler, vs), low, "deep Euler lcaSet");
+        expect(lcaSet(sparse, vs), low, "deep sparse-table lcaSet");}
     lll out = 0; require(binary.distanceWeighted(0, n - 1, out) && out == lll(n - 1) * std::numeric_limits<lng>::max(), "deep exact wide sum");
+    out = 0; require(sparse.distanceWeighted(n - 1, 0, out) && out == lll(n - 1) * std::numeric_limits<lng>::max(), "deep sparse-table exact wide sum");
     expect(binary.jump(n - 1, 0, n - 1), 0, "deep jump to endpoint");
     LCAFold fold(g, vector<lng>(n, 1), Sum<lng>{});
     for (int i = 0; i < 2000; ++i) {
         int u = int(rng() % n), v = int(rng() % n);
         require(fold.pathFold(u, v) == std::pair<bool, lng>{true, abs(u - v) + 1}, "deep vertex pathFold");
         require(fold.pathFold(u, v, true) == std::pair<bool, lng>{true, abs(u - v)}, "deep edge pathFold");
-        require((pathIntersection(euler, u, v, n - 1 - u, n - 1 - v).first != -1) == (max(u, v) >= min(n - 1 - u, n - 1 - v) && min(u, v) <= max(n - 1 - u, n - 1 - v)), "deep interval intersection");}
+        bool overlap = max(u, v) >= min(n - 1 - u, n - 1 - v) && min(u, v) <= max(n - 1 - u, n - 1 - v);
+        require((pathIntersection(euler, u, v, n - 1 - u, n - 1 - v).first != -1) == overlap, "deep interval intersection");
+        require((pathIntersection(sparse, u, v, n - 1 - u, n - 1 - v).first != -1) == overlap, "deep sparse-table interval intersection");}
     require(lcaOffline(g, {{0, n - 1}, {n - 1, n - 1}, {n / 2, n - 1}}) == vector<int>({0, n - 1, n / 2}), "deep Tarjan stack safety");
     // Runtime state: path counts modulo a captured modulus on the chain (vertex i holds i).
     for (lng mod : {lng(7), lng(1000000007)}) {
@@ -238,25 +301,33 @@ void invalid(const string &probe) {
     if (probe == "directed") { LCA x(Graph(1, true)); }
     else if (probe == "root-negative") { LCA x(g, -2); }
     else if (probe == "root-end") { EulerLCA x(g, 3); }
+    else if (probe == "root-beyond") { SparseTableLCA x(g, 4); }
     else if (probe == "empty-root") { LCA x(Graph(0), 0); }
     else if (probe == "adjacency-label") { LCA x(Graph::fromAdjacency(vector<vector<int>>{{2}, {0}}), 0); }
-    else if (probe == "cycle" || probe == "euler-cycle" || probe == "offline-cycle") {
+    else if (probe == "cycle" || probe == "euler-cycle" || probe == "sparse-cycle" || probe == "offline-cycle") {
         g.addEdge(2, 0);
         if (probe == "cycle") { LCA x(g); }
         if (probe == "euler-cycle") { EulerLCA x(g); }
+        if (probe == "sparse-cycle") { SparseTableLCA x(g); }
         if (probe == "offline-cycle") { (void)lcaOffline(g, {}); }}
     else if (probe == "loop") { g.addEdge(0, 0); LCA x(g); }
     else if (probe == "parallel") { g.addEdge(0, 1); LCA x(g); }
+    else if (probe == "set-end") { Graph h(3); h.addEdge(0, 1); LCA x(h); (void)lcaSet(x, {0, 2, 3}); }
     else {
-        LCA x(g); EulerLCA y(g);
+        LCA x(g); EulerLCA y(g); SparseTableLCA s(g);
         if (probe == "query-negative") { (void)x.lca(-1, 0); }
         else if (probe == "query-end") { (void)x.distance(0, 3); }
         else if (probe == "ancestor-negative") { (void)x.kthAncestor(0, -1); }
         else if (probe == "jump-negative") { (void)x.jump(0, 1, -1); }
         else if (probe == "reroot-end") { (void)x.rerootedLCA(0, 1, 3); }
         else if (probe == "euler-query-end") { (void)y.lca(0, 3); }
+        else if (probe == "euler-query-first") { (void)y.lca(3, 0); }
+        else if (probe == "sparse-query-end") { (void)s.lca(3, 0); }
+        else if (probe == "meet-end") { (void)meet(s, 0, 3, 1); }
         else if (probe == "offline-query-end") { (void)lcaOffline(g, {{0, 3}}); }
         else if (probe == "intersection-end") { (void)pathIntersection(y, 0, 1, 2, 3); }
+        else if (probe == "intersection-first") { (void)pathIntersection(x, 3, 0, 1, 2); }
+        else if (probe == "intersection-second") { (void)pathIntersection(s, 0, 3, 1, 2); }
         else if (probe == "fold-size") { LCAFold z(g, vector<int>(2), Sum<int>{}); }
         else if (probe == "fold-query-end") { LCAFold z(g, vector<int>(3), Sum<int>{}); (void)z.pathFold(0, 3); }
         else { throw std::runtime_error("unknown invalid probe " + probe); }}

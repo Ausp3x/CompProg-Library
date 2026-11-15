@@ -70,7 +70,7 @@ The 2026-10-07 completeness sweep ([sources](00-sources.md#pages-fetched-on-2026
 The 2026-10-07 sweep ([sources](00-sources.md#pages-fetched-on-2026-10-07-p011-re-audit)) added `LCAFold: pathFold`, `pathIntersection`, the lexicographic `eulerianTrail` option, `LowlinkResult: cut_components`, `FunctionalGraph: jumpAll` and `FunctionalGraphFold: maxStep`. The other candidates stay out:
 
 - Ancestor or path binary search by predicate (hitonanode `max_length`, maspypy `max_path`): adopted on 2026-11-08 into row 15 as `maxPath`.
-- DFS-order LCA (OI Wiki): adopted on 2026-11-08 into row 07 as `SparseTableLCA` (lighter than `EulerLCA` under Priority).
+- DFS-order LCA (OI Wiki): adopted on 2026-11-08 into row 07 as `SparseTableLCA`; GR03 measured its queries faster than `EulerLCA`'s, with a crossover below which `EulerLCA` wins on setup ([07-lca.md](07-lca.md#benchmarks)).
 - Mixed directed/undirected Euler circuits: need max flow, so they belong with rows 19/30/69.
 - Two-edge-connectivity augmentation and extended block-cut trees: row 27 (block-cut and bridge trees).
 - Exporting the functional graph's reverse forest as a tree: `successor`, `depth` and `tin`/`tout` already describe it.
@@ -262,6 +262,17 @@ P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines
 The GR01 sweeps ([sources](00-sources.md#fetched-2026-11-14-p010-gr01)) left nothing out of rows 01–04 (user decision 2026-11-14: every candidate is adopted). Placed elsewhere: `egoGraphWeighted` and `criticalPath` in row 05 (a Dijkstra radius and the AOE longest-path passes); `attractingComponents` and `isSemiconnected` in row 08; the one-problem `inverseLineGraph`, `pathCycleDecomposition` and `bipartiteAfterEdgeRemoval` in row 95; `stochasticGraphApprox` (floating-point arc weights, which `Graph` cannot hold) in row 97. Aliases only: NetworkX `contracted_nodes`, `quotient_graph` (`contract`, `simplify`), `non_edges` (`complementGraph`), `union`/`disjoint_union` (`disjointUnion`), the `*_all` forms (repeated binary calls), `create_empty_copy` (the constructor), maspypy `rearrange` (`inducedSubgraph`).
 
 Copied code (`03-cpp.md`, One API per operation): `egoGraph` runs its own radius-bounded BFS instead of calling `bfs`, so that it costs O(n + d) for the degree sum `d` of the ball rather than a scan of the whole component. `graphPower` keeps its own bounded BFS for the same reason.
+
+## P011 GR03 omissions (2026-11-15)
+
+The GR03 sweeps ([sources](00-sources.md#fetched-2026-11-15-p011-gr03)) added `lcaSet` to row 07, `maximumWeightWalk` and `reachabilityRealization` to row 08, and `BridgesStreaming`, `evenOutdegreeOrientation` and `localBridges` to row 09; `meet` stays in row 07 beside `rerootedLCA` (user decision 2026-11-15, duplicates.md, Keeps). The other candidates stay out:
+
+- DAG LCA (NetworkX `lowest_common_ancestor` on a DAG): another problem than forest LCA, named by no CP catalog or judge problem (user decision 2026-11-15).
+- Naive LCA by climbing, level-ancestor binary search (suisen), Euler tour with a segment tree or sqrt blocks (cp-algorithms), Gabow–Tarjan linear offline LCA: dominated; naive climbing needs the same `Forest`, so it is not half the lines of `LCA`.
+- Gabow's path-based SCC: Tarjan's bound and domain at the same length, no measured crossover.
+- Difference-array bridges and blocks (OI Wiki), chain-decomposition bridges (row 60 `chainDecomposition`), Fleury and adjacency-matrix Hierholzer: dominated.
+
+Copied code (`03-cpp.md`, One API per operation): `localBridges` tests triangle membership itself (each edge scans its lower-degree endpoint) instead of calling row 35 `countTrianglesPerEdge`, whose package P048 is not verified and is scheduled after P011. `maximumWeightWalk` runs its longest-path pass over `condensationDag` in component-ID order instead of calling row 05 `dagLongestPath`: component IDs are already topological, and `Graph` arc weights (`lng`) cannot hold a component's summed vertex weight. `SparseTableLCA` uses the verified `SparseTable` with a one-line `lca_detail::MinInt` monoid instead of `Min<int>` from `00-monoids.hpp`, whose batch DS05 is open. `localBridges` runs its own BFS and Dijkstra instead of row 02 `bfs` or row 05 `dijkstra`: each search skips every arc of the pair it measures, stops at the far endpoint and resets only the entries it touched, which neither offers per call.
 
 ## P010 GR02 omissions
 

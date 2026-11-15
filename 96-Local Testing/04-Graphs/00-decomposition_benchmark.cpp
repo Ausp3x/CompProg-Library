@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
         auto start = std::chrono::steady_clock::now(); f();
         return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
     };
-    for (int n : {32, 2000, 100000}) {
+    for (int n : {32, 2000, 100000, 1000000}) {
         for (string shape : {"chain", "star", "random", "forest"}) {
             Graph g(n); vector<pair<int, int>> queries;
             for (int v = 1; v < n; ++v) {
@@ -18,24 +18,28 @@ int main(int argc, char **argv) {
                 g.addEdge(u, v); }
             int q = max(1000, 4 * n);
             for (int i = 0; i < q; ++i) { queries.push_back({int(rng() % n), int(rng() % n)}); }
-            LCA binary(g); EulerLCA euler(g);
+            LCA binary(g); EulerLCA euler(g); SparseTableLCA sparse(g);
             vector<int> expected;
             for (auto [u, v] : queries) {
                 int a = binary.lca(u, v);
-                if (a != euler.lca(u, v)) { std::abort(); } expected.push_back(a); }
+                if (a != euler.lca(u, v) || a != sparse.lca(u, v)) { std::abort(); }
+                expected.push_back(a);}
             for (int run = 0; run < 5; ++run) {
-                std::optional<LCA> a; std::optional<EulerLCA> b;
+                std::optional<LCA> a; std::optional<EulerLCA> b; std::optional<SparseTableLCA> c;
                 double sa = measure([&] { a.emplace(g); });
                 double sb = measure([&] { b.emplace(g); });
-                vector<int> x(q), y(q);
+                double sc = measure([&] { c.emplace(g); });
+                vector<int> x(q), y(q), z(q);
                 double qa = measure([&] { for (int i = 0; i < q; ++i) {
                     x[i] = a->lca(queries[i].first, queries[i].second); }});
                 double qb = measure([&] { for (int i = 0; i < q; ++i) {
                     y[i] = b->lca(queries[i].first, queries[i].second); }});
-                if (x != expected || y != expected) { std::abort(); }
+                double qc = measure([&] { for (int i = 0; i < q; ++i) {
+                    z[i] = c->lca(queries[i].first, queries[i].second); }});
+                if (x != expected || y != expected || z != expected) { std::abort(); }
                 lng checksum = accumulate(x.begin(), x.end(), lng(0));
                 std::cout << "lca " << n << ' ' << g.edges.size() << ' ' << q << ' ' << shape
-                          << ' ' << run << ' ' << sa << ' ' << sb << ' ' << qa << ' ' << qb << ' ' << checksum << '\n'; }}}
+                          << ' ' << run << ' ' << sa << ' ' << sb << ' ' << sc << ' ' << qa << ' ' << qb << ' ' << qc << ' ' << checksum << '\n';}}}
     for (int n : {32, 2000, 100000}) {
         for (string shape : {"chain", "cycle", "random", "blocks"}) {
             Graph g(n, true);
@@ -60,5 +64,5 @@ int main(int argc, char **argv) {
                 if (canonical(a) != expected || canonical(b) != expected) { std::abort(); }
                 lng checksum = accumulate(expected.begin(), expected.end(), lng(0));
                 std::cout << "scc " << n << ' ' << g.edges.size() << " 0 " << shape << ' ' << run
-                          << ' ' << sa << ' ' << sb << " 0 0 " << checksum << '\n'; }}}
+                          << ' ' << sa << ' ' << sb << " 0 0 0 0 " << checksum << '\n';}}}
 }

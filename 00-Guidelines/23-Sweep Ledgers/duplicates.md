@@ -128,6 +128,7 @@ Items a reader could mistake for duplicates.
 | P072 | `kSmallestSubsetSums` (`54-kbest_enumeration.hpp`) beside `kSmallestSortedListSums` over lists `{min(0, a_i), max(0, a_i)}` | Decided 2026-10-23 by the user: named special case (subset witnesses, no list construction) |
 | P059 | `isqrt` beside `isqrt128` (row 21) | Decided 2026-11-03 (`/merge-pr 3`): larger domain, a 128-bit argument; `isqrt` keeps the one-`sqrt` 64-bit path |
 | P122 | `PlusMinusOneRMQ` (row 54) beside the `EulerLCA` kernel (Graphs row 07) | Decided 2026-11-08 by the user (P254 omission sweep): row 54 keeps it public and `EulerLCA` calls it instead of a copy of its own |
+| P011 | `meet(t, a, b, c)` (Graphs row 07) beside `rerootedLCA(a, b, c)` | Decided 2026-11-15 by the user (/package GR03): the same median on every input, kept as a free function over every LCA struct that calls `rerootedLCA` |
 | P121 | `SortableArray` (duplicate keys, no monoid) beside `SortableSegmentTree` (distinct keys) | Decided 2026-11-08 by the user: larger domain |
 | P183 | `coefficientExtraction` beside `bostanMori` | Decided 2026-11-08 by the user (P254 omission sweep): a wrapper in another row stays and calls its owner |
 | P183 | `labelledSequence` beside `unlabelledSequence` | Decided 2026-11-08 by the user: labelled and unlabelled constructions are separate contexts (`03-cpp.md`, One API per operation); the labelled form calls the unlabelled one |

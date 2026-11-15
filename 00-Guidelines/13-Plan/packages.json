@@ -163,7 +163,7 @@
       "phase": "Foundations re-audit",
       "size": "L+M",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "04-Graphs/Docs/07-lca.md",
         "04-Graphs/Docs/08-scc.md",
@@ -171,7 +171,7 @@
         "04-Graphs/Docs/10-euleriantrail.md",
         "04-Graphs/Docs/11-functionalgraph.md"
       ],
-      "note": "Follow-up (user decision 2026-11-09, /finish GR05): add median meet(a, b, c) (maspypy tree.hpp) to row 07 LCA/EulerLCA; 2026-11-03 Forest NDEBUG revisit skip landed with P042 GR05. Omission sweep 2026-11-08: implement SparseTableLCA in `07-lca.hpp`; strongConnectivityAugmentation in `08-scc.hpp`."
+      "note": "User decisions 2026-11-15: meet kept as a free function calling rerootedLCA (duplicates.md Keeps); lcaSet, maximumWeightWalk, evenOutdegreeOrientation and localBridges adopted; DAG LCA left out. User decisions 2026-11-16: the order of mutually unreachable SCCs stays unspecified; COS 464 (evenOutdegreeOrientation rev guard under NDEBUG) accepted. maximumWeightWalk witness and reachabilityRealization arc order are fixed by contract (08-scc.md). Mutation runtime-only survivors of localBridges recorded with measurements (09-bridges_articulation.md)."
     },
     {
       "id": "P012",

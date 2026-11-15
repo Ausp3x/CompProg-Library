@@ -158,6 +158,106 @@ namespace {
                 check(ancestor(y, x), name + " nontree edges join ancestor and descendant");
                 if (e != tree[x] && ancestor(u, x)) { want = min(want, tin[y]); }}
             check(low[u] == want, name + " low against reconstructed DFS forest");}}
+    // Deletion oracle on an edge list: f is a bridge iff its endpoints separate once f alone is removed.
+    vector<bool> deletionBridges(int n, const vector<pair<int, int>> &es) {
+        int m = int(es.size()); vector<bool> res(m); vector<int> root(n);
+        auto find = [&](int u) {
+            while (root[u] != u) { root[u] = root[root[u]]; u = root[u]; }
+            return u;};
+        for (int f = 0; f < m; ++f) {
+            std::iota(root.begin(), root.end(), 0);
+            for (int e = 0; e < m; ++e) { if (e != f) { root[find(es[e].first)] = find(es[e].second); }}
+            res[f] = find(es[f].first) != find(es[f].second);}
+        return res;}
+    // Tester-side iterative Tarjan skipping only the entering edge ID; validated against deletionBridges in every small case.
+    vector<bool> tarjanBridges(int n, const vector<pair<int, int>> &es) {
+        int m = int(es.size()), timer = 0; vector<int> start(n + 2), adj(2 * size_t(m));
+        for (auto [u, v] : es) { ++start[u + 2]; ++start[v + 2]; }
+        for (int u = 0; u < n; ++u) { start[u + 2] += start[u + 1]; }
+        for (int e = 0; e < m; ++e) { adj[start[es[e].first + 1]++] = e; adj[start[es[e].second + 1]++] = e; }
+        vector<int> tin(n, -1), low(n), via(n, -1), stack, pos(start.begin(), start.begin() + n); vector<bool> bridge(m);
+        for (int s = 0; s < n; ++s) {
+            if (tin[s] != -1) { continue; }
+            tin[s] = low[s] = timer++; stack.push_back(s);
+            while (!stack.empty()) {
+                int u = stack.back();
+                if (pos[u] < start[u + 1]) {
+                    int e = adj[pos[u]++];
+                    if (e == via[u]) { continue; }
+                    int v = es[e].first ^ es[e].second ^ u;
+                    if (tin[v] == -1) { via[v] = e; tin[v] = low[v] = timer++; stack.push_back(v); }
+                    else { low[u] = min(low[u], tin[v]); }
+                    continue;}
+                stack.pop_back();
+                if (via[u] == -1) { continue; }
+                int p = stack.back(); low[p] = min(low[p], low[u]);
+                if (low[u] > tin[p]) { bridge[via[u]] = true; }}}
+        return bridge;}
+    vector<int> indices(const vector<bool> &flags) {
+        vector<int> res;
+        for (int i = 0; i < int(flags.size()); ++i) { if (flags[i]) { res.push_back(i); }}
+        return res;}
+    // Every prefix of the stream against the deletion oracle; the final answer against the graph's own deletion oracle.
+    void streaming(const Graph &g, const vector<bool> &bridge) {
+        int n = g.n; BridgesStreaming s(n); vector<pair<int, int>> es;
+        for (int e = 0; e < int(g.edges.size()); ++e) {
+            check(s.add(g.edges[e].u, g.edges[e].v) == e, "stream index");
+            es.emplace_back(g.edges[e].u, g.edges[e].v);
+            check(int(s.kept.size()) <= max(0, 2 * (n - 1)), "stream O(n) kept bound");
+            check(s.bridges() == indices(deletionBridges(n, es)), "stream prefix deletion oracle");}
+        auto want = indices(bridge);
+        check(s.bridges() == want && s.bridges() == want, "stream repeated query against graph deletion oracle");
+        check(tarjanBridges(n, es) == bridge, "tester Tarjan against deletion oracle");}
+    // comp: any labels in [0, n) equal exactly within connected components.
+    template<class G>
+    void evenCheck(const G &g, const vector<int> &comp, const string &name) {
+        int n = g.n, m = int(g.edges.size()); vector<int> arcs{7, 7, 7}, out(n), parity(n), smallest(n, n);
+        bool ok = evenOutdegreeOrientation(g, arcs);
+        check(int(arcs.size()) == m, name + " one arc per edge");
+        for (int e = 0; e < m; ++e) {
+            int a = arcs[e];
+            check(0 <= a && a < int(g.arcs.size()) && g.arcs[a].id == e, name + " arc ID orients its edge");
+            ++out[g.arcs[a].from]; parity[comp[g.edges[e].u]] ^= 1;}
+        for (int u = 0; u < n; ++u) { smallest[comp[u]] = min(smallest[comp[u]], u); }
+        check(ok == (std::find(parity.begin(), parity.end(), 1) == parity.end()), name + " even iff every component has even edge count");
+        for (int u = 0; u < n; ++u) {
+            check(out[u] % 2 == int(smallest[comp[u]] == u && parity[comp[u]]), name + " only odd components' smallest vertex odd");}}
+    // Explicit neighbour sets for triangles, Bellman-Ford on the graph minus e for the span.
+    vector<pair<int, lll>> localOracle(const Graph &g, bool weighted) {
+        int n = g.n, m = int(g.edges.size()); vector<set<int>> nb(n); vector<pair<int, lll>> res;
+        for (auto [u, v, w] : g.edges) { if (u != v) { nb[u].insert(v); nb[v].insert(u); }}
+        for (int e = 0; e < m; ++e) {
+            auto [s, t, w] = g.edges[e]; bool triangle = false;
+            if (s == t) { continue; }
+            for (int z : nb[s]) { triangle = triangle || (z != t && nb[t].count(z)); }
+            if (triangle) { continue; }
+            vector<lll> dist(n, -1); dist[s] = 0;
+            for (int round = 0; round < n; ++round) {
+                for (int f = 0; f < m; ++f) {
+                    if (f == e) { continue; }
+                    auto [a, b, c] = g.edges[f]; lll cost = weighted ? lll(c) : 1;
+                    for (int k = 0; k < 2; ++k, swap(a, b)) {
+                        if (dist[a] != -1 && (dist[b] == -1 || dist[a] + cost < dist[b])) { dist[b] = dist[a] + cost; }}}}
+            res.push_back({e, dist[t]});}
+        return res;}
+    template<class G>
+    void localCheck(const G &g, bool weighted, const vector<pair<int, lll>> &expected, const string &name) {
+        check(localBridges(g, weighted) == expected, name);}
+    Graph reweight(const Graph &g, lng base) {
+        static std::mt19937_64 rng(seed ^ 0x9e3779b97f4a7c15ULL); Graph h(g.n);
+        for (auto e : g.edges) { h.addEdge(e.u, e.v, base + lng(rng() % 4)); }
+        return h;}
+    void newOperations(const Graph &g, const vector<int> &connected, const vector<bool> &bridge) {
+        streaming(g, bridge);
+        CsrGraph csr(g); evenCheck(g, connected, "even orientation"); evenCheck(csr, connected, "CSR even orientation");
+        auto hops = localOracle(g, false);
+        check(localBridges(g) == hops, "local bridges default unweighted oracle");
+        localCheck(csr, false, hops, "CSR local bridges unweighted oracle");
+        for (lng base : {lng(0), std::numeric_limits<lng>::max() - 3}) {
+            auto h = reweight(g, base); auto expected = localOracle(h, true);
+            localCheck(h, true, expected, "local bridges weighted Bellman-Ford oracle");
+            localCheck(CsrGraph(h), true, expected, "CSR local bridges weighted Bellman-Ford oracle");
+            localCheck(h, false, hops, "local bridges ignore weights unweighted");}}
     void runCase(const Graph &g) {
         ++cases; context = show(g);
         auto connected = components(g); int base = count(connected);
@@ -165,7 +265,7 @@ namespace {
         for (int e = 0; e < int(g.edges.size()); ++e) { bridge[e] = count(components(g, -1, e)) > base; }
         for (int u = 0; u < g.n; ++u) { cut[u] = count(components(g, u)); art[u] = cut[u] > base; }
         auto component = components(g, -1, -1, bridge); auto expected = blocks(g);
-        result(g, lowlink(g), connected, bridge, art, cut, component, expected);
+        result(g, lowlink(g), connected, bridge, art, cut, component, expected); newOperations(g, connected, bridge);
         CsrGraph csr(g); result(csr, lowlink(csr), connected, bridge, art, cut, component, expected);
         vector<vector<int>> adj(g.n); set<pair<int, int>> pairs;
         for (int e = 0; e < int(g.edges.size()); ++e) {
@@ -246,12 +346,100 @@ namespace {
         adj[1].push_back(2); adj[2].push_back(1);
         check(fresh() == set<pair<int, int>>{{1, 2}}, "repeated call after a new edge");
         cout << "PASS stack-safe chain/cycle/parallel-star n=" << n << ", root articulation, snapshots and repeated adjacency-list calls\n";}
+    void fixtures() {
+        context = "local bridges/even orientation fixtures";
+        Graph square(4); square.addPath({0, 1, 2, 3}, 0); square.addEdge(3, 0, 5);
+        vector<pair<int, lll>> hops{{0, 3}, {1, 3}, {2, 3}, {3, 3}}, weights{{0, 5}, {1, 5}, {2, 5}, {3, 0}};
+        check(localBridges(square) == hops && localOracle(square, false) == hops, "square spans 3");
+        check(localBridges(square, true) == weights && localOracle(square, true) == weights, "zero-weight square spans");
+        Graph triangle(3); triangle.addCycle({0, 1, 2});
+        check(localBridges(triangle).empty() && localOracle(triangle, false).empty(), "triangle edges excluded");
+        Graph pair2(3); pair2.addEdge(0, 1); pair2.addEdge(0, 1); pair2.addEdge(0, 0); pair2.addEdge(1, 2);
+        vector<pair<int, lll>> want{{0, 1}, {1, 1}, {3, -1}};
+        check(localBridges(pair2) == want && localOracle(pair2, false) == want, "parallel copies span 1, loop skipped, bridge -1");
+        vector<int> arcs;
+        check(evenOutdegreeOrientation(triangle, arcs) == false, "odd triangle");
+        triangle.addEdge(0, 0); check(evenOutdegreeOrientation(triangle, arcs), "triangle plus loop even");
+        evenCheck(triangle, {0, 0, 0}, "fixture even orientation");}
+    // Large stream, CSR/Graph orientation and local bridges: stack safety, O(n) memory and the stated bounds.
+    void largeOperations() {
+        int n = mode == "quick" ? 20000 : mode == "full" ? 200000 : 500000;
+        std::mt19937_64 rng(seed + 1); vector<pair<int, int>> es;
+        for (int v = 1; v < n; ++v) {
+            if (v < n / 2) { es.emplace_back(v - 1, v); }
+            else if (rng() % 10) { es.emplace_back(int(rng() % uint(v)), v); }}
+        for (int i = 0; i < n / 4; ++i) { int u = int(rng() % uint(n)); es.emplace_back(u, min(n - 1, u + 1 + int(rng() % 3))); }
+        for (int i = 0; i < n / 20; ++i) { es.push_back(es[rng() % es.size()]); int u = int(rng() % uint(n)); es.emplace_back(u, u); }
+        std::shuffle(es.begin(), es.end(), rng);
+        int m = int(es.size()); context = "large stream n=" + std::to_string(n) + " m=" + std::to_string(m);
+        BridgesStreaming s(n);
+        for (int i = 0; i < m; ++i) {
+            check(s.add(es[i].first, es[i].second) == i, "large stream index");
+            if (i + 1 != m / 3 && i + 1 != m) { continue; }
+            auto want = indices(tarjanBridges(n, vector<pair<int, int>>(es.begin(), es.begin() + i + 1)));
+            check(!want.empty() && int(want.size()) <= i, "large stream nontrivial bridge set");
+            check(s.bridges() == want && int(s.kept.size()) <= 2 * (n - 1), "large stream prefix Tarjan oracle and kept bound");}
+        int small = 1000, dense = mode == "quick" ? 50000 : 300000; BridgesStreaming d(small); vector<pair<int, int>> ds;
+        for (int i = 0; i < dense; ++i) { ds.emplace_back(int(rng() % uint(small - 1)), int(rng() % uint(small - 1))); d.add(ds[i].first, ds[i].second); }
+        ds.emplace_back(0, small - 1); d.add(0, small - 1);
+        check(d.bridges() == indices(tarjanBridges(small, ds)) && d.bridges() == vector<int>{dense}, "dense stream single pendant bridge");
+        check(int(d.kept.size()) <= 2 * (small - 1), "dense stream O(n) kept bound");
+        Graph g(n); vector<int> root(n), comp(n);
+        for (auto [u, v] : es) { g.addEdge(u, v); }
+        std::iota(root.begin(), root.end(), 0);
+        auto find = [&](int u) {
+            while (root[u] != u) { root[u] = root[root[u]]; u = root[u]; }
+            return u;};
+        for (auto [u, v] : es) { root[find(u)] = find(v); }
+        for (int u = 0; u < n; ++u) { comp[u] = find(u); }
+        evenCheck(g, comp, "large random even orientation"); evenCheck(CsrGraph(g), comp, "large random CSR even orientation");
+        Graph chain(n); chain.addPath([&] { vector<int> vs(n); std::iota(vs.begin(), vs.end(), 0); return vs; }());
+        evenCheck(chain, vector<int>(n), "large chain even orientation");
+        chain.addEdge(n - 1, 0); evenCheck(CsrGraph(chain), vector<int>(n), "large cycle CSR even orientation");
+        int cols = 100, rows = mode == "quick" ? 10 : n / (2 * cols), grid = rows * cols; const lng W = 4'000'000'000'000'000'000;
+        Graph local(n); vector<pair<int, lll>> hops, weights;
+        auto add = [&](int u, int v, lll span) {
+            int e = local.addEdge(u, v, W); hops.push_back({e, span}); weights.push_back({e, span == -1 ? -1 : span * W});};
+        for (int r = 0; r < rows; ++r) { for (int c = 0; c < cols; ++c) {
+            int u = r * cols + c;
+            if (c + 1 < cols) { add(u, u + 1, u == 0 ? 1 : 3); }
+            if (r + 1 < rows) { add(u, u + cols, 3); }
+            if (u == 0) { add(0, 1, 1); local.addEdge(5, 5, W); }}}
+        add(0, grid, -1);
+        for (int v = grid + 1; v < n; ++v) { add(v - 1, v, -1); }
+        context = "large grid " + std::to_string(rows) + "x" + std::to_string(cols) + " with chain tail n=" + std::to_string(n);
+        check(localBridges(local) == hops && localBridges(CsrGraph(local)) == hops, "large grid unweighted spans");
+        check(localBridges(local, true) == weights && localBridges(CsrGraph(local), true) == weights, "large grid weighted spans beyond 64 bits");
+        Graph wheel(n);
+        for (int v = 1; v + 1 < n; ++v) { wheel.addEdge(0, v); }
+        for (int v = 1; v + 1 < n; ++v) { wheel.addEdge(v, v + 2 < n ? v + 1 : 1); }
+        int pendant = wheel.addEdge(0, n - 1); vector<pair<int, lll>> only{{pendant, -1}};
+        context = "large wheel n=" + std::to_string(n);
+        check(localBridges(wheel) == only && localBridges(CsrGraph(wheel), true) == only, "large wheel triangles by degree ranking");
+        // n parallel copies of 0-1 closing triangle 0-1-2: every edge lies in a triangle; one scan per distinct pair keeps it near-linear.
+        Graph bundle(3);
+        for (int i = 0; i < n; ++i) { bundle.addEdge(0, 1); }
+        bundle.addEdge(1, 2); bundle.addEdge(0, 2);
+        context = "parallel bundle m=" + std::to_string(n + 2);
+        check(localBridges(bundle).empty() && localBridges(CsrGraph(bundle), true).empty(), "parallel bundle all in triangles");
+        // n parallel copies of 0-1 beside the path 0-2-3-1 and no triangle: the copies share one search (weighted: least other copy or the path).
+        Graph bare(4); vector<pair<int, lll>> unit, light;
+        for (int i = 0; i < n; ++i) { int e = bare.addEdge(0, 1, 10 + i); unit.push_back({e, 1}); light.push_back({e, i ? 10 : 11}); }
+        for (auto [u, v] : {pair(0, 2), pair(2, 3), pair(3, 1)}) { int e = bare.addEdge(u, v, 5); unit.push_back({e, 3}); light.push_back({e, 20}); }
+        context = "bare parallel bundle m=" + std::to_string(n + 3);
+        check(localBridges(bare) == unit && localBridges(CsrGraph(bare)) == unit, "bare bundle unweighted spans");
+        check(localBridges(bare, true) == light && localBridges(CsrGraph(bare), true) == light, "bare bundle weighted spans");
+        cout << "PASS large stream/orientation/local-bridge cases n=" << n << " stream m=" << m << " dense m=" << dense + 1 << '\n';}
     void invalid(const string &name) {
         Graph g(2, true);
         if (name == "lowlink-directed") { lowlink(g); }
         else if (name == "lowlink-csr-directed") { lowlink(CsrGraph(g)); }
         else if (name == "orientation-directed") { strongOrientation(g); }
         else if (name == "orientation-csr-directed") { strongOrientation(CsrGraph(g)); }
+        else if (name == "stream-end") { BridgesStreaming(2).add(0, 2); }
+        else if (name == "even-directed") { vector<int> arcs; evenOutdegreeOrientation(g, arcs); }
+        else if (name == "local-directed") { localBridges(g); }
+        else if (name == "local-negative") { Graph h(2); h.addEdge(0, 1, 0); h.addEdge(0, 1, -1); localBridges(h, true); }
         else if (name == "adjacency-endpoint") { lowlink(Graph::fromAdjacency(vector<vector<int>>{{2}, {}})); }
         else { throw std::runtime_error("unknown invalid probe " + name); }}
 } // namespace
@@ -263,6 +451,6 @@ int main(int argc, char **argv) {
             if (arg == "--mode") { mode = argv[++i]; }
             else if (arg == "--seed") { seed = std::stoull(argv[++i]); }
             else if (arg == "--invalid") { invalid(argv[++i]); return 2; }}
-        exhaustive(); randomCases(); boundaries();
+        exhaustive(); randomCases(); boundaries(); fixtures(); largeOperations();
         cout << "PASS lowlink seed=" << seed << " mode=" << mode << " cases=" << cases << " checks=" << checks << '\n';} catch (const std::exception &e) {
         cerr << "FAIL lowlink seed=" << seed << " mode=" << mode << ' ' << e.what() << '\n'; return 1;}}

@@ -3,6 +3,7 @@
 #include "../01-Core/01-template.hpp"
 #include "01-graph.hpp"
 #include "../02-Data Structures/01-dsu.hpp"
+#include "../02-Data Structures/04-sparsetable.hpp"
 
 namespace lca_detail {
     // S: O(n), Q: O(1), M: O(n); iterative DFS forest with inclusive [t_in, t_out] subtree intervals.
@@ -39,16 +40,38 @@ namespace lca_detail {
         bool covers(int u, int v) const { return t_in[u] <= t_in[v] && t_out[v] <= t_out[u]; }
         bool isAncestor(int u, int v) const { check(u); check(v); return covers(u, v); }
     };
+
+    // T: O(1), M: O(1); the SparseTable monoid of SparseTableLCA.
+    struct MinInt { using S = int; static S op(S a, S b) { return min(a, b); } };
+
+    // T: O(1) lca queries per call, M: O(1); path queries shared by the LCA structs D through D::lca.
+    template<class D>
+    struct Paths : Forest {
+        using Forest::Forest;
+
+        int distance(int u, int v) const {
+            int a = static_cast<const D &>(*this).lca(u, v); return a == -1 ? -1 : (dep[u] - dep[a]) + (dep[v] - dep[a]);}
+        bool distanceWeighted(int u, int v, lll &out) const {
+            int a = static_cast<const D &>(*this).lca(u, v);
+            if (a == -1) { return false; }
+            out = weight[u] + weight[v] - 2 * weight[a]; return true;}
+        int rerootedLCA(int u, int v, int r) const {
+            const D &t = static_cast<const D &>(*this);
+            check(r); int a = t.lca(u, v);
+            if (a == -1 || component[u] != component[r]) { return -1; }
+            int b = t.lca(u, r), c = t.lca(v, r);
+            return dep[a] >= dep[b] && dep[a] >= dep[c] ? a : dep[b] >= dep[c] ? b : c;}
+    };
 } // namespace lca_detail
 
 // Undirected simple forest, lng weights; root=-1 roots each component at its minimum; no answer is -1.
 // S: O(n * log(n)), Q: O(log(n)), M: O(n * log(n)); isAncestor is O(1).
-struct LCA : lca_detail::Forest {
+struct LCA : lca_detail::Paths<LCA> {
     int l;
     vector<vector<int>> up;
 
     template<class G = Graph>
-    explicit LCA(const G &g, int root = -1) : Forest(g, root), l(int(std::bit_width(uint(max(1, n)))) - 1),
+    explicit LCA(const G &g, int root = -1) : Paths(g, root), l(int(std::bit_width(uint(max(1, n)))) - 1),
         up(n, vector<int>(l + 1)) {
         for (int u : order) {
             up[u][0] = parent[u] == -1 ? u : parent[u];
@@ -66,22 +89,11 @@ struct LCA : lca_detail::Forest {
         if (covers(v, u)) { return v; }
         for (int j = l; j >= 0; --j) { if (!covers(up[u][j], v)) { u = up[u][j]; }}
         return parent[u];}
-    int distance(int u, int v) const {
-        int a = lca(u, v); return a == -1 ? -1 : (dep[u] - dep[a]) + (dep[v] - dep[a]);}
-    bool distanceWeighted(int u, int v, lll &out) const {
-        int a = lca(u, v);
-        if (a == -1) { return false; }
-        out = weight[u] + weight[v] - 2 * weight[a]; return true;}
     int jump(int u, int v, lng k) const {
         assert(k >= 0); int a = lca(u, v);
         if (a == -1) { return -1; }
         int left = dep[u] - dep[a], length = left + dep[v] - dep[a];
         return k > length ? -1 : k <= left ? kthAncestor(u, k) : kthAncestor(v, length - k);}
-    int rerootedLCA(int u, int v, int r) const {
-        check(r); int a = lca(u, v);
-        if (a == -1 || component[u] != component[r]) { return -1; }
-        int b = lca(u, r), c = lca(v, r);
-        return dep[a] >= dep[b] && dep[a] >= dep[c] ? a : dep[b] >= dep[c] ? b : c;}
 };
 
 // Labels on vertices, or on child vertices for edges (edges=true skips the LCA), under a monoid M (S, op, e); path order u -> v.
@@ -113,14 +125,14 @@ struct LCAFold : LCA {
 
 // Same contract as LCA with 2 * n + 1 <= INT_MAX; Farach-Colton-Bender RMQ, no kthAncestor or jump.
 // S: O(n), Q: O(1), M: O(n).
-struct EulerLCA : lca_detail::Forest {
+struct EulerLCA : lca_detail::Paths<EulerLCA> {
     int block_size;
     vector<int> first, tour, mask;
     vector<vector<int>> table;
     vector<vector<uint8_t>> micro;
 
     template<class G = Graph>
-    explicit EulerLCA(const G &g, int root = -1) : Forest(g, root), first(n) {
+    explicit EulerLCA(const G &g, int root = -1) : Paths(g, root), first(n) {
         assert(n <= (INT_MAX - 1) / 2); tour.reserve(2 * n + 1); tour.push_back(-1);
         int cur = -1;
         for (int u : order) {
@@ -164,17 +176,26 @@ struct EulerLCA : lca_detail::Forest {
             int j = int(std::bit_width(uint(b - a - 1))) - 1;
             best = better(best, better(table[j][a + 1], table[j][b - (1 << j)]));}
         return tour[best];}
-    int distance(int u, int v) const {
-        int a = lca(u, v); return a == -1 ? -1 : (dep[u] - dep[a]) + (dep[v] - dep[a]);}
-    bool distanceWeighted(int u, int v, lll &out) const {
-        int a = lca(u, v);
-        if (a == -1) { return false; }
-        out = weight[u] + weight[v] - 2 * weight[a]; return true;}
-    int rerootedLCA(int u, int v, int r) const {
-        check(r); int a = lca(u, v);
-        if (a == -1 || component[u] != component[r]) { return -1; }
-        int b = lca(u, r), c = lca(v, r);
-        return dep[a] >= dep[b] && dep[a] >= dep[c] ? a : dep[b] >= dep[c] ? b : c;}
+};
+
+// Same contract as LCA; the LCA of u != v is the parent with the least t_in over preorder (t_in[u], t_in[v]], no kthAncestor or jump.
+// S: O(n * log(n)), Q: O(1), M: O(n * log(n)).
+struct SparseTableLCA : lca_detail::Paths<SparseTableLCA> {
+    SparseTable<lca_detail::MinInt> table;
+
+    template<class G = Graph>
+    explicit SparseTableLCA(const G &g, int root = -1) : Paths(g, root) {
+        vector<int> a(n);
+        for (int i = 0; i < n; ++i) { int p = parent[order[i]]; a[i] = p == -1 ? -1 : t_in[p]; }
+        table = SparseTable<lca_detail::MinInt>(std::move(a));}
+
+    int lca(int u, int v) const {
+        check(u); check(v);
+        if (component[u] != component[v]) { return -1; }
+        if (u == v) { return u; }
+        int l = t_in[u], r = t_in[v];
+        if (l > r) { swap(l, r); }
+        return order[table.prod(l + 1, r + 1)];}
 };
 
 // Same forest contract as LCA; answers keep query order, -1 across components.
@@ -195,14 +216,30 @@ vector<int> lcaOffline(const G &g, const vector<pair<int, int>> &queries, int ro
         if (p != -1) { dsu.uniteSets(u, p); ancestor[dsu.findSet(p)] = p; }}
     return res;}
 
-// Endpoints of path(a, b) & path(c, d), nearest c first, for LCA or EulerLCA; empty is {-1, -1}.
+// Median of a, b, c (the vertex on all three pairwise paths), for any LCA struct here; -1 unless all three are connected.
+// T: O(1) LCA queries, M: O(1).
+template<class L = LCA>
+int meet(const L &t, int a, int b, int c) { return t.rerootedLCA(a, b, c); }
+
+// LCA of a vertex set, for any LCA struct here; -1 when empty or across components.
+// T: O(k) plus one LCA query for k vertices, M: O(1).
+template<class L = LCA>
+int lcaSet(const L &t, const vector<int> &vs) {
+    if (vs.empty()) { return -1; }
+    int lo = vs[0], hi = vs[0]; bool same = true;
+    for (int u : vs) {
+        t.check(u); same &= t.component[u] == t.component[lo];
+        if (t.t_in[u] < t.t_in[lo]) { lo = u; }
+        if (t.t_in[u] > t.t_in[hi]) { hi = u; }}
+    return same ? t.lca(lo, hi) : -1;}
+
+// Endpoints of path(a, b) & path(c, d), nearest c first, for any LCA struct here; empty is {-1, -1}.
 // T: O(1) LCA queries, M: O(1).
 template<class L = LCA>
 pair<int, int> pathIntersection(const L &t, int a, int b, int c, int d) {
-    auto meet = [&](int x, int y, int z) { return t.lca(x, y) ^ t.lca(x, z) ^ t.lca(y, z); };
     t.check(a); t.check(b); t.check(c); t.check(d);
     int k = t.component[a];
     if (t.component[b] != k || t.component[c] != k || t.component[d] != k) { return {-1, -1}; }
-    int x = meet(a, b, c), y = meet(a, b, d);
-    if (x != y || meet(c, d, x) == x) { return {x, y}; }
+    int x = meet(t, a, b, c), y = meet(t, a, b, d);
+    if (x != y || meet(t, c, d, x) == x) { return {x, y}; }
     return {-1, -1};}
