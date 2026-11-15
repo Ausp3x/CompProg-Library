@@ -12,14 +12,19 @@ uncapped invocation becomes a small supervisor:
    the rest of the desktop is untouched, and the runner reports the failure.
 3. Inside the scope, the process prints ``MEMORY peak=... cap=... oom_kills=...`` at exit,
    with a FAIL line when the cap killed anything.
+4. The scope's first process gets SIGUSR2 when the supervisor dies, however it dies (a SIGKILL from a caller's timeout
+   included), and lead() turns that into the end of the whole scope, so nothing in it outlives its supervisor.
 
 Ad-hoc probes and benchmarks: ``python3 _00_memory_cap.py [--mb N] -- <command> [args...]``.
 
 Environment: CP_TEST_MEMORY_MB (main cap, default 4096), CP_TEST_PREFLIGHT_MB (default 2048),
-CP_TEST_PREFLIGHT=0 skips the pre-flight, CP_MEMORY_CAPPED marks a process already inside a cap.
+CP_TEST_PREFLIGHT=0 skips the pre-flight, CP_MEMORY_CAPPED marks a process already inside a cap,
+CP_MEMORY_SUPERVISOR (the supervisor's pid) marks the scope's first process until lead() takes it.
 Without a systemd user manager the run continues uncapped and says so.
 """
 import atexit
+import contextlib
+import ctypes
 import os
 from pathlib import Path
 import re
@@ -54,15 +59,60 @@ def capped(command, mb):
             '-p', f'MemoryMax={mb}M', '-p', 'MemorySwapMax=0', '-p', 'OOMPolicy=continue', '--', *command]
 
 
+def cgroup_dir():
+    """This process's cgroup v2 directory, or None."""
+    try:
+        return Path('/sys/fs/cgroup') / Path(open('/proc/self/cgroup').read().split('::', 1)[1].strip()).relative_to('/')
+    except (OSError, ValueError, IndexError):
+        return None
+
+
 def cgroup_stats():
     """(peak bytes, oom kills) of the current cgroup, or None outside cgroup v2."""
     try:
-        path = Path('/sys/fs/cgroup') / Path(open('/proc/self/cgroup').read().split('::', 1)[1].strip()).relative_to('/')
+        path = cgroup_dir()
         peak = int((path / 'memory.peak').read_text())
         events = dict(line.split() for line in (path / 'memory.events').read_text().splitlines())
         return peak, int(events.get('oom_kill', 0))
-    except (OSError, ValueError, IndexError):
+    except (OSError, ValueError, TypeError):
         return None
+
+
+def end_scope(*_):
+    """SIGKILL every process of this capped scope, this one included: its supervisor is gone, so nothing else would."""
+    path = cgroup_dir()
+    if path is not None and re.fullmatch(r'run-.+\.scope', path.name):
+        with contextlib.suppress(OSError):
+            (path / 'cgroup.kill').write_text('1')  # Linux 5.14+
+        for _ in range(10):  # older kernels: one by one, again for what forked meanwhile
+            with contextlib.suppress(OSError, ValueError):
+                others = [int(x) for x in (path / 'cgroup.procs').read_text().split() if int(x) != os.getpid()]
+                if not others:
+                    break
+                for pid in others:
+                    with contextlib.suppress(ProcessLookupError):
+                        os.kill(pid, signal.SIGKILL)
+    os._exit(128 + signal.SIGKILL)
+
+
+def lead():
+    """In a capped scope's first process: its supervisor's death (SIGUSR2, the parent-death signal supervise() sets)
+    ends the whole scope. Children do not inherit the role."""
+    supervisor = os.environ.pop('CP_MEMORY_SUPERVISOR', None)
+    if supervisor is None:
+        return
+    signal.signal(signal.SIGUSR2, end_scope)
+    if os.getppid() != int(supervisor):  # it died before the handler existed
+        end_scope()
+
+
+def parent_death(sig):
+    """A Popen preexec_fn giving the child sig when this process dies (prctl PR_SET_PDEATHSIG); None without prctl."""
+    try:
+        prctl = ctypes.CDLL(None, use_errno=True).prctl  # resolved before the fork
+    except (OSError, AttributeError):
+        return None
+    return lambda: prctl(1, int(sig))
 
 
 def report():
@@ -141,13 +191,16 @@ def supervise(command, mode=None, source='env', label=None):
     if not scope:
         print(f'WARNING {label}: no systemd user scope; running WITHOUT a memory cap', file=sys.stderr, flush=True)
     mark = lambda mb: str(mb) if scope else 'none'
+    if scope:  # the scope's first process ends the scope when this supervisor dies (lead())
+        base['CP_MEMORY_SUPERVISOR'] = str(os.getpid())
+    bound = dict(preexec_fn=parent_death(signal.SIGUSR2)) if scope else {}
     if mode in ('full', 'stress') and os.environ.get('CP_TEST_PREFLIGHT', '1') != '0':
         quick, env = list(command), dict(base, CP_MEMORY_CAPPED=mark(PREFLIGHT_MB), CP_TEST_MODE='quick')
         if source == 'argv':
             quick = ['quick' if i and is_mode_flag(command[i - 1]) and '=' not in command[i - 1]
                      else command[i].split('=', 1)[0] + '=quick' if is_mode_flag(a) and '=' in a else a
                      for i, a in enumerate(command)]
-        result = forwarding(capped(quick, PREFLIGHT_MB), env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = forwarding(capped(quick, PREFLIGHT_MB), env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, **bound)
         peak = next((l for l in result.stdout.splitlines() if l.startswith('MEMORY ')), 'MEMORY unknown')
         if result.returncode == -signal.SIGINT:  # the quick run itself died of the interrupt
             print(f'INTERRUPTED {label}: pre-flight quick run stopped by SIGINT; {mode} run skipped', file=sys.stderr, flush=True)
@@ -160,7 +213,7 @@ def supervise(command, mode=None, source='env', label=None):
         timings = [l if l.startswith('TIMING ') else 'OVERHALF pre-flight quick ' + l.removeprefix('OVERHALF ')  # for 01-run.py's NOTEs
                    for l in result.stdout.splitlines() if l.startswith(('TIMING ', 'OVERHALF '))]
         print('\n'.join([f'PREFLIGHT {label}: quick passed, {peak}', *timings]), flush=True)
-    code = forwarding(capped(command, MAIN_MB), env=dict(base, CP_MEMORY_CAPPED=mark(MAIN_MB))).returncode
+    code = forwarding(capped(command, MAIN_MB), env=dict(base, CP_MEMORY_CAPPED=mark(MAIN_MB)), **bound).returncode
     if code in (-9, 137):
         print(f'FAIL {label}: {sigkill_note(code)} (cap {MAIN_MB} MB, exit {exit_code(code)})', file=sys.stderr, flush=True)
     return exit_code(code)
@@ -178,6 +231,7 @@ def ensure(force=False, mb=None):
         hard = resource.getrlimit(resource.RLIMIT_CORE)[1]
         if hard == resource.RLIM_INFINITY or hard >= 1:  # at 1 the kernel skips a piped core_pattern: 190 ms per death probe under systemd-coredump
             resource.setrlimit(resource.RLIMIT_CORE, (1, hard))
+        lead()
         if os.environ['CP_MEMORY_CAPPED'] != 'none':
             atexit.unregister(report)  # a second ensure() (an imported entry point) reports once
             atexit.register(report)
@@ -207,6 +261,6 @@ if __name__ == '__main__':
         raise SystemExit(usage)
     os.environ.pop('CP_MEMORY_CAPPED', None)
     reporter = [sys.executable, '-c', 'import signal, subprocess, sys; signal.signal(signal.SIGINT, lambda *_: None); sys.path.insert(0, sys.argv[1]); '
-                'import _00_memory_cap as m; code = m.forwarding(sys.argv[2:]).returncode; m.report(); sys.exit(m.exit_code(code))',
+                'import _00_memory_cap as m; m.lead(); code = m.forwarding(sys.argv[2:]).returncode; m.report(); sys.exit(m.exit_code(code))',
                 str(Path(__file__).resolve().parent), *args]
     raise SystemExit(supervise(reporter, None, 'env', Path(args[0]).name))

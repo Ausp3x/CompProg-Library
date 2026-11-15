@@ -20,7 +20,8 @@ Work through every step. The brief at the end is the whole scope; do not open ot
 9. **Bookkeeping**: update the inventory row operations and status with evidence links; update `98-basic.hpp`/`99-all.hpp` or the Python aggregates; once a row is verified, delete its `97-Legacy` excerpt (`02-structure.md`, Archive); if the Core template or debug header changed, run `python3 '97-Online Testing/03-workspace.py'` then `--check`.
 10. **Independent review.** Delegate to `@reviewer` with the brief's id and the model and effort `CLAUDE.md` gives it. Fix every confirmed finding and rerun the affected tests.
 11. **Record and validate.** `python3 '00-Guidelines/13-Plan/plan.py' set Pxxx verified --evidence <paths> --note '<what stays true, or empty>'`, which replaces the progress note; if any operation is missing, use `partial` on the row, `in-progress` on the package, and `--note` with the exact remaining work and the failing reproducer, if any. Then `python3 '96-Local Testing/03-consistency.py'` must print no errors.
-12. **Report**: operations implemented, commands run with pass/fail, benchmark headlines, review findings fixed, remaining gaps. No file dumps. End by telling the user to run `/finish` with the brief's id, which closes the remaining gaps, commits and lands the work.
+12. **Reap**: once nothing of this session should keep running (no subagent or background task), run `python3 .claude/skills/reap/reap.py --own`; it ends what this session and ended sessions left running and deletes stale test temporaries.
+13. **Report**: operations implemented, commands run with pass/fail, benchmark headlines, review findings fixed, remaining gaps, and the reap's ENDED, LEFT and FAIL lines. No file dumps. End by telling the user to run `/finish` with the brief's id, which closes the remaining gaps, commits and lands the work.
 
 ## Context discipline
 

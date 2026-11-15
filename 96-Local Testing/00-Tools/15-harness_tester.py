@@ -2993,6 +2993,7 @@ class Audit(Fixture):
         kw = p.call_args.kwargs
         self.assertEqual((kw['cwd'], kw['start_new_session'], kw['stdin'], kw['stdout'], kw['stderr']),
                          (self.rrepo, True, subprocess.DEVNULL, subprocess.DEVNULL, subprocess.DEVNULL))
+        self.assertEqual(kw['env'].get('CP_REAP_KEEP'), '1', '/reap leaves the detached scan running')
         self.assertEqual(p.return_value.method_calls, [], 'the hook does not wait for it')
         for src in ('resume', 'clear', 'compact'):
             self.assertFalse(spawned(src).called, src)

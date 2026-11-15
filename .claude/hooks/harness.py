@@ -1385,8 +1385,8 @@ def start_audit():
     if os.environ.get('CP_HARNESS_AUDIT_CHILD') or not SCAN.is_file() or not audit_due():
         return False
     import subprocess
-    subprocess.Popen([sys.executable, str(SCAN), 'scan', '--due'], cwd=ROOT, stdin=subprocess.DEVNULL,
-                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    subprocess.Popen([sys.executable, str(SCAN), 'scan', '--due'], cwd=ROOT, stdin=subprocess.DEVNULL, env=dict(os.environ, CP_REAP_KEEP='1'),
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)  # /reap leaves it running
     return True
 
 

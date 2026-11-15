@@ -9,7 +9,8 @@ discovers only the fake suites and keeps its .run-stats.json there.
 quick: output identity at -j 1 and -j 4, first-failure status, rerun alone, the jobs bound, parallel() budget and rerun,
 forwarding() handler restore.
 full: every test, including signals, real capped scopes, SIGTERM/SIGHUP sent to a supervisor pid alone (main run and
-pre-flight, and to the ad-hoc CLI's supervisor, each in a real scope; explicit SKIP without one), integration main() on a small fake repository and 2
+pre-flight, and to the ad-hoc CLI's supervisor, each in a real scope; explicit SKIP without one), a supervisor's SIGKILL
+ending its whole scope (entry point or CLI reporter, and a grandchild), integration main() on a small fake repository and 2
 seeded random runs.
 stress: full with --rounds seeded random runs (default 6) of random suite counts, sleeps, failures, jobs and budgets.
 Oracles: the expected log rebuilt from the suite parameters (RUN lines in rounds x sorted-path order, each suite's known
@@ -77,7 +78,7 @@ finally:
 open(f"{d}/{P['name']}.done", 'w').close()
 sys.exit(code)
 '''
-SIG = r'''import json, os, signal, sys, time
+SIG = r'''import json, os, signal, subprocess, sys, time
 sys.path.insert(0, os.environ['RT_LT'])
 import _00_memory_cap
 _00_memory_cap.ensure()
@@ -86,7 +87,8 @@ def stop(sig, _):
     open(f"{d}/{mode}.sig", 'w').write(str(sig))
     sys.exit(40 + sig)
 for s in (signal.SIGTERM, signal.SIGHUP): signal.signal(s, stop)  # also probes SIGHUP inherited as ignored
-with open(f"{d}/tmp", 'w') as f: json.dump(dict(pid=os.getpid(), ppid=os.getppid()), f)
+kid = subprocess.Popen(['sleep', '60']).pid if os.environ.get('RT_KID') else None
+with open(f"{d}/tmp", 'w') as f: json.dump(dict(pid=os.getpid(), ppid=os.getppid(), kid=kid), f)
 os.replace(f"{d}/tmp", f"{d}/{mode}.start")
 time.sleep(float(os.environ['RT_SLEEP']))
 open(f"{d}/{mode}.end", 'w').close()
@@ -1049,13 +1051,14 @@ int main(int argc, char **argv) {
 class Forward(Base):
     """supervise() and the CLI reporter pass SIGTERM and SIGHUP sent to the supervisor pid alone on to the capped command."""
 
-    def start(self, mode, sleep=60, hup=signal.SIG_DFL, cli=False):
+    def start(self, mode, sleep=60, hup=signal.SIG_DFL, cli=False, kid=False):
         """The supervisor of sig_tester.py: its own ensure(), or with cli the ad-hoc CLI, whose scope runs a reporter."""
         if not _00_memory_cap.available(): self.skipTest('SKIP: no systemd user scope')
         (self.root / 'sig_tester.py').write_text(SIG)
         for x in self.root.glob('quick.*'): x.unlink()
         env = {k: v for k, v in os.environ.items() if not k.startswith('CP_TEST_') and k != 'CP_MEMORY_CAPPED'} | dict(
-            RT_DIR=str(self.root), RT_LT=str(LT), RT_SLEEP=str(sleep), CP_TEST_MEMORY_MB='256', CP_TEST_PREFLIGHT_MB='256')
+            RT_DIR=str(self.root), RT_LT=str(LT), RT_SLEEP=str(sleep), CP_TEST_MEMORY_MB='256', CP_TEST_PREFLIGHT_MB='256') | (
+            dict(RT_KID='1') if kid else {})
         cmd = [sys.executable, self.root / 'sig_tester.py', '--mode', mode]
         with open(self.root / 'out', 'w') as out, open(self.root / 'err', 'w') as err:  # files: an orphan holding a pipe would block
             proc = subprocess.Popen([sys.executable, LT / '_00_memory_cap.py', '--mb', '256', '--'] * cli + cmd, env=env,
@@ -1106,6 +1109,25 @@ class Forward(Base):
                 self.assertIn('FAIL sig_tester.py: pre-flight quick run failed', err)
                 self.assertIn('full run skipped', err)
                 self.assertFalse((self.root / 'full.start').exists(), 'the full run never starts')
+
+    def test_supervisor_death_ends_scope(self):
+        """A supervisor killed outright (a caller's subprocess timeout sends SIGKILL, which cannot be forwarded) still takes
+        its whole scope down: the capped entry point or the CLI reporter, its command and a grandchild."""
+        def alive(pid):
+            with contextlib.suppress(OSError):
+                return Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()[0] != 'Z'
+            return False
+        for cli in False, True:
+            with self.subTest(cli=cli):
+                proc, rec = self.start('quick', cli=cli, kid=True)
+                pids = {rec['pid'], rec['kid']} | ({rec['ppid']} if cli else set())
+                self.assertTrue(all(map(alive, pids)), 'fixture premise: the scope runs')
+                os.kill(proc.pid, signal.SIGKILL)
+                proc.wait(30)
+                deadline = time.monotonic() + 10
+                while any(map(alive, pids)) and time.monotonic() < deadline: time.sleep(0.05)
+                self.assertEqual([p for p in sorted(pids) if alive(p)], [], f'cli={cli}: nothing of the scope outlives its supervisor')
+                self.assertFalse((self.root / 'quick.end').exists(), 'the capped child never finished its sleep')
 
     def test_preflight_echoes_timing(self):
         """The PREFLIGHT line carries the quick run's TIMING and OVERHALF lines, so 01-run.py's NOTEs see them in a full run."""
