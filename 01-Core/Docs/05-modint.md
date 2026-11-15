@@ -151,6 +151,98 @@ Dispatch measurement, 2026-10-12, within one workload (`montgomery-cached` again
 
 The 32-bit `DynModInt<>` construction from `int` (2.5 ns each) is bounded by the function-local reducer's initialization guard plus one Barrett step; a `constinit` reducer would need a constexpr Barrett constructor, which belongs to P004, and the guard is the same cost `*=` already pays.
 
+### Optimality gap
+
+Speed sweep of 2026-11-16 (`/speed-sweep P005`, scout) over the eleven Library Checker problems whose judge sources include this header; all eleven are linear-algebra solutions on `10-matrix.hpp` (P020, planned), so each cause below names its owner. Judge side: our submissions #388710–#388721 of 2026-07-27 (and the listed best of each problem), the judge's `g++ -O2 -std=c++23 -DEVAL -DONLINE_JUDGE -march=native`; the standing is the rank among the 30 fastest distinct users (`J fastest`, similar sources merged). Local side: i9-11900H, GCC 16.2.1 with the same flags, header commit 0c57e21, tests regenerated from `library-checker-problems` 73876f1 (2026-10-25), the minimum of three wall times per case (`J reproduce … --label ours`, every case AC). **The host was not idle**: other sessions ran stress tests and compiles (load average 8–9 of 16 threads, CPU near 96 °C), and the leaders' local times came out 1.1–2.9x their judge times where an idle host gives about 0.8. The local columns are therefore upper bounds whose ratios hold only within about 2x; the judge columns and the interleaved measurement below are sound, and the first `verify` run replaces the local columns on an idle host.
+
+Two baselines differ from the tree. The judge columns of 2026-07-27 were made with a matrix header of about 1,350 lines (`lazyGauss`, `binaryRank`, `naiveMont`, a nonzero-counting product, a `MOD == 2` shortcut, a one-pass `solveLin` with a kernel basis) that exists in no commit and no archive: its only copies are our cached submissions `96-Local Testing/.judge-cache/sources/388710.cpp`–`388721.cpp`. The tree's `10-matrix.hpp` equals `OLD/1-Core/07-matrix.hpp` up to `inline` keywords and matches our 2026-07-01 submissions #383376–#383386, whose judge maxima are the third column. And the modint types those submissions used are the archived `OLD/1-Core/03-modint.hpp` and `04-dynmodint.hpp`, not this header.
+
+| Problem | Ours judge 07-27 (listed rank of 30) | Tree-equivalent matrix header, judge 07-01 | #1 judge | max: ours local / judge, #1 local / judge | sum: ours local / judge, #1 local / judge | Cases with a judge gap above 1.5 |
+|---|---|---|---|---|---|---|
+| matrix_product | 218 (#388710; listed 214, #20) | 256 | 49 (408926) | 539 / 218, 135 / 49 | 2578 / 1121, 591 / 256 | random 5.8–7.3, max_random 4.3–4.5, small 2–12 on 2–12 ms |
+| pow_of_matrix | 115 (#388711, #14) | 229 | 11 (401296) | 384 / 115, 26 / 11 | 7035 / 2368, 402 / 230 | every dense case 10.7–23 (104–115 ms against 7–11); perm_max_random 2.3–2.7; nontrivial_frobenius_form 2.8–16.4 |
+| matrix_det | 32 (#388712; listed 24 of 07-01, #6) | 24 | 9 (405307) | 59 / 32, 21 / 9 | 692 / 304, 254 / 129 | max_random 2.4–3.1, lowrank_max_random 2.6–4.0, perm_max_random 4.0–5.5, random 2–3 |
+| matrix_det_arbitrary_mod | 84 (#388713; listed 82, #8) | 132 | 49 (361230) | 474 / 84, 75 / 49 | 2495 / 495, 402 / 260 | max_random 1.7–1.8, perm_max_random 5–10 (10–11 ms against 1–2), random 1.7–2.0 |
+| matrix_rank | 28 (#388714; listed 26 of 07-01, #5) | 26 | 10 (405300) | 61 / 28, 21 / 10 | 754 / 354, 210 / 119 | max 2.9–14, random 2.0–4.7, lowrank 2–7, zero 4, hack_of_system_of_linear 2–3 |
+| system_of_linear_equations | 25 (#388715, #5) | 51 | 11 (406222) | 126 / 25, 21 / 11 | 1009 / 276, 223 / 140 | max 2.2–2.5, lowrank 2.8–6, random 2–5, hack 2–4, fullrank 2–3 |
+| inverse_matrix | 58 (#388716, #5) | 72 | 16 (408951) | 204 / 58, 36 / 16 | 1662 / 553, 337 / 165 | max_random 3.6–3.9, lowrank_max_random 2.1–3.8, perm_max_random 3.8–4.8, random 2.5–6.3 |
+| adjugate_matrix | 67 (#388721; listed 57, #3) | 125 | 34 (401318) | 317 / 67, 80 / 34 | 4415 / 1389, 1539 / 940 | max_random 1.8, lowrank_max_random 1.5–2.0, perm and almost_perm 2.0–3.3, almost_identity 2.6, nontrivial_frobenius_form 1.7–3.2 |
+| characteristic_polynomial | 110 (#388718, #5) | 187 | 32 (404541) | 309 / 110, 92 / 32 | 3733 / 1621, 1337 / 556 | max_random 4.2–4.4, max_det_zero_random 4.1–4.3, nontrivial_frobenius_form 2.7–4.2, max_zero 4.0 |
+| hafnian_of_matrix | 616 (#388719; listed 605, #2) | 970 | 540 (118101, Rust, not built) | 1534 / 616, best built 279353 741 / 678 | 6217 / 2494, 2981 / 2787 | none (max 1.12–1.14, large 1.2–1.25) |
+| intersection_of_f2_vector_spaces | 1223 (#388720; listed 1219, #29) | 4818 | 152 (407091) | 6742 / 1223, 198 / 152 | 70039 / 14491, 2009 / 1560 | max_random 13.6–14.4, max_minus_1_random 7.6–7.8, random 6.9–7.1, nmk_all 7.4 |
+
+The `example` rows at 11–12 ms against 0–1 are judge jitter on our side (ours 1–2 ms locally).
+
+Leaders (`96-Local Testing/.judge-cache/sources/<id>.<ext>`; 35 of the 41 C++ sources among the top fives were rerun under bwrap with the user's yes of 2026-11-16; 353173, 109538, 186162, 179498, 262363 and 406229 do not build with GCC 16 (`assert` undeclared), and the Rust and Nim entries were read only). adamant's cp-algorithms-aux holds #1 on eight problems, directly or through Rohan_Kapri's copies.
+
+| Leader (judge ms) | Kernel | Exact |
+|---|---|---|
+| 408926 product 49; 406211 product 69; 400787 product 82; 407076 product 50 | Winograd-form Strassen on packed `uint32` Montgomery data with 64×64 AVX2 leaves, an mmap arena and an mmap'd SIMD token parser (407076 and 400787 are independent Strassen codes with 4×8 and 64×64 leaves) | yes; odd modulus below 2^30 |
+| 401296 pow 11; 353173 pow 18; 404541 charpoly 32 | Frobenius form from Krylov blocks, then x^k modulo each block polynomial, or the product of the block polynomials | random start vectors; the result is exact as read, its independence of the random choice not proven here |
+| 346349 pow 56 | binary powering over a tiled AVX2 product, 64-bit lanes shrunk against 8·mod² | yes |
+| 405307 det 9; 405300 rank 10; 406222 system 11 | 32-row blocked elimination, eight pivots applied to two rows per pass in `u64x4` lanes with one reduction per eight products; rank transposes when n > m; the system is one elimination of the augmented matrix | yes: eight products stay below 16·mod² < 2^64 for a modulus below 2^30 |
+| 412918 rank 12; 412934 system 12; 412923 pow 17; 412902 adjugate 50; 412905 charpoly 46 | sounansya's library: eight-pivot batches with a Montgomery reduction of the lazy sum on a `uint32` work array; batch size fixed at compile time from the modulus (the power, adjugate and charpoly routines were not read) | yes for rank and system (bound in the source) |
+| 411369 det 15; 411399 charpoly 36 | lazy `u64` rows shrunk below 8·P² every eight updates; a deterministic Hessenberg reduction whose column update is one lazy dot product per row | yes; P odd and below 2^30 |
+| 361510 det 15 | plain Gaussian elimination with `%` by a constant, compiler-vectorised under `Ofast` | yes |
+| 361230 det arbitrary 49; 109538 49; 215686 77 | Euclid on row pairs with one fused Barrett reduction of `t + q·s` per entry, rows swapped by pointer, a zero quotient skipped; mmap and an 8-digit SWAR parse (361230) | yes, on the whole input range |
+| 408951 inverse 16; 406224 inverse 18 | Schur-complement block inversion on Strassen products from n ≥ 112 over an LU base with Shoup multiplication; fixed-width output | yes |
+| 314161 inverse 52 | Gauss–Jordan with AVX2 Montgomery rows, `cin` | yes |
+| 401318 adjugate 34 | borders the matrix with a random row and column, inverts the (n+1)×(n+1) matrix and reads the adjugate from it | no: Monte Carlo without a check |
+| 118101 hafnian 540; 216351 608; 279353 678; 284818 683 | cycle DP over pair subsets with subset convolutions (Rust, scalar `uint32`); subset DP with `%`; 128-bit accumulation | yes |
+| 406228 hafnian 606 | a copy of our own 2026-07-27 source | yes |
+| 407091 F2 152; 412915 176; 406229 230; 205128 318; 204633 391 | an XOR basis on 64-bit words, the vector in the high half and its combination in the low half, reduced by `min(z, z ^ b)`, an early exit at dimension 30; packed XOR-basis libraries | yes |
+| 404133, 404064, 404138, 404140, 404134, 404070, 404135 (toomer, Rust, 9–72) and 401306, 401308, 401312, 401309, 401313 (kemuniku, Nim, 16–59) | Strassen with AVX2 and AVX-512 leaves, a Frobenius power, AVX2 elimination; read by names and doc strings only | not read |
+
+Measured here (2026-11-16, interleaved, three runs each, `perf stat`, user mode): the `matrix_det_arbitrary_mod` driver built with the judge's flags against the archived `OLD/1-Core/04-dynmodint.hpp` and `07-matrix.hpp`, and against this header and `10-matrix.hpp` (the same matrix code), on `max_random_00` (n = 494, modulus 156648748), identical output:
+
+| Build | Task clock ms | Instructions | Branches | Branch misses |
+|---|---|---|---|---|
+| archived `DynModInt` | 125–146 | 1.729 G | 171.8 M | 0.38–0.45 M |
+| this header's `DynModInt<0>` | 359–390 | 1.960 G | 254.2 M | 21.50–21.51 M |
+
+97.7% of the misses fall in `FastGaussian::elimRow<DynModInt<0>>`, whose loop is `t[j] -= s[j] * a` (`10-matrix.hpp`, the scalar branch every large test takes, since all five large moduli are even). GCC 16 compiles `operator-=` (`n = n < a.n ? mod() - (a.n - n) : n - a.n`) to a compare, a conditional jump and an add of `MOD` from memory, and the borrow is a coin flip on random residues: about 21 M misses over about 40 M entries. Each product also tests the reducer's initialization guard and its mask flag (predictable, and the Barrett correction itself is a conditional move). The archived type's subtraction and addition were branch-free.
+
+Causes, ranked by owner and by the time they explain:
+
+Modint header (P005):
+
+1. The dynamic types' `+=` and `-=` compile to data-dependent branches (measured above): 2.7x on `matrix_det_arbitrary_mod` `max_random` against the archived type under the same matrix code, the whole difference between the tree and its 07-01 judge time of 127–132 ms per case (tree 450–474 ms locally under load). The static types show no such loss on the same problems (`matrix_det`, `matrix_rank` and `characteristic_polynomial` run at the leaders' load factor), where the modulus is a constant; whether their scalar `+=`/`-=` also branch was not measured.
+2. The dynamic reducer path: every product goes through the function-local `reduction()` with its guard and `Barrett32`'s mask test. The benchmark log already holds the cost: 4096 products with a runtime modulus take 9194 ns through `DynModInt<>` against 4307 ns through a raw `Barrett32` (scalar, 998244353, different operand distributions), about 2.1x. The paragraph above defers the `constinit` reducer to a constexpr Barrett constructor in P004; it was never rejected on a measurement.
+3. `isPrime` at `setMod`: seven witnesses on 128-bit remainders even for a 32-bit modulus (the archived type used three on 64-bit products), and `setMod(m, 1)` runs it again inside an assertion. Once per case here, so negligible; once per query on `sqrt_mod` (candidate below). Unmeasured.
+4. Not causes: the kernels need no new hook (`T::mod()`, the public `n`, `T::red` on a double-width dividend and a copyable `T::reduction()` let a fused update be written with the reducer held outside the loop); the asserting integral cast reached from `10-matrix.hpp` (`getMod`, the hafnian inner loops) is within noise and is the matrix header's to replace with `T::mod()` and `.n`; stream input shows no loss against the 07-01 runs; a cached 32-bit Montgomery context for odd dynamic moduli would save the per-row constants `10-matrix.hpp` recomputes, on a path no judge test reaches.
+
+Matrix header (handed to P020, which gets its own sweep):
+
+1. The 2026-07-27 header is missing from the tree: it explains pow 229 → 115, system 51 → 25, adjugate 125 → 57–68, charpoly 187 → 110, hafnian 970 → 616, F2 4818 → 1223, the arbitrary-modulus determinant 132 → 84, product 256 → 218 and inverse 72 → 58 on the judge. It reads `x.n` as `int&`, so it needs porting to the unsigned residue.
+2. Power through the Frobenius form (104–115 → 8–11 ms), conditional on a proof or a deterministic vector choice.
+3. Blocked elimination with lazy 64-bit accumulation, and LU with Strassen block inversion: determinant 22–24 → 8–9, rank 23–24 → 8–10, system 24–25 → 10–11, inverse 56–58 → 15–16, adjugate 56–57 → 32–34.
+4. A Hessenberg reduction with contiguous lazy dot products (107–110 → 33–36); pointer row swaps, a fused reduction and an even-modulus vector path through `Barrett32::Multiplier` for the arbitrary modulus (82–84 → 47–49); packed words for F2 (1207–1223 → 84–152); Montgomery `uint32` Strassen leaves and one allocation for the product.
+
+Judge sources (drivers, `97-Online Testing/src/01-Yosupo/01-Linear Algebra`): iostream token I/O costs about 9 ms per 250,000 input tokens and 6–8 ms per 250,000 output tokens (the perm cases: 10–12 ms against 1–3), by extrapolation roughly 100 of matrix_product's 218 ms; `11-intersectionf2.cpp` flushes with `endl` per test and fills bit by bit; `06-linearsystem.cpp` runs two eliminations (`solveLin`, then `ker`); every source stages the input in a `vector<vector<mint>>` before copying it into `Matrix`.
+
+Targets. For this header, the interleaved build above is the measure: `DynModInt<0>` at or below the archived type's task clock on `matrix_det_arbitrary_mod` `max_random_00` with under 1 M branch misses, which is 127–132 ms per `max_random` case on the judge with the tree's matrix header; no modint-only change reaches a leader's time on any of the eleven problems. Per-case judge times of the best exact leader, for P020:
+
+| Problem | Reference | Target per case (ours judge 07-27) |
+|---|---|---|
+| matrix_product | 408926 | max_random 48–49 (213–218); random 20–26 (132–146) |
+| pow_of_matrix | 401296 (exactness to be proven), else 346349 | 6–11 on every n ≈ 200 case (104–115); 50–56 |
+| matrix_det | 405307 | max_random 8–9 (22–24); lowrank_max_random 7–9 (21–32); perm_max_random 5 (11–12) |
+| matrix_det_arbitrary_mod | 361230 | max_random 47–49 (80–84); perm_max_random 1–2 (10–11); random 3–4 (5–6) |
+| matrix_rank | 405300 | max_03–05 10 (23–24); max_00–02 and max_06–08 4 (13–27); random 6 (20–28) |
+| system_of_linear_equations | 406222 | max 11 (24–25); lowrank 5–11 (12–22) |
+| inverse_matrix | 408951 | max_random 15–16 (56–58); lowrank_max_random 8–12 (25–30); perm_max_random 5–6 (17–19) |
+| adjugate_matrix | 412902 and 401313 (exactness not read); not 401318 | max_random 32 (56–57); lowrank_max_random 23–30 (37–50); perm 6–7 (18–20); highrank stays ahead at 40–41 |
+| characteristic_polynomial | 411399 | max_random 35 (108–110); max_det_zero_random 33–36 (107–108); nontrivial_frobenius_form 18–34 (45–109); max_zero 5 (12) |
+| hafnian_of_matrix | 118101 | max 538–540 (604–616) |
+| intersection_of_f2_vector_spaces | 407091 | max_random 84–90 (1207–1223); max_minus_1_random 149–152 (1156–1173); random 61 (427–432) |
+
+Candidate problem without a judge source: `sqrt_mod` (`trySqrt` on `DynModInt`). #1 is 405759 at 13 ms (the code of 169592: eight queries per AVX2 vector with a 32-bit Montgomery modulus per lane, mmap input), then 33–35 ms (415767, 215966, 207878, 331256). `primality_test` has a source, on Mathematics' `isPrime`.
+
+Verify runs (`/speed-sweep P005 verify` appends one row per problem):
+
+| Date | Commit | Problem | Local max ms | Judge max ms | Rank | Best leader ms |
+|---|---|---|---|---|---|---|
+
 ## Sources
 
 Inspected 2026-09-27; the implementation is independently written from the described algorithms and preserved API.
@@ -194,3 +286,4 @@ Search aliases (P263, grab --find): 模算术简介, 取模类, 自动取模, �
 - 2026-10-12 (cached contexts): `Context::montgomery` replaced `powerMontgomery`, power workloads moved to 4096 distinct bases, dispatch set to odd moduli below `2^62` from exponent 5, `canon` made branch-free; two independent reviews, 3 findings fixed; full suites on g++ and g++-14, the mini suites, poly quick, integration and the benchmark (11,808 measurements) passed.
 - 2026-11-07: P263 follow-up added Chinese names to the search aliases (`grab --find`): OI Wiki's page titles and common names of the row's operations (Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, the 10 s quick bound, a raised limit (above); full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-16: speed sweep (scout), judge standing of the 2026-07-27 submissions #2–#8 on eight of the eleven linear-algebra problems and #20, #14 and #29 on matrix_product, pow_of_matrix and intersection_of_f2_vector_spaces (#1 at 49, 11 and 152 ms against 218, 115 and 1223); one modint cause, measured: the dynamic types' branching `+=`/`-=` cost 2.7x on matrix_det_arbitrary_mod against the archived type; every other gap is the matrix header's (the 2026-07-27 matrix header is not in the tree) or the drivers'; local columns taken on a loaded host; 55 leader sources fetched, 35 rerun (Optimality gap).
