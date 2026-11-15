@@ -132,6 +132,6 @@ if __name__ == '__main__':
         fixtures(path, mode, seed)
         os.environ['CP_POINT_ORACLE'] = str(path)
         raise SystemExit(main('01-point', ['division-zero-2d', 'division-zero-3d', 'unit-zero', 'arg-zero', 'angle-zero',
-                                        'signed-angle-zero', 'angle3-zero', 'canonical-minimum', 'angle-struct-zero',
+                                        'signed-angle-zero', 'angle3-zero', 'angle-overflow', 'angle-dot-overflow', 'signed-angle-overflow', 'angle3-overflow', 'canonical-minimum', 'angle-struct-zero',
                                         'angle-step-zero', 'angle-step-through-origin', 'angle-step-back-through-origin', 'segment-angles-turns', 'normal-zero', 'normal3-zero', 'normal3-parallel',
                                         'projection-zero', 'projection3-zero']))

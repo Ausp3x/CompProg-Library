@@ -932,6 +932,10 @@ int main(int argc, char **argv) {
                 else if (probe == "angle-zero") { (void)angleApprox(Point2<lng>{1, 0}, Point2<lng>{}); }
                 else if (probe == "signed-angle-zero") { (void)signedAngleApprox(Point2<lng>{}, Point2<lng>{1, 0}); }
                 else if (probe == "angle3-zero") { (void)angleApprox(Point3<lng>{}, Point3<lng>{1, 0, 0}); }
+                else if (probe == "angle-overflow") { (void)angleApprox(dpoint{1e4000L, 0}, dpoint{0, 1e4000L}); }
+                else if (probe == "angle-dot-overflow") { (void)angleApprox(dpoint{1e4000L, 1}, dpoint{1e4000L, 0}); }
+                else if (probe == "signed-angle-overflow") { (void)signedAngleApprox(dpoint{1e4000L, 0}, dpoint{0, 1e4000L}); }
+                else if (probe == "angle3-overflow") { (void)angleApprox(Point3<long double>{1e4000L, 0, 0}, Point3<long double>{0, 1e4000L, 0}); }
                 else if (probe == "canonical-minimum") { (void)canonicalDirection(Point2<int>{INT_MIN, 0}); }
                 else if (probe == "angle-struct-zero") { (void)Angle<lng>(Point2<lng>{}, 3); }
                 else if (probe == "angle-step-zero") { (void)(Angle<lng>(Point2<lng>{2, -1}) + Point2<lng>{-2, 1}); }

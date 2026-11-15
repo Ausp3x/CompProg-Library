@@ -11,7 +11,7 @@ struct RationalPoint2 {
     RationalPoint2(lll x, lll y, lll d = 1) {
         assert(d && x != std::numeric_limits<lll>::min() && y != std::numeric_limits<lll>::min() && d != std::numeric_limits<lll>::min());
         if (d < 0) { x = -x; y = -y; d = -d; }
-        lll g = gcd(gcd(x, y), d);
+        lll g = max(gcd(gcd(x, y), d), lll(1));
         this->x = x / g; this->y = y / g; this->d = d / g;}
     RationalPoint2(point p) : RationalPoint2(p.x, p.y) {}
     dpoint approx() const { return {static_cast<long double>(x) / static_cast<long double>(d), static_cast<long double>(y) / static_cast<long double>(d)}; }

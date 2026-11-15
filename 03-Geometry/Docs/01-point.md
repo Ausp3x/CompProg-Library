@@ -29,7 +29,7 @@ Rounded square roots of the exact or long-double squared quantities. `unitApprox
 - `argApprox(v) = atan2(y, x)`, in `(-pi, pi]`; the negative x-axis gives `+pi`, even when `y` is a floating negative zero.
 - `angleApprox(a, b) = atan2(|a × b|, a · b)`, in `[0, pi]`, for both 2D and 3D. The 3D form converts the exact cross product to long double before taking the norm, so it cannot overflow `lll`.
 - `signedAngleApprox(a, b) = atan2(a × b, a · b)`, in `(-pi, pi]`. It is positive counterclockwise and returns `+pi` for opposite vectors. Adding `+0` turns a floating `-0` cross product into `+0`, so floating opposite vectors such as `(-1, 0), (1, 0)` also give `+pi`.
-- All three assert nonzero vectors. The atan2 form keeps small angles accurate, unlike `acos` of a normalized dot product.
+- All three assert nonzero vectors, and the two angle forms assert that the two arguments they pass to `atan2` are finite (P009 /finish, user decision 2026-11-15): the dot product and the cross product, which the 3D form passes as `normApprox` of the cross vector, so it also asserts once that norm's square overflows (`abs(a x b)` above about `1.1e2466`, while each component is still finite). A floating input whose products overflow is a precondition violation instead of a finite wrong angle. The atan2 form keeps small angles accurate, unlike `acos` of a normalized dot product.
 
 Correctness: the angle functions use `atan2(sin-proportional, cos-proportional)`, which is accurate at every angle. `acos` and `asin` lose accuracy near 0 and `pi`.
 
@@ -101,7 +101,7 @@ Correctness of `+`: moving along a segment that avoids the origin changes the tr
 | `angleDiff` | `turnAngles()` | Complex product rotates `a` onto `b`; exact turn carry; `atan2` totals |
 | `segmentAngles` | `turnAngles()` | Nine sampled segment points inside the arc; arc at most `pi`, exactly `pi` only with the origin on the segment |
 | `scalarProjectionApprox`, `normalApprox` (2D, 3D) | `projections()`: exhaustive small `int`/`int8_t` inputs, random 10^9 `lng` (near-parallel included), `int8_t`, `int16_t`, `float`, `double`, `long double` | `hypot` and exact `lll` dot and cross: unit length, orthogonality, orientation sign (3D triple product) |
-| Preconditions | 18 assertion probes: division by zero, zero vectors for each angle/unit/normal/projection form, `INT_MIN` direction, zero `Angle` direction (constructor and `+` step), `+` and `-` steps through the origin, `segmentAngles` with different turn counts, parallel 3D normal | Expected assertion failure in a subprocess |
+| Preconditions | 22 assertion probes: division by zero, zero vectors for each angle/unit/normal/projection form, an overflowing cross product for `angleApprox` (2D, 3D) and `signedAngleApprox` and an overflowing dot product for the 2D `angleApprox`, `INT_MIN` direction, zero `Angle` direction (constructor and `+` step), `+` and `-` steps through the origin, `segmentAngles` with different turn counts, parallel 3D normal | Expected assertion failure in a subprocess |
 
 Approximate checks use scale-aware tolerances on the specified fixtures. They do not establish a universal error bound for ill-conditioned floating inputs.
 
@@ -109,22 +109,33 @@ Approximate checks use scale-aware tolerances on the specified fixtures. They do
 
 Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 841 MB; optimized 0.1 s compile + 0.6 s run, checked 26.7 s compile + 0.7 s run, ASan-UBSan 43.9 s compile + 5.7 s run; MEMORY peak 1033 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 905 MB; optimized 0.2 s compile + 0.7 s run, checked 39.2 s compile + 0.7 s run, ASan-UBSan 55.8 s compile + 4.4 s run; MEMORY peak 1064 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 37.6 s compile + 0.2 s run, checked 21.5 s compile + 0.7 s run; MEMORY peak 850 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 843 MB; optimized 0.1 s compile + 0.8 s run, checked 10.0 s compile + 1.0 s run, ASan-UBSan 17.6 s compile + 6.9 s run; MEMORY peak 653 MB. Dated rows below stay those commands' latest results.
 
-2026-11-12 (/finish P007, experiment: none), Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14, GNU++20, seed 42, optimized, checked and ASan-UBSan configurations; the 18 `03-Geometry` suites ran in sequence on the final headers and testers, with the mutation campaigns finished and the benchmark not running.
+2026-11-15 (/finish P009, experiment: none), Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14, GNU++20, optimized, checked and ASan-UBSan configurations, other worktree sessions running beside it; the header change of that run (finite cross and dot assertions in the angle functions) was retested with:
+
+| Command | Result |
+|---|---|
+| `03-Geometry/01-point_tester.py --mode full --seed 20261115` (GCC 16.2.1) | PASS, 5,999,906 checks per configuration, 22 assertion probes; pre-flight quick peak 1106 MB; `MEMORY peak=1658MB` |
+| `CXX=g++-14 03-Geometry/01-point_tester.py --mode full --seed 20261115` | PASS, 5,999,906 checks per configuration, 22 assertion probes; pre-flight quick peak 1124 MB; `MEMORY peak=1680MB` |
+| `05-extraction.py ops --filter 03-Geometry/01-point.hpp` and `05-extraction.py testers --filter 01-point` | PASS, 68 operations on g++ and g++-14; tester quick run on the extracted build |
+| `02-integration.py` (190 standalone and aggregate headers, scalar and AVX2 multi-TU builds, workspace) | PASS; `MEMORY peak=3204MB` |
+| `04-mutation.py run 03-Geometry/01-point.hpp` (changed lines) | Record in Mutation testing; `check` PASS |
+
+2026-11-12 (/finish P007, experiment: none), Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14, GNU++20, seed 42, optimized, checked and ASan-UBSan configurations; the 18 `03-Geometry` suites ran in sequence on the final headers and testers, with the mutation campaigns finished and the benchmark not running (extraction and integration rows superseded by the run above).
 
 | Command | Result |
 |---|---|
 | `01-run.py --mode full --filter 03-Geometry --seed 42 --no-integration` (GCC 16.2.1) | PASS, 6,001,969 checks per configuration, 18 assertion probes; pre-flight quick peak 61 MB; `MEMORY peak=696MB` |
 | `CXX=g++-14 01-run.py --mode full --filter 03-Geometry --seed 42 --no-integration` | PASS, 6,001,969 checks per configuration, 18 probes; pre-flight quick peak 1130 MB; `MEMORY peak=1692MB` |
 | `01-run.py --mode stress --rounds 1 --filter 03-Geometry --seed 42 --no-integration` | PASS, 23,982,603 checks per configuration; `MEMORY peak=1174MB` |
-| `05-extraction.py ops --filter 03-Geometry/01-point.hpp` and `05-extraction.py testers --filter '96-Local Testing/03-Geometry/01-point_tester.py'` | PASS, 68 operations on g++ and g++-14 |
-| `02-integration.py` (190 standalone and aggregate headers, scalar and AVX2 multi-TU builds, workspace) | PASS; `MEMORY peak=3241MB` |
 
 ```bash
+python3 '96-Local Testing/03-Geometry/01-point_tester.py' --mode full --seed 20261115
+CXX=g++-14 python3 '96-Local Testing/03-Geometry/01-point_tester.py' --mode full --seed 20261115
+python3 '96-Local Testing/04-mutation.py' run 03-Geometry/01-point.hpp
 python3 '96-Local Testing/01-run.py' --mode full --filter 03-Geometry --seed 42 --no-integration
 CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full --filter 03-Geometry --seed 42 --no-integration
 python3 '96-Local Testing/01-run.py' --mode stress --rounds 1 --filter 03-Geometry --seed 42 --no-integration
 python3 '96-Local Testing/05-extraction.py' ops --filter 03-Geometry/01-point.hpp
-python3 '96-Local Testing/05-extraction.py' testers --filter '96-Local Testing/03-Geometry/01-point_tester.py'
+python3 '96-Local Testing/05-extraction.py' testers --filter 01-point
 python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
@@ -133,15 +144,19 @@ The shared contest runner compiles with `-Wall -Wextra -Wconversion -Werror`.
 
 ## Mutation testing
 
-Record: mewt 4.0.0 on blob `bf747164b9a1e3e5457597116fb14723bc9dee7b` (2026-11-12, seed 1, 24 lines changed since blob `b05f7bdfc05b`): 106 mutants, 103 caught (0 by timeout), 3 survived, 0 untested.
+Record: mewt 4.0.0 on blob `3879bc415d0804c2e1da7bc4ae30b053e400e1da` (2026-11-15, seed 1, 9 lines changed since blob `bf747164b9a1`): 37 mutants, 32 caught (0 by timeout), 5 survived, 0 untested.
 
-Stage seconds of that campaign (the stream operators, `rotateCW`, `argumentSortApprox`; /finish P007), cumulative over the retest of the same workdir: quick 455, full-optimized 15, full-rest 307. The first pass left 10 survivors; seven were `int8_t` range checks in `>>` (`T(x) == x` → `<=` or `>=` on lines 35 and 65) that the tests hit in one direction only, and out-of-range reads below and above the range on every coordinate were added (`failedRead`). The 3 left are equivalent: `COS 647`, `COS 692` (`sizeof(T) == 1` → `<= 1`, lines 33 and 63; every size is at least 1) and `COS 781` (`i < n` → `i != n` in `argumentSortApprox`'s key loop, line 140).
+Stage seconds of that campaign (the finite assertions of the three angle functions; /finish P009): quick 108, full-optimized 8, full-rest 202. Its 5 survivors are equivalent swaps of `a, b` (lines 113, 118 and 123 of that blob): in the 2D `angleApprox` (`AS 281`, `AS 282`) and the 3D one (`AS 284`, `AS 285`) both the `cross` and the `dot`, in `signedAngleApprox` (`AS 288`) the `dot`. `dot` sums the same products, and a swapped `cross` is the exact negation (`x - y == -(y - x)` in IEEE arithmetic, exact for integers), used only under `abs`, a 3D norm or the finiteness test; swapping `signedAngleApprox`'s `cross` flips the sign and is caught.
+
+The previous campaign, on blob `bf747164b9a1` (24 lines changed since `b05f7bdfc05b`): 106 mutants, 103 caught, 3 survived.
+
+Its stage seconds (the stream operators, `rotateCW`, `argumentSortApprox`; /finish P007), cumulative over the retest of the same workdir: quick 455, full-optimized 15, full-rest 307. The first pass left 10 survivors; seven were `int8_t` range checks in `>>` (`T(x) == x` → `<=` or `>=` on lines 35 and 65) that the tests hit in one direction only, and out-of-range reads below and above the range on every coordinate were added (`failedRead`). The 3 left are equivalent: `COS 647`, `COS 692` (`sizeof(T) == 1` → `<= 1`, lines 33 and 63; every size is at least 1) and `COS 781` (`i < n` → `i != n` in `argumentSortApprox`'s key loop, line 140).
 
 The intermediate campaign on blob `b05f7bdfc05b` (2 lines changed since `0a67a7169d5e`): 15 mutants, 14 caught, 1 survived. Stage seconds of that campaign (the removed zero branch of `polarLess`): quick 46, full-optimized 4, full-rest 70. Its survivor, `COS 683` (`half(a) < half(b)` → `<=`, line 114 of that blob), runs only under `half(a) != half(b)`. A scratch check of `COS 584` below on the final header (`p.x < 0` → `<=` in `half`) fails the tester's small-lattice angular oracle (`a=(-2,1) b=(0,0)`), so the removal made it detectable.
 
 Earlier campaign: mewt 4.0.0 on blob `0a67a7169d5eed29d76907a1dc36940157b0e212` (2026-11-11, seed 1, whole file, uniform sample of 844): 500 mutants, 475 caught (0 by timeout), 25 survived, 0 untested.
 
-P007's first campaign (stages quick 913 s, full-optimized 31 s, full-rest 576 s, after the P006 campaign released the lock) left 27 survivors. Division by a negative scalar (2D and 3D) was added to the tester and caught `COS 605` and `COS 635` (`k != 0` → `k > 0` in `/=`) on the retest of the same workdir (cumulative 1001, 42, 920 s). The dead zero branch of `polarLess` was then removed (follow-up on the changed lines below). Line numbers are those of the recorded blob.
+P007's first campaign (stages quick 913 s, full-optimized 31 s, full-rest 576 s, after the P006 campaign released the lock) left 27 survivors. Division by a negative scalar (2D and 3D) was added to the tester and caught `COS 605` and `COS 635` (`k != 0` → `k > 0` in `/=`) on the retest of the same workdir (cumulative 1001, 42, 920 s). The dead zero branch of `polarLess` was then removed (follow-up on the changed lines below). Line numbers are those of blob `0a67a7169d5e`.
 
 | Mutants | Line | Why they survive |
 |---|---|---|
@@ -186,3 +201,4 @@ Aliases (P007): angle with turn count, KACTL Angle, polar angle sort, floating p
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: explicit `T(...)` assignments in `operator/=`; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.
 - 2026-11-12: P007 re-audit (GE01, started 2026-11-11): added `argumentSort`, `scalarProjectionApprox`, `normalApprox` (2D, 3D), `Angle` (`half`, `t90`, `t180`, `t360`, `+`, `-`, `<`), `angleDiff`, `segmentAngles`, with `geometry_detail::half` shared with `polarLess`; independent review: 3 findings here fixed (the `Angle` step assert with 2 probes, its proof comment moved into the body, the `scalarProjectionApprox` wording); first mutation campaign, whose survivors added division by negative scalars and removed `polarLess`'s dead zero branch; full, `CXX=g++-14` full, stress, extraction and `02-integration.py` passed.
 - 2026-11-12: /finish P007: added `rotateCW`, `Point2`/`Point3` `<<` and `>>` (constrained to stream-capable `T`, range-checked `int8_t` reads, the point unchanged on failure) and `argumentSortApprox` by user decision; the angleDiff bound and KACTL provenance fixed; 2 review defects and 1 tester-found defect fixed; changed-lines mutation campaign (7 gaps closed); full suite passed on g++ and g++-14, stress passed.
+- 2026-11-15: /finish P009 (user decision 2026-11-15): `angleApprox` (2D, 3D) and `signedAngleApprox` assert that the cross and dot products passed to `atan2` are finite; 4 overflow probes added; changed-lines mutation campaign; full suite passed on g++ and g++-14, extraction and `02-integration.py` passed.

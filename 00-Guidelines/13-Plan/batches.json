@@ -4868,7 +4868,9 @@
       "prerequisites": [
         "C01",
         "GE01",
-        "GE02"
+        "GE02",
+        "C05",
+        "C06"
       ],
       "tiers": [
         "Basic"

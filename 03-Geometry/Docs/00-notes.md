@@ -83,6 +83,8 @@ This audit kept industrial CAD, molecular surfaces, remeshing and visualization,
 
 - Not adopted for `09-triangle.hpp`: an approximate angle kind (a right angle is not decidable from rounded coordinates; use the exact type); vertex angles (`angleApprox` in `01-point.hpp`); altitude and median lengths and feet (one projection or `area2 / side`); orientation, bounded side and transforms of a triangle (rows 02, 03 and 08); Fermat point (row 25). (returned by P275 2026-11-10 into row 09)
 
+P009 re-audit (2026-11-15, user decisions 2026-11-15): `Triangle2::circumcenter`, `circumradius2` (CGAL, exact; row 14's `EnclosingCircle` is exact only for its own support) and `orthocenter` (exact `A + B + C - 2O`) join row 09. Not adopted: `Triangle2::circumcircleLocate` (CGAL `side_of_bounded_circle`; row 36 owns `sideOfOrientedCircle`, and its determinant exceeds `lll` at the coordinate bound); CGAL `Triangle_2` `opposite`, `is_degenerate`, `vertex`, `operator==` up to rotation (trivial forms of existing members) and `bbox` (row 28); an approximate `locate` (a boundary is not decidable from rounded coordinates); 3D circumcenter and squared radius (row 26). `Triangle2::locate` keeps its own three orientations instead of calling row 03's bounded side: O(1) on the struct's fields with no vertex vector, an `int` -1/0/1 result like `CircleApprox::locate`, and a degenerate triangle located as its edges.
+
 ## P036 completeness decisions (2026-10-10)
 
 - **Added to `10-halfplaneintersection.hpp`:** `polygonKernelLinear` (Lee–Preparata, `O(n)`) next to `polygonKernel`, a different algorithm kept by user decision 2026-10-10.
@@ -198,7 +200,7 @@ P275 re-read every omission recorded here before 2026-11-08 under `00-Guidelines
 - new Esoteric row `76-polygon_distance_advanced.hpp`: grenanderDistanceApprox (inner common tangents and boundary chains) (WIKI).
 - The 2026-09-27 exclusion of CGAL packages for no contest use is lifted (user decision 2026-11-10): rows 28, 30, 33 and 45 take Spatial Sorting, Polygon Repair, Snap Rounding and 2D mesh refinement, and rows 68–75 the other families; Interval Skip List is Data Structures row 68 `contains`.
 - maspypy `minimum_three_distance_sum` is the sum at `fermatPoint` (row 25); the incremental anchored rectangle union is row 13 (no Data Structures row owned it); common tangents of two convex polygons are row 17 (row 53 lists only `DynamicHull::bridge`).
-- Not returned after the P275 review: `TriangleApprox::circumcircle` and `incircle` (the P009 prune removed these exact names; `omissions.md` Open questions, with P013's `multisetPermutationCount`).
+- `TriangleApprox::circumcircleApprox` and `incircleApprox` (row 09) are member wrappers over the row 06 operations (user decision 2026-11-14, `omissions.md`); the legacy names `circumcircle` and `incircle` the P009 prune removed do not return.
 
 ## P008 re-audit decisions (2026-11-14)
 

@@ -241,11 +241,11 @@
       "phase": "Foundations re-audit",
       "size": "M",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "03-Geometry/Docs/09-triangle.md"
       ],
-      "note": "P275 re-review 2026-11-10: implement TriangleApprox::angles, TriangleApprox::transform, Triangle2::orient, Triangle2::locate in `09-triangle.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing."
+      "note": "Follow-ups outside P009: P037 duplicates.md item (EnclosingCircle three-point center/radius2 should call Triangle2::circumcenter/circumradius2); P019 Rational<InfIntMini>::toLongDouble does not compile."
     },
     {
       "id": "P015",

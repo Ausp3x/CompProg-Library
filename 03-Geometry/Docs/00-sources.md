@@ -332,3 +332,14 @@ Four `@researcher` passes, one per GE02 row; decisions in [00-notes.md](00-notes
 | CGAL Aff_transformation_2 | https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Aff__transformation__2.html | 08: `Affine2` translation, scaling, reflection, rotation from a rational sine and cosine; the rational rotation approximation not adopted |
 | KACTL linearTransformation.h | https://github.com/kth-competitive-programming/kactl/blob/main/content/geometry/linearTransformation.h | 08: alias of `similarity` then `applyPoint` |
 | OI Wiki 坐标系 | https://oi-wiki.org/math/coordinate/ | `fromPolarApprox`, a follow-up for row 01 |
+
+## P009 re-audit, fetched 2026-11-15
+
+| Source | URL | Used for |
+|---|---|---|
+| CGAL Kernel `circumcenter` | https://doc.cgal.org/latest/Kernel_23/group__circumcenter__grp.html | 09: `Triangle2::circumcenter` (exact on exact kernels) |
+| CGAL Kernel `squared_radius` | https://doc.cgal.org/latest/Kernel_23/group__squared__radius__grp.html | 09: `Triangle2::circumradius2` |
+| CGAL Kernel `side_of_bounded_circle` | https://doc.cgal.org/latest/Kernel_23/group__side__of__bounded__circle__grp.html | 09: not adopted (row 36 owns `sideOfOrientedCircle`) |
+| CGAL `Triangle_2` | https://doc.cgal.org/latest/Kernel_23/classCGAL_1_1Triangle__2.html | 09: `orient` (`orientation`), `locate` (`bounded_side`, `oriented_side`), `transform`; `opposite`, `is_degenerate`, `vertex`, `bbox` not adopted |
+| hitonanode triangle.hpp | https://hitonanode.github.io/cplib-cpp/geometry/triangle.hpp | 09: `circumcircleApprox`, `incircleApprox` members |
+| suisen geom/geometry.hpp | https://suisen-cp.github.io/cp-library-cpp/library/geom/geometry.hpp | 09: `pO`, `pI`, `pIabc`, `pH`, `pG` (circle members, excircle, orthocenter, centroid) |

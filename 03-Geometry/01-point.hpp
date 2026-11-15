@@ -110,13 +110,19 @@ template<typename T> long double argApprox(Point2<T> a) {
     return std::atan2(static_cast<long double>(a.y) + 0.L, static_cast<long double>(a.x));}
 template<typename T> long double angleApprox(Point2<T> a, Point2<T> b) {
     assert(a != Point2<T>{} && b != Point2<T>{});
-    return std::atan2(abs(static_cast<long double>(cross(a, b))), static_cast<long double>(dot(a, b)));}
+    long double s = abs(static_cast<long double>(cross(a, b))), c = static_cast<long double>(dot(a, b));
+    assert(std::isfinite(s) && std::isfinite(c));
+    return std::atan2(s, c);}
 template<typename T> long double angleApprox(Point3<T> a, Point3<T> b) {
     assert(a != Point3<T>{} && b != Point3<T>{});
-    return std::atan2(normApprox(cross(a, b).template cast<long double>()), static_cast<long double>(dot(a, b)));}
+    long double s = normApprox(cross(a, b).template cast<long double>()), c = static_cast<long double>(dot(a, b));
+    assert(std::isfinite(s) && std::isfinite(c));
+    return std::atan2(s, c);}
 template<typename T> long double signedAngleApprox(Point2<T> a, Point2<T> b) {
     assert(a != Point2<T>{} && b != Point2<T>{});
-    return std::atan2(static_cast<long double>(cross(a, b)) + 0.L, static_cast<long double>(dot(a, b)));}
+    long double s = static_cast<long double>(cross(a, b)) + 0.L, c = static_cast<long double>(dot(a, b));
+    assert(std::isfinite(s) && std::isfinite(c));
+    return std::atan2(s, c);}
 template<typename P = point> long double scalarProjectionApprox(P a, P b) {
     long double n = normApprox(b); assert(n > 0);
     return static_cast<long double>(dot(a, b)) / n;}

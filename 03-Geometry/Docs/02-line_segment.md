@@ -10,7 +10,7 @@ The GE01 numeric policy in [00-notes.md](00-notes.md#ge01-numeric-policy-p007) a
 
 ### RationalPoint2
 
-Normalized homogeneous coordinates `(x/d, y/d)` with `d > 0` and `gcd(|x|, |y|, d) = 1`; equality compares this canonical form. The constructor asserts `d != 0` and that no component equals the minimum `lll` value. Code that assigns the public fields must preserve the invariant. It is a construction result, not a rational arithmetic package. `approx()` converts each component to long double independently. Rational normalization takes `O(log(C))` Euclidean steps.
+Normalized homogeneous coordinates `(x/d, y/d)` with `d > 0` and `gcd(|x|, |y|, d) = 1`; equality compares this canonical form. The constructor asserts `d != 0` and that no component equals the minimum `lll` value. Past a violated `d != 0` under `NDEBUG`, `(0, 0, 0)` normalizes by 1 instead of dividing by a zero gcd, so the result is meaningless but the call stays bounded (P009 /finish, user decision 2026-11-15). Code that assigns the public fields must preserve the invariant. It is a construction result, not a rational arithmetic package. `approx()` converts each component to long double independently. Rational normalization takes `O(log(C))` Euclidean steps.
 
 ### LinearKind, Linear2, IntersectionKind, LinearIntersection2
 
@@ -143,22 +143,33 @@ Approximate checks use scale-aware tolerances on the specified fixtures. They do
 
 Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 713 MB; optimized 0.2 s compile + 2.1 s run, checked 13.8 s compile + 1.6 s run, ASan-UBSan 16.6 s compile + 16.6 s run; MEMORY peak 845 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 747 MB; optimized 0.2 s compile + 1.5 s run, checked 14.3 s compile + 1.7 s run, ASan-UBSan 16.3 s compile + 7.4 s run; MEMORY peak 905 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 14.9 s compile + 0.3 s run, checked 15.5 s compile + 1.1 s run; MEMORY peak 704 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 712 MB; optimized 0.1 s compile + 1.1 s run, checked 5.1 s compile + 1.3 s run, ASan-UBSan 6.1 s compile + 9.0 s run; MEMORY peak 539 MB. Dated rows below stay those commands' latest results.
 
-2026-11-12 (/finish P007, experiment: none), Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14, GNU++20, seed 42, optimized, checked and ASan-UBSan configurations; the 18 `03-Geometry` suites ran in sequence on the final headers and testers, with the mutation campaigns finished and the benchmark not running.
+2026-11-15 (/finish P009, experiment: none), Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14, GNU++20, optimized, checked and ASan-UBSan configurations, other worktree sessions running beside it; the header change of that run (the `RationalPoint2` gcd floor of 1) was retested with:
+
+| Command | Result |
+|---|---|
+| `03-Geometry/02-line_segment_tester.py --mode full --seed 20261115` (GCC 16.2.1) | PASS, 2,427,921 checks per configuration, 39 assertion probes; pre-flight quick peak 703 MB; `MEMORY peak=882MB` |
+| `CXX=g++-14 03-Geometry/02-line_segment_tester.py --mode full --seed 20261115` | PASS, 2,427,921 checks per configuration, 39 assertion probes; pre-flight quick peak 788 MB; `MEMORY peak=949MB` |
+| `05-extraction.py ops --filter 03-Geometry/02-line_segment.hpp` and `05-extraction.py testers --filter 02-line_segment` | PASS, 33 operations on g++ and g++-14; tester quick run on the extracted build |
+| `02-integration.py` (190 standalone and aggregate headers, scalar and AVX2 multi-TU builds, workspace) | PASS; `MEMORY peak=3204MB` |
+| `04-mutation.py run 03-Geometry/02-line_segment.hpp` (changed lines) | Record in Mutation testing; `check` PASS |
+
+2026-11-12 (/finish P007, experiment: none), Linux x86-64, Intel Core i9-11900H, GCC 16.2.1 and GCC 14.4.1, Python 3.14, GNU++20, seed 42, optimized, checked and ASan-UBSan configurations; the 18 `03-Geometry` suites ran in sequence on the final headers and testers, with the mutation campaigns finished and the benchmark not running (extraction and integration rows superseded by the run above).
 
 | Command | Result |
 |---|---|
 | `01-run.py --mode full --filter 03-Geometry --seed 42 --no-integration` (GCC 16.2.1) | PASS, 2,426,394 checks per configuration, 39 assertion probes; pre-flight quick peak 51 MB; `MEMORY peak=588MB` |
 | `CXX=g++-14 01-run.py --mode full --filter 03-Geometry --seed 42 --no-integration` | PASS, 2,426,394 checks per configuration, 39 probes; pre-flight quick peak 50 MB; `MEMORY peak=585MB` |
 | `01-run.py --mode stress --rounds 1 --filter 03-Geometry --seed 42 --no-integration` | PASS, 5,590,814 checks per configuration; `MEMORY peak=650MB` |
-| `05-extraction.py ops --filter 03-Geometry/02-line_segment.hpp` and `05-extraction.py testers --filter '96-Local Testing/03-Geometry/02-line_segment_tester.py'` | PASS, 33 operations on g++ and g++-14 |
-| `02-integration.py` (190 standalone and aggregate headers, scalar and AVX2 multi-TU builds, workspace) | PASS; `MEMORY peak=3241MB` |
 
 ```bash
+python3 '96-Local Testing/03-Geometry/02-line_segment_tester.py' --mode full --seed 20261115
+CXX=g++-14 python3 '96-Local Testing/03-Geometry/02-line_segment_tester.py' --mode full --seed 20261115
+python3 '96-Local Testing/04-mutation.py' run 03-Geometry/02-line_segment.hpp
 python3 '96-Local Testing/01-run.py' --mode full --filter 03-Geometry --seed 42 --no-integration
 CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full --filter 03-Geometry --seed 42 --no-integration
 python3 '96-Local Testing/01-run.py' --mode stress --rounds 1 --filter 03-Geometry --seed 42 --no-integration
 python3 '96-Local Testing/05-extraction.py' ops --filter 03-Geometry/02-line_segment.hpp
-python3 '96-Local Testing/05-extraction.py' testers --filter '96-Local Testing/03-Geometry/02-line_segment_tester.py'
+python3 '96-Local Testing/05-extraction.py' testers --filter 02-line_segment
 python3 '96-Local Testing/02-integration.py'
 python3 '96-Local Testing/03-consistency.py'
 ```
@@ -169,9 +180,13 @@ python3 '96-Local Testing/03-consistency.py'
 
 ## Mutation testing
 
-Record: mewt 4.0.0 on blob `1998a54ac1b3ae75b170f2e8666502ecd3bc45ac` (2026-11-12, seed 1, 20 lines changed since blob `fd48f8c4c560`): 174 mutants, 161 caught (0 by timeout), 13 survived, 0 untested.
+Record: mewt 4.0.0 on blob `f9b9f8f1abc44fd85256eb468c9353a09ab3ee4d` (2026-11-15, seed 1, 1 lines changed since blob `1998a54ac1b3`): 5 mutants, 2 caught (0 by timeout), 3 survived, 0 untested.
 
-Stage seconds of that campaign (`lineFromEquation`, the `other` rename, the Mathematics include; /finish P007): quick 330, full-optimized 58, full-rest 146. Its 13 survivors are all equivalent:
+Stage seconds of that campaign (the `RationalPoint2` gcd floor of 1; /finish P009): quick 12, full-optimized 22, full-rest 62. Its 3 survivors on line 14 are equivalent swaps of symmetric arguments: `AS 333` (`max`), `AS 334` and `AS 335` (`gcd`, whose result does not depend on argument order).
+
+The previous campaign, on blob `1998a54ac1b3` (20 lines changed since `fd48f8c4c560`): 174 mutants, 161 caught, 13 survived.
+
+Its stage seconds (`lineFromEquation`, the `other` rename, the Mathematics include; /finish P007): quick 330, full-optimized 58, full-rest 146. Its 13 survivors are all equivalent:
 - Lines 122–123 (`linearDistance2`'s candidate loop, touched only by the rename): `IT 321`, `IT 322`, `COS 1088`, `COS 1089`, `COS 1099`, `COS 1101` add candidates. For a line or ray, `z.a` and `z.b` lie on `z`, so their distance to `other` is at least the true distance and cannot lower the minimum; `<` and `<=` against `Line`, or `<=` and `>=` against `Segment`, are the same tests or always true by the `LinearKind` order. `AS 371` and `AS 373` swap symmetric `min` arguments.
 - Line 138: `COS 1114` (`q == 0` → `q <= 0`, already covered by `q < 0`) and `COS 1121` (`p > 0` → `p >= 0`; `p == q == 0` is excluded by the assertion).
 - Line 140: `COS 1124` (`s < 0` → `s <= 0`): negating a zero step and its fixed coordinate leaves the symmetric box test unchanged.
@@ -181,7 +196,7 @@ The intermediate campaign on blob `fd48f8c4c560` (2 lines changed since `2b57d76
 
 Earlier campaign: mewt 4.0.0 on blob `2b57d7675618af8d5f88014933467e93a59e83f1` (2026-11-12, seed 1, whole file, uniform sample of 1153): 500 mutants, 445 caught (5 by timeout), 55 survived, 0 untested.
 
-P007's first campaign (stages quick 627 s, full-optimized 241 s, full-rest 627 s) left 61 survivors. Probes `invalid-kind-negative`, `parallel-large`, `orthogonal-large`, `collinear-large` and `ccw-large-turn` were added and caught `COS 806`, `COS 816`, `CR 143`, `CR 146`, `CR 150` and `CR 154` on the retest of the same workdir (cumulative 704, 380, 1059 s). The redundant absolute values before `gcd` and the touching tests of `segmentDistanceApprox` were then removed (follow-up on the changed lines below). Line numbers are those of the recorded blob.
+P007's first campaign (stages quick 627 s, full-optimized 241 s, full-rest 627 s) left 61 survivors. Probes `invalid-kind-negative`, `parallel-large`, `orthogonal-large`, `collinear-large` and `ccw-large-turn` were added and caught `COS 806`, `COS 816`, `CR 143`, `CR 146`, `CR 150` and `CR 154` on the retest of the same workdir (cumulative 704, 380, 1059 s). The redundant absolute values before `gcd` and the touching tests of `segmentDistanceApprox` were then removed (follow-up on the changed lines below). Line numbers are those of blob `2b57d7675618`.
 
 | Mutants | Line | Why they survive |
 |---|---|---|
@@ -226,3 +241,4 @@ Aliases (P007): ccw, counterclockwise test, exact segment distance, squared segm
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed. Header edit for `-Werror` without demotions: `[[maybe_unused]]` on names only an `assert` uses; no logic changed; no mutation campaign in P274 (user decision 2026-11-10), its first campaign stays with its own package.
 - 2026-11-12: P007 re-audit (GE01, started 2026-11-11): added `ccw` (its first form checked coordinates only on the collinear path; it now checks all three points), `lineIntersectionApprox`, `linearDistance2` (Core `Rational<lll>` as `Q`, user decision 2026-11-11) and `linearDistanceApprox`; the header includes `01-Core/09-rational.hpp`; independent review: 4 findings here fixed (`lineIntersectionApprox` finiteness assert with 3 probes, `linearDistanceApprox` forwarding `Q`, `segmentDistanceApprox` recorded as kept in `duplicates.md`, the probe count); first mutation campaign, whose survivors added 5 probes and 2 pinned-rounding regressions (user decision 2026-11-12) and removed the dead absolute values before `gcd` and the touching tests of `segmentDistanceApprox`; full, `CXX=g++-14` full, stress, extraction and `02-integration.py` passed.
 - 2026-11-12: /finish P007: added `lineFromEquation` by user decision (include of `05-Mathematics/01-mod_arithmetic.hpp`, batch prerequisite GE01 -> MA01); the `Q` contract names `toLongDouble`; `w` renamed; the `segmentDistanceApprox` keep measured (16.2 to 18.5 times faster); changed-lines mutation campaign; full suite passed on g++ and g++-14, stress passed.
+- 2026-11-15: /finish P009 (user decision 2026-11-15): the `RationalPoint2` constructor normalizes by `max(gcd, 1)`, so `(0, 0, 0)` past a violated assertion under `NDEBUG` no longer divides by zero; changed-lines mutation campaign; full suite passed on g++ and g++-14, extraction and `02-integration.py` passed.

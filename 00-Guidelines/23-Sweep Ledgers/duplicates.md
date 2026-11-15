@@ -195,6 +195,8 @@ Keep decisions of `/duplicate-sweep` that apply the user's rulings and clarified
 | P008 | `farthestPair` (`07-rotatingcalipers.hpp`) | Larger domain (any cloud, index ties) |
 | P009 | `Triangle2::areaApprox` (`09-triangle.hpp`) | Derived formula: half the absolute doubled area (clarified rule) |
 | P009 | `TriangleApprox::area()` (`09-triangle.hpp`) | Derived formula: half the absolute doubled area (clarified rule) |
+| P009 | `Triangle2::orient()` (`09-triangle.hpp`) | Derived formula: sign of `area2()` (clarified rule) |
+| P009 | `Triangle2::locate` (`09-triangle.hpp`) | Named special case of row 03 bounded side: O(1) on three fields without a vertex vector, `int` -1/0/1 like `CircleApprox::locate`, a degenerate triangle as its edges |
 | P010 | `Graph::read` flags, `CsrGraph::reverse`, `dfsForest`, `KruskalReconstruction::bottleneck` (`01-graph.hpp`, `02-traversal.hpp`, `06-mst.hpp`; the `maximum` flags become named mirrors, Changes) | Only forms, named special cases |
 | P011 | `StrongOrientationResult`, `strongOrientation` (`09-bridges_articulation.hpp`) | Derived `ok` flag and Robbins obstruction witness (clarified rule) |
 | P011 | `FunctionalGraph(const G &g)` (`11-functionalgraph.hpp`) | Builds from a `Graph`, not a legacy format (clarified rule) |
@@ -754,6 +756,12 @@ Locations are relative to the package's folder and tests to `96-Local Testing/<f
 | Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
 |---|---|---|---|---|---|---|
 | `necklaceCountColors` | `_48` (:77) | `necklaceCount` | remove | the same count as `necklaceCount` in the same module | — | — |
+
+## P037 — 03-Geometry — segment union, minimumenclosingcircle, convex polygon query, lattice geometry, fixed radius queries (in progress)
+
+| Item | Location | Provided by | Decision | Reason | Tests to move | Dependents |
+|---|---|---|---|---|---|---|
+| three-point branches of `EnclosingCircle::center`, `radius2` | `14-minimumenclosingcircle.hpp:65-66,71-72` | `Triangle2(points[0], points[1], points[2]).circumcenter()`, `.circumradius2<InfInt>()` (row 09, P009 2026-11-15) | remove | body-level second implementation: the same formulas, now public in row 09 | none | none |
 
 ## Open questions
 
