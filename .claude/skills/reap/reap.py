@@ -19,8 +19,8 @@ cc??????.* files and cp-mutation-<stem>-* workdirs when no live worker (a compil
 naming 96/97 testing) started before their last change, so none can own them, a workdir only when no checkout can resume
 it (none holds the header at the campaign's blob without a complete record of it).
 Scratchpads: the session directories under this project's scratch roots (temp/claude-<uid>/<slug>, and <slug>--claude-
-worktrees-<name> for worktree sessions) of sessions that ended are reported; with --scratchpads [HOURS] (default 24,
-/finish) those idle for HOURS (last change in the directory or the session's transcript) are deleted, and a worktree's
+worktrees-<name> for worktree sessions) of sessions that ended are reported; with --scratchpads [HOURS] (default 24;
+/package and /finish pass it) those idle for HOURS (last change in the directory or the session's transcript) are deleted, and a worktree's
 scratch root left empty once its worktree is gone. A session counts as live when ~/.claude/sessions/<pid>.json names it
 for a live claude pid, a claude process holds a file in its directory, or a process of a live claude carries its
 CLAUDE_CODE_SESSION_ID; a directory any process uses, or that a /pause handoff or /finish ledger of a checkout names, stays

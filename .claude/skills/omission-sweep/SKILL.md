@@ -13,7 +13,7 @@ The ledger is `00-Guidelines/23-Sweep Ledgers/omissions.md`; its "Recorded decis
 
 This session writes only the ledger.
 
-1. **Scope.** `python3 .claude/skills/omission-sweep/scope.py /tmp/omission-sweep $ARGUMENTS` writes the chunk files and prints the manifest. A run starts about three agents per chunk and per folder swept whole (some 380 for the library); if that exceeds the session's workflow size setting, say so and sweep folder by folder.
+1. **Scope.** `python3 .claude/skills/omission-sweep/scope.py <session scratchpad>/omission-sweep $ARGUMENTS` (`CLAUDE.md`, Output economy) writes the chunk files and prints the manifest. A run starts about three agents per chunk and per folder swept whole (some 380 for the library); if that exceeds the session's workflow size setting, say so and sweep folder by folder.
 2. **Scan.** Call Workflow with `scriptPath: .claude/skills/omission-sweep/scan.js` and the manifest as `args`. It returns every candidate with a decision; relaunch with `resumeFromRunId` while `missingItems` is not empty.
 3. **Write.** Keep "Recorded decisions" and replace earlier rows for the swept scope. Per owning package (`plan.py show Pxxx`) a section `## Pxxx — <label> (<status>)` with `| Id | Operation | Row | Purpose | Sources | Decision | Reason |`; proposed rows under `## New rows` with `| Id | Proposed header | Tier | Operations | Sources | Owner | Decision | Reason |`, Owner being a batch of that folder whose package is `planned` and whose focus covers it, or `new`. Merge duplicates; list every `ask` under `## Open questions` with the fact to decide.
 4. **Report** counts by folder and decision, every `ask`, failed fetches and `git add '00-Guidelines/23-Sweep Ledgers/omissions.md' && git commit -m "Omission sweep <scope>"`.

@@ -1,6 +1,6 @@
 ---
 name: reap
-description: End the processes ended Claude Code sessions of this project left running, delete stale test temporaries and, with --scratchpads, ended sessions' scratchpads; /package and /finish run its script last with --own (/finish adds --scratchpads).
+description: End the processes ended Claude Code sessions of this project left running, delete stale test temporaries and, with --scratchpads, ended sessions' scratchpads; /package and /finish run its script last with --own --scratchpads.
 disable-model-invocation: true
 argument-hint: "[--dry-run] [--own] [--scratchpads [HOURS]]"
 ---
