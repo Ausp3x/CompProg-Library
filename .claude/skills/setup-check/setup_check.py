@@ -7,10 +7,12 @@ the systemd memory cap, the arm64 emulator); ccache warns once its cache holds a
 2026-11-12). A required failure exits 1; an optional one warns. Both print the install command for this distribution (the
 argument, else /etc/os-release), except for a probe that found configuration (CONFIGURED). --lint lists every executable a tracked Python script
 runs by a literal name (the first item of a subprocess command, or a shutil.which argument) that TOOLS does not declare,
-and exits 1 when there is one; 03-consistency.py runs it. A last WARN row says whether the login shell's startup file
+and exits 1 when there is one; 03-consistency.py runs it. A WARN row says whether the login shell's startup file
 ($SHELL: ~/.bashrc for bash, $ZDOTDIR or ~ /.zshrc for zsh) defines a grab alias running this clone's
 09-Contest Testing/10-grab.py (its last definition counts, as in the shell); --alias writes that alias there, replacing the
 last grab alias in place, and leaves the file untouched when the alias already runs this clone (user decision 2026-11-06).
+The last row, a WARN when off, says whether git runs the commit hook: core.hooksPath must be the main checkout's absolute
+.claude/githooks (user decision 2026-11-16).
 """
 import argparse
 import ast
@@ -208,6 +210,21 @@ def role_check():
         return False, str(e)
 
 
+def hook_check():
+    """(ok, detail): core.hooksPath names the main checkout's .claude/githooks, so git runs its trusted commit hook in every
+    worktree (.claude/hooks/shell.py, commit); a relative path would run a pull request worktree's own copy."""
+    if not shutil.which('git'):
+        return False, 'needs git'
+    code, common = out(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], cwd=ROOT)
+    if code != 0:
+        return False, 'not a git checkout'
+    want = Path(common).parent / '.claude/githooks'
+    code, have = out(['git', 'config', '--get', 'core.hooksPath'], cwd=ROOT)
+    if code == 0 and Path(have).is_absolute() and Path(have).resolve() == want.resolve():
+        return True, have
+    return False, ('not enabled' if code else f'core.hooksPath is {have!r}') + f'; run: git config core.hooksPath {shlex.quote(str(want))}'
+
+
 def rc_file():
     """The login shell's startup file: ~/.bashrc for bash, $ZDOTDIR/.zshrc (else ~/.zshrc) for zsh, else None."""
     shell, home = Path(os.environ.get('SHELL', '')).name, Path.home()
@@ -388,7 +405,8 @@ def main():
         return write_alias()
     missing, failed = [], False
     rows = [(None, 'platform', None, platform_check()), *((t, t.name, t.need, check(t)) for t in TOOLS),
-            (None, 'role', None, role_check()), (None, 'grab alias', 'grab from any folder', alias_check())]
+            (None, 'role', None, role_check()), (None, 'grab alias', 'grab from any folder', alias_check()),
+            (None, 'commit hook', 'rule checks on every commit', hook_check())]
     for tool, name, need, (ok, detail) in rows:
         label = 'OK' if ok else 'WARN' if need or name == 'platform' else 'FAIL'
         failed |= label == 'FAIL'

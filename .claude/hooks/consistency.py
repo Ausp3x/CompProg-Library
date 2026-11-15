@@ -22,10 +22,10 @@ def context(text):
     print(json.dumps({'hookSpecificOutput': {'hookEventName': 'PostToolBatch', 'additionalContext': text}}))
 
 
-def validate():
-    """The validator's error lines joined, or '' when it passes."""
+def validate(root=ROOT):
+    """The validator's error lines joined, or '' when it passes, for the checkout at root."""
     try:
-        run = subprocess.run([sys.executable, '96-Local Testing/03-consistency.py'], cwd=ROOT,
+        run = subprocess.run([sys.executable, '96-Local Testing/03-consistency.py'], cwd=root,
                              capture_output=True, text=True, timeout=60)
     except subprocess.TimeoutExpired:
         return 'timed out after 60 s'

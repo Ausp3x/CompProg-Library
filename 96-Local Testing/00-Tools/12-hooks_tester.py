@@ -39,7 +39,14 @@ bodies (quoted, <<- with tabs, two on one line), other git subcommands and unpar
 and -X/-W values between, after separators, prefixes and assignments); reading, staging, compiling or testing it, other
 scripts, quoted text and heredoc bodies allowed -> test_submit;
 the real settings wire shell.py pre/post to Bash beside guard.py, and consistency.py to PostToolBatch only -> test_settings;
-random command sequences against the oracle -> test_random.
+random command sequences against the oracle -> test_random;
+shell.py commit through the real .claude/githooks/pre-commit as git runs it (core.hooksPath absolute): staged OLD/ and
+97-Legacy/ rules with the same exceptions, template.cpp regenerated, hand-edited, staged but edited again, deleted;
+validator on watched staged paths only, its failure refused with its lines; a partial commit (`git commit -- <path>`)
+checks only its paths, `commit -a` all; the first commit (no HEAD); a package worktree runs the validator in its own
+checkout; a /merge-pr worktree (.claude/worktrees/PR<N>) gets the path rules only and its own copy of the hook never
+runs; an internal error refuses -> test_commit, test_commit_worktrees, test_commit_error; random staging and commits
+against a model of HEAD, index and working tree -> test_commit_random.
 """
 import argparse
 import json
@@ -358,6 +365,168 @@ class Hooks(unittest.TestCase):
         validator = 'python3 "$CLAUDE_PROJECT_DIR/.claude/hooks/consistency.py"'
         self.assertEqual(cmds['PostToolBatch'], {(None, validator)}, 'PostToolBatch takes no matcher')
         self.assertFalse(any(c == validator for ev in ('PreToolUse', 'PostToolUse') for _, c in cmds[ev]), 'one run per batch, not per edit')
+
+    def enable_commit_hook(self):
+        self.write('.claude/githooks/pre-commit', (ROOT / '.claude/githooks/pre-commit').read_text())
+        (self.repo / '.claude/githooks/pre-commit').chmod(0o755)
+        git(self.repo, 'add', '.claude/githooks')
+        git(self.repo, 'commit', '-q', '-m', 'hook')
+        git(self.repo, 'config', 'core.hooksPath', str(self.repo / '.claude/githooks'))
+
+    def commit(self, *args, cwd=None):
+        """(exit code, stderr, whether the validator ran) of `git commit -q --allow-empty -m c *args`."""
+        self.log.unlink(missing_ok=True)
+        r = subprocess.run(['git', 'commit', '-q', '--allow-empty', '-m', 'c', *args], cwd=cwd or self.repo, capture_output=True,
+                           text=True, env=self.env, timeout=120)
+        return r.returncode, r.stderr, self.log.exists()
+
+    def stage(self, *ops, cwd=None):
+        """Apply ops, stage every path they name and commit; (code, stderr, validator ran)."""
+        for rel, text in ops:
+            self.write(rel, text) if text is not None else (self.repo / rel).unlink()
+            git(self.repo, 'add', '-A', '--', rel)
+        return self.commit(cwd=cwd)
+
+    def refused(self, got, *paths):
+        code, err, _ = got
+        self.assertEqual(code, 1, got)
+        for p in paths:
+            self.assertIn(p, err, got)
+
+    def test_commit(self):
+        self.enable_commit_hook()
+        self.assertEqual(self.stage(('notes.txt', 'n2\n')), (0, '', False))
+        self.refused(self.stage(('OLD/a.cpp', 'c\n')), 'Protected files: OLD/a.cpp', "git restore --staged -- OLD/a.cpp")
+        git(self.repo, 'restore', '--staged', '--worktree', '--', 'OLD/a.cpp')
+        self.refused(self.stage(('OLD/n.cpp', 'new\n')), 'OLD/n.cpp')
+        git(self.repo, 'rm', '-q', '--cached', 'OLD/n.cpp')
+        self.refused(self.stage(('OLD/a.cpp', None)), 'OLD/a.cpp')
+        git(self.repo, 'restore', '--staged', '--worktree', '--', 'OLD/a.cpp')
+        self.assertEqual(self.stage(('OLD/00-index.md', 'i2\n'))[:2], (0, ''))
+        for rel in ('05-M/97-Legacy/x.cpp', '97-Legacy/t.cpp', '05-M/97-Legacy/n.cpp'):
+            self.refused(self.stage((rel, 'edited\n')), rel)
+            git(self.repo, 'reset', '-q', '--', rel)
+        git(self.repo, 'checkout', '--', '05-M/97-Legacy/x.cpp', '97-Legacy/t.cpp')
+        (self.repo / '05-M/97-Legacy/n.cpp').unlink()
+        self.assertEqual(self.stage(('05-M/97-Legacy/x.cpp', None), ('05-M/97-Legacy/00-index.md', 'i\n'))[:2], (0, ''), 'excerpt deleted')
+        self.refused(self.stage((TEMPLATE, 'hand\n')), TEMPLATE, '03-workspace.py')
+        self.assertEqual(self.stage((TEMPLATE, 'generated\n'))[:2], (0, ''), 'regenerated over the staged hand edit')
+        self.write(TEMPLATE, 'stale\n')
+        git(self.repo, 'add', TEMPLATE)
+        self.write(TEMPLATE, 'generated\n')
+        self.refused(self.commit(), TEMPLATE)  # the staged copy is not the checked one
+        git(self.repo, 'add', TEMPLATE)
+        self.refused(self.stage((TEMPLATE, None)), TEMPLATE)
+        git(self.repo, 'restore', '--staged', '--worktree', '--', TEMPLATE)
+        git(self.repo, 'rm', '-q', '--cached', TEMPLATE)
+        self.refused(self.commit(), TEMPLATE)  # deleted from the index while the working copy stays
+        git(self.repo, 'reset', '-q', '--', TEMPLATE)
+        for rel in ('05-M/00-index.md', '05-M/01-a.hpp', '00-Guidelines/13-Plan/packages.json', '08-Python/_01_a.py', 'docs/new.md'):
+            self.assertEqual(self.stage((rel, 'v1\n')), (0, '', True), rel)
+        for rel in ('tools/t.py', 'notes.txt', '05-M/x.cpp'):
+            self.assertEqual(self.stage((rel, 'v2\n')), (0, '', False), rel)
+        self.fail.write_text('Missing row: x\nBad link: y\n')
+        got = self.stage(('05-M/00-index.md', 'v3\n'))
+        self.refused(got, 'Consistency validator FAILED:\nMissing row: x\nBad link: y')
+        self.assertTrue(got[2])
+        git(self.repo, 'reset', '-q', '--', '05-M/00-index.md')
+        self.assertEqual(self.stage(('notes.txt', 'v3\n')), (0, '', False), 'unwatched paths commit while the validator fails')
+        self.fail.unlink()
+        self.write('OLD/a.cpp', 'unstaged\n')
+        self.write('tools/t.py', 'partial\n')
+        self.assertEqual(self.commit('--', 'tools/t.py'), (0, '', False), 'a partial commit checks its own paths')
+        self.refused(self.commit('-a'), 'OLD/a.cpp')
+
+    def test_commit_first(self):
+        fresh = self.tmp / 'fresh'
+        for rel, text in (('notes.txt', 'n\n'), ('.claude/githooks/pre-commit', (ROOT / '.claude/githooks/pre-commit').read_text())):
+            (fresh / rel).parent.mkdir(parents=True, exist_ok=True)
+            (fresh / rel).write_text(text)
+        (fresh / '.claude/githooks/pre-commit').chmod(0o755)
+        shutil.copytree(self.repo / '.claude/hooks', fresh / '.claude/hooks')
+        git(fresh, 'init', '-q', '-b', 'master')
+        git(fresh, 'config', 'core.hooksPath', str(fresh / '.claude/githooks'))
+        for k, v in (('user.name', 'T'), ('user.email', 't@example.invalid')):
+            git(fresh, 'config', k, v)
+        git(fresh, 'add', 'notes.txt')
+        self.assertEqual(self.commit(cwd=fresh), (0, '', False))
+        (fresh / 'OLD').mkdir()
+        (fresh / 'OLD/a.cpp').write_text('a\n')
+        git(fresh, 'add', 'OLD/a.cpp')
+        self.refused(self.commit(cwd=fresh), 'OLD/a.cpp')
+
+    def test_commit_worktrees(self):
+        self.enable_commit_hook()
+        self.write('.gitignore', FILES['.gitignore'] + '.claude/worktrees/\n')
+        git(self.repo, 'commit', '-q', '-am', 'ignore worktrees')
+        self.fail.write_text('E\n')
+        for name, trusted in (('DS07', True), ('PR7', False)):
+            wt = self.repo / '.claude/worktrees' / name
+            git(self.repo, 'worktree', 'add', '-q', '-b', name.lower(), str(wt))
+            (wt / '.claude/githooks/pre-commit').write_text('#!/bin/sh\nexit 0\n')  # a worktree's own copy never runs
+            (wt / '.claude/hooks/shell.py').write_text('import sys\nsys.exit(0)\n')
+            git(wt, 'add', '.claude')
+            self.assertEqual(self.commit(cwd=wt)[0], 0, name)
+            (wt / '05-M/00-index.md').write_text('w\n')
+            (wt / TEMPLATE).write_text('hand\n')
+            git(wt, 'add', '05-M/00-index.md', TEMPLATE)
+            code, err, ran = self.commit(cwd=wt)
+            self.assertEqual((code, ran, TEMPLATE in err, 'Consistency validator FAILED:\nE' in err), (int(trusted), trusted, trusted, trusted), (name, err))
+            (wt / 'OLD/a.cpp').write_text('w\n')
+            git(wt, 'add', 'OLD/a.cpp')
+            self.refused(self.commit(cwd=wt), 'OLD/a.cpp')
+
+    def test_commit_error(self):
+        outside = self.tmp / 'outside'
+        outside.mkdir()
+        r = subprocess.run([sys.executable, str(self.repo / '.claude/hooks/shell.py'), 'commit'], cwd=outside, capture_output=True,
+                           text=True, env=self.env, timeout=60)
+        self.assertEqual(r.returncode, 1, r)
+        self.assertTrue(r.stderr.startswith('Commit refused: .claude/hooks/shell.py commit failed ('), r)
+
+    def test_commit_random(self):
+        rounds = 0 if MODE == 'quick' else 25 if MODE == 'full' else ROUNDS // 4
+        paths = [p for p in FILES if p != '.gitignore'] + ['OLD/n.cpp', '05-M/97-Legacy/n.cpp', '05-M/02-b.md', 'tools/n.txt']
+        for r in range(rounds):
+            rng = random.Random(SEED * 1_000_033 + r)
+            self.tearDown()
+            self.setUp()
+            self.enable_commit_hook()
+            head = dict(FILES)
+            index, work, history = dict(head), dict(head), []
+            for c in range(6):
+                for _ in range(rng.randint(1, 4)):
+                    p, kind = rng.choice(paths), rng.choice(['write', 'write', 'delete', 'stage', 'stage'])
+                    if kind == 'write':
+                        work[p] = rng.choice(['a\n', 'generated\n', FILES.get(p, 'x\n')])
+                        self.write(p, work[p])
+                    elif kind == 'delete' and work.get(p) is not None:
+                        (self.repo / p).unlink()
+                        work[p] = None
+                    elif kind == 'stage':
+                        git(self.repo, 'add', '-A', '--', p) if work.get(p) is not None or index.get(p) is not None else None
+                        index[p] = work.get(p)
+                    history.append((kind, p))
+                failing = rng.random() < 0.3
+                self.fail.write_text('E\n') if failing else self.fail.unlink(missing_ok=True)
+                staged = {p for p in set(head) | set(index) if head.get(p) != index.get(p)}
+                bad = {p for p in staged if p != TEMPLATE and o_blocked(p, index.get(p), head)}
+                template = TEMPLATE in staged and (index.get(TEMPLATE) != work.get(TEMPLATE) or work.get(TEMPLATE) != 'generated\n')
+                watched = any(o_watched(p) for p in staged)
+                code, err, ran = self.commit()
+                info = f'seed={SEED} mode={MODE} round={r} commit={c} failing={failing} history={history}'
+                self.assertEqual(code, int(bool(bad or template or (watched and failing))), f'{err}; {info}')
+                self.assertEqual(ran, watched, info)
+                for p in bad:
+                    self.assertIn(p, err, info)
+                if code == 0:
+                    head = {p: t for p, t in index.items() if t is not None}
+                    index = dict(head)
+                    history.append(('commit', c))
+                else:  # unstage everything, as the refusal leaves it to the committer
+                    git(self.repo, 'reset', '-q')
+                    index = dict(head)
+                    history.append(('reset', c))
 
     def test_random(self):
         rounds = 0 if MODE == 'quick' else 40 if MODE == 'full' else ROUNDS

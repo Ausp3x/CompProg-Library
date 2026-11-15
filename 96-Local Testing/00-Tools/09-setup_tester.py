@@ -36,6 +36,9 @@ unparsable, a patched floor); tools without a probe) -> test_probe_*;
 platform_check (aarch64, AMD64, x86-64 with all flags, lacking bmi2, lacking several, no cpuinfo, this machine) ->
 test_platform_*;
 role_check (unset, contributor, maintainer, invalid, read in ROOT not the cwd) -> test_role_*;
+hook_check (unset, relative, elsewhere, the main checkout's absolute .claude/githooks with and without a trailing slash,
+read from a linked worktree, a path needing shell quotes whose printed command, run by sh, enables it, no git, not a git
+checkout) -> test_hook_*;
 rc_file/alias_line/alias_target/alias_check/write_alias (bash, zsh with and without ZDOTDIR, fish, sh, no $SHELL; the
 written line run by bash for paths needing quotes; absent, empty, exact, $HOME, ${HOME}, single-quoted, indented,
 commented, ~ unquoted and quoted, other script, extra word, other interpreter, unterminated quote, last definition
@@ -49,7 +52,7 @@ lines), empty, random subsets and distributions) -> test_install_*;
 commands/undeclared (positive and negative call forms, basename of absolute names, OLD/ and 95-Resources/ skipped,
 untracked and deleted skipped, modified read from the worktree, sorted output, random repositories, real repository and
 --lint) -> test_commands_*, test_undeclared_*, test_lint_*;
-CLI (rows, labels, WARN for optional, platform and the grab alias, Install lines for the distribution, exit code and last line, a
+CLI (rows, labels, WARN for optional, platform, the grab alias and the commit hook, Install lines for the distribution, exit code and last line, a
 missing, off-pin or unversioned mewt as a FAIL row with its install step and exit 1 (in process and on a fake PATH), bad
 distribution exits 2, no git on PATH, random fake PATHs, a cargo below or at its floor as a WARN or OK row, a full ccache
 as a WARN row without an install line, this machine)
@@ -239,6 +242,21 @@ def role_env(role):
 
 
 ALIAS_NEED = 'grab from any folder'
+HOOK_NEED = 'rule checks on every commit'
+
+
+def o_hook(env, root=ROOT):
+    """Expected (ok, detail) of the commit hook row for the checkout at root under env: the main checkout's .claude/githooks
+    is git's common directory's parent, read with git's relative form and resolved here."""
+    if not o_which('git', env.get('PATH', '')):
+        return False, 'needs git'
+    common = REAL_RUN(['git', 'rev-parse', '--git-common-dir'], cwd=root, capture_output=True, text=True, env=env).stdout.strip()
+    want = os.path.join(os.path.dirname(os.path.realpath(os.path.join(root, common))), '.claude', 'githooks')
+    r = REAL_RUN(['git', 'config', '--get', 'core.hooksPath'], cwd=root, capture_output=True, text=True, env=env)
+    have = r.stdout.strip()
+    if r.returncode == 0 and have.startswith('/') and os.path.realpath(have) == os.path.realpath(want):
+        return True, have
+    return False, ('not enabled' if r.returncode else f'core.hooksPath is {have!r}') + '; run: git config core.hooksPath ' + shlex.quote(want)
 ALIAS_FIX = f"python3 {shlex.quote(str(SETUP_PY))} --alias"
 BASH = shutil.which('bash', path=ISOLATED.get('PATH'))  # the alias oracle; its tests SKIP without it
 
@@ -742,6 +760,51 @@ class Role(Base):
             os.chdir(cwd)
 
 
+
+class Hook(Base):
+    def hook(self, root, env=ISOLATED):
+        with patch.dict(os.environ, env, clear=True), patch.object(S, 'ROOT', root):
+            return S.hook_check()
+
+    def check(self, root, **kw):
+        got = self.hook(root)
+        self.eq(got, o_hook(ISOLATED, root), root=root, **kw)
+        return got
+
+    def test_hook_states(self):
+        repo = init_repo(self.tmp / 'repo')
+        want = str(repo / '.claude/githooks')
+        fix = '; run: git config core.hooksPath ' + shlex.quote(want)
+        self.eq(self.check(repo), (False, 'not enabled' + fix))
+        for value in ('.claude/githooks', str(self.tmp / 'elsewhere'), want + '/x'):
+            git(repo, 'config', 'core.hooksPath', value)
+            self.eq(self.check(repo, value=value), (False, f'core.hooksPath is {value!r}' + fix), value=value)
+        for value in (want, want + '/'):
+            git(repo, 'config', 'core.hooksPath', value)
+            self.eq(self.check(repo, value=value), (True, value), value=value)
+        git(repo, 'commit', '-q', '--allow-empty', '-m', 'c')
+        wt = self.tmp / 'wt'
+        git(repo, 'worktree', 'add', '-q', str(wt))
+        self.eq(self.check(wt), (True, want + '/'), what='a linked worktree wants the main checkout')
+        git(repo, 'config', '--unset', 'core.hooksPath')
+        self.eq(self.check(wt), (False, 'not enabled' + fix), what='worktree')
+
+    def test_hook_quoted_fix(self):
+        repo = init_repo(self.tmp / "a b's")
+        ok, detail = self.check(repo)
+        self.assertFalse(ok, detail)
+        REAL_RUN(['sh', '-c', detail.split('; run: ', 1)[1]], cwd=repo, env=ISOLATED, check=True)
+        self.eq(self.check(repo), (True, str(repo / '.claude/githooks')), what='the printed command enables it')
+
+    def test_hook_without_git(self):
+        with patch.object(S.shutil, 'which', lambda e, *a, **k: None if e == 'git' else shutil.which(e, *a, **k)):
+            self.eq(self.hook(self.tmp), (False, 'needs git'))
+
+    def test_hook_not_checkout(self):
+        plain = self.tmp / 'plain'
+        plain.mkdir()
+        self.eq(self.hook(plain), (False, 'not a git checkout'))
+
 class Alias(Base):
     def setUp(self):
         super().setUp()
@@ -1176,7 +1239,8 @@ class Cli(Base):
         role_row = (True, role or 'contributor') if role in (None, '', 'contributor', 'maintainer') else \
             (False, f'git config compprog.role is {role!r}; set contributor or maintainer')
         lines = [o_row(t.name, t.need, *rows[t.name]) for t in S.TOOLS] + [o_row('role', None, *role_row),
-                                                                         o_row('grab alias', ALIAS_NEED, *o_alias(self.alias_env()))]
+                                                                         o_row('grab alias', ALIAS_NEED, *o_alias(self.alias_env())),
+                                                                         o_row('commit hook', HOOK_NEED, *o_hook(role_env(role) | {'PATH': str(self.bin)}))]
         # a failed gh, systemd-run or ccache probe (login, delegation, cache limit) is configuration: install lines only when absent
         missing = [t for t in S.TOOLS if not rows[t.name][0] and (rows[t.name][1] == 'not found' or t.exes[0] not in ('gh', 'systemd-run', 'ccache'))]
         if missing:
@@ -1239,11 +1303,12 @@ class Cli(Base):
             # failure kinds: every failed row gets an install line except a probe problem of gh, systemd-run or ccache (configuration)
             rows = {t.name: (True, f'detail {t.name}') for t in S.TOOLS}
             alias = (len(bad) % 2 == 0, f'alias detail {len(bad)}')  # never FAILs, never an install line
+            hook = (len(bad) % 3 == 0, f'hook detail {len(bad)}')  # likewise
             for k, n in enumerate(sorted(bad)):
                 rows[n] = (False, ['not found', 'x 1.0, needs 9', f'probe problem {n}'][k % 3])
             buf = io.StringIO()
             with patch.object(S, 'platform_check', return_value=plat), patch.object(S, 'role_check', return_value=role), \
-                    patch.object(S, 'alias_check', return_value=alias), \
+                    patch.object(S, 'alias_check', return_value=alias), patch.object(S, 'hook_check', return_value=hook), \
                     patch.object(S, 'check', side_effect=lambda t: rows[t.name]), patch.object(sys, 'argv', ['setup_check.py', 'arch']), \
                     contextlib.redirect_stdout(buf):
                 code = S.main()
@@ -1251,9 +1316,10 @@ class Cli(Base):
             missing = [t for t in S.TOOLS if t.name in bad
                        and not (rows[t.name][1].startswith('probe problem') and t.exes[0] in ('systemd-run', 'gh', 'ccache'))]
             want = [o_row('platform', None, *plat), *(o_row(t.name, t.need, *rows[t.name]) for t in S.TOOLS), o_row('role', None, *role), o_row('grab alias', ALIAS_NEED, *alias),
-                    *(['Install:', *o_install(missing, 'arch')] if missing else []), FAIL_LINE if failed else PASS_LINE]
+                    o_row('commit hook', HOOK_NEED, *hook), *(['Install:', *o_install(missing, 'arch')] if missing else []), FAIL_LINE if failed else PASS_LINE]
             self.eq((code, buf.getvalue().splitlines()), (int(failed), want), platform=plat, role=role, bad=bad)
-        self.eq((o_row('platform', None, False, 'arm')[:4], o_row('grab alias', ALIAS_NEED, False, 'x')[:4]), ('WARN', 'WARN'), what='oracle sanity')
+        self.eq((o_row('platform', None, False, 'arm')[:4], o_row('grab alias', ALIAS_NEED, False, 'x')[:4], o_row('commit hook', HOOK_NEED, False, 'x')[:4]),
+                ('WARN', 'WARN', 'WARN'), what='oracle sanity')
 
     def test_cli_mewt_required(self):
         # main() with every other row OK: a missing or off-pin mewt is a FAIL row, an install step and exit 1; the pin passes
@@ -1268,12 +1334,12 @@ class Cli(Base):
             rows = {t.name: (True, f'detail {t.name}') for t in S.TOOLS} | {'mewt': row}
             buf = io.StringIO()
             with patch.object(S, 'platform_check', return_value=(True, 'x86')), patch.object(S, 'role_check', return_value=(True, 'maintainer')), \
-                    patch.object(S, 'alias_check', return_value=(True, 'in ~/.bashrc')), \
+                    patch.object(S, 'alias_check', return_value=(True, 'in ~/.bashrc')), patch.object(S, 'hook_check', return_value=(True, 'h')), \
                     patch.object(S, 'check', side_effect=lambda t: rows[t.name]), patch.object(sys, 'argv', ['setup_check.py', 'ubuntu']), \
                     contextlib.redirect_stdout(buf):
                 code = S.main()
             lines = buf.getvalue().splitlines()
-            got = (code, [l for l in lines if l.startswith(('OK    mewt', 'FAIL  mewt', 'WARN  mewt'))], lines[len(S.TOOLS) + 3:])
+            got = (code, [l for l in lines if l.startswith(('OK    mewt', 'FAIL  mewt', 'WARN  mewt'))], lines[len(S.TOOLS) + 4:])
             self.eq(got, (want_code, [line], install + [last]), row=row, stdout=lines)
         for spec_mewt, line in ((None, 'FAIL  mewt: not found'), ('3.9.9', f'FAIL  mewt: mewt 3.9.9, needs exactly {PIN}'), (PIN, f'OK    mewt: mewt')):
             shutil.rmtree(self.bin)
@@ -1316,9 +1382,9 @@ class Cli(Base):
         lines = r.stdout.splitlines()
         self.assertTrue(lines and lines[-1] in (PASS_LINE, FAIL_LINE), self.info(stdout=r.stdout))
         self.eq(r.returncode, int(lines[-1] == FAIL_LINE), stdout=r.stdout, stderr=r.stderr)
-        rows, rest = lines[:len(S.TOOLS) + 3], lines[len(S.TOOLS) + 3:-1]
-        names = ['platform'] + [t.name for t in S.TOOLS] + ['role', 'grab alias']
-        needs = [None] + [t.need for t in S.TOOLS] + [None, ALIAS_NEED]
+        rows, rest = lines[:len(S.TOOLS) + 4], lines[len(S.TOOLS) + 4:-1]
+        names = ['platform'] + [t.name for t in S.TOOLS] + ['role', 'grab alias', 'commit hook']
+        needs = [None] + [t.need for t in S.TOOLS] + [None, ALIAS_NEED, HOOK_NEED]
         failed = False
         for line, name, need in zip(rows, names, needs):
             label, head = line[:6].rstrip(), line[6:]
@@ -1330,7 +1396,8 @@ class Cli(Base):
         self.eq(failed, lines[-1] == FAIL_LINE, stdout=r.stdout)
         self.eq(rows[0].startswith('OK'), o_platform(), line=rows[0])
         if BASH:
-            self.eq(rows[-1], o_row('grab alias', ALIAS_NEED, *o_alias(ISOLATED)), what='alias row read-only from the real HOME')
+            self.eq(rows[-2], o_row('grab alias', ALIAS_NEED, *o_alias(ISOLATED)), what='alias row read-only from the real HOME')
+        self.eq(rows[-1], o_row('commit hook', HOOK_NEED, *o_hook(ISOLATED)), what='commit hook row of this clone')
         missing = [t for t, line in zip(S.TOOLS, rows[1:]) if not line.startswith('OK')
                    and (line.endswith(': not found') or t.exes[0] not in ('gh', 'systemd-run', 'ccache'))]
         return missing, rows, rest
@@ -1466,7 +1533,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     MODE, SEED, ROUNDS = args.mode, args.seed, args.rounds
     suite = unittest.TestSuite()
-    for case in (Tools, Version, Probe, Platform, Role, Distro, Install, Lint, Cli, Isa):
+    for case in (Tools, Version, Probe, Platform, Role, Hook, Distro, Install, Lint, Cli, Isa):
         suite.addTests(case(n) for n in unittest.defaultTestLoader.getTestCaseNames(case) if MODE != 'quick' or n not in FULL)
     print(f"setup checks: mode={MODE} seed={SEED} rounds={ROUNDS if MODE == 'stress' else 2 if MODE == 'full' else '-'} "
           f"tests={suite.countTestCases()}", flush=True)
