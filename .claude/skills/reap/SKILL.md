@@ -1,13 +1,13 @@
 ---
 name: reap
-description: End the processes ended Claude Code sessions of this project left running and delete stale test temporaries; /package and /finish run its script last with --own.
+description: End the processes ended Claude Code sessions of this project left running, delete stale test temporaries and, with --scratchpads, ended sessions' scratchpads; /package and /finish run its script last with --own (/finish adds --scratchpads).
 disable-model-invocation: true
-argument-hint: "[--dry-run] [--own]"
+argument-hint: "[--dry-run] [--own] [--scratchpads [HOURS]]"
 ---
 
 The script's docstring holds the rules: what counts as a leftover, what is only reported, and what is deleted. Its result is below.
 
-Report it in at most five lines: what it ended (with the session and CPU time), what it deleted and how much memory that freed (`/tmp` is RAM on this machine), and each LEFT line with its reason. Never end a process it left alone yourself: give the user the `kill` command for it instead. A FAIL line names what could not be ended or deleted; say so.
+Report it in at most five lines: what it ended (with the session and CPU time), what it deleted (temporaries and scratchpads) and how much memory that freed (`/tmp` is RAM on this machine), and each LEFT line with its reason. Never end a process it left alone yourself: give the user the `kill` command for it instead. A FAIL line names what could not be ended or deleted; say so.
 
 ## Result
 

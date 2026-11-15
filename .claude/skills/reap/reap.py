@@ -3,7 +3,8 @@
 
 Processes (this user's only). Claude Code puts CLAUDE_PID, its session's claude pid, into the environment of every process
 a session starts, so ownership survives reparenting. A process is related to this project when its cwd, executable or an
-argument lies under the main checkout (worktrees included), a session scratchpad of this project, or the temp cp-* tree.
+argument lies under the main checkout (worktrees included), a scratch root of this project (the main checkout's or a
+worktree's), or the temp cp-* tree; a sibling checkout whose path merely starts with this one's is not.
 - ended: a related process whose CLAUDE_PID names no live claude process started before it (its session ended). A capped
   scope (run-*.scope) holding only such processes ends at once through cgroup.kill; the rest get SIGTERM, then SIGKILL
   after 5 s. With --own also this session's leftovers: what runs under its other Bash tool shells (background tasks) and
@@ -16,11 +17,19 @@ Temporaries directly in the temp directory (this user's, unchanged for --grace m
 executable, open file, mapping or argument) are deleted: clangd's preamble-*.pch; cp-* test files and directories, gcc's
 cc??????.* files and cp-mutation-<stem>-* workdirs when no live worker (a compiler, a process of a Claude session, or one
 naming 96/97 testing) started before their last change, so none can own them, a workdir only when no checkout can resume
-it (none holds the header at the campaign's blob without a complete record of it). Scratchpads of ended sessions are reported
-with their size, never deleted (claude --resume reuses them).
+it (none holds the header at the campaign's blob without a complete record of it).
+Scratchpads: the session directories under this project's scratch roots (temp/claude-<uid>/<slug>, and <slug>--claude-
+worktrees-<name> for worktree sessions) of sessions that ended are reported; with --scratchpads [HOURS] (default 24,
+/finish) those idle for HOURS (last change in the directory or the session's transcript) are deleted, and a worktree's
+scratch root left empty once its worktree is gone. A session counts as live when ~/.claude/sessions/<pid>.json names it
+for a live claude pid, a claude process holds a file in its directory, or a process of a live claude carries its
+CLAUDE_CODE_SESSION_ID; a directory any process uses, or that a /pause handoff or /finish ledger of a checkout names, stays
+too. claude --resume works without its scratchpad, which it recreates empty. Loose files beside the scratch roots are
+never touched.
 
-Usage: reap.py [--own] [--dry-run] [--grace MIN] [--tmp DIR] [--only TEXT]; --tmp and --only (act only on processes
-whose arguments or cwd contain TEXT) confine a run to a test fixture. Exit 1 when something could not be ended or deleted.
+Usage: reap.py [--own] [--scratchpads [HOURS]] [--dry-run] [--grace MIN] [--tmp DIR] [--home DIR] [--only TEXT]; --tmp,
+--home (for ~/.claude) and --only (act only on processes whose arguments or cwd contain TEXT; without --tmp it also skips
+the temp directory) confine a run to a test fixture. Exit 1 when something could not be ended or deleted.
 """
 import argparse
 from dataclasses import dataclass, field
@@ -42,7 +51,8 @@ SHELL = '/shell-snapshots/snapshot-'  # every Bash tool shell sources one
 WORKDIR = re.compile(r'cp-mutation-.+-[a-z0-9_]{8}')
 GCC = re.compile(r'cc[A-Za-z0-9]{6}\.\w+')
 PCH = re.compile(r'preamble-[0-9a-f]+\.pch')
-SESSION = re.compile(r'/claude-\d+/[^/]+/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:/|$)')
+UUID = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+SESSION = re.compile(rf'/claude-\d+/[^/]+/({UUID})(?:/|$)')
 
 
 @dataclass
@@ -114,7 +124,10 @@ def chain(table, pid):
 
 
 def related(p, markers, cwd=True):
-    return any(m in s for m in markers for s in (p.args + [p.exe] + [p.cwd] * cwd))
+    """markers = (directories, name prefixes): a path equals or lies under a directory, or contains a prefix."""
+    dirs, prefixes = markers
+    return any(s == d or d + '/' in s for d in dirs for s in (p.args + [p.exe] + [p.cwd] * cwd)) or any(
+        m in s for m in prefixes for s in (p.args + [p.exe] + [p.cwd] * cwd))
 
 
 def classify(table, me, markers, now, own=False):
@@ -206,17 +219,22 @@ def stop(table, pids, dry):
     return left
 
 
+def paths(p):
+    """The paths process p uses: cwd, executable, arguments, open files and mappings."""
+    out = [p.cwd, p.exe] + p.args
+    try:
+        out += [link(f'/proc/{p.pid}/fd/{fd}') for fd in os.listdir(f'/proc/{p.pid}/fd')]
+        out += [x[5].strip() for line in open(f'/proc/{p.pid}/maps') if len(x := line.split(None, 5)) == 6]
+    except OSError:
+        pass
+    return out
+
+
 def references(table, tmp):
-    """Names directly in tmp that some process uses: cwd, executable, open file, mapping or argument."""
+    """Names directly in tmp that some process uses."""
     pre, used = tmp.rstrip('/') + '/', set()
     for p in table.values():
-        paths = [p.cwd, p.exe] + p.args
-        try:
-            paths += [link(f'/proc/{p.pid}/fd/{fd}') for fd in os.listdir(f'/proc/{p.pid}/fd')]
-            paths += [x[5].strip() for line in open(f'/proc/{p.pid}/maps') if len(x := line.split(None, 5)) == 6]
-        except OSError:
-            pass
-        for s in paths:
+        for s in paths(p):
             for m in re.finditer(re.escape(pre) + r'([^/\s=:,]+)', s):
                 used.add(m[1].removesuffix(' (deleted)'))
     return used
@@ -235,17 +253,23 @@ def newest(path):
     return t
 
 
+def tree(path):
+    """(bytes, latest change) of path and everything under it."""
+    st = os.lstat(path)
+    total, last = st.st_size * (not os.path.isdir(path)), st.st_mtime
+    if os.path.isdir(path) and not os.path.islink(path):
+        for r, dirs, files in os.walk(path):
+            for f in dirs + files:
+                try:
+                    st = os.lstat(os.path.join(r, f))
+                except OSError:
+                    continue
+                total, last = total + st.st_size * (f in files), max(last, st.st_mtime)
+    return total, last
+
+
 def size(path):
-    if not os.path.isdir(path) or os.path.islink(path):
-        return os.lstat(path).st_size
-    total = 0
-    for r, _, files in os.walk(path):
-        for f in files:
-            try:
-                total += os.lstat(os.path.join(r, f)).st_size
-            except OSError:
-                pass
-    return total
+    return tree(path)[0]
 
 
 def resumable(work, checkouts, mutation):
@@ -286,21 +310,62 @@ def temporaries(tmp, table, now, grace, checkouts, mutation):
     return out
 
 
-def scratchpads(tmp, slug, table):
-    """(path, bytes) of each scratchpad of an ended session of this project."""
+def live_sessions(table, home):
+    """Ids of the sessions alive now: registered for a live claude pid, holding a file open, or carried by a live
+    claude's processes."""
     live = set()
     for p in table.values():
         if p.comm == 'claude':
+            live |= {m[1] for s in paths(p) if (m := SESSION.search(s))}
             try:
-                fds = [link(f'/proc/{p.pid}/fd/{fd}') for fd in os.listdir(f'/proc/{p.pid}/fd')]
-            except OSError:
-                fds = []
-            live |= {m[1] for s in fds if (m := SESSION.search(s))}
-        if p.env.get('CLAUDE_CODE_SESSION_ID') and p.owner in table:
+                live.add(json.loads(Path(home, '.claude/sessions', f'{p.pid}.json').read_text())['sessionId'])
+            except (OSError, ValueError, KeyError, TypeError):
+                pass
+        host = table.get(p.owner)
+        if p.env.get('CLAUDE_CODE_SESSION_ID') and host is not None and host.comm == 'claude' and host.start <= p.start:
             live.add(p.env['CLAUDE_CODE_SESSION_ID'])
+    return live
+
+
+def scratch_roots(tmp, slug):
+    """This project's scratch roots: the main checkout's and each worktree's."""
     base = Path(tmp, f'claude-{os.getuid()}')
-    return [(d, size(d)) for b in (base.iterdir() if base.is_dir() else []) if b.name.startswith(slug)
-            for d in b.iterdir() if d.is_dir() and d.name not in live]
+    return sorted(b for b in (base.iterdir() if base.is_dir() else [])
+                  if b.is_dir() and not b.is_symlink() and (b.name == slug or b.name.startswith(slug + '--claude-worktrees-')))
+
+
+def prune_roots(tmp, slug, root):
+    """Remove each empty scratch root of a worktree that no longer exists; the main checkout's stays."""
+    for b in scratch_roots(tmp, slug):
+        if b.name != slug and not (Path(root) / '.claude/worktrees' / b.name.removeprefix(slug + '--claude-worktrees-')).exists():
+            try:
+                b.rmdir()
+            except OSError:
+                pass
+
+
+def scratchpads(tmp, slug, table, home, checkouts, now):
+    """(path, bytes, idle seconds) of each scratchpad of an ended session of this project that nothing protects."""
+    live, used = live_sessions(table, home), set()
+    for p in table.values():
+        used |= {m[1] for s in paths(p) if (m := SESSION.search(s))}
+    named = ''
+    for root in checkouts:
+        for f in [*Path(root, '.claude/pause').glob('*'), *Path(root, '.claude/finish').glob('*')]:
+            try:
+                named += f.read_text(errors='replace') if f.is_file() else ''
+            except OSError:
+                pass
+    out = []
+    for b in scratch_roots(tmp, slug):
+        for d in sorted(b.iterdir()):
+            if not re.fullmatch(UUID, d.name) or not d.is_dir() or d.is_symlink() or d.name in live | used or d.name in named:
+                continue
+            n, last = tree(d)
+            for t in Path(home, '.claude/projects').glob(f'*/{d.name}.jsonl'):
+                last = max(last, t.stat().st_mtime)
+            out.append((d, n, now - last))
+    return out
 
 
 def describe(p, now):
@@ -315,11 +380,15 @@ def main(argv=None):
     ap.add_argument('--grace', type=float, default=60, help='minutes a temporary stays after its last change (default 60)')
     ap.add_argument('--tmp', help='temp directory (default: the system one)')
     ap.add_argument('--only', help='consider only processes whose arguments or cwd contain this text')
+    ap.add_argument('--scratchpads', type=float, nargs='?', const=24.0, metavar='HOURS',
+                    help="delete ended sessions' scratchpads idle for HOURS (default 24)")
+    ap.add_argument('--home', default=str(Path.home()), help='home directory holding .claude (default: yours)')
     a = ap.parse_args(argv)
     root = main_checkout(Path(__file__).resolve().parent)
     slug = re.sub(r'[^A-Za-z0-9]', '-', str(root))
     tmp = str(Path(a.tmp or tempfile.gettempdir()).resolve())
-    markers = [str(root), os.path.join(tmp, 'cp-'), os.path.join(tmp, f'claude-{os.getuid()}', slug)]
+    scratch = os.path.join(tmp, f'claude-{os.getuid()}', slug)
+    markers = ([str(root), scratch], [os.path.join(tmp, 'cp-'), scratch + '--claude-worktrees-'])
     table, now = processes(), time.time()
     end, report = classify(table, os.getpid(), markers, now, a.own)
     if a.only:
@@ -356,13 +425,27 @@ def main(argv=None):
     names = dict(cp='cp-* test temporaries', gcc='gcc intermediates', pch='clangd preambles', workdir='finished mutation workdirs')
     for kind, (count, n) in sorted(freed.items(), key=lambda x: -x[1][1]):
         print(f'{verb[1]} {count} {names[kind]}, {n >> 20} MB')
-    if a.only is None:
-        pads = scratchpads(tmp, slug, table)
-        if pads:
-            print(f'LEFT {len(pads)} scratchpads of ended sessions, {sum(n for _, n in pads) >> 20} MB, under '
-                  f'{Path(tmp, f"claude-{os.getuid()}")} (claude --resume reuses them; delete by hand when not needed)')
+    pads = scratchpads(tmp, slug, processes(), a.home, checkouts, time.time()) if a.only is None or a.tmp else []
+    hours = a.scratchpads
+    gone_pads = [(d, n) for d, n, idle in pads if hours is not None and idle >= hours * 3600]
+    for d, n in list(gone_pads):
+        if not a.dry_run:
+            try:
+                shutil.rmtree(d)
+            except OSError as e:
+                print(f'FAIL could not delete {d}: {e.strerror}')
+                failed += 1
+                gone_pads.remove((d, n))
+    if gone_pads:
+        print(f'{verb[1]} {len(gone_pads)} scratchpads of ended sessions, {sum(n for _, n in gone_pads) >> 20} MB')
+    if not a.dry_run and hours is not None:
+        prune_roots(tmp, slug, root)
+    if kept := [(d, n) for d, n, idle in pads if (d, n) not in gone_pads]:
+        print(f'LEFT {len(kept)} scratchpads of ended sessions, {sum(n for _, n in kept) >> 20} MB, under '
+              f'{Path(tmp, f"claude-{os.getuid()}")} ({"idle under " + format(hours, "g") + " h" if hours is not None else "--scratchpads deletes them"})')
     print(f"{'FAIL' if failed else 'PASS'} reap: {len(end)} processes {'to end' if a.dry_run else 'ended'}, "
-          f"{sum(c for c, _ in freed.values())} temporaries, {sum(n for _, n in freed.values()) >> 20} MB")
+          f"{sum(c for c, _ in freed.values())} temporaries, {sum(n for _, n in freed.values()) >> 20} MB, "
+          f"{len(gone_pads)} scratchpads {sum(n for _, n in gone_pads) >> 20} MB")
     return 1 if failed else 0
 
 
