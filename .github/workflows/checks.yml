@@ -1,0 +1,34 @@
+# Server-side rerun of the commit hook's checks (CLAUDE.md, Start here) on every push and pull request, so a commit made
+# with --no-verify or in a clone without the hook is still caught.
+name: checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5.6.0
+        with:
+          python-version: '3.14'
+      - name: Path rules (OLD/ and 97-Legacy/ unchanged)
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            BASE=$(git merge-base origin/master HEAD)
+          fi
+          python3 .claude/hooks/shell.py range "$BASE"
+      - name: Workspace template
+        run: python3 '97-Online Testing/03-workspace.py' --check
+      - name: Consistency validator
+        run: |
+          if ! python3 '96-Local Testing/03-consistency.py' > "$RUNNER_TEMP/validator.json"; then
+            python3 -c "import json, sys; print('\n'.join(json.load(open(sys.argv[1]))['errors']))" "$RUNNER_TEMP/validator.json" || cat "$RUNNER_TEMP/validator.json"
+            exit 1
+          fi

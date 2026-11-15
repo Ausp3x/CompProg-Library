@@ -763,8 +763,8 @@ class Role(Base):
 
 class Hook(Base):
     def hook(self, root, env=ISOLATED):
-        with patch.dict(os.environ, env, clear=True), patch.object(S, 'ROOT', root):
-            return S.hook_check()
+        with patch.dict(os.environ, env, clear=True):
+            return S.hook_check(root)
 
     def check(self, root, **kw):
         got = self.hook(root)

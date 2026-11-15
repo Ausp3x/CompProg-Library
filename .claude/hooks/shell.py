@@ -17,11 +17,13 @@ only stop the plain spellings.
 
 `commit` is the git pre-commit hook (.claude/githooks/pre-commit), which holds every commit, by any agent or person, to the
 same rules (user decision 2026-11-16): it refuses a commit whose staged changes, against HEAD, touch a protected file, stage
-a template.cpp that differs from its working copy or fails `--check`, or touch a watched file while the validator fails.
+a template.cpp that differs from its working copy or fails `--check`, stage a watched file that differs from its working
+copy (the validator reads the working tree), or touch a watched file while the validator fails.
 It checks the checkout git runs it in (its working directory), with the main checkout's copy of this script, since
 core.hooksPath names that one; in a /merge-pr worktree (.claude/worktrees/PR<N>) only the path rules apply, as running
 its validator or generator would run the pull request's untrusted code (`merge_pr.py gates` runs them sandboxed). The
-template and the validator are checked in the working tree, so a partial commit is checked against all of it. An
+template and the validator are checked in the working tree, so other files' unstaged edits still count; the CI workflow
+(.github/workflows/checks.yml) checks the pushed tree itself, with `range <base>` for the path rules over the push. An
 internal error refuses the commit."""
 import hashlib
 import json
@@ -206,6 +208,26 @@ def post(data):
 EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
 
 
+def changes(root, *args):
+    """{path: status letter} of `git diff --name-status --no-renames *args` in root."""
+    fields = subprocess.run(['git', 'diff', '--name-status', '-z', '--no-renames', *args], cwd=root, capture_output=True,
+                            timeout=60, check=True).stdout.split(b'\0')
+    return {fields[i + 1].decode('utf-8', 'surrogateescape'): fields[i].decode() for i in range(0, len(fields) - 1, 2)}
+
+
+def offending(changed):
+    """The protected paths among changed ({path: status}), sorted."""
+    return sorted(p for p, status in changed.items() if protected(p, None if status == 'D' else status))
+
+
+def pushed(base):
+    """Exit code of the CI path check (.github/workflows/checks.yml): the protected files HEAD changes against base."""
+    if bad := offending(changes(Path.cwd(), base, 'HEAD')):
+        print(f'Protected files changed since {base[:12]}: ' + ', '.join(bad) + '. OLD/ and 97-Legacy/ excerpts are immutable '
+              '(01-principles.md, Scope discipline).', file=sys.stderr)
+    return int(bool(bad))
+
+
 def commit():
     """Exit code of the pre-commit check of the checkout in the working directory; reasons go to stderr."""
     root = Path.cwd()
@@ -213,24 +235,30 @@ def commit():
     def run(*args, check=True):
         return subprocess.run(['git', *args], cwd=root, capture_output=True, timeout=20, check=check).stdout
     head = run('rev-parse', '-q', '--verify', 'HEAD', check=False).decode().strip() or EMPTY_TREE
-    fields = run('diff', '--cached', '--name-status', '-z', '--no-renames', head).split(b'\0')
-    staged = {fields[i + 1].decode('utf-8', 'surrogateescape'): fields[i].decode() for i in range(0, len(fields) - 1, 2)}
+    staged = changes(root, '--cached', head)
     untrusted = re.fullmatch(r'PR\d+', root.name) and root.parent.as_posix().endswith('/.claude/worktrees')
     errors = []
-    if bad := sorted(p for p, status in staged.items() if protected(p, None if status == 'D' else status)):
+    if bad := offending(staged):
         errors.append('Protected files: ' + ', '.join(bad) + '. OLD/ and 97-Legacy/ excerpts are immutable (01-principles.md, '
                       'Scope discipline). Unstage them: git restore --staged -- ' + ' '.join(map(shlex.quote, bad)))
     if TEMPLATE in staged and not untrusted and (staged[TEMPLATE] == 'D' or run('diff', '--name-only', '--', TEMPLATE) or subprocess.run(
             [sys.executable, '97-Online Testing/03-workspace.py', '--check'], cwd=root, capture_output=True, timeout=60).returncode):
         errors.append(f"{TEMPLATE} is generated: run python3 '97-Online Testing/03-workspace.py', then stage the whole file.")
-    if any(map(consistency.watched, staged)) and not untrusted and (err := consistency.validate(root)):
-        errors.append('Consistency validator FAILED:\n' + err)
+    if (watched := [p for p in staged if consistency.watched(p)]) and not untrusted:
+        dirty = set(run('diff', '--name-only', '-z').decode('utf-8', 'surrogateescape').split('\0'))
+        if stale := sorted(p for p in watched if p in dirty or (staged[p] == 'D' and (root / p).exists())):
+            errors.append('Staged files differ from their working copies, which the validator reads: ' + ', '.join(stale)
+                          + '. Stage their current versions: git add -A -- ' + ' '.join(map(shlex.quote, stale)))
+        elif err := consistency.validate(root):
+            errors.append('Consistency validator FAILED:\n' + err)
     if errors:
         print('Commit refused by .claude/hooks/shell.py commit (CLAUDE.md, Start here):', *errors, sep='\n', file=sys.stderr)
     return int(bool(errors))
 
 
 if __name__ == '__main__':
+    if sys.argv[1:2] == ['range'] and len(sys.argv) == 3:
+        sys.exit(pushed(sys.argv[2]))
     if sys.argv[1:] == ['commit']:
         try:
             sys.exit(commit())

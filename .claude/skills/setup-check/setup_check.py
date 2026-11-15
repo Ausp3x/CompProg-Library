@@ -210,16 +210,17 @@ def role_check():
         return False, str(e)
 
 
-def hook_check():
-    """(ok, detail): core.hooksPath names the main checkout's .claude/githooks, so git runs its trusted commit hook in every
-    worktree (.claude/hooks/shell.py, commit); a relative path would run a pull request worktree's own copy."""
+def hook_check(root=ROOT):
+    """(ok, detail) for the checkout at root: core.hooksPath names the main checkout's .claude/githooks, so git runs its
+    trusted commit hook in every worktree (.claude/hooks/shell.py, commit); a relative path would run a pull request
+    worktree's own copy. plan.py show prints the detail while it is off."""
     if not shutil.which('git'):
         return False, 'needs git'
-    code, common = out(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], cwd=ROOT)
+    code, common = out(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], cwd=root)
     if code != 0:
         return False, 'not a git checkout'
     want = Path(common).parent / '.claude/githooks'
-    code, have = out(['git', 'config', '--get', 'core.hooksPath'], cwd=ROOT)
+    code, have = out(['git', 'config', '--get', 'core.hooksPath'], cwd=root)
     if code == 0 and Path(have).is_absolute() and Path(have).resolve() == want.resolve():
         return True, have
     return False, ('not enabled' if code else f'core.hooksPath is {have!r}') + f'; run: git config core.hooksPath {shlex.quote(str(want))}'

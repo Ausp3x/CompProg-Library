@@ -42,10 +42,13 @@ the real settings wire shell.py pre/post to Bash beside guard.py, and consistenc
 random command sequences against the oracle -> test_random;
 shell.py commit through the real .claude/githooks/pre-commit as git runs it (core.hooksPath absolute): staged OLD/ and
 97-Legacy/ rules with the same exceptions, template.cpp regenerated, hand-edited, staged but edited again, deleted;
-validator on watched staged paths only, its failure refused with its lines; a partial commit (`git commit -- <path>`)
+validator on watched staged paths only, its failure refused with its lines; a staged watched file edited again or
+deleted from the index while its working copy stays is refused without running the validator; a partial commit (`git commit -- <path>`)
 checks only its paths, `commit -a` all; the first commit (no HEAD); a package worktree runs the validator in its own
 checkout; a /merge-pr worktree (.claude/worktrees/PR<N>) gets the path rules only and its own copy of the hook never
-runs; an internal error refuses -> test_commit, test_commit_worktrees, test_commit_error; random staging and commits
+runs; an internal error refuses -> test_commit, test_commit_worktrees, test_commit_error; shell.py range <base> (the CI
+path check) over commits made without the hook: protected changes named with exit 1, an excerpt deletion and other
+paths exit 0, the CI workflow calls it -> test_range; random staging and commits
 against a model of HEAD, index and working tree -> test_commit_random.
 """
 import argparse
@@ -432,6 +435,19 @@ class Hooks(unittest.TestCase):
         git(self.repo, 'reset', '-q', '--', '05-M/00-index.md')
         self.assertEqual(self.stage(('notes.txt', 'v3\n')), (0, '', False), 'unwatched paths commit while the validator fails')
         self.fail.unlink()
+        self.write('05-M/02-b.md', 'broken\n')
+        git(self.repo, 'add', '05-M/02-b.md')
+        self.write('05-M/02-b.md', 'fixed\n')  # fixed after a refusal but not staged again
+        code, err, ran = self.commit()
+        self.assertEqual((code, ran), (1, False), err)
+        self.assertIn("Staged files differ from their working copies, which the validator reads: 05-M/02-b.md", err)
+        self.assertIn('git add -A -- 05-M/02-b.md', err)
+        git(self.repo, 'add', '05-M/02-b.md')
+        self.assertEqual(self.commit(), (0, '', True))
+        git(self.repo, 'rm', '-q', '--cached', '05-M/02-b.md')
+        self.refused(self.commit(), 'working copies, which the validator reads: 05-M/02-b.md')
+        (self.repo / '05-M/02-b.md').unlink()
+        self.assertEqual(self.commit(), (0, '', True), 'deleted on disk too')
         self.write('OLD/a.cpp', 'unstaged\n')
         self.write('tools/t.py', 'partial\n')
         self.assertEqual(self.commit('--', 'tools/t.py'), (0, '', False), 'a partial commit checks its own paths')
@@ -484,6 +500,32 @@ class Hooks(unittest.TestCase):
         self.assertEqual(r.returncode, 1, r)
         self.assertTrue(r.stderr.startswith('Commit refused: .claude/hooks/shell.py commit failed ('), r)
 
+    def test_range(self):
+        base = self.head()
+
+        def check():
+            r = subprocess.run([sys.executable, str(self.repo / '.claude/hooks/shell.py'), 'range', base], cwd=self.repo,
+                               capture_output=True, text=True, env=self.env, timeout=60)
+            return r.returncode, r.stderr
+        self.assertEqual(check(), (0, ''))
+        for rel, text in (('notes.txt', 'r\n'), ('OLD/00-index.md', 'r\n'), ('05-M/97-Legacy/00-index.md', 'r\n')):
+            self.write(rel, text)
+        git(self.repo, 'rm', '-q', '05-M/97-Legacy/x.cpp')
+        git(self.repo, 'add', '-A')
+        git(self.repo, 'commit', '-q', '-m', 'allowed')
+        self.assertEqual(check(), (0, ''))
+        self.write('OLD/a.cpp', 'r\n')
+        self.write('97-Legacy/n.cpp', 'r\n')
+        git(self.repo, 'add', '-A')
+        git(self.repo, 'commit', '-q', '-m', 'forbidden')
+        code, err = check()
+        self.assertEqual(code, 1, err)
+        self.assertIn(f'Protected files changed since {base[:12]}: 97-Legacy/n.cpp, OLD/a.cpp.', err)
+        workflow = (ROOT / '.github/workflows/checks.yml').read_text()
+        for step in ('python3 .claude/hooks/shell.py range "$BASE"', "python3 '97-Online Testing/03-workspace.py' --check",
+                     "python3 '96-Local Testing/03-consistency.py'"):
+            self.assertIn(step, workflow)
+
     def test_commit_random(self):
         rounds = 0 if MODE == 'quick' else 25 if MODE == 'full' else ROUNDS // 4
         paths = [p for p in FILES if p != '.gitignore'] + ['OLD/n.cpp', '05-M/97-Legacy/n.cpp', '05-M/02-b.md', 'tools/n.txt']
@@ -513,10 +555,13 @@ class Hooks(unittest.TestCase):
                 bad = {p for p in staged if p != TEMPLATE and o_blocked(p, index.get(p), head)}
                 template = TEMPLATE in staged and (index.get(TEMPLATE) != work.get(TEMPLATE) or work.get(TEMPLATE) != 'generated\n')
                 watched = any(o_watched(p) for p in staged)
+                stale = {p for p in staged if o_watched(p) and index.get(p) != work.get(p)}
                 code, err, ran = self.commit()
                 info = f'seed={SEED} mode={MODE} round={r} commit={c} failing={failing} history={history}'
-                self.assertEqual(code, int(bool(bad or template or (watched and failing))), f'{err}; {info}')
-                self.assertEqual(ran, watched, info)
+                self.assertEqual(code, int(bool(bad or template or stale or (watched and failing))), f'{err}; {info}')
+                self.assertEqual(ran, watched and not stale, info)
+                for p in stale:
+                    self.assertIn(p, err, info)
                 for p in bad:
                     self.assertIn(p, err, info)
                 if code == 0:

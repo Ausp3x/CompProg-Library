@@ -55,6 +55,8 @@ claim_branch of the brief batch and --repo, ' it on this branch: `git commit ...
 branch, else from an up-to-date master with `git switch -c`; the /package hint's batch; no crash when gh cannot run) ->
 test_syn_show_*,
 test_syn_no_json_skip, test_syn_gh_not_executable, test_real_show_*;
+show's commit-hook WARNING as its last line (none without setup_check.py in the checkout; not enabled, relative path,
+enabled) -> test_syn_show_hook_warning;
 ready_text (gate line, held texts including 'maintainer-only (Core full); claimed by you in pull request #n', disjoint set,
 live and claimed packages reserve, maintainer-only alone does not) -> test_syn_ready_text_*, test_syn_no_json_skip,
 test_real_ready_text*;
@@ -814,6 +816,22 @@ class Synthetic(Base):
 
     def show(self, ident, role='contributor'):
         with self.environ(role):
+            return PLAN.show(self.root, ident).split('\n')
+
+    def test_syn_show_hook_warning(self):
+        last = lambda cfg=None: self.show_cfg('P030', cfg)[-1]
+        self.assertFalse(last().startswith('WARNING: commit hook'), 'no setup_check.py in the checkout')
+        script = self.root / '.claude/skills/setup-check/setup_check.py'
+        script.parent.mkdir(parents=True)
+        shutil.copy(ROOT / '.claude/skills/setup-check/setup_check.py', script)
+        want = str(self.root / '.claude/githooks')
+        tail = f'; run: git config core.hooksPath {shlex.quote(want)}). Give the user that command; this warning does not stop the run.'
+        self.assertEqual(last(), 'WARNING: commit hook off (not enabled' + tail)
+        self.assertEqual(last({'core.hooksPath': '.claude/githooks'}), "WARNING: commit hook off (core.hooksPath is '.claude/githooks'" + tail)
+        self.assertFalse(last({'core.hooksPath': want}).startswith('WARNING'), 'enabled')
+
+    def show_cfg(self, ident, cfg):
+        with self.environ('contributor', cfg=cfg):
             return PLAN.show(self.root, ident).split('\n')
 
     def test_syn_show_gate_line_and_stop(self):

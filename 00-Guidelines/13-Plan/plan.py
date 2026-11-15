@@ -375,6 +375,19 @@ def batch_brief(root, b, inv):
     return out + ['']
 
 
+def hook_warning(root):
+    """The brief's last line while git does not run the commit hook here (CLAUDE.md, Start here), else None; /setup-check's
+    hook_check decides, and a checkout without it gets none."""
+    path = root / '.claude/skills/setup-check/setup_check.py'
+    if not path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location('plan_setup_check', path)
+    check = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(check)
+    ok, detail = check.hook_check(root)
+    return None if ok else f'WARNING: commit hook off ({detail}). Give the user that command; this warning does not stop the run.'
+
+
 def show(root, ident):
     batches, packages = load(root)
     bmap = {b['id']: b for b in batches['batches']}
@@ -428,6 +441,8 @@ def show(root, ident):
     out.append('Evidence: ' + (' '.join(link(e) for e in p['evidence']) or 'none'))
     if p['note']:
         out.append('Note: ' + p['note'])
+    if warning := hook_warning(root):
+        out.append(warning)
     return '\n'.join(out)
 
 

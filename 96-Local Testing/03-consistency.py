@@ -26,10 +26,12 @@ def read_json(name):
     return json.loads((ROOT / name).read_text())
 
 def ignored(paths):
-    """Recorded paths that are absent and git-ignored: archive binaries, caches and benchmark logs a fresh worktree lacks."""
+    """Recorded paths that are absent and git-ignored: archive binaries, caches and benchmark logs that only the maintainer's
+    main checkout holds and requires; a linked worktree, a contributor's clone and CI lack them (05-testing.md, Layout and modes)."""
     missing = [p for p in paths if not (ROOT / p).exists()]
     dirs = subprocess.run(['git', 'rev-parse', '--git-dir', '--git-common-dir'], cwd=ROOT, capture_output=True, text=True).stdout.splitlines()
-    if not missing or len(dirs) != 2 or (ROOT / dirs[0]).resolve() == (ROOT / dirs[1]).resolve():
+    role = subprocess.run(['git', 'config', '--get', 'compprog.role'], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+    if not missing or len(dirs) != 2 or ((ROOT / dirs[0]).resolve() == (ROOT / dirs[1]).resolve() and role == 'maintainer'):
         return set()
     out = subprocess.run(['git', 'check-ignore', '-z', '--stdin'], cwd=ROOT, input='\0'.join(missing), capture_output=True, text=True).stdout
     return set(out.split('\0')) - {''}
@@ -371,7 +373,9 @@ require(archive['summary']['files'] == archive['summary']['classified'] == len(a
 require(archive['summary']['classifications'] == dict(collections.Counter(r['classification'] for r in archive['files'])), 'Archive classification totals mismatch')
 require(archive['summary']['canonical_inventory_targets_referenced'] == len({t for r in archive['files'] for t in r['targets']}), 'Archive referenced-target count mismatch')
 for record in archive['files']:
-    require(record['path'] in absent_archive or hashlib.sha256((ROOT / record['path']).read_bytes()).hexdigest() == record['sha256'], 'Archive hash mismatch: ' + record['path'])
+    if record['path'] not in absent_archive:
+        f = ROOT / record['path']
+        require(f.is_file() and hashlib.sha256(f.read_bytes()).hexdigest() == record['sha256'], ('Archive hash mismatch: ' if f.is_file() else 'Archive file missing: ') + record['path'])
     require(set(record['targets']) <= inventories.keys(), 'Archive target mismatch: ' + record['path'])
 
 monolith = read_json('00-Guidelines/Ledgers/monolith-map.json')
