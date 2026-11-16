@@ -204,15 +204,17 @@
       "phase": "Foundations re-audit",
       "size": "M+M",
       "model": "opus",
-      "status": "in-progress",
+      "status": "verified",
       "evidence": [
         "06-Miscellaneous/Docs/01-random.md",
         "06-Miscellaneous/Docs/02-customhash.md",
         "06-Miscellaneous/Docs/04-compression.md",
         "06-Miscellaneous/Docs/06-bit_operations.md",
-        "06-Miscellaneous/Docs/07-permutation.md"
+        "06-Miscellaneous/Docs/07-permutation.md",
+        "06-Miscellaneous/Docs/59-permutation_orders.md",
+        "06-Miscellaneous/Docs/60-permutation_problems.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement BitOps::select, BitOps::xorRangeBlocks in `06-bit_operations.hpp`; permutationRankMod in `07-permutation.hpp`. P275 open question: `00-Guidelines/23-Sweep Ledgers/omissions.md` (Open questions) holds an item of this package to put to the user before implementing."
+      "note": "MI02 /finish (2026-11-17): rows 04, 06, 07 extended and the Esoteric rows 59 (Trotter-Johnson order, forEachTrotterJohnson) and 60 (permutationWithInversions, moved from 07) added by user decisions, with SortedVector minGeq/maxLeq/minGt/maxLt in P006's 07-ordered_set.hpp (user's yes); HashedEncounterCompression takes a Map parameter (default unordered_map; HashMap passable, a HashMap default would make P013 and P227 depend on each other). Full and stress on g++ and g++-14, extraction, integration and mutation records current; two @reviewer passes, findings fixed (ledger in the commit message). P072 keeps the knapsack01 open question."
     },
     {
       "id": "P008",
@@ -264,7 +266,7 @@
         "06-Miscellaneous/Docs/13-knapsack.md",
         "06-Miscellaneous/Docs/14-cyclefinding.md"
       ],
-      "note": "P275 re-review 2026-11-10: implement forEachSetBit, forEachCombinationSubmask, forEachSubmaskPair, forEachLabeledTree, forEachGrayCombination in `12-enumeration.hpp`; minimumCoins, compositionCountTable in `13-knapsack.hpp`."
+      "note": "P275 re-review 2026-11-10: implement forEachSetBit, forEachCombinationSubmask, forEachSubmaskPair, forEachLabeledTree, forEachGrayCombination in `12-enumeration.hpp`; minimumCoins, compositionCountTable in `13-knapsack.hpp`. P013 MI02 /finish 2026-11-17 (user decision): add forEachPairing (every perfect matching of [0, n), one element unpaired for odd n; VERN) in `12-enumeration.hpp`."
     },
     {
       "id": "P016",
@@ -1066,7 +1068,7 @@
         "05-Mathematics/Docs/30-modular_power_towers.md",
         "05-Mathematics/Docs/67-lattice_paths.md"
       ],
-      "note": "Omission sweep 2026-11-08: implement BinomialMod2p64, factorialValuationComposite, stirling1Table, stirling2Table, bellTriangle, eulerianTable, partitionsExactPartsTable, distinctPartsExactPartsTable, standardTableauTotal in `12-combinatorics_advanced.hpp`. P275 re-review 2026-11-10: implement infiniteTetrationMod in `30-modular_power_towers.hpp`; bizleyPrimitivePaths in `67-lattice_paths.hpp`."
+      "note": "Omission sweep 2026-11-08: implement BinomialMod2p64, factorialValuationComposite, stirling1Table, stirling2Table, bellTriangle, eulerianTable, partitionsExactPartsTable, distinctPartsExactPartsTable, standardTableauTotal in `12-combinatorics_advanced.hpp`. P275 re-review 2026-11-10: implement infiniteTetrationMod in `30-modular_power_towers.hpp`; bizleyPrimitivePaths in `67-lattice_paths.hpp`. P013 MI02 /finish 2026-11-17 (user decision): add the Mahonian numbers (permutations of n with exactly k inversions, CSES 2229) and the multiset k-permutation count (VERN, k! [x^k] prod sum x^c/c!) in `12-combinatorics_advanced.hpp`."
     },
     {
       "id": "P037",
@@ -1495,6 +1497,19 @@
       "note": "Omission sweep 2026-11-08: implement blockMoOrder in `16-hilbertorder.hpp`; overallBinarySearch in `20-parallelbinarysearch.hpp`; cdqDivideAndConquer, longestChain3D in `21-cdq.hpp`."
     },
     {
+      "id": "P031",
+      "label": "02-Data Structures — balanced bst",
+      "batches": [
+        "DS24"
+      ],
+      "phase": "Contest core",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Omission sweep 2026-11-08: implement SplayTree::lowerBound, SplayTree::upperBound, ImplicitSplay::build, ImplicitSplay::at, ImplicitSplay::set, ImplicitSplay::maxRight, ImplicitSplay::minLeft, ImplicitSplay::values, OrderedMonoidMap, WeightBalancedTree::build, WeightBalancedTree::split, WeightBalancedTree::join, ImplicitRedBlackTree, ImplicitWeightBalancedTree, BTree, Rope in `20-balanced_bst.hpp`."
+    },
+    {
       "id": "P050",
       "label": "04-Graphs — stablematching, graphicalsequence, reachability, cactusgraph",
       "batches": [
@@ -1535,19 +1550,6 @@
       "status": "planned",
       "evidence": [],
       "note": "Omission sweep 2026-11-08: implement grundySum, nimWin, fibonacciNim, retrogradeAnalysis in `25-game_theory.hpp`; MarkovChain::expectedHittingTimeSparse, MarkovChain::hittingTimeMatrix in `26-probability.hpp`."
-    },
-    {
-      "id": "P031",
-      "label": "02-Data Structures — balanced bst",
-      "batches": [
-        "DS24"
-      ],
-      "phase": "Contest core",
-      "size": "XL",
-      "model": "opus",
-      "status": "planned",
-      "evidence": [],
-      "note": "Omission sweep 2026-11-08: implement SplayTree::lowerBound, SplayTree::upperBound, ImplicitSplay::build, ImplicitSplay::at, ImplicitSplay::set, ImplicitSplay::maxRight, ImplicitSplay::minLeft, ImplicitSplay::values, OrderedMonoidMap, WeightBalancedTree::build, WeightBalancedTree::split, WeightBalancedTree::join, ImplicitRedBlackTree, ImplicitWeightBalancedTree, BTree, Rope in `20-balanced_bst.hpp`."
     },
     {
       "id": "P049",
@@ -4025,7 +4027,7 @@
       "model": "opus",
       "status": "planned",
       "evidence": [],
-      "note": "Created by the P275 re-review (2026-11-10)."
+      "note": "Created by the P275 re-review (2026-11-10). P013 MI02 /finish 2026-11-17 (user decision): row 57 gains thirdPermutation (CSES 3422, c with c_i != a_i and c_i != b_i)."
     },
     {
       "id": "P286",
@@ -4040,6 +4042,19 @@
       "status": "planned",
       "evidence": [],
       "note": "Created by the P275 re-review (2026-11-10)."
+    },
+    {
+      "id": "P290",
+      "label": "02-Data Structures — dynamic permutation",
+      "batches": [
+        "DS62"
+      ],
+      "phase": "Specialist and research families",
+      "size": "M",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": "Created by the P013 MI02 /finish (user decision 2026-11-17): dynamic cycle decomposition under swaps, Esoteric row 75."
     },
     {
       "id": "P225",

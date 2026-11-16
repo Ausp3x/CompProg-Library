@@ -134,6 +134,9 @@ Items a reader could mistake for duplicates.
 | P183 | `labelledSequence` beside `unlabelledSequence` | Decided 2026-11-08 by the user: labelled and unlabelled constructions are separate contexts (`03-cpp.md`, One API per operation); the labelled form calls the unlabelled one |
 | P185 | `GF2k::carrylessMultiply` beside row 65 `carrylessMultiply` | Decided 2026-11-08 by the user (P254 omission sweep): a wrapper on another type, calling row 65 |
 | P186 | `determinantPolynomialMatrix` (row 44) beside row 51 `PolyMatrix::det` | Decided 2026-11-08 by the user (P254 omission sweep): a wrapper in another row, calling row 51 |
+| P013 | `permutationLehmerNaive`, `permutationFromLehmerNaive`, `permutationRankModNaive` (row 07) beside the Fenwick `permutationLehmer`, `permutationFromLehmer`, `permutationRankMod` | Decided 2026-11-16 by the user: O(n^2) scans without the Fenwick dependency, kept as lighter (`01-principles.md`, Priority; `omissions.md`, 2026-11-16) |
+| P013 | `compressCounting`, `stableRanksCounting` (row 04) beside `CoordinateCompression::encode` and `stableRanks` | Decided 2026-11-17 by the user: O(n + V) counting builds for `lng` keys, kept as faster below a measured crossover (span up to about 16n; `06-Miscellaneous/Docs/04-compression.md`, Benchmarks) |
+| P013 | `argsort` beside `stableRanks` (row 04); `HashedEncounterCompression` beside `EncounterCompression` (row 04); `permute` beside `permutationCompose` (row 07) | Decided 2026-11-17 by the user: `argsort` is the inverse permutation of `stableRanks`, a different result; the hashed dictionary is another algorithm (expected O(1), equality instead of comparator equivalence); `permute` takes any element type, a larger domain |
 
 ### Rulings
 

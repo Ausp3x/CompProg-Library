@@ -19,3 +19,5 @@
 #include "51-grid_utilities.hpp"
 #include "54-kbest_enumeration.hpp"
 #include "55-fractional_programming.hpp"
+#include "59-permutation_orders.hpp"
+#include "60-permutation_problems.hpp"

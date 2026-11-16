@@ -53,7 +53,7 @@ Candidates from the 2026-10-07 sweep ([00-sources.md](00-sources.md)) left out o
 - SqrtDecomp `maxRight`/`minLeft` (CPA): the segment tree has the same predicate search with a better bound.
 - O(1)-update / O(sqrt(n))-query group block sums (MAS): adopted on 2026-11-08 into row 23 as `SqrtBlockSum`, the Mo value-domain tool.
 - OrderedMultiSet `split`/`join` (OI pb_ds): rare; `OrderedSet` keeps the native PBDS API, including both. (returned by P275 2026-11-10 into row 07)
-- CoordinateCompression distinct-by-position encoding and counting-sort mode (MAS, NYA): an argsort rank, not compression.
+- CoordinateCompression distinct-by-position encoding and counting-sort mode (MAS, NYA): an argsort rank, not compression; Miscellaneous row 04 owns them (`stableRanks`, `compressCounting`, `stableRanksCounting`, 2026-11-17).
 - DSU delete/move element (OI): planned as row 65 `MovableDSU` (P275 re-review 2026-11-10, package P035; row 01 keeps none, user decision 2026-11-13). DSU grid adapters (HIT): left out, a grid vertex is `r * w + c`, an argument form (user decision 2026-11-12; earlier reasons in [P035 omissions](#p035-omissions)).
 
 ## Foundations rows 01–08 (P006)

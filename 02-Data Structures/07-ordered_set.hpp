@@ -26,6 +26,13 @@ struct SortedVector {
     int count(const T &x) const { return upperRank(x) - rank(x); }
     int index(const T &x) const { int i = rank(x); return i < size() && !cmp(x, v[i]) ? i : -1; }
     Iterator findByOrder(int k) const { return 0 <= k && k < size() ? v.begin() + k : v.end(); }
+    bool minGeq(const T &x, T &res) const { return pick(rank(x), res); }
+    bool minGt(const T &x, T &res) const { return pick(upperRank(x), res); }
+    bool maxLeq(const T &x, T &res) const { return pick(upperRank(x) - 1, res); }
+    bool maxLt(const T &x, T &res) const { return pick(rank(x) - 1, res); }
+    bool pick(int k, T &res) const {
+        if (k < 0 || k >= size()) { return false; }
+        res = v[k]; return true;}
 };
 
 // S: O(n * log(n + 1)), U: rebuild O(n * log(n + 1)), Q: O(log(n + 1)) per key, M: O(n)

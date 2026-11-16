@@ -6,7 +6,7 @@ Common contracts for rows 01–08 (indices, preconditions, algebra, moved-from s
 
 ### SortedVector and CoordinateCompression
 
-Immutable sorted sequence. The comparator is a stable strict weak order (custom/stateful comparators, strings, comparator-equivalent unequal objects and `vector<bool>` are supported), `n <= INT_MAX`. SortedVector keeps duplicates in unspecified order inside an equivalence class. `rank(x)` counts elements before x and `upperRank(x)` counts those not after x. `count` is their difference. `index(x)` is the first equivalent rank, or -1 if absent; no `operator==` is needed. `findByOrder(k)` returns an iterator, or `end()` for any out-of-range k. `begin`/`end` iterate the sorted values; iterators and ranks last until `rebuild`. CoordinateCompression deduplicates by comparator equivalence into ranks `[0, size())`. The representative of a class is unspecified, and distances are not preserved. `encode` maps each key to its rank, or -1 if unknown, in O(k * log(n + 1)). `decode(i)` returns the representative of rank i (through `vector<T>::const_reference`) and asserts the range. `ranks(a)` returns `rank(x)` for every query in order: the insertion rank in `[0, size()]`, so an absent value gets the rank of the first stored class after it (unlike `encode`, which returns -1), in O(k * log(n + 1)) with O(k) output. `pointRange(l, r, left_closed = true, right_closed = false)` returns the half-open rank interval `[a, b)` of the stored classes inside the original-coordinate interval with the chosen closures, in O(log(n + 1)). Bounds follow `C`, so descending comparators take descending endpoints; the precondition `!cmp(r, l)` is asserted, and endpoints need not be stored. For equivalent endpoints every closure choice is empty except closed/closed, which holds that class when present; an empty result has `a == b`, never an absent sentinel. `size`/`empty` are O(1).
+Immutable sorted sequence. The comparator is a stable strict weak order (custom/stateful comparators, strings, comparator-equivalent unequal objects and `vector<bool>` are supported), `n <= INT_MAX`. SortedVector keeps duplicates in unspecified order inside an equivalence class. `rank(x)` counts elements before x and `upperRank(x)` counts those not after x. `count` is their difference. `index(x)` is the first equivalent rank, or -1 if absent; no `operator==` is needed. `findByOrder(k)` returns an iterator, or `end()` for any out-of-range k. `minGeq(x, res)`, `minGt(x, res)`, `maxLeq(x, res)` and `maxLt(x, res)` find the least stored value not before x, the least after x, the greatest not after x and the greatest before x under the comparator, in O(log(n + 1)): each returns true and copies that value to `res`, or returns false and leaves `res` unchanged (suisen `coordinate_compressor` `min_geq`/`max_leq`; added in P013 MI02 `/finish`, user decision 2026-11-17). `res` may alias `x`. They read through `pick(k, res)`, which copies the value of rank k when `0 <= k < size()` and otherwise returns false with `res` unchanged, like `OrderedMultiSetOffline::pick`. CoordinateCompression inherits them. `begin`/`end` iterate the sorted values; iterators and ranks last until `rebuild`. CoordinateCompression deduplicates by comparator equivalence into ranks `[0, size())`. The representative of a class is unspecified, and distances are not preserved. `encode` maps each key to its rank, or -1 if unknown, in O(k * log(n + 1)). `decode(i)` returns the representative of rank i (through `vector<T>::const_reference`) and asserts the range. `ranks(a)` returns `rank(x)` for every query in order: the insertion rank in `[0, size()]`, so an absent value gets the rank of the first stored class after it (unlike `encode`, which returns -1), in O(k * log(n + 1)) with O(k) output. `pointRange(l, r, left_closed = true, right_closed = false)` returns the half-open rank interval `[a, b)` of the stored classes inside the original-coordinate interval with the chosen closures, in O(log(n + 1)). Bounds follow `C`, so descending comparators take descending endpoints; the precondition `!cmp(r, l)` is asserted, and endpoints need not be stored. For equivalent endpoints every closure choice is empty except closed/closed, which holds that class when present; an empty result has `a == b`, never an absent sentinel. `size`/`empty` are O(1).
 
 ### OrderedSet and OrderedMap
 
@@ -50,6 +50,7 @@ The Python entry and C++ oracle suite share the stem under `96-Local Testing/02-
 | Operation | Test (`07-ordered_set_tester.cpp` group) | Oracle |
 |---|---|---|
 | SortedVector `rank`, `upperRank`, `count`, `index`, `findByOrder`, `size`, `empty`, `rebuild`, `begin`..`end` | static group | `std::multiset` oracle; static 3-symbol vectors through length 6 and stateful/descending/string/bool/int64-extreme keys |
+| SortedVector and CoordinateCompression `minGeq`, `minGt`, `maxLeq`, `maxLt` | static group (`neighbours`) | A linear scan for the least or greatest qualifying stored value under the comparator, at every probe of every static case of both structures: the flag, comparator equivalence with the scan's value, the result being a stored element, `res` unchanged on false, and an aliased `minGeq(x, x)`. Covers exhaustive arrays with duplicates, the stateful descending and width comparators, signed extremes, `string`, `bool`, `pair` and `lll` keys, random narrow and full-width trials, a `std::greater<lng>` case with `LLONG_MIN` and `LLONG_MAX` and hand-computed answers, empty structures, and `CoordinateCompression<Box, BoxLess>` (no default constructor) |
 | CoordinateCompression `encode`, `decode`, `rebuild`, iteration | static group | `std::set` oracle; rebuild replacement against a `std::set` of the new values; 2 probes |
 | CoordinateCompression `ranks`, `pointRange` | static group | Linear counts over the `std::set` classes: bulk ranks against the per-probe less-than count; for every ordered probe pair and all four closures, `a` equals the classes excluded on the left, `b` equals `max(a, classes admitted on the right)` and `b - a` the classes inside. Exhaustive arrays, stateful descending/width-equivalence comparators, strings, packed `bool`, composite pairs, 128-bit and int64-extreme keys, full-width random arrays, empty query; `range-order` probe |
 | OrderedMultiSet `insert`, `erase`, `eraseOne`, `clear`, `rebuild`, `size`, `empty`, `begin`, `end`, `lowerBound`, `upperBound`, `prev`, `rank`, `upperRank`, `count`, `findByOrder` | dynamic-history and random groups | Five-action histories through depth 5 and 12 random histories of 180 operations against a sorted token vector; stale/exact tokens, copy/move, ID exhaustion; `prev` at every rank probe |
@@ -64,45 +65,23 @@ The Python entry and C++ oracle suite share the stem under `96-Local Testing/02-
 
 Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 876 MB; optimized 0.1 s compile + 0.1 s run, checked 24.0 s compile + 0.2 s run, ASan-UBSan 54.6 s compile + 3.0 s run; MEMORY peak 1059 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 911 MB; optimized 0.3 s compile + 0.2 s run, checked 31.6 s compile + 0.4 s run, ASan-UBSan 64.1 s compile + 2.3 s run; MEMORY peak 1023 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized 37.2 s compile + 0.0 s run, checked 21.9 s compile + 0.2 s run; MEMORY peak 864 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 877 MB; optimized 0.1 s compile + 0.4 s run, checked 9.9 s compile + 0.5 s run, ASan-UBSan 22.9 s compile + 8.1 s run; MEMORY peak 740 MB. Dated rows below stay those commands' latest results.
 
-Latest run 2026-11-12 (P006 DS02; experiment: none): GCC 16.2.1 20260810, GCC 14.4.1 20260915 (`CXX=g++-14`), Python 3.14.7, Linux x86-64, i9-11900H, one suite at a time after the DS02 `/finish` mutation campaigns, beside other sessions, so times are indicative.
-
-```bash
-python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20261112
-CXX=g++-14 python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 20261112
-python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode stress --seed 7
-python3 '96-Local Testing/05-extraction.py' ops --mode full --filter '02-Data Structures/07-ordered_set.hpp'
-python3 '96-Local Testing/05-extraction.py' testers --mode full --filter 07-ordered_set_tester
-python3 '96-Local Testing/02-integration.py'
-python3 '96-Local Testing/03-consistency.py'
-python3 '96-Local Testing/03-consistency.py' --braces '02-Data Structures/07-ordered_set.hpp' '96-Local Testing/02-Data Structures/07-ordered_set_tester.cpp'
-```
+Latest run 2026-11-17 (P013 MI02 `/finish`, the neighbour queries; experiment: none): GCC 16.2.1, GCC 14.4.1 (`CXX=g++-14`), CPython 3.14, Linux x86-64, i9-11900H, beside other suites and subagents, so times are indicative.
 
 | Command | Result |
 |---|---|
-| full, g++ | PASS, 3 configurations, 38,642,878 checks per configuration, 18 probes; run optimized 2.1 s, checked 2.3 s, ASan-UBSan 38.4 s; MEMORY peak 1213 MB |
-| full, g++-14 | PASS; run 2.5 / 3.2 / 40.5 s; MEMORY peak 1214 MB |
-| stress, seed 7 | PASS, 177,577,276 checks; run 10.6 / 13.6 / 248.3 s; MEMORY peak 963 MB |
-| extraction ops | PASS: 48 operations in 36 extractions on g++ and g++-14, 0 failures |
-| extraction testers | PASS: 6 names, quick run on the extracted build |
-| `02-integration.py` | PASS: 190 standalone and aggregate headers, scalar and available AVX2 multiple-translation-unit builds, workspace; MEMORY peak 1600 MB |
-| `03-consistency.py` | No errors |
-| `--braces` | No closing-brace, comment-cap or free-function violations (header, tester and `07-ordered_set_benchmark.cpp`) |
-
-## Sources
-
-| Source | Actual reading and use |
-|---|---|
-| [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf), saved repository edition, chapter 4 | PBDS. |
-| [KACTL](https://github.com/kth-competitive-programming/kactl), saved repository PDF | OrderStatisticTree reference. |
-| Installed GCC16 PBDS `tree_policy.hpp` and `order_statistics_imp.hpp` | Strict comparator ordering, `order_of_key` and out-of-range `find_by_order` semantics. |
-| [libstdc++ PBDS `split_join_fn_imps.hpp`](https://raw.githubusercontent.com/gcc-mirror/gcc/master/libstdc++-v3/include/ext/pb_ds/detail/bin_search_tree_/split_join_fn_imps.hpp) and the installed GCC 16 `rb_tree_map_/split_join_fn_imps.hpp` | `split` clears `other` and moves the keys above the split key node by node; `join` needs separated ranges: `OrderedMultiSet::split`, `join` and the recorded split limit. |
-| [maspypy ds/pbds.hpp](https://maspypy.github.io/library/ds/pbds.hpp) | Offline ordered multiset as a Fenwick over compressed ranks: `OrderedMultiSetOffline`. |
-
-References inspected on 2026-09-27; the DS02 rows on 2026-11-12 ([00-sources.md](00-sources.md#fetched-2026-11-12-ds02-sweep)).
+| `python3 '96-Local Testing/02-Data Structures/07-ordered_set_tester.py' --mode full --seed 1` | PASS, 3 configurations, 38,521,070 checks per configuration, 18 probes; MEMORY peak 1446 MB |
+| same with `CXX=g++-14` | PASS, same counts; MEMORY peak 1414 MB |
+| `... --mode stress --seed 2` | PASS, 178,105,129 checks; ASan-UBSan run 218 s of the 720 s limit; MEMORY peak 950 MB |
+| `python3 '96-Local Testing/05-extraction.py' ops --filter '02-Data Structures/07-ordered_set.hpp'` | PASS: 52 operations in 40 extractions on g++ and g++-14, 0 failures |
+| `python3 '96-Local Testing/05-extraction.py' testers --filter 07-ordered_set_tester` | PASS: 6 names, quick run on the extracted build |
+| `python3 '96-Local Testing/02-integration.py' --sanitizers` | PASS, 192 standalone and aggregate headers (the new `59-permutation_orders.hpp` and `60-permutation_problems.hpp` included), scalar and available AVX2 multi-TU builds, workspace, sanitizer self-tests, rerun on the final headers; `MEMORY peak=2703MB` |
+| `python3 '96-Local Testing/03-consistency.py' --braces` on the header and tester | No violations |
 
 ## Mutation testing
 
-Record: mewt 4.0.0 on blob `f04d55060a0461d3291f8154c4191012513a960e` (2026-11-12, seed 20261112, 1 lines changed since blob `33e5882689f8`): 0 mutants, 0 caught (0 by timeout), 0 survived, 0 untested.
+Record: mewt 4.0.0 on blob `f9780322f1a9e1a225caf7b8a1605d4dd338ef37` (2026-11-17, seed 1, 5 lines changed since blob `97ad9780c58e`): 24 mutants, 24 caught (0 by timeout), 0 survived, 0 untested.
+
+The P013 MI02 `/finish` campaigns cover the neighbour queries `minGeq`, `minGt`, `maxLeq`, `maxLt` and their helper `pick`. The first, on blob `97ad9780c58e` (7 changed lines, 46 of 502 generated mutants sampled: 45 caught; stage seconds quick 140, full on the optimized build 4, full on the checked and ASan-UBSan builds 107), left `COS 343` (`k >= size()` → `k == size()` in the helper, then `neighbour`), which is not equivalent: the helper is public and `neighbour(size() + 1)` read past the end. The helper became `pick`, like `OrderedMultiSetOffline::pick`, and the static group now calls it directly at -2, -1, `size()` and `size() + 1`; the rerun on those 5 changed lines (24 of 502 generated mutants sampled, stage seconds quick 63) caught every mutant in quick mode. The four queries pass `rank(x)` or `upperRank(x)`, in `[0, size()]`, or one less, in `[-1, size() - 1]`. The record before them, on blob `f04d55060a04`, restated a complexity line and yielded no mutants.
 
 The DS02 `/finish` campaign on blob `33e5882689f8` covered `OrderedMultiSetOffline` and its include (36 changed lines: 133 mutants, 122 caught, 11 survived; stage seconds quick 300, full on the optimized build 18, full on the checked and ASan-UBSan builds 502); the record's blob only restates its complexity line in the universe length, which yields no mutants. It follows the whole-file campaign on blob `d60653681fc0` (2026-11-12, 323 mutants, 296 caught, 27 survived), whose survivors on unchanged lines stay in the table with that blob's line numbers (one less than today's). The probes `sorted-max-size` and `multiset-rebuild-max-size` closed that campaign's `CR 76`, `COS 217`, `CR 122`, `LOS 212` and `COS 267`, and the largest-size checks its `COS 218` and `COS 268`; the probe `offline-size-limit` closed this campaign's `CR 169`, `LOS 283` and `COS 379`; each was checked against the mutant applied by hand to a scratch copy.
 
@@ -124,11 +103,11 @@ Whole-file campaign stage seconds: first run quick 579, full on the optimized bu
 
 ## Limits and handoffs
 
-Dynamic balanced and persistent ordered trees are rows 19, 20 and 58, not gaps of this row. Left out of the 2026-10-07 sweep, with reasons in [00-notes.md](00-notes.md#p006-re-audit-omissions): CoordinateCompression distinct-by-position encoding and counting-sort mode. `OrderedMultiSet::split` has no proven worst case (recorded limit, user decision 2026-11-12; Contracts, OrderedMultiSet::split and OrderedMultiSet::join). `OrderedMultiSetOffline` needs its universe up front and offers no tokens or iteration; `OrderedMultiSet` covers both.
+Dynamic balanced and persistent ordered trees are rows 19, 20 and 58, not gaps of this row. Distinct-by-position ranks and the counting builds are Miscellaneous row 04 (`stableRanks`, `compressCounting`, `stableRanksCounting`; [00-notes.md](00-notes.md#p006-re-audit-omissions)). `OrderedMultiSet::split` has no proven worst case (recorded limit, user decision 2026-11-12; Contracts, OrderedMultiSet::split and OrderedMultiSet::join). `OrderedMultiSetOffline` needs its universe up front and offers no tokens or iteration; `OrderedMultiSet` covers both.
 
 ## Aliases
 
-Search aliases (P263, grab --find): discretization (OI Wiki: 离散化), coordinate compression, order statistic tree, 坐标压缩, 平板电视, 名次树, 顺序统计树, 有序集合, 查询排名; pbds split, pbds join, 分裂合并; offline ordered multiset, Fenwick order statistics, BIT kth element, 权值树状数组, 树状数组求第 k 小.
+Search aliases (P263, grab --find): discretization (OI Wiki: 离散化), coordinate compression, order statistic tree, 坐标压缩, 平板电视, 名次树, 顺序统计树, 有序集合, 查询排名, min_geq, max_leq, successor, predecessor, 前驱, 后继; pbds split, pbds join, 分裂合并; offline ordered multiset, Fenwick order statistics, BIT kth element, 权值树状数组, 树状数组求第 k 小.
 
 ## History
 
@@ -141,3 +120,4 @@ Search aliases (P263, grab --find): discretization (OI Wiki: 离散化), coordin
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared contest runner `_00_contest_runner.py` and its ccache `Builder`, warnings `-Wall -Wextra -Wconversion -Werror`, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
 - 2026-11-12: P006 DS02, added `OrderedMultiSet::split` and `join` (PBDS split cost measured on GCC 16 and 14); independent review passed this header; first mutation campaign, two probes and the id-limit and default-bound checks closed seven gaps; full on g++ and g++-14, stress, extraction, integration and consistency passed.
 - 2026-11-12: P006 DS02 `/finish`, added `OrderedMultiSetOffline` (row 07 owns it, user decision), the split cost recorded as a limit with the committed benchmark driver and medians (user decision); two max-size probes, the largest-size checks and `offline-size-limit` closed seven earlier survivors and three new ones; changed-line mutation campaign; full on g++ and g++-14, stress, extraction, integration and consistency passed.
+- 2026-11-17: P013 MI02 `/finish` added SortedVector `minGeq`, `minGt`, `maxLeq` and `maxLt` (inherited by CoordinateCompression) in this P006 file, with the user's yes; the review's public-helper gap (`COS 343`) closed by renaming the helper `pick` and testing it out of range; full and stress passed on g++ and g++-14, two mutation campaigns on the changed lines.

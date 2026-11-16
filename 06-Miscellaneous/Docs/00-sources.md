@@ -272,3 +272,45 @@ Pages the P275 re-review agents read to confirm the returns in `Docs/00-notes.md
 - <https://atcoder.jp/contests/abc155/tasks/abc155_d>
 - <https://www.luogu.com.cn/problem/P5283>
 - <https://en.wikipedia.org/wiki/Linear-fractional_programming>
+
+## P013 MI02 sweep (2026-11-16)
+
+Pages the batch's `@researcher` sweeps read for rows `04`, `06` and `07`; decisions in `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions, 2026-11-16) and [00-notes.md](00-notes.md).
+
+| URL | Used for |
+|---|---|
+| https://maspypy.github.io/library/ds/index_compression.hpp, https://nyaannyaan.github.io/library/misc/compress.hpp, https://suisen-cp.github.io/cp-library-cpp/library/util/coordinate_compressor.hpp, https://oi-wiki.org/misc/discrete/ | 04: nothing new (aliases only) |
+| https://raw.githubusercontent.com/yosupo06/library-checker-problems/master/categories.toml | 04, 07: no compression or permutation-rank problem |
+| https://raw.githubusercontent.com/maspypy/library/main/setfunc/xor_submask_lower_bound.hpp | 06: `xorSubmaskLowerBound` |
+| https://raw.githubusercontent.com/maspypy/library/main/my_template.hpp | 06: `bitReverse` (`bit_reverse`); aliases `topbit`, `lowbit`, `kth_bit` |
+| https://maspypy.github.io/library/other/dyadic_intervals.hpp | 06: `xorRangeBlocks` with `x = 0` |
+| https://cp-algorithms.com/algebra/bit-manipulation.html | 06: `clearLowBit`, `clearTrailingOnes`, `setLowestZero` |
+| https://raw.githubusercontent.com/frederik-hoeft/bit-twiddling-hacks/main/README.md (mirror of Sean Eron Anderson's Bit Twiddling Hacks; the original's certificate was rejected) | 06: `rank`, `mortonEncode`/`mortonDecode`, `signExtend`, `mergeBits`, `swapBitRanges`, the byte tests (user decision 2026-11-16; not a sweep catalog) |
+| https://raw.githubusercontent.com/NyaanNyaan/library/master/template/bitop.hpp, https://suisen-cp.github.io/cp-library-cpp/library/util/bit_utils.hpp, https://hitonanode.github.io/cplib-cpp/utilities/next_combination.hpp, https://oi-wiki.org/math/binary-set/ | 06: aliases only |
+| https://codeforces.com/problemset/problem/1648/C (statement through a web search; the page returned HTTP 403) | 07: `multisetPermutationRankMod` (user decision 2026-11-16; not a sweep catalog) |
+| https://cses.fi/problemset/task/3397, https://cses.fi/problemset/task/3398 | 07: aliases of `permutationRank`/`permutationUnrank` and `permutationOrderMod` |
+| https://github.com/kth-competitive-programming/kactl/tree/main/content/combinatorial | 07: used-value bitmask technique (`IntPerm.h`) behind `permutationRank` |
+| https://oi-wiki.org/math/permutation/ | 07: `distinctPermutationCount` (多重集的排列数); the cycle-type count, adopted into row 07 on 2026-11-17 (`cycleTypeCount`) |
+
+## P013 MI02 `/finish` sweep (2026-11-17)
+
+Pages the three `@researcher` sweeps of the MI02 `/finish` fetched for rows `04`, `06`, `07` and `SortedVector`, plus the Trotter-Johnson page this session read; decisions in `00-Guidelines/23-Sweep Ledgers/omissions.md` (Recorded decisions, 2026-11-17). Indexes read in part are marked.
+
+| URL | Used for |
+|---|---|
+| https://raw.githubusercontent.com/maspypy/library/main/ds/index_compression.hpp, https://raw.githubusercontent.com/maspypy/library/main/ds/to_small_key.hpp | 04: `compressCounting` and `stableRanksCounting` (`SMALL=true` builds), `HashedEncounterCompression` (`To_Small_Key`) |
+| https://suisen-cp.github.io/cp-library-cpp/library/util/coordinate_compressor.hpp | 04 and `SortedVector`: `minGeq`, `maxLeq`, `minGt`, `maxLt` |
+| https://raw.githubusercontent.com/maspypy/library/main/my_template.hpp | 04 `argsort`; 07 `permute` (`rearrange`) |
+| https://nyaannyaan.github.io/library/misc/compress.hpp, https://ei1333.github.io/library/other/compress.hpp, https://oi-wiki.org/misc/discrete/, https://raw.githubusercontent.com/verngutz/cp-library/master/Data%20Structs%20-%20Coordinate%20Compression.cpp | 04: no 2D compression in any catalog (added by user decision as `compressPoints`); aliases |
+| https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/misc/ordersort.py | 04: radix argsort, covered by `11-sorting_selection.hpp` `radixSort` with a projection |
+| https://en.wikipedia.org/wiki/Ranking | 04: dense, ordinal and competition rankings map to `ranks`, `stableRanks` and `rank` (source key, not a sweep catalog) |
+| https://cp-algorithms.com/algebra/bit-manipulation.html, https://cses.fi/problemset/task/1146 | 06: `countOnesUpTo` |
+| https://oi-wiki.org/math/bit/ | 06: `countLeadingSignBits` (`__builtin_clrsb`); signed tricks dominated by `std::` |
+| https://oi-wiki.org/math/binary-set/, https://oi-wiki.org/math/numeral-sys/gray-code/, https://raw.githubusercontent.com/atcoder/ac-library/master/atcoder/internal_bit.hpp, https://raw.githubusercontent.com/NyaanNyaan/library/master/template/bitop.hpp, https://suisen-cp.github.io/cp-library-cpp/library/util/bit_utils.hpp, https://raw.githubusercontent.com/koosaga/olympiad/master/Library/codes/tools/bithack.cpp, https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/misc/bit_hacks.py, https://raw.githubusercontent.com/verngutz/cp-library/master/Bitmasking.cpp | 06: aliases of existing members and `std::<bit>` coverage; nothing else missing |
+| https://cses.fi/problemset/task/1698, https://cses.fi/problemset/task/2216, https://cses.fi/problemset/task/2214 | 07: `swapRoundSort`, `collectingNumbers`; 60: `permutationWithInversions` (Inverse Inversions) |
+| https://cses.fi/problemset/task/3422, https://cses.fi/problemset/task/2229 | handoffs: Third Permutation to row 57 (P285), Mahonian numbers to P054 |
+| https://raw.githubusercontent.com/verngutz/cp-library/master/Combinatorics%20-%20Multiset%20Permutations%20(fixed%20length).cpp, https://raw.githubusercontent.com/verngutz/cp-library/master/Brute%20Force%20-%20Paired%20Permutations.cpp | handoffs: multiset k-permutation count to P054, `forEachPairing` to P015 |
+| https://suisen-cp.github.io/cp-library-cpp/library/util/permutation.hpp, https://docs.sympy.org/latest/modules/combinatorics/permutations.html | 07: Myrvold-Ruskey order (`PermutationHash`, `rank_nonlex`); row 59 Trotter-Johnson (`rank_trotterjohnson`, SymPy only) |
+| https://en.wikipedia.org/wiki/Steinhaus%E2%80%93Johnson%E2%80%93Trotter_algorithm | 59: recursive definition, first and last permutations, Even's speedup (the tester's walk oracle) |
+| https://raw.githubusercontent.com/maspypy/library/main/seq/cycle_decomposition.hpp, https://raw.githubusercontent.com/maspypy/library/main/seq/factorial_digit_system.hpp, https://raw.githubusercontent.com/maspypy/library/main/random/shuffle.hpp, https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/combinatorial/chapter.tex, https://raw.githubusercontent.com/cheran-senthil/PyRival/master/pyrival/combinatorics/combinatorics.py | 07: owned or covered (cycles, factorial digits, shuffle, derangements) |
+| https://maspypy.github.io/library/, https://nyaannyaan.github.io/library/, https://hitonanode.github.io/cplib-cpp/, https://ei1333.github.io/library/, https://tko919.github.io/library/, https://noshi91.github.io/Library/, https://github.com/ecnerwala/cp-book/tree/master/src, https://github.com/koosaga/olympiad/tree/master/Library/codes, https://github.com/verngutz/cp-library | indexes (maspypy, Nyaan, hitonanode and ei1333 read in part) |

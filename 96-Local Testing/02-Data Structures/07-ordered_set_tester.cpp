@@ -17,6 +17,21 @@ namespace {
         bool operator()(lng a, lng b) const {
             a /= width; b /= width; return descending ? a > b : a < b;}
     };
+    // Oracle: the C-least (lowest) or C-greatest stored value passing keep, by linear scan; with none, res keeps its initial x.
+    template<typename T, typename C, typename S>
+    void neighbours(const S &s, const vector<T> &stored, const T &x, C cmp, const string &name) {
+        auto same = [&](const T &p, const T &q) { return !cmp(p, q) && !cmp(q, p); };
+        auto expect = [&](bool ok, const T &res, bool lowest, auto keep, const string &operation) {
+            bool found = false; T best = x;
+            for (const T &y : stored) {
+                if (keep(y) && (!found || (lowest ? cmp(y, best) : cmp(best, y)))) { best = y; found = true; }}
+            check(ok == found && (found ? same(res, best) && std::find(stored.begin(), stored.end(), res) != stored.end() : res == x), name + ' ' + operation + " linear scan");};
+        auto geq = [&](const T &y) { return !cmp(y, x); };
+        T res = x; bool ok = s.minGeq(x, res); expect(ok, res, true, geq, "minGeq");
+        res = x; ok = s.minGt(x, res); expect(ok, res, true, [&](const T &y) { return cmp(x, y); }, "minGt");
+        res = x; ok = s.maxLeq(x, res); expect(ok, res, false, [&](const T &y) { return !cmp(x, y); }, "maxLeq");
+        res = x; ok = s.maxLt(x, res); expect(ok, res, false, [&](const T &y) { return cmp(y, x); }, "maxLt");
+        T alias = x; ok = s.minGeq(alias, alias); expect(ok, alias, true, geq, "aliased minGeq");}
     template<typename T, typename C>
     void staticCase(const vector<T> &a, const vector<T> &probes, C cmp) {
         SortedVector<T, C> v(a, cmp);
@@ -38,7 +53,8 @@ namespace {
             check(c.rank(x) == unique_less && c.upperRank(x) == unique_less + unique_eq, "compressed rank");
             check(c.count(x) == unique_eq && c.index(x) == (unique_eq ? unique_less : -1), "compressed count/index");
             check(encoded[j] == c.index(x), "batch encoding");
-            check(ranked[j] == unique_less, "bulk ranks linear oracle");}
+            check(ranked[j] == unique_less, "bulk ranks linear oracle");
+            neighbours(v, a, x, cmp, "sorted"); neighbours(c, a, x, cmp, "compressed");}
         for (const T &l : probes) {
             for (const T &r : probes) {
                 if (cmp(r, l)) { continue; }
@@ -81,6 +97,19 @@ namespace {
             staticCase(a, probes, cmp);}
         context = "signed extrema";
         staticCase(vector<lng>{LLONG_MIN,LLONG_MAX,0,LLONG_MIN}, vector<lng>{LLONG_MIN,LLONG_MAX,-1,0,1}, std::less<lng>{});
+        context = "std::greater comparator";
+        staticCase(vector<lng>{5,1,5,-3,LLONG_MIN}, vector<lng>{LLONG_MIN,-4,-3,0,1,2,5,6,LLONG_MAX}, std::greater<lng>{});
+        SortedVector<lng, std::greater<lng>> g(vector<lng>{5,1,5,-3});
+        CoordinateCompression<lng, std::greater<lng>> gc(vector<lng>{5,1,5,-3});
+        lng r = 0;
+        check(g.minGeq(2, r) && r == 1 && g.minGt(1, r) && r == -3 && g.maxLeq(2, r) && r == 5 && g.maxLt(1, r) && r == 5, "greater neighbours");
+        check(!g.maxLt(5, r) && r == 5 && !g.minGt(-3, r) && r == 5 && !g.minGeq(-4, r) && !g.maxLeq(6, r) && r == 5, "greater neighbours absent");
+        check(gc.minGeq(5, r) && r == 5 && gc.minGt(5, r) && r == 1 && gc.maxLeq(-3, r) && r == -3 && gc.maxLt(-3, r) && r == 1, "greater compression neighbours");
+        SortedVector<lng> none; CoordinateCompression<lng> none_c; r = 9;
+        check(!none.minGeq(LLONG_MIN, r) && !none.minGt(0, r) && !none.maxLeq(LLONG_MAX, r) && !none.maxLt(0, r) && r == 9, "empty sorted neighbours");
+        check(!none_c.minGeq(LLONG_MIN, r) && !none_c.minGt(0, r) && !none_c.maxLeq(LLONG_MAX, r) && !none_c.maxLt(0, r) && r == 9, "empty compression neighbours");
+        r = 7; check(!g.pick(-2, r) && !g.pick(-1, r) && !g.pick(4, r) && !g.pick(5, r) && r == 7 && g.pick(0, r) && r == 5 && g.pick(3, r) && r == -3, "pick out of range keeps res");
+        r = 7; check(!gc.pick(-2, r) && !gc.pick(3, r) && !gc.pick(4, r) && r == 7 && gc.pick(2, r) && r == -3, "compression pick out of range keeps res");
         context = "string keys";
         staticCase(vector<string>{"z","","aa","aa","a"}, vector<string>{"","a","aa","b","z","zz"}, std::less<string>{});
         context = "packed bool keys";
@@ -461,6 +490,8 @@ namespace {
         context = "non-default keys without equality";
         CoordinateCompression<Box, BoxLess> c(vector<Box>{Box(9),Box(-2),Box(9)});
         check(c.index(Box(-2)) == 0 && c.findByOrder(1)->value == 9 && c.count(Box(9)) == 1, "generic compression");
+        Box near(77);
+        check(c.minGeq(Box(0), near) && near.value == 9 && c.maxLt(Box(0), near) && near.value == -2 && !c.minGt(Box(9), near) && near.value == -2, "generic compression neighbours");
         OrderedMultiSet<Box, BoxLess> m;
         auto key = m.insert(Box(9)); m.insert(Box(9)); m.insert(Box(-2));
         check(m.count(Box(9)) == 2 && m.findByOrder(0)->first.value == -2 && m.erase(key), "generic multiset");
