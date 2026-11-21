@@ -1,6 +1,6 @@
 {
   "models": ["claude-haiku-5-5"],
-  "audited_version": "2.1.322",
+  "audited_version": "2.1.330",
   "request": {
     "fields": ["betas", "context_management", "max_tokens", "model", "output_config", "thinking"],
     "expect": {
