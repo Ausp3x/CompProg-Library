@@ -413,6 +413,21 @@
       "note": ""
     },
     {
+      "id": "P289",
+      "label": "Harness review: settings, hooks, scripts, measurements",
+      "batches": [
+        "SUP32",
+        "SUP33",
+        "SUP34"
+      ],
+      "phase": "Foundations re-audit",
+      "size": "XL",
+      "model": "opus",
+      "status": "planned",
+      "evidence": [],
+      "note": ""
+    },
+    {
       "id": "P025",
       "label": "01-Core — poly",
       "batches": [

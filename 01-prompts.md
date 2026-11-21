@@ -60,6 +60,7 @@ Legend: `[x]` verified, `[ ]` otherwise; **package — batches in order** (model
 - [x] **P275 — SUP26** (opus, L): Duplicate re-review under the 2026-11-08 One API rule.
 - [x] **P276 — SUP27** (opus, L): Operation-name renames under the 2026-11-08 vocabulary.
 - [x] **P287 — SUP28, SUP29, SUP30** (opus, XL): Harness audit: model guard, experiment ids, weekly scan.
+- [ ] **P289 — SUP32, SUP33, SUP34** (opus, XL): Harness review: settings, hooks, scripts, measurements. Status: planned.
 
 ### Core full types
 
