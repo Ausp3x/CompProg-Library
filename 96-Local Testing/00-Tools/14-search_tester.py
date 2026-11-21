@@ -1464,7 +1464,7 @@ class Real(unittest.TestCase):
         docs = [M.aliases(d.read_text(encoding='utf-8')) for d in sorted(ROOT.glob('0[1-8]-*/Docs/*.md'))]
         held = {o_simplified(k) for k in o_held(docs)}  # the regional phrases the documents hold, read as mainland words:
         self.assertEqual(held, {M.simplified(k) for k in set(M.tables()[0]['rp'][0]) - set(self.s.regional[0])})
-        self.assertEqual(held, {'外接', '序列', '文件', '行程', '宏'})  # reviewed: a new one
+        self.assertEqual(held, {'外接', '序列', '文件', '行程', '宏', '向量'})  # reviewed: a new one
         # is a Taiwan word to write as its regional reading, or a mainland word the Taiwan tables also map (00-search.md)
         for q, want in (('线段树', '02-Data Structures/03-segmenttree.hpp'), ('線段樹', '02-Data Structures/03-segmenttree.hpp'),
                         ('并查集', '02-Data Structures/01-dsu.hpp'), ('树状数组', '02-Data Structures/02-fenwick.hpp'),
