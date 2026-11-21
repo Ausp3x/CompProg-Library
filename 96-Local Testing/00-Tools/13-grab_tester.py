@@ -1882,6 +1882,26 @@ class Repo(Base):
             bad = [(n, g) for n, g in zip(nums, got.split()) if g != str(int(o_is_prime(n)))]
             self.eq((len(got.split()), bad[:5]), (len(nums), []), cxx=cxx)
 
+    def test_repo_monoids_whole(self):  # user decision 2026-11-22: a monoid type comes whole however it is reached
+        h = '02-Data Structures/00-monoids.hpp'
+        lines = (ROOT / h).read_text().split('\n')
+        blocks = []  # every struct of the header, nested ones included, as its text from the struct line to its `};`
+        for k, l in enumerate(lines):
+            m = re.match(r'(\s*)struct \w+', l)
+            if m:
+                end = k if l.rstrip().endswith('};') else next(j for j in range(k + 1, len(lines)) if lines[j] == m[1] + '};')
+                blocks.append('\n'.join(lines[k:end + 1]))
+        names = [m[1] for m in re.finditer(r'^(?:struct|template<[^\n]*> using) (\w+)', '\n'.join(lines), re.M)]
+        self.true(len(blocks) > 40 and {'RangeAddRangeMax', 'MaxIndex', 'Opposite'} <= set(names), blocks=len(blocks), names=names)
+        for n in names:
+            for mode, out in (('grab', G.grab([n], ROOT, self.ix)), ('--min', G.grab_text(f'void solve() {{ {n} x; }}\n', ROOT, self.ix)[0])):
+                cut = [b.split('\n')[0] for b in blocks if b.split('\n')[0] + '\n' in out and b not in out]
+                self.eq(cut, [], name=n, mode=mode, what='a monoid struct kept must be whole')
+        main = ('int main() { using M = RangeAddRangeMax<lng>;\n'
+                '    cout << M::op(3, 5) << " " << (M::e() == numeric_limits<lng>::lowest()) << " " << M::mapping(2, 7) << "\\n"; }\n')
+        for cxx, got in self.run_extraction(['RangeAddRangeMax'], main).items():
+            self.eq(got, '5 1 9\n', cxx=cxx, what='Max::op through the derived preset')
+
     def test_repo_into_cli(self):
         f = self.tmp / 'sol.cpp'
         src = ('void solve(int t) {\n    DSU d(3); d.uniteSets(0, 2);\n    cout << d.count() << " " << isPrime(ulng(t)) << "\\n";\n}\n'

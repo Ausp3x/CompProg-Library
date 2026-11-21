@@ -496,6 +496,9 @@ class _Serial:
 SEQUENCE = frozenset('size empty begin end rbegin rend cbegin cend data front back push_back pop_back emplace_back insert '
                      'erase clear reserve resize max_size find count at substr length assign swap first second operator[]'.split())
 MONOID = frozenset('op e id inv mapping composition'.split())
+# Headers whose types are always kept whole however they are reached: a monoid's members are called through the structure
+# it parameterizes, which grab may not see (`grab RangeAddRangeMax` keeps all of its base `Max`; user decision 2026-11-22).
+WHOLE_TYPES = frozenset({'02-Data Structures/00-monoids.hpp'})
 
 
 def split_top(text: str) -> list[str]:
@@ -663,6 +666,7 @@ def select(ix: Index, roots: list[int], member_names: set[str] | None = None, vi
     work = []
 
     def keep(i, entire=False):
+        entire = entire or (i is not None and U[i]['kind'] == 'type' and U[i]['header'] in WHOLE_TYPES)
         if i is None or (i in kept and (not entire or i in whole)) or (
                 U[i]['qual'] in exclude and (U[i]['kind'] == 'type' or U[i].get('alias'))):  # a global-namespace type
             return
