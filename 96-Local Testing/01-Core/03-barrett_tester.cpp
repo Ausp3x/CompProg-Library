@@ -183,6 +183,20 @@ void folds(std::mt19937_64 &rng) {
         if (x < SINGLE) { check(y < 2 * ulll(M), true, "fold61-single-bound", M, x); }}
     passed("Mersenne-61 fold: congruence and bounds vs native 128-bit %");}
 
+// constexpr construction (the dynamic modular types hold a constinit reducer): fields against the direct quotient, then use at run time.
+void constants() {
+    constexpr uint P = 998244353, Q = 4294967291U; constexpr ulng R = ulng(0) - 59;
+    static_assert(Barrett32(P).mod == P && Barrett32(P).mu == ~ulng(0) / P && !Barrett32(P).mask && Barrett32(Q).mu == ~ulng(0) / Q);
+    static_assert(Barrett32(1).mask && Barrett32(1).mu == 0 && Barrett32(1U << 31).mask && Barrett32(1U << 31).mu == 0 && Barrett32().mod == 1);
+    static_assert(Barrett64(R).mod == R && Barrett64(R).mu == ~ulll(0) / R && !Barrett64(R).mask && Barrett64(P).mu == ~ulll(0) / P);
+    static_assert(Barrett64(Barrett64::MERSENNE61).mu == 0 && !Barrett64(Barrett64::MERSENNE61).mask && Barrett64(ulng(1) << 63).mask && Barrett64().mod == 1);
+    static constinit Barrett32 fixed32{Q}; static constinit Barrett64 fixed64{R};
+    check(fixed32.mul(Q - 1, Q - 2), ulng(Q - 1) * (Q - 2) % Q, "constinit-mul32", Q);
+    check(fixed32.reduce(~ulng(0)), ~ulng(0) % Q, "constinit-reduce32", Q);
+    check(fixed64.mul(R - 1, R - 2), ulll(R - 1) * (R - 2) % R, "constinit-mul64", R);
+    check(fixed64.reduce(~ulll(0)), ~ulll(0) % R, "constinit-reduce64", R);
+    passed("constexpr and constinit construction");}
+
 int main(int argc, char **argv) {
     seed = 20260927; mode = "quick";
     if (argc > 1 && string(argv[1]) == "--death") {
@@ -211,7 +225,7 @@ int main(int argc, char **argv) {
         else if (string(argv[i]) == "--seed") { seed = std::stoull(argv[i + 1]); }
         else { return 2; }}
     cout << "Barrett seed=" << seed << " mode=" << mode << '\n';
-    std::mt19937_64 rng(seed); highProducts(rng); folds(rng);
+    std::mt19937_64 rng(seed); highProducts(rng); folds(rng); constants();
     features<Barrett32, uint, ulng>(rng); features<Barrett64, ulng, ulll>(rng);
     batches<Barrett32, uint, ulng>(rng); batches<Barrett64, ulng, ulll>(rng);
     check(Barrett(17).mul(123, 456), 123 * 456 % 17, "Barrett-alias");

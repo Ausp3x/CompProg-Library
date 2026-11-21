@@ -72,7 +72,7 @@
         "01-Core/Docs/03-barrett.md",
         "01-Core/Docs/04-montgomery.md"
       ],
-      "note": ""
+      "note": "Handed over by P005's sweep (2026-11-18, GCC 15): Montgomery32::mul8 (04-montgomery.hpp:81) carries no always_inline, so a caller's lane loop called a local clone of it once per lane group (dynamic 32-bit batchInv 2.0-4.5% slower at sizes 80-384, +3.65 instructions an element); with always_inline on mul8 alone 20 calls remained through red8 and red4. Candidate for P004's own sweep, to be measured on its rows: always_inline on mul8, red8, red4, load and store. 05-modint.hpp no longer depends on it (its lane product is inlined from its own side). User decision 2026-11-19: done in P004's sweep, not in P005's landing. Also handed over by P005 (01-Core/Docs/05-modint.md, Dependent-owner handoff; GCC 15, 2026-11-18 to 2026-11-21): Montgomery64::redc's correction mispredicts 0.22 times a product in batch chains (a branch-free correction is the candidate; 05-modint.hpp carries its own branch-free product until then); Montgomery64 built from a known 2^128 mod m measured setmod-p30-given64 0.79-0.84. From 2026-11-16 (GCC 16): Barrett32::divMod's correction compiles to a branch that mispredicts on dividends near 2^63 and GCC stops inlining divMod into a larger caller; a branch-free multiplier select in Montgomery64::powMont measured 0.72-0.78 on random exponents."
     },
     {
       "id": "P005",
@@ -84,12 +84,12 @@
       "phase": "Foundations re-audit",
       "size": "L+L",
       "model": "fable",
-      "status": "verified",
+      "status": "in-progress",
       "evidence": [
         "01-Core/Docs/05-modint.md",
         "01-Core/Docs/06-modintmini.md"
       ],
-      "note": ""
+      "note": "C03 landed partial on 2026-11-22 (/finish C03): 01-Core/05-modint.hpp rewritten under the Core full rule (canonical storage kept, MontModInt64 and DynMontModInt64 added, every candidate of every operation decided on GCC 15: 01-Core/Docs/05-modint.md, Benchmarks), tests and evidence with it; the verification chain passed on the final header (Commands and results). Open before C03 is verified (the same list stands in the document's Limits and handoffs): (1) the mutation campaign, 04-mutation.py run 01-Core/05-modint.hpp --whole with the sample 125/75/50 (user decision 2026-11-21), and any test it shows missing; (2) the comparison against HEAD over the whole rig, 06-compare.py run '96-Local Testing/01-Core/05-modint_compare.cpp' --gate, its Comparison: line, the benchmark driver rerun (05-modint_benchmark.py --seed 20261116 --repetitions 5 --milliseconds 2 --passes 5) and the matrix_det_arbitrary_mod driver; (3) the user's decision on a static inverse table of 16,384 words (faster on its rows, no row slower; 8.4 s and 596 MB against 2.7 s and 369 MB to compile four static types); (4) candidates named and not measured: a dynamic inverse table of 8192 or 16,384 pairs, INV_TINY 32 or 64, a shorter miss path of the dynamic table, the unexplained 1.06 of MontModInt64 inv-tiny; (5) a last @reviewer pass (the stop rule of 05-testing.md, Benchmarks); (6) /speed-sweep P005 verify, which only the user starts. Then C16 reopens (user decisions 2026-11-19 and 2026-11-21): 06-modintmini.hpp, in one shared modintmini_detail namespace, takes the scalar wins the user chose on 2026-11-19 (products below 2^32 and large 64-bit products without the 128-bit division, the 32-bit dynamic product form, constructors without the 128-bit division with the bias for negative sources, -= as a borrow mask, unary minus without a branch, the pow loop in one register, the changed-exponent base-4 loop, Montgomery pow only after its gap is measured, the inverse on unsigned one-word coefficients if it wins); the scalar wins found after that list are offered to the user then (the binary inverse with its division step, the Newton steps by exponent, the quotient form and the inverse tables, the inline front of tryInv); its row drops norm. Resume: /finish C03 reads the ledger .claude/finish/C03.txt."
     },
     {
       "id": "P006",

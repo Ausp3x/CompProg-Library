@@ -95,7 +95,7 @@ REQUIRED = {'g++', 'g++-14', 'python3', 'git', 'rg', 'bwrap', 'systemd-run', 'ls
 # the mewt install step per distribution: that distribution's Python package, then 04-mutation.py install
 MEWT_INSTALL = {'ubuntu': "  ubuntu: sudo apt install python3 && python3 '96-Local Testing/04-mutation.py' install",
                 'arch': "  arch: sudo pacman -S python && python3 '96-Local Testing/04-mutation.py' install"}
-FLOORS = {'GCC 16': (16,), 'GCC 14': (14,), 'Python': (3, 11), 'PyPy': (3, 10)}
+FLOORS = {'GCC 16': (16,), 'GCC 14': (14,), 'GCC 15': (15,), 'Python': (3, 11), 'PyPy': (3, 10)}
 PASS_LINE, FAIL_LINE = 'PASS: every required tool works', 'FAIL: a required tool is missing or below its floor'
 SCOPE_HINT = 'enable a systemd user session with cgroup v2 and the memory controller delegated'
 OVERLAY_HINT = 'needs bubblewrap 0.10 or later and unprivileged overlayfs (Linux 5.11 or later)'

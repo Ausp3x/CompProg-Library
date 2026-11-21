@@ -30,7 +30,7 @@ import threading
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
-from _00_cpp_test_runner import Builder, cpu_runs, over_half, timed_run, x86, x86_only
+from _00_cpp_test_runner import Builder, cpu_runs, over_half, ready, timed_run, x86, x86_only
 
 _00_memory_cap.ensure()
 if hasattr(sys, "set_int_max_str_digits"):
@@ -698,6 +698,7 @@ def check_double(line: str, a: int) -> None:
 
 def run_protocol(executable: str, label: str, seed: int, mode: str, env: dict[str, str], timeout: int) -> int:
     """Streams the generated cases through one C++ protocol process and validates each answer as it arrives; returns the case count."""
+    ready(executable)
     proc = subprocess.Popen([executable, "--protocol"], cwd="/tmp", env=env, text=True, bufsize=1 << 16,
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     expected: queue.Queue = queue.Queue()

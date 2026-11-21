@@ -3,10 +3,13 @@
 
 Usage: gaps.py [Pxxx | batch id]. Without an argument the target comes from the batch or package id in the
 branch or worktree name (a batch id wins); with neither, the target is the branch itself.
+gaps.py --reviewed <Pxxx | batch id> records /package's review (step 10): the blobs of the targets, their tests and
+evidence documents, and the reviewer's report read from standard input. /finish reuses it while those files are unchanged.
 """
 import importlib.util
 import json
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -22,6 +25,8 @@ SETTLED = ('Recorded decisions', 'Kept by the sweep', 'Conventions')
 TABLE_RULE = re.compile(r'^\|[\s|:-]+\|?$')
 ROW_REF = re.compile(r'\brows?\s+(\d+(?:\s*(?:,|and|/|–|-)\s*\d+)*)')
 PREFIX_REF = re.compile(r'(?<![\w.])_(\d{2})(?!\d)|\b(\d{2})-[a-z]')  # `_03` modules, `21-lichao` stems
+CORE_FULL = re.compile(r'01-Core/\d+-(?!\w*mini\.hpp)[\w-]+\.hpp')  # 01-principles.md, Profiles
+UNDECIDED = re.compile(r'\b(not tried|untried|unmeasured|not measured|never measured|not re-?measured|deferred|until a benchmark|to be measured)\b', re.I)
 MARKER = re.compile(r'(#|//|<!--|^\s*([-*]\s*)?)\s*(TODO|FIXME|XXX)\b')
 
 
@@ -97,8 +102,51 @@ def evidence_doc(target_path):
     return f'{folder}/Docs/{stem}.md'
 
 
+def review_paths(root, key, pkg, scope, batches):
+    """The files a package review covers: targets, their tests and evidence documents."""
+    targets = [t for b in scope for t in batches[b]['targets'] + batches[b].get('support_targets', [])]
+    docs = {evidence_doc(t) for t in targets} | (set() if key in batches else set(pkg['evidence']))
+    tests = {x for t in targets if re.fullmatch(r'\d\d-[^/]+/[^/]+', t) for x in plan.tests_for(root, t)}
+    return sorted(f for f in {*targets, *docs, *tests} if (root / f).is_file())
+
+
+def blobs(root, paths):
+    return dict(zip(paths, git('hash-object', '--', *paths, cwd=root).split())) if paths else {}
+
+
+COMPARISON = re.compile(r'Comparison: (\d{4}-\d\d-\d\d), rig (.+?) ([0-9a-f]{12}), base [0-9a-f]{12}, headers (.*?), ((?:\S+ [\d.]+, )+)CPU')
+
+
+def comparison(doc, root):
+    """The newest `Comparison:` line of 06-compare.py in an evidence document against the current rig, Core headers and
+    compilers (05-testing.md, Stale evidence): one line saying it is current, or what changed."""
+    name = doc.relative_to(root)
+    found = COMPARISON.findall(doc.read_text(errors='replace')) if doc.is_file() else []
+    if not found:
+        return f'{name}: no Comparison line (96-Local Testing/06-compare.py)'
+    date, rig, rig_blob, headers, compilers = found[-1]
+    blob = lambda path: git('hash-object', '--', str(path), cwd=root)[:12] if path.is_file() else 'missing'
+    changed = [f'{label} changed' for label, path, old in [('the rig', root / rig, rig_blob), *((h, root / '01-Core' / h, b) for h, b in re.findall(r'(\S+) ([0-9a-f]{12})', headers))]
+               if blob(path) != old]
+    for exe, version in re.findall(r'(\S+) ([\d.]+), ', compilers):
+        now = subprocess.run([exe, '-dumpfullversion'], capture_output=True, text=True).stdout.strip() if shutil.which(exe) else 'not installed'
+        if now != version:
+            changed.append(f'{exe} {version} is now {now}')
+    return f'{name}: comparison of {date} ' + ('is current' if not changed else 'is STALE, rerun it: ' + ', '.join(changed))
+
+
 def main():
     root = Path(git('rev-parse', '--show-toplevel', cwd='.'))
+    if sys.argv[1:2] == ['--reviewed']:
+        key, pkg, scope, _ = target(root, sys.argv[2] if len(sys.argv) > 2 else '')
+        if not pkg:
+            raise SystemExit('gaps.py --reviewed: no package or batch id')
+        files = blobs(root, review_paths(root, key, pkg, scope, plan_data(root)[1]))
+        record = root / '.claude/finish' / f'{key}.review.json'
+        record.parent.mkdir(parents=True, exist_ok=True)
+        record.write_text(json.dumps({'files': files, 'report': '' if sys.stdin.isatty() else sys.stdin.read().strip()}, indent=1))
+        print(f'review of {key} recorded: {len(files)} files, {record.relative_to(root)}')
+        return
     worktrees = [l.split(' ', 1)[1] for l in git('worktree', 'list', '--porcelain', cwd=root).splitlines() if l.startswith('worktree ')]
     branch = git('branch', '--show-current', cwd=root)
     packages, batches = plan_data(root)
@@ -142,6 +190,20 @@ def main():
         section('Recorded limits (evidence headings)', [hit for d in docs for hit in grep(d, LIMIT_HEADING, root)])
         section('Agent-made omissions and deferrals (notes lines without a user decision)',
                 [hit for f in notes for hit in grep(f, DEFERRAL, root, lambda line: mentions(line, pkg['id']) and not DECIDED.search(line))])
+        record = root / '.claude/finish' / f'{key}.review.json'
+        if record.is_file():  # /finish step 2: one full review per package (user decision 2026-11-17)
+            data, now = json.loads(record.read_text()), blobs(root, review_paths(root, key, pkg, scope, batches))
+            moved = sorted(f for f in {*now, *data['files']} if now.get(f) != data['files'].get(f))
+            section("Review record (/package step 10)", ['changed since the review; the step 2 audit covers these files:', *moved] if moved
+                    else ['covers the current files: step 2 reuses this report and starts no audit', *data['report'].splitlines()], 200)
+        else:
+            section("Review record (/package step 10)", ['none: step 2 runs the full audit'])
+        full = sorted({root / evidence_doc(t) for t in targets if CORE_FULL.fullmatch(t)})
+        if full:  # 05-testing.md, Benchmarks: each is measured in this run or closed with its argument
+            section('Undecided optimization candidates (Core full evidence)',
+                    [hit for d in full for hit in grep(d, UNDECIDED, root)] + [f'{d.relative_to(root)}: no "### Optimization candidates" table'
+                     for d in full if d.is_file() and '\n### Optimization candidates\n' not in d.read_text(errors='replace')])
+            section('Comparison record (05-testing.md, Stale evidence)', [comparison(d, root) for d in full])
         section(f'Packages filed by {pkg["id"]}', [f'{p["id"]} ({p["status"]}): {p["label"]}' for p in packages
                                                    if re.search(rf'Filed by {pkg["id"]}\b', p['note'] or '')])
         sweeps = root / '00-Guidelines/23-Sweep Ledgers'

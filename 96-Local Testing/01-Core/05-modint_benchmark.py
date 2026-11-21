@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import platform
 import shlex
+import statistics
 import subprocess
 import tempfile
 import sys
@@ -22,12 +23,14 @@ def main():
     parser.add_argument("--seed", type=int, default=20260927)
     parser.add_argument("--repetitions", type=int, default=5)
     parser.add_argument("--milliseconds", type=float, default=1)
+    parser.add_argument("--passes", type=int, default=1,
+                        help="runs of each build; a measurement is the median of its values over the runs")
     parser.add_argument("--config", choices=("all", "scalar", "avx2"), default="all")
     parser.add_argument("--suite", choices=("all", "candidates", "actual", "construction", "inverses"), default="all")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    if not 0 <= args.seed < 2**64 or args.repetitions < 1 or args.milliseconds <= 0:
-        parser.error("uint64 seed and positive repetitions/milliseconds required")
+    if not 0 <= args.seed < 2**64 or args.repetitions < 1 or args.milliseconds <= 0 or args.passes < 1:
+        parser.error("uint64 seed and positive repetitions/milliseconds/passes required")
     cxx = shlex.split(os.getenv("CXX", "g++"))
     source = Path(__file__).resolve().with_suffix(".cpp")
     info = Path("/proc/cpuinfo").read_text()
@@ -41,8 +44,8 @@ def main():
 
     emit({"type": "environment", "cpu": cpu, "platform": platform.platform(), "python": platform.python_version(),
           "compiler": subprocess.run(cxx + ["--version"], capture_output=True, text=True, check=True).stdout.splitlines()[0],
-          "seed": args.seed, "repetitions": args.repetitions, "target_ms": args.milliseconds, "suite": args.suite,
-          "warmup": "double iterations until target duration; then median of repetitions",
+          "seed": args.seed, "repetitions": args.repetitions, "target_ms": args.milliseconds, "passes": args.passes, "suite": args.suite,
+          "warmup": "double iterations until target duration; then median of repetitions; over several passes, the median of the passes' medians",
           "bases": "power workloads run 4096 distinct random bases per pass, so branch predictors cannot learn the REDC correction pattern",
           "reference": "unsigned double-width multiplication/remainder; fixed=true exposes compile-time modulus, fixed=false hides it from propagation",
           "setup": "contexts excluded except montgomery-setup; fixed setup allows constant folding; dynamic setup hides modulus from propagation; ordinary Montgomery candidates include conversions; actual type setMod(prm=0) excluded, powers run the type's own dispatch on 4096 distinct bases; construction compares the type's constructor from int/lng with the former 128-bit signed remainder on the same inputs",
@@ -67,11 +70,16 @@ def main():
             command = cxx + options + [str(source), "-o", str(binary)]
             subprocess.run(command, check=True, timeout=180)
             run = [str(binary), str(args.seed), str(args.repetitions), str(args.milliseconds), args.suite]
-            result = subprocess.run(run, capture_output=True, text=True, check=True, timeout=240)
+            results = [subprocess.run(run, capture_output=True, text=True, check=True, timeout=240) for _ in range(args.passes)]
+            verification = {result.stderr.strip() for result in results}
+            if len(verification) != 1:
+                raise SystemExit(f"{config}: passes disagree on the output checks: {sorted(verification)}")
             emit({"type": "configuration", "config": config, "flags": options,
-                  "compile_command": shlex.join(command), "run_command": shlex.join(run), "verification": result.stderr.strip()})
-            for line in result.stdout.splitlines():
-                emit({"type": "measurement", "config": config, **json.loads(line)})
+                  "compile_command": shlex.join(command), "run_command": shlex.join(run), "verification": verification.pop()})
+            for cells in zip(*([json.loads(line) for line in result.stdout.splitlines()] for result in results), strict=True):
+                if any({**cell, "ns": 0} != {**cells[0], "ns": 0} for cell in cells):
+                    raise SystemExit(f"{config}: passes disagree on a workload: {cells}")
+                emit({"type": "measurement", "config": config, **cells[0], "ns": statistics.median(cell["ns"] for cell in cells)})
     if args.output:
         args.output.write_text("".join(json.dumps(record) + "\n" for record in records))
 

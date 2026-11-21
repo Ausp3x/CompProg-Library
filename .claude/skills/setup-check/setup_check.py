@@ -40,6 +40,9 @@ MUTATION = '96-Local Testing/04-mutation.py'  # pins and installs mewt (AGPL-3.0
 TOOLS = [  # need: None when required, else the optional feature; exes: alternatives, the first found is used
     Tool('GCC 16', None, ('g++',), (16,), 'g++-16 && mkdir -p ~/.local/bin && ln -sf /usr/bin/g++-16 ~/.local/bin/g++', 'gcc'),
     Tool('GCC 14', None, ('g++-14',), (14,), 'g++-14', 'AUR: gcc14 gcc14-libs'),
+    Tool('GCC 15', 'speed comparison', ('g++-15',), (15,), 'g++-15', 'gcc15'),  # the deciding compiler of 06-compare.py (05-testing.md, Benchmarks)
+    Tool('taskset', 'speed comparison', ('taskset',), None, 'util-linux', 'util-linux'),
+    Tool('llvm-mca', 'speed comparison', ('llvm-mca',), None, 'llvm', 'llvm'),  # cycle-only wins on the judges' CPUs (05-testing.md, Other CPUs)
     Tool('Python', None, ('python3',), (3, 11), 'python3', 'python'),  # the scripts' floor: tomllib (07-judge.py)
     Tool('git', None, ('git',), None, 'git', 'git'),
     Tool('ripgrep', None, ('rg',), None, 'ripgrep', 'ripgrep'),

@@ -19,6 +19,7 @@ python3 '96-Local Testing/03-consistency.py'                      # records, lin
 python3 '96-Local Testing/03-consistency.py' --braces <files>     # brace rule and comment cap for arbitrary files
 python3 '96-Local Testing/04-mutation.py' run <header>            # mutation campaign (05-testing.md, Mutation testing); check <header>... compares records, install fetches mewt
 python3 '96-Local Testing/05-extraction.py' --mode full           # every operation extracted alone and every C++ tester on its extracted build (05-testing.md, Extraction)
+python3 '96-Local Testing/06-compare.py' run '96-Local Testing/01-Core/<NN-name>_compare.cpp' --gate   # a header against its previous version (Docs/00-compare.md)
 python3 '96-Local Testing/_00_memory_cap.py' [--mb N] -- <cmd>    # run any other program memory-capped
 python3 '96-Local Testing/00-Tools/01-contest_tester.py' --mode full
 python3 '96-Local Testing/00-Tools/02-online_tester.py'
@@ -36,6 +37,7 @@ python3 '96-Local Testing/00-Tools/13-grab_tester.py' --mode full     # 10-grab.
 python3 '96-Local Testing/00-Tools/15-harness_tester.py' --mode full  # the model guard harness.py, its status line warnings and launch.py
 python3 '96-Local Testing/00-Tools/16-submit_tester.py' --mode full   # 97-Online Testing/04-submit.py against a fake judge
 python3 '96-Local Testing/00-Tools/17-reap_tester.py' --mode full     # /reap's reap.py on synthetic tables and fake sessions
+python3 '96-Local Testing/00-Tools/18-compare_tester.py' --mode full  # 06-compare.py and 00-perf.hpp
 python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Checker fetch, reproduce and compare (/speed-sweep)
 ```
 
@@ -58,8 +60,9 @@ python3 '96-Local Testing/00-Tools/07-judge.py' --help             # Library Che
 | `02-integration.py` | Standalone, aggregate, multi-translation-unit, ISA and workspace builds as parallel jobs, through `ccache` when installed |
 | `03-consistency.py` | Repository record and style validator; imports `plan.py check` |
 | `04-mutation.py` | Mutation campaigns with the pinned mewt in scratch shards, record checks for `/finish` and `/merge-pr`, mewt install ([00-mutation.md](Docs/00-mutation.md)) |
-| `Docs/` | Support-pass evidence ([00-memory-safety.md](Docs/00-memory-safety.md), P231; [00-parallel.md](Docs/00-parallel.md), P247; [00-judge.md](Docs/00-judge.md), the judge tool; [00-mutation.md](Docs/00-mutation.md), P251 and P252) |
-| `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, the notebook, the header dependency graph, the parallel runner, the documentation site, the judge tool, the plan's roles and claims, `/merge-pr` and `04-mutation.py` |
+| `06-compare.py`, `00-perf.hpp` | A/B speed comparison of a Core full header against its previous version on the deciding and gate compilers, from a `<NN-name>_compare.cpp` rig with hardware counters ([00-compare.md](Docs/00-compare.md)) |
+| `Docs/` | Support-pass evidence ([00-memory-safety.md](Docs/00-memory-safety.md), P231; [00-parallel.md](Docs/00-parallel.md), P247; [00-judge.md](Docs/00-judge.md), the judge tool; [00-mutation.md](Docs/00-mutation.md), P251 and P252; [00-compare.md](Docs/00-compare.md), P005) |
+| `00-Tools/` | Regression fixtures for the contest tools, the online expander and workspace generator, the notebook, the header dependency graph, the parallel runner, the documentation site, the judge tool, the plan's roles and claims, `/merge-pr`, `04-mutation.py` and `06-compare.py` |
 | `00-Tools/07-judge.py` | Library Checker tool for `/speed-sweep`: fastest distinct submissions, sources and per-case times, test regeneration and judge-flag reproduction, per-case comparison; cache `.judge-cache/` (git-ignored) |
 | `01-Core/` … `07-Strings/` | Per-header testers, helper `.cpp` files and benchmark drivers |
 

@@ -23,7 +23,9 @@
 .claude/hooks/.state/
 96-Local Testing/**/*_benchmark.json
 96-Local Testing/**/*_benchmark.jsonl
+96-Local Testing/**/*_compare.json
 /99-Workspace/*
+/95-Resources/00-Inbox/
 !/99-Workspace/template.cpp
 96-Local Testing/.run-stats.json
 96-Local Testing/.run-stats.json.*

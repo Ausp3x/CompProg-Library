@@ -15,6 +15,21 @@
 | Web searches for speed archives and write-ups of the eleven problems (cp-algorithms-aux verify files, AZZRCN `precious-speed`, Codeforces blogs 101655, 142063, 78489 and 22448) | — | searched; `precious-speed` holds only the `big_integer` problems, and the Codeforces results were read as search summaries, not fetched | — |
 | AtCoder Library Practice Contest standings, SPOJ MUL/VFMUL, Kattis fastest lists, GMP timings | — | not fetched: none bears on a problem in scope | — |
 
+## Fetched 2026-11-16 (P005 speed stage sweep)
+
+`/package C03` completeness sweep for the row of `05-modint.hpp`: no missing operation; aliases in [05-modint.md](05-modint.md#aliases), the two unmeasured backend candidates in [00-notes.md](00-notes.md#reduction-and-modular-types).
+
+| Source | URL | Fetched | Used for |
+|---|---|---|---|
+| ACL modint document | https://atcoder.github.io/ac-library/production/document_en/modint.html | yes | API baseline (`static_modint`, `dynamic_modint`, `set_mod`, `raw`, `val`, `pow`, `inv`) |
+| hitonanode `modint.hpp`, maspypy `mod/modint.hpp`, yosupo `math/modint.hpp` and `math/modint61.hpp`, KACTL `ModularArithmetic.h`, Benq `ModInt.h` | https://raw.githubusercontent.com/hitonanode/cplib-cpp/master/modint.hpp, https://raw.githubusercontent.com/maspypy/library/main/mod/modint.hpp, https://raw.githubusercontent.com/yosupo06/Algorithm/master/src/math/modint.hpp, https://raw.githubusercontent.com/yosupo06/Algorithm/master/src/math/modint61.hpp, https://raw.githubusercontent.com/kth-competitive-programming/kactl/main/content/number-theory/ModularArithmetic.h, https://raw.githubusercontent.com/bqi343/cp-notebook/master/Implementations/content/number-theory%20(11.1)/Modular%20Arithmetic/ModInt.h | yes | operation names against the row (`get_mod`, `inverse`, `invert`, `_setval`, `set_v`, `operator<`, `operator^`, `re`); nothing missing |
+| ecnerwala `num/modnum.hpp` | https://raw.githubusercontent.com/ecnerwala/cp-book/master/src/num/modnum.hpp | yes | `mod_goldilocks` and `reduce_u128_raw` (candidate, unmeasured), `from_reduced`, `neg`, `MOD_READER`; `mod_constraint operator&` belongs to Mathematics |
+| Nyaan library index, `math-fast/inv.hpp`, `math-fast/inv-o1.hpp` | https://nyaannyaan.github.io/library/, https://nyaannyaan.github.io/library/math-fast/inv.hpp, https://nyaannyaan.github.io/library/math-fast/inv-o1.hpp | yes (index: first 100,000 characters) | `fast_modinv` binary-GCD inverse (candidate, unmeasured); `inv-o1` already rejected by Mathematics |
+| suisen library index, `math/modint_extension.hpp`, `math/inv_mods.hpp` | https://suisen-cp.github.io/cp-library-cpp/, https://suisen-cp.github.io/cp-library-cpp/library/math/modint_extension.hpp, https://suisen-cp.github.io/cp-library-cpp/library/math/inv_mods.hpp | yes (index: first 100,000 characters) | free `pow`, `inv`, `safe_sqrt`, `sqrt`, `get_invs` as aliases; `inv_mods` belongs to Mathematics `inverseTable` |
+| ei1333 library index, cp-algorithms index, OI Wiki inverse page | https://ei1333.github.io/library/, https://cp-algorithms.com/, https://oi-wiki.org/math/number-theory/inverse/ | yes (ei1333: first 100,000 characters) | no operation outside the row; the prefix-product inverse is `batchInv`, the linear table Mathematics' |
+| ecnerwala and yosupo source trees | https://github.com/ecnerwala/cp-book/tree/master/src, https://github.com/yosupo06/Algorithm/tree/master/src/math | yes | file locations |
+| noshi91 and koosaga pages | — | not fetched | — |
+
 ## Fetched 2026-10-25 (P018 Schönhage–Strassen)
 
 User decision of 2026-10-25 to add the Fermat-ring product as a backend of `07-infint.hpp` ([07-infint.md](07-infint.md), kernels and Limits).

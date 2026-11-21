@@ -30,6 +30,8 @@ Any other slower algorithm, in any profile, stays out unless the maintainer, or 
 
 A Barrett or Montgomery reduction written outside Core needs a recorded end-to-end benchmark showing at least 20% lower runtime on a representative workload and no meaningful common-case regression. A smaller gain needs a written reason such as a judge limit. Core's own reducers reach contest code only as template arguments the caller passes (`03-cpp.md`, Headers).
 
+A Core full header leaves no optimization undecided (user decision 2026-11-17): every candidate named for one of its operations, by anyone and at any stage, is adopted, rejected or handed to its owning package on recorded evidence before its package is verified (`05-testing.md`, Benchmarks). `Not tried`, `unmeasured` and `deferred` are not verdicts. `01-template.hpp` and `02-debug.hpp` are exempt from this and from the sweep: they are boilerplate, not algorithms, held to correctness and ordinary efficiency (user decision 2026-11-17).
+
 Single-threaded contest execution is the baseline. Static caches and dynamic-modulus state are allowed when their lifetime and invalidation rules are documented.
 
 ## Evidence
@@ -37,6 +39,7 @@ Single-threaded contest execution is the baseline. Static caches and dynamic-mod
 - A status claim is backed by evidence: verified means every operation in the inventory row has a test with an independent oracle and the recorded commands pass. Existing code, old tests or one accepted judge submission prove nothing on their own. A package with a missing operation is never `verified`: its row is `partial` and the package `in-progress` with a note.
 - Record domains, omissions, provenance, test commands with results, and benchmark conditions. Never state that a source was read, a test was run or a submission was accepted when it was not.
 - Finite tests prove nothing about untested inputs. Pair them with a correctness argument.
+- A source the work needs and cannot open (a paper, PDF, page or data file whose download fails, is blocked or sits behind a paywall) is never skipped silently and never replaced by memory. Ask the user through AskUserQuestion when it happens, with its title and URL, to place it in `95-Resources/00-Inbox/` (git-ignored, created on demand), and continue meanwhile with work that does not depend on it; a subagent reports it and the session that started it asks. If the user declines, the evidence says `not fetched` beside each claim that cites it, and no claim rests on it alone (user decision 2026-11-18).
 
 ## Scope discipline
 

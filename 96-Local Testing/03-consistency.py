@@ -184,9 +184,29 @@ def type_header(path):
     row = next((cells(l) for l in index.read_text().splitlines() if l.startswith(f'| `{path.name}`')), None) if index.exists() else None
     return bool(row) and bool(re.match(r'[A-Z]', row[-2]))
 
+# Macros a header's conditional may test: compiler- and platform-defined names and the two the judges and the
+# local build define. SWITCHES lists the recorded test-build hooks; a measurement switch is never one of them.
+PLATFORM_MACRO = re.compile(r'__\w+|_WIN32|_WIN64|_MSC_VER|LOCAL|NDEBUG|ONLINE_JUDGE')
+SWITCHES = {('01-Core/07-infint.hpp', 'INFINT_SCRATCH_HEAP')}
+
+def preprocessor_violations(path):
+    """03-cpp.md (Toolchain, Headers; user decision 2026-11-18): a conditional tests only compiler and platform macros, so no
+    measurement switch lands; `long` appears only in `long long` and `long double`. Comments and literals are not code."""
+    rel = str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+    out = []
+    for i, line in enumerate(path.read_text().splitlines(), 1):
+        code = re.sub(r'"(\\.|[^"\\])*"|<[\w./]+>', '""', re.sub(r'//.*', '', line))
+        if m := re.match(r'\s*#\s*(?:if|ifdef|ifndef|elif)\b(.*)', code):
+            bad = sorted(n for n in set(re.findall(r'[A-Za-z_]\w*', m[1])) - {'defined'} if not PLATFORM_MACRO.fullmatch(n) and (rel, n) not in SWITCHES)
+            if bad:
+                out.append(f'Preprocessor switch: {rel}:{i}: conditional on {", ".join(bad)}; a header tests only compiler and platform macros')
+        elif re.search(r'(?<!\blong\s)\blong\b(?!\s+(?:long|double)\b)', code):
+            out.append(f'Integer spelling: {rel}:{i}: `long` is 32-bit on Codeforces; use lng, ulng, lll or ulll')
+    return out
+
 if len(sys.argv) > 1 and sys.argv[1] == '--braces':
-    found = [v for arg in sys.argv[2:] for f in (Path(arg).resolve(),) for v in brace_violations(f) + comment_violations(f) + (free_function_violations(f) if type_header(f) else [])]
-    print('\n'.join(found) if found else 'no closing-brace, comment-cap or free-function violations')
+    found = [v for arg in sys.argv[2:] for f in (Path(arg).resolve(),) for v in brace_violations(f) + comment_violations(f) + preprocessor_violations(f) + (free_function_violations(f) if type_header(f) else [])]
+    print('\n'.join(found) if found else 'no closing-brace, comment-cap, preprocessor, integer-spelling or free-function violations')
     raise SystemExit(bool(found))
 
 inventories = {}
@@ -357,6 +377,7 @@ for target in inventories:
     if re.match(r'0[1-7]-', target) and target.endswith('.hpp') and target not in extraction.grab.EXCLUDED and (ROOT / target).is_file():
         for k, line in enumerate((ROOT / target).read_text().splitlines(), 1):
             require(not re.match(r'\s*#\s*(define|undef)\b', line), f'#define or #undef in a library header (03-cpp.md, Headers): {target}:{k}')
+        errors.extend(preprocessor_violations(ROOT / target))
 
 coverage = read_json('00-Guidelines/Ledgers/library-checker-coverage.json')
 require(len(coverage['records']) == coverage['problem_families'], 'Judge family count')
@@ -465,8 +486,9 @@ for folder in [*counts, '96-Local Testing', '97-Online Testing/src', '99-Workspa
     for p in (ROOT / folder).rglob('*'):
         if not p.is_file() or '97-Legacy' in p.parts or UNSCANNED & set(p.parts) or p.suffix not in ('.hpp', '.cpp'):
             continue
+        search = [p.parent] + ([ROOT / '01-Core', ROOT / '96-Local Testing'] if p.name.endswith('_compare.cpp') else [])  # a rig of 06-compare.py: each side's headers come first on its include path
         for inc, _ in deps.includes(p.read_text()):
-            require((p.parent / inc).is_file(), 'Unresolved include: ' + str(p.relative_to(ROOT)) + ': ' + inc)
+            require(any((d / inc).is_file() for d in search), 'Unresolved include: ' + str(p.relative_to(ROOT)) + ': ' + inc)
 
 core_headers = {p.name for p in (ROOT / '01-Core').glob('*.hpp') if p.name[:2].isdigit() and int(p.name[:2]) < 98}
 all_text = (ROOT / '01-Core/99-all.hpp').read_text()
@@ -520,6 +542,13 @@ setup = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(setup)
 for path, name in setup.undeclared(ROOT, ROOT / '96-Local Testing/.setup-lint-cache.json'):  # git-ignored; parses changed scripts only
     require(False, f'Undeclared tool {name} in {path}: declare it in setup_check.py TOOLS')
+# Core full optimization candidates (05-testing.md, Benchmarks): a table that exists is held complete; a verified header
+# without one is listed as pending (user decision 2026-11-17).
+sweep_pending, sweep_faults, sweep_named = plan.sweeps(ROOT)
+errors.extend(sweep_faults)
+for target, named in sweep_named.items():
+    lacking = sorted(operation_names(inventories[target][-2]) - named)
+    require(not lacking, f'Optimization candidates table lacks operations of its row (05-testing.md, Benchmarks): {target}: ' + ', '.join(lacking))
 # LICENSE is the CC0-1.0 legal code verbatim (creativecommons.org legalcode.txt, identical in SPDX).
 require(hashlib.sha256((ROOT / 'LICENSE').read_bytes()).hexdigest() == 'a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499',
         'LICENSE differs from the CC0-1.0 legal code')
@@ -530,5 +559,5 @@ for path in tracked:
     if path and not path.startswith(('OLD/', '95-Resources/')) and p.is_file() and b'\0' not in (data := p.read_bytes()):
         require(not re.search(rb'/home/\w[\w.-]*/', data), 'Absolute home path in ' + path)
 
-print(json.dumps({'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'absent_ignored_archive': len(absent_archive), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'mini_first_pending': mini_first_pending, 'name_collisions': name_collisions, 'unsourced_rows': unsourced_rows, 'errors': errors}, indent=2))
+print(json.dumps({'optimization_sweep_pending': sweep_pending, 'targets': counts, 'total_targets': len(inventories), 'batches': len(batches) - len(support), 'packages': len(package_map['packages']), 'support_passes': len(support), 'package_status': dict(collections.Counter(p['status'] for p in package_map['packages'])), 'judge_families': len(coverage['records']), 'archive_files': len(archive['files']), 'absent_ignored_archive': len(absent_archive), 'monolith_entries': len(monolith['entries']), 'markdown_files': markdown_count, 'local_links': links, 'brace_checked_files': brace_checked, 'mini_first_pending': mini_first_pending, 'name_collisions': name_collisions, 'unsourced_rows': unsourced_rows, 'errors': errors}, indent=2))
 raise SystemExit(bool(errors))

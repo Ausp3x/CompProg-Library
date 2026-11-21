@@ -11,7 +11,7 @@ struct Barrett32 {
     ulng mu;
     bool mask;
 
-    explicit Barrett32(uint m = 1) : mod(m), mu(0), mask((m & (m - 1)) == 0) {
+    explicit constexpr Barrett32(uint m = 1) : mod(m), mu(0), mask((m & (m - 1)) == 0) {
         assert(m);
         if (!mask) { mu = ~ulng(0) / m; }}
 
@@ -85,7 +85,7 @@ struct Barrett64 {
     ulll mu;
     bool mask;
 
-    explicit Barrett64(ulng m = 1) : mod(m), mu(0), mask((m & (m - 1)) == 0) {
+    explicit constexpr Barrett64(ulng m = 1) : mod(m), mu(0), mask((m & (m - 1)) == 0) {
         assert(m);
         if (!mask && m != MERSENNE61) { mu = ~ulll(0) / m; }}
 

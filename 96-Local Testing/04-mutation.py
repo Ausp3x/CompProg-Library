@@ -3,8 +3,8 @@
 
   run HEADER        copy the working tree into scratch shards (mewt mutates its target in place), generate the header's
                     mutants and select the sample: the lines changed since the blob the evidence record names (every line
-                    without a record, or with --whole), high and medium severity only on a Core full header's whole-file
-                    campaign, then a seeded uniform --sample of a whole-file campaign. Each stage tests the sampled
+                    without a record, or with --whole); a whole-file campaign tests a seeded --sample of them, half of
+                    high severity, three tenths medium and the rest low (stratified()). Each stage tests the sampled
                     mutants not yet caught: tester quick mode on the optimized build, then full mode on the optimized
                     build, then full mode on the builds not yet run in full (quick then full when the tester cannot select a build). A test
                     gets 3x its stage baseline's time (at least 60 s) and runs in its own memory-capped scope (3x the
@@ -64,7 +64,6 @@ MEWT_SOURCE_URL = f'https://github.com/trailofbits/mewt/releases/download/v{MEWT
 MEWT_SOURCE_SHA256 = 'a18b9c7d56e65f426c3d0013a51199ed42eced6d745de537b01825ee9400e3d7'
 RUST_FLOOR = (1, 85)  # mewt 4.0.0 is edition 2024
 HEADER = re.compile(r'0[1-7]-[^/]+/(?!9[89]-)\d{2}-[^/]+\.hpp')  # library headers, aggregates excluded
-CORE_FULL = re.compile(r'01-Core/\d{2}-(?![^/]*mini)[^/]*\.hpp')
 SKIPPED = ('OLD/', '95-Resources/')  # never included by a tester; the rest of the working tree is copied
 RECORD = re.compile(r'blob `([0-9a-f]{40})`')
 CAUGHT = ('TestFail', 'Timeout')
@@ -379,6 +378,21 @@ def severity_map(shard):
     return {m[1]: m[2].lower() for m in re.finditer(r'\[(\w+)\].*\(Severity: (\w+)\)', cpp)}
 
 
+def stratified(classes, sample, seed):
+    """{severity: sorted ids}, at most `sample` ids of {severity: ids} in all: half high, three tenths medium, the rest low,
+    each class drawn uniformly with the seed. A share a class cannot fill passes to the next class, and what the last one
+    leaves goes back to the first classes that hold more."""
+    rng, take, spare = random.Random(seed), {}, 0
+    share = dict(zip(SEVERITIES, (sample // 2, 3 * sample // 10, sample - sample // 2 - 3 * sample // 10)))
+    for s in SEVERITIES:
+        take[s] = min(len(classes[s]), share[s] + spare)
+        spare += share[s] - take[s]
+    for s in SEVERITIES:
+        more = min(len(classes[s]) - take[s], spare)
+        take[s], spare = take[s] + more, spare - more
+    return {s: sorted(rng.sample(sorted(classes[s]), take[s])) for s in SEVERITIES}
+
+
 def scope(header, data, now, whole):
     """(base blob or None, changed lines or None): lines changed since the recorded blob, None for the whole file."""
     found = record(ROOT, header)
@@ -420,6 +434,7 @@ def campaign(a):
         print(f"SKIP mutation {header}: {found}, needs {MEWT_VERSION}; python3 '96-Local Testing/04-mutation.py' install")
         return 0
     os.environ['CP_TEST_PREFLIGHT'] = '0'  # a campaign is no tester: no quick pre-flight rerun of it under CP_TEST_MODE
+    os.environ['CP_TEST_FAIL_FAST'] = '1'  # a Core tester makes each build when first run and stops at the first failure (user decision 2026-11-17)
     _00_memory_cap.ensure(force=True)  # the wrapper and mewt; every test runs in its own capped scope
     for sig in (signal.SIGTERM, signal.SIGHUP):  # a killed background run stops its shards as Ctrl-C does
         if signal.getsignal(sig) is not signal.SIG_IGN:
@@ -437,9 +452,8 @@ def campaign(a):
         if base == now:
             print(f'PASS {header}: the record already names blob {now[:12]}; --whole reruns the whole file')
             return 0
-    severity = a.severity or ('high,medium' if base is None and CORE_FULL.fullmatch(header) else None)
     sample = a.sample if base is None else 0
-    spec = dict(severity=severity, mutations=a.mutations, base=base, seed=a.seed, sample=sample)
+    spec = dict(severity=a.severity, mutations=a.mutations, base=base, seed=a.seed, sample=sample)
     work = work or Path(tempfile.mkdtemp(prefix=f'cp-mutation-{stem}-'))
     meta_path = work / 'campaign.json'
     if work.is_dir() and any(f.name != '.lock' for f in work.iterdir()) and not meta_path.is_file():
@@ -489,16 +503,22 @@ def campaign(a):
         mewt(shards[0], 'mutate')
         listing = lambda *f: [(int(m[1]), range(int(m[2]), int(m[3] or m[2]) + 1)) for m in re.finditer(
             r'^\s*\[\w+ (\d+)\] Lines? (\d+)(?:-(\d+))?:', mewt(shards[0], 'print', 'mutants', *f), re.M)]
-        pick = (['--severity', severity] if severity else []) + (['--mutation-types', a.mutations] if a.mutations else [])
+        types = ['--mutation-types', a.mutations] if a.mutations else []
         keep = set(lines) if lines is not None else None
         generated = len(mewt(shards[0], 'print', 'mutants', '--format', 'ids').split())
         found = listing()
         if len(found) != generated:
             raise Failure(f'parsed {len(found)} of the {generated} mutants mewt lists: the `print mutants` format changed')
-        chosen = sorted(i for i, span in listing(*pick) if keep is None or keep.intersection(span))
+        classes = {s: [i for i, span in listing('--severity', s, *types) if keep is None or keep.intersection(span)]
+                   if not a.severity or s in a.severity.split(',') else [] for s in SEVERITIES}
+        chosen = sorted(i for ids in classes.values() for i in ids)
+        if not types and not a.severity and keep is None and chosen != sorted(i for i, _ in found):
+            raise Failure(f'the severities {", ".join(SEVERITIES)} hold {len(chosen)} of the {generated} mutants: mewt changed its classes')
+        strata = stratified(classes, sample, a.seed) if 0 < sample < len(chosen) else None
         meta = dict(header=header, blob=now, spec=spec, lines=None if keep is None else len(keep), seed=a.seed, jobs=len(shards),
                     generated=generated, candidates=len(chosen), stages={}, unconfirmed={},
-                    selected=sorted(random.Random(a.seed).sample(chosen, sample)) if 0 < sample < len(chosen) else chosen)
+                    strata=strata and {s: len(ids) for s, ids in strata.items()},
+                    selected=sorted(i for ids in strata.values() for i in ids) if strata else chosen)
         for s in shards[1:]:
             shutil.copytree(shards[0], s, symlinks=True)
         meta_path.write_text(json.dumps(meta) + '\n')
@@ -568,7 +588,8 @@ def report(meta, seen, stopped, work):
     other = {k: v for k, v in counts.items() if k not in (*CAUGHT, 'Uncaught')}
     spec = meta['spec']
     sample = ', '.join(x for x in (spec['severity'] and f'severity {spec["severity"]}', spec['mutations'] and f'types {spec["mutations"]}',
-                                   len(meta['selected']) < meta['candidates'] and f'uniform sample of {meta["candidates"]}') if x)
+                                   meta.get('strata') and f'sample of {meta["candidates"]}: '
+                                   + ', '.join(f'{n} {s}' for s, n in meta['strata'].items())) if x)
     where = 'whole file' if spec['base'] is None else f'{meta["lines"]} lines changed since blob `{spec["base"][:12]}`'
     print(f'{"COMPLETE" if complete else "STOPPED by the budget"}: {len(seen)} of {len(meta["selected"])} sampled mutants tested '
           f'({meta["generated"]} generated), {caught} caught ({timeouts} by timeout), {survived} survived, {untested} untested'
@@ -603,11 +624,11 @@ def main(argv=None):
     r.add_argument('--seed', type=int, default=1, help='tester seed and mutant order')
     r.add_argument('--timeout', type=int, default=0, help='seconds per mutant (default: 3x the stage baseline, at least 60)')
     r.add_argument('--whole', action='store_true', help='every line, not only those changed since the recorded blob')
-    r.add_argument('--severity', help=f'comma-separated subset of {",".join(SEVERITIES)} (default: high,medium on a Core full '
-                   'whole-file campaign, else all)')
+    r.add_argument('--severity', help=f'comma-separated subset of {",".join(SEVERITIES)} (default: all)')
     r.add_argument('--mutations', help='comma-separated mewt mutation slugs (mewt print mutations)')
-    r.add_argument('--sample', type=int, default=500, help='whole-file campaigns test a seeded uniform sample of at most this many '
-                   'of the selected mutants (default 500; 0: all); a diff-scoped campaign tests all')
+    r.add_argument('--sample', type=int, default=250, help='whole-file campaigns test a seeded sample of at most this many of the '
+                   'selected mutants, half high, three tenths medium, the rest low (default 250; 0: all); a diff-scoped '
+                   'campaign tests all')
     r.add_argument('--workdir', help='campaign directory to create or resume (default: a new temporary directory, kept)')
     c = sub.add_parser('check', help='records match the current headers')
     c.add_argument('headers', nargs='*')

@@ -17,7 +17,7 @@ For a family, compare the inventory row against each catalog below, add every pu
 | Strings | LECROQ, RUNS, RINDEX |
 | Performance | ALG, PYPY, saved *Optimizing C++*, *Microarchitecture*, *Instruction tables* |
 
-Saved PDFs are indexed in [95-Resources](../95-Resources/00-index.md). `OLD` and `97-Legacy` are behavioral references, never specifications. `ProgVar.pdf` and `frankenstein.pdf` are excluded by decision.
+Saved PDFs are indexed in [95-Resources](../95-Resources/00-index.md); a source that cannot be opened is asked of the user (`01-principles.md`, Evidence). `OLD` and `97-Legacy` are behavioral references, never specifications. `ProgVar.pdf` and `frankenstein.pdf` are excluded by decision.
 
 ## Source keys
 

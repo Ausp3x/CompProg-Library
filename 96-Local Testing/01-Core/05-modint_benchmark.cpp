@@ -49,9 +49,9 @@ template<class W, class D, W FIXED = 0> W nativePow(W a, ulll e, W m) {
 ulng fold(ulll x) { return ModInt61::canon(Barrett64::fold61(x)); }
 
 constexpr int BASES = 4096; // distinct bases per pass: repeated bases let branch predictors learn the REDC corrections
-const vector<ulll> exponents = {0, 1, 2, 3, 4, 5, 6, 7, 31, 32, 63, 64, 127, 128, 255, 256, 511, 512, 513, 1023, 1024, 1025,
-                               65535, 65536, 65537,
-                               0xffffffff, ulll(~ulng(0)), ulll(1) << 127, ~ulll(0)};
+const vector<ulll> exponents = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 31, 32, 63, 64, 127, 128, 255, 256, 511, 512, 513, 1023, 1024, 1025,
+                                65535, 65536, 65537,
+                                0xffffffff, ulll(~ulng(0)), ulll(1) << 127, ~ulll(0)};
 
 // FIXED=0 deliberately hides the modulus from constant propagation. Every
 // Montgomery candidate returns ordinary residues and includes conversions.

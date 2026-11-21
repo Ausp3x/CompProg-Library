@@ -4,6 +4,8 @@ Offline reading for the library. Open only the relevant reference or chapter; th
 
 Maintenance: prefer author/project downloads, avoid duplicate editions, keep original contents/notices, and record URL, retrieval date, edition and SHA-256 in [99-sources.json](99-sources.json). Files and folders use `NN-descriptive_name`; inside `11-NOI.PH Notes` the number precedes the original title. Check reuse terms before adapting or redistributing material. Agner Fog's PDFs permit local study but prohibit public mirrors. Library implementation rules remain in [the focused guides](../00-Guidelines/00-index.md), including Core-only ISA specialization.
 
+`00-Inbox/` (git-ignored) receives the files a session asks the user for because it could not open them (`00-Guidelines/01-principles.md`, Evidence); the evidence that cites one records its title, URL, SHA-256 and the pages read. A file worth keeping moves into the list below with a manifest entry.
+
 User-provided: [Competitive Programmer's Handbook — Antti Laaksonen](<01-competitive_programmers_handbook-laaksonen.pdf>) and [NOI.PH lecture notes](<11-NOI.PH Notes>) (29 PDFs, the two C++ notes first).
 
 Downloads (15 PDFs); sources are linked beside each, and edition details and checksums are in the manifest.

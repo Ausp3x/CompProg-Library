@@ -33,7 +33,7 @@ import threading
 import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import _00_memory_cap
-from _00_cpp_test_runner import Builder, over_half, timed_run
+from _00_cpp_test_runner import Builder, over_half, ready, timed_run
 
 _00_memory_cap.ensure()
 if hasattr(sys, "set_int_max_str_digits"):
@@ -262,6 +262,7 @@ def build_cases(seed: int, mode: str):
 
 
 def run_protocol(executable: str, label: str, seed: int, mode: str, env: dict[str, str], timeout: int) -> int:
+    ready(executable)
     proc = subprocess.Popen([executable, "--protocol"], cwd="/tmp", env=env, text=True, bufsize=1 << 16,
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     pending: queue.Queue = queue.Queue()

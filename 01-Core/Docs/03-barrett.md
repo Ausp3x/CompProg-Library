@@ -20,7 +20,7 @@ All bulk APIs use pointer/count overloads with an `int n >= 0`; pointers address
 
 ### Barrett32, Barrett64
 
-The fields `mod`, `mu` and `mask` are immutable state. `mu = floor(2^(2w) / mod)` on the reciprocal path and zero on the power-of-two and Mersenne61 paths (`MERSENNE61 = 2305843009213693951`); `mask` flags a power-of-two modulus. `divMod` returns a quotient as wide as the dividend. With `mod = 1` every result is zero, even for exponent zero; for every other modulus `a^0 = 1`, including `a = 0`. Copies and moves are independent; there is no allocation, cache or global state. `Barrett64::highProduct` is the exact high half of a 128 x 128-bit product. `Barrett64::fold61` is the one Mersenne-61 fold: `divMod` applies it twice to an arbitrary dividend, and the modular types' Mersenne paths call it.
+The fields `mod`, `mu` and `mask` are immutable state. Both constructors are `constexpr` (2026-11-16, for P005 with the user's yes: the dynamic modular types of `05-modint.hpp` hold a `constinit` reducer and need no initialization guard); the other members are unchanged. `mu = floor(2^(2w) / mod)` on the reciprocal path and zero on the power-of-two and Mersenne61 paths (`MERSENNE61 = 2305843009213693951`); `mask` flags a power-of-two modulus. `divMod` returns a quotient as wide as the dividend. With `mod = 1` every result is zero, even for exponent zero; for every other modulus `a^0 = 1`, including `a = 0`. Copies and moves are independent; there is no allocation, cache or global state. `Barrett64::highProduct` is the exact high half of a 128 x 128-bit product. `Barrett64::fold61` is the one Mersenne-61 fold: `divMod` applies it twice to an arbitrary dividend, and the modular types' Mersenne paths call it.
 
 ### Barrett32::Multiplier, Barrett64::Multiplier
 
@@ -48,6 +48,7 @@ Harness: [`05-testing.md`](../../00-Guidelines/05-testing.md); the entry uses on
 | Operation | Test | Oracle |
 |---|---|---|
 | Construction, `reduce`, `mul` | `03-barrett_tester.cpp` | Native double-width `%`: all powers of two and neighbors, modulus one, primes/composites/even moduli, full unsigned maxima, Mersenne boundaries, dividend maxima, seeded random and bounded exhaustive small domains |
+| `constexpr` construction | `03-barrett_tester.cpp`, `constants` | `static_assert` on `mod`, `mu` and `mask` against the direct quotient (`~0 / m` for a modulus that is not a power of two) for 998244353, `2^32-5`, `2^64-59`, one, `2^31`, `2^63`, Mersenne61 and the default; a `constinit` `Barrett32` and `Barrett64` then multiply and reduce at run time against native `%` |
 | `highProduct` | `03-barrett_tester.cpp` | Independent bit-by-bit 256-bit shift/add multiplication; carry boundaries and random full-width pairs |
 | `pow`, `Multiplier` construction, value semantics | `03-barrett_tester.cpp` | Independent MSB-first modular exponentiation, zero/max exponents, `0^0`, arbitrary input words, all small fixed-factor pairs, copies/moves and a `Multiplier` outliving its temporary reducer |
 | Bulk `mul` and preconditions | `03-barrett_tester.cpp` | Lengths 0–65, 127/128/129, 255/256/257 and 4095/4096/4097, eight offsets, guard words, alias either/both inputs, fixed in-place products, null empty ranges; 16 assertion death cases (in both checked builds) |
@@ -62,6 +63,8 @@ Quick mode covers every public operation with smaller exhaustive/random corpora.
 ## Commands and results
 
 Latest library-wide runs 2026-11-10 (P274; Intel Core i9-11900H, GNU++20, seed 42, beside the other suites, build cache emptied before each cold run), each PASS unless stated: `python3 '96-Local Testing/01-run.py' --mode full` (GCC 16.2.1): pre-flight quick peak 1085 MB; 6 builds, 32.0 s compiling, 33.4 s running, longest run 14.9 s; MEMORY peak 1052 MB. `CXX=g++-14 python3 '96-Local Testing/01-run.py' --mode full` (GCC 14.4.1): pre-flight quick peak 1082 MB; 6 builds, 43.9 s compiling, 32.8 s running, longest run 13.6 s; MEMORY peak 1036 MB. `python3 '96-Local Testing/01-run.py' --mode quick`: optimized-scalar 22.6 s compile + 0.3 s run, checked-scalar 20.3 s compile + 0.3 s run, optimized-avx2 22.2 s compile + 0.2 s run, checked-avx2 13.0 s compile + 0.3 s run; MEMORY peak 1237 MB. `python3 '96-Local Testing/01-run.py' --mode stress --rounds 1` PASS: pre-flight quick peak 48 MB; 6 builds, 14.8 s compiling, 29.3 s running, longest run 12.3 s; MEMORY peak 1044 MB. Dated rows below stay those commands' latest results.
+
+Constexpr constructors, 2026-11-16 (P005 speed stage; the word `constexpr` added to the two constructors, the `constants` check added to the tester; GCC 16.2.1 and GCC 14.4.1, Intel Core i9-11900H, experiment none): `python3 '96-Local Testing/01-Core/03-barrett_tester.py' --mode full --seed 20261116` PASS, six configurations, 53,670,556 checks each (four of them the new run-time checks beside the compile-time ones), 11.7 s, peak 1050 MB; the same with `CXX=g++-14` PASS, 16.9 s, peak 1051 MB. The header held no mutation record, so this edit from another package needed no campaign (`05-testing.md`, Mutation testing, later passes); P005 ran the whole-file one on 2026-11-17 all the same, `python3 '96-Local Testing/04-mutation.py' run 01-Core/03-barrett.hpp --workdir <session scratchpad>/mut-barrett`, COMPLETE in 7 minutes (Mutation testing).
 
 Prune, 2026-10-12 (`div` and `multiplier` removed, `fold61` added; the Montgomery exponent widened in the same change):
 
@@ -103,6 +106,19 @@ Rejected candidates ([measurements](<../../96-Local Testing/01-Core/03-reduction
 
 Shoup threshold (median AVX2 bulk/scalar ratio over `998244353`, `2^31-1`, `2^32-5`): 1.27 at 7, 0.45 at 8, 0.57 at 9, 0.31 at 256 elements; 0.54 at 8 with assertions enabled. The eight-element dispatch stands.
 
+## Mutation testing
+
+Record: mewt 4.0.0 on blob `43274aa94c8c5767c12d48801b536d4113df0bed` (2026-11-17, seed 1, whole file, severity high,medium): 132 mutants, 125 caught (0 by timeout), 7 survived, 0 untested.
+
+The header's first campaign, run by P005's speed stage after it made the two constructors `constexpr`: all 132 mutants of high and medium severity among the 596 generated (the sample cap of 500 was not reached); lines that carry only low-severity mutants (arithmetic and comparison operators) got none, as the rule for a Core full header allows. Stage seconds: quick 369, full 49 (all six configurations). The 7 survivors are equivalent:
+
+| Mutant | Line | Why it survives |
+|---|---|---|
+| `CR 61`, `CR 92` | 26, 111 | `pow` no longer reduces its base first. `mul` takes any operand word, so every product stays exact and the result is canonical from the first `mul`; exponent 0 never reads the base. The statement is redundant, a removal candidate for P004's next pass. |
+| `CR 68`, `IF 106` | 38 | AVX2 builds only: the pointer `mul` skips the power-of-two kernel and the scalar loop masks through `divMod`. |
+| `CR 75`, `IF 109` | 62, 65 | AVX2 builds only: `Multiplier`'s pointer `mul` loses both kernels, or the Shoup kernel alone, and runs the scalar loop. |
+| `IT 121` | 65 | AVX2 builds only: the Shoup kernel also takes 4 to 7 elements; each lane computes what the scalar `mul` does, whatever the length. |
+
 ## Sources
 
 | Source inspected (2026-09-27) | Relevant result and limits |
@@ -131,3 +147,4 @@ Search aliases (P263, grab --find): 快速取模, 取模优化, 巴雷特约减,
 - 2026-10-12: prune (div and multiplier removed, fold61 added), full suite (seed 20261012) passed on g++ and g++-14, benchmark verified 9,116 measurements.
 - 2026-11-07: P263 follow-up added common Chinese names of the row's operations to the search aliases (`grab --find`; Simplified, and Taiwan or Hong Kong terms where they differ); no code or test change.
 - 2026-11-10: P274 test speed (SUP25): builds moved to the shared ccache `Builder` in `_00_cpp_test_runner.py`, up to three at once within the memory cap, the 10 s quick bound; full and stress inputs and checks unchanged; every library-wide run above passed.
+- 2026-11-16: P005 speed stage (C03) made the two constructors `constexpr` with the user's yes, for the `constinit` reducer of the dynamic modular types; `constants` check added; full suite passed on g++ and g++-14 (seed 20261116); first mutation record on 2026-11-17 (132 sampled, 125 caught, 7 equivalent).

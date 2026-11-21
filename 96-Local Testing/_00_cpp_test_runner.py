@@ -186,7 +186,12 @@ class Builder:
 
     def build_all(self, builds: list[tuple[str, str, list[str], list, str | Path, int, int]]) -> dict[str, float]:
         """Run ``(name, label, options, sources, output, timeout, MB)`` builds, at most three at once within the cap; returns
-        the seconds per name and raises the first failure in ``builds`` order once all have ended."""
+        the seconds per name and raises the first failure in ``builds`` order once all have ended. Fail-fast (``fail_fast``):
+        each build waits until ``ready`` meets its output, and its seconds count where it runs (``report``)."""
+        if fail_fast():
+            for name, label, options, sources, output, timeout, _ in builds:
+                PENDING[str(output)] = functools.partial(self.build, label, options, sources, output, timeout)
+            return {build[0]: 0.0 for build in builds}
         def one(name: str, label: str, options: list[str], sources: list, output: str | Path, timeout: int, need: int) -> float:
             with self.admitted(need):
                 return self.build(label, options, sources, output, timeout)
@@ -196,6 +201,10 @@ class Builder:
     def concurrently(self, jobs: list[tuple[int, object]]) -> None:
         """Run ``(MB, function)`` jobs at most three at once within the cap in force; each job's printed lines appear together,
         in job order. The first failure kills the processes of the jobs still running, skips those not started and is raised."""
+        if fail_fast():  # one at a time, in order: the first failure leaves the later jobs' builds unmade
+            for _, job in jobs:
+                job()
+            return
         output, errors = _JobOutput(sys.stdout, len(jobs)), []
 
         def one(k: int, need: int, job) -> None:
@@ -221,6 +230,25 @@ class Builder:
             sys.stdout = output.stream
         if errors:
             raise errors[0]
+
+
+PENDING: dict[str, object] = {}  # fail-fast: output path -> the build ``build_all`` left unmade
+PENDING_LOCK = threading.RLock()  # a build runs the compiler through ``timed_run``, which calls ``ready`` again
+
+
+def fail_fast() -> bool:
+    """True in a mutant's test (``04-mutation.py`` sets ``CP_TEST_FAIL_FAST=1``): a failing header should stop the test after
+    one build, so builds are made when first run and jobs run in order (05-testing.md, Mutation testing)."""
+    return os.environ.get("CP_TEST_FAIL_FAST") == "1"
+
+
+def ready(path: str | Path) -> None:
+    """Make the build of ``path`` if fail-fast left it pending. ``timed_run`` calls this for every command; a test that
+    starts a binary any other way calls it first."""
+    with PENDING_LOCK:
+        build = PENDING.pop(str(path), None)
+        if build:
+            build()
 
 
 STOPPING = [False]  # true once the main thread is interrupted: no further test command starts (a flag, since a handler takes no lock)
@@ -332,6 +360,7 @@ def timed_run(label: str, command: list[str], *, timeout: float, **options) -> s
     """``subprocess.run`` under a limit, reporting a command over half of it; none starts after an interrupt (``STOPPING``)."""
     if STOPPING[0]:
         raise KeyboardInterrupt
+    ready(command[0])
     start = time.monotonic()
     result = subprocess.run(command, timeout=timeout, **options)
     if result.returncode == -signal.SIGINT:  # Ctrl-C reached the command before the main thread's handler ran

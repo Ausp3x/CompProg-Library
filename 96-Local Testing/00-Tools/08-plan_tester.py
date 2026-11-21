@@ -47,6 +47,13 @@ verified subject for a one-batch package) and requested changes under others; co
 case-insensitive, `gh pr ready N` once every batch is verified, `/package <next>`, changes requested, a ready one under
 others; a full page noted; gh SKIP; /finish `ask` rows; /merge-pr records with an existing worktree; nothing; the CLI)
 -> test_syn_waiting;
+sweeps (verified Core full headers without a candidates table are pending; minis, unverified rows, the template and debug are not; a table's
+shape, verdict words, empty evidence and undecided wording are faults; the Operation column's names; the maintainer's
+waiting line) -> test_syn_sweeps;
+gaps.py Core full sections (undecided wording and a missing candidates table; the newest Comparison line of 06-compare.py
+against the current rig, header blobs and compiler versions; neither section for a contest batch) -> test_gaps_core_full;
+gaps.py review record (--reviewed stores the blobs of targets, tests and evidence with the report; Facts: none, covers
+with the report, changed, added and removed files; no id fails) -> test_gaps_review_record;
 ready(skip) -> test_ready_skip, test_ready_random; next/status/show next use the block set -> test_syn_next_*,
 test_syn_status_text, test_real_next_status_show_next, test_real_next_random, test_real_all_claimed;
 show (gate line; STOP; 'Claimed by you ... on <b>' ending '.' on branch b, else with the fetch-and-switch hint; for a
@@ -1076,6 +1083,32 @@ class Synthetic(Base):
         r = self.run_py(self.cli, 'waiting', cwd=self.root, role='maintainer')
         self.assertEqual((r.returncode, r.stdout), (0, 'Role: maintainer\nWaiting on you:\n- push: P250-SUP19-alice has no upstream yet\n'), r.stderr)
 
+    def test_syn_sweeps(self):
+        core = self.root / '01-Core'
+        (core / 'Docs').mkdir(parents=True)
+        row = lambda n, ops, status: f'| `{n}.hpp` | yes | {ops} | {status}; [{n}.md](Docs/{n}.md) |\n'
+        (core / '00-index.md').write_text('# 01 Core — inventory\n\n| Header | Basic | Operations | Status |\n|---|---|---|---|\n' + row('03-a', 'A: f, g', 'verified')
+                                          + row('04-b', 'B: h', 'verified') + row('05-c', 'C: k', 'verified') + row('06-cmini', 'CMini: k', 'verified')
+                                          + row('07-d', 'D: m', 'partial') + row('08-e', 'E: q', 'verified') + row('01-template', 'aliases', 'verified'))
+        head = '## Benchmarks\n\n### Optimization candidates\n\nText.\n\n| Operation | Candidate | Verdict | Evidence |\n|---|---|---|---|\n'
+        (core / 'Docs/03-a.md').write_text(head + '| `f`, `g` | select | adopted | GCC 15: 0.91 |\n| `g` | simd | rejected | argument: outside the ISA set |\n| `f` | — | none found: one add | read the code |\n\n## Next\n\n| x | y |\n')
+        (core / 'Docs/04-b.md').write_text('## Benchmarks\n')
+        (core / 'Docs/05-c.md').write_text(head + '| `k` | table | maybe | 1.0 |\n| `k` | chain | rejected | |\n| `k` | asm | rejected: Deferred | x |\n| `k` | fold | rejected | 1.2 |\n')
+        (core / 'Docs/06-cmini.md').write_text('mini\n')
+        (core / 'Docs/08-e.md').write_text('### Optimization candidates\n\nNo table.\n')
+        pending, faults, named = PLAN.sweeps(self.root)
+        self.assertEqual(pending, ['01-Core/04-b.hpp'], 'a mini, a partial row and the template are not pending')
+        self.assertEqual(named, {'01-Core/03-a.hpp': {'f', 'g'}, '01-Core/05-c.hpp': {'k'}})
+        where = 'Optimization candidates (05-testing.md, Benchmarks): 01-Core/'
+        self.assertEqual([f[len(where):].split(':')[0] + ':' + f[len(where):].split(': ')[1].split(' ')[0] for f in faults],
+                         ['05-c.hpp:row', '05-c.hpp:row', '05-c.hpp:undecided', '05-c.hpp:verdict', '08-e.hpp:no'], faults)
+        self.assertTrue(all(f.startswith(where) for f in faults))
+        self.prs([])
+        with self.environ('maintainer'):
+            self.assertEqual(PLAN.waiting(self.root).split('\n'), ['Role: maintainer', 'Waiting on you:', '- optimization sweep pending (05-testing.md, Benchmarks): 01-Core/04-b.hpp'])
+        with self.environ('contributor'):
+            self.assertEqual(PLAN.waiting(self.root).split('\n'), ['Role: contributor', 'Waiting on you: nothing'])
+
     def gaps(self, *arg, role='contributor', gh=True, branch=None):
         if branch == '':
             git(self.root, 'checkout', '-q', '--detach')
@@ -1088,6 +1121,68 @@ class Synthetic(Base):
         self.key = lines[i][4:].split(' | ')[0]
         i += lines[i + 1].startswith('WARNING ')
         return r, lines[i + 1]
+
+    def test_gaps_review_record(self):
+        section = lambda out: out.split('### Review record (/package step 10)\n', 1)[1].split('\n\n### ', 1)[0].split('\n')
+        for f, text in (('07-Strings/01-s.hpp', 'h\n'), ('07-Strings/Docs/01-s.md', 'd\n'), ('96-Local Testing/07-Strings/01-s_tester.py', 't\n'),
+                        ('96-Local Testing/07-Strings/02-other_tester.py', 'o\n')):
+            (self.root / f).parent.mkdir(parents=True, exist_ok=True)
+            (self.root / f).write_text(text)
+        r, _ = self.gaps('ST01', role='maintainer', branch='master')
+        self.assertEqual(section(r.stdout), ['none: step 2 runs the full audit'], r.stderr)
+        w = REAL_SUBPROCESS_RUN([sys.executable, str(GAPS_PY), '--reviewed', 'ST01'], cwd=self.root, capture_output=True, text=True,
+                                input='1. finding\n2. limit\n', env=self.env('maintainer', True, None), timeout=300)
+        self.assertEqual((w.returncode, w.stdout), (0, 'review of ST01 recorded: 3 files, .claude/finish/ST01.review.json\n'), w.stderr)
+        r, _ = self.gaps('ST01', role='maintainer')
+        self.assertEqual(section(r.stdout), ['covers the current files: step 2 reuses this report and starts no audit', '1. finding', '2. limit'])
+        (self.root / '07-Strings/01-s.hpp').write_text('h2\n')
+        (self.root / '96-Local Testing/07-Strings/01-s_tester.py').unlink()
+        (self.root / '96-Local Testing/07-Strings/01-s_extra.cpp').write_text('e\n')
+        r, _ = self.gaps('ST01', role='maintainer')
+        self.assertEqual(section(r.stdout), ['changed since the review; the step 2 audit covers these files:', '07-Strings/01-s.hpp',
+                                             '96-Local Testing/07-Strings/01-s_extra.cpp', '96-Local Testing/07-Strings/01-s_tester.py'])
+        bad = REAL_SUBPROCESS_RUN([sys.executable, str(GAPS_PY), '--reviewed', 'nothing'], cwd=self.root, capture_output=True, text=True,
+                                  input='', env=self.env('maintainer', True, None), timeout=300)
+        self.assertNotEqual(bad.returncode, 0)
+
+    def test_gaps_core_full(self):
+        part = lambda out, title: out.split(f'### {title}\n', 1)[1].split('\n\n### ', 1)[0].split('\n')
+        undecided, record = 'Undecided optimization candidates (Core full evidence)', 'Comparison record (05-testing.md, Stale evidence)'
+        r, _ = self.gaps('ST01', role='maintainer', branch='master')
+        self.assertNotIn(record, r.stdout, 'a contest batch has neither section')
+        self.assertNotIn(undecided, r.stdout)
+        core, doc = self.root / '01-Core', self.root / '01-Core/Docs/10-matrix.md'
+        doc.parent.mkdir(parents=True, exist_ok=True)
+        files = {'10-matrix.hpp': 'm\n', '01-template.hpp': 't\n'}
+        for f, text in files.items():
+            (core / f).write_text(text)
+        rig = self.root / '96-Local Testing/01-Core/10-matrix_compare.cpp'
+        rig.parent.mkdir(parents=True, exist_ok=True)
+        rig.write_text('rig\n')
+        doc.write_text('## Benchmarks\n\nThe window size was not tried.\n')
+        r, _ = self.gaps('C07', role='maintainer')
+        self.assertEqual(part(r.stdout, undecided), ['01-Core/Docs/10-matrix.md:3: The window size was not tried.', '01-Core/Docs/10-matrix.md: no "### Optimization candidates" table'])
+        self.assertEqual(part(r.stdout, record), ['01-Core/Docs/10-matrix.md: no Comparison line (96-Local Testing/06-compare.py)'])
+        fake = self.bin / 'fakecxx'
+        fake.write_text('#!/bin/sh\necho 15.3.0\n')
+        fake.chmod(0o755)
+        blob = lambda p: git(self.root, 'hash-object', str(p))[:12]
+        line = lambda version='15.3.0', extra='': (f'Comparison: 2026-11-17, rig 96-Local Testing/01-Core/10-matrix_compare.cpp {blob(rig)}, base {"b" * 12}, headers '
+                                                   f'01-template.hpp {blob(core / "01-template.hpp")} 10-matrix.hpp {blob(core / "10-matrix.hpp")}, fakecxx {version}, {extra}CPU Test, 3 passes, 4 rows, 0 losing over 3%.')
+        old = 'Comparison: 2026-11-01, rig gone.cpp aaaaaaaaaaaa, base bbbbbbbbbbbb, headers 10-matrix.hpp cccccccccccc, fakecxx 1.0.0, CPU Test, 3 passes, 4 rows, 0 losing over 3%.'
+        doc.write_text(f'## Benchmarks\n\n### Optimization candidates\n\n| Operation | Candidate | Verdict | Evidence |\n\n{old}\n\n- {line()}\n')
+        r, _ = self.gaps('C07', role='maintainer')
+        self.assertEqual(part(r.stdout, undecided), ['(none)'])
+        self.assertEqual(part(r.stdout, record), ['01-Core/Docs/10-matrix.md: comparison of 2026-11-17 is current'], 'the newest line counts')
+        (core / '01-template.hpp').write_text('t2\n')
+        rig.write_text('rig2\n')
+        doc.write_text(doc.read_text().replace('fakecxx 15.3.0, ', 'fakecxx 15.2.0, no-such-cxx 9.1, '))
+        r, _ = self.gaps('C07', role='maintainer')
+        self.assertEqual(part(r.stdout, record), ['01-Core/Docs/10-matrix.md: comparison of 2026-11-17 is STALE, rerun it: the rig changed, 01-template.hpp changed, '
+                                                  'fakecxx 15.2.0 is now 15.3.0, no-such-cxx 9.1 is now not installed'])
+        (core / '10-matrix.hpp').unlink()
+        r, _ = self.gaps('C07', role='maintainer')
+        self.assertIn('10-matrix.hpp changed', part(r.stdout, record)[0])
 
     def test_gaps_role_line(self):
         self.gh_set('user', out='Dana.K\n')
@@ -1206,6 +1301,23 @@ class Real(Base):
                 self.assertEqual(PLAN.show(ROOT, ident).split('\n')[2], o_claim_line(False, p['id'], b, cb, repo, here=branch == cb), ident)
         with self.environ('maintainer'):
             self.assertEqual(PLAN.show(ROOT, p['id']).split('\n')[1:3], ['Role: maintainer; claims: none open', ''])
+
+    def test_real_launch_one_effort_per_preset(self):
+        """Every package's brief prints its preset's own effort, whatever its size (CLAUDE.md, Models and delegation)."""
+        want = {}
+        for f in (ROOT / '.claude/agents').glob('*-session.md'):
+            head = [l.split(':', 1) for l in f.read_text().split('---')[1].strip().split('\n')]
+            meta = {k.strip(): v.strip() for k, v in head}
+            want[meta['model']] = f'launch: claude --agent {meta["name"]} --effort {meta["effort"]}'
+        sizes = set()
+        with self.environ('maintainer'):
+            for p in self.pl:
+                if p['model'] == 'fable' or p['size'] == 'XL':
+                    first = PLAN.show(ROOT, p['id']).split('\n')[0].split(' | ')
+                    self.assertEqual(first[5], want[self.packages['models'][p['model']]], p['id'])
+                    sizes.add((p['model'], p['size']))
+        self.assertIn(('fable', 'XL'), sizes)
+        self.assertGreater(len({s for m, s in sizes if m == 'fable'}), 1)
 
     def cli(self, *args, role):
         return self.run_py(PLAN_PY, *args, cwd=self.tmp, role=role)

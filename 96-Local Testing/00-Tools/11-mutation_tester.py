@@ -86,10 +86,11 @@ stage parameters (timeout max(60, ceil(3 x baseline)) and --timeout, cap min(own
 floor, 3 x peak, the tester's own ensure(mb=...) cap and an own cap below the floor, fewer shards than --jobs by
 --memory-mb // cap and at least one, baselines under the own cap, every test and baseline through the campaign's own
 ccache directory; from the stage lines and the fake's argv) -> test_fake_stage_parameters;
---sample (whole file: a seeded uniform sample of N of more than N candidates, after --severity, with
-candidates/selected in campaign.json and `uniform sample of <candidates>` in the Record; 0 or at least the
-candidates: all and no sample wording; No record names stage quick on a stop before it) -> test_fake_sample; diff
-scope never samples -> test_fake_resume_recorded;
+--sample (whole file: a seeded sample of N of more than N candidates, half high, three tenths medium, the rest low,
+within --severity, with candidates/selected/strata in campaign.json and `sample of <candidates>: a high, b medium,
+c low` in the Record; 0 or at least the candidates: all and no sample wording; No record names stage quick on a stop
+before it) -> test_fake_sample; the shares, a class too small for its share and the spare passed on and back ->
+test_stratified; diff scope never samples -> test_fake_resume_recorded;
 timeouts retested (same timeout; a repeat timeout stays caught, a pass alone survives that
 stage and escalates, a fail alone is caught; in quick and in full; unconfirmed emptied) -> test_fake_timeouts_alone;
 retests side by side as far as each test keeps its own cores (shards divided by a test's concurrent builds) -> test_fake_retest_width;
@@ -104,8 +105,8 @@ campaign end to end with real mewt (three-stage escalation per mutant against th
 all shards, survivors table, report.json, Record blob stored in the object store, shards equal to the checkout,
 resume refusal for another severity, seed or sample; the Record pasted, check passing, PASS without the workdir,
 then resume after strengthening the tester to 0 survived; diff scope against a committed record and against the
-uncommitted blob a complete run stored, record-current PASS and --whole; two-stage testers; Core full default
-severity and its mini counterpart; --sample 3 of a Core full header's high and medium mutants; a runaway mutant
+uncommitted blob a complete run stored, record-current PASS and --whole; two-stage testers; a Core full header and
+its mini both default to every severity; --sample 3 of a Core full header by severity shares; a runaway mutant
 killed alone in its own 1024 MB scope; a slow-under-contention survivor that times out among concurrent shards,
 passes alone and survives, beside a genuine infinite loop that times out alone too, through per-mutant scopes; a
 deadline before the first stage (no baseline), a budget stop with exit 3 and No record naming the stage, and its
@@ -1256,7 +1257,7 @@ class Run(Base):
     def test_run_workdir_refusals(self):
         root = self.repo()
         self.fake_version('mewt 4.0.0')
-        cur, spec = o_blob(TOY.encode()), dict(severity=None, mutations=None, base=None, seed=1, sample=500)  # the defaults' spec
+        cur, spec = o_blob(TOY.encode()), dict(severity=None, mutations=None, base=None, seed=1, sample=250)  # the defaults' spec
         for k, meta in enumerate([dict(header='02-Data Structures/02-other.hpp', blob=cur, spec=spec),
                                   dict(header=self.H, blob='c' * 40, spec=spec),
                                   dict(header=self.H, blob=cur, spec=dict(spec, severity='low')),
@@ -1403,20 +1404,23 @@ class Fake(Base):
         sel = meta['selected']
         self.true(code == 0 and (meta['candidates'], len(sel), meta['spec']['sample']) == (20, 5, 5) and sel == sorted(set(sel)) and set(sel) <= set(every),
                   meta=meta, out=out, err=err)
+        rank = {m[0]: m[3] for m in self.mutants(20)}  # 6 high, 7 medium, 7 low: the shares of 5 are 2, 1 and 2
+        self.eq((meta['strata'], sorted(rank[i] for i in sel)), (dict(high=2, medium=1, low=2), ['high', 'high', 'low', 'low', 'medium']))
         self.eq(sorted(i for _, ids, _, _ in self.calls('quick') for i in ids), sel, what='only the sample is tested')
-        self.true(re.fullmatch(rf'Record: mewt 4\.0\.0 on blob `{cur}` \(\d{{4}}-\d\d-\d\d, seed 1, whole file, uniform sample of 20\): 5 mutants, '
-                               r'5 caught \(0 by timeout\), 0 survived, 0 untested\.', self.record_line(out) or ''), out=out)
+        self.true(re.fullmatch(rf'Record: mewt 4\.0\.0 on blob `{cur}` \(\d{{4}}-\d\d-\d\d, seed 1, whole file, sample of 20: 2 high, 1 medium, '
+                               r'2 low\): 5 mutants, 5 caught \(0 by timeout\), 0 survived, 0 untested\.', self.record_line(out) or ''), out=out)
         code, out, err = self.go(root, '--workdir', str(self.tmp / 'w-all'), '--sample', '0', seconds=0.1)
         meta = self.meta(self.tmp / 'w-all')
-        self.true(code == 0 and meta['selected'] == every and meta['candidates'] == 20 and 'whole file): 20 mutants, 20 caught' in out
-                  and 'uniform sample' not in out, meta=meta, out=out)
+        self.true(code == 0 and meta['selected'] == every and meta['candidates'] == 20 and meta['strata'] is None
+                  and 'whole file): 20 mutants, 20 caught' in out and 'sample of' not in out, meta=meta, out=out)
         for k, n in enumerate(('20', '25')):  # at least as many as the candidates: all, no sample
             code, out, err = self.go(root, '--workdir', str(self.tmp / f'w-n{k}'), '--sample', n, '--budget', '1e-9')
             self.true(code == 3 and self.meta(self.tmp / f'w-n{k}')['selected'] == every, n=n, out=out)
+        # --severity leaves the low class empty: its share of 3 (2) goes back to the first class that holds more, high
         code, out, err = self.go(root, '--workdir', str(self.tmp / 'w-sev'), '--severity', 'high,medium', '--sample', '3', '--budget', '1e-9')
         meta, highmed = self.meta(self.tmp / 'w-sev'), [m[0] for m in self.mutants(20) if m[3] != 'low']
-        self.true(code == 3 and meta['candidates'] == len(highmed) == 13 and len(meta['selected']) == 3 and set(meta['selected']) <= set(highmed),
-                  meta=meta, out=out)
+        self.true(code == 3 and meta['candidates'] == len(highmed) == 13 and len(meta['selected']) == 3 and set(meta['selected']) <= set(highmed)
+                  and meta['strata'] == dict(high=3, medium=0, low=0) and all(rank[i] == 'high' for i in meta['selected']), meta=meta, out=out)
         self.true(out.endswith('\nNo record: 3 sampled mutants are untested and stage quick did not finish; rerun with the same --workdir to finish '
                                f'the campaign.\nWorkdir {self.tmp / "w-sev"} (rerun with --workdir to continue or to retest survivors; delete it '
                                'once recorded)\n'), out=out)
@@ -1427,6 +1431,23 @@ class Fake(Base):
             picks[seed] = self.meta(w)['selected']
         flat = [i for p in picks.values() for i in p]
         self.true(picks[1] == sel and len(set(flat)) > 10 and abs(sum(flat) / len(flat) - 10.5) < 5, picks=picks)
+        self.true(all(sorted(rank[i] for i in p) == ['high', 'high', 'low', 'low', 'medium'] for p in picks.values()), picks=picks)
+
+    def test_stratified(self):
+        classes = lambda h, m, l: dict(high=list(range(h)), medium=list(range(1000, 1000 + m)), low=list(range(5000, 5000 + l)))
+        for sizes, n, want in (((1000, 1000, 1000), 250, (125, 75, 50)), ((10, 500, 3000), 250, (10, 190, 50)), ((300, 20, 10), 250, (220, 20, 10)),
+                               ((0, 0, 400), 250, (0, 0, 250)), ((200, 10, 100), 250, (140, 10, 100)), ((7, 6, 7), 5, (2, 1, 2)), ((3, 2, 1), 5, (3, 1, 1)),
+                               ((124, 1000, 1000), 250, (124, 76, 50)), ((1000, 1000, 49), 250, (126, 75, 49)), ((4, 4, 4), 1, (0, 0, 1)),
+                               ((500, 500, 500), 500, (250, 150, 100)), ((9, 9, 9), 27, (9, 9, 9))):
+            cl = classes(*sizes)
+            got = M.stratified(cl, n, 1)
+            self.eq(tuple(len(got[s]) for s in M.SEVERITIES), want, sizes=sizes, n=n)
+            self.true(all(got[s] == sorted(set(got[s])) and set(got[s]) <= set(cl[s]) for s in M.SEVERITIES), sizes=sizes, what='each class from its own ids')
+            self.eq(got, M.stratified(cl, n, 1), what='a seed repeats its sample')
+        cl, seen = classes(40, 40, 40), set()
+        for seed in range(1, 41):  # over seeds every id of a class is drawn: no prefix of a class is favoured
+            seen |= {i for ids in M.stratified(cl, 10, seed).values() for i in ids}
+        self.true(len(seen) > 100, seen=len(seen))
 
     def test_fake_timeouts_alone(self):
         # a: times out among concurrent tests, passes alone -> survivor of quick, escalates, survives; b: times out alone too ->
@@ -1747,7 +1768,7 @@ class E2E(Base):
         every = self.ids(work / 's0')
         seen = self.statuses(work)
         self.eq((meta['selected'], sorted(seen), meta['spec'], meta['jobs'], sorted(meta['stages'])),
-                (every, every, dict(severity=None, mutations=None, base=None, seed=1, sample=500), 2, sorted(STAGES3)))
+                (every, every, dict(severity=None, mutations=None, base=None, seed=1, sample=250), 2, sorted(STAGES3)))
         survivors = []
         for i, (status, m, _) in seen.items():
             want = o_stage(m['line_offset'] + 1, m['mutation_slug'], m['new_text'])
@@ -1828,29 +1849,34 @@ class E2E(Base):
     def test_e2e_core_severity(self):
         full, mini = '01-Core/05-toy.hpp', '01-Core/06-toymini.hpp'
         root = self.repo({**self.golden(full), **self.golden(mini)})
-        for header, severity in ((full, 'high,medium'), (mini, None)):
+        for header in (full, mini):  # one rule for both (user decision 2026-11-20): every severity, no sample below the cap
             work = self.tmp / f'w-{Path(header).stem}'
             code, out, err = self.campaign(root, header, work)
             self.eq(code, 0, out=out, err=err, header=header)
             meta, report = self.common(root, header, work, out)
             every = self.ids(work / 's0')
-            want = self.ids(work / 's0', '--severity', severity) if severity else every
-            self.true(meta['spec']['severity'] == severity and meta['selected'] == want and report['counts'] == {'TestFail': len(want)}
-                      and (severity is None or len(want) < len(every)), header=header, meta=meta, every=every)
+            self.true(meta['spec']['severity'] is None and meta['strata'] is None and meta['selected'] == every
+                      and report['counts'] == {'TestFail': len(every)} and len(self.ids(work / 's0', '--severity', 'low')) > 0,
+                      header=header, meta=meta, every=every)
 
     def test_e2e_sample(self):
-        # a Core full whole-file campaign with --sample 3 tests 3 of its high and medium mutants and says so in the Record
+        # a Core full whole-file campaign with --sample 3 tests 1 high, 0 medium and 2 low mutants (a class short of its
+        # share passes the rest on) and says so in the Record
         header = '01-Core/05-toy.hpp'
         root = self.repo(self.golden(header))
         work = self.tmp / 'work'
         code, out, err = self.campaign(root, header, work, '--sample', '3')
         self.eq(code, 0, out=out, err=err)
         meta, report = self.common(root, header, work, out)
-        want = self.ids(work / 's0', '--severity', 'high,medium')
+        want = self.ids(work / 's0')
+        classes = {s: self.ids(work / 's0', '--severity', s) for s in M.SEVERITIES}
+        strata = M.stratified(classes, 3, 1)
         tested = sorted(i for k in range(2) for i in self.stage_ids(work / f's{k}', 'quick'))
-        self.true(meta['candidates'] == len(want) > 3 and len(meta['selected']) == 3 and set(meta['selected']) <= set(want) and meta['spec']['sample'] == 3
+        self.true(meta['candidates'] == len(want) > 3 and meta['selected'] == sorted(i for ids in strata.values() for i in ids) and len(meta['selected']) == 3
+                  and meta['spec']['sample'] == 3 and meta['strata'] == {s: len(ids) for s, ids in strata.items()}
                   and tested == meta['selected'] and report['counts'] == {'TestFail': 3}, meta=meta, want=want, tested=tested)
-        self.true(f', seed 1, whole file, severity high,medium, uniform sample of {len(want)}): 3 mutants, 3 caught (0 by timeout), 0 survived, '
+        shares = ', '.join(f'{len(ids)} {s}' for s, ids in strata.items())
+        self.true(f', seed 1, whole file, sample of {len(want)}: {shares}): 3 mutants, 3 caught (0 by timeout), 0 survived, '
                   '0 untested.\n' in out, out=out)
 
     def test_e2e_runaway_alone(self):

@@ -661,6 +661,37 @@ class Build(Base):
             self.assertEqual(call[1:3], ['1', str(tree)], 'CCACHE_NOHASHDIR and CCACHE_BASEDIR on every compile')
         self.assertEqual(len(self.calls()), 4, 'the link never goes through ccache')
 
+    def test_fail_fast_builds_when_first_run(self):
+        build, ran = self.root / 'build', []
+        build.mkdir()
+        for name, code in (('a', 0), ('b', 3), ('c', 0)):
+            (build / f'{name}.cpp').write_text(f'int main() {{ return {code}; }}\n')
+        specs = [(n, f'compile {n}', ['-std=gnu++20'], [build / f'{n}.cpp'], build / n, 60, 100) for n in 'abc']
+        built = lambda: sorted(p.name for p in build.iterdir() if '.' not in p.name)
+        def job(n):
+            code = CPP.timed_run(n, [str(build / n)], timeout=60).returncode
+            ran.append(n)
+            if code:
+                raise CPP.TestFailure(n)
+        self.addCleanup(CPP.PENDING.clear)
+        with patch.object(CPP.shutil, 'which', lambda name: None), contextlib.redirect_stdout(io.StringIO()):
+            CPP._ccache_prefix.cache_clear()
+            builder = CPP.Builder([self.cxx], build)
+            with patch.dict(os.environ, {'CP_TEST_FAIL_FAST': '1'}):
+                self.assertEqual((builder.build_all(specs), built()), ({'a': 0.0, 'b': 0.0, 'c': 0.0}, []), 'no build is made up front')
+                mark = builder.stopwatch()
+                with self.assertRaises(CPP.TestFailure):
+                    builder.concurrently([(100, lambda n=n: job(n)) for n in 'abc'])
+                self.assertGreater(builder._spent() - mark[1], 0, 'a build made when first run counts as compile time')
+                self.assertEqual((ran, built()), (['a', 'b'], ['a', 'b']), 'jobs run in order and the build after the first failure is never made')
+                CPP.ready(build / 'c')
+                self.assertEqual((built(), CPP.PENDING), (['a', 'b', 'c'], {}), 'ready makes the pending build of a binary started another way')
+                CPP.ready(build / 'c')
+            for n in 'abc':
+                (build / n).unlink()
+            seconds = builder.build_all(specs)
+            self.assertEqual((built(), all(s > 0 for s in seconds.values()), CPP.PENDING), (['a', 'b', 'c'], True, {}), 'without the switch every build is made up front')
+
     def test_failure_reports_command_and_output(self):
         class Custom(RuntimeError):
             pass

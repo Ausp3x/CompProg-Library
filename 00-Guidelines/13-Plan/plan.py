@@ -326,6 +326,44 @@ def row_status(parts):
     return parts[-1].split(';')[0].split(' ')[0].strip('*').lower()
 
 
+CANDIDATES, VERDICTS = '### Optimization candidates', ('adopted', 'rejected', 'other owner', 'none found')
+NO_SWEEP = ('01-Core/01-template.hpp', '01-Core/02-debug.hpp')  # boilerplate, not algorithms (01-principles.md, Profiles)
+
+
+def sweeps(root=ROOT):
+    """(pending, faults, named) for the verified Core full headers (05-testing.md, Benchmarks): those whose evidence
+    lacks the candidates table, the faults of the tables that exist (shape, verdict words, undecided wording), and per
+    header with a table the names its Operation column holds."""
+    pending, faults, named = [], [], {}
+    for target, (parts, _) in sorted(inventories(root).items()):
+        if not target.startswith('01-Core/') or target.endswith('mini.hpp') or target in NO_SWEEP or row_status(parts) != 'verified':
+            continue
+        text = '\n'.join((root / d).read_text(encoding='utf-8') for d in docs_for(root, target))
+        if CANDIDATES not in text:
+            pending.append(target)
+            continue
+        rows = []
+        for line in text.split(CANDIDATES, 1)[1].splitlines()[1:]:
+            if line.startswith('#'):
+                break
+            if line.startswith('|'):
+                rows.append(cells(line))
+        where = f'Optimization candidates (05-testing.md, Benchmarks): {target}: '
+        if len(rows) < 3 or rows[0] != ['Operation', 'Candidate', 'Verdict', 'Evidence']:
+            faults.append(where + 'no table `Operation | Candidate | Verdict | Evidence` with a row')
+            continue
+        named[target] = set()
+        for r in rows[2:]:
+            if len(r) != 4 or not r[2].lower().startswith(VERDICTS) or not r[3]:
+                faults.append(where + 'row without a verdict (' + ', '.join(VERDICTS) + ') or its evidence: ' + ' | '.join(r)[:80])
+            elif re.search(r'not tried|unmeasured|deferred|not measured|to be measured', ' '.join(r), re.I):
+                faults.append(where + 'undecided wording: ' + ' | '.join(r)[:80])
+            elif r[2].lower().startswith(VERDICTS[:2]) and not re.search(r'GCC \d+|argument:', r[3]):
+                faults.append(where + 'verdict without its compiler (`GCC <n>`) or `argument:`: ' + ' | '.join(r)[:80])
+            named[target] |= {x.strip() for x in re.sub(r'`', '', r[0]).split(',')}
+    return pending, faults, named
+
+
 def landed(root):
     """Keys whose `/finish` line in finish-log.tsv has the result `verified` (a contributor's line counts once merged)."""
     rows = [l.split('\t') for l in (root / PLAN / 'finish-log.tsv').read_text().splitlines()[1:]]
@@ -340,15 +378,15 @@ def batch_done(b, inv, done=frozenset()):
     return all(row_status(inv.get(t, ([''],))[0]) == 'verified' for t in b['targets'])
 
 
-def launch(root, model, xl=False):
+def launch(root, model):
     """(launch command, session check) for a package model id: the `*-session` agent preset in `.claude/agents` with
-    that model, at effort `xhigh` for a Core XL package (`xl`; CLAUDE.md, Models and delegation), compared with the
-    running session's preset and effort when Claude Code exports them."""
+    that model and its effort (one per preset, whatever the package size; CLAUDE.md, Models and delegation), compared
+    with the running session's preset and effort when Claude Code exports them."""
     preset = None
     for f in sorted((root / '.claude/agents').glob('*-session.md')):
         meta = dict(re.findall(r'^(\w+):[ \t]*(.+)$', f.read_text().split('---')[1], re.M))
         if meta.get('model') == model:
-            preset = (meta.get('name', f.stem), 'xhigh' if xl else meta.get('effort', '?'))
+            preset = (meta.get('name', f.stem), meta.get('effort', '?'))
     if not preset:
         return f'no session preset uses {model}', ''
     agent, effort = os.environ.get('CLAUDE_CODE_AGENT'), os.environ.get('CLAUDE_EFFORT')
@@ -408,7 +446,7 @@ def show(root, ident):
         shown = [] if len(p['batches']) > 1 and open_ and p['status'] != 'verified' else p['batches']
     else:
         raise SystemExit(f'Unknown package or batch: {ident}')
-    command, check = launch(root, packages['models'][p['model']], p['model'] == 'fable' and p['size'] == 'XL')
+    command, check = launch(root, packages['models'][p['model']])
     out = [f'{p["id"]} — {p["label"]} | {p["phase"]} | {p["size"]} | {p["status"]} | '
            f'model: {p["model"]} ({packages["models"][p["model"]]}) | launch: {command}' + (f' | {check}' if check else ''), line]
     batch = shown[0] if len(shown) == 1 else next((b for b in p['batches'] if not batch_done(bmap[b], inv, fin)), p['batches'][0])
@@ -532,7 +570,7 @@ def waiting(root):
     """What waits on this clone's user, then what waits on others, derived from git, gh and the skills' ledgers: the
     current branch's unpushed commits; open pull requests (the maintainer's `/merge-pr`, a contributor's next batch,
     `gh pr ready` once every batch has a `Pxxx: ... — verified` commit, requested changes); `ask` rows of /finish
-    ledgers; /merge-pr checkouts."""
+    ledgers; verified Core full headers without a candidates table (maintainer); /merge-pr checkouts."""
     r, mine, others = role(root), [], []
     run = lambda *a: subprocess.run(['git', *a], cwd=root, capture_output=True, text=True)
     branch, up = current(root), run('rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{upstream}')
@@ -586,6 +624,9 @@ def waiting(root):
         k = sum(l.rsplit('|', 1)[-1].strip() == 'ask' for l in f.read_text().splitlines())
         if k:
             mine.append(f'answer: `/finish {f.stem}` has {k} open question(s)')
+    pending = sweeps(root)[0]
+    if pending and r == 'maintainer':
+        mine.append('optimization sweep pending (05-testing.md, Benchmarks): ' + ', '.join(pending))
     for f in sorted((root / '.claude/merge-pr').glob('*.json'), key=lambda f: (len(f.stem), f.stem)):
         try:
             wt = json.loads(f.read_text()).get('worktree')
