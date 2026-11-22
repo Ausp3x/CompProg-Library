@@ -306,7 +306,7 @@
       "bytes": 1436628,
       "pages": 18,
       "sha256": "2f31ac9dbeb95adfb47e9aa5224d4b63b056406520d3f4f8bf27c7887e88d45b",
-      "cited_in": "01-Core/Docs/00-sources.md:12",
+      "cited_in": "01-Core/Docs/00-sources.md:13",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false,
@@ -645,7 +645,7 @@
       "bytes": 1884607,
       "pages": 32,
       "sha256": "cf9b086398faf01df4d6be025af5499ac1b8d04447f8bf0f704cf25f1d8faee0",
-      "cited_in": "04-Graphs/Docs/00-sources.md:618",
+      "cited_in": "04-Graphs/Docs/00-sources.md:619",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -658,7 +658,7 @@
       "bytes": 22481959,
       "pages": 492,
       "sha256": "18c62695dd8568d1ec021f2d6b05d7af04bd05cf64fa217536cb75f8185bdaec",
-      "cited_in": "04-Graphs/Docs/00-sources.md:619",
+      "cited_in": "04-Graphs/Docs/00-sources.md:620",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -725,7 +725,7 @@
       "bytes": 122871,
       "pages": 21,
       "sha256": "f52bf87558705e42318aa59d0f42e0d3f22ae0eada7b03f29db78afb41f76c34",
-      "cited_in": "05-Mathematics/Docs/00-sources.md:445",
+      "cited_in": "05-Mathematics/Docs/00-sources.md:446",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -738,7 +738,7 @@
       "bytes": 14346140,
       "pages": 710,
       "sha256": "0427a4da79790d3359dcb58eb798d7671ab3aedbe177fc46a9c8791b9db944d4",
-      "cited_in": "05-Mathematics/Docs/00-sources.md:446",
+      "cited_in": "05-Mathematics/Docs/00-sources.md:447",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -751,7 +751,7 @@
       "bytes": 826852,
       "pages": 13,
       "sha256": "475289b6ad3de64f9998a072b6e118487f71e3b23582e92b7e65027bf226d5b5",
-      "cited_in": "05-Mathematics/Docs/00-sources.md:447",
+      "cited_in": "05-Mathematics/Docs/00-sources.md:448",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -764,7 +764,7 @@
       "bytes": 1529015,
       "pages": 22,
       "sha256": "5876a7242af62599651547a05df42b03af6afce678be4361afec356815ee9168",
-      "cited_in": "05-Mathematics/Docs/00-sources.md:448",
+      "cited_in": "05-Mathematics/Docs/00-sources.md:449",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -777,7 +777,7 @@
       "bytes": 402207,
       "pages": 31,
       "sha256": "98516cd7c5b505baf0aafb6f7c6cd8a100dd10796009306c1213230d68939489",
-      "cited_in": "05-Mathematics/Docs/00-sources.md:449",
+      "cited_in": "05-Mathematics/Docs/00-sources.md:450",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false,
@@ -869,7 +869,7 @@
       "bytes": 238485,
       "pages": 3,
       "sha256": "b9a938a47b34c41771f4d482ab85bc6e870b64c4597474799aad0767b031629e",
-      "cited_in": "02-Data Structures/Docs/00-sources.md:36; 04-Graphs/Docs/00-sources.md:620",
+      "cited_in": "02-Data Structures/Docs/00-sources.md:36; 04-Graphs/Docs/00-sources.md:621",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -882,7 +882,7 @@
       "bytes": 676163,
       "pages": 3,
       "sha256": "d049be7e7716cb57c85c29c7ab316bf20ddc09f18804c12b3305d47f015d3084",
-      "cited_in": "01-Core/Docs/00-sources.md:13",
+      "cited_in": "01-Core/Docs/00-sources.md:14",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -895,7 +895,7 @@
       "bytes": 4465787,
       "pages": 23,
       "sha256": "15ed3e10e8bfde89add904abf88ff2410e2186d1c21c12b2f75e05741a44e39a",
-      "cited_in": "01-Core/Docs/00-sources.md:14",
+      "cited_in": "01-Core/Docs/00-sources.md:15",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -908,19 +908,19 @@
       "bytes": 189319,
       "pages": 3,
       "sha256": "c68886e7bbd7576e6a2f725bca73f026c738475c8a61d66010cee57eae80dbec",
-      "cited_in": "01-Core/Docs/00-sources.md:21",
+      "cited_in": "01-Core/Docs/00-sources.md:22",
       "provided_by": "user",
       "reuse_note": "AtCoder Library documentation, CC0 1.0 (repository LICENSE); committed.",
       "committed": true
     },
     {
       "file": "14-Web Pages/07-codeforces_blog_83467-queue_like_undoing.pdf",
-      "title": "[Tutorial] Supporting Queue-like Undoing on DS - Codeforces",
+      "title": "[Tutorial] Supporting Queue-like Undoing on DS - Codeforces (spoilers \"Upperbound\" and \"Detailed\" open)",
       "source_page": "https://codeforces.com/blog/entry/83467",
       "downloaded": "2026-11-22",
-      "bytes": 1466275,
+      "bytes": 1541541,
       "pages": 10,
-      "sha256": "baabdbba1cc09b56f06945a420158e64aa2fa5ba5fabe53f25aacaead364b2a5",
+      "sha256": "9063d66eeb6a1b47484b042865ef17a1df8369b5f7cad8c5605027284f175f1f",
       "cited_in": "02-Data Structures/Docs/00-sources.md:13",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
@@ -1090,7 +1090,7 @@
       "bytes": 261734,
       "pages": 2,
       "sha256": "ecf758cf42650e2b819ea0d34640c2aa91a47659a612be8dfc261501bf73596c",
-      "cited_in": "04-Graphs/Docs/00-sources.md:621",
+      "cited_in": "04-Graphs/Docs/00-sources.md:622",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1103,7 +1103,7 @@
       "bytes": 314778,
       "pages": 4,
       "sha256": "f28d7ab9784c5ea28604000e6a87b77fa60a1b3734033ca8a587d0f68c7875c9",
-      "cited_in": "04-Graphs/Docs/00-sources.md:622",
+      "cited_in": "04-Graphs/Docs/00-sources.md:623",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1116,7 +1116,7 @@
       "bytes": 268639,
       "pages": 3,
       "sha256": "ccbddf48f46e65ea326651ead1fafc90a32652cfc11826c8193b11d627c9a420",
-      "cited_in": "04-Graphs/Docs/00-sources.md:623",
+      "cited_in": "04-Graphs/Docs/00-sources.md:624",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1129,7 +1129,7 @@
       "bytes": 436535,
       "pages": 2,
       "sha256": "19d447a259d6fff49ec0e1cc8f71e1bbcf9783fa58e265f2f50c1b3aa26c0b66",
-      "cited_in": "04-Graphs/Docs/00-sources.md:625",
+      "cited_in": "04-Graphs/Docs/00-sources.md:626",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1142,7 +1142,7 @@
       "bytes": 239625,
       "pages": 2,
       "sha256": "f174272e9330af2ec924728ef48faa2aba2cdde7f7767f1f7f84da62b00c3290",
-      "cited_in": "04-Graphs/Docs/00-sources.md:626",
+      "cited_in": "04-Graphs/Docs/00-sources.md:627",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1155,7 +1155,7 @@
       "bytes": 1311581,
       "pages": 4,
       "sha256": "0598278b8ef2635119ede67f78ef1f59c63911ec5f86390d53cc41aad7e7bead",
-      "cited_in": "04-Graphs/Docs/00-sources.md:627",
+      "cited_in": "04-Graphs/Docs/00-sources.md:628",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1168,7 +1168,7 @@
       "bytes": 1283075,
       "pages": 4,
       "sha256": "00efa00be64f87b4e45c70b1f6f36f6c3c41f848c6a5dcd6fe2c3828acacd4b1",
-      "cited_in": "04-Graphs/Docs/00-sources.md:628",
+      "cited_in": "04-Graphs/Docs/00-sources.md:629",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1180,7 +1180,7 @@
       "downloaded": "2026-11-22",
       "bytes": 53211,
       "sha256": "caa18f330193682608816ea44d3b92149cc93c58c4233102fd14383130a63b78",
-      "cited_in": "04-Graphs/Docs/00-sources.md:630",
+      "cited_in": "04-Graphs/Docs/00-sources.md:631",
       "provided_by": "session (curl)",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1193,7 +1193,7 @@
       "bytes": 328454,
       "pages": 4,
       "sha256": "35c78605f922bdc9d045884408c16a3e0eba4e130685d4428e4cd72cc95aaeac",
-      "cited_in": "00-Guidelines/13-Plan/packages.json:1850; 01-prompts.md:160; 04-Graphs/Docs/00-sources.md:631",
+      "cited_in": "00-Guidelines/13-Plan/packages.json:1850; 01-prompts.md:160; 04-Graphs/Docs/00-sources.md:632",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1206,7 +1206,7 @@
       "bytes": 662004,
       "pages": 3,
       "sha256": "432f7b3c0894f27af0954bed3df9ab8137d13935f8fdb3633db7379edbebc3a6",
-      "cited_in": "04-Graphs/Docs/00-sources.md:632",
+      "cited_in": "04-Graphs/Docs/00-sources.md:633",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1219,7 +1219,7 @@
       "bytes": 185186,
       "pages": 2,
       "sha256": "c0be2ac833cab837487df20e0617d4f99be2664779b08ad72fe8ccdf48ea1f1e",
-      "cited_in": "04-Graphs/Docs/00-sources.md:633",
+      "cited_in": "04-Graphs/Docs/00-sources.md:634",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1388,7 +1388,7 @@
       "bytes": 1603412,
       "pages": 10,
       "sha256": "7fc655a51c7545cac6aee75d3937242ab245d024a4afb687bda9560556e23e13",
-      "cited_in": "00-Guidelines/13-Plan/packages.json:445; 01-Core/Docs/00-sources.md:15",
+      "cited_in": "00-Guidelines/13-Plan/packages.json:445; 01-Core/Docs/00-sources.md:16",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1401,7 +1401,7 @@
       "bytes": 634354,
       "pages": 3,
       "sha256": "e59cb37d7b840a5999da37212c04e387510d71cdbc16a535dd335960bb3ca9bf",
-      "cited_in": "01-Core/Docs/00-sources.md:17",
+      "cited_in": "01-Core/Docs/00-sources.md:18",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1414,7 +1414,7 @@
       "bytes": 546028,
       "pages": 3,
       "sha256": "7ebe9400ee039c8da00df3e94fe17252e38562a7d896af4ef8a2432012f44b7f",
-      "cited_in": "01-Core/Docs/00-sources.md:16",
+      "cited_in": "01-Core/Docs/00-sources.md:17",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1427,7 +1427,7 @@
       "bytes": 1394694,
       "pages": 9,
       "sha256": "f2a97defd3744afdc51c3d77ceb236a83a9db5dd5e6a5c6e40ea488e16295509",
-      "cited_in": "01-Core/Docs/00-sources.md:19",
+      "cited_in": "01-Core/Docs/00-sources.md:20",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1440,7 +1440,7 @@
       "bytes": 2592716,
       "pages": 11,
       "sha256": "73cc0aea0f5a0b737df509676436299127eea4f15f99a83270144cf3e72c0139",
-      "cited_in": "01-Core/Docs/00-sources.md:18",
+      "cited_in": "01-Core/Docs/00-sources.md:19",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1453,7 +1453,7 @@
       "bytes": 1398970,
       "pages": 6,
       "sha256": "dc513bef8882834b7c2ce4584d9f85e453892a2f3bd88a4705515252f8c287b8",
-      "cited_in": "01-Core/Docs/00-sources.md:20",
+      "cited_in": "01-Core/Docs/00-sources.md:21",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1648,7 +1648,7 @@
       "bytes": 545327,
       "pages": 15,
       "sha256": "7d00f29fb7d27a1950bf34ac3d6adace0605ac89ac9a0c4f70bbc9c878078b9b",
-      "cited_in": "04-Graphs/Docs/00-sources.md:624",
+      "cited_in": "04-Graphs/Docs/00-sources.md:625",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1661,7 +1661,7 @@
       "bytes": 1262629,
       "pages": 4,
       "sha256": "96e4f86824df9baf6b4bd72cd0d68bd8734042ff12527199c44f652e15268d4c",
-      "cited_in": "04-Graphs/Docs/00-sources.md:629",
+      "cited_in": "04-Graphs/Docs/00-sources.md:630",
       "provided_by": "user",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
@@ -1676,6 +1676,45 @@
       "cited_in": "05-Mathematics/Docs/00-sources.md:441",
       "provided_by": "session (curl)",
       "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored). The data files it links (0.9–2 GB) are not stored.",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/01-modern_computer_algebra-von_zur_gathen_2013.pdf",
+      "title": "J. von zur Gathen, J. Gerhard, *Modern Computer Algebra*, 3rd ed., Cambridge University Press, 2013 (whole book; ch. 11, Fast Euclidean Algorithm)",
+      "source_page": "https://doi.org/10.1017/CBO9781139856065",
+      "downloaded": "2026-11-22",
+      "bytes": 22836243,
+      "pages": 812,
+      "sha256": "46a61e5bd6f0d8cbb8ef984b121963deff7ba583b884c5ce84434d10002d1cbb",
+      "cited_in": "01-Core/Docs/00-sources.md:12",
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/48-k_best_spanning_arborescences-camerini_1980.pdf",
+      "title": "P. M. Camerini, L. Fratta, F. Maffioli, \"The k best spanning arborescences of a network\", Networks 10(2), 1980",
+      "source_page": "https://doi.org/10.1002/net.3230100202",
+      "downloaded": "2026-11-22",
+      "bytes": 1021792,
+      "pages": 19,
+      "sha256": "190b32133bfa78f285216fb9420e728e5755fe4b32600fa6326fd0d033b070ba",
+      "cited_in": "00-Guidelines/13-Plan/packages.json:1135; 04-Graphs/Docs/00-sources.md:618",
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
+      "committed": false
+    },
+    {
+      "file": "13-Papers/49-algorithms_for_minimization_without_derivatives-brent_1973.pdf",
+      "title": "R. P. Brent, *Algorithms for Minimization without Derivatives*, Prentice-Hall, 1973 (scan without a text layer; ch. 4, zero of a function)",
+      "source_page": "https://maths-people.anu.edu.au/~brent/pub/pub011.html",
+      "downloaded": "2026-11-22",
+      "bytes": 34353951,
+      "pages": 207,
+      "sha256": "e03d6bc10195d81af5f5f1593514404b53bc614c3fb9820610f378386a1265f5",
+      "cited_in": "05-Mathematics/Docs/00-sources.md:445",
+      "provided_by": "user",
+      "reuse_note": "Personal study copy; terms do not permit public redistribution, so the file stays local (git-ignored).",
       "committed": false
     }
   ]
