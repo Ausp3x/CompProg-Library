@@ -242,7 +242,7 @@ One `@researcher` sweep for row 32; the adopted operations are in that row and t
 
 ## Fetched 2026-11-02 (P032 DS50 Sweep)
 
-One `@researcher` sweep for row 62; the adopted operations are in that row and the rejected ones in [00-notes.md](00-notes.md#p032-omissions). The maspypy listing was read in part (offsets 0 and 200000), the Nyaan listing to 100k characters; KACTL was not fetched, Library Checker pages rendered empty, and CF blogs 68953, 149993 and 100683 refused the fetch (68953 and 149993 were read from the user's copies on 2026-11-22, [Source Check](#fetched-2026-11-22-source-check)).
+One `@researcher` sweep for row 62; the adopted operations are in that row and the rejected ones in [00-notes.md](00-notes.md#p032-omissions). The maspypy listing was read in part (offsets 0 and 200000), the Nyaan listing to 100k characters; KACTL was not fetched, Library Checker pages rendered empty, and CF blogs 68953, 149993 and 100683 refused the fetch (68953 and 149993 were read from the user's copies on 2026-11-22, [Source Check](#fetched-2026-11-22-source-check)). Blog 100683 does not exist: Codeforces answers that its URL is invalid (checked by the user on 2026-11-22). No row, omission or claim cites it, so nothing rested on it.
 
 | Source | URL | Fetched | Used for |
 |---|---|---|---|
