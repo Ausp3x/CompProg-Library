@@ -10,7 +10,7 @@ Storage: the repository is public, so a file is committed only when its reuse te
 
 User-provided: [Competitive Programmer's Handbook — Antti Laaksonen](<01-competitive_programmers_handbook-laaksonen.pdf>) and [NOI.PH lecture notes](<11-NOI.PH Notes>) (29 PDFs, the two C++ notes first).
 
-Papers and saved web pages (2026-11-22): [13-Papers](<13-Papers>) and [14-Web Pages](<14-Web Pages>) hold the sources the evidence documents cite, each listed in the manifest with its title, URL and citing documents; most are local-only (Storage).
+Papers and saved web pages (2026-11-22): `13-Papers` and `14-Web Pages` hold the sources the evidence documents cite, each listed in the manifest with its title, URL and citing documents; all are local-only (Storage).
 
 Downloads (15 PDFs); sources are linked beside each, and edition details and checksums are in the manifest.
 
