@@ -6,7 +6,8 @@ so the public repository never sees it. Maintainer only; the user pushes.
 
   init           create it, once per clone; restores the files the private repository has and this clone lacks
   status         files not yet saved
-  commit [-m M]  save every new or changed file and print the push command
+  commit [-m M]  save every new or changed file and print the push command; from a worktree it first copies the
+                 manifest files the main checkout lacks there (/finish runs it)
   fetch          download each manifest entry missing here from its download_url and verify its SHA-256
                  (for a contributor's pull request); a failure is listed for the user to supply in 00-Inbox/
 """
@@ -15,13 +16,15 @@ import datetime
 import hashlib
 import json
 import shlex
+import shutil
 import subprocess
 import sys
 import urllib.request
 from pathlib import Path
 
 REMOTE = 'https://github.com/Ausp3x/CompProg-Library-Sources.git'
-COMMON = Path(subprocess.run(['git', '-C', str(Path(__file__).resolve().parent), 'rev-parse', '--path-format=absolute',
+HERE = Path(__file__).resolve().parent
+COMMON = Path(subprocess.run(['git', '-C', str(HERE), 'rev-parse', '--path-format=absolute',
                               '--git-common-dir'], capture_output=True, text=True, check=True).stdout.strip())
 WORK, GITDIR = COMMON.parent / '95-Resources', COMMON / 'sources'
 
@@ -54,6 +57,13 @@ def init():
 
 
 def commit(message):
+    if HERE != WORK:  # a worktree: its git-ignored sources would vanish with it, so copy the new ones to the main checkout
+        for e in json.loads((HERE / '99-sources.json').read_text())['resources']:
+            src, dst = HERE / e['file'], WORK / e['file']
+            if src.exists() and not dst.exists():
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dst)
+                print('copied from the worktree:', e['file'])
     git('add', '-A')
     if git('diff', '--cached', '--quiet', check=False) == 0:
         print('nothing to save')
