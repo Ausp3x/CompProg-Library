@@ -1,5 +1,5 @@
 {
-  "description": "Reference files and where they came from. Public author/project downloads of 2026-09-27 (user-provided files of that date are not listed), and the papers and saved web pages of 2026-11-22 under 13-Papers and 14-Web Pages, cited by evidence documents; `committed` says whether the file is in git (00-index.md, Storage).",
+  "description": "Reference files and where they came from. Public author/project downloads of 2026-09-27 (user-provided files of that date are not listed), and the papers and saved web pages of 2026-11-22 under 13-Papers and 14-Web Pages, cited by evidence documents; `committed` says whether the file is in the public repository; every file is in the private CompProg Library Sources (00-index.md, Storage).",
   "retrieved_on": "2026-09-27",
   "verification": "PDF signature, pdfinfo page count, opening-page text extraction, title/author spot checks and SHA-256; no claim of algorithm correctness or exhaustive reading.",
   "resources": [
@@ -322,8 +322,8 @@
       "sha256": "3e167f21bb92acd53f8defa917dda6c757aa964a8616bbd45eb31bcbe707db64",
       "cited_in": "02-Data Structures/Docs/00-sources.md:9",
       "provided_by": "user",
-      "reuse_note": "CC BY 4.0 (arXiv 2406.06321); committed.",
-      "committed": true
+      "reuse_note": "CC BY 4.0 (arXiv 2406.06321); redistributable, but 13-Papers and 14-Web Pages stay local (00-index.md, Storage).",
+      "committed": false
     },
     {
       "file": "13-Papers/07-partial_sums_off_line-chazelle_1991.pdf",
@@ -910,8 +910,8 @@
       "sha256": "c68886e7bbd7576e6a2f725bca73f026c738475c8a61d66010cee57eae80dbec",
       "cited_in": "01-Core/Docs/00-sources.md:22",
       "provided_by": "user",
-      "reuse_note": "AtCoder Library documentation, CC0 1.0 (repository LICENSE); committed.",
-      "committed": true
+      "reuse_note": "AtCoder Library documentation, CC0 1.0 (repository LICENSE); redistributable, but 13-Papers and 14-Web Pages stay local (00-index.md, Storage).",
+      "committed": false
     },
     {
       "file": "14-Web Pages/07-codeforces_blog_83467-queue_like_undoing.pdf",

@@ -47,6 +47,7 @@ python3 '96-Local Testing/<folder>/<NN-name>_tester.py' --mode full --seed 1
 python3 '96-Local Testing/02-integration.py' --sanitizers
 python3 '96-Local Testing/03-consistency.py'             # runs automatically after edits to Markdown, plan, headers, modules
 python3 '96-Local Testing/04-mutation.py' run <header>   # mutation campaign, /package step 6; check <header>... for records
+python3 '95-Resources/00-sources.py' commit             # back up new resources to the private repository (95-Resources/00-index.md, Storage)
 python3 '96-Local Testing/06-compare.py' run '96-Local Testing/01-Core/<NN-name>_compare.cpp' --gate   # Core full speed A/B against HEAD (05-testing.md, Benchmarks)
 python3 '97-Online Testing/03-workspace.py' --check      # workspace template is generated; never hand-edit
 ```
