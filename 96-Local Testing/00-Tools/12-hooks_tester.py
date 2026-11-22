@@ -68,23 +68,31 @@ typed target's and the branch's both, an existing ledger without a package, none
 else the working directory; the 9000-character cap; exit 0 and no stderr on garbage, empty, binary, non-object and
 wrong-typed stdin; the compact mode reading the same target and ledger -> test_precompact;
 notify.py: title from the newest custom-title record (compact or spaced JSON, escapes, whitespace stripped), not from a
-tool result quoting one, nor from one before the transcript's last MiB; fallback '<checkout folder> (<branch>)' for a
+tool result quoting one, also one 2 MiB before the end; fallback '<checkout folder> (<branch>)' for a
 missing, title-less or wrong-typed transcript, a subfolder, another branch, detached HEAD (folder only), a non-git
 folder, a missing or wrong-typed cwd (the working directory); why-text per notification_type with and without message;
 header and body cuts at 120 and 300 characters; garbage stdin still notifies 'needs attention'; no notify-send on PATH,
 notify-send failing or hanging -> exit 0, no output -> test_notify; in VS Code's terminal on Linux (fake notify-send
-answering --help with NOTIFY_HELP, held by NOTIFY_GATE, logging its session id, writing NOTIFY_TOKEN to the token fd and
-printing NOTIFY_ACTION; fake code logging its argv, token variables and which session variables reached it), the hook
-returns before the helper notifies, the helper runs in its own session with a default action, a click runs code on the
+answering --help with NOTIFY_HELP, held by NOTIFY_GATE, logging its session id and printing NOTIFY_ACTION; fake code
+logging its argv, token variables and which session variables reached it), the hook
+returns before the helper notifies, the helper runs in its own session with CP_REAP_KEEP=1 and a default action, a click
+runs code (or an editor's own launcher found from VSCODE_GIT_ASKPASS_MAIN's product.json, in either bin folder, its
+storage folder named by nameShort) on the
 deepest open window folder of storage.json holding cwd (deeper listed first or last, a percent-encoded space, a
-sibling sharing a name prefix; unreadable or odd storage: the main checkout, also from a linked worktree), with the
-token, none, or without the fd option on an older notify-send, stale token and session variables dropped
-(VSCODE_IPC_HOOK_CLI kept), a dismissal runs nothing; outside VS Code, without code or without --action the plain
+sibling sharing a name prefix; unreadable or odd storage: the main checkout, also from a linked worktree), inherited
+activation tokens and session variables dropped (VSCODE_IPC_HOOK_CLI kept), a dismissal runs nothing; outside VS Code, without code or without --action the plain
 notification -> test_notify_click; command() with stubbed notifiers: macOS terminal-notifier with and without the
 `open -b` click, osascript without one, none; WSL and Windows PowerShell toasts decoded (protocol launch URI with distro
 and quoting, an ASCII-only XML literal without quote marks for any title, no click without focus or distro), the fixed
-powershell.exe path from WSL, no PowerShell; detect() on WSL kernels and variables; the helper giving up after WAIT
--> test_notify_platforms.
+powershell.exe path from WSL, no PowerShell; detect() on WSL kernels and variables; the helper giving up after WAIT;
+editor() on a missing, short, unreadable, non-object or partly wrong-typed product.json; cli() in either bin folder,
+executable only, else PATH; folders() on Windows (drive-letter file URIs, no APPDATA) and WSL (this distribution's
+vscode-remote URIs, any case, from Windows' storage of every user, a glob-special editor name, no distribution name),
+window() on WSL; title() at every chunk size from 1 byte, across boundaries, without a final newline, non-ASCII
+-> test_notify_platforms;
+guard.py refuses Edit, Write and NotebookEdit under any .git (config, hooks, a worktree's .git file, another repository,
+relative, through a symlink, any case), reads and look-alike names pass -> test_guard_git; pre refuses .git/config,
+.git/hooks and worktree config paths in any case and with repeated slashes or /./, and git config includes -> test_pre_push.
 """
 import argparse
 import base64
@@ -147,26 +155,26 @@ def target(root, arg=''):
     return key, pkg, [batch] if batch else pkg['batches'] if pkg else [], warning
 '''
 FAKE_NOTIFY = '''#!/bin/sh
-if [ "$1" = --help ]; then printf '%s\\n' "${NOTIFY_HELP---action --activation-token-fd}"; exit 0; fi
+if [ "$1" = --help ]; then printf '%s\\n' "${NOTIFY_HELP---action}"; exit 0; fi
 i=0
 while [ -n "$NOTIFY_GATE" ] && [ ! -e "$NOTIFY_GATE" ] && [ $i -lt 400 ]; do sleep 0.05; i=$((i + 1)); done
 printf '%s\\0' "$@" >> "$NOTIFY_LOG"
 printf '\\036' >> "$NOTIFY_LOG"
-[ -n "$NOTIFY_SID" ] && ps -o sid= -p $$ | tr -d ' ' > "$NOTIFY_SID"
+[ -n "$NOTIFY_SID" ] && printf '%s %s' "$(ps -o sid= -p $$ | tr -d ' ')" "${CP_REAP_KEEP:-none}" > "$NOTIFY_SID"
 [ -n "$NOTIFY_SLEEP" ] && exec sleep "$NOTIFY_SLEEP"
-for a; do case $a in --activation-token-fd=*) eval "printf '%s' \\"\\$NOTIFY_TOKEN\\" >&${a#*=}";; esac; done
 case " $* " in *" --action=default=Open "*) printf '%s\\n' "${NOTIFY_ACTION-default}";; esac
 exit "${NOTIFY_EXIT:-0}"
 '''
 FAKE_CODE = '''#!/bin/sh
 {
 printf '%s\\0' "$@" "token=$XDG_ACTIVATION_TOKEN" "startup=$DESKTOP_STARTUP_ID"
-for v in CLAUDECODE CLAUDE_PID CP_USER AI_AGENT VSCODE_GIT_IPC_HANDLE VSCODE_IPC_HOOK_CLI; do eval "[ -n \\"\\${$v+x}\\" ]" && printf '%s\\0' $v; done
+for v in CLAUDECODE CLAUDE_PID CP_USER CP_REAP_KEEP AI_AGENT VSCODE_GIT_IPC_HANDLE VSCODE_IPC_HOOK_CLI; do eval "[ -n \\"\\${$v+x}\\" ]" && printf '%s\\0' $v; done
 } > "$CODE_LOG.part"
 mv "$CODE_LOG.part" "$CODE_LOG"
 '''
 TOOLS = ('git', 'mv', 'ps', 'tr', 'sleep')  # what the fakes and notify.py run besides themselves, without the real code
-SESSION_VARS = {v: 'x' for v in ('CLAUDECODE', 'CLAUDE_PID', 'CP_USER', 'AI_AGENT', 'VSCODE_GIT_IPC_HANDLE', 'VSCODE_IPC_HOOK_CLI')}
+SESSION_VARS = {v: 'x' for v in ('CLAUDECODE', 'CLAUDE_PID', 'CP_USER', 'CP_REAP_KEEP', 'AI_AGENT', 'VSCODE_GIT_IPC_HANDLE',
+                                 'VSCODE_IPC_HOOK_CLI')}
 PRE_HEAD = 'Compaction instructions from .claude/hooks/resume.py (CLAUDE.md, Compact Instructions).'
 PRE_KEEP = ('Keep the package or batch id, the skill and step in progress, decisions made and by whom, operations done and '
             'remaining, failing reproducers with seeds, and the exact next step. Drop file contents, passing test output and '
@@ -491,7 +499,13 @@ class Hooks(unittest.TestCase):
                   ('git config --unset core.hooksPath', '--unset core.hooksPath'), ('git config unset core.hookspath', 'unset core.hookspath'),
                   ('git config --unset-all core.hooksPath', '--unset-all core.hooksPath'), ('git config --remove-section core', '--remove-section core'),
                   ("env -i sh -c 'git push o b'", 'env -i'), ('env -u X -i git status', 'env -u X -i'), ('env --ignore-environment ls', 'env --ignore-environment'),
-                  ('env - PATH=/bin sh', 'env -'), ('env A=1 -i ls', 'env A=1 -i'), ('env -i git' + ' push', 'env -i'))
+                  ('env - PATH=/bin sh', 'env -'), ('env A=1 -i ls', 'env A=1 -i'), ('env -i git' + ' push', 'env -i'),
+                  ("sed -i 's/x/y/' .git/config", '.git/config'), ('cat > repo/.git/config.worktree', '.git/config'),
+                  ('rm .git/hooks/pre-push', '.git/hooks'), ("printf x > '.git/hooks/pre-commit'", '.git/hooks'),
+                  ('cat .git//config', '.git//config'), ('rm .git/./hooks/x', '.git/./hooks'), ('vi .GIT/Config', '.GIT/Config'),
+                  ('ed .git/worktrees/wt/config.worktree', '.git/worktrees/wt/config'),
+                  ('ed x.git//.//worktrees//a//config', '.git//.//worktrees//a//config'),
+                  ('git config include.path ../x', 'include.path'), ('git config includeIf.gitdir:/x/.path y', 'includeIf.'))
         for tool in ('Bash', 'Monitor'):
             for cmd, text in bypass:
                 payload = {'session_id': 's', 'tool_use_id': 'toolu_u', 'tool_name': tool, 'tool_input': {'command': cmd}}
@@ -499,7 +513,8 @@ class Hooks(unittest.TestCase):
                 self.assertFalse((self.repo / '.claude/hooks/.state/toolu_u.json').exists(), cmd)
         for cmd in ('echo CP_USERS', 'echo XCP_USER', 'echo MY_CP_USER_2', 'git config core.hooksPath', 'git config --get core.hooksPath; ls',
                     'echo --no-verifyx', 'echo CLAUDE_CODE_CHILD_SESSIONS', 'env A=1 grep -i x f', 'environ -i', 'env -u X ls',
-                    'git config --get-regexp core'):
+                    'git config --get-regexp core', 'ls .github/workflows', 'cat .gitconfig.bak', 'ls .git/refs', 'ls .git/.hooks',
+                    'ls .git/worktrees/wt/HEAD', 'echo included.path', 'ls .gitconfig', 'cat src/config'):
             payload = {'session_id': 's', 'tool_use_id': 'toolu_v', 'tool_name': 'Bash', 'tool_input': {'command': cmd}}
             self.assertIsNone(self.hook('shell.py', 'pre', payload=payload), cmd)
             self.assertIsNone(self.hook('shell.py', 'post', payload=payload), cmd)
@@ -605,7 +620,7 @@ class Hooks(unittest.TestCase):
         """(exit code, stdout and stderr, [argv of each notify-send call]) of notify.py, the fake notify-send first on PATH."""
         log = self.tmp / 'notify.log'
         log.unlink(missing_ok=True)
-        e = {k: v for k, v in self.env.items() if k not in ('TERM_PROGRAM', 'WSL_DISTRO_NAME')} | {
+        e = {k: v for k, v in self.env.items() if k not in ('TERM_PROGRAM', 'WSL_DISTRO_NAME') and not k.startswith('VSCODE_')} | {
             'PATH': path or f'{self.tmp / "bin"}{os.pathsep}{Path(shutil.which("git")).parent}', 'NOTIFY_LOG': str(log),
             'XDG_CONFIG_HOME': str(self.tmp / 'config')} | env
         rc, out, err = self.script('notify.py', raw=raw if raw is not None else json.dumps(payload), cwd=cwd or self.tmp / 'plain dir', env=e)
@@ -646,8 +661,8 @@ class Hooks(unittest.TestCase):
         rc, out, calls = self.notify(base | {'transcript_path': str(t), 'notification_type': 'idle_prompt', 'message': 'm' * 400})
         self.assertEqual((rc, out, calls), (0, '', [[app, ('Claude Code · ' + 'T' * 200)[:120], ('waits for your input: ' + 'm' * 400)[:300]]]))
         filler = json.dumps({'type': 'assistant', 'message': {'content': 'y' * (1 << 20)}}) + '\n'
-        t.write_text(title('Lost') + filler)
-        sent('repo (master)', 'waits for your input', transcript_path=str(t), notification_type='idle_prompt')
+        t.write_text(title('Early') + filler + filler)
+        sent('Early', 'waits for your input', transcript_path=str(t), notification_type='idle_prompt')
         t.write_text(title('Lost') + filler + title('Found'))
         sent('Found', 'waits for your input', transcript_path=str(t), notification_type='idle_prompt')
         for tp in ({}, {'transcript_path': str(self.tmp / 'missing.jsonl')}, {'transcript_path': str(self.transcript(quote))}, {'transcript_path': 5.5}):
@@ -697,8 +712,8 @@ class Hooks(unittest.TestCase):
 
     def test_notify_click(self):
         """Linux in VS Code's terminal: the hook returns at once, a detached helper in its own session notifies with a
-        default action and, on a click, runs `code <window folder>` with the daemon's token and without the session's
-        variables."""
+        default action and, on a click, runs `code <window folder>` without the session's variables and inherited
+        activation tokens."""
         self.write('.claude/hooks/notify.py', (HOOKS / 'notify.py').read_text())
         path = self.fakes()
         log, code_log, gate, sid = self.tmp / 'notify.log', self.tmp / 'code.log', self.tmp / 'gate', self.tmp / 'sid'
@@ -711,7 +726,7 @@ class Hooks(unittest.TestCase):
         def uri(d):
             return 'file://' + quote(str(d))
 
-        def clicked(want, cwd=None, windows=None, storage=None, header='repo (master)', fd=True, **env):
+        def clicked(want, cwd=None, windows=None, storage=None, header='repo (master)', name='Code', bins=None, **env):
             for f in (code_log, gate, sid):
                 f.unlink(missing_ok=True)
             config = self.tmp / 'config'
@@ -720,31 +735,28 @@ class Hooks(unittest.TestCase):
                 storage = json.dumps({'windowsState': {'lastActiveWindow': {'folder': uri(windows[0])},
                                                        'openedWindows': [{'folder': uri(d)} for d in windows[1:]]}})
             if storage is not None:
-                (config / 'Code/User/globalStorage').mkdir(parents=True)
-                (config / 'Code/User/globalStorage/storage.json').write_text(storage)
-            env = SESSION_VARS | {'TERM_PROGRAM': 'vscode', 'CODE_LOG': str(code_log), 'NOTIFY_TOKEN': 'tok', 'NOTIFY_GATE': str(gate),
+                (config / name / 'User/globalStorage').mkdir(parents=True)
+                (config / name / 'User/globalStorage/storage.json').write_text(storage)
+            env = SESSION_VARS | {'TERM_PROGRAM': 'vscode', 'CODE_LOG': str(code_log), 'NOTIFY_GATE': str(gate),
                                   'NOTIFY_SID': str(sid), 'XDG_ACTIVATION_TOKEN': 'stale', 'DESKTOP_STARTUP_ID': 'stale'} | env
-            self.assertEqual(self.notify(payload | ({'cwd': cwd} if cwd else {}), path=path, **env), (0, '', []),
+            self.assertEqual(self.notify(payload | ({'cwd': cwd} if cwd else {}), path=bins or path, **env), (0, '', []),
                              'the hook returns before the helper notifies')
             gate.touch()
             self.assertTrue(self.wait(sid), 'the helper notifies')
-            self.assertNotEqual(sid.read_text().strip(), str(os.getsid(0)), 'the helper runs in its own session')
+            helper, keep = sid.read_text().split()
+            self.assertNotEqual(helper, str(os.getsid(0)), 'the helper runs in its own session')
+            self.assertEqual(keep, '1', 'CP_REAP_KEEP: /reap leaves the bounded helper alone')
             argv = log.read_text().split('\x1e')[0].split('\0')[:-1]
-            self.assertEqual([a for a in argv if not a.startswith('--activation-token-fd=')],
-                             ['--app-name=Claude Code', '--action=default=Open', f'Claude Code · {header}', 'waits for your input'])
-            self.assertEqual(len(argv), 5 if fd else 4)
-            if fd:
-                self.assertRegex(argv[2], r'^--activation-token-fd=\d+$')
+            self.assertEqual(argv, ['--app-name=Claude Code', '--action=default=Open', f'Claude Code · {header}', 'waits for your input'])
             if want is None:
                 time.sleep(1)
                 self.assertFalse(code_log.exists(), 'no click: VS Code is left alone')
             else:
                 self.assertTrue(self.wait(code_log), 'a click runs code')
                 self.assertEqual(code_log.read_text().split('\0')[:-1], want)
-        tok = ['token=tok', 'startup=tok'] + kept
+        tok = ['token=', 'startup='] + kept  # inherited activation tokens never reach code
         clicked([str(self.repo)] + tok)
-        clicked([str(self.repo), 'token=', 'startup='] + kept, NOTIFY_TOKEN='')
-        clicked([str(self.repo), 'token=', 'startup='] + kept, fd=False, NOTIFY_HELP='--action')
+        clicked([str(self.repo)] + tok, NOTIFY_HELP='--urgency --action --wait')
         clicked(None, NOTIFY_ACTION='')
         clicked([str(self.repo / '05-M')] + tok, windows=[self.tmp, self.repo / '05-M'])
         clicked([str(self.repo / '05-M')] + tok, windows=[self.repo / '05-M', self.tmp], cwd=str(self.repo / '05-M/'))
@@ -757,14 +769,50 @@ class Hooks(unittest.TestCase):
         wt = self.tmp / 'wt'
         git(self.repo, 'worktree', 'add', '-q', '-b', 'P900-SUP32-wt', str(wt))
         clicked([str(self.repo)] + tok, cwd=str(wt), header='wt (P900-SUP32-wt)')
-        plain = [['--app-name=Claude Code', 'Claude Code · repo (master)', 'waits for your input']]
+        app = self.tmp / 'cursor app'  # an editor built from VS Code, found from its git extension's askpass script
+        (app / 'resources/app/extensions/git/dist').mkdir(parents=True)
+        (app / 'resources/app/product.json').write_text(json.dumps({'nameShort': 'Cursor', 'applicationName': 'cursor', 'urlProtocol': 'cursor'}))
+        (app / 'bin').mkdir()
+        shutil.copy(self.tmp / 'bin/code', app / 'bin/cursor')
+        askpass = {'VSCODE_GIT_ASKPASS_MAIN': str(app / 'resources/app/extensions/git/dist/askpass-main.js')}
         no_code = self.tmp / 'nocode'
         no_code.mkdir()
         for f in ('notify-send', *TOOLS):
             (no_code / f).symlink_to(self.tmp / 'bin' / f)
+        clicked([str(self.repo / '05-M')] + tok, windows=[self.repo / '05-M'], name='Cursor', bins=str(no_code), **askpass)
+        clicked([str(self.repo)] + tok, windows=[self.repo / '05-M'], name='Code', bins=str(no_code), **askpass)
+        (app / 'bin/cursor').unlink()
+        (app / 'resources/app/bin').mkdir()
+        shutil.copy(self.tmp / 'bin/code', app / 'resources/app/bin/cursor')
+        clicked([str(self.repo)] + tok, bins=str(no_code), **askpass)
+        plain = [['--app-name=Claude Code', 'Claude Code · repo (master)', 'waits for your input']]
         for env, why in (({'path': path}, 'outside VS Code'), ({'TERM_PROGRAM': 'vscode', 'path': str(no_code)}, 'no code on PATH'),
                          ({'TERM_PROGRAM': 'vscode', 'path': path, 'NOTIFY_HELP': '--urgency'}, 'notify-send without --action')):
             self.assertEqual(self.notify(payload, CODE_LOG=str(code_log), **env), (0, '', plain), why)
+
+    def test_guard_git(self):
+        """guard.py refuses Edit, Write and NotebookEdit of any path through a .git file or folder, in this or another
+        repository, absolute or relative, also through a symlink; reads and look-alike names pass."""
+        self.write('.claude/hooks/guard.py', (HOOKS / 'guard.py').read_text())
+        git(self.repo, 'worktree', 'add', '-q', '-b', 'P900-SUP32-g', str(self.tmp / 'wt'))
+        other = self.tmp / 'other'
+        git(self.tmp, 'init', '-q', str(other))
+        (self.tmp / 'link').symlink_to(self.repo / '.git')
+        deny = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason':
+                "Git's own files (.git/) are not edited with Edit or Write: their config names the hooks that guard pushes and "
+                'commits (CLAUDE.md, Git). Use git commands instead.'}}
+
+        def run(tool, path, key='file_path'):
+            return self.hook('guard.py', payload={'tool_name': tool, 'tool_input': {key: str(path)}})
+        for tool in ('Edit', 'Write'):
+            for path in (self.repo / '.git/config', self.repo / '.git/hooks/pre-push', '.git/config', self.tmp / 'wt/.git',
+                         other / '.git/config', self.tmp / 'link/config', self.repo / '.git/new/file', self.repo / '.GIT/config',
+                         self.repo / '.Git/hooks/x'):
+                self.assertEqual(run(tool, path), deny, (tool, path))
+        self.assertEqual(run('NotebookEdit', self.repo / '.git/x.ipynb', 'notebook_path'), deny)
+        for tool, path in (('Read', self.repo / '.git/config'), ('Edit', self.repo / '.github/workflows/x.yml'),
+                           ('Write', self.repo / '.gitignore'), ('Edit', self.repo / 'a.git/config'), ('Write', other / 'x.txt')):
+            self.assertIsNone(run(tool, path), (tool, path))
 
     def test_notify_platforms(self):
         """command() with stubbed notifiers on macOS, Windows and WSL; detect(); the helper's wait bound."""
@@ -777,13 +825,13 @@ class Hooks(unittest.TestCase):
         head, body = 'Claude Code · <a&b> "q" it\'s ’‘‚‛ ü', 'waits for your input'
         folder = self.tmp / 'My Repo'
         folder.mkdir()
-        n.STORAGE = self.tmp / 'no-storage'
+        n.WIN_USERS = self.tmp / 'Users'
 
-        def argv(system, focus=True, **t):
+        def argv(system, focus=True, product=None, app=None, **t):
             n.SYSTEM = system
             tools.clear()
             tools.update(t)
-            return n.command(head, body, str(folder), focus)
+            return n.command(head, body, str(folder), (dict(n.VSCODE) if product is None else product) if focus else None, app)
 
         def script(a):
             self.assertEqual(a[1:4], ['-NoProfile', '-NonInteractive', '-EncodedCommand'])
@@ -795,6 +843,13 @@ class Hooks(unittest.TestCase):
         self.assertEqual(argv('darwin', **{'terminal-notifier': '/tn'}),
                          ['/tn', '-title', *tn, '-execute', f"open -b com.microsoft.VSCode '{folder}'"])
         self.assertEqual(argv('darwin', False, **{'terminal-notifier': '/tn'}), ['/tn', '-title', *tn])
+        cursor = {'nameShort': 'Cursor', 'applicationName': 'cursor', 'urlProtocol': 'cursor'}
+        bundle = self.tmp / 'Cursor B.app'
+        self.assertEqual(argv('darwin', product=cursor, app=bundle / 'Contents/Resources/app', **{'terminal-notifier': '/tn'}),
+                         ['/tn', '-title', *tn, '-execute', f"open -a '{bundle}' '{folder}'"], 'another editor: its own app bundle')
+        for product, app, why in ((cursor, self.tmp / 'Cursor/resources/app', 'an editor outside an app bundle'),
+                                  ({}, bundle / 'Contents/Resources/app', 'a product.json without nameShort')):
+            self.assertEqual(argv('darwin', product=product, app=app, **{'terminal-notifier': '/tn'}), ['/tn', '-title', *tn], why)
         self.assertEqual(argv('darwin', osascript='/osa'), ['/osa', '-e', 'on run argv', '-e', 'display notification (item 2 of argv) with title '
                                                              '(item 1 of argv)', '-e', 'end run', head, body], 'osascript: no click')
         self.assertFalse(argv('darwin'), 'macOS without a notifier')
@@ -806,6 +861,10 @@ class Hooks(unittest.TestCase):
             self.assertIn(xml, s)
             self.assertIn("CreateToastNotifier('" + n.AUMID + "')", s)
             self.assertIn('<toast><visual>', script(argv('wsl', False, **{'powershell.exe': '/ps.exe'})))
+            self.assertIn(f'launch="cursor://vscode-remote/wsl+Ubuntu%2024{quote(str(folder))}"',
+                          script(argv('wsl', product=cursor, **{'powershell.exe': '/ps.exe'})))
+            self.assertIn('<toast><visual>', script(argv('wsl', product={'nameShort': 'Cursor'}, **{'powershell.exe': '/ps.exe'})),
+                          'no urlProtocol: no click')
             n.WIN_PS = self.tmp / 'powershell.exe'
             self.assertFalse(argv('wsl'), 'WSL without powershell.exe')
             n.WIN_PS.touch()
@@ -816,7 +875,11 @@ class Hooks(unittest.TestCase):
         a = argv('win32', powershell='/ps')
         self.assertEqual(a[0], '/ps')
         self.assertIn(f'launch="vscode://file{quote(str(folder))}"', script(a))
-        self.assertEqual(n.link(Path('C:/Users/x/My Repo')), 'vscode://file/C:/Users/x/My%20Repo')
+        self.assertEqual(n.link(n.PureWindowsPath('C:/Users/x/My Repo'), n.VSCODE), 'vscode://file/C:/Users/x/My%20Repo')
+        self.assertEqual(n.link(n.PureWindowsPath('C:/x'), {'urlProtocol': 'cursor'}), 'cursor://file/C:/x')
+        self.assertIsNone(n.link(n.PureWindowsPath('C:/x'), {}))
+        self.assertIn(f'launch="cursor://file{quote(str(folder))}"', script(argv('win32', product=cursor, powershell='/ps')))
+        self.assertIn('<toast><visual>', script(argv('win32', product={}, powershell='/ps')), 'no urlProtocol: no click')
         self.assertFalse(argv('win32'), 'Windows without PowerShell')
         for env, release, plat, want in (({}, '6.6.87.2-microsoft-standard-WSL2', 'linux', 'wsl'), ({'WSL_DISTRO_NAME': 'U'}, '7.2', 'linux', 'wsl'),
                                          ({}, '7.2.11-arch1-1', 'linux', 'linux'), ({}, '24.1.0', 'darwin', 'darwin'), ({}, '10', 'win32', 'win32')):
@@ -827,9 +890,122 @@ class Hooks(unittest.TestCase):
         n.WAIT = 1
         with unittest.mock.patch.dict(os.environ, {'NOTIFY_LOG': str(self.tmp / 'n.log'), 'NOTIFY_SLEEP': '30', 'CODE_LOG': str(code_log)}):
             start = time.monotonic()
-            n.click(str(self.tmp / 'bin/notify-send'), str(self.tmp / 'bin/code'), str(folder), '1', 'h', 'b')
+            n.click(str(self.tmp / 'bin/notify-send'), str(self.tmp / 'bin/code'), str(folder), 'h', 'b')
             self.assertLess(time.monotonic() - start, 8, 'the helper gives up after WAIT')
         self.assertFalse(code_log.exists(), 'no click before the wait ended')
+        self.notify_editor(n, folder)
+        self.notify_title(n)
+
+    def notify_editor(self, n, folder):
+        """editor(), cli(), folders() and window() of the imported module: the product found from the askpass script,
+        its launcher, and the window folders of Windows (file URIs) and WSL (this distribution's vscode-remote URIs)."""
+        app = self.tmp / 'app'
+        (app / 'resources/app/extensions/git/dist').mkdir(parents=True)
+        product = app / 'resources/app/product.json'
+        main = str(app / 'resources/app/extensions/git/dist/askpass-main.js')
+        cursor = {'nameShort': 'Cursor', 'applicationName': 'cursor', 'urlProtocol': 'cursor'}
+        ask = {'VSCODE_GIT_ASKPASS_MAIN': main}
+        for env, text, want in (({}, None, n.VSCODE), (ask, None, n.VSCODE), ({'VSCODE_GIT_ASKPASS_MAIN': '/a.js'}, None, n.VSCODE),
+                                (ask, 'not json', n.VSCODE), (ask, '[1]', n.VSCODE), (ask, json.dumps(cursor), cursor),
+                                (ask, json.dumps(cursor | {'nameLong': 'Cursor', 'urlProtocol': 5, 'darwinBundleIdentifier': 'x'}),
+                                 {'nameShort': 'Cursor', 'applicationName': 'cursor'}),
+                                (ask, json.dumps({'nameShort': '', 'applicationName': 'cursor', 'urlProtocol': None}), {'applicationName': 'cursor'}),
+                                (ask, '{}', {})):
+            product.unlink(missing_ok=True)
+            if text is not None:
+                product.write_text(text)
+            with unittest.mock.patch.dict(os.environ, env):
+                if not env:
+                    os.environ.pop('VSCODE_GIT_ASKPASS_MAIN', None)
+                got, where = n.editor()
+            self.assertEqual(got, want, (env, text))
+            self.assertEqual(where, app / 'resources/app' if text and text.startswith('{') else None, (env, text))
+        n.shutil.which = {'cursor': '/path/cursor'}.get
+        self.assertEqual(n.cli(cursor, None), '/path/cursor')
+        self.assertIsNone(n.cli(n.VSCODE, app / 'resources/app'))
+        n.shutil.which = {'cursor': '/path/cursor', 'code': '/path/code'}.get
+        self.assertIsNone(n.cli({}, app / 'resources/app'), 'no applicationName')
+        for d in (app / 'bin', app / 'resources/app/bin'):
+            d.mkdir()
+            (d / 'cursor').mkdir()
+            self.assertEqual(n.cli(cursor, app / 'resources/app'), '/path/cursor', 'a folder named like the launcher')
+            (d / 'cursor').rmdir()
+            (d / 'cursor').write_text('#!/bin/sh\n')
+            (d / 'cursor').chmod(0o644)
+            self.assertEqual(n.cli(cursor, app / 'resources/app'), '/path/cursor', 'not executable')
+            (d / 'cursor').chmod(0o755)
+            self.assertEqual(n.cli(cursor, app / 'resources/app'), str(d / 'cursor'))
+            (d / 'cursor').unlink()
+        state = {'windowsState': {'lastActiveWindow': {'folder': 'file:///c%3A/Users/x/My%20Repo'},
+                                  'openedWindows': [{'folder': 'vscode-remote://wsl%2Bubuntu/srv/u/repo'}, {'folder': 'file:///d%3A/y'},
+                                                    {'folder': 'vscode-remote://wsl+Debian' + quote(str(folder))},
+                                                    {'folder': 'vscode-remote://wsl%2BUbuntu' + quote(str(folder))}, {}]}}
+        appdata = self.tmp / 'appdata'
+        (appdata / 'Code/User/globalStorage').mkdir(parents=True)
+        (appdata / 'Code/User/globalStorage/storage.json').write_text(json.dumps(state))
+        n.SYSTEM = 'win32'
+        with unittest.mock.patch.dict(os.environ, {'APPDATA': str(appdata)}):
+            got = n.folders('Code')
+            self.assertEqual(got, [n.PureWindowsPath('c:/Users/x/My Repo'), n.PureWindowsPath('d:/y')])
+            self.assertIn(got[0], n.PureWindowsPath('C:/USERS/x/my repo/sub').parents, 'Windows paths compare without case')
+            self.assertEqual(n.folders('Cursor'), [])
+        with unittest.mock.patch.dict(os.environ, {}):
+            os.environ.pop('APPDATA', None)
+            self.assertEqual(n.folders('Code'), [], 'no APPDATA')
+        n.SYSTEM = 'wsl'
+        roaming = n.WIN_USERS / 'alice/AppData/Roaming/Cursor [1]/User/globalStorage'
+        roaming.mkdir(parents=True)
+        (roaming / 'storage.json').write_text(json.dumps(state))
+        (folder / 'sub').mkdir()
+        with unittest.mock.patch.dict(os.environ, {'WSL_DISTRO_NAME': 'ubuntu'}):
+            self.assertEqual(n.folders('Cursor [1]'), [n.PurePosixPath('/srv/u/repo'), n.PurePosixPath(folder)])
+            self.assertEqual(n.window(str(folder / 'sub'), 'Cursor [1]'), n.PurePosixPath(folder))
+            self.assertEqual(n.folders('Code'), [])
+            ps = n.command('h', 'b', str(folder / 'sub'), {'nameShort': 'Cursor [1]', 'urlProtocol': 'cursor'}, None)
+            self.assertIn(f'launch="cursor://vscode-remote/wsl+ubuntu{quote(str(folder))}"',
+                          base64.b64decode(ps[4]).decode('utf-16-le'), "the window of the product's own nameShort")
+        with unittest.mock.patch.dict(os.environ, {'WSL_DISTRO_NAME': ''}):
+            self.assertEqual(n.folders('Cursor [1]'), [], 'no distribution name')
+        unix = {'folder': 'file://' + quote(str(folder))}
+        home, xdg = self.tmp / 'home', self.tmp / 'xdg'
+        for base in (home / '.config/Code', xdg / 'Code', home / 'Library/Application Support/Code', xdg / 'None'):
+            (base / 'User/globalStorage').mkdir(parents=True)
+            (base / 'User/globalStorage/storage.json').write_text(json.dumps({'windowsState': {'openedWindows': [unix]}}))
+            unix = {'folder': 'file:///other'}
+        with unittest.mock.patch.object(n.Path, 'home', staticmethod(lambda: home)):
+            for system, env, want in (('linux', {'XDG_CONFIG_HOME': str(xdg)}, '/other'), ('linux', {'XDG_CONFIG_HOME': ''}, str(folder)),
+                                      ('linux', {}, str(folder)), ('darwin', {'XDG_CONFIG_HOME': str(xdg)}, '/other')):
+                n.SYSTEM = system
+                with unittest.mock.patch.dict(os.environ, env):
+                    if not env:
+                        os.environ.pop('XDG_CONFIG_HOME', None)
+                    self.assertEqual(n.folders('Code'), [n.PurePosixPath(want)], (system, env))
+            n.SYSTEM = 'linux'
+            with unittest.mock.patch.dict(os.environ, {'XDG_CONFIG_HOME': str(xdg)}):
+                for name in ('', None):
+                    self.assertEqual(n.folders(name), [], 'no editor name')
+            self.assertEqual(n.window(str(folder / 'sub'), None), n.PurePosixPath(folder / 'sub'), 'no name: git, else cwd')
+
+    def notify_title(self, n):
+        """title() reading backwards in chunks: the newest custom-title record at every chunk size, across chunk
+        boundaries and long lines, never a quoted one."""
+        def rec(name):
+            return json.dumps({'type': 'custom-title', 'customTitle': name}).encode() + b'\n'
+        quoted = json.dumps({'type': 'user', 'content': rec('Quoted').decode()}).encode() + b'\n'
+        long = json.dumps({'type': 'assistant', 'x': 'z' * 300}).encode() + b'\n'
+        t = self.tmp / 'chunks.jsonl'
+        for data, want in ((rec('Old') + long + rec('New') + quoted + long, 'New'), (rec('Only') + long * 3, 'Only'),
+                           (quoted + long, ''), (b'', ''), (rec('Last').rstrip(b'\n'), 'Last'), (long + rec('Ü é'), 'Ü é')):
+            t.write_bytes(data)
+            for chunk in (*range(1, 40), 64, 299, 300, 301, 1 << 20):
+                n.CHUNK = chunk
+                self.assertEqual(n.title(str(t)), want, (chunk, data[:60]))
+        t.write_bytes(rec('Start') + json.dumps({'type': 'assistant', 'x': 'z' * (4 << 20)}).encode() + b'\n')
+        n.CHUNK = 128
+        start = time.monotonic()
+        self.assertEqual(n.title(str(t)), 'Start')
+        self.assertLess(time.monotonic() - start, 2, 'one 4 MiB line read in 128-byte chunks stays linear')
+        n.CHUNK = 1 << 20
 
     def test_settings(self):
         hooks = json.loads((ROOT / '.claude/settings.json').read_text())['hooks']

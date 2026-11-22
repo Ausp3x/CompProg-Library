@@ -201,7 +201,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/skills/reap/reap.py\" --own",
+            "command": "d=\"$CLAUDE_PROJECT_DIR\"; [ -f \"$d/.claude/skills/reap/reap.py\" ] || d=\"${d%/.claude/worktrees/*}\"; python3 \"$d/.claude/skills/reap/reap.py\" --own",
             "timeout": 20
           }
         ]

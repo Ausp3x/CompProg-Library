@@ -41,9 +41,8 @@ ignored) -> test_mappings, test_random;
 model check (served != requested, served or requested off-list, the newest request off-list with a good reply, aliases
 and unknown shapes, context suffix, deny JSON shape) -> test_model_check, test_random; PreModelSwitch (SUP32): allowed ids
 and context-suffixed forms pass silently, off-list, dated-unlisted, alias, empty, missing and non-string to_model denied
-with the exact PreModelSwitch deny JSON (also when warm), the warm-cache systemMessage with and without context_tokens
-and estimated_cache_write_usd, cold and non-True warm flags silent, wrong-typed (bool, string, float, negative) tokens
-and costs left out, the set re-read and empty, e-mail addresses redacted in to_model and the listed set, in process and
+with the exact PreModelSwitch deny JSON (also when warm), allowed switches silent warm or cold with any cache fields
+(Claude Code's own dialog warns, user decision 2026-11-23), the set re-read and empty, e-mail addresses redacted in to_model and the listed set, in process and
 through the subprocess hook -> test_model_switch; status line `miss N` (warm, cold, no ttl; absent at 0, missing, bool,
 negative and non-int) -> test_experiment_latch, test_statusline_broken; allowed set from packages.json,
 agent and skill front matter and harness.json, re-read at every call in and out of process -> test_allowed_sources;
@@ -103,7 +102,8 @@ the previous turn's reply at the next prompt -> test_prompt_check; provider ids 
 the guard's own texts never read as hide-text -> test_guard_texts_not_hide; one state folder for a worktree and its
 main checkout -> test_main_checkout; the real settings.json registers every hook event, and (SUP32) PreCompact
 resume.py precompact, Notification notify.py on permission_prompt|idle_prompt, SessionEnd reap.py --own on exit only
-(timeout 10 to 60 s, never --scratchpads), PreModelSwitch harness.py hook without matcher, worktree.baseRef head,
+(timeout 10 to 60 s, never --scratchpads; run by bash on stub scripts, the project's own reap.py, else the main
+checkout's once a worktree under .claude/worktrees is gone), PreModelSwitch harness.py hook without matcher, worktree.baseRef head,
 enableArtifact false and the skillOverrides -> test_real_settings;
 a subagent's last reply, written after SubagentStop, checked from the main thread (the first check after a change included), refused once per reply, re-checked against the current set, the session from the transcript -> test_subagent_end; diff review: the Stop warning names the reply by position -> test_stop_wording; an unparseable global config -> test_unparseable_config.
 
@@ -638,7 +638,6 @@ class Harness(Fixture):
     def test_model_switch(self):
         how = ('To allow a model, name it in `models` of 00-Guidelines/13-Plan/packages.json, in the agent files or skill front '
                'matter that use it, or in `models` of .claude/harness.json (CLAUDE.md, Models and Delegation).')
-        tail = ' uncached. A fresh session of the matching preset avoids it (01-prompts.md, Workflow).'
         ids = f'{FABLE}, {HAIKU}, {OPUS}'
         self.records(request(), reply())
 
@@ -648,16 +647,13 @@ class Harness(Fixture):
         def denied(shown, listed=ids):
             return {'hookSpecificOutput': {'hookEventName': 'PreModelSwitch', 'permissionDecision': 'deny',
                                            'permissionDecisionReason': f'Model guard: {shown} is outside the allowed set {listed}. {how}'}}
-
-        def warm(shown, middle):
-            return {'systemMessage': f'Harness: switching to {shown} drops the warm prompt cache; the next request{middle}{tail}'}
         for proc in (False, True):
             for to in (OPUS, FABLE, HAIKU, OPUS + '[1m]', FABLE + '[200k]'):
                 self.assertIsNone(switch(proc, to_model=to), f'{to} is allowed; proc={proc}')
                 self.assertIsNone(switch(proc, to_model=to, prompt_cache_warm=False, context_tokens=5000), f'cold; {to}')
             self.assertEqual(switch(proc, to_model=OLD), denied(OLD), proc)
-            self.assertEqual(switch(proc, to_model=FABLE, prompt_cache_warm=True, context_tokens=123456, estimated_cache_write_usd=1.234),
-                             warm(FABLE, ' re-sends about 123k tokens (about $1.23 to cache)'), proc)
+            self.assertIsNone(switch(proc, to_model=FABLE, prompt_cache_warm=True, context_tokens=123456, estimated_cache_write_usd=1.234),
+                              f"warm: Claude Code's own dialog warns; proc={proc}")
         for to, shown in ((SONNET, SONNET), (OPUS + '-20261101', OPUS + '-20261101'), ('opus', 'opus'), ('', ''),
                           (OPUS + '[1m]x', OPUS + '[1m]x'), ('claude-' + 'x' * 60, ('claude-' + 'x' * 60)[:40]), (5, '5'), (True, 'True'),
                           (None, 'None'), ([OPUS], f"['{OPUS}']"), ({'id': OPUS}, f"{{'id': '{OPUS}'}}")):
@@ -665,18 +661,9 @@ class Harness(Fixture):
             self.assertEqual(switch(to_model=to, prompt_cache_warm=True, context_tokens=9000), denied(shown), f'deny before the cache note: {to!r}')
         self.assertEqual(switch(), denied('None'), 'to_model missing')
         self.assertEqual(switch(to_model=OLD + '[1m]', prompt_cache_warm=True), denied(OLD + '[1m]'))
-        for kw, middle in (({}, ' re-sends the context'), ({'context_tokens': 999}, ' re-sends about 0k tokens'),
-                           ({'context_tokens': 1000}, ' re-sends about 1k tokens'), ({'estimated_cache_write_usd': 2}, ' re-sends the context (about $2.00 to cache)'),
-                           ({'context_tokens': 400000, 'estimated_cache_write_usd': 0.0}, ' re-sends about 400k tokens (about $0.00 to cache)')):
-            self.assertEqual(switch(to_model=OPUS + '[1m]', prompt_cache_warm=True, **kw), warm(OPUS + '[1m]', middle), kw)
-        for bad in (0, -5, '123456', 12.5, None, [1000], False, True):
-            self.assertEqual(switch(to_model=OPUS, prompt_cache_warm=True, context_tokens=bad), warm(OPUS, ' re-sends the context'),
-                             f'context_tokens={bad!r} is no positive int')
-        for bad in ('1.5', None, True, False, [1], {'usd': 1}, float('nan'), float('inf'), -1.0):
-            self.assertEqual(switch(to_model=OPUS, prompt_cache_warm=True, estimated_cache_write_usd=bad), warm(OPUS, ' re-sends the context'),
-                             f'estimated_cache_write_usd={bad!r} is no number')
-        for flag in (1, 'true', [True], {'warm': True}, None):
-            self.assertIsNone(switch(to_model=OPUS, prompt_cache_warm=flag, context_tokens=5000), f'prompt_cache_warm={flag!r} is not True')
+        for kw in ({}, {'context_tokens': 400000, 'estimated_cache_write_usd': 0.0}, {'context_tokens': True, 'estimated_cache_write_usd': float('nan')},
+                   {'context_tokens': '1', 'estimated_cache_write_usd': -1.0}, {'prompt_cache_warm': 'true'}):
+            self.assertIsNone(switch(to_model=OPUS + '[1m]', **{'prompt_cache_warm': True} | kw), f'an allowed switch is silent: {kw}')
         self.wjson('.claude/harness.json', CONF | {'models': [HAIKU, OLD]})
         self.assertIsNone(switch(to_model=OLD), 'the allowed set is re-read at every call')
         self.assertEqual(switch(to_model=SONNET), denied(SONNET, f'{FABLE}, {HAIKU}, {OLD}, {OPUS}'))
@@ -686,7 +673,7 @@ class Harness(Fixture):
         self.assertEqual(switch(to_model=OPUS), denied(OPUS, '(empty)'), 'no allowed model')
         email = 'ada.lovelace@example.org'
         self.wjson('.claude/harness.json', CONF | {'models': [HAIKU, f'team-{email}']})
-        for to, kw in ((f'claude-opus-{email}', {}), ('x' * 34 + f' {email}', {}), (f'team-{email}', {'prompt_cache_warm': True})):
+        for to, kw in ((f'claude-opus-{email}', {}), ('x' * 34 + f' {email}', {})):
             for proc in (False, True):
                 out = json.dumps(switch(proc, to_model=to, **kw))
                 self.assertIn('<redac', out, to)
@@ -1668,7 +1655,8 @@ class Harness(Fixture):
                    for e in ('PreCompact', 'Notification', 'SessionEnd', 'PreModelSwitch')}
         for e, matcher, cmd in (('PreCompact', None, run + '.claude/hooks/resume.py" precompact'),
                                 ('Notification', 'permission_prompt|idle_prompt', run + '.claude/hooks/notify.py"'),
-                                ('SessionEnd', 'prompt_input_exit|logout|other', run + '.claude/skills/reap/reap.py" --own'),
+                                ('SessionEnd', 'prompt_input_exit|logout|other', 'd="$CLAUDE_PROJECT_DIR"; [ -f "$d/.claude/skills/reap/reap.py" ] '
+                                 '|| d="${d%/.claude/worktrees/*}"; python3 "$d/.claude/skills/reap/reap.py" --own'),
                                 ('PreModelSwitch', None, run + '.claude/hooks/harness.py" hook')):
             self.assertIn((matcher, cmd), [x[:2] for x in entries[e]], e)
             self.assertTrue((ROOT / cmd.split('/', 1)[1].split('"')[0]).is_file(), cmd)
@@ -1678,6 +1666,22 @@ class Harness(Fixture):
         self.assertFalse([c for _, c, _ in entries['SessionEnd'] if '--scratchpads' in c], 'SessionEnd never reaps scratchpads')
         self.assertFalse([m for m, _, _ in entries['SessionEnd'] if m is None or {'clear', 'resume'} & set(m.split('|'))],
                          'SessionEnd reaps on exit only, never on /clear or resume')
+        with tempfile.TemporaryDirectory() as tmp:  # the command run by bash, as Claude Code runs hooks, on a stub reap.py
+            main = Path(tmp, 'x/.claude/worktrees/y/main checkout')  # a checkout inside another's worktree: the nearest wins
+            (main / '.claude/skills/reap').mkdir(parents=True)
+            (main / '.claude/skills/reap/reap.py').write_text('import sys, pathlib\npathlib.Path(sys.argv[0]).with_name("ran").write_text(" ".join(sys.argv[1:]))\n')
+            wt = main / '.claude/worktrees/P900-x'
+            (wt / '.claude/skills/reap').mkdir(parents=True)
+            (wt / '.claude/skills/reap/reap.py').write_text((main / '.claude/skills/reap/reap.py').read_text())
+            (main / '.claude/worktrees/bare').mkdir()  # a worktree folder without reap.py
+            command = [c for _, c, _ in entries['SessionEnd'] if 'reap.py' in c][0]
+            for project, ran in ((main, main), (wt, wt), (main / '.claude/worktrees/gone', main), (main / '.claude/worktrees/gone/sub', main),
+                                 (main / '.claude/worktrees/bare', main)):
+                for r in (main, wt):
+                    Path(r, '.claude/skills/reap/ran').unlink(missing_ok=True)
+                subprocess.run(['bash', '-c', command], env=os.environ | {'CLAUDE_PROJECT_DIR': str(project)}, timeout=30, check=True)
+                self.assertEqual(Path(ran, '.claude/skills/reap/ran').read_text(), '--own', project)
+                self.assertFalse(Path(wt if ran == main else main, '.claude/skills/reap/ran').exists(), project)
         self.assertEqual(s.get('worktree'), {'baseRef': 'head'})
         self.assertIs(s.get('enableArtifact'), False)
         over = s.get('skillOverrides')

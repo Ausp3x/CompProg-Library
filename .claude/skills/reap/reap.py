@@ -11,8 +11,8 @@ worktree's), or the temp cp-* tree; a sibling checkout whose path merely starts 
   its processes reparented away from it. Run --own only when nothing of this session should keep running.
 - reported, never ended: another live session's related processes reparented away from it or running a tool command
   for over an hour, orphans of other projects' ended sessions, related reparented processes without CLAUDE_PID, and
-  processes detached by design (CP_REAP_KEEP=1 in their environment, such as the harness audit scan) once reparented
-  and running for over an hour.
+  processes detached by design (CP_REAP_KEEP=1 in their environment: the harness audit scan, the notification click
+  helper) once reparented and running for over an hour.
 Temporaries directly in the temp directory (this user's, unchanged for --grace minutes, named by no process's cwd,
 executable, open file, mapping or argument) are deleted: clangd's preamble-*.pch; cp-* test files and directories, gcc's
 cc??????.* files and cp-mutation-<stem>-* workdirs when no live worker (a compiler, a process of a Claude session, or one

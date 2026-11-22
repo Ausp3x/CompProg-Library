@@ -1287,17 +1287,12 @@ def outward_items(a):
 
 def model_switch(data):
     """PreModelSwitch (SUP32): deny a `to_model` outside the allowed set, checked here because a target without a
-    canonical name runs every hook whatever its matcher; otherwise warn when the switch drops a warm prompt cache."""
+    canonical name runs every hook whatever its matcher. A warm-cache switch gets Claude Code's own confirmation, which
+    shows before this hook's messages would (user decision 2026-11-23: no second warning)."""
     to, ids = data.get('to_model'), allowed()[0]
     if not (isinstance(to, str) and base(to) in ids):
         return {'hookSpecificOutput': {'hookEventName': 'PreModelSwitch', 'permissionDecision': 'deny', 'permissionDecisionReason': redact(
             f'Model guard: {cut(to)} is outside the allowed set {", ".join(sorted(ids)) or "(empty)"}. {HOW}')}}
-    if data.get('prompt_cache_warm') is True:
-        tokens, usd = data.get('context_tokens'), data.get('estimated_cache_write_usd')
-        size = f' re-sends about {tokens // 1000}k tokens' if type(tokens) is int and tokens > 0 else ' re-sends the context'
-        cost = f' (about ${usd:.2f} to cache)' if type(usd) in (int, float) and 0 <= usd < float('inf') else ''
-        return {'systemMessage': redact(f'Harness: switching to {cut(to)} drops the warm prompt cache; the next request{size}'
-                                        f'{cost} uncached. A fresh session of the matching preset avoids it (01-prompts.md, Workflow).')}
     return None
 
 

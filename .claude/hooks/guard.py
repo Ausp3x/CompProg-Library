@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""PreToolUse guard: protect archives and generated files, and block context-blowing reads."""
+"""PreToolUse guard: protect archives, generated files and git's own files (.git/, any repository), and block
+context-blowing reads."""
 import json
 import re
 import sys
@@ -22,6 +23,9 @@ def main():
         return
     path = Path(raw)
     path = path if path.is_absolute() else ROOT / path
+    if tool in ('Edit', 'Write', 'NotebookEdit') and '.git' in (p.casefold() for p in path.resolve().parts):  # any case: macOS, Windows
+        return deny("Git's own files (.git/) are not edited with Edit or Write: their config names the hooks that guard pushes "
+                    'and commits (CLAUDE.md, Git). Use git commands instead.')
     try:
         rel = path.resolve().relative_to(ROOT).as_posix()
     except ValueError:

@@ -15,7 +15,10 @@ Testing/04-submit.py` run in command position (directly or after a python or pyp
 submitting is the user's (01-principles.md, Scope discipline); quoted text and heredoc bodies are not commands, and an
 encoded command can still get past these checks, which only stop the plain spellings. It also refuses any command whose
 text names CP_USER (the user's override below), CLAUDE_CODE_CHILD_SESSION, `--no-verify`, a value for core.hooksPath or
-its removal, or `env -i` (which would clear the environment the guards read) (GUARD_TEXT). `pre` runs for the Monitor tool too, whose commands carry the same environment; only Bash commands get the
+its removal, `env -i` (which would clear the environment the guards read), a path into .git/config, .git/hooks or a
+worktree's config in any case, with repeated slashes or `/./`, or a git config include (GUARD_TEXT; guard.py refuses Edit,
+Write and NotebookEdit under any .git). It refuses commands that only mention those texts too, and a path reached by `cd
+.git` or `$(git rev-parse --git-dir)` gets past it. `pre` runs for the Monitor tool too, whose commands carry the same environment; only Bash commands get the
 snapshot, since `post` runs for Bash alone.
 
 `push` is the git pre-push hook (.claude/githooks/pre-push) and `claude_shell()` the guard 04-submit.py loads (SUP32, user
@@ -96,7 +99,7 @@ OPTARG = {'-u', '-C', '-g', '-S', '--unset', '--chdir', '--split-string', '--use
 GUARD_TEXT = re.compile(r'\b(?:%s|CLAUDE_CODE_CHILD_SESSION)\b|--no-verify\b|(?i:core\.hookspath)(?:[\'"]?\s*=|\s+[^\s;&|)-])'
                         r'|(?i:(?:--unset(?:-all)?|\bunset)\s+core\.hookspath|--remove-section\s+[\'"]?core\b)'
                         r'|\benv(?:\s+(?:-[uCS]\s+\S+|--\w[\w-]*=\S*|-\S+|\w+=\S*))*?\s+(?:-i|--ignore-environment|-)(?=\s|$)'
-                        % ('CP' + '_USER'))
+                        r'|(?i:\.git(?:/+\.?)*/+(?:config|hooks|worktrees/+[^/\s]+/+config)|\binclude(?:\.path|if\.))\b' % ('CP' + '_USER'))
 
 
 HEREDOC = re.compile(r'(?<!<)<<(-?)\s*([\'"]?)([A-Za-z_]\w*)\2')
